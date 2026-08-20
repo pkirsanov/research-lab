@@ -658,7 +658,15 @@
                     <p class="microcopy">Public cache and central credential ownership are neither inspected nor cleared
                         by this control.</p>
                 </div>
-                <button id="emergencyClear" class="danger" type="button">Clear foundation storage</button>
+                <div>
+                    <label for="fullClearConfirmation">Type <strong>CLEAR ALL LOCAL DATA</strong> to confirm
+                        <input id="fullClearConfirmation" type="text" autocomplete="off"
+                            aria-describedby="fullClearHelp">
+                    </label>
+                    <p id="fullClearHelp" class="microcopy">This removes every personal durable and live category.
+                        Public generic evidence and the public watchlist are preserved.</p>
+                    <button id="emergencyClear" class="danger" type="button">Clear all personal data</button>
+                </div>
             </div>
             <div class="band">
                 <h3>Personal categories held on this device</h3>
@@ -852,6 +860,9 @@
                         <label for="manualQuantity">Quantity
                             <input id="manualQuantity" type="number" min="0" step="any">
                         </label>
+                        <label for="manualWeight">Weight
+                            <input id="manualWeight" type="number" min="0" max="1" step="any">
+                        </label>
                         <label for="manualPrice">Eligible local price
                             <input id="manualPrice" type="number" min="0" step="any">
                         </label>
@@ -882,6 +893,31 @@
                     </div>
                     <div class="button-row" style="margin-top:12px">
                         <button id="previewManual" type="button">Preview manual holding</button>
+                    </div>
+                </div>
+
+                <div class="band" aria-labelledby="holdingEditorHeading">
+                    <h3 id="holdingEditorHeading">Revise current holdings</h3>
+                    <p class="subtle">Edits remain in one immutable draft until you confirm a replacement revision.
+                        Removing the final row creates an honest empty portfolio.</p>
+                    <button id="beginHoldingEdit" type="button">Revise current holdings</button>
+                    <div id="holdingEditorPanel" hidden>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr><th scope="col">Holding</th><th scope="col">Type</th><th scope="col">Basis</th><th scope="col">Actions</th></tr>
+                                </thead>
+                                <tbody id="holdingEditorRows"></tbody>
+                            </table>
+                        </div>
+                        <p id="holdingEditorEmpty" class="state-message" hidden>Portfolio empty</p>
+                        <div class="button-row" style="margin-top:12px">
+                            <button id="addHoldingRow" type="button">Add from manual fields</button>
+                            <button id="applyHoldingEdit" type="button" disabled>Apply holding edit</button>
+                            <button id="confirmHoldingRevision" class="primary" type="button" disabled>Confirm replacement revision</button>
+                            <button id="cancelHoldingRevision" type="button">Cancel revision</button>
+                        </div>
+                        <div id="holdingEditorResult" class="state-message" role="status">No revision draft.</div>
                     </div>
                 </div>
 
@@ -1062,8 +1098,12 @@
                 draft: null,
                 mandateDraft: null,
                 behaviorDraft: null,
+                holdingDraft: null,
+                holdingEditId: null,
+                controllerPersonalState: JSON.parse(JSON.stringify(api.createEmptyControllerPersonalState())),
+                lastFullClear: null,
                 routeStates: null,
-                route: "workspace",
+                route: "brief",
                 configReady: false,
                 adapters: null,
                 /* Scope 05 brief inputs. `briefWindows` is READ from the public generic config;
@@ -1072,12 +1112,18 @@
                 briefWindows: null,
                 briefWindowId: null,
                 briefPublishedAt: null,
+                behaviorRankResult: null,
+                portfolioBrief: null,
                 /* Subject -> owning tool, READ from the shared registry. Held here rather than
                    inside the composer so the brief cannot drift from the registry that actually
                    defines ownership, and so an unowned subject is a registry fact, not a guess. */
                 briefOwners: {},
                 briefEvidence: [],
-                publicWatchlist: []
+                publicWatchlist: [],
+                genericWindow: null,
+                lastValidGenericWindow: null,
+                genericWindowError: null,
+                genericEvidenceSourceCount: 0
             };
 
             // Fixed, non-sensitive descriptors for a completion recorded on this surface. They are
@@ -1097,7 +1143,7 @@
             var MILLISECONDS_PER_DAY = 86400000;
 
             var ROUTE_TABS = Object.freeze([
-                { hash: "workspace", tab: "workspaceTabBrief" },
+                { hash: "brief", tab: "workspaceTabBrief" },
                 { hash: "risk-xray", tab: "workspaceTabRiskXray" },
                 { hash: "path-lab", tab: "workspaceTabPathLab" },
                 { hash: "diversification", tab: "workspaceTabDiversification" },
@@ -1180,7 +1226,27 @@
                     scenarioCount: workspace ? workspace.scenarios.length : 0,
                     cashNeedCount: (state.cashNeeds || []).length,
                     survivalFloorSet: isFiniteNumber(state.survivalFloor),
-                    routeStates: state.routeStates
+                    routeStates: state.routeStates,
+                    behaviorRankingFingerprint: state.behaviorRankResult ? state.behaviorRankResult.rankingFingerprint : null,
+                    genericEvidenceState: state.genericWindow ? state.genericWindow.state :
+                        (state.genericWindowError ? "invalid" : "unavailable"),
+                    genericEvidenceIdentity: state.genericWindow ? state.genericWindow.genericEvidenceIdentity : null,
+                    genericPublisherIdentity: state.genericWindow ? state.genericWindow.publisherIdentity : null,
+                    genericEvidenceWindow: state.genericWindow ? state.genericWindow.windowId : null,
+                    genericEvidenceSourceCount: state.genericEvidenceSourceCount,
+                    genericEvidenceError: state.genericWindowError,
+                    visibleActionCap: state.behaviorRankResult ? state.behaviorRankResult.visibleActionCap : null,
+                    rankedActionIds: state.behaviorRankResult
+                        ? state.behaviorRankResult.rankedActions.map(function (entry) { return entry.actionId; }) : [],
+                    suppressedActionIds: state.behaviorRankResult
+                        ? state.behaviorRankResult.suppressedActions.map(function (entry) { return entry.actionId; }) : [],
+                    eligibleBehaviorOccurrenceIds: state.behaviorRankResult
+                        ? state.behaviorRankResult.eligibleOccurrences.map(function (entry) { return entry.occurrenceId; }) : [],
+                    quarantinedBehaviorOccurrenceIds: state.behaviorRankResult
+                        ? state.behaviorRankResult.quarantinedOccurrences
+                            .filter(function (entry) { return entry.occurrence; })
+                            .map(function (entry) { return entry.occurrence.occurrenceId; }) : [],
+                    lastFullClear: state.lastFullClear
                 });
             }
 
@@ -4116,10 +4182,20 @@
                 return Array.isArray(state.publicWatchlist) ? state.publicWatchlist : [];
             }
 
-            function briefCompletions() {
+            function briefCompletions(behaviorCutoffAt) {
                 var workspace = state.opened ? state.opened.workspace : null;
                 if (!workspace || !Array.isArray(workspace.behaviorEvents)) return [];
-                return workspace.behaviorEvents.map(function (event) {
+                var deduped = window.RLPORTFOLIOBRIEF.dedupeBehaviorEvents({
+                    behaviorCutoffAt: behaviorCutoffAt,
+                    events: workspace.behaviorEvents,
+                    policy: state.policy
+                });
+                if (!deduped.ok) return [];
+                var eligible = Object.create(null);
+                deduped.value.eligibleOccurrences.forEach(function (entry) { eligible[entry.occurrenceId] = true; });
+                return workspace.behaviorEvents.filter(function (event) {
+                    return event.occurrence && eligible[event.occurrence.occurrenceId];
+                }).map(function (event) {
                     return {
                         subjectId: event.subjectId,
                         subjectKind: event.subjectKind,
@@ -4192,18 +4268,79 @@
                 return records;
             }
 
+            function rankCandidate(item, value) {
+                var identity = api.actionIdentity({
+                    windowId: value.window.id,
+                    subjectId: item.subjectId,
+                    lane: item.lane,
+                    evidenceCutoffAt: value.times.evidenceCutoffAt
+                });
+                if (!identity.ok) return identity;
+                var directAuthority = {
+                    held: "held",
+                    watchlist: "watchlist",
+                    completedResearch: "completed-research",
+                    inferredRelevance: "inferred-relevance"
+                }[item.lane];
+                var explicitExposure = {
+                    held: "held",
+                    watchlist: "watchlist",
+                    completedResearch: "completed",
+                    inferredRelevance: "none"
+                }[item.lane];
+                var evidenceState = item.explanation.evidenceState === "complete" ? "current"
+                    : item.explanation.evidenceState === "partial" ? "partial"
+                        : item.explanation.evidenceState === "stale" ? "stale" : "unavailable";
+                return {
+                    ok: true,
+                    value: {
+                        actionId: identity.value,
+                        datedUrgency: "none",
+                        directAuthority: directAuthority,
+                        evidenceState: evidenceState,
+                        explicitExposure: explicitExposure,
+                        integrity: evidenceState === "current" ? "verified"
+                            : evidenceState === "unavailable" ? "unavailable" : "partial",
+                        lane: item.lane,
+                        relevanceScore: isFinite(item.materiality) ? item.materiality : 0,
+                        subject: item.subjectId,
+                        subjectId: item.subjectId,
+                        triggerState: "active"
+                    }
+                };
+            }
+
             function renderBrief() {
                 var laneRoot = byId("briefLanes");
-                laneRoot.innerHTML = "";
                 if (!state.briefWindows || !state.policy) {
+                    laneRoot.innerHTML = "";
                     setText("briefTimes", "No generic evidence window loaded.");
                     setText("briefStates", "Brief unavailable.");
                     return;
                 }
+                if (!state.genericWindow) {
+                    laneRoot.innerHTML = "";
+                    setText("briefTimes", "No validated generic evidence publication is available.");
+                    byId("briefTimes").className = "state-message warn";
+                    byId("briefTimes").setAttribute("data-generic-window-state", "unavailable");
+                    setText("briefStates", "Brief unavailable.");
+                    updateDiagnostics();
+                    return;
+                }
+                if (state.briefWindowId !== state.genericWindow.windowId) {
+                    setText("briefTimes", "No matching validated publication for " + state.briefWindowId +
+                        ". The last valid " + state.genericWindow.windowId + " brief remains visible.");
+                    byId("briefTimes").className = "state-message warn";
+                    byId("briefTimes").setAttribute("data-generic-window-state", "preserved-last-valid");
+                    updateDiagnostics();
+                    return;
+                }
+                laneRoot.innerHTML = "";
                 var revision = currentRevision();
                 var holdings = revision ? revision.holdings : [];
                 var watchlist = briefWatchlist();
-                var completions = briefCompletions();
+                var behaviorCutoffAt = now();
+                var completions = briefCompletions(behaviorCutoffAt);
                 var subjects = [];
                 holdings.forEach(function (holding) {
                     if (holding && holding.symbol && subjects.indexOf(holding.symbol) === -1) subjects.push(holding.symbol);
@@ -4211,11 +4348,16 @@
                 watchlist.concat(completions.map(function (entry) { return entry.subjectId; }))
                     .forEach(function (symbol) { if (symbol && subjects.indexOf(symbol) === -1) subjects.push(symbol); });
 
-                var composed = window.RLPORTFOLIOBRIEF.composeBrief({
+                var evidence = briefEvidence(subjects, completions);
+                var compositionPolicy = JSON.parse(JSON.stringify(state.policy));
+                var candidateCapacity = subjects.length + completions.length + holdings.length + watchlist.length + 1;
+                compositionPolicy.queue.directActionCap = candidateCapacity;
+                compositionPolicy.queue.generalInterestActionCap = candidateCapacity;
+                var compositionInput = {
                     windows: state.briefWindows,
                     windowId: state.briefWindowId,
                     publishedAt: state.briefPublishedAt,
-                    composedAt: now(),
+                    composedAt: behaviorCutoffAt,
                     /* The revision's stable identity IS its content fingerprint (`portfolioId`),
                        assigned in rlportfolio.js. Using it means a brief identity changes whenever
                        the underlying revision content changes. */
@@ -4224,17 +4366,82 @@
                     holdings: holdings,
                     watchlist: watchlist,
                     completions: completions,
-                    evidence: briefEvidence(subjects, completions),
+                    evidence: evidence,
+                    policy: compositionPolicy
+                };
+                var candidateBrief = window.RLPORTFOLIOBRIEF.composeBrief(compositionInput);
+                if (!candidateBrief.ok) {
+                    state.behaviorRankResult = null;
+                    state.portfolioBrief = null;
+                    setText("briefTimes", candidateBrief.error.code + " · " + candidateBrief.error.reason);
+                    byId("briefTimes").className = "state-message warn";
+                    setText("briefStates", "Brief unavailable.");
+                    return;
+                }
+                var candidateValue = candidateBrief.value;
+                var interestResult = window.RLPORTFOLIOBRIEF.deriveInterestSignals({
+                    behaviorCutoffAt: candidateValue.times.composedAt,
+                    events: state.opened && state.opened.workspace ? state.opened.workspace.behaviorEvents : [],
                     policy: state.policy
                 });
+                if (!interestResult.ok) {
+                    state.behaviorRankResult = null;
+                    state.portfolioBrief = null;
+                    setText("briefTimes", interestResult.error.code + " · " + interestResult.error.reason);
+                    byId("briefTimes").className = "state-message warn";
+                    setText("briefStates", "Brief unavailable.");
+                    return;
+                }
+                var projectionByActionId = Object.create(null);
+                var actionIdByProjection = Object.create(null);
+                var candidates = [];
+                window.RLPORTFOLIOBRIEF.laneOrder.forEach(function (lane) {
+                    candidateValue.lanes[lane].forEach(function (item) {
+                        var candidate = rankCandidate(item, candidateValue);
+                        if (!candidate.ok) return;
+                        candidates.push(candidate.value);
+                        projectionByActionId[candidate.value.actionId] = item;
+                        actionIdByProjection[item.lane + "\n" + item.subjectId] = candidate.value.actionId;
+                    });
+                });
+                var ranked = window.RLPORTFOLIOBRIEF.rankResearchActions({
+                    actions: candidates,
+                    behaviorCutoffAt: candidateValue.times.composedAt,
+                    genericWindowIdentity: state.genericWindow.genericEvidenceIdentity,
+                    interestResult: interestResult.value,
+                    policy: state.policy
+                });
+                if (!ranked.ok) {
+                    state.behaviorRankResult = null;
+                    state.portfolioBrief = null;
+                    setText("briefTimes", ranked.error.code + " · " + ranked.error.reason);
+                    byId("briefTimes").className = "state-message warn";
+                    setText("briefStates", "Brief unavailable.");
+                    return;
+                }
+                var composed = window.RLPORTFOLIOBRIEF.composePortfolioBrief(Object.assign({}, compositionInput, {
+                    behaviorRankResult: ranked.value,
+                    genericWindow: state.genericWindow
+                }));
                 if (!composed.ok) {
+                    state.behaviorRankResult = null;
+                    state.portfolioBrief = null;
                     setText("briefTimes", composed.error.code + " · " + composed.error.reason);
                     byId("briefTimes").className = "state-message warn";
                     setText("briefStates", "Brief unavailable.");
                     return;
                 }
+                state.behaviorRankResult = ranked.value;
+                state.portfolioBrief = composed.value;
                 var value = composed.value;
+                var rankedLanes = { held: [], watchlist: [], completedResearch: [], inferredRelevance: [] };
+                var rankByActionId = Object.create(null);
+                ranked.value.rankedActions.forEach(function (action) {
+                    rankByActionId[action.actionId] = action;
+                    if (projectionByActionId[action.actionId]) rankedLanes[action.lane].push(projectionByActionId[action.actionId]);
+                });
                 byId("briefTimes").className = "state-message ok";
+                byId("briefTimes").setAttribute("data-generic-window-state", state.genericWindow.state);
                 setText("briefTimes", value.window.label + " (" + value.window.etTime + " ET)" +
                     " · evidence cutoff " + value.times.evidenceCutoffAt +
                     " · generic published " + value.times.publishedAt +
@@ -4250,6 +4457,8 @@
                 byId("briefIdentity").setAttribute("data-revision", String(identity.portfolioRevisionId));
                 byId("briefIdentity").setAttribute("data-policy-version", String(identity.behaviorPolicyVersion));
                 byId("briefIdentity").setAttribute("data-action-signature", identity.actionSignature);
+                byId("briefIdentity").setAttribute("data-ranking-fingerprint", ranked.value.rankingFingerprint);
+                byId("briefIdentity").setAttribute("data-generic-window-identity", state.genericWindow.genericEvidenceIdentity);
                 /* The exact policy contract version stays on the data-policy-version
                    attribute for machines. A reader gets the revision, the window and the
                    action count, which are the facts they can act on. */
@@ -4258,15 +4467,23 @@
                     " · " + identity.itemCount + " actions");
 
                 var states = value.states;
-                setText("briefStates", states.materialChange + " · " + states.itemCount + " items · " +
+                var rankedMaterialChange = ranked.value.rankedActions.length ? "material-change" : "no-material-change";
+                setText("briefStates", rankedMaterialChange + " · " + ranked.value.rankedActions.length + " items · " +
                     states.behaviorHistory + " (" + states.behaviorFloor.distinctCompletions + "/" +
                     states.behaviorFloor.requiredCompletions + " completions, " +
                     states.behaviorFloor.distinctUtcDates + "/" + states.behaviorFloor.requiredUtcDates +
                     " dates) · " + states.excludedAfterCutoff + " excluded after cutoff · " +
-                    states.suppressedByCap + " suppressed by cap");
+                    ranked.value.suppressedActions.length + " suppressed by cap");
                 byId("briefStates").setAttribute("data-behavior-history", states.behaviorHistory);
-                byId("briefStates").setAttribute("data-material-change", states.materialChange);
+                byId("briefStates").setAttribute("data-material-change", rankedMaterialChange);
                 byId("briefStates").setAttribute("data-excluded-after-cutoff", String(states.excludedAfterCutoff));
+                var canonicalFloor = ranked.value.interestSignals.length ? ranked.value.interestSignals[0].floor : null;
+                byId("briefStates").setAttribute("data-distinct-completion-identities",
+                    String(canonicalFloor ? canonicalFloor.distinctCompletionIdentities : 0));
+                byId("briefStates").setAttribute("data-distinct-new-york-dates",
+                    String(canonicalFloor ? canonicalFloor.distinctNewYorkCivilDates : 0));
+                byId("briefStates").setAttribute("data-quarantined-occurrences",
+                    String(ranked.value.quarantinedOccurrences.length));
 
                 window.RLPORTFOLIOBRIEF.laneOrder.forEach(function (lane) {
                     var section = document.createElement("section");
@@ -4275,7 +4492,7 @@
                     var heading = document.createElement("h3");
                     heading.textContent = BRIEF_LANE_LABELS[lane];
                     section.appendChild(heading);
-                    var items = value.lanes[lane];
+                    var items = rankedLanes[lane];
                     if (!items.length) {
                         var empty = document.createElement("p");
                         empty.className = "subtle";
@@ -4288,6 +4505,8 @@
                         var list = document.createElement("ul");
                         list.className = "subtle";
                         items.forEach(function (item) {
+                            var actionId = actionIdByProjection[item.lane + "\n" + item.subjectId];
+                            var rankAction = rankByActionId[actionId];
                             var row = document.createElement("li");
                             row.setAttribute("data-subject", item.subjectId);
                             row.setAttribute("data-lane", item.lane);
@@ -4297,6 +4516,9 @@
                             row.setAttribute("data-evidence-state", item.explanation.evidenceState);
                             row.setAttribute("data-recency-state", item.explanation.recency.state);
                             row.setAttribute("data-not-a-known-holding", String(item.notAKnownHolding));
+                            row.setAttribute("data-action-id", actionId);
+                            row.setAttribute("data-global-rank", String(rankAction.rankReason.globalRank));
+                            row.setAttribute("data-ranking-fingerprint", ranked.value.rankingFingerprint);
                             var words = [item.subjectId, item.scopeSource];
                             if (item.alsoQualifiesVia.length) words.push("also qualifies via " + item.alsoQualifiesVia.join(", "));
                             var headline = document.createElement("span");
@@ -4325,12 +4547,17 @@
                             var why = document.createElement("details");
                             why.className = "brief-why";
                             why.setAttribute("data-why-shown", item.subjectId);
+                            why.setAttribute("data-action-id", actionId);
+                            why.setAttribute("data-ranking-fingerprint", ranked.value.rankingFingerprint);
+                            why.setAttribute("data-generic-evidence-identity", state.genericWindow.genericEvidenceIdentity);
                             var summary = document.createElement("summary");
                             summary.textContent = "Why shown";
                             why.appendChild(summary);
                             var dl = document.createElement("dl");
+                            var whyResult = window.RLPORTFOLIOBRIEF.whyShown(actionId, ranked.value, state.genericWindow);
                             [
                                 ["why-shown", "Why shown", item.explanation.whyShown],
+                                ["rank-reason", "Rank reason", whyResult.ok ? whyResult.value.rankReason.tieBreakers.join(" · ") : "unavailable"],
                                 ["event-categories", "Evidence event categories", item.explanation.evidenceEventCategories.join(", ") || "none"],
                                 ["relevance-confidence", "Relevance confidence", item.explanation.relevanceConfidence + " (relevance only, not a success probability)"],
                                 ["horizon", "Horizon", item.explanation.horizon || "unstated"],
@@ -4358,22 +4585,15 @@
                                button carries the ACTION identity, not the subject: the same subject
                                authored in two windows is two actions, and one outcome must not
                                discharge both. */
-                            var identity = api.actionIdentity({
-                                windowId: value.window.id,
-                                subjectId: item.subjectId,
-                                lane: item.lane,
-                                evidenceCutoffAt: value.times.evidenceCutoffAt
-                            });
                             var controls = document.createElement("div");
                             controls.className = "brief-lifecycle";
-                            if (identity.ok) {
-                                row.setAttribute("data-action-id", identity.value);
+                            if (actionId) {
                                 [["complete", "Mark complete"], ["dismiss", "Dismiss"]].forEach(function (pair) {
                                     var button = document.createElement("button");
                                     button.type = "button";
                                     button.setAttribute("data-lifecycle", pair[0]);
                                     button.setAttribute("data-lifecycle-subject", item.subjectId);
-                                    button.setAttribute("data-lifecycle-action", identity.value);
+                                    button.setAttribute("data-lifecycle-action", actionId);
                                     button.textContent = pair[1] + " " + item.subjectId;
                                     controls.appendChild(button);
                                 });
@@ -4391,7 +4611,16 @@
                 var noActionRoot = byId("briefNoAction");
                 if (noActionRoot) {
                     noActionRoot.textContent = "";
-                    if (!value.noAction.length) {
+                    var noAction = value.noAction.slice();
+                    ranked.value.suppressedActions.forEach(function (action) {
+                        noAction.push({
+                            subjectId: action.subjectId,
+                            scopeSource: action.directAuthority,
+                            reason: action.suppressionReason,
+                            actionId: action.actionId
+                        });
+                    });
+                    if (!noAction.length) {
                         var none = document.createElement("p");
                         none.className = "subtle";
                         none.setAttribute("data-no-action-empty", "true");
@@ -4400,10 +4629,11 @@
                     } else {
                         var reasons = document.createElement("ul");
                         reasons.className = "subtle";
-                        value.noAction.forEach(function (entry) {
+                        noAction.forEach(function (entry) {
                             var row = document.createElement("li");
                             row.setAttribute("data-no-action-subject", entry.subjectId);
                             row.setAttribute("data-no-action-reason", entry.reason);
+                            if (entry.actionId) row.setAttribute("data-action-id", entry.actionId);
                             row.textContent = entry.subjectId + " · " + (entry.scopeSource || "unscoped") +
                                 " · " + entry.reason;
                             reasons.appendChild(row);
@@ -4411,6 +4641,7 @@
                         noActionRoot.appendChild(reasons);
                     }
                 }
+                updateDiagnostics();
             }
 
             function refreshWorkspaceViews() {
@@ -4428,7 +4659,7 @@
                 ROUTE_TABS.forEach(function (route) {
                     byId(route.tab).setAttribute("aria-selected", String(route.hash === hash));
                 });
-                var brief = hash === "workspace";
+                var brief = hash === "brief";
                 byId("briefWorkspace").hidden = !brief;
                 byId("portfolioEditor").hidden = !brief;
                 byId("routeStates").hidden = brief;
@@ -4439,7 +4670,7 @@
 
             function routeFromHash() {
                 var raw = (window.location.hash || "").replace(/^#/, "");
-                return ROUTE_TABS.some(function (route) { return route.hash === raw; }) ? raw : "workspace";
+                return ROUTE_TABS.some(function (route) { return route.hash === raw; }) ? raw : "brief";
             }
 
             function renderCurrent(prefix) {
@@ -4545,6 +4776,8 @@
                     horizon: COMPLETION_HORIZON,
                     sourceSurface: COMPLETION_SURFACE,
                     completionConditionId: COMPLETION_CONDITION,
+                    genericEvidenceIdentity: state.behaviorRankResult
+                        ? state.behaviorRankResult.genericWindowIdentity : null,
                     resultIdentity: contracts.fingerprint("portfolio-behavior-result", {
                         contractVersion: "portfolio-behavior-result/v1",
                         category: byId("behaviorCategory").value,
@@ -4593,7 +4826,7 @@
                     }
                     var entry = bySubject[event.subjectId];
                     entry.completions += 1;
-                    entry.dates[event.occurredAt.slice(0, 10)] = true;
+                    entry.dates[event.occurrence ? event.occurrence.newYorkCivilDate : event.occurredAt.slice(0, 10)] = true;
                     entry.categories[event.category] = true;
                 });
                 var subjects = order.map(function (subjectId) {
@@ -4608,10 +4841,16 @@
                             utcDates >= behaviorPolicy.minimumDistinctUtcDates
                     };
                 });
+                var rankOrder = Object.create(null);
+                if (state.behaviorRankResult) {
+                    state.behaviorRankResult.rankedActions.forEach(function (action, index) {
+                        rankOrder[action.subjectId] = index;
+                    });
+                }
                 subjects.sort(function (left, right) {
-                    return (right.completions - left.completions) || (right.utcDates - left.utcDates) ||
-                        (right.categories - left.categories) ||
-                        (left.subjectId < right.subjectId ? -1 : (left.subjectId > right.subjectId ? 1 : 0));
+                    var leftRank = Object.prototype.hasOwnProperty.call(rankOrder, left.subjectId) ? rankOrder[left.subjectId] : Number.MAX_SAFE_INTEGER;
+                    var rightRank = Object.prototype.hasOwnProperty.call(rankOrder, right.subjectId) ? rankOrder[right.subjectId] : Number.MAX_SAFE_INTEGER;
+                    return leftRank - rightRank || order.indexOf(left.subjectId) - order.indexOf(right.subjectId);
                 });
                 return { subjects: subjects, eligibleCompletions: eligibleCompletions };
             }
@@ -4915,6 +5154,7 @@
                     if (byId(textFields[key]).value.length > 0) value[key] = byId(textFields[key]).value;
                 });
                 var numericFields = {
+                    weight: "manualWeight",
                     quantity: "manualQuantity",
                     price: "manualPrice",
                     localValue: "manualValue",
@@ -4925,6 +5165,121 @@
                     if (byId(numericFields[key]).value.length > 0) value[key] = byId(numericFields[key]).value;
                 });
                 return value;
+            }
+
+            function emptyControllerPersonalState() {
+                return JSON.parse(JSON.stringify(api.createEmptyControllerPersonalState()));
+            }
+
+            function syncControllerPersonalState() {
+                var controllerState = emptyControllerPersonalState();
+                controllerState.editorDrafts = [state.draft, state.holdingDraft].filter(Boolean);
+                controllerState.mandateAndCashNeedDrafts = state.mandateDraft ? [state.mandateDraft] : [];
+                controllerState.scenarioInputs = (state.cashNeeds || []).slice();
+                if (isFiniteNumber(state.survivalFloor)) controllerState.scenarioInputs.push({ survivalFloor: state.survivalFloor });
+                controllerState.hedgeVariants = state.hedge ? [state.hedge] : [];
+                controllerState.activeIdentities = state.opened ? {
+                    workspace: state.opened.workspace.semanticFingerprint,
+                    portfolio: state.opened.workspace.currentPortfolioId,
+                    behaviorRanking: state.behaviorRankResult ? state.behaviorRankResult.rankingFingerprint : null,
+                    behaviorActions: state.behaviorRankResult
+                        ? state.behaviorRankResult.rankedActions.map(function (entry) { return entry.actionId; }) : []
+                } : {};
+                controllerState.draftIdentities = state.holdingDraft ? { portfolio: state.holdingDraft.draftId } : {};
+                controllerState.displayState = {
+                    mode: document.body.classList.contains("power") ? "power" : "simple",
+                    route: state.route
+                };
+                controllerState.disclosureState = { privacyOpen: !byId("privacyPanel").hidden };
+                state.controllerPersonalState = controllerState;
+            }
+
+            function clearControllerAdapter() {
+                syncControllerPersonalState();
+                return {
+                    controllerPersonalState: state.controllerPersonalState,
+                    replacePersonalState: function (next) {
+                        this.controllerPersonalState = next;
+                        state.controllerPersonalState = next;
+                        state.draft = null;
+                        state.holdingDraft = null;
+                        state.holdingEditId = null;
+                        state.mandateDraft = null;
+                        state.behaviorDraft = null;
+                        state.behaviorRankResult = null;
+                        state.portfolioBrief = null;
+                        state.cashNeeds = [];
+                        state.survivalFloor = null;
+                        state.hedge = null;
+                    }
+                };
+            }
+
+            function setManualHoldingFields(holding) {
+                var fields = {
+                    manualAssetType: "assetType", manualCurrency: "currency", manualSymbol: "symbol",
+                    manualLabel: "label", manualWeight: "weight", manualQuantity: "quantity",
+                    manualPrice: "price", manualValue: "localValue", manualCostBasis: "costBasis",
+                    manualValuationDate: "valuationDate", manualValuationMethod: "valuationMethod",
+                    manualLiquidity: "liquidityClass", manualValuationFrequency: "valuationFrequency",
+                    manualTransactionCost: "transactionCost", manualUncertainty: "uncertaintyNote"
+                };
+                Object.keys(fields).forEach(function (id) {
+                    var value = holding && holding[fields[id]] !== null && holding[fields[id]] !== undefined
+                        ? holding[fields[id]] : "";
+                    byId(id).value = String(value);
+                });
+            }
+
+            function holdingLabel(holding) {
+                return holding.symbol || holding.label || holding.holdingId;
+            }
+
+            function renderHoldingEditor() {
+                var panel = byId("holdingEditorPanel");
+                panel.hidden = !state.holdingDraft;
+                if (!state.holdingDraft) return;
+                var rows = state.holdingDraft.rows.map(function (holding) {
+                    var row = document.createElement("tr");
+                    row.dataset.holdingId = holding.holdingId;
+                    [holdingLabel(holding), holding.assetType, holding.inputBasis].forEach(function (value) {
+                        var cell = document.createElement("td");
+                        cell.textContent = value;
+                        row.appendChild(cell);
+                    });
+                    var controls = document.createElement("td");
+                    var edit = document.createElement("button");
+                    edit.type = "button";
+                    edit.dataset.editHolding = holding.holdingId;
+                    edit.textContent = "Edit holding";
+                    var remove = document.createElement("button");
+                    remove.type = "button";
+                    remove.dataset.removeHolding = holding.holdingId;
+                    remove.textContent = "Remove holding";
+                    controls.append(edit, remove);
+                    row.appendChild(controls);
+                    return row;
+                });
+                byId("holdingEditorRows").replaceChildren.apply(byId("holdingEditorRows"), rows);
+                byId("holdingEditorEmpty").hidden = rows.length !== 0;
+                byId("confirmHoldingRevision").disabled = !state.holdingDraft.validation.valid;
+                byId("applyHoldingEdit").disabled = !state.holdingEditId;
+                setText("holdingEditorResult", state.holdingDraft.validation.valid
+                    ? "Revision draft is valid. No write has occurred."
+                    : "P008-HOLDING-EDIT · " + state.holdingDraft.validation.errors.map(function (error) { return error.reason; }).join(" · "));
+                syncControllerPersonalState();
+            }
+
+            function setHoldingDraftResult(result) {
+                if (!result.ok) {
+                    setText("holdingEditorResult", result.error.code + " · " + result.error.reason);
+                    byId("holdingEditorResult").className = "state-message error";
+                    return false;
+                }
+                state.holdingDraft = result.value;
+                byId("holdingEditorResult").className = result.value.validation.valid ? "state-message ok" : "state-message error";
+                renderHoldingEditor();
+                return true;
             }
 
             function bootFailure(error) {
@@ -4958,6 +5313,10 @@
                             return;
                         }
                         state.policy = validation.value;
+                        MODE_KEY = state.policy.storage.displayModeKey;
+                        try { storedMode = window.localStorage.getItem(MODE_KEY) === "power" ? "power" : "simple"; }
+                        catch (error) { storedMode = "simple"; }
+                        applyDisplayMode(storedMode, false);
                         state.store = api.createPortfolioStore(state.adapters, state.policy);
                         var opened = state.store.openWorkspace(now());
                         if (!opened.ok) {
@@ -4984,112 +5343,231 @@
                     .catch(function () { bootFailure({ reason: "policy-load-failed" }); });
             }
 
+            function publicArtifactFingerprint(sourceKind, value) {
+                return contracts.fingerprint("portfolio-public-artifact", {
+                    contractVersion: "portfolio-public-artifact/v1",
+                    sourceKind: sourceKind,
+                    value: value
+                });
+            }
+
+            function newYorkCivilDate(instant) {
+                var parts = new Intl.DateTimeFormat("en-CA", {
+                    timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit"
+                }).formatToParts(new Date(instant));
+                var values = {};
+                parts.forEach(function (part) { values[part.type] = part.value; });
+                return values.year + "-" + values.month + "-" + values.day;
+            }
+
+            /* This computes a candidate only. `validateGenericWindow` independently resolves the
+               civil timestamp and rejects a mismatch, so this page cannot become the timezone
+               authority merely by supplying a plausible UTC value. */
+            function newYorkCivilCutoff(date, time) {
+                var target = Date.parse(date + "T" + time + ":00.000Z");
+                if (!isFinite(target)) return null;
+                var guess = target;
+                for (var iteration = 0; iteration < 4; iteration += 1) {
+                    var parts = new Intl.DateTimeFormat("en-CA", {
+                        timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit",
+                        hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23"
+                    }).formatToParts(new Date(guess));
+                    var values = {};
+                    parts.forEach(function (part) { values[part.type] = part.value; });
+                    var represented = Date.UTC(+values.year, +values.month - 1, +values.day,
+                        +values.hour, +values.minute, +values.second);
+                    guess += target - represented;
+                }
+                return new Date(guess).toISOString();
+            }
+
+            function publicIds(rows, kind, preferredFields) {
+                return (Array.isArray(rows) ? rows : []).map(function (row) {
+                    for (var index = 0; index < preferredFields.length; index += 1) {
+                        var value = row && row[preferredFields[index]];
+                        if (typeof value === "string" && value) return value;
+                    }
+                    return publicArtifactFingerprint(kind, row);
+                });
+            }
+
+            function ownerProjection(artifact, cutoffAt) {
+                var refs = [];
+                var owners = {};
+                var reads = artifact && artifact.ownerReads ? artifact.ownerReads : {};
+                Object.keys(reads).sort().forEach(function (toolId) {
+                    Object.keys(reads[toolId] || {}).sort().forEach(function (ticker) {
+                        var read = reads[toolId][ticker];
+                        if (!read || typeof read.asOf !== "string" || read.asOf > cutoffAt ||
+                            typeof read.ownerDeepLink !== "string" || !read.ownerDeepLink) return;
+                        var availability = read.state === "current" ? "current" :
+                            read.state === "stale" ? "stale" : read.state === "unavailable" ? "unavailable" : "partial";
+                        refs.push({
+                            sourceContract: String(artifact.contractVersion), toolId: toolId, role: "owner",
+                            profile: String(read.domainId || "unclassified"), availability: availability,
+                            adapterId: toolId, modelVersion: String(artifact.contractVersion),
+                            deepLink: read.ownerDeepLink, evidenceCutoff: read.asOf,
+                            evidenceFingerprints: [publicArtifactFingerprint("owner-read-evidence", read.read)],
+                            interpretationFingerprints: [publicArtifactFingerprint("owner-read-interpretation", read)],
+                            actionEligibilityEffect: availability === "current" ? "eligible" : "context-only",
+                            contentSha256: publicArtifactFingerprint("owner-read", read)
+                        });
+                        var isCurrent = availability === "current";
+                        if (!owners[ticker] || (isCurrent && !owners[ticker].current)) {
+                            owners[ticker] = { toolId: toolId, href: read.ownerDeepLink, current: isCurrent };
+                        }
+                    });
+                });
+                Object.keys(owners).forEach(function (ticker) { delete owners[ticker].current; });
+                return { refs: refs, owners: owners };
+            }
+
+            function buildGenericWindow(artifacts) {
+                var config = artifacts.config;
+                var snapshot = artifacts.snapshot;
+                var payload = artifacts.payload;
+                var watchlist = artifacts.watchlist;
+                var ownerArtifact = artifacts.ownerReads;
+                var window_ = (config.windows || []).find(function (candidate) { return candidate.id === snapshot.window; });
+                if (!window_) throw new Error("snapshot-window-not-in-public-config");
+                var tradingDate = newYorkCivilDate(snapshot.asOf);
+                var cutoffAt = newYorkCivilCutoff(tradingDate, window_.etTime);
+                if (!cutoffAt) throw new Error("snapshot-window-cutoff-unresolvable");
+                var historyRows = artifacts.historyRows.filter(function (row) {
+                    return row && row.window === window_.id && typeof row.ts === "string" && row.ts <= cutoffAt;
+                });
+                var ownerProjection_ = ownerProjection(ownerArtifact, cutoffAt);
+                var tickers = (watchlist.items || []).map(function (entry) { return entry && entry.ticker; })
+                    .filter(function (ticker) { return typeof ticker === "string" && ticker; });
+                var input = {
+                    contractVersion: "GenericEvidenceWindow/v1",
+                    windowId: window_.id,
+                    timezone: "America/New_York",
+                    windowTradingDate: tradingDate,
+                    scheduledCivilTime: window_.etTime,
+                    cutoffAt: cutoffAt,
+                    snapshotRef: {
+                        state: "current", contentSha256: publicArtifactFingerprint("snapshot", artifacts.snapshotText),
+                        window: snapshot.window, asOf: snapshot.asOf, generatedAt: snapshot.generatedAt,
+                        nextSessionDate: snapshot.nextSessionDate,
+                        dataFreshnessSha256: publicArtifactFingerprint("snapshot-data-freshness", snapshot.dataFreshness)
+                    },
+                    payloadRef: {
+                        state: "current", contentSha256: publicArtifactFingerprint("payload", artifacts.payloadText),
+                        asOf: payload.asOf,
+                        attentionIds: publicIds(payload.attention, "attention", ["id", "deepLink"]),
+                        recommendationIds: publicIds(payload.nextSession && payload.nextSession.actions,
+                            "recommendation", ["recommendationKey", "id"]),
+                        deepLinkIds: publicIds(payload.attention, "attention-deep-link", ["deepLink", "id"]),
+                        lifecycleIds: publicIds(payload.nextSession && payload.nextSession.actions,
+                            "recommendation-lifecycle", ["lifecycleId", "recommendationKey", "id"])
+                    },
+                    historyRefs: historyRows.map(function (row) {
+                        return {
+                            lineIdentity: publicArtifactFingerprint("history-line", row), window: row.window,
+                            observedAt: row.ts, evidenceFingerprint: publicArtifactFingerprint("history-evidence", {
+                                window: row.window, bench: row.bench, crossAsset: row.crossAsset,
+                                claims: row.claims, dark: row.dark
+                            }),
+                            sourceToken: String(row.contractVersion || "brief-history-recent-row/v2"),
+                            contentSha256: publicArtifactFingerprint("history-content", row)
+                        };
+                    }),
+                    watchlistRef: {
+                        state: "current", contentSha256: publicArtifactFingerprint("watchlist", artifacts.watchlistText),
+                        orderedTickerFingerprint: publicArtifactFingerprint("watchlist-tickers", tickers)
+                    },
+                    ownerReadRefs: ownerProjection_.refs,
+                    publisherIdentity: null,
+                    genericEvidenceIdentity: null,
+                    retrievedAt: now(),
+                    composedAt: now(),
+                    state: "current",
+                    reasons: []
+                };
+                var validated = window.RLPORTFOLIOBRIEF.validateGenericWindow(input, state.policy, { now: input.composedAt });
+                if (!validated.ok) {
+                    var validationError = new Error(validated.error.code + ":" + validated.error.reason);
+                    validationError.portfolioError = validated.error;
+                    throw validationError;
+                }
+                return { config: config, genericWindow: validated.value, owners: ownerProjection_.owners, tickers: tickers };
+            }
+
+            function fetchPublicArtifact(path, parseJson) {
+                return fetch(path, { cache: "no-store", credentials: "same-origin" })
+                    .then(function (response) {
+                        if (!response.ok) throw new Error(path + "-http-" + response.status);
+                        return response.text();
+                    })
+                    .then(function (text) {
+                        return { text: text, value: parseJson ? JSON.parse(text) : text };
+                    });
+            }
+
             /* The generic window contract is fetched READ-ONLY from the same origin. A failure here
                leaves the brief explicitly unavailable rather than falling back to a locally invented
                schedule, because a second copy of the schedule is a second source of truth. */
             function loadBriefWindows() {
-                fetch("market-brief.config.json", { cache: "no-store", credentials: "same-origin" })
-                    .then(function (response) {
-                        if (!response.ok) throw new Error("brief-config-http-" + response.status);
-                        return response.json();
-                    })
-                    .then(function (config) {
-                        if (!config || !Array.isArray(config.windows) || !config.windows.length) {
+                Promise.all([
+                    fetchPublicArtifact("market-brief.config.json", true),
+                    fetchPublicArtifact("market-brief.snapshot.json", true),
+                    fetchPublicArtifact("market-brief.payload.json", true),
+                    fetchPublicArtifact("brief-history.recent.jsonl", false),
+                    fetchPublicArtifact("watchlist.json", true),
+                    fetchPublicArtifact("market-brief.owner-reads.json", true)
+                ])
+                    .then(function (loaded) {
+                        var artifacts = {
+                            config: loaded[0].value,
+                            snapshot: loaded[1].value,
+                            snapshotText: loaded[1].text,
+                            payload: loaded[2].value,
+                            payloadText: loaded[2].text,
+                            historyRows: loaded[3].text.split("\n").filter(Boolean).map(function (line) { return JSON.parse(line); }),
+                            watchlist: loaded[4].value,
+                            watchlistText: loaded[4].text,
+                            ownerReads: loaded[5].value
+                        };
+                        if (!artifacts.config || !Array.isArray(artifacts.config.windows) || !artifacts.config.windows.length) {
                             throw new Error("brief-config-windows-absent");
                         }
-                        state.briefWindows = config.windows;
-                        state.briefWindowId = state.briefWindowId || config.windows[0].id;
-                        state.briefPublishedAt = config.asOf || now();
+                        var projection = buildGenericWindow(artifacts);
+                        state.briefWindows = projection.config.windows;
+                        state.briefWindowId = projection.genericWindow.windowId;
+                        state.briefPublishedAt = projection.genericWindow.payloadRef.asOf;
+                        state.publicWatchlist = projection.tickers;
+                        state.briefOwners = projection.owners;
+                        state.genericWindow = projection.genericWindow;
+                        state.lastValidGenericWindow = projection.genericWindow;
+                        state.genericWindowError = null;
+                        state.genericEvidenceSourceCount = 5;
                         var select = byId("briefWindow");
                         select.innerHTML = "";
-                        config.windows.forEach(function (window_) {
+                        projection.config.windows.forEach(function (window_) {
                             var option = document.createElement("option");
                             option.value = window_.id;
                             option.textContent = window_.label + " (" + window_.etTime + " ET)";
                             select.appendChild(option);
                         });
                         select.value = state.briefWindowId;
-                        loadPublicWatchlist();
-                        loadOwnerRoutes();
                         renderBrief();
                     })
                     .catch(function (error) {
-                        state.briefWindows = null;
-                        setText("briefTimes", "Generic evidence window unavailable · " + error.message);
+                        state.genericWindow = state.lastValidGenericWindow;
+                        state.genericWindowError = error.portfolioError || {
+                            contractVersion: "PortfolioError/v1", code: "P008-BRIEF-EVIDENCE",
+                            reason: "public-evidence-transaction-failed", field: null, row: null,
+                            valueEchoed: false, recoverable: true
+                        };
+                        setText("briefTimes", state.genericWindow
+                            ? "Public evidence refresh refused. The last valid brief remains visible."
+                            : "Generic evidence window unavailable.");
                         byId("briefTimes").className = "state-message warn";
-                        setText("briefStates", "Brief unavailable. No window is assumed.");
-                    });
-            }
-
-            /* The public watchlist is tickers only, read from the committed public artifact. A
-               failure leaves the lane empty rather than substituting holdings, because deriving a
-               watchlist from what is owned would fabricate an interest signal. */
-            function loadPublicWatchlist() {
-                fetch("watchlist.json", { cache: "no-store", credentials: "same-origin" })
-                    .then(function (response) {
-                        if (!response.ok) throw new Error("watchlist-http-" + response.status);
-                        return response.json();
-                    })
-                    .then(function (list) {
-                        var items = list && Array.isArray(list.items) ? list.items : [];
-                        state.publicWatchlist = items
-                            .map(function (entry) { return entry && entry.ticker; })
-                            .filter(function (ticker) { return typeof ticker === "string" && ticker; });
-                        renderBrief();
-                    })
-                    .catch(function () {
-                        state.publicWatchlist = [];
-                        renderBrief();
-                    });
-            }
-
-            /* Subject -> owning tool, READ from the shared public registry rather than declared here.
-               `market-brief.owner-reads.json` records which tool actually published a read for which
-               ticker, AND the route that tool declares for it, so ownership and its link are one
-               registry fact this page cannot drift from. Resolving the route a second way — through
-               tools.json — would create a second definition of the same link, so the producer's own
-               `ownerDeepLink` is used directly.
-
-               Without this the map stayed empty and EVERY subject rendered as `unownedCapability`,
-               which told the reader no owning tool existed even when one did — a false statement, not
-               a missing feature. A failure here restores that empty map on purpose: an unowned
-               subject is then reported as a named capability gap, which is honest, rather than
-               guessing a route that may not resolve.
-
-               The artifact is public — the tickers-only watchlist projection — so no personal value
-               participates in routing. */
-            function loadOwnerRoutes() {
-                fetch("market-brief.owner-reads.json", { cache: "no-store", credentials: "same-origin" })
-                    .then(function (response) {
-                        if (!response.ok) throw new Error("owner-routes-http-" + response.status);
-                        return response.json();
-                    })
-                    .then(function (artifact) {
-                        var reads = (artifact && artifact.ownerReads) || {};
-                        var owners = {};
-                        // Producer order is the artifact's own declared precedence, so the choice is
-                        // deterministic. A tool holding a real read outranks one reporting a gap,
-                        // because linking to a published answer beats linking to a stated absence.
-                        ((artifact && artifact.domainsProduced) || []).forEach(function (domainId) {
-                            Object.keys(reads).forEach(function (toolId) {
-                                var perTicker = reads[toolId] || {};
-                                Object.keys(perTicker).forEach(function (ticker) {
-                                    var read = perTicker[ticker];
-                                    if (!read || read.domainId !== domainId) return;
-                                    if (typeof read.ownerDeepLink !== "string" || !read.ownerDeepLink) return;
-                                    var isCurrent = read.state === "current";
-                                    if (owners[ticker] && !(isCurrent && !owners[ticker].current)) return;
-                                    owners[ticker] = { toolId: toolId, href: read.ownerDeepLink, current: isCurrent };
-                                });
-                            });
-                        });
-                        Object.keys(owners).forEach(function (ticker) { delete owners[ticker].current; });
-                        state.briefOwners = owners;
-                        renderBrief();
-                    })
-                    .catch(function () {
-                        state.briefOwners = {};
-                        renderBrief();
+                        byId("briefTimes").setAttribute("data-generic-window-state",
+                            state.genericWindow ? "preserved-last-valid" : "unavailable");
+                        setText("briefStates", state.genericWindow ? "Last valid brief retained." : "Brief unavailable. No window is assumed.");
+                        updateDiagnostics();
                     });
             }
 
@@ -5216,14 +5694,14 @@
             /* Simple/Power is a DISPLAY choice, so it is stored under the display
                namespace and never re-runs analytics. Re-rendering from the same
                state is what makes a conclusion identical across both modes. */
-            var MODE_KEY = "rl-portfolio-display-mode";
+            var MODE_KEY = null;
 
             function applyDisplayMode(mode, persist) {
                 var power = mode === "power";
                 document.body.classList.toggle("power", power);
                 byId("modeSimple").setAttribute("aria-pressed", String(!power));
                 byId("modePower").setAttribute("aria-pressed", String(power));
-                if (persist) {
+                if (persist && MODE_KEY) {
                     try { window.localStorage.setItem(MODE_KEY, power ? "power" : "simple"); }
                     catch (error) { /* session-only mode: the choice simply does not persist */ }
                 }
@@ -5234,8 +5712,6 @@
             byId("modePower").addEventListener("click", function () { applyDisplayMode("power", true); });
 
             var storedMode = "simple";
-            try { storedMode = window.localStorage.getItem(MODE_KEY) === "power" ? "power" : "simple"; }
-            catch (error) { storedMode = "simple"; }
             applyDisplayMode(storedMode, false);
             publishPrivacyBoundaryRead();
 
@@ -5245,7 +5721,95 @@
                 var panel = byId("privacyPanel");
                 panel.hidden = !panel.hidden;
                 this.setAttribute("aria-expanded", String(!panel.hidden));
+                syncControllerPersonalState();
                 if (!panel.hidden) renderInventory();
+            });
+
+            byId("beginHoldingEdit").addEventListener("click", function () {
+                if (!state.configReady || !currentRevision()) {
+                    setText("holdingEditorResult", "P008-HOLDING-EDIT · current-portfolio-required");
+                    byId("holdingEditorResult").className = "state-message error";
+                    return;
+                }
+                state.holdingEditId = null;
+                setManualHoldingFields(null);
+                setHoldingDraftResult(api.createPortfolioDraft(state.opened.workspace, now(), state.policy));
+            });
+
+            byId("addHoldingRow").addEventListener("click", function () {
+                if (!state.holdingDraft) return;
+                var preview = api.validateManualDraft(manualDraft(), state.opened.workspace, state.policy);
+                if (!preview.ok || !preview.value.canConfirm || preview.value.holdings.length !== 1) {
+                    var error = preview.ok ? { code: "P008-HOLDING-EDIT", reason: "holding-input-invalid" } : preview.error;
+                    setText("holdingEditorResult", error.code + " · " + error.reason);
+                    byId("holdingEditorResult").className = "state-message error";
+                    return;
+                }
+                if (setHoldingDraftResult(api.addHoldingRow(state.holdingDraft, preview.value.holdings[0], state.policy))) {
+                    state.holdingEditId = null;
+                    byId("applyHoldingEdit").disabled = true;
+                }
+            });
+
+            byId("holdingEditorRows").addEventListener("click", function (event) {
+                if (!state.holdingDraft) return;
+                var edit = event.target.closest("button[data-edit-holding]");
+                if (edit) {
+                    state.holdingEditId = edit.dataset.editHolding;
+                    var holding = state.holdingDraft.rows.find(function (entry) {
+                        return entry.holdingId === state.holdingEditId;
+                    });
+                    setManualHoldingFields(holding);
+                    byId("applyHoldingEdit").disabled = false;
+                    setText("holdingEditorResult", "Editing " + holdingLabel(holding) + " in the current draft. No write has occurred.");
+                    return;
+                }
+                var remove = event.target.closest("button[data-remove-holding]");
+                if (!remove) return;
+                if (setHoldingDraftResult(api.removeHoldingRow(state.holdingDraft, remove.dataset.removeHolding, state.policy))) {
+                    if (state.holdingEditId === remove.dataset.removeHolding) {
+                        state.holdingEditId = null;
+                        setManualHoldingFields(null);
+                    }
+                    renderHoldingEditor();
+                }
+            });
+
+            byId("applyHoldingEdit").addEventListener("click", function () {
+                if (!state.holdingDraft || !state.holdingEditId) return;
+                if (setHoldingDraftResult(api.editHoldingRow(state.holdingDraft, state.holdingEditId, manualDraft(), state.policy))) {
+                    state.holdingEditId = null;
+                    setManualHoldingFields(null);
+                    renderHoldingEditor();
+                }
+            });
+
+            byId("confirmHoldingRevision").addEventListener("click", function () {
+                if (!state.holdingDraft || this.disabled) return;
+                var committed = api.confirmPortfolioDraft(
+                    state.store, state.holdingDraft, state.opened.workspace.generation, now()
+                );
+                if (!committed.ok) {
+                    setText("holdingEditorResult", committed.error.code + " · " + committed.error.reason);
+                    byId("holdingEditorResult").className = "state-message error";
+                    return;
+                }
+                state.opened = committed.value;
+                state.holdingDraft = null;
+                state.holdingEditId = null;
+                setManualHoldingFields(null);
+                renderHoldingEditor();
+                renderStorage();
+                renderCurrent("Verified replacement revision");
+                renderInventory();
+            });
+
+            byId("cancelHoldingRevision").addEventListener("click", function () {
+                state.holdingDraft = null;
+                state.holdingEditId = null;
+                setManualHoldingFields(null);
+                renderHoldingEditor();
+                setText("holdingEditorResult", "Revision draft discarded. Current portfolio unchanged.");
             });
 
             byId("portfolioName").addEventListener("input", updateConfirmState);
@@ -5395,25 +5959,50 @@
             });
 
             byId("emergencyClear").addEventListener("click", function () {
-                var cleared = api.clearFoundationStorage(state.adapters);
+                if (!state.configReady) return;
+                var cleared = api.clearAllPersonalData({
+                    store: state.store,
+                    storageAdapters: state.adapters,
+                    controller: clearControllerAdapter(),
+                    publicAssetReader: {
+                        readAll: function () {
+                            return {
+                                watchlist: JSON.stringify(state.publicWatchlist || []),
+                                tools: JSON.stringify(Object.keys(state.briefOwners || {}).sort())
+                            };
+                        }
+                    },
+                    confirmation: byId("fullClearConfirmation").value,
+                    expectedGeneration: state.opened.workspace.generation,
+                    now: now(),
+                    policy: state.policy
+                });
+                state.lastFullClear = cleared.value || null;
                 if (!cleared.ok) {
                     setText("privacyResult", cleared.error.code + " · " + cleared.error.reason);
                     byId("privacyResult").className = "state-message error";
+                    updateDiagnostics();
                     return;
                 }
-                setText("privacyResult", "Verified empty · " + cleared.value.clearedKeyCount + " closed foundation keys checked");
-                byId("privacyResult").className = "state-message ok";
-                if (state.configReady) {
-                    var reopened = state.store.openWorkspace(now());
-                    if (reopened.ok) {
-                        state.opened = reopened.value;
-                        renderStorage();
-                        renderCurrent();
-                    }
+                state.store = api.createPortfolioStore(state.adapters, state.policy);
+                var reopened = state.store.openWorkspace(now());
+                if (!reopened.ok) {
+                    setText("privacyResult", reopened.error.code + " · " + reopened.error.reason);
+                    byId("privacyResult").className = "state-message error";
+                    updateDiagnostics();
+                    return;
                 }
-                // After the reopen, never before it: the category counts are projected from the
-                // held workspace, so rendering first reports the pre-clear copy under a
-                // "Verified empty" banner.
+                state.opened = reopened.value;
+                state.draft = null;
+                state.holdingDraft = null;
+                state.holdingEditId = null;
+                byId("fullClearConfirmation").value = "";
+                byId("holdingEditorPanel").hidden = true;
+                setText("privacyResult", "Full personal data cleared · every durable and live category verified empty");
+                byId("privacyResult").className = "state-message ok";
+                applyDisplayMode("simple", false);
+                renderStorage();
+                renderCurrent();
                 renderInventory();
             });
 

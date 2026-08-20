@@ -3,9 +3,11 @@
     "version": 1,
     "spec": "specs/008-portfolio-survival-and-brief-lab",
     "featureDir": "specs/008-portfolio-survival-and-brief-lab",
-    "generatedAt": "2026-07-15T00:00:00Z",
+    "generatedAt": "2026-08-20T15:34:33Z",
     "generatedBy": "bubbles.plan",
-    "planningStatus": "planned-not-executed",
+    "planningStatus": "p1-synchronized-remediation-ready",
+    "scenarioCount": 55,
+    "remediationPlanNote": "SCN-008-042 through SCN-008-055 are authoritative planned contracts. Their exact linked titles and evidence targets are planned-not-authored and planned-not-executed until the owning scopes run.",
     "scenarios": [
         {
             "id": "SCN-008-001",
@@ -28,7 +30,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-foundation.spec.mjs :: Regression: SCN-008-001 valid local portfolio import creates one current revision"
+                "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-001 valid local portfolio import creates one current revision"
             ],
             "linkedTestContracts": [
                 {
@@ -68,7 +70,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-foundation.spec.mjs :: Regression: SCN-008-002 invalid or secret-bearing import is atomic and redacted"
+                "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-002 invalid or secret-bearing import is atomic and redacted"
             ],
             "linkedTestContracts": [
                 {
@@ -108,7 +110,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-foundation.spec.mjs :: Regression: SCN-008-003 explicit mandate alone supplies every hard constraint"
+                "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-003 explicit mandate alone supplies every hard constraint"
             ],
             "linkedTestContracts": [
                 {
@@ -148,7 +150,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-foundation.spec.mjs :: Regression: SCN-008-004 no mandate leaves goal fit and survival unavailable"
+                "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-004 no mandate leaves goal fit and survival unavailable"
             ],
             "linkedTestContracts": [
                 {
@@ -188,12 +190,12 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-foundation.spec.mjs :: Regression: SCN-008-005 generic publisher and public requests contain no personal sentinel"
+                "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-005 TP-04-05 personal state coexists with the shared cache and the only published read is the constant privacy boundary"
             ],
             "linkedTestContracts": [
                 {
                     "file": "tests/portfolio-survival-foundation.spec.mjs",
-                    "testId": "Regression: SCN-008-005 generic publisher and public requests contain no personal sentinel"
+                    "testId": "Regression: SCN-008-005 TP-04-05 personal state coexists with the shared cache and the only published read is the constant privacy boundary"
                 }
             ],
             "expectedAssertions": [
@@ -228,7 +230,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-brief.spec.mjs :: Regression: SCN-008-006 all four exact ET windows preserve cutoff and composition time"
+                "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-006 all four exact ET windows preserve cutoff and composition time"
             ],
             "linkedTestContracts": [
                 {
@@ -268,7 +270,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-brief.spec.mjs :: Regression: SCN-008-007 held watch completed-research and inferred-relevance lanes reject raw history"
+                "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-007 held watch completed-research and inferred-relevance lanes reject raw history"
             ],
             "linkedTestContracts": [
                 {
@@ -309,12 +311,12 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-brief.spec.mjs :: Regression: SCN-008-008 inferred action exposes complete why shown provenance"
+                "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-008 TP-06-03 every rendered item discloses why it appears"
             ],
             "linkedTestContracts": [
                 {
                     "file": "tests/portfolio-survival-brief.spec.mjs",
-                    "testId": "Regression: SCN-008-008 inferred action exposes complete why shown provenance"
+                    "testId": "Regression: SCN-008-008 TP-06-03 every rendered item discloses why it appears"
                 }
             ],
             "expectedAssertions": [
@@ -349,12 +351,12 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-brief.spec.mjs :: Regression: SCN-008-009 settings parameters scroll and dwell create no interest signal"
+                "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-009 TP-06-04 settings parameters and window changes leave event interest and action identity unchanged"
             ],
             "linkedTestContracts": [
                 {
                     "file": "tests/portfolio-survival-brief.spec.mjs",
-                    "testId": "Regression: SCN-008-009 settings parameters scroll and dwell create no interest signal"
+                    "testId": "Regression: SCN-008-009 TP-06-04 settings parameters and window changes leave event interest and action identity unchanged"
                 }
             ],
             "expectedAssertions": [
@@ -389,7 +391,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-brief.spec.mjs :: Regression: SCN-008-010 insufficient completed history produces zero inferred actions"
+                "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-010 insufficient completed history produces zero inferred actions"
             ],
             "linkedTestContracts": [
                 {
@@ -429,7 +431,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-foundation.spec.mjs :: Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio"
+                "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio"
             ],
             "linkedTestContracts": [
                 {
@@ -469,7 +471,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-foundation.spec.mjs :: Regression: SCN-008-012 behavior evidence excludes engagement and sensitive profiling"
+                "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-012 behavior evidence excludes engagement and sensitive profiling"
             ],
             "linkedTestContracts": [
                 {
@@ -509,7 +511,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-risk.spec.mjs :: Regression: SCN-008-013 arithmetic CAGR and conditional drag stay separate"
+                "tests/portfolio-survival-risk.spec.mjs#Regression: SCN-008-013 arithmetic CAGR and conditional drag stay separate"
             ],
             "linkedTestContracts": [
                 {
@@ -549,7 +551,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-risk.spec.mjs :: Regression: SCN-008-014 unrecovered drawdown stops at the evidence cutoff"
+                "tests/portfolio-survival-risk.spec.mjs#Regression: SCN-008-014 unrecovered drawdown stops at the evidence cutoff"
             ],
             "linkedTestContracts": [
                 {
@@ -589,7 +591,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-risk.spec.mjs :: Regression: SCN-008-015 concentration lenses expose overlap and missing look through"
+                "tests/portfolio-survival-risk.spec.mjs#Regression: SCN-008-015 concentration lenses expose overlap and missing look through"
             ],
             "linkedTestContracts": [
                 {
@@ -629,7 +631,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-risk.spec.mjs :: Regression: SCN-008-016 beta alpha R squared and residual risk stay separate"
+                "tests/portfolio-survival-risk.spec.mjs#Regression: SCN-008-016 beta alpha R squared and residual risk stay separate"
             ],
             "linkedTestContracts": [
                 {
@@ -669,7 +671,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-risk.spec.mjs :: Regression: SCN-008-017 marginal and total risk contributions reconcile"
+                "tests/portfolio-survival-risk.spec.mjs#Regression: SCN-008-017 marginal and total risk contributions reconcile"
             ],
             "linkedTestContracts": [
                 {
@@ -709,7 +711,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-paths.spec.mjs :: Regression: SCN-008-018 identical stationary bootstrap specification reproduces paths"
+                "tests/portfolio-survival-paths.spec.mjs#Regression: SCN-008-018 identical stationary bootstrap specification reproduces paths"
             ],
             "linkedTestContracts": [
                 {
@@ -749,7 +751,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-paths.spec.mjs :: Regression: SCN-008-019 parameter uncertainty is separate from path randomness"
+                "tests/portfolio-survival-paths.spec.mjs#Regression: SCN-008-019 parameter uncertainty is separate from path randomness"
             ],
             "linkedTestContracts": [
                 {
@@ -789,7 +791,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-paths.spec.mjs :: Regression: SCN-008-020 dated cash need records before and after collision capital"
+                "tests/portfolio-survival-paths.spec.mjs#Regression: SCN-008-020 dated cash need records before and after collision capital"
             ],
             "linkedTestContracts": [
                 {
@@ -829,7 +831,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-paths.spec.mjs :: Regression: SCN-008-021 missing survival definition renders distributions without probability"
+                "tests/portfolio-survival-paths.spec.mjs#Regression: SCN-008-021 missing survival definition renders distributions without probability"
             ],
             "linkedTestContracts": [
                 {
@@ -869,7 +871,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-diversification.spec.mjs :: Regression: SCN-008-022 raw stress correlation shows volatility context and qualified adjustment"
+                "tests/portfolio-survival-diversification.spec.mjs#Regression: SCN-008-022 raw stress correlation shows volatility context and qualified adjustment"
             ],
             "linkedTestContracts": [
                 {
@@ -909,7 +911,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-diversification.spec.mjs :: Regression: SCN-008-023 finite tail evidence never claims universal correlation one"
+                "tests/portfolio-survival-diversification.spec.mjs#Regression: SCN-008-023 finite tail evidence never claims universal correlation one"
             ],
             "linkedTestContracts": [
                 {
@@ -949,7 +951,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-diversification.spec.mjs :: Regression: SCN-008-024 appraisal smoothing and illiquidity block mechanical decorrelation"
+                "tests/portfolio-survival-diversification.spec.mjs#Regression: SCN-008-024 appraisal smoothing and illiquidity block mechanical decorrelation"
             ],
             "linkedTestContracts": [
                 {
@@ -989,12 +991,12 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-diversification.spec.mjs :: Regression: SCN-008-025 hedge comparison separates gross carry costs basis and residual"
+                "tests/portfolio-survival-diversification.spec.mjs#Regression: SCN-008-025 hedged and unhedged comparison keeps carry and basis risk separate"
             ],
             "linkedTestContracts": [
                 {
                     "file": "tests/portfolio-survival-diversification.spec.mjs",
-                    "testId": "Regression: SCN-008-025 hedge comparison separates gross carry costs basis and residual"
+                    "testId": "Regression: SCN-008-025 hedged and unhedged comparison keeps carry and basis risk separate"
                 }
             ],
             "expectedAssertions": [
@@ -1029,7 +1031,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-allocation.spec.mjs :: Regression: SCN-008-026 all six allocation methods share one frozen basis"
+                "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-026 all six allocation methods share one frozen basis"
             ],
             "linkedTestContracts": [
                 {
@@ -1069,7 +1071,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-allocation.spec.mjs :: Regression: SCN-008-027 allocation comparison presents tradeoffs and no universal winner"
+                "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-027 allocation comparison presents tradeoffs and no universal winner"
             ],
             "linkedTestContracts": [
                 {
@@ -1109,7 +1111,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-allocation.spec.mjs :: Regression: SCN-008-028 unstable allocation shows weight ranges and reversal conditions"
+                "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-028 unstable allocation shows weight ranges and reversal conditions"
             ],
             "linkedTestContracts": [
                 {
@@ -1149,7 +1151,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-allocation.spec.mjs :: Regression: SCN-008-029 conflicting constraints remain infeasible without relaxation"
+                "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-029 conflicting constraints remain infeasible without relaxation"
             ],
             "linkedTestContracts": [
                 {
@@ -1189,7 +1191,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-allocation.spec.mjs :: Regression: SCN-008-030 behavior cannot alter Black Litterman views returns or confidence"
+                "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-030 behavior cannot alter Black Litterman views returns or confidence"
             ],
             "linkedTestContracts": [
                 {
@@ -1229,7 +1231,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-allocation.spec.mjs :: Regression: SCN-008-031 dossier separates in sample walk forward costs and trials"
+                "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-031 dossier separates in sample walk forward costs and trials"
             ],
             "linkedTestContracts": [
                 {
@@ -1269,7 +1271,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-allocation.spec.mjs :: Regression: SCN-008-032 efficiency claim is scoped to one tested information set"
+                "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-032 efficiency claim is scoped to one tested information set"
             ],
             "linkedTestContracts": [
                 {
@@ -1309,7 +1311,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-allocation.spec.mjs :: Regression: SCN-008-033 correlation never emits a substantially identical verdict"
+                "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-033 correlation never emits a substantially identical verdict"
             ],
             "linkedTestContracts": [
                 {
@@ -1349,12 +1351,12 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-brief.spec.mjs :: Regression: SCN-008-034 every visible recommendation remains non executing research"
+                "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-034 TP-06-05 the route exposes research and lifecycle verbs only"
             ],
             "linkedTestContracts": [
                 {
                     "file": "tests/portfolio-survival-brief.spec.mjs",
-                    "testId": "Regression: SCN-008-034 every visible recommendation remains non executing research"
+                    "testId": "Regression: SCN-008-034 TP-06-05 the route exposes research and lifecycle verbs only"
                 }
             ],
             "expectedAssertions": [
@@ -1389,7 +1391,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-foundation.spec.mjs :: Regression: SCN-008-035 partial data corrupt schema and localStorage disabled preserve truth"
+                "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-035 partial data corrupt schema and localStorage disabled preserve truth"
             ],
             "linkedTestContracts": [
                 {
@@ -1429,7 +1431,7 @@
                 "state": "unlocked"
             },
             "linkedTests": [
-                "tests/portfolio-survival-mobile.spec.mjs :: Regression: SCN-008-036 Simple Power mobile and deep link return preserve one identity"
+                "tests/portfolio-survival-mobile.spec.mjs#Regression: SCN-008-036 Simple Power mobile and deep link return preserve one identity"
             ],
             "linkedTestContracts": [
                 {
@@ -1468,11 +1470,13 @@
             "lockdown": {
                 "state": "unlocked"
             },
-            "linkedTests": [],
+            "linkedTests": [
+                "tests/portfolio-privacy.functional.mjs#SCN-008-037 TP-06-08: a full-personal clear empties genuinely persisted interests and outcomes on a storage reread"
+            ],
             "linkedTestContracts": [
                 {
                     "file": "tests/portfolio-privacy.functional.mjs",
-                    "testId": "TP-06-08 full-personal clear empties derived interests and outcomes"
+                    "testId": "SCN-008-037 TP-06-08: a full-personal clear empties genuinely persisted interests and outcomes on a storage reread"
                 }
             ],
             "expectedAssertions": [
@@ -1501,16 +1505,23 @@
             "gherkinHash": "sha256:b45e4bfe9745bb4cd527e785fbfb9d170197af11b0dbf92f9a7fe3b14f377bd7",
             "behaviorClass": "data",
             "changeType": "new",
-            "requiredTestType": "functional",
-            "regressionRequired": false,
+            "requiredTestType": "e2e-ui",
+            "regressionRequired": true,
             "lockdown": {
                 "state": "unlocked"
             },
-            "linkedTests": [],
+            "linkedTests": [
+                "tests/portfolio-survival-paths.spec.mjs#Regression: SCN-008-038 a saved scenario survives reload and is removed by a full personal clear",
+                "tests/portfolio-privacy.functional.mjs#TP-16-12 SCN-008-041 every personal category the finished route can create is swept by one full-personal clear"
+            ],
             "linkedTestContracts": [
                 {
-                    "file": "tests/portfolio-analytics.unit.mjs",
-                    "testId": "TP-09-06 full-personal clear empties stored scenarios"
+                    "file": "tests/portfolio-survival-paths.spec.mjs",
+                    "testId": "Regression: SCN-008-038 a saved scenario survives reload and is removed by a full personal clear"
+                },
+                {
+                    "file": "tests/portfolio-privacy.functional.mjs",
+                    "testId": "TP-16-12 SCN-008-041 every personal category the finished route can create is swept by one full-personal clear"
                 }
             ],
             "expectedAssertions": [
@@ -1544,11 +1555,18 @@
             "lockdown": {
                 "state": "unlocked"
             },
-            "linkedTests": [],
+            "linkedTests": [
+                "tests/portfolio-allocation.functional.mjs#TP-13-08 a saved allocation survives a reread and is emptied by the full personal clear",
+                "tests/portfolio-privacy.functional.mjs#TP-16-12 SCN-008-041 every personal category the finished route can create is swept by one full-personal clear"
+            ],
             "linkedTestContracts": [
                 {
                     "file": "tests/portfolio-allocation.functional.mjs",
-                    "testId": "TP-13-08 full-personal clear empties stored allocations"
+                    "testId": "TP-13-08 a saved allocation survives a reread and is emptied by the full personal clear"
+                },
+                {
+                    "file": "tests/portfolio-privacy.functional.mjs",
+                    "testId": "TP-16-12 SCN-008-041 every personal category the finished route can create is swept by one full-personal clear"
                 }
             ],
             "expectedAssertions": [
@@ -1582,11 +1600,18 @@
             "lockdown": {
                 "state": "unlocked"
             },
-            "linkedTests": [],
+            "linkedTests": [
+                "tests/portfolio-allocation.functional.mjs#TP-15-08 a persisted dossier is swept by the full-personal clear and survives the behavior clear",
+                "tests/portfolio-privacy.functional.mjs#TP-16-12 SCN-008-041 every personal category the finished route can create is swept by one full-personal clear"
+            ],
             "linkedTestContracts": [
                 {
                     "file": "tests/portfolio-allocation.functional.mjs",
-                    "testId": "TP-15-08 full-personal clear empties stored dossiers"
+                    "testId": "TP-15-08 a persisted dossier is swept by the full-personal clear and survives the behavior clear"
+                },
+                {
+                    "file": "tests/portfolio-privacy.functional.mjs",
+                    "testId": "TP-16-12 SCN-008-041 every personal category the finished route can create is swept by one full-personal clear"
                 }
             ],
             "expectedAssertions": [
@@ -1620,11 +1645,18 @@
             "lockdown": {
                 "state": "unlocked"
             },
-            "linkedTests": [],
+            "linkedTests": [
+                "tests/portfolio-privacy.functional.mjs#TP-16-12 SCN-008-041 every personal category the finished route can create is swept by one full-personal clear",
+                "tests/portfolio-privacy.functional.mjs#SCN-008-037 TP-06-08: a full-personal clear empties genuinely persisted interests and outcomes on a storage reread"
+            ],
             "linkedTestContracts": [
                 {
                     "file": "tests/portfolio-privacy.functional.mjs",
-                    "testId": "TP-16-12 full-personal clear empties every declared category and closes the personal-category set"
+                    "testId": "TP-16-12 SCN-008-041 every personal category the finished route can create is swept by one full-personal clear"
+                },
+                {
+                    "file": "tests/portfolio-privacy.functional.mjs",
+                    "testId": "SCN-008-037 TP-06-08: a full-personal clear empties genuinely persisted interests and outcomes on a storage reread"
                 }
             ],
             "expectedAssertions": [
@@ -1636,6 +1668,568 @@
             "evidenceRefs": [
                 "scopes/16-integrated-route-accessibility-and-atomic-release/report.md#tp-16-12"
             ],
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-042",
+            "scenarioId": "SCN-008-042",
+            "businessScenarioId": "BS-008-042",
+            "scope": "17-local-lifecycle-and-verified-clear-foundation",
+            "scopeRef": "scopes/17-local-lifecycle-and-verified-clear-foundation/scope.md",
+            "title": "Holdings remain editable through an honest empty portfolio",
+            "gherkin": {
+                "given": "a valid local portfolio contains multiple listed, cash, and manual holdings",
+                "when": "the user adds one holding, edits another, removes another, and confirms the revision",
+                "then": "one immutable replacement revision contains exactly the confirmed rows\nAnd removing the final holding produces Portfolio empty rather than an all-cash assumption or rejection\nAnd prior result identities remain linked as superseded rather than silently rewritten"
+            },
+            "gherkinHash": "sha256:284bf813e9b9a5d4a5f21e184ec2cd91f2fe74bc89b75814aeeac909a5879dc4",
+            "behaviorClass": "ui",
+            "changeType": "changed",
+            "requiredTestType": "e2e-ui",
+            "requiredTestTypes": ["unit", "functional", "e2e-ui"],
+            "regressionRequired": true,
+            "riskTier": "high",
+            "requirementRefs": ["FR-001", "FR-008", "FR-009", "NFR-007"],
+            "findingRefs": ["F008-PORTFOLIO-LIFECYCLE-001"],
+            "domainEntityRefs": ["Tool"],
+            "invariantRefs": [],
+            "behaviorTraits": ["mutable-state", "user-visible-ui"],
+            "obligations": [
+                {"trait": "mutable-state", "requiredProof": "Add, edit, remove, confirm, reload, and empty-state operations persist one replacement revision with supersession links.", "satisfiedBy": ["TP-17-01", "TP-17-02", "TP-17-03"]},
+                {"trait": "user-visible-ui", "requiredProof": "The production route renders the exact confirmed rows and an explicit Portfolio empty state without an inferred cash holding.", "satisfiedBy": ["TP-17-03"]}
+            ],
+            "testMechanism": {"entrypoint": "production-route", "inputOrigin": "seeded-store", "assertionSurface": "visible-ui", "dependencyPath": "same-origin-real", "productionOwners": ["rlportfolio.js", "portfolio-survival-allocation-lab.html"], "negativeControl": "A disposable mutation rejects the final-row removal or converts it to all cash, which must fail the exact route assertion.", "negativeControlMechanism": "mutation"},
+            "implementationRefs": ["rlportfolio.js", "portfolio-survival-allocation-lab.html", "portfolio-survival-allocation.config.json"],
+            "testRows": ["TP-17-01", "TP-17-02", "TP-17-03", "TP-17-06"],
+            "linkedTests": ["tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-042 holdings can be added edited removed and cleared to an honest empty portfolio"],
+            "linkedTestContracts": [{"file": "tests/portfolio-survival-foundation.spec.mjs", "testId": "Regression: SCN-008-042 holdings can be added edited removed and cleared to an honest empty portfolio", "testPlanRow": "TP-17-03", "planStatus": "planned-not-authored"}],
+            "expectedAssertions": ["confirmed rows equal the edited draft", "the final removal renders Portfolio empty", "prior result identities link through supersession"],
+            "evidenceRefs": ["scopes/17-local-lifecycle-and-verified-clear-foundation/report.md#scenario-contract-evidence"],
+            "lockdown": {"state": "unlocked"},
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-043",
+            "scenarioId": "SCN-008-043",
+            "businessScenarioId": "BS-008-043",
+            "scope": "17-local-lifecycle-and-verified-clear-foundation",
+            "scopeRef": "scopes/17-local-lifecycle-and-verified-clear-foundation/scope.md",
+            "title": "Full-personal clear derives and verifies every runtime category",
+            "gherkin": {
+                "given": "every personal storage namespace and in-memory controller category is populated",
+                "when": "the user types CLEAR ALL LOCAL DATA and confirms the full-personal clear",
+                "then": "a validated tombstone commits before destructive deletion\nAnd every runtime-derived personal category is empty on storage reread and live-controller inspection\nAnd public generic evidence and the public watchlist are byte-identical\nAnd any retained key or non-sentinel value produces a named partial-clear failure instead of success"
+            },
+            "gherkinHash": "sha256:7f7fce78230f5f8118e678991267baa4a95922b039311efba41d1c70b5089bba",
+            "behaviorClass": "data",
+            "changeType": "changed",
+            "requiredTestType": "e2e-ui",
+            "requiredTestTypes": ["unit", "functional", "e2e-ui"],
+            "regressionRequired": true,
+            "riskTier": "high",
+            "requirementRefs": ["FR-027", "FR-029", "FR-151", "NFR-024"],
+            "findingRefs": ["F008-CLEAR-RUNTIME-001", "F008-CLEAR-TEST-001"],
+            "domainEntityRefs": ["Tool"],
+            "invariantRefs": [],
+            "behaviorTraits": ["mutable-state", "degraded-state"],
+            "obligations": [
+                {"trait": "mutable-state", "requiredProof": "The tombstone precedes deletion, and independent adapter rereads plus controller inspection prove every runtime-derived category empty.", "satisfiedBy": ["TP-17-01", "TP-17-02", "TP-17-04"]},
+                {"trait": "degraded-state", "requiredProof": "An undeclared key, live-only category, or arbitrary residue returns a named partial result while public fingerprints remain unchanged.", "satisfiedBy": ["TP-17-05"]}
+            ],
+            "testMechanism": {"entrypoint": "production-route", "inputOrigin": "seeded-store", "assertionSurface": "persisted-state", "dependencyPath": "same-origin-real", "productionOwners": ["rlportfolio.js", "portfolio-survival-allocation-lab.html"], "negativeControl": "Disposable undeclared-key, controller-residue, and non-sentinel mutations must each defeat a cleared result.", "negativeControlMechanism": "mutation"},
+            "implementationRefs": ["rlportfolio.js", "portfolio-survival-allocation-lab.html", "portfolio-survival-allocation.config.json"],
+            "testRows": ["TP-17-01", "TP-17-02", "TP-17-04", "TP-17-05", "TP-17-06"],
+            "linkedTests": ["tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-043 full personal clear tombstones derives and verifies every personal category"],
+            "linkedTestContracts": [{"file": "tests/portfolio-survival-foundation.spec.mjs", "testId": "Regression: SCN-008-043 full personal clear tombstones derives and verifies every personal category", "testPlanRow": "TP-17-04", "planStatus": "planned-not-authored"}],
+            "expectedAssertions": ["a validated tombstone is authoritative before deletion", "every storage and controller category rereads empty", "residue returns a named partial failure and preserves public bytes"],
+            "evidenceRefs": ["scopes/17-local-lifecycle-and-verified-clear-foundation/report.md#scenario-contract-evidence"],
+            "lockdown": {"state": "unlocked"},
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-044",
+            "scenarioId": "SCN-008-044",
+            "businessScenarioId": "BS-008-044",
+            "scope": "18-behavior-identity-and-ranking-foundation",
+            "scopeRef": "scopes/18-behavior-identity-and-ranking-foundation/scope.md",
+            "title": "Behavior relevance is identity-complete and temporally honest",
+            "gherkin": {
+                "given": "completed events vary by result identity, evidence source, horizon, completion condition, and occurrence date",
+                "when": "events are de-duplicated, decayed, floored, and ranked",
+                "then": "only exact semantic duplicates collapse\nAnd future-dated events are rejected or quarantined instead of receiving extra weight\nAnd the evidence floor uses distinct eligible dates and completion identities rather than raw event count\nAnd storage, Portfolio Brief, Why shown, and route order expose the same canonical ranked action identities"
+            },
+            "gherkinHash": "sha256:b8888c9b94335138210ddb3606cce1cd0a669cefe51ddb895bd5ad40157f6e8b",
+            "behaviorClass": "ui",
+            "changeType": "changed",
+            "requiredTestType": "e2e-ui",
+            "requiredTestTypes": ["functional", "e2e-ui"],
+            "regressionRequired": true,
+            "riskTier": "high",
+            "requirementRefs": ["FR-034", "FR-036", "FR-056", "FR-057", "FR-067", "NFR-002", "NFR-006", "NFR-023"],
+            "findingRefs": ["F008-BEHAVIOR-CONTRACT-001"],
+            "domainEntityRefs": ["Tool", "ToolRead"],
+            "invariantRefs": ["INV-RL-UNAVAILABLE-READS-NOT-ACTIONABLE"],
+            "behaviorTraits": ["user-visible-ui", "degraded-state", "shared-consumer"],
+            "obligations": [
+                {"trait": "user-visible-ui", "requiredProof": "The real Brief route, Why shown, mode switch, and reload expose one action identity, order, and reason set.", "satisfiedBy": ["TP-18-03"]},
+                {"trait": "degraded-state", "requiredProof": "Future occurrences are rejected or quarantined, and repeated rows cannot satisfy distinct-date and completion floors.", "satisfiedBy": ["TP-18-01", "TP-18-04"]},
+                {"trait": "shared-consumer", "requiredProof": "One rank result remains byte-equivalent across storage and every visible consumer.", "satisfiedBy": ["parity:TP-18-01 canonical result parity", "consumer-surface:TP-18-03 real Brief route", "TP-18-02"]}
+            ],
+            "testMechanism": {"entrypoint": "production-route", "inputOrigin": "synthetic-fixture", "assertionSurface": "visible-ui", "dependencyPath": "same-origin-real", "productionOwners": ["rlportfolio.js", "rlportfoliobrief.js", "portfolio-survival-allocation-lab.html"], "negativeControl": "A disposable reduced identity, future-weight branch, or raw-count floor must change or invalidate the expected result.", "negativeControlMechanism": "mutation"},
+            "implementationRefs": ["rlportfolio.js", "rlportfoliobrief.js", "portfolio-survival-allocation-lab.html"],
+            "testRows": ["TP-18-01", "TP-18-02", "TP-18-03", "TP-18-04", "TP-18-05"],
+            "linkedTests": ["tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-044 behavior identity decay floor and ranking remain canonical across every projection"],
+            "linkedTestContracts": [{"file": "tests/portfolio-survival-brief.spec.mjs", "testId": "Regression: SCN-008-044 behavior identity decay floor and ranking remain canonical across every projection", "testPlanRow": "TP-18-03", "planStatus": "planned-not-authored"}],
+            "expectedAssertions": ["only semantic duplicates collapse", "future events do not gain weight", "all consumers expose one ranked identity set"],
+            "evidenceRefs": ["scopes/18-behavior-identity-and-ranking-foundation/report.md#scenario-contract-evidence"],
+            "lockdown": {"state": "unlocked"},
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-045",
+            "scenarioId": "SCN-008-045",
+            "businessScenarioId": "BS-008-045",
+            "scope": "19-coverage-aware-market-data-foundation",
+            "scopeRef": "scopes/19-coverage-aware-market-data-foundation/scope.md",
+            "title": "Requested daily coverage is measured and acquired honestly",
+            "gherkin": {
+                "given": "the merged cache contains fewer dates than the explicit requested start and end",
+                "when": "ensureBarCoverage runs under same-origin-only and public-lookup-enabled policies",
+                "then": "it appends and de-duplicates eligible static dates before measuring coverage\nAnd same-origin-only returns retained partial rows with exact first and last dates\nAnd public lookup requests only the public symbol interval and range then appends missing dates\nAnd complete is returned only when actual dates meet the target-years contract and source checks\nAnd existing ensureBars callers retain their prior behavior"
+            },
+            "gherkinHash": "sha256:3f02e860084e6e2ed773d39a87591034b331ac8bb3492d70cee881e25bdb1a08",
+            "behaviorClass": "data",
+            "changeType": "changed",
+            "requiredTestType": "e2e-ui",
+            "requiredTestTypes": ["unit", "functional", "e2e-ui"],
+            "regressionRequired": true,
+            "riskTier": "high",
+            "requirementRefs": ["FR-020", "FR-050", "FR-083", "FR-152", "NFR-005", "NFR-006", "NFR-010", "NFR-021"],
+            "findingRefs": ["F008-BAR-COVERAGE-001"],
+            "domainEntityRefs": ["ToolRead"],
+            "invariantRefs": ["INV-RL-UNAVAILABLE-READS-NOT-ACTIONABLE"],
+            "behaviorTraits": ["dependency-path", "shared-consumer", "degraded-state", "runtime-config"],
+            "obligations": [
+                {"trait": "dependency-path", "requiredProof": "The same-origin append path and consented public request boundary are both observed before final date qualification.", "satisfiedBy": ["TP-19-02", "TP-19-03"]},
+                {"trait": "shared-consumer", "requiredProof": "The additive API preserves existing ensureBars and provider consumers.", "satisfiedBy": ["parity:TP-19-01 ensureBars contract", "consumer-surface:TP-19-05 provider route", "TP-19-05"]},
+                {"trait": "degraded-state", "requiredProof": "A short cache remains partial with exact bounds, disputes, sources, and missing dates.", "satisfiedBy": ["TP-19-02", "TP-19-04"]},
+                {"trait": "runtime-config", "requiredProof": "The running route executes explicit date, years, source, currency, transform, and corporate-action policy values.", "satisfiedBy": ["TP-19-03"]}
+            ],
+            "testMechanism": {"entrypoint": "production-route", "inputOrigin": "recorded-fixture", "assertionSurface": "visible-ui", "dependencyPath": "same-origin-real", "productionOwners": ["rldata.js", "portfolio-survival-allocation-lab.html"], "negativeControl": "Disposable row-count, range-label, or target-years mutations must fail complete coverage while partial rows remain visible.", "negativeControlMechanism": "mutation"},
+            "implementationRefs": ["rldata.js", "portfolio-survival-allocation-lab.html", "portfolio-survival-allocation.config.json"],
+            "testRows": ["TP-19-01", "TP-19-02", "TP-19-03", "TP-19-04", "TP-19-05"],
+            "linkedTests": ["tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-045 five year coverage measures dates appends allowed sources and preserves partial truth"],
+            "linkedTestContracts": [{"file": "tests/portfolio-survival-foundation.spec.mjs", "testId": "Regression: SCN-008-045 five year coverage measures dates appends allowed sources and preserves partial truth", "testPlanRow": "TP-19-03", "planStatus": "planned-not-authored"}],
+            "expectedAssertions": ["static rows append before measurement", "partial returns exact observed bounds", "complete requires actual target dates and qualified sources"],
+            "evidenceRefs": ["scopes/19-coverage-aware-market-data-foundation/report.md#scenario-contract-evidence"],
+            "lockdown": {"state": "unlocked"},
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-046",
+            "scenarioId": "SCN-008-046",
+            "businessScenarioId": "BS-008-046",
+            "scope": "20-generic-evidence-brief-policy-and-api",
+            "scopeRef": "scopes/20-generic-evidence-brief-policy-and-api/scope.md",
+            "title": "Complete generic evidence authors one bounded honest queue",
+            "gherkin": {
+                "given": "matching generic snapshot, payload, history, watchlist, and qualified owner reads exist around an America New York DST transition",
+                "when": "the complete RLPORTFOLIO_BRIEF API validates, de-duplicates, derives, builds, ranks, composes, explains, and reduces the action lifecycle",
+                "then": "the selected window and cutoff follow America New_York civil time\nAnd freshness, catalyst, action, publisher identity, and repeated-evidence identity come from the generic artifacts\nAnd one global queue cap preserves urgent direct work before general-interest work\nAnd stale evidence authors only Refresh or Revisit actions with stale conditions\nAnd every failure returns the closed PortfolioError v1 shape and declared P008 code without leaking values"
+            },
+            "gherkinHash": "sha256:8480d72b579db2b43bba6d4650d31cb5aaa5b0f79771b0bf59699a803dc046be",
+            "behaviorClass": "ui",
+            "changeType": "changed",
+            "requiredTestType": "e2e-ui",
+            "requiredTestTypes": ["functional", "e2e-ui"],
+            "regressionRequired": true,
+            "riskTier": "high",
+            "requirementRefs": ["FR-040-FR-057", "FR-067", "FR-153", "NFR-006", "NFR-021", "NFR-023"],
+            "findingRefs": ["F008-BRIEF-EVIDENCE-001", "F008-BRIEF-POLICY-001", "F008-BROWSER-API-001"],
+            "domainEntityRefs": ["Tool", "ToolRead"],
+            "invariantRefs": ["INV-RL-UNAVAILABLE-READS-NOT-ACTIONABLE"],
+            "behaviorTraits": ["user-visible-ui", "shared-consumer", "degraded-state", "runtime-config"],
+            "obligations": [
+                {"trait": "user-visible-ui", "requiredProof": "The real Brief route exposes civil-time window identity, generic provenance, one cap, stale-only verbs, Why shown, and safe errors.", "satisfiedBy": ["TP-20-03"]},
+                {"trait": "shared-consumer", "requiredProof": "Browser and CommonJS consumers receive the same frozen eight-function API and one rank result.", "satisfiedBy": ["parity:TP-20-01 API parity", "consumer-surface:TP-20-03 Brief route", "TP-20-02"]},
+                {"trait": "degraded-state", "requiredProof": "Missing, stale, disputed, invalid, or unknown input preserves the last valid brief and returns only closed value-safe errors.", "satisfiedBy": ["TP-20-01", "TP-20-04"]},
+                {"trait": "runtime-config", "requiredProof": "The route executes America/New_York window policy, one visible cap, behavior floor, and stale-authoring rules from the required v2 policy.", "satisfiedBy": ["TP-20-03"]}
+            ],
+            "testMechanism": {"entrypoint": "production-route", "inputOrigin": "recorded-fixture", "assertionSurface": "visible-ui", "dependencyPath": "same-origin-real", "productionOwners": ["rlportfoliobrief.js", "portfolio-survival-allocation-lab.html"], "negativeControl": "Disposable fixed-offset, per-lane-cap, raw-count, stale-verb, missing-export, and undeclared-error mutations must each fail.", "negativeControlMechanism": "mutation"},
+            "implementationRefs": ["rlportfoliobrief.js", "portfolio-survival-allocation-lab.html", "portfolio-survival-allocation.config.json"],
+            "testRows": ["TP-20-01", "TP-20-02", "TP-20-03", "TP-20-04", "TP-20-05"],
+            "linkedTests": ["tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-046 generic evidence DST policy complete API and global queue remain coherent"],
+            "linkedTestContracts": [{"file": "tests/portfolio-survival-brief.spec.mjs", "testId": "Regression: SCN-008-046 generic evidence DST policy complete API and global queue remain coherent", "testPlanRow": "TP-20-03", "planStatus": "planned-not-authored"}],
+            "expectedAssertions": ["civil time selects the window across DST", "all generic identities feed one globally capped queue", "failures preserve last valid and expose closed safe errors"],
+            "evidenceRefs": ["scopes/20-generic-evidence-brief-policy-and-api/report.md#scenario-contract-evidence"],
+            "lockdown": {"state": "unlocked"},
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-047",
+            "scenarioId": "SCN-008-047",
+            "businessScenarioId": "BS-008-047",
+            "scope": "21-partial-risk-input-and-diagnostics",
+            "scopeRef": "scopes/21-partial-risk-input-and-diagnostics/scope.md",
+            "title": "Mixed inputs produce complete eligible risk diagnostics",
+            "gherkin": {
+                "given": "each holding supplies only the evidence required by its eligible metric families",
+                "when": "Risk X-Ray freezes the common cutoff and computes diagnostics",
+                "then": "valid listed and weight-only holdings contribute to every supported return and risk metric\nAnd cash and manual alternatives retain explicit treatment frequency and unavailable fields\nAnd one unsupported holding limits only affected metrics rather than refusing the portfolio\nAnd CAGR uses exact elapsed dates while factor look-through CAPM covariance and asset/factor contributions expose coverage uncertainty and reconciliation\nAnd non-positive-definite or conditioned covariance remains visibly distinct"
+            },
+            "gherkinHash": "sha256:56dae20e06122f88e17184dcb75186f3017268deef20163be3f95d76600a4eef",
+            "behaviorClass": "calculation",
+            "changeType": "changed",
+            "requiredTestType": "e2e-ui",
+            "requiredTestTypes": ["unit", "functional", "e2e-ui"],
+            "regressionRequired": true,
+            "riskTier": "high",
+            "requirementRefs": ["FR-068-FR-085", "NFR-005", "NFR-021"],
+            "findingRefs": ["F008-RISK-INPUT-001", "F008-RISK-DIAGNOSTICS-001"],
+            "domainEntityRefs": ["Tool"],
+            "invariantRefs": [],
+            "behaviorTraits": ["pure-calculation", "user-visible-ui", "degraded-state"],
+            "obligations": [
+                {"trait": "pure-calculation", "requiredProof": "Known input classes produce exact per-metric eligibility, elapsed-date CAGR, covariance diagnostics, and reconciled contributions.", "satisfiedBy": ["TP-21-01", "TP-21-02"]},
+                {"trait": "user-visible-ui", "requiredProof": "Risk X-Ray Simple and Power show the same eligible metrics, exclusions, uncertainty, raw matrix, and conditioned matrix.", "satisfiedBy": ["TP-21-03"]},
+                {"trait": "degraded-state", "requiredProof": "An unsupported holding limits only affected metrics, and an invalid raw covariance never becomes silently valid.", "satisfiedBy": ["TP-21-02", "TP-21-04"]}
+            ],
+            "testMechanism": {"entrypoint": "production-route", "inputOrigin": "synthetic-fixture", "assertionSurface": "visible-ui", "dependencyPath": "same-origin-real", "productionOwners": ["rlportfolioanalytics.js", "portfolio-survival-allocation-lab.html"], "negativeControl": "Disposable return-count, whole-refusal, missing-factor, and silent-conditioning mutations must each fail exact assertions.", "negativeControlMechanism": "mutation"},
+            "implementationRefs": ["rlportfolioanalytics.js", "portfolio-survival-allocation-lab.html"],
+            "testRows": ["TP-21-01", "TP-21-02", "TP-21-03", "TP-21-04", "TP-21-05"],
+            "linkedTests": ["tests/portfolio-survival-risk.spec.mjs#Regression: SCN-008-047 mixed portfolio inputs preserve eligible risk diagnostics and partial truth"],
+            "linkedTestContracts": [{"file": "tests/portfolio-survival-risk.spec.mjs", "testId": "Regression: SCN-008-047 mixed portfolio inputs preserve eligible risk diagnostics and partial truth", "testPlanRow": "TP-21-03", "planStatus": "planned-not-authored"}],
+            "expectedAssertions": ["eligible metric families retain valid results", "CAGR uses exact elapsed dates", "raw and conditioned covariance remain visibly distinct"],
+            "evidenceRefs": ["scopes/21-partial-risk-input-and-diagnostics/report.md#scenario-contract-evidence"],
+            "lockdown": {"state": "unlocked"},
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-048",
+            "scenarioId": "SCN-008-048",
+            "businessScenarioId": "BS-008-048",
+            "scope": "22-scenario-contract-and-survival-distributions",
+            "scopeRef": "scopes/22-scenario-contract-and-survival-distributions/scope.md",
+            "title": "Complete scenarios publish only matching path and survival distributions",
+            "gherkin": {
+                "given": "one ScenarioSpecification freezes portfolio evidence dates method seed path count block or regime tail policy flows costs mandate cash needs survival floor and uncertainty ranges",
+                "when": "the chunked computation runs is cancelled or is superseded by an edited specification",
+                "then": "only the matching compute token may publish and the last valid result remains visible otherwise\nAnd every path applies each contribution withdrawal fee and CashNeed at its declared timing\nAnd wealth drawdown recovery floor breach collision and terminal distributions include path and parameter uncertainty\nAnd regime or fat-tail state is calibrated and disclosed or explicitly unavailable\nAnd no hidden 200-path cap fixed horizon drift or median-only cash adjustment changes the result"
+            },
+            "gherkinHash": "sha256:6ed3bca0ca61c01176458ba3adb9d88ceca5d4ef043936c1c0386bbb3897c71c",
+            "behaviorClass": "calculation",
+            "changeType": "changed",
+            "requiredTestType": "e2e-ui",
+            "requiredTestTypes": ["unit", "functional", "e2e-ui"],
+            "regressionRequired": true,
+            "riskTier": "high",
+            "requirementRefs": ["FR-086-FR-104", "NFR-002", "NFR-012", "NFR-021"],
+            "findingRefs": ["F008-PATH-CONTRACT-001", "F008-SURVIVAL-PATH-001"],
+            "domainEntityRefs": ["Tool"],
+            "invariantRefs": [],
+            "behaviorTraits": ["pure-calculation", "mutable-state", "user-visible-ui", "degraded-state"],
+            "obligations": [
+                {"trait": "pure-calculation", "requiredProof": "Complete scenario identity deterministically controls every path, flow, distribution, calibration, and uncertainty result.", "satisfiedBy": ["TP-22-01", "TP-22-02"]},
+                {"trait": "mutable-state", "requiredProof": "Token, cancel, supersede, progress, and last-valid publication state survive overlapping computations without stale publication.", "satisfiedBy": ["TP-22-02", "TP-22-05"]},
+                {"trait": "user-visible-ui", "requiredProof": "The real Path Lab exposes matching identity, progress, all-path cash timing, distributions, and calibrated or unavailable state.", "satisfiedBy": ["TP-22-03", "TP-22-05"]},
+                {"trait": "degraded-state", "requiredProof": "Budget, cancellation, supersession, and unavailable calibration preserve last valid output with named reasons.", "satisfiedBy": ["TP-22-02", "TP-22-04"]}
+            ],
+            "testMechanism": {"entrypoint": "production-route", "inputOrigin": "synthetic-fixture", "assertionSurface": "visible-ui", "dependencyPath": "same-origin-real", "productionOwners": ["rlportfolioanalytics.js", "portfolio-survival-allocation-lab.html"], "negativeControl": "Disposable horizon, path-cap, median-need, one-path-survival, missing-identity, and stale-token mutations must each fail.", "negativeControlMechanism": "mutation"},
+            "implementationRefs": ["rlportfolioanalytics.js", "portfolio-survival-allocation-lab.html", "portfolio-survival-allocation.config.json"],
+            "testRows": ["TP-22-01", "TP-22-02", "TP-22-03", "TP-22-04", "TP-22-05", "TP-22-06"],
+            "linkedTests": ["tests/portfolio-survival-paths.spec.mjs#Regression: SCN-008-048 complete scenario cash needs uncertainty and compute tokens govern every path", "tests/portfolio-survival-paths.spec.mjs#Regression: SCN-008-048 cancelled and superseded path jobs cannot replace the last valid view"],
+            "linkedTestContracts": [{"file": "tests/portfolio-survival-paths.spec.mjs", "testId": "Regression: SCN-008-048 complete scenario cash needs uncertainty and compute tokens govern every path", "testPlanRow": "TP-22-03", "planStatus": "planned-not-authored"}, {"file": "tests/portfolio-survival-paths.spec.mjs", "testId": "Regression: SCN-008-048 cancelled and superseded path jobs cannot replace the last valid view", "testPlanRow": "TP-22-05", "planStatus": "planned-not-authored"}],
+            "expectedAssertions": ["only matching tokens publish", "every path applies every timed flow", "path and parameter uncertainty remain distinct"],
+            "evidenceRefs": ["scopes/22-scenario-contract-and-survival-distributions/report.md#scenario-contract-evidence"],
+            "lockdown": {"state": "unlocked"},
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-049",
+            "scenarioId": "SCN-008-049",
+            "businessScenarioId": "BS-008-049",
+            "scope": "23-stress-dependence-and-hedge-effectiveness",
+            "scopeRef": "scopes/23-stress-dependence-and-hedge-effectiveness/scope.md",
+            "title": "Stress diversification and hedge claims use distinct evidence and common scenarios",
+            "gherkin": {
+                "given": "tranquil and stress samples are distinct and a hedge proxy has aligned target and proxy returns",
+                "when": "dependence appraisal and hedge diagnostics run on the frozen evidence and common ScenarioSpecification",
+                "then": "raw and Forbes Rigobon qualified stress estimates show sample variance orientation and intervals separately\nAnd tail co-exceedance downside drawdown and recovery overlap remain distinct\nAnd appraisal assets expose valuation age liquidity cost smoothing and de-smoothing sensitivity before a conclusion\nAnd hedge ratio horizon carry direct cost turnover liquidity basis regression and residual exposure are explicit\nAnd normal stress and path effectiveness share the same scenario basis without prescribing a personal hedge"
+            },
+            "gherkinHash": "sha256:3f22b7222d15cf230bad3f5d96dea05a99692af2ccc50ef65408a80c8f07852f",
+            "behaviorClass": "calculation",
+            "changeType": "changed",
+            "requiredTestType": "e2e-ui",
+            "requiredTestTypes": ["unit", "functional", "e2e-ui"],
+            "regressionRequired": true,
+            "riskTier": "high",
+            "requirementRefs": ["FR-105-FR-122", "NFR-005", "NFR-006", "NFR-021"],
+            "findingRefs": ["F008-DIVERSIFICATION-001", "F008-HEDGE-001"],
+            "domainEntityRefs": ["Tool"],
+            "invariantRefs": [],
+            "behaviorTraits": ["pure-calculation", "user-visible-ui", "degraded-state", "shared-consumer"],
+            "obligations": [
+                {"trait": "pure-calculation", "requiredProof": "Distinct samples, qualified adjustment, intervals, overlap measures, appraisal grids, and regression residuals match known fixtures.", "satisfiedBy": ["TP-23-01", "TP-23-02"]},
+                {"trait": "user-visible-ui", "requiredProof": "The real Diversification route shows every evidence lens, appraisal caveat, cost, residual, and common scenario identity.", "satisfiedBy": ["TP-23-03", "TP-23-05"]},
+                {"trait": "degraded-state", "requiredProof": "Thin, stale, incomplete, or ineligible evidence yields qualified, gross-only, partial, or unavailable states.", "satisfiedBy": ["TP-23-02", "TP-23-04"]},
+                {"trait": "shared-consumer", "requiredProof": "Dependence, hedge, path, allocation, and dossier consumers retain one scenario and common-path basis.", "satisfiedBy": ["parity:TP-23-02 common scenario parity", "consumer-surface:TP-23-05 Diversification route", "TP-23-05"]}
+            ],
+            "testMechanism": {"entrypoint": "production-route", "inputOrigin": "synthetic-fixture", "assertionSurface": "visible-ui", "dependencyPath": "same-origin-real", "productionOwners": ["rlportfolioanalytics.js", "portfolio-survival-allocation-lab.html"], "negativeControl": "Disposable same-sample, unused-adjustment, missing-overlap, fixed-ratio, configured-correlation, and zero-cost mutations must fail.", "negativeControlMechanism": "mutation"},
+            "implementationRefs": ["rlportfolioanalytics.js", "portfolio-survival-allocation-lab.html"],
+            "testRows": ["TP-23-01", "TP-23-02", "TP-23-03", "TP-23-04", "TP-23-05", "TP-23-06"],
+            "linkedTests": ["tests/portfolio-survival-diversification.spec.mjs#Regression: SCN-008-049 stress dependence appraisal and hedge effectiveness retain distinct qualified evidence", "tests/portfolio-survival-diversification.spec.mjs#Regression: SCN-008-049 hedge variants reuse the selected survival scenario and path identities"],
+            "linkedTestContracts": [{"file": "tests/portfolio-survival-diversification.spec.mjs", "testId": "Regression: SCN-008-049 stress dependence appraisal and hedge effectiveness retain distinct qualified evidence", "testPlanRow": "TP-23-03", "planStatus": "planned-not-authored"}, {"file": "tests/portfolio-survival-diversification.spec.mjs", "testId": "Regression: SCN-008-049 hedge variants reuse the selected survival scenario and path identities", "testPlanRow": "TP-23-05", "planStatus": "planned-not-authored"}],
+            "expectedAssertions": ["normal and stress samples differ", "appraisal and hedge uncertainty remain explicit", "all effectiveness views reuse one scenario basis"],
+            "evidenceRefs": ["scopes/23-stress-dependence-and-hedge-effectiveness/report.md#scenario-contract-evidence"],
+            "lockdown": {"state": "unlocked"},
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-050",
+            "scenarioId": "SCN-008-050",
+            "businessScenarioId": "BS-008-050",
+            "scope": "24-complete-allocation-and-explicit-views",
+            "scopeRef": "scopes/24-complete-allocation-and-explicit-views/scope.md",
+            "title": "Six real methods share all constraints and explicit views",
+            "gherkin": {
+                "given": "one frozen basis contains eligible assets evidence covariance expected-return policy costs common paths and every explicit constraint",
+                "when": "current equal-weight minimum-variance equal-risk-contribution Black-Litterman and constrained-MVO candidates run",
+                "then": "each method enforces the common applicable constraints or returns infeasible with diagnostics\nAnd risk parity solves contribution balance rather than inverse volatility\nAnd constrained MVO optimizes within the feasible set rather than clipping an unconstrained answer\nAnd the explicit BL horizon magnitude range confidence source and uncertainty produce posterior returns used by its allocation\nAnd every candidate exposes convergence constraint cost contribution path survival turnover and sensitivity outcomes without a winner"
+            },
+            "gherkinHash": "sha256:72f46033d530673cf6c0c437aa7d42b8068f0e47928805fa40b1eb49a7b9c843",
+            "behaviorClass": "calculation",
+            "changeType": "changed",
+            "requiredTestType": "e2e-ui",
+            "requiredTestTypes": ["unit", "functional", "e2e-ui"],
+            "regressionRequired": true,
+            "riskTier": "high",
+            "requirementRefs": ["FR-123-FR-141", "NFR-002", "NFR-005", "NFR-017", "NFR-021"],
+            "findingRefs": ["F008-ALLOCATION-001", "F008-SENSITIVITY-BL-001"],
+            "domainEntityRefs": ["Tool"],
+            "invariantRefs": [],
+            "behaviorTraits": ["pure-calculation", "user-visible-ui", "degraded-state"],
+            "obligations": [
+                {"trait": "pure-calculation", "requiredProof": "Six real methods consume one basis, solve their declared objectives, expose residuals, and execute explicit posterior returns and sensitivity.", "satisfiedBy": ["TP-24-01", "TP-24-02"]},
+                {"trait": "user-visible-ui", "requiredProof": "The real Allocation route shows six stable rows, explicit views, infeasibility, costs, contributions, paths, survival, and no winner.", "satisfiedBy": ["TP-24-03", "TP-24-05"]},
+                {"trait": "degraded-state", "requiredProof": "Conflicting constraints, unstable solvers, missing costs, and unavailable evidence remain visible without clipping or relaxation.", "satisfiedBy": ["TP-24-02", "TP-24-04"]}
+            ],
+            "testMechanism": {"entrypoint": "production-route", "inputOrigin": "synthetic-fixture", "assertionSurface": "visible-ui", "dependencyPath": "same-origin-real", "productionOwners": ["rlportfolioanalytics.js", "portfolio-survival-allocation-lab.html"], "negativeControl": "Disposable inverse-volatility, clipping, ignored-constraint, equal-weight-benchmark, and unused-posterior mutations must fail.", "negativeControlMechanism": "mutation"},
+            "implementationRefs": ["rlportfolioanalytics.js", "portfolio-survival-allocation-lab.html", "portfolio-survival-allocation.config.json"],
+            "testRows": ["TP-24-01", "TP-24-02", "TP-24-03", "TP-24-04", "TP-24-05", "TP-24-06"],
+            "linkedTests": ["tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-050 six real allocation methods enforce one complete basis and explicit views", "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-050 infeasible constraints remain visible and explicit BL posterior changes allocation"],
+            "linkedTestContracts": [{"file": "tests/portfolio-survival-allocation.spec.mjs", "testId": "Regression: SCN-008-050 six real allocation methods enforce one complete basis and explicit views", "testPlanRow": "TP-24-03", "planStatus": "planned-not-authored"}, {"file": "tests/portfolio-survival-allocation.spec.mjs", "testId": "Regression: SCN-008-050 infeasible constraints remain visible and explicit BL posterior changes allocation", "testPlanRow": "TP-24-05", "planStatus": "planned-not-authored"}],
+            "expectedAssertions": ["all six methods use one frozen basis", "infeasible constraints remain unrelaxed", "explicit views alter posterior returns consumed by allocation"],
+            "evidenceRefs": ["scopes/24-complete-allocation-and-explicit-views/report.md#scenario-contract-evidence"],
+            "lockdown": {"state": "unlocked"},
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-051",
+            "scenarioId": "SCN-008-051",
+            "businessScenarioId": "BS-008-051",
+            "scope": "25-decision-time-dossier-and-immutable-audit",
+            "scopeRef": "scopes/25-decision-time-dossier-and-immutable-audit/scope.md",
+            "title": "Walk-forward records are decision-time complete and append-only",
+            "gherkin": {
+                "given": "explicit decision dates rebalance dates embargo cost components source vintages and tried variant identities exist",
+                "when": "walk-forward evaluation fits only decision-time evidence and the user appends a correction",
+                "then": "in-sample out-of-sample stress gross net not-evaluated infeasible and unavailable states remain distinct\nAnd commission spread slippage turnover financing carry and rebalance timing are itemized or net remains unavailable\nAnd every tried method parameter sample stress view and hedge ratio is counted\nAnd the correction supersedes without rewriting the prior record\nAnd reload and explicit private export preserve identities provenance invalidation and privacy warnings"
+            },
+            "gherkinHash": "sha256:114b2d92d2de0019b7cbde386cc71de5f5d7702c639b8ab5e36cfd1d00871b8a",
+            "behaviorClass": "data",
+            "changeType": "changed",
+            "requiredTestType": "e2e-ui",
+            "requiredTestTypes": ["functional", "e2e-ui"],
+            "regressionRequired": true,
+            "riskTier": "high",
+            "requirementRefs": ["FR-142-FR-150", "NFR-009", "NFR-023"],
+            "findingRefs": ["F008-DOSSIER-001"],
+            "domainEntityRefs": ["Tool"],
+            "invariantRefs": [],
+            "behaviorTraits": ["mutable-state", "user-visible-ui", "degraded-state"],
+            "obligations": [
+                {"trait": "mutable-state", "requiredProof": "Hash-linked records, trials, corrections, reload, and selected private export preserve prior identities and append one new head.", "satisfiedBy": ["TP-25-01", "TP-25-02", "TP-25-03"]},
+                {"trait": "user-visible-ui", "requiredProof": "The real Dossier route separates every result state, cost component, trial, correction, provenance, and privacy warning.", "satisfiedBy": ["TP-25-03"]},
+                {"trait": "degraded-state", "requiredProof": "Look-ahead, missing windows, incomplete costs, broken chains, or invalid export remain unavailable or gross-only with prior records preserved.", "satisfiedBy": ["TP-25-02", "TP-25-04"]}
+            ],
+            "testMechanism": {"entrypoint": "production-route", "inputOrigin": "seeded-store", "assertionSurface": "visible-ui", "dependencyPath": "same-origin-real", "productionOwners": ["rlportfolioanalytics.js", "rlportfolio.js", "portfolio-survival-allocation-lab.html"], "negativeControl": "Disposable look-ahead, missing-window, false-net, uncounted-trial, in-place-correction, and volatile-export mutations must fail.", "negativeControlMechanism": "mutation"},
+            "implementationRefs": ["rlportfolioanalytics.js", "rlportfolio.js", "portfolio-survival-allocation-lab.html"],
+            "testRows": ["TP-25-01", "TP-25-02", "TP-25-03", "TP-25-04", "TP-25-05"],
+            "linkedTests": ["tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-051 dossier preserves decision time costs trials corrections reload and private export"],
+            "linkedTestContracts": [{"file": "tests/portfolio-survival-allocation.spec.mjs", "testId": "Regression: SCN-008-051 dossier preserves decision time costs trials corrections reload and private export", "testPlanRow": "TP-25-03", "planStatus": "planned-not-authored"}],
+            "expectedAssertions": ["decision-time fitting excludes later evidence", "cost and trial ledgers are complete", "corrections append and survive reload without rewriting history"],
+            "evidenceRefs": ["scopes/25-decision-time-dossier-and-immutable-audit/report.md#scenario-contract-evidence"],
+            "lockdown": {"state": "unlocked"},
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-052",
+            "scenarioId": "SCN-008-052",
+            "businessScenarioId": "BS-008-052",
+            "scope": "26-immutable-workspace-compute-and-navigation",
+            "scopeRef": "scopes/26-immutable-workspace-compute-and-navigation/scope.md",
+            "title": "One workspace compute survives navigation and supersession",
+            "gherkin": {
+                "given": "one active immutable workspace view model and one later draft identity exist",
+                "when": "the user switches Simple and Power changes tabs starts a rebase opens an owning tool and returns",
+                "then": "mode and tab navigation render the active view model without recomputing analytics\nAnd only the newest matching compute token may publish while last-valid results remain visible\nAnd an explicit rebase atomically replaces every sibling projection under one identity\nAnd ReturnContext is consumed by the owning destination and renders a visible From Portfolio Brief return strip\nAnd returning restores the original action disclosure and keyboard focus without private URL or public read data"
+            },
+            "gherkinHash": "sha256:42f7ac5c367a9f1b45460c7a6bf51b32f07e718731303b519d5d5eec452d743c",
+            "behaviorClass": "ui",
+            "changeType": "changed",
+            "requiredTestType": "e2e-ui",
+            "requiredTestTypes": ["functional", "e2e-ui"],
+            "regressionRequired": true,
+            "riskTier": "high",
+            "requirementRefs": ["FR-067", "FR-154", "NFR-002", "NFR-012", "NFR-013"],
+            "findingRefs": ["F008-COMPUTE-NAV-001"],
+            "domainEntityRefs": ["Tool"],
+            "invariantRefs": [],
+            "behaviorTraits": ["mutable-state", "user-visible-ui", "shared-consumer", "degraded-state", "return-time-ordering"],
+            "obligations": [
+                {"trait": "mutable-state", "requiredProof": "Token, active, draft, last-valid, rebase, ReturnContext, disclosure, and focus state survive the complete navigation round trip.", "satisfiedBy": ["TP-26-01", "TP-26-02", "TP-26-03", "TP-26-04"]},
+                {"trait": "user-visible-ui", "requiredProof": "The production route and real owning page expose one identity, visible return strip, restored disclosure, and restored focus.", "satisfiedBy": ["TP-26-03", "TP-26-04"]},
+                {"trait": "shared-consumer", "requiredProof": "Feature 008 and ordinary rlnav consumers preserve their current routes, history, and no-context behavior.", "satisfiedBy": ["parity:TP-26-02 ReturnContext parity", "consumer-surface:TP-26-06 shared-shell routes", "TP-26-06"]},
+                {"trait": "degraded-state", "requiredProof": "Cancelled, failed, obsolete, malformed, expired, or wrong-destination state preserves the last valid view and removes invalid context.", "satisfiedBy": ["TP-26-01", "TP-26-05"]},
+                {"trait": "return-time-ordering", "requiredProof": "Only the newest matching token may publish at return, and a delayed obsolete completion cannot mutate the published view.", "satisfiedBy": ["ordering:at-return", "ordering:sentinel", "TP-26-03", "TP-26-05"]}
+            ],
+            "testMechanism": {"entrypoint": "production-route", "inputOrigin": "seeded-store", "assertionSurface": "visible-ui", "dependencyPath": "same-origin-real", "productionOwners": ["portfolio-survival-allocation-lab.html", "rlportfolio.js", "rlnav.js"], "negativeControl": "Disposable recompute, stale-publish, partial-rebase, same-page-return, and private-URL mutations must each fail.", "negativeControlMechanism": "mutation"},
+            "implementationRefs": ["portfolio-survival-allocation-lab.html", "rlportfolio.js", "rlnav.js"],
+            "testRows": ["TP-26-01", "TP-26-02", "TP-26-03", "TP-26-04", "TP-26-05", "TP-26-06"],
+            "linkedTests": ["tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-052 mode tabs rebase and compute tokens preserve one immutable workspace", "tests/portfolio-survival-mobile.spec.mjs#Regression: SCN-008-052 owning tool consumes ReturnContext and restores Portfolio Brief focus"],
+            "linkedTestContracts": [{"file": "tests/portfolio-survival-brief.spec.mjs", "testId": "Regression: SCN-008-052 mode tabs rebase and compute tokens preserve one immutable workspace", "testPlanRow": "TP-26-03", "planStatus": "planned-not-authored"}, {"file": "tests/portfolio-survival-mobile.spec.mjs", "testId": "Regression: SCN-008-052 owning tool consumes ReturnContext and restores Portfolio Brief focus", "testPlanRow": "TP-26-04", "planStatus": "planned-not-authored"}],
+            "expectedAssertions": ["mode and tab changes do not recompute", "only the newest token publishes one atomic view", "owner navigation consumes ReturnContext and restores disclosure and focus"],
+            "evidenceRefs": ["scopes/26-immutable-workspace-compute-and-navigation/report.md#scenario-contract-evidence"],
+            "lockdown": {"state": "unlocked"},
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-053",
+            "scenarioId": "SCN-008-053",
+            "businessScenarioId": "BS-008-053",
+            "scope": "27-accessible-six-tab-interaction",
+            "scopeRef": "scopes/27-accessible-six-tab-interaction/scope.md",
+            "title": "Every workspace decision is equivalent under assistive interaction",
+            "gherkin": {
+                "given": "reduced motion forced colors 200 percent zoom and text-spacing overrides are active",
+                "when": "the user uses the skip link navigates mode and workspace tabs with Arrow Home End Enter and Space opens and closes modal sheets and inspects every chart table and truth state",
+                "then": "focus order selection announcements labels errors and return targets are deterministic\nAnd modal focus is trapped only while open and returns to the invoker\nAnd every chart decision is available in an equivalent table without motion or color dependence\nAnd no text control focus ring tooltip sheet or status overlaps clips or causes body-level horizontal scrolling"
+            },
+            "gherkinHash": "sha256:b22861a97f6cd871e805ed8c883887dcc5908706e753fa1b0f5dd37175588bb3",
+            "behaviorClass": "ui",
+            "changeType": "changed",
+            "requiredTestType": "e2e-ui",
+            "requiredTestTypes": ["e2e-ui", "functional"],
+            "regressionRequired": true,
+            "riskTier": "high",
+            "requirementRefs": ["NFR-013", "NFR-014", "NFR-015", "NFR-016"],
+            "findingRefs": ["F008-ACCESSIBILITY-001"],
+            "domainEntityRefs": ["Tool"],
+            "invariantRefs": [],
+            "behaviorTraits": ["user-visible-ui", "responsive-accessible"],
+            "obligations": [
+                {"trait": "user-visible-ui", "requiredProof": "The production route exposes deterministic skip, tab, modal, chart, table, status, error, and return-focus behavior.", "satisfiedBy": ["TP-27-01", "TP-27-02"]},
+                {"trait": "responsive-accessible", "requiredProof": "Keyboard, screen-reader, reduced-motion, forced-color, zoom, text-spacing, touch, and narrow-mobile runs preserve equivalent decisions without overlap.", "satisfiedBy": ["TP-27-01", "TP-27-02", "TP-27-03", "TP-27-04"]}
+            ],
+            "testMechanism": {"entrypoint": "production-route", "inputOrigin": "synthetic-fixture", "assertionSurface": "accessibility-tree", "dependencyPath": "same-origin-real", "productionOwners": ["portfolio-survival-allocation-lab.html"], "negativeControl": "Disposable keyboard, skip-link, focus, motion, color-only, zoom, and overflow mutations must each fail a visible or accessibility assertion.", "negativeControlMechanism": "mutation"},
+            "implementationRefs": ["portfolio-survival-allocation-lab.html"],
+            "testRows": ["TP-27-01", "TP-27-02", "TP-27-03", "TP-27-04", "TP-27-05"],
+            "linkedTests": ["tests/portfolio-survival-accessibility.spec.mjs#Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete", "tests/portfolio-survival-accessibility.spec.mjs#Regression: SCN-008-053 reduced motion forced colors contrast and text spacing preserve every decision", "tests/portfolio-survival-mobile.spec.mjs#Regression: SCN-008-053 zoom mobile and long content have no overlap clipping or body overflow"],
+            "linkedTestContracts": [{"file": "tests/portfolio-survival-accessibility.spec.mjs", "testId": "Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete", "testPlanRow": "TP-27-01", "planStatus": "planned-not-authored"}, {"file": "tests/portfolio-survival-accessibility.spec.mjs", "testId": "Regression: SCN-008-053 reduced motion forced colors contrast and text spacing preserve every decision", "testPlanRow": "TP-27-02", "planStatus": "planned-not-authored"}, {"file": "tests/portfolio-survival-mobile.spec.mjs", "testId": "Regression: SCN-008-053 zoom mobile and long content have no overlap clipping or body overflow", "testPlanRow": "TP-27-03", "planStatus": "planned-not-authored"}],
+            "expectedAssertions": ["all keyboard and modal semantics are deterministic", "chart decisions have equivalent tables", "all preference and viewport modes remain overlap-free"],
+            "evidenceRefs": ["scopes/27-accessible-six-tab-interaction/report.md#scenario-contract-evidence"],
+            "lockdown": {"state": "unlocked"},
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-054",
+            "scenarioId": "SCN-008-054",
+            "businessScenarioId": "BS-008-054",
+            "scope": "28-spec-driven-adversarial-test-replacement",
+            "scopeRef": "scopes/28-spec-driven-adversarial-test-replacement/scope.md",
+            "title": "Protected tests detect every audited defect class",
+            "gherkin": {
+                "given": "the complete authoritative scenario set and one adversarial case for every audited defect class",
+                "when": "focused Node and real-page browser carriers execute production code",
+                "then": "every required title is discovered and reaches its assertions\nAnd each adversarial case fails when the audited defect is represented in an isolated test fixture or disposable copy\nAnd the repaired implementation passes the identical behavioral command\nAnd no file-wrapper success proxy optional assertion interception bailout or historical receipt substitutes for behavior proof"
+            },
+            "gherkinHash": "sha256:9839dcc82df603867e3d55494afbf664bef4eb84baa764fccc5b6c57e138b4ae",
+            "behaviorClass": "test",
+            "changeType": "changed",
+            "requiredTestType": "unit",
+            "requiredTestTypes": ["unit", "functional", "e2e-ui"],
+            "regressionRequired": true,
+            "riskTier": "high",
+            "requirementRefs": ["NFR-025"],
+            "findingRefs": ["F008-TEST-INTEGRITY-001", "F008-PLAN-COHERENCE-001"],
+            "domainEntityRefs": ["Tool"],
+            "invariantRefs": [],
+            "behaviorTraits": ["shared-consumer", "static-metadata"],
+            "obligations": [
+                {"trait": "shared-consumer", "requiredProof": "Every exact planned title executes the current production path, and shared consumers remain green under the complete matrices.", "satisfiedBy": ["parity:TP-28-01 structured-title parity", "consumer-surface:TP-28-03 real Feature 008 routes", "TP-28-03"]},
+                {"trait": "static-metadata", "requiredProof": "Manifest, Test Plan, declaration, receipt, and evidence references remain one-to-one and reject missing or zero-match declarations.", "satisfiedBy": ["TP-28-01", "TP-28-04", "TP-28-05"]}
+            ],
+            "testMechanism": {"entrypoint": "production-route", "inputOrigin": "recorded-fixture", "assertionSurface": "visible-ui", "dependencyPath": "same-origin-real", "productionOwners": ["scripts/validate-test-file-reachability.mjs", "tests/portfolio-test-integrity.unit.mjs", "tests/portfolio-survival.support.mjs"], "negativeControl": "Each audited shortcut is represented in an isolated fixture or disposable copy and must fail before the identical repaired command passes.", "negativeControlMechanism": "mutation"},
+            "implementationRefs": ["scripts/validate-test-file-reachability.mjs", "tests/portfolio-test-integrity.unit.mjs", "tests/portfolio-survival.support.mjs", "tests/portfolio-survival-foundation.spec.mjs", "tests/portfolio-survival-brief.spec.mjs", "tests/portfolio-survival-risk.spec.mjs", "tests/portfolio-survival-paths.spec.mjs", "tests/portfolio-survival-diversification.spec.mjs", "tests/portfolio-survival-allocation.spec.mjs", "tests/portfolio-survival-mobile.spec.mjs", "tests/portfolio-survival-accessibility.spec.mjs"],
+            "testRows": ["TP-28-01", "TP-28-02", "TP-28-03", "TP-28-04", "TP-28-05", "TP-28-06"],
+            "linkedTests": ["tests/portfolio-test-integrity.unit.mjs#Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing"],
+            "linkedTestContracts": [{"file": "tests/portfolio-test-integrity.unit.mjs", "testId": "Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing", "testPlanRow": "TP-28-04", "planStatus": "planned-not-authored"}],
+            "expectedAssertions": ["every exact title is discovered and executes", "every isolated audited defect fails", "the identical repaired commands pass without proxy evidence"],
+            "evidenceRefs": ["scopes/28-spec-driven-adversarial-test-replacement/report.md#scenario-contract-evidence"],
+            "lockdown": {"state": "unlocked"},
+            "replacedBy": null,
+            "invalidatedBy": null
+        },
+        {
+            "id": "SCN-008-055",
+            "scenarioId": "SCN-008-055",
+            "businessScenarioId": "BS-008-055",
+            "scope": "29-documentation-and-registry-truth",
+            "scopeRef": "scopes/29-documentation-and-registry-truth/scope.md",
+            "title": "Published Feature 008 guidance matches the executable route",
+            "gherkin": {
+                "given": "the repaired implementation and Scope 28 evidence are current",
+                "when": "the reader follows the note tools registry landing page navigation and README links",
+                "then": "every entry opens portfolio-survival-allocation-lab.html#brief\nAnd one-compute stress appraisal hedge allocation dossier accessibility and privacy claims match executable states and limits\nAnd no source describes the former #workspace hash or a reduced behavior as complete"
+            },
+            "gherkinHash": "sha256:43895c5f9afa5c4552ae336922bde669a6de2898e7801cedd704ed28474f67a5",
+            "behaviorClass": "ui",
+            "changeType": "changed",
+            "requiredTestType": "e2e-ui",
+            "requiredTestTypes": ["functional", "e2e-ui"],
+            "regressionRequired": true,
+            "riskTier": "medium",
+            "requirementRefs": ["NFR-026"],
+            "findingRefs": ["F008-DOC-INTEGRATION-001"],
+            "domainEntityRefs": ["Tool"],
+            "invariantRefs": [],
+            "behaviorTraits": ["user-visible-ui", "shared-consumer", "static-metadata"],
+            "obligations": [
+                {"trait": "user-visible-ui", "requiredProof": "Each published repository entry opens the production #brief route and renders the Brief workspace first.", "satisfiedBy": ["TP-29-02"]},
+                {"trait": "shared-consumer", "requiredProof": "Note, registry, landing, navigation, README, and route claims share one link and capability truth.", "satisfiedBy": ["parity:TP-29-01 registry claim parity", "consumer-surface:TP-29-02 real #brief route", "TP-29-03"]},
+                {"trait": "static-metadata", "requiredProof": "A stale #workspace hash or unsupported complete-capability claim is found and rejected across active surfaces.", "satisfiedBy": ["TP-29-01", "TP-29-04", "TP-29-05"]}
+            ],
+            "testMechanism": {"entrypoint": "production-route", "inputOrigin": "recorded-fixture", "assertionSurface": "visible-ui", "dependencyPath": "same-origin-real", "productionOwners": ["notes/portfolio-survival-allocation-lab.md", "tools.json", "index.html", "rlnav.js", "README.md", "portfolio-survival-allocation-lab.html"], "negativeControl": "Disposable stale-hash and unsupported-complete-claim mutations must fail publication truth before the current #brief route passes.", "negativeControlMechanism": "mutation"},
+            "implementationRefs": ["notes/portfolio-survival-allocation-lab.md", "tools.json", "index.html", "rlnav.js", "README.md", "portfolio-survival-allocation-lab.html"],
+            "testRows": ["TP-29-01", "TP-29-02", "TP-29-03", "TP-29-04", "TP-29-05"],
+            "linkedTests": ["tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-055 every published Feature 008 entry opens the Portfolio Brief workspace"],
+            "linkedTestContracts": [{"file": "tests/portfolio-survival-brief.spec.mjs", "testId": "Regression: SCN-008-055 every published Feature 008 entry opens the Portfolio Brief workspace", "testPlanRow": "TP-29-02", "planStatus": "planned-not-authored"}],
+            "expectedAssertions": ["every named surface opens #brief", "all claims match executable states and limits", "no active source retains #workspace or reduced-complete wording"],
+            "evidenceRefs": ["scopes/29-documentation-and-registry-truth/report.md#scenario-contract-evidence"],
+            "lockdown": {"state": "unlocked"},
             "replacedBy": null,
             "invalidatedBy": null
         }

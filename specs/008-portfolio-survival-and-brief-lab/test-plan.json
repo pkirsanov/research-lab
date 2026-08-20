@@ -3,8 +3,9 @@
     "specId": "008",
     "featureDir": "specs/008-portfolio-survival-and-brief-lab",
     "generatedBy": "bubbles.plan",
-    "generatedAt": "2026-07-15T00:00:00Z",
-    "planningStatus": "planned-not-executed",
+    "generatedAt": "2026-08-20T15:34:33Z",
+    "planningStatus": "p1-synchronized-remediation-ready",
+    "remediationPlanNote": "Rows for Scopes 17 through 29 are planned-not-executed. fileState reports carrier existence; testState remains planned-not-authored until the exact remediation assertion or title is created.",
     "tddMode": "scenario-first",
     "evidenceBoundary": "Planning-owned structured handoff only. Every focused behavior requires intended RED and identical-command GREEN through .github/bubbles/scripts/tool-log.sh. Browser rows use the real fixture-overlay HTTP server with production HTML and JavaScript unchanged, no page.route or context.route, no service worker, and no external provider.",
     "commandCatalog": {
@@ -428,9 +429,9 @@
                     "category": "e2e-ui",
                     "file": "tests/portfolio-survival-foundation.spec.mjs",
                     "scenarioId": "SCN-008-005",
-                    "testTitle": "Regression: SCN-008-005 generic publisher and public requests contain no personal sentinel",
+                    "testTitle": "Regression: SCN-008-005 TP-04-05 personal state coexists with the shared cache and the only published read is the constant privacy boundary",
                     "description": "Real browser public/local barrier and sentinel absence.",
-                    "command": "npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-005 generic publisher and public requests contain no personal sentinel\" --reporter=list",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-005 TP-04-05 personal state coexists with the shared cache and the only published read is the constant privacy boundary\" --reporter=list",
                     "liveSystem": true,
                     "evidenceRef": "scopes/04-public-evidence-barrier-and-coverage/report.md#scenario-scn-008-005",
                     "status": "planned-not-executed",
@@ -600,6 +601,104 @@
                     "evidenceRef": "scopes/05-four-window-direct-scope-brief/report.md#tp-05-06",
                     "status": "planned-not-executed",
                     "redGreenRequired": false
+                },
+                {
+                    "id": "TP-05-07",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "scenarioId": "SCN-008-007",
+                    "testTitle": "Regression: SCN-008-007 TP-05-07 a completed-research subject renders in its own lane with its qualification source",
+                    "description": "A completed-research subject renders in its own lane with its qualification source.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-007 TP-05-07 a completed-research subject renders in its own lane with its qualification source\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/05-four-window-direct-scope-brief/report.md#tp-05-07",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-05-08",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "scenarioId": "SCN-008-007",
+                    "testTitle": "Regression: SCN-008-007 TP-05-08 a scoped subject with no surviving evidence is explained on screen",
+                    "description": "A scoped subject with no surviving evidence is explained on screen.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-007 TP-05-08 a scoped subject with no surviving evidence is explained on screen\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/05-four-window-direct-scope-brief/report.md#tp-05-08",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-05-09",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "scenarioId": "SCN-008-006",
+                    "testTitle": "Regression: SCN-008-007 TP-05-09 brief identity binds revision window policy and action set",
+                    "description": "Brief identity binds revision window policy and action set.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-007 TP-05-09 brief identity binds revision window policy and action set\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/05-four-window-direct-scope-brief/report.md#tp-05-09",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-05-10",
+                    "type": "Brief composition functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-brief.functional.mjs",
+                    "scenarioId": "SCN-008-006",
+                    "description": "FR-041 the local action-history cutoff is a fourth clock and is actually enforced",
+                    "commandRef": "CMD-FUNCTIONAL-BRIEF",
+                    "command": "node --test tests/portfolio-brief.functional.mjs",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/05-four-window-direct-scope-brief/report.md#tp-05-10",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-05-11",
+                    "type": "Brief composition functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-brief.functional.mjs",
+                    "scenarioId": "SCN-008-006",
+                    "description": "FR-057 a repeat over the same evidence is not reported as independent confirmation",
+                    "commandRef": "CMD-FUNCTIONAL-BRIEF",
+                    "command": "node --test tests/portfolio-brief.functional.mjs",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/05-four-window-direct-scope-brief/report.md#tp-05-11",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-05-12",
+                    "type": "Brief composition functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-brief.functional.mjs",
+                    "scenarioId": "SCN-008-007",
+                    "description": "FR-059 a general-interest item states it is not a known holding and ranks below direct work",
+                    "commandRef": "CMD-FUNCTIONAL-BRIEF",
+                    "command": "node --test tests/portfolio-brief.functional.mjs",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/05-four-window-direct-scope-brief/report.md#tp-05-12",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-05-13",
+                    "type": "Brief composition functional",
+                    "category": "functional",
+                    "file": "tests/portfolio-brief.functional.mjs",
+                    "scenarioId": "SCN-008-006",
+                    "description": "FR-050 partial or stale evidence keeps its state and cannot support an action as if fresh",
+                    "commandRef": "CMD-FUNCTIONAL-BRIEF",
+                    "command": "node --test tests/portfolio-brief.functional.mjs",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/05-four-window-direct-scope-brief/report.md#tp-05-13",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
                 }
             ]
         },
@@ -654,9 +753,9 @@
                     "category": "e2e-ui",
                     "file": "tests/portfolio-survival-brief.spec.mjs",
                     "scenarioId": "SCN-008-008",
-                    "testTitle": "Regression: SCN-008-008 inferred action exposes complete why shown provenance",
+                    "testTitle": "Regression: SCN-008-008 TP-06-03 every rendered item discloses why it appears",
                     "description": "Complete why-shown and separate confidence fields.",
-                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-008 inferred action exposes complete why shown provenance\" --reporter=list",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-008 TP-06-03 every rendered item discloses why it appears\" --reporter=list",
                     "liveSystem": true,
                     "evidenceRef": "scopes/06-explainable-research-action-lifecycle/report.md#scenario-scn-008-008",
                     "status": "planned-not-executed",
@@ -668,9 +767,9 @@
                     "category": "e2e-ui",
                     "file": "tests/portfolio-survival-brief.spec.mjs",
                     "scenarioId": "SCN-008-009",
-                    "testTitle": "Regression: SCN-008-009 settings parameters scroll and dwell create no interest signal",
+                    "testTitle": "Regression: SCN-008-009 TP-06-04 settings parameters and window changes leave event interest and action identity unchanged",
                     "description": "Display and parameter activity creates no interest or profile.",
-                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-009 settings parameters scroll and dwell create no interest signal\" --reporter=list",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-009 TP-06-04 settings parameters and window changes leave event interest and action identity unchanged\" --reporter=list",
                     "liveSystem": true,
                     "evidenceRef": "scopes/06-explainable-research-action-lifecycle/report.md#scenario-scn-008-009",
                     "status": "planned-not-executed",
@@ -682,9 +781,9 @@
                     "category": "e2e-ui",
                     "file": "tests/portfolio-survival-brief.spec.mjs",
                     "scenarioId": "SCN-008-034",
-                    "testTitle": "Regression: SCN-008-034 every visible recommendation remains non executing research",
+                    "testTitle": "Regression: SCN-008-034 TP-06-05 the route exposes research and lifecycle verbs only",
                     "description": "Only closed research verbs and no advice execution controls.",
-                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-034 every visible recommendation remains non executing research\" --reporter=list",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-034 TP-06-05 the route exposes research and lifecycle verbs only\" --reporter=list",
                     "liveSystem": true,
                     "evidenceRef": "scopes/06-explainable-research-action-lifecycle/report.md#scenario-scn-008-034",
                     "status": "planned-not-executed",
@@ -738,13 +837,42 @@
                     "file": "tests/portfolio-privacy.functional.mjs",
                     "scenarioId": "SCN-008-037",
                     "coversScenarioIds": [
-                        "SCN-008-037"
+                        "SCN-008-037",
+                        "SCN-008-041"
                     ],
                     "description": "Carries Scope 03's discharged interests and outcomes clear conjuncts: a full-personal clear empties both sections on a storage reread and a behavior-only clear preserves portfolio facts.",
                     "commandRef": "CMD-FUNCTIONAL-PRIVACY",
                     "command": "node --test tests/portfolio-privacy.functional.mjs",
                     "liveSystem": false,
                     "evidenceRef": "scopes/06-explainable-research-action-lifecycle/report.md#tp-06-08",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-06-09",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "scenarioId": "SCN-008-034",
+                    "testTitle": "Regression: SCN-008-034 TP-06-09 a lifecycle outcome is recorded without becoming a market view",
+                    "description": "A lifecycle outcome is recorded without becoming a market view.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-034 TP-06-09 a lifecycle outcome is recorded without becoming a market view\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/06-explainable-research-action-lifecycle/report.md#tp-06-09",
+                    "status": "planned-not-executed",
+                    "redGreenRequired": true
+                },
+                {
+                    "id": "TP-06-10",
+                    "type": "Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-brief.spec.mjs",
+                    "scenarioId": "SCN-008-008",
+                    "testTitle": "Regression: SCN-008-008 TP-06-10 the clear control is exposed where behaviour-derived ranking is visible",
+                    "description": "The clear control is exposed where behaviour-derived ranking is visible.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-008 TP-06-10 the clear control is exposed where behaviour-derived ranking is visible\" --reporter=list",
+                    "liveSystem": true,
+                    "evidenceRef": "scopes/06-explainable-research-action-lifecycle/report.md#tp-06-10",
                     "status": "planned-not-executed",
                     "redGreenRequired": true
                 }
@@ -1045,17 +1173,17 @@
                 },
                 {
                     "id": "TP-09-06",
-                    "type": "Discharged clear conjunct functional",
-                    "category": "functional",
-                    "file": "tests/portfolio-analytics.unit.mjs",
+                    "type": "Discharged clear conjunct Regression E2E",
+                    "category": "e2e-ui",
+                    "file": "tests/portfolio-survival-paths.spec.mjs",
                     "scenarioId": "SCN-008-038",
                     "coversScenarioIds": [
                         "SCN-008-038"
                     ],
+                    "testTitle": "Regression: SCN-008-038 a saved scenario survives reload and is removed by a full personal clear",
                     "description": "Carries Scope 03's discharged scenarios clear conjunct: a full-personal clear empties the scenario section on a storage reread while public generic assets stay byte-identical.",
-                    "commandRef": "CMD-UNIT-ANALYTICS",
-                    "command": "node --test tests/portfolio-analytics.unit.mjs",
-                    "liveSystem": false,
+                    "command": "npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-038 a saved scenario survives reload and is removed by a full personal clear\" --reporter=list",
+                    "liveSystem": true,
                     "evidenceRef": "scopes/09-dependent-path-reproducibility/report.md#tp-09-06",
                     "status": "planned-not-executed",
                     "redGreenRequired": true
@@ -1293,9 +1421,9 @@
                     "category": "e2e-ui",
                     "file": "tests/portfolio-survival-diversification.spec.mjs",
                     "scenarioId": "SCN-008-025",
-                    "testTitle": "Regression: SCN-008-025 hedge comparison separates gross carry costs basis and residual",
+                    "testTitle": "Regression: SCN-008-025 hedged and unhedged comparison keeps carry and basis risk separate",
                     "description": "Separate hedge fields and missing-net state.",
-                    "command": "npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-025 hedge comparison separates gross carry costs basis and residual\" --reporter=list",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-025 hedged and unhedged comparison keeps carry and basis risk separate\" --reporter=list",
                     "liveSystem": true,
                     "evidenceRef": "scopes/12-hedge-variant-research/report.md#scenario-scn-008-025",
                     "status": "planned-not-executed",
@@ -1303,13 +1431,13 @@
                 },
                 {
                     "id": "TP-12-03",
-                    "type": "Same-basis Regression E2E",
+                    "type": "Missing-cost Regression E2E",
                     "category": "e2e-ui",
                     "file": "tests/portfolio-survival-diversification.spec.mjs",
                     "scenarioId": "SCN-008-025",
-                    "testTitle": "Regression: SCN-008-025 hedge variants reuse one scenario basis and never prescribe a ratio",
-                    "description": "Common scenario basis and no prescribed ratio.",
-                    "command": "npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-025 hedge variants reuse one scenario basis and never prescribe a ratio\" --reporter=list",
+                    "testTitle": "Regression: SCN-008-025 missing cost evidence blocks net benefit rather than assuming zero",
+                    "description": "Missing cost evidence blocks net benefit rather than assuming zero.",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-025 missing cost evidence blocks net benefit rather than assuming zero\" --reporter=list",
                     "liveSystem": true,
                     "evidenceRef": "scopes/12-hedge-variant-research/report.md#tp-12-03",
                     "status": "planned-not-executed",
@@ -1321,9 +1449,9 @@
                     "category": "e2e-ui",
                     "file": "tests/portfolio-survival-diversification.spec.mjs",
                     "scenarioId": "SCN-008-025",
-                    "testTitle": "Regression: SCN-008-025 hedge variant pixels tables and disclosures remain equivalent on mobile",
+                    "testTitle": "Regression: Feature 008 hedge variants stay equivalent and legible at desktop mobile and zoom",
                     "description": "Hedge pixels tables disclosures and mobile geometry.",
-                    "command": "npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-025 hedge variant pixels tables and disclosures remain equivalent on mobile\" --reporter=list",
+                    "command": "npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: Feature 008 hedge variants stay equivalent and legible at desktop mobile and zoom\" --reporter=list",
                     "liveSystem": true,
                     "evidenceRef": "scopes/12-hedge-variant-research/report.md#tp-12-04",
                     "status": "planned-not-executed",
@@ -1764,7 +1892,7 @@
                         "SCN-008-040"
                     ],
                     "description": "Carries Scope 03's discharged dossiers clear conjunct: a full-personal clear empties the dossier section on a storage reread while public generic assets stay byte-identical.",
-                    "commandRef": "CMD-FUNCTIONAL-DOSSIER",
+                    "commandRef": "CMD-FUNCTIONAL-ALLOCATION",
                     "command": "node --test tests/portfolio-allocation.functional.mjs",
                     "liveSystem": false,
                     "evidenceRef": "scopes/15-walk-forward-research-dossier-and-claim-boundaries/report.md#tp-15-08",
@@ -2032,6 +2160,9 @@
                     "file": "tests/portfolio-privacy.functional.mjs",
                     "scenarioId": "SCN-008-041",
                     "coversScenarioIds": [
+                        "SCN-008-038",
+                        "SCN-008-039",
+                        "SCN-008-040",
                         "SCN-008-041"
                     ],
                     "description": "Carries Scope 03's discharged UI-state clear conjunct AND the whole-set closure: every declared personal category empties on a storage reread, no personal key survives outside the declared sweep, and the declared set is derived from the runtime rather than hand-written.",
@@ -2042,6 +2173,181 @@
                     "status": "planned-not-executed",
                     "redGreenRequired": true
                 }
+            ]
+        },
+        {
+            "scopeId": "17-local-lifecycle-and-verified-clear-foundation",
+            "scopeName": "Local Lifecycle And Verified Clear Foundation",
+            "foundation": true,
+            "dependsOn": ["16-integrated-route-accessibility-and-atomic-release"],
+            "tests": [
+                {"id":"TP-17-01","type":"Unit","category":"unit","file":"tests/portfolio-foundation.unit.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-042","coversScenarioIds":["SCN-008-042","SCN-008-043"],"description":"Revision operations, tombstone ordering, derived registry, and fault matrix.","command":"node --test tests/portfolio-foundation.unit.mjs","liveSystem":false,"evidenceRef":"scopes/17-local-lifecycle-and-verified-clear-foundation/report.md#tp-17-01","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-17-02","type":"Functional","category":"functional","file":"tests/portfolio-privacy.functional.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-042","coversScenarioIds":["SCN-008-042","SCN-008-043"],"description":"Multi-row round trip plus storage and controller post-clear inventory.","command":"node --test tests/portfolio-privacy.functional.mjs","liveSystem":false,"evidenceRef":"scopes/17-local-lifecycle-and-verified-clear-foundation/report.md#tp-17-02","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-17-03","type":"Regression E2E","category":"e2e-ui","file":"tests/portfolio-survival-foundation.spec.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-042","testTitle":"Regression: SCN-008-042 holdings can be added edited removed and cleared to an honest empty portfolio","description":"Add, edit, remove, confirm, reload, and render an honest empty portfolio.","command":"npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-042 holdings can be added edited removed and cleared to an honest empty portfolio\" --reporter=list","liveSystem":true,"evidenceRef":"scopes/17-local-lifecycle-and-verified-clear-foundation/report.md#tp-17-03","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-17-04","type":"Regression E2E","category":"e2e-ui","file":"tests/portfolio-survival-foundation.spec.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-043","testTitle":"Regression: SCN-008-043 full personal clear tombstones derives and verifies every personal category","description":"Typed full clear proves tombstone order, complete runtime registry, rereads, and public preservation.","command":"npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-043 full personal clear tombstones derives and verifies every personal category\" --reporter=list","liveSystem":true,"evidenceRef":"scopes/17-local-lifecycle-and-verified-clear-foundation/report.md#tp-17-04","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-17-05","type":"Adversarial mutation","category":"functional","file":"tests/portfolio-privacy.functional.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-043","testTitle":"Adversarial: full personal clear detects undeclared keys live state and arbitrary residue","description":"Disposable undeclared-key, live-only-state, and non-sentinel-residue mutations each defeat false success.","command":"node --test --test-name-pattern=\"Adversarial: full personal clear detects undeclared keys live state and arbitrary residue\" tests/portfolio-privacy.functional.mjs","liveSystem":false,"evidenceRef":"scopes/17-local-lifecycle-and-verified-clear-foundation/report.md#tp-17-05","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-17-06","type":"Broader regression","category":"functional","file":"scripts/selftest.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-042","coversScenarioIds":["SCN-008-042","SCN-008-043"],"description":"The all-spec path-validator matrix reports and accepts a planned-only missing path for a Not Started owner with testState planned-not-authored; fails when the identical path is active in another spec; fails an authored row whose path is missing; passes an existing path; fails a vacuous scan; proves the baseline remains shrink-only; and keeps existing storage, privacy, and static-site contracts green.","command":"node scripts/selftest.mjs","liveSystem":false,"evidenceRef":"scopes/17-local-lifecycle-and-verified-clear-foundation/report.md#tp-17-06","status":"planned-not-executed","redGreenRequired":false}
+            ]
+        },
+        {
+            "scopeId": "18-behavior-identity-and-ranking-foundation",
+            "scopeName": "Behavior Identity And Ranking Foundation",
+            "foundation": true,
+            "dependsOn": ["17-local-lifecycle-and-verified-clear-foundation"],
+            "tests": [
+                {"id":"TP-18-01","type":"Functional","category":"functional","file":"tests/portfolio-brief.functional.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-044","description":"Full event identity, distinct-date floor, decay, tie order, and one projection.","command":"node --test tests/portfolio-brief.functional.mjs","liveSystem":false,"evidenceRef":"scopes/18-behavior-identity-and-ranking-foundation/report.md#tp-18-01","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-18-02","type":"Privacy functional","category":"functional","file":"tests/portfolio-privacy.functional.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-044","description":"Storage lifecycle and canonical ranking references remain minimal and clearable.","command":"node --test tests/portfolio-privacy.functional.mjs","liveSystem":false,"evidenceRef":"scopes/18-behavior-identity-and-ranking-foundation/report.md#tp-18-02","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-18-03","type":"Regression E2E","category":"e2e-ui","file":"tests/portfolio-survival-brief.spec.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-044","testTitle":"Regression: SCN-008-044 behavior identity decay floor and ranking remain canonical across every projection","description":"Store, Brief, Why shown, mode, and reload expose one canonical ranking.","command":"npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-044 behavior identity decay floor and ranking remain canonical across every projection\" --reporter=list","liveSystem":true,"evidenceRef":"scopes/18-behavior-identity-and-ranking-foundation/report.md#tp-18-03","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-18-04","type":"Adversarial mutation","category":"functional","file":"tests/portfolio-brief.functional.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-044","testTitle":"Adversarial: behavior identity and temporal guards prevent false relevance","description":"Disposable reduced-identity, future-weight, and raw-count mutations cannot satisfy relevance.","command":"node --test --test-name-pattern=\"Adversarial: behavior identity and temporal guards prevent false relevance\" tests/portfolio-brief.functional.mjs","liveSystem":false,"evidenceRef":"scopes/18-behavior-identity-and-ranking-foundation/report.md#tp-18-04","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-18-05","type":"Broader regression","category":"functional","file":"scripts/selftest.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-044","description":"Shared brief and privacy contracts remain green.","command":"node scripts/selftest.mjs","liveSystem":false,"evidenceRef":"scopes/18-behavior-identity-and-ranking-foundation/report.md#tp-18-05","status":"planned-not-executed","redGreenRequired":false}
+            ]
+        },
+        {
+            "scopeId": "19-coverage-aware-market-data-foundation",
+            "scopeName": "Coverage-Aware Market Data Foundation",
+            "foundation": true,
+            "dependsOn": ["18-behavior-identity-and-ranking-foundation"],
+            "tests": [
+                {"id":"TP-19-01","type":"Shared selftest regression","category":"unit","file":"scripts/selftest.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-045","description":"Cache and static append, date measurement, de-duplication, and ensureBars compatibility canaries.","command":"node scripts/selftest.mjs","liveSystem":false,"evidenceRef":"scopes/19-coverage-aware-market-data-foundation/report.md#tp-19-01","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-19-02","type":"Functional","category":"functional","file":"tests/portfolio-bar-coverage.functional.mjs","fileState":"planned-not-authored","testState":"planned-not-authored","scenarioId":"SCN-008-045","description":"Same-origin-only partial and approved lookup append over real-format fixtures.","command":"node --test tests/portfolio-bar-coverage.functional.mjs","liveSystem":false,"evidenceRef":"scopes/19-coverage-aware-market-data-foundation/report.md#tp-19-02","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-19-03","type":"Regression E2E","category":"e2e-ui","file":"tests/portfolio-survival-foundation.spec.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-045","testTitle":"Regression: SCN-008-045 five year coverage measures dates appends allowed sources and preserves partial truth","description":"The real route measures requested dates, appends allowed sources, and preserves partial truth.","command":"npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-045 five year coverage measures dates appends allowed sources and preserves partial truth\" --reporter=list","liveSystem":true,"evidenceRef":"scopes/19-coverage-aware-market-data-foundation/report.md#tp-19-03","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-19-04","type":"Adversarial mutation","category":"functional","file":"tests/portfolio-bar-coverage.functional.mjs","fileState":"planned-not-authored","testState":"planned-not-authored","scenarioId":"SCN-008-045","testTitle":"Adversarial: requested range labels and row counts cannot fake date coverage","description":"Disposable row-count, range-label, and target-years mutations cannot return complete.","command":"node --test --test-name-pattern=\"Adversarial: requested range labels and row counts cannot fake date coverage\" tests/portfolio-bar-coverage.functional.mjs","liveSystem":false,"evidenceRef":"scopes/19-coverage-aware-market-data-foundation/report.md#tp-19-04","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-19-05","type":"Existing-consumer broader regression E2E","category":"e2e-ui","file":"tests/provider-credentials.spec.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-045","description":"Existing provider and local-key paths retain their request authority.","command":"npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list","liveSystem":true,"evidenceRef":"scopes/19-coverage-aware-market-data-foundation/report.md#tp-19-05","status":"planned-not-executed","redGreenRequired":false}
+            ]
+        },
+        {
+            "scopeId": "20-generic-evidence-brief-policy-and-api",
+            "scopeName": "Generic Evidence Brief Policy And API",
+            "foundation": false,
+            "dependsOn": ["19-coverage-aware-market-data-foundation"],
+            "tests": [
+                {"id":"TP-20-01","type":"Functional","category":"functional","file":"tests/portfolio-brief.functional.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-046","description":"Complete API, evidence projection, DST, cap, stale authoring, and error registry.","command":"node --test tests/portfolio-brief.functional.mjs","liveSystem":false,"evidenceRef":"scopes/20-generic-evidence-brief-policy-and-api/report.md#tp-20-01","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-20-02","type":"Publisher boundary","category":"functional","file":"tests/portfolio-publisher-boundary.functional.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-046","description":"Generic artifacts remain portfolio-agnostic while all five inputs are consumed locally.","command":"node --test tests/portfolio-publisher-boundary.functional.mjs","liveSystem":false,"evidenceRef":"scopes/20-generic-evidence-brief-policy-and-api/report.md#tp-20-02","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-20-03","type":"Regression E2E","category":"e2e-ui","file":"tests/portfolio-survival-brief.spec.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-046","testTitle":"Regression: SCN-008-046 generic evidence DST policy complete API and global queue remain coherent","description":"The real Brief route proves complete evidence, civil time, one queue, full API, and safe errors.","command":"npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-046 generic evidence DST policy complete API and global queue remain coherent\" --reporter=list","liveSystem":true,"evidenceRef":"scopes/20-generic-evidence-brief-policy-and-api/report.md#tp-20-03","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-20-04","type":"Adversarial mutation","category":"functional","file":"tests/portfolio-brief.functional.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-046","testTitle":"Adversarial: reduced brief evidence policy and API cannot satisfy the complete contract","description":"Disposable fixed-offset, per-lane-cap, raw-count, stale-verb, and missing-export mutations each fail.","command":"node --test --test-name-pattern=\"Adversarial: reduced brief evidence policy and API cannot satisfy the complete contract\" tests/portfolio-brief.functional.mjs","liveSystem":false,"evidenceRef":"scopes/20-generic-evidence-brief-policy-and-api/report.md#tp-20-04","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-20-05","type":"Broader regression","category":"functional","file":"scripts/selftest.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-046","description":"Existing Market Brief and shared contracts remain green.","command":"node scripts/selftest.mjs","liveSystem":false,"evidenceRef":"scopes/20-generic-evidence-brief-policy-and-api/report.md#tp-20-05","status":"planned-not-executed","redGreenRequired":false}
+            ]
+        },
+        {
+            "scopeId": "21-partial-risk-input-and-diagnostics",
+            "scopeName": "Partial Risk Input And Diagnostics",
+            "foundation": false,
+            "dependsOn": ["20-generic-evidence-brief-policy-and-api"],
+            "tests": [
+                {"id":"TP-21-01","type":"Unit","category":"unit","file":"tests/portfolio-analytics.unit.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-047","description":"Eligibility matrix, elapsed-time CAGR, CAPM and factors, covariance diagnostics, and contributions.","command":"node --test tests/portfolio-analytics.unit.mjs","liveSystem":false,"evidenceRef":"scopes/21-partial-risk-input-and-diagnostics/report.md#tp-21-01","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-21-02","type":"Functional","category":"functional","file":"tests/portfolio-risk.functional.mjs","fileState":"planned-not-authored","testState":"planned-not-authored","scenarioId":"SCN-008-047","description":"A mixed portfolio freezes one cutoff and composes partial structured risk output.","command":"node --test tests/portfolio-risk.functional.mjs","liveSystem":false,"evidenceRef":"scopes/21-partial-risk-input-and-diagnostics/report.md#tp-21-02","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-21-03","type":"Regression E2E","category":"e2e-ui","file":"tests/portfolio-survival-risk.spec.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-047","testTitle":"Regression: SCN-008-047 mixed portfolio inputs preserve eligible risk diagnostics and partial truth","description":"The real Risk X-Ray route preserves eligible diagnostics and partial truth.","command":"npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-047 mixed portfolio inputs preserve eligible risk diagnostics and partial truth\" --reporter=list","liveSystem":true,"evidenceRef":"scopes/21-partial-risk-input-and-diagnostics/report.md#tp-21-03","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-21-04","type":"Adversarial mutation","category":"unit","file":"tests/portfolio-analytics.unit.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-047","testTitle":"Adversarial: reduced risk input and diagnostic paths cannot satisfy Risk X Ray","description":"Disposable return-count, whole-refusal, missing-factor, and silent-conditioning mutations each fail.","command":"node --test --test-name-pattern=\"Adversarial: reduced risk input and diagnostic paths cannot satisfy Risk X Ray\" tests/portfolio-analytics.unit.mjs","liveSystem":false,"evidenceRef":"scopes/21-partial-risk-input-and-diagnostics/report.md#tp-21-04","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-21-05","type":"Broader regression","category":"functional","file":"scripts/selftest.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-047","description":"Existing analytics and static-site invariants remain green.","command":"node scripts/selftest.mjs","liveSystem":false,"evidenceRef":"scopes/21-partial-risk-input-and-diagnostics/report.md#tp-21-05","status":"planned-not-executed","redGreenRequired":false}
+            ]
+        },
+        {
+            "scopeId": "22-scenario-contract-and-survival-distributions",
+            "scopeName": "Scenario Contract And Survival Distributions",
+            "foundation": false,
+            "dependsOn": ["21-partial-risk-input-and-diagnostics"],
+            "tests": [
+                {"id":"TP-22-01","type":"Unit","category":"unit","file":"tests/portfolio-analytics.unit.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-048","description":"Full identity, deterministic paths, cash-flow ordering, survival, and uncertainty fields.","command":"node --test tests/portfolio-analytics.unit.mjs","liveSystem":false,"evidenceRef":"scopes/22-scenario-contract-and-survival-distributions/report.md#tp-22-01","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-22-02","type":"Functional","category":"functional","file":"tests/portfolio-paths.functional.mjs","fileState":"planned-not-authored","testState":"planned-not-authored","scenarioId":"SCN-008-048","description":"Chunk, token, cancel, last-valid, multi-path cash, and parameter distributions.","command":"node --test tests/portfolio-paths.functional.mjs","liveSystem":false,"evidenceRef":"scopes/22-scenario-contract-and-survival-distributions/report.md#tp-22-02","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-22-03","type":"Regression E2E","category":"e2e-ui","file":"tests/portfolio-survival-paths.spec.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-048","testTitle":"Regression: SCN-008-048 complete scenario cash needs uncertainty and compute tokens govern every path","description":"The real Path Lab proves complete identity, cash needs, uncertainty, and token publication.","command":"npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-048 complete scenario cash needs uncertainty and compute tokens govern every path\" --reporter=list","liveSystem":true,"evidenceRef":"scopes/22-scenario-contract-and-survival-distributions/report.md#tp-22-03","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-22-04","type":"Adversarial mutation","category":"unit","file":"tests/portfolio-analytics.unit.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-048","testTitle":"Adversarial: reduced ScenarioSpecification and median only survival cannot pass","description":"Disposable horizon, path-cap, median-need, one-path-survival, and missing-identity mutations each fail.","command":"node --test --test-name-pattern=\"Adversarial: reduced ScenarioSpecification and median only survival cannot pass\" tests/portfolio-analytics.unit.mjs","liveSystem":false,"evidenceRef":"scopes/22-scenario-contract-and-survival-distributions/report.md#tp-22-04","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-22-05","type":"Cancellation regression E2E","category":"e2e-ui","file":"tests/portfolio-survival-paths.spec.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-048","testTitle":"Regression: SCN-008-048 cancelled and superseded path jobs cannot replace the last valid view","description":"Cancelled and superseded jobs cannot publish or replace the last valid view.","command":"npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-048 cancelled and superseded path jobs cannot replace the last valid view\" --reporter=list","liveSystem":true,"evidenceRef":"scopes/22-scenario-contract-and-survival-distributions/report.md#tp-22-05","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-22-06","type":"Broader regression","category":"functional","file":"scripts/selftest.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-048","description":"Shared analytics and static-site contracts remain green.","command":"node scripts/selftest.mjs","liveSystem":false,"evidenceRef":"scopes/22-scenario-contract-and-survival-distributions/report.md#tp-22-06","status":"planned-not-executed","redGreenRequired":false}
+            ]
+        },
+        {
+            "scopeId": "23-stress-dependence-and-hedge-effectiveness",
+            "scopeName": "Stress Dependence And Hedge Effectiveness",
+            "foundation": false,
+            "dependsOn": ["22-scenario-contract-and-survival-distributions"],
+            "tests": [
+                {"id":"TP-23-01","type":"Unit","category":"unit","file":"tests/portfolio-analytics.unit.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-049","description":"Distinct samples, adjustment, intervals, overlap, de-smoothing, and hedge regression identities.","command":"node --test tests/portfolio-analytics.unit.mjs","liveSystem":false,"evidenceRef":"scopes/23-stress-dependence-and-hedge-effectiveness/report.md#tp-23-01","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-23-02","type":"Functional","category":"functional","file":"tests/portfolio-diversification.functional.mjs","fileState":"planned-not-authored","testState":"planned-not-authored","scenarioId":"SCN-008-049","description":"Complete dependence, appraisal, and hedge projection over one frozen evidence and scenario basis.","command":"node --test tests/portfolio-diversification.functional.mjs","liveSystem":false,"evidenceRef":"scopes/23-stress-dependence-and-hedge-effectiveness/report.md#tp-23-02","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-23-03","type":"Regression E2E","category":"e2e-ui","file":"tests/portfolio-survival-diversification.spec.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-049","testTitle":"Regression: SCN-008-049 stress dependence appraisal and hedge effectiveness retain distinct qualified evidence","description":"The real route retains distinct stress, appraisal, hedge, cost, and residual evidence.","command":"npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-049 stress dependence appraisal and hedge effectiveness retain distinct qualified evidence\" --reporter=list","liveSystem":true,"evidenceRef":"scopes/23-stress-dependence-and-hedge-effectiveness/report.md#tp-23-03","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-23-04","type":"Adversarial mutation","category":"unit","file":"tests/portfolio-analytics.unit.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-049","testTitle":"Adversarial: reduced diversification and hedge shortcuts cannot satisfy the contract","description":"Disposable same-sample, unused-adjustment, missing-overlap, fixed-ratio, and cost-free-net mutations each fail.","command":"node --test --test-name-pattern=\"Adversarial: reduced diversification and hedge shortcuts cannot satisfy the contract\" tests/portfolio-analytics.unit.mjs","liveSystem":false,"evidenceRef":"scopes/23-stress-dependence-and-hedge-effectiveness/report.md#tp-23-04","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-23-05","type":"Common-path regression E2E","category":"e2e-ui","file":"tests/portfolio-survival-diversification.spec.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-049","testTitle":"Regression: SCN-008-049 hedge variants reuse the selected survival scenario and path identities","description":"Hedge variants reuse the selected scenario and common path identities.","command":"npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-049 hedge variants reuse the selected survival scenario and path identities\" --reporter=list","liveSystem":true,"evidenceRef":"scopes/23-stress-dependence-and-hedge-effectiveness/report.md#tp-23-05","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-23-06","type":"Broader regression","category":"functional","file":"scripts/selftest.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-049","description":"Shared analytics and route invariants remain green.","command":"node scripts/selftest.mjs","liveSystem":false,"evidenceRef":"scopes/23-stress-dependence-and-hedge-effectiveness/report.md#tp-23-06","status":"planned-not-executed","redGreenRequired":false}
+            ]
+        },
+        {
+            "scopeId": "24-complete-allocation-and-explicit-views",
+            "scopeName": "Complete Allocation And Explicit Views",
+            "foundation": false,
+            "dependsOn": ["23-stress-dependence-and-hedge-effectiveness"],
+            "tests": [
+                {"id":"TP-24-01","type":"Unit","category":"unit","file":"tests/portfolio-analytics.unit.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-050","description":"Projection, solvers, KKT and ERC residuals, BL posterior, constraints, diagnostics, and sensitivity identities.","command":"node --test tests/portfolio-analytics.unit.mjs","liveSystem":false,"evidenceRef":"scopes/24-complete-allocation-and-explicit-views/report.md#tp-24-01","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-24-02","type":"Functional","category":"functional","file":"tests/portfolio-allocation.functional.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-050","description":"Six candidates share one basis, costs, contributions, common paths, survival, and no winner.","command":"node --test tests/portfolio-allocation.functional.mjs","liveSystem":false,"evidenceRef":"scopes/24-complete-allocation-and-explicit-views/report.md#tp-24-02","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-24-03","type":"Regression E2E","category":"e2e-ui","file":"tests/portfolio-survival-allocation.spec.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-050","testTitle":"Regression: SCN-008-050 six real allocation methods enforce one complete basis and explicit views","description":"The real route proves six methods, one basis, complete constraints, explicit views, and full outcomes.","command":"npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-050 six real allocation methods enforce one complete basis and explicit views\" --reporter=list","liveSystem":true,"evidenceRef":"scopes/24-complete-allocation-and-explicit-views/report.md#tp-24-03","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-24-04","type":"Adversarial mutation","category":"unit","file":"tests/portfolio-analytics.unit.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-050","testTitle":"Adversarial: heuristic clipped and disconnected allocation methods cannot satisfy the six method contract","description":"Disposable inverse-volatility, clipping, ignored-constraint, equal-weight-benchmark, and unused-posterior mutations each fail.","command":"node --test --test-name-pattern=\"Adversarial: heuristic clipped and disconnected allocation methods cannot satisfy the six method contract\" tests/portfolio-analytics.unit.mjs","liveSystem":false,"evidenceRef":"scopes/24-complete-allocation-and-explicit-views/report.md#tp-24-04","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-24-05","type":"Constraint and BL regression E2E","category":"e2e-ui","file":"tests/portfolio-survival-allocation.spec.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-050","testTitle":"Regression: SCN-008-050 infeasible constraints remain visible and explicit BL posterior changes allocation","description":"Infeasible constraints remain visible and explicit posterior returns change the allocation.","command":"npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-050 infeasible constraints remain visible and explicit BL posterior changes allocation\" --reporter=list","liveSystem":true,"evidenceRef":"scopes/24-complete-allocation-and-explicit-views/report.md#tp-24-05","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-24-06","type":"Broader regression","category":"functional","file":"scripts/selftest.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-050","description":"Shared analytics and static-site invariants remain green.","command":"node scripts/selftest.mjs","liveSystem":false,"evidenceRef":"scopes/24-complete-allocation-and-explicit-views/report.md#tp-24-06","status":"planned-not-executed","redGreenRequired":false}
+            ]
+        },
+        {
+            "scopeId": "25-decision-time-dossier-and-immutable-audit",
+            "scopeName": "Decision-Time Dossier And Immutable Audit",
+            "foundation": false,
+            "dependsOn": ["24-complete-allocation-and-explicit-views"],
+            "tests": [
+                {"id":"TP-25-01","type":"Allocation functional","category":"functional","file":"tests/portfolio-allocation.functional.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-051","description":"Decision-time windows, rebalance, embargo, costs, trials, states, corrections, and persistence.","command":"node --test tests/portfolio-allocation.functional.mjs","liveSystem":false,"evidenceRef":"scopes/25-decision-time-dossier-and-immutable-audit/report.md#tp-25-01","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-25-02","type":"Dossier functional","category":"functional","file":"tests/portfolio-dossier.functional.mjs","fileState":"planned-not-authored","testState":"planned-not-authored","scenarioId":"SCN-008-051","description":"Reload, supersession, correction, private export, and clear interaction.","command":"node --test tests/portfolio-dossier.functional.mjs","liveSystem":false,"evidenceRef":"scopes/25-decision-time-dossier-and-immutable-audit/report.md#tp-25-02","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-25-03","type":"Regression E2E","category":"e2e-ui","file":"tests/portfolio-survival-allocation.spec.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-051","testTitle":"Regression: SCN-008-051 dossier preserves decision time costs trials corrections reload and private export","description":"The real Dossier route preserves decision time, costs, trials, corrections, reload, and private export.","command":"npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-051 dossier preserves decision time costs trials corrections reload and private export\" --reporter=list","liveSystem":true,"evidenceRef":"scopes/25-decision-time-dossier-and-immutable-audit/report.md#tp-25-03","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-25-04","type":"Adversarial mutation","category":"functional","file":"tests/portfolio-dossier.functional.mjs","fileState":"planned-not-authored","testState":"planned-not-authored","scenarioId":"SCN-008-051","testTitle":"Adversarial: incomplete walk forward and mutable dossier records cannot satisfy the audit contract","description":"Disposable look-ahead, missing-window, false-net, uncounted-trial, in-place-correction, and volatile-export mutations each fail.","command":"node --test --test-name-pattern=\"Adversarial: incomplete walk forward and mutable dossier records cannot satisfy the audit contract\" tests/portfolio-dossier.functional.mjs","liveSystem":false,"evidenceRef":"scopes/25-decision-time-dossier-and-immutable-audit/report.md#tp-25-04","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-25-05","type":"Broader regression","category":"functional","file":"scripts/selftest.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-051","description":"Shared storage, analytics, and static-site invariants remain green.","command":"node scripts/selftest.mjs","liveSystem":false,"evidenceRef":"scopes/25-decision-time-dossier-and-immutable-audit/report.md#tp-25-05","status":"planned-not-executed","redGreenRequired":false}
+            ]
+        },
+        {
+            "scopeId": "26-immutable-workspace-compute-and-navigation",
+            "scopeName": "Immutable Workspace Compute And Navigation",
+            "foundation": true,
+            "dependsOn": ["25-decision-time-dossier-and-immutable-audit"],
+            "tests": [
+                {"id":"TP-26-01","type":"Functional","category":"functional","file":"tests/portfolio-workspace.functional.mjs","fileState":"planned-not-authored","testState":"planned-not-authored","scenarioId":"SCN-008-052","description":"One compute, token, cancel, last-valid, rebase, immutable projections, and no mode or tab recompute.","command":"node --test tests/portfolio-workspace.functional.mjs","liveSystem":false,"evidenceRef":"scopes/26-immutable-workspace-compute-and-navigation/report.md#tp-26-01","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-26-02","type":"ReturnContext functional","category":"functional","file":"tests/portfolio-privacy.functional.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-052","description":"Strict write, consume, destination, expiry, and private-field contract.","command":"node --test tests/portfolio-privacy.functional.mjs","liveSystem":false,"evidenceRef":"scopes/26-immutable-workspace-compute-and-navigation/report.md#tp-26-02","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-26-03","type":"Regression E2E","category":"e2e-ui","file":"tests/portfolio-survival-brief.spec.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-052","testTitle":"Regression: SCN-008-052 mode tabs rebase and compute tokens preserve one immutable workspace","description":"The real route proves presentation-only navigation, one compute, token publication, and atomic rebase.","command":"npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-052 mode tabs rebase and compute tokens preserve one immutable workspace\" --reporter=list","liveSystem":true,"evidenceRef":"scopes/26-immutable-workspace-compute-and-navigation/report.md#tp-26-03","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-26-04","type":"Owner-return E2E","category":"e2e-ui","file":"tests/portfolio-survival-mobile.spec.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-052","testTitle":"Regression: SCN-008-052 owning tool consumes ReturnContext and restores Portfolio Brief focus","description":"A real owning page consumes ReturnContext and restores the Brief row, disclosure, and focus.","command":"npx --no-install playwright test tests/portfolio-survival-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-052 owning tool consumes ReturnContext and restores Portfolio Brief focus\" --reporter=list","liveSystem":true,"evidenceRef":"scopes/26-immutable-workspace-compute-and-navigation/report.md#tp-26-04","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-26-05","type":"Adversarial mutation","category":"functional","file":"tests/portfolio-workspace.functional.mjs","fileState":"planned-not-authored","testState":"planned-not-authored","scenarioId":"SCN-008-052","testTitle":"Adversarial: recomputing navigation stale publication and fake return context cannot pass","description":"Disposable recompute, stale-publish, partial-rebase, same-page-return, and private-URL mutations each fail.","command":"node --test --test-name-pattern=\"Adversarial: recomputing navigation stale publication and fake return context cannot pass\" tests/portfolio-workspace.functional.mjs","liveSystem":false,"evidenceRef":"scopes/26-immutable-workspace-compute-and-navigation/report.md#tp-26-05","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-26-06","type":"Shared-shell broader regression E2E","category":"e2e-ui","file":"tests/causal-rotation-lab.spec.mjs tests/bond-regime-lab.spec.mjs tests/fx-regime-relative-value-lab.spec.mjs tests/palm-springs-rental-market-lab.spec.mjs tests/trend-dynamics-cycle-lab.spec.mjs tests/technical-analysis-decision-lab.spec.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-052","description":"Shared navigation consumers remain green after strict ReturnContext integration.","command":"npx --no-install playwright test tests/causal-rotation-lab.spec.mjs tests/bond-regime-lab.spec.mjs tests/fx-regime-relative-value-lab.spec.mjs tests/palm-springs-rental-market-lab.spec.mjs tests/trend-dynamics-cycle-lab.spec.mjs tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list","liveSystem":true,"evidenceRef":"scopes/26-immutable-workspace-compute-and-navigation/report.md#tp-26-06","status":"planned-not-executed","redGreenRequired":false}
+            ]
+        },
+        {
+            "scopeId": "27-accessible-six-tab-interaction",
+            "scopeName": "Accessible Six-Tab Interaction",
+            "foundation": false,
+            "dependsOn": ["26-immutable-workspace-compute-and-navigation"],
+            "tests": [
+                {"id":"TP-27-01","type":"Regression E2E","category":"e2e-ui","file":"tests/portfolio-survival-accessibility.spec.mjs","fileState":"planned-not-authored","testState":"planned-not-authored","scenarioId":"SCN-008-053","testTitle":"Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete","description":"Keyboard, tab, modal, and screen-reader behavior is complete on the real route.","command":"npx --no-install playwright test tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete\" --reporter=list","liveSystem":true,"evidenceRef":"scopes/27-accessible-six-tab-interaction/report.md#tp-27-01","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-27-02","type":"Preferences E2E","category":"e2e-ui","file":"tests/portfolio-survival-accessibility.spec.mjs","fileState":"planned-not-authored","testState":"planned-not-authored","scenarioId":"SCN-008-053","testTitle":"Regression: SCN-008-053 reduced motion forced colors contrast and text spacing preserve every decision","description":"Reduced motion, forced colors, contrast, and text spacing preserve every decision.","command":"npx --no-install playwright test tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-053 reduced motion forced colors contrast and text spacing preserve every decision\" --reporter=list","liveSystem":true,"evidenceRef":"scopes/27-accessible-six-tab-interaction/report.md#tp-27-02","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-27-03","type":"Responsive E2E","category":"e2e-ui","file":"tests/portfolio-survival-mobile.spec.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-053","testTitle":"Regression: SCN-008-053 zoom mobile and long content have no overlap clipping or body overflow","description":"Zoom, mobile, and long content remain overlap-free and contained.","command":"npx --no-install playwright test tests/portfolio-survival-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-053 zoom mobile and long content have no overlap clipping or body overflow\" --reporter=list","liveSystem":true,"evidenceRef":"scopes/27-accessible-six-tab-interaction/report.md#tp-27-03","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-27-04","type":"Adversarial mutation E2E","category":"e2e-ui","file":"tests/portfolio-survival-accessibility.spec.mjs","fileState":"planned-not-authored","testState":"planned-not-authored","scenarioId":"SCN-008-053","testTitle":"Adversarial: SCN-008-053 reduced accessibility implementations fail closed","description":"Disposable keyboard, skip-link, focus, motion, and color-only mutations each fail.","command":"npx --no-install playwright test tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Adversarial: SCN-008-053 reduced accessibility implementations fail closed\" --reporter=list","liveSystem":true,"evidenceRef":"scopes/27-accessible-six-tab-interaction/report.md#tp-27-04","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-27-05","type":"Broader regression","category":"functional","file":"scripts/selftest.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-053","description":"Shared route, registry, and static-site invariants remain green.","command":"node scripts/selftest.mjs","liveSystem":false,"evidenceRef":"scopes/27-accessible-six-tab-interaction/report.md#tp-27-05","status":"planned-not-executed","redGreenRequired":false}
+            ]
+        },
+        {
+            "scopeId": "28-spec-driven-adversarial-test-replacement",
+            "scopeName": "Spec-Driven Adversarial Test Replacement",
+            "foundation": false,
+            "dependsOn": ["27-accessible-six-tab-interaction"],
+            "tests": [
+                {"id":"TP-28-01","type":"Test declaration reachability","category":"functional","file":"scripts/validate-test-file-reachability.mjs","fileState":"existing","testState":"planned-not-authored","scenarioRange":"SCN-008-001 through SCN-008-055","description":"Every structured Feature 008 title reaches an executable declaration.","command":"node scripts/validate-test-file-reachability.mjs","liveSystem":false,"evidenceRef":"scopes/28-spec-driven-adversarial-test-replacement/report.md#tp-28-01","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-28-02","type":"Aggregate Node behavior","category":"unit/functional","file":"tests/portfolio-foundation.unit.mjs tests/portfolio-analytics.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-privacy.functional.mjs tests/portfolio-allocation.functional.mjs tests/portfolio-publisher-boundary.functional.mjs tests/portfolio-bar-coverage.functional.mjs tests/portfolio-risk.functional.mjs tests/portfolio-paths.functional.mjs tests/portfolio-diversification.functional.mjs tests/portfolio-dossier.functional.mjs tests/portfolio-workspace.functional.mjs tests/portfolio-test-integrity.unit.mjs","fileState":"mixed-existing-and-planned","testState":"planned-not-authored","scenarioRange":"SCN-008-001 through SCN-008-055","description":"All production helpers and module compositions execute exact assertions.","command":"node --test tests/portfolio-foundation.unit.mjs tests/portfolio-analytics.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-privacy.functional.mjs tests/portfolio-allocation.functional.mjs tests/portfolio-publisher-boundary.functional.mjs tests/portfolio-bar-coverage.functional.mjs tests/portfolio-risk.functional.mjs tests/portfolio-paths.functional.mjs tests/portfolio-diversification.functional.mjs tests/portfolio-dossier.functional.mjs tests/portfolio-workspace.functional.mjs tests/portfolio-test-integrity.unit.mjs","liveSystem":false,"evidenceRef":"scopes/28-spec-driven-adversarial-test-replacement/report.md#tp-28-02","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-28-03","type":"Complete Feature E2E","category":"e2e-ui","file":"tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs","fileState":"mixed-existing-and-planned","testState":"planned-not-authored","scenarioRange":"SCN-008-001 through SCN-008-055","description":"Every exact scenario regression executes the real route without interception or external provider.","command":"npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list","liveSystem":true,"evidenceRef":"scopes/28-spec-driven-adversarial-test-replacement/report.md#tp-28-03","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-28-04","type":"Adversarial mutation integrity","category":"unit","file":"tests/portfolio-test-integrity.unit.mjs","fileState":"planned-not-authored","testState":"planned-not-authored","scenarioId":"SCN-008-054","testTitle":"Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing","description":"Disposable hostile implementations for every finding are rejected without mutating shipped source.","command":"node --test --test-name-pattern=\"Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing\" tests/portfolio-test-integrity.unit.mjs","liveSystem":false,"evidenceRef":"scopes/28-spec-driven-adversarial-test-replacement/report.md#tp-28-04","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-28-05","type":"Regression quality","category":"functional","file":"tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs","fileState":"mixed-existing-and-planned","testState":"planned-not-authored","scenarioId":"SCN-008-054","description":"Zero bailout, interception, optional-required, zero-match, or tautological patterns.","command":"bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs","liveSystem":false,"evidenceRef":"scopes/28-spec-driven-adversarial-test-replacement/report.md#tp-28-05","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-28-06","type":"Repository regression","category":"functional","file":"scripts/selftest.mjs","fileState":"existing","testState":"planned-not-authored","scenarioRange":"SCN-008-001 through SCN-008-055","description":"Full repository selftest remains green without weakening budgets.","command":"node scripts/selftest.mjs","liveSystem":false,"evidenceRef":"scopes/28-spec-driven-adversarial-test-replacement/report.md#tp-28-06","status":"planned-not-executed","redGreenRequired":false}
+            ]
+        },
+        {
+            "scopeId": "29-documentation-and-registry-truth",
+            "scopeName": "Documentation And Registry Truth",
+            "foundation": false,
+            "dependsOn": ["28-spec-driven-adversarial-test-replacement"],
+            "tests": [
+                {"id":"TP-29-01","type":"Docs integration","category":"functional","file":"tests/portfolio-doc-integration.functional.mjs","fileState":"planned-not-authored","testState":"planned-not-authored","scenarioId":"SCN-008-055","description":"Registry, link, and claim parity plus stale-reference scan.","command":"node --test tests/portfolio-doc-integration.functional.mjs","liveSystem":false,"evidenceRef":"scopes/29-documentation-and-registry-truth/report.md#tp-29-01","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-29-02","type":"Entry-route E2E","category":"e2e-ui","file":"tests/portfolio-survival-brief.spec.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-055","testTitle":"Regression: SCN-008-055 every published Feature 008 entry opens the Portfolio Brief workspace","description":"Every published Feature 008 entry opens the #brief route and default panel.","command":"npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep \"Regression: SCN-008-055 every published Feature 008 entry opens the Portfolio Brief workspace\" --reporter=list","liveSystem":true,"evidenceRef":"scopes/29-documentation-and-registry-truth/report.md#tp-29-02","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-29-03","type":"Registry selftest","category":"functional","file":"scripts/selftest.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-055","description":"Registry, navigation, landing parity, and repository invariants.","command":"node scripts/selftest.mjs","liveSystem":false,"evidenceRef":"scopes/29-documentation-and-registry-truth/report.md#tp-29-03","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-29-04","type":"Test-file reachability","category":"functional","file":"scripts/validate-test-file-reachability.mjs","fileState":"existing","testState":"planned-not-authored","scenarioId":"SCN-008-055","description":"Every referenced focused test file and exact title remains reachable.","command":"node scripts/validate-test-file-reachability.mjs","liveSystem":false,"evidenceRef":"scopes/29-documentation-and-registry-truth/report.md#tp-29-04","status":"planned-not-executed","redGreenRequired":true},
+                {"id":"TP-29-05","type":"Adversarial mutation","category":"functional","file":"tests/portfolio-doc-integration.functional.mjs","fileState":"planned-not-authored","testState":"planned-not-authored","scenarioId":"SCN-008-055","testTitle":"Adversarial: stale workspace hashes and overclaims fail Feature 008 publication truth","description":"Disposable stale-hash and unsupported-complete-claim mutations fail publication truth.","command":"node --test --test-name-pattern=\"Adversarial: stale workspace hashes and overclaims fail Feature 008 publication truth\" tests/portfolio-doc-integration.functional.mjs","liveSystem":false,"evidenceRef":"scopes/29-documentation-and-registry-truth/report.md#tp-29-05","status":"planned-not-executed","redGreenRequired":true}
             ]
         }
     ]

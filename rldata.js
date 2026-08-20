@@ -627,14 +627,31 @@
       return rows;
     } catch (e) { return null; }
   }
+  function yahooCoverageSnapshot(j) {
+    try {
+      var result = j.chart.result[0], rows = yahooToRows(j);
+      var adjusted = !!(result.indicators.adjclose && result.indicators.adjclose[0] &&
+        Array.isArray(result.indicators.adjclose[0].adjclose));
+      if (!rows || !rows.length) return null;
+      return {
+        rows: rows,
+        currency: result.meta && typeof result.meta.currency === "string" ? result.meta.currency : null,
+        transform: adjusted ? "adjusted-close" : "raw-close",
+        corporateActionState: adjusted ? "qualified-adjusted" : "unqualified"
+      };
+    } catch (error) { return null; }
+  }
   /* same-origin daily-bar snapshot (data/bars/<SYM>.json) written by scripts/fetch-bars.mjs. Works on
      GitHub Pages with NO CORS/proxy; only attempted over http(s) for 1d bars (file:// falls straight through). */
-  function pagesBars(sym) {
+  function pagesBarSnapshot(sym) {
     if (typeof location === "undefined" || !/^https?:/.test(location.protocol)) return Promise.resolve(null);
     return fetchT("data/bars/" + encodeURIComponent(sym) + ".json", { cache: "no-store" })
       .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
-      .then(function (j) { return (j && Array.isArray(j.rows) && j.rows.length) ? j.rows : null; })
+      .then(function (j) { return (j && Array.isArray(j.rows) && j.rows.length) ? j : null; })
       .catch(function () { return null; });
+  }
+  function pagesBars(sym) {
+    return pagesBarSnapshot(sym).then(function (snapshot) { return snapshot ? snapshot.rows : null; });
   }
   function pagesMacro() {
     if (typeof location === "undefined" || !/^https?:/.test(location.protocol)) return Promise.resolve(null);
@@ -823,12 +840,10 @@
   root.RLDATA.qualifiedBarSeries = qualifiedBarSeries;
   /* ---------- End Feature 007 qualified interval series ---------- */
 
-  /* ---------- Feature 008 Scope 04: coverage-aware same-origin bar reads ----------
-     Measurement is deliberately SEPARATE from acquisition. ensureBarCoverage never fetches under
-     any policy: it reports what the same-origin cache actually holds, and `lookupPermitted` tells
-     the caller whether policy would allow it to go and get more via the existing ensureBars path.
-     Folding a fetch in here is what would make "missing coverage" silently reach the network, which
-     is the leak this scope exists to prevent — so the only way to issue a request stays explicit. */
+    /* ---------- Feature 008 Scope 04/19: coverage-aware bar reads ----------
+      The original three-argument measurement remains synchronous and read-only. Scope 19 adds an
+      explicit four-argument Promise contract whose source policy is the authority to append a
+      same-origin snapshot and, only when permitted, request one public symbol range. */
   var COVERAGE_MODES = { "same-origin-only": false, "allow-public-symbol-lookup": true };
 
   function utcDate(ms) {
@@ -837,7 +852,7 @@
     return isFinite(d.getTime()) ? d.toISOString().slice(0, 10) : null;
   }
 
-  function ensureBarCoverage(sym, interval, policy) {
+  function measureBarCoverageLegacy(sym, interval, policy) {
     policy = policy || {};
     var mode = typeof policy.mode === "string" ? policy.mode : "same-origin-only";
     var lookupPermitted = COVERAGE_MODES[mode] === true;
@@ -896,6 +911,189 @@
     // report as stale. `stale` is a claim about the RECORD's age, never about the span.
     envelope.state = info.state === "stale" ? "stale" : "complete";
     return envelope;
+  }
+
+  var COVERAGE_TARGET_FIELDS = ["contractVersion", "requestedStartDate", "requestedEndDate", "targetCalendarYears",
+    "maximumAgeHours", "requiredCurrency", "requiredTransform", "requiredCorporateActionState"];
+  var COVERAGE_SOURCE_FIELDS = ["contractVersion", "mode", "conflictPolicy", "publicProviderId"];
+
+  function coverageExactFields(value, fields) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+    return JSON.stringify(Object.keys(value).sort()) === JSON.stringify(fields.slice().sort());
+  }
+  function coverageDate(value) {
+    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+    var time = Date.parse(value + "T00:00:00.000Z");
+    return isFinite(time) && new Date(time).toISOString().slice(0, 10) === value ? value : null;
+  }
+  function subtractCalendarYears(date, years) {
+    var parts = date.split("-").map(Number), year = parts[0] - years, month = parts[1], day = parts[2];
+    var lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    return [String(year).padStart(4, "0"), String(month).padStart(2, "0"),
+      String(Math.min(day, lastDay)).padStart(2, "0")].join("-");
+  }
+  function coverageValidation(target, sourcePolicy) {
+    var reasons = [];
+    if (!coverageExactFields(target, COVERAGE_TARGET_FIELDS)) reasons.push("target-unknown-field");
+    if (!coverageExactFields(sourcePolicy, COVERAGE_SOURCE_FIELDS)) reasons.push("source-policy-unknown-field");
+    if (reasons.length) return reasons;
+    var start = coverageDate(target.requestedStartDate), end = coverageDate(target.requestedEndDate);
+    if (!start || !end || start > end) reasons.push("target-date-invalid");
+    if (!Number.isInteger(target.targetCalendarYears) || target.targetCalendarYears <= 0 ||
+        (end && start && subtractCalendarYears(end, target.targetCalendarYears) !== start)) reasons.push("target-range-year-mismatch");
+    if (!Number.isFinite(target.maximumAgeHours) || target.maximumAgeHours < 0) reasons.push("target-maximum-age-invalid");
+    if (typeof target.requiredCurrency !== "string" || !/^[A-Z]{3}$/.test(target.requiredCurrency)) reasons.push("target-currency-invalid");
+    if (typeof target.requiredTransform !== "string" || !/^[a-z0-9][a-z0-9-]*$/.test(target.requiredTransform)) reasons.push("target-transform-invalid");
+    if (typeof target.requiredCorporateActionState !== "string" ||
+        !/^[a-z0-9][a-z0-9-]*$/.test(target.requiredCorporateActionState)) reasons.push("target-corporate-action-invalid");
+    if (!Object.prototype.hasOwnProperty.call(COVERAGE_MODES, sourcePolicy.mode)) reasons.push("source-policy-mode-invalid");
+    if (sourcePolicy.conflictPolicy !== "reject-date") reasons.push("source-policy-conflict-invalid");
+    if (sourcePolicy.publicProviderId !== "yahoo") reasons.push("source-policy-provider-invalid");
+    return reasons;
+  }
+  function coverageRowSignature(row, transform) {
+    var close = transform === "adjusted-close" && Number.isFinite(row.ac) ? row.ac : row.c;
+    return JSON.stringify({
+      t: row.t, o: row.o == null ? null : row.o, h: row.h == null ? null : row.h,
+      l: row.l == null ? null : row.l, c: close == null ? null : close,
+      v: row.v == null ? null : row.v
+    });
+  }
+  function coverageSource(sourceId, rows, currency, transform, corporateActionState) {
+    return {
+      sourceId: sourceId, currency: currency || null, transform: transform || null,
+      corporateActionState: corporateActionState || null, rows: Array.isArray(rows) ? rows : []
+    };
+  }
+  function addCoverageRows(state, source) {
+    source.rows.forEach(function (row) {
+      if (!row || !Number.isFinite(row.t)) return;
+      var date = utcDate(row.t); if (!date) return;
+      state.observedCount += 1;
+      if (state.disputed[date]) return;
+      var signature = coverageRowSignature(row, source.transform), existing = state.byDate[date];
+      if (!existing) {
+        state.byDate[date] = {
+          date: date, row: row, signature: signature, sourceIds: [source.sourceId],
+          currency: source.currency, transform: source.transform,
+          corporateActionState: source.corporateActionState
+        };
+        return;
+      }
+      if (existing.signature !== signature) {
+        delete state.byDate[date]; state.disputed[date] = true; return;
+      }
+      if (existing.sourceIds.indexOf(source.sourceId) < 0) existing.sourceIds.push(source.sourceId);
+      if (!existing.currency && source.currency) existing.currency = source.currency;
+      else if (existing.currency && source.currency && existing.currency !== source.currency) existing.currency = null;
+      if (!existing.transform && source.transform) existing.transform = source.transform;
+      else if (existing.transform && source.transform && existing.transform !== source.transform) existing.transform = null;
+      if (!existing.corporateActionState && source.corporateActionState) existing.corporateActionState = source.corporateActionState;
+      else if (existing.corporateActionState && source.corporateActionState &&
+          existing.corporateActionState !== source.corporateActionState) existing.corporateActionState = null;
+    });
+  }
+  function appendAbsentCoverageRows(sym, interval, source, disputed) {
+    var existing = {}, current = getBars(sym, interval) || [];
+    current.forEach(function (row) { if (row && Number.isFinite(row.t)) existing[utcDate(row.t)] = true; });
+    var additions = source.rows.filter(function (row) {
+      var date = row && Number.isFinite(row.t) ? utcDate(row.t) : null;
+      return !!date && !existing[date] && !disputed[date];
+    });
+    if (additions.length) putBars(sym, interval, additions, source.sourceId);
+  }
+  function coverageUnavailable(sym, interval, target, sourcePolicy, reasons) {
+    return {
+      contractVersion: "BarCoverageResult/v1", symbol: String(sym), interval: String(interval),
+      target: target && typeof target === "object" ? JSON.parse(JSON.stringify(target)) : null,
+      sourcePolicy: sourcePolicy && typeof sourcePolicy === "object" ? JSON.parse(JSON.stringify(sourcePolicy)) : null,
+      state: "unavailable", rows: [], eligibleDates: [], observedCount: 0, firstDate: null, lastDate: null,
+      missingBounds: { start: true, end: true }, disputedDates: [], sourceIds: [], requestState: "not-issued",
+      currency: null, transform: null, corporateActionState: null, reasons: reasons.slice()
+    };
+  }
+  function coverageResult(sym, interval, target, sourcePolicy, state, requestState) {
+    var dates = Object.keys(state.byDate).sort(), entries = dates.map(function (date) { return state.byDate[date]; });
+    var firstDate = dates.length ? dates[0] : null, lastDate = dates.length ? dates[dates.length - 1] : null;
+    var disputedDates = Object.keys(state.disputed).sort();
+    var missingStart = !firstDate || firstDate > target.requestedStartDate || disputedDates.indexOf(target.requestedStartDate) >= 0;
+    var missingEnd = !lastDate || lastDate < target.requestedEndDate || disputedDates.indexOf(target.requestedEndDate) >= 0;
+    var currencies = {}, transforms = {}, corporateStates = {}, sources = {};
+    entries.forEach(function (entry) {
+      if (entry.currency) currencies[entry.currency] = true;
+      if (entry.transform) transforms[entry.transform] = true;
+      if (entry.corporateActionState) corporateStates[entry.corporateActionState] = true;
+      entry.sourceIds.forEach(function (sourceId) { sources[sourceId] = true; });
+    });
+    var currency = Object.keys(currencies).length === 1 && entries.every(function (entry) { return !!entry.currency; }) ? Object.keys(currencies)[0] : null;
+    var transform = Object.keys(transforms).length === 1 && entries.every(function (entry) { return !!entry.transform; }) ? Object.keys(transforms)[0] : null;
+    var corporateActionState = Object.keys(corporateStates).length === 1 && entries.every(function (entry) { return !!entry.corporateActionState; }) ? Object.keys(corporateStates)[0] : null;
+    var reasons = [];
+    if (missingStart) reasons.push(disputedDates.indexOf(target.requestedStartDate) >= 0 ? "required-start-disputed" : "required-start-missing");
+    if (missingEnd) reasons.push(disputedDates.indexOf(target.requestedEndDate) >= 0 ? "required-end-disputed" : "required-end-missing");
+    if (currency !== target.requiredCurrency) reasons.push(currency ? "currency-mismatch" : "currency-undeclared");
+    if (transform !== target.requiredTransform) reasons.push(transform ? "transform-mismatch" : "transform-undeclared");
+    if (corporateActionState !== target.requiredCorporateActionState) reasons.push(corporateActionState ? "corporate-action-mismatch" : "corporate-action-undeclared");
+    var stale = barInfo(sym, interval, target.maximumAgeHours).state === "stale";
+    if (stale) reasons.push("retrieval-stale");
+    return {
+      contractVersion: "BarCoverageResult/v1", symbol: String(sym), interval: String(interval),
+      target: JSON.parse(JSON.stringify(target)), sourcePolicy: JSON.parse(JSON.stringify(sourcePolicy)),
+      state: !entries.length ? "unavailable" : reasons.length ? (stale && reasons.length === 1 ? "stale" : "partial") : "complete",
+      rows: entries.map(function (entry) {
+        return { date: entry.date, t: entry.row.t, c: entry.row.c,
+          adjustedClose: Number.isFinite(entry.row.ac) ? entry.row.ac : entry.row.c,
+          sourceIds: entry.sourceIds.slice().sort() };
+      }),
+      eligibleDates: dates, observedCount: state.observedCount, firstDate: firstDate, lastDate: lastDate,
+      missingBounds: { start: missingStart, end: missingEnd }, disputedDates: disputedDates,
+      sourceIds: Object.keys(sources).sort(), requestState: requestState, currency: currency,
+      transform: transform, corporateActionState: corporateActionState, reasons: reasons
+    };
+  }
+  function acquireBarCoverage(sym, interval, target, sourcePolicy) {
+    var validation = coverageValidation(target, sourcePolicy);
+    if (interval !== "1d") validation.push("interval-unsupported");
+    if (validation.length) return Promise.resolve(coverageUnavailable(sym, interval, target, sourcePolicy, validation));
+
+    var state = { byDate: Object.create(null), disputed: Object.create(null), observedCount: 0 };
+    var currentRows = getBars(sym, interval) || [];
+    addCoverageRows(state, coverageSource(barInfo(sym, interval).src || "existing-cache", currentRows, null, null, null));
+
+    return pagesBarSnapshot(sym).then(function (snapshot) {
+      var staticRows = snapshot && Array.isArray(snapshot.rows) ? snapshot.rows : [];
+      var staticSource = coverageSource("pages-snapshot", staticRows,
+        snapshot && typeof snapshot.currency === "string" ? snapshot.currency : null,
+        snapshot && typeof snapshot.transform === "string" ? snapshot.transform : null,
+        snapshot && typeof snapshot.corporateActionState === "string" ? snapshot.corporateActionState : null);
+      addCoverageRows(state, staticSource);
+      appendAbsentCoverageRows(sym, interval, staticSource, state.disputed);
+
+      var measured = coverageResult(sym, interval, target, sourcePolicy, state,
+        sourcePolicy.mode === "same-origin-only" ? "not-permitted" : "not-needed");
+      if (sourcePolicy.mode !== "allow-public-symbol-lookup" ||
+          (!measured.missingBounds.start && !measured.missingBounds.end)) return measured;
+
+      var period1 = Math.floor(Date.parse(target.requestedStartDate + "T00:00:00.000Z") / 1000);
+      var period2 = Math.floor((Date.parse(target.requestedEndDate + "T00:00:00.000Z") + 86400000) / 1000);
+      var url = "https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(sym) +
+        "?period1=" + period1 + "&period2=" + period2 + "&interval=" + encodeURIComponent(interval) +
+        "&events=history&includeAdjustedClose=true";
+
+      return fetchJson(url).then(function (payload) {
+        var snapshotResult = yahooCoverageSnapshot(payload);
+        if (!snapshotResult) return coverageResult(sym, interval, target, sourcePolicy, state, "failed");
+        var providerSource = coverageSource("yahoo", snapshotResult.rows, snapshotResult.currency,
+          snapshotResult.transform, snapshotResult.corporateActionState);
+        addCoverageRows(state, providerSource);
+        appendAbsentCoverageRows(sym, interval, providerSource, state.disputed);
+        return coverageResult(sym, interval, target, sourcePolicy, state, "completed");
+      }).catch(function () { return coverageResult(sym, interval, target, sourcePolicy, state, "failed"); });
+    });
+  }
+  function ensureBarCoverage(sym, interval, target, sourcePolicy) {
+    if (arguments.length < 4) return measureBarCoverageLegacy(sym, interval, target);
+    return acquireBarCoverage(sym, interval, target, sourcePolicy);
   }
 
   /* FR-083 alignment states, and the FR-020 provenance fields that qualify a bar as a fact.

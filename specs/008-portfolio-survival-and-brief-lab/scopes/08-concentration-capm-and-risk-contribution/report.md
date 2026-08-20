@@ -64,6 +64,7 @@ claims to show them.
 
 **Command:** `node --test tests/portfolio-analytics.unit.mjs`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -167,6 +168,7 @@ REFUSAL path only. TP-08-05 is NOT delivered.** The scope stays `Not Started`.
 
 **Command:** `npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -278,6 +280,7 @@ green and the concentration, CAPM, factor, covariance, and contribution surfaces
 
 **Command:** `npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -387,6 +390,7 @@ $ npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs tests/
 
 **Command:** `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
 **Exit Code:** 1
+**Claim Source:** executed
 **Output:**
 
 ```text

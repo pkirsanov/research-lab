@@ -57,6 +57,7 @@ Change Boundary contradiction recorded below.** The scope stays `Not Started` an
 
 **Command:** `node --test tests/portfolio-analytics.unit.mjs`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -68,6 +69,7 @@ $ node --test tests/portfolio-analytics.unit.mjs
 
 **Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -243,6 +245,7 @@ no gain and widen what a clear has to remove.
 
 **Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -322,6 +325,7 @@ blank frame.
 **Command:** `node --test tests/portfolio-analytics.unit.mjs`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -343,6 +347,7 @@ test.
 **Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-018 identical stationary bootstrap specification reproduces paths" --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -359,6 +364,7 @@ Running 1 test using 1 worker
 **Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-019 parameter uncertainty is separate from path randomness" --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -375,6 +381,7 @@ Running 1 test using 1 worker
 **Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 dependent path fan and uncertainty tables remain equivalent at desktop mobile and zoom" --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -416,6 +423,7 @@ and it observes 11 options for 11 sessions.
 **Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -436,6 +444,7 @@ Running 5 tests using 1 worker
 **Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-038 a saved scenario survives reload and is removed by a full personal clear" --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -479,6 +488,7 @@ row would have looked green while proving something weaker than its own claim.
 **Command:** `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
 
 **Exit Code:** 1
+**Claim Source:** executed
 
 **Output:**
 
@@ -516,6 +526,7 @@ corrected to `in_progress` before the run, and the guard then resolved.
 **Command:** `node scripts/selftest.mjs` and the node and browser suites
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -530,3 +541,9 @@ $ npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs 
 $ git diff --check
 (clean)
 ```
+
+<!-- bubbles:certifying-window-begin -->
+
+## Current Certifying Window
+
+The prior execution record is preserved above. Current status is governed by the canonical transition checks.

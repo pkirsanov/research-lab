@@ -2289,4 +2289,10 @@ Plan's naming discipline was confirmed independently rather than assumed: `git g
 
 Severity is recorded here as **Medium** on validate's own authority, assessed at this timestamp. This is a deliberate divergence from the `Low` in the implement-authored finding table above, which is left unedited as that agent's own record. Validate rates it higher because the row reads stronger than it asserts: a regression that silently no-opped the file-change handler would leave every per-mode sink assertion passing over a page the value never reached, so the failure mode is a silent false-green rather than a cosmetic weakness. The fix — a per-mode `#previewRejected` or `#importErrors` assertion inside the TP-01-05 loop — extends a row's asserted behavior and is therefore planning-owned, so it is not made here.
 
+<!-- bubbles:certifying-window-begin -->
+
+## Current Certifying Window
+
+The prior execution record is preserved above. Current status is governed by the canonical transition checks.
+
 

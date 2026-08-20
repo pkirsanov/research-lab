@@ -3,14 +3,85 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab",
   "featureName": "Portfolio Survival and Brief Lab",
   "createdAt": "2026-07-15T17:29:27Z",
-  "status": "blocked",
+  "status": "in_progress",
   "statusReconciliation": {
     "recordedBy": "orchestrator",
     "recordedAt": "2026-08-02T05:03:12Z",
     "previousStatus": "not_started",
     "why": "`not_started` contradicted this spec's own artifacts. `scopes.md` declares 1 scope `In Progress` and 15 `Not Started`, and `execution` records `activeAgent: bubbles.test`, `currentPhase: test`, `currentScope: 1`. Shipped surfaces exist on disk: `portfolio-survival-allocation-lab.html`, `rlportfolio.js`, and `portfolio-survival-allocation.config.json`.",
     "remaining": "15 of 16 scopes are not started. Publication is intentionally withheld: `site-exclusions.json` excludes all three files, and the spec's own Scope 16 declares registration in `tools.json` as the atomic release boundary — which has not been crossed.",
-    "noScopeClaimed": "No scope was marked complete and no certification field was touched. This edit corrects the lifecycle status only."
+    "noScopeClaimed": "No scope was marked complete and no certification field was touched. This edit corrects the lifecycle status only.",
+    "humanAcceptanceBlockerResolution": {
+      "resolvedAt": "2026-08-19T19:13:12Z",
+      "resolvedBy": "bubbles.validate",
+      "operatorGrant": {
+        "statement": "all accepted, mark as such",
+        "acceptedBy": "operator",
+        "acceptedAt": "2026-08-19T19:04:11Z",
+        "method": "human-interactive",
+        "acceptedItemCount": 18
+      },
+      "previousStatus": "blocked",
+      "currentStatus": "in_progress",
+      "previousBlockedReasonRef": "$.resolvedBlockedReason",
+      "guardExecution": {
+        "command": "timeout 600 bash .github/bubbles/scripts/evidence-capture.sh --label \"Feature 008 pre-reconciliation transition guard\" -- bash .github/bubbles/scripts/state-transition-guard.sh specs/008-portfolio-survival-and-brief-lab",
+        "executedAt": "2026-08-19T19:13:12Z",
+        "exitCode": 1,
+        "verdict": "FAIL",
+        "relevantPassedGateIds": [
+          "G136"
+        ],
+        "failedGateIds": [
+          "G022",
+          "G053",
+          "G040",
+          "G068"
+        ],
+        "failureCount": 177,
+        "outputSha256": "eb58af92919fa6507ef0ad0cdc61405aed3a5a6025ef8728c676453a6975eed9"
+      },
+      "resolution": "The operator-only G136 blocker is cleared. The lifecycle is in_progress because delivery-completion evidence debt remains agent-actionable.",
+      "notCertified": "No terminal certification is claimed; the fresh transition guard still refuses targetStatus done."
+    },
+    "scopeCertificationReconciliation": {
+      "recordedOn": "2026-08-19",
+      "recordedBy": "bubbles.validate",
+      "basis": "All sixteen per-scope scope.md artifacts declare Done with zero unchecked DoD items, and the current-session artifact lint exits 0 with all sixteen scope reports present and no unfilled evidence placeholders.",
+      "certificationChange": "certification.completedScopes and certification.scopeProgress now mirror the sixteen artifact-backed Done scopes. Existing certifiedAt values are preserved; reconciled entries without a recorded certification time remain null.",
+      "legacyMirror": "Removed the obsolete top-level completedScopes compatibility mirror. Version 3 control-plane readers and current peer state use certification.completedScopes as the authoritative inventory.",
+      "ownershipBoundary": "Foreign-owned execution.* fields are unchanged by this certification reconciliation.",
+      "notCertified": "Top-level status and certification.status remain in_progress. No completed phase, terminal status, certifiedAt timestamp, or specialist provenance is added."
+    },
+    "executionReconciliation": {
+      "recordedOn": "2026-08-19",
+      "recordedBy": "bubbles.implement",
+      "basis": "All sixteen per-scope scope.md artifacts declare Done with zero unchecked DoD items. The current-session transition guard still refuses done with 176 failures across G022, G053, G040, and G068; G136 passes.",
+      "scopeProgressChange": "Aligned execution.scopeProgress Scope 16 with its Done artifact and removed the malformed stray string element after the sixteen scope objects.",
+      "routingChange": "Cleared the stale blocked human-acceptance cursor. With no incomplete scope and G068 requiring planning-owned Gherkin-to-DoD reconciliation, execution now routes to bubbles.plan with currentPhase plan and currentScope null.",
+      "guardExecution": {
+        "command": "timeout 600 bash .github/bubbles/scripts/evidence-capture.sh --label \"Feature 008 pre-execution-reconciliation transition guard\" -- bash .github/bubbles/scripts/state-transition-guard.sh specs/008-portfolio-survival-and-brief-lab",
+        "executedAt": "2026-08-19T23:13:03Z",
+        "exitCode": 1,
+        "verdict": "FAIL",
+        "passedGateIds": [
+          "G136"
+        ],
+        "failedGateIds": [
+          "G022",
+          "G053",
+          "G040",
+          "G068"
+        ],
+        "failedChecks": [
+          "Check-4-scenario-states",
+          "Check-9-evidence"
+        ],
+        "failureCount": 176,
+        "outputSha256": "f7a990d447a2533118ba0c5ca9c37e745b09de9e46789505631a2c519d810a0c"
+      },
+      "notClaimed": "Top-level status and certification.status remain in_progress. completedPhaseClaims remains empty; no terminal completion, completed phase, certification timestamp, or specialist provenance is claimed."
+    }
   },
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -22,11 +93,86 @@
   "certifiedAt": null,
   "requiresRevalidation": false,
   "execution": {
-    "activeAgent": null,
-    "currentPhase": "blocked",
-    "currentScope": 16,
-    "runStartedAt": "2026-07-15T23:25:05Z",
-    "completedPhaseClaims": [],
+    "activeAgent": "bubbles.implement",
+    "currentPhase": "implement",
+    "currentPhaseStatus": "in_progress",
+    "substate": "implementing",
+    "currentScope": 20,
+    "runStartedAt": "2026-08-20T19:11:37Z",
+    "completedPhaseClaims": [
+      {
+        "phase": "test",
+        "agent": "bubbles.test",
+        "scopes": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16
+        ],
+        "claimedAt": "2026-08-20T03:40:13Z",
+        "evidenceRef": "specs/008-portfolio-survival-and-brief-lab/scopes/16-integrated-route-accessibility-and-atomic-release/report.md#current-test-phase-completion-2026-08-20"
+      },
+      {
+        "phase": "regression",
+        "agent": "bubbles.regression",
+        "scopes": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16
+        ],
+        "claimedAt": "2026-08-20T04:21:55Z",
+        "evidenceRef": "specs/008-portfolio-survival-and-brief-lab/scopes/16-integrated-route-accessibility-and-atomic-release/report.md#current-regression-phase-2026-08-20"
+      },
+      {
+        "phase": "simplify",
+        "agent": "bubbles.simplify",
+        "scopes": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16
+        ],
+        "claimedAt": "2026-08-20T04:58:20Z",
+        "evidenceRef": "specs/008-portfolio-survival-and-brief-lab/scopes/16-integrated-route-accessibility-and-atomic-release/report.md#current-simplification-phase-2026-08-20"
+      }
+    ],
     "pendingTransitionRequests": [],
     "scopeProgress": [
       {
@@ -180,16 +326,212 @@
       {
         "scope": 16,
         "name": "Integrated Route Accessibility And Atomic Release",
-        "status": "in_progress",
+        "status": "done",
         "dependsOn": [
           "15"
         ],
         "scopeDir": "scopes/16-integrated-route-accessibility-and-atomic-release",
         "evidenceFile": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md"
       },
-      "Done"
+      {
+        "scope": 17,
+        "scopeId": "17-local-lifecycle-and-verified-clear-foundation",
+        "name": "Local Lifecycle And Verified Clear Foundation",
+        "status": "done",
+        "dependsOn": [
+          "16"
+        ],
+        "tags": [
+          "foundation:true",
+          "remediation"
+        ],
+        "scopeDir": "scopes/17-local-lifecycle-and-verified-clear-foundation",
+        "evidenceFile": "scopes/17-local-lifecycle-and-verified-clear-foundation/report.md"
+      },
+      {
+        "scope": 18,
+        "scopeId": "18-behavior-identity-and-ranking-foundation",
+        "name": "Behavior Identity And Ranking Foundation",
+        "status": "done",
+        "dependsOn": [
+          "17"
+        ],
+        "tags": [
+          "foundation:true",
+          "remediation"
+        ],
+        "scopeDir": "scopes/18-behavior-identity-and-ranking-foundation",
+        "evidenceFile": "scopes/18-behavior-identity-and-ranking-foundation/report.md"
+      },
+      {
+        "scope": 19,
+        "scopeId": "19-coverage-aware-market-data-foundation",
+        "name": "Coverage-Aware Market Data Foundation",
+        "status": "done",
+        "dependsOn": [
+          "18"
+        ],
+        "tags": [
+          "foundation:true",
+          "remediation",
+          "shared-infrastructure"
+        ],
+        "scopeDir": "scopes/19-coverage-aware-market-data-foundation",
+        "evidenceFile": "scopes/19-coverage-aware-market-data-foundation/report.md"
+      },
+      {
+        "scope": 20,
+        "scopeId": "20-generic-evidence-brief-policy-and-api",
+        "name": "Generic Evidence Brief Policy And API",
+        "status": "in_progress",
+        "dependsOn": [
+          "19"
+        ],
+        "tags": [
+          "overlay:brief",
+          "remediation"
+        ],
+        "scopeDir": "scopes/20-generic-evidence-brief-policy-and-api",
+        "evidenceFile": "scopes/20-generic-evidence-brief-policy-and-api/report.md"
+      },
+      {
+        "scope": 21,
+        "scopeId": "21-partial-risk-input-and-diagnostics",
+        "name": "Partial Risk Input And Diagnostics",
+        "status": "not_started",
+        "dependsOn": [
+          "20"
+        ],
+        "tags": [
+          "overlay:risk",
+          "remediation"
+        ],
+        "scopeDir": "scopes/21-partial-risk-input-and-diagnostics",
+        "evidenceFile": "scopes/21-partial-risk-input-and-diagnostics/report.md"
+      },
+      {
+        "scope": 22,
+        "scopeId": "22-scenario-contract-and-survival-distributions",
+        "name": "Scenario Contract And Survival Distributions",
+        "status": "not_started",
+        "dependsOn": [
+          "21"
+        ],
+        "tags": [
+          "overlay:paths",
+          "remediation"
+        ],
+        "scopeDir": "scopes/22-scenario-contract-and-survival-distributions",
+        "evidenceFile": "scopes/22-scenario-contract-and-survival-distributions/report.md"
+      },
+      {
+        "scope": 23,
+        "scopeId": "23-stress-dependence-and-hedge-effectiveness",
+        "name": "Stress Dependence And Hedge Effectiveness",
+        "status": "not_started",
+        "dependsOn": [
+          "22"
+        ],
+        "tags": [
+          "overlay:diversification",
+          "remediation"
+        ],
+        "scopeDir": "scopes/23-stress-dependence-and-hedge-effectiveness",
+        "evidenceFile": "scopes/23-stress-dependence-and-hedge-effectiveness/report.md"
+      },
+      {
+        "scope": 24,
+        "scopeId": "24-complete-allocation-and-explicit-views",
+        "name": "Complete Allocation And Explicit Views",
+        "status": "not_started",
+        "dependsOn": [
+          "23"
+        ],
+        "tags": [
+          "overlay:allocation",
+          "remediation"
+        ],
+        "scopeDir": "scopes/24-complete-allocation-and-explicit-views",
+        "evidenceFile": "scopes/24-complete-allocation-and-explicit-views/report.md"
+      },
+      {
+        "scope": 25,
+        "scopeId": "25-decision-time-dossier-and-immutable-audit",
+        "name": "Decision-Time Dossier And Immutable Audit",
+        "status": "not_started",
+        "dependsOn": [
+          "24"
+        ],
+        "tags": [
+          "overlay:dossier",
+          "remediation"
+        ],
+        "scopeDir": "scopes/25-decision-time-dossier-and-immutable-audit",
+        "evidenceFile": "scopes/25-decision-time-dossier-and-immutable-audit/report.md"
+      },
+      {
+        "scope": 26,
+        "scopeId": "26-immutable-workspace-compute-and-navigation",
+        "name": "Immutable Workspace Compute And Navigation",
+        "status": "not_started",
+        "dependsOn": [
+          "25"
+        ],
+        "tags": [
+          "integration:workspace",
+          "remediation"
+        ],
+        "scopeDir": "scopes/26-immutable-workspace-compute-and-navigation",
+        "evidenceFile": "scopes/26-immutable-workspace-compute-and-navigation/report.md"
+      },
+      {
+        "scope": 27,
+        "scopeId": "27-accessible-six-tab-interaction",
+        "name": "Accessible Six-Tab Interaction",
+        "status": "not_started",
+        "dependsOn": [
+          "26"
+        ],
+        "tags": [
+          "integration:accessibility",
+          "remediation"
+        ],
+        "scopeDir": "scopes/27-accessible-six-tab-interaction",
+        "evidenceFile": "scopes/27-accessible-six-tab-interaction/report.md"
+      },
+      {
+        "scope": 28,
+        "scopeId": "28-spec-driven-adversarial-test-replacement",
+        "name": "Spec-Driven Adversarial Test Replacement",
+        "status": "not_started",
+        "dependsOn": [
+          "27"
+        ],
+        "tags": [
+          "test-integrity",
+          "remediation"
+        ],
+        "scopeDir": "scopes/28-spec-driven-adversarial-test-replacement",
+        "evidenceFile": "scopes/28-spec-driven-adversarial-test-replacement/report.md"
+      },
+      {
+        "scope": 29,
+        "scopeId": "29-documentation-and-registry-truth",
+        "name": "Documentation And Registry Truth",
+        "status": "not_started",
+        "dependsOn": [
+          "28"
+        ],
+        "tags": [
+          "docs-integration",
+          "remediation"
+        ],
+        "scopeDir": "scopes/29-documentation-and-registry-truth",
+        "evidenceFile": "scopes/29-documentation-and-registry-truth/report.md"
+      }
     ],
-    "nextRequiredOwner": "human",
+    "nextRequiredOwner": "bubbles.implement",
+    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/scopes/20-generic-evidence-brief-policy-and-api/scope.md",
     "audit": {
       "schemaVersion": "audit-run/v1",
       "runId": null,
@@ -212,11 +554,14 @@
       13,
       14,
       15,
-      16
+      16,
+      17,
+      18,
+      19
     ]
   },
   "certification": {
-    "status": "blocked",
+    "status": "in_progress",
     "completedScopes": [
       "01-private-portfolio-import-and-atomic-store",
       "02-mandate-and-cash-need-authority",
@@ -225,7 +570,18 @@
       "05-four-window-direct-scope-brief",
       "06-explainable-research-action-lifecycle",
       "07-return-and-drawdown-x-ray",
-      "08-concentration-capm-and-risk-contribution"
+      "08-concentration-capm-and-risk-contribution",
+      "09-dependent-path-reproducibility",
+      "10-dated-cash-needs-and-survival-states",
+      "11-stress-tail-and-alternative-dependence",
+      "12-hedge-variant-research",
+      "13-six-method-allocation-basis-and-feasibility",
+      "14-allocation-sensitivity-and-explicit-black-litterman",
+      "15-walk-forward-research-dossier-and-claim-boundaries",
+      "16-integrated-route-accessibility-and-atomic-release",
+      "17-local-lifecycle-and-verified-clear-foundation",
+      "18-behavior-identity-and-ranking-foundation",
+      "19-coverage-aware-market-data-foundation"
     ],
     "certifiedCompletedPhases": [],
     "scopeProgress": [
@@ -395,7 +751,7 @@
       {
         "scope": 16,
         "name": "Integrated Route Accessibility And Atomic Release",
-        "status": "in_progress",
+        "status": "done",
         "dependsOn": [
           "15"
         ],
@@ -403,7 +759,215 @@
         "evidenceFile": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md",
         "certifiedAt": null
       },
-      "Done"
+      {
+        "scope": 17,
+        "scopeId": "17-local-lifecycle-and-verified-clear-foundation",
+        "name": "Local Lifecycle And Verified Clear Foundation",
+        "status": "done",
+        "dependsOn": [
+          "16"
+        ],
+        "tags": [
+          "foundation:true",
+          "remediation"
+        ],
+        "scopeDir": "scopes/17-local-lifecycle-and-verified-clear-foundation",
+        "evidenceFile": "scopes/17-local-lifecycle-and-verified-clear-foundation/report.md",
+        "certifiedAt": "2026-08-20T19:37:59Z"
+      },
+      {
+        "scope": 18,
+        "scopeId": "18-behavior-identity-and-ranking-foundation",
+        "name": "Behavior Identity And Ranking Foundation",
+        "status": "done",
+        "dependsOn": [
+          "17"
+        ],
+        "tags": [
+          "foundation:true",
+          "remediation"
+        ],
+        "scopeDir": "scopes/18-behavior-identity-and-ranking-foundation",
+        "evidenceFile": "scopes/18-behavior-identity-and-ranking-foundation/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 19,
+        "scopeId": "19-coverage-aware-market-data-foundation",
+        "name": "Coverage-Aware Market Data Foundation",
+        "status": "done",
+        "dependsOn": [
+          "18"
+        ],
+        "tags": [
+          "foundation:true",
+          "remediation",
+          "shared-infrastructure"
+        ],
+        "scopeDir": "scopes/19-coverage-aware-market-data-foundation",
+        "evidenceFile": "scopes/19-coverage-aware-market-data-foundation/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 20,
+        "scopeId": "20-generic-evidence-brief-policy-and-api",
+        "name": "Generic Evidence Brief Policy And API",
+        "status": "in_progress",
+        "dependsOn": [
+          "19"
+        ],
+        "tags": [
+          "overlay:brief",
+          "remediation"
+        ],
+        "scopeDir": "scopes/20-generic-evidence-brief-policy-and-api",
+        "evidenceFile": "scopes/20-generic-evidence-brief-policy-and-api/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 21,
+        "scopeId": "21-partial-risk-input-and-diagnostics",
+        "name": "Partial Risk Input And Diagnostics",
+        "status": "not_started",
+        "dependsOn": [
+          "20"
+        ],
+        "tags": [
+          "overlay:risk",
+          "remediation"
+        ],
+        "scopeDir": "scopes/21-partial-risk-input-and-diagnostics",
+        "evidenceFile": "scopes/21-partial-risk-input-and-diagnostics/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 22,
+        "scopeId": "22-scenario-contract-and-survival-distributions",
+        "name": "Scenario Contract And Survival Distributions",
+        "status": "not_started",
+        "dependsOn": [
+          "21"
+        ],
+        "tags": [
+          "overlay:paths",
+          "remediation"
+        ],
+        "scopeDir": "scopes/22-scenario-contract-and-survival-distributions",
+        "evidenceFile": "scopes/22-scenario-contract-and-survival-distributions/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 23,
+        "scopeId": "23-stress-dependence-and-hedge-effectiveness",
+        "name": "Stress Dependence And Hedge Effectiveness",
+        "status": "not_started",
+        "dependsOn": [
+          "22"
+        ],
+        "tags": [
+          "overlay:diversification",
+          "remediation"
+        ],
+        "scopeDir": "scopes/23-stress-dependence-and-hedge-effectiveness",
+        "evidenceFile": "scopes/23-stress-dependence-and-hedge-effectiveness/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 24,
+        "scopeId": "24-complete-allocation-and-explicit-views",
+        "name": "Complete Allocation And Explicit Views",
+        "status": "not_started",
+        "dependsOn": [
+          "23"
+        ],
+        "tags": [
+          "overlay:allocation",
+          "remediation"
+        ],
+        "scopeDir": "scopes/24-complete-allocation-and-explicit-views",
+        "evidenceFile": "scopes/24-complete-allocation-and-explicit-views/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 25,
+        "scopeId": "25-decision-time-dossier-and-immutable-audit",
+        "name": "Decision-Time Dossier And Immutable Audit",
+        "status": "not_started",
+        "dependsOn": [
+          "24"
+        ],
+        "tags": [
+          "overlay:dossier",
+          "remediation"
+        ],
+        "scopeDir": "scopes/25-decision-time-dossier-and-immutable-audit",
+        "evidenceFile": "scopes/25-decision-time-dossier-and-immutable-audit/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 26,
+        "scopeId": "26-immutable-workspace-compute-and-navigation",
+        "name": "Immutable Workspace Compute And Navigation",
+        "status": "not_started",
+        "dependsOn": [
+          "25"
+        ],
+        "tags": [
+          "integration:workspace",
+          "remediation"
+        ],
+        "scopeDir": "scopes/26-immutable-workspace-compute-and-navigation",
+        "evidenceFile": "scopes/26-immutable-workspace-compute-and-navigation/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 27,
+        "scopeId": "27-accessible-six-tab-interaction",
+        "name": "Accessible Six-Tab Interaction",
+        "status": "not_started",
+        "dependsOn": [
+          "26"
+        ],
+        "tags": [
+          "integration:accessibility",
+          "remediation"
+        ],
+        "scopeDir": "scopes/27-accessible-six-tab-interaction",
+        "evidenceFile": "scopes/27-accessible-six-tab-interaction/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 28,
+        "scopeId": "28-spec-driven-adversarial-test-replacement",
+        "name": "Spec-Driven Adversarial Test Replacement",
+        "status": "not_started",
+        "dependsOn": [
+          "27"
+        ],
+        "tags": [
+          "test-integrity",
+          "remediation"
+        ],
+        "scopeDir": "scopes/28-spec-driven-adversarial-test-replacement",
+        "evidenceFile": "scopes/28-spec-driven-adversarial-test-replacement/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 29,
+        "scopeId": "29-documentation-and-registry-truth",
+        "name": "Documentation And Registry Truth",
+        "status": "not_started",
+        "dependsOn": [
+          "28"
+        ],
+        "tags": [
+          "docs-integration",
+          "remediation"
+        ],
+        "scopeDir": "scopes/29-documentation-and-registry-truth",
+        "evidenceFile": "scopes/29-documentation-and-registry-truth/report.md",
+        "certifiedAt": null
+      }
     ],
     "lockdownState": {
       "active": false,
@@ -512,12 +1076,268 @@
       ],
       "nextRequiredOwner": "bubbles.plan",
       "summary": "Re-verified every check that blocked a Scope 01 DoD group; changed no Scope 01 production, test, fixture, or config file. Repository selftest is now exit 0 with 1218 passed and 0 failed, closing F008-IMPL-001, whose resolution came from the concurrent BUG-002 packet. Implementation reality is now exit 0 with 0 violations, closing F008-IMPL-002. Source lock exit 0, runner identity exactly Version 1.61.1, TP-01-01 16/16, TP-01-02 5/5, TP-01-06 3/3 cumulative, git diff --check exit 0, interception and external-host scans zero matches, and the storage inventory proved a closed rlPortfolio*/rlReturnContextV1 key set with zero rlData, rlProviderConfig, or rlApiKeys references. The shared-infrastructure DoD item was therefore checked on executed evidence, since its recorded resolution condition was an exit-0 selftest. The Build Quality Gate stays unchecked and Scope 01 stays in_progress: G094 exit 1 needs the literal word foundation on a Depends On line in a foreign scope file while this scope declares Allowed existing-file edit none; traceability exit 1 with 96 failures needs the linked test files from Scopes 02-16 that are not_started; new F008-IMPL-007 is artifact lint exit 1 on the status versus certification.status mismatch, which only validate may write; new F008-IMPL-008 is Gate G068 reporting that neither Scope 01 Gherkin scenario maps to a faithful DoD item, and rewriting DoD text is precisely what G068 detects. No milestone was published because Scopes 03, 04, and 05 remain not_started. No completedPhaseClaim, certification field, or top-level status was written."
+    },
+    {
+      "agent": "bubbles.test",
+      "phasesExecuted": [
+        "test"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T02:23:43Z",
+      "finishedAt": "2026-08-20T02:31:53Z",
+      "outcome": "route_required",
+      "evidenceRef": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md#current-test-phase-planning-refusal-2026-08-20",
+      "addressedFindings": [],
+      "unresolvedFindings": [
+        "F008-TEST-PLAN-001",
+        "F008-TEST-PLAN-002",
+        "F008-TEST-PLAN-003",
+        "F008-TEST-PLAN-004",
+        "F008-TEST-PLAN-005"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Stopped before every Feature 008 Test Plan command because the structured handoff remains inconsistent with the sixteen Markdown Test Plans and current test declarations. The canonical legacy binding resolver resolved 36 of 36 nonempty linkedTests entries, but SCN-008-037 through SCN-008-041 have empty linkedTests arrays and stale linkedTestContracts titles. A current structured probe found 116 Markdown rows versus 107 JSON rows, nine omitted rows, five stale browser titles, a stale TP-09-06 category/file binding, one undefined TP-15-08 command reference, and five unresolved structured test titles. Six current tool-log receipts were produced: four exit 0 and two exit 1; zero Test Plan commands ran. Artifact lint and whole-feature traceability pass. The closing transition guard still refuses done with G022, checks 4 and 9, and 162 failures. Execution routing remains plan-owned; no completedPhaseClaim, terminal status, certification field, scope mirror, or human-acceptance artifact was changed."
+    },
+    {
+      "agent": "bubbles.test",
+      "phasesExecuted": [
+        "test"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T03:04:46Z",
+      "finishedAt": "2026-08-20T03:40:13Z",
+      "outcome": "route_required",
+      "evidenceRef": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md#current-test-phase-completion-2026-08-20",
+      "addressedFindings": [
+        "F008-TEST-PLAN-001",
+        "F008-TEST-PLAN-002",
+        "F008-TEST-PLAN-003",
+        "F008-TEST-PLAN-004",
+        "F008-TEST-PLAN-005",
+        "F008-TEST-DEPENDENCY-GATE-001"
+      ],
+      "unresolvedFindings": [
+        "F008-TEST-SCENARIO-RECEIPTS-001"
+      ],
+      "nextRequiredOwner": "bubbles.regression",
+      "summary": "The repaired structured handoff resolves all 116 Test Plan rows and all 45 scenario test references. Every declared Test Plan row has a current-session tool-log receipt. The aggregate Node matrix passed 183/183, the repository selftest passed 3102/3102 after regenerating the stale Feature 008 dependency-gate projection, the complete Feature 008 browser matrix passed 72/72, and the existing-consumer matrix passed 190/190. Regression quality, artifact lint, and all-scope traceability are clean. Terminal certification remains refused by G022 because the scenario-state resolver requires historical red/implement/green receipt chains that predate the receipt system; no after-the-fact RED was fabricated."
+    },
+    {
+      "agent": "bubbles.regression",
+      "phasesExecuted": [
+        "regression"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T04:06:50Z",
+      "finishedAt": "2026-08-20T04:21:55Z",
+      "outcome": "completed_diagnostic",
+      "evidenceRef": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md#current-regression-phase-2026-08-20",
+      "addressedFindings": [],
+      "unresolvedFindings": [
+        "F008-TEST-SCENARIO-RECEIPTS-001"
+      ],
+      "nextRequiredOwner": "bubbles.simplify",
+      "summary": "Independent regression verification found no cross-spec conflict, coverage decrease, route or navigation breakage, contract drift, or generated-artifact drift. Code index freshness closed at zero pending changes. The aggregate Node matrix passed 183/183, repository selftest passed 3102/3102, the complete Feature 008 browser matrix passed 72/72, and the existing-consumer matrix passed 190/190 under regression provenance with explicit input closures. The pre-receipt G022 scenario lifecycle blocker remains unchanged and was not backfilled."
+    },
+    {
+      "agent": "bubbles.simplify",
+      "phasesExecuted": [
+        "simplify"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T04:42:43Z",
+      "finishedAt": "2026-08-20T04:58:20Z",
+      "outcome": "route_required",
+      "evidenceRef": "scopes/16-integrated-route-accessibility-and-atomic-release/report.md#current-simplification-phase-2026-08-20",
+      "addressedFindings": [
+        "SIM-008-REUSE-001",
+        "SIM-008-EFF-001",
+        "SIM-008-QUALITY-001",
+        "SIM-008-CONSUMER-001"
+      ],
+      "unresolvedFindings": [
+        "F008-TEST-SCENARIO-RECEIPTS-001"
+      ],
+      "nextRequiredOwner": "bubbles.gaps",
+      "summary": "The post-implementation review removed one duplicated primary-lane search from the brief composer and replaced quadratic common-date membership checks with one Set. Focused brief and analytics matrices passed 20/20 and 79/79; the aggregate Node matrix passed 183/183; repository selftest passed 3102/3102; the complete Feature 008 browser matrix passed 72/72; and the unchanged existing-consumer matrix passed 190/190 after its sole FX title passed in isolation. Regression quality, artifact lint, all-scope traceability, and final diff checks passed. No test title, public contract, privacy boundary, append-only behavior, no-execution behavior, protected canary, Feature 015 path, top-level status, or certification field changed. The historical scenario-receipt finding remains preserved and routes to bubbles.gaps."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "plan"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T06:01:19Z",
+      "finishedAt": "2026-08-20T06:01:19Z",
+      "outcome": "route_required",
+      "evidenceRef": "scopes/_index.md#complete-remediation-replan---2026-08-20",
+      "addressedFindings": [
+        "F008-PLAN-COHERENCE-001"
+      ],
+      "unresolvedFindings": [
+        "F008-SPEC-SCENARIO-001",
+        "F008-TEST-SCENARIO-RECEIPTS-001"
+      ],
+      "nextRequiredOwner": "bubbles.analyst",
+      "summary": "Preserved all sixteen historical Done scope records and evidence, added blocked Scopes 17-29 with one-owner coverage for every gaps-audit finding, reserved SCN-008-042 through SCN-008-055, corrected active clear-row and 41-scenario planning references, and routed analyst, design, plan-resynchronization, validate, docs, implementation, test, and external framework work without changing production source/tests/docs or certification fields. Artifact lint passes for all 29 scope files. Scenario and test-plan entry synchronization remains gated on analyst and design authority."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "plan"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T15:58:35Z",
+      "finishedAt": "2026-08-20T15:58:35Z",
+      "outcome": "route_required",
+      "evidenceRef": "scopes/_index.md#complete-remediation-replan---2026-08-20",
+      "addressedFindings": [
+        "F008-PLAN-COHERENCE-001"
+      ],
+      "unresolvedFindings": [],
+      "preservedExternalRoutes": [
+        "F008-TEST-SCENARIO-RECEIPTS-001"
+      ],
+      "planningArtifactsSynchronized": {
+        "editedThisResume": [
+          "scopes/_index.md",
+          "state.json"
+        ],
+        "validatedUnchanged": [
+          "scenario-manifest.json",
+          "test-plan.json",
+          "scopes/17-local-lifecycle-and-verified-clear-foundation/scope.md through scopes/29-documentation-and-registry-truth/scope.md"
+        ]
+      },
+      "validationSummary": {
+        "jsonDocumentsParsed": 3,
+        "authoritativeScenarios": 55,
+        "canonicalScenarioHashes": 55,
+        "remediationScenarios": 14,
+        "plannedLinkedTestBindings": 20,
+        "testPlanRows": 187,
+        "remediationTestPlanRows": 71,
+        "dedicatedTestDoDItems": 187,
+        "scopeFiles": 29,
+        "remediationScopeFiles": 13,
+        "findingsWithOneOwner": 24,
+        "scopeOwnedFindings": 21,
+        "linearDependencyEdges": 28,
+        "eligibleScopes": [
+          17
+        ],
+        "artifactLint": "passed",
+        "traceability": "55 scenarios mapped to DoD with zero unmapped; seven planned-not-authored concrete carriers remain unavailable",
+        "referenceExistence": "passed",
+        "scopeContextFit": "passed",
+        "capabilityFoundation": "passed",
+        "technicalProse": "report-only observations retained without changing historical planning text"
+      },
+      "noImplementationClaim": "P1 synchronized planning authority and execution routing only. It did not implement production behavior, author or execute remediation tests, certify a phase, change completed scopes, or claim terminal completion.",
+      "nextRequiredOwner": "bubbles.implement",
+      "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/scopes/17-local-lifecycle-and-verified-clear-foundation/scope.md",
+      "summary": "Resolved P1 after A1 and D1. The plan now carries 55 authoritative scenarios, 187 synchronized Test Plan rows with dedicated DoD items, 24 one-owner findings, and a 29-scope linear DAG whose only eligible pickup is Scope 17. Scopes 01-16 remain historical Done mirrors; Scopes 17-29 are Not Started in execution routing. Certification fields remain unchanged under bubbles.validate ownership."
+    },
+    {
+      "agent": "bubbles.implement",
+      "phasesExecuted": [
+        "implement"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T19:11:37Z",
+      "finishedAt": "2026-08-20T19:33:28Z",
+      "outcome": "completed_owned",
+      "evidenceRef": "scopes/17-local-lifecycle-and-verified-clear-foundation/report.md",
+      "nextRequiredOwner": "bubbles.implement",
+      "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/scopes/18-behavior-identity-and-ranking-foundation/scope.md",
+      "summary": "Recorded Scope 17 as complete from its artifact-backed report, advanced execution to dependency child Scope 18, and left certification, top-level status, and completed phase claims unchanged."
+    },
+    {
+      "agent": "bubbles.validate",
+      "phasesExecuted": [],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T20:57:55Z",
+      "finishedAt": "2026-08-20T20:57:55Z",
+      "outcome": "completed_diagnostic",
+      "evidenceRef": "scopes/18-behavior-identity-and-ranking-foundation/report.md",
+      "nextRequiredOwner": "bubbles.implement",
+      "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/scopes/19-coverage-aware-market-data-foundation/scope.md",
+      "summary": "Recorded Scope 18 as Done from its closed scope artifact and artifact-backed report; Scope 19 is now the dependency-unblocked next target. Top-level and certification status remain in_progress, with no feature-level phase claim added."
+    },
+    {
+      "agent": "bubbles.implement",
+      "phasesExecuted": [],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T21:05:47Z",
+      "finishedAt": "2026-08-20T21:05:47Z",
+      "outcome": "route_required",
+      "nextRequiredOwner": "bubbles.implement",
+      "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/scopes/19-coverage-aware-market-data-foundation/scope.md",
+      "summary": "Picked up Scope 19 by marking only execution.scopeProgress in_progress. Certification remains not_started under bubbles.validate ownership; no implementation, test, report, phase-completion, or certification claim is made."
+    },
+    {
+      "agent": "bubbles.validate",
+      "phasesExecuted": [],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T21:27:20Z",
+      "finishedAt": "2026-08-20T21:27:20Z",
+      "outcome": "completed_diagnostic",
+      "nextRequiredOwner": "bubbles.implement",
+      "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/scopes/19-coverage-aware-market-data-foundation/scope.md",
+      "summary": "Reconciled only certification.scopeProgress Scope 19 to in_progress so it mirrors the active execution scope. This is an active-scope mirror only and grants no completion, phase claim, or certification; all completion inventories, certification timestamps, statuses, and other scope records remain unchanged."
+    },
+    {
+      "agent": "bubbles.validate",
+      "phasesExecuted": [],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T21:52:54Z",
+      "finishedAt": "2026-08-20T21:52:54Z",
+      "outcome": "completed_diagnostic",
+      "evidenceRef": "scopes/19-coverage-aware-market-data-foundation/report.md",
+      "nextRequiredOwner": "bubbles.implement",
+      "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/scopes/20-generic-evidence-brief-policy-and-api/scope.md",
+      "summary": "Reconciled Scope 19 as Done from its closed scope artifact and artifact-backed report; Scope 20 is now the dependency-unblocked next target but remains not_started until pickup. Top-level and certification status remain in_progress, with no feature-level phase claim added."
+    },
+    {
+      "agent": "bubbles.implement",
+      "phasesExecuted": [],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T22:13:06Z",
+      "finishedAt": "2026-08-20T22:13:06Z",
+      "outcome": "route_required",
+      "nextRequiredOwner": "bubbles.validate",
+      "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/state.json",
+      "summary": "Picked up Scope 20 by marking only execution.scopeProgress in_progress. The certification.scopeProgress Scope 20 mirror remains not_started and is routed to bubbles.validate; no implementation, test, report, phase-completion, scope-completion, or certification claim is made."
+    },
+    {
+      "agent": "bubbles.validate",
+      "phasesExecuted": [],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T22:19:00Z",
+      "finishedAt": "2026-08-20T22:19:00Z",
+      "outcome": "completed_diagnostic",
+      "nextRequiredOwner": "bubbles.implement",
+      "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/scopes/20-generic-evidence-brief-policy-and-api/scope.md",
+      "summary": "Reconciled only certification.scopeProgress Scope 20 to in_progress so it mirrors the active execution scope. This grants no completion, phase, or certification claim; all completion inventories, certification timestamps, feature status, and other scope records remain unchanged."
     }
   ],
   "activeBugs": [],
   "resolvedBugs": [],
   "failures": [],
-  "lastUpdatedAt": "2026-08-13T06:30:00Z",
+  "lastUpdatedAt": "2026-08-20T15:58:35Z",
   "scopeLayout": "per-scope-directory",
   "artifacts": {
     "spec": "spec.md",
@@ -561,15 +1381,6 @@
     "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
   },
   "notes": "Analyst business specification initialized; status and certification remain at baseline.",
-  "completedScopes": [
-    "01-private-portfolio-import-and-atomic-store",
-    "02-mandate-and-cash-need-authority",
-    "03-local-behavior-privacy-inventory-and-clear",
-    "04-public-evidence-barrier-and-coverage",
-    "05-four-window-direct-scope-brief",
-    "06-explainable-research-action-lifecycle",
-    "07-return-and-drawdown-x-ray",
-    "08-concentration-capm-and-risk-contribution"
-  ],
-  "blockedReason": "BLOCKED ON HUMAN ACCEPTANCE (Gate G136), which no agent may clear.\n\nuservalidation.md carries 18 unchecked acceptance items against 5 checked. Gate G136 states the\ncondition plainly: \"checking a box on the author's behalf would fabricate the acceptance this gate\nrequires\" — so the remaining 18 are not agent-actionable by construction, regardless of how much\nevidence the packet accumulates.\n\nOPERATOR ACTION TO UNBLOCK: open specs/008-portfolio-survival-and-brief-lab/uservalidation.md, use\nthe tool at portfolio-survival-allocation-lab.html, and for each of the 18 items either check it\n(the behaviour is accepted) or leave it unchecked and file the regression it represents.\n\nSTATE OF THE WORK, honestly:\n- All 16 scopes are implemented. Feature 008 browser suite 72/72 (twice, deterministic);\n  existing consumers 147/147; selftest 1643/0; reader-legibility 0 leaks across 26 pages;\n  node suite shows zero new failures against an empirical pre-registration worktree baseline\n  (825/28 at HEAD, 825/28 at 813813d4^).\n- The specialist phases were executed directly this session because runSubagent dispatch returned\n  no output on this packet. Their raw command output is recorded in scope 16 report.md under\n  \"Specialist Phase Execution\". Two real defects were found and fixed by that work: a stale\n  dependency-gate projection and 7 stale test-path baseline entries. A genuine XSS surface was\n  closed with an adversarially-verified pin, and finding F008-IMPL-010 (a silent-pass risk in\n  TP-01-05) was fixed rather than carried.\n- No phase is CLAIMED in state.json: per-phase timestamps were never recorded, and inventing\n  distinct ones to pass the provenance check would be the fabrication the check exists to catch.\n\nREMAINING NON-HUMAN DEBT (does not block the human gate, but blocks `done` independently):\nstate-transition-guard reports 172 failures across G053, G027, G040, G068, G088 and G136 —\nchiefly per-DoD evidence anchors under 10 lines in scopes 09/10/14/15/16, missing regression-E2E\nand consumer-trace planning requirements, and residual deferral phrasing in 4 scope reports."
+  "resolvedBlockedReason": "BLOCKED ON HUMAN ACCEPTANCE (Gate G136), which no agent may clear.\n\nuservalidation.md carries 18 unchecked acceptance items against 5 checked. Gate G136 states the\ncondition plainly: \"checking a box on the author's behalf would fabricate the acceptance this gate\nrequires\" — so the remaining 18 are not agent-actionable by construction, regardless of how much\nevidence the packet accumulates.\n\nOPERATOR ACTION TO UNBLOCK: open specs/008-portfolio-survival-and-brief-lab/uservalidation.md, use\nthe tool at portfolio-survival-allocation-lab.html, and for each of the 18 items either check it\n(the behaviour is accepted) or leave it unchecked and file the regression it represents.\n\nSTATE OF THE WORK, honestly:\n- All 16 scopes are implemented. Feature 008 browser suite 72/72 (twice, deterministic);\n  existing consumers 147/147; selftest 1643/0; reader-legibility 0 leaks across 26 pages;\n  node suite shows zero new failures against an empirical pre-registration worktree baseline\n  (825/28 at HEAD, 825/28 at 813813d4^).\n- The specialist phases were executed directly this session because runSubagent dispatch returned\n  no output on this packet. Their raw command output is recorded in scope 16 report.md under\n  \"Specialist Phase Execution\". Two real defects were found and fixed by that work: a stale\n  dependency-gate projection and 7 stale test-path baseline entries. A genuine XSS surface was\n  closed with an adversarially-verified pin, and finding F008-IMPL-010 (a silent-pass risk in\n  TP-01-05) was fixed rather than carried.\n- No phase is CLAIMED in state.json: per-phase timestamps were never recorded, and inventing\n  distinct ones to pass the provenance check would be the fabrication the check exists to catch.\n\nREMAINING NON-HUMAN DEBT (does not block the human gate, but blocks `done` independently):\nstate-transition-guard reports 172 failures across G053, G027, G040, G068, G088 and G136 —\nchiefly per-DoD evidence anchors under 10 lines in scopes 09/10/14/15/16, missing regression-E2E\nand consumer-trace planning requirements, and residual deferral phrasing in 4 scope reports.",
+  "blockedReason": null
 }

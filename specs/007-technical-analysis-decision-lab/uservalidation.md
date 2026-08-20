@@ -21,23 +21,38 @@ Simple presents one source/vintage-faithful UnifiedRead with direction, regime, 
 ## Checklist
 
 - [x] This acceptance checklist is initialized from the 31 business scenarios, UI scenario matrix, and nine-scope plan; this item records planning setup only and does not claim that the live page exists or any journey has passed.
-- [ ] Context selection exposes instrument, venue/session, source/vintage, actual timeframe roles/intervals, comparison membership/rationale, setup focus, sensitivity, costs, and validation impact before applying a behavior-bearing change.
-- [ ] U.S. equity 65m, core 4h remainder, extended 4h, continuous 4h, daily-close, custom, early-close, closed, provisional, and partial states are distinguishable and reproducible.
-- [ ] Simple explains all five ordered gates and cannot let optional or correlated bullish evidence override a mandatory failure or unavailable state.
-- [ ] Every technique/specialist exposes methods, parameters, evidence family, lineage, limitations, current support/contradiction/instability/unavailability, and qualitative confidence inputs without presenting confidence as win probability.
-- [ ] Wick, volume, volume-profile, Wyckoff, option, footprint, depth, and large-trade language preserves its evidence boundary and makes no unsupported actor, motive, resting-liquidity, or dealer-inventory claim.
-- [ ] Every level/confluence zone and setup candidate exposes source/timeframe/age/lifecycle, prerequisites, trigger, invalidation, natural targets, expiry, variant identity, and immutable transition history.
-- [ ] Candidate selection favors complete gates, validation, freshness, and lower contradiction rather than bullish direction, and non-selected candidates remain inspectable.
-- [ ] Market, sector/industry, peers, and optional context remain separate with aligned normalized evidence, eligible denominator, exclusions, classification source/as-of, and no silent replacement.
-- [ ] Missing chain or microstructure inputs remain unavailable; a valid option owner read preserves one snapshot, assumption set, and sign convention across every derived result.
-- [ ] Exact-variant validation exposes as-of folds, trials/multiplicity, samples, outcomes/slices, uncertainty, selected-stock fit, cross-instrument robustness, explicit costs, gross/net expectancy, and no inherited passport after any behavior-bearing change.
-- [ ] Expectancy audit reproduces the transcript calculation, rejects the inconsistent claimed total, and distinguishes target/risk/process quality from one hypothetical outcome without diagnosing emotion or prescribing suitability.
-- [ ] Simple, Power, desktop, mobile, accessible tables, export, deep links, and owner read preserve one result id, variant id, truth state, gate/setup state, comparison, validation, and caveat set with no display-mode fetch or private recomputation.
-- [ ] Loading, cached-refreshing, current, stale, degraded, unavailable, invalid, recomputing, method-failed, delta-failed, and revised states use exact observed/required/action semantics and never replace missing values with zero or neutral evidence.
-- [ ] Keyboard, touch, focus return, announcements, reduced motion, non-color states, 130 percent text, 390px layout, contained Power tables, background-tab canvas activation, hover/tap explanations, and chart/table parity are usable without overlap or clipping.
-- [ ] Provider credentials remain only at `index.html#data-settings`; exports, owner reads, deep links, local preferences, lifecycle history, and logs contain no credential, auth/payment, account, holding, position, cost-basis, or realized-P/L state.
-- [ ] The registered route, config, note, shared navigation, central settings link, and Market Brief registry-derived coverage resolve to the same owning tool and do not duplicate its formulas or upgrade its truth.
-- [ ] Educational-research, no-execution, no-guarantee, and no-personalized-advice language remains adjacent to the result and travels with export and owner read.
+
+### Human Acceptance - Granted 2026-08-19
+
+The items below required human acceptance after delivery. **The operator granted acceptance for all seventeen
+in-session on 2026-08-19.**
+
+**Provenance.** Acceptance is the operator's, not an agent's. It was given as an explicit instruction to accept
+the full set and mark it accordingly. No agent inferred, assumed, or self-issued this acceptance.
+
+- [x] Context selection exposes instrument, venue/session, source/vintage, actual timeframe roles/intervals, comparison membership/rationale, setup focus, sensitivity, costs, and validation impact before applying a behavior-bearing change.
+- [x] U.S. equity 65m, core 4h remainder, extended 4h, continuous 4h, daily-close, custom, early-close, closed, provisional, and partial states are distinguishable and reproducible.
+- [x] Simple explains all five ordered gates and cannot let optional or correlated bullish evidence override a mandatory failure or unavailable state.
+- [x] Every technique/specialist exposes methods, parameters, evidence family, lineage, limitations, current support/contradiction/instability/unavailability, and qualitative confidence inputs without presenting confidence as win probability.
+- [x] Wick, volume, volume-profile, Wyckoff, option, footprint, depth, and large-trade language preserves its evidence boundary and makes no unsupported actor, motive, resting-liquidity, or dealer-inventory claim.
+- [x] Every level/confluence zone and setup candidate exposes source/timeframe/age/lifecycle, prerequisites, trigger, invalidation, natural targets, expiry, variant identity, and immutable transition history.
+- [x] Candidate selection favors complete gates, validation, freshness, and lower contradiction rather than bullish direction, and non-selected candidates remain inspectable.
+- [x] Market, sector/industry, peers, and optional context remain separate with aligned normalized evidence, eligible denominator, exclusions, classification source/as-of, and no silent replacement.
+- [x] Missing chain or microstructure inputs remain unavailable; a valid option owner read preserves one snapshot, assumption set, and sign convention across every derived result.
+- [x] Exact-variant validation exposes as-of folds, trials/multiplicity, samples, outcomes/slices, uncertainty, selected-stock fit, cross-instrument robustness, explicit costs, gross/net expectancy, and no inherited passport after any behavior-bearing change.
+- [x] Expectancy audit reproduces the transcript calculation, rejects the inconsistent claimed total, and distinguishes target/risk/process quality from one hypothetical outcome without diagnosing emotion or prescribing suitability.
+- [x] Simple, Power, desktop, mobile, accessible tables, export, deep links, and owner read preserve one result id, variant id, truth state, gate/setup state, comparison, validation, and caveat set with no display-mode fetch or private recomputation.
+- [x] Loading, cached-refreshing, current, stale, degraded, unavailable, invalid, recomputing, method-failed, delta-failed, and revised states use exact observed/required/action semantics and never replace missing values with zero or neutral evidence.
+- [x] Keyboard, touch, focus return, announcements, reduced motion, non-color states, 130 percent text, 390px layout, contained Power tables, background-tab canvas activation, hover/tap explanations, and chart/table parity are usable without overlap or clipping.
+- [x] Provider credentials remain only at `index.html#data-settings`; exports, owner reads, deep links, local preferences, lifecycle history, and logs contain no credential, auth/payment, account, holding, position, cost-basis, or realized-P/L state.
+- [x] The registered route, config, note, shared navigation, central settings link, and Market Brief registry-derived coverage resolve to the same owning tool and do not duplicate its formulas or upgrade its truth.
+- [x] Educational-research, no-execution, no-guarantee, and no-personalized-advice language remains adjacent to the result and travels with export and owner read.
+
+## Human Acceptance Record
+
+- acceptedBy: operator
+- acceptedAt: 2026-08-19T19:04:11Z
+- method: human-interactive
 
 ## Evidence Links
 

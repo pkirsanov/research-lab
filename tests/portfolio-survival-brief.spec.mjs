@@ -22,21 +22,23 @@ test.afterAll(async () => {
 });
 
 const BRIEF_CONFIG = JSON.parse(readFileSync(resolve(ROOT, 'market-brief.config.json'), 'utf8'));
+const BRIEF_SNAPSHOT = JSON.parse(readFileSync(resolve(ROOT, 'market-brief.snapshot.json'), 'utf8'));
 const WINDOWS = BRIEF_CONFIG.windows;
 const WINDOW_IDS = WINDOWS.map((entry) => entry.id);
 
 /* Fixture dates are DERIVED from the generic config's own as-of date rather than hard-coded, so a
    later config refresh cannot silently turn these observations into after-cutoff ones and quietly
-   empty every lane. EVIDENCE_DAY precedes the earliest cutoff; LATE_DAY follows the latest. */
+  empty every lane. EVIDENCE_DAY precedes the earliest cutoff; SNAPSHOT_LATE_DAY follows the
+  current validated publication rather than the historical config date. */
 function shiftDay(iso, days) {
   const base = Date.parse(`${iso}T00:00:00.000Z`);
   return new Date(base + days * 86400000).toISOString().slice(0, 10);
 }
 const EVIDENCE_DAY = shiftDay(BRIEF_CONFIG.asOf, -1);
-const LATE_DAY = shiftDay(BRIEF_CONFIG.asOf, 2);
+const SNAPSHOT_LATE_DAY = shiftDay(BRIEF_SNAPSHOT.asOf.slice(0, 10), 1);
 
 async function openBrief(page) {
-  const response = await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#workspace`);
+  const response = await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#brief`);
   expect(response?.status(), 'the brief route must be served').toBe(200);
   await expect(page.locator('#portfolioBrief')).toBeVisible();
   // The window select is populated from the PUBLIC generic config, so its option count is
@@ -86,44 +88,87 @@ async function laneSubjects(page, lane) {
 test('Regression: SCN-008-006 all four exact ET windows preserve cutoff and composition time', async ({ page }) => {
   await openBrief(page);
   await importValid(page, 'TP-05-02 windows');
-  // One observation early in the day, so it survives every window's cutoff.
+  // One observation early in the day, so the snapshot-backed publication has a real action.
   await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
 
-  const seen = [];
-  for (const id of WINDOW_IDS) {
-    await selectWindow(page, id);
-
-    const times = page.locator('#briefTimes');
-    await expect(times).toHaveAttribute('data-window', id);
-    const cutoff = await times.getAttribute('data-cutoff');
-    const published = await times.getAttribute('data-published');
-    const composed = await times.getAttribute('data-composed');
-
-    // Three clocks, three distinct values. A page that renders one label for all three is exactly
-    // what makes a past brief unauditable, so identity between any pair fails the row.
-    expect(cutoff, `${id} states an evidence cutoff`).toBeTruthy();
-    expect(published, `${id} preserves the generic publication time`).toBeTruthy();
-    expect(composed, `${id} states a local composition time`).toBeTruthy();
-    expect(cutoff, `${id} must not reuse the composition clock as the cutoff`).not.toBe(composed);
-    expect(cutoff, `${id} must not reuse the publication clock as the cutoff`).not.toBe(published);
-    seen.push({ id, cutoff });
+  const configuredOptions = await page.$$eval('#briefWindow option', (nodes) => nodes.map((node) => ({
+    id: node.value,
+    text: (node.textContent || '').trim()
+  })));
+  expect(configuredOptions.map((entry) => entry.id), 'all configured window IDs remain selectable')
+    .toEqual(WINDOW_IDS);
+  expect(new Set(WINDOW_IDS).size, 'configured window IDs must be distinct').toBe(WINDOWS.length);
+  expect(new Set(WINDOWS.map((entry) => entry.etTime)).size, 'configured ET times must be distinct')
+    .toBe(WINDOWS.length);
+  for (const configured of WINDOWS) {
+    const option = configuredOptions.find((entry) => entry.id === configured.id);
+    expect(option, `${configured.id} must be visible in the window selector`).toBeTruthy();
+    expect(option.text, `${configured.id} must show its configured label`).toContain(configured.label);
+    expect(option.text, `${configured.id} must show its configured ET time`).toContain(configured.etTime);
   }
 
-  // The four cutoffs must actually differ; identical cutoffs would mean the window selection was
-  // decorative and the same evidence horizon was used throughout.
-  const distinctCutoffs = new Set(seen.map((entry) => entry.cutoff));
-  expect(distinctCutoffs.size, 'each window must resolve its own cutoff').toBe(WINDOW_IDS.length);
+  await selectWindow(page, BRIEF_SNAPSHOT.window);
+  const times = page.locator('#briefTimes');
+  await expect(times).toHaveAttribute('data-generic-window-state', 'current');
+  await expect(times).toHaveAttribute('data-window', BRIEF_SNAPSHOT.window);
+  const cutoff = await times.getAttribute('data-cutoff');
+  const published = await times.getAttribute('data-published');
+  const composed = await times.getAttribute('data-composed');
+
+  // Three clocks, three distinct values. A page that renders one label for all three is exactly
+  // what makes a past brief unauditable, so identity between any pair fails the row.
+  expect(cutoff, `${BRIEF_SNAPSHOT.window} states an evidence cutoff`).toBeTruthy();
+  expect(published, `${BRIEF_SNAPSHOT.window} preserves the generic publication time`).toBeTruthy();
+  expect(composed, `${BRIEF_SNAPSHOT.window} states a local composition time`).toBeTruthy();
+  expect(new Set([cutoff, published, composed]).size,
+    'cutoff, publication, and local composition must remain three distinct clocks').toBe(3);
+
+  const rankIdentityOf = async () => page.$$eval('#briefLanes li[data-action-id]', (nodes) => nodes.map((node) => ({
+    actionId: node.getAttribute('data-action-id'),
+    globalRank: node.getAttribute('data-global-rank'),
+    rankingFingerprint: node.getAttribute('data-ranking-fingerprint')
+  })));
+  const originalRankIdentity = await rankIdentityOf();
+  expect(originalRankIdentity.length, 'preservation must be proved against a real ranked action set')
+    .toBeGreaterThan(0);
+  expect(originalRankIdentity.every((entry) => /^sha256:[a-f0-9]{64}$/.test(entry.rankingFingerprint || '')),
+    'every visible action must carry the snapshot-backed rank identity').toBe(true);
+
+  const unmatchedWindowIds = WINDOW_IDS.filter((id) => id !== BRIEF_SNAPSHOT.window);
+  expect(unmatchedWindowIds.length, 'the refusal path must cover every non-snapshot schedule window')
+    .toBe(WINDOWS.length - 1);
+  for (const id of unmatchedWindowIds) {
+    await selectWindow(page, id);
+    await expect(times).toHaveAttribute('data-generic-window-state', 'preserved-last-valid');
+    await expect(times).toHaveAttribute('data-window', BRIEF_SNAPSHOT.window);
+    await expect(times).toHaveAttribute('data-cutoff', cutoff);
+    await expect(times).toContainText('No matching validated publication');
+    expect(await rankIdentityOf(), `${id} must retain the snapshot-backed action order and rank identity`)
+      .toEqual(originalRankIdentity);
+  }
+
+  await selectWindow(page, BRIEF_SNAPSHOT.window);
+  await expect(times).toHaveAttribute('data-generic-window-state', 'current');
+  await expect(times).toHaveAttribute('data-window', BRIEF_SNAPSHOT.window);
+  await expect(times).toHaveAttribute('data-cutoff', cutoff);
+  const restoredRankIdentity = await rankIdentityOf();
+  const withoutFingerprint = (rows) => rows.map(({ rankingFingerprint, ...entry }) => entry);
+  expect(withoutFingerprint(restoredRankIdentity),
+    'returning to the snapshot window restores the current publication and action order')
+    .toEqual(withoutFingerprint(originalRankIdentity));
+  expect(restoredRankIdentity.every((entry) => /^sha256:[a-f0-9]{64}$/.test(entry.rankingFingerprint || '')),
+    'the restored current publication must carry a valid recomputed rank identity').toBe(true);
 
   // An observation after the cutoff must be excluded and COUNTED, not silently used. Seeding it on
   // a HELD symbol that also has a usable observation is the sharper case: the subject still
   // qualifies, so an exclusion that were silently skipped would leave no visible trace at all.
-  await seedBars(page, 'MSFT', [LATE_DAY]);
-  await selectWindow(page, 'pre-market');
+  await seedBars(page, 'MSFT', [SNAPSHOT_LATE_DAY]);
+  await selectWindow(page, BRIEF_SNAPSHOT.window);
   const excluded = Number(await page.locator('#briefStates').getAttribute('data-excluded-after-cutoff'));
-  expect(excluded, 'observations later than the pre-market cutoff must be counted as excluded').toBeGreaterThan(0);
+  expect(excluded, 'observations later than the snapshot cutoff must be counted as excluded').toBeGreaterThan(0);
   expect(await laneSubjects(page, 'held'), 'the subject still qualifies through its usable observation').toContain('MSFT');
 
-  console.log(`[TP-05-02] windows=${WINDOW_IDS.join(',')} distinctCutoffs=${distinctCutoffs.size} excludedAfterCutoff=${excluded}`);
+  console.log(`[TP-05-02] windows=${WINDOW_IDS.join(',')} times=${WINDOWS.map((entry) => entry.etTime).join(',')} preserved=${unmatchedWindowIds.length} excludedAfterCutoff=${excluded}`);
 });
 
 test('Regression: SCN-008-007 held watch completed-research and inferred-relevance lanes reject raw history', async ({ page }) => {
@@ -431,19 +476,26 @@ test('Regression: SCN-008-009 TP-06-04 settings parameters and window changes le
   await openBrief(page);
   await importValid(page, 'TP-06-04 settings');
   await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
-  await selectWindow(page, 'after-hours');
+  await selectWindow(page, BRIEF_SNAPSHOT.window);
 
   const identityOf = async () => page.$$eval('#briefLanes li', (nodes) => nodes.map((node) => ({
     subject: node.getAttribute('data-subject'),
     action: node.getAttribute('data-action-id'),
-    source: node.getAttribute('data-scope-source')
+    source: node.getAttribute('data-scope-source'),
+    rankingFingerprint: node.getAttribute('data-ranking-fingerprint')
   })));
 
   const before = await identityOf();
   expect(before.length, 'at least one action must exist for its identity to be compared').toBeGreaterThan(0);
   for (const row of before) {
     expect(row.action, `${row.subject} must carry an action identity`).toMatch(/^sha256:[a-f0-9]{64}$/);
+    expect(row.rankingFingerprint, `${row.subject} must carry a rank fingerprint`)
+      .toMatch(/^sha256:[a-f0-9]{64}$/);
   }
+  const beforeRankingFingerprint = before[0].rankingFingerprint;
+  expect(new Set(before.map((row) => row.rankingFingerprint)),
+    'the visible actions must share one immutable global rank fingerprint')
+    .toEqual(new Set([beforeRankingFingerprint]));
 
   /* Interactions that are NOT evidence: opening a disclosure, toggling it shut, scrolling, and
    * moving the pointer. Each is a display or navigation act. If any of them changed the action
@@ -458,20 +510,33 @@ test('Regression: SCN-008-009 TP-06-04 settings parameters and window changes le
   const afterPassive = await identityOf();
   expect(afterPassive, 'display and pointer activity must not change any action identity').toEqual(before);
 
-  /* Changing the WINDOW must change the identity, because the cutoff changed and the action is
-   * genuinely a different one. Without this arm a build that never recomputed identity at all
-   * would satisfy the invariance assertion above. */
-  await selectWindow(page, 'pre-market');
+  /* A configured window without the snapshot-backed publication must not fabricate a new action.
+   * It preserves the complete publication, including action identity and global rank identity,
+   * while explaining why the requested window is unavailable. */
+  const unavailableWindow = WINDOW_IDS.find((id) => id !== BRIEF_SNAPSHOT.window);
+  expect(unavailableWindow, 'a non-snapshot window must exist for the refusal path').toBeTruthy();
+  await selectWindow(page, unavailableWindow);
+  const times = page.locator('#briefTimes');
+  await expect(times).toHaveAttribute('data-generic-window-state', 'preserved-last-valid');
+  await expect(times).toHaveAttribute('data-window', BRIEF_SNAPSHOT.window);
+  await expect(times).toContainText('No matching validated publication');
   const afterWindow = await identityOf();
-  expect(afterWindow.length).toBe(before.length);
-  expect(afterWindow[0].action, 'a different window is a different action, so the identity must move')
-    .not.toBe(before[0].action);
+  expect(afterWindow, 'an unavailable window must retain prior action identities and rank fingerprint')
+    .toEqual(before);
+  expect(new Set(afterWindow.map((row) => row.rankingFingerprint)))
+    .toEqual(new Set([beforeRankingFingerprint]));
 
-  // Returning to the original window restores the original identity, so it is derived, not random.
-  await selectWindow(page, 'after-hours');
-  expect(await identityOf()).toEqual(before);
+  // Returning to the real publication restores current state without changing the derived identity.
+  await selectWindow(page, BRIEF_SNAPSHOT.window);
+  await expect(times).toHaveAttribute('data-generic-window-state', 'current');
+  const restored = await identityOf();
+  const withoutRankingFingerprint = (rows) => rows.map(({ rankingFingerprint, ...identity }) => identity);
+  expect(withoutRankingFingerprint(restored), 'current recomposition must retain every action identity')
+    .toEqual(withoutRankingFingerprint(before));
+  expect(restored.every((row) => /^sha256:[a-f0-9]{64}$/.test(row.rankingFingerprint || '')),
+    'current recomposition must expose a valid refreshed rank fingerprint').toBe(true);
 
-  console.log('[TP-06-04] identityStableUnderPassive=true identityMovesWithWindow=true actions=' + before.length);
+  console.log('[TP-06-04] identityStableUnderPassive=true identityPreservedForUnavailableWindow=true actions=' + before.length);
 });
 
 test('Regression: SCN-008-034 TP-06-09 a lifecycle outcome is recorded without becoming a market view', async ({ page }) => {
@@ -591,4 +656,139 @@ test('Regression: Feature 008 why shown lifecycle and return focus remain access
   const focusAfter = await page.evaluate(() => document.activeElement?.tagName);
   expect(['BUTTON', 'BODY']).toContain(focusAfter);
   console.log('[TP-06-06] keyboard reaches summary and lifecycle control at 390px; focusAfterAction=' + focusAfter);
+});
+
+test('Regression: SCN-008-044 behavior identity decay floor and ranking remain canonical across every projection', async ({ page }) => {
+  await openBrief(page);
+  const firstDay = shiftDay(BRIEF_CONFIG.asOf, -2);
+  const secondDay = shiftDay(BRIEF_CONFIG.asOf, -1);
+  const cutoffDay = shiftDay(BRIEF_CONFIG.asOf, 0);
+  const futureDay = shiftDay(BRIEF_CONFIG.asOf, 1);
+
+  await page.clock.setSystemTime(new Date(`${firstDay}T14:00:00.000Z`));
+  await importValid(page, 'TP-18-03 canonical rank');
+  await seedBars(page, 'scope18-alpha', [EVIDENCE_DAY]);
+  await seedBars(page, 'scope18-beta', [EVIDENCE_DAY]);
+  await seedBars(page, 'scope18-future', [EVIDENCE_DAY]);
+  await selectWindow(page, 'after-hours');
+  await recordCompletion(page, { category: 'ticker-research-completed', subject: 'scope18-alpha' });
+
+  await page.clock.setSystemTime(new Date(`${secondDay}T14:00:00.000Z`));
+  await recordCompletion(page, { category: 'risk-analysis-completed', subject: 'scope18-beta' });
+
+  await page.clock.setSystemTime(new Date(`${futureDay}T14:00:00.000Z`));
+  await recordCompletion(page, { category: 'path-analysis-completed', subject: 'scope18-future' });
+
+  await page.clock.setSystemTime(new Date(`${cutoffDay}T14:00:00.000Z`));
+  await rerender(page);
+
+  const persisted = await page.evaluate(() => {
+    const pointer = JSON.parse(localStorage.getItem('rlPortfolioWorkspaceV1.pointer'));
+    return JSON.parse(localStorage.getItem(`rlPortfolioWorkspaceV1.${pointer.activeSlot}`));
+  });
+  expect(persisted.behaviorEvents, 'all three real UI completions reach the canonical local store').toHaveLength(3);
+  expect(persisted.behaviorEvents.every((entry) => entry.eventIdentity.startsWith('sha256:'))).toBe(true);
+  expect(persisted.behaviorEvents.every((entry) => entry.genericEvidenceIdentity.startsWith('sha256:'))).toBe(true);
+  expect(persisted.behaviorEvents.every((entry) => entry.occurrence.contractVersion === 'BehaviorOccurrence/v1')).toBe(true);
+
+  const diagnostics = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+  expect(diagnostics.eligibleBehaviorOccurrenceIds).toHaveLength(2);
+  expect(diagnostics.quarantinedBehaviorOccurrenceIds).toHaveLength(1);
+  await expect(page.locator('#briefStates')).toHaveAttribute('data-distinct-completion-identities', '2');
+  await expect(page.locator('#briefStates')).toHaveAttribute('data-distinct-new-york-dates', '2');
+  await expect(page.locator('#briefStates')).toHaveAttribute('data-quarantined-occurrences', '1');
+  expect(await laneSubjects(page, 'completedResearch')).not.toContain('scope18-future');
+
+  const projection = async () => page.$$eval('#briefLanes li[data-action-id]', (nodes) => nodes.map((node) => ({
+    actionId: node.getAttribute('data-action-id'),
+    globalRank: Number(node.getAttribute('data-global-rank')),
+    rankingFingerprint: node.getAttribute('data-ranking-fingerprint'),
+    whyActionId: node.querySelector('details.brief-why')?.getAttribute('data-action-id'),
+    whyFingerprint: node.querySelector('details.brief-why')?.getAttribute('data-ranking-fingerprint'),
+    rankReason: node.querySelector('dd[data-why="rank-reason"]')?.textContent?.trim()
+  })));
+  const before = await projection();
+  expect(before.length, 'the canonical rank must project at least one visible real-page action').toBeGreaterThan(0);
+  expect(before.map((entry) => entry.actionId)).toEqual(diagnostics.rankedActionIds);
+  expect(before.map((entry) => entry.globalRank)).toEqual(before.map((_, index) => index + 1));
+  expect(new Set(before.map((entry) => entry.rankingFingerprint))).toEqual(new Set([diagnostics.behaviorRankingFingerprint]));
+  expect(before.every((entry) => entry.whyActionId === entry.actionId)).toBe(true);
+  expect(before.every((entry) => entry.whyFingerprint === diagnostics.behaviorRankingFingerprint)).toBe(true);
+  expect(before.every((entry) => entry.rankReason.length > 0)).toBe(true);
+
+  await page.locator('#modePower').click();
+  expect(await projection(), 'Power consumes the same immutable rank object without re-sorting').toEqual(before);
+  await page.locator('#modeSimple').click();
+  expect(await projection(), 'Simple consumes the same immutable rank object without re-sorting').toEqual(before);
+
+  await page.reload();
+  await expect(page.locator('#portfolioBrief')).toBeVisible();
+  await expect.poll(async () => page.locator('#briefWindow option').count()).toBe(WINDOWS.length);
+  await page.clock.setSystemTime(new Date(`${cutoffDay}T14:00:00.000Z`));
+  await selectWindow(page, 'after-hours');
+  const afterReload = await projection();
+  const withoutFingerprint = (rows) => rows.map(({ rankingFingerprint, whyFingerprint, ...entry }) => entry);
+  expect(withoutFingerprint(afterReload),
+    'reload recomputes the same action identities order and reasons from local storage').toEqual(withoutFingerprint(before));
+  const afterReloadDiagnostics = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+  expect(afterReloadDiagnostics.rankedActionIds).toEqual(before.map((entry) => entry.actionId));
+  expect(new Set(afterReload.map((entry) => entry.rankingFingerprint)))
+    .toEqual(new Set([afterReloadDiagnostics.behaviorRankingFingerprint]));
+  expect(afterReload.every((entry) => entry.whyFingerprint === afterReloadDiagnostics.behaviorRankingFingerprint)).toBe(true);
+
+  console.log(`[TP-18-03] storedOccurrences=${persisted.behaviorEvents.length} eligible=2 quarantined=1`);
+  console.log(`[TP-18-03] rankingFingerprint=${diagnostics.behaviorRankingFingerprint} visible=${before.length}`);
+  console.log(`[TP-18-03] actionOrder=${before.map((entry) => entry.actionId).join(',')}`);
+});
+
+test('Regression: SCN-008-046 generic evidence DST policy complete API and global queue remain coherent', async ({ page }) => {
+  await openBrief(page);
+  await expect.poll(async () => page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__?.genericEvidenceState || null), {
+    message: 'the route must validate one atomic five-source generic evidence window before composing'
+  }).toBe('current');
+
+  const publicPaths = [
+    '/market-brief.config.json',
+    '/market-brief.snapshot.json',
+    '/market-brief.payload.json',
+    '/brief-history.recent.jsonl',
+    '/watchlist.json',
+    '/market-brief.owner-reads.json'
+  ];
+  const requested = new Set(server.requests.map((entry) => entry.pathname));
+  for (const pathname of publicPaths) {
+    expect(requested.has(pathname), `${pathname} participates in the atomic public evidence load`).toBe(true);
+  }
+  expect(server.requests.some((entry) => /portfolio|holding|costBasis|quantity/i.test(entry.search)),
+    'no personal value enters a public artifact request').toBe(false);
+
+  await importValid(page, 'TP-20-03 generic evidence');
+  await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
+  await selectWindow(page, BRIEF_SNAPSHOT.window);
+
+  const accepted = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+  expect(accepted.genericEvidenceIdentity).toMatch(/^sha256:[a-f0-9]{64}$/);
+  expect(accepted.genericPublisherIdentity).toMatch(/^sha256:[a-f0-9]{64}$/);
+  expect(accepted.genericEvidenceWindow).toBe(BRIEF_SNAPSHOT.window);
+  expect(accepted.genericEvidenceSourceCount).toBe(5);
+  expect(accepted.visibleActionCap).toBeGreaterThan(0);
+  expect(accepted.rankedActionIds.length).toBeLessThanOrEqual(accepted.visibleActionCap);
+  await expect(page.locator('#briefIdentity')).toHaveAttribute('data-generic-window-identity', accepted.genericEvidenceIdentity);
+  const whyIdentities = await page.$$eval('#briefLanes details.brief-why', (nodes) =>
+    nodes.map((node) => node.getAttribute('data-generic-evidence-identity')));
+  expect(whyIdentities.length, 'at least one real-page action exposes Why shown').toBeGreaterThan(0);
+  expect(new Set(whyIdentities)).toEqual(new Set([accepted.genericEvidenceIdentity]));
+
+  const differentWindow = WINDOW_IDS.find((id) => id !== BRIEF_SNAPSHOT.window);
+  expect(differentWindow, 'the public schedule contains another window for the refusal path').toBeTruthy();
+  await selectWindow(page, differentWindow);
+  await expect(page.locator('#briefTimes')).toHaveAttribute('data-generic-window-state', 'preserved-last-valid');
+  const preserved = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+  expect(preserved.genericEvidenceIdentity).toBe(accepted.genericEvidenceIdentity);
+  expect(preserved.rankedActionIds).toEqual(accepted.rankedActionIds);
+  await expect(page.locator('#briefTimes')).toContainText('No matching validated publication');
+
+  console.log(`[TP-20-03] window=${accepted.genericEvidenceWindow} sources=${accepted.genericEvidenceSourceCount}`);
+  console.log(`[TP-20-03] genericEvidenceIdentity=${accepted.genericEvidenceIdentity} visibleCap=${accepted.visibleActionCap}`);
+  console.log(`[TP-20-03] preservedWindow=${differentWindow} ranked=${preserved.rankedActionIds.length}`);
 });

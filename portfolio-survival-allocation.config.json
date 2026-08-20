@@ -11,6 +11,7 @@
             "rlPortfolioWorkspaceV1.slotB"
         ],
         "quarantineKey": "rlPortfolioWorkspaceV1.quarantine",
+        "displayModeKey": "rlPortfolioWorkspaceV1.displayMode",
         "sessionKey": "rlPortfolioWorkspaceSessionV1",
         "returnContextKey": "rlReturnContextV1",
         "migrationVersions": [],

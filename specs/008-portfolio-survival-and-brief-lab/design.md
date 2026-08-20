@@ -999,6 +999,639 @@ Local diagnostics are user-visible and value-safe:
 - Power mode exposes compute duration, aligned observations, path/variant counts, solver iterations/residuals, and stale/partial reasons locally.
 - The E2E request ledger is test-only and remains under Playwright output; it proves no sentinel reaches URL, body, or referrer.
 
+## Remediation Design Reconciliation - Current Authority
+
+This section is the current design authority for SCN-008-037 through SCN-008-055 and Scopes 17 through 29. It answers Design Owner Packet D1. Earlier design contracts remain active unless the closed supersession register below names them.
+
+The remediation keeps the product local, static, educational, non-executing, and non-advisory. It adds no account, broker, order, remote portfolio, personalized publisher, or duplicated route-level model.
+
+### D1 Closure Summary
+
+| D1 question | Closed decision | Owning contract |
+| --- | --- | --- |
+| 1. Personal categories and clear transaction | One runtime-derived registry controls tombstone, deletion, independent reread, controller reset, and residue reporting. | `PersonalCategoryRegistry/v1`, `ClearTombstone/v1`, `FullClearResult/v1` |
+| 2. Behavior identity and ordering | One semantic event identity and one immutable rank result feed storage, Brief, Why shown, and route order. | `BehaviorEventIdentity/v1`, `BehaviorRankResult/v1` |
+| 3. Generic evidence and public failures | One exact generic projection validates all public artifacts. Every public Brief function returns a closed `PortfolioResult/v1`. | `GenericEvidenceWindow/v1`, `PortfolioError/v1`, `RLPORTFOLIO_BRIEF` |
+| 4. Daily bar coverage | Coverage acquisition appends cache, static, then consented public rows. Completion depends on eligible dates and source qualification. | `BarCoverageTarget/v1`, `BarCoverageResult/v1` |
+| 5. Partial risk inputs | Every holding receives a per-metric eligibility record. One unsupported family cannot erase independent results. | `AssetMetricEligibility/v1`, `RiskDiagnosticSet/v1` |
+| 6. Scenario and compute lifecycle | One complete scenario identity controls chunks, cancellation, publication, flows, paths, and uncertainty distributions. | `ScenarioSpecification/v1`, `ComputeToken/v1`, `ScenarioDistributionSet/v1` |
+| 7. Dependence and hedge evidence | Normal, stress, tail, appraisal, and hedge results retain separate samples and intervals on one scenario basis. | `DependenceEvidenceSet/v1`, `HedgeComparison/v1` |
+| 8. Six allocation methods | Six method interfaces consume one immutable basis and return one candidate schema with complete diagnostics. | `AllocationBasis/v1`, `AllocationCandidate/v1` |
+| 9. Dossier audit | A hash-linked append-only record stream preserves decision-time evidence, trials, corrections, reload, and private export. | `ResearchDossier/v1`, `DossierRecord/v1` |
+| 10. Workspace and return protocol | One token-controlled compute publishes one frozen view model. A strict session handoff proves owner navigation and restores focus. | `PortfolioWorkspaceViewModel/v1`, `ReturnContext/v1` |
+
+### Closed Supersession Register
+
+Only these earlier clauses are superseded. They remain historical evidence of the first design baseline.
+
+| Earlier active clause | Current authority | Compatibility disposition |
+| --- | --- | --- |
+| Fixed `FOUNDATION_LOCAL_KEYS`, `FOUNDATION_SESSION_KEYS`, and a hand-written storage table define clear coverage. | Runtime discovery plus `PersonalCategoryRegistry/v1` defines every persistent and live category. | Fixed arrays remain readable only as a migration input. They cannot authorize clear success. |
+| The behavior floor counts distinct UTC dates, and decay accepts a caller-supplied fixed offset. | The floor counts distinct `America/New_York` civil dates. Age uses exact elapsed time and rejects future events. | Stored UTC instants remain valid. Derived date, age, floor, and rank values are recomputed. |
+| Queue policy applies separate direct and general-interest caps. | One global visible cap applies after one canonical ranking. Urgent direct work wins through rank tuple fields. | Policy v1 migrates `directActionCap + generalInterestActionCap` to one explicit v2 cap. |
+| `RLPORTFOLIOBRIEF.composeBrief` is sufficient for the public Brief boundary. | `RLPORTFOLIO_BRIEF` exposes all eight designed functions and closed failures. | `RLPORTFOLIOBRIEF` may remain a read-only alias during the v2 policy transition. It must expose the identical frozen object. |
+| `ensureBarCoverage` measures current cache and leaves acquisition to callers. | `ensureBarCoverage` owns cache measurement, same-origin append, consented public append, and final measurement. | `ensureBars` remains unchanged. Route code cannot implement a second acquisition sequence. |
+| The reduced runtime `ScenarioSpecification/v1` shape contains ten scalar fields. | The complete schema below is the only conforming `ScenarioSpecification/v1`. | Reduced persisted records are preserved as invalid legacy records. Missing authority fields are never invented. |
+| Regime and fat-tail results may be represented only by a blanket unavailable label. | Availability requires a structured calibration state and reason. A calibrated model must use the complete scenario identity. | Stationary bootstrap remains the required available dependent method. |
+| Route-local fields can stand in for one workspace compute and an owner-return proof. | `computeWorkspace` and `ReturnContext/v1` are structural requirements with owning-page consumption. | Same-page simulations and presentation-only identity strings do not satisfy the contract. |
+
+### Remediation Capability Foundation
+
+The shared foundations precede every remediation overlay. Each foundation has multiple real consumers.
+
+| Foundation | Owns | Real consumers |
+| --- | --- | --- |
+| Local lifecycle foundation | Holding revisions, personal registry, clear transaction, safe persistence | Setup editor, privacy sheet, all six tabs, dossier export |
+| Behavior and ranking foundation | Event identity, time policy, floor, decay, action rank | Private store, Brief composer, Why shown, dossier, route rows |
+| Coverage-aware market-data foundation | Public-only acquisition, append, de-duplication, date qualification | Risk, paths, dependence, hedge, allocation, existing RLDATA callers |
+| Analytics evidence foundation | Per-metric eligibility, qualified matrices, scenario identity, common paths | Risk X-Ray, Path Lab, Diversification, Allocation, dossier |
+| Compute and navigation foundation | Token lifecycle, immutable view model, rebase, ReturnContext | Simple, Power, six tabs, owner tools, shared navigation strip |
+
+The overlays consume these contracts in this order: Brief, Risk X-Ray, Path Lab, Diversification, Allocation, Dossier, accessibility, tests, and published guidance. No overlay may copy a foundation formula or source-selection rule.
+
+#### Remediation Variation Axes
+
+| Axis | Closed variants | Foundation rule |
+| --- | --- | --- |
+| Persistence location | durable, session, memory, controller | Every personal variant participates in one registry and clear result. |
+| Evidence authority | generic publisher, public owner read, local explicit input, local behavior inference, model estimate | Authority never upgrades during composition. |
+| Metric eligibility | eligible, partial, unavailable, excluded | State is per holding and metric family. |
+| Path model | stationary bootstrap, IID comparison, calibrated regime-fat-tail, unavailable | Every model uses one complete scenario identity. |
+| Allocation method | current, equal weight, minimum variance, equal risk contribution, Black-Litterman, constrained MVO | Every method uses one basis and candidate schema. |
+| UI projection | Simple, Power, chart, table, desktop, zoomed, narrow mobile, forced colors | Every projection renders one immutable result. |
+
+### D1-Q1 Local Lifecycle And Verified Clear Contract
+
+#### Holding Lifecycle
+
+`PortfolioDraft/v1` is an immutable editor value. It contains `draftId`, `basePortfolioId`, `valuationCurrency`, ordered `rows`, `validation`, and `createdAt`. Draft operations never write storage.
+
+| Public operation | Input | Output and invariant |
+| --- | --- | --- |
+| `addHoldingRow(draft, row, policy)` | Closed listed, cash, or manual row | New draft with one new stable `holdingId` and full validation. |
+| `editHoldingRow(draft, holdingId, patch, policy)` | Existing row and closed editable fields | New draft. Unmentioned fields and row order remain unchanged. |
+| `removeHoldingRow(draft, holdingId, policy)` | Existing row identity | New draft. Removing the final row is valid. |
+| `confirmPortfolioDraft(store, draft, expectedGeneration, now)` | Fully valid draft | One pointer-swapped immutable replacement revision. No partial row commit. |
+| `buildEmptyPortfolioRevision(draft, now)` | Valid zero-row draft | A real empty revision whose `currentPortfolioId` is non-null. |
+
+An empty revision means `Portfolio empty`. It is not no portfolio and never implies cash. `WorkspaceIdentity/v1.supersedesIdentity` links the prior active identity. Every prior result remains addressable by its old identity and records `supersededByIdentity` when projected into the active view.
+
+Listed, cash, and manual rows retain their existing closed validation rules. An invalid edit returns `P008-HOLDING-EDIT` and preserves the active revision. Export accepts an empty revision and labels it empty.
+
+#### Personal Category Registry
+
+`PersonalCategoryRegistry/v1` is the only full-clear authority. The registry fingerprint covers every descriptor and every discovered personal location.
+
+```text
+PersonalCategoryRegistry/v1 {
+  contractVersion,
+  registryFingerprint,
+  ownedStoragePrefixes,
+  storageCategories[],
+  workspaceCategories[],
+  controllerCategories[],
+  discoveredUndeclared[],
+  publicExclusions[]
+}
+
+PersonalCategoryDescriptor/v1 {
+  categoryId,
+  location: local-storage | session-storage | workspace-section | controller-state,
+  sourcePath,
+  clearMode: behavior | all-personal,
+  emptyRule: absent | empty-array | null | empty-object | false,
+  sensitive: true
+}
+```
+
+The registry derives storage entries from policy descriptors plus enumeration of reserved prefixes. The reserved set is `rlPortfolio*` plus exact key `rlReturnContextV1`. A discovered reserved key without a descriptor becomes `discoveredUndeclared` and must be removed and reported by safe hash.
+
+Workspace entries derive from every personal field returned by `createEmptyWorkspace`. Array fields must reread as empty arrays. Nullable identity fields must reread as null. The closed set includes portfolio revisions, mandates, cash needs, behavior events, interest signals, action outcomes, scenarios, allocations, dossiers, quarantine metadata, and supersession records.
+
+The route keeps every live personal value inside one enumerable `controllerPersonalState`. Its closed categories are editor drafts, mandate and cash-need drafts, scenario inputs, hedge variants, Black-Litterman views, active and draft identities, active and last-valid view models, compute state, display state, disclosure state, and focus restoration state. An extra enumerable key is undeclared residue.
+
+Public generic brief assets, `rlData`, public bar caches, provider capability settings, `watchlist.json`, and `tools.json` are explicit public exclusions. Full clear fingerprints them before and after the operation. Their bytes must match.
+
+#### One Clear Transaction
+
+`clearAllPersonalData(request)` accepts `store`, `storageAdapters`, `controller`, `publicAssetReader`, exact confirmation, expected generation, and canonical time.
+
+1. Validate the phrase `CLEAR ALL LOCAL DATA` and all adapters.
+2. Derive and freeze `PersonalCategoryRegistry/v1` from current runtime state.
+3. Inspect every category and record safe pre-clear counts and hashes.
+4. Build `ClearTombstone/v1` with an empty validated workspace and registry fingerprint.
+5. Commit the tombstone by the normal inactive-slot and pointer transaction.
+6. Delete every discovered personal key except the active tombstone and pointer.
+7. Replace the whole controller personal-state object with its closed empty sentinel.
+8. Reread every storage adapter and inspect every controller category independently.
+9. Remove the tombstone and pointer only after all other personal categories verify empty.
+10. Reread again and compare public fingerprints.
+
+`FullClearResult/v1` contains `operationId`, `status`, `registryFingerprint`, `tombstoneCommitted`, ordered `categoryResults`, safe residue hashes, public before/after fingerprints, and `verifiedAt`. Status is `cleared` or `partial`. No category result contains a stored value.
+
+Any delete, reread, controller reset, or public-fingerprint failure returns `P008-CLEAR-PARTIAL`. The tombstone stays authoritative after a partial deletion. A confirmation mismatch returns `P008-CLEAR-CONFIRMATION`. An undeclared category returns `P008-CLEAR-UNDECLARED`. Success cannot derive from intended deletion calls.
+
+SCN-008-037 through SCN-008-041 populate their named workspace categories before invoking the same transaction. SCN-008-043 additionally populates every storage and controller category.
+
+### D1-Q2 Behavior Identity, Civil Time, And Global Ranking
+
+`BehaviorEventIdentity/v1` is a SHA-256 over category, subject kind, subject ID, domain, horizon, source surface, completed result identity, generic evidence identity, completion-condition ID, and policy version. Occurrence time is excluded from semantic de-duplication but retained for each occurrence. Only equal semantic identities collapse.
+
+`BehaviorOccurrence/v1` stores `eventIdentity`, `occurredAt`, `newYorkCivilDate`, and `occurrenceId`. The civil date is derived through `Intl.DateTimeFormat` with timezone `America/New_York`. No caller supplies an offset.
+
+Age uses exact elapsed milliseconds between the ranking cutoff and `occurredAt`. A negative age returns `P008-BEHAVIOR-TIME` and quarantines the occurrence. Distinct-date eligibility counts unique New York civil dates. The floor also requires distinct completion identities. Duplicate rows, repeated windows, and repeated writes cannot satisfy either floor.
+
+`BehaviorRankResult/v1` contains:
+
+```text
+{
+  contractVersion,
+  policyFingerprint,
+  genericWindowIdentity,
+  behaviorCutoffAt,
+  eligibleOccurrences[],
+  quarantinedOccurrences[],
+  interestSignals[],
+  rankedActions[],
+  suppressedActions[],
+  visibleActionCap,
+  rankingFingerprint
+}
+```
+
+Ranking uses one lexicographic tuple: integrity, direct authority, dated urgency, explicit exposure, trigger state, evidence state, relevance score, subject, action ID. Direct authority orders held and dated-need work before watchlist, completed-research, and inferred work. Relevance may break ties only inside equal authority.
+
+The visible cap applies once after the global sort. Suppressed actions retain IDs, tuple reasons, and `below-global-cap`. Simple, Power, Brief lanes, Why shown, storage projection, and dossier consume this exact result. No consumer sorts again.
+
+Stale generic evidence may author only `Refresh` or `Revisit`. Those actions must include a stale condition and exact evidence age. `Review`, `Inspect`, `Run`, `Compare`, and `Open` require current or qualified partial evidence under their own rule.
+
+Publisher evidence identity is the generic artifact-set fingerprint, not publication count or window timestamp. Repeated publications over the same snapshot, payload, history evidence, and owner reads do not add support.
+
+### D1-Q3 Generic Evidence And Complete Brief API
+
+#### `GenericEvidenceWindow/v1`
+
+Every field below is mandatory. An unavailable component uses its full ref shape with `state: unavailable`, null identity fields, and one closed reason.
+
+```text
+GenericEvidenceWindow/v1 {
+  contractVersion,
+  windowId: pre-market | morning | pre-close | after-hours,
+  timezone: America/New_York,
+  windowTradingDate,
+  scheduledCivilTime,
+  cutoffAt,
+  snapshotRef,
+  payloadRef,
+  historyRefs[],
+  watchlistRef,
+  ownerReadRefs[],
+  publisherIdentity,
+  genericEvidenceIdentity,
+  retrievedAt,
+  composedAt,
+  state: current | partial | stale | unavailable | disputed,
+  reasons[]
+}
+```
+
+`snapshotRef` requires `state`, `contentSha256`, `window`, `asOf`, `generatedAt`, `nextSessionDate`, and `dataFreshnessSha256`. `payloadRef` requires `state`, `contentSha256`, `asOf`, ordered attention IDs, recommendation IDs, deep-link IDs, and lifecycle IDs.
+
+Each `historyRef` requires line identity, window, observed time, evidence fingerprint, source token, and content hash. Repeated rows with equal evidence fingerprints count once. The history array remains mandatory when empty.
+
+`watchlistRef` requires state, content hash, and ordered public ticker fingerprint. It never receives local holdings.
+
+Each normalized `ownerReadRef` requires source contract, tool ID, role, profile, availability, adapter ID, model version, deep link, evidence cutoff, evidence fingerprints, interpretation fingerprints, action-eligibility effect, and content hash. A compact `rl-tool-read/v1` can supply context only. A qualified `tool-model-read/v1` can support an action only when its owner interpretation permits it and its cutoff does not exceed the window cutoff.
+
+`publisherIdentity` hashes only snapshot, payload, and selected history evidence identities. `genericEvidenceIdentity` binds that publisher identity, watchlist, qualified owner reads, window, trading date, cutoff, and state. Local holdings and behavior are structurally absent from both hashes.
+
+Current state requires matching snapshot and payload windows, at least one selected history identity, and every action-supporting owner read. A missing component produces partial or unavailable. Conflicting cutoffs produce disputed. DST resolution uses New York civil time and rejects an impossible or ambiguous policy time with `P008-BRIEF-TIME`.
+
+#### Complete `RLPORTFOLIO_BRIEF` Boundary
+
+The browser global and CommonJS export are both named `RLPORTFOLIO_BRIEF`. The export object is frozen. Every function returns `PortfolioResult/v1` and never throws a value-bearing error.
+
+| Function | Exact responsibility | Declared failures |
+| --- | --- | --- |
+| `validateGenericWindow(input, policy, clock)` | Validate and fingerprint every generic component. | `P008-BRIEF-INPUT`, `P008-BRIEF-TIME`, `P008-BRIEF-EVIDENCE`, `P008-IDENTITY` |
+| `dedupeBehaviorEvents(events, cutoffAt, policy)` | Validate event identities, occurrences, age, and exact duplicates. | `P008-BEHAVIOR-IDENTITY`, `P008-BEHAVIOR-TIME`, `P008-SCHEMA-CORRUPT` |
+| `deriveInterestSignals(events, cutoffAt, policy)` | Apply distinct completion/date floors and decay. | `P008-BEHAVIOR-FLOOR`, `P008-BEHAVIOR-TIME`, `P008-CONFIG` |
+| `buildActionCandidates(input, policy)` | Build closed direct and inferred research candidates. | `P008-ACTION-SHAPE`, `P008-BRIEF-EVIDENCE`, `P008-IDENTITY` |
+| `rankResearchActions(candidates, policy)` | Produce the one immutable global rank and cap result. | `P008-ACTION-RANK`, `P008-CONFIG`, `P008-IDENTITY` |
+| `composePortfolioBrief(input, policy)` | Bind generic window, local scope, rank result, lifecycle, and last-valid identity. | `P008-BRIEF-COMPOSE`, `P008-BRIEF-EVIDENCE`, `P008-ACTION-SHAPE` |
+| `whyShown(actionId, rankResult, genericWindow)` | Return complete safe rank, source, freshness, and lifecycle evidence. | `P008-ACTION-WHY`, `P008-IDENTITY` |
+| `reduceResearchActionLifecycle(actions, command, now)` | Apply one closed completion, dismissal, restore, or invalidation transition. | `P008-ACTION-LIFECYCLE`, `P008-BEHAVIOR-TIME`, `P008-IDENTITY` |
+
+All boundaries may also return `P008-INTERNAL` with `valueEchoed:false`. `PortfolioError/v1` retains exact fields `contractVersion`, `code`, `reason`, `field`, `row`, `valueEchoed`, and `recoverable`. Unknown codes fail `validatePortfolioError`.
+
+The new closed registry adds `P008-HOLDING-EDIT`, `P008-CLEAR-CONFIRMATION`, `P008-CLEAR-UNDECLARED`, `P008-CLEAR-PARTIAL`, `P008-BEHAVIOR-IDENTITY`, `P008-BEHAVIOR-TIME`, `P008-BEHAVIOR-FLOOR`, `P008-BRIEF-INPUT`, `P008-BRIEF-TIME`, `P008-BRIEF-EVIDENCE`, `P008-BRIEF-COMPOSE`, `P008-ACTION-SHAPE`, `P008-ACTION-RANK`, `P008-ACTION-WHY`, `P008-ACTION-LIFECYCLE`, `P008-COMPUTE-BUDGET`, `P008-COMPUTE-CANCELLED`, `P008-COMPUTE-SUPERSEDED`, `P008-DOSSIER`, `P008-RETURN-CONTEXT`, and `P008-INTERNAL`.
+
+An invalid new composition preserves `lastValidBrief` and reports its old identity beside the error. It never renders a candidate from partially validated input.
+
+### D1-Q4 `ensureBarCoverage` Target And Acquisition Contract
+
+The additive signature is `ensureBarCoverage(symbol, interval, target, sourcePolicy) -> Promise<BarCoverageResult/v1>`.
+
+```text
+BarCoverageTarget/v1 {
+  contractVersion,
+  requestedStartDate,
+  requestedEndDate,
+  targetCalendarYears,
+  maximumAgeHours,
+  requiredCurrency,
+  requiredTransform,
+  requiredCorporateActionState
+}
+
+BarCoverageSourcePolicy/v1 {
+  contractVersion,
+  mode: same-origin-only | allow-public-symbol-lookup,
+  conflictPolicy: reject-date,
+  publicProviderId
+}
+```
+
+The caller resolves explicit start and end dates from the frozen evidence cutoff. `targetCalendarYears` must agree with those dates under calendar subtraction. A leap-day start clamps to the last valid day of that month. A mismatch returns `P008-DATA-COVERAGE`.
+
+Acquisition order is fixed:
+
+1. Read the existing merged cache without mutation.
+2. Read the same-origin static snapshot and append only absent dates.
+3. Normalize to daily UTC observation dates and stable sort ascending.
+4. Collapse only byte-equivalent rows on the same date and union source IDs.
+5. Mark conflicting same-date rows disputed and exclude that date from eligible coverage.
+6. Measure actual eligible first and last dates.
+7. If short and policy allows, issue one existing-provider request with public symbol, interval, start, end, and history event fields only.
+8. Append only absent public dates, repeat de-duplication, then measure again.
+
+`complete` requires eligible dates at both requested bounds, current-enough retrieval, declared currency, declared transform, and qualified corporate-action state. Row count and requested range labels never satisfy coverage. Partial returns preserve all eligible rows, exact bounds, missing bounds, disputed dates, source IDs, and request state.
+
+Same-origin-only mode never calls a provider. Public lookup receives no portfolio ID, quantity, value, cost, mandate, behavior, action, path, or dossier field. The route passes one public symbol at a time.
+
+Compatibility canaries pin `ensureBars` name, arguments, Promise behavior, cache shape, static-first behavior, provider capability handling, and existing credential UI. `scripts/selftest.mjs`, `tests/provider-credentials.spec.mjs`, and named existing RLDATA consumers must remain green before broad Feature 008 tests.
+
+### D1-Q5 Partial-Portfolio Risk Eligibility And Diagnostics
+
+`AssetMetricEligibility/v1` is emitted for every holding and every metric family. It contains holding identity, input class, metric family, state, frequency, evidence identities, included weight, excluded weight, and closed reasons.
+
+| Input class | Descriptive and concentration | Return, CAGR, drawdown | Daily covariance and asset risk | CAPM and factor model | Paths and allocation |
+| --- | --- | --- | --- | --- | --- |
+| Listed with explicit weight only | Eligible at current weight | Eligible with qualified return series | Eligible with exact common dates | Eligible with benchmark/factor evidence | Eligible for return-based paths and solvers. Absolute cash outcomes require explicit starting value. |
+| Listed with quantity or local value | Eligible after qualified valuation | Eligible with qualified return series | Eligible with exact common dates | Eligible with benchmark/factor evidence | Eligible when valuation currency and scenario inputs qualify. |
+| Cash | Eligible as a separate cash lens | Eligible only with explicit zero-nominal, public proxy, or manual rate treatment | Eligible only when the treatment supplies aligned returns | Unavailable unless an explicit factor treatment exists | Eligible only under the explicit treatment and cash-reserve constraints. |
+| Manual alternative with dated series | Eligible with valuation age, method, liquidity, and cost | Eligible at actual frequency | Unavailable in a daily matrix. Eligible only in a separately labeled compatible-frequency matrix. | Unavailable unless an explicit compatible proxy definition exists | Eligible through explicit scenario ranges. It never inherits listed-asset history. |
+| Manual alternative without series | Eligible descriptive state | Unavailable | Unavailable | Unavailable | Eligible only through explicit user-authored scenario ranges. |
+| Unresolved or unsupported | Visible with reason | Unavailable | Unavailable | Unavailable | Excluded from dependent computation. The portfolio remains partial. |
+
+Every metric result contains `eligibility[]`, included IDs, excluded IDs, covered weight, uncovered weight, frequency, date bounds, cutoff, and state. A portfolio-level state is partial when any independent metric remains valid.
+
+`RiskDiagnosticSet/v1` contains exact elapsed-day CAGR, arithmetic and geometric returns, drawdown/recovery, concentration lenses, CAPM, proxy factors, raw covariance, optional conditioned covariance, asset contributions, factor contributions, and reconciliation.
+
+Factor diagnostics include definition version, source symbols, coefficients, factor covariance, factor variance contributions, residual variance, fit, rank, and condition state. Asset and factor contributions reconcile inside their own models. They are never summed together.
+
+Raw covariance records observation count, date bounds, minimum eigenvalue, Cholesky state, rank, and condition estimate. Conditioned covariance records method, explicit lambda, resulting diagnostics, and parent raw fingerprint. The engine never raises lambda automatically.
+
+### D1-Q6 Complete Scenario, Compute, Flow, And Distribution Contract
+
+The complete `ScenarioSpecification/v1` has these mandatory members:
+
+```text
+{
+  contractVersion,
+  workspaceIdentity,
+  portfolioRevisionId,
+  mandateRevisionId,
+  allocationCandidateId,
+  evidenceSet: { returnFingerprint, sourceIds, cutoffAt, firstDate, lastDate, frequency, currency, eligibleDateFingerprint },
+  method: { family, blockPolicy, regimePolicy, fatTailPolicy, calibrationIdentity, availability },
+  seed,
+  horizon: { startDate, endDate, stepFrequency, stepCount },
+  pathCount,
+  chunkSize,
+  parameterPolicy: { drawCount, ranges, distributions, gridIdentity },
+  rebalancePolicy,
+  costPolicy,
+  contributions[],
+  withdrawals[],
+  cashNeeds[],
+  survivalDefinition,
+  constraintsFingerprint,
+  uncertaintyPolicy,
+  policyFingerprint
+}
+```
+
+Every nested object uses exact-key validation. Any field change changes `scenarioIdentity`. Missing mandate, survival, cost, or calibration authority stays explicit and cannot gain a default.
+
+Method family is `stationary-bootstrap`, `iid-comparison`, or `regime-fat-tail`. Stationary bootstrap is the required available dependent method. IID remains a labeled comparison. Regime-fat-tail requires state definitions, transition matrix, innovation family, tail parameters, fitting sample, calibration cutoff, uncertainty, fit diagnostics, and minimum sample policy. Otherwise its availability is `unavailable` with a closed reason.
+
+`ComputeToken/v1` contains token ID, ordinal, workspace identity, scenario identity, issued time, and state. Token states are `issued`, `running`, `cancel-requested`, `cancelled`, `completed`, `failed`, and `superseded`.
+
+`runScenarioChunk(specification, token, cursor)` returns deterministic path indices and summaries for exactly `chunkSize` work units. The configured budget is checked before the first chunk. Exceeding it returns `P008-COMPUTE-BUDGET`. It never truncates path count.
+
+Cancellation settles at a chunk boundary and returns `P008-COMPUTE-CANCELLED`. A token whose workspace or scenario no longer matches returns `P008-COMPUTE-SUPERSEDED`. Neither state publishes. The controller retains `lastValidViewModel` until one matching complete result validates.
+
+Each path applies costs, contributions, withdrawals, and CashNeeds at the first modeled date on or after the declared date. Start-of-step entries apply before return. End-of-step entries apply after return and recurring costs. Ordered ties use cost, contribution, withdrawal, then CashNeed, followed by stable local ID.
+
+`ScenarioDistributionSet/v1` stores separate conditional-path, parameter-marginal, and combined distributions. Each distribution records count, finite count, quantiles, minimum, maximum, interval method, and state. Required outcomes are wealth by horizon, terminal wealth, maximum drawdown, time under water, recovery, first floor breach, CashNeed funded fraction, first collision, infeasibility, and sequence examples.
+
+Survival probability exists only when horizon, floor, and CashNeed policy are explicit. Every path contributes to every applicable outcome. Median-only cash adjustment and one-path survival are invalid.
+
+### D1-Q7 Dependence, Appraisal, And Hedge Contracts
+
+`DependenceSample/v1` contains sample ID, definition kind, exact member-date fingerprint, source fingerprints, first and last date, observation count, selection rule, cutoff, and searched-variant count.
+
+Normal and stress samples must have distinct IDs and disjoint member dates. Stress selection is an explicit named date set or a frozen anchor-downside rule. Tail analysis has a separate sample identity and threshold rule. It cannot reuse a stress correlation row as a tail estimate.
+
+All correlations and dependence estimates include block-bootstrap intervals with declared confidence, block policy, draw count, and seed. Thin samples return unavailable.
+
+Forbes-Rigobon is eligible only when tranquil and turbulent samples are disjoint, aligned on the same pair, finite, above their declared minimums, and have positive anchor variance. The turbulent anchor variance must exceed tranquil variance. The result names anchor orientation, raw stress correlation, both variances, delta, adjusted estimate, interval, and caveat. Failure returns an exact unavailable reason.
+
+Tail co-exceedance uses empirical ranks and reports threshold, joint-event count, denominator, estimate, and interval. Downside overlap reports shared downside dates. Drawdown overlap reports intersection over union of dates below an explicit drawdown threshold. Recovery overlap reports intersection over union of recovery-episode dates, with unrecovered episodes ending at the evidence cutoff. These outputs remain distinct.
+
+`AppraisalSensitivity/v1` contains valuation frequency, last valuation, valuation age, source method, liquidity, costs, observed return identity, smoothing estimate, and an explicit de-smoothing grid. Every grid point returns its own sample, volatility, dependence, and state. Missing frequency, liquidity, cost, or sufficient observations blocks a strong diversification conclusion.
+
+`HedgeRegression/v1` fits aligned target excess returns against proxy excess returns with intercept. It records alpha, beta diagnostic, coefficient uncertainty, residual variance, residual correlation, fit, sample, date bounds, and source identities. Basis risk is residual variance and residual exposure, not a configured correlation.
+
+`HedgeComparison/v1` evaluates explicit user-supplied ratio and horizon variants. It itemizes carry, commission, spread, slippage, turnover, rebalance cost, liquidity, financing, and residual exposure. Missing components produce gross-only or unavailable net state.
+
+Normal, stress, and path effectiveness consume the same `ScenarioSpecification/v1` and common path IDs. The beta diagnostic may appear as a comparison variant but is never selected automatically. No result recommends or executes a hedge.
+
+### D1-Q8 Six Allocation Interfaces, Constraints, Costs, And Views
+
+Every method implements `solve(basis, methodInput) -> PortfolioResult<AllocationCandidate/v1>`. The public analytics namespace exposes six named interfaces:
+
+| Method | Public interface | Required behavior |
+| --- | --- | --- |
+| Current | `evaluateCurrentAllocation(basis)` | Preserve observed weights and report every constraint violation. |
+| Equal weight | `solveEqualWeight(basis)` | Solve equal eligible weights inside the common feasible set. |
+| Minimum variance | `solveMinimumVariance(basis, solverPolicy)` | Minimize variance inside the feasible set. |
+| Equal-risk-contribution risk parity | `solveEqualRiskContribution(basis, riskBudget, solverPolicy)` | Solve component contribution balance. Inverse volatility is not the solution. |
+| Black-Litterman | `solveBlackLittermanAllocation(basis, blackLittermanInput, solverPolicy)` | Compute posterior returns, then run the common constrained optimizer. |
+| Constrained MVO | `solveConstrainedMvo(basis, expectedReturnInput, riskAversion, solverPolicy)` | Optimize the declared objective inside the feasible set. No post-hoc clipping. |
+
+`AllocationBasis/v1` contains eligible asset order, current weights, evidence and covariance identities, expected-return policy, valuation currency, mandate identity, asset bounds, exclusions, cash bounds, net sum, gross leverage limit, turnover budget, group bounds, cost policy, common scenario identity, common path IDs, and solver policy fingerprint.
+
+The feasibility engine applies all constraints together. It returns `feasible`, `infeasible`, or `invalid`. Infeasible results contain residuals and a deterministic irreducible conflict set. No method relaxes, reorders, clips, or removes a constraint.
+
+`AllocationCandidate/v1` contains method, basis fingerprint, state, weights, objective, iterations, convergence reason, projected-gradient or KKT residual, equal-risk-contribution residual when applicable, constraint residuals, conflict set, turnover, full costs, concentration, return contribution, risk contribution, common-path outcomes, survival outcomes, sensitivity, and warnings.
+
+Cost fields are commission, spread, slippage, turnover, financing, carry, and rebalance timing. Missing required cost authority makes net outcomes unavailable. It never becomes zero.
+
+`BlackLittermanInput/v1` requires an explicit benchmark identity, benchmark weights, risk-aversion parameter, tau, and ordered views. Benchmark weights come from a qualified public benchmark composition or an explicit user-entered benchmark. Equal weight is never a fallback.
+
+Each `BlackLittermanView/v1` requires view ID, horizon, absolute or relative coefficient row, magnitude or range, confidence source, uncertainty variance, user authority, evidence cutoff, and invalidation. The engine builds `P`, `q`, and `Omega` only from these views. Behavior, holdings presence, settings, and research frequency are unrepresentable.
+
+`BlackLittermanPosterior/v1` exposes implied equilibrium returns, prior covariance, `P`, `q`, `Omega`, posterior means, posterior covariance, and the candidate input fingerprint. The allocation must consume the posterior means. No-view mode is `equilibrium-only` and still requires a qualified benchmark.
+
+Sensitivity spans history, means, covariance, views, costs, asset/group bounds, turnover, cash, leverage, and risk aversion. Every tried point enters the dossier trial ledger.
+
+### D1-Q9 Append-Only Decision-Time Dossier
+
+`ResearchDossier/v1` is an immutable header with dossier ID, workspace identity, created time, policy fingerprints, and head record hash. Its records form a hash-linked append-only stream.
+
+```text
+DossierRecord/v1 {
+  contractVersion,
+  dossierId,
+  sequence,
+  recordId,
+  previousRecordHash,
+  recordType,
+  createdAt,
+  payloadIdentity,
+  payload,
+  contentSha256
+}
+```
+
+Record type is `created`, `decision-fold`, `candidate-result`, `stress-result`, `trial`, `claim`, `correction`, `invalidation`, or `export-receipt`. Sequence and previous hash must match the active head.
+
+`DecisionFold/v1` records training start and end, decision cutoff, embargo and purge interval, rebalance date, application start and end, source vintages, eligible observations, fitted parameter identities, candidate identity, costs, and result identities. Training may use only evidence available before the decision cutoff. Application starts after the decision and declared embargo.
+
+Result states are `in-sample`, `out-of-sample`, `stress`, `gross-only`, `net`, `not-evaluated`, `infeasible`, and `unavailable`. One record may carry several orthogonal state dimensions but cannot collapse them into pass or fail.
+
+`TrialLedgerEntry/v1` counts every method, parameter vector, history sample, stress definition, Black-Litterman view set, de-smoothing point, hedge ratio, and selected output inspected. Equal trial identity appends once. Selection-bias disclosure reads the ledger, not a configured estimate.
+
+Net requires commission, spread, slippage, turnover, financing, carry, and rebalance timing. Otherwise only gross state is valid.
+
+A correction appends `CorrectionRecord/v1` with `correctsRecordId`, reason, replacement payload identity, and invalidation effect. The prior record remains readable and unchanged. A corrected record becomes current only through the new head.
+
+Dossier persistence uses its own two validated slots and pointer. Reload validates the complete hash chain. A broken chain returns `P008-DOSSIER` and preserves both slots.
+
+Private export requires an explicit field selection, value-safe preview, privacy warning, and user download gesture. It produces a Blob locally. Secret-shaped content fails. No export path uploads, publishes, writes a URL, or modifies public artifacts.
+
+### D1-Q10 Immutable Workspace, Rebase, Return, And Accessibility
+
+`computeWorkspace(request, execution)` is the only orchestration compute. The route calls foundation APIs and never reimplements a formula, rank, solver, source selector, or dossier projection.
+
+```text
+PortfolioWorkspaceViewModel/v1 {
+  contractVersion,
+  workspaceIdentity,
+  computeTokenId,
+  generatedAt,
+  genericEvidence,
+  portfolioTruth,
+  brief,
+  risk,
+  paths,
+  dependence,
+  allocations,
+  dossier,
+  diagnostics,
+  unavailableStates
+}
+```
+
+The object is deeply frozen before publication. Simple, Power, all six tabs, charts, tables, and exports receive slices from this object. Mode, tab, lens, sort, disclosure, tooltip, and focus changes never acquire evidence or compute analytics.
+
+`WorkspaceComputeController/v1` owns `activeIdentity`, `activeViewModel`, `draftIdentity`, `currentToken`, `cancelState`, and `lastValidViewModel`. A new identity issues a higher token and supersedes any lower running token. Only a completed result whose token and identity match may publish.
+
+An explicit rebase previews changed generic, portfolio, mandate, behavior, scenario, and policy identities. Confirmation computes all sibling projections. Publication swaps the entire frozen view model once. A partial sibling set never becomes active.
+
+`ReturnContext/v1` has exact fields `contractVersion`, `contextId`, `sourceRoute`, `sourceHash`, `destinationRoute`, `destinationHash`, `actionId`, `disclosureId`, `focusRestoreId`, `workspaceIdentity`, `genericEvidenceIdentity`, `ownerToolId`, `minimumOwnerCutoff`, `createdAt`, and `expiresAt`.
+
+The context lives only in `sessionStorage`. Routes and hashes come from allowlists. It contains no holding, quantity, value, cost, mandate, behavior text, model output, or dossier payload.
+
+The matching owner page consumes the context, renders a visible `From Portfolio Brief` strip, and shows its current qualified owner-read state. Explicit review completion remains disabled until that owner state is visible. Wrong-destination, expired, malformed, or identity-mismatched context is removed and returns `P008-RETURN-CONTEXT` locally.
+
+Returning to the portfolio route restores the original Brief row, opens its disclosure when valid, and focuses `focusRestoreId`. Browser Back remains available when session storage fails. No same-page simulation satisfies owner-return proof.
+
+#### Complete Accessibility Interaction Model
+
+- The page starts with a visible-on-focus skip link to the active workspace panel.
+- Mode and workspace controls use roving tabindex. Arrow keys move focus. Home and End move to bounds. Enter and Space activate.
+- Tabs expose `tablist`, `tab`, `tabpanel`, `aria-selected`, `aria-controls`, and deterministic announcements.
+- Sheets and modals expose labels, initial focus, focus trap, Escape close, inert background, and invoker restoration.
+- Status and errors use live regions without moving focus. Every field error links to its control and appears in the error summary.
+- Every chart has an equivalent captioned table built from the same result rows. Pointer, keyboard, and touch can reach the same datum.
+- Reduced motion disables rank, path, chart, scroll, and progress animation. Text announces state changes.
+- Forced colors preserves borders, focus, selected state, and truth-state distinctions without background-only meaning.
+- At 200 percent zoom and declared text spacing, content reflows without clipping or body-level horizontal scrolling.
+- Narrow mobile keeps 44 CSS-pixel targets. Only labeled tables and tab bars may scroll internally.
+- Tooltips, long labels, focus rings, sheets, return strips, and status bands stay inside the viewport.
+
+Accessibility changes are projection-only. They cannot change `workspaceIdentity`, action order, values, truth states, or conclusions.
+
+### Remediation Module And File Ownership
+
+| File | Remediation ownership | Prohibited duplication |
+| --- | --- | --- |
+| `rlportfolio.js` | Draft lifecycle, workspace validation, category registry, atomic store, clear transaction, dossier slots, export, ReturnContext schema | No market acquisition, analytics formula, rank, or DOM logic |
+| `rlportfoliobrief.js` | Canonical `RLPORTFOLIO_BRIEF`, generic projection, behavior identity, floor, rank, action lifecycle | No storage access, fetch, route sort, solver, or specialist model |
+| `rldata.js` | `ensureBarCoverage` acquisition, append, de-duplication, source qualification | No portfolio object or Feature 008-specific route policy |
+| `rlportfolioanalytics.js` | Eligibility, risk diagnostics, paths, dependence, hedge, six solvers, walk-forward | No DOM, storage, public fetch, ranking, or advice language |
+| `portfolio-survival-allocation-lab.html` | Controller, immutable publication, editors, rendering, accessibility | No copied formula, model, source selection, rank, or constraint implementation |
+| `rlnav.js` | Generic strict ReturnContext strip and matching-destination consumption | No Feature 008 calculation or personal persistence beyond the session record |
+| `portfolio-survival-allocation.config.json` | Mandatory v2 policy values and closed enums | No hidden route constants or fallback values |
+| Feature 008 test and fixture files | Exact scenario carriers, isolated hostile fixtures, request ledger | No shipped-source mutation or browser request interception |
+| Feature 008 note and registry entries | Evidence-bounded route and capability claims after current execution proof | No claim ahead of executable behavior |
+
+### Migration And Compatibility
+
+The remediation introduces `portfolio-survival-allocation-policy/v2`, `portfolio-storage-policy/v2`, `portfolio-behavior-policy/v2`, and `portfolio-queue-policy/v2`. The v2 policy adds personal descriptors, New York civil-date rules, one visible cap, coverage targets, complete compute budgets, interval policy, and dossier chain policy.
+
+The v1-to-v2 policy migration is deterministic. Existing v1 values map directly. The global cap equals the prior direct plus general cap. No absent value gains a default. A missing required v1 authority returns `P008-MIGRATION`.
+
+Existing valid `PortfolioWorkspace/v1`, `BehaviorEvent/v1`, `InterestSignal/v1`, and `ReturnContext/v1` records keep their contract names. Derived identities, civil dates, signals, rank results, and view models are recomputed under v2 policy.
+
+Reduced scenario, dossier, or Brief records that fail the complete declared v1 schema are preserved by hash and reported invalid. The reader cannot promote them by inventing missing fields. The user must reopen and explicitly confirm a complete new record.
+
+`ensureBars`, existing RLDATA cache keys, compact owner reads, public Market Brief files, and ordinary `rlnav.js` behavior remain byte-compatible. New APIs are additive. Unknown newer records remain untouched.
+
+### Security, Privacy, And Claim Boundaries
+
+- Every personal mutation requires a local user gesture and closed schema validation.
+- Full clear requires the exact typed phrase and independent post-delete proof.
+- Public lookup contains only public symbol, interval, date range, and history request fields.
+- Public artifacts, tool reads, URLs, referrers, console output, and remote requests receive no personal or derived-local value.
+- Error values expose only closed codes, safe field paths, safe row numbers, and recoverability.
+- Behavior affects relevance only. It cannot change mandate, survival, expected returns, Black-Litterman views, constraints, costs, or trade authority.
+- Every action remains a research task. No action says buy, sell, order, execute, size, apply, or automatically rebalance.
+- Allocation and hedge outputs are educational comparisons. They never select suitability, a personal target, a contract, or an external transaction.
+- Tax evidence remains research input. It never issues a substantially-identical or filing determination.
+- Private export is local and explicit. No background export, sync, or remote persistence exists.
+
+### Remediation Failure And Degraded States
+
+| Failure | Required state | Preserved state |
+| --- | --- | --- |
+| Holding edit invalid | `P008-HOLDING-EDIT` | Active revision and last valid view |
+| Clear residue or adapter failure | `P008-CLEAR-PARTIAL` with safe category results | Tombstone authority and public assets |
+| Future behavior occurrence | Quarantined with `P008-BEHAVIOR-TIME` | Prior rank result |
+| Generic component missing or conflicting | partial, unavailable, or disputed window | Independently valid refs and last valid Brief |
+| Coverage target short | partial with exact bounds and missing dates | Eligible rows and existing cache |
+| One asset unsupported | Per-metric unavailable or excluded | Independent portfolio metrics |
+| Raw covariance invalid | Raw invalid plus optional explicit conditioned state | Non-covariance diagnostics |
+| Compute budget, cancellation, or supersession | Named compute error, no publication | Last valid view model |
+| Regime calibration absent | Structured unavailable method | Stationary-bootstrap result |
+| Dependence sample thin | Qualified unavailable estimate | Other sample lenses |
+| Hedge costs incomplete | Gross-only or net unavailable | Regression and gross effects |
+| Allocation infeasible or unstable | Stable candidate row with diagnostics | Current portfolio and other methods |
+| Dossier chain or export invalid | `P008-DOSSIER` or `P008-EXPORT` | Prior slot, prior records, preview |
+| Return context invalid | Strip omitted and context removed | Owner page and browser Back |
+
+### Observability And Diagnostics
+
+No remote telemetry is added. The remediation reports value-safe local diagnostics only.
+
+- Clear diagnostics report registry fingerprint, category IDs, states, safe residue hashes, and public fingerprint equality.
+- Coverage diagnostics report public symbol, source IDs, request state, dates, counts, conflicts, and qualification reasons.
+- Brief diagnostics report generic identities, cutoff, queue counts, suppressed counts, stale reasons, and safe P008 code.
+- Risk diagnostics report coverage weights, samples, date bounds, matrix rank, eigenvalue, condition, and reconciliation residuals.
+- Compute diagnostics report token state, chunk counts, completed work, duration, path count, parameter count, and cancellation reason.
+- Solver diagnostics report iterations, objective, KKT or contribution residual, constraint residuals, and convergence reason.
+- Dossier diagnostics report sequence, chain head, trial count, correction links, and validation state.
+- Accessibility diagnostics remain semantic DOM states and test assertions. No assistive preference becomes behavior evidence.
+
+Console output may contain fixed contract IDs and counts. It cannot contain holdings, values, labels, mandate fields, behavior subjects, views, actions, paths, or dossier payloads.
+
+### Rollout And Rollback Sequence
+
+1. Reconcile design and plan authority before implementation pickup.
+2. Land lifecycle, behavior, and coverage foundations in Scopes 17 through 19.
+3. Land Brief, risk, path, dependence, allocation, and dossier overlays in Scopes 20 through 25.
+4. Land compute/navigation and accessibility integration in Scopes 26 and 27.
+5. Replace reduced tests with exact hostile-fixture proofs in Scope 28.
+6. Reconcile public links and claims only after current exact behavior evidence exists in Scope 29.
+
+Each scope publishes only after its narrow contract validates. A failed overlay leaves prior foundations readable and last-valid UI state active.
+
+Rollback removes the newest scope's code and test changes as one unit. It never deletes browser personal data. Newer records remain inert and preserved. Shared `rldata.js` or `rlnav.js` additions may roll back only after consumer canaries show no other adopter.
+
+The route retains `#brief` as the canonical first screen. Rollback cannot restore `#workspace` as an active published link.
+
+### Exact Scenario-To-Design Traceability
+
+| Scenario | Current design contract | Exact proof obligation |
+| --- | --- | --- |
+| SCN-008-037 | D1-Q1 workspace behavior categories | Persist interests and outcomes, clear, reread empty, and preserve explicit portfolio facts under behavior-only clear. |
+| SCN-008-038 | D1-Q1 scenario category and transaction | Persist a scenario, clear, reread empty, and prove public fingerprints equal. |
+| SCN-008-039 | D1-Q1 allocation category and transaction | Persist an allocation, clear, reread empty, and prove public fingerprints equal. |
+| SCN-008-040 | D1-Q1 dossier category and transaction | Persist a dossier, clear, reread empty, and prove public fingerprints equal. |
+| SCN-008-041 | D1-Q1 complete registry | Populate every derived category, reject an undeclared category, clear, and prove zero residue. |
+| SCN-008-042 | D1-Q1 holding lifecycle | Add, edit, remove, confirm, reload, and confirm a real empty revision with supersession links. |
+| SCN-008-043 | D1-Q1 full transaction | Prove tombstone order, independent storage/controller inspection, partial failure, and public preservation. |
+| SCN-008-044 | D1-Q2 behavior and rank | Distinguish identity fields, reject future time, enforce distinct civil dates, and compare one rank result across projections. |
+| SCN-008-045 | D1-Q4 coverage | Start short, append static, enforce consent, append public dates, qualify bounds, and preserve `ensureBars`. |
+| SCN-008-046 | D1-Q2 and D1-Q3 Brief contracts | Resolve DST civil time, consume all generic refs, enforce one cap and stale verbs, and exercise all eight APIs and errors. |
+| SCN-008-047 | D1-Q5 risk eligibility | Mix listed weight-only, cash, manual, and unsupported holdings while preserving every eligible diagnostic. |
+| SCN-008-048 | D1-Q6 scenario and compute | Mutate every identity field, run all requested paths, apply all flows, cancel and supersede tokens, and compare uncertainty distributions. |
+| SCN-008-049 | D1-Q7 dependence and hedge | Freeze distinct samples, qualify adjustment and intervals, vary appraisal assumptions, fit hedge regression, and reuse common paths. |
+| SCN-008-050 | D1-Q8 allocation | Execute all six interfaces on one basis, retain infeasibility, use explicit posterior returns, and expose complete diagnostics and sensitivity. |
+| SCN-008-051 | D1-Q9 dossier | Prove decision-time fitting, embargo, rebalance, full costs, every trial, append correction, reload, and private export. |
+| SCN-008-052 | D1-Q10 compute and return | Prove no navigation recompute, token supersession, atomic rebase, owning-page strip, return disclosure, and focus restoration. |
+| SCN-008-053 | D1-Q10 accessibility | Complete keyboard, screen-reader, modal, chart/table, preference, zoom, touch, and no-overlap journeys without result drift. |
+| SCN-008-054 | Test integrity contract | Discover every exact title and reject each reduced defect through isolated fixtures or disposable copies. Shipped source remains unchanged. |
+| SCN-008-055 | Rollout and claim boundaries | Open `#brief` from every named surface and compare each public claim with current executable states and limits. |
+
+### One-Time Remediation Finding Trace
+
+Each remediation finding appears once in this table. The design contract column names its complete resolution surface.
+
+| Finding | Sole execution owner | Design contract and scenario |
+| --- | --- | --- |
+| F008-PORTFOLIO-LIFECYCLE-001 | `bubbles.implement` | D1-Q1 holding lifecycle, SCN-008-042 |
+| F008-CLEAR-RUNTIME-001 | `bubbles.implement` | D1-Q1 clear transaction, SCN-008-043 |
+| F008-CLEAR-TEST-001 | `bubbles.test` | D1-Q1 independent reread and hostile residue, SCN-008-043 |
+| F008-BEHAVIOR-CONTRACT-001 | `bubbles.implement` | D1-Q2 canonical identity and rank, SCN-008-044 |
+| F008-BAR-COVERAGE-001 | `bubbles.implement` | D1-Q4 coverage acquisition, SCN-008-045 |
+| F008-BRIEF-EVIDENCE-001 | `bubbles.implement` | D1-Q3 generic evidence schema, SCN-008-046 |
+| F008-BRIEF-POLICY-001 | `bubbles.implement` | D1-Q2 civil time and global queue, SCN-008-046 |
+| F008-BROWSER-API-001 | `bubbles.implement` | D1-Q3 complete public API and errors, SCN-008-046 |
+| F008-RISK-INPUT-001 | `bubbles.implement` | D1-Q5 eligibility matrix, SCN-008-047 |
+| F008-RISK-DIAGNOSTICS-001 | `bubbles.implement` | D1-Q5 complete diagnostics, SCN-008-047 |
+| F008-PATH-CONTRACT-001 | `bubbles.implement` | D1-Q6 scenario and token contract, SCN-008-048 |
+| F008-SURVIVAL-PATH-001 | `bubbles.implement` | D1-Q6 all-path flows and distributions, SCN-008-048 |
+| F008-DIVERSIFICATION-001 | `bubbles.implement` | D1-Q7 sample and appraisal contract, SCN-008-049 |
+| F008-HEDGE-001 | `bubbles.implement` | D1-Q7 regression, costs, and common paths, SCN-008-049 |
+| F008-ALLOCATION-001 | `bubbles.implement` | D1-Q8 six constrained methods, SCN-008-050 |
+| F008-SENSITIVITY-BL-001 | `bubbles.implement` | D1-Q8 explicit views, posterior, and sensitivity, SCN-008-050 |
+| F008-DOSSIER-001 | `bubbles.implement` | D1-Q9 append-only audit, SCN-008-051 |
+| F008-COMPUTE-NAV-001 | `bubbles.implement` | D1-Q10 compute, rebase, and ReturnContext, SCN-008-052 |
+| F008-ACCESSIBILITY-001 | `bubbles.implement` | D1-Q10 interaction model, SCN-008-053 |
+| F008-TEST-INTEGRITY-001 | `bubbles.test` | Isolated adversarial test contract, SCN-008-054 |
+| F008-SPEC-SCENARIO-001 | `bubbles.analyst` | Accepted analyst authority for SCN-008-037 through SCN-008-055 |
+| F008-PLAN-COHERENCE-001 | `bubbles.plan` | P1 must bind this design to manifest, test plan, scopes, and execution mirrors. |
+| F008-DOC-INTEGRATION-001 | `bubbles.docs` | Evidence-bounded `#brief` publication, SCN-008-055 |
+| F008-TEST-SCENARIO-RECEIPTS-001 | Bubbles framework owner | External framework-control packet only. No Research Lab product contract or implementation scope claims it. |
+
+### Remediation Design Validation Matrix
+
+| Design area | Required focused validation |
+| --- | --- |
+| Contract and reference integrity | Design/reference/prose/capability checks over this artifact and the Feature 008 packet |
+| Scenario coverage | Every SCN-008-037 through SCN-008-055 appears once in the trace table and has one closed design contract. |
+| Finding closure | Every remediation finding appears once in the one-time trace table. |
+| Foundation ordering | Scopes 17 through 19 precede every overlay. Shared contracts name multiple consumers. |
+| API closure | Every `RLPORTFOLIO_BRIEF` public function has declared success responsibility and closed failures. |
+| Formula ownership | Analytics formulas and solvers live only in `rlportfolioanalytics.js`. Route tests must reject duplicate route formulas. |
+| Privacy and claims | Static scans and browser request ledgers enforce no personal egress, no execution, and no personalized advice. |
+
+No D1 design question remains open. P1 remains the next planning gate because plan-owned scenario, test, scope, and execution mirrors have not been changed by this design reconciliation.
+
 ## Testing And Validation Strategy
 
 ### Test Architecture
@@ -1338,6 +1971,11 @@ Rollback never deletes browser personal keys automatically. They remain inert an
 | Stationary bootstrap plus parameter strata | IID resampling only | Survival claims require dependent paths and separate parameter uncertainty |
 | Generic rlnav return context | Query-string focus | Query/referrer/history leakage violates private handoff constraints |
 | Multiple focused Playwright files | One 36-test monolith | Domain isolation keeps every scenario executable and failures attributable without reducing coverage |
+| Runtime-derived clear registry | Fixed storage-key arrays and route reset calls | Fixed lists cannot detect an undeclared persistent or controller category |
+| Complete frozen Brief API | One `composeBrief` entry point | Independent validation, ranking, explanation, and lifecycle boundaries need closed failures and direct tests |
+| Tokenized immutable workspace publication | Recompute each tab when opened | Per-tab recomputation permits mixed identities and obsolete jobs to publish |
+| Hash-linked append-only dossier | Replace one current dossier object | In-place replacement destroys decision-time, trial, and correction auditability |
+| Six common-basis solver interfaces | One generic score or heuristic weight function | Method objectives and diagnostics differ, while constraints, costs, paths, and failure states must remain comparable |
 
 Each complexity item removes a concrete correctness, privacy, or testability risk. No plugin framework, generic remote store, or multi-route application shell is introduced.
 
@@ -1352,11 +1990,15 @@ Each complexity item removes a concrete correctness, privacy, or testability ris
 | FR-086 through FR-104 | Scenario identity; stationary bootstrap; parameter uncertainty; dated cash flows; survival states |
 | FR-105 through FR-122 | Stress/tail dependence; Forbes-Rigobon; manual alternatives; hedge decomposition |
 | FR-123 through FR-150 | Shared allocation basis; six solvers; sensitivity; infeasibility; walk-forward/cost/trials; dossier/tax boundary |
+| FR-151 through FR-154 | Runtime-derived clear; acquired date coverage; complete generic Brief policy; immutable workspace and ReturnContext |
 | NFR-001 through NFR-009 | Local trust boundary, deterministic identities, atomic store, dossier reproducibility |
 | NFR-010 through NFR-018 | Cache-first coverage, chunk tokens, explicit calibration, one compute, accessible stable canvases/tables |
 | NFR-019 through NFR-024 | Inert imports, static portability, failure isolation, educational copy, auditability, verified deletion |
+| NFR-025 through NFR-026 | Adversarial test discrimination; evidence-bounded registry, route, and documentation truth |
 
 All SCN-008-001 through SCN-008-036 map one-to-one to exact executable tests in the Scenario-To-Test Mapping. The mapping also covers the required cross-cutting cases: mobile layout, disabled localStorage/session-only mode, corrupt-schema quarantine, atomic import, publisher non-leakage, behavior clear, Simple/Power parity, deterministic paths, analytics identities, infeasible allocation, and deep-link return.
+
+The current-authority remediation trace maps SCN-008-037 through SCN-008-055 to D1-Q1 through D1-Q10, test integrity, and publication truth without changing the earlier scenario mappings.
 
 ## Risks And Open Questions
 

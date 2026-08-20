@@ -9950,6 +9950,37 @@ try {
     'Scope 04 TP-04-04: a coverage read leaves the rows legacy callers see byte-identical');
   assert(requests8.length === 0, 'Scope 04 TP-04-04: the canary reached the network zero times (recorder, not an omitted binding)');
 
+  const target19 = {
+    contractVersion: 'BarCoverageTarget/v1', requestedStartDate: '2021-07-07',
+    requestedEndDate: '2026-07-07', targetCalendarYears: 5, maximumAgeHours: 24,
+    requiredCurrency: 'USD', requiredTransform: 'adjusted-close',
+    requiredCorporateActionState: 'qualified-adjusted'
+  };
+  const source19 = {
+    contractVersion: 'BarCoverageSourcePolicy/v1', mode: 'same-origin-only',
+    conflictPolicy: 'reject-date', publicProviderId: 'yahoo'
+  };
+  const pending19 = rldata8.ensureBarCoverage('CANARY08', '1d', target19, source19);
+  assert(pending19 && typeof pending19.then === 'function',
+    'Scope 19 TP-19-01: the exact four-argument coverage contract is Promise-based');
+  const coverage19 = await pending19;
+  assert(coverage19.contractVersion === 'BarCoverageResult/v1' && coverage19.state === 'partial'
+    && coverage19.firstDate === '2026-07-06' && coverage19.lastDate === '2026-07-07'
+    && coverage19.missingBounds.start === true && coverage19.missingBounds.end === false,
+  'Scope 19 TP-19-01: actual cached dates, not requested labels or row count, determine partial coverage');
+  assert(coverage19.requestState === 'not-permitted' && requests8.length === 1
+    && requests8[0] === 'data/bars/CANARY08.json',
+  'Scope 19 TP-19-01: same-origin-only attempts only the explicit static snapshot and never a provider');
+  const requestsBeforeInvalid19 = requests8.length;
+  const invalid19 = await rldata8.ensureBarCoverage('CANARY08', '1d', Object.assign({}, target19, { targetCalendarYears: 4 }), source19);
+  assert(invalid19.state === 'unavailable' && invalid19.reasons.indexOf('target-range-year-mismatch') >= 0
+    && requests8.length === requestsBeforeInvalid19,
+  'Scope 19 TP-19-01: an inconsistent target fails before cache mutation or request');
+  const legacyEnsure19 = rldata8.ensureBars('CANARY08', '1d', 24, '5y');
+  assert(legacyEnsure19 && typeof legacyEnsure19.then === 'function'
+    && JSON.stringify(await legacyEnsure19) === legacyRows8,
+  'Scope 19 TP-19-01: ensureBars name, Promise behavior, arguments and cached rows remain compatible');
+
   /* The public-cache half. The portfolio module publishes exactly one record, and it must survive
      the real store's contract check — a shape violation makes putToolRead return null. */
   const { createRequire: createRequire8 } = await import('node:module');

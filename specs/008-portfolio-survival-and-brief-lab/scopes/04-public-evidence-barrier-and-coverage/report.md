@@ -329,3 +329,9 @@ recorded (D-04-B).
 ## Audit Verdict
 
 No validation or audit verdict is recorded during planning.
+
+<!-- bubbles:certifying-window-begin -->
+
+## Current Certifying Window
+
+The prior execution record is preserved above. Current status is governed by the canonical transition checks.

@@ -123,8 +123,9 @@
     });
     common.sort();
 
+    var commonSet = new Set(common);
     var excludedDates = [];
-    union.forEach(function (d) { if (common.indexOf(d) === -1) excludedDates.push(d); });
+    union.forEach(function (d) { if (!commonSet.has(d)) excludedDates.push(d); });
     excludedDates.sort();
 
     if (!common.length) return alignFailure("no-common-dates", cutoff, excludedDates, excludedBySymbol);

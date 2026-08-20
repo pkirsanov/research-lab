@@ -356,6 +356,7 @@ Consumer Impact Sweep, and the NFR set. Each is verified below by execution, not
 
 **Command:** `grep -nEio '\b(buy|sell|order|execute|rebalance|target[- ]position|suitable|recommended[- ]for[- ]you)\b' portfolio-survival-allocation-lab.html rlportfolio.js rlportfoliobrief.js`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -388,6 +389,7 @@ unpredicted one.
 
 **Command:** `node --test tests/portfolio-publisher-boundary.functional.mjs tests/portfolio-privacy.functional.mjs`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -417,6 +419,7 @@ Each of the sweep's four clauses is discharged by a shipped, executed test rathe
 
 **Command:** `npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -462,6 +465,7 @@ than given a guessed route.
 
 **Command:** `node scripts/selftest.mjs`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text

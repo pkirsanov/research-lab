@@ -1103,6 +1103,7 @@ test('rolling a mandate back restores the pre-mandate portfolio state by identit
 // caches every tool on the site reuses, so wiping them is a real product regression.
 const GENERIC_PUBLIC_CACHES = Object.freeze({ rlData: '{"bars":{}}', optSnaps: '{"SPY":{}}' });
 const CLEAR_RESULT_IDENTITY = `sha256:${'ab12'.repeat(16)}`;
+const CLEAR_GENERIC_EVIDENCE_IDENTITY = `sha256:${'cd34'.repeat(16)}`;
 const CLEAR_SUBJECT = 'subject-clear-alpha';
 const LATER_CLEAR = '2026-07-15T15:00:00.000Z';
 const AFTER_CLEAR = '2026-07-15T15:01:00.000Z';
@@ -1113,7 +1114,12 @@ const AFTER_CLEAR = '2026-07-15T15:01:00.000Z';
 // adapter the runtime removes it from, so this derivation follows the runtime's split.
 function declaredKeysByAdapter(policy) {
   return {
-    local: [policy.storage.pointerKey, ...policy.storage.slotKeys, policy.storage.quarantineKey].slice().sort(),
+    local: [
+      policy.storage.pointerKey,
+      ...policy.storage.slotKeys,
+      policy.storage.quarantineKey,
+      policy.storage.displayModeKey
+    ].slice().sort(),
     session: [policy.storage.sessionKey, policy.storage.returnContextKey].slice().sort()
   };
 }
@@ -1216,6 +1222,7 @@ function seedEveryPopulatableCategory(api, policy, localStorage, sessionStorage)
     category: 'ticker-research-completed',
     completionConditionId: 'risk-panel-reviewed',
     domain: 'equity-research',
+    genericEvidenceIdentity: CLEAR_GENERIC_EVIDENCE_IDENTITY,
     horizon: 'medium-term',
     resultIdentity: CLEAR_RESULT_IDENTITY,
     sourceSurface: 'risk-xray',
@@ -1639,6 +1646,7 @@ test('SCN-008-009 TP-06-02: passive activity and settings cannot create an event
       category: 'ticker-research-completed',
       completionConditionId: 'risk-panel-reviewed',
       domain: 'equity-research',
+      genericEvidenceIdentity: CLEAR_GENERIC_EVIDENCE_IDENTITY,
       horizon: 'medium-term',
       resultIdentity: CLEAR_RESULT_IDENTITY,
       sourceSurface: 'risk-xray',
@@ -1656,6 +1664,7 @@ test('SCN-008-009 TP-06-02: passive activity and settings cannot create an event
     category: 'ticker-research-completed',
     completionConditionId: 'risk-panel-reviewed',
     domain: 'equity-research',
+    genericEvidenceIdentity: CLEAR_GENERIC_EVIDENCE_IDENTITY,
     horizon: 'medium-term',
     resultIdentity: CLEAR_RESULT_IDENTITY,
     sourceSurface: 'risk-xray',
@@ -1816,4 +1825,252 @@ test('TP-16-12 SCN-008-041 every personal category the finished route can create
   const residualSession = [];
   for (let i = 0; i < sessionStorage.length; i += 1) residualSession.push(sessionStorage.key(i));
   assert.deepEqual(residualSession, [], `no personal session key may survive the sweep, found: ${residualSession.join(', ')}`);
+});
+
+function scope17ClearFixture(api, policy, options = {}) {
+  const localStorage = createStorage({ initial: { rlData: '{"public":true}', ...(options.local || {}) } });
+  const sessionStorage = createStorage({ initial: { rlReturnContextV1: '{"return":"brief"}', ...(options.session || {}) } });
+  const store = api.createPortfolioStore({ localStorage, sessionStorage }, policy);
+  const opened = store.openWorkspace(NOW);
+  const candidate = candidateFromCsv(api, policy, opened.value.workspace, 'Scope 17 clear base');
+  const committed = store.commitWorkspace(candidate.value, opened.value.workspace.generation, NOW);
+  assert.equal(committed.ok, true);
+  const emptyController = api.createEmptyControllerPersonalState();
+  const populatedController = Object.fromEntries(Object.entries(emptyController).map(([key, value]) => [
+    key,
+    Array.isArray(value) ? [{ category: key }] : value === null ? { category: key } : value === false ? true : { category: key }
+  ]));
+  const controller = {
+    controllerPersonalState: { ...populatedController, ...(options.controller || {}) },
+    replacePersonalState(next) {
+      this.controllerPersonalState = options.retainController
+        ? { ...next, [options.retainController]: { retained: true } }
+        : next;
+    }
+  };
+  return { localStorage, sessionStorage, store, committed, controller, emptyController };
+}
+
+test('SCN-008-042 and SCN-008-043 multi-row revision and full clear round trip through fresh adapters and controller inspection', () => {
+  const { api, policy } = loadRuntime();
+  const fixtureState = scope17ClearFixture(api, policy);
+  const firstId = fixtureState.committed.value.workspace.currentPortfolioId;
+  let draft = api.createPortfolioDraft(fixtureState.committed.value.workspace, '2026-07-15T14:01:00.000Z', policy);
+  const cash = api.validateManualDraft({
+    assetType: 'cash', symbol: 'USD-CASH', currency: 'USD', localValue: 2500
+  }, fixtureState.committed.value.workspace, policy);
+  draft = api.addHoldingRow(draft.value, cash.value.holdings[0], policy);
+  draft = api.editHoldingRow(draft.value, draft.value.rows[0].holdingId, { quantity: 12 }, policy);
+  draft = api.removeHoldingRow(draft.value, draft.value.rows[1].holdingId, policy);
+  const revised = api.confirmPortfolioDraft(
+    fixtureState.store,
+    draft.value,
+    fixtureState.committed.value.workspace.generation,
+    '2026-07-15T14:02:00.000Z'
+  );
+  assert.equal(revised.ok, true);
+  assert.equal(revised.value.revision.supersedes, firstId);
+  assert.equal(revised.value.revision.holdings.length, 2);
+
+  const result = api.clearAllPersonalData({
+    store: fixtureState.store,
+    storageAdapters: {
+      localStorage: fixtureState.localStorage,
+      sessionStorage: fixtureState.sessionStorage
+    },
+    controller: fixtureState.controller,
+    publicAssetReader: { readAll: () => ({ watchlist: '["SPY"]', tools: '[{"id":"portfolio-survival-allocation-lab"}]' }) },
+    confirmation: 'CLEAR ALL LOCAL DATA',
+    expectedGeneration: revised.value.workspace.generation,
+    now: '2026-07-15T14:03:00.000Z',
+    policy
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.value.status, 'cleared');
+  assert.deepEqual(fixtureState.localStorage.snapshot(), { rlData: '{"public":true}' });
+  assert.deepEqual(fixtureState.sessionStorage.snapshot(), {});
+  assert.deepEqual(fixtureState.controller.controllerPersonalState, fixtureState.emptyController);
+  const reopened = api.createPortfolioStore({
+    localStorage: fixtureState.localStorage,
+    sessionStorage: fixtureState.sessionStorage
+  }, policy).openWorkspace('2026-07-15T14:04:00.000Z');
+  assert.equal(reopened.ok, true);
+  assert.equal(reopened.value.workspace.currentPortfolioId, null);
+  assert.deepEqual(reopened.value.workspace.portfolioRevisions, []);
+});
+
+test('SCN-008-044 TP-18-02 canonical behavior and rank references stay minimal and full clear removes them without public-state loss', () => {
+  const { api, policy } = loadRuntime();
+  const brief = require('../rlportfoliobrief.js');
+  const fixtureState = scope17ClearFixture(api, policy);
+  const first = api.buildBehaviorCandidate({
+    category: 'ticker-research-completed',
+    completionConditionId: 'risk-panel-reviewed',
+    domain: 'equity-research',
+    genericEvidenceIdentity: CLEAR_GENERIC_EVIDENCE_IDENTITY,
+    horizon: 'medium-term',
+    resultIdentity: CLEAR_RESULT_IDENTITY,
+    sourceSurface: 'risk-xray',
+    subjectId: CLEAR_SUBJECT,
+    subjectKind: 'ticker'
+  }, fixtureState.committed.value.workspace, { now: '2026-07-14T14:00:00.000Z' }, policy);
+  assert.equal(first.ok, true, JSON.stringify(first.error || {}));
+  const second = api.buildBehaviorCandidate({
+    category: 'risk-analysis-completed',
+    completionConditionId: 'risk-panel-reviewed',
+    domain: 'equity-research',
+    genericEvidenceIdentity: `sha256:${'ef56'.repeat(16)}`,
+    horizon: 'medium-term',
+    resultIdentity: `sha256:${'7890'.repeat(16)}`,
+    sourceSurface: 'risk-xray',
+    subjectId: 'subject-clear-beta',
+    subjectKind: 'ticker'
+  }, first.value.workspace, { now: '2026-07-15T14:00:00.000Z' }, policy);
+  assert.equal(second.ok, true, JSON.stringify(second.error || {}));
+  const committed = fixtureState.store.commitWorkspace(
+    second.value.workspace,
+    fixtureState.committed.value.workspace.generation,
+    '2026-07-15T14:00:00.000Z'
+  );
+  assert.equal(committed.ok, true, JSON.stringify(committed.error || {}));
+
+  const interests = brief.deriveInterestSignals({
+    behaviorCutoffAt: '2026-07-15T15:40:00.000Z',
+    events: committed.value.workspace.behaviorEvents,
+    policy
+  });
+  assert.equal(interests.ok, true, JSON.stringify(interests.error || {}));
+  const actionId = api.actionIdentity({
+    windowId: 'morning',
+    subjectId: CLEAR_SUBJECT,
+    lane: 'completedResearch',
+    evidenceCutoffAt: '2026-07-15T15:40:00.000Z'
+  });
+  assert.equal(actionId.ok, true);
+  const ranked = brief.rankResearchActions({
+    actions: [{
+      actionId: actionId.value,
+      datedUrgency: 'none',
+      directAuthority: 'completed-research',
+      evidenceState: 'current',
+      explicitExposure: 'completed',
+      integrity: 'verified',
+      lane: 'completedResearch',
+      relevanceScore: interests.value.interestSignals[0].score,
+      subject: CLEAR_SUBJECT,
+      subjectId: CLEAR_SUBJECT,
+      triggerState: 'active'
+    }],
+    behaviorCutoffAt: '2026-07-15T15:40:00.000Z',
+    genericWindowIdentity: CLEAR_GENERIC_EVIDENCE_IDENTITY,
+    interestResult: interests.value,
+    policy
+  });
+  assert.equal(ranked.ok, true, JSON.stringify(ranked.error || {}));
+
+  const minimalRankReferences = {
+    behaviorRanking: ranked.value.rankingFingerprint,
+    behaviorActions: ranked.value.rankedActions.map((entry) => entry.actionId)
+  };
+  assert.deepEqual(Object.keys(minimalRankReferences).sort(), ['behaviorActions', 'behaviorRanking']);
+  assert.equal(JSON.stringify(minimalRankReferences).includes('rankReason'), false,
+    'controller references retain identity only, not a second persisted rank projection');
+  assert.equal(JSON.stringify(minimalRankReferences).includes('directAuthority'), false);
+  assert.equal(JSON.stringify(fixtureState.localStorage.snapshot()).includes(ranked.value.rankingFingerprint), false,
+    'the immutable rank result is derived and must not become a second durable personal store');
+
+  const controllerState = JSON.parse(JSON.stringify(api.createEmptyControllerPersonalState()));
+  controllerState.activeIdentities = minimalRankReferences;
+  fixtureState.controller.controllerPersonalState = controllerState;
+  const publicBefore = fixtureState.localStorage.getItem('rlData');
+  const cleared = api.clearAllPersonalData({
+    store: fixtureState.store,
+    storageAdapters: {
+      localStorage: fixtureState.localStorage,
+      sessionStorage: fixtureState.sessionStorage
+    },
+    controller: fixtureState.controller,
+    publicAssetReader: { readAll: () => ({ watchlist: '["SPY"]', tools: '[{"id":"portfolio-survival-allocation-lab"}]' }) },
+    confirmation: 'CLEAR ALL LOCAL DATA',
+    expectedGeneration: committed.value.workspace.generation,
+    now: '2026-07-15T16:00:00.000Z',
+    policy
+  });
+  assert.equal(cleared.ok, true, JSON.stringify(cleared.error || {}));
+  assert.equal(cleared.value.status, 'cleared');
+  assert.deepEqual(fixtureState.controller.controllerPersonalState, api.createEmptyControllerPersonalState());
+  assert.equal(JSON.stringify(fixtureState.controller.controllerPersonalState).includes(ranked.value.rankingFingerprint), false);
+  assert.equal(JSON.stringify(fixtureState.localStorage.snapshot()).includes(actionId.value), false);
+  assert.equal(fixtureState.localStorage.getItem('rlData'), publicBefore,
+    'the public generic cache remains byte-identical while every personal identity and rank reference clears');
+});
+
+test('Adversarial: full personal clear detects undeclared keys live state and arbitrary residue', () => {
+  const { api, policy } = loadRuntime();
+  const secret = 'SCOPE17-ADVERSARIAL-PRIVATE-' + Date.now();
+
+  const undeclaredKey = scope17ClearFixture(api, policy, {
+    local: { rlPortfolioUndeclaredV1: secret }
+  });
+  const undeclaredResult = api.clearAllPersonalData({
+    store: undeclaredKey.store,
+    storageAdapters: { localStorage: undeclaredKey.localStorage, sessionStorage: undeclaredKey.sessionStorage },
+    controller: undeclaredKey.controller,
+    publicAssetReader: { readAll: () => ({ watchlist: '[]', tools: '[]' }) },
+    confirmation: 'CLEAR ALL LOCAL DATA',
+    expectedGeneration: undeclaredKey.committed.value.workspace.generation,
+    now: '2026-07-15T14:05:00.000Z',
+    policy
+  });
+  assert.equal(undeclaredResult.ok, false);
+  assert.equal(undeclaredResult.error.code, 'P008-CLEAR-UNDECLARED');
+  assert.equal(JSON.stringify(undeclaredResult).includes(secret), false);
+
+  const liveOnly = scope17ClearFixture(api, policy, {
+    controller: { liveOnlyCategory: { private: secret } }
+  });
+  const liveOnlyResult = api.clearAllPersonalData({
+    store: liveOnly.store,
+    storageAdapters: { localStorage: liveOnly.localStorage, sessionStorage: liveOnly.sessionStorage },
+    controller: liveOnly.controller,
+    publicAssetReader: { readAll: () => ({ watchlist: '[]', tools: '[]' }) },
+    confirmation: 'CLEAR ALL LOCAL DATA',
+    expectedGeneration: liveOnly.committed.value.workspace.generation,
+    now: '2026-07-15T14:06:00.000Z',
+    policy
+  });
+  assert.equal(liveOnlyResult.ok, false);
+  assert.equal(liveOnlyResult.error.code, 'P008-CLEAR-UNDECLARED');
+  assert.equal(JSON.stringify(liveOnlyResult).includes(secret), false);
+
+  const residue = scope17ClearFixture(api, policy, { retainController: 'displayState' });
+  const residueResult = api.clearAllPersonalData({
+    store: residue.store,
+    storageAdapters: { localStorage: residue.localStorage, sessionStorage: residue.sessionStorage },
+    controller: residue.controller,
+    publicAssetReader: { readAll: () => ({ watchlist: '[]', tools: '[]' }) },
+    confirmation: 'CLEAR ALL LOCAL DATA',
+    expectedGeneration: residue.committed.value.workspace.generation,
+    now: '2026-07-15T14:07:00.000Z',
+    policy
+  });
+  assert.equal(residueResult.ok, false);
+  assert.equal(residueResult.error.code, 'P008-CLEAR-PARTIAL');
+  assert.equal(residueResult.value.status, 'partial');
+  assert.equal(residueResult.value.categoryResults.some((entry) => entry.categoryId === 'controller:displayState' && entry.empty === false), true);
+  assert.equal(JSON.stringify(residueResult).includes(secret), false);
+
+  const confirmation = scope17ClearFixture(api, policy);
+  const confirmationResult = api.clearAllPersonalData({
+    store: confirmation.store,
+    storageAdapters: { localStorage: confirmation.localStorage, sessionStorage: confirmation.sessionStorage },
+    controller: confirmation.controller,
+    publicAssetReader: { readAll: () => ({ watchlist: '[]', tools: '[]' }) },
+    confirmation: 'clear all local data',
+    expectedGeneration: confirmation.committed.value.workspace.generation,
+    now: '2026-07-15T14:08:00.000Z',
+    policy
+  });
+  assert.equal(confirmationResult.ok, false);
+  assert.equal(confirmationResult.error.code, 'P008-CLEAR-CONFIRMATION');
 });

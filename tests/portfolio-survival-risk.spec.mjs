@@ -25,7 +25,7 @@ test.afterAll(async () => {
 const SYMBOLS = ['MSFT', 'BND'];
 
 async function openLab(page) {
-  const response = await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#workspace`);
+  const response = await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#brief`);
   expect(response?.status(), 'the Risk X-Ray host page must be served').toBe(200);
   await expect(page.locator('#workspaceTabBrief')).toHaveAttribute('aria-selected', 'true');
 }

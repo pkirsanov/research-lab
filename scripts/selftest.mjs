@@ -24662,6 +24662,143 @@ try {
     + surtaxModuleFiles.length + ' module(s), ' + surtaxRuleLiterals.size + ' rule literal(s), '
     + surtaxNameTokens.length + ' name token(s); shipped findings: ' + (surtaxShipped.join(', ') || 'none') + ')');
 
+  /* TP-02-24. The Fixture Input Completion Register, mechanized. The row set is read out of the
+     scope artifact rather than restated here, so a row added, a file renamed or a declared value
+     changed in planning moves this assertion with it instead of leaving it asserting a register
+     that no longer exists. */
+  const registerScopeSource = read('specs/022-federal-preferential-and-state-income-tax/scopes/'
+    + '02-net-investment-income-and-additional-medicare-tax/scope.md');
+  const registerSection = (registerScopeSource.split('## Fixture Input Completion Register')[1] || '')
+    .split('\n## ')[0];
+  const registerRows = registerSection.split('\n')
+    .filter((line) => /^\|/.test(line) && line.indexOf('| --- |') < 0 && line.indexOf('| Helper |') < 0)
+    .map((line) => line.split('|').slice(1, -1).map((cell) => cell.trim()));
+  const registerFiles = [...new Set(registerRows.map((row) => row[1].replace(/`/g, '')))].sort();
+  const registerSelftestRows = registerRows.filter((row) => row[1].indexOf('selftest') >= 0);
+  /* FIC-6 closes the register, so the row count is part of the conformance claim rather than an
+     incidental number: a later scope adding a row fails here and returns the finding to planning. */
+  const registerShapeHolds = registerRows.length === 4
+    && registerRows.every((row) => row[2] === 'both' && row[3] === '`0`')
+    && JSON.stringify(registerFiles) === JSON.stringify(['scripts/selftest.mjs', 'tests/lifetime-tax.support.mjs']);
+
+  const registerFileSource = read('scripts/selftest.mjs');
+  const ownGroupMarker = 'Feature 022 Scope 02: threshold surtaxes and declared tax legs (START)';
+  const registerRegion = registerFileSource.slice(0, registerFileSource.indexOf(ownGroupMarker));
+  const registerSupportSource = read('tests/lifetime-tax.support.mjs');
+  const registerSources = {
+    'scripts/selftest.mjs': registerFileSource,
+    'tests/lifetime-tax.support.mjs': registerSupportSource
+  };
+
+  /* Each named row is proved on its own, so a helper that lost its completion fails BY NAME
+     rather than hiding behind the file-wide sweep below. Each body is bounded by its own closing
+     marker, because a fixed character window silently truncated the browser helper before its
+     second field and reported a miss that was not there. The prose row is the Feature 021 Scope
+     02 settlement group, held by that group's own marker. */
+  const REGISTER_HELPER_PROOFS = {
+    'curveWorkspace': {
+      file: 'scripts/selftest.mjs', at: 'const curveWorkspace = ', end: '\n  };',
+      needs: ['investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;',
+        'wageBasis.medicareWagesAndSelfEmploymentIncome = 0;']
+    },
+    'strategyWorkspace': {
+      file: 'scripts/selftest.mjs', at: 'const strategyWorkspace = ', end: '\n  };',
+      needs: ['investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;',
+        'wageBasis.medicareWagesAndSelfEmploymentIncome = 0;']
+    },
+    'declareOrdinaryHousehold': {
+      file: 'tests/lifetime-tax.support.mjs', at: 'export async function declareOrdinaryHousehold',
+      end: '\n}',
+      needs: ["page.fill('#inputOtherNetInvestmentIncome'", "page.fill('#inputMedicareWageBasis'",
+        "? '0' :"]
+    }
+  };
+  const registerNamedHelpers = registerRows
+    .map((row) => (/^`(.+)`$/.exec(row[0]) || [])[1])
+    .filter((name) => name !== undefined);
+  const registerHelperMisses = [];
+  registerNamedHelpers.forEach((name) => {
+    const proof = REGISTER_HELPER_PROOFS[name];
+    if (proof === undefined) { registerHelperMisses.push(name + ':unmapped'); return; }
+    const source = registerSources[proof.file];
+    const at = source.indexOf(proof.at);
+    const closes = at < 0 ? -1 : source.indexOf(proof.end, at);
+    if (at < 0 || closes < 0) { registerHelperMisses.push(name + ':not-found'); return; }
+    const body = source.slice(at, closes);
+    proof.needs.forEach((needle) => {
+      if (body.indexOf(needle) < 0) registerHelperMisses.push(name + ':missing ' + needle);
+    });
+  });
+  const registerProseRegion = registerRegion.slice(
+    registerRegion.indexOf('Feature 021 Scope 02: deterministic annual federal computation'));
+  const registerProseRowHolds = registerProseRegion.length > 0
+    && registerProseRegion.indexOf('investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;') >= 0
+    && registerProseRegion.indexOf('wageBasis.medicareWagesAndSelfEmploymentIncome = 0;') >= 0;
+
+  /* FIC-4 across the whole register file, not only the named rows: every completion applied to a
+     fixture the register governs must declare exactly `0`. A workspace produced by CLONING an
+     already-completed fixture is not a register completion — it is a probe household this feature
+     created, and `wageBearingL6` is the live example. The exemption is POSITIONAL, not by name: a
+     first draft exempted every identifier ever bound to a clone anywhere in the file, which made
+     the common name `workspace` globally exempt and let a mutated register completion pass this
+     clause. A site is exempt only when the NEAREST preceding binding of that identifier is a
+     clone, so a builder constructing from createEmptyWorkspace() is always governed. */
+  const registerCompletionSites = registerRegion.match(
+    /\b[A-Za-z0-9_$]+\.(?:investmentIncomeBasis\.otherOrdinaryNetInvestmentIncome|wageBasis\.medicareWagesAndSelfEmploymentIncome)\s*=\s*[^;]+;/g) || [];
+  const registerNonZero = [];
+  let registerScanFrom = 0;
+  registerCompletionSites.forEach((site) => {
+    const at = registerRegion.indexOf(site, registerScanFrom);
+    registerScanFrom = at + site.length;
+    const parts = /^([A-Za-z0-9_$]+)\.[^=]+=\s*([^;]+);$/.exec(site);
+    if (parts === null) { registerNonZero.push(site); return; }
+    if (parts[2].trim() === '0') return;
+    const bindings = registerRegion.slice(0, at).match(new RegExp('\\b' + parts[1]
+      + '\\s*=\\s*(?:JSON\\.parse\\(JSON\\.stringify\\(|RLTAXWORKSPACE\\.createEmptyWorkspace)', 'g')) || [];
+    const nearest = bindings.length > 0 ? bindings[bindings.length - 1] : '';
+    if (nearest.indexOf('JSON.parse') < 0) registerNonZero.push(site);
+  });
+
+  /* FIC-5. One fixture household keeps both bases `null` and must refuse on each leg AND on the
+     total. Completing every fixture would leave the refusal path unexercised, which is the
+     vacuity failure this clause exists to prevent. */
+  const registerNullHousehold = surtaxWorkspace('married-filing-jointly', 500000, 60000, 0, 0);
+  registerNullHousehold.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = null;
+  registerNullHousehold.wageBasis.medicareWagesAndSelfEmploymentIncome = null;
+  const registerNullSettled = SURTAX.computeAnnualFederalTax(registerNullHousehold, surtaxPack);
+
+  /* FIC-4's byte-identity clause, at runtime rather than by inspection. The same household is
+     settled twice against the UNMODIFIED Feature 021 pack: once with both bases undeclared — the
+     literal state of every fixture built before this scope existed — and once completed at zero.
+     Every stage Feature 021 published must be byte-identical, so a completion that moved a settled
+     figure fails here instead of having to be noticed by eye. The stage set is derived from the
+     settlement's own record with this scope's two stages removed, so a stage added later is
+     covered without editing a list. */
+  const registerPreCompletion = SURTAX.computeAnnualFederalTax(registerNullHousehold, feature021Pack);
+  const registerPostCompletion = SURTAX.computeAnnualFederalTax(
+    surtaxWorkspace('married-filing-jointly', 500000, 60000, 0, 0), feature021Pack);
+  const registerFeature021Stages = Object.keys(registerPreCompletion.stages)
+    .filter((stageId) => stageId !== 'CO-11' && stageId !== 'CO-12').sort();
+  const registerStageIdentity = registerFeature021Stages.every((stageId) =>
+    JSON.stringify(registerPreCompletion.stages[stageId])
+      === JSON.stringify(registerPostCompletion.stages[stageId]));
+
+  assert(registerShapeHolds
+    && registerNamedHelpers.length === 3
+    && registerHelperMisses.length === 0
+    && registerProseRowHolds
+    && registerCompletionSites.length >= registerSelftestRows.length * 2
+    && registerNonZero.length === 0
+    && codeOfSurtax(registerNullSettled.netInvestmentIncomeTax) === 'RLTAX-INPUT-INCOMPLETE'
+    && codeOfSurtax(registerNullSettled.additionalMedicareTax) === 'RLTAX-INPUT-INCOMPLETE'
+    && codeOfSurtax(registerNullSettled.totalFederalTax) === 'RLTAX-INPUT-INCOMPLETE'
+    && registerFeature021Stages.length >= 8
+    && registerStageIdentity,
+  'TP-02-24: the Fixture Input Completion Register read from the scope artifact carries four rows over two files each declaring both bases at 0; every named helper is found and proven to declare both; every completion site the register governs declares exactly 0, with only clone-borne probe households exempt and only by position; one fixture household keeps both bases null and is refused RLTAX-INPUT-INCOMPLETE on each leg and on the total; and against the unmodified Feature 021 pack every stage that feature published is byte-identical before and after completion ('
+    + registerCompletionSites.length + ' completion site(s), ' + registerFeature021Stages.length
+    + ' Feature 021 stage(s), misses: ' + (registerHelperMisses.join(', ') || 'none')
+    + ', non-zero: ' + (registerNonZero.length || 'none') + ')');
+
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 threshold surtax group threw): ' + e.message); }
 /* ---------- Feature 022 Scope 02: threshold surtaxes and declared tax legs (END) ---------- */
 

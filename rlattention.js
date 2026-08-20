@@ -936,6 +936,9 @@
     /* exported so the authoring instruction can be RENDERED from the same frozen array
        checkVerb refuses on, rather than keeping a second copy that drifts. */
     RESEARCH_VERBS: RESEARCH_VERBS,
+    /* exported so the authoring instruction can render the headline cap from the SAME
+       frozen limit checkHeadline refuses on, rather than restating the number. */
+    LIMITS: LIMITS,
     TERMINAL_OUTCOME_CLASSES: TERMINAL_OUTCOME_CLASSES,
     REFUSAL_CODES: REFUSAL_CODES,
     resolveDecisionWindow: resolveDecisionWindow,

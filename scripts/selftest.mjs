@@ -33,6 +33,7 @@ import {
   attentionCardBudgetInstruction,
   attentionExpiryFormatInstruction,
   attentionSubjectMenuInstruction,
+  attentionHeadlineCapInstruction,
   attentionSubjectUniquenessInstruction,
   attentionVerbContractInstruction,
   findAttentionVerbInstructionGaps,
@@ -3068,6 +3069,22 @@ try {
   /* No "holds no second copy" rule here, for the reason the authored keys carry none: the lane
      legitimately asks for a rationale, an escalation trigger and an invalidation in prose, so
      those words must appear. What must not drift is the rendered FIELD SET, asserted above. */
+
+  /* ── and the HEADLINE CAP, the last hardcoded number in the ask ──────────────────────────────
+     The lane said "a headline of at most 120 characters" as a literal. Correct the day it was
+     written and silently wrong the moment LIMITS.headlineMaxChars moves - the same drift the
+     other rendered contracts close. Reading the authoritative limit is the OPPOSITE of the
+     second copy the build-step guard bans, so that guard now bans an ASSIGNMENT rather than any
+     mention: the one form that cannot drift is permitted, the form that creates drift is not. */
+  const renderedCap = attentionHeadlineCapInstruction();
+  const enforcedCap = (await import('node:module')).createRequire(import.meta.url)('../rlattention.js').LIMITS.headlineMaxChars;
+  assert(new RegExp('\\b' + enforcedCap + '\\b').test(renderedCap),
+    'the headline instruction states the cap checkHeadline actually refuses on (' + enforcedCap + ')');
+  assert(!/\b120\b/.test(signalsInstruction),
+    'the signals lane holds no hardcoded headline number; it renders the cap from rlattention.js');
+  assert(/import\s*\{[^}]*attentionHeadlineCapInstruction[^}]*\}\s*from\s*'\.\/build-attention-items\.mjs'/.test(laneSource)
+    && signalsInstruction.includes('${attentionHeadlineCapInstruction()}'),
+    'the signals lane renders the headline cap from the composer instead of restating a number');
 
   /* ── and the per-CARD budget, which is the one that discards the whole brief ──────────────────
      The 03:30 EDT run composed two complete items and published none of them: attention[0]
@@ -8671,7 +8688,7 @@ try {
   const buildSource = read('scripts/build-attention-items.mjs');
   assert(buildSource.includes('RLATTN.buildAttentionItem'),
     'the build step composes through rlattention.js rather than assembling an envelope itself');
-  assert(!/headlineMaxChars|DECISION_WINDOWS\s*=/.test(buildSource),
+  assert(!/headlineMaxChars\s*[:=][^=]|DECISION_WINDOWS\s*=/.test(buildSource),
     'the build step restates no rule that already lives in rlattention.js');
 
   /* a refused candidate is recorded, never defaulted into shape. */

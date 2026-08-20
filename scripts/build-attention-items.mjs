@@ -75,6 +75,24 @@ export const AUTHORED_JUDGEMENT_KEYS = Object.freeze([
 ]);
 
 /**
+ * The headline cap, rendered from the limit `checkHeadline` refuses on.
+ *
+ * The lane stated "at most 120 characters" as a hardcoded literal - correct on the
+ * day it was written and silently wrong the moment LIMITS.headlineMaxChars moves,
+ * which is the same drift the other rendered contracts exist to close. Reading the
+ * authoritative value is the OPPOSITE of the second copy the sibling guard bans:
+ * that guard now bans an assignment rather than any mention, so the one form that
+ * cannot drift is permitted and the form that creates drift still is not.
+ */
+export function attentionHeadlineCapInstruction() {
+  const cap = RLATTN.LIMITS && RLATTN.LIMITS.headlineMaxChars;
+  if (!Number.isFinite(cap)) {
+    throw new Error('RLATTN-HEADLINE-CONTRACT: the certified headline limit is unreadable');
+  }
+  return `A headline over ${cap} characters is refused, so keep every headline within it.`;
+}
+
+/**
  * The verb sentence handed to the authoring lane, rendered from the SAME frozen
  * array `rlattention.js` refuses on.
  * `verb` is a closed vocabulary, and the lane was told the field existed but

@@ -511,6 +511,13 @@ Scenario SCN-022-010 — every module file is byte-identical to its Scope 03 sta
 proving California required no engine edit.
 Command: `node scripts/selftest.mjs` plus a path-scoped status check
 
+Green. The path-scoped half of this row is the object-hash derivation recorded in
+full under [Change Boundary](#change-boundary): all five engine modules compare
+IDENTICAL at the creation commit, at `HEAD` and in the working tree, with a live
+negative control, and no commit since the route was created has touched a module
+or either protected pack. The suite half ran green in the same session at
+`3106 passed, 0 failed`.
+
 ### TP-04-14
 
 Scenario SCN-022-010 — `unsupportedFeatures[]` is non-empty and no result is
@@ -680,10 +687,83 @@ outside the public site.
 
 ## Change Boundary
 
-Filled at execution. Holds the path-scoped `git status` proving every excluded
-path is byte-identical — including **every module file**, the federal pack and the
-Florida pack. Any module edit that appeared necessary is recorded here as a
-finding routed back to Scope 03, not applied in this scope.
+The path-scoped proof that every excluded path is byte-identical — every module
+file, the federal pack and the Florida pack.
+Command: a blob-hash comparison plus a path-scoped `git log` and `git status`
+
+**What the derivation covers, stated plainly.** The row asks for identity against
+"its Scope 03 state". Scope 03 has no distinct end commit to diff against: the
+whole lifetime-tax route — every engine module, the federal pack, the Florida
+pack, the California pack and the page — arrived in the single feature-family
+creation commit `b9d92a3f1`, and every commit since is evidence and test work.
+The window used here is therefore **creation commit → `HEAD` → working tree**,
+which strictly contains the Scope 03 → Scope 04 window. Identity across the wider
+window implies identity across the narrower one, so this is a stronger claim than
+the row asks for, not a substitute for it.
+
+The comparison is by object hash rather than by a `git status` that could be
+satisfied by a file merely being committed:
+
+```text
+=== blob identity: creation commit vs HEAD vs working tree ===
+rltaxrules.js      206d8d81d7be  IDENTICAL
+rltax.js           3206e1516e43  IDENTICAL
+rltaxstate.js      c88a3ecde15d  IDENTICAL
+rltaxworkspace.js  6760587f2303  IDENTICAL
+rltaxstrategy.js   f4dbb4a9c8dc  IDENTICAL
+=== negative control: a file that DID change proves the comparator is live ===
+scripts/selftest.mjs DIFFERS as expected — comparator is live
+```
+
+Each module is compared at three points — the creation commit, `HEAD`, and the
+working tree via `git hash-object` — so a change that was made and then committed,
+or made and left uncommitted, is equally visible. The comparator carries its own
+negative control: run against `scripts/selftest.mjs`, which every scope appends
+to, it reports `DIFFERS`. A comparator that reported `IDENTICAL` for everything
+would be indistinguishable from a broken one.
+
+The history agrees, over both the modules and the two packs this scope may not
+touch:
+
+```text
+=== commits AFTER the creation commit b9d92a3f1 touching any engine module ===
+ENGINE_COMMITS_END
+=== commits AFTER b9d92a3f1 touching the federal pack or the Florida pack ===
+PACK_COMMITS_END
+=== working-tree dirt on the modules and those packs ===
+MODULE_DIRT_END
+```
+
+All three queries returned nothing. No commit in the repository's history has
+touched `rltaxrules.js`, `rltax.js`, `rltaxstate.js`, `rltaxworkspace.js`,
+`rltaxstrategy.js`, `tax-rules/federal/` or `tax-rules/state/FL/` since the route
+was created, and none of them is dirty now.
+
+This scope's own commits confirm it from the other direction. Their entire
+non-spec footprint is one file, on the allowed-modified list, and appended to:
+
+```text
+=== scope 04 own commits: full non-spec footprint ===
+--- 2df769eaa ---
+--- 302258e8c ---
+scripts/selftest.mjs
+--- c3a8ca13f ---
+--- 8678ac6e7 ---
+--- 3b45bb09e ---
+--- ffa6e9610 ---
+SCOPE04_NONSPEC_FOOTPRINT_END
+=== 302258e8c append-only check on scripts/selftest.mjs ===
+24      0       scripts/selftest.mjs
+```
+
+Twenty-four insertions and zero deletions, which is the append-only claim decided
+rather than asserted.
+
+**No finding to route.** The row's second sentence asks that any edit which
+appeared necessary be recorded as a finding returned to Scope 03. No module edit
+was made and none was needed, so there is no such finding. That is the scope's
+structural claim holding: the Scope 03 contract carried California without an
+engine edit.
 
 ## Claim Boundary
 

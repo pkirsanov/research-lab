@@ -318,11 +318,24 @@ syntax error, a missing browser or an absent test does not satisfy RED.
     on a clone whose `sourceRef` dangles. TP-04-02 fell alone by name under a
     value-free probe that truncated the enumerator to the ordinary family and
     returned green under the identical command after an in-invocation revert.
-- [ ] No module file changed in this scope. Every module is byte-identical to its
+- [x] No module file changed in this scope. Every module is byte-identical to its
       Scope 03 state, proving the contract carried California without an engine
       edit. Any edit that appeared necessary is recorded as a finding routed back
       to Scope 03 rather than applied here.
   - **Phase:** implement · **Command:** a path-scoped status check over the excluded list · **Evidence:** `report.md#tp-04-13`, `report.md#change-boundary`
+  - **Evidence:** decided by object hash, not by a status check that a commit
+    could satisfy. All five engine modules compare IDENTICAL at three points —
+    the feature-family creation commit, `HEAD`, and the working tree via
+    `git hash-object` — and the comparator carries a negative control: run against
+    `scripts/selftest.mjs` it reports DIFFERS, so an all-IDENTICAL result is not a
+    broken comparator. The history agrees: no commit since the route was created
+    has touched any module, the federal pack or the Florida pack, and none is
+    dirty. This scope's six commits have a one-file non-spec footprint —
+    `scripts/selftest.mjs` at 24 insertions, 0 deletions, append-only and on the
+    allowed-modified list. Stated plainly: Scope 03 has no distinct end commit, so
+    the window used is creation-commit to working tree, which strictly contains
+    the Scope 03 to Scope 04 window. No module edit was needed, so there is no
+    finding to route back to Scope 03.
 - [ ] `unsupportedFeatures[]` is non-empty and no result is labelled a complete
       state tax.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-14`

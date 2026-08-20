@@ -1350,6 +1350,86 @@ The failure message's trailing list is empty, which is the informative part:
 `missingMarkers23` was empty, so the row fell purely on the surviving literal
 rather than on a missing marker. The two halves are independently sensitive.
 
+## Browser And Gate Row Completion Session
+
+Probes 1 through 17 left intended-RED recorded for `TP-01-01` … `TP-01-17` and
+`TP-01-20`. This session works the remaining rows — the four browser rows
+`TP-01-18`, `TP-01-19`, `TP-01-21`, `TP-01-22`, the cumulative row `TP-01-23`
+and the three gate rows `TP-01-24` … `TP-01-26` — in the same shape as before:
+mutate so the row's own assertion fails, run the exact command the row names,
+revert inside the same shell invocation, and re-run that same command.
+
+Every mutation in this session is value-free by construction — an identifier, a
+comparison operator, one term of a local product, or a single allow-list member
+— so a slipped revert could not have disclosed a household figure. No two probes
+were ever live at once, and each revert was verified before the next opened.
+
+### Probe 18 — same-command RED and GREEN for TP-01-18
+
+`TP-01-18` pins that a missing household declaration and an unretrieved statutory
+rule refuse *differently*, and that the separation is carried by contract shape
+rather than by message text. The row states that explicitly: a different code and
+a different domain prefix, so a copy edit to either message cannot collapse one
+into the other.
+
+The domain prefix is therefore the exact thing to falsify, and it takes one
+identifier. Collapsing the assessment domain onto the regime domain leaves both
+refusals raised, both codes intact and both messages unchanged — only the prefix
+separation goes:
+
+```js
+   function undeclaredMember(member, regimeId) {
+-    return rules.unavailable("RLTAX-INPUT-INCOMPLETE", "property-assessment:" + member,
++    return rules.unavailable("RLTAX-INPUT-INCOMPLETE", "property-regime:" + member,
+```
+
+RED:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-001 a missing declaration and an unretrieved rule refuse differently and neither shows a zero" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✘  1 [system-chrome] › tests/lifetime-tax-property.spec.mjs:70:1 › Regression: SCN-023-001 a missing declaration and an unretrieved rule refuse differently and neither shows a zero (914ms)
+
+  1) [system-chrome] › tests/lifetime-tax-property.spec.mjs:70:1 › Regression: SCN-023-001 a missing declaration and an unretrieved rule refuse differently and neither shows a zero
+
+    Error: expect(received).toMatch(expected)
+
+    Expected pattern: /^property-assessment:/
+    Received string:  "property-regime:assessedValue"
+
+    > 80 |   expect(declarationDomain).toMatch(/^property-assessment:/);
+         |                             ^
+
+  1 failed
+RED_EXIT=1
+```
+
+Reverted inside the same shell invocation, revert verified, same command again:
+
+```
+$ git checkout -- rltaxproperty.js && git status --short -- rltaxproperty.js
+revert_rc=0
+STATUS_EMPTY_ABOVE
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-001 a missing declaration and an unretrieved rule refuse differently and neither shows a zero" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/lifetime-tax-property.spec.mjs:70:1 › Regression: SCN-023-001 a missing declaration and an unretrieved rule refuse differently and neither shows a zero (850ms)
+
+  1 passed (1.9s)
+GREEN_EXIT=0
+```
+
+The test failed *by name* rather than erroring out of the file, and it failed on
+the prefix clause specifically — the code assertion on line 78 passed first, so
+`RLTAX-INPUT-INCOMPLETE` was still raised and still named `assessedValue`. That
+is the informative part: the row does not lean on the code alone. Had the two
+refusals been separated only by their code, this mutation would have gone
+undetected, and the row proves it would not.
+
 ## Change Boundary
 
 Command: a path-scoped status check over the excluded list.

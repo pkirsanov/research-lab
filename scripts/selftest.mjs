@@ -15266,6 +15266,41 @@ try {
     && californiaSettlement.completeStateTax === false,
   'TP-04-14: the California coverage boundary names every provision the pack does not carry, including each unretrieved figure, and no result is labelled a complete state tax');
 
+  /* TP-04-14 strengthened. The clause above reads the completeness label on ONE settlement, and
+     the California pack refuses, so it only ever reaches the refusing return. The label is read
+     here on all three returns the state module has — refusing, sourced-zero and resolving — so a
+     build that labels any one of them complete is caught. The required boundary ids are derived
+     from the pack's own absent figures instead of being listed by hand, and the derivation is
+     proven able to fail on a clone whose boundary drops one of them. */
+  const floridaPackForCalifornia = JSON.parse(read('tax-rules/state/FL/2026.json'));
+  const resolvingFixturePack = JSON.parse(read('tax-rules/fixtures/state-contract-no-preferential-2999.json'));
+  function californiaResidentOf(jurisdiction, ordinary) {
+    const workspace = californiaWorkspace('single', ordinary);
+    workspace.residencyJurisdiction = jurisdiction;
+    return workspace;
+  }
+  const sourcedZeroSettlement = STATE.computeAnnualStateTax(californiaResidentOf('state:FL', 200000), floridaPackForCalifornia);
+  const resolvingSettlement = STATE.computeAnnualStateTax(californiaResidentOf('state:ZZ', 200000), resolvingFixturePack);
+  const requiredBoundaryIds = [];
+  statuses.forEach((status) => {
+    if (RULES.isAbsentFigure(californiaPack.standardDeductions[status])) requiredBoundaryIds.push('ca-standard-deduction-for-declared-year');
+    if (RULES.isAbsentFigure(californiaPack.ordinaryRateTables[status])) requiredBoundaryIds.push('ca-rate-schedule-for-declared-year');
+    if (RULES.isAbsentFigure(californiaPack.reliefMechanisms[0].amounts[status])) requiredBoundaryIds.push('ca-exemption-credit-amounts');
+  });
+  const boundaryIdsOwed = Object.keys(requiredBoundaryIds.reduce((seen, id) => { seen[id] = true; return seen; }, {}));
+  const boundaryCovers = (declared) => boundaryIdsOwed.every((id) => declared.indexOf(id) >= 0);
+  const boundaryDroppingOne = unsupportedIds.filter((id) => id !== boundaryIdsOwed[0]);
+  assert(RULES.isUnavailable(californiaSettlement.totalStateTax)
+    && RULES.isSourcedZero(sourcedZeroSettlement.totalStateTax)
+    && Number.isFinite(resolvingSettlement.totalStateTax.value)
+    && californiaSettlement.completeStateTax === false
+    && sourcedZeroSettlement.completeStateTax === false
+    && resolvingSettlement.completeStateTax === false
+    && boundaryIdsOwed.length === 3
+    && boundaryCovers(unsupportedIds)
+    && !boundaryCovers(boundaryDroppingOne),
+  'TP-04-14: every return the state module has — the refusing California settlement, a sourced-zero settlement and a settlement that resolves to a finite figure — reports the state tax as not complete, and the coverage boundary is required to name each absent-figure family the pack itself carries rather than a hand-listed set, with the requirement proven able to fail on a boundary that drops one of them');
+
   /* TP-04-13: no engine module was modified for California. */
   const engineModules = ['rltaxrules.js', 'rltax.js', 'rltaxstate.js', 'rltaxworkspace.js', 'rltaxcombined.js'];
   const californiaTokens = ['California', 'CALIFORNIA', '17041', '17043', '17039', 'state:CA', '1000000'];

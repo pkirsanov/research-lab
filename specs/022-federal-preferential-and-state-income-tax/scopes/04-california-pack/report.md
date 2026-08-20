@@ -103,6 +103,58 @@ other two stay absent would move the pack without closing the item, and the
 retrieved deduction is recorded here so the next session can transcribe it into
 the pack alongside the other two rather than re-retrieving it.
 
+#### A second attempt, in a later session — still not closed, for a stronger reason
+
+The two failing URLs were retried and both returned HTTP 404 again:
+
+- `https://www.ftb.ca.gov/forms/2025-California-Tax-Rates-and-Exemptions.html` — 404
+- `https://www.ftb.ca.gov/file/personal/tax-calculator-tables-rates.html` — 404
+
+A third candidate was tried and also failed:
+
+- `https://www.ftb.ca.gov/forms/2026/2026-540-instructions.html` — 404
+
+The Franchise Tax Board forms index at `https://www.ftb.ca.gov/forms/` was
+reachable, and from it a rate schedule **was** retrieved in full, at
+`https://www.ftb.ca.gov/forms/2025/2025-540-booklet.html`. So the earlier
+"the page 404s" account is now incomplete, and the real obstacle is sharper.
+
+**The retrieved schedule is for the wrong tax year, and no right-year schedule
+exists to retrieve.** The pack declares `packId: california-individual-income-tax-2026`.
+The booklet retrieved is titled *"2025 Instructions for Form 540"* and its
+schedule section is titled *"2025 California Tax Rate Schedules"*, carrying
+Schedules X, Y and Z. It is a prior-year publication, and its standard-deduction
+chart states the same `$5,706` / `$11,412` figures the 2026 Form 540-ES
+instructions already gave — which is the FTB carrying the prior year's figures
+forward for estimation, not publishing a declared-year schedule.
+
+The FTB says as much in its own words. The declared-year publication's worksheet
+line 4 directs the reader to *"Figure your tax on the amount on line 3 using the
+2025 tax table"*, and line 6a to *"Enter the exemption credit amount from the
+2025 instructions for Form 540"*. A publication that tells the filer to use the
+prior year's table is the authority stating that the declared year's table does
+not yet exist.
+
+Transcribing the 2025 bands into a pack that declares 2026 would be a figure
+taken from a different tax year and relabelled — exactly the substitution
+`BI-6` forbids when it requires that no figure be "recalled, derived from
+another figure, or taken from a secondary site", and exactly what FR-022-007
+forbids. It is not a retrieval of the declared year's figure, and no amount of
+proximity makes it one. **The pack was left unmodified for the second time.**
+
+The exemption credit amount was still not retrieved even for the prior year. The
+2025 booklet's Line 32 section states only the AGI limitation thresholds and the
+limitation worksheet; the credit amount itself is described as "the pre-printed
+dollar amount" carried on the Form 540 PDF rather than stated in the
+instructions text, so the HTML publication does not contain it.
+
+**Conclusion, unchanged in outcome and firmer in reason.** `BI-6` is not closed
+and its Definition of Done item stays open. The obstacle is not a broken link
+that a later session might route around; it is that the declared year's rate
+schedule and exemption credit are not published figures at the time of this
+session. The correct next step is a planning decision about the pack's declared
+year, not another retrieval attempt. That routing is recorded on the DoD row.
+
 ## Test Evidence
 
 ### TP-04-01

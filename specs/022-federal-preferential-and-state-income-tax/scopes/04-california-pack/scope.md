@@ -244,14 +244,24 @@ syntax error, a missing browser or an absent test does not satisfy RED.
       was recalled, derived from another figure, or taken from a secondary site.
   - **Phase:** implement · **Command:** the retrieval records in the pack plus `node scripts/selftest.mjs` · **Evidence:** `report.md#sourcing`
   - **Open because:** `BI-6` covers three figure groups and only one was
-    retrievable in this session. The Franchise Tax Board publication reached at
+    retrievable. The Franchise Tax Board publication reached at
     `https://www.ftb.ca.gov/forms/2026/2026-540-es-instructions.html` states the
     declared year's standard deduction, but it directs the reader to a prior-year
-    publication for both the rate schedule and the exemption credit amount, and
-    the two rate-and-exemption pages tried alongside it each returned HTTP 404.
-    The pack was deliberately left unmodified rather than banking one figure of
-    three. The retrieved deduction and both failed URLs are recorded verbatim at
-    `report.md#sourcing` so the next session transcribes rather than re-retrieves.
+    publication for both the rate schedule and the exemption credit amount.
+    A second session retried the two failing URLs — both 404 again — and did
+    reach a rate schedule via the FTB forms index, at the 2025 Form 540 booklet.
+    That does not close the row and makes the obstacle sharper: the pack declares
+    2026, the retrieved schedule is titled *2025 California Tax Rate Schedules*,
+    and the declared-year publication's own worksheet tells the filer to use the
+    2025 table and the 2025 exemption credit. A publication that directs the
+    reader to the prior year's table is the authority stating the declared year's
+    table is not yet published. Transcribing 2025 bands into a 2026 pack is a
+    figure relabelled across tax years, which `BI-6` and FR-022-007 both forbid.
+    The exemption credit was not retrieved even for the prior year — the
+    instructions carry only the AGI limitation, the amount being pre-printed on
+    the form PDF. The pack was left unmodified both times. **Routed to
+    `bubbles.plan`:** this row cannot be closed by another retrieval attempt; it
+    needs a decision about the pack's declared year. See `report.md#sourcing`.
 - [x] FR-022-027 is implemented: every unretrieved figure is an `AbsentFigure/v1`
       with a `missingSource` pointer and no numeric member, and its leg refuses
       while sibling legs still resolve.

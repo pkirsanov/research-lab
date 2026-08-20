@@ -37,6 +37,7 @@ import {
   attentionSubjectUniquenessInstruction,
   attentionVerbContractInstruction,
   findAttentionVerbInstructionGaps,
+  findMaskedTerms,
   findUnofferedTerms
 } from './build-attention-items.mjs';
 import { formatTestFileReachabilityFindings, validateTestFileReachability } from './validate-test-file-reachability.mjs';
@@ -3124,6 +3125,51 @@ try {
     'the predicate backing that example still rejects a bare date and an offset form, so the example is load-bearing');
   assert(signalsInstruction.includes('${attentionExpiryFormatInstruction()}'),
     'the signals lane renders the expiry format instead of leaving the instant shape to the author');
+
+  /* ── the pin that makes the coverage pins above able to fail at all ──────────────────────
+     Every coverage guard above is an EXISTENCE test: findUnofferedTerms asks whether a member
+     appears in the rendered instruction AT ALL. So a member the instruction also uses in its own
+     explanatory prose stays "offered" after it is dropped from the rendered list, and that guard
+     silently stops asserting anything for that member — the pin becomes decoration.
+
+     Measured under mutation, not supposed. Rendering `fields.slice(1)` from
+     attentionSubjectUniquenessInstruction dropped `headline` from the very set the author is
+     warned about, and the entire suite stayed green, because the sentence went on to say "not the
+     headline alone". Six sibling mutations went red; that one survived. Stating each member
+     exactly once is what keeps every coverage pin load-bearing, so it is asserted rather than
+     left to whoever next edits a sentence. */
+  [
+    ['verb vocabulary', RLATTN_RESEARCH_VERBS, attentionVerbContractInstruction()],
+    ['authored key', RLATTN_AUTHORED_KEYS, renderedKeys],
+    ['subject menu', RLATTN_WATCHLIST_SCOPE, renderedMenu],
+    ['uniqueness', GATE_MODULE.SUBJECT_RESOLUTION_FIELDS, renderedUniqueness],
+    ['card-budget', cardFields, renderedBudget]
+  ].forEach(([label, list, rendered]) => {
+    const restated = findMaskedTerms(list, rendered);
+    assert(restated.length === 0,
+      'the ' + label + ' instruction states each member exactly once, so dropping one from the rendered '
+      + 'list cannot be masked by the instruction\'s own prose (restated: ' + (restated.join(', ') || 'none') + ')');
+  });
+
+  // ADVERSARIAL — the exact sentence that shipped before this pin existed. A detector that cannot
+  // flag it proves nothing, because that sentence is precisely what let a dropped scanned field go
+  // unnoticed by a guard whose whole job was to notice.
+  assert(findMaskedTerms(GATE_MODULE.SUBJECT_RESOLUTION_FIELDS,
+    'Name exactly ONE watchlist ticker across ' + GATE_MODULE.SUBJECT_RESOLUTION_FIELDS.join(', ')
+    + ' combined, resolved by scanning all of those fields together, not the headline alone.')
+    .join(',') === 'headline',
+    'the pre-fix uniqueness sentence is reported as restating `headline`, which is the mask that made its coverage pin unfailable');
+
+  // and it must NOT fire on a single mention, or every instruction would be reported masked and the
+  // pin would be unpassable rather than unfailable.
+  assert(findMaskedTerms(['headline', 'rationale'], 'name the headline and the rationale once each').length === 0,
+    'a member stated once is not reported as restated');
+
+  // the boundary class is shared with findUnofferedTerms, so a hyphenated member is one term: two
+  // mentions of `scenario-test` are a restatement, and `scenario` inside it is not a mention.
+  assert(findMaskedTerms(['scenario-test'], 'use scenario-test, and scenario-test again').length === 1
+    && findMaskedTerms(['scenario'], 'use scenario-test and scenario-test').length === 0,
+    'restatement is counted on whole hyphenated members, matching the offered test\'s own boundary class');
 
   /* Staleness must be readable as a FACT, never inferred from an ambiguous count. The
      2026-08-02 brief read the symbol count (287 tickers) as a session count, published
@@ -24389,6 +24435,28 @@ try {
     'attachObserved supplies the observed half for a candidate that lacks one');
   assert(GATE.attachObserved([{ subject: 'NOPE' }], { tracked: {} }, policy1)[0].observed === undefined,
     'a candidate naming a subject Tier-A does not track gains no observation, so an unobservable subject is never dressed up as observed');
+
+  /* ── the module header's own promise, held against the input that broke it ────────────────────
+     "The snapshot is read lazily and defensively: a missing or unreadable snapshot yields no
+     observations rather than aborting the composer" — and loadSnapshotForGate hands over null to
+     mean exactly that. It aborted instead. The tracked map was a plain object, so
+     `tracked['__proto__']` answered with Object.prototype, which passes isPlainObject; that let a
+     candidate naming `__proto__` walk past the "is this a tracked subject?" guard and read
+     `snapshot.asOf` off null. Both halves are now closed — an inherited key is not a subject, and
+     the snapshot is narrowed before it is read — and either alone stops the throw, so both are
+     asserted rather than one. */
+  [undefined, null, 0, '', 'not-a-snapshot', []].forEach((snapshot) => {
+    ['__proto__', 'constructor', 'toString', 'hasOwnProperty', 'valueOf'].forEach((subject) => {
+      let threw = null; let out = null;
+      try { out = GATE.attachObserved([{ subject }], snapshot, policy1); } catch (e) { threw = e; }
+      assert(!threw && out && out[0] && out[0].observed === undefined,
+        'a missing snapshot yields no observation rather than aborting, even for a candidate whose subject is the inherited key `'
+        + subject + '` (snapshot ' + JSON.stringify(snapshot) + (threw ? '; threw: ' + threw.message : '') + ')');
+    });
+  });
+  assert(Object.getPrototypeOf(GATE.observableSubjects({ tracked: { FBTC: trackedFixture() } })) === null
+    && GATE.observableSubjects({ tracked: { FBTC: trackedFixture() } })['__proto__'] === undefined,
+    'the observable-subject map carries no inheritance, so nothing a snapshot never published can answer as a tracked subject');
 
   /* THE END-TO-END ROW, and the reason this packet exists. A lane-authored candidate
      carries judgement and no observation. Before R1 the composer refused every one of

@@ -770,3 +770,162 @@ Listed because an audit that sounds confident is exactly when a human should loo
    is the largest single change in this delivery and is absent from the evidence
    table.
 5. **Gate G136.** Unsigned by design. Nothing in this audit substitutes for it.
+
+---
+
+## Hardening Evidence
+
+**Agent:** `bubbles.harden`. **Date:** 2026-08-20. **Baseline:** `origin/main` at
+`b22ad673a`, read in an isolated detached worktree at `/private/tmp/rl-harden`.
+**Verdict:** `PARTIALLY_HARDENED` — one pin was unfailable and is now fixed and
+mutation-proven; one producer crash was reproduced and closed; one uncapped field
+is routed to the owner rather than decided here.
+
+### H1 — a pin that could not fail (FIXED)
+
+Each of the seven rendered contracts has a coverage pin and a consumption pin.
+All fourteen, plus the hardcoded-`120` ban and the card-budget cap, were mutated
+one at a time against the full suite. Fifteen of sixteen went red with their own
+named message. One survived:
+
+```
+SURVIVED  COVER:attentionSubjectUniquenessInstruction (drop one scanned field)
+          (exit=0, self-test: 3136 passed, 0 failed)
+```
+
+Rendering `SUBJECT_RESOLUTION_FIELDS.slice(1)` dropped `headline` from the set the
+author is warned about, and the suite stayed green. `findUnofferedTerms` is an
+EXISTENCE test, and the sentence went on to say *"not the headline alone"*, so the
+dropped member was still present and the guard reported the instruction complete.
+
+The mask was isolated by counting whole-term occurrences of every member of every
+list-backed contract — 35 members across five lists. Exactly one member occurred
+twice: `headline`, in the uniqueness instruction. The drop-element-0 mutation
+happened to land on it; the other six lists were never at risk.
+
+Fixed in two parts. The prose now reads *"not any one of them alone"*, which
+removes the mask and generalizes correctly. A shared `findMaskedTerms` predicate
+was added beside `findUnofferedTerms` — same `TERM_BOUNDARY` class, lookahead
+trailing boundary so `headline headline` counts as two — and the suite now asserts
+that every list-backed instruction states each member exactly once, so the hole
+cannot silently reopen.
+
+Re-mutation after the fix, all seven red with a named message:
+
+```
+RED-NAMED  COVER:uniqueness drop field[0] (headline) — the one that SURVIVED before
+           -> the uniqueness instruction names every field the subject resolver scans (unnamed: headline)
+RED-NAMED  COVER:uniqueness drop field[1]  -> (unnamed: rationale)
+RED-NAMED  COVER:uniqueness drop field[2]  -> (unnamed: escalationTrigger)
+RED-NAMED  COVER:uniqueness drop field[3]  -> (unnamed: invalidation)
+RED-NAMED  RE-MASK: put the masking prose back
+           -> the uniqueness instruction states each member exactly once (restated: headline)
+RED-NAMED  PIN-ITSELF: neuter findMaskedTerms so it can never report a restatement
+RED-NAMED  PIN-ITSELF: make findMaskedTerms fire on a single mention
+mutations=7 red-named=7 problems=0
+```
+
+The full sixteen-mutation suite then re-run: `mutations=16 red-named=16 problems=0`.
+
+### H2 — the producer aborted on a snapshot it promises to tolerate (FIXED)
+
+The module header states a missing or unreadable snapshot *"yields no observations
+rather than aborting the composer"*, and `loadSnapshotForGate` returns `null` to
+mean exactly that. It aborted instead:
+
+```
+FAIL no throw: undefined snapshot + subject __proto__ :: Cannot read properties of undefined (reading 'asOf')
+FAIL no throw: null snapshot      + subject __proto__ :: Cannot read properties of null (reading 'asOf')
+```
+
+`observableSubjects` built its map as a plain `{}`, so `tracked['__proto__']`
+answered with `Object.prototype`, which passes `isPlainObject`. That let a
+candidate naming `__proto__` walk past the "is this a tracked subject?" guard and
+read `snapshot.asOf` off `null`. Closed on both sides: the map is now
+null-prototype, and the snapshot is narrowed before it is read. Either alone stops
+the throw; reverting both restores it, which is how the pair was proven:
+
+```
+SURVIVED  revert the snapshot guard only        (self-test: 3175 passed, 0 failed)
+RED-NAMED revert the null-prototype map only    (self-test: 3174 passed, 1 failed)
+RED-NAMED revert BOTH (pre-fix state)           (self-test: 3172 passed, 3 failed)
+```
+
+The snapshot guard alone is therefore NOT independently falsifiable — it is
+unreachable while the prototype guard stands. It is kept as labelled defence in
+depth, not claimed as independently exercised.
+
+31 permanent assertions now pin this: a 6×5 matrix of degenerate snapshots against
+inherited-key subjects, plus the map's own lack of inheritance.
+
+### H3 — hostile-input results that were NOT defects
+
+- `attachObserved` produced observations for `levels: null`, `high52w: 0`,
+  `flags: "string"` and a circular snapshot. Correct: each carries a finite
+  `ma200Dist` that clears a declared band, and each correctly omitted the figure it
+  could not compute. The probe's expectation was wrong, and was replaced with the
+  module's own provenance invariant — every observation must trace to a finite OWN
+  reading in the snapshot, with `triggeredBy.value` equal to it. 297 checks, 0
+  failures.
+- A candidate carrying `__evil`, a forged `id`, a forged `deepLink` and a forged
+  `decisionWindow` publishes. Correct: `id`, `deepLink` and `decisionWindow` are all
+  overridden by the composer (verified: `attn-4517c9608a43c960`, `etf-momentum-lab.html`,
+  `morning`), and an unowned key surviving is the documented additive merge.
+- Items with a wrong or absent `contractVersion` publish as a clean
+  `decision-attention/v1` envelope, and the merge is correctly skipped so no forged
+  key rides along.
+- A throwing property getter on the snapshot does throw. Out of contract and
+  reported, not fixed: the snapshot is `JSON.parse` output, which carries no
+  accessors, and a blanket `try/catch` would hide real errors.
+- `findUnofferedTerms` reports an empty-string term as unoffered. Fail-safe, and
+  correct: an empty contract member is a broken contract.
+
+### H4 — `attention[].rationale` is bounded by nothing (ROUTED, not fixed)
+
+A 200,000-character `rationale` composes, validates and publishes:
+
+```
+rationale          published=1 refusal=(none) publishedLength=200000
+escalationTrigger  published=1 refusal=(none) -> validator: outputBudget: attention[0] is 200151 characters, over the declared per-card cap of 300
+invalidation       published=1 refusal=(none) -> validator: outputBudget: attention[0] is 200138 characters, over the declared per-card cap of 300
+```
+
+`headline` is capped by `checkHeadline`; `escalationTrigger` and `invalidation` are
+caught by the payload validator's per-card budget. `rationale` is caught by neither,
+yet `market-brief.html` renders it in the same `attn-body` container, by the same
+`attnField(body, "p", …)` call, immediately above the two fields that ARE measured.
+
+Not fixed here, because it is not a hardening decision. Adding
+`attention[].rationale` to `output-budget/v1.defaultVisibleFields` would refuse the
+live payload immediately — the one committed item measures 199 of 300 today and its
+rationale alone is 497 characters, which would put it at 696 — and the policy's own
+note forbids moving a cap inside a change that would otherwise fail against it.
+Choosing a cap is an owner decision, exactly as the detection bands are.
+
+**Owner decision required:** measure `rationale` and shorten the field, raise the
+per-card cap, or declare `rationale` intentionally unmeasured and say so in the
+policy note.
+
+### Commands and exit codes
+
+| Command | Exit | Result |
+|---|---|---|
+| `node scripts/selftest.mjs` (baseline, `b22ad673a`) | 0 | 3136 passed, 0 failed |
+| 16-contract mutation suite (before fix) | 1 | 15 red-named, **1 SURVIVED** |
+| mask enumeration over 35 members of 5 lists | 1 | 1 masked: `headline` in uniqueness |
+| `node scripts/selftest.mjs` (after fix) | 0 | 3175 passed, 0 failed |
+| 16-contract mutation suite (after fix) | 0 | 16 red-named, 0 problems |
+| 7-case re-mutation (per-member, re-mask, pin-itself) | 0 | 7 red-named, 0 problems |
+| producer hostile-input probe (297 checks) | 0 | 0 failures |
+| producer guard mutation (each, then both) | — | both-reverted reproduces the throw |
+| shared-matcher boundary probe (34 cases) | 1 | 33 ok; the 1 failure is a wrong expectation, documented in H3 |
+| composer hostile-candidate probe (42 cases) | 1 | 38 ok; 4 triaged in H3/H4 |
+
+### Not verified
+
+- Playwright-backed rows. A detached worktree has no `node_modules`; that is an
+  environmental limit, not a result, and nothing about them is claimed here.
+- `state.json` was deliberately NOT written. A concurrent session holds
+  uncommitted edits to it in the primary checkout, and writing a phase record from
+  this worktree would overwrite that work. The harden phase record is this section.
+

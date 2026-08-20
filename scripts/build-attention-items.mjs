@@ -113,20 +113,52 @@ export function attentionVerbContractInstruction() {
     + 'the publication gate refuses any other value, including an execution command.';
 }
 
+/* The one boundary class every rendered-instruction guard shares. It excludes
+   `-` on purpose: `\b` would find `scenario` inside `scenario-test` and report a
+   hyphenated value as offered when it never was. Named once so a vocabulary that
+   gains a hyphenated member cannot be checked correctly in one place and loosely
+   in another. */
+const TERM_BOUNDARY = '[^A-Za-z0-9-]';
+const escapeTerm = (term) => String(term).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 /**
  * The members of a contract vocabulary that a rendered instruction does NOT offer.
  *
- * Whole values are matched, never substrings, and the boundary class excludes
- * `-` on purpose: `\b` would find `scenario` inside `scenario-test` and report a
- * hyphenated value as offered when it never was. Every rendered-instruction
- * guard shares this one predicate so a vocabulary that gains a hyphenated member
- * cannot be checked correctly in one place and loosely in another.
+ * Whole values are matched, never substrings.
  */
 export function findUnofferedTerms(terms, instruction) {
   const text = typeof instruction === 'string' ? instruction : '';
   return (Array.isArray(terms) ? terms : []).filter(
-    (term) => !new RegExp(`(^|[^A-Za-z0-9-])${String(term).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^A-Za-z0-9-]|$)`).test(text)
+    (term) => !new RegExp(`(^|${TERM_BOUNDARY})${escapeTerm(term)}(${TERM_BOUNDARY}|$)`).test(text)
   );
+}
+
+/**
+ * The members a rendered instruction states MORE THAN ONCE.
+ *
+ * `findUnofferedTerms` is an EXISTENCE test, which is what makes it usable
+ * against prose — but it also means a member the instruction repeats in its own
+ * explanation stays "offered" after it is dropped from the rendered list. The
+ * coverage guard then reports the instruction complete and quietly asserts
+ * nothing for that member.
+ *
+ * Measured, not supposed. Rendering `SUBJECT_RESOLUTION_FIELDS.slice(1)` from
+ * `attentionSubjectUniquenessInstruction` - dropping `headline` from the very
+ * set the author is warned about - left the whole suite green, because the
+ * sentence went on to say "not the headline alone".
+ *
+ * The trailing boundary is a LOOKAHEAD rather than a consumed character: a
+ * consumed one counts `headline headline` as a single occurrence and would
+ * under-report the restatement it exists to find. The class itself is the same
+ * TERM_BOUNDARY the offered test uses, so the two predicates cannot disagree
+ * about what a boundary is.
+ */
+export function findMaskedTerms(terms, instruction) {
+  const text = typeof instruction === 'string' ? instruction : '';
+  return (Array.isArray(terms) ? terms : []).filter((term) => {
+    const found = text.match(new RegExp(`(^|${TERM_BOUNDARY})${escapeTerm(term)}(?=${TERM_BOUNDARY}|$)`, 'g'));
+    return (found ? found.length : 0) > 1;
+  });
 }
 
 /** The verbs the gate refuses on that a given instruction does NOT offer. */
@@ -221,7 +253,7 @@ export function attentionSubjectUniquenessInstruction() {
     throw new Error('RLATTN-SUBJECT-SCAN: the fields the subject resolver reads are unreadable');
   }
   return `Name exactly ONE watchlist ticker across ${fields.join(', ')} combined — the item's subject is `
-    + 'resolved by scanning all of those fields together, not the headline alone. A second watchlist '
+    + 'resolved by scanning all of those fields together, not any one of them alone. A second watchlist '
     + 'ticker anywhere among them makes the subject ambiguous, and an ambiguous item is refused whole '
     + 'rather than resolved to either ticker. To compare against another holding, name it in words '
     + 'instead of by ticker, or put the comparison in recommendations.';

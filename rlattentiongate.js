@@ -224,7 +224,12 @@
      Measured directly on 2026-08-19 before this was reverted. */
   function observableSubjects(snapshot) {
     var tracked = isPlainObject(snapshot) && isPlainObject(snapshot.tracked) ? snapshot.tracked : {};
-    var out = {};
+    /* NULL-prototype on purpose. A plain `{}` answers `tracked["__proto__"]` with
+       Object.prototype, which passes isPlainObject — so a candidate naming
+       `__proto__` as its subject was treated as a real tracked subject and read
+       on down the path. Nothing inherited is ever a watchlist symbol, so the map
+       carries no inheritance at all. */
+    var out = Object.create(null);
     Object.keys(tracked).forEach(function (k) { out[k] = tracked[k]; });
     return out;
   }
@@ -232,6 +237,17 @@
   function attachObserved(candidates, snapshot, policy, options) {
     if (!Array.isArray(candidates)) return [];
     var tracked = observableSubjects(snapshot);
+    /* The header promises a missing or unreadable snapshot yields no observations
+       rather than aborting the composer, and loadSnapshotForGate hands over null
+       to mean exactly that. Reading `snapshot.asOf` off it threw instead, which
+       is the one outcome the promise rules out, so the snapshot is narrowed to an
+       object once and read from that.
+       This is defence in depth and is honestly labelled as such: with the
+       null-prototype map above, nothing reaches this line holding a non-object
+       snapshot, so reverting this line alone leaves the suite green. Reverting
+       BOTH restores the throw. It stays because the safety of a local read should
+       not rest on a non-local invariant. */
+    var snap = isPlainObject(snapshot) ? snapshot : {};
     var opts = isPlainObject(options) ? options : {};
     return candidates.map(function (candidate) {
       if (!isPlainObject(candidate)) return candidate;
@@ -242,7 +258,7 @@
         subject: subject,
         tracked: tracked[subject],
         policy: policy,
-        observedAt: isNonEmptyString(snapshot.asOf) ? snapshot.asOf : null,
+        observedAt: isNonEmptyString(snap.asOf) ? snap.asOf : null,
         sourceId: opts.sourceId
       });
       if (!gate) return candidate;

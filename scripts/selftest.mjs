@@ -30,6 +30,7 @@ import {
   ATTENTION_RESEARCH_VERBS as RLATTN_RESEARCH_VERBS,
   AUTHORED_JUDGEMENT_KEYS as RLATTN_AUTHORED_KEYS,
   attentionAuthoredKeysInstruction,
+  attentionCardBudgetInstruction,
   attentionSubjectMenuInstruction,
   attentionVerbContractInstruction,
   findAttentionVerbInstructionGaps
@@ -3023,6 +3024,26 @@ try {
     'the subject menu offers every ticker the privacy check admits (unoffered: ' + unlistedSubjects.join(', ') + ')');
   assert(signalsInstruction.includes('${attentionSubjectMenuInstruction()}'),
     'the signals lane renders the eligible subject list from the composer instead of asking the author to recall it');
+
+  /* ── and the per-CARD budget, which is the one that discards the whole brief ──────────────────
+     The 03:30 EDT run composed two complete items and published none of them: attention[0]
+     measured 314 characters against a cap of 300, so the payload validator refused the whole
+     narrative and the publish fell back to Tier-A data only. Fourteen characters cost the brief.
+     The lane knew a HEADLINE limit and not the CARD limit, which sums four fields - it could
+     satisfy every field individually and still breach. Rendered from the committed policy so the
+     stated cap and the enforced cap are one number. */
+  const renderedBudget = attentionCardBudgetInstruction();
+  const budgetPolicy = JSON.parse(read('market-brief.config.json'))['output-budget/v1'];
+  const cardFields = (budgetPolicy.defaultVisibleFields || [])
+    .filter((field) => typeof field === 'string' && field.startsWith('attention[].'))
+    .map((field) => field.slice('attention[].'.length));
+  const unstatedFields = cardFields.filter((field) => !new RegExp('\\b' + field + '\\b').test(renderedBudget));
+  assert(unstatedFields.length === 0,
+    'the card-budget instruction names every field the cap measures (unnamed: ' + unstatedFields.join(', ') + ')');
+  assert(new RegExp('\\b' + budgetPolicy.decisionCardChars + '\\b').test(renderedBudget),
+    'the card-budget instruction states the enforced per-card cap of ' + budgetPolicy.decisionCardChars);
+  assert(signalsInstruction.includes('${attentionCardBudgetInstruction()}'),
+    'the signals lane renders the per-card budget from the committed policy instead of omitting it');
 
   /* Staleness must be readable as a FACT, never inferred from an ambiguous count. The
      2026-08-02 brief read the symbol count (287 tickers) as a session count, published

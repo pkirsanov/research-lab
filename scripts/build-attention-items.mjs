@@ -113,6 +113,28 @@ export function findAttentionVerbInstructionGaps(instruction) {
 export const ATTENTION_RESEARCH_VERBS = Object.freeze(RLATTN.RESEARCH_VERBS.slice());
 
 /**
+ * The per-card character budget, rendered from the committed output-budget policy.
+ *
+ * The 03:30 EDT run composed TWO complete items from real lane judgement and
+ * still published nothing: `attention[0]` measured 314 characters against a cap
+ * of 300, the payload validator refused the whole narrative, and the publish
+ * fell back to a Tier-A data-only refresh. Fourteen characters cost the entire
+ * brief. The lane was told a headline limit and never the CARD limit, which sums
+ * four fields — so it could satisfy every field individually and still breach.
+ */
+export function attentionCardBudgetInstruction() {
+  const policy = loadJson('market-brief.config.json')['output-budget/v1'];
+  const prefix = 'attention[].';
+  const fields = (policy.defaultVisibleFields || [])
+    .filter((field) => typeof field === 'string' && field.startsWith(prefix))
+    .map((field) => field.slice(prefix.length));
+  return `Across each attention item, ${fields.join(' plus ')} must total at most `
+    + `${policy.decisionCardChars} characters COMBINED, not each. An item over that cap fails the payload `
+    + 'budget and the whole narrative is discarded, so every other item is lost with it. Stay clearly under '
+    + 'the cap rather than close to it.';
+}
+
+/**
  * The eligible subjects, rendered from the SAME watchlist scope the privacy
  * check refuses on.
  *

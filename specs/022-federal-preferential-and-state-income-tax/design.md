@@ -1171,15 +1171,24 @@ An appended selftest assertion enforces `NFR-022-011` directly:
    for `SUP-022-` markers.
 2. Collect the distinct ids and assert each matches `SUP-022-(0[1-9]|1[0-9]|2[0-2])`.
 3. Assert no id appears that the ledger does not carry.
-4. Assert the delivered id set equals the set the completed scopes own. **Scope 01
+4. Assert the delivered id set against the ledger's own `Disposition` column,
+   read at run time rather than compared with a fixed list of ids. Every row
+   dispositioned `marker required` must be delivered; every row dispositioned
+   `marker forbidden` must carry no marker anywhere; a row may go unmarked only
+   when the ledger dispositions it `marker forbidden` or `marker pending`, and a
+   tolerated disposition is only valid when it carries a reason. **Scope 01
    owns 01, 02, 04, 05, 06, 07, 09, 11, 12, 13, 17 and 21 — twelve. Scope 02 owns
    03, 08, 10, 14, 15, 16, 18, 19 and 20 — nine, and additionally amends 04 and
-   09. Scope 03 owns 22 — one.** Scopes 04 and 05 own none and amend none. Twelve
-   plus nine plus one is twenty-two, and that total must equal the row count of
-   `spec.md`'s
+   09. Scope 03 owns 22 — one.** Twelve plus nine plus one is twenty-two, and that
+   total must equal the row count of `spec.md`'s
    [supersession ledger](spec.md#supersession-ledger) and the count its opening
    paragraph states. A disagreement between the three is a planning defect and
-   stops the scope that finds it.
+   stops the scope that finds it. Ownership and disposition are independent: a row
+   Scope 02 owns may still be dispositioned `marker forbidden` when another
+   feature displaced every clause it named, and that row is counted in the total
+   without ever being delivered. The tolerated set may never cover the whole
+   ledger, so a column that dispositioned every row away fails rather than passing
+   vacuously.
 5. Assert every marked region names its shape, so a replacement that silently
    became a fifth, unreviewed shape is visible.
 
@@ -1195,11 +1204,19 @@ test file only if this table places one of its owned markers there.
 
 | File | Scope 01 markers | Scope 02 markers | Scope 03 markers |
 | --- | --- | --- | --- |
-| `scripts/selftest.mjs` | 01, 02, 04, 05, 06, 11 | 03, 10, 14, 18, 20, and the 04 amendment | 22 |
+| `scripts/selftest.mjs` | 01, 02, 04, 05, 06, 11 | 03, 10, 14, 20, and the 04 amendment | 22 |
 | `tests/lifetime-tax-federal.spec.mjs` | 07, 21 | 15 | — |
 | `tests/lifetime-tax-foundation.spec.mjs` | 09, 12 | the 09 amendment | — |
 | `tests/lifetime-tax-marginal.spec.mjs` | 13 | 08 | — |
 | `tests/lifetime-tax-route.spec.mjs` | 17 | 16, 19 | — |
+
+SUP-022-18 appears in no cell. It is dispositioned `marker forbidden` in the
+ledger because `SUP-023-04` and `SUP-023-05` displaced every clause it named
+before this feature reached them, and a marker placed for it in
+`scripts/selftest.mjs` would attribute one replacement to two features. This
+table previously assigned it there; that assignment is withdrawn, and it does not
+narrow Scope 02's Change Boundary, which still reaches `scripts/selftest.mjs`
+through 03, 10, 14, 20 and the 04 amendment.
 
 `tests/lifetime-tax-conversion.spec.mjs` carries no marker and is opened by no
 scope. It stays in every scope's excluded list.

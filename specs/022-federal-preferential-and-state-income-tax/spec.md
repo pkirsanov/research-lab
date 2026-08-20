@@ -498,30 +498,49 @@ The
 table below records what that sweep examined and cleared, so a later reader can
 tell a cleared assertion from an unexamined one.
 
-| ID | Target | Owning scope | Amending scope | Protection traded for |
-| --- | --- | --- | --- | --- |
-| SUP-022-01 | `scripts/selftest.mjs` ~L11244 — `citedFigures.length === 8` | 01 | — | A pack-derived count plus full `ComponentSource` validity on every figure and every override |
-| SUP-022-02 | `scripts/selftest.mjs` ~L11461 — four preferential tables are value-free `AbsentFigure` | 01 | — | Present tables prove split-authority provenance; absent tables keep the original clause verbatim |
-| SUP-022-03 | `scripts/selftest.mjs` ~L11461 — `requiredUnsupportedIds` contains both surtax ids | 02 | — | A disjoint, exhaustive accounting between `unsupportedFeatures[]` and `taxLegs[]` |
-| SUP-022-04 | `scripts/selftest.mjs` ~L11861 — `noticeIds.length === 18` | 01 | 02 | Two-directional set identity between surfaced notices and pack entries |
-| SUP-022-05 | `scripts/selftest.mjs` ~L11781 — shipped pack plus a gain household refuses the total, `L4` not-evaluable | 01 | — | A valued, reconciling total for resolved statuses; the refusal rule moves onto a permanent fixture |
-| SUP-022-06 | `scripts/selftest.mjs` ~L12156 — gain curve and dividend curve both refuse | 01 | — | Exact crossings at every carried breakpoint plus gain/dividend curve identity; refusal retained on a fixture |
-| SUP-022-07 | `tests/lifetime-tax-federal.spec.mjs` L57-81 — gain-stacking expectations assume refusal | 01 | — | A quantitative stacking assertion derived from the pack, plus an explicit empty-state rule |
-| SUP-022-08 | `tests/lifetime-tax-marginal.spec.mjs` L96 — `Unavailable contributors: 14` and gain-curve refusal | 02 | — | Label/list agreement, pack-derived set identity, and positive proof the surtax moved rather than vanished |
-| SUP-022-09 | `tests/lifetime-tax-foundation.spec.mjs` L60-71 — contributor count 14 and absent-figure count 4 | 01 | 02 | Both counts derived from the pack; per-node quality clauses retained untouched |
-| SUP-022-10 | `scripts/selftest.mjs` ~L12070 (TP-03-07) — `unavailableContributors.length === 14` on the **shipped** curve pack, plus `requiredContributors` asserting the investment-income surtax is present | 02 | — | Pack-derived two-directional contributor-set identity plus the engine-side moved-versus-deleted proof |
-| SUP-022-11 | `scripts/selftest.mjs` ~L12416 (Feature 021 Scope 04 group) — `gainBearingComparison.federalTaxDifference` refuses with no `value` | 01 | — | A valued difference equal to an independent recomputation; the refusal moves onto the absent-table fixture |
-| SUP-022-12 | `tests/lifetime-tax-foundation.spec.mjs` L66-73 (SCN-021-002) — the gain household renders a visible refusal and zero valued-headline nodes | 01 | — | A valued headline that moves by the pack-implied amount; the refusal clauses retained verbatim on an absent-table branch |
-| SUP-022-13 | `tests/lifetime-tax-marginal.spec.mjs` L121 (SCN-021-009) — `#gainCurveBlock [data-rl-unavailable]` contains `RLTAX-THRESHOLD-UNAVAILABLE` | 01 | — | A rendered gain curve exact at every carried breakpoint and identical to the dividend curve; the refusal retained on a substituted absent-table pack |
-| SUP-022-14 | `scripts/selftest.mjs` ~L11803 (TP-02-05) — `legIds === 'L1,L2,L3,L4,L5'` and the five-leg `holds` claim | 02 | — | Ordered leg-set identity against the engine's own declaration, plus the `L6` exclusion clause |
-| SUP-022-15 | `tests/lifetime-tax-federal.spec.mjs` L108-111 (SCN-021-006) — `#reconciliationBody tr` `toHaveCount(5)` and the literal-bounded `holds` loop | 02 | — | A record-derived row count and a loop bounded by the rendered rows |
-| SUP-022-16 | `tests/lifetime-tax-route.spec.mjs` L80 (SCN-021-013) — `#reconciliationBody tr` `toHaveCount(5)` | 02 | — | The same record-derived row count, in the file that owns this rendering |
-| SUP-022-17 | `tests/lifetime-tax-route.spec.mjs` L82 (SCN-021-013) — `#sourceRecordList li` `toHaveCount(2)` | 01 | — | A pack-derived count, two-directional title identity, and the referrer guard extended from the first link to every link |
-| SUP-022-18 | `scripts/selftest.mjs` ~L12450 (TP-05-01) — `simpleFields.length === 7`, `powerLinkDetails.length === 9`, `powerLinkSections.length === 9` | 02 | — | Cross-artifact identity between the closed Simple list and the rendered Simple markup; every Simple-stays-decision-level clause retained verbatim |
-| SUP-022-19 | `tests/lifetime-tax-route.spec.mjs` L54-62 (SCN-021-013) — withheld-detail links `toHaveCount(9)` and the positional `links.nth(3)` focus expectation | 02 | — | Two-directional link/section identity and a selection by declared target instead of by ordinal |
-| SUP-022-20 | `scripts/selftest.mjs` ~L12327 (TP-03-05) — the ordinary curve's step-level list and the probe-WIDTH step selector | 02 | — | A pack-derived declared-edge set, a step selector keyed on the segment's own step-ness, and a labelling honesty clause over every probe-width segment |
-| SUP-022-21 | `tests/lifetime-tax-federal.spec.mjs` L132 (SCN-021-005) — `#power-rule-ledger` `toContainText('preferentialRateTables')` | 01 | — | The Power panel names the preferential schedule as a carried rule and renders its split authority, instead of an internal member name a reader never sees |
-| SUP-022-22 | `scripts/selftest.mjs` ~L11379 (TP-01-05) — `Object.keys(RLTAXRULES.RLTAX_CODES).length === 12` | 03 | — | A count derived from the module's own declaration, all twelve Feature 021 members named and asserted present, and the two added members named and asserted to be exactly the jurisdiction-axis pair |
+**The `Disposition` column is the marker check's tolerance, read at run time.**
+Every row carries exactly one of three dispositions, and the marker check derives
+its expectation from this column instead of pinning a literal list of ids:
+
+| Disposition | Meaning | What the marker check asserts |
+| --- | --- | --- |
+| `marker required` | The replacement is this feature's to deliver | The id **must** appear as a marker in one of the scanned files. A row that goes unmarked fails. |
+| `marker forbidden — <reason>` | Every clause the row named was displaced by another feature before this one reached it | The id **must not** appear as a marker anywhere. Attaching one would attribute a single replacement to two features, which is the double-count the marker discipline exists to prevent. |
+| `marker pending — <reason>` | The row is real, deliverable work that has not landed yet | The id **may** be absent or present. Its later delivery therefore shrinks the tolerated gap without falsifying the check. |
+
+A `marker forbidden` or `marker pending` disposition is only valid when it carries
+a reason after the em dash, so the column cannot be used to silence a failure by
+writing a bare token. The tolerated set may never cover the whole ledger: a
+disposition column that dispositioned every row away fails rather than passing
+vacuously. This is why the tolerance is a column and not a literal — the previous
+form compared the unmarked set with the fixed pair `SUP-022-18` and `SUP-022-19`,
+which turned red the moment either was legitimately delivered, so genuine work
+could not land without editing an assertion a different scope owns.
+
+| ID | Target | Owning scope | Amending scope | Disposition | Protection traded for |
+| --- | --- | --- | --- | --- | --- |
+| SUP-022-01 | `scripts/selftest.mjs` ~L11244 — `citedFigures.length === 8` | 01 | — | marker required | A pack-derived count plus full `ComponentSource` validity on every figure and every override |
+| SUP-022-02 | `scripts/selftest.mjs` ~L11461 — four preferential tables are value-free `AbsentFigure` | 01 | — | marker required | Present tables prove split-authority provenance; absent tables keep the original clause verbatim |
+| SUP-022-03 | `scripts/selftest.mjs` ~L11461 — `requiredUnsupportedIds` contains both surtax ids | 02 | — | marker required | A disjoint, exhaustive accounting between `unsupportedFeatures[]` and `taxLegs[]` |
+| SUP-022-04 | `scripts/selftest.mjs` ~L11861 — `noticeIds.length === 18` | 01 | 02 | marker required | Two-directional set identity between surfaced notices and pack entries |
+| SUP-022-05 | `scripts/selftest.mjs` ~L11781 — shipped pack plus a gain household refuses the total, `L4` not-evaluable | 01 | — | marker required | A valued, reconciling total for resolved statuses; the refusal rule moves onto a permanent fixture |
+| SUP-022-06 | `scripts/selftest.mjs` ~L12156 — gain curve and dividend curve both refuse | 01 | — | marker required | Exact crossings at every carried breakpoint plus gain/dividend curve identity; refusal retained on a fixture |
+| SUP-022-07 | `tests/lifetime-tax-federal.spec.mjs` L57-81 — gain-stacking expectations assume refusal | 01 | — | marker required | A quantitative stacking assertion derived from the pack, plus an explicit empty-state rule |
+| SUP-022-08 | `tests/lifetime-tax-marginal.spec.mjs` L96 — `Unavailable contributors: 14` and gain-curve refusal | 02 | — | marker required | Label/list agreement, pack-derived set identity, and positive proof the surtax moved rather than vanished |
+| SUP-022-09 | `tests/lifetime-tax-foundation.spec.mjs` L60-71 — contributor count 14 and absent-figure count 4 | 01 | 02 | marker required | Both counts derived from the pack; per-node quality clauses retained untouched |
+| SUP-022-10 | `scripts/selftest.mjs` ~L12070 (TP-03-07) — `unavailableContributors.length === 14` on the **shipped** curve pack, plus `requiredContributors` asserting the investment-income surtax is present | 02 | — | marker required | Pack-derived two-directional contributor-set identity plus the engine-side moved-versus-deleted proof |
+| SUP-022-11 | `scripts/selftest.mjs` ~L12416 (Feature 021 Scope 04 group) — `gainBearingComparison.federalTaxDifference` refuses with no `value` | 01 | — | marker required | A valued difference equal to an independent recomputation; the refusal moves onto the absent-table fixture |
+| SUP-022-12 | `tests/lifetime-tax-foundation.spec.mjs` L66-73 (SCN-021-002) — the gain household renders a visible refusal and zero valued-headline nodes | 01 | — | marker required | A valued headline that moves by the pack-implied amount; the refusal clauses retained verbatim on an absent-table branch |
+| SUP-022-13 | `tests/lifetime-tax-marginal.spec.mjs` L121 (SCN-021-009) — `#gainCurveBlock [data-rl-unavailable]` contains `RLTAX-THRESHOLD-UNAVAILABLE` | 01 | — | marker required | A rendered gain curve exact at every carried breakpoint and identical to the dividend curve; the refusal retained on a substituted absent-table pack |
+| SUP-022-14 | `scripts/selftest.mjs` ~L11803 (TP-02-05) — `legIds === 'L1,L2,L3,L4,L5'` and the five-leg `holds` claim | 02 | — | marker required | Ordered leg-set identity against the engine's own declaration, plus the `L6` exclusion clause |
+| SUP-022-15 | `tests/lifetime-tax-federal.spec.mjs` L108-111 (SCN-021-006) — `#reconciliationBody tr` `toHaveCount(5)` and the literal-bounded `holds` loop | 02 | — | marker required | A record-derived row count and a loop bounded by the rendered rows |
+| SUP-022-16 | `tests/lifetime-tax-route.spec.mjs` L80 (SCN-021-013) — `#reconciliationBody tr` `toHaveCount(5)` | 02 | — | marker required | The same record-derived row count, in the file that owns this rendering |
+| SUP-022-17 | `tests/lifetime-tax-route.spec.mjs` L82 (SCN-021-013) — `#sourceRecordList li` `toHaveCount(2)` | 01 | — | marker required | A pack-derived count, two-directional title identity, and the referrer guard extended from the first link to every link |
+| SUP-022-18 | `scripts/selftest.mjs` ~L12450 (TP-05-01) — `simpleFields.length === 7`, `powerLinkDetails.length === 9`, `powerLinkSections.length === 9` | 02 | — | marker forbidden — every clause it named was displaced by SUP-023-04 and SUP-023-05 before this feature reached it; row retained, never delivered | Cross-artifact identity between the closed Simple list and the rendered Simple markup; every Simple-stays-decision-level clause retained verbatim |
+| SUP-022-19 | `tests/lifetime-tax-route.spec.mjs` L54-62 (SCN-021-013) — withheld-detail links `toHaveCount(9)` and the positional `links.nth(3)` focus expectation | 02 | — | marker pending — narrowed by SUP-023-06 to the declared-target clause alone, which is real work Scope 02 still owes | Two-directional link/section identity and a selection by declared target instead of by ordinal |
+| SUP-022-20 | `scripts/selftest.mjs` ~L12327 (TP-03-05) — the ordinary curve's step-level list and the probe-WIDTH step selector | 02 | — | marker required | A pack-derived declared-edge set, a step selector keyed on the segment's own step-ness, and a labelling honesty clause over every probe-width segment |
+| SUP-022-21 | `tests/lifetime-tax-federal.spec.mjs` L132 (SCN-021-005) — `#power-rule-ledger` `toContainText('preferentialRateTables')` | 01 | — | marker required | The Power panel names the preferential schedule as a carried rule and renders its split authority, instead of an internal member name a reader never sees |
+| SUP-022-22 | `scripts/selftest.mjs` ~L11379 (TP-01-05) — `Object.keys(RLTAXRULES.RLTAX_CODES).length === 12` | 03 | — | marker required | A count derived from the module's own declaration, all twelve Feature 021 members named and asserted present, and the two added members named and asserted to be exactly the jurisdiction-axis pair |
 
 #### SUP-022-22 — the refusal-vocabulary count stops being a literal
 

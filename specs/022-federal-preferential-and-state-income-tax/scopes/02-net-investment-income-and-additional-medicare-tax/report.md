@@ -1386,3 +1386,145 @@ One weak-assertion miss is recorded rather than discarded, under TP-02-06: the f
 of the asymmetry fixture had the investment-income base binding at both levels, so the
 leg could not move and the row could not have proven what it claimed.
 
+### Planning correction — 2026-08-20 — TP-05-22's tolerated gap is derived from the ledger, not pinned (finding F-02-D)
+
+**Claim Source:** executed. **Outcome: option (a) taken — the assertion is restated
+to derive, and the `scripts/selftest.mjs` edit it needs is specified below and routed
+rather than applied.** F-02-D was verified against the tree before anything was
+changed: `links.nth(3)` at line 97 of `tests/lifetime-tax-route.spec.mjs` is the only
+ordinal link selection anywhere under `tests/`; the page's own source comment at
+`lifetime-tax-strategy-lab.html` line 1741 reads *"Appended rather than inserted: a
+prior feature's browser row follows a link by position, so an inserted row would
+silently retarget it"*; no `SUP-022-19` marker exists in `scripts/selftest.mjs` or any
+spec under `tests/`, so the delivery is genuinely reverted; and `node
+scripts/selftest.mjs` is `3155 passed, 0 failed` at exit 0.
+
+**Why (a) rather than (b).** Option (b) — record a `TP-05-22` amendment in the
+`Amending scope` column and tighten the tolerated pair from `{18, 19}` to `{18}` —
+closes this instance and rebuilds the defect one id smaller. `{18}` is still a literal
+pin, and it goes stale the next time a row is legitimately deferred or a displaced row
+is re-dispositioned. Option (a) removes the class of failure rather than the instance,
+and it is the correction already applied to this scope's own `TP-02-22`, which was
+restated to read the ledger's owning-scope column at run time *"rather than pinned to a
+literal total, because Scope 03's SUP-022-22 is already delivered and any fixed total
+goes stale the next time a scope lands"*. Nothing blocked (a): the ledger's 22 rows
+carry no embedded pipes, and the only programmatic reader of `spec.md` matches the
+leading id cell, so a new column is safe to add.
+
+**What was changed, and by whom it is owned.** `spec.md`'s supersession ledger gained a
+`Disposition` column with three values — `marker required` (20 rows), `marker forbidden
+— <reason>` (SUP-022-18) and `marker pending — <reason>` (SUP-022-19) — plus the
+paragraph above the table that defines them. Scope 05's ledger-closure DoD item was
+restated to derive its tolerance from that column; it remains `[ ]` and no checkbox was
+ticked. `design.md`'s marker-check step 4 was restated from *"the delivered id set
+equals the set the completed scopes own"* to the derived form, and its per-file marker
+distribution no longer assigns SUP-022-18 to `scripts/selftest.mjs`, which the
+disposition forbids. The last two were already routed to `bubbles.design` by this
+scope's second verification pass and are now answered. The edited requirement text
+lives in Scope 05 and in `design.md` rather than in this scope, which is the point of
+routing the finding to planning: ledger and requirement text is planning-owned across
+the whole feature, whereas an implementing scope editing another scope's assertion is
+exactly what this scope's own DoD item forbids.
+
+**The routed `scripts/selftest.mjs` change — specified, not applied.** That file is
+shared with a concurrent session appending to it continuously, so it is untouched here.
+Replace the block that currently ends at the `TP-05-22` assertion with:
+
+```js
+  /* The supersession ledger is closed, derived rather than pinned. This check formerly compared
+     the unmarked-row set against a fixed pair of ids under JSON.stringify, so delivering either of
+     them shrank the real gap and turned a green assertion red — a self-staling contract that made
+     provable work unlandable (finding F-02-D). The tolerance is now read out of the ledger's own
+     Disposition column at run time: a row may go unmarked only where the ledger dispositions it
+     away, and a row it dispositions marker-forbidden must carry no marker anywhere, a direction the
+     pinned form never asserted. Ids are still never written literally here, so naming one cannot
+     make the scanner count it as delivered. */
+  const markerFiles = ['scripts/selftest.mjs', 'tests/lifetime-tax-foundation.spec.mjs',
+    'tests/lifetime-tax-federal.spec.mjs', 'tests/lifetime-tax-marginal.spec.mjs', 'tests/lifetime-tax-route.spec.mjs'];
+  const deliveredMarkers = new Set();
+  markerFiles.forEach((file) => {
+    (read(file).match(/SUP-022-\d{2}/g) || []).forEach((marker) => deliveredMarkers.add(marker));
+  });
+  const MARKER_PREFIX = 'SUP-022-';
+  const specText = read('specs/022-federal-preferential-and-state-income-tax/spec.md');
+  const ledgerIds = [];
+  const ledgerDisposition = new Map();
+  (specText.match(/^\| (SUP-022-\d{2}) \|.*$/gm) || []).forEach((row) => {
+    const cells = row.split('|').map((cell) => cell.trim());
+    ledgerIds.push(cells[1]);
+    const hit = /^marker (required|forbidden|pending)(?: \u2014 (\S.*))?$/.exec(cells[5] || '');
+    if (hit) ledgerDisposition.set(cells[1], { token: hit[1], reason: hit[2] || '' });
+  });
+  const deliveredList = Array.from(deliveredMarkers).sort();
+  const ledgerList = ledgerIds.slice().sort();
+  const dispositionToken = (marker) =>
+    (ledgerDisposition.has(marker) ? ledgerDisposition.get(marker).token : null);
+  /* An unreadable or absent Disposition cell is a parse failure, not a free pass, and a tolerated
+     disposition carrying no reason after the em dash cannot be used to silence a real gap. */
+  const undispositionedRows = ledgerList.filter((marker) => dispositionToken(marker) === null);
+  const toleratedWithoutReason = ledgerList.filter((marker) => dispositionToken(marker) !== null
+    && dispositionToken(marker) !== 'required'
+    && ledgerDisposition.get(marker).reason.length === 0);
+  const toleratedUnmarked = ledgerList.filter((marker) => dispositionToken(marker) === 'forbidden'
+    || dispositionToken(marker) === 'pending');
+  const unmarkedLedgerRows = ledgerList.filter((marker) => deliveredList.indexOf(marker) < 0);
+  const markersWithoutLedgerRow = deliveredList.filter((marker) => ledgerList.indexOf(marker) < 0);
+  const unexplainedUnmarked = unmarkedLedgerRows.filter((marker) => toleratedUnmarked.indexOf(marker) < 0);
+  const forbiddenButMarked = ledgerList.filter((marker) => dispositionToken(marker) === 'forbidden'
+    && deliveredList.indexOf(marker) >= 0);
+  assert(deliveredList.length > 0
+    && undispositionedRows.length === 0
+    && toleratedWithoutReason.length === 0
+    && markersWithoutLedgerRow.length === 0
+    && unexplainedUnmarked.length === 0
+    && forbiddenButMarked.length === 0
+    && toleratedUnmarked.length < ledgerList.length
+    && ledgerList.every((marker) => /^SUP-022-(0[1-9]|1[0-9]|2[0-2])$/.test(marker))
+    && deliveredList.indexOf(MARKER_PREFIX + '22') >= 0
+    && specText.indexOf('Twenty-two pre-existing assertions are superseded') >= 0
+    && ledgerList.length === 22,
+  'TP-05-22: every delivered marker maps to a ledger row, every ledger row carries a recognised disposition with a reason where one is owed, every row the ledger dispositions marker-required is delivered, every row it dispositions marker-forbidden carries no marker anywhere, the tolerated gap is read out of the ledger rather than pinned to a literal pair, the tolerated set never covers the whole ledger, the ids stay inside the declared range, and the ledger total agrees with the paragraph that states it');
+```
+
+**The routed logic was executed against the tree before being written down**, as a
+standalone reader over the real `spec.md` and the real five marker files, so this is a
+measured result rather than a proposal:
+
+```
+delivered=20 ledger=22
+undispositioned=[]
+toleratedWithoutReason=[]
+toleratedUnmarked=["SUP-022-18","SUP-022-19"]
+unmarkedLedgerRows=["SUP-022-18","SUP-022-19"]
+unexplainedUnmarked=[]
+forbiddenButMarked=[]
+VERDICT_TODAY=true
+VERDICT_AFTER_19_DELIVERED=true
+ADVERSARIAL_drop_07_marker_unexplained=["SUP-022-07"]
+ADVERSARIAL_mark_18_forbiddenButMarked=["SUP-022-18"]
+```
+
+`VERDICT_TODAY=true` means the change is not a regression — it passes on the tree as it
+stands. `VERDICT_AFTER_19_DELIVERED=true` is the defect being removed: the same input
+with a `SUP-022-19` marker added still passes, so the delivery `bubbles.test` built and
+reverted can now land without editing anything Scope 05 owns.
+
+**Adversarial cases that still fail.** Two, and the second is a protection the pinned
+form never had. First, **a marker genuinely missing with no recorded disposition**:
+dropping `SUP-022-07`'s marker — a row dispositioned `marker required` — leaves it in
+`unexplainedUnmarked`, and the assertion fails. Deferring a row is therefore only ever
+tolerated when the ledger says so in writing, with a reason. Second, **a marker
+attached to a displaced row**: adding a `SUP-022-18` marker anywhere puts it in
+`forbiddenButMarked`, and the assertion fails, because that would attribute one
+replacement to both this feature and Feature 023. The old form compared unmarked-set
+equality and would have accepted that mutation silently. Two further degenerate paths
+are closed: a `Disposition` column that went missing or unparseable makes every row
+`undispositioned` and fails rather than tolerating everything, and a column that
+dispositioned every row away trips `toleratedUnmarked.length < ledgerList.length`, so
+the check cannot be made vacuous. On an empty ledger `ledgerList.length === 22` and
+`deliveredList.length > 0` both fail.
+
+**Sequencing.** The routed edit must land before `SUP-022-19` is delivered again.
+Delivering the marker first, against the pinned form still in the file, reproduces
+F-02-D exactly.
+

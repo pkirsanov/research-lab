@@ -348,15 +348,16 @@ field rendered in Simple outside `SIMPLE_FIELDS` still fails, under `SUP-023-04`
 which Feature 023 owns and which this scope must neither claim nor cite as its own
 adversarial evidence. Feature 023's artifacts are read-only here.
 
-**Routed to `bubbles.analyst` and `bubbles.design`.** The feature-level ledger row
-at [`spec.md#supersession-ledger`](../../spec.md#supersession-ledger) still lists
-SUP-022-18 as scope 02's undelivered entry and has no disposition column; adding
-one and recording the same superseded-in-substance disposition and the displacing
-`SUP-023-04` / `SUP-023-05` ids there is a `spec.md` change. `design.md`'s
-per-file marker distribution still places a SUP-022-18 marker in
-`scripts/selftest.mjs`, and it must not, because the disposition forbids that
-marker anywhere. Neither artifact is this agent's to edit, and neither is
-corrected here.
+**Routed to `bubbles.analyst` and `bubbles.design` — since answered.** The
+feature-level ledger row at
+[`spec.md#supersession-ledger`](../../spec.md#supersession-ledger) carried no
+disposition column when this was written, and `design.md`'s per-file marker
+distribution still placed a SUP-022-18 marker in `scripts/selftest.mjs`, which the
+disposition forbids. Both were corrected while `TP-05-22` was restated for finding
+**F-02-D**: the ledger now carries a `Disposition` column recording
+`marker forbidden` for SUP-022-18 with the displacing `SUP-023-04` / `SUP-023-05`
+ids, and the design table no longer assigns SUP-022-18 to any file. Neither
+artifact is this agent's to edit and neither is edited here.
 
 **SUP-022-19 — narrowed, not displaced.** Its count clause went the same way: the
 route spec's `toHaveCount(9)` returns a fixed-string count of zero, replaced under

@@ -1,0 +1,73 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-5843e763ff1f379e6cb2a7b7051615ab985c58baba18aa88b2d1d067a989a024",
+  "generationId": "generation-04d4484157b3bd536ea03d32aa493b82a3da52e6666293bf985ea13d1464c0b2",
+  "topicId": "geopolitical-supply-shock",
+  "attemptedAt": "2026-08-20T12:03:22.098Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "situation-shape-invalid",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

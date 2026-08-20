@@ -118,16 +118,29 @@ test('Regression: SCN-024-012 the annual Medicare cost is rendered beside the he
   const costText = await costCard.innerText();
   expect(costText).toContain('not part of the federal tax total');
 
-  /* The reconciliation identity publishes the legs it sums. Every premium leg the settlement
-     declared must be ABSENT from it, because the identity totals the federal tax and a premium is
-     not one. Both sides are asserted so the row cannot pass by the leg set being empty. */
+  /* The federal headline declares the leg set it SUMMED. Every premium leg the settlement actually
+     settled must be absent from it, because that total is the federal tax and a premium is not one.
+     Reading `data-rl-reconciliation-legs` instead would be vacuous: that attribute publishes the
+     reconciliation IDENTITY ids (L1 … L6), among which a premium leg id can never appear, so the
+     clause could not fail however the legs were classified. Both sides are asserted here, and the
+     settled premium set is required non-empty, so the clause cannot pass over an empty set. */
   await openPower(page);
-  const reconciled = (await page.locator('body').getAttribute('data-rl-reconciliation-legs'))
+  const federalHeadlineLegs = (await page.locator('#headlineBlock [data-rl-legs]')
+    .first().getAttribute('data-rl-legs')).split(',').filter((id) => id.length > 0);
+  expect(federalHeadlineLegs.length).toBeGreaterThan(0);
+  const recordLegs = (await page.locator('body').getAttribute('data-rl-legs-record'))
     .split(',').filter((id) => id.length > 0);
-  expect(reconciled.length).toBeGreaterThan(0);
   const declaredPremiumLegIds = MEDICARE_PACK.medicarePolicy.taxLegs.map((leg) => leg.legId);
   expect(declaredPremiumLegIds.length).toBe(3);
-  declaredPremiumLegIds.forEach((legId) => expect(reconciled).not.toContain(legId));
+  const settledPremiumLegs = declaredPremiumLegIds.filter((legId) => recordLegs.includes(legId));
+  expect(settledPremiumLegs.length).toBeGreaterThan(0);
+  settledPremiumLegs.forEach((legId) => expect(federalHeadlineLegs).not.toContain(legId));
+
+  /* And the identity that totals the federal tax is still among the ones evaluated, so the
+     exclusion is not being achieved by the reconciliation dropping out altogether. */
+  const reconciled = (await page.locator('body').getAttribute('data-rl-reconciliation-legs'))
+    .split(',').filter((id) => id.length > 0);
+  expect(reconciled).toContain('L4');
 });
 
 /* TP-04-27. */

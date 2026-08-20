@@ -1246,3 +1246,56 @@ unmutated source. A household sitting exactly on a sourced boundary now cannot
 be placed one row too high without this row failing at the clause that owns the
 claim.
 
+### Probe 14 — the premium legs flipped into the federal total, after a vacuous clause was replaced
+
+**A vacuous clause found by reading, before any mutation was run.** TP-04-26's
+second half asserted that no premium leg id appears in
+`data-rl-reconciliation-legs`. That attribute publishes the reconciliation
+IDENTITY ids — `L1` … `L6`, built by `addLeg("L1", …)` in `rltax.js` — not tax
+leg ids. A premium leg id can never appear among them, so the clause could not
+fail however the legs were classified. It was a green that carried no
+information, which is the false green the evidence bar exists to prevent.
+
+**The strengthening.** The clause now reads the leg set the federal headline
+declares it SUMMED, `#headlineBlock [data-rl-legs]`, and requires every premium
+leg the settlement actually settled to be absent from it. Two anti-vacuity
+guards stand beside it: the headline leg set must be non-empty, and the settled
+premium set must be non-empty. The identity check is kept but made meaningful —
+`L4`, the identity that totals the federal tax, must still be among those
+evaluated. No assertion was removed or relaxed.
+
+Mutation: in `rltaxmedicare.js`, every `includedInTotal: false` on the medicare
+cost legs changed to `true`. One boolean literal, no figure. A pre-run guard
+required exactly three sites and the post-substitution counts confirmed three
+landings and zero left behind.
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-012 the annual Medicare cost is rendered beside the headline and no premium leg is inside the federal tax total" --reporter=list
+  ✓  1 …e the headline and no premium leg is inside the federal tax total (1.1s)
+  1 passed (3.2s)
+GREEN_EXIT=0
+GUARD_MATCHES=3
+POST_MUTATION_FALSE_SITES=0 POST_MUTATION_TRUE_SITES=3
+  ✘  1 … the headline and no premium leg is inside the federal tax total (899ms)
+    Error: expect(received).toBeGreaterThan(expected)
+    Expected: > 0
+    Received:   0
+    > 136 |   expect(settledPremiumLegs.length).toBeGreaterThan(0);
+  1 failed
+RED_EXIT=1
+$ git checkout -- rltaxmedicare.js
+DIRTY_AFTER_REVERT=0
+```
+
+**Intended RED recorded for TP-04-26**, with the same-command GREEN captured
+immediately before it on the unmutated source.
+
+**Where the failure landed, stated plainly.** The row failed at the anti-vacuity
+guard, not at the exclusion clause itself. That is the correct outcome and not a
+weakness: flipping a cost leg into the total breaks reconciliation identity `L4`,
+so the settlement refuses its own total and publishes no leg record at all. The
+settled premium set collapses to empty, and the guard that exists to stop the
+exclusion clause passing over an empty set is exactly what catches it. Under the
+clause as it stood before this probe, the same mutation would have been reported
+green.
+

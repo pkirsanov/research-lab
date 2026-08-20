@@ -876,6 +876,16 @@ unconfirmed reading is demoted to `context` and stays out of the way. Against co
 landed that produced 9 observed subjects, all `context`, and **zero** interruptions. If that is too silent,
 widen the severity bands or relax the persistence requirement — no code changes.
 
+**Calibration measured against real state, so the silence is explained rather than assumed.** The bands are
+`moderate` at 8% and `severe` at 15% distance from the 200-day. On 2026-08-19 that is **four** subjects at
+severe — SOXX 24.3, XLE 19.6, XLK 16.5, VGT 16.4 — so the severe band is comfortably reachable and is not a
+threshold nothing can cross. Every one of them still resolved to `context`, because Tier-A reported
+`persistenceGateMet: false` for all twelve tracked symbols that day: the moves are large but have not yet
+persisted across the required window. That is the intended reading of a large-but-unconfirmed move, and it
+is also the single lever that decides how often the brief speaks. **If you want more interruptions, relax
+persistence before you widen the bands** — the bands are already permissive enough to admit a third of the
+watchlist.
+
 **What it refuses, and why each refusal is deliberate.**
 
 - A reading below every declared band yields **no severity**, never the smallest one, so a quiet market

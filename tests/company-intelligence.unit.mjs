@@ -312,6 +312,18 @@ test('an unresolvable identifier raises C025-IDENTITY-UNRESOLVED and composes no
         (error) => error.code === 'C025-READ-CONTRACT'
     );
     assert.equal(INTEL.resolveSubject('   ', {}).code, 'C025-IDENTITY-UNRESOLVED');
+
+    /* ADVERSARIAL — a non-ticker character never becomes a subject. Per P13 this route holds
+       tickers only, and an accepted `?` would then be handed to the owner deep-link composer,
+       which builds `<route>.html?<param>=<value>`. The refusal happens at the identity boundary,
+       so a resolved subject that reaches an href cannot carry query syntax in the first place. */
+    ['MSFT?', 'MSFT?x=1', 'MS FT', 'MSFT&x', 'MSFT#a', '?MSFT'].forEach((entry) => {
+        const rejected = INTEL.resolveSubject(entry, { secCompanies: SEC_COMPANIES, barSymbols: ['MSFT'], decisionTime: DECISION_TIME });
+        assert.equal(rejected.contractVersion, 'company-intel-error/v1', entry + ' resolved as a subject');
+        assert.equal(rejected.code, 'C025-IDENTITY-UNRESOLVED', entry);
+    });
+    /* Counter-case: the guard is not refusing everything — the plain ticker still resolves. */
+    assert.equal(INTEL.resolveSubject('MSFT', { secCompanies: SEC_COMPANIES, barSymbols: ['MSFT'], decisionTime: DECISION_TIME }).ticker, 'MSFT');
 });
 
 /* ---------- 1.4 ---------- */

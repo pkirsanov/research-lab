@@ -1,6 +1,6 @@
 # Scope 02: Additive ledger row extension
 
-**Status:** Not Started
+**Status:** In Progress
 **Depends On:** 01
 **Tags:** `overlay:true`, `consent-gated:002`, `routed:P-015-01`, `routed:P-015-02`
 **Design section:** `design.md` → `## D2 — Additive Ledger Row Extension`
@@ -178,28 +178,28 @@ already on disk.
 
 #### Core items
 
-- [ ] `claimRef` is added as **one optional field on the existing live** `brief-recommendation-history-row/v2`, typed as an opaque `sha256:…` string. No new contract version is minted, no existing `v2` field changes, and `v1` is untouched. *(Corrected 2026-08-19 (R33) from "declared as a strict superset of `v1`: same seven fields … plus exactly one optional `claimRef`".)*
-- [ ] The dual-version reader accepts both `v1` and `v2`; the `v2` acceptance set is `v2`'s live field set plus `claimRef`; `v1` is not deprecated, no historical row is rewritten, and no migration runs.
+- [x] `claimRef` is added as **one optional field on the existing live** `brief-recommendation-history-row/v2`, typed as an opaque `sha256:…` string. No new contract version is minted, no existing `v2` field changes, and `v1` is untouched. *(Corrected 2026-08-19 (R33) from "declared as a strict superset of `v1`: same seven fields … plus exactly one optional `claimRef`".)* → evidence recorded in [`report.md#core-contract-shape`](report.md#core-contract-shape)
+- [x] The dual-version reader accepts both `v1` and `v2`; the `v2` acceptance set is `v2`'s live field set plus `claimRef`; `v1` is not deprecated, no historical row is rewritten, and no migration runs. → evidence recorded in [`report.md#core-dual-version-reader`](report.md#core-dual-version-reader)
 - [ ] A `v1` row carrying `claimRef` is rejected as an unknown field, and `v2` still rejects a field name outside its live union ∪ `{claimRef}`. *(Corrected 2026-08-19 (R33) from "the `v2` field list stays closed against an eighth field".)*
-- [ ] **BS-001 cross-reference (owned by scope 01):** a published event that minted a claim produces a row whose `claimRef` equals that claim's `claimHash`, satisfying BS-001's second `Then` clause.
+- [x] **BS-001 cross-reference (owned by scope 01):** a published event that minted a claim produces a row whose `claimRef` equals that claim's `claimHash`, satisfying BS-001's second `Then` clause. → evidence recorded in [`report.md#t-02-u3`](report.md#t-02-u3)
 - [ ] The publisher mint hook is wired at `scripts/brief-publication.mjs#L177`–`#L180` via `run.recommendationEvents` built at `scripts/brief-distributed-publish.mjs#L403`–`#L408`, so the claim object and the `claimRef`-bearing row are produced in the same pass.
-- [ ] A refused mint emits an event **without** `claimRef` carrying its refusal reason, never a claim with a fabricated subject, predicate, or horizon.
-- [ ] `RTR-LEGACY-BACKFILL` is implemented and refuses any resolution write targeting a row with no `claimRef`.
-- [ ] Absence of `claimRef` is the legacy marker for **every** claimless row, `v1` and body-`v2` alike: pre-contract rows are **not** null-filled, back-filled, estimated, or migrated, and the classifier keys on key-absence rather than on a null value or on the version stamp.
-- [ ] `eventId` and `recommendationKey` are proven byte-identical before and after the extension; neither is ever recomputed from the row.
+- [x] A refused mint emits an event **without** `claimRef` carrying its refusal reason, never a claim with a fabricated subject, predicate, or horizon. → evidence recorded in [`report.md#core-refused-mint`](report.md#core-refused-mint)
+- [x] `RTR-LEGACY-BACKFILL` is implemented and refuses any resolution write targeting a row with no `claimRef`. → evidence recorded in [`report.md#t-02-u4`](report.md#t-02-u4)
+- [x] Absence of `claimRef` is the legacy marker for **every** claimless row, `v1` and body-`v2` alike: pre-contract rows are **not** null-filled, back-filled, estimated, or migrated, and the classifier keys on key-absence rather than on a null value or on the version stamp. → evidence recorded in [`report.md#core-legacy-marker`](report.md#core-legacy-marker)
+- [x] `eventId` and `recommendationKey` are proven byte-identical before and after the extension; neither is ever recomputed from the row. → evidence recorded in [`report.md#t-02-u3`](report.md#t-02-u3)
 - [ ] `claimRef` canonicalises deterministically immediately after `canonicalMonth` — successor `confidence` on a live `v2` row, not `contractVersion` — and a seven-field projector reading a `v2` row returns exactly the seven `v1` key names.
-- [ ] **Feature 002 consent is recorded** before any code emitting a `claimRef`-bearing row is merged: the ask is one optional field on the existing `v2`, the standing blanket authorisation of 2026-08-19 and its explicit limits are captured in `report.md`, and the 002-owned validator's field list is updated **by 002**, not by 015.
+- [x] **Feature 002 consent is recorded** before any code emitting a `claimRef`-bearing row is merged: the ask is one optional field on the existing `v2`, the standing blanket authorisation of 2026-08-19 and its explicit limits are captured in `report.md`, and the 002-owned validator's field list is updated **by 002**, not by 015. → evidence recorded in [`report.md#core-consent-honoured`](report.md#core-consent-honoured)
 - [ ] **Routed findings P-015-01 and P-015-02 are recorded as blocking the live-publisher binding.** The live binding is not scheduled, and no fixture-backed result is reported as live-publisher evidence. If the routed decisions land during this scope, the binding is delivered; if not, the scope completes on the fixture-proven surface and the binding is re-planned.
-- [ ] The `design.md` → `## D2` fallback (a fully 015-owned side-index keyed by `eventId`) is recorded in `report.md` as the alternative taken if consent is withheld, so the handoff is a genuine decision rather than a demand.
-- [ ] `Number.isFinite` is used exclusively; the global `isFinite` appears nowhere in 015-authored code.
-- [ ] No statistic is computed in this scope; `rlvalidation.js` is not imported here.
+- [x] The `design.md` → `## D2` fallback (a fully 015-owned side-index keyed by `eventId`) is recorded in `report.md` as the alternative taken if consent is withheld, so the handoff is a genuine decision rather than a demand. → recorded in [`report.md`](report.md) → *Options, for the owner decision this requires* → option 3, and re-stated in the ruling
+- [x] `Number.isFinite` is used exclusively; the global `isFinite` appears nowhere in 015-authored code. → evidence recorded in [`report.md#core-hygiene`](report.md#core-hygiene)
+- [x] No statistic is computed in this scope; `rlvalidation.js` is not imported here. → evidence recorded in [`report.md#core-hygiene`](report.md#core-hygiene)
 
 #### Test items
 
 - [x] T-02-U1 passes: a real committed `v2` row of each live shape validates with and without `claimRef`, and `v1` validates without it → evidence recorded in `report.md#t-02-u1`. — proves SCN-015-013
 - [x] T-02-U2 passes: a `v1` row carrying `claimRef` is rejected, and `v2` rejects a name outside its live union ∪ `{claimRef}` → evidence recorded in `report.md#t-02-u2`.
-- [ ] T-02-U3 passes: `eventId` and `recommendationKey` are byte-identical with and without the mint hook → evidence recorded in `report.md#t-02-u3`.
-- [ ] T-02-U4 passes: `RTR-LEGACY-BACKFILL` fires on a claimless row including the plausible-imputation case → evidence recorded in `report.md#t-02-u4`. — proves SCN-015-015
+- [x] T-02-U3 passes: `eventId` and `recommendationKey` are byte-identical with and without the mint hook → evidence recorded in `report.md#t-02-u3`.
+- [x] T-02-U4 passes: `RTR-LEGACY-BACKFILL` fires on a claimless row including the plausible-imputation case → evidence recorded in `report.md#t-02-u4`. — proves SCN-015-015
 - [ ] T-02-F1 passes: `claimRef` canonicalises immediately after `canonicalMonth` on every live shape and the seven-field projection is unchanged → evidence recorded in `report.md#t-02-f1`.
 - [ ] T-02-F2 passes: a pre-contract row of either version has no `claimRef` key at all and the classifier keys on absence, not null → evidence recorded in `report.md#t-02-f2`.
 - [ ] T-02-F3 passes: a refused mint degrades to an event without `claimRef` carrying its reason → evidence recorded in `report.md#t-02-f3`.

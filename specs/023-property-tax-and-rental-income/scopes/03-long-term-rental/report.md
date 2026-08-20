@@ -782,6 +782,86 @@ PROBE M-1 (re-run against the strengthened assertion)   target=TP-03-16, TP-03-1
 the revert. `TP-03-16` and `TP-03-17` now carry an intended RED and a same-command
 GREEN.
 
+### Repair of the three weaknesses — M-3, `TP-03-20`
+
+**What the row could not see.** `TP-03-20` claims the rental declarations are
+absent from every URL, request, referrer **and console message**. Its check
+watched none of those at run time. It read the export bytes and the committed
+configuration — both of which stay perfectly clean while a module writes a
+declaration member name to the console at load, because neither is the console.
+
+**The strengthening.** The rental module is now loaded **fresh**, with every
+console method hooked, and a settlement and a marginal-context read are run
+through the hook; nothing may be written, and no captured line may name a rental
+declaration member. Three things stop the silence from being vacuous: the same
+hook is handed a deliberate emission and must capture it; a static scan requires
+no engine module to hold a console call at all, with its own detector proven to
+fire on one that does; and the require-cache entry is saved and restored, which is
+asserted, so later groups see the module they would have seen and the reload
+cannot quietly become a no-op.
+
+```text
+PROBE M-3 (re-run against the strengthened assertion)   target=TP-03-20
+  file=<repo>/rltaxrental.js:51
+  mutation: one declaration member NAME emitted to the console at module load
+            (inserted: console.log("rentalOpeningSuspendedLoss");)
+  BEFORE_SHA256=230f966c0c38eba8a71f90dfa9d5c4aca71685997da03dce393dd942ede8026c
+  MUTATED_SHA256=1b51d976b84ce890b52722824d8ea8c1881fa50908a3bbf8a3c8ec38cdad9411
+
+  $ node scripts/selftest.mjs
+  ✓ TP-03-20: every rental declaration is a declared workspace field, is named in the
+    export's omitted list, has no value in the exported bytes, refuses by name when
+    undeclared, and no rental member reaches the committed configuration
+  ✗ FAIL: TP-03-20: loading the rental module fresh with every console method hooked and
+    settling through the hook writes nothing to the console, no captured line names a
+    rental declaration member, the same hook is proven to capture a deliberate emission
+    so the silence is not vacuous, no engine module holds a console call at all, and the
+    detector is proven to fire on one that does
+  Research-Lab self-test: 3132 passed, 1 failed
+
+  RED IS THE NEW ASSERTION ALONE. The pre-existing TP-03-20 assertion still passed under
+  the same emission, which is the demonstration that it never watched the channel the row
+  names. Exactly one failure, so the group did not throw.
+
+  AFTER_SHA256=230f966c0c38eba8a71f90dfa9d5c4aca71685997da03dce393dd942ede8026c
+  REVERT_VERIFIED=yes        # and the module holds 0 console calls again
+
+  $ node scripts/selftest.mjs        # same command, after revert
+  ✓ TP-03-20: loading the rental module fresh with every console method hooked ...
+  Research-Lab self-test: 3133 passed, 0 failed
+```
+
+`git status --short` over every module, pack, page and test path was empty after
+the revert. `TP-03-20` now carries an intended RED and a same-command GREEN.
+
+### Effect of the three repairs on the DoD row
+
+The three assertion weaknesses are repaired and the five rows that could not be
+probed at all are unblocked: `TP-03-11`, `TP-03-16`, `TP-03-17` and `TP-03-20` now
+each carry an intended RED produced by the very mutation that previously slipped,
+paired with a same-command GREEN after a SHA-256-verified revert. Fifteen of the
+twenty-eight rows now carry a RED.
+
+The DoD row that these block — "Every Test Plan row has intended RED and
+same-command GREEN evidence recorded, including the browser rows" — **remains
+open**, and deliberately so. It requires every row, and thirteen are still owed:
+`TP-03-02`, `TP-03-04`, `TP-03-06`, `TP-03-08`, `TP-03-10`, `TP-03-18`, the five
+browser rows `TP-03-21` to `TP-03-25`, and `TP-03-26` to `TP-03-28`.
+
+`TP-03-27` is additionally blocked by a cause outside this feature and outside
+this session's remit: its command `node scripts/validate-spec-test-paths.mjs` has
+no present GREEN on a clean tree, because a concurrent session's feature-027 scope
+folder references three test paths that do not exist. A row whose command does not
+pass unmutated cannot be given a RED-and-GREEN pair, and the reference that turns
+it red is not this feature's to remove. The row is therefore left unticked rather
+than forced.
+
+Baseline movement for the record: the whole-repository suite was `3129 passed,
+1 failed` when the three misses were first recorded, and is `3133 passed, 0 failed`
+now. The four added assertions account for the four added passes; the one failure
+cleared when the concurrent session created the files its guard was missing. No
+new failure was introduced and the pass count did not fall.
+
 ## Supersession Ledger
 
 Filled at execution. This scope supersedes nothing, so this section holds the

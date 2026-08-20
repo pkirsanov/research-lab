@@ -17236,6 +17236,57 @@ try {
     && !/rental/i.test(read('lifetime-tax-strategy.config.json')),
     'TP-03-20: every rental declaration is a declared workspace field, is named in the export\u2019s omitted list, has no value in the exported bytes, refuses by name when undeclared, and no rental member reaches the committed configuration');
 
+  /* TP-03-20, second discriminator — the CONSOLE channel. The row names four channels and the
+     check above watches none of them at run time: it reads the export bytes and the committed
+     configuration, both of which stay clean when a module writes a declaration member to the
+     console. So the module is loaded FRESH with every console method hooked and a settlement is
+     run through the hook, and nothing may be written. The require-cache entry is saved and put
+     back afterwards, so later groups see the module they would have seen. A deliberate emission
+     through the same hook proves the capture is not vacuous, and a static scan with its own
+     proven-firing detector covers an emission on a path this fixture does not walk. */
+  const rentalPath03 = rentRequire.resolve(join(ROOT, 'rltaxrental.js'));
+  const cachedRental03 = rentRequire.cache[rentalPath03];
+  const consoleMethods03 = ['log', 'info', 'warn', 'error', 'debug', 'trace', 'dir'];
+  const consoleCaptured03 = [];
+  const savedConsole03 = {};
+  let reloadOk03 = false;
+  try {
+    consoleMethods03.forEach((name) => {
+      savedConsole03[name] = console[name];
+      console[name] = (...parts) => { consoleCaptured03.push(parts.map(String).join(' ')); };
+    });
+    delete rentRequire.cache[rentalPath03];
+    const reloaded03 = rentRequire(rentalPath03);
+    reloaded03.computeRentalSettlement(lossActivity03, allowancePack03);
+    reloaded03.rentalMarginalContext(ladder03);
+    reloadOk03 = true;
+  } finally {
+    consoleMethods03.forEach((name) => { console[name] = savedConsole03[name]; });
+    rentRequire.cache[rentalPath03] = cachedRental03;
+  }
+  const decoyCaptured03 = [];
+  const savedDecoyLog03 = console.log;
+  try {
+    console.log = (...parts) => { decoyCaptured03.push(parts.map(String).join(' ')); };
+    console.log('rentalOpeningSuspendedLoss');
+  } finally {
+    console.log = savedDecoyLog03;
+  }
+  const consoleDetector03 = /\bconsole\s*\.\s*(log|info|warn|error|debug|trace|dir|table)\s*\(/;
+  const engineModules03 = ['rltaxrental.js', 'rltaxrules.js', 'rltaxworkspace.js', 'rltax.js'];
+  const consoleHolders03 = engineModules03.filter((name) =>
+    consoleDetector03.test(read(name).replace(/\/\*[\s\S]*?\*\//g, '')));
+  assert(reloadOk03
+    && consoleCaptured03.length === 0
+    && rentalMembers03.every((member) =>
+      consoleCaptured03.every((line) => line.indexOf(member) < 0))
+    && decoyCaptured03.length === 1
+    && decoyCaptured03[0].indexOf('rentalOpeningSuspendedLoss') >= 0
+    && consoleHolders03.length === 0
+    && consoleDetector03.test('console.log("rentalOpeningSuspendedLoss");') === true
+    && rentRequire.cache[rentalPath03] === cachedRental03,
+    'TP-03-20: loading the rental module fresh with every console method hooked and settling through the hook writes nothing to the console, no captured line names a rental declaration member, the same hook is proven to capture a deliberate emission so the silence is not vacuous, no engine module holds a console call at all, and the detector is proven to fire on one that does');
+
   /* TP-03-26 REPO GATE. This scope appends one group and one supersession replacement, and the
      supersession is booked on all four surfaces ASC-8 requires in the same change. */
   const ledgerText03 = read('specs/023-property-tax-and-rental-income/spec.md');

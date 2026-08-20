@@ -372,6 +372,22 @@ all. A syntax error, a missing browser or an absent test does not satisfy RED.
     to `TP-03-25`, and `TP-03-26` to `TP-03-28`. `TP-03-27` additionally has no
     present GREEN: its command does not pass on the unmutated tree because of a
     concurrent session's spec-027 references, which are not this feature's to fix.
+  - **The three weaknesses are now repaired, and the row is still open.** The two
+    paragraphs above stand as written; this appends what changed rather than
+    rewriting them. `TP-03-11`, `TP-03-16`, `TP-03-17` and `TP-03-20` each gained
+    an additive assertion that genuinely discriminates, and each of the three
+    mutations that previously slipped now fails its own row alone — one failure,
+    no group throw, with the old assertion still passing beside the new one so the
+    pair reads as a before-and-after. No existing assertion was edited, weakened,
+    skipped or removed and no timeout was raised. Fifteen of twenty-eight rows now
+    carry a RED. The row stays unticked because it requires **every** row, and
+    thirteen are still owed: `TP-03-02`, `TP-03-04`, `TP-03-06`, `TP-03-08`,
+    `TP-03-10`, `TP-03-18`, `TP-03-21` to `TP-03-25`, and `TP-03-26` to
+    `TP-03-28`. `TP-03-27` keeps its second, independent obstacle described above,
+    which is not this feature's to remove. **Evidence:**
+    `report.md#repair-of-the-three-weaknesses--m-2-tp-03-11`,
+    `report.md#repair-of-the-three-weaknesses--m-1-tp-03-16-and-tp-03-17`,
+    `report.md#repair-of-the-three-weaknesses--m-3-tp-03-20`
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths,
       and `node scripts/build-pages-site.mjs --dry-run` succeeds.

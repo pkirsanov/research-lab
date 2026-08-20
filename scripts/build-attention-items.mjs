@@ -220,7 +220,7 @@ export function actionSubjectTickers(actions, watchlistScope) {
     const text = typeof action?.subject === 'string' ? action.subject : '';
     if (!text) continue;
     for (const ticker of watchlistScope) {
-      if (new RegExp(`(^|[^A-Za-z0-9])${ticker}([^A-Za-z0-9]|$)`).test(text)) covered.add(ticker);
+      if (new RegExp(`(^|[^A-Za-z0-9])${String(ticker).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^A-Za-z0-9]|$)`).test(text)) covered.add(ticker);
     }
   }
   return Object.freeze([...covered]);

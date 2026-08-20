@@ -1205,7 +1205,16 @@
     if (!ranked.length) { el.innerHTML = emptyAttentionStatement(exclusions); return; }
     var cap = (cfg && cfg.thresholds && cfg.thresholds.tacticalConfidenceCap) || 55;
     el.innerHTML = ranked.map(function (c) {
-      var href = c.deepLink || deepLink(cfg, c.domain);
+      /* The href on an attention card is model-authored, and esc() protects the
+         ATTRIBUTE but not the SCHEME — `javascript:` survives escaping intact.
+         briefClassifyLink already rejects javascript/data/vbscript/file/blob,
+         protocol-relative, credentialed and non-https URLs, so route through it
+         rather than adding a second, weaker rule. An unsafe link is dropped: a
+         card without a link still reads correctly, and a card that navigates
+         somewhere hostile does not. */
+      var rawHref = c.deepLink || deepLink(cfg, c.domain);
+      var classified = rawHref ? briefClassifyLink(rawHref, { allowHtml: true }) : null;
+      var href = (classified && classified.kind !== "unsafe") ? (classified.href || rawHref) : "";
       var conf = capConfidence(c.confidence, c.horizon, cap);
       return '<div class="acard ' + esc(c.domain || "") + '" data-tkr-auto title="Attention card — domain: ' + esc(c.domain || "") + '. Ranked by confidence × domain-importance; confidence = how much the evidence agrees, not a win-rate."><div class="ah"><span class="an">' + c.rank + '</span>' +
         '<b>' + esc(c.title || "") + '</b>' + horizonPill(c.horizon) + confPill(conf) + '</div>' +

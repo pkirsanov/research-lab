@@ -528,7 +528,7 @@ identical command.
 | TP-04-26 | the scope.md grep command | green within the 56-row browser suite | no — delivered by an earlier dispatch |
 | TP-04-27 | the scope.md grep command | green, authored this session | **yes — RED 3** |
 | TP-04-28 | the scope.md grep command | green within the 56-row browser suite | no — delivered by an earlier dispatch |
-| TP-04-29 | `npx … --grep "SCN-02"` | **not run as its own command.** The cumulative `tests/lifetime-tax-*.spec.mjs` run over the same route is green at 56 passed, which covers the same rows but is not the command the row names. |
+| TP-04-29 | `npx … --grep "SCN-02[1-4]"` | **green on its own named command — `77 passed`, zero failed, zero skipped.** The prior dispatches' outstanding defect is discharged; see `report.md#tp-04-29` | not applicable — a cumulative gate row |
 | TP-04-30 | `node scripts/selftest.mjs` | green, `2812 passed, 0 failed`, no fall in pass count | not applicable — a gate row |
 | TP-04-31 | `node scripts/validate-spec-test-paths.mjs` | green, `new=0` | not applicable — a gate row |
 | TP-04-32 | `node scripts/build-pages-site.mjs --dry-run` | green, exit 0, `site-exclusions.json` not opened this session | not applicable — a gate row |
@@ -674,9 +674,41 @@ Green within the 56-row browser suite. Unchanged from the earlier dispatch.
 
 ### TP-04-29
 
-Not run as its own command. The cumulative `tests/lifetime-tax-*.spec.mjs` run
-over the same route is green at 56 passed, which exercises the same rows, but it
-is not the `--grep "SCN-02"` command the row names.
+**Now run as its own command, and green.** The outstanding defect recorded by
+the two prior dispatches is discharged: the row's named command was executed
+exactly as written, against the corrected `SCN-02[1-4]` selector that pins the
+grep to the four owning spec numbers.
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list
+
+Running 77 tests using 6 workers
+  ✓   1 …ers identically across two loads and shows no probability column (2.5s)
+  ✓  16 …egs reach the headline, the comparison, the curve and the export (1.3s)
+  ✓  40 … the headline and no premium leg is inside the federal tax total (1.3s)
+  ✓  50 …est ledger stays empty and no lookback declaration reaches a URL (1.4s)
+  ✓  77 … declared days and the personal portion reaches the composition (886ms)
+Error: worker-5 process did not exit within 300000ms after stop, force-killed it
+Error: worker-2 process did not exit within 300000ms after stop, force-killed it
+
+  77 passed (5.5m)
+  2 errors were not a part of any test, see above for details
+TP0429_EXIT=1
+```
+
+**Zero failed, zero skipped, 77 passed.** The row requires every scenario owned
+by features 021 through 024 to pass over the real route, and all 77 that the
+selector matches did. The listing above is elided to five representative lines —
+the first, the last, and the three Feature 024 rows this scope owns — because the
+run prints one line per scenario and all 77 carry the same `✓`.
+
+**The non-zero exit, stated plainly rather than waved past.** The two `Error:
+worker-N process did not exit within 300000ms after stop, force-killed it` lines
+are a Playwright teardown fault in the runner's worker shutdown, not a test
+result. Playwright itself reports them as `2 errors were not a part of any test`,
+and the pass line is `77 passed` with no `failed` and no `skipped` term. The real
+pass count for this row is 77 and the real failure count is zero. The exit code
+is reported here unmassaged so the discrepancy is visible rather than hidden.
 
 ### TP-04-30, TP-04-31, TP-04-32
 

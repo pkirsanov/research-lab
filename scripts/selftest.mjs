@@ -15279,6 +15279,113 @@ try {
     && federalTotalForCoupling > 0,
   'TP-05-04 and TP-05-05: a state settlement whose taxable income was reduced by the federal total produces a serialised result the order-independence comparison distinguishes from the uncoupled one, so the guard is proven able to fail');
 
+  /* The pair above only proves the comparator can tell two settlements apart. It never reads the
+     published guard, so it survives a build in which `asserted` is a constant, and it exercises
+     one direction. Both gaps are closed here. `requireModule` inside the combined module resolves
+     the global before the relative path, so a second instance can be bound to a deliberately
+     coupled engine and the guard itself becomes what fails. */
+  const combinedModulePath = combinedRequire.resolve('../rltaxcombined.js');
+  function combinedBoundTo(federalModule, stateModule) {
+    const savedRules = globalThis.RLTAXRULES;
+    const savedFederal = globalThis.RLTAX;
+    const savedState = globalThis.RLTAXSTATE;
+    const savedCombined = globalThis.RLTAXCOMBINED;
+    const savedEntry = combinedRequire.cache[combinedModulePath];
+    delete combinedRequire.cache[combinedModulePath];
+    globalThis.RLTAXRULES = RULES;
+    globalThis.RLTAX = federalModule;
+    globalThis.RLTAXSTATE = stateModule;
+    try {
+      return combinedRequire('../rltaxcombined.js');
+    } finally {
+      delete combinedRequire.cache[combinedModulePath];
+      if (savedEntry) combinedRequire.cache[combinedModulePath] = savedEntry;
+      globalThis.RLTAXRULES = savedRules;
+      globalThis.RLTAX = savedFederal;
+      globalThis.RLTAXSTATE = savedState;
+      globalThis.RLTAXCOMBINED = savedCombined;
+    }
+  }
+
+  /* Direction one. The state settlement consumes the federal total settled immediately before it.
+     In the federal-then-state pass there is one to consume; in the state-then-federal pass there
+     is not, so the two state results diverge and the guard goes false. */
+  let pendingFederalTotal = null;
+  const federalPublishingItsTotal = Object.assign({}, ENGINE, {
+    computeAnnualFederalTax: function (workspace, pack) {
+      const settled = ENGINE.computeAnnualFederalTax(workspace, pack);
+      pendingFederalTotal = settled.totalFederalTax.value;
+      return settled;
+    }
+  });
+  const stateConsumingFederalTotal = Object.assign({}, STATE, {
+    computeAnnualStateTax: function (workspace, pack) {
+      const consumed = pendingFederalTotal;
+      pendingFederalTotal = null;
+      const reached = clone(workspace);
+      if (Number.isFinite(consumed)) reached.income.ordinary = reached.income.ordinary - consumed;
+      return STATE.computeAnnualStateTax(reached, pack);
+    }
+  });
+  pendingFederalTotal = null;
+  const stateCoupledResult = combinedBoundTo(federalPublishingItsTotal, stateConsumingFederalTotal)
+    .combineSettlements(combinedWorkspace('state:ZZ', 200000), federalPack, fixturePack);
+
+  /* Direction two. The federal settlement folds the state total into its itemised deduction. Now
+     it is the federal pair that diverges, which is why one direction alone is not the claim. */
+  let pendingStateTotal = null;
+  const statePublishingItsTotal = Object.assign({}, STATE, {
+    computeAnnualStateTax: function (workspace, pack) {
+      const settled = STATE.computeAnnualStateTax(workspace, pack);
+      pendingStateTotal = settled.totalStateTax.value;
+      return settled;
+    }
+  });
+  const federalConsumingStateTotal = Object.assign({}, ENGINE, {
+    computeAnnualFederalTax: function (workspace, pack) {
+      const consumed = pendingStateTotal;
+      pendingStateTotal = null;
+      const reached = clone(workspace);
+      if (Number.isFinite(consumed)) reached.itemizedAmount = reached.itemizedAmount + consumed;
+      return ENGINE.computeAnnualFederalTax(reached, pack);
+    }
+  });
+  pendingStateTotal = null;
+  const federalCoupledResult = combinedBoundTo(federalConsumingStateTotal, statePublishingItsTotal)
+    .combineSettlements(combinedWorkspace('state:ZZ', 200000, 0, 'single', 'itemized'), federalPack, fixturePack);
+  const itemizedControl = COMBINED.combineSettlements(
+    combinedWorkspace('state:ZZ', 200000, 0, 'single', 'itemized'), federalPack, fixturePack);
+
+  assert(stateCoupledResult.orderIndependence.asserted === false
+    && federalCoupledResult.orderIndependence.asserted === false
+    && fixtureCombination.orderIndependence.asserted === true
+    && itemizedControl.orderIndependence.asserted === true
+    && stateCoupledResult.orderIndependence.method === 'settle-both-orders-and-compare'
+    && COMBINED.combineSettlements(combinedWorkspace('state:ZZ', 200000), federalPack, fixturePack)
+      .orderIndependence.asserted === true,
+  'TP-05-04 and TP-05-05: the published order-independence guard itself goes false under both couplings — a state settlement consuming the federal total settled before it, and a federal settlement folding the state total into its itemised deduction — while the unmutated implementation asserts it in both deduction modes');
+
+  /* TP-05-04's second clause. The same coupling breaks reconciliation leg L7, which pins state
+     taxable income to the state pack's own deduction. The federal total is subtracted from the
+     taxable measure only, leaving the gross and the deduction as the pack produced them, which is
+     the shape a coupled implementation actually produces. */
+  const l7Workspace = combinedWorkspace('state:ZZ', 200000);
+  const l7Basis = STATE.computeStateTaxableIncome(l7Workspace, fixturePack);
+  const l7Result = STATE.computeAnnualStateTax(l7Workspace, fixturePack);
+  const l7FederalTotal = ENGINE.computeAnnualFederalTax(l7Workspace, federalPack).totalFederalTax.value;
+  const honestReconciliation = STATE.reconcileAnnualStateTax(l7Result, fixturePack, l7Basis);
+  const coupledReconciliation = STATE.reconcileAnnualStateTax(l7Result, fixturePack,
+    Object.assign({}, l7Basis, { stateTaxableIncome: l7Basis.stateTaxableIncome - l7FederalTotal }));
+  const l7StateOf = (reconciliation) =>
+    (reconciliation.legs.filter((leg) => leg.id === 'L7')[0] || {}).state;
+  assert(l7FederalTotal > 0
+    && l7StateOf(honestReconciliation) === 'holds'
+    && honestReconciliation.balanced === true
+    && l7StateOf(coupledReconciliation) === 'breaks'
+    && coupledReconciliation.balanced === false
+    && RULES.isUnavailable(coupledReconciliation.refusal),
+  'TP-05-04: reducing state taxable income by the federal total, with the pack-supplied gross and deduction left intact, breaks reconciliation leg L7 and refuses the settlement, while the untouched basis holds it');
+
   /* TP-05-07: the coupling record is structural. */
   const itemizedCombination = COMBINED.combineSettlements(combinedWorkspace('state:ZZ', 200000, 0, 'single', 'itemized'), federalPack, fixturePack);
   const coupling = fixtureCombination.crossJurisdictionCoupling;
@@ -15296,25 +15403,29 @@ try {
   const combinedCurve = COMBINED.computeCombinedMarginalCurve(
     combinedWorkspace('state:ZZ', 150000), federalPack, fixturePack, 'ordinary', combinedConfig.sweep);
   const tolerance = federalPack.roundingPolicy.reconciliationTolerance;
-  const rateIdentityHolds = combinedCurve.points.every((point) =>
+  /* A refusing curve publishes no points and no segments, so every read that happens before an
+     assert is guarded against the refusal shape. An unguarded read throws, and a throw here takes
+     the rest of this group with it, which hides failures instead of reporting one. */
+  const combinedCurvePoints = Array.isArray(combinedCurve.points) ? combinedCurve.points : [];
+  const rateIdentityHolds = combinedCurvePoints.every((point) =>
     Math.abs(point.combinedMarginalRate - (point.federalMarginalRate + point.stateMarginalRate)) <= tolerance
     && Math.abs(point.combinedTaxAtLevel - (point.federalTaxAtLevel + point.stateTaxAtLevel)) <= tolerance);
-  const curveRows = COMBINED.combinedCurveTextRows(combinedCurve);
+  const curveRows = RULES.isUnavailable(combinedCurve) ? [] : COMBINED.combinedCurveTextRows(combinedCurve);
   assert(!RULES.isUnavailable(combinedCurve)
     && combinedCurve.contractVersion === 'CombinedMarginalCurve/v1'
-    && combinedCurve.points.length > 0 && rateIdentityHolds
+    && combinedCurvePoints.length > 0 && rateIdentityHolds
     && !Object.prototype.hasOwnProperty.call(combinedCurve, 'averageRate')
     && !Object.prototype.hasOwnProperty.call(combinedCurve, 'summaryRate')
-    && curveRows.length === combinedCurve.points.length
-    && curveRows.every((row, index) => row.combinedMarginalRate === combinedCurve.points[index].combinedMarginalRate)
-    && combinedCurve.settlementCalls.federal === combinedCurve.points.length * 2
-    && combinedCurve.settlementCalls.state === combinedCurve.points.length * 2,
+    && curveRows.length === combinedCurvePoints.length
+    && curveRows.every((row, index) => row.combinedMarginalRate === combinedCurvePoints[index].combinedMarginalRate)
+    && combinedCurve.settlementCalls.federal === combinedCurvePoints.length * 2
+    && combinedCurve.settlementCalls.state === combinedCurvePoints.length * 2,
   'TP-05-08 and TP-05-14: every curve point carries a federal, a state and a combined rate whose sum identity holds, the record carries no scalar average, the text rows read the identical record, and each settlement is called exactly twice per point for the forward difference');
 
   /* TP-05-09 and TP-05-10: the sample set is the union of the grid and BOTH jurisdictions' edges. */
   const stateEdges = COMBINED.declaredEdges(fixturePack, 'single', 'state:ZZ');
   const federalEdges = COMBINED.declaredEdges(federalPack, 'single', 'federal');
-  const sampledLevels = combinedCurve.points.map((point) => point.level);
+  const sampledLevels = combinedCurvePoints.map((point) => point.level);
   const stateBandEdge = fixturePack.ordinaryRateTables.single.bands[1].lowerInclusive;
   const stateDeductionAmount = fixturePack.standardDeductions.single.amount;
   const stateCrossingLevel = stateBandEdge + stateDeductionAmount;
@@ -15334,14 +15445,15 @@ try {
 
   /* TP-05-11: every contributing threshold names its jurisdiction and its pack. */
   const contributions = [];
-  combinedCurve.segments.forEach((segment) => { segment.contributingThresholds.forEach((entry) => contributions.push(entry)); });
+  const combinedCurveSegments = Array.isArray(combinedCurve.segments) ? combinedCurve.segments : [];
+  combinedCurveSegments.forEach((segment) => { segment.contributingThresholds.forEach((entry) => contributions.push(entry)); });
   const attributedJurisdictions = new Set(contributions.map((entry) => entry.jurisdiction));
   assert(contributions.length > 0
     && contributions.every((entry) => typeof entry.jurisdiction === 'string' && entry.jurisdiction.length > 0)
     && contributions.every((entry) => typeof entry.packId === 'string' && entry.packId.length > 0)
     && contributions.every((entry) => typeof entry.sourceRef === 'string' && entry.sourceRef.length > 0)
     && attributedJurisdictions.has('federal') && attributedJurisdictions.has('state:ZZ')
-    && combinedCurve.segments.every((segment) => segment.segmentKind === 'flat' || segment.contributingThresholds.length > 0),
+    && combinedCurveSegments.every((segment) => segment.segmentKind === 'flat' || segment.contributingThresholds.length > 0),
   'TP-05-11: every contributing threshold carries a non-empty jurisdiction, pack id and source reference, both jurisdictions appear among the attributions, and no non-flat segment is rendered without one');
 
   /* An unattributable rate change is refused rather than drawn. */

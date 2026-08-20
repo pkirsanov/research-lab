@@ -113,6 +113,23 @@ export function findAttentionVerbInstructionGaps(instruction) {
 export const ATTENTION_RESEARCH_VERBS = Object.freeze(RLATTN.RESEARCH_VERBS.slice());
 
 /**
+ * The expiry format, taught by a worked example the gate itself accepts.
+ *
+ * `expiry` is checked with a strict UTC pattern - a date alone, or an offset
+ * form like +00:00, is not resolvable. The 03:50 EDT run lost FETH to exactly
+ * that: the item was otherwise complete and in budget. The instruction said
+ * "an expiry instant" and never said what an instant had to look like. The
+ * example below is proven against rlattention's own isIsoInstant in the
+ * selftest, so the shape shown to the author cannot drift from the shape the
+ * gate admits.
+ */
+export function attentionExpiryFormatInstruction() {
+  return 'Write expiry as a UTC instant of the exact form 2026-01-31T20:00:00Z - four-digit year, T, '
+    + 'twenty-four-hour time, and a trailing Z. A date on its own, a local time, or a +00:00 offset is '
+    + 'refused as unresolvable, and the item is dropped whole.';
+}
+
+/**
  * The per-card character budget, rendered from the committed output-budget policy.
  *
  * The 03:30 EDT run composed TWO complete items from real lane judgement and

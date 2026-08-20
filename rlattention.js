@@ -930,6 +930,9 @@
     ATTENTION_LIFECYCLE_STATES: ATTENTION_LIFECYCLE_STATES,
     ATTENTION_LIFECYCLE_TRANSITIONS: ATTENTION_LIFECYCLE_TRANSITIONS,
     DECISION_WINDOWS: DECISION_WINDOWS,
+    /* exported so the authoring instruction's worked example can be proven against the SAME
+       predicate the expiry check refuses on, rather than against a restated regex. */
+    isIsoInstant: isIsoInstant,
     /* exported so the authoring instruction can be RENDERED from the same frozen array
        checkVerb refuses on, rather than keeping a second copy that drifts. */
     RESEARCH_VERBS: RESEARCH_VERBS,

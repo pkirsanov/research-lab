@@ -31,6 +31,7 @@ import {
   AUTHORED_JUDGEMENT_KEYS as RLATTN_AUTHORED_KEYS,
   attentionAuthoredKeysInstruction,
   attentionCardBudgetInstruction,
+  attentionExpiryFormatInstruction,
   attentionSubjectMenuInstruction,
   attentionVerbContractInstruction,
   findAttentionVerbInstructionGaps
@@ -3044,6 +3045,25 @@ try {
     'the card-budget instruction states the enforced per-card cap of ' + budgetPolicy.decisionCardChars);
   assert(signalsInstruction.includes('${attentionCardBudgetInstruction()}'),
     'the signals lane renders the per-card budget from the committed policy instead of omitting it');
+
+  /* ── and the expiry SHAPE, proven against the gate's own predicate ────────────────────────
+     The 03:50 EDT run lost FETH on expiry alone - the item was complete, in budget, and on an
+     admissible subject. "An expiry instant" never said what an instant looks like, and the check
+     is a strict UTC pattern that rejects a bare date or a +00:00 offset. Asserting the worked
+     example against rlattention's OWN isIsoInstant is what makes this guard real: a restated
+     regex here could agree with itself while disagreeing with the gate. */
+  const expiryInstruction = attentionExpiryFormatInstruction();
+  const RLATTN_MODULE = (await import('node:module')).createRequire(import.meta.url)('../rlattention.js');
+  const workedExample = (expiryInstruction.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z/) || [])[0];
+  assert(typeof workedExample === 'string' && workedExample.length > 0,
+    'the expiry instruction shows the author a worked example instant');
+  assert(RLATTN_MODULE.isIsoInstant(workedExample) === true,
+    'the expiry example shown to the author is accepted by the composer\'s own isIsoInstant (' + workedExample + ')');
+  assert(RLATTN_MODULE.isIsoInstant('2026-01-31') === false
+    && RLATTN_MODULE.isIsoInstant('2026-01-31T20:00:00+00:00') === false,
+    'the predicate backing that example still rejects a bare date and an offset form, so the example is load-bearing');
+  assert(signalsInstruction.includes('${attentionExpiryFormatInstruction()}'),
+    'the signals lane renders the expiry format instead of leaving the instant shape to the author');
 
   /* Staleness must be readable as a FACT, never inferred from an ambiguous count. The
      2026-08-02 brief read the symbol count (287 tickers) as a session count, published

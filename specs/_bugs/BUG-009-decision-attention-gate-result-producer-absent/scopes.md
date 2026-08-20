@@ -36,6 +36,36 @@ Sub-decisions that cannot be delegated to an agent:
 4. **Where this work lives.** `specs/026-actionable-brief-brevity-and-cross-asset/`
    Open Question 1 asks exactly this and is unanswered.
 
+### Gherkin Scenarios
+
+The decision this scope owns is *where the judgement lives*, so its scenarios are
+about the policy artifact rather than about a rendered card. Both are satisfied by
+assertions that already exist.
+
+```gherkin
+Feature: The detection judgement lives in data the owner edits, not in code an agent wrote
+
+  Scenario: The producer carries no opinion of its own
+    Given the detection policy is absent, empty or partially declared
+    When the producer resolves it
+    Then it yields null and emits nothing
+    And no built-in threshold is substituted for the missing declaration
+
+  Scenario: A severe reading that has not persisted does not interrupt the reader
+    Given a subject whose reading clears the severe band
+    And whose persistence flag is not set
+    When the gate assigns a disposition
+    Then the item is context rather than attention
+    And the reader is not interrupted by an unconfirmed reading
+```
+
+### Test Plan
+
+| # | Scenario | Type | Command | File and test title |
+| --- | --- | --- | --- | --- |
+| 1.1 | The producer carries no opinion of its own | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R1` → `SCN-BUG009-R1-NODEFAULT` an absent, empty or partially declared policy resolves to null — the producer carries NO threshold of its own |
+| 1.2 | A severe reading that has not persisted does not interrupt the reader | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R1` → `SCN-BUG009-R1-CONSERVATIVE` only a SEVERE reading that independently persisted reaches attention; a severe but unconfirmed reading is context |
+
 ### Definition of Done
 
 - [x] A remedy from `design.md` §4 (or a documented alternative) is selected in writing. **R4 is SELECTED and implemented on 2026-08-19.** It is the only candidate §4 identifies as implementable without inventing detection policy, and it is now landed: `emptyAttentionStatement` in `rlbrief.js`, reached from `market-brief.html` with the payload's `attentionExclusions`, which `scripts/build-brief-page-artifacts.mjs` now carries into the page projection (it previously dropped the field, so the renderer would have received nothing). R1 and R2 remain UNSELECTED and blocked on the owner's detection-policy decision; R3 stays rejected as a documented regression; R5 still cannot land alone. **Evidence:** browser rows `SCN-BUG009-R4` — `4 passed`, and the full cockpit suite at `40 passed`, up from 36.
@@ -91,6 +121,24 @@ Feature: The decision-attention tier can fire
     And no constant is substituted
 ```
 
+### Test Plan
+
+Every row names an assertion that already exists in `scripts/selftest.mjs` under the
+group `BUG-009 R1 — the observed attention gate producer`. The identifiers are the
+ones those assertions already carry; none was renamed to fit this table.
+
+| # | Scenario | Type | Command | File and test title |
+| --- | --- | --- | --- | --- |
+| 2.1 | A generation whose observed state warrants attention publishes an item | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R1` → `SCN-BUG009-R1-E2E` a lane-authored candidate carrying judgement and NO observation composes into a published `decision-attention/v1` item |
+| 2.2 | A generation whose observed state warrants attention publishes an item | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R1` → `SCN-BUG009-R1-ACCEPTED` a produced gate is no longer refused `RLATTN-PROVENANCE` |
+| 2.3 | A generation whose observed state warrants attention publishes an item | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R1` → `SCN-BUG009-R1-BOTHPATHS` the observed half is attached on BOTH `build-attention-items` entry points |
+| 2.4 | A genuinely quiet generation publishes an empty feed | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R1` → `SCN-BUG009-R1-NODEFAULT` an absent or partial policy resolves to null; the producer carries no threshold of its own |
+| 2.5 | A genuinely quiet generation publishes an empty feed | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R1` → `SCN-BUG009-R1-CONSERVATIVE` only a severe reading that independently persisted reaches attention |
+| 2.6 | A gate result is never synthesized to satisfy the validator | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R1` → `SCN-BUG009-R1-AMBIGUOUS` a headline naming two tracked symbols resolves to null rather than guessing |
+| 2.7 | A gate result is never synthesized to satisfy the validator | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R1` → `SCN-BUG009-R1-WATCHLISTONLY` the gate observes the watchlist and only the watchlist |
+| 2.8 | A gate result is never synthesized to satisfy the validator | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R1` → `SCN-BUG009-R1-NOSUBJECT` the end-to-end candidate carries no `subject`, matching what the lane actually emits |
+| 2.9 | Adversarial — the ask cannot silently drop the watchlist constraint | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R1` → `SCN-BUG009-R1-LANESCOPE` the lane is told an attention item must concern a watchlist instrument and carry its exact ticker |
+
 ### Definition of Done
 
 - [x] A named production module constructs `gateResult` values on the publication path. **SATISFIED.** `rlattentiongate.js` exports `observeGate` and `attachObserved`, and its production consumer is `scripts/build-attention-items.mjs` — the LAST payload writer on the publication path, not a test. **Evidence:** `rlattentiongate.js is a frozen module exporting observeGate and resolvePolicy`, and `the producer is pure: no DOM, no storage, no network, no timer, no bare isFinite and no top-level module syntax`. **2026-08-19 CORRECTION — the first version of this producer would NOT have bound to a single real lane candidate, and the test that "proved" it was the reason nobody could tell.** `attachObserved` read `candidate.subject`. But `subject` is a **GATE_KEY** in `build-attention-items.mjs`, not an `AUTHORED_KEY`, and the lane's own instruction in `brief-narrative-parallel.mjs` tells it to author *"only the judgement"* — headline, the falsifiability triple, and the four enums. A real lane candidate therefore carries NO subject, `attachObserved` would have returned it untouched, and every candidate would have been refused `RLATTN-PROVENANCE` exactly as before. The `SCN-BUG009-R1-E2E` row passed only because it supplied `subject: 'FBTC'` itself, which the lane never does — the test proved the producer's arithmetic while the production path stayed broken. **Remedy:** `resolveSubject` binds a judgement to an instrument by matching a tracked Tier-A symbol as a whole word in the authored text. That is a string match against committed keys, not an inference. It refuses rather than guesses: two tracked symbols in one headline resolve to `null` (`SCN-BUG009-R1-AMBIGUOUS`), no tracked symbol resolves to `null`, a longer ticker containing a tracked one does not match, and an explicit subject still wins. The E2E row now carries NO subject and is guarded by `SCN-BUG009-R1-NOSUBJECT`, which asserts that absence, so the test can never again pass while production fails.
@@ -144,6 +192,20 @@ Feature: Structural unreachability of the attention tier is detected
     And it distinguishes the structural cause from a quiet session
 ```
 
+### Test Plan
+
+Both rows below are adversarial by construction: each asserts that a *failure* is
+reachable, which is the only shape that can prove an unreachable tier is detected
+rather than mistaken for a quiet one.
+
+| # | Scenario | Type | Command | File and test title |
+| --- | --- | --- | --- | --- |
+| 3.1 | The suite fails when no production module produces a gate result | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R1` → `SCN-BUG009-R1-LOADBEARING` with `attention-detection-policy/v1` removed the same candidate is refused `RLATTN-PROVENANCE` again, so the producer is load-bearing |
+| 3.2 | The suite fails when no production module produces a gate result | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R1` → `SCN-BUG009-R1-ACCEPTED` the paired control: the same candidate IS accepted with the producer present, which attributes the failure to the missing producer rather than to the candidate |
+| 3.3 | An adversarial empty tier is not mistaken for a quiet one | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R4 — an empty attention feed states refusal, not calm` → the two causes carry different machine-readable markers, `data-mac-attention-empty="quiet"` and `="refused"` |
+| 3.4 | An adversarial empty tier is not mistaken for a quiet one | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R4` → `SCN-BUG009-R4` `rlbrief.js` does not hold the live exclusion reason as a literal, so a different refusal renders its own cause |
+| 3.5 | Non-vacuity — the E2E row cannot pass by testing nothing | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R1` → `SCN-BUG009-R1-E2E-SUBJECT` at least one watchlist subject is both observed and unactioned before the end-to-end row runs |
+
 ### Definition of Done
 
 - [x] The suite fails when no production module produces a gate result, and it names the missing producer rather than reporting a conformant empty tier. **SATISFIED.** **Evidence:** `SCN-BUG009-R1-LOADBEARING` removes `attention-detection-policy/v1` and re-runs the identical candidate; it is refused `RLATTN-PROVENANCE` again, so the assertion fails precisely when no production module constructs a `gateResult`. The paired `SCN-BUG009-R1-ACCEPTED` proves the same candidate IS accepted with the producer present, which is what makes the failure attributable to the missing producer rather than to the candidate.
@@ -183,6 +245,33 @@ be executed with spec 026 rather than independently.
 **4b — the scheduled job cannot publish the payload.** `.github/workflows/tier-a.yml`
 omits `market-brief.payload.json` from its `git add` list and never references
 `scripts/brief-refresh-and-push.sh`. See `design.md` §6 and `DISC-009-004`.
+
+### Gherkin Scenarios
+
+This scope carries ONE scenario, for the behaviour it delivered. The second loose
+end, `DISC-009-004`, is deliberately NOT written as a scenario: it is not delivered,
+and a Gherkin block here is the regression contract for behaviour that exists.
+Expressing an open gap as a scenario would force either a false Definition-of-Done
+item or a permanently red gate. It stays recorded as prose in 4b above and as an
+open finding in `state.json`.
+
+```gherkin
+Feature: An empty feed tells the reader which kind of empty it is
+
+  Scenario: A refused feed does not read as a calm one
+    Given a generation whose every candidate was refused
+    When the attention tier renders
+    Then it states that the feed was refused and names the reason from the record
+    And it states that nothing was substituted
+    And it carries a different machine-readable marker than a genuinely quiet feed
+```
+
+### Test Plan
+
+| # | Scenario | Type | Command | File and test title |
+| --- | --- | --- | --- | --- |
+| 4.1 | A refused feed does not read as a calm one | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R4 — an empty attention feed states refusal, not calm` → the two causes carry different machine-readable markers, `data-mac-attention-empty="quiet"` and `="refused"`, and the refusal block states nothing was substituted |
+| 4.2 | A refused feed does not read as a calm one | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R4` → `SCN-BUG009-R4` `rlbrief.js` does not hold the live exclusion reason as a literal, so a different refusal renders its own cause |
 
 ### Definition of Done
 

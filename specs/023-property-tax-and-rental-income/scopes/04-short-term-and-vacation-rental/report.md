@@ -820,3 +820,107 @@ would not show that each row is sensitive to the defect it claims to catch, whic
 is the property this exercise exists to establish. No assertion was edited,
 weakened, skipped or removed in this pass, and no timeout was raised.
 
+## Harness Pass 2 — `TP-04-01` … `TP-04-05` Carry Intended REDs
+
+Every block below is `scripts/red-green-probe.sh` output, pasted unedited. Each
+mutation is aimed at the behaviour its own row names, and each probe pins its
+`--summary-match` to that row's own identifier, so the `red-summary` line is the
+failure of the row being claimed rather than of some neighbour. The harness arms
+its revert before mutating and proves the revert by blob hash, so the working
+tree is byte-identical to the committed blob at the end of each probe.
+
+### `TP-04-01`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-01 contract: loosening the closed category check to a mere presence check must fail the UseClassification/v1 refusal assertion
+file:             rltaxrules.js
+mutation:         if (USE_CATEGORIES.indexOf(classification.category) < 0) {  ->  if (classification.category === undefined) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-01: UseClassification/v1 refuses a missing or unknown category, a missing day count, a parameter carrying no citation, an empty comparisonsPerformed[], an incomplete comparison and a
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-02`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-02 compatibility: making the added routing treat an explicit none differently from an omitted classification must fail the byte-identical prior-settlement assertion
+file:             rltaxrental.js
+mutation:         if (classification !== undefined && classification !== null) {  ->  if (classification !== undefined) {   (2 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-02: the profitable Scope 03 fixtures produce their exact prior settlements and the loss fixtures still refuse for the same pre-existing absent-allowance reason, identically whether n
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=04505d51f87117fe1613b41a41277bfea5096b11 restored=04505d51f87117fe1613b41a41277bfea5096b11)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-03`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-03 sourcing: publishing the locator in place of the retrieved comparedAgainst quantity must fail the sourcing assertion that the record names which quantity the percentage was compared against
+file:             rltaxuse.js
+mutation:         percentageComparedAgainst: rule.personalUsePercentageFigure.comparedAgainst,  ->  percentageComparedAgainst: rule.personalUsePercentageFigure.locator,   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-03: each of the three test parameters resolves to exactly one retrieved record with a locator and the qualifier component kind, the source record states the basis on which that kind 
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-04`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-04 refusal: letting a refused classification fall through to an ordinary settlement must fail the assertion that a refused classification produces no rental figure
+file:             rltaxrental.js
+mutation:         if (rules.isUnavailable(classification)) return classification;  ->  if (rules.isUnavailable(classification)) return computeRentalSettlement(activity, pack);   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-04: a pack with any of the three test parameters absent, or with no classification rule at all, refuses the classification, assigns no category, and the settlement routed by that ref
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=04505d51f87117fe1613b41a41277bfea5096b11 restored=04505d51f87117fe1613b41a41277bfea5096b11)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-05`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-05 adversarial: making the engine recall a remembered test parameter when the pack retrieved none must fail the assertion that an absent parameter refuses
+file:             rltaxrules.js
+mutation:         if (isAbsentFigure(figure)) return absentFigureRefusal(figure, domain);  ->  if (isAbsentFigure(figure)) { rule = JSON.parse(JSON.stringify(rule)); rule[members[index].key] = { days: 14, rate: 0.1, sourceRef: "irs-p527-2025", locator: "recalled from memory rather than retrieved", comparisonOperator: "greater-than", comparedAgainst: "days-rented-to-others-at-a-fair-rental-price" }; figure = rule[members[index].key]; }   (3 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-05: an implementation falling back to a recalled rule when a test parameter is absent produces a category where the shipped implementation refuses, so the refusal assertion is proven
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### Collateral, recorded rather than hidden
+
+`TP-04-04` and `TP-04-05` read the same refusal. `TP-04-05` exists to prove that
+`TP-04-04`'s refusal assertion discriminates, so the only clause `TP-04-05` owns
+that depends on the implementation is the one `TP-04-04` also reads. A mutation
+that makes an absent parameter stop refusing therefore reds both, and no mutation
+can red `TP-04-05` alone. Each row still has a mutation aimed at the defect its
+own text names — the settlement side for `TP-04-04`, the recalled-rule fallback
+for `TP-04-05` — and each probe's `red-summary` is that row's own failure line.
+

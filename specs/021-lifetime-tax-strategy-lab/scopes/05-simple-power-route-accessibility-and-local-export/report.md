@@ -141,11 +141,74 @@ Scenario SCN-021-014 — every displayed value has a contextual tooltip sourced
 from its own record.
 Command: `node scripts/selftest.mjs`
 
+**Claim Source:** executed. The mutation, both runs and the revert were driven by
+`scripts/red-green-probe.sh`, which installs its restore trap before it writes,
+verifies the mutation landed, and re-verifies the revert against the committed
+blob hash. The block below is the harness's own emitted verdict, verbatim.
+
+The probe renames the `aria-describedby` attach inside the one `valueNode`
+constructor to an inert `data-tip-ref`. That is the exact defect the row names:
+the tooltip element is still built, so the page still looks annotated, but no
+displayed figure is programmatically associated with its explanation any more.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-03 valueNode drops the aria-describedby tooltip association
+file:             lifetime-tax-strategy-lab.html
+mutation:         figure.setAttribute("aria-describedby", "tip-" + fieldId);  ->  figure.setAttribute("data-tip-ref", "tip-" + fieldId);   (1 occurrence(s))
+command:          bash -c node\ scripts/selftest.mjs\ \>\>\ /tmp/rg-0503.log\ 2\>\&1\;\ rc=\$\?\;\ tail\ -3\ /tmp/rg-0503.log\;\ exit\ \$rc
+red-exit:         1
+red-summary:      Research-Lab self-test: 3171 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3172 passed, 0 failed
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The RED is the intended contract assertion and no other. The suite moved by
+exactly one assertion, and the single failure line names this row:
+
+```
+  ✗ FAIL: TP-05-03: exactly one constructor writes a displayed value, and it always attaches an aria-describedby tooltip element sourced from the field’s own record, so a value with no tooltip cannot be rendered
+```
+
+GREEN is the identical command after the harness-verified revert, back at the
+session baseline of `3172 passed, 0 failed` at exit 0.
+
 ### TP-05-04
 
 Scenario SCN-021-014 — every chart has a text-equivalent table emitted from the
 same record.
 Command: `node scripts/selftest.mjs`
+
+**Claim Source:** executed, through the same harness.
+
+The probe replaces the curve table's source read with an empty array, so the
+chart is still drawn while the text equivalent stops being emitted from the
+record the chart is drawn from. That is the accessibility defect the row exists
+to refuse — a canvas with no equivalent a non-visual reader can reach.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-04 the curve text-equivalent table stops being emitted from the curve record
+file:             lifetime-tax-strategy-lab.html
+mutation:         var rows = ENGINE.curveTextRows(curve);  ->  var rows = [];   (1 occurrence(s))
+command:          bash -c node\ scripts/selftest.mjs\ \>\>\ /tmp/rg-0504.log\ 2\>\&1\;\ rc=\$\?\;\ tail\ -3\ /tmp/rg-0504.log\;\ exit\ \$rc
+red-exit:         1
+red-summary:      Research-Lab self-test: 3171 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3172 passed, 0 failed
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+One assertion moved, and it is this row:
+
+```
+  ✗ FAIL: TP-05-04: the chart and the text-equivalent table are both emitted from the same curve record, the table carries an aria-label, and the chart carries an aria-label plus a text fallback
+```
 
 ### TP-05-05
 
@@ -222,6 +285,36 @@ page string claims an error rate, a track record, an accuracy figure or a plan
 success probability.
 Command: `node scripts/selftest.mjs`
 
+**Claim Source:** executed, through the same harness.
+
+The probe inserts a track-record claim into the disclosure paragraph itself —
+the one place a reader is most likely to trust — leaving the not-tax-advice
+framing intact. This deliberately exercises the substantive limb rather than
+the easy one: the row could have been satisfied by deleting the framing string,
+which would have proven only that the framing check works, not that the claim
+scan can catch a claim smuggled into otherwise-correct copy.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-06 the page copy starts claiming a track record
+file:             lifetime-tax-strategy-lab.html
+mutation:         advice. It does not prepare or file a return  ->  advice. It has a track record and does not prepare or file a return   (1 occurrence(s))
+command:          bash -c node\ scripts/selftest.mjs\ \>\>\ /tmp/rg-0506.log\ 2\>\&1\;\ rc=\$\?\;\ tail\ -3\ /tmp/rg-0506.log\;\ exit\ \$rc
+red-exit:         1
+red-summary:      Research-Lab self-test: 3171 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3172 passed, 0 failed
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+One assertion moved, and it names the leaking surface:
+
+```
+  ✗ FAIL: TP-05-06: no page or strategy string claims a published error rate, a self-invalidation statistic, a track record, an accuracy figure or a plan success probability, and the educational not-tax-advice framing is present (lifetime-tax-strategy-lab.html:track record)
+```
+
 ### TP-05-07
 
 Scenario SCN-021-015 — the sanitizer removes every identifier category and the
@@ -288,11 +381,84 @@ clear-all removes every declared private category, and no key carries a portfoli
 prefix.
 Command: `node scripts/selftest.mjs`
 
+**Claim Source:** executed, through the same harness.
+
+The probe makes `clearAllPrivateData` skip the first declared key while still
+reporting it in `removedKeys`. That is the worst shape this row can take: the
+clear action tells the household its private data is gone while one declared
+key is still sitting in storage. A cruder mutation — removing nothing — would
+have been caught by the count alone and would not have proven the assertion
+compares reported removals against the store's actual residue.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-08 clear-all reports removing a declared key it actually leaves standing
+file:             rltaxworkspace.js
+mutation:         storage.removeItem(keys[index]);  ->  if (index > 0) storage.removeItem(keys[index]);   (1 occurrence(s))
+command:          bash -c node\ scripts/selftest.mjs\ \>\>\ /tmp/rg-0508.log\ 2\>\&1\;\ rc=\$\?\;\ tail\ -3\ /tmp/rg-0508.log\;\ exit\ \$rc
+red-exit:         1
+red-summary:      Research-Lab self-test: 3167 passed, 5 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3172 passed, 0 failed
+revert-verified:  yes (committed=6760587f2303516755ab6a5e14436050717f1227 restored=6760587f2303516755ab6a5e14436050717f1227)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The intended row fired, and four independent privacy guards fired with it, so a
+silently-retained key is caught by the scope that owns the clear action and by
+every scope that declares a private member into it:
+
+```
+  ✗ FAIL: TP-01-08: clearing private data removes exactly the three declared keys, leaves a portfolio-prefixed key untouched, and a foreign key write is refused
+  ✗ FAIL: TP-05-08: the written storage key set is unchanged from Scope 01, clear-all removes exactly those three keys while leaving a portfolio-prefixed key standing, and the page itself writes only the display-mode key directly
+  ✗ FAIL: TP-03-15: the residency declaration is named in the privacy inventory, recorded as an unsupplied domain when absent, removed by the clear action, and redacted out of the export manifest so the location signal reaches no exported file
+  ✗ FAIL: TP-04-21: the lookback declaration and the year it belongs to are inventoried workspace members that start undeclared, are named by the unavailable-domain report while undeclared, are omitted by the export sanitizer
+  ✗ FAIL: TP-02-13: the privacy inventory names both declared surtax bases inside the household-values entry, the clear action removes the stored workspace carrying both declared amounts, and the export sanitizer covers them
+```
+
+All five returned on the identical command after the harness-verified revert.
+This probe therefore also carries the intended RED for Scope 01's TP-01-08,
+recorded there.
+
 ### TP-05-09
 
 Scenario SCN-021-013 — the tool identifier and its page appear in none of the six
 registration surfaces.
 Command: `node scripts/selftest.mjs`
+
+**Claim Source:** executed, through the same harness.
+
+The probe names the tool inside an existing `tools.json` description string. It
+deliberately does not add a tool entry: a leak that keeps the registry schema
+intact is the one a schema check would miss, so this proves the row scans for
+the identifier itself rather than for a well-formed registration.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-09 a registration surface starts naming the unregistered tool
+file:             tools.json
+mutation:         Interactive single-file research tools for the AI-datacenter capex cycle  ->  Interactive single-file research tools including the lifetime-tax lab for the AI-datacenter capex cycle   (1 occurrence(s))
+command:          bash -c node\ scripts/selftest.mjs\ \>\>\ /tmp/rg-0509.log\ 2\>\&1\;\ rc=\$\?\;\ tail\ -3\ /tmp/rg-0509.log\;\ exit\ \$rc
+red-exit:         1
+red-summary:      Research-Lab self-test: 3170 passed, 2 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3172 passed, 0 failed
+revert-verified:  yes (committed=bdc401b849dab05ca73182b2bc5d8cb836670b7f restored=bdc401b849dab05ca73182b2bc5d8cb836670b7f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Both failures name the offending surface rather than failing generically:
+
+```
+  ✗ FAIL: TP-05-09: the lifetime-tax route and its modules appear in none of tools.json, index.html, rlnav.js, README.md, notes/README.md or the market-brief configuration (tools.json)
+  ✗ FAIL: TP-05-21 and TP-05-25: the combined route and its two new modules appear in no registration surface, and this feature adds no new root HTML (tools.json)
+```
+
+`git status --short -- tools.json` returned no rows after the probe, and the
+harness re-derived the committed blob hash, so the registry is byte-identical to
+`HEAD`. The tool remains registered nowhere.
 
 ### TP-05-10
 

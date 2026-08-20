@@ -11,27 +11,27 @@
       "figures": [
         {
           "label": "distance from 200-day",
+          "value": "15.52%",
           "provenance": {
-            "asOf": "2026-08-20T20:31:05.598Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "15.52%"
+            "sourceId": "etf-momentum-lab",
+            "asOf": "2026-08-20T20:31:05.598Z"
+          }
         },
         {
           "label": "from 52-week high",
+          "value": "-5.89%",
           "provenance": {
-            "asOf": "2026-08-20T20:31:05.598Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "-5.89%"
+            "sourceId": "etf-momentum-lab",
+            "asOf": "2026-08-20T20:31:05.598Z"
+          }
         },
         {
           "label": "moving-average stack",
+          "value": "bull-stack",
           "provenance": {
-            "asOf": "2026-08-20T20:31:05.598Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "bull-stack"
+            "sourceId": "etf-momentum-lab",
+            "asOf": "2026-08-20T20:31:05.598Z"
+          }
         }
       ],
       "gateId": null,
@@ -42,15 +42,15 @@
       "invalidation": "a daily VGT close above ~121.50 reasserts leadership",
       "lifecycle": [
         {
+          "to": "discovered",
           "at": "2026-08-20T20:31:05.598Z",
           "condition": "observed",
-          "ref": null,
-          "to": "discovered"
+          "ref": null
         }
       ],
       "marketConfirmation": {
-        "detail": null,
-        "state": "absent"
+        "state": "absent",
+        "detail": null
       },
       "marketConfirmationNote": "the Tier-A persistence gate is NOT met, so this reading has not persisted and is reported unconfirmed",
       "observedAt": "2026-08-20T20:31:05.598Z",
@@ -148,77 +148,6 @@
     },
     "trendEvidence": "SPY mom126 +11.41 / mom252 +19.19, +7.84% over the 200-day (~707.2), pctFrom52wHigh -1.96, +1.55% ABOVE its 50-day (~750.9) carrying a deterministic 20>50>200 bull-stack (swing-structure-lab Bull-stacked, Double top pattern qualified, trend regime unknown). The 8/20 session read a Trend day down auction under Mixed control (intraday-tape-lab VWAP 764.84, gap -0.41%, 79 bars) closing below VWAP, and breadth collapsed to 29.37% of 134 (market-heatmap-lab, narrow, margin -30.63) with the distinct-bar sequence 55.23% on 8/18, 64.33% on 8/19, 29.37% on 8/20, so only one of the last three bars cleared 60% and the latest broke below the line. Near-term leaders soft: SPMO 148.31 -1.63% below its 50-day (~150.8) but +13.24% over its 200-day (~131.0), QQQ 710.93 -0.3% below its 50-day (~713.1), XLK 183.1 on its 50-day. Dealer map still negative (spot 762.45, GEX -5.28B, flip 766.85, walls 760/765, expected move ±3.65).",
     "whatWouldChangeIt": "A decisive SPY daily CLOSE above the 766.85 flip back into positive dealer gamma with SPMO reclaiming its 50-day (~150.8), QQQ reclaiming its 50-day (~713.1) and breadth recovering above 60% across three bars (bullish, the pin is restored and the breakout re-broadens durably); a close below the 760 put wall with MSFT filling its gap toward ~431.5 or the Double top resolving lower (bearish, dealers deepen the amplification below the put wall); conditional vol turning back up with VIX closing above 22.0 or term-structure backwardation; a confirmed hawkish 7/29 Fed outcome once the official statement is re-pulled or a hot/cold official July NFP figure that re-prices the path; or breadth failing to recover above 60% for persistence, XLE slipping under rsMom 100 and losing its Leading relative-strength. Whether SPY reclaims and closes above the 766.85 flip and breadth recovers above 60% across three bars, or SPY loses the 760 put wall, is the near-term regime-decider."
-  },
-  "budget": {
-    "byField": [
-      {
-        "chars": 0,
-        "path": "headline"
-      },
-      {
-        "chars": 91,
-        "path": "attention[].headline"
-      },
-      {
-        "chars": 0,
-        "path": "attention[].what"
-      },
-      {
-        "chars": 51,
-        "path": "attention[].escalationTrigger"
-      },
-      {
-        "chars": 52,
-        "path": "attention[].invalidation"
-      },
-      {
-        "chars": 17,
-        "path": "crossAsset.legs[].label"
-      },
-      {
-        "chars": 77,
-        "path": "crossAsset.legs[].withheld"
-      },
-      {
-        "chars": 295,
-        "path": "crossAsset.dark[].reason"
-      },
-      {
-        "chars": 90,
-        "path": "crossAsset.dark[].withheld"
-      },
-      {
-        "chars": 107,
-        "path": "crossAsset.dark[].substitutionRefusal"
-      },
-      {
-        "chars": 48,
-        "path": "changed[].line"
-      },
-      {
-        "chars": 13,
-        "path": "rollUp.line"
-      },
-      {
-        "chars": 0,
-        "path": "trackRecord.line"
-      }
-    ],
-    "caps": {
-      "decisionCard": 300,
-      "headline": 140,
-      "total": 3000
-    },
-    "cards": [
-      {
-        "chars": 194,
-        "path": "attention[0]"
-      }
-    ],
-    "contractVersion": "budget-measurement/v1",
-    "disclosedTotal": 123122,
-    "total": 841,
-    "violations": []
   },
   "changed": [
     {
@@ -1835,5 +1764,76 @@
       "status": "$183.10 (2026-08-20 after-hours window; the 2026-08-20 regular session is the latest completed daily bar; next session 2026-08-21; the latest tape read shows 79 bars today (intraday-tape-lab, 2026-08-20T20:00:00Z); snapshot asOf 2026-08-20T20:31:05.598Z) — sitting essentially ON its 50-day (+0.11%, ~182.9) and +15.72% over the 200-day (~158.2), MA stack tangled; -7.62% off its high (mom5 -4.02, mom21 +1.57, mom63 +3.36). sector-research-lab owning-tool read (asOf 2026-08-20T20:31:04.853Z, benchmark SPY, 11 sectors) does NOT flag Technology in its rotation this run — it rotates INTO Utilities (XLU Improving up, quad I, rsMom 101.15, accel +4.69) and OUT of Financials (XLF Weakening down, quad W), with Health Care (XLV) the RS leader (rsRatio 101.69) — so XLK carries neither a rotation-in tailwind nor a rotation-out headwind this window and stands on its own structure. HOLD while it holds the 50-day (~182.9); invalidated on a daily close below the 50-day (~182.9). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-20 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
     }
   },
-  "window": "after-hours"
+  "window": "after-hours",
+  "budget": {
+    "contractVersion": "budget-measurement/v1",
+    "total": 841,
+    "byField": [
+      {
+        "path": "headline",
+        "chars": 0
+      },
+      {
+        "path": "attention[].headline",
+        "chars": 91
+      },
+      {
+        "path": "attention[].what",
+        "chars": 0
+      },
+      {
+        "path": "attention[].escalationTrigger",
+        "chars": 51
+      },
+      {
+        "path": "attention[].invalidation",
+        "chars": 52
+      },
+      {
+        "path": "crossAsset.legs[].label",
+        "chars": 17
+      },
+      {
+        "path": "crossAsset.legs[].withheld",
+        "chars": 77
+      },
+      {
+        "path": "crossAsset.dark[].reason",
+        "chars": 295
+      },
+      {
+        "path": "crossAsset.dark[].withheld",
+        "chars": 90
+      },
+      {
+        "path": "crossAsset.dark[].substitutionRefusal",
+        "chars": 107
+      },
+      {
+        "path": "changed[].line",
+        "chars": 48
+      },
+      {
+        "path": "rollUp.line",
+        "chars": 13
+      },
+      {
+        "path": "trackRecord.line",
+        "chars": 0
+      }
+    ],
+    "disclosedTotal": 123122,
+    "caps": {
+      "headline": 140,
+      "decisionCard": 300,
+      "total": 3000
+    },
+    "cards": [
+      {
+        "path": "attention[0]",
+        "chars": 194
+      }
+    ],
+    "violations": []
+  }
 }

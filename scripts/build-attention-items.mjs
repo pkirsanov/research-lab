@@ -161,11 +161,6 @@ export function findMaskedTerms(terms, instruction) {
   });
 }
 
-/** The verbs the gate refuses on that a given instruction does NOT offer. */
-export function findAttentionVerbInstructionGaps(instruction) {
-  return findUnofferedTerms(RLATTN.RESEARCH_VERBS, instruction);
-}
-
 /** The verb vocabulary the gate refuses on, re-exported so callers read one array. */
 export const ATTENTION_RESEARCH_VERBS = Object.freeze(RLATTN.RESEARCH_VERBS.slice());
 
@@ -293,7 +288,10 @@ function loadJson(relPath) {
  * guard would still run and could never fire. Projecting the prose down onto
  * the watchlist tickers it actually names is what makes the guard real.
  *
- * Matched on a word boundary, so `XLE` does not match inside a longer token.
+ * Matched on a word boundary, so `XLE` does not match inside a longer token. That
+ * boundary is deliberately NOT the rendered-instruction one: `-` is a boundary here,
+ * because an action's prose is free text where a ticker may sit against a dash, while a
+ * vocabulary member may itself contain one. Only the escaping is shared.
  */
 export function actionSubjectTickers(actions, watchlistScope) {
   const covered = new Set();
@@ -301,7 +299,7 @@ export function actionSubjectTickers(actions, watchlistScope) {
     const text = typeof action?.subject === 'string' ? action.subject : '';
     if (!text) continue;
     for (const ticker of watchlistScope) {
-      if (new RegExp(`(^|[^A-Za-z0-9])${String(ticker).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^A-Za-z0-9]|$)`).test(text)) covered.add(ticker);
+      if (new RegExp(`(^|[^A-Za-z0-9])${escapeTerm(ticker)}([^A-Za-z0-9]|$)`).test(text)) covered.add(ticker);
     }
   }
   return Object.freeze([...covered]);

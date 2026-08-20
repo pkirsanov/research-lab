@@ -28,10 +28,12 @@
   "use strict";
 
   var CONTRACT = "attention-gate/v1";
+  /* The only vocabulary this module VALIDATES against: resolvePolicy refuses a band
+     whose severity is not one of these. The imminence, confirmation and disposition
+     vocabularies were declared beside it for symmetry and never read by anything —
+     each is produced as a literal by its own banding function — so they are gone
+     rather than left as three arrays a reader would take for enforcement. */
   var SEVERITIES = ["mild", "moderate", "severe"];
-  var IMMINENCE = ["imminent", "developing", "latent"];
-  var CONFIRMATION = ["present", "absent", "partial"];
-  var DISPOSITIONS = ["attention", "context", "no-action"];
 
   /* The authored fields `resolveSubject` scans for a tracked symbol. Named and
      exported rather than inlined because the authoring lane must be TOLD this
@@ -272,9 +274,6 @@
   return Object.freeze({
     CONTRACT: CONTRACT,
     SEVERITIES: Object.freeze(SEVERITIES.slice()),
-    IMMINENCE: Object.freeze(IMMINENCE.slice()),
-    CONFIRMATION: Object.freeze(CONFIRMATION.slice()),
-    DISPOSITIONS: Object.freeze(DISPOSITIONS.slice()),
     SUBJECT_RESOLUTION_FIELDS: Object.freeze(SUBJECT_RESOLUTION_FIELDS.slice()),
     resolvePolicy: resolvePolicy,
     resolveSubject: resolveSubject,

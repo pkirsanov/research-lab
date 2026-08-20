@@ -36,7 +36,6 @@ import {
   attentionHeadlineCapInstruction,
   attentionSubjectUniquenessInstruction,
   attentionVerbContractInstruction,
-  findAttentionVerbInstructionGaps,
   findMaskedTerms,
   findUnofferedTerms
 } from './build-attention-items.mjs';
@@ -2964,6 +2963,36 @@ try {
   const laneSource = read('scripts/brief-narrative-parallel.mjs');
   const signalsRegion = laneSource.slice(laneSource.indexOf("id: 'signals'"), laneSource.indexOf("id: 'groups'"));
   const signalsInstruction = signalsRegion.slice(signalsRegion.indexOf('instructions: `'), signalsRegion.lastIndexOf('`'));
+  /* Every attention contract below is checked for CONSUMPTION the same way, so the check is
+     written once and the seven call sites keep their own message: a failure still names the one
+     contract that broke, and the regex that finds the import is no longer copied per contract.
+     Both halves matter and neither implies the other — an interpolation with no import throws at
+     lane runtime, and an import with no interpolation renders nothing to the author. */
+  const laneRenders = (fnName) => new RegExp(
+    `import\\s*\\{[^}]*${fnName}[^}]*\\}\\s*from\\s*'\\./build-attention-items\\.mjs'`
+  ).test(laneSource) && signalsInstruction.includes('${' + fnName + '()}');
+  const attentionRequire = (await import('node:module')).createRequire(import.meta.url);
+  const GATE_MODULE = attentionRequire('../rlattentiongate.js');
+  const RLATTN_MODULE = attentionRequire('../rlattention.js');
+  /* Both modules are read by several pins below, and one of those pins is an EXISTENCE test over
+     GATE_MODULE.SUBJECT_RESOLUTION_FIELDS - which passes vacuously on an empty or absent list. So
+     the two handles are identified here by a member each pin depends on: a require pointed at the
+     wrong module now fails BY NAME rather than crashing an assertion further down. */
+  assert(Array.isArray(GATE_MODULE.SUBJECT_RESOLUTION_FIELDS) && GATE_MODULE.SUBJECT_RESOLUTION_FIELDS.length > 0
+    && Number.isFinite(RLATTN_MODULE.LIMITS && RLATTN_MODULE.LIMITS.headlineMaxChars),
+    'the attention pins below read rlattentiongate.js for its scanned-field set and rlattention.js for its headline limit, and both handles resolve to a module that carries one');
+  /* ADVERSARIAL, and it exists BECAUSE laneRenders is shared: seven assertions now rest on one
+     predicate, so a predicate that answered true unconditionally would retire all seven at once
+     and every one of them would still print a tick. These rows fix it to the real lane source and
+     exercise each half separately. `briefEventContractInstruction` IS interpolated by the lane but
+     is imported from validate-brief-payload.mjs, so only the import half can reject it; the
+     truncated name IS a substring of the real import specifier, so only the interpolation half
+     can. Either half alone would let the other rot unnoticed. */
+  assert(laneRenders('attentionNoSuchInstruction') === false
+    && laneRenders('briefEventContractInstruction') === false
+    && laneRenders('attentionCardBudgetInstructio') === false
+    && laneRenders('attentionCardBudgetInstruction') === true,
+    'laneRenders rejects a name the lane never renders, one it interpolates but imports from another module, and one that only matches the import as a substring \u2014 both halves of the check are load-bearing');
   assert(/import\s*\{[^}]*briefEventContractInstruction[^}]*\}\s*from\s*'\.\/validate-brief-payload\.mjs'/.test(laneSource)
     && signalsInstruction.includes('${briefEventContractInstruction()}'),
     'the signals lane renders its §9 key pin from the publish gate instead of restating it');
@@ -2977,25 +3006,24 @@ try {
      subjects (SOXX, FETH) and the gate refused BOTH RLATTN-VERB. The instruction is rendered from
      the same frozen array checkVerb refuses on, for the reason the events keys are: a hardcoded
      restatement fixes one run and re-opens the gap the first time the vocabulary moves. */
-  assert(findAttentionVerbInstructionGaps(attentionVerbContractInstruction()).length === 0,
+  assert(findUnofferedTerms(RLATTN_RESEARCH_VERBS, attentionVerbContractInstruction()).length === 0,
     'the authoring instruction offers every verb the publication gate refuses on (unoffered: '
-    + (findAttentionVerbInstructionGaps(attentionVerbContractInstruction()).join(', ') || 'none') + ')');
+    + (findUnofferedTerms(RLATTN_RESEARCH_VERBS, attentionVerbContractInstruction()).join(', ') || 'none') + ')');
 
   // ADVERSARIAL — the instruction that shipped BEFORE this fix. It named the ENUM and no value,
   // which is exactly what let two publishable items be refused. A detector that cannot flag it
   // proves nothing.
   const enumOnlyInstruction = 'the four judgement enums — verb, horizon, severity and imminence.';
-  assert(findAttentionVerbInstructionGaps(enumOnlyInstruction).length === RLATTN_RESEARCH_VERBS.length,
+  assert(findUnofferedTerms(RLATTN_RESEARCH_VERBS, enumOnlyInstruction).length === RLATTN_RESEARCH_VERBS.length,
     'naming the verb ENUM without its values is reported as offering no verb at all (gaps: '
-    + findAttentionVerbInstructionGaps(enumOnlyInstruction).join(', ') + ')');
+    + findUnofferedTerms(RLATTN_RESEARCH_VERBS, enumOnlyInstruction).join(', ') + ')');
 
   // ADVERSARIAL — a near-miss longer token must NOT satisfy the ask for the shorter verb, so the
   // whole-value match cannot be weakened into a substring test later.
-  assert(findAttentionVerbInstructionGaps('use monitor-only, verifying, investigated').length === RLATTN_RESEARCH_VERBS.length,
+  assert(findUnofferedTerms(RLATTN_RESEARCH_VERBS, 'use monitor-only, verifying, investigated').length === RLATTN_RESEARCH_VERBS.length,
     'a longer token containing a verb does not count as offering that verb');
 
-  assert(/import\s*\{[^}]*attentionVerbContractInstruction[^}]*\}\s*from\s*'\.\/build-attention-items\.mjs'/.test(laneSource)
-    && signalsInstruction.includes('${attentionVerbContractInstruction()}'),
+  assert(laneRenders('attentionVerbContractInstruction'),
     'the signals lane renders its verb vocabulary from the publication gate instead of restating it');
   const handTypedVerbs = RLATTN_RESEARCH_VERBS.filter((verb) => new RegExp('\\b' + verb + '\\b').test(signalsInstruction));
   assert(handTypedVerbs.length === 0,
@@ -3011,8 +3039,7 @@ try {
   const unrenderedKeys = findUnofferedTerms(RLATTN_AUTHORED_KEYS, renderedKeys);
   assert(unrenderedKeys.length === 0,
     'the authored-key instruction names every key the composer reads (unnamed: ' + unrenderedKeys.join(', ') + ')');
-  assert(/import\s*\{[^}]*attentionAuthoredKeysInstruction[^}]*\}\s*from\s*'\.\/build-attention-items\.mjs'/.test(laneSource)
-    && signalsInstruction.includes('${attentionAuthoredKeysInstruction()}'),
+  assert(laneRenders('attentionAuthoredKeysInstruction'),
     'the signals lane renders the authored key list from the composer instead of describing the fields in prose');
   /* No "holds no second copy" rule here, unlike the event keys and the verbs: SCN-017-045 REQUIRES
      the prose that explains each field, and that prose legitimately contains the key words. The
@@ -3027,7 +3054,7 @@ try {
   const unlistedSubjects = findUnofferedTerms(RLATTN_WATCHLIST_SCOPE, renderedMenu);
   assert(unlistedSubjects.length === 0,
     'the subject menu offers every ticker the privacy check admits (unoffered: ' + unlistedSubjects.join(', ') + ')');
-  assert(signalsInstruction.includes('${attentionSubjectMenuInstruction()}'),
+  assert(laneRenders('attentionSubjectMenuInstruction'),
     'the signals lane renders the eligible subject list from the composer instead of asking the author to recall it');
 
   /* ── and the ONE-ticker rule, which is the same defect an eighth time ─────────────────────────
@@ -3040,7 +3067,6 @@ try {
      the fact. The committed payload carries two refusals of exactly that shape. Rendered from
      SUBJECT_RESOLUTION_FIELDS so the warned-about set and the scanned set are one array. */
   const renderedUniqueness = attentionSubjectUniquenessInstruction();
-  const GATE_MODULE = (await import('node:module')).createRequire(import.meta.url)('../rlattentiongate.js');
   const unwarnedFields = findUnofferedTerms(GATE_MODULE.SUBJECT_RESOLUTION_FIELDS, renderedUniqueness);
   assert(unwarnedFields.length === 0,
     'the uniqueness instruction names every field the subject resolver scans (unnamed: ' + unwarnedFields.join(', ') + ')');
@@ -3064,8 +3090,7 @@ try {
     && GATE_MODULE.resolveSubject({ headline: 'SOXX sits far below its 200-day', rationale: 'semis are leading QQQ here' }, uniquenessTracked) === null,
     'a second watchlist ticker in the RATIONALE alone unresolves the subject, so the field set the instruction now names is the field set that actually costs the item');
 
-  assert(/import\s*\{[^}]*attentionSubjectUniquenessInstruction[^}]*\}\s*from\s*'\.\/build-attention-items\.mjs'/.test(laneSource)
-    && signalsInstruction.includes('${attentionSubjectUniquenessInstruction()}'),
+  assert(laneRenders('attentionSubjectUniquenessInstruction'),
     'the signals lane renders the one-ticker rule from the resolver instead of leaving the author to discover it by refusal');
   /* No "holds no second copy" rule here, for the reason the authored keys carry none: the lane
      legitimately asks for a rationale, an escalation trigger and an invalidation in prose, so
@@ -3078,13 +3103,12 @@ try {
      second copy the build-step guard bans, so that guard now bans an ASSIGNMENT rather than any
      mention: the one form that cannot drift is permitted, the form that creates drift is not. */
   const renderedCap = attentionHeadlineCapInstruction();
-  const enforcedCap = (await import('node:module')).createRequire(import.meta.url)('../rlattention.js').LIMITS.headlineMaxChars;
+  const enforcedCap = RLATTN_MODULE.LIMITS.headlineMaxChars;
   assert(new RegExp('\\b' + enforcedCap + '\\b').test(renderedCap),
     'the headline instruction states the cap checkHeadline actually refuses on (' + enforcedCap + ')');
   assert(!/\b120\b/.test(signalsInstruction),
     'the signals lane holds no hardcoded headline number; it renders the cap from rlattention.js');
-  assert(/import\s*\{[^}]*attentionHeadlineCapInstruction[^}]*\}\s*from\s*'\.\/build-attention-items\.mjs'/.test(laneSource)
-    && signalsInstruction.includes('${attentionHeadlineCapInstruction()}'),
+  assert(laneRenders('attentionHeadlineCapInstruction'),
     'the signals lane renders the headline cap from the composer instead of restating a number');
 
   /* ── and the per-CARD budget, which is the one that discards the whole brief ──────────────────
@@ -3104,7 +3128,7 @@ try {
     'the card-budget instruction names every field the cap measures (unnamed: ' + unstatedFields.join(', ') + ')');
   assert(new RegExp('\\b' + budgetPolicy.decisionCardChars + '\\b').test(renderedBudget),
     'the card-budget instruction states the enforced per-card cap of ' + budgetPolicy.decisionCardChars);
-  assert(signalsInstruction.includes('${attentionCardBudgetInstruction()}'),
+  assert(laneRenders('attentionCardBudgetInstruction'),
     'the signals lane renders the per-card budget from the committed policy instead of omitting it');
 
   /* ── and the expiry SHAPE, proven against the gate's own predicate ────────────────────────
@@ -3114,7 +3138,6 @@ try {
      example against rlattention's OWN isIsoInstant is what makes this guard real: a restated
      regex here could agree with itself while disagreeing with the gate. */
   const expiryInstruction = attentionExpiryFormatInstruction();
-  const RLATTN_MODULE = (await import('node:module')).createRequire(import.meta.url)('../rlattention.js');
   const workedExample = (expiryInstruction.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z/) || [])[0];
   assert(typeof workedExample === 'string' && workedExample.length > 0,
     'the expiry instruction shows the author a worked example instant');
@@ -3123,7 +3146,7 @@ try {
   assert(RLATTN_MODULE.isIsoInstant('2026-01-31') === false
     && RLATTN_MODULE.isIsoInstant('2026-01-31T20:00:00+00:00') === false,
     'the predicate backing that example still rejects a bare date and an offset form, so the example is load-bearing');
-  assert(signalsInstruction.includes('${attentionExpiryFormatInstruction()}'),
+  assert(laneRenders('attentionExpiryFormatInstruction'),
     'the signals lane renders the expiry format instead of leaving the instant shape to the author');
 
   /* ── the pin that makes the coverage pins above able to fail at all ──────────────────────

@@ -1088,3 +1088,68 @@ tripping a digest guard, whereas the federal pack in probe 9 did not. The medica
 pack is not digest-pinned in the way the federal pack is. That asymmetry is
 recorded as an observation about the packs, not as a defect this scope repairs.
 
+### Probe 11 — the export allow-list admits the lookback, and the renderer falls through its guard
+
+Mutation: two disjoint defects — `lookbackModifiedAdjustedGrossIncome` added to
+the export sanitizer's `kept` allow-list, and the `return;` removed from the
+medicare renderer's refusal branch. One member name and one control-flow
+statement, no figure.
+
+```
+$ node scripts/selftest.mjs
+  ✗ FAIL: TP-04-21: the lookback declaration and the year it belongs to are inventoried workspace members that
+  ✗ FAIL: TP-05-13: the export omits the statement amount, the earnings record, the birth year, the claim age 
+  ✗ FAIL: TP-05-14: admitting each of the five retirement declarations into the sanitizer’s kept set in turn i
+  ✗ FAIL: Regression: SCN-BUG009-R1-BENCH the market benchmark is observable under the symbol committed data n
+Research-Lab self-test: 3105 passed, 4 failed
+$ git checkout -- rltaxworkspace.js lifetime-tax-strategy-lab.html
+DIRTY_AFTER_REVERT=0
+$ node scripts/selftest.mjs
+  ✗ FAIL: Regression: SCN-BUG009-R1-BENCH the market benchmark is observable under the symbol committed data names it, so a judgement about the benchmark binds instead of being refused for want of a subject
+Research-Lab self-test: 3108 passed, 1 failed
+```
+
+**Intended RED recorded for TP-04-21.** The row fails the moment a household's own
+lookback figure is admitted to the exported bytes, which is the whole of
+NFR-024-003.
+
+**Not this session's failure.** `SCN-BUG009-R1-BENCH` fails in the GREEN run as
+well as the RED one, with this session's source clean. It belongs to BUG-009,
+which this session did not open and must not touch. It had not appeared in any
+earlier probe and had cleared again by the next run, so a concurrent session was
+mid-edit. It is reported, not fixed.
+
+**A weak assertion found, and the miss recorded rather than banked.** TP-04-23
+did **not** fail. Its refusal-guard clause was `/stage\.refusal/.test(body)` — it
+required the renderer to *mention* the refusal, not to *return* on it. Deleting
+the early return left the row green while the renderer would fall straight
+through into members only the available shape publishes, which is precisely the
+throw-takes-out-the-section defect the row exists to prevent. Per the evidence
+bar, the assertion was strengthened rather than the green banked.
+
+**The strengthening.** A predicate now requires a `return;` to sit between the
+refusal test and the first member only the available shape publishes, and it
+carries its own negative control: the identical predicate is applied to the same
+renderer body with that one `return;` removed and is required to come out false.
+So a later edit that drops the early return cannot leave the row green, and the
+guard is proven capable of failing without waiting for a probe. Against the
+unmutated page the strengthened row is green at `3108 passed, 0 failed`.
+
+### Probe 11b — the same renderer defect against the strengthened row
+
+Mutation: the `return;` removed from the medicare renderer's refusal branch, as
+in probe 11.
+
+```
+$ node scripts/selftest.mjs
+  ✗ FAIL: TP-04-23: the medicare renderer returns early on the refusal shape rather than dereferencing members
+Research-Lab self-test: 3107 passed, 1 failed
+$ git checkout -- lifetime-tax-strategy-lab.html
+DIRTY_AFTER_REVERT=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3108 passed, 0 failed
+```
+
+**Intended RED recorded for TP-04-23**, against the strengthened assertion. The
+same mutation that probe 11 could not detect now fails the row by name.
+

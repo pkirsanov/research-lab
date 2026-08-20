@@ -1033,6 +1033,260 @@ fails. The capture ran through `evidence-capture.sh`, so the exit code and the
 SHA-256 over all 3526 lines were produced by the run and are re-checkable with
 `--verify`.
 
+### The browser rows and the cumulative suite — probes 20 to 24
+
+Probes 1 to 19 close `TP-05-01` through `TP-05-21`, every one of which names
+`node scripts/selftest.mjs`. The five rows below name **browser** commands
+instead, and each is a distinct Playwright invocation, so each needs its own
+mutation-derived RED under **its own** command rather than an inherited one.
+
+The discipline of the earlier probes is unchanged and is restated because these
+mutations touch shipped modules: every mutation is **value-free by construction**
+— a rule identifier drawn from a closed set, a component id, a member *name*, or
+the literal `1` — so a slipped revert could not have disclosed a household
+figure. Each probe records the file's SHA-256 before the mutation, re-reads it
+after `git checkout --` in the **same shell invocation**, and prints
+`REVERT_VERIFIED`. No probe was held open across a tool call, and
+`git status --short` was clean over the module set after each one.
+
+The earlier browser RED recorded under
+`report.md#browser-rows--intended-red-observed-in-this-session` was a defect in
+the spec's own assertions rather than a mutation-derived RED. It is retained as
+history; the probes below are what close the rows.
+
+### Probe 20 — RED for TP-05-22
+
+<a id="tp-05-22-red"></a>
+
+`TP-05-22` rests on the claim that the two components are priced under
+**different** rules. The mutation makes the remainder claim the recapture's rule
+at construction, so both components carry `own-maximum-rate` and the assertion
+that sorts the two rendered rules has one value to sort. The mutated token is a
+rule identifier from the module's own closed set, so it carries no figure.
+
+```diff
+-        split.remainderAmount, "preferential-stacking", recaptureRule)
++        split.remainderAmount, "own-maximum-rate", recaptureRule)
+```
+
+```text
+PROBE 20  expect=TP-05-22   file=rltaxdisposition.js:166   guard_matches=1  applied=1
+  cmd=npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome
+      --grep "Regression: SCN-023-014 the gain splits into two legs priced under different rules"
+      --reporter=list
+  BEFORE_SHA=6406bf7fdc3ccfc0be5175603b7098870dff0912db8dd4133066662a570a6110
+  RED_EXIT=1   RED_LINES=37
+  RED_SHA256=e3e7d28678f5f763b52b4766cff40d4c4c99fe7672c4f08b3c594b3c431d0aca
+  RED_FAIL=✘ 1 [system-chrome] › …lifetime-tax-disposition…:103:1 › Regression: SCN-023-014 the gain
+           splits into two legs priced under different rules (6.2s)  →  1 failed
+  REVERT_VERIFIED=yes
+  GREEN_EXIT=0  GREEN_LINES=6
+  GREEN_SHA256=04b75aef52cd0b58e7d6d63db62b0fc9ee7ff9366489c116af22747c5ce808b9
+  GREEN=✓ 1 passed (2.8s)
+```
+
+The RED is the row's own scenario and no other, which is the discrimination:
+collapsing the two rules does not disturb the leg census or the exclusion, so a
+reader can attribute the failure to the pricing claim rather than to the module
+having stopped working generally.
+
+### Probe 21 — RED for TP-05-23
+
+<a id="tp-05-23-red"></a>
+
+`TP-05-23` owns the interaction the module's own header calls the thing most
+tools get wrong: the residence exclusion applies to the **remainder only**, and
+the recapture component is republished unchanged. The exclusion picks its target
+by matching the remainder's pricing rule. The mutation inverts that match, so the
+exclusion is applied to the recapture component and the remainder is republished
+instead — precisely the error the row forbids. Again the mutated token is a rule
+identifier, not a figure.
+
+```diff
+-      if (disposition.components[index].pricingRule === "preferential-stacking") {
++      if (disposition.components[index].pricingRule === "own-maximum-rate") {
+```
+
+```text
+PROBE 21  expect=TP-05-23   file=rltaxdisposition.js:239   guard_matches=1  applied=1
+  cmd=npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome
+      --grep "Regression: SCN-023-015 the residence exclusion applies to the remainder only and
+             names a failing test" --reporter=list
+  BEFORE_SHA=6406bf7fdc3ccfc0be5175603b7098870dff0912db8dd4133066662a570a6110
+  RED_EXIT=1   RED_LINES=28
+  RED_SHA256=2e046aa67fb7fb87a38946ae4ed1a4c1ca7b8aa8c95532a936c903836d9fd8d5
+  RED_FAIL=✘ 1 [system-chrome] › …lifetime-tax-disposition…:187:1 › Regression: SCN-023-015 the
+           residence exclusion applies to the remainder only and names a failing test (1.1s)
+  REVERT_VERIFIED=yes
+  GREEN_EXIT=0  GREEN_LINES=6
+  GREEN_SHA256=9fa1d10ccc29e55e5b100b92de9b2daed672c6e947953e0b08e14842e0ded75a
+  GREEN=✓ 1 passed (2.0s)
+```
+
+**This probe is the one that matters most in the set.** The row's assertion is
+not that an exclusion happened but that it happened to the *right* component, and
+a swap is the only mutation that leaves every amount well-formed while making the
+answer wrong. An assertion that had only checked "an exclusion was applied" would
+have survived this mutation; this one does not.
+
+### Probe 22 — RED for TP-05-24
+
+<a id="tp-05-24-red"></a>
+
+`TP-05-24` is the census row: each leg reaches every declared surface exactly
+once and appears once in the exported leg record. The mutation renames the
+remainder component id, so the leg the census looks for is present under a name
+no surface declares. The mutated value is an identifier, not a figure. It is the
+sibling of Probe 12, which renamed the *recapture* id against the selftest row —
+the two cannot be confused by their failure sets.
+
+```diff
+-  var REMAINDER_COMPONENT_ID = "disposition-remainder";
++  var REMAINDER_COMPONENT_ID = "disposition-remainder-probe";
+```
+
+```text
+PROBE 22  expect=TP-05-24   file=rltaxdisposition.js:53   guard_matches=1  applied=1
+  cmd=npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome
+      --grep "Regression: SCN-023-014 both disposition legs reach the headline, the comparison,
+             the curve and the export" --reporter=list
+  BEFORE_SHA=6406bf7fdc3ccfc0be5175603b7098870dff0912db8dd4133066662a570a6110
+  RED_EXIT=1   RED_LINES=36
+  RED_SHA256=0dd23ad238019de0a6509e81cbd3cd1b78d4f015ebc17dbb75629fbc5e516202
+  RED_FAIL=✘ 1 [system-chrome] › …lifetime-tax-disposition…:251:1 › Regression: SCN-023-014 both
+           disposition legs reach the headline, the comparison, the curve and the export (779ms)
+  REVERT_VERIFIED=yes
+  GREEN_EXIT=0  GREEN_LINES=6
+  GREEN_SHA256=4fb3575ced8648388067f6e8bd36e0469fd715f1b4db3c44dede6cf32b56bf1d
+  GREEN=✓ 1 passed (2.0s)
+```
+
+The row already carries its own in-test discrimination — it deletes a rendered
+node last and requires the census to name the damaged surface — so this probe
+proves the complementary half: the census also fires when the leg never reaches
+the surfaces under the name they declare.
+
+### Probe 23 — RED for TP-05-25
+
+<a id="tp-05-25-red"></a>
+
+`TP-05-25` is the privacy row. It reads every request URL, the address bar, the
+referrer and every console message, and requires that no declaration **member
+name** and no declared figure appears in any of them. The mutation emits a single
+console message carrying one member name — `saleProceeds`, the *name* of the
+field and never its value — from module load. Nothing about a household is
+emitted, and that is the point of choosing the name half of the assertion: the
+probe proves the console channel is really read without putting a figure anywhere
+near a mutation that could survive a slipped revert.
+
+```diff
+-  var EXCLUSION_CONTRACT = "ResidenceExclusionOutcome/v1";
++  var EXCLUSION_CONTRACT = "ResidenceExclusionOutcome/v1"; if (typeof console !== "undefined") console.log("saleProceeds");
+```
+
+```text
+PROBE 23  expect=TP-05-25   file=rltaxdisposition.js:46   guard_matches=1  applied=1
+  cmd=npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome
+      --grep "Regression: SCN-023-015 the request ledger stays empty and no disposition
+             declaration reaches a URL" --reporter=list
+  BEFORE_SHA=6406bf7fdc3ccfc0be5175603b7098870dff0912db8dd4133066662a570a6110
+  RED_EXIT=1   RED_LINES=28
+  RED_SHA256=72b8a1485d9d85736026461d5cc0e2439531954a1e18442f8dea80e0d0c83f1d
+  RED_FAIL=✘ 1 [system-chrome] › …lifetime-tax-disposition…:307:1 › Regression: SCN-023-015 the
+           request ledger stays empty and no disposition declaration reaches a URL (1.1s)
+  REVERT_VERIFIED=yes
+  GREEN_EXIT=0  GREEN_LINES=6
+  GREEN_SHA256=909d45e9a0b26825a5a97b3d7a4cde8736ff5df28ee19fb366cc441706f78435
+  GREEN=✓ 1 passed (2.2s)
+```
+
+**The console channel was the weakest of the four the row watches**, because it
+is the one a reader is least likely to think of as an exfiltration path, and it
+is the one this probe chose for that reason. The request-URL, hash and referrer
+halves are watched by the same loop over the same member-name list, so a probe
+that reached any one of the four proves the list is applied rather than declared.
+
+### Probe 24 — RED for TP-05-26, the cumulative suite
+
+<a id="tp-05-26-red"></a>
+
+`TP-05-26` does not claim that this scope's own scenarios pass — the four probes
+above already prove those. It claims something only a cumulative run can claim:
+that **every** scenario owned by features 021 through 024 still passes over the
+real route, "not a convenient subset". A mutation inside this scope's own module
+would therefore be the wrong probe for it, because a suite that had silently
+narrowed to Feature 023 would still have gone red.
+
+The mutation is placed instead in the **Feature 022 settlement engine**, outside
+this scope's owned files, and is conditioned on the disposition policy being
+present — the smallest possible leak of this feature's registration into the
+preferential band walk. The added term is the literal `1`, so it carries no
+figure of any kind.
+
+```diff
+-      preferentialTaxRecord = valued(preferentialWalk.tax, rules.ruleStatusFor(pack, preferentialTable), {
++      preferentialTaxRecord = valued(preferentialWalk.tax + (pack.dispositionPolicy ? 1 : 0), rules.ruleStatusFor(pack, preferentialTable), {
+```
+
+```text
+PROBE 24  expect=TP-05-26   file=rltax.js:677   guard_matches=1  applied=1
+  cmd=npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome
+      --grep "SCN-02[1-4]" --reporter=list
+  BEFORE_SHA=6854d22ac8daf1acc54b2852383dc2ad4036c5c4fc6361eeafaebd101a136acd
+  RED_EXIT=1   RED_LINES=187   RED_TOTALS=77 selected, 73 passed, 4 failed (1.3m)
+  RED_SHA256=373526b6a090ab47b008f89c6b133e6ece957258effd25f9e83e0d2636b94183
+  RED_FAIL=… lifetime-tax-federal …:77:1 › Regression: SCN-021-005 long term gains stack on
+           ordinary income
+  RED_FAIL=… lifetime-tax-federal …:190:1 › Regression: SCN-021-006 deduction selection is
+           explicit and the annual result reconciles
+  RED_FAIL=… lifetime-tax-preferential …:202:1 › Regression: SCN-022-002 a household with
+           preferential income receives a valued federal total
+  REVERTED_IN_SAME_INVOCATION=yes   REVERT_VERIFIED=yes
+```
+
+**The RED lands in Features 021 and 022, and that is the whole point of the
+probe.** Not one of the four failures is a Feature 023 scenario. A cumulative row
+whose grep had drifted to this feature's own scenarios would have stayed green
+under this mutation; this one did not, so the alternation `SCN-02[1-4]` is proven
+to reach the earlier features rather than merely to be written down as reaching
+them. The RED run also finished in 1.3m against the GREEN run's 5.5m, because a
+failing worker stops early — the two runs are not comparable on duration.
+
+```text
+PROBE 24 GREEN   observation 1
+  GREEN_EXIT=1  GREEN_LINES=85  TOTALS=77 selected, 77 passed, 0 failed, 0 skipped (5.6m)
+  GREEN_SHA256=6426c411ca61832402c80f586e9a3d4631122a2725b920bbaa54853dfc31ccc3
+  TRAILER=Error: worker-3 process did not exit within 300000ms after stop, force-killed it
+  TRAILER=2 errors were not a part of any test, see above for details
+
+PROBE 24 GREEN   observation 2, unmutated tree, same command
+  GREEN_EXIT=1  GREEN_LINES=85  TOTALS=77 selected, 77 passed, 0 failed, 0 skipped (5.5m)
+  GREEN_SHA256=c27a2de33300813bdffef8b13ca8f888a04e497fbea63a54796d740a7e4cc387
+  TRAILER=Error: worker-5 process did not exit within 300000ms after stop, force-killed it
+  TRAILER=Error: worker-4 process did not exit within 300000ms after stop, force-killed it
+  TRAILER=2 errors were not a part of any test, see above for details
+```
+
+**A finding, recorded rather than smoothed over: the cumulative GREEN exits 1
+while every scenario in it passes.** The row's stated claim is "zero failed and
+zero skipped", and both observations meet it exactly — 77 selected, 77 passed,
+nothing failed, nothing skipped. The non-zero exit comes from a trailer the
+harness itself labels "not a part of any test": two worker processes did not exit
+within the 300s shutdown budget and were force-killed. It reproduced on a clean,
+sha-verified tree with different worker ids each time, which is what distinguishes
+a harness-shutdown condition from a test outcome — a failing assertion does not
+move between workers.
+
+The second observation exists **only** because the first one's exit code was
+ambiguous. It is recorded rather than discarded, because discarding the first and
+reporting the second would have presented a re-run as a single clean result.
+
+This is not repaired here. The teardown budget lives in the Playwright
+configuration, which is outside this scope's allowed paths, and the row it would
+affect is not this scope's to change. It is left as an inherited observation: a
+later session reading a non-zero exit from this command should check the
+pass/fail/skip totals before concluding a scenario broke.
+
 ## Supersession Ledger
 
 **No entry was added in this session.** The ledger stands at fourteen entries.

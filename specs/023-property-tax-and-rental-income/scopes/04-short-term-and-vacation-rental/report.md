@@ -783,3 +783,40 @@ dispatch of this scope that did not record their RED, and this session cannot
 produce it after the fact without fabricating it. Scope 04's status is not
 advanced beyond `in_progress` by this agent.
 
+## Harness Pass — `TP-04-06` Carries An Intended RED
+
+The probe ran through `scripts/red-green-probe.sh`, which arms its revert before
+mutating and proves the revert by comparing the working blob hash against the
+committed one. The block is the harness's own output, pasted unedited.
+
+The mutation is the exact defect the boundary rows exist to catch: the engine's
+`greater-than` arithmetic is flipped from the strict form the publication states
+to the inclusive one, so a dwelling at exactly the sourced personal-use day figure
+lands on the wrong side of its own boundary.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-06 boundary: flipping the sourced greater-than comparison from strict to inclusive must fail the personal-use day boundary
+file:             rltaxuse.js
+mutation:         if (operator === "greater-than") result = left > right;  ->  if (operator === "greater-than") result = left >= right;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-06: at exactly the sourced personal-use day figure the dwelling is not a residence and one day above it is, the published comparison carries that exact figure as its right side, and 
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### Effect on the DoD row
+
+One of the twenty-five owed rows is closed. The row requires an observed intended
+RED on **every** one of `TP-04-01` through `TP-04-26`, so it stays unticked. Still
+owed: `TP-04-01` through `TP-04-05`, `TP-04-07` through `TP-04-21`, and the
+browser rows `TP-04-22` through `TP-04-25`. Each needs a mutation aimed at the
+behaviour its own row names — a single broad mutation that reds many rows at once
+would not show that each row is sensitive to the defect it claims to catch, which
+is the property this exercise exists to establish. No assertion was edited,
+weakened, skipped or removed in this pass, and no timeout was raised.
+

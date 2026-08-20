@@ -338,7 +338,19 @@ syntax error, a missing browser or an absent test does not satisfy RED.
       TP-04-25: those rows were implemented in an earlier dispatch of this scope
       that did not record their RED, and this session cannot produce it after the
       fact without fabricating it.
-  - **Phase:** implement · **Command:** the exact TP-04-01 through TP-04-26 commands · **Evidence:** `report.md#test-evidence`
+  - **Phase:** implement · **Command:** the exact TP-04-01 through TP-04-26 commands · **Evidence:** `report.md#test-evidence`, `report.md#harness-pass--tp-04-06-carries-an-intended-red`
+  - **Harness pass: one of the twenty-five owed rows is closed.** `TP-04-06` now
+    carries an observed intended RED, captured through
+    `scripts/red-green-probe.sh`, which arms its revert before mutating and proves
+    the revert by blob hash. The mutation flips the engine's `greater-than`
+    arithmetic from the strict form the publication states to the inclusive one,
+    which is the exact defect the boundary rows exist to catch. Still owed:
+    `TP-04-01` to `TP-04-05`, `TP-04-07` to `TP-04-21`, and the browser rows
+    `TP-04-22` to `TP-04-25`. Each needs a mutation aimed at the behaviour its own
+    row names; one broad mutation reddening many rows would not show that each row
+    is sensitive to the defect it claims to catch, which is the property this row
+    exists to establish. No assertion was edited, weakened, skipped or removed and
+    no timeout was raised.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths,
       and `node scripts/build-pages-site.mjs --dry-run` succeeds.

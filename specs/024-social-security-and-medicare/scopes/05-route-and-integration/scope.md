@@ -439,7 +439,31 @@ delivery makes a row's claim false, the row is corrected rather than checked.
   - **Outstanding, stated precisely:** TP-05-01 through TP-05-03, TP-05-05
     through TP-05-07, TP-05-10 through TP-05-21 and TP-05-23 through TP-05-29
     still owe an observed intended RED on their own named command.
-  - **Phase:** implement · **Command:** the exact TP-05-01 through TP-05-29 commands · **Evidence:** `report.md#test-evidence`
+  - **Phase:** implement · **Command:** the exact TP-05-01 through TP-05-29 commands · **Evidence:** `report.md#test-evidence`, `report.md#harness-pass--three-rows-closed-one-miss-found-and-one-assertion-strengthened`
+  - **Harness pass: three more rows carry a RED, and one probe found a weak
+    assertion.** `TP-05-20`, `TP-05-28` and `TP-05-29` now carry an observed
+    intended RED captured through `scripts/red-green-probe.sh`, which arms its
+    revert before mutating and proves it by blob hash. Two of those correct earlier
+    results: `TP-05-28`'s GREEN, absent when probe 5-A ran, now exists because the
+    concurrent references that made the command fail have been reconciled; and
+    probe 5-B's miss at `TP-05-29` is explained — the deploy gate's
+    unaccounted-page check covers root `.html` pages only, so removing a
+    configuration file's exclusion gave it nothing to catch, while moving the route
+    page's own decision does refuse. `TP-05-19` was probed and **did not
+    discriminate**: replacing the headline's source with a single leg left the
+    scenario passing, because every clause read a label or a leg set and never the
+    figure. The scenario was strengthened additively to read the figure and compare
+    it against the sum of the legs the headline names, and it still does not
+    discriminate, because the browser household this scenario declares gives no
+    guarantee that the non-ordinary legs are non-zero — the guarantee `TP-05-01`
+    imposes on the unit fixture. The row is left open rather than ticked on a probe
+    that did not discriminate; what would make it decidable is a fixture whose
+    preferential, net-investment-income and additional-Medicare legs are each
+    non-zero and mutually distinct, which is a change to the scenario's declared
+    inputs and belongs to `bubbles.plan`. Still owed: `TP-05-01` to `TP-05-03`,
+    `TP-05-05` to `TP-05-07`, `TP-05-10` to `TP-05-19`, and `TP-05-21` to
+    `TP-05-27`. No assertion was weakened, skipped or removed and no timeout was
+    raised.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths,
       and `node scripts/build-pages-site.mjs --dry-run` succeeds with

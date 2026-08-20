@@ -588,3 +588,161 @@ The untracked state of the whole lifetime-tax tree is why the excluded-path
 byte-identity row stays unchecked. The `specs/025-*`, `company-intelligence*` and
 `tests/company-intelligence*` entries belong to a concurrent session; they were
 neither modified nor edited here.
+
+## Harness Pass — Three Rows Closed, One Miss Found And One Assertion Strengthened
+
+Every probe below ran through `scripts/red-green-probe.sh`, which arms its revert
+before mutating and proves the revert by comparing the working blob hash against
+the committed one. The blocks are the harness's own output, pasted unedited.
+
+### `TP-05-28` — path guard, and the missing GREEN is now present
+
+The earlier probe 5-A drove this command red but could not pair it with a GREEN,
+because the command then failed on the unmutated tree over a concurrent session's
+unresolvable references. Those have since been reconciled: the command now reports
+`new=0` unmutated, so the row has both halves.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-28 path guard: a spec-referenced path that does not resolve to a file must be reported as newly missing
+file:             scripts/validate-spec-test-paths.mjs
+mutation:         statSync(resolve(root, path)).isFile()  ->  statSync(resolve(root, path)).isDirectory()   (1 occurrence(s))
+command:          node scripts/validate-spec-test-paths.mjs
+red-exit:         1
+red-summary:      [spec-test-paths] FAIL — 183 new referenced path(s) do not exist
+green-exit:       0
+green-summary:    [spec-test-paths] OK — no new missing test path(s)
+revert-verified:  yes (committed=bb6eee2b6ac1a1ea53d61f01463eeace6c70e630 restored=bb6eee2b6ac1a1ea53d61f01463eeace6c70e630)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-05-29` — deploy gate, and why probe 5-B missed
+
+Probe 5-B removed this feature's **configuration** entry from the exclusion list
+and the gate did not refuse. That result is correct and the diagnosis is now
+available: the deploy gate's unaccounted-page check covers root `.html` pages
+only, so removing a non-page artifact's exclusion leaves nothing for it to catch.
+The decision that the gate does enforce belongs to the route page. Moving that
+entry to a different existing file leaves the list valid and non-stale while
+leaving the route with no deploy decision at all, and the gate refuses by name.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-29 deploy gate: the route this feature extends losing its deploy decision must refuse the Pages plan
+file:             site-exclusions.json
+mutation:         "path": "lifetime-tax-strategy-lab.html",  ->  "path": "index.html",   (1 occurrence(s))
+command:          node scripts/build-pages-site.mjs --dry-run
+red-exit:         1
+red-summary:      Error: unregistered root page lacks a deploy decision: lifetime-tax-strategy-lab.html
+green-exit:       0
+green-summary:    {"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":128,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","
+revert-verified:  yes (committed=29c6fe08a58d97c1f119abdd38706cf02f675d60 restored=29c6fe08a58d97c1f119abdd38706cf02f675d60)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-05-20` — the Medicare cost separation
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-20 SCN-024-013: dropping the not-part-of-the-total qualifier from the Medicare cost label must fail the cost-separation scenario
+file:             lifetime-tax-strategy-lab.html
+mutation:         "Annual Medicare cost, which is not part of the federal tax total"  ->  "Annual Medicare cost"   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-024-013\ the\ annual\ Medicare\ cost\ renders\ beside\ the\ headline\ and\ is\ labelled\ not\ part\ of\ the\ federal\ tax\ total --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (6.9s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-05-19` — a miss, an additive strengthening, and a still-open row
+
+The row's own title says the headline shows **the total**. The probe replaced the
+headline's source with a single leg — the exact defect the surrounding code
+comment calls "the one direction this tool must never err in" — and the scenario
+passed anyway:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-19 SCN-024-013: a headline reading a single leg instead of the federal total must fail the leg-census scenario
+file:             lifetime-tax-strategy-lab.html
+mutation:         var total = envelope.settlement.totalFederalTax;  ->  var total = envelope.settlement.ordinaryTax;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-024-013\ every\ declared\ leg\ reaches\ the\ headline\,\ the\ comparison\,\ the\ curve\ and\ the\ export\ and\ the\ headline\ shows\ the\ total --reporter=list
+red-exit:         0
+red-summary:        1 passed (4.7s)
+green-exit:       0
+green-summary:      1 passed (5.6s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   NO (red-exit 0 == green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+red-green-probe: REFUSED — RED and GREEN produced the same outcome (both exited 0).
+```
+
+Every clause of the scenario reads a **label** or a **leg set**: that the
+`headlineFederalTax` field is visible, that no single-leg identifier is drawn as a
+Simple value, and that the headline's declared leg list has more than one member.
+A headline that keeps the label and the leg list while drawing one leg's amount
+satisfies all three. The figure itself was never read.
+
+**Strengthened, additively.** The scenario now also reads the rendered headline
+figure and compares it against the sum of the amounts the comparison table
+republishes for exactly the legs the headline says it summed. Nothing was
+weakened, skipped or removed, no timeout was raised, and the scenario passes on
+the unmutated tree:
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-013 every declared leg reaches the headline, the comparison, the curve and the export and the headline shows the total" --reporter=list
+exit=0
+  ✓  1 [system-chrome] › <repo>/tests/lifetime-tax-retirement-route … the headline shows the total (1.4s)
+  1 passed (3.7s)
+```
+
+**And it still does not discriminate.** Re-running the identical probe against the
+strengthened assertion:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-19 SCN-024-013: a headline reading a single leg instead of the federal total must fail the leg-census scenario (re-run against the strengthened assertion)
+file:             lifetime-tax-strategy-lab.html
+mutation:         var total = envelope.settlement.totalFederalTax;  ->  var total = envelope.settlement.ordinaryTax;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-024-013\ every\ declared\ leg\ reaches\ the\ headline\,\ the\ comparison\,\ the\ curve\ and\ the\ export\ and\ the\ headline\ shows\ the\ total --reporter=list
+red-exit:         0
+red-summary:        1 passed (4.1s)
+green-exit:       0
+green-summary:      1 passed (2.9s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   NO (red-exit 0 == green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The remaining obstacle is the **fixture**, not the assertion. `TP-05-01` requires
+the unit-level complete-settlement fixture to make every declared leg non-zero and
+mutually distinct precisely so a census over it cannot pass by coincidence. The
+browser household this scenario declares carries no such guarantee: if every leg
+other than the ordinary one settles to zero, the sum of the named legs equals the
+ordinary leg, and substituting one for the other is not observable from the page
+at all. The strengthening is kept because it closes the label-only gap and is a
+real improvement; the row is **left open** rather than ticked on a probe that did
+not discriminate.
+
+**What would make it decidable:** a browser fixture for `SCN-024-013` whose
+preferential, net-investment-income and additional-Medicare legs are each non-zero
+and mutually distinct, mirroring the guarantee `TP-05-01` already imposes on the
+unit fixture. Authoring that household is a change to the scenario's declared
+inputs and belongs to `bubbles.plan`, not to a test pass; it is recorded here as
+the blocking condition rather than worked around.
+
+### Effect on the DoD row
+
+The row requires an observed intended RED on **every** one of `TP-05-01` through
+`TP-05-29`. Three more rows now have one — `TP-05-20`, `TP-05-28` and `TP-05-29`,
+the last two correcting probes previously recorded as a missing GREEN and a miss.
+`TP-05-19` was probed and did not discriminate, and the reason is a fixture the
+scenario declares rather than an assertion this pass may repair. The row therefore
+stays unticked. Still owed an observed intended RED: `TP-05-01` through
+`TP-05-03`, `TP-05-05` through `TP-05-07`, `TP-05-10` through `TP-05-19`, and
+`TP-05-21` through `TP-05-27`.

@@ -1015,3 +1015,76 @@ Research-Lab self-test: 3109 passed, 0 failed
 re-observed for TP-04-13. TP-05-07 in the next scope fails on the same defect,
 which is recorded there rather than claimed here.
 
+### Probe 9 — the moved id stops being modelled, and the reason reverts
+
+Mutation: two disjoint defects — the medicare policy's
+`modelsUnsupportedFeatureId` named `irmaa-band-set` instead of the id it actually
+models, and the `medicare-and-irmaa` conversion reason said `The pack declares no
+adjustment bands, so` instead of `The pack now declares the adjustment bands,
+but`. One id string and one clause of prose, no figure.
+
+```
+$ node scripts/selftest.mjs
+  ✗ FAIL: TP-01-01: the pack contentSha256 is re-derivable from the pack bytes and equals the configuration po
+  ✗ FAIL: TP-01-01: every one of Feature 021’s eighteen unsupported ids is in exactly one of unsupportedFeatur
+  ✗ FAIL: TP-03-07: the shipped curve’s contributor id set equals the pack’s movesMarginalRate entries in both
+  ✗ FAIL: TP-03-07: the guard can fail on BOTH sides of a move — dropping a still-unsupported contributor chos
+  ✗ FAIL: TP-02-12: the cap cites exactly one retrieved record with a locator, its filing-status variation nam
+  ✗ FAIL: TP-03-02: the pack stays valid after the additive insertion, its digest is re-derivable and equals t
+  ✗ FAIL: TP-04-02: the profitable Scope 03 fixtures produce their exact prior settlements and the loss fixtur
+  ✗ FAIL: TP-05-01: every Feature 022 preferential fixture produces its exact prior preferential and total fig
+  ✗ FAIL: TP-02-11: the taxable-benefit id is absent from unsupportedFeatures[] and present as the inclusion p
+  ✗ FAIL: TP-04-16: the medicare-and-irmaa conversion entry keeps its id, its label and its deferral code with
+  ✗ FAIL: TP-04-22 (second arm): SUP-024-06’s superseded clause is re-derived here and proven false against th
+Research-Lab self-test: 3098 passed, 11 failed
+$ git checkout -- tax-rules/federal/2026.json rltaxstrategy.js
+DIRTY_AFTER_REVERT=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3109 passed, 0 failed
+```
+
+**Intended RED recorded for TP-04-15 and TP-04-16**, and re-observed for
+TP-04-22's second arm. TP-04-15's claim — `'irmaa-bands'` absent from
+`unsupportedFeatures[]` and present as legs the policy models — is carried by the
+Scope 02 five-set accounting assertion, exactly as this scope's DoD row states,
+and that assertion is the second `TP-01-01` line above. It fails the moment the
+policy stops naming the id it models, because the id is then accounted for
+nowhere.
+
+**Recorded consequence of mutating a pack.** Nine of the eleven failures are the
+pack-integrity guard and its dependants firing on a changed byte:
+`contentSha256` is re-derived from the pack bytes, so *any* pack mutation trips it
+and the fixtures that settle against that pack follow. A pack-level probe
+therefore cannot be isolated the way a module-level probe can. That the digest
+guard fires on a one-character id change is itself the guard working; it is
+recorded so the eleven-row failure set is not read as eleven independent
+sensitivities.
+
+### Probe 10 — a source record loses its retrieval date, and an authority name is planted
+
+Mutation: two disjoint defects — the SSA source record's `retrievedAt` key was
+renamed `retrievedOn`, and the comment `/* Medicare.gov */` was planted at the top
+of `sumDeclaredLegs` in `rltax.js`. One key name and one comment, no figure.
+
+```
+$ node scripts/selftest.mjs
+  ✗ FAIL: TP-04-17: every value-bearing member of the shipped medicare pack resolves to exactly one retrieved 
+  ✗ FAIL: TP-04-20: no tax module holds a shipped premium, bracket boundary, adjustment amount or authority na
+Research-Lab self-test: 3107 passed, 2 failed
+$ git checkout -- tax-rules/medicare/2026.json rltax.js
+DIRTY_AFTER_REVERT=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3109 passed, 0 failed
+```
+
+**Intended RED recorded for TP-04-17 and TP-04-20.** TP-04-17 fails when a
+retrieved source stops carrying the date it was retrieved on, which is the member
+that makes a figure checkable rather than recalled. TP-04-20 fails on an authority
+name alone — no figure was planted — proving the no-shadow detector is not merely
+a numeric-literal scan.
+
+**Recorded observation.** The medicare pack tolerated a byte change here without
+tripping a digest guard, whereas the federal pack in probe 9 did not. The medicare
+pack is not digest-pinned in the way the federal pack is. That asymmetry is
+recorded as an observation about the packs, not as a defect this scope repairs.
+

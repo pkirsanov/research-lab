@@ -21,6 +21,7 @@
 
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import test from 'node:test';
 
@@ -36,6 +37,7 @@ import {
     assertRefusal,
     committedSeries,
     foundationActionVocabulary,
+    foundationSourceText,
     loadClaimFixture,
     loadClaimsModule,
     mintInputFrom,
@@ -1257,5 +1259,684 @@ test('T-03-U7: a degenerate flatBand refuses before any outcomeClass is assigned
         'non-numeric outcome value',
     );
     assertViolation(claims.classifyOutcome(0, {}), { reason: 'claim-magnitude-invalid', field: 'magnitude' }, 'claim with no magnitude');
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════════════════════
+ * Scope 03, increment 2 — `brief-recommendation-resolution/v1`: the record a resolved claim
+ * produces, its content address, its content-addressed write, and the class partition.
+ *
+ * Two properties carry this increment and both are asserted against a MUTATION rather than
+ * against a shape. The record must hold the EXACT unrounded value, so every value below is one a
+ * `toFixed`, a `Math.round`, or a `±ε` nudge would visibly change — a fixture of `0.5` survives
+ * all three and would prove nothing. And the digest must cover EXACTLY the eight hashed terms, so
+ * each term is mutated in turn and each excluded field is mutated in turn, driven by the module's
+ * own two lists: a field moved between them fails here rather than silently leaving the address.
+ *
+ * Rows carrying `(unit precursor)` cover the function-level half of a Test Plan row whose own file
+ * is `.functional.mjs`. The cohort-level halves of T-03-F1 and T-03-F2 remain outstanding, as does
+ * the resolutions fixture tree of plan step 12.
+ * ═══════════════════════════════════════════════════════════════════════════════════════════ */
+
+const validationRequire = createRequire(import.meta.url);
+
+/** The 007-owned primitive, consumed UNMODIFIED and loaded lazily so importing opens nothing. */
+function summarizeOutcomes(values) {
+    return validationRequire('../rlvalidation.js').rlvSummarizeOutcomes(values);
+}
+
+/** The closure vocabulary, read from rlcontracts.js's own source text — never a local copy. */
+function closureVocabulary() {
+    return claims.readClosureEventVocabulary(foundationSourceText());
+}
+
+/** A real minted claim's content address. Never a hand-typed digest. */
+function resolvedClaimHash() {
+    return claims.claimHash(mintEvaluable('evaluable-instrument-add'));
+}
+
+/** A real committed v2 row, so the write rows are anchored on what is on disk. */
+function committedV2Row() {
+    const row = committedLedgerLines()
+        .map((line) => JSON.parse(line))
+        .find((r) => r.contractVersion === claims.ROW_CONTRACT_V2);
+    assert.ok(row, 'the committed ledger must carry a v2 row for these rows to mean anything');
+    return row;
+}
+
+/** The same row made resolvable by the single optional pointer scope 02 added. */
+function resolvableRow(claimHash) {
+    return { ...committedV2Row(), [claims.CLAIM_REF_FIELD]: claimHash };
+}
+
+/**
+ * A resolution input in which every field is a legal member of its own vocabulary, so a refusal
+ * below is caused by the ONE overridden value and never by incidental malformation.
+ */
+function resolutionInput(overrides = {}) {
+    return {
+        closureVocabulary: closureVocabulary(),
+        claimHash: resolvedClaimHash(),
+        eventId: committedV2Row().eventId,
+        resolutionDate: '2026-07-15',
+        closureEventType: 'satisfied',
+        outcomeClass: 'resolved-flat',
+        outcomeValue: 0,
+        reasonCode: 'predicate-satisfied',
+        provenance: { seriesRef: 'bars/SPY/1d', entryDate: '2026-07-14', entryBasis: 'close' },
+        lifecycleBinding: { runId: 'run-2026-07-15T20-00-00', resolvedAt: '2026-07-15T20:00:00.000Z' },
+        ...overrides,
+    };
+}
+
+function builtResolution(overrides = {}) {
+    const built = claims.buildResolution(resolutionInput(overrides));
+    assert.equal(built.ok, true, `buildResolution refused: ${JSON.stringify(built.error)}`);
+    return built.resolution;
+}
+
+/* Values a rounding step or an ε-nudge would visibly change, and every one of them inside the
+   fixture's authored band. None is a round number, because a round number survives every mutation
+   this row exists to detect. */
+const UNROUNDED_FLAT_VALUES = Object.freeze([
+    0,
+    0.1234567890123456,
+    -0.1234567890123456,
+    Number.MIN_VALUE,
+    -1e-320,
+    0.1 + 0.2 - 0.3,
+]);
+
+test('T-03-U5: the exact unrounded outcomeValue survives into the record, the bytes, and the store', () => {
+    const claim = mintEvaluable('evaluable-instrument-add');
+
+    for (const value of UNROUNDED_FLAT_VALUES) {
+        // The class is decided by the module against the PROPOSAL-FROZEN band, never asserted here.
+        const classified = claims.classifyOutcome(value, claim);
+        assert.equal(classified.outcomeClass, 'resolved-flat', `${value}: must genuinely be inside the authored band`);
+
+        const resolution = builtResolution({ outcomeValue: classified.outcomeValue });
+
+        // VERBATIM in the record. Object.is rather than ===, so a -0 rewritten to 0 is caught too.
+        assert.equal(Object.is(resolution.outcomeValue, value), true, `${value}: carried verbatim into the record`);
+
+        // VERBATIM through serialization: the bytes that reach disk parse back to the same double.
+        const parsed = JSON.parse(claims.serializeResolution(resolution));
+        assert.equal(Object.is(parsed.outcomeValue, value), true, `${value}: survives serialization unchanged`);
+
+        // VERBATIM on disk, through the real content-addressed write.
+        withDisposableStore(({ root, ports }) => {
+            const written = claims.writeResolutionObject(resolution, resolvableRow(resolution.claimHash), ports);
+            assert.equal(written.ok, true, `${value}: the record must be written`);
+            const onDisk = JSON.parse(readBytes(path.join(root, written.path)));
+            assert.equal(Object.is(onDisk.outcomeValue, value), true, `${value}: survives the write unchanged`);
+        });
+    }
+
+    /* THE ADVERSARIAL HALF. Each mutation is exactly what an implementation "tidying" the value
+       would do, and each must produce a different record AND a different content address. Without
+       this the assertions above would also pass under an implementation that rounded consistently
+       — the row would be agreeing with the bug rather than detecting it. */
+    const exact = 0.1234567890123456;
+    const truthful = builtResolution({ outcomeValue: exact });
+    const tidyings = {
+        'rounded to 6dp': Number(exact.toFixed(6)),
+        'rounded to 2dp': Number(exact.toFixed(2)),
+        'nudged by one ulp': exact + Number.EPSILON * exact,
+        'sign fabricated': -exact,
+    };
+    for (const [label, mutated] of Object.entries(tidyings)) {
+        assert.equal(Object.is(mutated, exact), false, `${label}: the mutation must actually move the value`);
+        const nudged = builtResolution({ outcomeValue: mutated });
+        assert.notEqual(nudged.outcomeValue, truthful.outcomeValue, `${label}: produces a different record`);
+        assert.notEqual(nudged.resolutionHash, truthful.resolutionHash, `${label}: and a different content address`);
+    }
+
+    /* HC-7. A resolved-flat record stays distinguishable from an unresolved one IN THE RECORD:
+       the class is named and the value is present, where an unresolved record carries an explicit
+       null. The two can never read the same to a consumer that only asks whether a value is falsy. */
+    assert.equal(claims.MAGNITUDE_BEARING_OUTCOME_CLASSES.includes('resolved-flat'), true, 'resolved-flat carries a magnitude');
+    assert.equal(claims.OUTCOME_CONTRIBUTIONS['resolved-flat'], claims.CONTRIBUTION_COUNT, 'while still sitting on the count side');
+
+    const flat = builtResolution({ outcomeValue: 0 });
+    const unresolved = builtResolution({
+        outcomeClass: 'unresolved',
+        closureEventType: 'expired',
+        reasonCode: 'horizon-elapsed',
+        outcomeValue: null,
+    });
+    assert.equal(flat.outcomeClass, 'resolved-flat', 'the flat record names its own class');
+    assert.equal(unresolved.outcomeClass, 'unresolved', 'and the unresolved record names a different one');
+    assert.equal(flat.outcomeValue, 0, 'the flat record carries its exact value');
+    assert.equal(unresolved.outcomeValue, null, 'the unresolved record carries an explicit null, never an absent key');
+    assert.equal(Object.prototype.hasOwnProperty.call(unresolved, 'outcomeValue'), true, 'the key is present and null');
+    assert.notEqual(flat.resolutionHash, unresolved.resolutionHash, 'and the two land at different addresses');
+
+    // The two cannot be conflated in either direction.
+    assertViolation(
+        claims.buildResolution(resolutionInput({
+            outcomeClass: 'unresolved', closureEventType: 'expired', reasonCode: 'horizon-elapsed', outcomeValue: 0,
+        })),
+        { reason: 'outcome-value-must-be-null', field: 'outcomeValue' },
+        'an unresolved record may not carry a value',
+    );
+    assertViolation(
+        claims.buildResolution(resolutionInput({ closureEventType: 'expired', reasonCode: 'horizon-elapsed' })),
+        { reason: 'closure-event-not-allowed-for-outcome-class', field: 'closureEventType' },
+        'a resolved-flat record may not close under an unresolved event',
+    );
+
+    /* A DIRECTIONAL class holding an exact zero is HC-7 one step earlier than the array gate, and
+       it refuses with the same owned code rather than being summarised as never resolved. */
+    for (const [outcomeClass, legal] of [['win', 1.5], ['loss', -1.5]]) {
+        const zeroed = claims.buildResolution(resolutionInput({ outcomeClass, outcomeValue: 0 }));
+        assert.equal(zeroed.ok, false, `${outcomeClass}: a bare zero must refuse`);
+        assert.equal(zeroed.error.code, claims.FLAT_ZERO_CODE, `${outcomeClass}: code`);
+        assertRefusal(zeroed.error, 'bare-zero-in-directional-class', 'outcomeValue', `${outcomeClass} bare zero`);
+
+        // The sign may not contradict the class either, and the legal value is accepted — so the
+        // refusals above are about the value and not about the class.
+        assertViolation(
+            claims.buildResolution(resolutionInput({ outcomeClass, outcomeValue: -legal })),
+            { reason: 'outcome-value-sign-contradicts-class', field: 'outcomeValue' },
+            `${outcomeClass} with a contradicting sign`,
+        );
+        assert.equal(Object.is(builtResolution({ outcomeClass, outcomeValue: legal }).outcomeValue, legal), true, `${outcomeClass}: verbatim`);
+    }
+});
+
+test('T-03-U4 (increment 2): summary.unresolved is consumed and discarded while the 015 counts stay distinct', () => {
+    /* A cohort that GENUINELY contains all three withheld classes, at deliberately DIFFERENT
+       multiplicities: equal counts would let a scorer collapse them into one bucket and still
+       agree with this row. */
+    const cohort = Object.freeze([
+        { outcomeClass: 'win', outcomeValue: 1.5 },
+        { outcomeClass: 'win', outcomeValue: 0.75 },
+        { outcomeClass: 'loss', outcomeValue: -2.25 },
+        { outcomeClass: 'resolved-flat', outcomeValue: 0 },
+        { outcomeClass: 'resolved-flat', outcomeValue: 0.1 },
+        { outcomeClass: 'resolved-flat', outcomeValue: -0.05 },
+        { outcomeClass: 'unresolved', outcomeValue: null },
+        { outcomeClass: 'unresolved', outcomeValue: null },
+        { outcomeClass: 'not-evaluable', outcomeValue: null },
+        { outcomeClass: 'unresolvable-legacy' },
+    ]);
+    const routed = claims.routeOutcomes([...cohort]);
+    assert.equal(routed.ok, true, 'the mixed cohort must route');
+
+    const counts = routed.counts;
+    assert.deepEqual(
+        [counts['resolved-flat'], counts.unresolved, counts['not-evaluable']],
+        [3, 2, 1],
+        'the three 015-owned counts are non-zero AND pairwise distinct, so a merged bucket cannot agree with this row',
+    );
+
+    // THE PRIMITIVE, UNMODIFIED, ON THE FED ARRAY.
+    const summary = summarizeOutcomes(routed.directional);
+    assert.equal(summary.ok, true, 'the primitive must accept a zero-free finite array');
+    assert.equal(summary.unresolved, 0, 'summary.unresolved is 0 BY CONSTRUCTION and therefore says nothing');
+    assert.equal(summary.count, routed.resolvedDirectional, 'the primitive counts exactly the fed array');
+    assert.equal(summary.wins + summary.losses, routed.resolvedDirectional, 'wins and losses exhaust it');
+    assert.equal(summary.winRate, summary.wins / routed.resolvedDirectional, 'winRate divides by the fed length');
+
+    /* THE LIE THE FIELD WOULD TELL. Seven claims in this cohort did not resolve directionally, so
+       surfacing `summary.unresolved` would read as "0 unresolved" beside a visible unresolved
+       column. The gap is asserted, so a scorer that surfaced the field fails here. */
+    const withheld = counts['resolved-flat'] + counts.unresolved + counts['not-evaluable'] + counts['unresolvable-legacy'];
+    assert.equal(withheld, 7, 'the cohort genuinely contains non-directional claims');
+    assert.notEqual(summary.unresolved, counts.unresolved, 'the primitive field is NOT the 015 unresolved count');
+    assert.notEqual(summary.unresolved, withheld, 'and it is not the total withheld either');
+    assert.equal(routed.resolvedDirectional + withheld, cohort.length, 'the two sides account for the whole cohort');
+
+    /* THE ADVERSARIAL HALF: the counterfactual. Had one resolved-flat value been fed to the
+       primitive instead of counted, the primitive would have reported it as never resolved — the
+       exact HC-7 failure — and would have moved the published denominator with it. */
+    const misfed = summarizeOutcomes([...routed.directional, 0]);
+    assert.equal(misfed.ok, true, 'the primitive accepts an array containing a zero');
+    assert.equal(misfed.unresolved, 1, 'and silently reports the resolved-flat claim as never resolved');
+    assert.notEqual(misfed.winRate, summary.winRate, 'the published denominator moves with it');
+    assert.equal(
+        claims.assertZeroFreeOutcomes([...routed.directional, 0]).error.code,
+        claims.FLAT_ZERO_CODE,
+        'which is why the gate refuses that array before it can be built',
+    );
+
+    /* An all-withheld cohort is reachable, reports zero, and must NOT reach the primitive: the
+       same guard that rejects non-finite values also rejects an empty array. */
+    const allWithheld = claims.routeOutcomes(cohort.filter((r) => !['win', 'loss'].includes(r.outcomeClass)));
+    assert.equal(allWithheld.resolvedDirectional, 0, 'resolvedDirectional === 0 is reachable');
+    const empty = summarizeOutcomes(allWithheld.directional);
+    assert.equal(empty.ok, false, 'the primitive refuses an empty array');
+    assert.equal(empty.errors[0].code, 'RLV-OUTCOME-VALUES', 'with its own 007-owned code');
+});
+
+test('T-03-U6 (increment 2): the closure vocabulary is read from rlcontracts.js and RTR-CLOSURE-VOCAB refuses', () => {
+    assert.equal(claims.CLOSURE_VOCAB_CODE, 'RTR-CLOSURE-VOCAB', 'the owned refusal code');
+    assert.equal(claims.CLOSURE_VOCABULARY_SOURCE, 'rlcontracts.js', 'the single definition lives upstream');
+
+    const source = foundationSourceText();
+    const vocabulary = closureVocabulary();
+    assert.deepEqual(
+        [...vocabulary],
+        ['expired', 'invalidated', 'not-evaluable', 'satisfied', 'unresolved', 'withdrawn'],
+        'the six upstream members, sorted',
+    );
+
+    /* NOT A LOCAL COPY. The literal is byte-present upstream and absent from 015-authored code, so
+       a shadow copy added tomorrow fails here instead of quietly going stale. */
+    assert.equal(source.includes('var CLOSE_EVENT_TYPES = Object.freeze({'), true, 'the upstream definition is real');
+    const claimsSource = readFileSync(path.join(REPO_ROOT, 'rlclaims.js'), 'utf8');
+    assert.equal(/CLOSE_EVENT_TYPES\s*=/.test(claimsSource), false, '015 must not declare its own CLOSE_EVENT_TYPES');
+    for (const member of vocabulary) {
+        assert.equal(
+            new RegExp(`["']${member}["']\\s*:\\s*true`).test(claimsSource),
+            false,
+            `${member}: must not be shadowed as a 015-local vocabulary member`,
+        );
+    }
+
+    // The reader THROWS rather than scoring against an absent, empty, renamed or reshaped literal.
+    assert.throws(() => claims.readClosureEventVocabulary(''), /source text is required/, 'empty source');
+    assert.throws(() => claims.readClosureEventVocabulary(null), /source text is required/, 'absent source');
+    assert.throws(
+        () => claims.readClosureEventVocabulary(source.replace('var CLOSE_EVENT_TYPES', 'var CLOSE_EVENT_TYPES_RENAMED')),
+        /CLOSE_EVENT_TYPES not found/,
+        'a renamed literal throws rather than falling back',
+    );
+    assert.throws(
+        () => claims.readClosureEventVocabulary('var CLOSE_EVENT_TYPES = Object.freeze({});'),
+        /CLOSE_EVENT_TYPES/,
+        'an emptied literal throws',
+    );
+    assert.throws(
+        () => claims.readClosureEventVocabulary('var CLOSE_EVENT_TYPES = Object.freeze({ satisfied: 1 });'),
+        /changed shape/,
+        'a member that changed shape throws',
+    );
+    assert.throws(
+        () => claims.readClosureEventVocabulary(
+            'var CLOSE_EVENT_TYPES = Object.freeze({ withdrawn: true, expired: true, satisfied: true, invalidated: true, unresolved: true });',
+        ),
+        /closure event 'not-evaluable' is absent/,
+        'a dropped member would leave an outcome class unable to close, and throws instead',
+    );
+
+    /* THE REFUSAL. One character off a legal member carries the OWNED code and names its field, so
+       a vocabulary drift stays distinguishable from a pairing error. The vocabulary check runs
+       before the pairing check, so this holds for `withdrawn` too. */
+    for (const legal of vocabulary) {
+        const offending = legal.slice(0, -1);
+        assert.equal(vocabulary.includes(offending), false, `${offending}: must be outside the vocabulary`);
+        assert.equal(legal.startsWith(offending), true, `${offending}: must defeat a prefix or startsWith check`);
+        const refused = claims.buildResolution(resolutionInput({ closureEventType: offending }));
+        assert.equal(refused.ok, false, `${offending}: must refuse`);
+        assert.equal(refused.error.code, claims.CLOSURE_VOCAB_CODE, `${offending}: code`);
+        assertRefusal(refused.error, 'closure-event-not-in-vocabulary', 'closureEventType', `closureEventType "${offending}"`);
+    }
+    for (const outside of ['SATISFIED', ' satisfied', '', null, undefined, 0, {}]) {
+        assert.equal(
+            claims.buildResolution(resolutionInput({ closureEventType: outside })).error.code,
+            claims.CLOSURE_VOCAB_CODE,
+            `outside value ${JSON.stringify(outside)}`,
+        );
+    }
+
+    /* THE VOCABULARY IS CONSUMED, NOT SHADOWED. The acceptance set is the ARGUMENT, so a
+       RESTRICTED vocabulary genuinely restricts. An implementation carrying its own local copy of
+       the six members would accept `invalidated` here and fail this pair — which the static scan
+       above cannot catch, because it cannot see a copy written as an inline array literal. */
+    const restricted = claims.buildResolution(resolutionInput({
+        closureVocabulary: ['satisfied'], closureEventType: 'invalidated', reasonCode: 'predicate-invalidated',
+    }));
+    assert.equal(restricted.ok, false, 'a member outside the SUPPLIED vocabulary must refuse');
+    assert.equal(restricted.error.code, claims.CLOSURE_VOCAB_CODE, 'restricted vocabulary: code');
+    assertRefusal(restricted.error, 'closure-event-not-in-vocabulary', 'closureEventType', 'restricted vocabulary');
+    assert.equal(
+        builtResolution({
+            closureVocabulary: ['satisfied', 'invalidated'], closureEventType: 'invalidated', reasonCode: 'predicate-invalidated',
+        }).closureEventType,
+        'invalidated',
+        'the identical value is accepted once the supplied vocabulary admits it, so the refusal is about the argument',
+    );
+    // An absent or empty vocabulary refuses rather than falling back to a local copy.
+    for (const bad of [undefined, null, [], 'satisfied', {}]) {
+        assertViolation(
+            claims.buildResolution(resolutionInput({ closureVocabulary: bad })),
+            { reason: 'closure-vocabulary-invalid', field: 'closureVocabulary' },
+            `closureVocabulary ${JSON.stringify(bad)}`,
+        );
+    }
+
+    /* ANTI-VACUITY. Every legal member is ACCEPTED by a class that admits it. Without this the
+       refusals above would pass under an implementation that refused every closure event. */
+    const admittedBinding = {
+        satisfied: { outcomeClass: 'resolved-flat', reasonCode: 'predicate-satisfied' },
+        invalidated: { outcomeClass: 'resolved-flat', reasonCode: 'predicate-invalidated' },
+        expired: { outcomeClass: 'unresolved', reasonCode: 'horizon-elapsed', outcomeValue: null },
+        unresolved: { outcomeClass: 'unresolved', reasonCode: 'session-absent', outcomeValue: null },
+        'not-evaluable': { outcomeClass: 'not-evaluable', reasonCode: 'no-committed-reference', outcomeValue: null },
+    };
+    for (const [closureEventType, binding] of Object.entries(admittedBinding)) {
+        const built = builtResolution({ closureEventType, ...binding });
+        assert.equal(built.closureEventType, closureEventType, `${closureEventType}: the legal member is accepted`);
+    }
+
+    /* `withdrawn` exists upstream and NO outcome class admits it — a withdrawal is an authoring
+       act, and a resolver that could withdraw a claim could withdraw the ones it was about to
+       score badly. The property is DERIVED from the pairing table rather than restated. */
+    const admitted = new Set(Object.values(claims.OUTCOME_CLOSURE_EVENTS).flat());
+    assert.deepEqual(
+        vocabulary.filter((name) => !admitted.has(name)),
+        ['withdrawn'],
+        'withdrawn is the only upstream closure event no outcome class admits',
+    );
+    assert.deepEqual([...admitted].sort(), Object.keys(admittedBinding).sort(), 'and every other member is admitted by some class');
+    for (const outcomeClass of claims.OUTCOME_CLASSES) {
+        const expected = outcomeClass === 'unresolvable-legacy'
+            ? { reason: 'outcome-class-carries-no-resolution', field: 'outcomeClass' }
+            : { reason: 'closure-event-not-allowed-for-outcome-class', field: 'closureEventType' };
+        assertViolation(
+            claims.buildResolution(resolutionInput({ outcomeClass, closureEventType: 'withdrawn' })),
+            expected,
+            `${outcomeClass} closing as withdrawn`,
+        );
+    }
+
+    // A legacy row carries no claim, so there is nothing to address a resolution BY — the record
+    // side of the same fact RTR-LEGACY-BACKFILL states from the row side.
+    assertViolation(
+        claims.buildResolution(resolutionInput({ outcomeClass: 'unresolvable-legacy', closureEventType: 'satisfied' })),
+        { reason: 'outcome-class-carries-no-resolution', field: 'outcomeClass' },
+        'unresolvable-legacy is never recorded',
+    );
+
+    // The reason code is bound to the closure EVENT, so a reason legal for a different event refuses.
+    assertViolation(
+        claims.buildResolution(resolutionInput({ closureEventType: 'satisfied', reasonCode: 'predicate-invalidated' })),
+        { reason: 'reason-code-not-allowed-for-closure-event', field: 'reasonCode' },
+        'a cross-bound reason code',
+    );
+
+    /* Every mint refusal is a legal not-evaluable reason BY CONSTRUCTION, so a claim refused at
+       proposal is still recordable and still counted rather than falling out of the denominator. */
+    for (const mintReason of claims.MINT_REFUSALS) {
+        assert.equal(claims.NOT_EVALUABLE_REASONS.includes(mintReason), true, `${mintReason}: must be recordable`);
+        const built = builtResolution({
+            outcomeClass: 'not-evaluable', closureEventType: 'not-evaluable', reasonCode: mintReason, outcomeValue: null,
+        });
+        assert.equal(built.reasonCode, mintReason, `${mintReason}: is carried into the record`);
+    }
+});
+
+/* The mutation maps ARE the two vocabularies, declared here and proved equal to the module's own
+   lists below. A term moved between hashed and unhashed — or a ninth term added — fails there. */
+const RESOLUTION_HASHED_MUTATIONS = Object.freeze({
+    contractVersion: 'brief-recommendation-resolution/v2',
+    claimHash: `sha256:${'f'.repeat(64)}`,
+    resolutionDate: '2026-07-16',
+    closureEventType: 'invalidated',
+    outcomeClass: 'win',
+    outcomeValue: 1.5,
+    reasonCode: 'predicate-invalidated',
+    provenance: { seriesRef: 'bars/QQQ/1d', entryDate: '2026-07-14', entryBasis: 'open' },
+});
+const RESOLUTION_UNHASHED_MUTATIONS = Object.freeze({
+    eventId: 'evt-a-completely-different-event',
+    lifecycleBinding: { runId: 'run-tomorrow', resolvedAt: '2027-01-01T00:00:00.000Z' },
+});
+
+test('T-03-F1 (unit precursor): resolutionHash covers exactly the hashed terms, and the write is a no-op or a refusal', () => {
+    assert.deepEqual(Object.keys(RESOLUTION_HASHED_MUTATIONS).sort(), [...claims.RESOLUTION_HASHED_TERMS].sort(), 'the hashed terms');
+    assert.deepEqual(Object.keys(RESOLUTION_UNHASHED_MUTATIONS).sort(), [...claims.RESOLUTION_UNHASHED_FIELDS].sort(), 'the excluded fields');
+
+    // The three lists partition the record exhaustively, with no overlap and nothing outside.
+    assert.deepEqual(
+        [...claims.RESOLUTION_FIELDS],
+        [...new Set([...claims.RESOLUTION_HASHED_TERMS, ...claims.RESOLUTION_UNHASHED_FIELDS, 'resolutionHash'])].sort(),
+        'hashed + excluded + the digest IS the declared field set',
+    );
+    assert.equal(
+        claims.RESOLUTION_HASHED_TERMS.some((term) => claims.RESOLUTION_UNHASHED_FIELDS.includes(term)),
+        false,
+        'no field is both hashed and excluded',
+    );
+
+    const resolution = builtResolution();
+    assert.deepEqual(Object.keys(resolution).sort(), [...claims.RESOLUTION_FIELDS], 'the record carries exactly the declared fields');
+    assert.equal(resolution.contractVersion, 'brief-recommendation-resolution/v1', 'the owned contract version');
+
+    /* THE ADDRESS IS EXACTLY THE EIGHT TERMS, derived independently here rather than by calling
+       the module's own extractor — which would only prove the module agrees with itself. */
+    const hashedOnly = {};
+    for (const term of claims.RESOLUTION_HASHED_TERMS) hashedOnly[term] = resolution[term];
+    assert.equal(claims.resolutionHash(resolution), claims.stableSha(hashedOnly), 'the address is those eight terms and nothing else');
+    assert.equal(resolution.resolutionHash, claims.resolutionHash(resolution), 'and the record is filed under it');
+
+    // EXCLUDED: mutating an unhashed field leaves the address BYTE-IDENTICAL.
+    for (const [field, mutation] of Object.entries(RESOLUTION_UNHASHED_MUTATIONS)) {
+        const mutated = { ...resolution, [field]: mutation };
+        assert.notDeepEqual(mutated[field], resolution[field], `${field}: the mutation must actually change the field`);
+        assert.equal(claims.resolutionHash(mutated), resolution.resolutionHash, `${field}: is excluded from the address`);
+    }
+
+    // COVERED: mutating any hashed term MOVES the address.
+    for (const [term, mutation] of Object.entries(RESOLUTION_HASHED_MUTATIONS)) {
+        const mutated = { ...resolution, [term]: mutation };
+        assert.notDeepEqual(mutated[term], resolution[term], `${term}: the mutation must actually change the term`);
+        assert.notEqual(claims.resolutionHash(mutated), resolution.resolutionHash, `${term}: is load-bearing in the address`);
+    }
+
+    // Key order cannot move the address: the canonicalizer sorts, so the same content in reverse
+    // key order files under the identical name.
+    const reversed = {};
+    for (const key of [...Object.keys(resolution)].reverse()) reversed[key] = resolution[key];
+    assert.notDeepEqual(Object.keys(reversed), Object.keys(resolution), 'the key order genuinely differs');
+    assert.equal(claims.resolutionHash(reversed), resolution.resolutionHash, 'key order does not move the address');
+
+    /* A run id or a wall clock inside the HASHED provenance would move the address on every pass,
+       which is exactly the idempotence the content-addressed store exists to provide. */
+    for (const runScoped of claims.RUN_SCOPED_KEYS) {
+        assertViolation(
+            claims.buildResolution(resolutionInput({ provenance: { seriesRef: 'bars/SPY/1d', [runScoped]: 'x' } })),
+            { reason: 'run-scoped-key-in-hashed-provenance', field: `provenance.${runScoped}` },
+            `provenance.${runScoped}`,
+        );
+    }
+    // The same keys are legal in lifecycleBinding, which is deliberately outside the address.
+    assert.equal(
+        builtResolution({ lifecycleBinding: RESOLUTION_UNHASHED_MUTATIONS.lifecycleBinding }).resolutionHash,
+        resolution.resolutionHash,
+        'a different run and wall clock recompute the identical address',
+    );
+
+    // The path is the address, at the claim store's depth and under a bare lowercase hex name.
+    assert.equal(claims.RESOLUTION_STORE_DIR, 'briefs/objects/resolutions', 'the store directory');
+    const hex = resolution.resolutionHash.replace(/^sha256:/, '');
+    assert.equal(claims.resolutionObjectPath(resolution.resolutionHash), `${claims.RESOLUTION_STORE_DIR}/${hex}.json`);
+    for (const bad of ['sha256:NOTHEX', `sha256:${'F'.repeat(64)}`, `sha256:${'a'.repeat(63)}`, '']) {
+        assert.throws(() => claims.resolutionObjectPath(bad), /bare lowercase sha256 hex/, `path from ${JSON.stringify(bad)}`);
+    }
+
+    withDisposableStore(({ root, ports }) => {
+        const row = resolvableRow(resolution.claimHash);
+
+        const first = claims.writeResolutionObject(resolution, row, ports);
+        assert.deepEqual(
+            { ok: first.ok, written: first.written, reused: first.reused, path: first.path },
+            { ok: true, written: true, reused: false, path: claims.resolutionObjectPath(resolution.resolutionHash) },
+        );
+        const bytes = readBytes(path.join(root, first.path));
+        assert.equal(bytes, claims.serializeResolution(resolution), 'the stored bytes are the canonical serialization');
+
+        // A repeat write of unchanged content is a byte-identical no-op, not a rewrite.
+        const second = claims.writeResolutionObject(resolution, row, ports);
+        assert.deepEqual({ ok: second.ok, written: second.written, reused: second.reused }, { ok: true, written: false, reused: true });
+        assertBytesUnchanged(bytes, readBytes(path.join(root, first.path)), 'repeat write');
+
+        /* RTR-RESOLUTION-CONFLICT. A write that would CHANGE the bytes at an existing address
+           aborts rather than overwriting: a silently rewritten outcome is a scoring lie that
+           leaves no trace. */
+        assert.equal(claims.RESOLUTION_CONFLICT_CODE, 'RTR-RESOLUTION-CONFLICT', 'the owned refusal code');
+        const squatted = '{"contractVersion":"squatted"}';
+        ports.writeFileSync(path.join(root, first.path), squatted);
+        const conflicted = claims.writeResolutionObject(resolution, row, ports);
+        assert.equal(conflicted.ok, false, 'a byte-changing write must refuse');
+        assert.equal(conflicted.error.code, claims.RESOLUTION_CONFLICT_CODE, 'code');
+        assertRefusal(conflicted.error, 'resolution-conflict-refused', 'resolutionHash', 'conflict');
+        assert.equal(conflicted.error.path, first.path, 'the refusal names the object it refused to overwrite');
+        assertBytesUnchanged(squatted, readBytes(path.join(root, first.path)), 'the refused write left the bytes alone');
+    });
+
+    withDisposableStore(({ root, ports }) => {
+        /* SCOPE 02'S GATE RUNS FIRST. A well-formed, correctly-addressed record cannot rescue a
+           claimless row: the legacy refusal is reached before the resolution is inspected at all,
+           so no property of a valid record can buy a back-fill. */
+        const claimless = committedV2Row();
+        assert.equal(Object.prototype.hasOwnProperty.call(claimless, claims.CLAIM_REF_FIELD), false, 'the row genuinely carries no pointer');
+        const refused = claims.writeResolutionObject(resolution, claimless, ports);
+        assert.equal(refused.ok, false, 'a claimless row is unscoreable by construction');
+        assert.equal(refused.error.code, claims.LEGACY_BACKFILL_CODE, 'code');
+        assertRefusal(refused.error, 'claimless-row-unscoreable', claims.CLAIM_REF_FIELD, 'claimless row');
+        assert.equal(existsSync(path.join(root, claims.RESOLUTION_STORE_DIR)), false, 'and nothing was written');
+
+        // The record must be ABOUT the claim the row points at, and its address must BE its content.
+        assertViolation(
+            claims.writeResolutionObject(resolution, resolvableRow(`sha256:${'b'.repeat(64)}`), ports),
+            { reason: 'resolution-claim-hash-does-not-match-row', field: 'claimHash' },
+            'a pointer mismatch',
+        );
+        assertViolation(
+            claims.writeResolutionObject({ ...resolution, resolutionHash: `sha256:${'c'.repeat(64)}` }, resolvableRow(resolution.claimHash), ports),
+            { reason: 'resolution-hash-does-not-match-content', field: 'resolutionHash' },
+            'a forged address',
+        );
+        assertViolation(
+            claims.writeResolutionObject({ ...resolution, resolutionRef: 'x' }, resolvableRow(resolution.claimHash), ports),
+            { reason: 'unknown-field', field: 'resolutionRef' },
+            'an unknown field on the record',
+        );
+        assert.equal(existsSync(path.join(root, claims.RESOLUTION_STORE_DIR)), false, 'no refusal wrote anything');
+    });
+});
+
+/* Hand-declared rather than read from the module, for the same reason EXPECTED_OUTCOME_ROUTING is:
+   iterating the module's own table would let a seventh class cover itself. */
+const EXPECTED_PARTITION_BUCKET_FOR_CLASS = Object.freeze({
+    win: 'resolvedDirectional',
+    loss: 'resolvedDirectional',
+    'resolved-flat': 'resolvedFlat',
+    unresolved: 'unresolved',
+    'not-evaluable': 'notEvaluable',
+    'unresolvable-legacy': 'unresolvableLegacy',
+});
+const EXPECTED_NON_CLASS_BUCKETS = Object.freeze(['withdrawn', 'open']);
+
+test('T-03-F2 (unit precursor): the partition accounts for every proposed call, and no claim can fall out', () => {
+    assert.deepEqual(
+        Object.keys(EXPECTED_PARTITION_BUCKET_FOR_CLASS).sort(),
+        [...claims.OUTCOME_CLASSES].sort(),
+        'a class added to the vocabulary without a declared bucket must fail here',
+    );
+    for (const [outcomeClass, bucket] of Object.entries(EXPECTED_PARTITION_BUCKET_FOR_CLASS)) {
+        assert.equal(claims.PARTITION_BUCKET_FOR_CLASS[outcomeClass], bucket, `${outcomeClass} bucket`);
+    }
+    assert.deepEqual([...claims.NON_CLASS_PARTITION_BUCKETS], [...EXPECTED_NON_CLASS_BUCKETS], 'the two lifecycle states');
+    assert.deepEqual(
+        [...claims.PARTITION_BUCKETS].sort(),
+        [...new Set([...Object.values(EXPECTED_PARTITION_BUCKET_FOR_CLASS), ...EXPECTED_NON_CLASS_BUCKETS])].sort(),
+        'the buckets are exactly the class buckets plus the two lifecycle states',
+    );
+    assert.equal(claims.PARTITION_BUCKETS.length, 7, 'seven buckets, win and loss deliberately sharing one');
+
+    const cohort = Object.freeze([
+        { outcomeClass: 'win', outcomeValue: 1.5 },
+        { outcomeClass: 'win', outcomeValue: 0.75 },
+        { outcomeClass: 'loss', outcomeValue: -2.25 },
+        { outcomeClass: 'resolved-flat', outcomeValue: 0 },
+        { outcomeClass: 'resolved-flat', outcomeValue: 0.1 },
+        { outcomeClass: 'resolved-flat', outcomeValue: -0.05 },
+        { outcomeClass: 'unresolved', outcomeValue: null },
+        { outcomeClass: 'unresolved', outcomeValue: null },
+        { outcomeClass: 'not-evaluable', outcomeValue: null },
+        { outcomeClass: 'unresolvable-legacy' },
+    ]);
+    const lifecycle = { totalProposed: cohort.length + 3, withdrawn: 2, open: 1 };
+    const routed = claims.routeOutcomes([...cohort]);
+    const partition = claims.classPartition(routed, lifecycle);
+
+    assert.equal(partition.ok, true, 'the complete accounting is accepted');
+    assert.equal(partition.sum, lifecycle.totalProposed, 'and sums to the proposed total');
+    assert.deepEqual(
+        partition.buckets,
+        { resolvedDirectional: 3, resolvedFlat: 3, unresolved: 2, notEvaluable: 1, unresolvableLegacy: 1, withdrawn: 2, open: 1 },
+        'every bucket carries its own count, and resolvedDirectional IS the published denominator',
+    );
+    assert.equal(partition.buckets.resolvedDirectional, routed.directional.length, 'the denominator is the fed array length');
+
+    /* THE ADVERSARIAL HALF: A CLAIM CANNOT FALL OUT. Every one of the seven buckets is dropped in
+       turn while the proposed total is held FIXED, and each drop must be detected with the exact
+       shortfall. A partition assertion that only ever sees a correct cohort is decoration. */
+    for (const outcomeClass of claims.OUTCOME_CLASSES) {
+        const index = cohort.findIndex((r) => r.outcomeClass === outcomeClass);
+        assert.notEqual(index, -1, `${outcomeClass}: the cohort must genuinely contain one to drop`);
+        const dropped = claims.routeOutcomes(cohort.filter((_, i) => i !== index));
+        const refused = claims.classPartition(dropped, lifecycle);
+        assert.equal(refused.ok, false, `${outcomeClass}: a dropped claim must be detected`);
+        assert.equal(refused.error.code, claims.CONTRACT_VIOLATION_CODE, `${outcomeClass}: code`);
+        assertRefusal(refused.error, 'partition-does-not-sum-to-proposed', 'totalProposed', `dropped ${outcomeClass}`);
+        assert.equal(refused.error.unaccounted, 1, `${outcomeClass}: the refusal names the exact shortfall`);
+        assert.equal(refused.error.sum, lifecycle.totalProposed - 1, `${outcomeClass}: and the sum it did reach`);
+    }
+    for (const bucket of claims.NON_CLASS_PARTITION_BUCKETS) {
+        const refused = claims.classPartition(routed, { ...lifecycle, [bucket]: lifecycle[bucket] - 1 });
+        assert.equal(refused.ok, false, `${bucket}: a dropped lifecycle claim must be detected`);
+        assertRefusal(refused.error, 'partition-does-not-sum-to-proposed', 'totalProposed', `dropped ${bucket}`);
+        assert.equal(refused.error.unaccounted, 1, `${bucket}: the refusal names the exact shortfall`);
+    }
+
+    /* An ABSENT bucket refuses rather than reading as zero, and an UNKNOWN name refuses rather than
+       being ignored. Both are the same defect from two sides: a mistyped bucket silently
+       contributes nothing while looking like it contributes. */
+    const complete = { ...partition.buckets, totalProposed: lifecycle.totalProposed };
+    for (const bucket of claims.PARTITION_BUCKETS) {
+        const parts = { ...complete };
+        delete parts[bucket];
+        assertViolation(claims.assertClassPartition(parts), { reason: 'partition-bucket-absent', field: bucket }, `absent ${bucket}`);
+    }
+    assertViolation(
+        claims.assertClassPartition({ ...complete, resolvedFlats: 0 }),
+        { reason: 'unknown-partition-bucket', field: 'resolvedFlats' },
+        'a mistyped bucket name',
+    );
+    for (const bucket of claims.NON_CLASS_PARTITION_BUCKETS) {
+        const partial = { ...lifecycle };
+        delete partial[bucket];
+        assertViolation(claims.classPartition(routed, partial), { reason: 'lifecycle-count-absent', field: bucket }, `absent lifecycle ${bucket}`);
+    }
+
+    // Counts are non-negative integers: a float, a negative or a string refuses rather than being
+    // rounded or coerced into the sum.
+    for (const bad of [1.5, -1, '3', null, Number.NaN]) {
+        assertViolation(
+            claims.assertClassPartition({ ...complete, open: bad }),
+            { reason: 'partition-bucket-not-a-count', field: 'open' },
+            `open = ${JSON.stringify(bad)}`,
+        );
+        assertViolation(
+            claims.assertClassPartition({ ...complete, totalProposed: bad }),
+            { reason: 'partition-total-not-a-count', field: 'totalProposed' },
+            `totalProposed = ${JSON.stringify(bad)}`,
+        );
+    }
+
+    /* ANTI-VACUITY. The correct accounting is accepted, so every refusal above is caused by the
+       dropped or malformed value and not by an assertion that refuses everything. And zero is a
+       legal count: an empty cohort is a valid partition of zero rather than an error. */
+    assert.equal(claims.assertClassPartition(complete).ok, true, 'the complete accounting is accepted');
+    const emptyPartition = claims.classPartition(claims.routeOutcomes([]), { totalProposed: 0, withdrawn: 0, open: 0 });
+    assert.equal(emptyPartition.ok, true, 'an empty cohort is a valid partition of zero');
+    assert.equal(emptyPartition.sum, 0);
+    for (const bucket of claims.PARTITION_BUCKETS) {
+        assert.equal(emptyPartition.buckets[bucket], 0, `${bucket} reads an explicit zero, never a missing key`);
+    }
 });
 

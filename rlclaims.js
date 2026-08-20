@@ -222,6 +222,124 @@
     var BARS_MANIFEST_FILENAME = "index.json";
     var SERIES_INTERVAL = "1d";
 
+    /* ── brief-recommendation-resolution/v1 ─────────────────────────────────────────────────
+       The 015-owned record of what a claim resolved TO. Eleven fields partitioned exhaustively:
+       eight hashed content terms, two unhashed provenance fields, and the digest — which cannot
+       contain itself.
+
+       `eventId` and `lifecycleBinding` sit OUTSIDE the address for the same reason `claimHash`
+       excludes `proposalRunId`: `lifecycleEventId` hashes `runId`, so the same closure re-emitted
+       tomorrow carries a different `eventId`. Hashing it would give one outcome two content
+       addresses, and so two entries in an accounting that is supposed to count each call once.
+       Identity is content; provenance is metadata. */
+    var RESOLUTION_CONTRACT_VERSION = "brief-recommendation-resolution/v1";
+    var RESOLUTION_STORE_DIR = "briefs/objects/resolutions";
+
+    var RESOLUTION_HASHED_TERMS = Object.freeze([
+        "contractVersion", "claimHash", "resolutionDate", "closureEventType",
+        "outcomeClass", "outcomeValue", "reasonCode", "provenance"
+    ]);
+    var RESOLUTION_UNHASHED_FIELDS = Object.freeze(["eventId", "lifecycleBinding"]);
+    /* Derived, never hand-typed a second time: the accepted field set IS the partition. A term
+       added to the hash but not to the accepted set would refuse as an unknown field. */
+    var RESOLUTION_FIELDS = unionSorted([RESOLUTION_HASHED_TERMS, RESOLUTION_UNHASHED_FIELDS, ["resolutionHash"]]);
+
+    /* Keys that are RUN-SCOPED and therefore may never appear inside the HASHED `provenance`
+       block. A run id or a wall clock there would move the content address on every pass, which
+       is exactly the idempotence the content-addressed store exists to provide. They belong in
+       `lifecycleBinding`, which is deliberately outside the hash. */
+    var RUN_SCOPED_KEYS = Object.freeze([
+        "runId", "resolvedAt", "computedAt", "generatedAt", "observedAt"
+    ]);
+
+    var SESSION_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+    var CLOSURE_VOCABULARY_SOURCE = "rlcontracts.js";
+    /* The refusal for a closure event outside the 002-owned vocabulary. */
+    var CLOSURE_VOCAB_CODE = "RTR-CLOSURE-VOCAB";
+    /* The refusal for a content-addressed write that would change existing bytes. */
+    var RESOLUTION_CONFLICT_CODE = "RTR-RESOLUTION-CONFLICT";
+
+    /* Which closure events each outcome class may be recorded under, keyed by the 015-OWNED
+       vocabulary rather than by the 002-owned one. The DIRECTION of this table is the point.
+       `CLOSE_EVENT_TYPES` is private to rlcontracts.js and is read from its source text, so
+       restating its members here would be exactly the shadow copy that would go stale. Keying by
+       `outcomeClass` names only the five closure events 015 actually emits; `withdrawn` is never
+       written down at all and falls out as the residue of the source vocabulary that no class
+       admits — D4's "never resolver-emitted" DERIVED rather than restated. A withdrawal is an
+       authoring act, and a resolver that could withdraw a claim could withdraw the ones it was
+       about to score badly.
+
+       The two axes do not determine each other and are both recorded. A `satisfied` claim can
+       carry a NEGATIVE `outcomeValue` — a threshold clearing on the resolution session after an
+       adverse path — so collapsing the axes would quietly overwrite one of them. */
+    var OUTCOME_CLOSURE_EVENTS = Object.freeze({
+        "win": Object.freeze(["satisfied", "invalidated"]),
+        "loss": Object.freeze(["satisfied", "invalidated"]),
+        "resolved-flat": Object.freeze(["satisfied", "invalidated"]),
+        "unresolved": Object.freeze(["expired", "unresolved"]),
+        "not-evaluable": Object.freeze(["not-evaluable"]),
+        /* A legacy row carries no claim, so there is nothing to address a resolution BY. It is
+           counted permanently and never recorded — the same fact RTR-LEGACY-BACKFILL states from
+           the row side, here stated from the record side. */
+        "unresolvable-legacy": Object.freeze([])
+    });
+
+    /* The not-evaluable reasons that cannot be known at mint because they are properties of the
+       OBSERVATIONS rather than of the authored claim. */
+    var RESOLVER_NOT_EVALUABLE_REASONS = Object.freeze([
+        "no-committed-reference", "zero-observed-session", "calendar-coverage-exhausted"
+    ]);
+
+    /* Derived from `MINT_REFUSALS`, never restated: every mint reason is a legal not-evaluable
+       reason BY CONSTRUCTION, so a ninth mint reason can never land as an unrecordable outcome
+       whose claim then falls out of the accounting. */
+    var NOT_EVALUABLE_REASONS = unionSorted([MINT_REFUSALS, RESOLVER_NOT_EVALUABLE_REASONS]);
+
+    var CLOSURE_REASON_CODES = Object.freeze({
+        "satisfied": Object.freeze(["predicate-satisfied"]),
+        "invalidated": Object.freeze(["predicate-invalidated"]),
+        "expired": Object.freeze(["horizon-elapsed"]),
+        "unresolved": Object.freeze(["session-absent", "path-incomplete"]),
+        "not-evaluable": NOT_EVALUABLE_REASONS
+    });
+
+    /* The classes that carry a magnitude. `resolved-flat` sits on the COUNT side of the routing
+       table and STILL carries its exact value — that pairing IS HC-7. The record says what the
+       claim resolved TO while the report says how many did, so a resolved-flat outcome stays
+       distinguishable from an unresolved one in both places at once. */
+    var MAGNITUDE_BEARING_OUTCOME_CLASSES = unionSorted([DIRECTIONAL_OUTCOME_CLASSES, ["resolved-flat"]]);
+
+    /* ── The class partition ────────────────────────────────────────────────────────────────
+       Seven buckets accounting for every proposed call exactly once. Five carry the six outcome
+       classes — `win` and `loss` share `resolvedDirectional` because that sum IS the fed array's
+       length and therefore the published denominator. `withdrawn` and `open` are lifecycle states
+       that no outcome class describes: a withdrawal is never resolver-emitted, and an open claim
+       has not resolved yet. Both are still counted, because excluded is not the same as hidden. */
+    var PARTITION_BUCKET_FOR_CLASS = Object.freeze({
+        "win": "resolvedDirectional",
+        "loss": "resolvedDirectional",
+        "resolved-flat": "resolvedFlat",
+        "unresolved": "unresolved",
+        "not-evaluable": "notEvaluable",
+        "unresolvable-legacy": "unresolvableLegacy"
+    });
+    var NON_CLASS_PARTITION_BUCKETS = Object.freeze(["withdrawn", "open"]);
+
+    /* Derived from the map in vocabulary order, so a seventh class cannot appear without a
+       bucket and a renamed bucket cannot appear without a class. */
+    function partitionBucketsFromClasses() {
+        var out = [];
+        for (var i = 0; i < OUTCOME_CLASSES.length; i += 1) {
+            var bucket = PARTITION_BUCKET_FOR_CLASS[OUTCOME_CLASSES[i]];
+            if (bucket !== undefined && out.indexOf(bucket) === -1) out.push(bucket);
+        }
+        for (var n = 0; n < NON_CLASS_PARTITION_BUCKETS.length; n += 1) out.push(NON_CLASS_PARTITION_BUCKETS[n]);
+        return Object.freeze(out);
+    }
+
+    var PARTITION_BUCKETS = partitionBucketsFromClasses();
+
     /* The publisher's positional fallbacks. A key derived from one of these is not semantically
        stable across runs, so minting on it would create a resolvable-looking claim whose subject
        means nothing. */
@@ -757,6 +875,320 @@
         };
     }
 
+    /* ── The closure-event vocabulary, read from its single definition ─────────────────────
+       `CLOSE_EVENT_TYPES` is private to rlcontracts.js — it is NOT on that module's exported api
+       (measured: 20 keys, none matching /clos|EVENT_TYPE/i). Rather than shadow it with a second
+       copy that would silently go stale, the frozen literal is read out of the module's own
+       source text, exactly as MARKET_ACTIONS and ACTION_DIRECTION already are. There is therefore
+       exactly one definition in the repository, and if the literal moves or changes shape this
+       THROWS instead of validating against a stale vocabulary. */
+    function readClosureEventVocabulary(sourceText) {
+        if (typeof sourceText !== "string" || sourceText.length === 0) {
+            throw new Error("rlclaims: " + CLOSURE_VOCABULARY_SOURCE + " source text is required to read the closure-event vocabulary");
+        }
+        var literal = extractFrozenLiteral(sourceText, "CLOSE_EVENT_TYPES");
+        if (!literal) throw new Error("rlclaims: CLOSE_EVENT_TYPES not found in " + CLOSURE_VOCABULARY_SOURCE);
+
+        var names = Object.keys(literal).sort();
+        if (names.length === 0) throw new Error("rlclaims: CLOSE_EVENT_TYPES is empty in " + CLOSURE_VOCABULARY_SOURCE);
+        for (var i = 0; i < names.length; i += 1) {
+            if (literal[names[i]] !== true) {
+                throw new Error("rlclaims: CLOSE_EVENT_TYPES member '" + names[i] + "' changed shape in " + CLOSURE_VOCABULARY_SOURCE);
+            }
+        }
+
+        /* Every closure event 015 emits must still exist upstream. A renamed member would leave
+           the pairing table pointing at nothing and silently stop admitting a whole outcome
+           class — a vocabulary drift that presents as an empty column rather than as an error. */
+        var classes = Object.keys(OUTCOME_CLOSURE_EVENTS);
+        for (var c = 0; c < classes.length; c += 1) {
+            var allowed = OUTCOME_CLOSURE_EVENTS[classes[c]];
+            for (var a = 0; a < allowed.length; a += 1) {
+                if (names.indexOf(allowed[a]) === -1) {
+                    throw new Error("rlclaims: closure event '" + allowed[a] + "' is absent from CLOSE_EVENT_TYPES in " + CLOSURE_VOCABULARY_SOURCE);
+                }
+            }
+        }
+        return Object.freeze(names);
+    }
+
+    /* ── resolutionHash ────────────────────────────────────────────────────────────────────
+       Exactly the eight hashed terms. `eventId` and `lifecycleBinding` — which carry `runId` and
+       the wall clock — are excluded, so two passes over unchanged inputs recompute one address
+       and the repeat write is a byte-identical no-op. */
+    function resolutionHashedTermsOf(resolution) {
+        var terms = {};
+        for (var i = 0; i < RESOLUTION_HASHED_TERMS.length; i += 1) {
+            terms[RESOLUTION_HASHED_TERMS[i]] = resolution[RESOLUTION_HASHED_TERMS[i]];
+        }
+        return terms;
+    }
+
+    function resolutionHash(resolution) { return stableSha(resolutionHashedTermsOf(resolution)); }
+
+    function resolutionObjectPath(hash) {
+        var hex = String(hash).replace(/^sha256:/, "");
+        if (!/^[a-f0-9]{64}$/.test(hex)) throw new Error("rlclaims: resolutionHash is not a bare lowercase sha256 hex");
+        return RESOLUTION_STORE_DIR + "/" + hex + ".json";
+    }
+
+    function serializeResolution(resolution) { return stableStringify(resolution); }
+
+    /* ── buildResolution ────────────────────────────────────────────────────────────────────
+       One resolved claim to one `brief-recommendation-resolution/v1` record.
+
+       The value is carried through VERBATIM — no rounding, no `±ε` nudge, no fabricated sign.
+       Rounding lives at render, so identical inputs produce identical bits, which is what
+       determinism actually requires. What varies between a flat outcome and a small win is the
+       ROUTING the class implies, never the number the record stores. */
+    function buildResolution(input) {
+        if (!isPlainObject(input)) return violation("resolution-input-invalid", "input");
+
+        var vocabulary = input.closureVocabulary;
+        if (!Array.isArray(vocabulary) || vocabulary.length === 0) {
+            return violation("closure-vocabulary-invalid", "closureVocabulary");
+        }
+
+        var routed = outcomeContributionFor(input.outcomeClass);
+        if (!routed.ok) return routed;
+        var outcomeClass = routed.outcomeClass;
+
+        var allowedClosures = OUTCOME_CLOSURE_EVENTS[outcomeClass];
+        if (!Array.isArray(allowedClosures)) return violation("outcome-class-has-no-closure-mapping", "outcomeClass");
+        if (allowedClosures.length === 0) return violation("outcome-class-carries-no-resolution", "outcomeClass");
+
+        /* The 002-owned vocabulary is the ACCEPTANCE set and is checked first, so a value outside
+           it refuses for what it is rather than for the pairing it happens to miss. The SUPPLIED
+           array is the set — restating the six members here would be the stale shadow copy that
+           `readClosureEventVocabulary` exists to avoid, and a restricted vocabulary would then
+           silently fail to restrict. */
+        if (!inSet(vocabulary, input.closureEventType)) {
+            return {
+                ok: false,
+                error: { code: CLOSURE_VOCAB_CODE, reason: "closure-event-not-in-vocabulary", field: "closureEventType" }
+            };
+        }
+        if (allowedClosures.indexOf(input.closureEventType) === -1) {
+            return violation("closure-event-not-allowed-for-outcome-class", "closureEventType");
+        }
+
+        var allowedReasons = CLOSURE_REASON_CODES[input.closureEventType];
+        if (!Array.isArray(allowedReasons)) return violation("closure-event-has-no-reason-codes", "closureEventType");
+        if (!inSet(allowedReasons, input.reasonCode)) {
+            return violation("reason-code-not-allowed-for-closure-event", "reasonCode");
+        }
+
+        if (!nonEmptyString(input.claimHash) || !CLAIM_REF_PATTERN.test(input.claimHash)) {
+            return violation("claim-hash-not-opaque-sha256", "claimHash");
+        }
+        if (!nonEmptyString(input.eventId)) return violation("event-id-absent", "eventId");
+
+        /* A SESSION date, not a wall clock. The date is hashed, so a timestamp here would move
+           the content address on every pass; and the resolver resolves against sessions, so a
+           value carrying a time of day would describe a read the resolver never performed. */
+        if (!nonEmptyString(input.resolutionDate) || !SESSION_DATE_PATTERN.test(input.resolutionDate)) {
+            return violation("resolution-date-not-a-session-date", "resolutionDate");
+        }
+
+        var carriesMagnitude = inSet(MAGNITUDE_BEARING_OUTCOME_CLASSES, outcomeClass);
+        if (carriesMagnitude) {
+            if (!Number.isFinite(input.outcomeValue)) return violation("outcome-value-not-finite", "outcomeValue");
+            /* A directional class holding an exact zero is HC-7 arriving one step earlier than
+               the array gate: the primitive would drop it into `unresolved`, so it refuses here
+               with the same owned code rather than being summarised as never resolved. */
+            if (routed.contribution === CONTRIBUTION_NUMBER && input.outcomeValue === 0) {
+                return {
+                    ok: false,
+                    error: { code: FLAT_ZERO_CODE, reason: "bare-zero-in-directional-class", field: "outcomeValue" }
+                };
+            }
+            if (outcomeClass === "win" && !(input.outcomeValue > 0)) {
+                return violation("outcome-value-sign-contradicts-class", "outcomeValue");
+            }
+            if (outcomeClass === "loss" && !(input.outcomeValue < 0)) {
+                return violation("outcome-value-sign-contradicts-class", "outcomeValue");
+            }
+        } else if (input.outcomeValue !== null) {
+            /* `null` is required rather than absent, because an absent key and a null one read
+               the same to a consumer that only asks whether a value is falsy. */
+            return violation("outcome-value-must-be-null", "outcomeValue");
+        }
+
+        if (!isPlainObject(input.provenance)) return violation("provenance-not-an-object", "provenance");
+        var provenanceKeys = Object.keys(input.provenance);
+        for (var p = 0; p < provenanceKeys.length; p += 1) {
+            if (inSet(RUN_SCOPED_KEYS, provenanceKeys[p])) {
+                return violation("run-scoped-key-in-hashed-provenance", "provenance." + provenanceKeys[p]);
+            }
+        }
+        if (!isPlainObject(input.lifecycleBinding)) return violation("lifecycle-binding-not-an-object", "lifecycleBinding");
+
+        var resolution = {
+            contractVersion: RESOLUTION_CONTRACT_VERSION,
+            claimHash: input.claimHash,
+            eventId: input.eventId,
+            resolutionDate: input.resolutionDate,
+            closureEventType: input.closureEventType,
+            outcomeClass: outcomeClass,
+            /* Verbatim. `sortValue` is applied to the two object blocks so key order cannot vary
+               the address, and to nothing else — a number is never passed through a transform. */
+            outcomeValue: carriesMagnitude ? input.outcomeValue : null,
+            reasonCode: input.reasonCode,
+            provenance: sortValue(input.provenance),
+            lifecycleBinding: sortValue(input.lifecycleBinding),
+            resolutionHash: null
+        };
+        resolution.resolutionHash = resolutionHash(resolution);
+        return { ok: true, resolution: resolution, contribution: routed.contribution };
+    }
+
+    /* ── The content-addressed resolution store ─────────────────────────────────────────────
+       Mirrors the claim store's depth (`briefs/objects/claims`) and the evidence store's bare
+       lowercase-hex filename. Re-resolving an unchanged claim recomputes the identical hash and
+       writes identical bytes; a write that would CHANGE the bytes at an existing address aborts
+       with RTR-RESOLUTION-CONFLICT and never overwrites. */
+    function writeResolutionObject(resolution, row, ports) {
+        /* Scope 02's gate FIRST, before the resolution is inspected in any way. It owns the
+           single question of whether the target row may be resolved at all, and its rule order is
+           what makes a claimless row unscoreable BY CONSTRUCTION: no property of a well-formed
+           resolution can rescue one. Called, never re-implemented and never bypassed. */
+        var authorized = authorizeResolutionWrite(row, resolution);
+        if (!authorized.ok) return authorized;
+
+        if (!isPlainObject(ports) || typeof ports.existsSync !== "function"
+            || typeof ports.readFileSync !== "function" || typeof ports.writeFileSync !== "function"
+            || typeof ports.mkdirSync !== "function") {
+            throw new Error("rlclaims: writeResolutionObject requires { existsSync, readFileSync, writeFileSync, mkdirSync }");
+        }
+
+        if (resolution.contractVersion !== RESOLUTION_CONTRACT_VERSION) {
+            return violation("resolution-contract-version-not-allowed", "contractVersion");
+        }
+        var unknown = hasOnlyFields(resolution, RESOLUTION_FIELDS);
+        if (unknown !== null) return violation("unknown-field", unknown);
+        for (var f = 0; f < RESOLUTION_FIELDS.length; f += 1) {
+            if (!Object.prototype.hasOwnProperty.call(resolution, RESOLUTION_FIELDS[f])) {
+                return violation("required-field-absent", RESOLUTION_FIELDS[f]);
+            }
+        }
+        /* The address must BE the content. A record whose digest does not cover its own terms
+           would be filed under a name that says nothing about what is inside it. */
+        if (resolution.resolutionHash !== resolutionHash(resolution)) {
+            return violation("resolution-hash-does-not-match-content", "resolutionHash");
+        }
+        /* The resolution must be ABOUT the claim the row points at. The gate returns that pointer
+           precisely so it can be bound rather than assumed. */
+        if (resolution.claimHash !== authorized.claimRef) {
+            return violation("resolution-claim-hash-does-not-match-row", "claimHash");
+        }
+
+        var root = nonEmptyString(ports.root) ? ports.root : "";
+        var relativePath = resolutionObjectPath(resolution.resolutionHash);
+        var fullPath = root ? root + "/" + relativePath : relativePath;
+        var bytes = serializeResolution(resolution);
+
+        if (ports.existsSync(fullPath)) {
+            var existing = ports.readFileSync(fullPath, "utf8");
+            if (existing === bytes) return { ok: true, path: relativePath, written: false, reused: true };
+            return {
+                ok: false,
+                error: {
+                    code: RESOLUTION_CONFLICT_CODE,
+                    reason: "resolution-conflict-refused",
+                    field: "resolutionHash",
+                    path: relativePath
+                }
+            };
+        }
+
+        var directory = root ? root + "/" + RESOLUTION_STORE_DIR : RESOLUTION_STORE_DIR;
+        ports.mkdirSync(directory, { recursive: true });
+        ports.writeFileSync(fullPath, bytes);
+        return { ok: true, path: relativePath, written: true, reused: false };
+    }
+
+    /* ── assertClassPartition ───────────────────────────────────────────────────────────────
+       Asserted, not asserted-to. A failure means a claim fell out of the accounting, which is
+       precisely how a denominator gets quietly flattered.
+
+       An ABSENT bucket refuses rather than reading as zero, and an unknown bucket name refuses
+       rather than being ignored. Both are the same defect seen from two sides: a mistyped bucket
+       silently contributes nothing while looking like it contributes, and that is exactly how a
+       class leaves a partition without anyone noticing. */
+    function assertClassPartition(parts) {
+        if (!isPlainObject(parts)) return violation("partition-input-invalid", "parts");
+
+        var unknown = hasOnlyFields(parts, unionSorted([PARTITION_BUCKETS, ["totalProposed"]]));
+        if (unknown !== null) return violation("unknown-partition-bucket", unknown);
+
+        if (!Number.isInteger(parts.totalProposed) || parts.totalProposed < 0) {
+            return violation("partition-total-not-a-count", "totalProposed");
+        }
+
+        var buckets = {};
+        var sum = 0;
+        for (var i = 0; i < PARTITION_BUCKETS.length; i += 1) {
+            var name = PARTITION_BUCKETS[i];
+            if (!Object.prototype.hasOwnProperty.call(parts, name)) {
+                return violation("partition-bucket-absent", name);
+            }
+            if (!Number.isInteger(parts[name]) || parts[name] < 0) {
+                return violation("partition-bucket-not-a-count", name);
+            }
+            buckets[name] = parts[name];
+            sum += parts[name];
+        }
+
+        if (sum !== parts.totalProposed) {
+            return {
+                ok: false,
+                error: {
+                    code: CONTRACT_VIOLATION_CODE,
+                    reason: "partition-does-not-sum-to-proposed",
+                    field: "totalProposed",
+                    sum: sum,
+                    totalProposed: parts.totalProposed,
+                    unaccounted: parts.totalProposed - sum
+                }
+            };
+        }
+        return { ok: true, buckets: buckets, sum: sum, totalProposed: parts.totalProposed };
+    }
+
+    /* The partition built FROM the routing rather than counted a second time beside it. Two
+       independent tallies of one cohort is how the visible report and the published denominator
+       come to disagree, so the five class buckets are derived from `routeOutcomes`' own result
+       and only the two lifecycle buckets — states no outcome class describes — are supplied. */
+    function classPartition(routed, lifecycle) {
+        if (!isPlainObject(routed) || routed.ok !== true || !Array.isArray(routed.directional)
+            || !isPlainObject(routed.counts) || !Number.isInteger(routed.resolvedDirectional)) {
+            return violation("routed-outcomes-invalid", "routed");
+        }
+        if (!isPlainObject(lifecycle)) return violation("lifecycle-counts-invalid", "lifecycle");
+
+        var parts = { totalProposed: lifecycle.totalProposed };
+        for (var b = 0; b < PARTITION_BUCKETS.length; b += 1) parts[PARTITION_BUCKETS[b]] = 0;
+        parts.resolvedDirectional = routed.resolvedDirectional;
+
+        var counted = Object.keys(routed.counts);
+        for (var c = 0; c < counted.length; c += 1) {
+            if (!Object.prototype.hasOwnProperty.call(PARTITION_BUCKET_FOR_CLASS, counted[c])) {
+                return violation("partition-bucket-undeclared-for-class", counted[c]);
+            }
+            parts[PARTITION_BUCKET_FOR_CLASS[counted[c]]] += routed.counts[counted[c]];
+        }
+
+        for (var n = 0; n < NON_CLASS_PARTITION_BUCKETS.length; n += 1) {
+            var lifecycleName = NON_CLASS_PARTITION_BUCKETS[n];
+            if (!Object.prototype.hasOwnProperty.call(lifecycle, lifecycleName)) {
+                return violation("lifecycle-count-absent", lifecycleName);
+            }
+            parts[lifecycleName] = lifecycle[lifecycleName];
+        }
+
+        return assertClassPartition(parts);
+    }
+
     /* ── mintClaim ──────────────────────────────────────────────────────────────────────────
        Two outcomes, deliberately distinct:
          • a CONTRACT VIOLATION ({ ok: false }) — an out-of-vocabulary value or a direction that
@@ -1010,7 +1442,24 @@
         COUNTED_OUTCOME_CLASSES: COUNTED_OUTCOME_CLASSES,
         CONTRIBUTION_NUMBER: CONTRIBUTION_NUMBER,
         CONTRIBUTION_COUNT: CONTRIBUTION_COUNT,
+        MAGNITUDE_BEARING_OUTCOME_CLASSES: MAGNITUDE_BEARING_OUTCOME_CLASSES,
         FLAT_ZERO_CODE: FLAT_ZERO_CODE,
+        RESOLUTION_CONTRACT_VERSION: RESOLUTION_CONTRACT_VERSION,
+        RESOLUTION_STORE_DIR: RESOLUTION_STORE_DIR,
+        RESOLUTION_HASHED_TERMS: RESOLUTION_HASHED_TERMS,
+        RESOLUTION_UNHASHED_FIELDS: RESOLUTION_UNHASHED_FIELDS,
+        RESOLUTION_FIELDS: RESOLUTION_FIELDS,
+        RUN_SCOPED_KEYS: RUN_SCOPED_KEYS,
+        CLOSURE_VOCABULARY_SOURCE: CLOSURE_VOCABULARY_SOURCE,
+        CLOSURE_VOCAB_CODE: CLOSURE_VOCAB_CODE,
+        RESOLUTION_CONFLICT_CODE: RESOLUTION_CONFLICT_CODE,
+        OUTCOME_CLOSURE_EVENTS: OUTCOME_CLOSURE_EVENTS,
+        CLOSURE_REASON_CODES: CLOSURE_REASON_CODES,
+        RESOLVER_NOT_EVALUABLE_REASONS: RESOLVER_NOT_EVALUABLE_REASONS,
+        NOT_EVALUABLE_REASONS: NOT_EVALUABLE_REASONS,
+        PARTITION_BUCKET_FOR_CLASS: PARTITION_BUCKET_FOR_CLASS,
+        NON_CLASS_PARTITION_BUCKETS: NON_CLASS_PARTITION_BUCKETS,
+        PARTITION_BUCKETS: PARTITION_BUCKETS,
         CLAIM_STORE_DIR: CLAIM_STORE_DIR,
         BARS_DIR: BARS_DIR,
         BARS_MANIFEST_FILENAME: BARS_MANIFEST_FILENAME,
@@ -1033,10 +1482,18 @@
         classifyOutcome: classifyOutcome,
         assertZeroFreeOutcomes: assertZeroFreeOutcomes,
         routeOutcomes: routeOutcomes,
+        buildResolution: buildResolution,
+        resolutionHash: resolutionHash,
+        resolutionObjectPath: resolutionObjectPath,
+        serializeResolution: serializeResolution,
+        writeResolutionObject: writeResolutionObject,
+        assertClassPartition: assertClassPartition,
+        classPartition: classPartition,
         stableStringify: stableStringify,
         sha256Hex: sha256Hex,
         stableSha: stableSha,
         readFoundationActionVocabulary: readFoundationActionVocabulary,
+        readClosureEventVocabulary: readClosureEventVocabulary,
         enumerateCommittedSeries: enumerateCommittedSeries,
         seriesRefFor: seriesRefFor,
         symbolFromSeriesRef: symbolFromSeriesRef,

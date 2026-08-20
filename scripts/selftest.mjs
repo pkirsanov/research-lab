@@ -2388,30 +2388,26 @@ try {
     'FX TP-A03-04 adversarial: an invalid committed universe is refused by the owner\u2019s own validator with a distinct reason, never folded into the no-evidence case');
 } catch (e) { failures++; console.log('  ✗ FAIL (fx headless owner read group threw): ' + e.message); }
 
-/* ---------- Portfolio brief: owner routing is READ, not declared (A04 / Feature 008 Scope 06) ----------
-   `state.briefOwners` shipped initialized to `{}` and never populated, so every brief item rendered
-   `unownedCapability` with a null deep link — the page told the reader no owning tool existed even
-   where one did. These assertions pin the wiring that fixed it, because the failure mode is silent:
-   reverting to an empty map breaks no existing test and produces a page that still renders.
-
-   The routing itself is exercised in the browser; what is pinned here is that the page still READS
-   the shared registry rather than declaring routes locally, and that it single-sources the link. */
+/* ---------- Portfolio brief: owner routing is part of one atomic public-evidence load ----------
+   Scope 20 replaced three independent fetch chains with one transaction. That is stronger than the
+   earlier Scope 06 wiring: ownership, watchlist, snapshot, payload and bounded history can no longer
+   come from different generations, and a failed candidate preserves the last valid local brief. */
 try {
-  group('portfolio brief — owner routing reads the registry');
+  group('portfolio brief — atomic public evidence preserves owner routing');
   const portfolioPage = read('portfolio-survival-allocation-lab.html');
   const ownerArtifact = JSON.parse(read('market-brief.owner-reads.json'));
-  // Comment-stripped, because a commented-out call still matches a naive substring search — which is
-  // precisely the regression this pins, and the first draft of this assertion fell for it.
-  const portfolioLive = portfolioPage.split('\n').filter((line) => !/^\s*(\/\/|\/\*|\*)/.test(line)).join('\n');
-
-  assert(/function loadOwnerRoutes\(\)/.test(portfolioLive) && /^\s*loadOwnerRoutes\(\);/m.test(portfolioLive),
-    'Owner routing A04-01: the page defines loadOwnerRoutes and CALLS it at boot on a live line, so briefOwners is populated rather than left empty');
-  assert(/loadOwnerRoutes[\s\S]{0,900}market-brief\.owner-reads\.json/.test(portfolioPage),
-    'Owner routing A04-02: ownership is read from the public owner-read artifact, so it is a registry fact rather than a list this page could drift from');
-  assert(/read\.ownerDeepLink/.test(portfolioPage) && !/loadOwnerRoutes[\s\S]{0,900}tools\.json/.test(portfolioPage),
+  const atomicArtifacts = ['market-brief.config.json', 'market-brief.snapshot.json', 'market-brief.payload.json',
+    'brief-history.recent.jsonl', 'watchlist.json', 'market-brief.owner-reads.json'];
+  assert(/Promise\.all\s*\(\s*\[/.test(portfolioPage) && atomicArtifacts.every((path) => portfolioPage.includes(`fetchPublicArtifact("${path}"`)),
+    'Owner routing A04-01: all six public artifacts load in one Promise transaction, so owner routes cannot drift from the publication they explain');
+  assert(/function ownerProjection\(artifact, cutoffAt\)/.test(portfolioPage)
+    && /ownerProjection\(ownerArtifact, cutoffAt\)/.test(portfolioPage),
+    'Owner routing A04-02: ownership is normalized from the public owner-read artifact inside the validated generic window');
+  assert(/read\.ownerDeepLink/.test(portfolioPage) && !/function ownerProjection[\s\S]{0,2600}tools\.json/.test(portfolioPage),
     'Owner routing A04-03: the route comes from the producer\u2019s own ownerDeepLink, so the link has ONE definition instead of a second resolution through tools.json');
-  assert(/state\.briefOwners = \{\};/.test(portfolioPage),
-    'Owner routing A04-04: a fetch failure restores the EMPTY map, so an unowned subject is a named capability gap rather than a guessed route');
+  assert(/state\.genericWindow = state\.lastValidGenericWindow/.test(portfolioPage)
+    && /data-generic-window-state",\s*state\.genericWindow \? "preserved-last-valid"/.test(portfolioPage),
+    'Owner routing A04-04: a failed atomic refresh preserves the last validated owner map and brief instead of publishing a mixed or guessed replacement');
 
   // The artifact must actually carry what the routing depends on, or the wiring above is inert.
   const routable = Object.values(ownerArtifact.ownerReads || {})

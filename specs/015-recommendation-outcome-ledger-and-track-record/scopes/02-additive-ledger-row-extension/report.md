@@ -1329,6 +1329,350 @@ worktree list` afterwards shows only the main checkout plus two `prunable` stubs
 belong to neither it nor this scope. No `state.json`, no `uservalidation.md`, no `spec.md`, no `design.md`, and
 no `specs/007-*`, `specs/008-*` or `actions.md` byte was read for mutation, stashed, or written.
 
+<a id="evidence-pass-2026-08-20-third"></a>
+
+## Evidence pass — 2026-08-20 (third), at `4260140cf`
+
+The six Test Plan rows that every prior pass recorded as *"not written"* were authored and committed at
+`4260140cf` (`test(015): author scope 02's functional, integration and e2e rows`, rebased from `a4dc27fed`).
+This pass writes **no code and no test**. It executes the commands the open DoD items name, records what they
+actually produced, and ticks only the items satisfied on **every** conjunct.
+
+**Path hygiene.** `scripts/pii-scan.mjs` runs inside `scripts/selftest.mjs` and refuses an absolute home path
+in a committed file. Where a command or a captured line carried one, it is rendered `<repo-root>` here. That
+substitution is disclosed rather than silent; nothing else in any block is altered.
+
+**Evidence form.** Long runs are recorded as `evidence-capture.sh` bounded blocks. Each carries the command,
+its real exit code, the produced line count, and a sha256 over **every** line the command emitted — so the
+figure is re-derivable with `--verify` rather than merely pasted. Nothing was filtered through a discarding
+pipe.
+
+### Commands this pass declares
+
+Recorded here as the literal verification surface for **this scope's** files — in particular
+`node --test tests/*.integration.mjs`, which is the declared command that selects
+`tests/recommendation-track-record.integration.mjs`:
+
+```text
+node --test tests/recommendation-track-record.unit.mjs
+node --test tests/recommendation-track-record.functional.mjs
+node --test tests/recommendation-track-record.integration.mjs
+node --test tests/recommendation-track-record.e2e.mjs
+node --test tests/*.functional.mjs
+node --test tests/*.integration.mjs
+node --test tests/*.e2e.mjs
+node scripts/selftest.mjs
+node scripts/validate-test-file-reachability.mjs
+```
+
+**One command this pass executed is deliberately NOT written here as a literal glob.** The whole unit family
+was run — the figure is at [Verification 3](#verification-3-unit) — but writing its glob into this artifact
+would *declare* it to `scripts/validate-test-file-reachability.mjs`, and that single line was measured to flip
+**22** frozen baseline entries belonging to Features 002, 004, 012 and others from orphaned to reachable in
+one stroke. Paying down 22 other features' coverage debt from inside a scope-02 evidence document is not this
+pass's business, and it would move the ratchet on a decision no one took. The scope's own unit rows are
+selected by the file-specific command on the first line, which is what its Test Plan names.
+
+<a id="t-02-f1"></a>
+
+### T-02-F1 — canonical ordering on every live shape, and the seven-field projection
+
+```text
+# T-02-F1/F2/F3: node --test tests/recommendation-track-record.functional.mjs
+$ node --test tests/recommendation-track-record.functional.mjs
+exit: 0
+lines: 64
+sha256: 9fd52011a526d6a32f9e05d86b8062be163d871fd905763fdc3908c60da95d96
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+```
+
+The row is `ok` in that run and asserts both halves the paired Core item names, at
+`tests/recommendation-track-record.functional.mjs:814`:
+
+- predecessor `canonicalMonth` and successor `confidence` on every live `v2` shape, with
+  `assert.notEqual(order[at + 1], 'contractVersion')` — the `v1`-shaped successor is asserted **not** to hold;
+- the control on a real `v1` row, where the successor genuinely **is** `contractVersion`, so `confidence` is a
+  measured property of the `v2` shape rather than a coincidence;
+- `assert.deepEqual(Object.keys(projected), [...claims.ROW_V1_FIELDS])` — *exactly the seven `v1` key names* —
+  plus the adversarial case asserting *"a projector that grew an eighth field must fail here"*.
+
+That closes the projector half, which every prior pass recorded as *"asserted nowhere"*.
+
+<a id="t-02-f2"></a>
+
+### T-02-F2 — absence is the marker, keyed on key-absence rather than on a null or a version stamp
+
+Same run, same hash as [T-02-F1](#t-02-f1); the row is `ok 8`:
+
+```text
+ok 8 - T-02-F2: a pre-contract row of either version has no claimRef key at all,
+       and the classifier keys on absence rather than null
+```
+
+<a id="t-02-f3"></a>
+
+### T-02-F3 — a refused mint degrades to a claimless event carrying its reason
+
+Same run, same hash; the row is `ok 9`:
+
+```text
+ok 9 - T-02-F3: a refused mint degrades to an event without claimRef, carrying its reason
+```
+
+The whole-family run is recorded at [Verification 1](#verification-1-functional): `196` tests, `192` pass,
+`4` fail, exit `1`. **None of the four failures is in this file** — all four are `SCN-012-*` rows belonging to
+Feature 012, and the scope-02 file is green in isolation at `9 / 9 / 0`, exit `0`, above.
+
+<a id="t-02-i1"></a>
+
+### T-02-I1 — every committed row of both versions validates, at a count read from the file
+
+```text
+# T-02-I1/I2: node --test tests/recommendation-track-record.integration.mjs
+$ node --test tests/recommendation-track-record.integration.mjs
+exit: 0
+lines: 22
+sha256: 361f15e37a9f82258fb47a6d60efa504fc88912dd640566327c83346791d6677
+ok 1 - T-02-I1: every committed row of both versions validates unchanged, at a count read from the file
+ok 2 - T-02-I2: a mixed partition round-trips append-only with the prior bytes byte-identical
+1..2
+# tests 2
+# pass 2
+# fail 0
+# skipped 0
+# todo 0
+```
+
+This supersedes the prior pass's note that the full-partition figure recorded under
+[the dual-version reader](#core-dual-version-reader) *"is a session measurement, not `T-02-I1`"*. It is now a
+committed regression selected by a declared command.
+
+<a id="t-02-i2"></a>
+
+### T-02-I2 — the mixed partition round-trips append-only
+
+Same run, same hash as [T-02-I1](#t-02-i1); the row is `ok 2`, quoted above.
+
+The whole-family run is at [Verification 2](#verification-2-integration): `31 / 31 / 0`, exit `0`.
+
+<a id="t-02-r1"></a>
+
+### T-02-R1 — the three owned scenarios re-assert end to end
+
+```text
+# T-02-R1 isolated: node --test tests/recommendation-track-record.e2e.mjs
+$ node --test tests/recommendation-track-record.e2e.mjs
+exit: 1
+lines: 78
+sha256: afbdf0267ef9efb63d45be32a03b867d3d5cac5d527a57380fc4805112903631
+ok 1 - T-01-R1: the whole fixture claim set holds the frozen contract against the real store layout
+not ok 2 - T-01-R2: the committed suites are intact, and the committed Node E2E suite runs green
+  error: |-
+    no committed test file may be modified, renamed or removed by this scope; git reported:
+     M tests/portfolio-survival-allocation.spec.mjs
+     M tests/portfolio-survival-brief.spec.mjs
+     M tests/portfolio-survival-diversification.spec.mjs
+     M tests/portfolio-survival-foundation.spec.mjs
+ok 3 - T-03-R1: a resolved-flat outcome survives a full classify-route-summarise-store pass as its own class
+ok 4 - T-02-R1: a full publish-and-append pass holds the claim-referencing row, the dual-version read,
+       the append-only bytes, and RTR-LEGACY-BACKFILL
+1..4
+# tests 4
+# pass 3
+# fail 1
+```
+
+**The file exits `1`; `T-02-R1` is `ok`.** The single failure is `T-01-R2` — scope **01**'s row — and it is not
+a scope-02 defect and not a code failure at all: it asserts that no committed test file is modified, and a
+**concurrent session** currently holds eleven committed test files modified in the working tree. That
+distinction is recorded rather than absorbed, and `T-02-R1` is ticked on its own `ok` result.
+
+<a id="t-02-r2-untick"></a>
+
+### `T-02-R2` — UNTICKED at this HEAD, on an external blocker
+
+`T-02-R2` was ticked by the [closure pass at `89020daef`](#t-02-r2) on two measurements that were sound when
+taken: Node `34 / 34 / 0` exit `0`, and Playwright `629 passed, 0 failed` taken at `1ae724ef9` and carried
+forward on a measured markdown-only delta. **Neither carries to `4260140cf`, so the tick is withdrawn rather
+than left standing.**
+
+**Conjunct 1 — the committed Node E2E files. Measured at this HEAD, and RED:**
+
+```text
+# node --test tests/*.e2e.mjs
+exit: 1
+lines: 272
+sha256: d8978236e4dc30f44f687448a18f934839aba8af24f26850b9637b2d1603956c
+not ok 31 - T-01-R2: the committed suites are intact, and the committed Node E2E suite runs green
+1..36
+# tests 36
+# pass 35
+# fail 1
+```
+
+**Conjunct 2 — the committed Playwright spec suite. NOT executed at this HEAD, and the carry-forward argument
+no longer holds.** The `629 passed` figure was carried on the finding that `git status --porcelain --
+'*.spec.mjs'` was **empty**. It is not empty now:
+
+```text
+$ git status --porcelain -- tests/
+ M tests/portfolio-brief.functional.mjs
+ M tests/portfolio-foundation.unit.mjs
+ M tests/portfolio-privacy.functional.mjs
+ M tests/portfolio-publisher-boundary.functional.mjs
+ M tests/portfolio-survival-allocation.spec.mjs
+ M tests/portfolio-survival-brief.spec.mjs
+ M tests/portfolio-survival-diversification.spec.mjs
+ M tests/portfolio-survival-foundation.spec.mjs
+ M tests/portfolio-survival-mobile.spec.mjs
+ M tests/portfolio-survival-paths.spec.mjs
+ M tests/portfolio-survival-risk.spec.mjs
+?? tests/portfolio-bar-coverage.functional.mjs
+```
+
+Seven committed `*.spec.mjs` files are modified, so the suite on disk is **not** the suite that produced
+`629 passed`, and re-running it would measure another session's in-flight edits rather than this scope.
+
+**The blocker is external to Feature 015 and to this scope.** Every one of the eleven modified files is
+`tests/portfolio-*`, owned by the concurrent `specs/008-portfolio-survival-and-brief-lab` session that also
+holds 43 uncommitted files under that spec. Nothing in scope 02 can clear it. **It will clear when that
+session commits its work**, at which point both conjuncts should be re-measured at a clean HEAD and the row
+re-ticked if green. It is left unticked here because a tick whose conjunct is measurably red is a false claim
+regardless of who caused it.
+
+<a id="t-02-s1-reconstructed"></a>
+
+### T-02-S1 — the scope-start baseline, RECONSTRUCTED rather than captured
+
+**This figure was NOT captured at scope start.** No clean pre-change measurement was taken before scope 02's
+first edit; the figure recorded under [Scope-start selftest baseline](#scope-start-selftest-baseline-required-by-t-02-s1)
+was taken against a tree already carrying another session's uncommitted edits (`3066 / 1`), and the `3074 / 0`
+recorded at [T-02-S1 — clean re-measurement](#t-02-s1) was obtained by stashing four foreign files at a
+**later** commit, not at scope start. Both are superseded here.
+
+**Method.** Scope 02's first implementation commit is identified from history, and the baseline is measured at
+its **parent** in a disposable `git worktree` under `/tmp` — a pristine checkout that cannot disturb the live
+tree or the concurrent session:
+
+```text
+$ git --no-pager log --oneline --reverse -- rlclaims.js scripts/recommendation-claim-mint.mjs \
+    tests/fixtures/recommendation-track-record/ledger tests/recommendation-track-record.*.mjs
+39d04d9d9 feat(015): deliver the frozen claim contract and its guards (SCOPE-01)
+338111eef spec(015): record the post-repair canary run and close scope 01 to 30 of 33
+5c005750e fix(015): carry notEvaluable in the unhashed set and prove the invariant
+ef6bd76a6 feat(015): scope 02 increment 1 -- claimRef on the live v2, dual-version reader   <-- FIRST scope-02
+eb716c2f1 fix(tests): capture child stdout through a file, not a pipe, in T-01-R2
+a715e92a4 feat(015): thread claimRef onto the live v2 row and refuse a claimless resolution
+...
+4260140cf test(015): author scope 02's functional, integration and e2e rows                 <-- HEAD
+
+$ git --no-pager show --stat ef6bd76a6      # rlclaims.js +185, 6 ledger fixtures, unit +202 — implementation
+$ git --no-pager log -1 --format='%h %s' ef6bd76a6^
+6bfba14e0 docs(015): reconcile scope 02 against the live ledger; rule on the contract-version collision
+```
+
+The three earlier commits touching these paths are **scope 01**, not scope 02. The parent `6bfba14e0` is
+docs-only, which makes it the last commit before any scope-02 code existed — the correct anchor.
+
+> **A stale SHA is corrected.** The increment-2 commit was cited elsewhere as `ed4f4bab1`. That object still
+> exists but `git merge-base --is-ancestor ed4f4bab1 HEAD` is **false** — it is the pre-rebase copy, orphaned
+> by the rebase that produced `4260140cf`. The reachable increment-2 commit is `a715e92a4`. `ed4f4bab1` is also
+> increment **2**, so it was never the right anchor for a scope-start baseline in any case.
+
+**Baseline measured at `6bfba14e0`:**
+
+```text
+# T-02-S1 RECONSTRUCTED baseline: node scripts/selftest.mjs at 6bfba14e0
+# (parent of first scope-02 impl commit ef6bd76a6), clean disposable worktree
+$ timeout 2400 node scripts/selftest.mjs
+exit: 0
+lines: 3473
+sha256: 44cb25b9595ee6ed22573269e3c49a1283f3e959d052c4bf2988fad81ec708ae
+================================================
+Research-Lab self-test: 3074 passed, 0 failed
+================================================
+```
+
+**RECONSTRUCTED BASELINE: `3074 passed, 0 failed` at `6bfba14e0`.**
+
+**Limitation, stated plainly.** A reconstruction is not a capture. It proves what that commit produces *when
+run today*, not what was observed then. Two consequences are load-bearing and are not smoothed over:
+
+1. **The harness itself is not constant.** `scripts/selftest.mjs` differs at all three points —
+   `sha256 12a44b9c…` at the baseline commit, `e1d1ccd8…` at HEAD, `02c53ae4…` in the live tree, where the
+   concurrent session has it modified. `baseline + N` is therefore **not** a clean subtraction across a fixed
+   harness; other sessions added checks to the harness between the two commits.
+2. **It coincides with, but does not vindicate, the earlier stashed figure.** The stash-based `3074 / 0`
+   matches this reconstruction exactly. That is corroboration, not proof that stashing was sound.
+
+**Post figure, measured at HEAD `4260140cf` in a second clean worktree** — no concurrent-session edits, and
+the **committed, unmodified** `scripts/selftest.mjs` that the Test Plan row requires:
+
+```text
+$ timeout 2400 node scripts/selftest.mjs
+exit: 1
+lines: 3633
+sha256: 1b61af1df672553ab8425843c22198346f94495829a8aad36ce36f0da3bead64
+  ✗ FAIL: no tests/*.mjs file is unreachable outside the frozen baseline — a file no declared
+    command selects is never run, so it reads as coverage while delivering none
+    (1 new, 28 known-orphan, 20 stale, 11 exempt as shared-helper-module, of 183 file(s))
+================================================
+Research-Lab self-test: 3186 passed, 1 failed
+================================================
+```
+
+**Per-group reconciliation, not a rising total.** The row requires *"no pre-existing assertion count
+decreasing"*. Every prior pass recorded that as unmeasurable because only totals were kept. It is measured
+here: both runs are reduced to a per-group `pass/fail` table and diffed, so a group that fell would surface
+even while the total rose.
+
+```text
+$ diff <(baseline worktree | per-group awk) <(HEAD worktree | per-group awk)
+46c46
+< 26/0   market brief — registry-wide coverage + action-only payload contract
+> 59/0   market brief — registry-wide coverage + action-only payload contract
+109c109,110
+< 2/0    spec artifacts — referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)
+> 9/0    spec artifacts — referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)
+> 2/1    tests/ — every test file is selected by a declared verification glob (an unrun test proves nothing)
+171,173c172,174
+< 19/0   Feature 022 Scope 03 — lifetime-tax state rule-pack contract and jurisdiction resolution
+< 11/0   Feature 022 Scope 04 — lifetime-tax California state pack
+< 15/0   Feature 022 Scope 05 — lifetime-tax combined settlement and combined marginal curve
+> 20/0   Feature 022 Scope 03 — lifetime-tax state rule-pack contract and jurisdiction resolution
+> 14/0   Feature 022 Scope 04 — lifetime-tax California state pack
+> 17/0   Feature 022 Scope 05 — lifetime-tax combined settlement and combined marginal curve
+196,197c197,199
+< 13/0   lifetime-tax — threshold surtaxes and declared tax legs
+< GROUPS 196  TOTAL 3074 passed 0 failed
+> 62/0   BUG-009 R1 — the observed attention gate producer
+> 15/0   lifetime-tax — threshold surtaxes and declared tax legs
+> GROUPS 198  TOTAL 3186 passed 1 failed
+```
+
+Eight groups differ and **not one fell**: six pre-existing groups rose (`+33`, `+7`, `+1`, `+3`, `+2`, `+2`)
+and two groups are new (`BUG-009 R1` at `62/0`, and the reachability guard at `2/1`). The 190 groups the diff
+does not list are byte-identical. Passes reconcile exactly: `33 + 7 + 2 + 1 + 3 + 2 + 62 + 2 = 112`, and
+`3074 + 112 = 3186`.
+
+**Attribution of the `+112` is the uncomfortable part, and it is recorded rather than claimed.** Essentially
+none of it is scope 02's: `market brief`, `Feature 022`, `BUG-009 R1` and `spec artifacts` are other features'
+committed work landed between the two commits. Scope 02's own contribution to the self-test total is **zero
+passes and one failure** — the reachability guard, which fails **because of this scope**:
+`tests/recommendation-track-record.integration.mjs` is the *"1 new"* orphan, since no committed artifact
+declared `tests/*.integration.mjs` until this report did so
+[above](#commands-this-pass-declares).
+
+So the *"no pre-existing assertion count decreasing"* conjunct **holds**, and the *"`0 failed`"* conjunct
+**fails at the point of measurement** — on a defect this scope introduced and this pass repairs.
+
 
 ## Completion Statement
 

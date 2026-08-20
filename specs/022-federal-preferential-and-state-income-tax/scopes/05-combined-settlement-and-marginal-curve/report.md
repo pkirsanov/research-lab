@@ -1327,10 +1327,92 @@ than settled here.
 
 ## Claim Boundary
 
-Filled at execution. Holds the text scan proving no probability, lifetime figure,
-break-even year, ranking, recommendation, track record, accuracy claim or error
-rate appears in this scope's allowed paths, and that no result is labelled a
-complete combined tax.
+The text scan over this scope's two output paths — `rltaxcombined.js` and the page
+that renders its surfaces — plus the completeness-label check.
+Command: `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths
+
+**A recorded miss, caught before it was trusted.** The first run of this scan
+reported zero hits for every detector and was wrong. The path list was held in a
+plain scalar and interpolated unquoted, and zsh does not word-split an unquoted
+parameter, so `grep` was handed one filename made of both paths joined by a space,
+failed with `No such file or directory`, and returned zero for a reason that had
+nothing to do with the text. A scan that cannot read its own inputs reports clean.
+The rerun holds the paths in an array and carries a sanity token that must be
+present, so a repeat of that failure is visible rather than silent:
+
+```text
+=== scanned paths ===
+lifetime-tax-strategy-lab.html
+rltaxcombined.js
+=== sanity: a token that MUST be present in these very paths ===
+26,78
+```
+
+Each detector is proven live on a control string before its result is trusted, and
+the run flags any detector that fails to match its own control:
+
+```text
+probability            detector_live_on_control=1  hits_in_scope_paths=0
+lifetime-figure        detector_live_on_control=1  hits_in_scope_paths=3
+break-even-year        detector_live_on_control=1  hits_in_scope_paths=0
+ranking                detector_live_on_control=1  hits_in_scope_paths=4
+recommendation         detector_live_on_control=1  hits_in_scope_paths=0
+track-record           detector_live_on_control=1  hits_in_scope_paths=0
+error-rate             detector_live_on_control=1  hits_in_scope_paths=0
+SCAN_END
+```
+
+Probability, break-even year, recommendation, track record and error rate return
+zero. The two non-zero detectors were read rather than dismissed.
+
+**The three `lifetime-figure` hits are the tool's own name**, not a stated lifetime
+figure — the module banner, the `<title>` and the `<h1>`, all reading
+`Lifetime Tax Strategy Lab`. The detector is deliberately wide enough to catch the
+title so that a real lifetime total could not hide behind it; each hit was checked
+individually.
+
+**All four `ranking` hits are disclaimers**, and every one of them denies the claim
+rather than making it:
+
+```text
+  write them and nothing here is sorted, ranked or picked for you. The comparison multiplies the
+  <caption>Two policies, one workspace, one resolved pack. No ranking and no preferred
+  reports a single-year federal tax difference in dollars. It is not a ranking, not a preferred policy and not a statement about any later
+  + ". It is not a ranking and this tool states no preferred policy: isRecommendation
+```
+
+**No result is labelled a complete combined tax**, and this is decided on the value
+the record actually carries rather than on prose. `completeCombinedTax` has exactly
+one assignment in the whole tracked tree, and it is a literal `false`:
+
+```text
+=== every completeCombinedTax occurrence in the tracked tree ===
+lifetime-tax-strategy-lab.html:4861: + String(settled.completeCombinedTax) + " is what the record carries, because both packs name features they do not
+rltaxcombined.js:172:      completeCombinedTax: false
+scripts/selftest.mjs:15407:    && floridaCombination.completeCombinedTax === false
+=== is it ever assigned anything but false? ===
+   1 completeCombinedTax: false
+```
+
+The page prints that value through `String(...)` rather than a hand-written word,
+so the surface cannot disagree with the record. One near-miss is named rather than
+omitted: the page does render the word `complete` at line 4660, in
+`measure.complete ? "complete" : "incomplete"`. That is the **pack's own
+modified-adjusted-gross measure**, reporting whether the pack models every
+adjustment for that measure — a different member on a different record. It is not
+a statement that the combined tax is complete, and the combined record's own
+completeness member remains the literal `false` above.
+
+The gate command ran green in the same session:
+
+```text
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3106 passed, 0 failed
+SELFTEST_EXIT=0
+```
+
+No mutation was applied to reach any of this; every clause is a derivation over
+the tracked tree.
 
 ## Completion Statement
 

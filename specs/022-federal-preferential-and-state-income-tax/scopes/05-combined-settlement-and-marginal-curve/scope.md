@@ -322,10 +322,22 @@ missing browser or an absent test does not satisfy RED.
     behind them. Both belong to Scope 02. Lowering the number would not close the
     row; delivering the two replacements would. See
     `report.md#supersession-ledger` for the marker census.
-- [ ] No output states a probability, a lifetime figure, a break-even year, a
+- [x] No output states a probability, a lifetime figure, a break-even year, a
       ranking, a recommendation, a track record or an error rate, and no result is
       labelled a complete combined tax.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
+  - **Evidence:** seven detectors were run over this scope's two output paths,
+    each proven live on a control string first, with a sanity token that must be
+    present so a scan which cannot read its inputs cannot report clean. That guard
+    earned its place: the first run reported zero everywhere because zsh did not
+    word-split the unquoted path list and `grep` was handed one non-existent
+    filename. On the valid rerun, probability, break-even year, recommendation,
+    track record and error rate are zero. The three lifetime-figure hits are the
+    tool's own name — banner, `<title>`, `<h1>` — and all four ranking hits are
+    disclaimers that deny the claim. `completeCombinedTax` has exactly one
+    assignment in the tracked tree, the literal `false`, and the page prints that
+    value through `String(...)` rather than a hand-written word.
+    `node scripts/selftest.mjs` is green at `3106 passed, 0 failed`.
 - [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including every browser row and the full cumulative suite.
   - **Phase:** implement · **Command:** the exact TP-05-01 through TP-05-22 commands · **Evidence:** `report.md#test-evidence`

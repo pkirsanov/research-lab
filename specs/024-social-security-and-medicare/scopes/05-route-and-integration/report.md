@@ -1106,3 +1106,125 @@ This row's named behaviour is the gate itself — the suite stays green and the
 pass count does not fall — so its probe is matched on the count rather than on an
 assertion label. One assertion falls and the count falls with it, from 3172 to
 3171, and returns on revert.
+
+### `TP-05-21` — export, in the browser
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-21 SCN-024-014: an export that admits the declared statement amount into the file it writes must fail the browser omission scenario
+file:             rltaxworkspace.js
+mutation:               selectedBracketId: workspace.selectedBracketId
+    };  ->        selectedBracketId: workspace.selectedBracketId,
+      benefitStatementPrimaryInsuranceAmount: workspace.benefitStatementPrimaryInsuranceAmount
+    };   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-024-014\ the\ export\ omits\ all\ five\ retirement\ declarations\ and\ states\ what\ it\ omitted --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-retirement-route.spec.mjs:172:1 › Regression: SCN-024-014 the export omits all five retirement declarations and states what it omitted
+green-exit:       0
+green-summary:      1 passed (1.8s)
+revert-verified:  yes (committed=6760587f2303516755ab6a5e14436050717f1227 restored=6760587f2303516755ab6a5e14436050717f1227)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+A third distinct declaration is leaked here — the statement amount — so this row,
+`TP-05-13` and `TP-05-14` each rest on their own observation rather than on one
+sanitizer break claimed three times. The browser row reads the file the page
+actually wrote, which is what makes it a different claim from the unit rows'
+in-process check.
+
+### `TP-05-22` — Simple discipline and the withheld-detail links
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-22 SCN-024-015: a withheld detail whose link points at a section that does not own it must fail the both-directions link identity and the follow-the-link check
+file:             lifetime-tax-strategy-lab.html
+mutation:         section: "power-medicare"  ->  section: "power-benefit"   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-024-015\ Simple\ carries\ only\ decision-level\ fields\ and\ every\ withheld\ detail\ links\ to\ the\ Power\ section\ that\ owns\ it --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-retirement-route.spec.mjs:213:1 › Regression: SCN-024-015 Simple carries only decision-level fields and every withheld detail links to the Power section th
+green-exit:       0
+green-summary:      1 passed (1.9s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The link still exists and still points at a **declared** section, so the forward
+direction alone would not see it. What fails is the reverse direction — the
+Medicare section is left with no link — and the follow-the-link check, which opens
+Power and reads back which section took focus.
+
+### `TP-05-23` — accessibility
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-23 SCN-024-015: an unavailable item that stops being reachable by focus must fail the accessibility scenario, which focuses each node and reads the focus back rather than inspecting an attribute
+file:             lifetime-tax-strategy-lab.html
+mutation:                         host.setAttribute("tabindex", "0");
+                host.setAttribute("role", "note");  ->                  host.setAttribute("role", "note");   (2 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-024-015\ every\ unavailable\ retirement\ item\ is\ focusable\ and\ states\ its\ code\,\ domain\,\ reason\ and\ remediation --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-retirement-route.spec.mjs:305:1 › Regression: SCN-024-015 every unavailable retirement item is focusable and states its code, domain, reason and remediatio
+green-exit:       0
+green-summary:      1 passed (1.8s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The literal matched **two** refusal constructors rather than one, and the block
+records that rather than hiding it: both places that make a refusal reachable lost
+the attribute together. The scenario's own method is what makes the RED meaningful
+— it focuses each node and reads the focus back, so an inert node carrying a
+`tabindex` would not have satisfied it either.
+
+### `TP-05-24` — focus safety
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-24 SCN-024-015: a mode switch that replaces a declaration control detaches the node the reader was on, which is the defect this scenario exists to catch
+file:             lifetime-tax-strategy-lab.html
+mutation:                         if (state.envelope) renderPower();  ->                  if (state.envelope) renderPower();
+                byId("inputBenefitBirthYear").replaceWith(byId("inputBenefitBirthYear").cloneNode(true));   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-024-015\ a\ focused\ control\ survives\ a\ mode\ switch\ without\ being\ detached\ and\ a\ subsequent\ click\ registers --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-retirement-route.spec.mjs:356:1 › Regression: SCN-024-015 a focused control survives a mode switch without being detached and a subsequent click registers
+green-exit:       0
+green-summary:      1 passed (1.8s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Stated plainly, because it matters for how much this probe proves: the mutation
+**injects** the detachment rather than removing a guard that prevents it. The
+declaration controls are static elements the mode switch never rebuilds, so there
+is no existing guard to break — the row's guarantee is a structural property of the
+route rather than a conditional. The probe therefore instantiates the exact defect
+the scenario's own failure message names, "the focused control was detached by the
+mode switch", and shows the scenario detects it. It does not, and does not claim
+to, prove anything about a guard that does not exist.
+
+### `TP-05-25` — privacy
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-25 SCN-024-014: a declared birth year carried into the location hash is a household value reaching a URL and must fail the privacy scenario
+file:             lifetime-tax-strategy-lab.html
+mutation:         var wanted = power ? "#power" : "#simple";  ->  var wanted = (power ? "#power" : "#simple") + "-" + String(byId("inputBenefitBirthYear").value);   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-024-014\ the\ request\ ledger\ stays\ empty\ with\ three\ new\ packs\ loaded\ and\ no\ retirement\ declaration\ reaches\ a\ URL --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-retirement-route.spec.mjs:386:1 › Regression: SCN-024-014 the request ledger stays empty with three new packs loaded and no retirement declaration reaches
+green-exit:       0
+green-summary:      1 passed (1.8s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+This is the browser counterpart of `TP-05-16` and a different defect: `TP-05-16`
+introduces the query-string machinery with no value in it, while this one carries a
+**declared household value** — the birth year the fixture states — into the only
+thing the route writes to the location. The value never leaves the headless browser
+the probe drives, and it is reverted inside the same invocation.

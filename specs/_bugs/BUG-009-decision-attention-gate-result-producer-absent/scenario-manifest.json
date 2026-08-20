@@ -1,0 +1,100 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/_bugs/BUG-009-decision-attention-gate-result-producer-absent",
+  "generatedBy": "bubbles.bug",
+  "generatedAt": "2026-08-20T09:00:00Z",
+  "stage": "post-implementation",
+  "stageNote": "Authored after all four scopes reached Done, from the Gherkin blocks already present in scopes.md. Every scenarioId, title, scopeId and linkedTests value is TRANSCRIBED from those blocks and from the named selftest assertions they were satisfied by, rather than composed here. This manifest reports the plan that was executed and adds no claim of its own. The two Scope 3 scenarios gained faithful DoD items during the closing audit; their linked assertions predate that edit and were not written for it.",
+  "scenarioCount": 5,
+  "keyShapeNote": "This manifest keys scenarios on `scenarioId`, matching every pre-existing manifest in this repository and the literal key Gate G057's counter reads. The framework's scenario-state resolver keys on `id` instead; that divergence is a known framework-side inconsistency recorded against spec 026 and is NOT re-litigated here — following the majority shape keeps this artifact consistent with its neighbours.",
+  "businessScenarioMapping": "SCN-BUG009-001 through SCN-BUG009-005 are the five scenarios carrying a Gherkin block in scopes.md. Scope 1 is an owner-decision scope and Scope 4 is a coordination scope; neither declares a Gherkin block, so neither contributes an identifier. The runtime assertion identifiers referenced under linkedTests use the pre-existing SCN-BUG009-R1-* and SCN-BUG009-R4-* naming from scripts/selftest.mjs and are deliberately NOT renumbered to match this manifest, because renaming a landed assertion to fit a later artifact would break the trace it exists to provide.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-BUG009-001",
+      "title": "A generation whose observed state warrants attention publishes an item",
+      "scopeId": "02-produce-observed-gate-results-from-committed-state",
+      "scope": 2,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": [
+        "SCN-BUG009-R1-E2E",
+        "SCN-BUG009-R1-ACCEPTED",
+        "SCN-BUG009-R1-BOTHPATHS"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence",
+        "scopes.md#scope-2-produce-observed-gate-results-from-committed-state"
+      ]
+    },
+    {
+      "scenarioId": "SCN-BUG009-002",
+      "title": "A genuinely quiet generation publishes an empty feed",
+      "scopeId": "02-produce-observed-gate-results-from-committed-state",
+      "scope": 2,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": [
+        "SCN-BUG009-R1-NODEFAULT",
+        "SCN-BUG009-R1-CONSERVATIVE"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence",
+        "scopes.md#scope-2-produce-observed-gate-results-from-committed-state"
+      ]
+    },
+    {
+      "scenarioId": "SCN-BUG009-003",
+      "title": "A gate result is never synthesized to satisfy the validator",
+      "scopeId": "02-produce-observed-gate-results-from-committed-state",
+      "scope": 2,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": [
+        "SCN-BUG009-R1-NODEFAULT",
+        "SCN-BUG009-R1-AMBIGUOUS",
+        "SCN-BUG009-R1-WATCHLISTONLY"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence",
+        "scopes.md#scope-2-produce-observed-gate-results-from-committed-state"
+      ]
+    },
+    {
+      "scenarioId": "SCN-BUG009-004",
+      "title": "The suite fails when no production module produces a gate result",
+      "scopeId": "03-the-reachability-regression-assertion",
+      "scope": 3,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": [
+        "SCN-BUG009-R1-LOADBEARING",
+        "SCN-BUG009-R1-ACCEPTED"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence",
+        "scopes.md#scope-3-the-reachability-regression-assertion"
+      ]
+    },
+    {
+      "scenarioId": "SCN-BUG009-005",
+      "title": "An adversarial empty tier is not mistaken for a quiet one",
+      "scopeId": "03-the-reachability-regression-assertion",
+      "scope": 3,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": [
+        "SCN-BUG009-R4",
+        "SCN-BUG009-R1-LOADBEARING"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence",
+        "scopes.md#scope-3-the-reachability-regression-assertion"
+      ]
+    }
+  ]
+}

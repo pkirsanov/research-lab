@@ -1024,6 +1024,88 @@ or removed. `git status --short` below is the evidence: the only files this sess
 changed are `<repo>/scripts/selftest.mjs` — by appending a marker-free group between the
 existing final group and the summary block — and this scope's own two artifacts.
 
+### Verification pass — 2026-08-20 — the three open items are each blocked, and two are blocked by their own wording (findings F-02-A and F-02-B)
+
+**Claim Source:** executed. **Outcome: all three items stay `[ ]`.** They were
+re-derived against the tree as it stands, not against a prior pass.
+
+**Delivery census — the shared input.** Distinct `SUP-022-NN` markers actually
+delivered across the five marker-bearing source files:
+
+```
+DELIVERED_DISTINCT=20
+SUP-022-01 -02 -03 -04 -05 -06 -07 -08 -09 -10 -11 -12 -13 -14 -15 -16 -17 -20 -21 -22
+SCOPE01_OWNED=12  delivered=12
+SCOPE02_OWNED=8   delivered=6
+SCOPE02_MISSING=  SUP-022-18, SUP-022-19
+```
+
+**Item — "Both owned supersessions and both amendments are delivered". STAYS `[ ]`.**
+The census confirms the standing note: six of this scope's eight owned entries are
+delivered and **SUP-022-18 and SUP-022-19 are not**. That alone decides the item;
+no wording question arises. The item additionally carries the clause *"each seen to
+fail against the unchanged implementation first"*, which is the same clause finding
+**F-01-L** established is unanswerable against this repository's history — Features
+021 and 022 landed in the single squashed commit `b9d92a3f1`, so no unchanged
+implementation exists to run a replacement against. Scope 01's equivalent item was
+restated to remove that clause; this one was not, so even delivering the two
+missing entries would leave the item resting on an unanswerable clause.
+
+**Item — "No assertion outside this scope's ledger entries and amendments was
+edited, relaxed or deleted …". STAYS `[ ]`, and its two named provers cannot be
+written as specified. Finding F-02-A.**
+
+The standing note says the property holds but its rows were never written. The
+property was re-checked and the note is consistent with the tree: `node
+scripts/selftest.mjs` reports **3145 passed, 0 failed** in this session, so every
+sourcing, tolerance, determinism, privacy and Feature 008 production-consumer
+assertion the item names is present and passing rather than deleted or relaxed.
+What cannot be produced is the proof the item demands, because **both named rows
+are unbuildable as written**:
+
+- **`TP-02-22` states an arithmetic the tree contradicts three ways.** The row
+  requires asserting that "the delivered set equals Scope 01's **eleven** plus this
+  scope's **eight** — **nineteen** in total". Against the census above, Scope 01
+  owns and has delivered **twelve**, this scope has delivered **six** of eight, and
+  the two scopes' delivered total is **eighteen** (twenty across all scopes). Every
+  one of the three figures is wrong. Writing the row as specified would mean
+  committing an assertion that is false against the artifact it describes; writing
+  it correctly would mean silently substituting different numbers for the ones the
+  plan states. The "eleven" is the same defect finding **F-01-I** recorded inside
+  Scope 01 — where the owned-entry count was stated as twelve, eleven and seven in
+  three places, and was reconciled to twelve — leaking across into this scope's Test
+  Plan, which was never reconciled with it.
+- **`TP-02-23` requires an adversarial case against a clause that does not exist.**
+  Its fourth case demands that an implementation rendering a `data-rl-value` field
+  in Simple outside `SIMPLE_FIELDS` "is demonstrated to fail **SUP-022-18's**
+  cross-artifact identity". SUP-022-18 is one of the two undelivered entries. There
+  is no clause to fail against, so the case cannot be built until the item above is
+  delivered. Its other three cases — the moved-versus-deleted clauses of SUP-022-08
+  and SUP-022-10, and SUP-022-03's disjointness — target delivered entries and are
+  buildable today.
+
+**What would make each decidable.** For `TP-02-22`: reconcile the row's counts with
+the ledger the way Scope 01 reconciled its own — Scope 01 owns twelve, this scope
+owns eight, so the delivered total is twenty once SUP-022-18 and -19 land and
+eighteen until they do — and state the count once so it cannot drift again. A
+shape-agreement check of the kind now running as `TP-01-22` would also catch the
+class of defect this row is reaching for. For `TP-02-23`: build its three buildable
+cases now and gate the fourth on SUP-022-18's delivery. Both are requirement-text
+decisions and are routed to `bubbles.plan` rather than taken here.
+
+**Item — "Every Test Plan row has intended RED and same-command GREEN evidence
+recorded, including the browser rows". STAYS `[ ]`. Finding F-02-B.** This item is
+the closure of the other two and inherits their blockers. Its standing note names
+four rows still carrying no evidence — `TP-02-03`, `TP-02-22`, `TP-02-23` and
+`TP-02-24`. Two of those four are the rows above, which cannot be written as
+specified, so the item cannot close before they are reconciled. `TP-02-03` and
+`TP-02-24` are not blocked by wording; both are buildable and neither was built or
+run in this pass, so both are recorded `not-run` rather than assumed. The browser
+half of this item's command was not run in this pass either.
+
+**No file in this scope was mutated during this verification.** Every step was a
+read-only census or the repository-wide selftest.
+
 ## Change Boundary
 
 Command: a path-scoped status check over the excluded list.

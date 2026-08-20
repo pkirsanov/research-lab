@@ -82,7 +82,13 @@ test('Regression: SCN-021-005 long term gains stack on ordinary income', async (
      preferential rate table, so the scenario asserts the STACKING it was always named for: the
      headline equals the ordinary tax plus the preferential tax the pack's own table implies for
      a gain stacked on top of ordinary taxable income. No branch retains the superseded refusal
-     expectations, which is why the shape is a derive and not a partition. */
+     expectations, which is why the shape is a derive and not a partition.
+     Superseded clause in evaluable form: `isAbsentFigure(preferentialRateTables.single) === true`.
+     That single condition is what produced every superseded expectation — a preferential table the
+     pack did not carry is what made the gain household and the dividend household refuse and what
+     made the headline zero-valued. Stated this way the clause is decidable against the pack as it
+     stands rather than only against a page, which is what DoD item 12 clause 2 needs of a derive
+     entry. */
   const ordinaryTaxable = 40000;
   const declareGain = async (gain) => {
     await declareOrdinaryHousehold(page, {

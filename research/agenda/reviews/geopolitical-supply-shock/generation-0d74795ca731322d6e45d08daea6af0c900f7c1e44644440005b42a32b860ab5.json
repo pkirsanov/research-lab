@@ -1,0 +1,105 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-992889b8f8cc2375e90340d3bac58973d481be2ce747b0d0e6687460934eca0f",
+  "generationId": "generation-0d74795ca731322d6e45d08daea6af0c900f7c1e44644440005b42a32b860ab5",
+  "topicId": "geopolitical-supply-shock",
+  "attemptedAt": "2026-08-20T07:01:30.026Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "RLAGENDA-CONTRACT-MISSING-MEMBER",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": [
+        "No official-policy-and-statements evidence was retained this generation: the web-evidence bundle returned zero sources (retainedSourceCount 0) and the actor-state material claim is authorable:false, freshnessState unsupported, corroborationState uncorroborated.",
+        "Without a source-qualified statement or declared policy inside the 24h freshness window, no observed reaction-function change can be authored for United States, Iran, Oman mediators, Gulf exporters, Houthis, shipping insurers, or OPEC buffer producers.",
+        "Required update: a source-qualified official statement or verified declared policy covering claim 'actor-state'."
+      ]
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": [
+        "Scenario probabilities and direction are owned by the deterministic model, not this author; no current evidence exists to update actor, transit, or insured-flow state that would feed the scenario tree.",
+        "No entry-trigger or invalidation observation (transit-restriction-observed, insured-capacity-tightens, transit-normalizes, insurance-normalizes) is supported by retained evidence this generation.",
+        "Required update: at least one current, source-qualified route-state or insured-capacity observation before scenario inputs can change."
+      ]
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": [
+        "No measured-maritime-flow evidence was retained: the physical-flow / insured-flow material claim is authorable:false, freshnessState unsupported, and no maritime-observation or official source was captured in the bundle.",
+        "physicalPassFraction and insuredPassFraction for Hormuz, Bab el-Mandeb, and the Red Sea cannot be stated as observed changes without a measured transit, loadings, delay, or insured-capacity source inside the 24h window.",
+        "Required update: a named-route measurement of transit/loadings/delay or insured effective throughput covering claims 'physical-flow' and 'insured-flow'."
+      ]
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": [
+        "No energy-and-input-balances evidence was retained: the transmission-input material claim is authorable:false, freshnessState unsupported, uncorroborated, with no official or industry-data source in the bundle.",
+        "Inventory, production, export, and policy-response inputs for oil, refined-products, lng, fertilizer, aluminum, and shipping are absent, so no channel transmission state can be interpreted from current evidence.",
+        "Required update: a named-channel inventory, production, export, or confirmed policy-response source (freshness 72h) covering claim 'transmission-input'."
+      ]
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": [
+        "Committed public proxy bars (committed-public-bars) were reused and are available, but proxy sensitivity and calibration are owned by the deterministic model, and no current transmission or flow evidence exists to interpret against those bars.",
+        "Proxy ranges are a forbidden authoring output for this side process and are not produced here.",
+        "Required update: current source-qualified flow/transmission evidence so proxy readings can be contextualized without inventing sensitivity."
+      ]
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": [
+        "No trigger condition (transit-restriction-observed, insured-capacity-tightens, inventory-response-confirmed) is supported by any retained observation this generation.",
+        "No invalidation condition (transit-normalizes, insurance-normalizes, evidence-stales) can be evaluated as met or unmet because no supporting current observation exists.",
+        "Required update: at least one source-qualified route-state, insured-capacity, or inventory/policy-response observation to set any trigger or invalidation state."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": [
+        "The web-evidence bundle for this generation retained zero sources (sources: [], retainedSourceCount 0, rejectedMaterialClaimCount 3); the only reusable record is the committed public proxy bars snapshot.",
+        "No source satisfies the official-policy-and-statements, measured-maritime-flow, or energy-and-input-balances requirements, so the current-situation source ledger is empty.",
+        "Required update: retained, source-qualified sources for the three unsupported requirements before any finding can be authored."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": [
+        "priorDossier is null in the input contract, so there is no predecessor situation to compare against.",
+        "Change assessment is a forbidden authoring output for this side process and is owned by the deterministic model.",
+        "Required update: a predecessor dossier plus current evidence; neither is available this generation."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

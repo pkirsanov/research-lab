@@ -969,3 +969,293 @@ test('T-02-U4: RTR-LEGACY-BACKFILL refuses a resolution written against a claiml
     const freshBearing = emitted.find((r) => Object.prototype.hasOwnProperty.call(r, claims.CLAIM_REF_FIELD));
     assert.equal(claims.authorizeResolutionWrite(freshBearing, plausible).ok, true, 'the claim-bearing sibling is resolvable');
 });
+
+/* ═══════════════════════════════════════════════════════════════════════════════════════════
+ * Scope 03 — the resolved-flat sentinel. Increment 1: the closed outcomeClass vocabulary, the
+ * class → contribution routing table, the proposal-frozen flat-band precondition, and
+ * RTR-FLAT-ZERO.
+ *
+ * Every row here is written to fail against the ONE implementation that would otherwise look
+ * correct: `outcomeValue === 0`. That classifier passes any fixture built around an exact zero,
+ * and it is also what `Math.abs(v) <= flatBand` silently degrades into when the band is `null`,
+ * because `null` coerces to `0` in a relational comparison. So the boundary values below are
+ * deliberately NON-zero, and the degenerate-band row probes with an exact zero — the one value a
+ * band-less classifier would happily accept.
+ *
+ * The resolution OBJECT contract, `resolutionHash`, the content-addressed write, the partition
+ * identity, and the closure-event vocabulary are later increments of this scope and are not
+ * asserted here. Rows carrying `(increment 1)` cover part of their Test Plan row, not all of it.
+ * ═══════════════════════════════════════════════════════════════════════════════════════════ */
+
+/* Hand-declared rather than read from the module. Iterating the module's own vocabulary would make
+ * the completeness assertion vacuous — a seventh class added tomorrow would cover itself. Declaring
+ * the six independently and then proving the two lists are equal is what makes an unaccompanied
+ * addition fail here instead of shipping unrouted. */
+const EXPECTED_OUTCOME_ROUTING = {
+    win: 'number',
+    loss: 'number',
+    'resolved-flat': 'count',
+    unresolved: 'count',
+    'not-evaluable': 'count',
+    'unresolvable-legacy': 'count',
+};
+
+/** A minted claim from a real committed fixture, with `magnitude.flatBand` overridden verbatim. */
+function claimWithBand(band) {
+    const claim = structuredClone(mintEvaluable('evaluable-instrument-add'));
+    claim.magnitude.flatBand = band;
+    return claim;
+}
+
+const DEGENERATE_BAND_VIOLATION = { reason: 'flat-band-not-finite-positive', field: 'magnitude.flatBand' };
+
+test('T-03-U1: outcomeClass at the flatBand boundary, where an `=== 0` classifier fails', () => {
+    // The band comes from a REAL minted claim, so the row is written against the frozen term the
+    // classifier must read rather than against a value the test chose.
+    const claim = mintEvaluable('evaluable-instrument-add');
+    const band = claim.magnitude.flatBand;
+    assert.equal(Number.isFinite(band) && band > 0, true, 'the fixture must carry a finite positive band');
+    assert.notEqual(band, 0, 'the boundary values below must be non-zero for this row to bite');
+
+    // EXACTLY at each edge: resolved-flat, because the band is inclusive. An `=== 0` classifier
+    // calls +band a win and -band a loss, so it fails both of these.
+    for (const [value, label] of [[band, '+flatBand'], [-band, '-flatBand']]) {
+        const at = claims.classifyOutcome(value, claim);
+        assert.equal(at.ok, true, `${label}: expected a classification`);
+        assert.equal(at.outcomeClass, 'resolved-flat', `${label} is inside the band`);
+        assert.equal(at.contribution, claims.CONTRIBUTION_COUNT, `${label} contributes a count`);
+    }
+
+    // One ulp OUTSIDE each edge: directional. The pair isolates the comparison itself — the only
+    // difference between these four inputs is the last representable bit.
+    const justAbove = band + Number.EPSILON * band;
+    const justBelow = -justAbove;
+    assert.notEqual(justAbove, band, 'the ulp step must actually move the value');
+    assert.equal(claims.classifyOutcome(justAbove, claim).outcomeClass, 'win', 'one ulp above +flatBand is a win');
+    assert.equal(claims.classifyOutcome(justBelow, claim).outcomeClass, 'loss', 'one ulp below -flatBand is a loss');
+    assert.equal(claims.classifyOutcome(justAbove, claim).contribution, claims.CONTRIBUTION_NUMBER);
+    assert.equal(claims.classifyOutcome(justBelow, claim).contribution, claims.CONTRIBUTION_NUMBER);
+
+    // An exact zero is resolved-flat too — but it is the ONLY value an `=== 0` classifier gets
+    // right, which is why it is asserted last and never alone.
+    assert.equal(claims.classifyOutcome(0, claim).outcomeClass, 'resolved-flat', 'an exact zero is resolved-flat');
+
+    // THE EXACT UNROUNDED VALUE SURVIVES. No ±ε nudge, no rounding, no fabricated sign: a flat
+    // outcome pushed to +ε to land in `wins` would manufacture a direction the data never showed.
+    for (const value of [band, -band, 0, justAbove, justBelow, 0.1234567890123456]) {
+        const classified = claims.classifyOutcome(value, claim);
+        assert.equal(Object.is(classified.outcomeValue, value), true, `${value}: the value is carried through verbatim`);
+        assert.equal(Math.sign(classified.outcomeValue), Math.sign(value), `${value}: the sign is never fabricated`);
+    }
+});
+
+test('T-03-U2: RTR-FLAT-ZERO refuses a bare zero reaching the directional array', () => {
+    // The exact code, asserted as a literal. A renamed constant must fail here.
+    assert.equal(claims.FLAT_ZERO_CODE, 'RTR-FLAT-ZERO', 'the owned refusal code');
+
+    const expected = { code: claims.FLAT_ZERO_CODE, reason: 'bare-zero-in-directional-array' };
+
+    // Half one: a literal `0` placed in the array handed to the primitive.
+    const literal = claims.assertZeroFreeOutcomes([1.5, 0, -1.5]);
+    assert.equal(literal.ok, false, 'a bare zero in the array must refuse');
+    assert.equal(literal.error.code, expected.code, 'code');
+    assert.equal(literal.error.reason, expected.reason, 'reason');
+    assert.equal(literal.error.index, 1, 'the refusal names the offending position');
+
+    // `-0 === 0` is true, and the primitive would drop a negative zero into `unresolved` exactly
+    // as it drops a positive one, so the gate must catch both.
+    assert.equal(claims.assertZeroFreeOutcomes([1.5, -0]).error.code, expected.code, 'negative zero refuses too');
+
+    // Half two: a resolved-flat record's own outcomeValue routed onto the number side instead of
+    // being counted. The value is taken from a real classification, not typed in.
+    const flat = claims.classifyOutcome(0, mintEvaluable('evaluable-instrument-add'));
+    assert.equal(flat.outcomeClass, 'resolved-flat', 'the record under test must genuinely be resolved-flat');
+    assert.equal(flat.contribution, claims.CONTRIBUTION_COUNT, 'and it must genuinely be a counted class');
+    const misrouted = claims.assertZeroFreeOutcomes([1.5, flat.outcomeValue]);
+    assert.equal(misrouted.error.code, expected.code, 'a mis-routed resolved-flat value refuses');
+    assert.equal(misrouted.error.reason, expected.reason);
+
+    // Nothing is coerced into a zero: a non-number refuses for what it actually is.
+    assertViolation(claims.assertZeroFreeOutcomes([1.5, '0']), { reason: 'outcome-value-not-finite', field: 'outcomes[1]' }, 'string zero');
+    assertViolation(claims.assertZeroFreeOutcomes([1.5, null]), { reason: 'outcome-value-not-finite', field: 'outcomes[1]' }, 'null');
+    assertViolation(claims.assertZeroFreeOutcomes([NaN]), { reason: 'outcome-value-not-finite', field: 'outcomes[0]' }, 'NaN');
+
+    /* ANTI-VACUITY. The identical array with the zero removed is ACCEPTED. Without this the
+       refusals above would pass under an implementation that refused every array. */
+    const accepted = claims.assertZeroFreeOutcomes([1.5, -1.5]);
+    assert.equal(accepted.ok, true, 'a zero-free array is accepted');
+    assert.deepEqual(accepted.outcomes, [1.5, -1.5], 'and is returned unaltered');
+});
+
+test('T-03-U3 (increment 1): the routing table feeds only win and loss to the directional array', () => {
+    // The table is the module's, the expectation is the test's, and they must agree.
+    assert.deepEqual(
+        Object.keys(EXPECTED_OUTCOME_ROUTING).sort(),
+        [...claims.OUTCOME_CLASSES].sort(),
+        'a class added to the vocabulary without a declared contribution must fail here',
+    );
+    for (const [outcomeClass, contribution] of Object.entries(EXPECTED_OUTCOME_ROUTING)) {
+        assert.equal(claims.OUTCOME_CONTRIBUTIONS[outcomeClass], contribution, `${outcomeClass} contribution`);
+    }
+    assert.deepEqual([...claims.DIRECTIONAL_OUTCOME_CLASSES], ['win', 'loss'], 'the number side');
+    assert.deepEqual(
+        [...claims.COUNTED_OUTCOME_CLASSES],
+        ['resolved-flat', 'unresolved', 'not-evaluable', 'unresolvable-legacy'],
+        'the count side',
+    );
+
+    /* The adversarial member is the NON-zero resolved-flat: a routing bug that pushed it onto the
+       number side would slip straight past RTR-FLAT-ZERO, because 0.1 is a perfectly legal
+       element. Only the array's contents can catch that one. */
+    const routed = claims.routeOutcomes([
+        { outcomeClass: 'win', outcomeValue: 1.5 },
+        { outcomeClass: 'resolved-flat', outcomeValue: 0.1 },
+        { outcomeClass: 'loss', outcomeValue: -2.25 },
+        { outcomeClass: 'resolved-flat', outcomeValue: 0 },
+        { outcomeClass: 'unresolved', outcomeValue: null },
+        { outcomeClass: 'not-evaluable', outcomeValue: null },
+        { outcomeClass: 'unresolvable-legacy' },
+        { outcomeClass: 'win', outcomeValue: 0.75 },
+    ]);
+    assert.equal(routed.ok, true, 'the mixed cohort routes');
+    assert.deepEqual(routed.directional, [1.5, -2.25, 0.75], 'only win and loss values reach the array, in order');
+    for (const value of routed.directional) {
+        assert.equal(Number.isFinite(value), true, 'every element is finite');
+        assert.notEqual(value, 0, 'and strictly non-zero');
+    }
+    assert.equal(routed.directional.includes(0.1), false, 'the non-zero flat value is withheld, not fed');
+    assert.deepEqual(
+        routed.counts,
+        { 'resolved-flat': 2, unresolved: 1, 'not-evaluable': 1, 'unresolvable-legacy': 1 },
+        'the four withheld classes contribute counts',
+    );
+    assert.equal(routed.resolvedDirectional, 3, 'resolvedDirectional is the array length, and so the denominator');
+    assert.equal(routed.resolvedDirectional, routed.directional.length);
+
+    // A class that never fired reads as an explicit 0 rather than a missing key: a missing bucket
+    // is how a partition quietly stops summing to the proposed total.
+    const winsOnly = claims.routeOutcomes([{ outcomeClass: 'win', outcomeValue: 1 }]);
+    assert.deepEqual(
+        Object.keys(winsOnly.counts).sort(),
+        [...claims.COUNTED_OUTCOME_CLASSES].sort(),
+        'every counted class is present in the tally',
+    );
+    for (const outcomeClass of claims.COUNTED_OUTCOME_CLASSES) {
+        assert.equal(winsOnly.counts[outcomeClass], 0, `${outcomeClass} reads zero, not undefined`);
+    }
+
+    // An empty cohort is reachable and reports zero — the branch a caller needs BEFORE reaching a
+    // primitive that refuses an empty array. It is not an error here.
+    const empty = claims.routeOutcomes([{ outcomeClass: 'unresolved', outcomeValue: null }]);
+    assert.equal(empty.ok, true);
+    assert.equal(empty.resolvedDirectional, 0, 'an all-withheld cohort reports zero directional calls');
+    assert.deepEqual(empty.directional, []);
+
+    // A win carrying no usable magnitude refuses rather than being counted as a zero.
+    assertViolation(
+        claims.routeOutcomes([{ outcomeClass: 'win', outcomeValue: null }]),
+        { reason: 'outcome-value-not-finite', field: 'records[0].outcomeValue' },
+        'directional record with no value',
+    );
+});
+
+test('T-03-U6 (increment 1): the outcomeClass vocabulary refuses a one-character-off value', () => {
+    const covered = new Set();
+    const expected = { reason: 'outcome-class-not-allowed', field: 'outcomeClass' };
+
+    for (const [legal, contribution] of Object.entries(EXPECTED_OUTCOME_ROUTING)) {
+        const offending = legal.slice(0, -1);
+        assert.equal(claims.OUTCOME_CLASSES.includes(legal), true, `${legal}: the declared member must be in the vocabulary`);
+        assert.equal(claims.OUTCOME_CLASSES.includes(offending), false, `${offending}: must be outside the vocabulary`);
+        assert.equal(legal.startsWith(offending), true, `${offending}: must defeat a prefix or startsWith check`);
+
+        assertViolation(claims.outcomeContributionFor(offending), expected, `outcomeClass "${offending}"`);
+        assertViolation(claims.routeOutcomes([{ outcomeClass: offending, outcomeValue: 1 }]), expected, `routed "${offending}"`);
+
+        // The pair isolates the character: the legal member is accepted and routes as declared.
+        const accepted = claims.outcomeContributionFor(legal);
+        assert.equal(accepted.ok, true, `${legal}: the legal member must be accepted`);
+        assert.equal(accepted.contribution, contribution, `${legal}: declared contribution`);
+        covered.add(legal);
+    }
+
+    // Nothing is coerced, and nothing resolves through the prototype: an inherited property name
+    // refuses like any other value outside the vocabulary.
+    for (const outside of ['constructor', 'toString', '__proto__', 'WIN', ' win', '', null, undefined, 0, {}]) {
+        assertViolation(claims.outcomeContributionFor(outside), expected, `outside value ${JSON.stringify(outside)}`);
+    }
+
+    assert.deepEqual(
+        [...covered].sort(),
+        [...claims.OUTCOME_CLASSES].sort(),
+        'every member of the closed vocabulary must be probed by a declared expectation',
+    );
+});
+
+test('T-03-U7: a degenerate flatBand refuses before any outcomeClass is assigned', () => {
+    // Layer one is the mint, which refuses a degenerate band at proposal (F-015-03-01, scope 01).
+    // This row asserts layer two: the consuming side never classifies against one either.
+    assert.equal(claims.MINT_REFUSALS.includes('no-authored-flat-band'), true, 'the mint-side refusal exists');
+
+    /* THE ADVERSARIAL VALUE IS 0, NOT A SMALL NUMBER. `Math.abs(0) <= null` is `true`, so a
+       classifier that skipped the precondition would answer `resolved-flat` here and look correct.
+       `Math.abs(1e-320) <= null` is `false`, so the same classifier would call a vanishing value a
+       win. That pair IS the `=== 0` behaviour T-03-U1 exists to defeat, reached with no `=== 0`
+       written anywhere — which is why the precondition is asserted rather than assumed. */
+    const degenerate = [
+        ['null', null],
+        ['absent', undefined],
+        ['negative', -0.25],
+        ['zero', 0],
+        ['non-numeric', '0.25'],
+        ['NaN', Number.NaN],
+        ['Infinity', Number.POSITIVE_INFINITY],
+    ];
+
+    for (const [label, band] of degenerate) {
+        const claim = claimWithBand(band);
+        if (label === 'absent') delete claim.magnitude.flatBand;
+
+        for (const value of [0, 1e-320, -1e-320, 0.1, -0.1, 5]) {
+            const result = claims.classifyOutcome(value, claim);
+            assertViolation(result, DEGENERATE_BAND_VIOLATION, `band ${label}, value ${value}`);
+            assert.equal(
+                Object.prototype.hasOwnProperty.call(result, 'outcomeClass'),
+                false,
+                `band ${label}, value ${value}: no outcomeClass may be assigned`,
+            );
+            assert.equal(
+                Object.prototype.hasOwnProperty.call(result, 'outcomeValue'),
+                false,
+                `band ${label}, value ${value}: no value may be carried out of a refusal`,
+            );
+        }
+
+        // The band is never repaired, defaulted, or substituted on the way out.
+        assert.equal(claims.flatBandFor(claim).ok, false, `band ${label}: the precondition refuses`);
+        assert.equal(
+            Object.prototype.hasOwnProperty.call(claims.flatBandFor(claim), 'flatBand'),
+            false,
+            `band ${label}: no band is supplied by the consumer`,
+        );
+    }
+
+    /* ANTI-VACUITY. The SAME claim with the band restored classifies every one of those values,
+       so the refusals above are caused by the band and by nothing else. */
+    const repaired = claimWithBand(0.25);
+    assert.equal(claims.flatBandFor(repaired).flatBand, 0.25, 'the repaired band is read verbatim');
+    assert.equal(claims.classifyOutcome(0, repaired).outcomeClass, 'resolved-flat');
+    assert.equal(claims.classifyOutcome(1e-320, repaired).outcomeClass, 'resolved-flat');
+    assert.equal(claims.classifyOutcome(5, repaired).outcomeClass, 'win');
+    assert.equal(claims.classifyOutcome(-5, repaired).outcomeClass, 'loss');
+
+    // A malformed outcome value refuses AFTER the band precondition and on its own field, so the
+    // two defects stay distinguishable.
+    assertViolation(
+        claims.classifyOutcome('1.5', repaired),
+        { reason: 'outcome-value-not-finite', field: 'outcomeValue' },
+        'non-numeric outcome value',
+    );
+    assertViolation(claims.classifyOutcome(0, {}), { reason: 'claim-magnitude-invalid', field: 'magnitude' }, 'claim with no magnitude');
+});
+

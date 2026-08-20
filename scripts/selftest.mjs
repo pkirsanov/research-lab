@@ -8910,10 +8910,83 @@ try {
 /* ---------- spec artifacts — every referenced test path exists (ratchet) ---------- */
 try {
   group('spec artifacts \u2014 referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)');
+  const { mkdtempSync: mkSpecRoot, mkdirSync: mkdirSpec, writeFileSync: writeSpecFile, rmSync: removeSpecRoot } = await import('node:fs');
+  const { tmpdir: specTmpdir } = await import('node:os');
+  const specGuardRoot = mkSpecRoot(join(specTmpdir(), 'rl-spec-test-paths-'));
+  const specGuardBaseline = join(specGuardRoot, 'scripts', 'validate-spec-test-paths.baseline');
+  const writeFixtureSpec = (id, path, options = {}) => {
+    const featureDir = `specs/${id}-fixture`;
+    const dir = join(specGuardRoot, featureDir);
+    mkdirSpec(dir, { recursive: true });
+    writeSpecFile(join(dir, 'state.json'), JSON.stringify({
+      status: options.specStatus ?? 'in_progress',
+      execution: { scopeProgress: [{ scopeId: '01', status: options.scopeStatus ?? 'not_started' }] }
+    }));
+    writeSpecFile(join(dir, 'test-plan.json'), JSON.stringify({
+      featureDir,
+      scopes: [{
+        scopeId: '01',
+        tests: [{
+          id: 'TP-01-01', file: path, command: `node --test ${path}`,
+          testState: options.testState ?? 'planned-not-authored',
+          status: options.rowStatus ?? 'planned-not-executed'
+        }]
+      }]
+    }));
+    writeSpecFile(join(dir, 'scope.md'), `# Fixture\n\n| File | Command |\n|---|---|\n| \`${path}\` | \`node --test ${path}\` |\n`);
+  };
+  mkdirSpec(join(specGuardRoot, 'scripts'), { recursive: true });
+  mkdirSpec(join(specGuardRoot, 'tests'), { recursive: true });
+  writeSpecFile(specGuardBaseline, '# active missing paths only\n');
+  writeSpecFile(join(specGuardRoot, 'tests', 'existing.mjs'), 'export const existing = true;\n');
+  writeFixtureSpec('001', 'tests/future.mjs');
+  writeFixtureSpec('002', 'tests/existing.mjs');
+
+  const plannedOnly = validateSpecTestPaths(specGuardRoot, { baselineFile: specGuardBaseline });
+  assert(plannedOnly.ok && plannedOnly.newMissing.length === 0 &&
+    plannedOnly.plannedMissing.some((entry) => entry.path === 'tests/future.mjs'),
+    'TP-17-06 planned-only missing paths are reported but do not fail while the owning scope is Not Started');
+  assert(!plannedOnly.missing.some((entry) => entry.path === 'tests/existing.mjs'),
+    'TP-17-06 an existing referenced path passes without a baseline entry');
+
+  writeFixtureSpec('003', 'tests/future.mjs', { scopeStatus: 'in_progress', testState: 'authored' });
+  const crossSpecActive = validateSpecTestPaths(specGuardRoot, { baselineFile: specGuardBaseline });
+  assert(!crossSpecActive.ok && crossSpecActive.newMissing.some((entry) =>
+    entry.path === 'tests/future.mjs' && entry.sites.some((site) => site.spec === 'specs/003-fixture')),
+  'TP-17-06 a planned row cannot mask the identical path referenced actively by another spec');
+
+  writeFixtureSpec('004', 'tests/authored.mjs', { scopeStatus: 'not_started', testState: 'authored' });
+  const authoredMissing = validateSpecTestPaths(specGuardRoot, { baselineFile: specGuardBaseline });
+  assert(!authoredMissing.ok && authoredMissing.newMissing.some((entry) => entry.path === 'tests/authored.mjs'),
+    'TP-17-06 an authored row with a missing path fails even when its owning scope is Not Started');
+
+  const vacuousRoot = mkSpecRoot(join(specTmpdir(), 'rl-spec-test-paths-vacuous-'));
+  mkdirSpec(join(vacuousRoot, 'specs'), { recursive: true });
+  mkdirSpec(join(vacuousRoot, 'scripts'), { recursive: true });
+  const vacuousBaseline = join(vacuousRoot, 'scripts', 'validate-spec-test-paths.baseline');
+  writeSpecFile(vacuousBaseline, '# empty fixture\n');
+  const vacuousPaths = validateSpecTestPaths(vacuousRoot, { baselineFile: vacuousBaseline });
+  assert(!vacuousPaths.ok && vacuousPaths.vacuous,
+    'TP-17-06 a scan with zero references still fails instead of becoming vacuously green');
+  removeSpecRoot(vacuousRoot, { recursive: true, force: true });
+
+  removeSpecRoot(join(specGuardRoot, 'specs', '003-fixture'), { recursive: true, force: true });
+  removeSpecRoot(join(specGuardRoot, 'specs', '004-fixture'), { recursive: true, force: true });
+  writeFixtureSpec('005', 'tests/legacy.mjs', { scopeStatus: 'in_progress', testState: 'authored' });
+  writeSpecFile(specGuardBaseline, '# active missing paths only\ntests/legacy.mjs\n');
+  const knownDebt = validateSpecTestPaths(specGuardRoot, { baselineFile: specGuardBaseline });
+  assert(knownDebt.ok && knownDebt.knownMissing.some((entry) => entry.path === 'tests/legacy.mjs'),
+    'TP-17-06 the frozen baseline still ratchets known active debt without accepting a new path');
+  writeSpecFile(join(specGuardRoot, 'tests', 'legacy.mjs'), 'export const paidDown = true;\n');
+  const paidDownDebt = validateSpecTestPaths(specGuardRoot, { baselineFile: specGuardBaseline });
+  assert(paidDownDebt.ok && paidDownDebt.staleBaseline.includes('tests/legacy.mjs'),
+    'TP-17-06 a paid-down baseline entry is reported stale so the baseline can only shrink');
+  removeSpecRoot(specGuardRoot, { recursive: true, force: true });
+
   const specTestPaths = validateSpecTestPaths(ROOT);
   assert(!specTestPaths.vacuous && specTestPaths.baselinePresent, 'the scan matched at least one tests/*.mjs reference against a present baseline, so the guard is not vacuously green (' + specTestPaths.referenceCount + ' reference(s) across ' + specTestPaths.scannedFiles + ' artifact(s), baseline ' + specTestPaths.baselineCount + ' entr' + (specTestPaths.baselineCount === 1 ? 'y' : 'ies') + ')');
   for (const line of formatSpecTestPathFindings(specTestPaths, 1)) console.log('    ' + line);
-  assert(specTestPaths.newMissing.length === 0, 'no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline \u2014 a stale path makes a multi-file verification command silently cover less than it claims (' + specTestPaths.newMissing.length + ' new, ' + specTestPaths.knownMissing.length + ' known-missing, ' + specTestPaths.staleBaseline.length + ' stale of ' + specTestPaths.referencedPathCount + ' referenced)');
+  assert(specTestPaths.newMissing.length === 0, 'no active tests/*.mjs path named by a spec artifact is missing outside the frozen baseline; planned-not-authored paths remain visible non-failing debt (' + specTestPaths.newMissing.length + ' new, ' + specTestPaths.plannedMissing.length + ' planned, ' + specTestPaths.knownMissing.length + ' known-missing, ' + specTestPaths.staleBaseline.length + ' stale of ' + specTestPaths.referencedPathCount + ' referenced)');
 } catch (e) { failures++; console.log('  \u2717 FAIL (spec artifact test-path guard threw): ' + e.message); }
 
 /* ---------- tests/ — every test file on disk is selected by a declared command (ratchet) ----------

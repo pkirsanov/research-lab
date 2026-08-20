@@ -25,6 +25,12 @@
  * Feature 002-owned and read-only to this feature, and because `claimRef` is a pointer at the
  * `claimHash` this module already mints — splitting the two halves of one pointer across two
  * modules is how they drift.
+ *
+ * And it carries the closed OUTCOME-CLASS vocabulary with the table that routes each class either
+ * to the array fed to `rlvSummarizeOutcomes` or to a count beside it. A resolved-flat outcome is
+ * exactly `0` often enough to matter and the primitive reads `0` as never-resolved, so the class
+ * is decided HERE — against the band frozen into the claim at proposal, which is inside the hash —
+ * and its value is withheld from the array rather than nudged to a sign the data does not support.
  */
 (function (factory) {
     "use strict";
@@ -90,6 +96,55 @@
         "neutral-direction-no-magnitude",
         "no-authored-flat-band"
     ]);
+
+    /* ── The closed outcome-class vocabulary and its contribution routing ───────────────────
+       `rlvSummarizeOutcomes` — Feature 007-owned, consumed unmodified and NOT imported here —
+       filters wins with `value > 0` and losses with `value < 0`, then derives `unresolved` by
+       subtraction. An outcome of exactly `0` is neither, so a claim that DID resolve, against
+       committed data, to a flat result is reported as though it was never resolved at all. That
+       is the HC-7 violation, and it is fixed at the SOURCE rather than downstream because the
+       primitive deep-freezes its results and offers no seam to patch.
+
+       So every call carries exactly one of these six classes, and the class ALONE decides whether
+       it contributes a NUMBER to the array handed to the primitive or a COUNT to the surrounding
+       report. An unrecognised value refuses; it is never coerced and never passes through. */
+    var OUTCOME_CLASSES = Object.freeze([
+        "win", "loss", "resolved-flat", "unresolved", "not-evaluable", "unresolvable-legacy"
+    ]);
+
+    var CONTRIBUTION_NUMBER = "number";
+    var CONTRIBUTION_COUNT = "count";
+
+    /* The routing table. `resolved-flat` sits on the COUNT side while still carrying its exact
+       value in the resolution record — which is precisely what makes it distinguishable from
+       `unresolved` in both places at once: the record says what it resolved TO, the report says
+       how many did. Selecting and ordering elements is ROUTING, not estimation; no statistic is
+       computed anywhere in this block. */
+    var OUTCOME_CONTRIBUTIONS = Object.freeze({
+        "win": CONTRIBUTION_NUMBER,
+        "loss": CONTRIBUTION_NUMBER,
+        "resolved-flat": CONTRIBUTION_COUNT,
+        "unresolved": CONTRIBUTION_COUNT,
+        "not-evaluable": CONTRIBUTION_COUNT,
+        "unresolvable-legacy": CONTRIBUTION_COUNT
+    });
+
+    /* The refusal for a bare `0` reaching the array fed to the primitive. */
+    var FLAT_ZERO_CODE = "RTR-FLAT-ZERO";
+
+    function outcomeClassesContributing(contribution) {
+        var out = [];
+        for (var i = 0; i < OUTCOME_CLASSES.length; i += 1) {
+            if (OUTCOME_CONTRIBUTIONS[OUTCOME_CLASSES[i]] === contribution) out.push(OUTCOME_CLASSES[i]);
+        }
+        return Object.freeze(out);
+    }
+
+    /* Derived from the table, never hand-typed a second time — the same reason `ROW_V2_FIELDS` is
+       derived. A literal list here would let a class be re-routed in the table while the set that
+       consumes it kept the old answer, and the two would disagree silently. */
+    var DIRECTIONAL_OUTCOME_CLASSES = outcomeClassesContributing(CONTRIBUTION_NUMBER);
+    var COUNTED_OUTCOME_CLASSES = outcomeClassesContributing(CONTRIBUTION_COUNT);
 
     /* ── The ledger row contract ────────────────────────────────────────────────────────────
        Both row versions are Feature 002-owned identifiers. Feature 015 READS them and adds
@@ -570,6 +625,138 @@
         return { ok: true, claimRef: row[CLAIM_REF_FIELD], eventId: row.eventId };
     }
 
+    /* ── The proposal-frozen flat band ──────────────────────────────────────────────────────
+       The band is read from the MINTED CLAIM and never taken as an argument, because `magnitude`
+       is a hashed term: a band chosen at scoring time would sit OUTSIDE `claimHash`, so one
+       content address could yield a different `outcomeClass` on a later run and the record would
+       stop being reproducible from its own identity. Making the claim the only source is what
+       keeps that structural rather than a convention.
+
+       Finite AND strictly positive is a PRECONDITION, asserted before any class is assigned and
+       never repaired here. `Math.abs(v) <= null` is exactly `v === 0` — the degenerate classifier
+       the boundary row exists to defeat, reached without anyone writing `=== 0` — and a negative
+       band makes `resolved-flat` unreachable for every value, so the class is not merely vacuous
+       but dead. Supplying a default instead of refusing would move the boundary outside the
+       content address, which is the one repair this module must never make. */
+    function flatBandFor(claim) {
+        if (!isPlainObject(claim) || !isPlainObject(claim.magnitude)) {
+            return violation("claim-magnitude-invalid", "magnitude");
+        }
+        var band = claim.magnitude.flatBand;
+        if (!Number.isFinite(band) || band <= 0) {
+            return violation("flat-band-not-finite-positive", "magnitude.flatBand");
+        }
+        return { ok: true, flatBand: band };
+    }
+
+    /* The routing a class implies. The membership test runs against the frozen array rather than
+       against the table's keys, so an inherited property name such as `constructor` refuses like
+       any other value outside the vocabulary instead of resolving through the prototype. */
+    function outcomeContributionFor(outcomeClass) {
+        if (!inSet(OUTCOME_CLASSES, outcomeClass)) {
+            return violation("outcome-class-not-allowed", "outcomeClass");
+        }
+        return { ok: true, outcomeClass: outcomeClass, contribution: OUTCOME_CONTRIBUTIONS[outcomeClass] };
+    }
+
+    /* ── classifyOutcome ────────────────────────────────────────────────────────────────────
+       One resolved numeric outcome to exactly one class, plus the routing that class implies.
+
+       The value is carried through VERBATIM. No rounding, no `±ε` nudge, no fabricated sign: a
+       flat outcome pushed to `+ε` so that it lands in `wins` would manufacture a directional
+       result the data does not support, and would bias `averageWin` toward whatever ε was picked.
+       Only the ROUTING differs between a flat outcome and a small win — never the value. */
+    function classifyOutcome(outcomeValue, claim) {
+        var band = flatBandFor(claim);
+        if (!band.ok) return band;
+        if (!Number.isFinite(outcomeValue)) return violation("outcome-value-not-finite", "outcomeValue");
+
+        /* Inclusive at both edges and evaluated FIRST, so every value inside the authored band —
+           an exact `0` among them — is resolved-flat before `win`/`loss` are considered. A bare
+           `0` therefore cannot reach the directional array by classification at all. */
+        var outcomeClass;
+        if (Math.abs(outcomeValue) <= band.flatBand) outcomeClass = "resolved-flat";
+        else if (outcomeValue > 0) outcomeClass = "win";
+        else outcomeClass = "loss";
+
+        return {
+            ok: true,
+            outcomeClass: outcomeClass,
+            outcomeValue: outcomeValue,
+            flatBand: band.flatBand,
+            contribution: OUTCOME_CONTRIBUTIONS[outcomeClass]
+        };
+    }
+
+    /* ── RTR-FLAT-ZERO ──────────────────────────────────────────────────────────────────────
+       The gate on the array handed to `rlvSummarizeOutcomes`. `-0 === 0` is true, so a negative
+       zero — which the primitive would also drop into `unresolved` — refuses here too. Nothing is
+       coerced: a non-number is not read as a zero, it falls through to the finite check and
+       refuses for what it actually is. */
+    function assertZeroFreeOutcomes(values) {
+        if (!Array.isArray(values)) return violation("directional-array-not-an-array", "outcomes");
+        for (var i = 0; i < values.length; i += 1) {
+            if (values[i] === 0) {
+                return {
+                    ok: false,
+                    error: {
+                        code: FLAT_ZERO_CODE,
+                        reason: "bare-zero-in-directional-array",
+                        field: "outcomes[" + i + "]",
+                        index: i
+                    }
+                };
+            }
+            if (!Number.isFinite(values[i])) return violation("outcome-value-not-finite", "outcomes[" + i + "]");
+        }
+        return { ok: true, outcomes: values.slice() };
+    }
+
+    /* ── routeOutcomes ──────────────────────────────────────────────────────────────────────
+       The table applied to a cohort: `win` and `loss` become numbers in the directional array,
+       the other four become counts beside it. `resolvedDirectional` is that array's length and
+       therefore — because `winRate` divides by it — the published denominator, exposed here so a
+       caller can branch BEFORE reaching a primitive that refuses an empty array.
+
+       Every counted class is seeded at zero rather than added on first sight, so a class that
+       never fired reads as an explicit `0` instead of a missing key. A missing key is how a
+       bucket quietly leaves a partition that is supposed to sum to the proposed total. */
+    function routeOutcomes(records) {
+        if (!Array.isArray(records)) return violation("outcome-records-not-an-array", "records");
+
+        var counts = {};
+        var c;
+        for (c = 0; c < COUNTED_OUTCOME_CLASSES.length; c += 1) counts[COUNTED_OUTCOME_CLASSES[c]] = 0;
+
+        var directional = [];
+        for (var i = 0; i < records.length; i += 1) {
+            if (!isPlainObject(records[i])) return violation("outcome-record-not-an-object", "records[" + i + "]");
+            var routed = outcomeContributionFor(records[i].outcomeClass);
+            if (!routed.ok) return routed;
+            if (routed.contribution === CONTRIBUTION_COUNT) {
+                counts[routed.outcomeClass] += 1;
+                continue;
+            }
+            if (!Number.isFinite(records[i].outcomeValue)) {
+                return violation("outcome-value-not-finite", "records[" + i + "].outcomeValue");
+            }
+            directional.push(records[i].outcomeValue);
+        }
+
+        /* The same gate applied where the array is BUILT, not only where it is consumed: a
+           resolved-flat value mis-routed onto the number side refuses with RTR-FLAT-ZERO rather
+           than being summarised as a claim that never resolved. */
+        var gated = assertZeroFreeOutcomes(directional);
+        if (!gated.ok) return gated;
+
+        return {
+            ok: true,
+            directional: gated.outcomes,
+            counts: counts,
+            resolvedDirectional: gated.outcomes.length
+        };
+    }
+
     /* ── mintClaim ──────────────────────────────────────────────────────────────────────────
        Two outcomes, deliberately distinct:
          • a CONTRACT VIOLATION ({ ok: false }) — an out-of-vocabulary value or a direction that
@@ -817,6 +1004,13 @@
         HASHED_TERMS: HASHED_TERMS,
         UNHASHED_FIELDS: UNHASHED_FIELDS,
         MINT_REFUSALS: MINT_REFUSALS,
+        OUTCOME_CLASSES: OUTCOME_CLASSES,
+        OUTCOME_CONTRIBUTIONS: OUTCOME_CONTRIBUTIONS,
+        DIRECTIONAL_OUTCOME_CLASSES: DIRECTIONAL_OUTCOME_CLASSES,
+        COUNTED_OUTCOME_CLASSES: COUNTED_OUTCOME_CLASSES,
+        CONTRIBUTION_NUMBER: CONTRIBUTION_NUMBER,
+        CONTRIBUTION_COUNT: CONTRIBUTION_COUNT,
+        FLAT_ZERO_CODE: FLAT_ZERO_CODE,
         CLAIM_STORE_DIR: CLAIM_STORE_DIR,
         BARS_DIR: BARS_DIR,
         BARS_MANIFEST_FILENAME: BARS_MANIFEST_FILENAME,
@@ -834,6 +1028,11 @@
         validateLedgerRow: validateLedgerRow,
         deriveRowFieldUnion: deriveRowFieldUnion,
         authorizeResolutionWrite: authorizeResolutionWrite,
+        flatBandFor: flatBandFor,
+        outcomeContributionFor: outcomeContributionFor,
+        classifyOutcome: classifyOutcome,
+        assertZeroFreeOutcomes: assertZeroFreeOutcomes,
+        routeOutcomes: routeOutcomes,
         stableStringify: stableStringify,
         sha256Hex: sha256Hex,
         stableSha: stableSha,

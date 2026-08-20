@@ -107,12 +107,19 @@ every scope's Change Boundary is derived from it: a scope may open a Feature 021
 test file only if that table places one of its owned markers there, and a file
 that carries no marker owned by a scope stays in that scope's excluded list.
 
-Scopes 03, 04 and 05 supersede nothing. Each states that explicitly in its own
-Definition of Done, because "this scope changed no pre-existing assertion" is an
-auditable claim and silence is not. That remains true even though Scope 03 and
-Scope 05 both add a Simple field, because SUP-022-18's and SUP-022-19's
-replacements derive their expected values from the page rather than pinning a
-length.
+Scopes 04 and 05 supersede nothing, and Scope 03 owns exactly one entry,
+SUP-022-22. Each states its position explicitly in its own Definition of Done,
+because "this scope changed no pre-existing assertion" is an auditable claim and
+silence is not. Scope 03 and Scope 05 both add a Simple field without that
+becoming a supersession, because the expected Simple values are derived from the
+page rather than pinned to a length. The derivation they rely on is **not** this
+feature's: SUP-022-18's and SUP-022-19's count clauses were displaced first by
+Feature 023 under `SUP-023-04`, `SUP-023-05` and `SUP-023-06`, and SUP-022-18 is
+recorded superseded-in-substance in
+[Scope 02's ledger disposition](02-net-investment-income-and-additional-medicare-tax/scope.md#assertion-supersession-owned-by-this-scope).
+What SUP-022-19 still owns is the narrowed clause — selecting a withheld-detail
+link by its declared target rather than by ordinal — which changes no length
+either way.
 
 ### Per-scope steps
 

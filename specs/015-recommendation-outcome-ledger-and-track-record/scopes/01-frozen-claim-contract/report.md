@@ -682,9 +682,10 @@ fixtures including `violation-magnitude-sign-convention-one-char-off`, and it cl
 That assertion makes under-coverage impossible to pass silently: adding a vocabulary to the module without a
 fixture fails the row. `magnitude.signConvention` **is** covered, and the executed green row at
 [`#t-01-u6`](#t-01-u6) proves it. What is genuinely true is narrower and is a **description** defect, not a
-coverage one: the `T-01-U6` Test Plan row in [scope.md](scope.md) enumerates five vocabularies in its prose while
-the test it names probes six plus `MARKET_ACTIONS`. **Route:** `bubbles.plan`, to align the row's prose with the
-delivered assertion. It does not block the core item, whose own text names all six and whose evidence covers all
+coverage one: the `T-01-U6` Test Plan row in [scope.md](scope.md) enumerated five vocabularies in its prose while
+the test it names probes six plus `MARKET_ACTIONS`. **Route:** `bubbles.plan` — **discharged 2026-08-19**: the row
+was corrected to name all six closed vocabularies plus `MARKET_ACTIONS` and to quote this completeness assertion;
+see *Still open* item 3. It never blocked the core item, whose own text names all six and whose evidence covers all
 six.
 
 <a id="p-015-03-ruling"></a>
@@ -1850,11 +1851,20 @@ across `rlclaims.js`, all five `tests/recommendation-track-record.*.mjs` files a
 the suite is unchanged at `7 pass, 0 fail`
 ([Suite invocation F](#suite-invocation-f--unit-after-the-comment-reword)). **This item is closed.**
 
-**3. The `T-01-U6` Test Plan row under-describes the assertion it names.** `executed`. The row's prose enumerates
-five vocabularies; the delivered test probes **six plus `MARKET_ACTIONS`**, with a completeness assertion that
-makes under-coverage impossible to pass silently. This is a description defect in plan-owned prose, not a coverage
-gap — the dependent core item is fully evidenced and is ticked. Detail and the quoted assertion are at
-[Vocabulary constants](#vocabulary-constants-are-frozen-and-call-sites-reference-them). **Route:** `bubbles.plan`.
+**3. The `T-01-U6` Test Plan row under-description is RESOLVED.** `executed`, 2026-08-19. The route to
+`bubbles.plan` was acted on and the row in [scope.md](scope.md) was corrected. **Old wording:** *"Each closed
+vocabulary refuses a value one character off a legal member (`subject.kind`, `predicate.kind`,
+`predicate.comparator`, `horizon.kind`, `magnitude.unit`), so a `startsWith` or prefix check fails the row; and
+`actionFamily` outside `MARKET_ACTIONS` refuses."* — five vocabularies enumerated, `magnitude.signConvention`
+unnamed, and the completeness assertion unmentioned. **New wording:** the row now names all **six** closed
+vocabularies including `magnitude.signConvention`, states that `MARKET_ACTIONS` brings the probed total to
+**seven** across seven fixtures with `violation-magnitude-sign-convention-one-char-off` named, and quotes the
+closing completeness assertion that makes under-coverage impossible to pass silently. **The underlying coverage
+was never in doubt:** the delivered test probed all seven from the start, [`#t-01-u6`](#t-01-u6) is green, and the
+dependent core item was already evidenced and ticked. This edit changed **prose only** — no test, fixture or module
+byte moved — and `T-01-U6` was re-run against the unchanged suite immediately after the edit at `1 pass, 0 fail`,
+exit `0`. Detail and the quoted assertion remain at
+[Vocabulary constants](#vocabulary-constants-are-frozen-and-call-sites-reference-them). **This item is closed.**
 
 **4. The DoD count discrepancy is RESOLVED: the total is 33.** `executed`. The earlier entry recorded, as
 operator-reported diagnostic input the report neither confirmed nor disputed, that [scope.md](scope.md) carries 33
@@ -1923,7 +1933,7 @@ one holds. Three hold on evidence executed this session, one holds by prior reco
 | # | Conjunct | Verdict | Evidence |
 |---|---|---|---|
 | 1 | Zero warnings across `node --test` output and `node scripts/selftest.mjs` | **holds** — `executed` | [Suite invocation F](#suite-invocation-f--unit-after-the-comment-reword): `7 pass, 0 fail`, `skipped 0`, `todo 0`, exit `0`. [Suite invocation G](#suite-invocation-g--project-check-after-the-comment-reword): `2487 passed, 0 failed`, exit `0`, zero failure-shaped lines across the full 2824-line capture |
-| 2 | Zero issues deferred, skipped, or worked around | **DOES NOT HOLD** — `executed` | *Still open* carries two live entries: **3** (`T-01-U6` row under-describes → `bubbles.plan`) and **6** (`T-01-R2` Playwright half at `497 / 498` → Feature 012 owner, or `bubbles.plan` on the wording). Entry 6 is a genuine deferral in the gate's sense: the residual failure is routed to another owner, not repaired here |
+| 2 | Zero issues deferred, skipped, or worked around | **DOES NOT HOLD** — `executed` | *Still open* carries **one** live entry: **6** (`T-01-R2` Playwright half at `497 / 498` → Feature 012 owner, or `bubbles.plan` on the wording), a genuine deferral in the gate's sense — the residual failure is routed to another owner, not repaired here. Entry **3** (`T-01-U6` row under-describes → `bubbles.plan`) was **discharged 2026-08-19** by correcting the row's prose; it was a description defect, never a coverage gap, so its closure moves no test evidence and does not by itself rescue this conjunct |
 | 3 | Every negative test verified to fail when the behaviour it guards is reverted | **holds by prior record** — `not-run` | [Adversarial proof — completed (P23)](#adversarial-proof--completed-p23): six behaviour reversions across `T-01-F1`–`T-01-F3` and three derivation perturbations against `T-01-C2`, each detected, each applied in a disposable copy with a green control. Not re-executed here, and no mutation harness was created in this pass |
 | 4 | `spec.md` and `design.md` unmodified **by this scope** | **holds — but only on an authorship reading, and the distinction is load-bearing** — `executed` | See the conjunct-4 nuance below, then the change-set commands |
 | 5 | No other spec's artifacts touched | **holds** — `executed` | change-set commands below |

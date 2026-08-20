@@ -61,6 +61,22 @@
  * did. Attribution is by COMMIT throughout and never by path prefix: a prefix test would credit
  * this scope with whatever anyone else happens to write under its feature directory.
  *
+ * Which commits are this scope's is decided by ITS OWN SCOPE DIRECTORY and by nothing else. The
+ * module whose first appearance dates the scope used to serve double duty as an authorship anchor,
+ * on the premise that anchoring "can only widen what is judged, never narrow it". That premise held
+ * exactly as long as the module was this scope's alone. It stopped holding the moment scope 02
+ * edited the same module to thread `claimRef` through it: a shared substrate is what later scopes
+ * are SUPPOSED to touch, so touching it is evidence of nothing. Under the old anchor a scope 02
+ * commit was read as scope 01's, and everything it carried was judged against scope 01's Change
+ * Boundary — including a scope 02 deliverable, `scripts/recommendation-claim-mint.mjs`, and scope
+ * 02's own `report.md` and `scope.md`. The row was therefore red at `HEAD` for work that was never
+ * scope 01's, and widening the families to quiet it would have surrendered the exact boundary claim
+ * the row exists to prove, once per scope, for eight more scopes.
+ *
+ * A scope directory does not have that failure mode: it is not shared, and a sibling scope writes
+ * to its own. The module keeps its OTHER role unchanged — it still DATES the boundary, because
+ * first appearance is a fact about when the scope landed and not a claim about who edited it since.
+ *
  * Scopes 02 - 10 EXTEND this file; they do not rewrite it.
  */
 
@@ -373,7 +389,12 @@ function isAllowedPath(candidate) {
  * wrong commit fails there rather than quietly restoring the wrong content.
  * ------------------------------------------------------------------------------------------- */
 
-/** The file whose first appearance dates this scope. It is the scope's own module, added by it. */
+/**
+ * The file whose first appearance DATES this scope. It is the scope's own module, added by it.
+ *
+ * Dating only. It is deliberately NOT an authorship anchor: scopes 02 - 10 edit this module by
+ * design, so a commit touching it says nothing about whose commit it is. See `isScopeAnchorPath`.
+ */
 const SCOPE_ORIGIN_PATH = 'rlclaims.js';
 
 /**
@@ -381,15 +402,24 @@ const SCOPE_ORIGIN_PATH = 'rlclaims.js';
  *
  * Each must be PRESENT in the worktree at `HEAD` — otherwise the back-out has nothing to remove and
  * a rehearsal that silently did nothing would leave the two sides identical and every derived
- * magnitude zero — and ABSENT once it has run. The directory is listed alongside the two files
- * because `git rm` of the last entry under a tree should take the now-empty tree with it, and a
- * lingering directory is a back-out that only half happened.
+ * magnitude zero — and ABSENT once it has run.
  */
 const BACK_OUT_WITNESS_PATHS = Object.freeze([
     'rlclaims.js',
     'tests/recommendation-track-record.support.mjs',
-    'tests/fixtures/recommendation-track-record',
 ]);
+
+/**
+ * The tree that witnesses the back-out's treatment of directories.
+ *
+ * `git rm` of the LAST entry under a tree should take the now-empty tree with it, and a lingering
+ * directory would be a back-out that only half happened. It cannot be asserted absent flatly,
+ * though: scope 02 added ledger fixtures under this same tree, and those are its files, so the tree
+ * legitimately survives a back-out of scope 01 alone. The expectation is therefore DERIVED — gone
+ * exactly when this scope owned every entry in it — which keeps the empty-tree property and adds a
+ * second one the flat form never had: no file this scope owns may survive under it.
+ */
+const BACK_OUT_WITNESS_DIRECTORY = 'tests/fixtures/recommendation-track-record';
 
 /** Whether `commit` carries `candidate` at that exact path. */
 function commitCarriesPath(commit, candidate) {
@@ -440,21 +470,58 @@ function preScopeCommit() {
  * it wrong is therefore visible in the transcript, not just in a bucket name.
  *
  * The partition asks which COMMITS are this scope's before asking which files they touched. A
- * commit is this scope's when it touches one of the scope's identity anchors: its own scope
- * directory, or the module whose first appearance dates the scope. Both are declared by the scope
- * and neither is the allowed-family classifier, which is what keeps this from going circular — the
- * anchors decide whose commit it is, and then EVERY file that commit touched is judged against the
- * families. Anchoring can only widen what is judged, never narrow it.
+ * commit is this scope's when it touches this scope's OWN SCOPE DIRECTORY. That anchor is declared
+ * by the scope and is not the allowed-family classifier, which is what keeps this from going
+ * circular — the anchor decides whose commit it is, and then EVERY file that commit touched is
+ * judged against the families, in-family or not.
+ *
+ * The scope's origin module is NOT an anchor, and that is the whole correction. It was one, on the
+ * reasoning that anchoring can only widen what is judged and never narrow it. Widening is only
+ * harmless while the widened set is still this scope's, and a substrate module is precisely the
+ * thing later scopes are meant to build on: scope 02 edited it to thread `claimRef` through the
+ * live row, so its commits were read as scope 01's and its own deliverables were judged against
+ * scope 01's Change Boundary. An anchor has to be evidence of AUTHORSHIP, and a shared module is
+ * evidence of dependency instead.
+ *
+ * A scope directory carries that evidence: it is not shared, and scope 02 writes its report and its
+ * scope file into its own. The narrowing is provably one-directional here — every path it moves out
+ * of this scope's half is scope 02's work — and it cannot go vacuous, because the commit that
+ * introduced this scope is asserted below to still be attributed.
+ *
+ * One rule survives on top of the anchor, because a commit is not always one scope's work. The
+ * BUG-011 packet landed in a commit that ALSO wrote three hundred lines of evidence into this
+ * scope's own `report.md`, so the anchor reads it as this scope's — correctly, for the report — and
+ * then hands the bug's `spec.md`, `design.md`, `state.json` and six siblings to this scope's family
+ * check, which has never heard of them. An ARTIFACT PACKET IS SELF-IDENTIFYING: a file under
+ * `specs/_bugs/<id>/` is that bug's and a file under `specs/<feature>/scopes/<scope>/` is that
+ * scope's, whichever commit carried it. So those go to the foreign half by path, and the anchor
+ * decides only the rest. This narrows what is judged, which the old doctrine forbade, and the
+ * safety argument is that it narrows by OWNERSHIP rather than by convenience: it can only exclude a
+ * path another packet already owns, and this scope's Change Boundary contains no such path — its
+ * own prefix is excluded from the rule first, which is asserted as a known answer below.
  * ------------------------------------------------------------------------------------------- */
+
+/** The artifact roots that identify a path as another governed packet's work, whoever committed it. */
+const FOREIGN_PACKET_ROOTS = Object.freeze([
+    /^specs\/_bugs\/[^/]+\//,
+    /^specs\/[^/]+\/scopes\/[^/]+\//,
+]);
+
+/** Whether `candidate` is owned by a governed packet that is not this scope. */
+function isForeignPacketPath(candidate) {
+    // This scope's own packet is checked first, because the second pattern matches it too.
+    if (candidate.startsWith(SCOPE_ARTIFACT_PREFIX)) return false;
+    return FOREIGN_PACKET_ROOTS.some((pattern) => pattern.test(candidate));
+}
 
 /** The paths that identify a commit as this scope's own work, rather than a concurrent actor's. */
 function isScopeAnchorPath(candidate) {
-    return candidate === SCOPE_ORIGIN_PATH || candidate.startsWith(SCOPE_ARTIFACT_PREFIX);
+    return candidate.startsWith(SCOPE_ARTIFACT_PREFIX);
 }
 
-/** The commits between the boundary and `HEAD` that touch one of this scope's identity anchors. */
+/** The commits between the boundary and `HEAD` that touch this scope's identity anchor. */
 function scopeCommits(preScope) {
-    return git(['log', '--format=%H', `${preScope}..HEAD`, '--', SCOPE_ARTIFACT_PREFIX, SCOPE_ORIGIN_PATH])
+    return git(['log', '--format=%H', `${preScope}..HEAD`, '--', SCOPE_ARTIFACT_PREFIX])
         .split('\n')
         .filter((line) => line !== '');
 }
@@ -499,12 +566,19 @@ function pathsTouchedBy(commits, diffFilter) {
  * planning pass already created, so its single largest transcript contribution lives entirely in
  * this half — dropping it would make the row rehearse a back-out that never happened.
  *
- * Provenance here is decided by COMMIT, never by path prefix. A prefix test — "anything under this
- * scope's feature directory is this scope's" — would credit the scope with edits made by whoever
- * else works in that tree, which is guessing dressed as a derivation; `pathsTouchedBy` instead
- * proves that one of the commits already attributed to this scope actually touched the path. When
- * both a scope commit and a concurrent one edited the same file the scope half wins, because the
- * conservative direction is to hold this scope answerable and let the family checks judge it.
+ * Provenance here is decided by COMMIT, never by the allowed families. A family test — "anything in
+ * this scope's Change Boundary is this scope's" — would be circular, since the families are what the
+ * partition then feeds; `pathsTouchedBy` instead proves that one of the commits already attributed
+ * to this scope actually touched the path. When both a scope commit and a concurrent one edited the
+ * same file the scope half wins, because the conservative direction is to hold this scope answerable
+ * and let the family checks judge it.
+ *
+ * The one thing a commit cannot decide is ownership of another governed packet's artifacts, because
+ * commits are not always one scope's work: `isForeignPacketPath` sends a bug packet's or a sibling
+ * scope's own files to the foreign half even when a scope commit carried them. That is ownership by
+ * path, which is precisely what the previous paragraph refuses for the families — the difference is
+ * that it reads ANOTHER packet's identity root, never this scope's, so it cannot certify this
+ * scope's own work and cannot go circular.
  */
 function partitionBoundaryDelta(preScope, untrackedTargets) {
     const commits = scopeCommits(preScope);
@@ -519,12 +593,19 @@ function partitionBoundaryDelta(preScope, untrackedTargets) {
     const removedByScope = pathsTouchedBy(commits, 'D');
     const modifiedByScope = pathsTouchedBy(commits, 'M');
 
-    const addedScope = [...new Set([...netAdded.filter((entry) => addedByScope.has(entry)), ...untrackedTargets])].sort();
-    const addedForeign = netAdded.filter((entry) => !addedByScope.has(entry)).sort();
-    const removedScope = netRemoved.filter((entry) => removedByScope.has(entry)).sort();
-    const removedForeign = netRemoved.filter((entry) => !removedByScope.has(entry)).sort();
-    const modifiedScope = netModified.filter((entry) => modifiedByScope.has(entry)).sort();
-    const modifiedForeign = netModified.filter((entry) => !modifiedByScope.has(entry)).sort();
+    const addedScope = [...new Set([
+        ...netAdded.filter((entry) => addedByScope.has(entry) && !isForeignPacketPath(entry)),
+        ...untrackedTargets,
+    ])].sort();
+    const removedScope = netRemoved.filter((entry) => removedByScope.has(entry) && !isForeignPacketPath(entry)).sort();
+    const modifiedScope = netModified.filter((entry) => modifiedByScope.has(entry) && !isForeignPacketPath(entry)).sort();
+
+    // The foreign half is the complement of the scope half rather than an independent filter, so the
+    // two stay exhaustive over the net sets no matter what moves a path out of the scope half.
+    const inScope = { added: new Set(addedScope), removed: new Set(removedScope), modified: new Set(modifiedScope) };
+    const addedForeign = netAdded.filter((entry) => !inScope.added.has(entry)).sort();
+    const removedForeign = netRemoved.filter((entry) => !inScope.removed.has(entry)).sort();
+    const modifiedForeign = netModified.filter((entry) => !inScope.modified.has(entry)).sort();
 
     return {
         commits,
@@ -554,6 +635,9 @@ function partitionBoundaryDelta(preScope, untrackedTargets) {
  * Entries the scope added that are absent from `HEAD` — untracked work in progress — are reported
  * rather than removed. They are already absent from a worktree at `HEAD`, so the two sides differ
  * by them without the back-out doing anything.
+ *
+ * The freeze travels with the tree. `refreezeRemovedPaths` is the third half of the back-out, and
+ * it is not an afterthought: see its own note for why a freeze left at `HEAD` judges the wrong tree.
  */
 function backOutScope(worktree, preScope, delta) {
     const atHead = trackedPaths(worktree);
@@ -563,8 +647,36 @@ function backOutScope(worktree, preScope, delta) {
 
     if (dropped.length > 0) git(['rm', '--quiet', '--force', '--', ...dropped], worktree);
     if (restored.length > 0) git(['checkout', preScope, '--', ...restored], worktree);
+    const refrozen = refreezeRemovedPaths(worktree, preScope, dropped);
 
-    return { dropped, restored, untrackedInLiveTree };
+    return { dropped, restored, refrozen, untrackedInLiveTree };
+}
+
+/**
+ * Give every path the back-out REMOVED its pre-scope freeze back.
+ *
+ * The freeze is DERIVED FROM THE TREE, so it must travel with the tree: roll the tree back and
+ * leave the freeze at `HEAD`, and the reconstructed tree is judged by a freeze describing another.
+ *
+ * Restored PER REMOVED PATH rather than by checking the whole file out at `preScope`, because the
+ * file also carries concurrent actors' later edits, which describe parts of the tree this back-out
+ * does not roll back. Wholesale is wrong in both directions and provably so: it drops a freeze a
+ * neighbouring feature added for its own since-deleted scratch file — whose references are foreign,
+ * present in both trees, and fail as newly missing — and resurrects six entries another feature
+ * retired, which report as stale. Intersecting `preScope`'s freeze with this back-out's own
+ * removals touches only what this back-out itself made absent, so nothing it does not own can go
+ * stale. Entries the live tree still freezes are skipped — that freeze already travelled.
+ */
+function refreezeRemovedPaths(worktree, preScope, dropped) {
+    const frozenAtPreScope = parseFrozenSpecTestPaths(git(['show', `${preScope}:${SPEC_TEST_PATH_BASELINE}`]));
+    const stillFrozen = frozenSpecTestPathBaseline(worktree);
+    const refrozen = dropped.filter((entry) => frozenAtPreScope.has(entry) && !stillFrozen.has(entry)).sort();
+    if (refrozen.length === 0) return refrozen;
+
+    const target = path.join(worktree, SPEC_TEST_PATH_BASELINE);
+    const carried = fs.readFileSync(target, 'utf8').replace(/\n*$/, '\n');
+    fs.writeFileSync(target, `${carried}${refrozen.join('\n')}\n`);
+    return refrozen;
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -634,14 +746,18 @@ function isScannedProductionSource(candidate) {
     return PRODUCTION_SOURCE_EXTENSIONS.some((ext) => candidate.endsWith(ext));
 }
 
-function frozenSpecTestPathBaseline(root) {
+/** The freeze parser, shared so the back-out reads a `preScope` blob exactly as the tally reads a tree. */
+function parseFrozenSpecTestPaths(text) {
     return new Set(
-        fs
-            .readFileSync(path.join(root, SPEC_TEST_PATH_BASELINE), 'utf8')
+        text
             .split(/\r?\n/)
             .map((line) => line.trim())
             .filter((line) => line !== '' && !line.startsWith('#')),
     );
+}
+
+function frozenSpecTestPathBaseline(root) {
+    return parseFrozenSpecTestPaths(fs.readFileSync(path.join(root, SPEC_TEST_PATH_BASELINE), 'utf8'));
 }
 
 /* ---- The committed-surface file universe -----------------------------------------------------
@@ -771,7 +887,7 @@ function isScopeOwnedSpecArtifact(candidate, addedSet, modifiedSet) {
  * that does not exist. Provenance is still carried alongside rather than folded in, so the caller
  * can prove the partition was exhaustive.
  */
-function deriveAttribution(liveRoot, backedOutRoot, delta) {
+function deriveAttribution(liveRoot, backedOutRoot, delta, refrozen) {
     const addedPaths = delta.added.scope;
     const removedPaths = delta.removed.scope;
 
@@ -832,11 +948,23 @@ function deriveAttribution(liveRoot, backedOutRoot, delta) {
         }
     }
 
+    /* What the back-out's own refreeze did to the freeze, derived from the two trees rather than
+     * from what `refreezeRemovedPaths` reported doing. Two derivations agreeing is what makes this
+     * an attribution: `entries` is the rehearsal's account, `added` is the trees'. */
+    const preBaseline = frozenSpecTestPathBaseline(backedOutRoot);
+
     return {
         scanUniverse: { pre: preScanned.length, live: liveScanned.length, added, removed, fromAddedSet },
         baselineReclassification: {
             magnitude: resolvedBaselineEntries.length,
             entries: resolvedBaselineEntries,
+        },
+        baselineRefreeze: {
+            magnitude: refrozen.length,
+            entries: [...refrozen].sort(),
+            added: [...preBaseline].filter((entry) => !baseline.has(entry)).sort(),
+            removed: [...baseline].filter((entry) => !preBaseline.has(entry)).sort(),
+            size: { pre: preBaseline.size, live: baseline.size },
         },
         scannedFileUniverse: {
             magnitude: countedAdded.length - countedRemoved.length,
@@ -857,10 +985,6 @@ function deriveAttribution(liveRoot, backedOutRoot, delta) {
             artifacts: { pre: preArtifacts.size, live: liveArtifacts.size },
             artifactsAdded: [...liveArtifacts.keys()].filter((entry) => !preArtifacts.has(entry)).sort(),
             artifactsRemoved: [...preArtifacts.keys()].filter((entry) => !liveArtifacts.has(entry)).sort(),
-            baselineEntries: {
-                pre: [...frozenSpecTestPathBaseline(backedOutRoot)].sort(),
-                live: [...baseline].sort(),
-            },
         },
     };
 }
@@ -898,11 +1022,13 @@ function splitNumbers(line) {
 const PII_FILE_COUNT_MARKER = 'the scan covered the repository (files=';
 const PII_MESSAGE_COUNT_MARKER = 'the scan covered commit messages (messages=';
 const SPEC_TEST_REFERENCE_MARKER = 'reference(s) across';
+const SPEC_TEST_BUCKET_MARKER = 'known-missing';
 
 /** The closed set of reasons a difference may carry. Anything else is a bug in the classifier. */
 const ATTRIBUTION_REASONS = Object.freeze([
     'production-source-scan-universe',
     'frozen-baseline-reclassification',
+    'frozen-baseline-refreeze',
     'committed-surface-file-universe',
     'scope-artifact-test-references',
 ]);
@@ -947,17 +1073,33 @@ function classifyDifference(preLine, liveLine, attribution) {
     // the identical history and that line must be byte-identical; the row asserts that directly and
     // any movement reaches this classifier unattributed, which is the intended failure.
 
-    // The spec-artifact reference tally, which grows by the `tests/*.mjs` references this scope's
-    // own artifacts contribute. The single-move requirement is the invariant half: this scope adds
-    // no spec artifact and no baseline entry, so those two counters on the same line must not move.
+    /* The spec-artifact reference tally and the FREEZE SIZE share one line. This scope's own
+     * artifacts move the first; the back-out's refreeze moves the second, and in the opposite
+     * direction, since the backed-out tree freezes strictly more. The freeze movement is bound to
+     * the two EXACT sizes rather than to a delta, so another counter moving by the same amount
+     * cannot borrow the explanation. Every moved number must be one of the two, which preserves
+     * what the old single-move requirement asserted: the artifact tally between them cannot move. */
     const references = attribution.specTestReferences;
+    const refreeze = attribution.baselineRefreeze;
+    if (preLine.includes(SPEC_TEST_REFERENCE_MARKER) && references.magnitude !== 0) {
+        const isReferenceMove = (entry) => entry.delta === references.magnitude;
+        const isFreezeMove = (entry) => entry.pre === refreeze.size.pre && entry.live === refreeze.size.live;
+        if (moved.some(isReferenceMove) && moved.every((entry) => isReferenceMove(entry) || isFreezeMove(entry))) {
+            return 'scope-artifact-test-references';
+        }
+    }
+
+    /* The freeze the back-out restored. Every re-frozen path is missing-and-frozen in the backed-out
+     * tree and neither missing nor frozen in the live one, so exactly ONE bucket moves — by exactly
+     * what was re-frozen. Anchored, because an unanchored magnitude rule would claim any counter
+     * that happened to move by the same amount. */
     if (
-        preLine.includes(SPEC_TEST_REFERENCE_MARKER)
+        preLine.includes(SPEC_TEST_BUCKET_MARKER)
+        && refreeze.magnitude > 0
         && moved.length === 1
-        && references.magnitude !== 0
-        && moved[0].delta === references.magnitude
+        && moved[0].delta === -refreeze.magnitude
     ) {
-        return 'scope-artifact-test-references';
+        return 'frozen-baseline-refreeze';
     }
 
     // Growth of the production-source scan universe, bound to the EXACT sizes of the two trees
@@ -1317,15 +1459,62 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
     assert.equal(isScannedProductionSource('notes/market-brief.md'), false, 'a note is not a production source');
 
     // The provenance classifier decides whose commit an addition came from, so it is checked against
-    // known answers too. It is deliberately keyed on the scope's identity anchors rather than on the
+    // known answers too. It is deliberately keyed on the scope's identity anchor rather than on the
     // allowed families: one that answered true for every path would hand a concurrent actor's files
     // to this scope's family check, and one that answered false for everything would hand this
     // scope's own files to nobody and go vacuously green.
-    assert.equal(isScopeAnchorPath(SCOPE_ORIGIN_PATH), true, "the scope's own module anchors its commits");
     assert.equal(isScopeAnchorPath(`${SCOPE_ARTIFACT_PREFIX}report.md`), true, "the scope's own artifacts anchor its commits");
     assert.equal(isScopeAnchorPath('scripts/selftest.mjs'), false, 'the baseline script anchors nothing');
     assert.equal(isScopeAnchorPath('tests/recommendation-track-record.canary.mjs'), false, 'an in-family file is not by itself an anchor');
-    assert.equal(isScopeAnchorPath(`${SCOPE_ORIGIN_PATH}.bak`), false, 'the anchor is an exact path, never a prefix');
+
+    // The origin module dates the boundary and anchors NOTHING. It is the substrate scopes 02 - 10
+    // are built to edit, so a commit touching it is evidence of dependency, not of authorship —
+    // which is exactly how a scope 02 commit came to be judged against scope 01's Change Boundary.
+    assert.equal(
+        isScopeAnchorPath(SCOPE_ORIGIN_PATH),
+        false,
+        'the shared substrate module must not attest authorship — later scopes edit it by design',
+    );
+
+    // The anchor is a prefix, so it gets the negative that proves a prefix cannot over-widen: it
+    // must stop at the directory separator, and it must not reach a sibling scope's own artifacts.
+    assert.equal(
+        isScopeAnchorPath('specs/015-recommendation-outcome-ledger-and-track-record/scopes/02-additive-ledger-row-extension/report.md'),
+        false,
+        "a sibling scope's own artifacts must never anchor this scope's commits",
+    );
+    assert.equal(
+        isScopeAnchorPath(`${SCOPE_ARTIFACT_PREFIX.replace(/\/$/, '')}-notes.md`),
+        false,
+        'the anchor prefix must carry its trailing separator, or it widens into an adjacent sibling name',
+    );
+
+    // The packet-ownership classifier overrides the anchor for another packet's own artifacts, so it
+    // gets known answers at both ends. One that answered true for everything would empty this
+    // scope's half and go vacuously green; one that answered false for everything would restore the
+    // defect where a bug packet landing beside this scope's evidence is judged against its families.
+    assert.equal(
+        isForeignPacketPath('specs/_bugs/BUG-011-causal-consumer-tests-inherit-implicit-30s-budget/spec.md'),
+        true,
+        "a bug packet's artifacts are that bug's, whichever commit carried them",
+    );
+    assert.equal(
+        isForeignPacketPath('specs/015-recommendation-outcome-ledger-and-track-record/scopes/02-additive-ledger-row-extension/report.md'),
+        true,
+        "a sibling scope's artifacts are that scope's, whichever commit carried them",
+    );
+    assert.equal(
+        isForeignPacketPath(`${SCOPE_ARTIFACT_PREFIX}report.md`),
+        false,
+        "this scope's own artifacts must never be disowned — the rule reads other packets' roots only",
+    );
+    assert.equal(
+        isForeignPacketPath('specs/015-recommendation-outcome-ledger-and-track-record/scopes/_index.md'),
+        false,
+        'a file directly under the scopes directory belongs to no scope packet and must not be disowned',
+    );
+    assert.equal(isForeignPacketPath('rlclaims.js'), false, 'a production module is not an artifact packet');
+    assert.equal(isForeignPacketPath('specs/_bugs/BUG-011-x'), false, 'a packet root must be a directory, not a prefix of a name');
 
     const porcelain = git(['status', '--porcelain']).split('\n').filter((line) => line !== '');
     const workingTree = porcelain.map((entry) => ({ raw: entry, status: entry.slice(0, 2), target: entry.slice(3) }));
@@ -1496,6 +1685,8 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
             assert.equal(fs.existsSync(path.join(worktree, witness)), true,
                 `the worktree at HEAD must carry ${witness}, or the back-out has nothing to remove`);
         }
+        assert.equal(fs.existsSync(path.join(worktree, BACK_OUT_WITNESS_DIRECTORY)), true,
+            `the worktree at HEAD must carry ${BACK_OUT_WITNESS_DIRECTORY}, or the back-out has nothing to remove`);
 
         const backOut = backOutScope(worktree, preScope, delta);
 
@@ -1516,11 +1707,31 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
             );
         }
 
-        // And the removal must have taken every witness with it, empty directories included.
+        // And the removal must have taken every witness file with it.
         for (const witness of BACK_OUT_WITNESS_PATHS) {
             assert.equal(fs.existsSync(path.join(worktree, witness)), false,
                 `the backed-out tree must no longer contain ${witness}`);
         }
+
+        // The witness tree, judged against a derived expectation rather than a flat one. Whatever
+        // this scope owns under it must be gone; the tree itself survives exactly when something
+        // another packet owns is still there to hold it up.
+        const witnessEntriesAtHead = git(['ls-tree', '-r', '--name-only', 'HEAD', '--', BACK_OUT_WITNESS_DIRECTORY])
+            .split('\n')
+            .filter((line) => line !== '');
+        assert.ok(witnessEntriesAtHead.length > 0, `${BACK_OUT_WITNESS_DIRECTORY} must carry entries at HEAD`);
+        const witnessSurvivors = witnessEntriesAtHead.filter((entry) => !scopeOwned.has(entry));
+        for (const owned of witnessEntriesAtHead.filter((entry) => scopeOwned.has(entry))) {
+            assert.equal(fs.existsSync(path.join(worktree, owned)), false,
+                `the backed-out tree must no longer contain ${owned}`);
+        }
+        assert.equal(
+            fs.existsSync(path.join(worktree, BACK_OUT_WITNESS_DIRECTORY)),
+            witnessSurvivors.length > 0,
+            witnessSurvivors.length > 0
+                ? `${BACK_OUT_WITNESS_DIRECTORY} must survive, holding ${witnessSurvivors.length} entry/entries this scope does not own`
+                : `${BACK_OUT_WITNESS_DIRECTORY} must be removed with its last entry — an emptied tree left behind is a half back-out`,
+        );
         assert.equal(fs.existsSync(path.join(worktree, 'scripts', 'selftest.mjs')), true,
             'the back-out must not have taken the baseline script with it');
 
@@ -1538,7 +1749,7 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
         // line that moved is accounted for by this scope's own additions. This is AC-018's "no
         // pre-existing count decreasing" stated exactly, plus the attribution that makes a
         // difference either explained or a failure — never merely tolerated.
-        const attribution = deriveAttribution(REPO_ROOT, worktree, delta);
+        const attribution = deriveAttribution(REPO_ROOT, worktree, delta, backOut.refrozen);
 
         /* The commit-message tally the retired rule used to excuse. Both trees are checked out at
          * the same commit, so `git log` walks the identical history and this counter cannot move —
@@ -1612,9 +1823,9 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
         }
 
         /* The spec-artifact reference surface. The invariant halves are asserted directly rather
-         * than left to the classifier: this scope writes into artifacts that already existed and
-         * adds no frozen baseline entry, so it must contribute no artifact of its own and leave the
-         * baseline identical across the two trees.
+         * than left to the classifier: this scope writes into artifacts that already existed, so it
+         * must contribute no artifact of its own. The freeze is handled just below, and separately,
+         * because the back-out now moves it deliberately.
          *
          * The artifact tally used to be allowed to move, because a neighbouring spec landing its own
          * artifacts in the same commit range showed up as growth this scope had to tolerate. Two
@@ -1637,10 +1848,31 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
             attribution.specTestReferences.artifactsAdded.length,
             'the scanned-artifact tally must move by exactly the artifacts the two trees differ by',
         );
+        /* The freeze is NOT identical across the two trees, and that is the back-out working rather
+         * than a defect: it gives every path it removed the pre-scope freeze back, so the backed-out
+         * tree carries exactly those entries more. The claim is therefore the EXACT difference
+         * rather than none — nothing may leave the freeze, what it gains must be precisely what the
+         * rehearsal reported re-freezing, and every re-frozen entry must still sit inside this
+         * scope's families. The two sides are derived independently: `added` is read off the trees,
+         * `entries` is the rehearsal's own account, and requiring them equal is what stops a
+         * back-out that re-froze something it had no business touching from reporting green. */
         assert.deepEqual(
-            attribution.specTestReferences.baselineEntries.live,
-            attribution.specTestReferences.baselineEntries.pre,
-            'this scope adds no frozen baseline entry, so the baseline must be identical across the two trees',
+            attribution.baselineRefreeze.removed,
+            [],
+            'no entry may leave the freeze — the back-out restores, it never prunes',
+        );
+        assert.deepEqual(
+            attribution.baselineRefreeze.added,
+            attribution.baselineRefreeze.entries,
+            'the two trees may differ by exactly the freeze the back-out restored, and by nothing else',
+        );
+        for (const entry of attribution.baselineRefreeze.entries) {
+            assert.equal(isAllowedPath(entry), true, `re-frozen entry outside the allowed families: ${entry}`);
+        }
+        assert.equal(
+            attribution.baselineRefreeze.size.pre - attribution.baselineRefreeze.size.live,
+            attribution.baselineRefreeze.magnitude,
+            'the derived freeze sizes must differ by exactly the number of paths the back-out re-froze',
         );
 
         /* The sharp half, and it stays sharp under the new shape — what it detects has changed
@@ -1712,22 +1944,63 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
             'the scan size must land on the live tree size exactly, not merely move',
         );
 
-        const magnitude = attribution.baselineReclassification.magnitude;
+        /* Both freeze rules are probed against a SYNTHETIC magnitude rather than the live one.
+         * Either can legitimately derive zero — reclassification is zero exactly when a concurrent
+         * actor has pruned this scope's paths from the freeze, which is the situation the refreeze
+         * exists for, and refreeze is zero when nobody pruned — and a zero magnitude would leave
+         * these probes exercising nothing while still reporting green. */
+        const magnitude = 2;
+        const reclassifying = { ...attribution, baselineReclassification: { magnitude, entries: [] } };
         const bucketShape = (known, stale) => `${known} known-missing, ${stale} stale of 221 referenced`;
         assert.equal(
-            classifyDifference(bucketShape(71, 6), bucketShape(71 - magnitude, 6 + magnitude), attribution),
+            classifyDifference(bucketShape(71, 6), bucketShape(71 - magnitude, 6 + magnitude), reclassifying),
             'frozen-baseline-reclassification',
             'an equal-and-opposite move of the derived magnitude is attributable',
         );
         assert.equal(
-            classifyDifference(bucketShape(71, 6), bucketShape(71 - magnitude - 1, 6 + magnitude + 1), attribution),
+            classifyDifference(bucketShape(71, 6), bucketShape(71 - magnitude - 1, 6 + magnitude + 1), reclassifying),
             null,
             'a reclassification larger than this scope accounts for is unattributable',
         );
         assert.equal(
-            classifyDifference(bucketShape(71, 6), bucketShape(71 - magnitude, 6 + magnitude + 1), attribution),
+            classifyDifference(bucketShape(71, 6), bucketShape(71 - magnitude, 6 + magnitude + 1), reclassifying),
             null,
             'a reclassification that does not conserve its total is unattributable',
+        );
+
+        const refrozenMagnitude = 3;
+        const refreezing = {
+            ...attribution,
+            baselineRefreeze: { ...attribution.baselineRefreeze, magnitude: refrozenMagnitude },
+        };
+        /* One past the BACKED-OUT scan size, for the same reason the anchored probes below use that
+         * base: the unanchored scan-universe rule requires the pre value to land on the backed-out
+         * size exactly, so no probe here can be claimed by it and each exercises the rule it names. */
+        const refreezeBase = attribution.scanUniverse.pre + 1;
+        const refreezeShape = (known) => `0 new, ${known} known-missing, 0 stale of 221 referenced`;
+        assert.equal(
+            classifyDifference(refreezeShape(refreezeBase), refreezeShape(refreezeBase - refrozenMagnitude), refreezing),
+            'frozen-baseline-refreeze',
+            'a single bucket falling by exactly the re-frozen count is attributable',
+        );
+        assert.equal(
+            classifyDifference(refreezeShape(refreezeBase), refreezeShape(refreezeBase - refrozenMagnitude - 1), refreezing),
+            null,
+            'a bucket move larger than the back-out re-froze is unattributable',
+        );
+        assert.equal(
+            classifyDifference(refreezeShape(refreezeBase - refrozenMagnitude), refreezeShape(refreezeBase), refreezing),
+            null,
+            'the backed-out tree freezes MORE, so a bucket that grew toward the live tree is unattributable',
+        );
+        assert.equal(
+            classifyDifference(
+                `a line carrying ${refreezeBase} things`,
+                `a line carrying ${refreezeBase - refrozenMagnitude} things`,
+                refreezing,
+            ),
+            null,
+            'the re-frozen count is unattributable on a line that is not the bucket line',
         );
 
         /* Adversarial half for the two anchored rules. The probe base is one past the BACKED-OUT

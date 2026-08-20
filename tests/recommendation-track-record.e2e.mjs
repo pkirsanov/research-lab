@@ -39,6 +39,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -440,20 +441,46 @@ function porcelainEntries(paths) {
  * `node --test` exports its child protocol through the environment, so a child that inherited it
  * would report through the parent instead of the reporter named on its own command line, and the
  * summary this parses would never be emitted.
+ *
+ * Output is captured through temporary FILES, not pipes. Node writes a piped stdout asynchronously
+ * on POSIX and the Playwright CLI ends a successful collection with `process.exit(0)`, which
+ * discards whatever is still queued — so a clean exit could return a transcript truncated
+ * mid-stream, losing the trailing summary this row parses. Writes to a file are synchronous, so
+ * the child can have nothing queued when it exits.
  */
 function runChild(args) {
     const env = { ...process.env };
     delete env.NODE_TEST_CONTEXT;
     delete env.NODE_TEST_WORKER_ID;
 
-    const run = spawnSync(process.execPath, args, {
-        cwd: REPO_ROOT,
-        encoding: 'utf8',
-        env,
-        maxBuffer: CAPTURE_LIMIT,
-    });
-    assert.equal(run.error, undefined, `node ${args.join(' ')} failed to spawn: ${run.error}`);
-    return run;
+    const captureRoot = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'rtr-capture-'));
+    try {
+        const stdoutPath = path.join(captureRoot, 'stdout');
+        const stderrPath = path.join(captureRoot, 'stderr');
+        const stdoutFd = fs.openSync(stdoutPath, 'w');
+        const stderrFd = fs.openSync(stderrPath, 'w');
+
+        let run;
+        try {
+            run = spawnSync(process.execPath, args, {
+                cwd: REPO_ROOT,
+                env,
+                stdio: ['ignore', stdoutFd, stderrFd],
+            });
+        } finally {
+            fs.closeSync(stdoutFd);
+            fs.closeSync(stderrFd);
+        }
+
+        assert.equal(run.error, undefined, `node ${args.join(' ')} failed to spawn: ${run.error}`);
+        return {
+            status: run.status,
+            stdout: fs.readFileSync(stdoutPath, 'utf8'),
+            stderr: fs.readFileSync(stderrPath, 'utf8'),
+        };
+    } finally {
+        fs.rmSync(captureRoot, { recursive: true, force: true });
+    }
 }
 
 /* Every counter the TAP summary carries. Parsing all six is what lets "green" mean green: a suite

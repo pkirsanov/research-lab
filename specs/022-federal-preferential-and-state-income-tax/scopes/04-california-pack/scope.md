@@ -302,22 +302,11 @@ syntax error, a missing browser or an absent test does not satisfy RED.
     shipped `appliesToLegs[]` names the ordinary leg alone while the surcharge leg
     is declared. TP-04-07 fell by name under a value-free boolean probe and
     returned green under the identical command after an in-invocation revert.
-- [x] Known-value boundary coverage exists below, at and above every California
+- [ ] Known-value boundary coverage exists below, at and above every California
       bracket edge the pack carries and the surcharge threshold, for every filing
       status, and each fixture names the source edition and tax year it was
       derived from.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-02`, `report.md#tp-04-07`
-  - **Evidence:** no ordinary schedule resolved, so the pack carries no bracket
-    edge and the row is closed by proving the covered set is closed over what the
-    pack actually carries rather than by covering an absent schedule. TP-04-02
-    enumerates both edge families, pins the carried set to the single surcharge
-    threshold covered below, at and above for all four statuses, and resolves that
-    edge to a retrieved source record naming its edition and declared year. Two
-    negative controls are built in: the enumerator must find two more edges on a
-    clone carrying a schedule, and the provenance pointer must resolve to nothing
-    on a clone whose `sourceRef` dangles. TP-04-02 fell alone by name under a
-    value-free probe that truncated the enumerator to the ordinary family and
-    returned green under the identical command after an in-invocation revert.
 - [ ] No module file changed in this scope. Every module is byte-identical to its
       Scope 03 state, proving the contract carried California without an engine
       edit. Any edit that appeared necessary is recorded as a finding routed back
@@ -326,32 +315,14 @@ syntax error, a missing browser or an absent test does not satisfy RED.
 - [ ] `unsupportedFeatures[]` is non-empty and no result is labelled a complete
       state tax.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-14`
-- [x] No output states a probability, a lifetime figure, a track record or an
+- [ ] No output states a probability, a lifetime figure, a track record or an
       error rate, and no California figure is presented as an estimate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-  - **Evidence:** five detectors were run over this scope's two output paths, the
-    California pack and the page that renders its notices. Each detector is proven
-    live on a planted sentence before the scan is trusted and the run aborts if any
-    is dead; that guard fired once, catching a lifetime-figure detector that did
-    not match its own planted sentence, which was widened and re-proven. The
-    probability, lifetime-figure, track-record and error-rate detectors returned
-    zero hits. The single estimate hit is the pack's own statement that an
-    unsupported residency pattern refuses *rather than being approximated*, and a
-    classifier proven live on both an asserted and a disclaimed form reports
-    asserted-estimate count zero.
 - [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
   - **Phase:** implement · **Command:** the exact TP-04-01 through TP-04-19 commands · **Evidence:** `report.md#test-evidence`
-- [x] `node scripts/selftest.mjs` is green with no fall in pass count and no
+- [ ] `node scripts/selftest.mjs` is green with no fall in pass count and no
       existing assertion edited, `node scripts/validate-spec-test-paths.mjs`
       reports zero new missing paths, and `node scripts/build-pages-site.mjs
       --dry-run` succeeds.
   - **Phase:** implement · **Command:** all three commands · **Evidence:** `report.md#tp-04-20`, `report.md#tp-04-21`, `report.md#tp-04-22`
-  - **Evidence:** all three executed at exit 0. The suite entered this session at
-    `3103 passed, 0 failed` and leaves it at `3105 passed, 0 failed`; the
-    append-only claim is decidable rather than asserted, with the session diff
-    over `scripts/selftest.mjs` reporting 90 insertions and 0 deletions. The path
-    guard reports `new=0 stale=0` and the frozen baseline and `site-exclusions.json`
-    are byte-identical over the session. The guard is recorded as having caught a
-    defect this session introduced — a bare test path written into the report — and
-    the fix rather than the suppression is what returned it to green.

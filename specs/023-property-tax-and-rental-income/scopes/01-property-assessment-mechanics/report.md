@@ -1350,6 +1350,495 @@ The failure message's trailing list is empty, which is the informative part:
 `missingMarkers23` was empty, so the row fell purely on the surviving literal
 rather than on a missing marker. The two halves are independently sensitive.
 
+## Browser And Gate Row Completion Session
+
+Probes 1 through 17 left intended-RED recorded for `TP-01-01` … `TP-01-17` and
+`TP-01-20`. This session works the remaining rows — the four browser rows
+`TP-01-18`, `TP-01-19`, `TP-01-21`, `TP-01-22`, the cumulative row `TP-01-23`
+and the three gate rows `TP-01-24` … `TP-01-26` — in the same shape as before:
+mutate so the row's own assertion fails, run the exact command the row names,
+revert inside the same shell invocation, and re-run that same command.
+
+Every mutation in this session is value-free by construction — an identifier, a
+comparison operator, one term of a local product, or a single allow-list member
+— so a slipped revert could not have disclosed a household figure. No two probes
+were ever live at once, and each revert was verified before the next opened.
+
+### Probe 18 — same-command RED and GREEN for TP-01-18
+
+`TP-01-18` pins that a missing household declaration and an unretrieved statutory
+rule refuse *differently*, and that the separation is carried by contract shape
+rather than by message text. The row states that explicitly: a different code and
+a different domain prefix, so a copy edit to either message cannot collapse one
+into the other.
+
+The domain prefix is therefore the exact thing to falsify, and it takes one
+identifier. Collapsing the assessment domain onto the regime domain leaves both
+refusals raised, both codes intact and both messages unchanged — only the prefix
+separation goes:
+
+```js
+   function undeclaredMember(member, regimeId) {
+-    return rules.unavailable("RLTAX-INPUT-INCOMPLETE", "property-assessment:" + member,
++    return rules.unavailable("RLTAX-INPUT-INCOMPLETE", "property-regime:" + member,
+```
+
+RED:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-001 a missing declaration and an unretrieved rule refuse differently and neither shows a zero" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✘  1 [system-chrome] › tests/lifetime-tax-property.spec.mjs:70:1 › Regression: SCN-023-001 a missing declaration and an unretrieved rule refuse differently and neither shows a zero (914ms)
+
+  1) [system-chrome] › tests/lifetime-tax-property.spec.mjs:70:1 › Regression: SCN-023-001 a missing declaration and an unretrieved rule refuse differently and neither shows a zero
+
+    Error: expect(received).toMatch(expected)
+
+    Expected pattern: /^property-assessment:/
+    Received string:  "property-regime:assessedValue"
+
+    > 80 |   expect(declarationDomain).toMatch(/^property-assessment:/);
+         |                             ^
+
+  1 failed
+RED_EXIT=1
+```
+
+Reverted inside the same shell invocation, revert verified, same command again:
+
+```
+$ git checkout -- rltaxproperty.js && git status --short -- rltaxproperty.js
+revert_rc=0
+STATUS_EMPTY_ABOVE
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-001 a missing declaration and an unretrieved rule refuse differently and neither shows a zero" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/lifetime-tax-property.spec.mjs:70:1 › Regression: SCN-023-001 a missing declaration and an unretrieved rule refuse differently and neither shows a zero (850ms)
+
+  1 passed (1.9s)
+GREEN_EXIT=0
+```
+
+The test failed *by name* rather than erroring out of the file, and it failed on
+the prefix clause specifically — the code assertion on line 78 passed first, so
+`RLTAX-INPUT-INCOMPLETE` was still raised and still named `assessedValue`. That
+is the informative part: the row does not lean on the code alone. Had the two
+refusals been separated only by their code, this mutation would have gone
+undetected, and the row proves it would not.
+
+### Probe 19 — same-command RED and GREEN for TP-01-19
+
+`TP-01-19` pins that the cap and the exemption are each applied *at their own
+declared point*, in order, and that each step publishes the figure it moved from
+and the figure it moved to. The exemption step is the second of the two, so
+neutralising it — while leaving the step, its application point and its citation
+in place — is the smallest change that violates only that half of the row.
+
+One term of a local difference is removed. The step still renders, still declares
+`assessed-value`, still carries `before`; only the reduction goes:
+
+```js
+-    var taxableBasis = Math.max(0, cappedValue - exemptionTotal);
++    var taxableBasis = Math.max(0, cappedValue);
+```
+
+RED:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-002 the exemption and the cap are applied at their declared points with reachable citations" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✘  1 [system-chrome] › tests/lifetime-tax-property.spec.mjs:114:1 › Regression: SCN-023-002 the exemption and the cap are applied at their declared points with reachable citations (6.2s)
+
+  1) [system-chrome] › tests/lifetime-tax-property.spec.mjs:114:1 › Regression: SCN-023-002 the exemption and the cap are applied at their declared points with reachable citations
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('#propertyReliefBody tr').filter({ hasText: 'exemptions' }).first()
+    Expected substring: "$284,000"
+    Received string:    "exemptionsassessed-value$309,000$309,000nothis regime carries no such rule, which is a stated fact rather than a silent pass"
+    Timeout: 5000ms
+
+      145 |     await expect(exemptionRow).toContainText('$309,000');
+    > 146 |     await expect(exemptionRow).toContainText('$284,000');
+          |                                ^
+        at <repo>/tests/lifetime-tax-property.spec.mjs:146:32
+
+  1 failed
+RED_EXIT=1
+```
+
+Reverted inside the same shell invocation, revert verified, same command again:
+
+```
+$ git checkout -- rltaxproperty.js && git status --short -- rltaxproperty.js
+revert_rc=0
+STATUS_EMPTY_ABOVE
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-002 the exemption and the cap are applied at their declared points with reachable citations" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/lifetime-tax-property.spec.mjs:114:1 › Regression: SCN-023-002 the exemption and the cap are applied at their declared points with reachable citations (842ms)
+
+  1 passed (2.1s)
+GREEN_EXIT=0
+```
+
+The received string is the decisive part of this capture. The exemption row is
+still present, still labelled `assessed-value`, and still reports a `before` of
+`$309,000` — but its `after` now reads `$309,000` as well. A regression that
+silently stopped applying an elected exemption would leave a relief table that
+still *looks* complete, with the right number of rows and the right application
+points, and the row catches it anyway because it pins the pair of figures each
+step moved between rather than the step's presence. The cap clause on line 145
+passed first, so the two steps are independently sensitive.
+
+### Probe 21 — same-command RED and GREEN for TP-01-21
+
+`TP-01-21` asserts two-directional set identity between the settled record and
+each of four surfaces — headline, comparison, curve and export. The way it can
+rot is a leg that settles and then quietly fails to reach one surface, so the
+probe removes the property leg from exactly one surface and leaves the other
+three intact. The export is chosen because it is the surface furthest from the
+settlement and the one a reader is least likely to check by eye.
+
+The mutation is an identifier-keyed filter, so no figure appears in it:
+
+```js
+-                var settledLegs = state.envelope ? state.envelope.legIds.slice() : [];
++                var settledLegs = state.envelope ? state.envelope.legIds.filter(function (legId) { return legId !== "property-tax"; }) : [];
+```
+
+RED:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-002 the property leg reaches the headline, the comparison, the curve and the export" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✘  1 [system-chrome] › tests/lifetime-tax-property.spec.mjs:223:1 › Regression: SCN-023-002 the property leg reaches the headline, the comparison, the curve and the export (986ms)
+
+  1) [system-chrome] › tests/lifetime-tax-property.spec.mjs:223:1 › Regression: SCN-023-002 the property leg reaches the headline, the comparison, the curve and the export
+
+    Error: the leg property-tax is in the settled record and does not reach export
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: "property-tax"
+    Received array: ["additional-medicare-tax", "net-investment-income-tax", "ordinary", "preferential"]
+
+      295 |       sortedRecord.forEach((legId) => {
+      296 |         expect(rendered, `the leg ${legId} is in the settled record and does not reach ${surface}`)
+    > 297 |           .toContain(legId);
+          |            ^
+        at forEach (<repo>/tests/lifetime-tax-property.spec.mjs:297:12)
+
+  1 failed
+RED_EXIT=1
+```
+
+Reverted inside the same shell invocation, revert verified, same command again:
+
+```
+$ git checkout -- lifetime-tax-strategy-lab.html && git status --short -- lifetime-tax-strategy-lab.html
+revert_rc=0
+STATUS_EMPTY_ABOVE
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-002 the property leg reaches the headline, the comparison, the curve and the export" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/lifetime-tax-property.spec.mjs:223:1 › Regression: SCN-023-002 the property leg reaches the headline, the comparison, the curve and the export (747ms)
+
+  1 passed (1.9s)
+GREEN_EXIT=0
+```
+
+The failure line is the row's own message rather than a bare matcher diff: *the
+leg property-tax is in the settled record and does not reach export*. It names
+the leg and the surface, which is what makes the row diagnostic rather than
+merely red — a maintainer reading this failure is told which of the four
+surfaces dropped the leg without opening the test. The headline, comparison and
+curve surfaces were all checked and passed before the export surface was
+reached, so the four are independently sensitive rather than sharing one lookup.
+
+### Probe 22 — same-command RED and GREEN for TP-01-22
+
+`TP-01-22` has two halves: no request follows the property settlement at all,
+and no declaration reaches a URL, a body, a console message or the address bar.
+
+The obvious probe for the second half — a request carrying a household figure in
+its query string — was **deliberately not used**. Planting a real exfiltration in
+the page, even briefly, is the one mutation whose slipped revert would be an
+actual privacy defect rather than a broken test, and this scope's own probe
+discipline requires every mutation to be value-free by construction. The probe
+instead falsifies the *first* half with a request that carries nothing at all: a
+re-read of a route asset the configuration already declares, with no query
+string and no household data of any kind.
+
+```js
+   function renderProperty() {
++      window.fetch("tax-rules/property/FL/2026.json");
+       var refusalHost = byId("propertyRefusal");
+```
+
+RED:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-001 the request ledger stays empty and no property declaration reaches a URL" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✘  1 [system-chrome] › tests/lifetime-tax-property.spec.mjs:311:1 › Regression: SCN-023-001 the request ledger stays empty and no property declaration reaches a URL (926ms)
+
+  1) [system-chrome] › tests/lifetime-tax-property.spec.mjs:311:1 › Regression: SCN-023-001 the request ledger stays empty and no property declaration reaches a URL
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 26
+    Received: 40
+
+    > 333 |   expect(ledger.length).toBe(afterFirstPaint);
+          |                         ^
+        at <repo>/tests/lifetime-tax-property.spec.mjs:333:25
+
+  1 failed
+RED_EXIT=1
+```
+
+Reverted inside the same shell invocation, revert verified, the probe token
+proven absent, same command again:
+
+```
+$ git checkout -- lifetime-tax-strategy-lab.html && git status --short -- lifetime-tax-strategy-lab.html
+revert_rc=0
+STATUS_EMPTY_ABOVE
+probe_token_remaining=0
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-001 the request ledger stays empty and no property declaration reaches a URL" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/lifetime-tax-property.spec.mjs:311:1 › Regression: SCN-023-001 the request ledger stays empty and no property declaration reaches a URL (777ms)
+
+  1 passed (1.8s)
+GREEN_EXIT=0
+```
+
+Twenty-six requests before the mutation, forty after. That gap is the useful
+result, and it is stronger than the leak probe would have been. Every added
+request went to a path the configuration *permits*, so the allow-list clause on
+line 337 would have passed and the sentinel scans on line 348 would have passed
+too — the row falls purely on the count. A regression that started polling a
+perfectly innocuous declared asset after every keystroke would leak nothing and
+still be caught, which is the property a privacy row needs: it pins silence, not
+merely the absence of a known-bad string.
+
+### Probe 24 — same-command RED and GREEN for TP-01-24
+
+`TP-01-24` is the repository gate: the whole suite stays green **and** the
+pre-existing pass count does not fall. A gate row is falsified by any real
+regression reaching the suite, so the probe is a value-free arithmetic mutation —
+one term of a local difference dropped, so the elected exemptions stop reducing
+the taxable basis:
+
+```js
+-    var taxableBasis = Math.max(0, cappedValue - exemptionTotal);
++    var taxableBasis = Math.max(0, cappedValue);
+```
+
+The dropped term is a running local total, not a figure, so a slipped revert
+could not have disclosed a household value. The mutation was verified to have
+landed before the run:
+
+```
+new=1 old=0
+```
+
+RED — the row's exact command:
+
+```
+$ node scripts/selftest.mjs
+
+  ✗ FAIL: TP-01-05: below, exactly at and above the cap ceiling the capped assessment, the exemption-reduced taxable basis and the tax are each exact, and the boundary itself is not treated as bound
+  ✗ FAIL: TP-01-06: two regimes differing ONLY in capBasis produce different taxable bases from identical declarations, and each record names the basis it applied
+  ✗ FAIL: TP-01-11b: the property marginal context states explicitly that the leg does not move with income, and a refused settlement produces an unavailable context carrying the refusal code rather than a zero contribution
+Research-Lab self-test: 3103 passed, 3 failed
+RED_EXIT=1
+```
+
+Reverted inside the same shell invocation, revert verified before anything else
+ran:
+
+```
+$ git checkout -- rltaxproperty.js
+revert_rc=0
+$ git status --short -- rltaxproperty.js
+STATUS_EMPTY_ABOVE
+```
+
+GREEN — same command, clean tree:
+
+```
+$ git status --short -- rltaxproperty.js
+PRE_GREEN_STATUS_EMPTY_ABOVE
+
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3106 passed, 0 failed
+GREEN_EXIT=0
+```
+
+Both halves of the row moved and the row is sensitive to each. The suite went
+from green to failing, and the pass count fell 3106 → 3103 rather than merely
+holding while failures appeared — so the row would catch a regression that
+deleted assertions as well as one that broke them. The three failures are
+themselves informative: a single dropped term reached the known-value row, the
+cap-basis row and the marginal-context row, which is the blast radius a
+repository gate exists to surface.
+
+### Probe 25 — same-command RED and GREEN for TP-01-25
+
+`TP-01-25` pins that no spec artifact in this feature names a test file that does
+not exist. The falsifying mutation is therefore a single identifier inside one
+Test Plan reference — no figure, no threshold, no code path:
+
+```md
+- - `<repo>/tests/lifetime-tax-route.spec.mjs` — SUP-023-06 only.
++ - `<repo>/tests/lifetime-tax-routeprobe.spec.mjs` — SUP-023-06 only.
+```
+
+The two paths above carry a `<repo>/` prefix that the live scope artifact did
+not: the mutation itself used the bare form. The prefix is the repository's
+established way of quoting a path inside evidence without the path-guard
+re-parsing the quotation as a live reference — the same guard this row proves.
+Without it, this evidence block would itself report the probe's deliberately
+absent file as a new missing path.
+
+The scope's second reference to the same file, at line 178, was left intact, so
+the guard had to catch the one broken site among fourteen thousand references
+rather than notice a file dropping out of the tree entirely. Landing verified
+before the run — `old=1` is the surviving untouched reference:
+
+```
+new=1 old=1
+```
+
+RED — the row's exact command:
+
+```
+$ node scripts/validate-spec-test-paths.mjs
+[spec-test-paths] scanned=678 references=14977 distinctPaths=247 missingPaths=68 baseline=67 new=1 stale=0
+  NEW-MISSING <repo>/tests/lifetime-tax-routeprobe.spec.mjs (1 reference site(s))
+      referenced at specs/023-property-tax-and-rental-income/scopes/01-property-assessment-mechanics/scope.md:104
+[spec-test-paths] FAIL — 1 new referenced path(s) do not exist
+RED_EXIT=1
+```
+
+Reverted inside the same shell invocation, revert verified:
+
+```
+$ git checkout -- specs/023-property-tax-and-rental-income/scopes/01-property-assessment-mechanics/scope.md
+revert_rc=0
+$ git status --short -- .../scope.md
+STATUS_EMPTY_ABOVE
+```
+
+GREEN — same command, clean tree:
+
+```
+$ git status --short -- .../scope.md
+PRE_GREEN_STATUS_EMPTY_ABOVE
+
+$ node scripts/validate-spec-test-paths.mjs
+[spec-test-paths] scanned=678 references=14977 distinctPaths=246 missingPaths=67 baseline=67 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+GREEN_EXIT=0
+```
+
+The row is sensitive on the axis it claims. `baseline=67` is identical across
+both directions, so the RED came from the scan and not from a baseline edit, and
+the counters move exactly one step each — `distinctPaths` 246 → 247,
+`missingPaths` 67 → 68, `new` 0 → 1. The guard also named the referencing
+artifact and line, which is what makes the row actionable rather than merely
+red. The six stale baseline entries recorded earlier in this report are now
+`stale=0`; that cleanup belongs to another feature and no baseline file was
+touched by this probe.
+
+### Probe 26 — same-command RED and GREEN for TP-01-26
+
+`TP-01-26` has three conjuncts: the Pages plan succeeds, `site-exclusions.json`
+is unchanged, and `tax-rules/` remains outside the public directories. The third
+is the one this scope owns, and it is not enforced by an exclusion entry —
+`site-exclusions.json` carries no `tax-rules` line at all. The regime packs stay
+private because the publisher works from a closed allow-list, so the falsifying
+mutation is one added member of that list:
+
+```js
+- const PUBLIC_DIRECTORIES = Object.freeze([… 'rlexperience-adapters', 'tests/fixtures']);
++ const PUBLIC_DIRECTORIES = Object.freeze([… 'rlexperience-adapters', 'tax-rules', 'tests/fixtures']);
+```
+
+A directory name is an identifier, not a figure, so a slipped revert could not
+have disclosed a household value — though it would have published the regime
+packs, which is why the revert was issued in the same invocation and verified
+before anything else ran. Landing verified first:
+
+```
+new=1 old=0
+```
+
+RED — the row's exact command:
+
+```
+$ node scripts/build-pages-site.mjs --dry-run
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":128,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tax-rules","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/004902309400a815a8ac1da2877422310e381d5c20748f711cbd0233e959a67a","omittedOrphanIndexes":144}
+RED_EXIT=0
+```
+
+Reverted inside the same shell invocation, revert verified:
+
+```
+$ git checkout -- scripts/build-pages-site.mjs
+revert_rc=0
+$ git status --short -- scripts/build-pages-site.mjs
+STATUS_EMPTY_ABOVE
+```
+
+GREEN — same command, clean tree:
+
+```
+$ git status --short -- scripts/build-pages-site.mjs
+PRE_GREEN_STATUS_EMPTY_ABOVE
+
+$ node scripts/build-pages-site.mjs --dry-run
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":128,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/004902309400a815a8ac1da2877422310e381d5c20748f711cbd0233e959a67a","omittedOrphanIndexes":144}
+GREEN_EXIT=0
+```
+
+**The exit code did not move, and that is the honest reading of this probe.**
+`tax-rules` enters and leaves the published `directories` array between the two
+runs — the row's third conjunct is genuinely falsified and genuinely restored by
+the same command — but both runs exit 0. The mutation publishes the regime packs
+*successfully*; a publisher has no reason to refuse a directory it was told to
+publish. So this row's third conjunct is enforced by reading the `directories`
+array, not by the process exit status, and the RED above proves the observation
+is sensitive rather than proving the command is.
+
+**Finding — the deploy gate's privacy conjunct is not exit-code enforced.** A
+grep of `scripts/selftest.mjs` for an assertion pinning `tax-rules` out of the
+published set returns nothing, so no automated check would fail if a future
+change added the regime packs to `PUBLIC_DIRECTORIES`. The dry-run output would
+show it and CI would stay green. This is a gap in the gate, not in the evidence
+above; it is recorded here rather than fixed, because `scripts/build-pages-site.mjs`
+sits outside this scope's change boundary and the fix belongs to whoever owns the
+publisher.
+
 ## Change Boundary
 
 Command: a path-scoped status check over the excluded list.

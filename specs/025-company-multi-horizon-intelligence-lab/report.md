@@ -3061,6 +3061,7 @@ Certification belongs to `bubbles.validate`. No certification field was written
 and no terminal status was set. `state.json` carries execution fields only.
 
 **Educational research only. Not investment advice.**
+
 ---
 
 ## Chaos Phase
@@ -4792,6 +4793,195 @@ head of this pass. The files this pass changed are `company-intelligence-lab.htm
   eleven owning tools cannot open on a company at all — is unchanged by this work and remains a
   planning decision.
 - It did not add a `scripts/pii-scan.config.json` allow entry.
+
+**Claim Source:** executed.
+
+---
+
+## Chaos J7 — a refused entry left a half-updated identity line, and the paint was never final — `bubbles.implement`, 2026-08-19
+
+**Phase:** implement. One reproducible product defect, root-caused by observation rather than
+by reading, fixed at its cause, and re-verified under repetition.
+
+### The failure as reported
+
+```
+npx --no-install playwright test tests/chaos-company-intelligence.spec.mjs \
+  --config=playwright.config.mjs --project=system-chrome --grep "Chaos J7" --repeat-each 3 --reporter=line
+```
+
+3 failed, 3 of 3 runs, at `tests/chaos-company-intelligence.spec.mjs:498`, on the FIRST payload
+of the loop — `300 shares at cost basis 12.5`, the FR-025 privacy refusal:
+
+```
+Error: 300 shares at cost basis 12.5
+expect(received).toBe(expected) // Object.is equality
+Expected: "Microsoft Corporation (MSFT) resolved on sec-cik, SEC identity 0000789019."
+Received: "Microsoft Corporation (MSFT?) resolved on sec-cik, SEC identity 0000789019."
+```
+
+### Root cause — stated plainly
+
+**The refusal path never touched the identity line. A shared site-wide enhancer rewrote that
+line afterwards, on a timer, because the route's paint was never final.**
+
+Every hypothesis in the request was correct as far as it went, which is why reading the route
+could not find this. `render()` does return early on a refusal, `renderRefusal()` does write
+only `#subject-refusal`, the URL is never rewritten, and `rlcompanyintel.js` appends no `"?"`
+to any ticker. The `?` does not come from this feature's code at all.
+
+It was found by instrumenting the page instead of reasoning about it. A temporary probe
+wrapped the `Node.prototype.textContent` setter and recorded every write to
+`#subject-identity` with its stack, then dumped the element's `outerHTML` after the refusal.
+Both recorded writes carried the CLEAN string:
+
+```
+PROBE write[0]=Microsoft Corporation (MSFT) resolved on sec-cik, SEC identity 0000789019.
+PROBE stack[0]=... at setText (...:758) <<>> at render (...:1407) <<>> at run (...:1437)
+               <<>> at paintFromEmbedded (...:1652) <<>> at boot (...:1674)
+PROBE write[1]=Microsoft Corporation (MSFT) resolved on sec-cik, SEC identity 0000789019.
+PROBE stack[1]=... at setText (...:758) <<>> at render (...:1407) <<>> at run (...:1437) <<>> at ...:1499
+```
+
+…and yet the element read back as `(MSFT?)`. The `outerHTML` named the culprit outright:
+
+```html
+<p id="subject-identity">Microsoft Corporation (<span data-tkr="MSFT" data-rltkr-done="1">
+  <span class="rltkr-wrap" data-tkr-symbol="MSFT">
+    <a class="rltkr" href="https://finance.yahoo.com/quote/MSFT" ... data-rlk-done="1"
+       aria-label="Microsoft · Technology — open Yahoo Finance">MSFT</a>
+    <button class="rltkr-context" type="button" data-tkr-context="MSFT"
+            aria-label="Explain MSFT">?</button>
+  </span></span>) resolved on sec-cik, SEC identity 0000789019.</p>
+```
+
+The `?` is the label of the shared enhancer's *explain this ticker* button
+(`rlticker.js:119`), injected inline between the ticker and the closing parenthesis. It is the
+P15 affordance — not a corrupted symbol, and not an unresolved identifier.
+
+The mechanism, end to end:
+
+1. `rlticker.js::scan` auto-scans the whole `<body>` for KNOWN tickers unless the body carries
+   `data-tkr-noauto`. This route does not, so the identity sentence is in scope.
+2. That scan is **debounced 240 ms behind a `MutationObserver`** (`rlticker.js::schedule`). It
+   does not run with the paint; it runs a fraction of a second after it.
+3. So the route's last paint writes `(MSFT)`, the test's `open()` helper returns as soon as
+   `data-corpus-status` settles, `identityBefore` is captured while the text is still clean —
+   and the enhancer then rewrites that same line into `(MSFT?)` with no user action behind the
+   change.
+4. The refused entry lands inside that window. The reader submits an entry, the entry is
+   refused, and the identity line changes anyway. That is precisely the half-updated page J7
+   exists to catch: the *cause* is not the refusal, but the *observation* is real and the
+   invariant is genuinely violated.
+
+The 3-of-3 determinism is the debounce, not luck: the interval between the final corpus paint
+and the refusal assertion straddled 240 ms on every run.
+
+### The fix — make the paint final
+
+`company-intelligence-lab.html` now applies the shared enhancement **synchronously, as the last
+step of a paint**, immediately before the run status is published, in both `render()` and
+`renderRefusal()`:
+
+```js
+function enhanceTickers() {
+    if (window.RLTKR && typeof window.RLTKR.scan === "function") window.RLTKR.scan(document);
+}
+```
+
+What is on screen when a run reports its status is now what stays there. The later debounced
+pass still runs, finds every ticker already carrying `data-rltkr-done` / `data-rlk-done`, and
+changes nothing — `rlticker.js::autoScanText` skips text nodes already inside `.rltkr` or
+`[data-rlk-done]`. A refused entry therefore leaves identity, events and coverage exactly as
+the previous subject left them.
+
+The alternative — suppressing the enhancer on this line to keep the text clean — was rejected:
+P15 says *every ticker links out with a rich tooltip*, and stripping the affordance from the
+one line that names the subject would trade a timing defect for a principle violation. The
+repo-wide precedent agrees; `tests/company-fundamentals-lab.spec.mjs`,
+`tests/market-brief-session-date-drift.spec.mjs`, `tests/market-heatmap-control-surface.spec.mjs`
+and `tests/simple-production-wiring.spec.mjs` all already treat the inline `?` as the accepted
+rendered shape.
+
+### The J7 test was not touched
+
+No assertion, no expected string, no payload, no skip. `identityBefore` is now captured from an
+already-final paint and is still compared byte-for-byte against the post-refusal reading.
+
+### One consequence, disclosed rather than absorbed
+
+Making the enhancement deterministic exposed an extraction assumption in the **J6** sampler,
+which pulled the subject out of the identity line with `/\(([A-Z.]+)\)/`. With the affordance
+now always present that pattern matches nothing, so every sample degraded to `'none'` and J6's
+own self-check `expect(identities.size).toBeGreaterThan(1)` correctly reported that the sampler
+had stopped seeing subjects:
+
+```
+[chaos J6] samples=17 distinct subjects seen=none composing-state paints=0 msft event ids=5
+  1) Chaos J6 ... Error: the sampler really saw more than one subject mid-flight
+     Expected: > 1   Received: 1
+```
+
+The extraction — not the assertion — was corrected to `/\(([A-Z.]+)\??\)/`: still the
+parenthesised uppercase ticker, with the enhancer's affordance allowed between the symbol and
+the closing parenthesis. Nothing J6 asserts was relaxed, and the guard reads real subjects
+again:
+
+```
+[chaos J6] samples=17 distinct subjects seen=MSFT,AAPL composing-state paints=0 msft event ids=5
+```
+
+### The `?`-in-a-ticker concern — checked, and it does not apply
+
+The requested condition ("a ticker containing `?` is being accepted anywhere") is **false
+here**: no ticker ever held a `?`. Both recorded `setText` writes carried `MSFT`, and
+`resolveSubject` gates every identifier on `/^[A-Za-z][A-Za-z0-9.\-]{0,9}$/` before a subject
+exists, so `compose()` returns `C025-IDENTITY-UNRESOLVED` and renders nothing for such an
+entry. The deep-link composer at `rlcompanyintel.js:480` is separately proven inert against
+hostile subjects — its committed adversarial list already includes `'MSFT?x=1'` and asserts a
+single percent-encoded parameter, no scheme, no authority, no fragment.
+
+`rlcompanyintel.js` was therefore left unchanged. Tightening `ownerRouteFor` to drop non-ticker
+subjects was written, then reverted, because it would have required rewriting that correct
+committed adversarial test to match new behaviour — the exact move this spec forbids.
+
+What was added instead is an **additive adversarial assertion** at the boundary that actually
+governs this, in `tests/company-intelligence.unit.mjs`: `'MSFT?'`, `'MSFT?x=1'`, `'MS FT'`,
+`'MSFT&x'`, `'MSFT#a'` and `'?MSFT'` must each refuse with `C025-IDENTITY-UNRESOLVED`, with a
+counter-case proving plain `'MSFT'` still resolves so the guard is not refusing everything.
+
+### Verification — every command and its verbatim exit code
+
+| Command | Result | Exit |
+|---|---|---|
+| `npx --no-install playwright test tests/chaos-company-intelligence.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Chaos J7" --repeat-each 3 --reporter=line` | `3 passed (2.6s)` | `J7_REPEAT3_EXIT=0` |
+| `npx --no-install playwright test tests/company-intelligence-lab.spec.mjs tests/chaos-company-intelligence.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=line` | `43 passed (46.4s)` | `SUITE_EXIT=0` |
+| `node --test tests/company-intelligence.unit.mjs` | `tests 76  pass 76  fail 0` | `UNIT_EXIT=0` |
+| `node scripts/selftest.mjs` | `3103 passed, 0 failed` | `SELFTEST_EXIT=0` |
+| `node scripts/pii-scan.mjs` | `files=8106 messages=1535 findings=0 OK` | `PII_EXIT=0` |
+| `bash .github/bubbles/scripts/artifact-lint.sh specs/025-company-multi-horizon-intelligence-lab` | `Artifact lint PASSED.` | `ARTIFACT_LINT_EXIT=0` |
+
+The BEFORE state is the operator's own reproduction quoted at the head of this section: 3
+failed, 3 of 3, in isolation. The AFTER state is `3 passed` on the identical command.
+
+### Source integrity
+
+Files changed by this pass: `company-intelligence-lab.html` (the `enhanceTickers` helper and
+its two call sites), `tests/chaos-company-intelligence.spec.mjs` (the J6 extraction pattern
+only), `tests/company-intelligence.unit.mjs` (the additive adversarial identifier assertion),
+and this report. `rlcompanyintel.js` is byte-identical to its committed state. The two
+temporary probe specs written to observe the defect were deleted once the cause was known.
+
+### What this pass deliberately did not do
+
+- It did not modify, weaken, relax, skip or delete the J7 test or any of its assertions, and it
+  did not change the expected string to match the buggy output.
+- It did not tick anything in the `## Checklist` section of `uservalidation.md`.
+- It did not set `status` to `done` and did not write `certifiedAt`.
+- It did not touch any lifetime-tax path (`rltax*.js`, `lifetime-tax-*`, `tax-rules/`,
+  `specs/021`–`024`) or `specs/026`.
+- It did not run the full 641-test browser suite; the operator reserved that run.
+- It did not change `rlcompanyintel.js`, and added no `pii-scan` allow entry.
 
 **Claim Source:** executed.
 

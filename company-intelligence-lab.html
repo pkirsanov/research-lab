@@ -1023,6 +1023,19 @@
 
             /* ---------- rendering ---------- */
 
+            /* The shared ticker enhancer rewrites every known ticker on the page into an explained
+               affordance, but it does that on a debounce AFTER a mutation lands. A region this
+               route has already painted therefore rewrites itself a fraction of a second later,
+               with no user action behind the change: the identity line a reader is looking at
+               turns from "(MSFT)" into "(MSFT?)" on its own, and a refusal that must leave the
+               previous subject whole ends up sitting beside a line that moved anyway. Applying the
+               same enhancement synchronously as the last step of a paint makes the painted view
+               final — the later debounced pass finds every ticker already enhanced and changes
+               nothing, so what is on screen when a run reports its status is what stays there. */
+            function enhanceTickers() {
+                if (window.RLTKR && typeof window.RLTKR.scan === "function") window.RLTKR.scan(document);
+            }
+
             function renderRefusal(refusal) {
                 var node = byId("subject-refusal");
                 node.hidden = false;
@@ -1031,6 +1044,7 @@
                 node.textContent = refusal.code + ": " + refusal.message +
                     (refusal.detail ? " [" + refusal.detail + "]" : "");
                 node.setAttribute("data-refusal-code", refusal.code);
+                enhanceTickers();
                 setBodyState("refused", 0);
             }
 
@@ -1429,6 +1443,7 @@
                 renderPlan(version);
                 renderSources(version);
                 renderOutcomeRecord(result);
+                enhanceTickers();
                 setBodyState("composed", version.coverageAccount.totals.unavailable);
             }
 

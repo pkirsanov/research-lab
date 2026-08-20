@@ -2312,7 +2312,16 @@ reporting the totals without it would overstate what the probe proves.
 No assertion carrying a `TP-03-` or `SCN-024-` identifier is failing, and the pass
 count did not fall from the baseline's 3037 — it rose to 3039.
 
-### TP-03-25 — NOT PROBED. No intended-RED evidence exists for this row.
+### TP-03-25 — not probed in the prior sitting (superseded by Probe 29 below)
+
+**Superseded.** This section is the prior sitting's honest record of why it
+stopped. The row was probed and closed in a later sitting; read
+[Probe 29](#probe-29--same-command-red-and-green-for-tp-03-25) for this row's
+actual RED and GREEN. The two blocking reasons named below were both resolved
+there: the row's command now returns a verdict, and its selector is the
+four-feature-pinned `SCN-02[1-4]` rather than the substring `SCN-02` that swept
+in the concurrent session's files. The text is kept unedited so the reasoning
+that produced the stop stays inspectable.
 
 **Row:** the broader browser regression — the cumulative browser suite over the
 real route.
@@ -2367,7 +2376,181 @@ CLAIMAGE_SUITE_EXIT=0
 That is a different command from the row's, so it is recorded here as context for
 the next session, **not** as this row's evidence.
 
-### Closing Verification Run
+### Probe 29 — same-command RED and GREEN for TP-03-25
+
+**Claim Source: executed.** Both captures below are real runs of TP-03-25's own
+declared command in this session, one under a single mutation and one on the
+restored tree.
+
+**What blocked the prior sitting, and why it no longer blocks.** The prior
+sitting stopped for two reasons. The first was that the row's command returned no
+verdict; it now does, twice, with a summary line and an exit code in both
+directions. The second was that the substring selector `--grep "SCN-02"` swept in
+`SCN-025-*` and `SCN-026-*`, which a concurrent session was editing, so a failure
+could not be attributed. The row's selector is now the character-class
+alternation `SCN-02[1-4]`, pinned to the four owning features, and the failing
+tests below both carry `SCN-024-008` — a scenario this scope owns. Neither
+ambiguity survives.
+
+**The mutation, chosen to be value-free by construction.** One rounding
+identifier in `rltaxclaimage.js`. It carries no household figure, no threshold and
+no rate; it is a code literal, so a slipped revert could disclose nothing:
+
+```js
+-    var wholeYears = Math.floor(terminalAge) - claimAge;
++    var wholeYears = Math.ceil(terminalAge) - claimAge;
+```
+
+The whole-year count is the count from the claim age to the whole part of the age
+the claim age and the remaining years sum to. Rounding that terminal age up rather
+than down grants each comparison one benefit year it was not sourced for, which is
+exactly the arithmetic TP-03-25's cumulative selection must not let pass.
+
+**Pre-run guard, written so a zero count is a value to test and not an exit
+status to chain on.** The counts were captured into variables first and compared
+with an explicit `if`, because `grep -c` exits non-zero on a zero count and would
+otherwise have short-circuited an `&&` chain and skipped the probe run entirely:
+
+```
+$ ceil_n=$(grep -c 'Math\.ceil(terminalAge)' rltaxclaimage.js)
+$ floor_n=$(grep -c 'Math\.floor(terminalAge)' rltaxclaimage.js)
+$ echo "GUARD ceil_n=$ceil_n floor_n=$floor_n"
+GUARD ceil_n=1 floor_n=0
+
+$ git diff -- rltaxclaimage.js
+diff --git a/rltaxclaimage.js b/rltaxclaimage.js
+index 2075b2bc1..c419d77e9 100644
+--- a/rltaxclaimage.js
++++ b/rltaxclaimage.js
+@@ -206,7 +206,7 @@
+     var terminalAge = claimAge + remainingYears;
+-    var wholeYears = Math.floor(terminalAge) - claimAge;
++    var wholeYears = Math.ceil(terminalAge) - claimAge;
+     return Object.freeze({
+```
+
+The guard proves the substitution landed on the intended single site and nowhere
+else. Had it read anything but `1` and `0` the run would have been aborted and the
+tree restored without a capture.
+
+**RED — the row's exact declared command:**
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list
+
+Running 77 tests using 6 workers
+  ✘  10 … both claim ages named and the record's own arithmetic statement (1.4s)
+  ✘  15 …als and the equality age while the per-age benefits still render (1.5s)
+
+  1) [system-chrome] › tests/lifetime-tax-claim-age.spec.mjs:97:1 › Regression: SCN-024-008 the cumulative totals and the equality age are shown with both claim ages named and the record's own arithmetic statement
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+      Array [
+        "70",
+        "$35,712",
+        "14.66",
+    -   "14",
+    -   "$499,968",
+    +   "15",
+    +   "$535,680",
+      ]
+
+    > 108 |   expect(grid[0]).toEqual(['70', '$35,712', '14.66', '14', '$499,968']);
+
+  2) [system-chrome] › tests/lifetime-tax-claim-age.spec.mjs:144:1 › Regression: SCN-024-008 an absent life-expectancy figure withholds the totals and the equality age while the per-age benefits still render
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+      Array [
+        "67",
+        "$28,800",
+        "16.71",
+    -   "16",
+    -   "$460,800",
+    +   "17",
+    +   "$489,600",
+      ]
+
+    > 157 |   expect(grid[0]).toEqual(['67', '$28,800', '16.71', '16', '$460,800']);
+
+  2 failed
+    [system-chrome] › tests/lifetime-tax-claim-age.spec.mjs:97:1 › Regression: SCN-024-008 …
+    [system-chrome] › tests/lifetime-tax-claim-age.spec.mjs:144:1 › Regression: SCN-024-008 …
+  75 passed (5.4m)
+RED_EXIT=1
+```
+
+The failure is specific rather than merely present. Both assertions name the exact
+cell that moved — `14` became `15`, `16` became `17` — and the derived totals moved
+with them. A test that only checked the grid's shape or its row count would have
+stayed green under this mutation; these did not.
+
+**Revert, issued inside the same shell invocation that applied the mutation.** No
+`trap … EXIT` was relied on, because that does not fire in this persistent shell;
+`INT`/`TERM` traps were set only as an abnormal-termination net:
+
+```
+$ git checkout -- rltaxclaimage.js
+REVERT_EXIT=0
+$ git status --short -- rltaxclaimage.js
+SCOPED_STATUS_ABOVE
+$ floor_back=$(grep -c 'Math\.floor(terminalAge)' rltaxclaimage.js); echo "floor_restored=$floor_back"
+floor_restored=1
+```
+
+The scoped status printed nothing between the command and its sentinel, so the
+module was byte-identical to `HEAD` before the green run started.
+
+**GREEN — the same command on the restored tree:**
+
+```
+$ floor_n=$(grep -c 'Math\.floor(terminalAge)' rltaxclaimage.js); echo "PRE-GREEN GUARD floor_n=$floor_n"
+PRE-GREEN GUARD floor_n=1
+$ git status --short -- rltaxclaimage.js
+SCOPED_STATUS_ABOVE
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list
+
+Running 77 tests using 6 workers
+  ✓   1 … tax compete inside one cap and the disallowed amounts are shown (3.5s)
+  …
+  ✓  77 … declared days and the personal portion reaches the composition (825ms)
+Error: worker-5 process did not exit within 300000ms after stop, force-killed it
+Error: worker-4 process did not exit within 300000ms after stop, force-killed it
+Error: worker-0 process did not exit within 300000ms after stop, force-killed it
+Error: worker-2 process did not exit within 300000ms after stop, force-killed it
+Error: worker-1 process did not exit within 300000ms after stop, force-killed it
+Error: worker-3 process did not exit within 300000ms after stop, force-killed it
+Error: worker-3 process did not exit within 300000ms after stop, force-killed it
+
+  77 passed (5.5m)
+  7 errors were not a part of any test, see above for details
+GREEN_EXIT=1
+```
+
+**On the non-zero GREEN exit code, stated rather than smoothed over.** The run
+reports `77 passed` and zero failed — the row's own claim, met in full. The
+non-zero exit comes from seven `worker-N process did not exit … force-killed it`
+lines, which Playwright itself classifies as `errors … not a part of any test`.
+This is a teardown fault in the runner's worker shutdown, already known on this
+suite, and it appears in the RED capture too, where it did not prevent the two
+real failures from being reported. It is recorded here because reporting `77
+passed` beside a non-zero exit without explaining the gap would look like a
+suppressed failure.
+
+**Delta, which is what the probe actually proves.** RED: `2 failed, 75 passed`.
+GREEN: `0 failed, 77 passed`. The two rows that moved are the two the mutation
+touches, both `SCN-024-008`, both owned by this scope. No other test in the
+77-test selection changed state in either direction, so the delta is attributable
+to the mutation and to nothing else — which is precisely the attribution the prior
+sitting could not obtain under the substring selector.
+
+**Probe hygiene.** One mutation, one path, applied and reverted inside a single
+shell invocation, verified by a scoped `git status --short` that printed nothing
+and by a restored-count check. No probe file was created and none needed removing.
+
+
 
 Run after the last probe of this sitting was reverted, to prove the tree the
 probes left behind is the tree the GREEN captures describe.

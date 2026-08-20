@@ -143,26 +143,88 @@ Feature 021 members retain their meaning and raising site, and exactly two membe
 were added.
 Command: `node scripts/selftest.mjs`
 
-**Claim Source:** not-run. **This row is NOT satisfied and its Definition-of-Done
-item is left open.**
+**Claim Source:** executed.
 
-**Uncertainty Declaration.** The behaviour this row names is only partly asserted
-today, and the gap is a real coverage hole rather than a wording difference.
+The row has four clauses. Three were already pinned by the assertion labelled
+`TP-01-05`: the names parsed out of the module's own frozen declaration are
+compared element for element against the live export, the live count is required
+to equal the twelve named Feature 021 members plus the two named jurisdiction-axis
+members with a fabricated third addition proven to fail, and every member is
+required to construct a numeric-free refusal with a repurposed member proven to
+fail.
 
-| Clause of TP-03-01 | Asserted today | Where |
-| --- | --- | --- |
-| exactly one declaration in the repository | yes — the names parsed out of the module's own frozen declaration are compared element for element against the live export | the assertion labelled `TP-01-05` |
-| exactly two members were added | yes — the live count is required to equal the twelve named Feature 021 members plus the two named jurisdiction-axis members, and a fabricated third addition is proven to fail | the assertion labelled `TP-01-05` |
-| all twelve Feature 021 members retain their exact **meaning** | partly — membership and numeric-free construction are pinned, and a repurposed member is proven to fail | the assertion labelled `TP-01-05` |
-| all twelve retain their exact **raising site** | **no** | nothing in `scripts/selftest.mjs` pins a raising site; a repository search for the phrase finds only a Feature 024 row asserting that scope added none |
+The fourth clause — **raising site** — was asserted by nothing. A previous session
+recorded that gap honestly rather than banking the row. It is now closed by an
+appended assertion labelled `TP-03-01` in `scripts/selftest.mjs`, which pins, for
+every member of the vocabulary, the exact set of modules that raise it across
+Feature 021's four modules and this scope's new one. The scan strips the frozen
+declaration block first, because a declaration is not a raise, and then counts
+every remaining occurrence whatever idiom carries it — `unavailable(`, `refuse(`,
+a `deferralCode:` member or a ternary arm — so the detector cannot be evaded by
+changing the call shape.
 
-A code could therefore be moved from the module that raises it today to a
-different module, or cease to be raised at all, and the suite would stay green.
-Closing this row requires an appended assertion that pins, for each of the twelve
-members, the site that constructs it, together with a mutation proving the new
-assertion falls when a raise is moved or removed. That assertion was not written
-in this session, so the row is recorded as an open gap rather than banked as a
-GREEN it did not earn.
+Three clauses are additional to the pinned map and were written because the map
+alone would not have caught them: the pinned key set must equal the live
+vocabulary exactly, so a member added later cannot go unpinned; the one member
+raised entirely outside the pinned set is asserted to be raised somewhere in the
+tax modules, so it cannot be a member that is declared and never constructed; and
+two deliberately wrong maps — one with a raising site removed, one with a raising
+site added — are each required to be rejected against the same observation, so the
+comparison is shown to be capable of failing.
+
+**Intended RED.** A comment was planted at the head of the residency declaration
+in `rltaxstate.js` carrying the text
+`unavailable("RLTAX-PACK-EXPIRED", domain, reason, remediation)`. The mutation is
+value-free by construction — it is a comment holding a code literal and four
+parameter names, and it discloses no household member. It is also behaviourally
+inert, which is what makes it the right probe here: it changes no result any other
+assertion reads, so whatever falls is attributable to the new row alone. It stands
+for the failure this row exists to catch, a raise appearing in a module that does
+not own it. The pre-run guard confirmed the anchor matched exactly once and that
+the planted text landed on line 57 before the suite was run.
+
+```text
+GUARD_ANCHOR_COUNT=1
+GUARD_PROBE_PLANTED=1
+GUARD_PLANTED_LINE=57:  /* PROBE moved raise: unavailable("RLTAX-PACK-EXPIRED", domain, reason, remediation)
+RED_EXIT=1
+
+================================================
+Research-Lab self-test: 3098 passed, 2 failed
+================================================
+=== failing assertions ===
+  ✗ FAIL: committed surface carries no personal identifier
+  ✗ FAIL: TP-03-01: every member of the refusal vocabulary is raised from exactly the modules that own it across Feature 021's four modules and this scope's new one, a ra
+```
+
+Exactly one assertion fell, and it is the new one. The other failure,
+`committed surface carries no personal identifier`, is pre-existing and belongs to
+a concurrent session's spec directory; it is present in the GREEN run below with
+the identical text and is not this scope's.
+
+**Same-command GREEN.** The probe was reverted with `git checkout --` in the same
+session, the leftover count was re-read as zero and the source tree was confirmed
+to carry no dirty tax module, pack or test file, then the identical command was
+re-run.
+
+```text
+REVERT_LEFTOVER=0
+=== git status for source paths ===
+ M tests/company-intelligence-lab.spec.mjs
+?? tests/chaos-company-intelligence.spec.mjs
+GREEN_EXIT=1
+
+================================================
+Research-Lab self-test: 3099 passed, 1 failed
+================================================
+=== failing assertions ===
+  ✗ FAIL: committed surface carries no personal identifier
+```
+
+The two paths shown dirty are a concurrent session's company-intelligence spec
+files, not this scope's; no `rltax*.js` module, no pack under `tax-rules/` and no
+file this scope owns is modified. The pass count rose by one — the appended
+assertion — and the failure count is unchanged at the one pre-existing failure.
 
 ### TP-03-02
 
@@ -741,6 +803,84 @@ Scenario SCN-022-009 — `computeAnnualStateTax` accepts no federal figure throu
 any parameter, and reconciliation leg `L7` holds for every fixture.
 Command: `node scripts/selftest.mjs`
 
+**Claim Source:** executed.
+
+The row has two halves and each was probed separately, because a single mutation
+that fell both would not have shown which half the assertion actually reads.
+
+**Intended RED, the parameter half.** A third parameter named `federalResult` was
+added to the `computeAnnualStateTax` signature in `rltaxstate.js`. The mutation is
+value-free by construction — it is an identifier in a parameter list, it carries no
+household member, and the parameter is never read, so the mutation is
+behaviourally inert. That inertness is the point: the module still computes the
+same settlement, and the only thing that changed is that a federal figure now has
+a door to come through. The row fell on that alone.
+
+```text
+GUARD_A_SIGNATURE=421:  function computeAnnualStateTax(workspace, statePack, federalResult) {
+RED_A_EXIT=1
+
+================================================
+Research-Lab self-test: 3098 passed, 2 failed
+================================================
+  ✗ FAIL: committed surface carries no personal identifier
+  ✗ FAIL: TP-03-14: computeAnnualStateTax declares exactly the workspace and the state pack, no federal result reaches the module by name, and reconciliation leg L7
+```
+
+Exactly one assertion fell, and it is this row. Reverted with `git checkout --` in
+the same invocation; `REVERT_A_LEFTOVER=0`.
+
+**Intended RED, the `L7` half.** The one term of the local identity that names the
+state pack's own deduction had its sign flipped, so
+`grossSupportedIncome - appliedDeduction` became
+`grossSupportedIncome + appliedDeduction`. The mutation is value-free by
+construction — it is a single arithmetic operator, and it introduces no figure.
+It stands for exactly the defect `L7` exists to catch: a state taxable income that
+does not derive from the state pack's own deduction.
+
+```text
+GUARD_B_TERM=343:      Math.abs(basis.stateTaxableIncome - Math.max(0, basis.grossSupportedIncome + result.applie
+RED_B_EXIT=1
+
+================================================
+Research-Lab self-test: 3087 passed, 5 failed
+================================================
+  ✗ FAIL: committed surface carries no personal identifier
+  ✗ FAIL: TP-03-14: computeAnnualStateTax declares exactly the workspace and the state pack, no federal result reaches the module by name, and reconciliation leg L7
+  ✗ FAIL: TP-05-02 and TP-05-06: the combined total equals the sum of the two jurisdiction totals, includes a sourced zero as a real addend rather than skipping it,
+  ✗ FAIL: TP-05-04 and TP-05-05: a state settlement whose taxable income was reduced by the federal total produces a serialised result the order-independence compari
+  ✗ FAIL (Feature 022 Scope 05 combined group threw): Cannot read properties of undefined (reading 'every')
+```
+
+This probe is not isolated and was not expected to be. Breaking `L7` makes the
+state settlement refuse rather than balance, so Scope 05's combined rows lose the
+addend they consume and its group throws. That cascade is itself evidence that
+`L7` is load-bearing rather than decorative. Reverted with `git checkout --` in
+the same invocation; `REVERT_B_LEFTOVER=0`.
+
+**Same-command GREEN.** With both probes reverted, a path-scoped status check over
+the tax modules, the packs and the scripts directory printed nothing — no source
+file left dirty — and the identical command was re-run.
+
+```text
+########## GREEN: same command, both probes reverted
+GREEN_EXIT=1
+
+================================================
+Research-Lab self-test: 3099 passed, 1 failed
+================================================
+  ✗ FAIL: committed surface carries no personal identifier
+```
+
+The single remaining failure is pre-existing, belongs to a concurrent session's
+spec directory and is not this scope's; the pass count returned to its full value
+and no assertion was edited.
+
+`L7`'s negative control is asserted inside the suite as well as by the source
+probe above: the assertion labelled `TP-03-09` in the same group constructs a
+settlement whose taxable income does not derive from its own applied deduction and
+requires it to break `L7` and to refuse `RLTAX-RECONCILE` rather than balance.
+
 ### TP-03-15
 
 Scenario SCN-022-007 — the residency members are inventoried, cleared and
@@ -895,15 +1035,64 @@ Command: `node scripts/build-pages-site.mjs --dry-run`
 
 ## Change Boundary
 
-Filled at execution. Holds the path-scoped `git status` proving every excluded
-path is byte-identical, including `tax-rules/federal/**`, `rltaxstrategy.js`,
-`site-exclusions.json` and Feature 021's spec directory.
+**Claim Source:** interpreted. **This section does not close its Definition-of-Done
+row, which is left open.**
+
+The row asks for byte-identity across the excluded list. The federal half holds
+and the Feature 021 half does not, so the row cannot be ticked as written.
+
+A path-scoped name-only diff was taken from the commit that created the lab
+through `HEAD` over every excluded path. These are unchanged and the check is
+therefore satisfied for them: `tax-rules/federal/**`, `rltaxstrategy.js`,
+`rlportfolio.js`, `rlportfolioanalytics.js`,
+`portfolio-survival-allocation.config.json`, `specs/008-*`, `tools.json`,
+`index.html`, `rlnav.js`, `README.md`, `notes/README.md`, `watchlist.json` and
+`scripts/build-pages-site.mjs`. **The federal pack is byte-identical**, which is
+the half of the row that carries the argument: opening the jurisdiction axis
+required no federal pack edit, so the axis is a seam.
+
+These excluded paths did change in the same range, and none of the changes belong
+to this scope:
+
+| Changed excluded path | Owning commit | Whose work |
+| --- | --- | --- |
+| `specs/021-*/scopes/01…05/{scope,report}.md` | `5920d9ede` | Feature 021's own scopes closing their own coverage |
+| `tests/lifetime-tax-preferential.spec.mjs` | `5920d9ede`, `76252f69f` | Feature 021 and Feature 022 Scope 01, which own that file |
+| `tests/lifetime-tax-surtax.spec.mjs` | `e71772915`, `76252f69f` | Feature 022 Scope 02, which owns that file |
+| `site-exclusions.json`, `scripts/validate-spec-test-paths.baseline` | outside this scope's commits | other sessions |
+
+None of this scope's own commits — `2eb880a36`, `e2a1993ca`, `7b1b4ea17` — touches
+any excluded path. The honest reading is that the row's blanket wording is wrong
+rather than that the boundary was breached: `specs/021-*` and the inherited
+lifetime-tax spec files are edited by the scopes that own them, and freezing them
+for the lifetime of this scope was never achievable. Closing the row needs the
+excluded list narrowed to what this scope must not touch, which is a planning
+change owned by `bubbles.plan`, not an execution claim this report may make.
 
 ## Claim Boundary
 
-Filled at execution. Holds the text scan proving no probability, lifetime figure,
-recommendation, track record, accuracy claim or error rate appears in this scope's
-allowed paths, and that no state figure is presented as an estimate or an average.
+**Claim Source:** not-run. **This section does not close its Definition-of-Done
+row, which is left open.**
+
+The row covers this scope's **output**, and the output surface is not built yet.
+`lifetime-tax-strategy-lab.html` carries no residency input, no state panel and no
+`StateStageLedger`; a scan of the page for `residency` returns zero matches and
+the page does not load `rltaxstate.js` at all. There is therefore no rendered
+state figure to check for an estimate or an average, and no scan of the page could
+distinguish this scope's claims from the six other features' text already there.
+
+What can be said today is narrower than the row and is recorded as a fact rather
+than as satisfaction: the surfaces this scope does ship — `rltaxstate.js`, the
+Florida pack and the contract fixture — carry no probability, likelihood, success
+rate, accuracy figure, error rate, track record, break-even or lifetime total, and
+the single occurrence of the word *average* in the state module sits inside the
+refusal text that promises the opposite, `no average, national default or zero is
+substituted`. That is the right behaviour, not a leak. The row stays open until
+the panel exists and the same check can be made against what a reader actually
+sees.
+
+This also blocks the browser rows TP-03-17 through TP-03-21 and, through them, the
+row requiring every Test Plan row to carry recorded RED and GREEN evidence.
 
 ## Completion Statement
 

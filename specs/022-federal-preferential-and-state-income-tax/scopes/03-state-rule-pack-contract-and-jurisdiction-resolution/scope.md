@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs in
 [report.md](report.md).
 
-**Status:** In progress — 4 of 12 Definition of Done rows satisfied
+**Status:** In progress — 6 of 12 Definition of Done rows satisfied
 **Scope-Kind:** runtime-behavior
 **Tags:** `capability:jurisdiction-axis`, `sourced-zero:true`, `sourcing-gated:true`, `known-value-tested`
 **Depends On:** 01, 02
@@ -260,10 +260,18 @@ error, a missing browser or an absent test does not satisfy RED.
     TP-03-16 and its Scope 04 sibling (`3089 passed, 3 failed`). Both reverted
     under a trap inside the applying invocation, both returned to
     `3091 passed, 1 failed`.
-- [ ] The refusal vocabulary gained exactly two members, every Feature 021 member
+- [x] The refusal vocabulary gained exactly two members, every Feature 021 member
       retains its exact meaning and raising site, and exactly one declaration
       exists in the repository.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-03-01`
+  - **Evidence:** the declaration, count and meaning clauses were already pinned by
+    the assertion labelled `TP-01-05`; the raising-site clause was pinned by nothing
+    and is now closed by an appended assertion that maps every member to the exact
+    modules that raise it. Intended RED: a value-free comment planting a foreign
+    raise in the state module fell the new assertion alone
+    (`3098 passed, 2 failed`, the second failure pre-existing and not this scope's).
+    Reverted with `git checkout --` in the same session with the leftover count
+    re-read as zero; the same command returned `3099 passed, 1 failed`.
 - [x] FR-022-016 through FR-022-018 are implemented: undeclared residency,
       unshipped state and unsupported residency pattern each refuse under their
       own code with their own remediation, and the separation is proven by an
@@ -304,9 +312,17 @@ error, a missing browser or an absent test does not satisfy RED.
     recorded: the row reads the fixture directly, so the validator is not its
     lever, and that mutation fell the Scope 04 row instead. Both same-command
     GREEN runs returned `3092 passed, 1 failed`.
-- [ ] `computeAnnualStateTax` accepts no federal figure through any parameter and
+- [x] `computeAnnualStateTax` accepts no federal figure through any parameter and
       reconciliation leg `L7` holds for every fixture.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-03-14`
+  - **Evidence:** the two halves were probed separately so each is shown to be read.
+    Adding a never-read third parameter named `federalResult` to the signature fell
+    this row alone (`3098 passed, 2 failed`, the second failure pre-existing and not
+    this scope's). Flipping the sign of the one term that names the state pack's own
+    deduction in the `L7` identity fell this row plus three Scope 05 rows and threw
+    that group (`3087 passed, 5 failed`) — a cascade that shows `L7` is load-bearing.
+    Both reverted with `git checkout --` inside the applying invocation with the
+    leftover counts re-read as zero; the same command returned `3099 passed, 1 failed`.
 - [ ] The residency state is inventoried, cleared and redacted, and the request
       ledger stays empty with two pack files now loaded from disk.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the browser privacy row · **Evidence:** `report.md#tp-03-15`, `report.md#tp-03-21`

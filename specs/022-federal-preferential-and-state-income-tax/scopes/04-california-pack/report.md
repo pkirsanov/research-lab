@@ -118,6 +118,45 @@ Scenario SCN-022-010 — state tax is exact below, at and above every California
 bracket edge the pack carries, for every filing status whose schedule resolved.
 Command: `node scripts/selftest.mjs`
 
+No ordinary rate table resolved for any filing status, so the pack carries **no
+bracket edge at all**. The row is therefore not satisfied by covering a schedule
+that does not exist; it is satisfied by proving the covered set is *closed over
+whatever the pack actually carries*. An assertion was added that enumerates both
+edge families — ordinary band edges and threshold-set keys — and pins the result
+to exactly one carried edge, the surcharge threshold, covered immediately below,
+exactly at and immediately above for all four filing statuses.
+
+Two negative controls are built into the assertion rather than asserted about it.
+The enumerator is run a second time against a clone carrying a two-band ordinary
+schedule and must return exactly two more edges, which is what stops the closure
+clause from being vacuously true while the pack carries nothing. The provenance
+clause resolves the carried edge's `sourceRef` to a retrieved `SourceRecord/v1`
+and is run a second time against a clone whose pointer names a section the pack
+does not record, which must resolve to nothing.
+
+Intended RED planted the tempting defect for a closure row: an enumerator that
+walks only the ordinary schedules and silently forgets the threshold family, so
+coverage reads complete because the carried set came back empty. The substitution
+is value-free — one expression replaced by an empty array literal — and its
+anchor was counted before and after substitution.
+
+```text
+anchor_count_before=1
+anchor_after=0 probe_after=1
+=== RED RUN ===
+  ✗ FAIL: TP-04-02: the boundary set is closed over every edge the California pack actually carries — no ordinary schedule resolved so it contributes none, the enumerator is proven able to find band edges on a clone that carries one, the single carried edge is the surcharge threshold and it is covered immediately below, exactly at and immediately above for all four filing statuses, and that edge names the source edition it was transcribed from and the tax year it is declared for through a pointer proven able to dangle
+Research-Lab self-test: 3103 passed, 1 failed
+=== EXPLICIT REVERT ===
+leftover_probe=0 anchor_restored=1
+(empty status above means clean)
+=== GREEN RUN (same command) ===
+Research-Lab self-test: 3104 passed, 0 failed
+```
+
+TP-04-02 fell alone and by name. The revert ran inside the same shell invocation
+that applied the probe, the leftover count was re-read as zero and the path-scoped
+status check came back empty before the GREEN run.
+
 ### TP-04-03
 
 Scenario SCN-022-010 — a long-term gain and an equal amount of ordinary income
@@ -478,6 +517,40 @@ Scenario SCN-022-010 — `unsupportedFeatures[]` is non-empty and no result is
 labelled a complete state tax.
 Command: `node scripts/selftest.mjs`
 
+**A recorded miss.** The first probe flipped the settlement's completeness label
+from `false` to `true` at the resolving return and the suite stayed green at
+`3104 passed, 0 failed`. The pre-existing clause reads that label on exactly one
+settlement — California's — and California refuses, so it never reaches the
+return that was mutated. The clause was therefore satisfied by a code path the
+probe did not touch. That is the miss: a presence-only read of one settlement
+cannot see a build that labels a *resolving* state tax complete.
+
+The strengthening reads the label on all three returns the state module has — the
+refusing California settlement, a sourced-zero settlement over the Florida pack,
+and a settlement over the fixture pack that resolves to a finite figure — so a
+flip at any one of them is visible. It also stops listing the owed boundary ids
+by hand: the requirement is derived from the pack's own absent figures, and the
+derivation is proven able to fail against a boundary that drops one of them.
+
+Intended RED then re-planted the identical value-free boolean flip:
+
+```text
+anchor_count_before=1
+probe_true=1 remaining_false=2
+=== RED RUN A (resolving return labelled complete) ===
+  ✗ FAIL: TP-04-14: every return the state module has — the refusing California settlement, a sourced-zero settlement and a settlement that resolves to a finite figure — reports the state tax as not complete, and the coverage boundary is required to name each absent-figure family the pack itself carries rather than a hand-listed set, with the requirement proven able to fail on a boundary that drops one of them
+Research-Lab self-test: 3104 passed, 1 failed
+=== EXPLICIT REVERT A ===
+leftover_true=0 restored_false=3
+(empty status above means clean)
+=== GREEN RUN (same command) ===
+Research-Lab self-test: 3105 passed, 0 failed
+```
+
+The mutation is a single boolean literal, so no household value could have been
+disclosed by a slipped revert. The revert ran inside the applying invocation, the
+leftover count was re-read as zero and the path-scoped status came back empty.
+
 ### TP-04-15
 
 Scenario SCN-022-010 — no module holds a California bracket, rate, deduction,
@@ -548,15 +621,62 @@ The whole-repository suite, with the pre-existing pass count recorded before and
 after the appended group.
 Command: `node scripts/selftest.mjs`
 
+**Claim Source:** executed, session of 2026-08-19. The count entered this session
+at `3103 passed, 0 failed` and leaves it at `3105 passed, 0 failed`: two
+assertions were appended and none was edited. The change to the file is
+append-only, which is decidable rather than asserted — the diff over this
+session's commits reports `90` insertions and `0` deletions, and a count of
+removed lines in that same diff returns zero.
+
+```text
+=== 1. selftest ===
+selftest_exit=0
+Research-Lab self-test: 3105 passed, 0 failed
+=== selftest.mjs change shape this session (78c21a0e3..HEAD) ===
+90      0       scripts/selftest.mjs
+=== deletions in that diff (expect none) ===
+0
+```
+
 ### TP-04-21
 
 Zero new missing spec-referenced test paths, with the baseline file unmodified.
 Command: `node scripts/validate-spec-test-paths.mjs`
 
+**Claim Source:** executed. This gate caught a defect introduced by this session
+and is recorded rather than hidden. The first draft of the Claim Boundary section
+above named `<repo>/tests/lifetime-tax-california.spec.mjs` as a bare path, which
+the guard correctly read as a live reference to a file that does not exist and
+reported as `new=1`; the whole-repository suite fell with it at
+`3104 passed, 1 failed`. The reference was rewritten under the `<repo>/` prefix
+convention and both returned to green.
+
+```text
+=== 2. spec-test-path guard ===
+[spec-test-paths] scanned=678 references=14960 distinctPaths=246 missingPaths=67 baseline=67 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+pathguard_exit=0
+```
+
+The frozen baseline is unchanged: a path-scoped diff over this session's commits
+for `scripts/validate-spec-test-paths.baseline` and `site-exclusions.json`
+returns nothing.
+
 ### TP-04-22
 
 The Pages plan succeeds and `site-exclusions.json` is unchanged.
 Command: `node scripts/build-pages-site.mjs --dry-run`
+
+**Claim Source:** executed.
+
+```text
+=== 3. pages site dry run ===
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":128,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/004902309400a815a8ac1da2877422310e381d5c20748f711cbd0233e959a67a","omittedOrphanIndexes":144}
+pages_exit=0
+```
+
+`tax-rules/` does not appear among the published directories, so the packs stay
+outside the public site.
 
 ## Change Boundary
 
@@ -567,9 +687,59 @@ finding routed back to Scope 03, not applied in this scope.
 
 ## Claim Boundary
 
-Filled at execution. Holds the text scan proving no probability, lifetime figure,
-recommendation, track record, accuracy claim or error rate appears in this scope's
-allowed paths, and that no California figure is presented as an estimate.
+**Claim Source:** executed. **Outcome: the row holds and is ticked.**
+
+Scanned this scope's two output paths — the California pack, whose label and
+reason strings are surfaced verbatim as notices, and the page that renders them.
+`scripts/selftest.mjs` is a gate rather than an output surface and
+`<repo>/tests/lifetime-tax-california.spec.mjs` does not exist, so neither is
+scanned.
+
+Each detector is proven live on a planted sentence **before** the scan is
+trusted, and the run aborts rather than reporting an absence if any detector is
+dead. That guard fired on the first attempt: the lifetime-figure detector did not
+match its own planted sentence, so its silence would have been a dead scan rather
+than a real absence. It was widened and re-proven.
+
+```text
+--- every detector proven live BEFORE the scan is trusted ---
+  fires on planted probability = true
+  fires on planted lifetimeFigure = true
+  fires on planted trackRecord = true
+  fires on planted errorRate = true
+  fires on planted estimate = true
+  dead detector count = 0
+  silent on a clean sentence = true
+--- scan ---
+HIT estimate | tax-rules/state/CA/2026.json:73
+     { "id": "ca-part-year-and-nonresident-apportionment", ... "reason": "Section 17041(b), (d) and (i) define a separate computation for a non-resident or part-year resident. This pack models single full-year residency only, and any other declared pattern refuses under its own code rather than being approximated.", "code": "RLTAX-RESIDENCY-UNSUPPORTED", ...
+total hits across this scope output paths = 1
+```
+
+The probability, lifetime-figure, track-record and error-rate detectors each
+returned **zero** hits while each fired on its planted sentence, so their silence
+is a real absence.
+
+The single estimate hit is the **opposite** of a violation: it is the pack's own
+statement that an unsupported residency pattern *refuses rather than being
+approximated*. A substring detector cannot separate an asserted estimate from a
+disclaimed one, so every mention was re-run through a classifier proven live on
+both forms:
+
+```text
+--- the classifier is proven live on both forms ---
+  asserted form  -> ASSERTED
+  disclaimed form-> DISCLAIMER
+--- every mention across this scope output paths, classified ---
+  tax-rules/state/CA/2026.json | DISCLAIMER | This pack models single full-year residency only, and any other declared pattern refuses under its own code rather than being approximated.
+=== asserted-estimate count across this scope output paths = 0 ===
+```
+
+No California figure is presented as an estimate. The California total does not
+render as a figure at all: its ordinary schedule was never retrieved, so the
+settlement refuses under `RLTAX-THRESHOLD-UNAVAILABLE` and the surface carries a
+refusal rather than a numeral, which is pinned independently at
+`report.md#tp-04-11`.
 
 ## Completion Statement
 

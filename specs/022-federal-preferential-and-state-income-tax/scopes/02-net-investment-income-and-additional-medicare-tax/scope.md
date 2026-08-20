@@ -378,11 +378,13 @@ an absent test does not satisfy RED.
 
 ### Definition of Done
 
-- [ ] FR-022-008 is implemented: `CO-8` sums the pack's declared leg set, returns
+- [x] FR-022-008 is implemented: `CO-8` sums the pack's declared leg set, returns
       the refusal of the first refusing leg, and equals the previous two-leg sum
       for every Feature 021 fixture against the unmodified pack.
-  - **Open:** the leg-set and refusal-inheritance halves are proven, but the
-    TP-02-03 comparison against the **unmodified** Feature 021 pack was not run.
+  - **Closed:** the TP-02-03 comparison against the **unmodified** Feature 021 pack
+    now runs over 96 household shapes, with its comparand recomputed from the
+    `CO-6` and `CO-7` records rather than read back from `CO-8`, and was proven
+    RED by a one-leg fallback mutation before it was banked.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-02`, `report.md#tp-02-03`, `report.md#tp-02-10`
 - [x] `BI-4`'s named authority — IRS Publication 505 (2026) — was opened in the
       implementation session, every rate and filing-status threshold was
@@ -405,13 +407,17 @@ an absent test does not satisfy RED.
       basis members initialize to `null`, an undeclared basis refuses its leg by
       name, `CO-8` inherits, and neither member is ever initialized to a value.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-09`
-- [ ] The Fixture Input Completion Register is satisfied and closed: every named
+- [x] The Fixture Input Completion Register is satisfied and closed: every named
       helper declares both bases at `0` and changed nothing else, at least one
       fixture household keeps both bases `null` and is asserted refusing, every
       previously settled Feature 021 value is unchanged, and no assertion was
       edited to accommodate a fixture-input change.
-  - **Open:** the TP-02-24 register row was not run. The browser command it is
-    paired with now runs green at 69 passed, recorded at `report.md#tp-02-18`.
+  - **Closed:** the TP-02-24 register row now reads the register out of this
+    artifact at run time, proves each named helper on its own, sweeps every
+    governed completion site, holds the `null`-basis household refusing on each
+    leg and on the total, and settles one household twice against the unmodified
+    Feature 021 pack for byte-identity. Two first-draft misses are recorded with
+    the row rather than quietly corrected.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-02-18 browser command · **Evidence:** `report.md#tp-02-24`
 - [ ] No assertion outside this scope's ledger entries and amendments was edited,
       relaxed or deleted, no Simple-markup clause was relaxed under SUP-022-18 or
@@ -438,20 +444,22 @@ an absent test does not satisfy RED.
       populated and non-empty, and the conversion asymmetry is a structural member
       proven by an adversarial mutation.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-06`, `report.md#tp-02-07`, `report.md#tp-02-12`
-- [ ] Both new household values are inventoried, are removed by the clear action,
+- [x] Both new household values are inventoried, are removed by the clear action,
       and are accounted for by the export sanitizer under the identical rule as
       every income amount: both are kept in the exported workspace the user asked
       for, and the manifest names in `omittedFields[]` every member it withholds,
       so neither can be dropped without being named. Each is proven independently,
       and neither appears in any URL, request, referrer or console message.
-  - **Open:** the wording defect is corrected — the shipped sanitizer KEEPS both,
+  - **Closed:** the wording defect is corrected — the shipped sanitizer KEEPS both,
     matching how it treats the four income amounts, so "redacted" was false as
     written and is replaced by the kept-and-disclosed disposition the design
-    intends. The browser clause is now partly covered: `SCN-024-014` and
-    `SCN-023-001` assert an empty request ledger over the real route with both
-    bases declared, but no assertion yet covers the referrer and console-message
-    clauses for these two members specifically.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-13`
+    intends. The browser clause now has its own persistent title in this scope's
+    spec, scanning the address bar, every request URL and body, every request
+    header value and every console message and page error against two declared
+    amounts, with an in-test negative control proving the scan can name a planted
+    value. No leak mutation was applied, because any mutation that would fail this
+    row must route a household value off the page.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-02-13 browser title · **Evidence:** `report.md#tp-02-13`
 - [x] No module holds a surtax rate, threshold, jurisdiction name or authority
       name, and the detector is proven to fire on a module that does.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-14`

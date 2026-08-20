@@ -29,6 +29,14 @@ test.afterAll(async () => {
     if (site) await site.close();
 });
 
+/* Deterministic teardown even when a test times out, which is the one path where a `finally`
+   inside the test body is not guaranteed to run. `ignoreErrors` drops every route handler and
+   swallows what an in-flight one throws, so nothing survives the test to hold its worker open.
+   A no-op for every test that installs no route. */
+test.afterEach(async ({ page }) => {
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
+});
+
 /* One composed run, with every runtime error and failed response captured. Every test starts
    here, so a page-level exception fails the test that would otherwise assert around it. */
 async function openComposedRoute(page, { query = '' } = {}) {
@@ -1126,12 +1134,13 @@ test('the first paint composes with every data request still outstanding, then r
     await page.route('**/*', async (route, request) => {
         const kind = request.resourceType();
         if (kind !== 'fetch' && kind !== 'xhr') {
-            await route.continue();
+            /* A handler that throws or never settles keeps its worker alive past the test. */
+            try { await route.continue(); } catch { /* page or context already closing */ }
             return;
         }
         held.push(request.url());
         await gate;
-        await route.continue();
+        try { await route.continue(); } catch { /* page or context already closing */ }
     });
 
     const runtimeErrors = [];
@@ -1165,8 +1174,12 @@ test('the first paint composes with every data request still outstanding, then r
         await expect(page.locator('body')).toHaveAttribute('data-corpus-status', /^(loaded|unavailable)$/, { timeout: 30_000 });
         expect(runtimeErrors, `runtime errors: ${runtimeErrors.join(' | ')}`).toEqual([]);
     } finally {
+        /* Resume every parked handler first, then drop the routes: with `ignoreErrors`,
+           `unrouteAll` silently swallows what a still-in-flight handler throws instead of
+           leaving it unhandled the way plain `unroute` does. An unhandled rejection from a
+           handler that outlives its test is what keeps a Playwright worker from exiting. */
         release();
-        await page.unroute('**/*');
+        await page.unrouteAll({ behavior: 'ignoreErrors' });
     }
 });
 

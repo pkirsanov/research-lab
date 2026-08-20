@@ -14958,6 +14958,79 @@ try {
     && /root\.RLTAXSTATE = api/.test(stateSource)
     && stateSource.indexOf('requestAnimationFrame') < 0,
   'TP-03-22: rltaxstate.js is a UMD dual module with top-level function declarations, no ESM syntax, no bare isFinite and no animation frame');
+
+  /* TP-03-01: every member of the refusal vocabulary is still raised from the site that owns it.
+     The assertion labelled TP-01-05 pins membership, the derived count and numeric-free
+     construction — but none of that notices a code that moved from the module raising it to a
+     different module, or stopped being raised anywhere, which is exactly what "retains its exact
+     raising site" means. This pins the site.
+
+     The pinned set is Feature 021's four modules plus this scope's new one. A later feature that
+     adds its own raise in its own module has not taken a Feature 021 site away, so it does not
+     churn this map; a raise leaving one of these five does.
+
+     The scan is textual and deliberately counts every occurrence outside the frozen declaration
+     block, whatever idiom carries it — `unavailable(`, `refuse(`, a `deferralCode:` member, a
+     ternary arm. A code planted in a comment reads the same as a moved call. That is the point:
+     an occurrence is the signal, so the detector cannot be evaded by changing the call shape. */
+  const PINNED_RAISE_MODULES = ['rltax.js', 'rltaxrules.js', 'rltaxstate.js',
+    'rltaxstrategy.js', 'rltaxworkspace.js'];
+  const EXPECTED_RAISE_SITES = {
+    'RLTAX-CONFIG-INVALID': 'rltax.js,rltaxrules.js,rltaxstrategy.js,rltaxworkspace.js',
+    'RLTAX-PACK-INVALID': 'rltax.js,rltaxrules.js,rltaxstate.js,rltaxstrategy.js',
+    'RLTAX-PACK-EXPIRED': 'rltaxrules.js',
+    'RLTAX-YEAR-UNSUPPORTED': 'rltaxrules.js',
+    'RLTAX-JURISDICTION-UNSUPPORTED': 'rltaxrules.js,rltaxstate.js,rltaxstrategy.js,rltaxworkspace.js',
+    'RLTAX-INCOME-KIND-UNSUPPORTED': 'rltax.js,rltaxstate.js,rltaxworkspace.js',
+    'RLTAX-FILING-STATUS-UNSUPPORTED': 'rltax.js,rltaxrules.js,rltaxstrategy.js,rltaxworkspace.js',
+    'RLTAX-INPUT-INCOMPLETE': 'rltax.js,rltaxrules.js,rltaxstate.js,rltaxstrategy.js,rltaxworkspace.js',
+    'RLTAX-FEATURE-UNSUPPORTED': 'rltax.js,rltaxrules.js,rltaxstrategy.js',
+    'RLTAX-THRESHOLD-UNAVAILABLE': 'rltax.js,rltaxrules.js,rltaxstate.js,rltaxstrategy.js',
+    'RLTAX-RECONCILE': 'rltax.js,rltaxrules.js,rltaxstate.js',
+    'RLTAX-SCOPE-DEFERRED': 'rltaxstrategy.js',
+    'RLTAX-RESIDENCY-UNSUPPORTED': 'rltaxstate.js',
+    /* Raised by Scope 05's combined module and by Feature 024's medicare module, both outside
+       the pinned set. Its absence here is pinned too, so a stray raise appearing inside one of
+       these five modules falls this row rather than passing unnoticed. */
+    'RLTAX-PACK-YEAR-MISMATCH': ''
+  };
+  const raiseSiteText = {};
+  PINNED_RAISE_MODULES.forEach((file) => {
+    const body = read(file);
+    /* rltaxrules.js declares the vocabulary; a declaration is not a raise. */
+    const declarationBlock = /var RLTAX_CODES = Object\.freeze\(\{[\s\S]*?\}\);/.exec(body);
+    raiseSiteText[file] = declarationBlock === null ? body : body.replace(declarationBlock[0], '');
+  });
+  const observedRaiseSites = {};
+  Object.keys(EXPECTED_RAISE_SITES).forEach((code) => {
+    observedRaiseSites[code] = PINNED_RAISE_MODULES
+      .filter((file) => raiseSiteText[file].indexOf('"' + code + '"') >= 0)
+      .join(',');
+  });
+  const movedOrLostSites = Object.keys(EXPECTED_RAISE_SITES)
+    .filter((code) => observedRaiseSites[code] !== EXPECTED_RAISE_SITES[code])
+    .map((code) => code + ' expected [' + EXPECTED_RAISE_SITES[code] + '] observed [' + observedRaiseSites[code] + ']');
+  /* Adversarial: the comparison must be able to fail. A map with one site removed and a map with
+     one site added are each rejected against the same observation. */
+  const siteRemoved = JSON.parse(JSON.stringify(EXPECTED_RAISE_SITES));
+  siteRemoved['RLTAX-RECONCILE'] = 'rltax.js,rltaxrules.js';
+  const siteAdded = JSON.parse(JSON.stringify(EXPECTED_RAISE_SITES));
+  siteAdded['RLTAX-PACK-EXPIRED'] = 'rltaxrules.js,rltaxstate.js';
+  const mismatchCount = (candidate) => Object.keys(candidate)
+    .filter((code) => observedRaiseSites[code] !== candidate[code]).length;
+  /* Every declared member is accounted for, and PACK-YEAR-MISMATCH is raised somewhere rather
+     than being a member nothing constructs. */
+  const pinnedCodes = Object.keys(EXPECTED_RAISE_SITES);
+  const liveVocabulary = Object.keys(RULES.RLTAX_CODES);
+  const yearMismatchRaisedSomewhere = readdirSync(ROOT)
+    .filter((file) => /^rltax.*\.js$/.test(file))
+    .some((file) => read(file).indexOf('unavailable("RLTAX-PACK-YEAR-MISMATCH"') >= 0);
+  assert(movedOrLostSites.length === 0
+    && mismatchCount(siteRemoved) === 1 && mismatchCount(siteAdded) === 1
+    && pinnedCodes.length === liveVocabulary.length
+    && liveVocabulary.every((code) => pinnedCodes.indexOf(code) >= 0)
+    && yearMismatchRaisedSomewhere,
+  'TP-03-01: every member of the refusal vocabulary is raised from exactly the modules that own it across Feature 021\u2019s four modules and this scope\u2019s new one, a raise that moved module or disappeared is proven to fail the comparison, and the one member raised outside the pinned set is proven to be raised somewhere rather than declared and never constructed (' + movedOrLostSites.join('; ') + ')');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 Scope 03 state contract group threw): ' + e.message); }
 
 /* ================================================================================
@@ -15073,6 +15146,61 @@ try {
     && surchargeSet.indexing.declaredFor.indexOf(2026) >= 0,
   'TP-04-07: the surcharge is exact immediately below, exactly at and immediately above its declared threshold, all four filing statuses cross at the identical value, and the set declares itself applicable to the declared tax year');
 
+  /* TP-04-02: boundary coverage is closed over the edges the pack ACTUALLY carries rather than
+     over the edges someone remembered to cover. The enumerator walks both edge families, so an
+     ordinary schedule that resolved later would enlarge the carried set and this row would fall
+     until it was covered too; it is proven able to find ordinary band edges on a clone that
+     carries one. The provenance half resolves each carried edge to a retrieved source record and
+     is proven able to fail on a clone whose pointer dangles. */
+  function californiaCarriedEdges(pack) {
+    const edges = [];
+    statuses.forEach((status) => {
+      const table = pack.ordinaryRateTables[status];
+      if (RULES.isRateTable(table)) {
+        table.bands.forEach((band) => { edges.push('ordinary:' + status + ':' + band.bandId); });
+      }
+    });
+    Object.keys(pack.thresholdSets).forEach((setId) => {
+      Object.keys(pack.thresholdSets[setId].thresholds).forEach((key) => {
+        edges.push('threshold:' + setId + ':' + key);
+      });
+    });
+    return edges;
+  }
+  const carriedEdges = californiaCarriedEdges(californiaPack);
+  const packCarryingASchedule = clone(californiaPack);
+  packCarryingASchedule.ordinaryRateTables.single = {
+    contractVersion: 'RateTable/v1', tableId: 'probe-ordinary', kind: 'ordinary', filingStatus: 'single',
+    bands: [
+      { bandId: 'probe-lower', lowerInclusive: 0, upperExclusive: 1, rate: 0.01, thresholdKind: 'rate-step' },
+      { bandId: 'probe-upper', lowerInclusive: 1, upperExclusive: null, rate: 0.02, thresholdKind: 'rate-step' }
+    ],
+    sourceRef: 'ca-rtc-17041', locator: 'a probe schedule that ships in no pack'
+  };
+  const recordFor = (pack, ref) => pack.sourceRecords.filter((record) => record.sourceId === ref)[0];
+  const surchargeRecord = recordFor(californiaPack, surchargeSet.sourceRef);
+  const danglingPointerPack = clone(californiaPack);
+  danglingPointerPack.thresholdSets['additional-tax-above-one-million'].sourceRef = 'ca-rtc-no-such-section';
+  const danglingRecord = recordFor(danglingPointerPack,
+    danglingPointerPack.thresholdSets['additional-tax-above-one-million'].sourceRef);
+  assert(carriedEdges.length === 1
+    && carriedEdges[0] === 'threshold:additional-tax-above-one-million:all'
+    && californiaCarriedEdges(packCarryingASchedule).length === carriedEdges.length + 2
+    && statuses.length === 4
+    && statuses.every((status) => surchargeByStatus[status].length === surchargePositions.length)
+    && surchargePositions[0] === surchargeThreshold - 1
+    && surchargePositions[1] === surchargeThreshold
+    && surchargePositions[2] === surchargeThreshold + 1
+    && !!surchargeRecord && danglingRecord === undefined
+    && surchargeRecord.title.length > 0
+    && surchargeRecord.publishedAt.length > 0
+    && surchargeRecord.retrievedAt.length > 0
+    && surchargeRecord.retrievalOutcome === 'retrieved'
+    && surchargeSet.componentSources.some((component) =>
+      component.component === 'threshold:all' && component.sourceRef === surchargeSet.sourceRef)
+    && surchargeSet.indexing.declaredFor.indexOf(californiaPack.effectiveTaxYears[0]) >= 0,
+  'TP-04-02: the boundary set is closed over every edge the California pack actually carries — no ordinary schedule resolved so it contributes none, the enumerator is proven able to find band edges on a clone that carries one, the single carried edge is the surcharge threshold and it is covered immediately below, exactly at and immediately above for all four filing statuses, and that edge names the source edition it was transcribed from and the tax year it is declared for through a pointer proven able to dangle');
+
   /* TP-04-08 adversarial: a pack that doubles the joint threshold fails the identical-threshold rule. */
   const doubledPack = clone(californiaPack);
   doubledPack.thresholdSets['additional-tax-above-one-million'].varyByFilingStatus = true;
@@ -15137,6 +15265,41 @@ try {
     && unsupportedIds.indexOf('ca-exemption-credit-amounts') >= 0
     && californiaSettlement.completeStateTax === false,
   'TP-04-14: the California coverage boundary names every provision the pack does not carry, including each unretrieved figure, and no result is labelled a complete state tax');
+
+  /* TP-04-14 strengthened. The clause above reads the completeness label on ONE settlement, and
+     the California pack refuses, so it only ever reaches the refusing return. The label is read
+     here on all three returns the state module has — refusing, sourced-zero and resolving — so a
+     build that labels any one of them complete is caught. The required boundary ids are derived
+     from the pack's own absent figures instead of being listed by hand, and the derivation is
+     proven able to fail on a clone whose boundary drops one of them. */
+  const floridaPackForCalifornia = JSON.parse(read('tax-rules/state/FL/2026.json'));
+  const resolvingFixturePack = JSON.parse(read('tax-rules/fixtures/state-contract-no-preferential-2999.json'));
+  function californiaResidentOf(jurisdiction, ordinary) {
+    const workspace = californiaWorkspace('single', ordinary);
+    workspace.residencyJurisdiction = jurisdiction;
+    return workspace;
+  }
+  const sourcedZeroSettlement = STATE.computeAnnualStateTax(californiaResidentOf('state:FL', 200000), floridaPackForCalifornia);
+  const resolvingSettlement = STATE.computeAnnualStateTax(californiaResidentOf('state:ZZ', 200000), resolvingFixturePack);
+  const requiredBoundaryIds = [];
+  statuses.forEach((status) => {
+    if (RULES.isAbsentFigure(californiaPack.standardDeductions[status])) requiredBoundaryIds.push('ca-standard-deduction-for-declared-year');
+    if (RULES.isAbsentFigure(californiaPack.ordinaryRateTables[status])) requiredBoundaryIds.push('ca-rate-schedule-for-declared-year');
+    if (RULES.isAbsentFigure(californiaPack.reliefMechanisms[0].amounts[status])) requiredBoundaryIds.push('ca-exemption-credit-amounts');
+  });
+  const boundaryIdsOwed = Object.keys(requiredBoundaryIds.reduce((seen, id) => { seen[id] = true; return seen; }, {}));
+  const boundaryCovers = (declared) => boundaryIdsOwed.every((id) => declared.indexOf(id) >= 0);
+  const boundaryDroppingOne = unsupportedIds.filter((id) => id !== boundaryIdsOwed[0]);
+  assert(RULES.isUnavailable(californiaSettlement.totalStateTax)
+    && RULES.isSourcedZero(sourcedZeroSettlement.totalStateTax)
+    && Number.isFinite(resolvingSettlement.totalStateTax.value)
+    && californiaSettlement.completeStateTax === false
+    && sourcedZeroSettlement.completeStateTax === false
+    && resolvingSettlement.completeStateTax === false
+    && boundaryIdsOwed.length === 3
+    && boundaryCovers(unsupportedIds)
+    && !boundaryCovers(boundaryDroppingOne),
+  'TP-04-14: every return the state module has — the refusing California settlement, a sourced-zero settlement and a settlement that resolves to a finite figure — reports the state tax as not complete, and the coverage boundary is required to name each absent-figure family the pack itself carries rather than a hand-listed set, with the requirement proven able to fail on a boundary that drops one of them');
 
   /* TP-04-13: no engine module was modified for California. */
   const engineModules = ['rltaxrules.js', 'rltax.js', 'rltaxstate.js', 'rltaxworkspace.js', 'rltaxcombined.js'];
@@ -24498,6 +24661,143 @@ try {
   'TP-02-14: no rltax module on disk holds a surtax rate, a surtax threshold, a declared jurisdiction name or an authority id, and the detector is proven to fire on all four when one of each is planted in a different module ('
     + surtaxModuleFiles.length + ' module(s), ' + surtaxRuleLiterals.size + ' rule literal(s), '
     + surtaxNameTokens.length + ' name token(s); shipped findings: ' + (surtaxShipped.join(', ') || 'none') + ')');
+
+  /* TP-02-24. The Fixture Input Completion Register, mechanized. The row set is read out of the
+     scope artifact rather than restated here, so a row added, a file renamed or a declared value
+     changed in planning moves this assertion with it instead of leaving it asserting a register
+     that no longer exists. */
+  const registerScopeSource = read('specs/022-federal-preferential-and-state-income-tax/scopes/'
+    + '02-net-investment-income-and-additional-medicare-tax/scope.md');
+  const registerSection = (registerScopeSource.split('## Fixture Input Completion Register')[1] || '')
+    .split('\n## ')[0];
+  const registerRows = registerSection.split('\n')
+    .filter((line) => /^\|/.test(line) && line.indexOf('| --- |') < 0 && line.indexOf('| Helper |') < 0)
+    .map((line) => line.split('|').slice(1, -1).map((cell) => cell.trim()));
+  const registerFiles = [...new Set(registerRows.map((row) => row[1].replace(/`/g, '')))].sort();
+  const registerSelftestRows = registerRows.filter((row) => row[1].indexOf('selftest') >= 0);
+  /* FIC-6 closes the register, so the row count is part of the conformance claim rather than an
+     incidental number: a later scope adding a row fails here and returns the finding to planning. */
+  const registerShapeHolds = registerRows.length === 4
+    && registerRows.every((row) => row[2] === 'both' && row[3] === '`0`')
+    && JSON.stringify(registerFiles) === JSON.stringify(['scripts/selftest.mjs', 'tests/lifetime-tax.support.mjs']);
+
+  const registerFileSource = read('scripts/selftest.mjs');
+  const ownGroupMarker = 'Feature 022 Scope 02: threshold surtaxes and declared tax legs (START)';
+  const registerRegion = registerFileSource.slice(0, registerFileSource.indexOf(ownGroupMarker));
+  const registerSupportSource = read('tests/lifetime-tax.support.mjs');
+  const registerSources = {
+    'scripts/selftest.mjs': registerFileSource,
+    'tests/lifetime-tax.support.mjs': registerSupportSource
+  };
+
+  /* Each named row is proved on its own, so a helper that lost its completion fails BY NAME
+     rather than hiding behind the file-wide sweep below. Each body is bounded by its own closing
+     marker, because a fixed character window silently truncated the browser helper before its
+     second field and reported a miss that was not there. The prose row is the Feature 021 Scope
+     02 settlement group, held by that group's own marker. */
+  const REGISTER_HELPER_PROOFS = {
+    'curveWorkspace': {
+      file: 'scripts/selftest.mjs', at: 'const curveWorkspace = ', end: '\n  };',
+      needs: ['investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;',
+        'wageBasis.medicareWagesAndSelfEmploymentIncome = 0;']
+    },
+    'strategyWorkspace': {
+      file: 'scripts/selftest.mjs', at: 'const strategyWorkspace = ', end: '\n  };',
+      needs: ['investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;',
+        'wageBasis.medicareWagesAndSelfEmploymentIncome = 0;']
+    },
+    'declareOrdinaryHousehold': {
+      file: 'tests/lifetime-tax.support.mjs', at: 'export async function declareOrdinaryHousehold',
+      end: '\n}',
+      needs: ["page.fill('#inputOtherNetInvestmentIncome'", "page.fill('#inputMedicareWageBasis'",
+        "? '0' :"]
+    }
+  };
+  const registerNamedHelpers = registerRows
+    .map((row) => (/^`(.+)`$/.exec(row[0]) || [])[1])
+    .filter((name) => name !== undefined);
+  const registerHelperMisses = [];
+  registerNamedHelpers.forEach((name) => {
+    const proof = REGISTER_HELPER_PROOFS[name];
+    if (proof === undefined) { registerHelperMisses.push(name + ':unmapped'); return; }
+    const source = registerSources[proof.file];
+    const at = source.indexOf(proof.at);
+    const closes = at < 0 ? -1 : source.indexOf(proof.end, at);
+    if (at < 0 || closes < 0) { registerHelperMisses.push(name + ':not-found'); return; }
+    const body = source.slice(at, closes);
+    proof.needs.forEach((needle) => {
+      if (body.indexOf(needle) < 0) registerHelperMisses.push(name + ':missing ' + needle);
+    });
+  });
+  const registerProseRegion = registerRegion.slice(
+    registerRegion.indexOf('Feature 021 Scope 02: deterministic annual federal computation'));
+  const registerProseRowHolds = registerProseRegion.length > 0
+    && registerProseRegion.indexOf('investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;') >= 0
+    && registerProseRegion.indexOf('wageBasis.medicareWagesAndSelfEmploymentIncome = 0;') >= 0;
+
+  /* FIC-4 across the whole register file, not only the named rows: every completion applied to a
+     fixture the register governs must declare exactly `0`. A workspace produced by CLONING an
+     already-completed fixture is not a register completion — it is a probe household this feature
+     created, and `wageBearingL6` is the live example. The exemption is POSITIONAL, not by name: a
+     first draft exempted every identifier ever bound to a clone anywhere in the file, which made
+     the common name `workspace` globally exempt and let a mutated register completion pass this
+     clause. A site is exempt only when the NEAREST preceding binding of that identifier is a
+     clone, so a builder constructing from createEmptyWorkspace() is always governed. */
+  const registerCompletionSites = registerRegion.match(
+    /\b[A-Za-z0-9_$]+\.(?:investmentIncomeBasis\.otherOrdinaryNetInvestmentIncome|wageBasis\.medicareWagesAndSelfEmploymentIncome)\s*=\s*[^;]+;/g) || [];
+  const registerNonZero = [];
+  let registerScanFrom = 0;
+  registerCompletionSites.forEach((site) => {
+    const at = registerRegion.indexOf(site, registerScanFrom);
+    registerScanFrom = at + site.length;
+    const parts = /^([A-Za-z0-9_$]+)\.[^=]+=\s*([^;]+);$/.exec(site);
+    if (parts === null) { registerNonZero.push(site); return; }
+    if (parts[2].trim() === '0') return;
+    const bindings = registerRegion.slice(0, at).match(new RegExp('\\b' + parts[1]
+      + '\\s*=\\s*(?:JSON\\.parse\\(JSON\\.stringify\\(|RLTAXWORKSPACE\\.createEmptyWorkspace)', 'g')) || [];
+    const nearest = bindings.length > 0 ? bindings[bindings.length - 1] : '';
+    if (nearest.indexOf('JSON.parse') < 0) registerNonZero.push(site);
+  });
+
+  /* FIC-5. One fixture household keeps both bases `null` and must refuse on each leg AND on the
+     total. Completing every fixture would leave the refusal path unexercised, which is the
+     vacuity failure this clause exists to prevent. */
+  const registerNullHousehold = surtaxWorkspace('married-filing-jointly', 500000, 60000, 0, 0);
+  registerNullHousehold.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = null;
+  registerNullHousehold.wageBasis.medicareWagesAndSelfEmploymentIncome = null;
+  const registerNullSettled = SURTAX.computeAnnualFederalTax(registerNullHousehold, surtaxPack);
+
+  /* FIC-4's byte-identity clause, at runtime rather than by inspection. The same household is
+     settled twice against the UNMODIFIED Feature 021 pack: once with both bases undeclared — the
+     literal state of every fixture built before this scope existed — and once completed at zero.
+     Every stage Feature 021 published must be byte-identical, so a completion that moved a settled
+     figure fails here instead of having to be noticed by eye. The stage set is derived from the
+     settlement's own record with this scope's two stages removed, so a stage added later is
+     covered without editing a list. */
+  const registerPreCompletion = SURTAX.computeAnnualFederalTax(registerNullHousehold, feature021Pack);
+  const registerPostCompletion = SURTAX.computeAnnualFederalTax(
+    surtaxWorkspace('married-filing-jointly', 500000, 60000, 0, 0), feature021Pack);
+  const registerFeature021Stages = Object.keys(registerPreCompletion.stages)
+    .filter((stageId) => stageId !== 'CO-11' && stageId !== 'CO-12').sort();
+  const registerStageIdentity = registerFeature021Stages.every((stageId) =>
+    JSON.stringify(registerPreCompletion.stages[stageId])
+      === JSON.stringify(registerPostCompletion.stages[stageId]));
+
+  assert(registerShapeHolds
+    && registerNamedHelpers.length === 3
+    && registerHelperMisses.length === 0
+    && registerProseRowHolds
+    && registerCompletionSites.length >= registerSelftestRows.length * 2
+    && registerNonZero.length === 0
+    && codeOfSurtax(registerNullSettled.netInvestmentIncomeTax) === 'RLTAX-INPUT-INCOMPLETE'
+    && codeOfSurtax(registerNullSettled.additionalMedicareTax) === 'RLTAX-INPUT-INCOMPLETE'
+    && codeOfSurtax(registerNullSettled.totalFederalTax) === 'RLTAX-INPUT-INCOMPLETE'
+    && registerFeature021Stages.length >= 8
+    && registerStageIdentity,
+  'TP-02-24: the Fixture Input Completion Register read from the scope artifact carries four rows over two files each declaring both bases at 0; every named helper is found and proven to declare both; every completion site the register governs declares exactly 0, with only clone-borne probe households exempt and only by position; one fixture household keeps both bases null and is refused RLTAX-INPUT-INCOMPLETE on each leg and on the total; and against the unmodified Feature 021 pack every stage that feature published is byte-identical before and after completion ('
+    + registerCompletionSites.length + ' completion site(s), ' + registerFeature021Stages.length
+    + ' Feature 021 stage(s), misses: ' + (registerHelperMisses.join(', ') || 'none')
+    + ', non-zero: ' + (registerNonZero.length || 'none') + ')');
 
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 threshold surtax group threw): ' + e.message); }
 /* ---------- Feature 022 Scope 02: threshold surtaxes and declared tax legs (END) ---------- */

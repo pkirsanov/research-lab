@@ -218,8 +218,48 @@ Scenario SCN-022-004 — the generalized `CO-8` sum equals the previous two-leg 
 for every Feature 021 fixture against the unmodified Feature 021 pack.
 Command: `node scripts/selftest.mjs`
 
-Not delivered in this session. The compatibility comparison against the **unmodified**
-Feature 021 pack was not executed here, so this row carries no evidence.
+The compatibility canary named in the Shared Infrastructure Impact Sweep. The shipped
+pack has `taxLegs` and `thresholdSets` withdrawn, so `declaredTaxLegs` falls back to the
+two Feature 021 legs and the engine is in exactly the leg configuration it held before
+this scope. The comparand is recomputed from the `CO-6` and `CO-7` stage records rather
+than read back from `CO-8`, so a summation that mis-orders, double-counts or silently
+skips a leg fails here instead of cancelling against itself. The grid is 96 households:
+four filing statuses × two deduction modes × six income mixes × bases undeclared and
+declared at zero.
+
+```text
+  ✓ TP-02-03: against the UNMODIFIED Feature 021 pack the generalized CO-8 sums exactly the two Feature 021 legs and its total equals the previous two-leg sum recomputed from the CO-6 and CO-7 records, over every Feature 021 household shape — four filing statuses, both deduction modes, six income mixes, each with both surtax bases undeclared and declared (96 households)
+Research-Lab self-test: 3105 passed, 0 failed
+```
+
+**Intended RED.** `rltaxrules.js` `declaredTaxLegs` mutated so its Feature 021 fallback
+returns `V1_TAX_LEGS.slice(0, 1)` — a one-leg fallback. The mutation is value-free by
+construction: it carries an index literal and no rule figure and no household amount.
+It reaches only packs that declare no `taxLegs`, which is precisely the pack this row
+constructs, so the RED is targeted at the compatibility claim rather than at settlement
+generally. Pre-run guard confirmed the substitution landed on the intended line:
+
+```text
+-    return V1_TAX_LEGS;
++    return V1_TAX_LEGS.slice(0, 1);
+```
+
+```text
+  ✗ FAIL: TP-02-03: against the UNMODIFIED Feature 021 pack the generalized CO-8 sums exactly the two Feature 021 legs and its total equals the previous two-leg sum recomputed from the CO-6 and CO-7 records, over every Feature 021 household shape — four filing statuses, both deduction modes, six income mixes, each with both surtax bases undeclared and declared (96 households)
+Research-Lab self-test: 3103 passed, 2 failed
+RED_SELFTEST_EXIT=1
+```
+
+Both clauses fire together: the summed-leg-set identity sees `["ordinary"]` where it
+requires `["ordinary","preferential"]`, and the arithmetic clause sees a total that is no
+longer the recomputed two-leg sum. The second failure in the RED run is Feature 021's own
+`TP-04-05` marginal-rate guard, which reads the same fallback — collateral to the probe,
+not part of this row, and green again on revert.
+
+**Same-command GREEN.** The mutation was reverted inside the same shell invocation that
+applied it; `git status --short -- rltaxrules.js` printed nothing and the anchor line read
+`return V1_TAX_LEGS;` again. The identical `node scripts/selftest.mjs` then returned
+`3105 passed, 0 failed`, `GREEN_SELFTEST_EXIT=0` — the pre-existing pass count, unmoved.
 
 ### TP-02-04
 
@@ -496,6 +536,63 @@ to prevent". So the two members are *covered* by the sanitizer, not redacted by 
 row asserts the behaviour that actually ships; the assertion was not weakened to fit the
 wording, and the wording was not treated as satisfied. The DoD item stays open.
 
+**Browser half — the URL, request, header and console clauses.** The engine-side inventory,
+clear and export behaviour above is all a unit test can see. What only the real route can
+show is that neither declared basis leaves the page. Added as a persistent title in this
+scope's own spec:
+
+```text
+npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-005 neither declared surtax basis reaches a URL, a request, a referrer or a console message" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/lifetime-tax-surtax.spec.mjs:245:1 › Regression: SCN-022-005 neither declared surtax basis reaches a URL, a request, a referrer or a console message (732ms)
+
+  1 passed (2.4s)
+PW_EXIT=0
+```
+
+The household declares two amounts chosen to be unmistakable in a transcript — neither is a
+rule figure, neither is any other input on the page, and neither is a substring of one — and
+both legs are asserted rendered first, so the scan runs against a page that actually held
+both values. The scan then covers the address bar, every request URL, every request body,
+**every request header value**, and every console message and page error.
+
+**Two recorded misses, both fixed before the row was banked.** Neither is a defect in the
+shipped page.
+
+1. *The referrer channel was being read through the wrong API.* The first draft read
+   `request.headers()`, whose synchronous view carries no `Referer` on this route. The
+   referrer clause was therefore scanning an always-empty string.
+2. *No request this page issues presents a `Referer` at all*, even through the async
+   `allHeaders()`. A referrer-only clause is structurally vacuous here. The clause was
+   widened to every request header value, which subsumes it — a value smuggled into the page
+   URL reaches subsequent requests as `Referer`, and any other header carrying it is just as
+   much a leak — and gives the scan a corpus that is provably non-empty.
+
+Both misses were caught by the row's own non-vacuity clause rather than by inspection, and
+both produced a real failing run before the fix:
+
+```text
+    Error: expect(received).toBeGreaterThan(expected)
+    Expected: > 0
+    Received:   0
+    > 294 |   expect(requests.filter((entry) => entry.referrer.length > 0).length).toBeGreaterThan(0);
+  1 failed
+PW_EXIT=1
+```
+
+**Why this row carries an in-test negative control instead of a leak mutation.** Every
+mutation that could make this assertion fail must, by construction, route a household value
+into a URL, a header or the console — which is precisely the defect the row exists to
+prevent, and precisely the defect a prior session left live in this repository as a real
+`window.fetch("/rl-probe-telemetry.json?ordinary=" + …)`. No such probe was applied here and
+none should be. Instead the detector is proven able to fail inside the test process only:
+two control strings carrying the declared amounts are built and scanned without being
+navigated, fetched, logged or rendered, and the scan must name all three planted
+occurrences. A scan that could not name a planted value would have passed above for the
+wrong reason.
+
 ### TP-02-14
 
 Scenario SCN-022-004 — no module holds a surtax rate, threshold, jurisdiction name
@@ -680,6 +777,35 @@ contended for the same static-server port and stalled. Both were terminated, the
 table was confirmed clear, and the run above is a single clean invocation. A stalled run
 is not a failing run, and neither stalled attempt is reported here as evidence.
 
+Re-run in this session after the privacy title was added, same command:
+
+```text
+Running 77 tests using 6 workers
+
+Error: worker-0 process did not exit within 300000ms after stop, force-killed it
+Error: worker-1 process did not exit within 300000ms after stop, force-killed it
+Error: worker-5 process did not exit within 300000ms after stop, force-killed it
+Error: worker-2 process did not exit within 300000ms after stop, force-killed it
+Error: worker-4 process did not exit within 300000ms after stop, force-killed it
+Error: worker-3 process did not exit within 300000ms after stop, force-killed it
+Error: worker-3 process did not exit within 300000ms after stop, force-killed it
+
+  77 passed (5.5m)
+  7 errors were not a part of any test, see above for details
+CUMULATIVE_EXIT=1
+```
+
+**77 passed, zero failed, zero skipped.** The trailing `worker-N … force-killed it` lines
+are a known teardown fault in this harness, not test failures: Playwright reports them
+separately as "errors … not a part of any test", and every one of the 77 tests is already
+counted passed above them. They are the reason `CUMULATIVE_EXIT` is 1 while the suite
+itself is clean, and they are reported here rather than filtered out.
+
+The count rose from 69 to 77. One of the eight is this scope's added privacy title; the
+other seven are `SCN-023` and `SCN-024` scenarios a concurrent session added to the same
+feature family, which this selector legitimately sweeps because it is pinned to the four
+owning spec numbers. No scenario outside `SCN-021` … `SCN-024` can enter or leave this row.
+
 ### TP-02-19
 
 The whole-repository suite, with the pre-existing pass count recorded before and
@@ -782,6 +908,94 @@ exit=0
 added no root page and no second exclusion entry — the lifetime-tax route remains the one
 unregistered page it already was. The `historyIndexDirectory` and `omittedOrphanIndexes`
 differ because a concurrent session is writing brief history; neither is this scope's.
+
+### TP-02-24
+
+Scenario SCN-022-004 … -006 — every helper named in the Fixture Input Completion Register
+declares both bases at `0` and changed no other input member; at least one fixture household
+keeps both bases `null` and is refused `RLTAX-INPUT-INCOMPLETE` on each leg and on the total;
+and every previously settled Feature 021 fixture value is byte-identical after completion.
+Command: `node scripts/selftest.mjs`
+
+The register row set is read out of `scope.md` at run time rather than restated in the test,
+so a row added, a file renamed or a declared value changed in planning moves the assertion
+with it. Each named helper is then proven on its own — bounded by its own closing marker —
+and the file-wide FIC-4 sweep runs over every completion site that precedes this scope's own
+group. The byte-identity clause settles one household twice against the **unmodified** Feature
+021 pack, once with both bases undeclared and once completed at zero, and requires every stage
+that feature published to be identical.
+
+```text
+  ✓ TP-02-24: the Fixture Input Completion Register read from the scope artifact carries four rows over two files each declaring both bases at 0; every named helper is found and proven to declare both; every completion site the register governs declares exactly 0, with only clone-borne probe households exempt and only by position; one fixture household keeps both bases null and is refused RLTAX-INPUT-INCOMPLETE on each leg and on the total; and against the unmodified Feature 021 pack every stage that feature published is byte-identical before and after completion (31 completion site(s), 8 Feature 021 stage(s), misses: none, non-zero: none)
+Research-Lab self-test: 3106 passed, 0 failed
+```
+
+**Two recorded misses, both fixed before the row was banked.** Neither is a defect in the
+shipped code; both are places where the first-draft assertion was wrong, and they are written
+down here rather than quietly corrected.
+
+1. *The file-wide sweep was too broad.* The first draft required every completion site in the
+   register file to declare `0`, and it fired on `wageBearingL6` — a household this feature
+   clones from an already-completed fixture and then deliberately re-declares so the `L6`
+   exclusion clause has a wage basis to exclude. That is not a register completion. The rule
+   now exempts a site only when its target was built by cloning.
+2. *The clone exemption was too coarse, and survived its own mutation.* Exempting every
+   identifier ever bound to a clone made the common name `workspace` globally exempt, so the
+   PROBE 1 mutation below tripped only the named-helper clause and left the file-wide clause
+   green. The exemption is now **positional**: a site is exempt only when the nearest preceding
+   binding of that identifier is a clone, so a builder constructing from
+   `createEmptyWorkspace()` is always governed. Both clauses fire on re-probe.
+
+A third, smaller miss: bounding each helper body by a fixed character window truncated the
+browser helper before its second field and reported a miss that was not there. Each body is
+now bounded by its own closing marker.
+
+**Intended RED, probe 1 — the static register half.** `scripts/selftest.mjs` line 14036, the
+`strategyWorkspace` register completion, mutated from `= 0;` to `= null;`. The mutation is
+value-free by construction: it substitutes a keyword literal and carries no rule figure and no
+household amount. Pre-run guard confirmed the substitution landed on the intended line:
+
+```text
+-    workspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;
++    workspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = null;
+```
+
+```text
+  ✗ FAIL: TP-02-24: … (31 completion site(s), 8 Feature 021 stage(s), misses: strategyWorkspace:missing investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;, non-zero: 1)
+Research-Lab self-test: 3097 passed, 4 failed
+PROBE1_EXIT=1
+```
+
+Both static clauses fire together — the named-helper proof by name, and the file-wide sweep at
+`non-zero: 1`. The three other failures are Feature 021's own conversion group, which settles
+that helper's household; they are collateral to the probe and green again on revert.
+
+**Intended RED, probe 2 — the runtime half.** `rltax.js` line 436, `CO-8`'s refusal
+inheritance, mutated from `leg.includedInTotal === true` to `=== false`, so a refusing leg no
+longer becomes the total. Value-free: a boolean keyword. Anchor uniqueness was checked before
+the substitution (`anchor_count=1`) and the guard confirmed the landing:
+
+```text
+-      if (legUnavailable && refusal === null && leg.includedInTotal === true) refusal = record;
++      if (legUnavailable && refusal === null && leg.includedInTotal === false) refusal = record;
+```
+
+```text
+  ✗ FAIL: TP-02-24: … (31 completion site(s), 8 Feature 021 stage(s), misses: none, non-zero: none)
+Research-Lab self-test: 3095 passed, 11 failed
+PROBE2_EXIT=1
+```
+
+Here the static clauses stay clean and the FIC-5 clause is what fails — the null-basis fixture
+household no longer receives `RLTAX-INPUT-INCOMPLETE` on the total. The ten other failures are
+every other refusal-propagation assertion in the repository, which is the correct blast radius
+for removing refusal inheritance from the total.
+
+**Same-command GREEN.** Each mutation was reverted inside the same shell invocation that
+applied it. `git status --short` reported no tracked source file dirty and no stray probe
+artifact, the anchor lines read their original text again, and the identical
+`node scripts/selftest.mjs` returned `3106 passed, 0 failed`, `GREEN_EXIT=0` — the pre-existing
+3105 plus this one appended assertion.
 
 ### TP-02-22
 

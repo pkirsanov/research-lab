@@ -741,6 +741,9 @@ function mintPairPayload(symbol) {
                         horizonKind: 'event-bound',
                         eventRef: 'fixture-event-2026-07-15',
                         predicate: { kind: 'threshold', basis: 'close', comparator: 'lte', value: 100 },
+                        // Authored, not defaulted: without a positive band this action mints
+                        // `no-authored-flat-band` and the pair loses its one evaluable half.
+                        flatBand: 0.25,
                     },
                 },
                 { action: 'note', subject: 'action-1' },

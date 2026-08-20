@@ -14,7 +14,7 @@
  * only `resolvesTo` and no ticker is ever parsed out of prose — inferring one would score the
  * funding leg of a rotation as though the claim were long it.
  *
- * Absence is not an error. Each of the seven mint reasons names the field that caused it and the
+ * Absence is not an error. Each of the eight mint reasons names the field that caused it and the
  * claim is still minted and still counted, so the coverage line can say WHICH input was missing
  * instead of showing one opaque bucket. Dropping a call because an input was absent would shrink
  * the denominator in the direction that flatters.
@@ -87,7 +87,8 @@
         "no-authored-thesis-family",
         "no-authored-horizon",
         "no-authored-predicate",
-        "neutral-direction-no-magnitude"
+        "neutral-direction-no-magnitude",
+        "no-authored-flat-band"
     ]);
 
     /* ── The ledger row contract ────────────────────────────────────────────────────────────
@@ -746,6 +747,11 @@
         }
         if (claim.direction === 0) {
             return { reason: "neutral-direction-no-magnitude", field: "direction" };
+        }
+        /* Finite AND strictly positive, never defaulted: `resolved-flat` is `|outcome| <= flatBand`,
+           so a null or zero band makes the flat class unreachable and a negative one makes it empty. */
+        if (!Number.isFinite(claim.magnitude.flatBand) || claim.magnitude.flatBand <= 0) {
+            return { reason: "no-authored-flat-band", field: "magnitude.flatBand" };
         }
         return null;
     }

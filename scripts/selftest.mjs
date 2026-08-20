@@ -24208,6 +24208,19 @@ try {
   assert(GATE.observableSubjects({ tracked: { X: { px: 1 } }, bench: { px: 2 }, toolReads: { 'sector-research-lab': { metrics: { benchmark: 'SPY' } } } })['SPY'] === undefined,
     'a benchmark named by committed data is still not observable, so the watchlist boundary is the gate contract rather than an accident of missing data');
 
+  /* The other half of the empty feed, and the deeper one. A producer can only observe
+     subjects the composer will admit, and an attention subject must be a watchlist
+     ticker. The lane was never told that, so it authored attention about SPY and macro
+     — structurally guaranteed refusals. Measured on the 2026-08-20 01:35 EDT publish:
+     3 candidates authored, 3 refused RLATTN-PROVENANCE, and both published
+     recommendations that run named SPY and no watchlist ticker at all. */
+  const laneSrc1 = read('scripts/brief-narrative-parallel.mjs');
+  const catalystRegion1 = laneSrc1.slice(laneSrc1.indexOf('Own actionable changes and catalysts'));
+  const catalystInstruction1 = catalystRegion1.slice(0, catalystRegion1.indexOf('`,'));
+  assert(/watchlist/.test(catalystInstruction1) && /exact ticker/.test(catalystInstruction1)
+    && /cannot be published as an attention item/.test(catalystInstruction1),
+    'Regression: SCN-BUG009-R1-LANESCOPE the lane is told that an attention item must concern a watchlist instrument and carry its exact ticker — without it the lane authors judgement the composer is contractually unable to publish, and the feed stays empty however well the gate observes');
+
   const builderSrc1 = read('scripts/build-attention-items.mjs');
   assert((builderSrc1.match(/RLATTNGATE\.attachObserved\(/g) || []).length === 2,
     'Regression: SCN-BUG009-R1-BOTHPATHS the observed half is attached on BOTH build-attention-items entry points — the --recompose path the publisher runs and the --candidates path the CLI documents — so neither can silently refuse what the other accepts');

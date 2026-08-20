@@ -1042,3 +1042,67 @@ fixed literal and that no query-string machinery exists anywhere in the route, s
 introducing the machinery alone is the whole defect. The harness additionally
 refuses any `--replace` that could open a network or navigation sink, so a probe
 here cannot be written as a real exfiltration.
+
+### `TP-05-17` — vocabulary
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-17 vocabulary: a fifteenth refusal code appearing in the one module that declares the vocabulary must fail, because the count is asserted at feature end against its pre-feature value
+file:             rltaxrules.js
+mutation:             "RLTAX-CONFIG-INVALID": true,  ->      "RLTAX-PROBE-ADDED-MEMBER": true,
+    "RLTAX-CONFIG-INVALID": true,   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-17: at feature end the refusal vocabulary still carries exactly its fourteen pre-feature members in both directions, each still raised in the one module that declares them, no second
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-05-18` — marker check
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-18 marker check: a supersession marker in the repository that the ledger does not carry must fail the marker-to-ledger identity
+file:             tests/lifetime-tax-marginal.spec.mjs
+mutation:         SUP-024-04  ->  SUP-024-99   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-18: the distinct SUP-024-NN markers in the repository equal the ledger’s twelve entries, the row count equals the total the opening paragraph states, the sum of the ownership colum
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=4a04f50c77d25304e54ee08f47df8f89c4b7d3b0 restored=4a04f50c77d25304e54ee08f47df8f89c4b7d3b0)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The mutated marker is one the ledger does not carry, and the marker it replaced is
+still present elsewhere in the tree, so what fails is the identity itself rather
+than a count that merely moved. The probe targets a marker in a **test** file
+because the ledger's own row is spec-owned and this pass does not edit spec
+artifacts; the identity the row asserts spans the repository, so either side proves
+it.
+
+### `TP-05-27` — repo gate
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-27 repo gate: a silent contract-version change in a shipped record must make the whole-repository suite fall from its recorded pass count
+file:             rltax.js
+mutation:         contractVersion: "SurfaceCensus/v1"  ->  contractVersion: "SurfaceCensus/v2"   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3171 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3172 passed, 0 failed
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+This row's named behaviour is the gate itself — the suite stays green and the
+pass count does not fall — so its probe is matched on the count rather than on an
+assertion label. One assertion falls and the count falls with it, from 3172 to
+3171, and returns on revert.

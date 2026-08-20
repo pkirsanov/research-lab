@@ -930,6 +930,9 @@
     ATTENTION_LIFECYCLE_STATES: ATTENTION_LIFECYCLE_STATES,
     ATTENTION_LIFECYCLE_TRANSITIONS: ATTENTION_LIFECYCLE_TRANSITIONS,
     DECISION_WINDOWS: DECISION_WINDOWS,
+    /* exported so the authoring instruction can be RENDERED from the same frozen array
+       checkVerb refuses on, rather than keeping a second copy that drifts. */
+    RESEARCH_VERBS: RESEARCH_VERBS,
     TERMINAL_OUTCOME_CLASSES: TERMINAL_OUTCOME_CLASSES,
     REFUSAL_CODES: REFUSAL_CODES,
     resolveDecisionWindow: resolveDecisionWindow,

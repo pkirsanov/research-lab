@@ -74,6 +74,44 @@ export const AUTHORED_JUDGEMENT_KEYS = Object.freeze([
   'verb', 'horizon', 'severity', 'imminence', 'rationale'
 ]);
 
+/**
+ * The verb sentence handed to the authoring lane, rendered from the SAME frozen
+ * array `rlattention.js` refuses on.
+ * `verb` is a closed vocabulary, and the lane was told the field existed but
+ * never which values it admits. A run then authored two well-formed items about
+ * real watchlist subjects (SOXX, FETH) and the gate refused both `RLATTN-VERB`.
+ * Restating the six verbs here as prose would fix that run and reopen the gap
+ * the first time the vocabulary changes: the gate would move, this sentence
+ * would not, and the author would again be refused over a value nobody offered
+ * them. Rendering keeps the ask and the refusal on one array. Same reasoning,
+ * and the same shape, as briefEventContractInstruction().
+ */
+export function attentionVerbContractInstruction() {
+  const verbs = RLATTN.RESEARCH_VERBS;
+  if (!Array.isArray(verbs) || verbs.length === 0) {
+    throw new Error('RLATTN-VERB-CONTRACT: the certified research-verb vocabulary is unreadable');
+  }
+  return `An attention item's verb must be exactly one of ${verbs.join(', ')}; `
+    + 'the publication gate refuses any other value, including an execution command.';
+}
+
+/**
+ * The verbs the gate refuses on that a given instruction does NOT offer.
+ *
+ * Whole values are matched, never substrings: `verify` appears inside no other
+ * verb today, but a future `verify-flows` would make a substring test report an
+ * instruction as complete while the author was never offered the longer value.
+ */
+export function findAttentionVerbInstructionGaps(instruction) {
+  const text = typeof instruction === 'string' ? instruction : '';
+  return RLATTN.RESEARCH_VERBS.filter(
+    (verb) => !new RegExp(`(^|[^A-Za-z0-9-])${verb}([^A-Za-z0-9-]|$)`).test(text)
+  );
+}
+
+/** The verb vocabulary the gate refuses on, re-exported so callers read one array. */
+export const ATTENTION_RESEARCH_VERBS = Object.freeze(RLATTN.RESEARCH_VERBS.slice());
+
 function loadJson(relPath) {
   return JSON.parse(readFileSync(resolve(ROOT, relPath), 'utf8'));
 }

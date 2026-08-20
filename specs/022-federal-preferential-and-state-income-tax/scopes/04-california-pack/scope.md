@@ -326,9 +326,19 @@ syntax error, a missing browser or an absent test does not satisfy RED.
 - [ ] `unsupportedFeatures[]` is non-empty and no result is labelled a complete
       state tax.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-14`
-- [ ] No output states a probability, a lifetime figure, a track record or an
+- [x] No output states a probability, a lifetime figure, a track record or an
       error rate, and no California figure is presented as an estimate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
+  - **Evidence:** five detectors were run over this scope's two output paths, the
+    California pack and the page that renders its notices. Each detector is proven
+    live on a planted sentence before the scan is trusted and the run aborts if any
+    is dead; that guard fired once, catching a lifetime-figure detector that did
+    not match its own planted sentence, which was widened and re-proven. The
+    probability, lifetime-figure, track-record and error-rate detectors returned
+    zero hits. The single estimate hit is the pack's own statement that an
+    unsupported residency pattern refuses *rather than being approximated*, and a
+    classifier proven live on both an asserted and a disclaimed form reports
+    asserted-estimate count zero.
 - [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
   - **Phase:** implement · **Command:** the exact TP-04-01 through TP-04-19 commands · **Evidence:** `report.md#test-evidence`

@@ -640,9 +640,58 @@ finding routed back to Scope 03, not applied in this scope.
 
 ## Claim Boundary
 
-Filled at execution. Holds the text scan proving no probability, lifetime figure,
-recommendation, track record, accuracy claim or error rate appears in this scope's
-allowed paths, and that no California figure is presented as an estimate.
+**Claim Source:** executed. **Outcome: the row holds and is ticked.**
+
+Scanned this scope's two output paths — the California pack, whose label and
+reason strings are surfaced verbatim as notices, and the page that renders them.
+`scripts/selftest.mjs` is a gate rather than an output surface and
+`tests/lifetime-tax-california.spec.mjs` does not exist, so neither is scanned.
+
+Each detector is proven live on a planted sentence **before** the scan is
+trusted, and the run aborts rather than reporting an absence if any detector is
+dead. That guard fired on the first attempt: the lifetime-figure detector did not
+match its own planted sentence, so its silence would have been a dead scan rather
+than a real absence. It was widened and re-proven.
+
+```text
+--- every detector proven live BEFORE the scan is trusted ---
+  fires on planted probability = true
+  fires on planted lifetimeFigure = true
+  fires on planted trackRecord = true
+  fires on planted errorRate = true
+  fires on planted estimate = true
+  dead detector count = 0
+  silent on a clean sentence = true
+--- scan ---
+HIT estimate | tax-rules/state/CA/2026.json:73
+     { "id": "ca-part-year-and-nonresident-apportionment", ... "reason": "Section 17041(b), (d) and (i) define a separate computation for a non-resident or part-year resident. This pack models single full-year residency only, and any other declared pattern refuses under its own code rather than being approximated.", "code": "RLTAX-RESIDENCY-UNSUPPORTED", ...
+total hits across this scope output paths = 1
+```
+
+The probability, lifetime-figure, track-record and error-rate detectors each
+returned **zero** hits while each fired on its planted sentence, so their silence
+is a real absence.
+
+The single estimate hit is the **opposite** of a violation: it is the pack's own
+statement that an unsupported residency pattern *refuses rather than being
+approximated*. A substring detector cannot separate an asserted estimate from a
+disclaimed one, so every mention was re-run through a classifier proven live on
+both forms:
+
+```text
+--- the classifier is proven live on both forms ---
+  asserted form  -> ASSERTED
+  disclaimed form-> DISCLAIMER
+--- every mention across this scope output paths, classified ---
+  tax-rules/state/CA/2026.json | DISCLAIMER | This pack models single full-year residency only, and any other declared pattern refuses under its own code rather than being approximated.
+=== asserted-estimate count across this scope output paths = 0 ===
+```
+
+No California figure is presented as an estimate. The California total does not
+render as a figure at all: its ordinary schedule was never retrieved, so the
+settlement refuses under `RLTAX-THRESHOLD-UNAVAILABLE` and the surface carries a
+refusal rather than a numeral, which is pinned independently at
+`report.md#tp-04-11`.
 
 ## Completion Statement
 

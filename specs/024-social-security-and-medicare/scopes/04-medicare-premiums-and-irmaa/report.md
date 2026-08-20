@@ -689,3 +689,68 @@ Green in the `2812 passed, 0 failed` run. Each was delivered by an earlier
 dispatch and this session did not re-derive its individual intended-RED, so no
 per-row RED is claimed for any of them.
 
+## Intended-RED Mutation Probes
+
+Method, stated once. A row's intended RED is produced by planting one value-free
+defect in the code the row asserts against, running the row's own command, and
+recording which named rows fail. The defect is then reverted with an explicit
+`git checkout --` in the same shell invocation and the identical command is run
+again for the GREEN. Every mutation is value-free by construction — an operator,
+a guard clause, a parameter name, a string literal, one term of a local sum — so
+no household figure can be disclosed by a mutation that outlives its revert.
+`git status --porcelain` on the mutated path is asserted empty after each revert
+and is recorded with each probe.
+
+The baseline for every probe in this section is `3106 passed, 0 failed`.
+
+### Probe 1 — the inclusive boundary operator computed strictly
+
+Mutation: in `rltaxmedicare.js`, `compareAtLowerBound` computed its
+`greater-than-or-equal` branch with `>` instead of `>=`. One operator, no figure.
+
+```
+$ node scripts/selftest.mjs
+  ✗ FAIL: TP-04-06: against a fixture pack with deliberately non-standard boundaries, declared incomes below, exactly at and above each boundary land in the bracket the p
+  ✗ FAIL: TP-04-07: flipping the pack’s own boundary operator moves the household sitting exactly on the boundary and leaves its neighbours where they were, a bracket sta
+Research-Lab self-test: 3104 passed, 2 failed
+$ git checkout -- rltaxmedicare.js
+DIRTY_AFTER_REVERT=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3106 passed, 0 failed
+```
+
+**Intended RED recorded for TP-04-06 and TP-04-07.** Both rows exist to prove the
+exact-boundary household is placed by the publication's own operator rather than
+by a convention, and both are shown to fail the moment that operator is computed
+as the other one.
+
+### Probe 2 — the first matching bracket kept instead of the last
+
+Mutation: in `rltaxmedicare.js`, the selection line became
+`if (comparison.result === true && selected === null) selected = candidate;`.
+One added guard clause, no figure.
+
+```
+$ node scripts/selftest.mjs
+  ✗ FAIL: TP-04-03: with a declared lookback and a current-year measure that fall in provably different brackets, the re
+  ✗ FAIL: TP-04-06: against a fixture pack with deliberately non-standard boundaries, declared incomes below, exactly at
+  ✗ FAIL: TP-04-07: flipping the pack’s own boundary operator moves the household sitting exactly on the boundary and le
+  ✗ FAIL: TP-04-08: both the Part B and the Part D adjustment amounts are applied and the leg cites a source for each, a
+Research-Lab self-test: 3102 passed, 4 failed
+$ git checkout -- rltaxmedicare.js
+DIRTY_AFTER_REVERT=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3106 passed, 0 failed
+```
+
+**Intended RED recorded for TP-04-03 and TP-04-08**, and re-observed for TP-04-06
+and TP-04-07 under a second, independent defect.
+
+**Recorded miss.** TP-04-11 and TP-04-12 survived this probe. Selecting the first
+matching row instead of the last moves the fixture household from the bracket the
+pack states into the one carrying no adjustment, yet TP-04-11's clause that the
+three legs are mutually distinct and non-zero still held, because the standard
+premiums alone are distinct and non-zero. That is a real insensitivity in those
+two rows to a bracket-selection defect, and it is recorded here rather than
+absorbed into a green.
+

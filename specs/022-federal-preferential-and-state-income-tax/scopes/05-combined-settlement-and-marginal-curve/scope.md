@@ -272,6 +272,19 @@ missing browser or an absent test does not satisfy RED.
       jurisdiction and pack id, an unattributable rate change is refused, and the
       no-tax state contributes a present, flat, attributed zero series.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-11`, `report.md#tp-05-12`
+  - **Open because:** two of the three clauses hold and the middle one has never
+    been observed. The attribution clause is green under TP-05-11 and the no-tax
+    flat-zero clause is green and probed under TP-05-12. The refusal clause is
+    not: `rltaxcombined.js` raises the unattributable-segment refusal at exactly
+    one site, under the domain `combined-curve:<kind>:segment`, and a census of
+    `scripts/selftest.mjs` and `tests/` finds that domain named nowhere. The two
+    near-matches are not substitutes — TP-03-04 observes the same refusal *code*
+    but under `curve:ordinary:segment`, which is the single-jurisdiction engine,
+    and the combined spec's two observations are the inherited `state-deduction`
+    and `combined-curve:ordinary:state` absent-figure refusals. Closing the clause
+    needs a constructed curve whose rate moves where no pack declares a threshold,
+    which is test authoring rather than a derivation, so it was not attempted in
+    this dispatch. See `report.md#tp-05-11`.
 - [x] FR-022-034 is implemented: a pack-year mismatch refuses naming both packs
       and both year sets, and no combined figure is produced.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-01`

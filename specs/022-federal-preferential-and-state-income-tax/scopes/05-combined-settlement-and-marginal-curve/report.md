@@ -715,6 +715,37 @@ engine — is the way to construct one, by giving the wrapped engine an undeclar
 rate step inside the sweep domain. That work was not carried out in this session,
 so the row stays open rather than being narrowed to the part that is provable.
 
+**Re-confirmed by a domain census, not by re-reading the note.** A later session
+checked whether the gap had since been filled somewhere else in the suite, and
+established it by refusal *domain* rather than by refusal code, because the code
+alone is ambiguous — `RLTAX-THRESHOLD-UNAVAILABLE` is raised by the
+single-jurisdiction engine as well. The combined module raises the unattributable
+segment refusal at exactly one site, under its own domain:
+
+```text
+=== the refusal branch in the module ===
+rltaxcombined.js:641:  return rules.unavailable("RLTAX-THRESHOLD-UNAVAILABLE", "combined-curve:" + kind + ":segment",
+=== does any test observe the COMBINED-curve segment domain refusal? ===
+COMBINED_SEGMENT_DOMAIN_OBS_END
+```
+
+Nothing in `scripts/selftest.mjs` or `tests/` names that domain. Two near-matches
+were checked and rejected as substitutes:
+
+- `TP-03-04` in the selftest *does* observe a real unattributable-rate refusal, and
+  drives it through a legitimate input rather than a mutation — a pack whose
+  reconciliation tolerance is zero makes float noise inside one band register as a
+  move. But its domain is `curve:ordinary:segment`: that is `rltax.js`, the
+  single-jurisdiction engine, not the combined composition this row is about.
+- `tests/lifetime-tax-combined.spec.mjs` L443 and L465 do assert
+  `RLTAX-THRESHOLD-UNAVAILABLE` on the combined surface, but their domains are
+  `state-deduction:single` and `combined-curve:ordinary:state` — both *inherited*
+  absent-figure refusals, which the combined total passes through. Neither is the
+  segment guard.
+
+So the shape of the gap is now pinned precisely: the combined module's segment
+guard is the one refusal path in this scope that no test has ever caused to fire.
+
 ### TP-05-12
 
 Scenario SCN-022-014 — for the no-tax state the state series is present, flat at

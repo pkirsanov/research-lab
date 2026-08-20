@@ -10,13 +10,18 @@ satisfy no Definition of Done item; they are preserved as the analysis that prod
 
 Three increments have landed. Increment 3 declared the denominator contract and authored the four Test Plan rows
 that had been named but never written; this pass re-executed every command against `HEAD` = `d7aa39d1d` and
-closed the five Definition of Done items those changes genuinely satisfy: **27 of 30 ticked, 3 left open.**
+closed the five Definition of Done items those changes genuinely satisfy. A later pass recovered the `T-03-S1`
+baseline by reconstruction, bringing the count to **28 of 30 ticked, 2 left open.**
 
-The three remaining are open for real reasons, not for want of a measurement. One (`T-03-R2`) has a red conjunct
-whose cause lies outside this scope and a second conjunct that was not measured at all. One (`T-03-S1`) needs a
-scope-start baseline that was never captured and can no longer be taken. One (the Build Quality Gate) is a
-grouped gate that inherits both and additionally names a revert this evidence pass did not perform. Each is named
-with its blocking conjunct in [Items left open, and the real reason for each](#items-left-open).
+The two remaining are open for real reasons, not for want of a measurement. One (`T-03-R2`) has a red conjunct
+whose cause lies outside this scope and a second conjunct that was not measured at all. One (the Build Quality
+Gate) is a grouped gate that inherits it and additionally names a revert this evidence pass did not perform. Each
+is named with its blocking conjunct in [Items left open, and the real reason for each](#items-left-open).
+
+`T-03-S1` was previously counted among the open items on the stated ground that its baseline *"can no longer be
+taken"*. That ground was mistaken — the pre-change tree is a commit, not a lost moment — and the row is now
+closed on a **reconstructed** baseline whose method, legitimacy and two limitations are set out at
+[T-03-S1](#t-03-s1).
 
 Before the increments, a reality check found **six stale premises and one blocking defect** in `scope.md`. All
 seven are recorded below, the blocking defect was ruled on, and the falsified plan text was corrected. That
@@ -398,6 +403,94 @@ rate and not merely that the rate is right.
 
 ---
 
+<a id="t-03-s1"></a>
+
+### T-03-S1 — the repo self-test against the scope-start baseline
+
+**The baseline below is RECONSTRUCTED, not captured at scope start.** Every earlier pass in this report recorded
+it as *"Not captured"* and treated it as unrecoverable. It is recoverable, and the method is the reason.
+
+**Method.** Scope 03's first implementation commit is `2fb48abcc`. The tree immediately before this scope's first
+change is therefore exactly its parent, `b22ad673a`. That tree still exists in committed history, so the baseline
+can be *measured* rather than remembered — checked out into a disposable worktree, which is clean by construction
+and so satisfies the row's `2026-08-20` clean-worktree correction:
+
+```text
+$ git worktree add --detach <tmp> b22ad673a
+$ cd <tmp> && node scripts/selftest.mjs
+Research-Lab self-test: 3136 passed, 0 failed
+exit 0
+```
+
+The `HEAD` endpoint is taken the same way, in a second disposable worktree at `0dd5fb9e4`, **not** in the working
+tree. The working tree carries 66 uncommitted paths from a concurrent session — including `scripts/selftest.mjs`
+itself — and reads `3189 passed, 0 failed` there. That reading is inadmissible for this row precisely because the
+row requires a clean worktree, and the 5-assertion gap between `3189` and `3184` is that other session moving
+underneath the measurement. Both endpoints below are clean checkouts of committed history:
+
+| Endpoint | Commit | Tree | Self-test | Exit |
+|---|---|---|---|---|
+| Baseline — parent of this scope's first change | `b22ad673a` | disposable worktree, clean | `3136 passed, 0 failed` | `0` |
+| `HEAD` | `0dd5fb9e4` | disposable worktree, clean | `3184 passed, 0 failed` | `0` |
+
+**`3136 + 48 = 3184`, `0 failed`, exit `0`.** Both worktrees were removed afterwards with
+`git worktree remove --force` and their absence confirmed.
+
+**Why a reconstruction is legitimate here.** A baseline typed into a report at the time rests on the author's
+word: nobody can re-derive it, and a wrong digit is undetectable. This one is re-derivable by anyone, from
+committed history, with the two commands above — it is *more* checkable than the contemporaneous capture it
+replaces, not less. **Its limitation is that it was not observed contemporaneously.** It reconstructs what the
+tree *would have* reported, from a tree that is byte-identical to the one that existed; it is not a record of an
+observation made at scope start, and this report does not claim it is.
+
+<a id="t-03-s1-no-decrease"></a>
+
+**The second conjunct — *"no pre-existing assertion count decreasing"*.** A total rising `3136 → 3184` does not
+by itself establish this: a group could shed assertions while others more than covered the loss. The aggregate
+was therefore **not** treated as sufficient. `scripts/selftest.mjs` prints a named header per group (`group()`)
+and one `✓`/`✗` line per assertion beneath it, but no subtotals — so per-group counts were reconstructed by
+attributing each assertion line to the header above it, at both endpoints, and compared group by group:
+
+```text
+BASELINE b22ad673a  clean worktree : 3136 passed, 0 failed | exit 0 | groups 199 | counted 3136
+HEAD     0dd5fb9e4  clean worktree : 3184 passed, 0 failed | exit 0 | groups 199 | counted 3184
+delta N = 48
+pre-existing groups whose count DECREASED: 0
+pre-existing groups DROPPED entirely: 0
+groups new at HEAD: 0
+```
+
+The reconstructed per-group totals reconcile exactly with the harness's own summary at both endpoints
+(`counted 3136` / `counted 3184`), so no assertion was lost to the attribution. All 199 pre-existing groups are
+present at `HEAD`, none dropped, and **none decreased**. The conjunct holds at group granularity.
+
+**Limit of that proof.** Group granularity is the finest the harness exposes; assertion *identity* within a group
+is not tracked. A group that deleted one assertion and added two would read as `+1` here and would not be caught.
+The claim made is therefore precisely: *no pre-existing group's assertion count decreased* — not the strictly
+stronger *no individual pre-existing assertion was removed*.
+
+<a id="t-03-s1-attribution"></a>
+
+**`+48` is not a scope-03 attribution.** Thirteen commits separate the two endpoints, and only three of them
+(`2fb48abcc`, `1bb5a2ebc`, `d7aa39d1d`) are this scope's implementation increments. The rest are a concurrent
+workstream — BUG-009 stabilization and two `market-brief` refreshes — and **three of those concurrent commits
+modify `scripts/selftest.mjs` directly** (`dbdb7b2a2`, `fde43b91a`, `9f4a8f628`), so they move this very total.
+
+Scope 03's own share was measured in isolation, which is possible for increment 1 because its parent *is* the
+baseline:
+
+```text
+$ cd <tmp> && git checkout --detach 2fb48abcc && node scripts/selftest.mjs
+Research-Lab self-test: 3143 passed, 0 failed
+```
+
+**`+7` of the `+48` is scope 03 increment 1**; increments 2 and 3 do not touch `scripts/selftest.mjs` at all. The
+remaining `+41` belongs to the concurrent workstream. The row asks for `baseline + N`, and `N = 48` is the honest
+figure for the interval — but it is the interval's delta, **not** this scope's contribution, and nothing here
+should be read as crediting scope 03 with 48 assertions.
+
+---
+
 <a id="t-03-u1"></a>
 
 ### T-03-U1 — boundary classification at exactly `±flatBand`, where an `=== 0` classifier fails
@@ -713,7 +806,10 @@ No statistic, estimator, interval, or discount is written in this scope. `rlclai
 
 ## Items left open, and the real reason for each
 
-Eight of thirty. Each names the conjunct that is not met.
+**Two of thirty are open now: `T-03-R2` and the Build Quality Gate.** The table below is the running ledger of
+every item that has ever been open, kept so the reasons stay auditable; rows the increment-3 pass subsequently
+closed are retained with the reason that held when they were written, and `T-03-S1` is struck through with the
+finding that closed it. Each open row names the conjunct that is not met.
 
 | Item | Blocking conjunct |
 |---|---|
@@ -723,7 +819,7 @@ Eight of thirty. Each names the conjunct that is not met.
 | T-03-F3 | No test exists anywhere. Its substance is partly reached inside [T-03-U4](#t-03-u4), which proves `resolvedDirectional === 0` is reachable and that the primitive refuses that empty array — but the row is not written at its named file and is not claimed. |
 | T-03-R1 | `tests/recommendation-track-record.e2e.mjs` contains **zero** `T-03-` rows. The persistent SCN-015-004 regression does not exist yet. Creating it is implementation, not an evidence pass. |
 | T-03-R2 | Two conjuncts, neither satisfiable this pass. The Playwright half was **not run** — running it was out of scope for this pass. The Node E2E half cannot be measured truthfully in this working tree: `tests/*.e2e.mjs` currently fails `T-01-R2`, and the failure is caused by seven **uncommitted** `tests/portfolio-survival-*.spec.mjs` files belonging to a concurrent session. A stashed re-measurement would be measuring a tree that is not the tree, so none is offered. |
-| T-03-S1 | The row requires `baseline + N passed` against a baseline *"captured immediately before this scope's first change"* on a **clean worktree**. It was never captured — this report's own pre-increment pass recorded it as *"Not captured"* — and it cannot be taken retroactively, because the first change has landed. Today's `3182 passed, 0 failed` is recorded under [the self-test run](#run-selftest) as a green reading, but a green total is not a delta and is not offered against this row. |
+| ~~T-03-S1~~ **CLOSED 2026-08-20** | Previously open on the premise that the baseline *"cannot be taken retroactively, because the first change has landed"*. **That premise was wrong.** The tree immediately before this scope's first change is the parent of `2fb48abcc`, namely `b22ad673a`, and it still exists in committed history — so the baseline is measurable in a disposable worktree rather than lost. Measured `3136 passed, 0 failed`; `HEAD` measured the same way `3184 passed, 0 failed`; both conjuncts hold, including *no pre-existing assertion count decreasing* at group granularity. The baseline is **reconstructed, not contemporaneous**, and the `+48` is the interval's delta and **not** a scope-03 attribution. Full evidence and both limitations at [T-03-S1](#t-03-s1). |
 | Build Quality Gate | Four conjuncts hold and are evidenced: zero warnings across both runs, `rlvalidation.js` byte-unmodified, `spec.md` and `design.md` unmodified by this scope, no other spec's artifacts touched. Two do not. *"Every negative test verified to fail when the behaviour it guards is reverted"* was **not performed** — revert verification requires editing `rlclaims.js`, which this evidence pass did not do. And the gate inherits the `T-03-R2` and `T-03-S1` gaps above. Grouped gates tick as a block, so it stays open. |
 
 ---
@@ -989,7 +1085,7 @@ scope became larger, not smaller; no row was deleted or weakened.
 | Scope 03 implementation | **Schedulable.** Every corrected row is satisfiable as written; `T-03-U7` is testable entirely inside scope 03 and does not depend on the scope-01 fix landing first. |
 | `F-015-03-01` (mint-side validation) | **Open, routed to scope 01.** Until it lands, a degenerate-band claim is still minted as evaluable; scope 03 will refuse it rather than mis-classify it, so no wrong number is ever published — but the stored claim stays wrong at its source. |
 | Band-of-exactly-`0` legality | **Open, routed to the design owner.** `design.md#L380` shows `0.0`, `#L549` shows `0.25`, and `#L671`'s measure-zero argument implies `0.0` is vacuous. `design.md` unmodified by this pass. |
-| `T-03-S1` baseline | **Not captured.** Requires a clean worktree; the tree currently carries 59 uncommitted files from a concurrent session. |
+| `T-03-S1` baseline | **Resolved 2026-08-20 by reconstruction.** Superseded the earlier *"Not captured"* entry: the clean-worktree requirement is met by checking the baseline commit `b22ad673a` out into a disposable worktree, which is unaffected by the concurrent session's uncommitted files. Measured `3136 passed, 0 failed`. See [T-03-S1](#t-03-s1). |
 
 ## Planning-pass measurements — not test evidence
 
@@ -999,21 +1095,25 @@ evidence for this scope is under [Test Evidence](#run-unit), earlier in this rep
 
 ## Completion Statement
 
-Scope 03 is `In Progress`. Three increments have landed, and **27 of 30 Definition of Done items are ticked**
+Scope 03 is `In Progress`. Three increments have landed, and **28 of 30 Definition of Done items are ticked**
 with executed evidence recorded above. **No scope completion is claimed and no certification is requested**:
-three items remain open, and each is named with its blocking conjunct in
+two items remain open, and each is named with its blocking conjunct in
 [Items left open, and the real reason for each](#items-left-open).
 
-None of the three is open for want of a test. `T-03-R2` has a **red** Node conjunct — one failure, `T-01-R2`,
-caused by a concurrent session's seven uncommitted `tests/portfolio-survival-*.spec.mjs` files — and a Playwright
-conjunct that was **not run** and is therefore unmeasured rather than green. `T-03-S1` names a scope-start
-baseline that was never captured, so there is no number to subtract from; today's `3184 passed, 0 failed` is
-recorded as a green reading only. The Build Quality Gate ticks as a block, inherits both, and additionally names
-a revert-verification this evidence pass did not perform.
+Neither of the two is open for want of a test. `T-03-R2` has a **red** Node conjunct — one failure, `T-01-R2`,
+caused by a concurrent session's uncommitted `tests/portfolio-survival-*.spec.mjs` files — and a Playwright
+conjunct that was **not run** and is therefore unmeasured rather than green. The Build Quality Gate ticks as a
+block, inherits `T-03-R2`, and additionally names a revert-verification this evidence pass did not perform.
+
+`T-03-S1` is now ticked on a **reconstructed** baseline of `3136 passed, 0 failed`, measured at `b22ad673a` — the
+parent of this scope's first implementation commit — in a disposable worktree, with `HEAD` measured the same way
+at `3184 passed, 0 failed`. Both conjuncts hold, the second at group granularity across all 199 groups. Two
+things are **not** claimed: the baseline was not observed contemporaneously, and the `+48` is the delta of a
+thirteen-commit interval of which only `+7` is scope 03. See [T-03-S1](#t-03-s1).
 
 This pass wrote evidence only. No source file, no test file, no fixture, no `state.json`, no `uservalidation.md`,
 `spec.md`, or `design.md` was modified, and no committed ledger byte was touched. The artifacts changed are this
-report and `scope.md` (five Definition of Done ticks). One finding remains routed to the owner rather than
+report and `scope.md` (six Definition of Done ticks). One finding remains routed to the owner rather than
 resolved here: the falsified `rlclaims.js` row in the must-not-touch table
 ([divergence](#divergence-rlclaims-must-not-touch)). The *directional hit rate* ownership disagreement recorded
 by the increment-2 pass is **resolved**, not routed — the label is declared in `rlclaims.js` and rendered by

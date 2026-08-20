@@ -189,7 +189,7 @@ naive `=== 0` check would let through, so an implementation that only tested exa
 - [x] T-03-F3 passes: `resolvedDirectional === 0` is reachable and the primitive is not called → evidence recorded in `report.md#t-03-f3`.
 - [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope pass — [T-03-R1] the resolved-flat sentinel, the exact unrounded flat value, `RTR-FLAT-ZERO`, and the class partition identity all re-assert end to end over a mixed cohort → evidence recorded in `report.md#t-03-r1`.
 - [ ] Broader E2E regression suite passes unchanged — [T-03-R2] the committed Node E2E files and the whole committed Playwright spec suite are green, proving every other `rlvalidation.js` consumer in the repo is untouched → evidence recorded in `report.md#t-03-r2`.
-- [ ] T-03-S1 passes: `node scripts/selftest.mjs` reports `baseline + N passed, 0 failed` against the scope-start baseline captured in `report.md`, with no pre-existing assertion count decreasing → evidence recorded in `report.md#t-03-s1`.
+- [x] T-03-S1 passes: `node scripts/selftest.mjs` reports `baseline + N passed, 0 failed` against the scope-start baseline captured in `report.md`, with no pre-existing assertion count decreasing → evidence recorded in `report.md#t-03-s1`.
 
 **Test-related DoD items: 13. Test Plan rows: 13. Parity confirmed.** *(12 / 12 before the 2026-08-20 correction.)*
 

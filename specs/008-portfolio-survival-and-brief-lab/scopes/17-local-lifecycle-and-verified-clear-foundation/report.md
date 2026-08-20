@@ -172,7 +172,7 @@ All six declared commands, the Pages build, structured path validation, editor d
 and focused traceability pass.
 
 ```text
-$ bash /home/philipk/bubbles/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope
+$ bash <bubbles-repo>/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope
 exit: 0
 lines: 343
 sha256: a56f34b54724075c52695bc30248ebaa15f7b4d4f50d32e2b8b644a3cb3fbac9

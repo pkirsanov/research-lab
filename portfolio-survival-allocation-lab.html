@@ -5336,7 +5336,7 @@
                         renderStorage();
                         renderCurrent();
                         renderInventory();
-                        loadBriefWindows();
+                        loadOwnerRoutes();
                         setTruth("Current", currentRevision() ? "Verified local revision loaded" : "Ready for one local portfolio revision", "No external provider, account, credential, telemetry, or execution path is active.");
                         updateConfirmState();
                     })
@@ -5505,17 +5505,45 @@
                     });
             }
 
+            function handleBriefWindowFailure(error) {
+                state.genericWindow = state.lastValidGenericWindow;
+                state.genericWindowError = error.portfolioError || {
+                    contractVersion: "PortfolioError/v1", code: "P008-BRIEF-EVIDENCE",
+                    reason: "public-evidence-transaction-failed", field: null, row: null,
+                    valueEchoed: false, recoverable: true
+                };
+                setText("briefTimes", state.genericWindow
+                    ? "Public evidence refresh refused. The last valid brief remains visible."
+                    : "Generic evidence window unavailable.");
+                byId("briefTimes").className = "state-message warn";
+                byId("briefTimes").setAttribute("data-generic-window-state",
+                    state.genericWindow ? "preserved-last-valid" : "unavailable");
+                setText("briefStates", state.genericWindow ? "Last valid brief retained." : "Brief unavailable. No window is assumed.");
+                updateDiagnostics();
+            }
+
+            function loadOwnerRoutes() {
+                return fetchPublicArtifact("market-brief.owner-reads.json", true)
+                    .then(function (ownerArtifact) {
+                        return loadBriefWindows(ownerArtifact);
+                    })
+                    .catch(function (error) {
+                        state.briefOwners = {};
+                        renderBrief();
+                        handleBriefWindowFailure(error);
+                    });
+            }
+
             /* The generic window contract is fetched READ-ONLY from the same origin. A failure here
                leaves the brief explicitly unavailable rather than falling back to a locally invented
                schedule, because a second copy of the schedule is a second source of truth. */
-            function loadBriefWindows() {
-                Promise.all([
+            function loadBriefWindows(ownerArtifact) {
+                return Promise.all([
                     fetchPublicArtifact("market-brief.config.json", true),
                     fetchPublicArtifact("market-brief.snapshot.json", true),
                     fetchPublicArtifact("market-brief.payload.json", true),
                     fetchPublicArtifact("brief-history.recent.jsonl", false),
-                    fetchPublicArtifact("watchlist.json", true),
-                    fetchPublicArtifact("market-brief.owner-reads.json", true)
+                    fetchPublicArtifact("watchlist.json", true)
                 ])
                     .then(function (loaded) {
                         var artifacts = {
@@ -5527,7 +5555,7 @@
                             historyRows: loaded[3].text.split("\n").filter(Boolean).map(function (line) { return JSON.parse(line); }),
                             watchlist: loaded[4].value,
                             watchlistText: loaded[4].text,
-                            ownerReads: loaded[5].value
+                            ownerReads: ownerArtifact.value
                         };
                         if (!artifacts.config || !Array.isArray(artifacts.config.windows) || !artifacts.config.windows.length) {
                             throw new Error("brief-config-windows-absent");
@@ -5553,22 +5581,7 @@
                         select.value = state.briefWindowId;
                         renderBrief();
                     })
-                    .catch(function (error) {
-                        state.genericWindow = state.lastValidGenericWindow;
-                        state.genericWindowError = error.portfolioError || {
-                            contractVersion: "PortfolioError/v1", code: "P008-BRIEF-EVIDENCE",
-                            reason: "public-evidence-transaction-failed", field: null, row: null,
-                            valueEchoed: false, recoverable: true
-                        };
-                        setText("briefTimes", state.genericWindow
-                            ? "Public evidence refresh refused. The last valid brief remains visible."
-                            : "Generic evidence window unavailable.");
-                        byId("briefTimes").className = "state-message warn";
-                        byId("briefTimes").setAttribute("data-generic-window-state",
-                            state.genericWindow ? "preserved-last-valid" : "unavailable");
-                        setText("briefStates", state.genericWindow ? "Last valid brief retained." : "Brief unavailable. No window is assumed.");
-                        updateDiagnostics();
-                    });
+                    .catch(handleBriefWindowFailure);
             }
 
             /* FR-062. The clear control is exposed WHERE behaviour-derived ranking is visible, not

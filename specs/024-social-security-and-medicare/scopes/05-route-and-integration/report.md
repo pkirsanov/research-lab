@@ -872,3 +872,173 @@ Deliberately a different defect shape from `TP-05-05`: the headline still reads 
 total, so the substitution detector's subject is untouched and what fails is the
 clause proving the detector is not detecting itself — a renderer that reads a
 single leg **in addition to** the total.
+
+### `TP-05-07` — cost separation
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-07 cost separation: an annual Medicare cost that stops being published as a figure standing beside the total must fail the cost-separation assertion
+file:             lifetime-tax-strategy-lab.html
+mutation:         costHost.setAttribute("data-rl-cost-beside-total", "annual-medicare-cost");  ->  costHost.setAttribute("data-rl-annual-medicare-cost", "annual-medicare-cost");   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-07: the three premium legs reach the settled leg record with includedInTotal false, the federal total is byte-for-byte the total of the same household settled without them, and the a
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Aimed at the half of the row `TP-05-20` does not cover. `TP-05-20` already carries a
+RED for the label's wording; this probe removes the marker that makes the cost a
+**distinct published figure** standing beside the total, leaving the wording intact.
+
+### `TP-05-10` — render safety
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-10 render safety: making one Power section conditional is exactly how an absent member removes a section, and renderPower must call every section renderer unconditionally
+file:             lifetime-tax-strategy-lab.html
+mutation:                         renderBenefit();
+  ->                  if (state.envelope) renderBenefit();
+   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-10: every family renderer returns early on the refusal shape before reading a member only the available shape publishes, renderPower calls all fourteen section renderers with no cond
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-05-11` — unavailable rendering
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-11 unavailable rendering: an unavailable item that stops rendering its remediation must fail, because a refusal without a remediation tells the reader nothing they can act on
+file:             lifetime-tax-strategy-lab.html
+mutation:         record.whatWouldMakeItAvailable  ->  record.remediationThisProbeStoppedRendering   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-11: the one unavailable constructor renders the code, the domain, the reason and the remediation on a focusable element and writes no dash, blank or zero in their place, and every re
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The renamed member is a read that resolves to `undefined` rather than a deletion, so
+the constructor still runs and still renders three of the four members. That is the
+realistic shape of the defect: a remediation quietly stops appearing and nothing
+throws.
+
+### `TP-05-12` — focus safety
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-12 focus safety: a control this feature added that is dropped from the one registered list must fail, because it is then watched for change while being left out of the signature guard
+file:             lifetime-tax-strategy-lab.html
+mutation:         "inputLookbackYear", "inputLookbackModifiedAdjustedGrossIncome"  ->  "inputLookbackModifiedAdjustedGrossIncome"   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-12: the edit path returns before collecting, persisting or rendering when the declaration signature is unchanged, both event bindings route through that guarded handler from the one
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-05-13` — export
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-13 export: admitting the declared birth year into the exported workspace must fail, asserted by name and by the declared value surviving in the serialised text
+file:             rltaxworkspace.js
+mutation:               selectedBracketId: workspace.selectedBracketId
+    };  ->        selectedBracketId: workspace.selectedBracketId,
+      benefitBirthYear: workspace.benefitBirthYear
+    };   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-13: the export omits the statement amount, the earnings record, the birth year, the claim age set and the lookback income — each asserted independently by name against an export pr
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=6760587f2303516755ab6a5e14436050717f1227 restored=6760587f2303516755ab6a5e14436050717f1227)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-05-14` — adversarial, four of five is not enough
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-14 adversarial: a sanitizer that covers four of the five retirement declarations and admits the claim-age set must fail, one per declaration
+file:             rltaxworkspace.js
+mutation:               selectedBracketId: workspace.selectedBracketId
+    };  ->        selectedBracketId: workspace.selectedBracketId,
+      claimAgeComparisonAges: workspace.claimAgeComparisonAges
+    };   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-14: admitting each of the five retirement declarations into the sanitizer’s kept set in turn is caught by name and in the serialised text, one per declaration, while the real expor
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=6760587f2303516755ab6a5e14436050717f1227 restored=6760587f2303516755ab6a5e14436050717f1227)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The two sanitizer probes admit **different** declarations on purpose. `TP-05-13`
+asserts the five omissions by name; `TP-05-14` asserts that covering four of five
+cannot pass. Leaking a different member in each is what keeps the two rows from
+resting on one observation.
+
+### `TP-05-15` — consequential contribution
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-15 consequential contribution: an included benefit portion published as present but contributing zero must fail, because present is not the same as consequential
+file:             rltax.js
+mutation:               amount: inclusionLeg.value,  ->        amount: 0,   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-15: the included amount is published as a named contributor to ordinary taxable income under the leg identity the pack declares, the tax owed differs from the same household with no
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The contribution record still publishes an available contributor under the declared
+leg identity — only the amount becomes a zero. That is the exact "merely present"
+defect the row names, and the household's tax owed stops differing from the same
+household with no benefit declared.
+
+### `TP-05-16` — privacy
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-16 privacy: assembling the only value written to the location through query-string encoding machinery must fail, because that is the seam a declared household value would travel through
+file:             lifetime-tax-strategy-lab.html
+mutation:         var wanted = power ? "#power" : "#simple";  ->  var wanted = power ? "#power" : "#simple" + String(encodeURIComponent(""));   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-16: no retirement declaration this feature added appears in any console call, any location write or any history call in the route, the only value written to the location is the fixed
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The mutation carries **no household value** — it encodes an empty string. That is
+deliberate: the row's guarantee is that the only thing written to the location is a
+fixed literal and that no query-string machinery exists anywhere in the route, so
+introducing the machinery alone is the whole defect. The harness additionally
+refuses any `--replace` that could open a network or navigation sink, so a probe
+here cannot be written as a real exfiltration.

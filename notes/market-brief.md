@@ -893,19 +893,26 @@ watchlist.
 - Corroboration is never assumed. The Tier-A persistence gate met is `present`; the gate explicitly not met
   is `absent`; no persistence flags at all is `absent`; and flags carrying no verdict is `partial`, meaning
   unknown rather than confirmed. Only `present` can reach `attention`.
-- A subject neither the watchlist nor the benchmark covers earns no observation, so an unobservable
+- A subject the watchlist does not cover earns no observation, so an unobservable
   judgement is never dressed up as observed.
 - A headline naming **two** tracked symbols resolves to no subject at all. Binding a judgement to the wrong
   instrument is worse than publishing nothing, so ambiguity refuses rather than guesses.
 
 **How a judgement finds its instrument.** `subject` is a gate field, not an authored one — the lane is told
-to author only judgement and never names a ticker. The gate resolves the subject by matching an observable
+to author only judgement and never names a ticker. The gate resolves the subject by matching a **watchlist**
 symbol as a whole word in the authored text, which is a string match against committed keys rather than an
-inference. Observable means the watchlist **plus the market benchmark**, which lives under its own snapshot
-key and is named by committed data rather than assumed — the lane writes about the benchmark constantly, so
-leaving it out would refuse most of what it authors. A headline naming no observable symbol is refused, and
-the reader is told the feed was refused rather than shown a calm-looking empty list. That last part is
-§10a's decision block doing its job.
+inference. A headline naming no watchlist symbol is refused, and the reader is told the feed was refused
+rather than shown a calm-looking empty list. That last part is §10a's decision block doing its job.
+
+**Why the market benchmark is deliberately not observable, even though the lane writes about it constantly.**
+`snapshot.bench` carries the same structural readings as a watchlist entry, and the lane's own recommendations
+routinely name the benchmark — so observing it looks like an obvious win. It is not. An attention item's
+subject is a **bare watchlist ticker** by contract, and `build-attention-items.mjs` refuses anything else with
+`RLATTN-PRIVACY`, *"the subject is outside the public watchlist scope"*. Observing the benchmark therefore
+converts a provenance refusal into a privacy refusal and publishes no item either way, while pushing a
+non-watchlist symbol at the very guard that exists to keep it out. This was implemented, measured, and
+reverted on 2026-08-19; a selftest row now pins the watchlist boundary so the same reasoning does not
+re-introduce it. **A judgement about the benchmark or about macro is refused by design, not by omission.**
 
 ---
 

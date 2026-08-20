@@ -20509,6 +20509,20 @@ try {
     pageText27.indexOf('function renderPower'));
   const declarationInputsBlock27 = /var DECLARATION_INPUTS = \[([\s\S]*?)\];/.exec(pageText27);
   const medicareInputIds27 = ['inputLookbackYear', 'inputLookbackModifiedAdjustedGrossIncome'];
+  /* The refusal branch must RETURN, not merely MENTION the refusal. Naming `stage.refusal` in the
+     body says nothing about whether control leaves before the members only the available shape
+     publishes are read. The guard therefore requires a `return;` to sit between the refusal test
+     and the first such member, and it carries its own negative control: the identical predicate is
+     applied to the same body with that one `return;` removed and required to come out false, so a
+     later edit that drops the early return cannot leave this row green. */
+  const refusalGuardHolds27 = (body) => {
+    const start = body.indexOf('if (stage.refusal)');
+    const end = body.indexOf('stage.declaredLookbackAmount');
+    return start >= 0 && end > start && /\breturn;/.test(body.slice(start, end));
+  };
+  const refusalStart27 = medicareRendererBody27.indexOf('if (stage.refusal)');
+  const returnlessRenderer27 = medicareRendererBody27.slice(0, refusalStart27)
+    + medicareRendererBody27.slice(refusalStart27).replace('return;', '');
   assert(medicareRendererBody27.length > 0
     && /renderMedicare\(\);/.test(pageText27)
     && /id="power-medicare"/.test(pageText27)
@@ -20517,6 +20531,8 @@ try {
     /* The refusal shape returns before any member only the available shape publishes is read. */
     && /if \(!stage\) return;/.test(medicareRendererBody27)
     && /stage\.refusal/.test(medicareRendererBody27)
+    && refusalGuardHolds27(medicareRendererBody27) === true
+    && refusalGuardHolds27(returnlessRenderer27) === false
     && declarationInputsBlock27 !== null
     && medicareInputIds27.every((id) => declarationInputsBlock27[1].indexOf(id) >= 0)
     && medicareInputIds27.every((id) => new RegExp('id="' + id + '"').test(pageText27))
@@ -24177,20 +24193,20 @@ try {
   assert(GATE.resolveSubject({ subject: 'SOXX', headline: 'FBTC sits far below its 200-day' }, trackedTwo1) === 'SOXX',
     'an explicit subject still wins over the headline scan, so nothing that already names its subject changes behaviour');
 
-  /* The benchmark is the instrument the lane writes about most, and it lives under its
-     own snapshot key rather than inside `tracked`. Omitting it would refuse most of what
-     the lane authors, so the gate observes it too — under the name committed data gives
-     it, never an assumed one. */
+  /* The benchmark is deliberately NOT observable, and this row exists so it is not
+     re-added by someone reasoning that the lane writes about it constantly. It does —
+     but an attention item's subject is a bare watchlist ticker by contract, and the
+     composer refuses anything else with RLATTN-PRIVACY. Observing the benchmark converts
+     a provenance refusal into a privacy refusal and publishes no item either way. */
   const liveSnap1 = JSON.parse(read('market-brief.snapshot.json'));
   const observable1 = GATE.observableSubjects(liveSnap1);
   const benchName1 = ((liveSnap1.toolReads || {})['sector-research-lab'] || {}).metrics?.benchmark;
-  assert(typeof benchName1 === 'string' && benchName1.length > 0 && observable1[benchName1] !== undefined
-    && Object.keys(observable1).length === Object.keys(liveSnap1.tracked || {}).length + 1,
-    'Regression: SCN-BUG009-R1-BENCH the market benchmark is observable under the symbol committed data names it, so a judgement about the benchmark binds instead of being refused for want of a subject');
-  assert(GATE.observableSubjects({ tracked: { X: { px: 1 } }, bench: { px: 2 } })['X'].px === 1,
-    'a benchmark whose name cannot be resolved from committed data is simply not observable, and the watchlist is returned unchanged');
-  assert(GATE.observableSubjects({ tracked: { SPY: { px: 1 } }, bench: { px: 2 }, toolReads: { 'sector-research-lab': { metrics: { benchmark: 'SPY' } } } })['SPY'].px === 1,
-    'the benchmark never shadows a watchlist entry of the same name — the richer tracked shape wins');
+  assert(typeof benchName1 === 'string' && benchName1.length > 0
+    && liveSnap1.bench && observable1[benchName1] === undefined
+    && Object.keys(observable1).length === Object.keys(liveSnap1.tracked || {}).length,
+    'Regression: SCN-BUG009-R1-WATCHLISTONLY the gate observes the watchlist and ONLY the watchlist — the market benchmark is present in the snapshot and deliberately not observable, because a subject outside the watchlist scope is refused RLATTN-PRIVACY by the composer regardless');
+  assert(GATE.observableSubjects({ tracked: { X: { px: 1 } }, bench: { px: 2 }, toolReads: { 'sector-research-lab': { metrics: { benchmark: 'SPY' } } } })['SPY'] === undefined,
+    'a benchmark named by committed data is still not observable, so the watchlist boundary is the gate contract rather than an accident of missing data');
 
   const builderSrc1 = read('scripts/build-attention-items.mjs');
   assert((builderSrc1.match(/RLATTNGATE\.attachObserved\(/g) || []).length === 2,

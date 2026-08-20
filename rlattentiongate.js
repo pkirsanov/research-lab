@@ -206,23 +206,19 @@
     return symbols.length === 1 ? symbols[0] : null;
   }
 
-  /* Everything the gate can observe. `tracked` is the watchlist; `bench` is the market
-     benchmark, carrying the same structural readings under its own key rather than
-     inside `tracked`. The lane writes about the benchmark constantly, so omitting it
-     would refuse most of what it authors. The benchmark's SYMBOL is read from committed
-     data (`toolReads['sector-research-lab'].metrics.benchmark`), never assumed, and when
-     that name is absent the benchmark simply is not observable. */
+  /* Everything the gate may observe: the watchlist, and ONLY the watchlist.
+     The market benchmark is deliberately excluded even though `snapshot.bench` carries
+     the same structural readings and the lane writes about it constantly. An attention
+     item's `subject` is a bare watchlist ticker by contract, and build-attention-items.mjs
+     refuses anything else with RLATTN-PRIVACY — "the subject is outside the public
+     watchlist scope". Observing the benchmark therefore buys nothing: it converts a
+     provenance refusal into a privacy refusal and publishes no item either way, while
+     pushing a non-watchlist symbol at a guard whose whole purpose is to keep it out.
+     Measured directly on 2026-08-19 before this was reverted. */
   function observableSubjects(snapshot) {
     var tracked = isPlainObject(snapshot) && isPlainObject(snapshot.tracked) ? snapshot.tracked : {};
     var out = {};
     Object.keys(tracked).forEach(function (k) { out[k] = tracked[k]; });
-    if (!isPlainObject(snapshot) || !isPlainObject(snapshot.bench)) return out;
-    var reads = isPlainObject(snapshot.toolReads) ? snapshot.toolReads : {};
-    var sector = isPlainObject(reads["sector-research-lab"]) ? reads["sector-research-lab"] : null;
-    var metrics = sector && isPlainObject(sector.metrics) ? sector.metrics : null;
-    var symbol = metrics && isNonEmptyString(metrics.benchmark) ? metrics.benchmark : null;
-    /* Never shadow a watchlist entry: the richer tracked shape wins. */
-    if (symbol && !out[symbol]) out[symbol] = snapshot.bench;
     return out;
   }
 

@@ -486,6 +486,26 @@ an absent test does not satisfy RED.
     TP-05-22 amendment in the ledger's `Amending scope` column or restates TP-05-22
     to derive its tolerated gap from the ledger's disposition column instead of
     pinning a literal pair.
+  - **Still open after delivery pass 2026-08-20 (fourth) — F-02-D is closed but two
+    conjuncts of this item are not.** The blocker named above is gone: `bubbles.plan`
+    restated TP-05-22 to derive, the derived form is in `scripts/selftest.mjs`, and
+    `SUP-022-19` was then delivered with an intended RED, a same-command GREEN and a
+    row-insertion control. **All eight deliverable markers are now present** — 03 and
+    10, 14, 20 in `scripts/selftest.mjs`, 08 in the marginal spec, 15 in the federal
+    spec, 16 and 19 in the route spec — both amendments are present (04 in
+    `scripts/selftest.mjs`, 09 in the foundation spec), and `SUP-022-18` still appears
+    nowhere, which its disposition requires. `node scripts/selftest.mjs` is `3155
+    passed, 0 failed`. What still blocks the tick is the rest of the same sentence,
+    and it is stated rather than absorbed. First, **"each seen to fail against the
+    unchanged implementation first"** was re-derived in this pass for `SUP-022-19`
+    only; it was not re-derived for the other seven and is not claimed for them.
+    Second, **"each carrying … its adversarial evidence"** does not hold uniformly:
+    a census of the five opened files finds an explicit adversarial block for 03, 14
+    and 20, and none for 08, 10, 15, 16 or 19, and the case-insensitive sweep for
+    adversarial reasoning finds zero occurrences in the federal and marginal specs.
+    Ticking on the marker census alone would claim two conjuncts that were never
+    measured. Decidable by re-deriving the seven intended REDs and supplying the
+    missing adversarial cases for the entries that carry none.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-02-18 browser command · **Evidence:** `report.md#supersession-ledger`, `report.md#verification-pass--2026-08-20-second--sup-022-18-and--19-were-displaced-by-feature-023-before-this-scope-could-deliver-them-finding-f-02-c`, `report.md#verification-pass--2026-08-20-third--sup-022-19s-narrowed-clause-is-buildable-and-was-built-but-delivering-it-turns-scope-05s-tp-05-22-red-all-three-items-stay---finding-f-02-d`
 - [x] The leg-reachability rule is implemented as `design.md` states it: both
       basis members initialize to `null`, an undeclared basis refuses its leg by
@@ -523,6 +543,18 @@ an absent test does not satisfy RED.
     declared-target clause over the route spec's own source text, which cannot be
     asserted while that clause is absent. Writing either row first would bank a row
     that fails for a reason it does not name.
+  - **Still open after delivery pass 2026-08-20 (fourth) — the dependency is gone,
+    the rows are not written.** `SUP-022-19` is delivered, so the reason both rows
+    were unwritable no longer applies: TP-02-22's derived expected set now matches
+    the twenty markers actually in the tree, and TP-02-23's third case now has a
+    delivered declared-target clause to assert over the route spec's source text.
+    The no-edit property itself continues to hold against the tree — this pass
+    changed exactly one region of `scripts/selftest.mjs`, the TP-05-22 block that
+    `bubbles.plan` routed, and it carries that routing; the only other source change
+    is the marked `SUP-022-19` region in the route spec. Neither row has been
+    written, and an unwritten row proves nothing, so the item stays `[ ]`. It is not
+    ticked on the delivery alone, because the item's own words ask for the
+    conformance rows and not for the absence of edits by assertion of the author.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-22`, `report.md#tp-02-23`, `report.md#verification-pass--2026-08-20-third--sup-022-19s-narrowed-clause-is-buildable-and-was-built-but-delivering-it-turns-scope-05s-tp-05-22-red-all-three-items-stay---finding-f-02-d`
 - [x] Any threshold whose applicability to the declared tax year could not be
       established ships as an `AbsentFigure/v1` and its leg refuses.

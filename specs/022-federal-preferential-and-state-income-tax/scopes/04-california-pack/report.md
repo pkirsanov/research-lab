@@ -298,8 +298,57 @@ edited: this row is the one appended assertion this session added.
 ### TP-04-04
 
 Scenario SCN-022-011 — the California standard deduction resolves per filing
-status from its own authority and is never derived from the federal deduction.
+status from its own authority, is applied to California taxable income, and is
+never derived from the federal deduction.
 Command: `node scripts/selftest.mjs`
+
+**This row carries no assertion, and that is recorded rather than papered over.**
+A deduction that does not resolve cannot be asserted to resolve per filing status,
+so there is nothing here to assert until `BI-6` closes.
+
+The absence was confirmed by census rather than by memory. Grepping the suite for
+`TP-04-04` returns thirteen passing lines, and **not one of them belongs to this
+scope** — they are other features reusing the row id:
+
+```text
+=== TP-04-04 assertions naming California / a state deduction ===
+CA_TP0404_END
+```
+
+Zero hits mention California, a state deduction or a standard deduction. The
+thirteen cover RLDATA publication boundaries, coverage spans, pack test
+parameters, bar-alignment methods and a network canary.
+
+The reason no deduction resolves is decidable from the pack, and every filing
+status is absent, not merely some:
+
+```text
+standardDeductions per status:
+   single -> AbsentFigure/v1
+   married-filing-jointly -> AbsentFigure/v1
+   married-filing-separately -> AbsentFigure/v1
+   head-of-household -> AbsentFigure/v1
+```
+
+The exemption credit is in the same state. The pack carries one
+`ReliefMechanism/v1`, `personal-exemption-credit`, and its per-status `amounts`
+are each an `AbsentFigure/v1` naming `RLTAX-THRESHOLD-UNAVAILABLE` with a
+`missingSource` pointing at the unretrieved Franchise Tax Board publication. So
+no pre-credit and post-credit pair can be published side by side either.
+
+What *is* proven is the application point, which is a structural claim rather
+than a numeric one and does not need a resolved amount. The mechanism declares
+`kind: "credit-against-tax"` and `applicationPoint: "after-rate-application"`
+with `appliesToLegs: ["state-ordinary"]`, and the combined TP-04-05 and TP-04-06
+assertion passes by name:
+
+```text
+  ✓ TP-04-05 and TP-04-06: the exemption credit is declared a credit applied after rate application, the declared order places that stage after both the rate stage and the leg sum, and moving it before the rate
+```
+
+The DoD row this anchors asks for both the deduction and the published figure
+pair, so it stays open. It must not be closed by narrowing it to the application
+point alone, which is the one part already green.
 
 ### TP-04-05
 

@@ -291,16 +291,21 @@ syntax error, a missing browser or an absent test does not satisfy RED.
       an adversarial mutation.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-04`, `report.md#tp-04-05`, `report.md#tp-04-06`
   - **Open because:** this row requires published figures, and there are none to
-    publish. The standard deduction and the exemption credit amounts are both
-    `AbsentFigure/v1` in every filing status, so no deduction resolves and no
-    pre-credit and post-credit pair can be shown side by side. The application
-    point itself is proven — TP-04-05 and TP-04-06 pin the credit as
-    `credit-against-tax` at `after-rate-application`, place that stage after both
-    the rate stage and the leg sum, and refuse a pack that moves it before the
-    rate or turns it into a deduction from income. TP-04-04 has no assertion at
-    all, because a deduction that does not resolve cannot be asserted to resolve
-    per filing status. This row unblocks when `BI-6` closes; it must not be
-    closed by weakening it to the application point alone.
+    publish. Re-derived rather than restated: all four filing statuses'
+    `standardDeductions` are `AbsentFigure/v1`, and the single
+    `ReliefMechanism/v1` carries per-status `amounts` that are each an
+    `AbsentFigure/v1` naming `RLTAX-THRESHOLD-UNAVAILABLE`, so no deduction
+    resolves and no pre-credit and post-credit pair can be shown side by side.
+    The application point itself is proven — TP-04-05 and TP-04-06 pin the credit
+    as `credit-against-tax` at `after-rate-application` with `appliesToLegs`
+    naming the ordinary leg alone, place that stage after both the rate stage and
+    the leg sum, and refuse a pack that moves it before the rate or turns it into
+    a deduction from income. TP-04-04 has no assertion at all: a suite-wide
+    census of the thirteen passing `TP-04-04` lines found **none** naming
+    California, a state deduction or a standard deduction — every one belongs to
+    another feature reusing the row id. This row unblocks when `BI-6` closes, and
+    `BI-6` is now itself routed to `bubbles.plan` over the pack's declared year.
+    It must not be closed by weakening it to the application point alone.
 - [x] FR-022-025 and FR-022-026 are implemented: all four filing statuses cross at
       the identical surcharge threshold and no credit reduces the surcharge, each
       proven by an adversarial mutation.

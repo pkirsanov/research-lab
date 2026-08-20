@@ -1303,6 +1303,55 @@ both entries — not something this scope may close by lowering the number.
 No mutation was applied to reach either conclusion; both are derivations over the
 tracked tree.
 
+### Step 1 — the routed derived form is now in `scripts/selftest.mjs` (2026-08-20)
+
+**Claim Source:** executed. The replacement specified verbatim by `bubbles.plan`
+under "Planning correction — 2026-08-20" in
+`scopes/02-net-investment-income-and-additional-medicare-tax/report.md` was applied
+to `scripts/selftest.mjs` exactly as recorded — no paraphrase, no added clause, no
+dropped clause. The pinned `KNOWN_UNMARKED_LEDGER_ROWS` pair and its
+`JSON.stringify` equality comparison are gone; the tolerance is now read out of the
+ledger's `Disposition` column at run time.
+
+The edit landed **before** `SUP-022-19` was delivered, which is the mandatory order:
+delivering the marker first, against the pinned form, reproduces F-02-D exactly.
+
+Measured, in one shell invocation, immediately before and immediately after the edit:
+
+```
+before: Research-Lab self-test: 3155 passed, 0 failed
+after:  Research-Lab self-test: 3155 passed, 0 failed
+```
+
+`VERDICT_TODAY` is therefore confirmed against the real suite rather than against a
+standalone reader: the restatement is not a regression. The ledger row shape the
+derived form depends on was verified first — a row splits to `cells[1]` for the id
+and `cells[5]` for the disposition, and the file carries exactly `22` such rows.
+
+**The concurrent session's work in the same file was not touched.** That file is
+shared, and before the edit its only divergence from `HEAD` was a single 113-line
+insertion low in the file. After the edit the diff carries that insertion unchanged
+plus this scope's hunks, all of which sit above line 20000:
+
+```
+@@ -15737 +15737,8 @@        <- this scope
+@@ -15743,0 +15751 @@        <- this scope
+@@ -15745,2 +15753,8 @@       <- this scope
+@@ -15748,8 +15762,11 @@      <- this scope
+@@ -15757,0 +15775,3 @@       <- this scope
+@@ -15758,0 +15779,2 @@       <- this scope
+@@ -15760 +15782,3 @@         <- this scope
+@@ -15765 +15789 @@           <- this scope
+@@ -25504,0 +25529,113 @@     <- concurrent session, unmodified
+```
+
+Only the hunks above line 20000 were staged for the commit that carries this step;
+the concurrent insertion was left in the working tree untouched and unstaged.
+
+This step does not by itself close the ledger-closure item above. That item stays
+`[ ]` until `SUP-022-19` is delivered and the census re-runs against the derived
+form with the marker present.
+
 ## Change Boundary
 
 Scope 05 owns exactly three commits of its own — `2df769eaa`, `a4887f91e` and

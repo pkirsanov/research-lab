@@ -15734,35 +15734,59 @@ try {
     && rootPages.filter((name) => name.indexOf('lifetime-tax') === 0).length === 1,
   'TP-05-21 and TP-05-25: the combined route and its two new modules appear in no registration surface, and this feature adds no new root HTML (' + registrationLeaks.join(', ') + ')');
 
-  /* The supersession ledger is closed: every delivered marker maps to a ledger row. */
+  /* The supersession ledger is closed, derived rather than pinned. This check formerly compared
+     the unmarked-row set against a fixed pair of ids under JSON.stringify, so delivering either of
+     them shrank the real gap and turned a green assertion red — a self-staling contract that made
+     provable work unlandable (finding F-02-D). The tolerance is now read out of the ledger's own
+     Disposition column at run time: a row may go unmarked only where the ledger dispositions it
+     away, and a row it dispositions marker-forbidden must carry no marker anywhere, a direction the
+     pinned form never asserted. Ids are still never written literally here, so naming one cannot
+     make the scanner count it as delivered. */
   const markerFiles = ['scripts/selftest.mjs', 'tests/lifetime-tax-foundation.spec.mjs',
     'tests/lifetime-tax-federal.spec.mjs', 'tests/lifetime-tax-marginal.spec.mjs', 'tests/lifetime-tax-route.spec.mjs'];
   const deliveredMarkers = new Set();
   markerFiles.forEach((file) => {
     (read(file).match(/SUP-022-\d{2}/g) || []).forEach((marker) => deliveredMarkers.add(marker));
   });
-  const specText = read('specs/022-federal-preferential-and-state-income-tax/spec.md');
-  const ledgerRows = new Set((specText.match(/^\| (SUP-022-\d{2}) \|/gm) || [])
-    .map((row) => /SUP-022-\d{2}/.exec(row)[0]));
-  const deliveredList = Array.from(deliveredMarkers).sort();
-  const ledgerList = Array.from(ledgerRows).sort();
-  /* Two Scope 02 replacements were delivered without their markers before this scope began. The
-     gap is named individually here rather than tolerated by a loose comparison, so a third
-     undelivered marker, or a delivered marker with no ledger row, fails immediately. The ids are
-     assembled from parts so that naming them here does not make the scanner see them as
-     delivered. */
   const MARKER_PREFIX = 'SUP-022-';
-  const KNOWN_UNMARKED_LEDGER_ROWS = [MARKER_PREFIX + '18', MARKER_PREFIX + '19'];
+  const specText = read('specs/022-federal-preferential-and-state-income-tax/spec.md');
+  const ledgerIds = [];
+  const ledgerDisposition = new Map();
+  (specText.match(/^\| (SUP-022-\d{2}) \|.*$/gm) || []).forEach((row) => {
+    const cells = row.split('|').map((cell) => cell.trim());
+    ledgerIds.push(cells[1]);
+    const hit = /^marker (required|forbidden|pending)(?: \u2014 (\S.*))?$/.exec(cells[5] || '');
+    if (hit) ledgerDisposition.set(cells[1], { token: hit[1], reason: hit[2] || '' });
+  });
+  const deliveredList = Array.from(deliveredMarkers).sort();
+  const ledgerList = ledgerIds.slice().sort();
+  const dispositionToken = (marker) =>
+    (ledgerDisposition.has(marker) ? ledgerDisposition.get(marker).token : null);
+  /* An unreadable or absent Disposition cell is a parse failure, not a free pass, and a tolerated
+     disposition carrying no reason after the em dash cannot be used to silence a real gap. */
+  const undispositionedRows = ledgerList.filter((marker) => dispositionToken(marker) === null);
+  const toleratedWithoutReason = ledgerList.filter((marker) => dispositionToken(marker) !== null
+    && dispositionToken(marker) !== 'required'
+    && ledgerDisposition.get(marker).reason.length === 0);
+  const toleratedUnmarked = ledgerList.filter((marker) => dispositionToken(marker) === 'forbidden'
+    || dispositionToken(marker) === 'pending');
   const unmarkedLedgerRows = ledgerList.filter((marker) => deliveredList.indexOf(marker) < 0);
   const markersWithoutLedgerRow = deliveredList.filter((marker) => ledgerList.indexOf(marker) < 0);
+  const unexplainedUnmarked = unmarkedLedgerRows.filter((marker) => toleratedUnmarked.indexOf(marker) < 0);
+  const forbiddenButMarked = ledgerList.filter((marker) => dispositionToken(marker) === 'forbidden'
+    && deliveredList.indexOf(marker) >= 0);
   assert(deliveredList.length > 0
+    && undispositionedRows.length === 0
+    && toleratedWithoutReason.length === 0
     && markersWithoutLedgerRow.length === 0
-    && JSON.stringify(unmarkedLedgerRows) === JSON.stringify(KNOWN_UNMARKED_LEDGER_ROWS)
+    && unexplainedUnmarked.length === 0
+    && forbiddenButMarked.length === 0
+    && toleratedUnmarked.length < ledgerList.length
     && ledgerList.every((marker) => /^SUP-022-(0[1-9]|1[0-9]|2[0-2])$/.test(marker))
     && deliveredList.indexOf(MARKER_PREFIX + '22') >= 0
     && specText.indexOf('Twenty-two pre-existing assertions are superseded') >= 0
     && ledgerList.length === 22,
-  'TP-05-22: every SUP-022 marker delivered in the source maps to a ledger row, every ledger row except the two pre-existing unmarked Scope 02 rows named here is delivered, the ids stay inside the declared range, and the ledger total agrees with the paragraph that states it');
+  'TP-05-22: every delivered marker maps to a ledger row, every ledger row carries a recognised disposition with a reason where one is owed, every row the ledger dispositions marker-required is delivered, every row it dispositions marker-forbidden carries no marker anywhere, the tolerated gap is read out of the ledger rather than pinned to a literal pair, the tolerated set never covers the whole ledger, the ids stay inside the declared range, and the ledger total agrees with the paragraph that states it');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 Scope 05 combined group threw): ' + e.message); }
 
 /* ---------- Feature 023 Scope 01: property assessment mechanics and statutory relief ---------- */

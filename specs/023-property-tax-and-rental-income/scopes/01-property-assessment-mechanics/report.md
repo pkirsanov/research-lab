@@ -1702,6 +1702,67 @@ themselves informative: a single dropped term reached the known-value row, the
 cap-basis row and the marginal-context row, which is the blast radius a
 repository gate exists to surface.
 
+### Probe 25 — same-command RED and GREEN for TP-01-25
+
+`TP-01-25` pins that no spec artifact in this feature names a test file that does
+not exist. The falsifying mutation is therefore a single identifier inside one
+Test Plan reference — no figure, no threshold, no code path:
+
+```md
+- - `tests/lifetime-tax-route.spec.mjs` — SUP-023-06 only.
++ - `tests/lifetime-tax-routeprobe.spec.mjs` — SUP-023-06 only.
+```
+
+The scope's second reference to the same file, at line 178, was left intact, so
+the guard had to catch the one broken site among fourteen thousand references
+rather than notice a file dropping out of the tree entirely. Landing verified
+before the run — `old=1` is the surviving untouched reference:
+
+```
+new=1 old=1
+```
+
+RED — the row's exact command:
+
+```
+$ node scripts/validate-spec-test-paths.mjs
+[spec-test-paths] scanned=678 references=14977 distinctPaths=247 missingPaths=68 baseline=67 new=1 stale=0
+  NEW-MISSING tests/lifetime-tax-routeprobe.spec.mjs (1 reference site(s))
+      referenced at specs/023-property-tax-and-rental-income/scopes/01-property-assessment-mechanics/scope.md:104
+[spec-test-paths] FAIL — 1 new referenced path(s) do not exist
+RED_EXIT=1
+```
+
+Reverted inside the same shell invocation, revert verified:
+
+```
+$ git checkout -- specs/023-property-tax-and-rental-income/scopes/01-property-assessment-mechanics/scope.md
+revert_rc=0
+$ git status --short -- .../scope.md
+STATUS_EMPTY_ABOVE
+```
+
+GREEN — same command, clean tree:
+
+```
+$ git status --short -- .../scope.md
+PRE_GREEN_STATUS_EMPTY_ABOVE
+
+$ node scripts/validate-spec-test-paths.mjs
+[spec-test-paths] scanned=678 references=14977 distinctPaths=246 missingPaths=67 baseline=67 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+GREEN_EXIT=0
+```
+
+The row is sensitive on the axis it claims. `baseline=67` is identical across
+both directions, so the RED came from the scan and not from a baseline edit, and
+the counters move exactly one step each — `distinctPaths` 246 → 247,
+`missingPaths` 67 → 68, `new` 0 → 1. The guard also named the referencing
+artifact and line, which is what makes the row actionable rather than merely
+red. The six stale baseline entries recorded earlier in this report are now
+`stale=0`; that cleanup belongs to another feature and no baseline file was
+touched by this probe.
+
 ## Change Boundary
 
 Command: a path-scoped status check over the excluded list.

@@ -914,6 +914,16 @@ non-watchlist symbol at the very guard that exists to keep it out. This was impl
 reverted on 2026-08-19; a selftest row now pins the watchlist boundary so the same reasoning does not
 re-introduce it. **A judgement about the benchmark or about macro is refused by design, not by omission.**
 
+**Why the feed stayed empty even after the gate was built — the second half of BUG-009.** A producer can
+only observe subjects the composer will admit, and an attention subject must be a watchlist ticker. The lane
+was never told that. Measured on the 2026-08-20 01:35 EDT publish, with the gate producer live: the lane
+authored **3** attention candidates and all **3** were refused `RLATTN-PROVENANCE`, while both
+recommendations it published that same run were about **SPY** and named no watchlist ticker at all. The lane
+was writing about the benchmark and macro — reads the composer is contractually unable to publish as
+attention, however well authored. The lane instruction now states the constraint, so its attention budget is
+spent on items that can actually reach the reader. **If the feed is still empty after a publish, check what
+the lane wrote about before assuming the gate is broken.**
+
 ---
 
 ## 11. Artifacts, registry sync, validation

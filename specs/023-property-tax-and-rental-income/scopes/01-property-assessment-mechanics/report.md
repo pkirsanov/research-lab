@@ -1709,9 +1709,16 @@ not exist. The falsifying mutation is therefore a single identifier inside one
 Test Plan reference — no figure, no threshold, no code path:
 
 ```md
-- - `tests/lifetime-tax-route.spec.mjs` — SUP-023-06 only.
-+ - `tests/lifetime-tax-routeprobe.spec.mjs` — SUP-023-06 only.
+- - `<repo>/tests/lifetime-tax-route.spec.mjs` — SUP-023-06 only.
++ - `<repo>/tests/lifetime-tax-routeprobe.spec.mjs` — SUP-023-06 only.
 ```
+
+The two paths above carry a `<repo>/` prefix that the live scope artifact did
+not: the mutation itself used the bare form. The prefix is the repository's
+established way of quoting a path inside evidence without the path-guard
+re-parsing the quotation as a live reference — the same guard this row proves.
+Without it, this evidence block would itself report the probe's deliberately
+absent file as a new missing path.
 
 The scope's second reference to the same file, at line 178, was left intact, so
 the guard had to catch the one broken site among fourteen thousand references
@@ -1727,7 +1734,7 @@ RED — the row's exact command:
 ```
 $ node scripts/validate-spec-test-paths.mjs
 [spec-test-paths] scanned=678 references=14977 distinctPaths=247 missingPaths=68 baseline=67 new=1 stale=0
-  NEW-MISSING tests/lifetime-tax-routeprobe.spec.mjs (1 reference site(s))
+  NEW-MISSING <repo>/tests/lifetime-tax-routeprobe.spec.mjs (1 reference site(s))
       referenced at specs/023-property-tax-and-rental-income/scopes/01-property-assessment-mechanics/scope.md:104
 [spec-test-paths] FAIL — 1 new referenced path(s) do not exist
 RED_EXIT=1

@@ -1326,4 +1326,134 @@ test('every interactive control on the route is reachable and operable from the 
     expect(unreachable, `Power-mode controls no Tab press ever focused: ${unreachable.join(' | ')}`).toEqual([]);
 });
 
+/* ---------------------------------------------------------------------------
+ * Feature 027 Scope 3 — the declarations and the stated bare reasons, on screen.
+ * ------------------------------------------------------------------------- */
+
+test('Regression: SCN-027-018 every subject-carrying owner link opens its owner route on the company being read', async ({ page }) => {
+    await openComposedRoute(page, { query: '?symbol=MSFT' });
+    await openPowerMode(page);
+
+    const registry = JSON.parse(readFileSync(join(ROOT, 'company-intelligence.config.json'), 'utf8')).coverageRegistry;
+    const carrying = registry.filter((row) => typeof row.ownerSubjectParam === 'string');
+    /* The upstream promise is only satisfiable once EVERY declared row reaches its owner on the
+       company in front of the reader, so the expected set is read from the registry rather than
+       hard-coded — a row added later is covered without editing this test. */
+    expect(carrying.map((row) => row.ownerDeepLink).sort()).toEqual([
+        'gamma-trading-lab.html', 'options-flow-feed-lab.html',
+        'options-structure-lab.html', 'volatility-sizing-lab.html'
+    ]);
+
+    const targets = await page.locator('#workspace-coverage-rows a[data-owner-link]')
+        .evaluateAll((nodes) => nodes.map((node) => node.getAttribute('href')));
+    for (const row of carrying) {
+        const href = `${row.ownerDeepLink}?${row.ownerSubjectParam}=MSFT`;
+        expect(targets, `${row.dimensionId} opens its owner on the company being read`).toContain(href);
+        expect(REGISTERED_PAGES.has(row.ownerDeepLink), `${row.ownerDeepLink} is a registered route`).toBe(true);
+    }
+
+    /* And the parameter really arrives: opened with the composed link, the target route's own
+       loaded copy of the shared rule accepts the company off its own query string. Whether that
+       company is then inside the target's catalog is that route's own covered/not-covered
+       decision, owned and tested by Scopes 1 and 2; what is proven here is the handoff. */
+    for (const row of carrying) {
+        await page.goto(`${site.baseUrl}/${row.ownerDeepLink}?${row.ownerSubjectParam}=MSFT`,
+            { waitUntil: 'domcontentloaded' });
+        await expect(page.locator('#linkNotice'), `${row.ownerDeepLink} carries one link notice`).toHaveCount(1);
+        const handoff = await page.evaluate(() => (window.RLTKR && window.RLTKR.linkedSubject
+            ? window.RLTKR.linkedSubject(window.location.search)
+            : null));
+        expect(handoff, `${row.ownerDeepLink} loads the shared subject rule`).not.toBeNull();
+        expect(handoff.status, `${row.ownerDeepLink} accepts the linked company`).toBe('accepted');
+        expect(handoff.subject).toBe('MSFT');
+    }
+});
+
+test('Regression: SCN-027-014 every bare owner row renders its stated reason beside the link on both the coverage table and the dimension card', async ({ page }) => {
+    await openComposedRoute(page, { query: '?symbol=MSFT' });
+    await openPowerMode(page);
+
+    const registry = JSON.parse(readFileSync(join(ROOT, 'company-intelligence.config.json'), 'utf8')).coverageRegistry;
+    const bare = registry.filter((row) => typeof row.ownerBareReason === 'string');
+    expect(bare).toHaveLength(7);
+
+    const expectedPhrase = (reason) => (reason === 'market-scoped'
+        ? 'answers a market-wide question rather than a company one'
+        : 'does not model an individual company you can choose');
+
+    /* Coverage table: the row still renders its link, AND states why that link carries no
+       company. A bare link with no sentence beside it reads as a forgotten parameter. */
+    for (const row of bare) {
+        const cell = page.locator(`#workspace-coverage-rows [data-coverage-row="${row.dimensionId}"]`);
+        await expect(cell, `${row.dimensionId} renders a coverage row`).toHaveCount(1);
+        await expect(cell.locator('a[data-owner-link]'), `${row.dimensionId} keeps its owner link`).toHaveCount(1);
+        const stated = cell.locator('[data-owner-bare-reason]');
+        await expect(stated, `${row.dimensionId} states its bare reason in the table`).toHaveCount(1);
+        await expect(stated).toContainText(expectedPhrase(row.ownerBareReason));
+    }
+
+    /* A subject-carrying row states nothing, because its link already carries the company. */
+    const carryingIds = registry.filter((row) => typeof row.ownerSubjectParam === 'string')
+        .map((row) => row.dimensionId);
+    for (const dimensionId of carryingIds) {
+        await expect(page.locator(`#workspace-coverage-rows [data-coverage-row="${dimensionId}"] [data-owner-bare-reason]`),
+            `${dimensionId} carries the company, so it states no bare reason`).toHaveCount(0);
+    }
+
+    /* Dimension card: the same sentence, on the other surface. The two must not disagree. */
+    let cardsChecked = 0;
+    for (const row of bare) {
+        const card = page.locator(`[data-dimension="${row.dimensionId}"]`).first();
+        if (await card.count() === 0) continue;
+        cardsChecked += 1;
+        await expect(card.locator('a[data-owner-link]'), `${row.dimensionId} card keeps its owner link`).toHaveCount(1);
+        const stated = card.locator('[data-owner-bare-reason]');
+        await expect(stated, `${row.dimensionId} states its bare reason on the card`).toHaveCount(1);
+        await expect(stated).toContainText(expectedPhrase(row.ownerBareReason));
+        /* Same sentence on both surfaces, not two paraphrases of one decision. */
+        const tableText = (await page.locator(
+            `#workspace-coverage-rows [data-coverage-row="${row.dimensionId}"] [data-owner-bare-reason]`).textContent()).trim();
+        expect((await stated.textContent()).trim()).toBe(tableText);
+    }
+    expect(cardsChecked, 'at least one bare dimension rendered a card to compare against').toBeGreaterThan(0);
+});
+
+test('Regression: SCN-027-010 the rendered reason is written with textContent and no registry-authored value reaches an attribute or an href', async ({ page }) => {
+    await openComposedRoute(page, { query: '?symbol=MSFT' });
+    await openPowerMode(page);
+
+    /* The route ships script-src 'unsafe-inline', so a registry string that reached markup would
+       execute rather than be escaped. The statement is therefore written as text, never parsed. */
+    expect(ROUTE_SOURCE).not.toMatch(/data-owner-bare-reason[^\n]*innerHTML/);
+    expect(ROUTE_SOURCE).toMatch(/el\("(p|span)", owner\.statement, \{[^}]*"data-owner-bare-reason": "true"[^}]*\}\)/);
+
+    const stated = page.locator('[data-owner-bare-reason]');
+    expect(await stated.count(), 'the page rendered at least one stated reason').toBeGreaterThan(0);
+    const nodes = await stated.evaluateAll((elements) => elements.map((element) => ({
+        marker: element.getAttribute('data-owner-bare-reason'),
+        childElements: element.children.length,
+        html: element.innerHTML,
+        text: element.textContent,
+        href: element.getAttribute('href')
+    })));
+    for (const node of nodes) {
+        /* The marker is the only registry-independent attribute value; the sentence itself lives
+           in a text node, so it carries no element children and no markup. */
+        expect(node.marker).toBe('true');
+        expect(node.childElements, 'the statement is a text node, not parsed markup').toBe(0);
+        expect(node.html).toBe(node.text);
+        expect(node.html).not.toMatch(/[<>]/);
+        expect(node.href, 'a statement is never a link').toBeNull();
+    }
+
+    /* Every owner href is still a bare registered route or a route plus one encoded parameter —
+       no registry value widened it. */
+    const hrefs = await page.locator('#workspace-coverage-rows a[data-owner-link]')
+        .evaluateAll((elements) => elements.map((element) => element.getAttribute('href')));
+    for (const href of hrefs) {
+        expect(href).toMatch(/^[A-Za-z0-9._-]+\.html(\?[A-Za-z][A-Za-z0-9_]*=[A-Za-z0-9%._-]+)?$/);
+        expect(new URL(href, page.url()).origin).toBe(new URL(page.url()).origin);
+    }
+});
+
 

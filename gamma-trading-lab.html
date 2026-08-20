@@ -898,6 +898,9 @@
                 when today's snapshot already exists</span>
         </div>
 
+        <p id="linkNotice" role="status" hidden
+            style="margin:10px 0 0;font-size:12px;color:var(--warn,#f0b429)"></p>
+
         <div class="disc">
             <b>Educational only — not investment advice.</b> Dealer-gamma sign, walls and the flip are
             <b>convention-dependent estimates</b> from prior-session open interest, <b>not</b> real order flow. The
@@ -1804,16 +1807,32 @@
                     var dl = el('tkList'); if (dl) dl.innerHTML = state.universe.map(function (u) { return '<option value="' + esc(u.id) + '">' + esc(u.label || '') + '</option>'; }).join('');
                 }).catch(function () { });
             }
+            /* A company named by a deep link from an owning workspace is accepted by the
+               shared RLTKR rule, so this route holds no private copy of what a company
+               identifier is. */
+            function showLinkNotice(handoff) {
+                var notice = el('linkNotice');
+                if (!notice) return;
+                if (handoff.status !== 'refused') { notice.textContent = ''; notice.hidden = true; return; }
+                notice.textContent = 'The link named a company this tool could not accept, so it is showing ' + state.ticker + '.';
+                notice.hidden = false;
+            }
             function boot() {
                 var st = loadState();
                 if (st) { state.provider = st.provider || 'pages'; state.ticker = st.ticker || 'SPY'; state.mode = st.mode || 'simple'; state.stance = st.stance || 'neutral'; if (isNum(st.aggr)) state.aggr = st.aggr; state.horizon = st.horizon || 'intraday'; if (isNum(st.acct)) state.acct = st.acct; if (isNum(st.riskPct)) state.riskPct = st.riskPct; state.dealerFlip = !!st.dealerFlip; }
+                var handoff = RLTKR.linkedSubject(window.location.search);
+                if (handoff.status === 'accepted') state.ticker = handoff.subject;   /* an explicit deep link outranks the restored session */
                 if (state.provider === 'auto' || state.provider === 'twelvedata') state.provider = 'pages';
                 el('ticker').value = state.ticker; el('prov').value = state.provider;
                 setMode(state.mode, true);
                 wire(); loadUniverse();
+                showLinkNotice(handoff);
                 if (state.provider === 'pages' || RLDATA.options(state.ticker, optTodayKey())) doFetch(); /* auto-load on boot \u2014 the Pages snapshot is same-origin, no Fetch click needed */
             }
-            boot();
+            /* boot reads the shared RLTKR subject rule, and the shared modules below this
+               inline block are deferred, so boot waits for them the way the sibling
+               options-structure route already does. */
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
         })();
     </script>
     <script src="rlg.js" defer></script>

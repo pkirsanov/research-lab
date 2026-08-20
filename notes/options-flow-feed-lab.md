@@ -144,6 +144,41 @@ On ship, the [Market Brief](market-brief.md) gains a deep-link target for a new
 
 ---
 
+## Linked subject (`?ticker=`)
+
+A tool that names this one as the owner of a piece of math can also name the
+company it was reading. This route accepts that subject as `?ticker=` through the
+shared acceptance rule on `RLTKR`, and renders it as a **focus band above the
+scan**. The band is never a filter and never a pre-sort: a filter would destroy
+the scan this tool exists to show, and a pre-sort would silently override
+`state.sortK` and `state.sortDir`, which are persisted reader controls.
+
+- **Acceptance is necessary and not sufficient.** An accepted value is matched
+  against this route's own committed `UNIVERSE` of twelve liquid names before it
+  is treated as covered. An accepted string never becomes a `rlOptFlow:` cache
+  key, a `data/options/<SYM>.json` path or any other constructed identifier.
+- **The band has four distinct outcomes**, and the third and fourth are different
+  facts that are never collapsed into one another:
+
+  | Focus state | What the band says |
+  |---|---|
+  | Absent | Nothing. The band is `hidden` with empty text and the page is byte-equivalent to an unlinked open. |
+  | Accepted and in `UNIVERSE`, with flagged strikes | Names the ticker, its flagged-strike count and its call-versus-put premium split, with the standing caveat that this is an end-of-day proxy over twelve liquid names. |
+  | Accepted and in `UNIVERSE`, no flagged strikes | Names the ticker and states that no strike crossed the activity bar for it. It **is** covered. |
+  | Accepted and not in `UNIVERSE` | Names the ticker and states that this scanner covers twelve liquid names and does not include it. It is **not** covered. |
+  | Refused | States that the link named a subject this tool could not accept. The refused value itself is never rendered. |
+
+- **The scan below is unchanged in every case.** The feed, the sortable table,
+  the per-ticker premium build, all four segmented controls, the sort state and
+  the hydration progress line are untouched.
+- **A link outranks saved state for this visit and never becomes saved state.**
+  The resolved focus is deliberately held outside `state`, because `saveState()`
+  serialises the whole `state` object; a subject held there would be persisted.
+  Reopening the route with no parameter therefore restores exactly the reader
+  controls it restored before.
+
+---
+
 ## Version history
 
 | Date | Change |

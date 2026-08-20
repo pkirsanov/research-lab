@@ -1,0 +1,301 @@
+{
+  "version": 3,
+  "featureDir": "specs/027-company-scoped-owner-deep-links",
+  "featureName": "Company-Scoped Owner Deep Links",
+  "createdAt": "2026-08-20T06:04:32Z",
+  "lastUpdatedAt": "2026-08-20T07:35:06Z",
+  "status": "in_progress",
+  "workflowMode": "full-delivery",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "specDependsOn": [
+    "specs/025-company-multi-horizon-intelligence-lab"
+  ],
+  "flagsIntroduced": [],
+  "certifiedAt": null,
+  "requiresRevalidation": false,
+  "workBoundary": {
+    "repositoryRoots": [
+      "research-lab"
+    ],
+    "specTargets": [
+      "specs/027-company-scoped-owner-deep-links"
+    ],
+    "allowedPaths": [
+      "rlticker.js",
+      "options-structure-lab.html",
+      "gamma-trading-lab.html",
+      "volatility-sizing-lab.html",
+      "options-flow-feed-lab.html",
+      "company-intelligence.config.json",
+      "rlcompanyintel.js",
+      "company-intelligence-lab.html",
+      "scripts/selftest.mjs",
+      "tests/options-structure-lab.spec.mjs",
+      "tests/gamma-trading-lab.spec.mjs",
+      "tests/options-flow-feed-lab.spec.mjs",
+      "tests/volatility-sizing-lab.spec.mjs",
+      "tests/company-intelligence.unit.mjs",
+      "tests/company-intelligence-lab.spec.mjs",
+      "notes/options-structure-lab.md",
+      "notes/gamma-trading-lab.md",
+      "notes/volatility-sizing-lab.md",
+      "notes/options-flow-feed-lab.md",
+      "notes/company-intelligence-lab.md",
+      "specs/027-company-scoped-owner-deep-links/**"
+    ],
+    "crossRepoPolicy": "forbidden"
+  },
+  "execution": {
+    "goalContractRef": null,
+    "activeAgent": "bubbles.implement",
+    "currentPhase": "implement",
+    "currentPhaseStatus": "in_progress",
+    "currentScope": 3,
+    "substate": "implemented",
+    "runStartedAt": "2026-08-20T07:00:00Z",
+    "completedAt": null,
+    "completedPhaseClaims": [
+      {
+        "phase": "analyze",
+        "agent": "bubbles.analyst",
+        "scopes": [],
+        "claimedAt": "2026-08-20T06:04:32Z",
+        "evidenceRef": "specs/027-company-scoped-owner-deep-links/spec.md#evidence-sources"
+      },
+      {
+        "phase": "bootstrap",
+        "agent": "bubbles.design",
+        "scopes": [],
+        "claimedAt": "2026-08-20T07:10:00Z",
+        "evidenceRef": "specs/027-company-scoped-owner-deep-links/design.md#decision-record"
+      },
+      {
+        "phase": "bootstrap",
+        "agent": "bubbles.plan",
+        "scopes": [],
+        "claimedAt": "2026-08-20T08:20:00Z",
+        "evidenceRef": "specs/027-company-scoped-owner-deep-links/scopes.md#execution-outline"
+      }
+    ],
+    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredTarget": "SUPERSEDED 2026-08-20T15:34:17Z BY THE RECORD-CLOSEOUT RUN. CURRENT TARGET: all three scopes are implemented and verified and all three read In Progress; 64 of 73 DoD items are ticked with executed evidence and 9 carry Uncertainty Declarations. bubbles.plan owns three of the nine, because they assert something factually false of a pre-existing module and must be reworded rather than have the module bent to match: the Scope 1 item calling RLTKR frozen when the shipped module has never frozen it, the Scope 2 saveState() item naming four persisted keys when the route has always serialised the whole state object and written six, and the Scope 1 item demanding four per-guard failing runs when the four adversarial guards are in-memory mutants exercised inside a single run. Three more are the per-scope Change Boundary items, which are blocked only by unrelated concurrent in-flight work dirtying the whole-tree porcelain and which resolve once that work lands or this feature is committed; the Scope 2 rlticker.js item resolves the moment Scope 1's uncommitted +25/-0 append is committed. The remaining two are the file:// items: one needs a human manual open and belongs with the human-acceptance items in uservalidation.md, and one asserts a property volatility-sizing-lab.html has never had because Chrome blocks its config fetch on a file:// origin, identically at HEAD. After bubbles.plan, this feature still owes its full specialist chain — test, regression, simplify, gaps, harden, stabilize, devops, security, validate, audit, chaos, redteam, docs, finalize — none of which has run. THE REMAINDER OF THIS FIELD IS THE PRIOR SCOPE 1 RECORD, RETAINED VERBATIM. SCOPE 1 IS IMPLEMENTED AND EVIDENCED, NOT CLOSED. All Scope 1 code work is on disk: rlticker.js gains SUBJECT_PARAM, SUBJECT_PATTERN and linkedSubject on the RLTKR export (+25/-0); options-structure-lab.html (+14/-0) and gamma-trading-lab.html (+20/-1) drop their private tickerFromQuery, call the shared rule and gain a #linkNotice; scripts/selftest.mjs gains one marker-bounded Feature 027 group (+199/-0) whose fourteen assertions are all green; tests/options-structure-lab.spec.mjs and tests/gamma-trading-lab.spec.mjs are new and each carry five persistent Regression: SCN-027-NNN titles; notes/options-structure-lab.md and notes/gamma-trading-lab.md each gain a Linked subject (?ticker=) section (+23/-0 each). RED then GREEN were both executed and recorded in report.md in that order: the red stage reverted the three production files to HEAD and observed node scripts/selftest.mjs exit 1 with the Feature 027 group throwing, and the two-spec Playwright command exit 1 with 6 of 10 failing; the files were then restored with shasum -a 256 -c reporting OK on all three. Green: node --test tests/company-intelligence.unit.mjs exit 0 with 76/76; the two-spec Playwright command exit 0 with 10 passed; each per-file Playwright command exit 0 with 5 passed and zero skipped; bash .github/bubbles/scripts/artifact-lint.sh exit 0. EIGHTEEN OF TWENTY-FOUR DoD ITEMS ARE TICKED. SIX ARE DELIBERATELY UNTICKED, each carrying an Uncertainty Declaration in scopes.md that names which half is proven and which half is not: two require node scripts/selftest.mjs to exit 0 and it exits 1; one requires a clean git status --porcelain that unrelated pre-existing in-flight work makes false; one describes RLTKR as a frozen object when the module has never frozen it; one asks for four per-guard failing runs where the four guards are in-memory mutants exercised inside a single run; one asks for a human file:// open where the open was driven headlessly. THE SINGLE SELFTEST FAILURE IS EXPECTED AND SCOPED TO SCOPE 2: NEW-MISSING tests/options-flow-feed-lab.spec.mjs, referenced by design.md line 669, which Scope 2 creates. No stub was written to silence it and no design wording was changed. TWO ITEMS ARE ROUTED TO bubbles.plan BEFORE SCOPE 1 CAN CLOSE: first, the Tier 2 DoD wording calling RLTKR frozen mis-describes the pre-existing module, since rlticker.js applies its freeze helper only to the object tickerContext returns and never to root.RLTKR, so either the wording is corrected or a separate scope is authorised to change that shared export's contract; second, design.md adversarial obligation 4 asks that narrowing the receiver rule to the sender expression turn the D4 containment property red, and it provably cannot, because the sender expression is applied after normalisation and uppercasing maps every sender-legal letter back into the sender class, so the selftest records that correction in its own assertion text and proves the property falsifiable by a narrowing that really does refuse the sender-valid value S. SCOPE 2 AND SCOPE 3 WERE NOT STARTED: volatility-sizing-lab.html, options-flow-feed-lab.html, company-intelligence.config.json, rlcompanyintel.js and company-intelligence-lab.html are all byte-unchanged, and every Scope 2 and Scope 3 DoD item is unticked. NOTHING OUTSIDE THE WORK BOUNDARY WAS TOUCHED: rlcompanyintel.js prints nothing under git status --porcelain, and no feature 025 artifact, no lifetime-tax path, no specs/021 to specs/024 path and no specs/026 path was modified by this run. No certification field, no certifiedAt and no top-level done status was written. SCOPE 2 IS NOW ALSO IMPLEMENTED AND EVIDENCED, NOT CLOSED. tests/options-flow-feed-lab.spec.mjs was CREATED for real with nine persistent Regression: SCN-027-NNN tests, which removes the single selftest NEW-MISSING failure: node scripts/selftest.mjs now exits 0 with 3143 passed and 0 failed, up from 3129 passed and 1 failed. No stub was written and no design wording was changed. volatility-sizing-lab.html (+35/-0) gains a role=status #linkNotice plus catalogAsset and applyLinkedSubject, called inside boot between populateAssets and readControls; an accepted subject is applied ONLY after it matches runtime.config.assets[].symbol, and a grammar-valid non-member renders a named-unavailable notice while the default asset stays fully computed. options-flow-feed-lab.html (+54/-0) gains the same single #linkNotice rendered as a FOCUS BAND above an unchanged scan through renderFocus(rows), called as the first statement of render so both the populated and the empty-state paths run it; it is never a filter and never a pre-sort, and the resolved focus is held in a module-level FOCUS rather than on state, because saveState serialises the whole state object. scripts/selftest.mjs gains a second marker-bounded group FEATURE-027-CATALOG-BOUND (+80/-0, zero deletions) whose ten assertions are all green. Both tool notes gain a Linked subject section. RED then GREEN were both executed and recorded in report.md in that order: RED was observed with both routes byte-unchanged (git status --porcelain printed nothing for them) at 12 failed and 22 passed, exit 1, and the selftest at exit 1. GREEN: both per-file Playwright commands exit 0 at 25 passed and 9 passed with zero skipped, the Scope 1 precedent-route command exit 0 at 10 passed, node --test tests/company-intelligence.unit.mjs exit 0 at 76 of 76, node scripts/selftest.mjs exit 0, artifact-lint exit 0. Adversarial rows 2.15 and 2.16 each ran red under a real mutation (exit 1) and green with the guard restored, and both mutations were reverted with a verified hash. TWENTY-TWO OF TWENTY-SIX SCOPE 2 DoD ITEMS ARE TICKED. FOUR ARE DELIBERATELY UNTICKED with Uncertainty Declarations naming which half is proven: the whole-tree change-boundary porcelain is polluted by unrelated pre-existing in-flight work; the saveState item claims four persisted keys when the route has always written six; the file:// item cannot be ticked for volatility-sizing-lab because Chrome blocks its universe fetch on a file:// origin, which an isolated HEAD worktree probe proves is pre-existing rather than a regression; and the rlticker.js byte-unchanged item names a proof (porcelain printing nothing) that Scope 1s own uncommitted +25/-0 append makes unusable. TWO FINDINGS ARE ROUTED TO bubbles.plan BEFORE SCOPE 2 CAN CLOSE: S2-F1, the Tier 2 DoD wording that saveState writes exactly mode, side, min and dte mis-describes the pre-existing module, since saveState is localStorage.setItem(LS, JSON.stringify(state)) and has always written sortK and sortDir too, proven by the pre-change baseline capture; and S2-F2, the Implementation Plan asks that the resolved focus be stored on state AND not persisted, which cannot both hold for the same reason. SCOPE 3 WAS NOT STARTED: company-intelligence.config.json, rlcompanyintel.js and company-intelligence-lab.html are byte-unchanged and every Scope 3 DoD item is unticked. The specs/026 collision check was run before and after: options-flow-feed-lab.html hashed 5b66a095b58e798686aefb407767dd118584a70694965b36b52d39a45b57dc98 identically to HEAD at both points, last touched by cbc7cf7aa on 2026-08-02, so no collision occurred and none needed routing. NOTHING OUTSIDE THE WORK BOUNDARY WAS TOUCHED by this scope: the complete set of paths it changed is volatility-sizing-lab.html, options-flow-feed-lab.html, tests/volatility-sizing-lab.spec.mjs, tests/options-flow-feed-lab.spec.mjs, scripts/selftest.mjs, notes/volatility-sizing-lab.md and notes/options-flow-feed-lab.md, and the three design-disqualified routes print nothing under git status --porcelain. No certification field, no certifiedAt and no top-level done status was written."
+  },
+  "certification": {
+    "status": "in_progress",
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scope": 1,
+        "name": "The shared subject-handoff rule and the two precedent routes",
+        "status": "in_progress",
+        "dependsOn": [],
+        "foundation": true,
+        "evidenceFile": "report.md",
+        "businessScenariosOwned": [
+          "SCN-027-006",
+          "SCN-027-007",
+          "SCN-027-009",
+          "SCN-027-010",
+          "SCN-027-011",
+          "SCN-027-017"
+        ],
+        "dodTicked": 20,
+        "dodUnticked": 4,
+        "unticked": [
+          "whole-tree git status --porcelain still names unrelated in-flight paths this scope never opened",
+          "the item calls RLTKR frozen and the shipped module has never frozen it; routed to bubbles.plan",
+          "the four adversarial guards are in-memory mutants inside one run, so there is no per-guard failing run",
+          "the file:// proof was driven headlessly and the item asks for a human manual open"
+        ]
+      },
+      {
+        "scope": 2,
+        "name": "The two catalog-bound receiving routes",
+        "status": "in_progress",
+        "dependsOn": [
+          1
+        ],
+        "foundation": false,
+        "evidenceFile": "report.md",
+        "businessScenariosOwned": [
+          "SCN-027-001",
+          "SCN-027-002",
+          "SCN-027-003",
+          "SCN-027-004",
+          "SCN-027-005",
+          "SCN-027-008",
+          "SCN-027-012",
+          "SCN-027-013"
+        ],
+        "dodTicked": 22,
+        "dodUnticked": 4,
+        "unticked": [
+          "whole-tree git status --porcelain still names unrelated in-flight paths; the three disqualified routes do print nothing",
+          "saveState() serialises the whole state object and has always written six keys, not the four the item names; routed to bubbles.plan as S2-F1",
+          "volatility-sizing-lab.html cannot operate from file:// because Chrome blocks its config fetch, which is pre-existing and identical at HEAD",
+          "git status --porcelain rlticker.js cannot print nothing until Scope 1's uncommitted +25/-0 append lands"
+        ]
+      },
+      {
+        "scope": 3,
+        "name": "The registry, the declarations and the stated bare reasons",
+        "status": "in_progress",
+        "dependsOn": [
+          1,
+          2
+        ],
+        "foundation": false,
+        "evidenceFile": "report.md",
+        "businessScenariosOwned": [
+          "SCN-027-014",
+          "SCN-027-015",
+          "SCN-027-016",
+          "SCN-027-018"
+        ],
+        "dodTicked": 22,
+        "dodUnticked": 1,
+        "unticked": [
+          "whole-tree git status --porcelain still names unrelated in-flight paths; specs/025 does print nothing"
+        ]
+      }
+    ]
+  },
+  "policySnapshot": {
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "repo-default"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.implement",
+      "phasesExecuted": [
+        "implement"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T15:42:00Z",
+      "completedAt": "2026-08-20T15:46:16Z",
+      "summary": "Anti-fabrication correction run, single-purpose. NO feature work: no production file, no test file, no registry row, no shared module and no scope DoD item was touched. uservalidation.md shipped with all 19 items in its ## Checklist section marked [x], asserting a human acceptance that never occurred: no human has exercised this feature and it has run none of its specialist phases. .github/bubbles/registry/acceptance-authority.yaml states the checklist ships unchecked, forbids automation from checking an item because doing so 'would fabricate the exact fact the gate exists to require', and names 'a template used to ship them checked' as a known failure mode; this spec was an instance of it. The sibling spec specs/025-company-multi-horizon-intelligence-lab carries the correct posture at 0 ticked and 53 unticked. ALL 19 [x] MARKERS IN ## Checklist WERE CHANGED TO [ ]. Only the checkbox marker changed on each line; no item text was reworded, reordered, added or deleted, and the file stayed at 94 lines. Verified counts moved from ticked=19 unticked=0 to ticked=0 unticked=19. NOTHING WAS TICKED ANYWHERE. ## Human Acceptance Record was inspected and already held the empty placeholder shape, with all five field values reading 'Not recorded' and no name, date, signature or validation assertion; it was left byte-for-byte as found. ## Automation Readiness is automation-owned, its seven table rows were already unchecked at 0 ticked and 7 unticked, no row was factually wrong, and it was left as found. artifact-lint exits 0. state-transition-guard exits 1 with failedGateIds [G056,G060,G022,G040,G068,G089,G094,G136] and 35 failures; G136 now blocks with 'uservalidation.md does not establish human acceptance', which is the correct and honest result for a feature no human has validated. NOTHING WAS CERTIFIED: top-level status stays in_progress, certifiedAt stays null, certification.status stays in_progress and no certification field was written. ONE FINDING IS ROUTED AND UNRESOLVED, UV-027-F1: the instruction paragraph at lines 6-9 of uservalidation.md reads 'Every item below starts checked ... Walk the tool and uncheck anything that is not true for you', an inverted polarity that is the mechanism which produced the 19 fabricated ticks. It is prose in a bubbles.plan-owned artifact and outside this correction's authorized edit surface, which covered checkbox markers only, so it was left in place and routed to bubbles.plan. While it stands it invites a subsequent agent to re-tick the checklist."
+    },
+    {
+      "agent": "bubbles.implement",
+      "phasesExecuted": [
+        "implement"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T15:20:00Z",
+      "completedAt": "2026-08-20T15:34:17Z",
+      "summary": "Record-closeout run. NO feature work: no production file, no test file, no registry row and no shared module was changed. The run re-executed the verification and then recorded only what it could personally prove. TWO DoD ITEMS WERE TICKED, 62 to 64 of 73, and NINE WERE DELIBERATELY LEFT UNTICKED. Ticked: Scope 1's selftest item and Scope 1's broader-E2E item, both of which were held open solely by the selftest exiting 1 on the Scope 2 newMissing condition. That condition is gone. THE SELFTEST DID NOT REPRODUCE ON FIRST RUN AND THIS IS RECORDED RATHER THAN SMOOTHED OVER: the first invocation exited 1 with 3154 passed and 1 failed, the failure being TP-05-22, a lifetime-tax supersession-ledger assertion at scripts/selftest.mjs:15765 whose marker scan reads tests/lifetime-tax-route.spec.mjs. That file was transiently modified by a concurrent session and went from ' M' to clean between two commands in this run; all seven clauses of the assertion were then evaluated individually and every one is true. The assertion lies outside every FEATURE-027-* marker region and those regions contain zero SUP-022 tokens, so it is not attributable to this feature, and nothing in the feature was changed to clear it. The re-run exits 0 with 3155 passed and 0 failed, 3568 lines, full-output sha256 5c3ad26f45684941674a8607697c542f072e8660e298f0220de4928986b0d21e, 29 green Feature 027 assertions, zero failures and three SCN-027-CANARY rows at 3123, 3146 and 3154. Both Scope 1 browser commands were re-run: options-structure exit 0 with 5 passed and gamma-trading exit 0 with 5 passed, zero failed and zero skipped on both, every title beginning 'Regression: SCN-027-'. node --test tests/company-intelligence.unit.mjs exits 0 with tests 83, pass 83, fail 0, skipped 0, and grep -c 'MUTATION UNDER TEST' rlcompanyintel.js returns 0. Registry integrity was recomputed independently of the suite: 15 rows partition into 4 subject-carrying, 7 bare-with-a-reason and 4 ownerless with zero malformed rows, one distinct subject parameter 'ticker' and a closed reason enum of exactly fixed-subject and market-scoped. THE NINE UNTICKED ITEMS ARE UNTICKED FOR THREE DISTINCT REASONS, none of which is missing implementation. Three are the per-scope Change Boundary items, whose literal predicate is a whole-tree git status --porcelain that still names unrelated concurrent in-flight work this feature never opened; each scope's own narrower predicate does pass, with specs/025 and the three disqualified routes both printing nothing. Three assert something factually false of a pre-existing module and are routed to bubbles.plan rather than having the module bent to match: RLTKR has never been frozen, and saveState() serialises the whole state object so it has always written six keys rather than the four the item names. Three are proof-shape or environment gaps: the four adversarial guards are in-memory mutants inside one run so no per-guard failing run exists, volatility-sizing-lab.html cannot operate from file:// because Chrome blocks its config fetch which is identical at HEAD, and the file:// evidence was driven headlessly where the item asks for a human manual open. The Scope 3 status line, which still read 'Not started' while its declarations had shipped and its selftest assertions were green, was corrected, and the Scope Table's two stale 'Not started' cells with it; all three scopes now read 'In Progress' in the canonical vocabulary, because no scope has a fully satisfied DoD and none may be called Done. NOTHING WAS CERTIFIED: top-level status stays in_progress, certifiedAt stays null, certification.status stays in_progress, completedScopes stays empty because zero scopes are Done, and certifiedCompletedPhases stays empty. This feature has not run its test, regression, security, harden, stabilize, docs, validate, audit, chaos or redteam phases. DISCLOSURE ON OWNERSHIP: certification.scopeProgress was populated at the operator's explicit instruction even though the certification block is bubbles.validate-owned; only non-certifying progress fields were written, namely per-scope name, dependsOn, owned scenarios and the ticked and unticked tallies with the reason each item is open. No status in it is 'done' and no certification verdict is asserted."
+    },
+    {
+      "agent": "bubbles.implement",
+      "phasesExecuted": [
+        "implement"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T07:00:00Z",
+      "completedAt": "2026-08-20T07:35:06Z",
+      "summary": "Scope 1 continuation run. A prior invocation had produced the code work and stopped before recording any evidence: scopes.md showed 0 ticked of 73. This run found one Scope 1 deliverable genuinely missing and finished it, then executed and recorded the verification. FINISHED: notes/options-structure-lab.md and notes/gamma-trading-lab.md each gained a Linked subject (?ticker=) section, +23/-0 lines each, naming the accepted parameter, the accept rule after normTicker, the unchanged accept-set, the refusal behavior and the equivalence of no parameter, an empty parameter and a whitespace-only parameter. Everything else was already on disk and was verified rather than rewritten. RED WAS EXECUTED BEFORE GREEN AND RECORDED IN THAT ORDER IN report.md. Red: the three production files were checksummed, copied aside and reverted to HEAD, leaving the scenario contracts in place, so the absence of the implementation is real and not a stand-in mutation; node scripts/selftest.mjs exited 1 with the Feature 027 group throwing SUBJECT_PARAM / SUBJECT_PATTERN not declared in rlticker.js, full-output sha256 1832ccae70c3b6c3506550289223e1a33ad809780211b2471b598c088a7d01e5; the two-spec Playwright command exited 1 with 6 failed and 4 passed, sha256 2d7c8a04baefdbbc8b6c7f287fdeeb2105f27478ab8257f4b5b1ed7ca3de0e8b. The four that passed red are recorded rather than smoothed over: SCN-027-009 and SCN-027-010 assert properties the unimplemented routes already had by ignoring the parameter, so only the notice, the first-paint equality and the accepted-subject seeding are newly earned. Restore: shasum -a 256 -c reported OK on all three files. GREEN: node --test tests/company-intelligence.unit.mjs exit 0 with 76 pass and 0 fail, sha256 cb055bbfd3015ed968c6248831e772388bb7a25cf6178b2a387effe147807b69; the two-spec Playwright command exit 0 with 10 passed, sha256 3c27680d9bb81926af102eb6ce4a734ad01b6ee52afa8469f016bac64e3ce8d4; node scripts/selftest.mjs exit 1 with 3129 passed and 1 failed and all fourteen Feature 027 assertions green, sha256 ee99010d1b1d6f36f588c5857cbbd7f5aa10af1717af64dfb9ffc128d0859141; the per-file options-structure command exit 0 with 5 passed; the per-file gamma command exit 0 with 5 passed; artifact-lint exit 0. THE SINGLE SELFTEST FAILURE IS THE EXPECTED SCOPE 2 CONDITION: NEW-MISSING tests/options-flow-feed-lab.spec.mjs, referenced by design.md line 669. No stub was created and no design wording was changed. A red run and one contended green run reported extra failures in lifetime-tax paths this scope does not touch, and those differed between the two runs; two consecutive control runs at an identical tree state both reported 3129 passed and 1 failed, so the extras are load-dependent flake in another feature's suite and are named in report.md rather than omitted. EIGHTEEN OF TWENTY-FOUR Scope 1 DoD items are ticked with executed evidence; six are left unticked, each carrying an Uncertainty Declaration naming which half is proven. BACKWARD COMPATIBILITY, THE HEADLINE RISK, IS PROVEN THREE WAYS: rows 1.14 and 1.18 compare a structural first paint including the full ordered control-rail id list and pass on both routes; the corpus-equivalence assertion shows the shared rule and the deleted private rule accept the identical ordered set over 34 inputs; and a real browser open of each route with no parameter, at both a file:// origin and an ephemeral http origin, yields the pre-existing default subject with the notice hidden and empty and zero page errors. TWO FINDINGS ARE ROUTED TO bubbles.plan RATHER THAN PAPERED OVER: the Tier 2 DoD calls RLTKR frozen when rlticker.js applies its freeze helper only to the object tickerContext returns, and design.md adversarial obligation 4 is provably not a falsifier of the D4 containment property. ONE OBSERVATION RECORDED WITHOUT A CODE CHANGE: the refusal notice renders as showing SPY?. in raw text because the shared rlticker.js decorator wraps the SPY token in a Yahoo link plus an Explain SPY context button whose glyph is a question mark; that decoration applies to every ticker mention site-wide, the notice is still written with textContent and never innerHTML, and the refusal posture is unaffected. SCOPE 2 AND SCOPE 3 WERE NOT STARTED. No file outside workBoundary.allowedPaths was modified by this run, and no certification field, no certifiedAt and no top-level done status was written."
+    },
+    {
+      "agent": "bubbles.analyst",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T06:04:32Z",
+      "completedAt": "2026-08-20T06:04:32Z",
+      "summary": "Authored the business specification that closes VAL-025-F4, routed out of feature 025's work boundary. Classified all 15 coverage registry rows: 4 ownerless, 2 already subject-carrying, 3 market-scoped and correctly bare, 6 in the gap across 5 distinct routes. Verified by direct source read that none of the 5 receiving routes reads a company parameter today, and corrected the premise on three points: two of them already read other query parameters (fixture, clock, case, profile), two of them have no company subject concept at all (technical-analysis names no instrument, trend-dynamics holds only spy-daily), and options-flow-feed-lab.html has no owning feature at all. Recorded 34 functional requirements, 18 Gherkin business scenarios, 9 non-functional requirements, 3 improvement proposals and 8 open questions."
+    },
+    {
+      "agent": "bubbles.design",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T07:10:00Z",
+      "completedAt": "2026-08-20T07:10:00Z",
+      "summary": "Authored design.md. Resolved Open Question 1 on re-read evidence and shrank the feature from five candidate routes to two: volatility-sizing-lab.html has a real asset select over a closed 11-asset universe with generic renderers, and options-flow-feed-lab.html scans 12 real symbols with per-ticker aggregation already computed. The analyst's bare recommendation for technicals and cycles is confirmed, and the same test disqualifies company-fundamentals-lab.html, which the analyst had classified as a plain company-scoped gap: it has zero selector controls, a hardcoded primary publication, and roughly thirty static Microsoft, Chipotle and JPMorgan identity strings. Six further decisions recorded: this feature declares ownerSubjectParam and adds an ownerBareReason enum with an exactly-one-of schema rule; the options-flow handoff is a focus band above an unchanged scan; the sender and receiver grammars stay different with a containment property test; a catalog-bound subject rule makes an accepted value fail closed before it can reach any key, path or fetch target; and the bare-reason display requires a small additive change to two feature 025 production files while touching no feature 025 spec artifact. Recommended three scopes against a ceiling of five. One open question remains for the operator, on whether options-flow-feed-lab.html should be adopted by an owning feature before the change lands."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T08:20:00Z",
+      "completedAt": "2026-08-20T08:20:00Z",
+      "summary": "Authored scopes.md, report.md, uservalidation.md and scenario-manifest.json. THREE scopes against a ceiling of five, matching the design recommendation and deliberately not splitting scope 2 per route. Scope 1 is tagged foundation:true and carries 24 DoD items: the shared RLTKR.linkedSubject rule with SUBJECT_PARAM and SUBJECT_PATTERN in rlticker.js, the selftest corpus, the D4 containment property, the single-definition assertion, and adoption by options-structure-lab.html and gamma-trading-lab.html with a refusal notice and two new browser specs. Scope 2 carries 26 DoD items: volatility-sizing-lab.html catalog-bound preselect and options-flow-feed-lab.html focus band above an unchanged scan, each with a named-unavailable state, a refusal notice and its own no-parameter regression proof, inherited for volatility and constructed from a captured pre-change baseline for the unowned options-flow route. Scope 3 carries 23 DoD items: the ownerBareReason closed enum, the exactly-one-of registry schema rule, four subject-carrying declarations, seven bare reasons and the reason-specific statement rendered beside the link on both sending surfaces. Eighteen scenarios map one-to-one onto BS-027-001 through BS-027-018 with behaviorTraits derived per scenario. Two facts shaped the plan and are recorded as prerequisites rather than assumptions. PRE-2 resolves design.md Open Question 2 by having Scope 1 land the two uncommitted tickerFromQuery readers, so HEAD stops carrying the declaration-without-a-reader condition FR-027-030 calls a defect. tests/options-flow-feed-lab.spec.mjs, which design.md names at four sites and which does not exist, is a required Scope 2 deliverable, because its absence is what the selftest newMissing assertion currently reports. PRE-1 records the exact twenty-one-path workBoundary.allowedPaths widening required before implementation; this run did NOT widen it. NOTHING WAS IMPLEMENTED: no production file, no test file, no feature 025 artifact, no lifetime-tax path and no specs/026 path was modified by this run."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T06:49:26Z",
+      "completedAt": "2026-08-20T06:49:26Z",
+      "summary": "Planning continuation run. Reconciled the existing three-scope plan against the operator's resolved design decisions and found no contradiction: exactly two new receiving routes (volatility-sizing-lab.html and options-flow-feed-lab.html), the options-flow handoff as a focus band above an unchanged scan rather than a filter or a pre-sort, the ownerBareReason closed enum with the exactly-one-of schema rule, the deliberately non-unified sender and receiver grammars with a containment property test and an adversarial counter-case, the catalog-bound subject rule on both new routes, and the shared rule living on the existing RLTKR export in rlticker.js with no new module. No scope was added, removed, split or reordered; the count stays at three against a ceiling of five. THE ONE SUBSTANTIVE CHANGE THIS RUN MADE: workBoundary.allowedPaths was widened from the single entry specs/027-company-scoped-owner-deep-links/** to the twenty-one enumerated targets already tabulated in the scopes.md Plan-Time Prerequisites section, and the PRE-1 section of scopes.md was rewritten from a deferred instruction into a discharged record naming the widened list. Each of the twenty-one was checked on disk in this session: seventeen are present, three are the tests/*.spec.mjs files this feature creates (options-structure, gamma-trading, options-flow), and one is the specs/027 directory glob. tools.json, index.html, rlnav.js, site-exclusions.json, scripts/build-pages-site.mjs, every feature 025 spec artifact, every lifetime-tax path and every specs/026 path stay outside the boundary. TIMESTAMP NOTE: this entry carries the real observed UTC time 2026-08-20T06:49:26Z, which is earlier than the 07:10:00Z and 08:20:00Z stamps on the two preceding entries; those two are forward-dated relative to the machine clock and were not written by this run. NOTHING WAS IMPLEMENTED: no production file, no test file, no shared module, no registry row, no feature 025 artifact and no path outside specs/027-company-scoped-owner-deep-links was modified by this run."
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [],
+  "failures": [],
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json"
+  },
+  "statusDiscipline": {
+    "validStatuses": [
+      "not_started",
+      "in_progress",
+      "blocked",
+      "specs_hardened",
+      "docs_updated",
+      "validated",
+      "done"
+    ],
+    "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+    "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+  },
+  "notes": "Upstream finding closed by this feature: VAL-025-F4, recorded at specs/025-company-multi-horizon-intelligence-lab/report.md line 4638. Downstream consequence on completion: company-intelligence.config.json can declare ownerSubjectParam for each row whose owner route became subject-carrying, and feature 025's Automation Readiness row 'Following the math to its owner' becomes exercisable for those dimensions. Confirmed governing feature per receiving route: company-fundamentals-lab.html to specs/010 (done), volatility-sizing-lab.html to specs/011 (done), trend-dynamics-cycle-lab.html to specs/006 (done), technical-analysis-decision-lab.html to specs/007 (blocked on gate G136 with 17 unchecked human acceptance items), options-flow-feed-lab.html to no feature at all (added 2026-07-08 in a standalone commit; specs/002 registers it as a brief source and specs/012 owns BUG-001 against it). Concurrent-session hazard: specs/026-actionable-brief-brevity-and-cross-asset references three of the five receiving routes and was not read beyond confirming those references."
+}

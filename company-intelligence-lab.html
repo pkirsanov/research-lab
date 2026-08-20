@@ -494,6 +494,7 @@
       "label": "Own and relative price performance",
       "ownerToolId": "market-brief",
       "ownerDeepLink": "market-brief.html",
+      "ownerBareReason": "market-scoped",
       "freshnessWindowDays": 7,
       "maxHorizon": "swing"
     },
@@ -502,6 +503,7 @@
       "label": "Reported fundamentals",
       "ownerToolId": "company-fundamentals-lab",
       "ownerDeepLink": "company-fundamentals-lab.html",
+      "ownerBareReason": "fixed-subject",
       "freshnessWindowDays": 400,
       "maxHorizon": "structural"
     },
@@ -510,6 +512,7 @@
       "label": "Valuation against own history",
       "ownerToolId": "company-fundamentals-lab",
       "ownerDeepLink": "company-fundamentals-lab.html",
+      "ownerBareReason": "fixed-subject",
       "freshnessWindowDays": 400,
       "maxHorizon": "structural"
     },
@@ -518,6 +521,7 @@
       "label": "Technical structure",
       "ownerToolId": "technical-analysis-decision-lab",
       "ownerDeepLink": "technical-analysis-decision-lab.html",
+      "ownerBareReason": "fixed-subject",
       "freshnessWindowDays": 7,
       "maxHorizon": "tactical"
     },
@@ -526,6 +530,7 @@
       "label": "Trend and cycle position",
       "ownerToolId": "trend-dynamics-cycle-lab",
       "ownerDeepLink": "trend-dynamics-cycle-lab.html",
+      "ownerBareReason": "fixed-subject",
       "freshnessWindowDays": 7,
       "maxHorizon": "swing"
     },
@@ -552,6 +557,7 @@
       "label": "Unusual options flow",
       "ownerToolId": "options-flow-feed-lab",
       "ownerDeepLink": "options-flow-feed-lab.html",
+      "ownerSubjectParam": "ticker",
       "freshnessWindowDays": 3,
       "maxHorizon": "tactical"
     },
@@ -560,6 +566,7 @@
       "label": "Volatility regime",
       "ownerToolId": "volatility-sizing-lab",
       "ownerDeepLink": "volatility-sizing-lab.html",
+      "ownerSubjectParam": "ticker",
       "freshnessWindowDays": 7,
       "maxHorizon": "swing"
     },
@@ -584,6 +591,7 @@
       "label": "Geopolitical and policy backdrop",
       "ownerToolId": "research-agenda-lab",
       "ownerDeepLink": "research-agenda-lab.html",
+      "ownerBareReason": "market-scoped",
       "freshnessWindowDays": 30,
       "maxHorizon": "swing"
     },
@@ -600,6 +608,7 @@
       "label": "Sentiment backdrop",
       "ownerToolId": "market-brief",
       "ownerDeepLink": "market-brief.html",
+      "ownerBareReason": "market-scoped",
       "freshnessWindowDays": 3,
       "maxHorizon": "tactical"
     },
@@ -816,6 +825,11 @@
                 }
                 if (owner.hasOwner) {
                     card.appendChild(el("a", "Open " + owner.ownerToolId, { href: owner.ownerDeepLink, "data-owner-link": owner.ownerToolId }));
+                    /* A link that carries no company states why, so a bare link reads as a
+                       decision about that owner rather than as a forgotten parameter. */
+                    if (!owner.carriesSubject) {
+                        card.appendChild(el("p", owner.statement, { class: "dim", "data-owner-bare-reason": "true" }));
+                    }
                 } else {
                     card.appendChild(el("p", owner.statement, { class: "dim", "data-no-owner": "true" }));
                 }
@@ -1150,6 +1164,9 @@
                     var ownerCell = el("td");
                     if (owner.hasOwner) {
                         ownerCell.appendChild(el("a", owner.ownerToolId, { href: owner.ownerDeepLink, "data-owner-link": owner.ownerToolId }));
+                        if (!owner.carriesSubject) {
+                            ownerCell.appendChild(el("span", owner.statement, { class: "dim", "data-owner-bare-reason": "true" }));
+                        }
                     } else {
                         ownerCell.appendChild(el("span", owner.statement, { "data-no-owner": "true" }));
                     }

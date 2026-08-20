@@ -25526,6 +25526,119 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 027 Scope 2 catalog-bound group threw): ' + e.message); }
 /* FEATURE-027-CATALOG-BOUND-END */
 
+/* FEATURE-027-REGISTRY-DECLARATIONS-BEGIN */
+try {
+  group('Feature 027 Scope 3: the registry, the declarations and the stated bare reasons');
+  const f027cIntel = (await import('node:module')).createRequire(import.meta.url)('../rlcompanyintel.js');
+  const f027cConfig = JSON.parse(read('company-intelligence.config.json'));
+  const f027cRoute = read('company-intelligence-lab.html');
+  const f027cRegistry = f027cIntel.readCoverageRegistry(f027cConfig);
+
+  /* 3.a — the exactly-one-of rule, walked over every row rather than over the rows expected. */
+  const f027cCarrying = f027cRegistry.rows.filter((row) => row.ownerSubjectParam !== null);
+  const f027cBare = f027cRegistry.rows.filter((row) => row.ownerBareReason !== null);
+  const f027cOwnerless = f027cRegistry.rows.filter((row) => row.ownerDeepLink === null);
+  const f027cMisdeclared = f027cRegistry.rows.filter((row) => (
+    ((row.ownerSubjectParam !== null ? 1 : 0) + (row.ownerBareReason !== null ? 1 : 0))
+      !== (row.ownerDeepLink === null ? 0 : 1)
+  )).map((row) => row.dimensionId);
+  assert(f027cRegistry.rows.length === 15 && f027cCarrying.length === 4
+    && f027cBare.length === 7 && f027cOwnerless.length === 4 && f027cMisdeclared.length === 0,
+    'Feature 027 Scope 3: the shipped registry holds fifteen rows partitioned into four subject-carrying, seven bare-with-a-reason and four ownerless, and every linked row declares exactly one of the two fields ('
+    + f027cRegistry.rows.length + ' rows, ' + f027cCarrying.length + '/' + f027cBare.length + '/'
+    + f027cOwnerless.length + ', misdeclared: ' + (f027cMisdeclared.join(', ') || 'none') + ')');
+
+  /* 3.b — the three malformed shapes are refusals, not editorial guidance. */
+  const f027cPoison = (dimensionId, patch) => Object.assign({}, f027cConfig, {
+    coverageRegistry: f027cConfig.coverageRegistry.map((row) => (
+      row.dimensionId === dimensionId ? Object.assign({}, row, patch) : row
+    ))
+  });
+  const f027cRefusal = (config) => {
+    try { f027cIntel.readCoverageRegistry(config); return null; } catch (error) { return error; }
+  };
+  const f027cShapes = [
+    ['neither', f027cRefusal(f027cPoison('performance', { ownerBareReason: null })), 'performance'],
+    ['both', f027cRefusal(f027cPoison('volatility', { ownerBareReason: 'fixed-subject' })), 'volatility'],
+    ['invalid enum', f027cRefusal(f027cPoison('performance', { ownerBareReason: 'company-scoped' })), 'performance'],
+    ['reason with no route', f027cRefusal(f027cPoison('company-risk', { ownerBareReason: 'market-scoped' })), 'company-risk']
+  ];
+  const f027cUnrefused = f027cShapes.filter(([, error, dimensionId]) => !error
+    || error.code !== 'C025-CONFIG-SCHEMA'
+    || !error.record || String(error.record.detail).indexOf('dimension: ' + dimensionId) === -1)
+    .map(([label]) => label);
+  assert(f027cUnrefused.length === 0,
+    'Feature 027 Scope 3: a linked row declaring neither field, one declaring both, a reason outside the closed enum and a reason with no owner route each raise C025-CONFIG-SCHEMA naming the offending dimension ('
+    + (f027cUnrefused.join(', ') || 'all four refused') + ')');
+
+  /* 3.c — the enum is closed at two members, and both are admitted on a linked row. */
+  const f027cAdmitted = ['market-scoped', 'fixed-subject']
+    .filter((value) => f027cRefusal(f027cPoison('performance', { ownerBareReason: value })) === null);
+  const f027cRejected = ['company-scoped', 'MARKET-SCOPED', 'market scoped', 'fixed_subject', '']
+    .filter((value) => f027cRefusal(f027cPoison('performance', { ownerBareReason: value })) !== null);
+  assert(f027cAdmitted.length === 2 && f027cRejected.length === 5,
+    'Feature 027 Scope 3: ownerBareReason is a closed enum of exactly market-scoped and fixed-subject ('
+    + f027cAdmitted.length + '/2 admitted, ' + f027cRejected.length + '/5 refused)');
+
+  /* 3.d — the two statements are distinguishable, and the published contract is unchanged. */
+  const f027cMarket = f027cIntel.describeDimensionOwner(f027cRegistry, 'performance', 'MSFT');
+  const f027cFixed = f027cIntel.describeDimensionOwner(f027cRegistry, 'fundamentals', 'MSFT');
+  const f027cCarried = f027cIntel.describeDimensionOwner(f027cRegistry, 'volatility', 'MSFT');
+  const f027cKeys = Object.keys(f027cMarket).sort().join(',');
+  assert(f027cMarket.statement !== f027cFixed.statement
+    && /answers a market-wide question/.test(f027cMarket.statement)
+    && /does not model an individual company you can choose/.test(f027cFixed.statement)
+    && f027cMarket.carriesSubject === false && f027cFixed.carriesSubject === false
+    && f027cMarket.ownerDeepLink === 'market-brief.html'
+    && f027cFixed.ownerDeepLink === 'company-fundamentals-lab.html'
+    && f027cCarried.carriesSubject === true
+    && f027cCarried.ownerDeepLink === 'volatility-sizing-lab.html?ticker=MSFT'
+    && f027cMarket.contractVersion === 'company-dimension-owner/v1'
+    && f027cKeys === 'carriesSubject,contractVersion,dimensionId,hasOwner,ownerDeepLink,ownerToolId,statement',
+    'Feature 027 Scope 3: a market-scoped and a fixed-subject row each compose a bare href with its own reason-specific statement, a declared row composes the company, and describeDimensionOwner keeps company-dimension-owner/v1 and its seven keys ('
+    + f027cKeys + ')');
+
+  /* 3.e — every declared parameter has a committed reader, which is the FR-027-027 rule that
+     the already-shipped two-row declaration violated before Scope 1 landed the readers. */
+  const f027cReaderless = f027cCarrying.filter((row) => {
+    const source = read(row.ownerDeepLink);
+    return !/rlticker\.js/.test(source) || !/RLTKR\.linkedSubject\(/.test(source);
+  }).map((row) => row.ownerDeepLink);
+  const f027cNames = f027cCarrying.map((row) => row.ownerSubjectParam)
+    .filter((name, index, all) => all.indexOf(name) === index);
+  assert(f027cReaderless.length === 0 && f027cNames.length === 1 && f027cNames[0] === 'ticker',
+    'Feature 027 Scope 3: every declared ownerSubjectParam names the single shared parameter and every route it is declared on loads rlticker.js and calls RLTKR.linkedSubject ('
+    + (f027cReaderless.join(', ') || 'every declaration has a reader') + ')');
+
+  /* 3.f — the registry ships twice and the two copies still cannot drift. */
+  const f027cBlock = /<script type="application\/json" data-embedded-config="([^"]+)">([\s\S]*?)<\/script>/
+    .exec(f027cRoute);
+  assert(f027cBlock && f027cBlock[1] === 'company-intelligence.config.json'
+    && JSON.stringify(JSON.parse(f027cBlock[2])) === JSON.stringify(f027cConfig),
+    'Feature 027 Scope 3: the registry embedded in the route still equals the committed registry file after the new declarations');
+
+  /* 3.g — the statement reaches the page as text on both surfaces, never as markup, and the
+     sending composer was not widened to get there. */
+  const f027cSinks = (f027cRoute.match(/"data-owner-bare-reason": "true"/g) || []).length;
+  const f027cIntelSource = read('rlcompanyintel.js');
+  const f027cOwnerRoute = (f027cIntelSource.split('function ownerRouteFor(row, subject) {')[1] || '')
+    .split('\n    }')[0];
+  const f027cSafeRouteUnchanged = f027cIntelSource
+    .indexOf('var SAFE_OWNER_ROUTE = /^[A-Za-z0-9._-]+\\.html$/;') !== -1;
+  assert(f027cSinks === 2
+    && !/data-owner-bare-reason[^\n]*innerHTML/.test(f027cRoute)
+    && f027cSafeRouteUnchanged
+    && f027cOwnerRoute.length > 0 && !/ownerBareReason/.test(f027cOwnerRoute),
+    'Feature 027 Scope 3: the stated reason is written with the same textContent helper on both the coverage table and the dimension card, and neither ownerRouteFor nor SAFE_OWNER_ROUTE was widened to render it ('
+    + f027cSinks + '/2 sinks, ' + f027cOwnerRoute.length + ' chars of ownerRouteFor scanned)');
+
+  /* 3.17 — shared-surface canary */
+  assert(passes > 3145,
+    'Regression: SCN-027-CANARY every pre-existing selftest assertion stays green after the Feature 027 Scope 3 append'
+    + ' (' + passes + ' assertion(s) already green at this point)');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 027 Scope 3 registry-declaration group threw): ' + e.message); }
+/* FEATURE-027-REGISTRY-DECLARATIONS-END */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

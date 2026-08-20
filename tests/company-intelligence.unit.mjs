@@ -1625,14 +1625,16 @@ test('a subject-carrying owner link opens the owning tool on the same company an
     });
 
     /* And an owner route that reads no company parameter is NOT given a fabricated one. It
-       links to the bare route and the statement says the target opens on its own subject. */
+       links to the bare route and the statement says WHY that owner carries no company. */
     const bare = registry.rows.filter((row) => row.ownerToolId !== null && row.ownerSubjectParam === null);
     assert.ok(bare.length > 0, 'the registry still carries plain owner routes');
     bare.forEach((row) => {
         const described = INTEL.describeDimensionOwner(registry, row.dimensionId, 'MSFT');
         assert.equal(described.carriesSubject, false, row.dimensionId);
         assert.equal(described.ownerDeepLink, row.ownerDeepLink, row.dimensionId);
-        assert.match(described.statement, /reads no company parameter/);
+        assert.match(described.statement, row.ownerBareReason === 'market-scoped'
+            ? /answers a market-wide question/
+            : /does not model an individual company you can choose/, row.dimensionId);
     });
 
     /* A dimension with no owner is still given no link at all. */
@@ -1683,9 +1685,14 @@ test('a subject-carrying owner link opens the owning tool on the same company an
             ))
         });
         if (param === '') {
-            /* An empty string is "declares nothing", which is a legal registry, not an attack. */
-            assert.equal(INTEL.readCoverageRegistry(poisoned).rows
-                .filter((row) => row.ownerSubjectParam !== null).length, 0);
+            /* An empty string is "declares nothing". That is no longer a legal registry: a row
+               that links to an owner and declares neither a subject parameter nor a bare-link
+               reason is refused, so silence cannot pass as a decision. */
+            assert.throws(
+                () => INTEL.readCoverageRegistry(poisoned),
+                (error) => error.code === 'C025-CONFIG-SCHEMA',
+                'a linked row that declares neither field is refused'
+            );
             return;
         }
         assert.throws(
@@ -1695,15 +1702,194 @@ test('a subject-carrying owner link opens the owning tool on the same company an
         );
     });
 
-    /* A subject parameter with no owner route is a half-declared owner and is refused. */
-    assert.throws(
-        () => INTEL.readCoverageRegistry(Object.assign({}, CONFIG, {
-            coverageRegistry: CONFIG.coverageRegistry.map((row) => (
-                row.ownerDeepLink === null ? Object.assign({}, row, { ownerSubjectParam: 'ticker' }) : row
-            ))
-        })),
-        (error) => error.code === 'C025-CONFIG-SCHEMA'
-    );
+});
+
+/* ---------------------------------------------------------------------------
+ * Feature 027 Scope 3 — the registry, the declarations and the stated bare reasons.
+ *
+ * A row that links to an owner now has to SAY which of the two positions it holds: it either
+ * carries the company, or it states why it cannot. Silence used to be indistinguishable from a
+ * forgotten declaration, which is the defect these assertions close.
+ * ------------------------------------------------------------------------- */
+
+/* Rewrites one registry row by dimension id and leaves the other fourteen untouched, so each
+   refusal below is provably caused by the single field under test. */
+function withRow(dimensionId, patch) {
+    return Object.assign({}, CONFIG, {
+        coverageRegistry: CONFIG.coverageRegistry.map((row) => (
+            row.dimensionId === dimensionId ? Object.assign({}, row, patch) : row
+        ))
+    });
+}
+
+function refusalFor(config) {
+    try {
+        INTEL.readCoverageRegistry(config);
+    } catch (error) {
+        return error;
+    }
+    return null;
+}
+
+test('a row with an ownerDeepLink declaring neither ownerSubjectParam nor ownerBareReason raises C025-CONFIG-SCHEMA naming its dimension id', () => {
+    /* `performance` links to market-brief.html. Stripping its reason leaves a link with no
+       stated position, which is exactly the shape that shipped undetected before this scope. */
+    const error = refusalFor(withRow('performance', { ownerBareReason: null }));
+    assert.ok(error, 'a linked row declaring neither field is refused');
+    assert.equal(error.code, 'C025-CONFIG-SCHEMA');
+    assert.match(error.record.detail, /dimension: performance/);
+    assert.match(error.message, /exactly one of a subject parameter and a bare-link reason/);
+
+    /* ADVERSARIAL COUNTER-CASE: the guard is not refusing everything. The shipped registry,
+       and the same row with its reason restored, both read. */
+    assert.equal(INTEL.readCoverageRegistry(CONFIG).rows.length, 15);
+    assert.equal(refusalFor(withRow('performance', { ownerBareReason: 'market-scoped' })), null);
+});
+
+test('a row declaring both ownerSubjectParam and ownerBareReason raises C025-CONFIG-SCHEMA naming its dimension id', () => {
+    /* `volatility` carries the company. Adding a bare reason on top would claim both positions
+       at once, so the reader could not tell which one the link actually holds. */
+    const error = refusalFor(withRow('volatility', { ownerBareReason: 'fixed-subject' }));
+    assert.ok(error, 'a linked row declaring both fields is refused');
+    assert.equal(error.code, 'C025-CONFIG-SCHEMA');
+    assert.match(error.record.detail, /dimension: volatility/);
+    assert.match(error.message, /exactly one of a subject parameter and a bare-link reason/);
+
+    /* The same row without the added reason still reads and still carries the company. */
+    assert.equal(refusalFor(withRow('volatility', {})), null);
+    assert.equal(INTEL.describeDimensionOwner(
+        INTEL.readCoverageRegistry(CONFIG), 'volatility', 'MSFT').carriesSubject, true);
+});
+
+test('an ownerBareReason outside the closed enum, and an ownerBareReason on a row with no ownerDeepLink, each raise C025-CONFIG-SCHEMA', () => {
+    /* The enum is closed so operator-authored wording cannot reach a rendering path. A third
+       value, however plausible, is refused rather than rendered. */
+    ['company-scoped', 'MARKET-SCOPED', 'market scoped', 'other', 'fixed_subject', 42, true, {}]
+        .forEach((value) => {
+            const error = refusalFor(withRow('performance', { ownerBareReason: value }));
+            assert.ok(error, JSON.stringify(value) + ' is refused as a bare-link reason');
+            assert.equal(error.code, 'C025-CONFIG-SCHEMA', JSON.stringify(value));
+            assert.match(error.record.detail, /dimension: performance/);
+            assert.match(error.message, /outside the closed enum/, JSON.stringify(value));
+        });
+
+    /* A reason with no route to be bare ABOUT is a half-declared owner. */
+    const orphan = refusalFor(withRow('company-risk', { ownerBareReason: 'market-scoped' }));
+    assert.ok(orphan, 'a bare reason on an ownerless row is refused');
+    assert.equal(orphan.code, 'C025-CONFIG-SCHEMA');
+    assert.match(orphan.record.detail, /dimension: company-risk/);
+    assert.match(orphan.message, /bare-link reason without an owner route/);
+
+    /* ADVERSARIAL COUNTER-CASE: both admitted members are accepted on a linked row. */
+    ['market-scoped', 'fixed-subject'].forEach((value) => {
+        assert.equal(refusalFor(withRow('performance', { ownerBareReason: value })), null, value);
+    });
+});
+
+test('a market-scoped row composes a bare href and its statement says the owner answers a market-wide question', () => {
+    const registry = INTEL.readCoverageRegistry(CONFIG);
+    const marketScoped = registry.rows.filter((row) => row.ownerBareReason === 'market-scoped');
+    assert.deepEqual(marketScoped.map((row) => row.dimensionId).sort(),
+        ['geopolitics', 'performance', 'sentiment']);
+    marketScoped.forEach((row) => {
+        const described = INTEL.describeDimensionOwner(registry, row.dimensionId, 'MSFT');
+        assert.equal(described.hasOwner, true, row.dimensionId);
+        assert.equal(described.carriesSubject, false, row.dimensionId);
+        /* Bare means bare: no query, no fragment, nothing appended to the route file. */
+        assert.equal(described.ownerDeepLink, row.ownerDeepLink, row.dimensionId);
+        assert.match(described.ownerDeepLink, /^[A-Za-z0-9._-]+\.html$/, row.dimensionId);
+        assert.match(described.statement, /answers a market-wide question rather than a company one/,
+            row.dimensionId);
+        assert.match(described.statement, /so the link carries no company/, row.dimensionId);
+    });
+});
+
+test('a fixed-subject row composes a bare href and its statement says the owner opens on its own subject', () => {
+    const registry = INTEL.readCoverageRegistry(CONFIG);
+    const fixed = registry.rows.filter((row) => row.ownerBareReason === 'fixed-subject');
+    assert.deepEqual(fixed.map((row) => row.dimensionId).sort(),
+        ['cycles', 'fundamentals', 'technicals', 'valuation']);
+    fixed.forEach((row) => {
+        const described = INTEL.describeDimensionOwner(registry, row.dimensionId, 'MSFT');
+        assert.equal(described.hasOwner, true, row.dimensionId);
+        assert.equal(described.carriesSubject, false, row.dimensionId);
+        assert.equal(described.ownerDeepLink, row.ownerDeepLink, row.dimensionId);
+        assert.match(described.ownerDeepLink, /^[A-Za-z0-9._-]+\.html$/, row.dimensionId);
+        assert.match(described.statement, /does not model an individual company you can choose/,
+            row.dimensionId);
+        assert.match(described.statement, /opens on that tool's own subject/, row.dimensionId);
+    });
+
+    /* The two reasons are distinguishable, which is the whole point of a two-member enum: a
+       reader can tell a market-wide owner from a single-issuer one without opening either. */
+    const marketStatement = INTEL.describeDimensionOwner(registry, 'performance', 'MSFT').statement;
+    const fixedStatement = INTEL.describeDimensionOwner(registry, 'fundamentals', 'MSFT').statement;
+    assert.notEqual(marketStatement, fixedStatement);
+    assert.ok(!/answers a market-wide question/.test(fixedStatement));
+    assert.ok(!/does not model an individual company/.test(marketStatement));
+
+    /* describeDimensionOwner keeps its published contract: same version, same seven keys. */
+    const described = INTEL.describeDimensionOwner(registry, 'fundamentals', 'MSFT');
+    assert.equal(described.contractVersion, 'company-dimension-owner/v1');
+    assert.deepEqual(Object.keys(described).sort(), [
+        'carriesSubject', 'contractVersion', 'dimensionId', 'hasOwner',
+        'ownerDeepLink', 'ownerToolId', 'statement'
+    ]);
+});
+
+test('the shipped registry declares four subject-carrying rows, seven bare rows with a reason and four ownerless rows, and no market-scoped row carries a subject parameter', () => {
+    const registry = INTEL.readCoverageRegistry(CONFIG);
+    assert.equal(registry.rows.length, 15, 'the coverage registry declares fifteen rows');
+
+    const carrying = registry.rows.filter((row) => row.ownerSubjectParam !== null);
+    const bare = registry.rows.filter((row) => row.ownerBareReason !== null);
+    const ownerless = registry.rows.filter((row) => row.ownerDeepLink === null);
+    assert.equal(carrying.length, 4);
+    assert.equal(bare.length, 7);
+    assert.equal(ownerless.length, 4);
+    assert.equal(carrying.length + bare.length + ownerless.length, registry.rows.length,
+        'the three sets partition the registry exactly');
+
+    assert.deepEqual(carrying.map((row) => row.dimensionId).sort(),
+        ['dealer-gamma', 'options-flow', 'options-structure', 'volatility']);
+    assert.deepEqual(ownerless.map((row) => row.dimensionId).sort(),
+        ['company-risk', 'financial-events', 'market-regime', 'non-financial-events']);
+
+    /* The rule walked over all fifteen rows, not merely over the ones it expected to find. */
+    registry.rows.forEach((row) => {
+        const declared = (row.ownerSubjectParam !== null ? 1 : 0) + (row.ownerBareReason !== null ? 1 : 0);
+        assert.equal(declared, row.ownerDeepLink === null ? 0 : 1,
+            row.dimensionId + ' declares the wrong number of owner fields');
+        if (row.ownerBareReason !== null) {
+            assert.ok(['market-scoped', 'fixed-subject'].includes(row.ownerBareReason), row.dimensionId);
+            assert.equal(row.ownerSubjectParam, null, row.dimensionId);
+        }
+    });
+});
+
+test('every declared ownerSubjectParam is the single shared parameter name and no second convention exists', () => {
+    const registry = INTEL.readCoverageRegistry(CONFIG);
+    const names = new Set(registry.rows
+        .filter((row) => row.ownerSubjectParam !== null)
+        .map((row) => row.ownerSubjectParam));
+    assert.deepEqual([...names], ['ticker'], 'one parameter name, declared once, used everywhere');
+
+    /* And it is the SAME name the shared receiving rule reads, so the sending and receiving
+       halves cannot drift into two conventions that each look correct in isolation. The shared
+       module is a UMD that publishes onto the global, so it is read back from there. */
+    require_('../rlticker.js');
+    const shared = globalThis.RLTKR;
+    assert.equal(shared.SUBJECT_PARAM, 'ticker');
+    assert.deepEqual([...names], [shared.SUBJECT_PARAM]);
+
+    /* Each declared parameter has a committed reader: the route named by the row loads the
+       shared module and calls the shared rule. A declaration with no reader is the defect
+       FR-027-027 forbids, and it is checked against the route source rather than assumed. */
+    registry.rows.filter((row) => row.ownerSubjectParam !== null).forEach((row) => {
+        const source = readFileSync(join(ROOT, row.ownerDeepLink), 'utf8');
+        assert.match(source, /rlticker\.js/, row.ownerDeepLink + ' loads the shared module');
+        assert.match(source, /RLTKR\.linkedSubject\(/, row.ownerDeepLink + ' calls the shared rule');
+    });
 });
 
 test('the registry embedded in the route is identical to the committed registry file', () => {

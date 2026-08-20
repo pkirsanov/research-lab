@@ -113,6 +113,26 @@ export function findAttentionVerbInstructionGaps(instruction) {
 export const ATTENTION_RESEARCH_VERBS = Object.freeze(RLATTN.RESEARCH_VERBS.slice());
 
 /**
+ * The eligible subjects, rendered from the SAME watchlist scope the privacy
+ * check refuses on.
+ *
+ * Telling the lane an attention subject "must be on the committed watchlist"
+ * still leaves it to recall which tickers those are, and it does not reliably
+ * guess: the 03:13 EDT publish put four of five candidates on subjects that
+ * resolved to nothing, having spent the same budget writing about the benchmark
+ * and macro. The composer knows the admissible set exactly. Handing it over
+ * turns an act of recall into an act of selection, which is the difference
+ * between an instruction that usually holds and one that can be satisfied.
+ */
+export function attentionSubjectMenuInstruction() {
+  return 'Choose every attention subject from exactly this list, and write its ticker verbatim in the '
+    + `headline: ${WATCHLIST_SCOPE.join(', ')}. `
+    + 'A subject outside this list is refused whole, so an item about the benchmark, an index or a macro '
+    + 'theme reaches no reader however well argued — put that read in recommendations instead. Prefer a '
+    + 'subject no published action already covers, because a duplicate is refused too.';
+}
+
+/**
  * The exact authored KEYS handed to the lane, rendered from AUTHORED_JUDGEMENT_KEYS.
  *
  * Prose does not hold. Successive publishes described the same nine fields in

@@ -22,6 +22,7 @@ import {
   BRIEF_EVENT_SHAPE_KEYS,
   briefEventContractInstruction,
   findEventContractInstructionGaps,
+  WATCHLIST_SCOPE as RLATTN_WATCHLIST_SCOPE,
   validateBriefPayload
 } from './validate-brief-payload.mjs';
 import { formatSpecTestPathFindings, validateSpecTestPaths } from './validate-spec-test-paths.mjs';
@@ -29,6 +30,7 @@ import {
   ATTENTION_RESEARCH_VERBS as RLATTN_RESEARCH_VERBS,
   AUTHORED_JUDGEMENT_KEYS as RLATTN_AUTHORED_KEYS,
   attentionAuthoredKeysInstruction,
+  attentionSubjectMenuInstruction,
   attentionVerbContractInstruction,
   findAttentionVerbInstructionGaps
 } from './build-attention-items.mjs';
@@ -3009,6 +3011,18 @@ try {
   /* No "holds no second copy" rule here, unlike the event keys and the verbs: SCN-017-045 REQUIRES
      the prose that explains each field, and that prose legitimately contains the key words. The
      two guards would contradict. What must not drift is the rendered LIST, which is asserted above. */
+
+  /* ── and the eligible SUBJECTS, for the reason a constraint the author must recall is weaker ────
+     than one it can select from. Telling the lane a subject must be "on the committed watchlist"
+     left it to remember which tickers those are, and the 03:13 EDT publish put four of five
+     candidates on subjects that resolved to nothing. The admissible set is rendered from the same
+     WATCHLIST_SCOPE the privacy check refuses on, so the menu cannot disagree with the gate. */
+  const renderedMenu = attentionSubjectMenuInstruction();
+  const unlistedSubjects = RLATTN_WATCHLIST_SCOPE.filter((ticker) => !new RegExp('\\b' + ticker + '\\b').test(renderedMenu));
+  assert(unlistedSubjects.length === 0,
+    'the subject menu offers every ticker the privacy check admits (unoffered: ' + unlistedSubjects.join(', ') + ')');
+  assert(signalsInstruction.includes('${attentionSubjectMenuInstruction()}'),
+    'the signals lane renders the eligible subject list from the composer instead of asking the author to recall it');
 
   /* Staleness must be readable as a FACT, never inferred from an ambiguous count. The
      2026-08-02 brief read the symbol count (287 tickers) as a session count, published

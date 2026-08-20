@@ -24177,6 +24177,21 @@ try {
   assert(GATE.resolveSubject({ subject: 'SOXX', headline: 'FBTC sits far below its 200-day' }, trackedTwo1) === 'SOXX',
     'an explicit subject still wins over the headline scan, so nothing that already names its subject changes behaviour');
 
+  /* The benchmark is the instrument the lane writes about most, and it lives under its
+     own snapshot key rather than inside `tracked`. Omitting it would refuse most of what
+     the lane authors, so the gate observes it too — under the name committed data gives
+     it, never an assumed one. */
+  const liveSnap1 = JSON.parse(read('market-brief.snapshot.json'));
+  const observable1 = GATE.observableSubjects(liveSnap1);
+  const benchName1 = ((liveSnap1.toolReads || {})['sector-research-lab'] || {}).metrics?.benchmark;
+  assert(typeof benchName1 === 'string' && benchName1.length > 0 && observable1[benchName1] !== undefined
+    && Object.keys(observable1).length === Object.keys(liveSnap1.tracked || {}).length + 1,
+    'Regression: SCN-BUG009-R1-BENCH the market benchmark is observable under the symbol committed data names it, so a judgement about the benchmark binds instead of being refused for want of a subject');
+  assert(GATE.observableSubjects({ tracked: { X: { px: 1 } }, bench: { px: 2 } })['X'].px === 1,
+    'a benchmark whose name cannot be resolved from committed data is simply not observable, and the watchlist is returned unchanged');
+  assert(GATE.observableSubjects({ tracked: { SPY: { px: 1 } }, bench: { px: 2 }, toolReads: { 'sector-research-lab': { metrics: { benchmark: 'SPY' } } } })['SPY'].px === 1,
+    'the benchmark never shadows a watchlist entry of the same name — the richer tracked shape wins');
+
   const builderSrc1 = read('scripts/build-attention-items.mjs');
   assert((builderSrc1.match(/RLATTNGATE\.attachObserved\(/g) || []).length === 2,
     'Regression: SCN-BUG009-R1-BOTHPATHS the observed half is attached on BOTH build-attention-items entry points — the --recompose path the publisher runs and the --candidates path the CLI documents — so neither can silently refuse what the other accepts');

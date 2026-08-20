@@ -880,17 +880,22 @@ widen the severity bands or relax the persistence requirement — no code change
 
 - A reading below every declared band yields **no severity**, never the smallest one, so a quiet market
   cannot manufacture a candidate.
-- An absent confirmation verdict becomes `partial`, never an assumed `present`.
-- A subject Tier-A does not track earns no observation, so an unobservable judgement is never dressed up
-  as observed.
+- Corroboration is never assumed. The Tier-A persistence gate met is `present`; the gate explicitly not met
+  is `absent`; no persistence flags at all is `absent`; and flags carrying no verdict is `partial`, meaning
+  unknown rather than confirmed. Only `present` can reach `attention`.
+- A subject neither the watchlist nor the benchmark covers earns no observation, so an unobservable
+  judgement is never dressed up as observed.
 - A headline naming **two** tracked symbols resolves to no subject at all. Binding a judgement to the wrong
   instrument is worse than publishing nothing, so ambiguity refuses rather than guesses.
 
 **How a judgement finds its instrument.** `subject` is a gate field, not an authored one — the lane is told
-to author only judgement and never names a ticker. The gate resolves the subject by matching a tracked
+to author only judgement and never names a ticker. The gate resolves the subject by matching an observable
 symbol as a whole word in the authored text, which is a string match against committed keys rather than an
-inference. A headline naming no tracked symbol is refused, and the reader is told the feed was refused
-rather than shown a calm-looking empty list. That last part is §10a's decision block doing its job.
+inference. Observable means the watchlist **plus the market benchmark**, which lives under its own snapshot
+key and is named by committed data rather than assumed — the lane writes about the benchmark constantly, so
+leaving it out would refuse most of what it authors. A headline naming no observable symbol is refused, and
+the reader is told the feed was refused rather than shown a calm-looking empty list. That last part is
+§10a's decision block doing its job.
 
 ---
 

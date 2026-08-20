@@ -1207,3 +1207,173 @@ discriminating:   yes (red-exit 1 != green-exit 0)
 === END RED/GREEN PROBE EVIDENCE ===
 ```
 
+## Harness Pass 6 — The Four Browser Rows Carry Intended REDs
+
+Each browser row runs its own per-scenario command rather than the cumulative
+suite, so RED and GREEN are seconds apart and the exit code separates them
+cleanly. `--summary-match` pins the verdict to the reporter's own pass or fail
+line rather than to whatever happened to be printed last.
+
+### `TP-04-22`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-22 regression E2E SCN-023-010: publishing the source identifier in place of the section each sourced parameter was transcribed from must fail the browser scenario that reads the rendered citation
+file:             rltaxuse.js
+mutation:         locator: figure.locator,  ->  locator: figure.sourceRef,   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-023-010\ the\ classification\ publishes\ its\ sourced\ parameters\ and\ refuses\ without\ them --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (4.2s)
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-23`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-23 regression E2E SCN-023-011: flipping the sourced less-than comparison from strict to inclusive must fail the browser scenario that pins the three Publication 527 boundaries to the side the publication states
+file:             rltaxuse.js
+mutation:         if (operator === "less-than") result = left < right;  ->  if (operator === "less-than") result = left <= right;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-023-011\ the\ three\ Publication\ 527\ boundaries\ land\ on\ the\ side\ the\ publication\ states --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (3.8s)
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-24`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-24 regression E2E SCN-023-012: preventing the under-threshold category from reaching the exclusion path must fail the browser scenario that requires the income excluded and no rental expense deducted
+file:             rltaxrental.js
+mutation:         if (classification.category === "residence-minimal-rental-use") {  ->  if (classification.category === "residence-minimal-rental-use-never-matches") {   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-023-012\ the\ under-threshold\ exception\ excludes\ the\ income\ and\ deducts\ no\ rental\ expense --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (4.0s)
+revert-verified:  yes (committed=04505d51f87117fe1613b41a41277bfea5096b11 restored=04505d51f87117fe1613b41a41277bfea5096b11)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-25` — the probe refused first, and the refusal was the finding
+
+The first attempt exited 7. The scenario passed with **every** personal portion
+replaced by a literal zero — that is, while the behaviour its own title claims
+was gone.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-25 regression E2E SCN-023-013: discarding the personal portion of every allocated expense must fail the browser scenario that requires it to reach the itemised composition
+file:             rltaxuse.js
+mutation:         personalPortion: expense.amount - rentalPortion,  ->  personalPortion: 0,   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-023-013\ mixed\ use\ allocates\ by\ declared\ days\ and\ the\ personal\ portion\ reaches\ the\ composition --reporter=list
+red-exit:         0
+red-summary:        1 passed (4.1s)
+green-exit:       0
+green-summary:      1 passed (2.8s)
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   NO (red-exit 0 == green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+red-green-probe: REFUSED — RED and GREEN produced the same outcome (both exited 0). The mutation did not make the command fail, so the assertion under test cannot fail and this is not RED/GREEN evidence.
+```
+
+**Why it could not discriminate.** Two clauses carried the claim and neither read
+a figure. The allocation clause required only that the personal-portion cell
+carry non-empty text, and a discarded portion still renders as a formatted zero.
+The composition clause counted two `dwelling-personal` rows and read their origin
+attribute — but a zero-amount component is deliberately still added, precisely so
+a household whose whole dwelling was rented stays distinguishable from one whose
+personal share was never routed, so the row count and the origin survive the
+defect untouched. The scenario was reading labels, counts and attributes where
+its title promises an amount.
+
+**Strengthened additively.** Nothing was weakened, removed or skipped and no
+timeout was raised. Both original clauses stand. Two clauses were added: the
+personal-portion figure nodes must parse to amounts strictly greater than zero,
+and the `dwelling-personal-operating` composition row's amount cell must too. The
+figure node is read directly rather than the cell's `textContent`, because the
+cell also carries the tooltip prose and that prose's punctuation corrupts a naive
+numeric parse — the first attempt at the strengthened clause failed for exactly
+that reason and was corrected before it was committed.
+
+The probe was then re-run unchanged against the strengthened scenario and
+discriminated.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-25 regression E2E SCN-023-013: discarding the personal portion of every allocated expense must fail the browser scenario that requires it to reach the itemised composition
+file:             rltaxuse.js
+mutation:         personalPortion: expense.amount - rentalPortion,  ->  personalPortion: 0,   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-023-013\ mixed\ use\ allocates\ by\ declared\ days\ and\ the\ personal\ portion\ reaches\ the\ composition --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (4.0s)
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+## The Owed Set Is Closed
+
+The twenty-five rows the Definition of Done row was owed each carry an observed
+intended RED beside their same-command GREEN. Twenty-one ran the unit command,
+`node scripts/selftest.mjs`, with the probe's `--summary-match` pinned to the
+row's own identifier so the `red-summary` line is that row's failure rather than
+a neighbour's. Four ran their own per-scenario browser command, which is seconds
+rather than the ten minutes the cumulative suite takes, with `--summary-match`
+pinned to the reporter's pass or fail line.
+
+| Row | Aimed at | File the mutation landed in |
+|---|---|---|
+| `TP-04-01` | the closed category check | `rltaxrules.js` |
+| `TP-04-02` | the added routing's treatment of an explicit none | `rltaxrental.js` |
+| `TP-04-03` | the published `comparedAgainst` quantity | `rltaxuse.js` |
+| `TP-04-04` | a refused classification producing no rental figure | `rltaxrental.js` |
+| `TP-04-05` | the recalled-rule fallback | `rltaxrules.js` |
+| `TP-04-06` | strict versus inclusive at the day boundary | `rltaxuse.js` |
+| `TP-04-07` | the published greater-of selection | `rltaxuse.js` |
+| `TP-04-08` | the residence gate on the exception | `rltaxuse.js` |
+| `TP-04-09` | the arithmetic behind the inclusive operator | `rltaxuse.js` |
+| `TP-04-10` | the declared `CO-16` to `CO-17` dependency edge | `rltax.js` |
+| `TP-04-11` | a zero value published beside the exclusion | `rltaxrental.js` |
+| `TP-04-12` | the stated exclusion reason | `rltaxrental.js` |
+| `TP-04-13` | the allocation ratio's numerator | `rltaxuse.js` |
+| `TP-04-14` | the directly-allocable refusal | `rltaxuse.js` |
+| `TP-04-15` | the routed component's origin | `rltax.js` |
+| `TP-04-16` | the published declared amount the portions sum back to | `rltaxuse.js` |
+| `TP-04-17` | the page's wiring of the classification leg's identity | `lifetime-tax-strategy-lab.html` |
+| `TP-04-18` | the naming of the missing element in a finding | `rltaxproperty.js` |
+| `TP-04-19` | the refusal vocabulary's size | `rltaxrules.js` |
+| `TP-04-20` | a remembered copy of the sourced day figure | `rltaxuse.js` |
+| `TP-04-21` | a day count carried into the exported bytes | `rltaxworkspace.js` |
+| `TP-04-22` | the section each sourced parameter was transcribed from | `rltaxuse.js` |
+| `TP-04-23` | strict versus inclusive at the threshold boundary | `rltaxuse.js` |
+| `TP-04-24` | the route from the under-threshold category to the exclusion | `rltaxrental.js` |
+| `TP-04-25` | the personal portion itself | `rltaxuse.js` |
+
+Every probe hash-verified its revert, and `git status` shows no source file left
+dirty by any of them.
+
+### A finding outside this scope's boundary
+
+`node scripts/selftest.mjs` reports `3171 passed, 1 failed` at the close of this
+session, against `3172 passed, 0 failed` at its start. The single failure is
+`committed surface carries no personal identifier`, and the scanner names its two
+findings in `specs/027-company-scoped-owner-deep-links/report.md` at lines 2597
+and 2599 — both inside the single uncommitted hunk a concurrent session added to
+that file while this work ran. No finding names any file this scope owns or
+touched. The regression is therefore routed to the owner of that spec rather than
+absorbed here: `specs/027-*` is outside this scope's change boundary and editing
+it would be a boundary violation, not a fix.
+

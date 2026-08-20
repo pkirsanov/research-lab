@@ -330,27 +330,29 @@ syntax error, a missing browser or an absent test does not satisfy RED.
 - [x] No output states a probability, a lifetime figure, a track record or an error
       rate, and no classification is presented as an estimate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
-      **Not satisfied.** Same-command GREEN is recorded for every row, and
-      intended RED is recorded for both supersessions and for the four inherited
-      browser failures. Intended RED is NOT recorded for TP-04-01 through
-      TP-04-25: those rows were implemented in an earlier dispatch of this scope
-      that did not record their RED, and this session cannot produce it after the
-      fact without fabricating it.
-  - **Phase:** implement · **Command:** the exact TP-04-01 through TP-04-26 commands · **Evidence:** `report.md#test-evidence`, `report.md#harness-pass--tp-04-06-carries-an-intended-red`
-  - **Harness pass: one of the twenty-five owed rows is closed.** `TP-04-06` now
-    carries an observed intended RED, captured through
-    `scripts/red-green-probe.sh`, which arms its revert before mutating and proves
-    the revert by blob hash. The mutation flips the engine's `greater-than`
-    arithmetic from the strict form the publication states to the inclusive one,
-    which is the exact defect the boundary rows exist to catch. Still owed:
-    `TP-04-01` to `TP-04-05`, `TP-04-07` to `TP-04-21`, and the browser rows
-    `TP-04-22` to `TP-04-25`. Each needs a mutation aimed at the behaviour its own
-    row names; one broad mutation reddening many rows would not show that each row
-    is sensitive to the defect it claims to catch, which is the property this row
-    exists to establish. No assertion was edited, weakened, skipped or removed and
-    no timeout was raised.
+      **Satisfied.** Every row now carries an observed intended RED beside its
+      same-command GREEN. The twenty-five rows this row was owed were closed one
+      at a time through `scripts/red-green-probe.sh`, each from a mutation aimed
+      at the behaviour that row's own text names, so no row's RED is a side
+      effect of another row's mutation.
+  - **Phase:** implement · **Command:** the exact TP-04-01 through TP-04-26 commands · **Evidence:** `report.md#test-evidence`, `report.md#harness-pass--tp-04-06-carries-an-intended-red`, `report.md#harness-pass-2--tp-04-01--tp-04-05-carry-intended-reds`, `report.md#harness-pass-3--tp-04-07--tp-04-12-carry-intended-reds`, `report.md#harness-pass-4--tp-04-13--tp-04-18-carry-intended-reds`, `report.md#harness-pass-5--tp-04-19--tp-04-21-carry-intended-reds`, `report.md#harness-pass-6--the-four-browser-rows-carry-intended-reds`
+  - **One row's assertion could not discriminate, and was strengthened rather
+    than excused.** `TP-04-25`'s probe first exited 7: the `SCN-023-013` browser
+    scenario passed with every personal portion replaced by a literal zero,
+    because both clauses carrying the claim read a cell's presence, its row count
+    and its origin attribute rather than its amount, and a zero-amount component
+    is deliberately still rendered. Two clauses were added — the personal-portion
+    figure nodes and the `dwelling-personal-operating` composition amount must
+    each parse to more than zero — and the identical probe then discriminated.
+    Nothing was weakened, deleted or skipped and no timeout was raised.
+  - **Twinned pairs are recorded, not hidden.** `TP-04-05` and `TP-04-12` exist
+    to prove that `TP-04-04`'s and `TP-04-11`'s assertions discriminate, so the
+    only implementation-dependent clause each owns is one its twin also reads and
+    its mutation necessarily reds the twin too. Each of the four still has its
+    own aimed mutation and its own `red-summary` failure line.
+
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths,
       and `node scripts/build-pages-site.mjs --dry-run` succeeds.

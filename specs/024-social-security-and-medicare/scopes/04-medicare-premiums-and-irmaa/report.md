@@ -1391,4 +1391,58 @@ one ledger, and the ledger is now shown to be observed and asserted against. The
 honest statement is that the value-bearing limb rests on inspection while the
 declared-asset limb rests on an observed RED.
 
+### Probe 16 — a spec-referenced test path pointed at a file that does not exist
+
+TP-04-31's command is `node scripts/validate-spec-test-paths.mjs`. Its RED is a
+spec artifact naming a test path the repository does not contain.
+
+**A missed first attempt, recorded rather than discarded.** The first mutation
+renamed the bare filename in this scope's Test Plan `File` column. The command
+returned `new=0` — unchanged — on both the mutated and unmutated tree. The
+substitution had landed on text the row's command does not read: the validator
+matches a repo-root-relative `tests/….mjs` token, and a bare filename in a table
+cell is not one. Two identical `new=0` lines around a mutation is the signature
+of a probe that proves nothing, and banking it as a RED would have been a false
+green about the probe itself. It is recorded here as a miss.
+
+**The corrected mutation.** The scope's single genuine `tests/….mjs` reference
+token, at `scope.md:478`, was renamed to a sibling that does not exist. One path
+literal, no figure.
+
+```
+$ node scripts/validate-spec-test-paths.mjs
+GUARD_TOTAL=1 GUARD_ON_LINE_478=1
+[spec-test-paths] scanned=678 references=14983 distinctPaths=246 missingPaths=67 baseline=67 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+GREEN_EXIT=0
+POST_MUTATION_SITES=1 ORIGINAL_LEFT=0
+[spec-test-paths] scanned=678 references=14983 distinctPaths=247 missingPaths=68 baseline=67 new=1 stale=0
+  NEW-MISSING tests/lifetime-tax-medicare-absent.spec.mjs (1 reference site(s))
+      referenced at specs/024-social-security-and-medicare/scopes/04-medicare-premiums-and-irmaa/scope.md:478
+[spec-test-paths] FAIL — 1 new referenced path(s) do not exist
+RED_EXIT=1
+$ git checkout -- <scope.md>
+DIRTY_AFTER_REVERT=0
+[spec-test-paths] scanned=678 references=14983 distinctPaths=246 missingPaths=67 baseline=67 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+GREEN2_EXIT=0
+```
+
+**Intended RED recorded for TP-04-31**, with the same-command GREEN captured
+both immediately before the mutation and again on the restored source. The
+counters move exactly one step and back — `distinctPaths` 246 → 247 → 246,
+`missingPaths` 67 → 68 → 67, `new` 0 → 1 → 0 — and the failure names the
+mutated path and the artifact line that referenced it, so the RED is attributable
+to this mutation and to nothing else. The `baseline=67` figure is unchanged
+throughout, so the guard was not silently re-frozen around the planted defect.
+
+### TP-04-30's own intended RED
+
+TP-04-30's command is `node scripts/selftest.mjs`, which is also the command
+named by TP-04-01 through TP-04-23. Every selftest probe above — Probes 1 through
+11 — drove that exact command from green to red and back on the identical
+invocation. TP-04-30 therefore does not need a probe of its own; it has eleven,
+and each is recorded with its verbatim counter movement above.
+
+
 

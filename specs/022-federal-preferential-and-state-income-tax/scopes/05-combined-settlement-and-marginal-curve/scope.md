@@ -290,10 +290,22 @@ missing browser or an absent test does not satisfy RED.
 - [x] The request ledger stays empty across the full combined workflow and no
       household value reaches any URL, request, referrer or console message.
   - **Phase:** implement · **Command:** the privacy browser row · **Evidence:** `report.md#tp-05-20`
-- [ ] The tool is still absent from `tools.json`, `index.html`, `rlnav.js`,
+- [x] The tool is still absent from `tools.json`, `index.html`, `rlnav.js`,
       `README.md`, `notes/README.md` and market-brief coverage, and no new root
       HTML exists.
   - **Phase:** implement · **Command:** the registration-absence browser row plus `node scripts/build-pages-site.mjs --dry-run` · **Evidence:** `report.md#tp-05-21`, `report.md#tp-05-25`
+  - **Evidence:** derived, not asserted. The detector was proven live first — five
+    hits on the route page that does carry the token — and then returned zero on
+    all six named surfaces, read both in the working tree and from the `HEAD`
+    blob so a concurrent session's unrelated dirt on `notes/README.md` could not
+    flatter the result. Market-brief coverage was scanned across all thirteen
+    `market-brief.*` surfaces rather than the single config file the row names,
+    all zero. No scope-05 commit adds a root HTML, and exactly one `lifetime-tax`
+    root page exists — the route itself, which predates this scope. Both named
+    commands ran green: the browser row `1 passed` at exit 0, and the Pages dry
+    run at exit 0 with `registeredPages` 28 and `site-exclusions.json` clean. The
+    row's missing intended-RED is a separate matter and is carried by the Test
+    Plan evidence item below, which stays open and names TP-05-21.
 - [ ] The supersession ledger is closed: all twenty-one `SUP-022-NN` markers are present
       and each maps to a delivered ledger entry, this scope superseded nothing
       itself, the combined curve chart and its text-equivalent table render in

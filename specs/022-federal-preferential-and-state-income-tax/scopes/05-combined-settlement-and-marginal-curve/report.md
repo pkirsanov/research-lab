@@ -984,9 +984,9 @@ carries the sentinel income, the residency jurisdiction or the word `residency`.
 `Regression: SCN-022-013 the tool is absent from every registry and the market brief`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-013 the tool is absent from every registry and the market brief" --reporter=list`
 
-**Partial. This row is not closed, and the DoD item it anchors is left open.** The
-row passes, and the equivalent selftest assertion passes, but neither has been
-shown able to fail, and the reason is a genuine conflict rather than an omission.
+**The row still carries no RED.** The row passes, and the equivalent selftest
+assertion passes, but neither has been shown able to fail, and the reason is a
+genuine conflict rather than an omission.
 
 The only mutation that drives the registration clause RED is to register the tool
 — adding a `lifetime-tax` entry to `tools.json`, `index.html`, `rlnav.js`,
@@ -999,12 +999,103 @@ pass unchanged against a build in which the check had been deleted.
 
 The second clause of the same DoD item — that no new root HTML exists — *is*
 separately drivable without touching a protected file, by creating an extra
-`lifetime-tax-*.html` at the repository root and deleting it. That probe was not
-carried out in this session. The row is therefore left open rather than narrowed
-to the half that is already green, and it is recorded here so the next session
-does not have to rediscover why.
+`lifetime-tax-*.html` at the repository root and deleting it. That probe has still
+not been carried out. **The missing RED is therefore carried by the Test Plan
+evidence DoD item — "every Test Plan row has intended RED and same-command GREEN
+evidence" — which remains open and names TP-05-21 among its reasons.**
 
-The deploy-gate half of the item is closed independently under TP-05-25 above.
+#### The registration-absence DoD item, closed by derivation
+
+The DoD row this section anchors asks a different question from the Test Plan row:
+it asks whether the tool *is* absent from the six surfaces and whether a new root
+HTML *exists*, not whether the guard is proven able to fail. That is a state of the
+tree, and it is decidable without a mutation. Every clause was derived rather than
+asserted.
+
+The detector was proven live before the scan was trusted, on the one file that does
+carry the token:
+
+```text
+=== detector liveness: the same pattern on a file that DOES carry the token ===
+lifetime-tax-strategy-lab.html hits=5
+```
+
+The six named surfaces were read twice — once in the working tree and once from the
+`HEAD` blob, so a concurrent session's unrelated dirt on `notes/README.md` cannot
+flatter the result:
+
+```text
+=== worktree: lifetime-tax mentions in the six registration surfaces ===
+tools.json               hits=0
+index.html               hits=0
+rlnav.js                 hits=0
+README.md                hits=0
+notes/README.md          hits=0
+market-brief.config.json hits=0
+=== HEAD blob: same six (worktree-dirt-proof) ===
+tools.json               hits=0
+index.html               hits=0
+rlnav.js                 hits=0
+README.md                hits=0
+notes/README.md          hits=0
+market-brief.config.json hits=0
+```
+
+"Market-brief coverage" is wider than the one config file, so all thirteen
+`market-brief.*` surfaces were scanned, not the one the row happens to name:
+
+```text
+market-brief.attention-outcomes.jsonl    hits=0
+market-brief.attention-scorecard.json    hits=0
+market-brief.config.json                 hits=0
+market-brief.config.page.json            hits=0
+market-brief.experimental.json           hits=0
+market-brief.html                        hits=0
+market-brief.owner-reads.json            hits=0
+market-brief.page.json                   hits=0
+market-brief.payload.json                hits=0
+market-brief.scorecard.json              hits=0
+market-brief.snapshot.json               hits=0
+market-brief.snapshot.page.json          hits=0
+market-brief.tools.page.json             hits=0
+```
+
+The root-HTML clause is scoped to this scope's own three commits rather than to
+the whole history, because a root page added by a sibling feature is not this
+scope's to answer for:
+
+```text
+=== root HTML added by scope 05 own commits (2df769eaa a4887f91e c58719fb4) ===
+SCOPE05_ADDED_ROOT_HTML_END
+=== every lifetime-tax root HTML that exists ===
+lifetime-tax-strategy-lab.html
+```
+
+No scope-05 commit adds a root HTML at all, and exactly one `lifetime-tax` root
+page exists — the route itself, which is on the allowed-modified list and predates
+this scope. Recorded rather than omitted: `company-intelligence-lab.html` *was*
+added at the repository root after the feature-family creation commit, by Feature
+025's concurrent work. It belongs to none of scope 05's three commits and carries
+no lifetime-tax reference.
+
+Both commands the DoD row names were then run in this session:
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-013 the tool is absent from every registry and the market brief" --reporter=list
+Running 1 test using 1 worker
+  ✓  1 [system-chrome] › tests/lifetime-tax-combined.spec.mjs:402:1 › Regression: SCN-022-013 the tool is absent from every registry and the market brief (572ms)
+  1 passed (2.4s)
+TP0521_EXIT=0
+
+$ node scripts/build-pages-site.mjs --dry-run
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":128,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/004902309400a815a8ac1da2877422310e381d5c20748f711cbd0233e959a67a","omittedOrphanIndexes":144}
+PAGES_EXIT=0
+=== site-exclusions.json dirt ===
+EXCLUSIONS_DIRT_END
+```
+
+`registeredPages` is 28, unchanged, and `site-exclusions.json` is clean. No
+mutation was applied to reach any of this.
 
 ### TP-05-22
 

@@ -1068,3 +1068,118 @@ because it requires **every** row. Still owed: `TP-03-04` (blocked by the
 unconditional assertion above), the browser rows `TP-03-21` to `TP-03-25`, and
 `TP-03-27` and `TP-03-28`. No assertion was edited, weakened, skipped or removed
 and no timeout was raised in this pass.
+
+## Sixth Pass — The Unconditional Assertion Is Repaired And `TP-03-04` Reds
+
+### The clause was inverted, not merely short-circuited
+
+The finding recorded above named the trailing `|| true`. Removing it exposes a
+second, deeper defect in the same expression. The final conjunct read:
+
+```js
+&& !/27\.5|mid-month|straight-line/.test(read('rltaxrental.js')…) === false
+```
+
+`!` binds tighter than `===`, so this parses as `(!test(src)) === false`, which
+is `test(src) === true` — an assertion that the rental module **does** contain a
+recalled recovery period, a mid-month default or a straight-line method name
+outside its block comments and outside its one pack-declared convention literal.
+That is the opposite of the property the surrounding comment describes. Measured
+directly against the shipped module, the stripped source yields `hit_count=0`,
+so the conjunct evaluated `false`. The whole conjunction was therefore genuinely
+false, and `|| true` was the only thing holding the row green.
+
+### The repair
+
+The trailing `=== false || true` was removed and the conjunct now reads
+
+```js
+&& !/27\.5|mid-month|straight-line/.test(read('rltaxrental.js')…)
+```
+
+which states the property actually intended: **the engine carries no recalled
+27.5-year recovery period, no mid-month default and no straight-line method
+literal outside its block comments and outside the single pack-declared
+`conventionId` comparison** — every one of those parameters must arrive from the
+pack. The assertion message was extended to say so. Nothing was deleted, nothing
+was weakened, no `|| true` was restored, and the other five conjuncts are
+untouched.
+
+The repaired row holds against the shipped tree:
+
+```
+Research-Lab self-test: 3156 passed, 0 failed
+```
+
+exit 0, 3569 lines, sha256 `f0f76fe93df3623fa00e4e4467ee4651ed94ba94684d7ba13ee3cbf482e9356b`.
+The pass count is identical to the 3156 baseline, so removing the short-circuit
+neither exposed a hidden failure nor changed any other row.
+
+### Probe P03-9 — RED for `TP-03-04` via the source-scan conjunct
+
+The engine's recovery period is read from the pack as
+`rule.recoveryPeriod.years`. The probe gave it a recalled fallback, planting the
+27.5-year period the conjunct exists to forbid. Applied, run and reverted inside
+one shell invocation.
+
+```
+PROBE1_APPLIED=1
+exit: 1
+  ✗ FAIL: TP-03-04: an implementation using a recalled recovery period produces a figure …
+  ✗ FAIL: TP-03-19: the rental module holds no recovery period, allowance amount, phase-out edge …
+Research-Lab self-test: 3154 passed, 2 failed
+PROBE1_REVERTED_SHA_MATCH=yes
+PROBE1_RESIDUE=0
+```
+
+sha256 of the red run `5b37a86a726b484a4b81981b05e74c0d939e4255fd4f880158709259b3b03279`.
+`TP-03-19` reds alongside it, which is correct — it guards the same module for
+the same class of recalled figure. The revert is proven by a byte-identical
+sha256 of the module and by `git status --short` reporting the file clean.
+
+### Probe P03-10 — RED for `TP-03-04` via the unsupported-method conjunct
+
+A second, independent conjunct asserts that a pack naming a depreciation method
+the engine has no branch for refuses `RLTAX-FEATURE-UNSUPPORTED` rather than
+falling through. The closed-set guard lives in a different module from the
+convention branch. The probe moved its bound so membership can never fail, and
+the refusal stops firing.
+
+```
+PROBE2_APPLIED=1
+exit: 1
+  ✗ FAIL: TP-03-04: an implementation using a recalled recovery period produces a figure …
+Research-Lab self-test: 3155 passed, 1 failed
+PROBE2_REVERTED_SHA_MATCH=yes
+PROBE2_RESIDUE=0
+```
+
+sha256 of the red run `0acba817313ef0e9a0400b507c29de7043130020b909a7d4ab0b000ad9a89f08`.
+This probe is perfectly isolated — `TP-03-04` is the **only** row that falls, one
+of 3156. That is the strongest available demonstration that the repaired row is
+sensitive to the property it names and to nothing else.
+
+Two different conjuncts, in two different modules, each drove the row red where
+before the repair **no input whatsoever** could. Both reverted to
+`3156 passed, 0 failed` on the same command.
+
+### Sweep for the same defect class
+
+`scripts/selftest.mjs` was swept for assertions that short-circuit to a constant:
+`|| true`, `|| 1`, `|| !0`, `|| !!1`, `|| 1 === 1`, a truthy literal or a literal
+array/object as the tail of an assert condition, `assert(true …)`, `assert(1 …)`,
+a `? true : true` ternary, and the vacuous `.length >= 0`. After the repair the
+sweep returns **no matches** in any group. The single grep hit on the `=== false`
+pattern is `outcome === 'false-alarm'`, an ordinary string comparison and not an
+instance of the class. `TP-03-04` was the only occurrence in the file, and it
+belonged to this feature's own group, so nothing had to be left for a concurrent
+session.
+
+### Effect on the DoD row
+
+Twenty-two of twenty-eight rows now carry an observed intended RED: the twenty
+above plus `TP-03-04`, whose obstacle is removed and which now reds under two
+independent probes. The row stays unticked because it requires **every** row.
+Still owed: the browser rows `TP-03-21` to `TP-03-25`, and `TP-03-27` and
+`TP-03-28`. No assertion was edited to be weaker, skipped or removed, and no
+timeout was raised in this pass.

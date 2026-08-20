@@ -16892,8 +16892,8 @@ try {
     && RULES03.isUnavailable(wrongMethod03) && wrongMethod03.code === 'RLTAX-FEATURE-UNSUPPORTED'
     && RULES03.isUnavailable(wrongYear03) && wrongYear03.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
     && !/27\.5|mid-month|straight-line/.test(read('rltaxrental.js').replace(/\/\*[\s\S]*?\*\//g, '')
-      .replace(/"mid-month"/g, '')) === false || true,
-    'TP-03-04: an implementation using a recalled recovery period produces a figure the non-standard fixture rejects, a convention or method the engine has no branch for refuses rather than falling through, and a cited edition that does not establish the parameter for the declared year refuses exactly as the mortgage limits refused');
+      .replace(/"mid-month"/g, '')),
+    'TP-03-04: an implementation using a recalled recovery period produces a figure the non-standard fixture rejects, a convention or method the engine has no branch for refuses rather than falling through, a cited edition that does not establish the parameter for the declared year refuses exactly as the mortgage limits refused, and the engine itself carries no recalled 27.5-year period, no mid-month default and no straight-line method literal outside its block comments and outside the single pack-declared conventionId comparison');
 
   /* TP-03-05 REFUSAL. A pack whose recovery period or convention is an AbsentFigure refuses the
      depreciation AND the rental leg, and no settlement is produced without cost recovery. */

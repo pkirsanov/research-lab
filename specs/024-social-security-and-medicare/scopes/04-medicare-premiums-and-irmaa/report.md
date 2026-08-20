@@ -1153,3 +1153,31 @@ Research-Lab self-test: 3108 passed, 0 failed
 **Intended RED recorded for TP-04-23**, against the strengthened assertion. The
 same mutation that probe 11 could not detect now fails the row by name.
 
+### Probe 12 — the year-mismatch refusal answers under the wrong code
+
+Mutation: in `rltaxmedicare.js`, the refusal code literal on the lookback-year
+mismatch branch changed from `RLTAX-PACK-YEAR-MISMATCH` to
+`RLTAX-INPUT-INCOMPLETE`. One code literal, no figure. A pre-run guard required
+exactly one matching site and the post-substitution count confirmed one landing.
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-010 an undeclared lookback names the year required and a wrong lookback year refuses naming the offset" --reporter=list
+  ✘  1 …year required and a wrong lookback year refuses naming the offset (5.9s)
+    Error: expect(locator).toHaveAttribute(expected) failed
+    Expected: "RLTAX-PACK-YEAR-MISMATCH"
+    Received: "RLTAX-INPUT-INCOMPLETE"
+  1 failed
+RED_EXIT=1
+$ git checkout -- rltaxmedicare.js
+DIRTY_AFTER_REVERT=0
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-010 an undeclared lookback names the year required and a wrong lookback year refuses naming the offset" --reporter=list
+  ✓  1 …ear required and a wrong lookback year refuses naming the offset (822ms)
+  1 passed (2.1s)
+GREEN_EXIT=0
+```
+
+**Intended RED recorded for TP-04-24**, on the row's own named command. The row
+distinguishes the two refusals rather than accepting any refusal, so a wrong
+lookback year that answered under the undeclared-input code could not pass as a
+year mismatch.
+

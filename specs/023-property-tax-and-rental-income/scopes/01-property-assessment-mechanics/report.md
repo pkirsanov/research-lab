@@ -1568,6 +1568,78 @@ surfaces dropped the leg without opening the test. The headline, comparison and
 curve surfaces were all checked and passed before the export surface was
 reached, so the four are independently sensitive rather than sharing one lookup.
 
+### Probe 22 — same-command RED and GREEN for TP-01-22
+
+`TP-01-22` has two halves: no request follows the property settlement at all,
+and no declaration reaches a URL, a body, a console message or the address bar.
+
+The obvious probe for the second half — a request carrying a household figure in
+its query string — was **deliberately not used**. Planting a real exfiltration in
+the page, even briefly, is the one mutation whose slipped revert would be an
+actual privacy defect rather than a broken test, and this scope's own probe
+discipline requires every mutation to be value-free by construction. The probe
+instead falsifies the *first* half with a request that carries nothing at all: a
+re-read of a route asset the configuration already declares, with no query
+string and no household data of any kind.
+
+```js
+   function renderProperty() {
++      window.fetch("tax-rules/property/FL/2026.json");
+       var refusalHost = byId("propertyRefusal");
+```
+
+RED:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-001 the request ledger stays empty and no property declaration reaches a URL" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✘  1 [system-chrome] › tests/lifetime-tax-property.spec.mjs:311:1 › Regression: SCN-023-001 the request ledger stays empty and no property declaration reaches a URL (926ms)
+
+  1) [system-chrome] › tests/lifetime-tax-property.spec.mjs:311:1 › Regression: SCN-023-001 the request ledger stays empty and no property declaration reaches a URL
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 26
+    Received: 40
+
+    > 333 |   expect(ledger.length).toBe(afterFirstPaint);
+          |                         ^
+        at <repo>/tests/lifetime-tax-property.spec.mjs:333:25
+
+  1 failed
+RED_EXIT=1
+```
+
+Reverted inside the same shell invocation, revert verified, the probe token
+proven absent, same command again:
+
+```
+$ git checkout -- lifetime-tax-strategy-lab.html && git status --short -- lifetime-tax-strategy-lab.html
+revert_rc=0
+STATUS_EMPTY_ABOVE
+probe_token_remaining=0
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-001 the request ledger stays empty and no property declaration reaches a URL" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/lifetime-tax-property.spec.mjs:311:1 › Regression: SCN-023-001 the request ledger stays empty and no property declaration reaches a URL (777ms)
+
+  1 passed (1.8s)
+GREEN_EXIT=0
+```
+
+Twenty-six requests before the mutation, forty after. That gap is the useful
+result, and it is stronger than the leak probe would have been. Every added
+request went to a path the configuration *permits*, so the allow-list clause on
+line 337 would have passed and the sentinel scans on line 348 would have passed
+too — the row falls purely on the count. A regression that started polling a
+perfectly innocuous declared asset after every keystroke would leak nothing and
+still be caught, which is the property a privacy row needs: it pins silence, not
+merely the absence of a known-bad string.
+
 ## Change Boundary
 
 Command: a path-scoped status check over the excluded list.

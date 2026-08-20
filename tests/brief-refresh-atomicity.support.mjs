@@ -52,6 +52,15 @@ export const FIXTURE_PUBLICATION_SCRIPTS = [
 const STATIC_MODULE_SPECIFIER = /^[ \t]*(?:import|export)\s+(?:[\w$*{},\s]*?\s)?from\s*['"]([^'"]+)['"]/gm;
 const SIDE_EFFECT_IMPORT = /^[ \t]*import\s*['"]([^'"]+)['"]\s*;/gm;
 
+/* The createRequire form UMD modules are loaded through, in the two literal spellings this repo writes: an
+   argument relative to the referrer, and one anchored at the module's own repo-root ROOT constant.
+   Precision: a lookbehind drops `require` after a quote, identifier char or dot, and same-line `//` hits are skipped.
+   Limits: block comments, template literals, a non-literal argument, and ROOT matched by name rather than evaluated. */
+const RELATIVE_REQUIRE = /(?<!["'`\w$.])(?:createRequire\s*\([^()]*\)|require)\s*\(\s*(['"])(\.{1,2}\/[^'"]*)\1\s*\)/g;
+const ROOT_ANCHORED_REQUIRE = /(?<!["'`\w$.])(?:createRequire\s*\([^()]*\)|require)\s*\(\s*resolve\s*\(\s*ROOT\s*,\s*(['"])([^'"]+)\1\s*\)\s*\)/g;
+
+const inLineComment = (source, index) => source.slice(source.lastIndexOf('\n', index) + 1, index).includes('//');
+
 function readRelativeModuleSpecifiers(absolutePath) {
   const source = readFileSync(absolutePath, 'utf8');
   const specifiers = new Set();
@@ -61,17 +70,28 @@ function readRelativeModuleSpecifiers(absolutePath) {
       if (match[1].startsWith('./') || match[1].startsWith('../')) specifiers.add(match[1]);
     }
   }
+  for (const [pattern, toReferrerRelative] of [
+    [RELATIVE_REQUIRE, (name) => name],
+    [ROOT_ANCHORED_REQUIRE, (name) => relative(dirname(absolutePath), resolve(ROOT, name))]
+  ]) {
+    pattern.lastIndex = 0;
+    for (let match = pattern.exec(source); match; match = pattern.exec(source)) {
+      if (!inLineComment(source, match.index)) specifiers.add(toReferrerRelative(match[2]));
+    }
+  }
   return [...specifiers];
 }
 
 /**
- * The repo-relative transitive closure of a module's STATIC relative imports/re-exports.
+ * The repo-relative transitive closure of a module's relative imports, re-exports and require() calls.
  *
- * Hand-maintaining the fixture's copy list has now failed three times in the same shape — a
- * missing company-fundamentals.config.json, a missing rlcockpit.js, and a brief-refresh.mjs stub
- * that satisfied the CLI half of a module whose library half is imported. None of them read as
- * "the fixture is incomplete": each surfaced as a publication refusal or a soft narrative failure,
- * so the suite went on exercising a branch the real publication path no longer takes, green.
+ * Hand-maintaining the fixture's copy list has now failed four times in the same shape — a missing
+ * company-fundamentals.config.json, a missing rlcockpit.js, a brief-refresh.mjs stub that satisfied
+ * the CLI half of a module whose library half is imported, and the createRequire-loaded modules a
+ * static import scan cannot see at all (rlclaims.js, rlattentiongate.js). None of them read as "the
+ * fixture is incomplete": each surfaced as a publication refusal, a soft narrative failure, or — for
+ * the createRequire pair — a wrapper that still exited 0 after falling back to raw-data-only, so the
+ * suite went on exercising a branch the real publication path no longer takes, green.
  *
  * So the closure is DERIVED from the source. A missing file THROWS naming both the path and the
  * module that referenced it, because silently skipping is exactly what let those three land green.
@@ -261,15 +281,6 @@ export function createBriefRefreshFixture(options = {}) {
   // judge anything, which the refresh script correctly reported as an invalid
   // baseline — a fixture gap presenting as a publication refusal.
   copyFileSync(resolve(ROOT, 'rlattention.js'), resolve(repoRoot, 'rlattention.js'));
-  // Feature 026 made rlcockpit.js a publication-path dependency on the same both-sides shape as
-  // rlattention.js above: scripts/validate-brief-payload.mjs and scripts/brief-narrative-parallel.mjs
-  // each createRequire() it at MODULE scope, deliberately, so the gate, the narrative lane and the
-  // renderer share ONE budget/leg/change-vocabulary resolver rather than three copies that happen to
-  // agree today. market-brief.html then loads it as a browser asset as well. The fixture copied both
-  // of those scripts but not the module they load, so it reproduced a publication path the real one
-  // no longer has: the require died before either script could judge or author anything and the
-  // wrapper exited non-zero — the same fixture-gap-presenting-as-a-publication-failure shape.
-  copyFileSync(resolve(ROOT, 'rlcockpit.js'), resolve(repoRoot, 'rlcockpit.js'));
   // The XNYS session calendar is the other dependency validate-brief-payload.mjs
   // resolves at MODULE scope (it builds XNYS_CALENDAR_SOURCE before any payload
   // is read), so it is required for every fixture variant, not just the ones

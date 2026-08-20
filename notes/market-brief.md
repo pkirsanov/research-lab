@@ -869,12 +869,47 @@ partially declared policy resolves to `null` and the producer emits nothing rath
 built-in opinion. That is deliberate. The question "what deserves to interrupt the reader" is the owner's,
 and it is answered in a committed config file, not in code.
 
+**The one rule this section exists to carry.** Eight further defects were closed behind the dead producer,
+and every one of them was the same defect: a contract the publication gate enforces that the authoring
+instruction never stated. Each was closed by the same move, and it is the rule worth carrying to any future
+lane — **if the publish gate enforces a contract, derive the instruction from the enforcing constant; never
+restate it.** A restatement is correct on the day it is typed and silently wrong the first time the constant
+moves: the gate arms, the sentence does not, and the author is refused over a value nobody offered them.
+Rendering keeps the ask and the refusal on one array, so the two cannot disagree.
+
+**What that means for you.** Adding a research verb, putting a ticker on the watchlist, or adding an
+authored judgement field needs **no edit to this doc and no edit to the lane instruction**. Change the
+source of truth in the second column and both the refusal and the offer move together. There are seven
+rendered contracts, all exported from `scripts/build-attention-items.mjs` and interpolated into the
+attention lane's instruction in `scripts/brief-narrative-parallel.mjs`:
+
+| Rendered contract | Source of truth | What the author is handed | What it prevents |
+| --- | --- | --- | --- |
+| verb vocabulary | `RESEARCH_VERBS` (`rlattention.js`) | the admissible verbs, verbatim | `RLATTN-VERB` on a value nobody offered |
+| subject menu | `watchlist.json`, via `WATCHLIST_SCOPE` | the eligible tickers, verbatim | `RLATTN-PRIVACY` — a subject outside watchlist scope |
+| subject uniqueness | `SUBJECT_RESOLUTION_FIELDS` (`rlattentiongate.js`) | which fields are scanned together | `RLATTN-PROVENANCE` on an ambiguous subject |
+| authored key names | `AUTHORED_JUDGEMENT_KEYS` | the literal keys, not their meaning | an incomplete item refused whole |
+| headline cap | `LIMITS.headlineMaxChars` (`rlattention.js`) | the current character ceiling | `RLATTN-HEADLINE` |
+| expiry format | a worked instant, pinned against `isIsoInstant` | `2026-01-31T20:00:00Z`, and what is refused | `RLATTN-FALSIFIABILITY` on a bare date, a local time or a `+00:00` offset |
+| per-card budget | `output-budget/v1` in `market-brief.config.json` | the combined cap across four fields | the payload budget discarding the **whole** narrative |
+
+`scripts/selftest.mjs` holds every row: a rendered sentence that stops offering a member the gate still
+enforces fails the suite rather than shipping a quietly unsatisfiable instruction. Two rows are worth
+reading twice, because each cost a publish that looked complete. **Subject uniqueness is not "put your
+ticker in the headline"** — the resolver scans `headline`, `rationale`, `escalationTrigger` and
+`invalidation` *together*, and an ordinary rationale like "semis are leading QQQ here" under a `SOXX`
+headline loses the whole item; the refusal is recorded with a null subject, so it cannot be diagnosed
+afterwards either. **The per-card budget is combined, not per field** — an item can satisfy every field
+limit individually and still breach the cap that sums four of them, and one run breached it by fourteen
+characters and cost the entire narrative.
+
 **This is the file to edit when the brief is too quiet or too loud.** The bands are drafted conservative on
 purpose, because the failure this whole feature exists to correct was a brief that interrupted its reader
 with noise. Only a **severe** reading that **independently persisted** reaches `attention`; a severe but
 unconfirmed reading is demoted to `context` and stays out of the way. Against committed state on the day it
 landed that produced 9 observed subjects, all `context`, and **zero** interruptions. If that is too silent,
-widen the severity bands or relax the persistence requirement — no code changes.
+widen the severity bands or relax the persistence requirement — no code changes. The band values are a draft
+calibration and have **not** been owner-reviewed — see "What is still open" below.
 
 **Calibration measured against real state, so the silence is explained rather than assumed.** The bands are
 `moderate` at 8% and `severe` at 15% distance from the 200-day. On 2026-08-19 that is **four** subjects at
@@ -895,14 +930,15 @@ watchlist.
   unknown rather than confirmed. Only `present` can reach `attention`.
 - A subject the watchlist does not cover earns no observation, so an unobservable
   judgement is never dressed up as observed.
-- A headline naming **two** tracked symbols resolves to no subject at all. Binding a judgement to the wrong
-  instrument is worse than publishing nothing, so ambiguity refuses rather than guesses.
+- **Two** watchlist tickers anywhere across the four scanned fields resolve to no subject at all. Binding a
+  judgement to the wrong instrument is worse than publishing nothing, so ambiguity refuses rather than
+  guesses.
 
-**How a judgement finds its instrument.** `subject` is a gate field, not an authored one — the lane is told
-to author only judgement and never names a ticker. The gate resolves the subject by matching a **watchlist**
-symbol as a whole word in the authored text, which is a string match against committed keys rather than an
-inference. A headline naming no watchlist symbol is refused, and the reader is told the feed was refused
-rather than shown a calm-looking empty list. That last part is §10a's decision block doing its job.
+**How a judgement finds its instrument.** `subject` is a gate field, not an authored one: the lane writes a
+ticker into its text, and the gate *resolves* the subject by matching a **watchlist** symbol as a whole word
+across the scanned fields — a string match against committed keys, never an inference. Text naming no
+watchlist symbol is refused, and the reader is told the feed was refused rather than shown a calm-looking
+empty list. That last part is §10a's decision block doing its job.
 
 **Why the market benchmark is deliberately not observable, even though the lane writes about it constantly.**
 `snapshot.bench` carries the same structural readings as a watchlist entry, and the lane's own recommendations
@@ -920,45 +956,47 @@ was never told that. Measured on the 2026-08-20 01:35 EDT publish, with the gate
 authored **3** attention candidates and all **3** were refused `RLATTN-PROVENANCE`, while both
 recommendations it published that same run were about **SPY** and named no watchlist ticker at all. The lane
 was writing about the benchmark and macro — reads the composer is contractually unable to publish as
-attention, however well authored. The lane instruction now states the constraint, so its attention budget is
-spent on items that can actually reach the reader. **If the feed is still empty after a publish, check what
-the lane wrote about before assuming the gate is broken.**
+attention, however well authored. Every blocker after that was the same defect wearing a different field
+name, and each was closed by rendering rather than restating: the 02:02 EDT run bound two real subjects and
+refused both `RLATTN-VERB` over a closed vocabulary nobody had offered; 02:26 and 02:54 EDT were refused for
+writing an *incomplete* item and dropped a **different** field each time, because a sentence that describes
+nine fields in words leaves the author to guess which literal keys the composer reads; 03:30 EDT composed two
+complete items and lost the whole narrative to the card budget; 03:50 EDT lost `FETH` to an expiry the gate
+could not resolve. **If the feed is still empty after a publish, check what the lane wrote about before
+assuming the gate is broken.**
 
-**The closed verb vocabulary, and why the instruction is rendered rather than written.** With the watchlist
-constraint in place, the 2026-08-20 02:02 EDT publish bound two real subjects — `SOXX` and `FETH` — and
-refused both `RLATTN-VERB`. Binding those subjects is the gate working end to end; an item only reaches the
-verb check by passing provenance first. `verb` is a **closed** vocabulary, and the lane had been told the
-field existed but never which values it admits, so an author with nothing to choose from could not choose
-correctly. The sentence offering the verbs is now **rendered from the same frozen array the gate refuses
-on**, exactly as the §9 event keys already are. A hardcoded restatement would fix one publish and reopen the
-gap the first time the vocabulary moves: the gate would arm, the sentence would not, and the author would
-again be refused over a value nobody offered. **Adding or retiring a research verb therefore needs no edit
-here and no edit to the lane** — change the vocabulary and both the refusal and the offer move together.
+**What is still open — read this before trusting the feed.**
 
-**Why the authored fields are NAMED, not described — the lesson that closed BUG-009.** Two consecutive
-publishes were refused for writing an **incomplete** item rather than a bad one, and they dropped *different*
-fields: 02:26 EDT carried `escalationTrigger` and omitted `rationale`; 02:54 EDT, after `rationale` was added
-to the prose, carried it and omitted `escalationTrigger`. The field that went missing moved when the sentence
-moved. A sentence that DESCRIBES nine fields in words leaves the author to decide which literal keys reach
-the payload, while the composer reads exact key names. The key list is now rendered from
-`AUTHORED_JUDGEMENT_KEYS`. The explanatory prose stays, because it tells the author what each field *means*;
-the rendered list tells the author what each field is *called*. **The general rule, and the one worth
-carrying to any future lane: if the publish gate enforces a contract, derive the instruction from the
-enforcing constant — never restate it.** Every blocker between the gate producer landing and the feed
-publishing was the same defect wearing a different field name.
+- **The band values are not owner-reviewed.** They are drafted, measured against committed state, and
+  committed, but no owner has signed off on where `moderate` and `severe` sit. Treat the current silence as
+  a draft calibration rather than a ratified editorial policy.
+- **A dead producer and a genuinely quiet market are byte-identical in the committed record.** Nothing that
+  publishes distinguishes "the gate observed its subjects and none cleared a band" from "the gate produced
+  nothing at all". A deleted or partially declared `attention-detection-policy/v1` resolves to `null`, the
+  producer emits nothing, the brief publishes a well-formed empty feed, and every validator stays green.
+  That is exactly how BUG-009 went unnoticed between the tier shipping on 2026-08-07 and the feed
+  publishing its first item on 2026-08-20, and **it could recur the same way**: there is no detector for it
+  today. A stabilize pass proposed a per-generation observation census as the smallest honest one; it is not
+  implemented.
+- **The scheduled workflow still cannot publish the narrative.** `.github/workflows/tier-a.yml` rebuilds the
+  attention scorecard, but its `git add` list names only the Tier-A artifacts —
+  `market-brief.payload.json` is not among them, so a CI-only window cannot ship an attention item.
+  `scripts/brief-refresh-and-push.sh` can and does. Recorded as `DISC-009-004`, open.
 
 ---
 
 ## 11. Artifacts, registry sync, validation
 
 Files: `market-brief.html` (cockpit) · `rlbrief.js` (shared brief components) · `rlattention.js` (the
-decision-attention composer + validator) · `market-brief.config.json` ·
+decision-attention composer + validator) · `rlattentiongate.js` (the observed half, from Tier-A state) ·
+`market-brief.config.json` ·
 `market-brief.payload.json` · `brief-history.jsonl` · `watchlist.json` · `notes/market-brief.md` (this) ·
 [`notes/decision-attention.md`](decision-attention.md) (the attention tier's handoff doc) ·
 `.github/copilot-instructions.md` · `.github/prompts/market-brief-update.prompt.md` ·
 `scripts/brief-refresh.mjs` (Tier A) · `scripts/build-attention-items.mjs` (step 3b) ·
 `scripts/build-attention-scorecard.mjs` + `market-brief.attention-outcomes.jsonl` +
-`market-brief.attention-scorecard.json` (the interruption record — manual, see §10a). Also implement the
+`market-brief.attention-scorecard.json` (the interruption record — runs on both publication paths, see
+§10a). Also implement the
 `RLDATA` shared layer — the brief's `macro` / `events` needs are its first real consumer.
 
 The mega-cap / thematic groups (§7a) live in `config.json → track.groups[]`, are computed by

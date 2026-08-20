@@ -287,8 +287,15 @@ Three components sit on the path, in this order, and they run in this order in
 `scripts/brief-refresh-and-push.sh`:
 
 ```
-lane (judgement)  →  build-attention-items.mjs (envelope)  →  validate-brief-payload.mjs (refusal)
+lane (judgement)  →  build-attention-items.mjs (observe + envelope)  →  validate-brief-payload.mjs (refusal)
 ```
+
+The middle step has two halves, and the second one is where BUG-009 lived. `build-attention-items.mjs`
+requires `rlattentiongate.js` and calls `attachObserved` to derive each candidate's **observed** half from
+committed Tier-A state before composing the envelope. That producer's first commit is `8eec36f74`
+(2026-08-19); the tier itself shipped in `4da32bb05` (2026-08-07). For everything in between, every
+candidate reached the composer with no observation and was refused `RLATTN-PROVENANCE` — a fully wired path
+that published nothing. See [`notes/market-brief.md`](market-brief.md) §10b.
 
 ### The lane authors judgement, not an envelope
 
@@ -414,11 +421,19 @@ What that changes about your edit:
 | You are adding | Must the authoring instruction change? |
 | --- | --- |
 | a field the composer derives from `gateResult` or `ctx` | No. The build step already supplies it. |
-| a field in `AUTHORED_JUDGEMENT_KEYS` | **Yes**, in the same change. It is the one thing still authored. |
+| a field in `AUTHORED_JUDGEMENT_KEYS` | No. The instruction **renders** the key list from that array. |
 
-The residual risk is narrower than it was, but it has not vanished: an authored judgement field the
-instruction does not name is not reliably authored, and an item missing one is **refused rather than
-defaulted**. Migrate `market-brief.payload.json` in the same change as well.
+That second row used to read "**yes**, in the same change", and it was the last piece of advisory
+compliance left on the path. It cost two publishes: successive runs described the same nine fields in prose
+and the author supplied a different subset each time, dropping `rationale` on one run and
+`escalationTrigger` on the next. The key list is now rendered from `AUTHORED_JUDGEMENT_KEYS` by
+`attentionAuthoredKeysInstruction()`, so the ask and the refusal move together and the sentence cannot lag
+the array. Six other gate-enforced contracts are rendered the same way; see
+[`notes/market-brief.md`](market-brief.md) §10b for the full set and the general rule.
+
+The residual risk is narrower again, but it has not vanished: an item missing an authored judgement field is
+still **refused rather than defaulted**, and rendering guarantees the author is *told* the key, not that a
+language model supplies it. Migrate `market-brief.payload.json` in the same change as well.
 
 **The one thing that must never be skipped:** the build step has to run on the publication path,
 between the lane and the gate. Skipping it does **not** fail loudly — it silently republishes the
@@ -438,9 +453,9 @@ Do these in order.
 4. Add the field to the frozen item in `buildAttentionItem` and to `toViewModel`. `toViewModel` returns
    raw strings and booleans only — the caller escapes.
 5. If — and only if — the field is authored judgement, add it to `AUTHORED_JUDGEMENT_KEYS` in
-   `scripts/build-attention-items.mjs` **and** to the `attention` authoring instruction in
-   `scripts/brief-narrative-parallel.mjs`, in the same change. A field the composer derives from
-   `gateResult` or `ctx` needs neither. See §8.
+   `scripts/build-attention-items.mjs`. That is the whole edit: the authoring instruction in
+   `scripts/brief-narrative-parallel.mjs` renders its key list from that array and needs no change. A field
+   the composer derives from `gateResult` or `ctx` needs neither. See §8.
 6. Migrate `market-brief.payload.json` **in the same change**. `build-attention-items.mjs --recompose
    --write` re-composes the committed items through the composer and is the intended way to do it.
 7. Add the field pattern to `scripts/reader-vocabulary.mjs`. Put it in `BRIEF_NARRATIVE_FIELDS_REQUIRED`
@@ -470,10 +485,12 @@ looking for a defect that is no longer there:
 
 One item is open, and it is operational rather than cosmetic.
 
-**The outcome ledger is empty, and nothing on the automated path appends to it.**
+**The outcome ledger is empty, and no closure step appends to it.**
 `market-brief.attention-outcomes.jsonl` currently holds zero lines, and the only callers of
-`appendOutcomeRecord` are the CLI and the tests — `scripts/brief-refresh-and-push.sh` does not run
-`scripts/build-attention-scorecard.mjs`. The consequence is honest but inert: the committed
+`appendOutcomeRecord` are the CLI and the tests. The scorecard *producer* is no longer the gap —
+`scripts/build-attention-scorecard.mjs` now runs on both publication paths (Feature 026 Scope 5), so the
+record is current rather than frozen. What is still missing is anything that records a **closure**. The
+consequence is honest but inert: the committed
 `market-brief.attention-scorecard.json` reports a null rate and states that the closed sample is too
 small, and it will keep saying exactly that until closures are recorded. That is
 `computeInterruptionRate` refusing to publish a number below `minClosedSample` (20), which is the
@@ -496,12 +513,19 @@ Re-verified 2026-08-08:
 | `node scripts/audit-reader-legibility.mjs` | 0 leaks across 23 pages |
 | `tests/attention-browser.spec.mjs` (`--project=system-chrome`) | **not re-run in this pass** — needs the `system-chrome` project |
 
-The committed payload carries 3 published items and 2 recorded exclusions, both `RLATTN-OVERLAP`.
+The payload committed at 2026-08-08 carried 3 published items and 2 recorded exclusions, both
+`RLATTN-OVERLAP`. Those were composed before the gate producer existed; see §7. The payload committed at
+2026-08-20T18:58Z carries 1 published item.
 
-`rlattention.js` exports 16 frozen members: `CONTRACT_VERSION`, `ATTENTION_LIFECYCLE_STATES`,
-`ATTENTION_LIFECYCLE_TRANSITIONS`, `DECISION_WINDOWS`, `TERMINAL_OUTCOME_CLASSES`, `REFUSAL_CODES`,
-`resolveDecisionWindow`, `buildAttentionItem`, `validateAttentionItem`, `rankAttentionItems`,
-`selectAttentionItems`, `rankRationale`, `applyAttentionLifecycleEvent`, `deriveOutcomeRecord`,
-`computeInterruptionRate`, `toViewModel`.
+`rlattention.js` exports 19 frozen members: `CONTRACT_VERSION`, `ATTENTION_LIFECYCLE_STATES`,
+`ATTENTION_LIFECYCLE_TRANSITIONS`, `DECISION_WINDOWS`, `isIsoInstant`, `RESEARCH_VERBS`, `LIMITS`,
+`TERMINAL_OUTCOME_CLASSES`, `REFUSAL_CODES`, `resolveDecisionWindow`, `buildAttentionItem`,
+`validateAttentionItem`, `rankAttentionItems`, `selectAttentionItems`, `rankRationale`,
+`applyAttentionLifecycleEvent`, `deriveOutcomeRecord`, `computeInterruptionRate`, `toViewModel`.
+`isIsoInstant`, `RESEARCH_VERBS` and `LIMITS` were added after 2026-08-08 so the authoring instruction could
+be rendered from the values the gate refuses on rather than restating them. `rlattentiongate.js` exports 12:
+`CONTRACT`, `SEVERITIES`, `SUBJECT_RESOLUTION_FIELDS`, `resolvePolicy`, `resolveSubject`,
+`observableSubjects`, `severityFor`, `imminenceFor`, `confirmationFor`, `dispositionFor`, `observeGate`,
+`attachObserved`.
 
 Re-run all six before any change to the tier. The browser spec needs the `system-chrome` project.

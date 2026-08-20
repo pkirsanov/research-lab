@@ -33,6 +33,7 @@ import {
   attentionCardBudgetInstruction,
   attentionExpiryFormatInstruction,
   attentionSubjectMenuInstruction,
+  attentionSubjectUniquenessInstruction,
   attentionVerbContractInstruction,
   findAttentionVerbInstructionGaps,
   findUnofferedTerms
@@ -3026,6 +3027,47 @@ try {
     'the subject menu offers every ticker the privacy check admits (unoffered: ' + unlistedSubjects.join(', ') + ')');
   assert(signalsInstruction.includes('${attentionSubjectMenuInstruction()}'),
     'the signals lane renders the eligible subject list from the composer instead of asking the author to recall it');
+
+  /* ── and the ONE-ticker rule, which is the same defect an eighth time ─────────────────────────
+     The menu above tells the author which tickers are admissible and to put one in the headline.
+     It does not tell them that `resolveSubject` scans headline, rationale, escalationTrigger and
+     invalidation TOGETHER and returns null when two tracked symbols appear anywhere across them —
+     a refusal SCN-BUG009-R1-AMBIGUOUS asserts on purpose. So an author can satisfy every stated
+     rule, write the ordinary rationale "semis are leading QQQ here" under a SOXX headline, and
+     lose the whole item to RLATTN-PROVENANCE with a null subject that cannot be diagnosed after
+     the fact. The committed payload carries two refusals of exactly that shape. Rendered from
+     SUBJECT_RESOLUTION_FIELDS so the warned-about set and the scanned set are one array. */
+  const renderedUniqueness = attentionSubjectUniquenessInstruction();
+  const GATE_MODULE = (await import('node:module')).createRequire(import.meta.url)('../rlattentiongate.js');
+  const unwarnedFields = findUnofferedTerms(GATE_MODULE.SUBJECT_RESOLUTION_FIELDS, renderedUniqueness);
+  assert(unwarnedFields.length === 0,
+    'the uniqueness instruction names every field the subject resolver scans (unnamed: ' + unwarnedFields.join(', ') + ')');
+
+  // ADVERSARIAL — the instruction that shipped BEFORE this fix spoke only of the headline. A
+  // detector that cannot flag it proves nothing, because that is the exact text that let two
+  // candidates be refused for a rationale nobody warned about.
+  const headlineOnlyInstruction = 'write its ticker verbatim in the headline.';
+  assert(findUnofferedTerms(GATE_MODULE.SUBJECT_RESOLUTION_FIELDS, headlineOnlyInstruction).length
+    === GATE_MODULE.SUBJECT_RESOLUTION_FIELDS.length - 1,
+    'naming only the headline leaves every other scanned field unwarned (unnamed: '
+    + findUnofferedTerms(GATE_MODULE.SUBJECT_RESOLUTION_FIELDS, headlineOnlyInstruction).join(', ') + ')');
+
+  // The rule is LOAD-BEARING, not decorative: the same item survives with one ticker and is
+  // refused whole with a second one placed in a field the old instruction never mentioned.
+  const uniquenessTracked = {
+    SOXX: { asOf: '2026-08-19T18:00:00.000Z', ma200Dist: -20, px: 100, levels: { high52w: 160 }, maStack: 'tangled', flags: { persistenceGateMet: true } },
+    QQQ: { asOf: '2026-08-19T18:00:00.000Z', ma200Dist: -20, px: 100, levels: { high52w: 160 }, maStack: 'tangled', flags: { persistenceGateMet: true } }
+  };
+  assert(GATE_MODULE.resolveSubject({ headline: 'SOXX sits far below its 200-day' }, uniquenessTracked) === 'SOXX'
+    && GATE_MODULE.resolveSubject({ headline: 'SOXX sits far below its 200-day', rationale: 'semis are leading QQQ here' }, uniquenessTracked) === null,
+    'a second watchlist ticker in the RATIONALE alone unresolves the subject, so the field set the instruction now names is the field set that actually costs the item');
+
+  assert(/import\s*\{[^}]*attentionSubjectUniquenessInstruction[^}]*\}\s*from\s*'\.\/build-attention-items\.mjs'/.test(laneSource)
+    && signalsInstruction.includes('${attentionSubjectUniquenessInstruction()}'),
+    'the signals lane renders the one-ticker rule from the resolver instead of leaving the author to discover it by refusal');
+  /* No "holds no second copy" rule here, for the reason the authored keys carry none: the lane
+     legitimately asks for a rationale, an escalation trigger and an invalidation in prose, so
+     those words must appear. What must not drift is the rendered FIELD SET, asserted above. */
 
   /* ── and the per-CARD budget, which is the one that discards the whole brief ──────────────────
      The 03:30 EDT run composed two complete items and published none of them: attention[0]

@@ -179,6 +179,37 @@ export function attentionSubjectMenuInstruction() {
 }
 
 /**
+ * The ONE-ticker rule, rendered from the fields the subject resolver actually scans.
+ *
+ * The eighth instance of the defect this packet keeps closing: a rule the
+ * pipeline enforces that the instruction never states. `resolveSubject` reads
+ * headline, rationale, escalationTrigger and invalidation TOGETHER, and returns
+ * null when two tracked symbols appear anywhere across them — deliberately, and
+ * asserted as SCN-BUG009-R1-AMBIGUOUS, because guessing which instrument a
+ * judgement is about is the fabrication the packet exists to refuse. The lane was
+ * told to put its ticker in the headline and nothing more, so an author writing
+ * the perfectly ordinary rationale "semis are leading QQQ here" under a SOXX
+ * headline loses the whole item to RLATTN-PROVENANCE and is never told which
+ * sentence cost it. The committed payload carries two such refusals right now,
+ * both recorded with a null subject, which is also why they cannot be diagnosed
+ * after the fact.
+ *
+ * Rendered from SUBJECT_RESOLUTION_FIELDS so the set the author is warned about
+ * and the set the resolver reads cannot drift apart.
+ */
+export function attentionSubjectUniquenessInstruction() {
+  const fields = RLATTNGATE.SUBJECT_RESOLUTION_FIELDS;
+  if (!Array.isArray(fields) || fields.length === 0) {
+    throw new Error('RLATTN-SUBJECT-SCAN: the fields the subject resolver reads are unreadable');
+  }
+  return `Name exactly ONE watchlist ticker across ${fields.join(', ')} combined — the item's subject is `
+    + 'resolved by scanning all of those fields together, not the headline alone. A second watchlist '
+    + 'ticker anywhere among them makes the subject ambiguous, and an ambiguous item is refused whole '
+    + 'rather than resolved to either ticker. To compare against another holding, name it in words '
+    + 'instead of by ticker, or put the comparison in recommendations.';
+}
+
+/**
  * The exact authored KEYS handed to the lane, rendered from AUTHORED_JUDGEMENT_KEYS.
  *
  * Prose does not hold. Successive publishes described the same nine fields in

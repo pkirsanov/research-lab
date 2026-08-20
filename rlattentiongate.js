@@ -33,6 +33,13 @@
   var CONFIRMATION = ["present", "absent", "partial"];
   var DISPOSITIONS = ["attention", "context", "no-action"];
 
+  /* The authored fields `resolveSubject` scans for a tracked symbol. Named and
+     exported rather than inlined because the authoring lane must be TOLD this
+     set: the resolver refuses a candidate naming two tracked symbols anywhere
+     across it, and an author told only about the headline will breach it in the
+     rationale without ever learning why the item vanished. */
+  var SUBJECT_RESOLUTION_FIELDS = ["headline", "rationale", "escalationTrigger", "invalidation"];
+
   function isPlainObject(v) { return !!v && typeof v === "object" && !Array.isArray(v); }
   function isNonEmptyString(v) { return typeof v === "string" && v.trim().length > 0; }
   function num(v) { return Number.isFinite(v) ? v : null; }
@@ -190,7 +197,7 @@
     if (isPlainObject(candidate) && isNonEmptyString(candidate.subject)) return candidate.subject;
     if (!isPlainObject(candidate) || !isPlainObject(tracked)) return null;
     var text = "";
-    ["headline", "rationale", "escalationTrigger", "invalidation"].forEach(function (k) {
+    SUBJECT_RESOLUTION_FIELDS.forEach(function (k) {
       if (isNonEmptyString(candidate[k])) text += " " + candidate[k];
     });
     if (!text) return null;
@@ -252,6 +259,7 @@
     IMMINENCE: Object.freeze(IMMINENCE.slice()),
     CONFIRMATION: Object.freeze(CONFIRMATION.slice()),
     DISPOSITIONS: Object.freeze(DISPOSITIONS.slice()),
+    SUBJECT_RESOLUTION_FIELDS: Object.freeze(SUBJECT_RESOLUTION_FIELDS.slice()),
     resolvePolicy: resolvePolicy,
     resolveSubject: resolveSubject,
     observableSubjects: observableSubjects,

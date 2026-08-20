@@ -293,6 +293,20 @@ test('Regression: SCN-023-013 mixed use allocates by declared days and the perso
   const personalTexts = await personalCells.evaluateAll((nodes) => nodes.map((node) => node.textContent));
   expect(personalTexts.every((entry) => entry && entry.trim().length > 0)).toBe(true);
 
+  /* Read the FIGURE, not merely its presence. The clause above requires only that the cell carry
+     text, and a discarded portion still renders as a formatted zero — so an implementation that
+     zeroed every personal portion satisfied it and this scenario passed while the behaviour its
+     own title claims was gone. Proven by probe: replacing `personalPortion` with a literal zero
+     left this test green. The figure node is read directly, because the cell's textContent also
+     carries the tooltip prose. */
+  const personalFigures = await page
+    .locator('#useAllocationsBody td[data-rl-personal-portion] [data-rl-value]')
+    .evaluateAll((nodes) => nodes.map((node) => node.textContent));
+  expect(personalFigures.length).toBe(2);
+  const personalAmounts = personalFigures
+    .map((entry) => Number(String(entry).replace(/[^0-9.-]/g, '')));
+  expect(personalAmounts.every((amount) => Number.isFinite(amount) && amount > 0)).toBe(true);
+
   /* The sourced deduction order is applied and every carried-over amount is published beside the
      tier that could not reach it. */
   const tierRows = page.locator('#useDeductionOrderBody tr');
@@ -311,6 +325,14 @@ test('Regression: SCN-023-013 mixed use allocates by declared days and the perso
   const dwellingRow = page.locator('#deductionCompositionBody tr')
     .filter({ has: page.locator('td[data-rl-disallowed="dwelling-personal-operating"]') }).first();
   await expect(dwellingRow.locator('td[data-rl-origin]')).toHaveAttribute('data-rl-origin', 'computed');
+
+  /* And it reaches the composition carrying its own amount. A zero component is still rendered,
+     so counting the rows and reading their origin cannot tell a routed portion from a discarded
+     one; the amount cell can. */
+  const dwellingAmountText = await dwellingRow.locator('td').nth(3).textContent();
+  const dwellingAmount = Number(String(dwellingAmountText).replace(/[^0-9.-]/g, ''));
+  expect(Number.isFinite(dwellingAmount)).toBe(true);
+  expect(dwellingAmount > 0).toBe(true);
 
   /* FR-023-028. The classification and the category's leg reach the comparison and the curve
      surfaces as well as the headline. */

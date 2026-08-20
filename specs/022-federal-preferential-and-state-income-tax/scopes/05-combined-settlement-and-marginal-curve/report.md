@@ -88,6 +88,65 @@ Scenario SCN-022-015 — `assertPackYearAgreement` refuses naming both pack ids 
 both year arrays, and accepts a pair that both cover the declared year.
 Command: `node scripts/selftest.mjs`
 
+Green, and probed in both directions. The row makes two separable claims — that a
+disagreeing pair refuses at all, and that the refusal names **both** sides — so a
+single mutation would have left one of them unproven. Each was driven separately.
+
+RED-A dropped the state term from the agreement conjunction, so a pair the state
+pack does not cover was treated as agreeing. The mutation is one term of a local
+boolean and carries no figure:
+
+```text
+# TP-05-01 RED-A: the state term dropped from the pack-year agreement conjunction
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3506
+sha256: da9e4bc729bb1013e799b829486f0c2eea53de4d12890a716a6d65ee7cc216a8
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-05-01: two packs that do not both declare the requested year effective refuse RLTAX-PACK-YEAR-MISMATCH naming both pack ids and both year sets, no combined numeral is produced, and an agreeing pair is accepted
+================================================
+Research-Lab self-test: 3102 passed, 1 failed
+================================================
+```
+
+RED-B left the refusal firing and removed only the state pack id and its year
+array from the reason string, which is the shape of a refusal that sends the
+operator to the wrong pack. It fails the same row, which is the evidence that the
+naming clause is asserted rather than assumed:
+
+```text
+# TP-05-01 RED-B: the state pack id and its year set dropped from the refusal reason
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3506
+sha256: babfcfb5e6c25d1669410c8375732ccf7436338ca536a406ce6ae810b437b60e
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-05-01: two packs that do not both declare the requested year effective refuse RLTAX-PACK-YEAR-MISMATCH naming both pack ids and both year sets, no combined numeral is produced, and an agreeing pair is accepted
+================================================
+Research-Lab self-test: 3102 passed, 1 failed
+================================================
+```
+
+Both mutations were reverted explicitly inside the shell invocation that applied
+them, the pre-mutation anchor was re-counted at 1 after each revert, and
+`git status --short` over `rltaxcombined.js`, both engine modules, the page, the
+selftest, this scope's spec and `tax-rules/` was empty. GREEN is the identical
+command after the revert:
+
+```text
+# TP-05-01 GREEN: identical command after explicit revert
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3506
+sha256: c8683c93c8b4f97caf0f4753c7c0ec13d7a2541e2e390dd3ee0c1562d08eb4d2
+================================================
+Research-Lab self-test: 3103 passed, 0 failed
+================================================
+```
+
+The refusal carries no `value` member, so no combined numeral survives the
+mismatch, and the accepted pair returns the two year arrays unaltered.
+
 ### TP-05-02
 
 Scenario SCN-022-013 — the combined total equals the sum of the two jurisdiction
@@ -683,12 +742,104 @@ Scenario SCN-022-014 — a sweep whose union of crossings would exceed the budge
 refused, and no implementation drops a jurisdiction's crossings to fit.
 Command: `node scripts/selftest.mjs`
 
+Green, and probed with the exact defect the row exists to forbid. The RED did not
+weaken the assertion; it replaced the refusal with the tempting implementation — a
+budget that silently truncates the sample set to fit rather than saying it could
+not be honoured. The mutation is a code literal and a slice, and carries no
+household figure:
+
+```text
+# TP-05-13 RED: the budget drops sampled levels to fit instead of refusing
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3506
+sha256: d9fd5e70e5667323f7799bd5c0f9730b8431c6af91bae87c069f07efdd389489
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-05-13: a sweep whose union of both jurisdictions crossings exceeds the declared budget refuses RLTAX-CONFIG-INVALID and produces no partial curve
+================================================
+Research-Lab self-test: 3102 passed, 1 failed
+================================================
+```
+
+Under that mutation the curve returns successfully with a truncated point set,
+which is precisely the failure mode the requirement names: a curve that looks
+complete and says nothing about what it lost. The assertion catches it because it
+pins the refusal shape rather than a point count — the record carries no `points`
+member at all.
+
+The jurisdiction-specific half of the clause is pinned by a different row rather
+than restated here. TP-05-10's `RED-A: the state crossings dropped from the
+sample-set union` already drives the build in which a jurisdiction's edges are
+removed from the union, and it fails. Composed, the two rows close both readings:
+edges may not be dropped to fit, and if the union will not fit, the answer is a
+refusal.
+
+The mutation was reverted explicitly inside the same shell invocation, the
+mutated marker was re-counted at 0 afterwards, and `git status --short` over
+`rltaxcombined.js`, both engine modules, the page, the selftest, this scope's
+spec and `tax-rules/` was empty. GREEN is the identical command after the revert:
+
+```text
+# TP-05-13 GREEN: identical command after explicit revert
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3506
+sha256: 9b86670538d59b05e97c6da5814f112bfcd8bce13dec7194913509c32d4ca429
+================================================
+Research-Lab self-test: 3103 passed, 0 failed
+================================================
+```
+
 ### TP-05-15
 
 Scenario SCN-022-013 — `rltaxcombined.js` holds no tax-domain numeric constant, no
 jurisdiction name and no second definition of either settlement, and calls each
 settlement exactly once per sample.
 Command: `node scripts/selftest.mjs`
+
+Green, and probed. The detector is not self-reported: one planted comment carrying
+a four-digit literal, a jurisdiction name and a settlement-internal symbol was
+enough to fail three separate assertions, two of which are the repository-wide
+engine sweeps that were written before this module existed. The mutation is a
+comment and carries no household figure:
+
+```text
+# TP-05-15 RED: a four-digit literal, a jurisdiction name and a settlement-internal symbol planted in the combined module
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3506
+sha256: b16081f40b4b69cbee79a501bb397149f720fda28dbfc9d849651650e98fb191
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: TP-03-16: no engine module holds a state name, a postal code or an authority name, and the detector is proven to fire on a string that does (rltaxcombined.js:California)
+  ✗ FAIL: TP-04-13 and TP-04-15: no engine module holds a California bracket, rate, threshold, statutory section number, state name or postal code, so the Scope 03 contract carried California without an engine edit (rltaxcombined.js:California)
+  ✗ FAIL: TP-05-15: rltaxcombined.js holds no four-digit tax-domain constant, no jurisdiction name, and no re-derivation of either settlement, and is a UMD dual module with no ESM syntax and no bare isFinite
+================================================
+Research-Lab self-test: 3100 passed, 3 failed
+================================================
+```
+
+That the two older sweeps fire on this module is the stronger half of the result:
+`rltaxcombined.js` is inside the repository's existing no-shadow perimeter rather
+than guarded only by an assertion this scope wrote for itself. The mutation was
+reverted explicitly inside the same shell invocation, the planted marker was
+re-counted at 0 afterwards, and `git status --short` over the module, all five
+engine modules, the page, the selftest, this scope's spec and `tax-rules/` was
+empty. GREEN is the identical command after the revert:
+
+```text
+# TP-05-15 GREEN: identical command after explicit revert
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3506
+sha256: e70209a2038de1df15cf84ef5361ab8019572f114773dd201bc0f5414c612e50
+================================================
+Research-Lab self-test: 3103 passed, 0 failed
+================================================
+```
+
+The settlement-call clause is carried by the TP-05-08 assertion above, which pins
+`settlementCalls.federal` and `settlementCalls.state` to exactly twice the point
+count — the two settlements each forward difference needs, and no more.
 
 ### Scenario SCN-022-013
 
@@ -710,21 +861,175 @@ Command: `npx --no-install playwright test --config=playwright.config.mjs --proj
 `Regression: SCN-022-014 the combined curve is reachable by keyboard and has a text equivalent table`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-014 the combined curve is reachable by keyboard and has a text equivalent table" --reporter=list`
 
+Green, and probed on both of the clauses the DoD item names separately —
+reachability and explanation — because a single mutation would have proven only
+one. Both were driven through `valueNode`, the one constructor every displayed
+value on this route passes through, so each probe covers the whole surface rather
+than one field.
+
+RED-A removed the focus stop from every displayed value while leaving the value,
+its tooltip and its `aria-describedby` link intact. That is the realistic
+regression: the figure is still there, still explained, and simply cannot be
+reached without a pointer. The mutation swaps one attribute call for another and
+carries no figure:
+
+```text
+# TP-05-19 RED-A: every displayed value made unreachable by keyboard
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression: SCN-022-014 the combined curve is reachable by keyboard and has a text equivalent table --reporter=list
+exit: 1
+lines: 31
+sha256: 49df402163fc116bc1be15a2c880de270e46fe3cbacd793ed6780b9280c46ce1
+  ✘  1 [system-chrome] › tests/lifetime-tax-combined.spec.mjs:275:1 › Regression: SCN-022-014 the combined curve is reachable by keyboard and has a text equivalent table (943ms)
+  1 failed
+```
+
+RED-B is the complementary defect and the more interesting one: the tooltip
+element is still constructed, still carries `role="tooltip"`, and is still
+correctly wired to its figure — it is simply empty. An assertion that only checked
+for the presence of a tooltip node would have passed this build. It fails, because
+the row pins tooltip substance rather than tooltip existence:
+
+```text
+# TP-05-19 RED-B: every tooltip emptied while its role attribute stays
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression: SCN-022-014 the combined curve is reachable by keyboard and has a text equivalent table --reporter=list
+exit: 1
+lines: 31
+sha256: 89d2695265fb4e5b148fe473d345928e86d643df21225989788e2eb03c782085
+  ✘  1 [system-chrome] › tests/lifetime-tax-combined.spec.mjs:275:1 › Regression: SCN-022-014 the combined curve is reachable by keyboard and has a text equivalent table (840ms)
+  1 failed
+```
+
+Each mutation was reverted explicitly inside the shell invocation that applied it,
+before the next was applied; the mutated marker was re-counted at 0 after each
+revert, and `git status --short` over the page, the combined module, both engine
+modules, the selftest, this scope's spec and `tax-rules/` was empty. GREEN is the
+identical command after both reverts:
+
+```text
+# TP-05-19 GREEN: identical command after both explicit reverts
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression: SCN-022-014 the combined curve is reachable by keyboard and has a text equivalent table --reporter=list
+exit: 0
+lines: 6
+sha256: a0491decb473ab53752b910b321cb3b23157c401b853dddd6c55b5aee7a3b0f2
+  ✓  1 [system-chrome] › tests/lifetime-tax-combined.spec.mjs:275:1 › Regression: SCN-022-014 the combined curve is reachable by keyboard and has a text equivalent table (781ms)
+  1 passed (1.8s)
+```
+
+The row's remaining clauses pass unprobed but are asserted rather than assumed:
+the chart is an `img` with a focus stop whose accessible name points the reader at
+the text equivalent by name; the text-equivalent table carries its own accessible
+name mentioning the jurisdiction column and more than fifty rows; every deferred
+contributor is focusable and states its code, its jurisdiction and why it could
+not be priced; and no unavailable state renders bare — every refusal in the
+section carries both `Unavailable because` and `What would make it available:`,
+and a deferred contributor is explicitly barred from being counted as a refusal
+because it legitimately has no remediation to offer.
+
 ### TP-05-20
 
 `Regression: SCN-022-013 the request ledger stays empty across the full combined workflow`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-013 the request ledger stays empty across the full combined workflow" --reporter=list`
+
+Green, and probed. The row asserts a negative — that nothing was sent — which is
+the class of assertion most likely to be vacuously true, so it was driven by
+actually making the page send something.
+
+The probe was constructed to be incapable of disclosing a household value even if
+the revert had failed: a single same-origin `GET` of a fixed, undeclared path with
+no query string, no hash and no body. No income, residency or deduction figure is
+reachable from it by construction. It was inserted at the top of the combined
+render, so it fires after first paint, which is exactly the window the row
+guards:
+
+```text
+4811:                window.fetch("/rl-nonce-undeclared.json");
+```
+
+```text
+# TP-05-20 RED: one value-free same-origin request issued after first paint
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression: SCN-022-013 the request ledger stays empty across the full combined workflow --reporter=list
+exit: 1
+lines: 28
+sha256: e0a5fe83e0f85d9a4a468e32f52fee837a163b9776d82803df4382d0ff305fcd
+  ✘  1 [system-chrome] › tests/lifetime-tax-combined.spec.mjs:350:1 › Regression: SCN-022-013 the request ledger stays empty across the full combined workflow (956ms)
+  1 failed
+```
+
+One request was enough. The row catches it twice over — the post-first-paint
+ledger length moves, and the requested path is not in the set the page's own
+script tags declare — so neither a request to a *declared* asset nor a request to
+an undeclared one can slip through.
+
+The mutation was reverted explicitly inside the same shell invocation that applied
+it, the planted marker was re-counted at 0 afterwards, and `git status --short`
+over the page, the combined module, both engine modules, the selftest, this
+scope's spec and `tax-rules/` was empty. GREEN is the identical command:
+
+```text
+# TP-05-20 GREEN: identical command after explicit revert
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression: SCN-022-013 the request ledger stays empty across the full combined workflow --reporter=list
+exit: 0
+lines: 6
+sha256: 06bb4a758fe73e8752a082a16958dddc946719a6a9e7122f2ce7e10a71c5858a
+  ✓  1 [system-chrome] › tests/lifetime-tax-combined.spec.mjs:350:1 › Regression: SCN-022-013 the request ledger stays empty across the full combined workflow (871ms)
+  1 passed (2.0s)
+```
+
+The row also covers the surfaces a request ledger alone would miss: the URL search
+string is empty, the hash carries only the view mode, and no console message
+carries the sentinel income, the residency jurisdiction or the word `residency`.
 
 ### TP-05-21
 
 `Regression: SCN-022-013 the tool is absent from every registry and the market brief`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-013 the tool is absent from every registry and the market brief" --reporter=list`
 
+**Partial. This row is not closed, and the DoD item it anchors is left open.** The
+row passes, and the equivalent selftest assertion passes, but neither has been
+shown able to fail, and the reason is a genuine conflict rather than an omission.
+
+The only mutation that drives the registration clause RED is to register the tool
+— adding a `lifetime-tax` entry to `tools.json`, `index.html`, `rlnav.js`,
+`README.md`, `notes/README.md` or `market-brief.config.json`. All six are on this
+scope's must-remain-byte-identical list *and* under an explicit standing
+instruction not to register this tool, so applying that mutation even transiently
+is not available here. Asserting an absence that has never been observed to become
+a presence is the same shape of weak evidence recorded under TP-05-11: it would
+pass unchanged against a build in which the check had been deleted.
+
+The second clause of the same DoD item — that no new root HTML exists — *is*
+separately drivable without touching a protected file, by creating an extra
+`lifetime-tax-*.html` at the repository root and deleting it. That probe was not
+carried out in this session. The row is therefore left open rather than narrowed
+to the half that is already green, and it is recorded here so the next session
+does not have to rediscover why.
+
+The deploy-gate half of the item is closed independently under TP-05-25 above.
+
 ### TP-05-22
 
 The full cumulative Feature 021 and Feature 022 browser suites over the real
 route.
-Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02" --reporter=list`
+Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list`
+
+Green at the close of this session, zero failed and zero skipped:
+
+```text
+# TP-05-22 cumulative browser suite for features 021-024 after the scope-05 session
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-02[1-4] --reporter=list
+exit: 0
+lines: 81
+sha256: e37b00edf47119f3a5961f0e95ccf195d999f24b9d50cd1d924eeabda0be9f84
+  76 passed (2.9m)
+```
+
+The selector is the four-way alternation pinned to the owning spec numbers, not a
+bare `SCN-02`, so a scenario owned by any other feature can neither satisfy nor
+break the row.
+
+This row is recorded but the DoD item it belongs to — every Test Plan row carrying
+intended-RED and same-command GREEN evidence — remains open, because TP-05-11,
+TP-05-16, TP-05-17, TP-05-18 and TP-05-21 do not yet carry RED evidence.
 
 ### TP-05-23
 
@@ -732,16 +1037,89 @@ The whole-repository suite, with the pre-existing pass count recorded before and
 after the appended group.
 Command: `node scripts/selftest.mjs`
 
+Green at 3103 passed, 0 failed:
+
+```text
+# TP-05-23 GREEN
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3506
+sha256: e70209a2038de1df15cf84ef5361ab8019572f114773dd201bc0f5414c612e50
+================================================
+Research-Lab self-test: 3103 passed, 0 failed
+================================================
+```
+
+The "no fall in pass count" clause is not self-reported. Every mutation this
+session applied drove the count down and back — 3102 under each of the four
+single-row probes and 3100 under the no-shadow probe — and each revert restored
+3103 exactly. A count that moves under mutation and returns is a count that is
+actually being measured.
+
+The "no existing assertion edited" clause is proven against this scope's only
+commit that touches the selftest:
+
+```text
+a4887f91e test(022): close 5 scope-05 rows; guard curve reads against refusal shape
+ scripts/selftest.mjs | 132 +++++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 122 insertions(+), 10 deletions(-)
+=== assertion labels REMOVED by that commit (a count of 0 == append-only) ===
+0
+=== the removed lines that are assertion labels, verbatim ===
+REMOVED_LABELS_END
+```
+
+No assertion label was removed or rewritten. The ten deleted lines are inside this
+scope's own appended group and are the refusal-shape guards described under
+TP-05-08, not edits to anything that existed before this scope.
+
 ### TP-05-24
 
 Zero new missing spec-referenced test paths, with the baseline file unmodified.
 Command: `node scripts/validate-spec-test-paths.mjs`
+
+Green, with `new=0`:
+
+```text
+# TP-05-24: spec-referenced test paths
+$ node scripts/validate-spec-test-paths.mjs
+exit: 0
+lines: 2
+sha256: 4a06849d0462f1084917c26341581a2ee1a2ef2d80452080a1031e80dba7b207
+--- output ---
+[spec-test-paths] scanned=678 references=14960 distinctPaths=246 missingPaths=67 baseline=67 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+```
+
+`missingPaths` equals `baseline` exactly, so the sixty-seven pre-existing
+absences are unchanged and this scope added none. `stale=0` means the baseline was
+not padded to absorb anything either, and `git status --short` over
+`scripts/validate-spec-test-paths.baseline` was empty, so the gate was not
+satisfied by moving its own goalposts.
 
 ### TP-05-25
 
 The Pages plan succeeds, `site-exclusions.json` is unchanged, no new root HTML
 exists, and `tax-rules/` remains outside the public directories.
 Command: `node scripts/build-pages-site.mjs --dry-run`
+
+Green:
+
+```text
+# TP-05-25: Pages plan dry run
+$ node scripts/build-pages-site.mjs --dry-run
+exit: 0
+lines: 1
+sha256: 2d50da71bf5ec2c0afceb3497342686d05a70a34e7c8f2d5452690e84ebd06fd
+--- output ---
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":128,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/004902309400a815a8ac1da2877422310e381d5c20748f711cbd0233e959a67a","omittedOrphanIndexes":144}
+```
+
+`tax-rules` is absent from the published `directories` list, so the packs stay
+outside the public tree. `git status --short` over `site-exclusions.json` was
+empty. The remaining clauses of the DoD item this row also anchors — that the tool
+is still absent from the six registration surfaces — are **not** closed by this
+row; see the note under TP-05-21.
 
 ## Supersession Ledger
 
@@ -753,10 +1131,56 @@ Command: `node scripts/selftest.mjs`
 
 ## Change Boundary
 
-Filled at execution. Holds the path-scoped `git status` proving every excluded
-path is byte-identical, including every engine module, every pack under
-`tax-rules/`, `site-exclusions.json`, the registries and Feature 021's spec
-directory.
+Scope 05 owns exactly three commits of its own — `2df769eaa`, `a4887f91e` and
+`c58719fb4` — on top of the feature-family creation commit `b9d92a3f1` that
+introduced `rltaxcombined.js` alongside the rest of the route. Their entire
+non-spec footprint is three files, every one of them on this scope's
+allowed-modified list:
+
+```text
+=== 2df769eaa fix(022,023,024): narrow ambiguous SCN-02 test selectors to SCN-02[1-4] ===
+  (no non-spec file)
+=== a4887f91e test(022): close 5 scope-05 rows; guard curve reads against refusal shape ===
+scripts/selftest.mjs
+=== c58719fb4 feat(022): wire combined federal+state settlement and curve into the route ===
+lifetime-tax-strategy-lab.html
+tests/lifetime-tax-combined.spec.mjs
+```
+
+The engine clause is proven by absence rather than by inspection. No commit at all
+since the creation commit has touched any engine module or any pack:
+
+```text
+=== commits after b9d92a3f1 touching the ENGINE modules or the packs ===
+ENGINE_COMMITS_END
+```
+
+The query covered `rltaxrules.js`, `rltax.js`, `rltaxstate.js`,
+`rltaxworkspace.js`, `rltaxstrategy.js` and all of `tax-rules/`, and returned no
+commit. The two settlement modules this scope composes are therefore byte-identical
+to what Scopes 01 through 04 delivered, which is what makes the composition a
+composition. The working tree agrees:
+
+```text
+=== working-tree dirt on excluded paths ===
+EXCLUDED_DIRT_END
+=== scope 05 allowed-modified surface, dirty check ===
+ALLOWED_DIRT_END
+```
+
+Both queries returned nothing, and no stray probe artefact survives any of this
+session's mutations (`zsh: no matches found: rl-*probe*`).
+
+**Recorded honestly, not claimed as clean.** Two excluded paths *were* edited after
+the creation commit, by commits that are not scope 05's:
+`scripts/validate-spec-test-paths.baseline` in `874b24271`, `3872df354` and
+`2229da3c0`, and `site-exclusions.json` in `e903749c0`. The first two of those
+belong to Feature 026 and the third to Feature 024, all concurrent sibling work;
+`e903749c0` is the feature-family registration commit that added the lifetime-tax
+modules to the site-exclusion list. None of the four is one of scope 05's three
+commits, so this scope's boundary holds, but the edits are named here rather than
+omitted, and the `site-exclusions.json` question is carried into TP-05-25 rather
+than settled here.
 
 ## Claim Boundary
 

@@ -272,22 +272,22 @@ missing browser or an absent test does not satisfy RED.
       jurisdiction and pack id, an unattributable rate change is refused, and the
       no-tax state contributes a present, flat, attributed zero series.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-11`, `report.md#tp-05-12`
-- [ ] FR-022-034 is implemented: a pack-year mismatch refuses naming both packs
+- [x] FR-022-034 is implemented: a pack-year mismatch refuses naming both packs
       and both year sets, and no combined figure is produced.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-01`
-- [ ] A sweep whose union of crossings exceeds the budget refuses rather than
+- [x] A sweep whose union of crossings exceeds the budget refuses rather than
       dropping a jurisdiction's crossings.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-13`
-- [ ] `rltaxcombined.js` holds no tax-domain numeric constant, no jurisdiction
+- [x] `rltaxcombined.js` holds no tax-domain numeric constant, no jurisdiction
       name and no second definition of either settlement, and every engine module
       is byte-identical.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a path-scoped status check · **Evidence:** `report.md#tp-05-15`, `report.md#change-boundary`
-- [ ] Every displayed value carries a tooltip, the combined curve has a
+- [x] Every displayed value carries a tooltip, the combined curve has a
       text-equivalent table with an accessible label, the whole surface is
       reachable by keyboard, and no unavailable state renders as an empty box, a
       bare dash or an unattributed zero.
   - **Phase:** implement · **Command:** the accessibility browser row · **Evidence:** `report.md#tp-05-19`
-- [ ] The request ledger stays empty across the full combined workflow and no
+- [x] The request ledger stays empty across the full combined workflow and no
       household value reaches any URL, request, referrer or console message.
   - **Phase:** implement · **Command:** the privacy browser row · **Evidence:** `report.md#tp-05-20`
 - [ ] The tool is still absent from `tools.json`, `index.html`, `rlnav.js`,
@@ -307,7 +307,7 @@ missing browser or an absent test does not satisfy RED.
 - [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including every browser row and the full cumulative suite.
   - **Phase:** implement · **Command:** the exact TP-05-01 through TP-05-22 commands · **Evidence:** `report.md#test-evidence`
-- [ ] `node scripts/selftest.mjs` is green with no fall in pass count and no
+- [x] `node scripts/selftest.mjs` is green with no fall in pass count and no
       existing assertion edited, `node scripts/validate-spec-test-paths.mjs`
       reports zero new missing paths, and `node scripts/build-pages-site.mjs
       --dry-run` succeeds.

@@ -670,7 +670,10 @@ expectation from the settled set is what keeps the row honest about it.
 
 ### TP-04-24, TP-04-25, TP-04-26, TP-04-28
 
-Green within the 56-row browser suite. Unchanged from the earlier dispatch.
+Green within the 56-row browser suite. Unchanged from the earlier dispatch. Each
+of the four has since had its own intended RED derived on its own named command
+— TP-04-24 under Probe 12, TP-04-25 under Probe 13b, TP-04-26 under Probe 14 and
+TP-04-28 under Probe 15.
 
 ### TP-04-29
 
@@ -1330,4 +1333,62 @@ settled premium set collapses to empty, and the guard that exists to stop the
 exclusion clause passing over an empty set is exactly what catches it. Under the
 clause as it stood before this probe, the same mutation would have been reported
 green.
+
+### Probe 15 — a retrieved pack redirected to a pathname the route never declared
+
+TP-04-28 is the privacy row. Its three limbs are that the page fetched nothing it
+did not declare, that no lookback declaration reaches a URL, and that every
+request is a bodiless GET.
+
+**The mutation, chosen so that it cannot itself become the defect it probes.**
+An earlier dispatch on this row planted a live `window.fetch` carrying the
+household's own income in a query string, and left it in the page. That is the
+exact privacy defect the row exists to forbid, and reproducing it — even
+briefly — is not an acceptable way to prove the row fires. This probe therefore
+never puts a household value anywhere. It *redirects* the single existing fetch
+rather than adding a channel: in `lifetime-tax-strategy-lab.html`, `loadJson`
+appends a constant suffix to the medicare pack's path and to nothing else. Two
+string literals, no figure. A slipped revert could disclose nothing, because
+nothing household-derived is ever placed in a URL.
+
+The redirect is narrowed to the medicare pack so the page still boots and still
+reaches the assertions. The remaining packs resolve normally; only the medicare
+domain goes unavailable, which the route is built to report rather than crash on.
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-010 the request ledger stays empty and no lookback declaration reaches a URL" --reporter=list
+GUARD_MATCHES=1
+  ✓  1 [system-chrome] › tests/lifetime-tax-medicare.spec.mjs:200:1 › Regression: SCN-024-010 the request ledger stays empty and no lookback declaration reaches a URL (1.0s)
+  1 passed (3.0s)
+GREEN_EXIT=0
+POST_MUTATION_SITES=1 ORIGINAL_LEFT=0
+    Error: expect(received).toContain(expected) // indexOf
+    Expected value: "/tax-rules/medicare/2026.json.undeclared"
+    Received array: ["/lifetime-tax-strategy-lab.html", "/lifetime-tax-strategy.config.json", "/rltaxrules.js", …]
+    > 212 |   paths.forEach((path) => expect(permitted).toContain(path));
+  1 failed
+RED_EXIT=1
+$ git checkout -- lifetime-tax-strategy-lab.html
+DIRTY_AFTER_REVERT=0
+MUTATION_STRING_LEFT=0 ORIGINAL_RESTORED=1
+```
+
+**Intended RED recorded for TP-04-28**, with the same-command GREEN captured
+immediately before it on the unmutated source. The failure landed on line 212 —
+the declared-asset limb — which is the limb that owns the claim. The permitted
+set is derived from the route's own `<script src>` tags and the configuration's
+declared pack paths rather than from a hand-written list, so the clause is
+sensitive to the page acquiring any asset the route does not declare. That is
+the structural shape of an exfiltration, and it is now proven to fail.
+
+**Which limb this probe did not exercise, stated rather than implied.** The
+`not.toContain` limb keyed to the declared lookback amount was not driven to
+RED, because the only mutation that could drive it is one that places the
+household's own figure into a URL. That mutation is forbidden by construction
+here, and the prior dispatch's live-`fetch` defect is precisely why. The limb is
+not thereby unproven in kind: it and the declared-asset limb are two readings of
+one ledger, and the ledger is now shown to be observed and asserted against. The
+honest statement is that the value-bearing limb rests on inspection while the
+declared-asset limb rests on an observed RED.
+
 

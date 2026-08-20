@@ -24497,6 +24497,40 @@ try {
      observes TODAY keeps the row on real committed state, which is the whole
      point of it, without betting on one instrument's drift. */
   const snapshot1 = JSON.parse(read('market-brief.snapshot.json'));
+
+  /* ── the gate's INPUT must still arrive ─────────────────────────────────────────────────────
+     This feed published nothing for ten days while BOTH mechanical gates stayed green, because
+     an empty attention tier is contract-valid. A stabilize pass proved the residue of that is
+     still live: a deleted policy, a partially declared policy and a genuinely quiet market are
+     BYTE-IDENTICAL in the committed record. Config-shaped and code-shaped death are caught by
+     the rows above. DATA-shaped death - Tier-A stops emitting the one reading the gate consumes,
+     or the watchlist rotates away from it - was caught by nothing, because every ma200Dist
+     assertion in this suite is a FIXTURE and none reads committed state.
+
+     This row closes that without guessing a threshold. It does NOT assert the market is
+     interesting: a quiet market still carries readings, they are merely small, so this cannot
+     go red on weather. It asserts only that the input has not VANISHED, and zero is the single
+     value that means exactly that. Individual nulls are normal and stay legal - SPCX carries
+     ma200Dist: null today. */
+  const gateInputField = 'ma200Dist';
+  const trackedNow1 = (snapshot1 && snapshot1.tracked) || {};
+  const withReading1 = RLATTN_WATCHLIST_SCOPE.filter((ticker) => {
+    const e = trackedNow1[ticker];
+    return e && typeof e === 'object' && Number.isFinite(e[gateInputField]);
+  });
+  assert(withReading1.length > 0,
+    'Regression: SCN-BUG009-R1-INPUTALIVE the committed snapshot still supplies ' + gateInputField
+      + ' for at least one watchlist subject. Zero means the producer has gone structurally blind '
+      + 'and every publish will report a quiet market it cannot actually see - the exact ten-day '
+      + 'silence this bug exists to prevent, which no other assertion detects. Currently '
+      + withReading1.length + ' of ' + RLATTN_WATCHLIST_SCOPE.length);
+
+  /* Non-vacuity: the field name is not a guess. The composer's own produced gate names the
+     reading it fired on, so if the gate ever consumed a different field this row would be
+     watching the wrong one and still pass. */
+  assert(GATE.observeGate({ subject: withReading1[0], tracked: trackedNow1, policy: policy1 }) === null
+    || GATE.observeGate({ subject: withReading1[0], tracked: trackedNow1, policy: policy1 }).triggeredBy.reading === gateInputField,
+    'the field this row watches is the field the gate actually fires on, read back from a real observation rather than assumed');
   /* The probe payload publishes NO actions, and the subject is selected on the gate
      observation ALONE.
 
@@ -24516,10 +24550,30 @@ try {
   const probeBase1 = Object.assign({}, basePayload1, {
     nextSession: Object.assign({}, basePayload1.nextSession, { actions: [] })
   });
-  const observedNow1 = RLATTN_WATCHLIST_SCOPE.find((ticker) => {
-    const probe = GATE.attachObserved([{ headline: `${ticker} probe` }], snapshot1, policy1)[0];
-    return probe && probe.observed && probe.observed.subject === ticker;
+  /* ── and the SNAPSHOT is deterministic, for a reason worth stating ───────────────────────────
+     The comment above called "some subject clears a declared band on committed state" this row's
+     irreducible premise. It is not irreducible, it is separable, and leaving it in cost more than
+     it bought: tier-a.yml runs this suite BEFORE it commits, so on a genuinely quiet day - every
+     reading present but inside the narrowest band - this row and the one below go red and block
+     the scheduled refresh. A feed designed to publish nothing on a quiet day must not break its
+     own publication path on one. Reproduced by setting every committed reading to 0.1: both rows
+     red, exit 1.
+
+     What this row exists to prove is unchanged and untouched: the candidate carries NO subject,
+     so resolveSubject must bind one from authored text, and the composer must build a conforming
+     envelope from it. The market being interesting is incidental to both. The live payload and
+     config still supply the deep links, watchlist scope and calendar. Live INPUT health moved to
+     SCN-BUG009-R1-INPUTALIVE above, which fires only when the reading has actually vanished and
+     therefore cannot go red on weather. */
+  const observedNow1 = RLATTN_WATCHLIST_SCOPE[0];
+  const e2eSnapshot1 = Object.assign({}, snapshot1, {
+    tracked: Object.assign({}, trackedNow1, { [observedNow1]: trackedFixture() })
   });
+  assert(typeof observedNow1 === 'string' && observedNow1.length > 0
+    && (() => { const p = GATE.attachObserved([{ headline: `${observedNow1} probe` }], e2eSnapshot1, policy1)[0];
+                return Boolean(p && p.observed && p.observed.subject === observedNow1); })(),
+    'Regression: SCN-BUG009-R1-E2E-SUBJECT the end-to-end row has an observable subject by construction, so it cannot pass vacuously by testing nothing - and it no longer depends on the market being interesting, which previously let quiet weather block the scheduled publication path');
+
   assert(typeof observedNow1 === 'string' && observedNow1.length > 0,
     'Regression: SCN-BUG009-R1-E2E-SUBJECT at least one watchlist subject clears a detection band against committed state — with none, the end-to-end row below would pass vacuously by testing nothing, so this asserts the row has real input before it runs');
   const laneCandidate1 = {
@@ -24537,7 +24591,7 @@ try {
   assert(laneCandidate1.subject === undefined,
     'Regression: SCN-BUG009-R1-NOSUBJECT the end-to-end candidate carries no subject, matching what the lane actually emits — a test that supplies one cannot detect a producer that never binds in production');
   const withCandidate1 = Object.assign({}, probeBase1, { attention: [laneCandidate1] });
-  const built1e2e = composer1.recomposePayloadAttention(withCandidate1, fullConfig1);
+  const built1e2e = composer1.recomposePayloadAttention(withCandidate1, fullConfig1, e2eSnapshot1);
   assert(built1e2e.items.length === 1 && built1e2e.exclusions.length === 0
     && built1e2e.items[0].contractVersion === 'decision-attention/v1'
     && built1e2e.items[0].subject === observedNow1 && typeof built1e2e.items[0].deepLink === 'string' && built1e2e.items[0].deepLink.length > 0,
@@ -24548,7 +24602,7 @@ try {
      something else having quietly fixed the feed. */
   const noPolicyConfig1 = Object.assign({}, fullConfig1);
   delete noPolicyConfig1['attention-detection-policy/v1'];
-  const refused1 = composer1.recomposePayloadAttention(withCandidate1, noPolicyConfig1);
+  const refused1 = composer1.recomposePayloadAttention(withCandidate1, noPolicyConfig1, e2eSnapshot1);
   assert(refused1.items.length === 0 && refused1.exclusions.length === 1
     && refused1.exclusions[0].code === 'RLATTN-PROVENANCE',
     'Regression: SCN-BUG009-R1-LOADBEARING with attention-detection-policy/v1 removed the same candidate is refused RLATTN-PROVENANCE again — the producer, and no other change, is what restored the feed');

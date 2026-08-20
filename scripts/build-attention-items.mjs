@@ -498,7 +498,7 @@ export function candidateFromPublishedItem(item) {
  * `attentionExclusions` with its named reason — never silently, never defaulted
  * back into shape.
  */
-export function recomposePayloadAttention(payload, config) {
+export function recomposePayloadAttention(payload, config, snapshotOverride) {
   const published = Array.isArray(payload?.attention) ? payload.attention : [];
   const rawCandidates = published.map((item) => item && item.contractVersion === 'decision-attention/v1'
     ? candidateFromPublishedItem(item)
@@ -507,10 +507,16 @@ export function recomposePayloadAttention(payload, config) {
      reaches here without an `observed` half is refused RLATTN-PROVENANCE and the feed
      publishes nothing. Attach the observed half from committed Tier-A state, banded by
      the owner-declared attention-detection-policy/v1. With no policy declared this is
-     a no-op and the prior refusal stands, which is the honest outcome. */
+     a no-op and the prior refusal stands, which is the honest outcome.
+
+     `snapshotOverride` is undefined on every production path, so the disk read is
+     unchanged. It exists because tier-a.yml runs the selftest BEFORE it commits: a row
+     that composes against live readings goes red on a genuinely quiet day and blocks
+     the scheduled refresh, and a feed built to publish nothing on a quiet day must not
+     break its own publication path on one. */
   const candidates = RLATTNGATE.attachObserved(
     rawCandidates,
-    loadSnapshotForGate(),
+    snapshotOverride === undefined ? loadSnapshotForGate() : snapshotOverride,
     config && config['attention-detection-policy/v1']
   );
   const { items, exclusions } = buildAttentionItems(candidates, payload, config);

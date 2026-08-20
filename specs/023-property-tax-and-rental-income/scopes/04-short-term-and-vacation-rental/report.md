@@ -1042,3 +1042,112 @@ discriminating:   yes (red-exit 1 != green-exit 0)
 so emptying the reason reds both. `TP-04-11`'s own probe is aimed elsewhere — at
 the published zero value the row exists to forbid — and reds `TP-04-11` alone.
 
+## Harness Pass 4 — `TP-04-13` … `TP-04-18` Carry Intended REDs
+
+### `TP-04-13`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-13 known value: dividing by the personal-use days instead of the declared rental days must fail the assertion that each allocated expense equals the declared amount times the declared day ratio and reproduces the publication worked example
+file:             rltaxuse.js
+mutation:         numerator: fairRentalDays,  ->  numerator: personalUseDays,   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-13: each allocated expense equals the declared amount times the declared day ratio and publishes the basis that divided it, the rental and personal portions sum to the declared amoun
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-14`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-14 contract: letting a directly allocable expense be divided by the day ratio instead of refusing must fail the not-re-allocated assertion
+file:             rltaxuse.js
+mutation:         if (expense.directlyAllocable === true) {  ->  if (expense.directlyAllocable === "declared-direct") {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-14: a directly allocable expense is refused rather than re-allocated, the expense-set path carries it whole to the rental side and names why, every declared expense is accounted for 
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-15`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-15 integration: recording the routed personal portion as a declared component rather than a computed one must fail the named-component integration assertion
+file:             rltax.js
+mutation:         portion.amount, "computed", [], portion.amount));  ->  portion.amount, "declared", [], portion.amount));   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-15: the personal portion of every allocated expense enters the composition as a named component with origin computed, each satisfies the DeductionComponent contract, the component id
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-16`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-16 adversarial: making the published declared amount disagree with the two portions it was divided into must fail the allocation-sum assertion the row exists to prove discriminating
+file:             rltaxuse.js
+mutation:         declaredAmount: expense.amount,  ->  declaredAmount: expense.amount + 1,   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-16: an implementation zeroing the personal portion breaks the sum back to the declared amount, and a composition that received no personal portions carries no dwelling component and 
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-17` and `TP-04-18`
+
+The two rows are carried by one `assert`, so both probes name that assertion's
+message in their `red-summary`. They are still two distinct mutations aimed at
+two distinct behaviours: `TP-04-17` owns the claim that the classification leg
+*reaches* every surface, so its mutation severs the leg's identity where the page
+wires it; `TP-04-18` owns the claim that a removal *fails with the missing
+element named*, so its mutation drops the name from the identity finding.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-17 leg visibility: severing the classification legs identity from the headline surface must fail the assertion that the category leg reaches all four surfaces
+file:             lifetime-tax-strategy-lab.html
+mutation:         useHost.setAttribute("data-rl-leg", useLeg.legId);  ->  useHost.setAttribute("data-rl-leg", "dwelling-use-unwired");   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-17 and TP-04-18: the classification leg reaches all four surfaces on the all-non-zero fixture alongside the property and rental legs, removing any of the three from each surface in t
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-18 adversarial: dropping the missing legs name from the identity finding must fail the assertion that removing the classification from a surface fails with the missing element named
+file:             rltaxproperty.js
+mutation:         ? "the leg " + missing.join(", ") + " is computed in the record and does not reach " + surface  ->  ? "a computed leg does not reach " + surface   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-17 and TP-04-18: the classification leg reaches all four surfaces on the all-non-zero fixture alongside the property and rental legs, removing any of the three from each surface in t
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=bb618aa51ecdbc38a5ac186026e615f7140aac3c restored=bb618aa51ecdbc38a5ac186026e615f7140aac3c)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+

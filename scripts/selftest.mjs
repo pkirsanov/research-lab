@@ -25741,7 +25741,8 @@ try {
   const rgpStripped = RGP_SRC.replace(/^\s*#.*$/gm, '');
   assert(!/\bsed\s+-i\b/.test(rgpStripped)
     && !/(^|[;&|]\s*)timeout\s/.test(rgpStripped)
-    && /alarm shift @ARGV/.test(rgpStripped),
+    && /alarm \$limit if \$limit > 0/.test(rgpStripped)
+    && /\$SIG\{ALRM\}/.test(rgpStripped),
     'RED/GREEN harness: no GNU-only `sed -i` and no `timeout`; the optional bound uses the portable perl alarm form');
 
   /* H.3 — refuses a dirty target. Reverting a dirty file would silently throw
@@ -25875,9 +25876,34 @@ try {
     'RED/GREEN harness: refuses an untracked target with exit 4 because there is no committed blob to revert to'
     + ' (exit ' + rgpUntracked.status + ')');
 
+  /* H.13 — a generous --bound must not change the verdict: the bound exists to
+     stop a hang, not to alter what the command reports. */
+  const rgpBoundOkDir = rgpRepo();
+  const rgpBoundOk = rgpRun(rgpBoundOkDir, [
+    '--file', RGP_FIXTURE, '--find', 'token=alpha', '--replace', 'token=beta',
+    '--label', 'bounded-generous', '--bound', '60', '--'].concat(RGP_CMD));
+  assert(rgpBoundOk.status === 0 && /red-exit:\s+1/.test(rgpBoundOk.stdout)
+    && /green-exit:\s+0/.test(rgpBoundOk.stdout) && rgpClean(rgpBoundOkDir),
+    'RED/GREEN harness: a generous --bound leaves the RED/GREEN verdict unchanged'
+    + ' (exit ' + rgpBoundOk.status + ')');
+
+  /* H.14 — the buffered-suite incident in reverse: a command that hangs past
+     its bound must still end with the target back at its committed blob, and
+     must not be reported as evidence. */
+  const rgpBoundHangDir = rgpRepo();
+  const rgpBoundHang = rgpRun(rgpBoundHangDir, [
+    '--file', RGP_FIXTURE, '--find', 'token=alpha', '--replace', 'token=beta',
+    '--label', 'bounded-hang', '--bound', '1', '--', 'perl', '-e', 'sleep 30']);
+  assert(rgpBoundHang.status === 7 && /red-exit:\s+142/.test(rgpBoundHang.stdout)
+    && rgpClean(rgpBoundHangDir)
+    && String(rgpBoundHang.stdout).indexOf('/Users/') === -1
+    && String(rgpBoundHang.stderr).indexOf('/Users/') === -1,
+    'RED/GREEN harness: a command that hangs past --bound is cut off, refused as non-evidence, reverted, and reported without any absolute path'
+    + ' (exit ' + rgpBoundHang.status + ')');
+
   rgpTemps.forEach((dir) => { try { rmSync(dir, { recursive: true, force: true }); } catch { /* best effort */ } });
 
-  /* H.13 — shared-surface canary */
+  /* H.15 — shared-surface canary */
   assert(passes > 3150,
     'Regression: every pre-existing selftest assertion stays green after the RED/GREEN probe harness append'
     + ' (' + passes + ' assertion(s) already green at this point)');

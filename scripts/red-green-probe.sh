@@ -30,7 +30,8 @@
 #      discriminate — the assertion under test cannot fail)
 #
 # Portability: macOS BSD userland and Linux GNU userland alike. No `sed -i`,
-# no `timeout`, no GNU-only flags. No network access.
+# no `timeout` (the optional --bound uses perl's alarm), no GNU-only flags.
+# No network access.
 
 set -euo pipefail
 
@@ -238,11 +239,25 @@ fi
 run_command() {
   local out="$1"
   local rc=0
-  if [[ -n "$PROBE_BOUND" ]]; then
-    perl -e 'alarm shift @ARGV; exec @ARGV' "$PROBE_BOUND" "${PROBE_CMD[@]}" >"$out" 2>&1 &
-  else
-    "${PROBE_CMD[@]}" >"$out" 2>&1 &
-  fi
+  # Both branches go through one perl wrapper. It forks, optionally arms an
+  # alarm, and translates the child's fate into an ordinary exit status. That
+  # matters for more than the bound: a background job that dies by a signal
+  # makes bash print its own job notice naming this script by absolute path,
+  # and the repo PII scan rejects those. Translating rather than suppressing
+  # keeps every byte the command produced in "$out".
+  perl -e '
+    my $limit = shift @ARGV;
+    my $pid = fork();
+    defined $pid or exit 127;
+    if ($pid == 0) { exec { $ARGV[0] } @ARGV; exit 127 }
+    $SIG{ALRM} = sub { kill "TERM", $pid; waitpid($pid, 0); exit 142 };
+    $SIG{TERM} = $SIG{INT} = sub { kill "TERM", $pid; waitpid($pid, 0); exit 143 };
+    alarm $limit if $limit > 0;
+    waitpid($pid, 0);
+    alarm 0;
+    my $st = $?;
+    exit($st & 127 ? 128 + ($st & 127) : $st >> 8);
+  ' "${PROBE_BOUND:-0}" "${PROBE_CMD[@]}" >"$out" 2>&1 &
   CHILD_PID=$!
   # `wait` (unlike a foreground child) is interruptible, so a signal reaches
   # the trap immediately instead of after the command finishes. The `|| rc=$?`
@@ -289,7 +304,8 @@ summary_of() {
 
 red_summary="$(summary_of "$red_out")"
 green_summary="$(summary_of "$green_out")"
-cmd_display="$(printf '%s ' "${PROBE_CMD[@]}" | scrub)"
+# %q so the emitted command line is copy-runnable rather than merely indicative.
+cmd_display="$(printf '%q ' "${PROBE_CMD[@]}" | scrub)"
 
 printf '%s\n' '=== RED/GREEN PROBE EVIDENCE ==='
 printf 'label:            %s\n' "$PROBE_LABEL"

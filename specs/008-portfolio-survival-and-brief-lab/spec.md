@@ -1183,6 +1183,20 @@ The competitor matrix records only behaviors directly observed in the fetched pu
 | BS-008-026 to 030 | Allocation Evaluator | Brief action or Allocation tab | Run six methods; inspect constraints, sensitivity, and disagreement | Side-by-side candidates with no winner | Candidate comparison table and sensitivity view |
 | BS-008-031 to 033 | Research Auditor | Dossier tab | Inspect sources, variants, costs, OOS, tax boundary | Reproducible evidence and bounded claims | Dossier ledger and source/claim records |
 | BS-008-034 to 036 | All actors | Any brief deep link / mode switch | Follow research task; inspect partial state; switch Simple/Power | Same state, no execution, no personal-data transmission | Shared shell, truth band, accessible degraded states |
+| BS-008-037 to 041 | Privacy And Research Auditor | Local privacy | Populate downstream categories; clear all; inspect independent reread | Every stored category is empty and public generic assets are unchanged | Privacy inventory and post-clear proof |
+| BS-008-042 to 043 | Portfolio Researcher; Privacy And Research Auditor | Portfolio editor and Local privacy | Add/edit/remove holdings; clear final row; populate and clear every personal category | Honest empty portfolio and runtime-derived verified clear | Portfolio editor, clear confirmation, and post-clear proof |
+| BS-008-044 | Behavior-Aware Returning User | Brief and Why shown | Complete distinct research; inspect rank; switch projection; reload | One semantic identity, honest time, distinct-date floor, and canonical order | Brief queue, Why shown, and privacy inventory |
+| BS-008-045 | Data-Constrained User | Data status and affected analytics | Request five years; inspect same-origin partial; allow public lookup | Actual date coverage, qualified append, and honest partial or complete state | Data truth band and source/freshness details |
+| BS-008-046 | Portfolio Researcher | Portfolio Brief | Select DST-boundary window; inspect queue and stale state; trigger invalid input | Civil-time window, complete generic evidence, global cap, and closed failure | Brief Simple/Power, Why shown, and truth state |
+| BS-008-047 | Risk Researcher | Risk X-Ray | Load mixed holdings; inspect Simple/Power and covariance states | Every eligible metric remains, with exact exclusions and diagnostics | Risk rows, source audit, covariance, and contributions |
+| BS-008-048 | Goals-First Planner | Path Lab | Run complete scenario; supersede/cancel; inspect every cash need and distribution | Matching-token publication and complete path/parameter outcomes | Scenario controls, progress, paths, timeline, and tables |
+| BS-008-049 | Diversification And Hedge Researcher | Diversification | Compare normal/stress/tail/appraisal and hedge variants | Distinct samples, qualified estimates, regression basis risk, costs, and common paths | Dependence, appraisal, and hedge evidence rows |
+| BS-008-050 | Allocation Method Evaluator | Allocation Comparison | Run six constrained methods; inspect conflict, explicit view, and sensitivity | Real method results, no relaxation, posterior attribution, and no winner | Candidate table, view editor, and sensitivity rows |
+| BS-008-051 | Privacy And Research Auditor | Research Dossier | Audit decision-time run; append correction; reload; preview export | Durable append-only dossier with complete costs, trials, states, and privacy warning | Dossier ledger and export preview |
+| BS-008-052 | All actors | Any workspace tab or owning tool | Switch mode/tab; start rebase; open owner; return | One immutable view, newest-token publication, visible return context, and restored focus | Shared shell, return strip, and focused action row |
+| BS-008-053 | All actors | Entire six-tab route | Use keyboard/screen reader under declared preferences and narrow layouts | Equivalent decisions with deterministic focus and no overlap or color/motion dependence | Shared shell, tabs, sheets, charts, tables, and truth states |
+| BS-008-054 | Privacy And Research Auditor | Validation evidence | Resolve every title; run hostile cases and identical repaired commands | Every audited shortcut fails and every authoritative scenario reaches assertions | Test declaration and evidence traceability |
+| BS-008-055 | Portfolio Researcher; Privacy And Research Auditor | Published Feature 008 entries | Follow each link; compare claims with executable states and limits | Every entry opens `#brief` and every claim remains evidence-bounded | Registry, landing inventory, navigation, README, and note |
 
 ## UI Wireframes
 
@@ -2508,6 +2522,8 @@ stateDiagram-v2
 - **NFR-022 Educational boundary:** Every output remains research, not advice, execution, guarantee, legal/tax determination, or suitability assessment.
 - **NFR-023 Auditability:** A user can trace every recommendation to direct scope and/or exact event categories and can inspect what clearing history changes.
 - **NFR-024 Local deletion:** Confirmed local-history and personal-data clearing is complete, observable, and does not depend on a remote deletion request.
+- **NFR-025 Proof integrity:** Every stable scenario must resolve to a discoverable exact test that executes the required production behavior. Each audited defect class must have an isolated adversarial case that fails when the defect returns, and no proxy, zero-match selector, optional assertion, interception, bailout, or historical receipt may substitute for current behavior proof.
+- **NFR-026 Published truth:** Every active Feature 008 link and capability claim must match the executable route, current evidence, partial and unavailable states, privacy boundary, and known limits. Superseded hashes or reduced behavior must not remain described as current or complete.
 
 ## Measurable Success Criteria
 
@@ -2529,6 +2545,17 @@ stateDiagram-v2
 - **SC-016:** All visible recommendations are non-executing research actions and contain no order placement, automatic rebalance, or position-size instruction.
 - **SC-017:** Loading, empty, stale, partial, disputed, invalid, infeasible, storage-failed, and unavailable states preserve the last valid truth without synthetic values.
 - **SC-018:** Keyboard, screen-reader, touch, reduced-motion, desktop, tablet, and narrow-mobile journeys expose equivalent decisions, provenance, errors, and clear controls without overlap.
+- **SC-019:** Every downstream personal category is populated before full clear, then reads empty from independent storage and live-state inspection while public generic assets remain byte-identical.
+- **SC-020:** Adding, editing, and removing holdings produces one exact replacement revision, and removing the final row produces an explicit empty portfolio.
+- **SC-021:** A five-year request reports exact observed date bounds and cannot return complete from a short cache, row count, or range label.
+- **SC-022:** A DST-boundary Portfolio Brief uses America/New_York civil time, all required generic evidence identities, one global cap, stale-only Refresh/Revisit actions, and closed value-safe failures.
+- **SC-023:** Mixed listed, weight-only, cash, manual, and unsupported holdings preserve every eligible risk result with explicit factor, contribution, covariance, and exclusion diagnostics.
+- **SC-024:** A complete scenario publishes only from its matching compute identity and applies every declared flow and cash need to every path across separate path and parameter uncertainty.
+- **SC-025:** Diversification and hedge output keeps normal, stress, tail, appraisal, cost, regression, residual, and common-path evidence distinct and qualified.
+- **SC-026:** All six allocation methods enforce one complete basis or report infeasible, and explicit Black-Litterman inputs change posterior returns and weights with attributable sensitivity.
+- **SC-027:** A dossier survives reload, records decision-time windows, complete costs and trials, appends corrections, and exports only selected private fields with warnings.
+- **SC-028:** Mode, tab, rebase, owner navigation, and return use one immutable latest-valid view while preserving visible context and focus.
+- **SC-029:** Every authoritative scenario has a discoverable exact proof, every audited defect has a discriminating hostile case, and every published entry and claim matches current executable behavior.
 
 ## Research And Source Matrix
 
@@ -2560,6 +2587,21 @@ stateDiagram-v2
 | Fama, 1970, DOI `10.2307/2325486` | Canonical academic review metadata | Efficient-market theory and empirical-work framing | Full text was not retrieved in this run; no detailed empirical claim is attributed beyond the canonical hypothesis framing |
 | Investor.gov diversification glossary | Regulatory education | Diversification as spreading exposure in hope losses are offset | It does not guarantee loss prevention or crisis independence |
 | IRS Publication 550 (2025), updated 2026-04-30 | Government tax guidance | Wash-sale window and facts-and-circumstances substantially-identical discussion | Product provides education, not legal/tax determination |
+
+## Product Principle Alignment
+
+| Principle | Feature 008 Alignment |
+| --- | --- |
+| P1 - Every displayed figure carries provenance; P2 - Missing data renders as missing; P3 - Confidence is evidence quality, never a win probability | Provenance classes, partial-result states, separate relevance and model confidence, and SCN-008-047 prevent synthetic completeness. |
+| P6 - Say when the read is old; P7 - No blackbox numbers | Brief, risk, paths, dependence, allocation, and dossier outputs retain source, cutoff, method, age, uncertainty, and stale behavior. |
+| P9 - Works with nothing; P11 - Reuse, never refetch; P12 - Cache-first, automatic first paint; P13 - Tickers only, forever | The no-portfolio state stays useful without credentials. SCN-008-045 appends only missing qualified public rows, and all personal portfolio fields remain local. |
+| P14 - Simple is the default, Power is the drill-down; P15 - Everything is explained in place; P16 - Deep-link, never duplicate | One Brief-first cockpit presents the decision in Simple, evidence in Power, contextual explanations in place, and owner links for specialist analysis. |
+| P17 - Reachable or removed; P18 - Wired or not shipped; P19 - One definition per concept | SCN-008-052 requires one immutable compute and real owner handoff. SCN-008-055 requires every published entry to reach `#brief` and match executable behavior. |
+| P20 - Every claim is scoreable; P21 - Additive contracts, append-only history | Research actions retain conditions and identities. Dossier corrections append and supersede instead of rewriting prior records. |
+| P22 - Budgets are assertions; P23 - A guard that cannot fail is not a guard | Queue, path, and layout budgets require executable limits. SCN-008-054 requires one discriminating hostile case for every audited defect class. |
+| P25 - Specs are capped, and never block on status | The written exception under Requirements limits this remediation to coupled gaps in one existing cockpit. Entry gates name missing analyst, design, and planning capabilities rather than relying on another feature's terminal status. |
+
+Scopes 17-29 remain planned remediation. These scenarios and requirements establish authority only. They do not claim that repaired behavior, tests, registry entries, or documentation are delivered.
 
 ## Release Train
 
@@ -2617,5 +2659,20 @@ Not applicable in this repository. Research Lab has no `config/release-trains.ya
 - **AC-018:** BS-008-036 proves Simple, Power, tabs, deep links, and public/local boundaries project one coherent state.
 - **AC-019:** The Research And Source Matrix contains no known wrong DOI discovered during this run and distinguishes metadata/abstract/product evidence from stronger empirical claims.
 - **AC-020:** UX-owned wireframes and flows remain explicitly routed to `bubbles.ux`; no analyst-authored technical design, scope plan, source, test, report, documentation, or certification claim is made.
+- **AC-021:** BS-008-037 through BS-008-041 prove every historically added downstream personal category is populated before full clear, independently read empty afterward, and leaves public generic assets unchanged.
+- **AC-022:** BS-008-042 and BS-008-043 prove complete holding lifecycle, honest empty portfolio, tombstone-before-delete ordering, runtime-derived category coverage, and named partial-clear failure.
+- **AC-023:** BS-008-044 proves exact semantic de-duplication, non-negative temporal treatment, distinct-date evidence floor, and one canonical ranked action projection.
+- **AC-024:** BS-008-045 proves requested coverage uses actual dates, qualified append order, explicit lookup permission, honest partial bounds, and existing-consumer compatibility.
+- **AC-025:** BS-008-046 proves complete generic evidence consumption, DST-safe civil-time selection, one global queue cap, stale-only action families, and closed value-safe failures.
+- **AC-026:** BS-008-047 proves mixed inputs preserve eligible risk metrics and expose elapsed-time, factor, look-through, contribution, covariance, and reconciliation diagnostics.
+- **AC-027:** BS-008-048 proves complete scenario identity, latest-token publication, cancellation and last-valid behavior, all-path cash needs, and separate path and parameter distributions.
+- **AC-028:** BS-008-049 proves distinct stress samples, qualified adjustment, finite intervals, appraisal limits, return-regression hedge basis, complete costs, and common scenario paths.
+- **AC-029:** BS-008-050 proves six genuine constrained methods, contribution-based risk parity, non-clipped constrained optimization, explicit Black-Litterman posterior attribution, and multi-axis sensitivity.
+- **AC-030:** BS-008-051 proves decision-time walk-forward, rebalance and embargo, complete cost and trial records, append-only correction, durable reload, and private export boundaries.
+- **AC-031:** BS-008-052 proves one immutable workspace compute, newest-token publication, atomic rebase, real owner-side ReturnContext consumption, and focus restoration without private URL data.
+- **AC-032:** BS-008-053 proves equivalent six-tab decisions under keyboard, screen reader, reduced motion, forced colors, zoom, text spacing, touch, and narrow layouts without overlap.
+- **AC-033:** BS-008-054 proves every required title reaches assertions and every audited reduced implementation fails in an isolated hostile case without using proxy or historical proof.
+- **AC-034:** BS-008-055 proves every published Feature 008 entry opens `portfolio-survival-allocation-lab.html#brief` and every active capability claim matches executable states and limits.
+- **AC-035:** The spec contains exactly one authoritative BS and SCN pair for each ID from 001 through 055. The plan-owned manifest remains unchanged until `bubbles.plan` performs P1 reconciliation.
 
 <!-- End of analyst-owned business specification. -->

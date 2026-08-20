@@ -26,6 +26,7 @@ import {
 } from './validate-brief-payload.mjs';
 import { formatSpecTestPathFindings, validateSpecTestPaths } from './validate-spec-test-paths.mjs';
 import { ATTENTION_RESEARCH_VERBS as RLATTN_RESEARCH_VERBS, attentionVerbContractInstruction, findAttentionVerbInstructionGaps } from './build-attention-items.mjs';
+import { formatTestFileReachabilityFindings, validateTestFileReachability } from './validate-test-file-reachability.mjs';
 import { formatTimeoutBudgetFindings, validatePlaywrightTimeoutBudgets } from './validate-playwright-timeout-budgets.mjs';
 import { assertCoherentBar, formatBarsCoherenceFindings, isCoherentBar, partitionCoherentBars, validateBarsCorpus } from './validate-bars-coherence.mjs';
 import { findAgendaFixturePinDrift, formatAgendaFixturePinFinding, formatAgendaFixturePinFindings, validateAgendaFixturePin } from './validate-agenda-fixture-pin.mjs';
@@ -8776,6 +8777,18 @@ try {
   for (const line of formatSpecTestPathFindings(specTestPaths, 1)) console.log('    ' + line);
   assert(specTestPaths.newMissing.length === 0, 'no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline \u2014 a stale path makes a multi-file verification command silently cover less than it claims (' + specTestPaths.newMissing.length + ' new, ' + specTestPaths.knownMissing.length + ' known-missing, ' + specTestPaths.staleBaseline.length + ' stale of ' + specTestPaths.referencedPathCount + ' referenced)');
 } catch (e) { failures++; console.log('  \u2717 FAIL (spec artifact test-path guard threw): ' + e.message); }
+
+/* ---------- tests/ — every test file on disk is selected by a declared command (ratchet) ----------
+   RATCHET: the baseline is a SHRINKING WORKLIST of orphans that predate the guard, never a licence
+   to add one — a newly unreachable test file fails here, and a paid-down entry is reported stale. */
+try {
+  group('tests/ \u2014 every test file is selected by a declared verification glob (an unrun test proves nothing)');
+  const testReachability = validateTestFileReachability(ROOT);
+  assert(!testReachability.vacuous && testReachability.baselinePresent, 'the scan derived real globs from real artifacts against a present baseline, so a green verdict is coverage rather than a pattern that quietly stopped matching (' + testReachability.testFileCount + ' test file(s), ' + testReachability.globCount + ' declared glob(s) across ' + testReachability.scannedFiles + ' artifact(s), baseline ' + testReachability.baselineCount + ' entr' + (testReachability.baselineCount === 1 ? 'y' : 'ies') + ')');
+  assert(testReachability.playwrightMatchers > 0, 'the Playwright discovery matcher was parsed out of playwright.config.mjs, so the blocking browser job\u0027s own selector is one of the declared globs rather than a shape this guard assumes (' + testReachability.playwrightMatchers + ' matcher(s))');
+  for (const line of formatTestFileReachabilityFindings(testReachability, 1)) console.log('    ' + line);
+  assert(testReachability.newOrphans.length === 0, 'no tests/*.mjs file is unreachable outside the frozen baseline \u2014 a file no declared command selects is never run, so it reads as coverage while delivering none (' + testReachability.newOrphans.length + ' new, ' + testReachability.knownOrphans.length + ' known-orphan, ' + testReachability.staleBaseline.length + ' stale, ' + testReachability.exempt.length + ' exempt as ' + testReachability.exemptRule + ', of ' + testReachability.testFileCount + ' file(s))');
+} catch (e) { failures++; console.log('  \u2717 FAIL (test-file reachability guard threw): ' + e.message); }
 
 /* ---------- Playwright budgets — a declared wait must fit the test that contains it (BUG-009) ----------
    A test that declares `expect(...).toHaveAttribute(..., { timeout: 120_000 })` inside a test whose

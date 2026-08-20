@@ -25,7 +25,7 @@ any ownership map recorded here.
 | # | Scope | Design section | One-line rationale | Status |
 |---|---|---|---|---|
 | 1 | `01-frozen-claim-contract` | D1 | Nothing downstream can exist until a recommendation persists what it actually claimed; the claim is the only object every later stage reads. | Done |
-| 2 | `02-additive-ledger-row-extension` | D2 | The row's `claimRef` is the sole pointer from an event to a claim, and its **absence** is the permanent unresolvable-legacy marker — both the resolver and the scorer key off it. | Not Started |
+| 2 | `02-additive-ledger-row-extension` | D2 | The row's `claimRef` is the sole pointer from an event to a claim, and its **absence** is the permanent unresolvable-legacy marker — both the resolver and the scorer key off it. | In Progress |
 | 3 | `03-resolved-flat-sentinel-and-resolution-record` | D3 | The outcome classes and the zero-free array convention must exist before anything computes an outcome, because HC-7 is satisfied at the source or not at all. | Not Started |
 | 4 | `04-deterministic-outcome-resolver` | D4 | Converts a frozen claim plus committed bars into one signed outcome and exactly one existing closure event; it is the only stage that writes lifecycle state. | Not Started |
 | 5 | `05-cohort-and-scoring-model` | D5 | Turns resolved outcomes into the track record through the seven `RLVALID` primitives and fixes the denominator, the sufficiency branch, and the derived legacy count. | Not Started |
@@ -120,7 +120,7 @@ graph TD
 | ID | Name | Status | Tags | Depends On | Business Scenarios owned |
 |---|---|---|---|---|---|
 | 01 | `01-frozen-claim-contract` | Done | `foundation:true` | — | BS-001, BS-008 |
-| 02 | `02-additive-ledger-row-extension` | Not Started | `overlay:true`, `consent-gated:002`, `routed:P-015-01`, `routed:P-015-02` | 01 | — |
+| 02 | `02-additive-ledger-row-extension` | In Progress | `overlay:true`, `consent-gated:002`, `routed:P-015-01`, `routed:P-015-02` | 01 | — |
 | 03 | `03-resolved-flat-sentinel-and-resolution-record` | Not Started | `overlay:true` | 01 | BS-004 |
 | 04 | `04-deterministic-outcome-resolver` | Not Started | `overlay:true`, `routed:P-015-03`, `routed:P-015-07` | 01, 02, 03 | BS-002, BS-003, BS-007, BS-009, BS-010 |
 | 05 | `05-cohort-and-scoring-model` | Not Started | `overlay:true` | 02, 03, 04 | BS-005 |

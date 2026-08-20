@@ -1499,6 +1499,75 @@ points, and the row catches it anyway because it pins the pair of figures each
 step moved between rather than the step's presence. The cap clause on line 145
 passed first, so the two steps are independently sensitive.
 
+### Probe 21 — same-command RED and GREEN for TP-01-21
+
+`TP-01-21` asserts two-directional set identity between the settled record and
+each of four surfaces — headline, comparison, curve and export. The way it can
+rot is a leg that settles and then quietly fails to reach one surface, so the
+probe removes the property leg from exactly one surface and leaves the other
+three intact. The export is chosen because it is the surface furthest from the
+settlement and the one a reader is least likely to check by eye.
+
+The mutation is an identifier-keyed filter, so no figure appears in it:
+
+```js
+-                var settledLegs = state.envelope ? state.envelope.legIds.slice() : [];
++                var settledLegs = state.envelope ? state.envelope.legIds.filter(function (legId) { return legId !== "property-tax"; }) : [];
+```
+
+RED:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-002 the property leg reaches the headline, the comparison, the curve and the export" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✘  1 [system-chrome] › tests/lifetime-tax-property.spec.mjs:223:1 › Regression: SCN-023-002 the property leg reaches the headline, the comparison, the curve and the export (986ms)
+
+  1) [system-chrome] › tests/lifetime-tax-property.spec.mjs:223:1 › Regression: SCN-023-002 the property leg reaches the headline, the comparison, the curve and the export
+
+    Error: the leg property-tax is in the settled record and does not reach export
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: "property-tax"
+    Received array: ["additional-medicare-tax", "net-investment-income-tax", "ordinary", "preferential"]
+
+      295 |       sortedRecord.forEach((legId) => {
+      296 |         expect(rendered, `the leg ${legId} is in the settled record and does not reach ${surface}`)
+    > 297 |           .toContain(legId);
+          |            ^
+        at forEach (<repo>/tests/lifetime-tax-property.spec.mjs:297:12)
+
+  1 failed
+RED_EXIT=1
+```
+
+Reverted inside the same shell invocation, revert verified, same command again:
+
+```
+$ git checkout -- lifetime-tax-strategy-lab.html && git status --short -- lifetime-tax-strategy-lab.html
+revert_rc=0
+STATUS_EMPTY_ABOVE
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-002 the property leg reaches the headline, the comparison, the curve and the export" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/lifetime-tax-property.spec.mjs:223:1 › Regression: SCN-023-002 the property leg reaches the headline, the comparison, the curve and the export (747ms)
+
+  1 passed (1.9s)
+GREEN_EXIT=0
+```
+
+The failure line is the row's own message rather than a bare matcher diff: *the
+leg property-tax is in the settled record and does not reach export*. It names
+the leg and the surface, which is what makes the row diagnostic rather than
+merely red — a maintainer reading this failure is told which of the four
+surfaces dropped the leg without opening the test. The headline, comparison and
+curve surfaces were all checked and passed before the export surface was
+reached, so the four are independently sensitive rather than sharing one lookup.
+
 ## Change Boundary
 
 Command: a path-scoped status check over the excluded list.

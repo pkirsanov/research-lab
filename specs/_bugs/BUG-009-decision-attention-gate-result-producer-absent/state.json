@@ -3,7 +3,7 @@
   "featureDir": "specs/_bugs/BUG-009-decision-attention-gate-result-producer-absent",
   "featureName": "BUG-009 The Decision-Attention Tier Has No Observed Gate-Result Producer",
   "createdAt": "2026-08-18T14:40:00Z",
-  "lastUpdatedAt": "2026-08-20T17:00:00Z",
+  "lastUpdatedAt": "2026-08-20T17:30:00Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -427,9 +427,10 @@
     {
       "id": "DISC-009-004",
       "severity": "medium",
-      "summary": "SECONDARY DEFECT - .github/workflows/tier-a.yml does not include market-brief.payload.json in its git add list and never references scripts/brief-refresh-and-push.sh, so the scheduled CI job cannot publish an attention feed even if a producer existed. The payload is committed exclusively by the operator-hosted wrapper, visible in the commit authorship. Must be resolved by any remedy that places attention production on the scheduled path (spec.md AC-7).",
+      "summary": "OBSERVATION RE-CLASSIFIED 2026-08-20, still open. The original wording called this a SECONDARY DEFECT in tier-a.yml's git add list. The observation is correct - the scheduled job does not commit market-brief.payload.json - but the classification was wrong, and acting on it as written would have made things worse. brief-refresh.mjs reads the payload as a COMMITTED artifact and NEVER writes it (its own comment names this the R-5 boundary), and across 197 commits touching the payload the tier-a bot has authored ZERO of them. Adding the path to that git add list would therefore stage whatever happened to be dirty in the runner, which is exactly what the step's own comment forbids: 'A scheduled job must never sweep in unrelated working-tree changes.' The narrative payload is authored by four LLM lanes in the operator-hosted wrapper, and the scheduled job deliberately calls no external model. THE REAL QUESTION, which stays open: the observed half of an attention item is derived from committed Tier-A state and needs no model at all, so the scheduled job COULD run build-attention-items.mjs --recompose --write to keep published observations consistent with current data between narrative runs. Today an item can go on referencing a reading that has since moved out of band. Whether stale-but-stable or fresh-but-disappearing is the better reader contract is an owner decision, not a missing path.",
       "owner": "repository-owner",
-      "status": "open"
+      "status": "open",
+      "reclassifiedAt": "2026-08-20T17:30:00Z"
     }
   ],
   "failures": [],

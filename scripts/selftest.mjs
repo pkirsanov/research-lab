@@ -23262,6 +23262,159 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 Scope 01 marker shape agreement group threw): ' + e.message); }
 /* ---------- Feature 022 Scope 01: supersession marker shape agreement (END) ---------- */
 
+/* ---------- Feature 022 Scope 01: derive supersessions are strictly stronger (START) ---------- */
+/* TP-01-23. DoD item 12 clause 2 asks each DERIVE-shaped entry to restate the clause it superseded,
+   evaluate that clause against the tree as it stands, and show it FALSE or VACUOUS while the
+   replacement holds. Nothing did that: TP-01-20 reads marker membership and TP-01-22 reads the
+   shape token, and neither asks what the superseded clause would say today. That is the asymmetry
+   the item exists for — a replacement that merely restated its predecessor leaves the predecessor
+   true and non-vacuous, and must fail here. The clause text is read out of each marker at run time
+   rather than transcribed into this group, so a marker edited to describe a different original
+   moves the verdict instead of leaving a stale copy agreeing with itself. Marker ids are assembled
+   from parts, exactly as TP-01-22 does, so naming them places no Scope 01 marker in a file the
+   per-file distribution does not assign it. */
+try {
+  group('Feature 022 Scope 01 — every derive supersession leaves its superseded clause false or vacuous');
+  const DERIVE_PREFIX = 'SUP-' + '022-';
+  const derivePack = JSON.parse(read('tax-rules/federal/2026.json'));
+  const deriveStatuses = ['single', 'married-filing-jointly', 'married-filing-separately', 'head-of-household'];
+  const deriveGroups = ['standardDeductions', 'ordinaryRateTables', 'preferentialRateTables'];
+  const deriveIsAbsent = (figure) => !!figure && figure.contractVersion === 'AbsentFigure/v1';
+
+  /* One extractor, used for the real markers and for the planted controls below, so the control
+     exercises the same reader the verdict depends on rather than a restatement of it. */
+  const deriveMarkerComment = (text, id) => {
+    const at = text.indexOf(DERIVE_PREFIX + id + ':');
+    if (at < 0) return null;
+    const end = text.indexOf('*/', at);
+    return end < 0 ? null : text.slice(at, end);
+  };
+  const deriveSupersededClause = (comment) => {
+    const found = /supersedes ([\s\S]*?); shape=/.exec(comment || '');
+    return found ? found[1].replace(/\s+/g, ' ').trim() : null;
+  };
+
+  const deriveSourceFiles = ['scripts/selftest.mjs', 'tests/lifetime-tax-federal.spec.mjs',
+    'tests/lifetime-tax-foundation.spec.mjs', 'tests/lifetime-tax-marginal.spec.mjs',
+    'tests/lifetime-tax-route.spec.mjs'].map((file) => read(file));
+  const deriveCommentFor = (id) => {
+    for (let index = 0; index < deriveSourceFiles.length; index += 1) {
+      const found = deriveMarkerComment(deriveSourceFiles[index], id);
+      if (found) return found;
+    }
+    return null;
+  };
+
+  /* Every quantity below follows the shipped pack. None is spelled, so a pack edit moves the
+     verdict rather than leaving a literal agreeing with a tree that changed under it. */
+  const deriveCitedFigureCount = deriveGroups.reduce((running, groupName) => running
+    + deriveStatuses.filter((status) => !deriveIsAbsent(derivePack[groupName][status])).length, 0);
+  const deriveNoticeIds = derivePack.unsupportedFeatures.map((entry) => entry.id);
+  const deriveContributorCount = derivePack.unsupportedFeatures
+    .filter((entry) => entry.movesMarginalRate === true).length;
+  const deriveAbsentFigureCount = deriveGroups.reduce((total, groupName) => total
+    + deriveStatuses.filter((status) => deriveIsAbsent(derivePack[groupName][status])).length, 0);
+  const deriveSourceRecordCount = derivePack.sourceRecords.length;
+
+  /* SUP-022-04's superseded count still HOLDS at eighteen, so falsity is unavailable and vacuity is
+     what must be shown instead: a notice set substituted at constant length satisfies the count
+     clause while failing the set identity that replaced it. The substitution is a local array of
+     ids, never a figure. */
+  const deriveSubstitutedNotices = deriveNoticeIds.slice(0, deriveNoticeIds.length - 1)
+    .concat([deriveNoticeIds[deriveNoticeIds.length - 1] + '-substituted']);
+  const deriveCountSurvivesSubstitution = deriveSubstitutedNotices.length === deriveNoticeIds.length;
+  const deriveIdentitySurvivesSubstitution = deriveSubstitutedNotices
+    .every((id) => deriveNoticeIds.indexOf(id) >= 0)
+    && deriveNoticeIds.every((id) => deriveSubstitutedNotices.indexOf(id) >= 0);
+
+  const deriveEntries = [
+    {
+      id: '01', binding: 'citedFigures.length === 8', verdict: 'false',
+      supersededHolds: deriveCitedFigureCount === 8,
+      supersededVacuous: false,
+      replacementHolds: deriveCitedFigureCount > 0
+        && deriveCitedFigureCount === deriveGroups.length * deriveStatuses.length
+    },
+    {
+      id: '04', binding: 'noticeIds.length === 18', verdict: 'vacuous',
+      supersededHolds: deriveNoticeIds.length === 18,
+      supersededVacuous: deriveCountSurvivesSubstitution && !deriveIdentitySurvivesSubstitution,
+      replacementHolds: deriveNoticeIds.every((id) => derivePack.unsupportedFeatures
+        .some((entry) => entry.id === id))
+    },
+    {
+      id: '07', binding: 'isAbsentFigure(preferentialRateTables.single) === true', verdict: 'false',
+      supersededHolds: deriveIsAbsent(derivePack.preferentialRateTables.single),
+      supersededVacuous: false,
+      replacementHolds: Array.isArray(derivePack.preferentialRateTables.single.bands)
+        && derivePack.preferentialRateTables.single.bands.length > 0
+    },
+    {
+      id: '09', binding: 'count of 14', verdict: 'false',
+      supersededHolds: deriveContributorCount === 14 || deriveAbsentFigureCount === 4,
+      supersededVacuous: false,
+      replacementHolds: deriveContributorCount > 0 && deriveAbsentFigureCount === 0
+    },
+    {
+      id: '17', binding: 'toHaveCount(2)', verdict: 'false',
+      supersededHolds: deriveSourceRecordCount === 2,
+      supersededVacuous: false,
+      replacementHolds: deriveSourceRecordCount > 0
+        && derivePack.sourceRecords.every((record) => typeof record.title === 'string' && record.title.length > 0)
+    },
+    {
+      id: '21', binding: 'absent-figure inventory', verdict: 'false',
+      supersededHolds: deriveStatuses
+        .some((status) => deriveIsAbsent(derivePack.preferentialRateTables[status])),
+      supersededVacuous: false,
+      replacementHolds: derivePack.supportedFeatures
+        .some((feature) => feature.id === 'preferential-rate-schedule')
+    }
+  ];
+
+  const deriveUnbound = [];
+  const deriveUnproven = [];
+  deriveEntries.forEach((entry) => {
+    const comment = deriveCommentFor(entry.id);
+    const clause = deriveSupersededClause(comment);
+    if (!comment || !clause || clause.length === 0
+      || comment.indexOf('shape=derive') < 0
+      || comment.indexOf(entry.binding) < 0) {
+      deriveUnbound.push(entry.id);
+      return;
+    }
+    const displaced = entry.verdict === 'false' ? !entry.supersededHolds : entry.supersededVacuous;
+    if (!displaced || !entry.replacementHolds) {
+      deriveUnproven.push(entry.id + ' verdict=' + entry.verdict
+        + ' holds=' + entry.supersededHolds + ' vacuous=' + entry.supersededVacuous
+        + ' replacement=' + entry.replacementHolds);
+    }
+  });
+
+  assert(deriveEntries.length === 6
+    && deriveUnbound.length === 0
+    && deriveUnproven.length === 0,
+  'TP-01-23: each of this scope\u2019s six derive supersessions declares shape=derive, carries an evaluable restatement of the clause it displaced, and that clause is false or vacuous against the shipped pack while its replacement holds (unbound: ' + deriveUnbound.join(', ') + '; unproven: ' + deriveUnproven.join('; ') + ')');
+
+  /* A verdict of "displaced" is only worth something if the evaluator can also report NOT
+     displaced. Two independent controls prove it can. First, a real entry: SUP-022-04's superseded
+     count clause still holds at the current notice length, so this group has itself computed a TRUE
+     for a superseded clause and had to fall back to vacuity — falsity is not being handed out by
+     construction. Second, a planted marker: the extractor returns the planted clause text, returns
+     null when no marker is present, and a false binding token is not found in a real comment. */
+  const deriveControlId = '01';
+  const derivePlanted = '/* ' + DERIVE_PREFIX + deriveControlId
+    + ': supersedes `a planted control clause`; shape=derive. Planted. */';
+  assert(deriveEntries[1].supersededHolds === true
+    && deriveEntries[1].verdict === 'vacuous'
+    && deriveSupersededClause(deriveMarkerComment(derivePlanted, deriveControlId)) === '`a planted control clause`'
+    && deriveMarkerComment('/* a comment carrying no marker at all */', deriveControlId) === null
+    && deriveSupersededClause('/* a comment with no supersedes phrase */') === null
+    && (deriveCommentFor(deriveControlId) || '').indexOf('citedFigures.length === 9') < 0,
+  'TP-01-23 ADVERSARIAL: the evaluator reports a still-holding superseded clause as holding rather than as displaced, the extractor returns planted clause text and reports absence as absence, and a binding token that is not in the marker is not found');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 Scope 01 derive supersession strength group threw): ' + e.message); }
+/* ---------- Feature 022 Scope 01: derive supersessions are strictly stronger (END) ---------- */
+
 /* ---------- Feature 026 Scope 3: rlcockpit.js — change vocabulary (BEGIN) ---------- */
 try {
   group('rlcockpit.js — change vocabulary');

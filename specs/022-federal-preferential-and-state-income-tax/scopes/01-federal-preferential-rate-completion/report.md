@@ -3262,6 +3262,103 @@ retained six, re-running `TP-01-21` in the same command supplies it. Until that 
 exists and runs, the item is not closeable; the browser half of its command was also
 not run this pass.
 
+### Verification pass 7 — 2026-08-20 — DoD item 12 clause 2 is now DELIVERED; both clauses hold
+
+**Claim Source:** `executed`. Every line below is copied from a run made in this
+session. Commands: `node scripts/selftest.mjs` and the TP-01-16 browser command
+`npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-" --reporter=list`.
+
+**What was built.** `TP-01-23` was appended to the suite beside `TP-01-22`, leaving
+`TP-01-22` and `TP-05-22` byte-identical. It reads each derive marker's comment out
+of the tree at run time, extracts the clause the marker says it superseded, and then
+evaluates that clause against the shipped federal pack. Every quantity it compares
+is derived from the pack rather than spelled, so a pack edit moves the verdict
+instead of leaving a literal agreeing with a tree that changed under it. The six
+derive entries are SUP-022-01, -04, -07, -09, -17 and -21; SUP-022-07's evaluable
+restatement is the one landed at `09dceb6fb`, and this group is what consumes it.
+
+**Falsity where it is available, vacuity where it is not.** Five of the six
+superseded clauses are simply **false** against the pack as it stands — the
+pack-derived cited-figure count is not eight, the single preferential rate table is
+no longer an absent figure, the rendered contributor and absent-figure counts are
+not fourteen and four, the source-record count is not two, and no preferential
+status remains an absent figure. SUP-022-04's superseded clause is the exception:
+its notice count **still holds** at eighteen, so falsity is unavailable and the
+group proves **vacuity** instead — a notice set substituted at constant length
+satisfies the count clause while failing the set-identity clause that replaced it.
+That asymmetry is the point of the item, and the group had to compute a `true` for a
+superseded clause to reach it, which is the strongest available evidence that
+falsity is not being handed out by construction.
+
+**Intended RED 1 — the restatement binding is live against the real marker files.**
+The binding token in SUP-022-17's marker comment in `<repo>/tests/lifetime-tax-route.spec.mjs`
+was perturbed from `toHaveCount(2)` to `toHaveCount(3)`, so the marker no longer
+carries the clause the group claims to be testing. The mutation is a comment token,
+carries no figure of any kind, and was reverted inside the same shell invocation
+that applied it.
+
+```
+  ✗ FAIL: TP-01-23: each of this scope’s six derive supersessions declares shape=derive, carries an evaluable restatement of the clause it displaced, and that clause is false or vacuous against the shipped pack while its replacement holds (unbound: 17; unproven: )
+Research-Lab self-test: 3146 passed, 1 failed
+```
+
+The diagnostic names `17` and nothing else, so the group failed for the reason the
+probe created rather than incidentally.
+
+**Intended RED 2 — the evaluator can report NOT displaced.** A GREEN that only ever
+computes "displaced" proves nothing, so the second probe forces SUP-022-04's verdict
+from `vacuous` to `false` while its superseded count clause still holds at eighteen.
+A group that handed out falsity by construction would pass here. It does not:
+
+```
+  ✗ FAIL: TP-01-23: each of this scope’s six derive supersessions declares shape=derive, carries an evaluable restatement of the clause it displaced, and that clause is false or vacuous against the shipped pack while its replacement holds (unbound: ; unproven: 04 verdict=false holds=true vacuous=true replacement=true)
+  ✗ FAIL: TP-01-23 ADVERSARIAL: the evaluator reports a still-holding superseded clause as holding rather than as displaced, the extractor returns planted clause text and reports absence as absence, and a binding token that is not in the marker is not found
+Research-Lab self-test: 3145 passed, 2 failed
+```
+
+`holds=true` is the evaluator reporting that a superseded clause is still true, and
+refusing to call it displaced. Both probes were value-free by construction — a
+comment token and a verdict word — and after each revert `git status --short` showed
+no module, pack, spec or test file of this scope dirty and no stray probe file.
+
+**Same-command GREEN — `node scripts/selftest.mjs`.** The retained six are re-run in
+the same command rather than carried across from a prior pass, which is the half
+pass 6 recorded `not-run`:
+
+```
+  ✓ TP-01-21: the guard can fail — a present preferential table with no citation is refused, and a component override citing a not-retrieved record is refused with the override named
+  ✓ TP-01-22: each of this scope’s twelve supersession markers declares a shape token agreeing with the shape its ledger row assigns, so no entry can be proved down the retained-branch path while its ledger calls it a derive, or the reverse ()
+  ✓ TP-01-23: each of this scope’s six derive supersessions declares shape=derive, carries an evaluable restatement of the clause it displaced, and that clause is false or vacuous against the shipped pack while its replacement holds (unbound: ; unproven: )
+  ✓ TP-01-23 ADVERSARIAL: the evaluator reports a still-holding superseded clause as holding rather than as displaced, the extractor returns planted clause text and reports absence as absence, and a binding token that is not in the marker is not found
+Research-Lab self-test: 3147 passed, 0 failed
+```
+
+The pass total is 3147 in the GREEN run against 3146 and 3145 in the two RED runs,
+so each failure became a pass and nothing was deleted or downgraded to reach green.
+
+**Same-command GREEN — the browser half.** The TP-01-16 command, which pass 6 also
+recorded as not run, executes the five Feature 021 specs over the real route. The
+derive replacements this item is about — SUP-022-07, -09, -12, -13 and -17 — are
+asserted inside these scenarios, so a replacement that did not hold in the browser
+would fail here:
+
+```
+  ✓   9 [system-chrome] › tests/lifetime-tax-federal.spec.mjs:77:1 › Regression: SCN-021-005 long term gains stack on ordinary income (1.9s)
+  ✓  11 [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:136:1 › Regression: SCN-021-009 unsupported thresholds are named unavailable contributors and the curve is labeled incomplete (2.9s)
+  ✓  16 [system-chrome] › tests/lifetime-tax-route.spec.mjs:290:1 › Regression: SCN-021-015 a private export happens only on explicit action and the request ledger stays empty (684ms)
+
+  16 passed (11.4s)
+PW_EXIT=0
+```
+
+Zero failed and zero skipped across all sixteen.
+
+**Verdict.** Clause 1 was closed at pass 6 and is unchanged. Clause 2 is now
+delivered for all six derive entries and re-proven for the retained six in the same
+command, both halves of the item's command were executed this pass, and both
+adversarial demonstrations fire inside the command that reports them. Finding
+**F-01-S** is closed and DoD item 12 is ticked.
+
 ## Change Boundary
 
 ### Verification pass 6 — 2026-08-20 — DoD item 11 re-derived against the restated limbs: 1(a), E2, E3 and limb 2 HOLD; E1 is FALSE (finding F-01-R)

@@ -558,10 +558,24 @@ RED.
     two conditions above assert that property directly, so a foreign commit no
     longer breaks the limb while a Feature 022 edit to an excluded path still
     does. This supersedes the wording that produced finding **F-01-N**.
-- [ ] All twelve owned supersessions are delivered — SUP-022-01, -02, -04, -05,
+- [x] All twelve owned supersessions are delivered — SUP-022-01, -02, -04, -05,
       -06, -07, -09, -11, -12, -13, -17 and -21 — each carrying its `SUP-022-NN`
       marker, each marker naming its shape and recording the clause it superseded,
       and marker↔ledger closure passing in both directions.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-01-16 browser command · **Evidence:** `report.md#supersession-ledger`, `report.md#tp-01-20`, `report.md#tp-01-21`, `report.md#verification-pass-6--2026-08-20--dod-item-12-clause-1-now-holds-after-a-real-marker-defect-was-found-and-fixed-clause-2-is-not-delivered-finding-f-01-s`, `report.md#verification-pass-7--2026-08-20--dod-item-12-clause-2-is-now-delivered-both-clauses-hold`
+  - **Closed at verification pass 7.** Clause 2 is now built. `TP-01-23` reads each
+    derive marker's superseded clause out of the tree at run time and evaluates it
+    against the shipped pack: five of the six are **false** and SUP-022-04's — whose
+    count clause still holds at eighteen — is shown **vacuous** instead, a notice set
+    substituted at constant length satisfying the count while failing the set
+    identity that replaced it. Every compared quantity is derived from the pack, so
+    a pack edit moves the verdict. Two intended REDs were captured and reverted
+    inside the invocation that applied them: perturbing SUP-022-17's binding token
+    named `unbound: 17`, and forcing SUP-022-04's verdict to `false` produced
+    `holds=true`, proving the evaluator can report NOT displaced rather than handing
+    out falsity by construction. The retained six were re-run in the same command via
+    `TP-01-21`, and the browser half of the command ran with sixteen passed and none
+    skipped — the two halves pass 6 recorded `not-run`. Finding **F-01-S** is closed.
 
       **Strength is proven against the tree as it stands, not against a prior run.**
       For each of the six retained-branch entries — SUP-022-02, -05, -06, -11, -12
@@ -577,23 +591,6 @@ RED.
       adversarial case the ledger names is demonstrated to fail against a
       deliberately broken artifact within the same run, rather than asserted from a
       past red run that cannot be re-executed.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-01-16 browser command · **Evidence:** `report.md#supersession-ledger`, `report.md#tp-01-20`, `report.md#tp-01-21`, `report.md#verification-pass-6--2026-08-20--dod-item-12-clause-1-now-holds-after-a-real-marker-defect-was-found-and-fixed-clause-2-is-not-delivered-finding-f-01-s`
-  - **Open — clause 1 now holds, clause 2 is not built; finding F-01-S.** The
-    restatement made the item answerable: the two clauses **F-01-L** called
-    unverifiable against a squashed history are gone. Clause 1 is now proven, and
-    it did not hold when verification pass 6 began — a census against this scope's
-    own ledger table found SUP-022-07's marker declaring `shape=partition` where
-    the ledger and this item's own family list both call it a derive, and the
-    region retains no branch, so the marker was wrong and was corrected. The gap
-    that hid it is closed additively: `TP-05-22` reads marker ids only, so a new
-    `TP-01-22` was added beside it, left `TP-05-22` byte-identical, and named the
-    real disagreement on its first run with no mutation planted. Clause 2 remains
-    undelivered — no assertion restates a derive entry's superseded clause against
-    the current tree to show it false or vacuous, and `TP-01-21`'s retained-branch
-    evidence was not re-run this pass. Five of the six derive markers now carry an
-    evaluable verbatim original, which is the input **F-01-L** said clause 2 would
-    need; SUP-022-07's is still descriptive and must be restated in evaluable form
-    first.
   - **Why this shape.** The superseded wording required each replacement to have
     been "seen to fail against the unchanged implementation" and to be "at least as
     strong as the clause it superseded". Both need an artefact the repository does

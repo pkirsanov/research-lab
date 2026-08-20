@@ -1,9 +1,11 @@
 # Scopes: BUG-009 — Decision-Attention Gate-Result Producer Absent
 
-**No DoD box in this file is checked.** This packet is `blocked` on an owner decision
-and has implemented nothing. Every scope below is `[ ] Not started`. The boxes are
-the acceptance conditions a future remedy must satisfy, recorded so the owner
-decision has a concrete target.
+**Every DoD box in this file is checked, and all four scopes read `Status: Done`.**
+Remedy R4 was selected and implemented; the feed publishes. The boxes below were
+written as the acceptance conditions a remedy would have to satisfy, and they are
+now closed against executed evidence rather than intent. Two things remain open and
+are recorded as such: Gate G136 (human acceptance) is the owner's to sign, and the
+detection band values were drafted under delegation without owner review.
 
 ---
 

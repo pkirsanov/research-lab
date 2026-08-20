@@ -32,11 +32,26 @@ and this packet does not claim they have.
 
 ## Completion Statement
 
-**NOT COMPLETE. NOTHING WAS IMPLEMENTED.** Status is `blocked` and is truthful and
-non-terminal. No source file was modified. No test was added. No DoD box is checked
-in [scopes.md](scopes.md) across all four scopes. No certification field asserts
-anything. Candidate remedies R1–R5 are enumerated in [design.md](design.md) §4 and
-**none is selected**.
+**DELIVERED, NOT CERTIFIED.** Status is `in_progress`, which is truthful and
+non-terminal: the remedy shipped and the feed publishes, but Gate G136 (human
+acceptance) is unsigned and is the owner's alone to sign.
+
+Remedy **R4 was selected** and implemented. `rlattentiongate.js` produces the
+observed half from committed state; `attention-detection-policy/v1` in
+`market-brief.config.json` holds the bands; five rendered-instruction contracts
+keep the authoring instruction derived from what the publication gate enforces.
+All DoD boxes across the four scopes are `[x]`, and each of the four scopes
+carries `Status: Done`. The 2026-08-20 04:08 EDT generation composed **3 items**
+(`QQQ`, `VGT`, `FETH`), and an independent audit confirmed they reach
+`market-brief.page.json` and not merely the payload.
+
+**What is NOT claimed.** The detection band values were drafted under explicit
+operator delegation and have NOT been reviewed by the owner. AC-2 is therefore
+owner-blocked, not met. Gate G022 also blocks: several phases were executed
+directly by `bubbles.bug` under that same authorization rather than dispatched to
+specialists, and `executionHistory` records that rather than dressing it up.
+Specialists WERE dispatched for regression, design, security and audit, and each
+returned findings that changed the delivery.
 
 Every claim below is tagged with its provenance. **Claim Source: `executed`** means
 the command was run in this session and the output is reproduced verbatim.
@@ -402,7 +417,9 @@ The gate was correct on every reading; the diagnosis was wrong twice.
 **Net:** this packet adds only markdown and JSON under `specs/_bugs/BUG-009-…/` and
 modifies no source, no test, and no committed data artifact. After removing the
 quoted token, the only remaining failure is the concurrent session's `TP-01-11`.
-Final verification is recorded in §E13.
+Pre-delivery verification is recorded in §E13; it predates the remedy and is retained
+as the baseline that shows a green suite could coexist with a dead feed. The
+delivered-state evidence is `### Code Diff Evidence` and `### Scenario-first TDD`.
 
 This is written down rather than quietly tidied because a report that noted a green
 suite at §E6 and stayed silent about a red one afterwards would be misleading, and
@@ -419,7 +436,7 @@ The worktree path above uses the canonical `<repo-root>` placeholder. The `home-
 rule refuses a real account name or absolute home path on the committed surface, and
 the placeholder carries the same meaning for a reader without publishing either.
 
-### E13 — Final verification: the canonical gate is green with this packet present
+### E13 — Pre-delivery verification: the canonical gate was green while the feed was dead
 
 **Claim Source: `executed`**
 
@@ -453,9 +470,11 @@ Nothing is estimated. Documentation-only commits are excluded from this table an
 counted separately, so artifact prose is not presented as delivered code.
 
 ```text
-$ for sha in 92da4a953 ea2ca8f8e 19a678a30 25da136ff 453ab8220 d893d5449 9d284318e 404aa32ce; do
+$ for sha in 8eec36f74 92da4a953 ea2ca8f8e 19a678a30 25da136ff 453ab8220 d893d5449 9d284318e 404aa32ce; do
     git --no-pager show --shortstat --format='%h %s' --no-color "$sha"; done
 
+8eec36f74 fix(BUG-009 R1): produce the observed half of a decision-attention item
+ 7 files changed, 527 insertions(+), 24 deletions(-)
 92da4a953 fix(BUG-009 R1): bind lane judgement to its instrument, correcting a producer that never would have run
  3 files changed, 56 insertions(+), 3 deletions(-)
 ea2ca8f8e fix(brief): tell the signals lane that attention is watchlist-scoped
@@ -474,7 +493,7 @@ d893d5449 fix(brief): hand the lane the eligible subjects instead of asking it t
  4 files changed, 42 insertions(+), 2 deletions(-)
 ```
 
-Eight code commits, 347 insertions and 18 deletions across `rlattention.js`,
+Nine code commits, 874 insertions and 42 deletions across `rlattention.js`,
 `rlattentiongate.js`, `scripts/build-attention-items.mjs`,
 `scripts/brief-narrative-parallel.mjs`, `scripts/selftest.mjs` and
 `tests/attention-payload-contract.test.mjs`. The shape of the delivery is worth

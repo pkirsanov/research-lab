@@ -79,9 +79,14 @@ days and roughly 32 publication windows with a green suite.
 
 ## 4. Acceptance criteria for a future remedy
 
-These are the conditions a remedy must satisfy. They are recorded so the owner
-decision has a target; **none is claimed to be met, and this packet meets none of
-them.**
+These are the conditions a remedy must satisfy. They were recorded so the owner
+decision had a target. **Remedy R4 shipped on 2026-08-20; the verdicts below are
+an independent audit's, not the delivering agent's.** AC-1, AC-3, AC-4, AC-5 and
+AC-7 are MET. AC-6 is met at name level only — the assertion exists and is named,
+but the audit did not re-prove it by removing the producer. **AC-2 is PARTIAL and
+owner-blocked:** the policy is declared in a committed artifact, but its band
+values were drafted under delegation and have not been owner-reviewed, so the
+"owner-approved" half is not claimed.
 
 - **AC-1** A named component on the publication path produces `gateResult` values,
   and every field of every emitted gate result traces to committed computed state
@@ -107,10 +112,16 @@ them.**
 
 ## 5. Explicit non-goals of this packet
 
-- Selecting a remedy. Candidates R1–R5 are enumerated in [design.md](design.md) §4
-  and none is selected.
-- Authoring detection thresholds, a disposition mapping, a severity scale, an
-  imminence model, or a transmission model.
+Two entries below were non-goals of the ORIGINAL document-and-route packet and were
+overtaken when the operator authorized delivery. They are corrected rather than
+deleted, so the change of scope stays visible:
+
+- ~~Selecting a remedy.~~ **Superseded 2026-08-20.** Candidates R1–R5 are enumerated
+  in [design.md](design.md) §4; **R4 was selected and implemented.**
+- ~~Authoring detection thresholds, a disposition mapping, a severity scale, an
+  imminence model, or a transmission model.~~ **Superseded 2026-08-20.** These were
+  authored as `attention-detection-policy/v1` under explicit operator delegation.
+  The values are deliberately conservative and are NOT owner-reviewed.
 - Editing `market-brief.payload.json`. It is regenerated four times a day; a hand
   edit would be a fabrication, not a fix.
 - Anything owned by `specs/026-actionable-brief-brevity-and-cross-asset/`: output
@@ -119,3 +130,33 @@ them.**
 - Adding a permanently-red assertion to `scripts/selftest.mjs`. That suite gates the
   Pages deploy; landing a red assertion would halt the release channel to document a
   finding this packet already documents in prose.
+
+## Domain Capability Model
+
+Proportionality applies, and it was not obvious at filing time. This packet opened
+as a single defect — the observed half of an attention item had no producer — and
+closing it required **seven consecutive instruction fixes**, six of which were the
+same move applied to a different contract. That repetition is the signal: the
+domain here is not "one missing producer" but **agreement between a publication
+gate and the instruction handed to the author it judges**.
+
+| Capability | Governed material | Concrete instances |
+| --- | --- | --- |
+| Observed-half production | committed Tier-A state → a gate result | severity, imminence, confirmation, disposition, figures |
+| Rendered-instruction contract | an enforcing constant → an authoring sentence | verb vocabulary, subject scope, authored keys, card budget, expiry format |
+| Refusal legibility | an exclusion record → reader-facing prose | quiet feed versus refused feed |
+
+The second capability is the one this packet discovered. It is modelled
+foundation-first in design.md `## Capability Foundation`, with its variation axes
+and its five concrete implementations recorded there. The governing rule is one
+sentence: **if the publication gate enforces a contract, derive the instruction
+from the enforcing constant — never restate it.** A restatement is correct the day
+it is written and silently wrong the first time the constant moves.
+
+Single-capability treatment was rejected because the five instruction contracts
+differ on axes that change their proof obligations — a finite set is handed over,
+a scalar cap is stated, a format is taught by an example proven against the
+enforcing predicate — and collapsing them would have produced one instruction that
+is checked loosely rather than five that are each checked by the assertion able to
+catch their own drift.
+

@@ -213,3 +213,68 @@ the operator-hosted wrapper, visible in the commit authorship
 
 This is recorded as `DISC-009-004` and must be resolved as part of any remedy that
 places attention production on the scheduled path (AC-7).
+
+---
+
+## Capability Foundation
+
+The proportionality triggers apply. Closing this bug required not one instruction
+fix but **seven consecutive ones**, each a different contract the publication gate
+enforced and the authoring instruction never stated. Six of those were fixed by the
+same move. That is a capability, not a coincidence, and it is modelled
+foundation-first.
+
+The foundation is the **rendered-instruction contract**: an authoring instruction
+is DERIVED from the very constant the publication gate refuses on, never restated
+alongside it. A restatement is correct on the day it is written and silently wrong
+the first time the constant moves — the gate arms, the sentence does not, and the
+author is refused over a value nobody offered them. This repository had already
+discovered the pattern once, for the §9 event keys, and left a comment saying so;
+this work generalised it rather than inventing a second approach.
+
+### Foundation contracts
+
+| Contract | Shape | Owner |
+| --- | --- | --- |
+| rendered-instruction | `() => string`, derived from an enforcing constant, interpolated into the lane template literal | `scripts/build-attention-items.mjs` |
+| offered-term matcher | `(terms[], instruction) => unofferedTerms[]`, whole-value match with a hyphen-safe boundary and regex-escaped terms | `scripts/build-attention-items.mjs` |
+| gate-vocabulary export | a frozen array or predicate re-exported from the enforcing module so instruction and refusal read ONE source | `rlattention.js` |
+
+### Foundation extension points
+
+- **A new enforced contract** joins by adding one renderer that reads its enforcing
+  constant, one interpolation in the lane, and one selftest pair asserting coverage
+  and consumption. No prose is rewritten.
+- **A vocabulary that gains a member** needs no artifact edit at all: the renderer,
+  the instruction and the gate all move together by construction.
+- **A guard that must prove its own example** uses the exported predicate rather
+  than a restated pattern, so instruction and gate cannot agree with themselves
+  while disagreeing with each other.
+
+### Variation Axes
+
+| Axis | Values observed | Why it varies |
+| --- | --- | --- |
+| Source of truth | code constant (`RESEARCH_VERBS`, `WATCHLIST_SCOPE`, `AUTHORED_JUDGEMENT_KEYS`); committed config (`output-budget/v1`); enforcing predicate (`isIsoInstant`) | The contract lives wherever it is enforced; the renderer follows it rather than relocating it |
+| Contract cardinality | finite set (verbs, subjects, keys, measured fields); scalar cap (per-card chars); format (expiry instant) | A finite set is HANDED OVER; a scalar is stated; a format is taught by a worked example proven against the enforcing predicate |
+| Proof obligation | coverage assertion; consumption assertion; example-validity assertion | What can drift differs per contract, so each renderer is pinned by the assertion that can actually catch its drift |
+| Prose coexistence | replaces prose (verbs, subjects); coexists with prose (authored keys) | `SCN-017-045` requires explanatory prose for the authored fields, so those keys carry both a meaning sentence and a rendered list, and deliberately carry no "no second copy" rule |
+
+## Concrete Implementations
+
+| Implementation | Enforcing constant | Refusal it prevents |
+| --- | --- | --- |
+| `attentionVerbContractInstruction` | `rlattention.RESEARCH_VERBS` | `RLATTN-VERB` |
+| `attentionSubjectMenuInstruction` | `WATCHLIST_SCOPE` | `RLATTN-PRIVACY` / unresolved subject |
+| `attentionAuthoredKeysInstruction` | `AUTHORED_JUDGEMENT_KEYS` | `RLATTN-PROVENANCE:rationale`, `RLATTN-FALSIFIABILITY:escalationTrigger` |
+| `attentionCardBudgetInstruction` | `output-budget/v1` | payload-budget refusal that discards the whole narrative |
+| `attentionExpiryFormatInstruction` | `rlattention.isIsoInstant` | `RLATTN-FALSIFIABILITY:expiry` |
+| `briefEventContractInstruction` (pre-existing) | event key constants | renamed event keys |
+
+`findUnofferedTerms` is the shared matcher behind the coverage assertions for four
+of these. It was extracted during the closing simplify pass, which also closed a
+latent defect the duplicated inline copies carried: they matched on `\b`, which
+finds `scenario` inside `scenario-test` and would report a hyphenated member as
+offered when it never was. The extracted version also regex-escapes each term,
+which the original verb matcher did not.
+

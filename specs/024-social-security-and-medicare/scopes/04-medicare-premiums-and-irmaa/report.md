@@ -886,3 +886,52 @@ offset stops being read from the pack — while the shipped pack, whose own offs
 happens to equal the planted literal, keeps agreeing. That is precisely the
 coincidence the fixture's three-year offset is there to break.
 
+### Probe 6 — a zero substituted for an unretrieved figure
+
+Mutation: `figureAmount` returned `0` instead of `null` for a figure the pack
+does not carry. One code literal, no figure.
+
+```
+$ node scripts/selftest.mjs
+  ✗ FAIL (Feature 024 Scope 04 medicare group threw): Cannot read properties of undefined (reading 'quotedOffsetBasis')
+Research-Lab self-test: 3084 passed, 1 failed
+$ git checkout -- rltaxmedicare.js
+DIRTY_AFTER_REVERT=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3106 passed, 0 failed
+```
+
+**Second instance of the same harness fragility, and a latent module defect it
+exposes.** The pass count fell by twenty-two against one reported failure, so
+twenty-one assertions were abandoned rather than failed. The throw is in
+`requiredLookbackYear`: once the amount check stops short-circuiting on a missing
+offset, `isNonEmptyString(offset.quotedOffsetBasis)` reads a member off a value
+that is not an object. In the shipped module that line is unreachable, because a
+missing offset returns before it. It is recorded as a latent ordering dependency
+rather than repaired, because repairing it is outside this scope's Change
+Boundary and no shipped behaviour reaches it. No per-row RED is claimed from this
+probe. Probe 6a narrows to the same claim without the throw.
+
+### Probe 6a — an unavailable premium leg silently skipped in the total
+
+Mutation: in `annualMedicareCost`, the branch that withholds the total when a
+declared part is unavailable became `continue`, so the unavailable leg is skipped
+and the remaining parts are totalled. One control-flow term, no figure.
+
+```
+$ node scripts/selftest.mjs
+  ✗ FAIL: TP-04-09: the shipped pack’s unretrieved Part D standard premium refuses with RLTAX-THRESHOLD-UNAVAILABLE, no 
+  ✗ FAIL: TP-04-10: a leg whose figure is absent is refused even though it declares includedInTotal false, proving false
+Research-Lab self-test: 3104 passed, 2 failed
+$ git checkout -- rltaxmedicare.js
+DIRTY_AFTER_REVERT=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3106 passed, 0 failed
+```
+
+**Intended RED recorded for TP-04-09 and TP-04-10.** Both rows exist to prove an
+unretrieved figure withholds the total rather than being quietly dropped from it,
+and both fail on exactly that substitution — an understated annual Medicare cost
+that looks complete. TP-04-10 additionally proves that `includedInTotal: false`
+is not a route that carries a refusal past a total, and it too fails here.
+

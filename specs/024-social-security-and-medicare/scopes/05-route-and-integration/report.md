@@ -175,8 +175,8 @@ proven to fire on a sentence that does state such a claim.
 
 ## Findings Raised And Not Fixed Here
 
-Two things were observed that this scope does not own. Neither was patched, and
-neither is hidden.
+Three things were observed that this scope does not own. None was patched, and
+none is hidden.
 
 1. **The interim leg-render identities cannot be converted.** `renderSimple` draws
    the benefit and the taxable portion into `#headlineBlock` through the general
@@ -202,6 +202,21 @@ neither is hidden.
    every figure in Simple is **either** a declared Simple field **or** a figure of a
    leg the settled record declares — with both halves proven non-vacuous. The prior
    file was not opened.
+3. **`SCN-024-013`'s declared browser household cannot decide the headline-source
+   clause.** `TP-05-19` names two behaviours, and only the first can be made to
+   fail. A probe that replaces the headline's source with a single leg leaves the
+   scenario passing even after the additive strengthening that reads the headline
+   figure, because the household this scenario declares gives no guarantee that the
+   preferential, net-investment-income and additional-Medicare legs are non-zero —
+   the guarantee `TP-05-01` imposes on the unit fixture. When those legs settle to
+   zero the sum of the legs the headline names equals the ordinary leg, so the
+   substitution is not observable from the page at all. What would fix it is a
+   fixture for `SCN-024-013` whose non-ordinary legs are each non-zero and mutually
+   distinct. That is a change to the scenario's **declared inputs** and belongs to
+   `bubbles.plan`; this pass did not author it and did not loosen the assertion to
+   work around it. The identical substitution is detected at unit level by
+   `TP-05-05`, so the defect is observed by the suite — it is this browser
+   scenario's household that cannot see it.
 
 ## Scenario Evidence
 

@@ -814,3 +814,75 @@ Research-Lab self-test: 3106 passed, 0 failed
 FR-024-023 — the resolver must have nowhere to put a current-year figure — and it
 fails the moment a parameter is opened that a caller could put one in.
 
+### Probe 5 — a coarse probe that found a real coverage hole
+
+Mutation: two disjoint defects at once — `requiredYear` computed as
+`policy.premiumYear - 2` from a code literal instead of the pack's own offset,
+and the word `offset` dropped from the undeclared-lookback refusal.
+
+```
+$ node scripts/selftest.mjs
+  ✗ FAIL (Feature 024 Scope 04 medicare group threw): Cannot read properties of undefined (reading 'bracketIndex')
+Research-Lab self-test: 3082 passed, 1 failed
+$ git checkout -- rltaxmedicare.js
+DIRTY_AFTER_REVERT=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3106 passed, 0 failed
+```
+
+**Finding, recorded rather than banked as a RED.** The pass count fell from 3106
+to 3082 against a single reported failure. Twenty-three assertions did not fail —
+they never ran. Hardcoding the offset makes the fixture pack's declared lookback
+year disagree with the year the arithmetic now requires, so the fixture premium
+legs resolve to a refusal; the group then reads `.bracket.bracketIndex` off that
+refusal, throws, and every later assertion in the Feature 024 Scope 04 medicare
+group is abandoned silently. The group has no per-assertion isolation, so one
+refusing shape can take out the tail of the group without any row reporting it.
+This is the same class of fragility SUP-024-12 records for the curve group. It is
+recorded here as a real limitation of the harness rather than absorbed, and no
+per-row RED is claimed from this probe — a throw names no row.
+
+Probes 5a and 5b split the two defects so each row's RED is attributable.
+
+### Probe 5a — the undeclared-lookback refusal stops naming the offset
+
+Mutation: in `rltaxmedicare.js`, the `RLTAX-INPUT-INCOMPLETE` reason said
+`declared lookback of` instead of `declared lookback offset of`. One word in a
+string literal, no figure.
+
+```
+$ node scripts/selftest.mjs
+  ✗ FAIL: TP-04-04: an undeclared lookback refuses RLTAX-INPUT-INCOMPLETE naming the exact year required and the offset 
+Research-Lab self-test: 3105 passed, 1 failed
+$ git checkout -- rltaxmedicare.js
+DIRTY_AFTER_REVERT=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3106 passed, 0 failed
+```
+
+**Intended RED recorded for TP-04-04.** The row requires the refusal to tell the
+household both the year required and the offset that produced it, and it fails on
+the loss of the offset alone, with the year still named.
+
+### Probe 5b — the published offset becomes a module constant
+
+Mutation: `offsetYears: offsetValue` became `offsetYears: 2`, a code literal.
+`requiredYear` was left reading the pack, so the fixture path still resolves and
+the group does not throw.
+
+```
+$ node scripts/selftest.mjs
+  ✗ FAIL: TP-04-05: a fixture pack declaring a three-year offset produces a required year three years back while the shi
+Research-Lab self-test: 3105 passed, 1 failed
+$ git checkout -- rltaxmedicare.js
+DIRTY_AFTER_REVERT=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3106 passed, 0 failed
+```
+
+**Intended RED recorded for TP-04-05.** The row exists to prove the offset is a
+pack member rather than a module constant, and it fails the moment the published
+offset stops being read from the pack — while the shipped pack, whose own offset
+happens to equal the planted literal, keeps agreeing. That is precisely the
+coincidence the fixture's three-year offset is there to break.
+

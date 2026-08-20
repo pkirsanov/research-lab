@@ -935,3 +935,83 @@ and both fail on exactly that substitution — an understated annual Medicare co
 that looks complete. TP-04-10 additionally proves that `includedInTotal: false`
 is not a route that carries a refusal past a total, and it too fails here.
 
+**Baseline note.** From this point on the green baseline is `3109 passed,
+0 failed` rather than `3106 passed, 0 failed`. A concurrent session is adding
+assertions to the shared suite while these probes run, so the pass count drifts
+upward between probes. The quantity every probe below is read on is the **failure
+count and the named failing rows**, which no concurrent addition can move.
+
+### Probe 7 — the annual cost declares itself part of the tax
+
+Mutation: in `annualMedicareCost`, the published record carried
+`includedInTotal: true`. One boolean literal, no figure.
+
+```
+$ node scripts/selftest.mjs
+  ✗ FAIL: TP-04-11: the three premium legs are declared includedInTotal false, all three resolve to mutually distinct no
+Research-Lab self-test: 3108 passed, 1 failed
+$ git checkout -- rltaxmedicare.js
+DIRTY_AFTER_REVERT=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3109 passed, 0 failed
+```
+
+**Intended RED recorded for TP-04-11.** The row fails the moment the separately
+published Medicare cost claims to be part of the federal tax total, which is the
+single claim FR-024-026 turns on.
+
+### Probe 8 — the exclusion term dropped from the settlement sum
+
+Mutation: in `rltax.js`, `sumDeclaredLegs` summed
+`if (!legUnavailable) total += record.value;` — the `leg.includedInTotal === true`
+term removed. One term of a local sum, no figure.
+
+```
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3109 passed, 0 failed
+$ git checkout -- rltax.js
+DIRTY_AFTER_REVERT=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3109 passed, 0 failed
+```
+
+**Survived, and the reason is a finding worth stating plainly.** Not one
+assertion in the whole repository moved when the exclusion term was deleted from
+the settlement sum. The term is behaviourally inert: every leg every shipped and
+fixture pack declares carries `includedInTotal: true`, and the three premium legs
+never reach `sumDeclaredLegs` at all — they are concatenated onto the published
+leg set *after* that function has returned, as the comment at that site states.
+So the exclusion of a premium leg from `totalFederalTax` is **positional**, and
+the `includedInTotal` filter inside the sum is guarded by no test in this suite.
+
+This does not weaken FR-024-026 — positional exclusion is the stronger of the two
+mechanisms, because there is no filter to edit away — but it does mean the DoD
+phrase "the `L4` filter removes exactly three legs" describes a filter that never
+sees those three legs. Recorded here rather than papered over. Probe 8a mutates
+the mechanism that is actually load-bearing.
+
+### Probe 8a — the cost legs published as part of the total
+
+Mutation: in `rltax.js`, the appended cost legs were published with
+`includedInTotal: true` instead of carrying their own declaration. One boolean
+literal, no figure.
+
+```
+$ node scripts/selftest.mjs
+  ✗ FAIL: TP-04-12: the includedInTotal filter removes exactly the three premium legs, the sum over included l
+  ✗ FAIL: TP-04-13: flipping each premium leg to includedInTotal true in turn is carried through to the publis
+  ✗ FAIL: TP-04-14: with no lookback declared the ordinary-only, preferential-bearing and wage-and-surtax-bear
+  ✗ FAIL: TP-04-18: against the all-non-zero fixture the settled record’s declared leg set equals the leg set 
+  ✗ FAIL: TP-04-19: removing each of the three premium legs from each of the four surfaces in turn fails the i
+  ✗ FAIL: TP-05-07: the three premium legs reach the settled leg record with includedInTotal false, the federa
+Research-Lab self-test: 3103 passed, 6 failed
+$ git checkout -- rltax.js
+DIRTY_AFTER_REVERT=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3109 passed, 0 failed
+```
+
+**Intended RED recorded for TP-04-12, TP-04-14, TP-04-18 and TP-04-19**, and
+re-observed for TP-04-13. TP-05-07 in the next scope fails on the same defect,
+which is recorded there rather than claimed here.
+

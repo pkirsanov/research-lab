@@ -3134,6 +3134,197 @@ No file was mutated during this verification; every step was read-only.
 
 ## Change Boundary
 
+### Verification pass 6 — 2026-08-20 — DoD item 11 re-derived against the restated limbs: 1(a), E2, E3 and limb 2 HOLD; E1 is FALSE (finding F-01-R)
+
+**Claim Source:** executed. **Outcome: the item stays `[ ]`.** The restatement
+`bubbles.plan` supplied fixed the defect finding **F-01-Q** named — limb 1(b) no
+longer uses whole-list disjointness, and `1a2f1c00b` no longer breaks it. Every
+clause of the restated limb was re-derived against the tree as it stands. Three of
+the four 1(b) clauses hold, limb 1(a) holds and limb 2 holds. **Group E1 does not**,
+and it fails absolutely rather than marginally, so nothing downstream can rescue it.
+
+**Limb 1(a) — working tree and index. HOLDS.** Four excluded paths are dirty and
+all four are foreign, carrying neither marker nor subject:
+
+```
+$ git --no-pager diff --name-only -- <excluded list>
+briefs/history-current.json
+briefs/history/recommendations/2026-08.jsonl
+market-brief.owner-reads.json
+notes/README.md
+$ git --no-pager diff --cached --name-only -- <excluded list>
+                                              (empty)
+$ git --no-pager diff -- <excluded list> | grep -c 'SUP-022'
+0
+$ git --no-pager diff --cached -- <excluded list> | grep -c 'SUP-022'
+0
+$ git --no-pager diff -U0 -- <excluded list> | grep -E '^[+-][^+-]' \
+    | grep -icE 'bracket|breakpoint|filing.?status|marginal.?rate|capital.?gain|qualified.?dividend|tax.?year|tax.?authority|taxable.?income|standard.?deduction|preferential'
+0
+$ ... | grep -icE '\brate\b'
+0
+```
+
+Zero markers and zero tax-domain tokens across every changed line, added or
+removed. Feature 022's whole subject is tax rules and their provenance, so an
+uncommitted hunk carrying none of it is not this scope's. The clause is satisfied
+in the direction it was written to protect.
+
+**Limb 1(b) group E1 — frozen product surfaces. FALSE.** The clause admits **no
+commit at all**. Eleven exist:
+
+```
+$ git rev-list --count b9d92a3f1..HEAD -- <group E1>
+11
+$ git --no-pager log --oneline b9d92a3f1..HEAD -- <group E1>
+7f15a2a4c chore(bubbles): sync framework to 98eb67d
+7b9746155 chore(bubbles): upgrade framework to 90c070c
+3013ce4cb chore(bubbles): upgrade framework to v7.28.0 (56a17a8)
+fa34eedb8 chore(bubbles): upgrade framework to 60ba5e3 (IMP-053 action-risk fail-closed)
+5cecbc374 chore(bubbles): update framework to 7.28.0 (8733124)
+20d1ab901 chore(bubbles): framework 7.28.0 (1c5fa35) agent and generated docs
+7dbcdf059 chore(bubbles): update framework to 7.28.0 (1c5fa35)
+1cc06cf49 chore(bubbles): update framework to 7.28.0 (2f6c6c4)
+b74cdda0a chore(bubbles): update framework to 7.28.0 (76a3739)
+7d235f030 chore(bubbles): update framework to 7.28.0 (32cbc57)
+e632d140a chore(bubbles): update framework to 7.28.0 (7ec18a1)
+```
+
+**Where in E1 they land, and where they do not.** Group E1 is two unlike things
+under one name: eight product paths, and the open-ended clause *every
+framework-managed file*. Splitting the same range on that seam decides it:
+
+```
+$ git rev-list --count b9d92a3f1..HEAD -- rltax.js rltaxworkspace.js rltaxstrategy.js \
+    <the two unopened Feature 021 test files> rlportfolio.js rlportfolioanalytics.js \
+    portfolio-survival-allocation.config.json
+0
+$ git rev-list --count b9d92a3f1..HEAD -- <the framework-managed directories>
+11
+```
+
+Every one of the eleven was then re-examined for a product path of its own:
+
+```
+7f15a2a4c product_paths=0     7dbcdf059 product_paths=0
+7b9746155 product_paths=0     1cc06cf49 product_paths=0
+3013ce4cb product_paths=0     b74cdda0a product_paths=0
+fa34eedb8 product_paths=0     7d235f030 product_paths=0
+5cecbc374 product_paths=0     e632d140a product_paths=0
+20d1ab901 product_paths=0
+```
+
+**`rltax.js` never moved.** Neither did the workspace module, the strategy module,
+either unopened Feature 021 test file, or any of Feature 008's three files. The
+engine edit E1 was restated to catch — named in the scope's own worked example as
+"this scope's most consequential forbidden edit" — did not happen, and E1's
+product half proves it at zero.
+
+**Why this is a defect in the clause rather than a breach by this scope.** E1
+justifies its absoluteness with a stated premise: *"No automation writes any of
+them and no other active feature arc has business in them, so a commit touching
+one is this scope's to explain whatever its subject claims."* That premise is true
+of the eight product paths and **false of the framework-managed clause**. Framework
+files have a dedicated automated writer — the framework installer — which is the
+sole author of all eleven commits, none of which any feature arc initiated and
+none of which touches a line of product. E1 therefore inherits exactly the failure
+mode finding **F-01-N** already recorded once: a clause that a foreign, scheduled,
+non-feature writer re-falsifies on its own cadence, while the property it protects
+stays intact throughout. The restatement moved that instability out of limb 1's
+enumeration and into E1's membership list without noticing it had travelled.
+
+This is recorded as finding **F-01-R** and is a requirement-text decision, so it is
+routed rather than taken here. **What would make the clause decidable:** split E1's
+absolute no-commit clause so it ranges over the eight product paths only, and give
+framework-managed files an E2-shaped attribution test — disjointness from this
+scope's owned product surfaces plus no added `SUP-022-` line — since they churn
+under a foreign automated writer exactly as the E2 registry surfaces do. Under
+that split, every clause above already passes on the evidence in this pass, and
+the engine-edit case E1 exists to catch still fails on the first command.
+
+**Limb 1(b) group E2 — shared registry and generated surfaces. HOLDS.**
+
+```
+$ git --no-pager log --oneline b9d92a3f1..HEAD -- <group E2> | wc -l
+25
+$ git --no-pager log --oneline b9d92a3f1..HEAD -- <this scope's owned product surfaces> | wc -l
+5
+$ comm -12 <(git rev-list ... <group E2> | sort) <(git rev-list ... <owned surfaces> | sort) | grep -c .
+0
+$ (no commit adds a SUP-022- line to any E2 path)
+E2_MARKER_VIOLATIONS=0
+```
+
+The two commit sets are disjoint, so no commit both edited a registry or generated
+surface and edited `rltaxrules.js`, the federal pack, the lab page, this scope's
+fixtures or its Playwright spec. No `SUP-022-` marker was added to an E2 path.
+`scripts/selftest.mjs` and the four opened Feature 021 test files were correctly
+excluded from the owned-surface set, per the clause's own instruction.
+
+**Limb 1(b) group E3 — foreign evidence and documentation. HOLDS.** Exactly one
+commit touches both this feature's spec directory and an E3 path, and it is the
+one the scope text already names:
+
+```
+COMMITS_TOUCHING_BOTH=1
+1a2f1c00b docs(021,022): record DoD evidence
+    added_SUP022=0        removed_FR_NFR=0
+    x_to_blank=0          blank_to_x=4        added_ClaimSource=12
+```
+
+No requirement was captured: nothing added a `SUP-022-` line, nothing deleted or
+reworded an `**FR-` or `**NFR-` line, and nothing flipped a checkbox from `[x]`
+back to `[ ]`. The four `[ ]`→`[x]` flips are paired **per file**, which is how the
+clause states it:
+
+```
+specs/021-lifetime-tax-strategy-lab/scopes/01-.../report.md   flips=0 claimsource=1
+specs/021-lifetime-tax-strategy-lab/scopes/01-.../scope.md    flips=1 claimsource=1
+specs/021-lifetime-tax-strategy-lab/scopes/05-.../report.md   flips=0 claimsource=7
+specs/021-lifetime-tax-strategy-lab/scopes/05-.../scope.md    flips=3 claimsource=3
+```
+
+Every file carrying a flip carries at least as many added `Claim Source:` lines.
+This is Feature 021 closing Feature 021's own DoD with Feature 021's own executed
+evidence, which is what E3 was restated to permit and what the superseded
+disjointness wording wrongly refused.
+
+**Limb 2 — confinement. HOLDS, exactly and in both directions.** The census over
+the five opened files returns the distribution `design.md` assigns, and no more:
+
+```
+scripts/selftest.mjs               SUP-022-01 -02 -04 -05 -06 -11   (Scope 01's six)
+tests/lifetime-tax-federal.spec.mjs    SUP-022-07 -21
+tests/lifetime-tax-foundation.spec.mjs SUP-022-09 -12
+tests/lifetime-tax-marginal.spec.mjs   SUP-022-13
+tests/lifetime-tax-route.spec.mjs      SUP-022-17
+```
+
+The other markers those files carry — `-03`, `-08`, `-10`, `-14`, `-20`, `-22`,
+`-15`, `-16` — are other scopes' entries and are not Scope 01's to place. The
+reverse direction was run marker by marker over every tracked `.mjs`/`.js`: each
+of the twelve appears in the single file the table names for it and in no other.
+Both files the boundary forbids carry zero:
+
+```
+tests/lifetime-tax-conversion.spec.mjs count=0
+tests/lifetime-tax.support.mjs         count=0
+```
+
+(The reverse census also surfaced `.first-load-fix-worktree/scripts/selftest.mjs`.
+That path is an untracked scratch worktree belonging to a concurrent session, not a
+tracked repository file, so it is outside the census set and outside this scope.)
+
+**Limb 3 — behavioural invariance. NOT RE-RUN this pass, and deliberately not
+claimed.** Its `--grep "SCN-021-"` browser command was not executed here. It was
+verified holding at verification pass 5 and nothing in this pass disturbed it — no
+file was modified — but a prior pass's result is not this pass's evidence, so it is
+recorded as `not-run` rather than carried forward as green. It could not change the
+outcome in any case: E1 is false, and the item is conjunctive.
+
+**Net.** Limb 1(a) holds. Limb 1(b) holds on E2 and E3 and is false on E1. Limb 2
+holds. Limb 3 not run. The item stays `[ ]` on finding **F-01-R**.
+
 ### Verification pass 5 — 2026-08-19 — DoD item 11: limbs 1(a), 2 and 3 HOLD, limb 1(b) FAILS on a real overlap (finding F-01-Q)
 
 **Claim Source:** executed. **Outcome: the item stays `[ ]`. Three of four limbs are

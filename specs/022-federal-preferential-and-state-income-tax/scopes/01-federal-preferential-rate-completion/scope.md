@@ -482,15 +482,26 @@ RED.
       SCN-021-015 pass in full under titles the `--grep` contract still matches. A
       Feature 021 expectation silently changed outside a marker moves one of those
       results and fails this limb.
-  - **Phase:** implement · **Command:** `git diff` and `git diff --cached` over the excluded list, `git log b9d92a3f1..HEAD` over group E1, over group E2 against this scope's owned product surfaces, and over group E3 against `specs/022-federal-preferential-and-state-income-tax/**`, a `SUP-022-NN` census over the five opened files, `node scripts/selftest.mjs`, and `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-" --reporter=list` · **Evidence:** `report.md#change-boundary`, `report.md#tp-01-16`
-  - **Open — limb 1(b) restated, not yet re-verified.** Finding **F-01-Q** stands
-    as recorded: against the wording it tested, limb 1(b) genuinely failed, and
-    `bubbles.test` was right to leave it open rather than dissolve it. The
-    requirement-text decision it routed here is taken: **limb 1(b) was testing the
-    wrong property**, and the restatement above tests the right one. The item stays
-    `[ ]` until `bubbles.test` re-runs all four limbs against the restated text and
-    records the result. Limbs 1(a), 2 and 3 were verified to hold at verification
-    pass 5 and are not disturbed by this change.
+  - **Phase:** implement · **Command:** `git diff` and `git diff --cached` over the excluded list, `git log b9d92a3f1..HEAD` over group E1, over group E2 against this scope's owned product surfaces, and over group E3 against `specs/022-federal-preferential-and-state-income-tax/**`, a `SUP-022-NN` census over the five opened files, `node scripts/selftest.mjs`, and `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-" --reporter=list` · **Evidence:** `report.md#change-boundary`, `report.md#tp-01-16`, `report.md#verification-pass-6--2026-08-20--dod-item-11-re-derived-against-the-restated-limbs-1a-e2-e3-and-limb-2-hold-e1-is-false-finding-f-01-r`
+  - **Open — E1 is false against the tree; finding F-01-R.** The restatement did
+    fix what finding **F-01-Q** named: limb 1(b) no longer uses whole-list
+    disjointness, and `1a2f1c00b` no longer breaks it. Re-derived at verification
+    pass 6, limb 1(a) holds, E2 holds, E3 holds and limb 2 holds exactly and in
+    both directions. **Group E1 does not.** It admits no commit at all and eleven
+    exist — every one a framework-installer sync, none touching a line of product.
+    Split on its own seam, E1's eight product paths return **zero** commits, so
+    `rltax.js` and the rest never moved and the engine edit E1 was written to catch
+    did not happen. What is false is E1's stated premise, *"No automation writes
+    any of them"*: it is true of the eight product paths and false of the
+    open-ended *every framework-managed file* clause, which has a dedicated
+    automated writer. That is finding **F-01-N**'s failure mode arriving in a new
+    place. **What would make it decidable:** range E1's absolute no-commit clause
+    over the eight product paths only, and give framework-managed files the
+    E2-shaped attribution test — disjointness from this scope's owned product
+    surfaces plus no added `SUP-022-` line — since they churn under a foreign
+    automated writer exactly as the E2 surfaces do. This is a requirement-text
+    decision and is routed to `bubbles.plan` rather than taken here. Limb 3 was not
+    re-run this pass and is recorded `not-run`, not carried forward.
   - **Why limb 1(b) no longer uses whole-list disjointness.** The superseded
     wording used commit-set disjointness as a proxy for *no product surface of one
     feature was changed by the other*. The proxy assumed commit membership is a

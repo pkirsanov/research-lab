@@ -347,16 +347,31 @@ all. A syntax error, a missing browser or an absent test does not satisfy RED.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
 - [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
-  - **NOT SATISFIED.** Same-command GREEN is recorded for every row: the full
-    selftest and the full browser suite both run clean and their verbatim output
-    is in `report.md#gate-results`. Intended-RED was captured and recorded for
-    `SUP-023-12` and for the four assertions that failed on first execution
-    (TP-03-07, TP-03-12, TP-03-13, TP-03-14), each of which was seen to fail
-    before it was seen to pass. It was NOT separately captured for every one of
-    the remaining Test Plan rows, because those rows were written against an
-    implementation that already existed by the time they ran. Recording a RED I
-    did not observe would be fabricated evidence, so the row stays open.
-  - **Phase:** implement · **Command:** the exact TP-03-01 through TP-03-25 commands · **Evidence:** `report.md#test-evidence`
+  - **Phase:** implement · **Command:** the exact TP-03-01 through TP-03-25 commands · **Evidence:** `report.md#per-row-intended-red-probes--partial-with-three-assertion-weaknesses-found`
+  - **STILL NOT SATISFIED, but materially advanced.** Same-command GREEN is
+    recorded for every row in `report.md#gate-results`. Intended RED is now
+    recorded for `TP-03-01`, `TP-03-03`, `TP-03-05`, `TP-03-09`, `TP-03-15` and
+    `TP-03-19` — six rows closed by four value-free mutation probes, each
+    reverted inside its own shell invocation and re-verified by SHA-256. With the
+    previously recorded `TP-03-07`, `TP-03-12`, `TP-03-13`, `TP-03-14` and
+    `SUP-023-12`, eleven rows now carry a RED.
+  - **Three assertions were shown to be too weak, and that blocks five rows.**
+    Renaming the rental leg id did not fail `TP-03-16` or `TP-03-17`; zeroing the
+    published disallowed total did not fail `TP-03-10` or `TP-03-11`, although
+    `TP-03-11` states that exact defect as the thing it catches; and emitting a
+    declaration member name to the console did not fail `TP-03-20`. Those five
+    rows cannot be given a RED until the assertions are strengthened, because a
+    mutation the assertion does not detect cannot produce one. Each miss is
+    recorded with its exact mutation and the SHA-256 of the run that observed it.
+  - **Not repaired here, deliberately.** Strengthening them means editing
+    `scripts/selftest.mjs`, which carries uncommitted changes from a concurrent
+    session; entangling this feature's evidence with in-flight foreign work is a
+    worse outcome than a precisely recorded gap.
+  - **Still owed:** `TP-03-02`, `TP-03-04`, `TP-03-06`, `TP-03-08`, `TP-03-10`,
+    `TP-03-11`, `TP-03-16` to `TP-03-18`, `TP-03-20`, the browser rows `TP-03-21`
+    to `TP-03-25`, and `TP-03-26` to `TP-03-28`. `TP-03-27` additionally has no
+    present GREEN: its command does not pass on the unmutated tree because of a
+    concurrent session's spec-027 references, which are not this feature's to fix.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths,
       and `node scripts/build-pages-site.mjs --dry-run` succeeds.

@@ -935,6 +935,18 @@ gap the first time the vocabulary moves: the gate would arm, the sentence would 
 again be refused over a value nobody offered. **Adding or retiring a research verb therefore needs no edit
 here and no edit to the lane** — change the vocabulary and both the refusal and the offer move together.
 
+**Why the authored fields are NAMED, not described — the lesson that closed BUG-009.** Two consecutive
+publishes were refused for writing an **incomplete** item rather than a bad one, and they dropped *different*
+fields: 02:26 EDT carried `escalationTrigger` and omitted `rationale`; 02:54 EDT, after `rationale` was added
+to the prose, carried it and omitted `escalationTrigger`. The field that went missing moved when the sentence
+moved. A sentence that DESCRIBES nine fields in words leaves the author to decide which literal keys reach
+the payload, while the composer reads exact key names. The key list is now rendered from
+`AUTHORED_JUDGEMENT_KEYS`. The explanatory prose stays, because it tells the author what each field *means*;
+the rendered list tells the author what each field is *called*. **The general rule, and the one worth
+carrying to any future lane: if the publish gate enforces a contract, derive the instruction from the
+enforcing constant — never restate it.** Every blocker between the gate producer landing and the feed
+publishing was the same defect wearing a different field name.
+
 ---
 
 ## 11. Artifacts, registry sync, validation

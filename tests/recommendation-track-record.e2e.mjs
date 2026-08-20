@@ -45,11 +45,17 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import { buildPublishSet } from '../scripts/brief-publication.mjs';
+import { loadInstrumentUniverse, recommendationRowsFromPayload } from '../scripts/recommendation-body.mjs';
+import { CLAIM_NOT_EVALUABLE_FIELD, attachClaimRefs, mintClaimRecords } from '../scripts/recommendation-claim-mint.mjs';
+import { buildRun } from './fixtures/feature-002/history/history-fixture-builder.mjs';
+
 import {
     REPO_ROOT,
     assertBytesUnchanged,
     assertEvaluable,
     assertRefusal,
+    committedSeries,
     foundationSourceText,
     loadClaimFixtures,
     loadClaimsModule,
@@ -867,4 +873,184 @@ test('T-03-R1: a resolved-flat outcome survives a full classify-route-summarise-
         'outcomeClass',
         'T-03-R1 legacy',
     );
+});
+
+/* =============================================================================================
+ * T-02-R1 — the scope 02 persistent regression, covering SCN-015-013, SCN-015-014, SCN-015-015.
+ *
+ * PERMANENT. One publish-and-append pass re-asserts all four properties end to end, so a later
+ * scope that back-fills, null-fills, or migrates a legacy row fails HERE rather than silently:
+ *   1. a v2 row references the claim minted in the SAME pass;
+ *   2. a v1 row and a v2 row are both valid under the dual-version reader, with the seven-field
+ *      projection byte-identical with and without claimRef;
+ *   3. the prior partition bytes are byte-identical after the append;
+ *   4. a resolution against a claimless row still fires RTR-LEGACY-BACKFILL — including the
+ *      complete, well-formed, plausible predicate a permissive implementation most wants through.
+ * =========================================================================================== */
+
+const R1_RUN_FINGERPRINT = claims.stableSha({ fixture: 'T-02-R1 run fingerprint' });
+const R1_OCCURRED_AT = '2026-07-14T12:40:00.000Z';
+const R1_PARTITION_REL = path.join('briefs', 'history', 'recommendations', '2026-07.jsonl');
+
+const R1_PLAUSIBLE_RESOLUTION = Object.freeze({
+    contractVersion: 'brief-recommendation-resolution/v1',
+    predicate: { kind: 'threshold', basis: 'close', comparator: 'lte', value: 100 },
+    horizon: { kind: 'next-session', resolutionDate: '2026-07-15' },
+    outcomeClass: 'satisfied',
+    outcomeValue: -2.4,
+    resolvedAt: '2026-07-15T20:00:00.000Z',
+});
+
+function r1EventIdFor(recommendationKey, index) {
+    return claims.stableSha({
+        contractVersion: 'brief-distributed-eventid/v1',
+        runFingerprint: R1_RUN_FINGERPRINT,
+        recommendationKey,
+        index,
+    });
+}
+
+function r1AuthoredAction(symbol) {
+    return {
+        action: 'trim',
+        subject: `Trim ${symbol} into the event print`,
+        horizon: 'next-session',
+        trigger: `${symbol} closes below 100`,
+        invalidation: `${symbol} closes above 120`,
+        deepLink: 'sector-research-lab.html',
+        confidence: 55,
+        claim: {
+            subjectKind: 'instrument',
+            resolvesTo: [symbol],
+            thesisFamily: 'positioning-unwind',
+            horizonKind: 'event-bound',
+            eventRef: 'fixture-event-2026-07-15',
+            predicate: { kind: 'threshold', basis: 'close', comparator: 'lte', value: 100 },
+            flatBand: 0.25,
+        },
+    };
+}
+
+function r1NonEmptyLines(text) {
+    return text.split('\n').filter((line) => line.trim().length > 0);
+}
+
+/** The seven-field projection, taking its names from the module's frozen v1 list. */
+function r1ProjectSevenFields(row) {
+    const projection = {};
+    for (const field of claims.ROW_V1_FIELDS) projection[field] = row[field];
+    return projection;
+}
+
+test('T-02-R1: a full publish-and-append pass holds the claim-referencing row, the dual-version read, the append-only bytes, and RTR-LEGACY-BACKFILL', () => {
+    const symbol = committedSeries()[0];
+    assert.ok(symbol, 'the committed bars set must be non-empty');
+
+    /* One evaluable action and one the minter refuses, so the pass covers BOTH halves: a row that
+       gains a pointer and a row that honestly does not. */
+    const payload = {
+        nextSession: { actions: [r1AuthoredAction(symbol), { action: 'note', subject: 'action-1' }] },
+        recommendations: [],
+    };
+    const universe = loadInstrumentUniverse(REPO_ROOT);
+    const buildEvents = () => recommendationRowsFromPayload(payload, {
+        root: REPO_ROOT,
+        occurredAt: R1_OCCURRED_AT,
+        universe,
+        eventIdFor: r1EventIdFor,
+    }).map((event) => ({ ...event, bodySource: 'next-session-action' }));
+    const mintOptions = { root: REPO_ROOT, proposalRunId: 'dist-2026-07-14-r1', proposedAt: R1_OCCURRED_AT };
+
+    const events = attachClaimRefs(buildEvents(), payload, mintOptions);
+    const records = mintClaimRecords(buildEvents(), payload, mintOptions);
+
+    const built = buildPublishSet(buildRun({ recommendationEvents: events }));
+    assert.equal(built.ok, true, 'the publish set must build for this pass to be a real one');
+    const partitionKey = Object.keys(built.staging.historyPartitions).find((p) => p.includes('/recommendations/'));
+    assert.ok(partitionKey, 'the publish set must carry a recommendation partition');
+    const appended = built.staging.historyPartitions[partitionKey].appendedBytes;
+    const appendedRows = r1NonEmptyLines(appended.toString('utf8')).map((line) => JSON.parse(line));
+    assert.equal(appendedRows.length, events.length, 'one emitted row per event');
+
+    // 1. THE CLAIM-REFERENCING ROW: the pointer IS the claim minted in the same pass.
+    const bearing = appendedRows.filter((row) => Object.prototype.hasOwnProperty.call(row, claims.CLAIM_REF_FIELD));
+    assert.equal(bearing.length, 1, 'exactly one emitted row carries claimRef');
+    assert.equal(bearing[0].contractVersion, claims.ROW_CONTRACT_V2, 'the claim-referencing row is v2');
+    assert.equal(bearing[0][claims.CLAIM_REF_FIELD], records[0].claim.claimHash, 'the row references the claim minted in this pass');
+    assert.match(bearing[0][claims.CLAIM_REF_FIELD], PREFIXED_HASH, 'and the pointer is an opaque sha256');
+    const freshClaimless = appendedRows.find((row) => !Object.prototype.hasOwnProperty.call(row, claims.CLAIM_REF_FIELD));
+    assert.ok(freshClaimless, 'the refused half must emit a claimless row');
+    assert.equal(freshClaimless[claims.CLAIM_REF_FIELD], undefined, 'absence, never null');
+    assertRefusal(events[1][CLAIM_NOT_EVALUABLE_FIELD], 'non-semantic-subject', 'actionFamily', 'T-02-R1 refused mint');
+
+    // 2. THE DUAL-VERSION READ, against REAL committed rows of each version.
+    const committedBytes = readBytes(path.join(REPO_ROOT, R1_PARTITION_REL));
+    assert.ok(committedBytes, `the committed partition must exist at ${R1_PARTITION_REL}`);
+    const committedRows = r1NonEmptyLines(committedBytes).map((line) => JSON.parse(line));
+    const legacyV1 = committedRows.find((r) => r.contractVersion === claims.ROW_CONTRACT_V1);
+    const legacyV2 = committedRows.find((r) => r.contractVersion === claims.ROW_CONTRACT_V2);
+    assert.ok(legacyV1 && legacyV2, 'the committed partition must carry a pre-contract row of each version');
+    for (const [label, row] of [['v1', legacyV1], ['v2', legacyV2], ['fresh v2 with claimRef', bearing[0]]]) {
+        assert.equal(claims.validateLedgerRow(row).ok, true, `${label}: must validate under the dual-version reader`);
+    }
+    assert.deepEqual(
+        Object.keys(r1ProjectSevenFields(bearing[0])),
+        [...claims.ROW_V1_FIELDS],
+        'the seven-field projection of a claim-referencing row returns exactly the seven v1 key names',
+    );
+    const strippedOfPointer = { ...bearing[0] };
+    delete strippedOfPointer[claims.CLAIM_REF_FIELD];
+    assert.equal(
+        claims.stableStringify(r1ProjectSevenFields(bearing[0])),
+        claims.stableStringify(r1ProjectSevenFields(strippedOfPointer)),
+        'and is byte-identical with and without claimRef',
+    );
+
+    // 3. THE APPEND IS APPEND-ONLY, proven on a real filesystem outside the repository.
+    withDisposableStore(({ root }) => {
+        assert.equal(root.startsWith(REPO_ROOT), false, 'the append must run outside the repository');
+        const partitionPath = path.join(root, R1_PARTITION_REL);
+        fs.mkdirSync(path.dirname(partitionPath), { recursive: true });
+        const priorBytes = Buffer.from(`${[legacyV1, legacyV2].map((row) => claims.stableStringify(row)).join('\n')}\n`, 'utf8');
+        fs.writeFileSync(partitionPath, priorBytes);
+
+        fs.appendFileSync(partitionPath, appended);
+        const after = fs.readFileSync(partitionPath);
+        assert.ok(after.subarray(0, priorBytes.length).equals(priorBytes), 'the prior partition bytes are byte-identical after the append');
+        assert.equal(after.length > priorBytes.length, true, 'and the partition grew');
+
+        const finalRows = r1NonEmptyLines(after.toString('utf8')).map((line) => JSON.parse(line));
+        assert.equal(finalRows.length, 2 + appendedRows.length, 'every prior and appended row survives');
+        for (const row of finalRows) assert.equal(claims.validateLedgerRow(row).ok, true, 'every round-tripped row validates');
+        for (let i = 0; i < 2; i += 1) {
+            assert.equal(
+                Object.prototype.hasOwnProperty.call(finalRows[i], claims.CLAIM_REF_FIELD),
+                false,
+                `prior row ${i}: still claimless — nothing was back-filled`,
+            );
+        }
+    });
+
+    // 4. RTR-LEGACY-BACKFILL still fires, including the plausible-imputation case.
+    const legacyExpected = { code: claims.LEGACY_BACKFILL_CODE, reason: 'claimless-row-unscoreable', field: claims.CLAIM_REF_FIELD };
+    for (const [label, row] of [['committed v1', legacyV1], ['committed v2', legacyV2], ['freshly refused row', freshClaimless]]) {
+        for (const [shape, resolution] of [['plausible', R1_PLAUSIBLE_RESOLUTION], ['empty', {}], ['absent', null]]) {
+            const outcome = claims.authorizeResolutionWrite(row, resolution);
+            assert.equal(outcome.ok, false, `${label} + ${shape}: must refuse`);
+            assert.equal(outcome.error.code, legacyExpected.code, `${label} + ${shape}: code`);
+            assertRefusal(outcome.error, legacyExpected.reason, legacyExpected.field, `${label} + ${shape}`);
+        }
+    }
+
+    /* ANTI-VACUITY. The identical plausible resolution against the claim-BEARING row of the same
+       pass is ACCEPTED — so the refusals above are a property of key absence, not a blanket
+       refusal, and a null pointer refuses on the contract rather than passing as never-minted. */
+    const authorized = claims.authorizeResolutionWrite(bearing[0], R1_PLAUSIBLE_RESOLUTION);
+    assert.equal(authorized.ok, true, 'the claim-referencing row accepts the identical resolution');
+    assert.equal(authorized.claimRef, bearing[0][claims.CLAIM_REF_FIELD], 'and returns the pointer to resolve against');
+    const nulled = claims.authorizeResolutionWrite({ ...legacyV2, [claims.CLAIM_REF_FIELD]: null }, R1_PLAUSIBLE_RESOLUTION);
+    assert.equal(nulled.ok, false, 'a null pointer is not resolvable');
+    assert.notEqual(nulled.error.code, claims.LEGACY_BACKFILL_CODE, 'and is NOT classified legacy — absence is the marker, never a null');
+
+    assertBytesUnchanged(committedBytes, readBytes(path.join(REPO_ROOT, R1_PARTITION_REL)), `${R1_PARTITION_REL} bytes`);
 });

@@ -1,6 +1,6 @@
 # Scope 03: Resolved-flat sentinel and resolution record
 
-**Status:** Not Started
+**Status:** In Progress
 **Depends On:** 01
 **Tags:** `overlay:true`
 **Design section:** `design.md` → `## D3 — Resolved-Flat Sentinel (HC-7)`
@@ -158,32 +158,32 @@ naive `=== 0` check would let through, so an implementation that only tested exa
 
 #### Core items
 
-- [ ] The closed `outcomeClass` vocabulary (`win`, `loss`, `resolved-flat`, `unresolved`, `not-evaluable`, `unresolvable-legacy`) is a frozen module constant and an unrecognised value refuses rather than passing through.
-- [ ] The class → contribution routing table is implemented: `win` and `loss` contribute a number to the scoring array; the other four contribute a count and are withheld from it.
-- [ ] `resolved-flat` is classified against `magnitude.flatBand` frozen into the claim at proposal, never against a band chosen at scoring time.
-- [ ] **(Corrected 2026-08-20, F-015-03-01)** A finite, strictly positive `magnitude.flatBand` is asserted as a **precondition** before any classification, and a degenerate band (`null`, absent, negative, `0`, non-numeric) **refuses**. This scope never supplies, defaults, substitutes, or coerces a band — doing so would put the boundary outside the `claimHash` and break HC-6. The mint-side validation is routed to scope 01 and is **not** implemented here.
-- [ ] **(Corrected 2026-08-20)** Every resolution write passes `authorizeResolutionWrite` (`rlclaims.js#L551`) before the object is stored; the `RTR-LEGACY-BACKFILL` gate is called, never re-implemented and never bypassed.
-- [ ] A flat outcome's exact unrounded value is preserved in the resolution object; no `±ε` nudge, rounding, or fabricated sign appears anywhere on the path from resolution to storage.
-- [ ] `RTR-FLAT-ZERO` is implemented and refuses a bare `0` reaching the array passed to `rlvSummarizeOutcomes`.
-- [ ] The array handed to the primitive contains only finite, strictly non-zero elements, so `rlvalidation.js` runs **unmodified** — it is not shimmed, wrapped for count re-derivation, or monkey-patched, and it is not modified in any way.
-- [ ] `summary.unresolved` is consumed and **discarded**; 015 renders its own counts for `resolved-flat`, `unresolved`, `not-evaluable` and `unresolvable-legacy`, and the discard is asserted rather than commented.
+- [x] The closed `outcomeClass` vocabulary (`win`, `loss`, `resolved-flat`, `unresolved`, `not-evaluable`, `unresolvable-legacy`) is a frozen module constant and an unrecognised value refuses rather than passing through. → evidence recorded in [`report.md#core-outcome-vocabulary`](report.md#core-outcome-vocabulary)
+- [x] The class → contribution routing table is implemented: `win` and `loss` contribute a number to the scoring array; the other four contribute a count and are withheld from it. → evidence recorded in [`report.md#core-routing-table`](report.md#core-routing-table)
+- [x] `resolved-flat` is classified against `magnitude.flatBand` frozen into the claim at proposal, never against a band chosen at scoring time. → evidence recorded in [`report.md#core-flat-band-frozen`](report.md#core-flat-band-frozen)
+- [x] **(Corrected 2026-08-20, F-015-03-01)** A finite, strictly positive `magnitude.flatBand` is asserted as a **precondition** before any classification, and a degenerate band (`null`, absent, negative, `0`, non-numeric) **refuses**. This scope never supplies, defaults, substitutes, or coerces a band — doing so would put the boundary outside the `claimHash` and break HC-6. The mint-side validation is routed to scope 01 and is **not** implemented here. → evidence recorded in [`report.md#core-flat-band-precondition`](report.md#core-flat-band-precondition)
+- [x] **(Corrected 2026-08-20)** Every resolution write passes `authorizeResolutionWrite` (`rlclaims.js#L551`) before the object is stored; the `RTR-LEGACY-BACKFILL` gate is called, never re-implemented and never bypassed. → evidence recorded in [`report.md#core-write-gate`](report.md#core-write-gate)
+- [x] A flat outcome's exact unrounded value is preserved in the resolution object; no `±ε` nudge, rounding, or fabricated sign appears anywhere on the path from resolution to storage. → evidence recorded in [`report.md#core-exact-value`](report.md#core-exact-value)
+- [x] `RTR-FLAT-ZERO` is implemented and refuses a bare `0` reaching the array passed to `rlvSummarizeOutcomes`. → evidence recorded in [`report.md#core-flat-zero`](report.md#core-flat-zero)
+- [x] The array handed to the primitive contains only finite, strictly non-zero elements, so `rlvalidation.js` runs **unmodified** — it is not shimmed, wrapped for count re-derivation, or monkey-patched, and it is not modified in any way. → evidence recorded in [`report.md#core-primitive-unmodified`](report.md#core-primitive-unmodified)
+- [x] `summary.unresolved` is consumed and **discarded**; 015 renders its own counts for `resolved-flat`, `unresolved`, `not-evaluable` and `unresolvable-legacy`, and the discard is asserted rather than commented. → evidence recorded in [`report.md#core-unresolved-discarded`](report.md#core-unresolved-discarded)
 - [ ] The denominator contract is declared: `resolvedDirectional = wins + losses` is the fed array's length and therefore the published denominator, and the rate it produces is labelled *directional hit rate*.
-- [ ] `brief-recommendation-resolution/v1` is implemented with every field named in the Implementation Plan, and `closureEventType` is validated against `CLOSE_EVENT_TYPES` (`rlcontracts.js#L726`) read from that module's own source text — the constant is private and absent from its 20-member export surface, so no local copy of the six members exists anywhere in 015-authored code.
-- [ ] `resolutionHash` covers content only and excludes `runId` and wall-clock timestamps; resolutions are written content-addressed to `briefs/objects/resolutions/<hex>.json` with a bare lowercase hex filename.
-- [ ] The class partition identity is a committed assertion, not a comment, and covers every proposed call exactly once.
-- [ ] `resolvedDirectional` is exposed so scope 05 can branch **before** any primitive call; this scope never calls a primitive on an empty array.
-- [ ] `Number.isFinite` is used exclusively; the global `isFinite` appears nowhere in 015-authored code.
-- [ ] No new statistic, estimator, interval, or discount is written in this scope; the only `RLVALID` interaction is passing a legal array to `rlvSummarizeOutcomes` and reading its result verbatim.
+- [x] `brief-recommendation-resolution/v1` is implemented with every field named in the Implementation Plan, and `closureEventType` is validated against `CLOSE_EVENT_TYPES` (`rlcontracts.js#L726`) read from that module's own source text — the constant is private and absent from its 20-member export surface, so no local copy of the six members exists anywhere in 015-authored code. → evidence recorded in [`report.md#core-resolution-contract`](report.md#core-resolution-contract)
+- [x] `resolutionHash` covers content only and excludes `runId` and wall-clock timestamps; resolutions are written content-addressed to `briefs/objects/resolutions/<hex>.json` with a bare lowercase hex filename. → evidence recorded in [`report.md#core-resolution-hash`](report.md#core-resolution-hash)
+- [x] The class partition identity is a committed assertion, not a comment, and covers every proposed call exactly once. → evidence recorded in [`report.md#core-partition`](report.md#core-partition)
+- [x] `resolvedDirectional` is exposed so scope 05 can branch **before** any primitive call; this scope never calls a primitive on an empty array. → evidence recorded in [`report.md#core-resolved-directional`](report.md#core-resolved-directional)
+- [x] `Number.isFinite` is used exclusively; the global `isFinite` appears nowhere in 015-authored code. → evidence recorded in [`report.md#core-hygiene`](report.md#core-hygiene)
+- [x] No new statistic, estimator, interval, or discount is written in this scope; the only `RLVALID` interaction is passing a legal array to `rlvSummarizeOutcomes` and reading its result verbatim. → evidence recorded in [`report.md#core-hygiene`](report.md#core-hygiene)
 
 #### Test items
 
-- [ ] T-03-U1 passes: boundary classification at exactly `±flatBand` and one ulp outside is correct, defeating a `=== 0` implementation → evidence recorded in `report.md#t-03-u1`.
-- [ ] T-03-U2 passes: `RTR-FLAT-ZERO` fires for a literal `0` and for a mis-routed `resolved-flat` value → evidence recorded in `report.md#t-03-u2`.
-- [ ] T-03-U3 passes: the fed array is finite and strictly non-zero and the primitive returns `ok: true` unmodified → evidence recorded in `report.md#t-03-u3`.
-- [ ] T-03-U4 passes: `summary.unresolved === 0` while the 015-owned counts are non-zero and distinct → evidence recorded in `report.md#t-03-u4`. — proves SCN-015-004
-- [ ] T-03-U5 passes: the exact unrounded flat value survives storage with no nudge, rounding, or sign applied → evidence recorded in `report.md#t-03-u5`.
-- [ ] T-03-U6 passes: the `outcomeClass` and `closureEventType` vocabularies both refuse a one-character-off value, and the closure vocabulary is proven to be read from `rlcontracts.js` source rather than shadowed → evidence recorded in `report.md#t-03-u6`.
-- [ ] T-03-U7 passes: a degenerate `flatBand` (`null`, absent, negative, `0`, non-numeric) refuses on a claim the mint calls evaluable, and no `outcomeClass` is assigned → evidence recorded in `report.md#t-03-u7`.
+- [x] T-03-U1 passes: boundary classification at exactly `±flatBand` and one ulp outside is correct, defeating a `=== 0` implementation → evidence recorded in `report.md#t-03-u1`.
+- [x] T-03-U2 passes: `RTR-FLAT-ZERO` fires for a literal `0` and for a mis-routed `resolved-flat` value → evidence recorded in `report.md#t-03-u2`.
+- [x] T-03-U3 passes: the fed array is finite and strictly non-zero and the primitive returns `ok: true` unmodified → evidence recorded in `report.md#t-03-u3`.
+- [x] T-03-U4 passes: `summary.unresolved === 0` while the 015-owned counts are non-zero and distinct → evidence recorded in `report.md#t-03-u4`. — proves SCN-015-004
+- [x] T-03-U5 passes: the exact unrounded flat value survives storage with no nudge, rounding, or sign applied → evidence recorded in `report.md#t-03-u5`.
+- [x] T-03-U6 passes: the `outcomeClass` and `closureEventType` vocabularies both refuse a one-character-off value, and the closure vocabulary is proven to be read from `rlcontracts.js` source rather than shadowed → evidence recorded in `report.md#t-03-u6`.
+- [x] T-03-U7 passes: a degenerate `flatBand` (`null`, absent, negative, `0`, non-numeric) refuses on a claim the mint calls evaluable, and no `outcomeClass` is assigned → evidence recorded in `report.md#t-03-u7`.
 - [ ] T-03-F1 passes: `resolutionHash` is content-only and the content-addressed write is a byte-identical no-op on repeat → evidence recorded in `report.md#t-03-f1`.
 - [ ] T-03-F2 passes: the partition identity holds and fails when a class is dropped → evidence recorded in `report.md#t-03-f2`.
 - [ ] T-03-F3 passes: `resolvedDirectional === 0` is reachable and the primitive is not called → evidence recorded in `report.md#t-03-f3`.

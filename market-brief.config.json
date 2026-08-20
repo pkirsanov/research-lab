@@ -550,6 +550,7 @@
         "headlineChars": 140,
         "decisionCardChars": 300,
         "totalDefaultVisibleChars": 3000,
+        "rationaleMeasuredNote": "MEASURED 2026-08-20 on the live payload, for the open question of whether attention[].rationale belongs in defaultVisibleFields below. It is deliberately absent today, so a reader opening the card sees a rationale the budget never counted. Folding it in is NOT a one-line change: the published VGT item measures 194 against the 300 decisionCardChars cap, its rationale measures 575, and the two together measure 769 — so the very next recompose would refuse the only item the feed is publishing. The per-card cap and totalDefaultVisibleChars are also driven by this one field list, so rationale cannot be counted toward the total without also being counted against the per-card cap unless that coupling is broken in code first. The honest options are to raise decisionCardChars to cover a real rationale, to cap rationale length at authoring time, or to leave it disclosed-but-unmeasured as it is now; each is a reader-experience decision and none is a lint fix.",
         "defaultVisibleFields": [
             "headline",
             "attention[].headline",

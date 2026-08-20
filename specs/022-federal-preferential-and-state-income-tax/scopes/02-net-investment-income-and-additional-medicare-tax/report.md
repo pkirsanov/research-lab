@@ -1528,3 +1528,92 @@ the check cannot be made vacuous. On an empty ledger `ledgerList.length === 22` 
 Delivering the marker first, against the pinned form still in the file, reproduces
 F-02-D exactly.
 
+### Delivery — 2026-08-20 — SUP-022-19 is landed, in the mandated order
+
+**Claim Source:** executed. The sequence was honoured: the routed derived form went
+into `scripts/selftest.mjs` first and the suite was measured green on both sides of
+that edit, and only then was the marker delivered. Every premise was re-derived
+against the tree rather than carried over from the previous pass.
+
+**Premises, re-derived.** A regex sweep of the whole `tests/` tree for an ordinal
+link selection returns exactly one hit — `links.nth(3)` at line 97 of the route
+spec — so the clause the ledger narrows SUP-022-19 to was still live and still the
+last of its kind. The page's own source comment is present verbatim above the
+withheld-detail row it protects: *"Appended rather than inserted: a prior feature's
+browser row follows a link by position, so an inserted row would silently retarget
+it"*. Index 3 of `POWER_LINK_ROWS` was read out of the page and is the
+`power-bracket-detail` row, which is what the superseded expectation focused.
+
+**What was delivered.** The positional click is replaced by a selection on the
+target the link itself declares, preceded by a uniqueness assertion so a duplicated
+declaration cannot let the click resolve to an arbitrary member:
+
+```js
+  const FOCUS_TARGET = 'power-bracket-detail';
+  expect(targeted.filter((section) => section === FOCUS_TARGET).length).toBe(1);
+  const targetedLink = page.locator(`#powerLinkRows button[data-power-section="${FOCUS_TARGET}"]`);
+  await expect(targetedLink).toHaveCount(1);
+  await targetedLink.click();
+```
+
+Nothing was relaxed: the two expectations that follow the click — Power becoming
+pressed and the owning section taking focus — are unchanged in substance, and the
+focus assertion is now derived from the same declared target rather than repeating
+it as a literal.
+
+**Intended RED, value-free, reverted inside the invocation that applied it.**
+Retargeting the locator at a section the page never declares — the token the spec
+already carries as a negative control — makes the selection resolve to nothing:
+
+```
+exit: 1
+    Error: expect(locator).toHaveCount(expected) failed
+    Locator:  locator('#powerLinkRows button[data-power-section="power-not-declared-by-this-route"]')
+    Expected: 1
+    Received: 0
+        14 × locator resolved to 0 elements
+  1 failed
+```
+
+The probe was reverted in the same shell invocation that applied it;
+`git status --porcelain` for that path returned zero lines immediately afterwards.
+
+**Same-command GREEN on the reverted tree**, the identical command:
+
+```
+exit: 0
+  ✓  1 [system-chrome] › <repo>/tests/…route spec:37:1 › Regression: SCN-021-013 Simple
+      opens first with a decision level answer and Power holds the detail (1.4s)
+  1 passed (3.3s)
+```
+
+**Control — the replacement survives a row insertion the ordinal does not.** One
+value-free row (`detail: "Probe row"`, pointing at an already-declared section) was
+inserted immediately before the `power-bracket-detail` row, so the row the ordinal
+counted to moved. Under that one mutation the two forms diverge:
+
+```
+CONTROL 1 — delivered declared-target form   exit: 0   1 passed (3.7s)
+CONTROL 2 — superseded ordinal form          exit: 1   1 failed
+    Error: expect(locator).toBeFocused() failed
+    Locator:  locator('#power-bracket-detail')
+    Expected: focused
+    Received: inactive
+```
+
+That is the defect the page's comment was standing in for, now asserted instead of
+commented. Both mutations were reverted inside the same invocation and
+`git status --porcelain` for both paths returned zero lines afterwards.
+
+**A first attempt at this control was invalid and is recorded rather than
+discarded.** The insertion was applied with a brace-delimited substitution that
+failed to compile, so the guard counted zero inserted rows while both runs went
+ahead against an unmutated page — the ordinal form passed, which proves nothing.
+The control was rerun with a landing guard that aborts and reverts unless exactly
+one row is inserted; the numbers above are from that run.
+
+**Effect on the derived ledger check.** With the marker present,
+`node scripts/selftest.mjs` reports `3155 passed, 0 failed`. Against the pinned form
+this same tree was `3154 passed, 1 failed` — that is F-02-D, and it is now closed by
+construction rather than by deferring the work.
+

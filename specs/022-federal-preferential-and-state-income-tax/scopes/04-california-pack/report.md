@@ -621,15 +621,62 @@ The whole-repository suite, with the pre-existing pass count recorded before and
 after the appended group.
 Command: `node scripts/selftest.mjs`
 
+**Claim Source:** executed, session of 2026-08-19. The count entered this session
+at `3103 passed, 0 failed` and leaves it at `3105 passed, 0 failed`: two
+assertions were appended and none was edited. The change to the file is
+append-only, which is decidable rather than asserted — the diff over this
+session's commits reports `90` insertions and `0` deletions, and a count of
+removed lines in that same diff returns zero.
+
+```text
+=== 1. selftest ===
+selftest_exit=0
+Research-Lab self-test: 3105 passed, 0 failed
+=== selftest.mjs change shape this session (78c21a0e3..HEAD) ===
+90      0       scripts/selftest.mjs
+=== deletions in that diff (expect none) ===
+0
+```
+
 ### TP-04-21
 
 Zero new missing spec-referenced test paths, with the baseline file unmodified.
 Command: `node scripts/validate-spec-test-paths.mjs`
 
+**Claim Source:** executed. This gate caught a defect introduced by this session
+and is recorded rather than hidden. The first draft of the Claim Boundary section
+above named `<repo>/tests/lifetime-tax-california.spec.mjs` as a bare path, which
+the guard correctly read as a live reference to a file that does not exist and
+reported as `new=1`; the whole-repository suite fell with it at
+`3104 passed, 1 failed`. The reference was rewritten under the `<repo>/` prefix
+convention and both returned to green.
+
+```text
+=== 2. spec-test-path guard ===
+[spec-test-paths] scanned=678 references=14960 distinctPaths=246 missingPaths=67 baseline=67 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+pathguard_exit=0
+```
+
+The frozen baseline is unchanged: a path-scoped diff over this session's commits
+for `scripts/validate-spec-test-paths.baseline` and `site-exclusions.json`
+returns nothing.
+
 ### TP-04-22
 
 The Pages plan succeeds and `site-exclusions.json` is unchanged.
 Command: `node scripts/build-pages-site.mjs --dry-run`
+
+**Claim Source:** executed.
+
+```text
+=== 3. pages site dry run ===
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":128,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/004902309400a815a8ac1da2877422310e381d5c20748f711cbd0233e959a67a","omittedOrphanIndexes":144}
+pages_exit=0
+```
+
+`tax-rules/` does not appear among the published directories, so the packs stay
+outside the public site.
 
 ## Change Boundary
 
@@ -645,7 +692,8 @@ finding routed back to Scope 03, not applied in this scope.
 Scanned this scope's two output paths — the California pack, whose label and
 reason strings are surfaced verbatim as notices, and the page that renders them.
 `scripts/selftest.mjs` is a gate rather than an output surface and
-`tests/lifetime-tax-california.spec.mjs` does not exist, so neither is scanned.
+`<repo>/tests/lifetime-tax-california.spec.mjs` does not exist, so neither is
+scanned.
 
 Each detector is proven live on a planted sentence **before** the scan is
 trusted, and the run aborts rather than reporting an absence if any detector is

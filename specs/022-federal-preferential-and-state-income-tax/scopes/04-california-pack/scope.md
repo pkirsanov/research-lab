@@ -342,8 +342,16 @@ syntax error, a missing browser or an absent test does not satisfy RED.
 - [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
   - **Phase:** implement · **Command:** the exact TP-04-01 through TP-04-19 commands · **Evidence:** `report.md#test-evidence`
-- [ ] `node scripts/selftest.mjs` is green with no fall in pass count and no
+- [x] `node scripts/selftest.mjs` is green with no fall in pass count and no
       existing assertion edited, `node scripts/validate-spec-test-paths.mjs`
       reports zero new missing paths, and `node scripts/build-pages-site.mjs
       --dry-run` succeeds.
   - **Phase:** implement · **Command:** all three commands · **Evidence:** `report.md#tp-04-20`, `report.md#tp-04-21`, `report.md#tp-04-22`
+  - **Evidence:** all three executed at exit 0. The suite entered this session at
+    `3103 passed, 0 failed` and leaves it at `3105 passed, 0 failed`; the
+    append-only claim is decidable rather than asserted, with the session diff
+    over `scripts/selftest.mjs` reporting 90 insertions and 0 deletions. The path
+    guard reports `new=0 stale=0` and the frozen baseline and `site-exclusions.json`
+    are byte-identical over the session. The guard is recorded as having caught a
+    defect this session introduced — a bare test path written into the report — and
+    the fix rather than the suppression is what returned it to green.

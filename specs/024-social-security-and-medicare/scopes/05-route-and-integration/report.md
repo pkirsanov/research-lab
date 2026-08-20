@@ -1228,3 +1228,70 @@ introduces the query-string machinery with no value in it, while this one carrie
 **declared household value** — the birth year the fixture states — into the only
 thing the route writes to the location. The value never leaves the headless browser
 the probe drives, and it is reverted inside the same invocation.
+
+### `TP-05-19` — one clause discriminates, the other still does not
+
+The row names two behaviours: that every declared leg reaches the headline, the
+comparison, the curve and the export, **and** that the headline shows the total.
+They were probed separately, because the previous pass established that the second
+clause could not be made to fail.
+
+**Clause two, re-confirmed against the current tree rather than taken on report.**
+The substitution the row's own surrounding comment calls the one direction this
+tool must never err in still leaves the scenario passing:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-19 SCN-024-013 clause two, re-confirmed this session: a headline sourced from a single leg instead of the total
+file:             lifetime-tax-strategy-lab.html
+mutation:         var total = envelope.settlement.totalFederalTax;  ->  var total = envelope.settlement.ordinaryTax;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-024-013\ every\ declared\ leg\ reaches\ the\ headline\,\ the\ comparison\,\ the\ curve\ and\ the\ export\ and\ the\ headline\ shows\ the\ total --reporter=list
+red-exit:         0
+red-summary:        1 passed (6.6s)
+green-exit:       0
+green-summary:      1 passed (2.0s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   NO (red-exit 0 == green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+red-green-probe: REFUSED — RED and GREEN produced the same outcome (both exited 0). The mutation did not make the command fail, so the assertion under test cannot fail and this is not RED/GREEN evidence.
+```
+
+The reason is unchanged and is a **fixture** question, not an assertion question.
+The strengthened clause compares the headline figure against the sum of the legs the
+headline names; the browser household this scenario declares carries no guarantee
+that the non-ordinary legs are non-zero, so the sum can equal the ordinary leg and
+the substitution is not observable from the page at all. Nothing was weakened,
+skipped or removed here, and no timeout was raised.
+
+**Clause one does discriminate.** A declared leg that stops reaching one of the four
+surfaces — here the export — fails the census the row's first half names:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-19 SCN-024-013 clause one: a declared leg that stops reaching the export must fail the four-surface leg census
+file:             lifetime-tax-strategy-lab.html
+mutation:         var settledLegs = state.envelope ? state.envelope.legIds.slice() : [];  ->  var settledLegs = state.envelope ? state.envelope.legIds.slice(1) : [];   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-024-013\ every\ declared\ leg\ reaches\ the\ headline\,\ the\ comparison\,\ the\ curve\ and\ the\ export\ and\ the\ headline\ shows\ the\ total --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-retirement-route.spec.mjs:72:1 › Regression: SCN-024-013 every declared leg reaches the headline, the comparison, the curve and the export and the headline
+green-exit:       0
+green-summary:      1 passed (1.9s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+So `TP-05-19` now carries an observed intended RED on its own named command, aimed
+at a behaviour its own title states. What it does **not** carry is a discriminating
+probe for its second clause, and that is recorded as an open finding rather than
+smoothed over. The unit row `TP-05-05` detects the identical headline substitution,
+so the defect is not unobserved by the suite as a whole — it is unobserved by this
+browser scenario, over the household this scenario declares.
+
+**Routed, not worked around.** Making clause two decidable requires a browser
+fixture for `SCN-024-013` whose preferential, net-investment-income and
+additional-Medicare legs are each non-zero and mutually distinct, mirroring the
+guarantee `TP-05-01` imposes on the unit fixture. That is a change to the
+scenario's declared inputs and belongs to `bubbles.plan`. It is carried in
+`## Findings Raised And Not Fixed Here` rather than resolved by loosening what the
+scenario asserts.

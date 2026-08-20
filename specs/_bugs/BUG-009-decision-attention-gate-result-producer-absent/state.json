@@ -3,7 +3,7 @@
   "featureDir": "specs/_bugs/BUG-009-decision-attention-gate-result-producer-absent",
   "featureName": "BUG-009 The Decision-Attention Tier Has No Observed Gate-Result Producer",
   "createdAt": "2026-08-18T14:40:00Z",
-  "lastUpdatedAt": "2026-08-20T12:30:00Z",
+  "lastUpdatedAt": "2026-08-20T17:00:00Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -143,15 +143,6 @@
         "claimedAt": "2026-08-20T09:30:00Z",
         "evidenceRef": "report.md#code-diff-evidence",
         "note": "SELF-CHECK, SUPERSEDED by an independently dispatched bubbles.audit pass which returned eight findings against these very artifacts, including four blocks still describing the pre-delivery state. The authoritative audit record is the bubbles.audit executionHistory entry."
-      },
-      {
-        "phase": "design",
-        "agent": "bubbles.design",
-        "claimSource": "executed",
-        "partial": false,
-        "claimedAt": "2026-08-20T11:10:00Z",
-        "evidenceRef": "report.md#test-evidence",
-        "note": "Legacy-consumer contract decision owned by bubbles.design; see executionHistory."
       }
     ],
     "pendingTransitionRequests": [],
@@ -337,6 +328,90 @@
       "kind": "specialist",
       "evidenceRef": "report.md#code-diff-evidence",
       "summary": "INDEPENDENT audit, dispatched as a real specialist. Verdict: 'the work is real; the record contradicts it'. It re-derived rather than accepted every measurable claim and all held - 8 commit shas exist and their shortstats match byte for byte, 9 scenario-manifest linkedTests ids exist, 12 RED assertion strings appear verbatim, and three of the seven RED mutations were re-applied and produced exactly the documented failures. It confirmed the 3 published items reach market-brief.page.json and not merely the payload, which is a stronger check than the delivering agent ran. It then returned eight findings against the ARTIFACTS: four blocks still described the pre-delivery state ('NOTHING WAS IMPLEMENTED'), the diff table omitted the producer commit 8eec36f74, E13 carried a finality heading over pre-delivery evidence, a self-claimed security assertion had already been refuted, the finding ledger contradicted scope status, and the delivery was unrecorded on origin/main. It correctly REFUSED to rewrite the completion claims itself, routing them back to bubbles.bug as not audit's to make. All eight are addressed in this commit."
+    },
+    {
+      "agent": "bubbles.validate",
+      "phasesExecuted": [
+        "validate"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T12:40:00Z",
+      "finishedAt": "2026-08-20T13:05:00Z",
+      "outcome": "route_required",
+      "kind": "specialist",
+      "evidenceRef": "scopes.md#scope-2-produce-observed-gate-results-from-committed-state",
+      "summary": "INDEPENDENT validation, dispatched as a real specialist. It substantiated the delivery claim on every item it could execute, and surfaced a planning gap nobody had run: traceability-guard.sh was FAILING with four errors. Scopes 1 and 4 carried no Gherkin, Scopes 2 and 3 carried no Test Plan section, and nothing mechanically tied a scenario to the assertion that satisfies it. The delivery was traceable in prose and untraceable to a tool, which is precisely the gap that lets a scenario quietly lose its test. Closed in 851322a81: Gherkin added to Scopes 1 and 4, Test Plan tables to all four keyed on scenario TITLE because that is what the guard traces, 21 rows all naming assertions that already exist, and a check confirming every linkedTests id resolves in scripts/selftest.mjs. DISC-009-004 was deliberately NOT written as a scenario, because expressing an open gap as a regression contract would force either a false DoD item or a permanently red gate."
+    },
+    {
+      "agent": "bubbles.gaps",
+      "phasesExecuted": [
+        "gaps"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T13:10:00Z",
+      "finishedAt": "2026-08-20T13:50:00Z",
+      "outcome": "route_required",
+      "kind": "specialist",
+      "evidenceRef": "design.md#concrete-implementations",
+      "summary": "INDEPENDENT gap analysis, dispatched as a real specialist. It found the EIGHTH instance of this bug's signature defect, and it was live in production: resolveSubject scans headline, rationale, escalationTrigger AND invalidation TOGETHER and returns null when two tracked symbols appear anywhere across them, while the lane had only ever been told to put its ticker in the headline. An author could satisfy every stated rule and still lose the whole item. It proved this against the committed payload - two of five candidates lost to exactly that refusal shape - and closed it the same way as the other seven, by exporting SUBJECT_RESOLUTION_FIELDS and rendering attentionSubjectUniquenessInstruction from it (80abbf3c9), with three mutation-proven pins. It also drove fourteen degradations of the detection policy through attachObserved and confirmed all fourteen yield no observation and throw nothing, so there is no route to a built-in opinion. It left G2 (the headline cap still hardcoded) open rather than weaken an assertion to close it, which was the correct call and is fixed in b22ad673a."
+    },
+    {
+      "agent": "bubbles.harden",
+      "phasesExecuted": [
+        "harden"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T13:55:00Z",
+      "finishedAt": "2026-08-20T14:40:00Z",
+      "outcome": "route_required",
+      "kind": "specialist",
+      "evidenceRef": "report.md#scenario-first-tdd--red-stage-first-then-the-pass",
+      "summary": "INDEPENDENT hardening, dispatched as a real specialist. It mutated all 16 pins and found ONE that was decoration: the uniqueness coverage pin survived because findUnofferedTerms is an existence test and the instruction's own prose ('not the headline alone') re-stated the very term the mutation removed, so dropping it left the guard green. It then enumerated all 35 members across the 5 list-backed contracts to check whether any OTHER member was masked the same way - exactly one was - and closed the class with a shared findMaskedTerms helper asserting every rendered list states each member exactly once. It also found a real producer crash: observableSubjects built a plain object, so tracked['__proto__'] answered with Object.prototype, passed isPlainObject, and reached snapshot.asOf on null. Both fixed in 9f4a8f628, with 31 permanent assertions pinning the degenerate-snapshot and inherited-key cases, and it honestly labelled one of the two new guards as defence-in-depth that is not independently falsifiable while the other stands. Suite 3182 passed, 0 failed. It routed one gap rather than deciding it: attention[].rationale is capped by nothing - a 200,000-character rationale composes, validates and publishes - and choosing a cap is an owner decision, since adding one now would refuse the live payload."
+    },
+    {
+      "agent": "bubbles.simplify",
+      "phasesExecuted": [
+        "simplify"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T14:45:00Z",
+      "finishedAt": "2026-08-20T15:20:00Z",
+      "outcome": "completed_owned",
+      "kind": "specialist",
+      "evidenceRef": "design.md#concrete-implementations",
+      "summary": "INDEPENDENT simplification, dispatched as a real specialist. Removed a superseded wrapper the earlier refactor left behind, three exported vocabularies with zero readers inside or outside the module that looked like enforcement and were not, a re-inlined copy of an escape regex the file already had a helper for, and a module required twice through two separate dynamic imports. Collapsed seven near-identical lane-consumption assertions into one laneRenders predicate WITHOUT losing per-contract diagnosability - each assertion keeps its own message beside the incident comment that justifies it - and in doing so strengthened three contracts that had been checking only half of what the other four checked. It deliberately declined the larger consolidation: the seven renderers are not near-parallel under inspection (three read a frozen array, one a module const, one a JSON policy, one a numeric limit, one has no source), a table would still need a render function per row, and it would move each production incident's explanation away from the assertion it justifies. It also found a pre-existing vacuity while mutation-testing its own restructuring: findUnofferedTerms is fail-open on a non-array, so a mis-pointed module handle made a coverage assertion pass with an empty expectation. Fixed in fde43b91a. Suite 3184 passed, 0 failed; 15 mutation rows all fail by name."
+    },
+    {
+      "agent": "bubbles.stabilize",
+      "phasesExecuted": [
+        "stabilize"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T15:25:00Z",
+      "finishedAt": "2026-08-20T16:10:00Z",
+      "outcome": "route_required",
+      "kind": "specialist",
+      "evidenceRef": "report.md#test-evidence",
+      "summary": "INDEPENDENT stabilization, dispatched as a real specialist. Its headline finding is that the silent-death risk that caused this bug is STILL LIVE: it drove the real attachObserved to buildAttentionItems to validateBriefPayload chain under four conditions and proved that a deleted policy, a partially declared policy and a genuinely quiet market are BYTE-IDENTICAL in the committed record, all green with zero validator errors. Config-shaped and code-shaped death are caught within one window by existing rows; DATA-shaped death is caught by nothing, and today only 7 of 12 subjects clear a band. It proposed the smallest honest detector - a per-generation attentionGate census whose policyId cannot false-positive on a quiet day - and did NOT implement it, because it adds a key to the public payload and ripples through the validator, the page projection and the renderer. Routed. It also found that the E2E subject row this session had already fixed once was STILL fragile: it selected from observed-and-not-already-actioned, and the actioned set is authored by a language model four times a day, not a fact about the market. Margin was 2 of 12. Proven red-green by editing one action's prose with no market move and no code change; fixed in dbdb7b2a2, margin now 7. Four further findings routed rather than fixed, including that the attention track record is a dead loop with zero lines whose emptiness a test asserts as the contract, and that the ad-hoc publisher exits 0 after a failed push."
+    },
+    {
+      "agent": "bubbles.docs",
+      "phasesExecuted": [
+        "docs"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T16:15:00Z",
+      "finishedAt": "2026-08-20T16:55:00Z",
+      "outcome": "completed_owned",
+      "kind": "specialist",
+      "evidenceRef": "design.md#capability-foundation",
+      "summary": "INDEPENDENT docs pass, dispatched as a real specialist. Rewrote notes/market-brief.md section 10b, which documented four of the seven rendered contracts across three near-identical paragraphs each re-deriving the same lesson: it now states the rule ONCE - if the publish gate enforces a contract, derive the instruction from the enforcing constant, never restate it - with a table of all seven contracts and what each prevents, and a plain statement that adding a verb, ticker or authored field needs no doc edit and no lane edit. It corrected six drifted claims in notes/decision-attention.md that it verified rather than assumed, including a diagram omitting the observation step, two claims that an authored key still requires a matching instruction edit, a claim that the publisher does not run the scorecard when it does, and a frozen-export count of 16 that is now 19. It also refused to restate five test results in a dated table it had not re-run, correcting only the export inventory it executed itself. Critically it recorded the open detection gap plainly rather than softening it: a dead producer and a genuinely quiet market are byte-identical in the committed record, and there is no detector today. Pushed 86e953788; suite 3184 passed, 0 failed; fence parity even on all three files with deltas matching numstat."
     }
   ],
   "activeBugs": [],

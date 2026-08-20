@@ -345,9 +345,9 @@ all. A syntax error, a missing browser or an absent test does not satisfy RED.
 - [x] No output states a probability, a lifetime figure, a future year, a track
       record or an error rate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
-  - **Phase:** implement · **Command:** the exact TP-03-01 through TP-03-25 commands · **Evidence:** `report.md#per-row-intended-red-probes--partial-with-three-assertion-weaknesses-found`
+  - **Phase:** implement · **Command:** the exact TP-03-01 through TP-03-25 commands · **Evidence:** `report.md#seventh-pass--the-last-seven-rows-carry-an-intended-red-captured-by-the-harness`, `report.md#sixth-pass--the-unconditional-assertion-is-repaired-and-tp-03-04-reds`, `report.md#per-row-intended-red-probes--partial-with-three-assertion-weaknesses-found`
   - **STILL NOT SATISFIED, but materially advanced.** Same-command GREEN is
     recorded for every row in `report.md#gate-results`. Intended RED is now
     recorded for `TP-03-01`, `TP-03-03`, `TP-03-05`, `TP-03-09`, `TP-03-15` and
@@ -400,6 +400,28 @@ all. A syntax error, a missing browser or an absent test does not satisfy RED.
     its own text names — can fail it. Still owed: `TP-03-04`, `TP-03-21` to
     `TP-03-25`, `TP-03-27` and `TP-03-28`. **Evidence:**
     `report.md#fifth-pass--five-more-rows-carry-an-intended-red-and-one-assertion-is-unconditionally-true`
+  - **Sixth pass: the unconditional assertion was repaired and `TP-03-04` reds.**
+    The `|| true` was removed, exposing an inverted `!x === false` conjunct beneath
+    it, and the repaired row falls under two independent probes. That paragraph
+    stands where it was written; the fifth-pass finding above is left intact rather
+    than rewritten, because the sequence is the record.
+  - **Seventh pass: the last seven rows carry an intended RED, and the row is
+    satisfied.** `TP-03-27`, `TP-03-28`, `TP-03-04` and the browser rows `TP-03-21`
+    through `TP-03-25` were each probed through `scripts/red-green-probe.sh`, which
+    arms its revert before mutating and proves the revert by blob hash. All
+    twenty-eight rows now carry an observed intended RED and a same-command GREEN.
+    `TP-03-27`'s GREEN, absent in the fifth pass, now exists — the command reports
+    `new=0` on the unmutated tree. Two qualifications travel with the tick rather
+    than being hidden by it. `TP-03-04`'s convention conjunct did **not** fall when
+    the engine's convention branch was made to accept every identifier, because the
+    pack validator refuses first; the row is closed on its recalled-period conjunct
+    and the weaker limb is recorded. `TP-03-25`'s command exits 1 on the unmutated
+    tree from a runner teardown fault (`worker-4 … force-killed it`) while reporting
+    `77 passed`, `0 failed`, so the harness could not discriminate on exit code and
+    refused with exit 7; its RED is the pass-count delta `74` mutated against `76`
+    reverted inside that one invocation. Nothing was wrapped, filtered or
+    re-expressed to convert that refusal into a pass. **Evidence:**
+    `report.md#seventh-pass--the-last-seven-rows-carry-an-intended-red-captured-by-the-harness`
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths,
       and `node scripts/build-pages-site.mjs --dry-run` succeeds.

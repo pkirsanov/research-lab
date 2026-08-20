@@ -1183,3 +1183,235 @@ independent probes. The row stays unticked because it requires **every** row.
 Still owed: the browser rows `TP-03-21` to `TP-03-25`, and `TP-03-27` and
 `TP-03-28`. No assertion was edited to be weaker, skipped or removed, and no
 timeout was raised in this pass.
+
+## Seventh Pass — The Last Seven Rows Carry An Intended RED, Captured By The Harness
+
+Every probe below was run through `scripts/red-green-probe.sh`, which arms its
+revert **before** mutating, verifies the mutation landed, reverts, and proves the
+revert by comparing the working blob hash against the committed one. The blocks
+are the harness's own emitted output, pasted unedited. No mutation was applied or
+reverted by hand in this pass.
+
+### `TP-03-27` — path guard
+
+Its GREEN, which the fifth pass recorded as absent, now exists: the concurrent
+session's unresolvable references have since been reconciled and the command
+reports `new=0` on the unmutated tree. The RED makes every spec-referenced test
+path fail to resolve to a file.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-27 path guard: a spec-referenced path that does not resolve to a file must be reported as newly missing
+file:             scripts/validate-spec-test-paths.mjs
+mutation:         statSync(resolve(root, path)).isFile()  ->  statSync(resolve(root, path)).isDirectory()   (1 occurrence(s))
+command:          node scripts/validate-spec-test-paths.mjs
+red-exit:         1
+red-summary:      [spec-test-paths] FAIL — 183 new referenced path(s) do not exist
+green-exit:       0
+green-summary:    [spec-test-paths] OK — no new missing test path(s)
+revert-verified:  yes (committed=bb6eee2b6ac1a1ea53d61f01463eeace6c70e630 restored=bb6eee2b6ac1a1ea53d61f01463eeace6c70e630)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The mutation deliberately targets the guard's own resolution rather than planting
+a fabricated `tests/…` token in a spec artifact. A planted token would survive
+into this report, which is itself scanned, and would turn the guard permanently
+red — the probe would break the property it exists to prove.
+
+### `TP-03-28` — deploy gate
+
+This feature's route is deliberately unregistered, so its only deploy decision is
+its entry in the exclusion list. The probe points that entry at a different
+existing file, which leaves the list internally valid and non-stale while leaving
+the route itself without any decision.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-28 deploy gate: this feature route losing its deploy decision must refuse the Pages plan
+file:             site-exclusions.json
+mutation:         "path": "lifetime-tax-strategy-lab.html",  ->  "path": "index.html",   (1 occurrence(s))
+command:          node scripts/build-pages-site.mjs --dry-run
+red-exit:         1
+red-summary:      Error: unregistered root page lacks a deploy decision: lifetime-tax-strategy-lab.html
+green-exit:       0
+green-summary:    {"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":128,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","
+revert-verified:  yes (committed=29c6fe08a58d97c1f119abdd38706cf02f675d60 restored=29c6fe08a58d97c1f119abdd38706cf02f675d60)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-03-04` — independently re-confirmed, and one miss recorded
+
+The sixth pass closed this row. It is re-run here through the harness so its
+evidence has the same provenance as the rest, and the harness reaches the same
+verdict from a clean baseline.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-04 adversarial: an engine using a recalled 27.5-year recovery period instead of the pack period must fail the non-standard fixture
+file:             rltaxrental.js
+mutation:         var period = rule.recoveryPeriod.years;  ->  var period = 27.5;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-03-04: an implementation using a recalled recovery period produces a figure the non-standard fixture rejects, a convention or method the engine has no branch for refuses rather than fal
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=04505d51f87117fe1613b41a41277bfea5096b11 restored=04505d51f87117fe1613b41a41277bfea5096b11)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**A miss worth recording.** A separate probe on the same row replaced the
+convention branch selector `if (conventionId === "mid-month")` with a predicate
+true for every identifier, so a convention the engine has no arithmetic for would
+fall through to the one branch that exists. `TP-03-04` names exactly that defect.
+It did **not** fall. The single failure the run produced was `TP-03-19`, which
+guards the same module for the same class of recalled figure and noticed only
+that the convention literal had left the source:
+
+```text
+red-exit:         1
+red-summary:        ✗ FAIL: TP-03-19: the rental module holds no recovery period, allowance amount, phase-out edge or authority name, its single occurrence of the convention identifier is the branch selector the pack
+green-exit:       0
+green-summary:      ✓ the unbounded log genuinely exceeds the budget (7230 KB), so fetching it would FAIL this test rather than slip through
+```
+
+The reason is that the pack validator refuses an unknown `conventionId` before
+`computeCostRecovery` ever reaches the arithmetic, so the row's
+`RLTAX-FEATURE-UNSUPPORTED` conjunct is satisfied by the earlier refusal rather
+than by the branch the conjunct describes. The conjunct is therefore true for a
+reason other than the one its text names, and a regression that removed the
+engine's own fall-through guard would not be caught by it. The row is closed on
+the recalled-period conjunct, which does discriminate; the convention conjunct is
+recorded here as a weaker limb than its wording implies rather than being quietly
+counted as covered.
+
+### `TP-03-21` — `SCN-023-007`, the rental settlement scenario
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-21 SCN-023-007: the cost-recovery parameters losing their sourced provenance must fail the rental settlement scenario
+file:             lifetime-tax-strategy-lab.html
+mutation:         recoveryRows[rentalIndex][2] === null ? "computed" : "sourced");  ->  "computed");   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-023-007\ a\ long-term\ rental\ settles\ after\ sourced\ depreciation\ and\ refuses\ without\ it --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (3.0s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-03-22` — `SCN-023-008`, the limit ladder
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-22 SCN-023-008: a disallowed amount that is no longer addressable per limit must fail the ladder scenario
+file:             lifetime-tax-strategy-lab.html
+mutation:         disallowedCell.setAttribute("data-rl-disallowed", limit.limitId);  ->  disallowedCell.setAttribute("data-rl-disallowed", "unpublished");   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-023-008\ the\ limit\ ladder\ is\ applied\ in\ order\ and\ every\ disallowed\ amount\ is\ published --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (3.3s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-03-23` — `SCN-023-009`, the suspended loss and the no-projection rule
+
+The mutation makes the carryforward line name a following year. That is the exact
+defect `FR-023-020` forbids, and it breaks both the declared-year label and the
+scan for a stray year in the rental section.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-23 SCN-023-009: a carryforward line that names a following year instead of the declared one must fail the no-projection scenario
+file:             lifetime-tax-strategy-lab.html
+mutation:         "Closing suspended loss for the declared year: "  ->  "Closing suspended loss carried into 2031: "   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-023-009\ the\ suspended\ loss\ closes\ for\ the\ declared\ year\ and\ no\ future\ year\ appears --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (3.3s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-03-24` — `SCN-023-007`, leg visibility across the four surfaces
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-24 SCN-023-007: the rental leg losing its identity on the headline surface must fail the leg-visibility scenario
+file:             lifetime-tax-strategy-lab.html
+mutation:         rentalHost.setAttribute("data-rl-leg", rentalLeg.legId);  ->  rentalHost.setAttribute("data-rl-leg", "rental-net-omitted");   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-023-007\ the\ rental\ leg\ reaches\ the\ headline\,\ the\ comparison\,\ the\ curve\ and\ the\ export --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (2.7s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-03-25` — the cumulative suite, and a limit of the harness's verdict
+
+The same headline-identity mutation was run against the whole `SCN-021` … `-024`
+suite. The harness **refused** the probe with exit 7, and the refusal is itself
+the finding:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-25 cumulative browser suite: the rental leg losing its headline identity must fail the whole SCN-021..024 suite, not merely its own scenario
+file:             lifetime-tax-strategy-lab.html
+mutation:         rentalHost.setAttribute("data-rl-leg", rentalLeg.legId);  ->  rentalHost.setAttribute("data-rl-leg", "rental-net-omitted");   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-02\[1-4\] --reporter=list
+red-exit:         1
+red-summary:        74 passed (7.9m)
+green-exit:       1
+green-summary:      76 passed (2.4m)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   NO (red-exit 1 == green-exit 1)
+=== END RED/GREEN PROBE EVIDENCE ===
+red-green-probe: REFUSED — RED and GREEN produced the same outcome (both exited 1).
+```
+
+The mutation **did** discriminate. Under it the suite reports `74 passed`; without
+it, `76 passed` in the same invocation — two scenarios fell and recovered. What
+did not discriminate is the **exit code**, because this command exits non-zero on
+the unmutated tree for a reason unrelated to any assertion. A clean baseline run
+of the identical command, with nothing mutated, shows it:
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list
+cum_exit=1
+77                                    # count of "✓" result lines
+Error: worker-4 process did not exit within 300000ms after stop, force-killed it
+  77 passed (6.0m)
+```
+
+Seventy-seven passed, none failed, none skipped — and exit 1, produced entirely
+by a worker that would not shut down after the run had finished. That is a
+teardown fault in the runner, not a test outcome. The harness compares exit codes
+only, so a command whose GREEN exit is already polluted can never satisfy its
+discrimination test however sharp the mutation is. `TP-03-25` therefore carries
+its intended RED as a pass-count delta observed inside one harness invocation
+(`74` mutated against `76` reverted) rather than as an exit-code flip, and its
+GREEN is the `77 passed, 0 failed` baseline above. The limitation is the
+harness's, and it is recorded rather than worked around: nothing was wrapped,
+filtered or re-expressed to manufacture a passing verdict.
+
+### Effect on the DoD row
+
+All twenty-eight rows now carry an observed intended RED and a same-command
+GREEN, so the row is satisfied and ticked. Two qualifications travel with it, both
+stated above rather than buried: `TP-03-04`'s convention conjunct is true for a
+reason other than the one it names, and `TP-03-25`'s discrimination is a
+pass-count delta because its command's exit code is polluted by a runner teardown
+fault. No assertion was edited, weakened, skipped or removed in this pass, and no
+timeout was raised.

@@ -924,6 +924,17 @@ attention, however well authored. The lane instruction now states the constraint
 spent on items that can actually reach the reader. **If the feed is still empty after a publish, check what
 the lane wrote about before assuming the gate is broken.**
 
+**The closed verb vocabulary, and why the instruction is rendered rather than written.** With the watchlist
+constraint in place, the 2026-08-20 02:02 EDT publish bound two real subjects — `SOXX` and `FETH` — and
+refused both `RLATTN-VERB`. Binding those subjects is the gate working end to end; an item only reaches the
+verb check by passing provenance first. `verb` is a **closed** vocabulary, and the lane had been told the
+field existed but never which values it admits, so an author with nothing to choose from could not choose
+correctly. The sentence offering the verbs is now **rendered from the same frozen array the gate refuses
+on**, exactly as the §9 event keys already are. A hardcoded restatement would fix one publish and reopen the
+gap the first time the vocabulary moves: the gate would arm, the sentence would not, and the author would
+again be refused over a value nobody offered. **Adding or retiring a research verb therefore needs no edit
+here and no edit to the lane** — change the vocabulary and both the refusal and the offer move together.
+
 ---
 
 ## 11. Artifacts, registry sync, validation

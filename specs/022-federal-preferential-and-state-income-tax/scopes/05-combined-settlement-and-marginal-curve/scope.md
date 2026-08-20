@@ -300,6 +300,16 @@ missing browser or an absent test does not satisfy RED.
       Power rather than Simple, and every pre-existing assertion outside the
       twenty-one still passes unchanged.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#supersession-ledger`
+  - **Open because:** the census was run and it fails twice over. The ledger
+    declares **twenty-two** entries, not the twenty-one this row asks for — Scope
+    03's dispatch admitted `SUP-022-22` after this row was written — so the row's
+    number is stale and is routed to `bubbles.plan` rather than forced. Separately
+    and more seriously, only **twenty** markers are delivered: `SUP-022-18` and
+    `SUP-022-19` exist in `spec.md`, `design.md` and several scope artifacts but
+    in no source or test file, so two admitted supersessions have no replacement
+    behind them. Both belong to Scope 02. Lowering the number would not close the
+    row; delivering the two replacements would. See
+    `report.md#supersession-ledger` for the marker census.
 - [ ] No output states a probability, a lifetime figure, a break-even year, a
       ranking, a recommendation, a track record or an error rate, and no result is
       labelled a complete combined tax.

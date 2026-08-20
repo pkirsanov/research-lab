@@ -1123,11 +1123,63 @@ row; see the note under TP-05-21.
 
 ## Supersession Ledger
 
-Filled at execution. This scope supersedes nothing, so this section holds the
-closing check only: the nine `SUP-022-NN` markers present in the repository, each
-mapped to its delivered ledger entry, and the evidence that every pre-existing
-assertion outside those nine still passes unchanged.
-Command: `node scripts/selftest.mjs`
+This scope supersedes nothing, so this section holds the closing check only: the
+delivered `SUP-022-NN` marker set against the ledger the feature spec declares.
+
+**The ledger is not closed, and the DoD item it anchors is left open.** The census
+was run rather than asserted, and it disagrees with the DoD row in two independent
+ways.
+
+Command: a marker census over the tracked tree with the spec artifacts excluded,
+so a marker that exists only in prose cannot be counted as delivered.
+
+```text
+=== declared in spec.md ledger ===
+22
+=== delivered markers (tracked files, specs excluded) ===
+SUP-022-01 SUP-022-02 SUP-022-03 SUP-022-04 SUP-022-05 SUP-022-06 SUP-022-07 SUP-022-08 SUP-022-09 SUP-022-10 SUP-022-11 SUP-022-12 SUP-022-13 SUP-022-14 SUP-022-15 SUP-022-16 SUP-022-17 SUP-022-20 SUP-022-21 SUP-022-22
+=== declared minus delivered ===
+SUP-022-18
+SUP-022-19
+=== end ===
+EXIT=0
+```
+
+**First disagreement — the count in the DoD row is stale.** The row asks for
+"all twenty-one" markers. The
+[ledger](../../spec.md#supersession-ledger) declares **twenty-two**, and states
+the split as twelve owned by Scope 01, nine by Scope 02 and one by Scope 03.
+Twelve plus nine is the twenty-one this scope's prose repeatedly names, so the
+row was written before Scope 03's implementation dispatch admitted SUP-022-22 and
+was never updated. Ticking a row that asks for twenty-one when twenty-two are owed
+would record a closure the ledger does not support, so the wording is routed to
+`bubbles.plan` rather than satisfied. The same stale count appears in this scope's
+own **Assertion Supersession Owned By This Scope** section and in the previous
+text of this heading, which said "nine".
+
+**Second disagreement — two markers were never delivered, so the count is not the
+only problem.** `SUP-022-18` and `SUP-022-19` appear in `spec.md`, `design.md`,
+`scopes/_index.md`, Scope 02's `scope.md` and three scope reports, and in no
+delivered file at all. Their ledger rows name where each replacement was to land:
+
+- `SUP-022-18` → `scripts/selftest.mjs` (TP-05-01), replacing the
+  `simpleFields.length === 7`, `powerLinkDetails.length === 9` and
+  `powerLinkSections.length === 9` literals with cross-artifact identity between
+  the closed Simple list and the rendered Simple markup.
+- `SUP-022-19` → `tests/lifetime-tax-route.spec.mjs` L54-62 (SCN-021-013),
+  replacing the withheld-detail `toHaveCount(9)` and the positional
+  `links.nth(3)` focus expectation with two-directional link/section identity and
+  a selection by declared target rather than by ordinal.
+
+Neither file carries either marker. `scripts/selftest.mjs` carries twelve distinct
+markers and `tests/lifetime-tax-route.spec.mjs` carries two, and `18` and `19` are
+in neither set. This is exactly the drift ASC-6 exists to surface: a ledger entry
+admitted in planning with no delivered replacement behind it. It is recorded here
+rather than absorbed, and it is a finding for the owning scope — Scope 02 owns
+both entries — not something this scope may close by lowering the number.
+
+No mutation was applied to reach either conclusion; both are derivations over the
+tracked tree.
 
 ## Change Boundary
 

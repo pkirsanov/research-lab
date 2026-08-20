@@ -746,3 +746,129 @@ scenario declares rather than an assertion this pass may repair. The row therefo
 stays unticked. Still owed an observed intended RED: `TP-05-01` through
 `TP-05-03`, `TP-05-05` through `TP-05-07`, `TP-05-10` through `TP-05-19`, and
 `TP-05-21` through `TP-05-27`.
+
+## Closing Pass — An Aimed Intended RED For Every Remaining Row
+
+Every probe below runs through `scripts/red-green-probe.sh`, which arms its revert
+before mutating and proves the revert by comparing the working blob hash against
+the committed one. Each mutation is aimed at the behaviour **its own row names**;
+where a mutation also reddens a neighbouring row, that is recorded rather than
+claimed.
+
+**How to read the unit blocks.** The command is `node scripts/selftest.mjs`, which
+exits non-zero if any assertion in the whole repository suite fails, so `green-exit
+0` is itself the statement that the suite is fully green — the recorded
+`3172 passed, 0 failed` line. Each block's `--summary-match` is set to the row's
+own assertion label, so `red-summary` names the assertion that fired rather than
+the run's last line; `green-summary` has no such line to match and therefore falls
+back to the run's last non-blank line, which is the suite's closing separator.
+
+### `TP-05-01` — fixture integrity
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-01 fixture integrity: a premium the pack stops declaring as a cost must break the complete-settlement fixture, because a census over a fixture that counts a cost as tax can pass by coincidence
+file:             tax-rules/medicare/2026.json
+mutation:         "figureRef": "standardPremiums.part-b",
+        "includedInTotal": false  ->  "figureRef": "standardPremiums.part-b",
+        "includedInTotal": true   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-01: the complete-settlement fixture carries every leg the federal pack, the benefit pack, the inclusion policy, the medicare policy, the disposition module and the engine declare, ev
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=576c5438a6a9af67059f232ed2d2432ed1046883 restored=576c5438a6a9af67059f232ed2d2432ed1046883)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The same mutation run with `--summary-match 'self-test:'` reports the suite-level
+effect, which is what makes the aim visible as a bounded one rather than a
+whole-suite break: `red-summary: Research-Lab self-test: 3165 passed, 7 failed`
+against `green-summary: Research-Lab self-test: 3172 passed, 0 failed`.
+
+### `TP-05-02` — leg census, both directions
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-02 leg census: a census that silently stops recording the curve as one of the four surfaces it compared must fail the both-directions surface identity
+file:             rltax.js
+mutation:         surfaces.push(surfaceName);  ->  if (surfaceName !== "curve") surfaces.push(surfaceName);   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-02: over the complete fixture the record’s declared leg set equals the leg set of the headline, the comparison, the curve contributors and the export in both directions, across all
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The mutation drops the curve from the surface record while leaving every finding
+intact, so the census still reports `clean`. That is precisely the defect this row
+exists to catch: a surface silently stops being censused and nothing else changes.
+
+### `TP-05-03` — adversarial, the drop direction
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-03 adversarial: a census that stops noticing a declared leg missing from a surface must fail the per-leg per-surface drop probe
+file:             rltax.js
+mutation:         if (rendered.indexOf(declaredIds[index]) < 0) {  ->  if (rendered.indexOf(declaredIds[index]) < -1) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-03: removing each declared leg from each of the four surfaces in turn produces exactly one missing-leg finding naming both the leg and the surface, and rendering a leg the record doe
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+`indexOf` never returns a value below `-1`, so the guard becomes unreachable and no
+missing-leg finding is ever raised. `TP-05-04` also reddens under this mutation,
+which is expected — it asserts on the same missing-leg report — and it already
+carries its own aimed RED.
+
+### `TP-05-05` — headline source
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-05 headline source: sourcing the Simple headline from the ordinary leg instead of the total is the Feature 022 understatement defect and must fail
+file:             lifetime-tax-strategy-lab.html
+mutation:         var total = envelope.settlement.totalFederalTax;  ->  var total = envelope.settlement.ordinaryTax;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-05: the Simple renderer reads settlement.totalFederalTax and reads none of the four single leg members anywhere in its code, the comment naming the forbidden leg is proven to be pros
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+This is the identical substitution that `TP-05-19` could not detect in the browser.
+The unit row detects it, which is what makes the browser row's miss a fixture
+question rather than a claim that nothing observes the defect at all.
+
+### `TP-05-06` — adversarial, one per leg
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-06 adversarial: a renderer that keeps the total but also reads a single leg — here the net investment income surtax — must be caught one per leg
+file:             lifetime-tax-strategy-lab.html
+mutation:         var total = envelope.settlement.totalFederalTax;  ->  var total = envelope.settlement.totalFederalTax; var probeSurtaxRead = envelope.settlement.netInvestmentIncomeTax;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-06: a renderer reading ordinaryTax, preferentialTax, netInvestmentIncomeTax or additionalMedicareTax in place of the total is caught one per leg, and the unmutated renderer passes th
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Deliberately a different defect shape from `TP-05-05`: the headline still reads the
+total, so the substitution detector's subject is untouched and what fails is the
+clause proving the detector is not detecting itself — a renderer that reads a
+single leg **in addition to** the total.

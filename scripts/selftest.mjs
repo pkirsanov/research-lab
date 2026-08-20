@@ -24497,15 +24497,26 @@ try {
      observes TODAY keeps the row on real committed state, which is the whole
      point of it, without betting on one instrument's drift. */
   const snapshot1 = JSON.parse(read('market-brief.snapshot.json'));
-  /* Eligibility is BOTH halves of the real production condition: the gate must
-     observe the subject AND no published action may already cover it. Filtering
-     only on "observed" reproduces the bug rather than fixing it — on 2026-08-20
-     all seven observed subjects were already actioned, so every one of them was
-     refused RLATTN-OVERLAP. */
-  const actioned1 = new Set(composer1.actionSubjectTickers(
-    (basePayload1.nextSession && basePayload1.nextSession.actions) || [], RLATTN_WATCHLIST_SCOPE));
+  /* The probe payload publishes NO actions, and the subject is selected on the gate
+     observation ALONE.
+
+     Eligibility used to be both halves of the production condition — observed AND not
+     already actioned — because the row composed against the live payload, where an
+     actioned subject is refused RLATTN-OVERLAP. That made the row's input depend on
+     which tickers the narrative lane happened to name, and the lane rewrites that set
+     from scratch four times a day at a language model's discretion. Measured on
+     2026-08-20: seven watchlist subjects cleared a band, five were already actioned,
+     and the row ran on a margin of TWO. Naming those two inside an existing action's
+     prose — no market move, no code change — turned this row and the end-to-end row
+     below red. Emptying the actions removes the prose dependence and widens the margin
+     from two to seven, and it costs no coverage: RLATTN-OVERLAP is asserted end to end
+     in tests/attention-payload-contract.test.mjs, which is where that contract belongs.
+     What remains is the row's own irreducible premise — that some subject clears a
+     declared band on committed state — which is the input it exists to have. */
+  const probeBase1 = Object.assign({}, basePayload1, {
+    nextSession: Object.assign({}, basePayload1.nextSession, { actions: [] })
+  });
   const observedNow1 = RLATTN_WATCHLIST_SCOPE.find((ticker) => {
-    if (actioned1.has(ticker)) return false;
     const probe = GATE.attachObserved([{ headline: `${ticker} probe` }], snapshot1, policy1)[0];
     return probe && probe.observed && probe.observed.subject === ticker;
   });
@@ -24525,7 +24536,7 @@ try {
      the fix. Removing it is what makes this row evidence. */
   assert(laneCandidate1.subject === undefined,
     'Regression: SCN-BUG009-R1-NOSUBJECT the end-to-end candidate carries no subject, matching what the lane actually emits — a test that supplies one cannot detect a producer that never binds in production');
-  const withCandidate1 = Object.assign({}, basePayload1, { attention: [laneCandidate1] });
+  const withCandidate1 = Object.assign({}, probeBase1, { attention: [laneCandidate1] });
   const built1e2e = composer1.recomposePayloadAttention(withCandidate1, fullConfig1);
   assert(built1e2e.items.length === 1 && built1e2e.exclusions.length === 0
     && built1e2e.items[0].contractVersion === 'decision-attention/v1'

@@ -25,6 +25,7 @@ import {
   validateBriefPayload
 } from './validate-brief-payload.mjs';
 import { formatSpecTestPathFindings, validateSpecTestPaths } from './validate-spec-test-paths.mjs';
+import { ATTENTION_RESEARCH_VERBS as RLATTN_RESEARCH_VERBS, attentionVerbContractInstruction, findAttentionVerbInstructionGaps } from './build-attention-items.mjs';
 import { formatTimeoutBudgetFindings, validatePlaywrightTimeoutBudgets } from './validate-playwright-timeout-budgets.mjs';
 import { assertCoherentBar, formatBarsCoherenceFindings, isCoherentBar, partitionCoherentBars, validateBarsCorpus } from './validate-bars-coherence.mjs';
 import { findAgendaFixturePinDrift, formatAgendaFixturePinFinding, formatAgendaFixturePinFindings, validateAgendaFixturePin } from './validate-agenda-fixture-pin.mjs';
@@ -2954,6 +2955,36 @@ try {
   const handTypedInLane = enforcedEventKeys.filter((key) => new RegExp('\\b' + key + '\\b').test(signalsInstruction));
   assert(signalsInstruction.length > 0 && handTypedInLane.length === 0,
     'the signals lane instruction holds no second hand-maintained copy of the event key list (hand-typed: ' + handTypedInLane.join(', ') + ')');
+
+  /* ── the same drift, one field over: the attention VERB vocabulary ────────────────────────────
+     `verb` is closed, and the lane was told the field existed but never which values it admits.
+     The 2026-08-20 02:02 EDT publication authored two well-formed items on real watchlist
+     subjects (SOXX, FETH) and the gate refused BOTH RLATTN-VERB. The instruction is rendered from
+     the same frozen array checkVerb refuses on, for the reason the events keys are: a hardcoded
+     restatement fixes one run and re-opens the gap the first time the vocabulary moves. */
+  assert(findAttentionVerbInstructionGaps(attentionVerbContractInstruction()).length === 0,
+    'the authoring instruction offers every verb the publication gate refuses on (unoffered: '
+    + (findAttentionVerbInstructionGaps(attentionVerbContractInstruction()).join(', ') || 'none') + ')');
+
+  // ADVERSARIAL — the instruction that shipped BEFORE this fix. It named the ENUM and no value,
+  // which is exactly what let two publishable items be refused. A detector that cannot flag it
+  // proves nothing.
+  const enumOnlyInstruction = 'the four judgement enums — verb, horizon, severity and imminence.';
+  assert(findAttentionVerbInstructionGaps(enumOnlyInstruction).length === RLATTN_RESEARCH_VERBS.length,
+    'naming the verb ENUM without its values is reported as offering no verb at all (gaps: '
+    + findAttentionVerbInstructionGaps(enumOnlyInstruction).join(', ') + ')');
+
+  // ADVERSARIAL — a near-miss longer token must NOT satisfy the ask for the shorter verb, so the
+  // whole-value match cannot be weakened into a substring test later.
+  assert(findAttentionVerbInstructionGaps('use monitor-only, verifying, investigated').length === RLATTN_RESEARCH_VERBS.length,
+    'a longer token containing a verb does not count as offering that verb');
+
+  assert(/import\s*\{[^}]*attentionVerbContractInstruction[^}]*\}\s*from\s*'\.\/build-attention-items\.mjs'/.test(laneSource)
+    && signalsInstruction.includes('${attentionVerbContractInstruction()}'),
+    'the signals lane renders its verb vocabulary from the publication gate instead of restating it');
+  const handTypedVerbs = RLATTN_RESEARCH_VERBS.filter((verb) => new RegExp('\\b' + verb + '\\b').test(signalsInstruction));
+  assert(handTypedVerbs.length === 0,
+    'the signals lane instruction holds no second hand-maintained copy of the verb list (hand-typed: ' + handTypedVerbs.join(', ') + ')');
 
   /* Staleness must be readable as a FACT, never inferred from an ambiguous count. The
      2026-08-02 brief read the symbol count (287 tickers) as a session count, published

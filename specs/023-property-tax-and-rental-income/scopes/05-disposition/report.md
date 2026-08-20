@@ -535,6 +535,252 @@ PAGES_EXIT=0
 (`registeredPages` is 28, and `lifetime-tax-strategy-lab.html` is one of the nine
 `excludedPaths`).
 
+## Per-Row Intended-RED Probes
+
+The GREEN half of every `node scripts/selftest.mjs` row is the shared clean run
+recorded under [Shared unit run](#shared-unit-run). The RED half is recorded here,
+one probe per row. Each probe is **mutation-derived rather than
+before-implementation**, and is recorded as such: it removes the behaviour its row
+names, runs the command the row names, then reverts explicitly inside the same
+process and verifies the revert before the next probe opens. No two probes are
+ever live at once.
+
+**Probe discipline.** Every mutation is value-free by construction — a boolean
+term, an identifier swap, an arithmetic term, or one added code literal — so a
+slipped revert could not have disclosed a household figure. Each probe refuses to
+start if its file is already dirty, refuses to apply unless its search text occurs
+**exactly once**, and prints `dirty`, `mutation_left` and `original_restored`
+after reverting.
+
+**Reading the counts.** The repository baseline in this session is
+`3113 passed, 1 failed`; the one standing failure is the spec-test-path guard
+reporting `1 new` missing path from a concurrent session's untracked
+`specs/027-*` work, and it appears in every capture below. A probe's own RED is
+the assertion named beyond that standing one.
+
+### Probe 1 — RED for TP-05-04 and TP-05-05
+
+`rltaxdisposition.js`, in `gainComponent`: the recapture component's tax stops
+being the sourced rate applied to its amount.
+
+```diff
+-      component.tax = amount * rule.maximumRate;
++      component.tax = amount;
+```
+
+```text
+PROBE A2  expect=TP-05-04   file=rltaxdisposition.js
+  cmd=node scripts/selftest.mjs
+  guard_matches=1
+  applied=1
+  RED_EXIT=1
+  RED_SUMMARY=Research-Lab self-test: 3111 passed, 3 failed
+  RED_FAIL=✗ FAIL: TP-05-04: the recapture leg’s tax equals the sourced maximum rate read from the pack applied to its amount and carries that rate’s citation …
+  RED_FAIL=✗ FAIL: TP-05-05: an implementation pricing the whole gain under one rule produces one component where the shipped implementation produces two …
+  REVERTED dirty=0 mutation_left=0 original_restored=1
+```
+
+TP-05-05 falls with it and that is the honest reading: TP-05-05's adversarial
+comparison is *against* the shipped pricing, so removing the shipped rate removes
+the thing the comparison discriminates from. Both rows are named, so both carry
+RED from this probe.
+
+### Probe 2 — RED for TP-05-07
+
+`rltaxdisposition.js`, in `computeDisposition`: the unresolved-rate refusal stops
+being returned whole, which is exactly the fallback the row forbids.
+
+```diff
+-    if (rules.isUnavailable(recaptureRule)) return recaptureRule;
++    if (false && rules.isUnavailable(recaptureRule)) return recaptureRule;
+```
+
+```text
+PROBE A3  expect=TP-05-07   cmd=node scripts/selftest.mjs
+  guard_matches=1  applied=1  RED_EXIT=1
+  RED_SUMMARY=Research-Lab self-test: 3112 passed, 2 failed
+  RED_FAIL=✗ FAIL: TP-05-07: a pack whose recapture maximum rate was not retrieved refuses the disposition entirely, produces no component and no leg, and in particular produces no leg carrying the whole gain priced under the preferential model in place of the refusal
+  REVERTED dirty=0 mutation_left=0 original_restored=1
+```
+
+Exactly one assertion beyond the standing failure, and it is this row's.
+
+### Probe 3 — RED for TP-05-10
+
+`rltaxdisposition.js`, in `applyResidenceExclusion`: the exclusion stops being
+bounded by the component it may be applied to.
+
+```diff
+-    var excluded = eligible ? Math.min(rule.maximumAmount, excludable) : 0;
++    var excluded = eligible ? rule.maximumAmount : 0;
+```
+
+```text
+PROBE A5  expect=TP-05-10   cmd=node scripts/selftest.mjs
+  guard_matches=1  applied=1  RED_EXIT=1
+  RED_SUMMARY=Research-Lab self-test: 3112 passed, 2 failed
+  RED_FAIL=✗ FAIL: TP-05-10: the exclusion amount equals the sourced amount for each filing status the publication enumerates, it is applied to the remainder component, and the excluded amount is bounded by that component so a gain smaller than the l…
+  REVERTED dirty=0 mutation_left=0 original_restored=1
+```
+
+### Probe 4 — RED for TP-05-14, and a cross-scope confirmation
+
+`rltaxrental.js`, in `computeCostRecovery`: the published adjusted basis stops
+being the declared basis less the accumulated recovery.
+
+```diff
+-      adjustedBasis: activity.depreciableBasis - accumulated,
++      adjustedBasis: activity.depreciableBasis,
+```
+
+```text
+PROBE A6  expect=TP-05-14   file=rltaxrental.js   cmd=node scripts/selftest.mjs
+  guard_matches=1  applied=1  RED_EXIT=1
+  RED_SUMMARY=Research-Lab self-test: 3111 passed, 3 failed
+  RED_FAIL=✗ FAIL: TP-03-15: the adjusted basis equals the declared basis less the accumulated recovery at every point of the period including its final year, and the settlement republishes the same figure the cost-recovery record carries
+  RED_FAIL=✗ FAIL: TP-05-14: for every fixture carrying cost recovery the adjusted basis this scope reads equals the figure the rental settlement published, the fixtures publish three distinct bases so the equality is not trivially true …
+  REVERTED dirty=0 mutation_left=0 original_restored=1
+```
+
+The pair is informative rather than over-broad: TP-05-14 asserts this scope reads
+the *same* figure Scope 03 publishes, so the producer's own row falling alongside
+the consumer's is the coupling the row exists to pin.
+
+### Probe 5 — RED for TP-05-09
+
+`rltaxdisposition.js`, in `evaluateTest`: the required period shifts by one month,
+so the sourced boundary is no longer the boundary the tests are decided at.
+
+```diff
+-    var required = figure.minimumMonths;
++    var required = figure.minimumMonths - 1;
+```
+
+```text
+PROBE B2  expect=TP-05-09   cmd=node scripts/selftest.mjs
+  guard_matches=1  applied=1  RED_EXIT=1
+  RED_SUMMARY=Research-Lab self-test: 3111 passed, 3 failed
+  RED_FAIL=✗ FAIL: TP-05-09: the ownership test and the use test each pass at exactly the sourced period figure and fail one month below it, each publishes the figure compared and the lookback window it was measured over, the oper…
+  RED_FAIL=✗ FAIL: TP-05-12: an implementation evaluating both eligibility tests as one combined condition reaches the same verdict while naming no failing test …
+  REVERTED dirty=0 mutation_left=0 original_restored=1
+```
+
+**A discarded first attempt is recorded rather than hidden.** The first aim at
+this row flipped the `greater-than` branch's comparison to the `at-least` form.
+It produced no RED at all, because the shipped pack declares the `at-least`
+operator, so that branch never runs and the mutation was inert. An inert mutation
+is not a weak assertion and it is not a RED; it was discarded and the probe
+re-aimed at the figure both branches read.
+
+### Probe 6 — RED for TP-05-11
+
+`rltaxdisposition.js`, in `applyResidenceExclusion`: the component-selection test
+is swapped, so the exclusion lands on the recapture component — the exact error
+the row exists to forbid.
+
+```diff
+-      if (disposition.components[index].pricingRule === "preferential-stacking") {
++      if (disposition.components[index].pricingRule === "own-maximum-rate") {
+```
+
+```text
+PROBE B3  expect=TP-05-11   cmd=node scripts/selftest.mjs
+  guard_matches=1  applied=1  RED_EXIT=1
+  RED_SUMMARY=Research-Lab self-test: 3111 passed, 3 failed
+  RED_FAIL=✗ FAIL: TP-05-10: the exclusion amount equals the sourced amount for each filing status the publication enumerates, it is applied to the remainder component …
+  RED_FAIL=✗ FAIL: TP-05-11: an implementation applying the exclusion to the recapture component reduces that component to nothing where the shipped implementation leaves it untouched at its full amount, so the exclusion-target as…
+  REVERTED dirty=0 mutation_left=0 original_restored=1
+```
+
+**The discrimination against Probe 3 is the point of the pair.** Probe 3 removed
+the *bound* and fell TP-05-10 alone; this probe moves the *target* and fells
+TP-05-11 as well. Neither probe can be mistaken for the other by its failure set.
+
+### Probe 7 — RED for TP-05-12
+
+`rltaxdisposition.js`, in `applyResidenceExclusion`: the failing test stops being
+named as itself.
+
+```diff
+-    if (!use.passed) failed.push(use.testId);
++    if (!use.passed) failed.push(ownership.testId);
+```
+
+```text
+PROBE B4  expect=TP-05-12   cmd=node scripts/selftest.mjs
+  guard_matches=1  applied=1  RED_EXIT=1
+  RED_SUMMARY=Research-Lab self-test: 3111 passed, 3 failed
+  RED_FAIL=✗ FAIL: TP-05-09: the ownership test and the use test each pass at exactly the sourced period figure and fail one month below it …
+  RED_FAIL=✗ FAIL: TP-05-12: an implementation evaluating both eligibility tests as one combined condition reaches the same verdict while naming no failing test, where the shipped implementation names exactly the one that failed a…
+  REVERTED dirty=0 mutation_left=0 original_restored=1
+```
+
+### Probe 8 — RED for TP-05-02
+
+`rltaxrules.js`, in `validateGainComponent`: the closed pricing-rule set stops
+being enforced.
+
+```diff
+-    if (GAIN_PRICING_RULES.indexOf(component.pricingRule) < 0) {
++    if (false && GAIN_PRICING_RULES.indexOf(component.pricingRule) < 0) {
+```
+
+```text
+PROBE B6  expect=TP-05-02   file=rltaxrules.js   cmd=node scripts/selftest.mjs
+  guard_matches=1  applied=1  RED_EXIT=1
+  RED_SUMMARY=Research-Lab self-test: 3112 passed, 2 failed
+  RED_FAIL=✗ FAIL: TP-05-02: GainComponent/v1 refuses a pricing rule outside the closed two-member set, refuses a component carrying no rule at all rather than defaulting one, refuses an own-maximum-rate component with no rate or …
+  REVERTED dirty=0 mutation_left=0 original_restored=1
+```
+
+### Probe 9 — RED for TP-05-17
+
+`rltaxrules.js`: one member is added to the single refusal-vocabulary
+declaration. The added name is deliberately neutral rather than
+disposition-shaped, so the probe tests the **count** clause the row states and
+not the separate no-disposition-code clause.
+
+```diff
+     "RLTAX-RECONCILE": true,
++    "RLTAX-PROBE-EXTRA": true,
+     "RLTAX-SCOPE-DEFERRED": true,
+```
+
+```text
+PROBE B7  expect=TP-05-17   file=rltaxrules.js   cmd=node scripts/selftest.mjs
+  guard_matches=1  applied=1  RED_EXIT=1
+  RED_SUMMARY=Research-Lab self-test: 3103 passed, 11 failed
+  RED_FAIL=✗ FAIL: TP-05-17: the refusal vocabulary still has exactly its fourteen pre-feature members, and neither the rules module nor the disposition module names a disposition-specific code …
+  RED_FAIL=✗ FAIL: TP-05-17: at feature end the refusal vocabulary still carries exactly its fourteen pre-feature members in both directions, each still raised in the one module that declares them, no second vocabulary was introdu…
+  REVERTED dirty=0 mutation_left=0 original_restored=1
+```
+
+**This probe is deliberately broad, and its breadth is the finding.** Ten rows
+across Features 021 to 024 fell together — `TP-01-05`, `TP-01-14` twice,
+`TP-02-13`, `TP-02-15`, `TP-03-01`, `TP-03-18`, `TP-04-19` and both `TP-05-17`
+assertions. That is the vocabulary invariant doing what it was written to do: it
+is asserted once per scope on purpose, so a single added code cannot slip past
+any of them.
+
+### Probe 10 — RED for TP-05-06
+
+`rltaxdisposition.js`: one unused rate-shaped literal is planted at module scope.
+It is unused on purpose — the row forbids the module *holding* a rate, not using
+one, so an unused declaration is the strongest form of the probe.
+
+```diff
+   var RECAPTURE_COMPONENT_ID = "disposition-recapture";
++  var probeUnusedRate = 0.25;
+```
+
+```text
+PROBE B8  expect=TP-05-06   cmd=node scripts/selftest.mjs
+  guard_matches=1  applied=1  RED_EXIT=1
+  RED_SUMMARY=Research-Lab self-test: 3112 passed, 2 failed
+  RED_FAIL=✗ FAIL: TP-05-06: rltaxdisposition.js contains no band-walk arithmetic, no rate or amount literal and no authority name, the detector is proven to fire on a module that duplicates the stacking, the remainder is handed o…
+  REVERTED dirty=0 mutation_left=0 original_restored=1
+```
+
 ## Supersession Ledger
 
 **No entry was added in this session.** The ledger stands at fourteen entries.

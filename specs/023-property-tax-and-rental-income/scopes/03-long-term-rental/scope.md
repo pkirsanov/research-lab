@@ -388,6 +388,18 @@ all. A syntax error, a missing browser or an absent test does not satisfy RED.
     `report.md#repair-of-the-three-weaknesses--m-2-tp-03-11`,
     `report.md#repair-of-the-three-weaknesses--m-1-tp-03-16-and-tp-03-17`,
     `report.md#repair-of-the-three-weaknesses--m-3-tp-03-20`
+  - **Fifth pass: five more rows carry a RED, and one assertion is unfalsifiable.**
+    `TP-03-02`, `TP-03-06`, `TP-03-08`, `TP-03-10` and `TP-03-18` each gained an
+    observed intended RED from a value-free probe reverted inside the invocation
+    that applied it, and `TP-03-26` is red under every one of them. Twenty of
+    twenty-eight rows now carry a RED. Two probes at `TP-03-10` are recorded as
+    misses because the engine's own validator refuses first and the group throws
+    before the row evaluates; a third probe reds the row alone.
+    **`TP-03-04` cannot be red at all**: its assertion ends in `|| true`, so the
+    whole conjunction is unconditionally true and no mutation — including the two
+    its own text names — can fail it. Still owed: `TP-03-04`, `TP-03-21` to
+    `TP-03-25`, `TP-03-27` and `TP-03-28`. **Evidence:**
+    `report.md#fifth-pass--five-more-rows-carry-an-intended-red-and-one-assertion-is-unconditionally-true`
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths,
       and `node scripts/build-pages-site.mjs --dry-run` succeeds.

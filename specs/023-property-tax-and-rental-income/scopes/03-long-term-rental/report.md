@@ -886,3 +886,185 @@ appears in this scope's allowed paths.
 ## Completion Statement
 
 Filled at execution.
+
+## Fifth Pass — Five More Rows Carry An Intended RED, And One Assertion Is Unconditionally True
+
+Same-command GREEN for every row whose command is `node scripts/selftest.mjs` was
+re-observed on the clean tree in this session before any probe was applied:
+
+```
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3569
+sha256: 44f56aa61cfaab61db1eb927069731c6994a9789118ea3f289fbed25fa6d2139
+Research-Lab self-test: 3156 passed, 0 failed
+```
+
+Every probe below was applied with an in-place edit, run, and reverted with
+`git checkout --` inside the **same shell invocation**, with the pre-probe and
+post-revert SHA-256 of the touched module compared and `git status --short`
+re-read. Every mutation is value-free by construction — a code literal, a
+comparison operator, a dropped term of a local sum, or a `.slice(1)` on an
+exported view — so no household or tax figure could be disclosed by a slipped
+revert. All five reverts matched their pre-probe SHA-256 exactly.
+
+### Probe P03-1 — RED for `TP-03-18`
+
+Mutation: one member identifier, `"RLTAX-RENTAL-UNAVAILABLE": true,`, inserted
+into the refusal vocabulary declared in `rltaxrules.js`. This is exactly the
+defect the row names — a scope that adds a code of its own instead of folding
+its condition into an existing member.
+
+```
+$ node scripts/selftest.mjs        # probe applied
+exit: 1
+lines: 3569
+sha256: 45294e8e7086abb7156f363d2e9b841abe3b770d60e934ec054e6b13743bfeee
+  ✗ FAIL: TP-03-18: the refusal vocabulary still has exactly its fourteen pre-feature members and this scope added none
+Research-Lab self-test: 3144 passed, 12 failed
+PRE_SHA=c5fe2bfd8660fd494d2ad733713e393dedd9a805edfd9b11308e584f7f237f2c
+POST_SHA=c5fe2bfd8660fd494d2ad733713e393dedd9a805edfd9b11308e584f7f237f2c
+SHA_MATCH=yes
+```
+
+Eleven other rows across features 021, 022 and 024 also went red, because eleven
+other scopes pin the same count. That breadth is a property of the vocabulary,
+not a defect in this probe: the row named here failed on its own text.
+
+### Probe P03-2 — RED for `TP-03-02`
+
+Mutation: the member-name literal `"contentSha256"` in `packContentDigestInput`
+was given one extra character, so the self-referential member stopped being
+excluded from the bytes the digest covers.
+
+```
+$ node scripts/selftest.mjs        # probe applied
+exit: 1
+lines: 3569
+sha256: 2a34ab787bcf37bbd4a6a41a04c8560d2f05af8ff0ff78f572212b9530eb25cc
+  ✗ FAIL: TP-03-02: the pack stays valid after the additive insertion, its digest is re-derivable and equals the configuration pointer, …
+Research-Lab self-test: 3147 passed, 9 failed
+P03-2_REVERTED_SHA_MATCH=yes
+```
+
+No pack file was touched. The digest half of the row is proven to discriminate
+without editing a single sourced byte.
+
+### Probe P03-3 — RED for `TP-03-06`
+
+Mutation: the published `appliedOrder` list was rebuilt from the position in the
+ladder rather than from `entry.appliedOrder` — literally the module constant the
+row exists to forbid. The renumbered-pack fixture then no longer moved with the
+pack.
+
+```
+$ node scripts/selftest.mjs        # probe applied
+exit: 1
+lines: 3569
+sha256: 9f41eaa977f24394991885529fb157d22321f08185b426bf9d5532144784ec21
+  ✗ FAIL: TP-03-06: the applied limits carry strictly increasing orders with the at-risk limit first, the orders equal the pack's sourced rows rather than a module constant, …
+Research-Lab self-test: 3155 passed, 1 failed
+P03-3_REVERTED_SHA_MATCH=yes
+```
+
+One failure, no group throw: the row failed alone.
+
+### Probe P03-4 — RED for `TP-03-08`
+
+Mutation: one comparison operator, `measure > start` became `measure >= start`,
+so the lower edge of the sourced phase-out range was treated as inside the
+phase-out rather than at the maximum.
+
+```
+$ node scripts/selftest.mjs        # probe applied
+exit: 1
+lines: 3569
+sha256: 1e0f417afe23b93885993105f797aee28f47beaab36f1003bb4070c86c20e06c
+  ✗ FAIL: TP-03-08: the special allowance equals the sourced maximum at and below the lower edge, is reduced by the sourced rate one dollar above it, …
+Research-Lab self-test: 3155 passed, 1 failed
+P03-4_REVERTED_SHA_MATCH=yes
+```
+
+One failure, no group throw. The probe changes no figure: it changes only which
+side of the sourced edge the boundary case falls on.
+
+### Probes P03-5 and P03-6 — two misses, recorded rather than hidden
+
+Two earlier attempts at `TP-03-10` did **not** produce a per-row RED, and both are
+recorded because the reason is a finding about the row.
+
+- **P03-5.** The `disposition` literal `"suspended"` was lengthened. Result:
+  `✗ FAIL (Feature 023 Scope 03 rental group threw): Cannot read properties of undefined (reading 'length')`,
+  3135 passed / 3 failed, capture sha256
+  `61cfb76f375d05cf0c6cffbaa4de0b3ea635b0703f88be6794dbb28e9da925df`.
+- **P03-6.** One term of the local reconciliation sum was dropped, so
+  `disallowedAmount` became `amountBefore` alone. Result: the same group throw,
+  3135 passed / 3 failed, capture sha256
+  `08096fd014d59ffbbf23d1ca9931dbff93bda96d946a6315e9ab27af864b7101`.
+
+Both mutations are detected — but by the engine's own `validateLossLimitation`,
+which refuses the whole settlement, so the ladder never materialises and an
+earlier assertion in the group throws before `TP-03-10` is reached. A group throw
+is a red *command*, not a red *row*: it does not show that the row's own
+assertion discriminates. Both were reverted in their own invocation with the
+SHA-256 re-matched.
+
+### Probe P03-7 — RED for `TP-03-10`
+
+Mutation: the exported view of the contract key set was narrowed with
+`LOSS_LIMITATION_KEYS.slice(1)`, leaving the internal constant the validator
+enforces untouched. The engine therefore still produced a well-formed ladder, and
+only the row's published-versus-enforced conjunct failed.
+
+```
+$ node scripts/selftest.mjs        # probe applied
+exit: 1
+lines: 3569
+sha256: 0a68e940064acb82dadf7eb91fd748b28aea3d7575c108b0c54d1eae64032078
+  ✗ FAIL: TP-03-10: every applied limit across five fixtures publishes all three amounts, they reconcile exactly, the disposition records that the disallowed amount is carried, and the record carries exactly the contract's key set
+Research-Lab self-test: 3155 passed, 1 failed
+P03-7_REVERTED_SHA_MATCH=yes
+```
+
+One failure, no group throw. The defect this discriminates against is real and
+distinct from the two misses above: a module whose *published* contract disagrees
+with the contract it *enforces*.
+
+### `TP-03-26` is red under every probe above
+
+`TP-03-26`'s command is the same whole-repository suite, and its expectation is
+that the suite stays green with no fall in pass count. Each of the five probes
+above drove it to a non-zero exit with a fallen pass count — 3144, 3147, 3155,
+3155 and 3155 against the 3156 baseline — and each returned to 3156 passed / 0
+failed on revert. That is an observed intended RED and a same-command GREEN for
+`TP-03-26`.
+
+### Finding — `TP-03-04`'s assertion is unconditionally true
+
+`TP-03-04`'s assertion ends its conjunction with `|| true`. Because `&&` binds
+tighter than `||`, the whole expression is `(every conjunct) || true`, which
+evaluates to `true` for every possible input. **No mutation can turn this row
+red**, including the two defects its own text names — a recalled recovery period
+and a defaulted convention. The row cannot be given an intended RED while the
+assertion is written this way; the obstacle is the assertion, not the absence of
+a probe.
+
+This is recorded rather than repaired. Repairing it means appending a falsifiable
+restatement to `scripts/selftest.mjs`, which currently carries a concurrent
+session's uncommitted 39-line addition; committing this scope's evidence would
+either carry that in-flight foreign work into this feature's commit or require
+partial staging of a shared file. A precisely located, reproducible finding is
+the better outcome. What would make the row decidable: a new assertion, appended
+beside the existing one and leaving it untouched, restating the same three
+findings without the trailing `|| true`, after which the convention-branch
+mutation P03-5's sibling would red it directly.
+
+### Effect on the DoD row
+
+Twenty of twenty-eight rows now carry an observed intended RED: the fifteen
+recorded in the previous passes plus `TP-03-02`, `TP-03-06`, `TP-03-08`,
+`TP-03-10`, `TP-03-18` and `TP-03-26` from this pass. The row stays unticked
+because it requires **every** row. Still owed: `TP-03-04` (blocked by the
+unconditional assertion above), the browser rows `TP-03-21` to `TP-03-25`, and
+`TP-03-27` and `TP-03-28`. No assertion was edited, weakened, skipped or removed
+and no timeout was raised in this pass.

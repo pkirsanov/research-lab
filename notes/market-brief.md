@@ -854,6 +854,44 @@ Two details are load-bearing:
   claim. The rate begins to publish only when the attention feed produces items and those items close —
   which is BUG-009's subject, not this scope's.
 
+## 10b. Why the decision list was empty, and the one file that decides what interrupts you
+
+For every published run until 2026-08-19 the decision list was **empty**, and not because markets were
+quiet. A `decision-attention/v1` item is composed from two halves: the lane authors the **judgement** — a
+headline, the falsifiability triple of trigger, invalidation and expiry, and the four enums — and a **gate**
+supplies the **observation**. The gate half had no producer anywhere in the repository, so every candidate
+was refused `RLATTN-PROVENANCE` and the feed published nothing. That is BUG-009.
+
+**What produces the observation now.** `rlattentiongate.js` derives the gate half from committed Tier-A
+state — the same `market-brief.snapshot.json` the rest of the brief reads. It carries **no threshold of its
+own**: every band lives in `attention-detection-policy/v1` in `market-brief.config.json`, and an absent or
+partially declared policy resolves to `null` and the producer emits nothing rather than falling back to a
+built-in opinion. That is deliberate. The question "what deserves to interrupt the reader" is the owner's,
+and it is answered in a committed config file, not in code.
+
+**This is the file to edit when the brief is too quiet or too loud.** The bands are drafted conservative on
+purpose, because the failure this whole feature exists to correct was a brief that interrupted its reader
+with noise. Only a **severe** reading that **independently persisted** reaches `attention`; a severe but
+unconfirmed reading is demoted to `context` and stays out of the way. Against committed state on the day it
+landed that produced 9 observed subjects, all `context`, and **zero** interruptions. If that is too silent,
+widen the severity bands or relax the persistence requirement — no code changes.
+
+**What it refuses, and why each refusal is deliberate.**
+
+- A reading below every declared band yields **no severity**, never the smallest one, so a quiet market
+  cannot manufacture a candidate.
+- An absent confirmation verdict becomes `partial`, never an assumed `present`.
+- A subject Tier-A does not track earns no observation, so an unobservable judgement is never dressed up
+  as observed.
+- A headline naming **two** tracked symbols resolves to no subject at all. Binding a judgement to the wrong
+  instrument is worse than publishing nothing, so ambiguity refuses rather than guesses.
+
+**How a judgement finds its instrument.** `subject` is a gate field, not an authored one — the lane is told
+to author only judgement and never names a ticker. The gate resolves the subject by matching a tracked
+symbol as a whole word in the authored text, which is a string match against committed keys rather than an
+inference. A headline naming no tracked symbol is refused, and the reader is told the feed was refused
+rather than shown a calm-looking empty list. That last part is §10a's decision block doing its job.
+
 ---
 
 ## 11. Artifacts, registry sync, validation

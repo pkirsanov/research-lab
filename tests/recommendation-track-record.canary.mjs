@@ -811,15 +811,21 @@ function isPiiScanCounted(root, tracked, candidate) {
 const SPEC_ARTIFACT_DIR = 'specs';
 const SPEC_TEST_PATH_TOKEN = /(?<![A-Za-z0-9._/-])tests\/[A-Za-z0-9._/-]*\.mjs/g;
 
-function countSpecTestPathReferences(text) {
+/* `referencedPaths` collects the DISTINCT matched tokens, which is a different quantity from the
+ * tally: `sitesByPath.size` counts paths, the return value counts occurrences of them. */
+function countSpecTestPathReferences(text, referencedPaths) {
     SPEC_TEST_PATH_TOKEN.lastIndex = 0;
     let found = 0;
-    while (SPEC_TEST_PATH_TOKEN.exec(text) !== null) found += 1;
+    let match;
+    while ((match = SPEC_TEST_PATH_TOKEN.exec(text)) !== null) {
+        found += 1;
+        if (referencedPaths !== undefined) referencedPaths.add(match[0]);
+    }
     return found;
 }
 
 /** Every artifact the guard would scan under `<root>/specs`, mapped to its reference count. */
-function specArtifactReferenceCounts(root) {
+function specArtifactReferenceCounts(root, referencedPaths) {
     const counts = new Map();
     const base = path.join(root, SPEC_ARTIFACT_DIR);
     if (!fs.existsSync(base)) return counts;
@@ -839,7 +845,10 @@ function specArtifactReferenceCounts(root) {
                 continue;
             }
             if (text.includes('\u0000')) continue; // binary artifact, not a text reference surface
-            counts.set(path.relative(root, child).split(path.sep).join('/'), countSpecTestPathReferences(text));
+            counts.set(
+                path.relative(root, child).split(path.sep).join('/'),
+                countSpecTestPathReferences(text, referencedPaths),
+            );
         }
     };
     walk(base);
@@ -926,8 +935,10 @@ function deriveAttribution(liveRoot, backedOutRoot, delta, refrozen) {
     const foreignAddedSet = new Set(delta.added.foreign);
     const scopeModifiedSet = new Set(delta.modified.scope);
     const foreignModifiedSet = new Set(delta.modified.foreign);
-    const liveArtifacts = specArtifactReferenceCounts(liveRoot);
-    const preArtifacts = specArtifactReferenceCounts(backedOutRoot);
+    const liveReferencedPaths = new Set();
+    const preReferencedPaths = new Set();
+    const liveArtifacts = specArtifactReferenceCounts(liveRoot, liveReferencedPaths);
+    const preArtifacts = specArtifactReferenceCounts(backedOutRoot, preReferencedPaths);
     let ownedDelta = 0;
     let foreignDelta = 0;
     let totalDelta = 0;
@@ -982,6 +993,9 @@ function deriveAttribution(liveRoot, backedOutRoot, delta, refrozen) {
             contributingArtifacts: contributingArtifacts.sort(),
             foreignContributingArtifacts: foreignContributingArtifacts.sort(),
             unexplainedContributingArtifacts: unexplainedContributingArtifacts.sort(),
+            // The DISTINCT paths the guard's `sitesByPath` keys on, derived from the same walk as
+            // `magnitude` but a different quantity: that one counts occurrences, this one counts paths.
+            referencedPaths: { pre: preReferencedPaths.size, live: liveReferencedPaths.size },
             artifacts: { pre: preArtifacts.size, live: liveArtifacts.size },
             artifactsAdded: [...liveArtifacts.keys()].filter((entry) => !preArtifacts.has(entry)).sort(),
             artifactsRemoved: [...preArtifacts.keys()].filter((entry) => !liveArtifacts.has(entry)).sort(),
@@ -1029,6 +1043,7 @@ const ATTRIBUTION_REASONS = Object.freeze([
     'production-source-scan-universe',
     'frozen-baseline-reclassification',
     'frozen-baseline-refreeze',
+    'frozen-baseline-refreeze-and-referenced-paths',
     'committed-surface-file-universe',
     'scope-artifact-test-references',
 ]);
@@ -1100,6 +1115,24 @@ function classifyDifference(preLine, liveLine, attribution) {
         && moved[0].delta === -refreeze.magnitude
     ) {
         return 'frozen-baseline-refreeze';
+    }
+
+    // Two moves, two independent anchors, neither able to cover both: the magnitude forbids a bucket
+    // falling further than was re-frozen, the exact sizes forbid another counter borrowing the +1.
+    const isRefrozenBucketMove = (entry) => entry.delta === -refreeze.magnitude;
+    const isReferencedPathMove = (entry) => entry.pre === references.referencedPaths.pre
+        && entry.live === references.referencedPaths.live;
+    if (
+        preLine.includes(SPEC_TEST_BUCKET_MARKER)
+        && refreeze.magnitude > 0
+        && references.referencedPaths.live !== references.referencedPaths.pre
+        && moved.length === 2
+        && (
+            (isRefrozenBucketMove(moved[0]) && isReferencedPathMove(moved[1]))
+            || (isRefrozenBucketMove(moved[1]) && isReferencedPathMove(moved[0]))
+        )
+    ) {
+        return 'frozen-baseline-refreeze-and-referenced-paths';
     }
 
     // Growth of the production-source scan universe, bound to the EXACT sizes of the two trees

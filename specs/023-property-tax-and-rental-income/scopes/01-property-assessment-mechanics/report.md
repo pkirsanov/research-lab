@@ -1430,6 +1430,75 @@ is the informative part: the row does not lean on the code alone. Had the two
 refusals been separated only by their code, this mutation would have gone
 undetected, and the row proves it would not.
 
+### Probe 19 — same-command RED and GREEN for TP-01-19
+
+`TP-01-19` pins that the cap and the exemption are each applied *at their own
+declared point*, in order, and that each step publishes the figure it moved from
+and the figure it moved to. The exemption step is the second of the two, so
+neutralising it — while leaving the step, its application point and its citation
+in place — is the smallest change that violates only that half of the row.
+
+One term of a local difference is removed. The step still renders, still declares
+`assessed-value`, still carries `before`; only the reduction goes:
+
+```js
+-    var taxableBasis = Math.max(0, cappedValue - exemptionTotal);
++    var taxableBasis = Math.max(0, cappedValue);
+```
+
+RED:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-002 the exemption and the cap are applied at their declared points with reachable citations" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✘  1 [system-chrome] › tests/lifetime-tax-property.spec.mjs:114:1 › Regression: SCN-023-002 the exemption and the cap are applied at their declared points with reachable citations (6.2s)
+
+  1) [system-chrome] › tests/lifetime-tax-property.spec.mjs:114:1 › Regression: SCN-023-002 the exemption and the cap are applied at their declared points with reachable citations
+
+    Error: expect(locator).toContainText(expected) failed
+
+    Locator: locator('#propertyReliefBody tr').filter({ hasText: 'exemptions' }).first()
+    Expected substring: "$284,000"
+    Received string:    "exemptionsassessed-value$309,000$309,000nothis regime carries no such rule, which is a stated fact rather than a silent pass"
+    Timeout: 5000ms
+
+      145 |     await expect(exemptionRow).toContainText('$309,000');
+    > 146 |     await expect(exemptionRow).toContainText('$284,000');
+          |                                ^
+        at <repo>/tests/lifetime-tax-property.spec.mjs:146:32
+
+  1 failed
+RED_EXIT=1
+```
+
+Reverted inside the same shell invocation, revert verified, same command again:
+
+```
+$ git checkout -- rltaxproperty.js && git status --short -- rltaxproperty.js
+revert_rc=0
+STATUS_EMPTY_ABOVE
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-002 the exemption and the cap are applied at their declared points with reachable citations" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/lifetime-tax-property.spec.mjs:114:1 › Regression: SCN-023-002 the exemption and the cap are applied at their declared points with reachable citations (842ms)
+
+  1 passed (2.1s)
+GREEN_EXIT=0
+```
+
+The received string is the decisive part of this capture. The exemption row is
+still present, still labelled `assessed-value`, and still reports a `before` of
+`$309,000` — but its `after` now reads `$309,000` as well. A regression that
+silently stopped applying an elected exemption would leave a relief table that
+still *looks* complete, with the right number of rows and the right application
+points, and the row catches it anyway because it pins the pair of figures each
+step moved between rather than the step's presence. The cap clause on line 145
+passed first, so the two steps are independently sensitive.
+
 ## Change Boundary
 
 Command: a path-scoped status check over the excluded list.

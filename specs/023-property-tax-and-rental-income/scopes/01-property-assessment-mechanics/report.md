@@ -1640,6 +1640,85 @@ perfectly innocuous declared asset after every keystroke would leak nothing and
 still be caught, which is the property a privacy row needs: it pins silence, not
 merely the absence of a known-bad string.
 
+### Probe 23 — same-command RED and GREEN for TP-01-23
+
+`TP-01-23` is the cumulative row: every scenario owned by features 021 … 024
+passing over the real route in one run, zero failed and zero skipped. A cumulative
+row is falsified by any real regression that reaches any owning scenario, so the
+probe drops the property leg out of the settled leg set — value-free by
+construction, since the edit is a code literal naming a leg and carries no figure,
+rate or threshold:
+
+```js
+-      var settledLegs = state.envelope ? state.envelope.legIds.slice() : [];
++      var settledLegs = state.envelope ? state.envelope.legIds.filter(function (legId) { return legId !== "property-tax"; }) : [];
+```
+
+The guard ran before the RED half and confirmed the tree was clean beforehand and
+that the mutation actually landed, so the failure below cannot be a stale-tree
+artefact:
+
+```
+pre_dirty=0
+mutation_landed=1
+```
+
+RED — the row's own selector, run under a 2400-second ceiling:
+
+```
+=== RED (ceiling 2400s) ===
+Running 77 tests using 6 workers
+  2 failed
+  75 passed (5.1m)
+RED_EXIT=1
+```
+
+The two failures are `SCN-023-006`, the deduction export, and `SCN-023-002`, the
+property leg export. Both **failed**; neither vanished. That is the discriminator
+this repo's Probe 5 precedent requires — a mutation that makes a group throw
+removes tests from the run rather than failing them, and is not valid RED. Here
+the same 77 tests ran in both halves, so the delta is two assertions and not a
+changed test population.
+
+Reverted inside the same shell invocation, revert verified with no residue:
+
+```
+=== REVERT ===
+revert_rc=0 residual=0
+STATUS_EMPTY_ABOVE
+```
+
+`git status --short` printed nothing between those two lines.
+
+GREEN — the identical command against the reverted tree:
+
+```
+=== GREEN ===
+Running 77 tests using 6 workers
+  77 passed (56.5s)
+GREEN_EXIT=0
+```
+
+**Finding — a timed-out run is not RED.** A first attempt at the RED half ran
+under a 900-second ceiling and returned `RED_EXIT=124`: killed, not failed. It was
+discarded and the half re-run under a 2400-second ceiling, because a non-zero exit
+that records a kill proves nothing about the assertions — it is the same defect as
+a mutation that makes a group throw, dressed as a failure. The asymmetry behind it
+is worth recording: the clean run takes 56.5 seconds and the mutated run takes 5.1
+minutes. Breaking the export path leaves assertions waiting out their full
+timeouts, with retries and trace capture stacked on top, so a probe's RED half can
+need several times the wall-clock budget its GREEN half needs. A ceiling sized off
+the green run will kill the red one.
+
+**Relation to the earlier capture.** The `TP-01-23` block in Test Evidence above
+records a green run over `--grep "SCN-02"`, which selected 21 tests at the time it
+was taken. The pair here uses the selector the row's table cell names,
+`SCN-02[1-4]`, which now selects all 77 tests owned by features 021 … 024. The
+reporter flag differs from the table cell's `--reporter=list`: both halves ran
+`--reporter=line`. The reporter changes how results are printed, not which tests
+are selected or whether they pass, and RED and GREEN used the identical command as
+each other, which is what the row's pairing requires.
+
 ### Probe 24 — same-command RED and GREEN for TP-01-24
 
 `TP-01-24` is the repository gate: the whole suite stays green **and** the
@@ -1916,7 +1995,7 @@ goes the other way: it says a typical value, average or estimate is NOT substitu
 
 ## Completion Statement
 
-Scope 1 is complete against twelve of its thirteen Definition of Done rows. Every
+Scope 1 is complete against all thirteen of its Definition of Done rows. Every
 requirement in its coverage — FR-023-001 through FR-023-007 and the inherited
 non-functional set — is implemented and asserted, the four shipped-and-absent
 sourcing outcomes are recorded with their locators and remediations, the property
@@ -1925,12 +2004,28 @@ fixture, and all five supersessions this scope owns are delivered with no
 superseded literal surviving.
 
 The thirteenth row — "every Test Plan row has intended RED and same-command GREEN
-evidence recorded" — is left unchecked. GREEN is recorded for every row from
-TP-01-01 to TP-01-26. Intended RED was observed in this session only for the rows
-this dispatch implemented; for the rows whose implementation predates it, a
-before-implementation RED cannot honestly be claimed now, and two reconstructions
-are recorded above in its place rather than a claim. Closing that row requires
-re-deriving the missing RED evidence, which is a separate piece of work.
+evidence recorded" — is now closed. All twenty-six rows `TP-01-01` … `TP-01-26`
+carry both halves. Probe 23 supplied the last of them. The RED evidence is
+mutation-derived throughout rather than before-implementation, and it is recorded
+as such: each probe removes the behaviour its row names, runs the command the row
+names, reverts inside the same shell invocation with the revert verified, and
+re-runs that same command. The row coverage is:
+
+| Rows | RED source | GREEN source |
+|---|---|---|
+| `TP-01-01` | Probe 2, re-verified by Probe 7 | Probe 7, paired |
+| `TP-01-02` … `TP-01-05` | Probes 3, 4, 5, 6 | the same `node scripts/selftest.mjs` clean run recorded in Test Evidence |
+| `TP-01-06`, `TP-01-07`, `TP-01-20` | Probe 1 | Probe 1, paired |
+| `TP-01-08` … `TP-01-17` | Probes 8 … 17 | Probes 8 … 17, paired |
+| `TP-01-18`, `TP-01-19`, `TP-01-21`, `TP-01-22` | Probes 18, 19, 21, 22 | Probes 18, 19, 21, 22, paired |
+| `TP-01-23` | Probe 23 | Probe 23, paired |
+| `TP-01-24` … `TP-01-26` | Probes 24, 25, 26 | Probes 24, 25, 26, paired |
+
+Two qualifications stand rather than being smoothed over. Probe 26's exit code did
+not move between its halves, so that row's third conjunct is enforced by reading
+the published `directories` array and not by the process exit status; the finding
+recorded there stands. And Probe 23 discarded a timed-out first attempt, because a
+killed run is not a failed run.
 
 Gates observed in this session, all green: `node scripts/selftest.mjs` exit 0 with
 2653 passed and 0 failed; the six-file browser suite exit 0 with 21 passed;

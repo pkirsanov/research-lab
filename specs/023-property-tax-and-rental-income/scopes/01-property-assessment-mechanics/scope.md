@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs in
 [report.md](report.md).
 
-**Status:** Executed — 12 of 13 Definition of Done rows satisfied
+**Status:** Executed — 13 of 13 Definition of Done rows satisfied
 **Scope-Kind:** runtime-behavior
 **Tags:** `foundation:true`, `declared-vs-sourced:true`, `sourcing-gated:true`, `known-value-tested`
 **Depends On:** none
@@ -309,16 +309,16 @@ does not satisfy RED.
       figure, a track record or an error rate, and no property figure is presented
       as an estimate or a typical rate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
-  - **Phase:** implement · **Command:** the exact TP-01-01 through TP-01-23 commands · **Evidence:** `report.md#test-evidence`
-  - **Not satisfied, and why.** Same-command GREEN is recorded for every row from
-    TP-01-01 to TP-01-26. Intended RED is not. The contract asks for a failure
-    observed *before* the implementation, and the implementation of the selftest
-    rows predates this execution session, so no such observation can honestly be
-    produced now. Two reconstructions stand in `report.md#supersession-ledger` in
-    its place, and they are labelled reconstructions rather than RED. Closing this
-    row means re-deriving the missing RED evidence, which is separate work.
+  - **Phase:** implement · **Command:** the exact TP-01-01 through TP-01-26 commands · **Evidence:** `report.md#test-evidence`, `report.md#completion-statement`, and the per-row probes `report.md#probe-1--same-command-red-for-tp-01-06-tp-01-07-and-tp-01-20` through `report.md#probe-26--same-command-red-and-green-for-tp-01-26`
+  - **How it closed.** All twenty-six rows now carry both halves. The RED evidence
+    is mutation-derived rather than before-implementation and is recorded as such:
+    each probe removes the behaviour its row names, runs the command the row names,
+    reverts inside the same shell invocation with the revert verified, and re-runs
+    that same command. `report.md#completion-statement` carries the row-to-probe
+    map. Probe 23 supplied the last row, `TP-01-23`, and discarded a timed-out
+    first attempt because a killed run is not a failed run.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths,
       and `node scripts/build-pages-site.mjs --dry-run` succeeds with

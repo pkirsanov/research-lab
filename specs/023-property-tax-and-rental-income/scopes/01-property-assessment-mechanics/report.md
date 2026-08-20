@@ -1763,6 +1763,75 @@ red. The six stale baseline entries recorded earlier in this report are now
 `stale=0`; that cleanup belongs to another feature and no baseline file was
 touched by this probe.
 
+### Probe 26 — same-command RED and GREEN for TP-01-26
+
+`TP-01-26` has three conjuncts: the Pages plan succeeds, `site-exclusions.json`
+is unchanged, and `tax-rules/` remains outside the public directories. The third
+is the one this scope owns, and it is not enforced by an exclusion entry —
+`site-exclusions.json` carries no `tax-rules` line at all. The regime packs stay
+private because the publisher works from a closed allow-list, so the falsifying
+mutation is one added member of that list:
+
+```js
+- const PUBLIC_DIRECTORIES = Object.freeze([… 'rlexperience-adapters', 'tests/fixtures']);
++ const PUBLIC_DIRECTORIES = Object.freeze([… 'rlexperience-adapters', 'tax-rules', 'tests/fixtures']);
+```
+
+A directory name is an identifier, not a figure, so a slipped revert could not
+have disclosed a household value — though it would have published the regime
+packs, which is why the revert was issued in the same invocation and verified
+before anything else ran. Landing verified first:
+
+```
+new=1 old=0
+```
+
+RED — the row's exact command:
+
+```
+$ node scripts/build-pages-site.mjs --dry-run
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":128,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tax-rules","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/004902309400a815a8ac1da2877422310e381d5c20748f711cbd0233e959a67a","omittedOrphanIndexes":144}
+RED_EXIT=0
+```
+
+Reverted inside the same shell invocation, revert verified:
+
+```
+$ git checkout -- scripts/build-pages-site.mjs
+revert_rc=0
+$ git status --short -- scripts/build-pages-site.mjs
+STATUS_EMPTY_ABOVE
+```
+
+GREEN — same command, clean tree:
+
+```
+$ git status --short -- scripts/build-pages-site.mjs
+PRE_GREEN_STATUS_EMPTY_ABOVE
+
+$ node scripts/build-pages-site.mjs --dry-run
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":128,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/004902309400a815a8ac1da2877422310e381d5c20748f711cbd0233e959a67a","omittedOrphanIndexes":144}
+GREEN_EXIT=0
+```
+
+**The exit code did not move, and that is the honest reading of this probe.**
+`tax-rules` enters and leaves the published `directories` array between the two
+runs — the row's third conjunct is genuinely falsified and genuinely restored by
+the same command — but both runs exit 0. The mutation publishes the regime packs
+*successfully*; a publisher has no reason to refuse a directory it was told to
+publish. So this row's third conjunct is enforced by reading the `directories`
+array, not by the process exit status, and the RED above proves the observation
+is sensitive rather than proving the command is.
+
+**Finding — the deploy gate's privacy conjunct is not exit-code enforced.** A
+grep of `scripts/selftest.mjs` for an assertion pinning `tax-rules` out of the
+published set returns nothing, so no automated check would fail if a future
+change added the regime packs to `PUBLIC_DIRECTORIES`. The dry-run output would
+show it and CI would stay green. This is a gap in the gate, not in the evidence
+above; it is recorded here rather than fixed, because `scripts/build-pages-site.mjs`
+sits outside this scope's change boundary and the fix belongs to whoever owns the
+publisher.
+
 ## Change Boundary
 
 Command: a path-scoped status check over the excluded list.

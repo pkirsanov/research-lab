@@ -962,6 +962,77 @@ Nine no-registration rows across the four features fall together, and each names
 `rlnav.js` as the file it found the token in — so the failure is attributable to
 the surface rather than merely to the feature.
 
+### Probe 18 — RED for TP-05-01
+
+<a id="tp-05-01"></a>
+
+TP-05-01 is the compatibility row: registering a category inside the preferential
+family must not reach into the band walk, so the same Feature 022 fixtures must
+settle identically with the disposition policy present and with it removed. The
+mutation adds **one term to that local sum** in the settlement engine, conditioned
+on the policy being present — the smallest possible leak of the registration into
+the walk. The added term is the literal `1`, so the mutation carries no figure of
+any kind and a slipped revert could not have disclosed a household value.
+
+```diff
+-      preferentialTaxRecord = valued(preferentialWalk.tax, rules.ruleStatusFor(pack, preferentialTable), {
++      preferentialTaxRecord = valued(preferentialWalk.tax + (pack.dispositionPolicy ? 1 : 0), rules.ruleStatusFor(pack, preferentialTable), {
+```
+
+```text
+PROBE 18  expect=TP-05-01   module=RLTAX (settlement engine)   cmd=node scripts/selftest.mjs
+  guard_matches=1  applied=1  RED_EXIT=1
+  RED_SUMMARY=Research-Lab self-test: 3108 passed, 6 failed
+  RED_SHA256=d99aaf7f34e503f03aa980f68c071e6db0167d921651ae52932cf3d8c056acc3
+  RED_FAIL=✗ FAIL: TP-05-01: every Feature 022 preferential fixture produces its exact prior preferential and total figures, settling identically with and without the registered recapture category so the registration is proven not to have reached inside the band walk, the pack stays valid, its digest is re-d…
+  REVERTED dirty=0 mutation_left=0 original_restored=1
+```
+
+The RED was captured through `evidence-capture.sh`, so the recorded exit code and
+the SHA-256 over all 3526 output lines were produced by the run rather than by
+hand, and the block is re-checkable with `--verify` against the same mutation.
+
+Six failures stand where one stood. The standing one is the foreign
+spec-test-path guard described in the preamble; of the five new ones, TP-05-01 is
+this row's own. The other four — a California pooling row and three preferential
+breakpoint rows — are the same one-cent-per-settlement leak observed from other
+surfaces, which is the point: a term that reached the band walk is visible to
+every assertion that prices a preferential band, and TP-05-01 names the
+registration as the cause.
+
+### Probe 19 — RED for TP-05-13
+
+<a id="tp-05-13"></a>
+
+TP-05-13 requires that an absent exclusion amount **or** an absent period figure
+refuses the exclusion, excludes no gain, and states the refusal under
+`RLTAX-THRESHOLD-UNAVAILABLE`. The mutation disables the period half of that gate
+by conjoining a **boolean literal** to its refusal condition, leaving the amount
+half intact — so the probe discriminates the two halves rather than knocking out
+the whole rule. The mutation is a boolean term and carries no figure.
+
+```diff
+-      if (isUnavailable(resolvedTest)) return resolvedTest;
++      if (false && isUnavailable(resolvedTest)) return resolvedTest;
+```
+
+```text
+PROBE 19  expect=TP-05-13   module=RLTAXRULES (residence-exclusion gate)   cmd=node scripts/selftest.mjs
+  guard_matches=1  applied=1  RED_EXIT=1
+  RED_SUMMARY=Research-Lab self-test: 3112 passed, 2 failed
+  RED_SHA256=cc9bf7b26907e9b8eff8e22597be84363c204fb93ece997c2cf805860299cba7
+  RED_FAIL=✗ FAIL: TP-05-13: a pack whose exclusion amount or period figure was not retrieved refuses the exclusion and excludes no gain, the head-of-household status refuses on the shipped pack because Publication 523 enumerates no amount for it, that absence is a real AbsentFigure naming the source that wo…
+  REVERTED dirty=0 mutation_left=0 original_restored=1
+```
+
+Two failures stand where one stood, and the second is exactly this row. The
+discrimination is the point: disabling only the period half still refuses on the
+amount half, so a gate that covered one of the two figures and not the other
+would have passed a weaker assertion — this one names the period figure and
+fails. The capture ran through `evidence-capture.sh`, so the exit code and the
+SHA-256 over all 3526 lines were produced by the run and are re-checkable with
+`--verify`.
+
 ## Supersession Ledger
 
 **No entry was added in this session.** The ledger stands at fourteen entries.

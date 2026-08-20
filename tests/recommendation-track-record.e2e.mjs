@@ -39,6 +39,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -49,6 +50,7 @@ import {
     assertBytesUnchanged,
     assertEvaluable,
     assertRefusal,
+    foundationSourceText,
     loadClaimFixtures,
     loadClaimsModule,
     mintInputFrom,
@@ -631,5 +633,238 @@ test('T-01-R2: the committed suites are intact, and the committed Node E2E suite
         [...listedFiles].sort(),
         committedSpecs,
         'every committed spec file must still collect, and collection must contain nothing that is not committed',
+    );
+});
+
+/* =============================================================================================
+ * T-03-R1 — the resolved-flat sentinel, end to end. PERMANENT.
+ *
+ * SCN-015-004 stated once as a full pass rather than as four separate properties: a mixed cohort
+ * of REAL minted claims is classified against each claim's own frozen band, routed, summarised by
+ * the 007-owned primitive UNMODIFIED, published with its denominator, partitioned, and stored
+ * content-addressed. A later scope that merges resolved-flat back into unresolved, that nudges a
+ * flat value to give it a sign, that lets a bare zero reach the primitive, or that lets a class
+ * fall out of the accounting fails HERE.
+ *
+ * Nothing here reads a clock and nothing here writes into the committed `briefs/objects/` tree.
+ * =========================================================================================== */
+
+const LEDGER_DIR = path.join(REPO_ROOT, 'briefs', 'history', 'recommendations');
+
+/** The exact unrounded flat value the row tracks through classification, bytes, and read-back. */
+const UNROUNDED_FLAT = 0.1 + 0.2 - 0.3;
+
+/** Closure event and reason per class, each pair legal for its class in the module's own tables. */
+const CLOSURE_FOR_CLASS = Object.freeze({
+    win: { closureEventType: 'satisfied', reasonCode: 'predicate-satisfied' },
+    loss: { closureEventType: 'satisfied', reasonCode: 'predicate-satisfied' },
+    'resolved-flat': { closureEventType: 'satisfied', reasonCode: 'predicate-satisfied' },
+    unresolved: { closureEventType: 'expired', reasonCode: 'horizon-elapsed' },
+    'not-evaluable': { closureEventType: 'not-evaluable', reasonCode: 'no-committed-reference' },
+});
+
+function committedV2Row() {
+    const row = fs
+        .readdirSync(LEDGER_DIR)
+        .filter((f) => f.endsWith('.jsonl'))
+        .sort()
+        .flatMap((f) => fs.readFileSync(path.join(LEDGER_DIR, f), 'utf8').split('\n').filter((l) => l.trim().length > 0))
+        .map((line) => JSON.parse(line))
+        .find((r) => r.contractVersion === claims.ROW_CONTRACT_V2);
+    assert.ok(row, 'the committed ledger must carry a v2 row for this row to mean anything');
+    return row;
+}
+
+/** Every DISTINCT evaluable claim the fixture set mints, in fixture order. */
+function distinctEvaluableClaims() {
+    const byHash = new Map();
+    for (const fixture of loadClaimFixtures()) {
+        if (fixture.expected.outcome !== 'evaluable') continue;
+        const minted = claims.mintClaim(mintInputFrom(fixture));
+        assertEvaluable(minted, fixture.name);
+        if (!byHash.has(minted.claim.claimHash)) byHash.set(minted.claim.claimHash, minted.claim);
+    }
+    return [...byHash.values()];
+}
+
+test('T-03-R1: a resolved-flat outcome survives a full classify-route-summarise-store pass as its own class', () => {
+    const vocabulary = claims.readClosureEventVocabulary(foundationSourceText());
+    const eventId = committedV2Row().eventId;
+    const cohortClaims = distinctEvaluableClaims();
+    assert.ok(cohortClaims.length >= 5, `the fixture set must mint at least five distinct evaluable claims, got ${cohortClaims.length}`);
+
+    /* One outcome per distinct claim, each value expressed in THAT claim's own frozen band, so the
+       classes below are the classifier's verdict rather than this row's label. */
+    const OUTCOME_FOR_INDEX = Object.freeze([
+        (band) => band * 6,
+        (band) => -band * 4,
+        () => UNROUNDED_FLAT,
+        (band) => -band * 0.5,
+        (band) => band * 2.5,
+    ]);
+
+    const resolved = cohortClaims.slice(0, OUTCOME_FOR_INDEX.length).map((claim, index) => {
+        const band = claims.flatBandFor(claim);
+        assert.equal(band.ok, true, `claim ${index}: must carry a usable frozen band`);
+        const classified = claims.classifyOutcome(OUTCOME_FOR_INDEX[index](band.flatBand), claim);
+        assert.equal(classified.ok, true, `claim ${index}: classifyOutcome refused: ${JSON.stringify(classified.error)}`);
+        assert.equal(classified.flatBand, band.flatBand, `claim ${index}: classified against the claim's OWN band`);
+        return { claim, outcomeClass: classified.outcomeClass, outcomeValue: classified.outcomeValue };
+    });
+
+    assert.deepEqual(
+        resolved.map((r) => r.outcomeClass),
+        ['win', 'loss', 'resolved-flat', 'resolved-flat', 'win'],
+        'the module assigned two wins, one loss and two resolved-flat outcomes',
+    );
+
+    // Withheld classes at deliberately DIFFERENT multiplicities, so a scorer that collapsed the
+    // three 015-owned counts into one bucket cannot agree with this row.
+    const cohort = Object.freeze([
+        ...resolved.map(({ outcomeClass, outcomeValue }) => ({ outcomeClass, outcomeValue })),
+        { outcomeClass: 'unresolved', outcomeValue: null },
+        { outcomeClass: 'unresolved', outcomeValue: null },
+        { outcomeClass: 'unresolved', outcomeValue: null },
+        { outcomeClass: 'not-evaluable', outcomeValue: null },
+        { outcomeClass: 'unresolvable-legacy' },
+    ]);
+
+    const routed = claims.routeOutcomes([...cohort]);
+    assert.equal(routed.ok, true, `the cohort must route: ${JSON.stringify(routed.error)}`);
+    assert.equal(routed.resolvedDirectional, 3, 'exactly the two wins and the one loss are fed');
+    assert.deepEqual(
+        [routed.counts['resolved-flat'], routed.counts.unresolved, routed.counts['not-evaluable']],
+        [2, 3, 1],
+        'the three 015-owned counts are non-zero AND pairwise distinct',
+    );
+
+    // THE SENTINEL. The primitive, unmodified, reports zero unresolved BY CONSTRUCTION — which is
+    // exactly why its field is discarded and the 015 counts are rendered instead.
+    const validationRequire = createRequire(import.meta.url);
+    const summary = validationRequire('../rlvalidation.js').rlvSummarizeOutcomes(routed.directional);
+    assert.equal(summary.ok, true, 'the primitive must accept a zero-free finite array');
+    assert.equal(summary.unresolved, 0, 'summary.unresolved is 0 and therefore says nothing about the cohort');
+    assert.notEqual(summary.unresolved, routed.counts.unresolved, 'it is NOT the 015 unresolved count');
+    assert.equal(summary.count, routed.resolvedDirectional, 'the primitive counted exactly the fed array');
+
+    const published = claims.directionalDenominator(routed, summary);
+    assert.equal(published.ok, true, `the denominator must publish: ${JSON.stringify(published.error)}`);
+    assert.equal(published.resolvedDirectional, routed.directional.length, 'the denominator IS the fed length');
+    assert.equal(published.label, claims.DIRECTIONAL_RATE_LABEL, 'and the rate is labelled directional');
+
+    // RTR-FLAT-ZERO still fires on a bare zero reaching the array.
+    const withZero = claims.assertZeroFreeOutcomes([...routed.directional, 0]);
+    assert.equal(withZero.ok, false, 'a bare zero must not reach the primitive');
+    assert.equal(withZero.error.code, claims.FLAT_ZERO_CODE, 'and refuses with RTR-FLAT-ZERO');
+    assert.equal(withZero.error.index, routed.directional.length, 'naming the offending index');
+
+    // THE PARTITION over the whole result: every proposed call accounted for exactly once.
+    const lifecycle = { totalProposed: cohort.length + 3, withdrawn: 2, open: 1 };
+    const partition = claims.classPartition(routed, lifecycle);
+    assert.equal(partition.ok, true, `the partition must hold: ${JSON.stringify(partition.error)}`);
+    assert.deepEqual(
+        partition.buckets,
+        { resolvedDirectional: 3, resolvedFlat: 2, unresolved: 3, notEvaluable: 1, unresolvableLegacy: 1, withdrawn: 2, open: 1 },
+        'resolved-flat is its own bucket and is never folded into unresolved',
+    );
+    assert.equal(partition.sum, lifecycle.totalProposed, 'and sums to the proposed total');
+
+    // THE STORE. One resolution per resolved claim, written content-addressed, then re-written.
+    withDisposableStore(({ root, ports }) => {
+        assert.equal(root.startsWith(REPO_ROOT), false, 'the disposable store must live outside the repository');
+
+        const expectedNames = [];
+        for (const { claim, outcomeClass, outcomeValue } of resolved) {
+            const built = claims.buildResolution({
+                closureVocabulary: vocabulary,
+                claimHash: claim.claimHash,
+                eventId,
+                resolutionDate: claim.horizon.resolutionDate,
+                outcomeClass,
+                outcomeValue,
+                ...CLOSURE_FOR_CLASS[outcomeClass],
+                provenance: { seriesRef: claim.subject.seriesRef, entryDate: claim.magnitude.entryDate, entryBasis: claim.magnitude.entryBasis },
+                lifecycleBinding: { runId: 'run-2026-07-15T20-00-00', resolvedAt: '2026-07-15T20:00:00.000Z' },
+            });
+            assert.equal(built.ok, true, `${outcomeClass}: buildResolution refused: ${JSON.stringify(built.error)}`);
+            assert.equal(
+                Object.is(built.resolution.outcomeValue, outcomeValue),
+                true,
+                `${outcomeClass}: the record holds the EXACT value — no nudge, no rounding, no fabricated sign`,
+            );
+
+            const row = { ...committedV2Row(), [claims.CLAIM_REF_FIELD]: claim.claimHash };
+            const write = claims.writeResolutionObject(built.resolution, row, ports);
+            assert.equal(write.ok, true, `${outcomeClass}: the write must succeed: ${JSON.stringify(write.error)}`);
+            assert.equal(write.written, true, `${outcomeClass}: the first write creates the object`);
+
+            const objectPath = path.join(root, write.path);
+            const before = readBytes(objectPath);
+            assert.equal(before, claims.serializeResolution(built.resolution), `${outcomeClass}: stored bytes`);
+            assert.equal(
+                Object.is(JSON.parse(before).outcomeValue, outcomeValue),
+                true,
+                `${outcomeClass}: the exact value survives the round trip through the stored bytes`,
+            );
+
+            const repeat = claims.writeResolutionObject(built.resolution, row, ports);
+            assert.equal(repeat.ok, true, `${outcomeClass}: a repeat must not be refused`);
+            assert.equal(repeat.written, false, `${outcomeClass}: a second file would count one resolution twice`);
+            assert.equal(repeat.reused, true, `${outcomeClass}: the repeat reuses the first object`);
+            assertBytesUnchanged(before, readBytes(objectPath), `T-03-R1 ${outcomeClass} repeat`);
+
+            expectedNames.push(`${bareHexOf(built.resolution.resolutionHash)}.json`);
+        }
+
+        assert.equal(new Set(expectedNames).size, resolved.length, 'each resolved claim occupies its own address');
+        assert.deepEqual(
+            fs.readdirSync(path.join(root, claims.RESOLUTION_STORE_DIR)).sort(),
+            [...expectedNames].sort(),
+            'the store holds exactly one object per resolved claim and nothing else',
+        );
+        for (const name of expectedNames) {
+            assert.match(name, OBJECT_FILENAME, `${name}: bare lowercase hex with a .json extension`);
+        }
+
+        // The exact unrounded flat value is READ BACK from disk and is still itself. A `toFixed`,
+        // a `Math.round`, or a `±ε` nudge anywhere on this path visibly changes it.
+        const flatRecord = resolved.find((r) => Object.is(r.outcomeValue, UNROUNDED_FLAT));
+        assert.ok(flatRecord, 'the cohort must genuinely carry the unrounded flat outcome');
+        assert.equal(flatRecord.outcomeClass, 'resolved-flat', 'and it must have classified as resolved-flat');
+        assert.notEqual(UNROUNDED_FLAT, 0, 'the tracked value is NOT a plain zero a `=== 0` path would also carry');
+        const flatBytes = fs
+            .readdirSync(path.join(root, claims.RESOLUTION_STORE_DIR))
+            .map((name) => JSON.parse(fs.readFileSync(path.join(root, claims.RESOLUTION_STORE_DIR, name), 'utf8')))
+            .filter((record) => record.outcomeClass === 'resolved-flat');
+        assert.equal(flatBytes.length, 2, 'both resolved-flat outcomes are on disk as resolved-flat');
+        assert.equal(
+            flatBytes.some((record) => Object.is(record.outcomeValue, UNROUNDED_FLAT)),
+            true,
+            'the exact unrounded flat value is on disk, unmodified',
+        );
+        for (const record of flatBytes) {
+            assert.notEqual(record.outcomeClass, 'unresolved', 'a resolved-flat record is never stored as unresolved');
+        }
+    });
+
+    // A legacy row has nothing to address a resolution BY, so its class is counted permanently and
+    // never recorded — the partition above already counts it.
+    assert.deepEqual([...claims.OUTCOME_CLOSURE_EVENTS['unresolvable-legacy']], [], 'no closure event admits it');
+    assertRefusal(
+        claims.buildResolution({
+            closureVocabulary: vocabulary,
+            claimHash: cohortClaims[0].claimHash,
+            eventId,
+            resolutionDate: cohortClaims[0].horizon.resolutionDate,
+            outcomeClass: 'unresolvable-legacy',
+            outcomeValue: null,
+            closureEventType: 'satisfied',
+            reasonCode: 'predicate-satisfied',
+            provenance: { seriesRef: cohortClaims[0].subject.seriesRef },
+            lifecycleBinding: { runId: 'run-2026-07-15T20-00-00' },
+        }).error,
+        'outcome-class-carries-no-resolution',
+        'outcomeClass',
+        'T-03-R1 legacy',
     );
 });

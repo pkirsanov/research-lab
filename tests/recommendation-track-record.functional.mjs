@@ -23,7 +23,8 @@
  */
 
 import assert from 'node:assert/strict';
-import { readdirSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import test from 'node:test';
 
@@ -31,6 +32,8 @@ import {
     REPO_ROOT,
     assertBytesUnchanged,
     assertEvaluable,
+    assertRefusal,
+    foundationSourceText,
     loadClaimFixture,
     loadClaimsModule,
     mintInputFrom,
@@ -396,4 +399,346 @@ test('T-01-F3: recommendationKey is one-to-many with claimHash across horizon ki
         );
         assert.equal(resolved[0].recommendationKey, base.claim.recommendationKey, 'and it is the publisher key');
     });
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════════════════════
+ * Scope 03 — the cohort-level halves of the resolution record: T-03-F1, T-03-F2, T-03-F3.
+ *
+ * The unit rows prove these properties one function at a time. These three prove what they MEAN
+ * once a whole cohort moves through routing and into the store: that a second resolving pass over
+ * an unchanged outcome occupies one file rather than two, that no class can leave the accounting
+ * without the shortfall being named, and that a cohort with nothing directional in it never
+ * reaches a primitive that would refuse it.
+ *
+ * Every class below is produced by `classifyOutcome` against a REAL minted claim's frozen band
+ * rather than hand-labelled in the fixture, so a classifier that regressed would change the
+ * cohort these rows partition instead of leaving them agreeing with a stale literal.
+ *
+ * Nothing here reads a clock and nothing here writes into the committed
+ * `briefs/objects/resolutions/` tree.
+ * ═══════════════════════════════════════════════════════════════════════════════════════════ */
+
+const validationRequire = createRequire(import.meta.url);
+const LEDGER_DIR = path.join(REPO_ROOT, 'briefs', 'history', 'recommendations');
+
+/** The 007-owned primitive, loaded lazily so importing this file opens nothing. */
+function loadSummarizeOutcomes() {
+    return validationRequire('../rlvalidation.js').rlvSummarizeOutcomes;
+}
+
+/** The closure vocabulary, read from rlcontracts.js's own source text — never a local copy. */
+function closureVocabulary() {
+    return claims.readClosureEventVocabulary(foundationSourceText());
+}
+
+function committedV2Row() {
+    const row = readdirSync(LEDGER_DIR)
+        .filter((f) => f.endsWith('.jsonl'))
+        .sort()
+        .flatMap((f) => readFileSync(path.join(LEDGER_DIR, f), 'utf8').split('\n').filter((l) => l.trim().length > 0))
+        .map((line) => JSON.parse(line))
+        .find((r) => r.contractVersion === claims.ROW_CONTRACT_V2);
+    assert.ok(row, 'the committed ledger must carry a v2 row for these rows to mean anything');
+    return row;
+}
+
+/** The committed row made resolvable by the single optional pointer scope 02 added. */
+function resolvableRow(claimHash) {
+    return { ...committedV2Row(), [claims.CLAIM_REF_FIELD]: claimHash };
+}
+
+/**
+ * A resolution input in which every field is a legal member of its own vocabulary, so a refusal
+ * below is caused by the ONE overridden value and never by incidental malformation.
+ */
+function resolutionInput(overrides = {}) {
+    return {
+        closureVocabulary: closureVocabulary(),
+        claimHash: mintEvaluable('evaluable-instrument-add').claim.claimHash,
+        eventId: committedV2Row().eventId,
+        resolutionDate: '2026-07-15',
+        closureEventType: 'satisfied',
+        outcomeClass: 'resolved-flat',
+        outcomeValue: 0,
+        reasonCode: 'predicate-satisfied',
+        provenance: { seriesRef: 'bars/SPY/1d', entryDate: '2026-07-14', entryBasis: 'close' },
+        lifecycleBinding: { runId: 'run-2026-07-15T20-00-00', resolvedAt: '2026-07-15T20:00:00.000Z' },
+        ...overrides,
+    };
+}
+
+function builtResolution(overrides = {}) {
+    const built = claims.buildResolution(resolutionInput(overrides));
+    assert.equal(built.ok, true, `buildResolution refused: ${JSON.stringify(built.error)}`);
+    return built.resolution;
+}
+
+function resolutionStoreListing(root) {
+    return readdirSync(path.join(root, claims.RESOLUTION_STORE_DIR)).sort();
+}
+
+/** The hashed terms picked off a built record, so "no hashed term moved" is checkable directly. */
+function hashedTermsOfResolution(resolution) {
+    return Object.fromEntries(claims.RESOLUTION_HASHED_TERMS.map((term) => [term, resolution[term]]));
+}
+
+/*
+ * One replacement per hashed term and one per unhashed field. The key sets are asserted against
+ * the module's own two lists below, so a term moved between them — or a ninth term added to
+ * either — fails this row rather than silently going uncovered.
+ */
+const HASHED_TERM_MUTATION = Object.freeze({
+    contractVersion: 'brief-recommendation-resolution/v2',
+    claimHash: `sha256:${'0'.repeat(64)}`,
+    resolutionDate: '2026-07-16',
+    closureEventType: 'invalidated',
+    outcomeClass: 'win',
+    outcomeValue: 0.0009765625,
+    reasonCode: 'predicate-invalidated',
+    provenance: { seriesRef: 'bars/QQQ/1d', entryDate: '2026-07-14', entryBasis: 'close' },
+});
+
+const UNHASHED_FIELD_MUTATION = Object.freeze({
+    eventId: 'evt-a-later-pass-over-the-same-outcome',
+    lifecycleBinding: { runId: 'run-2027-01-02T09-30-00', resolvedAt: '2027-01-02T09:30:00.000Z' },
+});
+
+test('T-03-F1: resolutionHash is content-only and the content-addressed write is a byte-identical no-op', () => {
+    const claimHash = mintEvaluable('evaluable-instrument-add').claim.claimHash;
+    const row = resolvableRow(claimHash);
+    const base = builtResolution({ claimHash });
+
+    // A SECOND RESOLVING PASS over the SAME outcome: new run id, new wall clock, new event id.
+    // Every difference lands in a field the module declares unhashed, so an address that moved
+    // here would give one resolved claim two entries in an accounting that counts each call once.
+    const rerun = builtResolution({ claimHash, ...UNHASHED_FIELD_MUTATION });
+    assert.notEqual(rerun.eventId, base.eventId, 'the pair must genuinely differ in event id');
+    assert.notDeepEqual(rerun.lifecycleBinding, base.lifecycleBinding, 'and in run id and wall clock');
+    assert.deepEqual(hashedTermsOfResolution(rerun), hashedTermsOfResolution(base), 'while no hashed term moved');
+    assert.equal(rerun.resolutionHash, base.resolutionHash, 'run identity is outside the content address');
+    assert.notEqual(claims.serializeResolution(rerun), claims.serializeResolution(base), 'the BYTES do differ');
+
+    // Every hashed term moves the address. Driven by the module's list, so a term that quietly
+    // left the hash fails here instead of leaving the address blind to a change in the record.
+    assert.deepEqual(
+        Object.keys(HASHED_TERM_MUTATION).sort(),
+        [...claims.RESOLUTION_HASHED_TERMS].sort(),
+        'a hashed term with no mutation authored here would go uncovered',
+    );
+    for (const term of claims.RESOLUTION_HASHED_TERMS) {
+        const mutated = { ...base, [term]: HASHED_TERM_MUTATION[term] };
+        assert.notDeepEqual(mutated[term], base[term], `${term}: the mutation must genuinely differ`);
+        assert.notEqual(
+            claims.resolutionHash(mutated),
+            base.resolutionHash,
+            `${term} is hashed: changing it MUST move the content address`,
+        );
+    }
+
+    // And no unhashed field does — the other half of the same partition.
+    assert.deepEqual(
+        Object.keys(UNHASHED_FIELD_MUTATION).sort(),
+        [...claims.RESOLUTION_UNHASHED_FIELDS].sort(),
+        'an unhashed field with no mutation authored here would go uncovered',
+    );
+    for (const field of claims.RESOLUTION_UNHASHED_FIELDS) {
+        const mutated = { ...base, [field]: UNHASHED_FIELD_MUTATION[field] };
+        assert.notDeepEqual(mutated[field], base[field], `${field}: the mutation must genuinely differ`);
+        assert.equal(claims.resolutionHash(mutated), base.resolutionHash, `${field} is provenance, not identity`);
+    }
+
+    withDisposableStore(({ root, ports }) => {
+        assertOutsideRepository(root);
+
+        const first = claims.writeResolutionObject(base, row, ports);
+        assert.equal(first.ok, true, `the first write must succeed: ${JSON.stringify(first.error)}`);
+        assert.equal(first.written, true, 'the first write must create the object');
+        assert.equal(first.reused, false, 'nothing exists to reuse yet');
+
+        const hex = bareHexOf(base.resolutionHash);
+        assert.equal(first.path, `${claims.RESOLUTION_STORE_DIR}/${hex}.json`, 'the bare lowercase hex filename');
+        assert.equal(first.path.includes(SHA256_PREFIX), false, 'no sha256: prefix in the stored path');
+
+        const objectPath = path.join(root, first.path);
+        const before = readBytes(objectPath);
+        assert.notEqual(before, null, 'the object must land at <bare-hex>.json');
+        assert.equal(before, claims.serializeResolution(base), 'the stored bytes are the serialized resolution');
+        assert.equal(JSON.parse(before).resolutionHash, base.resolutionHash, 'the body keeps the prefixed address');
+
+        // THE REPEAT: re-derived from the identical input, so identical bytes at one address.
+        const repeat = claims.writeResolutionObject(builtResolution({ claimHash }), row, ports);
+        assert.equal(repeat.ok, true, 'an identical re-resolution must not be refused');
+        assert.equal(repeat.written, false, 'a second file would count one resolution twice');
+        assert.equal(repeat.reused, true, 'the repeat reuses the first object');
+        assert.equal(repeat.path, first.path, 'the repeat resolves to the first path');
+        assertBytesUnchanged(before, readBytes(objectPath), 'T-03-F1 repeat');
+        assert.deepEqual(resolutionStoreListing(root), [`${hex}.json`], 'exactly one object across both passes');
+
+        // The rerun shares the address but not the bytes, so the append-only store refuses rather
+        // than overwriting the run identity already on record.
+        const conflict = claims.writeResolutionObject(rerun, row, ports);
+        assert.equal(conflict.ok, false, 'differing bytes at one address must not overwrite');
+        assert.equal(conflict.error.code, claims.RESOLUTION_CONFLICT_CODE, 'the conflict names its own code');
+        assertRefusal(conflict.error, 'resolution-conflict-refused', 'resolutionHash', 'T-03-F1 conflict');
+        assertBytesUnchanged(before, readBytes(objectPath), 'T-03-F1 conflict');
+        assert.deepEqual(resolutionStoreListing(root), [`${hex}.json`], 'and writes nothing');
+    });
+});
+
+/**
+ * A cohort whose directional and flat classes are ASSIGNED BY THE MODULE from values derived from
+ * the claim's own frozen band, so the row partitions what the classifier actually produced. The
+ * three withheld classes carry no magnitude and are appended as counts.
+ */
+function classifiedCohort() {
+    const { claim } = mintEvaluable('evaluable-instrument-add');
+    const band = claims.flatBandFor(claim);
+    assert.equal(band.ok, true, `the fixture claim must carry a usable band: ${JSON.stringify(band.error)}`);
+
+    const values = [band.flatBand * 6, band.flatBand * 3, -band.flatBand * 9, 0, band.flatBand * 0.4, -band.flatBand * 0.2];
+    const magnitudeBearing = values.map((value) => {
+        const classified = claims.classifyOutcome(value, claim);
+        assert.equal(classified.ok, true, `classifyOutcome refused ${value}: ${JSON.stringify(classified.error)}`);
+        return { outcomeClass: classified.outcomeClass, outcomeValue: classified.outcomeValue };
+    });
+    assert.deepEqual(
+        magnitudeBearing.map((r) => r.outcomeClass),
+        ['win', 'win', 'loss', 'resolved-flat', 'resolved-flat', 'resolved-flat'],
+        'the module — not this row — assigned the directional and flat classes',
+    );
+
+    return Object.freeze([
+        ...magnitudeBearing,
+        { outcomeClass: 'unresolved', outcomeValue: null },
+        { outcomeClass: 'unresolved', outcomeValue: null },
+        { outcomeClass: 'not-evaluable', outcomeValue: null },
+        { outcomeClass: 'unresolvable-legacy' },
+    ]);
+}
+
+test('T-03-F2: the class partition holds over a classified cohort and fails when a whole class is dropped', () => {
+    const cohort = classifiedCohort();
+    const lifecycle = { totalProposed: cohort.length + 3, withdrawn: 2, open: 1 };
+
+    const routed = claims.routeOutcomes([...cohort]);
+    assert.equal(routed.ok, true, `the cohort must route: ${JSON.stringify(routed.error)}`);
+
+    const partition = claims.classPartition(routed, lifecycle);
+    assert.equal(partition.ok, true, `the complete accounting must be accepted: ${JSON.stringify(partition.error)}`);
+    assert.equal(partition.sum, lifecycle.totalProposed, 'and sum to the proposed total');
+    assert.deepEqual(
+        partition.buckets,
+        { resolvedDirectional: 3, resolvedFlat: 3, unresolved: 2, notEvaluable: 1, unresolvableLegacy: 1, withdrawn: 2, open: 1 },
+        'every bucket carries its own count, and resolvedDirectional IS the published denominator',
+    );
+    assert.equal(partition.buckets.resolvedDirectional, routed.directional.length, 'the denominator is the fed length');
+
+    /* THE ADVERSARIAL HALF: DROP A WHOLE CLASS, OBSERVE, REVERT. Every occurrence of one class is
+       removed while the proposed total is held FIXED, the exact shortfall is required in the
+       refusal, and the intact cohort is then re-asserted green — so the failure is attributable to
+       the drop and to nothing else. A partition that only ever sees a correct cohort is
+       decoration, and a dropped class is precisely how a denominator gets quietly flattered. */
+    for (const outcomeClass of claims.OUTCOME_CLASSES) {
+        const kept = cohort.filter((record) => record.outcomeClass !== outcomeClass);
+        const droppedCount = cohort.length - kept.length;
+        assert.ok(droppedCount > 0, `${outcomeClass}: the cohort must genuinely contain the class to drop`);
+
+        const refused = claims.classPartition(claims.routeOutcomes(kept), lifecycle);
+        assert.equal(refused.ok, false, `${outcomeClass}: a dropped class must be detected`);
+        assert.equal(refused.error.code, claims.CONTRACT_VIOLATION_CODE, `${outcomeClass}: code`);
+        assertRefusal(refused.error, 'partition-does-not-sum-to-proposed', 'totalProposed', `dropped every ${outcomeClass}`);
+        assert.equal(refused.error.unaccounted, droppedCount, `${outcomeClass}: the refusal names the exact shortfall`);
+        assert.equal(refused.error.sum, lifecycle.totalProposed - droppedCount, `${outcomeClass}: and the sum it reached`);
+
+        // REVERT.
+        const restored = claims.classPartition(claims.routeOutcomes([...cohort]), lifecycle);
+        assert.equal(restored.ok, true, `${outcomeClass}: restoring the class must make the identity hold again`);
+        assert.deepEqual(restored.buckets, partition.buckets, `${outcomeClass}: and restore every bucket exactly`);
+    }
+
+    // The same for the two lifecycle states no outcome class describes: excluded is not hidden.
+    for (const bucket of claims.NON_CLASS_PARTITION_BUCKETS) {
+        const dropped = { ...lifecycle, [bucket]: 0 };
+        const refused = claims.classPartition(routed, dropped);
+        assert.equal(refused.ok, false, `${bucket}: a dropped lifecycle class must be detected`);
+        assertRefusal(refused.error, 'partition-does-not-sum-to-proposed', 'totalProposed', `dropped every ${bucket}`);
+        assert.equal(refused.error.unaccounted, lifecycle[bucket], `${bucket}: the refusal names the exact shortfall`);
+        assert.equal(claims.classPartition(routed, lifecycle).ok, true, `${bucket}: restored`);
+    }
+});
+
+test('T-03-F3: resolvedDirectional === 0 is reachable and the primitive is never called', () => {
+    const cohort = classifiedCohort();
+
+    /* A COUNTING SEAM around the 007-owned primitive. Its own export object is deep-frozen and
+       cannot be patched, so the count is taken at the ONLY route this row gives the scoring pass
+       to reach it. The counter is asserted directly — never inferred from an output that a
+       withheld cohort would produce either way. */
+    let primitiveCalls = 0;
+    const summarize = (values) => {
+        primitiveCalls += 1;
+        return loadSummarizeOutcomes()(values);
+    };
+
+    /* The scoring pass exactly as the contract prescribes it: route, then ask the MODULE — with no
+       summary in hand at all — whether there is a denominator to publish, and reach the primitive
+       only when there is. The two refusals are distinguished rather than lumped together, which is
+       what pins the ORDER of the module's own checks: an implementation that validated `summary`
+       first would answer `outcome-summary-invalid` for the empty cohort too, and the caller would
+       have had to call the primitive to find out it should not have. */
+    function score(records) {
+        const routed = claims.routeOutcomes(records);
+        assert.equal(routed.ok, true, `the cohort must route: ${JSON.stringify(routed.error)}`);
+        const branch = claims.directionalDenominator(routed, null);
+        assert.equal(branch.ok, false, 'a null summary can never be accepted');
+        if (branch.error.reason === 'no-directional-denominator-to-publish') return { routed, refusal: branch.error };
+        assertRefusal(branch.error, 'outcome-summary-invalid', 'summary', 'a denominator exists, so a summary is required');
+        return { routed, summary: summarize(routed.directional) };
+    }
+
+    // A cohort in which every claim resolved flat, unresolved, not-evaluable or unresolvable-legacy.
+    const withheld = cohort.filter((record) => !claims.DIRECTIONAL_OUTCOME_CLASSES.includes(record.outcomeClass));
+    assert.equal(withheld.length > 0, true, 'the withheld cohort must genuinely contain claims');
+    assert.equal(
+        withheld.length,
+        cohort.length - claims.routeOutcomes([...cohort]).resolvedDirectional,
+        'and must be exactly the non-directional remainder of the classified cohort',
+    );
+
+    const empty = score([...withheld]);
+    assert.equal(empty.routed.resolvedDirectional, 0, 'resolvedDirectional === 0 is REACHABLE, not theoretical');
+    assert.deepEqual(empty.routed.directional, [], 'the fed array is genuinely empty');
+    assert.equal(primitiveCalls, 0, 'THE ASSERTION: the primitive was not called even once');
+    assert.equal(empty.summary, undefined, 'and no summary was produced to be published');
+
+    /* The verdict was reached WITHOUT a summary at all — `null` was passed and the refusal still
+       names `resolvedDirectional`. An implementation that validated the summary first would refuse
+       with `outcome-summary-invalid` here, which is a caller that has already had to call. */
+    assertRefusal(empty.refusal, 'no-directional-denominator-to-publish', 'resolvedDirectional', 'empty cohort');
+    assert.equal(empty.refusal.code, claims.CONTRACT_VIOLATION_CODE, 'the refusal carries the contract code');
+
+    // WHAT THE PRIMITIVE WOULD HAVE DONE. One deliberate call, counted, proving the branch is not
+    // decoration: the empty array is refused outright rather than summarised as a zero rate.
+    const wouldHave = summarize(empty.routed.directional);
+    assert.equal(primitiveCalls, 1, 'the deliberate counterfactual call is the first call in this row');
+    assert.equal(wouldHave.ok, false, 'the primitive refuses an empty array');
+    assert.deepEqual(
+        wouldHave.errors.map((e) => e.code),
+        ['RLV-OUTCOME-VALUES'],
+        'with the code the caller would have had to handle',
+    );
+
+    /* THE POSITIVE CONTROL. The identical seam DOES observe a call once the cohort has something
+       directional in it — so the zero above is a branch not taken, never a spy that never worked. */
+    const scored = score([...cohort]);
+    assert.equal(primitiveCalls, 2, 'the directional cohort reaches the primitive exactly once');
+    assert.equal(scored.refusal, undefined, 'and is not refused a denominator');
+    assert.equal(scored.summary.ok, true, 'the primitive accepts the zero-free finite array');
+    assert.equal(scored.routed.resolvedDirectional > 0, true, 'the control cohort is genuinely directional');
+
+    const published = claims.directionalDenominator(scored.routed, scored.summary);
+    assert.equal(published.ok, true, `the pairing must be accepted: ${JSON.stringify(published.error)}`);
+    assert.equal(published.resolvedDirectional, scored.routed.directional.length, 'the denominator IS the fed length');
+    assert.equal(published.label, claims.DIRECTIONAL_RATE_LABEL, 'and the rate is labelled directional');
+    assert.equal(primitiveCalls, 2, 'publishing the denominator calls the primitive no second time');
 });

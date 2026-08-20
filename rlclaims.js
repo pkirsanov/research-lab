@@ -146,6 +146,14 @@
     var DIRECTIONAL_OUTCOME_CLASSES = outcomeClassesContributing(CONTRIBUTION_NUMBER);
     var COUNTED_OUTCOME_CLASSES = outcomeClassesContributing(CONTRIBUTION_COUNT);
 
+    /* ── The denominator contract ───────────────────────────────────────────────────────────
+       `winRate` divides by the fed array's length (`rlvalidation.js#L147`), so the fed array's
+       composition IS the published denominator — there is no second quantity to publish. The
+       label is declared HERE, beside the array whose length defines it, and rendered by scope 05:
+       one definition, so a surface cannot render a bare "hit rate" over a directional-only
+       denominator and read as though the four withheld classes were counted in it. */
+    var DIRECTIONAL_RATE_LABEL = "directional hit rate";
+
     /* ── The ledger row contract ────────────────────────────────────────────────────────────
        Both row versions are Feature 002-owned identifiers. Feature 015 READS them and adds
        exactly ONE optional member to the EXISTING `…/v2`: `claimRef`, an opaque `sha256:…`
@@ -875,6 +883,57 @@
         };
     }
 
+    /* ── directionalDenominator ─────────────────────────────────────────────────────────────
+       The denominator contract, declared rather than left as a convention two surfaces are
+       trusted to keep. `winRate` divides by the fed array's length, so `resolvedDirectional` is
+       not a quantity that HAPPENS to agree with the published denominator — it IS it, and this
+       binds the two at one place so they cannot drift apart.
+
+       No statistic is computed. `summary` is the primitive's own frozen result, read verbatim;
+       the only work here is refusing the pairings that would make the label a lie:
+
+       - a summary produced from a DIFFERENT array than the one routing built (`count` mismatch),
+         which is how a filtered, padded or re-derived array quietly moves the denominator;
+       - `wins + losses !== resolvedDirectional`, which under the zero-free convention can only
+         mean a zero reached the array and was absorbed into the primitive's `unresolved`;
+       - a rate published with no denominator to publish beside it (`resolvedDirectional === 0`),
+         which is the branch the caller is expected to take BEFORE calling at all. */
+    function directionalDenominator(routed, summary) {
+        if (!isPlainObject(routed) || routed.ok !== true || !Array.isArray(routed.directional)
+            || !Number.isInteger(routed.resolvedDirectional)) {
+            return violation("routed-outcomes-invalid", "routed");
+        }
+        if (routed.resolvedDirectional !== routed.directional.length) {
+            return violation("resolved-directional-is-not-the-fed-array-length", "resolvedDirectional");
+        }
+        if (routed.resolvedDirectional === 0) {
+            return violation("no-directional-denominator-to-publish", "resolvedDirectional");
+        }
+
+        if (!isPlainObject(summary) || summary.ok !== true || !Number.isInteger(summary.count)
+            || !Number.isInteger(summary.wins) || !Number.isInteger(summary.losses)
+            || !Number.isFinite(summary.winRate)) {
+            return violation("outcome-summary-invalid", "summary");
+        }
+        if (summary.count !== routed.resolvedDirectional) {
+            return violation("summary-count-is-not-the-fed-array-length", "count");
+        }
+        if (summary.wins + summary.losses !== routed.resolvedDirectional) {
+            return violation("wins-plus-losses-is-not-the-fed-array-length", "resolvedDirectional");
+        }
+
+        return {
+            ok: true,
+            label: DIRECTIONAL_RATE_LABEL,
+            resolvedDirectional: routed.resolvedDirectional,
+            wins: summary.wins,
+            losses: summary.losses,
+            /* The primitive's own value passed through — never recomputed here, because a second
+               division is a second answer, and the two would eventually disagree. */
+            rate: summary.winRate
+        };
+    }
+
     /* ── The closure-event vocabulary, read from its single definition ─────────────────────
        `CLOSE_EVENT_TYPES` is private to rlcontracts.js — it is NOT on that module's exported api
        (measured: 20 keys, none matching /clos|EVENT_TYPE/i). Rather than shadow it with a second
@@ -1442,6 +1501,7 @@
         COUNTED_OUTCOME_CLASSES: COUNTED_OUTCOME_CLASSES,
         CONTRIBUTION_NUMBER: CONTRIBUTION_NUMBER,
         CONTRIBUTION_COUNT: CONTRIBUTION_COUNT,
+        DIRECTIONAL_RATE_LABEL: DIRECTIONAL_RATE_LABEL,
         MAGNITUDE_BEARING_OUTCOME_CLASSES: MAGNITUDE_BEARING_OUTCOME_CLASSES,
         FLAT_ZERO_CODE: FLAT_ZERO_CODE,
         RESOLUTION_CONTRACT_VERSION: RESOLUTION_CONTRACT_VERSION,
@@ -1482,6 +1542,7 @@
         classifyOutcome: classifyOutcome,
         assertZeroFreeOutcomes: assertZeroFreeOutcomes,
         routeOutcomes: routeOutcomes,
+        directionalDenominator: directionalDenominator,
         buildResolution: buildResolution,
         resolutionHash: resolutionHash,
         resolutionObjectPath: resolutionObjectPath,

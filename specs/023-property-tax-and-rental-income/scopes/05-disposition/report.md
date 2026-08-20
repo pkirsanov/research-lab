@@ -781,6 +781,187 @@ PROBE B8  expect=TP-05-06   cmd=node scripts/selftest.mjs
   REVERTED dirty=0 mutation_left=0 original_restored=1
 ```
 
+### Probe 11 — RED for TP-05-03
+
+`rltaxdisposition.js`, in `splitGain`: the two `boundBy` strings are swapped, so
+the record names the constraint that did **not** bind.
+
+```diff
+       boundBy: recaptureAmount === gain && accumulatedCostRecovery > gain
+-        ? "the total gain"
+-        : "the cost recovery taken",
++        ? "the cost recovery taken"
++        : "the total gain",
+```
+
+```text
+PROBE C1  expect=TP-05-03   cmd=node scripts/selftest.mjs
+  guard_matches=1  applied=1  RED_EXIT=1
+  RED_SUMMARY=Research-Lab self-test: 3112 passed, 2 failed
+  RED_FAIL=✗ FAIL: TP-05-03: the two components sum to the total gain for every fixture, the recapture component is bounded by both the cost recovery taken and the gain with the binding constraint nam…
+  REVERTED dirty=0 mutation_left=0 original_restored=1
+```
+
+**A discarded first attempt is recorded rather than hidden.** The first aim
+replaced the whole `Math.max(0, Math.min(...))` bound. It made the disposition
+group *throw* rather than fail its row, which is an over-broad probe and not a
+RED for this row: a group that never reaches its assertion has not shown that
+assertion to discriminate. It was discarded and the probe re-aimed at the single
+clause the row names.
+
+### Probe 12 — RED for TP-05-15
+
+`rltaxdisposition.js`: the recapture component's id is changed, so the leg the
+engine produces is no longer the leg the surfaces are checked for.
+
+```diff
+-  var RECAPTURE_COMPONENT_ID = "disposition-recapture";
++  var RECAPTURE_COMPONENT_ID = "disposition-recapture-probe";
+```
+
+```text
+PROBE D1  expect=TP-05-15   cmd=node scripts/selftest.mjs
+  guard_matches=1  applied=1  RED_EXIT=1
+  RED_SUMMARY=Research-Lab self-test: 3107 passed, 4 failed
+  RED_FAIL=✗ FAIL: TP-05-15: both disposition legs the engine produces reach the headline, the comparison, the curve and the export alongside every prior leg, the identity holds over the engine’s own…
+  RED_FAIL=✗ FAIL: TP-05-11: an implementation applying the exclusion to the recapture component reduces that component to nothing …
+  REVERTED dirty=0 mutation_left=0 original_restored=1
+```
+
+**A discarded first attempt is recorded rather than hidden.** The first aim
+removed the recapture leg from the published `legs` array outright. The
+disposition group threw on the missing leg before reaching the row, so it was
+discarded for the same reason as Probe 11's first attempt.
+
+### Probe 13 — RED for TP-05-16
+
+`rltaxproperty.js`, in the leg-visibility identity: a finding stops carrying the
+legs it found missing, so an omission is no longer *named*.
+
+```diff
+-          missingFromSurface: Object.freeze(missing),
++          missingFromSurface: Object.freeze([]),
+```
+
+```text
+PROBE C3  expect=TP-05-16   file=rltaxproperty.js   cmd=node scripts/selftest.mjs
+  guard_matches=1  applied=1  RED_EXIT=1
+  RED_SUMMARY=Research-Lab self-test: 3105 passed, 9 failed
+  RED_FAIL=✗ FAIL: TP-05-16: removing each disposition leg from each of the four surfaces in turn fails the identity with the missing leg named on the named surface, and the two legs carry distinct va…
+  RED_FAIL=✗ FAIL: TP-01-13: removing the property leg from each of the four surfaces in turn fails the identity, each failure names the missing leg rather than reporting a numeric mismatch …
+  RED_FAIL=✗ FAIL: TP-03-16 and TP-03-17: the rental leg reaches all four surfaces on the all-non-zero fixture alongside the property leg …
+  RED_FAIL=✗ FAIL: TP-04-17 and TP-04-18: the classification leg reaches all four surfaces on the all-non-zero fixture alongside the property and rental legs …
+  REVERTED dirty=0 mutation_left=0 original_restored=1
+```
+
+**The breadth is the finding, not a defect in the probe.**
+`legVisibilityIdentity` is the single helper every scope's leg-visibility row
+consumes, so nine rows across Features 021 to 024 fall together. A per-scope copy
+of that helper would have let this mutation pass eight of them; one shared helper
+is what makes it impossible.
+
+### Probe 14 — RED for TP-05-18
+
+`rltaxworkspace.js`, in the export sanitiser: a withheld member stops being
+listed in `omittedFields`, which is the "dropped without being listed" failure
+the surrounding comment names.
+
+```diff
+-      if (!Object.prototype.hasOwnProperty.call(kept, keys[index])) omitted.push(keys[index]);
++      if (false && !Object.prototype.hasOwnProperty.call(kept, keys[index])) omitted.push(keys[index]);
+```
+
+```text
+PROBE C5  expect=TP-05-18   file=rltaxworkspace.js   cmd=node scripts/selftest.mjs
+  guard_matches=1  applied=1  RED_EXIT=1
+  RED_SUMMARY=Research-Lab self-test: 3103 passed, 11 failed
+  RED_FAIL=✗ FAIL: TP-05-18: every disposition declaration is a declared workspace field, is named in the export’s omitted list, has no value in the exported bytes, refuses by name when undeclared, fo…
+  RED_FAIL=✗ FAIL: TP-03-20: every rental declaration is a declared workspace field, is named in the export’s omitted list …
+  RED_FAIL=✗ FAIL: TP-04-21: both day-count declarations are declared workspace fields, are named in the export’s omitted list …
+  REVERTED dirty=0 mutation_left=0 original_restored=1
+```
+
+The mutation is a boolean term rather than a data edit, so no household value
+existed in the tree even while it was applied. Eleven privacy rows across the
+four features fall together for the same shared-sanitiser reason as Probe 13.
+
+### Probe 15 — RED for TP-05-08
+
+`rltax.js`, in `unsupportedFeatureNotices`: the entries that move the marginal
+rate stop being surfaced, which is exactly the set the row's two remaining
+above-rate categories live in.
+
+```diff
+       var entry = pack.unsupportedFeatures[index];
++      if (entry.movesMarginalRate === true) continue;
+       notices.push(Object.freeze({
+```
+
+```text
+PROBE D2  expect=TP-05-08   file=rltax.js   cmd=node scripts/selftest.mjs
+  guard_matches=1  applied=1  RED_EXIT=1
+  RED_SUMMARY=Research-Lab self-test: 3110 passed, 4 failed
+  RED_FAIL=✗ FAIL: TP-05-08: both remaining above-rate preferential categories still refuse with their original reason verbatim on a pack that exhibits each refusal, the recapture category has left th…
+  RED_FAIL=✗ FAIL: TP-02-10: the surfaced notice id set equals the pack’s unsupportedFeatures id set in both directions …
+  REVERTED dirty=0 mutation_left=0 original_restored=1
+```
+
+**A discarded first attempt is recorded rather than hidden.** The first aim
+started the notice loop one entry late. It fell `TP-02-10` and left `TP-05-08`
+green, which is the correct result rather than a weak assertion: the dropped
+entry was not one of the two above-rate categories this row is about. Dropping a
+row the probe did not name is not RED for the row it did, so the probe was
+re-aimed at the `movesMarginalRate` set.
+
+### Probe 16 — RED for TP-05-19 and TP-05-20
+
+The scope index's ownership table, in this feature's own artifacts: Scope 05's
+declared entry count is moved off the number of entries the row actually lists.
+
+```diff
+-| 05 | SUP-023-09 | 1 |
++| 05 | SUP-023-09 | 2 |
+```
+
+```text
+PROBE D3  expect=TP-05-19   file=specs/023-…/scopes/_index.md   cmd=node scripts/selftest.mjs
+  guard_matches=1  applied=1  RED_EXIT=1
+  RED_SUMMARY=Research-Lab self-test: 3111 passed, 3 failed
+  RED_FAIL=✗ FAIL: TP-05-19 and TP-05-20: the ledger row count, the ownership column’s own sum and the total its arithmetic sentence states all agree, Scope 05 owns exactly the one entry the table lis…
+  RED_FAIL=✗ FAIL: TP-03-26: the ledger row count, the ownership column’s own sum and the total its arithmetic sentence states all agree …
+  REVERTED dirty=0 mutation_left=0 original_restored=1
+```
+
+The mutation is one digit in a governance table, so it could disclose nothing at
+all, and the pair falling together is the cross-check working: Scope 03's row
+audits the same table from the other end.
+
+### Probe 17 — RED for TP-05-21
+
+`rlnav.js`: one comment naming the route is planted. It is a comment rather than
+a navigation entry on purpose — the row forbids the route *appearing* in the
+registration surfaces, and a comment proves the detector reads the file rather
+than only its parsed structure. Nothing was registered: no nav item, no tool
+record, no link.
+
+```diff
+ (function () {
++  /* probe token: lifetime-tax-strategy-lab */
+```
+
+```text
+PROBE D4  expect=TP-05-21   file=rlnav.js   cmd=node scripts/selftest.mjs
+  guard_matches=1  applied=1  RED_EXIT=1
+  RED_SUMMARY=Research-Lab self-test: 3105 passed, 9 failed
+  RED_FAIL=✗ FAIL: TP-05-21: the lifetime tax lab and the disposition module remain absent from tools.json, the index, the navigation, both READMEs and market-brief coverage; registration is a later f…
+  RED_FAIL=✗ FAIL: TP-05-REGISTRATION: the lifetime tax lab and its modules remain absent from tools.json, the index, the navigation and both READMEs, and site-exclusions.json still carries exactly th…
+  REVERTED dirty=0 mutation_left=0 original_restored=1
+```
+
+Nine no-registration rows across the four features fall together, and each names
+`rlnav.js` as the file it found the token in — so the failure is attributable to
+the surface rather than merely to the feature.
+
 ## Supersession Ledger
 
 **No entry was added in this session.** The ledger stands at fourteen entries.

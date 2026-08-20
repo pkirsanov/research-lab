@@ -126,7 +126,7 @@ own scope and its own regression surface. It is recorded in `spec.md` as out of 
 | Marking a test `.skip` or `.fixme` | Deletes the Feature 001 consumer guarantee that causal context never alters an owner verdict. The red goes away because nothing is checked. |
 | Deleting or relaxing an assertion | Same outcome, narrower blast radius. The mobile-viewport count assertion is where the failure surfaced; removing it would remove the observation, not the cause. |
 | Weakening `enterOwnerView` | It returns `false` when no owner view can be reached, and `openOwner` asserts on that. Softening it converts a real inability to reach the owner surface into a silent pass. |
-| Adding a suite-wide `timeout` to `playwright.config.mjs` | Relaxes all 498 tests, including the 46 spec files that are coherent today, and would mask genuine hangs everywhere. BUG-009 rejected this for the same reason. |
+| Adding a suite-wide `timeout` to `playwright.config.mjs` | Relaxes every test in the suite, including the spec files that are coherent today, and would mask genuine hangs everywhere. BUG-009 rejected this for the same reason. |
 | Lowering any wait budget to fit inside 30 s | Inverts the fix. The work takes 23.7 s uncontended; shrinking the allowance makes the test fail sooner under exactly the load it must survive. |
 | Making the owner pages faster to close this packet | A legitimate improvement and a different change. It would alter Feature 001 product behaviour under cover of a test fix. |
 

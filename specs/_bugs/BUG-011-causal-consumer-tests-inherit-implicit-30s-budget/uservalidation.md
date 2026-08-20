@@ -23,7 +23,11 @@ Acceptance is the Checklist section plus the acceptance record, and only a human
       run — 2490 passed, 0 failed — exercises this guard, but the guard was not invoked standalone.
 - [ ] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count. Reported by
       the operator at 2490 passed / 0 failed; not re-derived here.
-- [ ] The committed suite still enumerates 498 tests, with none removed, renamed, or skipped.
+- [ ] The committed suite still contains every test it contained before this fix — none was removed,
+      renamed, or skipped by this change.
+      *Note (2026-08-19): this item's text was corrected. It previously pinned a suite total of 498,
+      which went stale twice as unrelated work landed; the acceptance is unchanged and still
+      outstanding, and no checkbox was altered.*
 - [ ] The diff is additive only: no `retries` in `playwright.config.mjs`, no `.skip` or `.fixme`, no
       deleted or weakened assertion, and `enterOwnerView` byte-identical.
 - [ ] `playwright.config.mjs` is unchanged.

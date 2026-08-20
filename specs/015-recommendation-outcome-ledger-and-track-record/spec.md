@@ -32,7 +32,7 @@ one of those counts grows with every window until the frozen-claim contract land
 evidence of scale; the authoritative value is whatever the ledger holds when it is read. No downstream artifact —
 spec, design, scope, test, or rendered surface — may carry this number forward as a literal.
 
-Every one of those rows has this exact shape (`brief-recommendation-history-row/v1`):
+Rows come in two live shapes. `brief-recommendation-history-row/v1` has this exact seven-field shape:
 
 | Field | Example |
 |---|---|
@@ -45,6 +45,22 @@ Every one of those rows has this exact shape (`brief-recommendation-history-row/
 | `runId` | `dist-2026-07-19-after-hours-2116a85fb14a` |
 
 There is no subject. No instrument. No direction. No horizon. No trigger. No invalidation. No confidence.
+
+> **CORRECTED 2026-08-19.** This passage read *"Every one of those rows has this exact shape
+> (`brief-recommendation-history-row/v1`)"*. It was accurate when written and is now false. Measured across
+> both committed partitions on 2026-08-19: **1,380 rows — 240 `…/v1` and 1,140 `…/v2`.** The
+> `brief-recommendation-history-row/v2` body contract landed afterwards
+> ([recommendation-body.mjs#L22](../../scripts/recommendation-body.mjs#L22)) and does carry subject,
+> instrument, direction, horizon, trigger, invalidation and confidence, in three shapes of 17, 25 and 27
+> keys.
+>
+> **What the correction does not change: the anonymity argument.** It was never the seven-field shape that
+> made the ledger unscoreable — it is the absence of a **frozen, hashed claim**. A `v2` body row records
+> what the brief *said*, but it is written by the publisher and its terms are not frozen at proposal against
+> a content address, so it cannot settle what was promised before the outcome was known. Measured the same
+> run: **0 of 1,380 committed rows carry a claim reference.** The gap FR-002 closes is unchanged in
+> substance and larger in extent. See `design.md` →
+> `## Ledger-Row Contract-Version Reconciliation — Recorded 2026-08-19`.
 
 The key itself is a one-way hash. The live publisher builds it at
 [scripts/brief-distributed-publish.mjs#L405](../../scripts/brief-distributed-publish.mjs#L405):

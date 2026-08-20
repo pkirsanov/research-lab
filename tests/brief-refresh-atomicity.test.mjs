@@ -24,7 +24,7 @@ import {
 } from '../scripts/research-agenda-generation.mjs';
 import { prepareResearchAgendaRuntime } from '../scripts/research-agenda-refresh.mjs';
 import { createRequire } from 'node:module';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const RLAGENDA = require('../rlagenda.js');
@@ -147,6 +147,81 @@ if (process.env.NODE_TEST_CONTEXT) {
     assert.equal(existsSync(resolve(fixture.repoRoot, 'scripts/__fixture-closure-guard-canary.mjs')), false,
       'the presence check passes vacuously — it accepted a module the fixture never copied');
     assert.throws(() => resolveModuleClosure('scripts/__fixture-closure-guard-canary.mjs'), /does not exist/);
+  });
+
+  /* That closure is only as complete as the specifier scan behind it, and createRequire() is this repo's
+     normal way to load a UMD module from an .mjs script. A scan that followed only static `import` missed
+     the whole class: the fixture shipped without rlclaims.js and rlattentiongate.js, both died
+     MODULE_NOT_FOUND inside the transaction, the wrapper fell back to raw-data-only and still exited 0,
+     and the payload silently kept its baseline date. The call sites are re-scanned below with an
+     INDEPENDENT pattern on purpose: reusing the resolver's own regex would make this guard blind to
+     exactly the regex regression it exists to catch. */
+  const CREATE_REQUIRE_SITES = [
+    'scripts/recommendation-claim-mint.mjs',
+    'scripts/build-attention-items.mjs',
+    'scripts/brief-narrative-parallel.mjs',
+    'scripts/validate-brief-payload.mjs'
+  ];
+  const REQUIRE_CALL = '(?:createRequire\\s*\\([^()]*\\)|require)\\s*\\(';
+
+  function createRequireTargets(repoRoot) {
+    const targets = [];
+    for (const site of CREATE_REQUIRE_SITES) {
+      const source = readFileSync(new URL('../' + site, import.meta.url), 'utf8');
+      for (const [, specifier] of source.matchAll(new RegExp(`${REQUIRE_CALL}\\s*['"](\\.{1,2}/[^'"]+)['"]\\s*\\)`, 'g'))) {
+        targets.push([resolve(repoRoot, dirname(site), specifier), `${site} requires ${specifier}`]);
+      }
+      for (const [, name] of source.matchAll(new RegExp(`${REQUIRE_CALL}\\s*resolve\\s*\\(\\s*ROOT\\s*,\\s*['"]([^'"]+)['"]\\s*\\)\\s*\\)`, 'g'))) {
+        targets.push([resolve(repoRoot, name), `${site} requires resolve(ROOT, '${name}')`]);
+      }
+    }
+    return targets;
+  }
+
+  test('Guard: the fixture carries every module reachable only through a createRequire() specifier', (context) => {
+    const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+    const fixture = createBriefRefreshFixture();
+    context.after(() => fixture.cleanup());
+
+    const targets = createRequireTargets(fixture.repoRoot);
+    // Non-vacuity: if the publication scripts stop reaching for UMD modules there is nothing left to guard.
+    assert.ok(targets.length > 0, 'no createRequire() specifier was readable from the publication scripts');
+    for (const [absolutePath, description] of targets) {
+      assert.ok(existsSync(absolutePath), `${description}, but the fixture does not carry it`);
+    }
+    /* These two are reachable ONLY this way, so they are what a static-import scan cannot see; naming
+       them keeps the guard anchored to the modules whose absence produced the silent green run. */
+    for (const umd of ['rlclaims.js', 'rlattentiongate.js']) {
+      assert.ok(existsSync(resolve(fixture.repoRoot, umd)),
+        `${umd} is require()d on the publication path but is absent from the fixture`);
+    }
+
+    /* Adversarial: the new detection must be able to FAIL, and must fail by REFUSING rather than
+       skipping — silent skipping is precisely what let this class ship green. The third canary is the
+       other direction: a require named only in a comment or a string must not be followed. */
+    const canaries = [
+      ['tests/__require-closure-dangling-canary.mjs',
+        "const missing = require('./__require-closure-canary-target.js');\n",
+        /__require-closure-canary-target\.js does not exist but is imported by tests\/__require-closure-dangling-canary\.mjs/],
+      ['tests/__require-closure-escape-canary.mjs',
+        "const outside = require('../../__outside-the-repository.js');\n",
+        /resolves outside the repository/]
+    ];
+    const precisionCanary = 'tests/__require-closure-precision-canary.mjs';
+    context.after(() => {
+      for (const [path] of canaries) rmSync(resolve(repoRoot, path), { force: true });
+      rmSync(resolve(repoRoot, precisionCanary), { force: true });
+    });
+
+    for (const [path, body, expected] of canaries) {
+      writeFileSync(resolve(repoRoot, path), body);
+      assert.throws(() => resolveModuleClosure(path), expected,
+        `${path} must make the closure resolver refuse rather than skip its require() target`);
+    }
+    writeFileSync(resolve(repoRoot, precisionCanary),
+      "// const legacy = require('./__commented-out-target.js');\nconst probe = \"require('./__quoted-target.js')\";\nexport default probe;\n");
+    assert.deepEqual(resolveModuleClosure(precisionCanary), [precisionCanary],
+      'a require named only in a comment or a string literal was followed as if it were a real dependency');
   });
 
   test('Regression: agenda publication writes immutable files before ledger and moves current pointer last', (context) => {

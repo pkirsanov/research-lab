@@ -18,6 +18,13 @@
  * claim is still minted and still counted, so the coverage line can say WHICH input was missing
  * instead of showing one opaque bucket. Dropping a call because an input was absent would shrink
  * the denominator in the direction that flatters.
+ *
+ * It also carries the LEDGER ROW side of the same pointer: `claimRef`, one optional member added
+ * to the existing `brief-recommendation-history-row/v2`, and the dual-version reader that accepts
+ * `v1` and `v2` alike. That lives here rather than in `rlcontracts.js` because `rlcontracts.js` is
+ * Feature 002-owned and read-only to this feature, and because `claimRef` is a pointer at the
+ * `claimHash` this module already mints — splitting the two halves of one pointer across two
+ * modules is how they drift.
  */
 (function (factory) {
     "use strict";
@@ -82,6 +89,76 @@
         "no-authored-predicate",
         "neutral-direction-no-magnitude"
     ]);
+
+    /* ── The ledger row contract ────────────────────────────────────────────────────────────
+       Both row versions are Feature 002-owned identifiers. Feature 015 READS them and adds
+       exactly ONE optional member to the EXISTING `…/v2`: `claimRef`, an opaque `sha256:…`
+       pointer at the claim minted in the same pass. No `v3` is minted, no existing field is
+       touched, and no committed row is rewritten, migrated or re-hashed.
+
+       `v1` stays CLOSED at its measured seven fields — one shape across all 240 committed `v1`
+       rows. A `v1` row carrying `claimRef` is refused as an unknown field, and that refusal is
+       what keeps the version stamp meaningful: without it the stamp would be decoration, because
+       any row could then carry any field and still claim to be `v1`.
+
+       `v2` is NOT a closed list and never was. Measured over the 1,140 committed `v2` rows on
+       2026-08-19 it presents a 32-key union across three live shapes (17 / 25 / 27 keys), of
+       which 12 appear in every row and 20 are optional. `claimRef` becomes the twenty-first
+       optional member — which is why this is one field on a contract already built to grow by
+       optional field groups, not a version event. `v2` is still not permissive: a name outside
+       the union ∪ {`claimRef`} is refused, so the addition is not an escape hatch. */
+    var ROW_CONTRACT_V1 = "brief-recommendation-history-row/v1";
+    var ROW_CONTRACT_V2 = "brief-recommendation-history-row/v2";
+
+    /* The code carried by every ledger-row violation. Distinct from the claim code so a consumer
+       can tell a malformed ROW from a malformed CLAIM. */
+    var ROW_CONTRACT_VIOLATION_CODE = "RTR-ROW-CONTRACT";
+
+    /* The refusal for a resolution written against a row that carries no `claimRef`. Absence of
+       the pointer is the permanent legacy marker, so this code is what makes those rows
+       unscoreable BY CONSTRUCTION rather than merely unscored. */
+    var LEGACY_BACKFILL_CODE = "RTR-LEGACY-BACKFILL";
+
+    /* The pointer this feature adds: one field, an opaque string, never a nested object. */
+    var CLAIM_REF_FIELD = "claimRef";
+    var CLAIM_REF_PATTERN = /^sha256:[a-f0-9]{64}$/;
+
+    var ROW_V1_FIELDS = Object.freeze([
+        "canonicalMonth", "contractVersion", "eventId", "eventType",
+        "occurredAt", "recommendationKey", "runId"
+    ]);
+
+    /* `v2`'s measured live field set, split rather than stated as one list: a required key cannot
+       then be demoted to optional by a typo, and `deriveRowFieldUnion` can re-derive BOTH halves
+       from the committed ledger to prove these constants still describe what is on disk. */
+    var ROW_V2_REQUIRED_FIELDS = Object.freeze([
+        "canonicalMonth", "confidence", "contractVersion", "deepLink", "direction", "eventId",
+        "eventType", "horizon", "instrument", "occurredAt", "recommendationKey", "runId"
+    ]);
+    var ROW_V2_MEASURED_OPTIONAL_FIELDS = Object.freeze([
+        "bodyContractVersion", "bodySource", "directionSign", "evaluability", "evaluabilityReason",
+        "evaluatedAsOf", "instruments", "invalidation", "levels", "levelsText", "outcome",
+        "outcomeContractVersion", "proposedAt", "rationale", "reasonCode", "restoresEventId",
+        "sourceCommit", "structuralAnchor", "subject", "trigger"
+    ]);
+
+    function unionSorted(lists) {
+        var seen = Object.create(null);
+        var out = [];
+        for (var i = 0; i < lists.length; i += 1) {
+            for (var j = 0; j < lists[i].length; j += 1) {
+                if (seen[lists[i][j]]) continue;
+                seen[lists[i][j]] = true;
+                out.push(lists[i][j]);
+            }
+        }
+        return Object.freeze(out.sort());
+    }
+
+    /* Derived, never hand-typed a second time: the acceptance set IS the measured union plus the
+       one field this feature adds. Writing the 33 names out again is precisely how the added
+       field and the accepted set drift apart. */
+    var ROW_V2_FIELDS = unionSorted([ROW_V2_REQUIRED_FIELDS, ROW_V2_MEASURED_OPTIONAL_FIELDS, [CLAIM_REF_FIELD]]);
 
     var CLAIM_STORE_DIR = "briefs/objects/claims";
     var BARS_DIR = "data/bars";
@@ -357,6 +434,141 @@
 
     function nonEmptyString(value) { return typeof value === "string" && value.length > 0; }
 
+    /* ── The dual-version ledger row reader ─────────────────────────────────────────────────
+       Accepts BOTH live versions. `v1` is not deprecated, is never rewritten, and no migration
+       runs — a reader that quietly "upgraded" a row on read would rewrite history in memory and
+       make the two versions indistinguishable to everything downstream.
+
+       Absence of `claimRef` is never an error here. It IS the permanent unresolvable-legacy
+       marker under HC-4 / BP-015-002, and it covers all 1,380 committed rows — `v1` and body-`v2`
+       alike — so nothing is null-filled, back-filled or estimated. */
+
+    /* The repository's closed-field-list idiom, mirroring `hasOnlyFields` in rlcontracts.js
+       (Feature 002-owned, read as precedent and never modified; this module stays dependency-free
+       so it loads under file://). Returns the first offending KEY, because "some unknown field"
+       does not tell a publisher which one to drop. */
+    function hasOnlyFields(value, fields) {
+        var allowed = Object.create(null);
+        var keys = Object.keys(value);
+        var index;
+        for (index = 0; index < fields.length; index += 1) allowed[fields[index]] = true;
+        for (index = 0; index < keys.length; index += 1) {
+            if (!allowed[keys[index]]) return keys[index];
+        }
+        return null;
+    }
+
+    function rowFieldsFor(contractVersion) {
+        if (contractVersion === ROW_CONTRACT_V1) return ROW_V1_FIELDS;
+        if (contractVersion === ROW_CONTRACT_V2) return ROW_V2_FIELDS;
+        return null;
+    }
+
+    function rowRequiredFieldsFor(contractVersion) {
+        if (contractVersion === ROW_CONTRACT_V1) return ROW_V1_FIELDS;
+        if (contractVersion === ROW_CONTRACT_V2) return ROW_V2_REQUIRED_FIELDS;
+        return null;
+    }
+
+    function rowViolation(reason, field) {
+        return { ok: false, error: { code: ROW_CONTRACT_VIOLATION_CODE, reason: reason, field: field } };
+    }
+
+    /* Rule order is deliberate: `unknown-field` is evaluated BEFORE the required sweep, so a `v1`
+       row carrying `claimRef` refuses on the field that is actually wrong rather than on whichever
+       required key a malformed row also happened to drop. */
+    function validateLedgerRow(row) {
+        if (!isPlainObject(row)) return rowViolation("row-not-an-object", "row");
+
+        var accepted = rowFieldsFor(row.contractVersion);
+        if (accepted === null) return rowViolation("row-contract-version-not-allowed", "contractVersion");
+
+        var unknown = hasOnlyFields(row, accepted);
+        if (unknown !== null) return rowViolation("unknown-field", unknown);
+
+        var required = rowRequiredFieldsFor(row.contractVersion);
+        for (var i = 0; i < required.length; i += 1) {
+            if (!Object.prototype.hasOwnProperty.call(row, required[i])) {
+                return rowViolation("row-required-field-missing", required[i]);
+            }
+        }
+
+        /* Present-but-malformed is a different defect from absent. A nested object here would
+           make the row a payload rather than a pointer, so the type rule is part of the contract. */
+        if (Object.prototype.hasOwnProperty.call(row, CLAIM_REF_FIELD)
+            && !(typeof row[CLAIM_REF_FIELD] === "string" && CLAIM_REF_PATTERN.test(row[CLAIM_REF_FIELD]))) {
+            return rowViolation("claim-ref-not-opaque-sha256", CLAIM_REF_FIELD);
+        }
+
+        return { ok: true, row: row };
+    }
+
+    /* Re-derive a version's live field set from real rows. The constants above are a MEASUREMENT
+       of the committed ledger, and a measurement nothing re-checks decays into a guess — so this
+       is what a test uses to prove they still describe what is on disk. "Required" means present
+       in EVERY row, which is only meaningful over a non-empty set; an empty input therefore
+       yields empty halves rather than declaring every key required. */
+    function deriveRowFieldUnion(rows) {
+        var counts = Object.create(null);
+        var union = [];
+        var total = 0;
+        for (var i = 0; i < rows.length; i += 1) {
+            if (!isPlainObject(rows[i])) continue;
+            total += 1;
+            var keys = Object.keys(rows[i]);
+            for (var k = 0; k < keys.length; k += 1) {
+                if (counts[keys[k]] === undefined) { counts[keys[k]] = 0; union.push(keys[k]); }
+                counts[keys[k]] += 1;
+            }
+        }
+        union.sort();
+        var required = [];
+        var optional = [];
+        for (var u = 0; u < union.length; u += 1) {
+            if (total > 0 && counts[union[u]] === total) required.push(union[u]);
+            else optional.push(union[u]);
+        }
+        return {
+            rowCount: total,
+            union: Object.freeze(union),
+            required: Object.freeze(required),
+            optional: Object.freeze(optional)
+        };
+    }
+
+    /* ── RTR-LEGACY-BACKFILL ────────────────────────────────────────────────────────────────
+       The gate every resolution write passes through. Scope 03 owns the resolution OBJECT; this
+       owns the single question of whether the target row may be resolved at all.
+
+       Rule order is the whole contract. The legacy check runs BEFORE the resolution is inspected
+       in any way, so no property of the resolution can rescue a claimless row: a complete,
+       well-formed, entirely plausible predicate is refused exactly as loudly as a malformed one.
+       Inspecting the resolution first and refusing only when it looked wrong is precisely the
+       imputation BP-015-002 forbids — it would score 1,380 rows against terms nobody authored.
+
+       Malformed-row still wins over legacy, because a row that is not a valid ledger row is a
+       different defect and reporting it as legacy would hide it. */
+    function authorizeResolutionWrite(row, resolution) {
+        var rowCheck = validateLedgerRow(row);
+        if (!rowCheck.ok) return rowCheck;
+
+        if (!Object.prototype.hasOwnProperty.call(row, CLAIM_REF_FIELD)) {
+            return {
+                ok: false,
+                error: {
+                    code: LEGACY_BACKFILL_CODE,
+                    reason: "claimless-row-unscoreable",
+                    field: CLAIM_REF_FIELD,
+                    eventId: row.eventId
+                }
+            };
+        }
+
+        if (!isPlainObject(resolution)) return rowViolation("resolution-not-an-object", "resolution");
+
+        return { ok: true, claimRef: row[CLAIM_REF_FIELD], eventId: row.eventId };
+    }
+
     /* ── mintClaim ──────────────────────────────────────────────────────────────────────────
        Two outcomes, deliberately distinct:
          • a CONTRACT VIOLATION ({ ok: false }) — an out-of-vocabulary value or a direction that
@@ -603,6 +815,19 @@
         BARS_DIR: BARS_DIR,
         BARS_MANIFEST_FILENAME: BARS_MANIFEST_FILENAME,
         ACTION_VOCABULARY_SOURCE: ACTION_VOCABULARY_SOURCE,
+        ROW_CONTRACT_V1: ROW_CONTRACT_V1,
+        ROW_CONTRACT_V2: ROW_CONTRACT_V2,
+        ROW_CONTRACT_VIOLATION_CODE: ROW_CONTRACT_VIOLATION_CODE,
+        LEGACY_BACKFILL_CODE: LEGACY_BACKFILL_CODE,
+        CLAIM_REF_FIELD: CLAIM_REF_FIELD,
+        CLAIM_REF_PATTERN: CLAIM_REF_PATTERN,
+        ROW_V1_FIELDS: ROW_V1_FIELDS,
+        ROW_V2_REQUIRED_FIELDS: ROW_V2_REQUIRED_FIELDS,
+        ROW_V2_MEASURED_OPTIONAL_FIELDS: ROW_V2_MEASURED_OPTIONAL_FIELDS,
+        ROW_V2_FIELDS: ROW_V2_FIELDS,
+        validateLedgerRow: validateLedgerRow,
+        deriveRowFieldUnion: deriveRowFieldUnion,
+        authorizeResolutionWrite: authorizeResolutionWrite,
         stableStringify: stableStringify,
         sha256Hex: sha256Hex,
         stableSha: stableSha,

@@ -1,0 +1,90 @@
+# validate-test-file-reachability baseline — Research Lab
+#
+# `tests/*.mjs` files that NO declared verification glob selects, so no
+# command this repository declares ever runs them. Frozen so the guard can
+# fail on NEW orphans while this pre-existing set is paid down.
+#
+# Keyed on the FILE path. A file added to a suffix family already listed
+# here still FAILS unless its own path is listed — the debt is the file,
+# not the family, so a frozen family cannot absorb new work silently.
+#
+# THIS LIST MUST SHRINK, NEVER GROW. Every entry is paid down by one of:
+#   - declare a glob that selects it in a real verification command, or
+#   - fold its assertions into a suite a declared glob already selects, or
+#   - delete it, if the coverage it claims is not wanted
+#
+# A baseline entry that is no longer orphaned is reported as STALE and the
+# run still exits 0. Remove it. Do NOT regenerate the baseline to silence a
+# genuine new finding.
+#
+# Regenerate ONLY when deliberately accepting the current set:
+#   node scripts/validate-test-file-reachability.mjs --update-baseline
+#
+# There is no --skip / --force / --ignore / --bypass flag and there never
+# will be. A bypass-shaped flag exits non-zero.
+#
+# FROZEN: 48 orphan(s) of 180 test file(s), against
+# 6 declared glob(s), on 2026-08-20.
+#
+# ---- unreachable suffix families -----------------------------------------
+#     19 | .unit.mjs
+#     18 | .functional.mjs
+#      2 | .foundation.functional.mjs
+#      2 | .integration.mjs
+#      2 | .security.mjs
+#      1 | .canary.mjs
+#      1 | .contracts.unit.mjs
+#      1 | .load.mjs
+#      1 | .mjs
+#      1 | .stress.mjs
+#
+# ---- frozen files (LC_ALL=C sorted) --------------------------------------
+
+tests/company-fundamentals-contracts.unit.mjs
+tests/company-intelligence.unit.mjs
+tests/contextual-tooltip.functional.mjs
+tests/contextual-tooltip.unit.mjs
+tests/event-market-reaction.functional.mjs
+tests/journey-definitions.functional.mjs
+tests/journey-storage.functional.mjs
+tests/journey.unit.mjs
+tests/market-action-consumer-trace.mjs
+tests/market-action.unit.mjs
+tests/market-session-evidence.foundation.functional.mjs
+tests/market-session-evidence.functional.mjs
+tests/market-session-evidence.unit.mjs
+tests/place-based-rental-market.contracts.unit.mjs
+tests/playwright-runtime.foundation.functional.mjs
+tests/portfolio-allocation.functional.mjs
+tests/portfolio-analytics.unit.mjs
+tests/portfolio-brief.functional.mjs
+tests/portfolio-foundation.unit.mjs
+tests/portfolio-privacy.functional.mjs
+tests/portfolio-publisher-boundary.functional.mjs
+tests/provider-credentials.functional.mjs
+tests/provider-credentials.load.mjs
+tests/provider-credentials.stress.mjs
+tests/provider-credentials.unit.mjs
+tests/public-portfolio-matrix.functional.mjs
+tests/recommendation-track-record.canary.mjs
+tests/recommendation-track-record.functional.mjs
+tests/recommendation-track-record.unit.mjs
+tests/red-alert.functional.mjs
+tests/red-alert.security.mjs
+tests/red-alert.unit.mjs
+tests/simple-model-adapters-macro-fundamental.unit.mjs
+tests/simple-model-adapters-market.unit.mjs
+tests/simple-model-adapters-strategy-property.unit.mjs
+tests/simple-model-adapters.integration.mjs
+tests/simple-model-runtime.functional.mjs
+tests/simple-model-source-ownership.functional.mjs
+tests/simple-models.unit.mjs
+tests/simple-production-bridge.integration.mjs
+tests/simple-production-bridge.unit.mjs
+tests/tool-experience-registry.functional.mjs
+tests/tool-experience-shell.functional.mjs
+tests/tool-experience-shell.unit.mjs
+tests/tool-experience.unit.mjs
+tests/web-evidence.functional.mjs
+tests/web-evidence.security.mjs
+tests/web-evidence.unit.mjs

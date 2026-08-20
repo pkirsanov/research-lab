@@ -140,9 +140,15 @@ one that actually appears in the ledger rows:
   hashes only `{ subject, family }` into `brief-distributed-reckey/v1`, and that is the value written to
   the row's `recommendationKey`.
 
-**015 binds to the publisher key**, because that is the identifier present in the 160 existing rows and in
+**015 binds to the publisher key**, because that is the identifier present in every committed row and in
 every row the live publisher emits. The consequence — that this key omits `horizon` — is a real constraint
 and is handled explicitly in D1.
+
+> **CORRECTED 2026-08-19.** This clause read *"the identifier present in the 160 existing rows"*. Measured
+> over the committed ledger on 2026-08-19: **1,380 rows** — 240 `…/v1` and 1,140 `…/v2` — every one of which
+> carries `recommendationKey`. The binding argument is unchanged and is in fact stronger; only the stale
+> literal is removed, per F-015-D5-02. See
+> `## Ledger-Row Contract-Version Reconciliation — Recorded 2026-08-19`.
 
 ### Reading Order (authoring complete)
 
@@ -791,6 +797,9 @@ Feature 002 row change to a single field (D2).
 
 ### Current Contract (Feature 002-owned)
 
+**Two** contract versions are live in `briefs/history/recommendations/*.jsonl` today, and **both** are
+Feature 002-owned.
+
 `brief-recommendation-history-row/v1` has exactly seven fields:
 
 | Field | Role |
@@ -803,24 +812,61 @@ Feature 002 row change to a single field (D2).
 | `recommendationKey` | stable across runs — [brief-distributed-publish.mjs#L405](../../scripts/brief-distributed-publish.mjs#L405) |
 | `runId` | producing run |
 
-There is no slot for a claim, an outcome, or a resolution.
+`brief-recommendation-history-row/v2` is declared as `ROW_CONTRACT_V2` at
+[recommendation-body.mjs#L22](../../scripts/recommendation-body.mjs#L22) and carries the durable
+recommendation **body** — instrument, direction, levels, trigger, invalidation, and the evaluator's outcome
+fields. It is **not** a closed list. Measured over the committed ledger on 2026-08-19:
+
+| `contractVersion` | keys | rows |
+|---|---|---|
+| `…/v1` | 7 | 240 |
+| `…/v2` | 17 | 356 |
+| `…/v2` | 25 | 375 |
+| `…/v2` | 27 | 409 |
+
+Its 1,140 rows present a **32-key union**, of which **12** appear in every `v2` row and **20** are optional.
+`v2` therefore already grows by adding optional field groups — 17 → 25 → 27 — which is precisely the
+mechanism this section needs.
+
+There **is** a slot for an outcome: the 17-key `v2` shape carries `outcome`, `outcomeContractVersion`,
+`reasonCode` and `evaluatedAsOf`. There is **no** slot for a **frozen claim** — no committed row carries
+`claimRef`, across all 1,380 rows — and that is the gap D2 closes.
+
+> **CORRECTED 2026-08-19.** This subsection previously described `…/v1` as the only live row contract and
+> concluded *"There is no slot for a claim, an outcome, or a resolution."* Both statements were accurate
+> when written and are now false: the `v2` body contract landed afterwards, 1,140 committed rows use it, and
+> it does carry outcome and resolution fields. What survives verification is the narrower — and still
+> load-bearing — claim above: **no row carries a claim reference.** See
+> `## Ledger-Row Contract-Version Reconciliation — Recorded 2026-08-19`.
 
 ### The Extension
 
-**Exactly one new optional field: `claimRef`.**
+**Exactly one new optional field, `claimRef`, added to the existing live `…/v2`.** No new contract version
+is minted. `claimRef` becomes the twenty-first optional member of a field set that is already optional by
+design.
 
 ```jsonc
 {
   "canonicalMonth":    "2026-07",
   "claimRef":          "sha256:…",   // NEW — optional; the claimHash from D1
+  "confidence":        "medium",
   "contractVersion":   "brief-recommendation-history-row/v2",
+  "deepLink":          "market-brief.html#…",
+  "direction":         "long",
   "eventId":           "sha256:…",
   "eventType":         "proposed",
+  "horizon":           "swing",
+  "instrument":        "SPY",
   "occurredAt":        "2026-07-28T13:30:00.000Z",
   "recommendationKey": "sha256:…",
   "runId":             "dist-2026-07-28-open-…"
+  // …plus whichever of v2's other 19 optional members this row's body carries
 }
 ```
+
+The twelve fields shown beside `claimRef` are exactly `v2`'s measured **required** set — the keys present in
+all 1,140 committed `v2` rows. Everything else `v2` may carry is optional, which is why a single further
+optional field is an unremarkable addition rather than a version event.
 
 - **Type: opaque string**, not a nested object. A bare `sha256:…` string matches how `stableSha` outputs
   are already threaded through the publisher and minimises the canonicalisation surface a schema change
@@ -834,43 +880,65 @@ There is no slot for a claim, an outcome, or a resolution.
 
 | Compatibility property | Why it holds |
 |---|---|
-| **Existing rows stay valid** | `claimRef` is optional. The 160 pre-existing rows are simply absent the field. They are **not** null-filled, back-filled, or estimated — absence *is* the `unresolvable-legacy` marker required by HC-4 / BP-015-002. |
+| **Existing rows stay valid** | `claimRef` is optional. All **1,380** committed rows — 240 `…/v1` and 1,140 `…/v2`, measured 2026-08-19 — are simply absent the field. They are **not** null-filled, back-filled, or estimated — absence *is* the `unresolvable-legacy` marker required by HC-4 / BP-015-002. **CORRECTED 2026-08-19:** this cell read *"The 160 pre-existing rows"*, which both understated the count and wrongly implied the unresolvable-legacy set is `v1`-only. It is not: a `v2` body row is just as claimless. |
 | **`eventId` is unchanged** | `eventId` is hashed from its own object at [brief-distributed-publish.mjs#L406](../../scripts/brief-distributed-publish.mjs#L406) (`{ contractVersion, runFingerprint, recommendationKey, index }`) — it is **not** a hash of the row. Adding a row field therefore cannot perturb any existing event identifier. |
 | **`recommendationKey` is unchanged** | Derived at [#L405](../../scripts/brief-distributed-publish.mjs#L405) from `{ subject, family }` only. Untouched. |
-| **Canonical ordering is stable** | Keys canonicalise sorted, so `claimRef` lands deterministically between `canonicalMonth` and `contractVersion`. No consumer that reads by key name is affected. |
+| **Canonical ordering is stable** | Keys canonicalise sorted, so `claimRef` lands deterministically immediately after `canonicalMonth`. On a live `v2` row its successor is `confidence`, not `contractVersion`, because `v2` carries keys `v1` does not. No consumer that reads by key name is affected either way. **CORRECTED 2026-08-19:** this cell read *"lands deterministically between `canonicalMonth` and `contractVersion`"*, which holds only for the `v1`-shaped row this design rejects. |
 | **Unaware consumers keep working** | A reader that projects the seven known fields ignores `claimRef` entirely. Nothing 015 adds is required to read a row. |
 
-### Why `v2` Rather Than An In-Place `v1` Addition
+### Why The Existing `v2` — Not An In-Place `v1` Addition, And Not A New `v3`
 
 The codebase's established validation idiom is a **closed field list**: `RECOMMENDATION_FIELDS`
 ([rlcontracts.js#L727](../../rlcontracts.js#L727)) is checked by `hasOnlyFields`, and an unrecognised key
-returns an `"unknown-field"` failure. If the row validator follows that same idiom — and the surrounding
-code strongly suggests it does — then emitting `claimRef` on a row still stamped
-`brief-recommendation-history-row/v1` would be **rejected as an unknown field**, not silently accepted.
+returns an `"unknown-field"` failure. Emitting `claimRef` on a row still stamped
+`brief-recommendation-history-row/v1` is therefore **rejected as an unknown field**, not silently accepted.
+That rules out an in-place `v1` addition, and it is why a claim-bearing row must declare a later version.
+
+It does **not** follow that the later version must be a *new* one. `v2` already exists, is already the
+publisher's output, and already admits optional field groups — 17 → 25 → 27 keys across 1,140 committed
+rows. One more optional member is how this contract is built to grow. A `v3` would fragment the ledger into
+three versions and make the dual-version reader tri-version for no compatibility benefit.
 
 Therefore:
 
-- New rows carrying `claimRef` declare `brief-recommendation-history-row/v2`.
-- **v2 is a strict superset of v1**: same seven fields, same semantics, plus one optional field.
-- **Readers MUST accept both** `v1` and `v2`. v1 is not deprecated and is never rewritten.
-- No migration runs. No historical row is touched.
+- New rows carrying `claimRef` declare the **existing** `brief-recommendation-history-row/v2`.
+- **`claimRef` is optional on `v2`**, alongside the twenty optional members `v2` already carries.
+- **Readers MUST accept both** `v1` and `v2`. `v1` is not deprecated and is never rewritten.
+- **A `v1` row carrying `claimRef` is still rejected** as an unknown field. That rejection is what keeps the
+  version stamp meaningful.
+- No migration runs. No historical row is touched. No `v3` is minted.
+
+> **CORRECTED 2026-08-19.** This subsection previously concluded *"v2 is a strict superset of v1: same seven
+> fields, same semantics, plus one optional field"*, on the premise that `…/v2` was an unused identifier. A
+> closed eight-field `v2` would reject all 1,140 committed `v2` rows. See
+> `## Ledger-Row Contract-Version Reconciliation — Recorded 2026-08-19`.
 
 ### ⚠️ Ownership — Feature 002 Consent Required
 
-`brief-recommendation-history-row/v1` is **owned by Feature 002 (Distributed Tool Briefs And History)**.
-Feature 015 does **not** own this contract and **MUST NOT** modify it unilaterally.
+`brief-recommendation-history-row/v1` **and** `brief-recommendation-history-row/v2` are **owned by Feature
+002 (Distributed Tool Briefs And History)**. Feature 015 does **not** own either contract and **MUST NOT**
+modify one unilaterally.
 
 This design specifies the change; it does not authorise it. Landing D2 requires:
 
-1. A routed handoff to the **Feature 002 owner** proposing the `v2` superset and the single optional
-   `claimRef` field.
-2. Explicit 002-owner consent recorded before any scope that emits a `v2` row is implemented.
+1. A routed handoff to the **Feature 002 owner** proposing `claimRef` as one additional **optional** member
+   of the existing `…/v2` — not a new version, and not a change to any existing `v2` field.
+2. Explicit 002-owner consent recorded before any scope that emits a `claimRef`-bearing row is implemented.
 3. The 002-owned validator's field list and version acceptance updated **by 002**, not by 015.
 
-If consent is withheld, the fallback is a fully 015-owned side-index
-(`claimRef` keyed by `eventId` in an 015-owned object) that leaves the row contract untouched at the cost
-of a second lookup. That fallback is strictly worse for consumers but requires no other owner's contract
-change, and is recorded here so the handoff is a genuine decision rather than a demand.
+**Consent status — standing blanket authorisation, recorded 2026-08-19.** The operator granted a standing
+blanket authorisation on 2026-08-19. Its exact provenance, its verbatim wording, and — critically — the
+limits of what it authorises are recorded in
+`## Ledger-Row Contract-Version Reconciliation — Recorded 2026-08-19` → *Consent record*. In short: it
+removes the procedural block on 015 proceeding across an owner boundary; it is **not** a Feature 002 design
+review of the `v2` field set, and it does not certify that `claimRef` is the right shape for `v2`. The
+narrowness of the ask — one optional field, no existing field touched, no version minted — is what makes
+proceeding under a blanket grant defensible. A wider ask would still need a real 002 review.
+
+If consent were withheld, the fallback is a fully 015-owned side-index (`claimRef` keyed by `eventId` in an
+015-owned object) that leaves the row contract untouched at the cost of a second lookup. That fallback is
+strictly worse for consumers but requires no other owner's contract change, and is recorded here so the
+handoff is a genuine decision rather than a demand. **It is not taken**, per the ruling.
 
 ---
 
@@ -956,9 +1024,11 @@ displayed rate      = wins / resolvedDirectional
   displayed**. That primitive requires integer counts with `total ≥ 1` and `wins ≤ total`, which this
   denominator satisfies by construction.
 - The non-directional classes are rendered **beside** the rate, never folded into it and never dropped:
-  `resolved-flat: n`, `unresolved: n`, `not-evaluable: n`, `unresolvable-legacy: 160`. Every proposed
+  `resolved-flat: n`, `unresolved: n`, `not-evaluable: n`, `unresolvable-legacy: n`. Every proposed
   call is visible in exactly one bucket, so the buckets sum to the total call count. This is what makes
-  HC-4 and BP-015-006 checkable by inspection rather than by trust.
+  HC-4 and BP-015-006 checkable by inspection rather than by trust. **CORRECTED 2026-08-19:** the last
+  bucket read `unresolvable-legacy: 160`, the one literal left in this illustration; it is `n` like its
+  three siblings, per F-015-D5-02.
 
 ### Empty-Cohort Guard
 
@@ -2815,3 +2885,161 @@ strings contain *"exactly the four unhashed fields"*. That is historical executi
 be rewritten; it is re-captured when the tests are next run, not edited.
 
 No scope file, test file, or source file was modified by this reconciliation.
+
+---
+
+## Ledger-Row Contract-Version Reconciliation — Recorded 2026-08-19
+
+**What this supersedes, precisely.** Four statements in `## D2` and one upstream reference, named exactly:
+
+1. `## D2` → *Current Contract* — the framing of `brief-recommendation-history-row/v1` as the only live row
+   contract, and its closing sentence *"There is no slot for a claim, an outcome, or a resolution."*
+2. `## D2` → *Why This Is Additive And Safe* → **Existing rows stay valid** — *"The 160 pre-existing rows are
+   simply absent the field."*
+3. `## D2` → *Why `v2` Rather Than An In-Place `v1` Addition* — the whole subsection, whose ruling was
+   *"v2 is a strict superset of v1: same seven fields, same semantics, plus one optional field."*
+4. `## Architecture Overview` — *"the identifier present in the 160 existing rows"*.
+5. `## D5` — the illustrative bucket literal `unresolvable-legacy: 160`.
+
+**Everything else in D2 is untouched and re-affirmed**, including the parts that carry the section's actual
+weight: `claimRef` is exactly one field and a *pointer, not a payload*; the type is an opaque `sha256:…`
+string; `eventId` and `recommendationKey` are structurally immune to a row-field addition; absence of
+`claimRef` *is* the `unresolvable-legacy` marker under HC-4 / BP-015-002; and the Feature 002 ownership
+boundary stands. The 2026-08-13 and both 2026-08-18 records are preserved verbatim as history.
+
+### Why a reconciliation was needed
+
+D2 was authored against a ledger in which `brief-recommendation-history-row/v2` did not exist. It planned to
+*mint* that identifier as a closed eight-field superset of `v1`. The identifier is now taken, by a live and
+incompatible contract:
+
+- [`scripts/recommendation-body.mjs#L22`](../../scripts/recommendation-body.mjs#L22) —
+  `export const ROW_CONTRACT_V2 = 'brief-recommendation-history-row/v2';`
+- It carries a full recommendation **body** — instrument, direction, levels, trigger, invalidation, outcome
+  fields — not a pointer.
+- Its own header records the same additive reasoning D2 re-derives: *"Contracts are ADDITIVE: v1 rows stay
+  readable; v2 rows carry the same keys plus the body."*
+
+**Measured census of the committed ledger (2026-08-19).** Reproduced this run by parsing every line of both
+committed partitions and tallying `contractVersion` against key count:
+
+```text
+briefs/history/recommendations/2026-07.jsonl   (total rows: 749)
+    brief-recommendation-history-row/v1 keys=7  -> 215
+    brief-recommendation-history-row/v2 keys=17 -> 150
+    brief-recommendation-history-row/v2 keys=27 -> 384
+briefs/history/recommendations/2026-08.jsonl   (total rows: 631)
+    brief-recommendation-history-row/v1 keys=7  -> 25
+    brief-recommendation-history-row/v2 keys=17 -> 206
+    brief-recommendation-history-row/v2 keys=25 -> 375
+    brief-recommendation-history-row/v2 keys=27 -> 25
+```
+
+| Measure | Value |
+|---|---|
+| Total committed rows | **1,380** |
+| `…/v1` rows | **240** (7 keys, one closed shape) |
+| `…/v2` rows | **1,140** (three shapes: 17, 25, 27 keys) |
+| `…/v2` key union | **32** |
+| `…/v2` keys present in **every** `v2` row | **12** — `canonicalMonth`, `confidence`, `contractVersion`, `deepLink`, `direction`, `eventId`, `eventType`, `horizon`, `instrument`, `occurredAt`, `recommendationKey`, `runId` |
+| `…/v2` optional keys | **20** |
+| Rows carrying `claimRef` | **0** |
+
+**Two independent falsifications follow, and either alone is decisive.**
+
+1. **A closed eight-field `v2` would reject all 1,140 committed `v2` rows** on the `unknown-field` rule. That
+   contradicts D2's own compatibility guarantee and the scope's `T-02-I1`, which requires every committed row
+   in `2026-07.jsonl` to validate unchanged — 534 of that partition's 749 rows would be refused. A contract
+   module written to the old plan would be false about this repository on the day it landed.
+2. **`v2` is already an optional-field contract, not a closed list.** Its key count varies 17 / 25 / 27 across
+   live rows. "Strict superset with a closed field list" was never available as a description of `v2`.
+
+The stale count is the smaller error and has the same cause: `160` was a `v1`-only, point-in-time figure, and
+the legacy set is neither 160 nor `v1`-only. Every one of the 1,380 committed rows is claimless.
+
+### Options considered
+
+| # | Option | Assessment |
+|---|---|---|
+| 1 | **Mint `…/v3`** for the claim-referencing row, leaving the live `v2` untouched | Works, and is the smallest edit to the *text*. But it fragments the ledger into three versions and turns the dual-version reader tri-version, for zero compatibility gain over option 2. |
+| 2 | **Add `claimRef` as an optional field to the existing live `v2`** | Chosen. See ruling. |
+| 3 | **The recorded D2 fallback** — a fully 015-owned side-index keyed by `eventId` | Already documented as the *no-consent* path. Needs no version identifier and no other owner's contract change, at the cost of a second lookup on every read. Not taken, because consent is not withheld. |
+
+### Ruling — `claimRef` is an OPTIONAL field on the EXISTING `…/v2`. No `v3`. No side-index.
+
+**Option 2.** The reasons, in the order that decides them:
+
+1. **It is D2's own stated principle.** D2 already reads: *"When you must ask another feature's owner to
+   change their contract, the correct ask is the smallest one that works."* One optional field on a contract
+   that is already optional-by-design is strictly smaller than minting a version.
+2. **It is how `v2` is built to evolve.** 17 → 25 → 27 keys over 1,140 rows is not drift; it is the contract
+   growing by optional field groups. `claimRef` becomes the twenty-first optional member. A new version would
+   assert that this addition is different in kind from the twenty that preceded it, and it is not.
+3. **A `v3` fragments the reader for no benefit.** Three versions on disk, a tri-version reader, and three
+   validator branches — to express a field the existing version already accommodates structurally.
+4. **The scope's core intent is preserved exactly.** The row gains a **pointer**, not a payload. The
+   resolution object (scope 03) still owns the outcome value, outcome class, and closure reason. No
+   migration. No rewrite. No re-hash. `eventId` and `recommendationKey` are still structurally untouchable,
+   because neither is hashed from the row.
+5. **HC-4 / BP-015-002 get *stronger*, not weaker.** Absence of `claimRef` remains the permanent
+   `unresolvable-legacy` marker — and it now covers pre-existing `v2` body rows as well as `v1` rows. Under
+   the old plan a `v2` row was claim-bearing by definition, so the marker only ever had to discriminate `v1`.
+   Under this ruling the marker is version-independent: it keys on **key absence**, which is exactly the
+   property `T-02-F2` was already written to assert. 1,380 rows are unscoreable by construction rather than
+   240.
+6. **The version stamp keeps its meaning.** A `v1` row carrying `claimRef` is still rejected as an unknown
+   field. That negative is unchanged and is the reason a claim-bearing row must be stamped `v2` at all.
+
+### Consent record — standing blanket authorisation, and what it does *not* cover
+
+**Provenance.** The operator granted a standing blanket authorisation on **2026-08-19**, verbatim:
+
+> *"authorized, approved"* · *"user accepts all"* · *"unblock all blocks, implement/fix/plan whatever needed
+> to unblock"* · *"ALWAY PICK OPTION BEST FOR LONG TERM, NO SHORTCUTS"*
+
+**Classification.** This is a **standing blanket grant**, not a feature-specific design review of the `v2`
+contract. It is recorded as such deliberately, because recording it as a 002 design review would be the
+fabrication this packet exists to prevent.
+
+| It authorises | It does **not** authorise |
+|---|---|
+| 015 proceeding across the Feature 002 owner boundary without a further round-trip | A Feature 002 review of the `v2` field set. None has occurred. |
+| Selecting the long-term-best option (here, option 2) rather than the option that avoids the boundary (option 3) | A finding that `claimRef` is the *correct shape* for `v2`. That remains a 002 judgement. |
+| Removing the procedural block that held scope 02 at `Not Started` | Any change to an **existing** `v2` field, to `v1`, or to any committed byte. |
+| Landing the plan-side correction recorded here | Reporting a fixture-backed result as live-publisher evidence. The P-015-01 / P-015-02 live-binding gate is untouched. |
+
+**Why proceeding under a blanket grant is defensible here.** The ask is narrower than the one D2 originally
+routed: one **optional** field, on a contract that already carries twenty optional fields, touching no
+existing field and minting no version. A wider ask — changing a `v2` field, or narrowing `v2` to a closed
+list — would still require a real 002 review, and this grant would not cover it.
+
+### Feature 002 impact
+
+Strictly smaller than the ask D2 originally routed. No existing `v2` field changes semantics; no `v1` row is
+touched; no committed byte is modified; no version is minted; no validator branch is removed. The 002-owned
+validator gains one optional field name. Requirements 1–3 of the D2 ⚠️ Ownership gate stand unchanged — the
+002-owned validator's field list and version acceptance are still updated **by 002**, not by 015.
+
+### Plan-owned statements corrected in the same change
+
+The convention elsewhere in this document is that design routes stale plan-owned statements to their owner
+rather than editing them. This entry departs from that, because the correction was authored as a single
+plan-and-design reconciliation under the standing grant. Each statement below was corrected in the same
+change and is recorded here so the edit is auditable rather than silent. Numbering continues from the
+2026-08-18 Mint-Evaluability Reconciliation.
+
+| # | File | Location | Stale statement | Corrected to |
+|---|---|---|---|---|
+| R24 | `spec.md` | *The recommendation ledger is cryptographically anonymous* | *"Every one of those rows has this exact shape (`brief-recommendation-history-row/v1`)"* | Two live shapes; 240 `v1` and 1,140 `v2`; the anonymity argument restated against what every row actually lacks |
+| R25 | `scopes/02-…/scope.md` | Primary Outcome | *"`…/v2` exists as a strict superset of `v1` — the same seven fields … plus exactly one optional `claimRef`"* | `claimRef` is one optional field added to the existing live `v2`; the reader accepts `v1` and `v2` at `v2`'s live field set plus `claimRef` |
+| R26 | `scopes/02-…/scope.md` | step 1 | *"Declare `…/v2` as a strict superset of `v1`"* | Add `claimRef` as an optional field to the **existing** `v2`; no version minted |
+| R27 | `scopes/02-…/scope.md` | step 2 | *"Keep it one field, not three"* — sound, but justified against a contract being minted | Unchanged in substance; re-anchored to the live `v2` and to the option-2 ruling |
+| R28 | `scopes/02-…/scope.md` | step 3 | *"A `v1` row carrying `claimRef` is rejected … that rejection is the whole reason `v2` exists"* | The rejection stands; `v2` exists for the body contract, and the acceptance set is `v2`'s live 32-key union plus `claimRef` |
+| R29 | `scopes/02-…/scope.md` | step 9 | consent gate framed as a pending ask for a *new version* | Restated as one optional field on the live `v2`, with the standing grant and its limits recorded |
+| R30 | `scopes/02-…/scope.md` | `T-02-U1` | asserted a seven-field `v2` validating with and without `claimRef` | Asserts `claimRef` optionality against **real committed `v2` rows** of all three live shapes |
+| R31 | `scopes/02-…/scope.md` | `T-02-U2` | *"a row stamped `v2` carrying an eighth unknown field is rejected"* | The `v1`-plus-`claimRef` negative is preserved verbatim; the `v2` negative is retargeted to a name outside `v2`'s union ∪ `{claimRef}`, which is a negative that can still fail |
+| R32 | `scopes/02-…/scope.md` | `T-02-I1` | count-from-file and byte-immutability were correct; the reader they ran against was not | Same two assertions, against the corrected reader; all 749 rows of the partition must validate, not 215 |
+| R33 | `scopes/02-…/scope.md` | DoD items 1–3 and their `T-02-U1` / `T-02-U2` test items | restated the strict-superset contract | Restated against the ruling. **No item was ticked**; the count is unchanged at 28 unticked, 0 ticked |
+
+No source file, test file, committed ledger byte, `state.json`, or `uservalidation.md` was modified by this
+reconciliation, and no Definition of Done item was ticked.

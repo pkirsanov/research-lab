@@ -81,7 +81,6 @@ function loadActualPacket() {
     'market-brief.config.page.json',
     'market-brief.page.json',
     'watchlist.json',
-    'brief-history.recent.jsonl',
     'market-brief.snapshot.page.json',
     'market-brief.tools.page.json',
     'market-brief.scorecard.json'

@@ -1,0 +1,100 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-cf04c902fd973dd439341064a864c67c920394a93fa7c924b467bbed28b0a1ff",
+  "generationId": "generation-0fe826d9aa14d28c99b077cf894274017443a6c37dde8b984578c4ca95087c03",
+  "topicId": "geopolitical-supply-shock",
+  "attemptedAt": "2026-08-20T05:53:24.712Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "research-pass-incomplete",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "No fresh official statement or verified policy declaration was retained this generation for the United States, Iran, Oman mediators, Gulf exporters, the Houthis, shipping insurers, or OPEC buffer producers, so no current actor reaction-function state can be evidenced. No unobserved intent is inferred and no prior actor state is carried because the predecessor dossier is null.",
+      "gaps": [
+        "official-policy-and-statements requirement returned zero retained sources (bundle sources empty, authorable false).",
+        "No verified statement covering the actor-state claim inside the 24h freshness window.",
+        "No prior dossier exists to carry a predecessor actor state."
+      ]
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "No evidence was retained that fires or invalidates any declared trigger (transit-restriction-observed, insured-capacity-tightens, inventory-response-confirmed), so no current scenario-tree state change is evidenced. Scenario probabilities, direction scores, and model outputs are owned downstream and are not authored here.",
+      "gaps": [
+        "No measured maritime-flow or insured-capacity observation to support entry-trigger or invalidation evaluation.",
+        "No official inventory or coordinated-response confirmation for the inventory-response-confirmed trigger."
+      ]
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "No measured transit, loadings, delay, or insured-capacity observation was retained for Hormuz, Bab el-Mandeb, or the Red Sea, so the current physical and insured flow state cannot be evidenced. Model inputs default to an unimpaired baseline (physical and insured pass fractions near full, zero base delay) that is explicitly unconfirmed rather than an observed reading.",
+      "gaps": [
+        "measured-maritime-flow requirement returned zero retained sources for the physical-flow and insured-flow claims.",
+        "No war-risk premium, cover-availability, or exclusion observation from shipping insurers.",
+        "chokepointState and inventoryGapByChannel baseline values are structural defaults, not measured flow readings."
+      ]
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "No inventory, production, export, or policy-response balance was retained for oil, refined-products, LNG, fertilizer, aluminum, or shipping, so no current transmission-input state is evidenced. Commodity ranges and channel shock bands are owned downstream and are not authored here.",
+      "gaps": [
+        "energy-and-input-balances requirement returned zero retained sources for the transmission-input claim.",
+        "No named-channel inventory or export observation inside the 72h freshness window."
+      ]
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "unavailable",
+      "interpretation": "Committed same-origin daily bars for the declared public proxies are present as model inputs (proxy-bar coverage from the committed-public-bars requirement), but no maritime-flow, transmission, or policy evidence was retained to calibrate current proxy sensitivity. Proxy sensitivity ranges are owned downstream and are not authored here.",
+      "gaps": [
+        "No shock or flow evidence to calibrate proxy sensitivity against; only committed price bars are available.",
+        "No calibration event evidence retained this generation to anchor proxy response."
+      ]
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "No observation of physicalPassFraction change, insuredPassFraction crossing the 0.8 impairment threshold, or a confirmed policy response was retained, so no declared trigger is fired and no declared invalidation is met this generation. The evidence-stales invalidation is not yet applicable because no supporting observation exists to age out.",
+      "gaps": [
+        "No route state-change observation for hormuz, bab-el-mandeb, or red-sea.",
+        "No insured effective-throughput observation for shipping-insurers.",
+        "No confirmed inventory or coordinated policy response for oil or refined-products."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "The web-evidence bundle retained zero sources across all three material requirements (official-policy-and-statements, measured-maritime-flow, energy-and-input-balances); all three material claims are marked authorable false. The only committed artifact is the same-origin proxy bar snapshot, which is consumed as a model input rather than as a citable situation source.",
+      "gaps": [
+        "retainedSourceCount is 0 and rejectedMaterialClaimCount is 3 in the acquisition coverage.",
+        "No independent-origin corroboration available for any material claim."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "The prior dossier is null, so there is no predecessor situation to compare against and no change direction can be assessed. No change assessment or direction classification is authored here; that judgement is owned downstream and requires both a predecessor and current evidence.",
+      "gaps": [
+        "priorDossier is null; no predecessor state exists.",
+        "Current evidence is insufficient, so no comparable current state exists even if a predecessor were present."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

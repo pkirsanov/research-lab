@@ -517,6 +517,40 @@ Scenario SCN-022-010 — `unsupportedFeatures[]` is non-empty and no result is
 labelled a complete state tax.
 Command: `node scripts/selftest.mjs`
 
+**A recorded miss.** The first probe flipped the settlement's completeness label
+from `false` to `true` at the resolving return and the suite stayed green at
+`3104 passed, 0 failed`. The pre-existing clause reads that label on exactly one
+settlement — California's — and California refuses, so it never reaches the
+return that was mutated. The clause was therefore satisfied by a code path the
+probe did not touch. That is the miss: a presence-only read of one settlement
+cannot see a build that labels a *resolving* state tax complete.
+
+The strengthening reads the label on all three returns the state module has — the
+refusing California settlement, a sourced-zero settlement over the Florida pack,
+and a settlement over the fixture pack that resolves to a finite figure — so a
+flip at any one of them is visible. It also stops listing the owed boundary ids
+by hand: the requirement is derived from the pack's own absent figures, and the
+derivation is proven able to fail against a boundary that drops one of them.
+
+Intended RED then re-planted the identical value-free boolean flip:
+
+```text
+anchor_count_before=1
+probe_true=1 remaining_false=2
+=== RED RUN A (resolving return labelled complete) ===
+  ✗ FAIL: TP-04-14: every return the state module has — the refusing California settlement, a sourced-zero settlement and a settlement that resolves to a finite figure — reports the state tax as not complete, and the coverage boundary is required to name each absent-figure family the pack itself carries rather than a hand-listed set, with the requirement proven able to fail on a boundary that drops one of them
+Research-Lab self-test: 3104 passed, 1 failed
+=== EXPLICIT REVERT A ===
+leftover_true=0 restored_false=3
+(empty status above means clean)
+=== GREEN RUN (same command) ===
+Research-Lab self-test: 3105 passed, 0 failed
+```
+
+The mutation is a single boolean literal, so no household value could have been
+disclosed by a slipped revert. The revert ran inside the applying invocation, the
+leftover count was re-read as zero and the path-scoped status came back empty.
+
 ### TP-04-15
 
 Scenario SCN-022-010 — no module holds a California bracket, rate, deduction,

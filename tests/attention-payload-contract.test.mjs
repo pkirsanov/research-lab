@@ -484,7 +484,7 @@ test('SCN-017-027 Existing attention consumers still parse the payload unchanged
   });
 });
 
-test('SCN-017-045 The authoring instruction names every required attention field', () => {
+test('SCN-017-045 The authoring instruction names every required attention field', async () => {
   const source = readFileSync(NARRATIVE_LANE_PATH, 'utf8');
 
   /* the lane that OWNS attention, located by its declared keys. */
@@ -527,6 +527,7 @@ test('SCN-017-045 The authoring instruction names every required attention field
      fails on its own line and names itself. */
   const AUTHORED_JUDGEMENT_TERMS = [
     ['headline', /\bheadline\b/i],
+    ['rationale', /\brationale\b/i],
     ['escalation trigger', /escalation trigger/i],
     ['invalidation', /\binvalidation\b/i],
     ['expiry', /\bexpir(?:y|ation)\b/i],
@@ -545,6 +546,24 @@ test('SCN-017-045 The authoring instruction names every required attention field
         + `Current attention instruction: ${JSON.stringify(attentionInstruction)}`
     );
   }
+
+  /* ── the table above must cover the CONTRACT, not a remembered subset ─────
+     This list stood at eight entries while AUTHORED_JUDGEMENT_KEYS held nine:
+     `rationale` was absent from both the ask and this guard, so the guard could
+     not fail on the very omission it exists to catch. The 2026-08-20 02:26 EDT
+     publish refused four otherwise-publishable items `RLATTN-PROVENANCE:rationale`
+     as a direct result. Keying the table to the exported contract means a key
+     added there fails HERE until someone writes the phrase that asks for it. */
+  const contractKeys = (await import(resolve(ROOT, 'scripts/build-attention-items.mjs'))).AUTHORED_JUDGEMENT_KEYS;
+  const normalize = (value) => String(value).toLowerCase().replace(/[^a-z]/g, '');
+  const covered = new Set(AUTHORED_JUDGEMENT_TERMS.map(([label]) => normalize(label)));
+  const uncovered = contractKeys.filter((key) => !covered.has(normalize(key)));
+  assert.deepEqual(
+    uncovered, [],
+    `every key in AUTHORED_JUDGEMENT_KEYS must be asked for by this instruction guard. `
+      + `Unasked: ${uncovered.join(', ')}. A key the composer requires but nobody asks the author to write `
+      + `is refused on every publish, and a guard that omits the same key stays silent about it.`
+  );
 
   /* the other half of the boundary: the serialized fields the BUILD STEP now
      constructs. Asserted separately too, so a single reintroduced ask names
@@ -2070,6 +2089,7 @@ function attentionAuthoringInstruction() {
    single dropped ask fails on its own line and names itself. */
 const AUTHORED_JUDGEMENT_ASKS = Object.freeze([
   ['headline', /\bheadline\b/i],
+  ['rationale', /\brationale\b/i],
   ['escalation trigger', /escalation trigger/i],
   ['invalidation', /\binvalidation\b/i],
   ['expiry', /\bexpir(?:y|ation)\b/i],

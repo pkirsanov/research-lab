@@ -28,6 +28,17 @@
 #   6  revert verification failed (file does not match the committed blob)
 #   7  refused: RED and GREEN produced the same outcome (probe did not
 #      discriminate — the assertion under test cannot fail)
+#   8  refused: --summary-match was supplied but matched no line in the RED
+#      and/or GREEN capture, so the summary channel could not be read
+#
+# The verdict has two channels:
+#   * exit status — always compared.
+#   * summary line — compared ONLY when --summary-match is supplied. The probe
+#     discriminates if EITHER channel differs; exit 7 means both agreed.
+# The second channel exists because some suites exit non-zero even unmutated
+# (a teardown fault that force-kills a worker after every test passed). Without
+# it such a probe is unprovable, and the only workaround would be to swallow
+# the command's exit code — which would destroy the guarantee entirely.
 #
 # Portability: macOS BSD userland and Linux GNU userland alike. No `sed -i`,
 # no `timeout` (the optional --bound uses perl's alarm), no GNU-only flags.
@@ -41,6 +52,7 @@ readonly EXIT_DIRTY=4
 readonly EXIT_NO_MUTATION=5
 readonly EXIT_REVERT=6
 readonly EXIT_NO_DISCRIMINATION=7
+readonly EXIT_SUMMARY_UNMATCHED=8
 
 PROBE_FILE=""
 PROBE_FIND=""
@@ -302,8 +314,27 @@ summary_of() {
   ' "$1" | scrub
 }
 
+# The verdict-bearing form of the same read: the matching line itself, or the
+# empty string when the pattern matched nothing. summary_of() above falls back
+# to the last line of output when the pattern misses, which is right for
+# DISPLAY and wrong for a VERDICT — a fallback line would silently be compared
+# as though it were the summary.
+summary_matched_line() {
+  RGP_MATCH="$PROBE_SUMMARY_MATCH" perl -0777 -ne '
+    BEGIN { $p = $ENV{RGP_MATCH} }
+    my @hit = grep { /$p/ } grep { /\S/ } split /\n/, $_;
+    print substr($hit[-1], 0, 200) if @hit;
+  ' "$1" | scrub
+}
+
 red_summary="$(summary_of "$red_out")"
 green_summary="$(summary_of "$green_out")"
+red_matched=""
+green_matched=""
+if [[ -n "$PROBE_SUMMARY_MATCH" ]]; then
+  red_matched="$(summary_matched_line "$red_out")"
+  green_matched="$(summary_matched_line "$green_out")"
+fi
 # %q so the emitted command line is copy-runnable rather than merely indicative.
 cmd_display="$(printf '%q ' "${PROBE_CMD[@]}" | scrub)"
 
@@ -321,12 +352,43 @@ printf 'revert-verified:  yes (committed=%s restored=%s)\n' "$COMMITTED_HASH" "$
 
 # ---------- 9. a probe that did not discriminate is not evidence ----------
 
-if [[ "$red_rc" -eq "$green_rc" ]]; then
+# An unreadable channel is a failure, not a pass: the harness cannot verify
+# what it cannot read, and treating a miss as "no difference" would turn a
+# broken pattern into a silent exit-7, or worse into a false GREEN.
+if [[ -n "$PROBE_SUMMARY_MATCH" ]]; then
+  # Plain `if` rather than `[[ ... ]] && assign`: under errexit a false test as
+  # the whole statement would exit the script instead of skipping the assign.
+  unread=""
+  if [[ -z "$red_matched" ]]; then unread="RED"; fi
+  if [[ -z "$green_matched" ]]; then unread="${unread:+$unread and }GREEN"; fi
+  if [[ -n "$unread" ]]; then
+    printf 'discriminating:   UNREADABLE (--summary-match matched no line in the %s capture)\n' "$unread"
+    printf '%s\n' '=== END RED/GREEN PROBE EVIDENCE ==='
+    die "$EXIT_SUMMARY_UNMATCHED" \
+      "--summary-match '$PROBE_SUMMARY_MATCH' matched no line in the $unread capture. The summary channel carries part of the verdict, so an unmatched pattern makes the probe unverifiable — the harness cannot verify what it cannot read."
+  fi
+fi
+
+discriminating_reason=""
+if [[ "$red_rc" -ne "$green_rc" ]]; then
+  discriminating_reason="$(printf 'exit %s != %s' "$red_rc" "$green_rc")"
+elif [[ -n "$PROBE_SUMMARY_MATCH" && "$red_matched" != "$green_matched" ]]; then
+  discriminating_reason="$(printf 'summary differs: "%s" vs "%s"' "$red_matched" "$green_matched")"
+fi
+
+if [[ -z "$discriminating_reason" ]]; then
+  if [[ -n "$PROBE_SUMMARY_MATCH" ]]; then
+    printf 'discriminating:   NO (both channels agree: exit %s == %s, summary "%s" identical)\n' \
+      "$red_rc" "$green_rc" "$red_matched"
+    printf '%s\n' '=== END RED/GREEN PROBE EVIDENCE ==='
+    die "$EXIT_NO_DISCRIMINATION" \
+      "RED and GREEN produced the same outcome on both channels (both exited $red_rc, and the --summary-match line was \"$red_matched\" in each). The mutation did not change what the command reported, so the assertion under test cannot fail and this is not RED/GREEN evidence."
+  fi
   printf 'discriminating:   NO (red-exit %s == green-exit %s)\n' "$red_rc" "$green_rc"
   printf '%s\n' '=== END RED/GREEN PROBE EVIDENCE ==='
   die "$EXIT_NO_DISCRIMINATION" \
     "RED and GREEN produced the same outcome (both exited $red_rc). The mutation did not make the command fail, so the assertion under test cannot fail and this is not RED/GREEN evidence."
 fi
 
-printf 'discriminating:   yes (red-exit %s != green-exit %s)\n' "$red_rc" "$green_rc"
+printf 'discriminating:   yes (%s)\n' "$discriminating_reason"
 printf '%s\n' '=== END RED/GREEN PROBE EVIDENCE ==='

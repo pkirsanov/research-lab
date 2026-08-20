@@ -7,6 +7,70 @@ already exist. Every mandatory dimension answers on every run with an explicit
 state, and a dimension with no source names the missing source instead of
 rendering a blank, a dash or a zero.
 
+The reader is someone who already has the sibling labs and wants one company
+assembled across horizons rather than one lab at a time. The page composes what
+the siblings published. It computes no new company math of its own, so a
+dimension whose owning lab has not published stays unanswered by name.
+
+## The Four Horizon Bands
+
+The bands come from `horizons` in
+[`company-intelligence.config.json`](../company-intelligence.config.json). Each
+band carries its own question and its own primary dimensions.
+
+| Band | Rank | Question | Primary dimensions |
+| --- | --- | --- | --- |
+| `immediate` | `tactical` | What matters for this company right now? | performance, volatility, technicals, dealer-gamma, options-flow, sentiment |
+| `event` | `event` | What happens at the next company event? | financial-events, non-financial-events, options-structure |
+| `swing` | `swing` | How should this company be positioned over the coming months? | fundamentals, performance, geopolitics, cycles, market-regime |
+| `structural` | `structural` | What is the long-term case for this company? | fundamentals, valuation, company-risk |
+
+Horizons are isolated in one direction. Each registry row declares a
+`maxHorizon`, and a read never reaches a band longer than the one it declares.
+A tactical read therefore cannot move the structural answer. The four bands
+render as peers with their own direction words, and no blended single direction
+replaces them. A pair that opposes becomes a contradiction record instead.
+
+## The Adaptive Research Plan
+
+The plan is a coverage floor, not a fixed tool sequence. The floor is the fifteen
+mandatory dimensions in `coverageRegistry`. Every run accounts for all fifteen,
+and the coverage totals sum to the registry length, so a dimension can go
+unanswered but cannot go unmentioned. Nothing in the contract prescribes which
+tool answers which dimension or in what order.
+
+Above the floor the run may open discretionary branches. A branch may consult any
+registered Research Lab tool and may also consult sourced analysis that no tool
+owns. A branch exists to settle a question the floor raised, and it is written
+down whether it changed anything or not.
+
+- Six fields are mandatory on every branch: `question`, `relevance`, `consulted`,
+  `result`, `disposition` and `stopCondition`. A branch missing any of them
+  raises `C025-PLAN-SCHEMA` and is not published.
+- `disposition` is one of `changed`, `confirmed`, `no-change` or `refused`. A
+  `refused` branch must state a `refusalReason` and must change nothing.
+- `stoppedBy` names the stop authority: `declared-limit`, `question-answered`,
+  `no-source` or `guardrail`.
+- The budget is `maxBranches: 5`, recorded in the config with the rationale that
+  chose it. A sixth branch raises `C025-PLAN-BUDGET`. A refused branch is charged
+  against the budget exactly as a published one is, recorded under
+  `refusedBranchCounting`, so refusal is not a free retry.
+- Two plan sources publish the same record. `attachResearchPlan` reads a plan the
+  repository already committed and reports `planSource: "committed-file"`.
+  `agentAuthoredPlanSource` reads a plan authored for the run, requires the
+  `company-authored-plan/v1` contract with `authoredBy` and `authoredAt`, and
+  reports `planSource: "agent-authored"`. An unsigned authored plan is refused
+  with `authorship-not-recorded` rather than published anonymously.
+- An empty plan is still a record. It names why it is empty:
+  `floor-was-sufficient`, `every-branch-refused`, `plan-names-another-company` or
+  `authorship-not-recorded`.
+
+A corrected conclusion becomes a new version rather than an edit. `planVersionWrite`
+creates a dated file under `data/company-intelligence/<subjectId>/versions/`,
+sets `priorVersionId` to the current pointer, then advances `current.json`. It
+opens no prior version file for writing, so an earlier read stays readable with
+its original `contentFingerprint`.
+
 ## Current Evidence Boundary
 
 - Company: resolved from a committed SEC identity, otherwise from committed
@@ -14,23 +78,40 @@ rendering a blank, a dash or a zero.
 - Coverage floor: fifteen mandatory dimensions declared in
   `company-intelligence.config.json`. The coverage account always holds one row
   per dimension and its totals always sum to the registry length.
-- Answered in increment A: own and relative price performance from committed
-  daily bars; volatility, geopolitics and market regime when the owning sibling
-  has published on the shared channel; fundamentals and valuation when a
-  committed publication has been read.
-- Unavailable in increment A, with a named reason on every run: technicals,
-  cycles, options structure, dealer gamma and options flow read
-  `no-shared-read` because the owning math is page-local and no headless
-  consumer can call it; financial events read `no-source-wired`; non-financial
-  events read `no-source-exists`; the company risk register reads `no-owner`;
-  the market regime reads `regime-not-published` until a regime is published.
+- Every state below was read from the shipped adapters in
+  [`rlcompanyintel.js`](../rlcompanyintel.js). A state depends on what the owning
+  sibling has published, so a dimension can move between runs.
+
+| Dimension | Usual state today | Reason on a non-current run |
+| --- | --- | --- |
+| `performance` | `current` from committed daily bars, own and against the benchmark | `symbol-not-covered` when no bars are committed |
+| `fundamentals` | `current` when a committed company publication has been read | `no-shared-read` when none has |
+| `valuation` | `partial` against the company's own history | `peer-set-missing`, because no peer set is published |
+| `technicals` | `unavailable` | `no-shared-read` |
+| `cycles` | `unavailable` | `no-shared-read` |
+| `options-structure` | `unavailable` | `no-shared-read` |
+| `dealer-gamma` | `unavailable` | `no-shared-read` |
+| `options-flow` | `unavailable` | `no-shared-read` |
+| `volatility` | `current` from the volatility owner read | `source-not-published`, `fixture-only-evidence` or `read-company-mismatch` |
+| `financial-events` | `current` for a company with a committed event file | `no-source-wired` for any company without one |
+| `non-financial-events` | `unavailable` | `no-source-exists` |
+| `geopolitics` | `partial` from the research agenda owner read | `market-scope-only`, because the agenda covers the market |
+| `market-regime` | `partial` when a combined regime is published | `regime-not-published` until one is |
+| `sentiment` | `partial` from the cached market gauge | `proxy-only`, because no company-level gauge exists |
+| `company-risk` | `unavailable` | `no-owner` |
+
+The five `no-shared-read` dimensions share one cause. The owning math is
+page-local in the sibling lab, so no headless consumer can call it. Closing any
+of them means the owning lab publishes a read on the shared channel first.
+
 - Events: the `company-event/v1` contract, the date-class vocabulary and the
-  estimate-basis rule all ship and carry tests. Increment B answers the
-  financial event dimension from a committed file, so a covered company renders
-  sourced dates and its event horizon leaves `absent`. A company with no
-  committed file keeps the named absence rather than an empty date.
-- Research plan: a committed plan publishes with its version. Agent-authored
-  research is not part of increment A.
+  estimate-basis rule all ship and carry tests. A covered company renders sourced
+  dates and its event horizon leaves `absent`. A company with no committed file
+  keeps the named absence rather than an empty date.
+- Research plan: both plan sources ship. A committed plan and an authored plan
+  publish with the read version, and the append-only version tree is written by
+  `planVersionWrite`. Committed plan and version coverage today is
+  `company:msft` only, listed under `researchRecord.coveredSubjects`.
 
 ### Company Event Source (increment B)
 
@@ -70,14 +151,45 @@ registration also requires a complete briefing block, a unique read adapter and
 a Simple adapter module, and because adding a participant would perturb the
 frozen registry fingerprint the market brief consumes.
 
+`node scripts/selftest.mjs` holds that decision in place. One assertion states
+that the route, the module and the config appear in none of `tools.json`, the
+index or the navigation. A second asserts that all three carry a site-exclusion
+entry, and proves the claim by showing the build refuses the page once the
+route's entry is removed. Registering the tool without also retiring those
+assertions turns the suite red, so registration is a spec-owner decision rather
+than a documentation one.
+
+This notes file is not listed in [`README.md`](README.md). That index is derived
+from `tools.json`, and its parity check walks registered tools only. Listing an
+unregistered tool there would advertise a page no reader can reach.
+
+Registering the tool would require, at minimum:
+
+- an entry in `tools.json` carrying `id`, `file` and `notes`, mirrored into the
+  `TOOLS` array in `index.html` and the `TOOLS` array in `rlnav.js`;
+- a row in the root `README.md` and a row in this folder's `README.md` index,
+  because the reader-reachability canary reads both;
+- removal of the three `site-exclusions.json` entries, so the packaged site
+  ships the route and its two dependencies;
+- a briefing block, a read adapter and a Simple adapter module, since the brief
+  pipeline treats every registered tool as a participant;
+- retirement of the two selftest assertions named above, replaced by the
+  registered-tool parity checks that every other registered tool satisfies.
+
 ## Views
 
 Simple presents one cockpit: the coverage line, four horizon cards each with its
 own direction, evidence quality, summary and deep dive, the contradiction count
-and the publication outcome. Power presents ten workspaces over the same frozen
-read version: horizon deep dives, coverage account, performance, regime and
-cross-asset, cycles, fundamentals and valuation, company events, contradictions,
-adaptive research plan, and sources and run identity.
+and the publication outcome.
+
+Power presents ten workspaces over the same frozen read version, each carrying a
+`data-workspace` attribute: `performance`, `fundamentals`, `events`,
+`geopolitics`, `regime`, `cycles`, `valuation`, `sources`, `research-plan` and
+`outcome-record`. The coverage account table, the evidence families, the
+contradictions and the refusals raised during the run all live inside the
+`sources` workspace rather than in workspaces of their own. `research-plan`
+renders one disclosure row per branch with the disposition word in the row
+header. `outcome-record` renders the append-only version history.
 
 The mode segment switches display only. It triggers no request and no
 recomposition, because the route composes once per run and renders both modes
@@ -99,6 +211,8 @@ from the same frozen `company-read-version/v1`.
   and the table renders alone.
 - `body[data-run-status]` is one of `empty`, `composing`, `composed` or
   `refused`. `body[data-coverage-unavailable]` carries the unavailable count.
+  `body[data-corpus-status]` is one of `pending`, `loaded` or `unavailable` and
+  reports whether the committed record files for the opened company were read.
 - The page declares no `innerHTML` assignment, no `requestAnimationFrame`, no
   `setTimeout`, no password input and no provider key field.
 
@@ -112,6 +226,41 @@ entry is refused with `C025-INPUT-REFUSED` and nothing is stored. The committed
 event files carry ticker identity, dates and filing links only. The module
 declares no `localStorage` key and no `sessionStorage` key, reads no provider
 credential and performs no network call.
+
+## Known Limitations
+
+- Five dimensions cannot answer at all today. Technicals, cycles, options
+  structure, dealer gamma and options flow read `no-shared-read` on every run,
+  because the owning math is page-local in the sibling lab. Five of the fifteen
+  floor rows are therefore an honest absence rather than a reading.
+- Two dimensions have no owner anywhere in the repository. Non-financial company
+  events read `no-source-exists` and the company risk register reads `no-owner`.
+  Neither is scheduled work here.
+- Committed coverage is one company. Only `company:msft` has a committed event
+  file, a committed authored plan and a committed version tree. Any other
+  identifier resolves and composes, but its event, plan and outcome workspaces
+  state their absence.
+- Charts are readable but not keyboard-navigable. All three canvases carry
+  `role="img"` and an `aria-label` and pair with an accessible table holding the
+  same values, and below 600 CSS pixels the table renders alone. The route does
+  not call `RLCHART.attach`, so no canvas is reachable by keyboard and no point
+  rail exists. The same data stays reachable through the adjacent table. This is
+  recorded as a routed gap in the feature report, not as closed work.
+- Listeners accumulate across recompositions. `bindContextControl` in
+  `rlticker.js` registers a `window` listener per ticker token when `RLCTX` is
+  absent, and this route does not load `rlcontext.js`, so the `{ once: true }`
+  cleanup never fires. DOM node count and heap stay flat over the same window.
+  The condition is repository-wide rather than specific to this route, and it is
+  owned by the shared module, not by this feature.
+- The page states no likelihood, no rate and no ranking. Direction words are
+  `constructive`, `pressured`, `flat` or `none`, evidence quality is `broad`,
+  `narrow`, `thin` or `absent`, and neither vocabulary carries a likelihood. A
+  dated event renders `flat` on purpose: the source says when something happens
+  and says nothing about how it resolves.
+- The route issues no external request. Everything is composed from same-origin
+  committed files and from whatever siblings already wrote to the shared cache,
+  so an owner that has not published leaves its dimension unanswered no matter
+  how current the underlying public data is.
 
 ## Validation
 

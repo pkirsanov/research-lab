@@ -558,6 +558,58 @@ The mutation is a single boolean literal, so no household value could have been
 disclosed by a slipped revert. The revert ran inside the applying invocation, the
 leftover count was re-read as zero and the path-scoped status came back empty.
 
+#### Re-derived in a later session, without a probe
+
+The DoD row this section anchors asks for a state of the pack and of the module,
+so both clauses were re-derived directly rather than inherited from the run above.
+
+`unsupportedFeatures[]` is present, is an array, and carries eight entries — and
+the three that matter most are the unretrieved figure groups themselves, so the
+coverage boundary names the `BI-6` gap rather than hiding it:
+
+```text
+=== unsupportedFeatures[] in the California pack ===
+present: true
+length: 8
+  1 ca-rate-schedule-for-declared-year
+  2 ca-standard-deduction-for-declared-year
+  3 ca-exemption-credit-amounts
+  4 ca-itemized-deduction
+  5 ca-alternative-minimum-tax
+  6 ca-credits-other-than-exemption
+  7 ca-part-year-and-nonresident-apportionment
+  8 ca-local-taxes
+NODE_EXIT=0
+```
+
+The completeness clause is decided on the value the module emits rather than on
+prose. `completeStateTax` occurs at exactly three sites in `rltaxstate.js` — which
+is the whole set of returns the module has, the same three the strengthened
+assertion above reads — and every one is the literal `false`. Across the entire
+tracked tree there is no assignment of any other value:
+
+```text
+=== the completeness label the state module emits, every occurrence ===
+481:        completeStateTax: false
+516:        completeStateTax: false
+589:        completeStateTax: false
+=== is it ever assigned anything but false, anywhere in the tracked tree? ===
+   3 completeStateTax: false
+```
+
+Both TP-04-14 assertions this scope owns pass by name in the same session:
+
+```text
+  ✓ TP-04-14: the California coverage boundary names every provision the pack does not carry, including each unretrieved figure, and no result is labelled a complete state tax
+  ✓ TP-04-14: every return the state module has — the refusing California settlement, a sourced-zero settlement and a settlement that resolves to a finite figure — reports the state tax as not complete, and the coverage boundary is required to name each absent
+Research-Lab self-test: 3106 passed, 0 failed
+```
+
+Recorded so a later reader is not misled: grepping the suite for `TP-04-14`
+returns two further passing lines that belong to Features 023 and 024, which reuse
+the row id in their own scopes. They are unrelated to this row and were not
+counted toward it.
+
 ### TP-04-15
 
 Scenario SCN-022-010 — no module holds a California bracket, rate, deduction,

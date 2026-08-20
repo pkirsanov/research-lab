@@ -336,9 +336,19 @@ syntax error, a missing browser or an absent test does not satisfy RED.
     the window used is creation-commit to working tree, which strictly contains
     the Scope 03 to Scope 04 window. No module edit was needed, so there is no
     finding to route back to Scope 03.
-- [ ] `unsupportedFeatures[]` is non-empty and no result is labelled a complete
+- [x] `unsupportedFeatures[]` is non-empty and no result is labelled a complete
       state tax.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-14`
+  - **Evidence:** both clauses re-derived directly, not inherited.
+    `unsupportedFeatures[]` is an array of eight entries, and the first three name
+    the unretrieved figure groups themselves — rate schedule, standard deduction,
+    exemption credit — so the boundary names the `BI-6` gap rather than hiding it.
+    `completeStateTax` occurs at exactly three sites in `rltaxstate.js`, which is
+    the whole set of returns the module has, and every one is the literal `false`;
+    across the tracked tree there is no assignment of any other value. Both
+    TP-04-14 assertions this scope owns pass by name, with the suite green at
+    `3106 passed, 0 failed`. The prior session's recorded miss and its value-free
+    boolean RED/GREEN stand unchanged above it.
 - [x] No output states a probability, a lifetime figure, a track record or an
       error rate, and no California figure is presented as an estimate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`

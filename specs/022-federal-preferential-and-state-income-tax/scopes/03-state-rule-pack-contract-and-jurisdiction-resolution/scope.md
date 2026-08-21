@@ -396,8 +396,8 @@ error, a missing browser or an absent test does not satisfy RED.
     but no perturbation, and the browser substance behind TP-03-17, TP-03-18 and
     TP-03-19, which carried none. All four probes discriminated through
     `scripts/red-green-probe.sh` with hash-verified reverts. **Still short:**
-    TP-03-17, TP-03-18, TP-03-19 and TP-03-21 name
-    `tests/lifetime-tax-state-contract.spec.mjs` and four titles, none of which
+    TP-03-17, TP-03-18, TP-03-19 and TP-03-21 name the spec file
+    `lifetime-tax-state-contract.spec.mjs` and four titles, none of which
     exist — Finding F-03-A. Their commands select zero tests, and a run that
     selects zero tests reports success without asserting anything, so the rows
     cannot be ticked on execution. The four titles were deliberately **not**

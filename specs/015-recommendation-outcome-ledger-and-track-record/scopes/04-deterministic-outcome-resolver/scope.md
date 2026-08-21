@@ -10,7 +10,7 @@
 **Refusal codes consumed, already shipped by scope 03 — this scope neither owns nor re-implements them:**
 `RTR-CLOSURE-VOCAB` (`rlclaims.js:267`, fired by `buildResolution`), `RTR-RESOLUTION-CONFLICT` (`rlclaims.js:269`,
 fired by `writeResolutionObject`), `RTR-FLAT-ZERO` (`rlclaims.js:133`, fired by `buildResolution` and
-`assertZeroFreeOutcomes` at `:817`), `RTR-LEGACY-BACKFILL` (`rlclaims.js:184`, fired by `authorizeResolutionWrite`
+`assertZeroFreeOutcomes` at `:817`), `RTR-LEGACY-BACKFILL` (`rlclaims.js:196`, fired by `authorizeResolutionWrite`
 at `:721`). An earlier revision of this header claimed the first two as **owned**; they were already coded when it
 was written, and two owners of one refusal code is how a code ends up meaning two things.
 **Refusal codes routed, not owned:** `RTR-SESSION-PREDICATE` (D4-owned per `design.md`; this scope must satisfy it,
@@ -171,12 +171,21 @@ same reason this scope already refuses to fork the reducer. The shipped surface 
    tradeable symbol without this scope writing that rule a second time. *Dated observation, deliberately not a
    constant:* on 2026-08-18 the glob matched 293 files, the glob minus the manifest 292, the manifest 289 symbols.
    The tests enumerate the set at run time and assert **no** count literal.
-3. **Compute the due set from reduction state, not from timestamps.**
-   `due(asOfDate) = { entry ∈ index.entries : entry.state === "active" ∧ entry has a claimRef ∧ claim(entry).horizon.resolutionDate ≤ asOfDate }`.
+3. **Compute the due set from reduction state and a passed-in binding, not from timestamps.**
+   `due(asOfDate) = { key ∈ index.entries : entry.state === "active" ∧ binding(key).claimRef !== null ∧ binding(key).resolutionDate ≤ asOfDate }`.
+   Only the first conjunct is a property of the reduction. The other two read facts a
+   `recommendation-index/v1` entry does **not** carry — the ledger ROW's `claimRef` and the CLAIM's frozen
+   `horizon.resolutionDate` — so they arrive through a `gate.bindings` map keyed by the same
+   `originRecommendationKey`, per **Ruling R-04-06** (`report.md`). *An earlier revision wrote the middle conjunct
+   as "entry has a claimRef" and the third as `claim(entry).horizon.resolutionDate`; both were unimplementable —
+   the reducer writes an entry as a closed nine-field object literal in which neither appears, so the literal
+   predicate collapses the due set to EMPTY for every reducer-produced index.*
    `index` is a `recommendation-index/v1` produced by `reduceRecommendationEvents` (`rlcontracts.js:1140`);
    `entry.state` is set to `"closed"` by the reducer's own closure path (`rlcontracts.js:1284`). The `claimRef`
-   field name is `CLAIM_REF_FIELD` (`rlclaims.js:187`) and its shape is `CLAIM_REF_PATTERN`, both consumed rather
-   than restated.
+   field name is `CLAIM_REF_FIELD` (`rlclaims.js:199`) and its shape is `CLAIM_REF_PATTERN`, both consumed rather
+   than restated. Both dates are asserted against `ISO_DATE` before they meet and compared as whole strings, whose
+   lexicographic order **is** their chronological order; an absent or prefix-shaped bound date **refuses** rather
+   than falling through to due.
 4. **Derive `resolutionDate` by calendar-session arithmetic, never day arithmetic.** The committed exchange calendar
    is `data/calendars/xnys/calendar.json` — contract `xnys-calendar/v1`, `calendarId: "XNYS"`,
    `timeZone: "America/New_York"`, `coverageStart: "2026-01-01"`, `coverageEnd: "2026-12-31"`, **365 rows** each
@@ -392,7 +401,7 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 | T-04-I2 | Integration | `integration` | BS-009 | `tests/recommendation-track-record.integration.mjs` | **Idempotence case 1 — the gate holds.** Pass 2 over an unchanged ledger yields `run.closures.length === 0`, zero appended events, zero new resolution objects, and an `indexFingerprint` **byte-identical** to pass 1. | `node --test tests/recommendation-track-record.integration.mjs` | No | `report.md#t-04-i2` |
 | T-04-I3 | Integration | `integration` | BS-009 | `tests/recommendation-track-record.integration.mjs` | **Idempotence case 2 — the adversarial half.** Feeding `reduceRecommendationEvents` a second closure for an **already-closed** entry, bypassing the due-set gate, asserts the reducer **accepts** it and the `indexFingerprint` **changes**. This is an acceptance assertion on purpose: it fails if the reducer is hardened without telling the resolver, and it is what proves case 1 is load-bearing rather than incidental. | `node --test tests/recommendation-track-record.integration.mjs` | No | `report.md#t-04-i3` |
 | T-04-I4 | Integration | `integration` | BS-009 | `tests/recommendation-track-record.integration.mjs` | `RTR-RESOLUTION-CONFLICT` fires with its exact code when a second resolution for the same `claimHash` would produce different bytes at the same content-addressed path, and the on-disk bytes are asserted **unchanged** afterwards. Raised by the **already-shipped** `writeResolutionObject` (`rlclaims.js:1109`, code at `:269`), asserting the resolver calls it rather than writing to `RESOLUTION_STORE_DIR` by any other route. | `node --test tests/recommendation-track-record.integration.mjs` | No | `report.md#t-04-i4` |
-| T-04-I5 | Integration | `integration` | BS-010 | `tests/recommendation-track-record.integration.mjs` | **Scope 02's gate is called, not bypassed.** A resolution written against a ledger row carrying no `claimRef` refuses with `RTR-LEGACY-BACKFILL` (`rlclaims.js:184`, raised by `authorizeResolutionWrite` at `:733`/`:721`) **before** the resolution is inspected in any way, proving a complete and entirely plausible resolution cannot rescue a claimless row; a malformed row still refuses as malformed rather than as legacy; and a resolution whose `claimHash` disagrees with the row's `claimRef` refuses. Nothing is written on any of the three paths. | `node --test tests/recommendation-track-record.integration.mjs` | No | `report.md#t-04-i5` |
+| T-04-I5 | Integration | `integration` | BS-010 | `tests/recommendation-track-record.integration.mjs` | **Scope 02's gate is called, not bypassed.** A resolution written against a ledger row carrying no `claimRef` refuses with `RTR-LEGACY-BACKFILL` (`rlclaims.js:196`, raised by `authorizeResolutionWrite` at `:733`/`:721`) **before** the resolution is inspected in any way, proving a complete and entirely plausible resolution cannot rescue a claimless row; a malformed row still refuses as malformed rather than as legacy; and a resolution whose `claimHash` disagrees with the row's `claimRef` refuses. Nothing is written on any of the three paths. | `node --test tests/recommendation-track-record.integration.mjs` | No | `report.md#t-04-i5` |
 | T-04-E1 | E2E | `e2e` | BS-002, BS-003, BS-010 | `tests/recommendation-track-record.e2e.mjs` | A full resolve pass over a fixture ledger containing a mix of satisfiable, invalidatable, expiring, path-incomplete and not-evaluable claims produces exactly one closure per due claim, leaves not-yet-due claims `active`, writes one resolution object per closure, and the class partition identity holds over the result. | `node --test tests/recommendation-track-record.e2e.mjs` | No | `report.md#t-04-e1` |
 | T-04-V1 | Functional | `functional` | BS-007 | `tests/recommendation-track-record.functional.mjs` | `RTR-NETWORK` fires when the resolver module's source references `fetch(`, `providerFetch(`, `rlProviderConfig`, or any socket/credential surface, and the clean module is asserted to reference none of them — the same idiom as the repo's existing `rlvalid-node-safe-no-dom-storage-network` assertion. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-04-v1` |
 | T-04-R1 | Regression E2E | `e2e` | SCN-015-002, SCN-015-003, SCN-015-007, SCN-015-009, SCN-015-010 | `tests/recommendation-track-record.e2e.mjs` | **Persistent scenario regression for all five owned scenarios.** A second, permanently-retained resolve pass re-asserts end to end that a satisfied claim resolves positive and an invalidated one negative, that the as-of fence still excludes every future row with `RTR-LOOKAHEAD` firing on an attempt while `bars.asof < resolutionDate` stays a silent skip, that a re-run yields zero closures and a byte-identical `indexFingerprint`, and that a claim with no committed series still closes `not-evaluable`. Unlike `T-04-E1`, which proves the first pass, this row is the standing guard that re-runs on every later scope's pass, so a later change to the reducer bridge, the calendar predicate, or the due-set gate fails here. | `node --test tests/recommendation-track-record.e2e.mjs` | No | `report.md#t-04-r1` |

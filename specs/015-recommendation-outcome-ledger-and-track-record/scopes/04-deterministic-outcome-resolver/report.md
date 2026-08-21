@@ -4,7 +4,7 @@ Evidence contract: [scope.md](scope.md), [spec.md](../../spec.md), [scope index]
 
 **Evidence status:** In progress. Five increments have executed — the calendar, value, write, predicate and
 reducer-bridge slices, all recorded under `## Test Evidence`. The sections before it record **plan corrections and
-five rulings** (R-04-01 through R-04-05), not execution evidence. **R-04-02 through R-04-05 are a PLAN pass:** they
+six rulings** (R-04-01 through R-04-06), not execution evidence. **R-04-02 through R-04-06 are a PLAN pass:** they
 correct item text and add one missing obligation, and they tick and untick nothing. No scope completion is claimed
 and no certification is requested.
 
@@ -233,6 +233,71 @@ resolver-side DoD coverage and does not amend the mint contract.
 
 **DoD total: 55 → 56.** One item added; **no** item ticked or unticked. Satisfied stays **16**; unsatisfied moves
 **39 → 40**. The Completion Statement below is updated to match.
+
+---
+
+## Ruling R-04-06 — step 3's due-set predicate was UNIMPLEMENTABLE; the binding is passed IN, not written onto the entry
+
+**The defect.** Plan step 3 defined the due set as
+`entry.state === "active" ∧ entry has a claimRef ∧ claim(entry).horizon.resolutionDate ≤ asOfDate`. Only the first
+conjunct is a property of the reduction. The other two read facts a `recommendation-index/v1` entry **does not
+carry**, and cannot be made to carry from this scope:
+
+- **`claimRef` is not on the entry, and never becomes so.** `reduceRecommendationEvents` writes a new entry as a
+  closed **nine-field object literal** (`rlcontracts.js:1232`) and carries an existing one forward field by named
+  field (`:1159`). An injected pointer therefore does not survive one reduction. The module-wide count is the
+  evidence: `grep -c claimRef rlcontracts.js` → **0**. `claimRef` is a ledger-**ROW** field — `CLAIM_REF_FIELD`
+  (`rlclaims.js:199`) — consumed by `authorizeResolutionWrite(row, resolution)`, which refuses a claimless row
+  `RTR-LEGACY-BACKFILL` (`rlclaims.js:196`) before inspecting any resolution.
+- **`claim(entry)` is not a function that exists.** The entry carries no claim address, so there is nothing to
+  dereference a frozen `horizon.resolutionDate` through.
+
+Applied literally, both conjuncts are false for every entry, so the due set collapses to **EMPTY** for every
+reducer-produced index — the resolver would close nothing, silently, forever.
+
+**Ruling — pass the binding IN through a required `gate` argument.** `claimEntryBindings(pairs, toolsRegistry)`
+joins claim, ledger row and reducer key into a frozen per-key binding, and `dueEntryKeys(index, gate)` reads
+`gate.bindings` alongside `gate.asOfDate`. The key is derived by the shipped producer through
+`originRecommendationKeyFor`, so a binding cannot name an entry the reducer would not itself have created.
+
+**Consequence of the alternative — promoting `claimRef` onto the reducer entry.** It would require editing
+`rlcontracts.js`, which this scope's own DoD lists under *files and surfaces this scope must not touch*: the module
+is Feature 002-owned, and a resolver that rewrites its producer's output shape is the second author of that shape.
+It would also **duplicate a field the ledger row already carries by contract** — two homes for one fact, which is
+exactly the drift this feature exists to eliminate, and the mirror of the two-owners-of-one-refusal-code defect the
+header already corrected.
+
+**Why the three exclusion reasons stay distinct.** `HORIZON_NOT_REACHED_REASON` is cured by the **passage of time
+alone** (`remedy: later-as-of-date`); `NOT_DUE_REASON` is cured only by a reducer re-proposal, which re-activates the
+entry (`rlcontracts.js:1245`, `remedy: ledger-event`); `ENTRY_UNBOUND_REASON` is cured by **nothing** — a claimless
+row is unscoreable by construction (`remedy: never`). Collapsing them would tell an operator to wait for a date that
+will never make a difference. `NOT_DUE_REMEDY` already carried all three; the third conjunct's landing added no
+reason and therefore **needed no new remedy entry**.
+
+**The comparison, and the date that must not fall through.** Both sides are asserted against `ISO_DATE` and compared
+as whole `YYYY-MM-DD` strings, whose lexicographic order **is** their chronological order — no `Date`, no parse, no
+timezone, and no prefix matching that would rank `2026-07-1` between `2026-07-09` and `2026-07-10`. `asOfDate` is
+asserted at the top of `dueEntryKeys`; the bound `resolutionDate` is asserted at `claimEntryBindings`, and **again**
+inside the loop, because `gate.bindings` is a caller-supplied `Map` that need not have come from that builder. The
+second assertion **refuses** (`binding-resolution-date-not-iso` on `gate.bindings`) rather than excluding: an
+uncomparable date is a contract violation, not a fact about the ledger, and every `notDue` reason promises a remedy
+that this one has none of. Admitting it would be worse still — an unparseable date falling through to "due" closes a
+claim whose horizon may not have arrived.
+
+**Old → new.**
+
+| Surface | Old | New |
+|---|---|---|
+| Plan step 3, predicate | *"`entry has a claimRef ∧ claim(entry).horizon.resolutionDate ≤ asOfDate`"* | *"`binding(key).claimRef !== null ∧ binding(key).resolutionDate ≤ asOfDate`"*, with the unimplementability of the old form recorded in place. |
+| Plan step 3, citation | `CLAIM_REF_FIELD` (`rlclaims.js:187`) | `CLAIM_REF_FIELD` (`rlclaims.js:199`) — verified |
+| Header, consumed codes | `RTR-LEGACY-BACKFILL` (`rlclaims.js:184`) | `RTR-LEGACY-BACKFILL` (`rlclaims.js:196`) — verified |
+| T-04-I5 row | `RTR-LEGACY-BACKFILL` (`rlclaims.js:184`) | `RTR-LEGACY-BACKFILL` (`rlclaims.js:196`) — verified |
+
+*Both line numbers were re-derived against the shipped tree rather than copied: `var CLAIM_REF_FIELD = "claimRef";`
+is `rlclaims.js:199` and `var LEGACY_BACKFILL_CODE = "RTR-LEGACY-BACKFILL";` is `rlclaims.js:196`.*
+
+**DoD total: 56 → 56.** No item added, ticked or unticked. This ruling corrects plan text and three citations and
+records the implementation route; it claims no evidence.
 
 ---
 

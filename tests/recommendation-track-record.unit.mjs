@@ -29,10 +29,13 @@ import { buildPublishSet } from '../scripts/brief-publication.mjs';
 import {
     CLOSED_ENTRY_STATE,
     DETERMINED_CLOSURE_CLASS,
+    ENTRY_UNBOUND_REASON,
+    HORIZON_NOT_REACHED_REASON,
     LIVE_ENTRY_STATE,
     LOOKAHEAD_CODE,
     MEASURED_CLOSURE_EVENTS,
     NOT_DUE_REASON,
+    NOT_DUE_REMEDY,
     NO_COMMITTED_REFERENCE_REASON,
     ORIGIN_KEY_TERMS,
     PATH_COMPARATOR_MODE,
@@ -45,6 +48,7 @@ import {
     applyClosures,
     basisFingerprint,
     basisValueAt,
+    claimEntryBindings,
     closeDueClaims,
     dueEntryKeys,
     evaluatePredicate,
@@ -2752,12 +2756,18 @@ test('T-04-U9: closing a due claim twice appends nothing the second time', () =>
     assert.equal(proposed.ok, true, JSON.stringify(proposed.error ?? null));
     const liveIndex = proposed.value.index;
     assert.equal(liveIndex.entries[key].state, LIVE_ENTRY_STATE, 'the proposal is live under the derived key');
-    assert.deepEqual(dueEntryKeys(liveIndex).dueEntryKeys, [key], 'so exactly that one key is due');
+
+    /* The gate the due predicate needs and the reducer entry cannot carry: the row's `claimRef`
+       and the claim's frozen `horizon.resolutionDate`, keyed by the producer's own key. */
+    const bound = claimEntryBindings([{ claim, row: { claimRef: claim.claimHash } }], registry);
+    assert.equal(bound.ok, true, JSON.stringify(bound.error ?? null));
+    const gate = { asOfDate: RESOLUTION_SESSION, bindings: bound.bindings };
+    assert.deepEqual(dueEntryKeys(liveIndex, gate).dueEntryKeys, [key], 'so exactly that one key is due');
 
     const verdicts = [{ claim, closureEventType: PREDICATE_SATISFIED_EVENT, reasonCode: 'predicate-satisfied' }];
 
     /* FIRST PASS — one closure, nothing skipped, one event appended. */
-    const first = closeDueClaims({ index: liveIndex, verdicts, toolsRegistry: registry, run });
+    const first = closeDueClaims({ index: liveIndex, verdicts, toolsRegistry: registry, run, ...gate });
     assert.equal(first.ok, true, JSON.stringify(first.error ?? null));
     assert.equal(first.closures.length, 1, 'the first pass closes exactly one entry');
     assert.equal(first.closures[0].originRecommendationKey, key, 'the derived key, never an authored one');
@@ -2769,10 +2779,10 @@ test('T-04-U9: closing a due claim twice appends nothing the second time', () =>
        so nothing here hand-sets a state and then tests its own fake. */
     const closedIndex = first.index;
     assert.equal(closedIndex.entries[key].state, CLOSED_ENTRY_STATE, 'the reducer closed the entry');
-    assert.deepEqual(dueEntryKeys(closedIndex).dueEntryKeys, [], 'so the due set is now empty');
+    assert.deepEqual(dueEntryKeys(closedIndex, gate).dueEntryKeys, [], 'so the due set is now empty');
 
     /* SECOND PASS — the SAME verdict against the reduction the first pass produced. */
-    const second = closeDueClaims({ index: closedIndex, verdicts, toolsRegistry: registry, run });
+    const second = closeDueClaims({ index: closedIndex, verdicts, toolsRegistry: registry, run, ...gate });
     assert.equal(second.ok, true, JSON.stringify(second.error ?? null));
     assert.equal(second.closures.length, 0, 'the second pass closes nothing');
     assert.equal(second.events.length, 0, 'and appends NO event — this is the idempotence claim');
@@ -2796,14 +2806,7 @@ test('T-04-U9: closing a due claim twice appends nothing the second time', () =>
 
 /** The live lifecycle index this claim proposes into, produced BY THE SHIPPED REDUCER. */
 function proposedLiveIndex(foundation, terms, run) {
-    const proposed = foundation.reduceRecommendationEvents(null, [{
-        ...terms,
-        trigger: 'fixture-trigger',
-        invalidation: 'fixture-invalidation',
-        confidenceBand: 'fixture-band',
-        confidenceScore: 0.5,
-        rationaleEvidenceIds: ['fixture-evidence'],
-    }], run);
+    const proposed = foundation.reduceRecommendationEvents(null, [proposalRow(terms)], run);
     assert.equal(proposed.ok, true, JSON.stringify(proposed.error ?? null));
     return proposed.value.index;
 }
@@ -2913,6 +2916,233 @@ test('T-04-U11: a closure that bypasses run.closures is not silently accepted', 
         liveIndex.indexFingerprint,
         'so a real closure is observable in the reduction the bypasses left untouched',
     );
+});
+
+/* ── The due gate: T-04-U12 .. T-04-U14 (increment 6) ────────────────────────────────────────
+
+   Step 3's predicate is THREE conjuncts and only the first is a property of the reduction. The
+   other two read facts a `recommendation-index/v1` entry does not carry — the ledger row's
+   `claimRef` and the claim's frozen `horizon.resolutionDate` — so the binding is passed IN, per
+   Ruling R-04-06. These rows assert that each conjunct is a real gate, that each exclusion names
+   its own reason AND its own remedy, and that the date comparison is exact on both sides. */
+
+const GATE_SESSION = RESOLUTION_SESSION;
+const LATER_SESSION = PATH_SESSION_3;
+
+/** The proposal row the shipped reducer accepts, built from the terms the bridge derived. */
+function proposalRow(terms) {
+    return {
+        ...terms,
+        trigger: 'fixture-trigger',
+        invalidation: 'fixture-invalidation',
+        confidenceBand: 'fixture-band',
+        confidenceScore: 0.5,
+        rationaleEvidenceIds: ['fixture-evidence'],
+    };
+}
+
+/** A claim, the ledger row that points at it, and the reducer key all three are joined under. */
+function gateFixture(registry, symbols, { resolutionDate = GATE_SESSION, bound = true } = {}) {
+    const claim = syntheticClaim(symbols, { priceBasis: 'raw-close', resolutionDate });
+    const derived = originRecommendationKeyFor(claim, registry);
+    assert.equal(derived.ok, true, JSON.stringify(derived.error ?? null));
+    return {
+        claim,
+        key: derived.originRecommendationKey,
+        terms: derived.terms,
+        /* A legacy row OMITS the pointer field entirely — that absence is exactly what
+           `authorizeResolutionWrite` reads — so the fixture deletes the key rather than nulling it. */
+        row: bound ? { claimRef: claim.claimHash } : {},
+        verdict: { claim, closureEventType: PREDICATE_SATISFIED_EVENT, reasonCode: 'predicate-satisfied' },
+    };
+}
+
+test('T-04-U12: the due gate evaluates all three conjuncts, and each exclusion names its own reason', () => {
+    const foundation = validationRequire('../rlcontracts.js');
+    const registry = toolsRegistry();
+    const run = {
+        runId: `run-${GATE_SESSION}`,
+        occurredAt: `${GATE_SESSION}T20:00:00.000Z`,
+        canonicalMonth: GATE_SESSION.slice(0, 7),
+    };
+
+    const matured = gateFixture(registry, ['DVG']);
+    const unarrived = gateFixture(registry, ['DVG2'], { resolutionDate: LATER_SESSION });
+    const unbound = gateFixture(registry, ['RAWONLY'], { bound: false });
+    const closedOut = gateFixture(registry, ['PATH3']);
+    const all = [matured, unarrived, unbound, closedOut];
+    assert.equal(new Set(all.map((fixture) => fixture.key)).size, 4, 'the four fixtures derive four distinct keys');
+
+    const proposed = foundation.reduceRecommendationEvents(null, all.map((fixture) => proposalRow(fixture.terms)), run);
+    assert.equal(proposed.ok, true, JSON.stringify(proposed.error ?? null));
+
+    /* The fourth entry is closed THROUGH THE REDUCER, so the state the first conjunct reads is
+       the reduction's own rather than one hand-set here and then tested against itself. */
+    const preClosed = applyClosures(proposed.value.index, [{
+        originRecommendationKey: closedOut.key,
+        eventType: PREDICATE_SATISFIED_EVENT,
+        reasonCode: 'predicate-satisfied',
+    }], run);
+    assert.equal(preClosed.ok, true, JSON.stringify(preClosed.error ?? null));
+    const index = preClosed.index;
+    assert.equal(index.entries[closedOut.key].state, CLOSED_ENTRY_STATE, 'the reducer closed it');
+    assert.equal(index.entries[unbound.key].state, LIVE_ENTRY_STATE, 'and the unbound entry is still LIVE');
+
+    const bound = claimEntryBindings(all.map((fixture) => ({ claim: fixture.claim, row: fixture.row })), registry);
+    assert.equal(bound.ok, true, JSON.stringify(bound.error ?? null));
+    assert.equal(bound.bindings.get(unbound.key).claimRef, null, 'a row with no pointer binds a null claimRef');
+    assert.equal(bound.bindings.get(matured.key).claimRef, matured.claim.claimHash, 'a bound row carries the claim own address');
+    assert.equal(bound.bindings.get(unarrived.key).resolutionDate, LATER_SESSION, 'and the horizon comes off the claim');
+
+    const gated = dueEntryKeys(index, { asOfDate: GATE_SESSION, bindings: bound.bindings });
+    assert.equal(gated.ok, true, JSON.stringify(gated.error ?? null));
+
+    /* ONE key survives all three conjuncts, and its horizon lands EXACTLY on the as-of date — the
+       comparison is `<=`, so a claim maturing today resolves today rather than waiting a session. */
+    assert.deepEqual(gated.dueEntryKeys, [matured.key], 'exactly the live, bound, matured entry');
+
+    /* EVERY exclusion is reported, and each names a DIFFERENT reason and a DIFFERENT remedy. */
+    const excluded = new Map(gated.notDue.map((entry) => [entry.originRecommendationKey, entry]));
+    assert.equal(gated.notDue.length, 3, 'three entries excluded, none silently dropped');
+    assert.equal(excluded.get(unarrived.key).reason, HORIZON_NOT_REACHED_REASON, 'the unarrived horizon');
+    assert.equal(excluded.get(unarrived.key).remedy, 'later-as-of-date', 'which time alone will cure');
+    assert.equal(excluded.get(unbound.key).reason, ENTRY_UNBOUND_REASON, 'the claimless row');
+    assert.equal(excluded.get(unbound.key).remedy, 'never', 'which is unscoreable by construction');
+    assert.equal(excluded.get(closedOut.key).reason, NOT_DUE_REASON, 'the closed entry');
+    assert.equal(excluded.get(closedOut.key).remedy, 'ledger-event', 'which only a re-proposal reopens');
+    assert.equal(new Set(gated.notDue.map((entry) => entry.reason)).size, 3, 'three distinct reasons');
+    assert.equal(new Set(gated.notDue.map((entry) => entry.remedy)).size, 3, 'and three distinct remedies');
+    assert.deepEqual(
+        gated.notDue.map((entry) => entry.remedy).sort(),
+        [NOT_DUE_REMEDY[ENTRY_UNBOUND_REASON], NOT_DUE_REMEDY[HORIZON_NOT_REACHED_REASON], NOT_DUE_REMEDY[NOT_DUE_REASON]].sort(),
+        'each remedy read off the shipped table rather than authored at the exclusion',
+    );
+
+    /* Each exclusion carries the FACTS that caused it, so a reader diagnoses it without
+       re-deriving the gate. */
+    assert.equal(excluded.get(unarrived.key).resolutionDate, LATER_SESSION, 'the horizon it is waiting on');
+    assert.equal(excluded.get(unarrived.key).asOfDate, GATE_SESSION, 'and the date it was measured against');
+
+    /* THE PASS REPORTS THE SAME REASON IT GATED ON. One verdict per fixture: one closes, the
+       other three are accounted for as `skipped` with the gate's own reason rather than one name
+       standing for three different facts. */
+    const pass = closeDueClaims({
+        index,
+        verdicts: all.map((fixture) => fixture.verdict),
+        toolsRegistry: registry,
+        run,
+        asOfDate: GATE_SESSION,
+        bindings: bound.bindings,
+    });
+    assert.equal(pass.ok, true, JSON.stringify(pass.error ?? null));
+    assert.deepEqual(pass.closures.map((closure) => closure.originRecommendationKey), [matured.key], 'one closure');
+    assert.equal(pass.events.length, 1, 'and exactly one lifecycle event appended');
+    assert.equal(pass.skipped.length, 3, 'the other three verdicts are accounted for, not dropped');
+    assert.deepEqual(
+        pass.skipped.map((skip) => skip.reason).slice().sort(),
+        [ENTRY_UNBOUND_REASON, HORIZON_NOT_REACHED_REASON, NOT_DUE_REASON].slice().sort(),
+        'each skip carries the conjunct that excluded it',
+    );
+    assert.equal(pass.skipped.every((skip) => skip.claimHash !== null), true, 'each naming the claim own address');
+    assert.equal(pass.notDue.length, 3, 'and the entry-side exclusions are reported too');
+
+    /* NON-VACUITY, AND THE WHOLE POINT OF THE SPLIT. Advance ONLY the as-of date by one session:
+       the unarrived horizon joins the due set and the other two exclusions do not move. An
+       implementation reporting one undifferentiated "not due" could not produce this, and one
+       that ignored the horizon conjunct would have admitted `unarrived` in the first pass. */
+    const tomorrow = dueEntryKeys(index, { asOfDate: LATER_SESSION, bindings: bound.bindings });
+    assert.equal(tomorrow.ok, true, JSON.stringify(tomorrow.error ?? null));
+    assert.deepEqual(
+        tomorrow.dueEntryKeys.slice().sort(),
+        [matured.key, unarrived.key].slice().sort(),
+        'the matured horizon becomes due on the passage of time alone',
+    );
+    const later = new Map(tomorrow.notDue.map((entry) => [entry.originRecommendationKey, entry.reason]));
+    assert.equal(later.size, 2, 'and only two exclusions remain');
+    assert.equal(later.get(unbound.key), ENTRY_UNBOUND_REASON, 'the claimless row never becomes due');
+    assert.equal(later.get(closedOut.key), NOT_DUE_REASON, 'nor does the closed entry');
+});
+
+test('T-04-U13: the horizon comparison is exact — a prefix-shaped date refuses rather than sorting', () => {
+    const registry = toolsRegistry();
+    const claim = syntheticClaim(['DVG'], { priceBasis: 'raw-close' });
+    const bound = claimEntryBindings([{ claim, row: { claimRef: claim.claimHash } }], registry);
+    assert.equal(bound.ok, true, JSON.stringify(bound.error ?? null));
+    const empty = { entries: {} };
+
+    /* A PREFIX-SHAPED AS-OF DATE REFUSES. `2026-07-1` is not a date this module can compare: it
+       sorts BELOW `2026-07-10` and ABOVE `2026-07-09`, so accepting it would call the same claim
+       due on one day and not-yet-due on the next. */
+    const malformed = dueEntryKeys(empty, { asOfDate: '2026-07-1', bindings: bound.bindings });
+    assert.equal(malformed.ok, false);
+    assertRefusal(malformed.error, 'as-of-date-not-iso', 'gate.asOfDate', 'prefix-shaped asOfDate');
+
+    /* ANTI-VACUITY: the well-formed neighbours on BOTH sides of that ambiguity are accepted, so
+       the refusal is caused by the shape and not by a gate that refuses dates in this region. */
+    for (const asOfDate of ['2026-07-01', '2026-07-09', '2026-07-10']) {
+        assert.equal(dueEntryKeys(empty, { asOfDate, bindings: bound.bindings }).ok, true, asOfDate);
+    }
+
+    /* AND ON THE OTHER SIDE OF THE COMPARISON: a prefix-shaped frozen horizon never reaches the
+       gate at all, because the binding refuses to be built from it. */
+    const short = structuredClone(claim);
+    short.horizon.resolutionDate = '2026-07-1';
+    const unbuildable = claimEntryBindings([{ claim: short, row: { claimRef: short.claimHash } }], registry);
+    assert.equal(unbuildable.ok, false);
+    assertRefusal(unbuildable.error, 'resolution-date-not-iso', 'horizon.resolutionDate', 'prefix-shaped horizon');
+
+    /* ANTI-VACUITY for the same mutation shape: the padded date binds and is carried through
+       verbatim, so the refusal is the missing digit and not the fact that the date was rewritten. */
+    const padded = structuredClone(claim);
+    padded.horizon.resolutionDate = '2026-07-01';
+    const buildable = claimEntryBindings([{ claim: padded, row: { claimRef: padded.claimHash } }], registry);
+    assert.equal(buildable.ok, true, JSON.stringify(buildable.error ?? null));
+    const paddedKey = originRecommendationKeyFor(padded, registry).originRecommendationKey;
+    assert.equal(buildable.bindings.get(paddedKey).resolutionDate, '2026-07-01', 'carried through, never reformatted');
+
+    /* THE GATE IS REQUIRED, NOT OPTIONAL. Omitting it refuses rather than degrading to the state
+       conjunct alone, which would silently admit an unbound or unmatured entry with nothing in
+       the result to say the other two conjuncts were never evaluated. */
+    const ungated = dueEntryKeys(empty, { asOfDate: GATE_SESSION });
+    assert.equal(ungated.ok, false);
+    assertRefusal(ungated.error, 'claim-bindings-absent', 'gate.bindings', 'omitted bindings');
+    assert.equal(dueEntryKeys(empty).ok, false, 'and omitting the gate entirely refuses too');
+});
+
+test('T-04-U14: a binding names the claim it gates, and a pointer to another claim refuses', () => {
+    const registry = toolsRegistry();
+    const claim = syntheticClaim(['DVG'], { priceBasis: 'raw-close' });
+    const other = syntheticClaim(['DVG2'], { priceBasis: 'raw-close' });
+    assert.notEqual(other.claimHash, claim.claimHash, 'the two fixtures are two different claims');
+
+    /* THE POINTER IS CHECKED AGAINST THE CLAIM IT GATES. Holding one claim's horizon behind
+       another claim's `claimRef` would gate a row on terms nobody bound to it — the untraceable
+       substitution the pointer exists to make impossible. */
+    const crossed = claimEntryBindings([{ claim, row: { claimRef: other.claimHash } }], registry);
+    assert.equal(crossed.ok, false);
+    assertRefusal(crossed.error, 'claim-ref-names-another-claim', claims.CLAIM_REF_FIELD, 'crossed pointer');
+
+    /* A MALFORMED POINTER IS A DIFFERENT DEFECT and is named as one, through the shipped
+       `CLAIM_REF_PATTERN` rather than a second copy of the shape written here. */
+    const malformed = claimEntryBindings([{ claim, row: { claimRef: 'sha256:not-hex' } }], registry);
+    assert.equal(malformed.ok, false);
+    assertRefusal(malformed.error, 'claim-ref-not-opaque-sha256', claims.CLAIM_REF_FIELD, 'malformed pointer');
+    assert.equal(claims.CLAIM_REF_PATTERN.test(claim.claimHash), true, 'and the accepted shape is the shipped one');
+
+    /* ANTI-VACUITY: the SAME call with the claim's own pointer binds, so both refusals above are
+       caused by the pointer value rather than by a builder that refuses this fixture outright. */
+    const honest = claimEntryBindings([{ claim, row: { claimRef: claim.claimHash } }], registry);
+    assert.equal(honest.ok, true, JSON.stringify(honest.error ?? null));
+
+    /* TWO PAIRS DERIVING ONE KEY REFUSE. Silently keeping the last would gate the entry on
+       whichever claim happened to be listed second, which is the same ambiguity
+       `duplicate-closure-key-in-pass` refuses one step later. */
+    const duplicated = claimEntryBindings([
+        { claim, row: { claimRef: claim.claimHash } },
+        { claim, row: { claimRef: claim.claimHash } },
+    ], registry);
+    assert.equal(duplicated.ok, false);
+    assertRefusal(duplicated.error, 'duplicate-binding-key', 'pairs', 'duplicate binding');
 });
 
 

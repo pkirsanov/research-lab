@@ -1302,23 +1302,162 @@ export function lifecycleBindingFor(claim, toolsRegistry) {
 export const LIVE_ENTRY_STATE = 'active';
 export const CLOSED_ENTRY_STATE = 'closed';
 
-/** Why a derived key was left out of a closing pass. Not a refusal: a re-run is a normal event. */
+/* Why a derived key was left out of a closing pass. None is a refusal: a re-run, an unarrived
+   horizon and a legacy row are all normal facts about the LEDGER, so the pass reports them and
+   carries on.
+
+   The three are kept DISTINCT because they are not interchangeable to whoever reads them, and
+   Ruling R-04-06 records the split. A claim whose horizon has not arrived becomes due by the
+   PASSAGE OF TIME alone. A closed or superseded entry becomes due again only if the reducer
+   re-proposes it — the reduction re-activates an entry on a matching re-proposal
+   (`rlcontracts.js:1245`), so this is not permanent either, it just is not a function of the
+   date. And an entry whose ledger row carries no `claimRef` can NEVER become due: the pointer's
+   absence is the permanent legacy marker, and `authorizeResolutionWrite` (`rlclaims.js:745`)
+   refuses that row `RTR-LEGACY-BACKFILL` / `claimless-row-unscoreable` BEFORE it inspects any
+   resolution at all. Collapsing the three into one "not due" would tell an operator to wait for
+   a date that will never make a difference. */
 export const NOT_DUE_REASON = 'entry-not-due';
+export const HORIZON_NOT_REACHED_REASON = 'horizon-not-reached';
+export const ENTRY_UNBOUND_REASON = 'entry-carries-no-claim-ref';
+
+/** What has to change for an excluded key to be included in a later pass. */
+export const NOT_DUE_REMEDY = Object.freeze({
+  [NOT_DUE_REASON]: 'ledger-event',
+  [HORIZON_NOT_REACHED_REASON]: 'later-as-of-date',
+  [ENTRY_UNBOUND_REASON]: 'never'
+});
 
 /**
- * The due set: the keys the reducer still calls live.
+ * The per-key binding the reducer entry cannot carry — Ruling R-04-06.
+ *
+ * Step 3's predicate reads two facts off an `index.entries` member that HAS NEITHER: the ledger
+ * ROW's `claimRef`, and the CLAIM's frozen `horizon.resolutionDate`. The reducer writes an entry
+ * as a closed nine-field object literal (`rlcontracts.js:1232`) and carries it forward field by
+ * named field (`:1159`), so an injected pointer does not survive one reduction — `claimRef`
+ * appears nowhere in that module. Passing the binding IN is therefore the only route that does
+ * not make this scope the second author of the reducer entry, and it keeps `claimRef` a ROW field
+ * with one home rather than a fact duplicated onto the index.
+ *
+ * The key is the shipped producer's, through `originRecommendationKeyFor`, so a binding cannot
+ * name an entry the reducer would not itself have created.
+ *
+ * Only the pointer FIELD is read from the row. The row's own validity is `validateLedgerRow`'s
+ * question and it is already asked at the write gate; asking it a second time here would put two
+ * answers over one contract. A pair with no row, or a row with no pointer, binds `claimRef: null`
+ * — the legacy marker, which is an ANSWER rather than an omission. A pointer naming a DIFFERENT
+ * claim refuses: gating one claim's horizon behind another claim's pointer is exactly the
+ * untraceable substitution this feature exists to prevent.
+ */
+export function claimEntryBindings(pairs, toolsRegistry) {
+  if (!Array.isArray(pairs)) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'claim-bindings-invalid', 'pairs');
+  }
+  const bindings = new Map();
+  for (const pair of pairs) {
+    const claim = pair?.claim;
+    const derived = originRecommendationKeyFor(claim, toolsRegistry);
+    if (!derived.ok) return derived;
+    const originRecommendationKey = derived.originRecommendationKey;
+    if (bindings.has(originRecommendationKey)) {
+      return refusal(claims.CONTRACT_VIOLATION_CODE, 'duplicate-binding-key', 'pairs');
+    }
+
+    /* An ISO resolution date is a PRECONDITION of the binding, not a case the gate handles later.
+       A claim carrying no frozen date can never be gated on one, and classifying it "not yet due"
+       would be a lie; a malformed one must never reach the comparison, because `2026-07-1` sorts
+       BELOW `2026-07-10` and ABOVE `2026-07-09`, so a prefix-shaped date answers differently on
+       two neighbouring days. */
+    const resolutionDate = claim?.horizon?.resolutionDate;
+    if (typeof resolutionDate !== 'string' || !ISO_DATE.test(resolutionDate)) {
+      return refusal(claims.CONTRACT_VIOLATION_CODE, 'resolution-date-not-iso', 'horizon.resolutionDate');
+    }
+
+    const row = pair?.row;
+    const carries = row !== null && typeof row === 'object' && !Array.isArray(row)
+      && Object.prototype.hasOwnProperty.call(row, claims.CLAIM_REF_FIELD);
+    const claimRef = carries ? row[claims.CLAIM_REF_FIELD] : null;
+    if (claimRef !== null) {
+      if (typeof claimRef !== 'string' || !claims.CLAIM_REF_PATTERN.test(claimRef)) {
+        return refusal(claims.CONTRACT_VIOLATION_CODE, 'claim-ref-not-opaque-sha256', claims.CLAIM_REF_FIELD);
+      }
+      if (claimRef !== claim?.claimHash) {
+        return refusal(claims.CONTRACT_VIOLATION_CODE, 'claim-ref-names-another-claim', claims.CLAIM_REF_FIELD);
+      }
+    }
+
+    bindings.set(originRecommendationKey, Object.freeze({
+      originRecommendationKey,
+      claimRef,
+      claimHash: claim?.claimHash ?? null,
+      resolutionDate
+    }));
+  }
+  return { ok: true, bindings };
+}
+
+/**
+ * The due set, evaluated as step 3 defines it: the entry is live, AND its ledger row carries a
+ * `claimRef`, AND the bound claim's frozen `horizon.resolutionDate` is at or before `asOfDate`.
  *
  * This IS the idempotence mechanism, not a check bolted on beside one. A claim is closable while
  * its lifecycle entry is live and at no other time, so a second pass over a reduction the first
  * pass produced has an empty due set and therefore nothing to hand the reducer.
+ *
+ * `gate` is REQUIRED, and its absence refuses rather than degrading to the state conjunct alone.
+ * An optional gate would leave one function name answering a NARROWER predicate whenever a caller
+ * omitted it — admitting an unbound entry and a claim whose horizon has not arrived, with nothing
+ * in the result to say so. That is the silent skip `notDue` exists to make impossible.
+ *
+ * Dates are compared as whole ISO `YYYY-MM-DD` strings, whose lexicographic order IS their
+ * chronological order, so no `Date`, no parse and no timezone enters the comparison. Both sides
+ * are asserted against `ISO_DATE` before they meet: `asOfDate` here, `resolutionDate` at the
+ * binding.
  */
-export function dueEntryKeys(index) {
+export function dueEntryKeys(index, gate) {
   const entries = index?.entries;
   if (entries === null || typeof entries !== 'object' || Array.isArray(entries)) {
     return refusal(claims.CONTRACT_VIOLATION_CODE, 'lifecycle-index-invalid', 'index.entries');
   }
-  const due = Object.keys(entries).filter((key) => entries[key]?.state === LIVE_ENTRY_STATE).sort();
-  return { ok: true, dueEntryKeys: Object.freeze(due) };
+  const asOfDate = gate?.asOfDate;
+  if (typeof asOfDate !== 'string' || !ISO_DATE.test(asOfDate)) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'as-of-date-not-iso', 'gate.asOfDate');
+  }
+  const bindings = gate?.bindings;
+  if (!(bindings instanceof Map)) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'claim-bindings-absent', 'gate.bindings');
+  }
+
+  const due = [];
+  const notDue = [];
+  for (const originRecommendationKey of Object.keys(entries).sort()) {
+    const entry = entries[originRecommendationKey];
+    const binding = bindings.get(originRecommendationKey) ?? null;
+    const exclude = (reason) => notDue.push(Object.freeze({
+      originRecommendationKey,
+      reason,
+      remedy: NOT_DUE_REMEDY[reason],
+      state: entry?.state ?? null,
+      claimRef: binding?.claimRef ?? null,
+      claimHash: binding?.claimHash ?? null,
+      resolutionDate: binding?.resolutionDate ?? null,
+      asOfDate
+    }));
+
+    if (entry?.state !== LIVE_ENTRY_STATE) { exclude(NOT_DUE_REASON); continue; }
+    if (binding === null || binding.claimRef === null) { exclude(ENTRY_UNBOUND_REASON); continue; }
+
+    /* `bindings` is a caller-supplied Map, so `claimEntryBindings`' assertion is not reachable
+       from here — a Map built any other way could carry an absent or prefix-shaped date. That
+       REFUSES rather than excluding: an uncomparable date is a contract violation, not a fact
+       about the ledger, and the three `notDue` reasons all promise a remedy this one cannot. */
+    const { resolutionDate } = binding;
+    if (typeof resolutionDate !== 'string' || !ISO_DATE.test(resolutionDate)) {
+      return refusal(claims.CONTRACT_VIOLATION_CODE, 'binding-resolution-date-not-iso', 'gate.bindings');
+    }
+    if (resolutionDate > asOfDate) { exclude(HORIZON_NOT_REACHED_REASON); continue; }
+    due.push(originRecommendationKey);
+  }
+  return { ok: true, asOfDate, dueEntryKeys: Object.freeze(due), notDue: Object.freeze(notDue) };
 }
 
 /**
@@ -1348,12 +1487,17 @@ export function applyClosures(index, closures, run) {
  *
  * An underivable key refuses the WHOLE pass. Dropping the claim would leave it silently
  * unresolved and still counted as open, which is the accounting error the ledger exists to avoid.
+ *
+ * A skip carries the gate's OWN reason rather than one name for three facts, so a reader can tell
+ * "come back after the horizon" from "this row can never be scored" — and `notDue` reports every
+ * excluded ENTRY, including the ones no verdict in this pass named at all.
  */
 export function closeDueClaims(input) {
-  const due = dueEntryKeys(input?.index);
+  const due = dueEntryKeys(input?.index, { asOfDate: input?.asOfDate, bindings: input?.bindings });
   if (!due.ok) return due;
   const entries = input.index.entries;
   const dueSet = new Set(due.dueEntryKeys);
+  const excludedByKey = new Map(due.notDue.map((entry) => [entry.originRecommendationKey, entry]));
 
   const closures = [];
   const skipped = [];
@@ -1367,11 +1511,15 @@ export function closeDueClaims(input) {
       return refusal(claims.CONTRACT_VIOLATION_CODE, 'duplicate-closure-key-in-pass', 'verdicts');
     }
     if (entries[originRecommendationKey] !== undefined && !dueSet.has(originRecommendationKey)) {
+      const excluded = excludedByKey.get(originRecommendationKey);
       skipped.push({
         originRecommendationKey,
         claimHash: verdict.claim?.claimHash ?? null,
-        reason: NOT_DUE_REASON,
-        state: entries[originRecommendationKey].state
+        reason: excluded.reason,
+        remedy: excluded.remedy,
+        state: entries[originRecommendationKey].state,
+        resolutionDate: excluded.resolutionDate,
+        asOfDate: due.asOfDate
       });
       continue;
     }
@@ -1387,8 +1535,10 @@ export function closeDueClaims(input) {
   if (!applied.ok) return applied;
   return {
     ok: true,
+    asOfDate: due.asOfDate,
     closures: Object.freeze(closures),
     skipped: Object.freeze(skipped),
+    notDue: due.notDue,
     events: applied.events,
     index: applied.index
   };

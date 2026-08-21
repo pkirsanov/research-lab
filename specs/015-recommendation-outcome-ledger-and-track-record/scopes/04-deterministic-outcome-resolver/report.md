@@ -210,10 +210,108 @@ therefore closes **zero** claims and appends **zero** events — correctly, and 
 read a green real-data run as coverage: every Test Plan row here is satisfied from
 `tests/fixtures/recommendation-track-record/**` or it is not satisfied at all.
 
+### Increment 4 — the predicate slice (commit `65e47272b`)
+
+The slice supplies the **verdict** the increment-3 write slice had to accept as an input: `evaluatePredicate` decides
+`satisfied` / `invalidated` for all four `PREDICATE_KINDS` against the as-of fenced slice, dispatching through
+`PREDICATE_COMPARATORS`. Plan step 8 is implemented; no closure is routed yet, so the reducer bridge remains the
+next increment.
+
+**Command, run from `<repo-root>`:** `node --test tests/recommendation-track-record.unit.mjs` — **exit 0**,
+`tests 33 / pass 33 / fail 0`. The raw output and the per-item source anchors are recorded inline beside each ticked
+checkbox in [scope.md](scope.md).
+
+**Vocabulary completeness is enforced at import, not asserted at review.** `bindToVocabulary` throws unless a
+table's keys equal the frozen array exactly, so `KINDS` and `COMPARATORS` cannot fall out of step with
+`claims.PREDICATE_KINDS` / `claims.PREDICATE_COMPARATORS`, and a fifth kind added upstream fails loudly at module
+load rather than becoming a silently unreachable branch. No literal kind or comparator string is written at any call
+site, and `T-04-U1` iterates the frozen arrays themselves rather than a list authored in the test.
+
+**Each kind is proven satisfied and invalidated on the same series, so the verdict tracks the bound.** `relative`
+and `spread` are proven to be *different predicates* rather than two spellings of one: on the identical pair at the
+identical bound, `spread` reads the leg difference (`-15`, satisfied) while `relative` reads the basket mean against
+the reference (`-7.5`, invalidated). `directional` reads the claim's **frozen flat band** and expressly not
+`predicate.value`, which is why a correct bearish call on a falling series is satisfied — without the direction
+multiply every correct `trim` would read as invalidated. An out-of-vocabulary kind refuses rather than coercing,
+including `constructor`, which a lookup that skipped the membership test would have resolved through the prototype
+chain instead of refusing.
+
+**Point and path are two evaluations, not one with a different constant.** `T-04-U2` holds the bound fixed: the
+close returns `+10` and misses `11` while the session high reaches `+12` and clears it, and the mirrored low pair
+proves the path branch reads the extreme rather than a second constant. A path comparator walks the committed window
+and decides at the **crossing** session, not the last one. A gap in that window closes `unresolved` /
+`path-incomplete` carrying no `RTR-*` code, with the anti-vacuity control being the identical window with the
+session restored; a missing **entry** session is instead `session-absent`, because the denominator is the endpoint
+case and not a path gap.
+
+#### Fourth plan defect surfaced — the header's refusal-code ownership is stale
+
+Surfaced, **not** fixed, in the same manner as the three corrections recorded above. `RTR-PRICE-BASIS` is now a
+resolver-**owned** code defined in this scope's own source (`scripts/brief-resolve-outcomes.mjs:227`) and raised from
+the predicate evaluator (`:1035`, reason `path-extremes-absent-for-basis`) when a path comparator is asked to run on
+`adjusted-close`, because `h` / `l` are quoted against the raw close only and dividing a raw high by an adjusted
+entry close would fabricate a return from two different series. The scope header still lists it under **"Refusal
+codes routed, not owned"** as *"the **proposed** `RTR-PRICE-BASIS`"*, and the "Refusal codes owned" line names only
+`RTR-LOOKAHEAD`, `RTR-CALENDAR-COVERAGE` and `RTR-NETWORK`. Two consequences neither the plan nor any DoD item
+records: this scope owns a fourth refusal code, and a claim minted with `priceBasis: adjusted-close` and a
+`crosses-above` / `crosses-below` comparator is **structurally unresolvable**. Correcting the header and adding the
+missing DoD coverage are plan acts and are not performed by an evidence pass.
+
+**Three DoD items are ticked; the neighbouring predicate items are deliberately NOT.**
+
+| Left unticked | The conjunct that is not yet satisfied |
+|---|---|
+| "Not yet resolvable" is a silent skip | Unchanged from increments 2 and 3: "leaving the claim `active` with zero events appended" is a reducer fact, and the predicate slice routes no closure. |
+| `T-04-U5` passes | Its third clause, the silent skip, is the same reducer fact. The fence and the `RTR-LOOKAHEAD` halves were evidenced in increment 2. |
+| `T-04-U6` / `T-04-U7` pass | Neither test exists yet; `T-04-U7`'s bearish-outcome half was evidenced against the *value* row in increment 2, which is a different DoD item. |
+
+### Increment 5 — the reducer bridge (commits `d1a953c8d` and `abcaf0174`)
+
+The slice closes the loop plan steps 12–14 describe: `originRecommendationKeyFor` derives the lifecycle key by
+calling the shipped `deriveRecommendationKeys`, and `closeDueClaims` / `applyClosures` route every closure through
+`reduceRecommendationEvents` as `run.closures` with `current: []`. The reducer is consumed, never forked.
+
+**Command, run from `<repo-root>`:** `node --test tests/recommendation-track-record.unit.mjs` — **exit 0**,
+`tests 33 / pass 33 / fail 0`. The raw output and the per-item source anchors are recorded inline beside each ticked
+checkbox in [scope.md](scope.md).
+
+**The key is re-derived rather than compared against a stored expectation.** `T-04-U10` runs the shipped producer
+again over the record the bridge reports it assembled, so a bridge that derived correctly and then prefixed,
+truncated, cached or substituted an authored key fails there instead of passing on a stale constant. Equality alone
+would also hold for a producer that returned one value forever, so every measured contributing term is perturbed in
+isolation and must move the key — and `ORIGIN_KEY_TERMS` is read off the producer *by perturbation* rather than
+authored here, so the loop widens by itself if the producer starts folding in a further field.
+
+**Idempotence is proven by execution, and the emptiness is measured rather than assumed.** `T-04-U9` proposes a live
+entry through the shipped reducer, closes it once — one closure, one event, nothing skipped — then replays the same
+verdict against *the reduction the first pass returned*. The second pass closes nothing, appends nothing, accounts
+for the claim as `skipped` rather than dropping it silently, and leaves `indexFingerprint` byte-identical. The
+pairing is what makes it non-vacuous: an implementation that closed nothing unconditionally fails the first-pass
+assertions, so the second pass's emptiness is a measured suppression by the `entry.state === "active"` gate rather
+than a function that never closes.
+
+**The sanctioned channel is proven to be the only one that works, and the two bypasses fail differently.**
+`T-04-U11` holds the payload fixed and varies only the channel. A closure smuggled on the run object is **accepted
+and inert** — `applyClosures` passes its own parameter last, so `{ ...run, closures }` overwrites it and the entry
+stays live with an unchanged fingerprint; that is a silent drop, and recording it as such matters more than
+recording a refusal that does not happen. The same row handed through `current` is a **refusal**, the reducer's own
+`unknown-field` on `current.0.eventType`, because a closure cannot masquerade as a proposal. The control is the
+identical closure through `run.closures`, which appends exactly one event and moves the fingerprint.
+
+**One DoD item is ticked; the neighbouring bridge items are deliberately NOT.**
+
+| Left unticked | The conjunct that is not yet satisfied |
+|---|---|
+| Closures route through `reduceRecommendationEvents` … `RTR-CLOSURE-VOCAB` | The routing half is proven by `T-04-U11` and `git diff --quiet` over `rlcontracts.js`, `rlvalidation.js` and `rlclaims.js` exits **0** this pass. The `RTR-CLOSURE-VOCAB` clause is `T-04-U4`'s row by the scope's own Test Plan, and `T-04-U4` does not exist yet. |
+| The resolver does not depend on its own closure ordering | No test permutes closure order; the claim rests on reading `rlcontracts.js:1272` rather than on an execution. |
+| Idempotence is enforced by the due-set gate … | The gate and the `indexFingerprint` oracle are proven by `T-04-U9`. The content-addressed backstop clause is `T-04-I4`'s row in the *integration* suite, which this evidence pass did not run. |
+| The due set is computed from reduction state | `dueEntryKeys` filters on `entry.state` alone; the `claimRef` and `resolutionDate ≤ asOfDate` conjuncts the item names are not implemented in it. |
+
 ## Completion Statement
 
-Scope 04 is in progress. **12 of 55** Definition of Done items are satisfied — two from the increment-1 calendar
-slice, three from the increment-2 value slice, and seven from the increment-3 write slice, all recorded above — and
-the remaining 43 are unsatisfied. No scope completion is claimed and no certification is requested. Ruling R-04-01
+Scope 04 is in progress. **16 of 55** Definition of Done items are satisfied — two from the increment-1 calendar
+slice, three from the increment-2 value slice, seven from the increment-3 write slice, three from the increment-4
+predicate slice, and one from the increment-5 reducer bridge, all recorded above — and the remaining 39 are
+unsatisfied. No scope completion is claimed and no certification is requested. Ruling R-04-01
 is **discharged**: scope 01 landed the frozen hashed `priceBasis` term, and the resolver consumes it rather than
 selecting a basis of its own.

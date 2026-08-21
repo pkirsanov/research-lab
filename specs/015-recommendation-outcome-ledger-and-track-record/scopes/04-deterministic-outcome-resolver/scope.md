@@ -526,7 +526,39 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   `+10` under one basis and `-10` under the other, so the frozen term decides the sign.
 - [ ] **A retroactive `ac` rewrite is detectable, not silent.** The hashed `provenance` records a fingerprint of the exact basis values read at `entryDate` and `resolutionDate`, so a later rewrite (BUG-012) changes the resolution hash and surfaces as `RTR-RESOLUTION-CONFLICT` instead of re-scoring quietly.
 - [ ] "Not yet resolvable" (`bars.asof < resolutionDate`) is a silent skip leaving the claim `active` with zero events appended — never an `RTR-LOOKAHEAD` refusal.
-- [ ] All four predicate kinds are implemented; point comparators evaluate once at `resolutionDate` and path comparators require the complete intervening session set, closing `unresolved` reason `path-incomplete` on a gap rather than evaluating a partial path.
+- [x] All four predicate kinds are implemented; point comparators evaluate once at `resolutionDate` and path comparators require the complete intervening session set, closing `unresolved` reason `path-incomplete` on a gap rather than evaluating a partial path.
+
+  **Evidence — increment 4 (predicate slice, commit `65e47272b`).** Executed from `<repo-root>`.
+
+  ```
+  $ node --test tests/recommendation-track-record.unit.mjs
+  ✔ T-04-U1 (increment 4): all four predicate kinds evaluate, and the kind and comparator are bound to the frozen vocabularies (66.35991ms)
+  ✔ T-04-U2 (increment 4): point and path comparators are different evaluations, and a path gap closes path-incomplete (18.598175ms)
+  ℹ tests 33
+  ℹ pass 33
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  The two vocabulary bindings and the shipped reason, located in the executed source:
+
+  ```
+  $ grep -nE "bindToVocabulary\(claims\.PREDICATE_(KINDS|COMPARATORS)|^export function evaluatePredicate|^export const PATH_INCOMPLETE_REASON" scripts/brief-resolve-outcomes.mjs
+  scripts/brief-resolve-outcomes.mjs:766:export const PATH_INCOMPLETE_REASON = 'path-incomplete';
+  scripts/brief-resolve-outcomes.mjs:780:const COMPARATORS = bindToVocabulary(claims.PREDICATE_COMPARATORS, {
+  scripts/brief-resolve-outcomes.mjs:894:const KINDS = bindToVocabulary(claims.PREDICATE_KINDS, {
+  scripts/brief-resolve-outcomes.mjs:988:export function evaluatePredicate(claim, fences, calendar) {
+  exit code: 0
+  ```
+
+  The completeness is structural rather than counted: `bindToVocabulary` throws **at import** unless the table's
+  keys equal the frozen array exactly, so a fifth kind cannot become silently unreachable and no literal kind or
+  comparator is written at any call site. T-04-U1 then iterates `claims.PREDICATE_KINDS` and
+  `claims.PREDICATE_COMPARATORS` themselves rather than a list authored in the test. The point/path split is
+  measured by disagreement on one bound: the close returns `+10` and misses `11` while the session high reaches
+  `+12` and clears it, so a path comparator that quietly read the close would answer "no" for a session that did
+  touch it. A gap in the window returns a **closure** — `unresolved` / `path-incomplete`, carrying no `RTR-*` code —
+  and the anti-vacuity half is the identical window with the session restored, which resolves.
 - [x] A required session missing from the slice closes `unresolved` reason `session-absent`; no value is ever interpolated.
 
   **Evidence — increment 2 (value slice, commit `30a9e2624`).** Executed from `<repo-root>`.
@@ -623,7 +655,42 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 - [ ] `not-evaluable` closes at the **first** resolver pass after minting, not at horizon expiry, so a known-unscoreable claim never sits in the open pipeline.
 - [ ] Closures route through `reduceRecommendationEvents` via `run.closures` with `current: []`; the reducer is consumed unchanged, and `rlcontracts.js`, `rlvalidation.js` and `rlclaims.js` are proven unmodified by `git diff --quiet` exiting 0. *An earlier revision asserted "byte-unmodified" with no `sha256` pinned anywhere, which was not decidable as written.* `RTR-CLOSURE-VOCAB` refuses a locally-invented closure type — raised by the shipped `buildResolution`, not re-implemented here.
 - [ ] The resolver does not depend on its own closure ordering, because the reducer sorts by `originRecommendationKey` before processing (`rlcontracts.js:1272`).
-- [ ] `lifecycleBinding.originRecommendationKey` is **derived** by calling `deriveRecommendationKeys` (`rlcontracts.js:1040`), never authored, and is carried in `lifecycleBinding` — a `RESOLUTION_UNHASHED_FIELDS` member (`rlclaims.js:250`) — so it is not added to `claimHash`'s term list.
+- [x] `lifecycleBinding.originRecommendationKey` is **derived** by calling `deriveRecommendationKeys` (`rlcontracts.js:1040`), never authored, and is carried in `lifecycleBinding` — a `RESOLUTION_UNHASHED_FIELDS` member (`rlclaims.js:250`) — so it is not added to `claimHash`'s term list.
+
+  **Evidence — increment 5 (reducer bridge, commits `d1a953c8d` and `abcaf0174`).** Executed from `<repo-root>`.
+
+  ```
+  $ node --test tests/recommendation-track-record.unit.mjs
+  ✔ T-04-U10: the reducer key is derived by the shipped producer, never authored here (5.176093ms)
+  ℹ tests 33
+  ℹ pass 33
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  The derivation and the carriage, located in the executed source:
+
+  ```
+  $ grep -nE "^export function originRecommendationKeyFor|foundation.deriveRecommendationKeys\(built.terms\)|^export function lifecycleBindingFor|lifecycleBinding: \{ originRecommendationKey" scripts/brief-resolve-outcomes.mjs
+  scripts/brief-resolve-outcomes.mjs:1283:export function originRecommendationKeyFor(claim, toolsRegistry) {
+  scripts/brief-resolve-outcomes.mjs:1288:  const derived = foundation.deriveRecommendationKeys(built.terms);
+  scripts/brief-resolve-outcomes.mjs:1293:export function lifecycleBindingFor(claim, toolsRegistry) {
+  scripts/brief-resolve-outcomes.mjs:1296:  return { ok: true, lifecycleBinding: { originRecommendationKey: derived.originRecommendationKey } };
+  exit code: 0
+  ```
+
+  T-04-U10 does not compare the bridge against a stored expectation — it **re-runs the producer** over the record
+  the bridge reports it assembled, so a bridge that derived correctly and then prefixed, truncated, cached or
+  substituted an authored key fails there rather than passing on a stale constant. The non-vacuity half perturbs
+  every measured contributing term in isolation and requires each to move the key, and `ORIGIN_KEY_TERMS` is read
+  off the producer by perturbation rather than authored, so the loop widens by itself if the producer starts
+  folding in a further field. The carriage half is the executed source above: `lifecycleBindingFor` is the only
+  assembly point and it writes the key into `lifecycleBinding`, which the shipped
+  `RESOLUTION_UNHASHED_FIELDS = ["eventId", "lifecycleBinding"]` (verified at `rlclaims.js:262` this pass — the
+  `:250` citation above has drifted) holds outside the content address; that exclusion is asserted by execution in
+  the same run at `tests/recommendation-track-record.unit.mjs:1813`–`:1822`. **Honest gap:** no test calls
+  `lifecycleBindingFor` directly, so the carriage rests on a single-assembly-point source reading rather than on an
+  execution assertion.
 - [x] No `RUN_SCOPED_KEYS` member (`rlclaims.js:259`) appears inside the hashed `provenance` block; run-scoped facts go in `lifecycleBinding`.
 
   **Evidence — increment 3 (write slice, commit `c8665265f`).** Executed from `<repo-root>`.
@@ -660,8 +727,49 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 
 #### Test items
 
-- [ ] T-04-U1 passes: all four predicate kinds evaluate correctly with satisfied and invalidated fixtures, and the basis is read from the claim's frozen term → evidence recorded in `report.md#t-04-u1`. — proves SCN-015-003
-- [ ] T-04-U2 passes: point vs path comparator semantics hold and a path gap closes `path-incomplete` → evidence recorded in `report.md#t-04-u2`.
+- [x] T-04-U1 passes: all four predicate kinds evaluate correctly with satisfied and invalidated fixtures, and the basis is read from the claim's frozen term → evidence recorded in `report.md#t-04-u1`. — proves SCN-015-003
+
+  **Evidence — increment 4 (predicate slice, commit `65e47272b`).** Executed from `<repo-root>`.
+
+  ```
+  $ node --test tests/recommendation-track-record.unit.mjs
+  ✔ T-04-U1 (increment 4): all four predicate kinds evaluate, and the kind and comparator are bound to the frozen vocabularies (66.35991ms)
+  ℹ tests 33
+  ℹ pass 33
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  Each kind is proven satisfied **and** invalidated on the same fixture series, so the verdict tracks the bound
+  rather than the fixture. `relative` and `spread` are proven to be different predicates rather than two spellings:
+  on the same pair at the same bound, `spread` reads the leg difference (`-15`, satisfied) while `relative` reads
+  the basket mean against the reference (`-7.5`, invalidated). `directional` reads the claim's **frozen flat band**
+  and expressly not `predicate.value`, which is why a correct bearish call on a falling series is satisfied. The
+  basis is the claim's frozen term throughout — the same `DVG` series scores `+10` under `raw-close` and `-10`
+  under `adjusted-close`. Out-of-vocabulary refuses rather than coercing, including `constructor`, which a lookup
+  that skipped the membership test would have resolved through the prototype chain.
+- [x] T-04-U2 passes: point vs path comparator semantics hold and a path gap closes `path-incomplete` → evidence recorded in `report.md#t-04-u2`.
+
+  **Evidence — increment 4 (predicate slice, commit `65e47272b`).** Executed from `<repo-root>`.
+
+  ```
+  $ node --test tests/recommendation-track-record.unit.mjs
+  ✔ T-04-U2 (increment 4): point and path comparators are different evaluations, and a path gap closes path-incomplete (18.598175ms)
+  ℹ tests 33
+  ℹ pass 33
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  A point comparator reports `sessionsEvaluated: [resolution session]`; a path comparator walks the whole committed
+  window and decides at the **crossing** session rather than the last one. The gap case removes exactly one interior
+  session — asserted as a length difference of `1`, so the fixture cannot be vacuously empty — and returns
+  `unresolved` / `path-incomplete` with no `RTR-*` code, while a missing **entry** session comes back as
+  `session-absent` because the denominator is the endpoint case, not a path gap. Lookahead stays the increment-2
+  refusal: a window fenced short of its own resolution date raises `RTR-LOOKAHEAD` from `basisValueAt` rather than
+  from a second rule written here. **Fourth plan defect surfaced here — see `report.md`:** a path comparator on
+  `adjusted-close` refuses `RTR-PRICE-BASIS` / `path-extremes-absent-for-basis`, a resolver-owned code that this
+  scope's header still lists as merely **proposed**. Surfaced, not fixed.
 - [x] T-04-U3 passes: `satisfied` with a negative magnitude preserves both axes → evidence recorded in `report.md#t-04-u3`.
 
   **Evidence — increment 3 (write slice, commit `c8665265f`).** Executed from `<repo-root>`.

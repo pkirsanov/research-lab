@@ -243,25 +243,48 @@ syntax error, a missing browser or an absent test does not satisfy RED.
       each recorded with its own `retrievedAt` and its own locator, and no figure
       was recalled, derived from another figure, or taken from a secondary site.
   - **Phase:** implement · **Command:** the retrieval records in the pack plus `node scripts/selftest.mjs` · **Evidence:** `report.md#sourcing`
-  - **Open because:** `BI-6` covers three figure groups and only one was
-    retrievable. The Franchise Tax Board publication reached at
-    `https://www.ftb.ca.gov/forms/2026/2026-540-es-instructions.html` states the
-    declared year's standard deduction, but it directs the reader to a prior-year
-    publication for both the rate schedule and the exemption credit amount.
-    A second session retried the two failing URLs — both 404 again — and did
-    reach a rate schedule via the FTB forms index, at the 2025 Form 540 booklet.
-    That does not close the row and makes the obstacle sharper: the pack declares
-    2026, the retrieved schedule is titled *2025 California Tax Rate Schedules*,
-    and the declared-year publication's own worksheet tells the filer to use the
-    2025 table and the 2025 exemption credit. A publication that directs the
-    reader to the prior year's table is the authority stating the declared year's
-    table is not yet published. Transcribing 2025 bands into a 2026 pack is a
-    figure relabelled across tax years, which `BI-6` and FR-022-007 both forbid.
-    The exemption credit was not retrieved even for the prior year — the
-    instructions carry only the AGI limitation, the amount being pre-printed on
-    the form PDF. The pack was left unmodified both times. **Routed to
-    `bubbles.plan`:** this row cannot be closed by another retrieval attempt; it
-    needs a decision about the pack's declared year. See `report.md#sourcing`.
+  - **Open because:** `BI-6` covers three figure groups and **none of them was
+    retrievable**. A third session took the route the earlier two had not, the
+    Revenue and Taxation Code sections that create the figures, and retrieved
+    both in full: section 17073.5 for the standard deduction and section 17054
+    for the exemption credits. Neither supplies a declared-year amount, and each
+    says so itself — subdivision 17073.5(d) requires the Franchise Tax Board to
+    *recompute* the deduction every taxable year and subdivision 17054(i)
+    requires it to *compute* the credits the same way, both from a Consumer
+    Price Index change the Department of Industrial Relations transmits **no
+    later than August 1 of the current calendar year**. The printed amounts are
+    a pre-indexing base, exactly as section 17041(h) makes the printed brackets
+    one. The declared-year Form 540 booklet that would carry the recomputed
+    tables returns HTTP 404, as do three further declared-year and prior-year
+    rate pages.
+
+    **The three missing figures, named exactly:** the ordinary rate schedule for
+    all four filing statuses; the standard deduction for all four filing
+    statuses; the personal exemption credit amount for all four filing statuses.
+    **What would unblock them:** publication of the Franchise Tax Board's Form 540
+    personal income tax booklet for the declared tax year, which carries all
+    three in one document. The CPI input for the declared year was transmitted
+    at the start of this month, so the blocker is a dated external publication
+    event, not a broken link a later session could route around.
+
+    **A prior claim on this row is withdrawn.** The earlier note recorded that
+    the declared year's Form 540-ES instructions state the declared year's
+    standard deduction. The amount that worksheet lists for each filing status is
+    identical, to the dollar, to the amount the *prior* year's Form 540 chart
+    lists for the same status, and it sits in a worksheet whose adjacent lines
+    send the filer to the prior year's tax table and the prior year's exemption
+    credit. Section 17073.5(d) mandates a recomputation every year, so a genuine
+    declared-year figure equal to the prior year's to the dollar would require a
+    zero CPI change. Closing this row on it would have relabelled a figure across
+    tax years, which `BI-6` and FR-022-007 both forbid.
+
+    The pack was left carrying no figure for the third time; what changed is that
+    the twelve year-blocked absent figures now name the recomputation mandate,
+    the August 1 transmission and the specific publication whose issue supplies
+    them, instead of saying "was not retrieved in this session". **Routed to
+    `bubbles.plan`:** unchanged — this row cannot be closed by another retrieval
+    attempt and needs a decision about the pack's declared year. See
+    `report.md#sourcing`.
 - [x] FR-022-027 is implemented: every unretrieved figure is an `AbsentFigure/v1`
       with a `missingSource` pointer and no numeric member, and its leg refuses
       while sibling legs still resolve.
@@ -300,12 +323,21 @@ syntax error, a missing browser or an absent test does not satisfy RED.
     as `credit-against-tax` at `after-rate-application` with `appliesToLegs`
     naming the ordinary leg alone, place that stage after both the rate stage and
     the leg sum, and refuse a pack that moves it before the rate or turns it into
-    a deduction from income. TP-04-04 has no assertion at all: a suite-wide
-    census of the thirteen passing `TP-04-04` lines found **none** naming
-    California, a state deduction or a standard deduction — every one belongs to
-    another feature reusing the row id. This row unblocks when `BI-6` closes, and
-    `BI-6` is now itself routed to `bubbles.plan` over the pack's declared year.
-    It must not be closed by weakening it to the application point alone.
+    a deduction from income. **TP-04-04 now has an owning assertion**, added in a
+    later session and proven able to fail by name through
+    `scripts/red-green-probe.sh` against `rltaxstate.js`. It covers the row's
+    third clause — the deduction is never derived from the federal deduction — by
+    pinning that no number anywhere in the pack equals any federal standard
+    deduction, that the settlement publishes `appliedDeduction` as a refusal that
+    propagates rather than a filled figure, and that a clone borrowing the
+    federal single-filer figure is caught by the same detector. It deliberately
+    does **not** cover the row's other two clauses, which speak about a resolved
+    figure. So the Test Plan row now has an owner, but this DoD row still has no
+    deduction: all four `standardDeductions` remain `AbsentFigure/v1` and the
+    exemption credit `amounts` likewise, so no pre-credit and post-credit pair
+    can be shown side by side. This row unblocks when `BI-6` closes, and `BI-6`
+    is blocked on an external publication event. It must not be closed by
+    weakening it to the application point alone.
 - [x] FR-022-025 and FR-022-026 are implemented: all four filing statuses cross at
       the identical surcharge threshold and no credit reduces the surcharge, each
       proven by an adversarial mutation.
@@ -380,6 +412,14 @@ syntax error, a missing browser or an absent test does not satisfy RED.
 - [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
   - **Phase:** implement · **Command:** the exact TP-04-01 through TP-04-19 commands · **Evidence:** `report.md#test-evidence`
+  - **Open because:** TP-04-04 was the one row owned by no assertion at all, and
+    a later session gave it an owning assertion together with discriminating
+    RED and same-command GREEN evidence recorded at `report.md#tp-04-04`. That
+    removes the worst case but does not close this row: a row-by-row audit
+    establishing that each of the nineteen rows carries its own intended-RED and
+    same-command-GREEN pair was not performed in that session, so the universal
+    claim this row makes is not supported by evidence produced here. Closing it
+    requires that audit, not an inference from the rows that do carry a pair.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count and no
       existing assertion edited, `node scripts/validate-spec-test-paths.mjs`
       reports zero new missing paths, and `node scripts/build-pages-site.mjs

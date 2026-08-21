@@ -342,9 +342,21 @@ error, a missing browser or an absent test does not satisfy RED.
 - [ ] The federal pack and Feature 021's spec directory are byte-identical,
       proving the jurisdiction axis is a seam rather than a federal edit.
   - **Phase:** implement · **Command:** a path-scoped status check over the excluded list · **Evidence:** `report.md#change-boundary`
-- [ ] No output states a probability, a lifetime figure, a track record or an
+- [x] No output states a probability, a lifetime figure, a track record or an
       error rate, and no state figure is presented as an estimate or an average.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
+  - **Closed 2026-08-21.** The row was previously open because the output surface
+    did not exist; the page now declares both residency inputs, loads the state
+    module and renders a `power-state` band, so it is decidable. Nothing pinned it
+    before — Feature 021's equivalent check scans five federal files and none of
+    this scope's surfaces. One appended assertion now scans the module, both state
+    packs and the band slice, under two rules: claim tokens must not appear at all,
+    and `average`/`estimate` are permitted only where the same line negates them,
+    which is the shipped refusal wording. Both rules were probed through
+    `scripts/red-green-probe.sh` and each fells exactly one assertion —
+    `3176 passed, 1 failed` against `3177 passed, 0 failed`, reverts hash-verified.
+    The second probe targets the page rather than the module so the band slice is
+    proven live rather than assumed non-empty.
 - [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
   - **Phase:** implement · **Command:** the exact TP-03-01 through TP-03-21 commands · **Evidence:** `report.md#test-evidence`

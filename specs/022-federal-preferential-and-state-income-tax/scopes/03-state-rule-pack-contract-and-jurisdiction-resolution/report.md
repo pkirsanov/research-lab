@@ -1110,28 +1110,92 @@ change owned by `bubbles.plan`, not an execution claim this report may make.
 
 ## Claim Boundary
 
-**Claim Source:** not-run. **This section does not close its Definition-of-Done
-row, which is left open.**
+**Claim Source:** executed. **This section closes its Definition-of-Done row.**
 
-The row covers this scope's **output**, and the output surface is not built yet.
-`lifetime-tax-strategy-lab.html` carries no residency input, no state panel and no
-`StateStageLedger`; a scan of the page for `residency` returns zero matches and
-the page does not load `rltaxstate.js` at all. There is therefore no rendered
-state figure to check for an estimate or an average, and no scan of the page could
-distinguish this scope's claims from the six other features' text already there.
+An earlier pass left this row open for a sound reason: the output surface did not
+exist. `lifetime-tax-strategy-lab.html` carried no residency input, no state panel
+and no `StateStageLedger`, so there was no rendered state figure to check. That is
+no longer true — the page declares `inputResidencyJurisdiction` and
+`inputResidencyPattern`, loads `rltaxstate.js`, and renders a `power-state` band
+with a stage table, a pack identity line and an authority line. The row is
+therefore decidable now, and it is decided by a persistent assertion rather than
+by a one-off scan someone has to remember to repeat.
 
-What can be said today is narrower than the row and is recorded as a fact rather
-than as satisfaction: the surfaces this scope does ship — `rltaxstate.js`, the
-Florida pack and the contract fixture — carry no probability, likelihood, success
-rate, accuracy figure, error rate, track record, break-even or lifetime total, and
-the single occurrence of the word *average* in the state module sits inside the
-refusal text that promises the opposite, `no average, national default or zero is
-substituted`. That is the right behaviour, not a leak. The row stays open until
-the panel exists and the same check can be made against what a reader actually
-sees.
+**What was pinning it before: nothing.** Feature 021's equivalent check scans five
+*federal* files — `rltax.js`, `rltaxrules.js`, `rltaxworkspace.js`, the federal
+pack and the configuration — and stops there. Every surface this scope added was
+outside it. A green suite therefore said nothing at all about this row, which is
+the shape of miss this program has found repeatedly.
 
-This also blocks the browser rows TP-03-17 through TP-03-21 and, through them, the
-row requiring every Test Plan row to carry recorded RED and GREEN evidence.
+**What is pinned now.** One appended assertion scans the four surfaces this scope
+ships state text from: the module, the Florida pack, the contract fixture pack,
+and the static `power-state` band sliced out of the page between its own opening
+`div` and the `power-combined` band that follows it.
+
+The row has two clauses and they are not the same shape, so the assertion carries
+two rules:
+
+1. **Claim tokens must not appear at all** — `probabilit`, `likelihood`,
+   `success rate`, `accuracy`, `track record`, `error rate`, `win rate`,
+   `break-even`, `lifetime total`, `expected value` and their compact spellings.
+2. **`average` and `estimate` are permitted only where the same line negates
+   them.** They legitimately occur twice: the module's refusal text promises *"no
+   average, national default or zero is substituted"*, and the band's own
+   paragraph says a jurisdiction with no pack *"says so instead of substituting an
+   average"*. Both are the right behaviour. A bare occurrence — a figure offered
+   *as* an estimate — is the defect, so the rule requires a negator on the line.
+
+The assertion also refuses an empty band slice, because a slice that failed to
+match would leave the page silently unscanned while both rules passed over
+nothing — the exact failure mode the check exists to prevent.
+
+**Intended RED, rule 1, reverted and hash-verified by the harness.**
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            Scope 03 claim boundary: the state module gains a track-record claim in its own header comment
+file:             rltaxstate.js
+mutation:          * UMD dual module: attaches to the global AND sets module.exports. Never ESM.  ->   * UMD dual module: attaches to the global AND sets module.exports. Never ESM. It publishes a track record.   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3176 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3177 passed, 0 failed
+revert-verified:  yes (committed=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d restored=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Intended RED, rule 2, on the page rather than the module** — because a rule
+proven only against the module would leave the band slice unproven, and an
+unproven slice is indistinguishable from an empty one:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            Scope 03 claim boundary: the Power state band heading presents the state settlement as an estimate
+file:             lifetime-tax-strategy-lab.html
+mutation:         <h3>The state settlement, and the jurisdiction that produced it</h3>  ->  <h3>The state settlement, an estimate, and the jurisdiction that produced it</h3>   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3176 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3177 passed, 0 failed
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Both mutations are value-free: one adds an English phrase to a header comment,
+the other adds two words to a heading. Neither carries a rate, a threshold, a
+jurisdiction figure or a household amount. In each case exactly one assertion
+fell — `3176 passed, 1 failed` against `3177 passed, 0 failed` — so each rule is
+shown to be the thing that fires, not a bystander in a wider cascade.
+
+**What this row does not claim.** The scan covers every surface state text is
+*written in*. It does not walk the rendered DOM, so a figure composed at runtime
+from members that individually carry no forbidden token would not be caught here.
+That case belongs to the browser row, and the browser rows for this scope are
+open for a separate reason recorded under the Test Plan census.
 
 ## Completion Statement
 

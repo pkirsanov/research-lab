@@ -48,7 +48,7 @@ let site;
 test.beforeAll(async () => { site = await startStaticServer(); });
 test.afterAll(async () => { if (site) await site.close(); });
 
-test('Regression: a jurisdiction that levies no individual income tax renders its sourced zero with the authority that establishes it, and never enters the federal total', async ({ page }) => {
+test('Regression: SCN-022-009 a jurisdiction that levies no individual income tax renders its sourced zero with the authority that establishes it, and never enters the federal total', async ({ page }) => {
   await openLifetimeTax(page, site);
   await declareOrdinaryHousehold(page, { ordinary: 123457, bracketId: 'b3' });
 
@@ -153,7 +153,7 @@ test('Regression: California renders an unavailable naming the source that was n
   }
 });
 
-test('Regression: an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero', async ({ page }) => {
+test('Regression: SCN-022-007 / SCN-022-008 an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero', async ({ page }) => {
   await openLifetimeTax(page, site);
   await declareOrdinaryHousehold(page, { ordinary: 123457, bracketId: 'b3' });
 
@@ -216,7 +216,7 @@ test('Regression: a residency declaration that changes nothing rebuilds nothing,
   await expect(cardRefusal(page)).toHaveAttribute('data-rl-unavailable-domain', 'state-deduction:single');
 });
 
-test('Regression: the residency declaration reaches no URL, no request, no console message and no export', async ({ page }) => {
+test('Regression: SCN-022-007 the residency declaration reaches no URL, no request, no console message and no export', async ({ page }) => {
   const ledger = collectRequests(page);
   const consoleMessages = collectConsole(page);
   await openLifetimeTax(page, site);

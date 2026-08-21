@@ -527,6 +527,74 @@ Scenario SCN-022-011 — an implementation that subtracts the exemption credit f
 income is proven to fail the application-point assertion.
 Command: `node scripts/selftest.mjs`
 
+#### The refusal-rather-than-zero clause, closed in this session
+
+The mechanism half of FR-022-023 / FR-022-024 was already pinned by the TP-04-05
+and TP-04-06 assertion above: the credit is declared `credit-against-tax` at
+`after-rate-application` naming the ordinary leg alone, `CO-13` sits after both
+`CO-6` and `CO-8` in the declared order, and a pack that moves it before the rate
+or turns it into a `deduction-from-income` is refused. The restatement added one
+clause that nothing owned — that an **absent** per-status amount must refuse under
+its own named code rather than resolving to zero or being skipped — and required
+that clause to have its own discriminating RED before the row closes.
+
+That clause is now owned by an assertion appended to the Feature 022 Scope 04
+group in `scripts/selftest.mjs`. It reaches `applyReliefAfterRate` directly,
+because the shipped California settlement refuses at the deduction long before
+`CO-13` and therefore never exercises the stage. For every filing status the
+shipped pack produces a refusal carrying `RLTAX-THRESHOLD-UNAVAILABLE`, the
+mechanism's own domain `state-relief:personal-exemption-credit` and a
+remediation, and carrying **no** `value`, **no** `applied` list and **no**
+`reductionByLeg` — so neither a zero nor a skip is readable off it. Two controls
+prove the refusal is caused by the absence rather than by the stage: a synthetic
+control amount, which is not a California figure and is not offered as one,
+resolves the same stage into exactly one `CO-13` application against the ordinary
+leg alone; and a non-finite amount reaches the same named code by its own
+fall-through path rather than a zero.
+
+Both failure modes the row names were probed separately through
+`scripts/red-green-probe.sh`, which arms its revert before mutating and verifies
+the revert by blob hash. Each fell the new assertion **alone**.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            FR-022-023/024: absent relief amount must refuse, not be skipped
+file:             rltaxstate.js
+mutation:         if (rules.isAbsentFigure(amount)) return rules.absentFigureRefusal(amount, domain);  ->  if (rules.isAbsentFigure(amount)) { continue; }   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3182 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3183 passed, 0 failed
+summary-compared: Research-Lab self-test: 3182 passed, 1 failed  vs  Research-Lab self-test: 3183 passed, 0 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d restored=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe exit=0
+```
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            FR-022-023/024: absent relief amount must refuse, not resolve to zero
+file:             rltaxstate.js
+mutation:         if (rules.isAbsentFigure(amount)) return rules.absentFigureRefusal(amount, domain);  ->  if (rules.isAbsentFigure(amount)) { amount = 0; }   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3182 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3183 passed, 0 failed
+summary-compared: Research-Lab self-test: 3182 passed, 1 failed  vs  Research-Lab self-test: 3183 passed, 0 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d restored=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe exit=0
+```
+
+The single RED failure in each run is this session's new assertion and nothing
+else: the shipped California settlement never reaches `CO-13`, so no other row
+reads the stage the mutation changed. Both probes reverted under the harness's
+own trap and the same command returned `3183 passed, 0 failed`.
+
 ### TP-04-07
 
 Scenario SCN-022-012 — the surcharge is exact below, at and above the threshold,
@@ -701,6 +769,73 @@ Step 1 security — escaped model sinks and CSP on every page
 Research-Lab self-test: 3100 passed, 0 failed
 ================================================
 ```
+
+#### BI-6's second branch, walked in this session
+
+The probe above walks twelve records across three groups. `BI-6`'s second branch,
+as `bubbles.plan` restated it, is a claim about **every** figure the retrievals
+could not reach, and the fourth group — the four `preferentialRateTables` entries
+— sits outside that walk. A second assertion appended to the same group in
+`scripts/selftest.mjs` walks all sixteen and reads the four members the branch
+names, by name.
+
+All sixteen were re-derived rather than inherited. Each is an `AbsentFigure/v1`;
+each carries `code`, `domain`, `reason`, `whatWouldMakeItAvailable` and
+`missingSource`; each `code` is a member of the declared refusal vocabulary; each
+`missingSource` carries a non-empty title, url and locator; and the sixteen
+domains are **sixteen distinct strings**, so one remediation cannot silently stand
+in for sixteen gaps. No record carries any of the five value-bearing member names,
+and the four groups together carry no number at all.
+
+The row's adversarial case is carried by two controls built into the assertion, so
+the assertion passes only when both detectors fire:
+
+- **A figure present under neither branch.** A clone planting a bare number in
+  `standardDeductions.single` — no `SourceRecord` retrieval, no `AbsentFigure`
+  paperwork — is counted short by the walk (fifteen of sixteen) and is refused by
+  the contract.
+- **A figure derived from another figure the pack carries.** The surcharge
+  threshold is the one California figure that *was* retrieved. A clone that reuses
+  it as a standard deduction is cited, well-formed and still fabricated. A
+  cross-group detector reads the numbers the pack carries outside the four groups
+  and refuses any of them appearing inside one: it returns exactly one hit on the
+  clone and zero on the shipped pack.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BI-6 branch two: sixteen-record walk, domain uniqueness
+file:             tax-rules/state/CA/2026.json
+mutation:         state-preferential-rate-table:head-of-household  ->  state-preferential-rate-table:single   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3181 passed, 2 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3183 passed, 0 failed
+summary-compared: Research-Lab self-test: 3181 passed, 2 failed  vs  Research-Lab self-test: 3183 passed, 0 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=f6b645e28c2d462a6d5094c6620d6baf4f8531e9 restored=f6b645e28c2d462a6d5094c6620d6baf4f8531e9)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe exit=0
+```
+
+The RED run reports two failures rather than one, and both are accounted for
+rather than assumed. The accounting was re-derived read-only, without touching the
+file, by computing the digest and the domain set over an in-memory clone:
+
+```text
+RED-ACCOUNTING — which two rows the probe mutation fells
+1) TP-04-01 digest clause: shipped computed == declared ? true
+   mutated computed == declared ? false
+2) new TP-04-11 sixteen-record clause: shipped distinct domains = 16 of 16
+   mutated distinct domains = 15 of 16
+3) old TP-04-11 twelve-record walk touches preferential tables ? false (its groups are standardDeductions, ordinaryRateTables and the relief amounts)
+4) resolveRulePack expectedContentSha256 clause is self-referential, so unaffected: true
+5) validateRulePack still ok on the mutated pack (both domains non-empty): true
+```
+
+The first failure is TP-04-01, whose digest clause any pack edit moves; the second
+is this session's assertion. The pre-existing twelve-record walk does not read the
+preferential group at all, which is exactly why the sixteen-record walk was needed.
 
 ### TP-04-12
 

@@ -239,7 +239,7 @@ syntax error, a missing browser or an absent test does not satisfy RED.
     the three exclusions the pack encodes. TP-04-12 fell by name under a
     value-free `retrieved`-to-`attempted` probe and returned green under the
     identical command after an in-invocation revert.
-- [ ] `BI-6` was closed by retrievals performed in the implementation session,
+- [x] `BI-6` was closed by retrievals performed in the implementation session,
       each recorded with its own `retrievedAt` and its own locator, or every figure
       those retrievals could not reach ships as an `AbsentFigure/v1` naming its
       refusal code, its reason, what would make it available and its
@@ -315,6 +315,23 @@ syntax error, a missing browser or an absent test does not satisfy RED.
     four named members and confirm the adversarial case above fails, not another
     retrieval attempt. The question of the pack's declared year remains open and
     is a separate decision; it no longer holds this row hostage.
+  - **Closed on branch two.** The walk asked for was performed and is owned by an
+    assertion rather than by prose. All 16 records — 4 `standardDeductions`, 4
+    `ordinaryRateTables`, 4 `preferentialRateTables` and the credit's 4 per-status
+    `amounts` — are `AbsentFigure/v1`, each carrying `code`, `domain`, `reason`,
+    `whatWouldMakeItAvailable` and a `missingSource` with a title, a url and a
+    locator, with 16 **distinct** domains and no value-bearing member anywhere. The
+    row's adversarial case is carried by two controls the assertion cannot pass
+    without: a bare number planted under neither branch is counted short by the
+    walk and refused by the contract, and a deduction derived from the surcharge
+    threshold the pack already carries is caught by a cross-group detector that
+    returns one hit on the clone and zero on the shipped pack. Proven able to fail
+    through `scripts/red-green-probe.sh`: duplicating one preferential domain fell
+    it at `3181 passed, 2 failed`, and the same command returned
+    `3183 passed, 0 failed` after the harness reverted and hash-verified. Both RED
+    failures are accounted for read-only rather than assumed — TP-04-01's digest
+    clause, which any pack edit moves, and this assertion.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#bi-6s-second-branch-walked-in-this-session`, `report.md#tp-04-11`
 - [x] FR-022-027 is implemented: every unretrieved figure is an `AbsentFigure/v1`
       with a `missingSource` pointer and no numeric member, and its leg refuses
       while sibling legs still resolve.
@@ -339,7 +356,7 @@ syntax error, a missing browser or an absent test does not satisfy RED.
     dropped from the pooling sum and returned green under the identical command
     after an in-invocation revert; TP-04-10 refuses a pack that declares `none`
     while carrying a table.
-- [ ] FR-022-023 and FR-022-024 are implemented: California's own deduction is
+- [x] FR-022-023 and FR-022-024 are implemented: California's own deduction is
       applied to California's own taxable income and is never derived from the
       federal deduction, and the exemption relief is declared
       `credit-against-tax` at `after-rate-application` naming the ordinary leg
@@ -386,6 +403,26 @@ syntax error, a missing browser or an absent test does not satisfy RED.
     `BI-6` is open, and that is now the row's *expected* state rather than its
     blocker. It must still not be closed by asserting the application point alone
     while leaving the absent-amount refusal unproven.
+  - **Closed, with the added clause given its own discriminating RED.** The
+    mechanism half stands unchanged on TP-04-05/TP-04-06 and TP-04-04. The clause
+    the restatement added is now owned by an assertion that reaches
+    `applyReliefAfterRate` directly, because the shipped settlement refuses at the
+    deduction long before `CO-13` and never exercises the stage. For all four
+    filing statuses the shipped pack yields a refusal carrying
+    `RLTAX-THRESHOLD-UNAVAILABLE`, the mechanism's own domain
+    `state-relief:personal-exemption-credit` and a remediation, with **no** `value`,
+    **no** `applied` list and **no** `reductionByLeg` — so neither a zero nor a
+    skip is readable off it. Two controls prove the refusal is caused by the
+    absence rather than by the stage: a synthetic control amount, which is not a
+    California figure and is not offered as one, resolves the same stage into
+    exactly one `CO-13` application against the ordinary leg alone; and a
+    non-finite amount reaches the same named code by its own fall-through. Both
+    failure modes the row names were probed separately through
+    `scripts/red-green-probe.sh` — replacing the refusal with a `continue` (the
+    skip) and with `amount = 0` (the zero). Each fell this assertion **alone** at
+    `3182 passed, 1 failed`, and each same-command GREEN returned
+    `3183 passed, 0 failed` after the harness reverted and hash-verified.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#the-refusal-rather-than-zero-clause-closed-in-this-session`, `report.md#tp-04-04`, `report.md#tp-04-05`, `report.md#tp-04-06`
 - [x] FR-022-025 and FR-022-026 are implemented: all four filing statuses cross at
       the identical surcharge threshold and no credit reduces the surcharge, each
       proven by an adversarial mutation.

@@ -15498,6 +15498,138 @@ try {
     && californiaPack.unsupportedFeatures.some((feature) =>
       feature.id === 'ca-standard-deduction-for-declared-year' && feature.movesMarginalRate === true),
   'TP-04-04: California carries no standard deduction of its own for the declared year, every filing status is an absent figure with no numeric member and a remediation naming a California authority, no figure anywhere in the pack equals any federal standard deduction, and the settlement publishes appliedDeduction as a refusal that propagates into state taxable income while gross supported income still resolves — proven able to fail by a clone that borrows the federal single-filer figure, which the same detector catches and whose settlement then publishes that borrowed figure');
+
+  /* TP-04-11 — the OWNING assertion for BI-6's second branch. TP-04-11 above walks twelve
+     records across three groups; the branch BI-6 was restated to permit is a claim about
+     EVERY unretrievable figure, and the fourth group (the preferential tables) sits outside
+     that walk. This assertion walks all sixteen and reads the four members the branch names
+     by name, so a record that carried a code and a reason but no remediation or no locator
+     would fall it.
+
+     The row's own adversarial case is what the two controls below exist to satisfy: a figure
+     present under NEITHER branch, and a figure DERIVED from another figure the pack carries.
+     Branch two is a licence to ship an honest absence, never a licence to ship an unsourced
+     number wearing an absence's paperwork. */
+  const absentBranchGroups = ['standardDeductions', 'ordinaryRateTables', 'preferentialRateTables'];
+  const branchRecordsOf = (pack) => {
+    const records = [];
+    absentBranchGroups.forEach((group) => {
+      statuses.forEach((status) => { records.push(pack[group][status]); });
+    });
+    statuses.forEach((status) => { records.push(pack.reliefMechanisms[0].amounts[status]); });
+    return records;
+  };
+  const branchMembers = ['code', 'domain', 'reason', 'whatWouldMakeItAvailable', 'missingSource'];
+  const branchRecords = branchRecordsOf(californiaPack);
+  const branchDomains = branchRecords.map((record) => record && record.domain);
+  /* Control one — a figure present under NEITHER branch. A bare number carrying no
+     SourceRecord retrieval and no AbsentFigure paperwork at all. */
+  const unsourcedPlant = clone(californiaPack);
+  unsourcedPlant.standardDeductions.single = 4242;
+  /* Control two — a figure DERIVED from another figure the pack already carries. The
+     surcharge threshold is the one California figure that WAS retrieved; a deduction that
+     silently reuses it is cited, well-formed and still fabricated. The detector reads the
+     numbers the pack carries OUTSIDE the four groups and refuses any of them appearing
+     inside one. */
+  const carriedElsewhere = (pack) => {
+    const numbers = [];
+    (function walk(node) {
+      if (node === null || node === undefined) return;
+      if (typeof node === 'number') { numbers.push(node); return; }
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === 'object') { Object.keys(node).forEach((key) => walk(node[key])); }
+    })(pack.thresholdSets);
+    return numbers;
+  };
+  const numbersInsideGroups = (pack) => {
+    const numbers = [];
+    branchRecordsOf(pack).forEach(function walk(node) {
+      if (node === null || node === undefined) return;
+      if (typeof node === 'number') { numbers.push(node); return; }
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === 'object') { Object.keys(node).forEach((key) => walk(node[key])); }
+    });
+    return numbers;
+  };
+  const derivedPlant = clone(californiaPack);
+  derivedPlant.standardDeductions.single = {
+    contractVersion: 'DeductionAmount/v1',
+    filingStatus: 'single',
+    amount: californiaPack.thresholdSets['additional-tax-above-one-million'].thresholds.all,
+    sourceRef: 'ca-rtc-17043',
+    locator: 'planted derivation for the negative control — the surcharge threshold reused as a deduction'
+  };
+  const derivedHits = numbersInsideGroups(derivedPlant)
+    .filter((number) => carriedElsewhere(derivedPlant).indexOf(number) >= 0);
+  assert(branchRecords.length === 16
+    && branchRecords.every((record) => RULES.isAbsentFigure(record))
+    && branchRecords.every((record) => branchMembers.every((member) =>
+      Object.prototype.hasOwnProperty.call(record, member)))
+    && branchRecords.every((record) => record.reason.length > 0 && record.whatWouldMakeItAvailable.length > 0)
+    && branchRecords.every((record) => RULES.RLTAX_CODES[record.code] === true)
+    && branchRecords.every((record) => record.missingSource.title.length > 0
+      && record.missingSource.url.length > 0 && record.missingSource.locator.length > 0)
+    /* each record names the figure it stands for, so one remediation cannot cover sixteen gaps */
+    && new Set(branchDomains).size === 16
+    && branchRecords.every((record) => valueBearing.every((member) =>
+      !Object.prototype.hasOwnProperty.call(record, member)))
+    /* the shipped pack carries no number at all inside the four groups */
+    && numbersInsideGroups(californiaPack).length === 0
+    /* control one: a figure under neither branch is caught by the walk and refused by the contract */
+    && branchRecordsOf(unsourcedPlant).filter((record) => RULES.isAbsentFigure(record)).length === 15
+    && !RULES.validateRulePack(unsourcedPlant).ok
+    /* control two: a figure derived from another figure the pack carries is caught by name */
+    && carriedElsewhere(californiaPack).length > 0
+    && derivedHits.length === 1
+    && numbersInsideGroups(californiaPack).filter((number) =>
+      carriedElsewhere(californiaPack).indexOf(number) >= 0).length === 0,
+  'TP-04-11: every one of the sixteen California figures no retrieval reached ships as an AbsentFigure/v1 naming its code, its own domain, its reason, what would make it available and a missingSource with a title, a url and a locator, and none carries a value-bearing member — proven able to fail by a clone planting a bare number under neither branch, which the walk counts short and the contract refuses, and by a clone deriving a deduction from the surcharge threshold the pack already carries, which the cross-group detector catches while the shipped pack produces zero hits');
+
+  /* FR-022-023 and FR-022-024 — the OWNING assertion for the refusal-rather-than-zero clause.
+     The mechanism half of that row is pinned by TP-04-05 and TP-04-06 above. The clause the
+     restatement added is a behaviour of the ENGINE rather than of the pack: when the relief
+     stage reaches an absent per-status amount it must refuse under its own named code, and
+     must not resolve to zero, be skipped, or borrow a figure from elsewhere. That clause is
+     reached through applyReliefAfterRate directly, because the shipped settlement refuses at
+     the deduction long before CO-13 and so never exercises it. */
+  const reliefLegValues = { 'state-ordinary': 50000, 'state-surcharge': 1000 };
+  const reliefRefusals = statuses.map((status) =>
+    STATE.applyReliefAfterRate(californiaWorkspace(status, 120000), californiaPack, reliefLegValues, status));
+  /* The positive control. A synthetic amount that is NOT a California figure and is not
+     claimed to be one — its only job is to show the refusal above is caused by the absence
+     rather than being unconditional. */
+  const SYNTHETIC_RELIEF_CONTROL = 137;
+  const reliefResolvedPlant = clone(californiaPack);
+  statuses.forEach((status) => { reliefResolvedPlant.reliefMechanisms[0].amounts[status] = SYNTHETIC_RELIEF_CONTROL; });
+  const reliefResolved = STATE.applyReliefAfterRate(californiaWorkspace('single', 120000),
+    reliefResolvedPlant, reliefLegValues, 'single');
+  /* The non-finite control. An amount that is neither an AbsentFigure nor a number must not
+     fall through to a zero either; it reaches the named code by its own path. */
+  const reliefNonFinitePlant = clone(californiaPack);
+  reliefNonFinitePlant.reliefMechanisms[0].amounts.single = null;
+  const reliefNonFinite = STATE.applyReliefAfterRate(californiaWorkspace('single', 120000),
+    reliefNonFinitePlant, reliefLegValues, 'single');
+  assert(californiaPack.reliefMechanisms[0].varyByFilingStatus === true
+    && statuses.every((status) => RULES.isAbsentFigure(californiaPack.reliefMechanisms[0].amounts[status]))
+    && reliefRefusals.every((refusal) => RULES.isUnavailable(refusal))
+    && reliefRefusals.every((refusal) => codeOf(refusal) === 'RLTAX-THRESHOLD-UNAVAILABLE')
+    && reliefRefusals.every((refusal) => refusal.domain === 'state-relief:personal-exemption-credit')
+    && reliefRefusals.every((refusal) => refusal.whatWouldMakeItAvailable.length > 0)
+    /* neither a zero nor a skip: no numeric member, and no applied list to be read as "nothing claimed" */
+    && reliefRefusals.every((refusal) => !Object.prototype.hasOwnProperty.call(refusal, 'value'))
+    && reliefRefusals.every((refusal) => !Object.prototype.hasOwnProperty.call(refusal, 'applied'))
+    && reliefRefusals.every((refusal) => !Object.prototype.hasOwnProperty.call(refusal, 'reductionByLeg'))
+    /* the positive control proves the refusal is caused by the absence and not by the stage itself */
+    && !RULES.isUnavailable(reliefResolved)
+    && reliefResolved.applied.length === 1
+    && reliefResolved.applied[0].declaredAmount === SYNTHETIC_RELIEF_CONTROL
+    && reliefResolved.applied[0].appliedAtStage === 'CO-13'
+    && JSON.stringify(reliefResolved.applied[0].appliesToLegs) === JSON.stringify(['state-ordinary'])
+    /* and a non-finite amount reaches the named code rather than a zero */
+    && RULES.isUnavailable(reliefNonFinite)
+    && codeOf(reliefNonFinite) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && !Object.prototype.hasOwnProperty.call(reliefNonFinite, 'value'),
+  'FR-022-023 / FR-022-024 TP-04-05 and TP-04-06: when the exemption credit carries no amount for a filing status the relief stage refuses under RLTAX-THRESHOLD-UNAVAILABLE naming its own mechanism domain and publishes neither a value, an applied list nor a per-leg reduction — so a household is never priced as though it had claimed nothing — proven able to fail by a synthetic control amount that resolves the same stage into a single CO-13 application against the ordinary leg alone, and by a non-finite amount that reaches the same named code by its own path rather than a zero');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 Scope 04 California group threw): ' + e.message); }
 
 /* ================================================================================

@@ -32,12 +32,15 @@ import { buildPublishSet } from '../scripts/brief-publication.mjs';
 import {
     CALENDAR_COVERAGE_CODE,
     CALENDAR_COVERAGE_REASON,
+    DETERMINED_CLOSURE_CLASS,
+    MEASURED_CLOSURE_EVENTS,
     SESSION_PREDICATE_CODE,
     SESSION_PREDICATE_KEY,
     advanceSessions,
     earlyCloseSessionsIn,
     loadCalendar,
     readCalendar,
+    resolutionAxesFor,
     sessionDateForEpoch,
     sessionsBy,
 } from '../scripts/brief-resolve-outcomes.mjs';
@@ -1229,6 +1232,138 @@ test('T-04-F2 (increment 1): RTR-CALENDAR-COVERAGE refuses past the committed wi
         () => readCalendar(JSON.stringify({ ...calendar, contractVersion: 'xnys-calendar/v2' })),
         /contractVersion/,
         'an unknown contract version is a substrate defect',
+    );
+});
+
+/* ── Scope 04, increment 3 ────────────────────────────────────────────────────────────────
+   `withdrawn` is a source-of-truth outcome the resolver must never EMIT: it is the residue of an
+   operator withdrawal, never a verdict scoring arrives at. The temptation it guards against is
+   specific — a claim about to score badly being quietly re-labelled as one that was pulled — so
+   the row asserts unreachability STRUCTURALLY over the whole emission surface rather than by
+   sampling inputs, which could only ever prove that the paths someone happened to try were clean. */
+
+const WITHDRAWN = 'withdrawn';
+
+/** The resolver's own source. Reading it as TEXT is the only way to assert what it does NOT say. */
+function resolverSourceText() {
+    return readFileSync(path.join(REPO_ROOT, 'scripts', 'brief-resolve-outcomes.mjs'), 'utf8');
+}
+
+/**
+ * Comments removed, so prose is legitimate BY CONSTRUCTION rather than by exemption. The line-
+ * comment rule skips a `//` preceded by `:` so a URL inside a string cannot truncate the line and
+ * hide an emission that follows it on the same line.
+ */
+function codeWithoutComments(source) {
+    return source.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/gm, '$1 ');
+}
+
+/* A quoted `withdrawn` in CODE is an emission unless it sits on the excluded side of a negated
+   comparison or a negated membership test — `event !== 'withdrawn'` and `!admits.includes(...)`
+   are the two shapes a correct implementation legitimately uses to keep the residue out. */
+const WITHDRAWN_LITERAL = /(['"`])withdrawn\1/g;
+const EXCLUDES_WITHDRAWN = /(?:!==?\s*|![\w.$]*(?:includes|has|indexOf)\(\s*)$/;
+
+function withdrawnEmissions(source) {
+    const code = codeWithoutComments(source);
+    return [...code.matchAll(WITHDRAWN_LITERAL)]
+        .filter((match) => !EXCLUDES_WITHDRAWN.test(code.slice(0, match.index)))
+        .map((match) => code.slice(Math.max(0, match.index - 48), match.index + match[0].length).trim());
+}
+
+test('T-04-F3: `withdrawn` is unreachable from every resolver path — the residue no class admits', () => {
+    /* THE RESIDUE IS REAL. `withdrawn` is a member of the 002-owned closure vocabulary, so its
+       absence below is a genuine EXCLUSION rather than a name that never existed — without this
+       the whole row would pass against a typo. */
+    const vocabulary = closureVocabulary();
+    assert.equal(vocabulary.includes(WITHDRAWN), true, 'withdrawn is a shipped closure event, not an invented one');
+
+    /* EVERY CLOSURE EVENT THE RESOLVER CAN EMIT, enumerated from the two exports rather than
+       sampled. Their union is the whole emission surface: `resolutionAxesFor` measures a
+       MEASURED_CLOSURE_EVENTS member and looks up a DETERMINED_CLOSURE_CLASS one, and refuses
+       anything in neither — so an event absent from both cannot leave the resolver at all. */
+    const emittable = [...MEASURED_CLOSURE_EVENTS, ...Object.keys(DETERMINED_CLOSURE_CLASS)].sort();
+    assert.equal(MEASURED_CLOSURE_EVENTS.includes(WITHDRAWN), false, 'withdrawn is not a measured closure event');
+    assert.equal(
+        Object.prototype.hasOwnProperty.call(DETERMINED_CLOSURE_CLASS, WITHDRAWN),
+        false,
+        'withdrawn determines no outcome class',
+    );
+    assert.equal(Object.values(DETERMINED_CLOSURE_CLASS).includes(WITHDRAWN), false, 'and is no class a closure lands in');
+    assert.equal(emittable.includes(WITHDRAWN), false, 'so it is outside the whole emission surface');
+    assert.deepEqual(
+        vocabulary.filter((event) => !emittable.includes(event)),
+        [WITHDRAWN],
+        'withdrawn is EXACTLY the residue — the one vocabulary member no outcome class admits',
+    );
+
+    /* AND IT IS NOT AN OUTCOME CLASS EITHER. A withdrawal is a lifecycle state, still counted in
+       the partition, which is what stops "never emitted" from meaning "quietly dropped". */
+    assert.equal(claims.OUTCOME_CLASSES.includes(WITHDRAWN), false, 'withdrawn is no outcome class');
+    assert.equal(claims.NON_CLASS_PARTITION_BUCKETS.includes(WITHDRAWN), true, 'it is a counted lifecycle bucket');
+
+    /* THE SOURCE SCAN. The resolver names `withdrawn` once, in prose; comment-stripping removes
+       that occurrence entirely, which is asserted directly so the empty emission list below is
+       attributable to the stripper doing its job rather than to the token being absent outright. */
+    const source = resolverSourceText();
+    assert.equal(source.includes(WITHDRAWN), true, 'the resolver does discuss the residue in prose');
+    assert.equal(codeWithoutComments(source).includes(WITHDRAWN), false, 'and only in prose — never in code');
+    assert.deepEqual(withdrawnEmissions(source), [], 'no authored withdrawn emission anywhere in the resolver');
+
+    /* THE SCANNER IS NON-VACUOUS, in BOTH directions. Over a synthetic source it must flag the
+       assignment and must NOT flag the prose or the exclusion — a scanner that returned `[]` for
+       everything, or flagged every mention, would have passed the assertion above either way. */
+    const synthetic = [
+        '/* `withdrawn` is the residue no class admits — prose, and legitimate. */',
+        "const admitted = vocabulary.filter((event) => event !== 'withdrawn');",
+        "if (!admitted.includes('withdrawn')) return { ok: true, admitted };",
+        "return { ok: true, closureEventType, outcomeClass: 'withdrawn' };",
+    ].join('\n');
+    const flagged = withdrawnEmissions(synthetic);
+    assert.equal(flagged.length, 1, `the scanner must flag exactly the assignment, got ${JSON.stringify(flagged)}`);
+    assert.equal(flagged[0].includes("outcomeClass: 'withdrawn'"), true, 'and it must be the assignment it flagged');
+
+    /* THE BEHAVIOURAL HALF. A claim scoring clearly NEGATIVE must still score negative: the
+       verdict is the module's own, taken from `classifyOutcome`, so this row asserts what the
+       resolver produced rather than restating a class it expected. */
+    const { claim } = mintEvaluable('evaluable-instrument-add');
+    const band = claims.flatBandFor(claim);
+    assert.equal(band.ok, true, `the fixture claim must carry a usable band: ${JSON.stringify(band.error)}`);
+
+    const clearlyNegative = -band.flatBand * 9;
+    const classified = claims.classifyOutcome(clearlyNegative, claim);
+    assert.equal(classified.ok, true, `classifyOutcome refused: ${JSON.stringify(classified.error)}`);
+    assert.equal(classified.outcomeClass, 'loss', 'the module — not this row — calls a large negative a loss');
+    assert.equal(claims.DIRECTIONAL_OUTCOME_CLASSES.includes(classified.outcomeClass), true, 'and counts it in the denominator');
+
+    for (const closureEventType of MEASURED_CLOSURE_EVENTS) {
+        const axes = resolutionAxesFor(claim, closureEventType, { ok: true, outcomeValue: clearlyNegative });
+        assert.equal(axes.ok, true, `${closureEventType}: a measured closure over a real value must resolve`);
+        assert.equal(axes.outcomeClass, classified.outcomeClass, `${closureEventType}: the bad score stays a loss`);
+        assert.notEqual(axes.outcomeClass, WITHDRAWN, `${closureEventType}: a bad score is never re-labelled a withdrawal`);
+        assert.equal(axes.closureEventType, closureEventType, `${closureEventType}: and the closure axis survives intact`);
+    }
+
+    /* The determined half of the same surface, over the same negative outcome: neither axis of a
+       resolution the resolver builds can carry the residue, whichever event fired. */
+    for (const [closureEventType, outcomeClass] of Object.entries(DETERMINED_CLOSURE_CLASS)) {
+        const axes = resolutionAxesFor(claim, closureEventType, { ok: true, outcomeValue: clearlyNegative });
+        assert.equal(axes.ok, true, `${closureEventType}: a determined closure must resolve`);
+        assert.equal(axes.outcomeClass, outcomeClass, `${closureEventType}: its single admitting class IS its class`);
+        assert.notEqual(axes.outcomeClass, WITHDRAWN, `${closureEventType}: and never the residue`);
+        assert.equal(axes.outcomeValue, null, `${closureEventType}: a determined class carries no magnitude`);
+    }
+
+    /* AND ASKED FOR IT DIRECTLY, THE RESOLVER REFUSES — before a record exists, rather than
+       building one an append-only store would then be stuck with. */
+    assertRowRefusal(
+        resolutionAxesFor(claim, WITHDRAWN, { ok: true, outcomeValue: clearlyNegative }),
+        {
+            code: claims.CONTRACT_VIOLATION_CODE,
+            reason: 'closure-event-carries-no-outcome-class',
+            field: 'closureEventType',
+        },
+        'withdrawn supplied as a closure event',
     );
 });
 

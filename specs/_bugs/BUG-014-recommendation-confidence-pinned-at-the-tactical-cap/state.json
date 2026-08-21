@@ -1,0 +1,153 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-014-recommendation-confidence-pinned-at-the-tactical-cap",
+  "featureName": "BUG-014 Every Recommendation Carries Confidence 55, So The Action Gate Cannot Gate And The Ranked Slate Cannot Rank",
+  "createdAt": "2026-08-20T00:00:00Z",
+  "lastUpdatedAt": "2026-08-20T00:00:00Z",
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "priorBlockedReason": null,
+  "blockedReasonResolved": null,
+  "crossFeatureEditAuthorization": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "priorPlanningOnlyJustification": null,
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": "specs/026-actionable-brief-brevity-and-cross-asset",
+  "specDependsOn": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "c2c83073e",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md"
+  },
+  "execution": {
+    "activeAgent": null,
+    "currentPhase": "implement",
+    "currentPhaseStatus": "complete",
+    "phaseReconciliation": null,
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-20T00:00:00Z",
+    "completedAt": null,
+    "substate": "implemented",
+    "currentScope": "02-adjudicate-the-cap-to-floor-collision",
+    "nextRequiredOwner": "market-brief-owner",
+    "nextRequiredTarget": "specs/_bugs/BUG-014-recommendation-confidence-pinned-at-the-tactical-cap/design.md#open-questions-for-the-owner",
+    "nextRequiredReason": "Scope 1 is delivered and every Definition of Done item carries executed evidence. Two things keep the packet open and neither is agent-dischargeable. Scope 2 asks whether tacticalConfidenceCap should remain equal to minimumActionConfidence, which decides whether a tactical read is actionable at all and is therefore a product decision. Separately, G136 acceptance is a human act: the packet states the acceptance contract in uservalidation.md and deliberately does not perform it."
+  },
+  "defect": {
+    "severity": "High",
+    "surface": "scripts/brief-narrative-parallel.mjs core and signals lane instructions",
+    "consumer": "rlexperience-adapters/market-action.js nextSessionActions and actionableAttention",
+    "measuredAtCommit": "c2c83073e",
+    "payloadRunsExamined": 34,
+    "runWindow": "2026-08-14 to 2026-08-20",
+    "distinctDecisionSlates": 8,
+    "distinctConfidenceValues": 1,
+    "pinnedConfidenceValue": 55,
+    "horizonsObserved": ["swing", "structural"],
+    "tacticalConfidenceCap": 55,
+    "minimumActionConfidence": 55,
+    "minimumAttentionConfidence": 55,
+    "rankingConsequence": "nextSessionActions sorts by confidence then slices, so one shared value makes the comparator return 0 for every pair and the ranked slate is really the authored order",
+    "gatingConsequence": "the >= floor comparison degenerates into a cliff that admits the whole slate at or below the pinned value and rejects all of it above",
+    "rootCause": "Neither authoring lane was ever told how to choose a confidence. The core lane said only to keep tactical confidence at or below the configured cap and the signals lane named the key in a required-key list, so the single numeral in the guidance became a universal default.",
+    "measurementNote": "Every figure was derived in this session by walking committed market-brief.payload.json blobs with git show and reading the authored fields, after an initial attempt using guessed field names returned nothing and was discarded rather than reported. The same table independently shows Feature 026's F-026-2 is fixed: 13 identical slates became 7 transitions across the following 21 runs."
+  },
+  "terminalTransitionBlockers": [
+    "Scope 2 is unstarted and is not agent-dischargeable. Whether the tactical cap should equal the action floor decides whether a tactical read can ever be an action, which is a product tradeoff rather than an authoring defect.",
+    "G136 human acceptance is unrecorded. uservalidation.md states the acceptance contract and deliberately omits the heading the gate looks for, because writing it with an agent identity would forge the signature rather than record it."
+  ],
+  "knownLimitation": {
+    "statement": "What is established: both authoring lanes now receive a confidence contract derived from the enforced thresholds, all three cap-to-floor branches render distinctly, the pins fail when the fix is reverted, and no threshold, gate, or payload schema changed. What is NOT established: whether stating the contract is by itself sufficient to make authored confidence vary in production. That requires a narrative run composed after this change, and no such run has occurred.",
+    "recordedIn": [
+      "report.md 'Completion Statement'",
+      "design.md 'Open Questions For The Owner'",
+      "scopes.md Scope 2, marked not agent-dischargeable"
+    ],
+    "whyNotClosedHere": "Observing a post-change narrative run requires the scheduled publication pipeline to compose one. Arming a validator refusal on an all-equal slate in the same change that first states the contract would also leave no run in which to observe whether the contract alone suffices, which is why design.md Q2 defers it rather than bundling it."
+  },
+  "completedScopes": ["01-tell-both-authoring-lanes-how-to-choose-a-confidence"],
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "certificationFieldWriteNote": "certification.status mirrors the top-level status. completedScopes stays EMPTY and certifiedCompletedPhases stays EMPTY because phase certification is bubbles.validate's to write and no independent party re-derived the measurements in report.md. Scope 1 is recorded as Done in scopeProgress on its own executed evidence, which is a scope status and not a certification.",
+    "scopeProgress": [
+      {
+        "scopeId": "01-tell-both-authoring-lanes-how-to-choose-a-confidence",
+        "status": "Done",
+        "dodChecked": 10,
+        "dodUnchecked": 0
+      },
+      {
+        "scopeId": "02-adjudicate-the-cap-to-floor-collision",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 2
+      }
+    ]
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": { "mode": "off", "source": "repo-default" },
+    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
+    "autoCommit": { "mode": "off", "source": "repo-default" },
+    "lockdown": { "mode": "off", "source": "repo-default" },
+    "regression": { "mode": "protected-scenarios", "source": "workflow-forced" },
+    "validation": { "mode": "certification-required", "source": "repo-default" }
+  },
+  "modeTransitions": [],
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "at": "2026-08-20T00:00:00Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "filed",
+      "note": "Filed against executed measurement over 34 committed payload blobs. An initial pass using guessed recommendation field names returned nothing usable and was discarded rather than reported; the schema was then read from a real payload before measuring. Recorded the cap-to-floor threshold collision as an aggravating condition without changing either value."
+    },
+    {
+      "at": "2026-08-20T00:00:00Z",
+      "agent": "bubbles.implement",
+      "phase": "implement",
+      "action": "delivered",
+      "note": "Added recommendationConfidenceContractInstruction() rendered from the enforced thresholds and wired it into both authoring lanes, removing the hand-typed tactical-cap sentence rather than leaving a second copy. Added 8 selftest pins including a three-branch adversarial check through an override seam that is undefined on every production path. Proved the pins load-bearing by reverting the core-lane wiring and observing a named failure at exit 1, then restored and re-ran to 3200 passed / 0 failed with the payload validator still at exit 0."
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [],
+  "addressedFindings": [
+    {
+      "id": "BUG-014-F1",
+      "summary": "Neither authoring lane stated how to choose a confidence, so the tactical cap became a universal default and the field could neither gate nor rank.",
+      "resolution": "Both lanes now render a contract derived from minimumActionConfidence, minimumAttentionConfidence and tacticalConfidenceCap, stating that the number gates, that it ranks, and that it must vary."
+    }
+  ],
+  "unresolvedFindings": [
+    {
+      "id": "BUG-014-F2",
+      "summary": "tacticalConfidenceCap equals minimumActionConfidence, so a tactical action has exactly one admissible value.",
+      "owner": "market-brief-owner",
+      "why": "Threshold placement decides whether a tactical read is actionable at all, which is a product tradeoff. The rendered contract states the collision plainly and changes neither value."
+    },
+    {
+      "id": "BUG-014-F3",
+      "summary": "Whether stating the contract is sufficient to make authored confidence vary is unobserved.",
+      "owner": "market-brief-owner",
+      "why": "No narrative run has been composed since the change. The claim is deliberately not made in advance of the evidence."
+    }
+  ]
+}

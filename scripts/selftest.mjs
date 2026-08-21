@@ -37,7 +37,8 @@ import {
   attentionSubjectUniquenessInstruction,
   attentionVerbContractInstruction,
   findMaskedTerms,
-  findUnofferedTerms
+  findUnofferedTerms,
+  recommendationConfidenceContractInstruction
 } from './build-attention-items.mjs';
 import { formatTestFileReachabilityFindings, validateTestFileReachability } from './validate-test-file-reachability.mjs';
 import { formatTimeoutBudgetFindings, validatePlaywrightTimeoutBudgets } from './validate-playwright-timeout-budgets.mjs';
@@ -3126,6 +3127,52 @@ try {
     'the card-budget instruction states the enforced per-card cap of ' + budgetPolicy.decisionCardChars);
   assert(laneRenders('attentionCardBudgetInstruction'),
     'the signals lane renders the per-card budget from the committed policy instead of omitting it');
+
+  /* ── how to CHOOSE a confidence, the field the reader is most entitled to trust ───────────
+     BUG-014. Both lanes required a `confidence` and neither said how to pick one, so the only
+     numeral in the guidance - the tactical CAP - became a universal default: across the 34
+     committed payload runs from 2026-08-14 to 2026-08-20, spanning 8 distinct decision slates
+     and both swing and structural horizons, EVERY recommendation carried exactly 55. That is
+     not cosmetic. nextSessionActions sorts by confidence and slices, so one shared value makes
+     the comparator return 0 for every pair and the "ranked" slate is really the authored order,
+     while `>= floor` degenerates into a cliff. Rendered from the thresholds the gate reads. */
+  const confidenceThresholds = JSON.parse(read('market-brief.config.json')).thresholds || {};
+  const renderedConfidence = recommendationConfidenceContractInstruction();
+  for (const key of ['minimumActionConfidence', 'minimumAttentionConfidence', 'tacticalConfidenceCap']) {
+    assert(new RegExp('\\b' + confidenceThresholds[key] + '\\b').test(renderedConfidence),
+      'the confidence contract states the enforced ' + key + ' of ' + confidenceThresholds[key]);
+  }
+  assert(/rank|sorted/i.test(renderedConfidence) && /vary it across items/i.test(renderedConfidence),
+    'the confidence contract tells the author the number ranks, and to vary it - the two facts that make a pinned value harmful');
+  /* Both lanes author a confidence, so both must receive the contract. The core lane owns
+     nextSession actions and the signals lane owns recommendations; a contract rendered to only
+     one of them leaves the other anchoring exactly as before. */
+  const coreRegion = laneSource.slice(laneSource.indexOf("id: 'core'"), laneSource.indexOf("id: 'signals'"));
+  assert(coreRegion.includes('${recommendationConfidenceContractInstruction()}')
+    && laneRenders('recommendationConfidenceContractInstruction'),
+    'both the core and signals lanes render the confidence contract, because both author a confidence');
+  assert(!/Keep tactical confidence at or below the configured cap/.test(laneSource),
+    'the hand-typed tactical-cap sentence is gone rather than left beside the rendered contract as a second copy');
+  /* ADVERSARIAL: the cap and the floor are independent config values and their RELATIONSHIP
+     decides what a tactical author may write. Live config has cap === floor, so the other two
+     branches would never execute in production and could rot unnoticed. The override seam is
+     undefined on every production path. */
+  const capBelow = recommendationConfidenceContractInstruction({
+    minimumActionConfidence: 55, minimumAttentionConfidence: 55, tacticalConfidenceCap: 40
+  });
+  const capAbove = recommendationConfidenceContractInstruction({
+    minimumActionConfidence: 55, minimumAttentionConfidence: 55, tacticalConfidenceCap: 70
+  });
+  const capEqual = recommendationConfidenceContractInstruction({
+    minimumActionConfidence: 55, minimumAttentionConfidence: 55, tacticalConfidenceCap: 55
+  });
+  assert(/cannot become an action at all/.test(capBelow)
+    && /may only occupy 55 to 70/.test(capAbove)
+    && /exactly one admissible value/.test(capEqual)
+    && capBelow !== capAbove && capAbove !== capEqual,
+    'the confidence contract derives a DIFFERENT tactical clause for cap-below-floor, cap-above-floor and cap-equals-floor rather than restating one fixed sentence');
+  assert(/exactly one admissible value/.test(renderedConfidence),
+    'live config has the tactical cap equal to the action floor, and the contract says so plainly instead of telling the author to stay under a number it must also reach');
 
   /* ── and the expiry SHAPE, proven against the gate's own predicate ────────────────────────
      The 03:50 EDT run lost FETH on expiry alone - the item was complete, in budget, and on an

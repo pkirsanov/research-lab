@@ -274,6 +274,65 @@ export function attentionAuthoredKeysInstruction() {
     + 'an attention slot and reaches no reader.';
 }
 
+/**
+ * How to CHOOSE a confidence, rendered from the thresholds the action gate reads.
+ *
+ * The same defect this packet keeps closing, in the one field the reader is most
+ * entitled to trust. Both lanes require a `confidence` and neither has ever said
+ * how to pick its value: the core lane says only "keep tactical confidence at or
+ * below the configured cap" and the signals lane names `confidence` in a list of
+ * required keys. The single numeral anywhere in that guidance is the tactical
+ * CAP, and the author has anchored on it universally — across the 34 committed
+ * payload runs from 2026-08-14 to 2026-08-20, spanning 8 distinct decision
+ * slates and both swing and structural horizons, EVERY recommendation carries
+ * exactly 55.
+ *
+ * That is not a cosmetic flaw, because `nextSessionActions` sorts by confidence
+ * and then slices: with every value equal the comparator returns 0 for all pairs,
+ * so the "ranked" slate is really the authored order, and the gate's `>= floor`
+ * degenerates into a cliff that admits everything at or below the floor and
+ * nothing above it. A number that never varies cannot rank and cannot gate.
+ *
+ * Rendered from thresholds so the bands the author is given and the bands the
+ * gate enforces cannot drift apart.
+ *
+ * `thresholdsOverride` exists ONLY so the selftest can exercise the three
+ * cap-versus-floor relationships without mutating committed config; it is
+ * undefined on every production path, exactly like recomposePayloadAttention's
+ * snapshot override.
+ */
+export function recommendationConfidenceContractInstruction(thresholdsOverride) {
+  const thresholds = thresholdsOverride || loadJson('market-brief.config.json').thresholds || {};
+  const actionFloor = thresholds.minimumActionConfidence;
+  const attentionFloor = thresholds.minimumAttentionConfidence;
+  const tacticalCap = thresholds.tacticalConfidenceCap;
+  if (![actionFloor, attentionFloor, tacticalCap].every((value) => Number.isFinite(value))) {
+    throw new Error('RLATTN-CONFIDENCE-BANDS: the confidence thresholds the action gate reads are unreadable');
+  }
+  // The cap and the floor are independent config values, and their RELATIONSHIP decides what a
+  // tactical author may write. Stating it generically keeps this true if either threshold moves.
+  let tactical;
+  if (tacticalCap < actionFloor) {
+    tactical = `${tacticalCap} is the ceiling for a tactical-horizon item, which is below the ${actionFloor} `
+      + 'action floor — so a tactical read cannot become an action at all and belongs in attention or as a '
+      + 'watch idea.';
+  } else if (tacticalCap === actionFloor) {
+    tactical = `${tacticalCap} is the ceiling for a tactical-horizon item and also the action floor, so a `
+      + `tactical action has exactly one admissible value: ${tacticalCap}. A tactical read you would not `
+      + 'defend at that number belongs as a watch idea rather than an action.';
+  } else {
+    tactical = `A tactical-horizon item is capped at ${tacticalCap}, so it may only occupy ${actionFloor} to `
+      + `${tacticalCap}; that band is a ceiling, never a default and never a target.`;
+  }
+  return 'Choose each confidence as a 0-100 reading of how strong that item\'s evidence actually is, and vary '
+    + `it across items. It gates and it ranks: an action below ${actionFloor} and an attention card below `
+    + `${attentionFloor} reach no reader, and surviving actions are sorted by this number, so items sharing one `
+    + 'value cannot be ranked and get cut in the order you happened to write them rather than by conviction. '
+    + `${tactical} A swing or structural call resting on corroborated evidence belongs clearly above the floor, `
+    + 'and a thin one belongs below it as a watch idea instead of an action. Do not give two items the same '
+    + 'confidence unless you genuinely cannot separate them.';
+}
+
 function loadJson(relPath) {
   return JSON.parse(readFileSync(resolve(ROOT, relPath), 'utf8'));
 }

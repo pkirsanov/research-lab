@@ -1094,3 +1094,302 @@ export function evaluatePredicate(claim, fences, calendar) {
     sessionsEvaluated: Object.freeze(evaluated.map((entry) => entry.sessionDate))
   };
 }
+
+/* ── Increment 5: the reducer bridge ─────────────────────────────────────────────────────────
+ *
+ * Increment 4 decided a verdict; nothing yet turned one into a LIFECYCLE event. This part does,
+ * and it does so THROUGH the shipped reducer rather than beside it.
+ *
+ * THE REDUCER IS THE ONLY CLOSURE PATH. `reduceRecommendationEvents` owns event identity,
+ * ordering, dedupe and the `state` transition, so closures enter through `run.closures` — the
+ * path its own contract documents — with `current: []`. A closing pass proposes nothing, and the
+ * foundation says so itself: a key present in the same run's proposals refuses
+ * `recommendation-closure-still-active`. Every refusal below is the reducer's own, returned
+ * verbatim; nothing here re-implements one.
+ *
+ * THE KEY IS DERIVED, NEVER AUTHORED. `originRecommendationKey` comes from
+ * `deriveRecommendationKeys` — "Authors never own identity" — over terms read from the claim's
+ * HASHED fields. Every varying term is inside `claimHash`, so one claim object can only ever
+ * derive one reducer key: the bridge is a refinement of the content address, not a second
+ * identity that could drift from it.
+ *
+ * WHICH fields those are is MEASURED, not asserted. `ORIGIN_KEY_TERMS` is derived by perturbing
+ * each field of a probe record and keeping the ones that MOVE the key. The remainder are the
+ * fields the producer folds into a DIFFERENT key, and they are supplied as `null` sentinels —
+ * `undefined` throws, so they cannot simply be omitted. `bindToVocabulary` then asserts the
+ * claim-term table covers the measured set EXACTLY, so a foundation that started folding
+ * `trigger` into the origin key fails at load here instead of letting a sentinel silently become
+ * part of identity.
+ *
+ * THE PRODUCER DOES NOT GUARD ABSENCE, SO THIS MODULE MUST. Measured: `deriveRecommendationKeys`
+ * throws only on `undefined`. A `null` `thesisFamily`, a `null` horizon band and an EMPTY subject
+ * list each yield a perfectly well-formed key — for a recommendation `normalizeRecommendation`
+ * would have refused outright. Such a key is a fabrication, and the claims that produce one are
+ * exactly the claims that minted `not-evaluable`, so an absent term refuses here.
+ *
+ * IDEMPOTENCE IS UPSTREAM, BY STATE. The reducer does not self-enforce it, and each half of that
+ * is measured rather than assumed: `lifecycleEventId` folds in `runId`, so one closure on two
+ * days is two different events; the `seenEvent` dedupe is within-run only; and the closure block
+ * checks for an ABSENT entry and a STILL-ACTIVE entry but never for an already-CLOSED one.
+ * Re-closing a closed entry under a new `runId` is therefore ACCEPTED and appends a second event.
+ * The due-set gate — an entry is closable only while the reducer still calls it live — runs
+ * BEFORE the reducer is called at all, which is what makes a re-run append nothing.
+ *
+ * ONE MEASURED CORRECTION TO THE PLAN'S ORACLE. `indexFingerprint` covers `{ contractVersion,
+ * entries }`, and a repeat closure carrying the SAME `eventType` leaves both `state` and
+ * `lastEventType` where they already were — so the fingerprint is BYTE-IDENTICAL across a
+ * duplicate append. It is an oracle for index STATE, not for event APPEND. The load-bearing
+ * assertion for idempotence is therefore the appended-event count, with the fingerprint as the
+ * corroborating second reading rather than the primary one.
+ */
+
+const foundation = require('../rlcontracts.js');
+
+/* Asserted against the shipped field set rather than trusted, exactly as the calendar and
+   unresolved reasons are: the derived key is recorded OUTSIDE the resolution's content address,
+   so a term list that stopped saying so would start moving the address on every run. */
+export const LIFECYCLE_BINDING_FIELD = 'lifecycleBinding';
+if (!claims.RESOLUTION_UNHASHED_FIELDS.includes(LIFECYCLE_BINDING_FIELD)) {
+  throw new Error(`brief-resolve-outcomes: "${LIFECYCLE_BINDING_FIELD}" is not a shipped unhashed resolution field`);
+}
+
+/* A synthetic record used ONLY to measure which fields the origin key depends on. Every value is
+   distinct and obviously unreal, so no probe value can be mistaken for a claim's. */
+const KEY_PROBE_RECORD = Object.freeze({
+  originToolId: 'probe-origin-tool',
+  thesisFamily: 'probe-thesis-family',
+  subjects: ['PROBEONE'],
+  actionFamily: 'probe-action-family',
+  horizon: 'probe-horizon',
+  trigger: 'probe-trigger',
+  invalidation: 'probe-invalidation',
+  rationaleEvidenceIds: ['probe-evidence'],
+  confidenceBand: 'probe-band',
+  confidenceScore: 0.25,
+  applicability: 'probe-applicability'
+});
+
+function probeOriginKey(patch) {
+  return foundation.deriveRecommendationKeys({ ...KEY_PROBE_RECORD, ...patch }).originRecommendationKey;
+}
+
+/* A field belongs to the origin key exactly when changing it moves the key. Nothing here restates
+   the producer's term list; the list is read off the producer by perturbation. */
+const ORIGIN_KEY_MEASUREMENT = (() => {
+  const baseline = probeOriginKey({});
+  const contributing = [];
+  const ignored = [];
+  for (const field of Object.keys(KEY_PROBE_RECORD)) {
+    const value = KEY_PROBE_RECORD[field];
+    const perturbed = Array.isArray(value)
+      ? ['PROBETWO']
+      : (typeof value === 'number' ? value + 1 : `${value}-perturbed`);
+    (probeOriginKey({ [field]: perturbed }) === baseline ? ignored : contributing).push(field);
+  }
+  return { contributing: Object.freeze(contributing.sort()), ignored: Object.freeze(ignored.sort()) };
+})();
+
+/** The fields the shipped producer actually folds into `originRecommendationKey`. */
+export const ORIGIN_KEY_TERMS = ORIGIN_KEY_MEASUREMENT.contributing;
+
+/* The producer derives THREE fingerprints from one record, so the fields the origin key ignores
+   must still be PRESENT. They are supplied as `null`, and the substitution the bridge actually
+   performs is asserted here rather than reasoned about: an inert sentinel is the whole reason a
+   claim that supplies none of these can still derive the reducer's own key. */
+const ORIGIN_KEY_SENTINELS = Object.freeze(
+  Object.fromEntries(ORIGIN_KEY_MEASUREMENT.ignored.map((field) => [field, null]))
+);
+if (probeOriginKey(ORIGIN_KEY_SENTINELS) !== probeOriginKey({})) {
+  throw new Error('brief-resolve-outcomes: the observation-only sentinel moves originRecommendationKey');
+}
+
+/* One reducer term to the CLAIM field it is read from. Each source is a hashed claim term, which
+   is what makes the bridge a refinement. `bindToVocabulary` asserts this table covers the
+   MEASURED set exactly, so a producer that began folding in a new field fails at load rather than
+   deriving a key from a term no claim ever supplied. */
+const ORIGIN_KEY_SOURCES = bindToVocabulary(ORIGIN_KEY_TERMS, {
+  originToolId: { read: (claim, originToolId) => originToolId, field: 'toolsRegistry' },
+  thesisFamily: { read: (claim) => claim?.thesisFamily, field: 'thesisFamily' },
+  subjects: { read: (claim) => claim?.subject?.resolvesTo, field: 'subject.resolvesTo' },
+  actionFamily: { read: (claim) => claim?.actionFamily, field: 'actionFamily' },
+  horizon: { read: (claim) => claim?.horizon?.authoredBand, field: 'horizon.authoredBand' }
+}, 'origin-key term');
+
+/**
+ * The tool the pipeline publishes recommendations under, READ FROM THE REGISTRY.
+ *
+ * `tools.json` carries `experience.kind === "market-action-center"` on exactly one tool, so the
+ * id is a measured property of the registry rather than a second copy of a string that could
+ * later disagree with it. Zero or several is a substrate defect and refuses.
+ *
+ * The selected tool is cross-checked through the shipped `resolveCitedToolId`, which resolves a
+ * registry FILE to its id: the experience-kind lookup and the shipped reader must name the same
+ * tool, or the registry is inconsistent and no id here is trustworthy.
+ */
+export const ORIGIN_EXPERIENCE_KIND = 'market-action-center';
+
+export function originToolIdFor(toolsRegistry) {
+  const tools = Array.isArray(toolsRegistry?.tools)
+    ? toolsRegistry.tools
+    : (Array.isArray(toolsRegistry) ? toolsRegistry : null);
+  if (tools === null) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'tools-registry-invalid', 'toolsRegistry');
+  }
+  const matched = tools.filter((tool) => tool?.experience?.kind === ORIGIN_EXPERIENCE_KIND);
+  if (matched.length !== 1) {
+    return refusal(
+      claims.CONTRACT_VIOLATION_CODE,
+      matched.length === 0 ? 'origin-experience-absent' : 'origin-experience-ambiguous',
+      'toolsRegistry'
+    );
+  }
+  const originToolId = matched[0].id;
+  if (typeof originToolId !== 'string' || originToolId.length === 0) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'origin-tool-id-absent', 'toolsRegistry');
+  }
+  if (claims.resolveCitedToolId(matched[0].file, toolsRegistry) !== originToolId) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'origin-tool-registry-disagrees', 'toolsRegistry');
+  }
+  return { ok: true, originToolId };
+}
+
+/* Absent FOR IDENTITY. `undefined` is the only value the producer itself rejects, so every other
+   shape of absence has to be caught before the call or it becomes a well-formed key naming a
+   recommendation that could never have existed. */
+function originTermAbsent(value) {
+  if (value === undefined || value === null) return true;
+  if (typeof value === 'string') return value.length === 0;
+  if (Array.isArray(value)) {
+    return value.length === 0 || value.some((entry) => typeof entry !== 'string' || entry.length === 0);
+  }
+  return false;
+}
+
+/** The claim, read into the record shape `deriveRecommendationKeys` consumes. */
+export function recommendationTermsFor(claim, originToolId) {
+  const terms = { ...ORIGIN_KEY_SENTINELS };
+  for (const term of ORIGIN_KEY_TERMS) {
+    const source = ORIGIN_KEY_SOURCES[term];
+    const value = source.read(claim, originToolId);
+    if (originTermAbsent(value)) {
+      return refusal(claims.CONTRACT_VIOLATION_CODE, 'origin-key-term-absent', source.field);
+    }
+    terms[term] = value;
+  }
+  return { ok: true, terms };
+}
+
+/** The reducer key this claim binds to, derived by the shipped producer and never authored here. */
+export function originRecommendationKeyFor(claim, toolsRegistry) {
+  const originTool = originToolIdFor(toolsRegistry);
+  if (!originTool.ok) return originTool;
+  const built = recommendationTermsFor(claim, originTool.originToolId);
+  if (!built.ok) return built;
+  const derived = foundation.deriveRecommendationKeys(built.terms);
+  return { ok: true, originRecommendationKey: derived.originRecommendationKey, terms: built.terms };
+}
+
+/** The same key in the shape the resolution object records it, outside the content address. */
+export function lifecycleBindingFor(claim, toolsRegistry) {
+  const derived = originRecommendationKeyFor(claim, toolsRegistry);
+  if (!derived.ok) return derived;
+  return { ok: true, lifecycleBinding: { originRecommendationKey: derived.originRecommendationKey } };
+}
+
+/* The two entry states the bridge distinguishes. Declared once here and proven against the
+   reducer by execution in T-04-I1, which closes an entry and reads both back off the shipped
+   reduction rather than trusting either string. */
+export const LIVE_ENTRY_STATE = 'active';
+export const CLOSED_ENTRY_STATE = 'closed';
+
+/** Why a derived key was left out of a closing pass. Not a refusal: a re-run is a normal event. */
+export const NOT_DUE_REASON = 'entry-not-due';
+
+/**
+ * The due set: the keys the reducer still calls live.
+ *
+ * This IS the idempotence mechanism, not a check bolted on beside one. A claim is closable while
+ * its lifecycle entry is live and at no other time, so a second pass over a reduction the first
+ * pass produced has an empty due set and therefore nothing to hand the reducer.
+ */
+export function dueEntryKeys(index) {
+  const entries = index?.entries;
+  if (entries === null || typeof entries !== 'object' || Array.isArray(entries)) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'lifecycle-index-invalid', 'index.entries');
+  }
+  const due = Object.keys(entries).filter((key) => entries[key]?.state === LIVE_ENTRY_STATE).sort();
+  return { ok: true, dueEntryKeys: Object.freeze(due) };
+}
+
+/**
+ * The single closing pass: `current: []` and the verdicts as `run.closures`.
+ *
+ * Empty `current` is the discipline, not an optimisation. A resolver that also proposed would hit
+ * `recommendation-closure-still-active` on every key it was trying to close, because the
+ * foundation refuses to close a key the same run re-proposes.
+ */
+export function applyClosures(index, closures, run) {
+  const reduced = foundation.reduceRecommendationEvents(index ?? null, [], { ...run, closures });
+  if (reduced.ok !== true) return { ok: false, error: reduced.error };
+  return { ok: true, events: reduced.value.events, index: reduced.value.index };
+}
+
+/**
+ * Verdicts to lifecycle events: derive each key, gate on the due set, then ONE reducer call.
+ *
+ * A key the ledger has never seen is deliberately NOT filtered out here — it is handed to the
+ * reducer, which refuses it `recommendation-closure-key-absent`. The gate's only job is to
+ * SUPPRESS an entry the reducer has already closed; letting it also swallow an unknown key would
+ * turn a real mismatch between the claim store and the ledger into a silent skip.
+ *
+ * A key already scheduled by this pass refuses rather than closing twice. Two claims resolving to
+ * one lifecycle entry is a genuine ambiguity — the closures carry different reason codes — and
+ * appending both is the same duplicate the due-set gate exists to prevent, one run earlier.
+ *
+ * An underivable key refuses the WHOLE pass. Dropping the claim would leave it silently
+ * unresolved and still counted as open, which is the accounting error the ledger exists to avoid.
+ */
+export function closeDueClaims(input) {
+  const due = dueEntryKeys(input?.index);
+  if (!due.ok) return due;
+  const entries = input.index.entries;
+  const dueSet = new Set(due.dueEntryKeys);
+
+  const closures = [];
+  const skipped = [];
+  const scheduled = new Set();
+  for (const verdict of input.verdicts) {
+    const derived = originRecommendationKeyFor(verdict.claim, input.toolsRegistry);
+    if (!derived.ok) return derived;
+    const originRecommendationKey = derived.originRecommendationKey;
+
+    if (scheduled.has(originRecommendationKey)) {
+      return refusal(claims.CONTRACT_VIOLATION_CODE, 'duplicate-closure-key-in-pass', 'verdicts');
+    }
+    if (entries[originRecommendationKey] !== undefined && !dueSet.has(originRecommendationKey)) {
+      skipped.push({
+        originRecommendationKey,
+        claimHash: verdict.claim?.claimHash ?? null,
+        reason: NOT_DUE_REASON,
+        state: entries[originRecommendationKey].state
+      });
+      continue;
+    }
+    scheduled.add(originRecommendationKey);
+    closures.push({
+      originRecommendationKey,
+      eventType: verdict.closureEventType,
+      reasonCode: verdict.reasonCode
+    });
+  }
+
+  const applied = applyClosures(input.index, closures, input.run);
+  if (!applied.ok) return applied;
+  return {
+    ok: true,
+    closures: Object.freeze(closures),
+    skipped: Object.freeze(skipped),
+    events: applied.events,
+    index: applied.index
+  };
+}

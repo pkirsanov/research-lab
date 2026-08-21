@@ -27,9 +27,12 @@ import test from 'node:test';
 
 import { buildPublishSet } from '../scripts/brief-publication.mjs';
 import {
+    CLOSED_ENTRY_STATE,
     DETERMINED_CLOSURE_CLASS,
+    LIVE_ENTRY_STATE,
     LOOKAHEAD_CODE,
     MEASURED_CLOSURE_EVENTS,
+    NOT_DUE_REASON,
     NO_COMMITTED_REFERENCE_REASON,
     PATH_COMPARATOR_MODE,
     PATH_INCOMPLETE_REASON,
@@ -40,10 +43,13 @@ import {
     SESSION_ABSENT_REASON,
     basisFingerprint,
     basisValueAt,
+    closeDueClaims,
+    dueEntryKeys,
     evaluatePredicate,
     fenceObservations,
     loadBars,
     loadCalendar,
+    originRecommendationKeyFor,
     outcomeValueFor,
     readBars,
     resolutionAxesFor,
@@ -66,6 +72,7 @@ import {
     loadClaimsModule,
     mintInputFrom,
     readBytes,
+    toolsRegistry,
     withDisposableStore,
 } from './recommendation-track-record.support.mjs';
 
@@ -2711,6 +2718,78 @@ test('T-04-U2 (increment 4): point and path comparators are different evaluation
     assert.equal(absent.ok, false);
     assert.equal(absent.error.reason, 'path-extreme-absent-from-observation', 'reason');
     assert.equal(absent.error.field, `observations.NOHIGH.${ENTRY_SESSION}.h`, 'naming the exact row field');
+});
+
+test('T-04-U9: closing a due claim twice appends nothing the second time', () => {
+    const foundation = validationRequire('../rlcontracts.js');
+    const registry = toolsRegistry();
+    const claim = syntheticClaim(['DVG'], { priceBasis: 'raw-close' });
+
+    const derived = originRecommendationKeyFor(claim, registry);
+    assert.equal(derived.ok, true, JSON.stringify(derived.error ?? null));
+    const key = derived.originRecommendationKey;
+
+    /* The live entry is PROPOSED THROUGH THE SHIPPED REDUCER, so the entry this row closes has the
+       shape the reducer itself writes rather than one authored here. The five terms the origin key
+       ignores arrive from the bridge as `null` sentinels and `normalizeRecommendation` requires
+       them present, so they are supplied — and because the key ignores them, the proposed entry
+       must still land under the DERIVED key, which is asserted rather than assumed. */
+    const run = {
+        runId: `run-${RESOLUTION_SESSION}`,
+        occurredAt: `${RESOLUTION_SESSION}T20:00:00.000Z`,
+        canonicalMonth: RESOLUTION_SESSION.slice(0, 7),
+    };
+    const proposed = foundation.reduceRecommendationEvents(null, [{
+        ...derived.terms,
+        trigger: 'fixture-trigger',
+        invalidation: 'fixture-invalidation',
+        confidenceBand: 'fixture-band',
+        confidenceScore: 0.5,
+        rationaleEvidenceIds: ['fixture-evidence'],
+    }], run);
+    assert.equal(proposed.ok, true, JSON.stringify(proposed.error ?? null));
+    const liveIndex = proposed.value.index;
+    assert.equal(liveIndex.entries[key].state, LIVE_ENTRY_STATE, 'the proposal is live under the derived key');
+    assert.deepEqual(dueEntryKeys(liveIndex).dueEntryKeys, [key], 'so exactly that one key is due');
+
+    const verdicts = [{ claim, closureEventType: PREDICATE_SATISFIED_EVENT, reasonCode: 'predicate-satisfied' }];
+
+    /* FIRST PASS — one closure, nothing skipped, one event appended. */
+    const first = closeDueClaims({ index: liveIndex, verdicts, toolsRegistry: registry, run });
+    assert.equal(first.ok, true, JSON.stringify(first.error ?? null));
+    assert.equal(first.closures.length, 1, 'the first pass closes exactly one entry');
+    assert.equal(first.closures[0].originRecommendationKey, key, 'the derived key, never an authored one');
+    assert.equal(first.skipped.length, 0, 'and skips nothing');
+    assert.equal(first.events.length, 1, 'appending exactly one lifecycle event');
+    assert.equal(first.events[0].eventType, PREDICATE_SATISFIED_EVENT, 'of the verdict own closure type');
+
+    /* THE TRANSITION IS THE REDUCER OWN OUTPUT — `first.index` is what `applyClosures` returned,
+       so nothing here hand-sets a state and then tests its own fake. */
+    const closedIndex = first.index;
+    assert.equal(closedIndex.entries[key].state, CLOSED_ENTRY_STATE, 'the reducer closed the entry');
+    assert.deepEqual(dueEntryKeys(closedIndex).dueEntryKeys, [], 'so the due set is now empty');
+
+    /* SECOND PASS — the SAME verdict against the reduction the first pass produced. */
+    const second = closeDueClaims({ index: closedIndex, verdicts, toolsRegistry: registry, run });
+    assert.equal(second.ok, true, JSON.stringify(second.error ?? null));
+    assert.equal(second.closures.length, 0, 'the second pass closes nothing');
+    assert.equal(second.events.length, 0, 'and appends NO event — this is the idempotence claim');
+    assert.equal(second.skipped.length, 1, 'the claim is accounted for as skipped, not silently dropped');
+    assert.equal(second.skipped[0].originRecommendationKey, key);
+    assert.equal(second.skipped[0].reason, NOT_DUE_REASON, 'a re-run is a normal event, not a refusal');
+    assert.equal(second.skipped[0].state, CLOSED_ENTRY_STATE, 'naming the state that made it not due');
+    assert.equal(second.skipped[0].claimHash, claim.claimHash, 'and carrying the claim own address');
+    assert.equal(
+        second.index.indexFingerprint,
+        closedIndex.indexFingerprint,
+        'the reduction is byte-identical, so the second pass changed nothing at all',
+    );
+
+    /* NON-VACUITY. The second pass being empty only means something because the first was not:
+       an implementation that returned zero closures unconditionally fails these two, so the
+       emptiness above is a measured suppression rather than a function that never closes. */
+    assert.equal(first.closures.length > 0, true, 'the first pass was non-empty on this same input');
+    assert.equal(first.events.length > 0, true, 'and did append an event, which the second did not');
 });
 
 

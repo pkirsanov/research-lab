@@ -2,30 +2,62 @@
 
 **Status:** Not Started
 **Depends On:** 01, 02, 03
-**Tags:** `overlay:true`, `routed:P-015-03`, `routed:P-015-07`
+**Tags:** `overlay:true`, `routed:P-015-03`, `routed:P-015-07`, `routed:R-04-01`, `blocked-on:01`
 **Design section:** `design.md` → `## D4 — Deterministic Outcome Resolver`
 **Business Scenarios owned:** BS-002, BS-003, BS-007, BS-009, BS-010
 **UI rows owned:** — (no rendered surface in this scope)
-**Refusal codes owned:** `RTR-LOOKAHEAD`, `RTR-CALENDAR-COVERAGE`, `RTR-CLOSURE-VOCAB`, `RTR-NETWORK`, `RTR-RESOLUTION-CONFLICT`
+**Refusal codes owned:** `RTR-LOOKAHEAD`, `RTR-CALENDAR-COVERAGE`, `RTR-NETWORK`
+**Refusal codes consumed, already shipped by scope 03 — this scope neither owns nor re-implements them:**
+`RTR-CLOSURE-VOCAB` (`rlclaims.js:267`, fired by `buildResolution`), `RTR-RESOLUTION-CONFLICT` (`rlclaims.js:269`,
+fired by `writeResolutionObject`), `RTR-FLAT-ZERO` (`rlclaims.js:133`, fired by `buildResolution` and
+`assertZeroFreeOutcomes` at `:817`), `RTR-LEGACY-BACKFILL` (`rlclaims.js:184`, fired by `authorizeResolutionWrite`
+at `:721`). An earlier revision of this header claimed the first two as **owned**; they were already coded when it
+was written, and two owners of one refusal code is how a code ends up meaning two things.
+**Refusal codes routed, not owned:** `RTR-SESSION-PREDICATE` (D4-owned per `design.md`; this scope must satisfy it,
+not define it) and the **proposed** `RTR-PRICE-BASIS` (see Ruling R-04-01 in `report.md`).
 
 **Primary Outcome:**
 `scripts/brief-resolve-outcomes.mjs` exists as an offline, deterministic Node script that converts a frozen claim
 plus committed observations into **one** signed outcome and **exactly one** closure event drawn from the existing
 `CLOSE_EVENT_TYPES` vocabulary, applied through the existing `reduceRecommendationEvents` without forking it. The
-lookahead fence is structural, not procedural: the bar array is sliced to observations dated at or before the claim's
-frozen `resolutionDate` **before** the predicate evaluator is handed anything, so lookahead is prevented by the shape
-of the data the evaluator can see. Closure event and outcome class are recorded as two **independent** axes, so a
-`satisfied` claim carrying a negative magnitude keeps both facts. Idempotence rests on the due-set gate
-(`entry.state === "active"`), and the test suite proves *where* the invariant lives, not merely that it holds. The
-resolver performs no `fetch`, opens no socket, and reads no provider credential.
+script is a **caller**, not a second contract layer: every resolution primitive it needs — `classifyOutcome`,
+`buildResolution`, `resolutionHash`, `resolutionObjectPath`, `serializeResolution`, `writeResolutionObject`,
+`authorizeResolutionWrite`, `enumerateCommittedSeries`, `outcomeContributionFor`, `directionalDenominator`,
+`CLOSURE_REASON_CODES`, `NOT_EVALUABLE_REASONS`, `OUTCOME_CLOSURE_EVENTS` — is **already shipped and exported by
+scope 03** in `rlclaims.js` and is consumed unchanged. What remains genuinely unbuilt is the *observation* layer:
+the due-set gate, calendar-session arithmetic, the as-of slice, the four predicate evaluators, the data-quality
+gates, and the reducer call. The lookahead fence is structural, not procedural: the bar array is sliced to
+observations dated at or before the claim's frozen `resolutionDate` **before** the predicate evaluator is handed
+anything, so lookahead is prevented by the shape of the data the evaluator can see. Closure event and outcome class
+are recorded as two **independent** axes, so a `satisfied` claim carrying a negative magnitude keeps both facts.
+Idempotence rests on the due-set gate (`entry.state === "active"`), and the test suite proves *where* the invariant
+lives, not merely that it holds. The resolver performs no `fetch`, opens no socket, and reads no provider
+credential.
 
-**Scope boundary — two routed findings, both now ruled on.** The **reducer key bridge** carried routed finding
-**P-015-03** (`thesisFamily` has no live source) and the **horizon session predicate** carried routed finding
-**P-015-07** (the design's `dateState === "regular"` rule skips `early-close` sessions). Design has since ruled on
-both, so neither gates implementation: `thesisFamily` is authored-or-not-evaluable and is a top-level hashed claim
-field, and the session predicate is `row.regular !== null`. This scope implements the recorded rulings and records
-in `report.md` which ruling it implemented; it still invents no `thesisFamily` value and still derives no session
-count of its own. Everything else in this scope was already fixture-proven and schedulable.
+**Scope boundary — two routed findings ruled on, one new blocking finding raised.** The **reducer key bridge**
+carried routed finding **P-015-03** (`thesisFamily` has no live source) and the **horizon session predicate**
+carried routed finding **P-015-07** (the design's `dateState === "regular"` rule skips `early-close` sessions).
+Design has since ruled on both, so **neither gates implementation**: `thesisFamily` is authored-or-not-evaluable and
+is a top-level hashed claim field, and the session predicate is `row.regular !== null`. This scope implements the
+recorded rulings and records in `report.md` which ruling it implemented; it still invents no `thesisFamily` value
+and still derives no session count of its own.
+
+**A third finding, R-04-01, is BLOCKING and is new.** The claim contract records **no raw-vs-adjusted close basis**:
+`HASHED_TERMS` (`rlclaims.js:66`) names nine terms and none is a price basis, and `SIGN_CONVENTIONS`
+(`rlclaims.js:65`) fixes only the **sign** convention. Committed bar rows carry **both** closes, ~74% of series have
+`ac !== c`, and BUG-012 established the refresh cron **retroactively rewrites `ac`** — so `ret(x)` is two different
+functions and an outcome computed on an unrecorded basis is tunable after the fact and non-reproducible, the same
+class of defect as `flatBand`. Ruling R-04-01 (`report.md`) routes it to **scope 01** as a mint-contract defect
+requesting a frozen hashed `priceBasis` term. Every `ret(x)`-dependent item below is blocked until that term lands;
+this scope selects **no** basis of its own.
+
+**Inputs are empty today; this scope is FIXTURE-TESTABLE ONLY.** Verified this planning pass:
+`briefs/objects/claims/` and `briefs/objects/resolutions/` **do not exist**, there are **0** committed claim objects
+and **0** resolution objects, and `claimRef` appears in **0** of the 5,083 committed ledger rows. A resolver run
+over real committed state closes zero claims and appends zero events — correctly, and while proving nothing. Every
+Test Plan row below is satisfied from `tests/fixtures/recommendation-track-record/**` or it is not satisfied at all,
+and **no green real-data run may be recorded as coverage**.
+
 
 ---
 
@@ -85,75 +117,120 @@ Scenario: A claim with no committed series is not-evaluable (SCN-015-010)
 
 ## Implementation Plan
 
+**Orientation — this scope CONSUMES scope 03's shipped module.** An earlier revision of this plan named
+`rlclaims.js` zero times and proposed to build the resolution layer from scratch. Scope 03 had already shipped and
+exported it. Every step below that touches a resolution object, an outcome class, a reason code, or the committed
+series set therefore **calls** the exported function rather than restating its rule; a second copy would put two
+resolution vocabularies over one ledger, which surfaces as ledger corruption rather than as a test failure — the
+same reason this scope already refuses to fork the reducer. The shipped surface consumed here:
+
+| Consumed export (`rlclaims.js`) | What it already does | This scope must NOT |
+|---|---|---|
+| `enumerateCommittedSeries` (`:530`) | Derives the committed symbol set from the **bars directory listing**, skipping `BARS_MANIFEST_FILENAME` | re-derive membership, or read `index.json` as the set |
+| `authorizeResolutionWrite` (`:733`) | Scope 02's gate: refuses a claimless row with `RTR-LEGACY-BACKFILL` **before** inspecting the resolution | bypass it, re-implement it, or reorder its checks |
+| `flatBandFor` (`:767`) | Reads the band from the **minted claim**, refusing a non-finite or non-positive one | accept a band as an argument |
+| `outcomeContributionFor` (`:781`) / `OUTCOME_CLASSES` (`:111`) | Validates a class against the closed six-member vocabulary and returns its `number`/`count` routing | restate the class list |
+| `classifyOutcome` (`:795`) | Maps one numeric outcome to exactly one class against the claim's frozen band, value carried verbatim | round, nudge, or re-derive the class |
+| `assertZeroFreeOutcomes` (`:822`) / `RTR-FLAT-ZERO` (`:133`, `:817`) | Refuses a bare `0` reaching the directional array | emit a bare zero into a directional class |
+| `routeOutcomes` (`:850`) / `directionalDenominator` (`:901`) | Builds the fed array and proves the published denominator **is** its length | compute a rate here (that is scope 05) |
+| `buildResolution` (`:1003`) | Validates class↔closure↔reason, refuses run-scoped keys in hashed `provenance`, computes `resolutionHash` | assemble a resolution object literal |
+| `resolutionHash` (`:986`) / `resolutionObjectPath` (`:988`) / `serializeResolution` (`:994`) | Content address and canonical bytes | hand-roll a path or a stringify |
+| `writeResolutionObject` (`:1109`) | Calls the gate first, then refuses a byte-changing write with `RTR-RESOLUTION-CONFLICT` | write to `RESOLUTION_STORE_DIR` directly |
+| `OUTCOME_CLOSURE_EVENTS` (`:284`) | Which closure events each class admits; `withdrawn` is the residue no class admits | restate "withdrawn is never emitted" as a separate rule |
+| `CLOSURE_REASON_CODES` (`:307`) / `NOT_EVALUABLE_REASONS` (`:305`) | The reason vocabulary, derived from `MINT_REFUSALS` (`:89`) ∪ `RESOLVER_NOT_EVALUABLE_REASONS` (`:298`) | restate a reason list of its own |
+| `readClosureEventVocabulary` (`:944`) | Reads `CLOSE_EVENT_TYPES` from `rlcontracts.js` source text | keep a shadow copy of the vocabulary |
+
 1. **Create `scripts/brief-resolve-outcomes.mjs`**, joining the existing `scripts/brief-*.mjs` family
    (`brief-author.mjs`, `brief-distributed-publish.mjs`, `brief-publication.mjs`, `brief-refresh.mjs`,
    `migrate-brief-history.mjs`), so the resolver is an ordinary member of an established script surface rather than a
-   new execution model.
+   new execution model. It imports `rlclaims.js` through the same UMD `module.exports` path scope 03's own tests use
+   (`rlclaims.js:39`–`:40`), and adds no module of its own to the contract layer.
 2. **Enforce HC-10 structurally.** The resolver's entire input set is committed repository state:
-   `briefs/objects/claims/`, `briefs/history/recommendations/*.jsonl`, the committed `data/bars` symbol set, and
-   `data/calendars/xnys/calendar.json`. It performs no `fetch`, opens no
-   socket, reads no provider key, and never consults `RLDATA`'s browser fetch path. A violation is `RTR-NETWORK`,
-   asserted by a source scan in the same idiom the repo already uses for
+   `briefs/objects/claims/` (`CLAIM_STORE_DIR`), `briefs/history/recommendations/*.jsonl`, the committed
+   `data/bars` tree (`BARS_DIR`, `rlclaims.js:228`), and `data/calendars/xnys/calendar.json`. It performs no `fetch`,
+   opens no socket, reads no provider key, and never consults `RLDATA`'s browser fetch path. A violation is
+   `RTR-NETWORK`, asserted by a source scan in the same idiom the repo already uses for
    `rlvalid-node-safe-no-dom-storage-network`.
 
-   **The committed `data/bars` symbol set is defined by a membership rule, never by a count** (F-015-D5-02). The
-   glob `data/bars/*.json` is **not** the symbol set: it also matches the `data/bars/index.json` refresh manifest,
-   whose `tickers[].sym` list is the authoritative symbol enumeration. The resolver therefore reads membership from
-   `data/bars/index.json` and treats a `<SYMBOL>.json` sibling as the series for a member, so `index` can never be
-   mistaken for a tradeable symbol. *Dated observation, deliberately not a constant:* on 2026-08-18 the glob matched
-   293 files, the glob minus the manifest matched 292, and the manifest listed 289 symbols — `EA`, `NDX` and `PHP=X`
-   have a committed file but no manifest entry, while every manifest entry has a file. Three defensible readings of
-   *"the committed bars set"* differ by four files, which is precisely why the rule names the set and the scope's
-   tests enumerate it at run time rather than asserting any of the three numbers.
+   **The committed symbol set is `enumerateCommittedSeries(readdir(BARS_DIR))` — never a count, and never
+   `index.json`.** *An earlier revision of this step had the rule inverted*: it said membership comes from
+   `data/bars/index.json` `tickers[].sym`. `enumerateCommittedSeries` (`rlclaims.js:530`) deliberately does the
+   opposite and documents why — the directory listing is the **availability** set, i.e. what the resolver can
+   actually read, while `index.json` is a **curation** set, and *"using it would refuse a claim on a symbol whose
+   bars are committed and readable, shrinking the denominator over a curation detail."* Following the old rule would
+   have closed `no-committed-series` on `EA`, `NDX` and `PHP=X`, three symbols with committed readable bars.
+   The function already skips `BARS_MANIFEST_FILENAME` (`rlclaims.js:230`), so `index` can never be mistaken for a
+   tradeable symbol without this scope writing that rule a second time. *Dated observation, deliberately not a
+   constant:* on 2026-08-18 the glob matched 293 files, the glob minus the manifest 292, the manifest 289 symbols.
+   The tests enumerate the set at run time and assert **no** count literal.
 3. **Compute the due set from reduction state, not from timestamps.**
    `due(asOfDate) = { entry ∈ index.entries : entry.state === "active" ∧ entry has a claimRef ∧ claim(entry).horizon.resolutionDate ≤ asOfDate }`.
-   `index` is a `recommendation-index/v1` produced by `reduceRecommendationEvents` (`rlcontracts.js#L1134`);
-   `entry.state` is set to `"closed"` by the reducer's own closure path (`rlcontracts.js#L1280`).
+   `index` is a `recommendation-index/v1` produced by `reduceRecommendationEvents` (`rlcontracts.js:1140`);
+   `entry.state` is set to `"closed"` by the reducer's own closure path (`rlcontracts.js:1284`). The `claimRef`
+   field name is `CLAIM_REF_FIELD` (`rlclaims.js:187`) and its shape is `CLAIM_REF_PATTERN`, both consumed rather
+   than restated.
 4. **Derive `resolutionDate` by calendar-session arithmetic, never day arithmetic.** The committed exchange calendar
    is `data/calendars/xnys/calendar.json` — contract `xnys-calendar/v1`, `calendarId: "XNYS"`,
    `timeZone: "America/New_York"`, `coverageStart: "2026-01-01"`, `coverageEnd: "2026-12-31"`, **365 rows** each
-   carrying `{ tradingDate, dateState, closureCode, closureLabel, preMarket, regular, afterHours }` (all verified
-   this planning run). Adding calendar days would resolve a Friday `next-session` claim on a Saturday and silently
-   mark it `not-evaluable` for want of a bar; counting sessions cannot make that mistake.
-   **The session predicate is blocked on routed finding P-015-07.** `design.md` → `## D4` specifies
-   `dateState === "regular"`, but the committed calendar's `dateState` vocabulary has **four** members —
-   `regular` (249), `weekend` (104), `holiday` (10) and `early-close` (2, verified: `2026-11-27` and `2026-12-24`,
-   both carrying a **non-null** `regular` block of 09:30–13:00 ET). An `early-close` session is a real trading
-   session, so the design's rule skips it and derives a `resolutionDate` one session too far out — a silent
-   one-session lookahead produced by the horizon derivation itself. The proposed correction (session ⇔ non-null
-   `regular` block, i.e. `dateState ∈ { regular, early-close }`) is **routed, not applied**; `design.md` is
-   design-owned.
+   carrying `{ tradingDate, dateState, closureCode, closureLabel, preMarket, regular, afterHours }`. Adding calendar
+   days would resolve a Friday `next-session` claim on a Saturday and silently mark it `not-evaluable` for want of a
+   bar; counting sessions cannot make that mistake.
+   **Routed finding P-015-07 is RESOLVED and does not block this step.** *An earlier revision carried it as
+   blocking.* The ruling recorded in `design.md` is that a trading session is a row with a **non-null `regular`
+   block** — `row.regular !== null`, not `dateState === "regular"` — which admits both `early-close` sessions
+   (`2026-11-27` and `2026-12-24`, each a genuine 09:30–13:00 ET session) and yields **251** sessions in 2026
+   (249 `regular` + 2 `early-close`; the other 114 rows are 10 `holiday` and 104 `weekend`, and none of them carries
+   a `regular` block). Keying on `dateState` is the D4-owned refusal **`RTR-SESSION-PREDICATE`**, which this scope
+   must satisfy and does not define. An `early-close` session **resolves normally** and is flagged, not excluded:
+   when `entryDate` or `resolutionDate` lands on one, the resolution records
+   `provenance.earlyCloseSessions: [<tradingDate>…]`, in the same idiom already used for `reconstructedSessions`, so
+   a reader can see the outcome rests on a 3.5-hour session.
 5. **Refuse beyond calendar coverage.** A `resolutionDate` beyond `coverageEnd` cannot be derived, and guessing one
    is fabrication. `RTR-CALENDAR-COVERAGE` fires and the claim closes `not-evaluable` with reason
-   `calendar-coverage-exhausted`. The calendar is a committed artifact with a finite window; treating it as infinite
-   is the assumption that fails once, quietly, at a year boundary.
-6. **Implement the as-of fence as a slice, not a rule.** Committed daily bars carry rows shaped `{ t, o, h, l, c, v }`
-   where `t` is the regular-session open in epoch milliseconds. *Dated observation on `data/bars/SPY.json`,
-   2026-08-18: 517 rows, `asof: "2026-08-17"`, last row `t: 1786973400000`.* The tree is delta-appended on every
-   refresh, so every figure in that observation is stale by design within days — it is recorded to size the fixture
-   set and is **not** carried into any test, fixture, DoD item, or source literal. Because the regular open is
-   `14:30Z` (EST) or `13:30Z` (EDT)
-   — both inside the same UTC calendar day as the ET session — the session date is the UTC calendar date of `t`.
-   That coincidence is load-bearing, so it is **asserted rather than assumed**: each derived session date is
-   cross-checked against `calendar.rows[].regular.startUtc` and a mismatch refuses.
+   `calendar-coverage-exhausted` — a member of `RESOLVER_NOT_EVALUABLE_REASONS` (`rlclaims.js:298`), so
+   `buildResolution` already accepts it against `not-evaluable` and rejects it against any other closure event. The
+   calendar is a committed artifact with a finite window; treating it as infinite is the assumption that fails once,
+   quietly, at a year boundary.
+6. **Implement the as-of fence as a slice, not a rule.** Committed daily bars carry rows shaped
+   `{ t, o, h, l, c, v, ac }` — **seven** fields, including the adjusted close. *An earlier revision of this step
+   asserted `{ t, o, h, l, c, v }` and omitted `ac` entirely, which is precisely how the price-basis gap of Ruling
+   R-04-01 went unnoticed.* `t` is the regular-session open in epoch milliseconds. *Dated observation on
+   `data/bars/SPY.json`:* the tree is delta-appended on every refresh, so any row count or `asof` recorded here is
+   stale by design within days; it is **not** carried into any test, fixture, DoD item, or source literal.
+   Because the regular open is `14:30Z` (EST) or `13:30Z` (EDT) — both inside the same UTC calendar day as the ET
+   session — the session date is the UTC calendar date of `t`. That coincidence is load-bearing, so it is
+   **asserted rather than assumed**: each derived session date is cross-checked against
+   `calendar.rows[].regular.startUtc` and a mismatch refuses.
    `readable(claim) = { row ∈ bars.rows : sessionDate(row.t) ≤ claim.horizon.resolutionDate }` is computed **once,
    before** predicate evaluation, and the evaluator is handed only that slice. Any attempt to consult a row outside
    the slice is `RTR-LOOKAHEAD`.
 7. **Distinguish "not yet resolvable" from "tried to read the future".** If `bars.asof < claim.horizon.resolutionDate`
    the outcome is simply not observable yet: the claim stays `active`, no event is appended, and **no code fires**.
    Conflating the two would make `RTR-LOOKAHEAD` fire on every routine run and train everyone to ignore it.
-8. **Implement the four predicate evaluators** against the fenced slice, with
-   `ret(x) = (basisAt(resolutionDate) / basisAt(entryDate) − 1) × 100` in `percent-return`:
+8. **Implement the four predicate evaluators** against the fenced slice — the kinds are `PREDICATE_KINDS`
+   (`rlclaims.js:61`) and the comparators `PREDICATE_COMPARATORS` (`:62`), both read rather than restated. The
+   return is `ret(x) = (basisAt(resolutionDate) / basisAt(entryDate) − 1) × 100` in `percent-return`
+   (`MAGNITUDE_UNITS`, `:64`):
    `threshold` → `cmp(ret(subject), predicate.value)`;
    `relative` → `cmp(ret(subject) − ret(reference), predicate.value)`;
-   `directional` → `direction × ret(subject) > magnitude.flatBand`;
+   `directional` → `direction × ret(subject) > flatBandFor(claim)`;
    `spread` → `cmp(ret(subject.leg) − ret(reference.leg), predicate.value)`.
+
+   **`basisAt` is BLOCKED on Ruling R-04-01 and this scope selects no basis of its own.** Rows carry both `c` and
+   `ac`; ~74% of committed series have `ac !== c` with divergence to 57%; and BUG-012 established the refresh cron
+   **retroactively rewrites `ac`**. `basisAt` therefore reads the field named by the claim's frozen `priceBasis`
+   term once scope 01 lands it, and until then no `ret(x)`-dependent DoD item may be ticked. `SIGN_CONVENTIONS`
+   (`rlclaims.js:65`) is **not** a substitute: it fixes the sign convention, not the series.
+
    **Point comparators** (`gte`, `lte`, `gt`, `lt`) evaluate once, at `resolutionDate`. **Path comparators**
    (`crosses-above`, `crosses-below`) evaluate over every session in `[entryDate, resolutionDate]` using `h` and `l`,
    so they require the **complete** intervening session set; a gap closes the claim `unresolved`, reason
    `path-incomplete`, because a path predicate evaluated over a partial path is a *different* predicate and silently
    doing that would break HC-6. A required session missing from the slice is `unresolved`, reason `session-absent` —
-   never an interpolation.
+   never an interpolation. Both reasons are already the coded pair for `unresolved` in `CLOSURE_REASON_CODES`
+   (`rlclaims.js:307`), so `buildResolution` rejects either against any other closure event without this scope
+   adding a check.
+
 9. **Apply the data-quality gates.** A bars file may carry `reconstructedSessions`, `thinObservedSessions` and
    `zeroObservedSessions`, and the gate reads whichever are present. **Presence is not universal and must not be
    assumed:** on 2026-08-18, 291 of the 293 files matching `data/bars/*.json` carried all three, and the two that
@@ -162,66 +239,98 @@ Scenario: A claim with no committed series is not-evaluable (SCN-015-010)
    absent array is read as empty rather than as a missing input. Those figures are a **dated observation, not a
    constant**, and no test asserts them. If the `entryDate` or `resolutionDate` session appears in
    `zeroObservedSessions`, the claim closes
-   `not-evaluable`, reason `zero-observed-session`. A `reconstructedSessions` or `thinObservedSessions` hit does
-   **not** block resolution but is recorded verbatim in the resolution object's `provenance`, so a reader can see
-   that an outcome rests on a repaired bar.
+   `not-evaluable`, reason `zero-observed-session` (a `RESOLVER_NOT_EVALUABLE_REASONS` member, `rlclaims.js:298`). A
+   `reconstructedSessions` or `thinObservedSessions` hit does **not** block resolution but is recorded verbatim in
+   the resolution object's `provenance`, so a reader can see that an outcome rests on a repaired bar. The
+   `provenance` block is **hashed**, so `buildResolution` (`rlclaims.js:1003`) refuses any `RUN_SCOPED_KEYS` member
+   (`:259` — `runId`, `resolvedAt`, `computedAt`, `generatedAt`, `observedAt`) inside it; run-scoped facts go in
+   `lifecycleBinding`, which is deliberately outside the hash.
 10. **Compute the outcome magnitude as `outcomeValue = direction × ret(subject)`**, with `direction` frozen into the
-    claim from `ACTION_DIRECTION` (`rlcontracts.js#L714`). Multiplying by it is the only reason
-    `rlvSummarizeOutcomes`' `value > 0` win test (`rlvalidation.js#L136`) is meaningful for bearish claims: without
-    it, every correct `trim` or `hedge` would score as a loss. `direction === 0` (`hold`) closes `not-evaluable`,
-    reason `neutral-direction-no-magnitude` — assigning it a sign would invent a direction the action family
-    explicitly declines to take. Values are stored **unrounded** as IEEE-754 doubles, with rounding applied only at
-    render.
+    claim from `ACTION_DIRECTION` (`rlcontracts.js:720`). Multiplying by it is the only reason
+    `rlvSummarizeOutcomes`' `value > 0` win test (`rlvalidation.js:136`) is meaningful for bearish claims: without
+    it, every correct `trim` or `hedge` would score as a loss. That citation is **motivation only** — `rlvalidation.js`
+    is not imported here and no statistic is computed in this scope. `direction === 0` (`hold`) closes
+    `not-evaluable`, reason `neutral-direction-no-magnitude` — already a `MINT_REFUSALS` member
+    (`rlclaims.js:89`) — because assigning it a sign would invent a direction the action family explicitly declines
+    to take. Values are stored **unrounded** as IEEE-754 doubles, with rounding applied only at render;
+    `classifyOutcome` (`rlclaims.js:795`) already carries the value through verbatim and this scope must not
+    pre-round it before the call. **This step is blocked on Ruling R-04-01** for the same reason step 8 is:
+    `ret(subject)` has no defined price basis yet.
 11. **Record closure event and outcome class as two independent axes.** The **closure event** is decided solely by
-    the frozen predicate and is drawn from `CLOSE_EVENT_TYPES` (`rlcontracts.js#L720`) and nothing else; the
-    **`outcomeClass`** is decided solely by `outcomeValue` against `magnitude.flatBand` (scope 03). A `satisfied`
-    claim can therefore carry a **negative** `outcomeValue`, and both facts are preserved. `withdrawn` is **never**
-    resolver-emitted: withdrawal is an authoring act, and a resolver that could withdraw a claim could withdraw the
-    ones it was about to score badly. `not-evaluable` closes at the **first** resolver pass after minting, not at
-    horizon expiry, because parking a known-unscoreable claim in the open pipeline misrepresents the pipeline.
+    the frozen predicate and is drawn from `CLOSE_EVENT_TYPES` (`rlcontracts.js:726`), read through
+    `readClosureEventVocabulary` (`rlclaims.js:944`) rather than restated; the **`outcomeClass`** is decided solely
+    by `classifyOutcome` (`rlclaims.js:795`) against the claim's frozen band from `flatBandFor` (`:767`). A
+    `satisfied` claim can therefore carry a **negative** `outcomeValue`, and both facts are preserved —
+    `buildResolution` enforces the admissible pairings from `OUTCOME_CLOSURE_EVENTS` (`:284`) rather than letting
+    either axis derive the other. `withdrawn` is **never** resolver-emitted, and it is already **derived** rather
+    than restated: it is the residue of the source vocabulary that no `OUTCOME_CLOSURE_EVENTS` class admits.
+    Withdrawal is an authoring act, and a resolver that could withdraw a claim could withdraw the ones it was about
+    to score badly. `not-evaluable` closes at the **first** resolver pass after minting, not at horizon expiry,
+    because parking a known-unscoreable claim in the open pipeline misrepresents the pipeline.
 12. **Route closures through the existing reducer.** Closures enter through `run.closures`, the path the reducer's own
-    contract documents. Four verified behaviours constrain the call: `run.closures` must be an array
-    (`rlcontracts.js#L1265`); closures are sorted by `originRecommendationKey` before processing (`#L1266`), so the
+    contract documents. Five verified behaviours constrain the call: `run.closures` must be an array
+    (`rlcontracts.js:1271`); closures are sorted by `originRecommendationKey` before processing (`:1272`), so the
     resolver must not depend on its own input order; a type outside `CLOSE_EVENT_TYPES` fails
-    `recommendation-closure-type-invalid` (`#L1273`), so a local extension is `RTR-CLOSURE-VOCAB`; and a key present
-    in the same run's proposals fails `recommendation-closure-still-active` (`#L1276`), so the resolver calls the
+    `recommendation-closure-type-invalid` (`:1279`), which is the `RTR-CLOSURE-VOCAB` condition scope 03 already
+    codes at `rlclaims.js:267`; an absent key fails `recommendation-closure-key-absent` (`:1281`); and a key present
+    in the same run's proposals fails `recommendation-closure-still-active` (`:1282`), so the resolver calls the
     reducer with **`current: []`** — it is a closing pass, never a proposing pass. The reducer re-emits the claim's
-    **original frozen terms** on the closure (`#L1277`), which is HC-6 holding at the lifecycle layer too.
+    **original frozen terms** on the closure (`:1283`) before setting `closureEntry.state = "closed"` (`:1284`),
+    which is HC-6 holding at the lifecycle layer too.
 13. **Derive the reducer key bridge, never author it.** `originRecommendationKey` is computed by calling
-    `deriveRecommendationKeys` (`rlcontracts.js#L1034`) on terms assembled from the claim's **hashed**
+    `deriveRecommendationKeys` (`rlcontracts.js:1040`) on terms assembled from the claim's **hashed**
     `thesisFamily` / `subject` / `actionFamily` / `horizon` (scope 01) plus the `originToolId` **pipeline
     constant** `market-brief`, exactly as the foundation intends (*"Authors never own identity"*,
-    `rlcontracts.js#L1031`). Per the 2026-08-18 Claim-Identity Reconciliation there is no `lifecycleTerms` block to
+    `rlcontracts.js:1037`). Per the 2026-08-18 Claim-Identity Reconciliation there is no `lifecycleTerms` block to
     read from: that block is **withdrawn**, `thesisFamily` is a top-level hashed claim field, and `originToolId` is
     not a claim field at all. The constant is asserted against the registry — `tools.json` carries
     `experience.kind === "market-action-center"` exactly once, on the tool whose `id` is `market-brief` — rather
-    than hard-coding a second copy of the string. Because every varying term of the derived key is inside
-    `claimHash`, the bridge is a **refinement**: one claim object can only ever derive one reducer key. The derived
-    key is recorded in the resolution object as `lifecycleBinding.originRecommendationKey` and is **not** added to
-    `claimHash`'s term list, so scope 01's contract stays frozen and byte-stable. **Routed finding P-015-03 is
-    RESOLVED and no longer gates this step** — `thesisFamily` is authored; when it is absent the claim mints
-    `not-evaluable` (`no-authored-thesis-family`) and **no** closure event is emitted, so the reducer is never
-    called with a fabricated key and this scope still invents no value for it. The ruling implemented is recorded in
-    `report.md`.
+    than hard-coding a second copy of the string; `resolveCitedToolId` (`rlclaims.js`, exported) is the shipped
+    reader for that lookup. Because every varying term of the derived key is inside `claimHash`, the bridge is a
+    **refinement**: one claim object can only ever derive one reducer key. The derived key is recorded in the
+    resolution object as `lifecycleBinding.originRecommendationKey` — `lifecycleBinding` is a
+    `RESOLUTION_UNHASHED_FIELDS` member (`rlclaims.js:250`), so this placement is the shipped contract rather than a
+    choice — and is **not** added to `claimHash`'s term list, so scope 01's contract stays frozen and byte-stable.
+    **Routed finding P-015-03 is RESOLVED and no longer gates this step** — `thesisFamily` is authored; when it is
+    absent the claim mints `not-evaluable` (`no-authored-thesis-family`, a `MINT_REFUSALS` member) and **no** closure
+    event is emitted, so the reducer is never called with a fabricated key and this scope still invents no value for
+    it. The ruling implemented is recorded in `report.md`.
 14. **Enforce idempotence upstream of the reducer, by state.** The reducer does **not** self-enforce it:
-    `lifecycleEventId` hashes `runId` (`rlcontracts.js#L1103`) so the same closure on two days yields two different
-    `eventId`s; the `seenEvent` dedup is within-run only (`#L1298`–`#L1305`); and the closure block checks for an
-    absent entry and a still-active entry but **not** for an already-closed one (`#L1273`–`#L1281`). Three layers:
+    `lifecycleEventId` hashes `runId` (`rlcontracts.js:1109`) so the same closure on two days yields two different
+    `eventId`s; the `seenEvent` dedup is within-run only (`:1305`–`:1308`); and the closure block checks for an
+    absent entry (`:1281`) and a still-active entry (`:1282`) but **not** for an already-closed one. Three layers:
     the **due-set gate** (`state === "active"`) is the mechanism, not a check bolted on afterwards; the
-    **`indexFingerprint`** (`rlcontracts.js#L1313`–`#L1316`, computed over `{ contractVersion, entries }` only,
-    excluding `runId` and `canonicalMonth`) is the byte-identical oracle; and **content-addressed resolution
-    objects** are the backstop, with `RTR-RESOLUTION-CONFLICT` aborting a write that would change bytes at an
-    existing path.
-15. **Implement the closed `not-evaluable` reason set**: `no-committed-series`, `no-committed-reference`,
-    `non-semantic-subject`, `neutral-direction-no-magnitude`, `zero-observed-session`, `calendar-coverage-exhausted`
-    — each with a human-readable sentence for the Power ledger. The claim is excluded from rate denominators and
-    **remains visibly counted** in the coverage line.
+    **`indexFingerprint`** (`rlcontracts.js:1318`, computed over `{ contractVersion, entries }` only, excluding
+    `runId` and `canonicalMonth`) is the byte-identical oracle; and **content-addressed resolution objects** are the
+    backstop. That third layer is entirely scope 03's: `writeResolutionObject` (`rlclaims.js:1109`) already reuses
+    identical bytes and already aborts a byte-changing write with `RTR-RESOLUTION-CONFLICT` (`:269`) without
+    overwriting. This scope **calls** it; it does not re-implement the conflict check, does not compute a path from
+    `RESOLUTION_STORE_DIR` (`:244`) itself, and does not write to that directory by any other route.
+15. **Consume the closed `not-evaluable` reason set — it has ELEVEN members, not six.** *An earlier revision of this
+    step listed six and prose elsewhere said seven.* `NOT_EVALUABLE_REASONS` (`rlclaims.js:305`) is **derived**, not
+    restated: it is the sorted union of the 8 `MINT_REFUSALS` (`:89` — `non-semantic-subject`,
+    `no-authored-subject`, `no-committed-series`, `no-authored-thesis-family`, `no-authored-horizon`,
+    `no-authored-predicate`, `neutral-direction-no-magnitude`, `no-authored-flat-band`) and the 3
+    `RESOLVER_NOT_EVALUABLE_REASONS` (`:298` — `no-committed-reference`, `zero-observed-session`,
+    `calendar-coverage-exhausted`), the latter being exactly the reasons that cannot be known at mint because they
+    are properties of the **observations** rather than of the authored claim. Only those **three** are this scope's
+    to raise; the other eight arrive already set on the minted claim and are carried through. The resolver reads the
+    set from the export and **never restates a list of its own**, which is what guarantees a ninth mint reason can
+    never land as an unrecordable outcome whose claim then falls out of the accounting. Each reason carries a
+    human-readable sentence for the Power ledger; the claim is excluded from rate denominators and **remains visibly
+    counted** in the coverage line.
 16. **Extend the fixture substrate** at `tests/fixtures/recommendation-track-record/bars/**` and `.../calendar/**`
     with synthetic bar series and calendar slices covering each predicate kind, the fence boundary, the path gap,
-    each `not-evaluable` reason, and the `early-close` horizon case. One rule violated per negative fixture; every
-    fixture carries explicit dates and no fixture reads a clock.
-17. **Extend `tests/recommendation-track-record.unit.mjs`, `.functional.mjs`, `.integration.mjs`, and create
-    `tests/recommendation-track-record.e2e.mjs`** with this scope's named cases.
+    each of the three resolver-raised `not-evaluable` reasons plus representative mint-set reasons, the
+    `early-close` horizon case, and — once R-04-01 lands — a `c`-vs-`ac` divergent series that scores differently
+    under each basis. Bar fixtures carry the full **seven**-field row shape `{ t, o, h, l, c, v, ac }`. One rule
+    violated per negative fixture; every fixture carries explicit dates and no fixture reads a clock. **These
+    fixtures are the only substrate this scope has:** `briefs/objects/claims/` and `briefs/objects/resolutions/` do
+    not exist, and `claimRef` appears in 0 of 5,083 committed rows, so a real-data run proves nothing here.
+17. **Extend `tests/recommendation-track-record.unit.mjs`, `.functional.mjs`, `.integration.mjs` and
+    `.e2e.mjs`** with this scope's named cases. *An earlier revision said "create `.e2e.mjs`"; it already exists*,
+    alongside `.canary.mjs` and `.support.mjs`, so every file in this row is extended and none is created.
+
 
 ---
 
@@ -233,28 +342,31 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 
 | Test ID | Type | Category | Scenarios | File/Location | Description | Command | Live System | Evidence anchor |
 |---|---|---|---|---|---|---|---|---|
-| T-04-U1 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | All four predicate kinds evaluate correctly against a fenced slice — `threshold`, `relative` (subject minus reference over the same window), `directional` (against `flatBand`), and `spread` (leg minus leg) — each with a satisfied and an invalidated fixture. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u1` |
+| T-04-U1 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | All four predicate kinds evaluate correctly against a fenced slice — `threshold`, `relative` (subject minus reference over the same window), `directional` (against the band returned by `flatBandFor`, never a band passed in), and `spread` (leg minus leg) — each with a satisfied and an invalidated fixture. **`basisAt` reads the field named by the claim's frozen `priceBasis` term; a fixture omitting the term refuses rather than defaulting.** Blocked on Ruling R-04-01. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u1` |
 | T-04-U2 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | Point comparators evaluate **once** at `resolutionDate`; path comparators (`crosses-above`, `crosses-below`) evaluate over every intervening session using `h` and `l`, and a **gap** in the intervening set closes `unresolved` reason `path-incomplete` rather than evaluating over the partial path. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u2` |
 | T-04-U3 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | Closure event and outcome class are independent: a claim whose predicate is **satisfied** but whose direction-adjusted magnitude is **negative** records `closureEventType: "satisfied"` **and** `outcomeClass: "loss"`. An implementation deriving one axis from the other fails this row. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u3` |
-| T-04-U4 | Unit | `unit` | BS-002 | `tests/recommendation-track-record.unit.mjs` | `RTR-CLOSURE-VOCAB` fires with its exact code when a closure event outside `CLOSE_EVENT_TYPES` is constructed (`"partially-satisfied"`), and no local extension of the vocabulary is created; `rlcontracts.js` is asserted byte-unmodified. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u4` |
+| T-04-U4 | Unit | `unit` | BS-002 | `tests/recommendation-track-record.unit.mjs` | `RTR-CLOSURE-VOCAB` fires with its exact code when a closure event outside `CLOSE_EVENT_TYPES` is constructed (`"partially-satisfied"`) — raised by the **already-shipped** `buildResolution` (`rlclaims.js:1003`, code at `:267`), asserting the resolver neither re-implements the check nor extends the vocabulary locally. `rlcontracts.js` and `rlclaims.js` are asserted unmodified by `git diff --quiet` exiting 0. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u4` |
 | T-04-U5 | Unit | `unit` | BS-007 | `tests/recommendation-track-record.unit.mjs` | The fence is structural: the slice handed to the evaluator contains **no** row dated after `resolutionDate`, an attempt to consult one fires `RTR-LOOKAHEAD`, **and** the distinct case `bars.asof < resolutionDate` is a **silent skip** that leaves the claim `active` with zero events appended — proving skip and refusal are not conflated. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u5` |
-| T-04-U6 | Unit | `unit` | BS-010 | `tests/recommendation-track-record.unit.mjs` | Each of the six `not-evaluable` reasons fires for its own trigger and only its own, and each carries a human-readable sentence; a subject naming a symbol absent from the committed `data/bars` set — **enumerated at test time from `data/bars/index.json` `tickers[].sym` and never asserted as a count literal** — closes `no-committed-series` while a `relative` claim with a missing reference closes `no-committed-reference`. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u6` |
-| T-04-U7 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | `outcomeValue = direction × ret(subject)`: a **correct bearish** claim (`trim`, `direction: -1`) on a series that fell produces a **positive** outcome, and a wrong one produces a negative outcome — the adapter without which every correct bearish call would score as a loss under `rlvalidation.js#L136`. `hold` (`direction: 0`) closes `neutral-direction-no-magnitude`. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u7` |
-| T-04-F1 | Functional | `functional` | BS-007 | `tests/recommendation-track-record.functional.mjs` | Horizon expiry is session arithmetic: a Friday `next-session` claim resolves the following Monday, not Saturday; a claim spanning a `holiday` resolves one session later than day arithmetic says; and each derived session date is cross-checked against `calendar.rows[].regular.startUtc` with a mismatch refusing. **Includes the `early-close` case (P-015-07)** — a `next-session` claim proposed the session before `2026-11-27` or `2026-12-24` must resolve **on** that early-close session, not skip it. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-04-f1` |
+| T-04-U6 | Unit | `unit` | BS-010 | `tests/recommendation-track-record.unit.mjs` | The reason vocabulary is read from `NOT_EVALUABLE_REASONS` (`rlclaims.js:305`) and its length asserted to equal `MINT_REFUSALS.length + RESOLVER_NOT_EVALUABLE_REASONS.length` — **eleven** today, and the row states no literal so an added mint reason cannot silently go unexercised. *An earlier revision asserted six.* Each of the **three** resolver-raised reasons (`no-committed-reference`, `zero-observed-session`, `calendar-coverage-exhausted`) fires for its own trigger and only its own; each of the eight mint reasons is carried through unaltered; each carries a human-readable sentence. A subject naming a symbol absent from `enumerateCommittedSeries(readdir(BARS_DIR))` — **never `index.json`, and never a count literal** — closes `no-committed-series`, while a `relative` claim with a missing reference closes `no-committed-reference`. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u6` |
+| T-04-U7 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | `outcomeValue = direction × ret(subject)`: a **correct bearish** claim (`trim`, `direction: -1`) on a series that fell produces a **positive** outcome, and a wrong one produces a negative outcome — the adapter without which every correct bearish call would score as a loss under `rlvalidation.js:136` (motivation only; the module is not imported). `hold` (`direction: 0`) closes `neutral-direction-no-magnitude`. The class is assigned by calling `classifyOutcome` (`rlclaims.js:795`), asserting the resolver does not re-derive the band comparison. Blocked on Ruling R-04-01 for the `ret(subject)` half. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u7` |
+| T-04-U8 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | **Price basis is frozen on the claim, never chosen by the resolver (Ruling R-04-01).** A fixture series whose `c` and `ac` diverge scores **differently** under each basis, and the row asserts the resolver reads the claim's frozen `priceBasis` term rather than picking one: a claim carrying no such term refuses (proposed `RTR-PRICE-BASIS`) instead of defaulting, and two claims differing only in basis produce two distinct `resolutionHash` values. The hashed `provenance` additionally records a fingerprint of the exact basis values read at `entryDate` and `resolutionDate`, so a retroactive `ac` rewrite (BUG-012) surfaces as `RTR-RESOLUTION-CONFLICT` rather than as a silent re-score. **Blocked** until scope 01 lands the term. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u8` |
+| T-04-F1 | Functional | `functional` | BS-007 | `tests/recommendation-track-record.functional.mjs` | Horizon expiry is session arithmetic: a Friday `next-session` claim resolves the following Monday, not Saturday; a claim spanning a `holiday` resolves one session later than day arithmetic says; and each derived session date is cross-checked against `calendar.rows[].regular.startUtc` with a mismatch refusing. **Includes the `early-close` case (P-015-07)** — a `next-session` claim proposed the session before `2026-11-27` or `2026-12-24` must resolve **on** that early-close session, not skip it, and the resolution must record `provenance.earlyCloseSessions: [<tradingDate>]`. Keying the session test on `dateState` instead of `regular !== null` is the D4-owned `RTR-SESSION-PREDICATE` and is asserted to refuse; the derived 2026 session count is **251**. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-04-f1` |
 | T-04-F2 | Functional | `functional` | BS-007 | `tests/recommendation-track-record.functional.mjs` | `RTR-CALENDAR-COVERAGE` fires with its exact code when a horizon expiry lands beyond `coverageEnd`, the claim closes `not-evaluable` reason `calendar-coverage-exhausted`, and **no** date is extrapolated past the committed window. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-04-f2` |
 | T-04-F3 | Functional | `functional` | BS-002, BS-003 | `tests/recommendation-track-record.functional.mjs` | `withdrawn` is **never** resolver-emitted: no resolver path can construct it, asserted across every predicate kind and every failure branch, including a claim the resolver was about to score as a large loss. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-04-f3` |
 | T-04-F4 | Functional | `functional` | BS-010 | `tests/recommendation-track-record.functional.mjs` | Data-quality gates: an `entryDate` or `resolutionDate` in `zeroObservedSessions` closes `not-evaluable` reason `zero-observed-session`, while a `reconstructedSessions` or `thinObservedSessions` hit **resolves normally** and is recorded verbatim in the resolution object's `provenance`. Blocking on a reconstructed bar would fail the row. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-04-f4` |
 | T-04-I1 | Integration | `integration` | BS-002, BS-003 | `tests/recommendation-track-record.integration.mjs` | The closure enters through `run.closures` with `current: []`, `reduceRecommendationEvents` returns `ok`, exactly one event is appended per due claim, the entry's `state` becomes `"closed"`, and the closure event carries the claim's **original frozen terms**. Calling with a non-empty `current` containing the same key is asserted to fail `recommendation-closure-still-active`, proving the closing-pass discipline is necessary. | `node --test tests/recommendation-track-record.integration.mjs` | No | `report.md#t-04-i1` |
 | T-04-I2 | Integration | `integration` | BS-009 | `tests/recommendation-track-record.integration.mjs` | **Idempotence case 1 — the gate holds.** Pass 2 over an unchanged ledger yields `run.closures.length === 0`, zero appended events, zero new resolution objects, and an `indexFingerprint` **byte-identical** to pass 1. | `node --test tests/recommendation-track-record.integration.mjs` | No | `report.md#t-04-i2` |
 | T-04-I3 | Integration | `integration` | BS-009 | `tests/recommendation-track-record.integration.mjs` | **Idempotence case 2 — the adversarial half.** Feeding `reduceRecommendationEvents` a second closure for an **already-closed** entry, bypassing the due-set gate, asserts the reducer **accepts** it and the `indexFingerprint` **changes**. This is an acceptance assertion on purpose: it fails if the reducer is hardened without telling the resolver, and it is what proves case 1 is load-bearing rather than incidental. | `node --test tests/recommendation-track-record.integration.mjs` | No | `report.md#t-04-i3` |
-| T-04-I4 | Integration | `integration` | BS-009 | `tests/recommendation-track-record.integration.mjs` | `RTR-RESOLUTION-CONFLICT` fires with its exact code when a second resolution for the same `claimHash` would produce different bytes at the same content-addressed path, and the on-disk bytes are asserted **unchanged** afterwards. | `node --test tests/recommendation-track-record.integration.mjs` | No | `report.md#t-04-i4` |
+| T-04-I4 | Integration | `integration` | BS-009 | `tests/recommendation-track-record.integration.mjs` | `RTR-RESOLUTION-CONFLICT` fires with its exact code when a second resolution for the same `claimHash` would produce different bytes at the same content-addressed path, and the on-disk bytes are asserted **unchanged** afterwards. Raised by the **already-shipped** `writeResolutionObject` (`rlclaims.js:1109`, code at `:269`), asserting the resolver calls it rather than writing to `RESOLUTION_STORE_DIR` by any other route. | `node --test tests/recommendation-track-record.integration.mjs` | No | `report.md#t-04-i4` |
+| T-04-I5 | Integration | `integration` | BS-010 | `tests/recommendation-track-record.integration.mjs` | **Scope 02's gate is called, not bypassed.** A resolution written against a ledger row carrying no `claimRef` refuses with `RTR-LEGACY-BACKFILL` (`rlclaims.js:184`, raised by `authorizeResolutionWrite` at `:733`/`:721`) **before** the resolution is inspected in any way, proving a complete and entirely plausible resolution cannot rescue a claimless row; a malformed row still refuses as malformed rather than as legacy; and a resolution whose `claimHash` disagrees with the row's `claimRef` refuses. Nothing is written on any of the three paths. | `node --test tests/recommendation-track-record.integration.mjs` | No | `report.md#t-04-i5` |
 | T-04-E1 | E2E | `e2e` | BS-002, BS-003, BS-010 | `tests/recommendation-track-record.e2e.mjs` | A full resolve pass over a fixture ledger containing a mix of satisfiable, invalidatable, expiring, path-incomplete and not-evaluable claims produces exactly one closure per due claim, leaves not-yet-due claims `active`, writes one resolution object per closure, and the class partition identity holds over the result. | `node --test tests/recommendation-track-record.e2e.mjs` | No | `report.md#t-04-e1` |
 | T-04-V1 | Functional | `functional` | BS-007 | `tests/recommendation-track-record.functional.mjs` | `RTR-NETWORK` fires when the resolver module's source references `fetch(`, `providerFetch(`, `rlProviderConfig`, or any socket/credential surface, and the clean module is asserted to reference none of them — the same idiom as the repo's existing `rlvalid-node-safe-no-dom-storage-network` assertion. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-04-v1` |
 | T-04-R1 | Regression E2E | `e2e` | SCN-015-002, SCN-015-003, SCN-015-007, SCN-015-009, SCN-015-010 | `tests/recommendation-track-record.e2e.mjs` | **Persistent scenario regression for all five owned scenarios.** A second, permanently-retained resolve pass re-asserts end to end that a satisfied claim resolves positive and an invalidated one negative, that the as-of fence still excludes every future row with `RTR-LOOKAHEAD` firing on an attempt while `bars.asof < resolutionDate` stays a silent skip, that a re-run yields zero closures and a byte-identical `indexFingerprint`, and that a claim with no committed series still closes `not-evaluable`. Unlike `T-04-E1`, which proves the first pass, this row is the standing guard that re-runs on every later scope's pass, so a later change to the reducer bridge, the calendar predicate, or the due-set gate fails here. | `node --test tests/recommendation-track-record.e2e.mjs` | No | `report.md#t-04-r1` |
 | T-04-R2 | Regression E2E | `e2e` | SCN-015-009 | `tests/*.e2e.mjs`, `tests/*.spec.mjs` (committed suites, unfiltered) | **Broader E2E regression suite.** The repo's committed Node E2E files and the whole committed Playwright spec suite both run green after the resolver lands, with no pre-existing test removed, skipped, or newly failing — the proof that routing closures through `reduceRecommendationEvents` with `current: []` left every existing lifecycle consumer of `rlcontracts.js` intact rather than only satisfying 015's own fixtures. | `node --test tests/*.e2e.mjs && npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` | Yes | `report.md#t-04-r2` |
-| T-04-S1 | Project check | project check | — | `scripts/selftest.mjs` (unmodified) | The repo self-test is green after the resolver, the fixtures and the test cases land, at `baseline + N passed, 0 failed`, where `baseline` is the total captured immediately before this scope's first change and recorded in `report.md`, with no pre-existing assertion count decreasing. | `node scripts/selftest.mjs` | No | `report.md#t-04-s1` |
+| T-04-S1 | Project check | project check | — | `scripts/selftest.mjs` (unmodified) | The repo self-test reports **`0 failed`** and a passed count **greater than or equal to** the literal baseline captured immediately before this scope's first change and recorded verbatim in `report.md`. *An earlier revision required `baseline + N` with both `baseline` and `N` unbound, which no reader could decide.* Both operands are now literals at check time: the baseline is pinned in `report.md` and the observed count comes from this run's raw output. | `node scripts/selftest.mjs` | No | `report.md#t-04-s1` |
 
-**Test Plan rows: 20.**
+**Test Plan rows: 22.** (Was 20; **T-04-U8** adds the R-04-01 price-basis row and **T-04-I5** adds the
+`authorizeResolutionWrite` gate row, a scope 02 surface the earlier plan referenced zero times.)
 
 ---
 
@@ -263,59 +375,71 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 #### Core items
 
 - [ ] `scripts/brief-resolve-outcomes.mjs` exists, runs offline from committed repository state only, and references no `fetch`, socket, provider key, or `RLDATA` browser fetch path.
+- [ ] **The resolver CONSUMES scope 03's shipped exports and re-implements none of them.** `classifyOutcome`, `flatBandFor`, `outcomeContributionFor`, `buildResolution`, `resolutionHash`, `resolutionObjectPath`, `serializeResolution`, `writeResolutionObject`, `authorizeResolutionWrite`, `enumerateCommittedSeries`, `readClosureEventVocabulary`, `CLOSURE_REASON_CODES`, `NOT_EVALUABLE_REASONS`, `OUTCOME_CLOSURE_EVENTS`, `OUTCOME_CLASSES` are imported from `rlclaims.js` and called; no second copy of any of them exists in 015-authored code.
+- [ ] **Scope 02's write gate is called, never bypassed.** Every resolution write goes through `writeResolutionObject`, which calls `authorizeResolutionWrite` (`rlclaims.js:733`) first; a claimless row refuses `RTR-LEGACY-BACKFILL` before the resolution is inspected, and nothing in `briefs/objects/resolutions/` is written by any other route.
+- [ ] The committed symbol set is `enumerateCommittedSeries(readdir(BARS_DIR))` — the **directory listing** availability set, never `data/bars/index.json` (a curation set) and never a count literal.
 - [ ] The due set is computed from reduction state (`entry.state === "active"` ∧ has a `claimRef` ∧ `resolutionDate ≤ asOfDate`), never by scanning the ledger for timestamps.
 - [ ] `resolutionDate` is derived by **calendar-session** arithmetic against `data/calendars/xnys/calendar.json`, never by adding calendar days, and each derived session date is cross-checked against `calendar.rows[].regular.startUtc`.
-- [ ] **Routed finding P-015-07 is recorded as blocking the session predicate.** The `dateState === "regular"` rule in `design.md` → `## D4` skips the two committed `early-close` sessions, which carry non-null `regular` blocks and are real trading days. This scope does **not** silently adopt either rule; it implements whichever the routed decision returns and records the decision in `report.md`.
+- [ ] **Routed finding P-015-07 is RESOLVED and is implemented, not carried as blocking.** The trading-session test is `row.regular !== null`, not `dateState === "regular"`, yielding 251 sessions in 2026 (249 regular + 2 early-close); keying on `dateState` is the D4-owned `RTR-SESSION-PREDICATE` refusal. The implemented ruling is recorded in `report.md`.
+- [ ] An `early-close` session **resolves normally and is flagged, not excluded**: when `entryDate` or `resolutionDate` falls on one, the resolution records `provenance.earlyCloseSessions: [<tradingDate>…]`.
 - [ ] `RTR-CALENDAR-COVERAGE` is implemented; a `resolutionDate` beyond `coverageEnd` refuses and closes `not-evaluable` reason `calendar-coverage-exhausted` with no extrapolation.
 - [ ] The as-of fence is a **slice computed once before** predicate evaluation; the evaluator can only see readable rows, and `RTR-LOOKAHEAD` fires on any attempt to consult a row outside it.
+- [ ] Bar rows are read as the verified **seven**-field shape `{ t, o, h, l, c, v, ac }`; no code or fixture assumes the six-field shape an earlier revision of this plan asserted.
+- [ ] **BLOCKED on Ruling R-04-01 — the price basis is read from the claim, never selected here.** `basisAt` resolves `c` vs `ac` from the claim's frozen hashed `priceBasis` term once scope 01 lands it; a claim carrying no such term refuses rather than defaulting; and no `ret(x)`-dependent item in this DoD may be ticked on a basis this scope chose for itself.
+- [ ] **A retroactive `ac` rewrite is detectable, not silent.** The hashed `provenance` records a fingerprint of the exact basis values read at `entryDate` and `resolutionDate`, so a later rewrite (BUG-012) changes the resolution hash and surfaces as `RTR-RESOLUTION-CONFLICT` instead of re-scoring quietly.
 - [ ] "Not yet resolvable" (`bars.asof < resolutionDate`) is a silent skip leaving the claim `active` with zero events appended — never an `RTR-LOOKAHEAD` refusal.
 - [ ] All four predicate kinds are implemented; point comparators evaluate once at `resolutionDate` and path comparators require the complete intervening session set, closing `unresolved` reason `path-incomplete` on a gap rather than evaluating a partial path.
 - [ ] A required session missing from the slice closes `unresolved` reason `session-absent`; no value is ever interpolated.
 - [ ] The data-quality gates are applied: `zeroObservedSessions` closes `not-evaluable`; `reconstructedSessions` and `thinObservedSessions` do not block resolution and are recorded verbatim in the resolution object's `provenance`.
-- [ ] `outcomeValue = direction × ret(subject)` with `direction` frozen from `ACTION_DIRECTION`; values are stored unrounded as IEEE-754 doubles with rounding applied only at render; `direction === 0` closes `neutral-direction-no-magnitude`.
-- [ ] Closure event and `outcomeClass` are recorded as two independent axes; a `satisfied` claim carrying a negative magnitude preserves both facts.
-- [ ] `withdrawn` is never resolver-emitted on any path, including for a claim about to score badly.
+- [ ] `outcomeValue = direction × ret(subject)` with `direction` frozen from `ACTION_DIRECTION` (`rlcontracts.js:720`); the class is assigned by calling `classifyOutcome` (`rlclaims.js:795`) rather than re-deriving the band comparison; values are stored unrounded as IEEE-754 doubles with rounding applied only at render; `direction === 0` closes `neutral-direction-no-magnitude`. Blocked on Ruling R-04-01 for the `ret(subject)` half.
+- [ ] Closure event and `outcomeClass` are recorded as two independent axes, with the admissible pairings enforced by `OUTCOME_CLOSURE_EVENTS` (`rlclaims.js:284`) via `buildResolution`; a `satisfied` claim carrying a negative magnitude preserves both facts.
+- [ ] `withdrawn` is never resolver-emitted on any path, including for a claim about to score badly — **derived** as the residue of the source vocabulary that no `OUTCOME_CLOSURE_EVENTS` class admits, not restated as a separate rule.
+- [ ] A bare `0` never reaches a directional class: `RTR-FLAT-ZERO` (`rlclaims.js:133`) is left to fire from the shipped `buildResolution` and `assertZeroFreeOutcomes` (`:817`), and this scope neither coerces a zero nor pre-filters the array to avoid the refusal.
 - [ ] `not-evaluable` closes at the **first** resolver pass after minting, not at horizon expiry, so a known-unscoreable claim never sits in the open pipeline.
-- [ ] Closures route through `reduceRecommendationEvents` via `run.closures` with `current: []`; the reducer is consumed unchanged and `rlcontracts.js` is byte-unmodified. `RTR-CLOSURE-VOCAB` refuses a locally-invented closure type.
-- [ ] The resolver does not depend on its own closure ordering, because the reducer sorts by `originRecommendationKey` before processing.
-- [ ] `lifecycleBinding.originRecommendationKey` is **derived** by calling `deriveRecommendationKeys`, never authored, and is not added to `claimHash`'s term list.
+- [ ] Closures route through `reduceRecommendationEvents` via `run.closures` with `current: []`; the reducer is consumed unchanged, and `rlcontracts.js`, `rlvalidation.js` and `rlclaims.js` are proven unmodified by `git diff --quiet` exiting 0. *An earlier revision asserted "byte-unmodified" with no `sha256` pinned anywhere, which was not decidable as written.* `RTR-CLOSURE-VOCAB` refuses a locally-invented closure type — raised by the shipped `buildResolution`, not re-implemented here.
+- [ ] The resolver does not depend on its own closure ordering, because the reducer sorts by `originRecommendationKey` before processing (`rlcontracts.js:1272`).
+- [ ] `lifecycleBinding.originRecommendationKey` is **derived** by calling `deriveRecommendationKeys` (`rlcontracts.js:1040`), never authored, and is carried in `lifecycleBinding` — a `RESOLUTION_UNHASHED_FIELDS` member (`rlclaims.js:250`) — so it is not added to `claimHash`'s term list.
+- [ ] No `RUN_SCOPED_KEYS` member (`rlclaims.js:259`) appears inside the hashed `provenance` block; run-scoped facts go in `lifecycleBinding`.
 - [ ] **Routed finding P-015-03 is recorded as ruled on, not as blocking.** `thesisFamily` is a top-level hashed claim field that is authored or the claim is not evaluable; this scope invents no value for it, emits no closure event when it is absent, and records the implemented ruling in `report.md` before the bridge is implemented.
-- [ ] Idempotence is enforced by the due-set gate, with `indexFingerprint` as the oracle and content-addressed resolution objects as the backstop; `RTR-RESOLUTION-CONFLICT` aborts a byte-changing write without overwriting.
-- [ ] The closed `not-evaluable` reason set is implemented, each reason carries a human-readable sentence, and every `not-evaluable` claim is excluded from rate denominators while remaining visibly counted.
+- [ ] Idempotence is enforced by the due-set gate, with `indexFingerprint` (`rlcontracts.js:1318`) as the oracle and content-addressed resolution objects as the backstop; the conflict abort is the shipped `writeResolutionObject` path (`rlclaims.js:1109`) raising `RTR-RESOLUTION-CONFLICT` without overwriting, called rather than re-implemented.
+- [ ] The `not-evaluable` reason set is **read from `NOT_EVALUABLE_REASONS` (`rlclaims.js:305`) and never restated**; its length equals `MINT_REFUSALS.length + RESOLVER_NOT_EVALUABLE_REASONS.length` (**eleven** today, asserted by derivation rather than by literal). *An earlier revision of this item and of T-04-U6 asserted six.* Only the three resolver-raised reasons are this scope's to raise; each reason carries a human-readable sentence; every `not-evaluable` claim is excluded from rate denominators while remaining visibly counted.
 - [ ] `Number.isFinite` is used exclusively; the global `isFinite` appears nowhere in 015-authored code.
-- [ ] No statistic is computed in this scope; `rlvalidation.js` is not imported here.
+- [ ] No statistic is computed in this scope; `rlvalidation.js` is not imported here, and the `rlvalidation.js:136` citation in the plan is motivation only. Feeding the primitive is scope 05.
+- [ ] **Inputs are empty and this scope is fixture-testable only.** `report.md` records that `briefs/objects/claims/` and `briefs/objects/resolutions/` do not exist, that there are 0 committed claim and resolution objects, and that `claimRef` appears in 0 of 5,083 committed rows — so no green run over real committed state may be recorded as coverage for any row above.
 
 #### Test items
 
-- [ ] T-04-U1 passes: all four predicate kinds evaluate correctly with satisfied and invalidated fixtures → evidence recorded in `report.md#t-04-u1`. — proves SCN-015-003
+- [ ] T-04-U1 passes: all four predicate kinds evaluate correctly with satisfied and invalidated fixtures, and the basis is read from the claim's frozen term → evidence recorded in `report.md#t-04-u1`. — proves SCN-015-003
 - [ ] T-04-U2 passes: point vs path comparator semantics hold and a path gap closes `path-incomplete` → evidence recorded in `report.md#t-04-u2`.
 - [ ] T-04-U3 passes: `satisfied` with a negative magnitude preserves both axes → evidence recorded in `report.md#t-04-u3`.
-- [ ] T-04-U4 passes: `RTR-CLOSURE-VOCAB` fires and `rlcontracts.js` is byte-unmodified → evidence recorded in `report.md#t-04-u4`.
+- [ ] T-04-U4 passes: `RTR-CLOSURE-VOCAB` fires from the shipped `buildResolution` and `git diff --quiet` proves the consumed modules unmodified → evidence recorded in `report.md#t-04-u4`.
 - [ ] T-04-U5 passes: the fence excludes future rows, `RTR-LOOKAHEAD` fires on an attempt, and not-yet-resolvable is a silent skip → evidence recorded in `report.md#t-04-u5`. — proves SCN-015-007
-- [ ] T-04-U6 passes: each of the six `not-evaluable` reasons fires for its own trigger only → evidence recorded in `report.md#t-04-u6`. — proves SCN-015-010
-- [ ] T-04-U7 passes: a correct bearish claim yields a positive outcome and `hold` refuses → evidence recorded in `report.md#t-04-u7`.
-- [ ] T-04-F1 passes: session arithmetic is correct across weekend, holiday and **early-close** boundaries with the `startUtc` cross-check → evidence recorded in `report.md#t-04-f1`.
+- [ ] T-04-U6 passes: the reason set is read from `NOT_EVALUABLE_REASONS`, its length asserted by derivation (eleven today, no literal), each of the three resolver-raised reasons fires for its own trigger only → evidence recorded in `report.md#t-04-u6`. — proves SCN-015-010
+- [ ] T-04-U7 passes: a correct bearish claim yields a positive outcome via `classifyOutcome` and `hold` refuses → evidence recorded in `report.md#t-04-u7`.
+- [ ] T-04-U8 passes: divergent `c`/`ac` fixtures score differently, the frozen `priceBasis` term decides which, a claim lacking the term refuses rather than defaulting, and the basis-value fingerprint lands in hashed `provenance` → evidence recorded in `report.md#t-04-u8`. **Blocked on Ruling R-04-01.**
+- [ ] T-04-F1 passes: session arithmetic is correct across weekend, holiday and **early-close** boundaries with the `startUtc` cross-check, `provenance.earlyCloseSessions` is recorded, `RTR-SESSION-PREDICATE` refuses a `dateState`-keyed test, and the derived 2026 session count is 251 → evidence recorded in `report.md#t-04-f1`.
 - [ ] T-04-F2 passes: `RTR-CALENDAR-COVERAGE` fires beyond `coverageEnd` with no extrapolation → evidence recorded in `report.md#t-04-f2`.
 - [ ] T-04-F3 passes: `withdrawn` is unreachable from every resolver path → evidence recorded in `report.md#t-04-f3`.
 - [ ] T-04-F4 passes: `zeroObservedSessions` closes not-evaluable while reconstructed and thin sessions resolve with recorded provenance → evidence recorded in `report.md#t-04-f4`.
 - [ ] T-04-I1 passes: closures route through the reducer with `current: []`, one event per due claim, frozen terms re-emitted, and the still-active case proven to fail → evidence recorded in `report.md#t-04-i1`. — proves SCN-015-002
 - [ ] T-04-I2 passes: **idempotence case 1** — pass 2 is a no-op with a byte-identical `indexFingerprint` → evidence recorded in `report.md#t-04-i2`. — proves SCN-015-009
 - [ ] T-04-I3 passes: **idempotence case 2** — the reducer is proven to *accept* a double closure when the gate is bypassed and the fingerprint changes → evidence recorded in `report.md#t-04-i3`.
-- [ ] T-04-I4 passes: `RTR-RESOLUTION-CONFLICT` fires and the on-disk bytes are unchanged → evidence recorded in `report.md#t-04-i4`.
+- [ ] T-04-I4 passes: `RTR-RESOLUTION-CONFLICT` fires from the shipped `writeResolutionObject` and the on-disk bytes are unchanged → evidence recorded in `report.md#t-04-i4`.
+- [ ] T-04-I5 passes: `authorizeResolutionWrite` is proven to be called first — a claimless row refuses `RTR-LEGACY-BACKFILL` before the resolution is inspected, a malformed row refuses as malformed, and a `claimHash`/`claimRef` mismatch refuses — with nothing written on any path → evidence recorded in `report.md#t-04-i5`.
 - [ ] T-04-E1 passes: a full resolve pass produces one closure per due claim, leaves not-yet-due claims active, and the partition identity holds → evidence recorded in `report.md#t-04-e1`.
 - [ ] T-04-V1 passes: `RTR-NETWORK` fires on a network/credential reference and the clean module references none → evidence recorded in `report.md#t-04-v1`.
 - [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope pass — [T-04-R1] the satisfied and invalidated outcomes, the look-ahead fence with its silent-skip counterpart, the byte-identical re-run fingerprint, and the not-evaluable closure all re-assert as a standing guard → evidence recorded in `report.md#t-04-r1`.
 - [ ] Broader E2E regression suite passes unchanged — [T-04-R2] the committed Node E2E files and the whole committed Playwright spec suite are green, proving every existing `rlcontracts.js` lifecycle consumer survives the closure routing → evidence recorded in `report.md#t-04-r2`.
-- [ ] T-04-S1 passes: `node scripts/selftest.mjs` reports `baseline + N passed, 0 failed` against the scope-start baseline captured in `report.md`, with no pre-existing assertion count decreasing → evidence recorded in `report.md#t-04-s1`.
+- [ ] T-04-S1 passes: `node scripts/selftest.mjs` reports `0 failed` and a passed count no lower than the literal baseline pinned in `report.md` before this scope's first change → evidence recorded in `report.md#t-04-s1`.
 
-**Test-related DoD items: 20. Test Plan rows: 20. Parity confirmed.**
+**Test-related DoD items: 22. Test Plan rows: 22. Parity confirmed.** (Was 20/20; T-04-U8 and T-04-I5 added.)
 
 **Both halves of the idempotence proof (T-04-I2 and T-04-I3) are named DoD items, per `design.md` → `## D11`
 F-015-D4-02. Neither alone is sufficient evidence for FR-006.**
 
 #### Build Quality Gate
 
-- [ ] Zero warnings across `node --test` output and `node scripts/selftest.mjs`; zero issues deferred, skipped, or worked around; every negative test verified to fail when the behaviour it guards is reverted; `rlcontracts.js` and `rlvalidation.js` byte-unmodified; no committed `data/bars/**` or `data/calendars/**` byte modified; `spec.md` and `design.md` unmodified by this scope; no other spec's artifacts touched.
+- [ ] Zero warnings across `node --test` output and `node scripts/selftest.mjs`; zero issues deferred, skipped, or worked around; every negative test verified to fail when the behaviour it guards is reverted; `rlcontracts.js`, `rlvalidation.js` and `rlclaims.js` proven unmodified by `git diff --quiet` exiting 0; no committed `data/bars/**` or `data/calendars/**` byte modified; `spec.md` and `design.md` unmodified by this scope; no other spec's artifacts touched.
 
 ---
 
@@ -324,7 +448,8 @@ F-015-D4-02. Neither alone is sufficient evidence for FR-006.**
 | Surface | Why it is excluded |
 |---|---|
 | `rlcontracts.js` | Feature 002-owned, read-only. `CLOSE_EVENT_TYPES`, `ACTION_DIRECTION`, `deriveRecommendationKeys` and `reduceRecommendationEvents` are consumed **unchanged**. The reducer is never forked: two lifecycle engines over one ledger would surface as ledger corruption rather than as a test failure. Its `runId`-hashed event ids and permissive closure block are worked **around** by the due-set gate, not patched. |
-| `rlvalidation.js` | Feature 007-owned, read-only. This scope computes no statistic and does not import it. |
+| `rlvalidation.js` | Feature 007-owned, read-only. This scope computes no statistic and does not import it. Feeding `rlvSummarizeOutcomes` is **scope 05**; the `rlvalidation.js:136` citation in the plan is motivation for the direction adapter only. |
+| `rlclaims.js` | Scope 01/02/03-owned, read-only **here**. Its resolution, classification, gate and enumeration exports are consumed unchanged and are never re-implemented, extended, or shadowed by a local copy. Adding the `priceBasis` hashed term is **scope 01's** act under Ruling R-04-01, not this scope's. |
 | Any committed `data/bars/**` or `data/calendars/**` byte | Read-only substrate. Tests use fixture series under `tests/fixtures/`, and any read of a committed file asserts its bytes unchanged. |
 | Any committed `briefs/history/**/*.jsonl` byte | The ledger is append-only and is scope 02's surface. The resolver appends closure events; it never rewrites a prior row. |
 | `briefs/objects/claims/**` | Append-only and scope 01-owned. The resolver **reads** claims; it never writes, amends, or deletes one. |

@@ -20,6 +20,7 @@
  */
 
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
@@ -3143,6 +3144,156 @@ test('T-04-U14: a binding names the claim it gates, and a pointer to another cla
     ], registry);
     assert.equal(duplicated.ok, false);
     assertRefusal(duplicated.error, 'duplicate-binding-key', 'pairs', 'duplicate binding');
+});
+
+/** The resolver's own source text, for the two "consumed, never re-implemented" static scans. */
+function resolverSourceText() {
+    return readFileSync(path.join(REPO_ROOT, 'scripts', 'brief-resolve-outcomes.mjs'), 'utf8');
+}
+
+/**
+ * A git exit code, never its stdout. `execFileSync` throws on non-zero, so the status is read off
+ * the thrown error rather than inferred from output; a command that failed to run at all reports
+ * -1 and can never be mistaken for a clean 0.
+ */
+function gitExitCode(args) {
+    try {
+        execFileSync('git', args, { cwd: REPO_ROOT, stdio: 'ignore' });
+        return 0;
+    } catch (error) {
+        return typeof error.status === 'number' ? error.status : -1;
+    }
+}
+
+/**
+ * Array literals in `source` that restate the reason vocabulary — two or more members quoted
+ * inside ONE literal. Naming a single reason as a constant is legitimate and the resolver does it;
+ * naming a SET is a second copy of a shipped list, which is what goes stale against it.
+ */
+function restatedReasonSets(source, reasons) {
+    return [...source.matchAll(/\[[^[\]]*\]/g)]
+        .map((match) => match[0])
+        .filter((literal) => reasons.filter((r) => literal.includes(`'${r}'`) || literal.includes(`"${r}"`)).length >= 2);
+}
+
+test('T-04-U4: RTR-CLOSURE-VOCAB is raised by the shipped buildResolution, never re-implemented by the resolver', () => {
+    const vocabulary = closureVocabulary();
+    const offending = 'partially-satisfied';
+    assert.equal(vocabulary.includes(offending), false, `${offending}: must genuinely be outside the vocabulary`);
+
+    /* THE REFUSAL, from the SHIPPED builder. The code identity is read off the rlclaims.js export
+       rather than typed here, so a rename upstream fails this row instead of leaving it asserting
+       a string the module no longer raises. */
+    const refused = claims.buildResolution(resolutionInput({ closureEventType: offending }));
+    assert.equal(refused.ok, false, `${offending}: must refuse`);
+    assert.equal(refused.error.code, claims.CLOSURE_VOCAB_CODE, 'the owned code');
+    assert.equal(claims.CLOSURE_VOCAB_CODE, 'RTR-CLOSURE-VOCAB', 'which is the code D4 names');
+    assertRefusal(refused.error, 'closure-event-not-in-vocabulary', 'closureEventType', `closureEventType "${offending}"`);
+
+    /* ANTI-VACUITY. The same call differing in exactly the closure event is ACCEPTED, so the
+       refusal above is caused by vocabulary membership and not by a builder refusing this input
+       outright — which is what a permissive-or-broken implementation would look like here. */
+    const accepted = builtResolution({ closureEventType: 'satisfied', reasonCode: 'predicate-satisfied' });
+    assert.equal(accepted.closureEventType, 'satisfied', 'an in-vocabulary member is accepted');
+    assert.equal(vocabulary.includes(accepted.closureEventType), true, 'and it is a member of the frozen vocabulary');
+
+    /* RAISED FROM rlclaims.js, NOT FROM THE RESOLVER. The resolver carries no quoted copy of the
+       code and no constant of its own bound to it — its single mention is backticked prose saying
+       the refusal stays `buildResolution`'s to raise. Two owners of one refusal code is how a code
+       ends up meaning two things, so a second owner added tomorrow fails here. */
+    const resolverSource = resolverSourceText();
+    assert.equal(/['"]RTR-CLOSURE-VOCAB['"]/.test(resolverSource), false, 'the resolver declares no copy of the code');
+    assert.equal(/CLOSURE_VOCAB_CODE\s*=/.test(resolverSource), false, 'nor a constant of its own bound to it');
+
+    /* Nor does it PRE-EMPT the check. Handed the same offending value, the resolver's own axis step
+       refuses under a DIFFERENT, resolver-owned code; reaching RTR-CLOSURE-VOCAB therefore requires
+       the shipped builder. The vocabulary is consumed, not shadowed and not extended locally. */
+    const preempted = resolutionAxesFor({}, offending, null);
+    assert.equal(preempted.ok, false, 'the resolver refuses the same value');
+    assert.notEqual(preempted.error.code, claims.CLOSURE_VOCAB_CODE, 'but never under the builder-owned code');
+    assertRefusal(preempted.error, 'closure-event-carries-no-outcome-class', 'closureEventType', 'resolver axis step');
+
+    /* THE CONSUMED MODULES ARE UNMODIFIED, so this row asserts the behaviour of the SHIPPED bytes
+       rather than of a local edit made to satisfy it. */
+    assert.equal(
+        gitExitCode(['diff', '--quiet', '--', 'rlclaims.js', 'rlcontracts.js']),
+        0,
+        'rlclaims.js and rlcontracts.js carry no working-tree modification',
+    );
+    // The helper can genuinely report failure, so the 0 above is a measurement and not a constant.
+    assert.notEqual(
+        gitExitCode(['rev-parse', '--verify', '--quiet', 'refs/heads/rtr-t-04-u4-absent-ref']),
+        0,
+        'the exit-code helper distinguishes non-zero',
+    );
+});
+
+test('T-04-U6: the not-evaluable reason set is READ from rlclaims.js, never restated by the resolver', () => {
+    const reasons = claims.NOT_EVALUABLE_REASONS;
+
+    /* DERIVED, NOT PINNED. The set IS the sorted dedup union of the two shipped lists, so a tenth
+       mint reason lands here automatically instead of leaving this row asserting a stale count.
+
+       The plan's arithmetic does NOT hold and is not asserted: `MINT_REFUSALS.length + 2` is 11,
+       while the shipped set carries 12. `MINT_REFUSALS` grew to nine and
+       `RESOLVER_NOT_EVALUABLE_REASONS` carries THREE members, not two. The relationship asserted
+       here is the one `unionSorted` actually implements. */
+    const union = [...new Set([...claims.MINT_REFUSALS, ...claims.RESOLVER_NOT_EVALUABLE_REASONS])].sort();
+    assert.deepEqual([...reasons], union, 'the set is the union of the two shipped lists');
+    assert.deepEqual(
+        claims.MINT_REFUSALS.filter((reason) => claims.RESOLVER_NOT_EVALUABLE_REASONS.includes(reason)),
+        [],
+        'the two lists are disjoint, which is what makes the sum exact rather than an upper bound',
+    );
+    assert.equal(
+        reasons.length,
+        claims.MINT_REFUSALS.length + claims.RESOLVER_NOT_EVALUABLE_REASONS.length,
+        'so the cardinality is the sum of the two source lists, derived rather than typed',
+    );
+    assert.equal(Object.isFrozen(reasons), true, 'and the shipped set is frozen against a local push');
+
+    /* Every member is a non-empty kebab-case string. A reason is a wire value: an empty string, a
+       capital or an underscore would still read as "a reason" to a consumer while never matching
+       the value the module raises. */
+    for (const reason of reasons) {
+        assert.equal(typeof reason, 'string', `${JSON.stringify(reason)}: is a string`);
+        assert.notEqual(reason.length, 0, `${JSON.stringify(reason)}: is non-empty`);
+        assert.match(reason, /^[a-z0-9]+(-[a-z0-9]+)*$/, `${reason}: is kebab-case`);
+    }
+
+    /* READ, NOT RESTATED. The resolver may legitimately name an INDIVIDUAL reason as a constant —
+       it does so twice and asserts each against the shipped set at load, which is why a rename
+       upstream fails at import there rather than producing a reason `buildResolution` rejects.
+       What is forbidden is a restated SET, so the scan looks inside array literals rather than at
+       bare occurrences, which would condemn those two legitimate constants. */
+    const resolverSource = resolverSourceText();
+    assert.deepEqual(restatedReasonSets(resolverSource, reasons), [], 'no array literal in the resolver restates the reason set');
+    for (const named of ['calendar-coverage-exhausted', 'no-committed-reference']) {
+        assert.equal(reasons.includes(named), true, `${named}: the individually named constant is a member of the shipped set`);
+    }
+    assert.equal(
+        /claims\.RESOLVER_NOT_EVALUABLE_REASONS/.test(resolverSource),
+        true,
+        'and the resolver CONSUMES the shipped list rather than merely avoiding a copy',
+    );
+
+    /* ANTI-VACUITY. The same scan is run over sources that DO restate the set and must flag them —
+       without this the clean result above would hold equally for a scanner that never matched. */
+    assert.equal(
+        restatedReasonSets(`const LOCAL = [${reasons.map((r) => `'${r}'`).join(', ')}];`, reasons).length,
+        1,
+        'a fully restated set is detected',
+    );
+    assert.equal(
+        restatedReasonSets(`const LOCAL = ["${reasons[0]}", "${reasons[1]}"];`, reasons).length,
+        1,
+        'and so is a two-member fragment of it, under either quote style',
+    );
+    assert.deepEqual(
+        restatedReasonSets(`const ONE = ['${reasons[0]}'];`, reasons),
+        [],
+        'while a single named member is not a restated set',
+    );
 });
 
 

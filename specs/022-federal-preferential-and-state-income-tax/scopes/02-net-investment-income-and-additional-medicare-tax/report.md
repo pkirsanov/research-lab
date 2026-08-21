@@ -1024,6 +1024,156 @@ or removed. `git status --short` below is the evidence: the only files this sess
 changed are `<repo>/scripts/selftest.mjs` — by appending a marker-free group between the
 existing final group and the summary block — and this scope's own two artifacts.
 
+### Verification pass — 2026-08-20 — the three open items are each blocked, and two are blocked by their own wording (findings F-02-A and F-02-B)
+
+**Claim Source:** executed. **Outcome: all three items stay `[ ]`.** They were
+re-derived against the tree as it stands, not against a prior pass.
+
+**Delivery census — the shared input.** Distinct `SUP-022-NN` markers actually
+delivered across the five marker-bearing source files:
+
+```
+DELIVERED_DISTINCT=20
+SUP-022-01 -02 -03 -04 -05 -06 -07 -08 -09 -10 -11 -12 -13 -14 -15 -16 -17 -20 -21 -22
+SCOPE01_OWNED=12  delivered=12
+SCOPE02_OWNED=8   delivered=6
+SCOPE02_MISSING=  SUP-022-18, SUP-022-19
+```
+
+**Item — "Both owned supersessions and both amendments are delivered". STAYS `[ ]`.**
+The census confirms the standing note: six of this scope's eight owned entries are
+delivered and **SUP-022-18 and SUP-022-19 are not**. That alone decides the item;
+no wording question arises. The item additionally carries the clause *"each seen to
+fail against the unchanged implementation first"*, which is the same clause finding
+**F-01-L** established is unanswerable against this repository's history — Features
+021 and 022 landed in the single squashed commit `b9d92a3f1`, so no unchanged
+implementation exists to run a replacement against. Scope 01's equivalent item was
+restated to remove that clause; this one was not, so even delivering the two
+missing entries would leave the item resting on an unanswerable clause.
+
+**Item — "No assertion outside this scope's ledger entries and amendments was
+edited, relaxed or deleted …". STAYS `[ ]`, and its two named provers cannot be
+written as specified. Finding F-02-A.**
+
+The standing note says the property holds but its rows were never written. The
+property was re-checked and the note is consistent with the tree: `node
+scripts/selftest.mjs` reports **3145 passed, 0 failed** in this session, so every
+sourcing, tolerance, determinism, privacy and Feature 008 production-consumer
+assertion the item names is present and passing rather than deleted or relaxed.
+What cannot be produced is the proof the item demands, because **both named rows
+are unbuildable as written**:
+
+- **`TP-02-22` states an arithmetic the tree contradicts three ways.** The row
+  requires asserting that "the delivered set equals Scope 01's **eleven** plus this
+  scope's **eight** — **nineteen** in total". Against the census above, Scope 01
+  owns and has delivered **twelve**, this scope has delivered **six** of eight, and
+  the two scopes' delivered total is **eighteen** (twenty across all scopes). Every
+  one of the three figures is wrong. Writing the row as specified would mean
+  committing an assertion that is false against the artifact it describes; writing
+  it correctly would mean silently substituting different numbers for the ones the
+  plan states. The "eleven" is the same defect finding **F-01-I** recorded inside
+  Scope 01 — where the owned-entry count was stated as twelve, eleven and seven in
+  three places, and was reconciled to twelve — leaking across into this scope's Test
+  Plan, which was never reconciled with it.
+- **`TP-02-23` requires an adversarial case against a clause that does not exist.**
+  Its fourth case demands that an implementation rendering a `data-rl-value` field
+  in Simple outside `SIMPLE_FIELDS` "is demonstrated to fail **SUP-022-18's**
+  cross-artifact identity". SUP-022-18 is one of the two undelivered entries. There
+  is no clause to fail against, so the case cannot be built until the item above is
+  delivered. Its other three cases — the moved-versus-deleted clauses of SUP-022-08
+  and SUP-022-10, and SUP-022-03's disjointness — target delivered entries and are
+  buildable today.
+
+**What would make each decidable.** For `TP-02-22`: reconcile the row's counts with
+the ledger the way Scope 01 reconciled its own — Scope 01 owns twelve, this scope
+owns eight, so the delivered total is twenty once SUP-022-18 and -19 land and
+eighteen until they do — and state the count once so it cannot drift again. A
+shape-agreement check of the kind now running as `TP-01-22` would also catch the
+class of defect this row is reaching for. For `TP-02-23`: build its three buildable
+cases now and gate the fourth on SUP-022-18's delivery. Both are requirement-text
+decisions and are routed to `bubbles.plan` rather than taken here.
+
+**Item — "Every Test Plan row has intended RED and same-command GREEN evidence
+recorded, including the browser rows". STAYS `[ ]`. Finding F-02-B.** This item is
+the closure of the other two and inherits their blockers. Its standing note names
+four rows still carrying no evidence — `TP-02-03`, `TP-02-22`, `TP-02-23` and
+`TP-02-24`. Two of those four are the rows above, which cannot be written as
+specified, so the item cannot close before they are reconciled. `TP-02-03` and
+`TP-02-24` are not blocked by wording; both are buildable and neither was built or
+run in this pass, so both are recorded `not-run` rather than assumed. The browser
+half of this item's command was not run in this pass either.
+
+**No file in this scope was mutated during this verification.** Every step was a
+read-only census or the repository-wide selftest.
+
+### Verification pass — 2026-08-20 (second) — SUP-022-18 and -19 were displaced by Feature 023 before this scope could deliver them (finding F-02-C)
+
+**Claim Source:** executed, read-only. **Outcome: the item stays `[ ]`, but for a
+materially different reason than the pass above recorded.** That pass established
+*that* SUP-022-18 and SUP-022-19 are undelivered. It did not ask what had become of
+the clauses they were written to supersede. They are gone — displaced by Feature
+023, under Feature 023's markers.
+
+**The superseded literals no longer exist.** Each of the four literals the two
+ledger rows name was searched for as a fixed string in the file its row cites:
+
+```
+simpleFields.length === 7                selftest.mjs count=0
+powerLinkDetails.length === 9            selftest.mjs count=0
+powerLinkSections.length === 9           selftest.mjs count=0
+toHaveCount(9)                           route.spec count=0
+links.nth(3)                             route.spec count=1
+```
+
+Three of the four are absent. The only surviving text matching the first two is an
+escaped regular expression inside Feature 023's own `TP-01-17`, which asserts those
+literals are gone — it is the proof of absence, not a surviving instance.
+
+**Which marker displaced each.** The replacements are present and marked, but the
+marker on each is a Feature 023 id:
+
+```
+scripts/selftest.mjs:14411:  /* SUP-023-04: supersedes the pinned seven-member Simple field count; shape=derive.
+scripts/selftest.mjs:14426:  /* SUP-023-05: supersedes the pinned nine-member withheld-detail and Power-section counts;
+tests/lifetime-tax-route.spec.mjs:71:  /* SUP-023-06: supersedes the pinned nine-link count on the withheld-detail rows; shape=derive.
+```
+
+SUP-023-04's marker states its replacement as "cross-artifact identity between the
+closed `SIMPLE_FIELDS` list and the fields the markup actually renders, in both
+directions … every Simple-stays-decision-level clause is retained verbatim". That is
+SUP-022-18's ledger replacement, in substance and very nearly in wording. SUP-023-06
+delivers the two-directional link/section identity that is the first half of
+SUP-022-19's replacement. A search for `SUP-022-18` or `SUP-022-19` across the five
+marker-bearing files returns nothing outside the assembled-from-parts strings in
+`TP-05-22`'s known-gap list, confirming neither id is delivered.
+
+**Consequence for SUP-022-18 — not deliverable as work; this is a ledger decision.**
+Every clause it was to supersede is already displaced and the replacement it names is
+already in the tree under `SUP-023-04` and `SUP-023-05`. Attaching a `SUP-022-18`
+marker to those regions would attribute one replacement to two features, which is
+exactly the failure mode the marker census exists to prevent. Nothing remains that
+this scope could build.
+
+**Consequence for SUP-022-19 — one half is displaced, one half is real work.** Its
+first clause, the pinned nine-link count, is displaced by SUP-023-06. Its second
+clause is not: the positional focus expectation **survives** as `links.nth(3)` at
+line 97 of the route spec, and SUP-023-06 replaced only the count, leaving the
+ordinal selection untouched. "A selection by declared target instead of by ordinal"
+is therefore still undelivered, still buildable, and collides with no Feature 023
+entry.
+
+**What would make the item decidable.** Record SUP-022-18 in the ledger as
+superseded-in-substance by `SUP-023-04` and `SUP-023-05` — withdrawn rather than
+delivered — so the item no longer asks this scope to deliver a replacement that
+exists under another feature's id, and narrow SUP-022-19's row to the ordinal-
+selection clause that is genuinely outstanding. Both are ledger-text decisions and
+are routed to `bubbles.plan` rather than taken here. Until they are taken, the
+item's own wording asks for something that cannot be built without double
+attribution, so it stays `[ ]`.
+
+**No file was mutated during this verification.** Every step was a fixed-string
+search or a marker census.
+
 ## Change Boundary
 
 Command: a path-scoped status check over the excluded list.
@@ -1087,6 +1237,137 @@ zero lifetime figures, zero track records and zero error rates across `rltax.js`
 `rltaxrules.js`, `rltaxworkspace.js`, `tax-rules/federal/2026.json`,
 `lifetime-tax-strategy-lab.html` and the appended selftest group.
 
+### Verification pass — 2026-08-20 (third) — SUP-022-19's narrowed clause is buildable and was built, but delivering it turns Scope 05's TP-05-22 red; all three items stay `[ ]` (finding F-02-D)
+
+**Claim Source:** executed. **Outcome: all three open items stay `[ ]`.** The
+correction `bubbles.plan` recorded at `63fbf797b` for finding **F-02-C** is sound as
+far as it goes — SUP-022-19's surviving clause is real, buildable work, and it was
+built and proven here before being reverted. What the correction did not carry is the
+consequence that delivering it has for a later scope's already-green assertion, which
+is a planning decision this agent may not take on its own.
+
+**The narrowed clause was delivered and proven, then reverted.** The positional
+`links.nth(3)` focus expectation is the last ordinal selection of a withheld-detail
+link anywhere in the suite; every other caller — the rental, retirement-route and
+state specs — already selects by `data-power-section`. The replacement selects the
+bracket-detail link by the target it declares, pins that the declaration is
+unambiguous for that target, and derives the focus expectation from the clicked
+link's own attribute instead of a literal.
+
+*Intended RED.* The bracket-detail row's declared section was retargeted in the page
+— a value-free markup change, no household figure anywhere near it — and the row
+failed on the new assertion:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=system-chrome --grep "SCN-021-013 Simple opens first" --reporter=list
+    > 109 |   await expect(bracketDetailLink).toHaveCount(1);
+          |                                   ^
+      - waiting for locator('#powerLinkRows button[data-power-section="power-bracket-detail"]')
+        14 × locator resolved to 0 elements
+           - unexpected value "0"
+  1 failed
+    [system-chrome] › <repo>/tests/lifetime-tax-route.spec.mjs:37:1 › Regression: SCN-021-013 ...
+```
+
+*Same-command GREEN.* The probe was reverted inside the same shell invocation that
+applied it, and the identical command was re-run:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=system-chrome --grep "SCN-021-013 Simple opens first" --reporter=list
+  ✓  1 [system-chrome] › <repo>/tests/lifetime-tax-route.spec.mjs:37:1 › Regression: SCN-021-013 ... (1.1s)
+  1 passed (3.3s)
+```
+
+*Control proving the replacement is stronger, not merely different.* A RED alone does
+not earn the word "supersedes" — the superseded ordinal would also have failed the
+retarget above. The mutation that separates them is the one the page's own source
+comment says the product must avoid: *"Appended rather than inserted: a prior
+feature's browser row follows a link by position, so an inserted row would silently
+retarget it."* A row was inserted ahead of the bracket-detail row and both forms were
+run against it:
+
+```
+A. replacement, row inserted ahead   → 1 passed (879ms)
+B. superseded ordinal, same insertion → 1 failed
+```
+
+The replacement survives; the ordinal does not. That is the constraint the narrowed
+clause removes — a test dictating the order of a production array — and it is why the
+clause is a strengthening rather than a rewrite.
+
+**Finding F-02-D — the blocker the correction did not foresee.** With the marker
+delivered, `node scripts/selftest.mjs` fell from 3155 passed / 0 failed to **3154
+passed / 1 failed**:
+
+```
+  ✗ FAIL: TP-05-22: every SUP-022 marker delivered in the source maps to a ledger row,
+    every ledger row except the two pre-existing unmarked Scope 02 rows named here is
+    delivered, the ids stay inside the declared range, and the ledger total agrees with
+    the paragraph that states it
+```
+
+Scope 05's TP-05-22 pins the tolerated gap as an exact list of **two** ids, assembled
+from parts so the scanner does not count them as delivered, and compares it with
+`JSON.stringify` — deliberately, so that "a third undelivered marker, or a delivered
+marker with no ledger row, fails immediately". Delivering SUP-022-19 shrinks the real
+gap to one id and the pinned equality no longer holds. The remedy is a one-line
+tightening of that literal from two tolerated gaps to one, which is strictly stronger
+than what stands today.
+
+**Why this agent did not take it.** The remedy edits an assertion that belongs to
+Scope 05, and the very DoD item it would unblock reads *"No assertion outside this
+scope's ledger entries and amendments was edited, relaxed or deleted."* Feature 022
+already has a shape for this — Scope 02 amends Scope 01's SUP-022-04 and SUP-022-09
+replacements, and the ledger records it in an `Amending scope` column so an auditor is
+not surprised by a second edit to the same line. No such amendment exists for
+TP-05-22. Editing it anyway would close one item by silently breaching another, which
+is the trade this item exists to refuse. The delivery was therefore reverted:
+`tests/lifetime-tax-route.spec.mjs` is byte-identical to `569f7899c`, the live
+`links.nth(3)` call is back, no `SUP-022-19` marker exists anywhere, no page or
+fixture is dirty, and `node scripts/selftest.mjs` is back to **3155 passed, 0 failed**.
+
+**What would make this decidable.** Either (a) `bubbles.plan` records an amendment
+authorising SUP-022-19's delivery to tighten Scope 05's TP-05-22 tolerated-gap list
+from `{18, 19}` to `{18}`, with the `Amending scope` column carrying it exactly as it
+carries the SUP-022-04 and SUP-022-09 amendments; or (b) Scope 05's TP-05-22 is
+restated to derive its tolerated gap from the ledger's own disposition column — the
+row for SUP-022-18 already records superseded-in-substance — instead of pinning a
+literal pair, which is the same defect shape as the stale totals TP-02-22 was itself
+corrected to stop pinning.
+
+**Consequences for the three open items, each re-derived against the tree.**
+
+*Item — the eight deliverable supersessions.* Stays `[ ]`. Seven of the eight markers
+are present in the tree (03, 08, 10, 14, 20 in `scripts/selftest.mjs`, 15 in the
+federal spec, 16 in the route spec); SUP-022-19 is the eighth and is absent, for the
+reason above. `SUP-022-18` correctly appears nowhere. The item cannot tick on seven of
+eight, and the item's further requirement — that each of the eight was seen to fail
+against the unchanged implementation first and carries its adversarial evidence — was
+not re-derived for the seven here and is not claimed.
+
+*Item — no assertion outside this scope's entries was edited.* Stays `[ ]`. Nothing
+was edited: the working tree carries no change to `scripts/selftest.mjs` or any
+Feature 021 spec from this session. But TP-02-22 and TP-02-23, the rows that would
+prove it, are still unwritten, and both now depend on SUP-022-19. TP-02-22's expected
+set is Scope 01's twelve plus this scope's eight deliverable ids plus later-scope ids
+already present; the delivered set today is twenty ids and the expected set is
+twenty-one, so the row as corrected would fail on the missing SUP-022-19 rather than
+on anything it is meant to catch. TP-02-23's third case asserts SUP-022-19's narrowed
+declared-target clause over the route spec's own source text, which cannot be asserted
+while the clause is absent. Writing either row before the marker lands would produce a
+row that fails for a reason it does not name.
+
+*Item — every Test Plan row has intended RED and same-command GREEN.* Stays `[ ]`.
+TP-02-22 and TP-02-23 carry no evidence for the reason above, and TP-02-03 carries
+none either; its section records that the compatibility comparison against the
+unmodified Feature 021 pack was not performed.
+
+No file is left mutated by this pass. `git status --short` over this scope's product
+surfaces, the five marker files and the route page is empty, and the only paths this
+session changed are Feature 022's own scope and report artifacts.
+
 ## Completion Statement
 
 Nine of the seventeen Definition of Done items are closed with executed evidence. The
@@ -1104,4 +1385,235 @@ which deliberately keeps both exactly as it keeps the four income amounts.
 One weak-assertion miss is recorded rather than discarded, under TP-02-06: the first draft
 of the asymmetry fixture had the investment-income base binding at both levels, so the
 leg could not move and the row could not have proven what it claimed.
+
+### Planning correction — 2026-08-20 — TP-05-22's tolerated gap is derived from the ledger, not pinned (finding F-02-D)
+
+**Claim Source:** executed. **Outcome: option (a) taken — the assertion is restated
+to derive, and the `scripts/selftest.mjs` edit it needs is specified below and routed
+rather than applied.** F-02-D was verified against the tree before anything was
+changed: `links.nth(3)` at line 97 of `tests/lifetime-tax-route.spec.mjs` is the only
+ordinal link selection anywhere under `tests/`; the page's own source comment at
+`lifetime-tax-strategy-lab.html` line 1741 reads *"Appended rather than inserted: a
+prior feature's browser row follows a link by position, so an inserted row would
+silently retarget it"*; no `SUP-022-19` marker exists in `scripts/selftest.mjs` or any
+spec under `tests/`, so the delivery is genuinely reverted; and `node
+scripts/selftest.mjs` is `3155 passed, 0 failed` at exit 0.
+
+**Why (a) rather than (b).** Option (b) — record a `TP-05-22` amendment in the
+`Amending scope` column and tighten the tolerated pair from `{18, 19}` to `{18}` —
+closes this instance and rebuilds the defect one id smaller. `{18}` is still a literal
+pin, and it goes stale the next time a row is legitimately deferred or a displaced row
+is re-dispositioned. Option (a) removes the class of failure rather than the instance,
+and it is the correction already applied to this scope's own `TP-02-22`, which was
+restated to read the ledger's owning-scope column at run time *"rather than pinned to a
+literal total, because Scope 03's SUP-022-22 is already delivered and any fixed total
+goes stale the next time a scope lands"*. Nothing blocked (a): the ledger's 22 rows
+carry no embedded pipes, and the only programmatic reader of `spec.md` matches the
+leading id cell, so a new column is safe to add.
+
+**What was changed, and by whom it is owned.** `spec.md`'s supersession ledger gained a
+`Disposition` column with three values — `marker required` (20 rows), `marker forbidden
+— <reason>` (SUP-022-18) and `marker pending — <reason>` (SUP-022-19) — plus the
+paragraph above the table that defines them. Scope 05's ledger-closure DoD item was
+restated to derive its tolerance from that column; it remains `[ ]` and no checkbox was
+ticked. `design.md`'s marker-check step 4 was restated from *"the delivered id set
+equals the set the completed scopes own"* to the derived form, and its per-file marker
+distribution no longer assigns SUP-022-18 to `scripts/selftest.mjs`, which the
+disposition forbids. The last two were already routed to `bubbles.design` by this
+scope's second verification pass and are now answered. The edited requirement text
+lives in Scope 05 and in `design.md` rather than in this scope, which is the point of
+routing the finding to planning: ledger and requirement text is planning-owned across
+the whole feature, whereas an implementing scope editing another scope's assertion is
+exactly what this scope's own DoD item forbids.
+
+**The routed `scripts/selftest.mjs` change — specified, not applied.** That file is
+shared with a concurrent session appending to it continuously, so it is untouched here.
+Replace the block that currently ends at the `TP-05-22` assertion with:
+
+```js
+  /* The supersession ledger is closed, derived rather than pinned. This check formerly compared
+     the unmarked-row set against a fixed pair of ids under JSON.stringify, so delivering either of
+     them shrank the real gap and turned a green assertion red — a self-staling contract that made
+     provable work unlandable (finding F-02-D). The tolerance is now read out of the ledger's own
+     Disposition column at run time: a row may go unmarked only where the ledger dispositions it
+     away, and a row it dispositions marker-forbidden must carry no marker anywhere, a direction the
+     pinned form never asserted. Ids are still never written literally here, so naming one cannot
+     make the scanner count it as delivered. */
+  const markerFiles = ['scripts/selftest.mjs', 'tests/lifetime-tax-foundation.spec.mjs',
+    'tests/lifetime-tax-federal.spec.mjs', 'tests/lifetime-tax-marginal.spec.mjs', 'tests/lifetime-tax-route.spec.mjs'];
+  const deliveredMarkers = new Set();
+  markerFiles.forEach((file) => {
+    (read(file).match(/SUP-022-\d{2}/g) || []).forEach((marker) => deliveredMarkers.add(marker));
+  });
+  const MARKER_PREFIX = 'SUP-022-';
+  const specText = read('specs/022-federal-preferential-and-state-income-tax/spec.md');
+  const ledgerIds = [];
+  const ledgerDisposition = new Map();
+  (specText.match(/^\| (SUP-022-\d{2}) \|.*$/gm) || []).forEach((row) => {
+    const cells = row.split('|').map((cell) => cell.trim());
+    ledgerIds.push(cells[1]);
+    const hit = /^marker (required|forbidden|pending)(?: \u2014 (\S.*))?$/.exec(cells[5] || '');
+    if (hit) ledgerDisposition.set(cells[1], { token: hit[1], reason: hit[2] || '' });
+  });
+  const deliveredList = Array.from(deliveredMarkers).sort();
+  const ledgerList = ledgerIds.slice().sort();
+  const dispositionToken = (marker) =>
+    (ledgerDisposition.has(marker) ? ledgerDisposition.get(marker).token : null);
+  /* An unreadable or absent Disposition cell is a parse failure, not a free pass, and a tolerated
+     disposition carrying no reason after the em dash cannot be used to silence a real gap. */
+  const undispositionedRows = ledgerList.filter((marker) => dispositionToken(marker) === null);
+  const toleratedWithoutReason = ledgerList.filter((marker) => dispositionToken(marker) !== null
+    && dispositionToken(marker) !== 'required'
+    && ledgerDisposition.get(marker).reason.length === 0);
+  const toleratedUnmarked = ledgerList.filter((marker) => dispositionToken(marker) === 'forbidden'
+    || dispositionToken(marker) === 'pending');
+  const unmarkedLedgerRows = ledgerList.filter((marker) => deliveredList.indexOf(marker) < 0);
+  const markersWithoutLedgerRow = deliveredList.filter((marker) => ledgerList.indexOf(marker) < 0);
+  const unexplainedUnmarked = unmarkedLedgerRows.filter((marker) => toleratedUnmarked.indexOf(marker) < 0);
+  const forbiddenButMarked = ledgerList.filter((marker) => dispositionToken(marker) === 'forbidden'
+    && deliveredList.indexOf(marker) >= 0);
+  assert(deliveredList.length > 0
+    && undispositionedRows.length === 0
+    && toleratedWithoutReason.length === 0
+    && markersWithoutLedgerRow.length === 0
+    && unexplainedUnmarked.length === 0
+    && forbiddenButMarked.length === 0
+    && toleratedUnmarked.length < ledgerList.length
+    && ledgerList.every((marker) => /^SUP-022-(0[1-9]|1[0-9]|2[0-2])$/.test(marker))
+    && deliveredList.indexOf(MARKER_PREFIX + '22') >= 0
+    && specText.indexOf('Twenty-two pre-existing assertions are superseded') >= 0
+    && ledgerList.length === 22,
+  'TP-05-22: every delivered marker maps to a ledger row, every ledger row carries a recognised disposition with a reason where one is owed, every row the ledger dispositions marker-required is delivered, every row it dispositions marker-forbidden carries no marker anywhere, the tolerated gap is read out of the ledger rather than pinned to a literal pair, the tolerated set never covers the whole ledger, the ids stay inside the declared range, and the ledger total agrees with the paragraph that states it');
+```
+
+**The routed logic was executed against the tree before being written down**, as a
+standalone reader over the real `spec.md` and the real five marker files, so this is a
+measured result rather than a proposal:
+
+```
+delivered=20 ledger=22
+undispositioned=[]
+toleratedWithoutReason=[]
+toleratedUnmarked=["SUP-022-18","SUP-022-19"]
+unmarkedLedgerRows=["SUP-022-18","SUP-022-19"]
+unexplainedUnmarked=[]
+forbiddenButMarked=[]
+VERDICT_TODAY=true
+VERDICT_AFTER_19_DELIVERED=true
+ADVERSARIAL_drop_07_marker_unexplained=["SUP-022-07"]
+ADVERSARIAL_mark_18_forbiddenButMarked=["SUP-022-18"]
+```
+
+`VERDICT_TODAY=true` means the change is not a regression — it passes on the tree as it
+stands. `VERDICT_AFTER_19_DELIVERED=true` is the defect being removed: the same input
+with a `SUP-022-19` marker added still passes, so the delivery `bubbles.test` built and
+reverted can now land without editing anything Scope 05 owns.
+
+**Adversarial cases that still fail.** Two, and the second is a protection the pinned
+form never had. First, **a marker genuinely missing with no recorded disposition**:
+dropping `SUP-022-07`'s marker — a row dispositioned `marker required` — leaves it in
+`unexplainedUnmarked`, and the assertion fails. Deferring a row is therefore only ever
+tolerated when the ledger says so in writing, with a reason. Second, **a marker
+attached to a displaced row**: adding a `SUP-022-18` marker anywhere puts it in
+`forbiddenButMarked`, and the assertion fails, because that would attribute one
+replacement to both this feature and Feature 023. The old form compared unmarked-set
+equality and would have accepted that mutation silently. Two further degenerate paths
+are closed: a `Disposition` column that went missing or unparseable makes every row
+`undispositioned` and fails rather than tolerating everything, and a column that
+dispositioned every row away trips `toleratedUnmarked.length < ledgerList.length`, so
+the check cannot be made vacuous. On an empty ledger `ledgerList.length === 22` and
+`deliveredList.length > 0` both fail.
+
+**Sequencing.** The routed edit must land before `SUP-022-19` is delivered again.
+Delivering the marker first, against the pinned form still in the file, reproduces
+F-02-D exactly.
+
+### Delivery — 2026-08-20 — SUP-022-19 is landed, in the mandated order
+
+**Claim Source:** executed. The sequence was honoured: the routed derived form went
+into `scripts/selftest.mjs` first and the suite was measured green on both sides of
+that edit, and only then was the marker delivered. Every premise was re-derived
+against the tree rather than carried over from the previous pass.
+
+**Premises, re-derived.** A regex sweep of the whole `tests/` tree for an ordinal
+link selection returns exactly one hit — `links.nth(3)` at line 97 of the route
+spec — so the clause the ledger narrows SUP-022-19 to was still live and still the
+last of its kind. The page's own source comment is present verbatim above the
+withheld-detail row it protects: *"Appended rather than inserted: a prior feature's
+browser row follows a link by position, so an inserted row would silently retarget
+it"*. Index 3 of `POWER_LINK_ROWS` was read out of the page and is the
+`power-bracket-detail` row, which is what the superseded expectation focused.
+
+**What was delivered.** The positional click is replaced by a selection on the
+target the link itself declares, preceded by a uniqueness assertion so a duplicated
+declaration cannot let the click resolve to an arbitrary member:
+
+```js
+  const FOCUS_TARGET = 'power-bracket-detail';
+  expect(targeted.filter((section) => section === FOCUS_TARGET).length).toBe(1);
+  const targetedLink = page.locator(`#powerLinkRows button[data-power-section="${FOCUS_TARGET}"]`);
+  await expect(targetedLink).toHaveCount(1);
+  await targetedLink.click();
+```
+
+Nothing was relaxed: the two expectations that follow the click — Power becoming
+pressed and the owning section taking focus — are unchanged in substance, and the
+focus assertion is now derived from the same declared target rather than repeating
+it as a literal.
+
+**Intended RED, value-free, reverted inside the invocation that applied it.**
+Retargeting the locator at a section the page never declares — the token the spec
+already carries as a negative control — makes the selection resolve to nothing:
+
+```
+exit: 1
+    Error: expect(locator).toHaveCount(expected) failed
+    Locator:  locator('#powerLinkRows button[data-power-section="power-not-declared-by-this-route"]')
+    Expected: 1
+    Received: 0
+        14 × locator resolved to 0 elements
+  1 failed
+```
+
+The probe was reverted in the same shell invocation that applied it;
+`git status --porcelain` for that path returned zero lines immediately afterwards.
+
+**Same-command GREEN on the reverted tree**, the identical command:
+
+```
+exit: 0
+  ✓  1 [system-chrome] › <repo>/tests/…route spec:37:1 › Regression: SCN-021-013 Simple
+      opens first with a decision level answer and Power holds the detail (1.4s)
+  1 passed (3.3s)
+```
+
+**Control — the replacement survives a row insertion the ordinal does not.** One
+value-free row (`detail: "Probe row"`, pointing at an already-declared section) was
+inserted immediately before the `power-bracket-detail` row, so the row the ordinal
+counted to moved. Under that one mutation the two forms diverge:
+
+```
+CONTROL 1 — delivered declared-target form   exit: 0   1 passed (3.7s)
+CONTROL 2 — superseded ordinal form          exit: 1   1 failed
+    Error: expect(locator).toBeFocused() failed
+    Locator:  locator('#power-bracket-detail')
+    Expected: focused
+    Received: inactive
+```
+
+That is the defect the page's comment was standing in for, now asserted instead of
+commented. Both mutations were reverted inside the same invocation and
+`git status --porcelain` for both paths returned zero lines afterwards.
+
+**A first attempt at this control was invalid and is recorded rather than
+discarded.** The insertion was applied with a brace-delimited substitution that
+failed to compile, so the guard counted zero inserted rows while both runs went
+ahead against an unmutated page — the ordinal form passed, which proves nothing.
+The control was rerun with a landing guard that aborts and reverts unless exactly
+one row is inserted; the numbers above are from that run.
+
+**Effect on the derived ledger check.** With the marker present,
+`node scripts/selftest.mjs` reports `3155 passed, 0 failed`. Against the pinned form
+this same tree was `3154 passed, 1 failed` — that is F-02-D, and it is now closed by
+construction rather than by deferring the work.
 

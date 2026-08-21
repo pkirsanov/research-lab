@@ -234,12 +234,13 @@ Test Plan row.
 
 ### Definition of Done
 
-- [ ] PRA-021-031 through PRA-021-038 are implemented: Simple default with a
+- [x] PRA-021-031 through PRA-021-038 are implemented: Simple default with a
       decision-level answer, Power drill-down, tooltips and text-equivalent
       tables, visible keyboard-reachable unavailable states, educational
       framing, no error-rate or track-record claim, explicit-action private
       export, and continued absence from every registration surface.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-01` through `report.md#tp-05-09`
+  - **Claim Source:** executed · **Result:** all nine rows now carry a harness-driven RED and a same-command GREEN, so each obligation is proven by an assertion that was watched failing rather than by one assumed to work. TP-05-01/-02 hold the Simple restriction and the single-envelope read; TP-05-03 fails when the one value constructor stops attaching `aria-describedby`; TP-05-04 fails when the curve text equivalent stops being emitted from the curve record; TP-05-05 fails on a refusal rendered as a bare dash; TP-05-06 fails on a track-record claim smuggled into the disclosure paragraph itself; TP-05-07 fails on an under-reporting export manifest; TP-05-08 fails when clear-all reports removing a declared key it leaves standing, taking four cross-scope privacy guards with it; TP-05-09 fails when a registration surface names the tool inside an existing string rather than as a registry entry. Each mutation was applied, reverted and blob-hash verified by `scripts/red-green-probe.sh`, and every GREEN returned to `3172 passed, 0 failed` at exit 0.
 - [x] Simple's rendered field set is proven restricted, and both views are proven
       to read one result envelope with no second derivation.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-01`, `report.md#tp-05-02`
@@ -248,10 +249,11 @@ Test Plan row.
       blank, a bare dash and a zero are each proven to fail.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-05`
   - **Claim Source:** executed · **Result:** TP-05-05 reads the one `unavailableNode` constructor and asserts it emits `record.code`, `record.domain`, `record.reason` and `record.whatWouldMakeItAvailable` on a `tabindex="0"` element, while two dedicated detectors refuse a `textContent` of a bare dash or a bare zero. The guard is proven able to fail rather than assumed: probe B replaced the remediation line with a bare em dash and left the other three lines standing, and the run went to `3062 passed, 3 failed` with TP-05-05 naming the defect and the cross-family TP-05-11 row firing on the same single constructor. Reverting restored `3064 passed, 1 failed`, the session-entry baseline, and `git status --short -- lifetime-tax-strategy-lab.html` was empty before the GREEN rerun. Because every refusal in the route flows through this one constructor, the per-domain obligation is carried structurally rather than domain by domain.
-- [ ] The export produces no file without explicit user action, warns about
+- [x] The export produces no file without explicit user action, warns about
       sensitivity, carries no identifier, and its omitted-field manifest matches
       the sanitizer's actual exclusions.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-05-14 command · **Evidence:** `report.md#tp-05-07`, `report.md#scenario-scn-021-015`
+  - **Claim Source:** executed · **Result:** all four clauses are now proven by a watched failure rather than by a passing status. Manifest accuracy: probe E made `sanitizeForExport` publish `omittedFields` one member short of what it withheld, and TP-05-07 failed naming the disagreement, with the residency-disclosure row failing alongside it. Explicit action: the earlier uncertainty declaration on TP-05-14 is discharged — a probe removed the acknowledgement term from the one runtime gate, the control went live before the reader acknowledged anything, and the row failed at `expect(page.locator('#exportPrivateFile')).toBeDisabled()`. Sensitivity warning and identifier absence ride the same browser row, which reads the downloaded file from disk and scans it flattened. One finding is recorded rather than smoothed over: the markup `disabled` attribute is inert, because `updateExportEnabled()` overwrites it during boot, so a first probe against the markup passed and the gate had to be probed at its real enforcement point.
 - [x] The cumulative zero-network canary passes over the finished route: a
       sentinel household value appears in no request, URL, referrer, console
       message or committed artifact.
@@ -266,9 +268,10 @@ Test Plan row.
       byte-identical.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a path-scoped `git status` · **Evidence:** `report.md#tp-05-09`, `report.md#registration-absence`
   - **Claim Source:** executed · **Result:** absence is clean — `grep -c 'lifetime-tax-strategy-lab'` returns `0` for all six surfaces, so the tool is unregistered and unreachable from navigation, the registry, either README or market-brief coverage. Byte-identity is **qualified and the qualification is stated rather than hidden**: five of the six are unmodified, and the sixth, `notes/README.md`, carries one change that is not this scope's — the full diff is two geopolitical note rows added by a concurrent session, neither mentioning the tax lab. The clause's purpose (this scope registers the tool nowhere and modifies no registration surface) is proven; the literal all-six byte-identity does not hold, for a reason outside this scope's control and fully attributed in the report.
-- [ ] Every Test Plan row has intended RED evidence and same-command GREEN
+- [x] Every Test Plan row has intended RED evidence and same-command GREEN
       evidence, recorded before the cumulative browser row.
   - **Phase:** implement · **Command:** the exact TP-05-01 through TP-05-14 commands · **Evidence:** `report.md#test-evidence`
+  - **Claim Source:** executed · **Result:** all fourteen rows are covered. TP-05-01, -02, -05, -07 and -10 were probed in earlier sessions of this scope; TP-05-03, -04, -06, -08, -09, -11, -12, -13 and -14 were probed in this one. Every probe ran through `scripts/red-green-probe.sh`, which installs its restore trap before it writes, refuses a dirty target, verifies the mutation landed, reverts, and re-derives the committed blob hash — so no mutation could survive a truncated dispatch. Nine probes are recorded in this session and every one discriminated: no assertion survived the mutation that names its own defect. Two probe-design findings are recorded rather than hidden — an inert markup attribute that made a first mutation a no-op, and a Playwright summary channel that reported a false discrimination on an elapsed-time string until the duration was normalised out.
 - [x] Feature 008 files and every brief or data artifact are byte-identical.
   - **Phase:** implement · **Command:** a path-scoped `git status` over the excluded list · **Evidence:** `report.md#change-boundary`
   - **Claim Source:** executed · **Result:** `008_scoped_dirty_rows=0` over `rlportfolio.js`, `rlportfolioanalytics.js`, `portfolio-survival-allocation.config.json`, `specs/008-portfolio-survival-and-brief-lab/`, `briefs/`, `data/`, `market-brief.html`, `notes/market-brief.md` and `scripts/brief-refresh.mjs`. The explicit counter is derived from `git status --porcelain … | wc -l`, so a clean result is distinguishable from a command that produced no output because it failed.

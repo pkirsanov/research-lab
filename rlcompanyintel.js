@@ -94,6 +94,12 @@
        a parameter the target ignores would be a link that silently does nothing. */
     var SAFE_SUBJECT_PARAM = /^[A-Za-z][A-Za-z0-9_]{0,31}$/;
 
+    /* Why an owner route legitimately carries no company. A closed enum rather than free text
+       on purpose: free text would put operator-authored wording on a rendering path and take it
+       out of code review. `market-scoped` means the owner answers a market-wide question;
+       `fixed-subject` means the owner does not model a company the reader can choose. */
+    var OWNER_BARE_REASONS = ["market-scoped", "fixed-subject"];
+
     /* An operator entry naming a position, a size, a cost basis or a profit figure is refused
        outright. The tool holds tickers and nothing else, forever. */
     var POSITION_INPUT_PATTERNS = [
@@ -322,12 +328,32 @@
                 raise("C025-CONFIG-SCHEMA", "Coverage registry row " + index + " declares a subject parameter that is not a plain identifier.",
                     "dimension: " + row.dimensionId);
             }
+            /* A row that links to an owner and carries no company must SAY WHY. The three checks
+               below turn that from an editorial promise into a config-read error: a reason with
+               no route is a half-declared owner; a reason outside the closed enum would reach a
+               rendering path unreviewed; and a linked row that declares neither field, or both,
+               leaves the reader unable to tell a deliberate bare link from a forgotten one. */
+            var bareReasonDeclared = row.ownerBareReason !== null && row.ownerBareReason !== undefined;
+            var ownerBareReason = bareReasonDeclared ? row.ownerBareReason : null;
+            if (bareReasonDeclared && ownerDeepLink === null) {
+                raise("C025-CONFIG-SCHEMA", "Coverage registry row " + index + " declares a bare-link reason without an owner route.",
+                    "dimension: " + row.dimensionId);
+            }
+            if (bareReasonDeclared && !contains(OWNER_BARE_REASONS, ownerBareReason)) {
+                raise("C025-CONFIG-SCHEMA", "Coverage registry row " + index + " declares a bare-link reason outside the closed enum.",
+                    "dimension: " + row.dimensionId);
+            }
+            if (ownerDeepLink !== null && (ownerSubjectParam !== null) === bareReasonDeclared) {
+                raise("C025-CONFIG-SCHEMA", "Coverage registry row " + index + " must declare exactly one of a subject parameter and a bare-link reason.",
+                    "dimension: " + row.dimensionId);
+            }
             return {
                 dimensionId: row.dimensionId,
                 label: row.label,
                 ownerToolId: ownerToolId,
                 ownerDeepLink: ownerDeepLink,
                 ownerSubjectParam: ownerSubjectParam,
+                ownerBareReason: ownerBareReason,
                 freshnessWindowDays: row.freshnessWindowDays,
                 maxHorizon: row.maxHorizon
             };
@@ -509,11 +535,23 @@
                     : "The route declared for " + row.label + " is not a same-origin route file, so it is not opened."
             });
         }
-        /* A link that does not carry the company says so. The reader is told to expect the
-           owning tool on its own subject rather than discovering it silently. */
-        var statement = route.carriesSubject
-            ? row.label + " is owned by " + row.ownerToolId + ", which opens on this company."
-            : row.label + " is owned by " + row.ownerToolId + ", which reads no company parameter and opens on its own subject.";
+        /* A link that does not carry the company says WHY it does not. The reader is told the
+           owner is market-scoped, or fixed on its own subject, rather than being left to read a
+           bare link as an omission. The last branch is still reachable: a row that DOES declare
+           a subject parameter composes a bare href when the caller passes no company. */
+        var statement;
+        if (route.carriesSubject) {
+            statement = row.label + " is owned by " + row.ownerToolId + ", which opens on this company.";
+        } else if (row.ownerBareReason === "market-scoped") {
+            statement = row.label + " is owned by " + row.ownerToolId
+                + ", which answers a market-wide question rather than a company one, so the link carries no company.";
+        } else if (row.ownerBareReason === "fixed-subject") {
+            statement = row.label + " is owned by " + row.ownerToolId
+                + ", which does not model an individual company you can choose, so the link opens on that tool's own subject.";
+        } else {
+            statement = row.label + " is owned by " + row.ownerToolId
+                + ", which reads no company parameter and opens on its own subject.";
+        }
         return deepFreeze({
             contractVersion: "company-dimension-owner/v1",
             dimensionId: dimensionId,

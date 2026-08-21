@@ -367,16 +367,29 @@ missing browser or an absent test does not satisfy RED.
 - [x] No output states a probability, an appreciation assumption, a lifetime
       figure, a future year, a track record or an error rate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows and the cumulative suite.
-  - **Phase:** implement · **Command:** the exact TP-05-01 through TP-05-26 commands · **Evidence:** `report.md#test-evidence`
-  - **Left unchecked because:** intended RED was observed in this session for the
-    four browser rows only (`TP-05-22` through `TP-05-25`, recorded verbatim in
-    `report.md#browser-rows--intended-red-observed-in-this-session`), and that RED
-    was a defect in the spec's own assertions rather than the pre-implementation
-    RED the row means. TP-05-01 through TP-05-21 and TP-05-26 have same-command
-    GREEN recorded with exit codes but no RED capture, because their RED belongs to
-    the implementation session.
+  - **Phase:** implement · **Command:** the exact TP-05-01 through TP-05-26 commands · **Evidence:** `report.md#per-row-intended-red-probes`
+  - **Closed by probes 20 to 24.** Probes 1 to 19 already carried `TP-05-01`
+    through `TP-05-21`, every one under `node scripts/selftest.mjs`. The five
+    rows that name browser commands are now closed under their own commands:
+    probe 20 collapses the two pricing rules to one (`TP-05-22`), probe 21
+    inverts which component the residence exclusion is applied to (`TP-05-23`),
+    probe 22 renames the remainder leg id so the surface census cannot find it
+    (`TP-05-24`), probe 23 emits one declaration **member name** to the console
+    (`TP-05-25`), and probe 24 plants a `+ 1` term in the Feature 022 settlement
+    engine so the cumulative suite's breadth claim is what goes red
+    (`TP-05-26`). Every mutation is value-free by construction — a rule
+    identifier, a component id, a member name or the literal `1` — each was
+    reverted inside the same shell invocation and re-verified by SHA-256 with
+    `REVERT_VERIFIED=yes`, and the module set was clean under `git status`
+    afterwards.
+  - **One finding is carried, not hidden.** The cumulative GREEN reports 77
+    selected, 77 passed, zero failed and zero skipped — the row's stated claim —
+    but exits 1 on a worker-teardown trailer the harness labels "not a part of
+    any test". It reproduced twice on a clean tree with different worker ids. The
+    teardown budget is outside this scope's allowed paths and is left as an
+    inherited observation in `report.md#probe-24--red-for-tp-05-26-the-cumulative-suite`.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths,
       and `node scripts/build-pages-site.mjs --dry-run` succeeds.

@@ -40,6 +40,7 @@
       "label": "Own and relative price performance",
       "ownerToolId": "market-brief",
       "ownerDeepLink": "market-brief.html",
+      "ownerBareReason": "market-scoped",
       "freshnessWindowDays": 7,
       "maxHorizon": "swing"
     },
@@ -48,6 +49,7 @@
       "label": "Reported fundamentals",
       "ownerToolId": "company-fundamentals-lab",
       "ownerDeepLink": "company-fundamentals-lab.html",
+      "ownerBareReason": "fixed-subject",
       "freshnessWindowDays": 400,
       "maxHorizon": "structural"
     },
@@ -56,6 +58,7 @@
       "label": "Valuation against own history",
       "ownerToolId": "company-fundamentals-lab",
       "ownerDeepLink": "company-fundamentals-lab.html",
+      "ownerBareReason": "fixed-subject",
       "freshnessWindowDays": 400,
       "maxHorizon": "structural"
     },
@@ -64,6 +67,7 @@
       "label": "Technical structure",
       "ownerToolId": "technical-analysis-decision-lab",
       "ownerDeepLink": "technical-analysis-decision-lab.html",
+      "ownerBareReason": "fixed-subject",
       "freshnessWindowDays": 7,
       "maxHorizon": "tactical"
     },
@@ -72,6 +76,7 @@
       "label": "Trend and cycle position",
       "ownerToolId": "trend-dynamics-cycle-lab",
       "ownerDeepLink": "trend-dynamics-cycle-lab.html",
+      "ownerBareReason": "fixed-subject",
       "freshnessWindowDays": 7,
       "maxHorizon": "swing"
     },
@@ -98,6 +103,7 @@
       "label": "Unusual options flow",
       "ownerToolId": "options-flow-feed-lab",
       "ownerDeepLink": "options-flow-feed-lab.html",
+      "ownerSubjectParam": "ticker",
       "freshnessWindowDays": 3,
       "maxHorizon": "tactical"
     },
@@ -106,6 +112,7 @@
       "label": "Volatility regime",
       "ownerToolId": "volatility-sizing-lab",
       "ownerDeepLink": "volatility-sizing-lab.html",
+      "ownerSubjectParam": "ticker",
       "freshnessWindowDays": 7,
       "maxHorizon": "swing"
     },
@@ -130,6 +137,7 @@
       "label": "Geopolitical and policy backdrop",
       "ownerToolId": "research-agenda-lab",
       "ownerDeepLink": "research-agenda-lab.html",
+      "ownerBareReason": "market-scoped",
       "freshnessWindowDays": 30,
       "maxHorizon": "swing"
     },
@@ -146,6 +154,7 @@
       "label": "Sentiment backdrop",
       "ownerToolId": "market-brief",
       "ownerDeepLink": "market-brief.html",
+      "ownerBareReason": "market-scoped",
       "freshnessWindowDays": 3,
       "maxHorizon": "tactical"
     },

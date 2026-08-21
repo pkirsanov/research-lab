@@ -949,6 +949,8 @@
           </div>
         </div>
       </div>
+      <p id="linkNotice" role="status" hidden
+        style="margin:10px 0 0;font-size:12px;color:var(--warn,#f0b429)"></p>
       <div class="chips" id="uniChips" style="margin-top:12px"></div>
       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <input type="text" id="addTk" placeholder="add ticker…" style="width:130px;text-transform:uppercase" />
@@ -2518,6 +2520,15 @@
       window.addEventListener('resize', function () { if (state.agg || state.ohlcv) render(); else { renderChips(); } });
       el('tradeRead').addEventListener('input', function (e) { var id = e.target && e.target.id; if (id !== 'acctIn' && id !== 'riskIn') return; if (id === 'acctIn') state.acct = Math.max(0, +e.target.value || 0); else state.riskPct = clamp(+e.target.value || 0, 0, 100); saveState(); optSizeRecompute(); });
     }
+    /* A company named by a deep link from an owning workspace is accepted by the shared
+       RLTKR rule, so this route holds no private copy of what a company identifier is. */
+    function showLinkNotice(handoff) {
+      var notice = el('linkNotice');
+      if (!notice) return;
+      if (handoff.status !== 'refused') { notice.textContent = ''; notice.hidden = true; return; }
+      notice.textContent = 'The link named a company this tool could not accept, so it is showing ' + state.ticker + '.';
+      notice.hidden = false;
+    }
     function boot() {
       var saved = loadState();
       fetch('options-structure-universe.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (u) { applyUniverse(u); afterUni(saved); }).catch(function () { applyUniverse(FALLBACK_UNIVERSE); afterUni(saved); });
@@ -2532,9 +2543,12 @@
         var onMap = {}; (saved.on || []).forEach(function (o) { onMap[o.id] = o.on; }); state.universe.forEach(function (e) { if (onMap.hasOwnProperty(e.id)) e.on = onMap[e.id]; });
       }
       // reflect UI
+      var handoff = RLTKR.linkedSubject(window.location.search);
+      if (handoff.status === 'accepted') state.ticker = handoff.subject;   // an explicit deep link outranks the restored session
       el('ticker').value = state.ticker; el('provider').value = state.provider; el('nExp').value = state.nExp; el('sign').value = state.sign;
       el('zoom').value = state.zoom; el('minOI').value = state.minOI; el('rate').value = (state.rate * 100).toFixed(1); el('divy').value = (state.div * 100).toFixed(1);
       bind(); renderChips(); updatePills(); setTimeout(function () { fetchAll(true); }, 0);
+      showLinkNotice(handoff);
       var snote = el('snapNote'); var days = snapDays(state.ticker); if (days.length) snote.textContent = days.length + ' local snapshot day(s) for ' + state.ticker;
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();

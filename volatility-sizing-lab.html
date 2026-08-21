@@ -538,6 +538,8 @@
             is shown. <span id="configErrors"></span>
         </div>
 
+        <p id="linkNotice" role="status" hidden style="margin:10px 0 0;font-size:12px;color:var(--warn,#f0b429)"></p>
+
         <!-- ===================== SIMPLE ===================== -->
         <section id="simpleView" aria-label="Simple storm-gauge cockpit">
             <div class="card">
@@ -1116,6 +1118,38 @@
                 hydrate(false);
             }
 
+            /* A company named by a deep link is accepted by the shared RLTKR rule, so this route
+               holds no private copy of what a company identifier is. Acceptance is necessary and
+               not sufficient: the subject becomes active only after it matches this route's own
+               committed catalog, so an accepted string never reaches a fetch path or a cache key. */
+            function catalogAsset(symbol) {
+                var assets = runtime.config ? runtime.config.assets : [];
+                for (var i = 0; i < assets.length; i += 1) { if (assets[i].symbol === symbol) return assets[i]; }
+                return null;
+            }
+
+            function applyLinkedSubject() {
+                var notice = byId("linkNotice");
+                var handoff = (window.RLTKR && RLTKR.linkedSubject)
+                    ? RLTKR.linkedSubject(window.location.search)
+                    : { status: "absent", subject: null };
+                if (handoff.status === "absent") { notice.textContent = ""; notice.hidden = true; return; }
+                var match = handoff.status === "accepted" ? catalogAsset(handoff.subject) : null;
+                if (match) {
+                    runtime.controls.asset = match.symbol;
+                    byId("assetSelect").value = match.symbol;
+                    byId("targetVolInput").value = String(Math.round(match.defaultTargetVol * 100));
+                    runtime.controls.targetVol = match.defaultTargetVol;
+                    notice.textContent = "";
+                    notice.hidden = true;
+                    return;
+                }
+                notice.textContent = handoff.status === "accepted"
+                    ? "This lab covers " + runtime.config.assets.length + " assets and has no data for " + handoff.subject + ", so it is showing " + runtime.controls.asset + "."
+                    : "The link named a company this tool could not accept, so it is showing " + runtime.controls.asset + ".";
+                notice.hidden = false;
+            }
+
             function wire() {
                 byId("simpleTab").addEventListener("click", function () { setMode("simple", false); });
                 byId("powerTab").addEventListener("click", function () { setMode("power", false); });
@@ -1164,6 +1198,7 @@
                     runtime.config = validation.value;
                     runtime.policy = validation.value.policy;
                     populateAssets();
+                    applyLinkedSubject();
                     readControls();
                     setMode("simple", false);
                     recompute();

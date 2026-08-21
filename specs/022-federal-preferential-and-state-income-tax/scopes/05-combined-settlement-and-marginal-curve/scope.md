@@ -319,22 +319,58 @@ missing browser or an absent test does not satisfy RED.
     run at exit 0 with `registeredPages` 28 and `site-exclusions.json` clean. The
     row's missing intended-RED is a separate matter and is carried by the Test
     Plan evidence item below, which stays open and names TP-05-21.
-- [ ] The supersession ledger is closed: all twenty-one `SUP-022-NN` markers are present
-      and each maps to a delivered ledger entry, this scope superseded nothing
-      itself, the combined curve chart and its text-equivalent table render in
-      Power rather than Simple, and every pre-existing assertion outside the
-      twenty-one still passes unchanged.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#supersession-ledger`
-  - **Open because:** the census was run and it fails twice over. The ledger
-    declares **twenty-two** entries, not the twenty-one this row asks for — Scope
-    03's dispatch admitted `SUP-022-22` after this row was written — so the row's
-    number is stale and is routed to `bubbles.plan` rather than forced. Separately
-    and more seriously, only **twenty** markers are delivered: `SUP-022-18` and
-    `SUP-022-19` exist in `spec.md`, `design.md` and several scope artifacts but
-    in no source or test file, so two admitted supersessions have no replacement
-    behind them. Both belong to Scope 02. Lowering the number would not close the
-    row; delivering the two replacements would. See
-    `report.md#supersession-ledger` for the marker census.
+- [x] The supersession ledger is closed, **derived rather than pinned**: every `SUP-022-NN` marker
+      found in the five opened files is a row in the feature ledger; every ledger row the ledger's
+      own `Disposition` column marks `marker required` carries a marker; every row it marks `marker
+      forbidden` carries none anywhere in the tree; the only rows permitted to go unmarked are those
+      the ledger itself dispositions `marker forbidden` or `marker pending`, read out of the ledger
+      at run time rather than compared against a literal pair of ids, so a pending row's legitimate
+      delivery shrinks the tolerated gap instead of falsifying this item; every row carries one of
+      the three recognised dispositions and each tolerated one carries a reason, so an unreadable
+      column is a failure rather than a free pass; the tolerated set never covers the whole ledger;
+      the ids stay inside the declared range; the ledger total agrees three ways with the opening
+      paragraph, the `Owning scope` column and step 4 of `design.md`'s marker check; this scope
+      superseded nothing itself; the combined curve chart and its text-equivalent table render in
+      Power rather than Simple; and every pre-existing assertion outside the ledger still passes
+      unchanged.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#step-3--the-ledger-census-re-run-against-the-derived-form-2026-08-20`
+  - **Evidence:** the derived form is in `scripts/selftest.mjs` and `SUP-022-19` is
+    delivered, in that order. `node scripts/selftest.mjs` is `3155 passed, 0
+    failed`. Every limb was checked on its own: `markersWithoutLedgerRow`,
+    `unexplainedUnmarked`, `forbiddenButMarked`, `undispositionedRows` and
+    `toleratedWithoutReason` are all empty; the disposition tally is 20 required,
+    1 forbidden, 1 pending, so exactly one of twenty-two rows is both tolerated and
+    unmarked; the total agrees three ways at 22 (opening paragraph, `Owning scope`
+    tallying 12 + 9 + 1, and `design.md` step 4); no row is owned by this scope;
+    and both the combined curve chart and its text-equivalent table sit inside
+    `#power-combined` within the Power section. Four value-free adversarial
+    mutations were each applied and reverted inside the invocation that applied
+    them and each turned the assertion red — a dropped required marker
+    (`3152 passed, 3 failed`), a marker attached to a forbidden row, a blanked
+    `Disposition` cell, and every row dispositioned away (each `3154 passed, 1
+    failed` with TP-05-22 alone).
+  - **History — why this stayed open until 2026-08-20.**
+    The census was run and the row as originally written failed
+    twice over, and the second failure was a defect in the row rather than in the
+    tree. It asked for **twenty-one** entries; the ledger declares **twenty-two**,
+    because Scope 03's dispatch admitted `SUP-022-22` after the row was written.
+    Separately, only **twenty** markers are delivered: `SUP-022-18` and
+    `SUP-022-19` appear in `spec.md`, `design.md` and several scope artifacts but
+    in no source or test file. `bubbles.test` then established what each of those
+    two actually is — `SUP-022-18` was displaced in substance by `SUP-023-04` and
+    `SUP-023-05` and must carry no marker at all, while `SUP-022-19`'s narrowed
+    declared-target clause is genuine, buildable work that it built, proved with
+    an intended RED and a same-command GREEN, and reverted. It reverted because
+    the assertion carrying this row pinned the tolerated gap to the exact pair
+    `{18, 19}` under `JSON.stringify`, so delivering `SUP-022-19` shrank the real
+    gap to one id and turned a green assertion red — a self-staling contract that
+    made provable work unlandable (finding **F-02-D**). The row is restated above
+    to derive its tolerance from the ledger's `Disposition` column, which now
+    records `marker forbidden` for `SUP-022-18` and `marker pending` for
+    `SUP-022-19`. Both halves have since landed in the mandated order — the
+    derived form went into `scripts/selftest.mjs` first, then `SUP-022-19` was
+    delivered — and the census re-ran green against the derived form, which is
+    what closes this item above.
 - [x] No output states a probability, a lifetime figure, a break-even year, a
       ranking, a recommendation, a track record or an error rate, and no result is
       labelled a complete combined tax.

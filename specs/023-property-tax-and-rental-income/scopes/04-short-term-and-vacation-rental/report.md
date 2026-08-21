@@ -783,3 +783,597 @@ dispatch of this scope that did not record their RED, and this session cannot
 produce it after the fact without fabricating it. Scope 04's status is not
 advanced beyond `in_progress` by this agent.
 
+## Harness Pass — `TP-04-06` Carries An Intended RED
+
+The probe ran through `scripts/red-green-probe.sh`, which arms its revert before
+mutating and proves the revert by comparing the working blob hash against the
+committed one. The block is the harness's own output, pasted unedited.
+
+The mutation is the exact defect the boundary rows exist to catch: the engine's
+`greater-than` arithmetic is flipped from the strict form the publication states
+to the inclusive one, so a dwelling at exactly the sourced personal-use day figure
+lands on the wrong side of its own boundary.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-06 boundary: flipping the sourced greater-than comparison from strict to inclusive must fail the personal-use day boundary
+file:             rltaxuse.js
+mutation:         if (operator === "greater-than") result = left > right;  ->  if (operator === "greater-than") result = left >= right;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-06: at exactly the sourced personal-use day figure the dwelling is not a residence and one day above it is, the published comparison carries that exact figure as its right side, and
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### Effect on the DoD row
+
+One of the twenty-five owed rows is closed. The row requires an observed intended
+RED on **every** one of `TP-04-01` through `TP-04-26`, so it stays unticked. Still
+owed: `TP-04-01` through `TP-04-05`, `TP-04-07` through `TP-04-21`, and the
+browser rows `TP-04-22` through `TP-04-25`. Each needs a mutation aimed at the
+behaviour its own row names — a single broad mutation that reds many rows at once
+would not show that each row is sensitive to the defect it claims to catch, which
+is the property this exercise exists to establish. No assertion was edited,
+weakened, skipped or removed in this pass, and no timeout was raised.
+
+## Harness Pass 2 — `TP-04-01` … `TP-04-05` Carry Intended REDs
+
+Every block below is `scripts/red-green-probe.sh` output, pasted unedited. Each
+mutation is aimed at the behaviour its own row names, and each probe pins its
+`--summary-match` to that row's own identifier, so the `red-summary` line is the
+failure of the row being claimed rather than of some neighbour. The harness arms
+its revert before mutating and proves the revert by blob hash, so the working
+tree is byte-identical to the committed blob at the end of each probe.
+
+### `TP-04-01`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-01 contract: loosening the closed category check to a mere presence check must fail the UseClassification/v1 refusal assertion
+file:             rltaxrules.js
+mutation:         if (USE_CATEGORIES.indexOf(classification.category) < 0) {  ->  if (classification.category === undefined) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-01: UseClassification/v1 refuses a missing or unknown category, a missing day count, a parameter carrying no citation, an empty comparisonsPerformed[], an incomplete comparison and a
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-02`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-02 compatibility: making the added routing treat an explicit none differently from an omitted classification must fail the byte-identical prior-settlement assertion
+file:             rltaxrental.js
+mutation:         if (classification !== undefined && classification !== null) {  ->  if (classification !== undefined) {   (2 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-02: the profitable Scope 03 fixtures produce their exact prior settlements and the loss fixtures still refuse for the same pre-existing absent-allowance reason, identically whether n
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=04505d51f87117fe1613b41a41277bfea5096b11 restored=04505d51f87117fe1613b41a41277bfea5096b11)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-03`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-03 sourcing: publishing the locator in place of the retrieved comparedAgainst quantity must fail the sourcing assertion that the record names which quantity the percentage was compared against
+file:             rltaxuse.js
+mutation:         percentageComparedAgainst: rule.personalUsePercentageFigure.comparedAgainst,  ->  percentageComparedAgainst: rule.personalUsePercentageFigure.locator,   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-03: each of the three test parameters resolves to exactly one retrieved record with a locator and the qualifier component kind, the source record states the basis on which that kind
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-04`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-04 refusal: letting a refused classification fall through to an ordinary settlement must fail the assertion that a refused classification produces no rental figure
+file:             rltaxrental.js
+mutation:         if (rules.isUnavailable(classification)) return classification;  ->  if (rules.isUnavailable(classification)) return computeRentalSettlement(activity, pack);   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-04: a pack with any of the three test parameters absent, or with no classification rule at all, refuses the classification, assigns no category, and the settlement routed by that ref
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=04505d51f87117fe1613b41a41277bfea5096b11 restored=04505d51f87117fe1613b41a41277bfea5096b11)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-05`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-05 adversarial: making the engine recall a remembered test parameter when the pack retrieved none must fail the assertion that an absent parameter refuses
+file:             rltaxrules.js
+mutation:         if (isAbsentFigure(figure)) return absentFigureRefusal(figure, domain);  ->  if (isAbsentFigure(figure)) { rule = JSON.parse(JSON.stringify(rule)); rule[members[index].key] = { days: 14, rate: 0.1, sourceRef: "irs-p527-2025", locator: "recalled from memory rather than retrieved", comparisonOperator: "greater-than", comparedAgainst: "days-rented-to-others-at-a-fair-rental-price" }; figure = rule[members[index].key]; }   (3 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-05: an implementation falling back to a recalled rule when a test parameter is absent produces a category where the shipped implementation refuses, so the refusal assertion is proven
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### Collateral, recorded rather than hidden
+
+`TP-04-04` and `TP-04-05` read the same refusal. `TP-04-05` exists to prove that
+`TP-04-04`'s refusal assertion discriminates, so the only clause `TP-04-05` owns
+that depends on the implementation is the one `TP-04-04` also reads. A mutation
+that makes an absent parameter stop refusing therefore reds both, and no mutation
+can red `TP-04-05` alone. Each row still has a mutation aimed at the defect its
+own text names — the settlement side for `TP-04-04`, the recalled-rule fallback
+for `TP-04-05` — and each probe's `red-summary` is that row's own failure line.
+
+## Harness Pass 3 — `TP-04-07` … `TP-04-12` Carry Intended REDs
+
+### `TP-04-07`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-07 boundary: inverting the published greater-of selection must fail the percentage-boundary assertion that names which of the two candidate quantities the test was run against
+file:             rltaxuse.js
+mutation:         result: dayFigure >= percentageOfRentalDays  ->  result: dayFigure <= percentageOfRentalDays   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-07: at exactly the sourced percentage of the declared rental days the dwelling is not a residence and one day above it is, and the published greater-of comparison names which of the
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-08`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-08 boundary: letting a dwelling below the sourced rental-days threshold reach the exception without having been used as a residence must fail the threshold-boundary assertion
+file:             rltaxuse.js
+mutation:         if (usedAsResidence && minimalRentalUse) {  ->  if (minimalRentalUse) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-08: at exactly the sourced rental-days threshold the exception does not apply and one day below it does, the published comparison carries that exact figure, and a dwelling below the
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-09`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-09 adversarial: making the engine apply strict arithmetic for the inclusive operator the pack declares must fail the both-directions inclusivity assertion
+file:             rltaxuse.js
+mutation:         if (operator === "at-least") result = left >= right;  ->  if (operator === "at-least") result = left > right;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-09: flipping each of the three comparisons from the strict form the publication states to the inclusive form changes the outcome at that comparison’s exact boundary, flipping back
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-10`
+
+The mutation spans the two adjacent stage declarations, because reversing the
+edge on one alone would make the pair a cycle and the order would refuse rather
+than resolve to the wrong order. The harness prints the mutation verbatim, so the
+`mutation:` field carries the line break the literal carries.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-10 ordering: reversing the declared dependency edge so the rental settlement no longer needs the classification must fail the assertion that CO-16 derives strictly before CO-17
+file:             rltax.js
+mutation:         Object.freeze({ stageId: "CO-16", dependsOn: Object.freeze([]) }),
+    Object.freeze({ stageId: "CO-17", dependsOn: Object.freeze(["CO-16"]) }),  ->  Object.freeze({ stageId: "CO-16", dependsOn: Object.freeze(["CO-17"]) }),
+    Object.freeze({ stageId: "CO-17", dependsOn: Object.freeze([]) }),   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-10: the derived housing stage order places CO-16 strictly before CO-17 and CO-17 before CO-18 for every pack, and a settlement attempted with something that is not a published classi
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-11`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-11 known value: publishing a zero value beside the exclusion, so an excluded activity reads as a rental that settled to nothing, must fail the exception assertion
+file:             rltaxrental.js
+mutation:               excludedRentalIncome: activity.rentalIncome,  ->
+      value: 0,
+      excludedRentalIncome: activity.rentalIncome,   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-11: under the exception the rental income is excluded and published as excluded, no rental expense is deducted, no limit is applied, the exclusion is stated as the reason with its ci
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=04505d51f87117fe1613b41a41277bfea5096b11 restored=04505d51f87117fe1613b41a41277bfea5096b11)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-12`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-12 adversarial: emptying the stated exclusion reason, which is what an implementation publishing a zero net result in its place would leave behind, must fail the stated-reason assertion
+file:             rltaxrental.js
+mutation:         exclusionReason: "This dwelling was used as a residence and rented fewer than the sourced threshold of days, so the sourced rule removes the activity from rental reporting: the rent you received is excluded from income and no rental expense is deducted. This is an exclusion, not a rental that settled to nothing.",  ->  exclusionReason: "",   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-12: an implementation publishing a zero net result in place of an exclusion reason carries no exclusion reason at all, so the stated-reason assertion is proven to discriminate betwee
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=04505d51f87117fe1613b41a41277bfea5096b11 restored=04505d51f87117fe1613b41a41277bfea5096b11)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+`TP-04-11` and `TP-04-12` are the same twinned pair as `TP-04-04` and `TP-04-05`:
+`TP-04-12` exists to prove that `TP-04-11`'s stated-reason clause discriminates,
+so emptying the reason reds both. `TP-04-11`'s own probe is aimed elsewhere — at
+the published zero value the row exists to forbid — and reds `TP-04-11` alone.
+
+## Harness Pass 4 — `TP-04-13` … `TP-04-18` Carry Intended REDs
+
+### `TP-04-13`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-13 known value: dividing by the personal-use days instead of the declared rental days must fail the assertion that each allocated expense equals the declared amount times the declared day ratio and reproduces the publication worked example
+file:             rltaxuse.js
+mutation:         numerator: fairRentalDays,  ->  numerator: personalUseDays,   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-13: each allocated expense equals the declared amount times the declared day ratio and publishes the basis that divided it, the rental and personal portions sum to the declared amoun
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-14`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-14 contract: letting a directly allocable expense be divided by the day ratio instead of refusing must fail the not-re-allocated assertion
+file:             rltaxuse.js
+mutation:         if (expense.directlyAllocable === true) {  ->  if (expense.directlyAllocable === "declared-direct") {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-14: a directly allocable expense is refused rather than re-allocated, the expense-set path carries it whole to the rental side and names why, every declared expense is accounted for
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-15`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-15 integration: recording the routed personal portion as a declared component rather than a computed one must fail the named-component integration assertion
+file:             rltax.js
+mutation:         portion.amount, "computed", [], portion.amount));  ->  portion.amount, "declared", [], portion.amount));   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-15: the personal portion of every allocated expense enters the composition as a named component with origin computed, each satisfies the DeductionComponent contract, the component id
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-16`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-16 adversarial: making the published declared amount disagree with the two portions it was divided into must fail the allocation-sum assertion the row exists to prove discriminating
+file:             rltaxuse.js
+mutation:         declaredAmount: expense.amount,  ->  declaredAmount: expense.amount + 1,   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-16: an implementation zeroing the personal portion breaks the sum back to the declared amount, and a composition that received no personal portions carries no dwelling component and
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-17` and `TP-04-18`
+
+The two rows are carried by one `assert`, so both probes name that assertion's
+message in their `red-summary`. They are still two distinct mutations aimed at
+two distinct behaviours: `TP-04-17` owns the claim that the classification leg
+*reaches* every surface, so its mutation severs the leg's identity where the page
+wires it; `TP-04-18` owns the claim that a removal *fails with the missing
+element named*, so its mutation drops the name from the identity finding.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-17 leg visibility: severing the classification legs identity from the headline surface must fail the assertion that the category leg reaches all four surfaces
+file:             lifetime-tax-strategy-lab.html
+mutation:         useHost.setAttribute("data-rl-leg", useLeg.legId);  ->  useHost.setAttribute("data-rl-leg", "dwelling-use-unwired");   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-17 and TP-04-18: the classification leg reaches all four surfaces on the all-non-zero fixture alongside the property and rental legs, removing any of the three from each surface in t
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-18 adversarial: dropping the missing legs name from the identity finding must fail the assertion that removing the classification from a surface fails with the missing element named
+file:             rltaxproperty.js
+mutation:         ? "the leg " + missing.join(", ") + " is computed in the record and does not reach " + surface  ->  ? "a computed leg does not reach " + surface   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-17 and TP-04-18: the classification leg reaches all four surfaces on the all-non-zero fixture alongside the property and rental legs, removing any of the three from each surface in t
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=bb618aa51ecdbc38a5ac186026e615f7140aac3c restored=bb618aa51ecdbc38a5ac186026e615f7140aac3c)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+## Harness Pass 5 — `TP-04-19` … `TP-04-21` Carry Intended REDs
+
+### `TP-04-19`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-19 vocabulary: adding a scope-specific refusal code must fail the assertion that the refusal vocabulary member count equals its pre-feature value
+file:             rltaxrules.js
+mutation:         "RLTAX-PACK-YEAR-MISMATCH": true  ->  "RLTAX-PACK-YEAR-MISMATCH": true, "RLTAX-USE-UNAVAILABLE": true   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-19: the refusal vocabulary still has exactly its fourteen pre-feature members and this scope added none
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-20`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-20 no-shadow: giving the module its own remembered copy of the sourced day figure must fail the assertion that it holds no test-parameter literal
+file:             rltaxuse.js
+mutation:           var CLASSIFICATION_CONTRACT = rules.USE_CLASSIFICATION_CONTRACT;  ->    var REMEMBERED_DAY_FIGURE = 14;
+  var CLASSIFICATION_CONTRACT = rules.USE_CLASSIFICATION_CONTRACT;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-20: rltaxuse.js contains no test-parameter literal, no percentage, no authority name and no publication name, the detector is proven to fire on a module that does, and the module is
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-21`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-21 privacy: carrying a declared personal-use day count into the exported bytes must fail the assertion that both day-count declarations are omitted and have no value in the export
+file:             rltaxworkspace.js
+mutation:               selectedBracketId: workspace.selectedBracketId  ->
+      selectedBracketId: workspace.selectedBracketId,
+      rentalPersonalUseDays: workspace.rentalPersonalUseDays   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-21: both day-count declarations are declared workspace fields, are named in the export’s omitted list, have no value in the exported bytes, are named in the privacy inventory purpo
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=6760587f2303516755ab6a5e14436050717f1227 restored=6760587f2303516755ab6a5e14436050717f1227)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+## Harness Pass 6 — The Four Browser Rows Carry Intended REDs
+
+Each browser row runs its own per-scenario command rather than the cumulative
+suite, so RED and GREEN are seconds apart and the exit code separates them
+cleanly. `--summary-match` pins the verdict to the reporter's own pass or fail
+line rather than to whatever happened to be printed last.
+
+### `TP-04-22`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-22 regression E2E SCN-023-010: publishing the source identifier in place of the section each sourced parameter was transcribed from must fail the browser scenario that reads the rendered citation
+file:             rltaxuse.js
+mutation:         locator: figure.locator,  ->  locator: figure.sourceRef,   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-023-010\ the\ classification\ publishes\ its\ sourced\ parameters\ and\ refuses\ without\ them --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (4.2s)
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-23`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-23 regression E2E SCN-023-011: flipping the sourced less-than comparison from strict to inclusive must fail the browser scenario that pins the three Publication 527 boundaries to the side the publication states
+file:             rltaxuse.js
+mutation:         if (operator === "less-than") result = left < right;  ->  if (operator === "less-than") result = left <= right;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-023-011\ the\ three\ Publication\ 527\ boundaries\ land\ on\ the\ side\ the\ publication\ states --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (3.8s)
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-24`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-24 regression E2E SCN-023-012: preventing the under-threshold category from reaching the exclusion path must fail the browser scenario that requires the income excluded and no rental expense deducted
+file:             rltaxrental.js
+mutation:         if (classification.category === "residence-minimal-rental-use") {  ->  if (classification.category === "residence-minimal-rental-use-never-matches") {   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-023-012\ the\ under-threshold\ exception\ excludes\ the\ income\ and\ deducts\ no\ rental\ expense --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (4.0s)
+revert-verified:  yes (committed=04505d51f87117fe1613b41a41277bfea5096b11 restored=04505d51f87117fe1613b41a41277bfea5096b11)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-25` — the probe refused first, and the refusal was the finding
+
+The first attempt exited 7. The scenario passed with **every** personal portion
+replaced by a literal zero — that is, while the behaviour its own title claims
+was gone.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-25 regression E2E SCN-023-013: discarding the personal portion of every allocated expense must fail the browser scenario that requires it to reach the itemised composition
+file:             rltaxuse.js
+mutation:         personalPortion: expense.amount - rentalPortion,  ->  personalPortion: 0,   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-023-013\ mixed\ use\ allocates\ by\ declared\ days\ and\ the\ personal\ portion\ reaches\ the\ composition --reporter=list
+red-exit:         0
+red-summary:        1 passed (4.1s)
+green-exit:       0
+green-summary:      1 passed (2.8s)
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   NO (red-exit 0 == green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+red-green-probe: REFUSED — RED and GREEN produced the same outcome (both exited 0). The mutation did not make the command fail, so the assertion under test cannot fail and this is not RED/GREEN evidence.
+```
+
+**Why it could not discriminate.** Two clauses carried the claim and neither read
+a figure. The allocation clause required only that the personal-portion cell
+carry non-empty text, and a discarded portion still renders as a formatted zero.
+The composition clause counted two `dwelling-personal` rows and read their origin
+attribute — but a zero-amount component is deliberately still added, precisely so
+a household whose whole dwelling was rented stays distinguishable from one whose
+personal share was never routed, so the row count and the origin survive the
+defect untouched. The scenario was reading labels, counts and attributes where
+its title promises an amount.
+
+**Strengthened additively.** Nothing was weakened, removed or skipped and no
+timeout was raised. Both original clauses stand. Two clauses were added: the
+personal-portion figure nodes must parse to amounts strictly greater than zero,
+and the `dwelling-personal-operating` composition row's amount cell must too. The
+figure node is read directly rather than the cell's `textContent`, because the
+cell also carries the tooltip prose and that prose's punctuation corrupts a naive
+numeric parse — the first attempt at the strengthened clause failed for exactly
+that reason and was corrected before it was committed.
+
+The probe was then re-run unchanged against the strengthened scenario and
+discriminated.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-25 regression E2E SCN-023-013: discarding the personal portion of every allocated expense must fail the browser scenario that requires it to reach the itemised composition
+file:             rltaxuse.js
+mutation:         personalPortion: expense.amount - rentalPortion,  ->  personalPortion: 0,   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-023-013\ mixed\ use\ allocates\ by\ declared\ days\ and\ the\ personal\ portion\ reaches\ the\ composition --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (4.0s)
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+## The Owed Set Is Closed
+
+The twenty-five rows the Definition of Done row was owed each carry an observed
+intended RED beside their same-command GREEN. Twenty-one ran the unit command,
+`node scripts/selftest.mjs`, with the probe's `--summary-match` pinned to the
+row's own identifier so the `red-summary` line is that row's failure rather than
+a neighbour's. Four ran their own per-scenario browser command, which is seconds
+rather than the ten minutes the cumulative suite takes, with `--summary-match`
+pinned to the reporter's pass or fail line.
+
+| Row | Aimed at | File the mutation landed in |
+|---|---|---|
+| `TP-04-01` | the closed category check | `rltaxrules.js` |
+| `TP-04-02` | the added routing's treatment of an explicit none | `rltaxrental.js` |
+| `TP-04-03` | the published `comparedAgainst` quantity | `rltaxuse.js` |
+| `TP-04-04` | a refused classification producing no rental figure | `rltaxrental.js` |
+| `TP-04-05` | the recalled-rule fallback | `rltaxrules.js` |
+| `TP-04-06` | strict versus inclusive at the day boundary | `rltaxuse.js` |
+| `TP-04-07` | the published greater-of selection | `rltaxuse.js` |
+| `TP-04-08` | the residence gate on the exception | `rltaxuse.js` |
+| `TP-04-09` | the arithmetic behind the inclusive operator | `rltaxuse.js` |
+| `TP-04-10` | the declared `CO-16` to `CO-17` dependency edge | `rltax.js` |
+| `TP-04-11` | a zero value published beside the exclusion | `rltaxrental.js` |
+| `TP-04-12` | the stated exclusion reason | `rltaxrental.js` |
+| `TP-04-13` | the allocation ratio's numerator | `rltaxuse.js` |
+| `TP-04-14` | the directly-allocable refusal | `rltaxuse.js` |
+| `TP-04-15` | the routed component's origin | `rltax.js` |
+| `TP-04-16` | the published declared amount the portions sum back to | `rltaxuse.js` |
+| `TP-04-17` | the page's wiring of the classification leg's identity | `lifetime-tax-strategy-lab.html` |
+| `TP-04-18` | the naming of the missing element in a finding | `rltaxproperty.js` |
+| `TP-04-19` | the refusal vocabulary's size | `rltaxrules.js` |
+| `TP-04-20` | a remembered copy of the sourced day figure | `rltaxuse.js` |
+| `TP-04-21` | a day count carried into the exported bytes | `rltaxworkspace.js` |
+| `TP-04-22` | the section each sourced parameter was transcribed from | `rltaxuse.js` |
+| `TP-04-23` | strict versus inclusive at the threshold boundary | `rltaxuse.js` |
+| `TP-04-24` | the route from the under-threshold category to the exclusion | `rltaxrental.js` |
+| `TP-04-25` | the personal portion itself | `rltaxuse.js` |
+
+Every probe hash-verified its revert, and `git status` shows no source file left
+dirty by any of them.
+
+### A finding outside this scope's boundary
+
+`node scripts/selftest.mjs` reports `3171 passed, 1 failed` at the close of this
+session, against `3172 passed, 0 failed` at its start. The single failure is
+`committed surface carries no personal identifier`, and the scanner names its two
+findings in `specs/027-company-scoped-owner-deep-links/report.md` at lines 2597
+and 2599 — both inside the single uncommitted hunk a concurrent session added to
+that file while this work ran. No finding names any file this scope owns or
+touched. The regression is therefore routed to the owner of that spec rather than
+absorbed here: `specs/027-*` is outside this scope's change boundary and editing
+it would be a boundary violation, not a fix.
+

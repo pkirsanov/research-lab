@@ -296,10 +296,13 @@ Binding conditions on the whole register:
 
 ## Assertion Supersession Owned By This Scope
 
-This scope owns nine of the twenty-one entries in the
+This scope owns nine of the twenty-two entries in the
 [supersession ledger](../../spec.md#supersession-ledger) and amends two that Scope
-01 delivered. It follows the
-[per-scope procedure](../_index.md#assertion-supersession-procedure) for each.
+01 delivered. Eight of the nine are this scope's to deliver; the ninth,
+SUP-022-18, is recorded **superseded-in-substance** below and is not deliverable
+as work. It follows the
+[per-scope procedure](../_index.md#assertion-supersession-procedure) for each of
+the eight.
 
 | Entry | Target | Shape | Replacement in one line |
 | --- | --- | --- | --- |
@@ -309,8 +312,8 @@ This scope owns nine of the twenty-one entries in the
 | SUP-022-14 | `scripts/selftest.mjs` ~L11803 | derive | Ordered, two-directional reconciliation leg-set identity against the engine's own declaration, plus the `L6` exclusion clause |
 | SUP-022-15 | `tests/lifetime-tax-federal.spec.mjs` L108-111 | derive | A record-derived rendered-row count and a `holds` loop bounded by the rendered rows |
 | SUP-022-16 | `tests/lifetime-tax-route.spec.mjs` L80 | derive | The same record-derived row count, in the route spec that owns the Power rendering |
-| SUP-022-18 | `scripts/selftest.mjs` ~L12450 | derive | Cross-artifact identity between `SIMPLE_FIELDS` and the rendered Simple markup; every Simple-stays-decision-level clause retained verbatim |
-| SUP-022-19 | `tests/lifetime-tax-route.spec.mjs` L54-62 | derive | Two-directional withheld-detail link/section identity, and selection by declared target instead of by ordinal |
+| SUP-022-18 | `scripts/selftest.mjs` ~L12450 | **superseded-in-substance** | Not deliverable by this scope. Every clause it named — `simpleFields.length === 7`, `powerLinkDetails.length === 9`, `powerLinkSections.length === 9` — was displaced first by Feature 023 under `SUP-023-04` and `SUP-023-05`. Row retained; see the disposition below |
+| SUP-022-19 | `tests/lifetime-tax-route.spec.mjs` L97 | derive | **Narrowed.** Selection of a withheld-detail link by its declared target instead of by ordinal, replacing the positional `links.nth(3)` focus expectation. The two-directional link/section identity this row also once named was displaced by `SUP-023-06` and is no longer claimed here |
 | SUP-022-20 | `scripts/selftest.mjs` ~L12327 | derive | A pack-derived declared-edge set, a step selector keyed on the segment's own step-ness rather than its width, and a labelling-honesty clause over every probe-width segment |
 
 **Amendments to Scope 01's replacements**, carrying no new ledger entry:
@@ -327,12 +330,53 @@ particular, SUP-022-08's and SUP-022-10's moved-versus-deleted clauses are the
 guard against the convenient path of dropping the contributor from the page and
 from the curve without computing it anywhere.
 
-**Two Simple-view entries, one rule.** SUP-022-18 and SUP-022-19 exist because
-this scope puts `SurtaxSummaryLines` and `ConversionAsymmetryLine` in Simple.
-Neither entry may be used to relax a Simple-markup clause: both replacements
-retain the no-`<canvas>`, no-`<table>`, no-`curveTextEquivalent`, no-`bracketDetail`,
-no-`ruleLedger` and field-id token-exclusion clauses **verbatim**. Every Simple
-surface this scope adds is a `data-rl-value` field carried in `SIMPLE_FIELDS`.
+**SUP-022-18 — disposition: superseded-in-substance by SUP-023-04 and SUP-023-05.**
+SUP-022-18 was written to replace three pinned counts in `scripts/selftest.mjs`
+with cross-artifact identity between the closed Simple field list and the rendered
+Simple markup. Feature 023 reached those clauses first. A fixed-string search of
+the tree returns zero occurrences of `simpleFields.length === 7`,
+`powerLinkDetails.length === 9` and `powerLinkSections.length === 9`; the
+replacements are present and marked `SUP-023-04` and `SUP-023-05`, and
+`SUP-023-04`'s marker states SUP-022-18's ledger replacement almost verbatim,
+down to *every Simple-stays-decision-level clause is retained verbatim*. There is
+nothing left for this scope to supersede. Attaching a `SUP-022-18` marker to those
+regions would attribute one replacement to two features, which is exactly the
+double-count the marker discipline exists to prevent, so the row is **not**
+delivered and **not** deleted: it stays in the ledger carrying this disposition
+and the ids that displaced it. The protection is not lost — a `data-rl-value`
+field rendered in Simple outside `SIMPLE_FIELDS` still fails, under `SUP-023-04`,
+which Feature 023 owns and which this scope must neither claim nor cite as its own
+adversarial evidence. Feature 023's artifacts are read-only here.
+
+**Routed to `bubbles.analyst` and `bubbles.design` — since answered.** The
+feature-level ledger row at
+[`spec.md#supersession-ledger`](../../spec.md#supersession-ledger) carried no
+disposition column when this was written, and `design.md`'s per-file marker
+distribution still placed a SUP-022-18 marker in `scripts/selftest.mjs`, which the
+disposition forbids. Both were corrected while `TP-05-22` was restated for finding
+**F-02-D**: the ledger now carries a `Disposition` column recording
+`marker forbidden` for SUP-022-18 with the displacing `SUP-023-04` / `SUP-023-05`
+ids, and the design table no longer assigns SUP-022-18 to any file. Neither
+artifact is this agent's to edit and neither is edited here.
+
+**SUP-022-19 — narrowed, not displaced.** Its count clause went the same way: the
+route spec's `toHaveCount(9)` returns a fixed-string count of zero, replaced under
+`SUP-023-06`, which also added the two-directional declared-section identity this
+row once named. What survives is the positional focus expectation. Line 97 of
+`tests/lifetime-tax-route.spec.mjs` still reads `await links.nth(3).click()`, and
+selecting a withheld-detail link by ordinal is exactly the fragility the row was
+opened for: reorder the link table and the assertion silently follows a different
+detail while still passing. Replacing it with selection by declared target is real,
+buildable work this scope owns, so SUP-022-19 stays a deliverable entry narrowed
+to that one clause.
+
+**One Simple-view entry, one rule.** SUP-022-19 remains because this scope puts
+`SurtaxSummaryLines` and `ConversionAsymmetryLine` in Simple. It may not be used
+to relax a Simple-markup clause: its replacement retains the no-`<canvas>`,
+no-`<table>`, no-`curveTextEquivalent`, no-`bracketDetail`, no-`ruleLedger` and
+field-id token-exclusion clauses **verbatim**. Every Simple surface this scope adds
+is a `data-rl-value` field carried in `SIMPLE_FIELDS`, and that carriage is
+enforced by `SUP-023-04` rather than by anything this scope delivers.
 
 ## Scenario-First Red/Green Contract
 
@@ -372,8 +416,8 @@ an absent test does not satisfy RED.
 | TP-02-19 | Repo gate | unit | SCN-022-004 … -006 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-02-19` |
 | TP-02-20 | Path guard | unit | SCN-022-004 … -006 | `scripts/validate-spec-test-paths.mjs` | Zero new missing spec-referenced test paths | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-02-20` |
 | TP-02-21 | Deploy gate | unit | SCN-022-004 … -006 | `scripts/build-pages-site.mjs` | The Pages plan succeeds and `site-exclusions.json` is unchanged | `node scripts/build-pages-site.mjs --dry-run` | No | `report.md#tp-02-21` |
-| TP-02-22 | Supersession conformance | unit | SCN-022-004 … -006 | `scripts/selftest.mjs` | The marker check: every distinct `SUP-022-NN` marker is a ledger id, the delivered set equals Scope 01's eleven plus this scope's eight — nineteen in total — each marked region names its shape, and no assertion changed without a marker | `node scripts/selftest.mjs` | No | `report.md#tp-02-22` |
-| TP-02-23 | Supersession adversarial | unit | SCN-022-004 | `scripts/selftest.mjs` | Regression: an implementation that removes `net-investment-income-tax` from the unavailable-contributor set without declaring a computed leg is demonstrated to fail SUP-022-08's and SUP-022-10's moved-versus-deleted clauses, one that lists the id in both `unsupportedFeatures[]` and `taxLegs[]` is demonstrated to fail SUP-022-03's disjointness clause, and one that renders a `data-rl-value` field in Simple outside `SIMPLE_FIELDS` is demonstrated to fail SUP-022-18's cross-artifact identity | `node scripts/selftest.mjs` | No | `report.md#tp-02-23` |
+| TP-02-22 | Supersession conformance | unit | SCN-022-004 … -006 | `scripts/selftest.mjs` | The marker check, derived rather than pinned: every distinct `SUP-022-NN` marker found in the opened files is an id in the feature ledger, which carries twenty-two entries; the delivered marker set equals Scope 01's **twelve** owned ids plus this scope's **eight deliverable** ids — its nine owned less SUP-022-18, which is superseded-in-substance and must therefore carry no marker anywhere in the tree — plus exactly those ids the ledger's own owning-scope column assigns to a later scope and that are already present, read out of the ledger at run time rather than pinned to a literal total, because Scope 03's SUP-022-22 is already delivered and any fixed total goes stale the next time a scope lands; each marked region names its shape; and no assertion changed without a marker | `node scripts/selftest.mjs` | No | `report.md#tp-02-22` |
+| TP-02-23 | Supersession adversarial | unit | SCN-022-004 | `scripts/selftest.mjs` | Regression: an implementation that removes `net-investment-income-tax` from the unavailable-contributor set without declaring a computed leg is demonstrated to fail SUP-022-08's and SUP-022-10's moved-versus-deleted clauses, one that lists the id in both `unsupportedFeatures[]` and `taxLegs[]` is demonstrated to fail SUP-022-03's disjointness clause, and one whose route spec selects a withheld-detail link by ordinal rather than by its declared target is demonstrated to fail SUP-022-19's narrowed declared-target clause, asserted over the route spec's own source text as the SUP-023-06 checks in this file already are. The fourth case is **removed, not gated**: it turned on SUP-022-18's cross-artifact identity, and per SUP-022-18's disposition that clause will never exist under a `SUP-022` marker, so a gate would leave a case that can never fire. The mutation it named — a `data-rl-value` field rendered in Simple outside `SIMPLE_FIELDS` — stays caught by `SUP-023-04`, which Feature 023 owns and which this row must not cite as this scope's evidence | `node scripts/selftest.mjs` | No | `report.md#tp-02-23` |
 | TP-02-24 | Fixture register | unit | SCN-022-004 … -006 | `scripts/selftest.mjs` | Every helper named in the Fixture Input Completion Register declares both bases at `0` and changed no other input member; at least one fixture household keeps both bases `null` and is proven to receive `RLTAX-INPUT-INCOMPLETE` on each leg and on the total; and every previously settled Feature 021 fixture value is byte-identical after completion | `node scripts/selftest.mjs` | No | `report.md#tp-02-24` |
 
 ### Definition of Done
@@ -393,16 +437,76 @@ an absent test does not satisfy RED.
       `declaredFor` entry was populated from the absence of a year label on a
       page.
   - **Phase:** implement · **Command:** the retrieval record in the pack plus `node scripts/selftest.mjs` · **Evidence:** `report.md#sourcing`
-- [ ] Both owned supersessions and both amendments are delivered: SUP-022-03, -08,
-      -10, -14, -15, -16, -18 and -19 each replaced by the stronger assertion the
-      ledger names, each seen to fail against the unchanged implementation first,
-      each carrying its `SUP-022-NN` marker and its adversarial evidence;
-      SUP-022-04's spot checks updated and SUP-022-09's derived count confirmed to
-      follow the pack.
-  - **Open:** SUP-022-18 and -19 are still undelivered. Their blocker is cleared —
-    the Simple/Power panels are built and the browser command now runs green — so
-    what remains is the two replacement assertions themselves.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-02-18 browser command · **Evidence:** `report.md#supersession-ledger`
+- [ ] This scope's eight deliverable supersessions and both amendments are
+      delivered: SUP-022-03, -08, -10, -14, -15, -16, -19 and -20 each replaced by
+      the stronger assertion the ledger names, each seen to fail against the
+      unchanged implementation first, each carrying its `SUP-022-NN` marker and its
+      adversarial evidence; SUP-022-04's spot checks updated and SUP-022-09's
+      derived count confirmed to follow the pack. The ninth owned entry,
+      SUP-022-18, is **not** among them: it is recorded superseded-in-substance and
+      must carry no marker anywhere. SUP-022-19 counts only once its **narrowed**
+      clause is delivered — selection of a withheld-detail link by declared target
+      replacing the positional `links.nth(3)` — not by any count assertion, which
+      `SUP-023-06` already owns.
+  - **Open — requirement text corrected for finding F-02-C; awaiting delivery.**
+    The earlier blocker note is superseded twice over: the Simple/Power panels
+    being built was never the whole story, and neither was calling SUP-022-18
+    simply undeliverable. Every clause SUP-022-18 and SUP-022-19 were written to
+    supersede has been displaced by **Feature 023**, under Feature 023's markers.
+    `simpleFields.length === 7`, `powerLinkDetails.length === 9`,
+    `powerLinkSections.length === 9` and the route spec's `toHaveCount(9)` each
+    return a fixed-string count of zero; the replacements are present and marked
+    `SUP-023-04`, `SUP-023-05` and `SUP-023-06`, and `SUP-023-04`'s marker states
+    SUP-022-18's ledger replacement almost verbatim. **Correction taken.**
+    SUP-022-18 is recorded superseded-in-substance in the
+    [ledger disposition](#assertion-supersession-owned-by-this-scope) rather than
+    claimed as this scope's to deliver, because attaching a `SUP-022-18` marker to
+    those regions would attribute one replacement to two features; the row is
+    retained, not deleted, and cites the displacing ids. SUP-022-19 is narrowed to
+    its surviving clause: the positional `links.nth(3)` focus expectation is still
+    live at line 97 of `tests/lifetime-tax-route.spec.mjs`, so selection by
+    declared target is real, buildable work. This item stays open because the eight
+    deliverable replacements are not yet written; nothing here ticks it.
+  - **Still open after verification pass 2026-08-20 (third) — finding F-02-D.**
+    SUP-022-19's narrowed clause was built and proven in that pass: intended RED on a
+    value-free retarget of the bracket-detail row, same-command GREEN after an
+    immediate revert, and a control showing the replacement survives a row insertion
+    the superseded ordinal does not. It was then **reverted**, because delivering its
+    marker drops `node scripts/selftest.mjs` from 3155 passed to 3154 passed and 1
+    failed: Scope 05's TP-05-22 pins the tolerated marker gap as the exact pair
+    `{18, 19}` and compares it with `JSON.stringify`, so a delivered SUP-022-19
+    breaks it. The remedy is a one-line tightening of that literal to `{18}` —
+    strictly stronger than what stands — but it edits an assertion Scope 05 owns,
+    which the sibling no-edit DoD item forbids without a recorded amendment, and no
+    such amendment exists. Seven of the eight markers are present in the tree;
+    SUP-022-19 is absent and `SUP-022-18` correctly appears nowhere. Seven of eight
+    cannot tick this item, and the further requirement that each of the eight was
+    seen to fail first and carries its adversarial evidence was not re-derived for
+    the seven and is not claimed. Decidable once `bubbles.plan` either records the
+    TP-05-22 amendment in the ledger's `Amending scope` column or restates TP-05-22
+    to derive its tolerated gap from the ledger's disposition column instead of
+    pinning a literal pair.
+  - **Still open after delivery pass 2026-08-20 (fourth) — F-02-D is closed but two
+    conjuncts of this item are not.** The blocker named above is gone: `bubbles.plan`
+    restated TP-05-22 to derive, the derived form is in `scripts/selftest.mjs`, and
+    `SUP-022-19` was then delivered with an intended RED, a same-command GREEN and a
+    row-insertion control. **All eight deliverable markers are now present** — 03 and
+    10, 14, 20 in `scripts/selftest.mjs`, 08 in the marginal spec, 15 in the federal
+    spec, 16 and 19 in the route spec — both amendments are present (04 in
+    `scripts/selftest.mjs`, 09 in the foundation spec), and `SUP-022-18` still appears
+    nowhere, which its disposition requires. `node scripts/selftest.mjs` is `3155
+    passed, 0 failed`. What still blocks the tick is the rest of the same sentence,
+    and it is stated rather than absorbed. First, **"each seen to fail against the
+    unchanged implementation first"** was re-derived in this pass for `SUP-022-19`
+    only; it was not re-derived for the other seven and is not claimed for them.
+    Second, **"each carrying … its adversarial evidence"** does not hold uniformly:
+    a census of the five opened files finds an explicit adversarial block for 03, 14
+    and 20, and none for 08, 10, 15, 16 or 19, and the case-insensitive sweep for
+    adversarial reasoning finds zero occurrences in the federal and marginal specs.
+    Ticking on the marker census alone would claim two conjuncts that were never
+    measured. Decidable by re-deriving the seven intended REDs and supplying the
+    missing adversarial cases for the entries that carry none.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-02-18 browser command · **Evidence:** `report.md#supersession-ledger`, `report.md#verification-pass--2026-08-20-second--sup-022-18-and--19-were-displaced-by-feature-023-before-this-scope-could-deliver-them-finding-f-02-c`, `report.md#verification-pass--2026-08-20-third--sup-022-19s-narrowed-clause-is-buildable-and-was-built-but-delivering-it-turns-scope-05s-tp-05-22-red-all-three-items-stay---finding-f-02-d`
 - [x] The leg-reachability rule is implemented as `design.md` states it: both
       basis members initialize to `null`, an undeclared basis refuses its leg by
       name, `CO-8` inherits, and neither member is ever initialized to a value.
@@ -420,12 +524,38 @@ an absent test does not satisfy RED.
     the row rather than quietly corrected.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-02-18 browser command · **Evidence:** `report.md#tp-02-24`
 - [ ] No assertion outside this scope's ledger entries and amendments was edited,
-      relaxed or deleted, no Simple-markup clause was relaxed under SUP-022-18 or
-      SUP-022-19, and no sourcing rule, tolerance, determinism, privacy,
-      zero-network or Feature 008 canary was touched.
+      relaxed or deleted, no Simple-markup clause was relaxed under SUP-022-19, no
+      `SUP-022-18` marker was attached anywhere, and no sourcing rule, tolerance,
+      determinism, privacy, zero-network or Feature 008 canary was touched.
   - **Open:** nothing was edited, but the TP-02-22 and TP-02-23 conformance rows
-    that would prove it were not written.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-22`, `report.md#tp-02-23`
+    that would prove it were not written. Both rows are now reconciled against the
+    tree — TP-02-22 derives its expected marker set from the ledger instead of
+    pinning a stale total, and TP-02-23's fourth case is retargeted onto
+    SUP-022-19's narrowed clause — so what remains is writing them.
+  - **Still open after verification pass 2026-08-20 (third) — finding F-02-D.** The
+    no-edit property itself holds against the tree: this session left no change to
+    `scripts/selftest.mjs` or to any Feature 021 spec. What blocks the tick is that
+    both proving rows now depend on SUP-022-19, which is not delivered. TP-02-22's
+    expected set is Scope 01's twelve plus this scope's eight deliverable ids plus
+    later-scope ids already present — twenty-one — while the delivered set is twenty,
+    so the row as corrected would fail on the missing marker rather than on anything
+    it exists to catch. TP-02-23's third case asserts SUP-022-19's narrowed
+    declared-target clause over the route spec's own source text, which cannot be
+    asserted while that clause is absent. Writing either row first would bank a row
+    that fails for a reason it does not name.
+  - **Still open after delivery pass 2026-08-20 (fourth) — the dependency is gone,
+    the rows are not written.** `SUP-022-19` is delivered, so the reason both rows
+    were unwritable no longer applies: TP-02-22's derived expected set now matches
+    the twenty markers actually in the tree, and TP-02-23's third case now has a
+    delivered declared-target clause to assert over the route spec's source text.
+    The no-edit property itself continues to hold against the tree — this pass
+    changed exactly one region of `scripts/selftest.mjs`, the TP-05-22 block that
+    `bubbles.plan` routed, and it carries that routing; the only other source change
+    is the marked `SUP-022-19` region in the route spec. Neither row has been
+    written, and an unwritten row proves nothing, so the item stays `[ ]`. It is not
+    ticked on the delivery alone, because the item's own words ask for the
+    conformance rows and not for the absence of edits by assertion of the author.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-22`, `report.md#tp-02-23`, `report.md#verification-pass--2026-08-20-third--sup-022-19s-narrowed-clause-is-buildable-and-was-built-but-delivering-it-turns-scope-05s-tp-05-22-red-all-three-items-stay---finding-f-02-d`
 - [x] Any threshold whose applicability to the declared tax year could not be
       established ships as an `AbsentFigure/v1` and its leg refuses.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-11`
@@ -471,7 +601,15 @@ an absent test does not satisfy RED.
   - **Open:** TP-02-15, -16, -17 and -18 now carry evidence — the browser spec was
     written and the cumulative suite runs green at 69 passed. TP-02-03, -22, -23
     and -24 still carry none.
-  - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-18 commands · **Evidence:** `report.md#test-evidence`
+  - **Still open after verification pass 2026-08-20 (third).** TP-02-24 now carries
+    its register evidence. TP-02-22 and TP-02-23 remain unwritten and are blocked
+    behind SUP-022-19 by finding **F-02-D**. TP-02-03 carries no evidence for its own
+    reason: its section records that the compatibility comparison against the
+    unmodified Feature 021 pack was not performed. The cumulative browser suite was
+    re-run once in this pass at `--grep "SCN-02[1-4]"` and reported 77 passed, zero
+    failed and zero skipped, so the browser rows have not regressed while these three
+    remain outstanding.
+  - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-18 commands · **Evidence:** `report.md#test-evidence`, `report.md#verification-pass--2026-08-20-third--sup-022-19s-narrowed-clause-is-buildable-and-was-built-but-delivering-it-turns-scope-05s-tp-05-22-red-all-three-items-stay---finding-f-02-d`
 - [x] Feature 008's files, Feature 021's spec directory, `rltaxstrategy.js`,
       `tests/lifetime-tax-conversion.spec.mjs`, the registries,
       `site-exclusions.json` and every brief or data artifact are byte-identical.

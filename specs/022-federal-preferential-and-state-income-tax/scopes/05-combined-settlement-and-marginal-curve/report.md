@@ -1303,6 +1303,115 @@ both entries — not something this scope may close by lowering the number.
 No mutation was applied to reach either conclusion; both are derivations over the
 tracked tree.
 
+### Step 1 — the routed derived form is now in `scripts/selftest.mjs` (2026-08-20)
+
+**Claim Source:** executed. The replacement specified verbatim by `bubbles.plan`
+under "Planning correction — 2026-08-20" in
+`scopes/02-net-investment-income-and-additional-medicare-tax/report.md` was applied
+to `scripts/selftest.mjs` exactly as recorded — no paraphrase, no added clause, no
+dropped clause. The pinned `KNOWN_UNMARKED_LEDGER_ROWS` pair and its
+`JSON.stringify` equality comparison are gone; the tolerance is now read out of the
+ledger's `Disposition` column at run time.
+
+The edit landed **before** `SUP-022-19` was delivered, which is the mandatory order:
+delivering the marker first, against the pinned form, reproduces F-02-D exactly.
+
+Measured, in one shell invocation, immediately before and immediately after the edit:
+
+```
+before: Research-Lab self-test: 3155 passed, 0 failed
+after:  Research-Lab self-test: 3155 passed, 0 failed
+```
+
+`VERDICT_TODAY` is therefore confirmed against the real suite rather than against a
+standalone reader: the restatement is not a regression. The ledger row shape the
+derived form depends on was verified first — a row splits to `cells[1]` for the id
+and `cells[5]` for the disposition, and the file carries exactly `22` such rows.
+
+**The concurrent session's work in the same file was not touched.** That file is
+shared, and before the edit its only divergence from `HEAD` was a single 113-line
+insertion low in the file. After the edit the diff carries that insertion unchanged
+plus this scope's hunks, all of which sit above line 20000:
+
+```
+@@ -15737 +15737,8 @@        <- this scope
+@@ -15743,0 +15751 @@        <- this scope
+@@ -15745,2 +15753,8 @@       <- this scope
+@@ -15748,8 +15762,11 @@      <- this scope
+@@ -15757,0 +15775,3 @@       <- this scope
+@@ -15758,0 +15779,2 @@       <- this scope
+@@ -15760 +15782,3 @@         <- this scope
+@@ -15765 +15789 @@           <- this scope
+@@ -25504,0 +25529,113 @@     <- concurrent session, unmodified
+```
+
+Only the hunks above line 20000 were staged for the commit that carries this step;
+the concurrent insertion was left in the working tree untouched and unstaged.
+
+This step does not by itself close the ledger-closure item above. That item stays
+`[ ]` until `SUP-022-19` is delivered and the census re-runs against the derived
+form with the marker present.
+
+### Step 3 — the ledger census re-run against the derived form (2026-08-20)
+
+**Claim Source:** executed. `SUP-022-19` is now delivered in the route spec, in the
+mandated order, and the census was re-run against the derived assertion with the
+marker present. `node scripts/selftest.mjs` reports **`3155 passed, 0 failed`** —
+the same count as before either change, with no assertion edited outside this
+feature's ledger entries and none disabled or skipped.
+
+Every limb of the restated item was checked individually rather than inferred from
+the single green line:
+
+| Limb | Verified how | Result |
+| --- | --- | --- |
+| Every delivered marker maps to a ledger row | `markersWithoutLedgerRow` in the derived check | empty |
+| Every `marker required` row is delivered | `unexplainedUnmarked` | empty |
+| Every `marker forbidden` row carries no marker anywhere | `forbiddenButMarked` | empty |
+| Only ledger-dispositioned rows may go unmarked, read at run time | tolerance derived from the `Disposition` column, no literal id pair remains in the file | holds |
+| Every row carries a recognised disposition, tolerated ones with a reason | `undispositionedRows` and `toleratedWithoutReason` | both empty |
+| Tolerated set never covers the whole ledger | `toleratedUnmarked.length < ledgerList.length` | 1 of 22 tolerated-and-unmarked |
+| Ids inside the declared range | range regex over every row | 22 of 22 |
+| Ledger total agrees three ways | opening paragraph says twenty-two; `Owning scope` tallies 12 + 9 + 1; `design.md` step 4 states the same arithmetic | all three agree at 22 |
+| This scope superseded nothing itself | owning-scope tally carries only `01`, `02` and `03` | no Scope 05 row |
+| Combined curve chart and text-equivalent table render in Power, not Simple | both `#combinedCurveChart` and `#combinedCurveTextEquivalent` sit inside `#power-combined`, itself inside `<section id="power">`; Simple asserts `#power` hidden and zero canvases | holds |
+| Every pre-existing assertion outside the ledger still passes unchanged | pass count did not fall from 3155 at any point | holds |
+
+The disposition tally read straight out of the ledger is `20 marker required`,
+`1 marker forbidden`, `1 marker pending` — twenty-two rows, and with the delivery
+landed the pending row is now delivered too, so exactly one row is both tolerated
+and unmarked.
+
+**Four adversarial mutations, each applied and reverted inside the invocation that
+applied it, each run against the real suite rather than a standalone reader.** None
+of these is a green-only claim; each is a measured failure of the derived assertion:
+
+| Mutation (value-free) | Expected to trip | Measured |
+| --- | --- | --- |
+| Rename one `marker required` row's marker token in its owning spec | `unexplainedUnmarked` | `3152 passed, 3 failed` — TP-05-22 among them |
+| Attach a `marker forbidden` id in a marker file | `forbiddenButMarked` | `3154 passed, 1 failed` — TP-05-22 alone |
+| Blank one row's `Disposition` cell | `undispositionedRows` | `3154 passed, 1 failed` — TP-05-22 alone |
+| Disposition every row away (all 20 required rows rewritten to a tolerated token) | `toleratedUnmarked.length < ledgerList.length` | `3154 passed, 1 failed` — TP-05-22 alone |
+
+The second and third are protections the pinned form never had: it compared
+unmarked-set equality, so a marker attached to a displaced row and an unreadable
+disposition column would both have passed silently. The fourth proves the check
+cannot be made vacuous by dispositioning the whole ledger away.
+
+After each probe `git status --porcelain` on the mutated path returned zero lines,
+and the post-probe tree reports `3155 passed, 0 failed` with
+`node scripts/validate-spec-test-paths.mjs` at `new=0 stale=0`.
+
+**One presentational change is disclosed rather than left implicit.** The restated
+requirement ran to seventeen lines, and `artifact-lint` requires a `[x]` item's
+evidence block to begin within fifteen lines of the checkbox, so ticking it failed
+the lint with *"DoD item marked [x] has no evidence block"*. The requirement was
+re-wrapped to fourteen lines at a wider column. **No word was added, removed or
+altered.** That was verified mechanically rather than by eye: both versions were
+extracted from `HEAD` and from the working tree, the checkbox marker stripped, all
+whitespace collapsed, and the two strings compared — `old_lines=17 new_lines=14`,
+`words_identical=true`. `artifact-lint` then exits 0.
+
 ## Change Boundary
 
 Scope 05 owns exactly three commits of its own — `2df769eaa`, `a4887f91e` and

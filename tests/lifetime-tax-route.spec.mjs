@@ -94,9 +94,21 @@ test('Regression: SCN-021-013 Simple opens first with a decision level answer an
   expect(sections).not.toContain('power-not-declared-by-this-route');
 
   /* Following one opens Power and focuses the owning section. */
-  await links.nth(3).click();
+  /* SUP-022-19: supersedes the positional `links.nth(3)` focus expectation; shape=derive. The
+     ordinal followed whichever row happened to sit fourth, which is why the page itself carries a
+     source comment forbidding insertion into the withheld-detail list — an inserted row silently
+     retargeted this click, and the protection depended on a comment rather than on an assertion.
+     The replacement selects the link by the target it declares, so the row may move without this
+     expectation going quiet, and it pins the declared target to exactly one link first, so a
+     duplicated declaration cannot let the click resolve to an arbitrary member.
+     Ledger: specs/022-federal-preferential-and-state-income-tax/spec.md#supersession-ledger */
+  const FOCUS_TARGET = 'power-bracket-detail';
+  expect(targeted.filter((section) => section === FOCUS_TARGET).length).toBe(1);
+  const targetedLink = page.locator(`#powerLinkRows button[data-power-section="${FOCUS_TARGET}"]`);
+  await expect(targetedLink).toHaveCount(1);
+  await targetedLink.click();
   await expect(page.locator('#modePower')).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.locator('#power-bracket-detail')).toBeFocused();
+  await expect(page.locator(`#${FOCUS_TARGET}`)).toBeFocused();
 
   /* Power exposes the ledger, the per-band detail, the curve table, the identity and the sources. */
   await expect(page.locator('#ruleLedgerBody tr').first()).toContainText('federal-income-tax-2026');

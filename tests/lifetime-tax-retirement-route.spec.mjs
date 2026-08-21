@@ -112,6 +112,22 @@ test('Regression: SCN-024-013 every declared leg reaches the headline, the compa
     });
   });
 
+  /* The headline FIGURE, not merely its label, is the settled total. Added after a probe replaced
+     the headline's source with a single leg and this test still passed: every clause below reads
+     the label and the leg set, so a headline that kept both and drew one leg's amount slipped
+     through. The figure is checked against the sum of the amounts the comparison republishes for
+     exactly the legs the headline itself says it summed. */
+  const headlineMoney = (raw) => Number(String(raw).replace(/[^0-9.-]/g, ''));
+  const headlineFigure = headlineMoney(
+    await page.locator('[data-rl-value="headlineFederalTax"]').first().textContent());
+  const summedLegAmounts = await Promise.all(headlineSummed.map(async (legId) => headlineMoney(
+    await page.locator(`#legCompositionBody tr[data-rl-leg="${legId}"] td`).nth(1).textContent())));
+  const summedTotal = summedLegAmounts.reduce((running, amount) => running + amount, 0);
+  expect(summedLegAmounts.length).toBeGreaterThan(1);
+  expect(Math.abs(headlineFigure - summedTotal),
+    `the headline figure ${headlineFigure} is not the sum ${summedTotal} of the legs it names`)
+    .toBeLessThan(1);
+
   /* The headline figure is the settled TOTAL, not one leg. It is drawn as the `headlineFederalTax`
      Simple field, and no single-leg identity is drawn as a Simple value anywhere in Simple. */
   await page.locator('#modeSimple').click();

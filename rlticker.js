@@ -44,6 +44,27 @@
   function companyName(t) { t = normTicker(t); return NAMES[t] ? NAMES[t][0] : null; }
   function companyKind(t) { t = normTicker(t); return NAMES[t] ? NAMES[t][1] : null; }
 
+  /* ── subject handoff: one shared rule for a company named by a deep link ──
+     A tool that names another tool as the owner of a piece of math can also name the subject
+     it was reading. This is the whole of what a receiving route is allowed to learn from a
+     link. It is pure: the caller passes its own location.search, so nothing here reads a
+     browser global and the selftest can lift it with no DOM. A refused value is never
+     returned in any field, so there is no accessor through which it could reach a sink. */
+  var SUBJECT_PARAM = "ticker";
+  var SUBJECT_PATTERN = /^[A-Z0-9.\-]{1,12}$/;
+  function linkedSubject(search) {
+    var params;
+    if (search && typeof search.get === "function") params = search;
+    else if (typeof search === "string") params = new URLSearchParams(search);
+    else return { status: "absent", subject: null, raw: null };
+    var value = params.get(SUBJECT_PARAM);
+    if (typeof value !== "string") return { status: "absent", subject: null, raw: null };
+    var normalised = normTicker(value);
+    if (!normalised) return { status: "absent", subject: null, raw: null }; /* empty and whitespace-only are the same as no parameter */
+    if (!SUBJECT_PATTERN.test(normalised)) return { status: "refused", subject: null, raw: null };
+    return { status: "accepted", subject: normalised, raw: null };
+  }
+
   function freeze(value) {
     if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
     Object.keys(value).forEach(function (key) { freeze(value[key]); });
@@ -120,6 +141,10 @@
   }
 
   root.RLTKR = { context: tickerContext, tag: tag, href: tickerHref, name: companyName, kind: companyKind, normTicker: normTicker, NAMES: NAMES };
+  /* Added beside the export rather than inside it so the existing export line stays byte-unchanged. */
+  root.RLTKR.SUBJECT_PARAM = SUBJECT_PARAM;
+  root.RLTKR.SUBJECT_PATTERN = SUBJECT_PATTERN;
+  root.RLTKR.linkedSubject = linkedSubject;
   if (typeof document === "undefined") return; /* Node (selftest) — stop before DOM */
 
   function injectCSS() {

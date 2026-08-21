@@ -448,6 +448,420 @@ Command: `node scripts/validate-spec-test-paths.mjs`
 The Pages plan succeeds and `site-exclusions.json` is unchanged.
 Command: `node scripts/build-pages-site.mjs --dry-run`
 
+## Per-Row Intended-RED Probes — partial, with three assertion weaknesses found
+
+This section is the start of the work the outstanding DoD row names, and it is
+**explicitly incomplete**. It closes five Test Plan rows, discards two probes as
+over-broad, and — the part worth reading — records **three mutations that did not
+go red when they should have**. Those three are findings against this scope's own
+assertions, not against the modules.
+
+**Method.** One value-free mutation per probe, planted in the shipped module the
+row asserts against, the row's own command run under it, `git checkout --` issued
+explicitly in the **same shell invocation**, and the file's SHA-256 re-read
+afterwards. Every probe below printed `REVERT_VERIFIED=yes`, and
+`git status --short` over `rltax*.js` was empty after each batch. Every mutation
+is value-free by construction — a boolean literal, a `+ 1`, an identifier, a
+member *name*, or the literal `0` — so a slipped revert could not have disclosed a
+household figure.
+
+**The standing failure in every capture below.** `node scripts/selftest.mjs`
+currently reports one failure on the unmutated tree: the spec-referenced test-path
+guard, at `1 new, 67 known-missing`. That new path belongs to a concurrent
+session's `specs/027-company-scoped-owner-deep-links/`, is not this feature's, and
+is not repaired here. The unmutated baseline is therefore
+**3129 passed, 1 failed**, and a probe's own RED is whatever stands *beyond* that
+one.
+
+### Probe R-1 — RED for TP-03-03 and TP-03-15
+
+The recovery period is the denominator of the full-year deduction. The mutation
+adds `1` to it, so every recomputed figure moves while the shape stays valid.
+
+```diff
+-    var fullYearDeduction = activity.depreciableBasis / period;
++    var fullYearDeduction = activity.depreciableBasis / (period + 1);
+```
+
+```text
+PROBE R-1  expect=TP-03-03  file=rltaxrental.js:149  guard_matches=1  cmd=node scripts/selftest.mjs
+  RED_EXIT=1  RED_LINES=3538  RED_SUMMARY=3127 passed, 3 failed
+  RED_SHA256=0e2deb5ca785bb14fc9ea87823cc2c688e65097ea360a8fcbfc0012065bff715
+  RED_FAIL=✗ TP-03-03: depreciation is recomputed from the fixture pack's non-standard period and
+           convention at a first partial year, a full year, a final partial year and past the end
+           of the period, and the shipped pack reproduces Publication 527's own worked figures
+  RED_FAIL=✗ TP-03-15: the adjusted basis equals the declared basis less the accumulated recovery
+           at every point of the period including its final year
+  REVERT_VERIFIED=yes
+```
+
+Two rows fall, and the pair is the useful part: `TP-03-15` asserts the basis
+identity, which is *derived* from the same accumulation, so a probe that moved the
+deduction had to move both or one of the two was not really reading the engine.
+**Both moved, so `TP-03-15` is closed by this probe rather than needing its own.**
+
+### Probe R-2 — RED for TP-03-19
+
+`TP-03-19` is the no-shadow row: no module may hold a recovery period, a
+convention, an allowance amount, a phase-out edge or an authority name. The
+mutation makes the engine pass a **hardcoded convention identifier** instead of
+the one the pack declares — the "default convention" an implementation reaches for
+when it stops reading the source.
+
+```diff
+-    var fraction = conventionFraction(rule.convention.conventionId, month);
++    var fraction = conventionFraction("mid-month", month);
+```
+
+```text
+PROBE R-2  expect=TP-03-19  file=rltaxrental.js:150  guard_matches=1  cmd=node scripts/selftest.mjs
+  RED_EXIT=1  RED_LINES=3538  RED_SUMMARY=3128 passed, 2 failed
+  RED_SHA256=737d89d69693a641497992e6be8f6cbca24ab971ca2d5c619825e66f6de549d2
+  RED_FAIL=✗ TP-03-19: the rental module holds no recovery period, allowance amount, phase-out
+           edge or authority name, its single occurrence of the convention identifier is the
+           branch selector the pack names rather than a figure, and the detector is proven to
+           fire on a module that does hold them
+  REVERT_VERIFIED=yes
+```
+
+**This probe was aimed at `TP-03-04` and hit `TP-03-19` instead, and the miss is
+recorded rather than relabelled.** A hardcoded convention is exactly the
+adversarial implementation `TP-03-04` describes, so the expectation was that
+`TP-03-04` would fall. It did not; the no-shadow detector caught the mutation
+first, because a second literal occurrence of the identifier is what that detector
+counts. `TP-03-19` is genuinely closed here. `TP-03-04` is **not**, and it is left
+open below.
+
+### Probe R-3 — RED for TP-03-01 and TP-03-05
+
+The cost-recovery engine refuses before any deduction exists when the pack's rule
+is unavailable. The mutation conjoins a **boolean literal** to that refusal, so the
+gate is present but never taken.
+
+```diff
+-    if (rules.isUnavailable(rule)) return rule;
++    if (false && rules.isUnavailable(rule)) return rule;
+```
+
+```text
+PROBE R-3  expect=TP-03-05  file=rltaxrental.js:131  guard_matches=1  cmd=node scripts/selftest.mjs
+  RED_EXIT=1  RED_LINES=3538  RED_SUMMARY=3127 passed, 3 failed
+  RED_SHA256=e84d48cca63c2947c3d6e398540471381ac6dc541aa232072245182c69f75340
+  RED_FAIL=✗ TP-03-01: CostRecovery/v1 refuses a missing recoveryPeriod, a missing convention, an
+           absent figure for either, and either carrying no citation or no locator, and no refusal
+           smuggles a deduction
+  RED_FAIL=✗ TP-03-05: an absent recovery period refuses the depreciation and the whole rental
+           leg, no settlement value is produced without cost recovery, and the leg carries the
+           refusal rather than collapsing to a zero
+  REVERT_VERIFIED=yes
+```
+
+`TP-03-01` and `TP-03-05` are the contract half and the leg half of the same
+refusal, and both fall together, which is the correct behaviour: a refusal that
+stopped being taken should be visible from the record's shape *and* from the leg.
+
+### Probe R-4 — RED for TP-03-09
+
+The special allowance refuses when the phase-out range is an `AbsentFigure`. The
+mutation disables **only that half** of the gate, leaving the maximum-amount and
+reduction-rate halves intact, so the probe discriminates between them.
+
+```diff
+-    if (rules.isAbsentFigure(allowanceRule.phaseOutRange)) {
++    if (false && rules.isAbsentFigure(allowanceRule.phaseOutRange)) {
+```
+
+```text
+PROBE R-4  expect=TP-03-09  file=rltaxrental.js:306  guard_matches=1  cmd=node scripts/selftest.mjs
+  RED_EXIT=1  RED_LINES=3538
+  RED_SHA256=72557895bbe5c7d642f7c206c1f9b5d2117e30f178588ac7910367deccf1e237
+  RED_FAIL=✗ TP-03-09: the shipped pack ships the allowance amount, its phase-out range and its
+           reduction rate absent, a loss against it refuses the leg by the absent member's own
+           domain rather than applying the passive limit without the allowance, and no absent
+           figure smuggles a numeric member
+  REVERT_VERIFIED=yes
+```
+
+### Three probes that did NOT go red — recorded as findings
+
+Each mutation below is a defect the named row claims to catch. Each was applied,
+the row's own command was run, and the suite returned the **unmutated** baseline
+of 3129 passed and 1 failed — the standing foreign path-guard failure and nothing
+else. Each was reverted and SHA-256-verified like every other probe.
+
+```text
+MISS M-1  target=TP-03-16, TP-03-17  file=rltaxrental.js:757
+  mutation: legId: "rental-net"  →  legId: "rental-net-probe"
+  RED_SHA256=9265d25588349e6f20334ec74d101e7974deb296c4bde5ec77c31a4a3258c063
+  OBSERVED=3129 passed, 1 failed  (baseline; no new failure)   REVERT_VERIFIED=yes
+
+MISS M-2  target=TP-03-10, TP-03-11  file=rltaxrental.js:698
+  mutation: disallowedTotal += appliedLimits[index].disallowedAmount;  →  disallowedTotal += 0;
+  RED_SHA256=4fcf7172d4689a420eedb406c93f0dc8377b90c575fe077fa877c1eaeb457e8b
+  OBSERVED=3129 passed, 1 failed  (baseline; no new failure)   REVERT_VERIFIED=yes
+
+MISS M-3  target=TP-03-20  file=rltaxrental.js:51
+  mutation: one declaration member NAME emitted to the console at module load
+  RED_SHA256=223fe2ac269a7e8c5d3dd1063717508fcea94e61ff4dc89beafb23c07f510522
+  OBSERVED=3129 passed, 1 failed  (baseline; no new failure)   REVERT_VERIFIED=yes
+```
+
+**M-2 is the most serious of the three.** `TP-03-11` states in its own words that
+"an implementation zeroing a disallowed amount instead of publishing it is proven
+to fail the reconciliation assertion". The mutation zeroes exactly that, and the
+reconciliation assertion did not fail. Whatever `TP-03-11` currently proves, it is
+not the claim written in the Test Plan.
+
+**M-1** renames the rental leg id, and neither the leg-visibility row nor its
+adversarial partner noticed — which is the signature of an assertion that reads
+the leg id from the same place the module publishes it rather than from the
+surfaces independently.
+
+**M-3** emits a declaration member name to the console, which is one of the four
+channels `TP-03-20` says it watches, and the unit row did not see it.
+
+None of the three is repaired here. Strengthening them means editing
+`scripts/selftest.mjs`, which currently carries **uncommitted changes from a
+concurrent session**; editing it now would entangle this feature's evidence with
+another session's in-flight work, and a wrong repair is worse than a recorded gap.
+They are left as named, reproducible findings with the exact mutation and the
+exact SHA-256 that produced each observation, so the next session can re-derive
+them in one command each rather than rediscover them.
+
+### Two probes discarded as over-broad
+
+```text
+DISCARDED  attempted for TP-03-10/TP-03-11  file=rltaxrental.js:255
+  mutation: disallowedAmount: amountBefore - allowedAmount  →  disallowedAmount: 0
+  RESULT=✗ FAIL (Feature 023 Scope 03 rental group threw): Cannot read properties of undefined
+  reason: the mutation broke the record's shape, so the whole group threw instead of the row
+          failing. A group throw is not a RED for a row. Discarded; re-aimed as M-2.
+
+DISCARDED  attempted for TP-03-06  file=rltaxrental.js:673
+  mutation: the applied-limit sort comparator reversed
+  RESULT=✗ FAIL (Feature 023 Scope 03 rental group threw): Cannot read properties of undefined
+  reason: same over-broad failure mode. Discarded; TP-03-06 remains without a RED.
+```
+
+Both were reverted and SHA-256-verified. They are recorded because an over-broad
+probe that is quietly retried until something goes red is how a probe stops being
+evidence.
+
+### What this section does NOT yet cover
+
+Closed here: `TP-03-01`, `TP-03-03`, `TP-03-05`, `TP-03-09`, `TP-03-15`,
+`TP-03-19`. Already closed before this session: `TP-03-07`, `TP-03-12`,
+`TP-03-13`, `TP-03-14`, and `SUP-023-12`.
+
+Still owed an intended RED: `TP-03-02`, `TP-03-04`, `TP-03-06`, `TP-03-08`,
+`TP-03-10`, `TP-03-11`, `TP-03-16`, `TP-03-17`, `TP-03-18`, `TP-03-20`, the four
+browser rows `TP-03-21` to `TP-03-24`, the cumulative suite `TP-03-25`, and the
+three gate rows `TP-03-26` to `TP-03-28`. Of these, `TP-03-10`, `TP-03-11`,
+`TP-03-16`, `TP-03-17` and `TP-03-20` cannot be closed by a probe at all until the
+three weaknesses above are repaired — a mutation they do not detect cannot produce
+their RED.
+
+`TP-03-27` carries a second, independent obstacle: its command
+`node scripts/validate-spec-test-paths.mjs` does not currently pass on the
+unmutated tree, for the same foreign spec-027 references described above, so there
+is no present GREEN to pair a RED with. Its historical GREEN, captured when the
+tree was clean, stands in `report.md#tp-03-27` and is not withdrawn.
+
+### Repair of the three weaknesses — M-2, `TP-03-11`
+
+The finding above stands as recorded; this section appends what changed, it does
+not rewrite it. The repair is **additive**: no existing assertion was edited,
+weakened, removed or skipped, and no timeout was raised. Each strengthening is a
+new assertion carrying the same row id beside the one that was too weak, so the
+old assertion's text and verdict survive unchanged and the pair reads as a
+before-and-after.
+
+**What `TP-03-11` could not see.** Its check hands the contract validator a
+limitation record **the test itself zeroed** and observes that the validator
+rejects it. That proves the validator rejects a zeroed member. It says nothing
+about whether the **engine** publishes the disallowed amounts it computed. M-2
+zeroes the engine's accumulator, not a record the test builds, so the whole
+assertion passed while the published carryforward went to zero — exactly the
+"silently zeroed" defect `FR-023-019` forbids and the row names.
+
+**The strengthening.** The engine's published aggregate is
+`closingSuspendedLoss`, and the module's own contract comment says it is the sum
+of every disallowed amount the ladder published. The new assertion recomputes that
+sum from the individual limitation records and pins the published aggregate to it,
+across all five reconciliation fixtures and the ladder fixture, and requires the
+ladder's aggregate to be strictly positive so a fixture that legitimately
+disallows nothing cannot make the check vacuous. Reading the aggregate is a
+number read, so a zeroed accumulator fails **this row** rather than throwing and
+aborting the group.
+
+```text
+PROBE M-2 (re-run against the strengthened assertion)   target=TP-03-11
+  file=<repo>/rltaxrental.js:698
+  mutation: disallowedTotal += appliedLimits[index].disallowedAmount;  →  disallowedTotal += 0;
+  BEFORE_SHA256=230f966c0c38eba8a71f90dfa9d5c4aca71685997da03dce393dd942ede8026c
+  MUTATED_SHA256=f34e36b9f560e1e446d24956bc60c32a263bfb24cf03f79fd3da9994be020e84
+
+  $ node scripts/selftest.mjs
+  ✓ TP-03-11: a limitation whose disallowed amount is zeroed fails the reconciliation
+    assertion and one that omits the member fails the contract, while the record the
+    engine actually published passes both
+  ✗ FAIL: TP-03-11: the published closing suspended loss equals the sum of the disallowed
+    amounts the ladder published, recomputed from the individual limitation records,
+    across every reconciliation fixture and the ladder fixture, so an engine that
+    accumulated zero instead of the amount it computed fails here rather than publishing
+    a silently zeroed carryforward
+  Research-Lab self-test: 3130 passed, 1 failed
+
+  RED IS THE NEW ASSERTION ALONE. The pre-existing TP-03-11 assertion still passed
+  under the same mutation, which is the direct demonstration that it was the weak one
+  and that the added conjunct is what discriminates. Exactly one failure, so the group
+  did not throw and no later row was aborted.
+
+  AFTER_SHA256=230f966c0c38eba8a71f90dfa9d5c4aca71685997da03dce393dd942ede8026c
+  REVERT_VERIFIED=yes
+
+  $ node scripts/selftest.mjs        # same command, after revert
+  ✓ TP-03-11: the published closing suspended loss equals the sum of the disallowed
+    amounts the ladder published, ...
+  Research-Lab self-test: 3131 passed, 0 failed
+```
+
+`git status --short` over every module, pack, page and test path was empty after
+the revert. `TP-03-11` now carries an intended RED and a same-command GREEN.
+
+### Repair of the three weaknesses — M-1, `TP-03-16` and `TP-03-17`
+
+**What the rows could not see.** The leg-visibility identity was fed a
+**hand-written leg list on both sides**: the declared set and all four surfaces
+were built from the same literal array in the test. That exercises the helper —
+which is real work, and the original assertion keeps doing it — but it never reads
+the id the engine actually publishes. Renaming the rental leg in the module
+therefore changed nothing the assertion looks at: the four surfaces went on
+agreeing with each other about a leg the settled record no longer names, which is
+precisely the drift `NFR-023-006` exists to catch.
+
+**The strengthening.** The rental leg id is now read back from all three producers
+that publish it — the settlement's marginal context, the composed federal leg, and
+the marginal context that leg carries — and the three are required to agree. The
+four surfaces are then rebuilt **from the published id** and run against the
+declared set, so a rename in any one producer either breaks the producers'
+agreement or leaves the leg missing from every surface. A renamed control is
+carried in the same assertion and required to fail on all four surfaces with the
+missing leg named, so a surface set that silently matched nothing cannot pass.
+
+```text
+PROBE M-1 (re-run against the strengthened assertion)   target=TP-03-16, TP-03-17
+  file=<repo>/rltaxrental.js:757
+  mutation: legId: "rental-net"  →  legId: "rental-net-probe"
+  BEFORE_SHA256=230f966c0c38eba8a71f90dfa9d5c4aca71685997da03dce393dd942ede8026c
+  MUTATED_SHA256=95847443ec3edf3e5bea0bd854b177ca24546f60480bb3c53dba6d320ab56f34
+
+  $ node scripts/selftest.mjs
+  ✓ TP-03-16 and TP-03-17: the rental leg reaches all four surfaces on the all-non-zero
+    fixture alongside the property leg, and removing either from each surface in turn
+    fails the identity with the missing leg named ...
+  ✗ FAIL: TP-03-16 and TP-03-17: the rental leg id is read back from all three producers
+    that publish it, they agree, and the four surfaces built from the published id satisfy
+    the identity against the declared set, while a renamed control is proven to fail it on
+    every surface with the missing leg named ...
+  Research-Lab self-test: 3131 passed, 1 failed
+
+  RED IS THE NEW ASSERTION ALONE. The pre-existing pair still passed under the same
+  rename, which is the demonstration that it read the leg id from the test rather than
+  from the engine. Exactly one failure, so the group did not throw.
+
+  AFTER_SHA256=230f966c0c38eba8a71f90dfa9d5c4aca71685997da03dce393dd942ede8026c
+  REVERT_VERIFIED=yes
+
+  $ node scripts/selftest.mjs        # same command, after revert
+  ✓ TP-03-16 and TP-03-17: the rental leg id is read back from all three producers ...
+  Research-Lab self-test: 3132 passed, 0 failed
+```
+
+`git status --short` over every module, pack, page and test path was empty after
+the revert. `TP-03-16` and `TP-03-17` now carry an intended RED and a same-command
+GREEN.
+
+### Repair of the three weaknesses — M-3, `TP-03-20`
+
+**What the row could not see.** `TP-03-20` claims the rental declarations are
+absent from every URL, request, referrer **and console message**. Its check
+watched none of those at run time. It read the export bytes and the committed
+configuration — both of which stay perfectly clean while a module writes a
+declaration member name to the console at load, because neither is the console.
+
+**The strengthening.** The rental module is now loaded **fresh**, with every
+console method hooked, and a settlement and a marginal-context read are run
+through the hook; nothing may be written, and no captured line may name a rental
+declaration member. Three things stop the silence from being vacuous: the same
+hook is handed a deliberate emission and must capture it; a static scan requires
+no engine module to hold a console call at all, with its own detector proven to
+fire on one that does; and the require-cache entry is saved and restored, which is
+asserted, so later groups see the module they would have seen and the reload
+cannot quietly become a no-op.
+
+```text
+PROBE M-3 (re-run against the strengthened assertion)   target=TP-03-20
+  file=<repo>/rltaxrental.js:51
+  mutation: one declaration member NAME emitted to the console at module load
+            (inserted: console.log("rentalOpeningSuspendedLoss");)
+  BEFORE_SHA256=230f966c0c38eba8a71f90dfa9d5c4aca71685997da03dce393dd942ede8026c
+  MUTATED_SHA256=1b51d976b84ce890b52722824d8ea8c1881fa50908a3bbf8a3c8ec38cdad9411
+
+  $ node scripts/selftest.mjs
+  ✓ TP-03-20: every rental declaration is a declared workspace field, is named in the
+    export's omitted list, has no value in the exported bytes, refuses by name when
+    undeclared, and no rental member reaches the committed configuration
+  ✗ FAIL: TP-03-20: loading the rental module fresh with every console method hooked and
+    settling through the hook writes nothing to the console, no captured line names a
+    rental declaration member, the same hook is proven to capture a deliberate emission
+    so the silence is not vacuous, no engine module holds a console call at all, and the
+    detector is proven to fire on one that does
+  Research-Lab self-test: 3132 passed, 1 failed
+
+  RED IS THE NEW ASSERTION ALONE. The pre-existing TP-03-20 assertion still passed under
+  the same emission, which is the demonstration that it never watched the channel the row
+  names. Exactly one failure, so the group did not throw.
+
+  AFTER_SHA256=230f966c0c38eba8a71f90dfa9d5c4aca71685997da03dce393dd942ede8026c
+  REVERT_VERIFIED=yes        # and the module holds 0 console calls again
+
+  $ node scripts/selftest.mjs        # same command, after revert
+  ✓ TP-03-20: loading the rental module fresh with every console method hooked ...
+  Research-Lab self-test: 3133 passed, 0 failed
+```
+
+`git status --short` over every module, pack, page and test path was empty after
+the revert. `TP-03-20` now carries an intended RED and a same-command GREEN.
+
+### Effect of the three repairs on the DoD row
+
+The three assertion weaknesses are repaired and the five rows that could not be
+probed at all are unblocked: `TP-03-11`, `TP-03-16`, `TP-03-17` and `TP-03-20` now
+each carry an intended RED produced by the very mutation that previously slipped,
+paired with a same-command GREEN after a SHA-256-verified revert. Fifteen of the
+twenty-eight rows now carry a RED.
+
+The DoD row that these block — "Every Test Plan row has intended RED and
+same-command GREEN evidence recorded, including the browser rows" — **remains
+open**, and deliberately so. It requires every row, and thirteen are still owed:
+`TP-03-02`, `TP-03-04`, `TP-03-06`, `TP-03-08`, `TP-03-10`, `TP-03-18`, the five
+browser rows `TP-03-21` to `TP-03-25`, and `TP-03-26` to `TP-03-28`.
+
+`TP-03-27` is additionally blocked by a cause outside this feature and outside
+this session's remit: its command `node scripts/validate-spec-test-paths.mjs` has
+no present GREEN on a clean tree, because a concurrent session's feature-027 scope
+folder references three test paths that do not exist. A row whose command does not
+pass unmutated cannot be given a RED-and-GREEN pair, and the reference that turns
+it red is not this feature's to remove. The row is therefore left unticked rather
+than forced.
+
+Baseline movement for the record: the whole-repository suite was `3129 passed,
+1 failed` when the three misses were first recorded, and is `3133 passed, 0 failed`
+now. The four added assertions account for the four added passes; the one failure
+cleared when the concurrent session created the files its guard was missing. No
+new failure was introduced and the pass count did not fall.
+
 ## Supersession Ledger
 
 Filled at execution. This scope supersedes nothing, so this section holds the
@@ -472,3 +886,532 @@ appears in this scope's allowed paths.
 ## Completion Statement
 
 Filled at execution.
+
+## Fifth Pass — Five More Rows Carry An Intended RED, And One Assertion Is Unconditionally True
+
+Same-command GREEN for every row whose command is `node scripts/selftest.mjs` was
+re-observed on the clean tree in this session before any probe was applied:
+
+```
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3569
+sha256: 44f56aa61cfaab61db1eb927069731c6994a9789118ea3f289fbed25fa6d2139
+Research-Lab self-test: 3156 passed, 0 failed
+```
+
+Every probe below was applied with an in-place edit, run, and reverted with
+`git checkout --` inside the **same shell invocation**, with the pre-probe and
+post-revert SHA-256 of the touched module compared and `git status --short`
+re-read. Every mutation is value-free by construction — a code literal, a
+comparison operator, a dropped term of a local sum, or a `.slice(1)` on an
+exported view — so no household or tax figure could be disclosed by a slipped
+revert. All five reverts matched their pre-probe SHA-256 exactly.
+
+### Probe P03-1 — RED for `TP-03-18`
+
+Mutation: one member identifier, `"RLTAX-RENTAL-UNAVAILABLE": true,`, inserted
+into the refusal vocabulary declared in `rltaxrules.js`. This is exactly the
+defect the row names — a scope that adds a code of its own instead of folding
+its condition into an existing member.
+
+```
+$ node scripts/selftest.mjs        # probe applied
+exit: 1
+lines: 3569
+sha256: 45294e8e7086abb7156f363d2e9b841abe3b770d60e934ec054e6b13743bfeee
+  ✗ FAIL: TP-03-18: the refusal vocabulary still has exactly its fourteen pre-feature members and this scope added none
+Research-Lab self-test: 3144 passed, 12 failed
+PRE_SHA=c5fe2bfd8660fd494d2ad733713e393dedd9a805edfd9b11308e584f7f237f2c
+POST_SHA=c5fe2bfd8660fd494d2ad733713e393dedd9a805edfd9b11308e584f7f237f2c
+SHA_MATCH=yes
+```
+
+Eleven other rows across features 021, 022 and 024 also went red, because eleven
+other scopes pin the same count. That breadth is a property of the vocabulary,
+not a defect in this probe: the row named here failed on its own text.
+
+### Probe P03-2 — RED for `TP-03-02`
+
+Mutation: the member-name literal `"contentSha256"` in `packContentDigestInput`
+was given one extra character, so the self-referential member stopped being
+excluded from the bytes the digest covers.
+
+```
+$ node scripts/selftest.mjs        # probe applied
+exit: 1
+lines: 3569
+sha256: 2a34ab787bcf37bbd4a6a41a04c8560d2f05af8ff0ff78f572212b9530eb25cc
+  ✗ FAIL: TP-03-02: the pack stays valid after the additive insertion, its digest is re-derivable and equals the configuration pointer, …
+Research-Lab self-test: 3147 passed, 9 failed
+P03-2_REVERTED_SHA_MATCH=yes
+```
+
+No pack file was touched. The digest half of the row is proven to discriminate
+without editing a single sourced byte.
+
+### Probe P03-3 — RED for `TP-03-06`
+
+Mutation: the published `appliedOrder` list was rebuilt from the position in the
+ladder rather than from `entry.appliedOrder` — literally the module constant the
+row exists to forbid. The renumbered-pack fixture then no longer moved with the
+pack.
+
+```
+$ node scripts/selftest.mjs        # probe applied
+exit: 1
+lines: 3569
+sha256: 9f41eaa977f24394991885529fb157d22321f08185b426bf9d5532144784ec21
+  ✗ FAIL: TP-03-06: the applied limits carry strictly increasing orders with the at-risk limit first, the orders equal the pack's sourced rows rather than a module constant, …
+Research-Lab self-test: 3155 passed, 1 failed
+P03-3_REVERTED_SHA_MATCH=yes
+```
+
+One failure, no group throw: the row failed alone.
+
+### Probe P03-4 — RED for `TP-03-08`
+
+Mutation: one comparison operator, `measure > start` became `measure >= start`,
+so the lower edge of the sourced phase-out range was treated as inside the
+phase-out rather than at the maximum.
+
+```
+$ node scripts/selftest.mjs        # probe applied
+exit: 1
+lines: 3569
+sha256: 1e0f417afe23b93885993105f797aee28f47beaab36f1003bb4070c86c20e06c
+  ✗ FAIL: TP-03-08: the special allowance equals the sourced maximum at and below the lower edge, is reduced by the sourced rate one dollar above it, …
+Research-Lab self-test: 3155 passed, 1 failed
+P03-4_REVERTED_SHA_MATCH=yes
+```
+
+One failure, no group throw. The probe changes no figure: it changes only which
+side of the sourced edge the boundary case falls on.
+
+### Probes P03-5 and P03-6 — two misses, recorded rather than hidden
+
+Two earlier attempts at `TP-03-10` did **not** produce a per-row RED, and both are
+recorded because the reason is a finding about the row.
+
+- **P03-5.** The `disposition` literal `"suspended"` was lengthened. Result:
+  `✗ FAIL (Feature 023 Scope 03 rental group threw): Cannot read properties of undefined (reading 'length')`,
+  3135 passed / 3 failed, capture sha256
+  `61cfb76f375d05cf0c6cffbaa4de0b3ea635b0703f88be6794dbb28e9da925df`.
+- **P03-6.** One term of the local reconciliation sum was dropped, so
+  `disallowedAmount` became `amountBefore` alone. Result: the same group throw,
+  3135 passed / 3 failed, capture sha256
+  `08096fd014d59ffbbf23d1ca9931dbff93bda96d946a6315e9ab27af864b7101`.
+
+Both mutations are detected — but by the engine's own `validateLossLimitation`,
+which refuses the whole settlement, so the ladder never materialises and an
+earlier assertion in the group throws before `TP-03-10` is reached. A group throw
+is a red *command*, not a red *row*: it does not show that the row's own
+assertion discriminates. Both were reverted in their own invocation with the
+SHA-256 re-matched.
+
+### Probe P03-7 — RED for `TP-03-10`
+
+Mutation: the exported view of the contract key set was narrowed with
+`LOSS_LIMITATION_KEYS.slice(1)`, leaving the internal constant the validator
+enforces untouched. The engine therefore still produced a well-formed ladder, and
+only the row's published-versus-enforced conjunct failed.
+
+```
+$ node scripts/selftest.mjs        # probe applied
+exit: 1
+lines: 3569
+sha256: 0a68e940064acb82dadf7eb91fd748b28aea3d7575c108b0c54d1eae64032078
+  ✗ FAIL: TP-03-10: every applied limit across five fixtures publishes all three amounts, they reconcile exactly, the disposition records that the disallowed amount is carried, and the record carries exactly the contract's key set
+Research-Lab self-test: 3155 passed, 1 failed
+P03-7_REVERTED_SHA_MATCH=yes
+```
+
+One failure, no group throw. The defect this discriminates against is real and
+distinct from the two misses above: a module whose *published* contract disagrees
+with the contract it *enforces*.
+
+### `TP-03-26` is red under every probe above
+
+`TP-03-26`'s command is the same whole-repository suite, and its expectation is
+that the suite stays green with no fall in pass count. Each of the five probes
+above drove it to a non-zero exit with a fallen pass count — 3144, 3147, 3155,
+3155 and 3155 against the 3156 baseline — and each returned to 3156 passed / 0
+failed on revert. That is an observed intended RED and a same-command GREEN for
+`TP-03-26`.
+
+### Finding — `TP-03-04`'s assertion is unconditionally true
+
+`TP-03-04`'s assertion ends its conjunction with `|| true`. Because `&&` binds
+tighter than `||`, the whole expression is `(every conjunct) || true`, which
+evaluates to `true` for every possible input. **No mutation can turn this row
+red**, including the two defects its own text names — a recalled recovery period
+and a defaulted convention. The row cannot be given an intended RED while the
+assertion is written this way; the obstacle is the assertion, not the absence of
+a probe.
+
+This is recorded rather than repaired. Repairing it means appending a falsifiable
+restatement to `scripts/selftest.mjs`, which currently carries a concurrent
+session's uncommitted 39-line addition; committing this scope's evidence would
+either carry that in-flight foreign work into this feature's commit or require
+partial staging of a shared file. A precisely located, reproducible finding is
+the better outcome. What would make the row decidable: a new assertion, appended
+beside the existing one and leaving it untouched, restating the same three
+findings without the trailing `|| true`, after which the convention-branch
+mutation P03-5's sibling would red it directly.
+
+### Effect on the DoD row
+
+Twenty of twenty-eight rows now carry an observed intended RED: the fifteen
+recorded in the previous passes plus `TP-03-02`, `TP-03-06`, `TP-03-08`,
+`TP-03-10`, `TP-03-18` and `TP-03-26` from this pass. The row stays unticked
+because it requires **every** row. Still owed: `TP-03-04` (blocked by the
+unconditional assertion above), the browser rows `TP-03-21` to `TP-03-25`, and
+`TP-03-27` and `TP-03-28`. No assertion was edited, weakened, skipped or removed
+and no timeout was raised in this pass.
+
+## Sixth Pass — The Unconditional Assertion Is Repaired And `TP-03-04` Reds
+
+### The clause was inverted, not merely short-circuited
+
+The finding recorded above named the trailing `|| true`. Removing it exposes a
+second, deeper defect in the same expression. The final conjunct read:
+
+```js
+&& !/27\.5|mid-month|straight-line/.test(read('rltaxrental.js')…) === false
+```
+
+`!` binds tighter than `===`, so this parses as `(!test(src)) === false`, which
+is `test(src) === true` — an assertion that the rental module **does** contain a
+recalled recovery period, a mid-month default or a straight-line method name
+outside its block comments and outside its one pack-declared convention literal.
+That is the opposite of the property the surrounding comment describes. Measured
+directly against the shipped module, the stripped source yields `hit_count=0`,
+so the conjunct evaluated `false`. The whole conjunction was therefore genuinely
+false, and `|| true` was the only thing holding the row green.
+
+### The repair
+
+The trailing `=== false || true` was removed and the conjunct now reads
+
+```js
+&& !/27\.5|mid-month|straight-line/.test(read('rltaxrental.js')…)
+```
+
+which states the property actually intended: **the engine carries no recalled
+27.5-year recovery period, no mid-month default and no straight-line method
+literal outside its block comments and outside the single pack-declared
+`conventionId` comparison** — every one of those parameters must arrive from the
+pack. The assertion message was extended to say so. Nothing was deleted, nothing
+was weakened, no `|| true` was restored, and the other five conjuncts are
+untouched.
+
+The repaired row holds against the shipped tree:
+
+```
+Research-Lab self-test: 3156 passed, 0 failed
+```
+
+exit 0, 3569 lines, sha256 `f0f76fe93df3623fa00e4e4467ee4651ed94ba94684d7ba13ee3cbf482e9356b`.
+The pass count is identical to the 3156 baseline, so removing the short-circuit
+neither exposed a hidden failure nor changed any other row.
+
+### Probe P03-9 — RED for `TP-03-04` via the source-scan conjunct
+
+The engine's recovery period is read from the pack as
+`rule.recoveryPeriod.years`. The probe gave it a recalled fallback, planting the
+27.5-year period the conjunct exists to forbid. Applied, run and reverted inside
+one shell invocation.
+
+```
+PROBE1_APPLIED=1
+exit: 1
+  ✗ FAIL: TP-03-04: an implementation using a recalled recovery period produces a figure …
+  ✗ FAIL: TP-03-19: the rental module holds no recovery period, allowance amount, phase-out edge …
+Research-Lab self-test: 3154 passed, 2 failed
+PROBE1_REVERTED_SHA_MATCH=yes
+PROBE1_RESIDUE=0
+```
+
+sha256 of the red run `5b37a86a726b484a4b81981b05e74c0d939e4255fd4f880158709259b3b03279`.
+`TP-03-19` reds alongside it, which is correct — it guards the same module for
+the same class of recalled figure. The revert is proven by a byte-identical
+sha256 of the module and by `git status --short` reporting the file clean.
+
+### Probe P03-10 — RED for `TP-03-04` via the unsupported-method conjunct
+
+A second, independent conjunct asserts that a pack naming a depreciation method
+the engine has no branch for refuses `RLTAX-FEATURE-UNSUPPORTED` rather than
+falling through. The closed-set guard lives in a different module from the
+convention branch. The probe moved its bound so membership can never fail, and
+the refusal stops firing.
+
+```
+PROBE2_APPLIED=1
+exit: 1
+  ✗ FAIL: TP-03-04: an implementation using a recalled recovery period produces a figure …
+Research-Lab self-test: 3155 passed, 1 failed
+PROBE2_REVERTED_SHA_MATCH=yes
+PROBE2_RESIDUE=0
+```
+
+sha256 of the red run `0acba817313ef0e9a0400b507c29de7043130020b909a7d4ab0b000ad9a89f08`.
+This probe is perfectly isolated — `TP-03-04` is the **only** row that falls, one
+of 3156. That is the strongest available demonstration that the repaired row is
+sensitive to the property it names and to nothing else.
+
+Two different conjuncts, in two different modules, each drove the row red where
+before the repair **no input whatsoever** could. Both reverted to
+`3156 passed, 0 failed` on the same command.
+
+### Sweep for the same defect class
+
+`scripts/selftest.mjs` was swept for assertions that short-circuit to a constant:
+`|| true`, `|| 1`, `|| !0`, `|| !!1`, `|| 1 === 1`, a truthy literal or a literal
+array/object as the tail of an assert condition, `assert(true …)`, `assert(1 …)`,
+a `? true : true` ternary, and the vacuous `.length >= 0`. After the repair the
+sweep returns **no matches** in any group. The single grep hit on the `=== false`
+pattern is `outcome === 'false-alarm'`, an ordinary string comparison and not an
+instance of the class. `TP-03-04` was the only occurrence in the file, and it
+belonged to this feature's own group, so nothing had to be left for a concurrent
+session.
+
+### Effect on the DoD row
+
+Twenty-two of twenty-eight rows now carry an observed intended RED: the twenty
+above plus `TP-03-04`, whose obstacle is removed and which now reds under two
+independent probes. The row stays unticked because it requires **every** row.
+Still owed: the browser rows `TP-03-21` to `TP-03-25`, and `TP-03-27` and
+`TP-03-28`. No assertion was edited to be weaker, skipped or removed, and no
+timeout was raised in this pass.
+
+## Seventh Pass — The Last Seven Rows Carry An Intended RED, Captured By The Harness
+
+Every probe below was run through `scripts/red-green-probe.sh`, which arms its
+revert **before** mutating, verifies the mutation landed, reverts, and proves the
+revert by comparing the working blob hash against the committed one. The blocks
+are the harness's own emitted output, pasted unedited. No mutation was applied or
+reverted by hand in this pass.
+
+### `TP-03-27` — path guard
+
+Its GREEN, which the fifth pass recorded as absent, now exists: the concurrent
+session's unresolvable references have since been reconciled and the command
+reports `new=0` on the unmutated tree. The RED makes every spec-referenced test
+path fail to resolve to a file.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-27 path guard: a spec-referenced path that does not resolve to a file must be reported as newly missing
+file:             scripts/validate-spec-test-paths.mjs
+mutation:         statSync(resolve(root, path)).isFile()  ->  statSync(resolve(root, path)).isDirectory()   (1 occurrence(s))
+command:          node scripts/validate-spec-test-paths.mjs
+red-exit:         1
+red-summary:      [spec-test-paths] FAIL — 183 new referenced path(s) do not exist
+green-exit:       0
+green-summary:    [spec-test-paths] OK — no new missing test path(s)
+revert-verified:  yes (committed=bb6eee2b6ac1a1ea53d61f01463eeace6c70e630 restored=bb6eee2b6ac1a1ea53d61f01463eeace6c70e630)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The mutation deliberately targets the guard's own resolution rather than planting
+a fabricated `tests/…` token in a spec artifact. A planted token would survive
+into this report, which is itself scanned, and would turn the guard permanently
+red — the probe would break the property it exists to prove.
+
+### `TP-03-28` — deploy gate
+
+This feature's route is deliberately unregistered, so its only deploy decision is
+its entry in the exclusion list. The probe points that entry at a different
+existing file, which leaves the list internally valid and non-stale while leaving
+the route itself without any decision.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-28 deploy gate: this feature route losing its deploy decision must refuse the Pages plan
+file:             site-exclusions.json
+mutation:         "path": "lifetime-tax-strategy-lab.html",  ->  "path": "index.html",   (1 occurrence(s))
+command:          node scripts/build-pages-site.mjs --dry-run
+red-exit:         1
+red-summary:      Error: unregistered root page lacks a deploy decision: lifetime-tax-strategy-lab.html
+green-exit:       0
+green-summary:    {"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":128,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","
+revert-verified:  yes (committed=29c6fe08a58d97c1f119abdd38706cf02f675d60 restored=29c6fe08a58d97c1f119abdd38706cf02f675d60)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-03-04` — independently re-confirmed, and one miss recorded
+
+The sixth pass closed this row. It is re-run here through the harness so its
+evidence has the same provenance as the rest, and the harness reaches the same
+verdict from a clean baseline.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-04 adversarial: an engine using a recalled 27.5-year recovery period instead of the pack period must fail the non-standard fixture
+file:             rltaxrental.js
+mutation:         var period = rule.recoveryPeriod.years;  ->  var period = 27.5;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-03-04: an implementation using a recalled recovery period produces a figure the non-standard fixture rejects, a convention or method the engine has no branch for refuses rather than fal
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=04505d51f87117fe1613b41a41277bfea5096b11 restored=04505d51f87117fe1613b41a41277bfea5096b11)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**A miss worth recording.** A separate probe on the same row replaced the
+convention branch selector `if (conventionId === "mid-month")` with a predicate
+true for every identifier, so a convention the engine has no arithmetic for would
+fall through to the one branch that exists. `TP-03-04` names exactly that defect.
+It did **not** fall. The single failure the run produced was `TP-03-19`, which
+guards the same module for the same class of recalled figure and noticed only
+that the convention literal had left the source:
+
+```text
+red-exit:         1
+red-summary:        ✗ FAIL: TP-03-19: the rental module holds no recovery period, allowance amount, phase-out edge or authority name, its single occurrence of the convention identifier is the branch selector the pack
+green-exit:       0
+green-summary:      ✓ the unbounded log genuinely exceeds the budget (7230 KB), so fetching it would FAIL this test rather than slip through
+```
+
+The reason is that the pack validator refuses an unknown `conventionId` before
+`computeCostRecovery` ever reaches the arithmetic, so the row's
+`RLTAX-FEATURE-UNSUPPORTED` conjunct is satisfied by the earlier refusal rather
+than by the branch the conjunct describes. The conjunct is therefore true for a
+reason other than the one its text names, and a regression that removed the
+engine's own fall-through guard would not be caught by it. The row is closed on
+the recalled-period conjunct, which does discriminate; the convention conjunct is
+recorded here as a weaker limb than its wording implies rather than being quietly
+counted as covered.
+
+### `TP-03-21` — `SCN-023-007`, the rental settlement scenario
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-21 SCN-023-007: the cost-recovery parameters losing their sourced provenance must fail the rental settlement scenario
+file:             lifetime-tax-strategy-lab.html
+mutation:         recoveryRows[rentalIndex][2] === null ? "computed" : "sourced");  ->  "computed");   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-023-007\ a\ long-term\ rental\ settles\ after\ sourced\ depreciation\ and\ refuses\ without\ it --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (3.0s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-03-22` — `SCN-023-008`, the limit ladder
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-22 SCN-023-008: a disallowed amount that is no longer addressable per limit must fail the ladder scenario
+file:             lifetime-tax-strategy-lab.html
+mutation:         disallowedCell.setAttribute("data-rl-disallowed", limit.limitId);  ->  disallowedCell.setAttribute("data-rl-disallowed", "unpublished");   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-023-008\ the\ limit\ ladder\ is\ applied\ in\ order\ and\ every\ disallowed\ amount\ is\ published --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (3.3s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-03-23` — `SCN-023-009`, the suspended loss and the no-projection rule
+
+The mutation makes the carryforward line name a following year. That is the exact
+defect `FR-023-020` forbids, and it breaks both the declared-year label and the
+scan for a stray year in the rental section.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-23 SCN-023-009: a carryforward line that names a following year instead of the declared one must fail the no-projection scenario
+file:             lifetime-tax-strategy-lab.html
+mutation:         "Closing suspended loss for the declared year: "  ->  "Closing suspended loss carried into 2031: "   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-023-009\ the\ suspended\ loss\ closes\ for\ the\ declared\ year\ and\ no\ future\ year\ appears --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (3.3s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-03-24` — `SCN-023-007`, leg visibility across the four surfaces
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-24 SCN-023-007: the rental leg losing its identity on the headline surface must fail the leg-visibility scenario
+file:             lifetime-tax-strategy-lab.html
+mutation:         rentalHost.setAttribute("data-rl-leg", rentalLeg.legId);  ->  rentalHost.setAttribute("data-rl-leg", "rental-net-omitted");   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-023-007\ the\ rental\ leg\ reaches\ the\ headline\,\ the\ comparison\,\ the\ curve\ and\ the\ export --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (2.7s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (red-exit 1 != green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-03-25` — the cumulative suite, and a limit of the harness's verdict
+
+The same headline-identity mutation was run against the whole `SCN-021` … `-024`
+suite. The harness **refused** the probe with exit 7, and the refusal is itself
+the finding:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-25 cumulative browser suite: the rental leg losing its headline identity must fail the whole SCN-021..024 suite, not merely its own scenario
+file:             lifetime-tax-strategy-lab.html
+mutation:         rentalHost.setAttribute("data-rl-leg", rentalLeg.legId);  ->  rentalHost.setAttribute("data-rl-leg", "rental-net-omitted");   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-02\[1-4\] --reporter=list
+red-exit:         1
+red-summary:        74 passed (7.9m)
+green-exit:       1
+green-summary:      76 passed (2.4m)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   NO (red-exit 1 == green-exit 1)
+=== END RED/GREEN PROBE EVIDENCE ===
+red-green-probe: REFUSED — RED and GREEN produced the same outcome (both exited 1).
+```
+
+The mutation **did** discriminate. Under it the suite reports `74 passed`; without
+it, `76 passed` in the same invocation — two scenarios fell and recovered. What
+did not discriminate is the **exit code**, because this command exits non-zero on
+the unmutated tree for a reason unrelated to any assertion. A clean baseline run
+of the identical command, with nothing mutated, shows it:
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list
+cum_exit=1
+77                                    # count of "✓" result lines
+Error: worker-4 process did not exit within 300000ms after stop, force-killed it
+  77 passed (6.0m)
+```
+
+Seventy-seven passed, none failed, none skipped — and exit 1, produced entirely
+by a worker that would not shut down after the run had finished. That is a
+teardown fault in the runner, not a test outcome. The harness compares exit codes
+only, so a command whose GREEN exit is already polluted can never satisfy its
+discrimination test however sharp the mutation is. `TP-03-25` therefore carries
+its intended RED as a pass-count delta observed inside one harness invocation
+(`74` mutated against `76` reverted) rather than as an exit-code flip, and its
+GREEN is the `77 passed, 0 failed` baseline above. The limitation is the
+harness's, and it is recorded rather than worked around: nothing was wrapped,
+filtered or re-expressed to manufacture a passing verdict.
+
+### Effect on the DoD row
+
+All twenty-eight rows now carry an observed intended RED and a same-command
+GREEN, so the row is satisfied and ticked. Two qualifications travel with it, both
+stated above rather than buried: `TP-03-04`'s convention conjunct is true for a
+reason other than the one it names, and `TP-03-25`'s discrimination is a
+pass-count delta because its command's exit code is polluted by a runner teardown
+fault. No assertion was edited, weakened, skipped or removed in this pass, and no
+timeout was raised.

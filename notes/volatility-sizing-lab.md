@@ -72,6 +72,40 @@ Policy values (`λ`, seed window, GARCH bounds, regime thresholds `25/75/95`, si
 - **v1 (2026-07-17)** — Initial release: RLVOL foundation (`rlvol.js`), the Simple storm-gauge + Power model/persistence/sizing tool, the closed universe, and the Market Brief owner read.
 - **v1.1 (2026-07-30)** — Disclosure only, no math or policy change. The Power sizing card now states the assumption behind the `1/σ` throttle (`[data-sizing-assumption]`): it holds risk steady rather than growth, and matches growth-optimal sizing only where reward-per-unit-risk is stable across regimes (a known edge implies `1/σ²`). Recorded as spec 011 Honest Finding 13. Surfaced by `notes/volatility-drag-research.md` → RL-3, which found this was the one economic assumption absent from an otherwise exhaustive disclosure set.
 
+## Linked subject (`?ticker=`)
+
+A tool that names this one as the owner of a piece of math can also name the
+company it was reading. This route accepts that subject as `?ticker=`, the single
+parameter name every subject-carrying route in the repository uses, and applies
+the shared acceptance rule on `RLTKR` rather than a private copy of its own.
+
+- **Acceptance is necessary and not sufficient.** The value is trimmed and
+  uppercased through the shared `normTicker`, then accepted only if it matches
+  `/^[A-Z0-9.\-]{1,12}$/`. An accepted value is then matched against this route's
+  own committed catalog — the eleven `assets[].symbol` entries in
+  `volatility-sizing-universe.json` that `RLVOL.validateUniverse` has already
+  schema-validated. Nothing else can become the active asset.
+- **Resolution** means a catalog match. It selects that asset in the `Asset`
+  select and adopts its `defaultTargetVol`, exactly as picking it from the select
+  by hand would. Every later step — `readControls`, `recompute`, `hydrate`, the
+  Simple and Power renders and the owner-read publication — runs unchanged.
+- **Unavailable** is an accepted value that no catalog entry matches. The notice
+  names that company, states that this lab covers eleven assets and has no data
+  for it, and the default asset stays selected and fully computed. It is never a
+  blank view and never another asset's values under that company's name.
+- **Refused** is a value the shared grammar rejects. The notice says the link
+  named a company this tool could not accept and names the subject actually on
+  screen. The refused value itself is never rendered, never stored and never
+  reaches a fetch target or a cache key.
+- **No parameter, an empty parameter or a whitespace-only parameter** are all the
+  same thing: the route behaves exactly as it did before this was added, and the
+  notice stays hidden with empty text.
+- **A configuration failure wins.** If the universe cannot be validated, the
+  existing `showConfigError` path renders and no handoff notice is stacked on top
+  of it, so the reader sees one problem rather than two.
+
+---
+
 ## How to edit, validate & ship
 
 1. Edit the universe (`volatility-sizing-universe.json`) or the RLVOL contract (`rlvol.js`); the page is a projection of one `VolDecisionReadV1`.

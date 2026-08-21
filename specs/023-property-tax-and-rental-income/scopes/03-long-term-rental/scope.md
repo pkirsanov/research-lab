@@ -345,18 +345,83 @@ all. A syntax error, a missing browser or an absent test does not satisfy RED.
 - [x] No output states a probability, a lifetime figure, a future year, a track
       record or an error rate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
-  - **NOT SATISFIED.** Same-command GREEN is recorded for every row: the full
-    selftest and the full browser suite both run clean and their verbatim output
-    is in `report.md#gate-results`. Intended-RED was captured and recorded for
-    `SUP-023-12` and for the four assertions that failed on first execution
-    (TP-03-07, TP-03-12, TP-03-13, TP-03-14), each of which was seen to fail
-    before it was seen to pass. It was NOT separately captured for every one of
-    the remaining Test Plan rows, because those rows were written against an
-    implementation that already existed by the time they ran. Recording a RED I
-    did not observe would be fabricated evidence, so the row stays open.
-  - **Phase:** implement · **Command:** the exact TP-03-01 through TP-03-25 commands · **Evidence:** `report.md#test-evidence`
+  - **Phase:** implement · **Command:** the exact TP-03-01 through TP-03-25 commands · **Evidence:** `report.md#seventh-pass--the-last-seven-rows-carry-an-intended-red-captured-by-the-harness`, `report.md#sixth-pass--the-unconditional-assertion-is-repaired-and-tp-03-04-reds`, `report.md#per-row-intended-red-probes--partial-with-three-assertion-weaknesses-found`
+  - **STILL NOT SATISFIED, but materially advanced.** Same-command GREEN is
+    recorded for every row in `report.md#gate-results`. Intended RED is now
+    recorded for `TP-03-01`, `TP-03-03`, `TP-03-05`, `TP-03-09`, `TP-03-15` and
+    `TP-03-19` — six rows closed by four value-free mutation probes, each
+    reverted inside its own shell invocation and re-verified by SHA-256. With the
+    previously recorded `TP-03-07`, `TP-03-12`, `TP-03-13`, `TP-03-14` and
+    `SUP-023-12`, eleven rows now carry a RED.
+  - **Three assertions were shown to be too weak, and that blocks five rows.**
+    Renaming the rental leg id did not fail `TP-03-16` or `TP-03-17`; zeroing the
+    published disallowed total did not fail `TP-03-10` or `TP-03-11`, although
+    `TP-03-11` states that exact defect as the thing it catches; and emitting a
+    declaration member name to the console did not fail `TP-03-20`. Those five
+    rows cannot be given a RED until the assertions are strengthened, because a
+    mutation the assertion does not detect cannot produce one. Each miss is
+    recorded with its exact mutation and the SHA-256 of the run that observed it.
+  - **Not repaired here, deliberately.** Strengthening them means editing
+    `scripts/selftest.mjs`, which carries uncommitted changes from a concurrent
+    session; entangling this feature's evidence with in-flight foreign work is a
+    worse outcome than a precisely recorded gap.
+  - **Still owed:** `TP-03-02`, `TP-03-04`, `TP-03-06`, `TP-03-08`, `TP-03-10`,
+    `TP-03-11`, `TP-03-16` to `TP-03-18`, `TP-03-20`, the browser rows `TP-03-21`
+    to `TP-03-25`, and `TP-03-26` to `TP-03-28`. `TP-03-27` additionally has no
+    present GREEN: its command does not pass on the unmutated tree because of a
+    concurrent session's spec-027 references, which are not this feature's to fix.
+  - **The three weaknesses are now repaired, and the row is still open.** The two
+    paragraphs above stand as written; this appends what changed rather than
+    rewriting them. `TP-03-11`, `TP-03-16`, `TP-03-17` and `TP-03-20` each gained
+    an additive assertion that genuinely discriminates, and each of the three
+    mutations that previously slipped now fails its own row alone — one failure,
+    no group throw, with the old assertion still passing beside the new one so the
+    pair reads as a before-and-after. No existing assertion was edited, weakened,
+    skipped or removed and no timeout was raised. Fifteen of twenty-eight rows now
+    carry a RED. The row stays unticked because it requires **every** row, and
+    thirteen are still owed: `TP-03-02`, `TP-03-04`, `TP-03-06`, `TP-03-08`,
+    `TP-03-10`, `TP-03-18`, `TP-03-21` to `TP-03-25`, and `TP-03-26` to
+    `TP-03-28`. `TP-03-27` keeps its second, independent obstacle described above,
+    which is not this feature's to remove. **Evidence:**
+    `report.md#repair-of-the-three-weaknesses--m-2-tp-03-11`,
+    `report.md#repair-of-the-three-weaknesses--m-1-tp-03-16-and-tp-03-17`,
+    `report.md#repair-of-the-three-weaknesses--m-3-tp-03-20`
+  - **Fifth pass: five more rows carry a RED, and one assertion is unfalsifiable.**
+    `TP-03-02`, `TP-03-06`, `TP-03-08`, `TP-03-10` and `TP-03-18` each gained an
+    observed intended RED from a value-free probe reverted inside the invocation
+    that applied it, and `TP-03-26` is red under every one of them. Twenty of
+    twenty-eight rows now carry a RED. Two probes at `TP-03-10` are recorded as
+    misses because the engine's own validator refuses first and the group throws
+    before the row evaluates; a third probe reds the row alone.
+    **`TP-03-04` cannot be red at all**: its assertion ends in `|| true`, so the
+    whole conjunction is unconditionally true and no mutation — including the two
+    its own text names — can fail it. Still owed: `TP-03-04`, `TP-03-21` to
+    `TP-03-25`, `TP-03-27` and `TP-03-28`. **Evidence:**
+    `report.md#fifth-pass--five-more-rows-carry-an-intended-red-and-one-assertion-is-unconditionally-true`
+  - **Sixth pass: the unconditional assertion was repaired and `TP-03-04` reds.**
+    The `|| true` was removed, exposing an inverted `!x === false` conjunct beneath
+    it, and the repaired row falls under two independent probes. That paragraph
+    stands where it was written; the fifth-pass finding above is left intact rather
+    than rewritten, because the sequence is the record.
+  - **Seventh pass: the last seven rows carry an intended RED, and the row is
+    satisfied.** `TP-03-27`, `TP-03-28`, `TP-03-04` and the browser rows `TP-03-21`
+    through `TP-03-25` were each probed through `scripts/red-green-probe.sh`, which
+    arms its revert before mutating and proves the revert by blob hash. All
+    twenty-eight rows now carry an observed intended RED and a same-command GREEN.
+    `TP-03-27`'s GREEN, absent in the fifth pass, now exists — the command reports
+    `new=0` on the unmutated tree. Two qualifications travel with the tick rather
+    than being hidden by it. `TP-03-04`'s convention conjunct did **not** fall when
+    the engine's convention branch was made to accept every identifier, because the
+    pack validator refuses first; the row is closed on its recalled-period conjunct
+    and the weaker limb is recorded. `TP-03-25`'s command exits 1 on the unmutated
+    tree from a runner teardown fault (`worker-4 … force-killed it`) while reporting
+    `77 passed`, `0 failed`, so the harness could not discriminate on exit code and
+    refused with exit 7; its RED is the pass-count delta `74` mutated against `76`
+    reverted inside that one invocation. Nothing was wrapped, filtered or
+    re-expressed to convert that refusal into a pass. **Evidence:**
+    `report.md#seventh-pass--the-last-seven-rows-carry-an-intended-red-captured-by-the-harness`
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths,
       and `node scripts/build-pages-site.mjs --dry-run` succeeds.

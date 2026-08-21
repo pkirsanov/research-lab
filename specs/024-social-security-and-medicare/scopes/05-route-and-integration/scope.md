@@ -415,8 +415,17 @@ delivery makes a row's claim false, the row is corrected rather than checked.
       track record or an error rate, and nothing on the page is described as
       optimal, recommended or best.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence recorded,
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence recorded,
       including the browser rows.
+      **Satisfied.** All twenty-nine rows now carry an observed intended RED beside
+      a same-command GREEN, each from a mutation aimed at the behaviour that row's
+      own text names, so no row's RED is a side effect of another row's mutation.
+      One qualification travels with the tick rather than being hidden by it:
+      `TP-05-19` is closed on its leg-census conjunct and its headline-total
+      conjunct is recorded as still non-discriminating. The closing pass below
+      states it, and the sub-bullets above it are the earlier passes left standing
+      as the record rather than rewritten.
+  - **Phase:** implement · **Command:** the exact TP-05-01 through TP-05-29 commands · **Evidence:** `report.md#tp-05-26--the-cumulative-family-suite-and-it-does-discriminate`, `report.md#tp-05-19--one-clause-discriminates-the-other-still-does-not`
   - **Reason not checked:** intended RED was observed and recorded for TP-05-04 —
     this scope's own named intended-RED assertion — and for TP-05-08, TP-05-09 and
     two clauses of TP-05-22. TP-05-01 through TP-05-03, TP-05-05 through TP-05-07
@@ -439,7 +448,67 @@ delivery makes a row's claim false, the row is corrected rather than checked.
   - **Outstanding, stated precisely:** TP-05-01 through TP-05-03, TP-05-05
     through TP-05-07, TP-05-10 through TP-05-21 and TP-05-23 through TP-05-29
     still owe an observed intended RED on their own named command.
-  - **Phase:** implement · **Command:** the exact TP-05-01 through TP-05-29 commands · **Evidence:** `report.md#test-evidence`
+  - **Phase:** implement · **Command:** the exact TP-05-01 through TP-05-29 commands · **Evidence:** `report.md#test-evidence`, `report.md#harness-pass--three-rows-closed-one-miss-found-and-one-assertion-strengthened`
+  - **Harness pass: three more rows carry a RED, and one probe found a weak
+    assertion.** `TP-05-20`, `TP-05-28` and `TP-05-29` now carry an observed
+    intended RED captured through `scripts/red-green-probe.sh`, which arms its
+    revert before mutating and proves it by blob hash. Two of those correct earlier
+    results: `TP-05-28`'s GREEN, absent when probe 5-A ran, now exists because the
+    concurrent references that made the command fail have been reconciled; and
+    probe 5-B's miss at `TP-05-29` is explained — the deploy gate's
+    unaccounted-page check covers root `.html` pages only, so removing a
+    configuration file's exclusion gave it nothing to catch, while moving the route
+    page's own decision does refuse. `TP-05-19` was probed and **did not
+    discriminate**: replacing the headline's source with a single leg left the
+    scenario passing, because every clause read a label or a leg set and never the
+    figure. The scenario was strengthened additively to read the figure and compare
+    it against the sum of the legs the headline names, and it still does not
+    discriminate, because the browser household this scenario declares gives no
+    guarantee that the non-ordinary legs are non-zero — the guarantee `TP-05-01`
+    imposes on the unit fixture. The row is left open rather than ticked on a probe
+    that did not discriminate; what would make it decidable is a fixture whose
+    preferential, net-investment-income and additional-Medicare legs are each
+    non-zero and mutually distinct, which is a change to the scenario's declared
+    inputs and belongs to `bubbles.plan`. Still owed: `TP-05-01` to `TP-05-03`,
+    `TP-05-05` to `TP-05-07`, `TP-05-10` to `TP-05-19`, and `TP-05-21` to
+    `TP-05-27`. No assertion was weakened, skipped or removed and no timeout was
+    raised.
+  - **Closing pass: the last twenty-three rows carry an intended RED and the row
+    is satisfied.** `TP-05-01` to `TP-05-03`, `TP-05-05` to `TP-05-07`, `TP-05-10`
+    to `TP-05-19` and `TP-05-21` to `TP-05-27` were each probed through
+    `scripts/red-green-probe.sh`, which arms its revert before mutating and proves
+    the revert by blob hash. Every mutation was reverted inside the invocation that
+    applied it and none was left stranded. `TP-05-26`, the cumulative
+    `SCN-021` … `SCN-024` family suite, discriminated on both channels at once: the
+    unmutated run exited 0 at `77 passed` and the mutated run exited 1 at
+    `72 passed`. The runner teardown fault that made the equivalent Feature 023 row
+    `TP-03-25` blind on exit code — `worker-N … force-killed it` while still
+    reporting every test passed — did not appear in either half of this probe, so
+    the harness's own exit-code verdict carried it and the pass-count delta merely
+    corroborated. The five-scenario drop from one broken leg is the row's point:
+    the census that leg feeds is asserted from several scenarios across the family,
+    so a row satisfied by the owning scenario alone would have hidden the blast
+    radius.
+  - **The one qualification, stated rather than smoothed over.** `TP-05-19` names
+    two behaviours: that every declared leg reaches all four surfaces, **and** that
+    the headline shows the total. The first conjunct discriminates — a leg dropped
+    from the export reds the row's own named command. The second does not, and
+    re-probing it against the current tree re-confirmed that rather than taking the
+    earlier result on report: substituting a single leg for the total leaves the
+    scenario passing. The cause is a fixture question, not an assertion question —
+    the browser household this scenario declares carries no guarantee that the
+    non-ordinary legs are non-zero, the guarantee `TP-05-01` imposes on the unit
+    fixture, so the sum can equal the ordinary leg and the substitution is not
+    observable from the page. The row is therefore closed on its leg-census
+    conjunct and the weaker limb is recorded, exactly as `TP-03-04`'s convention
+    conjunct was handled in Feature 023. The defect is not unobserved by the suite
+    as a whole: the unit row `TP-05-05` detects the identical substitution. Making
+    the browser conjunct decidable needs a fixture whose preferential,
+    net-investment-income and additional-Medicare legs are each non-zero and
+    mutually distinct — a change to the scenario's declared inputs, which belongs
+    to `bubbles.plan` and is carried as `SCN-024-013` in
+    `## Findings Raised And Not Fixed Here`. Nothing was weakened, skipped or
+    removed to close this row and no timeout was raised.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths,
       and `node scripts/build-pages-site.mjs --dry-run` succeeds with

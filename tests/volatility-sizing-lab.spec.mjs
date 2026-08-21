@@ -572,3 +572,210 @@ test('TP-02-04: the volatility tool is reachable THROUGH the shared rlnav regist
     await expect(page.locator('#powerView')).toBeVisible();
     await expect(page.locator('#assetSelect')).toBeVisible();
 });
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+ * specs/027-company-scoped-owner-deep-links Scope 2 — the catalog-bound subject handoff.
+ *
+ * This route holds a company as a variable behind a CLOSED eleven-asset catalog, so
+ * grammar acceptance is necessary and not sufficient: an accepted string is applied only
+ * after it matches runtime.config.assets[].symbol, and otherwise the route names it as
+ * unavailable while the default asset stays fully computed. No title above was renamed
+ * and no assertion above was weakened — these are additive.
+ * ═══════════════════════════════════════════════════════════════════════════════ */
+
+const LINKED_CACHE = () => cacheFor({ SPY: clusteredCloses(), NVDA: clusteredCloses(7) });
+
+async function openWithQuery(page, query) {
+    await page.addInitScript((payload) => { if (!localStorage.getItem('rlData')) localStorage.setItem('rlData', JSON.stringify(payload)); }, LINKED_CACHE());
+    await page.goto(site.baseUrl + '/volatility-sizing-lab.html' + query);
+    await page.waitForFunction(() => window.VolSizingLab && window.VolSizingLab.runtime && window.VolSizingLab.runtime.decision);
+}
+
+async function firstPaint(page) {
+    return page.evaluate(() => {
+        const notice = document.getElementById('linkNotice');
+        const decision = window.VolSizingLab.runtime.decision;
+        return {
+            asset: window.VolSizingLab.runtime.controls.asset,
+            selectValue: document.getElementById('assetSelect').value,
+            targetVolInput: document.getElementById('targetVolInput').value,
+            targetVol: window.VolSizingLab.runtime.controls.targetVol,
+            assetName: document.querySelector('[data-asset-name]').textContent,
+            decisionState: decision.state,
+            noticeText: notice ? notice.textContent : null,
+            noticeHidden: notice ? notice.hidden : null
+        };
+    });
+}
+
+/* Captured from the unmodified route before any Scope 2 edit and pinned here, so this
+   assertion compares against the pre-feature paint rather than against the post-change
+   value of the same run. */
+const UNLINKED_BASELINE = {
+    asset: 'SPY',
+    selectValue: 'SPY',
+    targetVolInput: '15',
+    targetVol: 0.15,
+    assetName: 'SPY',
+    decisionState: 'ready'
+};
+
+test('Regression: SCN-027-005 with no subject parameter the first-paint DOM and the computed decision are identical to the pre-feature baseline', async ({ page }) => {
+    await openWithQuery(page, '');
+    const paint = await firstPaint(page);
+    console.log('SCN-027-005 VOLATILITY UNLINKED PAINT: ' + JSON.stringify(paint));
+    expect({
+        asset: paint.asset,
+        selectValue: paint.selectValue,
+        targetVolInput: paint.targetVolInput,
+        targetVol: paint.targetVol,
+        assetName: paint.assetName,
+        decisionState: paint.decisionState
+    }).toEqual(UNLINKED_BASELINE);
+    expect(paint.noticeHidden).toBe(true);
+    expect(paint.noticeText).toBe('');
+});
+
+test('Regression: SCN-027-001 ?ticker=NVDA selects NVDA in the asset select and names it on screen', async ({ page }) => {
+    await openWithQuery(page, '?ticker=NVDA');
+    const paint = await firstPaint(page);
+    expect(paint.asset).toBe('NVDA');
+    expect(paint.selectValue).toBe('NVDA');
+    expect(paint.assetName).toBe('NVDA');
+    /* the catalog's own default target vol for NVDA, not the default asset's 15% */
+    expect(paint.targetVolInput).toBe('25');
+    expect(paint.targetVol).toBeCloseTo(0.25, 10);
+    expect(paint.noticeHidden).toBe(true);
+});
+
+test('Regression: SCN-027-004 the active subject is readable as page text and in the accessibility tree, not only inside a chart', async ({ page }) => {
+    await openWithQuery(page, '?ticker=NVDA');
+    await openNativeResearchSurface(page);
+    const named = page.locator('#simpleView [data-asset-name], #powerView [data-asset-name]').first();
+    await expect(named).toHaveText('NVDA');
+    expect(await named.evaluate((node) => node.closest('canvas') === null)).toBe(true);
+    const option = page.locator('#assetSelect option[value="NVDA"]');
+    await expect(option).toHaveCount(1);
+    expect((await option.textContent()).trim().startsWith('NVDA —')).toBe(true);
+    expect(await page.locator('#assetSelect').inputValue()).toBe('NVDA');
+});
+
+test('Regression: SCN-027-012 an acceptable company outside the eleven-asset universe is named as unavailable and the default asset stays fully computed', async ({ page }) => {
+    await openWithQuery(page, '?ticker=TSLA');
+    const paint = await firstPaint(page);
+    /* TSLA passes the shared grammar but is not one of the eleven catalog entries */
+    expect(paint.noticeHidden).toBe(false);
+    expect(paint.noticeText).toContain('TSLA');
+    expect(paint.noticeText).toMatch(/no data|does not cover|not covered/i);
+    /* the default asset is still selected AND still fully computed — never a blank view */
+    expect(paint.asset).toBe('SPY');
+    expect(paint.selectValue).toBe('SPY');
+    expect(paint.assetName).toBe('SPY');
+    expect(paint.targetVolInput).toBe('15');
+    await expect(page.locator('[data-decision-id]')).toContainText('decision ');
+    const catalog = await page.evaluate(() => window.VolSizingLab.runtime.config.assets.map((a) => a.symbol));
+    expect(catalog).toHaveLength(11);
+    expect(catalog).not.toContain('TSLA');
+});
+
+test('Regression: SCN-027-013 after a refusal every control reflects one single subject and none reflects the refused value', async ({ page }) => {
+    await openWithQuery(page, '?ticker=' + encodeURIComponent('NV DA/../x'));
+    const paint = await firstPaint(page);
+    expect(paint.noticeHidden).toBe(false);
+    expect(paint.noticeText).not.toContain('NV DA');
+    expect(paint.noticeText).not.toContain('..');
+    expect(paint.asset).toBe('SPY');
+    expect(paint.selectValue).toBe('SPY');
+    expect(paint.assetName).toBe('SPY');
+    const consistent = await page.evaluate(() => {
+        const runtime = window.VolSizingLab.runtime;
+        return {
+            control: runtime.controls.asset,
+            select: document.getElementById('assetSelect').value,
+            named: Array.from(document.querySelectorAll('[data-asset-name]')).map((n) => n.textContent)
+        };
+    });
+    expect(new Set([consistent.control, consistent.select].concat(consistent.named)).size).toBe(1);
+});
+
+test('Regression: SCN-027-010 no adversarial corpus value appears in the body, in any attribute or in localStorage, and empty and whitespace parameters match the no-parameter paint', async ({ page }) => {
+    await openWithQuery(page, '');
+    const bare = await firstPaint(page);
+    for (const query of ['?ticker=', '?ticker=%20%20%09']) {
+        await openWithQuery(page, query);
+        const paint = await firstPaint(page);
+        expect(paint, 'empty/whitespace must paint exactly as no parameter: ' + query).toEqual(bare);
+    }
+    const corpus = [
+        'javascript:alert(1)',
+        '<img src=x onerror=alert(1)>',
+        '../../etc/passwd',
+        'SPY"onload="alert(1)',
+        "SPY';DROP TABLE--",
+        'A'.repeat(64)
+    ];
+    for (const value of corpus) {
+        await openWithQuery(page, '?ticker=' + encodeURIComponent(value));
+        const leak = await page.evaluate((needle) => {
+            const html = document.documentElement.outerHTML;
+            const storage = Object.keys(localStorage).map((key) => key + '=' + localStorage.getItem(key)).join('\n');
+            return { inHtml: html.indexOf(needle) !== -1, inStorage: storage.indexOf(needle) !== -1, asset: window.VolSizingLab.runtime.controls.asset };
+        }, value);
+        expect(leak.inHtml, 'corpus value must not reach the document: ' + value).toBe(false);
+        expect(leak.inStorage, 'corpus value must not reach localStorage: ' + value).toBe(false);
+        expect(leak.asset, 'a refused value must never become the active asset: ' + value).toBe('SPY');
+    }
+});
+
+/* FEATURE-027 file:// reach parity ─────────────────────────────────────────────
+ * Scope 2 DoD: the subject handoff must introduce no NEW file:// incompatibility
+ * on this receiving route. This route fetches volatility-sizing-universe.json at
+ * boot, which a file:// origin cannot serve, so it renders its pre-existing
+ * configuration-unavailable banner instead of operating — a limitation the route
+ * already had at HEAD and which this feature did not create. What IS this
+ * feature's responsibility, and what this row asserts, is that the reach outcome
+ * is IDENTICAL with a ?ticker= subject present and with no query string at all:
+ * the parameter neither adds nor removes a file:// failure.
+ * ───────────────────────────────────────────────────────────────────────────── */
+
+const VOL_FILE_ORIGIN = 'file://' + new URL('../volatility-sizing-lab.html', import.meta.url).pathname;
+
+async function volReachFromFile(page, query) {
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(String(error && error.message)));
+    await page.goto(VOL_FILE_ORIGIN + (query || ''));
+    await page.waitForTimeout(1500);
+    const reach = await page.evaluate(() => {
+        const configError = document.getElementById('configError');
+        const notice = document.getElementById('linkNotice');
+        const lab = window.VolSizingLab;
+        return {
+            rltkrResolved: typeof window.RLTKR === 'object' && window.RLTKR !== null,
+            labPresent: !!lab,
+            configErrorShown: !!(configError && !configError.classList.contains('is-hidden')),
+            configLoaded: !!(lab && lab.runtime && lab.runtime.config),
+            activeAsset: lab && lab.runtime && lab.runtime.controls ? lab.runtime.controls.asset : null,
+            noticePresent: !!notice,
+            noticeHidden: notice ? notice.hasAttribute('hidden') : null
+        };
+    });
+    return { ...reach, pageErrors: errors.length, errorMessages: errors };
+}
+
+test('FEATURE-027 file:// parity: the volatility route reaches the same file:// outcome with a ?ticker= subject as with no query string', async ({ page }) => {
+    const plain = await volReachFromFile(page, '');
+    const linked = await volReachFromFile(page, '?ticker=NVDA');
+    const signature = (r) => ({
+        rltkrResolved: r.rltkrResolved,
+        labPresent: r.labPresent,
+        configErrorShown: r.configErrorShown,
+        configLoaded: r.configLoaded,
+        activeAsset: r.activeAsset,
+        noticePresent: r.noticePresent,
+        noticeHidden: r.noticeHidden,
+        pageErrors: r.pageErrors
+    });
+    console.log('FILE_PARITY volatility plain: ' + JSON.stringify(plain));
+    console.log('FILE_PARITY volatility linked: ' + JSON.stringify(linked));
+    expect(signature(linked)).toEqual(signature(plain));
+});

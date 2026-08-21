@@ -304,6 +304,9 @@
     <span class="status" id="status">loading…</span>
   </div>
 
+  <p id="linkNotice" role="status" hidden
+    style="margin:10px 0 0;font-size:12px;color:var(--warn,#f0b429)"></p>
+
   <!-- SIMPLE cockpit -->
   <div id="simpleWrap">
     <div class="panel">
@@ -409,6 +412,10 @@
       var LS = "optFlowState", CACHE_PREFIX = "rlOptFlow:";
       var UNIVERSE = ["SPY", "QQQ", "IWM", "NVDA", "TSLA", "AAPL", "MSFT", "META", "AMZN", "GOOGL", "AMD", "AVGO"];
       var state = { mode: "simple", side: "both", min: 0, dte: "all", sortK: "score", sortDir: -1 };
+      /* Deliberately NOT a member of `state`: saveState() serialises the whole state object,
+         so a subject held there would become persisted state. A deep link outranks the
+         restored state for this visit and must never become the restored state. */
+      var FOCUS = { status: "absent", subject: null };
       var ROWS = [];
       var HYDRATION = { done: 0, total: 0, active: false };  /* progress + coalesced-render state */
       function $(id) { return document.getElementById(id); }
@@ -542,8 +549,54 @@
       function num(v) { if (!isFinite(v)) return "—"; if (v >= 1e6) return (v / 1e6).toFixed(1) + "M"; if (v >= 1e3) return (v / 1e3).toFixed(0) + "K"; return String(v); }
       function ivPct(v) { return isFinite(v) ? (v * 100).toFixed(0) + "%" : "—"; }
 
+      /* A company named by a deep link is accepted by the shared RLTKR rule; this route adds
+         no private acceptance rule of its own. The subject renders as a FOCUS BAND above the
+         scan — never a filter, which would destroy the scan, and never a pre-sort, which would
+         silently override state.sortK / state.sortDir, both persisted reader controls. The four
+         outcomes below stay four distinct statements: "covered but nothing crossed the bar" and
+         "not covered at all" are different facts and collapsing them would be a silent inaccuracy. */
+      function inUniverse(sym) { for (var i = 0; i < UNIVERSE.length; i++) if (UNIVERSE[i] === sym) return true; return false; }
+      function focusAggregate(rows, sym) {
+        var out = { count: 0, callP: 0, putP: 0 }, i, r;
+        for (i = 0; i < (rows || []).length; i++) {
+          r = rows[i];
+          if (r.ticker !== sym) continue;
+          out.count++;
+          if (r.type === "C") out.callP += r.premium; else out.putP += r.premium;
+        }
+        return out;
+      }
+      function renderFocus(rows) {
+        var band = $("linkNotice");
+        if (!band) return;
+        if (FOCUS.status === "absent") { band.textContent = ""; band.hidden = true; return; }
+        if (FOCUS.status !== "accepted") {
+          band.textContent = "The link named a subject this tool could not accept, so the full scan below is unchanged.";
+          band.hidden = false;
+          return;
+        }
+        if (!inUniverse(FOCUS.subject)) {
+          band.textContent = "Focus: " + FOCUS.subject + " — this scanner covers " + UNIVERSE.length +
+            " liquid names and does not include it, so the full scan below is unchanged.";
+          band.hidden = false;
+          return;
+        }
+        var agg = focusAggregate(rows, FOCUS.subject);
+        if (!agg.count) {
+          band.textContent = "Focus: " + FOCUS.subject + " — covered by this scan, but no strike crossed the activity bar for it. " +
+            "The full scan below is unchanged.";
+          band.hidden = false;
+          return;
+        }
+        band.textContent = "Focus: " + FOCUS.subject + " — " + agg.count + " flagged strike" + (agg.count === 1 ? "" : "s") +
+          " · call premium " + money(agg.callP) + " vs put premium " + money(agg.putP) +
+          " · end-of-day proxy over " + UNIVERSE.length + " liquid names, not a real-time tape.";
+        band.hidden = false;
+      }
+
       function render() {
         var rows = filtered();
+        renderFocus(rows);
         var cachedCount = 0, i; for (i = 0; i < UNIVERSE.length; i++) if (cacheGet(UNIVERSE[i])) cachedCount++;
         if (!ROWS.length) {
           $("verdict").textContent = cachedCount ? "No unusually-active strikes right now" : "No option chains cached yet";
@@ -643,6 +696,7 @@
       }
       function boot() {
         loadState();
+        if (window.RLTKR && RLTKR.linkedSubject) FOCUS = RLTKR.linkedSubject(window.location.search);
         syncSeg("modeSeg", "data-m", state.mode); syncSeg("sideSeg", "data-s", state.side); syncSeg("minSeg", "data-n", state.min); syncSeg("dteSeg", "data-d", state.dte);
         document.body.classList.toggle("power", state.mode === "power");
         wire();

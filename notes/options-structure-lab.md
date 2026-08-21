@@ -603,6 +603,29 @@ slow; this universe is a curated launchpad, not an all-market screener.
 
 ---
 
+## Linked subject (`?ticker=`)
+
+A tool that names this one as the owner of a piece of math can also name the
+company it was reading. This route accepts that subject as `?ticker=`, the single
+parameter name every subject-carrying route in the repository uses.
+
+- **Accepted set — unchanged.** The value is trimmed and uppercased through the
+  shared `normTicker`, then accepted only if it matches `/^[A-Z0-9.\-]{1,12}$/`.
+  That is the same accept-set the route applied before the rule moved into
+  `rlticker.js`, so no value that used to work stopped working and no value that
+  used to be rejected became acceptable.
+- **An accepted subject** seeds the ticker before the first paint and outranks the
+  restored session state, so the link decides what you are looking at.
+- **An unacceptable value** is discarded. It is never stored, never echoed into the
+  page and never reaches a fetch target. The route keeps the subject it would have
+  shown with no parameter, stays fully usable, and says so in a short notice above
+  the disclaimer naming which subject is actually on screen.
+- **No parameter, an empty parameter or a whitespace-only parameter** are all the
+  same thing: the route behaves exactly as it did before this was added, and the
+  notice stays hidden with empty text.
+
+---
+
 ## Version history
 
 - **v1.0 — LIVE (2026-07-02)** — initial build shipped &amp; registered (index.html /

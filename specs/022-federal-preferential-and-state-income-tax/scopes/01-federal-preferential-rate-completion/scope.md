@@ -228,16 +228,19 @@ from contradicting each other again.
 ### Excluded-Path Groups
 
 The excluded list is not one kind of path, and one test cannot decide all of it.
-DoD item 11 limb 1(b) decides each group on its own terms.
+DoD item 11 limb 1(b) decides each of the four groups on its own terms.
 
 **Group E1 — frozen product surfaces.** `rltax.js` · `rltaxworkspace.js` ·
 `rltaxstrategy.js` · `tests/lifetime-tax-conversion.spec.mjs` ·
 `tests/lifetime-tax.support.mjs` · `rlportfolio.js` · `rlportfolioanalytics.js` ·
-`portfolio-survival-allocation.config.json` · every framework-managed file. The
+`portfolio-survival-allocation.config.json`. Eight paths, named exhaustively: the
 lifetime-tax engine and workspace modules, the two Feature 021 test files this
 scope did not open, and Feature 008's module, analytics and pack. No automation
-writes any of them and no other active feature arc has business in them, so a
-commit touching one is this scope's to explain whatever its subject claims.
+writes any of these eight and no other active feature arc has business in them,
+so a commit touching one is this scope's to explain whatever its subject claims.
+Framework-managed files were carried in this group until finding **F-01-R** showed
+the premise is false of them — they have a dedicated automated writer — so they
+now form their own group E4.
 
 **Group E2 — shared registry and generated surfaces.** `tools.json` ·
 `index.html` · `rlnav.js` · `site-exclusions.json` · `scripts/build-pages-site.mjs` ·
@@ -253,6 +256,16 @@ commits, which is the defect finding **F-01-N** already recorded once.
 `notes/README.md`. Evidence records and prose, not product. A verification session
 legitimately records two features' evidence in one commit, so co-membership in a
 commit carries no boundary signal here.
+
+**Group E4 — framework-managed files.** `.github/bubbles/**` ·
+`.github/agents/bubbles*` · `.github/prompts/bubbles.*` ·
+`.github/instructions/bubbles-*` · `.github/skills/bubbles-*`. Excluded from this
+scope's edits for the same reason E1 is, but not decidable by E1's test. These
+have a dedicated automated writer — the framework installer — which rewrites them
+wholesale on every sync and is not this scope. An absolute no-commit clause over
+them is false the moment the installer runs, which is finding **F-01-N**'s failure
+mode arriving in a second place, so E4 carries E2's attribution test instead of
+E1's freeze.
 
 `rltax.js` is excluded deliberately. This scope supplies a table the engine was
 already written to consume; if the engine needs a change to consume it, the
@@ -387,9 +400,13 @@ RED.
     before its RED was accepted, rather than a false GREEN being banked. TP-01-21's
     RED half is the adversarial failure the row fires inside its own command, already
     recorded at `report.md#tp-01-21`. F-01-O is closed.
-- [ ] Every excluded path is unchanged **by this scope**, and the four Feature 021
+- [x] Every excluded path is unchanged **by this scope**, and the four Feature 021
       test files this scope opened stay confined to the clauses the ledger assigns
       them. Three limbs, each decidable against the tree as it stands.
+  - **Evidence:** `report.md#verification-pass-7--2026-08-20--dod-item-11-every-limb-of-the-corrected-requirement-re-derived-against-the-tree-all-hold-the-item-is-ticked`
+    — **closed at verification pass 7**, every limb re-derived against the tree at
+    `569f7899c` and all holding. The limb text below is the requirement it was
+    derived against.
 
       **Limb 1 — attribution.** No change to any excluded path — in the working
       tree or in history since the delivery commit `b9d92a3f1` — is attributable to
@@ -407,15 +424,19 @@ RED.
       uncommitted hunk carrying none of it is not this scope's.
 
       *(b) History.* Decided per [excluded-path group](#excluded-path-groups),
-      because one test cannot decide three kinds of path. No clause turns on a
+      because one test cannot decide four kinds of path. No clause turns on a
       commit subject: subjects are self-declared prose, and a breach is free to
       describe itself however it likes.
 
-      **E1 — frozen product surfaces. Absolute.** `git log b9d92a3f1..HEAD`
-      restricted to group E1 must return **no commits at all**. This is the clause
-      that catches a module, a pack or a forbidden test file crossing the boundary,
-      and it needs no attribution judgement to do it: those paths have no
-      legitimate writer during this scope's arc, so movement is the finding.
+      **E1 — frozen product surfaces. Absolute, over the eight product paths.**
+      `git log b9d92a3f1..HEAD` restricted to group E1 — the eight paths that group
+      names, and nothing else — must return **no commits at all**. This is the
+      clause that catches a module, a pack or a forbidden test file crossing the
+      boundary, and it needs no attribution judgement to do it: those eight have no
+      legitimate writer during this scope's arc, so movement is the finding. The
+      clause is ranged over exactly those eight because that is the set its premise
+      — *no automation writes any of them* — is true of. The framework-managed files
+      the superseded wording also swept in are decided by E4, not here.
 
       **E2 — shared registry and generated surfaces. Attribution by path.** The
       commit set touching group E2 must be disjoint from the commit set touching
@@ -438,6 +459,18 @@ RED.
       `[ ]`→`[x]` flip with an added `Claim Source:` line in the same file. Ticking
       another feature's DoD without evidence, or relaxing its requirement text,
       fails.
+
+      **E4 — framework-managed files. Attribution by path, E2's shape.** Three
+      clauses, all decidable against the tree. The commit set touching group E4
+      must be disjoint from the commit set touching this scope's **exclusive owned
+      product surfaces** — `rltaxrules.js`, `tax-rules/federal/**`,
+      `lifetime-tax-strategy-lab.html`, this scope's fixtures and this scope's
+      Playwright spec. It must also be disjoint from the commit set touching
+      `specs/022-federal-preferential-and-state-income-tax/**`. And no commit may
+      add a line matching `SUP-022-` to any E4 path. The installer's syncs join
+      none of those sets and pass, which is the whole reason E1's freeze could not
+      stay here. As in E2, `scripts/selftest.mjs` and the four opened Feature 021
+      test files are deliberately **not** attribution signals.
 
       *Merges.* A merge commit is exempt from all three clauses only when
       `git show --name-only <merge>` restricted to the excluded list is empty,
@@ -463,6 +496,19 @@ RED.
       E3. What the limb no longer asserts is that two commit sets are disjoint
       across paths where co-membership was never evidence of anything.
 
+      *The E4 adversarial case.* A session doing Feature 022 work widens
+      `.github/bubbles/scripts/artifact-lint.sh` so this scope's artifacts stop
+      failing it. Landed in the same change as `rltaxrules.js` or
+      `tax-rules/federal/**` — which is what delivering anything here looks like —
+      it joins both E4's set and the owned-product set and fails the first clause.
+      Landed with this scope's own `scope.md` or `report.md`, it fails the second.
+      Landed carrying a superseded-assertion marker, it fails the third. Left
+      uncommitted, it fails (a). The residual E4 accepts, exactly as E2 accepts it,
+      is a framework edit committed entirely alone, naming no owned surface, no
+      Feature 022 artifact and no marker; that shape is indistinguishable from an
+      installer sync by path arithmetic, and this limb declines to decide it on the
+      commit subject rather than pretend a prose reading is a test.
+
       **Limb 2 — confinement.** The `SUP-022-NN` census over the five opened files
       equals the distribution
       [`design.md`](../../design.md#per-file-marker-distribution) assigns this
@@ -482,15 +528,30 @@ RED.
       SCN-021-015 pass in full under titles the `--grep` contract still matches. A
       Feature 021 expectation silently changed outside a marker moves one of those
       results and fails this limb.
-  - **Phase:** implement · **Command:** `git diff` and `git diff --cached` over the excluded list, `git log b9d92a3f1..HEAD` over group E1, over group E2 against this scope's owned product surfaces, and over group E3 against `specs/022-federal-preferential-and-state-income-tax/**`, a `SUP-022-NN` census over the five opened files, `node scripts/selftest.mjs`, and `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-" --reporter=list` · **Evidence:** `report.md#change-boundary`, `report.md#tp-01-16`
-  - **Open — limb 1(b) restated, not yet re-verified.** Finding **F-01-Q** stands
-    as recorded: against the wording it tested, limb 1(b) genuinely failed, and
-    `bubbles.test` was right to leave it open rather than dissolve it. The
-    requirement-text decision it routed here is taken: **limb 1(b) was testing the
-    wrong property**, and the restatement above tests the right one. The item stays
-    `[ ]` until `bubbles.test` re-runs all four limbs against the restated text and
-    records the result. Limbs 1(a), 2 and 3 were verified to hold at verification
-    pass 5 and are not disturbed by this change.
+  - **Phase:** implement · **Command:** `git diff` and `git diff --cached` over the excluded list, `git log b9d92a3f1..HEAD` over group E1's eight product paths, over group E2 against this scope's owned product surfaces, over group E3 against `specs/022-federal-preferential-and-state-income-tax/**`, and over group E4 against both this scope's owned product surfaces and `specs/022-federal-preferential-and-state-income-tax/**`, a `SUP-022-NN` census over the five opened files, `node scripts/selftest.mjs`, and `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-" --reporter=list` · **Evidence:** `report.md#change-boundary`, `report.md#tp-01-16`, `report.md#verification-pass-7--2026-08-20--dod-item-11-every-limb-of-the-corrected-requirement-re-derived-against-the-tree-all-hold-the-item-is-ticked`
+  - **Closed at verification pass 7.** The restatement had already fixed what
+    finding **F-01-Q** named: limb 1(b) no longer uses whole-list disjointness, and
+    `1a2f1c00b` no longer breaks it. The correction `bubbles.plan` then took for
+    finding **F-01-R** ranged E1's absolute no-commit clause over the eight product
+    paths and lifted framework-managed files into group E4 under E2's attribution
+    shape. Re-derived at verification pass 7 against the tree at `569f7899c`, every
+    limb holds: limb 1(a) with four dirty excluded paths all foreign and zero
+    markers and zero tax-domain tokens; **E1 at zero** over the eight product paths,
+    with the single `--full-history` merge exempt because its excluded-path name
+    list is empty; E2 and E4 each disjoint from this scope's exclusive owned product
+    surfaces, E4 additionally disjoint from this feature's spec directory, and
+    neither adding a `SUP-022-` line; E3 with one commit touching both, capturing no
+    requirement and pairing every `[ ]`→`[x]` flip with an added `Claim Source:`
+    line in the same file; limb 2 exactly and in both directions; and **limb 3**,
+    which pass 6 recorded `not-run`, executed here rather than carried forward —
+    selftest green at 3155 passed and the browser run under this limb's own declared
+    `--grep "SCN-021-"` exiting 0 with all fifteen SCN-021 scenarios green. Two
+    derivation errors that would each have banked a false result are recorded with
+    the pass rather than quietly corrected: a bare directory prefix is not a glob in
+    a git pathspec and undercounted E4 by one commit, and simplified history hid a
+    merge that E1 had to surface before it could honestly be decided. Nothing was
+    relaxed to reach this — E1 still fails on the first command if `rltax.js` moves
+    at all. Finding **F-01-R** is closed.
   - **Why limb 1(b) no longer uses whole-list disjointness.** The superseded
     wording used commit-set disjointness as a proxy for *no product surface of one
     feature was changed by the other*. The proxy assumed commit membership is a
@@ -547,10 +608,24 @@ RED.
     two conditions above assert that property directly, so a foreign commit no
     longer breaks the limb while a Feature 022 edit to an excluded path still
     does. This supersedes the wording that produced finding **F-01-N**.
-- [ ] All twelve owned supersessions are delivered — SUP-022-01, -02, -04, -05,
+- [x] All twelve owned supersessions are delivered — SUP-022-01, -02, -04, -05,
       -06, -07, -09, -11, -12, -13, -17 and -21 — each carrying its `SUP-022-NN`
       marker, each marker naming its shape and recording the clause it superseded,
       and marker↔ledger closure passing in both directions.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-01-16 browser command · **Evidence:** `report.md#supersession-ledger`, `report.md#tp-01-20`, `report.md#tp-01-21`, `report.md#verification-pass-6--2026-08-20--dod-item-12-clause-1-now-holds-after-a-real-marker-defect-was-found-and-fixed-clause-2-is-not-delivered-finding-f-01-s`, `report.md#verification-pass-7--2026-08-20--dod-item-12-clause-2-is-now-delivered-both-clauses-hold`
+  - **Closed at verification pass 7.** Clause 2 is now built. `TP-01-23` reads each
+    derive marker's superseded clause out of the tree at run time and evaluates it
+    against the shipped pack: five of the six are **false** and SUP-022-04's — whose
+    count clause still holds at eighteen — is shown **vacuous** instead, a notice set
+    substituted at constant length satisfying the count while failing the set
+    identity that replaced it. Every compared quantity is derived from the pack, so
+    a pack edit moves the verdict. Two intended REDs were captured and reverted
+    inside the invocation that applied them: perturbing SUP-022-17's binding token
+    named `unbound: 17`, and forcing SUP-022-04's verdict to `false` produced
+    `holds=true`, proving the evaluator can report NOT displaced rather than handing
+    out falsity by construction. The retained six were re-run in the same command via
+    `TP-01-21`, and the browser half of the command ran with sixteen passed and none
+    skipped — the two halves pass 6 recorded `not-run`. Finding **F-01-S** is closed.
 
       **Strength is proven against the tree as it stands, not against a prior run.**
       For each of the six retained-branch entries — SUP-022-02, -05, -06, -11, -12
@@ -566,7 +641,6 @@ RED.
       adversarial case the ledger names is demonstrated to fail against a
       deliberately broken artifact within the same run, rather than asserted from a
       past red run that cannot be re-executed.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-01-16 browser command · **Evidence:** `report.md#supersession-ledger`, `report.md#tp-01-20`, `report.md#tp-01-21`
   - **Why this shape.** The superseded wording required each replacement to have
     been "seen to fail against the unchanged implementation" and to be "at least as
     strong as the clause it superseded". Both need an artefact the repository does

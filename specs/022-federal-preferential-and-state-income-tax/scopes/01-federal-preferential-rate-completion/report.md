@@ -3132,7 +3132,425 @@ the retained-branch evidence under TP-01-21 already supplies for six of them.
 
 No file was mutated during this verification; every step was read-only.
 
+### Verification pass 6 — 2026-08-20 — DoD item 12: clause 1 now HOLDS after a real marker defect was found and fixed; clause 2 is NOT delivered (finding F-01-S)
+
+**Claim Source:** executed. **Outcome: the item stays `[ ]`.** The restatement made
+the item answerable — the two clauses finding **F-01-L** called unverifiable against
+a squashed history are gone, replaced by clauses the tree can answer. One of the two
+remaining clauses is now proven. The other is not built.
+
+**Clause 1 — twelve markers, each naming its shape, each recording the clause it
+superseded, closure both directions. NOW HOLDS. It did not when this pass began.**
+
+A census of every owned marker against the scope's own ledger table found **one
+disagreement out of twelve**:
+
+```
+SUP-022-01 marker=derive    ledger=derive    AGREE
+SUP-022-02 marker=partition ledger=partition AGREE
+SUP-022-04 marker=derive    ledger=derive    AGREE
+SUP-022-05 marker=relocate  ledger=relocate  AGREE
+SUP-022-06 marker=relocate  ledger=relocate  AGREE
+SUP-022-07 marker=partition ledger=derive    *** MISMATCH ***
+SUP-022-09 marker=derive    ledger=derive    AGREE
+SUP-022-11 marker=relocate  ledger=relocate  AGREE
+SUP-022-12 marker=partition ledger=partition AGREE
+SUP-022-13 marker=relocate  ledger=relocate  AGREE
+SUP-022-17 marker=derive    ledger=derive    AGREE
+SUP-022-21 marker=derive    ledger=derive    AGREE
+MISMATCH_COUNT=1
+```
+
+All twelve record the clause they superseded, and the derive entries record it
+**verbatim and evaluably** — `citedFigures.length === 8` for SUP-022-01,
+`noticeIds.length === 18` for SUP-022-04, `toHaveCount(2)` on `#sourceRecordList
+li` for SUP-022-17, the rendered counts of 14 and 4 for SUP-022-09, and the raw
+member name `preferentialRateTables` for SUP-022-21. Verification pass 2 recorded
+that those verbatim originals "were never captured"; against the current tree that
+is no longer true for five of the six, and it is exactly the input finding
+**F-01-L** said clause 2 would need.
+
+**Why the mismatch is a defect in the marker and not in the ledger.** The
+SUP-022-07 region was read end to end. Every expectation in it derives its expected
+value from the pack — `packPreferentialTax` and `knownSingleOrdinaryTax` over
+`federalPack.preferentialRateTables` — across the below-breakpoint case, the
+across-breakpoint case, the implied-move case, the dividend-pooling case and the
+removal case. **There is no retained branch:** no absent-table fixture, no
+conditional, nothing keeping the superseded refusal expectation alive on a second
+path. A partition is defined by retaining the superseded clause on one branch, and
+this region retains nothing. The scope's ledger table and DoD item 12's own family
+list both call it a derive; one comment token disagreed with both. The token was
+corrected to `shape=derive` and the marker now states in one added sentence why. No
+assertion was touched — the change is comment text in a file this scope owns for
+exactly this entry.
+
+**Why the mismatch mattered rather than being cosmetic.** Clause 2 routes each entry
+down one of two **mutually exclusive** proof paths chosen by its shape. A
+retained-branch entry must show its superseded clause *still asserted and
+non-vacuous*; a derive entry must show that same clause *false or vacuous*. No entry
+can satisfy both. Carrying SUP-022-07 as a partition would have demanded a retained
+branch that does not exist, and a proof built to that demand would have had to
+invent one.
+
+**The gap that hid it, closed additively.** `TP-05-22` closes marker↔ledger
+membership but reads **ids only** — it never compares the shape token to the ledger,
+which is why a twelve-for-twelve id closure sat green over a wrong shape.
+`TP-05-22` was left byte-identical and a new assertion was added beside it:
+
+```
+  ✗ FAIL: TP-01-22: each of this scope's twelve supersession markers declares a shape token
+    agreeing with the shape its ledger row assigns, so no entry can be proved down the
+    retained-branch path while its ledger calls it a derive, or the reverse (07 marker=partition ledger=derive)
+  ✓ TP-01-22 ADVERSARIAL: the shape reader the verdict depends on returns the planted token,
+    reports a planted wrong shape as disagreeing with the ledger, and reports absence as
+    absence rather than as agreement
+Research-Lab self-test: 3144 passed, 1 failed
+```
+
+**This RED is the defect itself, not a planted mutation.** No file was mutated to
+produce it: the assertion was written, run against the tree as it stood, and it
+named the real disagreement on its first execution. The adversarial control passed
+in the same run, so the reader was already known to discriminate — it returns a
+planted token, reports a planted wrong shape as disagreeing with the ledger, and
+reports absence as absence rather than as agreement. That is what separates a real
+finding from an extractor reporting an empty set it never populated.
+
+Same command after correcting the token:
+
+```
+  ✓ TP-01-22: each of this scope's twelve supersession markers declares a shape token agreeing
+    with the shape its ledger row assigns, so no entry can be proved down the retained-branch
+    path while its ledger calls it a derive, or the reverse ()
+  ✓ TP-01-22 ADVERSARIAL: the shape reader the verdict depends on returns the planted token,
+    reports a planted wrong shape as disagreeing with the ledger, and reports absence as
+    absence rather than as agreement
+Research-Lab self-test: 3145 passed, 0 failed
+```
+
+The assertion total is 3145 in both runs, so nothing was deleted or downgraded to
+reach green — the one failure became a pass. Marker↔ledger closure itself is green
+in the same run.
+
+**Clause 2 — strength proven against the tree. NOT DELIVERED. The item stays `[ ]`
+on finding F-01-S.** The clause asks for two demonstrations and neither was built in
+this pass:
+
+- *Retained six — SUP-022-02, -05, -06, -11, -12, -13.* Each superseded clause must
+  still be asserted, exercised against the absent-table fixture, and shown
+  non-vacuous. `TP-01-21` supplies exactly this and DoD item 14 is ticked on it, so
+  the evidence very likely exists — but it was **not re-run in this pass** and is
+  recorded `not-run` rather than carried across from a prior one.
+- *Derive six — SUP-022-01, -04, -07, -09, -17, -21.* Each superseded clause must be
+  restated verbatim from its marker comment, evaluated against the current tree, and
+  shown **false or vacuous while its replacement holds**. No assertion in the suite
+  does this today. Five of the six now have an evaluable verbatim original to test;
+  **SUP-022-07 does not** — its marker records what it superseded descriptively
+  ("the refusal expectations for the gain household and the dividend household and
+  the zero-valued-headline clause") rather than as an expression that can be
+  evaluated, so for that entry the clause has no input.
+
+**What would close clause 2.** For the derive family, one appended assertion group
+restating each of the five evaluable originals against the current pack and
+asserting each is now false — the pack-derived cited-figure count is not 8, the
+pack's `unsupportedFeatures` length is not 18, `pack.sourceRecords.length` is not 2,
+the rendered contributor and absent-figure counts are not 14 and 4, and the
+absent-figure inventory no longer renders the raw member name — while the
+replacement passes in the same run. For SUP-022-07 the marker must first record its
+superseded clause in evaluable form, which is a marker-text change in this scope's
+own file and can be taken once the shape correction above has landed. For the
+retained six, re-running `TP-01-21` in the same command supplies it. Until that group
+exists and runs, the item is not closeable; the browser half of its command was also
+not run this pass.
+
+### Verification pass 7 — 2026-08-20 — DoD item 12 clause 2 is now DELIVERED; both clauses hold
+
+**Claim Source:** `executed`. Every line below is copied from a run made in this
+session. Commands: `node scripts/selftest.mjs` and the TP-01-16 browser command
+`npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-" --reporter=list`.
+
+**What was built.** `TP-01-23` was appended to the suite beside `TP-01-22`, leaving
+`TP-01-22` and `TP-05-22` byte-identical. It reads each derive marker's comment out
+of the tree at run time, extracts the clause the marker says it superseded, and then
+evaluates that clause against the shipped federal pack. Every quantity it compares
+is derived from the pack rather than spelled, so a pack edit moves the verdict
+instead of leaving a literal agreeing with a tree that changed under it. The six
+derive entries are SUP-022-01, -04, -07, -09, -17 and -21; SUP-022-07's evaluable
+restatement is the one landed at `09dceb6fb`, and this group is what consumes it.
+
+**Falsity where it is available, vacuity where it is not.** Five of the six
+superseded clauses are simply **false** against the pack as it stands — the
+pack-derived cited-figure count is not eight, the single preferential rate table is
+no longer an absent figure, the rendered contributor and absent-figure counts are
+not fourteen and four, the source-record count is not two, and no preferential
+status remains an absent figure. SUP-022-04's superseded clause is the exception:
+its notice count **still holds** at eighteen, so falsity is unavailable and the
+group proves **vacuity** instead — a notice set substituted at constant length
+satisfies the count clause while failing the set-identity clause that replaced it.
+That asymmetry is the point of the item, and the group had to compute a `true` for a
+superseded clause to reach it, which is the strongest available evidence that
+falsity is not being handed out by construction.
+
+**Intended RED 1 — the restatement binding is live against the real marker files.**
+The binding token in SUP-022-17's marker comment in `<repo>/tests/lifetime-tax-route.spec.mjs`
+was perturbed from `toHaveCount(2)` to `toHaveCount(3)`, so the marker no longer
+carries the clause the group claims to be testing. The mutation is a comment token,
+carries no figure of any kind, and was reverted inside the same shell invocation
+that applied it.
+
+```
+  ✗ FAIL: TP-01-23: each of this scope’s six derive supersessions declares shape=derive, carries an evaluable restatement of the clause it displaced, and that clause is false or vacuous against the shipped pack while its replacement holds (unbound: 17; unproven: )
+Research-Lab self-test: 3146 passed, 1 failed
+```
+
+The diagnostic names `17` and nothing else, so the group failed for the reason the
+probe created rather than incidentally.
+
+**Intended RED 2 — the evaluator can report NOT displaced.** A GREEN that only ever
+computes "displaced" proves nothing, so the second probe forces SUP-022-04's verdict
+from `vacuous` to `false` while its superseded count clause still holds at eighteen.
+A group that handed out falsity by construction would pass here. It does not:
+
+```
+  ✗ FAIL: TP-01-23: each of this scope’s six derive supersessions declares shape=derive, carries an evaluable restatement of the clause it displaced, and that clause is false or vacuous against the shipped pack while its replacement holds (unbound: ; unproven: 04 verdict=false holds=true vacuous=true replacement=true)
+  ✗ FAIL: TP-01-23 ADVERSARIAL: the evaluator reports a still-holding superseded clause as holding rather than as displaced, the extractor returns planted clause text and reports absence as absence, and a binding token that is not in the marker is not found
+Research-Lab self-test: 3145 passed, 2 failed
+```
+
+`holds=true` is the evaluator reporting that a superseded clause is still true, and
+refusing to call it displaced. Both probes were value-free by construction — a
+comment token and a verdict word — and after each revert `git status --short` showed
+no module, pack, spec or test file of this scope dirty and no stray probe file.
+
+**Same-command GREEN — `node scripts/selftest.mjs`.** The retained six are re-run in
+the same command rather than carried across from a prior pass, which is the half
+pass 6 recorded `not-run`:
+
+```
+  ✓ TP-01-21: the guard can fail — a present preferential table with no citation is refused, and a component override citing a not-retrieved record is refused with the override named
+  ✓ TP-01-22: each of this scope’s twelve supersession markers declares a shape token agreeing with the shape its ledger row assigns, so no entry can be proved down the retained-branch path while its ledger calls it a derive, or the reverse ()
+  ✓ TP-01-23: each of this scope’s six derive supersessions declares shape=derive, carries an evaluable restatement of the clause it displaced, and that clause is false or vacuous against the shipped pack while its replacement holds (unbound: ; unproven: )
+  ✓ TP-01-23 ADVERSARIAL: the evaluator reports a still-holding superseded clause as holding rather than as displaced, the extractor returns planted clause text and reports absence as absence, and a binding token that is not in the marker is not found
+Research-Lab self-test: 3147 passed, 0 failed
+```
+
+The pass total is 3147 in the GREEN run against 3146 and 3145 in the two RED runs,
+so each failure became a pass and nothing was deleted or downgraded to reach green.
+
+**Same-command GREEN — the browser half.** The TP-01-16 command, which pass 6 also
+recorded as not run, executes the five Feature 021 specs over the real route. The
+derive replacements this item is about — SUP-022-07, -09, -12, -13 and -17 — are
+asserted inside these scenarios, so a replacement that did not hold in the browser
+would fail here:
+
+```
+  ✓   9 [system-chrome] › tests/lifetime-tax-federal.spec.mjs:77:1 › Regression: SCN-021-005 long term gains stack on ordinary income (1.9s)
+  ✓  11 [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:136:1 › Regression: SCN-021-009 unsupported thresholds are named unavailable contributors and the curve is labeled incomplete (2.9s)
+  ✓  16 [system-chrome] › tests/lifetime-tax-route.spec.mjs:290:1 › Regression: SCN-021-015 a private export happens only on explicit action and the request ledger stays empty (684ms)
+
+  16 passed (11.4s)
+PW_EXIT=0
+```
+
+Zero failed and zero skipped across all sixteen.
+
+**Verdict.** Clause 1 was closed at pass 6 and is unchanged. Clause 2 is now
+delivered for all six derive entries and re-proven for the retained six in the same
+command, both halves of the item's command were executed this pass, and both
+adversarial demonstrations fire inside the command that reports them. Finding
+**F-01-S** is closed and DoD item 12 is ticked.
+
 ## Change Boundary
+
+### Verification pass 6 — 2026-08-20 — DoD item 11 re-derived against the restated limbs: 1(a), E2, E3 and limb 2 HOLD; E1 is FALSE (finding F-01-R)
+
+**Claim Source:** executed. **Outcome: the item stays `[ ]`.** The restatement
+`bubbles.plan` supplied fixed the defect finding **F-01-Q** named — limb 1(b) no
+longer uses whole-list disjointness, and `1a2f1c00b` no longer breaks it. Every
+clause of the restated limb was re-derived against the tree as it stands. Three of
+the four 1(b) clauses hold, limb 1(a) holds and limb 2 holds. **Group E1 does not**,
+and it fails absolutely rather than marginally, so nothing downstream can rescue it.
+
+**Limb 1(a) — working tree and index. HOLDS.** Four excluded paths are dirty and
+all four are foreign, carrying neither marker nor subject:
+
+```
+$ git --no-pager diff --name-only -- <excluded list>
+briefs/history-current.json
+briefs/history/recommendations/2026-08.jsonl
+market-brief.owner-reads.json
+notes/README.md
+$ git --no-pager diff --cached --name-only -- <excluded list>
+                                              (empty)
+$ git --no-pager diff -- <excluded list> | grep -c 'SUP-022'
+0
+$ git --no-pager diff --cached -- <excluded list> | grep -c 'SUP-022'
+0
+$ git --no-pager diff -U0 -- <excluded list> | grep -E '^[+-][^+-]' \
+    | grep -icE 'bracket|breakpoint|filing.?status|marginal.?rate|capital.?gain|qualified.?dividend|tax.?year|tax.?authority|taxable.?income|standard.?deduction|preferential'
+0
+$ ... | grep -icE '\brate\b'
+0
+```
+
+Zero markers and zero tax-domain tokens across every changed line, added or
+removed. Feature 022's whole subject is tax rules and their provenance, so an
+uncommitted hunk carrying none of it is not this scope's. The clause is satisfied
+in the direction it was written to protect.
+
+**Limb 1(b) group E1 — frozen product surfaces. FALSE.** The clause admits **no
+commit at all**. Eleven exist:
+
+```
+$ git rev-list --count b9d92a3f1..HEAD -- <group E1>
+11
+$ git --no-pager log --oneline b9d92a3f1..HEAD -- <group E1>
+7f15a2a4c chore(bubbles): sync framework to 98eb67d
+7b9746155 chore(bubbles): upgrade framework to 90c070c
+3013ce4cb chore(bubbles): upgrade framework to v7.28.0 (56a17a8)
+fa34eedb8 chore(bubbles): upgrade framework to 60ba5e3 (IMP-053 action-risk fail-closed)
+5cecbc374 chore(bubbles): update framework to 7.28.0 (8733124)
+20d1ab901 chore(bubbles): framework 7.28.0 (1c5fa35) agent and generated docs
+7dbcdf059 chore(bubbles): update framework to 7.28.0 (1c5fa35)
+1cc06cf49 chore(bubbles): update framework to 7.28.0 (2f6c6c4)
+b74cdda0a chore(bubbles): update framework to 7.28.0 (76a3739)
+7d235f030 chore(bubbles): update framework to 7.28.0 (32cbc57)
+e632d140a chore(bubbles): update framework to 7.28.0 (7ec18a1)
+```
+
+**Where in E1 they land, and where they do not.** Group E1 is two unlike things
+under one name: eight product paths, and the open-ended clause *every
+framework-managed file*. Splitting the same range on that seam decides it:
+
+```
+$ git rev-list --count b9d92a3f1..HEAD -- rltax.js rltaxworkspace.js rltaxstrategy.js \
+    <the two unopened Feature 021 test files> rlportfolio.js rlportfolioanalytics.js \
+    portfolio-survival-allocation.config.json
+0
+$ git rev-list --count b9d92a3f1..HEAD -- <the framework-managed directories>
+11
+```
+
+Every one of the eleven was then re-examined for a product path of its own:
+
+```
+7f15a2a4c product_paths=0     7dbcdf059 product_paths=0
+7b9746155 product_paths=0     1cc06cf49 product_paths=0
+3013ce4cb product_paths=0     b74cdda0a product_paths=0
+fa34eedb8 product_paths=0     7d235f030 product_paths=0
+5cecbc374 product_paths=0     e632d140a product_paths=0
+20d1ab901 product_paths=0
+```
+
+**`rltax.js` never moved.** Neither did the workspace module, the strategy module,
+either unopened Feature 021 test file, or any of Feature 008's three files. The
+engine edit E1 was restated to catch — named in the scope's own worked example as
+"this scope's most consequential forbidden edit" — did not happen, and E1's
+product half proves it at zero.
+
+**Why this is a defect in the clause rather than a breach by this scope.** E1
+justifies its absoluteness with a stated premise: *"No automation writes any of
+them and no other active feature arc has business in them, so a commit touching
+one is this scope's to explain whatever its subject claims."* That premise is true
+of the eight product paths and **false of the framework-managed clause**. Framework
+files have a dedicated automated writer — the framework installer — which is the
+sole author of all eleven commits, none of which any feature arc initiated and
+none of which touches a line of product. E1 therefore inherits exactly the failure
+mode finding **F-01-N** already recorded once: a clause that a foreign, scheduled,
+non-feature writer re-falsifies on its own cadence, while the property it protects
+stays intact throughout. The restatement moved that instability out of limb 1's
+enumeration and into E1's membership list without noticing it had travelled.
+
+This is recorded as finding **F-01-R** and is a requirement-text decision, so it is
+routed rather than taken here. **What would make the clause decidable:** split E1's
+absolute no-commit clause so it ranges over the eight product paths only, and give
+framework-managed files an E2-shaped attribution test — disjointness from this
+scope's owned product surfaces plus no added `SUP-022-` line — since they churn
+under a foreign automated writer exactly as the E2 registry surfaces do. Under
+that split, every clause above already passes on the evidence in this pass, and
+the engine-edit case E1 exists to catch still fails on the first command.
+
+**Limb 1(b) group E2 — shared registry and generated surfaces. HOLDS.**
+
+```
+$ git --no-pager log --oneline b9d92a3f1..HEAD -- <group E2> | wc -l
+25
+$ git --no-pager log --oneline b9d92a3f1..HEAD -- <this scope's owned product surfaces> | wc -l
+5
+$ comm -12 <(git rev-list ... <group E2> | sort) <(git rev-list ... <owned surfaces> | sort) | grep -c .
+0
+$ (no commit adds a SUP-022- line to any E2 path)
+E2_MARKER_VIOLATIONS=0
+```
+
+The two commit sets are disjoint, so no commit both edited a registry or generated
+surface and edited `rltaxrules.js`, the federal pack, the lab page, this scope's
+fixtures or its Playwright spec. No `SUP-022-` marker was added to an E2 path.
+`scripts/selftest.mjs` and the four opened Feature 021 test files were correctly
+excluded from the owned-surface set, per the clause's own instruction.
+
+**Limb 1(b) group E3 — foreign evidence and documentation. HOLDS.** Exactly one
+commit touches both this feature's spec directory and an E3 path, and it is the
+one the scope text already names:
+
+```
+COMMITS_TOUCHING_BOTH=1
+1a2f1c00b docs(021,022): record DoD evidence
+    added_SUP022=0        removed_FR_NFR=0
+    x_to_blank=0          blank_to_x=4        added_ClaimSource=12
+```
+
+No requirement was captured: nothing added a `SUP-022-` line, nothing deleted or
+reworded an `**FR-` or `**NFR-` line, and nothing flipped a checkbox from `[x]`
+back to `[ ]`. The four `[ ]`→`[x]` flips are paired **per file**, which is how the
+clause states it:
+
+```
+specs/021-lifetime-tax-strategy-lab/scopes/01-.../report.md   flips=0 claimsource=1
+specs/021-lifetime-tax-strategy-lab/scopes/01-.../scope.md    flips=1 claimsource=1
+specs/021-lifetime-tax-strategy-lab/scopes/05-.../report.md   flips=0 claimsource=7
+specs/021-lifetime-tax-strategy-lab/scopes/05-.../scope.md    flips=3 claimsource=3
+```
+
+Every file carrying a flip carries at least as many added `Claim Source:` lines.
+This is Feature 021 closing Feature 021's own DoD with Feature 021's own executed
+evidence, which is what E3 was restated to permit and what the superseded
+disjointness wording wrongly refused.
+
+**Limb 2 — confinement. HOLDS, exactly and in both directions.** The census over
+the five opened files returns the distribution `design.md` assigns, and no more:
+
+```
+scripts/selftest.mjs               SUP-022-01 -02 -04 -05 -06 -11   (Scope 01's six)
+tests/lifetime-tax-federal.spec.mjs    SUP-022-07 -21
+tests/lifetime-tax-foundation.spec.mjs SUP-022-09 -12
+tests/lifetime-tax-marginal.spec.mjs   SUP-022-13
+tests/lifetime-tax-route.spec.mjs      SUP-022-17
+```
+
+The other markers those files carry — `-03`, `-08`, `-10`, `-14`, `-20`, `-22`,
+`-15`, `-16` — are other scopes' entries and are not Scope 01's to place. The
+reverse direction was run marker by marker over every tracked `.mjs`/`.js`: each
+of the twelve appears in the single file the table names for it and in no other.
+Both files the boundary forbids carry zero:
+
+```
+tests/lifetime-tax-conversion.spec.mjs count=0
+tests/lifetime-tax.support.mjs         count=0
+```
+
+(The reverse census also surfaced `.first-load-fix-worktree/scripts/selftest.mjs`.
+That path is an untracked scratch worktree belonging to a concurrent session, not a
+tracked repository file, so it is outside the census set and outside this scope.)
+
+**Limb 3 — behavioural invariance. NOT RE-RUN this pass, and deliberately not
+claimed.** Its `--grep "SCN-021-"` browser command was not executed here. It was
+verified holding at verification pass 5 and nothing in this pass disturbed it — no
+file was modified — but a prior pass's result is not this pass's evidence, so it is
+recorded as `not-run` rather than carried forward as green. It could not change the
+outcome in any case: E1 is false, and the item is conjunctive.
+
+**Net.** Limb 1(a) holds. Limb 1(b) holds on E2 and E3 and is false on E1. Limb 2
+holds. Limb 3 not run. The item stays `[ ]` on finding **F-01-R**.
 
 ### Verification pass 5 — 2026-08-19 — DoD item 11: limbs 1(a), 2 and 3 HOLD, limb 1(b) FAILS on a real overlap (finding F-01-Q)
 
@@ -3380,6 +3798,223 @@ clause unverifiable. Both are planning decisions owned by `bubbles.plan`, not
 implementation work, so neither is performed here.
 
 No file was mutated during this verification; every step was read-only.
+
+### Verification pass 7 — 2026-08-20 — DoD item 11: every limb of the corrected requirement re-derived against the tree; all hold; the item is ticked
+
+**Claim Source:** executed. **Outcome: the item holds and is ticked.** The
+requirement text `bubbles.plan` corrected at `63fbf797b` for finding **F-01-R**
+ranges E1's absolute no-commit clause over the eight product paths only and lifts
+framework-managed files into a new group E4 carrying E2's attribution shape. Every
+limb was re-derived from scratch against the tree at `569f7899c` — limb 1(a), the
+four 1(b) groups, the merge exemption, limb 2, and limb 3, which pass 6 recorded
+`not-run` and did not carry forward. All hold.
+
+**Limb 1(a) — working tree and index. HOLDS.**
+
+Evidence:
+
+```
+$ git --no-pager diff --name-only -- <excluded list>
+briefs/history-current.json
+briefs/history/recommendations/2026-08.jsonl
+market-brief.owner-reads.json
+notes/README.md
+$ git --no-pager diff --cached --name-only -- <excluded list>
+                                              (empty)
+-- SUP-022 in unstaged diff: 0
+-- SUP-022 in staged diff:   0
+-- tax-domain tokens (unstaged changed lines): 0
+-- tax-domain tokens (staged changed lines):   0
+```
+
+Four excluded paths are dirty and every one is foreign — two brief-history
+artifacts, the owner-reads file and the shared notes index. Across every changed
+line, added or removed, the scan for `bracket|breakpoint|filing status|marginal
+rate|capital gain|qualified dividend|tax year|tax authority|taxable income|standard
+deduction|preferential|rate` returns zero, and so does the `SUP-022` marker scan.
+Feature 022's whole subject is tax rules and their provenance, so an uncommitted
+hunk carrying none of it is not this scope's.
+
+**Limb 1(b) group E1 — the eight product paths. HOLDS at zero.**
+
+Evidence:
+
+```
+$ git rev-list --count b9d92a3f1..HEAD -- rltax.js rltaxworkspace.js rltaxstrategy.js \
+    <the two unopened Feature 021 test files> rlportfolio.js rlportfolioanalytics.js \
+    portfolio-survival-allocation.config.json
+0
+$ git rev-list --full-history --count b9d92a3f1..HEAD -- <the same eight>
+1
+$ git --no-pager log --full-history --oneline b9d92a3f1..HEAD -- <the same eight>
+cff40e23d Merge remote-tracking branch 'origin/main'
+$ git show --name-only --format='' cff40e23d -- <the same eight>
+                                              (empty)
+```
+
+The clause admits no commit at all over the eight, and simplified history returns
+none. `--full-history` surfaces one three-parent merge, and the limb's own merge
+clause decides it: `git show --name-only` restricted to the excluded list is empty,
+so the merge introduced no excluded-path change of its own and is exempt. This is
+the clause that catches the engine edit the scope's worked example names as its
+most consequential forbidden change — `rltax.js` moving at all — and it proves at
+zero rather than by reading anyone's commit subject.
+
+**Limb 1(b) group E2 — shared registry and generated surfaces. HOLDS.**
+
+Evidence:
+
+```
+E2 commits=25   OWNED commits=5
+E2 owned-set overlap: 0
+E2_MARKER_VIOLATIONS=0
+```
+
+The commit set touching E2 and the commit set touching this scope's exclusive owned
+product surfaces — `rltaxrules.js`, `tax-rules/federal/**`,
+`lifetime-tax-strategy-lab.html`, this scope's fixtures and its Playwright spec —
+are disjoint, so no commit both edited a registry or generated surface and edited an
+owned surface. No commit adds a `SUP-022-` line to an E2 path. Per the clause's own
+instruction, `scripts/selftest.mjs` and the four opened Feature 021 test files were
+excluded from the owned-surface set.
+
+**Limb 1(b) group E3 — foreign evidence and documentation. HOLDS.**
+
+Evidence:
+
+```
+COMMITS_TOUCHING_BOTH=1
+1a2f1c00b docs(021,022): record DoD evidence
+    added_SUP022=0   removed_FR_NFR=0   x_to_blank=0   blank_to_x=4   added_ClaimSource=12
+specs/021-lifetime-tax-strategy-lab/scopes/01-.../report.md  flips=0 claimsource=1
+specs/021-lifetime-tax-strategy-lab/scopes/01-.../scope.md   flips=1 claimsource=1
+specs/021-lifetime-tax-strategy-lab/scopes/05-.../report.md  flips=0 claimsource=7
+specs/021-lifetime-tax-strategy-lab/scopes/05-.../scope.md   flips=3 claimsource=3
+```
+
+Exactly one commit touches both this feature's spec directory and an E3 path. Its
+E3-restricted diff adds no `SUP-022-` line, deletes or rewords no `**FR-` or `**NFR-`
+line, and flips no checkbox from `[x]` back to `[ ]`. Every file carrying a
+`[ ]`→`[x]` flip carries at least as many added `Claim Source:` lines, which is how
+the clause states the pairing. This is Feature 021 closing Feature 021's own DoD with
+Feature 021's own executed evidence — the shape E3 was restated to permit.
+
+**Limb 1(b) group E4 — framework-managed files. HOLDS on all three clauses.**
+
+Evidence:
+
+```
+E4 count=11
+7f15a2a4c 7b9746155 3013ce4cb fa34eedb8 5cecbc374 20d1ab901
+7dbcdf059 1cc06cf49 b74cdda0a 7d235f030 e632d140a   (all chore(bubbles) installer syncs)
+E4 owned overlap:   0
+E4 spec022 overlap: 0
+E4_MARKER_VIOLATIONS=0
+```
+
+Eleven commits touch group E4 and every one is a framework-installer sync. The E4
+commit set is disjoint from this scope's exclusive owned product surfaces, disjoint
+from `specs/022-federal-preferential-and-state-income-tax/**`, and adds no `SUP-022-`
+line to any E4 path — so all three clauses hold. The installer's syncs join neither
+set and pass, which is exactly the reason E1's freeze could not stay here.
+
+**Two derivation corrections worth recording, because a first draft of each was
+wrong in the direction that would have banked a false result.**
+
+First, a bare directory prefix is not a glob in a git pathspec. `.github/agents/bubbles`
+matches nothing, because it is neither an existing file nor a directory; the first
+E4 derivation returned **10** commits and silently dropped `20d1ab901`, which touches
+`.github/agents/bubbles.releases.agent.md`. Re-run with `:(glob).github/agents/bubbles*`
+and the three sibling patterns, E4 returns **11**, reconciling exactly with the eleven
+pass 6 attributed to the framework half of the superseded E1. A narrower-than-intended
+pathspec makes an attribution clause easier to pass, so the corrected form is the one
+recorded above.
+
+Second, simplified history hides a merge. The first E1 derivation returned 0 and
+stopped there; `--full-history` returns 1. The additional commit is exempt under the
+limb's merge clause, so the verdict is unchanged, but the clause is only honestly
+decided once the merge has been surfaced and tested rather than never surfaced at all.
+
+**Limb 2 — confinement. HOLDS, exactly and in both directions.**
+
+Evidence:
+
+```
+$ SUP-022 census over the five opened files
+scripts/selftest.mjs                     01 02 03 04 05 06 08 10 11 14 20 22
+tests/lifetime-tax-federal.spec.mjs      07 15 21
+tests/lifetime-tax-foundation.spec.mjs   09 12
+tests/lifetime-tax-marginal.spec.mjs     08 13
+tests/lifetime-tax-route.spec.mjs        16 17
+tests/lifetime-tax-conversion.spec.mjs: 0
+tests/lifetime-tax.support.mjs:         0
+```
+
+This scope's twelve markers land exactly where the
+[per-file marker distribution](../../design.md#per-file-marker-distribution) places
+them: 01, 02, 04, 05, 06 and 11 in `scripts/selftest.mjs`; 07 and 21 in
+`tests/lifetime-tax-federal.spec.mjs`; 09 and 12 in
+`tests/lifetime-tax-foundation.spec.mjs`; 13 in `tests/lifetime-tax-marginal.spec.mjs`;
+17 in `tests/lifetime-tax-route.spec.mjs`. No Scope 01 marker appears in a file the
+table does not name for it — checked in both directions across all five files — and
+the two forbidden files carry zero. The remaining ids in the census (03, 08, 10, 14,
+15, 16, 20, 22) are owned by Scopes 02 and 03 under the same table and are not this
+limb's subject.
+
+**Limb 3 — behavioural invariance. HOLDS. This is the limb pass 6 recorded
+`not-run`; it was executed here rather than carried forward.**
+
+Evidence:
+
+```
+$ node scripts/selftest.mjs
+================================================
+Research-Lab self-test: 3155 passed, 0 failed
+================================================
+
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=system-chrome --grep "SCN-021-" --reporter=list
+exit: 0
+sha256: e5e6c6a7fe60f9ee48502e7c0c83978570a7b0e7651063d3899a28b9f8f94ec7
+  ✓ SCN-021-001 minimum viable input resolves one federal pack ...
+  ✓ SCN-021-002 unsupported year jurisdiction and income kind each refuse ...
+  ✓ SCN-021-003 the tax workspace issues zero network requests ...
+  ✓ SCN-021-004 federal tax is exact below at and above a bracket edge
+  ✓ SCN-021-005 long term gains stack on ordinary income
+  ✓ SCN-021-006 deduction selection is explicit and the annual result reconciles
+  ✓ SCN-021-007 the next dollar is priced as a curve with named thresholds
+  ✓ SCN-021-008 a cliff renders as a step and is never smoothed
+  ✓ SCN-021-009 unsupported thresholds are named unavailable contributors ...
+  ✓ SCN-021-010 two conversion policies are compared ...
+  ✓ SCN-021-011 the conversion comparison discloses everything it did not model
+  ✓ SCN-021-012 the comparison emits a single year federal difference ...
+  ✓ SCN-021-013 Simple opens first with a decision level answer ...
+  ✓ SCN-021-014 every value is explained and every unavailable state is keyboard reachable
+  ✓ SCN-021-014 tax and account tables stay readable at the mobile viewport
+  ✓ SCN-021-015 a private export happens only on explicit action ...
+
+  16 passed (10.7s)
+```
+
+The eleven `lifetime-tax` selftest groups — which include Feature 021's Scope 01
+through Scope 05 groups — run inside a suite that reports zero failures, and the
+browser run under the limb's own declared `--grep "SCN-021-"` exits 0 with sixteen
+tests green covering all fifteen scenarios SCN-021-001 through SCN-021-015 in full,
+under titles the `--grep` contract still matches. SCN-021-014 owns two tests, which
+is why sixteen tests carry fifteen scenarios. A Feature 021 expectation silently
+changed outside a marker would have moved one of these results; none moved.
+
+The wider cumulative suite was also run once at
+`--grep "SCN-02[1-4]"` (77 passed, zero failed, zero skipped,
+sha256 `f6907121626d9d8b667fd444fe205a57d8e43aea95e439232d6dac1a1c5df051`). That run
+reported exit 1 for two post-run `worker process did not exit within 300000ms after
+stop, force-killed it` teardown errors that Playwright itself records as "not a part
+of any test". It is cited only as corroboration; limb 3 rests on the exit-0 run under
+its own declared command above.
+
+**Verdict.** Limb 1(a), all four 1(b) groups, the merge exemption, limb 2 and limb 3
+hold against the tree as it stands. Finding **F-01-R** is closed. No file was mutated
+during this verification; every step was read-only.
 
 ## Claim Boundary
 

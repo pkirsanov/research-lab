@@ -16048,13 +16048,13 @@ try {
     .map((row) => /SUP-022-\d{2}/.exec(row)[0]));
   const deliveredList = Array.from(deliveredMarkers).sort();
   const ledgerList = Array.from(ledgerRows).sort();
-  /* Two Scope 02 replacements were delivered without their markers before this scope began. The
-     gap is named individually here rather than tolerated by a loose comparison, so a third
+    /* One Scope 02 replacement was delivered without its marker before this scope began. The
+      gap is named individually here rather than tolerated by a loose comparison, so a second
      undelivered marker, or a delivered marker with no ledger row, fails immediately. The ids are
      assembled from parts so that naming them here does not make the scanner see them as
      delivered. */
   const MARKER_PREFIX = 'SUP-022-';
-  const KNOWN_UNMARKED_LEDGER_ROWS = [MARKER_PREFIX + '18', MARKER_PREFIX + '19'];
+    const KNOWN_UNMARKED_LEDGER_ROWS = [MARKER_PREFIX + '18'];
   const unmarkedLedgerRows = ledgerList.filter((marker) => deliveredList.indexOf(marker) < 0);
   const markersWithoutLedgerRow = deliveredList.filter((marker) => ledgerList.indexOf(marker) < 0);
   assert(deliveredList.length > 0
@@ -16064,7 +16064,7 @@ try {
     && deliveredList.indexOf(MARKER_PREFIX + '22') >= 0
     && specText.indexOf('Twenty-two pre-existing assertions are superseded') >= 0
     && ledgerList.length === 22,
-  'TP-05-22: every SUP-022 marker delivered in the source maps to a ledger row, every ledger row except the two pre-existing unmarked Scope 02 rows named here is delivered, the ids stay inside the declared range, and the ledger total agrees with the paragraph that states it');
+  'TP-05-22: every SUP-022 marker delivered in the source maps to a ledger row, every ledger row except the one pre-existing unmarked Scope 02 row named here is delivered, the ids stay inside the declared range, and the ledger total agrees with the paragraph that states it');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 Scope 05 combined group threw): ' + e.message); }
 
 /* ---------- Feature 023 Scope 01: property assessment mechanics and statutory relief ---------- */

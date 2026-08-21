@@ -240,6 +240,10 @@ function closure(closureEventType, reasonCode, field) {
 /* The six fields all three measured row shapes share. `ac` is deliberately absent from this list. */
 const BAR_CORE_FIELDS = Object.freeze(['o', 'h', 'l', 'c', 'v']);
 
+/* The three data-quality arrays `fetch-bars` writes beside the rows. Each holds SESSION DATES,
+   not flags, which is what lets a claim ask about its OWN window instead of about the file. */
+const DATA_QUALITY_SESSION_FIELDS = Object.freeze(['reconstructedSessions', 'thinObservedSessions', 'zeroObservedSessions']);
+
 /* Derived from the shipped `seriesRefFor`, never restated: `SERIES_INTERVAL` is private to
    rlclaims.js, and a second copy here would keep answering `1d` after the shipped one moved. */
 const SERIES_INTERVAL = claims.seriesRefFor('X').split('/')[2];
@@ -278,6 +282,18 @@ export function readBars(text) {
     }
     if ('ac' in row && !Number.isFinite(row.ac)) throw bad(`${bars.sym} row ${row.t} has a non-finite ac`);
     previous = row.t;
+  }
+
+  /* ABSENT DEFAULTS TO EMPTY, PRESENT IS VALIDATED STRICTLY. Measured over the committed tree,
+     291 of the 292 series carry all three — and `NDX`, 469 real rows written before the fields
+     existed, carries none of them. Requiring them would refuse a legitimate series over its age;
+     accepting a MALFORMED one would let a substrate defect decide a claim, so that still throws. */
+  for (const field of DATA_QUALITY_SESSION_FIELDS) {
+    if (bars[field] === undefined) { bars[field] = []; continue; }
+    if (!Array.isArray(bars[field])) throw bad(`${bars.sym} ${field} is not an array`);
+    for (const date of bars[field]) {
+      if (!ISO_DATE.test(date)) throw bad(`${bars.sym} ${field} carries ${JSON.stringify(date)}, which is not a session date`);
+    }
   }
   return bars;
 }
@@ -333,8 +349,49 @@ export function fenceObservations(calendar, bars, resolutionDate) {
     asOfDate: resolutionDate,
     resolvable: bars.asof >= resolutionDate,
     observations,
-    excluded: Object.freeze({ future, beyondCoverage, unmappable })
+    excluded: Object.freeze({ future, beyondCoverage, unmappable }),
+    /* Carried ONTO the fence rather than read from the file again later, so the gate below and
+       the value path are asking the same object about the same sessions. */
+    dataQuality: Object.freeze(Object.fromEntries(
+      DATA_QUALITY_SESSION_FIELDS.map((field) => [field, Object.freeze((bars[field] ?? []).slice())])
+    ))
   };
+}
+
+/* Asserted against the shipped vocabulary rather than trusted, exactly as the coverage and
+   session-absent reasons are. This is the reason `RESOLVER_NOT_EVALUABLE_REASONS` has always
+   carried and nothing has ever raised. */
+export const ZERO_OBSERVED_REASON = 'zero-observed-session';
+if (!claims.RESOLVER_NOT_EVALUABLE_REASONS.includes(ZERO_OBSERVED_REASON)) {
+  throw new Error(`brief-resolve-outcomes: "${ZERO_OBSERVED_REASON}" is not a shipped resolver not-evaluable reason`);
+}
+
+/**
+ * The data-quality facts about the sessions THIS claim measured, and only those.
+ *
+ * The committed arrays are file-level: they span the symbol's whole history, so a zero-observed
+ * session in 2019 is on the same list as one last week. Scoring a 2026 claim against the file
+ * would refuse every claim on a symbol that ever had one bad session — the gate has to be scoped
+ * to the window, `[entryDate, fence.asOfDate]`.
+ *
+ * The upper bound is the FENCE's own `asOfDate`, not a second read of `horizon.resolutionDate`.
+ * That is the whole point: the sessions the gate judges are exactly the sessions the fence let a
+ * reader see, so the two cannot come to disagree about what was consulted. Nothing here is
+ * re-derived from the calendar for the same reason.
+ *
+ * Three arrays, three DIFFERENT verdicts, decided by the caller: only `zeroObservedSessions`
+ * means nothing traded. A reconstructed or thin session HAS a price — a worse one, which is a
+ * fact to record in provenance rather than a reason to discard a real measurement.
+ */
+export function dataQualitySessionsIn(fence, entryDate) {
+  if (!ISO_DATE.test(entryDate)) {
+    throw new Error(`brief-resolve-outcomes: entryDate ${JSON.stringify(entryDate)} is not an ISO date`);
+  }
+  const quality = fence.dataQuality ?? {};
+  const inWindow = (field) => Object.freeze(
+    (quality[field] ?? []).filter((date) => date >= entryDate && date <= fence.asOfDate).sort()
+  );
+  return Object.freeze(Object.fromEntries(DATA_QUALITY_SESSION_FIELDS.map((field) => [field, inWindow(field)])));
 }
 
 /**
@@ -377,8 +434,9 @@ export function basisValueAt(fence, priceBasis, sessionDate) {
  *
  * No rounding, no clamping, no epsilon: a flat outcome nudged to +/-e would manufacture a
  * directional result the data does not support, and `classifyOutcome` already carries the value
- * through verbatim. A non-positive entry is `zeroObservedSessions` territory — the data-quality
- * gate the caller must apply first — so it is a caller error and throws rather than refusing.
+ * through verbatim. A non-positive entry is `zeroObservedSessions` territory, which `subjectReturn`
+ * now gates BEFORE reading a price — so reaching here with one is a caller bypassing that gate,
+ * and it throws rather than refusing.
  */
 export function periodReturn(entryValue, resolutionValue) {
   if (!Number.isFinite(entryValue) || entryValue <= 0) {
@@ -429,11 +487,26 @@ export function subjectReturn(claim, fences) {
 
   const observations = [];
   const legReturns = [];
+  const reconstructedSessions = new Set();
+  const thinObservedSessions = new Set();
   for (const seriesRef of refs) {
     const fence = fences.get(seriesRef);
     if (fence === undefined) {
       throw new Error(`brief-resolve-outcomes: no fenced observations supplied for ${seriesRef}`);
     }
+    /* THE DATA-QUALITY GATE, before a single price is read, and scoped to this claim's own
+       window by the fence it is about to read from. A zero-observed session is the one refusal:
+       nothing traded, so there is no return to compute rather than a poor one. A reconstructed
+       or thin session DID trade — discarding it would throw away a real measurement — so it
+       resolves normally and is carried into provenance, where a reader can weigh the number
+       against how it was sourced. */
+    const quality = dataQualitySessionsIn(fence, claim.magnitude.entryDate);
+    if (quality.zeroObservedSessions.length > 0) {
+      return closure('not-evaluable', ZERO_OBSERVED_REASON, `observations.${fence.symbol}.${quality.zeroObservedSessions[0]}`);
+    }
+    for (const date of quality.reconstructedSessions) reconstructedSessions.add(date);
+    for (const date of quality.thinObservedSessions) thinObservedSessions.add(date);
+
     const read = [];
     for (const [label, sessionDate] of [['entry', claim.magnitude.entryDate], ['resolution', claim.horizon.resolutionDate]]) {
       const at = basisValueAt(fence, basis.priceBasis, sessionDate);
@@ -451,6 +524,9 @@ export function subjectReturn(claim, fences) {
     weighting,
     legReturns: Object.freeze(legReturns),
     observations: Object.freeze(observations),
+    // Deduplicated across legs: two series repaired on one session is one degraded session.
+    reconstructedSessions: Object.freeze([...reconstructedSessions].sort()),
+    thinObservedSessions: Object.freeze([...thinObservedSessions].sort()),
     subjectReturn: weighting === 'primary-only' ? legReturns[0] : total / legReturns.length
   };
 }
@@ -483,6 +559,8 @@ export function outcomeValueFor(claim, fences) {
     // which the collapsed `subjectReturn` scalar can no longer tell apart.
     legReturns: subject.legReturns,
     observations: subject.observations,
+    reconstructedSessions: subject.reconstructedSessions,
+    thinObservedSessions: subject.thinObservedSessions,
     basisFingerprint: basisFingerprint(subject.priceBasis, subject.observations)
   };
 }
@@ -624,6 +702,11 @@ export function resolutionProvenanceFor(calendar, claim, outcome) {
   if (outcome !== null && outcome !== undefined && outcome.ok === true) {
     provenance.priceBasis = outcome.priceBasis;
     provenance.basisFingerprint = outcome.basisFingerprint;
+    /* Beside the basis fields rather than above them, because they record HOW a measurement was
+       sourced and an unmeasured claim made no measurement to qualify. A not-evaluable record
+       carrying an empty degraded-session list would imply a clean read that never happened. */
+    provenance.reconstructedSessions = (outcome.reconstructedSessions ?? []).slice();
+    provenance.thinObservedSessions = (outcome.thinObservedSessions ?? []).slice();
   }
   return { ok: true, provenance };
 }

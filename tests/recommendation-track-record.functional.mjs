@@ -36,11 +36,17 @@ import {
     MEASURED_CLOSURE_EVENTS,
     SESSION_PREDICATE_CODE,
     SESSION_PREDICATE_KEY,
+    ZERO_OBSERVED_REASON,
     advanceSessions,
+    dataQualitySessionsIn,
     earlyCloseSessionsIn,
+    fenceObservations,
     loadCalendar,
+    outcomeValueFor,
+    readBars,
     readCalendar,
     resolutionAxesFor,
+    resolutionProvenanceFor,
     sessionDateForEpoch,
     sessionsBy,
 } from '../scripts/brief-resolve-outcomes.mjs';
@@ -1365,5 +1371,141 @@ test('T-04-F3: `withdrawn` is unreachable from every resolver path — the resid
         },
         'withdrawn supplied as a closure event',
     );
+});
+
+/* ── Scope 04, increment 5 ────────────────────────────────────────────────────────────────
+   The data-quality gate. `fetch-bars` records three DIFFERENT facts about a session and the
+   resolver owes each a different answer: a zero-observed session did not trade and cannot be
+   scored, while a reconstructed or a thin one DID trade and must be measured — recorded, not
+   discarded, because refusing a real price for being an imperfect one silently drops outcomes.
+
+   The row that carries the design is the OUT-OF-WINDOW one. The committed arrays are file-level
+   and span a symbol's whole history, so the tempting implementation — "does this file list a
+   zero-observed session?" — passes every other assertion here while refusing every claim on any
+   symbol that ever had one bad session. Only a case whose bad session sits OUTSIDE the measured
+   window can tell the two implementations apart. */
+
+const BARS_FIXTURE_DIR = path.join(REPO_ROOT, 'tests', 'fixtures', 'recommendation-track-record', 'bars');
+const QUALITY_ENTRY_SESSION = '2026-07-28';
+const QUALITY_RESOLUTION_SESSION = '2026-07-29';
+const BEFORE_THE_WINDOW = '2026-01-05';
+
+/** The synthetic two-session series, rewritten with the data-quality arrays one case needs. */
+function qualityBars(quality) {
+    const source = JSON.parse(readFileSync(path.join(BARS_FIXTURE_DIR, 'DVG.json'), 'utf8'));
+    return readBars(JSON.stringify({ ...source, ...quality }));
+}
+
+/** Keyed by `seriesRef` exactly as `subjectReturn` reads them, over the fixture's own window. */
+function qualityFences(quality) {
+    return new Map([[
+        claims.seriesRefFor('DVG'),
+        fenceObservations(loadCalendar(REPO_ROOT), qualityBars(quality), QUALITY_RESOLUTION_SESSION),
+    ]]);
+}
+
+function qualityClaim() {
+    const fixture = structuredClone(loadClaimFixture('evaluable-instrument-add'));
+    fixture.input.action.claim.resolvesTo = ['DVG'];
+    fixture.input.action.claim.weighting = 'primary-only';
+    fixture.input.action.claim.priceBasis = 'raw-close';
+    fixture.input.binding.entryDate = QUALITY_ENTRY_SESSION;
+    fixture.input.binding.resolutionDate = QUALITY_RESOLUTION_SESSION;
+    const result = claims.mintClaim(mintInputFrom(fixture, { committedSeries: ['DVG'] }));
+    assertEvaluable(result, 'synthetic DVG data-quality claim');
+    return result.claim;
+}
+
+test('T-04-F4: the data-quality gate refuses only zero-observed sessions, records the degraded ones, and is scoped to the measured window', () => {
+    const calendar = loadCalendar(REPO_ROOT);
+    const claim = qualityClaim();
+    const resolve = (quality) => outcomeValueFor(claim, qualityFences(quality));
+
+    /* THE REASON IS THE SHIPPED ONE, and it is the one the vocabulary has always carried with
+       nothing to raise it — so this row wires an existing name rather than inventing one. */
+    assert.equal(claims.RESOLVER_NOT_EVALUABLE_REASONS.includes(ZERO_OBSERVED_REASON), true, 'the gate reason is a shipped resolver reason');
+
+    /* THE CONTROL. A clean window scores, so every refusal below is attributable to the fact
+       under test rather than to a resolver that refuses this fixture whatever it is handed. */
+    const clean = resolve({});
+    assert.equal(clean.ok, true, `a clean window must score: ${JSON.stringify(clean.error ?? clean.closure)}`);
+    assert.equal(clean.subjectReturn, (110 / 100 - 1) * 100, 'the fixture rises 10% on raw-close');
+
+    /* ZERO-OBSERVED IN-WINDOW CLOSES. Nothing traded, so there is no return to compute — and it
+       is a CLOSURE about the claim, not an `RTR-*` refusal about our substrate. */
+    for (const session of [QUALITY_ENTRY_SESSION, QUALITY_RESOLUTION_SESSION]) {
+        const gated = resolve({ zeroObservedSessions: [session] });
+        assert.equal(gated.ok, false, `${session}: a zero-observed session in the window must not score`);
+        assert.equal(gated.error, undefined, `${session}: it is a fact about the claim, not a substrate refusal`);
+        assert.equal(gated.closure.closureEventType, 'not-evaluable', `${session}: closes not-evaluable`);
+        assert.equal(gated.closure.reasonCode, ZERO_OBSERVED_REASON, `${session}: on the shipped reason`);
+        assert.equal(gated.closure.field.endsWith(session), true, `${session}: naming the session that did not trade`);
+    }
+
+    /* THE SCOPING ROW. The same bad session dated BEFORE the window does not block: the claim
+       measured 2026-07-28..2026-07-29 and says nothing about January. A file-global gate passes
+       every assertion above and fails exactly here. */
+    assert.equal(BEFORE_THE_WINDOW < QUALITY_ENTRY_SESSION, true, 'the out-of-window date really is outside the window');
+    const distant = resolve({ zeroObservedSessions: [BEFORE_THE_WINDOW] });
+    assert.equal(distant.ok, true, 'a zero-observed session outside the window must not block the claim');
+    assert.equal(distant.outcomeValue, clean.outcomeValue, 'and the measurement is the clean one, unchanged');
+
+    /* AND THE WINDOW COMES FROM THE FENCE THE VALUE PATH READS, so the two cannot disagree about
+       which sessions were consulted. Asked directly, the gate partitions one array by the window. */
+    const [fence] = [...qualityFences({ zeroObservedSessions: [BEFORE_THE_WINDOW, QUALITY_RESOLUTION_SESSION] }).values()];
+    assert.equal(fence.asOfDate, QUALITY_RESOLUTION_SESSION, 'the upper bound IS the fence');
+    assert.deepEqual(
+        [...dataQualitySessionsIn(fence, QUALITY_ENTRY_SESSION).zeroObservedSessions],
+        [QUALITY_RESOLUTION_SESSION],
+        'exactly the in-window member, from an array carrying both',
+    );
+
+    /* DEGRADED SESSIONS RESOLVE AND ARE RECORDED. Same number as the clean read — a repaired or
+       thin session is measured, never discarded — with the dates carried into hashed provenance
+       so a later reader can weigh the outcome against how it was sourced. */
+    for (const field of ['reconstructedSessions', 'thinObservedSessions']) {
+        const other = field === 'reconstructedSessions' ? 'thinObservedSessions' : 'reconstructedSessions';
+        const degraded = resolve({ [field]: [QUALITY_ENTRY_SESSION, BEFORE_THE_WINDOW] });
+        assert.equal(degraded.ok, true, `${field}: a degraded session traded, so it must still score`);
+        assert.equal(degraded.outcomeValue, clean.outcomeValue, `${field}: and score exactly what the clean read scored`);
+
+        const provenance = resolutionProvenanceFor(calendar, claim, degraded);
+        assert.equal(provenance.ok, true, `${field}: provenance must assemble`);
+        assert.deepEqual(provenance.provenance[field], [QUALITY_ENTRY_SESSION], `${field}: the in-window date is recorded, the out-of-window one is not`);
+        assert.deepEqual(provenance.provenance[other], [], `${field}: and the other degradation is not invented`);
+
+        /* ADDITIVE. The three fields increment 3 established are untouched beside the new pair. */
+        for (const existing of ['earlyCloseSessions', 'priceBasis', 'basisFingerprint']) {
+            assert.equal(Object.prototype.hasOwnProperty.call(provenance.provenance, existing), true, `${field}: ${existing} survives`);
+        }
+        assert.equal(provenance.provenance.basisFingerprint, degraded.basisFingerprint, `${field}: and the fingerprint is still the reused one`);
+    }
+
+    /* A GATED CLAIM RECORDS NO DEGRADED SESSIONS, because it measured nothing to qualify — an
+       empty list on a not-evaluable record would imply a clean read that never happened. */
+    const gatedProvenance = resolutionProvenanceFor(calendar, claim, resolve({ zeroObservedSessions: [QUALITY_ENTRY_SESSION] }));
+    assert.deepEqual(Object.keys(gatedProvenance.provenance), ['earlyCloseSessions'], 'an unmeasured claim carries no sourcing block');
+
+    /* THE COMMITTED INSTANCE. `EA` is a real series with a real zero-observed session, so the
+       gate is grounded in the tree rather than only in a fixture this row wrote for itself. */
+    const ea = readBars(readFileSync(path.join(REPO_ROOT, 'data', 'bars', 'EA.json'), 'utf8'));
+    assert.deepEqual([...ea.zeroObservedSessions], ['2026-08-10'], 'EA carries the committed zero-observed session');
+    const eaFence = fenceObservations(calendar, ea, '2026-08-11');
+    assert.deepEqual([...dataQualitySessionsIn(eaFence, '2026-08-03').zeroObservedSessions], ['2026-08-10'], 'a claim spanning it is gated');
+    assert.deepEqual([...dataQualitySessionsIn(eaFence, '2026-08-11').zeroObservedSessions], [], 'one entered after it is not');
+
+    /* ABSENT DEFAULTS TO EMPTY, and the default is load-bearing rather than theoretical: `NDX`
+       is a real committed series of 469 rows written before the fields existed. */
+    const rawNdx = JSON.parse(readFileSync(path.join(REPO_ROOT, 'data', 'bars', 'NDX.json'), 'utf8'));
+    const ndx = readBars(JSON.stringify(rawNdx));
+    for (const field of ['reconstructedSessions', 'thinObservedSessions', 'zeroObservedSessions']) {
+        assert.equal(Object.prototype.hasOwnProperty.call(rawNdx, field), false, `the committed NDX genuinely omits ${field}`);
+        assert.deepEqual(ndx[field], [], `${field} defaults to empty rather than refusing a legitimate older series`);
+    }
+
+    /* A PRESENT FIELD IS STILL VALIDATED STRICTLY, so defaulting is a concession to file age and
+       not a hole a malformed array walks through. */
+    assert.throws(() => qualityBars({ zeroObservedSessions: '2026-07-29' }), /zeroObservedSessions is not an array/, 'a bare string is a substrate defect');
+    assert.throws(() => qualityBars({ thinObservedSessions: ['2026-7-29'] }), /not a session date/, 'and so is a malformed date');
 });
 

@@ -2,9 +2,11 @@
 
 Evidence contract: [scope.md](scope.md), [spec.md](../../spec.md), [scope index](../_index.md), and [uservalidation.md](../../uservalidation.md).
 
-**Evidence status:** In progress. Two increments have executed — the increment-1 calendar slice and the increment-2
-value slice, both recorded under `## Test Evidence`. The sections before it record **plan corrections and one
-ruling**, not execution evidence. No scope completion is claimed and no certification is requested.
+**Evidence status:** In progress. Five increments have executed — the calendar, value, write, predicate and
+reducer-bridge slices, all recorded under `## Test Evidence`. The sections before it record **plan corrections and
+five rulings** (R-04-01 through R-04-05), not execution evidence. **R-04-02 through R-04-05 are a PLAN pass:** they
+correct item text and add one missing obligation, and they tick and untick nothing. No scope completion is claimed
+and no certification is requested.
 
 ## Summary
 
@@ -61,6 +63,176 @@ here as a proposal for `design.md` → `## D4`, in the same posture P-015-07 was
 the corrected row shape); Test Plan gains **T-04-U8**; **T-04-U1** and **T-04-U7** are amended to assert the basis is
 read from the claim rather than chosen by the evaluator. Until scope 01 lands the term, every `ret(x)`-dependent DoD
 item is **blocked**, and no item may be ticked on a basis this scope selected for itself.
+
+**Superseded in one particular by Ruling R-04-03.** The "One obligation" paragraph above states that a retroactive
+`ac` rewrite "surfaces as `RTR-RESOLUTION-CONFLICT`". The fingerprint obligation itself stands and was implemented;
+the named mechanism was wrong. R-04-03 records the correction. This paragraph is left standing rather than rewritten
+so the ruling remains a record of what was decided at the time.
+
+---
+
+## Ruling R-04-02 — the bar row shape is THREE measured forms with an OPTIONAL `ac`, not a closed seven
+
+**The premise that was wrong.** A DoD item, plan step 6 and plan step 16 all asserted a **closed seven**-field row
+shape `{ t, o, h, l, c, v, ac }`. That is not what the shipped reader measures or validates. `readBars`
+(`scripts/brief-resolve-outcomes.mjs:259`) requires `BAR_CORE_FIELDS` (`:241` — `o, h, l, c, v`, finite) plus `t`
+(integer, strictly ascending), validates `ac` as **OPTIONAL** — `if ('ac' in row && !Number.isFinite(row.ac)) throw`
+(`:279`) — and accepts unknown keys. Its own header (`:248`–`:256`) records the measurement over all 292 committed
+series: `{t,o,h,l,c,v,ac}` on 147,337 rows, `{t,o,h,l,c,v}` on 2,675, and a 12-key `source*` provenance variant on
+26. The constant's comment states the point outright: *"`ac` is deliberately absent from this list."*
+
+**Ruling — the ITEM is wrong, the CODE is right; correct the item and preserve its intent.** Requiring `ac` would
+throw on the 54 real series that carry none (`EA` for all 328 of its rows); requiring a closed key list would throw
+on the 26-row provenance variant. Either would mean a claim closes `not-evaluable` because *our own substrate* is
+shaped differently than the plan guessed — which the reader explicitly refuses to do, reserving refusals for facts
+about the CLAIM. **The item's intent survives intact and is what makes the correction safe:** the obligation was
+never "the shape is seven fields", it was "the shape is *validated*, not assumed". That obligation is strictly
+harder to satisfy under the corrected wording, because the reader must now be right about which fields are shared,
+which is optional, and which are tolerated. The item stays **unticked**: it is now a decidable claim about a
+three-form validator, and no pass has been run against it as stated.
+
+**Consequence of the alternative.** Had the code been "corrected" to the item instead, `readBars` would throw on 54
+committed series and the resolver would be unable to read a fifth of its own substrate — a plan sentence would have
+broken working code.
+
+**Old → new, so the change is auditable rather than silent.**
+
+| Surface | Old | New |
+|---|---|---|
+| DoD core item | *"Bar rows are read as the verified **seven**-field shape `{ t, o, h, l, c, v, ac }`; no code or fixture assumes the six-field shape an earlier revision of this plan asserted."* | *"**The bar row shape is VALIDATED, not assumed, and it is not closed at seven fields.** `readBars` requires the **six** fields all three measured row forms share … validates `ac` as **OPTIONAL** … and accepts unknown keys …"* |
+| Plan step 6 | *"Committed daily bars carry rows shaped `{ t, o, h, l, c, v, ac }` — **seven** fields, including the adjusted close."* | The three measured forms, with the required set, the optional `ac`, and the throw-not-refuse rule stated. |
+| Plan step 16 | *"Bar fixtures carry the full **seven**-field row shape `{ t, o, h, l, c, v, ac }`."* | Fixtures **exercise the variation**: at least one with `ac`, at least one without. |
+
+**A second contradiction the correction resolves.** Step 16's old sentence was already false against the shipped
+tree: the `RAWONLY` fixture carries **no** `ac` key at all, and that is precisely what makes the `RTR-PRICE-BASIS`
+refusal provable. A fixture rule that its own fixtures violate cannot govern anything.
+
+---
+
+## Ruling R-04-03 — a retroactive `ac` rewrite is detected by a MOVED ADDRESS; the code is right and the item is wrong
+
+**The disagreement.** A DoD item and the T-04-U8 Test Plan row both asserted that a retroactive adjusted-close
+rewrite (BUG-012) "surfaces as `RTR-RESOLUTION-CONFLICT`". `T-04-I4`
+(`tests/recommendation-track-record.integration.mjs:317`) measures the opposite and says so in its own comment
+(`:364`–`:369`): the rewritten reading is **accepted** — `moved.ok === true` (`:376`), at a **second** content
+address (`:377`), `written: true` (`:378`), two objects on disk (`:379`), and the first record byte-identical
+afterwards (`:380`). These are two different contracts and only one can be the plan.
+
+**Ruling — the CODE is right and the ITEM is wrong.** Content addressing means a changed fingerprint **is a
+different object**. The `basisFingerprint` sits inside the hashed `provenance`, so a rewritten `ac` changes the
+resolution hash, which changes the path. There is no collision to refuse: the second record is not a contradictory
+version of the first, it is a *second reading*, and both are true statements about what the substrate said when each
+was taken. `RTR-RESOLUTION-CONFLICT` fires on the genuinely different case the shipped `writeResolutionObject`
+exists for — an **unhashed** field (an `eventId`) changing at an **already-taken** address, where two different byte
+sequences claim one identity. That case is asserted in the same test at `:358`.
+
+**Why this is not a weakening.** The obligation R-04-01 imposed was *detectability*, not refusal, and a second
+address is detectable — demonstrably so, since `T-04-I4`'s anti-vacuity control doubles `ac` such that the **return
+is bit-identical** and every other hashed term is unchanged (`:374`–`:375`). Without the fingerprint that rewrite
+would have been the byte-identical no-op in the same test, and BUG-012 would have been invisible. With it, the
+divergence is on disk.
+
+**Consequence of the alternative, stated for a reader of the ledger.** Refusing would mean the resolver **cannot
+record** an outcome after the cron touches the series — a rewrite upstream would lock the ledger rather than
+document itself. Worse, refusal destroys the comparison: the auditor would have one reading and an error, instead of
+two readings whose difference *is* the evidence that the substrate moved. A reader of the ledger under the corrected
+contract sees two resolution objects for one `claimHash`, agreeing on `outcomeValue`, `outcomeClass`,
+`closureEventType` and `claimHash`, differing only in `provenance.basisFingerprint` (`:384`–`:390`) — which reads
+unambiguously as "the same claim, scored twice, on a substrate that changed underneath".
+
+**Old → new.**
+
+| Surface | Old | New |
+|---|---|---|
+| DoD core item | *"… so a later rewrite (BUG-012) changes the resolution hash and surfaces as `RTR-RESOLUTION-CONFLICT` instead of re-scoring quietly."* | *"… by a MOVED content address, not by a refusal … the rewritten reading is written at a **second** address: both records survive, the first is byte-unchanged, and the divergence is the evidence. `RTR-RESOLUTION-CONFLICT` is the **different** case … and must not be asserted here."* |
+| T-04-U8 row | *"… a retroactive `ac` rewrite (BUG-012) surfaces as `RTR-RESOLUTION-CONFLICT` rather than as a silent re-score."* | *"… **moves the content address** — the rewritten reading is written at a second address, both records survive, and the first is byte-unchanged."* |
+
+The item stays **unticked**. Correcting a wrong premise does not evidence the corrected one.
+
+---
+
+## Ruling R-04-04 — every "BLOCKED on R-04-01" clause is stale; R-04-01 is DISCHARGED
+
+**The staleness.** `## Ruling R-04-01` above is recorded **discharged**, and the discharge is real, not declared:
+scope 01 landed `PRICE_BASES` (`rlclaims.js:76`), `PRICE_BASIS_ROW_FIELD` (`:79`) and `priceBasisFor` (`:802`), and
+this scope consumes them at `scripts/brief-resolve-outcomes.mjs:347` and `:418`. Plan step 8 nevertheless still read
+*"`basisAt` is BLOCKED on Ruling R-04-01 … until then no `ret(x)`-dependent DoD item may be ticked"*.
+
+**Ruling — correct it, and correct the full extent rather than the one clause.** The same false premise had spread
+to **seven** places, and fixing one while leaving six would leave the file internally contradictory — the scope
+header would still announce the finding as BLOCKING while a ticked DoD item below it announced the discharge. A
+staleness fix that produces a self-contradicting document has not fixed anything.
+
+| Surface | Old | New |
+|---|---|---|
+| Header, third-finding paragraph | *"A third finding, R-04-01, is **BLOCKING** and is new … Every `ret(x)`-dependent item below is blocked until that term lands"* | *"was BLOCKING and is now **DISCHARGED** … scope 01 landed that term … No `ret(x)`-dependent item is blocked any longer"* |
+| Plan step 8 | *"**`basisAt` is BLOCKED on Ruling R-04-01** … until then no `ret(x)`-dependent DoD item may be ticked"* | *"**`basisAt` reads the claim's frozen `priceBasis` term — Ruling R-04-01 is DISCHARGED** … through the shipped `priceBasisFor` … a claim carrying no such term **refuses**"* |
+| Plan step 10 | *"**This step is blocked on Ruling R-04-01** … `ret(subject)` has no defined price basis yet"* | *"**This step is unblocked for the same reason step 8 is**"* |
+| Plan step 16 | *"— once R-04-01 lands —"* | *"— R-04-01 having landed —"* |
+| T-04-U1 row | *"Blocked on Ruling R-04-01."* | *"Unblocked: Ruling R-04-01 is discharged."* |
+| T-04-U7 row | *"Blocked on Ruling R-04-01 for the `ret(subject)` half."* | *"Unblocked: … the `ret(subject)` half reads the claim's frozen basis."* |
+| T-04-U8 row | *"**Blocked** until scope 01 lands the term."* | *"Unblocked: scope 01 has landed the term."* |
+| DoD `outcomeValue` item (already `[x]`) | *"Blocked on Ruling R-04-01 for the `ret(subject)` half."* | *"Unblocked: Ruling R-04-01 is discharged …"* — the item was **ticked while calling itself blocked**, which is self-contradictory on its face. |
+
+**Consequence of the alternative.** Leaving the clauses would make the remaining 39 items look gated on a scope-01
+dependency that shipped, so the next pass would either stall waiting for it or tick items while the plan told it not
+to — and the second is how a ticked-but-blocked item like the `outcomeValue` one gets created in the first place.
+**No checkbox state is changed by this ruling.** Text was corrected; nothing was ticked or unticked.
+
+---
+
+## Ruling R-04-05 — `RTR-PRICE-BASIS` is resolver-OWNED, and the adjusted-close path refusal gains the DoD item it never had
+
+**The stale ownership.** The scope header listed `RTR-PRICE-BASIS` under *"Refusal codes routed, not owned"* as
+*"the **proposed** `RTR-PRICE-BASIS`"*, and *"Refusal codes owned"* named only `RTR-LOOKAHEAD`,
+`RTR-CALENDAR-COVERAGE` and `RTR-NETWORK`. That was true when R-04-01 proposed the code. It is no longer true: the
+code is declared **in this scope's own source** — `export const PRICE_BASIS_CODE = 'RTR-PRICE-BASIS'`
+(`scripts/brief-resolve-outcomes.mjs:227`) — and raised from **three** sites, not one: `:365` (the claim's frozen
+basis field is absent from an endpoint observation), `:824` (`path-extreme-absent-from-observation`) and `:1034`
+(`path-extremes-absent-for-basis`).
+
+*The brief that requested this ruling cited "declared at `:227`, raised at `:1035`". `:227` is exact; `:1035` is the
+`reason:` line of the raise whose `code:` is `:1034`, and it is one of three raise sites rather than the only one.*
+
+**Ruling — ownership moves to OWNED.** A refusal code raised by a scope's own source is owned by that scope. The
+alternative — leaving a shipped, thrice-raised code listed as merely proposed — means the code has no owner to
+answer for its wording, its reason strings, or its stability, which is the mirror image of the W3 defect this plan
+already corrected in the other direction (two owners of one code). One owner, named, is the invariant.
+
+**The obligation nobody wrote down.** `PRICE_BASIS_ROW_FIELD` binds `adjusted-close` to `ac`, and **no committed row
+carries an adjusted extreme** — `h` and `l` are quoted against the raw close only. So a path comparator on
+`adjusted-close` is **structurally unresolvable**: serving it would divide a raw high by an adjusted entry close,
+manufacturing a return from two different series — exactly the untraceable substitution R-04-01 exists to prevent.
+The code already refuses (`basisCarriesPathExtremes` at `:811`, raising at `:1034`), and the support test is
+**derived** — membership of the bound row field in `BAR_CORE_FIELDS` — rather than a second hand-written list of
+basis names that could drift. **No DoD item recorded any of this.**
+
+**Ruling — add the item, leave it unticked.** Adding a genuinely missing obligation is a planning act; a shipped
+refusal with no DoD item is an untracked behaviour that a later refactor can delete without failing anything. It is
+added **unticked** because this is a plan pass: the behaviour exists in source and is exercised by `T-04-U2`, but no
+DoD item has been evidenced against the item **as now worded**, and ticking on a prior pass's evidence is the
+fabrication this file's own standard forbids.
+
+**Consequence of the alternative — stated for a reader, because it is user-visible.** A claim minted with
+`priceBasis: adjusted-close` and a `crosses-above` / `crosses-below` comparator can **never** resolve. It refuses
+rather than closing, which is correct — an unresolvable combination is a defect in the *minted claim*, and a claim
+that cannot be scored must not be scored on a substituted series. But it means such a claim would sit `active`
+indefinitely with no closure and no `not-evaluable`. That is a real gap, it belongs to scope 01's mint validation
+rather than to this scope's resolver, and it is **recorded here rather than fixed here**: this ruling adds the
+resolver-side DoD coverage and does not amend the mint contract.
+
+**Old → new.**
+
+| Surface | Old | New |
+|---|---|---|
+| Header, owned | *"`RTR-LOOKAHEAD`, `RTR-CALENDAR-COVERAGE`, `RTR-NETWORK`"* | *"… `RTR-NETWORK`, **`RTR-PRICE-BASIS`**"* |
+| Header, routed | *"… and the **proposed** `RTR-PRICE-BASIS` (see Ruling R-04-01)"* | The proposal is recorded as superseded; the code is named resolver-**owned** with its declaration and three raise sites cited. |
+| Plan step 8 | *(no mention of the adjusted-close path case)* | A paragraph stating the structural unresolvability, the derived support test, and that it **refuses rather than closes**. |
+| DoD core items | *(no item)* | **New, unticked:** `RTR-PRICE-BASIS` is resolver-owned and a path comparator on `adjusted-close` refuses `path-extremes-absent-for-basis`. |
+| T-04-U8 row | *"refuses (proposed `RTR-PRICE-BASIS`)"* | *"refuses (`RTR-PRICE-BASIS`, resolver-**owned** per Ruling R-04-05)"* |
+
+**DoD total: 55 → 56.** One item added; **no** item ticked or unticked. Satisfied stays **16**; unsatisfied moves
+**39 → 40**. The Completion Statement below is updated to match.
 
 ---
 
@@ -309,9 +481,11 @@ identical closure through `run.closures`, which appends exactly one event and mo
 
 ## Completion Statement
 
-Scope 04 is in progress. **16 of 55** Definition of Done items are satisfied — two from the increment-1 calendar
+Scope 04 is in progress. **16 of 56** Definition of Done items are satisfied — two from the increment-1 calendar
 slice, three from the increment-2 value slice, seven from the increment-3 write slice, three from the increment-4
-predicate slice, and one from the increment-5 reducer bridge, all recorded above — and the remaining 39 are
-unsatisfied. No scope completion is claimed and no certification is requested. Ruling R-04-01
+predicate slice, and one from the increment-5 reducer bridge, all recorded above — and the remaining 40 are
+unsatisfied. *The total moved 55 → 56 under Ruling R-04-05, which added the previously-uncovered adjusted-close path
+refusal as an unticked obligation; the satisfied count is unchanged because no ruling in this pass ticked anything.*
+No scope completion is claimed and no certification is requested. Ruling R-04-01
 is **discharged**: scope 01 landed the frozen hashed `priceBasis` term, and the resolver consumes it rather than
 selecting a basis of its own.

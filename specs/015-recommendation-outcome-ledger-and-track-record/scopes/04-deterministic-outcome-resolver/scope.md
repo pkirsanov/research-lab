@@ -6,7 +6,7 @@
 **Design section:** `design.md` → `## D4 — Deterministic Outcome Resolver`
 **Business Scenarios owned:** BS-002, BS-003, BS-007, BS-009, BS-010
 **UI rows owned:** — (no rendered surface in this scope)
-**Refusal codes owned:** `RTR-LOOKAHEAD`, `RTR-CALENDAR-COVERAGE`, `RTR-NETWORK`
+**Refusal codes owned:** `RTR-LOOKAHEAD`, `RTR-CALENDAR-COVERAGE`, `RTR-NETWORK`, `RTR-PRICE-BASIS`
 **Refusal codes consumed, already shipped by scope 03 — this scope neither owns nor re-implements them:**
 `RTR-CLOSURE-VOCAB` (`rlclaims.js:267`, fired by `buildResolution`), `RTR-RESOLUTION-CONFLICT` (`rlclaims.js:269`,
 fired by `writeResolutionObject`), `RTR-FLAT-ZERO` (`rlclaims.js:133`, fired by `buildResolution` and
@@ -14,7 +14,12 @@ fired by `writeResolutionObject`), `RTR-FLAT-ZERO` (`rlclaims.js:133`, fired by 
 at `:721`). An earlier revision of this header claimed the first two as **owned**; they were already coded when it
 was written, and two owners of one refusal code is how a code ends up meaning two things.
 **Refusal codes routed, not owned:** `RTR-SESSION-PREDICATE` (D4-owned per `design.md`; this scope must satisfy it,
-not define it) and the **proposed** `RTR-PRICE-BASIS` (see Ruling R-04-01 in `report.md`).
+not define it). *`RTR-PRICE-BASIS` was carried here as merely **proposed** until Ruling **R-04-05** (`report.md`).
+It is resolver-**OWNED**: declared in this scope's own source at `scripts/brief-resolve-outcomes.mjs:227` and raised
+from three sites — `:365` (the claim's frozen basis field is absent from an endpoint observation), `:824`
+(`path-extreme-absent-from-observation`) and `:1034` (`path-extremes-absent-for-basis`). A code raised by this
+scope's own source is owned by this scope; leaving it listed as proposed is how a shipped refusal ends up with no
+owner to answer for it.*
 
 **Primary Outcome:**
 `scripts/brief-resolve-outcomes.mjs` exists as an offline, deterministic Node script that converts a frozen claim
@@ -42,14 +47,17 @@ is a top-level hashed claim field, and the session predicate is `row.regular !==
 recorded rulings and records in `report.md` which ruling it implemented; it still invents no `thesisFamily` value
 and still derives no session count of its own.
 
-**A third finding, R-04-01, is BLOCKING and is new.** The claim contract records **no raw-vs-adjusted close basis**:
-`HASHED_TERMS` (`rlclaims.js:66`) names nine terms and none is a price basis, and `SIGN_CONVENTIONS`
+**A third finding, R-04-01, was BLOCKING and is now DISCHARGED.** The claim contract recorded **no raw-vs-adjusted
+close basis**: `HASHED_TERMS` (`rlclaims.js:66`) named nine terms and none was a price basis, and `SIGN_CONVENTIONS`
 (`rlclaims.js:65`) fixes only the **sign** convention. Committed bar rows carry **both** closes, ~74% of series have
-`ac !== c`, and BUG-012 established the refresh cron **retroactively rewrites `ac`** — so `ret(x)` is two different
-functions and an outcome computed on an unrecorded basis is tunable after the fact and non-reproducible, the same
-class of defect as `flatBand`. Ruling R-04-01 (`report.md`) routes it to **scope 01** as a mint-contract defect
-requesting a frozen hashed `priceBasis` term. Every `ret(x)`-dependent item below is blocked until that term lands;
-this scope selects **no** basis of its own.
+`ac !== c`, and BUG-012 established the refresh cron **retroactively rewrites `ac`** — so `ret(x)` was two different
+functions and an outcome computed on an unrecorded basis was tunable after the fact and non-reproducible, the same
+class of defect as `flatBand`. Ruling R-04-01 (`report.md`) routed it to **scope 01** as a mint-contract defect
+requesting a frozen hashed `priceBasis` term, and **scope 01 landed that term**: `PRICE_BASES` (`rlclaims.js:76`),
+`PRICE_BASIS_ROW_FIELD` (`:79`) and `priceBasisFor` (`:802`) are shipped and consumed here. No `ret(x)`-dependent
+item is blocked any longer, and this scope still selects **no** basis of its own — it reads the frozen term.
+*Ruling **R-04-04** records the correction; an earlier revision of this paragraph and of steps 8, 10 and 16 carried
+R-04-01 as still blocking, which reads as un-startable work for a reason that no longer exists.*
 
 **Inputs are empty today; this scope is FIXTURE-TESTABLE ONLY.** Verified this planning pass:
 `briefs/objects/claims/` and `briefs/objects/resolutions/` **do not exist**, there are **0** committed claim objects
@@ -191,10 +199,17 @@ same reason this scope already refuses to fork the reducer. The shipped surface 
    `buildResolution` already accepts it against `not-evaluable` and rejects it against any other closure event. The
    calendar is a committed artifact with a finite window; treating it as infinite is the assumption that fails once,
    quietly, at a year boundary.
-6. **Implement the as-of fence as a slice, not a rule.** Committed daily bars carry rows shaped
-   `{ t, o, h, l, c, v, ac }` — **seven** fields, including the adjusted close. *An earlier revision of this step
-   asserted `{ t, o, h, l, c, v }` and omitted `ac` entirely, which is precisely how the price-basis gap of Ruling
-   R-04-01 went unnoticed.* `t` is the regular-session open in epoch milliseconds. *Dated observation on
+6. **Implement the as-of fence as a slice, not a rule.** The committed bar row shape is **not closed at seven
+   fields**, and the reader validates it rather than assuming it. Measured over all 292 committed series the row
+   takes **three** forms — `{ t, o, h, l, c, v, ac }` on 147,337 rows, `{ t, o, h, l, c, v }` on 2,675, and a
+   12-key variant carrying six `source*` provenance fields on 26 — so `readBars` requires the **six** fields all
+   three share (`t` integer and strictly ascending, plus `BAR_CORE_FIELDS` = `o, h, l, c, v` finite), validates `ac`
+   as **OPTIONAL** (finite *if present*), and accepts unknown keys. *Two earlier revisions of this step were both
+   wrong in opposite directions: the first asserted `{ t, o, h, l, c, v }` and omitted `ac` entirely, which is
+   precisely how the price-basis gap of Ruling R-04-01 went unnoticed; the second asserted a closed **seven**-field
+   shape, which would throw on the 54 real series carrying no `ac` and on the 26-row provenance variant — see Ruling
+   **R-04-02**.* A malformed file **throws** rather than closing a claim `not-evaluable`: refusals are reserved for
+   facts about the CLAIM, never for our own broken substrate. `t` is the regular-session open in epoch milliseconds. *Dated observation on
    `data/bars/SPY.json`:* the tree is delta-appended on every refresh, so any row count or `asof` recorded here is
    stale by design within days; it is **not** carried into any test, fixture, DoD item, or source literal.
    Because the regular open is `14:30Z` (EST) or `13:30Z` (EDT) — both inside the same UTC calendar day as the ET
@@ -216,10 +231,13 @@ same reason this scope already refuses to fork the reducer. The shipped surface 
    `directional` → `direction × ret(subject) > flatBandFor(claim)`;
    `spread` → `cmp(ret(subject.leg) − ret(reference.leg), predicate.value)`.
 
-   **`basisAt` is BLOCKED on Ruling R-04-01 and this scope selects no basis of its own.** Rows carry both `c` and
-   `ac`; ~74% of committed series have `ac !== c` with divergence to 57%; and BUG-012 established the refresh cron
-   **retroactively rewrites `ac`**. `basisAt` therefore reads the field named by the claim's frozen `priceBasis`
-   term once scope 01 lands it, and until then no `ret(x)`-dependent DoD item may be ticked. `SIGN_CONVENTIONS`
+   **`basisAt` reads the claim's frozen `priceBasis` term — Ruling R-04-01 is DISCHARGED and this scope still selects
+   no basis of its own.** Rows carry both `c` and `ac`; ~74% of committed series have `ac !== c` with divergence to
+   57%; and BUG-012 established the refresh cron **retroactively rewrites `ac`**. Scope 01 has landed the frozen
+   hashed term, so `basisAt` binds it to a row field through the shipped `priceBasisFor` (`rlclaims.js:802`) and
+   `PRICE_BASIS_ROW_FIELD` (`:79`), naming neither `c` nor `ac` here; a claim carrying no such term **refuses**
+   rather than defaulting. No `ret(x)`-dependent DoD item is blocked any longer. *An earlier revision of this clause
+   read "is BLOCKED on Ruling R-04-01" after the term had shipped — see Ruling **R-04-04**.* `SIGN_CONVENTIONS`
    (`rlclaims.js:65`) is **not** a substitute: it fixes the sign convention, not the series.
 
    **Point comparators** (`gte`, `lte`, `gt`, `lt`) evaluate once, at `resolutionDate`. **Path comparators**
@@ -231,6 +249,16 @@ same reason this scope already refuses to fork the reducer. The shipped surface 
    (`rlclaims.js:307`), so `buildResolution` rejects either against any other closure event without this scope
    adding a check.
 
+   **A path comparator on `adjusted-close` is STRUCTURALLY UNRESOLVABLE and refuses — it does not close.** The
+   session extremes `h` and `l` are quoted against the raw close only; `PRICE_BASIS_ROW_FIELD` binds
+   `adjusted-close` to `ac`, and no adjusted extreme exists on any row. Dividing a raw high by an adjusted entry
+   close would fabricate a return from two different series, which is the untraceable substitution R-04-01 exists to
+   prevent. So `basisCarriesPathExtremes` is **derived** — the basis supports a path exactly when its row field is a
+   member of `BAR_CORE_FIELDS`, never a second list of basis names — and a `crosses-above` / `crosses-below` claim
+   minted with `priceBasis: adjusted-close` refuses `RTR-PRICE-BASIS` / `path-extremes-absent-for-basis` at
+   `scripts/brief-resolve-outcomes.mjs:1034`. This is a **refusal**, not a closure: an unresolvable combination is a
+   defect in the minted claim, and scoring it on a substituted series would be worse than refusing it. Ruling
+   **R-04-05** records that no DoD item covered this until now.
 9. **Apply the data-quality gates.** A bars file may carry `reconstructedSessions`, `thinObservedSessions` and
    `zeroObservedSessions`, and the gate reads whichever are present. **Presence is not universal and must not be
    assumed:** on 2026-08-18, 291 of the 293 files matching `data/bars/*.json` carried all three, and the two that
@@ -254,8 +282,9 @@ same reason this scope already refuses to fork the reducer. The shipped surface 
     (`rlclaims.js:89`) — because assigning it a sign would invent a direction the action family explicitly declines
     to take. Values are stored **unrounded** as IEEE-754 doubles, with rounding applied only at render;
     `classifyOutcome` (`rlclaims.js:795`) already carries the value through verbatim and this scope must not
-    pre-round it before the call. **This step is blocked on Ruling R-04-01** for the same reason step 8 is:
-    `ret(subject)` has no defined price basis yet.
+    pre-round it before the call. **This step is unblocked for the same reason step 8 is:** Ruling R-04-01 is
+    discharged and `ret(subject)` reads the claim's frozen basis. *An earlier revision read "This step is blocked on
+    Ruling R-04-01" after the term had shipped — see Ruling **R-04-04**.*
 11. **Record closure event and outcome class as two independent axes.** The **closure event** is decided solely by
     the frozen predicate and is drawn from `CLOSE_EVENT_TYPES` (`rlcontracts.js:726`), read through
     `readClosureEventVocabulary` (`rlclaims.js:944`) rather than restated; the **`outcomeClass`** is decided solely
@@ -322,8 +351,13 @@ same reason this scope already refuses to fork the reducer. The shipped surface 
 16. **Extend the fixture substrate** at `tests/fixtures/recommendation-track-record/bars/**` and `.../calendar/**`
     with synthetic bar series and calendar slices covering each predicate kind, the fence boundary, the path gap,
     each of the three resolver-raised `not-evaluable` reasons plus representative mint-set reasons, the
-    `early-close` horizon case, and — once R-04-01 lands — a `c`-vs-`ac` divergent series that scores differently
-    under each basis. Bar fixtures carry the full **seven**-field row shape `{ t, o, h, l, c, v, ac }`. One rule
+    `early-close` horizon case, and — R-04-01 having landed — a `c`-vs-`ac` divergent series that scores differently
+    under each basis. **Bar fixtures exercise the row-shape variation the reader validates, not one canonical
+    shape:** at least one fixture carries `{ t, o, h, l, c, v, ac }` and at least one carries no `ac` at all, which
+    the shipped `RAWONLY` fixture already does — it is what makes the `adjusted-close` refusal provable. *An earlier
+    revision required every fixture to carry "the full **seven**-field row shape", which the shipped `RAWONLY`
+    fixture already contradicted and which would leave the 2,675 real `ac`-free rows unexercised — see Ruling
+    **R-04-02**.* One rule
     violated per negative fixture; every fixture carries explicit dates and no fixture reads a clock. **These
     fixtures are the only substrate this scope has:** `briefs/objects/claims/` and `briefs/objects/resolutions/` do
     not exist, and `claimRef` appears in 0 of 5,083 committed rows, so a real-data run proves nothing here.
@@ -342,14 +376,14 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 
 | Test ID | Type | Category | Scenarios | File/Location | Description | Command | Live System | Evidence anchor |
 |---|---|---|---|---|---|---|---|---|
-| T-04-U1 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | All four predicate kinds evaluate correctly against a fenced slice — `threshold`, `relative` (subject minus reference over the same window), `directional` (against the band returned by `flatBandFor`, never a band passed in), and `spread` (leg minus leg) — each with a satisfied and an invalidated fixture. **`basisAt` reads the field named by the claim's frozen `priceBasis` term; a fixture omitting the term refuses rather than defaulting.** Blocked on Ruling R-04-01. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u1` |
+| T-04-U1 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | All four predicate kinds evaluate correctly against a fenced slice — `threshold`, `relative` (subject minus reference over the same window), `directional` (against the band returned by `flatBandFor`, never a band passed in), and `spread` (leg minus leg) — each with a satisfied and an invalidated fixture. **`basisAt` reads the field named by the claim's frozen `priceBasis` term; a fixture omitting the term refuses rather than defaulting.** Unblocked: Ruling R-04-01 is discharged. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u1` |
 | T-04-U2 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | Point comparators evaluate **once** at `resolutionDate`; path comparators (`crosses-above`, `crosses-below`) evaluate over every intervening session using `h` and `l`, and a **gap** in the intervening set closes `unresolved` reason `path-incomplete` rather than evaluating over the partial path. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u2` |
 | T-04-U3 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | Closure event and outcome class are independent: a claim whose predicate is **satisfied** but whose direction-adjusted magnitude is **negative** records `closureEventType: "satisfied"` **and** `outcomeClass: "loss"`. An implementation deriving one axis from the other fails this row. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u3` |
 | T-04-U4 | Unit | `unit` | BS-002 | `tests/recommendation-track-record.unit.mjs` | `RTR-CLOSURE-VOCAB` fires with its exact code when a closure event outside `CLOSE_EVENT_TYPES` is constructed (`"partially-satisfied"`) — raised by the **already-shipped** `buildResolution` (`rlclaims.js:1003`, code at `:267`), asserting the resolver neither re-implements the check nor extends the vocabulary locally. `rlcontracts.js` and `rlclaims.js` are asserted unmodified by `git diff --quiet` exiting 0. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u4` |
 | T-04-U5 | Unit | `unit` | BS-007 | `tests/recommendation-track-record.unit.mjs` | The fence is structural: the slice handed to the evaluator contains **no** row dated after `resolutionDate`, an attempt to consult one fires `RTR-LOOKAHEAD`, **and** the distinct case `bars.asof < resolutionDate` is a **silent skip** that leaves the claim `active` with zero events appended — proving skip and refusal are not conflated. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u5` |
 | T-04-U6 | Unit | `unit` | BS-010 | `tests/recommendation-track-record.unit.mjs` | The reason vocabulary is read from `NOT_EVALUABLE_REASONS` (`rlclaims.js:305`) and its length asserted to equal `MINT_REFUSALS.length + RESOLVER_NOT_EVALUABLE_REASONS.length` — **eleven** today, and the row states no literal so an added mint reason cannot silently go unexercised. *An earlier revision asserted six.* Each of the **three** resolver-raised reasons (`no-committed-reference`, `zero-observed-session`, `calendar-coverage-exhausted`) fires for its own trigger and only its own; each of the eight mint reasons is carried through unaltered; each carries a human-readable sentence. A subject naming a symbol absent from `enumerateCommittedSeries(readdir(BARS_DIR))` — **never `index.json`, and never a count literal** — closes `no-committed-series`, while a `relative` claim with a missing reference closes `no-committed-reference`. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u6` |
-| T-04-U7 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | `outcomeValue = direction × ret(subject)`: a **correct bearish** claim (`trim`, `direction: -1`) on a series that fell produces a **positive** outcome, and a wrong one produces a negative outcome — the adapter without which every correct bearish call would score as a loss under `rlvalidation.js:136` (motivation only; the module is not imported). `hold` (`direction: 0`) closes `neutral-direction-no-magnitude`. The class is assigned by calling `classifyOutcome` (`rlclaims.js:795`), asserting the resolver does not re-derive the band comparison. Blocked on Ruling R-04-01 for the `ret(subject)` half. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u7` |
-| T-04-U8 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | **Price basis is frozen on the claim, never chosen by the resolver (Ruling R-04-01).** A fixture series whose `c` and `ac` diverge scores **differently** under each basis, and the row asserts the resolver reads the claim's frozen `priceBasis` term rather than picking one: a claim carrying no such term refuses (proposed `RTR-PRICE-BASIS`) instead of defaulting, and two claims differing only in basis produce two distinct `resolutionHash` values. The hashed `provenance` additionally records a fingerprint of the exact basis values read at `entryDate` and `resolutionDate`, so a retroactive `ac` rewrite (BUG-012) surfaces as `RTR-RESOLUTION-CONFLICT` rather than as a silent re-score. **Blocked** until scope 01 lands the term. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u8` |
+| T-04-U7 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | `outcomeValue = direction × ret(subject)`: a **correct bearish** claim (`trim`, `direction: -1`) on a series that fell produces a **positive** outcome, and a wrong one produces a negative outcome — the adapter without which every correct bearish call would score as a loss under `rlvalidation.js:136` (motivation only; the module is not imported). `hold` (`direction: 0`) closes `neutral-direction-no-magnitude`. The class is assigned by calling `classifyOutcome` (`rlclaims.js:795`), asserting the resolver does not re-derive the band comparison. Unblocked: Ruling R-04-01 is discharged, so the `ret(subject)` half reads the claim's frozen basis. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u7` |
+| T-04-U8 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | **Price basis is frozen on the claim, never chosen by the resolver (Ruling R-04-01).** A fixture series whose `c` and `ac` diverge scores **differently** under each basis, and the row asserts the resolver reads the claim's frozen `priceBasis` term rather than picking one: a claim carrying no such term refuses (`RTR-PRICE-BASIS`, resolver-**owned** per Ruling R-04-05) instead of defaulting, and two claims differing only in basis produce two distinct `resolutionHash` values. The hashed `provenance` additionally records a fingerprint of the exact basis values read at `entryDate` and `resolutionDate`, so a retroactive `ac` rewrite (BUG-012) **moves the content address** — the rewritten reading is written at a second address, both records survive, and the first is byte-unchanged. Unblocked: scope 01 has landed the term. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u8` |
 | T-04-F1 | Functional | `functional` | BS-007 | `tests/recommendation-track-record.functional.mjs` | Horizon expiry is session arithmetic: a Friday `next-session` claim resolves the following Monday, not Saturday; a claim spanning a `holiday` resolves one session later than day arithmetic says; and each derived session date is cross-checked against `calendar.rows[].regular.startUtc` with a mismatch refusing. **Includes the `early-close` case (P-015-07)** — a `next-session` claim proposed the session before `2026-11-27` or `2026-12-24` must resolve **on** that early-close session, not skip it, and the resolution must record `provenance.earlyCloseSessions: [<tradingDate>]`. Keying the session test on `dateState` instead of `regular !== null` is the D4-owned `RTR-SESSION-PREDICATE` and is asserted to refuse; the derived 2026 session count is **251**. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-04-f1` |
 | T-04-F2 | Functional | `functional` | BS-007 | `tests/recommendation-track-record.functional.mjs` | `RTR-CALENDAR-COVERAGE` fires with its exact code when a horizon expiry lands beyond `coverageEnd`, the claim closes `not-evaluable` reason `calendar-coverage-exhausted`, and **no** date is extrapolated past the committed window. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-04-f2` |
 | T-04-F3 | Functional | `functional` | BS-002, BS-003 | `tests/recommendation-track-record.functional.mjs` | `withdrawn` is **never** resolver-emitted: no resolver path can construct it, asserted across every predicate kind and every failure branch, including a claim the resolver was about to score as a large loss. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-04-f3` |
@@ -492,7 +526,7 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   that map cannot reach a later row — the fence is the shape of the data, not a check to remember. The test walks
   the map's own keys and additionally asserts the excluded count is non-zero, so an empty slice cannot pass
   vacuously; a lookup past the fence refuses `RTR-LOOKAHEAD` / `observation-past-resolution-date`.
-- [ ] Bar rows are read as the verified **seven**-field shape `{ t, o, h, l, c, v, ac }`; no code or fixture assumes the six-field shape an earlier revision of this plan asserted.
+- [ ] **The bar row shape is VALIDATED, not assumed, and it is not closed at seven fields.** `readBars` requires the **six** fields all three measured row forms share (`t` integer and strictly ascending, plus `o, h, l, c, v` finite), validates `ac` as **OPTIONAL** (finite *if present*), and accepts unknown keys — because the committed substrate carries `{ t, o, h, l, c, v, ac }` on 147,337 rows, `{ t, o, h, l, c, v }` on 2,675, and a 12-key `source*` provenance variant on 26. A malformed file **throws** rather than closing a claim `not-evaluable`. Neither a six-field nor a seven-field closed shape is assumed anywhere in code or fixtures; *both were asserted by earlier revisions of this plan — see Ruling R-04-02.*
 - [x] **Ruling R-04-01 is DISCHARGED — the price basis is read from the claim, never selected here.** `basisValueAt` resolves `c` vs `ac` from the claim's frozen hashed `priceBasis` term, which scope 01 has landed; a claim carrying no such term refuses rather than defaulting; and no `ret(x)`-dependent item in this DoD may be ticked on a basis this scope chose for itself.
 
   **Evidence — increment 2 (value slice, commit `30a9e2624`).** Executed from `<repo-root>`.
@@ -524,7 +558,7 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   nothing downstream could have told; instead an `adjusted-close` claim on it refuses `RTR-PRICE-BASIS` naming the
   exact row field it could not read, while the same series under `raw-close` resolves. The same two sessions score
   `+10` under one basis and `-10` under the other, so the frozen term decides the sign.
-- [ ] **A retroactive `ac` rewrite is detectable, not silent.** The hashed `provenance` records a fingerprint of the exact basis values read at `entryDate` and `resolutionDate`, so a later rewrite (BUG-012) changes the resolution hash and surfaces as `RTR-RESOLUTION-CONFLICT` instead of re-scoring quietly.
+- [ ] **A retroactive `ac` rewrite is detectable, not silent — by a MOVED content address, not by a refusal.** The hashed `provenance` records a fingerprint of the exact basis values read at `entryDate` and `resolutionDate`, so a later rewrite (BUG-012) changes the resolution hash and the rewritten reading is written at a **second** address: both records survive, the first is byte-unchanged, and the divergence is the evidence. `RTR-RESOLUTION-CONFLICT` is the **different** case — an *unhashed* field changing at an *already-taken* address — and must not be asserted here; *an earlier revision of this item named it as the mechanism, which the code demonstrably does not raise — see Ruling R-04-03.*
 - [ ] "Not yet resolvable" (`bars.asof < resolutionDate`) is a silent skip leaving the claim `active` with zero events appended — never an `RTR-LOOKAHEAD` refusal.
 - [x] All four predicate kinds are implemented; point comparators evaluate once at `resolutionDate` and path comparators require the complete intervening session set, closing `unresolved` reason `path-incomplete` on a gap rather than evaluating a partial path.
 
@@ -587,8 +621,9 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   outcome rather than an invariant violation. The reason is asserted against `CLOSURE_REASON_CODES.unresolved` at
   module load, so a rename in `rlclaims.js` fails here rather than producing a reason `buildResolution` would
   later reject.
+- [ ] **`RTR-PRICE-BASIS` is resolver-OWNED, and a path comparator on `adjusted-close` is structurally unresolvable.** The code is declared here (`scripts/brief-resolve-outcomes.mjs:227`) and raised from three sites — `:365`, `:824` and `:1034`. Because `PRICE_BASIS_ROW_FIELD` binds `adjusted-close` to `ac` and no row carries an adjusted extreme, a `crosses-above` / `crosses-below` claim on that basis **refuses** `RTR-PRICE-BASIS` / `path-extremes-absent-for-basis` rather than closing, and rather than dividing a raw `h`/`l` by an adjusted close. The support test is **derived** — membership of the bound row field in `BAR_CORE_FIELDS` — never a second list of basis names. *No DoD item covered this obligation before Ruling R-04-05.*
 - [ ] The data-quality gates are applied: `zeroObservedSessions` closes `not-evaluable`; `reconstructedSessions` and `thinObservedSessions` do not block resolution and are recorded verbatim in the resolution object's `provenance`.
-- [x] `outcomeValue = direction × ret(subject)` with `direction` frozen from `ACTION_DIRECTION` (`rlcontracts.js:720`); the class is assigned by calling `classifyOutcome` (`rlclaims.js:795`) rather than re-deriving the band comparison; values are stored unrounded as IEEE-754 doubles with rounding applied only at render; `direction === 0` closes `neutral-direction-no-magnitude`. Blocked on Ruling R-04-01 for the `ret(subject)` half.
+- [x] `outcomeValue = direction × ret(subject)` with `direction` frozen from `ACTION_DIRECTION` (`rlcontracts.js:720`); the class is assigned by calling `classifyOutcome` (`rlclaims.js:795`) rather than re-deriving the band comparison; values are stored unrounded as IEEE-754 doubles with rounding applied only at render; `direction === 0` closes `neutral-direction-no-magnitude`. Unblocked: Ruling R-04-01 is discharged, so the `ret(subject)` half reads the claim's frozen basis. *An earlier revision of this item still read "Blocked on Ruling R-04-01" while ticked — see Ruling R-04-04.*
 
   **Evidence — increment 3 (write slice, commit `c8665265f`) closing the `classifyOutcome` half.** Increment 2
   produced the number; the class had no call site until the record existed. R-04-01 is discharged above, so the

@@ -692,3 +692,405 @@ export function recordResolution(input, row, ports) {
     reused: write.reused
   };
 }
+
+/* ── Increment 4: the four predicate evaluators ──────────────────────────────────────────────
+ *
+ * Increment 3 could BUILD a record but not DECIDE one: `resolutionFor` still takes
+ * `closureEventType` and `reasonCode` from its caller. This part computes that verdict from the
+ * claim's own frozen predicate, which is the last input the resolver was accepting on trust.
+ *
+ * NEITHER VOCABULARY IS RESTATED. `PREDICATE_KINDS` and `PREDICATE_COMPARATORS` are the shipped
+ * frozen arrays, and `bindToVocabulary` asserts at LOAD that each table below covers its array
+ * exactly — no missing member and no extra one. A fifth kind or a seventh comparator landing in
+ * rlclaims.js therefore throws here instead of reaching a dispatch that silently treats it as a
+ * default. Every dispatch is a lookup keyed by the claim's own value: this module contains no
+ * `=== "threshold"` and no `=== "gte"` at any call site, which is what scope 01's DoD bans.
+ * An unrecognised kind or comparator REFUSES; neither is ever coerced.
+ *
+ * THE FENCE IS THE ONLY READER. Every price consulted here arrives through `basisValueAt`, so a
+ * predicate that reaches past `resolutionDate` refuses with the increment-2 `RTR-LOOKAHEAD` and
+ * a missing endpoint closes `unresolved`/`session-absent` — both from the shipped reader rather
+ * than from a second lookahead rule written here.
+ *
+ * POINT AND PATH ARE DIFFERENT MEASUREMENTS. A point comparator reads the two endpoint closes; a
+ * path comparator reads an EXTREME on every session of `[entryDate, resolutionDate]`, and the
+ * fixtures prove they disagree — DVG closes `+10%` but its high touches `+12%`, so `gte 11`
+ * invalidates while `crosses-above 11` satisfies. A path evaluated over a partial window is a
+ * DIFFERENT predicate, so a gap closes `unresolved`/`path-incomplete` rather than being scored.
+ *
+ * Arithmetic is EXACT throughout — the same `periodReturn` increment 2 uses, with no rounding,
+ * clamping or epsilon anywhere. A comparison nudged by an epsilon would manufacture a verdict the
+ * data does not support, which is the identical failure `classifyOutcome` refuses to make.
+ */
+
+/** Assert a dispatch table covers a shipped frozen vocabulary EXACTLY, then freeze it. */
+function bindToVocabulary(vocabulary, table, label) {
+  const declared = Object.keys(table).slice().sort();
+  const shipped = vocabulary.slice().sort();
+  if (declared.length !== shipped.length || declared.some((key, index) => key !== shipped[index])) {
+    throw new Error(
+      `brief-resolve-outcomes: ${label} table [${declared.join(',')}] does not cover the shipped vocabulary [${shipped.join(',')}]`
+    );
+  }
+  return Object.freeze({ ...table });
+}
+
+/* The predicate verdict pair. The EVENTS are named and then asserted against the shipped table,
+   in the idiom `SESSION_ABSENT_REASON` already holds; the REASONS are derived from it, so neither
+   string is a second copy of a coded fact. `buildResolution` rejects either reason against any
+   other closure event, so this scope adds no check of its own. */
+export const PREDICATE_SATISFIED_EVENT = 'satisfied';
+export const PREDICATE_INVALIDATED_EVENT = 'invalidated';
+
+const PREDICATE_VERDICT_REASON = (() => {
+  const named = [PREDICATE_SATISFIED_EVENT, PREDICATE_INVALIDATED_EVENT];
+  /* Derived: the closure events whose reason set is about the predicate. Asserted to be exactly
+     the two named above, so a third predicate verdict in rlclaims.js fails here rather than
+     silently never being emitted. */
+  const derived = Object.keys(claims.CLOSURE_REASON_CODES)
+    .filter((event) => claims.CLOSURE_REASON_CODES[event].some((reason) => reason.startsWith('predicate-')))
+    .sort();
+  if (derived.join(',') !== named.slice().sort().join(',')) {
+    throw new Error(`brief-resolve-outcomes: predicate verdict events [${derived.join(',')}] are not the shipped pair`);
+  }
+  return Object.freeze(Object.fromEntries(named.map((event) => {
+    const reasons = claims.CLOSURE_REASON_CODES[event];
+    if (reasons.length !== 1) {
+      throw new Error(`brief-resolve-outcomes: closure event "${event}" carries ${reasons.length} reasons, not one`);
+    }
+    return [event, reasons[0]];
+  })));
+})();
+
+/* Asserted against the shipped sets rather than trusted, exactly as the coverage reason is. */
+export const PATH_INCOMPLETE_REASON = 'path-incomplete';
+if (!claims.CLOSURE_REASON_CODES.unresolved.includes(PATH_INCOMPLETE_REASON)) {
+  throw new Error(`brief-resolve-outcomes: "${PATH_INCOMPLETE_REASON}" is not a shipped unresolved reason`);
+}
+export const NO_COMMITTED_REFERENCE_REASON = 'no-committed-reference';
+if (!claims.RESOLVER_NOT_EVALUABLE_REASONS.includes(NO_COMMITTED_REFERENCE_REASON)) {
+  throw new Error(`brief-resolve-outcomes: "${NO_COMMITTED_REFERENCE_REASON}" is not a shipped resolver reason`);
+}
+
+export const POINT_COMPARATOR_MODE = 'point';
+export const PATH_COMPARATOR_MODE = 'path';
+
+/* The comparator table. `extreme` is the row field a path comparator walks; it is asserted to be
+   a required bar field, so a typo cannot silently produce `undefined` and then `NaN`. */
+const COMPARATORS = bindToVocabulary(claims.PREDICATE_COMPARATORS, {
+  gte: { mode: POINT_COMPARATOR_MODE, extreme: null, test: (observed, bound) => observed >= bound },
+  lte: { mode: POINT_COMPARATOR_MODE, extreme: null, test: (observed, bound) => observed <= bound },
+  gt: { mode: POINT_COMPARATOR_MODE, extreme: null, test: (observed, bound) => observed > bound },
+  lt: { mode: POINT_COMPARATOR_MODE, extreme: null, test: (observed, bound) => observed < bound },
+  'crosses-above': { mode: PATH_COMPARATOR_MODE, extreme: 'h', test: (observed, bound) => observed >= bound },
+  'crosses-below': { mode: PATH_COMPARATOR_MODE, extreme: 'l', test: (observed, bound) => observed <= bound }
+}, 'predicate comparator');
+
+for (const comparator of claims.PREDICATE_COMPARATORS) {
+  const extreme = COMPARATORS[comparator].extreme;
+  if (extreme !== null && !BAR_CORE_FIELDS.includes(extreme)) {
+    throw new Error(`brief-resolve-outcomes: comparator "${comparator}" reads "${extreme}", which is not a required bar field`);
+  }
+}
+
+/* The per-leg weight vector each shipped weighting implies, as a table rather than a branch. */
+const SUBJECT_WEIGHTS = bindToVocabulary(claims.SUBJECT_WEIGHTINGS, {
+  equal: (count) => Array.from({ length: count }, () => 1 / count),
+  'primary-only': (count) => Array.from({ length: count }, (_unused, index) => (index === 0 ? 1 : 0))
+}, 'subject weighting');
+
+/**
+ * A path comparator needs the session's EXTREME quoted on the claim's own basis, and the committed
+ * rows carry `h`/`l` only alongside the OHLC close. So the basis supports a path exactly when its
+ * row field IS an OHLC field — DERIVED from the shipped `PRICE_BASIS_ROW_FIELD` binding against
+ * the OHLC set, never a second list of basis names here.
+ *
+ * Dividing a RAW high by an ADJUSTED entry close would mix two series into one number, which is
+ * precisely the untraceable substitution Ruling R-04-01 exists to prevent, so it refuses instead.
+ */
+function basisCarriesPathExtremes(priceBasis) {
+  return BAR_CORE_FIELDS.includes(claims.PRICE_BASIS_ROW_FIELD[priceBasis]);
+}
+
+/** One session's extreme, gated by the SAME fence reader the endpoint closes go through. */
+function pathValueAt(fence, priceBasis, sessionDate, extremeField) {
+  const gate = basisValueAt(fence, priceBasis, sessionDate);
+  if (!gate.ok) return gate;
+  const row = fence.observations.get(sessionDate);
+  if (!Number.isFinite(row[extremeField])) {
+    return {
+      ok: false,
+      error: {
+        code: PRICE_BASIS_CODE,
+        reason: 'path-extreme-absent-from-observation',
+        field: `observations.${fence.symbol}.${sessionDate}.${extremeField}`,
+        priceBasis
+      }
+    };
+  }
+  return { ok: true, sessionDate, priceBasis, value: row[extremeField] };
+}
+
+/** Every trading session in `[entryDate, resolutionDate]`, which a path predicate needs whole. */
+function pathSessions(calendar, entryDate, resolutionDate) {
+  if (entryDate > resolutionDate) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'entry-date-after-resolution-date', 'magnitude.entryDate');
+  }
+  if (entryDate < calendar.coverageStart || resolutionDate > calendar.coverageEnd) {
+    return refusal(CALENDAR_COVERAGE_CODE, CALENDAR_COVERAGE_REASON, 'predicate.window');
+  }
+  const sessions = sessionsBy(calendar, SESSION_PREDICATE_KEY);
+  if (!sessions.ok) return sessions;
+  const window = sessions.tradingDates.filter((date) => date >= entryDate && date <= resolutionDate);
+  if (window.length === 0) return closure('unresolved', PATH_INCOMPLETE_REASON, 'predicate.window');
+  return { ok: true, sessions: Object.freeze(window) };
+}
+
+/** The `seriesRef` the predicate's frozen reference names, or `null` when none was authored. */
+function referenceSeriesRef(claim) {
+  const reference = claim?.predicate?.reference;
+  if (typeof reference !== 'string' || reference.length === 0) return null;
+  return claims.seriesRefFor(reference);
+}
+
+/**
+ * The signed leg terms each kind sums. `weight` folds the subject weighting and the sign of the
+ * reference side together, so the four kinds differ only in this table and never in the arithmetic
+ * that consumes it.
+ *
+ * `relative` subtracts the reference from the WEIGHTED subject, per step 8's `ret(subject)`;
+ * `spread` subtracts it from the subject's FIRST LEG alone, which is why the two are different
+ * predicates rather than two spellings of one and why an equal-weighted basket scores them apart.
+ */
+function subjectTerms(claim) {
+  const weighting = claim?.subject?.weighting;
+  const vector = SUBJECT_WEIGHTS[weighting];
+  if (vector === undefined) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'subject-weighting-not-allowed', 'subject.weighting');
+  }
+  const refs = claim?.subject?.seriesRefs ?? [];
+  if (refs.length === 0) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'subject-carries-no-series', 'subject.seriesRefs');
+  }
+  const weights = vector(refs.length);
+  return { ok: true, terms: refs.map((seriesRef, index) => ({ seriesRef, weight: weights[index] })).filter((term) => term.weight !== 0) };
+}
+
+function referenceTerm(claim) {
+  const seriesRef = referenceSeriesRef(claim);
+  if (seriesRef === null) {
+    return closure('not-evaluable', NO_COMMITTED_REFERENCE_REASON, 'predicate.reference');
+  }
+  return { ok: true, terms: [{ seriesRef, weight: -1 }] };
+}
+
+function withReference(claim, base) {
+  if (!base.ok) return base;
+  const reference = referenceTerm(claim);
+  if (!reference.ok) return reference;
+  return { ok: true, terms: base.terms.concat(reference.terms) };
+}
+
+const KINDS = bindToVocabulary(claims.PREDICATE_KINDS, {
+  threshold: {
+    terms: (claim) => subjectTerms(claim),
+    scale: () => ({ ok: true, factor: 1 }),
+    bound: predicateBound,
+    test: comparatorTest
+  },
+  relative: {
+    terms: (claim) => withReference(claim, subjectTerms(claim)),
+    scale: () => ({ ok: true, factor: 1 }),
+    bound: predicateBound,
+    test: comparatorTest
+  },
+  directional: {
+    terms: (claim) => subjectTerms(claim),
+    scale: (claim) => (Number.isFinite(claim?.direction) && claim.direction !== 0
+      ? { ok: true, factor: claim.direction }
+      : refusal(claims.CONTRACT_VIOLATION_CODE, 'direction-not-bound', 'direction')),
+    /* Step 8 fixes this kind's bound to the claim's own frozen flat band and its test to strictly
+       greater — `direction x ret(subject) > flatBandFor(claim)` — so `predicate.value` is not
+       consulted. The comparator still selects point vs path and still refuses out of vocabulary. */
+    bound: (claim) => {
+      const band = claims.flatBandFor(claim);
+      return band.ok ? { ok: true, bound: band.flatBand } : band;
+    },
+    test: () => (observed, bound) => observed > bound
+  },
+  spread: {
+    terms: (claim) => withReference(claim, primaryLegTerm(claim)),
+    scale: () => ({ ok: true, factor: 1 }),
+    bound: predicateBound,
+    test: comparatorTest
+  }
+}, 'predicate kind');
+
+function primaryLegTerm(claim) {
+  const refs = claim?.subject?.seriesRefs ?? [];
+  if (refs.length === 0) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'subject-carries-no-series', 'subject.seriesRefs');
+  }
+  return { ok: true, terms: [{ seriesRef: refs[0], weight: 1 }] };
+}
+
+function predicateBound(claim) {
+  const value = claim?.predicate?.value;
+  if (!Number.isFinite(value)) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'predicate-value-not-finite', 'predicate.value');
+  }
+  return { ok: true, bound: value };
+}
+
+function comparatorTest(comparator) {
+  return COMPARATORS[comparator].test;
+}
+
+/** Every term's entry-session basis value: the denominators the whole evaluation hangs off. */
+function entryValuesFor(terms, fences, priceBasis, entryDate) {
+  const entries = new Map();
+  for (const term of terms) {
+    if (entries.has(term.seriesRef)) continue;
+    const fence = fences.get(term.seriesRef);
+    if (fence === undefined) {
+      return closure('not-evaluable', NO_COMMITTED_REFERENCE_REASON, `observations.${term.seriesRef}`);
+    }
+    const at = basisValueAt(fence, priceBasis, entryDate);
+    if (!at.ok) return at;
+    entries.set(term.seriesRef, at.value);
+  }
+  return { ok: true, entries };
+}
+
+/** `Σ weight × ret(leg)` at one session, reading either the close or a comparator's extreme. */
+function observedAt(terms, fences, priceBasis, entries, sessionDate, extremeField) {
+  let total = 0;
+  const observations = [];
+  for (const term of terms) {
+    const fence = fences.get(term.seriesRef);
+    const at = extremeField === null
+      ? basisValueAt(fence, priceBasis, sessionDate)
+      : pathValueAt(fence, priceBasis, sessionDate, extremeField);
+    if (!at.ok) return at;
+    total += term.weight * periodReturn(entries.get(term.seriesRef), at.value);
+    observations.push({ seriesRef: term.seriesRef, sessionDate, field: extremeField, value: at.value });
+  }
+  return { ok: true, observed: total, observations };
+}
+
+/**
+ * The claim's frozen predicate against the fenced slice, as a closure event and its shipped reason.
+ *
+ * The verdict is the LAST input `resolutionFor` was taking on trust, and it is decided here from
+ * the claim alone: the kind, the comparator, the bound and the weighting are all hashed terms, so
+ * two passes over unchanged bytes cannot disagree.
+ */
+export function evaluatePredicate(claim, fences, calendar) {
+  if (claim?.notEvaluable != null) {
+    return closure('not-evaluable', claim.notEvaluable.reason, claim.notEvaluable.field);
+  }
+  const predicate = claim?.predicate;
+  if (predicate === null || predicate === undefined) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'no-authored-predicate', 'predicate');
+  }
+  /* Membership FIRST, dispatch second. An out-of-vocabulary kind or comparator can therefore
+     never reach a table lookup that would resolve `undefined` through the prototype chain. */
+  if (!claims.PREDICATE_KINDS.includes(predicate.kind)) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'predicate-kind-not-allowed', 'predicate.kind');
+  }
+  if (!claims.PREDICATE_COMPARATORS.includes(predicate.comparator)) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'predicate-comparator-not-allowed', 'predicate.comparator');
+  }
+  const kind = KINDS[predicate.kind];
+  const comparator = COMPARATORS[predicate.comparator];
+
+  const basis = claims.priceBasisFor(claim);
+  if (!basis.ok) return basis;
+
+  const terms = kind.terms(claim);
+  if (!terms.ok) return terms;
+  const scale = kind.scale(claim);
+  if (!scale.ok) return scale;
+  const bound = kind.bound(claim);
+  if (!bound.ok) return bound;
+
+  const entryDate = claim?.magnitude?.entryDate;
+  const resolutionDate = claim?.horizon?.resolutionDate;
+  if (!ISO_DATE.test(entryDate) || !ISO_DATE.test(resolutionDate)) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'no-authored-horizon', 'horizon.resolutionDate');
+  }
+
+  const entries = entryValuesFor(terms.terms, fences, basis.priceBasis, entryDate);
+  if (!entries.ok) return entries;
+
+  /* Point comparators evaluate ONCE at the resolution session; path comparators walk the complete
+     window. Which one runs is the comparator's own mode, never a branch on the kind. */
+  let sessions = [resolutionDate];
+  if (comparator.mode === PATH_COMPARATOR_MODE) {
+    if (!basisCarriesPathExtremes(basis.priceBasis)) {
+      return {
+        ok: false,
+        error: {
+          code: PRICE_BASIS_CODE,
+          reason: 'path-extremes-absent-for-basis',
+          field: 'predicate.comparator',
+          priceBasis: basis.priceBasis
+        }
+      };
+    }
+    const window = pathSessions(calendar, entryDate, resolutionDate);
+    if (!window.ok) return window;
+    /* A path over a PARTIAL window is a different predicate, so a gap closes rather than scoring.
+       The entry session is exempt: it is every term's denominator, so its absence is the
+       single-session `session-absent` the endpoint reader above already returned.
+
+       A session past the fence is asked of `basisValueAt` FIRST, so it comes back as the
+       increment-2 `RTR-LOOKAHEAD` rather than being reported as a gap. The two are different
+       facts: one is a window the observations do not yet reach, the other is a hole inside a
+       window they do — and calling the first a gap would hide a fence violation as a data gap. */
+    for (const sessionDate of window.sessions) {
+      if (sessionDate === entryDate) continue;
+      for (const term of terms.terms) {
+        const fence = fences.get(term.seriesRef);
+        if (sessionDate > fence.asOfDate) {
+          const past = basisValueAt(fence, basis.priceBasis, sessionDate);
+          if (!past.ok) return past;
+        }
+        if (!fence.observations.has(sessionDate)) {
+          return closure('unresolved', PATH_INCOMPLETE_REASON, `observations.${term.seriesRef}.${sessionDate}`);
+        }
+      }
+    }
+    sessions = window.sessions;
+  }
+
+  const evaluated = [];
+  let decided = null;
+  for (const sessionDate of sessions) {
+    const at = observedAt(terms.terms, fences, basis.priceBasis, entries.entries, sessionDate, comparator.extreme);
+    if (!at.ok) return at;
+    const observed = scale.factor * at.observed;
+    evaluated.push({ sessionDate, observed, observations: Object.freeze(at.observations) });
+    if (decided === null && kind.test(predicate.comparator)(observed, bound.bound)) {
+      decided = { sessionDate, observed };
+    }
+  }
+
+  const passed = decided !== null;
+  const closureEventType = passed ? PREDICATE_SATISFIED_EVENT : PREDICATE_INVALIDATED_EVENT;
+  return {
+    ok: true,
+    kind: predicate.kind,
+    comparator: predicate.comparator,
+    mode: comparator.mode,
+    priceBasis: basis.priceBasis,
+    closureEventType,
+    reasonCode: PREDICATE_VERDICT_REASON[closureEventType],
+    bound: bound.bound,
+    /* The value that DECIDED it: the crossing session for a satisfied path, the last session
+       otherwise. A verdict whose number cannot be pointed at is not auditable. */
+    observed: passed ? decided.observed : evaluated[evaluated.length - 1].observed,
+    decidedAt: passed ? decided.sessionDate : evaluated[evaluated.length - 1].sessionDate,
+    sessionsEvaluated: Object.freeze(evaluated.map((entry) => entry.sessionDate))
+  };
+}

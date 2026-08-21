@@ -30,10 +30,17 @@ import {
     DETERMINED_CLOSURE_CLASS,
     LOOKAHEAD_CODE,
     MEASURED_CLOSURE_EVENTS,
+    NO_COMMITTED_REFERENCE_REASON,
+    PATH_COMPARATOR_MODE,
+    PATH_INCOMPLETE_REASON,
+    POINT_COMPARATOR_MODE,
+    PREDICATE_INVALIDATED_EVENT,
+    PREDICATE_SATISFIED_EVENT,
     PRICE_BASIS_CODE,
     SESSION_ABSENT_REASON,
     basisFingerprint,
     basisValueAt,
+    evaluatePredicate,
     fenceObservations,
     loadBars,
     loadCalendar,
@@ -2090,14 +2097,22 @@ function fixtureFences(symbols, resolutionDate = RESOLUTION_SESSION) {
  * fixture symbols so the mint gate sees them as available, which is the same availability rule
  * `enumerateCommittedSeries` applies to the real tree — never `index.json`, never a count.
  */
-function syntheticClaim(symbols, { priceBasis, weighting = 'primary-only', action = 'add' } = {}) {
+function syntheticClaim(symbols, {
+    priceBasis,
+    weighting = 'primary-only',
+    action = 'add',
+    predicate = {},
+    entryDate = ENTRY_SESSION,
+    resolutionDate = RESOLUTION_SESSION,
+} = {}) {
     const fixture = structuredClone(loadClaimFixture('evaluable-instrument-add'));
     fixture.input.action.action = action;
     fixture.input.action.claim.resolvesTo = symbols;
     fixture.input.action.claim.weighting = weighting;
     fixture.input.action.claim.priceBasis = priceBasis;
-    fixture.input.binding.entryDate = ENTRY_SESSION;
-    fixture.input.binding.resolutionDate = RESOLUTION_SESSION;
+    fixture.input.action.claim.predicate = { ...fixture.input.action.claim.predicate, ...predicate };
+    fixture.input.binding.entryDate = entryDate;
+    fixture.input.binding.resolutionDate = resolutionDate;
     const result = claims.mintClaim(mintInputFrom(fixture, { committedSeries: symbols }));
     assertEvaluable(result, `synthetic ${symbols.join('+')} @ ${priceBasis}`);
     return result.claim;
@@ -2430,6 +2445,272 @@ test('T-04-U8 (increment 3): the hashed provenance is assembled here, so no run-
     const carried = mint('not-evaluable-no-authored-price-basis').claim;
     const bare = resolutionProvenanceFor(loadCalendar(REPO_ROOT), carried, outcomeValueFor(carried, fences));
     assert.deepEqual(Object.keys(bare.provenance), ['earlyCloseSessions'], 'no basis is invented for an unmeasured claim');
+});
+
+/* ── Scope 04, increment 4 ────────────────────────────────────────────────────────────────
+   Increment 3 could BUILD a record but not DECIDE one: `resolutionFor` still took
+   `closureEventType` and `reasonCode` from its caller. Increment 4 computes that verdict from
+   the claim's own frozen predicate. The reducer bridge and the data-quality gates are later
+   increments, so every row carries an `(increment 4)` marker and none claims its Test Plan row
+   whole. Every date is a fixture literal or a committed-calendar value; nothing reads a clock.
+
+   The DVG fixture is what makes point and path genuinely different rather than nominally so: it
+   CLOSES at +10% but its high touches +12% and its low touches -12% on the same session, so a
+   bound of 11 is missed by `gte` and cleared by `crosses-above`. Every expected number below is
+   an EXPRESSION over the fixture closes, so a `toFixed` creeping into the arithmetic fails. */
+
+const DVG_RAW_HIGH_RETURN = (112 / 100 - 1) * 100;
+const DVG_RAW_LOW_RETURN = (88 / 100 - 1) * 100;
+const PATH_SESSION_3 = '2026-07-30';
+const PATH_BOUND = 11;
+const FIXTURE_FLAT_BAND = 0.25;
+const SERIES_INTERVAL = claims.seriesRefFor('X').split('/')[2];
+
+/** Override a MINTED claim's predicate. Out-of-vocabulary values cannot be minted, only injected. */
+function withPredicate(claim, patch) {
+    const mutated = structuredClone(claim);
+    Object.assign(mutated.predicate, patch);
+    return mutated;
+}
+
+function sessionOpenEpoch(calendar, tradingDate) {
+    return Date.parse(calendar.rows.find((row) => row.tradingDate === tradingDate).regular.startUtc);
+}
+
+/**
+ * A three-session synthetic series so a path window can be COMPLETE or carry an interior gap.
+ * The two fixture series are adjacent sessions, which cannot express a gap at all. Session
+ * timestamps are read from the committed calendar rather than computed by day arithmetic.
+ */
+function threeSessionBars(calendar, { skip = null } = {}) {
+    const sessions = [ENTRY_SESSION, RESOLUTION_SESSION, PATH_SESSION_3];
+    const closes = [100, 110, 120];
+    const rows = sessions
+        .map((tradingDate, index) => ({
+            t: sessionOpenEpoch(calendar, tradingDate),
+            o: closes[index] - 1,
+            h: closes[index] + 2,
+            l: closes[index] - 2,
+            c: closes[index],
+            v: 1000,
+            ac: closes[index],
+        }))
+        .filter((_row, index) => sessions[index] !== skip);
+    return readBars(JSON.stringify({
+        sym: 'PATH3', interval: SERIES_INTERVAL, range: '1mo', asof: PATH_SESSION_3, rows,
+    }));
+}
+
+test('T-04-U1 (increment 4): all four predicate kinds evaluate, and the kind and comparator are bound to the frozen vocabularies', () => {
+    const calendar = loadCalendar(REPO_ROOT);
+    const fences = fixtureFences(['DVG', 'DVG2']);
+    const evaluate = (claim) => evaluatePredicate(claim, fences, calendar);
+
+    /* THRESHOLD — `cmp(ret(subject), predicate.value)`. Satisfied and invalidated on the SAME
+       series, so the verdict tracks the bound rather than the fixture. */
+    const thresholdMet = evaluate(syntheticClaim(['DVG'], {
+        priceBasis: 'raw-close', predicate: { kind: 'threshold', comparator: 'gte', value: 1.5 },
+    }));
+    assert.equal(thresholdMet.ok, true);
+    assert.equal(thresholdMet.observed, DVG_RAW_RETURN, 'threshold observes ret(subject) exactly');
+    assert.equal(thresholdMet.closureEventType, PREDICATE_SATISFIED_EVENT);
+    assert.equal(thresholdMet.reasonCode, 'predicate-satisfied');
+    const thresholdMissed = evaluate(syntheticClaim(['DVG'], {
+        priceBasis: 'raw-close', predicate: { kind: 'threshold', comparator: 'gte', value: PATH_BOUND },
+    }));
+    assert.equal(thresholdMissed.closureEventType, PREDICATE_INVALIDATED_EVENT, '+10% does not clear 11');
+    assert.equal(thresholdMissed.reasonCode, 'predicate-invalidated');
+
+    /* RELATIVE — `cmp(ret(subject) - ret(reference), predicate.value)`. DVG rose 10 while DVG2
+       fell 5, so the pair differ by 15 and NEITHER leg alone would produce that number. */
+    const relativeClaim = (value) => syntheticClaim(['DVG'], {
+        priceBasis: 'raw-close',
+        predicate: { kind: 'relative', comparator: 'gte', value, reference: 'DVG2' },
+    });
+    const relativeMet = evaluate(relativeClaim(14));
+    assert.equal(relativeMet.observed, DVG_RAW_RETURN - DVG2_RAW_RETURN, 'relative subtracts the reference return');
+    assert.notEqual(relativeMet.observed, DVG_RAW_RETURN, 'and is not the subject return alone');
+    assert.equal(relativeMet.closureEventType, PREDICATE_SATISFIED_EVENT);
+    assert.equal(evaluate(relativeClaim(16)).closureEventType, PREDICATE_INVALIDATED_EVENT, '15 does not clear 16');
+
+    /* DIRECTIONAL — `direction x ret(subject) > flatBand`. The bound is the claim's FROZEN band,
+       not `predicate.value`, and the multiply is why a correct BEARISH call is satisfied on a
+       series that fell. Without it every correct `trim` would read as invalidated. */
+    const directional = (action, priceBasis) => evaluate(syntheticClaim(['DVG'], {
+        priceBasis, action, predicate: { kind: 'directional', comparator: 'gte', value: PATH_BOUND },
+    }));
+    const correctBull = directional('add', 'raw-close');
+    assert.equal(correctBull.bound, FIXTURE_FLAT_BAND, 'the bound is the frozen flat band');
+    assert.notEqual(correctBull.bound, PATH_BOUND, 'and expressly NOT predicate.value');
+    assert.equal(correctBull.observed, DVG_RAW_RETURN, '+1 x +10%');
+    assert.equal(correctBull.closureEventType, PREDICATE_SATISFIED_EVENT);
+    assert.equal(directional('trim', 'raw-close').observed, -DVG_RAW_RETURN, '-1 x +10% is a wrong bearish call');
+    assert.equal(directional('trim', 'raw-close').closureEventType, PREDICATE_INVALIDATED_EVENT);
+    const correctBear = directional('trim', 'adjusted-close');
+    assert.equal(correctBear.observed, -DVG_ADJUSTED_RETURN, '-1 x -10% is a correct bearish call');
+    assert.equal(correctBear.closureEventType, PREDICATE_SATISFIED_EVENT, 'which the flat band clears');
+
+    /* SPREAD — `cmp(ret(subject.leg) - ret(reference.leg), predicate.value)`, LEG-scoped, so it is
+       a different predicate from `relative` rather than a second spelling. On an equal-weighted
+       basket the two disagree in VERDICT at the same bound, which is what proves the distinction:
+       spread reads -15 (DVG2 leg alone) while relative reads -7.5 (the basket mean). */
+    const pairPredicate = (kind) => ({ kind, comparator: 'lte', value: -10, reference: 'DVG' });
+    const spread = evaluate(syntheticClaim(['DVG2', 'DVG'], {
+        priceBasis: 'raw-close', weighting: 'equal', predicate: pairPredicate('spread'),
+    }));
+    const relativeSame = evaluate(syntheticClaim(['DVG2', 'DVG'], {
+        priceBasis: 'raw-close', weighting: 'equal', predicate: pairPredicate('relative'),
+    }));
+    assert.equal(spread.observed, DVG2_RAW_RETURN - DVG_RAW_RETURN, 'spread is first leg minus reference leg');
+    assert.equal(relativeSame.observed, (DVG2_RAW_RETURN + DVG_RAW_RETURN) / 2 - DVG_RAW_RETURN, 'relative weights the basket');
+    assert.equal(spread.closureEventType, PREDICATE_SATISFIED_EVENT, '-15 clears -10');
+    assert.equal(relativeSame.closureEventType, PREDICATE_INVALIDATED_EVENT, 'while -7.5 does not');
+
+    /* EVERY SHIPPED KIND AND COMPARATOR IS HANDLED, iterated from the frozen arrays rather than
+       from a list written here — so a fifth kind cannot be silently unreachable. */
+    for (const kind of claims.PREDICATE_KINDS) {
+        const result = evaluate(syntheticClaim(['DVG'], {
+            priceBasis: 'raw-close', predicate: { kind, comparator: 'gte', value: 0, reference: 'DVG2' },
+        }));
+        assert.equal(result.ok, true, `${kind}: ${JSON.stringify(result.error ?? result.closure)}`);
+        assert.equal(result.kind, kind, 'and reports the kind it was given');
+    }
+    for (const comparator of claims.PREDICATE_COMPARATORS) {
+        const result = evaluate(syntheticClaim(['DVG'], {
+            priceBasis: 'raw-close', predicate: { kind: 'threshold', comparator, value: 0 },
+        }));
+        assert.equal(result.ok, true, `${comparator}: ${JSON.stringify(result.error ?? result.closure)}`);
+        assert.equal([POINT_COMPARATOR_MODE, PATH_COMPARATOR_MODE].includes(result.mode), true, 'in one of the two modes');
+    }
+
+    /* OUT OF VOCABULARY REFUSES — never coerced, and never treated as a default kind. The mint
+       rejects both, so they can only arrive by injection into an already-minted claim. */
+    const minted = syntheticClaim(['DVG'], { priceBasis: 'raw-close' });
+    const badKind = evaluate(withPredicate(minted, { kind: 'thresholds' }));
+    assert.equal(badKind.ok, false);
+    assertRefusal(badKind.error, 'predicate-kind-not-allowed', 'predicate.kind', 'one-character-off kind');
+    const badComparator = evaluate(withPredicate(minted, { comparator: 'gte ' }));
+    assert.equal(badComparator.ok, false);
+    assertRefusal(badComparator.error, 'predicate-comparator-not-allowed', 'predicate.comparator', 'trailing-space comparator');
+    /* `constructor` is a real property of every object, so a lookup that missed the membership
+       test would resolve it through the prototype chain instead of refusing. */
+    assert.equal(evaluate(withPredicate(minted, { kind: 'constructor' })).error.reason, 'predicate-kind-not-allowed');
+
+    /* A REFERENCE THAT IS NOT A COMMITTED SERIES CLOSES, with the shipped resolver reason so
+       `buildResolution` accepts it against `not-evaluable` and rejects it against anything else. */
+    const noReference = evaluate(syntheticClaim(['DVG'], {
+        priceBasis: 'raw-close', predicate: { kind: 'relative', comparator: 'gte', value: 0, reference: null },
+    }));
+    assert.equal(noReference.ok, false);
+    assert.deepEqual(noReference.closure, {
+        closureEventType: 'not-evaluable', reasonCode: NO_COMMITTED_REFERENCE_REASON, field: 'predicate.reference',
+    });
+    assert.equal(claims.RESOLVER_NOT_EVALUABLE_REASONS.includes(NO_COMMITTED_REFERENCE_REASON), true, 'the reason is shipped');
+
+    /* THE VERDICT PAIR IS THE SHIPPED PAIR, so `buildResolution` needs no adapter. */
+    for (const verdict of [thresholdMet, thresholdMissed]) {
+        assert.equal(claims.CLOSURE_REASON_CODES[verdict.closureEventType].includes(verdict.reasonCode), true);
+    }
+});
+
+test('T-04-U2 (increment 4): point and path comparators are different evaluations, and a path gap closes path-incomplete', () => {
+    const calendar = loadCalendar(REPO_ROOT);
+    const fences = fixtureFences(['DVG']);
+    const dvg = (comparator, value) => evaluatePredicate(syntheticClaim(['DVG'], {
+        priceBasis: 'raw-close', predicate: { kind: 'threshold', comparator, value },
+    }), fences, calendar);
+
+    /* THE SAME BOUND, TWO VERDICTS. The close returns +10 and misses 11; the session HIGH reaches
+       +12 and clears it. If path evaluation silently read the close, these two would agree — and
+       a claim whose author asked "did it ever touch +11%" would be answered "no" for a session
+       that did. The mirrored low pair proves it is not merely reading a different constant. */
+    assert.equal(dvg('gte', PATH_BOUND).closureEventType, PREDICATE_INVALIDATED_EVENT, 'the close misses the bound');
+    const crossedAbove = dvg('crosses-above', PATH_BOUND);
+    assert.equal(crossedAbove.closureEventType, PREDICATE_SATISFIED_EVENT, 'while the high clears it');
+    assert.equal(crossedAbove.observed, DVG_RAW_HIGH_RETURN, 'and the observed value is the HIGH return');
+    assert.notEqual(crossedAbove.observed, DVG_RAW_RETURN, 'never the close return');
+    assert.equal(dvg('lte', -PATH_BOUND).closureEventType, PREDICATE_INVALIDATED_EVENT);
+    const crossedBelow = dvg('crosses-below', -PATH_BOUND);
+    assert.equal(crossedBelow.closureEventType, PREDICATE_SATISFIED_EVENT);
+    assert.equal(crossedBelow.observed, DVG_RAW_LOW_RETURN, 'crosses-below reads the LOW');
+
+    /* THE WINDOW IS THE UNIT OF EVALUATION. A point comparator reads one session; a path
+       comparator reads every session of `[entryDate, resolutionDate]` from the committed calendar. */
+    assert.deepEqual(dvg('gte', 0).sessionsEvaluated, [RESOLUTION_SESSION], 'a point comparator evaluates once');
+    assert.equal(dvg('gte', 0).mode, POINT_COMPARATOR_MODE);
+    assert.deepEqual(crossedAbove.sessionsEvaluated, [ENTRY_SESSION, RESOLUTION_SESSION], 'a path comparator walks the window');
+    assert.equal(crossedAbove.mode, PATH_COMPARATOR_MODE);
+
+    /* A GAP CLOSES RATHER THAN SCORING A PARTIAL PATH — a path evaluated over a subset is a
+       DIFFERENT predicate, and answering it as though it were the authored one is the silent
+       substitution HC-6 forbids. Anti-vacuity: the SAME window with the session restored
+       resolves, so the closure is caused by the gap and not by a reader that refuses this shape. */
+    const complete = threeSessionBars(calendar);
+    const gapped = threeSessionBars(calendar, { skip: RESOLUTION_SESSION });
+    assert.equal(complete.rows.length - gapped.rows.length, 1, 'exactly one interior session is removed');
+    const pathClaim = syntheticClaim(['PATH3'], {
+        priceBasis: 'raw-close',
+        predicate: { kind: 'threshold', comparator: 'crosses-above', value: PATH_BOUND },
+        resolutionDate: PATH_SESSION_3,
+    });
+    const fenceFor = (bars) => new Map([[claims.seriesRefFor('PATH3'), fenceObservations(calendar, bars, PATH_SESSION_3)]]);
+
+    const whole = evaluatePredicate(pathClaim, fenceFor(complete), calendar);
+    assert.equal(whole.ok, true, 'the complete window evaluates');
+    assert.deepEqual(whole.sessionsEvaluated, [ENTRY_SESSION, RESOLUTION_SESSION, PATH_SESSION_3]);
+    assert.equal(whole.decidedAt, RESOLUTION_SESSION, 'and it decides at the CROSSING session, not the last one');
+    assert.equal(whole.observed, (112 / 100 - 1) * 100, 'reading that session own high');
+
+    const gap = evaluatePredicate(pathClaim, fenceFor(gapped), calendar);
+    assert.equal(gap.ok, false);
+    assert.equal(Object.prototype.hasOwnProperty.call(gap, 'error'), false, 'a path gap carries no RTR-* code');
+    assert.deepEqual(gap.closure, {
+        closureEventType: 'unresolved',
+        reasonCode: PATH_INCOMPLETE_REASON,
+        field: `observations.${claims.seriesRefFor('PATH3')}.${RESOLUTION_SESSION}`,
+    });
+    assert.equal(claims.CLOSURE_REASON_CODES.unresolved.includes(PATH_INCOMPLETE_REASON), true, 'the reason is shipped');
+
+    /* A MISSING ENTRY SESSION IS THE SINGLE-SESSION CASE, not a path gap: it is every term's
+       denominator, so it comes back from the shipped endpoint reader as `session-absent`. */
+    const noEntry = evaluatePredicate(pathClaim, fenceFor(threeSessionBars(calendar, { skip: ENTRY_SESSION })), calendar);
+    assert.equal(noEntry.closure.reasonCode, SESSION_ABSENT_REASON, 'the denominator is the endpoint case');
+
+    /* LOOKAHEAD IS THE INCREMENT-2 REFUSAL, NOT A SECOND RULE. A window fenced short of its own
+       resolution date cannot be walked, and the code that says so is `basisValueAt`. */
+    const shortFence = new Map([[claims.seriesRefFor('PATH3'), fenceObservations(calendar, complete, RESOLUTION_SESSION)]]);
+    const beyond = evaluatePredicate(pathClaim, shortFence, calendar);
+    assert.equal(beyond.ok, false);
+    assert.equal(beyond.error.code, LOOKAHEAD_CODE, 'reading past the fence is RTR-LOOKAHEAD');
+
+    /* A PATH ON AN ADJUSTED BASIS REFUSES RATHER THAN MIXING TWO SERIES. `h`/`l` are quoted with
+       the OHLC close only, so dividing a RAW high by an ADJUSTED entry close would fabricate a
+       return from two different series — the untraceable substitution R-04-01 exists to prevent. */
+    const mixed = evaluatePredicate(syntheticClaim(['DVG'], {
+        priceBasis: 'adjusted-close',
+        predicate: { kind: 'threshold', comparator: 'crosses-above', value: PATH_BOUND },
+    }), fences, calendar);
+    assert.equal(mixed.ok, false);
+    assert.equal(mixed.error.code, PRICE_BASIS_CODE, 'code');
+    assert.equal(mixed.error.reason, 'path-extremes-absent-for-basis', 'reason');
+    assert.equal(mixed.error.priceBasis, 'adjusted-close', 'naming the basis that carries no extremes');
+
+    /* AN ABSENT EXTREME ON A ROW REFUSES rather than arriving as `undefined` and then `NaN`.
+       The fence is built directly here because `readBars` requires `h`, which is exactly the
+       guarantee this guard exists to survive the absence of. */
+    const noHigh = {
+        sym: 'NOHIGH',
+        rows: [ENTRY_SESSION, RESOLUTION_SESSION].map((tradingDate, index) => ({
+            t: sessionOpenEpoch(calendar, tradingDate), o: 99, l: 98, c: 100 + index * 10, v: 1,
+        })),
+    };
+    const absent = evaluatePredicate(syntheticClaim(['NOHIGH'], {
+        priceBasis: 'raw-close',
+        predicate: { kind: 'threshold', comparator: 'crosses-above', value: PATH_BOUND },
+    }), new Map([[claims.seriesRefFor('NOHIGH'), fenceObservations(calendar, noHigh, RESOLUTION_SESSION)]]), calendar);
+    assert.equal(absent.ok, false);
+    assert.equal(absent.error.reason, 'path-extreme-absent-from-observation', 'reason');
+    assert.equal(absent.error.field, `observations.NOHIGH.${ENTRY_SESSION}.h`, 'naming the exact row field');
 });
 
 

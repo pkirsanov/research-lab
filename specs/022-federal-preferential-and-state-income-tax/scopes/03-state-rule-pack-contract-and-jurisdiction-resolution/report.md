@@ -1390,13 +1390,42 @@ to this scope:
 | `tests/lifetime-tax-surtax.spec.mjs` | `e71772915`, `76252f69f` | Feature 022 Scope 02, which owns that file |
 | `site-exclusions.json`, `scripts/validate-spec-test-paths.baseline` | outside this scope's commits | other sessions |
 
-None of this scope's own commits — `2eb880a36`, `e2a1993ca`, `7b1b4ea17` — touches
-any excluded path. The honest reading is that the row's blanket wording is wrong
-rather than that the boundary was breached: `specs/021-*` and the inherited
-lifetime-tax spec files are edited by the scopes that own them, and freezing them
-for the lifetime of this scope was never achievable. Closing the row needs the
-excluded list narrowed to what this scope must not touch, which is a planning
-change owned by `bubbles.plan`, not an execution claim this report may make.
+None of this scope's own commits — `2eb880a36`, `e2a1993ca`, `7b1b4ea17`,
+`518042cf4`, `b3428ad9e`, `8e56bbad2`, `828b3e927`, `e224e77b2` — touches any
+excluded path. That was re-verified per commit rather than carried forward: the
+only files any of them names outside this scope's own directory are
+`scripts/selftest.mjs`, which this scope is required to append to, and one sibling
+scope's `scope.md`. Neither `tax-rules/federal/**` nor either `specs/021-*`
+directory appears in any of them.
+
+**The second reading of the row was tested and is not available.** "A and B are
+byte-identical" would normally compare A against B, which would make the row a
+hash comparison between the federal pack and a copy of it held in Feature 021's
+spec directory. There is no such copy: that directory holds fourteen Markdown
+files and two JSON files, and both JSON files are Bubbles artifacts —
+`state.json` and `scenario-manifest.json` — not tax packs. So the row can only
+mean "each is unchanged", which is how it is read here.
+
+**Verified state of each half.** `tax-rules/federal/2026.json` has been touched by
+exactly one commit in the repository's whole history, `b9d92a3f1`, the commit that
+created the lab. It is byte-identical, and that is the half carrying the argument:
+opening the jurisdiction axis required no federal pack edit, so the axis is a seam.
+`specs/021-lifetime-tax-strategy-lab/` has nine commits after that one, every one
+of them Feature 021 closing its own Definition-of-Done items. It is not
+byte-identical and could not be, because Feature 021 was still being worked while
+this scope ran.
+
+The honest reading is that the row's blanket wording is wrong rather than that the
+boundary was breached: `specs/021-*` and the inherited lifetime-tax spec files are
+edited by the scopes that own them, and freezing them for the lifetime of this
+scope was never achievable.
+
+**Decidable by:** narrowing the excluded list to what *this scope* must not touch
+— on the evidence above, `tax-rules/federal/**` alone would be satisfied today —
+or restating the row as "no commit of this scope modifies an excluded path", which
+is true and is proven per commit above. Both are edits to planning wording and are
+owned by `bubbles.plan`, not claims this report may make on its own. The row
+therefore stays open.
 
 ## Claim Boundary
 

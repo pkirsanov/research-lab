@@ -356,6 +356,22 @@ error, a missing browser or an absent test does not satisfy RED.
     produced.
 - [ ] The federal pack and Feature 021's spec directory are byte-identical,
       proving the jurisdiction axis is a seam rather than a federal edit.
+  - **Open — one half holds, the other is false and cannot be made true here.**
+    Re-verified this session rather than carried forward. `tax-rules/federal/2026.json`
+    has exactly one commit in the repository's entire history, `b9d92a3f1`, which
+    created the lab: it is byte-identical, and that is the half that carries the
+    row's argument. `specs/021-lifetime-tax-strategy-lab/` has nine commits after
+    that one, every one Feature 021 closing its own Definition-of-Done items, so it
+    is not byte-identical and could not be while Feature 021 was still being worked.
+    The alternative reading — the two named things being byte-identical to *each
+    other* — was tested and is unavailable: that directory holds no copy of the pack,
+    only fourteen Markdown files and the two Bubbles artifacts `state.json` and
+    `scenario-manifest.json`. The boundary was not breached: all eight of this
+    scope's commits were re-checked per commit and none names an excluded path.
+    **Decidable by:** narrowing the excluded list to what this scope must not touch,
+    or restating the row as "no commit of this scope modifies an excluded path" —
+    which is true and proven per commit in the report. Both are planning-wording
+    edits owned by `bubbles.plan`, not execution claims.
   - **Phase:** implement · **Command:** a path-scoped status check over the excluded list · **Evidence:** `report.md#change-boundary`
 - [x] No output states a probability, a lifetime figure, a track record or an
       error rate, and no state figure is presented as an estimate or an average.

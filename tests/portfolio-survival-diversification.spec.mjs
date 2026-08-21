@@ -10,6 +10,7 @@ import { resolve } from 'node:path';
 import { FIXTURE_ROOT, startPortfolioServer } from './portfolio-survival.support.mjs';
 
 let server;
+const PAGE_ERRORS = new WeakMap();
 
 test.beforeAll(async () => {
   server = await startPortfolioServer();
@@ -22,6 +23,9 @@ test.afterAll(async () => {
 const DATES = ['2026-05-04', '2026-05-05', '2026-05-06', '2026-05-07', '2026-05-08', '2026-05-11'];
 
 async function openLab(page) {
+  const errors = [];
+  PAGE_ERRORS.set(page, errors);
+  page.on('pageerror', (error) => errors.push(String(error)));
   const response = await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#brief`);
   expect(response?.status(), 'the Diversification host page must be served').toBe(200);
   await expect(page.locator('#workspaceTabBrief')).toHaveAttribute('aria-selected', 'true');
@@ -54,7 +58,7 @@ async function openDiversification(page) {
   await page.locator('#workspaceTabDiversification').click();
   await expect(page).toHaveURL(/#diversification$/);
   const panel = page.locator('[data-route="diversification"]');
-  await expect(panel).toBeVisible();
+  await expect(panel, `uncaught page errors: ${(PAGE_ERRORS.get(page) || []).join(' | ') || 'none'}`).toBeVisible();
   return panel;
 }
 
@@ -63,6 +67,39 @@ async function seedPortfolio(page, name) {
   await importValid(page, name);
   await seedBars(page, 'MSFT', series(DATES, [100, 120, 90, 96, 130, 128]));
   await seedBars(page, 'BND', series(DATES, [50, 51, 50, 50, 52, 52]));
+}
+
+async function seedScope23Evidence(page, name) {
+  await seedPortfolio(page, name);
+  const dates = [
+    '2026-05-04', '2026-05-05', '2026-05-06', '2026-05-07', '2026-05-08', '2026-05-11', '2026-05-12',
+    '2026-05-13', '2026-05-14', '2026-05-15', '2026-05-18', '2026-05-19', '2026-05-20', '2026-05-21',
+    '2026-05-22', '2026-05-26', '2026-05-27', '2026-05-28', '2026-05-29', '2026-06-01', '2026-06-02'
+  ];
+  const targetReturns = [
+    -0.300, -0.200, -0.150, -0.100, -0.080, 0.010, -0.008, 0.012, -0.006, 0.009,
+    0.006, -0.004, 0.008, -0.007, 0.011, 0.005, 0.018, -0.005, 0.007, 0.004
+  ];
+  const bondReturns = targetReturns.map((value, index) => value * 0.55 + (index % 2 === 0 ? 0.001 : -0.001));
+  const proxyReturns = targetReturns.map((value, index) => value * 0.70 + (index % 3 === 0 ? 0.0015 : -0.0005));
+  const closes = (start, returns) => returns.reduce((values, value) => {
+    values.push(values.at(-1) * (1 + value));
+    return values;
+  }, [start]);
+  await seedBars(page, 'MSFT', series(dates, closes(100, targetReturns)));
+  await seedBars(page, 'BND', series(dates, closes(50, bondReturns)));
+  await seedBars(page, 'FXE', series(dates, closes(98, proxyReturns)));
+}
+
+async function runCommonPathScenario(page) {
+  await page.locator('#workspaceTabPathLab').click();
+  const panel = page.locator('[data-route="path-lab"]');
+  await expect(panel).toBeVisible();
+  await expect(panel.locator('#pathComputeStatus')).toHaveAttribute('data-compute-state', 'completed');
+  return page.evaluate(() => ({
+    scenarioIdentity: window.__PORTFOLIO_DIAGNOSTICS__.pathScenario.scenarioIdentity,
+    requestedPathCount: window.__PORTFOLIO_DIAGNOSTICS__.pathScenario.requestedPathCount
+  }));
 }
 
 test('Regression: SCN-008-022 raw stress correlation shows volatility context and qualified adjustment', async ({ page }) => {
@@ -199,9 +236,8 @@ test('Regression: Feature 008 dependence matrix alternatives and tables preserve
   expect(unresolved, 'every matrix cell has a unique table target').toBe(0);
 
   // Keyboard traversal reaches the matrix without a pointer.
-  await panel.locator('#dependenceMatrix').focus();
-  await page.keyboard.press('ArrowRight');
-  expect(await page.locator('#rlchart-rail-dependenceMatrix [aria-selected="true"]').count()).toBe(1);
+  await panel.locator('#dependenceMatrix').press('ArrowRight');
+  await expect(page.locator('#rlchart-rail-dependenceMatrix [aria-selected="true"]')).toHaveCount(1);
 
   // Meaning never depends on colour alone: every cell prints its number, and the
   // adjacent table repeats it as text.
@@ -227,35 +263,44 @@ test('Regression: Feature 008 dependence matrix alternatives and tables preserve
 });
 
 test('Regression: Feature 008 Diversification refuses rather than showing a simplified matrix', async ({ page }) => {
-  // No bars seeded: dependence cannot be formed. The route must say so rather
-  // than drawing an empty or zero-filled matrix that looks like a measurement.
+  // No bars seeded: Scope 21 permits descriptive holdings to remain visible, but every
+  // dependence cell must stay explicitly unavailable rather than becoming zero.
   await openLab(page);
   await importValid(page, 'TP-11-05 refusal');
   const panel = await openDiversification(page);
 
-  await expect(panel.locator('#dependenceUnavailable')).toBeVisible();
-  const text = await panel.locator('#dependenceUnavailable').textContent();
-  expect(text).toContain('Dependence unavailable');
-  expect(text).toContain('no correlation, tail estimate, or diversification conclusion is shown');
-
-  expect(await panel.locator('#dependenceMatrix').count(), 'no matrix is drawn without evidence').toBe(0);
-  expect(await panel.locator('#dependenceTable').count(), 'no table is drawn without evidence').toBe(0);
+  await expect(panel.locator('#dependenceTable')).toBeVisible();
+  const cells = await panel.locator('#dependenceTable tbody tr td:nth-child(2)').allTextContents();
+  expect(cells.length).toBeGreaterThan(0);
+  expect(cells.every((value) => value === 'Unavailable'), 'missing evidence never becomes zero correlation').toBe(true);
+  await expect(panel.locator('#tailDependence')).toHaveAttribute('data-tail-state', 'unavailable');
+  await expect(panel.locator('#tailDependence')).toContainText('no universal crisis correlation is assumed');
+  expect((await panel.textContent()).toLowerCase()).not.toContain('diversification conclusion:');
 });
 
 /* ---------------------------------------------------------------------------
    Scope 12 — hedge variant research
    --------------------------------------------------------------------------- */
 
-async function enterHedge(panel, { exposure = '100000', volatility = '0.2', carry = '0.01', proxy = 'FXE' } = {}) {
+async function enterHedge(panel, { exposure = '100000', carry = '0.01', proxy = 'FXE' } = {}) {
   await panel.locator('#hedgeExposure').fill(exposure);
-  await panel.locator('#hedgeVolatility').fill(volatility);
+  await panel.locator('#hedgeRatios').fill('0,0.5,1');
+  await panel.locator('#hedgeHorizon').fill('1');
   await panel.locator('#hedgeCarry').fill(carry);
+  await panel.locator('#hedgeCommission').fill('0.001');
+  await panel.locator('#hedgeSpread').fill('0.0005');
+  await panel.locator('#hedgeSlippage').fill('0.0005');
+  await panel.locator('#hedgeTurnover').fill('0.2');
+  await panel.locator('#hedgeRebalanceCost').fill('0.0002');
+  await panel.locator('#hedgeLiquidityCost').fill('0.001');
+  await panel.locator('#hedgeFinancing').fill('0.003');
   await panel.locator('#hedgeProxy').fill(proxy);
   await panel.locator('#hedgeApply').click();
 }
 
 test('Regression: SCN-008-025 hedged and unhedged comparison keeps carry and basis risk separate', async ({ page }) => {
-  await seedPortfolio(page, 'TP-12-02 hedge');
+  await seedScope23Evidence(page, 'TP-12-02 hedge');
+  await runCommonPathScenario(page);
   const panel = await openDiversification(page);
 
   // Nothing is assumed before the user enters anything.
@@ -267,29 +312,32 @@ test('Regression: SCN-008-025 hedged and unhedged comparison keeps carry and bas
   const rows = panel.locator('#hedgeTable tbody tr');
   expect(await rows.count(), 'unhedged, partial and fully hedged are all shown').toBe(3);
   const labels = await rows.locator('th').allTextContents();
-  expect(labels).toEqual(['Unhedged', 'Partial hedge 50%', 'Fully hedged']);
+  expect(labels).toEqual(['Unhedged', 'Explicit ratio 0.5', 'Explicit ratio 1']);
 
   // Carry, direct and turnover are SEPARATE columns. One blended "net" figure
   // would let a large carry hide behind a large risk reduction.
   const headers = await panel.locator('#hedgeTable thead th').allTextContents();
-  expect(headers).toEqual(['Variant', 'Residual volatility', 'Carry', 'Direct', 'Turnover', 'Total cost', 'Basis risk']);
+  expect(headers).toEqual([
+    'Variant', 'Residual volatility', 'Carry', 'Direct', 'Turnover',
+    'Liquidity', 'Financing', 'Total cost', 'Basis risk'
+  ]);
 
   // The unhedged baseline costs nothing and reduces nothing.
   // td indices are shifted by one: the variant label is a th, not a td.
   const unhedged = await rows.nth(0).locator('td').allTextContents();
   expect(unhedged[1], 'unhedged carry is zero').toMatch(/\$0/);
-  expect(unhedged[4], 'unhedged total cost is zero').toMatch(/\$0/);
+  expect(unhedged[6], 'unhedged total cost is zero').toMatch(/\$0/);
 
   // Cost rises with the ratio; both directions of the trade-off are visible.
   const fully = await rows.nth(2).locator('td').allTextContents();
-  expect(fully[4], 'a full hedge costs something').not.toMatch(/^\$0$/);
+  expect(fully[6], 'a full hedge costs something').not.toMatch(/^\$0$/);
   expect(
     Number(fully[0].replace('%', '')),
     'a full hedge leaves less residual volatility than no hedge'
   ).toBeLessThan(Number(unhedged[0].replace('%', '')));
 
   // Basis risk is stated per row, not assumed away.
-  expect(fully[5]).toContain('Remains');
+  expect(fully[7]).toContain('Remains');
 
   // No prescription anywhere on the surface.
   const boundary = await panel.locator('#hedgeClaimBoundary').textContent();
@@ -304,7 +352,8 @@ test('Regression: SCN-008-025 hedged and unhedged comparison keeps carry and bas
 });
 
 test('Regression: SCN-008-025 missing cost evidence blocks net benefit rather than assuming zero', async ({ page }) => {
-  await seedPortfolio(page, 'TP-12-03 missing cost');
+  await seedScope23Evidence(page, 'TP-12-03 missing cost');
+  await runCommonPathScenario(page);
   const panel = await openDiversification(page);
 
   // Carry deliberately left empty: the one cost the user must state.
@@ -313,13 +362,12 @@ test('Regression: SCN-008-025 missing cost evidence blocks net benefit rather th
   await expect(panel.locator('#hedgeNetUnavailable')).toBeVisible();
   const note = await panel.locator('#hedgeNetUnavailable').textContent();
   expect(note).toContain('Net benefit unavailable');
-  expect(note).toContain('annualCarryFraction');
+  expect(note).toContain('carryFraction');
   expect(note).toContain('is NOT treated as zero');
-  expect(note).toContain('zero is a claim about the world');
 
   // Every row reports the refusal rather than a plausible total built on a
   // silently-zeroed carry. Total cost is the fifth td (the label is a th).
-  const totals = await panel.locator('#hedgeTable tbody tr td:nth-child(6)').allTextContents();
+  const totals = await panel.locator('#hedgeTable tbody tr td:nth-child(8)').allTextContents();
   for (const total of totals) expect(total).toContain('Net unavailable');
 
   const states = await panel.locator('#hedgeTable tbody tr').evaluateAll(
@@ -329,7 +377,8 @@ test('Regression: SCN-008-025 missing cost evidence blocks net benefit rather th
 });
 
 test('Regression: Feature 008 hedge variants stay equivalent and legible at desktop mobile and zoom', async ({ page }) => {
-  await seedPortfolio(page, 'TP-12-04 hedge parity');
+  await seedScope23Evidence(page, 'TP-12-04 hedge parity');
+  await runCommonPathScenario(page);
   const panel = await openDiversification(page);
   await enterHedge(panel);
 
@@ -368,4 +417,108 @@ test('Regression: Feature 008 hedge variants stay equivalent and legible at desk
   const overflowZoom = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflowZoom, 'no horizontal overflow at 130% text').toBeLessThanOrEqual(1);
   await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
+});
+
+test('Regression: SCN-008-049 stress dependence appraisal and hedge effectiveness retain distinct qualified evidence', async ({ page }) => {
+  await seedScope23Evidence(page, 'TP-23-03 qualified evidence');
+  const common = await runCommonPathScenario(page);
+  const panel = await openDiversification(page);
+
+  await expect(panel.locator('#dependenceEvidenceSet')).toHaveAttribute('data-contract-version', 'DependenceEvidenceSet/v1');
+  await expect(panel.locator('#dependenceEvidenceSet')).toHaveAttribute('data-state', 'ok');
+  const stressRows = panel.locator('#stressDependenceTable tbody tr');
+  expect(await stressRows.count()).toBe(3);
+  expect(await stressRows.evaluateAll((rows) => rows.map((row) => row.dataset.lens))).toEqual([
+    'raw-normal', 'raw-stress', 'forbes-rigobon-adjusted'
+  ]);
+  const stressText = await panel.locator('#stressDependenceTable').innerText();
+  expect(stressText).toContain('Block bootstrap');
+  expect(stressText).toMatch(/anchor (BND|MSFT)/);
+  expect(stressText).toContain('searched variants 1');
+
+  const overlapRows = panel.locator('#dependenceOverlapTable tbody tr');
+  expect(await overlapRows.count()).toBe(4);
+  expect(await overlapRows.evaluateAll((rows) => rows.map((row) => row.dataset.lens))).toEqual([
+    'tail', 'downside', 'drawdown', 'recovery'
+  ]);
+  await expect(panel.locator('#appraisalSensitivity')).toHaveAttribute('data-contract-version', 'AppraisalSensitivity/v1');
+  await expect(panel.locator('#appraisalSensitivity')).toContainText(/valuation|No manual alternative/i);
+
+  await panel.locator('#hedgeExposure').fill('100000');
+  await panel.locator('#hedgeRatios').fill('0,0.5,1');
+  await panel.locator('#hedgeHorizon').fill('1');
+  await panel.locator('#hedgeCarry').fill('0.01');
+  await panel.locator('#hedgeCommission').fill('0.001');
+  await panel.locator('#hedgeSpread').fill('0.0005');
+  await panel.locator('#hedgeSlippage').fill('0.0005');
+  await panel.locator('#hedgeTurnover').fill('0.2');
+  await panel.locator('#hedgeRebalanceCost').fill('0.0002');
+  await panel.locator('#hedgeLiquidityCost').fill('0.001');
+  await panel.locator('#hedgeFinancing').fill('0.003');
+  await panel.locator('#hedgeProxy').fill('FXE');
+  await panel.locator('#hedgeApply').click();
+
+  await expect(panel.locator('#hedgeRegression')).toHaveAttribute('data-contract-version', 'HedgeRegression/v1');
+  await expect(panel.locator('#hedgeComparison')).toHaveAttribute('data-contract-version', 'HedgeComparison/v1');
+  await expect(panel.locator('#hedgeRegression')).toContainText('Residual variance');
+  await expect(panel.locator('#hedgeComparison')).toContainText('Normal effectiveness');
+  await expect(panel.locator('#hedgeComparison')).toContainText('Stress effectiveness');
+  await expect(panel.locator('#hedgeComparison')).toContainText('Common-path effectiveness');
+  await expect(panel.locator('#hedgeComparison')).toContainText('Carry');
+  await expect(panel.locator('#hedgeComparison')).toContainText('Liquidity');
+  await expect(panel.locator('#hedgeScenarioBasis')).toHaveAttribute('data-scenario-identity', common.scenarioIdentity);
+  expect((await panel.locator('#hedgeScenarioBasis').getAttribute('data-path-ids')).split('|')).toHaveLength(common.requestedPathCount);
+
+  const rendered = await panel.textContent();
+  expect(rendered).not.toMatch(/recommended hedge|optimal hedge|prescribed ratio/i);
+  expect(rendered).not.toMatch(/correlations always go to (one|1)/i);
+});
+
+test('Regression: SCN-008-049 hedge variants reuse the selected survival scenario and path identities', async ({ page }) => {
+  await seedScope23Evidence(page, 'TP-23-05 common paths');
+  const common = await runCommonPathScenario(page);
+  const panel = await openDiversification(page);
+
+  const fillComparison = async (ratios) => {
+    await panel.locator('#hedgeExposure').fill('100000');
+    await panel.locator('#hedgeRatios').fill(ratios);
+    await panel.locator('#hedgeHorizon').fill('1');
+    await panel.locator('#hedgeCarry').fill('0.01');
+    await panel.locator('#hedgeCommission').fill('0.001');
+    await panel.locator('#hedgeSpread').fill('0.0005');
+    await panel.locator('#hedgeSlippage').fill('0.0005');
+    await panel.locator('#hedgeTurnover').fill('0.2');
+    await panel.locator('#hedgeRebalanceCost').fill('0.0002');
+    await panel.locator('#hedgeLiquidityCost').fill('0.001');
+    await panel.locator('#hedgeFinancing').fill('0.003');
+    await panel.locator('#hedgeProxy').fill('FXE');
+    await panel.locator('#hedgeApply').click();
+  };
+
+  await fillComparison('0,0.5,1');
+  const firstBasis = await panel.locator('#hedgeScenarioBasis').evaluate((node) => ({
+    scenario: node.dataset.scenarioIdentity,
+    paths: node.dataset.pathIds
+  }));
+  expect(firstBasis.scenario).toBe(common.scenarioIdentity);
+  expect(firstBasis.paths.split('|')).toHaveLength(common.requestedPathCount);
+  const firstRatios = await panel.locator('#hedgeTable tbody tr').evaluateAll(
+    (rows) => rows.map((row) => Number(row.dataset.hedgeRatio))
+  );
+  expect(firstRatios).toEqual([0, 0.5, 1]);
+
+  await fillComparison('0,0.25,0.75');
+  const secondBasis = await panel.locator('#hedgeScenarioBasis').evaluate((node) => ({
+    scenario: node.dataset.scenarioIdentity,
+    paths: node.dataset.pathIds
+  }));
+  expect(secondBasis).toEqual(firstBasis);
+  expect(await panel.locator('#hedgeTable tbody tr').evaluateAll(
+    (rows) => rows.map((row) => Number(row.dataset.hedgeRatio))
+  )).toEqual([0, 0.25, 0.75]);
+  expect(await panel.locator('#hedgeTable tbody tr').evaluateAll(
+    (rows, expected) => rows.every((row) =>
+      row.dataset.scenarioIdentity === expected.scenario && row.dataset.pathIds === expected.paths),
+    firstBasis
+  )).toBe(true);
 });

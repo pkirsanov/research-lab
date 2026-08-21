@@ -2,7 +2,7 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** Not Started
+**Status:** In Progress
 **Scope-Kind:** runtime-behavior
 **Tags:** `overlay:diversification`, `remediation`
 **Depends On:** 22

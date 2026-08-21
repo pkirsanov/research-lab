@@ -2,7 +2,7 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** In Progress
+**Status:** Done
 **Scope-Kind:** runtime-behavior
 **Tags:** `overlay:brief`, `remediation`
 **Depends On:** 19
@@ -89,11 +89,11 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 
 ### Definition of Done - Tiered Validation
 
-- [ ] SCN-008-046 is implemented with complete generic evidence, DST-safe policy, full API, closed errors, and no personal publisher flow.
-- [ ] TP-20-01 functional evidence passes.
-- [ ] TP-20-02 publisher-boundary evidence passes.
-- [ ] TP-20-03 real-page regression passes.
-- [ ] TP-20-04 adversarial mutation proof rejects each audited reduced behavior.
-- [ ] TP-20-05 broader regression passes.
-- [ ] Shared Infrastructure Impact Sweep and last-valid rollback proof are recorded.
-- [ ] Build Quality Gate passes with zero skips/warnings and no excluded-file changes.
+- [x] Portfolio Brief composes a DST-boundary window from generic evidence and local scope; SCN-008-046 also proves the full API, closed errors, one global queue cap, and no personal publisher flow. Evidence: [Code Diff Evidence](report.md#code-diff-evidence), [TP-20-01](report.md#tp-20-01), [TP-20-02](report.md#tp-20-02), [TP-20-03](report.md#tp-20-03), [TP-20-04](report.md#tp-20-04).
+- [x] TP-20-01 functional evidence passes. Evidence: [TP-20-01](report.md#tp-20-01).
+- [x] TP-20-02 publisher-boundary evidence passes. Evidence: [TP-20-02](report.md#tp-20-02).
+- [x] TP-20-03 real-page regression passes. Evidence: [TP-20-03](report.md#tp-20-03).
+- [x] TP-20-04 adversarial mutation proof rejects each audited reduced behavior. Evidence: [TP-20-04](report.md#tp-20-04).
+- [x] TP-20-05 broader regression passes. Evidence: [TP-20-05](report.md#tp-20-05).
+- [x] Shared Infrastructure Impact Sweep and last-valid rollback proof are recorded. Evidence: [Code Diff Evidence](report.md#code-diff-evidence), [TP-20-03](report.md#tp-20-03), [Validation Summary](report.md#validation-summary).
+- [x] Build Quality Gate passes with zero skips/warnings and no excluded-file changes. Evidence: [Code Diff Evidence](report.md#code-diff-evidence), [Lint And Quality](report.md#lint-and-quality), [Canonical Focused Traceability Correction](report.md#canonical-focused-traceability-correction).

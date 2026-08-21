@@ -2,7 +2,7 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** Not Started
+**Status:** Done
 **Scope-Kind:** runtime-behavior
 **Tags:** `overlay:risk`, `remediation`
 **Depends On:** 20
@@ -86,11 +86,11 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 
 ### Definition of Done - Tiered Validation
 
-- [ ] SCN-008-047 is implemented with partial eligibility, complete diagnostics, and no silent covariance repair.
-- [ ] TP-21-01 unit evidence passes.
-- [ ] TP-21-02 functional evidence passes.
-- [ ] TP-21-03 real-page regression passes.
-- [ ] TP-21-04 adversarial mutation proof rejects every audited reduced diagnostic.
-- [ ] TP-21-05 broader regression passes.
-- [ ] Shared Infrastructure Impact Sweep and rollback proof are recorded.
-- [ ] Build Quality Gate passes with zero skips/warnings and no excluded-file changes.
+- [x] SCN-008-047 is implemented with partial eligibility, complete diagnostics, and no silent covariance repair. Evidence: [report.md#validation-summary](report.md#validation-summary), [report.md#red-and-green](report.md#red-and-green), [report.md#code-diff-evidence](report.md#code-diff-evidence).
+- [x] TP-21-01 unit evidence passes. Evidence: [report.md#tp-21-01](report.md#tp-21-01).
+- [x] TP-21-02 functional evidence passes. Evidence: [report.md#tp-21-02](report.md#tp-21-02).
+- [x] TP-21-03 real-page regression passes. Evidence: [report.md#tp-21-03](report.md#tp-21-03).
+- [x] TP-21-04 adversarial mutation proof rejects every audited reduced diagnostic. Evidence: [report.md#tp-21-04](report.md#tp-21-04), [report.md#red-and-green](report.md#red-and-green).
+- [x] TP-21-05 broader regression passes. Evidence: [report.md#tp-21-05](report.md#tp-21-05).
+- [x] Shared Infrastructure Impact Sweep and rollback proof are recorded. Evidence: [report.md#tp-21-02](report.md#tp-21-02), [report.md#validation-summary](report.md#validation-summary).
+- [x] Build Quality Gate passes with zero skips/warnings and no excluded-file changes. Evidence: [report.md#lint-and-quality](report.md#lint-and-quality), [report.md#code-diff-evidence](report.md#code-diff-evidence).

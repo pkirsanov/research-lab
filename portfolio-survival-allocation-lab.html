@@ -1123,7 +1123,25 @@
                 genericWindow: null,
                 lastValidGenericWindow: null,
                 genericWindowError: null,
-                genericEvidenceSourceCount: 0
+                genericEvidenceSourceCount: 0,
+                pathScenarioSeed: null,
+                pathComputeController: null,
+                pathComputeWorkspaceIdentity: null,
+                pathComputeOrdinal: 0,
+                pathComputeQueuedIdentity: null,
+                pathCompute: {
+                    state: "idle",
+                    tokenId: null,
+                    tokenState: null,
+                    scenarioIdentity: null,
+                    requestedPathCount: 0,
+                    completedPathCount: 0,
+                    completedWorkUnits: 0,
+                    requestedWorkUnits: 0,
+                    errorCode: null,
+                    lastSettlementCode: null,
+                    result: null
+                }
             };
 
             // Fixed, non-sensitive descriptors for a completion recorded on this surface. They are
@@ -1246,6 +1264,20 @@
                         ? state.behaviorRankResult.quarantinedOccurrences
                             .filter(function (entry) { return entry.occurrence; })
                             .map(function (entry) { return entry.occurrence.occurrenceId; }) : [],
+                    pathScenario: {
+                        computeState: state.pathCompute.state,
+                        tokenId: state.pathCompute.tokenId,
+                        tokenState: state.pathCompute.tokenState,
+                        scenarioIdentity: state.pathCompute.scenarioIdentity,
+                        requestedPathCount: state.pathCompute.requestedPathCount,
+                        completedPathCount: state.pathCompute.completedPathCount,
+                        survivalPathCount: state.pathCompute.result && state.pathCompute.result.survival
+                            ? state.pathCompute.result.survival.pathCount || 0 : 0,
+                        distributionContractVersion: state.pathCompute.result && state.pathCompute.result.distributionSet
+                            ? state.pathCompute.result.distributionSet.contractVersion : null,
+                        errorCode: state.pathCompute.errorCode,
+                        lastSettlementCode: state.pathCompute.lastSettlementCode
+                    },
                     lastFullClear: state.lastFullClear
                 });
             }
@@ -2295,6 +2327,342 @@
                 };
             }
 
+            function scope23Quantile(values, probability) {
+                var sorted = values.slice().sort(function (a, b) { return a - b; });
+                var position = probability * (sorted.length - 1);
+                var low = Math.floor(position), high = Math.ceil(position);
+                return sorted[low] + (sorted[high] - sorted[low]) * (position - low);
+            }
+
+            function scope23IntervalPolicy(policy) {
+                return {
+                    contractVersion: "BlockBootstrapPolicy/v1",
+                    confidence: policy.dependenceBootstrapConfidence,
+                    blockLength: policy.dependenceBootstrapBlockLength,
+                    drawCount: policy.dependenceBootstrapDrawCount,
+                    seed: policy.dependenceBootstrapSeed
+                };
+            }
+
+            function scope23DependenceSamples() {
+                var probe = riskProjection();
+                var policy = (state.policy && state.policy.analytics) || {};
+                if (!probe.available || !Array.isArray(probe.rows) || probe.rows.length < 3 ||
+                    !Array.isArray(probe.symbols) || probe.symbols.length < 2) {
+                    return { state: "unavailable", reason: probe.state || "aligned-pair-required" };
+                }
+                var anchor = probe.symbols[0], dependent = probe.symbols[1];
+                var anchorReturns = probe.perSymbolReturns[anchor] || [];
+                var dependentReturns = probe.perSymbolReturns[dependent] || [];
+                var dates = probe.rows.slice(1).map(function (row) { return row.date; });
+                if (anchorReturns.length !== dates.length || dependentReturns.length !== dates.length) {
+                    return { state: "unavailable", reason: "aligned-return-dates-required" };
+                }
+                var threshold = scope23Quantile(anchorReturns, policy.dependenceStressQuantile);
+                var normal = { dates: [], a: [], b: [] };
+                var stress = { dates: [], a: [], b: [] };
+                dates.forEach(function (date, index) {
+                    var target = anchorReturns[index] <= threshold ? stress : normal;
+                    target.dates.push(date);
+                    target.a.push(anchorReturns[index]);
+                    target.b.push(dependentReturns[index]);
+                });
+                var sourceFingerprints = [
+                    String(probe.identity) + "|symbol=" + anchor,
+                    String(probe.identity) + "|symbol=" + dependent
+                ];
+                function build(id, kind, selected, rule) {
+                    return window.RLPORTFOLIOANALYTICS.buildDependenceSample({
+                        contractVersion: "DependenceSample/v1",
+                        sampleId: id + "|cutoff=" + probe.cutoff,
+                        definitionKind: kind,
+                        memberDates: selected.dates,
+                        sourceFingerprints: sourceFingerprints,
+                        selectionRule: rule,
+                        cutoff: probe.cutoff,
+                        searchedVariantCount: policy.dependenceSearchedVariantCount,
+                        pair: { anchor: anchor, dependent: dependent },
+                        a: selected.a,
+                        b: selected.b
+                    });
+                }
+                var normalSample = build("dependence:normal", "frozen-anchor-complement", normal,
+                    anchor + " return above frozen " + policy.dependenceStressQuantile + " downside quantile");
+                var stressSample = build("dependence:stress", "frozen-anchor-downside", stress,
+                    anchor + " return at or below frozen " + policy.dependenceStressQuantile + " downside quantile");
+                var tailSample = build("dependence:tail", "empirical-rank-tail",
+                    { dates: dates, a: anchorReturns, b: dependentReturns },
+                    "full aligned sample with explicit empirical-rank threshold");
+                if (normalSample.state !== "ok" || stressSample.state !== "ok" || tailSample.state !== "ok") {
+                    return { state: "unavailable", reason: "dependence-sample-build-failed" };
+                }
+                return {
+                    state: "ok", probe: probe, policy: policy,
+                    normal: normalSample, stress: stressSample, tail: tailSample,
+                    intervalPolicy: scope23IntervalPolicy(policy)
+                };
+            }
+
+            function scope23AppraisalEvidence(samples) {
+                var revision = currentRevision();
+                var manual = revision && revision.holdings.filter(function (holding) {
+                    return holding.assetType === "manual-alternative";
+                })[0];
+                if (!manual) return { state: "unavailable", reason: "no-manual-alternative-held" };
+                return {
+                    state: "unavailable",
+                    reason: "observed-appraisal-return-history-required",
+                    assetId: manual.localId || manual.label,
+                    valuationFrequency: manual.valuationFrequency || null,
+                    lastValuation: manual.valuationDate || null,
+                    sourceMethod: manual.valuationMethod || null,
+                    liquidity: manual.liquidityClass || null,
+                    transactionCost: manual.transactionCost,
+                    rhoGrid: samples.policy.appraisalRhoGrid.slice(),
+                    note: "A complete AppraisalSensitivity/v1 grid requires observed dated appraisal returns. " +
+                        "The current holding record is retained, but no smooth-series diversification conclusion is shown."
+                };
+            }
+
+            function scope23ProxySample(samples, proxySymbol) {
+                var probe = samples.probe;
+                var rows = riskSeries([proxySymbol])[proxySymbol] || [];
+                var closeByDate = {};
+                rows.forEach(function (row) { closeByDate[row.date] = row.close; });
+                var dates = probe.rows.map(function (row) { return row.date; });
+                if (!dates.every(function (date) { return isFiniteNumber(closeByDate[date]) && closeByDate[date] > 0; })) {
+                    return { state: "unavailable", reason: "aligned-proxy-bars-required" };
+                }
+                var proxyReturns = [];
+                for (var i = 1; i < dates.length; i += 1) {
+                    proxyReturns.push((closeByDate[dates[i]] / closeByDate[dates[i - 1]]) - 1);
+                }
+                var riskFreePerSession = samples.policy.riskFreeAnnual / RISK_PERIODS_PER_YEAR;
+                return window.RLPORTFOLIOANALYTICS.buildDependenceSample({
+                    contractVersion: "DependenceSample/v1",
+                    sampleId: "hedge-regression|portfolio=" + probe.identity + "|proxy=" + proxySymbol,
+                    definitionKind: "aligned-excess-returns",
+                    memberDates: dates.slice(1),
+                    sourceFingerprints: [String(probe.identity), String(probe.identity) + "|proxy=" + proxySymbol],
+                    selectionRule: "portfolio and proxy returns aligned on the portfolio common-date set",
+                    cutoff: probe.cutoff,
+                    searchedVariantCount: 1,
+                    pair: { anchor: "PORTFOLIO", dependent: proxySymbol },
+                    a: probe.alignedReturns.map(function (value) { return value - riskFreePerSession; }),
+                    b: proxyReturns.map(function (value) { return value - riskFreePerSession; })
+                });
+            }
+
+            function scope23HedgeEvidence(samples) {
+                if (!state.hedge) return { state: "unavailable", reason: "explicit-hedge-input-required" };
+                var regressionSample = scope23ProxySample(samples, state.hedge.proxySymbol);
+                if (regressionSample.state !== "ok") return regressionSample;
+                var regression = window.RLPORTFOLIOANALYTICS.fitHedgeRegression({
+                    contractVersion: "HedgeRegressionRequest/v1",
+                    sample: regressionSample,
+                    minimumObservations: samples.policy.hedgeRegressionMinimumObservations,
+                    intervalPolicy: samples.intervalPolicy
+                });
+                if (regression.state !== "ok") return regression;
+                function regressionSubset(id, definitionKind, memberDates) {
+                    var indices = memberDates.map(function (date) { return regressionSample.memberDates.indexOf(date); });
+                    if (indices.some(function (index) { return index < 0; })) {
+                        return { state: "unavailable", reason: "hedge-sample-membership-not-aligned" };
+                    }
+                    return window.RLPORTFOLIOANALYTICS.buildDependenceSample({
+                        contractVersion: "DependenceSample/v1",
+                        sampleId: id + "|regression=" + regressionSample.sampleId,
+                        definitionKind: definitionKind,
+                        memberDates: memberDates.slice(),
+                        sourceFingerprints: regressionSample.sourceFingerprints.slice(),
+                        selectionRule: "reuse frozen dependence membership on aligned portfolio/proxy returns",
+                        cutoff: regressionSample.cutoff,
+                        searchedVariantCount: 1,
+                        pair: { anchor: regressionSample.pair.anchor, dependent: regressionSample.pair.dependent },
+                        a: indices.map(function (index) { return regressionSample.a[index]; }),
+                        b: indices.map(function (index) { return regressionSample.b[index]; })
+                    });
+                }
+                var hedgeNormal = regressionSubset("hedge:normal", "frozen-anchor-complement", samples.normal.memberDates);
+                var hedgeStress = regressionSubset("hedge:stress", "frozen-anchor-downside", samples.stress.memberDates);
+                if (hedgeNormal.state !== "ok" || hedgeStress.state !== "ok") {
+                    return { state: "unavailable", reason: "hedge-normal-stress-samples-unavailable" };
+                }
+                var path = pathScenario();
+                var variants = (state.hedge.ratios || []).map(function (ratio) {
+                    return {
+                        variantId: "explicit-ratio=" + ratio + "|horizon=" + state.hedge.horizonYears,
+                        hedgeRatio: ratio,
+                        horizonYears: state.hedge.horizonYears,
+                        costs: {
+                            carryFraction: state.hedge.annualCarryFraction,
+                            commissionFraction: state.hedge.commissionFraction,
+                            spreadFraction: state.hedge.spreadFraction,
+                            slippageFraction: state.hedge.slippageFraction,
+                            turnoverFraction: state.hedge.turnoverFraction,
+                            rebalanceCostFraction: state.hedge.rebalanceCostFraction,
+                            liquidityFraction: state.hedge.liquidityFraction,
+                            financingFraction: state.hedge.financingFraction
+                        }
+                    };
+                });
+                return window.RLPORTFOLIOANALYTICS.computeHedgeComparison({
+                    contractVersion: "HedgeComparisonRequest/v1",
+                    exposure: {
+                        exposureId: "portfolio=" + samples.probe.identity,
+                        targetSymbol: "PORTFOLIO",
+                        targetExposureValue: state.hedge.targetExposureValue
+                    },
+                    regression: regression,
+                    normalSample: hedgeNormal,
+                    stressSample: hedgeStress,
+                    scenarioSpecification: path.spec,
+                    scenarioResult: path.result,
+                    alignedPathSample: regressionSample,
+                    variants: variants
+                });
+            }
+
+            function scope23EvidenceModel() {
+                var samples = scope23DependenceSamples();
+                if (samples.state !== "ok") return samples;
+                var dependence = window.RLPORTFOLIOANALYTICS.computeStressDependence({
+                    contractVersion: "StressDependenceRequest/v1",
+                    normal: samples.normal,
+                    stress: samples.stress,
+                    minimumObservations: samples.policy.dependenceMinimumObservations,
+                    intervalPolicy: samples.intervalPolicy
+                });
+                var adjustment = dependence.state === "ok"
+                    ? window.RLPORTFOLIOANALYTICS.forbesRigobonAdjustment({
+                        contractVersion: "ForbesRigobonRequest/v1",
+                        tranquilSample: samples.normal,
+                        turbulentSample: samples.stress,
+                        anchorSeries: samples.normal.pair.anchor,
+                        minimumObservations: samples.policy.dependenceMinimumObservations,
+                        intervalPolicy: samples.intervalPolicy
+                    })
+                    : { state: "unavailable", reason: dependence.reason };
+                var overlaps = window.RLPORTFOLIOANALYTICS.computeDependenceOverlaps({
+                    contractVersion: "DependenceOverlapRequest/v1",
+                    sample: samples.tail,
+                    quantile: samples.policy.lowerTailQuantile,
+                    minimumJointEvents: samples.policy.dependenceMinimumJointTailEvents,
+                    downsideThreshold: samples.policy.dependenceDownsideThreshold,
+                    drawdownThreshold: samples.policy.dependenceDrawdownThreshold,
+                    recoveryThreshold: samples.policy.dependenceRecoveryThreshold,
+                    intervalPolicy: samples.intervalPolicy
+                });
+                return {
+                    state: dependence.state === "ok" && adjustment.state === "ok" && overlaps.state === "ok" ? "ok" : "partial",
+                    samples: samples,
+                    dependence: dependence,
+                    adjustment: adjustment,
+                    overlaps: overlaps,
+                    appraisal: scope23AppraisalEvidence(samples),
+                    hedge: scope23HedgeEvidence(samples)
+                };
+            }
+
+            function appendScope23Dependence(band, evidence) {
+                var section = document.createElement("div");
+                section.id = "dependenceEvidenceSet";
+                section.dataset.contractVersion = "DependenceEvidenceSet/v1";
+                section.dataset.state = evidence.dependence.state;
+                var heading = document.createElement("h5");
+                heading.textContent = "Normal, stress, and qualified adjustment";
+                section.appendChild(heading);
+                var table = document.createElement("table");
+                table.id = "stressDependenceTable";
+                table.innerHTML = "<thead><tr><th scope=\"col\">Lens</th><th scope=\"col\">Sample</th>" +
+                    "<th scope=\"col\">Estimate</th><th scope=\"col\">Interval and qualification</th></tr></thead>";
+                var body = document.createElement("tbody");
+                var rows = [
+                    { lens: "raw-normal", label: "Raw normal", value: evidence.dependence.normal },
+                    { lens: "raw-stress", label: "Raw stress", value: evidence.dependence.stress },
+                    { lens: "forbes-rigobon-adjusted", label: "Forbes-Rigobon adjusted", value: evidence.adjustment }
+                ];
+                rows.forEach(function (row) {
+                    var tr = document.createElement("tr");
+                    tr.dataset.lens = row.lens;
+                    var value = row.value || {
+                        state: "unavailable",
+                        reason: evidence.dependence.reason || "qualified-estimate-unavailable"
+                    };
+                    var estimate = row.lens === "forbes-rigobon-adjusted" ? value.adjustedEstimate : value.correlation;
+                    var sampleId = row.lens === "forbes-rigobon-adjusted" ? value.turbulentSampleId : value.sampleId;
+                    var interval = value.interval;
+                    [
+                        row.label,
+                        sampleId || (value.reason || "Unavailable"),
+                        isFiniteNumber(estimate) ? estimate.toFixed(4) : "Unavailable",
+                        interval && isFiniteNumber(interval.low) && isFiniteNumber(interval.high)
+                            ? "Block bootstrap " + Math.round(interval.confidence * 100) + "% [" +
+                              interval.low.toFixed(4) + ", " + interval.high.toFixed(4) + "] · " +
+                              (row.lens === "forbes-rigobon-adjusted"
+                                  ? "anchor " + row.value.anchorOrientation.anchor
+                                  : "searched variants " + evidence.samples.policy.dependenceSearchedVariantCount)
+                            : "Unavailable · " + (value.reason || "interval missing")
+                    ].forEach(function (value, index) {
+                        var cell = document.createElement(index === 0 ? "th" : "td");
+                        if (index === 0) cell.setAttribute("scope", "row");
+                        cell.textContent = value;
+                        tr.appendChild(cell);
+                    });
+                    body.appendChild(tr);
+                });
+                table.appendChild(body);
+                section.appendChild(table);
+                band.appendChild(section);
+            }
+
+            function appendScope23Overlaps(band, evidence) {
+                var table = document.createElement("table");
+                table.id = "dependenceOverlapTable";
+                table.innerHTML = "<thead><tr><th scope=\"col\">Lens</th><th scope=\"col\">State</th>" +
+                    "<th scope=\"col\">Estimate</th><th scope=\"col\">Evidence</th></tr></thead>";
+                var body = document.createElement("tbody");
+                ["tail", "downside", "drawdown", "recovery"].forEach(function (lens) {
+                    var value = evidence.overlaps.state === "ok" ? evidence.overlaps[lens] : evidence.overlaps;
+                    var tr = document.createElement("tr");
+                    tr.dataset.lens = lens;
+                    var count = lens === "tail" ? value.jointEventCount : (value.intersectionDates || []).length;
+                    [
+                        lens.charAt(0).toUpperCase() + lens.slice(1),
+                        value.state,
+                        isFiniteNumber(value.estimate) ? value.estimate.toFixed(4) : "Unavailable",
+                        value.state === "ok" ? String(count) + " shared events · separate " + value.contractVersion : value.reason
+                    ].forEach(function (text, index) {
+                        var cell = document.createElement(index === 0 ? "th" : "td");
+                        if (index === 0) cell.setAttribute("scope", "row");
+                        cell.textContent = text;
+                        tr.appendChild(cell);
+                    });
+                    body.appendChild(tr);
+                });
+                table.appendChild(body);
+                band.appendChild(table);
+            }
+
+            function appendScope23Appraisal(band, appraisal) {
+                var section = document.createElement("div");
+                section.id = "appraisalSensitivity";
+                section.dataset.contractVersion = "AppraisalSensitivity/v1";
+                section.dataset.state = appraisal.state;
+                var heading = document.createElement("h5");
+                heading.textContent = "Appraisal sensitivity";
+                section.appendChild(heading);
+                var text = document.createElement("p");
+                text.className = appraisal.state === "ok" ? "microcopy" : "state-message";
+                text.textContent = appraisal.state === "ok"
+                    ? "Observed valuation and every explicit de-smoothing rho remain side by side."
+                    : (appraisal.reason === "no-manual-alternative-held"
+                        ? "No manual alternative is held. No appraisal-smoothing diversification claim is shown."
+                        : appraisal.note || ("Appraisal sensitivity unavailable · " + appraisal.reason));
+                section.appendChild(text);
+                band.appendChild(section);
+            }
+
             function appendDiversification(panel) {
                 var band = document.createElement("div");
                 band.className = "band";
@@ -2391,7 +2759,14 @@
                     "never depends on colour alone.";
                 band.appendChild(boundary);
 
-                appendHedgeVariants(band);
+                var scope23 = scope23EvidenceModel();
+                if (scope23.samples) {
+                    appendScope23Dependence(band, scope23);
+                    appendScope23Overlaps(band, scope23);
+                    appendScope23Appraisal(band, scope23.appraisal);
+                }
+
+                appendHedgeVariants(band, scope23);
 
                 panel.appendChild(band);
             }
@@ -2400,25 +2775,10 @@
                settings contribute nothing here by construction: this reads only
                from the form fields below. */
             function hedgeInputs() {
-                var h = state.hedge || {};
-                return {
-                    targetExposureValue: h.targetExposureValue,
-                    targetVolatility: h.targetVolatility,
-                    hedgeRatio: 1,
-                    horizonYears: h.horizonYears,
-                    annualCarryFraction: h.annualCarryFraction,
-                    commissionFraction: h.commissionFraction,
-                    spreadFraction: h.spreadFraction,
-                    slippageFraction: h.slippageFraction,
-                    rebalancesPerYear: h.rebalancesPerYear,
-                    basisCorrelation: h.basisCorrelation,
-                    proxySymbol: h.proxySymbol,
-                    instrumentClass: h.instrumentClass,
-                    liquidity: h.liquidity
-                };
+                return state.hedge;
             }
 
-            function appendHedgeVariants(band) {
+            function appendHedgeVariants(band, scope23) {
                 var hedgeBand = document.createElement("div");
                 hedgeBand.className = "band";
                 hedgeBand.id = "hedgeVariants";
@@ -2430,8 +2790,16 @@
                 form.className = "row";
                 var fields = [
                     ["hedgeExposure", "number", "Exposure value", "targetExposureValue"],
-                    ["hedgeVolatility", "number", "Exposure volatility", "targetVolatility"],
+                    ["hedgeRatios", "text", "Explicit ratios, comma-separated", "ratiosText"],
+                    ["hedgeHorizon", "number", "Horizon years", "horizonYears"],
                     ["hedgeCarry", "number", "Annual carry fraction", "annualCarryFraction"],
+                    ["hedgeCommission", "number", "Commission fraction", "commissionFraction"],
+                    ["hedgeSpread", "number", "Spread fraction", "spreadFraction"],
+                    ["hedgeSlippage", "number", "Slippage fraction", "slippageFraction"],
+                    ["hedgeTurnover", "number", "Turnover fraction", "turnoverFraction"],
+                    ["hedgeRebalanceCost", "number", "Rebalance cost fraction", "rebalanceCostFraction"],
+                    ["hedgeLiquidityCost", "number", "Liquidity cost fraction", "liquidityFraction"],
+                    ["hedgeFinancing", "number", "Financing fraction", "financingFraction"],
                     ["hedgeProxy", "text", "Proxy symbol", "proxySymbol"]
                 ];
                 fields.forEach(function (field) {
@@ -2450,24 +2818,24 @@
                 apply.type = "button";
                 apply.textContent = "Compare variants";
                 apply.addEventListener("click", function () {
-                    var policy = (state.policy && state.policy.analytics) || {};
+                    var ratioText = byId("hedgeRatios").value;
                     state.hedge = {
                         targetExposureValue: Number(byId("hedgeExposure").value),
-                        targetVolatility: Number(byId("hedgeVolatility").value),
+                        ratiosText: ratioText,
+                        ratios: ratioText.split(",").map(function (value) { return Number(value.trim()); }),
+                        horizonYears: Number(byId("hedgeHorizon").value),
                         annualCarryFraction: byId("hedgeCarry").value === ""
                             ? null
                             : Number(byId("hedgeCarry").value),
+                        commissionFraction: byId("hedgeCommission").value === "" ? null : Number(byId("hedgeCommission").value),
+                        spreadFraction: byId("hedgeSpread").value === "" ? null : Number(byId("hedgeSpread").value),
+                        slippageFraction: byId("hedgeSlippage").value === "" ? null : Number(byId("hedgeSlippage").value),
+                        turnoverFraction: byId("hedgeTurnover").value === "" ? null : Number(byId("hedgeTurnover").value),
+                        rebalanceCostFraction: byId("hedgeRebalanceCost").value === "" ? null : Number(byId("hedgeRebalanceCost").value),
+                        liquidityFraction: byId("hedgeLiquidityCost").value === "" ? null : Number(byId("hedgeLiquidityCost").value),
+                        financingFraction: byId("hedgeFinancing").value === "" ? null : Number(byId("hedgeFinancing").value),
                         proxySymbol: byId("hedgeProxy").value,
-                        // The remaining components come from the mandatory visible
-                        // config, never from a code-side default.
-                        horizonYears: 1,
-                        commissionFraction: policy.hedgeCommissionFraction,
-                        spreadFraction: policy.hedgeSpreadFraction,
-                        slippageFraction: policy.hedgeSlippageFraction,
-                        rebalancesPerYear: policy.hedgeRebalancesPerYear,
-                        basisCorrelation: policy.hedgeBasisCorrelation,
-                        instrumentClass: policy.hedgeInstrumentClass,
-                        liquidity: policy.hedgeLiquidity
+                        inputAuthority: "user-entered-form"
                     };
                     refreshWorkspaceViews();
                 });
@@ -2485,8 +2853,38 @@
                     return;
                 }
 
-                var comparison = window.RLPORTFOLIOANALYTICS.compareHedgeVariants(hedgeInputs(), [0, 0.5, 1]);
+                                var refreshedScope23 = scope23EvidenceModel();
+                                var comparison = refreshedScope23.hedge;
                 hedgeBand.dataset.hedgeState = comparison.state;
+
+                                var comparisonSection = document.createElement("div");
+                                comparisonSection.id = "hedgeComparison";
+                                comparisonSection.dataset.contractVersion = "HedgeComparison/v1";
+                                comparisonSection.dataset.state = comparison.state;
+
+                                var regression = comparison.regression;
+                                var regressionNode = document.createElement("p");
+                                regressionNode.id = "hedgeRegression";
+                                regressionNode.dataset.contractVersion = "HedgeRegression/v1";
+                                regressionNode.dataset.state = regression && regression.state ? regression.state : "unavailable";
+                                regressionNode.textContent = regression && regression.state === "ok"
+                                        ? "Aligned return regression · alpha " + regression.alpha.toFixed(6) + " · beta diagnostic " +
+                                            regression.beta.toFixed(4) + " · Residual variance " + regression.residualVariance.toFixed(8) +
+                                            " · sample " + regression.sample.sampleId
+                                        : "Aligned return regression unavailable · " + (comparison.reason || "regression evidence missing");
+                                comparisonSection.appendChild(regressionNode);
+
+                                var scenarioNode = document.createElement("p");
+                                scenarioNode.id = "hedgeScenarioBasis";
+                                scenarioNode.dataset.scenarioIdentity = comparison.scenarioBasis && comparison.scenarioBasis.scenarioIdentity
+                                        ? comparison.scenarioBasis.scenarioIdentity : "unavailable";
+                                scenarioNode.dataset.pathIds = comparison.scenarioBasis && comparison.scenarioBasis.pathIds
+                                        ? comparison.scenarioBasis.pathIds.join("|") : "";
+                                scenarioNode.textContent = comparison.scenarioBasis && comparison.scenarioBasis.scenarioIdentity
+                                        ? "Common ScenarioSpecification/v1 · " + comparison.scenarioBasis.scenarioIdentity + " · " +
+                                            comparison.scenarioBasis.pathIds.length + " frozen path IDs"
+                                        : "Common-path effectiveness unavailable · run and retain a complete Path Lab scenario first.";
+                                comparisonSection.appendChild(scenarioNode);
 
                 var wrap = document.createElement("div");
                 wrap.style.overflowX = "auto";
@@ -2495,24 +2893,35 @@
                 table.id = "hedgeTable";
                 table.innerHTML = "<thead><tr><th scope=\"col\">Variant</th><th scope=\"col\">Residual volatility</th>" +
                     "<th scope=\"col\">Carry</th><th scope=\"col\">Direct</th><th scope=\"col\">Turnover</th>" +
+                    "<th scope=\"col\">Liquidity</th><th scope=\"col\">Financing</th>" +
                     "<th scope=\"col\">Total cost</th><th scope=\"col\">Basis risk</th></tr></thead>";
                 var body = document.createElement("tbody");
                 (comparison.variants || []).forEach(function (variant, index) {
                     var tr = document.createElement("tr");
                     tr.id = "hedgevariant-" + index;
                     tr.dataset.variantState = variant.state;
-                    var cells = variant.state === "ok"
+                    tr.dataset.hedgeRatio = String(variant.hedgeRatio);
+                    tr.dataset.scenarioIdentity = comparison.scenarioBasis.scenarioIdentity || "unavailable";
+                    tr.dataset.pathIds = comparison.scenarioBasis.pathIds.join("|");
+                    var residualVolatility = variant.effectiveness && variant.effectiveness.normal &&
+                        isFiniteNumber(variant.effectiveness.normal.residualVariance)
+                        ? Math.sqrt(variant.effectiveness.normal.residualVariance) : null;
+                    var cells = variant.state === "ok" || variant.state === "gross-only"
                         ? [
-                            variant.label,
-                            (variant.residualVolatility * 100).toFixed(2) + "%",
-                            money(variant.carryCost),
-                            money(variant.directCost),
-                            money(variant.turnoverCost),
-                            money(variant.totalCost),
-                            variant.basisRiskRemains ? "Remains — proxy is imperfect" : "None at this correlation"
+                            variant.hedgeRatio === 0 ? "Unhedged" : ("Explicit ratio " + variant.hedgeRatio),
+                            residualVolatility === null ? "Unavailable" : (residualVolatility * 100).toFixed(2) + "%",
+                            variant.costs.carry === null ? "Unavailable" : money(variant.costs.carry),
+                            variant.costs.commission === null ? "Unavailable" : money(variant.costs.commission + variant.costs.spread + variant.costs.slippage),
+                            variant.costs.turnover === null ? "Unavailable" : money(variant.costs.turnover + variant.costs.rebalance),
+                            variant.costs.liquidity === null ? "Unavailable" : money(variant.costs.liquidity),
+                            variant.costs.financing === null ? "Unavailable" : money(variant.costs.financing),
+                            variant.totalCost === null ? "Net unavailable — " + variant.missing.join(", ") + " not stated" : money(variant.totalCost),
+                            "Remains · residual variance " + variant.residualVariance.toFixed(8)
                         ]
                         : [
                             variant.label,
+                            "Unavailable",
+                            "Unavailable",
                             "Unavailable",
                             "Unavailable",
                             "Unavailable",
@@ -2530,21 +2939,32 @@
                 });
                 table.appendChild(body);
                 wrap.appendChild(table);
-                hedgeBand.appendChild(wrap);
+                comparisonSection.appendChild(wrap);
 
                 var incomplete = (comparison.variants || []).filter(function (v) { return v.state === "gross-only"; });
                 if (incomplete.length) {
                     var note = document.createElement("p");
                     note.id = "hedgeNetUnavailable";
                     note.className = "state-message";
-                    note.textContent = "Net benefit unavailable · " + incomplete[0].note;
-                    hedgeBand.appendChild(note);
+                    note.textContent = "Net benefit unavailable · " + incomplete[0].missing.join(", ") +
+                        " is not stated. Missing cost evidence is NOT treated as zero.";
+                    comparisonSection.appendChild(note);
                 }
+
+                if (comparison.variants && comparison.variants.length) {
+                    var effects = document.createElement("p");
+                    effects.className = "microcopy";
+                    effects.textContent = "Normal effectiveness · Stress effectiveness · Common-path effectiveness " +
+                        "are separate fields on every explicit ratio and share the frozen scenario/path basis.";
+                    comparisonSection.appendChild(effects);
+                }
+
+                hedgeBand.appendChild(comparisonSection);
 
                 var hedgeBoundary = document.createElement("p");
                 hedgeBoundary.id = "hedgeClaimBoundary";
                 hedgeBoundary.className = "microcopy";
-                hedgeBoundary.textContent = comparison.claimBoundary + " " +
+                hedgeBoundary.textContent = (comparison.claimBoundary || "The comparison is partial until regression, costs, and paths are complete.") + " " +
                     "No hedge ratio is prescribed as optimal or suitable for you, no contract is selected, " +
                     "nothing is executed, and your portfolio is not modified. Costs and risk reduction are " +
                     "reported separately so neither can hide behind the other.";
@@ -2692,28 +3112,246 @@
                 }
             }
 
-            function pathScenario() {
+            function pathScenarioCashNeeds(startingValue) {
+                var mandate = currentMandate();
+                var fromMandate = mandate ? mandate.cashNeeds.map(function (entry) {
+                    return {
+                        localId: entry.cashNeedId,
+                        amount: entry.unit === "portfolio-fraction" ? entry.amount * startingValue : entry.amount,
+                        currency: entry.currency,
+                        date: entry.date,
+                        timing: entry.treatmentTiming,
+                        label: "Mandate cash need priority " + entry.priority,
+                        priority: entry.priority,
+                        treatment: entry.unit
+                    };
+                }) : [];
+                var local = (state.cashNeeds || []).map(function (entry, index) {
+                    return {
+                        localId: "path-cash-need-" + String(index + 1),
+                        amount: entry.amount,
+                        currency: entry.currency,
+                        date: entry.date,
+                        timing: entry.timing,
+                        label: entry.label,
+                        priority: index + 1,
+                        treatment: "eligible-capital"
+                    };
+                });
+                return fromMandate.concat(local);
+            }
+
+            function pathScenarioSpecification(seedOverride) {
                 var probe = riskProjection();
                 if (!probe.available) return { available: false, state: probe.state };
+                var revision = currentRevision();
+                var workspace = state.opened && state.opened.workspace;
+                if (!revision || !workspace) return { available: false, state: "workspace-unavailable" };
+                var returnMetric = probe.metricResults && probe.metricResults.returns;
+                if (!returnMetric || returnMetric.state !== "ok" || returnMetric.coveredWeight < 1 - 1e-9) {
+                    return { available: false, state: "scenario-return-coverage-incomplete" };
+                }
                 var cal = (state.policy && state.policy.calibration) || {};
+                var requiredPolicyFields = [
+                    "initialSeed", "pathCount", "parameterDrawCount", "scenarioChunkSize",
+                    "scenarioMaximumWorkUnits", "scenarioStartingValue", "scenarioDriftRange",
+                    "scenarioRecurringCostFraction", "scenarioCostTiming", "stationaryBootstrapMeanBlockSessions"
+                ];
+                if (!requiredPolicyFields.every(function (field) {
+                    return Object.prototype.hasOwnProperty.call(cal, field);
+                })) return { available: false, state: "scenario-policy-unavailable" };
+                var stepCount = Math.max(probe.metrics.sampleSize, 2);
+                var horizonDates = forwardSessionDates(probe.cutoff, stepCount + 1);
+                if (horizonDates.length !== stepCount + 1) return { available: false, state: "scenario-horizon-unavailable" };
+                var sourceIds = Object.keys(probe.perSymbolReturns || {}).sort();
+                if (!sourceIds.length || !probe.rows.length) return { available: false, state: "scenario-evidence-unavailable" };
+                var mandate = currentMandate();
+                var seed = Number.isInteger(seedOverride) ? seedOverride : cal.initialSeed;
                 var spec = {
                     contractVersion: "ScenarioSpecification/v1",
-                    returnFingerprint: probe.identity,
-                    method: "stationary-bootstrap",
-                    seed: cal.initialSeed,
-                    meanBlockSessions: cal.stationaryBootstrapMeanBlockSessions,
-                    horizonSessions: Math.max(probe.metrics.sampleSize, 2),
-                    // Budgets are scaled to the configured product so a browser tab is never asked
-                    // to run the full 2000x21 production grid synchronously.
-                    pathCount: Math.min(cal.pathCount, 200),
-                    parameterDrawCount: Math.min(cal.parameterDrawCount, 21),
-                    driftRange: { low: -0.0002, high: 0.0002 },
-                    startingValue: 100000
+                    workspaceIdentity: "workspace:compute|portfolio=" + revision.semanticFingerprint +
+                        "|mandate=" + (mandate ? mandate.semanticFingerprint : "none-declared"),
+                    portfolioRevisionId: revision.portfolioId,
+                    mandateRevisionId: mandate ? mandate.mandateId : "mandate:none-declared",
+                    allocationCandidateId: "allocation:current-portfolio",
+                    evidenceSet: {
+                        returnFingerprint: probe.identity,
+                        sourceIds: sourceIds,
+                        cutoffAt: probe.cutoff + "T23:59:59.000Z",
+                        firstDate: probe.rows[0].date,
+                        lastDate: probe.rows[probe.rows.length - 1].date,
+                        frequency: "daily",
+                        currency: revision.valuationCurrency,
+                        eligibleDateFingerprint: probe.identity + "|eligible-dates=" +
+                            probe.rows.map(function (row) { return row.date; }).join(",")
+                    },
+                    method: {
+                        family: "stationary-bootstrap",
+                        blockPolicy: {
+                            family: "politis-romano-geometric",
+                            meanBlockSessions: cal.stationaryBootstrapMeanBlockSessions,
+                            wrapPolicy: "cyclic"
+                        },
+                        regimePolicy: {
+                            state: "not-requested", stateDefinitions: [], transitionMatrix: [],
+                            fittingSample: null, minimumSamplePolicy: null, fitDiagnostics: null, uncertainty: null
+                        },
+                        fatTailPolicy: { state: "not-requested", innovationFamily: null, tailParameters: null },
+                        calibrationIdentity: "calibration:" + state.policy.calibration.contractVersion +
+                            "|evidence=" + probe.identity,
+                        availability: { state: "calibrated", reason: null }
+                    },
+                    seed: seed,
+                    horizon: {
+                        startDate: horizonDates[0],
+                        endDate: horizonDates[horizonDates.length - 1],
+                        stepFrequency: "business-day",
+                        stepCount: stepCount
+                    },
+                    pathCount: cal.pathCount,
+                    chunkSize: cal.scenarioChunkSize,
+                    parameterPolicy: {
+                        drawCount: cal.parameterDrawCount,
+                        ranges: [{ parameter: "drift", low: cal.scenarioDriftRange[0], high: cal.scenarioDriftRange[1] }],
+                        distributions: [{ parameter: "drift", family: "deterministic-stratified", parameters: {} }],
+                        gridIdentity: "grid:configured-drift-range"
+                    },
+                    rebalancePolicy: { family: "buy-and-hold", frequency: null },
+                    costPolicy: {
+                        currency: revision.valuationCurrency,
+                        recurringFraction: cal.scenarioRecurringCostFraction,
+                        timing: cal.scenarioCostTiming
+                    },
+                    contributions: [],
+                    withdrawals: [],
+                    cashNeeds: pathScenarioCashNeeds(cal.scenarioStartingValue),
+                    survivalDefinition: {
+                        state: isFiniteNumber(state.survivalFloor) ? "available" : "unavailable",
+                        floorValue: isFiniteNumber(state.survivalFloor) ? state.survivalFloor : 0,
+                        condition: isFiniteNumber(state.survivalFloor)
+                            ? "minimum-wealth-through-horizon" : "not-declared",
+                        cashNeedPolicy: "fund-in-declared-order",
+                        currency: revision.valuationCurrency,
+                        startingValue: cal.scenarioStartingValue
+                    },
+                    constraintsFingerprint: mandate ? mandate.semanticFingerprint : "constraints:none-declared",
+                    uncertaintyPolicy: {
+                        intervalMethod: "empirical-quantile",
+                        quantiles: [0.05, 0.5, 0.95],
+                        separatePathAndParameter: true
+                    },
+                    policyFingerprint: state.policy.contractVersion + "|calibration=" +
+                        state.policy.calibration.contractVersion
                 };
-                var result = window.RLPORTFOLIOANALYTICS.runScenario(spec, probe.alignedReturns || [], {
-                    maximumPaths: 20000
+                var validation = window.RLPORTFOLIOANALYTICS.validateScenarioSpecification(spec);
+                return validation.ok
+                    ? { available: true, state: "ready", spec: spec, sampleReturns: probe.alignedReturns || [] }
+                    : { available: false, state: "scenario-spec-invalid:" + validation.reason };
+            }
+
+            function ensurePathComputeController(workspaceIdentity) {
+                if (state.pathComputeController && state.pathComputeWorkspaceIdentity === workspaceIdentity) return;
+                state.pathComputeController = window.RLPORTFOLIOANALYTICS.createScenarioComputeController({
+                    workspaceIdentity: workspaceIdentity,
+                    lastValidViewModel: null
                 });
-                return { available: result.state === "ok", state: result.state, spec: spec, result: result };
+                state.pathComputeWorkspaceIdentity = workspaceIdentity;
+                state.pathComputeQueuedIdentity = null;
+                state.pathCompute = {
+                    state: "idle", tokenId: null, tokenState: null, scenarioIdentity: null,
+                    requestedPathCount: 0, completedPathCount: 0, completedWorkUnits: 0,
+                    requestedWorkUnits: 0, errorCode: null, lastSettlementCode: null, result: null
+                };
+            }
+
+            function startPathScenario(prepared) {
+                if (!prepared.available) return;
+                var spec = prepared.spec;
+                var identity = window.RLPORTFOLIOANALYTICS.scenarioIdentity(spec);
+                ensurePathComputeController(spec.workspaceIdentity);
+                var previous = state.pathCompute;
+                if (previous.tokenId && ["running", "cancel-requested"].indexOf(previous.state) !== -1) {
+                    previous.lastSettlementCode = "P008-COMPUTE-SUPERSEDED";
+                }
+                state.pathComputeOrdinal += 1;
+                var tokenId = "path-compute-" + String(state.pathComputeOrdinal);
+                var token = state.pathComputeController.issue(spec, { tokenId: tokenId, issuedAt: now() });
+                state.pathCompute = {
+                    state: "running",
+                    tokenId: tokenId,
+                    tokenState: token.state,
+                    scenarioIdentity: identity,
+                    requestedPathCount: spec.pathCount,
+                    completedPathCount: 0,
+                    completedWorkUnits: 0,
+                    requestedWorkUnits: spec.pathCount * spec.parameterPolicy.drawCount,
+                    errorCode: null,
+                    lastSettlementCode: previous.lastSettlementCode,
+                    result: previous.result
+                };
+                state.pathComputeQueuedIdentity = null;
+                if (state.route === "path-lab") refreshWorkspaceViews();
+                else updateDiagnostics();
+                window.RLPORTFOLIOANALYTICS.runScenarioJob(spec, prepared.sampleReturns, {
+                    controller: state.pathComputeController,
+                    tokenId: tokenId,
+                    maximumWorkUnits: state.policy.calibration.scenarioMaximumWorkUnits,
+                    onChunk: function (chunk) {
+                        if (state.pathCompute.tokenId === tokenId) {
+                            state.pathCompute.completedWorkUnits = chunk.completedWorkUnits;
+                            state.pathCompute.tokenState = "running";
+                        }
+                    }
+                }).then(function (result) {
+                    if (state.pathCompute.tokenId !== tokenId) {
+                        if (result && result.error && result.error.code) {
+                            state.pathCompute.lastSettlementCode = result.error.code;
+                        }
+                        return;
+                    }
+                    var settled = state.pathComputeController.token(tokenId);
+                    if (result.state === "ok") {
+                        state.pathCompute.state = "completed";
+                        state.pathCompute.tokenState = settled ? settled.state : "completed";
+                        state.pathCompute.completedPathCount = result.pathCount;
+                        state.pathCompute.completedWorkUnits = result.workUnitCount;
+                        state.pathCompute.errorCode = null;
+                        state.pathCompute.result = result;
+                    } else {
+                        state.pathCompute.state = result.error && result.error.code === "P008-COMPUTE-CANCELLED"
+                            ? "cancelled" : (result.error && result.error.code === "P008-COMPUTE-SUPERSEDED"
+                                ? "superseded" : "failed");
+                        state.pathCompute.tokenState = settled ? settled.state : state.pathCompute.state;
+                        state.pathCompute.errorCode = result.error ? result.error.code : result.state;
+                        state.pathCompute.lastSettlementCode = state.pathCompute.errorCode;
+                    }
+                    if (state.route === "path-lab") refreshWorkspaceViews();
+                    else updateDiagnostics();
+                });
+            }
+
+            function cancelPathScenario() {
+                if (!state.pathComputeController || !state.pathCompute.tokenId) return;
+                var token = state.pathComputeController.requestCancel(state.pathCompute.tokenId);
+                if (!token) return;
+                state.pathCompute.state = "cancel-requested";
+                state.pathCompute.tokenState = token.state;
+                refreshWorkspaceViews();
+            }
+
+            function pathScenario() {
+                var prepared = pathScenarioSpecification(state.pathScenarioSeed);
+                if (!prepared.available) return prepared;
+                var identity = window.RLPORTFOLIOANALYTICS.scenarioIdentity(prepared.spec);
+                var result = state.pathCompute.result;
+                return {
+                    available: Boolean(result),
+                    state: result ? "ok" : state.pathCompute.state,
+                    spec: prepared.spec,
+                    result: result,
+                    prepared: prepared,
+                    scenarioIdentity: identity
+                };
             }
 
             function appendPathLab(panel) {
@@ -2721,19 +3359,104 @@
                 band.className = "band";
                 band.id = "pathLab";
                 var run = pathScenario();
-                band.dataset.pathState = run.state;
+                var prepared = run.prepared || pathScenarioSpecification(state.pathScenarioSeed);
+                var expectedIdentity = prepared.available
+                    ? window.RLPORTFOLIOANALYTICS.scenarioIdentity(prepared.spec) : null;
+                band.dataset.pathState = run.available ? "ok" : run.state;
 
                 var heading = document.createElement("h4");
                 heading.textContent = "Dependent-path scenario";
                 band.appendChild(heading);
 
-                if (!run.available) {
+                var controls = document.createElement("div");
+                controls.className = "row";
+                var seedInput = document.createElement("input");
+                seedInput.id = "pathScenarioSeed";
+                seedInput.type = "number";
+                seedInput.min = "0";
+                seedInput.step = "1";
+                seedInput.setAttribute("aria-label", "Path scenario seed");
+                seedInput.value = String(state.pathScenarioSeed === null && state.policy
+                    ? state.policy.calibration.initialSeed : state.pathScenarioSeed);
+                var runButton = document.createElement("button");
+                runButton.id = "pathRunScenario";
+                runButton.type = "button";
+                runButton.textContent = "Run scenario";
+                runButton.addEventListener("click", function () {
+                    var seed = Number(seedInput.value);
+                    if (!Number.isInteger(seed) || seed < 0) return;
+                    state.pathScenarioSeed = seed;
+                    var next = pathScenarioSpecification(seed);
+                    if (next.available) startPathScenario(next);
+                });
+                var cancelButton = document.createElement("button");
+                cancelButton.id = "pathCancelScenario";
+                cancelButton.type = "button";
+                cancelButton.textContent = "Cancel scenario";
+                cancelButton.disabled = ["running", "cancel-requested"].indexOf(state.pathCompute.state) === -1;
+                cancelButton.addEventListener("click", cancelPathScenario);
+                [seedInput, runButton, cancelButton].forEach(function (control) { controls.appendChild(control); });
+                band.appendChild(controls);
+
+                var computeStatus = document.createElement("p");
+                computeStatus.id = "pathComputeStatus";
+                computeStatus.className = "state-message";
+                computeStatus.setAttribute("role", "status");
+                computeStatus.setAttribute("data-compute-state", state.pathCompute.state);
+                computeStatus.setAttribute("data-requested-paths", String(prepared.available ? prepared.spec.pathCount : 0));
+                computeStatus.setAttribute("data-completed-paths", String(state.pathCompute.completedPathCount));
+                computeStatus.setAttribute("data-token-state", state.pathCompute.tokenState || "none");
+                if (state.pathCompute.errorCode) computeStatus.setAttribute("data-error-code", state.pathCompute.errorCode);
+                if (state.pathCompute.lastSettlementCode) {
+                    computeStatus.setAttribute("data-last-settlement-code", state.pathCompute.lastSettlementCode);
+                }
+                computeStatus.textContent = state.pathCompute.state === "completed"
+                    ? "Published only from the matching complete token · " + state.pathCompute.completedPathCount +
+                        " paths · " + state.pathCompute.completedWorkUnits + " work units."
+                    : (state.pathCompute.state === "running" || state.pathCompute.state === "cancel-requested"
+                        ? "Scenario " + state.pathCompute.state + " · completed " +
+                            state.pathCompute.completedWorkUnits + " of " + state.pathCompute.requestedWorkUnits +
+                            " work units. The last valid result remains visible."
+                        : "Scenario " + state.pathCompute.state +
+                            (state.pathCompute.errorCode ? " · " + state.pathCompute.errorCode : "") +
+                            ". The last valid result remains visible.");
+                band.appendChild(computeStatus);
+
+                if (state.route === "path-lab" && prepared.available &&
+                    state.pathCompute.scenarioIdentity !== expectedIdentity &&
+                    state.pathComputeQueuedIdentity !== expectedIdentity) {
+                    state.pathComputeQueuedIdentity = expectedIdentity;
+                    setTimeout(function () {
+                        if (state.pathComputeQueuedIdentity !== expectedIdentity) return;
+                        if (state.route !== "path-lab") {
+                            state.pathComputeQueuedIdentity = null;
+                            return;
+                        }
+                        var current = pathScenarioSpecification(state.pathScenarioSeed);
+                        if (current.available && window.RLPORTFOLIOANALYTICS.scenarioIdentity(current.spec) === expectedIdentity) {
+                            startPathScenario(current);
+                        }
+                    }, 0);
+                }
+
+                if (!prepared.available) {
                     var unavailable = document.createElement("p");
                     unavailable.id = "pathUnavailable";
                     unavailable.className = "state-message";
-                    unavailable.textContent = "Path Lab unavailable · " + run.state +
+                    unavailable.textContent = "Path Lab unavailable · " + prepared.state +
                         " · no path, percentile, or survival figure is shown, because none can be generated from held evidence.";
                     band.appendChild(unavailable);
+                    panel.appendChild(band);
+                    return;
+                }
+
+                if (!run.available) {
+                    var pending = document.createElement("p");
+                    pending.id = "pathUnavailable";
+                    pending.className = "state-message";
+                    pending.textContent = "Path Lab is computing the complete configured scenario. " +
+                        "No partial path or probability is published.";
+                    band.appendChild(pending);
                     panel.appendChild(band);
                     return;
                 }
@@ -2790,6 +3513,15 @@
                     r.parameterDrawCount + " parameter nodes · common random streams: " + r.commonRandomStreams +
                     " · " + r.methodNote;
                 band.appendChild(method);
+
+                var methodAvailability = document.createElement("p");
+                methodAvailability.id = "pathMethodAvailability";
+                methodAvailability.className = "microcopy";
+                methodAvailability.textContent = r.methodAvailability.family + " · " +
+                    r.methodAvailability.state + (r.methodAvailability.reason
+                        ? " · " + r.methodAvailability.reason : "") + " · calibration " +
+                    r.methodAvailability.calibrationIdentity;
+                band.appendChild(methodAvailability);
 
                 var bands = document.createElement("ul");
                 bands.id = "pathBands";
@@ -2889,6 +3621,23 @@
                 table.appendChild(tbody);
                 tableWrap.appendChild(table);
                 band.appendChild(tableWrap);
+
+                var distributionSet = document.createElement("div");
+                distributionSet.id = "pathDistributionSet";
+                distributionSet.className = "band";
+                distributionSet.setAttribute("data-contract-version", r.distributionSet.contractVersion);
+                [
+                    ["Conditional path", r.distributionSet.conditionalPath],
+                    ["Parameter marginal", r.distributionSet.parameterMarginal],
+                    ["Combined", r.distributionSet.combined]
+                ].forEach(function (entry) {
+                    var paragraph = document.createElement("p");
+                    paragraph.className = "microcopy";
+                    paragraph.textContent = entry[0] + " · " + entry[1].count + " records · terminal wealth · " +
+                        "maximum drawdown · cash need funded fraction · interval " + entry[1].intervalMethod;
+                    distributionSet.appendChild(paragraph);
+                });
+                band.appendChild(distributionSet);
 
                 appendCashNeedsAndSurvival(band, run);
 
@@ -2997,12 +3746,22 @@
                     cashBand.appendChild(cashError);
                 }
 
-                var needs = state.cashNeeds || [];
-                var schedule = window.RLPORTFOLIOANALYTICS.scheduleCashFlows(needs, sessionDates);
-                var medianPath = r.fanBands.map(function (row) { return row.p50; });
-                var applied = schedule.state === "ok"
-                    ? window.RLPORTFOLIOANALYTICS.applyCashFlows(medianPath, schedule.scheduled, "USD")
-                    : { state: schedule.state, events: [] };
+                var needs = run.spec.cashNeeds || [];
+                var representative = r.paths[Math.floor((r.paths.length - 1) / 2)];
+                var appliedEvents = representative ? representative.cashNeedOutcomes : [];
+                var rejectedEvents = representative ? representative.rejectedEvents : [];
+                var coveredPathCount = needs.length ? r.paths.filter(function (path) {
+                    return path.cashNeedOutcomes.length === needs.length;
+                }).length : r.paths.length;
+
+                var coverage = document.createElement("p");
+                coverage.id = "cashNeedPathCoverage";
+                coverage.className = "microcopy";
+                coverage.textContent = needs.length
+                    ? "Every declared cash need was evaluated on " + coveredPathCount + " of " +
+                        r.pathCount + " paths; no median-path substitution is used."
+                    : "No cash need is declared. All " + r.pathCount + " paths remain in the distribution.";
+                cashBand.appendChild(coverage);
 
                 var timelineWrap = document.createElement("div");
                 timelineWrap.style.overflowX = "auto";
@@ -3014,9 +3773,9 @@
                     "<th scope=\"col\">Applied</th><th scope=\"col\">Capital after</th>" +
                     "<th scope=\"col\">Funded</th><th scope=\"col\">During drawdown</th></tr></thead>";
                 var timelineBody = document.createElement("tbody");
-                (applied.events || []).forEach(function (event) {
+                appliedEvents.forEach(function (event) {
                     var tr = document.createElement("tr");
-                    tr.id = "cashneed-" + event.index;
+                    tr.id = "cashneed-" + event.localId;
                     tr.dataset.session = String(event.session);
                     tr.dataset.funded = event.fundedFraction >= 1 ? "full" : "partial";
                     var cells = [
@@ -3049,11 +3808,11 @@
                     cashBand.appendChild(noNeeds);
                 }
 
-                (schedule.rejected || []).forEach(function (rejection) {
+                rejectedEvents.forEach(function (rejection, index) {
                     var note = document.createElement("p");
                     note.className = "state-message";
-                    note.dataset.rejectedIndex = String(rejection.index);
-                    note.textContent = "Cash need " + (rejection.index + 1) + " not placed · " + rejection.reason +
+                    note.dataset.rejectedIndex = String(index);
+                    note.textContent = "Cash need " + (index + 1) + " not placed · " + rejection.reason +
                         (rejection.declaredDate
                             ? " · stated " + rejection.declaredDate + " falls beyond the modeled horizon and is " +
                               "reported rather than moved onto the last modeled session."
@@ -3094,15 +3853,7 @@
                 floorRow.appendChild(floorButton);
                 survivalBand.appendChild(floorRow);
 
-                var definition = isFiniteNumber(state.survivalFloor)
-                    ? {
-                        floorValue: state.survivalFloor,
-                        horizonSessions: r.horizonSessions,
-                        currency: "USD",
-                        startingValue: r.startingValue
-                    }
-                    : null;
-                var survival = window.RLPORTFOLIOANALYTICS.computeSurvival(definition, [medianPath]);
+                var survival = r.survival;
                 survivalBand.dataset.survivalState = survival.state;
 
                 var survivalText = document.createElement("p");
@@ -3171,7 +3922,7 @@
                 var symbols = Object.keys(series), cutoff = null;
                 for (var i = 0; i < symbols.length; i += 1) {
                     var rows = series[symbols[i]];
-                    if (!rows || !rows.length) return null;
+                    if (!rows || !rows.length) continue;
                     var latest = rows[0].date;
                     for (var r = 1; r < rows.length; r += 1) { if (rows[r].date > latest) latest = rows[r].date; }
                     if (cutoff === null || latest < cutoff) cutoff = latest;
@@ -3179,10 +3930,23 @@
                 return cutoff;
             }
 
+            function riskConcentrationLenses(policy) {
+                var required = ["symbol", "issuer", "assetClass", "sector", "geography", "factor", "currency", "lookThrough"];
+                var declared = Array.isArray(policy.concentrationLenses) ? policy.concentrationLenses : [];
+                return required.concat(declared).filter(function (lens, index, all) {
+                    return all.indexOf(lens) === index;
+                });
+            }
+
             function riskProjection() {
                 var revision = currentRevision();
-                if (!revision || !revision.holdings.length) return { available: false, state: "no-portfolio" };
                 if (!window.RLPORTFOLIOANALYTICS) return { available: false, state: "analytics-unavailable" };
+                var lastValid = state.lastValidRiskProjection || null;
+                if (!revision || !revision.holdings.length) {
+                    return window.RLPORTFOLIOANALYTICS.riskXRayProjection({
+                        holdings: [], series: {}, cutoff: null, lastValid: lastValid
+                    });
+                }
                 var policy = (state.policy && state.policy.analytics) || {};
                 var symbols = [];
                 revision.holdings.forEach(function (holding) {
@@ -3218,10 +3982,12 @@
                    spreads config declared. A factor whose leg is missing a date is omitted here and
                    reported unavailable rather than aligned onto a different basis. */
                 var factorReturns = {};
+                var factorSourceSymbols = {};
                 if (probe.available) {
                     var factorDates = probe.rows.map(function (r) { return r.date; });
                     (policy.proxyFactors || []).forEach(function (factor) {
                         var legs = [factor.long].concat(factor.short ? [factor.short] : []);
+                        factorSourceSymbols[factor.id] = legs.slice();
                         var legSeries = riskSeries(legs);
                         var closes = {};
                         var usable = legs.every(function (leg) {
@@ -3245,22 +4011,29 @@
                     });
                 }
 
-                return window.RLPORTFOLIOANALYTICS.riskXRayProjection({
+                var candidate = window.RLPORTFOLIOANALYTICS.riskXRayProjection({
                     holdings: revision.holdings,
                     series: series,
                     cutoff: cutoff,
                     periodsPerYear: RISK_PERIODS_PER_YEAR,
-                    concentrationLenses: policy.concentrationLenses || [],
+                    concentrationLenses: riskConcentrationLenses(policy),
                     benchmarkReturns: benchmarkReturns,
                     benchmarkSymbol: benchSymbol,
                     factorReturns: factorReturns,
+                    factorSourceSymbols: factorSourceSymbols,
                     proxyFactorsVersion: policy.proxyFactorsVersion || null,
                     riskFreeAnnual: policy.riskFreeAnnual,
                     minimumCapmObservations: policy.minimumCapmObservations,
                     shrinkageLambda: policy.covarianceShrinkageLambda,
                     reconciliationTolerance: policy.riskReconciliationTolerance,
-                    concentrationAlertWeight: policy.concentrationAlertWeight
+                    concentrationAlertWeight: policy.concentrationAlertWeight,
+                    lookThroughSource: policy.lookThroughSource || null,
+                    lastValid: lastValid
                 });
+                if (candidate.available && candidate.state !== "preserved-last-valid") {
+                    state.lastValidRiskProjection = candidate;
+                }
+                return candidate;
             }
 
             function riskMetricRow(id, label, value, note) {
@@ -3278,6 +4051,118 @@
                     row.appendChild(small);
                 }
                 return row;
+            }
+
+            function riskResultFingerprint(projection) {
+                var results = projection.metricResults || {};
+                return [projection.identity || "no-identity"].concat(Object.keys(results).sort().map(function (key) {
+                    var result = results[key];
+                    return key + ":" + result.state + ":" + result.coveredWeight.toFixed(12) + ":" + result.uncoveredWeight.toFixed(12);
+                })).join("|");
+            }
+
+            function appendRiskStructuredDiagnostics(band, projection) {
+                var structured = document.createElement("div");
+                structured.id = "riskStructuredDiagnostics";
+                structured.className = "band";
+                structured.dataset.resultFingerprint = riskResultFingerprint(projection);
+
+                var heading = document.createElement("h5");
+                heading.textContent = "Metric eligibility and coverage";
+                structured.appendChild(heading);
+
+                var holdingLabels = {};
+                (projection.eligibility || []).forEach(function (entry) {
+                    holdingLabels[entry.holdingId] = entry.symbol
+                        ? entry.symbol + " [" + entry.holdingId + "]"
+                        : entry.holdingId;
+                });
+                function resultLabels(ids) {
+                    return ids.length ? ids.map(function (id) { return holdingLabels[id] || id; }).join(", ") : "none";
+                }
+
+                var returnResult = projection.metricResults && projection.metricResults.returns;
+                var coverage = document.createElement("p");
+                coverage.id = "riskCoverage";
+                coverage.className = "subtle";
+                coverage.textContent = returnResult
+                    ? "Return coverage · covered weight " + pct(returnResult.coveredWeight) +
+                      " · uncovered weight " + pct(returnResult.uncoveredWeight) +
+                      " · included " + resultLabels(returnResult.includedIds) +
+                      " · excluded " + resultLabels(returnResult.excludedIds) +
+                      " · eligible holdings retain original portfolio weights and are not reweighted"
+                    : "Return coverage unavailable";
+                structured.appendChild(coverage);
+
+                var resultList = document.createElement("ul");
+                resultList.id = "riskMetricResults";
+                resultList.className = "route-states";
+                Object.keys(projection.metricResults || {}).sort().forEach(function (key) {
+                    var result = projection.metricResults[key];
+                    var item = document.createElement("li");
+                    item.dataset.metricResult = key;
+                    item.dataset.resultState = result.state;
+                    item.textContent = key + " · " + result.state + " · " + result.frequency +
+                        " · covered " + pct(result.coveredWeight) + " · uncovered " + pct(result.uncoveredWeight) +
+                        " · included " + resultLabels(result.includedIds) +
+                        " · excluded " + resultLabels(result.excludedIds) +
+                        " · original weights are not reweighted";
+                    resultList.appendChild(item);
+                });
+                structured.appendChild(resultList);
+
+                var eligibility = document.createElement("ul");
+                eligibility.id = "riskEligibility";
+                eligibility.className = "route-states";
+                (projection.eligibility || []).forEach(function (entry) {
+                    var item = document.createElement("li");
+                    item.dataset.holdingId = entry.holdingId;
+                    item.dataset.metricFamily = entry.metricFamily;
+                    item.dataset.eligibilityState = entry.state;
+                    item.textContent = (entry.symbol || entry.holdingId) + " · " + entry.inputClass + " · " +
+                        entry.metricFamily + " · " + entry.state + " · frequency " + (entry.frequency || "not-applicable") +
+                        " · included " + pct(entry.includedWeight) + " · excluded " + pct(entry.excludedWeight) +
+                        (entry.reasons.length ? " · reasons " + entry.reasons.join(", ") : "") +
+                        (entry.evidenceIds.length ? " · evidence " + entry.evidenceIds.join(", ") : "");
+                    eligibility.appendChild(item);
+                });
+                structured.appendChild(eligibility);
+
+                var compatible = document.createElement("div");
+                compatible.id = "riskCompatibleFrequency";
+                compatible.className = "band";
+                var compatibleHeading = document.createElement("h6");
+                compatibleHeading.textContent = "Compatible-frequency manual evidence";
+                compatible.appendChild(compatibleHeading);
+                var compatibleResults = projection.compatibleFrequencyResults || [];
+                if (!compatibleResults.length) {
+                    var compatibleEmpty = document.createElement("p");
+                    compatibleEmpty.className = "state-message";
+                    compatibleEmpty.textContent = "No dated manual series is available. Manual holdings remain descriptive or scenario-only and never inherit daily listed-asset history.";
+                    compatible.appendChild(compatibleEmpty);
+                } else {
+                    var compatibleRows = document.createElement("ul");
+                    compatibleRows.className = "route-states";
+                    compatibleResults.forEach(function (result) {
+                        var item = document.createElement("li");
+                        item.dataset.compatibleHolding = result.holdingId;
+                        item.dataset.compatibleFrequency = result.frequency;
+                        item.dataset.compatibleState = result.metricResult.state;
+                        var metricCopy = result.metrics && result.metrics.state === "ok"
+                            ? "CAGR " + pct(result.metrics.compoundedCagr) + " · elapsed " + result.metrics.elapsedDays + " days"
+                            : "return unavailable · " + (result.metrics && result.metrics.state || "unknown");
+                        var drawdownCopy = result.drawdown && result.drawdown.state === "ok"
+                            ? "drawdown " + pct(result.drawdown.maxDrawdown)
+                            : "drawdown unavailable";
+                        item.textContent = result.holdingId + " · original weight " + pct(result.holdingWeight) +
+                            " · " + result.frequency + " evidence · " + metricCopy + " · " + drawdownCopy +
+                            " · evidence " + (result.evidenceIds.length ? result.evidenceIds.join(", ") : "unidentified");
+                        compatibleRows.appendChild(item);
+                    });
+                    compatible.appendChild(compatibleRows);
+                }
+                structured.appendChild(compatible);
+                band.appendChild(structured);
             }
 
             function appendRiskXRay(panel) {
@@ -3320,6 +4205,19 @@
                     " · evidence cutoff " + projection.cutoff +
                     " · " + projection.alignment.excluded.length + " non-intersecting dates excluded";
                 band.appendChild(source);
+                appendRiskStructuredDiagnostics(band, projection);
+
+                if (!projection.metrics || projection.metrics.state !== "ok" ||
+                    !projection.drawdown || projection.drawdown.state !== "ok") {
+                    var returnUnavailable = document.createElement("p");
+                    returnUnavailable.id = "riskReturnUnavailable";
+                    returnUnavailable.className = "state-message";
+                    returnUnavailable.textContent = "Return and drawdown unavailable for this candidate · independent descriptive diagnostics remain visible below.";
+                    band.appendChild(returnUnavailable);
+                    appendRiskDiagnostics(band, projection);
+                    panel.appendChild(band);
+                    return;
+                }
 
                 var returns = document.createElement("ul");
                 returns.id = "riskReturnMetrics";
@@ -3556,7 +4454,12 @@
                     fBasis.className = "subtle";
                     fBasis.textContent = "These are DECLARED PROXY spreads from " + factors.factorsVersion +
                         ", not academic factor returns · basis " + factors.basis +
+                        " · source symbols " + Object.keys(factors.sourceSymbols || {}).map(function (id) {
+                            return id + "=" + (factors.sourceSymbols[id].length ? factors.sourceSymbols[id].join("/") : "missing");
+                        }).join(", ") +
                         " · fitted on " + factors.sampleSize + " periods with " + factors.parameters + " parameters" +
+                        " · rank " + factors.rank + " · condition " + factors.conditionState +
+                        " (" + (isFiniteNumber(factors.conditionEstimate) ? factors.conditionEstimate.toExponential(3) : "unavailable") + ")" +
                         (factors.unavailable.length
                             ? " · unavailable: " + factors.unavailable.join(", ")
                             : " · every declared factor was usable");
@@ -3577,7 +4480,29 @@
                     fRows.appendChild(riskMetricRow("riskFactorAdjR2", "Adjusted R-squared", pct(factors.adjustedRSquared)));
                     fRows.appendChild(riskMetricRow("riskFactorResidual", "Residual risk (annualized)",
                         pct(factors.residualRiskAnnualized)));
+                    fRows.appendChild(riskMetricRow("riskFactorResidualVariance", "Residual variance",
+                        isFiniteNumber(factors.residualVariance) ? factors.residualVariance.toExponential(6) : "Unavailable"));
                     factorBox.appendChild(fRows);
+
+                    var factorContribution = projection.factorContributions || { state: "not-computed" };
+                    if (factorContribution.state === "ok") {
+                        var fcRows = document.createElement("ul");
+                        fcRows.id = "riskFactorContributions";
+                        fcRows.className = "route-states";
+                        factorContribution.factors.forEach(function (id, index) {
+                            fcRows.appendChild(riskMetricRow("riskFactorContribution-" + id,
+                                id + " factor variance contribution", factorContribution.contribution[index].toExponential(6)));
+                        });
+                        factorBox.appendChild(fcRows);
+                        var fcRecon = document.createElement("p");
+                        fcRecon.id = "riskFactorReconciliation";
+                        fcRecon.className = "microcopy";
+                        fcRecon.textContent = "Factor contributions reconcile inside the proxy-factor model only · sum " +
+                            factorContribution.contributionSum.toExponential(6) + " · factor variance " +
+                            factorContribution.factorVariance.toExponential(6) + " · reconciled: " + factorContribution.reconciled +
+                            " · asset and factor decompositions are never summed together.";
+                        factorBox.appendChild(fcRecon);
+                    }
 
                     var fNote = document.createElement("p");
                     fNote.id = "riskFactorNote";
@@ -3601,6 +4526,23 @@
                 contribBox.dataset.contributionState = rc.state;
                 contribBox.dataset.covarianceState = cov.state;
 
+                var covLine = document.createElement("p");
+                covLine.id = "riskCovarianceState";
+                covLine.className = "subtle";
+                if (cov.state === "ok") {
+                    covLine.textContent = "raw covariance · observations " + cov.rawDiagnostics.observationCount +
+                        " · dates " + cov.rawDiagnostics.firstDate + " to " + cov.rawDiagnostics.lastDate +
+                        " · minimum eigenvalue " + cov.rawDiagnostics.minimumEigenvalue.toExponential(6) +
+                        " · Cholesky " + cov.rawDiagnostics.choleskyState + " · rank " + cov.rawDiagnostics.rank +
+                        " · condition " + (isFiniteNumber(cov.rawDiagnostics.conditionEstimate) ? cov.rawDiagnostics.conditionEstimate.toExponential(3) : "unavailable") +
+                        " · conditioned covariance method " + cov.conditioning.method + " · shrinkage lambda " + cov.conditioning.lambda +
+                        " · result " + cov.conditioning.resultDiagnostics.state + " · parent raw " + cov.conditioning.parentRawFingerprint +
+                        " · lambda auto-raised: " + cov.conditioning.lambdaWasAutoRaised;
+                } else {
+                    covLine.textContent = "raw covariance unavailable · " + cov.state + " · no conditioning is implied";
+                }
+                contribBox.appendChild(covLine);
+
                 if (rc.state !== "ok") {
                     var rcMissing = document.createElement("p");
                     rcMissing.id = "riskContributionsUnavailable";
@@ -3609,15 +4551,6 @@
                         " · no marginal or total contribution is shown";
                     contribBox.appendChild(rcMissing);
                 } else {
-                    var covLine = document.createElement("p");
-                    covLine.id = "riskCovarianceState";
-                    covLine.className = "subtle";
-                    covLine.textContent = "Computed on the " + rc.basis + " covariance · shrinkage lambda " +
-                        rc.shrinkageLambda + " · raw matrix positive-definite: " + cov.rawPositiveDefinite +
-                        " · conditioned positive-definite: " + cov.conditionedPositiveDefinite +
-                        " · lambda auto-raised: " + cov.lambdaWasAutoRaised;
-                    contribBox.appendChild(covLine);
-
                     var contribTable = document.createElement("table");
                     contribTable.id = "riskContributionTable";
                     var chead = document.createElement("thead");
@@ -3761,7 +4694,10 @@
                             ? "These carry no market series, so they contribute to no return, covariance, or beta figure above. They are named rather than dropped."
                             : ""));
                     treatRows.appendChild(riskMetricRow("riskLookThrough", "Look-through overlap",
-                        treat.lookThrough.state, treat.lookThrough.reason));
+                        treat.lookThrough.state,
+                        treat.lookThrough.reason + (treat.lookThrough.missingIds && treat.lookThrough.missingIds.length
+                            ? " Missing holding IDs: " + treat.lookThrough.missingIds.join(", ") + "."
+                            : "")));
                     treatBox.appendChild(treatRows);
                 }
                 wrap.appendChild(treatBox);
@@ -5177,6 +6113,13 @@
                 controllerState.mandateAndCashNeedDrafts = state.mandateDraft ? [state.mandateDraft] : [];
                 controllerState.scenarioInputs = (state.cashNeeds || []).slice();
                 if (isFiniteNumber(state.survivalFloor)) controllerState.scenarioInputs.push({ survivalFloor: state.survivalFloor });
+                if (state.pathCompute.scenarioIdentity || state.pathCompute.tokenId || state.pathCompute.result) {
+                    controllerState.scenarioInputs.push({
+                        scenarioIdentity: state.pathCompute.scenarioIdentity,
+                        tokenId: state.pathCompute.tokenId,
+                        computeState: state.pathCompute.state
+                    });
+                }
                 controllerState.hedgeVariants = state.hedge ? [state.hedge] : [];
                 controllerState.activeIdentities = state.opened ? {
                     workspace: state.opened.workspace.semanticFingerprint,
@@ -5210,6 +6153,15 @@
                         state.portfolioBrief = null;
                         state.cashNeeds = [];
                         state.survivalFloor = null;
+                        state.pathScenarioSeed = null;
+                        state.pathComputeController = null;
+                        state.pathComputeWorkspaceIdentity = null;
+                        state.pathComputeQueuedIdentity = null;
+                        state.pathCompute = {
+                            state: "idle", tokenId: null, tokenState: null, scenarioIdentity: null,
+                            requestedPathCount: 0, completedPathCount: 0, completedWorkUnits: 0,
+                            requestedWorkUnits: 0, errorCode: null, lastSettlementCode: null, result: null
+                        };
                         state.hedge = null;
                     }
                 };

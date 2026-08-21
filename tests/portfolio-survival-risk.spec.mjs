@@ -40,6 +40,30 @@ async function importValid(page, name) {
   await expect(page.locator('#currentRevision')).toContainText('Current revision');
 }
 
+async function importMixedRiskPortfolio(page, name) {
+  const csv = [
+    'symbol,label,assetType,currency,weight,valuationDate,valuationMethod,liquidityClass,valuationFrequency,uncertaintyNote,issuer,sector',
+    'MSFT,,listed,USD,0.5,,,,,,Microsoft,Technology',
+    'CASH,,cash,USD,0.2,,,,,,Cash reserve,Cash',
+    ',Private art,manual-alternative,USD,0.2,2026-01-02,owner appraisal,illiquid,quarterly,valuation uncertainty,Private issuer,Alternatives',
+    'BND,,listed,USD,0.1,,,,,,Vanguard,Fixed Income'
+  ].join('\n');
+  await page.locator('#portfolioName').fill(name);
+  await page.locator('#portfolioFile').setInputFiles({
+    name: 'scope-21-mixed-risk.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from(csv)
+  });
+  await expect(page.locator('#previewAccepted')).toHaveText('4');
+  await expect(page.locator('#previewRejected')).toHaveText('0');
+  if (await page.locator('#duplicateChoice').isEnabled()) {
+    await page.locator('#duplicateChoice').selectOption('merge');
+  }
+  await page.locator('#localOnlyAcknowledgement').check();
+  await page.locator('#confirmImport').click();
+  await expect(page.locator('#currentRevision')).toContainText('Current revision');
+}
+
 /* Seeds the SAME shared same-origin bar cache the page reads in production. There is no test-only
    entry point on the page: if these rows can drive it, a genuine cached series can too, which is
    what makes these assertions evidence about production rather than about a fixture hook. */
@@ -88,7 +112,8 @@ test('Regression: SCN-008-013 arithmetic CAGR and conditional drag stay separate
   const portfolio = msftReturns.map((r) => r * wMsft);
   const meanAnnual = (portfolio.reduce((a, b) => a + b, 0) / portfolio.length) * 252;
   const wealth = portfolio.reduce((acc, r) => acc * (1 + r), 1);
-  const cagr = Math.pow(wealth, 1 / (portfolio.length / 252)) - 1;
+  const elapsedDays = (Date.parse(`${DATES.at(-1)}T00:00:00.000Z`) - Date.parse(`${DATES[0]}T00:00:00.000Z`)) / 86400000;
+  const cagr = Math.pow(wealth, 1 / (elapsedDays / 365.2425)) - 1;
 
   const arithmeticText = await panel.locator('#riskArithmetic').textContent();
   const cagrText = await panel.locator('#riskCagr').textContent();
@@ -499,22 +524,60 @@ test('Regression: Feature 008 concentration CAPM and contribution diagnostics pr
   await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
 });
 
+test('Regression: SCN-008-047 mixed portfolio inputs preserve eligible risk diagnostics and partial truth', async ({ page }) => {
+  await openLab(page);
+  await importMixedRiskPortfolio(page, 'TP-21-03 partial risk');
+
+  // Only MSFT carries return evidence. Cash has no declared return treatment, the manual alternative
+  // has no dated series in the persisted holding contract, and BND has no cached series. All four
+  // classes therefore reach the real route while only the eligible listed sleeve computes returns.
+  await seedBars(page, 'MSFT', series(DATES, [100, 110, 105, 115, 112, 120]));
+
+  const panel = await openRiskXRay(page);
+  await expect(panel.locator('#riskXray')).toHaveAttribute('data-risk-state', 'partial');
+  await expect(panel.locator('#riskEligibility')).toBeVisible();
+  await expect(panel.locator('#riskEligibility')).toContainText('MSFT');
+  await expect(panel.locator('#riskEligibility')).toContainText('CASH');
+  await expect(panel.locator('#riskEligibility')).toContainText('manual-no-series');
+  await expect(panel.locator('#riskEligibility')).toContainText('BND');
+  await expect(panel.locator('#riskCoverage')).toContainText('covered weight');
+  await expect(panel.locator('#riskCoverage')).toContainText('uncovered weight');
+
+  const structured = panel.locator('#riskStructuredDiagnostics');
+  await expect(structured).toBeVisible();
+  await expect(structured.locator('[data-metric-result="returns"]')).toHaveAttribute('data-result-state', 'partial');
+  await expect(structured.locator('[data-metric-result="returns"]')).toContainText('MSFT');
+  await expect(structured.locator('[data-metric-result="returns"]')).toContainText('BND');
+  await expect(panel.locator('#riskCagr')).toContainText('Compounded CAGR');
+  await expect(panel.locator('#riskCovarianceState')).toContainText('raw');
+  await expect(panel.locator('#riskCovarianceState')).toContainText('conditioned');
+  await expect(panel.locator('#riskCovarianceState')).toContainText('lambda auto-raised: false');
+  await expect(panel.locator('#riskCompatibleFrequency')).toContainText('No dated manual series');
+
+  const simpleFingerprint = await structured.getAttribute('data-result-fingerprint');
+  const simpleText = await structured.innerText();
+  await page.locator('#modePower').click();
+  await expect(page.locator('body')).toHaveClass(/power/);
+  await expect(structured).toHaveAttribute('data-result-fingerprint', simpleFingerprint);
+  expect(await structured.innerText(), 'Power must project the same structured partial result as Simple').toBe(simpleText);
+});
+
 test('Regression: Feature 008 Risk X-Ray refuses rather than showing a partial portfolio', async ({ page }) => {
   await openLab(page);
   await importValid(page, 'TP-07-05 refusal');
 
-  // Only ONE of the two holdings has evidence. A portfolio cannot be measured from half its
-  // positions, and the honest answer is a named refusal -- never a figure computed from the
-  // observable subset, which would silently re-weight the portfolio to 100% MSFT.
+  // Persistent historical title retained. D1-Q5 strengthens this carrier: only one holding has
+  // return evidence, so the original weights and scoped exclusion must remain visible while the
+  // eligible sleeve continues to produce a partial result.
   await seedBars(page, 'MSFT', series(DATES, [100, 120, 90, 96, 130, 128]));
 
   const panel = await openRiskXRay(page);
-  await expect(panel.locator('#riskUnavailable')).toBeVisible();
-  await expect(panel.locator('#riskUnavailable')).toContainText('Risk X-Ray unavailable');
-  await expect(panel.locator('#riskUnavailable')).toContainText('no return, drawdown, or recovery figure is shown');
-
-  // ADVERSARIAL: not one metric may be present in the refusing state.
-  for (const id of ['#riskArithmetic', '#riskCagr', '#riskDrag', '#riskMaxDrawdown', '#riskRecovery', '#riskCanvas', '#riskTable']) {
-    await expect(panel.locator(id), `${id} must be absent when the portfolio is not measurable`).toHaveCount(0);
-  }
+  await expect(panel.locator('#riskXray')).toHaveAttribute('data-risk-state', 'partial');
+  await expect(panel.locator('#riskUnavailable')).toHaveCount(0);
+  await expect(panel.locator('#riskArithmetic')).toBeVisible();
+  await expect(panel.locator('#riskCagr')).toBeVisible();
+  await expect(panel.locator('#riskCoverage')).toContainText('BND');
+  await expect(panel.locator('#riskCoverage')).toContainText('uncovered weight');
+  await expect(panel.locator('[data-metric-result="returns"]')).toHaveAttribute('data-result-state', 'partial');
+  await expect(panel.locator('[data-metric-result="returns"]')).toContainText('not reweighted');
 });

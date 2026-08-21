@@ -96,8 +96,7 @@
     "activeAgent": "bubbles.implement",
     "currentPhase": "implement",
     "currentPhaseStatus": "in_progress",
-    "substate": "implementing",
-    "currentScope": 20,
+    "currentScope": 23,
     "runStartedAt": "2026-08-20T19:11:37Z",
     "completedPhaseClaims": [
       {
@@ -383,7 +382,7 @@
         "scope": 20,
         "scopeId": "20-generic-evidence-brief-policy-and-api",
         "name": "Generic Evidence Brief Policy And API",
-        "status": "in_progress",
+        "status": "done",
         "dependsOn": [
           "19"
         ],
@@ -398,7 +397,7 @@
         "scope": 21,
         "scopeId": "21-partial-risk-input-and-diagnostics",
         "name": "Partial Risk Input And Diagnostics",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "20"
         ],
@@ -413,7 +412,7 @@
         "scope": 22,
         "scopeId": "22-scenario-contract-and-survival-distributions",
         "name": "Scenario Contract And Survival Distributions",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "21"
         ],
@@ -428,7 +427,7 @@
         "scope": 23,
         "scopeId": "23-stress-dependence-and-hedge-effectiveness",
         "name": "Stress Dependence And Hedge Effectiveness",
-        "status": "not_started",
+        "status": "in_progress",
         "dependsOn": [
           "22"
         ],
@@ -531,7 +530,7 @@
       }
     ],
     "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/scopes/20-generic-evidence-brief-policy-and-api/scope.md",
+    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/scopes/23-stress-dependence-and-hedge-effectiveness/scope.md",
     "audit": {
       "schemaVersion": "audit-run/v1",
       "runId": null,
@@ -581,7 +580,10 @@
       "16-integrated-route-accessibility-and-atomic-release",
       "17-local-lifecycle-and-verified-clear-foundation",
       "18-behavior-identity-and-ranking-foundation",
-      "19-coverage-aware-market-data-foundation"
+      "19-coverage-aware-market-data-foundation",
+      "20-generic-evidence-brief-policy-and-api",
+      "21-partial-risk-input-and-diagnostics",
+      "22-scenario-contract-and-survival-distributions"
     ],
     "certifiedCompletedPhases": [],
     "scopeProgress": [
@@ -812,7 +814,7 @@
         "scope": 20,
         "scopeId": "20-generic-evidence-brief-policy-and-api",
         "name": "Generic Evidence Brief Policy And API",
-        "status": "in_progress",
+        "status": "done",
         "dependsOn": [
           "19"
         ],
@@ -828,7 +830,7 @@
         "scope": 21,
         "scopeId": "21-partial-risk-input-and-diagnostics",
         "name": "Partial Risk Input And Diagnostics",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "20"
         ],
@@ -844,7 +846,7 @@
         "scope": 22,
         "scopeId": "22-scenario-contract-and-survival-distributions",
         "name": "Scenario Contract And Survival Distributions",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "21"
         ],
@@ -860,7 +862,7 @@
         "scope": 23,
         "scopeId": "23-stress-dependence-and-hedge-effectiveness",
         "name": "Stress Dependence And Hedge Effectiveness",
-        "status": "not_started",
+        "status": "in_progress",
         "dependsOn": [
           "22"
         ],
@@ -1332,12 +1334,100 @@
       "nextRequiredOwner": "bubbles.implement",
       "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/scopes/20-generic-evidence-brief-policy-and-api/scope.md",
       "summary": "Reconciled only certification.scopeProgress Scope 20 to in_progress so it mirrors the active execution scope. This grants no completion, phase, or certification claim; all completion inventories, certification timestamps, feature status, and other scope records remain unchanged."
+    },
+    {
+      "agent": "bubbles.validate",
+      "phasesExecuted": [],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-20T23:56:25Z",
+      "finishedAt": "2026-08-20T23:56:25Z",
+      "outcome": "completed_diagnostic",
+      "evidenceRef": "scopes/20-generic-evidence-brief-policy-and-api/report.md#lint-and-quality",
+      "nextRequiredOwner": "bubbles.implement",
+      "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/scopes/21-partial-risk-input-and-diagnostics/scope.md",
+      "summary": "Reconciled Scope 20 from in_progress to done in execution.scopeProgress and certification.scopeProgress from its Done scope artifact, 8/8 checked DoD items, populated report, and referenced report/tool-log evidence. The referenced evidence records Artifact lint PASSED and canonical focused traceability PASSED with 46 scenarios, 157 Test Plan rows, 46 scenario mappings, 46 concrete test files, 46 report references, 46/46 DoD fidelity, and 0 warnings. Product tests were not executed by bubbles.validate; their existing Scope 20 report and structured tool-log receipts are referenced rather than re-attributed. Advanced the execution cursor to unstarted Scope 21 under bubbles.implement. Top-level status and certification.status remain in_progress, and feature certifiedAt remains null."
+    },
+    {
+      "agent": "bubbles.validate",
+      "phasesExecuted": [],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-21T00:05:18Z",
+      "finishedAt": "2026-08-21T00:05:18Z",
+      "outcome": "completed_diagnostic",
+      "nextRequiredOwner": "bubbles.implement",
+      "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/scopes/21-partial-risk-input-and-diagnostics/scope.md",
+      "summary": "Reconciled Scope 21 to in_progress in execution.scopeProgress and certification.scopeProgress and aligned execution.currentPhaseStatus with the active Scope 21 implementation cursor. Scope 20 state progress remains done. No product tests were run or claimed; feature status mirrors remain in_progress and feature certifiedAt remains null."
+    },
+    {
+      "agent": "bubbles.validate",
+      "phasesExecuted": [],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-21T00:58:11Z",
+      "finishedAt": "2026-08-21T00:58:11Z",
+      "outcome": "completed_diagnostic",
+      "evidenceRef": "scopes/21-partial-risk-input-and-diagnostics/report.md#lint-and-quality",
+      "nextRequiredOwner": "bubbles.implement",
+      "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/scopes/22-scenario-contract-and-survival-distributions/scope.md",
+      "summary": "Reconciled Scope 21 from in_progress to done in execution.scopeProgress and certification.scopeProgress from its Done scope artifact, 8/8 checked DoD items, populated report, and referenced report/tool-log evidence. The referenced evidence records Artifact lint PASSED and canonical focused traceability PASSED with 47 scenarios, 163 Test Plan rows, 47 scenario mappings, 47 concrete test files, 47 report references, 47/47 DoD fidelity, and 0 warnings. Product tests were not executed by bubbles.validate; their existing Scope 21 report and structured tool-log receipts are referenced rather than re-attributed. Advanced the execution cursor to unstarted Scope 22 under bubbles.implement. Top-level status and certification.status remain in_progress, and feature certifiedAt remains null."
+    },
+    {
+      "agent": "bubbles.validate",
+      "phasesExecuted": [],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-21T04:27:28Z",
+      "finishedAt": "2026-08-21T04:27:28Z",
+      "outcome": "completed_diagnostic",
+      "nextRequiredOwner": "bubbles.implement",
+      "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/scopes/22-scenario-contract-and-survival-distributions/scope.md",
+      "summary": "Reconciled Scope 22 active-state mirrors after plan activation: set execution.currentPhaseStatus to in_progress, omitted execution.substate because the repository reserves it for achieved implementation or verification milestones, and set Scope 22 in execution.scopeProgress and certification.scopeProgress to in_progress. Preserved bubbles.implement and the Scope 22 target. No completed phase, completed scope, test, evidence, terminal status, or certification claim is made; certification.completedScopes is unchanged."
+    },
+    {
+      "agent": "bubbles.implement",
+      "phasesExecuted": [],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-21T05:59:56Z",
+      "finishedAt": "2026-08-21T05:59:56Z",
+      "outcome": "completed_diagnostic",
+      "evidenceRef": "scopes/22-scenario-contract-and-survival-distributions/report.md#validation-summary",
+      "nextRequiredOwner": "bubbles.implement",
+      "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/scopes/23-stress-dependence-and-hedge-effectiveness/scope.md",
+      "summary": "Reconciled only execution-owned Scope 22 state from in_progress to done from its Done scope artifact, 9/9 checked DoD items, and Scope 22 report validation-summary evidence. Advanced only the nonterminal execution cursor to dependency-unblocked Scope 23, which remains not_started. No product tests were run by this reconciliation, and no certification, completed phase, feature completion, or terminal status is claimed. certification.* remains unchanged and requires bubbles.validate mirror-only reconciliation."
+    },
+    {
+      "agent": "bubbles.validate",
+      "phasesExecuted": [],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-21T06:06:38Z",
+      "finishedAt": "2026-08-21T06:06:38Z",
+      "outcome": "completed_diagnostic",
+      "evidenceRef": "scopes/22-scenario-contract-and-survival-distributions/report.md#validation-summary",
+      "nextRequiredOwner": "bubbles.implement",
+      "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/scopes/23-stress-dependence-and-hedge-effectiveness/scope.md",
+      "summary": "Reconciled only certification.scopeProgress Scope 22 from in_progress to done and added its scope ID exactly once to certification.completedScopes from the already completed execution and scope evidence. The referenced Scope 22 validation summary records Artifact lint passed and canonical focused traceability exit 0 with 48 scenarios, 170 Test Plan rows, 48 scenario mappings, 48 concrete test files, 48 report references, 48/48 DoD fidelity, and 0 warnings. No product tests were run by bubbles.validate; existing report evidence is referenced rather than re-attributed. Scope 23 certification remains not_started. Top-level status and certification.status remain in_progress, feature certifiedAt remains null, broader G022/G040/G068 debt remains, and no feature, phase, or terminal certification is claimed."
+    },
+    {
+      "agent": "bubbles.validate",
+      "phasesExecuted": [],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-21T06:23:19Z",
+      "finishedAt": "2026-08-21T06:23:19Z",
+      "outcome": "completed_diagnostic",
+      "nextRequiredOwner": "bubbles.implement",
+      "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/scopes/23-stress-dependence-and-hedge-effectiveness/scope.md",
+      "summary": "Reconciled Scope 23 active-state mirrors after planning activation: set execution.currentPhaseStatus to in_progress and set Scope 23 in execution.scopeProgress and certification.scopeProgress to in_progress. Preserved bubbles.implement, currentPhase implement, currentScope 23, and the Scope 23 target. Scope 22 remains done and Scope 24 remains not_started. No completed phase, completed scope, product test, evidence, terminal status, or certification claim is made; completed scope inventories and completedPhaseClaims are unchanged."
     }
   ],
   "activeBugs": [],
   "resolvedBugs": [],
   "failures": [],
-  "lastUpdatedAt": "2026-08-20T15:58:35Z",
+  "lastUpdatedAt": "2026-08-21T06:23:19Z",
   "scopeLayout": "per-scope-directory",
   "artifacts": {
     "spec": "spec.md",

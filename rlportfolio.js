@@ -91,9 +91,13 @@
       "allocationUnstableRangeThreshold", "benchmarkSymbol", "blackLittermanRiskAversion",
       "blackLittermanTau", "concentrationAlertWeight", "concentrationLenses", "contractVersion",
       "covarianceSensitivity", "covarianceShrinkageLambda", "dossierTrialsSearched",
-      "efficiencyFormTested", "efficiencyInformationSet", "hedgeBasisCorrelation",
+      "dependenceBootstrapBlockLength", "dependenceBootstrapConfidence", "dependenceBootstrapDrawCount",
+      "dependenceBootstrapSeed", "dependenceDownsideThreshold", "dependenceDrawdownThreshold",
+      "dependenceMinimumJointTailEvents", "dependenceMinimumObservations", "dependenceRecoveryThreshold",
+      "dependenceSearchedVariantCount", "dependenceStressQuantile", "efficiencyFormTested",
+      "efficiencyInformationSet", "appraisalMinimumObservations", "appraisalRhoGrid",
       "hedgeCommissionFraction", "hedgeInstrumentClass", "hedgeLiquidity",
-      "hedgeRebalancesPerYear", "hedgeSlippageFraction", "hedgeSpreadFraction",
+      "hedgeRebalancesPerYear", "hedgeRegressionMinimumObservations", "hedgeSlippageFraction", "hedgeSpreadFraction",
       "lowerTailQuantile", "maximumListedAssets",
       "minimumCapmObservations", "minimumJointTailEvents", "minimumRiskObservations", "minimumTailObservations",
       "proxyFactors", "proxyFactorsVersion",
@@ -103,7 +107,9 @@
     solver: Object.freeze(["contractVersion", "convergenceTolerance", "maximumIterations"]),
     calibration: Object.freeze([
       "contractVersion", "initialSeed", "materialExposureWeight", "nearCashNeedCalendarDays", "parameterDrawCount",
-      "pathCount", "stationaryBootstrapMeanBlockSessions", "stationaryBootstrapSensitivity"
+      "pathCount", "scenarioChunkSize", "scenarioCostTiming", "scenarioDriftRange", "scenarioMaximumWorkUnits",
+      "scenarioRecurringCostFraction", "scenarioStartingValue", "stationaryBootstrapMeanBlockSessions",
+      "stationaryBootstrapSensitivity"
     ]),
     queue: Object.freeze(["contractVersion", "directActionCap", "generalInterestActionCap"]),
     display: Object.freeze([
@@ -434,6 +440,21 @@
         !value.analytics.concentrationLenses.every(function (lens) { return HOLDING_FIELDS.indexOf(lens) !== -1; }) ||
         !finitePositive(value.analytics.concentrationAlertWeight) || value.analytics.concentrationAlertWeight > 1 ||
         !finitePositive(value.analytics.lowerTailQuantile) || value.analytics.lowerTailQuantile >= 0.5 ||
+        !Number.isInteger(value.analytics.dependenceMinimumObservations) || value.analytics.dependenceMinimumObservations < 2 ||
+        !Number.isInteger(value.analytics.dependenceMinimumJointTailEvents) || value.analytics.dependenceMinimumJointTailEvents < 1 ||
+        !finitePositive(value.analytics.dependenceStressQuantile) || value.analytics.dependenceStressQuantile >= 0.5 ||
+        !finitePositive(value.analytics.dependenceBootstrapConfidence) || value.analytics.dependenceBootstrapConfidence >= 1 ||
+        !Number.isInteger(value.analytics.dependenceBootstrapBlockLength) || value.analytics.dependenceBootstrapBlockLength < 1 ||
+        !Number.isInteger(value.analytics.dependenceBootstrapDrawCount) || value.analytics.dependenceBootstrapDrawCount < 2 ||
+        !Number.isInteger(value.analytics.dependenceBootstrapSeed) || value.analytics.dependenceBootstrapSeed < 0 ||
+        !Number.isInteger(value.analytics.dependenceSearchedVariantCount) || value.analytics.dependenceSearchedVariantCount < 1 ||
+        !finiteNonNegative(value.analytics.dependenceDownsideThreshold) ||
+        !finitePositive(value.analytics.dependenceDrawdownThreshold) || value.analytics.dependenceDrawdownThreshold >= 1 ||
+        !finiteNonNegative(value.analytics.dependenceRecoveryThreshold) || value.analytics.dependenceRecoveryThreshold >= 1 ||
+        !Number.isInteger(value.analytics.appraisalMinimumObservations) || value.analytics.appraisalMinimumObservations < 2 ||
+        !Array.isArray(value.analytics.appraisalRhoGrid) || value.analytics.appraisalRhoGrid.length === 0 ||
+        !value.analytics.appraisalRhoGrid.every(function (rho) { return finitePositive(rho) && rho < 1; }) ||
+        !Number.isInteger(value.analytics.hedgeRegressionMinimumObservations) || value.analytics.hedgeRegressionMinimumObservations < 3 ||
         !finitePositive(value.analytics.allocationUnstableRangeThreshold) ||
         value.analytics.allocationUnstableRangeThreshold > 1 ||
         !finitePositive(value.analytics.blackLittermanRiskAversion) ||
@@ -442,7 +463,6 @@
         !finiteNonNegative(value.analytics.hedgeSpreadFraction) ||
         !finiteNonNegative(value.analytics.hedgeSlippageFraction) ||
         !finiteNonNegative(value.analytics.hedgeRebalancesPerYear) ||
-        !finiteNonNegative(value.analytics.hedgeBasisCorrelation) || value.analytics.hedgeBasisCorrelation > 1 ||
         typeof value.analytics.hedgeInstrumentClass !== "string" || !value.analytics.hedgeInstrumentClass.trim() ||
         !Number.isInteger(value.analytics.walkForwardFolds) || value.analytics.walkForwardFolds < 2 ||
         !Number.isInteger(value.analytics.dossierTrialsSearched) || value.analytics.dossierTrialsSearched < 1 ||
@@ -468,13 +488,25 @@
     var numericSectionNames = ["behavior", "solver", "calibration", "queue"];
     for (var numericIndex = 0; numericIndex < numericSections.length; numericIndex += 1) {
       var numericKeys = Object.keys(numericSections[numericIndex]).filter(function (key) {
-        return key !== "contractVersion" && BEHAVIOR_VOCABULARY_FIELDS.indexOf(key) < 0;
+        return key !== "contractVersion" && key !== "scenarioCostTiming" && key !== "scenarioDriftRange" &&
+          BEHAVIOR_VOCABULARY_FIELDS.indexOf(key) < 0;
       });
       if (!numericKeys.every(function (key) {
         var item = numericSections[numericIndex][key];
         if (Array.isArray(item)) return item.length > 0 && item.every(finiteNonNegative);
         return finiteNonNegative(item);
       })) return failure("P008-CONFIG", "invalid-policy", numericSectionNames[numericIndex], null, false);
+    }
+    if (!Number.isInteger(value.calibration.scenarioChunkSize) || value.calibration.scenarioChunkSize < 1 ||
+        !Number.isInteger(value.calibration.scenarioMaximumWorkUnits) ||
+        value.calibration.scenarioMaximumWorkUnits !== value.calibration.pathCount * value.calibration.parameterDrawCount ||
+        !finitePositive(value.calibration.scenarioStartingValue) ||
+        !Array.isArray(value.calibration.scenarioDriftRange) || value.calibration.scenarioDriftRange.length !== 2 ||
+        !value.calibration.scenarioDriftRange.every(function (entry) { return typeof entry === "number" && Number.isFinite(entry); }) ||
+        value.calibration.scenarioDriftRange[1] < value.calibration.scenarioDriftRange[0] ||
+        !finiteNonNegative(value.calibration.scenarioRecurringCostFraction) ||
+        ["start-of-step", "end-of-step"].indexOf(value.calibration.scenarioCostTiming) < 0) {
+      return failure("P008-CONFIG", "invalid-policy", "calibration", null, false);
     }
     if (value.display.defaultMode !== "simple" || value.display.defaultWorkspaceHash !== "#brief" ||
         value.display.localNetworkPolicy !== "same-origin-only" || !nonEmptyString(value.display.policyLabel) ||

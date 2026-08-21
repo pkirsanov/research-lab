@@ -151,10 +151,10 @@ Scope pickup is sequential: a scope may move to `In Progress` only when every li
 | 17 | [Local Lifecycle And Verified Clear Foundation](17-local-lifecycle-and-verified-clear-foundation/scope.md) | `foundation:true`, `remediation` | 16 | SCN-008-042, SCN-008-043 | store, editor, privacy, controller state | Done |
 | 18 | [Behavior Identity And Ranking Foundation](18-behavior-identity-and-ranking-foundation/scope.md) | `foundation:true`, `remediation` | 17 | SCN-008-044 | store, brief composer, Why shown, ranking | Done |
 | 19 | [Coverage-Aware Market Data Foundation](19-coverage-aware-market-data-foundation/scope.md) | `foundation:true`, `shared-infrastructure` | 18 | SCN-008-045 | `rldata.js`, coverage fixtures, provider canaries | Done |
-| 20 | [Generic Evidence Brief Policy And API](20-generic-evidence-brief-policy-and-api/scope.md) | `overlay:brief` | 19 | SCN-008-046 | generic evidence, brief API/policy, route | In Progress |
-| 21 | [Partial Risk Input And Diagnostics](21-partial-risk-input-and-diagnostics/scope.md) | `overlay:risk` | 20 | SCN-008-047 | analytics, Risk X-Ray Simple/Power | Not Started |
-| 22 | [Scenario Contract And Survival Distributions](22-scenario-contract-and-survival-distributions/scope.md) | `overlay:paths` | 21 | SCN-008-048 | analytics, Path Lab, compute lifecycle | Not Started |
-| 23 | [Stress Dependence And Hedge Effectiveness](23-stress-dependence-and-hedge-effectiveness/scope.md) | `overlay:diversification` | 22 | SCN-008-049 | dependence, alternatives, hedge, common paths | Not Started |
+| 20 | [Generic Evidence Brief Policy And API](20-generic-evidence-brief-policy-and-api/scope.md) | `overlay:brief` | 19 | SCN-008-046 | generic evidence, brief API/policy, route | Done |
+| 21 | [Partial Risk Input And Diagnostics](21-partial-risk-input-and-diagnostics/scope.md) | `overlay:risk` | 20 | SCN-008-047 | analytics, Risk X-Ray Simple/Power | Done |
+| 22 | [Scenario Contract And Survival Distributions](22-scenario-contract-and-survival-distributions/scope.md) | `overlay:paths` | 21 | SCN-008-048 | analytics, Path Lab, compute lifecycle | Done |
+| 23 | [Stress Dependence And Hedge Effectiveness](23-stress-dependence-and-hedge-effectiveness/scope.md) | `overlay:diversification` | 22 | SCN-008-049 | dependence, alternatives, hedge, common paths | In Progress |
 | 24 | [Complete Allocation And Explicit Views](24-complete-allocation-and-explicit-views/scope.md) | `overlay:allocation` | 23 | SCN-008-050 | constrained solvers, BL editor, sensitivity | Not Started |
 | 25 | [Decision-Time Dossier And Immutable Audit](25-decision-time-dossier-and-immutable-audit/scope.md) | `overlay:dossier` | 24 | SCN-008-051 | walk-forward, costs/trials, dossier store/export | Not Started |
 | 26 | [Immutable Workspace Compute And Navigation](26-immutable-workspace-compute-and-navigation/scope.md) | `integration:workspace` | 25 | SCN-008-052 | controller, view model, ReturnContext, `rlnav.js` | Not Started |

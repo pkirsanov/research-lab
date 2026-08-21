@@ -2,7 +2,7 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** Not Started
+**Status:** Done
 **Scope-Kind:** runtime-behavior
 **Tags:** `overlay:paths`, `remediation`
 **Depends On:** 21
@@ -90,12 +90,12 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 
 ### Definition of Done - Tiered Validation
 
-- [ ] SCN-008-048 is implemented with the complete scenario identity, compute lifecycle, all-path cash needs, and separate uncertainty distributions.
-- [ ] TP-22-01 unit evidence passes.
-- [ ] TP-22-02 functional evidence passes.
-- [ ] TP-22-03 complete real-page regression passes.
-- [ ] TP-22-04 adversarial mutation proof rejects every audited reduced path behavior.
-- [ ] TP-22-05 cancellation/supersession real-page regression passes.
-- [ ] TP-22-06 broader regression passes.
-- [ ] Shared Infrastructure Impact Sweep and last-valid rollback proof are recorded.
-- [ ] Build Quality Gate passes with zero skips/warnings and no excluded-file changes.
+- [x] SCN-008-048 is implemented with the complete scenario identity, compute lifecycle, all-path cash needs, and separate uncertainty distributions. Evidence: [Scenario Contract Evidence](report.md#scenario-contract-evidence), [Coverage Report](report.md#coverage-report)
+- [x] TP-22-01 unit evidence passes. Evidence: [TP-22-01](report.md#tp-22-01)
+- [x] TP-22-02 functional evidence passes. Evidence: [TP-22-02](report.md#tp-22-02)
+- [x] TP-22-03 complete real-page regression passes. Evidence: [TP-22-03 And TP-22-05](report.md#tp-22-03-and-tp-22-05)
+- [x] TP-22-04 adversarial mutation proof rejects every audited reduced path behavior. Evidence: [TP-22-04](report.md#tp-22-04)
+- [x] TP-22-05 cancellation/supersession real-page regression passes. Evidence: [TP-22-03 And TP-22-05](report.md#tp-22-03-and-tp-22-05)
+- [x] TP-22-06 broader regression passes. Evidence: [TP-22-06](report.md#tp-22-06)
+- [x] Shared Infrastructure Impact Sweep and last-valid rollback proof are recorded. Evidence: [TP-22-02](report.md#tp-22-02), [TP-22-03 And TP-22-05](report.md#tp-22-03-and-tp-22-05), [Coverage Report](report.md#coverage-report)
+- [x] Build Quality Gate passes with zero skips/warnings and no excluded-file changes. Evidence: [Code Diff Evidence](report.md#code-diff-evidence), [Lint And Quality](report.md#lint-and-quality), [Validation Summary](report.md#validation-summary)

@@ -2182,3 +2182,78 @@ discriminating:   yes (exit 1 != 0)
 separately below because its command is the whole `SCN-02[1-4]` sweep rather
 than a per-file spec, and a probe over it costs two full sweeps.
 
+### TP-02-18 completed to intended RED — the cumulative sweep, probed once
+
+**Claim Source:** executed. The sweep was probed rather than described, at the
+cost the paragraph above names: two full cumulative runs, 3.7 minutes red and
+2.8 minutes green.
+
+The mutation is the same threshold defect the per-file row TP-02-16 uses, and it
+is chosen deliberately. This row's substance is *"every scenario owned by
+features 021 … 024 passes, zero failed and zero skipped, not a convenient
+subset"* — so what it must be shown sensitive to is **one owned scenario going
+red inside the whole sweep**. A defect that fell the entire suite would prove
+only that the command runs. Falling exactly one of seventy-seven is the shape
+that proves the sweep is a sweep: the count moves by one and the run turns red.
+
+The mutation is value-free — it deletes a `Math.max` and a subtraction and
+carries no rule figure and no household amount.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-18 the wage surtax stops honouring its threshold, so a scenario this family owns falls inside the whole cumulative sweep
+file:             rltax.js
+mutation:         var excess = Math.max(0, declared - threshold);  ->  var excess = declared;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-02\[1-4\] --reporter=list
+red-exit:         1
+red-summary:        76 passed (3.7m)
+green-exit:       0
+green-summary:      77 passed (2.8m)
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Read the two channels together.** `76 passed` against `77 passed` is the
+count moving by exactly one, and `red-exit: 1` against `green-exit: 0` is the
+suite refusing rather than absorbing it. Both channels were compared because
+`--summary-match '[0-9]+ (passed|failed)'` was supplied — necessary here, since
+this suite has previously exited non-zero on a `worker-N … force-killed it`
+teardown fault with every test passing, and an exit-only verdict would have been
+unreadable on such a run.
+
+**The revert is hash-verified, not asserted.** `revert-verified: yes` compares
+the working file against the committed blob `3206e1516e43338b5cfe79103fd989670a0cc269`
+after the green run, so the module this probe mutated is byte-identical to the
+committed one. That check is what earlier passes in this program did by hand and
+occasionally got wrong.
+
+**The green run is the current state of the row**, not a historical one: 77
+passed, zero failed, zero skipped, over the alternation pinned to the four
+owning spec numbers.
+
+### Every Test Plan row now carries intended RED and same-command GREEN
+
+With TP-02-18 above, the per-row census closes. Twenty-four rows, twenty-four
+recorded pairs:
+
+| Rows | Where the pair is recorded |
+| --- | --- |
+| TP-02-01, -02, -05, -06, -11, -16, -19, -20, -21 | the nine harness blocks in the census above |
+| TP-02-18 | the harness block immediately above |
+| TP-02-03, -04, -07, -08, -09, -10, -12, -14, -24 | their own sections, each with a named mutation, a failing run and a same-command green run |
+| TP-02-15, -17 | the `SCN-022-004` and `SCN-022-006` scenario sections |
+| TP-02-22, -23 | the seven re-derived intended REDs, one per deliverable marker |
+| TP-02-13 | its own section — an in-test negative control plus two real failing runs of its own non-vacuity clause |
+
+**TP-02-13 is the one row whose RED is not a source mutation, and that is a
+reasoned position rather than a gap.** Any mutation able to fail it must route a
+household value into a URL, a header or the console — the exact defect the row
+exists to prevent, and one a prior session left live in this repository. Its
+section records two genuine failing runs (`1 failed`, `PW_EXIT=1`) produced by
+its own non-vacuity clause catching two real drafting misses, the same-command
+green run that followed, and a detector proven able to name three planted values
+inside the test process without any of them being navigated, fetched, logged or
+rendered.
+
+

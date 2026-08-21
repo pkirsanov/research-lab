@@ -628,20 +628,23 @@ an absent test does not satisfy RED.
 - [x] No output states a probability, a lifetime figure, a track record or an
       error rate, and no result is labelled a complete federal tax.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
-  - **Open:** TP-02-15, -16, -17 and -18 now carry evidence — the browser spec was
-    written and the cumulative suite runs green at 69 passed. TP-02-03, -22, -23
-    and -24 still carry none.
-  - **Still open after verification pass 2026-08-20 (third).** TP-02-24 now carries
-    its register evidence. TP-02-22 and TP-02-23 remain unwritten and are blocked
-    behind SUP-022-19 by finding **F-02-D**. TP-02-03 carries no evidence for its own
-    reason: its section records that the compatibility comparison against the
-    unmodified Feature 021 pack was not performed. The cumulative browser suite was
-    re-run once in this pass at `--grep "SCN-02[1-4]"` and reported 77 passed, zero
-    failed and zero skipped, so the browser rows have not regressed while these three
-    remain outstanding.
-  - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-18 commands · **Evidence:** `report.md#test-evidence`, `report.md#verification-pass--2026-08-20-third--sup-022-19s-narrowed-clause-is-buildable-and-was-built-but-delivering-it-turns-scope-05s-tp-05-22-red-all-three-items-stay---finding-f-02-d`
+  - **Closed 2026-08-21.** The last row without a pair was TP-02-18, the cumulative
+    `SCN-02[1-4]` sweep, and it is now probed through `scripts/red-green-probe.sh`
+    rather than described: the threshold defect fells exactly one owned scenario
+    inside the sweep, `76 passed` red against `77 passed` green, exit 1 against
+    exit 0, with the revert verified against the committed blob hash. Both channels
+    were compared because this suite has previously exited non-zero on a teardown
+    fault with every test passing. All twenty-four rows now carry a pair; TP-02-13
+    carries an in-test negative control plus two real failing runs instead of a
+    source mutation, because any mutation able to fail it must itself route a
+    household value off the page — that reasoning is recorded, not assumed.
+  - **Superseded notes.** The earlier blockers are resolved: TP-02-22 and -23 were
+    unblocked when SUP-022-19 landed, and TP-02-03's section now records the
+    compatibility comparison against the unmodified Feature 021 pack as performed,
+    with its own RED and same-command GREEN.
+  - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-24 commands · **Evidence:** `report.md#test-evidence`, `report.md#tp-02-18-completed-to-intended-red--the-cumulative-sweep-probed-once`, `report.md#every-test-plan-row-now-carries-intended-red-and-same-command-green`
 - [x] Feature 008's files, Feature 021's spec directory, `rltaxstrategy.js`,
       `tests/lifetime-tax-conversion.spec.mjs`, the registries,
       `site-exclusions.json` and every brief or data artifact are byte-identical.

@@ -1,6 +1,6 @@
 # Scope 04: Deterministic outcome resolver
 
-**Status:** Not Started
+**Status:** In Progress
 **Depends On:** 01, 02, 03
 **Tags:** `overlay:true`, `routed:P-015-03`, `routed:P-015-07`, `routed:R-04-01`, `blocked-on:01`
 **Design section:** `design.md` → `## D4 — Deterministic Outcome Resolver`

@@ -27,7 +27,7 @@ any ownership map recorded here.
 | 1 | `01-frozen-claim-contract` | D1 | Nothing downstream can exist until a recommendation persists what it actually claimed; the claim is the only object every later stage reads. | Done |
 | 2 | `02-additive-ledger-row-extension` | D2 | The row's `claimRef` is the sole pointer from an event to a claim, and its **absence** is the permanent unresolvable-legacy marker — both the resolver and the scorer key off it. | In Progress |
 | 3 | `03-resolved-flat-sentinel-and-resolution-record` | D3 | The outcome classes and the zero-free array convention must exist before anything computes an outcome, because HC-7 is satisfied at the source or not at all. | In Progress |
-| 4 | `04-deterministic-outcome-resolver` | D4 | Converts a frozen claim plus committed bars into one signed outcome and exactly one existing closure event; it is the only stage that writes lifecycle state. | Not Started |
+| 4 | `04-deterministic-outcome-resolver` | D4 | Converts a frozen claim plus committed bars into one signed outcome and exactly one existing closure event; it is the only stage that writes lifecycle state. | In Progress |
 | 5 | `05-cohort-and-scoring-model` | D5 | Turns resolved outcomes into the track record through the seven `RLVALID` primitives and fixes the denominator, the sufficiency branch, and the derived legacy count. | Not Started |
 | 6 | `06-owner-read-and-center-contract` | D6 | The `rl-tool-read/v1` read is a third rendering of the same frozen scorecard, and its `read` string is the only place HC-8 can be met on the Center surface. | Not Started |
 | 7 | `07-simple-view-and-shared-shell` | D7 | The default decision-first cockpit plus the page scaffold, mode toggle, levers, coverage line, and no-advice notice that both views share. | Not Started |
@@ -122,7 +122,7 @@ graph TD
 | 01 | `01-frozen-claim-contract` | Done | `foundation:true` | — | BS-001, BS-008 |
 | 02 | `02-additive-ledger-row-extension` | In Progress | `overlay:true`, `consent-gated:002`, `routed:P-015-01`, `routed:P-015-02` | 01 | — |
 | 03 | `03-resolved-flat-sentinel-and-resolution-record` | In Progress | `overlay:true` | 01 | BS-004 |
-| 04 | `04-deterministic-outcome-resolver` | Not Started | `overlay:true`, `routed:P-015-03`, `routed:P-015-07` | 01, 02, 03 | BS-002, BS-003, BS-007, BS-009, BS-010 |
+| 04 | `04-deterministic-outcome-resolver` | In Progress | `overlay:true`, `routed:P-015-03`, `routed:P-015-07` | 01, 02, 03 | BS-002, BS-003, BS-007, BS-009, BS-010 |
 | 05 | `05-cohort-and-scoring-model` | Not Started | `overlay:true` | 02, 03, 04 | BS-005 |
 | 06 | `06-owner-read-and-center-contract` | Not Started | `overlay:true` | 05 | — |
 | 07 | `07-simple-view-and-shared-shell` | Not Started | `overlay:true` | 05 | BS-006, BS-012 |

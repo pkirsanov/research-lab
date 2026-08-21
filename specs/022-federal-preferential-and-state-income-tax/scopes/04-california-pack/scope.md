@@ -218,8 +218,8 @@ syntax error, a missing browser or an absent test does not satisfy RED.
 | TP-04-13 | Contract stability | unit | SCN-022-010 | `scripts/selftest.mjs` | Every module file is byte-identical to its Scope 03 state, proving California required no engine edit | `node scripts/selftest.mjs` plus a path-scoped status check | No | `report.md#tp-04-13` |
 | TP-04-14 | Coverage boundary | unit | SCN-022-010 | `scripts/selftest.mjs` | `unsupportedFeatures[]` is non-empty and names every California provision the pack does not carry, and no result is labelled a complete state tax | `node scripts/selftest.mjs` | No | `report.md#tp-04-14` |
 | TP-04-15 | No-shadow | unit | SCN-022-010 | `scripts/selftest.mjs` | Regression: no module holds a California bracket, rate, deduction, credit, threshold, state name or authority name; the detector is proven to fire on a module that does | `node scripts/selftest.mjs` | No | `report.md#tp-04-15` |
-| TP-04-16 | Regression E2E | e2e-ui | SCN-022-010 | `lifetime-tax-california.spec.mjs` | `Regression: SCN-022-010 California taxes a long term gain in its ordinary schedule` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-010 California taxes a long term gain in its ordinary schedule" --reporter=list` | Yes | `report.md#scenario-scn-022-010` |
-| TP-04-17 | Regression E2E | e2e-ui | SCN-022-011 | `lifetime-tax-california.spec.mjs` | `Regression: SCN-022-011 the exemption credit is applied after the rate and never to income` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-011 the exemption credit is applied after the rate and never to income" --reporter=list` | Yes | `report.md#scenario-scn-022-011` |
+| TP-04-16 | Regression E2E | e2e-ui | SCN-022-010 | `lifetime-tax-california.spec.mjs` | `Regression: SCN-022-010 California renders no preferential stage and a long term gain reaches the identical state result an equal ordinary amount reaches` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-010 California renders no preferential stage and a long term gain reaches the identical state result an equal ordinary amount reaches" --reporter=list` | Yes | `report.md#scenario-scn-022-010` |
+| TP-04-17 | Regression E2E | e2e-ui | SCN-022-011 | `lifetime-tax-california.spec.mjs` | `Regression: SCN-022-011 the exemption credit stage is rendered after the rate and the leg sum and refuses rather than resolving to zero` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-011 the exemption credit stage is rendered after the rate and the leg sum and refuses rather than resolving to zero" --reporter=list` | Yes | `report.md#scenario-scn-022-011` |
 | TP-04-18 | Regression E2E | e2e-ui | SCN-022-012 | `lifetime-tax-california.spec.mjs` | `Regression: SCN-022-012 the surcharge threshold is identical for every filing status` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-012 the surcharge threshold is identical for every filing status" --reporter=list` | Yes | `report.md#scenario-scn-022-012` |
 | TP-04-19 | Broader Regression E2E | e2e-ui | SCN-021-*, SCN-022-001 … -012 | Feature 021's five specs plus this feature's four | Every scenario owned by features 021 … 024 passes over the real route — the whole cumulative browser suite for this feature family, zero failed and zero skipped, not a convenient subset. `SCN-02[1-4]` is the alternation `SCN-021`, `SCN-022`, `SCN-023`, `SCN-024` written without a `\|`, which a table cell cannot carry verbatim; it is pinned to the four owning spec numbers, so a scenario owned by any other feature can neither satisfy nor break this row | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list` | Yes | `report.md#tp-04-19` |
 | TP-04-20 | Repo gate | unit | SCN-022-010 … -012 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-04-20` |
@@ -240,9 +240,20 @@ syntax error, a missing browser or an absent test does not satisfy RED.
     value-free `retrieved`-to-`attempted` probe and returned green under the
     identical command after an in-invocation revert.
 - [ ] `BI-6` was closed by retrievals performed in the implementation session,
-      each recorded with its own `retrievedAt` and its own locator, and no figure
-      was recalled, derived from another figure, or taken from a secondary site.
-  - **Phase:** implement · **Command:** the retrieval records in the pack plus `node scripts/selftest.mjs` · **Evidence:** `report.md#sourcing`
+      each recorded with its own `retrievedAt` and its own locator, or every figure
+      those retrievals could not reach ships as an `AbsentFigure/v1` naming its
+      refusal code, its reason, what would make it available and its
+      `missingSource`, and the refusal path is proven end to end. Under either
+      branch no figure was recalled, derived from another figure, or taken from a
+      secondary site.
+  - **Phase:** implement · **Command:** the retrieval records in the pack plus `node scripts/selftest.mjs` · **Evidence:** `report.md#sourcing`, `report.md#tp-04-11`
+  - **Adversarial case this row must still fail.** A figure that appears in the
+    pack under **neither** branch — no `SourceRecord/v1` with its own
+    `retrievedAt` and locator, and no `AbsentFigure/v1` — must fall this row; so
+    must a figure whose value is derived from another figure in the pack, from a
+    federal figure, or from another tax year, however completely it is cited. The
+    second branch is a licence to ship an honest absence, never a licence to ship
+    an unsourced number wearing an absence's paperwork.
   - **Open because:** `BI-6` covers three figure groups and **none of them was
     retrievable**. A third session took the route the earlier two had not, the
     Revenue and Taxation Code sections that create the figures, and retrieved
@@ -281,10 +292,29 @@ syntax error, a missing browser or an absent test does not satisfy RED.
     The pack was left carrying no figure for the third time; what changed is that
     the twelve year-blocked absent figures now name the recomputation mandate,
     the August 1 transmission and the specific publication whose issue supplies
-    them, instead of saying "was not retrieved in this session". **Routed to
-    `bubbles.plan`:** unchanged — this row cannot be closed by another retrieval
-    attempt and needs a decision about the pack's declared year. See
+    them, instead of saying "was not retrieved in this session". See
     `report.md#sourcing`.
+  - **Restated 2026-08-22 by `bubbles.plan`: branch one failed, and branch two is
+    now written into the row.** The previous wording carried only the retrieval
+    branch, so it asserted a retrieval that the three sessions above proved cannot
+    happen for the declared year, and no amount of correct work could close it.
+    Scope 03's `BI-5` has carried the two-branch shape all along — closed by a
+    retrieval, **or** the pack ships the figure as an `AbsentFigure/v1` and the
+    refusal path is proven instead — and `BI-6` now matches it. Branch two is
+    **satisfiable today**: the pack carries 16 `AbsentFigure/v1` records, four
+    each under `standardDeductions`, `ordinaryRateTables`, `preferentialRateTables`
+    and the exemption credit's per-status `amounts`, and every one of them carries
+    `code`, `domain`, `reason`, `whatWouldMakeItAvailable` and `missingSource`
+    with no value-bearing member. The refusal path is proven end to end by
+    TP-04-11 in `scripts/selftest.mjs` and by the California regression in
+    `lifetime-tax-state.spec.mjs`, which reads the code, the domain, the reason
+    and the named `missingSource` off a focusable element and proves no dollar
+    figure is rendered anywhere in the state card.
+  - **Still routed to `bubbles.implement`, but for a smaller thing.** Closing this
+    row now needs the verifier to walk all 16 records against the second branch's
+    four named members and confirm the adversarial case above fails, not another
+    retrieval attempt. The question of the pack's declared year remains open and
+    is a separate decision; it no longer holds this row hostage.
 - [x] FR-022-027 is implemented: every unretrieved figure is an `AbsentFigure/v1`
       with a `missingSource` pointer and no numeric member, and its leg refuses
       while sibling legs still resolve.
@@ -309,35 +339,53 @@ syntax error, a missing browser or an absent test does not satisfy RED.
     dropped from the pooling sum and returned green under the identical command
     after an in-invocation revert; TP-04-10 refuses a pack that declares `none`
     while carrying a table.
-- [ ] FR-022-023 and FR-022-024 are implemented: California's own deduction, and a
-      credit applied after rate application with both figures published, proven by
-      an adversarial mutation.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-04`, `report.md#tp-04-05`, `report.md#tp-04-06`
-  - **Open because:** this row requires published figures, and there are none to
-    publish. Re-derived rather than restated: all four filing statuses'
+- [ ] FR-022-023 and FR-022-024 are implemented: California's own deduction is
+      applied to California's own taxable income and is never derived from the
+      federal deduction, and the exemption relief is declared
+      `credit-against-tax` at `after-rate-application` naming the ordinary leg
+      alone, with that stage ordered after both the rate stage and the leg sum —
+      each proven by an adversarial mutation — and when the pack carries no amount
+      for either, that stage refuses under its own named code rather than
+      resolving to zero, being skipped, or borrowing a figure from elsewhere.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-04`, `report.md#tp-04-05`, `report.md#tp-04-06`, `report.md#tp-04-11`
+  - **Adversarial case this row must still fail.** Move the credit to
+    `before-rate-application`; convert it to `deduction-from-income`; reorder the
+    pack so `CO-13` precedes `CO-6` or `CO-8`; clone the pack so a deduction
+    borrows the federal single-filer figure; and — the clause this row adds —
+    replace the absent-amount return in the relief stage with a zero or a skip, so
+    the settlement silently prices a household as though it had claimed nothing
+    rather than refusing. Each of the five must fall this row.
+  - **Restated 2026-08-22 by `bubbles.plan`, and the earlier open-reason is
+    withdrawn.** The previous wording required "both figures published", which
+    presupposed a retrieval that cannot happen: all four filing statuses'
     `standardDeductions` are `AbsentFigure/v1`, and the single
     `ReliefMechanism/v1` carries per-status `amounts` that are each an
-    `AbsentFigure/v1` naming `RLTAX-THRESHOLD-UNAVAILABLE`, so no deduction
-    resolves and no pre-credit and post-credit pair can be shown side by side.
-    The application point itself is proven — TP-04-05 and TP-04-06 pin the credit
-    as `credit-against-tax` at `after-rate-application` with `appliesToLegs`
-    naming the ordinary leg alone, place that stage after both the rate stage and
-    the leg sum, and refuse a pack that moves it before the rate or turns it into
-    a deduction from income. **TP-04-04 now has an owning assertion**, added in a
-    later session and proven able to fail by name through
-    `scripts/red-green-probe.sh` against `rltaxstate.js`. It covers the row's
-    third clause — the deduction is never derived from the federal deduction — by
-    pinning that no number anywhere in the pack equals any federal standard
-    deduction, that the settlement publishes `appliedDeduction` as a refusal that
-    propagates rather than a filled figure, and that a clone borrowing the
-    federal single-filer figure is caught by the same detector. It deliberately
-    does **not** cover the row's other two clauses, which speak about a resolved
-    figure. So the Test Plan row now has an owner, but this DoD row still has no
-    deduction: all four `standardDeductions` remain `AbsentFigure/v1` and the
-    exemption credit `amounts` likewise, so no pre-credit and post-credit pair
-    can be shown side by side. This row unblocks when `BI-6` closes, and `BI-6`
-    is blocked on an external publication event. It must not be closed by
-    weakening it to the application point alone.
+    `AbsentFigure/v1` naming `RLTAX-THRESHOLD-UNAVAILABLE`, so no pre-credit and
+    post-credit pair can ever be shown while `BI-6` is open. That made the row
+    unclosable for a reason that is not a defect in the work. What FR-022-023 and
+    FR-022-024 actually require is an **application point**, not an amount, and
+    the row now says so.
+  - **What is already proven, and what the verifier must still check.** The
+    mechanism half passes today: TP-04-05 and TP-04-06 pin the credit as
+    `credit-against-tax` at `after-rate-application` with `appliesToLegs` naming
+    the ordinary leg alone, place `CO-13` after both `CO-6` and `CO-8` in the
+    pack's declared order, and refuse a pack that moves it before the rate or
+    turns it into a deduction from income. TP-04-04 owns the never-derived clause
+    and was proven able to fail by name through `scripts/red-green-probe.sh`
+    against `rltaxstate.js`: no number anywhere in the pack equals any federal
+    standard deduction, the settlement publishes `appliedDeduction` as a refusal
+    that propagates, and a clone borrowing the federal single-filer figure is
+    caught. The refusal-rather-than-zero clause is the clause this restatement
+    adds, and it is a real behaviour rather than a placeholder:
+    `applyReliefAfterRate` in `rltaxstate.js` returns `absentFigureRefusal` on an
+    absent per-status amount, and falls through to a named
+    `RLTAX-THRESHOLD-UNAVAILABLE` on a non-finite one, so neither a zero nor a
+    skip is reachable. The verifier must confirm that clause has its own
+    discriminating RED before closing the row.
+  - **This row no longer waits on `BI-6`.** The amounts stay absent for as long as
+    `BI-6` is open, and that is now the row's *expected* state rather than its
+    blocker. It must still not be closed by asserting the application point alone
+    while leaving the absent-amount refusal unproven.
 - [x] FR-022-025 and FR-022-026 are implemented: all four filing statuses cross at
       the identical surcharge threshold and no credit reduces the surcharge, each
       proven by an adversarial mutation.
@@ -417,22 +465,53 @@ syntax error, a missing browser or an absent test does not satisfy RED.
     an absent spec file, and those were repairable by a planning retarget because
     their substance already existed under other titles. This row is short for two
     different reasons, and neither is a wording defect a retarget could fix.
-  - **Blocker one — the three browser rows are gated on `BI-6`, not on wording.**
-    TP-04-16, TP-04-17 and TP-04-18 name `lifetime-tax-california.spec.mjs`, which
-    does not exist. Unlike Scope 03's four, they **cannot** be retargeted: the
-    assertions they would need cannot exist while the pack carries no figures.
-    California resolves to a refusal end to end — all four `standardDeductions`
-    and every exemption-credit amount are `AbsentFigure/v1`, sixteen absent figures
-    in all — so the only California browser coverage that can exist today is
-    `tests/lifetime-tax-state.spec.mjs`'s `Regression: California renders an
-    unavailable naming the source that was not retrieved, and shows no figure at
-    all in its place`, which pins that **no figure is rendered**. That is the
-    opposite of what these three rows must observe: an ordinary-schedule price for
-    a long-term gain, a credit applied after the rate with both figures published,
-    and a threshold identical across four filing statuses. Retargeting any of the
-    three at it would be writing a mapping that does not cover the row. The rows
-    are therefore left naming a file that does not yet exist, because that is an
-    honest statement of work not yet possible, and they unblock when `BI-6` closes.
+  - **Blocker one — two of the three browser rows were retargeted on 2026-08-22;
+    the third genuinely cannot be.** TP-04-16, TP-04-17 and TP-04-18 name
+    `lifetime-tax-california.spec.mjs`, which does not exist. The earlier claim
+    that none of them could be retargeted, "because the assertions they would need
+    cannot exist while the pack carries no figures", was tested and is **withdrawn
+    for two of the three**. California resolves to a refusal end to end, and a
+    refusal is observable browser behaviour: `lifetime-tax-state.spec.mjs` already
+    reads the refusal code, its domain, its reason and its named `missingSource`
+    off a focusable element, proves no dollar figure is rendered anywhere in the
+    state card, and walks the stage rows the page builds **from the pack's own
+    declared calculation order**. That last part is what makes two of these rows
+    expressible: the order itself is rendered, and the order is where the two
+    behaviours live.
+    - **TP-04-16 retargeted.** The pack's declared order is
+      `CO-1 CO-2 CO-3 CO-5 CO-6 CO-14 CO-8 CO-13 CO-9 CO-10`. It omits the
+      preferential pooling and pricing stages the engine's own preferential order
+      carries, and the page renders exactly one row per declared stage. The row
+      therefore asserts that no preferential stage is rendered for California, and
+      that a household holding a long-term gain and a household holding an equal
+      ordinary amount reach the identical state result while their federal figures
+      still differ. **Adversarial case it must fail:** a clone carrying a
+      preferential rate table, or a preferential stage in its order — the first is
+      refused by the contract so `RLTAX-PACK-INVALID` surfaces in place of the
+      threshold refusal, the second changes the rendered stage set.
+    - **TP-04-17 retargeted.** Because the page walks the declared order in
+      sequence, the credit stage `CO-13` is observably rendered **after** the rate
+      stage `CO-6` and after the leg-sum stage `CO-8`, and it renders as not
+      reached rather than as a figure. The row therefore asserts that ordering,
+      and asserts that the credit never appears as a reduction of income.
+      **Adversarial case it must fail:** moving `CO-13` before `CO-6` or before
+      `CO-8`, and converting the mechanism to `deduction-from-income` — the first
+      changes the rendered row order, the second is refused by the contract so
+      `RLTAX-PACK-INVALID` surfaces instead.
+    - **TP-04-18 cannot be expressed against the refusal path, and is left naming
+      the behaviour it owns.** The surcharge threshold is the one California figure
+      that **was** retrieved, but the settlement refuses at the deduction before
+      any leg is priced, so all four filing statuses render the identical not-reached
+      surcharge stage and no crossing point is observable in the browser at all.
+      The only browser claim available — four statuses refuse alike — does not
+      cover "four statuses cross at the identical threshold"; writing it here would
+      be a mapping that does not cover the row, which is the failure this blocker
+      exists to prevent. It unblocks when `BI-6` closes.
+    - **Routed to `bubbles.implement`:** author `lifetime-tax-california.spec.mjs`
+      carrying exactly the two retargeted titles above, with exactly the assertions
+      and the adversarial cases named in the two bullets above, and with each case
+      shown to fail by name before it is shown to pass. Do **not** author a
+      TP-04-18 test; that row stays unwritten until `BI-6` closes.
   - **Blocker two — the row-by-row audit over the remaining rows was never
     performed.** TP-04-04 was the one row owned by no assertion at all; a later
     session gave it an owning assertion with discriminating RED and same-command
@@ -445,13 +524,17 @@ syntax error, a missing browser or an absent test does not satisfy RED.
     inference from the rows that do carry a pair.
   - **Adversarial case this row must still fail.** Author
     `lifetime-tax-california.spec.mjs` with the three titles the rows name while
-    the pack still carries only absent figures. Each test could then assert only
-    the refusal, so all three would pass while asserting nothing about ordinary-
-    schedule pricing, credit application point or threshold invariance, and the
-    three commands would report green. This row must fall in that state. It is
-    satisfied only when every row's command selects a non-empty set of tests whose
-    assertions can fail on a regression to the behavior that row names — which for
-    these three requires published figures, and therefore `BI-6`.
+    the pack still carries only absent figures, and let each test assert nothing
+    beyond the bare refusal — the card's code and the absence of a dollar figure.
+    All three would then pass while asserting nothing about the preferential stage
+    set, the credit's position in the rendered order, or threshold invariance, and
+    the three commands would report green. This row must fall in that state. The
+    retarget above does **not** license it: TP-04-16 and TP-04-17 are satisfied
+    only by asserting the rendered calculation order itself, which a bare refusal
+    assertion does not touch, and TP-04-18 has no honest refusal-path form at all.
+    This row is satisfied only when every one of the twenty-two commands selects a
+    non-empty set of tests whose assertions can fail on a regression to the
+    behaviour that row names.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count and no
       existing assertion edited, `node scripts/validate-spec-test-paths.mjs`
       reports zero new missing paths, and `node scripts/build-pages-site.mjs

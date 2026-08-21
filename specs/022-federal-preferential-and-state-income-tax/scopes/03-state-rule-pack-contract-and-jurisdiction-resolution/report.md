@@ -1061,16 +1061,133 @@ The whole-repository suite, with the pre-existing pass count recorded before and
 after the appended group.
 Command: `node scripts/selftest.mjs`
 
+**Claim Source:** executed.
+
+```text
+Research-Lab self-test: 3177 passed, 0 failed
+selftest_exit=0
+```
+
+The pre-existing count was 3176. It rose by exactly one — this scope's appended
+claim-boundary assertion — and no failure appeared.
+
+**No existing assertion was edited, and that is derived rather than asserted.**
+The only channel that can falsify it is the deletion set of the change, so the
+change was measured against the committed tree before it was banked:
+
+```text
+ scripts/selftest.mjs | 49 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
+deletions in the diff: 0
+```
+
+Forty-nine insertions, zero deletions, one hunk. An insertion cannot relax an
+assertion that is still present, so a pure-insertion diff settles the clause
+without anyone having to vouch for it.
+
+**Intended RED — a real defect in this scope's own module must drop the count.**
+The state module stops attaching to the browser global, which removes the UMD
+half of the dual module while leaving `module.exports` intact, so the defect is
+invisible to a `require`-based caller and visible only to the assertion that
+pins the contract. That is the right shape for this row: a defect that broke
+everything would prove only that the suite runs.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-22 the state module stops attaching to the browser global, so the UMD half of the dual module is gone and the repository pass count must fall
+file:             rltaxstate.js
+mutation:           root.RLTAXSTATE = api;  ->    root.RLTAXSTATEAPI = api;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3176 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3177 passed, 0 failed
+revert-verified:  yes (committed=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d restored=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The count falls by exactly one and the suite refuses. The mutation is value-free:
+it renames an identifier and carries no rate, threshold or household amount.
+
 ### TP-03-23
 
 Zero new missing spec-referenced test paths, with the baseline file unmodified.
 Command: `node scripts/validate-spec-test-paths.mjs`
+
+**Claim Source:** executed.
+
+```text
+[spec-test-paths] scanned=686 references=15471 distinctPaths=250 missingPaths=67 baseline=67 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+paths_exit=0
+```
+
+`new=0` is the clause. `missingPaths=67` equals `baseline=67`, so every missing
+path is one the frozen baseline already tolerates and this scope introduced none.
+
+**Intended RED — the probe deliberately writes no new path.** The obvious way to
+red a "zero new missing paths" row is to make a spec name a file that does not
+exist, but the harness block would then carry that invented path into this
+report, the guard would scan it here, and the row would be permanently red. The
+probe instead comments out an entry the baseline already tolerates: the count of
+missing paths is unchanged while the tolerated set shrinks by one, so the same
+path is reported as new. The path in the block below is a real baseline entry, so
+pasting it changes nothing.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-23 a tolerated missing test path leaves the frozen baseline, so it must be reported as new
+file:             scripts/validate-spec-test-paths.baseline
+mutation:         tests/auction-gamma-playbook.spec.mjs  ->  # tests/auction-gamma-playbook.spec.mjs   (1 occurrence(s))
+command:          node scripts/validate-spec-test-paths.mjs
+red-exit:         1
+red-summary:      [spec-test-paths] FAIL — 1 new referenced path(s) do not exist
+green-exit:       0
+green-summary:    [spec-test-paths] OK — no new missing test path(s)
+revert-verified:  yes (committed=972f0de1d9ab47e0f584287138399e51187629dc restored=972f0de1d9ab47e0f584287138399e51187629dc)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
 
 ### TP-03-24
 
 The Pages plan succeeds, `site-exclusions.json` is unchanged, and `tax-rules/`
 remains outside the public directories.
 Command: `node scripts/build-pages-site.mjs --dry-run`
+
+**Claim Source:** executed.
+
+```text
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":128,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/…","omittedOrphanIndexes":145}
+pages_exit=0
+```
+
+The `directories` array is the published set, and `tax-rules` is not a member.
+That is the clause read off the plan's own output rather than off an intention:
+the state packs and the contract fixture this scope adds are reachable to the
+engine at runtime and are not published as site content.
+
+**Intended RED — the probe reds on the register, not on the plan's arithmetic.**
+The row pairs "the plan succeeds" with "`site-exclusions.json` is unchanged", so
+the mutation takes this route out of the exclusions register. The build refuses
+with a stale-exclusion error rather than quietly producing a plan with one fewer
+excluded path, which is the stronger of the two failures it could have shown.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-24 this route leaves the exclusions register, so the Pages plan meets an unregistered root page
+file:             site-exclusions.json
+mutation:         "path": "lifetime-tax-strategy-lab.html",  ->  "path": "lifetime-tax-strategy-lab.html.retired",   (1 occurrence(s))
+command:          node scripts/build-pages-site.mjs --dry-run
+red-exit:         1
+red-summary:      Error: site exclusion is stale: lifetime-tax-strategy-lab.html.retired
+green-exit:       0
+green-summary:    {"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":128,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","
+revert-verified:  yes (committed=29c6fe08a58d97c1f119abdd38706cf02f675d60 restored=29c6fe08a58d97c1f119abdd38706cf02f675d60)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
 
 ## Change Boundary
 

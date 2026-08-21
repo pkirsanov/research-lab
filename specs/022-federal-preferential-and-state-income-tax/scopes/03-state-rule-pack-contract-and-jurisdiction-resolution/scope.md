@@ -360,8 +360,16 @@ error, a missing browser or an absent test does not satisfy RED.
 - [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
   - **Phase:** implement · **Command:** the exact TP-03-01 through TP-03-21 commands · **Evidence:** `report.md#test-evidence`
-- [ ] `node scripts/selftest.mjs` is green with no fall in pass count and no
+- [x] `node scripts/selftest.mjs` is green with no fall in pass count and no
       existing assertion edited, `node scripts/validate-spec-test-paths.mjs`
       reports zero new missing paths, and `node scripts/build-pages-site.mjs
       --dry-run` succeeds with `tax-rules/` still outside the public directories.
   - **Phase:** implement · **Command:** all three commands · **Evidence:** `report.md#tp-03-22`, `report.md#tp-03-23`, `report.md#tp-03-24`
+  - **Closed 2026-08-21.** All three ran. `3177 passed, 0 failed`, up by exactly one
+    from the pre-existing 3176. The no-edit clause is derived, not asserted: the
+    change to `scripts/selftest.mjs` is 49 insertions and **zero deletions** in one
+    hunk, and an insertion cannot relax an assertion still present. The path guard
+    reports `missingPaths=67 baseline=67 new=0`. The Pages dry-run exits 0 and its
+    own `directories` array omits `tax-rules`, so the state packs are engine-reachable
+    and unpublished. Each of the three commands also carries an intended RED through
+    `scripts/red-green-probe.sh` with a hash-verified revert.

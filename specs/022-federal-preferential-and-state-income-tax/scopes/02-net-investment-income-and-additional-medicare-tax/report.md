@@ -1004,18 +1004,137 @@ the delivered set equals Scope 01's eleven plus this scope's eight, each marked
 region names its shape, and no assertion changed without a marker.
 Command: `node scripts/selftest.mjs`
 
-Not delivered in this session. This session appended a new group and edited no marked
-region, so the delivered marker set is unchanged from what it was before this session
-began; the row's own conformance assertion was not written.
+**Delivered 2026-08-20. Claim Source: executed.** The row was unwritable for as
+long as it depended on the withheld-detail entry, which could not be delivered
+while Scope 05's census pinned the tolerated marker gap to a literal pair of ids
+(finding F-02-D). That census now derives its tolerance from the ledger's own
+`Disposition` column and the entry is delivered, so the row was written.
+
+It does **not** restate the Scope 05 census. That one closes marker-to-ledger
+membership and is left untouched. This row adds the three clauses it does not
+carry:
+
+1. **The ownership arithmetic the Test Plan states, derived at run time.** The
+   expected delivered set is Scope 01's owned ids, plus this scope's owned ids
+   less the one the ledger dispositions `marker forbidden`, plus exactly those
+   later-scope ids already present — each read out of the ledger's `Owning scope`
+   and `Disposition` columns rather than pinned to a total that goes stale the
+   next time a scope lands. The counts the row names are asserted as a
+   cross-check on the derivation rather than in place of it: twelve owned by
+   Scope 01, nine owned here, eight of those nine deliverable.
+2. **Each marked region names its shape.**
+3. **Containment.** No marker may sit in a lifetime-tax source, spec or page file
+   outside the five this scope opened, which is how an assertion could otherwise
+   be changed under a marker no census reads.
+
+Green:
+
+```text
+  ✓ TP-02-22: the delivered marker set equals the set the feature ledger derives at run time — Scope 01’s owned ids, plus this scope’s owned ids less the one the ledger forbids, plus exactly those later-scope ids already present — every ledger row carries a recognised disposition, every delivered marker names its own shape, and no marker escapes the five opened files into another lifetime-tax source or spec (delivered 21, expected 21, shapeless [], escaped [])
+Research-Lab self-test: 3175 passed, 0 failed
+```
+
+**A miss the first draft made, recorded rather than corrected in silence.** The
+shape reader first anchored on the first appearance of an id. The reconciliation-leg
+entry is legitimately cross-referenced from a neighbouring region that sorts
+earlier in the file than its own declaration, so the row reported that entry as
+declaring no shape when it plainly does. The reader now anchors on the
+**declaration** form — the one occurrence that states what the entry supersedes —
+and additionally requires **exactly one** declaration per id, so two declarations
+of one id cannot let a later region claim a shape the ledger never assigned it.
+That is strictly stronger than the first draft, not a relaxation of it.
+
+**Intended RED through `scripts/red-green-probe.sh`.** The mutation is the defect
+the row exists to catch: a delivered marker is removed from the region it marks,
+leaving the assertion changed and nothing accounting for it. The mutation is a
+comment rewrite and carries no household figure:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-22 a delivered supersession marker is removed from the region it marks
+file:             tests/lifetime-tax-route.spec.mjs
+mutation:         /* SUP-022-19: supersedes the positional  ->  /* Withheld-detail entry: supersedes the positional   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-22: the delivered marker set equals the set the feature ledger derives at run time — Scope 01’s owned ids, plus this scope’s owned ids less the one the ledger forbids, plus exa
+green-exit:       0
+green-summary:      ✓ TP-02-22: the delivered marker set equals the set the feature ledger derives at run time — Scope 01’s owned ids, plus this scope’s owned ids less the one the ledger forbids, plus exactly t
+revert-verified:  yes (committed=3dfba4ff140d64bf3c638c8e100d565c68be9848 restored=3dfba4ff140d64bf3c638c8e100d565c68be9848)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The mutation target is the route spec rather than `scripts/selftest.mjs` on
+purpose. The harness refuses a dirty or untracked target with exit 4, and a
+concurrent session holds uncommitted lines in the shared selftest, so probing the
+file the assertion lives in was unavailable. Mutating an input the assertion reads
+is the stronger probe anyway: it drives the row through the tree it is supposed to
+be measuring rather than through its own source.
 
 ### TP-02-23
 
 The moved-versus-deleted and disjointness mutations, each demonstrated to fail.
 Command: `node scripts/selftest.mjs`
 
-Not delivered in this session. The third clause of this row depends on SUP-022-18's
-cross-artifact `SIMPLE_FIELDS` identity, which cannot be written before the Simple panels
-exist.
+**Delivered 2026-08-20. Claim Source: executed.** All three cases the row names
+are present, each demonstrated to fail against a mutated copy while the shipped
+tree passes. Nothing on disk is mutated: the packs are deep clones and the route
+spec is read as a string, so the demonstration cannot strand a live mutation the
+way an in-file probe can.
+
+1. **Moved versus deleted.** A pack clone with the surtax id removed from
+   `unsupportedFeatures[]` *and* from `taxLegs[]` — deleted rather than moved —
+   fails the clause the reconciliation entries share: absent from the contributor
+   set **because** it became a declared leg. The shipped pack passes it.
+2. **Disjointness.** A pack clone that lists the same id in both
+   `unsupportedFeatures[]` and `taxLegs[]` fails disjointness, and the clone is
+   asserted to actually carry the id so the case cannot pass vacuously. The
+   shipped pack passes.
+3. **Declared-target selection**, asserted over the route spec's own source text
+   as the row requires. A copy of that source with the declared-target locator
+   replaced by an ordinal fails the clause; the shipped source passes it. The
+   replacement is asserted to have landed, so a no-op edit cannot report a
+   discrimination that did not happen.
+
+Comments are stripped before the third case reads the source, and that is
+load-bearing rather than cosmetic: the marked region legitimately **names** the
+superseded ordinal expectation in its own prose, so a scan that read the comment
+would report the regression present in a tree that does not contain it.
+
+Green:
+
+```text
+  ✓ TP-02-23: a pack that removes the surtax from the unavailable-contributor set without declaring a computed leg fails the moved-versus-deleted clause, a pack that lists the same id in both unsupportedFeatures[] and taxLegs[] fails the disjointness clause, and a route spec that selects a withheld-detail link by ordinal instead of by its declared target fails the declared-target clause — each against a mutated copy while the shipped tree passes all three
+Research-Lab self-test: 3175 passed, 0 failed
+```
+
+**Intended RED through `scripts/red-green-probe.sh`.** The mutation reintroduces
+the exact regression the third case exists to forbid — the route spec selects a
+withheld-detail link by ordinal again:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-23 the route spec reverts to selecting a withheld-detail link by ordinal
+file:             tests/lifetime-tax-route.spec.mjs
+mutation:         page.locator(`#powerLinkRows button[data-power-section="${FOCUS_TARGET}"]`)  ->  links.nth(3)   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-23: a pack that removes the surtax from the unavailable-contributor set without declaring a computed leg fails the moved-versus-deleted clause, a pack that lists the same id in both 
+green-exit:       0
+green-summary:      ✓ TP-02-23: a pack that removes the surtax from the unavailable-contributor set without declaring a computed leg fails the moved-versus-deleted clause, a pack that lists the same id in both unsupp
+revert-verified:  yes (committed=3dfba4ff140d64bf3c638c8e100d565c68be9848 restored=3dfba4ff140d64bf3c638c8e100d565c68be9848)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### The marker completion this delivery required
+
+The shape clause found one real gap in the tree before it could pass: the
+declared-edge entry's marked region opened `SUP-022-20.` with a period and carried
+no `shape=` token, while this scope's own ledger assigns it `derive`. Its comment
+was completed to the declaration form the other twenty carry. That is a comment
+edit inside a marked region **this scope owns**; no assertion text, condition or
+message was touched, and the pass count did not fall.
 
 ## Supersession Ledger
 

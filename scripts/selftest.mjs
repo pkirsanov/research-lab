@@ -13682,7 +13682,9 @@ try {
     && !RLTAXRULES.isUnavailable(shippedOrdinaryCurve),
   'TP-03-04: the guard can fail — a rate move with no attributable pack threshold is refused RLTAX-THRESHOLD-UNAVAILABLE rather than displayed, while the same workspace against the shipped pack still produces a curve');
 
-  /* SUP-022-20. TP-03-05: every declared band edge renders as a step. The expected edge set is
+  /* SUP-022-20: supersedes the ordinary curve's literal step-level list and the probe-WIDTH step
+     selector; shape=derive. TP-03-05: every declared band edge renders as a step. The expected
+     edge set is
      DERIVED from the pack — each ordinary band's lower edge, carried up by the pack's own
      standard deduction, kept when the sweep reaches it — rather than spelled as a literal, and
      the selector is the segment's own step-ness rather than its width, because a probe-width
@@ -25936,6 +25938,173 @@ try {
     + ' (' + passes + ' assertion(s) already green at this point)');
 } catch (e) { failures++; console.log('  ✗ FAIL (RED/GREEN probe harness group threw): ' + e.message); }
 /* RED-GREEN-PROBE-HARNESS-END */
+
+/* ---------- Feature 022 Scope 02: supersession conformance (START) ---------- */
+/* TP-02-22 and TP-02-23. Scope 02's two conformance rows. Both were unwritable until now because
+   each depended on the withheld-detail entry, which could not be delivered while Scope 05's
+   census pinned the tolerated marker gap to a literal pair of ids (finding F-02-D): delivering
+   the entry SHRANK the real gap and turned a green assertion red. That census now derives its
+   tolerance from the ledger's own Disposition column, the entry is delivered, and both rows
+   become writable.
+
+   TP-02-22 does not restate the Scope 05 census. That one closes marker<->ledger MEMBERSHIP and
+   is deliberately left untouched. This row adds the three clauses it does not carry: the
+   ownership arithmetic the Scope 02 Test Plan states (Scope 01's owned ids, plus this scope's
+   owned ids less those the ledger forbids, plus exactly those later-scope ids already present,
+   read out of the ledger at run time rather than pinned to a total that goes stale the next time
+   a scope lands); the requirement that each marked region NAMES ITS SHAPE; and containment — a
+   marker may not sit in a lifetime-tax source or spec file outside the five this scope opened,
+   which is how an assertion could otherwise be changed under a marker nobody is counting.
+
+   Marker ids are never written literally in this group. Writing one here would place it in a
+   scanned file and make the census count it as delivered, which is the one way a conformance
+   check of this shape can be made to lie about itself. */
+try {
+  group('Feature 022 Scope 02 — supersession marker conformance and its adversarial twin');
+  const s02Require = (await import('node:module')).createRequire(import.meta.url);
+  const S02RULES = s02Require(join(ROOT, 'rltaxrules.js'));
+  const S02_PREFIX = 'SUP-' + '022-';
+
+  const s02OpenedFiles = ['scripts/selftest.mjs', 'tests/lifetime-tax-foundation.spec.mjs',
+    'tests/lifetime-tax-federal.spec.mjs', 'tests/lifetime-tax-marginal.spec.mjs',
+    'tests/lifetime-tax-route.spec.mjs'];
+  const s02Text = new Map();
+  s02OpenedFiles.forEach((file) => s02Text.set(file, read(file)));
+  const s02MarkersIn = (text) => (text.match(/SUP-022-\d{2}/g) || []);
+
+  const s02Delivered = new Set();
+  s02OpenedFiles.forEach((file) => s02MarkersIn(s02Text.get(file)).forEach((id) => s02Delivered.add(id)));
+  const s02DeliveredList = Array.from(s02Delivered).sort();
+
+  /* The feature ledger, parsed at run time: id, owning scope, disposition token. */
+  const s02FeatureSpec = read('specs/022-federal-preferential-and-state-income-tax/spec.md');
+  const s02Ledger = [];
+  (s02FeatureSpec.match(/^\| (SUP-022-\d{2}) \|.*$/gm) || []).forEach((row) => {
+    const cells = row.split('|').map((cell) => cell.trim());
+    const token = /^marker (required|forbidden|pending)\b/.exec(cells[5] || '');
+    s02Ledger.push({ id: cells[1], owner: cells[3], disposition: token ? token[1] : null });
+  });
+  const s02OwnedBy = (scope) => s02Ledger.filter((row) => row.owner === scope).map((row) => row.id);
+  const s02ScopeOneOwned = s02OwnedBy('01');
+  const s02ScopeTwoOwned = s02OwnedBy('02');
+  const s02Forbidden = s02Ledger.filter((row) => row.disposition === 'forbidden').map((row) => row.id);
+  const s02ScopeTwoDeliverable = s02ScopeTwoOwned.filter((id) => s02Forbidden.indexOf(id) < 0);
+  const s02LaterOwnedPresent = s02Ledger
+    .filter((row) => row.owner !== '01' && row.owner !== '02' && s02Delivered.has(row.id))
+    .map((row) => row.id);
+  const s02Expected = s02ScopeOneOwned.concat(s02ScopeTwoDeliverable)
+    .concat(s02LaterOwnedPresent).sort();
+
+  /* Each marked region names its shape. The reader anchors on the DECLARATION form — the one
+     occurrence that states what the entry supersedes — rather than on the first appearance of the
+     id, because an id is also legitimately cross-referenced from a neighbouring region and from
+     its own adversarial block. Reading the first appearance would report a declared shape as
+     missing whenever a cross-reference happened to sort earlier in the file, which is exactly what
+     the first draft of this row did on the reconciliation-leg entry. Requiring EXACTLY ONE
+     declaration is the added strength: two declarations of one id would let a later region quietly
+     claim a shape the ledger never assigned it. */
+  const s02DeclarationsOf = (id) => {
+    const needle = S02_PREFIX + id.slice(-2) + ': supersedes';
+    let total = 0;
+    let shape = null;
+    s02OpenedFiles.forEach((file) => {
+      const text = s02Text.get(file);
+      let at = text.indexOf(needle);
+      while (at >= 0) {
+        total += 1;
+        if (shape === null) {
+          const token = /shape=([a-z]+)/.exec(text.slice(at, at + 900));
+          shape = token ? token[1] : 'NONE';
+        }
+        at = text.indexOf(needle, at + needle.length);
+      }
+    });
+    return { total: total, shape: shape };
+  };
+  const s02WithoutShape = s02DeliveredList.filter((id) => {
+    const found = s02DeclarationsOf(id);
+    return found.total !== 1 || found.shape === null || found.shape === 'NONE';
+  });
+
+  /* Containment: no marker may sit in a lifetime-tax source or spec file outside the five this
+     scope opened, so an assertion cannot be changed under a marker the census never reads. */
+  const s02CandidateFiles = readdirSync(join(ROOT, 'tests'))
+    .filter((name) => name.indexOf('lifetime-tax') === 0 && name.endsWith('.spec.mjs'))
+    .map((name) => 'tests/' + name)
+    .concat(readdirSync(ROOT).filter((name) => /^rltax.*\.js$/.test(name)))
+    .concat(['lifetime-tax-strategy-lab.html']);
+  const s02Escaped = s02CandidateFiles
+    .filter((file) => s02OpenedFiles.indexOf(file) < 0 && s02MarkersIn(read(file)).length > 0);
+
+  const s02UndispositionedRows = s02Ledger.filter((row) => row.disposition === null).map((row) => row.id);
+  const s02ForbiddenButDelivered = s02Forbidden.filter((id) => s02Delivered.has(id));
+
+  assert(s02Ledger.length === 22
+    && s02UndispositionedRows.length === 0
+    && s02DeliveredList.length > 0
+    && s02ScopeOneOwned.length === 12
+    && s02ScopeTwoOwned.length === 9
+    && s02ScopeTwoDeliverable.length === 8
+    && s02LaterOwnedPresent.length > 0
+    && s02DeliveredList.join(',') === s02Expected.join(',')
+    && s02ForbiddenButDelivered.length === 0
+    && s02WithoutShape.length === 0
+    && s02Escaped.length === 0
+    && s02CandidateFiles.length > s02OpenedFiles.length,
+  'TP-02-22: the delivered marker set equals the set the feature ledger derives at run time — Scope 01\u2019s owned ids, plus this scope\u2019s owned ids less the one the ledger forbids, plus exactly those later-scope ids already present — every ledger row carries a recognised disposition, every delivered marker names its own shape, and no marker escapes the five opened files into another lifetime-tax source or spec'
+    + ' (delivered ' + s02DeliveredList.length + ', expected ' + s02Expected.length
+    + ', shapeless [' + s02WithoutShape.join(' ') + '], escaped [' + s02Escaped.join(' ') + '])');
+
+  /* TP-02-23. The three adversarial cases the Test Plan row names, each demonstrated to fail
+     against a mutated copy while the shipped tree passes. Nothing on disk is mutated: the packs
+     are deep clones and the route spec is a string, so the demonstration cannot leave a live
+     mutation behind the way an in-file probe can. */
+  const s02Pack = JSON.parse(read('tax-rules/federal/2026.json'));
+  const S02_SURTAX_ID = 'net-investment-income-tax';
+  const s02ContributorIds = (pack) => pack.unsupportedFeatures
+    .filter((entry) => entry.movesMarginalRate === true).map((entry) => entry.id);
+  const s02LegIds = (pack) => S02RULES.declaredTaxLegs(pack).map((leg) => leg.legId);
+  /* SUP-022-08's and SUP-022-10's shared clause: absent from the contributor set BECAUSE it moved
+     into a declared leg, never because it was dropped from both. */
+  const s02MovedNotDeleted = (pack) => s02ContributorIds(pack).indexOf(S02_SURTAX_ID) < 0
+    && s02LegIds(pack).indexOf(S02_SURTAX_ID) >= 0;
+  /* SUP-022-03's clause: the two sets are disjoint. */
+  const s02SetsDisjoint = (pack) => s02ContributorIds(pack)
+    .every((id) => s02LegIds(pack).indexOf(id) < 0);
+
+  const s02DeletedNotMoved = JSON.parse(JSON.stringify(s02Pack));
+  s02DeletedNotMoved.taxLegs = s02DeletedNotMoved.taxLegs.filter((leg) => leg.legId !== S02_SURTAX_ID);
+  s02DeletedNotMoved.unsupportedFeatures = s02DeletedNotMoved.unsupportedFeatures
+    .filter((entry) => entry.id !== S02_SURTAX_ID);
+
+  const s02ListedInBoth = JSON.parse(JSON.stringify(s02Pack));
+  s02ListedInBoth.unsupportedFeatures = s02ListedInBoth.unsupportedFeatures.concat([{
+    id: S02_SURTAX_ID, label: 'a surtax listed in both sets', movesMarginalRate: true
+  }]);
+
+  /* The third case is asserted over the route spec's own SOURCE TEXT, as the row requires.
+     Comments are stripped first, because the marked region legitimately NAMES the superseded
+     ordinal expectation in its own prose — a scan that read the comment would report the
+     regression present in a tree that does not contain it. */
+  const s02StripComments = (text) => text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+  const s02RouteCode = s02StripComments(s02Text.get('tests/lifetime-tax-route.spec.mjs'));
+  const s02SelectsByDeclaredTarget = (code) =>
+    code.indexOf('data-power-section="${FOCUS_TARGET}"') >= 0 && !/\blinks\.nth\(/.test(code);
+  const s02OrdinalSelector = 'page.locator(`#powerLinkRows button[data-power-section="${FOCUS_TARGET}"]`)';
+  const s02OrdinalRegression = s02RouteCode.replace(s02OrdinalSelector, 'links.nth(3)');
+
+  assert(s02MovedNotDeleted(s02Pack) && !s02MovedNotDeleted(s02DeletedNotMoved)
+    && s02SetsDisjoint(s02Pack) && !s02SetsDisjoint(s02ListedInBoth)
+    && s02ContributorIds(s02ListedInBoth).indexOf(S02_SURTAX_ID) >= 0
+    && s02SelectsByDeclaredTarget(s02RouteCode)
+    && s02OrdinalRegression !== s02RouteCode
+    && !s02SelectsByDeclaredTarget(s02OrdinalRegression)
+    /* The browser twin is pinned rather than assumed: the marginal spec that owns SUP-022-08
+       still carries the same moved-not-deleted clause this engine-side case demonstrates. */
+    && s02Text.get('tests/lifetime-tax-marginal.spec.mjs').indexOf(S02_SURTAX_ID) >= 0,
+  'TP-02-23: a pack that removes the surtax from the unavailable-contributor set without declaring a computed leg fails the moved-versus-deleted clause, a pack that lists the same id in both unsupportedFeatures[] and taxLegs[] fails the disjointness clause, and a route spec that selects a withheld-detail link by ordinal instead of by its declared target fails the declared-target clause — each against a mutated copy while the shipped tree passes all three');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 Scope 02 supersession conformance group threw): ' + e.message); }
+/* ---------- Feature 022 Scope 02: supersession conformance (END) ---------- */
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

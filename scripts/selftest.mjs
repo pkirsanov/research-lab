@@ -34,6 +34,7 @@ import {
   attentionExpiryFormatInstruction,
   attentionSubjectMenuInstruction,
   attentionHeadlineCapInstruction,
+  attentionRationaleBudgetInstruction,
   attentionSubjectUniquenessInstruction,
   attentionVerbContractInstruction,
   findMaskedTerms,
@@ -3054,6 +3055,41 @@ try {
   assert(laneRenders('attentionSubjectMenuInstruction'),
     'the signals lane renders the eligible subject list from the composer instead of asking the author to recall it');
 
+  /* ── and WHICH of those subjects clear the band right now ────────────────────────────────────
+     The menu offered the same 12 tickers on every run while the gate silently knew which ones
+     carried an observation, and a candidate whose subject yields none is not weaker but REFUSED
+     and recorded as an exclusion. On 2026-08-20 seven of the twelve were eligible, four of them
+     `severe`, and the published feed carried one. Annotating is also what makes consecutive runs
+     differ, because the eligible set moves with the market. It ANNOTATES rather than filters: a
+     filtered menu would empty on a quiet day and hand the author nothing. */
+  const gateModuleForMenu = attentionRequire('../rlattentiongate.js');
+  const menuPolicy = JSON.parse(read('market-brief.config.json'))['attention-detection-policy/v1'];
+  const menuTracked = gateModuleForMenu.observableSubjects(
+    JSON.parse(read('market-brief.snapshot.json'))
+  );
+  const expectedEligible = RLATTN_WATCHLIST_SCOPE.filter((subject) => {
+    const observed = gateModuleForMenu.observeGate({ subject, tracked: menuTracked[subject], policy: menuPolicy });
+    return Boolean(observed && observed.severity);
+  });
+  assert(expectedEligible.length > 0 && expectedEligible.every((subject) => new RegExp(subject + '\\s*\\((moderate|severe)\\)').test(renderedMenu)),
+    'the subject menu states which subjects clear the detection band right now, each with the severity the gate itself observed (' + expectedEligible.length + ' eligible)');
+  /* ADVERSARIAL: the live snapshot happens to carry eligible subjects, so the quiet-market and
+     unreadable-snapshot paths would never execute in production and could rot. The override is
+     undefined on every production path. A quiet market must tell the author to publish NOTHING —
+     the opposite instruction — and an unreadable snapshot must degrade to the plain list rather
+     than throw, which is the promise loadSnapshotForGate already makes. */
+  const quietMenu = attentionSubjectMenuInstruction({ tracked: {} });
+  const degradedMenu = attentionSubjectMenuInstruction(null);
+  assert(/NO scoped subject clears the detection band/.test(quietMenu)
+    && /Author no attention items this window/.test(quietMenu)
+    && !/detection band, with the severity/.test(quietMenu),
+    'a snapshot in which nothing clears the band tells the author to publish no attention item at all, instead of offering a menu every choice from which would be refused');
+  assert(!/detection band/.test(degradedMenu)
+    && findUnofferedTerms(RLATTN_WATCHLIST_SCOPE, degradedMenu).length === 0,
+    'an unreadable snapshot degrades to the plain subject list rather than throwing or claiming an eligibility it could not compute');
+  assert(quietMenu !== renderedMenu && degradedMenu !== renderedMenu && quietMenu !== degradedMenu,
+    'the three snapshot states render three different menus, so none of the branches is dead text');
+
   /* ── and the ONE-ticker rule, which is the same defect an eighth time ─────────────────────────
      The menu above tells the author which tickers are admissible and to put one in the headline.
      It does not tell them that `resolveSubject` scans headline, rationale, escalationTrigger and
@@ -3128,6 +3164,53 @@ try {
   assert(laneRenders('attentionCardBudgetInstruction'),
     'the signals lane renders the per-card budget from the committed policy instead of omitting it');
 
+  /* ── and the DETAIL budget, for the field the card budget deliberately does not count ─────
+     attention[].rationale is hidden behind the card by design, so it is absent from
+     defaultVisibleFields and was therefore bounded by NOTHING: twelve published rationales
+     measured 284 to 575 characters against no cap at all. Folding it into the card budget was
+     measured and rejected — the live card is 194 against a 300 cap and its rationale is 575, so
+     folding would refuse the only item the feed publishes. It gets its own cap instead. */
+  const detailPolicy = JSON.parse(read('market-brief.config.json'))['output-budget/v1'];
+  const RLCOCKPIT_FOR_DETAIL = attentionRequire('../rlcockpit.js');
+  const renderedDetail = attentionRationaleBudgetInstruction();
+  assert(Array.isArray(detailPolicy.detailFields) && detailPolicy.detailFields.length > 0
+    && detailPolicy.detailFields.every((field) => !(detailPolicy.defaultVisibleFields || []).includes(field)),
+    'every declared detail field is absent from defaultVisibleFields, so the hidden detail is bounded without being counted against the card the reader actually sees');
+  assert(new RegExp('\\b' + detailPolicy.detailFieldChars + '\\b').test(renderedDetail)
+    && laneRenders('attentionRationaleBudgetInstruction'),
+    'the detail budget is stated to the author with the enforced cap of ' + detailPolicy.detailFieldChars + ' and rendered by the lane, rather than enforced silently');
+  /* ADVERSARIAL: a cap nothing can breach is decoration. A rationale one character over the cap
+     must produce a violation naming its own path, and one at the cap must not. */
+  const overCard = { attention: [{ rationale: 'x'.repeat(detailPolicy.detailFieldChars + 1) }] };
+  const atCard = { attention: [{ rationale: 'x'.repeat(detailPolicy.detailFieldChars) }] };
+  const overBreaches = RLCOCKPIT_FOR_DETAIL.budgetViolations(
+    RLCOCKPIT_FOR_DETAIL.measureDefaultVisible(overCard, detailPolicy), detailPolicy
+  ).filter((breach) => breach.capName === 'detail cap');
+  const atBreaches = RLCOCKPIT_FOR_DETAIL.budgetViolations(
+    RLCOCKPIT_FOR_DETAIL.measureDefaultVisible(atCard, detailPolicy), detailPolicy
+  ).filter((breach) => breach.capName === 'detail cap');
+  assert(overBreaches.length === 1 && overBreaches[0].path === 'attention[0].rationale'
+    && atBreaches.length === 0,
+    'the detail cap refuses a rationale one character over and admits one exactly at the cap, so the bound is real and is not off by one');
+
+  /* ── DISC-009-004: the reader is told when a reading predates the data beside it ──────────
+     Tier-A refreshes the page several times a day and never rewrites the payload — brief-refresh
+     .mjs reads it as a committed artifact, the R-5 boundary, and across 197 commits touching the
+     payload the tier-a bot authored zero. So the decision list can legitimately be older than the
+     numbers around it. Recomposing on the data path would breach R-5; dropping the item would
+     make a decision vanish mid-session. Labelling it is the third option and the honest one. */
+  const RLATTN_FRESH = attentionRequire('../rlattention.js');
+  assert(RLATTN_FRESH.observationFreshness('2026-08-20T20:31:05.598Z', '2026-08-20T20:31:05.598Z') === 'current'
+    && RLATTN_FRESH.observationFreshness('2026-08-20T18:00:00.000Z', '2026-08-20T20:31:05.598Z') === 'behind-data'
+    && RLATTN_FRESH.observationFreshness(null, '2026-08-20T20:31:05.598Z') === 'unknown',
+    'observation freshness separates a reading taken from the data on the page, one taken before it, and one that does not say');
+  assert(RLATTN_FRESH.observationFreshnessNote('2026-08-20T20:31:05.598Z', '2026-08-20T20:31:05.598Z') === null
+    && /before the/.test(RLATTN_FRESH.observationFreshnessNote('2026-08-20T18:00:00.000Z', '2026-08-20T20:31:05.598Z')),
+    'a current reading adds no note and a stale one states that it predates the page data, so the label appears only when it carries information');
+  assert(/observationFreshnessNote/.test(read('market-brief.html'))
+    && /observation-age/.test(read('market-brief.html')),
+    'the cockpit renders the observation-age label rather than leaving the payload field unread');
+
   /* ── how to CHOOSE a confidence, the field the reader is most entitled to trust ───────────
      BUG-014. Both lanes required a `confidence` and neither said how to pick one, so the only
      numeral in the guidance - the tactical CAP - became a universal default: across the 34
@@ -3171,8 +3254,20 @@ try {
     && /exactly one admissible value/.test(capEqual)
     && capBelow !== capAbove && capAbove !== capEqual,
     'the confidence contract derives a DIFFERENT tactical clause for cap-below-floor, cap-above-floor and cap-equals-floor rather than restating one fixed sentence');
-  assert(/exactly one admissible value/.test(renderedConfidence),
-    'live config has the tactical cap equal to the action floor, and the contract says so plainly instead of telling the author to stay under a number it must also reach');
+  /* The floor and the cap must leave a tactical author somewhere to stand. Equal is degenerate:
+     the publish validator refuses below the floor AND above the cap, so cap === floor admits
+     exactly one value and every tactical action carries the same number by construction - which
+     is what 34 of 34 committed runs did. Below the floor is worse, and silent: a tactical action
+     would be simultaneously too low and too high and could never publish at all. The floor moved
+     to 50 rather than the cap to 60 because the <= 55 tactical ceiling is stated twice in
+     notes/market-brief.md as anti-reactivity doctrine, while the floor is a tunable noise bar -
+     and no action below 55 has ever been published, so opening the band excludes nothing. */
+  assert(confidenceThresholds.tacticalConfidenceCap > confidenceThresholds.minimumActionConfidence,
+    'the tactical cap leaves a band above the action floor, so a tactical action is not forced onto a single admissible value (cap '
+    + confidenceThresholds.tacticalConfidenceCap + ' vs floor ' + confidenceThresholds.minimumActionConfidence + ')');
+  assert(new RegExp('may only occupy ' + confidenceThresholds.minimumActionConfidence + ' to '
+    + confidenceThresholds.tacticalConfidenceCap).test(renderedConfidence),
+    'live config gives tactical a real band and the contract states that band rather than a single value');
 
   /* ── and the expiry SHAPE, proven against the gate's own predicate ────────────────────────
      The 03:50 EDT run lost FETH on expiry alone - the item was complete, in budget, and on an

@@ -111,6 +111,7 @@
   var CAP_ITEM = "cap";
   var CAP_CARD = "per-card cap";
   var CAP_TOTAL = "total cap";
+  var CAP_DETAIL = "detail cap";
   var TOTAL_PATH = "default-visible narrative";
 
   /* Every reader token is a GLYPH PLUS A WORD. Strip all colour, or zoom to 200 percent and
@@ -230,12 +231,34 @@
     return measured;
   }
 
+  /* Detail fields sit BEHIND the card, so they are absent from the default-visible field list and
+     were bounded by nothing. Measured per item against their own cap, never folded into the card
+     or the total, because folding them in would refuse the very cards the feed publishes. */
+  function measureDetailFields(payload, budgetPolicy) {
+    var policy = isPlainObject(budgetPolicy) ? budgetPolicy : {};
+    var declared = Array.isArray(policy.detailFields) ? policy.detailFields : [];
+    var cards = isPlainObject(payload) && Array.isArray(payload.attention) ? payload.attention : [];
+    var measured = [];
+    for (var d = 0; d < declared.length; d++) {
+      var declaredPath = declared[d];
+      if (typeof declaredPath !== "string" || declaredPath.indexOf("attention[].") !== 0) continue;
+      var key = declaredPath.slice("attention[].".length);
+      for (var i = 0; i < cards.length; i++) {
+        var value = isPlainObject(cards[i]) ? cards[i][key] : null;
+        if (typeof value !== "string") continue;
+        measured.push({ path: "attention[" + i + "]." + key, chars: value.length });
+      }
+    }
+    return measured;
+  }
+
   function policyCaps(budgetPolicy) {
     var policy = isPlainObject(budgetPolicy) ? budgetPolicy : {};
     return {
       headline: finiteOrNull(policy.headlineChars),
       decisionCard: finiteOrNull(policy.decisionCardChars),
-      total: finiteOrNull(policy.totalDefaultVisibleChars)
+      total: finiteOrNull(policy.totalDefaultVisibleChars),
+      detail: finiteOrNull(policy.detailFieldChars)
     };
   }
 
@@ -262,6 +285,7 @@
       disclosedTotal: disclosedTotal,
       caps: policyCaps(budgetPolicy),
       cards: measureCards(payload, budgetPolicy),
+      detail: measureDetailFields(payload, budgetPolicy),
       violations: []
     };
     measurement.violations = budgetViolations(measurement, budgetPolicy);
@@ -297,6 +321,19 @@
 
     if (caps.total !== null && Number.isFinite(measurement.total) && measurement.total > caps.total) {
       breaches.push({ path: TOTAL_PATH, measured: measurement.total, cap: caps.total, capName: CAP_TOTAL });
+    }
+
+    /* Detail fields are hidden behind the card, so they are deliberately absent from the
+       default-visible measurement above and were therefore bounded by nothing at all. They are
+       measured against their own cap, and never folded into the card or the total. */
+    if (caps.detail !== null) {
+      var detail = Array.isArray(measurement.detail) ? measurement.detail : [];
+      for (var d = 0; d < detail.length; d++) {
+        var entry = detail[d];
+        if (isPlainObject(entry) && Number.isFinite(entry.chars) && entry.chars > caps.detail) {
+          breaches.push({ path: entry.path, measured: entry.chars, cap: caps.detail, capName: CAP_DETAIL });
+        }
+      }
     }
 
     return breaches;

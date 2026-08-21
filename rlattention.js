@@ -207,6 +207,27 @@
     return isFinite(Date.parse(s));
   }
 
+  /* DISC-009-004. Tier-A refreshes the page's data several times a day; the attention items are
+     recomposed only when the narrative is, so an item's observation can be older than the data
+     shown around it. brief-refresh.mjs never writes the payload (the R-5 boundary), so the answer
+     is not to recompose on the data path but to SAY SO: stale-but-stable is a fair contract only
+     when the reader can see it. Pure and instant-based so the cockpit and the tests share it. */
+  function observationFreshness(observedAt, asOf) {
+    if (!isIsoInstant(observedAt) || !isIsoInstant(asOf)) return "unknown";
+    var observed = Date.parse(observedAt);
+    var current = Date.parse(asOf);
+    if (observed >= current) return "current";
+    return "behind-data";
+  }
+
+  function observationFreshnessNote(observedAt, asOf) {
+    var state = observationFreshness(observedAt, asOf);
+    if (state === "current") return null;
+    if (state === "unknown") return "Observed: not stated by this item.";
+    return "Observed " + observedAt + ", before the " + asOf + " data on this page. The reading still "
+      + "stands as published and is not re-checked until the next full compose.";
+  }
+
   function isIsoDate(v) {
     if (!isNonEmptyString(v)) return false;
     var s = v.trim();
@@ -933,6 +954,8 @@
     /* exported so the authoring instruction's worked example can be proven against the SAME
        predicate the expiry check refuses on, rather than against a restated regex. */
     isIsoInstant: isIsoInstant,
+    observationFreshness: observationFreshness,
+    observationFreshnessNote: observationFreshnessNote,
     /* exported so the authoring instruction can be RENDERED from the same frozen array
        checkVerb refuses on, rather than keeping a second copy that drifts. */
     RESEARCH_VERBS: RESEARCH_VERBS,

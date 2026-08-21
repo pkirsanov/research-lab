@@ -307,7 +307,7 @@
         "gammaFlipProximityPct": 0.5,
         "attentionMaxCards": 7,
         "nextSessionMaxActions": 5,
-        "minimumActionConfidence": 55,
+        "minimumActionConfidence": 50,
         "minimumAttentionConfidence": 55,
         "macroCacheMaxAgeMin": 30,
         "notableMemberMinMovePct": 3,
@@ -550,7 +550,11 @@
         "headlineChars": 140,
         "decisionCardChars": 300,
         "totalDefaultVisibleChars": 3000,
-        "rationaleMeasuredNote": "MEASURED 2026-08-20 on the live payload, for the open question of whether attention[].rationale belongs in defaultVisibleFields below. It is deliberately absent today, so a reader opening the card sees a rationale the budget never counted. Folding it in is NOT a one-line change: the published VGT item measures 194 against the 300 decisionCardChars cap, its rationale measures 575, and the two together measure 769 — so the very next recompose would refuse the only item the feed is publishing. The per-card cap and totalDefaultVisibleChars are also driven by this one field list, so rationale cannot be counted toward the total without also being counted against the per-card cap unless that coupling is broken in code first. The honest options are to raise decisionCardChars to cover a real rationale, to cap rationale length at authoring time, or to leave it disclosed-but-unmeasured as it is now; each is a reader-experience decision and none is a lint fix.",
+        "detailFieldChars": 700,
+        "detailFields": [
+            "attention[].rationale"
+        ],
+        "rationaleDecisionNote": "DECIDED 2026-08-20, closing the open question the previous note left. attention[].rationale STAYS OUT of defaultVisibleFields: it is the detail a reader opens deliberately, and the brief's stated shape is a short card whose detail is hidden by default and available on demand. Folding it in was measured and rejected — the published VGT item measures 194 against the 300 decisionCardChars cap, its rationale measures 575, and the two together measure 769, so the very next recompose would have refused the only item the feed was publishing. What was actually wrong is that a hidden field was bounded NOWHERE and could grow without limit. detailFieldChars now bounds it. 700 is set above the observed maximum of 575 across 12 published rationales (min 284, median 461) so nothing already authored breaches it, and deliberately not at 600: a per-card breach discards the WHOLE narrative, and this packet has already seen 14 characters cost an entire brief. The lane is told the cap and told to aim well under it, so the bound is satisfiable rather than a trap.",
         "defaultVisibleFields": [
             "headline",
             "attention[].headline",

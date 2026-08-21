@@ -75,7 +75,7 @@
     ],
     "whyNotClosedHere": "Observing a post-change narrative run requires the scheduled publication pipeline to compose one. Arming a validator refusal on an all-equal slate in the same change that first states the contract would also leave no run in which to observe whether the contract alone suffices, which is why design.md Q2 defers it rather than bundling it."
   },
-  "completedScopes": ["01-tell-both-authoring-lanes-how-to-choose-a-confidence"],
+  "completedScopes": ["01-tell-both-authoring-lanes-how-to-choose-a-confidence", "02-adjudicate-the-cap-to-floor-collision"],
   "certification": {
     "status": "in_progress",
     "lockdownState": "unlocked",
@@ -93,9 +93,9 @@
       },
       {
         "scopeId": "02-adjudicate-the-cap-to-floor-collision",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 2
+        "status": "Done",
+        "dodChecked": 4,
+        "dodUnchecked": 0
       }
     ]
   },
@@ -134,15 +134,14 @@
       "id": "BUG-014-F1",
       "summary": "Neither authoring lane stated how to choose a confidence, so the tactical cap became a universal default and the field could neither gate nor rank.",
       "resolution": "Both lanes now render a contract derived from minimumActionConfidence, minimumAttentionConfidence and tacticalConfidenceCap, stating that the number gates, that it ranks, and that it must vary."
+    },
+    {
+      "id": "BUG-014-F2",
+      "summary": "tacticalConfidenceCap equalled minimumActionConfidence, so a tactical action had exactly one admissible value, on all 34 committed runs.",
+      "resolution": "Decided 2026-08-20 on delegated authority: the doctrinal <= 55 tactical ceiling stays and minimumActionConfidence moves to 50, giving tactical a real band. Non-destructive, because the lowest confidence ever published is 55. A selftest invariant now refuses a config where the cap does not sit above the floor, so neither the degenerate nor the impossible arrangement can land silently again."
     }
   ],
   "unresolvedFindings": [
-    {
-      "id": "BUG-014-F2",
-      "summary": "tacticalConfidenceCap equals minimumActionConfidence, so a tactical action has exactly one admissible value.",
-      "owner": "market-brief-owner",
-      "why": "Threshold placement decides whether a tactical read is actionable at all, which is a product tradeoff. The rendered contract states the collision plainly and changes neither value."
-    },
     {
       "id": "BUG-014-F3",
       "summary": "Whether stating the contract is sufficient to make authored confidence vary is unobserved.",

@@ -65,6 +65,37 @@ A tactical-horizon item is capped at 70, so it may only occupy 55 to 70; that ba
 ceiling, never a default and never a target.
 ```
 
+## Threshold Decision
+
+Scope 2, decided 2026-08-20 on delegated authority. Measuring `nextSession.actions` by
+horizon separated two causes the filing had conflated:
+
+```
+  nextSession structural   confidences: {56: 15, 57: 19}
+  nextSession swing        confidences: {55: 102}
+  nextSession tactical     confidences: {55: 34}
+```
+
+Structural actions vary. Tactical does not, and cannot: the publish validator refuses
+below `minimumActionConfidence` and above `tacticalConfidenceCap`, both 55, so 55 was the
+only legal value — and a tactical action published on all 34 runs.
+
+`tacticalConfidenceCap` stays 55 because `notes/market-brief.md` states that ceiling twice
+as anti-reactivity doctrine. `minimumActionConfidence` moves to 50. The change excludes
+nothing already published:
+
+```
+  min action confidence ever published: 55
+```
+
+The contract needed no code change to follow it, which is what the generic derivation was
+for:
+
+```
+A tactical-horizon item is capped at 55, so it may only occupy 50 to 55; that band is a
+ceiling, never a default and never a target.
+```
+
 ## Test Evidence
 
 ### Selftest
@@ -77,6 +108,10 @@ Research-Lab self-test: 3200 passed, 0 failed
 
 Exit code 0. Zero `✗` marks in the log. The count moved from 3192 to 3200, which is the
 8 pins this packet adds:
+
+**Re-run after Scope 2 and the sibling decisions: `3212 passed, 0 failed`, validator exit
+0, `validate-tool-experience` exit 0 with `brief-first-load bytes=184621 budget=204800
+result=PASS`.**
 
 ```
 ✓ the confidence contract states the enforced minimumActionConfidence of 55

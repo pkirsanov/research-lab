@@ -5,7 +5,7 @@
   "generatedAt": "2026-08-20T00:00:00Z",
   "stage": "post-implementation",
   "stageNote": "Authored after Scope 1 reached Done, from the Gherkin blocks already present in scopes.md. Every scenarioId, title, scopeId and linkedTests value is TRANSCRIBED from those blocks and from the named selftest assertions that satisfied them, rather than composed here. This manifest reports the plan that was executed and adds no claim of its own. Scope 2 declares no scenario because no work is claimed against it.",
-  "scenarioCount": 5,
+  "scenarioCount": 7,
   "keyShapeNote": "Keyed on `scenarioId`, matching the existing manifests in this repository.",
   "scenarios": [
     {
@@ -79,6 +79,34 @@
       "evidenceRefs": ["report.md#test-evidence", "scopes.md#scope-1"],
       "linkedTests": [
         "scripts/selftest.mjs :: live config has the tactical cap equal to the action floor, and the contract says so plainly instead of telling the author to stay under a number it must also reach"
+      ]
+    },
+    {
+      "scenarioId": "SCN-BUG014-BAND-EXISTS",
+      "title": "The tactical cap sits strictly above the action floor, so a tactical action is not forced onto one value",
+      "scopeId": "02-adjudicate-the-cap-to-floor-collision",
+      "requirement": "FR-014-006",
+      "scope": 2,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "evidenceRefs": ["report.md#threshold-decision", "scopes.md#scope-2"],
+      "linkedTests": [
+        "scripts/selftest.mjs :: the tactical cap leaves a band above the action floor, so a tactical action is not forced onto a single admissible value"
+      ]
+    },
+    {
+      "scenarioId": "SCN-BUG014-CONTRACT-FOLLOWS-CONFIG",
+      "title": "The rendered contract states the new band with no code change",
+      "scopeId": "02-adjudicate-the-cap-to-floor-collision",
+      "requirement": "FR-014-003",
+      "scope": 2,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "evidenceRefs": ["report.md#threshold-decision", "scopes.md#scope-2"],
+      "linkedTests": [
+        "scripts/selftest.mjs :: live config gives tactical a real band and the contract states that band rather than a single value"
       ]
     }
   ]

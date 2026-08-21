@@ -214,13 +214,65 @@ export function attentionCardBudgetInstruction() {
  * and macro. The composer knows the admissible set exactly. Handing it over
  * turns an act of recall into an act of selection, which is the difference
  * between an instruction that usually holds and one that can be satisfied.
+ *
+ * It now also states WHICH of those subjects clear the detection band in the
+ * CURRENT snapshot, because the composer knows that too and never said it. A
+ * candidate whose subject yields no observation is not merely weaker — it is
+ * refused whole by `attachObserved`/`buildAttentionItems` and recorded as an
+ * exclusion, so a lane choosing blind spends its whole budget on items that
+ * cannot publish. The list was also identical on every run, which is a standing
+ * invitation to repeat yesterday's subject: on 2026-08-20, 7 of the 12 scoped
+ * subjects were eligible (4 of them `severe`) and the published feed carried
+ * ONE. The eligible set moves with the market, so stating it is also what makes
+ * one run differ from the next.
+ *
+ * ANNOTATES, never filters. The full scope is still offered, because a filtered
+ * menu would empty on a quiet day and the lane would be handed nothing at all.
+ * A missing or unreadable snapshot degrades to the plain list rather than
+ * throwing, matching `loadSnapshotForGate`'s existing promise.
  */
-export function attentionSubjectMenuInstruction() {
-  return 'Choose every attention subject from exactly this list, and write its ticker verbatim in the '
+export function attentionSubjectMenuInstruction(snapshotOverride) {
+  const base = 'Choose every attention subject from exactly this list, and write its ticker verbatim in the '
     + `headline: ${WATCHLIST_SCOPE.join(', ')}. `
     + 'A subject outside this list is refused whole, so an item about the benchmark, an index or a macro '
     + 'theme reaches no reader however well argued — put that read in recommendations instead. Prefer a '
     + 'subject no published action already covers, because a duplicate is refused too.';
+  const snapshot = snapshotOverride === undefined ? loadSnapshotForGate() : snapshotOverride;
+  const policy = loadJson('market-brief.config.json')['attention-detection-policy/v1'];
+  if (!snapshot || !policy) return base;
+  const tracked = RLATTNGATE.observableSubjects(snapshot);
+  // One entry per scoped subject, each carrying its own state: the uniqueness pin forbids a
+  // second list, and annotating in place says more than two lists did.
+  const annotated = [];
+  let eligibleCount = 0;
+  for (const subject of WATCHLIST_SCOPE) {
+    const observation = RLATTNGATE.observeGate({ subject, tracked: tracked[subject], policy });
+    if (observation && observation.severity) {
+      annotated.push(`${subject} (${observation.severity})`);
+      eligibleCount += 1;
+    } else {
+      annotated.push(`${subject} (no observation)`);
+    }
+  }
+  const preamble = 'Choose every attention subject from exactly this list, and write its ticker verbatim '
+    + 'in the headline. Each subject carries the severity the gate observed for it as of the current '
+    + `snapshot: ${annotated.join(', ')}. `;
+  const closing = 'A subject outside this list is refused whole, so an item about the benchmark, an index '
+    + 'or a macro theme reaches no reader however well argued — put that read in recommendations instead. '
+    + 'Prefer a subject no published action already covers, because a duplicate is refused too. This '
+    + 'reading is recomputed each run and moves with the market, so it is also the reason one window\'s '
+    + 'feed should not read like the last.';
+  if (eligibleCount === 0) {
+    // Deliberately NOT the annotated list: offering twelve subjects whose every choice would be
+    // refused is a menu that cannot be satisfied, which is the failure this branch exists to avoid.
+    return 'NO scoped subject clears the detection band as of the current snapshot, so every candidate '
+      + 'would be refused for want of an observation. Author no attention items this window and put the '
+      + 'session\'s reads in recommendations instead; an empty feed is the correct outcome here, and the '
+      + 'publication path states a quiet window to the reader in its own words.';
+  }
+  return `${preamble}Choose only from the subjects carrying a severity. One marked "no observation" has `
+    + 'nothing for the gate to attach, so an item on it is refused and recorded as an exclusion however '
+    + `well argued. ${closing}`;
 }
 
 /**
@@ -331,6 +383,30 @@ export function recommendationConfidenceContractInstruction(thresholdsOverride) 
     + `${tactical} A swing or structural call resting on corroborated evidence belongs clearly above the floor, `
     + 'and a thin one belongs below it as a watch idea instead of an action. Do not give two items the same '
     + 'confidence unless you genuinely cannot separate them.';
+}
+
+/**
+ * The DETAIL budget, for the field the card budget deliberately does not count.
+ *
+ * `attention[].rationale` is hidden behind the card by design, so it is absent
+ * from defaultVisibleFields and therefore bounded by nothing at all. Twelve
+ * published rationales measured 284 to 575 characters with no cap in sight. The
+ * cap is stated to the author rather than only enforced, because a budget breach
+ * discards the whole narrative and this packet has already seen fourteen
+ * characters cost an entire brief.
+ */
+export function attentionRationaleBudgetInstruction() {
+  const policy = loadJson('market-brief.config.json')['output-budget/v1'];
+  const cap = policy.detailFieldChars;
+  const fields = (policy.detailFields || []).map((field) => field.replace('attention[].', ''));
+  if (!Number.isFinite(cap) || fields.length === 0) {
+    throw new Error('RLATTN-DETAIL-BUDGET: the detail budget the publish gate enforces is unreadable');
+  }
+  return `Keep ${fields.join(' and ')} under ${cap} characters each. That field sits behind the card `
+    + 'rather than on it, so it does not consume the per-card budget, but it is still published and is '
+    + 'still bounded. Aim for two or three sentences: state why the reader is being interrupted and what '
+    + 'the evidence is, not a full argument. An item over the cap is refused and the whole narrative goes '
+    + 'with it.';
 }
 
 function loadJson(relPath) {

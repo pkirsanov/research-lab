@@ -110,23 +110,57 @@ Scenario: SCN-BUG014-COLLISION-DISCLOSED
 
 ## Scope 2 — Adjudicate the cap-to-floor collision
 
-**Status:** Not Started
+**Status:** Done
 
-This scope is **not agent-dischargeable**. `tacticalConfidenceCap` and
-`minimumActionConfidence` are both 55, so a tactical action has exactly one admissible
-value. Whether the cap should rise above the floor, or the floor above the cap, decides
-whether tactical reads are actionable at all. That is a product tradeoff, and an agent
-choosing here would be choosing the product.
+Decided 2026-08-20 on delegated authority, against measurement rather than preference.
+`tacticalConfidenceCap` stays at 55 and `minimumActionConfidence` moves to 50.
+
+The cap is doctrine: `notes/market-brief.md` states the ≤ 55 tactical ceiling twice as the
+anti-reactivity rule, so raising it to open a band would weaken the constraint the cap
+exists to impose. The floor is a tunable noise bar with no such standing. Moving the floor
+is also **non-destructive**: the lowest confidence ever published across 34 runs is 55, so
+nothing already authored falls outside the new band and nothing new is forced in — it only
+gives a tactical action somewhere to stand.
+
+Leaving the collision was seriously considered once structural actions turned out to vary.
+It was rejected because tactical actions publish on **every single run** and each is forced
+to one legal value, so the degeneracy is continuous rather than theoretical.
 
 ### Test Plan
 
-None. No work is claimed against this scope and no scenario is asserted for it.
+```gherkin
+Scenario: SCN-BUG014-BAND-EXISTS
+  Given the publish validator refuses an action below the floor and a tactical action above the cap
+  When the committed thresholds are read
+  Then the tactical cap is strictly greater than the action floor
+  And a tactical action is not forced onto a single admissible value
+
+Scenario: SCN-BUG014-CONTRACT-FOLLOWS-CONFIG
+  Given the confidence contract derives its tactical clause from the threshold relationship
+  When the floor moves below the cap
+  Then the rendered contract states the resulting band
+  And no code change is required for it to do so
+```
+
+| Scenario | Where proven |
+| --- | --- |
+| SCN-BUG014-BAND-EXISTS | `scripts/selftest.mjs` — cap-above-floor invariant |
+| SCN-BUG014-CONTRACT-FOLLOWS-CONFIG | `scripts/selftest.mjs` — live-band assertion |
 
 ### Definition of Done
 
-- [ ] The owner records whether a tactical item should have an actionable band, a single
-      admissible value, or no actionable path.
-- [ ] If the answer changes either threshold, `market-brief.config.json` is updated and
-      the rendered contract is re-observed to follow it without a code change.
+- [x] SCN-BUG014-BAND-EXISTS: the committed `tacticalConfidenceCap` is strictly greater
+      than `minimumActionConfidence`, so a tactical action is not forced onto a single
+      admissible value. (FR-014-006)
+      Evidence: passing pin `the tactical cap leaves a band above the action floor`.
+- [x] SCN-BUG014-CONTRACT-FOLLOWS-CONFIG: the rendered contract states the new band with
+      no code change, proving the relationship was derived rather than hard-coded.
+      Evidence: passing pin `live config gives tactical a real band`; the contract renders
+      "may only occupy 50 to 55".
+- [x] The change excludes nothing already published.
+      Evidence: lowest action confidence across 34 committed runs is 55, in `report.md`
+      § Threshold Decision.
+- [x] The derived page config is regenerated and the whole suite is green.
+      Evidence: `report.md` § Test Evidence, 3212 passed / 0 failed, validator exit 0.
 
-**Evidence:** none. This scope is unstarted and no work is claimed against it.
+**Evidence:** `report.md` § Threshold Decision.

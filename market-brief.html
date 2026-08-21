@@ -1565,6 +1565,17 @@
                         .className = "attn-note";
                 }
 
+                /* DISC-009-004: the data on this page refreshes several times a day, the decision
+                   list only when the narrative is recomposed. Say when they disagree. */
+                if (typeof RLATTN.observationFreshnessNote === "function") {
+                    var freshNote = RLATTN.observationFreshnessNote(item.observedAt, (PAYLOAD && PAYLOAD.asOf) || null);
+                    if (freshNote) {
+                        attnField(body, "p", "observation-age", freshNote,
+                            "How old this reading is relative to the data shown elsewhere on the page. Reading now: the market data refreshes more often than the decision list, so a reading can predate the numbers beside it; it is labelled rather than silently refreshed or dropped.")
+                            .className = "attn-note";
+                    }
+                }
+
                 /* An authored deep link is untrusted input. Only a same-document
                    page reference is followed; anything else is shown as text. */
                 if (typeof item.deepLink === "string" && /^[A-Za-z0-9._-]+\.html(#[A-Za-z0-9._-]*)?$/.test(item.deepLink)) {

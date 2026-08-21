@@ -84,3 +84,27 @@ Measured over committed blobs, not asserted:
 The slate itself does vary after Feature 026: 13 identical runs from 2026-08-14 to
 2026-08-17 became 7 transitions across the following 21 runs. So F-026-2 is fixed and
 this is a separate, surviving invariance confined to `confidence`.
+
+## Correction Recorded 2026-08-20, After Filing
+
+The filing measured `recommendations` only. Measuring `nextSession.actions` as well
+refutes the broader reading that the author never differentiates:
+
+| `nextSession` horizon | Confidences across 34 runs |
+|---|---|
+| structural | **56 (x15), 57 (x19)** |
+| swing | 55 (x102) |
+| tactical | 55 (x34) |
+
+Structural actions **do** vary. So the author differentiates when free to, and two
+distinct causes were being conflated:
+
+1. **Anchoring** on `recommendations` and swing actions, where 55 to 100 was available
+   and 55 was chosen anyway. That is what the rendered contract addresses.
+2. **Config necessity** on tactical actions. The publish validator refuses below
+   `minimumActionConfidence` and above `tacticalConfidenceCap`, and both were 55, so 55
+   was the ONLY legal value. Every one of the 34 runs published exactly one tactical
+   action, so the collision was biting continuously rather than hypothetically.
+
+The original claim "every recommendation carries exactly 55" stands for the
+`recommendations` array. The implication that the author cannot differentiate does not.

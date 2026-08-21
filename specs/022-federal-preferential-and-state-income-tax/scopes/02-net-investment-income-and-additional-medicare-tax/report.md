@@ -1736,3 +1736,99 @@ one row is inserted; the numbers above are from that run.
 this same tree was `3154 passed, 1 failed` — that is F-02-D, and it is now closed by
 construction rather than by deferring the work.
 
+### The no-edit property, derived from history rather than asserted
+
+The sibling Definition of Done item asks that no assertion outside this scope's
+ledger entries and amendments was edited, relaxed or deleted. Every prior pass
+recorded that property as an assertion of the author, which is exactly the shape
+the item's own closing sentence refuses. It is derived here instead, from the
+only channel that can falsify it: the deletion set of this scope's commits.
+
+Three commits touch source in this scope. Their whole footprint over the five
+opened files is below, and the **deletion** column is the one that matters —
+an insertion cannot relax an assertion that is still present.
+
+```text
+c580636d6  scripts/selftest.mjs              170 insertions(+), 1 deletion(-)
+64f50a325  scripts/selftest.mjs               37 insertions(+), 13 deletions(-)
+4558c0f3c  tests/lifetime-tax-route.spec.mjs  14 insertions(+), 2 deletions(-)
+```
+
+All sixteen deleted lines are accounted for individually, and none is an
+assertion outside this scope's entitlement:
+
+```text
+c580636d6 (1)  -  /* SUP-022-20. TP-03-05: every declared band edge renders as a step. The expected edge set is
+64f50a325 (13) -  /* The supersession ledger is closed: every delivered marker maps to a ledger row. */
+               -  const ledgerRows = new Set((specText.match(/^\| (SUP-022-\d{2}) \|/gm) || [])
+               -    .map((row) => /SUP-022-\d{2}/.exec(row)[0]));
+               -  const ledgerList = Array.from(ledgerRows).sort();
+               -  /* Two Scope 02 replacements were delivered without their markers before this scope began. The
+               -     gap is named individually here rather than tolerated by a loose comparison, so a third
+               -     undelivered marker, or a delivered marker with no ledger row, fails immediately. The ids are
+               -     assembled from parts so that naming them here does not make the scanner see them as
+               -     delivered. */
+               -  const MARKER_PREFIX = 'SUP-022-';
+               -  const KNOWN_UNMARKED_LEDGER_ROWS = [MARKER_PREFIX + '18', MARKER_PREFIX + '19'];
+               -    && JSON.stringify(unmarkedLedgerRows) === JSON.stringify(KNOWN_UNMARKED_LEDGER_ROWS)
+               -  'TP-05-22: every SUP-022 marker delivered in the source maps to a ledger row, every ledger row except the two pre-exi
+4558c0f3c (2)  -  await links.nth(3).click();
+               -  await expect(page.locator('#power-bracket-detail')).toBeFocused();
+```
+
+Read row by row:
+
+* The single deletion in `c580636d6` is a **comment header**, not an assertion.
+  The declared-edge region opened `SUP-022-20.` with a period and carried no
+  `shape=` token; it was completed to the declaration form the other twenty
+  carry, inside a region this scope owns. No condition, no message, no operand.
+* The thirteen in `64f50a325` are the whole of the TP-05-22 block that
+  `bubbles.plan` restated — a **recorded amendment**, committed separately at
+  `946026a9e` as the ledger change and landed here as the code change. The
+  deleted form pinned its tolerated marker gap to the literal pair
+  `[…'18', …'19']` under `JSON.stringify`; the replacement derives that
+  tolerance from the ledger's own `Disposition` column and additionally asserts
+  a direction the pinned form never did — that a row dispositioned marker
+  forbidden carries no marker anywhere. Strictly stronger, and amended rather
+  than self-authorised.
+* The two in `4558c0f3c` are **exactly** SUP-022-19's superseded target: the
+  positional `links.nth(3)` click and the focus expectation that followed it.
+  That is the ledger entry's stated content, deleted because it was replaced.
+
+Nothing else was removed **by this scope**. The three commits above are its
+whole source footprint, and the two spec files it did not commit to — the
+foundation and marginal specs — report **zero** deletions across the entire
+feature-family window. So no sourcing rule, tolerance, determinism, privacy,
+zero-network or Feature 008 canary is in this scope's deletion set, because that
+set is these sixteen lines and no others.
+
+**A first draft of this paragraph misattributed two lines, and the correction is
+recorded rather than made silently.** The federal spec also carries two deleted
+lines across the feature-family window, and the draft claimed them for
+SUP-022-15, which this scope owns. That is false. `git log` names their commits
+as `b7564960a` and `09dceb6fb`, both **Scope 01** commits, and both deletions are
+comment prose rather than assertions:
+
+```text
+-     household and the zero-valued-headline clause; shape=partition. The pack now carries the
+-     a gain stacked on top of ordinary taxable income. */
+```
+
+The corrected reading is stronger for this item, not weaker: this scope deleted
+**nothing** in the federal spec, so its deletion set is the sixteen lines above
+and is confined to two files.
+
+**The forbidden marker.** `SUP-022-18` appears nowhere in the five opened files.
+That is not asserted here — TP-02-22 reports `escaped []` and TP-05-22's
+`forbiddenButMarked` clause fails if a row the ledger dispositions marker
+forbidden ever acquires one. Both are green in the same run.
+
+**The two proving rows are now written and green**, which is the condition the
+item's own closing sentence set:
+
+```text
+  ✓ TP-02-22: … (delivered 21, expected 21, shapeless [], escaped [])
+  ✓ TP-02-23: … each against a mutated copy while the shipped tree passes all three
+Research-Lab self-test: 3175 passed, 0 failed
+```
+

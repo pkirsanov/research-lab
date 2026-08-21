@@ -523,11 +523,26 @@ an absent test does not satisfy RED.
     Feature 021 pack for byte-identity. Two first-draft misses are recorded with
     the row rather than quietly corrected.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-02-18 browser command · **Evidence:** `report.md#tp-02-24`
-- [ ] No assertion outside this scope's ledger entries and amendments was edited,
+- [x] No assertion outside this scope's ledger entries and amendments was edited,
       relaxed or deleted, no Simple-markup clause was relaxed under SUP-022-19, no
       `SUP-022-18` marker was attached anywhere, and no sourcing rule, tolerance,
       determinism, privacy, zero-network or Feature 008 canary was touched.
-  - **Open:** nothing was edited, but the TP-02-22 and TP-02-23 conformance rows
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-22`, `report.md#tp-02-23`, `report.md#the-no-edit-property-derived-from-history-rather-than-asserted`
+  - **Closed 2026-08-20 (fifth pass).** The two proving rows the item's own closing
+    sentence asked for are written and green — TP-02-22 reports `delivered 21,
+    expected 21, shapeless [], escaped []` and TP-02-23 discriminates all three of
+    its cases — and the no-edit property itself is now **derived from history
+    rather than asserted by the author**, which is the shape the item's fourth-pass
+    note refused. This scope's whole source footprint is three commits; their
+    combined deletion set is sixteen lines, each attributed individually: one
+    comment header completed inside the marked region this scope owns, thirteen
+    inside the TP-05-22 block `bubbles.plan` restated under a recorded amendment,
+    and two that are exactly SUP-022-19's superseded target. `SUP-022-18` appears
+    nowhere, which TP-02-22's `escaped []` and TP-05-22's `forbiddenButMarked`
+    clause both fail on. A first-draft misattribution of two federal-spec deletions
+    is recorded with the evidence rather than corrected in silence.
+  - *History retained.* **Open (first pass):** nothing was edited, but the TP-02-22
+    and TP-02-23 conformance rows
     that would prove it were not written. Both rows are now reconciled against the
     tree — TP-02-22 derives its expected marker set from the ledger instead of
     pinning a stale total, and TP-02-23's fourth case is retargeted onto

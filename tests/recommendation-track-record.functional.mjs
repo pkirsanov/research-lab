@@ -29,6 +29,18 @@ import path from 'node:path';
 import test from 'node:test';
 
 import { buildPublishSet } from '../scripts/brief-publication.mjs';
+import {
+    CALENDAR_COVERAGE_CODE,
+    CALENDAR_COVERAGE_REASON,
+    SESSION_PREDICATE_CODE,
+    SESSION_PREDICATE_KEY,
+    advanceSessions,
+    earlyCloseSessionsIn,
+    loadCalendar,
+    readCalendar,
+    sessionDateForEpoch,
+    sessionsBy,
+} from '../scripts/brief-resolve-outcomes.mjs';
 import { loadInstrumentUniverse, recommendationRowsFromPayload } from '../scripts/recommendation-body.mjs';
 import { CLAIM_NOT_EVALUABLE_FIELD, attachClaimRefs, mintClaimRecords } from '../scripts/recommendation-claim-mint.mjs';
 import { buildRun } from './fixtures/feature-002/history/history-fixture-builder.mjs';
@@ -1085,5 +1097,138 @@ test('T-02-F3: a refused mint degrades to an event without claimRef, carrying it
             'freshly refused row',
         );
     }
+});
+
+/* ── Scope 04, increment 1 ────────────────────────────────────────────────────────────────
+   Increment 1 lands the calendar-session substrate ONLY: the session predicate, session
+   arithmetic, the bar-to-session mapping and the early-close flag. The predicate evaluators,
+   the as-of fence, the data-quality gates, the outcome magnitude and the reducer bridge are
+   later increments, so both rows carry an `(increment 1)` marker and neither claims its Test
+   Plan row whole. Every date below is read from a committed artifact; nothing reads a clock. */
+
+const UTC_MIDNIGHT = (date) => Date.parse(`${date}T00:00:00.000Z`);
+const shiftDays = (date, days) => new Date(UTC_MIDNIGHT(date) + days * 86400000).toISOString().slice(0, 10);
+
+test('T-04-F1 (increment 1): a trading session is a non-null regular block, and horizon arithmetic counts sessions rather than days', () => {
+    const calendar = loadCalendar(REPO_ROOT);
+    const sessions = sessionsBy(calendar, SESSION_PREDICATE_KEY);
+    assert.equal(sessions.ok, true, 'the one permitted predicate must resolve');
+
+    /* THE PREDICATE, derived from the rows AND cross-checked against the count the design
+       records — so a calendar edit and a predicate regression cannot cancel each other out. */
+    const byRegularBlock = calendar.rows.filter((row) => row.regular !== null).map((row) => row.tradingDate);
+    const byDateState = calendar.rows.filter((row) => row.dateState === 'regular').map((row) => row.tradingDate);
+    assert.deepEqual([...sessions.tradingDates], byRegularBlock, 'the predicate is the regular block');
+    assert.equal(sessions.tradingDates.length, 251, '2026 carries 251 sessions');
+    assert.equal(byDateState.length, 249, 'and the dateState rule finds 249 — the two it drops are genuine sessions');
+
+    /* AND THE REJECTED RULE REFUSES rather than merely going unused. */
+    assertRowRefusal(
+        sessionsBy(calendar, 'date-state'),
+        { code: SESSION_PREDICATE_CODE, reason: 'session-predicate-not-allowed', field: 'predicateKey' },
+        'a dateState-keyed session predicate',
+    );
+
+    /* SESSIONS, NOT DAYS — across a weekend and across a holiday. Each case pins the row day
+       arithmetic would have landed on, which the calendar itself marks closed. */
+    const stateOn = (date) => calendar.rows.find((row) => row.tradingDate === date).dateState;
+
+    assert.equal(advanceSessions(calendar, '2026-01-02', 1).tradingDate, '2026-01-05', 'a Friday next-session claim resolves on Monday');
+    assert.equal(stateOn(shiftDays('2026-01-02', 1)), 'weekend', 'where day arithmetic would have resolved on a closed row');
+
+    assert.equal(advanceSessions(calendar, '2026-01-16', 1).tradingDate, '2026-01-20', 'a claim spanning a holiday resolves one session later than day arithmetic says');
+    assert.equal(stateOn('2026-01-19'), 'holiday', 'and the row it steps over is the holiday itself');
+
+    /* AN EARLY CLOSE RESOLVES ON ITSELF AND IS FLAGGED, never skipped. This is the exact miss
+       the dateState rule produces, and it is a silent one: it resolves three sessions late. */
+    const resolved = advanceSessions(calendar, '2026-11-25', 1);
+    assert.equal(resolved.tradingDate, '2026-11-27', 'the next session after 2026-11-25 IS the early close');
+    assert.equal(byDateState.includes('2026-11-27'), false, 'which the dateState rule does not even list');
+    assert.equal(byDateState.filter((date) => date > '2026-11-25')[0], '2026-11-30', 'so it would have resolved three sessions late');
+    assert.deepEqual([...earlyCloseSessionsIn(calendar, ['2026-11-25', resolved.tradingDate])], ['2026-11-27'], 'and the early close is flagged for provenance');
+    assert.deepEqual([...earlyCloseSessionsIn(calendar, byRegularBlock)], ['2026-11-27', '2026-12-24'], 'exactly two 2026 sessions closed early');
+    for (const date of ['2026-11-27', '2026-12-24']) {
+        assert.equal(stateOn(date), 'early-close', 'the span-derived flag agrees with the label it never reads');
+    }
+
+    /* THE BAR-TO-SESSION MAPPING over a real committed series. Acceptance rests on exact
+       `regular.startUtc` equality, so a bar stamped at any other instant cannot map. */
+    const bars = JSON.parse(readFileSync(path.join(REPO_ROOT, 'data', 'bars', 'SPY.json'), 'utf8'));
+    let mapped = 0;
+    for (const row of bars.rows) {
+        const utcDate = new Date(row.t).toISOString().slice(0, 10);
+        if (utcDate < calendar.coverageStart || utcDate > calendar.coverageEnd) continue;
+        const session = sessionDateForEpoch(calendar, row.t);
+        assert.equal(session.ok, true, `the committed bar at ${utcDate} must map to a session`);
+        assert.equal(session.tradingDate, utcDate, 'and to its own UTC calendar date');
+        mapped += 1;
+    }
+    assert.equal(mapped > 0, true, 'the committed series must carry in-window bars for this to mean anything');
+
+    const openOf = (date) => Date.parse(calendar.rows.find((row) => row.tradingDate === date).regular.startUtc);
+    assertRowRefusal(
+        sessionDateForEpoch(calendar, openOf('2026-01-05') + 1),
+        { code: SESSION_PREDICATE_CODE, reason: 'session-open-mismatch', field: 'observation.t' },
+        'one millisecond past the regular open',
+    );
+    assertRowRefusal(
+        sessionDateForEpoch(calendar, Date.parse('2026-01-03T14:30:00.000Z')),
+        { code: SESSION_PREDICATE_CODE, reason: 'not-a-trading-session', field: 'observation.t' },
+        'a weekend instant at the usual open time',
+    );
+});
+
+test('T-04-F2 (increment 1): RTR-CALENDAR-COVERAGE refuses past the committed window and extrapolates nothing', () => {
+    const calendar = loadCalendar(REPO_ROOT);
+    const sessions = sessionsBy(calendar, SESSION_PREDICATE_KEY).tradingDates;
+    const lastSession = sessions[sessions.length - 1];
+
+    /* THE REASON IS THE SHIPPED ONE. A locally-invented reason would be rejected by
+       `buildResolution` against every closure event, so membership is asserted, not assumed. */
+    assert.equal(claims.RESOLVER_NOT_EVALUABLE_REASONS.includes(CALENDAR_COVERAGE_REASON), true, 'the coverage reason is a shipped resolver reason');
+
+    const beyond = advanceSessions(calendar, lastSession, 1);
+    assertRowRefusal(beyond, { code: CALENDAR_COVERAGE_CODE, reason: CALENDAR_COVERAGE_REASON, field: 'resolutionDate' }, 'one session past the last');
+    assert.equal(Object.prototype.hasOwnProperty.call(beyond, 'tradingDate'), false, 'and no date is extrapolated past the window');
+
+    /* THE OVERRUN IS PAIRED WITH A HORIZON THAT FITS. Without the pair, an implementation that
+       refused every multi-session horizon would pass this row. */
+    const fifthFromLast = sessions[sessions.length - 5];
+    assert.equal(advanceSessions(calendar, fifthFromLast, 4).tradingDate, lastSession, 'a four-session horizon that fits resolves');
+    assertRowRefusal(
+        advanceSessions(calendar, fifthFromLast, 5),
+        { code: CALENDAR_COVERAGE_CODE, reason: CALENDAR_COVERAGE_REASON, field: 'resolutionDate' },
+        'one session too far',
+    );
+
+    /* OUTSIDE THE WINDOW ON EITHER SIDE, distinguished by its FIELD: the sessions between an
+       out-of-window start and the window are unknown rather than absent, which is a different
+       fact from a horizon that simply overran the end. */
+    for (const start of [shiftDays(calendar.coverageEnd, 1), shiftDays(calendar.coverageStart, -1)]) {
+        assertRowRefusal(
+            advanceSessions(calendar, start, 1),
+            { code: CALENDAR_COVERAGE_CODE, reason: CALENDAR_COVERAGE_REASON, field: 'fromDate' },
+            `starting from ${start}`,
+        );
+    }
+
+    /* AN UNCOVERED OBSERVATION REFUSES AS COVERAGE, not as a session-predicate failure: a bar
+       the calendar does not cover is a different fact from one stamped at a non-open instant. */
+    assertRowRefusal(
+        sessionDateForEpoch(calendar, Date.parse(`${shiftDays(calendar.coverageEnd, 1)}T14:30:00.000Z`)),
+        { code: CALENDAR_COVERAGE_CODE, reason: CALENDAR_COVERAGE_REASON, field: 'observation.t' },
+        'an observation past coverageEnd',
+    );
+
+    /* A MALFORMED CALENDAR THROWS instead of closing a claim not-evaluable. Scoring around a
+       broken committed substrate would report a claim as unscoreable when the defect is ours. */
+    const shuffled = structuredClone(calendar);
+    [shuffled.rows[10], shuffled.rows[11]] = [shuffled.rows[11], shuffled.rows[10]];
+    assert.throws(() => readCalendar(JSON.stringify(shuffled)), /not strictly ascending/, 'out-of-order rows are a substrate defect');
+    assert.throws(
+        () => readCalendar(JSON.stringify({ ...calendar, contractVersion: 'xnys-calendar/v2' })),
+        /contractVersion/,
+        'an unknown contract version is a substrate defect',
+    );
 });
 

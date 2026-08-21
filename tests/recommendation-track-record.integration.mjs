@@ -19,11 +19,18 @@
  */
 
 import assert from 'node:assert/strict';
-import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 
 import { buildPublishSet } from '../scripts/brief-publication.mjs';
+import {
+    fenceObservations,
+    loadCalendar,
+    outcomeValueFor,
+    readBars,
+    recordResolution,
+} from '../scripts/brief-resolve-outcomes.mjs';
 import { loadInstrumentUniverse, recommendationRowsFromPayload } from '../scripts/recommendation-body.mjs';
 import { attachClaimRefs } from '../scripts/recommendation-claim-mint.mjs';
 import { buildRun } from './fixtures/feature-002/history/history-fixture-builder.mjs';
@@ -32,7 +39,10 @@ import {
     REPO_ROOT,
     assertBytesUnchanged,
     committedSeries,
+    foundationSourceText,
+    loadClaimFixture,
     loadClaimsModule,
+    mintInputFrom,
     readBytes,
     withDisposableStore,
 } from './recommendation-track-record.support.mjs';
@@ -241,6 +251,193 @@ test('T-02-I2: a mixed partition round-trips append-only with the prior bytes by
             false,
             'a null-filling rewrite must NOT satisfy the prefix assertion',
         );
+    });
+
+    assertBytesUnchanged(committedBefore, readBytes(PARTITION_ABS), `${PARTITION_REL} bytes`);
+});
+
+/* ── Scope 04, increment 3 ────────────────────────────────────────────────────────────────
+   The resolver's write path against a REAL filesystem, in a disposable root outside the
+   repository. Two properties only a real store can show: what happens when the same claim is
+   resolved twice, and that scope 02's gate runs before the resolution is inspected at all.
+
+   The predicate evaluators and the reducer bridge are later increments, so the closure verdict
+   and the lifecycle ids arrive as inputs and both rows carry an `(increment 3)` marker. */
+
+const BARS_FIXTURE_DIR = path.join(REPO_ROOT, 'tests', 'fixtures', 'recommendation-track-record', 'bars');
+const ENTRY_SESSION = '2026-07-28';
+const RESOLUTION_SESSION = '2026-07-29';
+
+function fixtureBarsText(symbol) {
+    return readFileSync(path.join(BARS_FIXTURE_DIR, `${symbol}.json`), 'utf8');
+}
+
+/** Fences for one fixture series, keyed by `seriesRef` exactly as `subjectReturn` reads them. */
+function fencesFor(barsText) {
+    const bars = readBars(barsText);
+    return new Map([[claims.seriesRefFor(bars.sym), fenceObservations(loadCalendar(REPO_ROOT), bars, RESOLUTION_SESSION)]]);
+}
+
+/** A minted claim over a fixture series, on the two fixture sessions. */
+function fixtureClaim(symbol, priceBasis) {
+    const fixture = structuredClone(loadClaimFixture('evaluable-instrument-add'));
+    fixture.input.action.claim.resolvesTo = [symbol];
+    fixture.input.action.claim.weighting = 'primary-only';
+    fixture.input.action.claim.priceBasis = priceBasis;
+    fixture.input.binding.entryDate = ENTRY_SESSION;
+    fixture.input.binding.resolutionDate = RESOLUTION_SESSION;
+    const minted = claims.mintClaim(mintInputFrom(fixture, { committedSeries: [symbol] }));
+    assert.equal(minted.ok && minted.claim.notEvaluable, null, `${symbol}: the fixture claim must mint evaluable`);
+    return minted.claim;
+}
+
+function resolverInput(claim, outcome, overrides = {}) {
+    return {
+        claim,
+        calendar: loadCalendar(REPO_ROOT),
+        closureVocabulary: claims.readClosureEventVocabulary(foundationSourceText()),
+        closureEventType: 'satisfied',
+        reasonCode: 'predicate-satisfied',
+        outcome,
+        eventId: 'sha256:'.concat('7'.repeat(64)),
+        lifecycleBinding: { originRecommendationKey: 'sha256:'.concat('8'.repeat(64)) },
+        ...overrides,
+    };
+}
+
+/** A committed ledger row re-pointed at the claim under resolution. */
+function rowFor(claim) {
+    const row = nonEmptyLines(readBytes(PARTITION_ABS))
+        .map((line) => JSON.parse(line))
+        .find((candidate) => candidate.contractVersion === claims.ROW_CONTRACT_V2);
+    assert.ok(row, 'the committed partition must carry a v2 row');
+    return { ...row, [claims.CLAIM_REF_FIELD]: claim.claimHash };
+}
+
+test('T-04-I4 (increment 3): re-resolving is a byte-identical no-op, a changed unhashed field conflicts, and a moved basis lands at a new address', () => {
+    const committedBefore = readBytes(PARTITION_ABS);
+    const claim = fixtureClaim('DVG', 'adjusted-close');
+    const outcome = outcomeValueFor(claim, fencesFor(fixtureBarsText('DVG')));
+    assert.equal(outcome.ok, true, `the fixture must resolve: ${JSON.stringify(outcome.error ?? outcome.closure)}`);
+    const row = rowFor(claim);
+
+    withDisposableStore(({ root, ports }) => {
+        const storeDir = path.join(root, claims.RESOLUTION_STORE_DIR);
+        const first = recordResolution(resolverInput(claim, outcome), row, ports);
+        assert.equal(first.ok, true, `the first write must succeed: ${JSON.stringify(first.error)}`);
+        assert.equal(first.written, true, 'and it must actually write');
+        assert.equal(first.reused, false);
+
+        const objectPath = path.join(root, first.path);
+        const bytesAfterFirst = readBytes(objectPath);
+        const digestAfterFirst = claims.sha256Hex(bytesAfterFirst);
+        assert.equal(readdirSync(storeDir).length, 1, 'exactly one object on disk');
+
+        /* HALF ONE — THE BYTE-IDENTICAL NO-OP. A second pass over unchanged inputs recomputes one
+           address AND one byte string, so the store reuses rather than rewrites. This is what
+           makes a resolver safe to re-run, and it holds only because `resolutionHash` covers the
+           hashed terms and the provenance block carries no run-scoped key. */
+        const second = recordResolution(resolverInput(claim, outcome), row, ports);
+        assert.equal(second.ok, true, `the repeat must not refuse: ${JSON.stringify(second.error)}`);
+        assert.equal(second.path, first.path, 'one content address');
+        assert.equal(second.written, false, 'nothing is rewritten');
+        assert.equal(second.reused, true, 'the identical bytes are reused');
+        assert.equal(claims.sha256Hex(readBytes(objectPath)), digestAfterFirst, 'and the file is byte-identical');
+        assert.equal(readdirSync(storeDir).length, 1, 'still exactly one object');
+
+        /* HALF TWO — A CHANGED UNHASHED FIELD IS A CONFLICT. `eventId` sits outside the hash, so
+           a re-emit lands at the SAME address with DIFFERENT bytes. That is the one case
+           `RTR-RESOLUTION-CONFLICT` exists for, and it must refuse rather than overwrite: the
+           first record is the one an auditor already saw. */
+        const reEmitted = recordResolution(
+            resolverInput(claim, outcome, { eventId: 'sha256:'.concat('9'.repeat(64)) }),
+            row,
+            ports,
+        );
+        assert.equal(reEmitted.ok, false, 'a byte-changing write at a taken address must refuse');
+        assert.equal(reEmitted.error.code, claims.RESOLUTION_CONFLICT_CODE, 'code');
+        assert.equal(reEmitted.error.reason, 'resolution-conflict-refused', 'reason');
+        assert.equal(reEmitted.error.path, first.path, 'and it names the address it refused');
+        assert.equal(claims.sha256Hex(readBytes(objectPath)), digestAfterFirst, 'the on-disk bytes are unchanged');
+        assert.equal(readdirSync(storeDir).length, 1, 'and nothing new was created');
+
+        /* HALF THREE — A MOVED BASIS IS A NEW ADDRESS, NOT A CONFLICT. The rewritten series doubles
+           both closes, so the RETURN is bit-identical and every other hashed term is unchanged:
+           without the fingerprint in hashed provenance this would have been the no-op above and
+           BUG-012's retroactive `ac` rewrite would have been invisible. With it, the record lands
+           at a second address and both survive — which is detection, not refusal. */
+        const doubled = JSON.parse(fixtureBarsText('DVG'));
+        for (const bar of doubled.rows) bar.ac *= 2;
+        const rewritten = outcomeValueFor(claim, fencesFor(JSON.stringify(doubled)));
+        assert.equal(rewritten.outcomeValue, outcome.outcomeValue, 'the doubling must leave the return bit-identical');
+        assert.notEqual(rewritten.basisFingerprint, outcome.basisFingerprint, 'while the values read did move');
+
+        const moved = recordResolution(resolverInput(claim, rewritten), row, ports);
+        assert.equal(moved.ok, true, `a moved basis is recorded, not refused: ${JSON.stringify(moved.error)}`);
+        assert.notEqual(moved.path, first.path, 'at a SECOND content address');
+        assert.equal(moved.written, true, 'written rather than reused');
+        assert.equal(readdirSync(storeDir).length, 2, 'so both readings survive on disk');
+        assert.equal(claims.sha256Hex(readBytes(objectPath)), digestAfterFirst, 'and the first record is untouched');
+
+        /* ANTI-VACUITY for half three: the two records agree on every OTHER hashed term, so the
+           second address is caused by the fingerprint alone and not by a value that also drifted. */
+        const [a, b] = [first.resolution, moved.resolution];
+        assert.equal(a.outcomeValue, b.outcomeValue);
+        assert.equal(a.outcomeClass, b.outcomeClass);
+        assert.equal(a.closureEventType, b.closureEventType);
+        assert.equal(a.claimHash, b.claimHash);
+        assert.notEqual(a.provenance.basisFingerprint, b.provenance.basisFingerprint);
+    });
+
+    assertBytesUnchanged(committedBefore, readBytes(PARTITION_ABS), `${PARTITION_REL} bytes`);
+});
+
+test('T-04-I5 (increment 3): the write runs scope 02 gate first, so a claimless row is unscoreable and nothing reaches the store', () => {
+    const committedBefore = readBytes(PARTITION_ABS);
+    const claim = fixtureClaim('DVG', 'adjusted-close');
+    const outcome = outcomeValueFor(claim, fencesFor(fixtureBarsText('DVG')));
+
+    const claimless = nonEmptyLines(committedBefore)
+        .map((line) => JSON.parse(line))
+        .find((row) => row.contractVersion === claims.ROW_CONTRACT_V2
+            && !Object.prototype.hasOwnProperty.call(row, claims.CLAIM_REF_FIELD));
+    assert.ok(claimless, 'the committed partition must carry a claimless v2 row');
+
+    withDisposableStore(({ root, ports }) => {
+        const storeDir = path.join(root, claims.RESOLUTION_STORE_DIR);
+
+        /* THE ADVERSARIAL INPUT IS A COMPLETE, VALID RECORD — the same one that writes cleanly
+           below. If the gate consulted the resolution at all, this is exactly what would slip
+           past; because it runs first, no property of a well-formed record can rescue the row. */
+        const refused = recordResolution(resolverInput(claim, outcome), claimless, ports);
+        assert.equal(refused.ok, false, 'a claimless row must refuse');
+        assert.equal(refused.error.code, claims.LEGACY_BACKFILL_CODE, 'code');
+        assert.equal(refused.error.reason, 'claimless-row-unscoreable', 'reason');
+        assert.equal(refused.error.field, claims.CLAIM_REF_FIELD, 'field');
+        assert.equal(existsSync(storeDir), false, 'and the store directory is never even created');
+
+        /* A ROW POINTING AT A DIFFERENT CLAIM ALSO REFUSES. The resolution must be ABOUT the claim
+           the row names, or a record could be filed against a call nobody made. */
+        const mismatched = recordResolution(
+            resolverInput(claim, outcome),
+            { ...claimless, [claims.CLAIM_REF_FIELD]: claims.stableSha({ other: true }) },
+            ports,
+        );
+        assert.equal(mismatched.ok, false, 'a claimRef naming another claim must refuse');
+        assert.equal(mismatched.error.reason, 'resolution-claim-hash-does-not-match-row', 'reason');
+        assert.equal(mismatched.error.field, 'claimHash', 'field');
+        assert.equal(existsSync(storeDir), false, 'still nothing written');
+
+        /* ANTI-VACUITY. The IDENTICAL record against the SAME row plus the right claimRef writes.
+           Without it, both refusals above would pass under a writer that refused everything. */
+        const written = recordResolution(
+            resolverInput(claim, outcome),
+            { ...claimless, [claims.CLAIM_REF_FIELD]: claim.claimHash },
+            ports,
+        );
+        assert.equal(written.ok, true, `the control must write: ${JSON.stringify(written.error)}`);
+        assert.equal(written.written, true);
+        assert.equal(readdirSync(storeDir).length, 1, 'exactly one object, created only by the accepted write');
     });
 
     assertBytesUnchanged(committedBefore, readBytes(PARTITION_ABS), `${PARTITION_REL} bytes`);

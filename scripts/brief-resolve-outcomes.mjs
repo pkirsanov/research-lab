@@ -486,3 +486,209 @@ export function outcomeValueFor(claim, fences) {
     basisFingerprint: basisFingerprint(subject.priceBasis, subject.observations)
   };
 }
+
+/* ── Increment 3: the two axes, the hashed provenance, and the written record ────────────────
+ *
+ * Increments 1-2 produced a NUMBER. This part turns it into a RECORD in the content-addressed
+ * store — the step at which an outcome stops being a computation and becomes a fact an auditor
+ * can re-derive from its own address.
+ *
+ * Nothing here re-implements a shipped primitive. `classifyOutcome` assigns the class,
+ * `buildResolution` validates the class/closure/reason triangle and computes `resolutionHash`,
+ * and `writeResolutionObject` — which calls scope 02's `authorizeResolutionWrite` FIRST, before
+ * inspecting the resolution at all — performs the write. What is genuinely unbuilt is the
+ * JOINING: which of the two axes a given closure event decides, what belongs in the hashed
+ * provenance, and the order the three calls run in.
+ *
+ * The closure-event -> class routing is DERIVED by inverting `OUTCOME_CLOSURE_EVENTS`, never
+ * restated. A closure event admitted by exactly ONE class determines its class outright; one
+ * admitted by SEVERAL cannot, and is decided by `classifyOutcome` against the claim's frozen
+ * band. That split is asserted at load to coincide exactly with `MAGNITUDE_BEARING_OUTCOME_CLASSES`,
+ * so "which closures carry a magnitude" is a measured property of the shipped table rather than a
+ * second list here that could disagree with it.
+ *
+ * The index is STRICTLY NARROWER than the 002-owned `CLOSE_EVENT_TYPES`: it holds only the five
+ * events some class admits. `withdrawn` is the residue no class admits, so it refuses BEFORE a
+ * record exists and is unreachable from every resolver path — D4's "never resolver-emitted"
+ * derived rather than restated. `RTR-CLOSURE-VOCAB` stays `buildResolution`'s to raise, for a
+ * caller that supplies an outcome class of its own; it is not pre-empted here.
+ */
+
+/* Which outcome classes admit each closure event. The inverse of the shipped table. */
+const CLASSES_ADMITTING_CLOSURE = (() => {
+  const index = {};
+  for (const outcomeClass of Object.keys(claims.OUTCOME_CLOSURE_EVENTS)) {
+    for (const closureEventType of claims.OUTCOME_CLOSURE_EVENTS[outcomeClass]) {
+      (index[closureEventType] ??= []).push(outcomeClass);
+    }
+  }
+  return Object.freeze(Object.fromEntries(Object.entries(index).map(([k, v]) => [k, Object.freeze(v.slice().sort())])));
+})();
+
+/** Closure events whose class `classifyOutcome` must decide, because several admit them. */
+export const MEASURED_CLOSURE_EVENTS = Object.freeze(
+  Object.keys(CLASSES_ADMITTING_CLOSURE).filter((event) => CLASSES_ADMITTING_CLOSURE[event].length > 1).sort()
+);
+
+/** Closure events whose single admitting class IS their class, and which therefore carry no value. */
+export const DETERMINED_CLOSURE_CLASS = Object.freeze(Object.fromEntries(
+  Object.entries(CLASSES_ADMITTING_CLOSURE).filter(([, cs]) => cs.length === 1).map(([event, cs]) => [event, cs[0]])
+));
+
+/* The coincidence the split rests on, asserted rather than assumed: the ambiguous events are
+   ambiguous over EXACTLY the magnitude-bearing classes, and every determined class is outside
+   that set. A future table where they diverged would silently start recording a magnitude under
+   a counted class, or dropping one from a directional class. */
+const MAGNITUDE_BEARING = claims.MAGNITUDE_BEARING_OUTCOME_CLASSES.join(',');
+for (const event of MEASURED_CLOSURE_EVENTS) {
+  if (CLASSES_ADMITTING_CLOSURE[event].join(',') !== MAGNITUDE_BEARING) {
+    throw new Error(`brief-resolve-outcomes: closure event "${event}" is ambiguous over a non-magnitude-bearing class set`);
+  }
+}
+for (const [event, outcomeClass] of Object.entries(DETERMINED_CLOSURE_CLASS)) {
+  if (claims.MAGNITUDE_BEARING_OUTCOME_CLASSES.includes(outcomeClass)) {
+    throw new Error(`brief-resolve-outcomes: closure event "${event}" determines the magnitude-bearing class "${outcomeClass}"`);
+  }
+}
+
+/**
+ * The two INDEPENDENT axes a resolution records: which closure event fired, and which outcome
+ * class the magnitude fell in.
+ *
+ * They do not derive each other. A `satisfied` claim whose direction-adjusted magnitude is
+ * negative records `satisfied` AND `loss`, and both facts survive; collapsing them would
+ * overwrite one with the other.
+ *
+ * `outcome` is an `outcomeValueFor` result. An `RTR-*` refusal in it is an invariant violation and
+ * propagates unchanged — no record is ever built on one. A carried `{ closure }` IS the verdict,
+ * so a caller supplying a different closure event is naming a second source for one decision and
+ * refuses rather than having one silently win.
+ */
+export function resolutionAxesFor(claim, closureEventType, outcome) {
+  if (outcome !== null && outcome !== undefined) {
+    if (outcome.error !== undefined) return outcome;
+    if (outcome.closure !== undefined && outcome.closure.closureEventType !== closureEventType) {
+      return refusal(claims.CONTRACT_VIOLATION_CODE, 'closure-event-contradicts-carried-closure', 'closureEventType');
+    }
+  }
+
+  if (MEASURED_CLOSURE_EVENTS.includes(closureEventType)) {
+    if (outcome === null || outcome === undefined || outcome.ok !== true) {
+      return refusal(claims.CONTRACT_VIOLATION_CODE, 'measured-closure-carries-no-outcome-value', 'outcomeValue');
+    }
+    // Verbatim into `classifyOutcome`, which carries it through unrounded against the frozen band.
+    const classified = claims.classifyOutcome(outcome.outcomeValue, claim);
+    if (!classified.ok) return classified;
+    return {
+      ok: true,
+      closureEventType,
+      outcomeClass: classified.outcomeClass,
+      outcomeValue: classified.outcomeValue,
+      unrecordedOutcomeValue: null
+    };
+  }
+
+  const determined = DETERMINED_CLOSURE_CLASS[closureEventType];
+  if (determined === undefined) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'closure-event-carries-no-outcome-class', 'closureEventType');
+  }
+  return {
+    ok: true,
+    closureEventType,
+    outcomeClass: determined,
+    outcomeValue: null,
+    /* A measurable claim can still expire without its predicate resolving. The class cannot carry
+       a magnitude, so the record stores `null` — but the number that was NOT recorded is reported
+       here, because a value that vanished with no trace is indistinguishable from one never
+       computed. */
+    unrecordedOutcomeValue: outcome !== null && outcome !== undefined && outcome.ok === true ? outcome.outcomeValue : null
+  };
+}
+
+/**
+ * The HASHED provenance block.
+ *
+ * Assembled here rather than accepted from a caller, which is what makes the `RUN_SCOPED_KEYS`
+ * rule structural instead of remembered: there is no path by which a `runId` or a wall clock can
+ * reach the hashed block, so the content address cannot move between two passes over unchanged
+ * inputs. Run-scoped facts belong in `lifecycleBinding`, which is deliberately outside the hash.
+ *
+ * `basisFingerprint` is REUSED from the outcome rather than recomputed, so the values the record
+ * commits to are exactly the values the return was computed from.
+ */
+export function resolutionProvenanceFor(calendar, claim, outcome) {
+  const sessions = [claim?.magnitude?.entryDate, claim?.horizon?.resolutionDate]
+    .filter((date) => typeof date === 'string' && ISO_DATE.test(date));
+
+  const provenance = { earlyCloseSessions: earlyCloseSessionsIn(calendar, sessions).slice() };
+  if (outcome !== null && outcome !== undefined && outcome.ok === true) {
+    provenance.priceBasis = outcome.priceBasis;
+    provenance.basisFingerprint = outcome.basisFingerprint;
+  }
+  return { ok: true, provenance };
+}
+
+/**
+ * One resolved claim to one `brief-recommendation-resolution/v1` record, unwritten.
+ *
+ * `eventId` and `lifecycleBinding` arrive from the caller because they are the LIFECYCLE side —
+ * the reducer bridge that derives them is a later increment. Both are `RESOLUTION_UNHASHED_FIELDS`
+ * members, so neither moves the content address; they do move the BYTES, which is why a re-emit
+ * carrying a fresh `eventId` at an unchanged address is what `RTR-RESOLUTION-CONFLICT` catches.
+ */
+export function resolutionFor(input) {
+  const axes = resolutionAxesFor(input.claim, input.closureEventType, input.outcome);
+  if (!axes.ok) return axes;
+
+  const provenance = resolutionProvenanceFor(input.calendar, input.claim, input.outcome);
+  if (!provenance.ok) return provenance;
+
+  const built = claims.buildResolution({
+    closureVocabulary: input.closureVocabulary,
+    claimHash: input.claim?.claimHash,
+    eventId: input.eventId,
+    resolutionDate: input.claim?.horizon?.resolutionDate ?? null,
+    closureEventType: input.closureEventType,
+    outcomeClass: axes.outcomeClass,
+    outcomeValue: axes.outcomeValue,
+    reasonCode: input.reasonCode,
+    provenance: provenance.provenance,
+    lifecycleBinding: input.lifecycleBinding
+  });
+  if (!built.ok) return built;
+  return { ok: true, resolution: built.resolution, contribution: built.contribution, axes };
+}
+
+/**
+ * Build the record and write it to the content-addressed store.
+ *
+ * The write is `writeResolutionObject` and nothing else. That is the only route to
+ * `RESOLUTION_STORE_DIR`, and it runs scope 02's `authorizeResolutionWrite` BEFORE inspecting the
+ * resolution, so a claimless ledger row refuses `RTR-LEGACY-BACKFILL` no matter how complete and
+ * plausible the record handed to it is. Bypassing it — or checking the row here first — would put
+ * a second answer over one question.
+ *
+ * Exactly-once has two halves and they are not the same test. Re-resolving an unchanged claim
+ * recomputes one address AND one byte string, so the repeat is `reused: true, written: false`. A
+ * write that would CHANGE the bytes at that address aborts with `RTR-RESOLUTION-CONFLICT` and
+ * overwrites nothing. A change to a HASHED term — the basis fingerprint among them — moves the
+ * address instead, so it lands as a SECOND object rather than as a conflict, which is how a
+ * retroactive `ac` rewrite becomes visible without either record being destroyed.
+ */
+export function recordResolution(input, row, ports) {
+  const built = resolutionFor(input);
+  if (!built.ok) return built;
+
+  const write = claims.writeResolutionObject(built.resolution, row, ports);
+  if (!write.ok) return write;
+
+  return {
+    ok: true,
+    resolution: built.resolution,
+    contribution: built.contribution,
+    axes: built.axes,
+    path: write.path,
+    written: write.written,
+    reused: write.reused
+  };
+}

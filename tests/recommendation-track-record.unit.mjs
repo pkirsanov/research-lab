@@ -27,7 +27,9 @@ import test from 'node:test';
 
 import { buildPublishSet } from '../scripts/brief-publication.mjs';
 import {
+    DETERMINED_CLOSURE_CLASS,
     LOOKAHEAD_CODE,
+    MEASURED_CLOSURE_EVENTS,
     PRICE_BASIS_CODE,
     SESSION_ABSENT_REASON,
     basisFingerprint,
@@ -37,6 +39,9 @@ import {
     loadCalendar,
     outcomeValueFor,
     readBars,
+    resolutionAxesFor,
+    resolutionFor,
+    resolutionProvenanceFor,
 } from '../scripts/brief-resolve-outcomes.mjs';
 import { loadInstrumentUniverse, recommendationRowsFromPayload } from '../scripts/recommendation-body.mjs';
 import { CLAIM_NOT_EVALUABLE_FIELD, attachClaimRefs, mintClaimRecords } from '../scripts/recommendation-claim-mint.mjs';
@@ -2271,6 +2276,160 @@ test('T-04-U7 (increment 2): outcomeValue is direction x ret(subject), exact and
     assert.equal(built.ok, true, `the fingerprint must be admissible in hashed provenance: ${JSON.stringify(built.error)}`);
     assert.equal(built.resolution.provenance.basisFingerprint, correctBear.basisFingerprint);
     assert.equal(built.resolution.outcomeValue, correctBear.outcomeValue, 'and the value is carried through unrounded');
+});
+
+/* ── Scope 04, increment 3 ────────────────────────────────────────────────────────────────
+   Increment 2 produced a NUMBER. Increment 3 turns it into a RECORD: the closure event and the
+   outcome class as two independent axes, the hashed provenance, and the `buildResolution` call.
+   The reducer bridge and the predicate evaluators are later increments, so the closure verdict
+   arrives here as an input and every row carries an `(increment 3)` marker. */
+
+/** A `resolutionFor` input. Every lifecycle value is a fixture literal; nothing reads a clock. */
+function resolverInput(claim, closureEventType, reasonCode, outcome) {
+    return {
+        claim,
+        calendar: loadCalendar(REPO_ROOT),
+        closureVocabulary: closureVocabulary(),
+        closureEventType,
+        reasonCode,
+        outcome,
+        eventId: 'sha256:'.concat('7'.repeat(64)),
+        lifecycleBinding: { originRecommendationKey: 'sha256:'.concat('8'.repeat(64)) },
+    };
+}
+
+test('T-04-U3 (increment 3): closure event and outcomeClass are independent axes, derived from the shipped table', () => {
+    const fences = fixtureFences(['DVG']);
+
+    /* THE AXES DO NOT DERIVE EACH OTHER. Same closure event, opposite classes — and the class
+       comes from the magnitude alone. An implementation that read `satisfied` as "a win" would
+       report the first of these as a win, and the claim's real -10% would vanish. */
+    const bearOnARise = outcomeValueFor(syntheticClaim(['DVG'], { priceBasis: 'raw-close', action: 'trim' }), fences);
+    const bullOnARise = outcomeValueFor(syntheticClaim(['DVG'], { priceBasis: 'raw-close', action: 'add' }), fences);
+    assert.equal(bearOnARise.outcomeValue < 0, true, 'the fixture must give one negative magnitude');
+    assert.equal(bullOnARise.outcomeValue > 0, true, 'and one positive, or the pair proves nothing');
+
+    const satisfiedLoss = resolutionAxesFor(syntheticClaim(['DVG'], { priceBasis: 'raw-close', action: 'trim' }), 'satisfied', bearOnARise);
+    assert.equal(satisfiedLoss.ok, true);
+    assert.equal(satisfiedLoss.closureEventType, 'satisfied', 'the predicate cleared');
+    assert.equal(satisfiedLoss.outcomeClass, 'loss', 'and the magnitude still says loss');
+    assert.equal(satisfiedLoss.outcomeValue, bearOnARise.outcomeValue, 'carried through verbatim, not re-derived');
+
+    /* THE MIRROR, so the row cannot pass under an implementation that hard-coded the opposite
+       mapping instead. `invalidated` + `win` is admitted by the shipped table for the same
+       reason: a predicate can fail while the position still made money. */
+    const invalidatedWin = resolutionAxesFor(syntheticClaim(['DVG'], { priceBasis: 'raw-close' }), 'invalidated', bullOnARise);
+    assert.equal(invalidatedWin.outcomeClass, 'win', 'the predicate failed and the magnitude still says win');
+    assert.equal(invalidatedWin.closureEventType, 'invalidated');
+
+    /* THE ROUTING IS DERIVED FROM `OUTCOME_CLOSURE_EVENTS`, NEVER RESTATED. The ambiguous events
+       are ambiguous over EXACTLY the magnitude-bearing classes; the determined ones are not. */
+    assert.deepEqual([...MEASURED_CLOSURE_EVENTS].sort(), ['invalidated', 'satisfied']);
+    for (const event of MEASURED_CLOSURE_EVENTS) {
+        const admitting = Object.keys(claims.OUTCOME_CLOSURE_EVENTS)
+            .filter((outcomeClass) => claims.OUTCOME_CLOSURE_EVENTS[outcomeClass].includes(event)).sort();
+        assert.deepEqual(admitting, [...claims.MAGNITUDE_BEARING_OUTCOME_CLASSES], `${event} is ambiguous over the magnitude-bearing set`);
+    }
+    for (const [event, outcomeClass] of Object.entries(DETERMINED_CLOSURE_CLASS)) {
+        assert.equal(claims.MAGNITUDE_BEARING_OUTCOME_CLASSES.includes(outcomeClass), false, `${event} determines a counted class`);
+    }
+
+    /* `withdrawn` IS THE RESIDUE, and it is unreachable rather than merely unused: it is a real
+       member of the 002-owned vocabulary that NO outcome class admits, so it refuses before any
+       record exists. A resolver that could withdraw a claim could withdraw the ones it was about
+       to score badly. */
+    assert.equal(closureVocabulary().includes('withdrawn'), true, 'withdrawn must really be in the upstream vocabulary');
+    assert.equal(MEASURED_CLOSURE_EVENTS.includes('withdrawn'), false);
+    assert.equal(Object.prototype.hasOwnProperty.call(DETERMINED_CLOSURE_CLASS, 'withdrawn'), false);
+    const withdrawn = resolutionAxesFor(syntheticClaim(['DVG'], { priceBasis: 'raw-close' }), 'withdrawn', bullOnARise);
+    assert.equal(withdrawn.ok, false);
+    assertRefusal(withdrawn.error, 'closure-event-carries-no-outcome-class', 'closureEventType', 'withdrawn');
+    assert.equal(
+        resolutionFor(resolverInput(syntheticClaim(['DVG'], { priceBasis: 'raw-close' }), 'withdrawn', 'predicate-satisfied', bullOnARise)).ok,
+        false,
+        'and no record is built on it',
+    );
+
+    /* A DETERMINED CLOSURE CANNOT CARRY A MAGNITUDE, even when one was computable. The number is
+       reported as unrecorded rather than dropped, because a value that vanished without a trace
+       reads exactly like one that was never computed. */
+    const expired = resolutionAxesFor(syntheticClaim(['DVG'], { priceBasis: 'raw-close' }), 'expired', bullOnARise);
+    assert.equal(expired.outcomeClass, 'unresolved', 'the single admitting class');
+    assert.equal(expired.outcomeValue, null, 'and a counted class stores no magnitude');
+    assert.equal(expired.unrecordedOutcomeValue, bullOnARise.outcomeValue, 'while naming the value it could not record');
+    const expiredRecord = resolutionFor(resolverInput(syntheticClaim(['DVG'], { priceBasis: 'raw-close' }), 'expired', 'horizon-elapsed', bullOnARise));
+    assert.equal(expiredRecord.ok, true, `buildResolution must accept it: ${JSON.stringify(expiredRecord.error)}`);
+    assert.equal(expiredRecord.resolution.outcomeValue, null, 'null in the record, not the number');
+
+    /* ONE DECISION, ONE SOURCE. A carried `{ closure }` IS the verdict; a caller naming a
+       different closure event is a second source for one decision and must refuse rather than
+       have one silently win. */
+    const carried = outcomeValueFor(mint('not-evaluable-no-authored-price-basis').claim, fences);
+    assert.equal(carried.closure.closureEventType, 'not-evaluable', 'the fixture must really carry a closure');
+    const contradicted = resolutionAxesFor(mintEvaluable('evaluable-instrument-add'), 'satisfied', carried);
+    assert.equal(contradicted.ok, false);
+    assertRefusal(contradicted.error, 'closure-event-contradicts-carried-closure', 'closureEventType', 'contradiction');
+
+    /* AN RTR-* REFUSAL IS AN INVARIANT VIOLATION, NEVER AN OUTCOME. It propagates unchanged and
+       no record is built — the split increment 2 draws between `{ error }` and `{ closure }`. */
+    const unreadable = outcomeValueFor(syntheticClaim(['RAWONLY'], { priceBasis: 'adjusted-close' }), fixtureFences(['RAWONLY']));
+    assert.equal(unreadable.error.code, PRICE_BASIS_CODE, 'the fixture must really refuse');
+    const propagated = resolutionAxesFor(syntheticClaim(['RAWONLY'], { priceBasis: 'adjusted-close' }), 'satisfied', unreadable);
+    assert.equal(propagated, unreadable, 'the refusal is propagated by identity, not re-wrapped');
+
+    /* ANTI-VACUITY. The identical call shape with a readable series is ACCEPTED, so every refusal
+       above is caused by the value under test and not by a builder that refuses everything. */
+    const accepted = resolutionFor(resolverInput(syntheticClaim(['DVG'], { priceBasis: 'raw-close', action: 'trim' }), 'satisfied', 'predicate-satisfied', bearOnARise));
+    assert.equal(accepted.ok, true, `the control must build: ${JSON.stringify(accepted.error)}`);
+    assert.equal(accepted.resolution.closureEventType, 'satisfied');
+    assert.equal(accepted.resolution.outcomeClass, 'loss');
+    assert.equal(accepted.resolution.outcomeValue, bearOnARise.outcomeValue);
+    assert.match(accepted.resolution.resolutionHash, /^sha256:[a-f0-9]{64}$/);
+});
+
+test('T-04-U8 (increment 3): the hashed provenance is assembled here, so no run-scoped key can reach the content address', () => {
+    const fences = fixtureFences(['DVG']);
+    const claim = syntheticClaim(['DVG'], { priceBasis: 'adjusted-close', action: 'trim' });
+    const outcome = outcomeValueFor(claim, fences);
+
+    /* THE BASIS FINGERPRINT IS REUSED, NOT RECOMPUTED, so the record commits to exactly the
+       values the return was computed from rather than to a second read that could differ. */
+    const provenance = resolutionProvenanceFor(loadCalendar(REPO_ROOT), claim, outcome);
+    assert.equal(provenance.ok, true);
+    assert.equal(provenance.provenance.basisFingerprint, outcome.basisFingerprint);
+    assert.equal(provenance.provenance.priceBasis, 'adjusted-close');
+    assert.deepEqual(provenance.provenance.earlyCloseSessions, [], 'neither fixture session closed early');
+
+    /* NO RUN-SCOPED KEY CAN REACH IT. Structural, not remembered: the block is assembled from the
+       claim and the calendar, and there is no caller-supplied field to inject one through. */
+    for (const key of claims.RUN_SCOPED_KEYS) {
+        assert.equal(Object.prototype.hasOwnProperty.call(provenance.provenance, key), false, `${key} cannot appear in hashed provenance`);
+    }
+
+    /* AND THE SPLIT IS REAL, not a blanket ban: the same `runId` is ACCEPTED in `lifecycleBinding`,
+       which sits outside the hash. Without this pair the row would also pass under an
+       implementation that refused run-scoped keys everywhere and had no unhashed home for them. */
+    const input = resolverInput(claim, 'satisfied', 'predicate-satisfied', outcome);
+    const withRunId = resolutionFor({ ...input, lifecycleBinding: { ...input.lifecycleBinding, runId: 'run-2026-07-29-a' } });
+    assert.equal(withRunId.ok, true, `lifecycleBinding must accept a runId: ${JSON.stringify(withRunId.error)}`);
+    assert.equal(withRunId.resolution.lifecycleBinding.runId, 'run-2026-07-29-a');
+
+    /* AND IT DOES NOT MOVE THE ADDRESS. Two records differing only in an unhashed field share one
+       content address — which is why a re-emit is a byte conflict rather than a second object. */
+    const without = resolutionFor(input);
+    assert.equal(withRunId.resolution.resolutionHash, without.resolution.resolutionHash, 'unhashed fields do not move the address');
+    assert.notEqual(
+        claims.serializeResolution(withRunId.resolution),
+        claims.serializeResolution(without.resolution),
+        'while the bytes DO differ, which is what the write conflict detects',
+    );
+
+    /* A CLAIM WITH NO READABLE MAGNITUDE STILL GETS A PROVENANCE BLOCK — the basis fields are
+       simply absent rather than guessed, so a not-evaluable record cannot imply a read that
+       never happened. */
+    const carried = mint('not-evaluable-no-authored-price-basis').claim;
+    const bare = resolutionProvenanceFor(loadCalendar(REPO_ROOT), carried, outcomeValueFor(carried, fences));
+    assert.deepEqual(Object.keys(bare.provenance), ['earlyCloseSessions'], 'no basis is invented for an unmeasured claim');
 });
 
 

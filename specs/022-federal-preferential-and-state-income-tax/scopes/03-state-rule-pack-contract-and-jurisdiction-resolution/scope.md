@@ -390,6 +390,26 @@ error, a missing browser or an absent test does not satisfy RED.
     proven live rather than assumed non-empty.
 - [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
+  - **Open — four rows short, and the four cannot be closed by execution.** The
+    census was re-taken row by row this session rather than asserted. Newly closed
+    here: TP-03-03 and TP-03-12, which previously carried a passing run and prose
+    but no perturbation, and the browser substance behind TP-03-17, TP-03-18 and
+    TP-03-19, which carried none. All four probes discriminated through
+    `scripts/red-green-probe.sh` with hash-verified reverts. **Still short:**
+    TP-03-17, TP-03-18, TP-03-19 and TP-03-21 name
+    `tests/lifetime-tax-state-contract.spec.mjs` and four titles, none of which
+    exist — Finding F-03-A. Their commands select zero tests, and a run that
+    selects zero tests reports success without asserting anything, so the rows
+    cannot be ticked on execution. The four titles were deliberately **not**
+    authored: their substance already exists in `tests/lifetime-tax-state.spec.mjs`
+    under different titles, so writing them would add duplicate coverage whose only
+    purpose is to satisfy a document. TP-03-20 also remains unprobed; it is the
+    cumulative family suite, which this session did not add a browser test to.
+    **Decidable by:** retargeting TP-03-17 … TP-03-21 at
+    `tests/lifetime-tax-state.spec.mjs` and its real titles — a planning-wording
+    change owned by `bubbles.plan`, after which the RED/GREEN evidence those rows
+    need is already recorded in the report — plus one probe against the cumulative
+    command for TP-03-20.
   - **Phase:** implement · **Command:** the exact TP-03-01 through TP-03-21 commands · **Evidence:** `report.md#test-evidence`
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count and no
       existing assertion edited, `node scripts/validate-spec-test-paths.mjs`

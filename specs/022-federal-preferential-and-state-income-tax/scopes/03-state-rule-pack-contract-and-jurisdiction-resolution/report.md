@@ -334,6 +334,38 @@ Scenario SCN-022-007 — the federal pack still derives the federal ordered arra
 element for element and every Feature 021 fixture value is unchanged.
 Command: `node scripts/selftest.mjs`
 
+**Claim Source:** executed.
+
+**The label `TP-03-03` is reused by seven different assertions in the shared
+suite**, belonging to seven different features. The row this scope owns is the one
+asserting the ordered-array derivation; the others cover cadence rearming, segment
+sourcing, depreciation and serialization and are not this scope's. The probe below
+therefore pins its summary channel to the row's own wording rather than to the
+label prefix, so the evidence cannot be satisfied by a namesake in another feature.
+That hazard is not hypothetical — this program has already found an assertion that
+read green while owned by nothing because its row id was reused.
+
+**Intended RED.** A pack that imposes no individual income tax stops deriving an
+empty ordered array and derives the full federal one instead. That is the defect
+the clause exists to catch: a no-tax jurisdiction carrying priced stages it has no
+authority to price. The mutation is value-free — it names a declared constant and
+carries no rate, bracket or threshold.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-03: a pack imposing no individual income tax stops deriving an empty ordered array and derives the full federal one instead, so a no-tax jurisdiction would carry stages it has no authority to price
+file:             rltaxrules.js
+mutation:         if (isPlainObject(pack) && pack.imposesIndividualIncomeTax === false) return [];  ->  if (isPlainObject(pack) && pack.imposesIndividualIncomeTax === false) return CALCULATION_ORDER.slice();   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-03-03: the federal pack still derives the federal ordered array element for element, a preferentialPolicy none pack derives the array that omits both preferential stages and carries the
+green-exit:       0
+green-summary:      ✓ TP-03-03: the federal pack still derives the federal ordered array element for element, a preferentialPolicy none pack derives the array that omits both preferential stages and carries the two n
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
 ### TP-03-04
 
 Scenario SCN-022-009 — `SourcedZero/v1` validates only with the literal zero and a
@@ -736,6 +768,33 @@ administrative absence and neither of which states the fact. The contract is
 proven; the input it is fed is contested and routed. The fixture pack proves the
 same path without depending on any real jurisdiction, which is why it exists.
 
+**Intended RED — the citation clause.** The row previously carried prose and a
+passing run but no perturbation, so nothing showed it was read. The sourced zero
+now cites its own domain string instead of the authority that establishes the
+absence of the tax. The record still validates and still carries the literal zero,
+so a value-only or shape-only assertion would stay green; what breaks is the one
+thing the row is for — the citation leading back to a retrieved source. The
+mutation is value-free and moves no figure.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-12: the sourced zero cites its own domain string instead of the authority that establishes the absence of the tax, so the record still validates but its citation no longer leads back to a retrieved source
+file:             rltaxrules.js
+mutation:         sourceRef: authority.sourceRef,  ->  sourceRef: domain,   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-03-12: the Florida pack validates against its own digest, resolves for the declared year, carries no rate table for any filing status, and produces a SourcedZero total with a rule statu
+green-exit:       0
+green-summary:      ✓ TP-03-12: the Florida pack validates against its own digest, resolves for the declared year, carries no rate table for any filing status, and produces a SourcedZero total with a rule status and
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+This probe strengthens the *mechanism* half of the row only. It does not touch the
+disputed input: whether the jurisdiction genuinely imposes no individual income tax
+remains `BI-5`, and is still open.
+
 ### TP-03-13
 
 Scenario SCN-022-008 — a pack declaring no preferential treatment prices pooled
@@ -1113,6 +1172,68 @@ Command: `npx --no-install playwright test --config=playwright.config.mjs --proj
 
 `Regression: SCN-022-009 a no-tax state renders a sourced zero distinct from a refusal`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-009 a no-tax state renders a sourced zero distinct from a refusal" --reporter=list`
+
+### Browser rows — the substance was probed under the titles that exist
+
+**Claim Source:** executed.
+
+The three titles above do not exist, which is Finding F-03-A recorded under
+TP-03-21. **They were not authored to make the rows resolve.** Their substance is
+already carried by `tests/lifetime-tax-state.spec.mjs` under different titles, so
+writing four new tests under the Test Plan's wording would have produced duplicate
+coverage whose only purpose was to satisfy a document. That is the failure mode the
+row census exists to catch, not a way of closing it. What was missing was not
+coverage but *evidence that the existing coverage can fail*, and that is what the
+two probes below add.
+
+**Intended RED — the refusal-separation row, carrying the substance of TP-03-17 and
+TP-03-18.** The unmodelled residency pattern is rerouted through the jurisdiction
+code, collapsing three distinct refusal codes into two. A row that merely checked
+"a refusal appeared" would stay green; this one does not, so it reads the codes
+apart rather than counting them.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-17 and TP-03-18 substance: the unmodelled residency pattern is rerouted through the jurisdiction code, collapsing three distinct refusal codes into two so the browser row can no longer tell an unshipped state from an unsupported residency pattern
+file:             rltaxstate.js
+mutation:         rules.unavailable("RLTAX-RESIDENCY-UNSUPPORTED"  ->  rules.unavailable("RLTAX-JURISDICTION-UNSUPPORTED"   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep an\ unshipped\ state\,\ an\ undeclared\ residency\ and\ an\ unmodelled\ residency\ pattern\ refuse\ under\ three\ different\ codes\ and\ none\ of\ them\ shows\ a\ zero --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (1.8s)
+revert-verified:  yes (committed=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d restored=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Intended RED — the sourced-zero row, carrying the substance of TP-03-19.** The
+no-tax branch is inverted, so a jurisdiction that imposes no individual income tax
+no longer takes the sourced-zero path at all and its authority-carrying zero is
+replaced by the ordinary-schedule outcome. This is precisely the "sourced zero
+distinct from a refusal" distinction the row names.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-19 substance: the no-tax branch is inverted, so a jurisdiction that imposes no individual income tax no longer takes the sourced-zero path and its authority-carrying zero is replaced by the ordinary-schedule outcome
+file:             rltaxstate.js
+mutation:         if (statePack.imposesIndividualIncomeTax === false) {  ->  if (statePack.imposesIndividualIncomeTax === true) {   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep a\ jurisdiction\ that\ levies\ no\ individual\ income\ tax\ renders\ its\ sourced\ zero\ with\ the\ authority\ that\ establishes\ it\,\ and\ never\ enters\ the\ federal\ total --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (2.1s)
+revert-verified:  yes (committed=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d restored=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+These probes do **not** close TP-03-17, TP-03-18 or TP-03-19. A Test Plan row is
+satisfied by the command it names, and the command each of these names still
+selects zero tests. They make the retarget a documentation change rather than a
+test-writing one: when planning points those rows at
+`tests/lifetime-tax-state.spec.mjs` and its real titles, the RED/GREEN evidence is
+already recorded above.
 
 ### TP-03-20
 

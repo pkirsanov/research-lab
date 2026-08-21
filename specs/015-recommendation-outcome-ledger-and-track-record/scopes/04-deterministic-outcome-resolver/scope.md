@@ -376,7 +376,33 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 
 - [ ] `scripts/brief-resolve-outcomes.mjs` exists, runs offline from committed repository state only, and references no `fetch`, socket, provider key, or `RLDATA` browser fetch path.
 - [ ] **The resolver CONSUMES scope 03's shipped exports and re-implements none of them.** `classifyOutcome`, `flatBandFor`, `outcomeContributionFor`, `buildResolution`, `resolutionHash`, `resolutionObjectPath`, `serializeResolution`, `writeResolutionObject`, `authorizeResolutionWrite`, `enumerateCommittedSeries`, `readClosureEventVocabulary`, `CLOSURE_REASON_CODES`, `NOT_EVALUABLE_REASONS`, `OUTCOME_CLOSURE_EVENTS`, `OUTCOME_CLASSES` are imported from `rlclaims.js` and called; no second copy of any of them exists in 015-authored code.
-- [ ] **Scope 02's write gate is called, never bypassed.** Every resolution write goes through `writeResolutionObject`, which calls `authorizeResolutionWrite` (`rlclaims.js:733`) first; a claimless row refuses `RTR-LEGACY-BACKFILL` before the resolution is inspected, and nothing in `briefs/objects/resolutions/` is written by any other route.
+- [x] **Scope 02's write gate is called, never bypassed.** Every resolution write goes through `writeResolutionObject`, which calls `authorizeResolutionWrite` (`rlclaims.js:733`) first; a claimless row refuses `RTR-LEGACY-BACKFILL` before the resolution is inspected, and nothing in `briefs/objects/resolutions/` is written by any other route.
+
+  **Evidence — increment 3 (write slice, commit `c8665265f`).** Executed from `<repo-root>`.
+
+  ```
+  $ node --test tests/*.integration.mjs
+  ✔ T-04-I5 (increment 3): the write runs scope 02 gate first, so a claimless row is unscoreable and nothing reaches the store (83.755126ms)
+  ℹ tests 33
+  ℹ pass 33
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  The single write route and the refusal, located in the executed sources rather than asserted in prose:
+
+  ```
+  $ grep -nE "claims.writeResolutionObject\(built.resolution|LEGACY_BACKFILL_CODE, 'code'|existsSync\(storeDir\), false, 'and the store" scripts/brief-resolve-outcomes.mjs tests/recommendation-track-record.integration.mjs
+  scripts/brief-resolve-outcomes.mjs:682:  const write = claims.writeResolutionObject(built.resolution, row, ports);
+  tests/recommendation-track-record.integration.mjs:414:        assert.equal(refused.error.code, claims.LEGACY_BACKFILL_CODE, 'code');
+  tests/recommendation-track-record.integration.mjs:417:        assert.equal(existsSync(storeDir), false, 'and the store directory is never even created');
+  exit code: 0
+  ```
+
+  `recordResolution` reaches the store through `writeResolutionObject` and by no other route — that one call is
+  the whole write path. The adversarial input is the **same complete, valid record** the anti-vacuity half writes
+  cleanly, so no property of a well-formed resolution can rescue a claimless row; the refusal is
+  `RTR-LEGACY-BACKFILL` / `claimless-row-unscoreable` and the store directory is asserted never even created.
 - [ ] The committed symbol set is `enumerateCommittedSeries(readdir(BARS_DIR))` — the **directory listing** availability set, never `data/bars/index.json` (a curation set) and never a count literal.
 - [ ] The due set is computed from reduction state (`entry.state === "active"` ∧ has a `claimRef` ∧ `resolutionDate ≤ asOfDate`), never by scanning the ledger for timestamps.
 - [x] `resolutionDate` is derived by **calendar-session** arithmetic against `data/calendars/xnys/calendar.json`, never by adding calendar days, and each derived session date is cross-checked against `calendar.rows[].regular.startUtc`.
@@ -530,15 +556,101 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   module load, so a rename in `rlclaims.js` fails here rather than producing a reason `buildResolution` would
   later reject.
 - [ ] The data-quality gates are applied: `zeroObservedSessions` closes `not-evaluable`; `reconstructedSessions` and `thinObservedSessions` do not block resolution and are recorded verbatim in the resolution object's `provenance`.
-- [ ] `outcomeValue = direction × ret(subject)` with `direction` frozen from `ACTION_DIRECTION` (`rlcontracts.js:720`); the class is assigned by calling `classifyOutcome` (`rlclaims.js:795`) rather than re-deriving the band comparison; values are stored unrounded as IEEE-754 doubles with rounding applied only at render; `direction === 0` closes `neutral-direction-no-magnitude`. Blocked on Ruling R-04-01 for the `ret(subject)` half.
-- [ ] Closure event and `outcomeClass` are recorded as two independent axes, with the admissible pairings enforced by `OUTCOME_CLOSURE_EVENTS` (`rlclaims.js:284`) via `buildResolution`; a `satisfied` claim carrying a negative magnitude preserves both facts.
+- [x] `outcomeValue = direction × ret(subject)` with `direction` frozen from `ACTION_DIRECTION` (`rlcontracts.js:720`); the class is assigned by calling `classifyOutcome` (`rlclaims.js:795`) rather than re-deriving the band comparison; values are stored unrounded as IEEE-754 doubles with rounding applied only at render; `direction === 0` closes `neutral-direction-no-magnitude`. Blocked on Ruling R-04-01 for the `ret(subject)` half.
+
+  **Evidence — increment 3 (write slice, commit `c8665265f`) closing the `classifyOutcome` half.** Increment 2
+  produced the number; the class had no call site until the record existed. R-04-01 is discharged above, so the
+  `ret(subject)` half is no longer blocked. Executed from `<repo-root>`.
+
+  ```
+  $ node --test tests/recommendation-track-record.unit.mjs
+  ✔ T-01-U7: direction is bound to ACTION_DIRECTION and hold has no signed outcome (10.681875ms)
+  ✔ T-04-U7 (increment 2): outcomeValue is direction x ret(subject), exact and unrounded, and the basis values are fingerprinted (18.726364ms)
+  ✔ T-04-U3 (increment 3): closure event and outcomeClass are independent axes, derived from the shipped table (47.344007ms)
+  ℹ tests 28
+  ℹ pass 28
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  The call, the unrounded value, and the neutral-direction closure, located in the executed sources:
+
+  ```
+  $ grep -nE "const classified = claims.classifyOutcome|outcomeValue, bearOnARise.outcomeValue, 'carried through verbatim|-5.000000000000004, 'which is NOT|hold.expected.reason, 'neutral-direction-no-magnitude'" scripts/brief-resolve-outcomes.mjs tests/recommendation-track-record.unit.mjs
+  scripts/brief-resolve-outcomes.mjs:580:    const classified = claims.classifyOutcome(outcome.outcomeValue, claim);
+  tests/recommendation-track-record.unit.mjs:591:    assert.equal(hold.expected.reason, 'neutral-direction-no-magnitude');
+  tests/recommendation-track-record.unit.mjs:2233:    assert.equal(primary.outcomeValue, -5.000000000000004, 'which is NOT the decimal -5');
+  tests/recommendation-track-record.unit.mjs:2316:    assert.equal(satisfiedLoss.outcomeValue, bearOnARise.outcomeValue, 'carried through verbatim, not re-derived');
+  ```
+
+  The band comparison is never re-derived here: `resolutionAxesFor` hands the value verbatim to the shipped
+  `classifyOutcome`, and the test asserts the value that comes back is the **same** value — a re-derivation or a
+  nudge would change it. The unrounded assertion pins `-5.000000000000004`, which a `toFixed` would silently turn
+  into `-5`. A `hold` claim carries `direction === 0` and never mints a signed outcome, closing
+  `neutral-direction-no-magnitude`, so no direction-0 claim ever reaches this multiply.
+- [x] Closure event and `outcomeClass` are recorded as two independent axes, with the admissible pairings enforced by `OUTCOME_CLOSURE_EVENTS` (`rlclaims.js:284`) via `buildResolution`; a `satisfied` claim carrying a negative magnitude preserves both facts.
+
+  **Evidence — increment 3 (write slice, commit `c8665265f`).** Executed from `<repo-root>`.
+
+  ```
+  $ node --test tests/recommendation-track-record.unit.mjs
+  ✔ T-04-U3 (increment 3): closure event and outcomeClass are independent axes, derived from the shipped table (47.344007ms)
+  ℹ tests 28
+  ℹ pass 28
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  Both directions of the pair, and the derivation, located in the executed sources:
+
+  ```
+  $ grep -nE "satisfiedLoss.outcomeClass, 'loss'|invalidatedWin.outcomeClass, 'win'|DETERMINED_CLOSURE_CLASS = Object.freeze\(Object.fromEntries" scripts/brief-resolve-outcomes.mjs tests/recommendation-track-record.unit.mjs
+  scripts/brief-resolve-outcomes.mjs:534:export const DETERMINED_CLOSURE_CLASS = Object.freeze(Object.fromEntries(
+  tests/recommendation-track-record.unit.mjs:2315:    assert.equal(satisfiedLoss.outcomeClass, 'loss', 'and the magnitude still says loss');
+  tests/recommendation-track-record.unit.mjs:2322:    assert.equal(invalidatedWin.outcomeClass, 'win', 'the predicate failed and the magnitude still says win');
+  ```
+
+  A `satisfied` claim whose direction-adjusted magnitude is negative records `satisfied` **and** `loss`; the
+  mirror — `invalidated` with a `win` — is asserted too, so the row cannot pass under an implementation that
+  hard-coded the opposite mapping instead of preserving two axes. The routing is **inverted** out of
+  `OUTCOME_CLOSURE_EVENTS` rather than restated, and `buildResolution` accepts the resulting pair.
+
+  The evidence stops here. The independence of the axes is proven; the *never-emitted* `withdrawn` item below is
+  left unticked because its own wording requires "every failure branch, including a claim about to score badly",
+  which is `T-04-F3`'s functional row and not this slice's.
 - [ ] `withdrawn` is never resolver-emitted on any path, including for a claim about to score badly — **derived** as the residue of the source vocabulary that no `OUTCOME_CLOSURE_EVENTS` class admits, not restated as a separate rule.
 - [ ] A bare `0` never reaches a directional class: `RTR-FLAT-ZERO` (`rlclaims.js:133`) is left to fire from the shipped `buildResolution` and `assertZeroFreeOutcomes` (`:817`), and this scope neither coerces a zero nor pre-filters the array to avoid the refusal.
 - [ ] `not-evaluable` closes at the **first** resolver pass after minting, not at horizon expiry, so a known-unscoreable claim never sits in the open pipeline.
 - [ ] Closures route through `reduceRecommendationEvents` via `run.closures` with `current: []`; the reducer is consumed unchanged, and `rlcontracts.js`, `rlvalidation.js` and `rlclaims.js` are proven unmodified by `git diff --quiet` exiting 0. *An earlier revision asserted "byte-unmodified" with no `sha256` pinned anywhere, which was not decidable as written.* `RTR-CLOSURE-VOCAB` refuses a locally-invented closure type — raised by the shipped `buildResolution`, not re-implemented here.
 - [ ] The resolver does not depend on its own closure ordering, because the reducer sorts by `originRecommendationKey` before processing (`rlcontracts.js:1272`).
 - [ ] `lifecycleBinding.originRecommendationKey` is **derived** by calling `deriveRecommendationKeys` (`rlcontracts.js:1040`), never authored, and is carried in `lifecycleBinding` — a `RESOLUTION_UNHASHED_FIELDS` member (`rlclaims.js:250`) — so it is not added to `claimHash`'s term list.
-- [ ] No `RUN_SCOPED_KEYS` member (`rlclaims.js:259`) appears inside the hashed `provenance` block; run-scoped facts go in `lifecycleBinding`.
+- [x] No `RUN_SCOPED_KEYS` member (`rlclaims.js:259`) appears inside the hashed `provenance` block; run-scoped facts go in `lifecycleBinding`.
+
+  **Evidence — increment 3 (write slice, commit `c8665265f`).** Executed from `<repo-root>`.
+
+  ```
+  $ node --test tests/recommendation-track-record.unit.mjs
+  ✔ T-04-U8 (increment 3): the hashed provenance is assembled here, so no run-scoped key can reach the content address (12.742375ms)
+  ℹ tests 28
+  ℹ pass 28
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  The assembly point and both halves of the split, located in the executed sources:
+
+  ```
+  $ grep -nE "for \(const key of claims.RUN_SCOPED_KEYS\)|withRunId.resolution.lifecycleBinding.runId, 'run-2026|const provenance = \{ earlyCloseSessions" scripts/brief-resolve-outcomes.mjs tests/recommendation-track-record.unit.mjs
+  scripts/brief-resolve-outcomes.mjs:623:  const provenance = { earlyCloseSessions: earlyCloseSessionsIn(calendar, sessions).slice() };
+  tests/recommendation-track-record.unit.mjs:2405:    for (const key of claims.RUN_SCOPED_KEYS) {
+  tests/recommendation-track-record.unit.mjs:2415:    assert.equal(withRunId.resolution.lifecycleBinding.runId, 'run-2026-07-29-a');
+  ```
+
+  The rule is structural rather than remembered: `resolutionProvenanceFor` assembles the block from the claim and
+  the calendar with **no** caller-supplied field, so there is no path a `runId` or a wall clock could arrive
+  through, and the test walks the whole shipped `RUN_SCOPED_KEYS` set rather than a local copy. The paired
+  assertion is what stops this passing vacuously under a blanket ban: the same `runId` is **accepted** in
+  `lifecycleBinding`, and the two records share one content address while differing in bytes.
 - [ ] **Routed finding P-015-03 is recorded as ruled on, not as blocking.** `thesisFamily` is a top-level hashed claim field that is authored or the claim is not evaluable; this scope invents no value for it, emits no closure event when it is absent, and records the implemented ruling in `report.md` before the bridge is implemented.
 - [ ] Idempotence is enforced by the due-set gate, with `indexFingerprint` (`rlcontracts.js:1318`) as the oracle and content-addressed resolution objects as the backstop; the conflict abort is the shipped `writeResolutionObject` path (`rlclaims.js:1109`) raising `RTR-RESOLUTION-CONFLICT` without overwriting, called rather than re-implemented.
 - [ ] The `not-evaluable` reason set is **read from `NOT_EVALUABLE_REASONS` (`rlclaims.js:305`) and never restated**; its length equals `MINT_REFUSALS.length + RESOLVER_NOT_EVALUABLE_REASONS.length` (**eleven** today, asserted by derivation rather than by literal). *An earlier revision of this item and of T-04-U6 asserted six.* Only the three resolver-raised reasons are this scope's to raise; each reason carries a human-readable sentence; every `not-evaluable` claim is excluded from rate denominators while remaining visibly counted.
@@ -550,12 +662,59 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 
 - [ ] T-04-U1 passes: all four predicate kinds evaluate correctly with satisfied and invalidated fixtures, and the basis is read from the claim's frozen term → evidence recorded in `report.md#t-04-u1`. — proves SCN-015-003
 - [ ] T-04-U2 passes: point vs path comparator semantics hold and a path gap closes `path-incomplete` → evidence recorded in `report.md#t-04-u2`.
-- [ ] T-04-U3 passes: `satisfied` with a negative magnitude preserves both axes → evidence recorded in `report.md#t-04-u3`.
+- [x] T-04-U3 passes: `satisfied` with a negative magnitude preserves both axes → evidence recorded in `report.md#t-04-u3`.
+
+  **Evidence — increment 3 (write slice, commit `c8665265f`).** Executed from `<repo-root>`.
+
+  ```
+  $ node --test tests/recommendation-track-record.unit.mjs
+  ✔ T-04-U3 (increment 3): closure event and outcomeClass are independent axes, derived from the shipped table (47.344007ms)
+  ℹ tests 28
+  ℹ pass 28
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  ```
+  $ grep -nE "satisfiedLoss.outcomeClass, 'loss'|invalidatedWin.outcomeClass, 'win'" tests/recommendation-track-record.unit.mjs
+  tests/recommendation-track-record.unit.mjs:2315:    assert.equal(satisfiedLoss.outcomeClass, 'loss', 'and the magnitude still says loss');
+  tests/recommendation-track-record.unit.mjs:2322:    assert.equal(invalidatedWin.outcomeClass, 'win', 'the predicate failed and the magnitude still says win');
+  ```
+
+  The row carries its own anti-vacuity control — the identical call shape with a readable series builds and its
+  `resolutionHash` matches `^sha256:[a-f0-9]{64}$` — so the refusals in the same test are caused by the values
+  under test rather than by a builder that refuses everything. Full narrative in [report.md](report.md).
 - [ ] T-04-U4 passes: `RTR-CLOSURE-VOCAB` fires from the shipped `buildResolution` and `git diff --quiet` proves the consumed modules unmodified → evidence recorded in `report.md#t-04-u4`.
 - [ ] T-04-U5 passes: the fence excludes future rows, `RTR-LOOKAHEAD` fires on an attempt, and not-yet-resolvable is a silent skip → evidence recorded in `report.md#t-04-u5`. — proves SCN-015-007
 - [ ] T-04-U6 passes: the reason set is read from `NOT_EVALUABLE_REASONS`, its length asserted by derivation (eleven today, no literal), each of the three resolver-raised reasons fires for its own trigger only → evidence recorded in `report.md#t-04-u6`. — proves SCN-015-010
 - [ ] T-04-U7 passes: a correct bearish claim yields a positive outcome via `classifyOutcome` and `hold` refuses → evidence recorded in `report.md#t-04-u7`.
-- [ ] T-04-U8 passes: divergent `c`/`ac` fixtures score differently, the frozen `priceBasis` term decides which, a claim lacking the term refuses rather than defaulting, and the basis-value fingerprint lands in hashed `provenance` → evidence recorded in `report.md#t-04-u8`. **Blocked on Ruling R-04-01.**
+- [x] T-04-U8 passes: divergent `c`/`ac` fixtures score differently, the frozen `priceBasis` term decides which, a claim lacking the term refuses rather than defaulting, and the basis-value fingerprint lands in hashed `provenance` → evidence recorded in `report.md#t-04-u8`. **Ruling R-04-01 is discharged, so this row is no longer blocked.**
+
+  **Evidence — increments 2 and 3.** Increment 2 (commit `30a9e2624`) proved the first three clauses; increment 3
+  (commit `c8665265f`) closes the fourth by assembling the hashed provenance. Executed from `<repo-root>`.
+
+  ```
+  $ node --test tests/recommendation-track-record.unit.mjs
+  ✔ T-04-U8 (increment 2): the price basis is read from the frozen claim, and an absent basis refuses instead of falling back (19.359963ms)
+  ✔ T-04-U8 (increment 3): the hashed provenance is assembled here, so no run-scoped key can reach the content address (12.742375ms)
+  ℹ tests 28
+  ℹ pass 28
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  The fingerprint reaching hashed `provenance` — reused from the outcome, not recomputed — located in the
+  executed source:
+
+  ```
+  $ grep -nE "provenance.provenance.basisFingerprint, outcome.basisFingerprint" tests/recommendation-track-record.unit.mjs
+  tests/recommendation-track-record.unit.mjs:2399:    assert.equal(provenance.provenance.basisFingerprint, outcome.basisFingerprint);
+  ```
+
+  Reuse rather than recomputation is the load-bearing detail: the record commits to exactly the values the return
+  was computed from, not to a second read that could differ. The paired assertion is that an **unmeasured** claim
+  gets a provenance block whose only key is `earlyCloseSessions`, so no basis is invented for a read that never
+  happened.
 - [ ] T-04-F1 passes: session arithmetic is correct across weekend, holiday and **early-close** boundaries with the `startUtc` cross-check, `provenance.earlyCloseSessions` is recorded, `RTR-SESSION-PREDICATE` refuses a `dateState`-keyed test, and the derived 2026 session count is 251 → evidence recorded in `report.md#t-04-f1`.
 - [ ] T-04-F2 passes: `RTR-CALENDAR-COVERAGE` fires beyond `coverageEnd` with no extrapolation → evidence recorded in `report.md#t-04-f2`.
 - [ ] T-04-F3 passes: `withdrawn` is unreachable from every resolver path → evidence recorded in `report.md#t-04-f3`.
@@ -563,7 +722,33 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 - [ ] T-04-I1 passes: closures route through the reducer with `current: []`, one event per due claim, frozen terms re-emitted, and the still-active case proven to fail → evidence recorded in `report.md#t-04-i1`. — proves SCN-015-002
 - [ ] T-04-I2 passes: **idempotence case 1** — pass 2 is a no-op with a byte-identical `indexFingerprint` → evidence recorded in `report.md#t-04-i2`. — proves SCN-015-009
 - [ ] T-04-I3 passes: **idempotence case 2** — the reducer is proven to *accept* a double closure when the gate is bypassed and the fingerprint changes → evidence recorded in `report.md#t-04-i3`.
-- [ ] T-04-I4 passes: `RTR-RESOLUTION-CONFLICT` fires from the shipped `writeResolutionObject` and the on-disk bytes are unchanged → evidence recorded in `report.md#t-04-i4`.
+- [x] T-04-I4 passes: `RTR-RESOLUTION-CONFLICT` fires from the shipped `writeResolutionObject` and the on-disk bytes are unchanged → evidence recorded in `report.md#t-04-i4`.
+
+  **Evidence — increment 3 (write slice, commit `c8665265f`).** Executed from `<repo-root>`.
+
+  ```
+  $ node --test tests/*.integration.mjs
+  ✔ T-04-I4 (increment 3): re-resolving is a byte-identical no-op, a changed unhashed field conflicts, and a moved basis lands at a new address (74.113346ms)
+  ℹ tests 33
+  ℹ pass 33
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  The refusal and the untouched bytes, located in the executed source:
+
+  ```
+  $ grep -nE "reEmitted.error.code, claims.RESOLUTION_CONFLICT_CODE|digestAfterFirst, 'the on-disk bytes are unchanged'" tests/recommendation-track-record.integration.mjs
+  tests/recommendation-track-record.integration.mjs:358:        assert.equal(reEmitted.error.code, claims.RESOLUTION_CONFLICT_CODE, 'code');
+  tests/recommendation-track-record.integration.mjs:361:        assert.equal(claims.sha256Hex(readBytes(objectPath)), digestAfterFirst, 'the on-disk bytes are unchanged');
+  ```
+
+  The conflict is raised by the shipped `writeResolutionObject` against a **real** disposable filesystem outside
+  the repository, on the one case the code exists for: a re-emit carrying a fresh `eventId` — an unhashed field —
+  lands at the same content address with different bytes. The first record is asserted byte-identical afterwards
+  and the store still holds exactly one object, so the refusal overwrites nothing. The preceding half of the same
+  test is the anti-vacuity control: an unchanged repeat is `reused: true, written: false` rather than a conflict,
+  so the code is not simply firing on every second write.
 - [ ] T-04-I5 passes: `authorizeResolutionWrite` is proven to be called first — a claimless row refuses `RTR-LEGACY-BACKFILL` before the resolution is inspected, a malformed row refuses as malformed, and a `claimHash`/`claimRef` mismatch refuses — with nothing written on any path → evidence recorded in `report.md#t-04-i5`.
 - [ ] T-04-E1 passes: a full resolve pass produces one closure per due claim, leaves not-yet-due claims active, and the partition identity holds → evidence recorded in `report.md#t-04-e1`.
 - [ ] T-04-V1 passes: `RTR-NETWORK` fires on a network/credential reference and the clean module references none → evidence recorded in `report.md#t-04-v1`.

@@ -157,6 +157,52 @@ across a second pass over unchanged bytes.
 No Test-Plan test item is ticked. Every increment-2 row is a partial claim on its row, in the same posture
 increment 1 held `T-04-F1` and `T-04-F2`.
 
+### Increment 3 — the write slice (commit `c8665265f`)
+
+The slice turns the increment-2 **number** into a **record** in the content-addressed store: `MEASURED_CLOSURE_EVENTS`,
+`DETERMINED_CLOSURE_CLASS`, `resolutionAxesFor`, `resolutionProvenanceFor`, `resolutionFor` and `recordResolution`. It
+wires `outcomeValueFor` through the shipped `classifyOutcome` and `buildResolution` / `writeResolutionObject`. The
+predicate evaluators and the reducer bridge remain later increments, so the closure verdict and the lifecycle ids
+arrive as inputs and every new row carries an `(increment 3)` marker.
+
+**Commands, run from `<repo-root>`:** `node --test tests/recommendation-track-record.unit.mjs` — **exit 0**,
+`tests 28 / pass 28 / fail 0`; `node --test tests/*.integration.mjs` — **exit 0**, `tests 33 / pass 33 / fail 0`. The
+raw output and the per-item source anchors are recorded inline beside each ticked checkbox in [scope.md](scope.md).
+
+**The closure-to-class routing is derived, so `withdrawn` is unreachable rather than merely unused.** Inverting the
+shipped `OUTCOME_CLOSURE_EVENTS` yields an index holding only the five events some class admits; `withdrawn` is the
+residue no class admits, so `resolutionAxesFor` refuses it before a record can exist. `DETERMINED_CLOSURE_CLASS` is
+`Object.fromEntries` over that same inversion rather than a second list, so the two cannot drift into disagreeing
+about which events carry a measurement — and the split is asserted at load to coincide exactly with
+`MAGNITUDE_BEARING_OUTCOME_CLASSES`.
+
+**The two axes are proven independent in both directions.** `T-04-U3` asserts `satisfied` + `loss` *and*
+`invalidated` + `win`, so the row cannot pass under an implementation that hard-coded the opposite mapping. A
+determined closure (`expired`) stores `null` for the magnitude while reporting the number it could **not** record,
+because a value that vanished without a trace reads exactly like one never computed.
+
+**The write is exactly-once by content address, and the two halves are different tests.** `T-04-I4` runs against a
+real disposable filesystem outside the repository: an unchanged repeat is `reused: true, written: false` with the
+file byte-identical; a re-emit carrying a fresh `eventId` — an unhashed field — lands at the same address with
+different bytes and aborts with `RTR-RESOLUTION-CONFLICT`, overwriting nothing.
+
+**Scope 02's gate is proven to run first by the shape of the adversarial input.** `T-04-I5` hands
+`recordResolution` the *same complete, valid record* that the anti-vacuity control writes cleanly. Against a
+claimless row it refuses `RTR-LEGACY-BACKFILL` / `claimless-row-unscoreable` and the store directory is never even
+created, so no property of a well-formed resolution can rescue a row that never recorded what it claimed.
+
+**Seven DoD items are ticked; four neighbouring write items are deliberately NOT.**
+
+| Left unticked | The conjunct that is not yet satisfied |
+|---|---|
+| The retroactive `ac` rewrite is detectable | **The item's stated mechanism is now the wrong one, and it is surfaced rather than silently rewritten.** Detection works: the fingerprint is a hashed term, so a rewritten `ac` moves the content address. But `T-04-I4` asserts the moved record is **accepted at a second address** (`moved.ok === true`, two objects on disk, the first untouched) — that is detection by divergence, not the `RTR-RESOLUTION-CONFLICT` refusal the item names. The conflict fires on an *unhashed* change at a *taken* address. Ticking it would assert a refusal the code demonstrably does not raise; correcting the wording is a plan act, not an evidence act. |
+| `withdrawn` is never resolver-emitted | The derived-residue half is proven — `withdrawn` is a real member of the 002-owned vocabulary that no class admits, it refuses, and no record is built on it. The item additionally requires "every failure branch, including a claim about to score badly", which is `T-04-F3`'s functional row and is not in this slice. |
+| "Not yet resolvable" is a silent skip | Unchanged from increment 2: "leaving the claim `active` with zero events appended" still needs the reducer bridge, which the write slice explicitly defers. |
+| `T-04-I5` passes | Two of its three named refusal paths are evidenced — the claimless row and the `claimHash`/`claimRef` mismatch. The third, "a malformed row refuses as malformed rather than as legacy", has no assertion in this slice. |
+
+The seven-field bar-shape item and its increment-2 note are left exactly as they stand: the surfaced premise
+correction there is a plan act and is not touched by an evidence pass.
+
 **Inputs are empty; this scope is fixture-testable only.** Verified this planning pass: `briefs/objects/claims/` and
 `briefs/objects/resolutions/` **do not exist**, there are **0** committed claim objects and **0** resolution objects,
 and `claimRef` appears in **0** of the 5,083 committed ledger rows. A resolver run over real committed state today
@@ -166,7 +212,8 @@ read a green real-data run as coverage: every Test Plan row here is satisfied fr
 
 ## Completion Statement
 
-Scope 04 is in progress. **5 of 55** Definition of Done items are satisfied — two from the increment-1 calendar
-slice and three from the increment-2 value slice, both recorded above — and the remaining 50 are unsatisfied. No
-scope completion is claimed and no certification is requested. Ruling R-04-01 is **discharged**: scope 01 landed the
-frozen hashed `priceBasis` term, and the resolver consumes it rather than selecting a basis of its own.
+Scope 04 is in progress. **12 of 55** Definition of Done items are satisfied — two from the increment-1 calendar
+slice, three from the increment-2 value slice, and seven from the increment-3 write slice, all recorded above — and
+the remaining 43 are unsatisfied. No scope completion is claimed and no certification is requested. Ruling R-04-01
+is **discharged**: scope 01 landed the frozen hashed `priceBasis` term, and the resolver consumes it rather than
+selecting a basis of its own.

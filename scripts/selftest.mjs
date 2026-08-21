@@ -15386,6 +15386,69 @@ try {
     && gainFederal.preferentialTax.value > 0
     && ordinaryFederal.preferentialTax.value === 0,
   'TP-04-03: a California household holding a long-term gain and one holding the same amount as ordinary income pool that income into one supported-income measure, carry no preferential taxable-income measure at all and receive the identical California outcome, while the identical two households receive different federal totals because the federal settlement does carve the gain into a preferential measure and prices it in a preferential band');
+
+  /* TP-04-04 — the row's OWNING assertion. Before this the row had none: a suite-wide
+     census of every passing `TP-04-04` line found each one belonged to another feature
+     reusing the id, so the row was carried by nothing at all.
+
+     The row states three clauses. Two of them speak about a RESOLVED deduction and
+     cannot be asserted while BI-6 is open, and this assertion does not pretend to
+     cover them — what is covered and what is not is recorded in report.md#tp-04-04.
+     The third clause, that the deduction is NEVER derived from the federal deduction,
+     is decidable today and is the clause that actually protects a household: a silent
+     federal borrow is worse than a refusal, because it produces a California figure
+     that looks resolved and is wrong by roughly a factor of three. */
+  const federalDeductionAmounts = statuses.map((status) => federalPack.standardDeductions[status].amount);
+  const federalFiguresIn = (pack) => {
+    const hits = [];
+    (function walk(node) {
+      if (node === null || node === undefined) return;
+      if (typeof node === 'number') { if (federalDeductionAmounts.indexOf(node) >= 0) hits.push(node); return; }
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === 'object') { Object.keys(node).forEach((key) => walk(node[key])); }
+    })(pack);
+    return hits;
+  };
+  /* The negative control: the same detector run against a clone that HAS borrowed the
+     federal figure must fire, and the settlement must then publish it. Without this the
+     zero-hit result above would be indistinguishable from a detector that cannot fail. */
+  const federalBorrowPlant = clone(californiaPack);
+  federalBorrowPlant.standardDeductions.single = {
+    contractVersion: 'DeductionAmount/v1',
+    filingStatus: 'single',
+    amount: federalPack.standardDeductions.single.amount,
+    sourceRef: 'ca-rtc-17073-5',
+    locator: 'planted federal figure for the negative control'
+  };
+  const shippedSettlement = STATE.computeAnnualStateTax(californiaWorkspace('single', 120000), californiaPack);
+  const plantedSettlement = STATE.computeAnnualStateTax(californiaWorkspace('single', 120000), federalBorrowPlant);
+  assert(federalDeductionAmounts.length === 4
+    && federalDeductionAmounts.every((amount) => Number.isFinite(amount) && amount > 0)
+    /* every filing status is absent, not merely some */
+    && statuses.every((status) => RULES.isAbsentFigure(californiaPack.standardDeductions[status]))
+    && statuses.every((status) => !Object.prototype.hasOwnProperty.call(californiaPack.standardDeductions[status], 'amount')
+      && !Object.prototype.hasOwnProperty.call(californiaPack.standardDeductions[status], 'value'))
+    /* the remediation names California's own authority, not a federal one */
+    && statuses.every((status) => californiaPack.standardDeductions[status].missingSource.url.indexOf('ftb.ca.gov') >= 0)
+    && californiaPack.sourceRecords.every((record) => record.publisher.indexOf('California') >= 0)
+    /* no figure anywhere in the pack equals a federal standard deduction */
+    && federalFiguresIn(californiaPack).length === 0
+    && federalFiguresIn(federalBorrowPlant).length === 1
+    /* the gap reaches the settlement instead of being filled behind the household's back.
+       appliedDeduction is an engine refusal rather than a pack-level AbsentFigure, so it is
+       read with isUnavailable; the code and the missing numeric member are checked either way. */
+    && RULES.isUnavailable(shippedSettlement.appliedDeduction)
+    && codeOf(shippedSettlement.appliedDeduction) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && !Object.prototype.hasOwnProperty.call(shippedSettlement.appliedDeduction, 'value')
+    && RULES.isUnavailable(shippedSettlement.stateTaxableIncome)
+    /* and the refusal is scoped to the deduction rather than a blanket failure */
+    && shippedSettlement.grossSupportedIncome.value === 120000
+    /* the control proves the appliedDeduction check is able to fail */
+    && plantedSettlement.appliedDeduction.value === federalPack.standardDeductions.single.amount
+    /* and the pack declares the gap rather than hiding it */
+    && californiaPack.unsupportedFeatures.some((feature) =>
+      feature.id === 'ca-standard-deduction-for-declared-year' && feature.movesMarginalRate === true),
+  'TP-04-04: California carries no standard deduction of its own for the declared year, every filing status is an absent figure with no numeric member and a remediation naming a California authority, no figure anywhere in the pack equals any federal standard deduction, and the settlement publishes appliedDeduction as a refusal that propagates into state taxable income while gross supported income still resolves — proven able to fail by a clone that borrows the federal single-filer figure, which the same detector catches and whose settlement then publishes that borrowed figure');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 Scope 04 California group threw): ' + e.message); }
 
 /* ================================================================================
@@ -25455,6 +25518,31 @@ try {
     ? { path: f.path, source: f.source + '\nfunction tickerFromQuery() { return null; }\n' } : f);
   assert(f027PrivateRuleSites(f027Restored).length === 1 && f027PrivateRuleSites(f027ProductionFiles).length === 0,
     'Feature 027 adversarial: restoring either private tickerFromQuery fails the single-definition assertion');
+
+  /* 1.11 — the percent-encoding class, which the corpus above does not reach.
+     URLSearchParams decodes ONCE, so a value written double-encoded in the link arrives at
+     the rule still carrying its literal `%`. Every value here is SHORT ENOUGH and otherwise
+     well-formed enough that the 1..12 length bound and the rest of the corpus's refusal
+     reasons do NOT apply — the ONLY thing standing between them and acceptance is that `%`
+     is absent from the receiver character class. That makes them a sharp probe of exactly
+     one property, which the mutant immediately below then proves is able to fail. */
+  const F027_ENCODED_CORPUS = Object.freeze([
+    '%2e%2e%2f',      /* double-encoded ../ — traversal that survives one decode */
+    '%2F%2Fx',        /* double-encoded //host — protocol-relative that survives one decode */
+    '%00',            /* encoded NUL */
+    'A%0AB',          /* encoded newline inside an otherwise ticker-shaped value */
+    '%6Aavascript'    /* first character of a scheme hidden behind an encoded byte */
+  ]);
+  const f027EncodedReads = F027_ENCODED_CORPUS.map((value) => f027Rule.linkedSubject(f027Query(value)));
+  const f027PercentPermissive = f027Mutant('\nvar SUBJECT_PATTERN = /^[A-Z0-9.\\-%]{1,12}$/;\n');
+  const f027PercentSurvivors = F027_ENCODED_CORPUS
+    .filter((value) => f027PercentPermissive.linkedSubject(f027Query(value)).status !== 'refused');
+  assert(f027EncodedReads.length === F027_ENCODED_CORPUS.length
+    && f027EncodedReads.every((read027) => read027.status === 'refused' && read027.subject === null && read027.raw === null)
+    && F027_ENCODED_CORPUS.every((value) => value.trim().toUpperCase().length <= 12)
+    && f027PercentSurvivors.length === F027_ENCODED_CORPUS.length,
+  'Feature 027: a value that survives one percent-decode still carrying a literal % is refused, and admitting % to the receiver class would let every one of them through'
+    + ' (' + f027PercentSurvivors.length + '/' + F027_ENCODED_CORPUS.length + ' would slip under a %-permitting pattern)');
 
   /* ── Tier 2 contract claims read off the real export object ── */
   assert(f027Module.SUBJECT_PARAM === 'ticker'

@@ -34,6 +34,7 @@ import {
     MEASURED_CLOSURE_EVENTS,
     NOT_DUE_REASON,
     NO_COMMITTED_REFERENCE_REASON,
+    ORIGIN_KEY_TERMS,
     PATH_COMPARATOR_MODE,
     PATH_INCOMPLETE_REASON,
     POINT_COMPARATOR_MODE,
@@ -41,6 +42,7 @@ import {
     PREDICATE_SATISFIED_EVENT,
     PRICE_BASIS_CODE,
     SESSION_ABSENT_REASON,
+    applyClosures,
     basisFingerprint,
     basisValueAt,
     closeDueClaims,
@@ -2790,6 +2792,127 @@ test('T-04-U9: closing a due claim twice appends nothing the second time', () =>
        emptiness above is a measured suppression rather than a function that never closes. */
     assert.equal(first.closures.length > 0, true, 'the first pass was non-empty on this same input');
     assert.equal(first.events.length > 0, true, 'and did append an event, which the second did not');
+});
+
+/** The live lifecycle index this claim proposes into, produced BY THE SHIPPED REDUCER. */
+function proposedLiveIndex(foundation, terms, run) {
+    const proposed = foundation.reduceRecommendationEvents(null, [{
+        ...terms,
+        trigger: 'fixture-trigger',
+        invalidation: 'fixture-invalidation',
+        confidenceBand: 'fixture-band',
+        confidenceScore: 0.5,
+        rationaleEvidenceIds: ['fixture-evidence'],
+    }], run);
+    assert.equal(proposed.ok, true, JSON.stringify(proposed.error ?? null));
+    return proposed.value.index;
+}
+
+test('T-04-U10: the reducer key is derived by the shipped producer, never authored here', () => {
+    const foundation = validationRequire('../rlcontracts.js');
+    const registry = toolsRegistry();
+
+    const derived = originRecommendationKeyFor(syntheticClaim(['DVG'], { priceBasis: 'raw-close' }), registry);
+    assert.equal(derived.ok, true, JSON.stringify(derived.error ?? null));
+
+    /* THE KEY IS THE PRODUCER'S OWN OUTPUT, byte for byte, over the record the bridge reports it
+       assembled. A bridge that derived correctly and then prefixed, truncated, cached or
+       substituted a hand-authored key fails HERE, because the comparison re-runs the producer
+       rather than re-reading whatever the bridge chose to return. */
+    assert.equal(
+        derived.originRecommendationKey,
+        foundation.deriveRecommendationKeys(derived.terms).originRecommendationKey,
+        'the bridge returns the producer own key for the record it built',
+    );
+
+    /* NON-VACUITY, TERM BY TERM. Equality above would also hold for a producer — or a bridge —
+       that returned one constant, so every MEASURED contributing term is perturbed in isolation
+       and must move the key. `ORIGIN_KEY_TERMS` is read off the producer by perturbation, so this
+       loop widens by itself if the producer starts folding in a further field. */
+    assert.equal(ORIGIN_KEY_TERMS.length > 0, true, 'the measured contributing set is not empty');
+    for (const term of ORIGIN_KEY_TERMS) {
+        const value = derived.terms[term];
+        assert.notEqual(value, undefined, `${term}: the bridge supplies every contributing term`);
+        const perturbed = Array.isArray(value) ? [...value, 'PERTURBED'] : `${value}-perturbed`;
+        assert.notEqual(
+            foundation.deriveRecommendationKeys({ ...derived.terms, [term]: perturbed }).originRecommendationKey,
+            derived.originRecommendationKey,
+            `${term}: changing this term MUST move the key`,
+        );
+    }
+
+    /* AND THE BRIDGE ITSELF IS SENSITIVE TO CLAIM CONTENT, not merely the producer beneath it:
+       two claims differing in one HASHED field derive two different keys through the same call,
+       and the second key is the producer own as well. */
+    const other = originRecommendationKeyFor(syntheticClaim(['DVG2'], { priceBasis: 'raw-close' }), registry);
+    assert.equal(other.ok, true, JSON.stringify(other.error ?? null));
+    assert.notEqual(other.originRecommendationKey, derived.originRecommendationKey, 'a different subject derives a different key');
+    assert.equal(
+        other.originRecommendationKey,
+        foundation.deriveRecommendationKeys(other.terms).originRecommendationKey,
+        'and that key is the producer own too',
+    );
+});
+
+test('T-04-U11: a closure that bypasses run.closures is not silently accepted', () => {
+    const foundation = validationRequire('../rlcontracts.js');
+    const registry = toolsRegistry();
+    const claim = syntheticClaim(['DVG'], { priceBasis: 'raw-close' });
+
+    const derived = originRecommendationKeyFor(claim, registry);
+    assert.equal(derived.ok, true, JSON.stringify(derived.error ?? null));
+    const key = derived.originRecommendationKey;
+
+    const run = {
+        runId: `run-${RESOLUTION_SESSION}`,
+        occurredAt: `${RESOLUTION_SESSION}T20:00:00.000Z`,
+        canonicalMonth: RESOLUTION_SESSION.slice(0, 7),
+    };
+    const liveIndex = proposedLiveIndex(foundation, derived.terms, run);
+    assert.equal(liveIndex.entries[key].state, LIVE_ENTRY_STATE, 'the entry starts live');
+
+    /* Exactly the row `closeDueClaims` builds, so the two bypasses below differ from the accepted
+       path in the CHANNEL alone and never in the payload. */
+    const closure = {
+        originRecommendationKey: key,
+        eventType: PREDICATE_SATISFIED_EVENT,
+        reasonCode: 'predicate-satisfied',
+    };
+
+    /* BYPASS 1 — the closure rides on the RUN OBJECT rather than the argument. `applyClosures`
+       calls the reducer with `{ ...run, closures }`, its own parameter LAST, so a smuggled
+       `run.closures` is overwritten by the empty argument before the reducer ever sees it.
+       MEASURED OUTCOME: accepted and inert — a silent DROP, not a refusal. */
+    const smuggled = applyClosures(liveIndex, [], { ...run, closures: [closure] });
+    assert.equal(smuggled.ok, true, 'the smuggled closure does not refuse — it is dropped');
+    assert.equal(smuggled.events.length, 0, 'and appends no lifecycle event at all');
+    assert.equal(smuggled.index.entries[key].state, LIVE_ENTRY_STATE, 'so the entry is STILL LIVE');
+    assert.equal(
+        smuggled.index.indexFingerprint,
+        liveIndex.indexFingerprint,
+        'the reduction is byte-identical, so nothing at all took effect',
+    );
+
+    /* BYPASS 2 — the same row handed through `current`, the PROPOSALS channel, which is the other
+       array the reducer reads. MEASURED OUTCOME: a REFUSAL, and the reducer own named one —
+       `eventType` is not a recommendation field, so a closure cannot masquerade as a proposal. */
+    const asProposal = foundation.reduceRecommendationEvents(liveIndex, [closure], run);
+    assert.equal(asProposal.ok, false, 'a closure is not a proposal');
+    assertRefusal(asProposal.error, 'unknown-field', 'current.0.eventType', 'closure through current');
+
+    /* NON-VACUITY. Both bypasses failing to close means nothing unless the SAME closure through
+       the SAME reducer DOES close when it enters by `run.closures`: without this pairing every
+       assertion above would also pass against a reducer that closed nothing, ever. */
+    const correct = applyClosures(liveIndex, [closure], run);
+    assert.equal(correct.ok, true, JSON.stringify(correct.error ?? null));
+    assert.equal(correct.events.length, 1, 'the sanctioned channel appends exactly one event');
+    assert.equal(correct.events[0].eventType, PREDICATE_SATISFIED_EVENT, 'of the closure own type');
+    assert.equal(correct.index.entries[key].state, CLOSED_ENTRY_STATE, 'and transitions the entry to closed');
+    assert.notEqual(
+        correct.index.indexFingerprint,
+        liveIndex.indexFingerprint,
+        'so a real closure is observable in the reduction the bypasses left untouched',
+    );
 });
 
 

@@ -26,6 +26,18 @@ import path from 'node:path';
 import test from 'node:test';
 
 import { buildPublishSet } from '../scripts/brief-publication.mjs';
+import {
+    LOOKAHEAD_CODE,
+    PRICE_BASIS_CODE,
+    SESSION_ABSENT_REASON,
+    basisFingerprint,
+    basisValueAt,
+    fenceObservations,
+    loadBars,
+    loadCalendar,
+    outcomeValueFor,
+    readBars,
+} from '../scripts/brief-resolve-outcomes.mjs';
 import { loadInstrumentUniverse, recommendationRowsFromPayload } from '../scripts/recommendation-body.mjs';
 import { CLAIM_NOT_EVALUABLE_FIELD, attachClaimRefs, mintClaimRecords } from '../scripts/recommendation-claim-mint.mjs';
 import { buildRun } from './fixtures/feature-002/history/history-fixture-builder.mjs';
@@ -2030,4 +2042,235 @@ test('T-03-F2 (unit precursor): the partition accounts for every proposed call, 
         assert.equal(emptyPartition.buckets[bucket], 0, `${bucket} reads an explicit zero, never a missing key`);
     }
 });
+
+/* ── Scope 04, increment 2 ────────────────────────────────────────────────────────────────
+   Increment 1 landed the calendar-session substrate. Increment 2 lands the OBSERVATION read:
+   the as-of slice, the frozen-basis lookup, and the unrounded `outcomeValue`. The predicate
+   evaluators, the data-quality gates, the reducer bridge and the resolution assembly are later
+   increments, so every row carries an `(increment 2)` marker and none claims its Test Plan row
+   whole. Every date is a fixture literal or a committed-calendar value; nothing reads a clock.
+
+   The synthetic series under `bars/` exist because the property under test cannot be observed on
+   real data: `DVG` diverges in SIGN between its two closes, so a resolver that chose a basis for
+   itself scores the same claim as a +10% win or a -10% loss. `RAWONLY` carries no `ac` at all,
+   which is not a hypothetical shape — 54 of 292 committed series have rows without one. */
+
+const BARS_FIXTURE_DIR = path.join(REPO_ROOT, 'tests', 'fixtures', 'recommendation-track-record', 'bars');
+
+const ENTRY_SESSION = '2026-07-28';
+const RESOLUTION_SESSION = '2026-07-29';
+
+/* The EXACT returns the fixture closes produce, expression AND literal. Writing `10` here would
+   pass against an implementation that rounded, which is the one thing these rows exist to catch —
+   and each literal below differs from its decimal reading in the last few bits. */
+const DVG_RAW_RETURN = (110 / 100 - 1) * 100;
+const DVG_ADJUSTED_RETURN = (90 / 100 - 1) * 100;
+const DVG2_RAW_RETURN = (190 / 200 - 1) * 100;
+
+function fixtureBars(symbol) {
+    return readBars(readFileSync(path.join(BARS_FIXTURE_DIR, `${symbol}.json`), 'utf8'));
+}
+
+/** Fences for the named fixture series, keyed by `seriesRef` exactly as `subjectReturn` reads them. */
+function fixtureFences(symbols, resolutionDate = RESOLUTION_SESSION) {
+    const calendar = loadCalendar(REPO_ROOT);
+    return new Map(symbols.map((symbol) => [
+        claims.seriesRefFor(symbol),
+        fenceObservations(calendar, fixtureBars(symbol), resolutionDate),
+    ]));
+}
+
+/**
+ * Mint an evaluable claim over the synthetic series. The committed set is overridden to the
+ * fixture symbols so the mint gate sees them as available, which is the same availability rule
+ * `enumerateCommittedSeries` applies to the real tree — never `index.json`, never a count.
+ */
+function syntheticClaim(symbols, { priceBasis, weighting = 'primary-only', action = 'add' } = {}) {
+    const fixture = structuredClone(loadClaimFixture('evaluable-instrument-add'));
+    fixture.input.action.action = action;
+    fixture.input.action.claim.resolvesTo = symbols;
+    fixture.input.action.claim.weighting = weighting;
+    fixture.input.action.claim.priceBasis = priceBasis;
+    fixture.input.binding.entryDate = ENTRY_SESSION;
+    fixture.input.binding.resolutionDate = RESOLUTION_SESSION;
+    const result = claims.mintClaim(mintInputFrom(fixture, { committedSeries: symbols }));
+    assertEvaluable(result, `synthetic ${symbols.join('+')} @ ${priceBasis}`);
+    return result.claim;
+}
+
+test('T-04-U8 (increment 2): the price basis is read from the frozen claim, and an absent basis refuses instead of falling back', () => {
+    const fences = fixtureFences(['DVG']);
+
+    /* THE BASIS DECIDES THE OUTCOME. Same claim shape, same series, same two sessions — the only
+       difference is the hashed term, and it flips the sign. If a resolver picked a basis of its
+       own, one of these two numbers would be reported for both claims. */
+    const raw = outcomeValueFor(syntheticClaim(['DVG'], { priceBasis: 'raw-close' }), fences);
+    const adjusted = outcomeValueFor(syntheticClaim(['DVG'], { priceBasis: 'adjusted-close' }), fences);
+    assert.equal(raw.ok, true, 'the raw-close claim resolves');
+    assert.equal(adjusted.ok, true, 'the adjusted-close claim resolves');
+    assert.equal(raw.outcomeValue, DVG_RAW_RETURN, 'raw-close: 100 -> 110 is +10%');
+    assert.equal(adjusted.outcomeValue, DVG_ADJUSTED_RETURN, 'adjusted-close: 100 -> 90 is -10%');
+    assert.equal(raw.outcomeValue, 10.000000000000009, 'and it is the exact double, not the decimal 10');
+    assert.equal(adjusted.outcomeValue, -9.999999999999998, 'nor the decimal -10');
+    assert.equal(raw.priceBasis, 'raw-close', 'and each carries the basis it was measured against');
+    assert.equal(adjusted.priceBasis, 'adjusted-close');
+
+    /* TWO CLAIMS DIFFERING ONLY IN BASIS ARE TWO DIFFERENT CLAIMS. `priceBasis` is inside
+       `magnitude`, which is a hashed term, so this is what makes the basis untunable after the
+       outcome is visible rather than merely recorded. */
+    assert.notEqual(
+        syntheticClaim(['DVG'], { priceBasis: 'raw-close' }).claimHash,
+        syntheticClaim(['DVG'], { priceBasis: 'adjusted-close' }).claimHash,
+        'the frozen basis is inside the content address',
+    );
+
+    /* ABSENT MEANS REFUSE, NEVER SUBSTITUTE. RAWONLY carries the SAME raw closes as DVG, so a
+       fallback would return a perfectly plausible +10 and nothing downstream could tell. The
+       refusal names the exact row field it could not read. */
+    const rawOnlyFences = fixtureFences(['RAWONLY']);
+    const substituted = outcomeValueFor(syntheticClaim(['RAWONLY'], { priceBasis: 'adjusted-close' }), rawOnlyFences);
+    assert.equal(substituted.ok, false, 'an adjusted-close claim on a series with no adjusted close must refuse');
+    assert.equal(substituted.error.code, PRICE_BASIS_CODE, 'code');
+    assert.equal(substituted.error.reason, 'basis-series-absent-from-observation', 'reason');
+    assert.equal(substituted.error.field, `observations.RAWONLY.${ENTRY_SESSION}.ac`, 'field names the row field');
+    assert.equal(Object.prototype.hasOwnProperty.call(substituted, 'outcomeValue'), false, 'and no value is produced');
+
+    /* ANTI-VACUITY: the SAME series under the basis it actually carries resolves, so the refusal
+       above is caused by the absent field and not by a reader that refuses this fixture outright. */
+    const honest = outcomeValueFor(syntheticClaim(['RAWONLY'], { priceBasis: 'raw-close' }), rawOnlyFences);
+    assert.equal(honest.ok, true, 'raw-close on the same series resolves');
+    assert.equal(honest.outcomeValue, DVG_RAW_RETURN);
+
+    /* AN UNAUTHORED BASIS IS CARRIED THROUGH from the mint, never re-derived here. */
+    const unauthored = claims.mintClaim(mintInputFrom(loadClaimFixture('not-evaluable-no-authored-price-basis')));
+    assert.equal(unauthored.ok, true, 'the claim still mints');
+    const carried = outcomeValueFor(unauthored.claim, fences);
+    assert.equal(carried.ok, false);
+    assert.deepEqual(
+        carried.closure,
+        { closureEventType: 'not-evaluable', reasonCode: 'no-authored-price-basis', field: 'magnitude.priceBasis' },
+        'the mint reason is carried through as a not-evaluable closure, not re-derived',
+    );
+});
+
+test('T-04-U5 (increment 2): the as-of fence is a slice, and "not yet observed" is not "read the future"', () => {
+    const calendar = loadCalendar(REPO_ROOT);
+    const spy = loadBars(REPO_ROOT, 'SPY');
+
+    /* THE SLICE CONTAINS NO FUTURE ROW. Asserted over the map itself rather than over a reader,
+       because the fence is structural: an evaluator handed this map cannot reach a later row. */
+    const fence = fenceObservations(calendar, spy, RESOLUTION_SESSION);
+    assert.equal(fence.observations.size > 0, true, 'the slice must be non-empty for this row to mean anything');
+    for (const sessionDate of fence.observations.keys()) {
+        assert.equal(sessionDate <= RESOLUTION_SESSION, true, `${sessionDate} is at or before the resolution date`);
+    }
+    assert.equal(fence.excluded.future > 0, true, 'and rows after it were excluded rather than absent');
+
+    /* ASKING PAST THE FENCE IS RTR-LOOKAHEAD, with its exact code. */
+    const past = basisValueAt(fence, 'adjusted-close', '2026-08-03');
+    assert.equal(past.ok, false);
+    assert.equal(past.error.code, LOOKAHEAD_CODE, 'code');
+    assert.equal(past.error.reason, 'observation-past-resolution-date', 'reason');
+    assert.equal(past.error.field, 'sessionDate', 'field');
+
+    /* THE DISTINCT CASE. `bars.asof < resolutionDate` is NOT a refusal: the fence reports itself
+       unresolvable so the caller can skip and append nothing. Conflating the two would make
+       RTR-LOOKAHEAD fire on every routine run and train everyone to ignore it. */
+    const notYet = fenceObservations(calendar, fixtureBars('DVG'), '2026-07-31');
+    assert.equal(notYet.ok, true, 'a not-yet-observed horizon is not a refusal');
+    assert.equal(notYet.resolvable, false, 'it reports itself unresolvable');
+    assert.equal(fence.resolvable, true, 'paired with an observed horizon that IS resolvable');
+
+    /* A MISSING SESSION IS A CLOSURE, NOT A REFUSAL, and its reason is the shipped one — so
+       `buildResolution` accepts it against `unresolved` and rejects it against anything else. */
+    const weekend = basisValueAt(fence, 'adjusted-close', '2026-07-26');
+    assert.equal(weekend.ok, false);
+    assert.equal(Object.prototype.hasOwnProperty.call(weekend, 'error'), false, 'a data gap carries no RTR-* code');
+    assert.deepEqual(weekend.closure, {
+        closureEventType: 'unresolved',
+        reasonCode: SESSION_ABSENT_REASON,
+        field: `observations.SPY.2026-07-26`,
+    });
+    assert.equal(claims.CLOSURE_REASON_CODES.unresolved.includes(SESSION_ABSENT_REASON), true, 'the reason is shipped, not invented');
+
+    /* NON-SESSION ROWS ARE EXCLUDED, NEVER SUBSTITUTED. A 24h market's off-session bar is not a
+       session close, so it must not become one: 6,823 of 48,294 in-window committed rows are
+       stamped away from the regular open. Counted rather than dropped in silence. */
+    const crypto = fenceObservations(calendar, loadBars(REPO_ROOT, 'BTC-USD'), RESOLUTION_SESSION);
+    assert.equal(crypto.excluded.unmappable > 0, true, 'a 24h series carries rows that are not session opens');
+    for (const [sessionDate, row] of crypto.observations) {
+        const open = calendar.rows.find((candidate) => candidate.tradingDate === sessionDate).regular.startUtc;
+        assert.equal(row.t, Date.parse(open), `${sessionDate} maps only a row stamped at its own regular open`);
+    }
+});
+
+test('T-04-U7 (increment 2): outcomeValue is direction x ret(subject), exact and unrounded, and the basis values are fingerprinted', () => {
+    const fences = fixtureFences(['DVG', 'DVG2']);
+
+    /* THE BEARISH ADAPTER. `trim` is direction -1, so a series that FELL is a correct call and
+       must score POSITIVE. Without the multiply, every correct bearish call reads as a loss. */
+    const correctBear = outcomeValueFor(syntheticClaim(['DVG'], { priceBasis: 'adjusted-close', action: 'trim' }), fences);
+    assert.equal(correctBear.ok, true);
+    assert.equal(correctBear.subjectReturn, DVG_ADJUSTED_RETURN, 'the series fell 10%');
+    assert.equal(correctBear.outcomeValue, -DVG_ADJUSTED_RETURN, 'and the correct bearish call scores positive');
+    assert.equal(correctBear.outcomeValue > 0, true, 'which is the whole point of the multiply');
+
+    const wrongBear = outcomeValueFor(syntheticClaim(['DVG'], { priceBasis: 'raw-close', action: 'trim' }), fences);
+    assert.equal(wrongBear.outcomeValue, -DVG_RAW_RETURN, 'a bearish call on a series that rose scores negative');
+
+    const correctBull = outcomeValueFor(syntheticClaim(['DVG'], { priceBasis: 'raw-close', action: 'add' }), fences);
+    assert.equal(correctBull.outcomeValue, DVG_RAW_RETURN, 'and the same rise is positive for a bullish call');
+
+    /* EXACT AND UNROUNDED. 200 -> 190 is -5% only in decimal; in IEEE-754 it is the value below,
+       and asserting the rounded number would let a `toFixed` creep in without failing. */
+    const primary = outcomeValueFor(syntheticClaim(['DVG2', 'DVG'], { priceBasis: 'raw-close', weighting: 'primary-only' }), fences);
+    assert.equal(primary.outcomeValue, DVG2_RAW_RETURN, 'the exact IEEE-754 value, not -5');
+    assert.equal(primary.outcomeValue, -5.000000000000004, 'which is NOT the decimal -5');
+    assert.equal(primary.legReturns.length, 1, 'primary-only reads the first leg alone');
+
+    /* THE TWO WEIGHTINGS ARE DIFFERENT MEASUREMENTS, not two renderings of one. */
+    const equal = outcomeValueFor(syntheticClaim(['DVG2', 'DVG'], { priceBasis: 'raw-close', weighting: 'equal' }), fences);
+    assert.equal(equal.legReturns.length, 2, 'equal weighting reads every leg');
+    assert.equal(equal.outcomeValue, (DVG2_RAW_RETURN + DVG_RAW_RETURN) / 2, 'the mean of the leg returns');
+    assert.notEqual(equal.outcomeValue, primary.outcomeValue, 'and it differs from primary-only');
+
+    /* THE FINGERPRINT MAKES A RETROACTIVE REWRITE DETECTABLE. It covers the exact values read, so
+       BUG-012's `ac` rewrite moves it; and it is stable across passes over unchanged bytes, which
+       is what keeps the content-addressed write idempotent rather than conflicting every run. */
+    assert.match(correctBear.basisFingerprint, /^sha256:[a-f0-9]{64}$/, 'a content address');
+    assert.equal(
+        outcomeValueFor(syntheticClaim(['DVG'], { priceBasis: 'adjusted-close', action: 'trim' }), fixtureFences(['DVG'])).basisFingerprint,
+        correctBear.basisFingerprint,
+        'a second pass over unchanged bytes recomputes one fingerprint',
+    );
+    assert.notEqual(correctBear.basisFingerprint, wrongBear.basisFingerprint, 'a different basis reads different values');
+
+    const rewritten = structuredClone(correctBear.observations.map((o) => ({ ...o })));
+    rewritten[1].value += 0.0000001;
+    assert.notEqual(
+        basisFingerprint('adjusted-close', rewritten),
+        correctBear.basisFingerprint,
+        'and a one-ten-millionth rewrite of a read value changes it',
+    );
+
+    /* IT SURVIVES THE HASHED PROVENANCE GATE. `buildResolution` refuses any RUN_SCOPED_KEYS member
+       inside `provenance`, so the fingerprint is asserted to be ACCEPTED there rather than merely
+       computed — an unhashed fingerprint would not make a rewrite surface as a write conflict. */
+    const built = claims.buildResolution({
+        closureVocabulary: claims.readClosureEventVocabulary(foundationSourceText()),
+        claimHash: syntheticClaim(['DVG'], { priceBasis: 'adjusted-close', action: 'trim' }).claimHash,
+        eventId: 'sha256:'.concat('3'.repeat(64)),
+        resolutionDate: RESOLUTION_SESSION,
+        closureEventType: 'satisfied',
+        outcomeClass: 'win',
+        outcomeValue: correctBear.outcomeValue,
+        reasonCode: 'predicate-satisfied',
+        provenance: { priceBasis: correctBear.priceBasis, basisFingerprint: correctBear.basisFingerprint },
+        lifecycleBinding: { originRecommendationKey: 'sha256:'.concat('4'.repeat(64)) },
+    });
+    assert.equal(built.ok, true, `the fingerprint must be admissible in hashed provenance: ${JSON.stringify(built.error)}`);
+    assert.equal(built.resolution.provenance.basisFingerprint, correctBear.basisFingerprint);
+    assert.equal(built.resolution.outcomeValue, correctBear.outcomeValue, 'and the value is carried through unrounded');
+});
+
 

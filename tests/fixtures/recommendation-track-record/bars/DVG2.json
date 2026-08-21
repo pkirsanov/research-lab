@@ -1,0 +1,14 @@
+{
+  "note": "Synthetic second basket leg. Raw-close returns -5% and adjusted-close returns -10% over the same two sessions as DVG, so an equal-weighted basket and a primary-only basket produce DIFFERENT numbers: equal raw = (+10 + -5)/2 = +2.5, primary-only raw = +10. Without a second leg that disagrees, the two weightings would coincide and neither would be tested.",
+  "sym": "DVG2",
+  "interval": "1d",
+  "range": "1mo",
+  "asof": "2026-07-29",
+  "reconstructedSessions": [],
+  "thinObservedSessions": [],
+  "zeroObservedSessions": [],
+  "rows": [
+    { "t": 1785245400000, "o": 199.0, "h": 202.0, "l": 197.0, "c": 200.0, "v": 500000, "ac": 200.0 },
+    { "t": 1785331800000, "o": 199.5, "h": 201.0, "l": 178.0, "c": 190.0, "v": 640000, "ac": 180.0 }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "note": "Synthetic. The raw and adjusted closes diverge in SIGN over 2026-07-28 -> 2026-07-29: raw-close returns +10%, adjusted-close returns -10%. A resolver that picked a basis for itself would score the same claim as a win or a loss depending on which it picked, which is the whole point of freezing magnitude.priceBasis. Timestamps are the committed XNYS regular-session opens for those two dates. asof stops at 2026-07-29 so a later horizon is not-yet-observed rather than absent.",
+  "sym": "DVG",
+  "interval": "1d",
+  "range": "1mo",
+  "asof": "2026-07-29",
+  "reconstructedSessions": [],
+  "thinObservedSessions": [],
+  "zeroObservedSessions": [],
+  "rows": [
+    { "t": 1785245400000, "o": 99.0, "h": 101.0, "l": 98.0, "c": 100.0, "v": 1000000, "ac": 100.0 },
+    { "t": 1785331800000, "o": 100.5, "h": 112.0, "l": 88.0, "c": 110.0, "v": 1200000, "ac": 90.0 }
+  ]
+}

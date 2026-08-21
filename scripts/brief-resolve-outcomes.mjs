@@ -194,3 +194,295 @@ export function earlyCloseSessionsIn(calendar, dates) {
   const wanted = new Set(dates);
   return Object.freeze(rows.filter((row) => wanted.has(row.tradingDate) && span(row) < fullSession).map((row) => row.tradingDate));
 }
+
+/* ── Increment 2: the observation slice, the frozen price basis, and the raw outcome value ──
+ *
+ * What increment 1 could not do was read a price. This part reads exactly the series the claim
+ * FROZE at proposal and computes the unrounded return between its two authored session dates.
+ *
+ * The basis is never selected here. `priceBasisFor` (rlclaims.js) is the shipped reader for the
+ * hashed `magnitude.priceBasis` term, and `PRICE_BASIS_ROW_FIELD` is the shipped binding from that
+ * term to the row field, so the `c`/`ac` pair is never restated at this call site. When the named
+ * field is absent from an observation the lookup REFUSES; falling back to the other series is the
+ * untraceable choice `priceBasis` exists to prevent, and it is not hypothetical — 2,153 in-window
+ * rows across 54 of 292 committed series carry no `ac` at all, `EA` for all 328 of its rows.
+ *
+ * Two result shapes, and the split is the contract rather than a convenience. An `RTR-*` refusal
+ * (`{ ok: false, error })` is an invariant violation. A `{ ok: false, closure }` is an outcome the
+ * claim contract already names — `unresolved`/`session-absent`, or a mint reason carried through —
+ * so it needs no register code, and inventing one would put a second name on a coded fact.
+ *
+ * The fence is a SLICE, not a rule: rows dated after `resolutionDate` never enter the map handed
+ * to a reader, so lookahead is prevented by the shape of the data rather than by remembering to
+ * check. A lookup past the fence is `RTR-LOOKAHEAD`.
+ */
+
+/* D4-owned. An observation dated after the claim's frozen `resolutionDate` is consulted. */
+export const LOOKAHEAD_CODE = 'RTR-LOOKAHEAD';
+
+/* ROUTED, NOT OWNED — the same posture increment 1 holds `RTR-SESSION-PREDICATE` in. This is the
+   code Ruling R-04-01 PROPOSED to `design.md` → D4; the closed register carries 16 members and
+   this is not yet one of them. It is fired here rather than left unwired because the alternative
+   is silently reading the other close, and a proposal that no code exercises never gets ratified. */
+export const PRICE_BASIS_CODE = 'RTR-PRICE-BASIS';
+
+/* Asserted against the shipped vocabulary rather than trusted, exactly as the coverage reason is:
+   a rename in rlclaims.js must fail here, not produce a reason `buildResolution` later rejects. */
+export const SESSION_ABSENT_REASON = 'session-absent';
+if (!claims.CLOSURE_REASON_CODES.unresolved.includes(SESSION_ABSENT_REASON)) {
+  throw new Error(`brief-resolve-outcomes: "${SESSION_ABSENT_REASON}" is not a shipped unresolved reason`);
+}
+
+function closure(closureEventType, reasonCode, field) {
+  return { ok: false, closure: { closureEventType, reasonCode, field } };
+}
+
+/* The six fields all three measured row shapes share. `ac` is deliberately absent from this list. */
+const BAR_CORE_FIELDS = Object.freeze(['o', 'h', 'l', 'c', 'v']);
+
+/* Derived from the shipped `seriesRefFor`, never restated: `SERIES_INTERVAL` is private to
+   rlclaims.js, and a second copy here would keep answering `1d` after the shipped one moved. */
+const SERIES_INTERVAL = claims.seriesRefFor('X').split('/')[2];
+
+/**
+ * Parse and validate one committed bar file.
+ *
+ * The row shape is NOT closed at seven fields. Measured over all 292 committed series it takes
+ * three forms — `{t,o,h,l,c,v,ac}` on 147,337 rows, `{t,o,h,l,c,v}` on 2,675, and a 12-key variant
+ * carrying six `source*` provenance fields on 26 — so `ac` is validated as OPTIONAL and unknown
+ * keys are accepted. Requiring `ac` would throw on 54 real series; requiring a closed key list
+ * would throw on the provenance variant. The six fields all three forms share are required.
+ *
+ * A malformed file THROWS, in increment 1's idiom: a claim must never close `not-evaluable`
+ * because our own committed substrate is broken. Refusals are reserved for facts about the CLAIM.
+ */
+export function readBars(text) {
+  const bars = JSON.parse(text);
+  const bad = (message) => new Error(`brief-resolve-outcomes: bars ${message}`);
+
+  if (bars === null || typeof bars !== 'object' || Array.isArray(bars)) throw bad('is not an object');
+  if (typeof bars.sym !== 'string' || bars.sym.length === 0) throw bad('carries no symbol');
+  if (bars.interval !== SERIES_INTERVAL) throw bad(`interval is not ${SERIES_INTERVAL}`);
+  if (!ISO_DATE.test(bars.asof)) throw bad(`asof ${JSON.stringify(bars.asof)} is not an ISO date`);
+  if (!Array.isArray(bars.rows) || bars.rows.length === 0) throw bad(`${bars.sym} carries no rows`);
+
+  let previous = -Infinity;
+  for (const row of bars.rows) {
+    if (row === null || typeof row !== 'object') throw bad(`${bars.sym} carries a non-object row`);
+    if (!Number.isInteger(row.t)) throw bad(`${bars.sym} carries a non-integer t ${JSON.stringify(row.t)}`);
+    // Ascending order is asserted because every reader below indexes by session and would
+    // otherwise silently return whichever duplicate happened to be written last.
+    if (row.t <= previous) throw bad(`${bars.sym} rows are not strictly ascending at ${row.t}`);
+    for (const field of BAR_CORE_FIELDS) {
+      if (!Number.isFinite(row[field])) throw bad(`${bars.sym} row ${row.t} has a non-finite ${field}`);
+    }
+    if ('ac' in row && !Number.isFinite(row.ac)) throw bad(`${bars.sym} row ${row.t} has a non-finite ac`);
+    previous = row.t;
+  }
+  return bars;
+}
+
+/** Read one committed series by the symbol a `seriesRef` names. */
+export function loadBars(root, symbol) {
+  const base = typeof root === 'string' && root ? root : '.';
+  return readBars(readFileSync(path.join(base, claims.BARS_DIR, `${symbol}.json`), 'utf8'));
+}
+
+/**
+ * The observations a claim resolving on `resolutionDate` is allowed to see, indexed by session.
+ *
+ * Three exclusions, each counted rather than silent, because a reader that cannot tell "excluded"
+ * from "never existed" cannot tell a fence from a data gap:
+ *
+ *  - `future`: the FENCE. Dated after `resolutionDate`, so it never enters the map at all.
+ *  - `beyondCoverage`: outside the calendar window, so no session date is derivable for it.
+ *  - `unmappable`: in window but not stamped at a regular-session open. This is 6,823 of 48,294
+ *    in-window rows across 30 series — FX at 23:00Z, crypto at 00:00Z, plus crypto weekend rows —
+ *    and dropping them is what stops a 24h market's off-session row being read as a session close.
+ *
+ * The fence compares UTC calendar dates while the map is keyed by derived session dates. Those are
+ * the same value for every row that maps, which `sessionDateForEpoch` re-asserts per row against
+ * `regular.startUtc`, so the fence is exact for everything retained and conservative for the rest.
+ *
+ * `resolvable` is the distinction between "the future has not happened" and "you tried to read the
+ * future". A claim whose horizon post-dates `bars.asof` is simply not observable yet: the caller
+ * SKIPS it and appends nothing. Conflating that with a refusal would fire `RTR-LOOKAHEAD` on every
+ * routine run and train everyone to ignore it.
+ */
+export function fenceObservations(calendar, bars, resolutionDate) {
+  if (!ISO_DATE.test(resolutionDate)) {
+    throw new Error(`brief-resolve-outcomes: resolutionDate ${JSON.stringify(resolutionDate)} is not an ISO date`);
+  }
+  const observations = new Map();
+  let future = 0;
+  let beyondCoverage = 0;
+  let unmappable = 0;
+
+  for (const row of bars.rows) {
+    const utcDate = new Date(row.t).toISOString().slice(0, 10);
+    if (utcDate > resolutionDate) { future += 1; continue; }
+    if (utcDate < calendar.coverageStart || utcDate > calendar.coverageEnd) { beyondCoverage += 1; continue; }
+    const session = sessionDateForEpoch(calendar, row.t);
+    if (!session.ok) { unmappable += 1; continue; }
+    observations.set(session.tradingDate, row);
+  }
+
+  return {
+    ok: true,
+    symbol: bars.sym,
+    asOfDate: resolutionDate,
+    resolvable: bars.asof >= resolutionDate,
+    observations,
+    excluded: Object.freeze({ future, beyondCoverage, unmappable })
+  };
+}
+
+/**
+ * The value of the claim's FROZEN basis at one session.
+ *
+ * `PRICE_BASIS_ROW_FIELD` binds the hashed term to the row field, so neither `c` nor `ac` is named
+ * here. An absent field refuses; it never falls back to the field that happens to be present.
+ */
+export function basisValueAt(fence, priceBasis, sessionDate) {
+  const rowField = claims.PRICE_BASIS_ROW_FIELD[priceBasis];
+  if (rowField === undefined) {
+    throw new Error(`brief-resolve-outcomes: price basis ${JSON.stringify(priceBasis)} is outside the shipped vocabulary`);
+  }
+  if (!ISO_DATE.test(sessionDate)) {
+    throw new Error(`brief-resolve-outcomes: sessionDate ${JSON.stringify(sessionDate)} is not an ISO date`);
+  }
+  if (sessionDate > fence.asOfDate) {
+    return refusal(LOOKAHEAD_CODE, 'observation-past-resolution-date', 'sessionDate');
+  }
+  const row = fence.observations.get(sessionDate);
+  if (row === undefined) {
+    return closure('unresolved', SESSION_ABSENT_REASON, `observations.${fence.symbol}.${sessionDate}`);
+  }
+  if (!Number.isFinite(row[rowField])) {
+    return {
+      ok: false,
+      error: {
+        code: PRICE_BASIS_CODE,
+        reason: 'basis-series-absent-from-observation',
+        field: `observations.${fence.symbol}.${sessionDate}.${rowField}`,
+        priceBasis
+      }
+    };
+  }
+  return { ok: true, sessionDate, priceBasis, value: row[rowField] };
+}
+
+/**
+ * `(resolution / entry - 1) x 100` in `percent-return`, EXACT.
+ *
+ * No rounding, no clamping, no epsilon: a flat outcome nudged to +/-e would manufacture a
+ * directional result the data does not support, and `classifyOutcome` already carries the value
+ * through verbatim. A non-positive entry is `zeroObservedSessions` territory — the data-quality
+ * gate the caller must apply first — so it is a caller error and throws rather than refusing.
+ */
+export function periodReturn(entryValue, resolutionValue) {
+  if (!Number.isFinite(entryValue) || entryValue <= 0) {
+    throw new Error(`brief-resolve-outcomes: entry value ${JSON.stringify(entryValue)} is not a positive price`);
+  }
+  if (!Number.isFinite(resolutionValue)) {
+    throw new Error(`brief-resolve-outcomes: resolution value ${JSON.stringify(resolutionValue)} is not finite`);
+  }
+  return (resolutionValue / entryValue - 1) * 100;
+}
+
+/**
+ * A digest of the exact basis values read, for the resolution's HASHED `provenance`.
+ *
+ * R-04-01 leaves this obligation with the resolver: freezing the basis makes the CHOICE
+ * reproducible, but BUG-012 established that the refresh cron retroactively rewrites `ac`, so the
+ * VALUES can move underneath a frozen choice. Fingerprinting them puts the observations inside
+ * `resolutionHash`, which turns a later rewrite into an `RTR-RESOLUTION-CONFLICT` at the
+ * content-addressed write instead of a silent re-score. Built with the shipped `stableSha` and
+ * carrying no `RUN_SCOPED_KEYS` member, so the hashed block stays stable across passes.
+ */
+export function basisFingerprint(priceBasis, observations) {
+  if (!claims.PRICE_BASES.includes(priceBasis)) {
+    throw new Error(`brief-resolve-outcomes: price basis ${JSON.stringify(priceBasis)} is outside the shipped vocabulary`);
+  }
+  return claims.stableSha({ priceBasis, observations });
+}
+
+/**
+ * The subject's return over `[entryDate, resolutionDate]` at the claim's frozen basis.
+ *
+ * `weighting` is a hashed term with two frozen members, and they are DIFFERENT MEASUREMENTS
+ * rather than two renderings of one: `equal` is the mean of the leg returns, `primary-only` reads
+ * the first leg alone. A weighting outside the shipped vocabulary refuses rather than defaulting.
+ */
+export function subjectReturn(claim, fences) {
+  const basis = claims.priceBasisFor(claim);
+  if (!basis.ok) return basis;
+
+  const weighting = claim.subject.weighting;
+  if (!claims.SUBJECT_WEIGHTINGS.includes(weighting)) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'subject-weighting-not-allowed', 'subject.weighting');
+  }
+  const refs = weighting === 'primary-only' ? claim.subject.seriesRefs.slice(0, 1) : claim.subject.seriesRefs;
+  if (refs.length === 0) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'subject-carries-no-series', 'subject.seriesRefs');
+  }
+
+  const observations = [];
+  const legReturns = [];
+  for (const seriesRef of refs) {
+    const fence = fences.get(seriesRef);
+    if (fence === undefined) {
+      throw new Error(`brief-resolve-outcomes: no fenced observations supplied for ${seriesRef}`);
+    }
+    const read = [];
+    for (const [label, sessionDate] of [['entry', claim.magnitude.entryDate], ['resolution', claim.horizon.resolutionDate]]) {
+      const at = basisValueAt(fence, basis.priceBasis, sessionDate);
+      if (!at.ok) return at;
+      read.push(at.value);
+      observations.push({ seriesRef, leg: label, sessionDate, value: at.value });
+    }
+    legReturns.push(periodReturn(read[0], read[1]));
+  }
+
+  const total = legReturns.reduce((carry, value) => carry + value, 0);
+  return {
+    ok: true,
+    priceBasis: basis.priceBasis,
+    weighting,
+    legReturns: Object.freeze(legReturns),
+    observations: Object.freeze(observations),
+    subjectReturn: weighting === 'primary-only' ? legReturns[0] : total / legReturns.length
+  };
+}
+
+/**
+ * `outcomeValue = direction x ret(subject)`, unrounded.
+ *
+ * Multiplying by the frozen direction is the adapter without which every CORRECT bearish call
+ * would score as a loss: `rlvSummarizeOutcomes` counts wins with `value > 0` regardless of which
+ * way the claim leaned. A claim already carrying a mint reason is carried through as a
+ * `not-evaluable` closure rather than measured — which is also how `direction === 0` and an
+ * unauthored basis arrive here, so neither is re-derived locally.
+ */
+export function outcomeValueFor(claim, fences) {
+  if (claim.notEvaluable !== null) {
+    return closure('not-evaluable', claim.notEvaluable.reason, claim.notEvaluable.field);
+  }
+  if (!Number.isFinite(claim.direction) || claim.direction === 0) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'direction-not-bound', 'direction');
+  }
+  const subject = subjectReturn(claim, fences);
+  if (!subject.ok) return subject;
+
+  return {
+    ok: true,
+    outcomeValue: claim.direction * subject.subjectReturn,
+    priceBasis: subject.priceBasis,
+    subjectReturn: subject.subjectReturn,
+    // Carried through frozen: leg COUNT is what distinguishes `primary-only` from `equal`,
+    // which the collapsed `subjectReturn` scalar can no longer tell apart.
+    legReturns: subject.legReturns,
+    observations: subject.observations,
+    basisFingerprint: basisFingerprint(subject.priceBasis, subject.observations)
+  };
+}

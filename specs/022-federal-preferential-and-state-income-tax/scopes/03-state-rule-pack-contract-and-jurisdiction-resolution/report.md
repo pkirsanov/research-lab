@@ -1283,6 +1283,70 @@ browser rows this scope owns (TP-03-17, TP-03-18, TP-03-19) name a spec file tha
 does not yet exist, and TP-03-21 names a privacy row in the same absent file. The
 69 passing scenarios are the inherited suite, not this scope's browser coverage.
 
+#### TP-03-20 re-taken after the F-03-B rename — selection floor, then perturbation
+
+**Claim Source:** executed.
+
+The paragraph above is superseded on the point it could not settle. It recorded a
+green cumulative run and no perturbation, and the census later found the stronger
+reason it proved nothing: the `--grep "SCN-02[1-4]"` selection contained no test
+carrying `SCN-022-007`, `-008` or `-009`, the three scenarios this row claims,
+because `tests/lifetime-tax-state.spec.mjs` omitted its scenario token. The
+routed rename landed in `8e882bfc1`. Both halves the row now asks for follow.
+
+**The selection floor, asserted before a single test executed.** The `--list`
+invocation runs first, and its output must name at least one title carrying each
+of the three scenarios this scope owns:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --list
+  [system-chrome] › tests/lifetime-tax-state.spec.mjs:51:1 › Regression: SCN-022-009 a jurisdiction that levies no individual income tax renders its sourced zero with the authority that establishes it, and never enters the federal total
+  [system-chrome] › tests/lifetime-tax-state.spec.mjs:156:1 › Regression: SCN-022-007 / SCN-022-008 an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero
+  [system-chrome] › tests/lifetime-tax-state.spec.mjs:219:1 › Regression: SCN-022-007 the residency declaration reaches no URL, no request, no console message and no export
+Total: 80 tests in 19 files
+
+floor SCN-022-007: 2 title(s) in the listing
+floor SCN-022-008: 1 title(s) in the listing
+floor SCN-022-009: 1 title(s) in the listing
+```
+
+**`Total: 80 tests in 19 files` is the recorded count and must not fall between
+runs.** It was 77 tests in 18 files before the rename, and the three tests and the
+one file the rename added are exactly the ones whose absence made this row
+unfallable. A later spec dropping its token now shows as shrinkage against 80
+rather than as a smaller green run.
+
+**Intended RED, then same-command GREEN.** The adversarial case the row names is
+the collapse of `SCN-022-008`'s separation: an unsupported residency pattern is
+routed through `RLTAX-JURISDICTION-UNSUPPORTED`, so the code that distinguishes an
+unshipped state from an unmodelled residency pattern becomes the same code. Before
+the rename this mutation could not have moved the row, because the test that
+asserts the separation was not in the selection.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-20 perturbation: collapsing SCN-022-008 refusal separation fells the cumulative family suite
+file:             rltaxstate.js
+mutation:         rules.unavailable("RLTAX-RESIDENCY-UNSUPPORTED", "residency:pattern:" + declared,  ->  rules.unavailable("RLTAX-JURISDICTION-UNSUPPORTED", "residency:pattern:" + declared,   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-02\[1-4\] --reporter=list
+red-exit:         1
+red-summary:        79 passed (47.1s)
+green-exit:       0
+green-summary:      80 passed (49.2s)
+summary-compared:   79 passed (<elapsed>)  vs    80 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d restored=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The GREEN run is `80 passed`, zero failed and zero skipped, over the whole
+cumulative family — and it is the same command as the RED run, not a narrowed one.
+The RED run loses exactly one test, the refusal-separation test this scope owns.
+The mutation was reverted under the harness trap and the revert was hash-verified.
+
+The earlier run's non-zero exit came from a worker teardown fault; this run exits
+0 on its own, so no exit-code interpretation is needed here.
+
 
 ### TP-03-21
 
@@ -1547,6 +1611,64 @@ or restating the row as "no commit of this scope modifies an excluded path", whi
 is true and is proven per commit above. Both are edits to planning wording and are
 owned by `bubbles.plan`, not claims this report may make on its own. The row
 therefore stays open.
+
+### The corrected frozen-pack row, executed
+
+**Claim Source:** executed. The paragraphs above are superseded on their verdict:
+`bubbles.plan` corrected the row's wording on 2026-08-21 to drop the Feature 021
+clause that was never this scope's to hold, and the corrected row is executed here.
+
+**The read-only half, re-taken at the head of this evidence pass.**
+
+```
+$ git log --oneline b9d92a3f1..HEAD -- tax-rules/federal/     -> 0 commit(s)
+$ git log --follow --oneline -- tax-rules/federal/2026.json   -> 1 commit(s) in the whole history
+$ git status --porcelain -- tax-rules/federal/                -> 0 line(s)
+```
+
+**Negative control — the comparator is alive, not the tree merely quiet.** The
+identical two checks against `scripts/selftest.mjs`, a path this scope legitimately
+appends to, must report movement, and do:
+
+```
+$ git log --oneline b9d92a3f1..HEAD -- scripts/selftest.mjs   -> 50 commit(s)
+$ git status --porcelain -- scripts/selftest.mjs              -> 0 line(s)
+```
+
+An all-frozen result across every path checked would have meant the comparator was
+dead. It reports 0 for the federal pack and 50 for the control under the same two
+commands, so the 0 is a fact about the pack rather than about the check.
+
+**The adversarial case the corrected row must fail.** One bracket edge moved by a
+single dollar in `tax-rules/federal/2026.json` — the row's own named perturbation —
+must make the frozen assertion fall. Run through the trap-protected harness so the
+revert cannot be stranded:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            Scope 03 frozen-pack row: one bracket edge fells the frozen claim
+file:             tax-rules/federal/2026.json
+mutation:         "lowerInclusive": 24800  ->  "lowerInclusive": 24801   (1 occurrence(s))
+command:          sh -c P=$(git status --porcelain -- tax-rules/federal/); N=$(printf %s "$P" | grep -c .); C=$(git log --oneline b9d92a3f1..HEAD -- tax-rules/federal/ | grep -c .); echo "porcelain-lines=$N commits-after-b9d92a3f1=$C"; printf %s "$P"; [ "$N" -eq 0 ] && [ "$C" -eq 0 ]
+red-exit:         1
+red-summary:      porcelain-lines=1 commits-after-b9d92a3f1=0
+green-exit:       0
+green-summary:    porcelain-lines=0 commits-after-b9d92a3f1=0
+summary-compared: porcelain-lines=1 commits-after-b9d92a3f1=0  vs  porcelain-lines=0 commits-after-b9d92a3f1=0   (elapsed time normalised out)
+revert-verified:  yes (committed=28c096427fc9e5b56d3be4854473dfcccb5f3425 restored=28c096427fc9e5b56d3be4854473dfcccb5f3425)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The mutation makes `git status --porcelain -- tax-rules/federal/` report one line
+and the frozen check exit 1; reverted, the same command exits 0 with zero lines,
+and the revert is hash-verified against the committed blob. The claim is therefore
+falsifiable by exactly the edit the row names, which is what the superseded
+byte-identity wording could not offer: its true half was unfalsifiable prose and
+its false half could never pass.
+
+**The per-commit half** is already recorded above and was re-checked per commit:
+none of this scope's commits names a path on the excluded list.
 
 ## Claim Boundary
 

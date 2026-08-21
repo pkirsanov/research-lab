@@ -446,7 +446,7 @@ resolving to fewer tests than it claims. Both read green while owned by nothing.
     and holds two clauses: the request count after declaring a residency equals
     the count at first paint, and both pack paths appear in the ledger the run
     produced.
-- [ ] `tax-rules/federal/**` is frozen — no commit after the lab-creation commit
+- [x] `tax-rules/federal/**` is frozen — no commit after the lab-creation commit
       and no working-tree modification — and no commit of this scope names any path
       on the excluded list, proving the jurisdiction axis is a seam rather than a
       federal edit. Feature 021's spec directory is deliberately **not** part of
@@ -483,6 +483,17 @@ resolving to fewer tests than it claims. Both read green while owned by nothing.
     already proven — all eight of this scope's commits were re-checked per commit
     and none names an excluded path — but the frozen-pack half plus its negative
     control is execution work owned by `bubbles.test`, not a planning edit.
+  - **Closed 2026-08-21 by execution.** All three halves are now recorded. Read-only:
+    `git log --oneline b9d92a3f1..HEAD -- tax-rules/federal/` reports 0 commits,
+    `git log --follow` reports 1 commit in the pack's whole history, and
+    `git status --porcelain -- tax-rules/federal/` reports 0 lines. Negative control:
+    the identical two checks against `scripts/selftest.mjs` report 50 commits, so
+    the comparator is alive and the 0 is a fact about the pack rather than about the
+    check. Adversarial: the row's own named perturbation — one bracket edge moved
+    from `24800` to `24801` — makes the porcelain check report one line and the
+    frozen assertion exit 1, against exit 0 and zero lines on the same command once
+    reverted. The mutation ran under `scripts/red-green-probe.sh`, so the revert was
+    trap-protected and hash-verified against the committed blob.
   - **Phase:** implement · **Command:** `git log --follow -- tax-rules/federal/` and `git status --porcelain -- tax-rules/federal/`, the same two against `scripts/selftest.mjs` as the negative control, plus a per-commit path-scoped check over the excluded list · **Evidence:** `report.md#change-boundary`
 - [x] No output states a probability, a lifetime figure, a track record or an
       error rate, and no state figure is presented as an estimate or an average.
@@ -499,9 +510,29 @@ resolving to fewer tests than it claims. Both read green while owned by nothing.
     `3176 passed, 1 failed` against `3177 passed, 0 failed`, reverts hash-verified.
     The second probe targets the page rather than the module so the band slice is
     proven live rather than assumed non-empty.
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
-  - **Open — one row short after the retarget, and the retarget is the whole of
+  - **Closed 2026-08-21 by execution — the one short row is now recorded.**
+    **Command:** the exact TP-03-01 through TP-03-24 commands · **Evidence:**
+    `report.md#tp-03-20`. The F-03-B rename landed in `8e882bfc1` as a prefix-only
+    edit, so `tests/lifetime-tax-state.spec.mjs` now carries its scenario tokens and
+    every descriptive clause stays byte-identical; TP-03-17, TP-03-18, TP-03-19 and
+    TP-03-21 each still select exactly one test, verified by `--list` on both sides
+    of the rename. TP-03-20 then met both halves this row demands. **Selection
+    floor, asserted before the run:** the `--list` output names `SCN-022-007`
+    twice, `SCN-022-008` once and `SCN-022-009` once, and the recorded count is
+    `Total: 80 tests in 19 files`, up from `77 tests in 18 files` — the three tests
+    the row claims and could not previously select. **Perturbation:** rerouting the
+    unmodelled residency pattern through `RLTAX-JURISDICTION-UNSUPPORTED`,
+    collapsing `SCN-022-008`'s separation, fells the cumulative command at
+    `79 passed` exit 1 against `80 passed` exit 0 on the same command reverted.
+    That mutation could not have moved this row before the rename, which is the
+    whole of what F-03-B named. The mutation ran under
+    `scripts/red-green-probe.sh` and its revert is hash-verified.
+  - **The history below is kept as history.** Its three bullets record the row's
+    open state and are superseded by the closure above; they are retained because
+    they name the two ways this row could have been closed falsely.
+  - **Was open — one row short after the retarget, and the retarget is the whole of
     what planning could fix.** The census was taken row by row rather than
     asserted. Four rows were short because TP-03-17, TP-03-18, TP-03-19 and
     TP-03-21 named the spec file `lifetime-tax-state-contract.spec.mjs` and four
@@ -522,7 +553,7 @@ resolving to fewer tests than it claims. Both read green while owned by nothing.
     asserts the post-declaration request count equals the first-paint count. The
     RED/GREEN evidence those four rows need is already recorded in the report under
     labels naming the rows whose substance each probe carries.
-  - **Still short: TP-03-20 alone, and for a second reason.** It is the cumulative
+  - **Was short: TP-03-20 alone, and for a second reason.** It is the cumulative
     family suite. The report records a 69-passed run of it but no perturbation, so
     nothing yet shows that command can fail. The census has since found a stronger
     reason it cannot: its `--grep "SCN-02[1-4]"` selection contains **no** test

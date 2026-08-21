@@ -926,6 +926,119 @@ Scenario SCN-022-007 — the residency members are inventoried, cleared and
 redacted, each asserted independently.
 Command: `node scripts/selftest.mjs`
 
+**Claim Source:** executed.
+
+**Correction.** An earlier draft of this section stated that the row's clauses are
+"asserted separately rather than as one conjunction". That is wrong, and re-reading
+the assertion is what caught it: the row is a single `assert` whose condition is one
+nine-term `&&` chain. The correction does not weaken the row — a conjunction still
+makes every term load-bearing, because one false term fails the whole assert — but
+it does change what the evidence has to show. A conjunction cannot tell you *which*
+term fired, so each clause has to be perturbed on its own; the original claim would
+have let one probe stand in for all of them. The clauses are: the stored entry names
+residency in its purpose and is flagged as carrying household values; both members
+appear in `declaredUnavailableDomains` when absent, so an undeclared residency is
+recorded as unsupplied rather than silently treated as none; the clear action empties
+the store; and the export sanitizer names both members in `omittedFields[]` while the
+manifest carries no occurrence of the declared jurisdiction.
+
+**Intended RED — the redaction clause, probed at the sanitizer.** The sanitizer
+derives its omission set: anything not in the kept object is withheld *and named*.
+Adding the residency to the kept object therefore does both halves of the defect
+at once — the location signal reaches the exported file, and it stops being
+listed as omitted. The mutation is value-free: it references a workspace member
+and carries no jurisdiction literal.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-15 the export sanitizer keeps the declared residency instead of withholding it, so the location signal reaches the exported file and is no longer named as omitted
+file:             rltaxworkspace.js
+mutation:         selectedBracketId: workspace.selectedBracketId  ->  selectedBracketId: workspace.selectedBracketId, residencyJurisdiction: workspace.residencyJurisdiction   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3176 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3177 passed, 0 failed
+revert-verified:  yes (committed=6760587f2303516755ab6a5e14436050717f1227 restored=6760587f2303516755ab6a5e14436050717f1227)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Exactly one assertion fell, so the row is what fires rather than a bystander in a
+wider cascade.
+
+**The other two clauses of the Definition-of-Done item were probed separately,
+because the row is one nine-clause conjunction and the probe above exercises only
+its redaction clause.** A conjunction does make every clause load-bearing, but
+only a clause that has been perturbed is *shown* to be read; the remaining two
+were previously asserted and unproven. Both probes below pin the summary channel
+to the assertion's own label, so the evidence names the row that fell rather than
+leaving it to be inferred from a moved pass count.
+
+**Intended RED — the inventory clause.** The privacy inventory stops flagging the
+workspace entry as carrying household values. The residency declaration is still
+stored, so this is the exact defect the clause exists to catch: private state held
+but not disclosed as private. The mutation is value-free — a boolean.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-15 inventory clause: the privacy inventory stops flagging the workspace entry as carrying household values, so the residency declaration is stored but no longer inventoried as private
+file:             rltaxworkspace.js
+mutation:         carriesHouseholdValues[config.storage.workspaceKey] = true;  ->  carriesHouseholdValues[config.storage.workspaceKey] = false;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-03-15: the residency declaration is named in the privacy inventory, recorded as an unsupplied domain when absent, removed by the clear action, and redacted out of the export manifest so
+green-exit:       0
+green-summary:      ✓ TP-03-15: the residency declaration is named in the privacy inventory, recorded as an unsupplied domain when absent, removed by the clear action, and redacted out of the export manifest so the l
+revert-verified:  yes (committed=6760587f2303516755ab6a5e14436050717f1227 restored=6760587f2303516755ab6a5e14436050717f1227)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+An earlier run of the same mutation with the summary channel pinned to the suite
+total instead of the label read `3173 passed, 4 failed` against
+`3177 passed, 0 failed`. That form proved four assertions fell but not *which*,
+so it was re-run in the form above; the cascade is recorded here rather than
+dropped, and the three siblings are Feature 021's own privacy rows reading the
+same inventory.
+
+**Intended RED — the clear clause.** The clear action still reports every declared
+key in `removedKeys[]` but removes none, so a stored residency declaration
+survives a clear while the return value claims otherwise. This is the failure a
+`removedKeys[]`-only assertion would miss entirely; the row reads the store.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-15 clear clause: the clear action still reports every declared key as removed but no longer removes any, so the stored residency declaration survives a clear
+file:             rltaxworkspace.js
+mutation:         storage.removeItem(keys[index]);  ->  void keys[index];   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-03-15: the residency declaration is named in the privacy inventory, recorded as an unsupplied domain when absent, removed by the clear action, and redacted out of the export manifest so
+green-exit:       0
+green-summary:      ✓ TP-03-15: the residency declaration is named in the privacy inventory, recorded as an unsupplied domain when absent, removed by the clear action, and redacted out of the export manifest so the l
+revert-verified:  yes (committed=6760587f2303516755ab6a5e14436050717f1227 restored=6760587f2303516755ab6a5e14436050717f1227)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**The ledger half of the item was re-confirmed live rather than cited from an
+earlier pass.** The browser row that carries it was re-run in this session and
+passed in `1.1s`, and the two clauses it must hold were re-read in the file: the
+request count after declaring a residency equals the count at first paint, so the
+declaration issues no request at all, and both pack paths appear in the ledger the
+run actually produced.
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "the residency declaration reaches no URL, no request, no console message and no export" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/lifetime-tax-state.spec.mjs:219:1 › Regression: the residency declaration reaches no URL, no request, no console message and no export (1.1s)
+
+  1 passed (4.3s)
+```
+
 ### TP-03-16
 
 Scenario SCN-022-008 — no module holds a state name, postal code, bracket, rate,
@@ -1054,6 +1167,66 @@ does not yet exist, and TP-03-21 names a privacy row in the same absent file. Th
 
 `Regression: SCN-022-007 the request ledger stays empty and no household value reaches a URL`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-007 the request ledger stays empty and no household value reaches a URL" --reporter=list`
+
+**Claim Source:** executed, but **against a different title than this row names** —
+that divergence is a finding and is recorded rather than papered over.
+
+**Finding F-03-A — this row's target does not resolve.** The Test Plan names the
+file `lifetime-tax-state-contract.spec.mjs` and the title above. Neither exists:
+a whole-tree search for the title returns nothing, and no file of that name is in
+`tests/`. The command as written selects zero tests, and a Playwright run that
+selects zero tests is not a green row — it is an unresolved reference reporting
+success. The same divergence applies to TP-03-17, TP-03-18 and TP-03-19.
+
+**What does exist, and covers the behaviour.** `tests/lifetime-tax-state.spec.mjs`
+carries `Regression: the residency declaration reaches no URL, no request, no
+console message and no export`, which asserts the row's substance: the ledger
+length after declaring a residency equals the length at first paint, so declaring
+where the household lives issues no request at all; every request the route ever
+made is same-origin and is a member of the page's own declared asset set; the
+declared jurisdiction appears in no URL, query string, hash, request body or
+console message, in either literal or percent-encoded form; and the export omits
+both residency members while naming them in `omittedFields[]`.
+
+**One clause of the Definition-of-Done item was NOT asserted, and was added
+rather than assumed.** The item reads *"the request ledger stays empty with two
+pack files now loaded from disk"*. The existing test proved the state pack was
+*permitted*, which is true even of a route that never fetched it. Two lines were
+appended — a purely additive change, seven insertions and zero deletions — that
+require both pack files to appear in the ledger the run actually produced:
+
+```js
+  expect(paths).toContain('/tax-rules/federal/2026.json');
+  expect(paths).toContain('/tax-rules/state/CA/2026.json');
+```
+
+**Intended RED against the strengthened row.** The declared state pack path stops
+naming the file the route reads, so the second pack never reaches the ledger. The
+mutation is value-free — a path string — and carries no rate, threshold or
+household amount.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-21 the declared state pack path stops naming the file the route reads, so only one pack file reaches the ledger and the second declared read is gone
+file:             lifetime-tax-strategy.config.json
+mutation:         "state:CA": "tax-rules/state/CA/2026.json"  ->  "state:CA": "tax-rules/state/CA/2026.retired.json"   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep the\ residency\ declaration\ reaches\ no\ URL\,\ no\ request\,\ no\ console\ message\ and\ no\ export --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (2.0s)
+revert-verified:  yes (committed=0c62867fd6285d2bbad4b9ea983893d1433ea80f restored=0c62867fd6285d2bbad4b9ea983893d1433ea80f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Routing.** The behaviour is delivered and now probed, so the *Definition-of-Done
+item* about the residency state is closed on this evidence. The *Test Plan row*
+still names a file and a title that do not resolve, which is a planning-artifact
+defect owned by `bubbles.plan`: either retarget TP-03-17 … TP-03-21 at
+`tests/lifetime-tax-state.spec.mjs` and its real titles, or require the four named
+titles to be authored. Until that is settled the row-census item stays open, and
+it does.
 
 ### TP-03-22
 

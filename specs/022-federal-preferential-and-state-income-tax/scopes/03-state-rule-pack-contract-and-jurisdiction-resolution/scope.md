@@ -336,9 +336,24 @@ error, a missing browser or an absent test does not satisfy RED.
     that group (`3087 passed, 5 failed`) — a cascade that shows `L7` is load-bearing.
     Both reverted with `git checkout --` inside the applying invocation with the
     leftover counts re-read as zero; the same command returned `3099 passed, 1 failed`.
-- [ ] The residency state is inventoried, cleared and redacted, and the request
+- [x] The residency state is inventoried, cleared and redacted, and the request
       ledger stays empty with two pack files now loaded from disk.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the browser privacy row · **Evidence:** `report.md#tp-03-15`, `report.md#tp-03-21`
+  - **Closed 2026-08-21.** The row is one nine-term conjunction, so a single probe
+    cannot show every clause is read; an earlier draft misdescribed it as separate
+    assertions and that correction is recorded. Each of the three state clauses was
+    perturbed on its own through `scripts/red-green-probe.sh`, with the summary
+    channel pinned to the assertion's own label so the evidence names the row that
+    fell rather than inferring it from a moved count. Inventory: the entry stops
+    being flagged as carrying household values while the declaration is still
+    stored. Clear: the clear action keeps reporting every key in `removedKeys[]`
+    but removes none, which a return-value-only assertion would miss. Redaction:
+    the sanitizer keeps the residency instead of withholding it. All three read
+    `✗ FAIL` under RED against `✓` under GREEN, reverts hash-verified. The ledger
+    half was re-run live in this session rather than cited — `1 passed (4.3s)` —
+    and holds two clauses: the request count after declaring a residency equals
+    the count at first paint, and both pack paths appear in the ledger the run
+    produced.
 - [ ] The federal pack and Feature 021's spec directory are byte-identical,
       proving the jurisdiction axis is a seam rather than a federal edit.
   - **Phase:** implement · **Command:** a path-scoped status check over the excluded list · **Evidence:** `report.md#change-boundary`

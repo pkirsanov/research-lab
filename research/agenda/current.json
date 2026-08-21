@@ -1,11 +1,11 @@
 {
   "contractVersion": "research-agenda-current/v1",
-  "updatedAt": "2026-08-21T14:31:07.392Z",
+  "updatedAt": "2026-08-21T18:31:04.291Z",
   "generationRef": {
-    "path": "research/agenda/generations/generation-0f0e2a7d2a2df5fc80324775322876dbb539a000efe67d4e4f92ec609d9c3f05.json",
-    "sha256": "sha256:828d9b8c27fa12eac9d10f4485d309ce31cb177a04a875fb8b30dc54a0e8c772",
+    "path": "research/agenda/generations/generation-96e963695d4d6ab7ab61b55770a1323c453c9005df9d4dd0e9dd849fdf7b6a14.json",
+    "sha256": "sha256:6a2d5c17722e35211291689e408bb7ef6f861cb6b2c329160b8617a5272c6efa",
     "contractVersion": "research-generation/v1",
-    "generationId": "generation-0f0e2a7d2a2df5fc80324775322876dbb539a000efe67d4e4f92ec609d9c3f05",
+    "generationId": "generation-96e963695d4d6ab7ab61b55770a1323c453c9005df9d4dd0e9dd849fdf7b6a14",
     "topicId": null,
     "historicalOnly": false
   },
@@ -14,10 +14,10 @@
       "topicId": "geopolitical-supply-shock",
       "state": "unavailable",
       "reviewRef": {
-        "path": "research/agenda/reviews/geopolitical-supply-shock/generation-0f0e2a7d2a2df5fc80324775322876dbb539a000efe67d4e4f92ec609d9c3f05.json",
-        "sha256": "sha256:4d73d6361319f96429004898a9d1c2a8d198c388f587469df7336bc7bbf65996",
+        "path": "research/agenda/reviews/geopolitical-supply-shock/generation-96e963695d4d6ab7ab61b55770a1323c453c9005df9d4dd0e9dd849fdf7b6a14.json",
+        "sha256": "sha256:3ff0b2fee8635f334d233f16c8108b812cc2859ff2c67658bae8b71e84802b87",
         "contractVersion": "research-review/v1",
-        "generationId": "generation-0f0e2a7d2a2df5fc80324775322876dbb539a000efe67d4e4f92ec609d9c3f05",
+        "generationId": "generation-96e963695d4d6ab7ab61b55770a1323c453c9005df9d4dd0e9dd849fdf7b6a14",
         "topicId": "geopolitical-supply-shock",
         "historicalOnly": false
       },

@@ -2,9 +2,9 @@
 
 Evidence contract: [scope.md](scope.md), [spec.md](../../spec.md), [scope index](../_index.md), and [uservalidation.md](../../uservalidation.md).
 
-**Evidence status:** Not started. No implementation, no command execution, and no test evidence is claimed for this
-scope. The sections below record **plan corrections and one ruling**, not execution evidence. No Definition of Done
-item is satisfied and no certification is requested.
+**Evidence status:** In progress. Two increments have executed — the increment-1 calendar slice and the increment-2
+value slice, both recorded under `## Test Evidence`. The sections before it record **plan corrections and one
+ruling**, not execution evidence. No scope completion is claimed and no certification is requested.
 
 ## Summary
 
@@ -88,8 +88,8 @@ baseline captured in this file before the first change).
 
 ## Test Evidence
 
-Only the increment-1 calendar slice recorded below has been executed. No other Test Plan row in
-[scope.md](scope.md) has been executed, and no selftest baseline has been captured.
+Only the increment-1 calendar slice and the increment-2 value slice recorded below have been executed. No other
+Test Plan row in [scope.md](scope.md) has been executed, and no selftest baseline has been captured.
 
 ### Increment 1 — the calendar-session slice (commit `cd1d0d595`)
 
@@ -115,6 +115,48 @@ both items also require the fact to be **recorded on a resolution object** or to
 and no resolution is built and no claim is closed until a later increment. Ticking them on the refusal alone would
 claim a closure path that does not exist yet.
 
+### Increment 2 — the value slice (commit `30a9e2624`)
+
+The slice lands the observation-and-value substrate ONLY: `readBars`, `loadBars`, `fenceObservations`,
+`basisValueAt`, `periodReturn`, `basisFingerprint`, `subjectReturn`, `outcomeValueFor`, the refusals
+`RTR-LOOKAHEAD` (owned) and `RTR-PRICE-BASIS` (routed, not owned), and the bars fixtures `DVG`, `DVG2` and
+`RAWONLY`. The predicate evaluators, the data-quality gates, the two-axis record and the reducer bridge are later
+increments, so `T-04-U5`, `T-04-U7` and `T-04-U8` each carry an `(increment 2)` marker and **none claims its Test
+Plan row whole**.
+
+**Command, run from `<repo-root>`:** `node --test tests/recommendation-track-record.unit.mjs` — **exit 0**,
+`tests 28 / pass 28 / fail 0`, with `T-04-U5 (increment 2)`, `T-04-U7 (increment 2)` and `T-04-U8 (increment 2)`
+all `✔`. The raw output and the per-item source anchors are recorded inline beside each ticked checkbox in
+[scope.md](scope.md).
+
+**Ruling R-04-01 is DISCHARGED, and the discharge is what makes the value computable.** Scope 01 has landed
+`priceBasis` as a **hashed** term — `T-01-U8` asserts it is inside the content address and `T-01-U9` asserts an
+absent or out-of-vocabulary basis refuses at the mint. This scope therefore consumes the shipped
+`PRICE_BASIS_ROW_FIELD` binding through `priceBasisFor` and names neither `c` nor `ac` itself. The `RAWONLY`
+fixture carries the **same** raw closes as `DVG` precisely so that a silent fallback would have produced a
+plausible `+10`; instead it refuses `RTR-PRICE-BASIS` naming the exact absent row field, while the same series
+under `raw-close` resolves. The R-04-01 DoD item's leading clause is corrected from `BLOCKED` to `DISCHARGED`,
+since a ticked item that still calls itself blocked is self-contradictory.
+
+**The value is exact, and the exactness is asserted rather than described.** `T-04-U7` pins
+`-5.000000000000004` — not the decimal `-5` — so a `toFixed` cannot creep in without failing, and it pins
+`outcomeValue = direction × ret(subject)` by scoring a **correct bearish** `trim` on a falling series **positive**.
+It also proves `legReturns` distinguishes `primary-only` (1 leg) from `equal` (N legs), which the collapsed scalar
+cannot, and that `basisFingerprint` moves on a one-ten-millionth rewrite of a read value while staying stable
+across a second pass over unchanged bytes.
+
+**Three DoD items are ticked; four neighbouring value items are deliberately NOT.**
+
+| Left unticked | The conjunct that is not yet satisfied |
+|---|---|
+| Bar rows read as the **seven**-field shape | The implementation measured **three** row forms across the 292 committed series — `{t,o,h,l,c,v,ac}` on 147,337 rows, `{t,o,h,l,c,v}` on 2,675, and a 12-key provenance variant on 26 — so `readBars` validates `ac` as **optional**. Requiring it would throw on 54 real series. The item's own premise is now the wrong one; correcting it is a plan act, not an evidence act. |
+| The retroactive `ac` rewrite is detectable | The fingerprint exists and `T-04-U7` proves `buildResolution` **accepts** it in hashed `provenance`. But "surfaces as `RTR-RESOLUTION-CONFLICT`" needs a written resolution object at a content address, which is increment 3. |
+| "Not yet resolvable" is a silent skip | `fenceObservations` reports `resolvable: false` and fires no code, which `T-04-U5` asserts. "Leaving the claim `active` with zero events appended" needs the reducer bridge, which no increment has built. |
+| `outcomeValue = direction × ret(subject)` | The arithmetic half is proven exact and unrounded. Two conjuncts are not: the class must be assigned by calling `classifyOutcome`, and `direction === 0` must close `neutral-direction-no-magnitude` — both increment 3. |
+
+No Test-Plan test item is ticked. Every increment-2 row is a partial claim on its row, in the same posture
+increment 1 held `T-04-F1` and `T-04-F2`.
+
 **Inputs are empty; this scope is fixture-testable only.** Verified this planning pass: `briefs/objects/claims/` and
 `briefs/objects/resolutions/` **do not exist**, there are **0** committed claim objects and **0** resolution objects,
 and `claimRef` appears in **0** of the 5,083 committed ledger rows. A resolver run over real committed state today
@@ -124,7 +166,7 @@ read a green real-data run as coverage: every Test Plan row here is satisfied fr
 
 ## Completion Statement
 
-Scope 04 is in progress. **2 of 55** Definition of Done items are satisfied — both from the increment-1 calendar
-slice recorded above — and the remaining 53 are unsatisfied. No scope completion is claimed and no certification is
-requested. Ruling R-04-01 routes a blocking mint-contract gap to scope 01; every `ret(x)`-dependent item is blocked
-until that term lands.
+Scope 04 is in progress. **5 of 55** Definition of Done items are satisfied — two from the increment-1 calendar
+slice and three from the increment-2 value slice, both recorded above — and the remaining 50 are unsatisfied. No
+scope completion is claimed and no certification is requested. Ruling R-04-01 is **discharged**: scope 01 landed the
+frozen hashed `priceBasis` term, and the resolver consumes it rather than selecting a basis of its own.

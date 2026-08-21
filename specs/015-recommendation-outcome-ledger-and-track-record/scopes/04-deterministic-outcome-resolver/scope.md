@@ -438,13 +438,97 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 
 - [ ] An `early-close` session **resolves normally and is flagged, not excluded**: when `entryDate` or `resolutionDate` falls on one, the resolution records `provenance.earlyCloseSessions: [<tradingDate>…]`.
 - [ ] `RTR-CALENDAR-COVERAGE` is implemented; a `resolutionDate` beyond `coverageEnd` refuses and closes `not-evaluable` reason `calendar-coverage-exhausted` with no extrapolation.
-- [ ] The as-of fence is a **slice computed once before** predicate evaluation; the evaluator can only see readable rows, and `RTR-LOOKAHEAD` fires on any attempt to consult a row outside it.
+- [x] The as-of fence is a **slice computed once before** predicate evaluation; the evaluator can only see readable rows, and `RTR-LOOKAHEAD` fires on any attempt to consult a row outside it.
+
+  **Evidence — increment 2 (value slice, commit `30a9e2624`).** Executed from `<repo-root>`.
+
+  ```
+  $ node --test tests/recommendation-track-record.unit.mjs
+  ✔ T-04-U5 (increment 2): the as-of fence is a slice, and "not yet observed" is not "read the future" (11.154275ms)
+  ℹ tests 28
+  ℹ pass 28
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  The slice and the refusal, located in the executed sources rather than asserted in prose:
+
+  ```
+  $ grep -nE "if \(utcDate > resolutionDate\)|return refusal\(LOOKAHEAD_CODE|past.error.code, LOOKAHEAD_CODE|fence.excluded.future > 0" scripts/brief-resolve-outcomes.mjs tests/recommendation-track-record.unit.mjs
+  scripts/brief-resolve-outcomes.mjs:323:    if (utcDate > resolutionDate) { future += 1; continue; }
+  scripts/brief-resolve-outcomes.mjs:355:    return refusal(LOOKAHEAD_CODE, 'observation-past-resolution-date', 'sessionDate');
+  tests/recommendation-track-record.unit.mjs:2172:    assert.equal(fence.excluded.future > 0, true, 'and rows after it were excluded rather than absent');
+  tests/recommendation-track-record.unit.mjs:2177:    assert.equal(past.error.code, LOOKAHEAD_CODE, 'code');
+  exit code: 0
+  ```
+
+  `fenceObservations` drops every row dated after `resolutionDate` **before** the map exists, so a reader handed
+  that map cannot reach a later row — the fence is the shape of the data, not a check to remember. The test walks
+  the map's own keys and additionally asserts the excluded count is non-zero, so an empty slice cannot pass
+  vacuously; a lookup past the fence refuses `RTR-LOOKAHEAD` / `observation-past-resolution-date`.
 - [ ] Bar rows are read as the verified **seven**-field shape `{ t, o, h, l, c, v, ac }`; no code or fixture assumes the six-field shape an earlier revision of this plan asserted.
-- [ ] **BLOCKED on Ruling R-04-01 — the price basis is read from the claim, never selected here.** `basisAt` resolves `c` vs `ac` from the claim's frozen hashed `priceBasis` term once scope 01 lands it; a claim carrying no such term refuses rather than defaulting; and no `ret(x)`-dependent item in this DoD may be ticked on a basis this scope chose for itself.
+- [x] **Ruling R-04-01 is DISCHARGED — the price basis is read from the claim, never selected here.** `basisValueAt` resolves `c` vs `ac` from the claim's frozen hashed `priceBasis` term, which scope 01 has landed; a claim carrying no such term refuses rather than defaulting; and no `ret(x)`-dependent item in this DoD may be ticked on a basis this scope chose for itself.
+
+  **Evidence — increment 2 (value slice, commit `30a9e2624`).** Executed from `<repo-root>`.
+
+  ```
+  $ node --test tests/recommendation-track-record.unit.mjs
+  ✔ T-01-U8: priceBasis is a HASHED term, so the basis cannot be chosen after the outcome (11.968373ms)
+  ✔ T-04-U8 (increment 2): the price basis is read from the frozen claim, and an absent basis refuses instead of falling back (45.941596ms)
+  ℹ tests 28
+  ℹ pass 28
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  The binding and the refusal, located in the executed sources:
+
+  ```
+  $ grep -nE "const rowField = claims.PRICE_BASIS_ROW_FIELD|code: PRICE_BASIS_CODE|const basis = claims.priceBasisFor|substituted.error.code, PRICE_BASIS_CODE" scripts/brief-resolve-outcomes.mjs tests/recommendation-track-record.unit.mjs
+  scripts/brief-resolve-outcomes.mjs:347:  const rowField = claims.PRICE_BASIS_ROW_FIELD[priceBasis];
+  scripts/brief-resolve-outcomes.mjs:365:        code: PRICE_BASIS_CODE,
+  scripts/brief-resolve-outcomes.mjs:418:  const basis = claims.priceBasisFor(claim);
+  tests/recommendation-track-record.unit.mjs:2138:    assert.equal(substituted.error.code, PRICE_BASIS_CODE, 'code');
+  exit code: 0
+  ```
+
+  Neither `c` nor `ac` is named by this scope: the row field comes from the shipped `PRICE_BASIS_ROW_FIELD` keyed
+  by the claim's own frozen term, read through `priceBasisFor`. The `RAWONLY` fixture is the anti-vacuity half —
+  it carries the **same** raw closes as `DVG`, so a fallback would have returned a perfectly plausible `+10` and
+  nothing downstream could have told; instead an `adjusted-close` claim on it refuses `RTR-PRICE-BASIS` naming the
+  exact row field it could not read, while the same series under `raw-close` resolves. The same two sessions score
+  `+10` under one basis and `-10` under the other, so the frozen term decides the sign.
 - [ ] **A retroactive `ac` rewrite is detectable, not silent.** The hashed `provenance` records a fingerprint of the exact basis values read at `entryDate` and `resolutionDate`, so a later rewrite (BUG-012) changes the resolution hash and surfaces as `RTR-RESOLUTION-CONFLICT` instead of re-scoring quietly.
 - [ ] "Not yet resolvable" (`bars.asof < resolutionDate`) is a silent skip leaving the claim `active` with zero events appended — never an `RTR-LOOKAHEAD` refusal.
 - [ ] All four predicate kinds are implemented; point comparators evaluate once at `resolutionDate` and path comparators require the complete intervening session set, closing `unresolved` reason `path-incomplete` on a gap rather than evaluating a partial path.
-- [ ] A required session missing from the slice closes `unresolved` reason `session-absent`; no value is ever interpolated.
+- [x] A required session missing from the slice closes `unresolved` reason `session-absent`; no value is ever interpolated.
+
+  **Evidence — increment 2 (value slice, commit `30a9e2624`).** Executed from `<repo-root>`.
+
+  ```
+  $ node --test tests/recommendation-track-record.unit.mjs
+  ✔ T-04-U5 (increment 2): the as-of fence is a slice, and "not yet observed" is not "read the future" (11.154275ms)
+  ℹ tests 28
+  ℹ pass 28
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  The closure and its shipped reason, located in the executed sources:
+
+  ```
+  $ grep -nE "^export const SESSION_ABSENT_REASON|return closure\('unresolved', SESSION_ABSENT_REASON|reasonCode: SESSION_ABSENT_REASON" scripts/brief-resolve-outcomes.mjs tests/recommendation-track-record.unit.mjs
+  scripts/brief-resolve-outcomes.mjs:231:export const SESSION_ABSENT_REASON = 'session-absent';
+  scripts/brief-resolve-outcomes.mjs:359:    return closure('unresolved', SESSION_ABSENT_REASON, `observations.${fence.symbol}.${sessionDate}`);
+  tests/recommendation-track-record.unit.mjs:2196:    reasonCode: SESSION_ABSENT_REASON,
+  exit code: 0
+  ```
+
+  A session absent from the slice returns a **closure** carrying no value and no `RTR-*` code — the test asserts
+  the result has no `error` key at all — so nothing is interpolated across the gap and the fact stays a coded
+  outcome rather than an invariant violation. The reason is asserted against `CLOSURE_REASON_CODES.unresolved` at
+  module load, so a rename in `rlclaims.js` fails here rather than producing a reason `buildResolution` would
+  later reject.
 - [ ] The data-quality gates are applied: `zeroObservedSessions` closes `not-evaluable`; `reconstructedSessions` and `thinObservedSessions` do not block resolution and are recorded verbatim in the resolution object's `provenance`.
 - [ ] `outcomeValue = direction × ret(subject)` with `direction` frozen from `ACTION_DIRECTION` (`rlcontracts.js:720`); the class is assigned by calling `classifyOutcome` (`rlclaims.js:795`) rather than re-deriving the band comparison; values are stored unrounded as IEEE-754 doubles with rounding applied only at render; `direction === 0` closes `neutral-direction-no-magnitude`. Blocked on Ruling R-04-01 for the `ret(subject)` half.
 - [ ] Closure event and `outcomeClass` are recorded as two independent axes, with the admissible pairings enforced by `OUTCOME_CLOSURE_EVENTS` (`rlclaims.js:284`) via `buildResolution`; a `satisfied` claim carrying a negative magnitude preserves both facts.

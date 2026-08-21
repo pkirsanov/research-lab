@@ -191,6 +191,44 @@ naive `=== 0` check would let through, so an implementation that only tested exa
 - [ ] Broader E2E regression suite passes unchanged — [T-03-R2] the committed Node E2E files and the whole committed Playwright spec suite are green, proving every other `rlvalidation.js` consumer in the repo is untouched → evidence recorded in `report.md#t-03-r2`.
 - [x] T-03-S1 passes: `node scripts/selftest.mjs` reports `baseline + N passed, 0 failed` against the scope-start baseline captured in `report.md`, with no pre-existing assertion count decreasing → evidence recorded in `report.md#t-03-s1`.
 
+  Executed 2026-08-21 at `80d781825`. Command: `node scripts/selftest.mjs`. Exit Code: 0.
+
+  ```text
+  ================================================
+  Research-Lab self-test: 3192 passed, 0 failed
+  ================================================
+  SELFTEST_EXIT=0
+  ```
+
+  **The baseline is RECONSTRUCTED, not captured at scope start,** and this block does not pretend otherwise.
+  `report.md#t-03-s1` records it as measured at `b22ad673a` — the parent of this scope's first implementation
+  commit `2fb48abcc` — in a disposable clean worktree, at `3136 passed, 0 failed`. That figure is **cited from
+  `report.md`, not re-derived here**: re-measuring it requires checking `b22ad673a` out into a separate worktree,
+  which this pass did not do. Its standing limitation is unchanged — it reconstructs what the tree *would have*
+  reported from a byte-identical tree, and is not a record of an observation made at scope start.
+
+  **The `HEAD` endpoint has moved and is corrected here: `3184` → `3192`.** `report.md` measured `3184 passed,
+  0 failed` at `0dd5fb9e4`; `0dd5fb9e4` is an ancestor of this reading's `80d781825`, 13 commits back, and 3 of
+  those 13 modify `scripts/selftest.mjs` itself. The delta against the recorded baseline therefore moves
+  `+48` → **`+56`** (`3136 + 56 = 3192`), and `N = 56` is the figure this row now stands on.
+
+  **Measurement condition, stated rather than implied.** This reading was taken in the **working tree**, not in a
+  clean worktree as the row's 2026-08-20 correction requires. The working tree carried 7 uncommitted paths at the
+  time, all of them `specs/**` artifacts belonging to concurrent sessions (`specs/008-*` and this spec's scope 02);
+  `scripts/selftest.mjs` itself was clean (`git status --porcelain -- scripts/selftest.mjs` empty), and none of the
+  7 paths is among the spec files the harness reads. The deviation is recorded because it is real, not waived.
+
+  **`+56` is the interval's delta, not a scope-03 attribution.** 26 commits separate `b22ad673a` from
+  `80d781825` and 7 of them modify `scripts/selftest.mjs`. `report.md#t-03-s1-attribution` measures this scope's
+  own share as **`+7`** (increment 1, whose parent *is* the baseline); increments 2 and 3 do not touch the harness.
+  Nothing here credits scope 03 with 56 assertions.
+
+  **Second conjunct, honestly bounded.** *"No pre-existing assertion count decreasing"* rests on the group-granularity
+  comparison recorded at [`report.md#t-03-s1-no-decrease`](report.md#t-03-s1-no-decrease) (199 groups at both endpoints,
+  0 decreased, 0 dropped) taken at `0dd5fb9e4`. That comparison was **not** re-derived at `80d781825` in this pass,
+  because its baseline half needs the same worktree checkout named above. What is re-established here is the rest of
+  the row: `0 failed`, exit `0`, and a total that has risen rather than fallen against the recorded baseline.
+
 **Test-related DoD items: 13. Test Plan rows: 13. Parity confirmed.** *(12 / 12 before the 2026-08-20 correction.)*
 
 #### Build Quality Gate

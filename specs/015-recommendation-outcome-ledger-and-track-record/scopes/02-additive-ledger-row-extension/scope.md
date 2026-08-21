@@ -180,16 +180,28 @@ already on disk.
 
 - [x] `claimRef` is added as **one optional field on the existing live** `brief-recommendation-history-row/v2`, typed as an opaque `sha256:…` string. No new contract version is minted, no existing `v2` field changes, and `v1` is untouched. *(Corrected 2026-08-19 (R33) from "declared as a strict superset of `v1`: same seven fields … plus exactly one optional `claimRef`".)* → evidence recorded in [`report.md#core-contract-shape`](report.md#core-contract-shape)
 - [x] The dual-version reader accepts both `v1` and `v2`; the `v2` acceptance set is `v2`'s live field set plus `claimRef`; `v1` is not deprecated, no historical row is rewritten, and no migration runs. → evidence recorded in [`report.md#core-dual-version-reader`](report.md#core-dual-version-reader)
-- [ ] A `v1` row carrying `claimRef` is rejected as an unknown field, and `v2` still rejects a field name outside its live union ∪ `{claimRef}`. *(Corrected 2026-08-19 (R33) from "the `v2` field list stays closed against an eighth field".)*
+- [ ] A `v1` row carrying `claimRef` is rejected as an unknown field, and `v2` still rejects a field name outside its live union ∪ `{claimRef}`. *(Corrected 2026-08-19 (R33) from "the `v2` field list stays closed against an eighth field".)* *(Re-assessed 2026-08-20 at `80d781825` and left open, unchanged. Both refusals are green in `T-02-U2` and both are revert-verified, but the word **still** is a before/after claim and no pre-extension measurement was ever executed. Revert verification proves the assertion is falsifiable; it does not supply the prior baseline the word asserts.)*
 - [x] **BS-001 cross-reference (owned by scope 01):** a published event that minted a claim produces a row whose `claimRef` equals that claim's `claimHash`, satisfying BS-001's second `Then` clause. → evidence recorded in [`report.md#t-02-u3`](report.md#t-02-u3)
-- [ ] The publisher mint hook is wired at `scripts/brief-publication.mjs#L177`–`#L180` via `run.recommendationEvents` built at `scripts/brief-distributed-publish.mjs#L403`–`#L408`, so the claim object and the `claimRef`-bearing row are produced in the same pass.
+- [ ] The publisher mint hook is wired at `scripts/brief-publication.mjs#L177`–`#L180` via `run.recommendationEvents` built at `scripts/brief-distributed-publish.mjs#L403`–`#L408`, so the claim object and the `claimRef`-bearing row are produced in the same pass. *(Re-assessed 2026-08-20 at `80d781825` and left open on its narrowed reason. The wiring is re-verified present at the named lines — `attachClaimRefs` imported at `scripts/brief-distributed-publish.mjs:46` and called at `:409` — and `git diff --stat 3123e9fd0..80d781825` reports the publisher and minter scripts **unchanged** since the recorded probe, so that probe's finding still describes the shipped bytes: the end-to-end reconstruction runs and produces `4` rows, `0` with `claimRef`, and no claim object, because the minter correctly refuses these prose-subject actions. The same-pass conjunct is therefore demonstrated only at unit level through `buildPublishSet(…)` in `T-02-U3`, never end to end. The probe itself was **not** re-executed this pass.)*
 - [x] A refused mint emits an event **without** `claimRef` carrying its refusal reason, never a claim with a fabricated subject, predicate, or horizon. → evidence recorded in [`report.md#core-refused-mint`](report.md#core-refused-mint)
 - [x] `RTR-LEGACY-BACKFILL` is implemented and refuses any resolution write targeting a row with no `claimRef`. → evidence recorded in [`report.md#t-02-u4`](report.md#t-02-u4)
 - [x] Absence of `claimRef` is the legacy marker for **every** claimless row, `v1` and body-`v2` alike: pre-contract rows are **not** null-filled, back-filled, estimated, or migrated, and the classifier keys on key-absence rather than on a null value or on the version stamp. → evidence recorded in [`report.md#core-legacy-marker`](report.md#core-legacy-marker)
 - [x] `eventId` and `recommendationKey` are proven byte-identical before and after the extension; neither is ever recomputed from the row. → evidence recorded in [`report.md#t-02-u3`](report.md#t-02-u3)
-- [ ] `claimRef` canonicalises deterministically immediately after `canonicalMonth` — successor `confidence` on a live `v2` row, not `contractVersion` — and a seven-field projector reading a `v2` row returns exactly the seven `v1` key names.
+- [x] `claimRef` canonicalises deterministically immediately after `canonicalMonth` — successor `confidence` on a live `v2` row, not `contractVersion` — and a seven-field projector reading a `v2` row returns exactly the seven `v1` key names. *(Ticked 2026-08-20 at `80d781825`. The ordering half was already proven by `T-02-U3`; the projector half — recorded by every prior pass as "asserted nowhere" — is now asserted at `tests/recommendation-track-record.functional.mjs:851` and green.)* → evidence recorded in [`report.md#t-02-f1`](report.md#t-02-f1)
+
+  Executed 2026-08-20 at `80d781825`. Command: `node --test tests/recommendation-track-record.functional.mjs`. Exit Code: 0.
+
+  ```text
+  ✔ T-02-F1: claimRef canonicalises immediately after canonicalMonth on every live shape, and the seven-field projection is unchanged (34.344335ms)
+  ℹ tests 9   ℹ pass 9   ℹ fail 0
+
+  $ grep -n 'projected' tests/recommendation-track-record.functional.mjs
+  851:  assert.deepEqual(Object.keys(projected), [...claims.ROW_V1_FIELDS], `${label}: exactly the seven v1 key names`);
+  852:  assert.equal(Object.keys(projected).length, 7, `${label}: seven, not eight`);
+  ```
+
 - [x] **Feature 002 consent is recorded** before any code emitting a `claimRef`-bearing row is merged: the ask is one optional field on the existing `v2`, the standing blanket authorisation of 2026-08-19 and its explicit limits are captured in `report.md`, and the 002-owned validator's field list is updated **by 002**, not by 015. → evidence recorded in [`report.md#core-consent-honoured`](report.md#core-consent-honoured)
-- [ ] **Routed findings P-015-01 and P-015-02 are recorded as blocking the live-publisher binding.** The live binding is not scheduled, and no fixture-backed result is reported as live-publisher evidence. If the routed decisions land during this scope, the binding is delivered; if not, the scope completes on the fixture-proven surface and the binding is re-planned.
+- [ ] **Routed findings P-015-01 and P-015-02 are recorded as blocking the live-publisher binding.** The live binding is not scheduled, and no fixture-backed result is reported as live-publisher evidence. If the routed decisions land during this scope, the binding is delivered; if not, the scope completes on the fixture-proven surface and the binding is re-planned. *(Re-assessed 2026-08-20 at `80d781825` and left open, unchanged. The first conjunct holds. The second measurably does not: increment 2 wired `attachClaimRefs` into the **production** `scripts/brief-distributed-publish.mjs` path — re-verified at `:409` this pass — while P-015-01 and P-015-02 are still open, so the live binding is wired rather than unscheduled. Surfaced for an owner decision rather than absorbed.)*
 - [x] The `design.md` → `## D2` fallback (a fully 015-owned side-index keyed by `eventId`) is recorded in `report.md` as the alternative taken if consent is withheld, so the handoff is a genuine decision rather than a demand. → recorded in [`report.md`](report.md) → *Options, for the owner decision this requires* → option 3, and re-stated in the ruling
 - [x] `Number.isFinite` is used exclusively; the global `isFinite` appears nowhere in 015-authored code. → evidence recorded in [`report.md#core-hygiene`](report.md#core-hygiene)
 - [x] No statistic is computed in this scope; `rlvalidation.js` is not imported here. → evidence recorded in [`report.md#core-hygiene`](report.md#core-hygiene)
@@ -200,20 +212,80 @@ already on disk.
 - [x] T-02-U2 passes: a `v1` row carrying `claimRef` is rejected, and `v2` rejects a name outside its live union ∪ `{claimRef}` → evidence recorded in `report.md#t-02-u2`.
 - [x] T-02-U3 passes: `eventId` and `recommendationKey` are byte-identical with and without the mint hook → evidence recorded in `report.md#t-02-u3`.
 - [x] T-02-U4 passes: `RTR-LEGACY-BACKFILL` fires on a claimless row including the plausible-imputation case → evidence recorded in `report.md#t-02-u4`. — proves SCN-015-015
-- [ ] T-02-F1 passes: `claimRef` canonicalises immediately after `canonicalMonth` on every live shape and the seven-field projection is unchanged → evidence recorded in `report.md#t-02-f1`.
-- [ ] T-02-F2 passes: a pre-contract row of either version has no `claimRef` key at all and the classifier keys on absence, not null → evidence recorded in `report.md#t-02-f2`.
-- [ ] T-02-F3 passes: a refused mint degrades to an event without `claimRef` carrying its reason → evidence recorded in `report.md#t-02-f3`.
-- [ ] T-02-I1 passes: every committed row of **both** versions validates unchanged, the count is read from the file rather than asserted as a literal and the validated count equals it, and the partition bytes are unmodified → evidence recorded in `report.md#t-02-i1`.
-- [ ] T-02-I2 passes: a mixed partition round-trips append-only with prior bytes byte-identical → evidence recorded in `report.md#t-02-i2`. — proves SCN-015-014
-- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope pass — [T-02-R1] the claim-referencing `v2` row, the dual-version read with an unchanged seven-field projection, the append-only byte preservation, and `RTR-LEGACY-BACKFILL` all re-assert end to end → evidence recorded in `report.md#t-02-r1`.
-- [x] Broader E2E regression suite passes unchanged — [T-02-R2] the committed Node E2E files and the whole committed Playwright spec suite are green against the extended partition, proving the repo's existing ledger readers are unaffected → evidence recorded in `report.md#t-02-r2`.
-- [ ] T-02-S1 passes: `node scripts/selftest.mjs` reports `baseline + N passed, 0 failed` against the scope-start baseline captured in `report.md`, with no pre-existing assertion count decreasing → evidence recorded in `report.md#t-02-s1`.
+- [x] T-02-F1 passes: `claimRef` canonicalises immediately after `canonicalMonth` on every live shape and the seven-field projection is unchanged → evidence recorded in `report.md#t-02-f1`.
+
+  Executed 2026-08-20 at `80d781825`. Command: `node --test tests/recommendation-track-record.functional.mjs`. Exit Code: 0.
+
+  ```text
+  ✔ T-02-F1: claimRef canonicalises immediately after canonicalMonth on every live shape, and the seven-field projection is unchanged (34.344335ms)
+  ℹ tests 9   ℹ suites 0   ℹ pass 9   ℹ fail 0   ℹ cancelled 0   ℹ skipped 0   ℹ todo 0
+  ```
+
+- [x] T-02-F2 passes: a pre-contract row of either version has no `claimRef` key at all and the classifier keys on absence, not null → evidence recorded in `report.md#t-02-f2`.
+
+  Executed 2026-08-20 at `80d781825`. Same run as T-02-F1. Command: `node --test tests/recommendation-track-record.functional.mjs`. Exit Code: 0.
+
+  ```text
+  ✔ T-02-F2: a pre-contract row of either version has no claimRef key at all, and the classifier keys on absence rather than null (34.356936ms)
+  ℹ tests 9   ℹ pass 9   ℹ fail 0   ℹ duration_ms 509.727027
+  ```
+
+- [x] T-02-F3 passes: a refused mint degrades to an event without `claimRef` carrying its reason → evidence recorded in `report.md#t-02-f3`.
+
+  Executed 2026-08-20 at `80d781825`. Same run as T-02-F1/F2. Command: `node --test tests/recommendation-track-record.functional.mjs`. Exit Code: 0.
+
+  ```text
+  ✔ T-02-F3: a refused mint degrades to an event without claimRef, carrying its reason (27.876429ms)
+  ℹ pass 9   ℹ fail 0   ℹ skipped 0   ℹ todo 0
+  ```
+
+- [x] T-02-I1 passes: every committed row of **both** versions validates unchanged, the count is read from the file rather than asserted as a literal and the validated count equals it, and the partition bytes are unmodified → evidence recorded in `report.md#t-02-i1`.
+
+  Executed 2026-08-20 at `80d781825`. Command: `node --test tests/recommendation-track-record.integration.mjs`. Exit Code: 0.
+
+  ```text
+  ✔ T-02-I1: every committed row of both versions validates unchanged, at a count read from the file (110.276685ms)
+  ℹ tests 2   ℹ suites 0   ℹ pass 2   ℹ fail 0
+  ```
+
+- [x] T-02-I2 passes: a mixed partition round-trips append-only with prior bytes byte-identical → evidence recorded in `report.md#t-02-i2`. — proves SCN-015-014
+
+  Executed 2026-08-20 at `80d781825`. Same run as T-02-I1. Command: `node --test tests/recommendation-track-record.integration.mjs`. Exit Code: 0.
+
+  ```text
+  ✔ T-02-I2: a mixed partition round-trips append-only with the prior bytes byte-identical (52.37944ms)
+  ℹ tests 2   ℹ pass 2   ℹ fail 0   ℹ duration_ms 296.282928
+  ```
+
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope pass — [T-02-R1] the claim-referencing `v2` row, the dual-version read with an unchanged seven-field projection, the append-only byte preservation, and `RTR-LEGACY-BACKFILL` all re-assert end to end → evidence recorded in `report.md#t-02-r1`.
+
+  Executed 2026-08-20 at `80d781825`. Command: `node --test tests/recommendation-track-record.e2e.mjs`. Exit Code: 0. The file now exits `0`: `T-01-R2`, red at `4260140cf` because a concurrent session held eleven committed test files modified, passes here because that session has committed and `git status --porcelain -- tests/` is empty.
+
+  ```text
+  ✔ T-01-R2: the committed suites are intact, and the committed Node E2E suite runs green (62681.66777ms)
+  ✔ T-02-R1: a full publish-and-append pass holds the claim-referencing row, the dual-version read, the append-only bytes, and RTR-LEGACY-BACKFILL (38.681933ms)
+  ℹ tests 4   ℹ pass 4   ℹ fail 0
+  ```
+
+- [ ] Broader E2E regression suite passes unchanged — [T-02-R2] the committed Node E2E files and the whole committed Playwright spec suite are green against the extended partition, proving the repo's existing ledger readers are unaffected → evidence recorded in `report.md#t-02-r2`. *(Tick WITHDRAWN 2026-08-20 at `80d781825`, reconciling `scope.md` with the withdrawal the [third evidence pass](report.md#t-02-r2-untick) already recorded and this file never applied. Conjunct 1 — the committed Node E2E files — is GREEN here at `36 / 36 / 0`, exit `0`, recovering from the `35 / 1` measured at `4260140cf`. Conjunct 2 — the whole committed Playwright spec suite — is UNMEASURED at this HEAD, and the `629 passed` figure taken at `1ae724ef9` can no longer be carried forward: `git diff --stat 1ae724ef9..80d781825 -- 'tests/*.spec.mjs'` reports 12 spec files changed, `+1599 / -66`, including two entirely new spec files. The suite that produced `629 passed` is not the suite on disk, so the row is left unticked on a single named unmeasured conjunct rather than ticked on a stale one.)*
+- [ ] T-02-S1 passes: `node scripts/selftest.mjs` reports `baseline + N passed, 0 failed` against the scope-start baseline captured in `report.md`, with no pre-existing assertion count decreasing → evidence recorded in `report.md#t-02-s1`. *(Re-assessed 2026-08-20 at `80d781825`; two of three conjuncts now hold and the third is UNMEASURED, so the row stays open. **Holds:** the row is written "after the contract, the reader, the fixtures and the test cases land", and all twelve Test Plan rows have now landed. **Holds:** `node scripts/selftest.mjs` reports `3192 passed, 0 failed`, exit `0` — against the reconstructed baseline of `3074 / 0` that is `baseline + 118`, and the `1 failed` measured at `4260140cf` is cleared. **Unmeasured:** "no pre-existing assertion count decreasing" is a per-group before/after comparison. The only per-group diff on record was taken against `4260140cf`; the total has since moved `3186 → 3192` and no per-group diff was taken across that window. Re-deriving one requires measuring the baseline commit `6bfba14e0`, which needs a disposable checkout — `git worktree` is forbidden for this pass, and `git checkout` cannot be guaranteed safe while a concurrent session holds an uncommitted file in this tree. Left honestly unticked rather than risking the working tree.)*
 
 **Test-related DoD items: 12. Test Plan rows: 12. Parity confirmed.**
 
 #### Build Quality Gate
 
 - [ ] Zero warnings across `node --test` output and `node scripts/selftest.mjs`; zero issues deferred, skipped, or worked around; every negative test verified to fail when the behaviour it guards is reverted; no committed ledger byte modified; `spec.md` and `design.md` unmodified by this scope; no other spec's artifacts touched.
+
+  *Re-checked conjunct by conjunct 2026-08-20 at `80d781825`. Four of six hold; two fail, so the gate stays open.*
+
+  | Conjunct | Verdict at `80d781825` |
+  |---|---|
+  | Zero warnings across `node --test` and `node scripts/selftest.mjs` | **Holds for this scope, with one measured caveat recorded rather than absorbed.** `node scripts/selftest.mjs` is `3192 passed, 0 failed`, exit `0`. All four of this scope's own files are green: functional `9 / 9 / 0`, integration `2 / 2 / 0`, e2e `4 / 4 / 0`, unit family `569 / 569 / 0`. The functional **family** run is `196 / 194 / 2`, exit `1` — both failures are `SCN-012-003` and `SCN-012-015`, owned by Feature 012, in files this scope does not touch. |
+  | Zero issues deferred, skipped, or worked around | **FAILS.** Four items remain open above, each on a named conjunct. |
+  | Every negative test verified to fail when the behaviour it guards is reverted | **FAILS.** `T-02-U1`–`U4` are revert-verified. The six rows authored at `4260140cf` — `T-02-F1`/`F2`/`F3`, `T-02-I1`/`I2`, `T-02-R1` — are green but have **not** been revert-verified; this pass wrote no code and executed no revert probe. |
+  | No committed ledger byte modified | **Holds.** `git status --porcelain` shows no `briefs/` path; this pass edited only `scope.md` and `report.md`. |
+  | `spec.md` and `design.md` unmodified by this scope | **Holds.** Neither appears in `git status --porcelain`. |
+  | No other spec's artifacts touched | **Holds.** The only other dirty path is `specs/008-portfolio-survival-and-brief-lab/…/report.md`, which belongs to a concurrent session and was neither read for mutation nor written. |
 
 ---
 

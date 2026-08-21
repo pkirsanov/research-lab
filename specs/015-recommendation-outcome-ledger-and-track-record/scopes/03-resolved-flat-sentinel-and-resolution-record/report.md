@@ -431,10 +431,23 @@ underneath the measurement. Both endpoints below are clean checkouts of committe
 | Endpoint | Commit | Tree | Self-test | Exit |
 |---|---|---|---|---|
 | Baseline — parent of this scope's first change | `b22ad673a` | disposable worktree, clean | `3136 passed, 0 failed` | `0` |
-| `HEAD` | `0dd5fb9e4` | disposable worktree, clean | `3184 passed, 0 failed` | `0` |
+| `HEAD` at the time of this section | `0dd5fb9e4` | disposable worktree, clean | `3184 passed, 0 failed` | `0` |
+| `HEAD` re-read 2026-08-21 | `80d781825` | **working tree** (7 uncommitted `specs/**` paths, harness itself clean) | `3192 passed, 0 failed` | `0` |
 
 **`3136 + 48 = 3184`, `0 failed`, exit `0`.** Both worktrees were removed afterwards with
 `git worktree remove --force` and their absence confirmed.
+
+**Refreshed 2026-08-21 — the `HEAD` endpoint moved, `3184` → `3192`, so `N` is `48` → `56`.** `0dd5fb9e4` is an
+ancestor of `80d781825`, 13 commits back, and 3 of those 13 modify `scripts/selftest.mjs` itself. The `3136`
+baseline is **not** re-derived in that pass — it is carried forward from the reconstruction above — so the
+row now reads `3136 + 56 = 3192`, `0 failed`, exit `0`, with the baseline half still resting on this
+section's worktree measurement. Two conditions of that re-read differ from this section's and are recorded
+rather than waived: it was taken in the working tree rather than a disposable clean worktree (the 7 uncommitted
+paths are `specs/**` artifacts of concurrent sessions, none of them read by the harness, and
+`git status --porcelain -- scripts/selftest.mjs` was empty), and the group-granularity no-decrease comparison at
+[#t-03-s1-no-decrease](#t-03-s1-no-decrease) was **not** re-run at `80d781825`. The `+7` scope-03 attribution at
+[#t-03-s1-attribution](#t-03-s1-attribution) is unchanged; `+56` is now the delta of a 26-commit interval, 7 of
+whose commits touch the harness.
 
 **Why a reconstruction is legitimate here.** A baseline typed into a report at the time rests on the author's
 word: nobody can re-derive it, and a wrong digit is undetectable. This one is re-derivable by anyone, from

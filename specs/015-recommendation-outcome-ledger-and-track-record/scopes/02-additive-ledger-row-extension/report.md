@@ -3,30 +3,38 @@
 Evidence contract: [scope.md](scope.md), [spec.md](../../spec.md), [scope index](../_index.md), and [uservalidation.md](../../uservalidation.md).
 
 **Evidence status:** Baseline captured; the blocking premise failure recorded below is **resolved** by the
-2026-08-19 ruling further below, and the plan has been corrected to match measured reality. **Two**
+2026-08-19 ruling further below, and the plan has been corrected to match measured reality. **Three**
 increments of the fixture-proven surface are delivered: the `claimRef` field on the live `…/v2` with the
-dual-version reader and its negatives (increment 1, revert-verified), and the publisher mint hook plus
-`RTR-LEGACY-BACKFILL` (increment 2). **Fifteen** of the 28 Definition of Done items are claimed — the
-two from increment 1 plus thirteen recorded below. Every other item remains unclaimed.
+dual-version reader and its negatives (increment 1, revert-verified), the publisher mint hook plus
+`RTR-LEGACY-BACKFILL` (increment 2), and the six remaining Test Plan rows authored at `4260140cf`.
+**Twenty-two** of the 28 Definition of Done items are claimed.
 
 The E2E regression this scope introduced at increment 2 is **fixed and committed** (`3123e9fd0`). Its
 figures here were re-measured on 2026-08-20 and the superseded ones corrected in place rather than left
-standing — see [Evidence refresh — 2026-08-20](#evidence-refresh-2026-08-20). The refresh **ticked no
-additional item**: the count is unchanged at **15 of 28**, and each of the 13 open items now carries the
-reason that is true at HEAD rather than the reason that was true before the fix.
+standing — see [Evidence refresh — 2026-08-20](#evidence-refresh-2026-08-20). That refresh **ticked no
+additional item**. The count then moved `15 → 16` at the [closure pass](#closure-pass-2026-08-20-second),
+and `16 → 22` at the [tick-reconciliation pass of 2026-08-20](#tick-reconciliation-pass-2026-08-20-fourth-at-80d781825),
+which flipped the six checkboxes the third pass had evidenced but never ticked, plus the Core item whose
+projector half those rows finally assert — and **unticked `T-02-R2`**, whose Playwright conjunct is
+unmeasured at this HEAD. Each of the 6 remaining open items carries the reason that is true at HEAD.
 
 ## Summary
 
 The scope-start baseline required by T-02-S1 is captured. Implementation was initially halted because the
 identifier this scope was built on is already taken by a live, different contract. The blocker analysis is
 preserved verbatim below as history; the ruling that resolves it, its measured evidence, and the consent
-record follow it. On that corrected basis two increments of the fixture-proven surface are delivered:
+record follow it. On that corrected basis three increments of the fixture-proven surface are delivered:
 
 - **Increment 1** — `claimRef` as one optional field on the live `…/v2`, the dual-version reader, the ledger
   fixtures, and the two unit rows `T-02-U1` and `T-02-U2`, each revert-verified against the shipped module.
 - **Increment 2** (`a715e92a4`) — `scripts/recommendation-claim-mint.mjs`, the publisher mint hook threaded
   through `scripts/brief-distributed-publish.mjs` and `scripts/brief-publication.mjs`, `RTR-LEGACY-BACKFILL`
   in `rlclaims.js`, and the two unit rows `T-02-U3` and `T-02-U4`.
+- **Increment 3** (`4260140cf`) — the six remaining Test Plan rows: `T-02-F1`/`F2`/`F3` in
+  `tests/recommendation-track-record.functional.mjs`, `T-02-I1`/`I2` in the new
+  `tests/recommendation-track-record.integration.mjs`, and `T-02-R1` in
+  `tests/recommendation-track-record.e2e.mjs`. Green at this HEAD; **not** revert-verified, which is one of
+  the two conjuncts still holding the Build Quality Gate open.
 
 Increment 2 also introduced a regression in the committed Node E2E suite. It is recorded in full at
 [Regression introduced by increment 2](#regression-e2e-module-closure) rather than absorbed. It has since
@@ -1674,18 +1682,247 @@ So the *"no pre-existing assertion count decreasing"* conjunct **holds**, and th
 **fails at the point of measurement** — on a defect this scope introduced and this pass repairs.
 
 
+## Tick-reconciliation pass — 2026-08-20 (fourth), at `80d781825`
+
+The [third pass](#evidence-pass-2026-08-20-third-at-4260140cf) recorded ~344 lines of evidence for the six
+rows authored at `4260140cf` and **never flipped the corresponding checkboxes**: `scope.md` still read
+`16 of 28`. This pass reconciles the two. It writes **no code and no test**, executes no revert probe, and
+re-runs every command the open items name rather than trusting a recorded figure. Four figures moved and are
+corrected below.
+
+**What changed underneath this pass, and why it matters.** The third pass was blocked on an external
+condition: a concurrent session held eleven committed test files modified in the working tree, which made
+`T-01-R2` red and dragged `tests/recommendation-track-record.e2e.mjs` and the whole Node E2E family down with
+it. **That session has since committed.** `git status --porcelain -- tests/` is now empty, and the blocker
+cleared exactly as the third pass predicted it would.
+
+```text
+$ git worktree list
+<repo-root>  80d781825 [main]
+
+$ git status --porcelain
+ M specs/008-portfolio-survival-and-brief-lab/scopes/20-generic-evidence-brief-policy-and-api/report.md
+
+$ git status --porcelain -- tests/
+$ git status --porcelain -- 'tests/*.spec.mjs'
+```
+
+The single remaining dirty path belongs to the concurrent `specs/008-*` session and was neither read for
+mutation nor written. No `git worktree` was created by this pass.
+
+**Path hygiene.** `scripts/pii-scan.mjs` runs inside `scripts/selftest.mjs` and refuses an absolute home path
+in a committed file. Where a captured line carried one it is rendered `<repo-root>`; that substitution is
+disclosed rather than silent.
+
+**The unit-family command is again deliberately NOT written here as a literal glob**, for the reason the third
+pass records at [Commands this pass declares](#commands-this-pass-declares) — declaring `tests/*.unit.mjs` in
+a committed artifact would flip 22 frozen baseline entries belonging to other features in one stroke. It was
+executed; its figure is at [Verification 3](#v4-verification-3) below.
+
+<a id="fourth-pass-figures-corrected"></a>
+
+### Figures corrected — old → new
+
+| Figure | Recorded by the third pass at `4260140cf` | Re-measured at `80d781825` | Why it moved |
+|---|---|---|---|
+| `node --test tests/*.e2e.mjs` | `36 / 35 / 1`, exit `1` | **`36 / 36 / 0`, exit `0`** | The sole failure was `T-01-R2`, asserting no committed test file is modified. The concurrent session committed; the tree is clean; the assertion holds. |
+| `node --test tests/recommendation-track-record.e2e.mjs` | exit `1` (`4 / 3 / 1`) | **exit `0` (`4 / 4 / 0`)** | Same cause. `T-02-R1` was already `ok`; the file-level exit was `T-01-R2`'s. |
+| `node --test tests/*.functional.mjs` | `196 / 192 / 4`, exit `1` | **`196 / 194 / 2`, exit `1`** | Two of the four `SCN-012-*` failures were fixed by Feature 012's own committed work. Two remain, both Feature 012, neither in a file this scope touches. |
+| `node scripts/selftest.mjs` | `3186 passed, 1 failed`, exit `1` | **`3192 passed, 0 failed`, exit `0`** | The `1 failed` was the reachability guard reporting `tests/recommendation-track-record.integration.mjs` as *"1 new"* orphan. `tests/*.integration.mjs` is now a declared glob, so the orphan is resolved. |
+| `node scripts/validate-test-file-reachability.mjs` | `1 new, 28 known-orphan` | **`0 new, 26 known orphan(s)`, exit `0`** | Same resolution, plus other features' declarations landing. No `NEW ORPHAN` line is emitted. |
+
+Two further figures are re-measured and **unchanged**, so they are not superseded: the scope's functional file
+at `9 / 9 / 0` exit `0`, and its integration file at `2 / 2 / 0` exit `0`.
+
+<a id="v4-verifications"></a>
+
+### Verifications re-run this pass
+
+All five are bounded `evidence-capture.sh` blocks: each carries the real exit code, the produced line count,
+and a sha256 over **every** line the command emitted, so the figure is re-derivable with `--verify` rather
+than merely pasted. Nothing was filtered through a discarding pipe.
+
+<a id="v4-verification-1"></a>
+
+```text
+# Verification 1 — the functional family
+$ node --test tests/*.functional.mjs
+exit: 1
+lines: 1373
+sha256: 5eaeab3f42624fde65a8857c267e8fa89ae40fa63e1c3ace8d329e242576e18a
+not ok 9 - SCN-012-003 exact TP-03-01 through TP-03-05 commands replay RED then GREEN in isolated rollback baseline
+not ok 157 - SCN-012-015 rldata.js paints the committed same-origin daily snapshot first and only fetches the remote delta
+1..196
+# tests 196
+# pass 194
+# fail 2
+```
+
+Both failures are `SCN-012-*`, owned by Feature 012. The scope-02 file is green in isolation.
+
+<a id="v4-verification-2"></a>
+
+```text
+# Verification 2 — the integration family
+$ node --test tests/*.integration.mjs
+exit: 0
+lines: 202
+sha256: 2fbbfa84399194367976479e66565b4e37510c889d8bd9237aafb1b1042fee5f
+1..31
+# tests 31
+# pass 31
+# fail 0
+```
+
+<a id="v4-verification-3"></a>
+
+```text
+# Verification 3 — the whole unit family (27 files; glob deliberately not written, see above)
+exit: 0
+lines: 3425
+sha256: cb0a4d53d05a8dea18968f51bed5759267926f3a658422cfb4274b9b197753e7
+# tests 569
+# pass 569
+# fail 0
+```
+
+<a id="v4-verification-4"></a>
+
+```text
+# Verification 4 — the e2e family; this is T-02-R2's FIRST conjunct
+$ node --test tests/*.e2e.mjs
+exit: 0
+lines: 228
+sha256: 4b5324a536eb938ad8cce07e9075fb31b8205e80ac42566a383ff70fc1d5b651
+1..36
+# tests 36
+# pass 36
+# fail 0
+```
+
+<a id="v4-verification-5"></a>
+
+```text
+# Verification 5 — the repo self-test, live tree
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3626
+sha256: ae7eba5298c031483efaa915c3dfe9525c9f8346b74b29bff451e9565d376989
+================================================
+Research-Lab self-test: 3192 passed, 0 failed
+================================================
+```
+
+<a id="v4-verification-6"></a>
+
+```text
+# Verification 6 — test-file reachability
+$ node scripts/validate-test-file-reachability.mjs
+184 test file(s) in tests/, 8 declared glob(s) from 8883 artifact(s), 147 reachable,
+11 exempt (shared-helper-module), 26 orphan(s)
+26 known orphan(s) frozen in scripts/validate-test-file-reachability.baseline
+exit: 0
+```
+
+No `NEW ORPHAN` line. The `tests/*.integration.mjs` glob this scope needed is declared at three sites, the
+first being `.specify/memory/agents.md:142`.
+
+<a id="v4-t-02-r2"></a>
+
+### `T-02-R2` — the tick is now formally withdrawn in `scope.md`, on ONE named unmeasured conjunct
+
+The [third pass withdrew this tick in prose](#t-02-r2-untick) but `scope.md` was never updated, so the
+artifact carried a `[x]` the report had already retracted. That inconsistency is resolved here: the checkbox
+is now `[ ]`.
+
+**Conjunct 1 — the committed Node E2E files — is GREEN**, recovering from the `35 / 1` the third pass
+measured: `36 / 36 / 0`, exit `0`, at [Verification 4](#v4-verification-4).
+
+**Conjunct 2 — the whole committed Playwright spec suite — is UNMEASURED at this HEAD, and the carry-forward
+is now definitively void.** The `629 passed, 0 failed` figure was taken at `1ae724ef9` and carried on the
+finding that no `*.spec.mjs` was modified. The spec files are clean in the working tree again — but they are
+clean at *different content*, because the concurrent session committed its edits:
+
+```text
+$ git diff --stat 1ae724ef9..80d781825 -- 'tests/*.spec.mjs'
+ tests/chaos-company-intelligence.spec.mjs         | 561 ++++++++++++++++++++++
+ tests/company-intelligence-lab.spec.mjs           |  19 +-
+ tests/lifetime-tax-combined.spec.mjs              | 474 ++++++++++++++++++
+ tests/lifetime-tax-medicare.spec.mjs              |  33 +-
+ tests/lifetime-tax-surtax.spec.mjs                |  83 ++++
+ tests/portfolio-survival-allocation.spec.mjs      |   2 +-
+ tests/portfolio-survival-brief.spec.mjs           | 288 +++++++++--
+ tests/portfolio-survival-diversification.spec.mjs |   2 +-
+ tests/portfolio-survival-foundation.spec.mjs      | 187 +++++++-
+ tests/portfolio-survival-mobile.spec.mjs          |  12 +-
+ tests/portfolio-survival-paths.spec.mjs           |   2 +-
+ tests/portfolio-survival-risk.spec.mjs            |   2 +-
+ 12 files changed, 1599 insertions(+), 66 deletions(-)
+```
+
+Twelve spec files changed by `+1599 / -66`, including **two entirely new spec files** of 561 and 474 lines.
+The suite that produced `629 passed` is materially smaller than the suite on disk. A clean working tree
+restores the *precondition* for a carry-forward but not the *figure*; re-ticking would require actually
+running the suite at this HEAD, which this pass did not do. The row is left unticked on that one named
+conjunct rather than ticked on a stale one.
+
+<a id="v4-item-assessment"></a>
+
+### Assessment of the twelve open items
+
+| Item | Verdict at `80d781825` |
+|---|---|
+| `T-02-F1`, `T-02-F2`, `T-02-F3` | **TICKED.** `node --test tests/recommendation-track-record.functional.mjs` → `9 / 9 / 0`, exit `0`; all three rows `✔`. |
+| `T-02-I1`, `T-02-I2` | **TICKED.** `node --test tests/recommendation-track-record.integration.mjs` → `2 / 2 / 0`, exit `0`; both rows `✔`. |
+| `T-02-R1` | **TICKED.** `node --test tests/recommendation-track-record.e2e.mjs` → `4 / 4 / 0`, exit `0`. The file now exits `0` rather than `1`, because `T-01-R2` recovered. |
+| Core — ordering **and** the seven-field projector | **TICKED.** The ordering half was already proven by `T-02-U3`. The projector half — recorded by every prior pass as *"asserted nowhere"* — is asserted at `tests/recommendation-track-record.functional.mjs:851` (`assert.deepEqual(Object.keys(projected), [...claims.ROW_V1_FIELDS])`) and green. |
+| Core — `v1` rejects `claimRef`, `v2` **still** rejects an outside name | **OPEN, unchanged.** Both refusals are green and revert-verified, but *"still"* is a before/after claim and no pre-extension measurement was ever executed. |
+| Core — the mint hook produces claim and row **in the same pass** | **OPEN, unchanged.** Wiring re-verified at `scripts/brief-distributed-publish.mjs:46` and `:409`; `git diff --stat 3123e9fd0..80d781825` shows the publisher and minter scripts unchanged since the recorded probe, so its finding still describes the shipped bytes — the reconstruction produces `4` rows, `0` with `claimRef`, no claim object. The probe was **not** re-executed this pass. |
+| Core — routed findings block a binding that **is not scheduled** | **OPEN, unchanged.** The second conjunct measurably fails: `attachClaimRefs` is wired into the production path while P-015-01 and P-015-02 remain open. |
+| `T-02-R2` | **OPEN, and the stale `[x]` removed.** Node conjunct green; Playwright conjunct unmeasured. See [above](#v4-t-02-r2). |
+| `T-02-S1` | **OPEN, on one conjunct.** *"after … the test cases land"* now holds — all twelve rows landed. *"`baseline + N passed, 0 failed`"* now holds — `3192 / 0` against the reconstructed `3074 / 0` baseline is `baseline + 118`. *"no pre-existing assertion count decreasing"* is **unmeasured**: the only per-group diff on record was taken against `4260140cf`, the total has since moved `3186 → 3192`, and re-deriving one requires measuring baseline commit `6bfba14e0` in a disposable checkout. `git worktree` is forbidden for this pass and `git checkout` cannot be guaranteed safe while a concurrent session holds an uncommitted file here. Left honestly unticked rather than risking the tree. |
+| Build Quality Gate | **OPEN, on two of six conjuncts.** Held: zero warnings for this scope's own surface, no committed ledger byte modified, `spec.md`/`design.md` unmodified, no other spec's artifacts touched. Failed: *"zero issues deferred"* (four items remain open) and *"every negative test verified to fail when reverted"* (the six rows authored at `4260140cf` are green but not revert-verified; this pass ran no revert probe). The conjunct table is in `scope.md`. |
+
+**Count: 16 → 22 of 28.** Six items remain open, each on a conjunct named above.
+
+<a id="v4-out-of-scope-finding"></a>
+
+### One pre-existing failure recorded, not fixed — it is outside this scope
+
+`artifact-lint.sh` exits `1` at this HEAD, on a single issue that belongs to **scope 03**, not scope 02:
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/015-recommendation-outcome-ledger-and-track-record
+✅ All checked DoD items in scopes/02-additive-ledger-row-extension/scope.md have evidence blocks
+❌ DoD item marked [x] has no evidence block in scopes/03-resolved-flat-sentinel-and-resolution-record/scope.md:
+   - [x] T-03-S1 passes: `node scripts/selftest.mjs` reports `baseline + N passed,
+Artifact lint FAILED with 1 issue(s).
+exit: 1
+```
+
+It is pre-existing — `git status --porcelain -- specs/015-…/` was empty before this pass began — and repairing
+it would put a scope-03 artifact in this pass's diff. It is recorded here and routed to scope 03 rather than
+absorbed or silently fixed. Scope 02's own artifacts pass the same check.
+
 ## Completion Statement
 
-Scope 02 is **not** complete and no scope completion or certification is claimed. **Sixteen of the 28**
-Definition of Done items are claimed — eleven Core items, the four Test items for `T-02-U1`–`U4`, and
-`T-02-R2`, closed by the [closure pass of 2026-08-20](#closure-pass-2026-08-20-second). Every other item is
-deliberately left open, each for a stated reason rather than by omission.
+Scope 02 is **not** complete and no scope completion or certification is claimed. **Twenty-two of the 28**
+Definition of Done items are claimed — twelve Core items, and the ten Test items for `T-02-U1`–`U4`,
+`T-02-F1`–`F3`, `T-02-I1`–`I2` and `T-02-R1`. Every other item is deliberately left open, each for a stated
+reason rather than by omission.
 
-The count moved from 15 to 16 in that pass. `T-02-R2` was ticked because both of its conjuncts are now
-measured. Two further items — `T-02-S1` and the Build Quality Gate — had a blocker removed without becoming
-tickable, and their reasons are narrowed below rather than deleted. The 2026-08-20 evidence refresh that
-preceded it re-executed every cited command at `3123e9fd0` and ticked nothing; the reasons marked *corrected*
-or *narrowed* are the ones true at HEAD, with superseded wording quoted inside them rather than removed.
+**Updated 2026-08-20 (fourth pass, `80d781825`).** The count moved `16 → 22`, and one previously-claimed item
+moved the other way. Six items were ticked because the rows authored at `4260140cf` were re-run at this HEAD
+and are green: `T-02-F1`/`F2`/`F3`, `T-02-I1`/`I2`, `T-02-R1`, plus the Core ordering-and-projector item whose
+projector half those rows finally assert. `T-02-R2` was **unticked**: the [third pass withdrew it in
+prose](#t-02-r2-untick) but `scope.md` was never updated, so the artifact carried a `[x]` the report had
+already retracted. Its Node conjunct is green here; its Playwright conjunct is unmeasured and the `629 passed`
+carry-forward is void because the committed spec suite grew by `+1599 / -66` across twelve files since that
+figure was taken. Full accounting: [Assessment of the twelve open items](#v4-item-assessment).
+
+The prior superseded wording is preserved below inside each reason rather than deleted. Reasons that read
+*"Not written"* for `T-02-F1`–`F3`, `T-02-I1`–`I2` and `T-02-R1` were **true when written** and are false now;
+they are struck through with what replaced them.
 
 ### Items left open, and the real reason for each
 
@@ -1694,15 +1931,16 @@ conjunct, and the failing conjunct is named.
 
 | Item | Why it is not ticked |
 |---|---|
-| Core — `v1` rejects `claimRef`, and `v2` **still** rejects a name outside its live union | Unchanged from increment 1. Both refusals are proven by `T-02-U2` and both are revert-verified against the shipped module, but *"still"* is a before/after claim and no pre-extension measurement was executed. Revert verification proves falsifiability, not a prior baseline. |
-| Core — the publisher mint hook is wired **so that the claim object and the row are produced in the same pass** | The wiring is present at the named lines (line range off by one — measured at `#L409`) and `T-02-U3` proves same-pass production through the real writer `buildPublishSet(…)`. **Reason corrected 2026-08-20.** It previously read that the repository's end-to-end reconstruction produced neither, because `scripts/brief-distributed-publish.mjs` failed to load. That load failure is fixed. The reconstruction now runs — and still produces neither: `4` rows, `0` with `claimRef`, no claim object, because the minter correctly refuses these prose-subject actions. The final conjunct is therefore still not demonstrated where the full pass runs. See [the probe](#refresh-same-pass-probe). |
-| Core — `claimRef` canonicalises after `canonicalMonth` **and** a seven-field projector returns exactly the seven `v1` key names | The ordering half is proven by `T-02-U3` against a real committed row of **every** live `v2` shape — predecessor `canonicalMonth`, successor `confidence`, explicitly not `contractVersion`. The projector half is asserted **nowhere**; it belongs to `T-02-F1`, which is not written. `ROW_V1_FIELDS` appears in the suite only as an acceptance list and in the `claimRef`-not-included negative. |
-| Core — routed findings block the live-publisher binding, and **the live binding is not scheduled** | The first conjunct holds and is recorded above. The second no longer plainly holds: increment 2 wired `attachClaimRefs` into the **production** `scripts/brief-distributed-publish.mjs` path while P-015-01 and P-015-02 are still open. **Unchanged through 2026-08-20**, and deliberately not resolved. The [same-pass probe](#refresh-same-pass-probe) is the first evidence of how that wiring behaves on authored actions — it degrades to a claimless row rather than fabricating a claim — but that is one fixture, not a measurement of real authored actions through the wired path. This tension remains surfaced for an owner decision rather than absorbed. |
-| `T-02-F1`, `T-02-F2`, `T-02-F3` | Not written. `tests/recommendation-track-record.functional.mjs` contains `T-01-F1`, `T-01-F2` and `T-01-F3` only. |
-| `T-02-I1`, `T-02-I2` | Not written. `tests/recommendation-track-record.integration.mjs` does not exist. The full-partition measurement recorded under [the dual-version reader](#core-dual-version-reader) is a session measurement, **not** `T-02-I1`: it does not assert the partition bytes unmodified after the read, and it is not a committed regression. |
-| `T-02-R1` | Not written. `tests/recommendation-track-record.e2e.mjs` carries `T-01-R1` and `T-01-R2` only; no `T-02-` row exists in it. |
-| `T-02-S1` | **Reason narrowed 2026-08-20 (second pass).** The figure the row needs now exists — `3074 + 28 = 3102 passed, 0 failed` at the committed state, against the recorded clean baseline of `3074 / 0`, measured in a pristine detached worktree rather than by stashing another session's files. Two conjuncts still fail. The row is written *"after the contract, the reader, the fixtures and the test cases land"*, and six of the twelve test cases have not landed. And *"with no pre-existing assertion count decreasing"* cannot be checked at all: the baseline captured a **total**, not a per-assertion breakdown, so asserting non-decrease would be fabricating it. |
-| Build Quality Gate | **Narrowed 2026-08-20 (second pass) from two failing conjuncts to one.** The revert-verification conjunct is now satisfied — `T-02-U3` and `T-02-U4` were revert-verified against the shipped modules by [probes D and E](#revert-verification-u3-u4), joining `T-02-U1` and `T-02-U2`. The self-test conjunct holds at the committed state (`3102 / 0`, and `147 / 147 / 0` for `node --test tests/*.test.mjs`), failing only in a live tree carrying another session's uncommitted edits. Still failing: *"zero issues deferred, skipped, or worked around"* — six of this scope's twelve Test Plan rows are unwritten and four Core items are open. Five of the gate's six conjuncts now hold; see the [conjunct table](#selftest-committed-vs-live). |
+| Core — `v1` rejects `claimRef`, and `v2` **still** rejects a name outside its live union | Unchanged from increment 1, and re-assessed unchanged at `80d781825`. Both refusals are proven by `T-02-U2` and both are revert-verified against the shipped module, but *"still"* is a before/after claim and no pre-extension measurement was executed. Revert verification proves falsifiability, not a prior baseline. |
+| Core — the publisher mint hook is wired **so that the claim object and the row are produced in the same pass** | The wiring is present at the named lines (line range off by one — measured at `#L409`) and `T-02-U3` proves same-pass production through the real writer `buildPublishSet(…)`. **Reason corrected 2026-08-20.** It previously read that the repository's end-to-end reconstruction produced neither, because `scripts/brief-distributed-publish.mjs` failed to load. That load failure is fixed. The reconstruction now runs — and still produces neither: `4` rows, `0` with `claimRef`, no claim object, because the minter correctly refuses these prose-subject actions. The final conjunct is therefore still not demonstrated where the full pass runs. See [the probe](#refresh-same-pass-probe). **Re-assessed at `80d781825`:** the wiring re-verified at `:46` and `:409`, and `git diff --stat 3123e9fd0..80d781825` reports the publisher and minter scripts unchanged, so the probe's finding still describes the shipped bytes; the probe itself was not re-executed. |
+| Core — `claimRef` canonicalises after `canonicalMonth` **and** a seven-field projector returns exactly the seven `v1` key names | ~~The projector half is asserted **nowhere**; it belongs to `T-02-F1`, which is not written.~~ **TICKED 2026-08-20 at `80d781825`.** `T-02-F1` was authored at `4260140cf` and asserts the projector half at `tests/recommendation-track-record.functional.mjs:851` — `assert.deepEqual(Object.keys(projected), [...claims.ROW_V1_FIELDS])`, *exactly the seven `v1` key names*, plus a `length === 7` guard and an adversarial eighth-field case. Green at `9 / 9 / 0`, exit `0`. |
+| Core — routed findings block the live-publisher binding, and **the live binding is not scheduled** | The first conjunct holds and is recorded above. The second no longer plainly holds: increment 2 wired `attachClaimRefs` into the **production** `scripts/brief-distributed-publish.mjs` path while P-015-01 and P-015-02 are still open. **Unchanged through 2026-08-20 (fourth pass)**, and deliberately not resolved. The [same-pass probe](#refresh-same-pass-probe) is the first evidence of how that wiring behaves on authored actions — it degrades to a claimless row rather than fabricating a claim — but that is one fixture, not a measurement of real authored actions through the wired path. This tension remains surfaced for an owner decision rather than absorbed. |
+| `T-02-F1`, `T-02-F2`, `T-02-F3` | ~~Not written. `tests/recommendation-track-record.functional.mjs` contains `T-01-F1`, `T-01-F2` and `T-01-F3` only.~~ **TICKED 2026-08-20 at `80d781825`.** Authored at `4260140cf`; re-run this pass at `9 / 9 / 0`, exit `0`, all three rows `✔`. |
+| `T-02-I1`, `T-02-I2` | ~~Not written. `tests/recommendation-track-record.integration.mjs` does not exist.~~ **TICKED 2026-08-20 at `80d781825`.** The file exists, is selected by the declared `tests/*.integration.mjs` glob, and re-runs at `2 / 2 / 0`, exit `0`. `T-02-I1` asserts the partition bytes unmodified after the read, which is what the superseded session measurement did not. |
+| `T-02-R1` | ~~Not written. `tests/recommendation-track-record.e2e.mjs` carries `T-01-R1` and `T-01-R2` only; no `T-02-` row exists in it.~~ **TICKED 2026-08-20 at `80d781825`.** The row exists and is `✔`; the file now exits `0` at `4 / 4 / 0`, because `T-01-R2` recovered when the concurrent session committed its eleven modified test files. |
+| `T-02-R2` | **UNTICKED 2026-08-20 (fourth pass)**, reconciling `scope.md` with the withdrawal the [third pass](#t-02-r2-untick) recorded in prose but never applied to the checkbox. Conjunct 1 — the committed Node E2E files — is green at `36 / 36 / 0`, exit `0`. Conjunct 2 — the whole committed Playwright spec suite — is **unmeasured at this HEAD**, and the `629 passed` figure taken at `1ae724ef9` cannot be carried forward: twelve committed spec files changed by `+1599 / -66` since, including two new files. See [the full accounting](#v4-t-02-r2). |
+| `T-02-S1` | **Reason narrowed again 2026-08-20 (fourth pass); two of three conjuncts now hold.** *"after the contract, the reader, the fixtures and the test cases land"* — **now holds**, all twelve Test Plan rows have landed; this superseded the second pass's *"six of the twelve test cases have not landed"*. *"`baseline + N passed, 0 failed`"* — **now holds** at `3192 / 0`, exit `0`, against the reconstructed baseline `3074 / 0`, i.e. `baseline + 118`; the `1 failed` measured at `4260140cf` is cleared. *"with no pre-existing assertion count decreasing"* — **still unmeasured**, on a narrower reason than the second pass's *"the baseline captured a total, not a per-assertion breakdown"*: a per-group breakdown now exists, but only against `4260140cf`, and the total has since moved `3186 → 3192` with no per-group diff taken across that window. Re-deriving one means measuring baseline commit `6bfba14e0` in a disposable checkout; `git worktree` is forbidden for this pass and `git checkout` cannot be guaranteed safe while a concurrent session holds an uncommitted file in this tree. Left honestly unticked rather than risking the working tree. |
+| Build Quality Gate | **Re-checked conjunct by conjunct 2026-08-20 (fourth pass); four of six hold, two fail.** The self-test conjunct now holds in the **live** tree, not merely the committed state — `3192 passed, 0 failed`, exit `0` — which supersedes the second pass's *"failing only in a live tree carrying another session's uncommitted edits"*. Still failing: *"zero issues deferred, skipped, or worked around"*, since four items above remain open; and *"every negative test verified to fail when the behaviour it guards is reverted"*, which the second pass recorded as satisfied for `T-02-U1`–`U4` but which the six rows authored at `4260140cf` have **not** undergone — this pass wrote no code and ran no revert probe. The per-conjunct table is in `scope.md`. |
 
 ### Ledger and ownership boundaries held
 

@@ -1,0 +1,102 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-b2c43697947746e1ce298677b806aa7c4ccf09b01bf43c42b983d1bbdf7cfd09",
+  "generationId": "generation-f845a52cb450f85c0d6e53a6fd5881301e3d67f1f81eec7dc43be1b1dd2b05ce",
+  "topicId": "geopolitical-supply-shock",
+  "attemptedAt": "2026-08-21T11:01:03.099Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "RLAGENDA-CONTRACT-MISSING-MEMBER",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "No authorable official-class evidence was retained for this generation. The acquisition bundle returned zero sources and marked the official-policy-and-statements claim (actor-state coverage) uncorroborated, unsupported, and authorable=false. Without a verified declared policy or attributed statement inside the 24h freshness window, no observed change in the reaction functions of the United States, Iran, Oman mediators, Gulf exporters, Houthis, shipping insurers, or OPEC buffer producers can be asserted. No unobserved intent is inferred.",
+      "gaps": [
+        "No official-class source retained for the official-policy-and-statements requirement (freshness 24h).",
+        "actor-state claim coverage is uncorroborated and freshness-unsupported (authorable=false).",
+        "No verified statement or declared policy to fire the us-inventory-response, iran-transit-control, or insured-throughput-tightening reaction rules."
+      ]
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "No fresh evidence was retained that would justify shifting any scenario prior away from its definition value, and scenario probabilities are model-authored rather than situation evidence. This section therefore carries no authored evidence: the staged-reopening, managed-coercion, escalation, single-route-disruption, and dual-route-or-infrastructure-shock nodes have no supporting observation inside the freshness window. No scenario probability is authored here.",
+      "gaps": [
+        "No transit-restriction-observed or insured-capacity-tightens observation to substantiate an entry trigger.",
+        "No verified evidence to move scenario priors; author does not compute probabilities."
+      ]
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "No maritime-observation or official-class flow evidence was retained. The measured-maritime-flow claim (physical-flow and insured-flow coverage) is uncorroborated, freshness-unsupported, and authorable=false. Consequently no current physicalPassFraction, insuredPassFraction, or delay state can be observed for Hormuz, Bab el-Mandeb, or the Red Sea, and no insured effective-throughput reading is available. Chokepoint state is left unauthored rather than assumed normal.",
+      "gaps": [
+        "No maritime-observation source for Hormuz, Bab el-Mandeb, or Red Sea transit, loadings, or delay (freshness 24h).",
+        "No insured-capacity / war-risk observation for the shipping-insurers dimension.",
+        "measured-maritime-flow claim retained zero sources (authorable=false)."
+      ]
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "No official or industry-data evidence was retained for energy and input balances. The energy-and-input-balances claim (transmission-input coverage) is uncorroborated, freshness-unsupported, and authorable=false. No current inventory, production, export, or policy-response reading is available for oil, refined-products, LNG, fertilizer, aluminum, or shipping, so no inventory gap by channel can be authored and no policy response can be confirmed.",
+      "gaps": [
+        "No industry-data or official source for inventory, production, or export balances (freshness 72h).",
+        "No confirmed coordinated inventory or policy response for oil or refined-products.",
+        "transmission-input claim retained zero sources (authorable=false)."
+      ]
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "unavailable",
+      "interpretation": "The only retained evidence is the committed same-origin public daily bars (proxy-bar coverage), which is a model input consumed by the calibration and proxy-range computation, not situation evidence authored here. Proxy sensitivity ranges are model-authored. This author therefore adds no calibration evidence and asserts no proxy range or direction score.",
+      "gaps": [
+        "No situation-level evidence beyond committed proxy bars, which are reserved for the model layer.",
+        "Author does not compute proxy sensitivity ranges or direction scores."
+      ]
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "No observation was retained that changes a declared route state or crosses an insured-capacity threshold. The transit-restriction-observed, insured-capacity-tightens, and inventory-response-confirmed triggers have no supporting evidence, and the transit-normalizes, insurance-normalizes, and evidence-stales invalidations have no measured reading to evaluate against. No trigger or invalidation is marked fired.",
+      "gaps": [
+        "No physicalPassFraction change observed for Hormuz, Bab el-Mandeb, or Red Sea.",
+        "No insuredPassFraction reading to test the 0.8 impairment or 0.95 normalization thresholds.",
+        "No confirmed policyResponse for oil or refined-products."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "The web-evidence bundle retained zero sources (retainedSourceCount 0; sources empty) and rejected all three material claims. The only committed reusable ledger entry is the committed-public-bars proxy-bar source, which supports the model layer rather than authored findings. No independent-origin corroboration exists for any actor-state, physical-flow, insured-flow, or transmission-input claim, so the authored source ledger is empty.",
+      "gaps": [
+        "Zero retained web sources across official, maritime-observation, and industry-data classes.",
+        "Zero independent-origin corroboration for any material claim.",
+        "Only committed proxy bars available, which are not situation-ledger sources."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "The predecessor dossier is null for this generation, so there is no prior authored situation to compare against, and no change assessment is authored (change classification is a model concern). With no fresh evidence retained this pass, no directional change relative to any predecessor can be established.",
+      "gaps": [
+        "priorDossier is null; no predecessor situation to compare.",
+        "Author does not compute changeAssessment or direction classification."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

@@ -1,11 +1,11 @@
 {
   "contractVersion": "research-agenda-current/v1",
-  "updatedAt": "2026-08-20T20:31:05.598Z",
+  "updatedAt": "2026-08-21T11:01:03.099Z",
   "generationRef": {
-    "path": "research/agenda/generations/generation-630ed9a1081a8d9d4bbccf237fc73e738940bef264ff1cff4b59f3ff164bb581.json",
-    "sha256": "sha256:a26cca9e4141f99fbd86064ea1a55549670e43cc55053ec5468d179125a9e361",
+    "path": "research/agenda/generations/generation-f845a52cb450f85c0d6e53a6fd5881301e3d67f1f81eec7dc43be1b1dd2b05ce.json",
+    "sha256": "sha256:17be3dbfc771556b3c04eebcc33e4e52c0834ddc030cfb9d7e29ff7558b34700",
     "contractVersion": "research-generation/v1",
-    "generationId": "generation-630ed9a1081a8d9d4bbccf237fc73e738940bef264ff1cff4b59f3ff164bb581",
+    "generationId": "generation-f845a52cb450f85c0d6e53a6fd5881301e3d67f1f81eec7dc43be1b1dd2b05ce",
     "topicId": null,
     "historicalOnly": false
   },
@@ -14,10 +14,10 @@
       "topicId": "geopolitical-supply-shock",
       "state": "unavailable",
       "reviewRef": {
-        "path": "research/agenda/reviews/geopolitical-supply-shock/generation-630ed9a1081a8d9d4bbccf237fc73e738940bef264ff1cff4b59f3ff164bb581.json",
-        "sha256": "sha256:d9dd2347cec359e17f2d7ff35e8df620295d3ff38fa59888a9108d2ad603608d",
+        "path": "research/agenda/reviews/geopolitical-supply-shock/generation-f845a52cb450f85c0d6e53a6fd5881301e3d67f1f81eec7dc43be1b1dd2b05ce.json",
+        "sha256": "sha256:01961c76524f1b759ee5744167bbc8368ae5597f344c8f05372d5bd8a5fec6b1",
         "contractVersion": "research-review/v1",
-        "generationId": "generation-630ed9a1081a8d9d4bbccf237fc73e738940bef264ff1cff4b59f3ff164bb581",
+        "generationId": "generation-f845a52cb450f85c0d6e53a6fd5881301e3d67f1f81eec7dc43be1b1dd2b05ce",
         "topicId": "geopolitical-supply-shock",
         "historicalOnly": false
       },
@@ -25,8 +25,15 @@
     },
     {
       "topicId": "defense-earnings-acceleration",
-      "state": "not-due",
-      "reviewRef": null,
+      "state": "unavailable",
+      "reviewRef": {
+        "path": "research/agenda/reviews/defense-earnings-acceleration/generation-f845a52cb450f85c0d6e53a6fd5881301e3d67f1f81eec7dc43be1b1dd2b05ce.json",
+        "sha256": "sha256:d91952cbffc1d3dc2feb6b526a036f15cc09a1f980098c3ecf0b0dc051fc8386",
+        "contractVersion": "research-review/v1",
+        "generationId": "generation-f845a52cb450f85c0d6e53a6fd5881301e3d67f1f81eec7dc43be1b1dd2b05ce",
+        "topicId": "defense-earnings-acceleration",
+        "historicalOnly": false
+      },
       "dossierRef": null
     },
     {

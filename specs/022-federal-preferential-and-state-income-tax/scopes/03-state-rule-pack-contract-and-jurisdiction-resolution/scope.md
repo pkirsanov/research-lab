@@ -240,11 +240,11 @@ error, a missing browser or an absent test does not satisfy RED.
 | TP-03-14 | Independence | unit | SCN-022-009 | `scripts/selftest.mjs` | `computeAnnualStateTax` accepts no federal figure through any parameter, and reconciliation leg `L7` proves state taxable income derives from the state pack's own deduction | `node scripts/selftest.mjs` | No | `report.md#tp-03-14` |
 | TP-03-15 | Privacy | unit | SCN-022-007 | `scripts/selftest.mjs` | The residency members appear in the privacy inventory, are removed by the clear action, are redacted by the export sanitizer, and reach no URL, request, referrer or console message | `node scripts/selftest.mjs` | No | `report.md#tp-03-15` |
 | TP-03-16 | No-shadow | unit | SCN-022-008 | `scripts/selftest.mjs` | Regression: no module holds a state name, postal code, bracket, rate, edge, threshold or authority name; the detector is proven to fire on a module that does | `node scripts/selftest.mjs` | No | `report.md#tp-03-16` |
-| TP-03-17 | Regression E2E | e2e-ui | SCN-022-007 | `lifetime-tax-state-contract.spec.mjs` | `Regression: SCN-022-007 an undeclared residency refuses by name and never shows a zero` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-007 an undeclared residency refuses by name and never shows a zero" --reporter=list` | Yes | `report.md#scenario-scn-022-007` |
-| TP-03-18 | Regression E2E | e2e-ui | SCN-022-008 | `lifetime-tax-state-contract.spec.mjs` | `Regression: SCN-022-008 an unshipped state and an unsupported residency pattern refuse differently` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-008 an unshipped state and an unsupported residency pattern refuse differently" --reporter=list` | Yes | `report.md#scenario-scn-022-008` |
-| TP-03-19 | Regression E2E | e2e-ui | SCN-022-009 | `lifetime-tax-state-contract.spec.mjs` | `Regression: SCN-022-009 a no-tax state renders a sourced zero distinct from a refusal` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-009 a no-tax state renders a sourced zero distinct from a refusal" --reporter=list` | Yes | `report.md#scenario-scn-022-009` |
+| TP-03-17 | Regression E2E | e2e-ui | SCN-022-007 | `tests/lifetime-tax-state.spec.mjs` | `Regression: an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero` — this row owns that test's **undeclared-jurisdiction** clause: a declared pattern with no jurisdiction is `RLTAX-INPUT-INCOMPLETE` on domain `residency:residencyJurisdiction` and no state figure is rendered. One test carries this row and TP-03-18; each row names the clause it owns so a reader knows which regression falls which row | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero" --reporter=list` | Yes | `report.md#scenario-scn-022-007` |
+| TP-03-18 | Regression E2E | e2e-ui | SCN-022-008 | `tests/lifetime-tax-state.spec.mjs` | `Regression: an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero` — this row owns that test's **separation** clause: an unshipped state is `RLTAX-JURISDICTION-UNSUPPORTED` on domain `jurisdiction:state:NY` while a part-year pattern on a fully shipped jurisdiction is `RLTAX-RESIDENCY-UNSUPPORTED` on domain `residency:pattern:part-year`, and the two carry different remediations. Shares its test with TP-03-17 | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero" --reporter=list` | Yes | `report.md#scenario-scn-022-008` |
+| TP-03-19 | Regression E2E | e2e-ui | SCN-022-009 | `tests/lifetime-tax-state.spec.mjs` | `Regression: a jurisdiction that levies no individual income tax renders its sourced zero with the authority that establishes it, and never enters the federal total` — the sourced zero renders as a figure with its constitutional locator while the refusal element is absent, which is the "distinct from a refusal" clause this row names | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "a jurisdiction that levies no individual income tax renders its sourced zero with the authority that establishes it, and never enters the federal total" --reporter=list` | Yes | `report.md#scenario-scn-022-009` |
 | TP-03-20 | Broader Regression E2E | e2e-ui | SCN-021-*, SCN-022-001 … -009 | Feature 021's five specs plus this feature's three | Every scenario owned by features 021 … 024 passes over the real route — the whole cumulative browser suite for this feature family, zero failed and zero skipped, not a convenient subset. `SCN-02[1-4]` is the alternation `SCN-021`, `SCN-022`, `SCN-023`, `SCN-024` written without a `\|`, which a table cell cannot carry verbatim; it is pinned to the four owning spec numbers, so a scenario owned by any other feature can neither satisfy nor break this row | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list` | Yes | `report.md#tp-03-20` |
-| TP-03-21 | Privacy E2E | e2e-ui | SCN-022-007 | `lifetime-tax-state-contract.spec.mjs` | `Regression: SCN-022-007 the request ledger stays empty and no household value reaches a URL` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-007 the request ledger stays empty and no household value reaches a URL" --reporter=list` | Yes | `report.md#tp-03-21` |
+| TP-03-21 | Privacy E2E | e2e-ui | SCN-022-007 | `tests/lifetime-tax-state.spec.mjs` | `Regression: the residency declaration reaches no URL, no request, no console message and no export` — the request count after declaring a residency equals the count at first paint, every request is a same-origin member of the page's own declared asset set, and the declared jurisdiction appears in no URL, query string, hash, body, referrer or console message in either literal or percent-encoded form | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "the residency declaration reaches no URL, no request, no console message and no export" --reporter=list` | Yes | `report.md#tp-03-21` |
 | TP-03-22 | Repo gate | unit | SCN-022-007 … -009 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-03-22` |
 | TP-03-23 | Path guard | unit | SCN-022-007 … -009 | `scripts/validate-spec-test-paths.mjs` | Zero new missing spec-referenced test paths | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-03-23` |
 | TP-03-24 | Deploy gate | unit | SCN-022-007 … -009 | `scripts/build-pages-site.mjs` | The Pages plan succeeds and `site-exclusions.json` is unchanged, and `tax-rules/` remains outside the public directories | `node scripts/build-pages-site.mjs --dry-run` | No | `report.md#tp-03-24` |
@@ -354,25 +354,44 @@ error, a missing browser or an absent test does not satisfy RED.
     and holds two clauses: the request count after declaring a residency equals
     the count at first paint, and both pack paths appear in the ledger the run
     produced.
-- [ ] The federal pack and Feature 021's spec directory are byte-identical,
-      proving the jurisdiction axis is a seam rather than a federal edit.
-  - **Open — one half holds, the other is false and cannot be made true here.**
-    Re-verified this session rather than carried forward. `tax-rules/federal/2026.json`
-    has exactly one commit in the repository's entire history, `b9d92a3f1`, which
-    created the lab: it is byte-identical, and that is the half that carries the
-    row's argument. `specs/021-lifetime-tax-strategy-lab/` has nine commits after
-    that one, every one Feature 021 closing its own Definition-of-Done items, so it
-    is not byte-identical and could not be while Feature 021 was still being worked.
-    The alternative reading — the two named things being byte-identical to *each
-    other* — was tested and is unavailable: that directory holds no copy of the pack,
-    only fourteen Markdown files and the two Bubbles artifacts `state.json` and
-    `scenario-manifest.json`. The boundary was not breached: all eight of this
-    scope's commits were re-checked per commit and none names an excluded path.
-    **Decidable by:** narrowing the excluded list to what this scope must not touch,
-    or restating the row as "no commit of this scope modifies an excluded path" —
-    which is true and proven per commit in the report. Both are planning-wording
-    edits owned by `bubbles.plan`, not execution claims.
-  - **Phase:** implement · **Command:** a path-scoped status check over the excluded list · **Evidence:** `report.md#change-boundary`
+- [ ] `tax-rules/federal/**` is frozen — no commit after the lab-creation commit
+      and no working-tree modification — and no commit of this scope names any path
+      on the excluded list, proving the jurisdiction axis is a seam rather than a
+      federal edit. Feature 021's spec directory is deliberately **not** part of
+      this claim: it is expected to move while Feature 021 records its own evidence.
+  - **Requirement text corrected 2026-08-21 by `bubbles.plan`. The row stays open;
+    the correction fixes what the row asks, not whether it is met.** The row
+    previously read "the federal pack and Feature 021's spec directory are
+    byte-identical", which is false as written and false for a reason no execution
+    could repair. Half of it holds and is the half that carries the seam argument:
+    `tax-rules/federal/2026.json` has exactly one commit in the repository's entire
+    history, `b9d92a3f1`, the commit that created the lab. The other half is false
+    by construction — `specs/021-lifetime-tax-strategy-lab/` has nine commits after
+    that one, every one Feature 021 closing its own Definition-of-Done items with
+    its own evidence. A sibling feature recording evidence is that feature working,
+    not this scope leaking, so a row that fell on it would fail for the wrong
+    reason. The other grammatical reading — the two being byte-identical to *each
+    other* — is unavailable: that directory holds no copy of the pack, only fourteen
+    Markdown files and the two Bubbles artifacts `state.json` and
+    `scenario-manifest.json`. The corrected row states the property the original was
+    reaching for and drops the clause that was never this scope's to hold.
+  - **Adversarial case the corrected row must still fail.** Change one byte of
+    `tax-rules/federal/2026.json` — moving a single bracket edge is enough — and
+    either commit it or leave it dirty. Committed, `git log --follow --
+    tax-rules/federal/` then reports a commit after `b9d92a3f1`; uncommitted,
+    `git status --porcelain -- tax-rules/federal/` is non-empty. Either falls the
+    row. A row that survived that edit would not be testing the seam at all, which
+    is exactly what the superseded wording risked: its true half was unfalsifiable
+    prose and its false half could never pass. **Negative control:** the identical
+    two checks run against `scripts/selftest.mjs`, which this scope legitimately
+    appended to, must report movement. An all-frozen result across every path
+    checked would mean the comparator is dead rather than the tree clean.
+  - **Still open because:** the corrected claim has not been executed and recorded
+    under its own command in this feature's evidence. The per-commit half is
+    already proven — all eight of this scope's commits were re-checked per commit
+    and none names an excluded path — but the frozen-pack half plus its negative
+    control is execution work owned by `bubbles.test`, not a planning edit.
+  - **Phase:** implement · **Command:** `git log --follow -- tax-rules/federal/` and `git status --porcelain -- tax-rules/federal/`, the same two against `scripts/selftest.mjs` as the negative control, plus a per-commit path-scoped check over the excluded list · **Evidence:** `report.md#change-boundary`
 - [x] No output states a probability, a lifetime figure, a track record or an
       error rate, and no state figure is presented as an estimate or an average.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
@@ -390,27 +409,38 @@ error, a missing browser or an absent test does not satisfy RED.
     proven live rather than assumed non-empty.
 - [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
-  - **Open — four rows short, and the four cannot be closed by execution.** The
-    census was re-taken row by row this session rather than asserted. Newly closed
-    here: TP-03-03 and TP-03-12, which previously carried a passing run and prose
-    but no perturbation, and the browser substance behind TP-03-17, TP-03-18 and
-    TP-03-19, which carried none. All four probes discriminated through
-    `scripts/red-green-probe.sh` with hash-verified reverts. **Still short:**
-    TP-03-17, TP-03-18, TP-03-19 and TP-03-21 name the spec file
-    `lifetime-tax-state-contract.spec.mjs` and four titles, none of which
-    exist — Finding F-03-A. Their commands select zero tests, and a run that
-    selects zero tests reports success without asserting anything, so the rows
-    cannot be ticked on execution. The four titles were deliberately **not**
-    authored: their substance already exists in `tests/lifetime-tax-state.spec.mjs`
-    under different titles, so writing them would add duplicate coverage whose only
-    purpose is to satisfy a document. TP-03-20 also remains unprobed; it is the
-    cumulative family suite, which this session did not add a browser test to.
-    **Decidable by:** retargeting TP-03-17 … TP-03-21 at
-    `tests/lifetime-tax-state.spec.mjs` and its real titles — a planning-wording
-    change owned by `bubbles.plan`, after which the RED/GREEN evidence those rows
-    need is already recorded in the report — plus one probe against the cumulative
-    command for TP-03-20.
-  - **Phase:** implement · **Command:** the exact TP-03-01 through TP-03-21 commands · **Evidence:** `report.md#test-evidence`
+  - **Open — one row short after the retarget, and the retarget is the whole of
+    what planning could fix.** The census was taken row by row rather than
+    asserted. Four rows were short because TP-03-17, TP-03-18, TP-03-19 and
+    TP-03-21 named the spec file `lifetime-tax-state-contract.spec.mjs` and four
+    titles, none of which exist — Finding F-03-A. Their commands selected zero
+    tests, and a run that selects zero tests reports success without asserting
+    anything, so those rows could never have been ticked on execution. The four
+    titles were deliberately **not** authored: their substance already exists in
+    `tests/lifetime-tax-state.spec.mjs` under different titles, so writing them
+    would have added duplicate coverage whose only purpose is to satisfy a
+    document — which is the failure this census exists to catch, not a way of
+    closing it.
+  - **Retargeted 2026-08-21 by `bubbles.plan`.** The four rows now name
+    `tests/lifetime-tax-state.spec.mjs` and its real titles. Each mapping was
+    verified against the test **body**, not against its title: TP-03-17 and
+    TP-03-18 share the three-codes refusal test and each names the clause it owns
+    within it, TP-03-19 names the sourced-zero test that asserts the figure renders
+    while the refusal element is absent, and TP-03-21 names the privacy test that
+    asserts the post-declaration request count equals the first-paint count. The
+    RED/GREEN evidence those four rows need is already recorded in the report under
+    labels naming the rows whose substance each probe carries.
+  - **Still short: TP-03-20 alone.** It is the cumulative family suite. The report
+    records a 69-passed run of it but no perturbation, so nothing yet shows that
+    command can fail. **Decidable by:** one probe against the cumulative command —
+    execution work owned by `bubbles.test`, not a planning-wording change.
+  - **Adversarial case this row must still fail.** Point any row back at a title
+    that does not exist, or at a test whose assertions cannot fail on the behavior
+    the row names, and the census must fall — a `--grep` selecting zero tests exits
+    0, so a census satisfied by exit codes alone would read green over an empty
+    selection. Satisfying it requires, per row, a named command whose selection is
+    non-empty and a recorded perturbation that fells it.
+  - **Phase:** implement · **Command:** the exact TP-03-01 through TP-03-24 commands · **Evidence:** `report.md#test-evidence`, `report.md#tp-03-21`
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count and no
       existing assertion edited, `node scripts/validate-spec-test-paths.mjs`
       reports zero new missing paths, and `node scripts/build-pages-site.mjs

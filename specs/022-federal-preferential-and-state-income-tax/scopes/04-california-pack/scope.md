@@ -411,15 +411,47 @@ syntax error, a missing browser or an absent test does not satisfy RED.
     asserted-estimate count zero.
 - [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
-  - **Phase:** implement · **Command:** the exact TP-04-01 through TP-04-19 commands · **Evidence:** `report.md#test-evidence`
-  - **Open because:** TP-04-04 was the one row owned by no assertion at all, and
-    a later session gave it an owning assertion together with discriminating
-    RED and same-command GREEN evidence recorded at `report.md#tp-04-04`. That
-    removes the worst case but does not close this row: a row-by-row audit
-    establishing that each of the nineteen rows carries its own intended-RED and
-    same-command-GREEN pair was not performed in that session, so the universal
-    claim this row makes is not supported by evidence produced here. Closing it
-    requires that audit, not an inference from the rows that do carry a pair.
+  - **Phase:** implement · **Command:** the exact TP-04-01 through TP-04-22 commands · **Evidence:** `report.md#test-evidence`
+  - **Open, and — determined 2026-08-21 by `bubbles.plan` — NOT in Scope 03's
+    position.** Scope 03's equivalent row was short on four browser rows that named
+    an absent spec file, and those were repairable by a planning retarget because
+    their substance already existed under other titles. This row is short for two
+    different reasons, and neither is a wording defect a retarget could fix.
+  - **Blocker one — the three browser rows are gated on `BI-6`, not on wording.**
+    TP-04-16, TP-04-17 and TP-04-18 name `lifetime-tax-california.spec.mjs`, which
+    does not exist. Unlike Scope 03's four, they **cannot** be retargeted: the
+    assertions they would need cannot exist while the pack carries no figures.
+    California resolves to a refusal end to end — all four `standardDeductions`
+    and every exemption-credit amount are `AbsentFigure/v1`, sixteen absent figures
+    in all — so the only California browser coverage that can exist today is
+    `tests/lifetime-tax-state.spec.mjs`'s `Regression: California renders an
+    unavailable naming the source that was not retrieved, and shows no figure at
+    all in its place`, which pins that **no figure is rendered**. That is the
+    opposite of what these three rows must observe: an ordinary-schedule price for
+    a long-term gain, a credit applied after the rate with both figures published,
+    and a threshold identical across four filing statuses. Retargeting any of the
+    three at it would be writing a mapping that does not cover the row. The rows
+    are therefore left naming a file that does not yet exist, because that is an
+    honest statement of work not yet possible, and they unblock when `BI-6` closes.
+  - **Blocker two — the row-by-row audit over the remaining rows was never
+    performed.** TP-04-04 was the one row owned by no assertion at all; a later
+    session gave it an owning assertion with discriminating RED and same-command
+    GREEN recorded at `report.md#tp-04-04`. That removes the worst case but does
+    not close this row: no session has established that each of the **twenty-two**
+    rows carries its own intended-RED and same-command-GREEN pair, so the universal
+    claim this row makes is unsupported. The earlier wording said nineteen rows,
+    which undercounted the census by three — TP-04-20, TP-04-21 and TP-04-22 are
+    Test Plan rows and are inside the claim. Closing this needs that audit, not an
+    inference from the rows that do carry a pair.
+  - **Adversarial case this row must still fail.** Author
+    `lifetime-tax-california.spec.mjs` with the three titles the rows name while
+    the pack still carries only absent figures. Each test could then assert only
+    the refusal, so all three would pass while asserting nothing about ordinary-
+    schedule pricing, credit application point or threshold invariance, and the
+    three commands would report green. This row must fall in that state. It is
+    satisfied only when every row's command selects a non-empty set of tests whose
+    assertions can fail on a regression to the behavior that row names — which for
+    these three requires published figures, and therefore `BI-6`.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count and no
       existing assertion edited, `node scripts/validate-spec-test-paths.mjs`
       reports zero new missing paths, and `node scripts/build-pages-site.mjs

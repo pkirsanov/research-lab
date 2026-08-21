@@ -437,7 +437,7 @@ an absent test does not satisfy RED.
       `declaredFor` entry was populated from the absence of a year label on a
       page.
   - **Phase:** implement · **Command:** the retrieval record in the pack plus `node scripts/selftest.mjs` · **Evidence:** `report.md#sourcing`
-- [ ] This scope's eight deliverable supersessions and both amendments are
+- [x] This scope's eight deliverable supersessions and both amendments are
       delivered: SUP-022-03, -08, -10, -14, -15, -16, -19 and -20 each replaced by
       the stronger assertion the ledger names, each seen to fail against the
       unchanged implementation first, each carrying its `SUP-022-NN` marker and its
@@ -448,7 +448,24 @@ an absent test does not satisfy RED.
       clause is delivered — selection of a withheld-detail link by declared target
       replacing the positional `links.nth(3)` — not by any count assertion, which
       `SUP-023-06` already owns.
-  - **Open — requirement text corrected for finding F-02-C; awaiting delivery.**
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the per-spec browser commands · **Evidence:** `report.md#the-seven-re-derived-intended-reds--one-per-deliverable-marker`, `report.md#supersession-ledger`, `report.md#tp-02-23`
+  - **Closed 2026-08-20 (fifth pass).** The fourth pass named exactly two
+    unmeasured conjuncts and refused to absorb them; both are now measured. All
+    eight markers are present and `SUP-022-18` appears nowhere, which TP-02-22
+    reports as `delivered 21, expected 21, shapeless [], escaped []`. The
+    **seen-to-fail** conjunct is re-derived for all seven entries the fourth pass
+    did not claim — one `scripts/red-green-probe.sh` block each, with
+    `--summary-match` bound to the owning assertion's own name so the RED line
+    names what fell. Three of the seven are deliberately **count-preserving**,
+    because those entries superseded literal counts and a probe that changed the
+    count would have proven nothing about the replacement. The
+    **adversarial-evidence** conjunct is accounted for entry by entry in a table
+    rather than asserted in aggregate: five carry in-suite assertions, two carry
+    an executed probe, and the reason the two rendered-count entries take the
+    probe form is stated rather than glossed. A mis-aimed first probe that
+    discriminated on exit while its named assertion stayed green in both runs is
+    recorded with its correction.
+  - *History retained.* **Open — requirement text corrected for finding F-02-C; awaiting delivery.**
     The earlier blocker note is superseded twice over: the Simple/Power panels
     being built was never the whole story, and neither was calling SUP-022-18
     simply undeliverable. Every clause SUP-022-18 and SUP-022-19 were written to
@@ -506,7 +523,7 @@ an absent test does not satisfy RED.
     Ticking on the marker census alone would claim two conjuncts that were never
     measured. Decidable by re-deriving the seven intended REDs and supplying the
     missing adversarial cases for the entries that carry none.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-02-18 browser command · **Evidence:** `report.md#supersession-ledger`, `report.md#verification-pass--2026-08-20-second--sup-022-18-and--19-were-displaced-by-feature-023-before-this-scope-could-deliver-them-finding-f-02-c`, `report.md#verification-pass--2026-08-20-third--sup-022-19s-narrowed-clause-is-buildable-and-was-built-but-delivering-it-turns-scope-05s-tp-05-22-red-all-three-items-stay---finding-f-02-d`
+  - *Superseded evidence pointers, retained for audit:* `report.md#supersession-ledger`, `report.md#verification-pass--2026-08-20-second--sup-022-18-and--19-were-displaced-by-feature-023-before-this-scope-could-deliver-them-finding-f-02-c`, `report.md#verification-pass--2026-08-20-third--sup-022-19s-narrowed-clause-is-buildable-and-was-built-but-delivering-it-turns-scope-05s-tp-05-22-red-all-three-items-stay---finding-f-02-d`
 - [x] The leg-reachability rule is implemented as `design.md` states it: both
       basis members initialize to `null`, an undeclared basis refuses its leg by
       name, `CO-8` inherits, and neither member is ever initialized to a value.

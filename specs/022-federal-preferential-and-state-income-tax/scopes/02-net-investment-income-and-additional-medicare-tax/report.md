@@ -1832,3 +1832,177 @@ item's own closing sentence set:
 Research-Lab self-test: 3175 passed, 0 failed
 ```
 
+### The seven re-derived intended REDs — one per deliverable marker
+
+The supersession item asks that each of the eight deliverable replacements was
+**seen to fail against the unchanged implementation first**. The fourth pass
+re-derived that for the withheld-detail entry only and refused to claim it for
+the other seven. It is derived here for all seven, each through
+`scripts/red-green-probe.sh`, so the revert is structural rather than
+remembered.
+
+Every probe is designed to the same standard: the mutation reintroduces the
+**precise defect the replacement exists to catch**, and — where the superseded
+form was a literal count — it is chosen so that the superseded literal would
+still have passed. That is what makes the probe evidence about the
+*replacement* rather than about the suite in general. None carries a rule
+figure or a household amount.
+
+`--summary-match` is bound to the owning assertion's own name in every block, so
+the RED line names what fell rather than only reporting that something did.
+
+| Marker | Owning assertion | Mutation reintroduces |
+| --- | --- | --- |
+| SUP-022-03 | `TP-01-01` | the surtax deleted from the declared legs while still absent from `unsupportedFeatures[]`, so its id lands in no accounting set |
+| SUP-022-08 | `SCN-021-009` (marginal spec) | one rendered contributor domain substituted **at unchanged count** |
+| SUP-022-10 | `TP-03-07` | the engine dropping a `movesMarginalRate` contributor the pack still declares |
+| SUP-022-14 | `TP-02-05` | tax-exempt interest folded back into the investment-income base, which `L6` forbids |
+| SUP-022-15 | `SCN-021-006` (federal spec) | the settled legs rendered in reverse order **at unchanged count** |
+| SUP-022-16 | `SCN-021-013` (route spec) | the same reversal, in the file that owns the Power rendering |
+| SUP-022-20 | `TP-03-05` | a declared band edge no longer flagged a step, so the curve smooths it |
+
+Three of these are deliberately **count-preserving**. SUP-022-08 superseded
+`Unavailable contributors: 14` and `toHaveCount(14)`; SUP-022-15 and SUP-022-16
+each superseded `toHaveCount(5)`. A substitution at constant count and an
+order reversal both leave those literals satisfied, so each probe fails only
+because of the clause the supersession added.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SUP-022-03 the investment-income surtax is deleted from the declared legs while still absent from unsupportedFeatures, so its id belongs to no accounting set
+file:             rltaxrules.js
+mutation:         return Object.freeze(pack.taxLegs.slice());  ->  return Object.freeze(pack.taxLegs.filter(function (leg) { return leg.legId !== "net-investment-income-tax"; }));   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-01-01: every one of Feature 021’s eighteen unsupported ids is in exactly one of unsupportedFeatures[], taxLegs[], the itemised composition, the pack’s inclusion policy and the pack�
+green-exit:       0
+green-summary:      ✓ TP-01-01: every one of Feature 021’s eighteen unsupported ids is in exactly one of unsupportedFeatures[], taxLegs[], the itemised composition, the pack’s inclusion policy and the pack’s me
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SUP-022-08 one rendered contributor domain is substituted at unchanged count
+file:             lifetime-tax-strategy-lab.html
+mutation:         host.setAttribute("data-rl-unavailable-domain", record.domain);  ->  host.setAttribute("data-rl-unavailable-domain", record.domain === "marginal-contributor:premium-tax-credit" ? "marginal-contributor:substituted-at-constant-count" : record.domain);   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/lifetime-tax-marginal.spec.mjs --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:136:1 › Regression: SCN-021-009 unsupported thresholds are named unavailable contributors and the curve is labeled incomplete
+green-exit:       0
+green-summary:      ✓  3 [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:136:1 › Regression: SCN-021-009 unsupported thresholds are named unavailable contributors and the curve is labeled incomplete (1.0s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SUP-022-10 the engine drops one movesMarginalRate contributor the pack still declares
+file:             rltaxrules.js
+mutation:         if (pack.unsupportedFeatures[index] && pack.unsupportedFeatures[index].movesMarginalRate === true) {  ->  if (index > 0 && pack.unsupportedFeatures[index] && pack.unsupportedFeatures[index].movesMarginalRate === true) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-03-07: the shipped curve’s contributor id set equals the pack’s movesMarginalRate entries in both directions, the premium tax credit is still named so the removal was surgical, the
+green-exit:       0
+green-summary:      ✓ TP-03-07: the shipped curve’s contributor id set equals the pack’s movesMarginalRate entries in both directions, the premium tax credit is still named so the removal was surgical, the taxabl
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SUP-022-14 the investment-income base folds tax-exempt interest back in, which L6 exists to forbid
+file:             rltax.js
+mutation:         var netInvestmentIncome = workspace.income.qualifiedDividend + workspace.income.longTermCapitalGain + declared;  ->  var netInvestmentIncome = workspace.income.qualifiedDividend + workspace.income.longTermCapitalGain + declared + workspace.income.taxExemptInterest;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-05: the published reconciliation leg-id list equals the engine’s own declaration in order and in both directions, every published leg holds for a settled result, L6 proves the inve
+green-exit:       0
+green-summary:      ✓ TP-02-05: the published reconciliation leg-id list equals the engine’s own declaration in order and in both directions, every published leg holds for a settled result, L6 proves the investment
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SUP-022-15 the reconciliation rendering emits the settled legs in reverse order at unchanged count
+file:             lifetime-tax-strategy-lab.html
+mutation:         for (index = 0; index < settlement.reconciliation.legs.length; index += 1) {  ->  for (index = settlement.reconciliation.legs.length - 1; index >= 0; index -= 1) {   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/lifetime-tax-federal.spec.mjs --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-federal.spec.mjs:197:1 › Regression: SCN-021-006 deduction selection is explicit and the annual result reconciles
+green-exit:       0
+green-summary:      ✓  3 [system-chrome] › tests/lifetime-tax-federal.spec.mjs:197:1 › Regression: SCN-021-006 deduction selection is explicit and the annual result reconciles (584ms)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SUP-022-16 the reconciliation rendering emits the settled legs in reverse order at unchanged count
+file:             lifetime-tax-strategy-lab.html
+mutation:         for (index = 0; index < settlement.reconciliation.legs.length; index += 1) {  ->  for (index = settlement.reconciliation.legs.length - 1; index >= 0; index -= 1) {   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/lifetime-tax-route.spec.mjs --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-route.spec.mjs:37:1 › Regression: SCN-021-013 Simple opens first with a decision level answer and Power holds the detail
+green-exit:       0
+green-summary:      ✓  1 [system-chrome] › tests/lifetime-tax-route.spec.mjs:37:1 › Regression: SCN-021-013 Simple opens first with a decision level answer and Power holds the detail (823ms)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SUP-022-20 a declared band edge stops being flagged a step, so the curve smooths it
+file:             rltax.js
+mutation:         cliff: segmentKind === "rate-step" || segmentKind === "cliff",  ->  cliff: segmentKind === "cliff",   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-03-05: every declared band edge inside the sweep renders as a step — two adjacent points one probe apart with different rates, cliff true, and no interpolated point between them (5 pa
+green-exit:       0
+green-summary:      ✓ TP-03-05: every declared band edge inside the sweep renders as a step — two adjacent points one probe apart with different rates, cliff true, and no interpolated point between them (5 pack-der
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**A mis-aimed first probe, recorded rather than discarded.** The accounting
+entry's first probe truncated the declared leg list from the head
+(`pack.taxLegs.slice(1)`). It discriminated on the exit channel — so a naive
+reading would have banked it — but the `--summary-match` channel showed
+`TP-01-01` **passing in both runs**. The reason is a real property of the
+assertion rather than a fault in it: the leg dropped from the head is not one of
+the eighteen unsupported ids the accounting ranges over, so the assertion was
+right to stay green. Without the named summary channel this probe would have
+been recorded as evidence for a row it never touched. The re-aimed probe above
+deletes the surtax specifically, and `TP-01-01` then falls by name.
+
+**Where the adversarial evidence for each entry lives.** The item asks that each
+entry carries one, and the fourth pass's census found explicit in-suite blocks
+for only three. The full accounting is:
+
+| Marker | Adversarial evidence | Form |
+| --- | --- | --- |
+| SUP-022-03 | in-suite `SUP-022-03 ADVERSARIAL` block, plus TP-02-23 case 2 | assertion |
+| SUP-022-08 | TP-02-23 case 1 (moved-versus-deleted) plus the probe above | assertion + probe |
+| SUP-022-10 | TP-02-23 case 1 (the engine-side twin) plus the probe above | assertion + probe |
+| SUP-022-14 | in-suite `SUP-022-14 ADVERSARIAL` block | assertion |
+| SUP-022-15 | the count-preserving reversal probe above | probe |
+| SUP-022-16 | the count-preserving reversal probe above | probe |
+| SUP-022-19 | TP-02-23 case 3, plus the fourth pass's row-insertion control | assertion + control |
+| SUP-022-20 | in-suite `SUP-022-20 ADVERSARIAL` block | assertion |
+
+The two entries whose only adversarial evidence is a probe are the two rendered
+row-count replacements. That is deliberate and is stated rather than glossed: an
+in-suite Playwright "adversarial" block would have to mutate the page from
+inside a browser test and restore it, which is exactly the stranded-mutation
+hazard the harness exists to remove. An executed, hash-verified probe that
+reintroduces the regression and names the test that falls is the stronger
+artifact, and it is reproducible from the block above.
+

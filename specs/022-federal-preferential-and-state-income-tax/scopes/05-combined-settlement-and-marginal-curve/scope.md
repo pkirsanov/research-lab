@@ -385,9 +385,28 @@ missing browser or an absent test does not satisfy RED.
     assignment in the tracked tree, the literal `false`, and the page prints that
     value through `String(...)` rather than a hand-written word.
     `node scripts/selftest.mjs` is green at `3106 passed, 0 failed`.
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including every browser row and the full cumulative suite.
   - **Phase:** implement · **Command:** the exact TP-05-01 through TP-05-22 commands · **Evidence:** `report.md#test-evidence`
+  - **Evidence:** all twenty-two rows the item's own Command field names now carry
+    an intended RED and a same-command GREEN. The five that were missing on
+    2026-08-20 were closed through `scripts/red-green-probe.sh`, which reverts under
+    its own `EXIT`/`INT`/`TERM` trap and re-verifies the file against its committed
+    blob hash: TP-05-16 by reclassifying a sourced zero as an ordinary computed
+    amount, TP-05-17 by stripping the owning jurisdiction off every declared edge,
+    TP-05-18 by extending a pack into a year it does not declare, TP-05-21 by
+    dropping the combined module out of the deploy exclusion list, and TP-05-22 by
+    the TP-05-16 mutation run against the whole cumulative suite. TP-05-11 was
+    closed earlier the same day by the same harness. **Recorded rather than
+    absorbed, twice.** First, TP-05-21's *registration* clause is still unprobed —
+    the only mutation that drives it is to register the tool, which is barred — so
+    the row's RED rides its deploy-projection clause; the row is proven live, the
+    six-surface scan is not. Second, TP-05-22 could not be discriminated by exit
+    code: the suite exits `1` even when it reports `77 passed`, zero failed and zero
+    skipped, because teardown force-kills a worker after every test passes. The
+    verdict rides the summary channel — `76 passed` mutated against `77 passed`
+    reverted. TP-05-23 … TP-05-25 are outside this item, which scopes itself to
+    TP-05-01 through TP-05-22 in its Command field.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count and no
       existing assertion edited, `node scripts/validate-spec-test-paths.mjs`
       reports zero new missing paths, and `node scripts/build-pages-site.mjs

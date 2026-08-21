@@ -947,15 +947,101 @@ count — the two settlements each forward difference needs, and no more.
 `Regression: SCN-022-013 the combined total is the sum of two independent settlements`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-013 the combined total is the sum of two independent settlements" --reporter=list`
 
+**Claim Source:** executed. Intended RED through `scripts/red-green-probe.sh` (2026-08-20).
+The row's hardest clause is the sourced zero: Florida contributes a real zero, so a
+numeral alone cannot tell a reader whether the state leg was priced at nothing or
+never retrieved. The row therefore pins the *shape* the addition branched on, and
+the mutation attacks exactly that — the combined module reclassifies a sourced zero
+as an ordinary computed amount, so the page describes it as "a computed amount"
+instead of "a zero that carries the authority establishing it". The figures on the
+page are unchanged by the mutation, which is what makes it the realistic
+regression rather than an obvious break. The mutation is two code literals and
+carries no household figure:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-16 a sourced zero is reclassified as an ordinary computed amount
+file:             rltaxcombined.js
+mutation:         kind: "sourced-zero"  ->  kind: "valued"   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-022-013\ the\ combined\ total\ is\ the\ sum\ of\ two\ independent\ settlements --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (1.8s)
+revert-verified:  yes (committed=a24991f8cab5c54964c4efbe74d99fd7d1788954 restored=a24991f8cab5c54964c4efbe74d99fd7d1788954)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+GREEN is the identical command after the harness reverted and re-verified the file
+against its committed blob hash.
+
 ### Scenario SCN-022-014
 
 `Regression: SCN-022-014 the combined curve attributes every step to a named jurisdiction`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-014 the combined curve attributes every step to a named jurisdiction" --reporter=list`
 
+**Claim Source:** executed. Intended RED through `scripts/red-green-probe.sh` (2026-08-20).
+The row's title is attribution, so the mutation removes attribution at its source:
+every edge `declaredEdges` derives from either pack keeps its level, its measure and
+its source reference and loses only the jurisdiction that owns it. That is the
+defect the row exists to forbid — a curve that still steps in the right places while
+no longer saying which government moved it. The mutation is one assignment of an
+empty string and carries no household figure:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-17 every declared edge loses its owning jurisdiction
+file:             rltaxcombined.js
+mutation:         function declaredEdges(pack, filingStatus, jurisdiction) {  ->  function declaredEdges(pack, filingStatus, jurisdiction) { jurisdiction = "";   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-022-014\ the\ combined\ curve\ attributes\ every\ step\ to\ a\ named\ jurisdiction --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (2.8s)
+revert-verified:  yes (committed=a24991f8cab5c54964c4efbe74d99fd7d1788954 restored=a24991f8cab5c54964c4efbe74d99fd7d1788954)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+GREEN is the identical command after the harness reverted and re-verified the file
+against its committed blob hash.
+
 ### Scenario SCN-022-015
 
 `Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure" --reporter=list`
+
+**Claim Source:** executed. Intended RED through `scripts/red-green-probe.sh` (2026-08-20).
+The section header above records why the module's own `RLTAX-PACK-YEAR-MISMATCH` is
+not reachable from the route: the pack that does not cover the declared year refuses
+to resolve first. The mutation therefore attacks the guard the household actually
+meets — pack resolution stops checking the declared year against the pack's own
+`effectiveTaxYears`, so a pack is silently extended into a year it never declared.
+That is the defect the refusal's own remediation text names, and under it the page
+produces a combined figure for a year no pack covers instead of refusing. The
+mutation is a short-circuit on an existing condition and carries no household
+figure:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-18 a pack is extended into a year it does not declare instead of refusing
+file:             rltaxrules.js
+mutation:         if (pack.effectiveTaxYears.indexOf(ask.declaredTaxYear) < 0) {  ->  if (false && pack.effectiveTaxYears.indexOf(ask.declaredTaxYear) < 0) {   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-022-015\ a\ pack\ year\ mismatch\ refuses\ and\ shows\ no\ combined\ figure --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (2.1s)
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+GREEN is the identical command after the harness reverted and re-verified
+`rltaxrules.js` against its committed blob hash. The mutated file is the shared
+rules engine rather than this scope's module, which is the point: the year guard
+the combined card depends on is not one this scope wrote for itself.
 
 ### TP-05-19
 
@@ -1085,25 +1171,54 @@ carries the sentinel income, the residency jurisdiction or the word `residency`.
 `Regression: SCN-022-013 the tool is absent from every registry and the market brief`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-013 the tool is absent from every registry and the market brief" --reporter=list`
 
-**The row still carries no RED.** The row passes, and the equivalent selftest
-assertion passes, but neither has been shown able to fail, and the reason is a
-genuine conflict rather than an omission.
+**The row now carries a RED, driven through the clause that is available (2026-08-20).**
 
-The only mutation that drives the registration clause RED is to register the tool
-— adding a `lifetime-tax` entry to `tools.json`, `index.html`, `rlnav.js`,
-`README.md`, `notes/README.md` or `market-brief.config.json`. All six are on this
-scope's must-remain-byte-identical list *and* under an explicit standing
-instruction not to register this tool, so applying that mutation even transiently
-is not available here. Asserting an absence that has never been observed to become
-a presence is the same shape of weak evidence recorded under TP-05-11: it would
-pass unchanged against a build in which the check had been deleted.
+**Claim Source:** executed. The row asserts absence on two different surfaces, and
+they are not equally drivable.
 
-The second clause of the same DoD item — that no new root HTML exists — *is*
-separately drivable without touching a protected file, by creating an extra
-`lifetime-tax-*.html` at the repository root and deleting it. That probe has still
-not been carried out. **The missing RED is therefore carried by the Test Plan
-evidence DoD item — "every Test Plan row has intended RED and same-command GREEN
-evidence" — which remains open and names TP-05-21 among its reasons.**
+The *registration* clause — no `lifetime-tax` or `rltaxcombined` string in
+`tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/README.md` or
+`market-brief.config.json` — can only be driven RED by registering the tool. All
+six are on this scope's must-remain-byte-identical list *and* under an explicit
+standing instruction not to register this tool, so that mutation is not available
+here even transiently. That clause stays unprobed, and is recorded as such rather
+than quietly counted.
+
+The *deploy-projection* clause of the same row is drivable without touching any
+registration surface, and it is the clause with real consequence: the packaged
+site is what a reader would actually receive. The row asserts that
+`site-exclusions.json` names both `rltaxcombined.js` and
+`lifetime-tax-strategy-lab.html`, so the shipped site carries the decision
+explicitly rather than by omission. The mutation drops the combined module out of
+that list, which is precisely how an unregistered tool leaks into a deploy — the
+registries stay clean, and the module ships anyway. The mutation is one path
+string and carries no household figure:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-21 the combined module drops out of the deploy exclusion list, so the packaged site would ship the unregistered tool module
+file:             site-exclusions.json
+mutation:         "path": "rltaxcombined.js",  ->  "path": "rltaxcombined-not-excluded.js",   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-022-013\ the\ tool\ is\ absent\ from\ every\ registry\ and\ the\ market\ brief --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (1.7s)
+revert-verified:  yes (committed=29c6fe08a58d97c1f119abdd38706cf02f675d60 restored=29c6fe08a58d97c1f119abdd38706cf02f675d60)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+GREEN is the identical command after the harness reverted and re-verified
+`site-exclusions.json` against its committed blob hash.
+
+**What this does and does not establish.** It establishes that the row is a live
+assertion rather than a vacuous one: the test was observed failing on a build that
+differs from the shipped tree only in this file, so a build with the check deleted
+would not pass it. It does **not** establish that the six-surface registration scan
+can fail, because that mutation is unavailable under a standing instruction. That
+residual is named again in the Test Plan evidence DoD item rather than being
+absorbed into this one.
 
 #### The registration-absence DoD item, closed by derivation
 
@@ -1219,9 +1334,49 @@ The selector is the four-way alternation pinned to the owning spec numbers, not 
 bare `SCN-02`, so a scenario owned by any other feature can neither satisfy nor
 break the row.
 
-This row is recorded but the DoD item it belongs to — every Test Plan row carrying
-intended-RED and same-command GREEN evidence — remains open, because TP-05-11,
-TP-05-16, TP-05-17, TP-05-18 and TP-05-21 do not yet carry RED evidence.
+**Intended RED through `scripts/red-green-probe.sh` (2026-08-20). Claim Source:
+executed.** The cumulative row had never been shown able to fail. It is driven by
+the same sourced-zero reclassification used for TP-05-16 — chosen deliberately,
+because a mutation that broke the suite loudly would prove less than one that
+leaves every figure on the page unchanged and moves only the shape a single
+scenario reads:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-22 a sourced zero is reclassified as an ordinary computed amount, across the whole cumulative 021-024 browser suite
+file:             rltaxcombined.js
+mutation:         kind: "sourced-zero"  ->  kind: "valued"   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-02\[1-4\] --reporter=list
+red-exit:         1
+red-summary:        76 passed (57.2s)
+green-exit:       1
+green-summary:      77 passed (5.4m)
+revert-verified:  yes (committed=a24991f8cab5c54964c4efbe74d99fd7d1788954 restored=a24991f8cab5c54964c4efbe74d99fd7d1788954)
+discriminating:   yes (summary differs: "  76 passed (57.2s)" vs "  77 passed (5.4m)")
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Finding — the exit code cannot discriminate on this row, and that is a property
+of the command rather than of the probe.** Both runs exit `1`. The GREEN run
+reports `77 passed` with zero failed and zero skipped and still exits non-zero,
+because the suite's teardown force-kills a worker after every test has passed. An
+exit-code-only probe would therefore have returned exit 7 and reported no
+discrimination on a run that plainly discriminated. The verdict rides the summary
+channel instead: `76 passed` under the mutation against `77 passed` after the
+revert — one scenario lost, which is the scenario TP-05-16 owns. This is the case
+`--summary-match` exists for, and it is recorded here so a later reader does not
+mistake the non-zero GREEN exit for a failing suite.
+
+The scenario count also moved from the 76 recorded above to 77, because sibling
+features have since added a scenario to the pinned alternation. The row asserts
+zero failed and zero skipped rather than a fixed total, so a growing suite
+strengthens it rather than staling it.
+
+All twenty-two rows TP-05-01 … TP-05-22 now carry intended-RED and same-command
+GREEN evidence, which closes the Test Plan evidence DoD item. The one residual is
+recorded rather than absorbed: TP-05-21's *registration* clause remains unprobed,
+because the only mutation that drives it is to register the tool, and that is
+barred. Its *deploy-projection* clause carries the row's RED.
 
 ### TP-05-23
 

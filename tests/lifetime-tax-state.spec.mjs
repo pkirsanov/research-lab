@@ -243,6 +243,13 @@ test('Regression: the residency declaration reaches no URL, no request, no conso
   expect(permitted).toContain('/tax-rules/state/CA/2026.json');
   expect(permitted).not.toContain('/definitely-not-declared-by-this-route.json');
 
+  /* The route now reads TWO pack files from disk — the federal pack it always read, and the
+     state pack the declared residency resolved. Asserting only that the state pack is
+     PERMITTED would leave the clause true of a route that never fetched it, so both are
+     required to appear in the ledger the run actually produced. */
+  expect(paths).toContain('/tax-rules/federal/2026.json');
+  expect(paths).toContain('/tax-rules/state/CA/2026.json');
+
   /* No residency reaches a URL, a query string, a hash, a request body or a referrer. */
   const url = page.url();
   expect(url).not.toContain('state:CA');

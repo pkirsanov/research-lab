@@ -379,8 +379,63 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 - [ ] **Scope 02's write gate is called, never bypassed.** Every resolution write goes through `writeResolutionObject`, which calls `authorizeResolutionWrite` (`rlclaims.js:733`) first; a claimless row refuses `RTR-LEGACY-BACKFILL` before the resolution is inspected, and nothing in `briefs/objects/resolutions/` is written by any other route.
 - [ ] The committed symbol set is `enumerateCommittedSeries(readdir(BARS_DIR))` — the **directory listing** availability set, never `data/bars/index.json` (a curation set) and never a count literal.
 - [ ] The due set is computed from reduction state (`entry.state === "active"` ∧ has a `claimRef` ∧ `resolutionDate ≤ asOfDate`), never by scanning the ledger for timestamps.
-- [ ] `resolutionDate` is derived by **calendar-session** arithmetic against `data/calendars/xnys/calendar.json`, never by adding calendar days, and each derived session date is cross-checked against `calendar.rows[].regular.startUtc`.
-- [ ] **Routed finding P-015-07 is RESOLVED and is implemented, not carried as blocking.** The trading-session test is `row.regular !== null`, not `dateState === "regular"`, yielding 251 sessions in 2026 (249 regular + 2 early-close); keying on `dateState` is the D4-owned `RTR-SESSION-PREDICATE` refusal. The implemented ruling is recorded in `report.md`.
+- [x] `resolutionDate` is derived by **calendar-session** arithmetic against `data/calendars/xnys/calendar.json`, never by adding calendar days, and each derived session date is cross-checked against `calendar.rows[].regular.startUtc`.
+
+  **Evidence — increment 1 (calendar slice, commit `cd1d0d595`).** Executed from `<repo-root>`.
+
+  ```
+  $ node --test tests/recommendation-track-record.functional.mjs
+  ✔ T-04-F1 (increment 1): a trading session is a non-null regular block, and horizon arithmetic counts sessions rather than days (9.99118ms)
+  ✔ T-04-F2 (increment 1): RTR-CALENDAR-COVERAGE refuses past the committed window and extrapolates nothing (5.749089ms)
+  ℹ tests 11
+  ℹ pass 11
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  The two facts this item names, located in the executed sources rather than asserted in prose:
+
+  ```
+  $ grep -nE "startUtc\) !== epochMs|advanceSessions\(calendar, '2026-01-02'|advanceSessions\(calendar, '2026-01-16'|session-open-mismatch', field" scripts/brief-resolve-outcomes.mjs tests/recommendation-track-record.functional.mjs
+  scripts/brief-resolve-outcomes.mjs:175:  if (Date.parse(row.regular.startUtc) !== epochMs) {
+  tests/recommendation-track-record.functional.mjs:1136:    assert.equal(advanceSessions(calendar, '2026-01-02', 1).tradingDate, '2026-01-05', 'a Friday next-session claim resolves on Monday');
+  tests/recommendation-track-record.functional.mjs:1139:    assert.equal(advanceSessions(calendar, '2026-01-16', 1).tradingDate, '2026-01-20', 'a claim spanning a holiday resolves one session later than day arithmetic says');
+  tests/recommendation-track-record.functional.mjs:1171:        { code: SESSION_PREDICATE_CODE, reason: 'session-open-mismatch', field: 'observation.t' },
+  exit code: 0
+  ```
+
+  `advanceSessions` counts sessions — a Friday `next-session` claim lands on Monday `2026-01-05` and a claim spanning
+  the `2026-01-19` holiday steps over it — and `sessionDateForEpoch` cross-checks each derived session date against
+  that row's `regular.startUtc` for **exact** equality, refusing `session-open-mismatch` one millisecond past the open.
+
+- [x] **Routed finding P-015-07 is RESOLVED and is implemented, not carried as blocking.** The trading-session test is `row.regular !== null`, not `dateState === "regular"`, yielding 251 sessions in 2026 (249 regular + 2 early-close); keying on `dateState` is the D4-owned `RTR-SESSION-PREDICATE` refusal. The implemented ruling is recorded in `report.md`.
+
+  **Evidence — increment 1 (calendar slice, commit `cd1d0d595`).** Executed from `<repo-root>`.
+
+  ```
+  $ node --test tests/recommendation-track-record.functional.mjs
+  ✔ T-04-F1 (increment 1): a trading session is a non-null regular block, and horizon arithmetic counts sessions rather than days (9.99118ms)
+  ℹ tests 11
+  ℹ pass 11
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  The predicate, both counts, and the refusal of the rejected rule, located in the executed sources:
+
+  ```
+  $ grep -nE "251, '2026 carries|249 — the two it drops|'date-state'\)|row.regular !== null\) tradingDates" scripts/brief-resolve-outcomes.mjs tests/recommendation-track-record.functional.mjs
+  scripts/brief-resolve-outcomes.mjs:119:    if (row.regular !== null) tradingDates.push(row.tradingDate);
+  tests/recommendation-track-record.functional.mjs:1122:    assert.equal(sessions.tradingDates.length, 251, '2026 carries 251 sessions');
+  tests/recommendation-track-record.functional.mjs:1123:    assert.equal(byDateState.length, 249, 'and the dateState rule finds 249 — the two it drops are genuine sessions');
+  tests/recommendation-track-record.functional.mjs:1127:        sessionsBy(calendar, 'date-state'),
+  exit code: 0
+  ```
+
+  The implemented predicate is the non-null `regular` block; the derived counts are **251** and **249**; and
+  `sessionsBy(calendar, 'date-state')` **refuses** `RTR-SESSION-PREDICATE` / `session-predicate-not-allowed` rather
+  than merely going unused. The ruling implemented is recorded in [report.md](report.md).
+
 - [ ] An `early-close` session **resolves normally and is flagged, not excluded**: when `entryDate` or `resolutionDate` falls on one, the resolution records `provenance.earlyCloseSessions: [<tradingDate>…]`.
 - [ ] `RTR-CALENDAR-COVERAGE` is implemented; a `resolutionDate` beyond `coverageEnd` refuses and closes `not-evaluable` reason `calendar-coverage-exhausted` with no extrapolation.
 - [ ] The as-of fence is a **slice computed once before** predicate evaluation; the evaluator can only see readable rows, and `RTR-LOOKAHEAD` fires on any attempt to consult a row outside it.

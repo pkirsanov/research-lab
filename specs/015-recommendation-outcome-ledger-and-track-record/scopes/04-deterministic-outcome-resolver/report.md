@@ -88,8 +88,32 @@ baseline captured in this file before the first change).
 
 ## Test Evidence
 
-No test has been executed for this scope. Every Test Plan row in [scope.md](scope.md) remains unexecuted, and no
-selftest baseline has been captured.
+Only the increment-1 calendar slice recorded below has been executed. No other Test Plan row in
+[scope.md](scope.md) has been executed, and no selftest baseline has been captured.
+
+### Increment 1 — the calendar-session slice (commit `cd1d0d595`)
+
+The slice lands the calendar substrate ONLY: `readCalendar`, `loadCalendar`, `sessionsBy`, `advanceSessions`,
+`sessionDateForEpoch`, `earlyCloseSessionsIn`, and the two refusals `RTR-SESSION-PREDICATE` (routed, not owned) and
+`RTR-CALENDAR-COVERAGE` (owned). The predicate evaluators, the as-of fence, the data-quality gates, the outcome
+magnitude and the reducer bridge are later increments, so `T-04-F1` and `T-04-F2` each carry an `(increment 1)`
+marker and **neither claims its Test Plan row whole**.
+
+**Command, run from `<repo-root>`:** `node --test tests/recommendation-track-record.functional.mjs` — **exit 0**,
+`tests 11 / pass 11 / fail 0`, with `T-04-F1 (increment 1)` and `T-04-F2 (increment 1)` both `✔`. The raw output and
+the per-item source anchors are recorded inline beside each ticked checkbox in [scope.md](scope.md).
+
+**The P-015-07 ruling implemented is the design's:** a trading session is a row with a **non-null `regular` block**,
+not `dateState === "regular"`. The committed calendar yields **251** sessions under the implemented predicate and
+**249** under the rejected one; the two it drops — `2026-11-27` and `2026-12-24` — are genuine early-close sessions,
+and `sessionsBy` **refuses** any other predicate key with `RTR-SESSION-PREDICATE` rather than leaving the rejected
+rule merely unused.
+
+**Two DoD items are ticked; three neighbouring calendar items are deliberately NOT.** Early-close flagging
+(`earlyCloseSessionsIn`) and the coverage refusal (`RTR-CALENDAR-COVERAGE`) are both implemented and exercised, but
+both items also require the fact to be **recorded on a resolution object** or to **close a claim `not-evaluable`** —
+and no resolution is built and no claim is closed until a later increment. Ticking them on the refusal alone would
+claim a closure path that does not exist yet.
 
 **Inputs are empty; this scope is fixture-testable only.** Verified this planning pass: `briefs/objects/claims/` and
 `briefs/objects/resolutions/` **do not exist**, there are **0** committed claim objects and **0** resolution objects,
@@ -100,6 +124,7 @@ read a green real-data run as coverage: every Test Plan row here is satisfied fr
 
 ## Completion Statement
 
-Scope 04 is `Not Started`. No Definition of Done item is satisfied, no scope completion is claimed, and no
-certification is requested. Ruling R-04-01 routes a blocking mint-contract gap to scope 01; every `ret(x)`-dependent
-item is blocked until that term lands.
+Scope 04 is in progress. **2 of 55** Definition of Done items are satisfied — both from the increment-1 calendar
+slice recorded above — and the remaining 53 are unsatisfied. No scope completion is claimed and no certification is
+requested. Ruling R-04-01 routes a blocking mint-contract gap to scope 01; every `ret(x)`-dependent item is blocked
+until that term lands.

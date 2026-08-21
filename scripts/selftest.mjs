@@ -15684,6 +15684,33 @@ try {
       || point.stateMarginalRate === 0),
   'TP-05-11: a state pack reduced to a single band still attributes every move it makes, so the refusal path is reserved for a rate change no pack explains');
 
+  /* TP-05-11 REFUSAL. The clause above reserves a refusal path; this one OBSERVES it, at the
+     domain the combined engine actually raises. `declaredEdges` reads standardDeductions,
+     ordinaryRateTables, preferentialRateTables and thresholdSets — it does not read
+     reliefMechanisms, which the state engine nonetheless prices. So a credit large enough to
+     absorb the ordinary leg well past every declared band edge makes the state marginal rate
+     step from nothing to the statutory rate at the level where the credit exhausts, and no pack
+     declares a threshold there. That is a real unattributable move rather than arithmetic noise:
+     the exhaustion level is a consequence of the credit's size, and the engine refuses it instead
+     of drawing a step it cannot explain. The control below is the same call on the shipped
+     fixture, which still produces a curve, so the refusal is caused by the credit and not by the
+     construction. */
+  const reliefExhaustionPack = clone(fixturePack);
+  reliefExhaustionPack.reliefMechanisms[0].amounts.all = 7000;
+  const unattributableSegment = COMBINED.computeCombinedMarginalCurve(
+    combinedWorkspace('state:ZZ', 150000), federalPack, reliefExhaustionPack, 'ordinary', combinedConfig.sweep);
+  const attributableControl = COMBINED.computeCombinedMarginalCurve(
+    combinedWorkspace('state:ZZ', 150000), federalPack, fixturePack, 'ordinary', combinedConfig.sweep);
+  assert(RULES.isUnavailable(unattributableSegment)
+    && codeOf(unattributableSegment) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && unattributableSegment.domain === 'combined-curve:ordinary:segment'
+    && unattributableSegment.reason.indexOf('no threshold in either pack') >= 0
+    && !Object.prototype.hasOwnProperty.call(unattributableSegment, 'points')
+    && !Object.prototype.hasOwnProperty.call(unattributableSegment, 'segments')
+    && !RULES.isUnavailable(attributableControl)
+    && attributableControl.segments.length > 0,
+  'TP-05-11: a combined rate change no pack declares a threshold for is refused RLTAX-THRESHOLD-UNAVAILABLE at combined-curve:ordinary:segment with no partial curve, while the same call on the shipped fixture still produces one');
+
   /* TP-05-12: the no-tax state contributes a present, flat, attributed zero series. */
   const floridaCurve = COMBINED.computeCombinedMarginalCurve(
     combinedWorkspace('state:FL', 150000), federalPack, floridaPack, 'ordinary', combinedConfig.sweep);

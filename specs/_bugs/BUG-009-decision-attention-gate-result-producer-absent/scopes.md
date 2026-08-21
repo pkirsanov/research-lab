@@ -281,33 +281,6 @@ Feature: An empty feed tells the reader which kind of empty it is
 | 4.1 | A refused feed does not read as a calm one | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R4 — an empty attention feed states refusal, not calm` → the two causes carry different machine-readable markers, `data-mac-attention-empty="quiet"` and `="refused"`, and the refusal block states nothing was substituted |
 | 4.2 | A refused feed does not read as a calm one | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R4` → `SCN-BUG009-R4` `rlbrief.js` does not hold the live exclusion reason as a literal, so a different refusal renders its own cause |
 
-### Gherkin Scenarios
-
-This scope carries ONE scenario, for the behaviour it delivered. The second loose
-end, `DISC-009-004`, is deliberately NOT written as a scenario: it is not delivered,
-and a Gherkin block here is the regression contract for behaviour that exists.
-Expressing an open gap as a scenario would force either a false Definition-of-Done
-item or a permanently red gate. It stays recorded as prose in 4b above and as an
-open finding in `state.json`.
-
-```gherkin
-Feature: An empty feed tells the reader which kind of empty it is
-
-  Scenario: A refused feed does not read as a calm one
-    Given a generation whose every candidate was refused
-    When the attention tier renders
-    Then it states that the feed was refused and names the reason from the record
-    And it states that nothing was substituted
-    And it carries a different machine-readable marker than a genuinely quiet feed
-```
-
-### Test Plan
-
-| # | Scenario | Type | Command | File and test title |
-| --- | --- | --- | --- | --- |
-| 4.1 | A refused feed does not read as a calm one | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R4 — an empty attention feed states refusal, not calm` → the two causes carry different machine-readable markers, `data-mac-attention-empty="quiet"` and `="refused"`, and the refusal block states nothing was substituted |
-| 4.2 | A refused feed does not read as a calm one | Unit (selftest group) | `node scripts/selftest.mjs` | `scripts/selftest.mjs` — `BUG-009 R4` → `SCN-BUG009-R4` `rlbrief.js` does not hold the live exclusion reason as a literal, so a different refusal renders its own cause |
-
 ### Definition of Done
 
 - [x] The quiet statement is not rendered when the tier is structurally unreachable. **SATISFIED.** The old single sentence, "No attention items in the current payload", was rendered for BOTH causes and read as a calm market — the most dangerous sentence this brief can print, because it invites the reader to conclude nothing happened when the detector in fact produced nothing to substantiate. It is replaced by two mutually exclusive states carrying distinct machine-readable markers: `data-mac-attention-empty="refused"` when candidates were built and rejected, and `data-mac-attention-empty="quiet"` only when nothing was refused. **Evidence:** browser row `SCN-BUG009-R4 an empty attention feed tells the reader it was refused, not that the market was calm`.

@@ -14984,6 +14984,55 @@ try {
     && WORKSPACE.createEmptyWorkspace().residencyPattern === null,
   'TP-03-15: the workspace refuses a malformed residency jurisdiction and an unknown residency pattern, and an empty workspace declares neither rather than defaulting either');
 
+  /* Scope 03 claim boundary: no state surface states a probability, a lifetime figure, a track
+     record or an error rate, and no state figure is presented as an estimate or an average.
+
+     Feature 021's equivalent check scans five FEDERAL files and stops there, so nothing pinned
+     the state surfaces this scope added. This closes that gap for the surfaces this scope ships:
+     the module, both packs it routes to, and the static Power state band the page renders them
+     into.
+
+     Two rules, because the two clauses are not the same shape. The claim tokens must not appear
+     at all. `average` and `estimate` legitimately DO appear — inside refusal text that promises
+     the opposite, "no average, national default or zero is substituted" — so those are permitted
+     only where the same line negates them. A bare occurrence is the defect. */
+  const statePage = read('lifetime-tax-strategy-lab.html');
+  const stateBandStart = statePage.indexOf('<div id="power-state" class="band">');
+  const stateBandEnd = statePage.indexOf('<div id="power-combined" class="band">');
+  const stateBand = stateBandStart >= 0 && stateBandEnd > stateBandStart
+    ? statePage.slice(stateBandStart, stateBandEnd) : '';
+  const stateClaimSurfaces = {
+    'rltaxstate.js': read('rltaxstate.js'),
+    'tax-rules/state/FL/2026.json': read('tax-rules/state/FL/2026.json'),
+    'tax-rules/fixtures/state-contract-no-preferential-2999.json': read('tax-rules/fixtures/state-contract-no-preferential-2999.json'),
+    'lifetime-tax-strategy-lab.html#power-state': stateBand
+  };
+  const STATE_CLAIM_TOKENS = ['probabilit', 'likelihood', 'success rate', 'successrate', 'accuracy',
+    'track record', 'trackrecord', 'error rate', 'errorrate', 'win rate', 'winrate',
+    'break-even', 'breakeven', 'lifetime total', 'lifetimetotal', 'expected value'];
+  const NEGATED_SOFTENER = /\b(no|not|never|without|neither)\b[^\n]*?\b(average|averages|estimate|estimated|estimates|approximate|approximately)\b/i;
+  const BARE_SOFTENER = /\b(average|averages|estimate|estimated|estimates|approximate|approximately)\b/i;
+  const stateClaimLeak = (text) => STATE_CLAIM_TOKENS.filter((token) => text.toLowerCase().indexOf(token) >= 0);
+  const stateSoftenerLeak = (text) => text.split('\n')
+    .filter((line) => BARE_SOFTENER.test(line) && !NEGATED_SOFTENER.test(line));
+  const claimLeakingSurfaces = Object.keys(stateClaimSurfaces)
+    .filter((name) => stateClaimLeak(stateClaimSurfaces[name]).length > 0);
+  const softenerLeakingSurfaces = Object.keys(stateClaimSurfaces)
+    .filter((name) => stateSoftenerLeak(stateClaimSurfaces[name]).length > 0);
+  /* The band slice must be non-empty, or both rules would pass over nothing and the page would be
+     silently unscanned — the failure mode this whole check exists to refuse. */
+  assert(stateBand.length > 0
+    && claimLeakingSurfaces.length === 0
+    && softenerLeakingSurfaces.length === 0
+    /* NEGATIVE CONTROL: both rules are shown to fire. A planted claim token and a planted
+       un-negated softener each have to be caught, or a green result would mean nothing. */
+    && stateClaimLeak('the state track record for this jurisdiction').length === 1
+    && stateSoftenerLeak('the state tax shown is an estimate for this household').length === 1
+    /* And the softener rule must still ACCEPT the shipped negated form, so it is discriminating
+       rather than merely strict. */
+    && stateSoftenerLeak('no average, national default or zero is substituted').length === 0,
+  'Scope 03 claim boundary: no state module, state pack or Power state band claims a probability, a track record, an accuracy figure, an error rate, a break-even or a lifetime total, and every occurrence of average or estimate is a refusal denying substitution — both rules proven to fire on a planted claim and a planted un-negated softener');
+
   /* TP-03-22 and TP-03-24: the fixture and both shipped packs stay outside the public directories. */
   const stateFixtureDigest = 'sha256:' + createStateHash('sha256').update(RULES.packContentDigestInput(fixturePack)).digest('hex');
   const statePackPaths = stateConfig.rules.statePackPaths;

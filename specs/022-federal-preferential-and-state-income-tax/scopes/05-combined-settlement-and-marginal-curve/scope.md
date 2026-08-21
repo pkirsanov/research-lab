@@ -268,23 +268,21 @@ missing browser or an absent test does not satisfy RED.
       jurisdictions' crossings, proven by an adversarial mutation that drops the
       state's crossings.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-08`, `report.md#tp-05-09`, `report.md#tp-05-10`, `report.md#tp-05-14`
-- [ ] FR-022-033 is implemented: every contributing threshold carries a non-empty
+- [x] FR-022-033 is implemented: every contributing threshold carries a non-empty
       jurisdiction and pack id, an unattributable rate change is refused, and the
       no-tax state contributes a present, flat, attributed zero series.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-11`, `report.md#tp-05-12`
-  - **Open because:** two of the three clauses hold and the middle one has never
-    been observed. The attribution clause is green under TP-05-11 and the no-tax
-    flat-zero clause is green and probed under TP-05-12. The refusal clause is
-    not: `rltaxcombined.js` raises the unattributable-segment refusal at exactly
-    one site, under the domain `combined-curve:<kind>:segment`, and a census of
-    `scripts/selftest.mjs` and `tests/` finds that domain named nowhere. The two
-    near-matches are not substitutes — TP-03-04 observes the same refusal *code*
-    but under `curve:ordinary:segment`, which is the single-jurisdiction engine,
-    and the combined spec's two observations are the inherited `state-deduction`
-    and `combined-curve:ordinary:state` absent-figure refusals. Closing the clause
-    needs a constructed curve whose rate moves where no pack declares a threshold,
-    which is test authoring rather than a derivation, so it was not attempted in
-    this dispatch. See `report.md#tp-05-11`.
+  - **Claim Source:** executed. The middle clause is now observed rather than
+    reserved. `declaredEdges` reads deductions, rate tables and threshold sets
+    but not `reliefMechanisms`, which the state engine prices — so a credit sized
+    to exhaust away from every declared edge moves the state marginal rate where
+    no pack declares a threshold. The new assertion drives the real
+    `computeCombinedMarginalCurve` with that pack and observes
+    `RLTAX-THRESHOLD-UNAVAILABLE` at domain `combined-curve:ordinary:segment`
+    with no partial curve, against a control on the shipped fixture that still
+    produces one. Probed through `scripts/red-green-probe.sh`: neutralising the
+    guard's own condition moves the assertion `✗ FAIL` → `✓`. See
+    `report.md#tp-05-11`.
 - [x] FR-022-034 is implemented: a pack-year mismatch refuses naming both packs
       and both year sets, and no combined figure is produced.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-01`

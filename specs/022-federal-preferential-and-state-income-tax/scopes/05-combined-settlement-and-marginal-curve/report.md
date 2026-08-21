@@ -746,6 +746,76 @@ were checked and rejected as substitutes:
 So the shape of the gap is now pinned precisely: the combined module's segment
 guard is the one refusal path in this scope that no test has ever caused to fire.
 
+#### TP-05-11 completion (2026-08-20) — the segment guard is now observed firing
+
+**Claim Source:** executed. The gap recorded above is closed. The clause needed a
+curve whose rate genuinely moves where no threshold is declared, and the earlier
+note proposed reaching it by binding the combined module to a wrapped state
+engine. That turned out to be unnecessary: the real modules already admit such a
+curve, through a seam that is itself worth naming.
+
+`declaredEdges` in `rltaxcombined.js` reads `standardDeductions`,
+`ordinaryRateTables`, `preferentialRateTables` and `thresholdSets`. It does not
+read `reliefMechanisms` — which `rltaxstate.js` nonetheless prices, as a credit
+applied after rate application and capped by the leg it offsets. A credit is
+therefore a rate-moving figure that the edge derivation cannot see. Where the
+credit exhausts, the state marginal cost steps from nothing to the statutory
+rate, and no pack declares a threshold at that level.
+
+The fixture state pack carries such a credit at `250`. At that size it exhausts
+close enough to a declared band edge that the move is attributed, which is why
+the shipped fixture produces a curve and why this gap stayed invisible. Raising
+the credit to `7000` moves the exhaustion deep inside the top band, between two
+grid points and away from every declared edge. The new assertion drives the real
+`computeCombinedMarginalCurve` with that pack and observes the refusal directly:
+
+```text
+code=RLTAX-THRESHOLD-UNAVAILABLE
+domain=combined-curve:ordinary:segment
+reason=the combined marginal cost changed between two sampled levels with no threshold in either pack to attribute the move to
+remediation=declare the threshold that moved the rate in the pack that owns it; an unattributable move is refused rather than displayed
+hasPoints=false
+control refused=no, curve with segments=164
+```
+
+The control on the last line is the same call on the shipped fixture, unmodified.
+It still produces a curve, so the refusal is caused by the credit's size and not
+by the construction — the assertion cannot pass by breaking the engine.
+
+Green, in the suite:
+
+```text
+  ✓ TP-05-11: a combined rate change no pack declares a threshold for is refused RLTAX-THRESHOLD-UNAVAILABLE at combined-curve:ordinary:segment with no partial curve, while the same call on the shipped fixture still produces one
+```
+
+Intended RED, through the harness. The mutation neutralises the guard's own
+condition so an unattributed move is drawn rather than refused — which is exactly
+the build the earlier note said the old negative assertion would have passed
+against:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-11 an unattributable combined rate move is drawn instead of refused
+file:             rltaxcombined.js
+mutation:         if (crossed.length === 0) {  ->  if (false && crossed.length === 0) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-11: a combined rate change no pack declares a threshold for is refused RLTAX-THRESHOLD-UNAVAILABLE at combined-curve:ordinary:segment with no partial curve, while the same call on th
+green-exit:       1
+green-summary:      ✓ TP-05-11: a combined rate change no pack declares a threshold for is refused RLTAX-THRESHOLD-UNAVAILABLE at combined-curve:ordinary:segment with no partial curve, while the same call on the ship
+revert-verified:  yes (committed=a24991f8cab5c54964c4efbe74d99fd7d1788954 restored=a24991f8cab5c54964c4efbe74d99fd7d1788954)
+discriminating:   yes (summary differs)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Note on the verdict channel.** Both runs exit `1`, so the exit code could not
+discriminate here. That is not a defect in the probe: a concurrent session's
+Feature 027 report names a planted probe filename that no longer exists, so the
+repository's spec-test-path assertion fails on every run regardless of this
+scope. The verdict therefore rides the summary channel, pointed at this
+assertion's own name, which moves `✗ FAIL` → `✓`. An exit-code-only probe would
+have returned exit 7 and reported no discrimination that in fact occurred.
+
 ### TP-05-12
 
 Scenario SCN-022-014 — for the no-tax state the state series is present, flat at

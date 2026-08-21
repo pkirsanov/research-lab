@@ -155,6 +155,84 @@ schedule and exemption credit are not published figures at the time of this
 session. The correct next step is a planning decision about the pack's declared
 year, not another retrieval attempt. That routing is recorded on the DoD row.
 
+#### A third attempt, in this session — the statutory route, and a withdrawal
+
+The two earlier attempts both went to Franchise Tax Board publications. This one
+took the route those attempts had not: the Revenue and Taxation Code sections
+that create the figures themselves. Both were retrieved in full.
+
+| Section | URL | Outcome |
+| --- | --- | --- |
+| RTC 17073.5, standard deduction | `https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=RTC&sectionNum=17073.5.` | retrieved |
+| RTC 17054, personal exemption credits | `https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=RTC&sectionNum=17054.` | retrieved |
+| FTB Form 540 booklet, declared year | `https://www.ftb.ca.gov/forms/2026/2026-540-booklet.html` | **HTTP 404** |
+| FTB tax rates and exemptions, declared year | `https://www.ftb.ca.gov/forms/2026/2026-california-tax-rates-and-exemptions.html` | **HTTP 404** |
+| FTB tax rates and exemptions, prior year | `https://www.ftb.ca.gov/forms/2025/2025-california-tax-rates-and-exemptions.html` | **HTTP 404** |
+| FTB personal tax rates | `https://www.ftb.ca.gov/file/personal/tax-rates.html` | **HTTP 404** |
+
+**Neither statute supplies a declared-year figure, and each says so itself.**
+Section 17073.5(a) states two dollar amounts, and subdivision (d) then requires
+the Franchise Tax Board to *recompute* the standard deduction for each taxable
+year by multiplying the preceding year's amounts by an inflation adjustment
+factor. Section 17054(a) and (b) state credit amounts, and subdivision (i)
+requires the board to *compute* the credits the same way each year. The printed
+amounts are a pre-indexing base, exactly as section 17041(h) makes the printed
+brackets a pre-indexing base. Carrying any of them would be deriving a
+declared-year figure from a statutory base, which is the step `BI-6` forbids.
+
+**What the statutes do establish is when the figure can exist.** Section
+17073.5(d)(1) and section 17054(i)(1) both require the California Department of
+Industrial Relations to transmit the Consumer Price Index change *"no later than
+August 1 of the current calendar year"*. For the declared year that input was
+transmitted at the beginning of this month. The board has not yet published the
+resulting tables: the declared-year booklet that would carry them returns 404.
+So the absence now has a dated, sourced cause and a named unblocking event,
+rather than being an unexplained retrieval failure.
+
+**A prior claim is withdrawn.** The `BI-6` Definition of Done note recorded that
+the declared year's Form 540-ES instructions "states the declared year's standard
+deduction". That is not supportable and this session withdraws it. The amount
+that worksheet lists for each filing status is identical, to the dollar, to the
+amount the *prior* year's Form 540 standard deduction chart lists for the same
+status — and it sits in a worksheet whose line 4 sends the filer to the prior
+year's tax table and whose line 6a sends the filer to the prior year's exemption
+credit. Section 17073.5(d) requires a recomputation every year, so a genuine
+declared-year figure equal to the prior year's to the dollar would require a
+Consumer Price Index change of exactly zero. The worksheet is carrying the prior
+year's amount forward for estimation. Treating it as the declared year's
+standard deduction would have relabelled a figure across tax years and closed
+`BI-6` on a false premise. The report body had already reached this conclusion
+for the rate schedule; the Definition of Done note had not, and the two are now
+reconciled.
+
+**Outcome: zero declared-year figures retrieved, and the retrieval route is
+exhausted rather than merely unlucky.** All sixteen absent figures stay absent.
+What did change is that their `reason`, `whatWouldMakeItAvailable` and
+`missingSource` no longer say "was not retrieved in this session" — a
+session-scoped excuse — and instead name the recomputation mandate, the August 1
+Consumer Price Index transmission, the prior-year direction in the declared
+year's own instructions, and the specific publication whose issue would supply
+the figure. Two source records were added for the retrieved statutes, and the
+pack's self-referential `contentSha256` was recomputed accordingly.
+
+```text
+$ node -e '<validate the edited pack and derive its digest>'
+JSON parse: OK
+stored  digest: sha256:dd48445e74484a586f90d977335bec68a7c3749bd3c50301b811153ecdae635e
+derived digest: sha256:29cd98d8e191594a3a50377a6010d79b3c96322722b939238d75b2730cc26343
+match: false
+validateRulePack.ok: true
+sourceRecords: 5 ids=ca-rtc-17041,ca-rtc-17043,ca-rtc-17039,ca-rtc-17073-5,ca-rtc-17054
+all retrieved: true
+```
+
+After writing the derived digest back:
+
+```text
+digest self-consistent: true
+resolveRulePack.ok: true
+```
+
 ## Test Evidence
 
 ### TP-04-01
@@ -302,13 +380,16 @@ status from its own authority, is applied to California taxable income, and is
 never derived from the federal deduction.
 Command: `node scripts/selftest.mjs`
 
-**This row carries no assertion, and that is recorded rather than papered over.**
-A deduction that does not resolve cannot be asserted to resolve per filing status,
-so there is nothing here to assert until `BI-6` closes.
+**This row had no assertion at all, which was a defect in the Test Plan rather
+than a consequence of `BI-6`.** It is recorded as finding `F-04-01` below and it
+is now fixed: the row has an owning assertion. What that assertion does and does
+not cover is stated explicitly further down, because a row that claims three
+clauses and is owned by an assertion covering one of them is only honest if the
+split is written down.
 
-The absence was confirmed by census rather than by memory. Grepping the suite for
-`TP-04-04` returns thirteen passing lines, and **not one of them belongs to this
-scope** — they are other features reusing the row id:
+The original absence was confirmed by census rather than by memory. Grepping the
+suite for `TP-04-04` returns thirteen passing lines, and **not one of them belongs
+to this scope** — they are other features reusing the row id:
 
 ```text
 === TP-04-04 assertions naming California / a state deduction ===
@@ -349,6 +430,89 @@ assertion passes by name:
 The DoD row this anchors asks for both the deduction and the published figure
 pair, so it stays open. It must not be closed by narrowing it to the application
 point alone, which is the one part already green.
+
+#### The owning assertion, added in this session
+
+The row states three clauses. Two of them — that the deduction *resolves* per
+filing status, and that it *is applied* to California taxable income — speak
+about a resolved figure and cannot be asserted while `BI-6` is open. **This
+assertion does not cover them and does not pretend to.** The third clause, that
+the deduction is never derived from the federal deduction, is decidable today,
+and it is the clause that actually protects a household: a silent federal borrow
+is worse than a refusal, because it yields a California figure that looks
+resolved and is wrong by roughly a factor of three.
+
+What the assertion pins:
+
+- every filing status is an absent figure carrying neither an `amount` nor a
+  `value` member — all four, not merely some;
+- each one's `missingSource` names a California authority, and every source
+  record in the pack has a California publisher, so the remediation cannot drift
+  to a federal document;
+- **no number anywhere in the pack equals any federal standard deduction**, by a
+  deep walk over the whole pack against the four federal amounts;
+- the settlement publishes `appliedDeduction` as a refusal carrying
+  `RLTAX-THRESHOLD-UNAVAILABLE` and no numeric member, and that refusal
+  propagates into `stateTaxableIncome` rather than being filled behind the
+  household's back;
+- the refusal is *scoped* — `grossSupportedIncome` still resolves — so the pass
+  is not the trivial one where everything refuses;
+- the pack declares the gap in `unsupportedFeatures[]`.
+
+Two negative controls are built in, because an existence check that cannot fail
+is worth nothing. A clone whose single-filer deduction carries the federal
+figure must be caught by the same deep-walk detector, and its settlement must
+then publish that borrowed figure. Both are asserted, so the zero-hit result on
+the shipped pack is a finding rather than a property of a dead detector.
+
+**RED, through `scripts/red-green-probe.sh`.** The probe was run against
+`rltaxstate.js` rather than the suite file, because the harness refuses a dirty
+target (exit 4) and `scripts/selftest.mjs` is co-held by a concurrent session.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-04 the settlement publishes the pooled income in place of the deduction refusal, so a household reading appliedDeduction is handed a number where California published none
+file:             rltaxstate.js
+mutation:         refusal: deduction, grossSupportedIncome: pooled, appliedDeduction: deduction  ->  refusal: deduction, grossSupportedIncome: pooled, appliedDeduction: pooled   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3175 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3176 passed, 0 failed
+revert-verified:  yes (committed=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d restored=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Exactly one assertion fell: RED's 3175 passed plus 1 failed is GREEN's 3176. That
+one is TP-04-04, established by grep rather than inferred from the mutation — the
+only reads of `appliedDeduction` as a *refusal* in the whole suite are the three
+lines inside this assertion. Every other read in the file is a federal or
+Scope 02 settlement that resolves to a number. The revert is verified by blob
+hash, so `rltaxstate.js` is byte-identical to its Scope 03 state.
+
+**Still not covered, and therefore still open:** the deduction does not resolve,
+so the DoD row for FR-022-023 and FR-022-024 stays `[ ]`. This assertion gives the
+Test Plan row an owner; it does not give the feature a deduction.
+
+### Finding F-04-01 — a Test Plan row with no owning assertion
+
+**Severity: real defect, independent of `BI-6`.** `TP-04-04` was carried in the
+Test Plan with a command, a scenario and an evidence anchor, and the suite
+reported thirteen green `TP-04-04` lines — none of which belonged to this scope.
+A reader checking the row by name would have seen green. The row was owned by
+nothing.
+
+This is a defect in its own right rather than a symptom of the sourcing blocker.
+The blocker explains why the row's *resolved-figure* clauses cannot be asserted;
+it does not explain why the row had no assertion of any kind, and it never
+prevented the never-derived-from-the-federal-deduction clause from being pinned.
+The row id being reused across features is what let the gap read as green.
+
+**Disposition: fixed in this session** by the owning assertion above. The
+underlying hazard — a row id shared across features, so a per-row grep cannot
+distinguish an owned row from an unowned one — is not fixed and is routed to
+`bubbles.plan` as a Test Plan concern for the feature family.
 
 ### TP-04-05
 

@@ -1747,3 +1747,379 @@ test('T-04-E1: a full resolve pass closes each due claim exactly once, leaves th
 
     assertBytesUnchanged(committedBefore, readBytes(path.join(REPO_ROOT, R1_PARTITION_REL)), `${R1_PARTITION_REL} bytes`);
 });
+
+/* =============================================================================================
+ * T-04-R1 — the scope-04 regression row. PERMANENT.
+ *
+ * Every later scope re-runs this file, so a scope that collapses the two predicate verdicts into
+ * one, folds the three due-set exclusions back into a single "not due", teaches the data-quality
+ * gate to discard a degraded session it should measure, or loosens the horizon comparison fails
+ * HERE rather than silently.
+ *
+ * Five behaviours, each asserted by its own EXACT reason rather than by the fact that SOMETHING
+ * was refused. "It threw" is not coverage. Three exclusions that all reported one reason would
+ * satisfy a weaker row while telling an operator to wait for a date that can never matter, and
+ * that collapse is precisely what this row exists to catch.
+ *
+ *   1-2. Both predicate verdicts resolve, record and close — and they DIFFER, in the closure
+ *        event AND in the outcome class. A resolver returning one verdict for everything passes
+ *        each half read alone and fails the pair.
+ *   3.   The three due-set exclusions, each with its own reason and its own remedy. The reason
+ *        SET is asserted against the shipped remedy table rather than against three strings
+ *        named here, so a fourth exclusion added without a fixture fails instead of hiding.
+ *   4.   The three data-quality verdicts. Zero-observed CLOSES not-evaluable; reconstructed and
+ *        thin each RESOLVE and carry their own date into the record's hashed provenance. A gate
+ *        that refused all three would pass a row that only checked the refusal, so the two
+ *        degraded cases assert a real record with a real class and the clean magnitude.
+ *   5.   The horizon boundary, from BOTH sides: a claim resolving exactly ON the as-of date is
+ *        due, one resolving one calendar day beyond it is excluded. The successor is derived by
+ *        arithmetic and asserted, so "one day" is a measured relation rather than a second
+ *        literal that could drift from the first.
+ *
+ * The three excluded members are offered a WELL-FORMED verdict, so each exclusion is attributable
+ * to the gate rather than to a malformed input the pass would have dropped whatever it did.
+ *
+ * Every price, date and reason comes from a fixture or a shipped table. Nothing here reads a
+ * clock, and nothing here writes into the committed tree.
+ * =========================================================================================== */
+
+const {
+    ENTRY_UNBOUND_REASON,
+    PREDICATE_INVALIDATED_EVENT,
+    ZERO_OBSERVED_REASON,
+    applyClosures,
+    evaluatePredicate,
+    fenceObservations,
+    outcomeValueFor,
+    readBars,
+    recordResolution,
+    resolutionFor,
+} = resolver;
+
+const R4_BARS_FIXTURE_DIR = path.join(REPO_ROOT, 'tests', 'fixtures', 'recommendation-track-record', 'bars');
+
+const R4_ENTRY_SESSION = '2026-07-28';
+const R4_AS_OF_SESSION = '2026-07-29';
+const R4_BEYOND_HORIZON = '2026-07-30';
+
+/**
+ * The closes the two fixture series DECLARE, asserted against the fixture files before any
+ * expected return is computed from them. Pinning them is what keeps the magnitudes below
+ * arithmetic over known prices instead of magic numbers, without re-deriving the return the way
+ * the resolver does — which would make the assertion agree with any implementation at all.
+ */
+const R4_DECLARED_CLOSE = Object.freeze({
+    DVG: { entry: 100, resolution: 110 },
+    DVG2: { entry: 200, resolution: 190 },
+});
+
+/** Which exclusion each non-closing member must draw. Three buckets, three DIFFERENT reasons. */
+const R4_EXCLUSION = Object.freeze({
+    'excluded-wrong-state': NOT_DUE_REASON,
+    'excluded-unbound': ENTRY_UNBOUND_REASON,
+    'excluded-unmatured': HORIZON_NOT_REACHED_REASON,
+});
+
+/**
+ * The cohort. Members 1-2 differ only in the SERIES they measure, so the satisfied/invalidated
+ * split is attributable to the price path and not to two differently-authored predicates.
+ * Members 3-5 are each excluded for one reason and one reason only.
+ */
+const R4_COHORT = Object.freeze([
+    { bucket: 'closes-satisfied', family: 'r4-thesis-satisfied', symbol: 'DVG', resolutionDate: R4_AS_OF_SESSION, bound: true, closureEventType: PREDICATE_SATISFIED_EVENT, outcomeClass: 'win' },
+    { bucket: 'closes-invalidated', family: 'r4-thesis-invalidated', symbol: 'DVG2', resolutionDate: R4_AS_OF_SESSION, bound: true, closureEventType: PREDICATE_INVALIDATED_EVENT, outcomeClass: 'loss' },
+    { bucket: 'excluded-wrong-state', family: 'r4-thesis-wrong-state', symbol: 'DVG', resolutionDate: R4_AS_OF_SESSION, bound: true, closureEventType: null, outcomeClass: null },
+    { bucket: 'excluded-unbound', family: 'r4-thesis-unbound', symbol: 'DVG', resolutionDate: R4_AS_OF_SESSION, bound: false, closureEventType: null, outcomeClass: null },
+    { bucket: 'excluded-unmatured', family: 'r4-thesis-unmatured', symbol: 'DVG', resolutionDate: R4_BEYOND_HORIZON, bound: true, closureEventType: null, outcomeClass: null },
+]);
+
+/** The one data-quality array each case sets, the session it sets it on, and the verdict owed. */
+const R4_QUALITY_CASES = Object.freeze([
+    { field: 'zeroObservedSessions', session: R4_ENTRY_SESSION, resolves: false },
+    { field: 'reconstructedSessions', session: R4_ENTRY_SESSION, resolves: true },
+    { field: 'thinObservedSessions', session: R4_AS_OF_SESSION, resolves: true },
+]);
+
+/** UTC calendar arithmetic on a fixture date. Nothing here consults the current time. */
+function r4NextCalendarDay(isoDate) {
+    const [year, month, day] = isoDate.split('-').map(Number);
+    return new Date(Date.UTC(year, month - 1, day) + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+/** The fixture series, optionally rewritten with the one data-quality array a case needs. */
+function r4Bars(symbol, quality = {}) {
+    const source = JSON.parse(fs.readFileSync(path.join(R4_BARS_FIXTURE_DIR, `${symbol}.json`), 'utf8'));
+    return readBars(JSON.stringify({ ...source, ...quality }));
+}
+
+/** Keyed by `seriesRef` exactly as the value path reads them, fenced at the as-of session. */
+function r4Fences(calendar, symbol, quality = {}) {
+    return new Map([[claims.seriesRefFor(symbol), fenceObservations(calendar, r4Bars(symbol, quality), R4_AS_OF_SESSION)]]);
+}
+
+function r4Claim(member) {
+    const fixture = structuredClone(loadClaimFixture('evaluable-instrument-add'));
+    fixture.input.action.claim.resolvesTo = [member.symbol];
+    fixture.input.action.claim.weighting = 'primary-only';
+    fixture.input.action.claim.priceBasis = 'raw-close';
+    fixture.input.action.claim.thesisFamily = member.family;
+    fixture.input.binding.entryDate = R4_ENTRY_SESSION;
+    fixture.input.binding.resolutionDate = member.resolutionDate;
+    const minted = claims.mintClaim(mintInputFrom(fixture, { committedSeries: [member.symbol] }));
+    assertEvaluable(minted, `${member.bucket}: the fixture claim must mint evaluable`);
+    return minted.claim;
+}
+
+/** A verdict whose reason is READ from the shipped table, never restated as a literal here. */
+function r4Verdict(claim, closureEventType) {
+    const reasons = claims.CLOSURE_REASON_CODES[closureEventType];
+    assert.equal(reasons.length, 1, `${closureEventType}: a predicate verdict carries exactly one shipped reason`);
+    return { claim, closureEventType, reasonCode: reasons[0] };
+}
+
+test('T-04-R1: both verdicts close, each due-set exclusion keeps its own reason and remedy, each data-quality input its own verdict, and the horizon boundary is exact on both sides', () => {
+    const committedBefore = readBytes(path.join(REPO_ROOT, R1_PARTITION_REL));
+    const calendar = loadCalendar(REPO_ROOT);
+    const registry = toolsRegistry();
+    const foundation = createRequire(import.meta.url)('../rlcontracts.js');
+    const closureVocabulary = claims.readClosureEventVocabulary(foundationSourceText());
+
+    /* ---- 1. THE FIXTURE GROUND, asserted before anything is measured against it ------------ */
+
+    const sessions = sessionsBy(calendar, E1_SESSION_PREDICATE_KEY);
+    assert.equal(sessions.ok, true, `the committed calendar must yield sessions: ${JSON.stringify(sessions.error ?? null)}`);
+    for (const session of [R4_ENTRY_SESSION, R4_AS_OF_SESSION, R4_BEYOND_HORIZON]) {
+        assert.equal(sessions.tradingDates.includes(session), true, `${session}: must be a committed trading session`);
+    }
+
+    // THE BOUNDARY IS ONE DAY, MEASURED. Derived by arithmetic rather than asserted as a second
+    // literal, so the two dates cannot drift apart and leave "one day beyond" quietly meaning two.
+    assert.equal(r4NextCalendarDay(R4_AS_OF_SESSION), R4_BEYOND_HORIZON, 'the beyond-horizon date is the calendar-day successor of the as-of date');
+
+    for (const symbol of Object.keys(R4_DECLARED_CLOSE)) {
+        const rows = r4Bars(symbol).rows;
+        assert.equal(rows.length, 2, `${symbol}: the fixture is the two-session window this row measures`);
+        assert.equal(rows[0].c, R4_DECLARED_CLOSE[symbol].entry, `${symbol}: the declared entry close`);
+        assert.equal(rows[1].c, R4_DECLARED_CLOSE[symbol].resolution, `${symbol}: the declared resolution close`);
+    }
+    const r4ExpectedValue = (symbol) => (R4_DECLARED_CLOSE[symbol].resolution / R4_DECLARED_CLOSE[symbol].entry - 1) * 100;
+
+    /* ---- 2. THE COHORT, one lifecycle entry each ------------------------------------------- */
+
+    const cohort = R4_COHORT.map((member) => {
+        const claim = r4Claim(member);
+        const derived = originRecommendationKeyFor(claim, registry);
+        assert.equal(derived.ok, true, `${member.bucket}: the origin key must derive: ${JSON.stringify(derived.error ?? null)}`);
+        assert.equal(claim.direction, 1, `${member.bucket}: the add family binds direction +1, so outcomeValue IS the subject return`);
+        return { ...member, claim, key: derived.originRecommendationKey, terms: derived.terms };
+    });
+    assert.equal(new Set(cohort.map((member) => member.key)).size, cohort.length, 'every member occupies its own lifecycle entry');
+    const byBucket = new Map(cohort.map((member) => [member.bucket, member]));
+    assert.equal(byBucket.size, cohort.length, 'and every bucket names exactly one member');
+
+    const proposed = foundation.reduceRecommendationEvents(null, cohort.map((member) => ({ ...member.terms, ...E1_PROPOSAL_TERMS })), e1Run('-r4-propose'));
+    assert.equal(proposed.ok, true, `the fixture proposals must reduce: ${JSON.stringify(proposed.error ?? null)}`);
+
+    // The wrong-state member is closed THROUGH THE REDUCER, so the state the first conjunct reads
+    // is the reduction's own rather than one hand-set here and then tested against itself.
+    const preClosed = applyClosures(
+        proposed.value.index,
+        [{ originRecommendationKey: byBucket.get('excluded-wrong-state').key, eventType: PREDICATE_SATISFIED_EVENT, reasonCode: claims.CLOSURE_REASON_CODES[PREDICATE_SATISFIED_EVENT][0] }],
+        e1Run('-r4-prior'),
+    );
+    assert.equal(preClosed.ok, true, `the prior pass must run: ${JSON.stringify(preClosed.error ?? null)}`);
+    const before = preClosed.index;
+    assert.equal(before.entries[byBucket.get('excluded-wrong-state').key].state, CLOSED_ENTRY_STATE, 'the reducer closed the wrong-state entry');
+    assert.equal(before.entries[byBucket.get('excluded-unbound').key].state, LIVE_ENTRY_STATE, 'and the unbound entry is still LIVE, so only its pointer can exclude it');
+
+    /* ---- 3. THE BINDINGS. Only the unbound member's row carries no pointer ------------------ */
+
+    const bound = claimEntryBindings(
+        cohort.map((member) => ({ claim: member.claim, row: member.bound ? { [claims.CLAIM_REF_FIELD]: member.claim.claimHash } : {} })),
+        registry,
+    );
+    assert.equal(bound.ok, true, `the bindings must build: ${JSON.stringify(bound.error ?? null)}`);
+    assert.equal(bound.bindings.get(byBucket.get('excluded-unbound').key).claimRef, null, 'a row with no pointer binds a null claimRef — an answer, not an omission');
+    assert.equal(bound.bindings.get(byBucket.get('closes-satisfied').key).claimRef, byBucket.get('closes-satisfied').claim.claimHash, 'and a bound row carries the claim own address');
+
+    /* ---- 4. THE MEASURED PASS, offered a well-formed verdict for EVERY member --------------- */
+
+    // The two closing members get the verdict their own PREDICATE decides; the three excluded
+    // members are handed a valid satisfied verdict, so nothing about their input could explain
+    // the exclusion. Only the gate can.
+    const verdicts = cohort.map((member) => {
+        if (member.closureEventType === null) return r4Verdict(member.claim, PREDICATE_SATISFIED_EVENT);
+        const evaluated = evaluatePredicate(member.claim, r4Fences(calendar, member.symbol), calendar);
+        assert.equal(evaluated.ok, true, `${member.bucket}: the frozen predicate must evaluate: ${JSON.stringify(evaluated.error ?? evaluated.closure)}`);
+        assert.equal(evaluated.closureEventType, member.closureEventType, `${member.bucket}: the verdict the fixture price path decides`);
+        assert.equal(evaluated.reasonCode, claims.CLOSURE_REASON_CODES[member.closureEventType][0], `${member.bucket}: on the shipped reason for that event`);
+        assert.equal(evaluated.decidedAt, R4_AS_OF_SESSION, `${member.bucket}: decided at the resolution session`);
+        return r4Verdict(member.claim, evaluated.closureEventType);
+    });
+
+    const pass = closeDueClaims({ index: before, verdicts, asOfDate: R4_AS_OF_SESSION, bindings: bound.bindings, toolsRegistry: registry, run: e1Run('-r4-measured') });
+    assert.equal(pass.ok, true, `the resolve pass must run: ${JSON.stringify(pass.error ?? null)}`);
+
+    /* ---- 5. BOTH VERDICTS CLOSE, AND THEY DIFFER ------------------------------------------- */
+
+    const closing = cohort.filter((member) => member.closureEventType !== null);
+    assert.deepEqual(
+        pass.closures.map((closure) => closure.originRecommendationKey).sort(),
+        closing.map((member) => member.key).sort(),
+        'exactly the two due members close',
+    );
+    assert.equal(pass.events.length, pass.closures.length, 'one reducer event per closure');
+
+    const eventByKey = new Map(pass.events.map((event) => [event.recommendationKey, event]));
+    for (const member of closing) {
+        const closure = pass.closures.find((entry) => entry.originRecommendationKey === member.key);
+        assert.equal(closure.eventType, member.closureEventType, `${member.bucket}: closes on its own verdict event`);
+        assert.equal(closure.reasonCode, claims.CLOSURE_REASON_CODES[member.closureEventType][0], `${member.bucket}: carrying that event shipped reason`);
+        assert.equal(eventByKey.get(member.key).eventType, member.closureEventType, `${member.bucket}: and the reducer appended that event`);
+        assert.equal(before.entries[member.key].state, LIVE_ENTRY_STATE, `${member.bucket}: was live before the pass`);
+        assert.equal(pass.index.entries[member.key].state, CLOSED_ENTRY_STATE, `${member.bucket}: and the reducer transitioned it to closed`);
+    }
+
+    // THE ANTI-VACUITY PAIR. A resolver that returned one verdict for every claim satisfies each
+    // half above read alone; the two closures must be DIFFERENT facts, on both axes.
+    assert.equal(new Set(closing.map((member) => member.closureEventType)).size, 2, 'the two closures are different closure events');
+    assert.equal(new Set(closing.map((member) => member.outcomeClass)).size, 2, 'and fall in different outcome classes');
+
+    /* ---- 6. AND EACH RECORDS, into a disposable store outside the repository ---------------- */
+
+    const ledgerRow = committedV2Row();
+    withDisposableStore(({ root, ports }) => {
+        assert.equal(root.startsWith(REPO_ROOT), false, 'the disposable store must live outside the repository');
+
+        for (const member of closing) {
+            const outcome = outcomeValueFor(member.claim, r4Fences(calendar, member.symbol));
+            assert.equal(outcome.ok, true, `${member.bucket}: the claim must measure: ${JSON.stringify(outcome.error ?? outcome.closure)}`);
+            assert.equal(outcome.outcomeValue, r4ExpectedValue(member.symbol), `${member.bucket}: the exact unrounded return over the declared closes`);
+
+            const recorded = recordResolution(
+                {
+                    claim: member.claim,
+                    calendar,
+                    closureVocabulary,
+                    closureEventType: member.closureEventType,
+                    reasonCode: claims.CLOSURE_REASON_CODES[member.closureEventType][0],
+                    outcome,
+                    // The lifecycle id the pass ITSELF appended, so the record names the event that
+                    // closed the entry rather than a plausible identifier authored by this row.
+                    eventId: eventByKey.get(member.key).eventId,
+                    lifecycleBinding: { originRecommendationKey: member.key },
+                },
+                { ...ledgerRow, [claims.CLAIM_REF_FIELD]: member.claim.claimHash },
+                ports,
+            );
+            assert.equal(recorded.ok, true, `${member.bucket}: the record must write: ${JSON.stringify(recorded.error ?? null)}`);
+            assert.equal(recorded.written, true, `${member.bucket}: and actually reach the store`);
+            assert.equal(recorded.resolution.closureEventType, member.closureEventType, `${member.bucket}: recording its closure event`);
+            assert.equal(recorded.resolution.outcomeClass, member.outcomeClass, `${member.bucket}: and the class its magnitude fell in`);
+            assert.equal(claims.MAGNITUDE_BEARING_OUTCOME_CLASSES.includes(member.outcomeClass), true, `${member.bucket}: which is a shipped magnitude-bearing class`);
+            assert.equal(recorded.resolution.outcomeValue, outcome.outcomeValue, `${member.bucket}: carrying the measured value verbatim`);
+            assert.equal(fs.existsSync(path.join(root, recorded.path)), true, `${member.bucket}: the object is on disk at its content address`);
+        }
+    });
+
+    /* ---- 7. THE THREE EXCLUSIONS, EACH DISTINCT -------------------------------------------- */
+
+    const excludedByKey = new Map(pass.notDue.map((entry) => [entry.originRecommendationKey, entry]));
+    assert.deepEqual(
+        [...excludedByKey.keys()].sort(),
+        Object.keys(R4_EXCLUSION).map((bucket) => byBucket.get(bucket).key).sort(),
+        'exactly the three non-closing members are excluded',
+    );
+
+    for (const [bucket, reason] of Object.entries(R4_EXCLUSION)) {
+        const excluded = excludedByKey.get(byBucket.get(bucket).key);
+        assert.equal(excluded.reason, reason, `${bucket}: excluded for its own reason`);
+        assert.equal(excluded.remedy, NOT_DUE_REMEDY[reason], `${bucket}: with the remedy that reason carries`);
+    }
+
+    // DISTINCT, not merely all excluded. These are three different FUTURES — a ledger event, a
+    // later as-of date, and never — so collapsing them would tell an operator to wait for a date
+    // that can make no difference. Asserted on both the reason and the remedy, and the reason set
+    // is compared against the shipped remedy table so a fourth exclusion cannot land untested.
+    const drawnReasons = Object.values(R4_EXCLUSION);
+    assert.equal(new Set(drawnReasons).size, drawnReasons.length, 'the three exclusions name three different reasons');
+    assert.equal(new Set(drawnReasons.map((reason) => NOT_DUE_REMEDY[reason])).size, drawnReasons.length, 'and promise three different remedies');
+    assert.deepEqual([...drawnReasons].sort(), Object.keys(NOT_DUE_REMEDY).sort(), 'and are exactly the shipped exclusion set — a fourth reason fails here rather than going untested');
+
+    // Each declined verdict is reported with the gate's own reason, so a verdict is never swallowed
+    // between the caller and the ledger.
+    const skippedByKey = new Map(pass.skipped.map((entry) => [entry.originRecommendationKey, entry]));
+    for (const [bucket, reason] of Object.entries(R4_EXCLUSION)) {
+        assert.equal(skippedByKey.get(byBucket.get(bucket).key).reason, reason, `${bucket}: the declined verdict is reported with the same reason`);
+    }
+
+    /* ---- 8. THE HORIZON BOUNDARY, FROM BOTH SIDES ------------------------------------------ */
+
+    // This is the comparison a stubbed conjunct used to swallow, so both sides are asserted. The
+    // two members differ ONLY in the frozen resolution date: one exactly ON the as-of date, one a
+    // single calendar day past it.
+    const onBoundary = byBucket.get('closes-satisfied');
+    const pastBoundary = byBucket.get('excluded-unmatured');
+    assert.equal(bound.bindings.get(onBoundary.key).resolutionDate, R4_AS_OF_SESSION, 'the due member resolves exactly ON the as-of date');
+    assert.equal(bound.bindings.get(pastBoundary.key).resolutionDate, R4_BEYOND_HORIZON, 'the excluded member resolves one calendar day beyond it');
+    assert.equal(pass.closures.some((closure) => closure.originRecommendationKey === onBoundary.key), true, 'equal to the as-of date IS due');
+    assert.equal(pass.closures.some((closure) => closure.originRecommendationKey === pastBoundary.key), false, 'and one day beyond is NOT');
+    assert.equal(excludedByKey.get(pastBoundary.key).reason, HORIZON_NOT_REACHED_REASON, 'excluded for the horizon rather than for its state or its pointer');
+    assert.equal(excludedByKey.get(pastBoundary.key).state, LIVE_ENTRY_STATE, 'while its entry is live');
+    assert.equal(excludedByKey.get(pastBoundary.key).claimRef, pastBoundary.claim.claimHash, 'and its row carries a pointer — the date is the only thing holding it back');
+    assert.equal(pass.index.entries[pastBoundary.key].state, LIVE_ENTRY_STATE, 'so it stays active, waiting for a later pass');
+    assert.deepEqual(pass.index.entries[pastBoundary.key], before.entries[pastBoundary.key], 'unchanged in every field, not merely in state');
+
+    /* ---- 9. THE DATA-QUALITY GATE, THREE INPUTS AND THREE DIFFERENT VERDICTS ---------------- */
+
+    const qualityMember = byBucket.get('closes-satisfied');
+    const cleanValue = r4ExpectedValue(qualityMember.symbol);
+    const qualityFields = R4_QUALITY_CASES.map((qualityCase) => qualityCase.field);
+    assert.equal(new Set(qualityFields).size, qualityFields.length, 'the three cases set three different arrays');
+
+    for (const qualityCase of R4_QUALITY_CASES) {
+        const label = `${qualityCase.field}@${qualityCase.session}`;
+        const measured = outcomeValueFor(qualityMember.claim, r4Fences(calendar, qualityMember.symbol, { [qualityCase.field]: [qualityCase.session] }));
+
+        if (!qualityCase.resolves) {
+            // NOTHING TRADED, so there is no return to compute — and it is a CLOSURE about the
+            // claim, not an `RTR-*` refusal about our substrate.
+            assert.equal(measured.ok, false, `${label}: a zero-observed session in the window must not score`);
+            assert.equal(measured.error, undefined, `${label}: it is a fact about the claim, not a substrate refusal`);
+            assert.equal(measured.closure.closureEventType, 'not-evaluable', `${label}: closes not-evaluable`);
+            assert.equal(measured.closure.reasonCode, ZERO_OBSERVED_REASON, `${label}: on the shipped reason`);
+            assert.equal(measured.closure.field, `observations.${qualityMember.symbol}.${qualityCase.session}`, `${label}: naming the session that did not trade`);
+            continue;
+        }
+
+        /* A REPAIRED OR THIN SESSION DID TRADE. Discarding it would throw away a real measurement,
+           so it must produce a RECORD — asserted here rather than assumed, because a gate that
+           refused all three would satisfy the refusal above and nothing else. */
+        assert.equal(measured.ok, true, `${label}: a degraded session traded, so it must still score`);
+        assert.equal(measured.outcomeValue, cleanValue, `${label}: and score exactly what a clean read scores`);
+
+        const built = resolutionFor({
+            claim: qualityMember.claim,
+            calendar,
+            closureVocabulary,
+            closureEventType: qualityMember.closureEventType,
+            reasonCode: claims.CLOSURE_REASON_CODES[qualityMember.closureEventType][0],
+            outcome: measured,
+            eventId: eventByKey.get(qualityMember.key).eventId,
+            lifecycleBinding: { originRecommendationKey: qualityMember.key },
+        });
+        assert.equal(built.ok, true, `${label}: a degraded read must still build a record: ${JSON.stringify(built.error ?? null)}`);
+        assert.equal(built.resolution.outcomeClass, qualityMember.outcomeClass, `${label}: in the class the clean read falls in`);
+        assert.equal(built.resolution.outcomeValue, cleanValue, `${label}: carrying the clean magnitude`);
+
+        // AND THE SOURCING IS RECORDED, in the HASHED provenance, on its OWN field. A reader can
+        // weigh the number against how it was sourced, and the two degradations never merge.
+        assert.deepEqual(built.resolution.provenance[qualityCase.field], [qualityCase.session], `${label}: the degraded session is carried into provenance`);
+        for (const other of qualityFields) {
+            if (other === qualityCase.field || other === 'zeroObservedSessions') continue;
+            assert.deepEqual(built.resolution.provenance[other], [], `${label}: and the other degradation is not invented`);
+        }
+    }
+
+    assertBytesUnchanged(committedBefore, readBytes(path.join(REPO_ROOT, R1_PARTITION_REL)), `${R1_PARTITION_REL} bytes`);
+});

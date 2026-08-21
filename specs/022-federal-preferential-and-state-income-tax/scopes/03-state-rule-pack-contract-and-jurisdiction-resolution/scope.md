@@ -240,14 +240,106 @@ error, a missing browser or an absent test does not satisfy RED.
 | TP-03-14 | Independence | unit | SCN-022-009 | `scripts/selftest.mjs` | `computeAnnualStateTax` accepts no federal figure through any parameter, and reconciliation leg `L7` proves state taxable income derives from the state pack's own deduction | `node scripts/selftest.mjs` | No | `report.md#tp-03-14` |
 | TP-03-15 | Privacy | unit | SCN-022-007 | `scripts/selftest.mjs` | The residency members appear in the privacy inventory, are removed by the clear action, are redacted by the export sanitizer, and reach no URL, request, referrer or console message | `node scripts/selftest.mjs` | No | `report.md#tp-03-15` |
 | TP-03-16 | No-shadow | unit | SCN-022-008 | `scripts/selftest.mjs` | Regression: no module holds a state name, postal code, bracket, rate, edge, threshold or authority name; the detector is proven to fire on a module that does | `node scripts/selftest.mjs` | No | `report.md#tp-03-16` |
-| TP-03-17 | Regression E2E | e2e-ui | SCN-022-007 | `tests/lifetime-tax-state.spec.mjs` | `Regression: an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero` — this row owns that test's **undeclared-jurisdiction** clause: a declared pattern with no jurisdiction is `RLTAX-INPUT-INCOMPLETE` on domain `residency:residencyJurisdiction` and no state figure is rendered. One test carries this row and TP-03-18; each row names the clause it owns so a reader knows which regression falls which row | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero" --reporter=list` | Yes | `report.md#scenario-scn-022-007` |
-| TP-03-18 | Regression E2E | e2e-ui | SCN-022-008 | `tests/lifetime-tax-state.spec.mjs` | `Regression: an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero` — this row owns that test's **separation** clause: an unshipped state is `RLTAX-JURISDICTION-UNSUPPORTED` on domain `jurisdiction:state:NY` while a part-year pattern on a fully shipped jurisdiction is `RLTAX-RESIDENCY-UNSUPPORTED` on domain `residency:pattern:part-year`, and the two carry different remediations. Shares its test with TP-03-17 | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero" --reporter=list` | Yes | `report.md#scenario-scn-022-008` |
-| TP-03-19 | Regression E2E | e2e-ui | SCN-022-009 | `tests/lifetime-tax-state.spec.mjs` | `Regression: a jurisdiction that levies no individual income tax renders its sourced zero with the authority that establishes it, and never enters the federal total` — the sourced zero renders as a figure with its constitutional locator while the refusal element is absent, which is the "distinct from a refusal" clause this row names | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "a jurisdiction that levies no individual income tax renders its sourced zero with the authority that establishes it, and never enters the federal total" --reporter=list` | Yes | `report.md#scenario-scn-022-009` |
-| TP-03-20 | Broader Regression E2E | e2e-ui | SCN-021-*, SCN-022-001 … -009 | Feature 021's five specs plus this feature's three | Every scenario owned by features 021 … 024 passes over the real route — the whole cumulative browser suite for this feature family, zero failed and zero skipped, not a convenient subset. `SCN-02[1-4]` is the alternation `SCN-021`, `SCN-022`, `SCN-023`, `SCN-024` written without a `\|`, which a table cell cannot carry verbatim; it is pinned to the four owning spec numbers, so a scenario owned by any other feature can neither satisfy nor break this row | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list` | Yes | `report.md#tp-03-20` |
-| TP-03-21 | Privacy E2E | e2e-ui | SCN-022-007 | `tests/lifetime-tax-state.spec.mjs` | `Regression: the residency declaration reaches no URL, no request, no console message and no export` — the request count after declaring a residency equals the count at first paint, every request is a same-origin member of the page's own declared asset set, and the declared jurisdiction appears in no URL, query string, hash, body, referrer or console message in either literal or percent-encoded form | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "the residency declaration reaches no URL, no request, no console message and no export" --reporter=list` | Yes | `report.md#tp-03-21` |
+| TP-03-17 | Regression E2E | e2e-ui | SCN-022-007 | `tests/lifetime-tax-state.spec.mjs` | `Regression: SCN-022-007 / SCN-022-008 an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero` — the title is the family-convention form routed to `bubbles.implement` under F-03-B; the command greps the descriptive clause, which the rename leaves byte-identical, so this row selects the same one test before and after it lands. This row owns that test's **undeclared-jurisdiction** clause: a declared pattern with no jurisdiction is `RLTAX-INPUT-INCOMPLETE` on domain `residency:residencyJurisdiction` and no state figure is rendered. One test carries this row and TP-03-18; each row names the clause it owns so a reader knows which regression falls which row | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero" --reporter=list` | Yes | `report.md#scenario-scn-022-007` |
+| TP-03-18 | Regression E2E | e2e-ui | SCN-022-008 | `tests/lifetime-tax-state.spec.mjs` | `Regression: SCN-022-007 / SCN-022-008 an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero` — the title is the family-convention form routed to `bubbles.implement` under F-03-B; the command greps the descriptive clause, which the rename leaves byte-identical. This row owns that test's **separation** clause: an unshipped state is `RLTAX-JURISDICTION-UNSUPPORTED` on domain `jurisdiction:state:NY` while a part-year pattern on a fully shipped jurisdiction is `RLTAX-RESIDENCY-UNSUPPORTED` on domain `residency:pattern:part-year`, and the two carry different remediations. Shares its test with TP-03-17 | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero" --reporter=list` | Yes | `report.md#scenario-scn-022-008` |
+| TP-03-19 | Regression E2E | e2e-ui | SCN-022-009 | `tests/lifetime-tax-state.spec.mjs` | `Regression: SCN-022-009 a jurisdiction that levies no individual income tax renders its sourced zero with the authority that establishes it, and never enters the federal total` — the title is the family-convention form routed to `bubbles.implement` under F-03-B; the command greps the descriptive clause, which the rename leaves byte-identical. The sourced zero renders as a figure with its constitutional locator while the refusal element is absent, which is the "distinct from a refusal" clause this row names | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "a jurisdiction that levies no individual income tax renders its sourced zero with the authority that establishes it, and never enters the federal total" --reporter=list` | Yes | `report.md#scenario-scn-022-009` |
+| TP-03-20 | Broader Regression E2E | e2e-ui | SCN-021-*, SCN-022-001 … -009 | Feature 021's five specs plus this feature's three | Every scenario owned by features 021 … 024 passes over the real route — the whole cumulative browser suite for this feature family, zero failed and zero skipped, not a convenient subset. `SCN-02[1-4]` is the alternation `SCN-021`, `SCN-022`, `SCN-023`, `SCN-024` written without a `\|`, which a table cell cannot carry verbatim; it is pinned to the four owning spec numbers, so a scenario owned by any other feature can neither satisfy nor break this row. **Selection floor, asserted before the run.** `--grep` matches on test **title**, so a spec whose titles omit their scenario token is silently excluded and the row still reads green off the tests it did select — F-03-B. The `--list` invocation therefore runs first and its output must name at least one title carrying each of `SCN-022-007`, `SCN-022-008` and `SCN-022-009`, which are this scope's own three scenarios and the ones the coverage column claims; a listing that names none of them fells the row before a single test executes. The listed `Total:` count is recorded in the evidence anchor and must not fall between runs, so a later spec dropping its token is visible as shrinkage rather than as a smaller green run. Until the F-03-B rename lands the floor is unmet by construction and this row cannot be ticked | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --list` then `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list` | Yes | `report.md#tp-03-20` |
+| TP-03-21 | Privacy E2E | e2e-ui | SCN-022-007 | `tests/lifetime-tax-state.spec.mjs` | `Regression: SCN-022-007 the residency declaration reaches no URL, no request, no console message and no export` — the title is the family-convention form routed to `bubbles.implement` under F-03-B; the command greps the descriptive clause, which the rename leaves byte-identical. The request count after declaring a residency equals the count at first paint, every request is a same-origin member of the page's own declared asset set, and the declared jurisdiction appears in no URL, query string, hash, body, referrer or console message in either literal or percent-encoded form | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "the residency declaration reaches no URL, no request, no console message and no export" --reporter=list` | Yes | `report.md#tp-03-21` |
 | TP-03-22 | Repo gate | unit | SCN-022-007 … -009 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-03-22` |
 | TP-03-23 | Path guard | unit | SCN-022-007 … -009 | `scripts/validate-spec-test-paths.mjs` | Zero new missing spec-referenced test paths | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-03-23` |
 | TP-03-24 | Deploy gate | unit | SCN-022-007 … -009 | `scripts/build-pages-site.mjs` | The Pages plan succeeds and `site-exclusions.json` is unchanged, and `tax-rules/` remains outside the public directories | `node scripts/build-pages-site.mjs --dry-run` | No | `report.md#tp-03-24` |
+
+### F-03-B: A Title-Matching Selector Under-Selects Silently, And The Routed Title Repair
+
+**The finding.** `TP-03-20` selects with `--grep "SCN-02[1-4]"`. Playwright's
+`--grep` matches on the test **title**, not on any declared scenario mapping. Of
+the nineteen `tests/lifetime-tax-*.spec.mjs` members of this family, eighteen
+carry their scenario id in the title under the form
+`Regression: SCN-0NN-NNN <clause>`; `tests/lifetime-tax-state.spec.mjs` is the
+sole exception, and **zero of its six** titles carry the token. That file holds
+every browser assertion this scope owns, so the selector's selection can contain
+`SCN-022-001` … `-006` and `-013` … `-015` and **none** of `SCN-022-007`,
+`-008`, `-009` — precisely the three scenarios the row's coverage column claims.
+The counts above are read off the test titles in `tests/`; the size of the
+resulting selection is not restated here because no `--list` run is recorded
+against it, which is itself the omission the selection floor below closes. The
+row could not fail on the behaviour it names, and it read green because the
+tests it *did* select all passed.
+
+**The defect is the titles, not the selector.** A row is repaired by pointing it
+at a truthful selection, but retargeting `TP-03-20` at some other expression
+would leave the underlying breach in place: a spec whose titles omit their
+scenario ids is unreachable by *every* scenario-keyed selector any future row
+writes, and the next author would rediscover this from scratch. Renaming brings
+the nineteenth file into the convention the other eighteen already keep, which
+fixes this row and every row not yet written. The cost of renaming — that four
+Test Plan cells quote the old titles verbatim and go stale — is planning-owned
+and is paid above in this same change, which is why `bubbles.test` correctly
+declined to rename and handed it here.
+
+**Old → new title mapping, routed to `bubbles.implement`.** Three of the six
+tests are renamed. Each is a title-string edit in
+`tests/lifetime-tax-state.spec.mjs` and nothing else; no assertion, no body and
+no helper changes.
+
+| Test | Current title | Routed title |
+| --- | --- | --- |
+| sourced zero | `Regression: a jurisdiction that levies no individual income tax renders its sourced zero with the authority that establishes it, and never enters the federal total` | `Regression: SCN-022-009 a jurisdiction that levies no individual income tax renders its sourced zero with the authority that establishes it, and never enters the federal total` |
+| three refusal codes | `Regression: an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero` | `Regression: SCN-022-007 / SCN-022-008 an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero` |
+| residency privacy | `Regression: the residency declaration reaches no URL, no request, no console message and no export` | `Regression: SCN-022-007 the residency declaration reaches no URL, no request, no console message and no export` |
+
+The insertion is a **prefix**; every descriptive clause is left byte-identical.
+That is deliberate: `TP-03-17`, `TP-03-18`, `TP-03-19` and `TP-03-21` grep the
+clause, so all four keep selecting the same single test across the rename and
+the repair cannot strand them mid-flight. The three-codes test is shared by
+`TP-03-17` and `TP-03-18`, so its title carries both ids; a single-id title
+would leave one of the two scenarios unreachable by a per-scenario grep.
+
+**The other three titles are deliberately not renamed, and that is a named
+gap.** `Regression: California renders an unavailable naming the source that was
+not retrieved, and shows no figure at all in its place`,
+`Regression: a residency declaration that changes nothing rebuilds nothing, and
+a residency that changes rebuilds the card` and
+`Regression: the state surfaces are absorbed by the declared Simple field set
+and the withheld-detail link table` are named by **no** Test Plan row in this
+feature and by **no** `satisfiedBy` list in `scenario-manifest.json`. Minting a
+scenario id for a title whose owner has not been decided would fabricate the
+mapping the id is supposed to record, so the rename stops at the three whose
+ownership an existing row already establishes. The California test is the
+sharper half of the gap: `SCN-022-009`'s `user-visible-ui` obligation requires
+that the route "renders no numeral on the refusal surface", and that clause is
+asserted in the browser by *that* test and by nothing else, while the
+obligation's `satisfiedBy` names only `TP-03-10` and `TP-03-19`. **Decidable
+by:** an owner decision binding each of the three to a scenario, or recording
+them as convention-exempt — analyst-owned, not resolvable by renaming.
+
+**Adversarial case this repair must fail.** Break `SCN-022-008`'s refusal
+separation — route an unsupported residency pattern through
+`RLTAX-JURISDICTION-UNSUPPORTED` so the two refusals collapse to one code — and
+`TP-03-20` must fall. Before the rename it does not: the three-codes test is
+outside the selection, the other 77 are unaffected, and the row reports zero
+failed. After it, the same perturbation fells the row. A rename that is claimed
+but not applied is caught by the same probe, because the `--list` floor is
+asserted before the run and a listing naming no `SCN-022-008` title fells the
+row without executing anything.
+
+**How a row naming a `--grep` command must be written.** This generalises
+finding F-15 in [`spec.md`](../../spec.md) — that finding covers a row id
+resolving to another feature's assertion; this one covers a row's *selector*
+resolving to fewer tests than it claims. Both read green while owned by nothing.
+
+- **Assert the selection, not only the result.** A `--grep` row states the
+  scenario ids its selection must contain and proves containment from a `--list`
+  run before the suite runs. Exit 0 over an empty or short selection is
+  indistinguishable from exit 0 over the right one.
+- **Record the selected count.** The `--list` `Total:` figure belongs in the
+  evidence anchor. A count that falls between runs is a spec that dropped its
+  token or a file that left the family, and it is invisible in a pass count.
+- **Never let a title-matching selector be the only pin on a scenario.** The
+  binding between a scenario and a test is a string in a title that no guard
+  parses. A row that names a scenario must also name the file and the exact
+  title, so a title edit shows up as stale plan text rather than as a quietly
+  smaller run.
 
 ### Definition of Done
 
@@ -430,16 +522,30 @@ error, a missing browser or an absent test does not satisfy RED.
     asserts the post-declaration request count equals the first-paint count. The
     RED/GREEN evidence those four rows need is already recorded in the report under
     labels naming the rows whose substance each probe carries.
-  - **Still short: TP-03-20 alone.** It is the cumulative family suite. The report
-    records a 69-passed run of it but no perturbation, so nothing yet shows that
-    command can fail. **Decidable by:** one probe against the cumulative command —
-    execution work owned by `bubbles.test`, not a planning-wording change.
+  - **Still short: TP-03-20 alone, and for a second reason.** It is the cumulative
+    family suite. The report records a 69-passed run of it but no perturbation, so
+    nothing yet shows that command can fail. The census has since found a stronger
+    reason it cannot: its `--grep "SCN-02[1-4]"` selection contains **no** test
+    carrying `SCN-022-007`, `-008` or `-009`, because
+    `tests/lifetime-tax-state.spec.mjs` is the one member of this nineteen-file
+    family whose titles omit their scenario token — Finding F-03-B above. The row
+    claims those three scenarios and cannot fail on any of them. A perturbation
+    probe run today would therefore have proved nothing about this row's declared
+    coverage even had one been recorded. **Decidable by:** the F-03-B title
+    rename landing in `tests/lifetime-tax-state.spec.mjs`, then one probe against
+    the cumulative command with the `--list` selection floor asserted first —
+    execution work owned by `bubbles.implement` and `bubbles.test`, not a further
+    planning-wording change. The row stays open until both are recorded.
   - **Adversarial case this row must still fail.** Point any row back at a title
     that does not exist, or at a test whose assertions cannot fail on the behavior
     the row names, and the census must fall — a `--grep` selecting zero tests exits
     0, so a census satisfied by exit codes alone would read green over an empty
-    selection. Satisfying it requires, per row, a named command whose selection is
-    non-empty and a recorded perturbation that fells it.
+    selection. F-03-B is the same failure one degree weaker and therefore harder to
+    see: a selection that is neither empty nor complete still exits 0, and the
+    passing tests it does contain make the row look owned. Satisfying this DoD item
+    requires, per row, a named command whose selection is non-empty, **proven to
+    contain the scenarios the row claims**, and a recorded perturbation that fells
+    it.
   - **Phase:** implement · **Command:** the exact TP-03-01 through TP-03-24 commands · **Evidence:** `report.md#test-evidence`, `report.md#tp-03-21`
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count and no
       existing assertion edited, `node scripts/validate-spec-test-paths.mjs`

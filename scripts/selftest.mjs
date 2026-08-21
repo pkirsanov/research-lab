@@ -26067,6 +26067,60 @@ try {
     'RED/GREEN harness: a command that hangs past --bound is cut off, refused as non-evidence, reverted, and reported without any absolute path'
     + ' (exit ' + rgpBoundHang.status + ')');
 
+  /* H.16 — the false-discrimination defect. Playwright embeds elapsed time in
+     the very line that carries the verdict, so "1 passed (3.7s)" and
+     "1 passed (2.8s)" differ as raw strings while reporting the identical
+     outcome. Comparing raw lines therefore scored an INERT mutation — one a
+     substring assertion matched straight past — as discriminating, on timing
+     alone. The command below reports the same pass count and the same exit
+     code under RED and GREEN and differs ONLY in the elapsed time, so it must
+     now be refused as non-evidence. */
+  const rgpTimingCmd = (redLine, greenLine) => ['perl', '-e',
+    'open(my $f, "<", "probe-fixture.txt") or exit 3; local $/; my $s = <$f>;'
+    + ' my $w = ($s =~ /token=alpha/) ? "' + greenLine + '" : "' + redLine + '";'
+    + ' print "  $w\\n"; exit 0;'];
+  const rgpTimingArgs = (label, cmd) => [
+    '--file', RGP_FIXTURE, '--find', 'token=alpha', '--replace', 'token=beta',
+    '--label', label, '--summary-match', '[0-9]+ (passed|failed)', '--'].concat(cmd);
+
+  const rgpSecondsDir = rgpRepo();
+  const rgpSeconds = rgpRun(rgpSecondsDir, rgpTimingArgs('elapsed-seconds-only',
+    rgpTimingCmd('1 passed (2.8s)', '1 passed (3.7s)')));
+  assert(rgpSeconds.status === 7 && /discriminating:\s+NO/.test(rgpSeconds.stdout || '')
+    && /normalis/i.test(String(rgpSeconds.stdout) + String(rgpSeconds.stderr))
+    && rgpWorking(rgpSecondsDir) === rgpCommitted(rgpSecondsDir),
+    'RED/GREEN harness: a probe whose summary lines differ only by a parenthesised elapsed time is refused with exit 7, not scored as discriminating'
+    + ' (exit ' + rgpSeconds.status + ')');
+
+  /* H.17 — the same defect in the other volatile shapes the runners emit: a
+     minutes-form duration against a seconds-form one, and a bare `123ms`. */
+  const rgpUnitsDir = rgpRepo();
+  const rgpUnits = rgpRun(rgpUnitsDir, rgpTimingArgs('elapsed-mixed-units',
+    rgpTimingCmd('1 passed (1.3m) slowest 340ms', '1 passed (58.2s) slowest 120ms')));
+  assert(rgpUnits.status === 7 && /discriminating:\s+NO/.test(rgpUnits.stdout || '')
+    && rgpWorking(rgpUnitsDir) === rgpCommitted(rgpUnitsDir),
+    'RED/GREEN harness: minute-form, second-form and bare-millisecond elapsed tokens all normalise to the same compared summary'
+    + ' (exit ' + rgpUnits.status + ')');
+
+  /* H.18 — the raw lines stay visible. Normalising is for the VERDICT only;
+     hiding the real durations would trade one blind spot for another. */
+  assert(/red-summary:.*2\.8s/.test(rgpSeconds.stdout || '')
+    && /green-summary:.*3\.7s/.test(rgpSeconds.stdout || '')
+    && /summary-compared:.*<elapsed>/.test(rgpSeconds.stdout || ''),
+    'RED/GREEN harness: the evidence block still prints the raw RED and GREEN summary lines with their real durations, alongside the normalised form actually compared');
+
+  /* H.19 — positive control. Normalisation must not relax the check it
+     protects: a summary that differs in the OUTCOME still discriminates, even
+     though both runs exit 0 and both carry an elapsed time. */
+  const rgpRealDiffDir = rgpRepo();
+  const rgpRealDiff = rgpRun(rgpRealDiffDir, rgpTimingArgs('real-summary-difference',
+    rgpTimingCmd('1 failed (2.8s)', '1 passed (3.7s)')));
+  assert(rgpRealDiff.status === 0 && /discriminating:\s+yes/.test(rgpRealDiff.stdout || '')
+    && /summary differs/.test(rgpRealDiff.stdout || '')
+    && rgpWorking(rgpRealDiffDir) === rgpCommitted(rgpRealDiffDir),
+    'RED/GREEN harness: a summary difference that is a real outcome change (1 failed vs 1 passed) still discriminates at exit 0 despite both lines carrying an elapsed time'
+    + ' (exit ' + rgpRealDiff.status + ')');
+
   rgpTemps.forEach((dir) => { try { rmSync(dir, { recursive: true, force: true }); } catch { /* best effort */ } });
 
   /* H.15 — shared-surface canary */

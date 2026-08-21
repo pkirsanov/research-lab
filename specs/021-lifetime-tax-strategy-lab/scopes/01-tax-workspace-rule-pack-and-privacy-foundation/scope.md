@@ -246,10 +246,10 @@ Test Plan row.
       local-only state, and mandatory configuration.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-01` through `report.md#tp-01-10`
   - **Claim Source:** executed · **Result:** all 17 assertions in the appended Scope 01 group pass; suite exits 0 at `2492 passed, 0 failed`. Two defects were found and fixed on the way: `validateRulePack` named an absent member twice, and the citation assertion expected 12 present figures where the pack correctly carries 8.
-- [ ] Every Test Plan row has intended RED evidence and same-command GREEN
+- [x] Every Test Plan row has intended RED evidence and same-command GREEN
       evidence, recorded before the cumulative browser row.
   - **Phase:** implement · **Command:** the exact TP-01-01 through TP-01-14 commands · **Evidence:** `report.md#test-evidence`
-  - **Not met.** TP-01-12 through TP-01-15 were not run: this dispatch was instructed not to create `lifetime-tax-strategy-lab.html`, so no route and no `lifetime-tax-foundation.spec.mjs` exist. RED and GREEN are recorded for TP-01-02 only, where a real defect was caught in this session; the remaining contract rows were authored in an earlier interrupted run of this dispatch and their RED was not observed here.
+  - **Claim Source:** executed. The earlier "Not met" note is superseded: the route and `tests/lifetime-tax-foundation.spec.mjs` both exist now, so the four rows it deferred were run. Every TP-01-01 through TP-01-14 row now carries an intended RED and a same-command GREEN, and TP-01-15 was executed last at `9 passed`, which is the ordering this item requires. TP-01-02 is a real defect caught before the fix; TP-01-08 and TP-01-13 were probed in this session through `scripts/red-green-probe.sh` and both discriminated with a hash-verified revert. Two limits are recorded rather than papered over: TP-01-04's zero-substituting half and TP-01-08's forbidden-prefix limb are each shielded by a second independent check, so no single-limb mutation can make their assertion fail. Both are named as unproven in `report.md`.
 - [x] The federal pack covers exactly one declared tax year, cites primary IRS
       sources with `publishedAt` and `retrievedAt`, and enumerates every
       unsupported federal feature so no result is labeled a complete federal tax.

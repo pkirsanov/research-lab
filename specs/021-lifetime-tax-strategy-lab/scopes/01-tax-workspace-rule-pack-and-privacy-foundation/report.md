@@ -363,6 +363,46 @@ Command: `node scripts/selftest.mjs` plus a path-scoped `git status`
 
 The path-scoped `git status` is recorded under [Change Boundary](#change-boundary).
 
+#### TP-01-08 intended RED (2026-08-20)
+
+**Claim Source:** executed, through the harness. The probe drops `rlPortfolio`
+from the declared forbidden-key prefix list, so the Feature 008 namespace stops
+being fenced off while every key this feature actually writes keeps working. It
+is the quiet shape of the defect: nothing breaks, the boundary simply stops
+being declared.
+
+The summary channel is pointed at the assertion's own name rather than at the
+suite total, so the block below carries the identity of the failing assertion
+instead of only a count.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-08 the Feature 008 namespace stops being declared off-limits
+file:             lifetime-tax-strategy.config.json
+mutation:         "forbiddenKeyPrefixes": ["rlPortfolio", "rlReturnContext", "rlPortfolioWorkspace"]  ->  "forbiddenKeyPrefixes": ["rlReturnContext", "rlPortfolioWorkspace"]   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-01-08: the tax modules reference no Feature 008 surface and every declared storage key sits inside this feature’s own namespace
+green-exit:       0
+green-summary:      ✓ TP-01-08: the tax modules reference no Feature 008 surface and every declared storage key sits inside this feature’s own namespace
+revert-verified:  yes (committed=0c62867fd6285d2bbad4b9ea983893d1433ea80f restored=0c62867fd6285d2bbad4b9ea983893d1433ea80f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+An earlier run of the same mutation with the suite total as the summary channel
+reported `3171 passed, 1 failed` against a `3172 passed, 0 failed` baseline, so
+exactly one assertion moved and no collateral group broke.
+
+**Finding — the writer's forbidden-prefix limb is not separately provable.**
+The second TP-01-08 assertion refuses a foreign write, and `writeStorageKey`
+refuses on two independent grounds: the key is outside the closed declared set,
+*and* it matches a forbidden prefix. Removing either limb alone leaves the other
+still refusing, so no single-limb mutation can make that assertion fail. What is
+proven is that the assertion holds and that the boundary declaration it depends
+on can fail; the redundancy inside the writer is belt-and-braces rather than a
+second detector, and it is recorded as unproven rather than reported as covered.
+
 ### TP-01-09
 
 Scenario SCN-021-001 — a missing, malformed or unknown-version configuration
@@ -592,14 +632,72 @@ registering it. Both halves of TP-01-11 are now met.
 
 `Regression: SCN-021-001 minimum viable input resolves one federal pack and names every unavailable domain`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-001 minimum viable input resolves one federal pack and names every unavailable domain" --reporter=list`
-**Claim Source:** not-run. No route exists in this dispatch, so the spec was not
-authored and the command was not executed.
+**Claim Source:** executed. The earlier `not-run` declaration on this row is
+superseded: the route and `tests/lifetime-tax-foundation.spec.mjs` both exist
+now, so the row was run and probed rather than deferred.
+
+The probe makes `minimumViableInput` write a `standard` deduction mode instead of
+naming it missing, so the incomplete-state notice silently stops listing a
+declaration the household never made. The browser row catches it where the unit
+row cannot: at the rendered notice the reader actually sees.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-12 the incomplete-state notice stops naming a missing declaration because it was defaulted
+file:             rltaxworkspace.js
+mutation:         if (!isPlainObject(workspace) || DEDUCTION_MODES[workspace.deductionMode] !== true) missing.push("deductionMode");  ->  if (!isPlainObject(workspace) || DEDUCTION_MODES[workspace.deductionMode] !== true) workspace.deductionMode = "standard";   (1 occurrence(s))
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed
+revert-verified:  yes (committed=6760587f2303516755ab6a5e14436050717f1227 restored=6760587f2303516755ab6a5e14436050717f1227)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+    Error: expect(locator).toContainText(expected) failed
+    > 139 |   await expect(notice).toContainText('deductionMode');
+```
+
+The summary channel is duration-normalised through
+`perl -pe "s/\s*\([0-9.]+m?s\)//g"` so the compared line carries no elapsed
+time; see the finding recorded under Scope 05's SCN-021-015 row for why an
+unnormalised Playwright summary can report a discrimination that did not happen.
 
 ### Scenario SCN-021-002
 
 `Regression: SCN-021-002 unsupported year jurisdiction and income kind each refuse without substitution`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-002 unsupported year jurisdiction and income kind each refuse without substitution" --reporter=list`
-**Claim Source:** not-run, for the same reason.
+**Claim Source:** executed. The earlier `not-run` declaration on this row is
+superseded for the same reason as SCN-021-001: the route and
+`tests/lifetime-tax-foundation.spec.mjs` both exist now.
+
+The probe neutralises the year-membership gate in `resolvePack`, so a declared
+year outside the pack's `effectiveTaxYears` resolves that pack anyway. That is
+substitution — the precise defect the row's title names, and the one a
+contract-level assertion cannot see, because at the route the household simply
+gets a priced answer for a year nobody authored rules for.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-13 an unsupported declared year silently resolves a neighbouring pack instead of refusing
+file:             rltaxrules.js
+mutation:         if (pack.effectiveTaxYears.indexOf(ask.declaredTaxYear) < 0) {  ->  if (false && pack.effectiveTaxYears.indexOf(ask.declaredTaxYear) < 0) {   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-021-002\ unsupported\ year\ jurisdiction\ and\ income\ kind\ each\ refuse\ without\ substitution --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (2.9s)
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The verdict rests on the exit channel, which moved 1 → 0. The summary line is
+shown for readability only and is not duration-normalised here; on its own it
+would be an unreliable verdict, for the reason recorded under Scope 05's
+SCN-021-015 row.
 
 ### Scenario SCN-021-003
 
@@ -752,7 +850,30 @@ session returned to `findings=0 OK`.
 
 The cumulative Scope 01 browser suite over the real route.
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-00" --reporter=list`
-**Claim Source:** not-run, for the same reason.
+**Claim Source:** executed (2026-08-20). Run last, after every TP-01-01 through
+TP-01-14 row had recorded its intended RED and its same-command GREEN, which is
+the ordering this scope's Definition of Done requires. No request interception,
+no service worker and no external provider — the suite drives the real route
+over the repository's own static server.
+
+```text
+Running 9 tests using 3 workers
+
+  ✓  1 [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:69:1 › Regression: SCN-021-007 the next dollar is priced as a curve with named thresholds (1.2s)
+  ✓  3 [system-chrome] › tests/lifetime-tax-foundation.spec.mjs:130:1 › Regression: SCN-021-001 minimum viable input resolves one federal pack and names every unavailable domain (1.1s)
+  ✓  2 [system-chrome] › tests/lifetime-tax-federal.spec.mjs:48:1 › Regression: SCN-021-004 federal tax is exact below at and above a bracket edge (1.3s)
+  ✓  4 [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:106:1 › Regression: SCN-021-008 a cliff renders as a step and is never smoothed (803ms)
+  ✓  6 [system-chrome] › tests/lifetime-tax-federal.spec.mjs:77:1 › Regression: SCN-021-005 long term gains stack on ordinary income (947ms)
+  ✓  5 [system-chrome] › tests/lifetime-tax-foundation.spec.mjs:179:1 › Regression: SCN-021-002 unsupported year jurisdiction and income kind each refuse without substitution (1.6s)
+  ✓  8 [system-chrome] › tests/lifetime-tax-federal.spec.mjs:197:1 › Regression: SCN-021-006 deduction selection is explicit and the annual result reconciles (862ms)
+  ✓  7 [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:136:1 › Regression: SCN-021-009 unsupported thresholds are named unavailable contributors and the curve is labeled incomplete (1.4s)
+  ✓  9 [system-chrome] › tests/lifetime-tax-foundation.spec.mjs:287:1 › Regression: SCN-021-003 the tax workspace issues zero network requests and keeps every household value local (737ms)
+
+  9 passed (5.2s)
+```
+
+The cumulative grep spans three spec files rather than one, so the nine
+scenarios of Feature 021 are confirmed together on the shipped route.
 
 ### TP-01-16
 

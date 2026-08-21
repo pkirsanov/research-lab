@@ -133,6 +133,45 @@ Either disposition changes the pack's `contentSha256` and therefore touches
 assertions in this scope and in Scopes 04 and 05. It is implementation and
 sourcing work, so it is routed rather than taken here.
 
+### The `BI-5` retrieval was attempted in this session and did not find the statement
+
+**Claim Source:** executed. Disposition 1 above — perform the `BI-5` retrieval —
+was attempted here rather than left as a suggestion, so the item is now open on a
+*measured* negative rather than on an untried option. Five Florida Department of
+Revenue pages were fetched at `retrievedAt` `2026-08-21T04:31:33Z`:
+
+| Publisher | Title | URL | Outcome |
+| --- | --- | --- | --- |
+| Florida Department of Revenue | Taxes and Fees or Refunds | `https://floridarevenue.com/taxes/taxesfees/Pages/default.aspx` | retrieved; lists the administered taxes, Corporate Income among them, and states no absence |
+| Florida Department of Revenue | General Tax Administration | `https://floridarevenue.com/taxes/Pages/default.aspx` | retrieved; a portal index, states no absence |
+| Florida Department of Revenue | Florida Corporate Income Tax | `https://floridarevenue.com/taxes/taxesfees/Pages/corporate.aspx` | retrieved; scopes the corporate tax to corporations and states no absence for natural persons |
+| Florida Department of Revenue | Florida Tax Incentives for Businesses | `https://floridarevenue.com/taxes/taxesfees/Pages/tax_incentives.aspx` | retrieved; enumerates CIT, FT, IPT, SUT and ST and states no absence |
+| Florida Department of Revenue | Considering Business Opportunities in Florida? (GT-800029) | `https://floridarevenue.com/Forms_library/current/brochure/gt800029.pdf` | **not retrieved** — the fetch returned no extractable content |
+
+None of the four pages that *were* retrieved states that Florida imposes no
+individual income tax. They enumerate what the department administers, which is
+the same administrative absence the pack already cites under `fl-dor-taxes`; a
+second reading of the same kind of page does not become a statement of the fact.
+The one document most likely to carry the sentence in plain words — the GT-800029
+brochure — did not retrieve, so nothing may be asserted from it. **Recalling its
+wording is exactly the move `BI-5` exists to forbid, and it is not made here.**
+
+`BI-5` therefore stays open, and its routing is unchanged and now better
+evidenced: branch one requires a retrieval that has been attempted and has not
+succeeded, so the decidable path forward is branch two — ship
+`imposesIndividualIncomeTax` as an `AbsentFigure/v1` with a `missingSource`, let
+Florida resolve `RLTAX-THRESHOLD-UNAVAILABLE`, and keep proving the sourced-zero
+path with the fixture pack that exists for this purpose. That is a pack edit that
+moves `contentSha256` and re-aims assertions in Scopes 03, 04 and 05, so it
+remains implementation-and-sourcing work owned outside this report.
+
+**What would make the item decidable without that pack edit:** a single retrieved
+Department of Revenue document whose text states the absence for natural persons.
+Two candidates were not reachable through the fetch path used here and are named
+so the next attempt starts from them rather than from scratch — the GT-800029
+brochure above, and the department's own FAQ search restricted to the general-tax
+category at `https://floridarevenue.com/faq/pages/faqsearch.aspx?keywords=&cat=4&subcat=0`.
+
 
 ## Test Evidence
 

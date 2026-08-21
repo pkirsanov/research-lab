@@ -224,8 +224,11 @@
     var state = observationFreshness(observedAt, asOf);
     if (state === "current") return null;
     if (state === "unknown") return "Observed: not stated by this item.";
-    return "Observed " + observedAt + ", before the " + asOf + " data on this page. The reading still "
-      + "stands as published and is not re-checked until the next full compose.";
+    /* isIsoInstant validates the TRIMMED value, so surrounding whitespace passes the check and
+       would otherwise ride into the note verbatim — and observedAt is in neither the visible-field
+       list nor detailFields, so nothing bounds the result. Interpolate what was validated. */
+    return "Observed " + trimmed(observedAt) + ", before the " + trimmed(asOf) + " data on this page. "
+      + "The reading still stands as published and is not re-checked until the next full compose.";
   }
 
   function isIsoDate(v) {

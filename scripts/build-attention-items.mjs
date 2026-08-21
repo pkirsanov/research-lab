@@ -241,6 +241,13 @@ export function attentionSubjectMenuInstruction(snapshotOverride) {
   const policy = loadJson('market-brief.config.json')['attention-detection-policy/v1'];
   if (!snapshot || !policy) return base;
   const tracked = RLATTNGATE.observableSubjects(snapshot);
+  /* A snapshot that parses but carries no tracked subject is UNREADABLE, not quiet, and the two
+     must not render the same instruction: `{}`, `[]` and a stray string all reached the quiet
+     branch and told the lane to publish nothing at all, which is a corrupted input silencing the
+     whole feed. Only a snapshot the gate can actually read may declare a quiet market. */
+  const observableCount = (tracked && typeof tracked === 'object' && !Array.isArray(tracked))
+    ? Object.keys(tracked).length : 0;
+  if (observableCount === 0) return base;
   // One entry per scoped subject, each carrying its own state: the uniqueness pin forbids a
   // second list, and annotating in place says more than two lists did.
   const annotated = [];

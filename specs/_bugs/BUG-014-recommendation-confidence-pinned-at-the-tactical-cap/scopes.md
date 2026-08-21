@@ -10,6 +10,12 @@
 
 **Status:** Done
 
+### Implementation Files
+
+- `scripts/build-attention-items.mjs` — `recommendationConfidenceContractInstruction()`
+- `scripts/brief-narrative-parallel.mjs` — the `core` and `signals` lane wiring
+- `scripts/selftest.mjs` — the eight pins and the adversarial three-branch check
+
 ### Test Plan
 
 Scenario-first ordering, proven in both directions.
@@ -65,6 +71,10 @@ Scenario: SCN-BUG014-COLLISION-DISCLOSED
 | SCN-BUG014-TACTICAL-RELATIONSHIP | `scripts/selftest.mjs`, three-branch override assertion |
 | SCN-BUG014-BOTH-LANES | `scripts/selftest.mjs`, core-region and `laneRenders` assertion |
 | SCN-BUG014-COLLISION-DISCLOSED | `scripts/selftest.mjs`, live-config clause assertion |
+| SCN-BUG014-GATE-HONOURS-FLOOR | **Regression E2E**, scenario-specific — `npx playwright test --project=system-chrome tests/attention-browser.spec.mjs` → `every next-session action the cockpit renders clears the committed confidence floor` |
+| SCN-BUG014-FLOOR-ZERO-HONOURED | **Regression E2E**, scenario-specific — `npx playwright test --project=system-chrome tests/attention-browser.spec.mjs` → `a configured action floor of zero is honoured rather than swallowed by a falsy default` |
+| SCN-BUG009-FIELD-ESCAPES | **Regression E2E**, scenario-specific — `npx playwright test --project=system-chrome tests/attention-browser.spec.mjs` → `a hostile payload string is rendered as text, not parsed as markup` |
+| Broader E2E regression suite | `npx playwright test --project=system-chrome tests/attention-browser.spec.mjs` — the full decision-attention browser suite runs green alongside the new scenarios (`16 passed`) |
 
 ### Definition of Done
 
@@ -103,6 +113,19 @@ Scenario: SCN-BUG014-COLLISION-DISCLOSED
       Evidence: `report.md` § Test Evidence, 3200 passed / 0 failed.
 - [x] `node scripts/validate-brief-payload.mjs` still passes.
       Evidence: `report.md` § Validator, exit 0.
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior.
+      Evidence: `tests/attention-browser.spec.mjs` — `every next-session action the cockpit
+      renders clears the committed confidence floor`, proven falsifiable in `report.md`
+      § Regression E2E.
+- [x] Broader E2E regression suite passes.
+      Evidence: `report.md` § Regression E2E — `2 passed` across the decision-attention
+      browser suite.
+- [x] Scenario-specific regression E2E coverage persists in the suite for the runtime
+      surface this scope touches.
+      Evidence: `tests/attention-browser.spec.mjs` — `every next-session action the cockpit
+      renders clears the committed confidence floor`; `report.md` § Regression E2E.
+- [x] The broader E2E regression suite runs green with that scenario in it.
+      Evidence: `report.md` § Regression E2E, `2 passed`.
 - [x] No threshold value, gate function, or payload schema is modified. (FR-014-006)
       Evidence: `git diff --numstat` lists exactly three files, recorded in `report.md`.
 
@@ -111,6 +134,12 @@ Scenario: SCN-BUG014-COLLISION-DISCLOSED
 ## Scope 2 — Adjudicate the cap-to-floor collision
 
 **Status:** Done
+
+### Implementation Files
+
+- `market-brief.config.json` — `thresholds.minimumActionConfidence`, 55 to 50
+- `market-brief.config.page.json` — regenerated derived artifact
+- `scripts/selftest.mjs` — the cap-above-floor invariant and the live-band assertion
 
 Decided 2026-08-20 on delegated authority, against measurement rather than preference.
 `tacticalConfidenceCap` stays at 55 and `minimumActionConfidence` moves to 50.
@@ -146,6 +175,8 @@ Scenario: SCN-BUG014-CONTRACT-FOLLOWS-CONFIG
 | --- | --- |
 | SCN-BUG014-BAND-EXISTS | `scripts/selftest.mjs` — cap-above-floor invariant |
 | SCN-BUG014-CONTRACT-FOLLOWS-CONFIG | `scripts/selftest.mjs` — live-band assertion |
+| SCN-BUG014-GATE-HONOURS-FLOOR | **Regression E2E**, scenario-specific — `npx playwright test --project=system-chrome tests/attention-browser.spec.mjs` → `every next-session action the cockpit renders clears the committed confidence floor` |
+| Broader E2E regression suite | `npx playwright test --project=system-chrome tests/attention-browser.spec.mjs` — the full decision-attention browser suite runs green alongside the new scenario |
 
 ### Definition of Done
 
@@ -162,5 +193,18 @@ Scenario: SCN-BUG014-CONTRACT-FOLLOWS-CONFIG
       § Threshold Decision.
 - [x] The derived page config is regenerated and the whole suite is green.
       Evidence: `report.md` § Test Evidence, 3212 passed / 0 failed, validator exit 0.
+- [x] SCN-BUG014-GATE-HONOURS-FLOOR carries scenario-specific regression E2E coverage that
+      persists in the suite rather than being run once by hand.
+      Evidence: `tests/attention-browser.spec.mjs` — `every next-session action the cockpit
+      renders clears the committed confidence floor`; `report.md` § Regression E2E.
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior.
+      Evidence: same scenario, proven falsifiable at floor 60 in `report.md` § Regression E2E.
+- [x] Broader E2E regression suite passes.
+      Evidence: `report.md` § Regression E2E — `2 passed`.
+- [x] The broader E2E regression suite runs green with the new scenario in it.
+      Evidence: `report.md` § Regression E2E, full `tests/attention-browser.spec.mjs` run.
+- [x] The new E2E scenario is proven falsifiable rather than tautological.
+      Evidence: `report.md` § Regression E2E — with the floor temporarily at 60 it fails
+      naming 7 rendered actions beneath it, and passes again once restored.
 
 **Evidence:** `report.md` § Threshold Decision.

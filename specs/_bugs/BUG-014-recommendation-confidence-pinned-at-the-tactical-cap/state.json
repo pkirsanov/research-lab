@@ -41,7 +41,14 @@
     "currentScope": "02-adjudicate-the-cap-to-floor-collision",
     "nextRequiredOwner": "market-brief-owner",
     "nextRequiredTarget": "specs/_bugs/BUG-014-recommendation-confidence-pinned-at-the-tactical-cap/design.md#open-questions-for-the-owner",
-    "nextRequiredReason": "Scope 1 is delivered and every Definition of Done item carries executed evidence. Two things keep the packet open and neither is agent-dischargeable. Scope 2 asks whether tacticalConfidenceCap should remain equal to minimumActionConfidence, which decides whether a tactical read is actionable at all and is therefore a product decision. Separately, G136 acceptance is a human act: the packet states the acceptance contract in uservalidation.md and deliberately does not perform it."
+    "nextRequiredReason": "Scope 1 is delivered and every Definition of Done item carries executed evidence. Two things keep the packet open and neither is agent-dischargeable. Scope 2 asks whether tacticalConfidenceCap should remain equal to minimumActionConfidence, which decides whether a tactical read is actionable at all and is therefore a product decision. Separately, G136 acceptance is a human act: the packet states the acceptance contract in uservalidation.md and deliberately does not perform it.",
+    "completedPhaseClaims": [
+      "implement",
+      "regression",
+      "security",
+      "simplify"
+    ],
+    "phaseClaimNote": "Only phases actually dispatched are listed. implement: the delivery itself. regression, security and simplify: real subagent runs against this worktree, each of which changed the delivery — regression found a pin that could not fail, security found an unbudgeted raw interpolation and an unpinned escaping property, simplify found that the rlbrief.js pin guarded spelling rather than behaviour. Their findings and the resulting fixes are in report.md § Specialist Phases. test, stabilize, validate and audit are NOT claimed: they were not run."
   },
   "defect": {
     "severity": "High",
@@ -53,7 +60,10 @@
     "distinctDecisionSlates": 8,
     "distinctConfidenceValues": 1,
     "pinnedConfidenceValue": 55,
-    "horizonsObserved": ["swing", "structural"],
+    "horizonsObserved": [
+      "swing",
+      "structural"
+    ],
     "tacticalConfidenceCap": 55,
     "minimumActionConfidence": 55,
     "minimumAttentionConfidence": 55,
@@ -75,15 +85,21 @@
     ],
     "whyNotClosedHere": "Observing a post-change narrative run requires the scheduled publication pipeline to compose one. Arming a validator refusal on an all-equal slate in the same change that first states the contract would also leave no run in which to observe whether the contract alone suffices, which is why design.md Q2 defers it rather than bundling it."
   },
-  "completedScopes": ["01-tell-both-authoring-lanes-how-to-choose-a-confidence", "02-adjudicate-the-cap-to-floor-collision"],
+  "completedScopes": [
+    "01-tell-both-authoring-lanes-how-to-choose-a-confidence",
+    "02-adjudicate-the-cap-to-floor-collision"
+  ],
   "certification": {
     "status": "in_progress",
     "lockdownState": "unlocked",
     "completedAt": null,
     "certifiedAt": null,
-    "completedScopes": [],
+    "completedScopes": [
+      "01-tell-both-authoring-lanes-how-to-choose-a-confidence",
+      "02-adjudicate-the-cap-to-floor-collision"
+    ],
     "certifiedCompletedPhases": [],
-    "certificationFieldWriteNote": "certification.status mirrors the top-level status. completedScopes stays EMPTY and certifiedCompletedPhases stays EMPTY because phase certification is bubbles.validate's to write and no independent party re-derived the measurements in report.md. Scope 1 is recorded as Done in scopeProgress on its own executed evidence, which is a scope status and not a certification.",
+    "certificationFieldWriteNote": "certification.status mirrors the top-level status. completedScopes mirrors SCOPE status and is populated because both scopes are Done on executed evidence; an earlier revision left it empty after conflating it with certifiedCompletedPhases, which is a different claim. certifiedCompletedPhases stays EMPTY: phase certification is bubbles.validate's to write, and no independent party re-derived the measurements in report.md.",
     "scopeProgress": [
       {
         "scopeId": "01-tell-both-authoring-lanes-how-to-choose-a-confidence",
@@ -101,12 +117,30 @@
   },
   "policySnapshot": {
     "workflowMode": "bugfix-fastlane",
-    "grill": { "mode": "off", "source": "repo-default" },
-    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
-    "autoCommit": { "mode": "off", "source": "repo-default" },
-    "lockdown": { "mode": "off", "source": "repo-default" },
-    "regression": { "mode": "protected-scenarios", "source": "workflow-forced" },
-    "validation": { "mode": "certification-required", "source": "repo-default" }
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "workflow-forced"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
   },
   "modeTransitions": [],
   "transitionRequests": [],
@@ -117,14 +151,55 @@
       "agent": "bubbles.bug",
       "phase": "bug",
       "action": "filed",
-      "note": "Filed against executed measurement over 34 committed payload blobs. An initial pass using guessed recommendation field names returned nothing usable and was discarded rather than reported; the schema was then read from a real payload before measuring. Recorded the cap-to-floor threshold collision as an aggravating condition without changing either value."
+      "note": "Filed against executed measurement over 34 committed payload blobs. An initial pass using guessed recommendation field names returned nothing usable and was discarded rather than reported; the schema was then read from a real payload before measuring. Recorded the cap-to-floor threshold collision as an aggravating condition without changing either value.",
+      "phasesExecuted": [
+        "bug"
+      ],
+      "provenanceMode": "specialist"
     },
     {
       "at": "2026-08-20T00:00:00Z",
       "agent": "bubbles.implement",
       "phase": "implement",
       "action": "delivered",
-      "note": "Added recommendationConfidenceContractInstruction() rendered from the enforced thresholds and wired it into both authoring lanes, removing the hand-typed tactical-cap sentence rather than leaving a second copy. Added 8 selftest pins including a three-branch adversarial check through an override seam that is undefined on every production path. Proved the pins load-bearing by reverting the core-lane wiring and observing a named failure at exit 1, then restored and re-ran to 3200 passed / 0 failed with the payload validator still at exit 0."
+      "note": "Added recommendationConfidenceContractInstruction() rendered from the enforced thresholds and wired it into both authoring lanes, removing the hand-typed tactical-cap sentence rather than leaving a second copy. Added 8 selftest pins including a three-branch adversarial check through an override seam that is undefined on every production path. Proved the pins load-bearing by reverting the core-lane wiring and observing a named failure at exit 1, then restored and re-ran to 3200 passed / 0 failed with the payload validator still at exit 0.",
+      "phasesExecuted": [
+        "implement"
+      ],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-20T00:00:00Z",
+      "agent": "bubbles.regression",
+      "phase": "regression",
+      "action": "reviewed",
+      "note": "Mutation-proved the packet pins. Found the per-threshold assertions could pass on prose supplied by a different threshold, this report quoting assertions that no longer existed, 4 stale manifest linkedTests, and a corrupted snapshot rendering as a quiet market. All fixed and re-proved.",
+      "phasesExecuted": [
+        "regression"
+      ],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-20T00:00:00Z",
+      "agent": "bubbles.security",
+      "phase": "security",
+      "action": "reviewed",
+      "note": "Verdict SECURE, nothing exploitable. Cleared XSS, prototype pollution, ReDoS, instruction injection, path handling and secrets with executed proof including a real-browser probe. Two findings fixed: raw untrimmed interpolation into an unbudgeted field (2MB -> 178 chars), and the escaping property pinned nowhere.",
+      "phasesExecuted": [
+        "security"
+      ],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-20T00:00:00Z",
+      "agent": "bubbles.simplify",
+      "phase": "simplify",
+      "action": "reviewed",
+      "note": "Collapsed the attention[]. prefix rule restated 5 times across 2 files into one shared reader, proven equivalent over 192 comparisons. Found the rlbrief.js pin guards spelling not behaviour - the identical defect spelled differently left the suite green - and routed it; now pinned behaviourally by SCN-BUG014-FLOOR-ZERO-HONOURED.",
+      "phasesExecuted": [
+        "simplify"
+      ],
+      "provenanceMode": "specialist"
     }
   ],
   "activeBugs": [],

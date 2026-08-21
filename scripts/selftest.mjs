@@ -3078,15 +3078,27 @@ try {
      undefined on every production path. A quiet market must tell the author to publish NOTHING —
      the opposite instruction — and an unreadable snapshot must degrade to the plain list rather
      than throw, which is the promise loadSnapshotForGate already makes. */
-  const quietMenu = attentionSubjectMenuInstruction({ tracked: {} });
+  /* The quiet fixture must be a snapshot the gate can actually READ whose subjects happen to clear
+     nothing. `{ tracked: {} }` is not that: it is indistinguishable from `{}`, `[]` or a stray
+     string, all of which reached the quiet branch and told the lane to publish nothing at all —
+     a corrupted input silencing the whole feed while looking like a calm market. */
+  const quietTracked = {};
+  for (const subject of RLATTN_WATCHLIST_SCOPE) quietTracked[subject] = { asOf: '2026-08-20', px: 100 };
+  const quietMenu = attentionSubjectMenuInstruction({ tracked: quietTracked });
   const degradedMenu = attentionSubjectMenuInstruction(null);
   assert(/NO scoped subject clears the detection band/.test(quietMenu)
     && /Author no attention items this window/.test(quietMenu)
     && !/detection band, with the severity/.test(quietMenu),
-    'a snapshot in which nothing clears the band tells the author to publish no attention item at all, instead of offering a menu every choice from which would be refused');
+    'a readable snapshot in which nothing clears the band tells the author to publish no attention item at all, instead of offering a menu every choice from which would be refused');
   assert(!/detection band/.test(degradedMenu)
     && findUnofferedTerms(RLATTN_WATCHLIST_SCOPE, degradedMenu).length === 0,
     'an unreadable snapshot degrades to the plain subject list rather than throwing or claiming an eligibility it could not compute');
+  /* ADVERSARIAL: a corrupted snapshot must never be mistaken for a calm one. Every shape that
+     parses but carries no readable subject degrades; only the readable-quiet fixture suppresses. */
+  for (const [label, corrupt] of [['empty object', {}], ['array', []], ['string', 'garbage'], ['empty tracked', { tracked: {} }]]) {
+    assert(attentionSubjectMenuInstruction(corrupt) === degradedMenu,
+      'a snapshot that parses but carries no readable subject (' + label + ') degrades to the plain list rather than telling the author to publish nothing');
+  }
   assert(quietMenu !== renderedMenu && degradedMenu !== renderedMenu && quietMenu !== degradedMenu,
     'the three snapshot states render three different menus, so none of the branches is dead text');
 
@@ -3210,6 +3222,14 @@ try {
   assert(/observationFreshnessNote/.test(read('market-brief.html'))
     && /observation-age/.test(read('market-brief.html')),
     'the cockpit renders the observation-age label rather than leaving the payload field unread');
+  /* isIsoInstant validates the TRIMMED value, so whitespace passes the format check and used to
+     ride into the note verbatim - and observedAt is in neither defaultVisibleFields nor
+     detailFields, so nothing bounded the result. A security pass measured a 2MB-padded but
+     format-valid instant producing a 2,000,178-character note. */
+  const paddedInstant = '   2026-08-20T18:00:00.000Z' + ' '.repeat(4096);
+  const paddedNote = RLATTN_FRESH.observationFreshnessNote(paddedInstant, '2026-08-20T20:31:05.598Z');
+  assert(paddedNote.indexOf(paddedInstant) === -1 && paddedNote.length < 400,
+    'the observation-age note interpolates the validated instant rather than the raw one, so padding accepted by the format check cannot inflate an unbudgeted field (' + paddedNote.length + ' chars)');
 
   /* ── how to CHOOSE a confidence, the field the reader is most entitled to trust ───────────
      BUG-014. Both lanes required a `confidence` and neither said how to pick one, so the only
@@ -3221,9 +3241,21 @@ try {
      while `>= floor` degenerates into a cliff. Rendered from the thresholds the gate reads. */
   const confidenceThresholds = JSON.parse(read('market-brief.config.json')).thresholds || {};
   const renderedConfidence = recommendationConfidenceContractInstruction();
+  /* Each threshold is probed by REMOVING it from the render and requiring the text to change,
+     not by looking for its digits. Two of the three thresholds are both 55 today, so a
+     substring check on "55" is satisfied by whichever clause happens to mention it: the
+     attention-floor assertion passed against prose supplied by the tactical cap, and stayed
+     green when the attention floor was replaced by the literal 'an unstated floor'. A pin that
+     survives deletion of the thing it guards is decoration. */
   for (const key of ['minimumActionConfidence', 'minimumAttentionConfidence', 'tacticalConfidenceCap']) {
-    assert(new RegExp('\\b' + confidenceThresholds[key] + '\\b').test(renderedConfidence),
-      'the confidence contract states the enforced ' + key + ' of ' + confidenceThresholds[key]);
+    const probed = recommendationConfidenceContractInstruction(
+      Object.assign({}, confidenceThresholds, { [key]: confidenceThresholds[key] + 7 })
+    );
+    assert(new RegExp('\\b' + confidenceThresholds[key] + '\\b').test(renderedConfidence)
+      && probed !== renderedConfidence
+      && new RegExp('\\b' + (confidenceThresholds[key] + 7) + '\\b').test(probed),
+      'the confidence contract states the enforced ' + key + ' of ' + confidenceThresholds[key]
+      + ' and follows it when that one threshold moves, so the value is read rather than coincidentally present');
   }
   assert(/rank|sorted/i.test(renderedConfidence) && /vary it across items/i.test(renderedConfidence),
     'the confidence contract tells the author the number ranks, and to vary it - the two facts that make a pinned value harmful');
@@ -3237,9 +3269,9 @@ try {
   assert(!/Keep tactical confidence at or below the configured cap/.test(laneSource),
     'the hand-typed tactical-cap sentence is gone rather than left beside the rendered contract as a second copy');
   /* ADVERSARIAL: the cap and the floor are independent config values and their RELATIONSHIP
-     decides what a tactical author may write. Live config has cap === floor, so the other two
-     branches would never execute in production and could rot unnoticed. The override seam is
-     undefined on every production path. */
+     decides what a tactical author may write. Live config now has cap > actionFloor, so the
+     equal and below branches would never execute in production and could rot unnoticed. The
+     override seam is undefined on every production path. */
   const capBelow = recommendationConfidenceContractInstruction({
     minimumActionConfidence: 55, minimumAttentionConfidence: 55, tacticalConfidenceCap: 40
   });
@@ -3268,6 +3300,28 @@ try {
   assert(new RegExp('may only occupy ' + confidenceThresholds.minimumActionConfidence + ' to '
     + confidenceThresholds.tacticalConfidenceCap).test(renderedConfidence),
     'live config gives tactical a real band and the contract states that band rather than a single value');
+  /* The pair invariant above guards the tactical collision and nothing else, so a threshold that
+     is unsatisfiable on its own still lands silently: the contract tells the author to choose on a
+     0-100 scale, and an attention floor above 100 would refuse every card ever written while the
+     instruction went on describing a reachable bar. Every band the contract states must sit on the
+     scale it states. minimumAttentionConfidence has no cap to collide with, so this is the only
+     check that constrains it at all. */
+  for (const key of ['minimumActionConfidence', 'minimumAttentionConfidence', 'tacticalConfidenceCap']) {
+    const value = confidenceThresholds[key];
+    assert(Number.isFinite(value) && value >= 0 && value <= 100,
+      key + ' sits on the 0-100 scale the contract tells the author to use, so the bar it states is reachable (' + value + ')');
+  }
+  /* 0 is ON that scale, so it has to survive the trip to the renderer. `||` treated it as absent
+     and substituted 55, which meant a deliberate "no floor" was silently overridden on the action
+     path while the attention path honoured it — the two surfaces disagreed about the same key.
+     This is a LITERAL check and is evadable by construction: a simplify pass reintroduced the
+     identical defect spelled `var f = thresholds.X; var actionFloor = f || 55;` and this suite
+     stayed green. It is kept as a fast unit-level tripwire for the naive revert; the property
+     itself is pinned behaviourally by SCN-BUG014-FLOOR-ZERO-HONOURED in
+     tests/attention-browser.spec.mjs, which drives renderNextSession and fails on that evasion. */
+  assert(!/thresholds\.minimumActionConfidence \|\| 55/.test(read('rlbrief.js'))
+    && !/thresholds\.nextSessionMaxActions \|\| 5/.test(read('rlbrief.js')),
+    'the cockpit reads a configured threshold with a finite check rather than || (literal tripwire; the behaviour is pinned by SCN-BUG014-FLOOR-ZERO-HONOURED)');
 
   /* ── and the expiry SHAPE, proven against the gate's own predicate ────────────────────────
      The 03:50 EDT run lost FETH on expiry alone - the item was complete, in budget, and on an

@@ -201,18 +201,24 @@
 
   /* The per-card paths are read OUT of the policy rather than restated here,
      so adding a card field to the committed list is a config edit and never a
-     second place that has to agree. */
-  function cardFieldKeys(budgetPolicy) {
-    var prefix = "attention[].";
-    var fields = declaredFields(budgetPolicy);
+     second place that has to agree. The card list and the detail list are two
+     policy lists in the SAME notation, so they resolve through one reader and
+     cannot disagree about what an attention field path is. */
+  var ATTENTION_FIELD_PREFIX = "attention[].";
+
+  function attentionFieldKeys(fields) {
     var keys = [];
     for (var i = 0; i < fields.length; i++) {
       var field = fields[i];
-      if (typeof field === "string" && field.indexOf(prefix) === 0) {
-        keys.push(field.substring(prefix.length));
+      if (typeof field === "string" && field.indexOf(ATTENTION_FIELD_PREFIX) === 0) {
+        keys.push(field.substring(ATTENTION_FIELD_PREFIX.length));
       }
     }
     return keys;
+  }
+
+  function cardFieldKeys(budgetPolicy) {
+    return attentionFieldKeys(declaredFields(budgetPolicy));
   }
 
   function measureCards(payload, budgetPolicy) {
@@ -236,13 +242,11 @@
      or the total, because folding them in would refuse the very cards the feed publishes. */
   function measureDetailFields(payload, budgetPolicy) {
     var policy = isPlainObject(budgetPolicy) ? budgetPolicy : {};
-    var declared = Array.isArray(policy.detailFields) ? policy.detailFields : [];
+    var keys = attentionFieldKeys(Array.isArray(policy.detailFields) ? policy.detailFields : []);
     var cards = isPlainObject(payload) && Array.isArray(payload.attention) ? payload.attention : [];
     var measured = [];
-    for (var d = 0; d < declared.length; d++) {
-      var declaredPath = declared[d];
-      if (typeof declaredPath !== "string" || declaredPath.indexOf("attention[].") !== 0) continue;
-      var key = declaredPath.slice("attention[].".length);
+    for (var d = 0; d < keys.length; d++) {
+      var key = keys[d];
       for (var i = 0; i < cards.length; i++) {
         var value = isPlainObject(cards[i]) ? cards[i][key] : null;
         if (typeof value !== "string") continue;

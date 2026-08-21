@@ -65,6 +65,75 @@ A tactical-horizon item is capped at 70, so it may only occupy 55 to 70; that ba
 ceiling, never a default and never a target.
 ```
 
+### Regression E2E
+
+`npx playwright test --config=playwright.config.mjs --project=system-chrome --workers=1 tests/attention-browser.spec.mjs`
+
+```
+✓  every next-session action the cockpit renders clears the committed confidence floor (923ms)
+✓  a decision older than the page data says so, and one taken from it stays silent (1.2s)
+2 passed (3.4s)
+```
+
+**Proven falsifiable.** The floor was temporarily raised to 60 and the page artifacts
+regenerated. The scenario failed, naming the rendered actions beneath it:
+
+```
+✘  every next-session action the cockpit renders clears the committed confidence floor
+    - Expected  - 1
+    + Received  + 7
+```
+
+Restoring the committed floor returned it to `1 passed`, and `git diff --stat` on
+`market-brief.config.json` confirmed the probe left nothing behind.
+
+That probe also **corrected a claim in this packet**. The scenario's first comment said
+`renderNextSession` drops anything below the floor. It does not: it applies the floor only
+in its FALLBACK path, and renders `payload.nextSession.actions` verbatim when they exist.
+The floor is enforced at publish by `validate-brief-payload.mjs`. The scenario is still
+worth its place — it catches a config-versus-payload disagreement, which is exactly what
+raising the floor without recomposing would create — but the comment was rewritten to say
+what the probe showed rather than what was assumed.
+
+### Code Diff Evidence
+
+`git show --stat e6dfdeced` — the delivery commit:
+
+```
+git show --stat e6dfdeced
+e6dfdeced feat(brief): decide the four open questions, against measurement rather than preference
+
+ market-brief.config.json                           |  8 +-
+ market-brief.config.page.json                      |  2 +-
+ market-brief.html                                  | 11 +++
+ rlattention.js                                     | 23 +++++
+ rlcockpit.js                                       | 39 ++++++++-
+ scripts/brief-narrative-parallel.mjs               |  4 +-
+ scripts/build-attention-items.mjs                  | 80 ++++++++++++++++-
+ scripts/selftest.mjs                               | 99 +++++++++++++++++++++-
+```
+
+`git diff market-brief.config.json` — the one behavioural line, the threshold itself:
+```diff
+-        "minimumActionConfidence": 55,
++        "minimumActionConfidence": 50,
+```
+
+`git diff scripts/brief-narrative-parallel.mjs` — two interpolations and one deletion, the
+deletion being the hand-typed sentence the rendered contract replaces:
+
+```diff
+-... confidence, and deepLink. Keep tactical confidence at or below the configured cap.
++... confidence, and deepLink. ${recommendationConfidenceContractInstruction()}
+```
+
+```diff
+-recommendations must be concrete instruments with direction, ... confidence, and deepLink.
++recommendations must be concrete instruments with direction, ... confidence, and deepLink. ${recommendationConfidenceContractInstruction()}
+```
+
+No gate function, payload schema, or committed payload was edited.
+
 ## Threshold Decision
 
 Scope 2, decided 2026-08-20 on delegated authority. Measuring `nextSession.actions` by
@@ -103,26 +172,35 @@ ceiling, never a default and never a target.
 `node scripts/selftest.mjs`
 
 ```
-Research-Lab self-test: 3200 passed, 0 failed
+Research-Lab self-test: 3220 passed, 0 failed
 ```
 
-Exit code 0. Zero `✗` marks in the log. The count moved from 3192 to 3200, which is the
-8 pins this packet adds:
+Exit code 0, zero `✗` marks. The count moved 3192 → 3200 when Scope 1 landed, and 3200 →
+3220 across Scope 2 and the regression remediation below.
 
-**Re-run after Scope 2 and the sibling decisions: `3212 passed, 0 failed`, validator exit
-0, `validate-tool-experience` exit 0 with `brief-first-load bytes=184621 budget=204800
-result=PASS`.**
+The assertions this packet owns, transcribed from the current run rather than from the
+run that first produced them — the earlier transcription went stale the moment Scope 2
+moved the floor and the regression pass rewrote the three threshold pins, and a
+regression finding caught it:
 
 ```
-✓ the confidence contract states the enforced minimumActionConfidence of 55
-✓ the confidence contract states the enforced minimumAttentionConfidence of 55
-✓ the confidence contract states the enforced tacticalConfidenceCap of 55
+✓ the confidence contract states the enforced minimumActionConfidence of 50 and follows it when that one threshold moves, so the value is read rather than coincidentally present
+✓ the confidence contract states the enforced minimumAttentionConfidence of 55 and follows it when that one threshold moves, so the value is read rather than coincidentally present
+✓ the confidence contract states the enforced tacticalConfidenceCap of 55 and follows it when that one threshold moves, so the value is read rather than coincidentally present
 ✓ the confidence contract tells the author the number ranks, and to vary it - the two facts that make a pinned value harmful
 ✓ both the core and signals lanes render the confidence contract, because both author a confidence
 ✓ the hand-typed tactical-cap sentence is gone rather than left beside the rendered contract as a second copy
 ✓ the confidence contract derives a DIFFERENT tactical clause for cap-below-floor, cap-above-floor and cap-equals-floor rather than restating one fixed sentence
-✓ live config has the tactical cap equal to the action floor, and the contract says so plainly
+✓ the tactical cap leaves a band above the action floor, so a tactical action is not forced onto a single admissible value (cap 55 vs floor 50)
+✓ live config gives tactical a real band and the contract states that band rather than a single value
+✓ minimumActionConfidence sits on the 0-100 scale the contract tells the author to use, so the bar it states is reachable (50)
+✓ minimumAttentionConfidence sits on the 0-100 scale the contract tells the author to use, so the bar it states is reachable (55)
+✓ tacticalConfidenceCap sits on the 0-100 scale the contract tells the author to use, so the bar it states is reachable (55)
+✓ the cockpit reads a configured threshold with a finite check rather than ||, so a deliberate 0 is not silently replaced by the fallback
 ```
+
+Validator exit 0. `validate-tool-experience` exit 0 with
+`brief-first-load bytes=184621 budget=204800 result=PASS`.
 
 ### Adversarial Check
 
@@ -136,7 +214,75 @@ exit=1 (expect non-zero)
 ```
 
 The wiring was then restored and re-counted at 2 interpolations, and the suite returned
-to 3200 passed / 0 failed with 0 `✗`.
+to 3200 passed / 0 failed with 0 `✗` — 3200 being the count at that time, before Scope 2
+and the regression remediation took it to 3220.
+
+### Regression Remediation
+
+An independent regression pass mutation-probed this packet's own pins and found one that
+could not fail. The three per-threshold assertions used a substring check on the enforced
+value while two thresholds were both 55, so the attention-floor pin was satisfied by
+prose the tactical cap supplied. Proof, evaluating both pin forms against a render with
+the attention floor deleted:
+
+```
+minimumActionConfidence      OLD_PIN=PASS  NEW_PIN=PASS
+minimumAttentionConfidence   OLD_PIN=PASS  NEW_PIN=FAIL
+tacticalConfidenceCap        OLD_PIN=PASS  NEW_PIN=PASS
+… an action below 50 and an attention card below an unstated floor reach no reader …
+```
+
+Each threshold is now probed by moving it +7 through the override seam and requiring the
+rendered text to change AND to carry the new value, so a pin cannot pass on a value it
+did not read. The same pass also found the packet's own evidence block quoting assertions
+that no longer existed, which is why the block above is transcribed from the current run.
+
+Three further defects were found and fixed, each proven by reverting the fix:
+
+| Defect | Proof it is now guarded |
+|---|---|
+| A snapshot that parses but carries no readable subject (`{}`, `[]`, a stray string) reached the QUIET branch and told the lane to publish nothing — a corrupted input silencing the feed while looking like a calm market | reverting the guard fails 4 pins by name |
+| The threshold invariant guarded only the cap/floor pair, so an unsatisfiable value could still land | `minimumAttentionConfidence: 150` fails by name and quotes the value |
+| `rlbrief.js` read thresholds with `\|\|`, so a deliberate `0` was silently replaced by 55 on the action path while the attention path honoured it | the cockpit now uses a finite check, pinned |
+
+### Specialist Phases
+
+Four phases were dispatched against this delivery and every one changed it. Recorded here
+because a phase claim with no consequence is worth nothing.
+
+**regression** — mutation-probed the packet's own pins and found one that could not fail.
+The three per-threshold assertions used a substring check on the enforced value while two
+thresholds were both 55, so the attention-floor pin was satisfied by prose the tactical cap
+supplied. Also found this report quoting assertions that no longer existed, and 4 stale
+`linkedTests` in the manifest. All fixed; see § Regression Remediation.
+
+**security** — verdict SECURE, nothing exploitable. Cleared XSS/injection, prototype
+pollution, ReDoS, instruction injection, path handling and secrets, each with executed
+proof rather than reasoning. The XSS clearance was proven twice over in a real browser:
+every hostile `observedAt` falls to the validator's constant string, and a hostile value
+driven through the unvalidated `rationale` field renders as escaped text with zero child
+elements. Two actionable findings, both fixed:
+
+- `observationFreshnessNote` interpolated the RAW value while `isIsoInstant` validates the
+  TRIMMED one, and `observedAt` is in neither `defaultVisibleFields` nor `detailFields` —
+  so a format-valid instant padded to 2 MB produced a 2,000,178-character note in an
+  unbudgeted field. Now interpolates the validated value: the same input yields 178 chars.
+- The escaping property that makes the tier safe was pinned nowhere, so a refactor of
+  `attnField` to `innerHTML` would have kept every test green. Now pinned by
+  `SCN-BUG009-FIELD-ESCAPES`, proven by flipping that sink and watching the test fail.
+
+**simplify** — one edit, proven behaviour-preserving over 192 policy×payload comparisons
+with zero mismatches: the `attention[].` prefix rule was restated five times across two
+files, beside a comment forbidding exactly that. Both readers now share one constant
+(`attention[].` literals in `rlcockpit.js`: 4 → 1).
+
+**The finding that mattered most** came from this phase: the `rlbrief.js` pin guards
+SPELLING, not behaviour. Reintroducing the identical 0-swallowing defect spelled
+`var f = thresholds.minimumActionConfidence; var actionFloor = f || 55;` left the suite at
+`3221 passed, 0 failed`. I reproduced that independently. The property is now pinned
+behaviourally by `SCN-BUG014-FLOOR-ZERO-HONOURED`, which drives the real `renderNextSession`
+fallback path; under that same evasion the browser test FAILS while the unit suite still
+passes — which is precisely the gap it was written to close.
 
 ### No Second Copy
 

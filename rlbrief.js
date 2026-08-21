@@ -1245,7 +1245,11 @@
   function renderNextSession(el, nextSession, recs, cfg, snap) {
     if (!el) return;
     var thresholds = (cfg && cfg.thresholds) || {};
-    var actions = nextSession && Array.isArray(nextSession.actions) ? nextSession.actions.map(normalizeRecommendation) : nextSessionActions(recs || [], thresholds.nextSessionMaxActions || 5, thresholds.minimumActionConfidence || 55);
+    /* `||` treats a configured 0 as absent, so a deliberate "no floor" silently became 55 while
+       the attention path honoured it. Fall back only when the value is genuinely not a number. */
+    var maxActions = isFinite(thresholds.nextSessionMaxActions) ? thresholds.nextSessionMaxActions : 5;
+    var actionFloor = isFinite(thresholds.minimumActionConfidence) ? thresholds.minimumActionConfidence : 55;
+    var actions = nextSession && Array.isArray(nextSession.actions) ? nextSession.actions.map(normalizeRecommendation) : nextSessionActions(recs || [], maxActions, actionFloor);
     var sessionDate = (nextSession && nextSession.sessionDate) || (snap && snap.nextSessionDate) || "next trading session";
     var thesis = nextSession && nextSession.thesis;
     if (!actions.length) {

@@ -17,11 +17,14 @@
       "status": "done",
       "requiredTestType": "unit",
       "regressionRequired": true,
-      "evidenceRefs": ["report.md#test-evidence", "scopes.md#scope-1"],
+      "evidenceRefs": [
+        "report.md#test-evidence",
+        "scopes.md#scope-1"
+      ],
       "linkedTests": [
-        "scripts/selftest.mjs :: the confidence contract states the enforced minimumActionConfidence of 55",
-        "scripts/selftest.mjs :: the confidence contract states the enforced minimumAttentionConfidence of 55",
-        "scripts/selftest.mjs :: the confidence contract states the enforced tacticalConfidenceCap of 55"
+        "scripts/selftest.mjs :: the confidence contract states the enforced minimumActionConfidence of 50 and follows it when that one threshold moves, so the value is read rather than coincidentally present",
+        "scripts/selftest.mjs :: the confidence contract states the enforced minimumAttentionConfidence of 55 and follows it when that one threshold moves, so the value is read rather than coincidentally present",
+        "scripts/selftest.mjs :: the confidence contract states the enforced tacticalConfidenceCap of 55 and follows it when that one threshold moves, so the value is read rather than coincidentally present"
       ]
     },
     {
@@ -33,7 +36,10 @@
       "status": "done",
       "requiredTestType": "unit",
       "regressionRequired": true,
-      "evidenceRefs": ["report.md#test-evidence", "scopes.md#scope-1"],
+      "evidenceRefs": [
+        "report.md#test-evidence",
+        "scopes.md#scope-1"
+      ],
       "linkedTests": [
         "scripts/selftest.mjs :: the confidence contract tells the author the number ranks, and to vary it - the two facts that make a pinned value harmful"
       ]
@@ -47,7 +53,10 @@
       "status": "done",
       "requiredTestType": "unit",
       "regressionRequired": true,
-      "evidenceRefs": ["report.md#test-evidence", "scopes.md#scope-1"],
+      "evidenceRefs": [
+        "report.md#test-evidence",
+        "scopes.md#scope-1"
+      ],
       "linkedTests": [
         "scripts/selftest.mjs :: the confidence contract derives a DIFFERENT tactical clause for cap-below-floor, cap-above-floor and cap-equals-floor rather than restating one fixed sentence"
       ]
@@ -61,7 +70,10 @@
       "status": "done",
       "requiredTestType": "unit",
       "regressionRequired": true,
-      "evidenceRefs": ["report.md#test-evidence", "scopes.md#scope-1"],
+      "evidenceRefs": [
+        "report.md#test-evidence",
+        "scopes.md#scope-1"
+      ],
       "linkedTests": [
         "scripts/selftest.mjs :: both the core and signals lanes render the confidence contract, because both author a confidence",
         "scripts/selftest.mjs :: the hand-typed tactical-cap sentence is gone rather than left beside the rendered contract as a second copy"
@@ -69,17 +81,21 @@
     },
     {
       "scenarioId": "SCN-BUG014-COLLISION-DISCLOSED",
-      "title": "Live config has cap equal to floor and the contract says so without changing either",
+      "title": "The cap-floor relationship is stated from config and is now a band, not a single value",
       "scopeId": "01-tell-both-authoring-lanes-how-to-choose-a-confidence",
       "requirement": "FR-014-006",
       "scope": 1,
       "status": "done",
       "requiredTestType": "unit",
       "regressionRequired": true,
-      "evidenceRefs": ["report.md#test-evidence", "scopes.md#scope-1"],
+      "evidenceRefs": [
+        "report.md#test-evidence",
+        "scopes.md#scope-1"
+      ],
       "linkedTests": [
-        "scripts/selftest.mjs :: live config has the tactical cap equal to the action floor, and the contract says so plainly instead of telling the author to stay under a number it must also reach"
-      ]
+        "scripts/selftest.mjs :: the tactical cap leaves a band above the action floor, so a tactical action is not forced onto a single admissible value"
+      ],
+      "supersededNote": "Scope 2 changed the live relationship from cap == floor to cap > floor, so the assertion this scenario linked was replaced. Recorded rather than deleted: the scenario was true when written and its successor pin proves the same property against the new configuration."
     },
     {
       "scenarioId": "SCN-BUG014-BAND-EXISTS",
@@ -90,7 +106,10 @@
       "status": "done",
       "requiredTestType": "unit",
       "regressionRequired": true,
-      "evidenceRefs": ["report.md#threshold-decision", "scopes.md#scope-2"],
+      "evidenceRefs": [
+        "report.md#threshold-decision",
+        "scopes.md#scope-2"
+      ],
       "linkedTests": [
         "scripts/selftest.mjs :: the tactical cap leaves a band above the action floor, so a tactical action is not forced onto a single admissible value"
       ]
@@ -104,7 +123,10 @@
       "status": "done",
       "requiredTestType": "unit",
       "regressionRequired": true,
-      "evidenceRefs": ["report.md#threshold-decision", "scopes.md#scope-2"],
+      "evidenceRefs": [
+        "report.md#threshold-decision",
+        "scopes.md#scope-2"
+      ],
       "linkedTests": [
         "scripts/selftest.mjs :: live config gives tactical a real band and the contract states that band rather than a single value"
       ]

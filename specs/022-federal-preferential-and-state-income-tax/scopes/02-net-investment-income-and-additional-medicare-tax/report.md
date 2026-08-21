@@ -2006,3 +2006,179 @@ hazard the harness exists to remove. An executed, hash-verified probe that
 reintroduces the regression and names the test that falls is the stronger
 artifact, and it is reproducible from the block above.
 
+### Test Plan rows completed to intended RED — the nine that carried none
+
+A per-row census of this report found nine Test Plan rows carrying a GREEN
+observation and no RED. They are completed here, one
+`scripts/red-green-probe.sh` block each. `--summary-match` is bound to the row's
+own assertion name — or, for the browser row, to its scenario title — so each
+block names what fell rather than reporting only that the run went red.
+
+| Row | Mutation reintroduces | RED names |
+| --- | --- | --- |
+| TP-02-01 | the `declaredFor` year-membership refusal no longer firing | `TP-02-01` |
+| TP-02-02 | a duplicate `legId` no longer refused | `TP-02-02` |
+| TP-02-05 | the surtax applied to the whole declared wage basis, not the excess | `TP-02-05` |
+| TP-02-06 | the modified-adjusted-gross measure blind to ordinary income | `TP-02-06` |
+| TP-02-11 | a threshold set accepted although the declared year is absent | `TP-02-11` |
+| TP-02-16 | the wage surtax ignoring its threshold, over the real route | `SCN-022-005` |
+| TP-02-19 | a real engine defect that must drop the repository pass count | the count line |
+| TP-02-20 | a tolerated missing path leaving the frozen baseline | `new=1` |
+| TP-02-21 | this route leaving the exclusions register | a stale-exclusion refusal |
+
+Two design notes, because both could otherwise look like shortcuts.
+
+**The path-guard probe deliberately writes no new path.** The natural way to red
+a "zero new missing test paths" row is to make a spec name a file that does not
+exist — but the harness block would then carry that invented path into this
+report, the guard would scan it here, and the row would be permanently red. The
+probe instead comments out an entry the frozen baseline already tolerates, so
+the count of missing paths is unchanged at 67 while the tolerated set shrinks to
+66 and the same path is reported as new. The path that appears in the block
+below is a real baseline entry, so pasting it changes nothing.
+
+**The deploy-gate probe reds on the register, not on the plan's arithmetic.**
+The row pairs "the plan succeeds" with "`site-exclusions.json` is unchanged", so
+the mutation takes this route out of the exclusions register. The build refuses
+with a stale-exclusion error rather than quietly producing a plan with one fewer
+excluded path, which is the stronger of the two failures it could have shown.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-01 the declaredFor year-membership refusal stops firing
+file:             rltaxrules.js
+mutation:         set.indexing.declaredFor.indexOf(declaredYear) >= 0) {  ->  set.indexing.declaredFor.indexOf(declaredYear) >= -1) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-01: a declaredFor omitting the declared tax year and an empty declaredFor are each refused RLTAX-THRESHOLD-UNAVAILABLE naming the year, while the shipped set declaring 2026 is not
+green-exit:       0
+green-summary:      ✓ TP-02-01: a declaredFor omitting the declared tax year and an empty declaredFor are each refused RLTAX-THRESHOLD-UNAVAILABLE naming the year, while the shipped set declaring 2026 is not
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-02 a duplicate legId is no longer refused
+file:             rltaxrules.js
+mutation:         if (seen[leg.legId] === true) {  ->  if (false) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-02: a duplicate legId, a figureRef naming a figure the pack does not carry, and an includedInTotal:false leg whose figure is absent are each refused by the member that carries them,
+green-exit:       0
+green-summary:      ✓ TP-02-02: a duplicate legId, a figureRef naming a figure the pack does not carry, and an includedInTotal:false leg whose figure is absent are each refused by the member that carries them, so inc
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-05 the additional Medicare tax is applied to the whole declared wage basis instead of the excess over the threshold
+file:             rltax.js
+mutation:         var excess = Math.max(0, declared - threshold);  ->  var excess = declared;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-05: the additional Medicare tax is exact immediately below, exactly at and immediately above every filing-status threshold, and is byte-identical when ordinary income, qualified divi
+green-exit:       0
+green-summary:      ✓ TP-02-05: the additional Medicare tax is exact immediately below, exactly at and immediately above every filing-status threshold, and is byte-identical when ordinary income, qualified dividend a
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-06 the modified-adjusted-gross measure stops seeing ordinary income, so added ordinary income can no longer move the investment-income surtax
+file:             rltax.js
+mutation:         var modifiedAdjustedGross = basis.grossSupportedIncome;  ->  var modifiedAdjustedGross = netInvestmentIncome;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-06: added ordinary income alone raises the net investment income tax where the cap does not bind and leaves a non-zero additional Medicare tax byte-identical, and the result publishe
+green-exit:       0
+green-summary:      ✓ TP-02-06: added ordinary income alone raises the net investment income tax where the cap does not bind and leaves a non-zero additional Medicare tax byte-identical, and the result publishes the
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-11 a threshold set is accepted although the declared tax year is absent from its declaredFor
+file:             rltaxrules.js
+mutation:         set.indexing.declaredFor.indexOf(declaredYear) >= 0) {  ->  set.indexing.declaredFor.indexOf(declaredYear) >= -1) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-11: a threshold set whose declaredFor omits the declared tax year is refused RLTAX-THRESHOLD-UNAVAILABLE at settlement rather than applied, its leg carries no numeric value, and a wi
+green-exit:       0
+green-summary:      ✓ TP-02-11: a threshold set whose declaredFor omits the declared tax year is refused RLTAX-THRESHOLD-UNAVAILABLE at settlement rather than applied, its leg carries no numeric value, and a withdraw
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-16 the additional Medicare surtax stops honouring its threshold, so the declared wage basis is taxed in full
+file:             rltax.js
+mutation:         var excess = Math.max(0, declared - threshold);  ->  var excess = declared;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/lifetime-tax-surtax.spec.mjs --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-surtax.spec.mjs:135:1 › Regression: SCN-022-005 the additional Medicare surtax uses only its declared wage basis
+green-exit:       0
+green-summary:      ✓  2 [system-chrome] › tests/lifetime-tax-surtax.spec.mjs:135:1 › Regression: SCN-022-005 the additional Medicare surtax uses only its declared wage basis (530ms)
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-19 a real engine defect must drop the whole-repository pass count
+file:             rltax.js
+mutation:         cliff: segmentKind === "rate-step" || segmentKind === "cliff",  ->  cliff: segmentKind === "cliff",   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3174 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3175 passed, 0 failed
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-20 a tolerated missing test path leaves the frozen baseline, so it must be reported as new
+file:             scripts/validate-spec-test-paths.baseline
+mutation:         tests/auction-gamma-playbook.spec.mjs  ->  # tests/auction-gamma-playbook.spec.mjs   (1 occurrence(s))
+command:          node scripts/validate-spec-test-paths.mjs
+red-exit:         1
+red-summary:      [spec-test-paths] scanned=686 references=15464 distinctPaths=250 missingPaths=67 baseline=66 new=1 stale=0
+green-exit:       0
+green-summary:    [spec-test-paths] scanned=686 references=15464 distinctPaths=250 missingPaths=67 baseline=67 new=0 stale=0
+revert-verified:  yes (committed=972f0de1d9ab47e0f584287138399e51187629dc restored=972f0de1d9ab47e0f584287138399e51187629dc)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-21 this route leaves the exclusions register, so the Pages plan meets an unregistered root page
+file:             site-exclusions.json
+mutation:         "path": "lifetime-tax-strategy-lab.html",  ->  "path": "lifetime-tax-strategy-lab.html.retired",   (1 occurrence(s))
+command:          node scripts/build-pages-site.mjs --dry-run
+red-exit:         1
+red-summary:      Error: site exclusion is stale: lifetime-tax-strategy-lab.html.retired
+green-exit:       0
+green-summary:    {"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":128,"directories":["briefs","data","docs","notes","research","rlexperience-adapters",
+revert-verified:  yes (committed=29c6fe08a58d97c1f119abdd38706cf02f675d60 restored=29c6fe08a58d97c1f119abdd38706cf02f675d60)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**One row remains: TP-02-18**, the cumulative browser suite. It is treated
+separately below because its command is the whole `SCN-02[1-4]` sweep rather
+than a per-file spec, and a probe over it costs two full sweeps.
+

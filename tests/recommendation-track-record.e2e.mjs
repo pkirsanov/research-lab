@@ -46,6 +46,10 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { buildPublishSet } from '../scripts/brief-publication.mjs';
+/* A NAMESPACE import, not named bindings: T-04-V1 derives the resolver's shipped `RTR-*` code set
+ * from the live export surface, so it needs the surface itself rather than a list of names a test
+ * author chose — a code that was renamed or never shipped cannot hide behind a named import. */
+import * as resolver from '../scripts/brief-resolve-outcomes.mjs';
 import { loadInstrumentUniverse, recommendationRowsFromPayload } from '../scripts/recommendation-body.mjs';
 import { CLAIM_NOT_EVALUABLE_FIELD, attachClaimRefs, mintClaimRecords } from '../scripts/recommendation-claim-mint.mjs';
 import { buildRun } from './fixtures/feature-002/history/history-fixture-builder.mjs';
@@ -57,10 +61,12 @@ import {
     assertRefusal,
     committedSeries,
     foundationSourceText,
+    loadClaimFixture,
     loadClaimFixtures,
     loadClaimsModule,
     mintInputFrom,
     readBytes,
+    toolsRegistry,
     withDisposableStore,
 } from './recommendation-track-record.support.mjs';
 
@@ -1054,4 +1060,690 @@ test('T-02-R1: a full publish-and-append pass holds the claim-referencing row, t
     assert.notEqual(nulled.error.code, claims.LEGACY_BACKFILL_CODE, 'and is NOT classified legacy — absence is the marker, never a null');
 
     assertBytesUnchanged(committedBytes, readBytes(path.join(REPO_ROOT, R1_PARTITION_REL)), `${R1_PARTITION_REL} bytes`);
+});
+
+/* =============================================================================================
+ * T-04-V1 — the resolver is offline, asserted by a scan that is proven able to fail. PERMANENT.
+ *
+ * The property is BS-007: nothing on the resolve path may reach a network, a provider host, or a
+ * credential. A scan is a weak instrument by default — one that never flags anything is
+ * indistinguishable from one that is broken — so this row spends most of its length proving the
+ * scanner's two failure modes are closed.
+ *
+ * NOT VACUOUS. The same scanner is run over four synthetic sources, each referencing exactly one
+ * forbidden category, and each must be flagged as exactly that category. A scanner that had
+ * silently stopped matching fails here before it can certify the resolver.
+ *
+ * NOT SLOPPY. Two false positives are ruled out by construction rather than by hope, because the
+ * shipped resolver carries both of them TODAY and a naive scan would reject it:
+ *
+ *   1. PROSE. The resolver's own header says it "opens a socket" (in the negative) and a later
+ *      comment names the `fetch-bars` producer. Comments are therefore STRIPPED before matching,
+ *      by a scanner that tracks string state so a `//` inside a literal is not mistaken for one.
+ *   2. SUBSTRINGS. The resolver exports `SESSION_PREDICATE_KEY`, `originRecommendationKeyFor` and
+ *      `dueEntryKeys`, and reads `import.meta.url`. A `/key/i` or `/url/i` substring scan flags all
+ *      four. So identifiers are SPLIT INTO WORDS on camelCase and `_` boundaries and matched as
+ *      whole words or as adjacent word PAIRS — `key` alone is never a trigger, `api`+`key` is.
+ *      `prefetchIndex` splits to `prefetch`+`index` and is likewise untouched.
+ *
+ * `RTR-NETWORK` IS NOT SHIPPED. `specs/.../design.md` and scope 04 both name it, and scope 04's own
+ * DoD line for this row is still unchecked; no product module defines it. The eleven codes that DO
+ * ship are derived here from the live export surfaces, and the absence is asserted as an absence
+ * rather than papered over with an invented constant. When scope 09 lands it, THIS row fails —
+ * which is the correct way for a recorded gap to close.
+ *
+ * Nothing here reads a clock, opens anything, or writes anything.
+ * =========================================================================================== */
+
+/** The resolve path: the resolver plus the whole local module graph it pulls in. */
+const OFFLINE_SURFACE_REL = Object.freeze([
+    path.join('scripts', 'brief-resolve-outcomes.mjs'),
+    'rlclaims.js',
+    'rlcontracts.js',
+]);
+
+const RESOLVER_REL = OFFLINE_SURFACE_REL[0];
+
+/** Builtins that cannot reach a network. Anything else must be a relative module in this repo. */
+const OFFLINE_BUILTINS = Object.freeze(['node:assert', 'node:fs', 'node:module', 'node:path', 'node:url']);
+
+/**
+ * Remove comments while PRESERVING string, template and REGEX literals.
+ *
+ * All three are load-bearing. Comments must go, because the resolver's prose names the very
+ * surfaces this row forbids. Strings must STAY, because a provider host or a credential name would
+ * live in one — stripping them would make the scan pass for the wrong reason. And a regex must be
+ * recognised as a literal rather than walked character by character: `rlcontracts.js:739` carries a
+ * backtick INSIDE a character-class alternation, which a scanner that only knew about quotes reads
+ * as the start of a template literal and then never closes.
+ *
+ * A leading `/` is a regex only where an expression may begin, decided from the last significant
+ * character already emitted — so `a / b` stays division while `= /.../` is a literal. Inside a
+ * character class a `/` is content, which is what the offending pattern needs.
+ *
+ * Two outputs, because a regex BODY is pattern data rather than a reference. `code` keeps every
+ * literal intact and is what the code-survival checks read. `scannable` blanks each regex body,
+ * and is what the matcher reads: `rlcontracts.js:501` and `:739` are DENYLISTS naming
+ * `authorization`, `credential` and `passphrase` in order to REFUSE keys shaped like them, which
+ * is the opposite of a credential lookup. Scanning their bodies would report the foundation's own
+ * guard as the defect the guard exists to prevent. String literals are NOT blanked, because a
+ * header name or a host genuinely does live in one.
+ *
+ * String state is tracked so that `//` inside a literal is content rather than a comment opener,
+ * and so that an apostrophe inside a comment cannot flip the scanner into a string it never left.
+ * Ending inside an unterminated literal means the scan mis-read the source, so it THROWS rather
+ * than returning a partial strip a caller would treat as clean.
+ */
+const REGEX_MAY_FOLLOW = Object.freeze(['(', ',', '=', ':', '[', '!', '&', '|', '?', '{', '}', ';', '+', '-', '*', '%', '~', '^', '<', '>']);
+const REGEX_MAY_FOLLOW_KEYWORD = Object.freeze(['return', 'typeof', 'case', 'in', 'of', 'new', 'delete', 'void', 'throw', 'do', 'else', 'yield', 'await']);
+const TRAILING_WORD = /[A-Za-z_$][A-Za-z0-9_$]*$/;
+
+function regexMayStartAfter(emitted) {
+    const trimmed = emitted.replace(/\s+$/, '');
+    if (trimmed.length === 0) return true;
+    if (REGEX_MAY_FOLLOW.includes(trimmed[trimmed.length - 1])) return true;
+    const word = TRAILING_WORD.exec(trimmed);
+    return word !== null && REGEX_MAY_FOLLOW_KEYWORD.includes(word[0]);
+}
+
+function prepareSource(source) {
+    let code = '';
+    let scannable = '';
+    let quote = null;
+    let index = 0;
+    const emit = (text) => {
+        code += text;
+        scannable += text;
+    };
+
+    while (index < source.length) {
+        const character = source[index];
+        const next = source[index + 1];
+
+        if (quote !== null) {
+            if (character === '\\') {
+                emit(character + (next ?? ''));
+                index += 2;
+                continue;
+            }
+            emit(character);
+            if (character === quote) quote = null;
+            index += 1;
+            continue;
+        }
+        if (character === "'" || character === '"' || character === '`') {
+            quote = character;
+            emit(character);
+            index += 1;
+            continue;
+        }
+        if (character === '/' && next === '/') {
+            while (index < source.length && source[index] !== '\n') index += 1;
+            continue;
+        }
+        if (character === '/' && next === '*') {
+            index += 2;
+            while (index < source.length && !(source[index] === '*' && source[index + 1] === '/')) {
+                if (source[index] === '\n') emit('\n');
+                index += 1;
+            }
+            index += 2;
+            continue;
+        }
+        if (character === '/' && regexMayStartAfter(code)) {
+            code += character;
+            index += 1;
+            let inCharacterClass = false;
+            while (index < source.length) {
+                const inner = source[index];
+                if (inner === '\\') {
+                    code += inner + (source[index + 1] ?? '');
+                    index += 2;
+                    continue;
+                }
+                if (inner === '\n') break;
+                code += inner;
+                index += 1;
+                if (inner === '[') inCharacterClass = true;
+                else if (inner === ']') inCharacterClass = false;
+                else if (inner === '/' && !inCharacterClass) break;
+            }
+            while (index < source.length && /[A-Za-z]/.test(source[index])) {
+                code += source[index];
+                index += 1;
+            }
+            scannable += ' ';
+            continue;
+        }
+        emit(character);
+        index += 1;
+    }
+
+    assert.equal(quote, null, 'the source preparer ended inside a literal — its read of this source is not trustworthy');
+    return { code, scannable };
+}
+
+const IDENTIFIER_TOKEN = /[A-Za-z_$][A-Za-z0-9_$]*/g;
+const EXPORT_DECLARATION = /^export (?:const|function|async function) /gm;
+
+/** `SESSION_PREDICATE_KEY` → `session predicate key`; `keyFor` → `key for`; `prefetch` → `prefetch`. */
+function wordsOf(identifier) {
+    return identifier
+        .replace(/[_$]+/g, ' ')
+        .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+        .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+        .toLowerCase()
+        .split(/\s+/)
+        .filter((word) => word.length > 0);
+}
+
+/**
+ * The four forbidden categories, each expressed as whole words, adjacent word pairs, module
+ * specifiers, or a pattern — never as a bare substring.
+ *
+ * `key`, `token`, `url` and `auth` are deliberately absent as single words: each of them appears
+ * innocently in the shipped resolver, and a scanner that flagged them would be reporting its own
+ * imprecision as a defect. The network-scheme pattern excludes `file://` and `data:` for the same
+ * reason — `rlclaims.js` documents that it loads under `file://`, which is the opposite of a
+ * network reach.
+ */
+const FORBIDDEN_SURFACES = Object.freeze({
+    'network-call': {
+        words: ['fetch', 'eventsource'],
+        pairs: [['xml', 'http'], ['http', 'request'], ['send', 'beacon'], ['http', 'client']],
+        modules: ['http', 'https', 'http2', 'node:http', 'node:https', 'node:http2', 'axios', 'undici', 'node-fetch', 'superagent'],
+        patterns: [],
+    },
+    socket: {
+        words: ['socket', 'websocket'],
+        pairs: [['create', 'connection'], ['web', 'socket']],
+        modules: ['net', 'tls', 'dgram', 'node:net', 'node:tls', 'node:dgram', 'ws'],
+        patterns: [],
+    },
+    'provider-host': {
+        words: [],
+        pairs: [],
+        modules: [],
+        patterns: [/(?:https?|wss?|ftps?):\/\//g],
+    },
+    'credential-lookup': {
+        words: ['apikey', 'authorization', 'bearer', 'credential', 'credentials', 'passphrase'],
+        pairs: [['api', 'key'], ['api', 'token'], ['access', 'token'], ['auth', 'token'], ['bearer', 'token'], ['client', 'secret'], ['secret', 'key'], ['private', 'key']],
+        modules: [],
+        patterns: [/\bprocess\s*\.\s*env\b/g],
+    },
+});
+
+const FROM_SPECIFIER = /\bfrom\s*['"]([^'"]+)['"]/g;
+const CALL_SPECIFIER = /\b(?:require|import)\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
+const BARE_IMPORT_SPECIFIER = /^\s*import\s+['"]([^'"]+)['"]/gm;
+
+function specifiersIn(code) {
+    const found = new Set();
+    for (const pattern of [FROM_SPECIFIER, CALL_SPECIFIER, BARE_IMPORT_SPECIFIER]) {
+        for (const match of code.matchAll(pattern)) found.add(match[1]);
+    }
+    return [...found].sort();
+}
+
+/** Scan ALREADY-PREPARED text. Kept separate from the preparer so the preparer can be measured. */
+function scanCode(scanned) {
+    const identifiers = scanned.match(IDENTIFIER_TOKEN) ?? [];
+    const wordLists = identifiers.map(wordsOf);
+    const specifiers = specifiersIn(scanned);
+    const flagged = new Map();
+
+    for (const [category, rule] of Object.entries(FORBIDDEN_SURFACES)) {
+        const hits = [];
+        for (let index = 0; index < identifiers.length; index += 1) {
+            const words = wordLists[index];
+            const wholeWord = rule.words.some((word) => words.includes(word));
+            const adjacentPair = rule.pairs.some(([first, second]) => words.some((word, at) => word === first && words[at + 1] === second));
+            if (wholeWord || adjacentPair) hits.push(identifiers[index]);
+        }
+        for (const specifier of specifiers) {
+            if (rule.modules.includes(specifier)) hits.push(`import ${specifier}`);
+        }
+        for (const pattern of rule.patterns) {
+            for (const match of scanned.matchAll(pattern)) hits.push(match[0]);
+        }
+        if (hits.length > 0) flagged.set(category, [...new Set(hits)].sort());
+    }
+    return { scanned, identifiers, specifiers, flagged };
+}
+
+function scanOfflineSurface(source) {
+    const prepared = prepareSource(source);
+    return { ...scanCode(prepared.scannable), code: prepared.code };
+}
+
+function flaggedCategories(scan) {
+    return [...scan.flagged.keys()].sort();
+}
+
+function describeFlags(scan) {
+    return JSON.stringify(Object.fromEntries(scan.flagged), null, 0);
+}
+
+/** One synthetic source per category, each referencing that category and no other. */
+const FORBIDDEN_SYNTHETICS = Object.freeze([
+    { category: 'network-call', source: "export async function load(at) {\n  return fetch(at);\n}\n" },
+    { category: 'socket', source: "import net from 'node:net';\nexport function open(port) {\n  return net.createConnection({ port });\n}\n" },
+    { category: 'provider-host', source: "export const ORIGIN = 'https://prices.example.test/v1/bars';\n" },
+    { category: 'credential-lookup', source: "export function reader() {\n  const apiKey = process.env.PROVIDER_API_KEY;\n  return apiKey;\n}\n" },
+]);
+
+/** Sources that MENTION every forbidden surface innocently, and must therefore stay clean. */
+const INNOCENT_SYNTHETICS = Object.freeze([
+    {
+        label: 'prose only',
+        source: [
+            '/*',
+            ' * This module opens no socket, calls no fetch, needs no api key, holds no bearer token,',
+            " * reads no process.env, and never touches https://prices.example.test. It is offline.",
+            ' */',
+            '// Nor does it use axios, node:net, an access token, or an Authorization header.',
+            'export const OFFLINE = true;\n',
+        ].join('\n'),
+    },
+    {
+        label: 'innocent identifiers and a file:// literal',
+        source: [
+            "export const SESSION_PREDICATE_KEY = 'regular-block';",
+            'export const ORIGIN_KEY_TERMS = Object.freeze([]);',
+            'export function keyFor(entry) {',
+            '  return Object.keys(entry).sort();',
+            '}',
+            'export function dueEntryKeys(index) {',
+            '  const originRecommendationKeyFor = (row) => row.key;',
+            '  return prefetchIndex(index).map(originRecommendationKeyFor);',
+            '}',
+            "export const LOCAL = 'file://./data/calendars/xnys/calendar.json';",
+            'export const HERE = import.meta.url;\n',
+        ].join('\n'),
+    },
+    {
+        /* The exact shape that broke an earlier draft of this scanner, and the exact shape the
+           foundation ships: `rlcontracts.js:739` holds a regex whose alternation carries a backtick
+           and whose character class carries a `/`, and `:501` and `:739` are credential DENYLISTS.
+           Read without regex handling the backtick opens a template literal that never closes; read
+           without blanking the body, a guard that refuses `authorization` is reported as a lookup
+           of one. Both failures are ruled out here. */
+        label: 'regex literals: a backtick, a class-internal slash, and a credential denylist',
+        source: [
+            'export const MARKUP = /<[a-z!/]|javascript:|data:text\\/html|`{3}|\\bignore (?:all |previous )/i;',
+            'export const SECRET_SHAPED_KEY = /(?:authorization|cookie|credential|api[-_]?key|password|passphrase|secret|token)/i;',
+            'export function ratio(numerator, denominator) {',
+            '  return numerator / denominator;',
+            '}',
+            "export const CLEAN = MARKUP.test('plain text') || SECRET_SHAPED_KEY.test('plain text');\n",
+        ].join('\n'),
+    },
+]);
+
+test('T-04-V1: the shipped resolver reaches no network, host or credential, under a scanner proven able to flag each and to ignore prose', () => {
+    /* ---- 1. THE SCANNER FLAGS. Four synthetics, four categories, one apiece. ---------------- */
+
+    // Run FIRST and asserted per-category. A scanner certified against the resolver before it was
+    // shown able to fail would be certifying its own silence.
+    for (const { category, source } of FORBIDDEN_SYNTHETICS) {
+        const scan = scanOfflineSurface(source);
+        assert.deepEqual(
+            flaggedCategories(scan),
+            [category],
+            `the ${category} synthetic must be flagged as exactly ${category}, got ${describeFlags(scan)}`,
+        );
+        assert.ok(scan.flagged.get(category).length > 0, `${category}: the flag must name what it matched`);
+    }
+    assert.deepEqual(
+        FORBIDDEN_SYNTHETICS.map((entry) => entry.category).sort(),
+        Object.keys(FORBIDDEN_SURFACES).sort(),
+        'every declared category must have a synthetic that proves it fires — an uncovered category is an unproven one',
+    );
+
+    /* ---- 2. THE SCANNER DOES NOT OVER-FLAG. Prose and substrings stay clean. ---------------- */
+
+    for (const { label, source } of INNOCENT_SYNTHETICS) {
+        const scan = scanOfflineSurface(source);
+        assert.deepEqual(flaggedCategories(scan), [], `${label}: must not be flagged, got ${describeFlags(scan)}`);
+    }
+
+    // The precision is a property of the WORD SPLIT, so it is asserted directly rather than only
+    // through the composite above: `key` never fires alone, `api`+`key` always does.
+    assert.deepEqual(wordsOf('keyFor'), ['key', 'for'], 'keyFor splits to key+for — no api, so no pair');
+    assert.deepEqual(wordsOf('SESSION_PREDICATE_KEY'), ['session', 'predicate', 'key'], 'and a screaming-snake constant splits too');
+    assert.deepEqual(wordsOf('prefetchIndex'), ['prefetch', 'index'], 'prefetch is one word and is NOT fetch');
+    assert.deepEqual(wordsOf('apiKey'), ['api', 'key'], 'while apiKey splits to the adjacent pair that DOES fire');
+    assert.deepEqual(flaggedCategories(scanOfflineSurface('const apiKey = 1;\n')), ['credential-lookup'], 'and firing is measured, not assumed');
+
+    /* ---- 3. THE STRIP IS LOAD-BEARING, and the strip does not eat code. --------------------- */
+
+    const rawResolver = readBytes(path.join(REPO_ROOT, RESOLVER_REL));
+    assert.ok(rawResolver, `the shipped resolver must exist at ${RESOLVER_REL}`);
+    const resolverScan = scanOfflineSurface(rawResolver);
+
+    assert.ok(resolverScan.code.length < rawResolver.length, 'the resolver genuinely carries comments, so stripping them is a real step');
+    assert.equal(
+        (resolverScan.code.match(EXPORT_DECLARATION) ?? []).length,
+        (rawResolver.match(EXPORT_DECLARATION) ?? []).length,
+        'stripping removed no export declaration — a strip that ate code would produce a clean scan of nothing',
+    );
+    assert.equal(resolverScan.code.includes('export function closeDueClaims'), true, 'and the resolve pass itself survives into the scanned text');
+    assert.ok(resolverScan.identifiers.length > 0, 'the scan must have read identifiers — an empty read certifies nothing');
+
+    // MEASURED, not assumed: the UNSTRIPPED resolver IS flagged today, and every hit disappears
+    // under the strip. That is what proves the shipped file's cleanliness comes from prose and not
+    // from a scanner that never looked at it.
+    const unstripped = scanCode(rawResolver);
+    assert.ok(unstripped.flagged.size > 0, 'the resolver must genuinely mention a forbidden surface in PROSE, or this control proves nothing');
+    for (const [category, hits] of unstripped.flagged) {
+        for (const hit of hits) {
+            assert.equal(
+                resolverScan.scanned.includes(hit),
+                false,
+                `${category}: "${hit}" survives comment stripping, so it is a real reference rather than prose`,
+            );
+        }
+    }
+
+    /* ---- 4. THE ASSERTION. The whole resolve path is offline. ------------------------------- */
+
+    for (const relative of OFFLINE_SURFACE_REL) {
+        const source = readBytes(path.join(REPO_ROOT, relative));
+        assert.ok(source, `${relative}: the resolve path must exist`);
+        const scan = scanOfflineSurface(source);
+        assert.ok(scan.identifiers.length > 0, `${relative}: the scan must have read identifiers — an empty read certifies nothing`);
+        assert.deepEqual(flaggedCategories(scan), [], `${relative}: must reach no network, host or credential; found ${describeFlags(scan)}`);
+
+        // An import is the other way a network could arrive, so the specifier set is constrained
+        // rather than merely un-flagged: relative modules in this repository, or offline builtins.
+        for (const specifier of scan.specifiers) {
+            const isRelative = specifier.startsWith('./') || specifier.startsWith('../');
+            assert.equal(
+                isRelative || OFFLINE_BUILTINS.includes(specifier),
+                true,
+                `${relative}: imports "${specifier}", which is neither a relative module nor an offline builtin`,
+            );
+        }
+    }
+    assert.deepEqual(
+        resolverScan.specifiers,
+        ['../rlclaims.js', '../rlcontracts.js', 'node:fs', 'node:module', 'node:path'],
+        'and the resolver reaches for exactly three offline builtins and the two local modules',
+    );
+
+    /* ---- 5. RTR-NETWORK IS NOT SHIPPED — recorded as an absence, never invented. ------------ */
+
+    const shippedCodes = [...new Set(
+        [resolver, claims].flatMap((module) => Object.values(module).filter((value) => typeof value === 'string' && value.startsWith('RTR-'))),
+    )].sort();
+    assert.ok(shippedCodes.length > 0, 'the shipped code set must be non-empty for its membership test to mean anything');
+    assert.equal(shippedCodes.includes(resolver.SESSION_PREDICATE_CODE), true, 'the derivation must find a code this row can name');
+    assert.equal(
+        shippedCodes.includes('RTR-NETWORK'),
+        false,
+        `RTR-NETWORK is named by the design and by scope 04 but no product module defines it; the shipped set is ${shippedCodes.join(', ')}`,
+    );
+});
+
+/* =============================================================================================
+ * T-04-E1 — one full resolve pass over a fixture ledger state. PERMANENT.
+ *
+ * The pass is offered a verdict for EVERY claim in the index, so "one closure per due claim" is a
+ * measured SELECTION rather than the only input available. Three properties:
+ *
+ *   1. exactly one closure per due claim, and one reducer event per closure;
+ *   2. a claim whose frozen horizon has not arrived is still `active`, in every field;
+ *   3. THE PARTITION IDENTITY, over the WHOLE index rather than over sampled keys.
+ *
+ * The third is the one worth the length. Spot-checking three keys would pass just as happily on a
+ * pass that silently dropped a fourth, and a dropped claim is the exact accounting error this
+ * ledger exists to prevent: it would leave a call unresolved while nothing in the output said so.
+ * So the index is partitioned as SET ARITHMETIC — union covers every key, the three sets are
+ * pairwise disjoint, the sizes sum to the whole, and each set is non-empty so the identity cannot
+ * be satisfied by collapsing it. The same identity is then re-derived a SECOND time from the
+ * resolver's OWN `notDue` report, which is the stronger statement: the resolver does not merely
+ * leave the right entries alone, it accounts for every one it excluded.
+ *
+ * Nothing here reads a clock, and nothing here writes into the committed tree.
+ * =========================================================================================== */
+
+const {
+    CLOSED_ENTRY_STATE,
+    HORIZON_NOT_REACHED_REASON,
+    LIVE_ENTRY_STATE,
+    NOT_DUE_REASON,
+    NOT_DUE_REMEDY,
+    PREDICATE_SATISFIED_EVENT,
+    SESSION_PREDICATE_KEY: E1_SESSION_PREDICATE_KEY,
+    claimEntryBindings,
+    closeDueClaims,
+    loadCalendar,
+    originRecommendationKeyFor,
+    sessionsBy,
+} = resolver;
+
+const E1_ENTRY_SESSION = '2026-07-28';
+const E1_AS_OF_SESSION = '2026-07-29';
+const E1_LATER_SESSION = '2026-07-30';
+
+/** The fixture ledger state: two due, two whose horizon has not arrived, one closed by an earlier pass. */
+const E1_COHORT = Object.freeze([
+    { symbol: 'E1DUEA', resolutionDate: E1_AS_OF_SESSION, bucket: 'closed-this-pass' },
+    { symbol: 'E1DUEB', resolutionDate: E1_AS_OF_SESSION, bucket: 'closed-this-pass' },
+    { symbol: 'E1LATEA', resolutionDate: E1_LATER_SESSION, bucket: 'still-active' },
+    { symbol: 'E1LATEB', resolutionDate: E1_LATER_SESSION, bucket: 'still-active' },
+    { symbol: 'E1PRIOR', resolutionDate: E1_AS_OF_SESSION, bucket: 'already-closed' },
+]);
+
+const E1_BUCKETS = Object.freeze(['closed-this-pass', 'still-active', 'already-closed']);
+
+/** The frozen proposal terms the reducer requires beyond the derived ones. */
+const E1_PROPOSAL_TERMS = Object.freeze({
+    trigger: 'e2e-frozen-trigger',
+    invalidation: 'e2e-frozen-invalidation',
+    confidenceBand: 'e2e-frozen-band',
+    confidenceScore: 0.5,
+    rationaleEvidenceIds: ['e2e-frozen-evidence'],
+});
+
+function e1Claim(symbol, resolutionDate) {
+    const fixture = structuredClone(loadClaimFixture('evaluable-instrument-add'));
+    fixture.input.action.claim.resolvesTo = [symbol];
+    fixture.input.action.claim.weighting = 'primary-only';
+    fixture.input.action.claim.priceBasis = 'raw-close';
+    fixture.input.binding.entryDate = E1_ENTRY_SESSION;
+    fixture.input.binding.resolutionDate = resolutionDate;
+    const minted = claims.mintClaim(mintInputFrom(fixture, { committedSeries: [symbol] }));
+    assertEvaluable(minted, `${symbol}: the fixture claim must mint`);
+    return minted.claim;
+}
+
+function e1Run(suffix) {
+    return { runId: `run-${E1_AS_OF_SESSION}${suffix}`, occurredAt: `${E1_AS_OF_SESSION}T20:00:00.000Z`, canonicalMonth: E1_AS_OF_SESSION.slice(0, 7) };
+}
+
+function e1Verdict(claim) {
+    return { claim, closureEventType: PREDICATE_SATISFIED_EVENT, reasonCode: 'predicate-satisfied' };
+}
+
+test('T-04-E1: a full resolve pass closes each due claim exactly once, leaves the not-yet-due active, and partitions the whole index', () => {
+    const committedBefore = readBytes(path.join(REPO_ROOT, R1_PARTITION_REL));
+    const registry = toolsRegistry();
+    const foundation = createRequire(import.meta.url)('../rlcontracts.js');
+
+    /* ---- 1. THE FIXTURE STATE, grounded in the committed calendar ------------------------- */
+
+    // The three dates are real committed trading sessions, read through the resolver's own session
+    // predicate. A horizon authored on a non-session would make "not yet due" a fact about a day
+    // the market never opened, which is a different property than the one this row asserts.
+    const sessions = sessionsBy(loadCalendar(REPO_ROOT), E1_SESSION_PREDICATE_KEY);
+    assert.equal(sessions.ok, true, `the committed calendar must yield sessions: ${JSON.stringify(sessions.error ?? null)}`);
+    for (const session of [E1_ENTRY_SESSION, E1_AS_OF_SESSION, E1_LATER_SESSION]) {
+        assert.equal(sessions.tradingDates.includes(session), true, `${session}: must be a committed trading session`);
+    }
+    assert.equal(E1_ENTRY_SESSION < E1_AS_OF_SESSION && E1_AS_OF_SESSION < E1_LATER_SESSION, true, 'the fixture dates must be strictly ordered');
+
+    const cohort = E1_COHORT.map((member) => ({ ...member, claim: e1Claim(member.symbol, member.resolutionDate) }));
+    const derived = cohort.map((member) => {
+        const key = originRecommendationKeyFor(member.claim, registry);
+        assert.equal(key.ok, true, `${member.symbol}: the origin key must derive: ${JSON.stringify(key.error ?? null)}`);
+        return { ...member, key: key.originRecommendationKey, terms: key.terms };
+    });
+    const keyOf = new Map(derived.map((member) => [member.symbol, member.key]));
+    assert.equal(new Set(keyOf.values()).size, derived.length, 'every fixture claim must occupy its own lifecycle entry');
+
+    // Proposed THROUGH THE SHIPPED REDUCER, so each entry has the shape the reducer itself writes.
+    const proposed = foundation.reduceRecommendationEvents(
+        null,
+        derived.map((member) => ({ ...member.terms, ...E1_PROPOSAL_TERMS })),
+        e1Run('-propose'),
+    );
+    assert.equal(proposed.ok, true, `the fixture proposals must reduce: ${JSON.stringify(proposed.error ?? null)}`);
+
+    const bound = claimEntryBindings(
+        derived.map((member) => ({ claim: member.claim, row: { [claims.CLAIM_REF_FIELD]: member.claim.claimHash } })),
+        registry,
+    );
+    assert.equal(bound.ok, true, `the bindings must build: ${JSON.stringify(bound.error ?? null)}`);
+    const gate = { asOfDate: E1_AS_OF_SESSION, bindings: bound.bindings, toolsRegistry: registry };
+
+    // An EARLIER pass closes exactly the one entry that must already be closed when the measured
+    // pass runs. Authoring a `closed` entry by hand would test this row against a state the
+    // reducer never produces; closing it through the same shipped path cannot drift from one.
+    const prior = closeDueClaims({
+        ...gate,
+        index: proposed.value.index,
+        verdicts: [e1Verdict(cohort.find((member) => member.bucket === 'already-closed').claim)],
+        run: e1Run('-prior'),
+    });
+    assert.equal(prior.ok, true, `the prior pass must run: ${JSON.stringify(prior.error ?? null)}`);
+    assert.equal(prior.closures.length, 1, 'the prior pass closes exactly the one entry it was given a verdict for');
+
+    const before = prior.index;
+    const expected = new Map(E1_BUCKETS.map((bucket) => [bucket, derived.filter((member) => member.bucket === bucket).map((member) => member.key).sort()]));
+    for (const bucket of E1_BUCKETS) {
+        assert.ok(expected.get(bucket).length > 0, `${bucket}: the fixture must populate every bucket — an empty one makes the partition trivial`);
+    }
+    for (const member of derived) {
+        assert.equal(
+            before.entries[member.key].state,
+            member.bucket === 'already-closed' ? CLOSED_ENTRY_STATE : LIVE_ENTRY_STATE,
+            `${member.symbol}: the fixture state must be what the buckets claim before the measured pass runs`,
+        );
+    }
+
+    /* ---- 2. THE MEASURED PASS, offered a verdict for EVERY claim -------------------------- */
+
+    const pass = closeDueClaims({ ...gate, index: before, verdicts: derived.map((member) => e1Verdict(member.claim)), run: e1Run('-measured') });
+    assert.equal(pass.ok, true, `the resolve pass must run: ${JSON.stringify(pass.error ?? null)}`);
+    assert.equal(pass.asOfDate, E1_AS_OF_SESSION, 'against the as-of date it was given');
+    assert.equal(derived.length > pass.closures.length, true, 'the pass was offered more verdicts than it closed, so its selection is measured');
+
+    /* ---- 3. EXACTLY ONE CLOSURE PER DUE CLAIM --------------------------------------------- */
+
+    const closedKeys = pass.closures.map((closure) => closure.originRecommendationKey);
+    assert.deepEqual([...closedKeys].sort(), expected.get('closed-this-pass'), 'the closures name exactly the due claims');
+    assert.equal(new Set(closedKeys).size, closedKeys.length, 'and each due claim is closed ONCE — a repeat would count one call twice');
+    assert.equal(pass.events.length, closedKeys.length, 'the reducer appends exactly one event per closure');
+    assert.deepEqual(
+        pass.events.map((event) => event.recommendationKey).sort(),
+        [...closedKeys].sort(),
+        'and each event names the entry its closure named',
+    );
+    for (const event of pass.events) {
+        assert.equal(event.eventType, PREDICATE_SATISFIED_EVENT, `${event.recommendationKey}: of the verdict's own closure type`);
+    }
+    for (const key of closedKeys) {
+        assert.equal(before.entries[key].state, LIVE_ENTRY_STATE, `${key}: was live before the pass — a closure may only come from a live entry`);
+        assert.equal(pass.index.entries[key].state, CLOSED_ENTRY_STATE, `${key}: and the reducer transitioned it to closed`);
+    }
+
+    /* ---- 4. THE NOT-YET-DUE CLAIMS REMAIN ACTIVE ------------------------------------------ */
+
+    for (const key of expected.get('still-active')) {
+        assert.equal(pass.index.entries[key].state, LIVE_ENTRY_STATE, `${key}: a claim whose horizon has not arrived is still active`);
+        assert.deepEqual(pass.index.entries[key], before.entries[key], `${key}: and its entry is unchanged in every field, not merely in state`);
+    }
+    for (const key of expected.get('already-closed')) {
+        assert.deepEqual(pass.index.entries[key], before.entries[key], `${key}: an entry an earlier pass closed is left exactly as it was`);
+    }
+
+    /* ---- 5. THE PARTITION IDENTITY, over the WHOLE index ---------------------------------- */
+
+    const allKeys = Object.keys(pass.index.entries).sort();
+    assert.deepEqual(allKeys, Object.keys(before.entries).sort(), 'a closing pass mints no entry and drops none');
+    assert.deepEqual(allKeys, [...keyOf.values()].sort(), 'and the index is exactly the fixture cohort');
+
+    const partition = new Map([
+        ['closed-this-pass', new Set(closedKeys)],
+        ['still-active', new Set(allKeys.filter((key) => pass.index.entries[key].state === LIVE_ENTRY_STATE))],
+        ['already-closed', new Set(allKeys.filter((key) => before.entries[key].state !== LIVE_ENTRY_STATE))],
+    ]);
+
+    // COVERING: the union is the whole index. A dropped claim fails here and nowhere else.
+    const union = new Set([...partition.values()].flatMap((members) => [...members]));
+    assert.deepEqual([...union].sort(), allKeys, 'every claim in the index falls in at least one bucket — none is silently dropped');
+
+    // DISJOINT: no claim is in two. Asserted pairwise rather than by a count, so the message names
+    // the two buckets that overlapped instead of only reporting that some total disagreed.
+    for (const left of E1_BUCKETS) {
+        for (const right of E1_BUCKETS) {
+            if (left >= right) continue;
+            const both = [...partition.get(left)].filter((key) => partition.get(right).has(key));
+            assert.deepEqual(both, [], `${left} and ${right} must be disjoint, but share ${JSON.stringify(both)}`);
+        }
+    }
+
+    // AND THE ARITHMETIC CLOSES. Covering plus disjoint already implies it; asserting it as well is
+    // what makes a future bucket added without a matching set-membership rule fail immediately.
+    assert.equal(
+        E1_BUCKETS.reduce((running, bucket) => running + partition.get(bucket).size, 0),
+        allKeys.length,
+        'and the three bucket sizes sum to the whole index',
+    );
+    for (const bucket of E1_BUCKETS) {
+        assert.deepEqual([...partition.get(bucket)].sort(), expected.get(bucket), `${bucket}: the derived bucket is the one the fixture authored`);
+        assert.ok(partition.get(bucket).size > 0, `${bucket}: a bucket that emptied would satisfy the identity while asserting nothing`);
+    }
+
+    /* ---- 6. THE SAME PARTITION, RE-DERIVED FROM THE RESOLVER'S OWN REPORT ------------------ */
+
+    // The stronger statement. Above, the buckets are read off the reduced index; here they are read
+    // off what the pass SAID it did. A pass that quietly excluded an entry without reporting it
+    // would satisfy section 5 and fail this one.
+    const reportedNotDue = pass.notDue.map((entry) => entry.originRecommendationKey).sort();
+    assert.equal(new Set(reportedNotDue).size, reportedNotDue.length, 'the exclusion report names each entry once');
+    assert.deepEqual(
+        [...new Set([...reportedNotDue, ...closedKeys])].sort(),
+        allKeys,
+        'the resolver own accounting covers the whole index: every entry is either closed by this pass or reported as excluded',
+    );
+    assert.deepEqual(
+        reportedNotDue,
+        [...expected.get('still-active'), ...expected.get('already-closed')].sort(),
+        'and the entries it excluded are exactly the two non-closing buckets',
+    );
+
+    const reasonByKey = new Map(pass.notDue.map((entry) => [entry.originRecommendationKey, entry]));
+    for (const key of expected.get('still-active')) {
+        assert.equal(reasonByKey.get(key).reason, HORIZON_NOT_REACHED_REASON, `${key}: excluded because its horizon has not arrived`);
+        assert.equal(reasonByKey.get(key).remedy, NOT_DUE_REMEDY[HORIZON_NOT_REACHED_REASON], `${key}: with the remedy that reason carries`);
+        assert.equal(reasonByKey.get(key).resolutionDate, E1_LATER_SESSION, `${key}: naming the frozen date it is waiting on`);
+    }
+    for (const key of expected.get('already-closed')) {
+        assert.equal(reasonByKey.get(key).reason, NOT_DUE_REASON, `${key}: excluded because its entry is no longer live`);
+        assert.equal(reasonByKey.get(key).remedy, NOT_DUE_REMEDY[NOT_DUE_REASON], `${key}: with the remedy that reason carries`);
+        assert.equal(reasonByKey.get(key).state, CLOSED_ENTRY_STATE, `${key}: and the state that excluded it`);
+    }
+
+    // Every verdict the pass declined is reported too, with the gate's own reason — so a verdict is
+    // never swallowed between the caller and the ledger.
+    assert.deepEqual(
+        pass.skipped.map((entry) => entry.originRecommendationKey).sort(),
+        reportedNotDue,
+        'every declined verdict is reported, carrying the same key set the exclusion report named',
+    );
+
+    assertBytesUnchanged(committedBefore, readBytes(path.join(REPO_ROOT, R1_PARTITION_REL)), `${R1_PARTITION_REL} bytes`);
 });

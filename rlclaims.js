@@ -67,6 +67,17 @@
        primary-only basket are different measurements, not different renderings of one. */
     var SUBJECT_WEIGHTINGS = Object.freeze(["equal", "primary-only"]);
 
+    /* The closed price-basis vocabulary (Ruling R-04-01). Committed bar rows are
+       `{ t, o, h, l, c, v, ac }` and carry exactly two closing-price fields, so `c` and `ac` are
+       the only two series a return can actually be computed from — `o`/`h`/`l` have no adjusted
+       counterpart and name a point WITHIN a session, which `magnitude.entryBasis` already records.
+       Roughly 74% of committed series have `ac !== c`, so `ret(x)` is two functions rather than
+       one, and the claim must say which of the two it was measured against. */
+    var PRICE_BASES = Object.freeze(["raw-close", "adjusted-close"]);
+    /* The row field each member reads, so a consumer binds the basis to the data through this
+       table instead of restating `c`/`ac` as literals at its own call site. */
+    var PRICE_BASIS_ROW_FIELD = Object.freeze({ "raw-close": "c", "adjusted-close": "ac" });
+
     /* The nine hashed terms and the complete five-field unhashed set. With `claimHash` — the
        digest, which cannot contain itself — they partition all fifteen declared fields of the
        contract exhaustively, so no field sits outside the partition. There is no unhashed block;
@@ -94,7 +105,8 @@
         "no-authored-horizon",
         "no-authored-predicate",
         "neutral-direction-no-magnitude",
-        "no-authored-flat-band"
+        "no-authored-flat-band",
+        "no-authored-price-basis"
     ]);
 
     /* ── The closed outcome-class vocabulary and its contribution routing ───────────────────
@@ -775,6 +787,29 @@
         return { ok: true, flatBand: band };
     }
 
+    /* ── The proposal-frozen price basis ────────────────────────────────────────────────────
+       Read from the MINTED CLAIM for the identical reason `flatBandFor` is: `magnitude` is a
+       hashed term, so a basis chosen at scoring time would sit OUTSIDE `claimHash` and one
+       content address could yield two different `outcomeValue`s on two runs. Membership of the
+       closed set is a PRECONDITION, asserted before any return is computed and never repaired
+       here — supplying a default would move the choice outside the content address, which is the
+       one repair this module must never make.
+
+       This returns the basis ALONE. It deliberately does not fingerprint the values read at
+       `entryDate` / `resolutionDate`; a frozen basis makes the CHOICE reproducible, and making a
+       retroactive `ac` rewrite DETECTABLE is the separate obligation R-04-01 leaves with the
+       resolver. */
+    function priceBasisFor(claim) {
+        if (!isPlainObject(claim) || !isPlainObject(claim.magnitude)) {
+            return violation("claim-magnitude-invalid", "magnitude");
+        }
+        var basis = claim.magnitude.priceBasis;
+        if (!inSet(PRICE_BASES, basis)) {
+            return violation("price-basis-not-allowed", "magnitude.priceBasis");
+        }
+        return { ok: true, priceBasis: basis, rowField: PRICE_BASIS_ROW_FIELD[basis] };
+    }
+
     /* The routing a class implies. The membership test runs against the frozen array rather than
        against the table's keys, so an inherited property name such as `constructor` refuses like
        any other value outside the vocabulary instead of resolving through the prototype. */
@@ -1354,7 +1389,8 @@
             entryBasis: nonEmptyString(input.entryBasis) ? input.entryBasis : "close",
             entryDate: nonEmptyString(input.entryDate) ? input.entryDate : null,
             signConvention: signConvention,
-            flatBand: claimInput && Number.isFinite(claimInput.flatBand) ? claimInput.flatBand : null
+            flatBand: claimInput && Number.isFinite(claimInput.flatBand) ? claimInput.flatBand : null,
+            priceBasis: claimInput && nonEmptyString(claimInput.priceBasis) ? claimInput.priceBasis : null
         };
 
         var thesisFamily = claimInput && nonEmptyString(claimInput.thesisFamily) ? claimInput.thesisFamily : null;
@@ -1431,6 +1467,14 @@
         if (!Number.isFinite(claim.magnitude.flatBand) || claim.magnitude.flatBand <= 0) {
             return { reason: "no-authored-flat-band", field: "magnitude.flatBand" };
         }
+        /* Authored AND a member of `PRICE_BASES`, never defaulted. Absent and present-but-outside
+           -the-set are ONE defect here for the same reason absent and non-positive are one for
+           `flatBand`: both leave `ret(x)` undefined, so the outcome is not merely unknown but
+           unmeasurable. Defaulting instead would pick a basis on the claim's behalf — and with
+           `ac !== c` on ~74% of series, that silently decides the outcome. */
+        if (!inSet(PRICE_BASES, claim.magnitude.priceBasis)) {
+            return { reason: "no-authored-price-basis", field: "magnitude.priceBasis" };
+        }
         return null;
     }
 
@@ -1492,6 +1536,8 @@
         HORIZON_KINDS: HORIZON_KINDS,
         MAGNITUDE_UNITS: MAGNITUDE_UNITS,
         SIGN_CONVENTIONS: SIGN_CONVENTIONS,
+        PRICE_BASES: PRICE_BASES,
+        PRICE_BASIS_ROW_FIELD: PRICE_BASIS_ROW_FIELD,
         HASHED_TERMS: HASHED_TERMS,
         UNHASHED_FIELDS: UNHASHED_FIELDS,
         MINT_REFUSALS: MINT_REFUSALS,
@@ -1538,6 +1584,7 @@
         deriveRowFieldUnion: deriveRowFieldUnion,
         authorizeResolutionWrite: authorizeResolutionWrite,
         flatBandFor: flatBandFor,
+        priceBasisFor: priceBasisFor,
         outcomeContributionFor: outcomeContributionFor,
         classifyOutcome: classifyOutcome,
         assertZeroFreeOutcomes: assertZeroFreeOutcomes,

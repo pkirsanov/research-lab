@@ -927,6 +927,7 @@ function r1AuthoredAction(symbol) {
             eventRef: 'fixture-event-2026-07-15',
             predicate: { kind: 'threshold', basis: 'close', comparator: 'lte', value: 100 },
             flatBand: 0.25,
+            priceBasis: 'adjusted-close',
         },
     };
 }

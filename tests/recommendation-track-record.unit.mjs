@@ -240,6 +240,95 @@ test('T-01-U2: every hashed term is load-bearing', () => {
     assert.equal(seen.size, mutations.length + 1);
 });
 
+/** Mint `evaluable-instrument-add` with `action.claim.priceBasis` replaced verbatim; `undefined`
+ *  deletes the key, so absence is tested as a genuinely absent key and not as an authored null. */
+function mintWithPriceBasis(priceBasis) {
+    const fixture = loadClaimFixture('evaluable-instrument-add');
+    const action = structuredClone(fixture.input.action);
+    if (priceBasis === undefined) delete action.claim.priceBasis;
+    else action.claim.priceBasis = priceBasis;
+    return claims.mintClaim(mintInputFrom(fixture, { action }));
+}
+
+function mintEvaluableWithPriceBasis(priceBasis) {
+    const result = mintWithPriceBasis(priceBasis);
+    assertEvaluable(result, `priceBasis ${priceBasis}`);
+    return result.claim;
+}
+
+test('T-01-U8: priceBasis is a HASHED term, so the basis cannot be chosen after the outcome', () => {
+    assert.deepEqual(
+        [...claims.PRICE_BASES].sort(),
+        ['adjusted-close', 'raw-close'],
+        'the vocabulary is the two closing-price fields committed rows actually carry',
+    );
+
+    const raw = mintEvaluableWithPriceBasis('raw-close');
+    const adjusted = mintEvaluableWithPriceBasis('adjusted-close');
+
+    /* PROVEN, NOT ASSUMED: the two claims are shown to differ at exactly one path BEFORE their
+       hashes are compared. Without this, a hash that changed for some unrelated reason would
+       still satisfy the assertion below and the term could be unhashed without the row noticing. */
+    const differingTerms = claims.HASHED_TERMS.filter(
+        (term) => JSON.stringify(raw[term]) !== JSON.stringify(adjusted[term]),
+    );
+    assert.deepEqual(differingTerms, ['magnitude'], 'exactly one hashed term may differ');
+    assert.deepEqual(
+        { ...raw.magnitude, priceBasis: null },
+        { ...adjusted.magnitude, priceBasis: null },
+        'and within magnitude, priceBasis must be the only difference',
+    );
+
+    /* THE LOAD-BEARING ASSERTION (Ruling R-04-01). ~74% of committed series have `ac !== c`, so
+       `ret(x)` is two functions, not one. A basis outside `claimHash` would let one content
+       address yield two different outcomes on two runs — tunable once the result is visible. */
+    assert.notEqual(raw.claimHash, adjusted.claimHash, 'priceBasis must be INSIDE claimHash');
+    assert.equal(claims.claimHash(raw), raw.claimHash, 'the recorded address is the computed one');
+
+    // The basis is read back verbatim and bound to the row field it names, never re-derived.
+    assert.equal(claims.priceBasisFor(raw).rowField, 'c');
+    assert.equal(claims.priceBasisFor(adjusted).rowField, 'ac');
+});
+
+test('T-01-U9: an absent or out-of-vocabulary priceBasis refuses at the mint', () => {
+    assert.equal(claims.MINT_REFUSALS.includes('no-authored-price-basis'), true, 'the reason is a member of the closed set');
+    assert.equal(claims.NOT_EVALUABLE_REASONS.includes('no-authored-price-basis'), true, 'and is therefore recordable');
+
+    /* Absent and present-but-outside-the-set are ONE defect, exactly as absent and non-positive
+       are one for `flatBand`: both leave `ret(x)` undefined, so the outcome is not merely unknown
+       but unmeasurable. `close` and `adjusted` are the near-misses a caller reaches for first and
+       neither is a member; `Raw-Close` proves the membership test is not case-folded. */
+    const refusing = [
+        ['absent', undefined],
+        ['null', null],
+        ['empty string', ''],
+        ['close', 'close'],
+        ['adjusted', 'adjusted'],
+        ['Raw-Close', 'Raw-Close'],
+        ['non-string', 1],
+    ];
+
+    for (const [label, basis] of refusing) {
+        const result = mintWithPriceBasis(basis);
+        assert.equal(result.ok, true, `${label}: the claim is still minted and still counted`);
+        assertRefusal(result.claim.notEvaluable, 'no-authored-price-basis', 'magnitude.priceBasis', label);
+
+        // The basis is never repaired or defaulted on the way out, at either layer.
+        assert.equal(claims.priceBasisFor(result.claim).ok, false, `${label}: the precondition refuses`);
+        assert.equal(
+            Object.prototype.hasOwnProperty.call(claims.priceBasisFor(result.claim), 'priceBasis'),
+            false,
+            `${label}: no basis may be supplied by the consumer`,
+        );
+    }
+
+    /* ANTI-VACUITY. The SAME fixture with each legal member authored mints evaluable, so every
+       refusal above is caused by the basis and by nothing else. */
+    for (const member of claims.PRICE_BASES) {
+        assert.equal(mintEvaluableWithPriceBasis(member).magnitude.priceBasis, member);
+    }
+});
+
 test('T-01-U3: RTR-PREDICATE-AMEND refuses a byte-changing write and never overwrites', () => {
     const liveStore = path.join(REPO_ROOT, claims.CLAIM_STORE_DIR);
     const liveStoreExistedBefore = existsSync(liveStore);
@@ -746,6 +835,8 @@ function mintPairPayload(symbol) {
                         // Authored, not defaulted: without a positive band this action mints
                         // `no-authored-flat-band` and the pair loses its one evaluable half.
                         flatBand: 0.25,
+                        // Same discipline for the basis: absent, it mints `no-authored-price-basis`.
+                        priceBasis: 'adjusted-close',
                     },
                 },
                 { action: 'note', subject: 'action-1' },

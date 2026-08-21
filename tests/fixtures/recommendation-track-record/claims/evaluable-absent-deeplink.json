@@ -27,7 +27,8 @@
         "value": 0.5,
         "reference": "bars/SPY/1d"
       },
-      "flatBand": 0.25
+      "flatBand": 0.25,
+      "priceBasis": "adjusted-close"
     }
   }
 }

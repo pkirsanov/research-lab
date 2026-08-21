@@ -20,7 +20,8 @@
       "weighting": "primary-only",
       "thesisFamily": "earnings-print-reclaim",
       "horizonKind": "next-session",
-      "flatBand": 0.25
+      "flatBand": 0.25,
+      "priceBasis": "adjusted-close"
     }
   }
 }

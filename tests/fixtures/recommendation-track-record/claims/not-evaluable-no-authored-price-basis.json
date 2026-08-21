@@ -1,0 +1,34 @@
+{
+  "note": "Negative: `priceBasis` is absent. It is the last mint precondition, so everything ahead of it is deliberately complete — including a positive `flatBand`, which is what makes this fixture single-rule rather than a second flat-band case. Absent and present-but-outside-`PRICE_BASES` are ONE defect: both leave `ret(x)` undefined, so the outcome is unmeasurable rather than merely unknown. Defaulting would pick a basis on the claim's behalf, and with `ac !== c` on ~74% of committed series that silently decides the outcome. Authoring either legal member back in mints this same claim evaluable.",
+  "binding": {
+    "proposalRunId": "dist-2026-07-28-open-0001",
+    "proposalEventId": "sha256:a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0",
+    "proposedAt": "2026-07-28T13:30:00.000Z",
+    "entryDate": "2026-07-28",
+    "entryBasis": "close",
+    "resolutionDate": "2026-07-31"
+  },
+  "action": {
+    "action": "trim",
+    "subject": "Semis have run into the 7/29 print without the tape confirming — trim SOXX on strength",
+    "horizon": "swing",
+    "deepLink": "sector-research-lab.html",
+    "claim": {
+      "contractVersion": "brief-action-claim-input/v1",
+      "subjectKind": "instrument",
+      "resolvesTo": ["SOXX"],
+      "weighting": "primary-only",
+      "thesisFamily": "positioning-unwind",
+      "horizonKind": "multi-session",
+      "horizonSessions": 3,
+      "predicate": {
+        "kind": "directional",
+        "basis": "close",
+        "comparator": "lt",
+        "value": 0.0,
+        "reference": null
+      },
+      "flatBand": 0.25
+    }
+  }
+}

@@ -4963,6 +4963,9 @@ for the reason given in the gate table above.
 | 2026-08-21 | `F-VALIDATE-07` | `G060` red→green ordering is defeated by a results table above the narrative; real `RED/GREEN` pairs exist from `report.md:1949` | Low | routed — reordering evidence to move a line number was declined as gaming the check | `bubbles.test` |
 | 2026-08-21 | `F-VALIDATE-08` | `G095` fires on `report.md:4559`, where `skipping` names a mutation in the killed-mutant list rather than deferring work | Low | routed — wording belongs to the phase that wrote it | `bubbles.audit` |
 | 2026-08-21 | `F-VALIDATE-09` | Five dimension rows link to owner tools that cannot open on a company — seven rows across five tools, counted two ways in the docs | Low | No action — a deliberate, documented limitation, re-confirmed present and still documented | None; recorded so it is not rediscovered as a defect |
+| 2026-08-22 | `F-AUDIT-02` | Two of this feature's own precedent routes read `?ticker=` while still emitting `?t=` into the Feature 007 owner-read contract | Medium | **Closed — fixed in code.** Both in-boundary routes now compose the emitted parameter from `RLTKR.SUBJECT_PARAM`, the same constant `boot()` reads. Verified live: `options-structure-lab` publishes `options-structure-lab.html?ticker=NVDA`. | `bubbles.implement` |
+| 2026-08-22 | `F-AUDIT-02b` | `intraday-tape-lab.html:1855` and `swing-structure-lab.html:1693` emit the same dead `?t=` convention | Medium | **Routed, not fixed.** Both are outside `workBoundary.allowedPaths` for this feature and were read-only here. `tests/technical-analysis-decision-lab.spec.mjs:922` navigates `swing-structure-lab.html?t=SPY`, so their owners must reconcile that spec in the same change. | Owners of `intraday-tape-lab` / `swing-structure-lab` |
+| 2026-08-22 | `F-AUDIT-05` | Nothing pinned the subject-parameter convention, so a second name could arrive beside `ticker` unnoticed | Low | **Closed — assertion added.** `scripts/selftest.mjs` assertion 1.20, inside `FEATURE-027-SUBJECT-HANDOFF`, counts names on both sides and was proven able to fail twice by real file mutation. | `bubbles.implement` |
 
 ## Validate Phase Closeout — nothing certified
 
@@ -4975,6 +4978,414 @@ edited by this phase. No lifetime-tax path (`rltax*.js`, `lifetime-tax-*`,
 `tax-rules/`, `specs/021`–`024`) and no `specs/026-*` artefact was read or
 written. The twelfth phase is now recorded; the feature is short of `done`, and
 the thing it is short of is a human walk.
+
+## Implement Phase — F-AUDIT-02 and F-AUDIT-05 closed
+
+Two audit findings, both closed in code, both defended by an assertion that was
+proven able to fail. Nothing certified: no DoD item ticked, reworded or added;
+`uservalidation.md` byte-unchanged at 0 ticked / 19 unticked; top-level `status`
+stays `in_progress` and `certifiedAt` stays `null`.
+
+### F-AUDIT-02 — the emitted parameter now names the parameter the route reads
+
+The audit found both precedent routes reading `?ticker=` while still publishing
+`?t=` into the Feature 007 owner-read contract, which `rlbrief.js:1359` and
+`rlcompanyintel.js:1802` turn into a live href — so a reader following the link a
+route publishes about ITSELF landed on that route's restored default rather than
+the named company.
+
+**Consumer check ran BEFORE the change, because a fixture pinning `?t=` would
+have made this a breaking edit.** `rlbrief.js` and `rlcompanyintel.js` both treat
+`deepLink` as an opaque href and parse no parameter name out of it. No file under
+`tests/fixtures/` and no key in `market-brief.owner-reads.json` contains the
+string `?t=` — the committed owner-reads file currently carries no `deepLink`
+value at all. A repository-wide scan found **no file anywhere that READS a `t`
+parameter**, so the convention was dead on arrival, not merely mismatched.
+
+**Claim Source:** executed
+
+```
+$ grep -rn 'html?t=' . --exclude-dir=node_modules --exclude-dir=.git
+./tests/technical-analysis-decision-lab.spec.mjs:922:  await page.goto(`${baseUrl}/swing-structure-lab.html?t=SPY`);
+./intraday-tape-lab.html:1855:      deepLink: "intraday-tape-lab.html?t=" + encodeURIComponent(state.ticker)
+./gamma-trading-lab.html:1510:      deepLink: "gamma-trading-lab.html?t=" + encodeURIComponent(state.ticker)
+./options-structure-lab.html:1960:  deepLink: "options-structure-lab.html?t=" + encodeURIComponent(state.ticker)
+./swing-structure-lab.html:1693:    deepLink: "swing-structure-lab.html?t=" + encodeURIComponent(state.ticker)
+(plus generated copies under ./_site/, which is gitignored and untracked)
+
+$ grep -rnE "get\(['\"]t['\"]\)|\.t\b.*searchParams" . --exclude-dir=node_modules --exclude-dir=.git
+(end read scan)          <- no output: nothing reads a `t` parameter
+
+$ python3 -c "... json.load(open('market-brief.owner-reads.json')) ..."
+has ?t= : False
+deepLink values:         <- none present
+```
+
+The fix uses the shared constant rather than a second hard-coded literal. Both
+routes CAN reach it: each loads `rlticker.js` under the `defer` attribute and
+each already dereferences `RLTKR.linkedSubject` unconditionally in `boot()`
+(`gamma-trading-lab.html:1842`, `options-structure-lab.html:2565`), which runs on
+`DOMContentLoaded` — after every `defer`-attributed script executes. The emission
+sits inside `render()`, which only runs after `boot()`, so `RLTKR.SUBJECT_PARAM`
+is in scope.
+
+```diff
+-  deepLink: "gamma-trading-lab.html?t=" + encodeURIComponent(state.ticker)
++  deepLink: "gamma-trading-lab.html?" + RLTKR.SUBJECT_PARAM + "=" + encodeURIComponent(state.ticker)
+
+-  deepLink: "options-structure-lab.html?t=" + encodeURIComponent(state.ticker)
++  deepLink: "options-structure-lab.html?" + RLTKR.SUBJECT_PARAM + "=" + encodeURIComponent(state.ticker)
+```
+
+`intraday-tape-lab.html` and `swing-structure-lab.html` were NOT touched. They
+are outside `workBoundary.allowedPaths` and are recorded as `F-AUDIT-02b` for
+their owners, together with the fact that
+`tests/technical-analysis-decision-lab.spec.mjs:922` navigates
+`swing-structure-lab.html?t=SPY` and must be reconciled in the same change.
+
+**Runtime proof, not source proof.** A source-text fix could still be dead if the
+publication block threw — the whole block sits under `catch (f7Err) { /* additive */ }`,
+so a broken emission would fail SILENTLY. A temporary probe loaded each route in
+a real browser at `?ticker=NVDA` and read the published tool read back out of
+`RLDATA.toolRead(...)`. The probe file was deleted after the run.
+
+**Claim Source:** executed
+
+```
+F027_PROBE options-structure-lab {"subjectParam":"ticker","tickerValue":"NVDA",
+  "anyToolReads":["options-structure-lab"],"publishedThisTool":true,"published":true,
+  "deepLink":"options-structure-lab.html?ticker=NVDA","dataPill":"updated 12:19:45 PM"}
+F027_PROBE gamma-trading-lab   {"subjectParam":"ticker","tickerValue":"NVDA",
+  "anyToolReads":[],"publishedThisTool":false,"published":false,"deepLink":null,
+  "dataPill":"updated 8/22/2026"}
+  2 passed (9.3s)   EXIT=0
+```
+
+`options-structure-lab` publishes `options-structure-lab.html?ticker=NVDA` — the
+defect is closed on the wire, not just in the source text.
+
+**Gamma does not publish in this harness, and that is NOT caused by this change.**
+Rather than assert it, it was measured: the same probe was run against
+`gamma-trading-lab.html` reverted byte-for-byte to the shipped `?t=` form
+(sha256 `0e5a77815959530fa38b240c80ba5f7b4a59751662e6f13e1a833bff75d678ff`,
+`git diff --numstat` empty), and the result was identical — `anyToolReads: []`,
+`publishedThisTool: false`. Gamma's owner read requires option-chain evidence the
+ephemeral static server does not serve for NVDA. The file was then restored to
+the fixed form and re-hashed. So gamma's emission is proven by source and by the
+selftest assertion below, and honestly is NOT proven at runtime here.
+
+### F-AUDIT-05 — the convention is now pinned in BOTH directions
+
+The audit's point was precise: adding a fallback read of `t` left assertion 1.2
+and the absent-guard green, so the single-convention property was claimed but
+undefended. Every existing assertion proves the CORRECT name works; none of them
+counts NAMES, so a SECOND name arriving beside `ticker` survived all of them.
+
+New assertion **1.20**, placed in `scripts/selftest.mjs` inside the existing
+`FEATURE-027-SUBJECT-HANDOFF` marker region so it stays attributable to this
+feature. That was chosen over a new file because every sibling structural claim
+about `rlticker.js` and the two precedent routes already lives there, and because
+it can reuse `f027Module`, `f027Body` and `f027RouteSources` rather than
+re-deriving them — a second derivation is a second thing that can drift.
+
+It counts names on both sides:
+
+- every `.get(...)` argument in the shared reader's body must resolve to the one
+  `SUBJECT_PARAM` (symbolic `SUBJECT_PARAM` resolves through the real export; a
+  quoted literal resolves to itself);
+- each subject route must delegate its `location.search` read to
+  `RLTKR.linkedSubject` rather than parse the query itself;
+- every `deepLink` a subject route emits must name that same parameter, whether
+  written symbolically or as a literal.
+
+#### RED — a `?t=` emission restored on gamma
+
+**Claim Source:** executed
+
+```
+MUTANT sha: 0e5a77815959530fa38b240c80ba5f7b4a59751662e6f13e1a833bff75d678ff  gamma-trading-lab.html
+EXIT=1
+  ✗ FAIL: Feature 027: one subject convention in BOTH directions — the shared reader reads
+    only ["ticker"], each subject route delegates its query read to RLTKR.linkedSubject
+    (undelegated: none), and the 2 deepLink(s) the 2 subject routes publish about themselves
+    name ["ticker","t"] — every one of those names must be "ticker"
+
+Research-Lab self-test: 3183 passed, 1 failed
+```
+
+The mutant sha is byte-identical to the shipped file, so the RED state is exactly
+the state the audit found.
+
+#### GREEN — restored
+
+```
+RESTORED sha: af78cef4f56427ead344cf6c838e13b7e4a43bb1ad3530d45e670536e310736d  gamma-trading-lab.html
+EXPECTED    : af78cef4f56427ead344cf6c838e13b7e4a43bb1ad3530d45e670536e310736d  gamma-trading-lab.html
+EXIT=0
+  ✓ Feature 027: one subject convention in BOTH directions — ... name ["ticker"] ...
+Research-Lab self-test: 3184 passed, 0 failed
+```
+
+#### RED — the audit's own falsifier: a fallback read of `t`
+
+`rlticker.js` was mutated to `if (typeof value !== "string") value = params.get("t");`.
+This is the widening the audit named, and it reproduces the audit's observation
+exactly: the two pre-existing guards stay GREEN and ONLY the new assertion fails.
+
+**Claim Source:** executed
+
+```
+MUTANT sha: 9a30dc1ab0423256e1fee66567d12f2b03e759f67d5124b0cc70217ada8abb50  rlticker.js
+EXIT=1
+  ✗ FAIL: Feature 027: one subject convention in BOTH directions — the shared reader reads
+    only ["ticker","t"], ... name ["ticker"] — every one of those names must be "ticker"
+  ✓ Feature 027: linkedSubject reads only SUBJECT_PARAM and ignores every other key in the query string
+  ✓ Feature 027: a missing, empty and whitespace-only subject all yield status absent with subject null
+total ✗ FAIL lines: 1
+Research-Lab self-test: 3183 passed, 1 failed
+```
+
+#### GREEN — restored
+
+```
+RESTORED rlticker sha: a8ccf381bc9549be227598944638d24eb2eb3453998f29acc05ec41303c28bc0  rlticker.js
+EXPECTED             : a8ccf381bc9549be227598944638d24eb2eb3453998f29acc05ec41303c28bc0  rlticker.js
+git diff rlticker.js lines: 0
+EXIT=0
+Research-Lab self-test: 3184 passed, 0 failed
+```
+
+Every mutated file was restored byte-for-byte and verified by sha256 against the
+pre-mutation value. `volatility-sizing-lab.html` was never written and still
+carries `catalogAsset(handoff.subject) : null` exactly once (sha256
+`0f227598b27c5e23b8127692b17def33a392bac30a4a6fc265a252730ccf3b53`, unchanged).
+
+### Verification
+
+**Claim Source:** executed
+
+| Command | Exit | Result | Baseline |
+|---|---|---|---|
+| `node scripts/selftest.mjs` | `0` | `3184 passed, 0 failed` | was `3183 passed, 0 failed`; +1 is assertion 1.20 |
+| `node --test tests/company-intelligence.unit.mjs` | `0` | `tests 90 / pass 90 / fail 0` | unchanged |
+| `npx playwright test --workers=1` over the four route specs | `0` | `120 passed (2.7m)`, 0 `✘` marks | unchanged |
+| `artifact-lint.sh specs/027-company-scoped-owner-deep-links` | `0` | `Artifact lint PASSED.` | unchanged |
+
+The full 698-test browser suite was NOT run here; the operator reserved it.
+
+---
+
+## Implement Phase — F-AUDIT-08 closed, the F-AUDIT-05 pin widened to a closed call-site set (`bubbles.implement`)
+
+Run: repository binding committed at revision `141`
+(`rb:vscode-76796f8295100da71eb37ed18f20cd77:141`, `2026-08-22T19:52:27Z`),
+repository `research-lab`, `workflowMode: full-delivery`. Nothing was certified,
+no `uservalidation.md` item was ticked, no `status` was set to `done`, no
+`certifiedAt` was written.
+
+### F-AUDIT-08 — the hub route now reads its subject through the shared rule
+
+`company-intelligence-lab.html` was the hub every owner deep link points back
+at, and it was the one route in the corridor that did not use the shared
+acceptance rule. Its boot read was a private parser:
+
+```js
+var query = new URLSearchParams(window.location.search).get("symbol");
+if (query) currentTicker = query.trim().toUpperCase();
+```
+
+`grep -c linkedSubject company-intelligence-lab.html` returned `0`. The audit
+found no traversal reachable and no `innerHTML` in the file, so this was a
+consistency and defence-in-depth gap rather than a live exploit — but the same
+divergence on the spoke routes became `SEC-027-01`, and the hub's value flows
+into `loadOne()` → `fetch("data/bars/" + encodeURIComponent(symbol) + ".json")`
+and into `RLDATA.putBars(symbol, …)`, a symbol-keyed shared cache.
+
+The read is now:
+
+```js
+var handoff = (window.RLTKR && window.RLTKR.linkedSubject)
+    ? window.RLTKR.linkedSubject(window.location.search, "symbol")
+    : { status: "absent", subject: null };
+if (handoff.status === "accepted") currentTicker = handoff.subject;
+renderLinkNotice(handoff);
+```
+
+`rlticker.js` was already loaded by this route (`<script src="rlticker.js">`,
+before the inline script), so no new dependency was introduced.
+
+**The parameter name was not changed.** This route publishes `?symbol=`, and
+renaming it would break every existing link into it. `linkedSubject` therefore
+took an optional parameter-name argument that defaults to the existing constant:
+
+```js
+function linkedSubject(search, paramName) {
+  …
+  var name = typeof paramName === "string" && paramName ? paramName : SUBJECT_PARAM;
+  var value = params.get(name);
+```
+
+This is a parameter NAME only. The grammar, the normalisation and the refusal are
+identical for every caller, so a second spelling never becomes a second
+acceptance rule. Forking a second copy of the rule was rejected because that is
+exactly the duplication this feature exists to remove.
+
+**A refused link is stated, not swallowed.** Before the change, an unresolvable
+`?symbol=` value became the subject and produced a refusal card naming it. If a
+refused value now simply fell back to the default company with no explanation,
+the reader would be shown a plausible placeholder — a blocking pattern under this
+repository's product principles. A refused handoff therefore renders a notice in
+the new `#link-notice` region that states the link was not honoured and which
+company is on screen, mirroring the notice the spoke routes already carry. The
+refused text itself is never echoed back.
+
+### F-AUDIT-05 — the pin survived parameterising the reader, and was widened
+
+Parameterising `linkedSubject` would have silently weakened assertion `1.20`,
+whose reader-side half resolved the literal `SUBJECT_PARAM` out of the reader's
+own `.get(...)` argument. That half was rewritten rather than deleted, and the
+name census was moved to where it now belongs — the call sites:
+
+- `1.20` (reader side) still proves the reader performs **exactly one** query
+  read, that the name it reads is its own single local, and behaviourally that an
+  omitted argument reads `ticker` while a named argument reads only that name
+  (`?ticker=NVDA&symbol=AMD` → `NVDA` by default, `AMD` under `"symbol"`;
+  `?symbol=AMD` alone is `absent`; `?ticker=NVDA` under `"symbol"` is `absent`).
+- `1.21` (new) is the closed-set pin the audit asked for. It censuses every
+  `RLTKR.linkedSubject(` call site in the production tree, resolves the name each
+  one asks for (an omitted argument is `SUBJECT_PARAM`), and requires the set to
+  be exactly `["symbol","ticker"]`. It further requires that only the hub asks
+  for `symbol`, and that no production file outside `rlticker.js` reads either
+  corridor name itself.
+
+Live census, read from the tree (five call sites, read-only):
+
+**Claim Source:** executed
+
+```
+live call sites: [{"path":"company-intelligence-lab.html","name":"symbol"},
+                  {"path":"gamma-trading-lab.html","name":"ticker"},
+                  {"path":"options-flow-feed-lab.html","name":"ticker"},
+                  {"path":"options-structure-lab.html","name":"ticker"},
+                  {"path":"volatility-sizing-lab.html","name":"ticker"}]
+live set:    ["symbol","ticker"]
+mutated set: ["t","ticker"]        (hub's name changed to "t")
+exit=0
+```
+
+### New assertions
+
+| Id | Where | What it proves |
+|---|---|---|
+| `1.21` | `scripts/selftest.mjs` | the corridor reads a closed set of parameter names; a third spelling widens it |
+| `h.a` | `scripts/selftest.mjs` | the hub delegates to the shared reader, declares no private parser and no private grammar, and loads `rlticker.js` first |
+| `h.b` | `scripts/selftest.mjs` | every identifier the hub can resolve today is still accepted, with an unchanged normalised value |
+| `h.c` | `scripts/selftest.mjs` | the hub refuses everything the shared grammar refuses, none of which was resolvable before, and no refused value survives in `subject` or `raw` |
+| `h.d` | `scripts/selftest.mjs` | only an accepted subject becomes the hub subject, and a refused link is stated |
+| `h.e` | `scripts/selftest.mjs` | shared-surface canary |
+| browser | `tests/company-intelligence-lab.spec.mjs` | every currently-valid deep link still opens its company; a refused one never becomes the subject, is not echoed to the page and reaches no request |
+
+`h.b` is the equivalence half, and it is measured over a real corpus rather than
+a hand-picked pair: the three SEC identities the route ships plus every symbol in
+`data/bars/`, filtered through the resolver expression read out of
+`rlcompanyintel.js` (`/^[A-Za-z][A-Za-z0-9.\-]{0,9}$/`) — **266 of 295 committed
+identifiers are resolver-valid, 0 regressed**. `h.c` records the other direction:
+every value the shared grammar refuses, including `^VIX` and `EURUSD=X`, was
+**already** unresolvable at the hub's own resolver, so refusing it earlier costs
+no input that used to work.
+
+### RED/GREEN proof
+
+Every probe was run through `scripts/red-green-probe.sh`, which arms its revert
+before mutating and verifies the restored file against its committed Git blob.
+No file was left mutated; `git status --porcelain` for all four touched files is
+empty and `volatility-sizing-lab.html` still carries
+`catalogAsset(handoff.subject) : null` exactly once.
+
+**Claim Source:** executed
+
+```
+label:            F-AUDIT-08 hub delegation (browser refusal test)
+file:             company-intelligence-lab.html
+mutation:         ? window.RLTKR.linkedSubject(window.location.search, "symbol")
+  ->  ? { status: "accepted", subject: (new URLSearchParams(window.location.search).get("symbol") || "").trim().toUpperCase() }   (1 occurrence(s))
+command:          npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --workers=1 --reporter=line -g F-AUDIT-08
+red-exit:         1
+red-summary:        1 passed (46.0s)
+green-exit:       0
+green-summary:      2 passed (3.1s)
+revert-verified:  yes (committed=c219cb100c8feb1f7edf46cb138aef1ba6c68f37 restored=c219cb100c8feb1f7edf46cb138aef1ba6c68f37)
+discriminating:   yes (exit 1 != 0)
+```
+
+```
+label:            F-AUDIT-08 hub delegation (selftest static guard)
+file:             company-intelligence-lab.html
+mutation:         (same as above)   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3188 passed, 2 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3190 passed, 0 failed
+revert-verified:  yes (committed=c219cb100c8feb1f7edf46cb138aef1ba6c68f37 restored=c219cb100c8feb1f7edf46cb138aef1ba6c68f37)
+discriminating:   yes (exit 1 != 0)
+```
+
+```
+label:            F-AUDIT-05 closed set of corridor parameter names
+file:             company-intelligence-lab.html
+mutation:         (window.location.search, "symbol")  ->  (window.location.search, "t")   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3188 passed, 2 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3190 passed, 0 failed
+revert-verified:  yes (committed=c219cb100c8feb1f7edf46cb138aef1ba6c68f37 restored=c219cb100c8feb1f7edf46cb138aef1ba6c68f37)
+discriminating:   yes (exit 1 != 0)
+```
+
+```
+label:            F-AUDIT-05 fallback read of a second parameter name inside the shared reader
+file:             rlticker.js
+mutation:         var value = params.get(name);  ->  var value = params.get(name) || params.get("t");   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3189 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3190 passed, 0 failed
+revert-verified:  yes (committed=ad30d496cf84fd972e73cccbd40226f7e7a26c3f restored=ad30d496cf84fd972e73cccbd40226f7e7a26c3f)
+discriminating:   yes (exit 1 != 0)
+```
+
+The last two probes are the audit's own two falsifiers for F-AUDIT-05: a second
+convention arriving at a call site, and a fallback read of a second name inside
+the reader. Both are now red.
+
+### Verification — every command executed in this run
+
+**Claim Source:** executed
+
+| Command | Exit | Result | Baseline |
+|---|---|---|---|
+| `node scripts/selftest.mjs` | `0` | `3190 passed, 0 failed` | was `3184 passed, 0 failed`; +6 are `1.21` and `h.a`–`h.e` |
+| `node --test tests/company-intelligence.unit.mjs` | `0` | `tests 90 / pass 90 / fail 0` | unchanged |
+| `playwright … company-intelligence-lab.spec.mjs chaos-company-intelligence.spec.mjs --workers=1` | `0` | `48 passed (49.5s)` | was `46 passed`; +2 are the F-AUDIT-08 browser tests |
+| `playwright … options-flow-feed / options-structure / gamma-trading / volatility-sizing --workers=1` | `0` | `60 passed (1.0m)` | unchanged |
+| `node scripts/pii-scan.mjs` | `0` | `files=8125 messages=1696 findings=0 OK` | unchanged |
+| `artifact-lint.sh specs/027-company-scoped-owner-deep-links` | `0` | `Artifact lint PASSED.` | unchanged |
+| `artifact-lint.sh specs/025-company-multi-horizon-intelligence-lab` | `0` | `Artifact lint PASSED.` | unchanged |
+
+The full 698-test browser suite was NOT run here; the operator reserved it.
+
+### Boundaries respected
+
+No lifetime-tax path (`rltax*.js`, `lifetime-tax-*`, `tax-rules/`, specs 021–024)
+and no `specs/026-*` artifact was read or written. The two out-of-boundary routes
+`intraday-tape-lab.html` and `swing-structure-lab.html` were not modified; they
+remain routed to their owners. Four files were changed: `rlticker.js`,
+`company-intelligence-lab.html`, `scripts/selftest.mjs` and
+`tests/company-intelligence-lab.spec.mjs`.
+
 
 
 

@@ -794,3 +794,106 @@ The `CO-7` adversarial mutation the audit brief names was run through
 `scripts/red-green-probe.sh` and is genuinely armed — dropping the ordinary term
 from the stacking window turns **8** assertions RED, and the file was reverted
 and hash-verified inside the probe.
+
+---
+
+## F-AUDIT-03 fixed (2026-08-22)
+
+### What was wrong, verified against the tree
+
+[design.md](../../design.md) said, in the Calculation Order section:
+
+> Reconciliation gains legs `L8` (property tax), `L9` (rental net after limits),
+> `L10` (unrecaptured Section 1250) and `L11` (long-term remainder). Each is
+> declared in the pack's leg set and summed from the declared set.
+
+Both clauses were confirmed false against the tree. `reconcileAnnualFederalTax`
+adds `L1` through `L6` and stops; `rltaxstate.js` adds `L7`; nothing named `L8`
+or beyond exists in any engine. The federal pack declares exactly four
+`taxLegs` — `ordinary`, `preferential`, `net-investment-income-tax` and
+`additional-medicare-tax`, all `includedInTotal: true` — and no housing amount
+is a member of that set.
+
+The second clause is the consequential half. `L4` is the identity that sums the
+pack's `taxLegs` into `totalFederalTax`, so "declared in the pack's leg set and
+summed from the declared set" instructs the next implementer to put property tax
+inside the federal total. That is the same defect class as the headline that
+rendered `ordinaryTax` in place of `totalFederalTax` and hid $84,481, and it
+contradicts the tool's own rendered copy, which tells the reader property tax
+"is a separate leg and is not added into the federal figure above".
+
+### A second instance the audit did not name
+
+The same shape was found in [Feature 024's design](../../../024-social-security-and-medicare/design.md):
+
+> Reconciliation gains legs `L12` (Social Security inclusion), `L13` (Part B
+> premium), `L14` (Part D premium) and `L15` (income-related adjustment).
+
+`L12` through `L15` exist in no engine either. This one carried no summing
+clause, so it was a naming defect rather than an arithmetic instruction, but it
+is the same conflation of *reconciliation identity* with *declared leg* and it
+was corrected in the same change.
+
+### What the corrected text says
+
+Both paragraphs now state what ships: reconciliation gains no leg; the federal
+identities are `L1`-`L6` and the state independence identity is `L7`; the four
+housing amounts (`property-tax`, `rental-net`, `disposition-recapture`,
+`disposition-remainder`) and Feature 024's five legs are published as legs of the
+settled record and are **not** members of the pack's `taxLegs` set, which is the
+set `L4` sums into `totalFederalTax`.
+
+The surrounding text was checked for contradiction. One line did contradict it:
+the 023 Reuse section said "legs are pack-declared and summed from the declared
+set", which is true of `pack.taxLegs` but recombines with the corrected paragraph
+into the original claim. It now says explicitly that membership of that set is
+what makes an amount part of the federal total, so an amount that is not a
+federal tax is not a member. A repository-wide search for any other instruction
+to sum a housing or cost leg into a tax total returned none.
+
+### The assertion that now prevents the return
+
+A new selftest group derives the permitted identity set from the engine sources
+(`addLeg("L…")` in `rltax.js` and `rltaxstate.js`), cross-checks it against a
+live settlement's published leg ids, and fails any of the four lifetime-tax
+design documents that names a backticked `L…` identity outside it. It is scoped
+to `design.md` deliberately: the `scope.md` planning artifacts use `L8`-`L15` as
+planning names for what shipped as semantic leg ids, a divergence Scope 03's
+report already reconciles in writing, and those files carry no summing
+instruction.
+
+The adversarial half runs against a string rather than the tree, so it cannot
+leave a live mutation behind, and it pins both halves of the original defect
+while proving the real `L4` is not dragged in with them.
+
+### Red/green probe — the assertion discriminates
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F-AUDIT-03: does any assertion reject a design that names an unbuilt reconciliation identity?
+file:             specs/023-property-tax-and-rental-income/design.md
+mutation:         Reconciliation gains no leg. The federal reconciliation identities are `L1`  ->  Reconciliation gains legs `L8` (property tax), `L9` (rental net), summed from the declared set. The federal reconciliation identities are `L1`   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3189 passed, 2 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3191 passed, 0 failed
+summary-compared: Research-Lab self-test: 3189 passed, 2 failed  vs  Research-Lab self-test: 3191 passed, 0 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=9c22511c3ab5e8f0d504236304af57802dece2a0 restored=9c22511c3ab5e8f0d504236304af57802dece2a0)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+An earlier invocation of the identical probe returned exit 7 with both channels
+reading `3190 passed, 1 failed`. That was not a property of the assertion: a
+concurrent session holds uncommitted work in `scripts/selftest.mjs`, and one of
+its assertions was transiently failing across both halves of that run. The
+invocation recorded above was taken once the shared file was green again, and it
+discriminates by two assertions rather than one.
+
+### Ownership
+
+`design.md` is `bubbles.design`'s artifact and `scope.md` is `bubbles.plan`'s.
+This correction was made under an explicit operator instruction to verify and
+correct the wording, and it is recorded here rather than presented as this
+scope's own planning authority. No `scope.md` was touched.

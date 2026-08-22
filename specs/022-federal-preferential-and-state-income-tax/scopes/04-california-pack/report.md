@@ -1032,6 +1032,146 @@ Command: `npx --no-install playwright test --config=playwright.config.mjs --proj
 `Regression: SCN-022-012 the surcharge threshold is identical for every filing status`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-012 the surcharge threshold is identical for every filing status" --reporter=list`
 
+#### TP-04-18 — recorded inexpressible, tested, and overturned
+
+**Claim Source:** executed.
+
+The planning position of 2026-08-22 was that this row "cannot be expressed
+against the refusal path" and that no TP-04-18 test was to be authored until
+`BI-6` closes. The premise of that position is correct and is not disputed here:
+California's settlement refuses at its unretrieved deduction before any leg is
+priced, so on the shipped pack all four filing statuses render the identical
+not-reached surcharge stage and no crossing point exists to observe. The
+conclusion drawn from it — that the row is therefore inexpressible — was tested
+this session and is **withdrawn**.
+
+It was tested because this repository has already made an unreachable branch
+observable twice by the same means: `CO-7` proves preferential stacking against
+a contract fixture because the shipped federal pack carries no preferential
+table, and `BI-5` branch two keeps the sourced-zero mechanism covered by serving
+`state-no-tax-2999.json` at Florida's declared pack path. The question was
+whether a California-shaped fixture chassis could carry the household past the
+deduction so the surcharge stage is reached.
+
+It can, and no new pack file was needed. `state-contract-no-preferential-2999.json`
+already declares California's exact calculation order
+`CO-1 CO-2 CO-3 CO-5 CO-6 CO-14 CO-8 CO-13 CO-9 CO-10`, already carries a
+deduction and an ordinary schedule, and already carries a threshold-set leg at
+`CO-14`. It is served at `tax-rules/state/CA/2026.json` with its jurisdiction
+re-keyed and its digest recomputed from the served bytes, exactly as `BI-5`
+serves the no-tax fixture at Florida's path.
+
+**What is fixture and what is California, stated exactly.** The deduction and
+the ordinary schedule that let the settlement reach `CO-14` are the fixture's.
+They are invented for the contract, they are labelled as fixture values in the
+fixture's own source record and in each figure's own locator, and the test
+asserts that labelling rather than assuming it. They are not California's and
+nothing presents them as California's — the test also asserts that California's
+own deduction and ordinary schedule are `AbsentFigure` on the shipped pack, so
+the reason the fixture has to supply them is itself pinned. The chassis stays
+unmistakably a fixture: `id` `contract-fixture-no-preferential`, `ruleStatus`
+`user-hypothetical-law`, a declared jurisdiction of `state:ZZ` before re-keying,
+`publishedAt` and `retrievedAt` of `2999-01-01`, and an `example.invalid` source
+URL whose retrieval note opens `This is a CONTRACT FIXTURE`.
+
+The threshold set is **not** a fixture value. It is lifted whole off the shipped
+California pack at test time — `JSON.stringify` equality against
+`CALIFORNIA.thresholdSets[setId]` is asserted, so it is the shipped object and
+not a transcription of it — together with the `ca-rtc-17043` source record it
+cites. No California figure was invented, interpolated or derived. The one
+California figure that was retrieved is used with the citation it already had.
+
+**Why that makes the row a California pin rather than a fixture pin.** Because
+the set is read from the shipped pack at test time, an edit to that pack flows
+into what the browser renders. Probe one demonstrates it: flipping the shipped
+pack's `varyByFilingStatus` from `false` to `true` turns the rendered surcharge
+stage from a figure into a refusal and the test fails.
+
+**The crossing point, as the browser renders it.** The fixture's per-status
+deductions differ from one another, so each filing status is driven to the same
+taxable income from a **different** gross income. The test reads four rendered
+rows per household — `CO-1` gross, `CO-2` deduction, `CO-3` taxable, `CO-14`
+surcharge — one dollar of taxable income short of the threshold and again ten
+thousand dollars past it. It asserts that the rendered gross figures and the
+rendered deduction figures are not all equal, which is what stops an identical
+crossing point from being an artifact of four identical settlements, and then
+that the rendered taxable figure and the rendered surcharge figure are each
+identical across all four statuses on both sides, `$0` below and the same
+positive figure above. A stage that refused would render no figure at all, so a
+settlement that stopped short of the surcharge cannot satisfy the row.
+
+**What this does not cover, stated plainly.** A real California household still
+reaches a refusal, and this run does not change that. The settlement path walked
+here uses the fixture's deduction and schedule; only the surcharge set is
+California's. The refusal a real household sees remains pinned separately by
+TP-04-16 and TP-04-17 against the shipped pack. `BI-6` remains open.
+
+Selection was verified before the suite was run. `--list` on the row's own
+command reports one test in one file and that test is the row's scenario id, so
+the selection is neither empty nor partial:
+
+```
+Listing tests:
+  [system-chrome] › tests/lifetime-tax-california.spec.mjs:226:1 › Regression: SCN-022-012 the surcharge threshold is identical for every filing status
+Total: 1 test in 1 file
+```
+
+**Probe one — the shipped California surcharge set declared to vary by filing
+status.** The mutation is on the shipped pack, so this probe proves the row
+pins California's own figure.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-18 CA surcharge set declared to vary by filing status
+file:             tax-rules/state/CA/2026.json
+mutation:         "varyByFilingStatus": false,  ->  "varyByFilingStatus": true,   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-022-012\ the\ surcharge\ threshold\ is\ identical\ for\ every\ filing\ status --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (3.9s)
+summary-compared:   1 failed  vs    1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=f6b645e28c2d462a6d5094c6620d6baf4f8531e9 restored=f6b645e28c2d462a6d5094c6620d6baf4f8531e9)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Probe two — one filing status resolves a different threshold.** Probe one
+fails the row by making the stage refuse for every status at once, which is a
+weaker negation than the row names. This probe produces the precise negation:
+married-filing-jointly resolves a threshold twice the others' while the other
+three are untouched, so the stage stays a rendered figure and the figures
+**diverge**. The row falls on the divergence itself.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-18 one filing status resolves a different surcharge threshold
+file:             rltax.js
+mutation:         var key = set.varyByFilingStatus === true ? filingStatus : "all";  ->  var key = set.varyByFilingStatus === true ? filingStatus : "all"; if (filingStatus === "married-filing-jointly") return Number.isFinite(set.thresholds[key]) ? set.thresholds[key] * 2 : null;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-022-012\ the\ surcharge\ threshold\ is\ identical\ for\ every\ filing\ status --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (4.1s)
+summary-compared:   1 failed  vs    1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Both probes reverted and were hash-verified against the committed blob, so
+neither the shipped California pack nor `rltax.js` carries a mutation.
+
+The whole spec file was then run to prove the added server override does not
+disturb the two rows already in it:
+
+```
+  ✓  1 [system-chrome] › tests/lifetime-tax-california.spec.mjs:116:1 › Regression: SCN-022-010 California renders no preferential stage and a long term gain reaches the identical state result an equal ordinary amount reaches (790ms)
+  ✓  2 [system-chrome] › tests/lifetime-tax-california.spec.mjs:174:1 › Regression: SCN-022-011 the exemption credit stage is rendered after the rate and the leg sum and refuses rather than resolving to zero (475ms)
+  ✓  3 [system-chrome] › tests/lifetime-tax-california.spec.mjs:226:1 › Regression: SCN-022-012 the surcharge threshold is identical for every filing status (2.3s)
+  3 passed (4.5s)
+```
+
 ### TP-04-19
 
 The cumulative Feature 021 and Feature 022 browser suites over the real route.

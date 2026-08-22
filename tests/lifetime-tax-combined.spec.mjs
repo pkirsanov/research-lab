@@ -1,5 +1,7 @@
 import { expect, test } from './playwright-runtime.mjs';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { startStaticServer } from './provider-credentials.support.mjs';
@@ -22,6 +24,26 @@ const FLORIDA_PATH = 'tax-rules/state/FL/2026.json';
 const FLORIDA = JSON.parse(readFileSync(join(ROOT, FLORIDA_PATH), 'utf8'));
 const CALIFORNIA = JSON.parse(readFileSync(join(ROOT, 'tax-rules/state/CA/2026.json'), 'utf8'));
 const CONFIG = JSON.parse(readFileSync(join(ROOT, 'lifetime-tax-strategy.config.json'), 'utf8'));
+const RULES = createRequire(import.meta.url)(join(ROOT, 'rltaxrules.js'));
+
+/* The shipped Florida pack states no imposition, because no retrieved authority states the
+   absence, so it settles to a refusal. The combined addition of a SOURCED ZERO is therefore
+   exercised against the no-tax contract fixture SERVED at a declared pack path: the route runs
+   unmodified, the pack it reads really does state the absence, and the fixture's own wording is
+   never presented as a jurisdiction's authority outside this served copy. The declared
+   jurisdiction is re-keyed to the path it is served at and the digest is RECOMPUTED from the
+   served bytes. The shipped pack's own refusal is asserted separately below, against the
+   unmodified checkout. */
+function noTaxPackServedAtFlorida() {
+  const pack = JSON.parse(readFileSync(join(ROOT, 'tax-rules/fixtures/state-no-tax-2999.json'), 'utf8'));
+  pack.jurisdiction = 'state:FL';
+  pack.contentSha256 = 'sha256:' + createHash('sha256')
+    .update(RULES.packContentDigestInput(pack)).digest('hex');
+  return pack;
+}
+
+const NO_TAX_PACK = noTaxPackServedAtFlorida();
+const NO_TAX_OVERRIDES = { [FLORIDA_PATH]: JSON.stringify(NO_TAX_PACK) };
 
 /* SUP-024-09, as used by the state and foundation specs. The asset set the route may request is
    derived from the route's own declarations rather than pinned as a literal, so the script tag this
@@ -48,8 +70,43 @@ const combinedFigure = (page) => page.locator('[data-rl-value="combinedTotalTax"
 const combinedRefusal = (page) => page.locator('#combinedSettlementCard [data-rl-unavailable]');
 
 let site;
-test.beforeAll(async () => { site = await startStaticServer(); });
+test.beforeAll(async () => { site = await startStaticServer({ overrides: NO_TAX_OVERRIDES }); });
 test.afterAll(async () => { if (site) await site.close(); });
+
+test('Regression: the shipped Florida pack states no imposition, so the combined answer inherits that refusal instead of adding a zero', async ({ page }) => {
+  const shippedSite = await startStaticServer();
+  try {
+    await openLifetimeTax(page, shippedSite);
+    await declareOrdinaryHousehold(page, { ordinary: 123457, bracketId: 'b3' });
+    await declareResidency(page, 'state:FL', 'full-year-resident');
+
+    /* The pack states no value for the imposition, so the state axis refuses and the combined
+       answer inherits that refusal rather than shortening the sum to the federal side. */
+    expect(FLORIDA.imposesIndividualIncomeTax.contractVersion).toBe('AbsentFigure/v1');
+    const inherited = combinedRefusal(page);
+    /* Both the combined line and its state leg carry the refusal, and neither carries a numeral. */
+    await expect(inherited).toHaveCount(2);
+    await expect(inherited.first())
+      .toHaveAttribute('data-rl-unavailable', FLORIDA.imposesIndividualIncomeTax.code);
+    await expect(inherited.first())
+      .toHaveAttribute('data-rl-unavailable-domain', 'state-settlement:state:FL');
+    await expect(inherited.nth(1))
+      .toHaveAttribute('data-rl-unavailable', FLORIDA.imposesIndividualIncomeTax.code);
+    await expect(combinedFigure(page)).toHaveCount(0);
+    /* The federal addend is still published under its own jurisdiction label. What may not appear
+       is a combined numeral, or a state numeral standing in for a figure the pack never stated. */
+    await expect(page.locator('[data-rl-value="combinedStateLeg"]')).toHaveCount(0);
+    expect(await inherited.first().innerText()).not.toMatch(/\$\s?\d/);
+    expect(await inherited.nth(1).innerText()).not.toMatch(/\$\s?\d/);
+    await expect(page.locator('[data-rl-value="stateSettlementShape"]'))
+      .toContainText('refusal naming what was not retrieved');
+
+    /* The federal settlement is untouched by the state axis refusing. */
+    await expect(page.locator('[data-rl-value="headlineFederalTax"]')).toHaveText(/^\$[\d,]+$/);
+  } finally {
+    await shippedSite.close();
+  }
+});
 
 /* TP-05-16. */
 test('Regression: SCN-022-013 the combined total is the sum of two independent settlements', async ({ page }) => {
@@ -113,8 +170,8 @@ test('Regression: SCN-022-013 the combined total is the sum of two independent s
   const packYearRows = page.locator('#combinedPackYearsBody tr');
   await expect(packYearRows).toHaveCount(3);
   await expect(packYearRows.nth(0)).toContainText(CONFIG.rules.jurisdiction);
-  await expect(packYearRows.nth(1)).toContainText(FLORIDA.id);
-  await expect(packYearRows.nth(1)).toContainText(FLORIDA.effectiveTaxYears.join(', '));
+  await expect(packYearRows.nth(1)).toContainText(NO_TAX_PACK.id);
+  await expect(packYearRows.nth(1)).toContainText(NO_TAX_PACK.effectiveTaxYears.join(', '));
   await expect(packYearRows.nth(2)).toContainText('effective in both packs');
 
   /* The coupling this tool does NOT model is named at the same prominence as the figure, and the
@@ -211,7 +268,7 @@ test('Regression: SCN-022-014 the combined curve attributes every step to a name
 test('Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure', async ({ page }) => {
   /* The pack is served with its declared effective years moved off the year the household declares.
      No tax figure is altered: only which years the pack states it is effective for. */
-  const disagreeing = JSON.parse(JSON.stringify(FLORIDA));
+  const disagreeing = JSON.parse(JSON.stringify(NO_TAX_PACK));
   disagreeing.effectiveTaxYears = [2999];
   const mismatchedSite = await startStaticServer({
     overrides: { [FLORIDA_PATH]: JSON.stringify(disagreeing) }

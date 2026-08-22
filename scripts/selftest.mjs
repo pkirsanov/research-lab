@@ -14707,6 +14707,10 @@ try {
   const federalPack = JSON.parse(read('tax-rules/federal/2026.json'));
   const floridaPack = JSON.parse(read('tax-rules/state/FL/2026.json'));
   const fixturePack = JSON.parse(read('tax-rules/fixtures/state-contract-no-preferential-2999.json'));
+  /* The sourced-zero branch is exercised by a pack that STATES the absence outright. No shipped
+     jurisdiction pack does, because no retrieved authority states it, so the branch is proven by
+     a fixture that cannot resolve for any real household. */
+  const noTaxFixturePack = JSON.parse(read('tax-rules/fixtures/state-no-tax-2999.json'));
 
   function stateWorkspace(overrides) {
     const workspace = WORKSPACE.createEmptyWorkspace();
@@ -14750,7 +14754,7 @@ try {
     'TP-03-16: no engine module holds a state name, a postal code or an authority name, and the detector is proven to fire on a string that does (' + shadowLeaks.join(', ') + ')');
 
   /* TP-03-04: SourcedZero/v1 validates only with the literal zero and a citation. */
-  const soundZero = RULES.sourcedZeroFor(floridaPack, 'state-income-tax:test');
+  const soundZero = RULES.sourcedZeroFor(noTaxFixturePack, 'state-income-tax:test');
   const nonZero = clone(soundZero); nonZero.value = 1;
   const noCitation = clone(soundZero); delete noCitation.sourceRef;
   const noLocator = clone(soundZero); noLocator.locator = '';
@@ -14769,7 +14773,9 @@ try {
     && RULES.isSourcedZero(soundZero) && soundZero.value === 0,
   'TP-03-10: an implementation returning a bare zero record is proven to fail the contract-version discriminator that a sourced zero passes, while both carry the same value');
 
-  /* TP-03-12: the Florida pack validates, resolves, and produces a sourced zero. */
+  /* TP-03-12: the Florida pack validates and resolves, and settles to a refusal rather than to a
+     zero, because no retrieved authority states the absence. The sourced-zero branch it used to
+     carry is proven on the fixture pack that does state it. */
   const floridaValidation = RULES.validateRulePack(floridaPack);
   const floridaDigest = 'sha256:' + createStateHash('sha256').update(RULES.packContentDigestInput(floridaPack)).digest('hex');
   const floridaResolution = RULES.resolveRulePack(floridaPack, {
@@ -14779,32 +14785,55 @@ try {
   const floridaSettlement = STATE.computeAnnualStateTax(stateWorkspace({ residencyJurisdiction: 'state:FL' }), floridaPack);
   const floridaHasNoTable = ['standardDeductions', 'ordinaryRateTables', 'preferentialRateTables'].every((group) =>
     Object.keys(floridaPack[group]).every((status) => RULES.isAbsentFigure(floridaPack[group][status])));
+  const noTaxFixtureValidation = RULES.validateRulePack(noTaxFixturePack);
+  const noTaxFixtureDigest = 'sha256:' + createStateHash('sha256').update(RULES.packContentDigestInput(noTaxFixturePack)).digest('hex');
+  const noTaxFixtureSettlement = STATE.computeAnnualStateTax(
+    stateWorkspace({ residencyJurisdiction: 'state:QQ' }), noTaxFixturePack);
   assert(floridaValidation.ok && floridaResolution.ok
     && floridaDigest === floridaPack.contentSha256
-    && floridaPack.imposesIndividualIncomeTax === false
+    && RULES.isAbsentFigure(floridaPack.imposesIndividualIncomeTax)
+    && floridaPack.noTaxAuthority === null
     && floridaPack.taxLegs.length === 0
     && floridaHasNoTable
-    && RULES.isSourcedZero(floridaSettlement.totalStateTax)
-    && floridaSettlement.totalStateTax.value === 0
-    && floridaSettlement.totalStateTax.sourceRef === floridaPack.noTaxAuthority.sourceRef
-    && floridaSettlement.totalStateTax.locator.length > 0
-    && RULES.RULE_STATUS[floridaSettlement.totalStateTax.ruleStatus] === true
-    && floridaSettlement.calculationOrder.length === 0,
-  'TP-03-12: the Florida pack validates against its own digest, resolves for the declared year, carries no rate table for any filing status, and produces a SourcedZero total with a rule status and a reachable citation');
+    && RULES.isUnavailable(floridaSettlement.totalStateTax)
+    && codeOf(floridaSettlement.totalStateTax) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && !Object.prototype.hasOwnProperty.call(floridaSettlement.totalStateTax, 'value')
+    && !RULES.isSourcedZero(floridaSettlement.totalStateTax)
+    && floridaSettlement.totalStateTax.whatWouldMakeItAvailable.length > 0
+    && floridaSettlement.calculationOrder.length === 0
+    && noTaxFixtureValidation.ok
+    && noTaxFixtureDigest === noTaxFixturePack.contentSha256
+    && noTaxFixturePack.imposesIndividualIncomeTax === false
+    && RULES.isSourcedZero(noTaxFixtureSettlement.totalStateTax)
+    && noTaxFixtureSettlement.totalStateTax.value === 0
+    && noTaxFixtureSettlement.totalStateTax.sourceRef === noTaxFixturePack.noTaxAuthority.sourceRef
+    && noTaxFixtureSettlement.totalStateTax.locator.length > 0
+    && RULES.RULE_STATUS[noTaxFixtureSettlement.totalStateTax.ruleStatus] === true
+    && noTaxFixtureSettlement.calculationOrder.length === 0,
+  'TP-03-12: the Florida pack validates against its own digest, resolves for the declared year, carries no rate table for any filing status, and settles to a refusal naming the authority that was never retrieved rather than to a zero, while a fixture pack that does state the absence produces a SourcedZero total with a rule status and a reachable citation');
 
   /* TP-03-05 adversarial: a no-tax pack that still carries a rate table is refused. */
-  const floridaWithTable = clone(floridaPack);
+  const floridaWithTable = clone(noTaxFixturePack);
   floridaWithTable.ordinaryRateTables.single = clone(fixturePack.ordinaryRateTables.single);
-  const floridaWithLeg = clone(floridaPack);
+  const floridaWithLeg = clone(noTaxFixturePack);
   floridaWithLeg.taxLegs = clone(fixturePack.taxLegs);
-  const floridaWithoutAuthority = clone(floridaPack);
+  const floridaWithoutAuthority = clone(noTaxFixturePack);
   floridaWithoutAuthority.noTaxAuthority = null;
+  /* The unstated pack is held to the same shape rules, and may not name an authority that
+     establishes an absence it declines to assert. */
+  const unstatedWithAuthority = clone(floridaPack);
+  unstatedWithAuthority.noTaxAuthority = clone(noTaxFixturePack.noTaxAuthority);
+  const unstatedWithTable = clone(floridaPack);
+  unstatedWithTable.ordinaryRateTables.single = clone(fixturePack.ordinaryRateTables.single);
   assert(!RULES.validateRulePack(floridaWithTable).ok
     && !RULES.validateRulePack(floridaWithLeg).ok
     && !RULES.validateRulePack(floridaWithoutAuthority).ok
+    && !RULES.validateRulePack(unstatedWithAuthority).ok
+    && !RULES.validateRulePack(unstatedWithTable).ok
     && RULES.isUnavailable(RULES.sourcedZeroFor(floridaWithoutAuthority, 'd'))
+    && RULES.isUnavailable(RULES.sourcedZeroFor(floridaPack, 'd'))
     && RULES.isUnavailable(RULES.sourcedZeroFor(federalPack, 'd')),
-  'TP-03-05: a pack declaring no individual income tax is refused when it carries a rate table, when it declares a tax leg and when it names no establishing authority, and no sourced zero can be built from a pack that imposes a tax');
+  'TP-03-05: a pack declaring no individual income tax is refused when it carries a rate table, when it declares a tax leg and when it names no establishing authority, a pack that states no imposition is refused when it names a no-tax authority or carries a rate table, and no sourced zero can be built from a pack that imposes a tax or from one that states neither');
 
   /* TP-03-06: ReliefMechanism/v1 coherence and applied-legs membership. */
   function reliefPack(mutate) {
@@ -15374,12 +15403,14 @@ try {
      proven able to fail on a clone whose boundary drops one of them. */
   const floridaPackForCalifornia = JSON.parse(read('tax-rules/state/FL/2026.json'));
   const resolvingFixturePack = JSON.parse(read('tax-rules/fixtures/state-contract-no-preferential-2999.json'));
+  const noTaxFixtureForCalifornia = JSON.parse(read('tax-rules/fixtures/state-no-tax-2999.json'));
   function californiaResidentOf(jurisdiction, ordinary) {
     const workspace = californiaWorkspace('single', ordinary);
     workspace.residencyJurisdiction = jurisdiction;
     return workspace;
   }
-  const sourcedZeroSettlement = STATE.computeAnnualStateTax(californiaResidentOf('state:FL', 200000), floridaPackForCalifornia);
+  const sourcedZeroSettlement = STATE.computeAnnualStateTax(californiaResidentOf('state:QQ', 200000), noTaxFixtureForCalifornia);
+  const unstatedImpositionSettlement = STATE.computeAnnualStateTax(californiaResidentOf('state:FL', 200000), floridaPackForCalifornia);
   const resolvingSettlement = STATE.computeAnnualStateTax(californiaResidentOf('state:ZZ', 200000), resolvingFixturePack);
   const requiredBoundaryIds = [];
   statuses.forEach((status) => {
@@ -15392,14 +15423,16 @@ try {
   const boundaryDroppingOne = unsupportedIds.filter((id) => id !== boundaryIdsOwed[0]);
   assert(RULES.isUnavailable(californiaSettlement.totalStateTax)
     && RULES.isSourcedZero(sourcedZeroSettlement.totalStateTax)
+    && RULES.isUnavailable(unstatedImpositionSettlement.totalStateTax)
     && Number.isFinite(resolvingSettlement.totalStateTax.value)
     && californiaSettlement.completeStateTax === false
     && sourcedZeroSettlement.completeStateTax === false
+    && unstatedImpositionSettlement.completeStateTax === false
     && resolvingSettlement.completeStateTax === false
     && boundaryIdsOwed.length === 3
     && boundaryCovers(unsupportedIds)
     && !boundaryCovers(boundaryDroppingOne),
-  'TP-04-14: every return the state module has — the refusing California settlement, a sourced-zero settlement and a settlement that resolves to a finite figure — reports the state tax as not complete, and the coverage boundary is required to name each absent-figure family the pack itself carries rather than a hand-listed set, with the requirement proven able to fail on a boundary that drops one of them');
+  'TP-04-14: every return the state module has — the refusing California settlement, a sourced-zero settlement, a settlement whose pack states no imposition and a settlement that resolves to a finite figure — reports the state tax as not complete, and the coverage boundary is required to name each absent-figure family the pack itself carries rather than a hand-listed set, with the requirement proven able to fail on a boundary that drops one of them');
 
   /* TP-04-13: no engine module was modified for California. */
   const engineModules = ['rltaxrules.js', 'rltax.js', 'rltaxstate.js', 'rltaxworkspace.js', 'rltaxcombined.js'];
@@ -15652,6 +15685,7 @@ try {
   const floridaPack = JSON.parse(read('tax-rules/state/FL/2026.json'));
   const californiaPack = JSON.parse(read('tax-rules/state/CA/2026.json'));
   const fixturePack = JSON.parse(read('tax-rules/fixtures/state-contract-no-preferential-2999.json'));
+  const noTaxFixturePack = JSON.parse(read('tax-rules/fixtures/state-no-tax-2999.json'));
 
   function combinedWorkspace(jurisdiction, ordinary, gain, status, mode) {
     const workspace = WORKSPACE.createEmptyWorkspace();
@@ -15690,19 +15724,23 @@ try {
   /* TP-05-02 and TP-05-06: the combined total sums two jurisdiction totals, and a sourced zero is
      a real addend added through a contract-version branch. */
   const fixtureCombination = COMBINED.combineSettlements(combinedWorkspace('state:ZZ', 200000), federalPack, fixturePack);
+  const noTaxCombination = COMBINED.combineSettlements(combinedWorkspace('state:QQ', 200000), federalPack, noTaxFixturePack);
   const floridaCombination = COMBINED.combineSettlements(combinedWorkspace('state:FL', 200000), federalPack, floridaPack);
   const californiaCombination = COMBINED.combineSettlements(combinedWorkspace('state:CA', 200000), federalPack, californiaPack);
   const fixtureSum = fixtureCombination.federal.totalFederalTax.value + fixtureCombination.state.totalStateTax.value;
   assert(fixtureCombination.combinedTotalTax.value === fixtureSum
     && fixtureCombination.federalTotalKind === 'valued' && fixtureCombination.stateTotalKind === 'valued'
-    && floridaCombination.stateTotalKind === 'sourced-zero'
-    && RULES.isSourcedZero(floridaCombination.state.totalStateTax)
-    && floridaCombination.combinedTotalTax.value === floridaCombination.federal.totalFederalTax.value
-    && !RULES.isUnavailable(floridaCombination.combinedTotalTax)
-    && floridaCombination.completeCombinedTax === false
+    && noTaxCombination.stateTotalKind === 'sourced-zero'
+    && RULES.isSourcedZero(noTaxCombination.state.totalStateTax)
+    && noTaxCombination.combinedTotalTax.value === noTaxCombination.federal.totalFederalTax.value
+    && !RULES.isUnavailable(noTaxCombination.combinedTotalTax)
+    && noTaxCombination.completeCombinedTax === false
+    && floridaCombination.stateTotalKind === 'refusal'
+    && RULES.isUnavailable(floridaCombination.combinedTotalTax)
+    && codeOf(floridaCombination.combinedTotalTax) === codeOf(floridaCombination.state.totalStateTax)
     && RULES.isUnavailable(californiaCombination.combinedTotalTax)
     && codeOf(californiaCombination.combinedTotalTax) === codeOf(californiaCombination.state.totalStateTax),
-  'TP-05-02 and TP-05-06: the combined total equals the sum of the two jurisdiction totals, includes a sourced zero as a real addend rather than skipping it, and inherits the refusal of the refusing side');
+  'TP-05-02 and TP-05-06: the combined total equals the sum of the two jurisdiction totals, includes a sourced zero as a real addend rather than skipping it, and inherits the refusal of the refusing side whether that side refuses for a missing figure or because its pack states no imposition');
 
   /* The addition branches on the contract version rather than on the value. */
   const combinedSource = read('rltaxcombined.js');
@@ -15957,21 +15995,27 @@ try {
     && attributableControl.segments.length > 0,
   'TP-05-11: a combined rate change no pack declares a threshold for is refused RLTAX-THRESHOLD-UNAVAILABLE at combined-curve:ordinary:segment with no partial curve, while the same call on the shipped fixture still produces one');
 
-  /* TP-05-12: the no-tax state contributes a present, flat, attributed zero series. */
+  /* TP-05-12: the no-tax state contributes a present, flat, attributed zero series, and a state
+     whose pack states no imposition contributes no series at all rather than a flat zero. */
+  const noTaxCurve = COMBINED.computeCombinedMarginalCurve(
+    combinedWorkspace('state:QQ', 150000), federalPack, noTaxFixturePack, 'ordinary', combinedConfig.sweep);
+  const noTaxStateTotal = noTaxCombination.state.totalStateTax;
   const floridaCurve = COMBINED.computeCombinedMarginalCurve(
     combinedWorkspace('state:FL', 150000), federalPack, floridaPack, 'ordinary', combinedConfig.sweep);
-  const floridaStateTotal = floridaCombination.state.totalStateTax;
-  assert(!RULES.isUnavailable(floridaCurve)
-    && floridaCurve.points.length > 0
-    && floridaCurve.points.every((point) => point.stateMarginalRate === 0)
-    && floridaCurve.points.every((point) => point.stateTaxAtLevel === 0)
-    && floridaCurve.points.every((point) => point.stateTotalKind === 'sourced-zero')
-    && RULES.isSourcedZero(floridaStateTotal)
-    && floridaStateTotal.sourceRef === floridaPack.noTaxAuthority.sourceRef
-    && floridaPack.sourceRecords.some((record) => record.sourceId === floridaStateTotal.sourceRef)
-    && floridaCurve.unavailableContributors.length > 0
-    && floridaCurve.incomplete === true,
-  'TP-05-12: a jurisdiction that imposes no individual income tax contributes a state series that is present and flat at zero across the whole domain, every point of which is a sourced zero whose authority resolves to a retrieved record in that pack, and the curve still declares itself incomplete');
+  const floridaCurvePoints = RULES.isUnavailable(floridaCurve) ? [] : floridaCurve.points;
+  assert(!RULES.isUnavailable(noTaxCurve)
+    && noTaxCurve.points.length > 0
+    && noTaxCurve.points.every((point) => point.stateMarginalRate === 0)
+    && noTaxCurve.points.every((point) => point.stateTaxAtLevel === 0)
+    && noTaxCurve.points.every((point) => point.stateTotalKind === 'sourced-zero')
+    && RULES.isSourcedZero(noTaxStateTotal)
+    && noTaxStateTotal.sourceRef === noTaxFixturePack.noTaxAuthority.sourceRef
+    && noTaxFixturePack.sourceRecords.some((record) => record.sourceId === noTaxStateTotal.sourceRef)
+    && noTaxCurve.unavailableContributors.length > 0
+    && noTaxCurve.incomplete === true
+    && floridaCurvePoints.every((point) => point.stateTotalKind !== 'sourced-zero')
+    && floridaCurvePoints.every((point) => point.stateTaxAtLevel !== 0),
+  'TP-05-12: a jurisdiction that imposes no individual income tax contributes a state series that is present and flat at zero across the whole domain, every point of which is a sourced zero whose authority resolves to a retrieved record in that pack, the curve still declares itself incomplete, and a jurisdiction whose pack states no imposition contributes no zero-valued point anywhere in its own curve');
 
   /* TP-05-13: a budget the union would exceed refuses rather than dropping a jurisdiction. */
   const tightSweep = JSON.parse(JSON.stringify(combinedConfig.sweep));

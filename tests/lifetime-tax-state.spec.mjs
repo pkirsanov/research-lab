@@ -1,5 +1,7 @@
 import { expect, test } from './playwright-runtime.mjs';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { startStaticServer } from './provider-credentials.support.mjs';
@@ -19,6 +21,24 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
    this file names a rate, a bracket edge or a deduction amount. */
 const FLORIDA = JSON.parse(readFileSync(join(ROOT, 'tax-rules/state/FL/2026.json'), 'utf8'));
 const CALIFORNIA = JSON.parse(readFileSync(join(ROOT, 'tax-rules/state/CA/2026.json'), 'utf8'));
+
+const FLORIDA_PACK_PATH = 'tax-rules/state/FL/2026.json';
+const RULES = createRequire(import.meta.url)(join(ROOT, 'rltaxrules.js'));
+
+/* No shipped jurisdiction pack states that it imposes no individual income tax, because no
+   retrieved authority states it. The sourced-zero rendering is therefore proven by SERVING the
+   no-tax contract fixture at a declared pack path: the route runs unmodified, the pack it reads
+   really does state the absence, and no fixture wording is presented as a jurisdiction's
+   authority anywhere outside this served copy. The declared jurisdiction is re-keyed to the path
+   it is served at and the digest is RECOMPUTED from the served bytes, so the pack the page reads
+   is internally consistent rather than carrying a hash of something else. */
+function servingNoTaxPackAtFlorida() {
+  const pack = JSON.parse(readFileSync(join(ROOT, 'tax-rules/fixtures/state-no-tax-2999.json'), 'utf8'));
+  pack.jurisdiction = 'state:FL';
+  pack.contentSha256 = 'sha256:' + createHash('sha256')
+    .update(RULES.packContentDigestInput(pack)).digest('hex');
+  return { pack, overrides: { [FLORIDA_PACK_PATH]: JSON.stringify(pack) } };
+}
 
 /* SUP-023-10, as replaced by SUP-024-09. See the companion definition in
    lifetime-tax-foundation.spec.mjs. The asset set the route may request is derived from the
@@ -45,59 +65,93 @@ const cardRefusal = (page) => page.locator('#stateSettlementCard [data-rl-unavai
 const stateFigure = (page) => page.locator('[data-rl-value="stateIncomeTax"]');
 
 let site;
-test.beforeAll(async () => { site = await startStaticServer(); });
-test.afterAll(async () => { if (site) await site.close(); });
+let noTaxSite;
+const NO_TAX = servingNoTaxPackAtFlorida();
+test.beforeAll(async () => {
+  site = await startStaticServer();
+  noTaxSite = await startStaticServer({ overrides: NO_TAX.overrides });
+});
+test.afterAll(async () => {
+  if (site) await site.close();
+  if (noTaxSite) await noTaxSite.close();
+});
 
 test('Regression: SCN-022-009 a jurisdiction that levies no individual income tax renders its sourced zero with the authority that establishes it, and never enters the federal total', async ({ page }) => {
+  const noTax = NO_TAX;
+  const noTaxSiteForTest = noTaxSite;
+  {
+    await openLifetimeTax(page, noTaxSiteForTest);
+    await declareOrdinaryHousehold(page, { ordinary: 123457, bracketId: 'b3' });
+
+    /* The federal figure BEFORE any residency exists. It is captured rather than restated so the
+       comparison below is against what this settlement actually produced. */
+    const federalBefore = await page.locator('[data-rl-value="headlineFederalTax"]').textContent();
+    expect(federalBefore).toMatch(/^\$[\d,]+$/);
+
+    await declareResidency(page, 'state:FL', 'full-year-resident');
+
+    /* A separate leg. The federal total is byte-identical to the total of the same household
+       settled before any residency was declared, so the state settlement is proven not to be
+       summed into it rather than merely described as separate. */
+    await expect(page.locator('[data-rl-value="headlineFederalTax"]')).toHaveText(federalBefore);
+
+    /* The sourced zero is a zero that carries its authority, so it is rendered as a figure and not
+       as a refusal. */
+    await expect(stateFigure(page)).toHaveText('$0');
+    await expect(cardRefusal(page)).toHaveCount(0);
+    await expect(page.locator('#stateSettlementCard [data-rl-state-settlement="state:FL"]')).toBeVisible();
+
+    /* Every displayed figure carries its own contextual explanation, and the explanation says in
+       words that this figure is not part of the federal one. */
+    const describedBy = await stateFigure(page).getAttribute('aria-describedby');
+    expect(describedBy).toBe('tip-stateIncomeTax');
+    await expect(page.locator('#tip-stateIncomeTax')).toContainText('never added into the federal');
+
+    /* The citation the pack carries, shown beside the figure rather than only in Power: a zero a
+       reader cannot trace is indistinguishable from an absence. */
+    const authority = noTax.pack.sourceRecords
+      .filter((record) => record.sourceId === noTax.pack.noTaxAuthority.sourceRef)[0];
+    const cardText = await page.locator('#stateSettlementCard').innerText();
+    expect(cardText).toContain(noTax.pack.noTaxAuthority.locator);
+    expect(cardText).toContain(authority.title);
+
+    await openPower(page);
+    await expect(page.locator('#statePackIdentity')).toContainText('state:FL');
+    await expect(page.locator('#statePackIdentity')).toContainText(noTax.pack.contentSha256);
+    await expect(page.locator('#stateSeparationLine')).toContainText('No federal amount reaches it');
+    await expect(page.locator('#stateAuthorityLine')).toContainText(noTax.pack.noTaxAuthority.locator);
+    await expect(page.locator('#stateAuthorityLine')).toContainText(authority.url);
+    await expect(page.locator('[data-rl-state-stage="total"] [data-rl-value="state-total"]')).toHaveText('$0');
+
+    /* Named rather than silently absent: the pack states what it does not carry, and each entry
+       reaches the page under its own declared id. */
+    for (const notice of noTax.pack.unsupportedFeatures) {
+      await expect(page.locator(`[data-rl-state-unsupported="${notice.id}"]`)).toContainText(notice.code);
+    }
+  }
+});
+
+test('Regression: the shipped Florida pack states no imposition, so the route renders a refusal naming the authority that was never retrieved and shows no zero in its place', async ({ page }) => {
   await openLifetimeTax(page, site);
   await declareOrdinaryHousehold(page, { ordinary: 123457, bracketId: 'b3' });
-
-  /* The federal figure BEFORE any residency exists. It is captured rather than restated so the
-     comparison below is against what this settlement actually produced. */
-  const federalBefore = await page.locator('[data-rl-value="headlineFederalTax"]').textContent();
-  expect(federalBefore).toMatch(/^\$[\d,]+$/);
-
   await declareResidency(page, 'state:FL', 'full-year-resident');
 
-  /* A separate leg. The federal total is byte-identical to the total of the same household settled
-     before any residency was declared, so the state settlement is proven not to be summed into it
-     rather than merely described as separate. */
-  await expect(page.locator('[data-rl-value="headlineFederalTax"]')).toHaveText(federalBefore);
+  /* The pack declines to derive the absence from a prohibition plus an administrative silence, so
+     the member carries no value and the route may not render one. */
+  expect(FLORIDA.imposesIndividualIncomeTax.contractVersion).toBe('AbsentFigure/v1');
+  expect(FLORIDA.noTaxAuthority).toBeNull();
 
-  /* The sourced zero is a zero that carries its authority, so it is rendered as a figure and not
-     as a refusal. */
-  await expect(stateFigure(page)).toHaveText('$0');
-  await expect(cardRefusal(page)).toHaveCount(0);
-  await expect(page.locator('#stateSettlementCard [data-rl-state-settlement="state:FL"]')).toBeVisible();
+  const refusal = cardRefusal(page);
+  await expect(refusal).toHaveAttribute('data-rl-unavailable', FLORIDA.imposesIndividualIncomeTax.code);
+  const refusalText = await refusal.innerText();
+  expect(refusalText).toContain('Unavailable because');
+  expect(refusalText).toContain('What would make it available:');
+  expect(refusalText).toContain(FLORIDA.imposesIndividualIncomeTax.missingSource.title);
 
-  /* Every displayed figure carries its own contextual explanation, and the explanation says in
-     words that this figure is not part of the federal one. */
-  const describedBy = await stateFigure(page).getAttribute('aria-describedby');
-  expect(describedBy).toBe('tip-stateIncomeTax');
-  await expect(page.locator('#tip-stateIncomeTax')).toContainText('never added into the federal');
-
-  /* The constitutional citation the pack carries, shown beside the figure rather than only in
-     Power: a zero a reader cannot trace is indistinguishable from an absence. */
-  const authority = FLORIDA.sourceRecords.filter((record) => record.sourceId === FLORIDA.noTaxAuthority.sourceRef)[0];
+  /* A refusal surface renders no numeral: a household must not read an absence as a zero owed. */
+  await expect(stateFigure(page)).toHaveCount(0);
   const cardText = await page.locator('#stateSettlementCard').innerText();
-  expect(cardText).toContain(FLORIDA.noTaxAuthority.locator);
-  expect(FLORIDA.noTaxAuthority.locator).toContain('Article VII, Section 5');
-  expect(FLORIDA.noTaxAuthority.locator).toContain('subsection (a)');
-  expect(cardText).toContain(authority.title);
-
-  await openPower(page);
-  await expect(page.locator('#statePackIdentity')).toContainText('state:FL');
-  await expect(page.locator('#statePackIdentity')).toContainText(FLORIDA.contentSha256);
-  await expect(page.locator('#stateSeparationLine')).toContainText('No federal amount reaches it');
-  await expect(page.locator('#stateAuthorityLine')).toContainText(FLORIDA.noTaxAuthority.locator);
-  await expect(page.locator('#stateAuthorityLine')).toContainText(authority.url);
-  await expect(page.locator('[data-rl-state-stage="total"] [data-rl-value="state-total"]')).toHaveText('$0');
-
-  /* Named rather than silently absent: the pack states what it does not carry, and each entry
-     reaches the page under its own declared id. */
-  for (const notice of FLORIDA.unsupportedFeatures) {
-    await expect(page.locator(`[data-rl-state-unsupported="${notice.id}"]`)).toContainText(notice.code);
-  }
+  expect(cardText).not.toMatch(/\$\d/);
 });
 
 test('Regression: California renders an unavailable naming the source that was not retrieved, and shows no figure at all in its place', async ({ page }) => {
@@ -188,7 +242,9 @@ test('Regression: SCN-022-007 / SCN-022-008 an unshipped state, an undeclared re
 });
 
 test('Regression: a residency declaration that changes nothing rebuilds nothing, and a residency that changes rebuilds the card', async ({ page }) => {
-  await openLifetimeTax(page, site);
+  /* Served against the no-tax pack so the card under test carries a FIGURE. The rebuild guard has
+     to be proven on a rendered figure, not only on a refusal surface. */
+  await openLifetimeTax(page, noTaxSite);
   await declareOrdinaryHousehold(page, { ordinary: 123457, bracketId: 'b3' });
   await declareResidency(page, 'state:FL', 'full-year-resident');
   await expect(stateFigure(page)).toHaveText('$0');

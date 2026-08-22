@@ -1578,6 +1578,23 @@
         refuseMember(refusals, member, "a required TaxRulePack/v2 member is absent");
       }
     }
+    /* Three states, not two. A pack may state that the tax IS imposed, state that it is NOT,
+       or state neither — the last when no retrieved authority states the absence and the pack
+       declines to derive it from a prohibition plus an administrative silence. The unstated
+       state carries an AbsentFigure and no authority, because an authority establishing the
+       absence would be the very assertion the pack is declining to make. */
+    var impositionUnstated = isAbsentFigure(pack.imposesIndividualIncomeTax);
+    if (pack.imposesIndividualIncomeTax !== true && pack.imposesIndividualIncomeTax !== false && !impositionUnstated) {
+      refuseMember(refusals, "imposesIndividualIncomeTax",
+        "imposesIndividualIncomeTax is a boolean or an AbsentFigure/v1 naming the authority that would state it");
+    }
+    if (impositionUnstated) {
+      validateAbsentFigure(pack.imposesIndividualIncomeTax, "imposesIndividualIncomeTax", refusals);
+      if (pack.noTaxAuthority !== null) {
+        refuseMember(refusals, "noTaxAuthority",
+          "a pack that does not state whether the tax is imposed may not name an authority establishing its absence");
+      }
+    }
     if (pack.imposesIndividualIncomeTax === true && pack.noTaxAuthority !== null) {
       refuseMember(refusals, "noTaxAuthority", "a jurisdiction that imposes a tax carries a null noTaxAuthority");
     }
@@ -1590,11 +1607,14 @@
         }
         validateCitation(pack.noTaxAuthority, "noTaxAuthority", sources, refusals);
       }
+    }
+    if (pack.imposesIndividualIncomeTax === false || impositionUnstated) {
       if (Array.isArray(pack.taxLegs) && pack.taxLegs.length !== 0) {
-        refuseMember(refusals, "taxLegs", "a jurisdiction that imposes no tax declares no tax legs");
+        refuseMember(refusals, "taxLegs", "a jurisdiction that does not state it imposes a tax declares no tax legs");
       }
-      /* A pack that declares no tax while still carrying a rate table is the exact shape a
-         fabricated zero would take, so it is refused rather than silently ignored. */
+      /* A pack that carries a rate table while declaring no tax, or while declining to state
+         whether one is imposed, is the exact shape a fabricated zero would take, so it is
+         refused rather than silently ignored. */
       var noTaxGroups = ["ordinaryRateTables", "preferentialRateTables", "standardDeductions"];
       var groupIndex = 0;
       for (groupIndex = 0; groupIndex < noTaxGroups.length; groupIndex += 1) {
@@ -1605,13 +1625,13 @@
         for (keyIndex = 0; keyIndex < statusKeys.length; keyIndex += 1) {
           if (!isAbsentFigure(group[statusKeys[keyIndex]])) {
             refuseMember(refusals, noTaxGroups[groupIndex] + "." + statusKeys[keyIndex],
-              "a jurisdiction that imposes no tax carries no rate table and no deduction amount");
+              "a jurisdiction that does not state it imposes a tax carries no rate table and no deduction amount");
             break;
           }
         }
       }
       if (isPlainObject(pack.thresholdSets) && Object.keys(pack.thresholdSets).length !== 0) {
-        refuseMember(refusals, "thresholdSets", "a jurisdiction that imposes no tax declares no threshold set");
+        refuseMember(refusals, "thresholdSets", "a jurisdiction that does not state it imposes a tax declares no threshold set");
       }
     }
     if (pack.preferentialPolicy !== "own-schedule" && pack.preferentialPolicy !== "none") {
@@ -1632,7 +1652,7 @@
       refuseMember(refusals, "reliefMechanisms", "reliefMechanisms must be an array; an empty array declares no relief");
     }
     if (Object.prototype.hasOwnProperty.call(pack, "thresholdSets")) validateThresholdSets(pack, sources, refusals);
-    if (Object.prototype.hasOwnProperty.call(pack, "taxLegs") && pack.imposesIndividualIncomeTax !== false) {
+    if (Object.prototype.hasOwnProperty.call(pack, "taxLegs") && pack.imposesIndividualIncomeTax === true) {
       validateTaxLegs(pack, refusals);
     }
     validateReliefMechanisms(pack, sources, refusals);
@@ -1643,6 +1663,9 @@
      the numeric value of the stage ids. */
   function calculationOrderFor(pack) {
     if (isPlainObject(pack) && pack.imposesIndividualIncomeTax === false) return [];
+    /* A pack that does not state whether the tax is imposed derives no stages either. Deriving
+       a schedule here would be the first step of computing a tax the pack never claimed exists. */
+    if (isPlainObject(pack) && isAbsentFigure(pack.imposesIndividualIncomeTax)) return [];
     if (isPlainObject(pack) && pack.preferentialPolicy === "none") {
       return CALCULATION_ORDER_NO_PREFERENTIAL.slice();
     }

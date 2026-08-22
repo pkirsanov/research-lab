@@ -654,7 +654,56 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   that map cannot reach a later row — the fence is the shape of the data, not a check to remember. The test walks
   the map's own keys and additionally asserts the excluded count is non-zero, so an empty slice cannot pass
   vacuously; a lookup past the fence refuses `RTR-LOOKAHEAD` / `observation-past-resolution-date`.
-- [ ] **The bar row shape is VALIDATED, not assumed, and it is not closed at seven fields.** `readBars` requires the **six** fields all three measured row forms share (`t` integer and strictly ascending, plus `o, h, l, c, v` finite), validates `ac` as **OPTIONAL** (finite *if present*), and accepts unknown keys — because the committed substrate carries `{ t, o, h, l, c, v, ac }` on 147,337 rows, `{ t, o, h, l, c, v }` on 2,675, and a 12-key `source*` provenance variant on 26. A malformed file **throws** rather than closing a claim `not-evaluable`. Neither a six-field nor a seven-field closed shape is assumed anywhere in code or fixtures; *both were asserted by earlier revisions of this plan — see Ruling R-04-02.*
+- [x] **The bar row shape is VALIDATED, not assumed, and it is not closed at seven fields.** `readBars` requires the **six** fields all three measured row forms share (`t` integer and strictly ascending, plus `o, h, l, c, v` finite), validates `ac` as **OPTIONAL** (finite *if present*), and accepts unknown keys — because the committed substrate carries `{ t, o, h, l, c, v, ac }` on 147,337 rows, `{ t, o, h, l, c, v }` on 2,675, and a 12-key `source*` provenance variant on 26. A malformed file **throws** rather than closing a claim `not-evaluable`. Neither a six-field nor a seven-field closed shape is assumed anywhere in code or fixtures; *both were asserted by earlier revisions of this plan — see Ruling R-04-02.*
+
+  **Evidence — the census is RE-RUN this pass rather than read off the item; two of its three counts have
+  rotted.** Executed from `<repo-root>`.
+
+  ```
+  $ node -e '
+  const fs=require("fs"),p=require("path"),dir="data/bars";
+  const forms=new Map(); let files=0,rows=0;
+  for(const f of fs.readdirSync(dir).sort()){
+    if(!f.endsWith(".json")||f===require("./rlclaims.js").BARS_MANIFEST_FILENAME)continue;
+    const b=JSON.parse(fs.readFileSync(p.join(dir,f),"utf8"));
+    if(!Array.isArray(b.rows))continue; files++;
+    for(const r of b.rows){rows++;const k=Object.keys(r).sort().join(",");forms.set(k,(forms.get(k)||0)+1);}
+  }
+  console.log("files="+files+" rows="+rows);
+  for(const [k,n] of [...forms].sort((a,b)=>b[1]-a[1]))console.log(n+"  "+k);'
+  files=292 rows=150061
+  147384  ac,c,h,l,o,t,v
+  2675  c,h,l,o,t,v
+  2  c,h,l,o,sourceBars,sourceCoverage,sourceExpectedBars,sourceFirstObservedAt,sourceLastObservedAt,sourceState,t,v
+  exit code: 0
+  ```
+
+  Three forms and no fourth, which is the load-bearing half and is unchanged: an `ac`-**required** shape would
+  throw on 2,675 real rows and a closed key list would throw on the `source*` variant, so OPTIONAL-`ac`-plus-open-keys
+  is the only shape that reads this substrate. **The counts have moved and the item's are stale**: `147,337` measures
+  **147,384** and `26` measures **2** (150,061 total, censused above). The same two stale numbers sit in the source
+  comment at `scripts/brief-resolve-outcomes.mjs:255`–`:257`; they are prose, and no validation reads them, so the
+  drift is a documentation defect rather than a behavioural one. The item text is left as authored — correcting it
+  here would be amending a demand mid-verification.
+
+  The validation itself, located in the executed source:
+
+  ```
+  $ grep -nE "const BAR_CORE_FIELDS|for \(const field of BAR_CORE_FIELDS\)|'ac' in row" scripts/brief-resolve-outcomes.mjs
+  scripts/brief-resolve-outcomes.mjs:241:const BAR_CORE_FIELDS = Object.freeze(['o', 'h', 'l', 'c', 'v']);
+  scripts/brief-resolve-outcomes.mjs:280:    for (const field of BAR_CORE_FIELDS) {
+  scripts/brief-resolve-outcomes.mjs:283:    if ('ac' in row && !Number.isFinite(row.ac)) throw bad(`${bars.sym} row ${row.t} has a non-finite ac`);
+  exit code: 0
+  ```
+
+  `BAR_CORE_FIELDS` is `o,h,l,c,v` — five, plus the `Number.isInteger(row.t)` and strict-ascending guards at
+  `:276`/`:279`, which is the six. `ac` is gated on `'ac' in row`, so absent passes and present-but-non-finite
+  throws. Every failure path in `readBars` is `throw bad(...)`, never a `not-evaluable` closure — a broken
+  substrate is our defect, not a fact about a claim. The closed-shape half is proven by ABSENCE, which needs the
+  search to be able to hit: `grep -rnE 'Object\.keys\((row|bar)[^)]*\)\.length|keys\.length ?[=<>]|BAR_ROW_FIELDS|ROW_SHAPE'`
+  over the resolver, `rlclaims.js` and all four test files returns four hits, and every one is a **ledger** row
+  key-count (`unit.mjs:717`, `:1006`, `:1010`, `functional.mjs:801`, counting the 17/25/27-key v2 shapes) — not one
+  is a bar row. No bar-row key count is asserted anywhere.
 - [x] **Ruling R-04-01 is DISCHARGED — the price basis is read from the claim, never selected here.** `basisValueAt` resolves `c` vs `ac` from the claim's frozen hashed `priceBasis` term, which scope 01 has landed; a claim carrying no such term refuses rather than defaulting; and no `ret(x)`-dependent item in this DoD may be ticked on a basis this scope chose for itself.
 
   **Evidence — increment 2 (value slice, commit `30a9e2624`).** Executed from `<repo-root>`.
@@ -688,6 +737,28 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   `+10` under one basis and `-10` under the other, so the frozen term decides the sign.
 - [ ] **A retroactive `ac` rewrite is detectable, not silent — by a MOVED content address, not by a refusal.** The hashed `provenance` records a fingerprint of the exact basis values read at `entryDate` and `resolutionDate`, so a later rewrite (BUG-012) changes the resolution hash and the rewritten reading is written at a **second** address: both records survive, the first is byte-unchanged, and the divergence is the evidence. `RTR-RESOLUTION-CONFLICT` is the **different** case — an *unhashed* field changing at an *already-taken* address — and must not be asserted here; *an earlier revision of this item named it as the mechanism, which the code demonstrably does not raise — see Ruling R-04-03.*
 - [ ] "Not yet resolvable" (`bars.asof < resolutionDate`) is a silent skip leaving the claim `active` with zero events appended — never an `RTR-LOOKAHEAD` refusal.
+
+  **LEFT UNTICKED — the second conjunct holds, the first is UNIMPLEMENTED. No production code reads
+  `fence.resolvable`.** Executed from `<repo-root>`.
+
+  ```
+  $ grep -rnE '\.resolvable\b|resolvable:' --include='*.mjs' --include='*.js' --include='*.html' . | grep -v node_modules
+  ./scripts/brief-resolve-outcomes.mjs:423:    resolvable: bars.asof >= resolutionDate,
+  ./tests/recommendation-track-record.functional.mjs:416:        // Individually resolvable: each address returns ITS OWN horizon under the shared key. This
+  ./tests/recommendation-track-record.unit.mjs:2220:    assert.equal(notYet.resolvable, false, 'it reports itself unresolvable');
+  ./tests/recommendation-track-record.unit.mjs:2221:    assert.equal(fence.resolvable, true, 'paired with an observed horizon that IS resolvable');
+  exit code: 0
+  ```
+
+  One WRITE at `:423` and two test reads. The flag is computed and then never consulted, so the "caller SKIPS it
+  and appends nothing" the header at `:396`–`:399` describes has no caller. The skip that does exist is a
+  *different* predicate: `dueEntryKeys` excludes on `resolutionDate > asOfDate` (`:1613`) where `asOfDate` is the
+  **run's** date supplied by the caller, not the **symbol's** `bars.asof`. A stale series is exactly the gap
+  between them — `bars.asof < resolutionDate <= run asOfDate` makes the claim due, the fence then holds no row at
+  `resolutionDate`, and `basisValueAt` returns the session-absent **closure**. So today that claim closes
+  `unresolved` and an event IS appended, which is the negation of this item, not a variant of it. The
+  `RTR-LOOKAHEAD` half is nonetheless satisfied: `LOOKAHEAD_CODE` is raised only at `:355` for a read past the
+  fence, and never from the `resolvable` computation.
 - [x] All four predicate kinds are implemented; point comparators evaluate once at `resolutionDate` and path comparators require the complete intervening session set, closing `unresolved` reason `path-incomplete` on a gap rather than evaluating a partial path.
 
   **Evidence — increment 4 (predicate slice, commit `65e47272b`).** Executed from `<repo-root>`.
@@ -749,7 +820,46 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   outcome rather than an invariant violation. The reason is asserted against `CLOSURE_REASON_CODES.unresolved` at
   module load, so a rename in `rlclaims.js` fails here rather than producing a reason `buildResolution` would
   later reject.
-- [ ] **`RTR-PRICE-BASIS` is resolver-OWNED, and a path comparator on `adjusted-close` is structurally unresolvable.** The code is declared here (`scripts/brief-resolve-outcomes.mjs:227`) and raised from three sites — `:365`, `:824` and `:1034`. Because `PRICE_BASIS_ROW_FIELD` binds `adjusted-close` to `ac` and no row carries an adjusted extreme, a `crosses-above` / `crosses-below` claim on that basis **refuses** `RTR-PRICE-BASIS` / `path-extremes-absent-for-basis` rather than closing, and rather than dividing a raw `h`/`l` by an adjusted close. The support test is **derived** — membership of the bound row field in `BAR_CORE_FIELDS` — never a second list of basis names. *No DoD item covered this obligation before Ruling R-04-05.*
+- [x] **`RTR-PRICE-BASIS` is resolver-OWNED, and a path comparator on `adjusted-close` is structurally unresolvable.** The code is declared here (`scripts/brief-resolve-outcomes.mjs:227`) and raised from three sites — `:365`, `:824` and `:1034`. Because `PRICE_BASIS_ROW_FIELD` binds `adjusted-close` to `ac` and no row carries an adjusted extreme, a `crosses-above` / `crosses-below` claim on that basis **refuses** `RTR-PRICE-BASIS` / `path-extremes-absent-for-basis` rather than closing, and rather than dividing a raw `h`/`l` by an adjusted close. The support test is **derived** — membership of the bound row field in `BAR_CORE_FIELDS` — never a second list of basis names. *No DoD item covered this obligation before Ruling R-04-05.*
+
+  **Evidence — the refusal is executed, and the "no adjusted extreme" premise is measured rather than assumed.**
+  Executed from `<repo-root>`.
+
+  ```
+  $ node --test tests/recommendation-track-record.unit.mjs
+  ✔ T-04-U2 (increment 4): point and path comparators are different evaluations, and a path gap closes path-incomplete (24.034775ms)
+  ℹ tests 39
+  ℹ pass 39
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  That test carries `assert.equal(mixed.error.reason, 'path-extremes-absent-for-basis', 'reason')` at
+  `tests/recommendation-track-record.unit.mjs:2714`, so the refusal is raised in execution, not inferred.
+
+  ```
+  $ grep -nE 'PRICE_BASIS_CODE' scripts/brief-resolve-outcomes.mjs
+  scripts/brief-resolve-outcomes.mjs:227:export const PRICE_BASIS_CODE = 'RTR-PRICE-BASIS';
+  scripts/brief-resolve-outcomes.mjs:495:        code: PRICE_BASIS_CODE,
+  scripts/brief-resolve-outcomes.mjs:980:        code: PRICE_BASIS_CODE,
+  scripts/brief-resolve-outcomes.mjs:1190:          code: PRICE_BASIS_CODE,
+  ```
+
+  Declared here at `:227` — the item's citation is exact — and raised from **three** sites, which is the number
+  the item asserts. The three line numbers have drifted: they read `495`, `980` and `1190` this pass, not `:365`,
+  `:824` and `:1034`. Ownership is what the item turns on and it is unambiguous: the code is `export const` in
+  this scope's own module and appears in no other file, so no consumed module raises it.
+
+  The structural half rests on two measurements rather than on the plan's word. First, the bound field:
+  `PRICE_BASIS_ROW_FIELD` is `{"raw-close":"c","adjusted-close":"ac"}` (read from the shipped `rlclaims.js` via
+  `node -e`), and `basisCarriesPathExtremes` at `:967`–`:969` is one line —
+  `return BAR_CORE_FIELDS.includes(claims.PRICE_BASIS_ROW_FIELD[priceBasis]);` — so the support test IS the
+  membership, with no second list of basis names anywhere; `ac` is not in `['o','h','l','c','v']`, so the
+  `adjusted-close` path refuses by derivation and would start passing by itself if an adjusted extreme were ever
+  added to `BAR_CORE_FIELDS`. Second, the premise that no row carries one: a census of every distinct key across
+  all 150,061 committed bar rows yields `ac,c,h,l,o,sourceBars,sourceCoverage,sourceExpectedBars,sourceFirstObservedAt,sourceLastObservedAt,sourceState,t,v`
+  and no adjusted-extreme key. The refusal at `:1186`–`:1195` therefore fires *before* any value is read, so the
+  raw-`h`-over-adjusted-close division the item forbids is unreachable rather than merely unwritten.
 - [ ] The data-quality gates are applied: `zeroObservedSessions` closes `not-evaluable`; `reconstructedSessions` and `thinObservedSessions` do not block resolution and are recorded verbatim in the resolution object's `provenance`.
 - [x] `outcomeValue = direction × ret(subject)` with `direction` frozen from `ACTION_DIRECTION` (`rlcontracts.js:720`); the class is assigned by calling `classifyOutcome` (`rlclaims.js:795`) rather than re-deriving the band comparison; values are stored unrounded as IEEE-754 doubles with rounding applied only at render; `direction === 0` closes `neutral-direction-no-magnitude`. Unblocked: Ruling R-04-01 is discharged, so the `ret(subject)` half reads the claim's frozen basis. *An earlier revision of this item still read "Blocked on Ruling R-04-01" while ticked — see Ruling R-04-04.*
 
@@ -841,7 +951,44 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 
   This is the `T-04-F3` functional row the increment-4 note above deferred to; it is now green, so the
   "including a claim about to score badly" conjunct is discharged by execution.
-- [ ] A bare `0` never reaches a directional class: `RTR-FLAT-ZERO` (`rlclaims.js:133`) is left to fire from the shipped `buildResolution` and `assertZeroFreeOutcomes` (`:817`), and this scope neither coerces a zero nor pre-filters the array to avoid the refusal.
+- [x] A bare `0` never reaches a directional class: `RTR-FLAT-ZERO` (`rlclaims.js:133`) is left to fire from the shipped `buildResolution` and `assertZeroFreeOutcomes` (`:817`), and this scope neither coerces a zero nor pre-filters the array to avoid the refusal.
+
+  **Evidence — both named surfaces fire in execution, and the resolver's non-participation is proven by an
+  ABSENCE that the same search can detect.** Executed from `<repo-root>`.
+
+  ```
+  $ node --test tests/recommendation-track-record.unit.mjs
+  ✔ T-03-U2: RTR-FLAT-ZERO refuses a bare zero reaching the directional array (3.006284ms)
+  ✔ T-03-U5: the exact unrounded outcomeValue survives into the record, the bytes, and the store (961.093ms)
+  ℹ tests 39
+  ℹ pass 39
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  Two surfaces, two reasons, and the item names both. `T-03-U2` asserts `claims.FLAT_ZERO_CODE` with reason
+  `bare-zero-in-directional-array` (`unit.mjs:1190`–`:1192`) — the `assertZeroFreeOutcomes` gate. `T-03-U5` loops
+  every directional `outcomeClass` and asserts the same code with reason `bare-zero-in-directional-class`
+  (`unit.mjs:1567`–`:1568`) — the `buildResolution` gate. The `:817` and `:133` citations have drifted:
+  `assertZeroFreeOutcomes` is declared at `rlclaims.js:857` and `FLAT_ZERO_CODE` at `rlclaims.js:145` this pass,
+  with `buildResolution` opening at `:1038` and raising the code at `:1093`–`:1096`, so the raise IS inside the
+  function the item names.
+
+  ```
+  $ grep -nE 'FLAT_ZERO|assertZeroFreeOutcomes|outcomeValue === 0|\|\| 0' scripts/brief-resolve-outcomes.mjs
+  exit code: 1
+  ```
+
+  Nothing. The resolver names neither the code nor the gate, so "left to fire from the shipped" is the literal
+  state of the source rather than an intention — and the pattern is not one that could never match, since
+  `grep -cE` on the identical expression returns **8** against `rlclaims.js`. The resolver reaches those gates by
+  calling `claims.classifyOutcome` at `:731` and `claims.buildResolution` at `:802`, so a zero travels INTO the
+  shipped refusal rather than around it. Coercion is absent by the same shape of proof:
+  `grep -nE '\?\? 0|\|\| 0|Math\.(max|abs)\(0|toFixed'` over the resolver also exits 1. Two `=== 0` ternaries do
+  exist — `:955`, a `primary-only` **weight** vector, and `:1398`, a `matched.length === 0` message choice —
+  and neither touches an outcome value. Nor is the array pre-filtered: the one `filter` that removes zeros,
+  `:1032`'s `term.weight !== 0`, drops zero-weight **basket legs** before any return is computed, which is a
+  different array from the directional outcome values the gate reads.
 - [ ] `not-evaluable` closes at the **first** resolver pass after minting, not at horizon expiry, so a known-unscoreable claim never sits in the open pipeline.
 - [ ] Closures route through `reduceRecommendationEvents` via `run.closures` with `current: []`; the reducer is consumed unchanged, and `rlcontracts.js`, `rlvalidation.js` and `rlclaims.js` are proven unmodified by `git diff --quiet` exiting 0. *An earlier revision asserted "byte-unmodified" with no `sha256` pinned anywhere, which was not decidable as written.* `RTR-CLOSURE-VOCAB` refuses a locally-invented closure type — raised by the shipped `buildResolution`, not re-implemented here.
 - [x] The resolver does not depend on its own closure ordering, because the reducer sorts by `originRecommendationKey` before processing (`rlcontracts.js:1272`). — Evidence: `rlcontracts.js:1272` reads `var closures = run.closures.slice().sort(...)` comparing `left.originRecommendationKey` to `right.originRecommendationKey` (`:1273-1276`) — the cited line is exact. On the resolver side `grep -nE "\.sort\("` returns `465, 601, 602, 676, 681, 884, 885, 908, 909, 1345, 1588` and none sorts a closures array; the array is appended in loop order at `:1683`, handed straight to `applyClosures` at `:1690`, and re-exported frozen at `:1695` with no positional read of `applied`.

@@ -1836,3 +1836,97 @@ wrong, and correcting it alone would leave the shape it misdescribes in place.
 `node scripts/selftest.mjs` — 3190 passed, 0 failed, before and after. Two
 red-green probes were run; each reverted its file inside the invocation and
 verified the restored blob hash against the committed one.
+
+---
+
+## F-AUDIT-05 corrected, F-AUDIT-02 bounded (2026-08-22)
+
+Commit `99c5ae81747c3eedf2f7f51b665250da4758c704`.
+
+### F-AUDIT-05 — the comment now states what its line does
+
+The behaviour is unchanged and deliberately so. A refused exclusion still
+becomes `0`, the remainder leg still publishes `available: true`, and
+`TP-05-13` still pins the whole remainder unexcluded. Whether the leg should
+instead refuse, or publish carrying the refusal as a qualification, is the
+contract decision the audit routed and it is NOT decided here.
+
+What was unambiguously wrong was the comment, which claimed the opposite of its
+own line: that the "refusal travels with the leg rather than silently becoming a
+zero exclusion". A comment that contradicts its line is worse than no comment —
+it tells the next reader the qualification is already handled, which is exactly
+how a reviewer stops looking. The comment now states the coercion, says the
+refusal does not travel onto the leg, records why the shape is deliberate, and
+names this finding as the open question.
+
+The guard pins the AGREEMENT rather than the prose: the comment may claim the
+refusal travels only if the remainder leg actually carries it. That keeps the
+sentence available to whoever eventually makes the leg carry the refusal, and
+unavailable to anyone who merely reasserts it.
+
+```
+label:            F-AUDIT-05 the false comment cannot return while the leg does not carry the refusal
+file:             rltax.js
+mutation:         does NOT travel onto this leg  ->  refusal travels with the leg rather than silently becoming a zero exclusion, and so does travel onto this leg   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=07b7e1626e479af3a6d74a9ca1f5a703d2399e06 restored=07b7e1626e479af3a6d74a9ca1f5a703d2399e06)
+discriminating:   yes (exit 1 != 0)
+```
+
+### F-AUDIT-02 — still open, no longer unbounded
+
+The malformed record is NOT fixed. A conforming `missingSource` needs a `title`,
+a `url` and a `locator` for an authority that was never retrieved, and the
+record's own `reason` states that the retrieval established no primary source
+enumerating the head-of-household limit. Naming a URL for a document whose
+identity is unknown — including reusing Publication 523's URL, which states
+nothing for that status — would be the substitution this program exists to
+prevent. It stays routed until a retrieval session supplies it.
+
+What is fixed is that the defect was uncounted. Two facts made it so, and both
+were established by reading, not assumed:
+
+* `validateAbsentFigure` is invoked at six sites in `rltaxrules.js` and none
+  walks `dispositionPolicy.residenceExclusion.maximumAmounts.amounts.*`, so the
+  record never meets the validator that would reject it.
+* `TP-01-11`, the one assertion that checks the `AbsentFigure` contract shape,
+  walks the BENEFIT pack — which carries no `AbsentFigure` at all. Its census
+  runs against zero candidates, so it passes unconditionally.
+
+The new group runs the same contract check against the pack that does carry
+absences. It found seven `AbsentFigure` records and exactly one non-conformant,
+naming both of its breaches:
+
+```
+(found 7, non-conformant 1 [disposition:residenceExclusion:maximumAmounts:head-of-household: whatWouldMakeItAvailable+missingSource-not-an-object], planted-census 2)
+```
+
+Two design choices are load-bearing. The census asserts it REACHED the nested
+per-filing-status amounts map, by requiring that the head-of-household domain is
+among the records it found — a walker that stopped at the pack's top-level
+members would report zero non-conformant and read green while proving nothing.
+And the bound is `<= 1` rather than `=== 1`, so that repairing the record makes
+this group greener rather than redder; a guard that goes RED when the defect it
+describes is repaired is a guard that argues against its own fix.
+
+```
+label:            F-AUDIT-02 a second malformed AbsentFigure is counted, not absorbed
+file:             tax-rules/federal/2026.json
+mutation:         "comparisonOperator": "at-least",  ->  "contractVersion": "AbsentFigure/v1", "domain": "planted:second-malformed-record", … "missingSource": "planted as a bare string", "comparisonOperator": "at-least",   (2 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=28c096427fc9e5b56d3be4854473dfcccb5f3425 restored=28c096427fc9e5b56d3be4854473dfcccb5f3425)
+discriminating:   yes (exit 1 != 0)
+```
+
+Neither `TP-05-13` nor `TP-01-11` was edited. `TP-05-13` still asserts
+`typeof missingSource === 'string'` and therefore still holds the malformed
+shape in place; that assertion is owned by the scope that wrote it and correcting
+it belongs with the pack repair, since changing it alone would turn the tree RED
+against a record this session cannot honestly fix.
+
+`node scripts/selftest.mjs` — 3194 passed, 0 failed after both changes.
+

@@ -1417,3 +1417,97 @@ members a refusing stage publishes as `null`.
 ### This audit changed no source
 
 `node scripts/selftest.mjs` — 3190 passed, 0 failed, before and after.
+
+---
+
+## F-AUDIT-04 fixed (2026-08-22)
+
+Commit `fd2c4f716b1f5525e52784042a0b4aa6afb630b5`.
+
+`CO-24` now runs on the route. `renderPower` calls `renderSurfaceCensus` after it
+has published the per-leg surfaces, and the census reads what the page actually
+rendered rather than a restatement of it: surface memberships come back out of
+the DOM through `[data-rl-leg-surface]` and `[data-rl-leg]`, and the export
+surface is read back from the `data-rl-legs-record` attribute.
+
+The two sides of the census are taken from independent places, which is the
+property that makes the mis-summed pass able to disagree with itself at all:
+
+* the declared flag is each leg's OWN `includedInTotal`, carried on the
+  visibility row the page built from the record that produced the leg;
+* the summed set is `envelope.federalLegIds` — what the settlement actually
+  added up — rather than the same field the census is auditing.
+
+The verdict is published as the attribute pair `data-rl-census-clean` /
+`data-rl-census-findings` and rendered as visible findings inside
+`#legSurfaceCensus`, one `<li>` per finding carrying `data-rl-census-finding`
+and the leg it names.
+
+The scope decision the audit routed — what the page does with a non-clean census
+— is answered as *render it*: the census reports, it does not refuse. A refusal
+would take the whole Power view down for a finding that is, by construction,
+about a leg the page has already rendered correctly on every surface.
+
+### The wiring pin had to be made falsifiable before it could hold
+
+The assertion for this finding was already written and already correct. It was
+failing on one clause only: the mutation that deletes the call
+
+```
+renderSurfaceCensus(envelope, rows, surfaceHosts, surfaceIds);
+```
+
+left the text `renderSurfaceCensus(envelope, rows, surfaceHosts, surfaceIds)`
+in the file anyway, because the function was DECLARED with exactly those
+parameter names. Declaration and call site were textually identical, so no check
+reading this file as text could tell "the census is wired" from "the census is
+defined and never called" — which is precisely the state the finding describes.
+
+The declaration now takes `hosts` and `ids`. The second parameter stays `rows`
+and the body still reads `envelope.federalLegIds`, because those two names are
+what the non-circularity clauses pin. This is a real property, not a spelling
+preference: a signature that reads identically to its own call site makes the
+call deletable without trace.
+
+### Harness evidence — the pin discriminates on all three mutations
+
+```
+label:            F-AUDIT-04 unwired census call
+file:             lifetime-tax-strategy-lab.html
+mutation:         renderSurfaceCensus(envelope, rows, surfaceHosts, surfaceIds);  ->  /* census intentionally not run */   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=2e4c48120928652240f26e2e88123370184ac66e restored=2e4c48120928652240f26e2e88123370184ac66e)
+discriminating:   yes (exit 1 != 0)
+```
+
+```
+label:            F-AUDIT-04 self-referential summed set
+file:             lifetime-tax-strategy-lab.html
+mutation:         envelope.federalLegIds || []);  ->  declaredLegs.map(function (l) { return l.legId; }));   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=2e4c48120928652240f26e2e88123370184ac66e restored=2e4c48120928652240f26e2e88123370184ac66e)
+discriminating:   yes (exit 1 != 0)
+```
+
+```
+label:            F-AUDIT-04 property cost leg loses its own includedInTotal
+file:             lifetime-tax-strategy-lab.html
+mutation:         includedInTotal: propertyLeg.includedInTotal === true,  ->  /* flag dropped */   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=2e4c48120928652240f26e2e88123370184ac66e restored=2e4c48120928652240f26e2e88123370184ac66e)
+discriminating:   yes (exit 1 != 0)
+```
+
+The third mutation is aimed at the property leg deliberately. It is the leg whose
+mis-summing the design text F-AUDIT-03 removed would have caused, and it is a
+cost leg — so it is the row on which the mis-summed pass, which tests
+`=== false`, can actually fire. Dropping its flag leaves it `undefined`, which
+that pass cannot see.
+
+`node scripts/selftest.mjs` — 3192 passed, 0 failed after the fix.

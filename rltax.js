@@ -1694,7 +1694,14 @@
       }
     }
     /* The exclusion reduces the REMAINDER only. When it refused, nothing is excluded and the
-       refusal travels with the leg rather than silently becoming a zero exclusion. */
+       whole remainder is taxed. The refusal does NOT travel onto this leg: the leg below still
+       publishes `available: true` and an unqualified figure computed from a zero exclusion.
+       That is deliberate rather than accidental — it errs toward overstating tax rather than
+       understating it, the refusal itself is rendered in `#power-disposition`, and `TP-05-13`
+       pins the unexcluded remainder — but it is not what the leg's own shape says. Whether the
+       leg should instead refuse, or should publish carrying the refusal as a qualification, is
+       an open contract question recorded as F-AUDIT-05 in Feature 023 Scope 05. This comment
+       states what the line does; it previously claimed the opposite. */
     var excluded = rules.isUnavailable(exclusion) ? 0 : exclusion.excludedAmount;
     var taxableRemainder = remainderComponent.amount - excluded;
 

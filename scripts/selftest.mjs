@@ -26743,6 +26743,224 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (design-declared reconciliation identity group threw): ' + e.message); }
 /* ---------- Features 021-024: design-declared reconciliation identities (END) ---------- */
 
+/* ---------- Feature 024 Scope 05: CO-24 is deployed on the route (START) ---------- */
+/* F-AUDIT-04. `composeSurfaceCensus` is the stage built to catch a leg that every surface renders
+   and that nonetheless entered `totalFederalTax`. It was exported and exercised only against a
+   fixture in this file; the route never called it, so the mis-summed pass — the one pass surface
+   membership cannot substitute for — never ran against the page.
+
+   This group pins the wiring at the source, which is where it can regress silently: the route must
+   call the stage, must feed it the leg set it rendered, and must feed the summed set from the
+   settlement's own accounting rather than from the same field it is auditing. It also pins the
+   row builder carrying each leg's own `includedInTotal`, because without that the property leg —
+   the leg whose mis-summing the design text would have caused — arrives as `undefined` and the
+   mis-summed pass, which tests `=== false`, cannot fire on it.
+
+   The behavioural twin lives in `tests/lifetime-tax-route.spec.mjs`, which asserts the verdict is
+   published and rendered on a real page. */
+try {
+  group('Lifetime tax — CO-24 runs on the route, not only against a fixture');
+  const censusRoute = read('lifetime-tax-strategy-lab.html');
+  const censusStrip = (text) => text.replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/\/\*[\s\S]*?\*\//g, ' ');
+  const censusCode = censusStrip(censusRoute);
+
+  const censusCalled = censusCode.indexOf('ENGINE.composeSurfaceCensus(') >= 0;
+  const censusInvoked = /renderSurfaceCensus\(envelope, rows, surfaceHosts, surfaceIds\)/.test(censusCode);
+  /* Non-circular inputs. The summed set must come from the settlement's own published total
+     accounting, and the declared flag must come from the row the page rendered. */
+  const censusSummedFromRecord = /composeSurfaceCensus\(declaredLegs, memberships,\s*envelope\.federalLegIds/.test(censusCode);
+  const censusFlagFromRow = /includedInTotal: rows\[index\]\.includedInTotal === true/.test(censusCode);
+  /* Every leg the visibility row builder publishes carries its own declaration. Counted rather
+     than sampled: one row builder clause silently dropping the member is the whole defect. The
+     count is scoped to that builder's own body, because other row builders on the page push rows
+     that are not legs and must not be dragged into the comparison. */
+  const censusBuilderStart = censusCode.indexOf('function legVisibilityRows(');
+  const censusBuilderEnd = censusCode.indexOf('function renderLegVisibility(');
+  const censusBuilder = censusBuilderStart >= 0 && censusBuilderEnd > censusBuilderStart
+    ? censusCode.slice(censusBuilderStart, censusBuilderEnd) : '';
+  const censusRowFlagPattern = /\n\s*includedInTotal: \w+(?:\[\w+\])?\.includedInTotal === true,/g;
+  const censusRowPushes = (censusBuilder.match(/rows\.push\(\{/g) || []).length;
+  const censusRowFlags = (censusBuilder.match(censusRowFlagPattern) || []).length;
+  /* The verdict must be observable and visible, not computed and dropped. */
+  const censusPublishesVerdict = censusCode.indexOf('"data-rl-census-clean"') >= 0
+    && censusCode.indexOf('"data-rl-census-findings"') >= 0;
+  const censusHasHost = censusRoute.indexOf('id="legSurfaceCensus"') >= 0;
+  const censusRendersFindings = censusCode.indexOf('finding.statement') >= 0
+    && censusCode.indexOf('"data-rl-census-finding"') >= 0;
+
+  /* ADVERSARIAL, against strings rather than the tree. Each mutation is one an author could make
+     while believing the census still ran, and each must be detectable. */
+  const censusUnwired = censusCode.replace('renderSurfaceCensus(envelope, rows, surfaceHosts, surfaceIds);', '');
+  const censusCircular = censusCode.replace('composeSurfaceCensus(declaredLegs, memberships,\n                    envelope.federalLegIds || []);',
+    'composeSurfaceCensus(declaredLegs, memberships, declaredLegs.map(function (leg) { return leg.legId; }));');
+  const censusFlagDropped = censusBuilder.replace(censusRowFlagPattern, '');
+
+  assert(censusCalled && censusInvoked && censusSummedFromRecord && censusFlagFromRow
+    && censusRowPushes >= 8 && censusRowFlags === censusRowPushes
+    && censusPublishesVerdict && censusHasHost && censusRendersFindings
+    && !/renderSurfaceCensus\(envelope, rows, surfaceHosts, surfaceIds\)/.test(censusUnwired)
+    && !/composeSurfaceCensus\(declaredLegs, memberships,\s*envelope\.federalLegIds/.test(censusCircular)
+    && (censusFlagDropped.match(censusRowFlagPattern) || []).length === 0,
+  'F-AUDIT-04: the route invokes CO-24 on what it rendered, feeds the summed set from the settlement\u2019s own federalLegIds rather than from the flag it is auditing, carries each leg\u2019s own includedInTotal on every one of its visibility rows so the mis-summed pass can fire on a cost leg, and publishes the verdict both as an attribute pair and as visible findings — while an unwired call, a self-referential summed set and a dropped per-row flag are each detectable'
+    + ' (row pushes ' + censusRowPushes + ', per-row flags ' + censusRowFlags + ')');
+} catch (e) { failures++; console.log('  ✗ FAIL (CO-24 route wiring group threw): ' + e.message); }
+/* ---------- Feature 024 Scope 05: CO-24 is deployed on the route (END) ---------- */
+
+/* ---------- Feature 023 Scope 05: the two routed audit findings are bounded (START) ---------- */
+/* F-AUDIT-02. The shipped federal pack carries one malformed `AbsentFigure` — the
+   head-of-household residence-exclusion absence — and it is malformed in two places: its
+   remediation sits under `remediation` rather than `whatWouldMakeItAvailable`, and its
+   `missingSource` is a bare string rather than the contracted `{title, url, locator}` object.
+   It is NOT fixed here: a conforming `missingSource` needs a `url` and a `locator` for an
+   authority that was never retrieved, and supplying either from nothing is the substitution
+   this program exists to prevent.
+
+   What IS fixed here is that the defect was unbounded and uncounted. `validateAbsentFigure`
+   is invoked at six sites and none walks `dispositionPolicy.residenceExclusion.maximumAmounts
+   .amounts.*`, and the one assertion that does check the contract shape — `TP-01-11` — walks
+   the BENEFIT pack, which carries no `AbsentFigure` at all, so its census runs against zero
+   candidates and cannot fail. This group runs the same contract check against the pack that
+   actually carries absences, and holds the non-conformant set to the single record the audit
+   named. A second malformed record, or a malformed record at a different path, fails here.
+
+   The bound is `<= 1` rather than `=== 1` deliberately: fixing the named record must make this
+   group greener, never redder. A guard that goes RED when the defect it describes is repaired
+   is a guard that argues against its own fix. */
+try {
+  group('Federal pack — every AbsentFigure conforms, except the one open finding names itself');
+  const absentPack = JSON.parse(read('tax-rules/federal/2026.json'));
+  const absentFound = [];
+  const absentWalk = (node, path) => {
+    if (Array.isArray(node)) {
+      node.forEach((child, i) => absentWalk(child, path + '[' + i + ']'));
+      return;
+    }
+    if (!node || typeof node !== 'object') return;
+    if (node.contractVersion === 'AbsentFigure/v1') absentFound.push({ path: path, figure: node });
+    Object.keys(node).forEach((key) => absentWalk(node[key], path + '.' + key));
+  };
+  absentWalk(absentPack, '$');
+  /* The contract exactly as `validateAbsentFigure` in rltaxrules.js states it. */
+  const absentNonEmpty = (v) => typeof v === 'string' && v.length > 0;
+  const absentBreaches = (figure) => {
+    const breaches = [];
+    if (!absentNonEmpty(figure.domain)) breaches.push('domain');
+    if (!absentNonEmpty(figure.reason)) breaches.push('reason');
+    if (!absentNonEmpty(figure.whatWouldMakeItAvailable)) breaches.push('whatWouldMakeItAvailable');
+    const source = figure.missingSource;
+    if (!source || typeof source !== 'object' || Array.isArray(source)) {
+      breaches.push('missingSource-not-an-object');
+    } else {
+      if (!absentNonEmpty(source.title)) breaches.push('missingSource.title');
+      if (!absentNonEmpty(source.url)) breaches.push('missingSource.url');
+      if (!absentNonEmpty(source.locator)) breaches.push('missingSource.locator');
+    }
+    return breaches;
+  };
+  const absentCensus = (records) => records
+    .map((entry) => ({ path: entry.path, domain: entry.figure.domain, breaches: absentBreaches(entry.figure) }))
+    .filter((entry) => entry.breaches.length > 0);
+  const absentOpenDomain = 'disposition:residenceExclusion:maximumAmounts:head-of-household';
+  const absentBad = absentCensus(absentFound);
+  const absentDomains = absentFound.map((entry) => entry.figure.domain);
+  /* Non-vacuity, which is the exact property TP-01-11 lacks: this census must run against real
+     candidates, and must reach the NESTED per-filing-status amounts map where the open record
+     lives rather than stopping at the pack's top-level members. */
+  const absentReachesNested = absentDomains.indexOf(absentOpenDomain) >= 0;
+
+  /* ADVERSARIAL. A second malformed record, planted at a DIFFERENT nested path from the known
+     one, must be counted — otherwise the bound below is satisfied by a walker that only ever
+     finds one thing. Planted on a deep clone so the shipped pack is untouched. */
+  const absentMutated = JSON.parse(read('tax-rules/federal/2026.json'));
+  absentMutated.dispositionPolicy.residenceExclusion.useTest = {
+    contractVersion: 'AbsentFigure/v1',
+    code: 'RLTAX-THRESHOLD-UNAVAILABLE',
+    domain: 'disposition:residenceExclusion:useTest',
+    reason: 'planted by the selftest to prove the census counts a second malformed record',
+    remediation: 'planted under the wrong key, exactly as the open record is',
+    missingSource: 'planted as a bare string, exactly as the open record is'
+  };
+  const absentMutatedFound = [];
+  const absentMutatedWalk = (node, path) => {
+    if (Array.isArray(node)) {
+      node.forEach((child, i) => absentMutatedWalk(child, path + '[' + i + ']'));
+      return;
+    }
+    if (!node || typeof node !== 'object') return;
+    if (node.contractVersion === 'AbsentFigure/v1') absentMutatedFound.push({ path: path, figure: node });
+    Object.keys(node).forEach((key) => absentMutatedWalk(node[key], path + '.' + key));
+  };
+  absentMutatedWalk(absentMutated, '$');
+  const absentMutatedBad = absentCensus(absentMutatedFound);
+
+  assert(absentFound.length >= 6 && absentReachesNested
+    && absentBad.length <= 1
+    && absentBad.every((entry) => entry.domain === absentOpenDomain)
+    && absentMutatedBad.length === 2
+    && absentMutatedBad.some((entry) => entry.domain === 'disposition:residenceExclusion:useTest'),
+  'F-AUDIT-02: the AbsentFigure census runs against the pack that actually carries absences rather than one carrying none, reaches the nested per-filing-status amounts map, and holds the non-conformant set to at most the single head-of-household record the audit named — while a second malformed record planted at a different nested path is counted rather than absorbed'
+    + ' (found ' + absentFound.length + ', non-conformant ' + absentBad.length
+    + (absentBad.length ? ' [' + absentBad.map((e) => e.domain + ': ' + e.breaches.join('+')).join('; ') + ']' : '')
+    + ', planted-census ' + absentMutatedBad.length + ')');
+} catch (e) { failures++; console.log('  ✗ FAIL (federal AbsentFigure census group threw): ' + e.message); }
+
+/* F-AUDIT-05. The comment above the residence-exclusion coercion claimed that a refused
+   exclusion's "refusal travels with the leg rather than silently becoming a zero exclusion".
+   The line beneath it does the opposite: it coerces the refusal to the number 0, that zero
+   enters `taxableRemainder`, and the remainder leg is published `available: true` with an
+   unqualified figure computed from an input that refused.
+
+   The BEHAVIOUR is deliberate and pinned elsewhere — `TP-05-13` asserts the remainder leg
+   "carries the whole remainder unexcluded", and it errs toward overstating tax. Whether the
+   leg should instead refuse, or carry the refusal as a qualification, is a contract question
+   and is not decided here. What was unambiguously wrong was the comment, and a comment that
+   states the opposite of its line is worse than no comment: it tells the next reader the
+   qualification is already handled.
+
+   This group pins the agreement rather than the prose. It is scoped to the comment block
+   IMMEDIATELY above the coercion, so the same words elsewhere in the module cannot satisfy
+   it, and it permits the false sentence to return only if the code is changed to make it
+   true — that is, only if the refusal actually reaches the leg. */
+try {
+  group('Disposition remainder — the exclusion coercion comment agrees with its line');
+  const coerceSource = read('rltax.js');
+  const coerceLine = 'var excluded = rules.isUnavailable(exclusion) ? 0 : exclusion.excludedAmount;';
+  const coerceAt = coerceSource.indexOf(coerceLine);
+  const coerceCommentEnd = coerceAt >= 0 ? coerceSource.lastIndexOf('*/', coerceAt) : -1;
+  const coerceCommentStart = coerceCommentEnd >= 0 ? coerceSource.lastIndexOf('/*', coerceCommentEnd) : -1;
+  const coerceComment = coerceCommentStart >= 0 ? coerceSource.slice(coerceCommentStart, coerceCommentEnd + 2) : '';
+  /* Does the refusal ACTUALLY reach the leg? Read the remainder leg the available branch
+     publishes, and look for the exclusion refusal being carried onto it. */
+  const coerceLegStart = coerceAt >= 0 ? coerceSource.indexOf('remainderLeg = Object.freeze({', coerceAt) : -1;
+  const coerceLegSecond = coerceLegStart >= 0
+    ? coerceSource.indexOf('remainderLeg = Object.freeze({', coerceLegStart + 1) : -1;
+  const coerceLegBody = coerceLegSecond >= 0
+    ? coerceSource.slice(coerceLegSecond, coerceSource.indexOf('});', coerceLegSecond) + 3) : '';
+  const coerceRefusalCarried = /exclusion(Refusal)?\s*:/.test(coerceLegBody);
+  const coerceClaimsTravel = coerceComment.indexOf('refusal travels with the leg') >= 0;
+  /* The invariant: the comment may claim the refusal travels ONLY if the leg carries it. */
+  const coerceAgrees = coerceClaimsTravel ? coerceRefusalCarried : true;
+  const coerceStatesCoercion = /does NOT travel onto this leg/.test(coerceComment)
+    && coerceComment.indexOf('F-AUDIT-05') >= 0;
+
+  /* ADVERSARIAL. Restoring the sentence the code does not support must break the agreement,
+     and must break it through the invariant rather than through the wording check alone. */
+  const coerceRegressed = coerceComment.replace(/does NOT travel onto this leg/,
+    'refusal travels with the leg rather than silently becoming a zero exclusion, so it does travel onto this leg');
+  const coerceRegressedClaims = coerceRegressed.indexOf('refusal travels with the leg') >= 0;
+  const coerceRegressedAgrees = coerceRegressedClaims ? coerceRefusalCarried : true;
+
+  assert(coerceAt >= 0 && coerceComment.length > 0
+    && coerceLegSecond > coerceLegStart && coerceLegStart >= 0
+    && coerceRefusalCarried === false
+    && coerceAgrees && coerceStatesCoercion
+    && coerceRegressedAgrees === false,
+  'F-AUDIT-05: the comment above the residence-exclusion coercion may claim the refusal travels with the leg only if the remainder leg actually carries it — it does not, so the comment states the coercion instead and names the open contract question, while restoring the sentence the code does not support breaks the agreement'
+    + ' (comment ' + coerceComment.length + ' chars, refusal carried on leg: ' + coerceRefusalCarried + ')');
+} catch (e) { failures++; console.log('  ✗ FAIL (exclusion coercion comment/code agreement group threw): ' + e.message); }
+/* ---------- Feature 023 Scope 05: the two routed audit findings are bounded (END) ---------- */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

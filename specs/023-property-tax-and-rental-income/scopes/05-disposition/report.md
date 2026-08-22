@@ -1705,3 +1705,134 @@ have no baseline; and the whole-Test-Plan intended-RED row, because RED was obse
 in this session for the four browser rows only.
 
 This scope is NOT self-certified. Certification is `bubbles.validate`'s to make.
+
+---
+
+## Audit — arithmetic and refusal integrity (2026-08-22)
+
+Read-only audit of refusal integrity across Features 021-024. Two findings
+belong to this scope. Neither was fixed here.
+
+### F-AUDIT-02 — the shipped `AbsentFigure` is malformed, and five assertions pin it that way
+
+The head-of-household residence-exclusion absence in
+[tax-rules/federal/2026.json](../../../../tax-rules/federal/2026.json#L1146)
+violates the `AbsentFigure/v1` contract in two places at once.
+
+It names its remediation member `remediation`. The contract member is
+`whatWouldMakeItAvailable`, and that is the name
+[`absentFigureRefusal`](../../../../rltaxrules.js#L761) reads and
+[`validateAbsentFigure`](../../../../rltaxrules.js#L1029) requires. Its
+`missingSource` is a bare string; the contract requires an object carrying
+`title`, `url` and `locator`.
+
+The refusal a head-of-household seller actually receives:
+
+```
+contractVersion:          TaxUnavailable/v1
+code:                     RLTAX-THRESHOLD-UNAVAILABLE
+domain:                   disposition:residenceExclusion:head-of-household
+reason:                   Publication 523's Worksheet 1 enumerates a maximum
+                          exclusion for married filing jointly, for single and
+                          married filing separately, and for a surviving spouse.
+                          It states none for head of household ...
+whatWouldMakeItAvailable: retrieve the authority named by the pack's
+                          missingSource pointer
+```
+
+That last line is the constructor's generic fallback, reached because the
+authored text sits under the wrong key. It instructs the reader to follow a
+pointer that, being a string rather than the contracted object, does not exist.
+The refusal is circular and non-actionable. Both the authored remediation
+sentence and the authored source description are silently discarded. A
+well-formed sibling in the same pack — the SALT cap's `reductionRate` — renders
+correctly, naming its publication and appending `(missing source: ...)`, which
+is the contrast that makes this a defect rather than a house style.
+
+The pack validator does not catch it. `validateAbsentFigure` is invoked at six
+sites in `rltaxrules.js`; none walks
+`dispositionPolicy.residenceExclusion.maximumAmounts.amounts.*`.
+`resolveRulePack` returns `ok: true` with zero refusals on the shipped pack, and
+`isAbsentFigure` tests `contractVersion` alone, so the malformed record passes
+every predicate it meets.
+
+The assertions are worse than absent — they hold the defect in place.
+`TP-05-13` at [scripts/selftest.mjs](../../../../scripts/selftest.mjs#L18724)
+asserts `typeof headOfHouseholdFigure05.missingSource === 'string'`, and its
+message calls the result "a real AbsentFigure naming the source that would
+supply it". Proven with `scripts/red-green-probe.sh`: replacing the string with
+a contract-correct `{title, url, locator}` object turns **5** assertions RED
+(3185 passed, 5 failed against a 3190/0 baseline); the file was reverted and
+hash-verified inside the probe.
+
+```
+label:            F-AUDIT-02: does any assertion accept a CONTRACT-CORRECT missingSource object?
+file:             tax-rules/federal/2026.json
+red-summary:      Research-Lab self-test: 3185 passed, 5 failed
+green-summary:    Research-Lab self-test: 3190 passed, 0 failed
+revert-verified:  yes (committed=28c096427fc9e5b56d3be4854473dfcccb5f3425 restored=28c096427fc9e5b56d3be4854473dfcccb5f3425)
+discriminating:   yes (exit 1 != 0)
+```
+
+The correct contract check does exist and is aimed at the wrong pack.
+`TP-01-11` requires every `AbsentFigure` to hold a `missingSource` object with a
+`url`, but it walks the **benefit** pack, whose own comment records that it
+"currently carries none". The one pack that does carry an absence is checked by
+`TP-05-13`, which pins the wrong shape. The census runs against zero candidates
+in the place it is correct and against a malformed candidate in the place it is
+not.
+
+Routed, not fixed. Renaming the key is mechanical, but `missingSource` needs a
+`url` and a `locator` that were never retrieved, and inventing either would be
+the substitution this program exists to prevent. The fix also requires
+regenerating `contentSha256`, correcting `TP-05-13` without weakening it, and a
+decision about whether `validateAbsentFigure` should reach nested `amounts`
+maps.
+
+### F-AUDIT-05 — the exclusion refusal is coerced to zero and the leg still publishes `available: true`
+
+[rltax.js](../../../../rltax.js#L1698):
+
+```js
+/* The exclusion reduces the REMAINDER only. When it refused, nothing is excluded and the
+   refusal travels with the leg rather than silently becoming a zero exclusion. */
+var excluded = rules.isUnavailable(exclusion) ? 0 : exclusion.excludedAmount;
+var taxableRemainder = remainderComponent.amount - excluded;
+```
+
+The comment denies exactly what the line does. A refused exclusion becomes the
+number `0`, that zero enters `taxableRemainder`, and the remainder leg is then
+published `available: true` with a confident dollar figure computed from an
+input that refused. `settledLegIds` admits it as available, so it reaches the
+headline, the comparison, the curve and the export as a settled leg.
+
+Measured on the shipped pack, a $500,000 gain on a principal residence held and
+used 120 months, $90,000 ordinary income:
+
+| filing status | exclusion | taxable remainder | rendered disposition tax |
+| --- | --- | --- | --- |
+| `single` | applied, $250,000 | $250,000 | $37,500 |
+| `head-of-household` | **refused** | $500,000 | **$74,947.50** |
+
+The $74,947.50 is rendered as an ordinary figure in the components table, which
+[`renderDisposition`](../../../../lifetime-tax-strategy-lab.html#L3570) builds
+before it reaches the exclusion guard further down the same function.
+
+Mitigating, and the reason this sits below F-AUDIT-02: the refusal is not lost.
+It is rendered in `#power-disposition`, a browser assertion checks that it
+appears, and `TP-05-13` explicitly asserts the remainder leg "carries the whole
+remainder unexcluded" — so the behaviour is deliberate and reviewed, and it errs
+toward overstating tax rather than understating it. What is defective is the
+labelling: a leg whose input refused is marked `available: true` and its figure
+carries no qualification at the point of display, and the code comment states
+the opposite of the code.
+
+Routed, not fixed. Whether the leg should refuse, or should publish with a
+carried qualification, is a contract decision; only the comment is unambiguously
+wrong, and correcting it alone would leave the shape it misdescribes in place.
+
+### This audit changed no source
+
+`node scripts/selftest.mjs` — 3190 passed, 0 failed, before and after. Two
+red-green probes were run; each reverted its file inside the invocation and
+verified the restored blob hash against the committed one.

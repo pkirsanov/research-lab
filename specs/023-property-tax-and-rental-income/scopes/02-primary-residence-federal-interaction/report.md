@@ -693,3 +693,104 @@ The scope's sourcing obligation is discharged in both directions: the cap was
 retrieved and shipped as a figure, and the mortgage debt limits were sought, not
 found for the declared year, and shipped as refusals. No figure in this pack came
 from memory, interpolation or another tax year.
+
+---
+
+## Audit — arithmetic and refusal integrity (2026-08-22)
+
+Read-only audit of the calculation order and leg accounting across Features
+021-024. Two findings belong to this scope. Neither was fixed here: both need a
+design decision about which side of the disagreement is authoritative.
+
+### F-AUDIT-01 — the composed deduction is never applied, and the panel says it was
+
+`composeItemizedDeduction` recomputes the itemised-versus-standard decision at
+`CO-18` and publishes `appliedDeduction` plus a `chosenReason` that asserts the
+settlement acted on it — [rltax.js](../../../../rltax.js#L1970):
+
+> The itemised total is larger than the standard deduction, so itemising is what
+> this settlement applied.
+
+The settlement did not. `computeAnnualFederalTax` takes its deduction from
+[`selectDeduction`](../../../../rltax.js#L130), called at
+[rltax.js](../../../../rltax.js#L174), which reads `workspace.deductionMode` and
+`workspace.itemizedAmount` only. `CO-18`'s result reaches no settlement input.
+The page then renders that sentence verbatim and labels the composed total
+"applied" — [lifetime-tax-strategy-lab.html](../../../../lifetime-tax-strategy-lab.html#L4034)
+and [line 4037](../../../../lifetime-tax-strategy-lab.html#L4037) — while the
+headline beside it was priced on a different deduction entirely. In the page's
+own envelope the settlement is computed before the composition and the workspace
+is not re-settled from it.
+
+Measured against the shipped 2026 federal pack, single filer, $200,000 ordinary
+income, $20,000 property-tax component (cap $40,400, unbound):
+
+| declared `deductionMode` | deduction the settlement applied | deduction the panel says was applied | headline `totalFederalTax` | tax implied by the panel's sentence |
+| --- | --- | --- | --- | --- |
+| `standard` | standard, $16,100 | itemized, $20,000 | $36,734 | $35,798 |
+| `itemized`, $5,000 | itemized, $5,000 | itemized, $25,000 | $39,398 | $34,598 |
+
+Consequence: the deduction panel overstates the applied deduction by up to
+$20,000 and the headline disagrees with it by up to $4,800 of tax on this
+fixture. A reader who reconciles the two surfaces cannot, and nothing on either
+surface says they are answering different questions.
+
+No assertion covers the relationship. `tests/lifetime-tax-deduction.spec.mjs`
+references neither `appliedDeduction` nor `chosenReason`, and the selftest's
+`CO-18` group asserts composition internals only — cap binding, apportionment,
+component origins, the tie rule — never the composed total against the deduction
+the settlement actually used.
+
+Routed, not fixed. Either the settlement must consume `CO-18`'s decision, or the
+sentence and the "applied" label must stop claiming it did. That is a
+`FR-023-012` scope question, not an editorial one.
+
+### F-AUDIT-03 — the design declares four reconciliation legs that do not exist
+
+[design.md](../../design.md#L225) states:
+
+> Reconciliation gains legs `L8` (property tax), `L9` (rental net after limits),
+> `L10` (unrecaptured Section 1250) and `L11` (long-term remainder). Each is
+> declared in the pack's leg set and summed from the declared set.
+
+Neither clause holds.
+
+`reconcileAnnualFederalTax` implements `L1` through `L6` and stops; `L8`, `L9`,
+`L10` and `L11` appear nowhere in `rltax.js`, `rltaxstate.js`,
+`lifetime-tax-strategy-lab.html`, `scripts/selftest.mjs` or any
+`tests/lifetime-tax-*.mjs`. The shipped federal pack declares exactly four
+`taxLegs` — `ordinary` (`CO-6`), `preferential` (`CO-7`),
+`net-investment-income-tax` (`CO-11`) and `additional-medicare-tax` (`CO-12`).
+No property, rental or disposition leg is in the declared set.
+
+Two consequences, in opposite directions.
+
+The implementation is right and the document is wrong about the total. Had the
+second clause been built as written, the property-tax leg would have been summed
+into `totalFederalTax` — which is precisely what the tool's own rendered copy
+says must never happen ("It is a separate leg and is not added into the federal
+figure above"). The document as it stands instructs the next implementer to
+reintroduce the mis-summed-leg defect this program has already shipped once.
+
+The document is right that a reconciliation is owed and it was never built. The
+four housing legs of Feature 023 — the ones carrying the largest amounts outside
+the federal total — have no reconciliation identity at runtime. `L1`-`L6`
+reconcile the Feature 021/022 income-tax arithmetic and nothing else. Verified
+green on the shipped pack: all six legs `holds`, zero not-evaluable.
+
+Routed, not fixed. Correcting the design text is a judgement about which of the
+two clauses was intended; building `L8`-`L11` is new scope.
+
+### Surfaces audited clean
+
+Confirmed by direct execution against the shipped pack, not by reading alone:
+the deduction is applied to total income with the `max(0, ...)` floor; the
+`CO-7` stacking window carries the ordinary-taxable-income term; both surtax
+legs enter `totalFederalTax`; the Medicare premium legs are byte-identical
+no-ops on that total; state tax is a separate settlement with no parameter
+through which a federal figure could arrive.
+
+The `CO-7` adversarial mutation the audit brief names was run through
+`scripts/red-green-probe.sh` and is genuinely armed — dropping the ordinary term
+from the stacking window turns **8** assertions RED, and the file was reverted
+and hash-verified inside the probe.

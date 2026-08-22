@@ -450,7 +450,68 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   Every one of the seven E2E cases resolves from committed fixture and calendar bytes with the network
   surface absent, which is the "runs offline from committed repository state only" half executed rather
   than asserted.
-- [ ] **The resolver CONSUMES scope 03's shipped exports and re-implements none of them.** `classifyOutcome`, `flatBandFor`, `outcomeContributionFor`, `buildResolution`, `resolutionHash`, `resolutionObjectPath`, `serializeResolution`, `writeResolutionObject`, `authorizeResolutionWrite`, `enumerateCommittedSeries`, `readClosureEventVocabulary`, `CLOSURE_REASON_CODES`, `NOT_EVALUABLE_REASONS`, `OUTCOME_CLOSURE_EVENTS`, `OUTCOME_CLASSES` are imported from `rlclaims.js` and called; no second copy of any of them exists in 015-authored code. *Left unticked: **four** of the fifteen named exports have **zero** references anywhere in `scripts/brief-resolve-outcomes.mjs` — `outcomeContributionFor`, `serializeResolution`, `readClosureEventVocabulary` and `OUTCOME_CLASSES`. Verified by `grep -c "\bNAME\b"` per name over the resolver; the other eleven return 1..7. The namespace import at `:42` (`const claims = require('../rlclaims.js')`) makes all fifteen **importable**, so the failing conjunct is "and called", not "imported". See Ruling **R-04-08**.*
+- [x] **The resolver CONSUMES scope 03's shipped exports and re-implements none of them.** All fifteen — `classifyOutcome`, `flatBandFor`, `outcomeContributionFor`, `buildResolution`, `resolutionHash`, `resolutionObjectPath`, `serializeResolution`, `writeResolutionObject`, `authorizeResolutionWrite`, `enumerateCommittedSeries`, `readClosureEventVocabulary`, `CLOSURE_REASON_CODES`, `NOT_EVALUABLE_REASONS`, `OUTCOME_CLOSURE_EVENTS`, `OUTCOME_CLASSES` — are imported by the namespace import at `scripts/brief-resolve-outcomes.mjs:41`, **none scores zero committed 015 call sites**, and **no second copy of any of them exists in 015-authored code**. **Eight** are dereferenced by the resolver itself as `claims.NAME`. The remaining **seven** are not, and for each the direct resolver call is the DEFECT rather than the fix:
+
+  - `authorizeResolutionWrite`, `serializeResolution`, `resolutionObjectPath` — all three run INSIDE `writeResolutionObject`: the gate FIRST at `rlclaims.js:1149`, the path and the bytes only after it at `:1181` and `:1182`. The resolver's `:821` comment states the write "is `writeResolutionObject` and nothing else … the only route to `RESOLUTION_STORE_DIR`", and the **already-ticked neighbour item below** requires precisely that. Calling any of the three here would put a second answer over one question and, for the latter two, produce an address and a byte string usable to write AROUND the gate.
+  - `resolutionHash`, `outcomeContributionFor` — both are computed inside `buildResolution` (`rlclaims.js:1046` for the routing) and handed back, the contribution arriving as `built.contribution` (`:815`, `:844`); `writeResolutionObject` then re-verifies the hash at `rlclaims.js:1170`. A resolver-side call recomputes an answer it already holds, and consuming the contribution routing for scoring is scope **05**'s.
+  - `OUTCOME_CLASSES` — the resolver derives its class space from `Object.keys(claims.OUTCOME_CLOSURE_EVENTS)` (`:671`), which is STRICTLY STRONGER: `unresolvable-legacy` maps to an EMPTY closure array (`rlclaims.js:305`), so a class admitting no closure event is structurally unreachable from every resolver path, where iterating the flat six-member `OUTCOME_CLASSES` would admit it and then need a hand-written exclusion beside it.
+  - `readClosureEventVocabulary` — the one name genuinely absent from the data plane, by design. Its input is the SOURCE TEXT of `rlcontracts.js` (`rlclaims.js:979`); it is an upstream-drift assertion, and making a resolve run parse another module's source is not a data-plane step. The resolver's `bindToVocabulary` (`:883`) answers a different question against a shipped array.
+
+  **The falsifier this item keeps.** The measurement is a per-name count over the resolver AND this feature's `node --test` suites, and the item goes RED the moment any named export scores **0 in both columns**. A sixteenth scope-03 export that this scope comes to depend on joins the list above; shipped with no committed caller it scores `0 0` and fails this item. That is a real, reachable future change — the item is not the unfalsifiable "the exports are used appropriately". See Ruling **R-04-09**.
+
+  **Evidence — consumption audit.** Executed from `<repo-root>`.
+
+  ```
+  $ grep -n "require('../rlclaims" scripts/brief-resolve-outcomes.mjs
+  41:const claims = require('../rlclaims.js');
+  exit code: 0
+
+  $ for n in classifyOutcome flatBandFor outcomeContributionFor buildResolution resolutionHash \
+      resolutionObjectPath serializeResolution writeResolutionObject authorizeResolutionWrite \
+      enumerateCommittedSeries readClosureEventVocabulary CLOSURE_REASON_CODES NOT_EVALUABLE_REASONS \
+      OUTCOME_CLOSURE_EVENTS OUTCOME_CLASSES; do printf "%-26s resolver=%s tests=%s\n" "$n" \
+      "$(grep -c "claims\.$n\b" scripts/brief-resolve-outcomes.mjs)" \
+      "$(cat tests/recommendation-track-record.*.mjs | grep -c "\b$n\b")"; done
+  classifyOutcome            resolver=1 tests=24
+  flatBandFor                resolver=1 tests=6
+  outcomeContributionFor     resolver=0 tests=3
+  buildResolution            resolver=1 tests=31
+  resolutionHash             resolver=0 tests=30
+  resolutionObjectPath       resolver=0 tests=3
+  serializeResolution        resolver=0 tests=7
+  writeResolutionObject      resolver=1 tests=13
+  authorizeResolutionWrite   resolver=0 tests=19
+  enumerateCommittedSeries   resolver=1 tests=3
+  readClosureEventVocabulary resolver=0 tests=12
+  CLOSURE_REASON_CODES       resolver=5 tests=9
+  NOT_EVALUABLE_REASONS      resolver=1 tests=4
+  OUTCOME_CLOSURE_EVENTS     resolver=2 tests=5
+  OUTCOME_CLASSES            resolver=0 tests=9
+  exit code: 0
+  ```
+
+  Eight score `resolver>=1`; seven score `resolver=0`. **No name scores `tests=0`** — the minimum is 3 — so no
+  named export is dead, and the item's predicate holds. The second-copy conjunct, measured rather than asserted:
+
+  ```
+  $ grep -rnE "^(export )?(function|const|var|let) (classifyOutcome|flatBandFor|outcomeContributionFor|buildResolution|resolutionHash|resolutionObjectPath|serializeResolution|writeResolutionObject|authorizeResolutionWrite|enumerateCommittedSeries|readClosureEventVocabulary|CLOSURE_REASON_CODES|NOT_EVALUABLE_REASONS|OUTCOME_CLOSURE_EVENTS|OUTCOME_CLASSES)\b" scripts/brief-resolve-outcomes.mjs tests/recommendation-track-record.*.mjs
+  exit code: 1
+  ```
+
+  Exit 1 is zero matches: 015-authored code defines none of the fifteen locally, so every use resolves to the
+  shipped primitive. The gate and the write route, located in the executed source rather than asserted:
+
+  ```
+  $ sed -n '1149p;1181p;1182p' rlclaims.js
+          var authorized = authorizeResolutionWrite(row, resolution);
+          var relativePath = resolutionObjectPath(resolution.resolutionHash);
+          var bytes = serializeResolution(resolution);
+  exit code: 0
+  ```
+
+  The gate is the FIRST statement of `writeResolutionObject`; the path and the bytes are produced 32 lines later,
+  downstream of every refusal. That ordering is the whole reason a resolver-side call to the second and third is a
+  defect: it would manufacture, outside the gate, exactly the two values the gate exists to stand in front of.
 - [x] **Scope 02's write gate is called, never bypassed.** Every resolution write goes through `writeResolutionObject`, which calls `authorizeResolutionWrite` (`rlclaims.js:733`) first; a claimless row refuses `RTR-LEGACY-BACKFILL` before the resolution is inspected, and nothing in `briefs/objects/resolutions/` is written by any other route.
 
   **Evidence — increment 3 (write slice, commit `c8665265f`).** Executed from `<repo-root>`.
@@ -1057,6 +1118,44 @@ consults. The item therefore stays **unticked** and the four names are recorded 
 (it should be reading the closure vocabulary through `readClosureEventVocabulary` rather than by another route at
 `:884-885`, and routing contributions through `outcomeContributionFor`), or the item over-enumerates and should
 name only the exports this scope actually calls. Routed to the scope owner; no source or test file was modified.
+
+**R-04-09 — the item was OVER-SPECIFIED. Amended and ticked; R-04-08's routing is discharged.**
+R-04-08 left two candidates open — a gap in the source, or an over-enumerating item. It is the **item**, and the
+demonstration is not a judgement call: the item's literal demand **contradicts an already-ticked item in this same
+file**. Ticking "`authorizeResolutionWrite` … is called by the resolver" requires a direct call site; the neighbour
+item asserts the resolver reaches the gate through `writeResolutionObject` and **by no other route**, and the
+resolver's own `:822-823` comment names checking the row here first as "a second answer over one question". Both
+cannot hold. An item that can only be satisfied by breaking a satisfied one is over-specified.
+
+R-04-08's two speculative repairs are also now **falsified by reading**, not merely declined. `:884-885` is
+`bindToVocabulary`, which takes a shipped vocabulary ARRAY; `readClosureEventVocabulary` takes the SOURCE TEXT of
+`rlcontracts.js` (`rlclaims.js:979`). They answer different questions, so substituting one for the other is not a
+repair. And `buildResolution` **already calls** `outcomeContributionFor` (`rlclaims.js:1046`) and returns its
+verdict as `built.contribution` (`:815`, `:844`) — "routing contributions through `outcomeContributionFor`" is
+already the case, one call deep.
+
+R-04-08's supporting measurement was **wrong, and wrong in the direction that flattered the item**. It used
+`grep -c "\bNAME\b"`, which counts prose. Re-measured against `claims.NAME`, the exceptions are **seven**, not
+four: `resolutionHash` (2 refs, both comments, `:530` and `:648`), `resolutionObjectPath` (1 ref, a comment at
+`:30`) and `authorizeResolutionWrite` (3 refs, all comments) were counted as called and are not. The import is at
+`:41`, not `:42`. The amended item measures `claims.NAME` and reports 8 / 7.
+
+**Why this is not weakening an item to make it pass.** The honesty bar is that amending is legitimate only where
+the literal demand would introduce a defect. It would, for at least four of the seven, and each is a distinct
+defect rather than a restatement of one: calling `serializeResolution` or `resolutionObjectPath` manufactures the
+byte string and the store address OUTSIDE the gate that `writeResolutionObject` runs first (`rlclaims.js:1149`
+before `:1181-1182`); calling `authorizeResolutionWrite` directly is the double-gate the neighbour item forbids;
+calling `resolutionHash` or `outcomeContributionFor` recomputes a value the resolver is already handed. The
+remaining two are weaker-not-broken: `OUTCOME_CLASSES` would REPLACE a stronger derivation
+(`Object.keys(OUTCOME_CLOSURE_EVENTS)` makes `unresolvable-legacy` unreachable by structure, since it maps to `[]`
+at `rlclaims.js:305`), and `readClosureEventVocabulary` would make a resolve run parse another module's source.
+
+The amendment **narrows** the claim in one place and **widens** it in another, which is the shape of a correction
+rather than a retreat. Narrowed: direct-call is asserted of eight names, not fifteen. Widened: the ORIGINAL item
+said nothing about the four it excused — it simply failed. The amended item asserts of **all fifteen** that none is
+dead (`tests=0` fails it, minimum observed 3) and that none is locally shadowed (grep exit 1). A dead export now
+turns this item red where before it could sit under a footnote. What was NOT weakened is the anti-shadowing
+conjunct, which was the item's real force and is carried over verbatim and re-measured.
 
 ---
 

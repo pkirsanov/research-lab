@@ -100,6 +100,14 @@ the shared acceptance rule on `RLTKR` rather than a private copy of its own.
 - **No parameter, an empty parameter or a whitespace-only parameter** are all the
   same thing: the route behaves exactly as it did before this was added, and the
   notice stays hidden with empty text.
+- **Both notices name the current asset, not the arrival.** Each ends in a
+  present-tense clause reading `runtime.controls.asset` at call time, and it is
+  re-rendered whenever the reader changes the asset. A reader who picks their own
+  asset after a catalog miss sees the notice follow them rather than keep naming
+  the asset they replaced.
+- **Nothing here is persisted.** This route keeps no `localStorage` session at
+  all, so a linked subject cannot become a remembered default the way it could on
+  a route that saves its ticker.
 - **A configuration failure wins.** If the universe cannot be validated, the
   existing `showConfigError` path renders and no handoff notice is stacked on top
   of it, so the reader sees one problem rather than two.

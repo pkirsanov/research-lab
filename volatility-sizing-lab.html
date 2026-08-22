@@ -691,10 +691,11 @@
             function pct(value, digits) { return (value * 100).toFixed(digits == null ? 1 : digits); }
             function nowIso() { return new Date().toISOString(); }
 
+            /* The catalog scan itself lives in catalogAsset; this adds only the fallback-to-first
+               that the control paths want, so the two lookups cannot drift apart. */
             function assetById(symbol) {
                 var assets = runtime.config ? runtime.config.assets : [];
-                for (var i = 0; i < assets.length; i += 1) { if (assets[i].symbol === symbol) return assets[i]; }
-                return assets[0] || null;
+                return catalogAsset(symbol) || assets[0] || null;
             }
 
             /* ── cache-first bar read from the EXISTING RLDATA surface ── */
@@ -1115,6 +1116,7 @@
                 var asset = assetById(byId("assetSelect").value);
                 byId("targetVolInput").value = String(Math.round(asset.defaultTargetVol * 100));
                 readControls();
+                renderLinkNotice();
                 hydrate(false);
             }
 
@@ -1128,26 +1130,36 @@
                 return null;
             }
 
-            function applyLinkedSubject() {
+            /* The unavailable and refused sentences both end in a present-tense clause naming the
+               asset on screen, so they are claims about the current state rather than a record of
+               the arrival. Rendering them from runtime.controls.asset at call time, and re-calling
+               this whenever the reader changes the asset, is what keeps that claim true — otherwise
+               a reader who picks their own asset after a catalog miss is left reading a notice that
+               still names the asset they replaced, and the page states two subjects at once. */
+            var linkHandoff = { status: "absent", subject: null };
+            function renderLinkNotice() {
                 var notice = byId("linkNotice");
+                if (linkHandoff.status === "absent" || linkHandoff.applied) { notice.textContent = ""; notice.hidden = true; return; }
+                notice.textContent = linkHandoff.status === "accepted"
+                    ? "This lab covers " + runtime.config.assets.length + " assets and has no data for " + linkHandoff.subject + ", so it is showing " + runtime.controls.asset + "."
+                    : "The link named a company this tool could not accept, so it is showing " + runtime.controls.asset + ".";
+                notice.hidden = false;
+            }
+
+            function applyLinkedSubject() {
                 var handoff = (window.RLTKR && RLTKR.linkedSubject)
                     ? RLTKR.linkedSubject(window.location.search)
                     : { status: "absent", subject: null };
-                if (handoff.status === "absent") { notice.textContent = ""; notice.hidden = true; return; }
+                linkHandoff = { status: handoff.status, subject: handoff.subject, applied: false };
                 var match = handoff.status === "accepted" ? catalogAsset(handoff.subject) : null;
                 if (match) {
                     runtime.controls.asset = match.symbol;
                     byId("assetSelect").value = match.symbol;
                     byId("targetVolInput").value = String(Math.round(match.defaultTargetVol * 100));
                     runtime.controls.targetVol = match.defaultTargetVol;
-                    notice.textContent = "";
-                    notice.hidden = true;
-                    return;
+                    linkHandoff.applied = true;
                 }
-                notice.textContent = handoff.status === "accepted"
-                    ? "This lab covers " + runtime.config.assets.length + " assets and has no data for " + handoff.subject + ", so it is showing " + runtime.controls.asset + "."
-                    : "The link named a company this tool could not accept, so it is showing " + runtime.controls.asset + ".";
-                notice.hidden = false;
+                renderLinkNotice();
             }
 
             function wire() {

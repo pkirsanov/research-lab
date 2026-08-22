@@ -374,29 +374,68 @@ The function is pure, takes its input as an argument rather than reading
 selftest". That is what lets `scripts/selftest.mjs::build()` prove it without a
 browser (NFR-027-005).
 
-### Concrete implementations
+---
+
+## Concrete Implementations
 
 Each route composes the foundation with its own resolution and its own
-presentation. The foundation owns acceptance; the route owns meaning.
+presentation. The foundation owns acceptance; the route owns meaning. Four
+routes consume `RLTKR.linkedSubject`; none of them defines an acceptance rule
+of its own.
 
 | Route | Resolution | Presentation of an accepted subject | Presentation of unresolvable |
 | --- | --- | --- | --- |
-| `volatility-sizing-lab.html` | Catalog-bound against `runtime.config.assets[].symbol` | Preselect the asset in `#assetSelect`, adopt its `defaultTargetVol`, then the existing recompute path runs unchanged | Named notice; the default asset stays selected |
-| `options-flow-feed-lab.html` | Catalog-bound against `UNIVERSE` | Focus band above the scan carrying that ticker's flagged-strike count and call-versus-put premium split | Named notice in the band position; the scan renders exactly as today |
-| `options-structure-lab.html` | Free-ticker; no catalog | Seed `state.ticker` before the existing UI reflection, as today | Not applicable; any accepted value is usable |
-| `gamma-trading-lab.html` | Free-ticker; no catalog | Seed `state.ticker` before the existing UI reflection, as today | Not applicable |
+| `volatility-sizing-lab.html` | Catalog-bound: the accepted string is resolved through `catalogAsset()` against the closed asset universe declared in `runtime.config.assets[].symbol` | Preselect the asset in `#assetSelect`, adopt its `defaultTargetVol`, then the existing recompute path runs unchanged | Named notice; the default asset stays selected and stays fully computed |
+| `options-flow-feed-lab.html` | Catalog-bound against `UNIVERSE` | Focus band above the scan carrying that ticker's flagged-strike count and call-versus-put premium split. The scan itself is unchanged: the band never filters it and never pre-sorts it | Named notice in the band position; the scan renders exactly as today |
+| `options-structure-lab.html` | Free-ticker; no catalog. Grammar acceptance is the whole rule | Seed `state.ticker` before the existing UI reflection, as today. An explicit deep link outranks the restored session | Not applicable; any accepted value is usable |
+| `gamma-trading-lab.html` | Free-ticker; no catalog. Grammar acceptance is the whole rule | Seed `state.ticker` before the existing UI reflection, as today. An explicit deep link outranks the restored session | Not applicable |
 
-### Variation axes
+Two of these are the precedent routes whose behaviour the foundation was
+extracted from (`options-structure-lab`, `gamma-trading-lab`), and two are new
+consumers (`volatility-sizing-lab`, `options-flow-feed-lab`). The precedents
+keep their observable behaviour; what changes for them is only that the
+acceptance rule they used to carry privately now lives in one place.
 
-1. **Resolution model** — catalog-bound versus free-ticker. This decides whether
-   a grammar-valid subject can still be `unresolvable`.
-2. **Presentation model** — single-subject preselect (volatility, and both
-   precedents) versus multi-subject focus over a preserved scan (options-flow).
-3. **Persistence interaction** — routes with restored state that the link must
-   outrank (`options-flow` via `optFlowState`, both precedents via their own
-   saved state) versus routes with no restored subject at all (volatility reads
-   no saved asset, so BS-027-002 is vacuously satisfied there and must not be
-   faked with a new store).
+**Deliberate non-implementations.** Three owner routes cannot hold a company at
+all, so they link bare and declare `ownerBareReason` instead of
+`ownerSubjectParam`. These are part of the capability, not gaps in it — the
+foundation has to make "this owner has no subject" a first-class, stated
+outcome:
+
+- `technical-analysis-decision-lab` — `market-scoped`. The route names no
+  instrument; there is nothing for a subject to bind to.
+- `trend-dynamics-cycle-lab` — `fixed-subject`. The route carries a single SPY
+  series; a passed subject could only contradict what is on screen.
+- `company-fundamentals-lab` — `fixed-subject`. The route is hardcoded to
+  Microsoft across roughly thirty identity strings; accepting a subject would
+  require rebuilding the route, not adopting the contract.
+
+### Variation Axes
+
+- **Subject cardinality** — a single-subject route (`options-structure-lab`,
+  `gamma-trading-lab`) versus a closed-catalog selector
+  (`volatility-sizing-lab`) versus a multi-symbol scanner
+  (`options-flow-feed-lab`). This decides whether "the subject" is the whole
+  view, one selection within a fixed set, or one emphasis within many rows.
+- **Binding strictness** — grammar acceptance alone versus grammar plus catalog
+  membership. On the two catalog-bound routes, grammar acceptance is necessary
+  but not sufficient, which is what keeps an accepted string from ever reaching
+  a storage key, a path, or a fetch target.
+- **Precedence against persisted reader state** — an explicit deep link
+  outranks a restored session (`options-flow` via `optFlowState`, both
+  precedents via their own saved state), and a deep-linked subject must not
+  become the reader's persisted default. `volatility-sizing-lab` restores no
+  saved asset at all, so BS-027-002 is vacuously satisfied there and must not
+  be faked with a new store.
+- **Miss behaviour** — a valid-but-absent subject is named unavailable while
+  the route stays fully computed, rather than rendering a half-populated view.
+  This is why the unresolvable column above is a notice next to working output,
+  never a blank panel.
+- **Declaration side** — a registry row declares exactly one of
+  `ownerSubjectParam` or `ownerBareReason` (`market-scoped` | `fixed-subject`).
+  Neither or both raises `C025-CONFIG-SCHEMA`, so a subject-carrying route and
+  a deliberately bare route are distinguishable by schema rather than by
+  convention.
 
 ---
 

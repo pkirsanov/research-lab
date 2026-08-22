@@ -1301,7 +1301,15 @@
             };
             var busy = false;
 
-            function saveState() { try { localStorage.setItem('gammaTradingLab', JSON.stringify({ provider: state.provider, ticker: state.ticker, mode: state.mode, stance: state.stance, aggr: state.aggr, horizon: state.horizon, acct: state.acct, riskPct: state.riskPct, dealerFlip: state.dealerFlip })); } catch (e) { } }
+            /* A deep-linked subject outranks the restored session for THIS visit and must never
+               become the restored session: otherwise one click would silently replace the company
+               the reader chose by hand, and a link naming a company this route has no snapshot for
+               would leave every later no-parameter visit in that failed read with no notice on the
+               page to explain it. Until the reader names a different subject themselves, the
+               remembered one is what is written back. */
+            var linkedTicker = null, rememberedTicker = null;
+            function tickerToPersist() { return (linkedTicker && state.ticker === linkedTicker) ? rememberedTicker : state.ticker; }
+            function saveState() { try { localStorage.setItem('gammaTradingLab', JSON.stringify({ provider: state.provider, ticker: tickerToPersist(), mode: state.mode, stance: state.stance, aggr: state.aggr, horizon: state.horizon, acct: state.acct, riskPct: state.riskPct, dealerFlip: state.dealerFlip })); } catch (e) { } }
             function loadState() { try { return JSON.parse(localStorage.getItem('gammaTradingLab') || 'null'); } catch (e) { return null; } }
 
             /* ═══════════ Scope 15 production Simple-view owner-state provider (Model B) ═══════════
@@ -1361,6 +1369,7 @@
                 if (busy) return; var tk = (el('ticker').value || '').trim().toUpperCase();
                 if (!tk) { setStatus('type a ticker first', 'bad'); return; }
                 state.ticker = tk; state.provider = el('prov').value; busy = true; saveState();
+                showLinkNotice();
                 setStatus('reading gamma for ' + tk + '…');
                 /* the Power view needs the FULL chain (per-strike gexRows + per-contract volume for the OVI split); the shared cache only stores a slim summary, so always try the fresh same-origin chain first and fall back to a shared snapshot only when the fresh read yields nothing */
                 state.src = 'gamma-lab';
@@ -1810,18 +1819,26 @@
             /* A company named by a deep link from an owning workspace is accepted by the
                shared RLTKR rule, so this route holds no private copy of what a company
                identifier is. */
+            /* The notice's second clause is present tense, so it is a claim about what the route is
+               showing right now, not a record of what it showed at boot. Re-rendering it whenever
+               state.ticker changes is what keeps that claim true: a reader who names their own
+               subject after a refusal would otherwise be left reading a notice that still names
+               the subject they replaced, so the page would state two different subjects at once. */
+            var linkHandoff = { status: 'absent' };
             function showLinkNotice(handoff) {
+                if (handoff) linkHandoff = handoff;
                 var notice = el('linkNotice');
                 if (!notice) return;
-                if (handoff.status !== 'refused') { notice.textContent = ''; notice.hidden = true; return; }
+                if (linkHandoff.status !== 'refused') { notice.textContent = ''; notice.hidden = true; return; }
                 notice.textContent = 'The link named a company this tool could not accept, so it is showing ' + state.ticker + '.';
                 notice.hidden = false;
             }
             function boot() {
                 var st = loadState();
                 if (st) { state.provider = st.provider || 'pages'; state.ticker = st.ticker || 'SPY'; state.mode = st.mode || 'simple'; state.stance = st.stance || 'neutral'; if (isNum(st.aggr)) state.aggr = st.aggr; state.horizon = st.horizon || 'intraday'; if (isNum(st.acct)) state.acct = st.acct; if (isNum(st.riskPct)) state.riskPct = st.riskPct; state.dealerFlip = !!st.dealerFlip; }
+                rememberedTicker = state.ticker;
                 var handoff = RLTKR.linkedSubject(window.location.search);
-                if (handoff.status === 'accepted') state.ticker = handoff.subject;   /* an explicit deep link outranks the restored session */
+                if (handoff.status === 'accepted') { state.ticker = handoff.subject; linkedTicker = handoff.subject; }   /* an explicit deep link outranks the restored session, for this visit only */
                 if (state.provider === 'auto' || state.provider === 'twelvedata') state.provider = 'pages';
                 el('ticker').value = state.ticker; el('prov').value = state.provider;
                 setMode(state.mode, true);

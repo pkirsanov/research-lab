@@ -1254,10 +1254,18 @@
     var busy = false;
 
     /* ══════════════════ persistence ══════════════════ */
+    /* A deep-linked subject outranks the restored session for THIS visit and must never
+       become the restored session: otherwise one click would silently replace the company
+       the reader chose by hand, and a link naming a company this route has no snapshot for
+       would leave every later no-parameter visit in that failed read with no notice on the
+       page to explain it. Until the reader names a different subject themselves, the
+       remembered one is what is written back. */
+    var linkedTicker = null, rememberedTicker = null;
+    function tickerToPersist() { return (linkedTicker && state.ticker === linkedTicker) ? rememberedTicker : state.ticker; }
     function saveState() {
       try {
         localStorage.setItem('optStructLab', JSON.stringify({
-          provider: state.provider, ticker: state.ticker, nExp: state.nExp, sign: state.sign, zoom: state.zoom,
+          provider: state.provider, ticker: tickerToPersist(), nExp: state.nExp, sign: state.sign, zoom: state.zoom,
           minOI: state.minOI, rate: state.rate, div: state.div, acct: state.acct, riskPct: state.riskPct,
           on: state.universe.map(function (e) { return { id: e.id, on: e.on }; }),
           added: state.universe.filter(function (e) { return e.added; }).map(function (e) { return { id: e.id, label: e.label, group: e.group, alt: e.alt }; })
@@ -1465,6 +1473,7 @@
       var tk = (el('ticker').value || state.ticker || '').trim().toUpperCase();
       if (!tk) { setStatus('type a ticker first', 'bad'); return; }
       state.ticker = tk; el('ticker').value = tk; saveState();
+      showLinkNotice();
       if (state.provider === 'twelvedata' || state.provider === 'alphavantage' || state.provider === 'finnhub') { setStatus('Browser credential requests are disabled for ' + state.provider + '.', 'bad'); return; }
       busy = true; var btn = el('btnFetch'); if (btn) btn.classList.add('busy');
       state.chains = []; state.spot = null; state.si = null; state.siHist = null; state.ohlcv = null; state.avChainDate = null; state.pagesAsOf = null;
@@ -1478,7 +1487,7 @@
     }
     function fetchChainYahoo(tk, priorSoft) {
       var pre = priorSoft ? priorSoft + ' · ' : '';
-      setStatus(pre + 'fetching option chain for ' + tk + ' via Yahoo proxy (front expiry + expirations)…');
+      setStatus(pre + 'fetching option chain for ' + esc(tk) + ' via Yahoo proxy (front expiry + expirations)…');
       fetchJSONproxy(optUrl(ySym(tk))).then(function (j) {
         if (tk !== state.ticker) return; // superseded by a newer ticker selection
         var p = parseOpt(j);
@@ -1558,7 +1567,7 @@
       return { chains: chains, exps: exps, spot: (isFinite(spot) ? spot : null) };
     }
     function fetchChainCBOE(tk) {
-      setStatus('fetching option chain for ' + tk + ' via CBOE (delayed · full chain + greeks)…');
+      setStatus('fetching option chain for ' + esc(tk) + ' via CBOE (delayed · full chain + greeks)…');
       fetchJSONproxy(cboeUrl(tk)).then(function (j) {
         var parsed = j ? parseCBOEChain(j) : null;
         if (tk !== state.ticker) return; // superseded
@@ -1595,7 +1604,7 @@
       return { chains: chains, exps: exps, spot: (j.spot != null ? +j.spot : null), bars: (bars && bars.length ? bars : null), asof: j.asof || j.fetched || null };
     }
     function fetchChainPages(tk) {
-      setStatus('loading cached chain for ' + tk + ' from GitHub Pages (same-origin · no proxy)…');
+      setStatus('loading cached chain for ' + esc(tk) + ' from GitHub Pages (same-origin · no proxy)…');
       fetch(pagesUrl(tk), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
         var parsed = j ? parsePagesChain(j) : null;
         if (tk !== state.ticker) return; // superseded by a newer ticker selection
@@ -1603,7 +1612,7 @@
             // Not in the cached snapshot. Do not route through an arbitrary URL-forwarding relay;
             // users can choose a direct fixed-origin source explicitly.
           busy = false; var b = el('btnFetch'); if (b) b.classList.remove('busy');
-          setStatus('<b>' + tk + '</b> is not in the cached snapshot — add it to the watchlist (it refreshes a few times per trading day), or explicitly pick a direct live source.', 'bad');
+          setStatus('<b>' + esc(tk) + '</b> is not in the cached snapshot — add it to the watchlist (it refreshes a few times per trading day), or explicitly pick a direct live source.', 'bad');
           return;
         }
         state.chains = parsed.chains; state.expDates = parsed.exps; state.name = state.name || tk;
@@ -1658,7 +1667,7 @@
       if (state.si && state.si.shortPctFloat != null) parts.push('SI ' + (state.si.shortPctFloat * 100).toFixed(1) + '% float' + (state.si.source ? ' (' + state.si.source + ')' : ''));
       else if (state.si && state.si.shortRatio != null) parts.push('SI DTC ' + state.si.shortRatio.toFixed(1) + 'd' + (state.si.source ? ' (' + state.si.source + ')' : ''));
       else parts.push('SI n/a');
-      setStatus((softMsg ? '<span class="warn">' + softMsg + '</span> · ' : '') + '✓ ' + tk + ' — ' + parts.join(' · ') + ' · ' + new Date().toLocaleTimeString(), softMsg ? '' : 'ok');
+      setStatus((softMsg ? '<span class="warn">' + softMsg + '</span> · ' : '') + '✓ ' + esc(tk) + ' — ' + parts.join(' · ') + ' · ' + new Date().toLocaleTimeString(), softMsg ? '' : 'ok');
       saveState(); render();
     }
 
@@ -1957,7 +1966,7 @@
     function loadMsg(base) { return busy ? 'Fetching…' : base; }
 
     function updatePills() {
-      el('pillTk').innerHTML = state.ticker ? (yLink(state.ticker, state.ticker + (state.name ? ' · ' + esc(state.name) : ''), tipFor(state.ticker))) : 'no ticker yet';
+      el('pillTk').innerHTML = state.ticker ? (yLink(state.ticker, esc(state.ticker) + (state.name ? ' · ' + esc(state.name) : ''), tipFor(state.ticker))) : 'no ticker yet';
       el('pillSpot').textContent = state.spot ? ('spot ' + usd(state.spot)) : 'spot —';
       var reg = regimeText(); el('pillReg').textContent = reg.txt; el('pillReg').className = 'pill' + (reg.cls ? (' ' + reg.cls) : '');
       el('pillData').textContent = state.dataAt ? ('updated ' + new Date(state.dataAt).toLocaleTimeString()) : 'no data yet';
@@ -2522,10 +2531,17 @@
     }
     /* A company named by a deep link from an owning workspace is accepted by the shared
        RLTKR rule, so this route holds no private copy of what a company identifier is. */
+    /* The notice's second clause is present tense, so it is a claim about what the route is
+       showing right now, not a record of what it showed at boot. Re-rendering it whenever
+       state.ticker changes is what keeps that claim true: a reader who names their own subject
+       after a refusal would otherwise be left reading a notice that still names the subject they
+       replaced, so the page would state two different subjects at once. */
+    var linkHandoff = { status: 'absent' };
     function showLinkNotice(handoff) {
+      if (handoff) linkHandoff = handoff;
       var notice = el('linkNotice');
       if (!notice) return;
-      if (handoff.status !== 'refused') { notice.textContent = ''; notice.hidden = true; return; }
+      if (linkHandoff.status !== 'refused') { notice.textContent = ''; notice.hidden = true; return; }
       notice.textContent = 'The link named a company this tool could not accept, so it is showing ' + state.ticker + '.';
       notice.hidden = false;
     }
@@ -2543,8 +2559,9 @@
         var onMap = {}; (saved.on || []).forEach(function (o) { onMap[o.id] = o.on; }); state.universe.forEach(function (e) { if (onMap.hasOwnProperty(e.id)) e.on = onMap[e.id]; });
       }
       // reflect UI
+      rememberedTicker = state.ticker;
       var handoff = RLTKR.linkedSubject(window.location.search);
-      if (handoff.status === 'accepted') state.ticker = handoff.subject;   // an explicit deep link outranks the restored session
+      if (handoff.status === 'accepted') { state.ticker = handoff.subject; linkedTicker = handoff.subject; }   // an explicit deep link outranks the restored session, for this visit only
       el('ticker').value = state.ticker; el('provider').value = state.provider; el('nExp').value = state.nExp; el('sign').value = state.sign;
       el('zoom').value = state.zoom; el('minOI').value = state.minOI; el('rate').value = (state.rate * 100).toFixed(1); el('divy').value = (state.div * 100).toFixed(1);
       bind(); renderChips(); updatePills(); setTimeout(function () { fetchAll(true); }, 0);

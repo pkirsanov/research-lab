@@ -152,6 +152,39 @@ test('Regression: SCN-027-003 the focus band is present and the feed, table and 
     expect(sort.sortDir).toBe(-1);
 });
 
+/* ── FEATURE-027 Gap B: the band is the ONLY difference the parameter makes ──
+ * The row above compares three ORDER arrays, for ONE covered symbol. That leaves the two
+ * aggregate lines a reader actually decides from — the tape-lean verdict and its premium
+ * split — free to move when a subject is named, and it never exercises the other three
+ * accepted-subject classes this route distinguishes (covered-but-silent, accepted-but-
+ * uncovered, refused). "Never a filter, never a pre-sort" is a claim about the WHOLE scan,
+ * so this row asserts the whole capture is equal for every class, with #linkNotice — which
+ * capture() deliberately does not read — as the only thing the parameter may change.
+ * ───────────────────────────────────────────────────────────────────────────── */
+const SUBJECT_CLASSES = Object.freeze([
+    { label: 'covered and flagged', value: 'NVDA' },
+    { label: 'covered but silent', value: SILENT },
+    { label: 'accepted but not covered by the scan', value: UNCOVERED },
+    { label: 'grammar-valid traversal oddity', value: '..' },
+    { label: 'refused', value: 'javascript:alert(1)' }
+]);
+
+test('Regression: SCN-027-003 the focus band is the ONLY difference a subject makes — verdict, sub-verdict, status line, feed order, table order, by-ticker order and persisted state are identical to the unlinked scan for every accepted-subject class', async ({ page }) => {
+    await open(page);
+    const plain = await capture(page);
+    for (const subjectClass of SUBJECT_CLASSES) {
+        await open(page, { query: '?ticker=' + encodeURIComponent(subjectClass.value) });
+        const linked = await capture(page);
+        expect(linked, 'the scan must be identical with a ' + subjectClass.label + ' subject: ' + subjectClass.value)
+            .toEqual(plain);
+        /* the band itself is the permitted difference, and it must actually be doing
+           something — an always-hidden band would satisfy the equality above vacuously */
+        const band = page.locator('#linkNotice');
+        await expect(band, subjectClass.label + ' must still render a band').not.toHaveAttribute('hidden', '');
+        expect((await band.textContent()).trim().length, subjectClass.label + ' band must not be blank').toBeGreaterThan(0);
+    }
+});
+
 test('Regression: SCN-027-002 a link outranks saved state for this visit and the linked subject is absent from localStorage afterwards', async ({ page }) => {
     await open(page, {
         query: '?ticker=TSLA',

@@ -3310,6 +3310,23 @@ try {
     && atBreaches.length === 0,
     'the detail cap refuses a rationale one character over and admits one exactly at the cap, so the bound is real and is not off by one');
 
+  /* ── the budget and the page artifact must agree on what "default-visible" means ──────────
+     They did not. output-budget/v1 declared crossAsset.legs[].label, crossAsset.dark[].reason,
+     .withheld, .substitutionRefusal, changed[].line and rollUp.line as default-visible reader
+     text and the budget measured them every run — while build-brief-page-artifacts.mjs, whose
+     allow-list decides what the reader's page actually receives, dropped all three roots. The
+     page declares #crossAsset, #darkLegs and #changedList as VISIBLE blocks and they rendered
+     empty in production. The cockpit suite could not see it because its fixture injects
+     crossAsset directly, so the renderer was proven and the delivery never was. */
+  const pageArtifact = JSON.parse(read('market-brief.page.json'));
+  const livePayload = JSON.parse(read('market-brief.payload.json'));
+  const declaredRoots = [...new Set((detailPolicy.defaultVisibleFields || [])
+    .map((field) => String(field).split('.')[0].split('[')[0]))];
+  const droppedRoots = declaredRoots.filter((root) => root in livePayload && !(root in pageArtifact));
+  assert(declaredRoots.length > 0 && droppedRoots.length === 0,
+    'every root the budget calls default-visible and the payload actually carries is shipped in the page artifact the reader loads (dropped: '
+    + (droppedRoots.join(', ') || 'none') + ')');
+
   /* ── and the header BADGE, the most visible text on the page ──────────────────────────────
      dataAsOf.* was absent from defaultVisibleFields entirely, so the budget whose whole purpose
      is bounding the DEFAULT VIEW never measured its most prominent element: the badge sits above

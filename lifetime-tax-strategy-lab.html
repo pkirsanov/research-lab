@@ -863,6 +863,11 @@
                     </table>
                 </div>
                 <p id="averageRateLine" class="subtle"></p>
+                <!-- F-AUDIT-04. CO-24's verdict, rendered on the route rather than only exercised
+                     against a fixture. A clean census says so in one line; a census with findings
+                     names every one of them, including the mis-summed kind that no comparison of
+                     surface membership can reach. -->
+                <div id="legSurfaceCensus" role="status" aria-live="polite"></div>
             </div>
 
             <div id="power-bracket-detail" class="band">
@@ -4057,6 +4062,7 @@
                         if (federalLeg.includedInTotal !== true || federalLeg.available !== true) continue;
                         rows.push({
                             legId: federalLeg.legId,
+                            includedInTotal: federalLeg.includedInTotal === true,
                             amount: dollars(federalLeg.value),
                             carried: "yes",
                             curveStatement: "This curve resamples the whole settlement at each level, so this leg is carried at every sampled point rather than held fixed."
@@ -4067,6 +4073,7 @@
                 if (propertyLeg && propertyLeg.available === true) {
                     rows.push({
                         legId: propertyLeg.legId,
+                        includedInTotal: propertyLeg.includedInTotal === true,
                         amount: dollars(propertyLeg.value),
                         carried: "no, it is settled and shown as its own figure",
                         curveStatement: propertyLeg.marginalContext.reason
@@ -4079,6 +4086,7 @@
                 if (useLeg && useLeg.available === true) {
                     rows.push({
                         legId: useLeg.legId,
+                        includedInTotal: useLeg.includedInTotal === true,
                         amount: useLeg.category,
                         carried: "no, it carries no money and decides which arithmetic the rental leg gets",
                         curveStatement: useLeg.marginalContext.reason
@@ -4088,6 +4096,7 @@
                 if (rentalVisibilityLeg && rentalVisibilityLeg.available === true) {
                     rows.push({
                         legId: rentalVisibilityLeg.legId,
+                        includedInTotal: rentalVisibilityLeg.includedInTotal === true,
                         amount: dollars(rentalVisibilityLeg.value),
                         carried: "no, it is settled and shown as its own figure",
                         curveStatement: rentalVisibilityLeg.marginalContext.reason
@@ -4104,6 +4113,7 @@
                         if (saleVisibilityLeg.available !== true) continue;
                         rows.push({
                             legId: saleVisibilityLeg.legId,
+                            includedInTotal: saleVisibilityLeg.includedInTotal === true,
                             amount: dollars(saleVisibilityLeg.value),
                             carried: saleVisibilityLeg.pricingRule === "own-maximum-rate"
                                 ? "no, it is priced at its own sourced maximum rate and never enters the preferential stacking"
@@ -4120,6 +4130,7 @@
                 if (benefitVisibilityLeg && benefitVisibilityLeg.available === true) {
                     rows.push({
                         legId: benefitVisibilityLeg.legId,
+                        includedInTotal: benefitVisibilityLeg.includedInTotal === true,
                         amount: dollars(benefitVisibilityLeg.value),
                         carried: "no, it is money received rather than tax owed and it enters no tax total",
                         curveStatement: benefitVisibilityLeg.marginalContext.reason
@@ -4135,6 +4146,7 @@
                 if (inclusionVisibilityLeg && inclusionVisibilityLeg.available === true) {
                     rows.push({
                         legId: inclusionVisibilityLeg.legId,
+                        includedInTotal: inclusionVisibilityLeg.includedInTotal === true,
                         amount: dollars(inclusionVisibilityLeg.value),
                         carried: "no, it is a named contributor to ordinary taxable income rather than a tax of its own",
                         curveStatement: "This curve resamples the declared workspace, and the included amount is not one of its members, so the curve is read without it rather than with it held fixed."
@@ -4153,6 +4165,7 @@
                         if (premiumVisibilityLeg.available !== true) continue;
                         rows.push({
                             legId: premiumVisibilityLeg.legId,
+                            includedInTotal: premiumVisibilityLeg.includedInTotal === true,
                             amount: dollars(premiumVisibilityLeg.value),
                             carried: "no, it is a Medicare cost rather than a tax and it is part of no federal tax total",
                             curveStatement: "This curve resamples the declared workspace, and this premium is priced from the modified adjusted gross income you declared for an earlier year, which the sweep does not move, so the curve is read without it rather than with it held fixed."
@@ -4204,6 +4217,100 @@
                     surfaceIds.push(surfaceHosts[index].getAttribute("data-rl-leg-surface"));
                 }
                 document.body.setAttribute("data-rl-leg-surfaces", surfaceIds.join(","));
+                renderSurfaceCensus(envelope, rows, surfaceHosts, surfaceIds);
+            }
+
+            /* F-AUDIT-04. CO-24 runs HERE, on the route, against what this page actually rendered.
+               It was previously exported and exercised only against a fixture in the selftest, so
+               the one pass that catches a leg every surface renders and that nonetheless entered
+               the federal total — the mis-summed pass — never ran against the page at all.
+
+               The two inputs are deliberately taken from independent places, because a census whose
+               two sides read the same field can never disagree with itself:
+
+                 * `includedInTotal` is the leg's OWN declaration, carried on the visibility row
+                   from the record that produced the leg. A Medicare premium says false there
+                   whatever a pack says elsewhere.
+                 * `includedTotalLegIds` is what the settlement ACTUALLY summed — the available
+                   `taxLegs` whose `includedInTotal` is true, which is the set `computeAnnualFederalTax`
+                   adds up and the set the route already publishes as `federalLegIds`.
+
+               A cost leg that reaches the second set has entered the federal total, and that is the
+               finding. The surface memberships are read back out of the DOM rather than restated
+               from the row set, so a leg the page failed to render is absent here too.
+
+               The host and id parameters are deliberately NOT named after the caller's variables.
+               A declaration whose parameter list reads identically to the call site makes the two
+               indistinguishable to any check that reads this file as text, so deleting the call
+               would leave the signature behind and the wiring would appear intact while the census
+               no longer ran. */
+            function renderSurfaceCensus(envelope, rows, hosts, ids) {
+                var host = byId("legSurfaceCensus");
+                clear(host);
+                document.body.removeAttribute("data-rl-census-clean");
+                document.body.removeAttribute("data-rl-census-findings");
+                if (!envelope) return;
+                var index = 0;
+                var declaredLegs = [];
+                for (index = 0; index < rows.length; index += 1) {
+                    declaredLegs.push({
+                        legId: rows[index].legId,
+                        includedInTotal: rows[index].includedInTotal === true
+                    });
+                }
+                var memberships = {};
+                for (index = 0; index < hosts.length; index += 1) {
+                    var rendered = hosts[index].querySelectorAll("[data-rl-leg]");
+                    var renderedIds = [];
+                    var renderedIndex = 0;
+                    for (renderedIndex = 0; renderedIndex < rendered.length; renderedIndex += 1) {
+                        renderedIds.push(rendered[renderedIndex].getAttribute("data-rl-leg"));
+                    }
+                    memberships[ids[index]] = renderedIds;
+                }
+                /* The export surface is an attribute rather than a host, and it is read back from
+                   the attribute for the same reason the others are read back from the DOM. */
+                var exportedAttribute = document.body.getAttribute("data-rl-legs-record") || "";
+                var exported = [];
+                var exportedParts = exportedAttribute.split(",");
+                for (index = 0; index < exportedParts.length; index += 1) {
+                    if (exportedParts[index].length > 0) exported.push(exportedParts[index]);
+                }
+                memberships.export = exported;
+
+                var census = ENGINE.composeSurfaceCensus(declaredLegs, memberships,
+                    envelope.federalLegIds || []);
+                document.body.setAttribute("data-rl-census-clean", census.clean === true ? "yes" : "no");
+                var findingIds = [];
+                for (index = 0; index < census.findings.length; index += 1) {
+                    findingIds.push(census.findings[index].kind + ":" + census.findings[index].legId);
+                }
+                document.body.setAttribute("data-rl-census-findings", findingIds.join(","));
+
+                if (census.clean === true) {
+                    var cleanLine = text("p", "Leg census: every settled leg reaches all "
+                        + String(census.surfaces.length) + " surfaces, and no leg this settlement "
+                        + "declares as a cost entered the federal total.");
+                    cleanLine.className = "subtle";
+                    cleanLine.setAttribute("data-rl-census-line", "clean");
+                    host.appendChild(cleanLine);
+                    return;
+                }
+                var heading = text("p", "Leg census: this settlement did not surface cleanly. "
+                    + "Each finding below names the leg it is about, and a mis-summed leg names no "
+                    + "surface because it is a fact about the federal total rather than about any "
+                    + "one surface.");
+                heading.setAttribute("data-rl-census-line", "findings");
+                host.appendChild(heading);
+                var list = document.createElement("ul");
+                for (index = 0; index < census.findings.length; index += 1) {
+                    var finding = census.findings[index];
+                    var item = text("li", finding.statement);
+                    item.setAttribute("data-rl-census-finding", finding.kind);
+                    item.setAttribute("data-rl-census-finding-leg", finding.legId);
+                    list.appendChild(item);
+                }
+                host.appendChild(list);
             }
 
             /* Every member read here is one the benefit settlement ACTUALLY publishes for the shape

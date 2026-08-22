@@ -39,7 +39,9 @@ import {
   attentionVerbContractInstruction,
   findMaskedTerms,
   findUnofferedTerms,
-  recommendationConfidenceContractInstruction
+  observableSubjectTally,
+  recommendationConfidenceContractInstruction,
+  recomposePayloadAttention
 } from './build-attention-items.mjs';
 import { formatTestFileReachabilityFindings, validateTestFileReachability } from './validate-test-file-reachability.mjs';
 import { formatTimeoutBudgetFindings, validatePlaywrightTimeoutBudgets } from './validate-playwright-timeout-budgets.mjs';
@@ -3073,12 +3075,96 @@ try {
   });
   assert(expectedEligible.length > 0 && expectedEligible.every((subject) => new RegExp(subject + '\\s*\\((moderate|severe)\\)').test(renderedMenu)),
     'the subject menu states which subjects clear the detection band right now, each with the severity the gate itself observed (' + expectedEligible.length + ' eligible)');
+  /* The assertion above is HALF the annotation: it checks only that eligible subjects carry a
+     severity, so a menu that marked every one of the twelve `severe` would satisfy it while
+     destroying the whole point — the lane would be told to choose freely from subjects whose
+     every item is refused for want of an observation, which is the failure the annotation was
+     added to end. The complement is therefore pinned too, and the two sets must PARTITION the
+     scope exactly: no subject unannotated, none annotated both ways. */
+  const expectedIneligible = RLATTN_WATCHLIST_SCOPE.filter((subject) => !expectedEligible.includes(subject));
+  assert(expectedIneligible.length > 0
+    && expectedIneligible.every((subject) => new RegExp(subject + '\\s*\\(no observation\\)').test(renderedMenu)),
+    'every scoped subject the gate observes NOTHING for is marked "no observation" rather than offered as choosable (' + expectedIneligible.length + ' ineligible)');
+  assert((renderedMenu.match(/\((?:moderate|severe)\)/g) || []).length === expectedEligible.length
+    && (renderedMenu.match(/\(no observation\)/g) || []).length === expectedIneligible.length,
+    'the two annotations partition the committed scope exactly, so a menu cannot mark a subject both ways, leave one unmarked, or annotate a subject the privacy check never admitted');
   /* ADVERSARIAL: the live snapshot happens to carry eligible subjects, so the quiet-market and
      unreadable-snapshot paths would never execute in production and could rot. The override is
      undefined on every production path. A quiet market must tell the author to publish NOTHING —
      the opposite instruction — and an unreadable snapshot must degrade to the plain list rather
      than throw, which is the promise loadSnapshotForGate already makes. */
-  /* The quiet fixture must be a snapshot the gate can actually READ whose subjects happen to clear
+  /* ── an outage must not publish as a quiet market ────────────────────────────────────────
+     The validator refuses "empty with NO recorded exclusions", so an empty tier WITH exclusions
+     published unconditionally. A stability pass showed a total bar-fetch failure writes a
+     structurally valid snapshot whose `tracked` is empty, every candidate is then refused for
+     want of an observation, and the run reported success with `subject: null` reasons that never
+     named the cause. The composer now records the systemic cause once, by name, and the validator
+     refuses it — both halves pinned, because either alone leaves the hole open. */
+  assert(observableSubjectTally({ tracked: {} }) === 0
+    && observableSubjectTally(null) === 0
+    && observableSubjectTally([]) === 0
+    && observableSubjectTally(JSON.parse(read('market-brief.snapshot.json'))) > 0,
+    'the observable-subject tally separates a snapshot the gate can read from one it cannot, which is what tells an outage apart from a quiet market');
+  assert(/RLATTN-SNAPSHOT-UNOBSERVABLE/.test(read('scripts/build-attention-items.mjs'))
+    && /RLATTN-SNAPSHOT-UNOBSERVABLE/.test(read('scripts/validate-brief-payload.mjs')),
+    'the systemic no-observable-subject cause is recorded by the composer AND refused by the validator, so an outage cannot ship an empty tier as a calm one');
+  /* The validator checks every exclusion's code against rlattention's allowlist, so a code the
+     composer emits but the allowlist omits makes the composer's own correct output read as
+     malformed: during a real outage the operator got the outage error AND a second one accusing
+     the composer of a bogus code. Membership is asserted here, and the negative case keeps the
+     allowlist from being widened into a rubber stamp. */
+  assert(RLATTN_MODULE.REFUSAL_CODES.includes('RLATTN-SNAPSHOT-UNOBSERVABLE')
+    && !RLATTN_MODULE.REFUSAL_CODES.includes('RLATTN-NOT-A-CODE'),
+    'the systemic outage code is a named composer refusal code, so the composer\'s own output is not simultaneously refused as malformed, and an unknown code is still rejected');
+
+  /* ── and the same two halves DRIVEN, because the pin above guards spelling ────────────────
+     The assertion above finds the constant in two files. It would stay green if the composer's
+     branch never fired, if the validator's refusal were unreachable, or if either mention
+     survived only in a comment — which is exactly the failure mode this packet already found
+     once in rlbrief.js. Both halves are therefore executed below.
+
+     The fixture is the committed item's JUDGEMENT ONLY, which is what the authoring lane
+     actually hands over. Recomposing the committed item as published proves nothing here: a
+     `decision-attention/v1` envelope carries its own observed half, so it survives an outage
+     snapshot untouched and the branch never runs — measured, not supposed. */
+  const outageConfig = JSON.parse(read('market-brief.config.json'));
+  const outageRegistry = JSON.parse(read('tools.json'));
+  const outageAgenda = JSON.parse(read('research-agenda.json'));
+  const outageSnapshot = JSON.parse(read('market-brief.snapshot.json'));
+  const committedForOutage = JSON.parse(read('market-brief.payload.json'));
+  const laneJudgementOnly = {};
+  for (const key of RLATTN_AUTHORED_KEYS) {
+    if (committedForOutage.attention[0][key] !== undefined) laneJudgementOnly[key] = committedForOutage.attention[0][key];
+  }
+  const outageBasePayload = Object.assign({}, committedForOutage, { attention: [laneJudgementOnly] });
+  delete outageBasePayload.attentionExclusions;
+  const systemicRows = (result) => (result.payload.attentionExclusions || [])
+    .filter((exclusion) => exclusion && exclusion.code === 'RLATTN-SNAPSHOT-UNOBSERVABLE');
+
+  const outageRun = recomposePayloadAttention(outageBasePayload, outageConfig, { tracked: {} });
+  const observableRun = recomposePayloadAttention(outageBasePayload, outageConfig, outageSnapshot);
+  assert(observableRun.items.length === 1 && systemicRows(observableRun).length === 0,
+    'the same candidate BUILDS against the committed snapshot and records no systemic cause, so the fixture is a genuinely observable item and the outage branch discriminates rather than always firing');
+  assert(outageRun.items.length === 0 && systemicRows(outageRun).length === 1
+    && systemicRows(outageRun)[0].index === -1 && systemicRows(outageRun)[0].subject === null,
+    'against a snapshot the gate cannot observe, the composer builds nothing and records the systemic cause exactly ONCE with no subject, rather than leaving only per-candidate refusals that never name why every one of them failed');
+
+  const outageRefusals = (candidate) => validateBriefPayload(candidate, outageRegistry, outageConfig, outageSnapshot, outageAgenda)
+    .filter((error) => /outage is not a quiet market/.test(error));
+  assert(outageRefusals(outageRun.payload).length === 1,
+    'the validator REFUSES the composer\u2019s own outage output rather than accepting an empty tier that merely carries some exclusion');
+  assert(outageRefusals(observableRun.payload).length === 0,
+    'the same validator passes the observable run, so the refusal is bound to the systemic cause and not to recomposed payloads generally');
+  /* ADVERSARIAL: the rule it strengthens is satisfied by ANY exclusion, so a refusal that fired
+     on an ordinary per-candidate one would refuse every honest quiet window instead. */
+  const ordinaryExclusionOnly = Object.assign({}, committedForOutage, {
+    attention: [],
+    attentionExclusions: [{ index: 0, subject: 'SOXX', code: 'RLATTN-PROVENANCE', field: 'gateResult', reason: 'an attention item is built from an observed gate result' }]
+  });
+  assert(outageRefusals(ordinaryExclusionOnly).length === 0,
+    'an empty tier explained by an ordinary per-candidate refusal is NOT refused as an outage, so the new rule adds a named failure instead of closing the quiet-window path the tier already supports');
+
+  /* The quiet fixture must be a snapshot the gate can READ and which happens to observe
      nothing. `{ tracked: {} }` is not that: it is indistinguishable from `{}`, `[]` or a stray
      string, all of which reached the quiet branch and told the lane to publish nothing at all —
      a corrupted input silencing the whole feed while looking like a calm market. */
@@ -3204,6 +3290,28 @@ try {
   assert(overBreaches.length === 1 && overBreaches[0].path === 'attention[0].rationale'
     && atBreaches.length === 0,
     'the detail cap refuses a rationale one character over and admits one exactly at the cap, so the bound is real and is not off by one');
+  /* ── and the guard for the config that has no budget section, which is where this broke ────
+     The cap above is enforced. The REFUSAL for an unreadable budget was not reachable by any
+     test: the instruction read the section straight off disk, so the one input its named error
+     was written for — a config carrying no `output-budget/v1` at all — dereferenced undefined
+     and raised an anonymous TypeError instead. A narrowing was added to fix that and nothing
+     executed it. Reached here through the same production-undefined override seam the
+     confidence contract and the recompose snapshot already use. */
+  const committedBudgetConfig = JSON.parse(read('market-brief.config.json'));
+  assert(attentionRationaleBudgetInstruction(committedBudgetConfig) === renderedDetail,
+    'the override renders the identical instruction for the committed config, so it is a test seam and not a second contract that could drift from the one the lane receives');
+  for (const [label, brokenConfig] of [
+    ['no output-budget section at all', {}],
+    ['a section declaring no character cap', { 'output-budget/v1': { detailFields: ['attention[].rationale'] } }],
+    ['a section declaring no detail field', { 'output-budget/v1': { detailFieldChars: 700, detailFields: [] } }]
+  ]) {
+    let budgetRefusal = null;
+    let budgetRendered = null;
+    try { budgetRendered = attentionRationaleBudgetInstruction(brokenConfig); } catch (error) { budgetRefusal = error.message; }
+    assert(budgetRefusal !== null && /^RLATTN-DETAIL-BUDGET: /.test(budgetRefusal),
+      'a budget policy with ' + label + ' REFUSES by its own name rather than raising an anonymous type error or handing the author an "undefined" cap (raised: '
+      + JSON.stringify(budgetRefusal) + ', rendered: ' + JSON.stringify(String(budgetRendered).slice(0, 40)) + ')');
+  }
 
   /* ── DISC-009-004: the reader is told when a reading predates the data beside it ──────────
      Tier-A refreshes the page several times a day and never rewrites the payload — brief-refresh
@@ -3259,6 +3367,28 @@ try {
   }
   assert(/rank|sorted/i.test(renderedConfidence) && /vary it across items/i.test(renderedConfidence),
     'the confidence contract tells the author the number ranks, and to vary it - the two facts that make a pinned value harmful');
+  /* ── and the guard for the day a threshold goes missing ───────────────────────────────────
+     Every rendered contract in this file carries a named error for unreadable inputs and not
+     one of them was ever executed, so each is a claim rather than a behaviour. This one is
+     reachable today through the same override seam the branch probes above use. It matters
+     because the alternative to a NAMED failure is not a safe default: an absent threshold
+     yields undefined, `${undefined}` renders as the word "undefined", and the lane would be
+     handed a floor of "undefined" as confidently as a number. Each of the three is removed in
+     turn, because a guard that only notices one missing threshold leaves the other two silent. */
+  for (const missing of ['minimumActionConfidence', 'minimumAttentionConfidence', 'tacticalConfidenceCap']) {
+    const incomplete = Object.assign({}, confidenceThresholds);
+    delete incomplete[missing];
+    let raisedMessage = null;
+    let renderedAnyway = null;
+    try { renderedAnyway = recommendationConfidenceContractInstruction(incomplete); } catch (error) { raisedMessage = error.message; }
+    assert(raisedMessage !== null && /^RLATTN-CONFIDENCE-BANDS: /.test(raisedMessage),
+      'a missing ' + missing + ' REFUSES by its own name instead of rendering a contract that states an "undefined" band to the author (rendered: '
+      + JSON.stringify(String(renderedAnyway).slice(0, 60)) + ')');
+  }
+  /* ADVERSARIAL: a guard that refused every input would be worse than none, and would have
+     taken the live lane down rather than protected it. */
+  assert(typeof recommendationConfidenceContractInstruction(confidenceThresholds) === 'string',
+    'the complete committed triple renders rather than refusing, so the guard discriminates between an unreadable threshold set and a readable one');
   /* Both lanes author a confidence, so both must receive the contract. The core lane owns
      nextSession actions and the signals lane owns recommendations; a contract rendered to only
      one of them leaves the other anchoring exactly as before. */

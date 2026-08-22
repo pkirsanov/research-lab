@@ -168,7 +168,11 @@
     "RLATTN-CONFIRMATION",
     "RLATTN-PROVENANCE",
     "RLATTN-VERB",
-    "RLATTN-DEEPLINK"
+    "RLATTN-DEEPLINK",
+    /* Systemic rather than per-item: the snapshot yielded no observable subject at all, so no
+       candidate could be observed. Named here because the composer emits it and this list is
+       what the validator checks every exclusion's shape against. */
+    "RLATTN-SNAPSHOT-UNOBSERVABLE"
   ]);
 
   /* only a non-committal gate disposition may become an attention item. */

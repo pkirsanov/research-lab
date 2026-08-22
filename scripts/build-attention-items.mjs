@@ -245,8 +245,7 @@ export function attentionSubjectMenuInstruction(snapshotOverride) {
      must not render the same instruction: `{}`, `[]` and a stray string all reached the quiet
      branch and told the lane to publish nothing at all, which is a corrupted input silencing the
      whole feed. Only a snapshot the gate can actually read may declare a quiet market. */
-  const observableCount = (tracked && typeof tracked === 'object' && !Array.isArray(tracked))
-    ? Object.keys(tracked).length : 0;
+  const observableCount = observableSubjectTally(snapshot);
   if (observableCount === 0) return base;
   // One entry per scoped subject, each carrying its own state: the uniqueness pin forbids a
   // second list, and annotating in place says more than two lists did.
@@ -401,9 +400,20 @@ export function recommendationConfidenceContractInstruction(thresholdsOverride) 
  * cap is stated to the author rather than only enforced, because a budget breach
  * discards the whole narrative and this packet has already seen fourteen
  * characters cost an entire brief.
+ *
+ * `configOverride` exists ONLY so the selftest can reach the named refusal below; it is
+ * undefined on every production path, exactly like `recommendationConfidenceContractInstruction`'s
+ * threshold override and `recomposePayloadAttention`'s snapshot override. It takes the whole
+ * CONFIG rather than the policy because the defect it exists to pin was at the SECTION lookup:
+ * a config carrying no `output-budget/v1` at all is the one input the named error was written
+ * for, and a policy-shaped seam could not express it.
  */
-export function attentionRationaleBudgetInstruction() {
-  const policy = loadJson('market-brief.config.json')['output-budget/v1'];
+export function attentionRationaleBudgetInstruction(configOverride) {
+  /* Narrowed before the read, like the sibling contract's `|| {}`. A config missing the
+     whole section dereferenced undefined and raised an anonymous TypeError, so the named
+     error this guard exists to raise was unreachable for the one input it was written for. */
+  const config = configOverride === undefined ? loadJson('market-brief.config.json') : configOverride;
+  const policy = config['output-budget/v1'] || {};
   const cap = policy.detailFieldChars;
   const fields = (policy.detailFields || []).map((field) => field.replace('attention[].', ''));
   if (!Number.isFinite(cap) || fields.length === 0) {
@@ -414,6 +424,14 @@ export function attentionRationaleBudgetInstruction() {
     + 'still bounded. Aim for two or three sentences: state why the reader is being interrupted and what '
     + 'the evidence is, not a full argument. An item over the cap is refused and the whole narrative goes '
     + 'with it.';
+}
+
+/** How many watchlist subjects the gate can actually observe in a snapshot. Zero means the
+    snapshot is unreadable or empty, which is an outage and NOT a quiet market. */
+export function observableSubjectTally(snapshot) {
+  if (!snapshot) return 0;
+  const tracked = RLATTNGATE.observableSubjects(snapshot);
+  return (tracked && typeof tracked === 'object' && !Array.isArray(tracked)) ? Object.keys(tracked).length : 0;
 }
 
 function loadJson(relPath) {
@@ -667,6 +685,26 @@ export function recomposePayloadAttention(payload, config, snapshotOverride) {
     throw new Error(`recompose accounting failed: ${items.length} built + ${exclusions.length} excluded != ${candidates.length} declared`);
   }
 
+  /* An outage is not a quiet market, and the validator cannot tell them apart on its own: it
+     refuses "empty with NO recorded exclusions", so an empty tier WITH exclusions publishes
+     unconditionally. A total bar-fetch outage writes a structurally valid snapshot whose
+     `tracked` is empty, every candidate is then refused for want of an observation, and the run
+     reports success with an empty tier and a `subject: null` reason that never names the cause.
+     Recording the systemic cause ONCE, by name, is what makes it refusable and diagnosable. */
+  const observableSubjectCount = observableSubjectTally(
+    snapshotOverride === undefined ? loadSnapshotForGate() : snapshotOverride
+  );
+  const systemic = (candidates.length > 0 && items.length === 0 && observableSubjectCount === 0)
+    ? [Object.freeze({
+      index: -1,
+      subject: null,
+      code: 'RLATTN-SNAPSHOT-UNOBSERVABLE',
+      field: 'snapshot.tracked',
+      reason: 'the committed snapshot yielded no observable subject, so no candidate could be '
+        + 'observed; this is an unreadable or empty snapshot rather than a quiet market'
+    })]
+    : [];
+
   /* Pair each built envelope back to the item it came from BY CANDIDATE ORDER,
      not by id: the composer mints its own id, so an id-join silently matches
      nothing and merges nothing. Items come back in candidate order with the
@@ -687,7 +725,7 @@ export function recomposePayloadAttention(payload, config, snapshotOverride) {
      empty. The freshly computed list is authoritative only when there were candidates to account
      for; otherwise the existing record stands. */
   const priorExclusions = Array.isArray(payload?.attentionExclusions) ? payload.attentionExclusions : [];
-  const recordedExclusions = candidates.length > 0 ? exclusions : priorExclusions;
+  const recordedExclusions = candidates.length > 0 ? exclusions.concat(systemic) : priorExclusions;
 
   return {
     payload: Object.assign({}, payload, { attention: merged, attentionExclusions: recordedExclusions }),
@@ -781,16 +819,33 @@ function main(argv) {
   );
   const { items, exclusions } = buildAttentionItems(candidates, payload, config);
 
+  /* An outage is not a quiet market. A total bar-fetch failure writes a structurally valid
+     snapshot with no observable subject; every candidate is then refused for want of an
+     observation, and the publish path accepts "empty WITH exclusions" unconditionally — so the
+     window shipped an empty tier and reported success, with `subject: null` reasons that never
+     named the cause. Recorded once here, by name, so the validator can refuse it. */
+  const recordedExclusions = (candidates.length > 0 && items.length === 0
+    && observableSubjectTally(loadSnapshotForGate()) === 0)
+    ? exclusions.concat([Object.freeze({
+      index: -1,
+      subject: null,
+      code: 'RLATTN-SNAPSHOT-UNOBSERVABLE',
+      field: 'snapshot.tracked',
+      reason: 'the committed snapshot yielded no observable subject, so no candidate could be '
+        + 'observed; this is an unreadable or empty snapshot rather than a quiet market'
+    })])
+    : exclusions;
+
   console.log(`[build-attention-items] ${items.length} built, ${exclusions.length} refused`);
   /* prints the RECORDED subject, already redacted for a privacy refusal. Never
      reach back to the candidate here: stdout reaches CI logs and transcripts
      that cannot be retracted. */
-  for (const exclusion of exclusions) {
+  for (const exclusion of recordedExclusions) {
     console.log(`[build-attention-items] refused candidate ${exclusion.index}`
       + `${exclusion.subject ? ` (subject=${exclusion.subject})` : ''}`
       + ` — ${exclusion.code} on ${exclusion.field}: ${exclusion.reason}`);
   }
-  console.log(JSON.stringify({ contractVersion: 'attention-build/v1', items, exclusions }, null, 2));
+  console.log(JSON.stringify({ contractVersion: 'attention-build/v1', items, exclusions: recordedExclusions }, null, 2));
   return 0;
 }
 

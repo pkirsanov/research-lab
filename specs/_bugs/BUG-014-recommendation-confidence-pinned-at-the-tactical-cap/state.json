@@ -46,7 +46,9 @@
       "implement",
       "regression",
       "security",
-      "simplify"
+      "simplify",
+      "stabilize",
+      "test"
     ],
     "phaseClaimNote": "Only phases actually dispatched are listed. implement: the delivery itself. regression, security and simplify: real subagent runs against this worktree, each of which changed the delivery — regression found a pin that could not fail, security found an unbudgeted raw interpolation and an unpinned escaping property, simplify found that the rlbrief.js pin guarded spelling rather than behaviour. Their findings and the resulting fixes are in report.md § Specialist Phases. test, stabilize, validate and audit are NOT claimed: they were not run."
   },
@@ -200,6 +202,26 @@
         "simplify"
       ],
       "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-22T00:00:00Z",
+      "agent": "bubbles.stabilize",
+      "phase": "stabilize",
+      "phasesExecuted": [
+        "stabilize"
+      ],
+      "action": "reviewed",
+      "note": "Ran against the delivered change. Returned one BLOCKING finding (F1) that this packet had INTRODUCED: the corrupted-snapshot guard routed an unobservable snapshot to the full subject menu, so during a total bar-fetch outage the lane would author, every candidate would be refused for want of an observation, and an empty attention tier would publish with exit 0 — because the validator refused \"empty with no recorded exclusions\" but accepted \"empty WITH exclusions\" unconditionally. Fixed by recording the systemic cause once, by name (RLATTN-SNAPSHOT-UNOBSERVABLE), on the primary fresh-candidates path, and refusing it in the validator. Both halves proven by execution: the code fires on the primary path under an outage snapshot, and the validator refuses a payload carrying it while NOT refusing an ordinary per-item refusal. A first proof attempt used the wrong exclusion field and appeared to show the validator half broken; the probe was corrected rather than the code."
+    },
+    {
+      "at": "2026-08-22T00:00:00Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "phasesExecuted": [
+        "test"
+      ],
+      "action": "verified",
+      "note": "Ran the four suites and hunted test GAPS rather than re-running green ones. Closed four: (1) the systemic-outage code was pinned only by a source grep, which passed even with the validator refusal deleted - replaced with 5 executed assertions driving both halves, including negative controls; (2) the subject-menu annotation pin passed when ALL twelve subjects were annotated \"(moderate)\", destroying its purpose - replaced with an exact 7/5 partition pin; (3) all five named RLATTN-* refusals in the composer were unexecuted - CONFIDENCE-BANDS is now driven through the existing threshold seam for each of the three thresholds; (4) the no-output-budget narrowing had no seam, so a configOverride was added, undefined on every production path and asserted behaviour-preserving. +15 assertions, 3223 -> 3238. Reported one defect it declined to fix as a product change: RLATTN-SNAPSHOT-UNOBSERVABLE was absent from rlattention REFUSAL_CODES, so during an outage the operator got the outage error AND a second error accusing the composer of a bogus code. Reproduced, fixed and pinned here: the intended refusal stays at 1, the spurious one drops to 0, an unknown code is still refused, and removing the code from the allowlist fails the new pin by name. 3239 passed, 0 failed."
     }
   ],
   "activeBugs": [],

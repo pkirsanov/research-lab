@@ -565,6 +565,14 @@ export function validateBriefPayload(payload, registry, config, snapshot, agenda
     if (payload.attention.length === 0 && recordedExclusions.length === 0) {
       errors.push('attention is empty with no recorded exclusions — an empty tier must state why it is empty, not merely be empty');
     }
+    /* The rule above is satisfied by ANY exclusion, so an empty tier caused by an OUTAGE
+       published successfully: a total bar-fetch failure writes a structurally valid snapshot
+       with no observable subject, every candidate is refused for want of an observation, and
+       the run reported success with a `subject: null` reason that never named the cause. The
+       composer now records that systemic cause once, by name, so it can be refused here. */
+    if (recordedExclusions.some((exclusion) => exclusion && exclusion.code === 'RLATTN-SNAPSHOT-UNOBSERVABLE')) {
+      errors.push('attention could not be composed because the snapshot yielded no observable subject — an outage is not a quiet market and must not publish as one');
+    }
     const attentionContext = {
       watchlistScope: WATCHLIST_SCOPE,
       calendarSource: XNYS_CALENDAR_SOURCE,

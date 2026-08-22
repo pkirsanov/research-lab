@@ -38,6 +38,7 @@ import {
     NOT_DUE_REASON,
     NOT_DUE_REMEDY,
     NO_COMMITTED_REFERENCE_REASON,
+    NO_COMMITTED_SERIES_REASON,
     ORIGIN_KEY_TERMS,
     PATH_COMPARATOR_MODE,
     PATH_INCOMPLETE_REASON,
@@ -51,17 +52,20 @@ import {
     basisValueAt,
     claimEntryBindings,
     closeDueClaims,
+    committedSeriesAt,
     dueEntryKeys,
     evaluatePredicate,
     fenceObservations,
     loadBars,
     loadCalendar,
+    loadSubjectBars,
     originRecommendationKeyFor,
     outcomeValueFor,
     readBars,
     resolutionAxesFor,
     resolutionFor,
     resolutionProvenanceFor,
+    subjectSymbolsFor,
 } from '../scripts/brief-resolve-outcomes.mjs';
 import { loadInstrumentUniverse, recommendationRowsFromPayload } from '../scripts/recommendation-body.mjs';
 import { CLAIM_NOT_EVALUABLE_FIELD, attachClaimRefs, mintClaimRecords } from '../scripts/recommendation-claim-mint.mjs';
@@ -72,6 +76,7 @@ import {
     assertBytesUnchanged,
     assertEvaluable,
     assertRefusal,
+    barsDirectoryListing,
     committedSeries,
     foundationActionVocabulary,
     foundationSourceText,
@@ -3294,6 +3299,85 @@ test('T-04-U6: the not-evaluable reason set is READ from rlclaims.js, never rest
         [],
         'while a single named member is not a restated set',
     );
+});
+
+test('T-04-U15: the committed set is the bars LISTING, and an uncommitted leg closes before a single bar is read', () => {
+    const committed = committedSeriesAt(REPO_ROOT);
+    const listing = barsDirectoryListing();
+    const manifestSymbol = claims.BARS_MANIFEST_FILENAME.slice(0, -'.json'.length);
+
+    /* ONE DERIVATION, THROUGH THE SHIPPED FUNCTION. The resolver's set and the support module's
+       set are the same value because both call `enumerateCommittedSeries` over the same listing.
+       A second local copy inside the resolver would surface here as a divergence rather than as a
+       drift nobody notices until a denominator moves. */
+    assert.deepEqual([...committed], [...committedSeries()], 'the resolver derives the set the shipped enumeration derives');
+    assert.equal(Object.isFrozen(committed), true, 'and the shipped set is frozen against a local push');
+    assert.equal(committed.includes(manifestSymbol), false, 'the refresh manifest is not a tradeable symbol');
+
+    /* NO COUNT LITERAL. The expectation is recomputed from the listing at run time, so committing
+       or removing a series moves both sides together instead of leaving a pinned number stale. */
+    const readable = listing.filter((name) => name.endsWith('.json') && name !== claims.BARS_MANIFEST_FILENAME);
+    assert.equal(committed.length, readable.length, 'the set size IS the readable-file count, never a typed constant');
+    assert.equal(committed.length > 0, true, 'and the tree is non-empty, so every assertion below is over real symbols');
+
+    /* AVAILABILITY, NEVER CURATION — the inversion this row exists to keep out. `index.json` is
+       the refresh manifest and names strictly fewer symbols than the tree carries; reading IT as
+       the committed set would close every symbol in the difference `no-committed-series` even
+       though its bars are committed and readable, shrinking the denominator over a refresh
+       detail. The divergent symbols are enumerated here rather than named, so the row keeps
+       meaning as the manifest changes. */
+    const curated = new Set(
+        JSON.parse(readFileSync(path.join(REPO_ROOT, claims.BARS_DIR, claims.BARS_MANIFEST_FILENAME), 'utf8'))
+            .tickers.map((ticker) => ticker.sym),
+    );
+    const readableButUncurated = committed.filter((symbol) => !curated.has(symbol));
+    assert.equal(readableButUncurated.length > 0, true, 'the two sets genuinely diverge, so the next assertion is not vacuous');
+    for (const symbol of readableButUncurated) {
+        assert.equal(existsSync(path.join(REPO_ROOT, claims.BARS_DIR, `${symbol}.json`)), true, `${symbol}: its bars are committed`);
+        assert.deepEqual(
+            subjectSymbolsFor({ subject: { seriesRefs: [claims.seriesRefFor(symbol)] } }, committed),
+            { ok: true, symbols: [symbol] },
+            `${symbol}: readable-but-uncurated resolves, which the manifest-as-set rule would have refused`,
+        );
+    }
+
+    /* AN UNCOMMITTED LEG CLOSES, and closes as the reason the mint uses for the same fact. */
+    const absent = subjectSymbolsFor({ subject: { seriesRefs: [claims.seriesRefFor('NOSUCHSYM')] } }, committed);
+    assert.equal(absent.ok, false, 'a symbol outside the committed set is not scoreable');
+    assert.deepEqual(
+        absent.closure,
+        { closureEventType: 'not-evaluable', reasonCode: NO_COMMITTED_SERIES_REASON, field: 'subject.seriesRefs' },
+        'closing not-evaluable with the shipped reason and the field that caused it',
+    );
+    assert.equal(claims.NOT_EVALUABLE_REASONS.includes(NO_COMMITTED_SERIES_REASON), true, 'the reason is a shipped member, not a local invention');
+
+    /* AN UNPARSEABLE REF CLOSES TOO rather than surviving as `null` and being read as `null.json`. */
+    assert.equal(subjectSymbolsFor({ subject: { seriesRefs: ['garbage'] } }, committed).ok, false, 'a ref whose shape carries no symbol closes');
+    assert.equal(subjectSymbolsFor({ subject: { seriesRefs: [] } }, committed).ok, false, 'and so does a subject with no legs at all');
+
+    /* WHAT THE GATE ADDS OVER `loadBars` FAILING, made executable. The direct read throws a raw
+       ENOENT — an unstructured Node error outside the shipped reason vocabulary, which aborts the
+       whole pass and takes every other due claim with it. The gated read returns a closure for
+       this one claim instead, and reads NOTHING: a basket whose first leg is perfectly readable
+       still loads no bars once a later leg is absent. */
+    assert.throws(
+        () => loadBars(REPO_ROOT, 'NOSUCHSYM'),
+        (error) => error.code === 'ENOENT',
+        'the ungated read throws ENOENT rather than closing',
+    );
+    const basket = { subject: { seriesRefs: [claims.seriesRefFor('SPY'), claims.seriesRefFor('NOSUCHSYM')] } };
+    const gated = loadSubjectBars(REPO_ROOT, basket, committed);
+    assert.equal(gated.ok, false, 'the gated read closes rather than throwing');
+    assert.equal(gated.closure.reasonCode, NO_COMMITTED_SERIES_REASON, 'with the same reason the single-leg case raised');
+    assert.equal(Object.prototype.hasOwnProperty.call(gated, 'bars'), false, 'and no partial basket is handed back');
+
+    /* ANTI-VACUITY: the SAME basket minus the absent leg loads cleanly through the SAME function,
+       so the closure above is caused by the uncommitted symbol and not by a reader that refuses
+       every basket. The map is keyed by `seriesRef` exactly as the evaluators read it. */
+    const honest = loadSubjectBars(REPO_ROOT, { subject: { seriesRefs: [claims.seriesRefFor('SPY')] } }, committed);
+    assert.equal(honest.ok, true, 'a fully committed subject loads');
+    assert.deepEqual([...honest.bars.keys()], [claims.seriesRefFor('SPY')], 'keyed by seriesRef, not by symbol');
+    assert.equal(honest.bars.get(claims.seriesRefFor('SPY')).sym, 'SPY', 'and the bars are the validated series');
 });
 
 

@@ -34,7 +34,7 @@
  * committed artifact or from the caller.
  */
 import { createRequire } from 'node:module';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
 const require = createRequire(import.meta.url);
@@ -302,6 +302,79 @@ export function readBars(text) {
 export function loadBars(root, symbol) {
   const base = typeof root === 'string' && root ? root : '.';
   return readBars(readFileSync(path.join(base, claims.BARS_DIR, `${symbol}.json`), 'utf8'));
+}
+
+/* ── The committed symbol set, at RESOLVE time ─────────────────────────────────────────────
+   AVAILABILITY, never curation. The set is `enumerateCommittedSeries` over the bars DIRECTORY
+   LISTING — the shipped function, called rather than restated, and it already skips
+   `BARS_MANIFEST_FILENAME`. Measured on the committed tree the listing yields 292 symbols while
+   `data/bars/index.json` names 289: `EA`, `NDX` and `PHP=X` carry committed, readable bars and
+   appear in no manifest. Reading the manifest as the set would close all three
+   `no-committed-series` and shrink the denominator over a refresh detail. No count is asserted
+   anywhere; the set is enumerated at run time.
+
+   This is NOT the mint gate a second time. `evaluateMintReason` stamped `claim.notEvaluable`
+   against the set as it stood WHEN THE CLAIM WAS MINTED; this asks the same question of the set
+   as it stands NOW, which is the only place the drift between those two moments is visible. A
+   symbol committed at mint and gone by resolution reaches here with `notEvaluable === null`. */
+export const NO_COMMITTED_SERIES_REASON = 'no-committed-series';
+if (!claims.NOT_EVALUABLE_REASONS.includes(NO_COMMITTED_SERIES_REASON)) {
+  throw new Error(`brief-resolve-outcomes: "${NO_COMMITTED_SERIES_REASON}" is not a shipped not-evaluable reason`);
+}
+
+/** The committed symbols readable under `root`, derived through the shipped enumeration. */
+export function committedSeriesAt(root) {
+  const base = typeof root === 'string' && root ? root : '.';
+  return claims.enumerateCommittedSeries(readdirSync(path.join(base, claims.BARS_DIR)));
+}
+
+/**
+ * Every subject leg's symbol, or the closure that says one of them is not committed.
+ *
+ * ALL legs are checked, matching the mint's own loop: a basket is unscoreable if any leg is, and
+ * accepting the readable subset would publish a return over a narrower basket than the claim
+ * names. A ref whose shape `symbolFromSeriesRef` cannot parse closes here too rather than being
+ * carried forward as `null` and then read as the file `null.json`.
+ */
+export function subjectSymbolsFor(claim, committed) {
+  if (!Array.isArray(committed)) {
+    throw new Error('brief-resolve-outcomes: subjectSymbolsFor requires the committed symbol set');
+  }
+  const refs = claim?.subject?.seriesRefs ?? [];
+  if (refs.length === 0) {
+    return closure('not-evaluable', NO_COMMITTED_SERIES_REASON, 'subject.seriesRefs');
+  }
+  const symbols = [];
+  for (const seriesRef of refs) {
+    const symbol = claims.symbolFromSeriesRef(seriesRef);
+    if (symbol === null || !committed.includes(symbol)) {
+      return closure('not-evaluable', NO_COMMITTED_SERIES_REASON, 'subject.seriesRefs');
+    }
+    symbols.push(symbol);
+  }
+  return { ok: true, symbols };
+}
+
+/**
+ * The subject's committed bars, keyed by `seriesRef` exactly as the evaluators read them.
+ *
+ * THE GATE RUNS BEFORE THE FIRST READ, and that ordering is the whole point. `loadBars` on an
+ * absent symbol throws a raw `ENOENT` — an unstructured Node error carrying an absolute
+ * filesystem path, outside `NOT_EVALUABLE_REASONS`, which `buildResolution` could never accept
+ * and which aborts the entire pass, taking every other due claim with it. BS-010 requires the
+ * opposite: the one claim closes `not-evaluable` with a stated reason and stays visibly counted
+ * while the pass continues. Nothing is read until every leg is known readable, so a basket never
+ * loads halfway and then dies.
+ */
+export function loadSubjectBars(root, claim, committed = committedSeriesAt(root)) {
+  const gated = subjectSymbolsFor(claim, committed);
+  if (!gated.ok) return gated;
+  const bars = new Map();
+  for (const symbol of gated.symbols) {
+    const seriesRef = claims.seriesRefFor(symbol);
+    if (!bars.has(seriesRef)) bars.set(seriesRef, loadBars(root, symbol));
+  }
+  return { ok: true, bars };
 }
 
 /**

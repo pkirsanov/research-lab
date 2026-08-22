@@ -446,6 +446,33 @@ export function observableSubjectTally(snapshot) {
   return (tracked && typeof tracked === 'object' && !Array.isArray(tracked)) ? Object.keys(tracked).length : 0;
 }
 
+/**
+ * Which freshness labels reach the header badge, rendered from the declared
+ * default-visible list.
+ *
+ * The lane was told dataAsOf.labels.* are "condensed reader-facing versions" and
+ * nothing more: no length, and no statement that two of them render into the
+ * badge above every decision on the page. So they were authored as paragraphs —
+ * 539 and 634 characters — and the badge rendered the FULL narratives at 3,266
+ * until the renderer was pointed at the labels. Naming the badge fields from the
+ * budget's own list is what stops the ask and the measurement drifting apart.
+ */
+export function briefFreshnessBadgeInstruction() {
+  const policy = loadJson('market-brief.config.json')['output-budget/v1'];
+  const prefix = 'dataAsOf.labels.';
+  const badge = (policy.defaultVisibleFields || [])
+    .filter((field) => typeof field === 'string' && field.startsWith(prefix))
+    .map((field) => field.slice(prefix.length));
+  if (badge.length === 0 || !Number.isFinite(policy.totalDefaultVisibleChars)) {
+    throw new Error('RLBRIEF-BADGE-FIELDS: the declared default-visible badge fields are unreadable');
+  }
+  return `Of the dataAsOf labels, ${badge.join(' and ')} render into the header badge, which sits above `
+    + 'every decision on the page and is the first thing a reader meets. Write those two as a badge, '
+    + 'not a paragraph: the freshness state and the one number that matters, in a sentence or so each. '
+    + `They now count against the ${policy.totalDefaultVisibleChars}-character default-visible budget `
+    + 'along with the decision cards, so a long label spends the allowance the decisions need.';
+}
+
 function loadJson(relPath) {
   return JSON.parse(readFileSync(resolve(ROOT, relPath), 'utf8'));
 }

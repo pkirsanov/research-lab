@@ -35,6 +35,7 @@ import {
   attentionSubjectMenuInstruction,
   attentionHeadlineCapInstruction,
   attentionRationaleBudgetInstruction,
+  briefFreshnessBadgeInstruction,
   attentionSubjectUniquenessInstruction,
   attentionVerbContractInstruction,
   findMaskedTerms,
@@ -3308,6 +3309,36 @@ try {
   assert(overBreaches.length === 1 && overBreaches[0].path === 'attention[0].rationale'
     && atBreaches.length === 0,
     'the detail cap refuses a rationale one character over and admits one exactly at the cap, so the bound is real and is not off by one');
+
+  /* ── and the header BADGE, the most visible text on the page ──────────────────────────────
+     dataAsOf.* was absent from defaultVisibleFields entirely, so the budget whose whole purpose
+     is bounding the DEFAULT VIEW never measured its most prominent element: the badge sits above
+     every decision and was rendering the full narratives at 3,266 characters. Only the two fields
+     the badge actually renders are declared, which is what keeps the list meaning "visible" —
+     declaring all four would total 3,424 against a 3,000 cap and breach on the next publish. */
+  const badgeFields = (detailPolicy.defaultVisibleFields || []).filter((field) => field.startsWith('dataAsOf.labels.'));
+  assert(badgeFields.length === 2
+    && badgeFields.includes('dataAsOf.labels.bars')
+    && badgeFields.includes('dataAsOf.labels.macro')
+    && !(detailPolicy.defaultVisibleFields || []).includes('dataAsOf.labels.events'),
+    'exactly the two freshness labels the header badge renders are measured as default-visible, and the two it does not render are left out rather than swelling the cap');
+  const renderedBadge = briefFreshnessBadgeInstruction();
+  assert(badgeFields.every((field) => new RegExp('\\b' + field.slice('dataAsOf.labels.'.length) + '\\b').test(renderedBadge))
+    && new RegExp('\\b' + detailPolicy.totalDefaultVisibleChars + '\\b').test(renderedBadge)
+    && /badge, not a paragraph/.test(renderedBadge),
+    'the badge contract names the fields it measures and the budget they now count against, so the author knows the badge is a badge');
+  /* ADVERSARIAL: the point is that the badge is MEASURED, not merely listed. */
+  const badgePayload = (barsLen) => ({
+    dataAsOf: { labels: { bars: 'x'.repeat(barsLen), macro: 'y' } }
+  });
+  const fatBadge = RLCOCKPIT_FOR_DETAIL.budgetViolations(
+    RLCOCKPIT_FOR_DETAIL.measureDefaultVisible(badgePayload(detailPolicy.totalDefaultVisibleChars + 1), detailPolicy), detailPolicy
+  ).filter((breach) => breach.capName === 'total cap');
+  const leanBadge = RLCOCKPIT_FOR_DETAIL.budgetViolations(
+    RLCOCKPIT_FOR_DETAIL.measureDefaultVisible(badgePayload(10), detailPolicy), detailPolicy
+  ).filter((breach) => breach.capName === 'total cap');
+  assert(fatBadge.length === 1 && leanBadge.length === 0,
+    'an oversized freshness label is refused by the default-visible total it now counts against, and a short one is not \u2014 the badge is measured rather than merely declared');
   /* ── and the guard for the config that has no budget section, which is where this broke ────
      The cap above is enforced. The REFUSAL for an unreadable budget was not reachable by any
      test: the instruction read the section straight off disk, so the one input its named error
@@ -22495,8 +22526,8 @@ try {
     && budgetPolicy26.decisionCardChars === 300
     && budgetPolicy26.totalDefaultVisibleChars === 3000
     && Array.isArray(budgetPolicy26.defaultVisibleFields)
-    && budgetPolicy26.defaultVisibleFields.length === 13
-    && new Set(budgetPolicy26.defaultVisibleFields).size === 13,
+    && budgetPolicy26.defaultVisibleFields.length === 15
+    && new Set(budgetPolicy26.defaultVisibleFields).size === 15,
   'market-brief.config.json declares output-budget/v1 with the literals 140, 300 and 3000 and exactly thirteen distinct default-visible paths');
 
   /* artifact-budget/v1 caps FETCH and this block caps OUTPUT; the note keeps the two from
@@ -22719,7 +22750,7 @@ try {
   'scripts/validate-brief-payload.mjs still declares exactly the five pre-existing CLI flags and the budget adds no sixth');
 
   /* byField is the reviewer re-derivation table: add the column and you get the total. */
-  assert(overCapMeasure26.byField.length === 13
+  assert(overCapMeasure26.byField.length === 15
     && overCapMeasure26.byField.reduce((sum, row) => sum + row.chars, 0) === overCapMeasure26.total
     && overCapMeasure26.byField.map((row) => row.path).join(',') === budgetPolicy26.defaultVisibleFields.join(','),
   'byField carries one row per declared field, in policy order, and sums exactly to total');

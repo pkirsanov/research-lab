@@ -2128,11 +2128,19 @@
   "window": "morning",
   "budget": {
     "contractVersion": "budget-measurement/v1",
-    "total": 887,
+    "total": 2060,
     "byField": [
       {
         "path": "headline",
         "chars": 0
+      },
+      {
+        "path": "dataAsOf.labels.bars",
+        "chars": 539
+      },
+      {
+        "path": "dataAsOf.labels.macro",
+        "chars": 634
       },
       {
         "path": "attention[].headline",
@@ -2183,7 +2191,7 @@
         "chars": 0
       }
     ],
-    "disclosedTotal": 127431,
+    "disclosedTotal": 126258,
     "caps": {
       "headline": 140,
       "decisionCard": 300,

@@ -446,3 +446,43 @@ is Scope 2's, and is not closed by bounding this one artifact.
 **What was deliberately not touched.** `brief-history.recent.jsonl`,
 `scripts/shard-brief-history.mjs`, `rlcockpit.js`, every `*.page.json`, and every other packet.
 Nothing was committed.
+
+## Re-Verification 2026-08-22 — F1 And F2 No Longer Reproduce
+
+Measured at `a00031529` in a clean worktree, by an agent working the BUG-014 packet rather
+than this one. **Nothing here changes this packet's status, scopes, or findings** — remedy
+selection remains the owner's. It is recorded because acting on the numbers above would now
+be acting on stale evidence.
+
+The v2 row format that drove both findings is gone. `compactRow()` no longer emits the
+verbatim `tracked` block; rows carry the compact `trackedStates` label map instead
+(`{"FBTC":"tangled", ...}`):
+
+```
+  rows                                        : 30
+  rows carrying `tracked` (the F1/F2 driver)  : 0
+  row bytes min/med/max                       : 400 / 927 / 931
+  file bytes                                  : 23,427   (budget 40,960 — PASS)
+```
+
+| Recorded at filing | Measured now |
+|---|---|
+| first-load 209,387 / 204,800 — **4,587 over** | **189,479 / 204,800 — PASS**, 15,321 headroom |
+| projected 336,791 at full turnover (131,991 over) | turnover is **complete at 30 of 30 rows**; total 23,397 B, not 148,170 B |
+| dominant contributor `tracked`, 72% of a v2 row | `tracked` absent from every row |
+
+F2's projection was contingent on 4,939-byte v2 rows displacing 397-byte v1 rows across the
+30-row window. That window has fully turned over and the projected size did not arrive,
+because the format changed rather than the window filling. The projection cannot now occur
+in the form it was written.
+
+F3 (the `compactRow()` doc-comment contradiction) and F4 (rows bounded, bytes unbounded)
+were **not** re-verified here and are not claimed resolved. F4's byte bound in particular is
+now live and passing, which is evidence for the owner's decision rather than a closure of it.
+
+One correction worth recording, because it nearly became a false alarm in the other packet:
+a first pass measured first-load at 203,428 with only 1,372 bytes of headroom. That was
+wrong twice over — it summed **bytes** where the validator counts **characters**, and it read
+`firstLoadPaths` from a working tree 153 commits stale, which listed seven paths including
+`brief-history.recent.jsonl`. The committed list holds six and excludes it; that artifact has
+its own separate 40,960 budget. The real figure is the validator's own: 189,479, PASS.

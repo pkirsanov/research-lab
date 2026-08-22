@@ -1870,6 +1870,20 @@
     var standard = isPlainObject(pack.standardDeductions) ? pack.standardDeductions[filingStatus] : undefined;
     var standardAmount = isPlainObject(standard) && Number.isFinite(standard.amount) ? standard.amount : null;
     var status = rules.ruleStatusFor(pack, pack);
+    /* F-AUDIT-01. The deduction the SETTLEMENT priced the tax on, obtained by making the very
+       call `computeTaxableIncome` makes rather than by restating it. This composition is a
+       comparison surface: FR-023-012 requires the itemised-versus-standard decision to be
+       recomputed and the side named, and FR-023-014 requires it to be SURFACED — neither makes it
+       an input to `computeAnnualFederalTax`, and the settlement deliberately applies the mode the
+       household declared rather than substituting a computed side for a declaration. Publishing
+       the settled deduction here is what lets every surface name which of the two produced the
+       figure beside it instead of asserting the composed one did. */
+    var settlementDeduction = selectDeduction(workspace, pack);
+    var settlementSettled = !rules.isUnavailable(settlementDeduction);
+    var settlementClause = settlementSettled
+      ? "It did not price the tax: this settlement applied the " + settlementDeduction.mode
+        + " deduction, which is the mode the household declared, and that deduction is stated with its own amount on the settlement row."
+      : "It did not price the tax: this settlement could not establish a deduction at all, so no deduction amount was applied and none is shown as though it were.";
 
     function unavailableComposition(refusal) {
       return Object.freeze({
@@ -1881,7 +1895,10 @@
         itemizedTotal: refusal,
         standardDeduction: standardAmount,
         chosen: "unavailable",
-        chosenReason: "The cap that decides this composition could not be established, so neither total is comparable and the standard deduction is not silently substituted in its place.",
+        chosenReason: "The cap that decides this composition could not be established, so neither total is comparable and the standard deduction is not silently substituted in its place. "
+          + settlementClause,
+        settlementDeduction: settlementDeduction,
+        agreesWithSettlement: null,
         refusal: refusal,
         ruleStatus: status
       });
@@ -1967,13 +1984,16 @@
     var onTie = isPlainObject(pack.deductionChoicePolicy) ? pack.deductionChoicePolicy.onTie : null;
     if (itemizedTotal > standardAmount) {
       chosen = "itemized";
-      chosenReason = "The itemised total is larger than the standard deduction, so itemising is what this settlement applied.";
+      chosenReason = "The itemised total is larger than the standard deduction, so this composed comparison names itemising. "
+        + settlementClause;
     } else if (itemizedTotal < standardAmount) {
       chosen = "standard";
-      chosenReason = "The itemised total is smaller than the standard deduction, so the standard deduction is what this settlement applied and the capped components changed nothing.";
+      chosenReason = "The itemised total is smaller than the standard deduction, so this composed comparison names the standard deduction and the capped components changed nothing. "
+        + settlementClause;
     } else if (onTie === "itemized" || onTie === "standard") {
       chosen = onTie;
-      chosenReason = "The two totals are equal, so the deduction is identical either way and the pack's declared tie rule named this side.";
+      chosenReason = "The two totals are equal, so the composed deduction is identical either way and the pack's declared tie rule named this side. "
+        + settlementClause;
     } else {
       return unavailableComposition(rules.unavailable("RLTAX-THRESHOLD-UNAVAILABLE",
         "itemized-composition:tie",
@@ -1981,6 +2001,7 @@
         "declare a deductionChoicePolicy.onTie member in the pack"));
     }
 
+    var composedAmount = chosen === "itemized" ? itemizedTotal : standardAmount;
     return Object.freeze({
       contractVersion: "ItemizedComposition/v1",
       stageId: "CO-18",
@@ -1991,9 +2012,18 @@
       capBinding: bound ? "bound" : "unbound",
       itemizedTotal: itemizedTotal,
       standardDeduction: standardAmount,
-      appliedDeduction: chosen === "itemized" ? itemizedTotal : standardAmount,
+      appliedDeduction: composedAmount,
       chosen: chosen,
       chosenReason: chosenReason,
+      /* The two sides of F-AUDIT-01, published together so no surface can state one and imply the
+         other. `appliedDeduction` above is the amount THIS COMPARISON names; `settlementDeduction`
+         is the one the tax was priced on. They diverge whenever the household's declared mode is
+         not the larger side, or whenever a component this comparison composes never reached the
+         settlement, and `agreesWithSettlement` says which case a reader is in. */
+      settlementDeduction: settlementDeduction,
+      agreesWithSettlement: settlementSettled
+        ? (settlementDeduction.mode === chosen && settlementDeduction.value === composedAmount)
+        : null,
       refusal: null,
       ruleStatus: status
     });

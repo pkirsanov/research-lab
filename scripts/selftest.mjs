@@ -24378,17 +24378,17 @@ try {
   const classified4 = [...pageSrc4.matchAll(/data-mac-block="([a-z-]+)"\s*\n?\s*data-mac-default="(visible|collapsed)"|data-mac-block="([a-z-]+)" data-mac-default="(visible|collapsed)"/g)];
   const blockAttrs4 = [...pageSrc4.matchAll(/data-mac-block="([a-z-]+)"/g)].map((m) => m[1]);
   const defaultAttrs4 = [...pageSrc4.matchAll(/data-mac-default="(visible|collapsed)"/g)].map((m) => m[1]);
-  assert(blockAttrs4.length === 16 && defaultAttrs4.length === 16
-    && new Set(blockAttrs4).size === 16
+  assert(blockAttrs4.length === 17 && defaultAttrs4.length === 17
+    && new Set(blockAttrs4).size === 17
     && defaultAttrs4.filter((state) => state === 'visible').length === 6
-    && defaultAttrs4.filter((state) => state === 'collapsed').length === 10
+    && defaultAttrs4.filter((state) => state === 'collapsed').length === 11
     && classified4.length > 0,
-  'market-brief.html classifies exactly 16 uniquely-named top-level blocks, six default-visible and ten collapsed, so an unclassified block cannot reach the default view unnoticed');
+  'market-brief.html classifies exactly 17 uniquely-named top-level blocks, six default-visible and eleven collapsed, so an unclassified block cannot reach the default view unnoticed');
 
   /* FR-026-028 — build-free and no browser ES modules, asserted at the source so a future
      script tag cannot reintroduce a build step without failing here first. */
   assert(!/type=["']module["']/.test(pageSrc4)
-    && (pageSrc4.match(/<details class="drawer"/g) || []).length === 10
+    && (pageSrc4.match(/<details class="drawer"/g) || []).length === 11
     && !/<details[^>]*data-mac-block[^>]*\sopen[\s>]/.test(pageSrc4),
   'market-brief.html declares no ES-module script tag, carries one drawer per collapsed block, and ships no drawer with an open attribute, so the default view is collapsed on every load rather than on the first only');
 
@@ -24407,10 +24407,10 @@ try {
     .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
   assert(suiteCode4.indexOf('market-brief.payload.json') < 0
     && suiteCode4.indexOf('brief-history.jsonl') < 0
-    && (suiteSrc4.match(/^test\(/gm) || []).length === 21
+    && (suiteSrc4.match(/^test\(/gm) || []).length === 22
     && (suiteSrc4.match(/FIXTURE-SOURCED/g) || []).length === 2
     && suiteCode4.indexOf('page.route') < 0 && suiteCode4.indexOf('context.route') < 0,
-  'tests/market-brief-cockpit.spec.mjs declares twenty-one tests — eighteen for Feature 026 plus the three BUG-009 R4 rows: the refusal statement, its quiet negative control and the deduped production shape — labels both fixture-sourced decision-surface rows as suchh, intercepts no request, and binds itself to neither the payload nor the history ledger');
+  'tests/market-brief-cockpit.spec.mjs declares twenty-two tests — eighteen for Feature 026, the three BUG-009 R4 rows (the refusal statement, its quiet negative control and the deduped production shape) and the freshness-badge row — labels both fixture-sourced decision-surface rows as suchh, intercepts no request, and binds itself to neither the payload nor the history ledger');
 
   /* The stripper must not become the hole in the guard: a real page.route in CODE still fails,
      and the same text inside a comment does not. */

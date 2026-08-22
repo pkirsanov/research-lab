@@ -1117,6 +1117,13 @@
             <section id="attentionRecord" aria-label="How the decision list has actually turned out"></section>
         </div>
 
+        <details class="drawer" data-mac-block="data-freshness" data-mac-default="collapsed">
+            <summary data-mac-summary="data-freshness">⌄ Data freshness — the full read</summary>
+            <div class="body">
+                <div class="sub" id="dataAsOfDetail"></div>
+            </div>
+        </details>
+
         <details class="drawer" data-mac-block="regime" data-mac-default="collapsed">
             <summary data-mac-summary="regime">⌄ Regime and live layer</summary>
             <div class="body">
@@ -1294,7 +1301,40 @@
                         a.setAttribute("title", "No market-brief.payload.json loaded yet — open on GitHub Pages or run /market-brief-update.");
                     }
                 }
-                var d = el("dataAge"); if (d) { var da = PAYLOAD && PAYLOAD.dataAsOf; d.textContent = da ? ("data: bars " + (da.bars || "—") + " · macro " + (da.macro || "—")) : "data —"; }
+                /* The pill carries the CONDENSED label, not the full narrative. The lane authors
+                   both — dataAsOf.labels.* is the reader-facing short form of dataAsOf.* — and this
+                   badge was rendering bars + macro at their full length, 3,266 characters into a
+                   pill, above every decision on the page. The full read moves to its own collapsed
+                   drawer. Falls back to the long form when a payload carries no labels, so an older
+                   payload still says something true rather than nothing. */
+                var d = el("dataAge");
+                if (d) {
+                    var da = PAYLOAD && PAYLOAD.dataAsOf;
+                    var lab = (da && da.labels) || {};
+                    var shortBars = lab.bars || (da && da.bars) || "—";
+                    var shortMacro = lab.macro || (da && da.macro) || "—";
+                    d.textContent = da ? ("data: bars " + shortBars + " · macro " + shortMacro) : "data —";
+                }
+                var detail = el("dataAsOfDetail");
+                if (detail) {
+                    detail.textContent = "";
+                    var daFull = PAYLOAD && PAYLOAD.dataAsOf;
+                    if (!daFull) {
+                        detail.textContent = "No payload is loaded, so no freshness read is available.";
+                    } else {
+                        ["bars", "options", "macro", "events"].forEach(function (field) {
+                            var body = daFull[field];
+                            if (!body) return;
+                            var row = document.createElement("p");
+                            row.style.margin = "0 0 8px";
+                            var name = document.createElement("b");
+                            name.textContent = field + ": ";
+                            row.appendChild(name);
+                            row.appendChild(document.createTextNode(String(body)));
+                            detail.appendChild(row);
+                        });
+                    }
+                }
             }
 
             function renderComputed() {

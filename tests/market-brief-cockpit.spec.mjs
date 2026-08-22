@@ -41,6 +41,10 @@ const INVENTORY = Object.freeze({
   'cross-asset': 'visible',
   changed: 'visible',
   'track-record': 'visible',
+  /* The full data-freshness read. The condensed dataAsOf.labels.* now carry the badge; the four
+     full narratives (5,436 characters on the live payload) moved here, because they were being
+     rendered at full length into a header pill above every decision on the page. */
+  'data-freshness': 'collapsed',
   regime: 'collapsed',
   'next-session': 'collapsed',
   'standing-research': 'collapsed',
@@ -176,9 +180,44 @@ async function axExpanded(page, selector) {
   }
 }
 
-/* ── 4.1 · SCN-026-021 ───────────────────────────────────────────────────────────────────── */
-test('every supporting block is collapsed on load and the decision surface, dark states, changed list and roll-up are visible', async ({ page }) => {
+/* ── 4.0 · the freshness badge carries the CONDENSED read ────────────────────────────────
+   The lane authors dataAsOf.* (the full narrative) AND dataAsOf.labels.* (the condensed
+   reader-facing form), and the badge was rendering the full one: 3,266 characters of
+   "ma50Dist +1.88% ~751.6" and "signed net GEX -1.85B" into a header pill, sitting above
+   every decision on the page. Found by opening the page, not by a gate — every suite was
+   green while it happened, because nothing measured what the reader meets first. */
+test('the freshness badge carries the condensed label and the full read lives in its collapsed drawer', async ({ page }) => {
   test.setTimeout(90_000);
+  const LONG = 'FULL-NARRATIVE ' + 'x'.repeat(900);
+  const SHORT = 'CONDENSED-LABEL';
+  const server = await startStaticServer({
+    overrides: {
+      'market-brief.page.json': cockpitPayload({
+        dataAsOf: {
+          bars: LONG, options: LONG, macro: LONG, events: LONG,
+          labels: { bars: SHORT, options: SHORT, macro: SHORT, events: SHORT }
+        }
+      })
+    }
+  });
+  try {
+    await openCockpit(page, server);
+    const badge = await page.$eval('#dataAge', (node) => node.textContent);
+    expect(badge, 'the badge states the condensed label').toContain(SHORT);
+    expect(badge, 'the badge does NOT carry the full narrative').not.toContain('FULL-NARRATIVE');
+
+    // The full read is not lost, only moved: it is present in the drawer and the drawer is shut.
+    const drawer = await page.$eval('#dataAsOfDetail', (node) => node.textContent);
+    expect(drawer, 'the drawer carries the full narrative').toContain('FULL-NARRATIVE');
+    const shut = await page.$eval('details[data-mac-block="data-freshness"]', (node) => !node.hasAttribute('open'));
+    expect(shut, 'the freshness drawer is collapsed on load').toBe(true);
+  } finally {
+    await server.close();
+  }
+});
+
+/* ── 4.1 · SCN-026-021 ───────────────────────────────────────────────────────────────────── */
+test('every supporting block is collapsed on load and the decision surface, dark states, changed list and roll-up are visible', async ({ page }) => {  test.setTimeout(90_000);
   const server = await startStaticServer({ overrides: { 'market-brief.page.json': cockpitPayload() } });
   try {
     await openCockpit(page, server);

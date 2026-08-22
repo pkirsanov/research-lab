@@ -1356,3 +1356,64 @@ the blast radius.
 
 The mutation was reverted inside the invocation that applied it and the revert was
 proven by blob hash, identical before and after.
+
+---
+
+## Audit — arithmetic and refusal integrity (2026-08-22)
+
+Read-only audit of the calculation order and refusal integrity across Features
+021-024. One finding belongs to this scope.
+
+### F-AUDIT-04 — `CO-24` never runs on the route it was built to audit
+
+`composeSurfaceCensus` — [rltax.js](../../../../rltax.js#L1436) — is the stage
+whose stated purpose is to catch a leg that every surface renders and that
+nonetheless entered `totalFederalTax`. Its own comment names the stakes: such a
+leg produces no finding from surface membership alone "while the headline
+silently overstated what the household owes by the size of a premium". That is
+the defect class this program has already shipped once.
+
+It is called from two places in the repository, both of them
+`scripts/selftest.mjs`. `lifetime-tax-strategy-lab.html` never calls it, imports
+no census result, and renders no census node — the three occurrences of the word
+in that file are prose. The stage is exported, exercised against
+`COMPLETE_FIXTURE28`, and absent from the shipped route.
+
+The browser suites do run a census, but a different one:
+`legSurfaceCensus(page, legId)` is a per-spec helper defined twice, in
+`tests/lifetime-tax-rental.spec.mjs` and `tests/lifetime-tax-disposition.spec.mjs`.
+It compares per-leg surface membership. It has no equivalent of the
+`mis-summed-leg` pass, which is the finding kind added under `TP-05-04`
+precisely because surface membership cannot detect a mis-summed cost, so the one
+check that would fire on the historical defect runs against a fixture and never
+against the page.
+
+Consequence: the audit exists, is correct, and is not deployed. A pack that
+declared a Medicare premium leg with `includedInTotal: true` would be caught by
+the selftest fixture only if the fixture were changed to match; on the route the
+household would see a headline inflated by the premium with no finding raised.
+
+Verified separately that the shipped configuration is currently clean, so this
+is a missing safety net rather than a live mis-sum: the federal pack declares
+four `taxLegs`, all `includedInTotal: true` and all tax legs, and passing two
+synthetic cost legs into `computeAnnualFederalTax` leaves `totalFederalTax`
+byte-identical at $82,384.25 while both legs are published with
+`includedInTotal: false`.
+
+Routed, not fixed. Wiring `CO-24` into the route means deciding what the page
+does with a non-clean census — render it, refuse, or both — and that is a scope
+decision rather than an unambiguous repair.
+
+### Surfaces audited clean in this scope
+
+The premium legs read `includedInTotal` from the pack rather than asserting it,
+`annualMedicareCost` refuses whole when any declared part refuses rather than
+omitting it, and the aggregate is published beside the federal total under a
+label that says in words it is not part of it. `renderMedicare` guards
+`stage.refusal` before it dereferences `stage.bracket`, and `renderBenefit`,
+`renderInclusion` and `renderClaimAge` each guard before reading the detail
+members a refusing stage publishes as `null`.
+
+### This audit changed no source
+
+`node scripts/selftest.mjs` — 3190 passed, 0 failed, before and after.

@@ -53,6 +53,7 @@ import { buildCompanyFundamentalsOwnerRead } from './brief-refresh.mjs';
 import {
   BRIEF_NARRATIVE_FIELDS_OPTIONAL,
   BRIEF_NARRATIVE_FIELDS_REQUIRED,
+  briefBackdropKeysInstruction,
   BRIEF_STRUCTURED_FIELDS,
   READER_VOCABULARY_LEAKS,
   findBriefNarrativeVocabularyLeaks,
@@ -3635,6 +3636,32 @@ try {
   assert(unclassified.length === 0,
     'every payload string of 200+ characters is declared either reader prose or machine state, so no long field escapes the gate unnoticed'
     + (unclassified.length ? ': ' + [...new Set(unclassified)].join(', ') : ''));
+  /* The gate above CATCHES an undeclared prose field; it does not stop one being written. A run
+     wrote a third 741-character structural narrative under `backdrop.structuralTrend`, a key no
+     renderer reads, because the lane was told to "name the ... structural trend" and never told
+     the keys — and most regime/backdrop pairs DO share a name, so the pattern predicts exactly
+     the wrong one. The keys are now rendered from this same declared list. */
+  const backdropKeysInstruction = briefBackdropKeysInstruction();
+  const declaredBackdropOwn = BRIEF_NARRATIVE_FIELDS_REQUIRED
+    .filter((field) => field.startsWith('backdrop.') && field.slice('backdrop.'.length).indexOf('.') === -1)
+    .map((field) => field.slice('backdrop.'.length));
+  /* Scoped to the BACKDROP clause. Three of the four backdrop keys are also regime keys, so a
+     check against the whole instruction passed with the backdrop list truncated to one entry —
+     the regime sentence supplied the missing names. */
+  const backdropClause = backdropKeysInstruction.slice(backdropKeysInstruction.indexOf('structural backdrop under exactly these:'));
+  assert(declaredBackdropOwn.length > 0
+    && declaredBackdropOwn.every((key) => new RegExp('\\b' + key + '\\b').test(backdropClause))
+    && /primaryTrend`, not `structuralTrend/.test(backdropKeysInstruction),
+    'the backdrop clause names every declared backdrop key and calls out the one pair that does NOT share a name across the two blocks');
+  /* Both halves, because neither implies the other: an import with no interpolation renders
+     nothing to the author, and an interpolation with no import throws at lane runtime. A pin
+     that only grepped the file for the NAME passed with the interpolation deleted, because the
+     import line alone satisfied it. */
+  const keysLaneSource = read('scripts/brief-narrative-parallel.mjs');
+  const coreLaneRegion = keysLaneSource.slice(keysLaneSource.indexOf("id: 'core'"), keysLaneSource.indexOf("id: 'signals'"));
+  assert(/import\s*\{[^}]*briefBackdropKeysInstruction[^}]*\}\s*from\s*'\.\/reader-vocabulary\.mjs'/.test(keysLaneSource)
+    && coreLaneRegion.includes('${briefBackdropKeysInstruction()}'),
+    'the core lane imports AND interpolates the backdrop key contract, instead of describing the fields in prose');
   // A pattern naming a field that does not exist silently shrinks D13 coverage, so every
   // pattern must be proven real. Required patterns are proven by this payload. The two
   // optional ones are real but intermittent — a publish where no tool read carries a

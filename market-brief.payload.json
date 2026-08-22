@@ -11,27 +11,27 @@
       "figures": [
         {
           "label": "distance from 200-day",
+          "value": "15.65%",
           "provenance": {
-            "asOf": "2026-08-22T14:31:45.654Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "15.65%"
+            "sourceId": "etf-momentum-lab",
+            "asOf": "2026-08-22T14:31:45.654Z"
+          }
         },
         {
           "label": "from 52-week high",
+          "value": "-5.73%",
           "provenance": {
-            "asOf": "2026-08-22T14:31:45.654Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "-5.73%"
+            "sourceId": "etf-momentum-lab",
+            "asOf": "2026-08-22T14:31:45.654Z"
+          }
         },
         {
           "label": "moving-average stack",
+          "value": "bull-stack",
           "provenance": {
-            "asOf": "2026-08-22T14:31:45.654Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "bull-stack"
+            "sourceId": "etf-momentum-lab",
+            "asOf": "2026-08-22T14:31:45.654Z"
+          }
         }
       ],
       "gateId": null,
@@ -42,15 +42,15 @@
       "invalidation": "a daily VGT close above ~121.50 reasserts leadership",
       "lifecycle": [
         {
+          "to": "discovered",
           "at": "2026-08-22T14:31:45.654Z",
           "condition": "observed",
-          "ref": null,
-          "to": "discovered"
+          "ref": null
         }
       ],
       "marketConfirmation": {
-        "detail": null,
-        "state": "absent"
+        "state": "absent",
+        "detail": null
       },
       "marketConfirmationNote": "the Tier-A persistence gate is NOT met, so this reading has not persisted and is reported unconfirmed",
       "observedAt": "2026-08-22T14:31:45.654Z",
@@ -69,29 +69,7 @@
       "windowTradingDate": "2026-08-24"
     }
   ],
-  "attentionExclusions": [
-    {
-      "code": "RLATTN-OVERLAP",
-      "field": "subject",
-      "index": 0,
-      "reason": "this subject is already published as an action and must not be surfaced twice",
-      "subject": "XLK"
-    },
-    {
-      "code": "RLATTN-OVERLAP",
-      "field": "subject",
-      "index": 2,
-      "reason": "this subject is already published as an action and must not be surfaced twice",
-      "subject": "QQQ"
-    },
-    {
-      "code": "RLATTN-OVERLAP",
-      "field": "subject",
-      "index": 3,
-      "reason": "this subject is already published as an action and must not be surfaced twice",
-      "subject": "SPMO"
-    }
-  ],
+  "attentionExclusions": [],
   "backdrop": {
     "asymmetry": "With the July NFP binary resolved benignly, the multi-month structure intact (SPY 20>50>200 bull-stack) and price roughly 1.6% under the highs rather than a break, the longer-term bull is unbroken, and breadth firmed again into the weekend (58.1% on the 8/21 bar, margin only -1.9, up from 29.99% on 8/20). The offsetting near-term risks eased but did not clear: dealers stay negative gamma (GEX -1.85B, up from Friday's -2.84B) with SPY spot 765.72 about 3 points below the 768.79 flip; breadth still sits under 60% so three-bar persistence is unmet and the latest bar is just below the line; the near-term leader SPMO sits -1.4% below its 50-day (148.73) though it holds +13.75% over its 200-day, QQQ is back exactly at its 50-day (713.44), and XLK is Lagging at its 50-day; intraday-tape-lab reads Friday's session a Reversal risk auction; swing-structure-lab still qualifies a Double top overhead; a SPY 766 PUT ranks among the most-unusual flow prints; and it is a weekend hold into Monday's gap risk. Flow is still call-heavy (callFraction 0.7064) with the most-unusual print an AMD 470 CALL. The near-term stance favors HOLDING the intact core and the first beta-add tranche while pausing the rest until breadth clears and holds 60% for persistence, SPMO reclaims its 50-day, QQQ holds it and SPY reclaims the flip, tilting the rotation toward the Leading energy/healthcare (XLE/XLV/XLB) and Improving defensives (XLU/XLP) funded from weakening financials, HOLDING (not chasing) MSFT, and carrying only a SMALL weekend tail. The residual near-term risk is a close that loses the 765 put wall back into deeper negative gamma, SPMO confirming a close below its 50-day or QQQ losing it, MSFT fading toward ~429.4, the Double top resolving lower, or a weekend gap lower; the near-term upside is a close that reclaims and holds above the 768.79 flip while breadth clears and holds 60% across three bars.",
     "globalBackdrop": [
@@ -168,87 +146,8 @@
         ]
       }
     },
-    "structuralTrend": "Extended structural bull intact on the multi-month frame with the bull-stack holding, tape unchanged over the weekend: SPY 765.72 keeps its deterministic 20>50>200 bull-stack (swing-structure-lab Bull-stacked, fast 762.33 over slow 707.54, Double top pattern-qualified, trend regime reads unknown), +1.88% above its 50-day (~751.6), +8.62% over its 200-day (~705.0), mom126/252 +11.66%/+21.33%, about 1.6% under its highs. The near-term leaders are mixed (SPMO 148.73 -1.4% below its 50-day but +13.75% over its 200-day, QQQ 713.44 back at its 50-day, XLK 183.31 Lagging at its 50-day) and MSFT 483.24 is repairing but unconfirmed (maStack tangled, mom5 -2.27). Breadth firmed to 58.1% but three-bar persistence above 60% is not established.",
     "trendEvidence": "SPY mom126 +11.66 / mom252 +21.33, +8.62% over the 200-day (~705.0), pctFrom52wHigh -1.56, +1.88% ABOVE its 50-day (~751.6) carrying a deterministic 20>50>200 bull-stack (swing-structure-lab Bull-stacked, fast 762.33 over slow 707.54, Double top pattern qualified, trend regime reads unknown). Friday's session read a Reversal risk auction under Algo-controlled control up +0.45% (intraday-tape-lab VWAP 765.81, 79 bars), a two-way late-day character. Breadth firmed to 58.1% of 134 (market-heatmap-lab, margin -1.9) with only 8/19 above 60% across the last three distinct bars. The near-term leaders are mixed (SPMO 148.73 -1.4% below its 50-day but +13.75% over its 200-day, QQQ 713.44 back at its 50-day, XLK 183.31 Lagging at its 50-day), leadership tilts toward the Leading energy/healthcare/materials (XLE/XLV/XLB) and Improving defensives (XLU/XLP/XLRE/XLC) while financials (XLF) weaken, and the sizing model reads NORMAL (throttle x1.26) with VIX a calm 15.13.",
     "whatWouldChangeIt": "A decisive SPY daily CLOSE holding above the 768.79 flip into positive dealer gamma with SPMO reclaiming its 50-day (~150.8), QQQ holding its 50-day (~713.4) and breadth clearing and holding above 60% across three bars (bullish, the pin is restored and the breakout re-broadens durably); a close below the 765 put wall with MSFT filling its gap toward ~429.4 or the Double top resolving lower (bearish, dealers deepen the amplification below the put wall); conditional vol turning back up with VIX closing above 22.0 or term-structure backwardation; a weekend gap lower into Monday; a confirmed hawkish 7/29 Fed outcome once the official statement is re-pulled or a hot/cold official July NFP figure that re-prices the path; or breadth failing to clear and hold 60% for persistence, XLE slipping under rsMom 100 and losing its Leading relative-strength. Whether SPY reclaims and holds above the 768.79 flip and breadth clears and holds 60% across three bars, or SPY loses the 765 put wall, is the near-term regime-decider."
-  },
-  "budget": {
-    "byField": [
-      {
-        "chars": 0,
-        "path": "headline"
-      },
-      {
-        "chars": 96,
-        "path": "attention[].headline"
-      },
-      {
-        "chars": 0,
-        "path": "attention[].what"
-      },
-      {
-        "chars": 58,
-        "path": "attention[].escalationTrigger"
-      },
-      {
-        "chars": 52,
-        "path": "attention[].invalidation"
-      },
-      {
-        "chars": 17,
-        "path": "crossAsset.legs[].label"
-      },
-      {
-        "chars": 77,
-        "path": "crossAsset.legs[].withheld"
-      },
-      {
-        "chars": 295,
-        "path": "crossAsset.dark[].reason"
-      },
-      {
-        "chars": 90,
-        "path": "crossAsset.dark[].withheld"
-      },
-      {
-        "chars": 107,
-        "path": "crossAsset.dark[].substitutionRefusal"
-      },
-      {
-        "chars": 82,
-        "path": "changed[].line"
-      },
-      {
-        "chars": 13,
-        "path": "rollUp.line"
-      },
-      {
-        "chars": 0,
-        "path": "trackRecord.line"
-      }
-    ],
-    "caps": {
-      "decisionCard": 300,
-      "detail": 700,
-      "headline": 140,
-      "total": 3000
-    },
-    "cards": [
-      {
-        "chars": 206,
-        "path": "attention[0]"
-      }
-    ],
-    "contractVersion": "budget-measurement/v1",
-    "detail": [
-      {
-        "chars": 586,
-        "path": "attention[0].rationale"
-      }
-    ],
-    "disclosedTotal": 128172,
-    "total": 887,
-    "violations": []
   },
   "changed": [
     {
@@ -2204,5 +2103,83 @@
       "status": "$183.31 (2026-08-22 pre-market window; the 2026-08-21 regular session is the latest completed daily bar; next session 2026-08-24; the latest tape read is a Reversal risk auction under Algo-controlled control (intraday-tape-lab, 2026-08-21T20:00:00Z, VWAP ~765.81); snapshot asOf 2026-08-22T14:31:45.654Z) — sitting essentially ON its 50-day (+0.16%, ~183.0) and +15.92% over the 200-day (~158.1), MA stack tangled; -7.41% off its high (mom5 -3.53, mom21 +2.72, mom63 +2.76). sector-research-lab owning-tool read (asOf 2026-08-22T14:31:44.406Z, benchmark SPY, 11 sectors) does NOT flag Technology in its rotation this run — it rotates INTO Energy (XLE Leading, quad L, rsMom 102.18, accel +4.28) and OUT of Financials (XLF Weakening down, quad W), with Health Care (XLV) the RS leader (rsRatio 101.83) — so XLK carries neither a rotation-in tailwind nor a rotation-out headwind this window and stands on its own structure. HOLD on the intact long-term structure, with the 50-day (~183.0) the near-term reclaim line; invalidated on a daily close below the 200-day (~158.1). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-21 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
     }
   },
-  "window": "morning"
+  "window": "morning",
+  "budget": {
+    "contractVersion": "budget-measurement/v1",
+    "total": 887,
+    "byField": [
+      {
+        "path": "headline",
+        "chars": 0
+      },
+      {
+        "path": "attention[].headline",
+        "chars": 96
+      },
+      {
+        "path": "attention[].what",
+        "chars": 0
+      },
+      {
+        "path": "attention[].escalationTrigger",
+        "chars": 58
+      },
+      {
+        "path": "attention[].invalidation",
+        "chars": 52
+      },
+      {
+        "path": "crossAsset.legs[].label",
+        "chars": 17
+      },
+      {
+        "path": "crossAsset.legs[].withheld",
+        "chars": 77
+      },
+      {
+        "path": "crossAsset.dark[].reason",
+        "chars": 295
+      },
+      {
+        "path": "crossAsset.dark[].withheld",
+        "chars": 90
+      },
+      {
+        "path": "crossAsset.dark[].substitutionRefusal",
+        "chars": 107
+      },
+      {
+        "path": "changed[].line",
+        "chars": 82
+      },
+      {
+        "path": "rollUp.line",
+        "chars": 13
+      },
+      {
+        "path": "trackRecord.line",
+        "chars": 0
+      }
+    ],
+    "disclosedTotal": 127127,
+    "caps": {
+      "headline": 140,
+      "decisionCard": 300,
+      "total": 3000,
+      "detail": 700
+    },
+    "cards": [
+      {
+        "path": "attention[0]",
+        "chars": 206
+      }
+    ],
+    "detail": [
+      {
+        "path": "attention[0].rationale",
+        "chars": 586
+      }
+    ],
+    "violations": []
+  }
 }

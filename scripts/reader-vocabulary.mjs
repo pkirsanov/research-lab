@@ -283,3 +283,33 @@ export function findBriefNarrativeVocabularyLeaks(payload) {
   }
   return findings;
 }
+
+/**
+ * The regime and backdrop KEYS, rendered from the declared narrative list.
+ *
+ * The core lane was told to "name the regime and crowd psychology, structural
+ * trend, macro cycle, priced-in view, asymmetry, levels, and falsifiers" — prose
+ * that describes fields and names no key. Most regime/backdrop pairs share a
+ * name (`macroCycle`, `pricedIn`, `asymmetry`), so the pattern predicts
+ * `backdrop.structuralTrend`; the real backdrop key is `primaryTrend`. One run
+ * in twelve duly wrote a third 741-character structural narrative under a key no
+ * renderer reads, which the 200-character coverage gate caught. Naming the keys
+ * from the declared list is the same fix `regime.macroCycle` got, one step
+ * earlier: state the contract instead of catching the guess.
+ */
+export function briefBackdropKeysInstruction() {
+  const own = (prefix) => BRIEF_NARRATIVE_FIELDS_REQUIRED
+    .filter((field) => field.startsWith(prefix) && field.slice(prefix.length).indexOf('.') === -1)
+    .map((field) => field.slice(prefix.length));
+  const regimeKeys = own('regime.');
+  const backdropKeys = own('backdrop.');
+  if (regimeKeys.length === 0 || backdropKeys.length === 0) {
+    throw new Error('RLBRIEF-BACKDROP-KEYS: the declared regime/backdrop narrative keys are unreadable');
+  }
+  return `Author the regime block under exactly these keys: ${regimeKeys.join(', ')}. Author the `
+    + `structural backdrop under exactly these: ${backdropKeys.join(', ')}. Most pairs share a name `
+    + 'across the two blocks, but the backdrop\'s structural read is `primaryTrend`, not '
+    + '`structuralTrend` — that one belongs to regime, and a third copy under any other key is '
+    + 'carried by no renderer and reaches no reader. A key outside these lists is unguarded prose '
+    + 'and fails the payload coverage gate.';
+}

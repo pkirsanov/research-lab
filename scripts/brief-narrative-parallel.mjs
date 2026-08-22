@@ -19,7 +19,7 @@ import { distinctRowsBy, reassertCompanyOwnerReadDisclosure, trackedAsOfReader }
 import { RESEARCH_AGENDA_CONTRACTS, runResearchSidePool } from './research-agenda-generation.mjs';
 import { BRIEF_PAYLOAD_BUDGET_CONTRACT, briefEventContractInstruction } from './validate-brief-payload.mjs';
 import { attentionAuthoredKeysInstruction, attentionCardBudgetInstruction, attentionExpiryFormatInstruction, attentionHeadlineCapInstruction, attentionRationaleBudgetInstruction, attentionSubjectMenuInstruction, attentionSubjectUniquenessInstruction, attentionVerbContractInstruction, recommendationConfidenceContractInstruction } from './build-attention-items.mjs';
-import { BRIEF_NARRATIVE_FIELDS_REQUIRED } from './reader-vocabulary.mjs';
+import { BRIEF_NARRATIVE_FIELDS_REQUIRED, briefBackdropKeysInstruction } from './reader-vocabulary.mjs';
 import { NARRATIVE_WEB_ALLOWLIST } from './web-evidence-policy.mjs';
 
 const ROOT = process.cwd();
@@ -66,7 +66,7 @@ const lanes = [
         id: 'core',
         keys: ['nextSession', 'dataAsOf', 'regime', 'backdrop', 'psychology'],
         web: true,
-        instructions: `Own the posture and structural frame. Author nextSession FIRST for snapshot.nextSessionDate with at most config.thresholds.nextSessionMaxActions. Every action must use hold|trim|add|hedge|rotate and include subject, rationale, horizon, structuralAnchor, trigger, invalidation, confidence, and deepLink. ${recommendationConfidenceContractInstruction()} dataAsOf must truthfully label bars, options, macro, and events, and dataAsOf.labels must carry the SAME four keys as condensed reader-facing versions of those four narratives — both are required reader copy and the publish path refuses a payload that omits either. Name the regime and crowd psychology, structural trend, macro cycle, priced-in view, asymmetry, levels, and falsifiers.`
+        instructions: `Own the posture and structural frame. Author nextSession FIRST for snapshot.nextSessionDate with at most config.thresholds.nextSessionMaxActions. Every action must use hold|trim|add|hedge|rotate and include subject, rationale, horizon, structuralAnchor, trigger, invalidation, confidence, and deepLink. ${recommendationConfidenceContractInstruction()} dataAsOf must truthfully label bars, options, macro, and events, and dataAsOf.labels must carry the SAME four keys as condensed reader-facing versions of those four narratives — both are required reader copy and the publish path refuses a payload that omits either. Name the regime and crowd psychology, structural trend, macro cycle, priced-in view, asymmetry, levels, and falsifiers. ${briefBackdropKeysInstruction()}`
     },
     {
         id: 'signals',

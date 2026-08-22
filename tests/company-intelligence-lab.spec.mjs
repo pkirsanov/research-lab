@@ -1456,4 +1456,83 @@ test('Regression: SCN-027-010 the rendered reason is written with textContent an
     }
 });
 
+/* ── F-AUDIT-08: the hub reads its deep-link subject through the shared corridor rule ──
+   This route is the hub every owner deep link points back at. It read ?symbol= with a private
+   parser that applied nothing but trim + uppercase, while every spoke route routed its subject
+   through RLTKR.linkedSubject. The identical divergence on the spokes became SEC-027-01, a real
+   XSS. The two tests below are the halves of the swap: nothing currently valid stopped working,
+   and what the shared grammar refuses now never becomes the subject. */
+
+test('Regression: F-AUDIT-08 every currently-valid deep-link subject still opens its company', async ({ page }) => {
+    /* One SEC identity, one SEC identity with a shorter ticker, and one resolved from the
+       committed bar corpus alone — the three identity bases this route can resolve. */
+    for (const [symbol, basis] of [['MSFT', 'sec-cik'], ['KO', 'sec-cik'], ['AAPL', 'committed-bars']]) {
+        await openComposedRoute(page, { query: `?symbol=${symbol}` });
+        await expect(page.locator('#subject-input')).toHaveValue(symbol);
+        /* The shared ticker affordance appends its own glyph inside the parenthesis, so the
+           identity is matched around it rather than against a frozen string. */
+        await expect(page.locator('#subject-identity')).toContainText(new RegExp(`\\(${symbol}\\W*\\)\\s*resolved on ${basis}`));
+        /* An accepted link is honoured silently: the notice is for a link that was not. */
+        await expect(page.locator('#link-notice')).toBeHidden();
+    }
+
+    /* Lower case and surrounding whitespace normalise exactly as they did before the swap. */
+    await openComposedRoute(page, { query: '?symbol=%20%20msft%20%20' });
+    await expect(page.locator('#subject-input')).toHaveValue('MSFT');
+    await expect(page.locator('#subject-identity')).toContainText(/\(MSFT\W*\)\s*resolved on sec-cik/);
+    await expect(page.locator('#link-notice')).toBeHidden();
+});
+
+test('Regression: F-AUDIT-08 a subject the shared grammar refuses never becomes the hub subject', async ({ page }) => {
+    /* Every value here is refused by RLTKR.linkedSubject and was already unresolvable at this
+       route's own resolver, so refusing it earlier costs no working input. */
+    const refused = [
+        'javascript:alert(1)',
+        '../../etc/passwd',
+        '//evil.example',
+        '<img src=x onerror=1>',
+        'MSFT" onmouseover="alert(1)',
+        'ABCDEFGHIJKLM',
+        '^VIX'
+    ];
+
+    for (const value of refused) {
+        const requested = [];
+        const runtimeErrors = [];
+        page.on('pageerror', (error) => runtimeErrors.push(error.message));
+        page.on('request', (request) => requested.push(request.url()));
+
+        await page.goto(`${site.baseUrl}/${ROUTE}?symbol=${encodeURIComponent(value)}`);
+        await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed', { timeout: 30_000 });
+
+        /* The refused value did not become the subject: the route composed its default company. */
+        await expect(page.locator('#subject-input'), `${value} became the subject`).toHaveValue('MSFT');
+        await expect(page.locator('#subject-identity')).toContainText(/\(MSFT\W*\)\s*resolved on sec-cik/);
+
+        /* And the reader is told, rather than being shown a company the link did not name. */
+        const notice = page.locator('#link-notice');
+        await expect(notice, `${value} was swallowed silently`).toBeVisible();
+        await expect(notice).toHaveAttribute('data-link-handoff', 'refused');
+        await expect(notice).toContainText('could not accept');
+        await expect(notice).toContainText('MSFT');
+
+        /* The refused text reaches neither the rendered page nor a request path. The subject
+           flows into a committed-bars fetch and into a symbol-keyed shared cache, so a value
+           that survived this far would be reachable at both. The top-level navigation is
+           excluded: that request IS the hostile link, and the claim is about what the route
+           does with it afterwards. */
+        const body = await page.locator('body').innerText();
+        expect(body, `${value} was echoed back to the page`).not.toContain(value);
+        const subsequent = requested.filter((url) => !url.startsWith(`${site.baseUrl}/${ROUTE}`));
+        expect(subsequent.length, 'the route issued its own requests after the navigation').toBeGreaterThan(0);
+        const carried = subsequent.filter((url) => url.includes(encodeURIComponent(value))
+            || decodeURIComponent(url).includes(value));
+        expect(carried, `${value} reached a request: ${carried.join(' | ')}`).toEqual([]);
+        expect(runtimeErrors, `runtime errors: ${runtimeErrors.join(' | ')}`).toEqual([]);
+
+        page.removeAllListeners('pageerror');
+        page.removeAllListeners('request');
+    }
+});
+
 

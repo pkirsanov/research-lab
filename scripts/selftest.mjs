@@ -25820,6 +25820,108 @@ try {
     && f027Rule.linkedSubject(f027Query('  brk.b  ')).subject === f027Rule.normTicker('  brk.b  '),
   'Feature 027: linkedSubject reads no window, document or storage API and normalises through the existing normTicker');
 
+  /* 1.20 — the single-convention property, pinned in BOTH directions.
+     Every assertion above proves the CORRECT name works; none of them counts NAMES, so a
+     SECOND convention arriving alongside `ticker` survived all of them — a fallback read of
+     `t` in the shared reader, or a `?t=` parameter in the deep link a route publishes about
+     itself. Both are counted here instead: the shared reader must read exactly one parameter
+     name, each subject route must delegate its query read to that reader rather than parse
+     the search string itself, and every deepLink a subject route emits must name that same
+     parameter. Symbolic references resolve through the real export, so composing a link from
+     RLTKR.SUBJECT_PARAM satisfies this while a hard-coded second spelling does not. */
+  const f027ReadArgs = (body) => Array.from(body.matchAll(/\.get\(\s*([^)]*?)\s*\)/g)).map((m) => m[1]);
+  const f027ResolveName = (token) => (token === 'SUBJECT_PARAM' || token === 'RLTKR.SUBJECT_PARAM')
+    ? f027Module.SUBJECT_PARAM
+    : (/^(['"]).*\1$/.test(token) ? token.slice(1, -1) : 'unresolved(' + token + ')');
+  const f027DeepLinkParam = (expr) => {
+    /* a hard-coded name inside the link text is already the name it publishes */
+    const literal = /^"[^"]*\?([^"=&]+)="/.exec(expr);
+    if (literal) return literal[1];
+    const symbolic = /^"[^"]*\?"\s*\+\s*([A-Za-z_$][\w$.]*)\s*\+\s*"="/.exec(expr);
+    if (symbolic) return f027ResolveName(symbolic[1]);
+    return 'unparsed(' + expr.slice(0, 60) + ')';
+  };
+  const f027EmittedNames = [];
+  const f027UndelegatedReads = [];
+  const F027_DELEGATED_READ = /RLTKR\.linkedSubject\(\s*[A-Za-z_$][\w$.]*\.location\.search\s*(?:,\s*(['"])[A-Za-z][A-Za-z0-9_]*\1\s*)?\)/;
+  f027RouteSources.forEach((f) => {
+    Array.from(f.source.matchAll(/deepLink:\s*([^\n]*?)\s*$/gm))
+      .forEach((m) => f027EmittedNames.push(f027DeepLinkParam(m[1])));
+    Array.from(f.source.matchAll(/[^\n]*location\.search[^\n]*/g))
+      .filter((line) => !F027_DELEGATED_READ.test(line[0]))
+      .forEach(() => f027UndelegatedReads.push(f.path));
+  });
+  /* The reader takes the name it reads as an ARGUMENT now, because the hub route this corridor
+     points back at published its subject as ?symbol= before the corridor existed, and forking a
+     second copy of the grammar to serve that spelling is the duplication this feature removed.
+     That moves the "one convention" claim off the reader body and onto the CALL SITES, which
+     1.21 counts. What stays provable here is that the reader performs exactly ONE query read,
+     that the name it reads is its own single local, and that omitting the argument still reads
+     SUBJECT_PARAM — so a caller that names nothing cannot silently acquire a second spelling. */
+  const f027ReaderGets = f027ReadArgs(f027Body);
+  const f027ReaderDefaults = /var\s+name\s*=\s*typeof paramName === "string" && paramName \? paramName : SUBJECT_PARAM;/.test(f027Body);
+  const f027DefaultRead = f027Rule.linkedSubject('?ticker=NVDA&symbol=AMD');
+  const f027NamedRead = f027Rule.linkedSubject('?ticker=NVDA&symbol=AMD', 'symbol');
+  const f027EmittedDistinct = Array.from(new Set(f027EmittedNames));
+  assert(f027ReaderGets.length === 1 && f027ReaderGets[0] === 'name' && f027ReaderDefaults
+    && f027DefaultRead.status === 'accepted' && f027DefaultRead.subject === 'NVDA'
+    && f027NamedRead.status === 'accepted' && f027NamedRead.subject === 'AMD'
+    && f027Rule.linkedSubject('?symbol=AMD').status === 'absent'
+    && f027Rule.linkedSubject('?ticker=NVDA', 'symbol').status === 'absent'
+    && f027EmittedNames.length === F027_SUBJECT_ROUTES.length
+    && f027EmittedDistinct.length === 1 && f027EmittedDistinct[0] === f027Module.SUBJECT_PARAM
+    && f027UndelegatedReads.length === 0,
+  'Feature 027: one subject convention in BOTH directions — the shared reader performs exactly one query read '
+    + JSON.stringify(f027ReaderGets) + ' through a single local that defaults to SUBJECT_PARAM, each subject route'
+    + ' delegates its query read to RLTKR.linkedSubject (undelegated: ' + (f027UndelegatedReads.join(', ') || 'none')
+    + '), and the ' + f027EmittedNames.length + ' deepLink(s) the ' + F027_SUBJECT_ROUTES.length
+    + ' subject routes publish about themselves name ' + JSON.stringify(f027EmittedDistinct)
+    + ' — every one of those names must be ' + JSON.stringify(f027Module.SUBJECT_PARAM));
+
+  /* 1.21 — F-AUDIT-05: pin the SET of parameter names the corridor reads.
+     Every assertion above proves that the names which ARE read behave correctly; none of them
+     COUNTED the names, so a second convention arriving as a fallback read inside the reader, or
+     as a new call site naming a new spelling, would have left every guard green. The census
+     below reads every RLTKR.linkedSubject call site in the production tree, resolves the name
+     each one asks for (an omitted argument is SUBJECT_PARAM, by the default proved immediately
+     above), and requires the resulting set to be exactly the two spellings this corridor
+     publishes. A third spelling goes red, and so does a private re-read of either name in any
+     production file other than the one reader. */
+  const F027_CORRIDOR_NAMES = Object.freeze(['symbol', 'ticker']);
+  const F027_HUB_ROUTE = 'company-intelligence-lab.html';
+  const f027CallSiteNames = (files) => {
+    const sites = [];
+    files.forEach((f) => {
+      Array.from(f.source.matchAll(/RLTKR\.linkedSubject\(\s*([^)]*?)\s*\)/g)).forEach((m) => {
+        const second = /,\s*(.+)$/.exec(m[1]);
+        sites.push({ path: f.path, name: second ? f027ResolveName(second[1].trim()) : f027Module.SUBJECT_PARAM });
+      });
+    });
+    return sites;
+  };
+  const f027Corridor = f027CallSiteNames(f027ProductionFiles);
+  const f027CorridorSet = Array.from(new Set(f027Corridor.map((c) => c.name))).sort();
+  const f027SymbolCallers = Array.from(new Set(f027Corridor.filter((c) => c.name === 'symbol').map((c) => c.path)));
+  const f027PrivateReaders = f027ProductionFiles
+    .filter((f) => f.path !== 'rlticker.js' && F027_CORRIDOR_NAMES
+      .some((name) => new RegExp('\\.get\\(\\s*[\'"]' + name + '[\'"]\\s*\\)').test(f.source)))
+    .map((f) => f.path);
+  /* Proof this census can fail: one synthetic extra call site naming a third spelling. */
+  const f027ThirdSet = Array.from(new Set(f027CallSiteNames(f027ProductionFiles.concat([
+    { path: 'synthetic-second-convention.html', source: 'RLTKR.linkedSubject(window.location.search, "t")' }
+  ])).map((c) => c.name))).sort();
+  assert(f027Corridor.length >= 5
+    && f027CorridorSet.join(',') === F027_CORRIDOR_NAMES.join(',')
+    && f027SymbolCallers.join(',') === F027_HUB_ROUTE
+    && f027PrivateReaders.length === 0
+    && f027ThirdSet.join(',') === 'symbol,t,ticker',
+  'Feature 027: the corridor reads a CLOSED set of parameter names — ' + f027Corridor.length
+    + ' call site(s) across ' + Array.from(new Set(f027Corridor.map((c) => c.path))).length
+    + ' route(s) read exactly ' + JSON.stringify(f027CorridorSet) + ', only ' + JSON.stringify(f027SymbolCallers)
+    + ' asks for the hub spelling, no production file outside rlticker.js reads either name itself ('
+    + (f027PrivateReaders.join(', ') || 'none') + '), and one extra call site naming a third spelling would widen the set to '
+    + JSON.stringify(f027ThirdSet));
+
   /* 1.19 — shared-surface canary */
   assert(f027CorpusReads.length === F027_CORPUS.length && passes > 3000,
     'Regression: SCN-027-CANARY every pre-existing selftest assertion stays green after the Feature 027 append'
@@ -26019,6 +26121,90 @@ try {
     + ' (' + passes + ' assertion(s) already green at this point)');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 027 Scope 3 registry-declaration group threw): ' + e.message); }
 /* FEATURE-027-REGISTRY-DECLARATIONS-END */
+
+/* FEATURE-027-HUB-ROUTE-BEGIN */
+try {
+  group('Feature 027 F-AUDIT-08: the hub route reads its subject through the shared rule');
+  const f027hRoute = read('company-intelligence-lab.html');
+  const f027hTickerSource = read('rlticker.js');
+  const f027hParamLine = /\n\s*var SUBJECT_PARAM = [^\n]*\n/.exec(f027hTickerSource);
+  const f027hPatternLine = /\n\s*var SUBJECT_PATTERN = [^\n]*\n/.exec(f027hTickerSource);
+  if (!f027hParamLine || !f027hPatternLine) throw new Error('SUBJECT_PARAM / SUBJECT_PATTERN not declared in rlticker.js');
+  const f027hRule = build(
+    [extractFn(f027hTickerSource, 'normTicker'), extractFn(f027hTickerSource, 'linkedSubject')],
+    ['normTicker', 'linkedSubject'],
+    f027hParamLine[0] + f027hPatternLine[0]);
+  const f027hRead = (value) => f027hRule.linkedSubject('?symbol=' + encodeURIComponent(value), 'symbol');
+
+  /* h.a — the private parser is gone, the shared reader is called with the route's own
+     published spelling, and rlticker.js is loaded before the inline script that calls it. */
+  const f027hScriptOrder = f027hRoute.indexOf('<script src="rlticker.js">') < f027hRoute.lastIndexOf('<script>')
+    && f027hRoute.indexOf('<script src="rlticker.js">') !== -1;
+  assert(f027hScriptOrder
+    && /RLTKR\.linkedSubject\(window\.location\.search, "symbol"\)/.test(f027hRoute)
+    && !/new URLSearchParams\(window\.location\.search\)/.test(f027hRoute)
+    && !/\.get\(\s*"symbol"\s*\)/.test(f027hRoute)
+    && !f027hRoute.includes('[A-Z0-9.\\-]{1,12}'),
+  'Feature 027 F-AUDIT-08: the hub route delegates its subject read to RLTKR.linkedSubject under its own published'
+    + ' parameter name, declares no private parser and no private grammar, and loads rlticker.js before the reader runs');
+
+  /* h.b — EQUIVALENCE, the property that makes this a safe swap rather than a behaviour
+     change. Every identifier the hub can actually RESOLVE today — the three SEC identities it
+     ships plus every symbol the committed bar corpus holds, filtered through the resolver's own
+     expression read out of rlcompanyintel.js — must still be accepted by the shared rule, with
+     the identical normalised value. This is the "still accepts every currently-valid symbol"
+     half of the claim, over a real corpus rather than a hand-picked pair. */
+  const f027hResolveBody = extractFn(read('rlcompanyintel.js'), 'resolveSubject');
+  const f027hResolverText = /!(\/\^[^/]+\/)\.test\(raw\)/.exec(f027hResolveBody);
+  if (!f027hResolverText) throw new Error('the hub resolver expression was not found in resolveSubject');
+  const f027hResolver = new RegExp(f027hResolverText[1].slice(1, -1));
+  const f027hBars = readdirSync(join(ROOT, 'data', 'bars'))
+    .filter((name) => /\.json$/.test(name) && name !== 'index.json')
+    .map((name) => name.slice(0, -5));
+  const f027hSec = Array.from(f027hRoute.matchAll(/\{\s*ticker:\s*"([^"]+)",\s*cik:/g)).map((m) => m[1]);
+  const f027hResolvable = f027hBars.concat(f027hSec).filter((value) => f027hResolver.test(value));
+  const f027hNotAccepted = f027hResolvable.filter((value) => {
+    const read027 = f027hRead(value);
+    return read027.status !== 'accepted' || read027.subject !== value.toUpperCase();
+  });
+  assert(f027hSec.length === 3 && f027hBars.length > 200 && f027hResolvable.length > 200
+    && f027hNotAccepted.length === 0,
+  'Feature 027 F-AUDIT-08: every identifier the hub can resolve today stays accepted by the shared rule with an unchanged'
+    + ' normalised value (' + f027hResolvable.length + ' of ' + (f027hBars.length + f027hSec.length)
+    + ' committed identifiers are resolver-valid, ' + f027hNotAccepted.length + ' regressed: '
+    + (f027hNotAccepted.slice(0, 8).join(', ') || 'none') + ')');
+
+  /* h.c — the other half: the hub now REFUSES what the shared grammar refuses, and refusing
+     costs nothing that used to work, because every refused value was already unresolvable at
+     the hub's own resolver. A value the shared rule refused and the hub could nevertheless
+     have resolved would be a real regression, and there is none. */
+  const F027H_REFUSED = Object.freeze([
+    'javascript:alert(1)', 'data:text/html,x', '//evil.example', '../../etc/passwd',
+    '<img src=x onerror=1>', 'MSFT onmouseover=1', 'MSFT&x=1', 'MSFT#frag', 'MSFT\u0000',
+    'ABCDEFGHIJKLM', '\u0426\u0415\u041d\u0410', 'MS\nFT', 'MS\tFT', '^VIX', 'EURUSD=X'
+  ]);
+  const f027hSurvivors = F027H_REFUSED.filter((value) => f027hRead(value).status !== 'refused');
+  const f027hLostGround = F027H_REFUSED.filter((value) => f027hResolver.test(value.trim()));
+  const f027hLeaks = F027H_REFUSED.filter((value) => f027hRead(value).subject !== null || f027hRead(value).raw !== null);
+  assert(f027hSurvivors.length === 0 && f027hLostGround.length === 0 && f027hLeaks.length === 0,
+  'Feature 027 F-AUDIT-08: the hub refuses every value the shared grammar refuses, none of them was resolvable by the hub'
+    + ' before the swap, and no refused value survives in subject or raw (' + f027hSurvivors.length + ' survivor(s), '
+    + f027hLostGround.length + ' would-have-resolved, ' + f027hLeaks.length + ' leak(s))');
+
+  /* h.d — a refused link must not leave the default company on screen unexplained. */
+  assert(/function renderLinkNotice\(handoff\)/.test(f027hRoute)
+    && /handoff\.status !== "refused"/.test(f027hRoute)
+    && /if \(handoff\.status === "accepted"\) currentTicker = handoff\.subject;/.test(f027hRoute)
+    && f027hRoute.includes('"link-notice", "subject-refusal"'),
+  'Feature 027 F-AUDIT-08: only an accepted subject becomes the hub subject, and a refused link states that it was not'
+    + ' honoured and which company is shown instead');
+
+  /* h.e — shared-surface canary */
+  assert(passes > 3150,
+    'Regression: SCN-027-CANARY every pre-existing selftest assertion stays green after the F-AUDIT-08 append'
+    + ' (' + passes + ' assertion(s) already green at this point)');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 027 hub-route group threw): ' + e.message); }
+/* FEATURE-027-HUB-ROUTE-END */
 
 /* RED-GREEN-PROBE-HARNESS-BEGIN */
 /* The harness exists because a `trap ... EXIT` set in a persistent interactive

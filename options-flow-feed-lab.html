@@ -552,9 +552,14 @@
       /* A company named by a deep link is accepted by the shared RLTKR rule; this route adds
          no private acceptance rule of its own. The subject renders as a FOCUS BAND above the
          scan — never a filter, which would destroy the scan, and never a pre-sort, which would
-         silently override state.sortK / state.sortDir, both persisted reader controls. The four
-         outcomes below stay four distinct statements: "covered but nothing crossed the bar" and
-         "not covered at all" are different facts and collapsing them would be a silent inaccuracy. */
+         silently override state.sortK / state.sortDir, both persisted reader controls. The six
+         outcomes below stay six distinct statements: "covered but nothing crossed the bar" and
+         "not covered at all" are different facts and collapsing them would be a silent inaccuracy.
+         For the same reason the band is handed BOTH row sets. The scan's own flagged set decides
+         whether a strike crossed the activity bar; the reader-filtered set decides what the band
+         may count, because the numbers beside it must agree with the table below. Blaming the
+         activity bar for an absence the reader's own side / min-score / expiry levers caused
+         would be exactly the kind of silent inaccuracy this band exists to avoid. */
       function inUniverse(sym) { for (var i = 0; i < UNIVERSE.length; i++) if (UNIVERSE[i] === sym) return true; return false; }
       function focusAggregate(rows, sym) {
         var out = { count: 0, callP: 0, putP: 0 }, i, r;
@@ -566,7 +571,7 @@
         }
         return out;
       }
-      function renderFocus(rows) {
+      function renderFocus(rows, scanned) {
         var band = $("linkNotice");
         if (!band) return;
         if (FOCUS.status === "absent") { band.textContent = ""; band.hidden = true; return; }
@@ -582,21 +587,31 @@
           return;
         }
         var agg = focusAggregate(rows, FOCUS.subject);
-        if (!agg.count) {
+        var all = focusAggregate(scanned, FOCUS.subject);
+        if (!all.count) {
           band.textContent = "Focus: " + FOCUS.subject + " — covered by this scan, but no strike crossed the activity bar for it. " +
             "The full scan below is unchanged.";
           band.hidden = false;
           return;
         }
+        if (!agg.count) {
+          band.textContent = "Focus: " + FOCUS.subject + " — covered by this scan, and " + all.count + " strike" +
+            (all.count === 1 ? "" : "s") + " crossed the activity bar for it, but your current side, min-score and expiry " +
+            "settings exclude " + (all.count === 1 ? "it" : "every one of them") + ". The full scan below is unchanged.";
+          band.hidden = false;
+          return;
+        }
+        var hidden = all.count - agg.count;
         band.textContent = "Focus: " + FOCUS.subject + " — " + agg.count + " flagged strike" + (agg.count === 1 ? "" : "s") +
           " · call premium " + money(agg.callP) + " vs put premium " + money(agg.putP) +
+          (hidden ? " · " + hidden + " more excluded by your current settings" : "") +
           " · end-of-day proxy over " + UNIVERSE.length + " liquid names, not a real-time tape.";
         band.hidden = false;
       }
 
       function render() {
         var rows = filtered();
-        renderFocus(rows);
+        renderFocus(rows, ROWS);
         var cachedCount = 0, i; for (i = 0; i < UNIVERSE.length; i++) if (cacheGet(UNIVERSE[i])) cachedCount++;
         if (!ROWS.length) {
           $("verdict").textContent = cachedCount ? "No unusually-active strikes right now" : "No option chains cached yet";

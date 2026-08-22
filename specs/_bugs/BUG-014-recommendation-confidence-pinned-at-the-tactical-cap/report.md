@@ -337,6 +337,26 @@ composed after this change, and no such run has occurred. The claim proven is th
 lanes now receive a contract derived from the enforced bands; the claim deliberately not
 made is that the next payload will carry a spread.
 
+## Production Confirmation, 2026-08-22
+
+The claim withheld above is now observed, so it is recorded rather than left open.
+Narrative runs composed after the change carry:
+
+```
+   recommendations conf: [61, 57, 53, 52]
+   nextSession structural  [61]
+   nextSession swing       [57, 54, 50]
+   nextSession tactical    [52]
+```
+
+Every one of the 34 runs measured at filing carried exactly 55. The tactical value is the
+decisive one: **52 was unreachable before Scope 2**, because the publish validator refuses
+below `minimumActionConfidence` and above `tacticalConfidenceCap`, and both were 55.
+
+Both halves of the packet are therefore confirmed in production rather than asserted. The
+rendered contract made the author differentiate, and the threshold separation gave a
+tactical action somewhere to stand.
+
 ## Validation Re-Derivation (2026-08-22, commit 0380cfdc2)
 
 An independent validation pass re-derived the claims above by running the commands rather

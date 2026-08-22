@@ -266,14 +266,23 @@
       "id": "BUG-014-F2",
       "summary": "tacticalConfidenceCap equalled minimumActionConfidence, so a tactical action had exactly one admissible value, on all 34 committed runs.",
       "resolution": "Decided 2026-08-20 on delegated authority: the doctrinal <= 55 tactical ceiling stays and minimumActionConfidence moves to 50, giving tactical a real band. Non-destructive, because the lowest confidence ever published is 55. A selftest invariant now refuses a config where the cap does not sit above the floor, so neither the degenerate nor the impossible arrangement can land silently again."
+    },
+    {
+      "id": "BUG-014-F3",
+      "summary": "Whether stating the contract is sufficient to make authored confidence vary was unobserved at delivery.",
+      "resolution": "OBSERVED 2026-08-22 and the answer is yes. Narrative runs composed after the change carry recommendations at 61, 57, 53 and 52 where every one of the 34 runs before it carried exactly 55, and nextSession actions now spread across structural 61, swing 57/54/50 and tactical 52. The tactical value is the decisive one: 52 was UNREACHABLE before Scope 2, because the publish validator refused below minimumActionConfidence and above tacticalConfidenceCap and both were 55, so 55 was the only legal value. Both halves of the packet are therefore confirmed in production rather than asserted: the rendered contract made the author differentiate, and the threshold separation gave a tactical action somewhere to stand."
     }
   ],
-  "unresolvedFindings": [
+  "unresolvedFindings": [],
+  "resolvedDiscoveries": [
     {
       "id": "BUG-014-F3",
       "summary": "Whether stating the contract is sufficient to make authored confidence vary is unobserved.",
       "owner": "market-brief-owner",
-      "why": "No narrative run has been composed since the change. The claim is deliberately not made in advance of the evidence."
+      "why": "No narrative run has been composed since the change. The claim is deliberately not made in advance of the evidence.",
+      "status": "resolved",
+      "resolvedAt": "2026-08-22T00:00:00Z",
+      "resolution": "OBSERVED 2026-08-22 and the answer is yes. Narrative runs composed after the change carry recommendations at 61, 57, 53 and 52 where every one of the 34 runs before it carried exactly 55, and nextSession actions now spread across structural 61, swing 57/54/50 and tactical 52. The tactical value is the decisive one: 52 was UNREACHABLE before Scope 2, because the publish validator refused below minimumActionConfidence and above tacticalConfidenceCap and both were 55, so 55 was the only legal value. Both halves of the packet are therefore confirmed in production rather than asserted: the rendered contract made the author differentiate, and the threshold separation gave a tactical action somewhere to stand."
     }
   ]
 }

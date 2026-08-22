@@ -417,7 +417,39 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 
 #### Core items
 
-- [ ] `scripts/brief-resolve-outcomes.mjs` exists, runs offline from committed repository state only, and references no `fetch`, socket, provider key, or `RLDATA` browser fetch path.
+- [x] `scripts/brief-resolve-outcomes.mjs` exists, runs offline from committed repository state only, and references no `fetch`, socket, provider key, or `RLDATA` browser fetch path.
+
+  **Evidence — offline purity, verified against the shipped module.** Executed from `<repo-root>`.
+
+  ```
+  $ test -f scripts/brief-resolve-outcomes.mjs && wc -c < scripts/brief-resolve-outcomes.mjs
+  83955
+  exit code: 0
+
+  $ grep -nE 'fetch\(|providerFetch|rlProviderConfig|XMLHttpRequest|WebSocket|RLDATA' scripts/brief-resolve-outcomes.mjs
+  exit code: 1
+
+  $ grep -nE 'child_process|process\.env|node:(net|http|https|tls|dgram)' scripts/brief-resolve-outcomes.mjs
+  exit code: 1
+  ```
+
+  Two empty greps are the whole claim: no browser fetch path, no provider-key surface, no socket module, and
+  no `process.env` or `child_process` escape hatch through which off-repository state could enter. The
+  scanner-backed half is `T-04-V1`, which runs the module and proves the scanner can flag each surface — so
+  the empty grep above is a measured absence rather than a scanner that flags nothing:
+
+  ```
+  $ node --test tests/recommendation-track-record.e2e.mjs
+  ✔ T-04-V1: the shipped resolver reaches no network, host or credential, under a scanner proven able to flag each and to ignore prose (326.003603ms)
+  ℹ tests 7
+  ℹ pass 7
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  Every one of the seven E2E cases resolves from committed fixture and calendar bytes with the network
+  surface absent, which is the "runs offline from committed repository state only" half executed rather
+  than asserted.
 - [ ] **The resolver CONSUMES scope 03's shipped exports and re-implements none of them.** `classifyOutcome`, `flatBandFor`, `outcomeContributionFor`, `buildResolution`, `resolutionHash`, `resolutionObjectPath`, `serializeResolution`, `writeResolutionObject`, `authorizeResolutionWrite`, `enumerateCommittedSeries`, `readClosureEventVocabulary`, `CLOSURE_REASON_CODES`, `NOT_EVALUABLE_REASONS`, `OUTCOME_CLOSURE_EVENTS`, `OUTCOME_CLASSES` are imported from `rlclaims.js` and called; no second copy of any of them exists in 015-authored code.
 - [x] **Scope 02's write gate is called, never bypassed.** Every resolution write goes through `writeResolutionObject`, which calls `authorizeResolutionWrite` (`rlclaims.js:733`) first; a claimless row refuses `RTR-LEGACY-BACKFILL` before the resolution is inspected, and nothing in `briefs/objects/resolutions/` is written by any other route.
 
@@ -506,7 +538,33 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   than merely going unused. The ruling implemented is recorded in [report.md](report.md).
 
 - [ ] An `early-close` session **resolves normally and is flagged, not excluded**: when `entryDate` or `resolutionDate` falls on one, the resolution records `provenance.earlyCloseSessions: [<tradingDate>…]`.
-- [ ] `RTR-CALENDAR-COVERAGE` is implemented; a `resolutionDate` beyond `coverageEnd` refuses and closes `not-evaluable` reason `calendar-coverage-exhausted` with no extrapolation.
+- [x] `RTR-CALENDAR-COVERAGE` is implemented; a `resolutionDate` beyond `coverageEnd` refuses and closes `not-evaluable` reason `calendar-coverage-exhausted` with no extrapolation.
+
+  **Evidence — the coverage refusal, located in the executed source.** Executed from `<repo-root>`.
+
+  ```
+  $ grep -nE "CALENDAR_COVERAGE_REASON = |RESOLVER_NOT_EVALUABLE_REASONS\.includes|refusal\(CALENDAR_COVERAGE_CODE, CALENDAR_COVERAGE_REASON, 'resolutionDate'\)" scripts/brief-resolve-outcomes.mjs
+  59:export const CALENDAR_COVERAGE_REASON = 'calendar-coverage-exhausted';
+  60:if (!claims.RESOLVER_NOT_EVALUABLE_REASONS.includes(CALENDAR_COVERAGE_REASON)) {
+  152:  return refusal(CALENDAR_COVERAGE_CODE, CALENDAR_COVERAGE_REASON, 'resolutionDate');
+  365:if (!claims.RESOLVER_NOT_EVALUABLE_REASONS.includes(ZERO_OBSERVED_REASON)) {
+  854:if (!claims.RESOLVER_NOT_EVALUABLE_REASONS.includes(NO_COMMITTED_REFERENCE_REASON)) {
+  exit code: 0
+  ```
+
+  `:60` is load-bearing: the reason is not a local string but is asserted at module load to be a member of the
+  shipped `RESOLVER_NOT_EVALUABLE_REASONS`, so a rename in `rlclaims.js` throws here rather than silently
+  minting a reason the ledger will not admit. `:152` is the refusal itself, returned rather than clamped —
+  there is no fallback branch that extends the window.
+
+  ```
+  $ node --test tests/recommendation-track-record.functional.mjs
+  ✔ T-04-F2 (increment 1): RTR-CALENDAR-COVERAGE refuses past the committed window and extrapolates nothing (19.451913ms)
+  ℹ tests 13
+  ℹ pass 13
+  ℹ fail 0
+  exit code: 0
+  ```
 - [x] The as-of fence is a **slice computed once before** predicate evaluation; the evaluator can only see readable rows, and `RTR-LOOKAHEAD` fires on any attempt to consult a row outside it.
 
   **Evidence — increment 2 (value slice, commit `30a9e2624`).** Executed from `<repo-root>`.
@@ -694,7 +752,34 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   The evidence stops here. The independence of the axes is proven; the *never-emitted* `withdrawn` item below is
   left unticked because its own wording requires "every failure branch, including a claim about to score badly",
   which is `T-04-F3`'s functional row and not this slice's.
-- [ ] `withdrawn` is never resolver-emitted on any path, including for a claim about to score badly — **derived** as the residue of the source vocabulary that no `OUTCOME_CLOSURE_EVENTS` class admits, not restated as a separate rule.
+- [x] `withdrawn` is never resolver-emitted on any path, including for a claim about to score badly — **derived** as the residue of the source vocabulary that no `OUTCOME_CLOSURE_EVENTS` class admits, not restated as a separate rule.
+
+  **Evidence — the residue is computed, not listed.** Executed from `<repo-root>`.
+
+  ```
+  $ grep -nE "CLASSES_ADMITTING_CLOSURE = |Object.keys\(claims.OUTCOME_CLOSURE_EVENTS\)|withdrawn" scripts/brief-resolve-outcomes.mjs
+  589: * events some class admits. `withdrawn` is the residue no class admits, so it refuses BEFORE a
+  596:const CLASSES_ADMITTING_CLOSURE = (() => {
+  598:  for (const outcomeClass of Object.keys(claims.OUTCOME_CLOSURE_EVENTS)) {
+  exit code: 0
+  ```
+
+  The single `withdrawn` occurrence in the whole module is prose at `:589`. The behaviour comes from `:596`,
+  which inverts the shipped `claims.OUTCOME_CLOSURE_EVENTS` table at load time — so `withdrawn` is excluded
+  because no class admits it, not because a local rule names it. A class added to the shipped table would
+  change this index automatically; a second local list could not.
+
+  ```
+  $ node --test tests/recommendation-track-record.functional.mjs
+  ✔ T-04-F3: `withdrawn` is unreachable from every resolver path — the residue no class admits (8.878661ms)
+  ℹ tests 13
+  ℹ pass 13
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  This is the `T-04-F3` functional row the increment-4 note above deferred to; it is now green, so the
+  "including a claim about to score badly" conjunct is discharged by execution.
 - [ ] A bare `0` never reaches a directional class: `RTR-FLAT-ZERO` (`rlclaims.js:133`) is left to fire from the shipped `buildResolution` and `assertZeroFreeOutcomes` (`:817`), and this scope neither coerces a zero nor pre-filters the array to avoid the refusal.
 - [ ] `not-evaluable` closes at the **first** resolver pass after minting, not at horizon expiry, so a known-unscoreable claim never sits in the open pipeline.
 - [ ] Closures route through `reduceRecommendationEvents` via `run.closures` with `current: []`; the reducer is consumed unchanged, and `rlcontracts.js`, `rlvalidation.js` and `rlclaims.js` are proven unmodified by `git diff --quiet` exiting 0. *An earlier revision asserted "byte-unmodified" with no `sha256` pinned anywhere, which was not decidable as written.* `RTR-CLOSURE-VOCAB` refuses a locally-invented closure type — raised by the shipped `buildResolution`, not re-implemented here.
@@ -765,8 +850,25 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 - [ ] **Routed finding P-015-03 is recorded as ruled on, not as blocking.** `thesisFamily` is a top-level hashed claim field that is authored or the claim is not evaluable; this scope invents no value for it, emits no closure event when it is absent, and records the implemented ruling in `report.md` before the bridge is implemented.
 - [ ] Idempotence is enforced by the due-set gate, with `indexFingerprint` (`rlcontracts.js:1318`) as the oracle and content-addressed resolution objects as the backstop; the conflict abort is the shipped `writeResolutionObject` path (`rlclaims.js:1109`) raising `RTR-RESOLUTION-CONFLICT` without overwriting, called rather than re-implemented.
 - [ ] The `not-evaluable` reason set is **read from `NOT_EVALUABLE_REASONS` (`rlclaims.js:305`) and never restated**; its length equals `MINT_REFUSALS.length + RESOLVER_NOT_EVALUABLE_REASONS.length` (**eleven** today, asserted by derivation rather than by literal). *An earlier revision of this item and of T-04-U6 asserted six.* Only the three resolver-raised reasons are this scope's to raise; each reason carries a human-readable sentence; every `not-evaluable` claim is excluded from rate denominators while remaining visibly counted.
-- [ ] `Number.isFinite` is used exclusively; the global `isFinite` appears nowhere in 015-authored code.
-- [ ] No statistic is computed in this scope; `rlvalidation.js` is not imported here, and the `rlvalidation.js:136` citation in the plan is motivation only. Feeding the primitive is scope 05.
+- [x] `Number.isFinite` is used exclusively; the global `isFinite` appears nowhere in 015-authored code.
+
+  **Evidence — the global is absent across every 015-authored file.** Executed from `<repo-root>`.
+
+  ```
+  $ grep -nE '(^|[^.[:alnum:]_$])isFinite[[:space:]]*\(' scripts/brief-resolve-outcomes.mjs tests/recommendation-track-record.unit.mjs tests/recommendation-track-record.functional.mjs tests/recommendation-track-record.integration.mjs tests/recommendation-track-record.e2e.mjs
+  exit code: 1
+
+  $ grep -c 'Number\.isFinite' scripts/brief-resolve-outcomes.mjs
+  9
+  exit code: 0
+  ```
+
+  The pattern excludes a preceding `.`, `$`, `_` or alphanumeric, so it matches the *bare global* call and not
+  the `Number.` member — which is what makes the empty result meaningful rather than a pattern that could
+  never match. It returns nothing across the resolver and all four executed test files, while the resolver
+  carries nine `Number.isFinite` guards. This is the exclusivity the repo needs because
+  `isFinite(null) === true`, so the global would let a missing bar field through a finiteness check.
+- [ ] No statistic is computed in this scope; `rlvalidation.js` is not imported here, and the `rlvalidation.js:136` citation in the plan is motivation only. Feeding the primitive is scope 05. *Left unticked: the first conjunct is factually wrong against the shipped tests — see Ruling R-04-07.*
 - [ ] **Inputs are empty and this scope is fixture-testable only.** `report.md` records that `briefs/objects/claims/` and `briefs/objects/resolutions/` do not exist, that there are 0 committed claim and resolution objects, and that `claimRef` appears in 0 of 5,083 committed rows — so no green run over real committed state may be recorded as coverage for any row above.
 
 #### Test items

@@ -301,6 +301,39 @@ records the implementation route; it claims no evidence.
 
 ---
 
+## Ruling R-04-07 — "`rlvalidation.js` is not imported here" is FALSE against the shipped tests
+
+The DoD item reading *"No statistic is computed in this scope; `rlvalidation.js` is not imported here, and the
+`rlvalidation.js:136` citation in the plan is motivation only"* cannot be ticked, because its middle conjunct is
+contradicted by the executed code:
+
+```
+$ grep -nE 'rlvalidation' scripts/brief-resolve-outcomes.mjs tests/recommendation-track-record.unit.mjs tests/recommendation-track-record.functional.mjs tests/recommendation-track-record.integration.mjs tests/recommendation-track-record.e2e.mjs
+tests/recommendation-track-record.unit.mjs:1413:    return validationRequire('../rlvalidation.js').rlvSummarizeOutcomes(values);
+tests/recommendation-track-record.functional.mjs:453:    return validationRequire('../rlvalidation.js').rlvSummarizeOutcomes;
+tests/recommendation-track-record.e2e.mjs:756:    const summary = validationRequire('../rlvalidation.js').rlvSummarizeOutcomes(routed.directional);
+exit code: 0
+```
+
+Three of the four executed 015-authored test files load `rlvalidation.js` and call `rlvSummarizeOutcomes`. The
+`.unit.mjs:1411` comment states the intent plainly — *"The 007-owned primitive, consumed UNMODIFIED and loaded
+lazily so importing opens nothing."* — and `T-03-F3` exists precisely to assert a reachable `resolvedDirectional
+=== 0` case, which is a statement *about* the primitive that requires reaching it.
+
+The resolver **production** module is clean: the grep returns no `scripts/brief-resolve-outcomes.mjs` line. So the
+item's intent (the resolver does not compute the track-record statistic; feeding the primitive is scope 05) holds,
+while the item's **wording** ("is not imported here") does not, because "here" was written as though the scope were
+the module and the scope is in fact the module plus its tests.
+
+This is the same defect class as R-04-02 and R-04-03: a plan sentence asserting an absolute that the shipped code
+demonstrably violates. As there, the code is right and the item is wrong. The item is left **unticked** and
+annotated in place rather than rewritten, because rewriting a DoD item to match what was built is the failure mode
+these rulings exist to prevent. Rewording is scope 05's to route, together with the statistic it will feed.
+
+**DoD total: 56 → 56.** No item added or removed. This ruling records a defect and claims no evidence.
+
+---
+
 ## Plan corrections — premises that were WRONG, not merely stale
 
 Recorded as old → new rather than silently rewritten. Fourteen premises were corrected; these are the substantive

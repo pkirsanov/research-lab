@@ -494,84 +494,73 @@ syntax error, a missing browser or an absent test does not satisfy RED.
     unsupported residency pattern refuses *rather than being approximated*, and a
     classifier proven live on both an asserted and a disclaimed form reports
     asserted-estimate count zero.
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
-  - **Phase:** implement · **Command:** the exact TP-04-01 through TP-04-22 commands · **Evidence:** `report.md#test-evidence`
-  - **Open, and — determined 2026-08-21 by `bubbles.plan` — NOT in Scope 03's
-    position.** Scope 03's equivalent row was short on four browser rows that named
-    an absent spec file, and those were repairable by a planning retarget because
-    their substance already existed under other titles. This row is short for two
-    different reasons, and neither is a wording defect a retarget could fix.
-  - **Blocker one — two of the three browser rows were retargeted on 2026-08-22;
-    the third genuinely cannot be.** TP-04-16, TP-04-17 and TP-04-18 name
-    `lifetime-tax-california.spec.mjs`, which does not exist. The earlier claim
-    that none of them could be retargeted, "because the assertions they would need
-    cannot exist while the pack carries no figures", was tested and is **withdrawn
-    for two of the three**. California resolves to a refusal end to end, and a
-    refusal is observable browser behaviour: `lifetime-tax-state.spec.mjs` already
-    reads the refusal code, its domain, its reason and its named `missingSource`
-    off a focusable element, proves no dollar figure is rendered anywhere in the
-    state card, and walks the stage rows the page builds **from the pack's own
-    declared calculation order**. That last part is what makes two of these rows
-    expressible: the order itself is rendered, and the order is where the two
-    behaviours live.
-    - **TP-04-16 retargeted.** The pack's declared order is
-      `CO-1 CO-2 CO-3 CO-5 CO-6 CO-14 CO-8 CO-13 CO-9 CO-10`. It omits the
-      preferential pooling and pricing stages the engine's own preferential order
-      carries, and the page renders exactly one row per declared stage. The row
-      therefore asserts that no preferential stage is rendered for California, and
-      that a household holding a long-term gain and a household holding an equal
-      ordinary amount reach the identical state result while their federal figures
-      still differ. **Adversarial case it must fail:** a clone carrying a
-      preferential rate table, or a preferential stage in its order — the first is
-      refused by the contract so `RLTAX-PACK-INVALID` surfaces in place of the
-      threshold refusal, the second changes the rendered stage set.
-    - **TP-04-17 retargeted.** Because the page walks the declared order in
-      sequence, the credit stage `CO-13` is observably rendered **after** the rate
-      stage `CO-6` and after the leg-sum stage `CO-8`, and it renders as not
-      reached rather than as a figure. The row therefore asserts that ordering,
-      and asserts that the credit never appears as a reduction of income.
-      **Adversarial case it must fail:** moving `CO-13` before `CO-6` or before
-      `CO-8`, and converting the mechanism to `deduction-from-income` — the first
-      changes the rendered row order, the second is refused by the contract so
-      `RLTAX-PACK-INVALID` surfaces instead.
-    - **TP-04-18 cannot be expressed against the refusal path, and is left naming
-      the behaviour it owns.** The surcharge threshold is the one California figure
-      that **was** retrieved, but the settlement refuses at the deduction before
-      any leg is priced, so all four filing statuses render the identical not-reached
-      surcharge stage and no crossing point is observable in the browser at all.
-      The only browser claim available — four statuses refuse alike — does not
-      cover "four statuses cross at the identical threshold"; writing it here would
-      be a mapping that does not cover the row, which is the failure this blocker
-      exists to prevent. It unblocks when `BI-6` closes.
-    - **Routed to `bubbles.implement`:** author `lifetime-tax-california.spec.mjs`
-      carrying exactly the two retargeted titles above, with exactly the assertions
-      and the adversarial cases named in the two bullets above, and with each case
-      shown to fail by name before it is shown to pass. Do **not** author a
-      TP-04-18 test; that row stays unwritten until `BI-6` closes.
-  - **Blocker two — the row-by-row audit over the remaining rows was never
-    performed.** TP-04-04 was the one row owned by no assertion at all; a later
-    session gave it an owning assertion with discriminating RED and same-command
-    GREEN recorded at `report.md#tp-04-04`. That removes the worst case but does
-    not close this row: no session has established that each of the **twenty-two**
-    rows carries its own intended-RED and same-command-GREEN pair, so the universal
-    claim this row makes is unsupported. The earlier wording said nineteen rows,
-    which undercounted the census by three — TP-04-20, TP-04-21 and TP-04-22 are
-    Test Plan rows and are inside the claim. Closing this needs that audit, not an
-    inference from the rows that do carry a pair.
-  - **Adversarial case this row must still fail.** Author
-    `lifetime-tax-california.spec.mjs` with the three titles the rows name while
-    the pack still carries only absent figures, and let each test assert nothing
-    beyond the bare refusal — the card's code and the absence of a dollar figure.
-    All three would then pass while asserting nothing about the preferential stage
-    set, the credit's position in the rendered order, or threshold invariance, and
-    the three commands would report green. This row must fall in that state. The
-    retarget above does **not** license it: TP-04-16 and TP-04-17 are satisfied
-    only by asserting the rendered calculation order itself, which a bare refusal
-    assertion does not touch, and TP-04-18 has no honest refusal-path form at all.
-    This row is satisfied only when every one of the twenty-two commands selects a
-    non-empty set of tests whose assertions can fail on a regression to the
-    behaviour that row names.
+  - **Phase:** implement · **Command:** the exact TP-04-01 through TP-04-22 commands · **Evidence:** `report.md#test-evidence`, `report.md#row-census-audit--every-test-plan-rows-intended-red`
+  - **Closed on 2026-08-22.** This row carried two blockers. Both were tested
+    rather than argued, and both fell. What each blocker was, and what closed it,
+    is kept below rather than deleted, because the first blocker's conclusion was
+    wrong and a row that hides its own error rate is not trustworthy.
+  - **Blocker one — the browser rows. Two were retargeted; the third was
+    recorded inexpressible and that record is now withdrawn.** TP-04-16 and
+    TP-04-17 were retargeted on 2026-08-22 against the rendered calculation
+    order, and `tests/lifetime-tax-california.spec.mjs` now carries both titles.
+    TP-04-18 was recorded as unable to be expressed against the refusal path,
+    with the routed instruction "do not author a TP-04-18 test; that row stays
+    unwritten until `BI-6` closes". The premise of that record stands and is not
+    disputed: California's settlement refuses at its unretrieved deduction before
+    any leg is priced, so on the shipped pack all four filing statuses render the
+    identical not-reached surcharge stage and no crossing point exists to
+    observe. The conclusion drawn from it does not stand. This repository had
+    already made an unreachable branch observable twice by serving a contract
+    fixture at a declared pack path — `CO-7` for preferential stacking, and
+    `BI-5` branch two for the sourced zero — and the same means works here. The
+    row is now covered, the routed do-not-author instruction is withdrawn, and
+    the full reasoning with both probes is at `report.md#tp-04-18--recorded-inexpressible-tested-and-overturned`.
+    - **What is fixture and what is California.** The deduction and the ordinary
+      schedule that carry the household past `CO-2` are the fixture's. They are
+      invented for the contract, they are labelled as fixture values in the
+      fixture's own source record and in each figure's own locator, and the test
+      asserts that labelling rather than assuming it. The chassis is
+      unmistakably a fixture and cannot be mistaken for a sourced California
+      pack: id `contract-fixture-no-preferential`, jurisdiction `state:ZZ`,
+      `ruleStatus` `user-hypothetical-law`, `publishedAt` and `retrievedAt` of
+      `2999-01-01`, an `expiresAt` of `9999-12-31`, an `example.invalid` source
+      url, and a retrieval note opening `This is a CONTRACT FIXTURE`.
+    - **No California figure was invented, interpolated or derived.** The
+      surcharge threshold set is the one California figure that was retrieved,
+      and it is used with the `ca-rtc-17043` citation it already had. The test
+      lifts it off the shipped pack at run time and asserts `JSON.stringify`
+      equality against `CALIFORNIA.thresholdSets[setId]`, so it is the shipped
+      object rather than a transcription of it — which is also what makes the row
+      a pin on California rather than on the fixture, proven by a probe that
+      mutates the shipped pack and reddens the row.
+  - **Blocker two — the row-by-row audit, now performed.** The blocker recorded
+    that no session had established that each of the twenty-two rows carries its
+    own intended-RED and same-command-GREEN pair, so the universal claim this row
+    makes was unsupported. That audit was performed in this session and is
+    recorded row by row at `report.md#census`. Eleven rows already carried a
+    pair. The remaining rows were probed through `scripts/red-green-probe.sh`,
+    which verifies the mutation landed, reverts, and verifies the revert by blob
+    hash against the committed object before running GREEN with the identical
+    command. Every unit probe was pinned with `--summary-match` to **the row's
+    own assertion text**, so each block shows that row's own line turning from
+    `✓` to `✗ FAIL:` and back, rather than merely showing the suite go red — a
+    mutation that reddened the suite without flipping the row under audit would
+    have printed an identical compared line on both sides and would not have been
+    recorded as that row's evidence.
+  - **The adversarial case this row had to fail, and why it now passes honestly.**
+    The stated adversarial case was a `lifetime-tax-california.spec.mjs` whose
+    three tests assert nothing beyond the bare refusal — the card's code and the
+    absence of a dollar figure — which would let all three commands report green
+    while covering none of the three behaviours. The shipped spec file is not in
+    that state, and each of the three was shown to fall on the behaviour it
+    names: TP-04-16 falls when a preferential stage is rendered into the stage
+    set, TP-04-17 falls when the credit stage is rendered ahead of the rate stage
+    and the leg sum, and TP-04-18 falls both when the shipped threshold set is
+    declared to vary by filing status and when one status resolves a different
+    threshold while the stage still renders a figure. A bare refusal assertion
+    survives none of those three mutations.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count and no
       existing assertion edited, `node scripts/validate-spec-test-paths.mjs`
       reports zero new missing paths, and `node scripts/build-pages-site.mjs

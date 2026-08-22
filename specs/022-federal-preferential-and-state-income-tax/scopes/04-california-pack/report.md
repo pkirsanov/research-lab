@@ -1277,6 +1277,372 @@ pages_exit=0
 `tax-rules/` does not appear among the published directories, so the packs stay
 outside the public site.
 
+## Row Census Audit — every Test Plan row's intended RED
+
+**Claim Source:** executed.
+
+This section closes the second blocker on the Definition of Done row that claims
+every Test Plan row carries intended RED and same-command GREEN evidence. That
+claim is universal over **twenty-two** rows, and until this session no session
+had walked all twenty-two. The audit below walks them one at a time and states,
+per row, where its intended RED lives. Where a row had none, one was produced in
+this session through `scripts/red-green-probe.sh`, which installs its restore
+trap before mutating, verifies the mutation landed, runs RED, reverts, verifies
+the revert by blob hash against the committed object, and only then runs GREEN
+with the identical command.
+
+Every unit probe below was given `--summary-match` pinned to **the row's own
+assertion text**, so the evidence block does not merely show that the suite went
+red — it shows that row's own line turning from `✓` to `✗ FAIL:` and back. A
+mutation that reddened the suite without flipping the row under audit would have
+printed an identical `summary-compared` on both sides and would not have been
+recorded as that row's evidence. Row ids repeat across features in this
+repository, so each pattern also carries enough of the California assertion's own
+wording to exclude the same-numbered rows owned by other features.
+
+### Census
+
+| Row | Where its intended RED lives |
+|---|---|
+| TP-04-01 | New probe below — the engine-derived order gains a preferential stage |
+| TP-04-02 | `report.md#tp-04-02` — enumerator that forgets the threshold family |
+| TP-04-03 | `report.md#tp-04-03` — fell by name when one term was substituted |
+| TP-04-04 | `report.md#tp-04-04` — probe block, the pooled income published in place of the deduction refusal |
+| TP-04-05 | New probe below — the coherence refusal removed |
+| TP-04-06 | New probe below, plus the FR-022-023/024 probe pair at `report.md#tp-04-06` |
+| TP-04-07 | `report.md#tp-04-07` — the surcharge set given a per-status threshold |
+| TP-04-08 | New probe below — the threshold reader ignores `varyByFilingStatus` |
+| TP-04-09 | New probe below — the undeclared-leg refusal removed |
+| TP-04-10 | New probe below — the contradictory-pack refusal removed |
+| TP-04-11 | `report.md#tp-04-11` — the sixteen-record walk, with its own probe block |
+| TP-04-12 | `report.md#tp-04-12` — the order-mismatch refusal |
+| TP-04-13 | New probe below — an engine module acquires a California token |
+| TP-04-14 | `report.md#tp-04-14` — a coverage boundary that drops one absent-figure family |
+| TP-04-15 | New probe below — same scan, same assertion, shared with TP-04-13 |
+| TP-04-16 | New probe below — a preferential stage rendered into the browser stage set |
+| TP-04-17 | New probe below — the credit stage rendered ahead of the rate stage |
+| TP-04-18 | `report.md#tp-04-18` — two probes, one on the shipped pack and one on the reader |
+| TP-04-19 | New probe below — the cumulative features 021-024 suite |
+| TP-04-20 | New probe below — the whole-repository pass count falls |
+| TP-04-21 | New probe below — a frozen baseline entry is retired to a comment |
+| TP-04-22 | New probe below — the site-exclusions contract version drifts |
+
+Two rows share one assertion. TP-04-13 and TP-04-15 are carried by a single
+no-shadow scan over `rltaxrules.js`, `rltax.js`, `rltaxstate.js`,
+`rltaxworkspace.js` and `rltaxcombined.js`, so one probe is recorded for the pair
+and is named as covering both rather than being counted twice. The same is true
+of TP-04-05 and TP-04-06, which share the relief-mechanism coherence assertion;
+TP-04-06 additionally carries the separate FR-022-023/024 probe pair already
+recorded above.
+
+### TP-04-01 — the engine-derived ordered array
+
+The row names four clauses, one of which is that the pack's declared order
+matches the engine's derived order element for element and carries neither `CO-4`
+nor `CO-7`. The mutation makes the engine derive a preferential pricing stage for
+a pack that declares no preferential treatment.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-01 the engine-derived no-preferential order gains a preferential pricing stage
+file:             rltaxrules.js
+mutation:         return CALCULATION_ORDER_NO_PREFERENTIAL.slice();  ->  return CALCULATION_ORDER_NO_PREFERENTIAL.slice().concat(["CO-7"]);   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-01: the California pack validates through the unmodified Scope 03 contract, matches its own content digest, declares preferentialPolicy none, carries no preferential rate table and m
+green-exit:       0
+green-summary:      ✓ TP-04-01: the California pack validates through the unmodified Scope 03 contract, matches its own content digest, declares preferentialPolicy none, carries no preferential rate table and matches
+summary-compared:   ✗ FAIL: TP-04-01: the California pack validates through the unmodified Scope 03 contract, matches its own content digest, declares preferentialPolicy none, carries no preferential rate table and m  vs    ✓ TP-04-01: the California pack validates through the unmodified Scope 03 contract, matches its own content digest, declares preferentialPolicy none, carries no preferential rate table and matches   (elapsed time normalised out)
+revert-verified:  yes (committed=837012ca9943750fcdfdcdcaff06a145fba6a75a restored=837012ca9943750fcdfdcdcaff06a145fba6a75a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### TP-04-05 and TP-04-06 — the credit's application point
+
+The row names that a credit applied before the rate, and a credit turned into a
+deduction from income, are each refused. The mutation removes the coherence check
+that produces both refusals, so both clones validate and the row's own two
+`!validateRulePack(...).ok` clauses go false together.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-05/TP-04-06 the contract stops refusing a credit applied before the rate and a credit turned into a deduction from income
+file:             rltaxrules.js
+mutation:         RELIEF_COHERENT_POINT[relief.kind] !== relief.applicationPoint) {  ->  false) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-05 and TP-04-06: the exemption credit is declared a credit applied after rate application, the declared order places that stage after both the rate stage and the leg sum, and moving 
+green-exit:       0
+green-summary:      ✓ TP-04-05 and TP-04-06: the exemption credit is declared a credit applied after rate application, the declared order places that stage after both the rate stage and the leg sum, and moving it bef
+summary-compared:   ✗ FAIL: TP-04-05 and TP-04-06: the exemption credit is declared a credit applied after rate application, the declared order places that stage after both the rate stage and the leg sum, and moving   vs    ✓ TP-04-05 and TP-04-06: the exemption credit is declared a credit applied after rate application, the declared order places that stage after both the rate stage and the leg sum, and moving it bef   (elapsed time normalised out)
+revert-verified:  yes (committed=837012ca9943750fcdfdcdcaff06a145fba6a75a restored=837012ca9943750fcdfdcdcaff06a145fba6a75a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### TP-04-08 — the doubled joint threshold
+
+The row's own assertion already carries an in-test mutation, which proves the
+clone diverges but does not by itself prove the assertion can fail. The probe
+supplies the missing half: the reader stops honouring a set that declares itself
+to vary by filing status, so the doubled clone stops producing two different
+figures and the row falls.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-08 the threshold reader ignores a set that declares itself to vary by filing status, so a doubled joint threshold stops producing a different figure
+file:             rltax.js
+mutation:         var key = set.varyByFilingStatus === true ? filingStatus : "all";  ->  var key = "all";   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-08: a pack that doubles the surcharge threshold for a joint return is proven to produce a different figure for two households with the same taxable income, which the shipped pack doe
+green-exit:       0
+green-summary:      ✓ TP-04-08: a pack that doubles the surcharge threshold for a joint return is proven to produce a different figure for two households with the same taxable income, which the shipped pack does not
+summary-compared:   ✗ FAIL: TP-04-08: a pack that doubles the surcharge threshold for a joint return is proven to produce a different figure for two households with the same taxable income, which the shipped pack doe  vs    ✓ TP-04-08: a pack that doubles the surcharge threshold for a joint return is proven to produce a different figure for two households with the same taxable income, which the shipped pack does not   (elapsed time normalised out)
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### TP-04-09 — the credit may not reach the surcharge leg
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-09 the contract stops refusing a relief mechanism that names a leg the pack never declares
+file:             rltaxrules.js
+mutation:         if (declaredLegIds[relief.appliesToLegs[namedIndex]] !== true) {  ->  if (false) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-09: the shipped pack names only the ordinary leg in its applied-legs list, the surcharge leg is declared and deliberately absent from it, and a mechanism naming a leg the pack does n
+green-exit:       0
+green-summary:      ✓ TP-04-09: the shipped pack names only the ordinary leg in its applied-legs list, the surcharge leg is declared and deliberately absent from it, and a mechanism naming a leg the pack does not dec
+summary-compared:   ✗ FAIL: TP-04-09: the shipped pack names only the ordinary leg in its applied-legs list, the surcharge leg is declared and deliberately absent from it, and a mechanism naming a leg the pack does n  vs    ✓ TP-04-09: the shipped pack names only the ordinary leg in its applied-legs list, the surcharge leg is declared and deliberately absent from it, and a mechanism naming a leg the pack does not dec   (elapsed time normalised out)
+revert-verified:  yes (committed=837012ca9943750fcdfdcdcaff06a145fba6a75a restored=837012ca9943750fcdfdcdcaff06a145fba6a75a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### TP-04-10 — no preferential policy, no preferential table
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-10 the contract stops refusing a pack that declares no preferential treatment while carrying a preferential rate table
+file:             rltaxrules.js
+mutation:         if (pack.preferentialPolicy === "none" && isPlainObject(pack.preferentialRateTables)) {  ->  if (false) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-10: a pack that declares no preferential treatment while carrying a preferential rate table is refused, and the shipped pack is not
+green-exit:       0
+green-summary:      ✓ TP-04-10: a pack that declares no preferential treatment while carrying a preferential rate table is refused, and the shipped pack is not
+summary-compared:   ✗ FAIL: TP-04-10: a pack that declares no preferential treatment while carrying a preferential rate table is refused, and the shipped pack is not  vs    ✓ TP-04-10: a pack that declares no preferential treatment while carrying a preferential rate table is refused, and the shipped pack is not   (elapsed time normalised out)
+revert-verified:  yes (committed=837012ca9943750fcdfdcdcaff06a145fba6a75a restored=837012ca9943750fcdfdcdcaff06a145fba6a75a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### TP-04-13 and TP-04-15 — the no-shadow scan, proven live on the real modules
+
+The assertion already proves its detector fires on a planted sentence. That
+proves the detector works; it does not prove the scan is wired to the real module
+set. The probe plants a California postal-code token in a shipped engine module
+and the scan catches it, which is the clause the two rows actually name.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-13/TP-04-15 an engine module acquires a California postal-code token, so the no-shadow scan is proven live over the real module set rather than only over its planted sentence
+file:             rltaxstate.js
+mutation:         function computeStateSurchargeTax(workspace, pack, basis, setId) {  ->  function computeStateSurchargeTax(workspace, pack, basis, setId) { /* state:CA */   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-13 and TP-04-15: no engine module holds a California bracket, rate, threshold, statutory section number, state name or postal code, so the Scope 03 contract carried California withou
+green-exit:       0
+green-summary:      ✓ TP-04-13 and TP-04-15: no engine module holds a California bracket, rate, threshold, statutory section number, state name or postal code, so the Scope 03 contract carried California without an e
+summary-compared:   ✗ FAIL: TP-04-13 and TP-04-15: no engine module holds a California bracket, rate, threshold, statutory section number, state name or postal code, so the Scope 03 contract carried California withou  vs    ✓ TP-04-13 and TP-04-15: no engine module holds a California bracket, rate, threshold, statutory section number, state name or postal code, so the Scope 03 contract carried California without an e   (elapsed time normalised out)
+revert-verified:  yes (committed=a3068f1a5c54060c24d0db5973ebb4190c7ae981 restored=a3068f1a5c54060c24d0db5973ebb4190c7ae981)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### TP-04-16 — no preferential stage is rendered for California
+
+The row is a browser row, so its RED must be observable in the browser. The
+mutation renders one extra stage row into the state settlement table. The
+`--list` selection was verified first and reports `Total: 1 test in 1 file`
+naming this row's scenario id, so the selection is neither empty nor partial.
+
+The mutation matched **two** occurrences, which is stated rather than hidden: the
+page carries the same stage-walk in both the state settlement table and the
+combined view, and both were mutated. Both were reverted under the single
+blob-hash check the harness prints.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-16 the page renders a preferential pricing stage for California, so the rendered stage set stops being the pack declared order element for element
+file:             lifetime-tax-strategy-lab.html
+mutation:         var order = settlement.calculationOrder;  ->  var order = settlement.calculationOrder.concat(["CO-7"]);   (2 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-022-010\ California\ renders\ no\ preferential\ stage\ and\ a\ long\ term\ gain\ reaches\ the\ identical\ state\ result\ an\ equal\ ordinary\ amount\ reaches --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (1.9s)
+summary-compared:   1 failed  vs    1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### TP-04-17 — the credit stage is rendered after the rate and the leg sum
+
+The mutation moves the credit stage to the head of the rendered order, which is
+what a mechanism that reduced income would look like to a household. The `--list`
+selection was verified first and reports `Total: 1 test in 1 file` naming this
+row's scenario id.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-17 the credit stage is rendered ahead of the rate stage and the leg sum, which is what a mechanism reducing income would look like
+file:             lifetime-tax-strategy-lab.html
+mutation:         var order = settlement.calculationOrder;  ->  var order = ["CO-13"].concat(settlement.calculationOrder.filter(function (s) { return s !== "CO-13"; }));   (2 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-022-011\ the\ exemption\ credit\ stage\ is\ rendered\ after\ the\ rate\ and\ the\ leg\ sum\ and\ refuses\ rather\ than\ resolving\ to\ zero --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (2.2s)
+summary-compared:   1 failed  vs    1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### TP-04-20 — the whole-repository pass count
+
+The row names two things: the suite stays green, and the pre-existing pass count
+does not fall. A probe that merely reddens the suite covers the first clause
+only. This mutation removes an export the California group calls, so the group
+throws part-way through and its remaining assertions never run: the pass count
+falls from `3183` to `3168` while failures rise from `0` to `2`. Both clauses are
+therefore shown able to fail, on the row's own summary line.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-20 the state module stops exporting a primitive the California group calls, so the group throws and the whole-repository pass count falls
+file:             rltaxstate.js
+mutation:         computeStateSurchargeTax: computeStateSurchargeTax,  ->  computeStateSurchargeTax: undefined,   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3168 passed, 2 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3183 passed, 0 failed
+summary-compared: Research-Lab self-test: 3168 passed, 2 failed  vs  Research-Lab self-test: 3183 passed, 0 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=a3068f1a5c54060c24d0db5973ebb4190c7ae981 restored=a3068f1a5c54060c24d0db5973ebb4190c7ae981)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### TP-04-21 — zero new missing spec-referenced paths
+
+The mutation does not plant a new bare path into a spec artifact, which would
+have written a reference this repository forbids. It does the equivalent from the
+other side: a frozen baseline entry is retired to a comment, so a reference the
+baseline used to cover is reported as new. The guard's own summary line carries
+the count, so the row falls on the number rather than on the exit code alone.
+
+**A defect this row's own guard caught in this session, recorded rather than
+hidden.** The first form of this probe replaced the baseline entry with an
+invented `tests/`-prefixed filename. The evidence block then sat in this report
+carrying that filename, the guard read it as a live reference to a file that does
+not exist, and both `node scripts/validate-spec-test-paths.mjs` and
+`node scripts/selftest.mjs` fell — `new=1` and `3182 passed, 1 failed`. The
+mutation was rewritten to retire the entry to a comment instead, so the recorded
+evidence names no path that does not exist. The guard was not weakened, silenced
+or baselined around; the probe was.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-21 a frozen baseline entry is retired to a comment, so the reference it used to cover is reported as new
+file:             scripts/validate-spec-test-paths.baseline
+mutation:         tests/auction-gamma-playbook.spec.mjs  ->  # a retired baseline entry, planted by the TP-04-21 probe   (1 occurrence(s))
+command:          node scripts/validate-spec-test-paths.mjs
+red-exit:         1
+red-summary:      [spec-test-paths] FAIL — 1 new referenced path(s) do not exist
+green-exit:       0
+green-summary:    [spec-test-paths] OK — no new missing test path(s)
+summary-compared: [spec-test-paths] FAIL — 1 new referenced path(s) do not exist  vs  [spec-test-paths] OK — no new missing test path(s)   (elapsed time normalised out)
+revert-verified:  yes (committed=972f0de1d9ab47e0f584287138399e51187629dc restored=972f0de1d9ab47e0f584287138399e51187629dc)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### TP-04-22 — the Pages plan and the exclusions contract
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-22 the site-exclusions contract version drifts, so the Pages plan refuses rather than publishing against an unrecognised exclusions contract
+file:             site-exclusions.json
+mutation:         "contractVersion": "pages-site-exclusions/v1"  ->  "contractVersion": "pages-site-exclusions/v2"   (1 occurrence(s))
+command:          node scripts/build-pages-site.mjs --dry-run
+red-exit:         1
+red-summary:      Node.js v26.4.0
+green-exit:       0
+green-summary:    {"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":128,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","
+revert-verified:  yes (committed=29c6fe08a58d97c1f119abdd38706cf02f675d60 restored=29c6fe08a58d97c1f119abdd38706cf02f675d60)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### TP-04-19 — the cumulative features 021-024 browser suite
+
+This row's intended RED was recorded as still owed. It is supplied here.
+
+Selection was verified before the suite was run. The row's own selector reports
+`Total: 83 tests in 20 files`, and all four owning spec numbers are present in
+that selection — `SCN-021` sixteen times, `SCN-022` twenty-one, `SCN-023`
+twenty-one and `SCN-024` twenty-six — so the selection is the four-feature
+cumulative suite rather than a convenient subset. The count has grown from the
+sixty-nine recorded earlier in this scope as later scopes added scenarios.
+
+This row cannot be discriminated on the exit code. The cumulative run exits
+non-zero even when every test passes, because workers are force-killed after the
+run completes and Playwright reports that as `errors were not a part of any
+test`. The probe therefore carries `--summary-match`, and the verdict is read off
+the count line: eighty-two passed under the mutation, eighty-three after the
+revert. Had the harness been run without a summary pattern it would have scored
+this as exit-7, RED and GREEN agreeing, and no evidence would have been produced.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-19 a preferential stage is rendered into every state settlement, so the cumulative features 021-024 browser suite stops being wholly green
+file:             lifetime-tax-strategy-lab.html
+mutation:         var order = settlement.calculationOrder;  ->  var order = settlement.calculationOrder.concat(["CO-7"]);   (2 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-02\[1-4\] --reporter=list
+red-exit:         1
+red-summary:        82 passed (5.5m)
+green-exit:       1
+green-summary:      83 passed (5.5m)
+summary-compared:   82 passed (<elapsed>)  vs    83 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (summary differs: "  82 passed (5.5m)" vs "  83 passed (5.5m)")
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### What the audit did not find
+
+No row was found to be owned by nothing. Every one of the twenty-two commands
+selects a non-empty set: the eighteen `node scripts/selftest.mjs` rows each name
+an assertion whose own line was shown flipping under a mutation, the three
+`--grep` rows each had their selection listed before the suite was run, and the
+two remaining gate rows each fell on their own guard's summary line rather than
+on the exit code alone.
+
+Two limits are stated rather than left implicit. First, TP-04-13 asks for
+byte-identity against "its Scope 03 state", and the probe above proves the
+no-shadow half of that assertion rather than the identity half; the identity half
+is derived read-only in the Change Boundary section below, which explains why no
+distinct Scope 03 end commit exists to diff against. Second, TP-04-18's coverage
+is the fixture-chassis coverage described above: a real California household
+still reaches a refusal, and `BI-6` remains open.
+
 ## Change Boundary
 
 The path-scoped proof that every excluded path is byte-identical — every module

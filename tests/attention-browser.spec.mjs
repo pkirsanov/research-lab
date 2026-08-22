@@ -308,6 +308,41 @@ test.afterEach(() => {
     .toEqual([]);
 });
 
+/* ═══════════════ the shut card tells the reader it opens ═══════════════ */
+
+/* The card hides most of itself — the rationale that says WHY the reader is being interrupted,
+   plus the trigger, the invalidation and the expiry — behind a summary whose marker is suppressed
+   by list-style:none. A title attribute already said the card opens, but a tooltip needs a hover
+   a touch reader never makes. Behavioural, not spelling: this measures what a reader can SEE with
+   the card shut, and that the cue gets out of the way once it is open. */
+test('a shut decision card shows a visible cue naming what opening it reveals', async ({ page }) => {
+  test.setTimeout(90_000);
+  await openBrief(page);
+  await expect(page.locator('#decisionAttention details').first()).toBeAttached({ timeout: 30000 });
+
+  const read = await page.evaluate(() => {
+    const card = document.querySelector('#decisionAttention details');
+    const hint = card.querySelector('.attn-hint');
+    const body = card.querySelector('.attn-body');
+    const shutVisible = hint ? getComputedStyle(hint).display !== 'none' : false;
+    card.setAttribute('open', '');
+    const openVisible = hint ? getComputedStyle(hint).display !== 'none' : false;
+    card.removeAttribute('open');
+    return {
+      shutVisible,
+      openVisible,
+      hintText: hint ? hint.textContent.trim() : '',
+      hiddenChars: body ? body.textContent.length : 0
+    };
+  });
+
+  expect(read.hiddenChars, 'the card hides a body substantial enough to be worth announcing').toBeGreaterThan(200);
+  expect(read.shutVisible, 'the cue is visible while the card is shut').toBe(true);
+  expect(read.hintText, "the cue carries the page's own disclosure glyph").toContain('⌄');
+  expect(read.hintText.length, 'the cue says what opening reveals rather than only "more"').toBeGreaterThan(20);
+  expect(read.openVisible, 'the cue gets out of the way once the card is open').toBe(false);
+});
+
 /* ═══════════════ TP-03-01 — SCN-017-028 tier + record from committed data ═══════════════ */
 
 test('decision attention tier renders items and record from committed data', async ({ page }) => {

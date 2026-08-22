@@ -939,6 +939,19 @@
             overflow-wrap: anywhere
         }
 
+        /* The card's own disclosure cue. summary's marker is suppressed, so without this the
+           reader sees no sign that most of the card is one click away. Hidden once open. */
+        .attn-hint {
+            font-size: 12px;
+            color: var(--dim);
+            margin-top: 6px;
+            overflow-wrap: anywhere
+        }
+
+        details[open] > summary .attn-hint {
+            display: none
+        }
+
         .attn-body {
             margin-top: 10px;
             padding-top: 9px;
@@ -1539,6 +1552,15 @@
                     "What the brief asks you to do next \u2014 research only, never an order. Reading now: it asks you to "
                     + (ATTN_VERB[vm.verb] || "follow the step it published in its own words") + ".")
                     .className = "attn-next";
+
+                /* A VISIBLE affordance. The card hides 87% of itself — the rationale, the trigger,
+                   the invalidation and the expiry — behind a summary whose marker is suppressed by
+                   list-style:none. The title attribute already said the card opens, but a tooltip
+                   needs a hover a touch reader never makes. The page's own drawers all lead with
+                   "⌄", so this follows them rather than inventing a control. */
+                attnField(summary, "div", "open-hint", "⌄ Why this, what would break it, and when it stops counting",
+                    "Opens the rest of this card. Reading now: the headline above is the claim; opening it shows the reasoning behind it, what would escalate it, what would prove it wrong, and the moment it stops counting.")
+                    .className = "attn-hint";
 
                 details.appendChild(summary);
 

@@ -26659,6 +26659,90 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 Scope 02 supersession conformance group threw): ' + e.message); }
 /* ---------- Feature 022 Scope 02: supersession conformance (END) ---------- */
 
+/* ---------- Features 021-024: design-declared reconciliation identities (START) ---------- */
+/* F-AUDIT-03. A design.md that names a reconciliation identity the engines do not declare is
+   how the mis-summed-leg defect gets reintroduced: the 023 text named `L8` (property tax) and
+   said each such leg is "declared in the pack's leg set and summed from the declared set",
+   which, built as written, would have put property tax inside `totalFederalTax`. The 024 text
+   carried the same shape for `L12`-`L15`. Nothing could catch either, because no assertion
+   compared the identities the design names against the identities the engines declare.
+
+   The permitted set is DERIVED, never listed here: it is scanned out of the engine sources and
+   then cross-checked against a live settlement, so adding a real identity to an engine widens
+   this check automatically while naming an unbuilt one in a design still fails it.
+
+   Scope is design.md only. The scope.md planning artifacts use `L8`-`L15` as PLANNING names for
+   what shipped as semantic leg ids (`property-tax`, `rental-net`, ...), a divergence Scope 03's
+   report already reconciles in writing; those files carry no summing instruction and are not
+   this check's subject. */
+try {
+  group('Lifetime tax — every reconciliation identity a design names is one an engine declares');
+  const reconRequire = (await import('node:module')).createRequire(import.meta.url);
+  const RECON_TAX = reconRequire('../rltax.js');
+  const RECON_WORKSPACE = reconRequire('../rltaxworkspace.js');
+
+  /* Derived, half one: the identities the engine sources actually add. */
+  const reconEngineFiles = ['rltax.js', 'rltaxstate.js'];
+  const reconDeclaredIds = new Set();
+  reconEngineFiles.forEach((name) => {
+    [...read(name).matchAll(/addLeg\(\s*"(L\d+)"/g)].forEach((m) => reconDeclaredIds.add(m[1]));
+  });
+
+  /* Derived, half two: the identities a real settlement publishes. The source scan is only
+     trustworthy if it agrees with the engine at run time, so the federal half is settled and
+     compared rather than assumed. */
+  const reconWorkspace = RECON_WORKSPACE.createEmptyWorkspace();
+  reconWorkspace.filingStatus = 'single';
+  reconWorkspace.declaredTaxYear = 2026;
+  reconWorkspace.deductionMode = 'standard';
+  reconWorkspace.income.ordinary = 150000;
+  reconWorkspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;
+  reconWorkspace.wageBasis.medicareWagesAndSelfEmploymentIncome = 0;
+  const reconSettled = RECON_TAX.computeAnnualFederalTax(
+    reconWorkspace, JSON.parse(read('tax-rules/federal/2026.json')));
+  const reconRuntimeIds = reconSettled.reconciliation.legs.map((leg) => leg.id);
+  const reconRuntimeCovered = reconRuntimeIds.every((id) => reconDeclaredIds.has(id));
+
+  const RECON_DESIGNS = [
+    'specs/021-lifetime-tax-strategy-lab/design.md',
+    'specs/022-federal-preferential-and-state-income-tax/design.md',
+    'specs/023-property-tax-and-rental-income/design.md',
+    'specs/024-social-security-and-medicare/design.md'
+  ];
+  const reconUndeclaredIn = (text) => [...new Set(
+    [...text.matchAll(/`(L\d+)`/g)].map((m) => m[1]))]
+    .filter((id) => !reconDeclaredIds.has(id)).sort();
+  const reconShipped = [];
+  RECON_DESIGNS.forEach((path) => {
+    reconUndeclaredIn(read(path)).forEach((id) => reconShipped.push(path + ':' + id));
+  });
+
+  /* ADVERSARIAL, against a STRING rather than the tree, so the demonstration cannot leave a
+     live mutation behind. Both halves of the original defect are planted: the identity the 023
+     text named, and the four the 024 text named. */
+  const reconPlanted = reconUndeclaredIn(
+    'Reconciliation gains legs `L8` (property tax), `L9` (rental net after limits),\n'
+    + '`L10` (unrecaptured Section 1250) and `L11` (long-term remainder). Each is\n'
+    + "declared in the pack's leg set and summed from the declared set.\n"
+    + 'Reconciliation gains legs `L12`, `L13`, `L14` and `L15`. `L4` still holds.');
+  /* A vacuous pass would be a scanner that found no identities at all, so the shipped designs
+     are asserted to NAME some, and the permitted set to CONTAIN some. */
+  const reconNamedInDesigns = [...new Set(RECON_DESIGNS
+    .flatMap((path) => [...read(path).matchAll(/`(L\d+)`/g)].map((m) => m[1])))].sort();
+
+  assert(reconDeclaredIds.size >= 7 && reconDeclaredIds.has('L1') && reconDeclaredIds.has('L7')
+    && !reconDeclaredIds.has('L8')
+    && reconRuntimeIds.length === 6 && reconRuntimeCovered
+    && reconNamedInDesigns.length >= 4
+    && reconShipped.length === 0
+    && reconPlanted.join(',') === 'L10,L11,L12,L13,L14,L15,L8,L9'
+    && reconPlanted.indexOf('L4') < 0,
+  'F-AUDIT-03: every reconciliation identity the four lifetime-tax design documents name in backticks is one the engine sources declare and a live settlement publishes, while a design paragraph naming L8-L11 or L12-L15 — identities no engine declares, whose summing clause would have placed property tax inside totalFederalTax — is reported by name and does not drag the real L4 in with it'
+    + ' (permitted [' + [...reconDeclaredIds].sort().join(' ') + '], design-named ['
+    + reconNamedInDesigns.join(' ') + '], undeclared [' + reconShipped.join(' ') + '])');
+} catch (e) { failures++; console.log('  ✗ FAIL (design-declared reconciliation identity group threw): ' + e.message); }
+/* ---------- Features 021-024: design-declared reconciliation identities (END) ---------- */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

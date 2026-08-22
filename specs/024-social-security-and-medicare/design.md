@@ -281,9 +281,21 @@ FR-024-023 requires and a positional ordering alone would not give. `CO-23`
 follows `CO-21` because the comparison reports the after-inclusion figure at each
 claim age. `CO-24` is last because a census cannot run before the legs exist.
 
-Reconciliation gains legs `L12` (Social Security inclusion), `L13` (Part B
-premium), `L14` (Part D premium) and `L15` (income-related adjustment). `L13`,
-`L14` and `L15` are declared with `includedInTotal: false`.
+Reconciliation gains no leg. The federal reconciliation identities remain `L1`
+through `L6` in `reconcileAnnualFederalTax`, and `L7` in `rltaxstate.js` remains
+the state independence identity; this feature adds none of its own.
+
+What this feature adds is five declared legs, none of which is a member of the
+federal pack's `taxLegs` set and none of which therefore enters
+`totalFederalTax`: `social-security-benefit` (`CO-20`),
+`social-security-inclusion` (`CO-21`, which reaches ordinary taxable income as a
+named contributor rather than as a leg of the federal figure), and the three
+premium legs `medicare-part-b-premium`, `medicare-part-d-premium` and
+`medicare-income-related-adjustment` (`CO-22`). Each carries
+`includedInTotal: false`, read from its declaring pack rather than asserted by
+the engine. `L4` is what makes that flag load-bearing, and `CO-24`'s census
+raises a `mis-summed-leg` finding for any of them that nonetheless entered the
+total.
 
 ### The `L4` exclusion clause becomes non-vacuous
 

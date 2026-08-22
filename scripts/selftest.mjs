@@ -25943,14 +25943,115 @@ try {
     'Feature 027 Scope 2: both receiving routes consume the shared RLTKR.linkedSubject rule and neither declares a private acceptance grammar ('
     + (f027bPrivateRule.join(', ') || 'no private rule') + ')');
 
-  /* 2.b — catalog binding: an accepted subject is applied only after a catalog match. */
-  assert(/function catalogAsset\(/.test(f027bVol) && /runtime\.config \? runtime\.config\.assets : \[\]/.test(f027bVol)
-    && /var match = handoff\.status === "accepted" \? catalogAsset\(handoff\.subject\) : null;/.test(f027bVol),
-    'Feature 027 Scope 2: volatility-sizing-lab resolves an accepted subject against runtime.config.assets[].symbol before applying it');
-  assert(/function inUniverse\(sym\)/.test(f027bFlow) && /if \(!inUniverse\(FOCUS\.subject\)\)/.test(f027bFlow),
-    'Feature 027 Scope 2: options-flow-feed-lab resolves an accepted subject against its UNIVERSE before treating it as covered');
+  /* Sandboxes for 2.b, 2.d and 2.e. These three guards used to be single-line regexes over the
+     route TEXT while their messages described route BEHAVIOUR, so a one-line indirection would
+     have kept them green while the sentence they made became false. They now EXTRACT the routes'
+     own functions and RUN them, against fixtures derived from the routes' own committed data, so
+     the sentence and the assertion are the same claim. The full-page proofs still live in the
+     browser suite — tests/volatility-sizing-lab.spec.mjs "Regression: SCN-027-012 the catalog
+     binding is discriminating on its own", ":663 an acceptable company outside the eleven-asset
+     universe is named as unavailable", ":811 … footprint-identical to the no-parameter open",
+     tests/options-flow-feed-lab.spec.mjs ":236 SCN-027-012 a covered ticker with no flagged
+     strike and an uncovered ticker render two distinct named statements", ":141 and :172
+     SCN-027-003 the focus band is the ONLY difference a subject makes, and ":188 SCN-027-002 the
+     linked subject is absent from localStorage afterwards — these run the real page, which a
+     function-level sandbox cannot. What follows is the cheap in-process half of the same claims. */
+  const f027bCatalog = JSON.parse(read('volatility-sizing-universe.json'));
+  const f027bVolBox = build([
+    extractFn(f027bVol, 'catalogAsset'),
+    extractFn(f027bVol, 'renderLinkNotice'),
+    extractFn(f027bVol, 'applyLinkedSubject'),
+    'function __open(h) { hand = h;'
+    + ' runtime.controls.asset = "SPY"; runtime.controls.targetVol = 0.15; els.assetSelect.value = "SPY";'
+    + ' linkHandoff = { status: "absent", subject: null }; applyLinkedSubject();'
+    + ' return { asset: runtime.controls.asset, targetVol: runtime.controls.targetVol,'
+    + ' applied: linkHandoff.applied === true, notice: els.linkNotice.textContent, hidden: els.linkNotice.hidden,'
+    + ' select: els.assetSelect.value, sinks: sinks.slice() }; }',
+    'function __withoutConfig(sym) { var saved = runtime.config; runtime.config = null;'
+    + ' var out = catalogAsset(sym); runtime.config = saved; return out; }'
+  ], ['catalogAsset', '__open', '__withoutConfig'],
+  'var runtime = { config: ' + JSON.stringify(f027bCatalog) + ', controls: { asset: "SPY", targetVol: 0.15 } };'
+    + 'var linkHandoff = { status: "absent", subject: null };'
+    + 'var sinks = [];'
+    + 'var els = { linkNotice: { textContent: "", hidden: true }, assetSelect: { value: "SPY" }, targetVolInput: { value: "15" } };'
+    + 'function byId(id) { return els[id]; }'
+    + 'var hand = { status: "absent", subject: null };'
+    + 'var RLTKR = { linkedSubject: function () { return hand; } };'
+    + 'var window = { RLTKR: RLTKR, location: { search: "" } };'
+    + 'var localStorage = { setItem: function (k) { sinks.push("localStorage:" + k); }, getItem: function () { return null; } };'
+    + 'function fetch(u) { sinks.push("fetch:" + u); return { then: function () { return this; } }; }');
 
-  /* 2.c — no accepted subject may reach a storage key, a path or a fetch target. */
+  const f027bUniverseSrc = (f027bFlow.match(/var UNIVERSE = (\[[^\]]*\]);/) || [])[1] || '';
+  const f027bStateSrc = (f027bFlow.match(/var state = (\{[^}]*\});/) || [])[1] || '';
+  const f027bLsSrc = (f027bFlow.match(/var LS = ("[^"]*")/) || [])[1] || '';
+  const f027bFlowBox = build([
+    extractFn(f027bFlow, 'inUniverse'),
+    extractFn(f027bFlow, 'focusAggregate'),
+    extractFn(f027bFlow, 'money'),
+    extractFn(f027bFlow, 'renderFocus'),
+    extractFn(f027bFlow, 'filtered'),
+    extractFn(f027bFlow, 'saveState'),
+    'function __band(focus, rows, scanned) { FOCUS = focus; band.textContent = ""; band.hidden = true;'
+    + ' renderFocus(rows, scanned); return { text: band.textContent, hidden: band.hidden }; }',
+    'function __filterUnder(focus, rows) { FOCUS = focus; ROWS = rows;'
+    + ' var before = JSON.stringify(state); var out = filtered(); renderFocus(out, ROWS);'
+    + ' return { rows: JSON.stringify(out), sortK: state.sortK, sortDir: state.sortDir,'
+    + ' stateUntouched: JSON.stringify(state) === before }; }',
+    'function __save(focus) { FOCUS = focus; stored = null; saveState(); return stored; }',
+    'function __declaredStateKeys() { var out = [], k; for (k in state) out.push(k); return out; }'
+  ], ['inUniverse', '__band', '__filterUnder', '__save', '__declaredStateKeys'],
+  'var UNIVERSE = ' + f027bUniverseSrc + ';'
+    + 'var state = ' + f027bStateSrc + ';'
+    + 'var LS = ' + f027bLsSrc + ';'
+    + 'var FOCUS = { status: "absent", subject: null };'
+    + 'var ROWS = [];'
+    + 'var stored = null;'
+    + 'var band = { textContent: "", hidden: true };'
+    + 'function $(id) { return id === "linkNotice" ? band : null; }'
+    + 'var localStorage = { setItem: function (k, v) { stored = { key: k, value: v }; } };');
+  const f027bRows = [
+    { ticker: 'NVDA', type: 'C', premium: 400000, score: 9, dte: 7, volume: 1200 },
+    { ticker: 'NVDA', type: 'P', premium: 150000, score: 6, dte: 30, volume: 800 },
+    { ticker: 'SPY', type: 'C', premium: 900000, score: 8, dte: 3, volume: 5000 }
+  ];
+  const f027bOffUniverse = 'ORCL';
+
+  /* 2.b — catalog binding, RUN rather than matched: an accepted subject becomes active only
+     after it matches the route's own committed catalog, and an accepted subject that misses
+     that catalog leaves the active asset exactly where the unlinked open left it. */
+  const f027bHit = f027bVolBox.__open({ status: 'accepted', subject: 'NVDA' });
+  const f027bMiss = f027bVolBox.__open({ status: 'accepted', subject: 'TSLA' });
+  const f027bRefusedOpen = f027bVolBox.__open({ status: 'refused', subject: null });
+  assert(/var match = handoff\.status === "accepted" \? catalogAsset\(handoff\.subject\) : null;/.test(f027bVol)
+    && f027bVolBox.catalogAsset('TSLA') === null
+    && f027bVolBox.catalogAsset('NVDA').symbol === 'NVDA'
+    && f027bVolBox.__withoutConfig('NVDA') === null
+    && f027bHit.applied === true && f027bHit.asset === 'NVDA' && f027bHit.select === 'NVDA'
+    && f027bHit.targetVol === f027bVolBox.catalogAsset('NVDA').defaultTargetVol
+    && f027bMiss.applied === false && f027bMiss.asset === 'SPY' && f027bMiss.select === 'SPY'
+    && f027bMiss.targetVol === 0.15 && f027bMiss.hidden === false && f027bMiss.notice.indexOf('TSLA') >= 0
+    && f027bRefusedOpen.applied === false && f027bRefusedOpen.asset === 'SPY'
+    && f027bHit.sinks.length === 0 && f027bMiss.sinks.length === 0,
+    'Feature 027 Scope 2: volatility-sizing-lab\'s own catalogAsset/applyLinkedSubject, EXECUTED against the committed '
+    + f027bCatalog.assets.length + '-asset volatility-sizing-universe.json, applies an accepted CATALOGUED subject '
+    + '(NVDA becomes the active asset and carries its own defaultTargetVol) and leaves the active asset at SPY for an '
+    + 'accepted UNCATALOGUED subject (TSLA), which it only names in the notice');
+  const f027bCovered = f027bFlowBox.__band({ status: 'accepted', subject: 'NVDA' }, f027bRows, f027bRows);
+  const f027bUncovered = f027bFlowBox.__band({ status: 'accepted', subject: f027bOffUniverse }, f027bRows, f027bRows);
+  assert(f027bUniverseSrc.length > 0 && /if \(!inUniverse\(FOCUS\.subject\)\)/.test(f027bFlow)
+    && f027bFlowBox.inUniverse('NVDA') === true && f027bFlowBox.inUniverse(f027bOffUniverse) === false
+    && f027bCovered.text.indexOf('NVDA') >= 0 && f027bCovered.text.indexOf('flagged strike') >= 0
+    && f027bUncovered.text.indexOf(f027bOffUniverse) >= 0 && f027bUncovered.text.indexOf('does not include it') >= 0
+    && f027bUncovered.text.indexOf('flagged strike') < 0
+    && f027bCovered.hidden === false && f027bUncovered.hidden === false,
+    'Feature 027 Scope 2: options-flow-feed-lab\'s own inUniverse/renderFocus, EXECUTED against its committed '
+    + JSON.parse(f027bUniverseSrc).length + '-name UNIVERSE, describes an accepted IN-universe subject as covered with a '
+    + 'flagged-strike count and an accepted OFF-universe subject (' + f027bOffUniverse + ') as not included, never as covered');
+
+  /* 2.c — SOURCE SCAN ONLY, and it says so. A text scan can prove that none of the enumerated
+     sink SPELLINGS is written in either file; it cannot prove that no subject reaches a sink at
+     runtime, because an indirection through a local alias would defeat every pattern below. The
+     runtime proof is the footprint-identity pair in the browser suite, named in the message. */
   const f027bSinks = [
     [/localStorage\.setItem\([^)]*handoff/, 'volatility handoff → localStorage'],
     [/localStorage\.setItem\([^)]*FOCUS/, 'options-flow FOCUS → localStorage'],
@@ -25959,21 +26060,45 @@ try {
     [/(fetch|ensureBars|ensureChain)\([^)]*(handoff|FOCUS)\./, 'a subject reaching a fetch target']
   ].filter(([pattern]) => pattern.test(f027bVol) || pattern.test(f027bFlow)).map(([, label]) => label);
   assert(f027bSinks.length === 0,
-    'Feature 027 Scope 2: no accepted subject reaches a localStorage key, a constructed path or a fetch target on either route ('
-    + (f027bSinks.join('; ') || 'no sink reached') + ')');
+    'Feature 027 Scope 2: SOURCE SCAN ONLY — none of the five enumerated sink spellings is written in either route file, '
+    + 'which is early warning and not proof, because an alias would defeat every pattern; the runtime proof that a subject '
+    + 'reaches no request path and no storage key is tests/volatility-sizing-lab.spec.mjs "Regression: SCN-027-012 an accepted '
+    + 'but uncatalogued subject … reaches no request path and no storage key, so the open is footprint-identical to the '
+    + 'no-parameter open" and tests/options-flow-feed-lab.spec.mjs "Regression: SCN-027-010 no adversarial corpus value reaches '
+    + 'the body, an attribute or localStorage on the options-flow route" ('
+    + (f027bSinks.join('; ') || 'no enumerated spelling present') + ')');
 
-  /* 2.d — the focus band is a band, not a filter and not a pre-sort. */
+  /* 2.d — band, not filter and not pre-sort, RUN rather than matched: filtered() must return the
+     identical row set whether or not a subject is in focus, and rendering the band must leave the
+     two persisted sort controls byte-identical. */
   const f027bFilteredBody = (f027bFlow.split('function filtered()')[1] || '').split('\n      }')[0];
+  const f027bUnfocused = f027bFlowBox.__filterUnder({ status: 'absent', subject: null }, f027bRows);
+  const f027bFocused = f027bFlowBox.__filterUnder({ status: 'accepted', subject: 'NVDA' }, f027bRows);
+  const f027bOffFocused = f027bFlowBox.__filterUnder({ status: 'accepted', subject: f027bOffUniverse }, f027bRows);
   assert(f027bFilteredBody.length > 0 && !/FOCUS/.test(f027bFilteredBody)
-    && !/state\.sortK\s*=\s*[^;]*FOCUS/.test(f027bFlow) && !/state\.sortDir\s*=\s*[^;]*FOCUS/.test(f027bFlow),
-    'Feature 027 Scope 2: the options-flow focus band never enters filtered() and never writes state.sortK or state.sortDir ('
-    + f027bFilteredBody.length + ' chars of filtered() scanned)');
+    && !/state\.sortK\s*=\s*[^;]*FOCUS/.test(f027bFlow) && !/state\.sortDir\s*=\s*[^;]*FOCUS/.test(f027bFlow)
+    && f027bUnfocused.rows === JSON.stringify(f027bRows)
+    && f027bFocused.rows === f027bUnfocused.rows && f027bOffFocused.rows === f027bUnfocused.rows
+    && f027bUnfocused.stateUntouched && f027bFocused.stateUntouched && f027bOffFocused.stateUntouched
+    && f027bFocused.sortK === f027bUnfocused.sortK && f027bFocused.sortDir === f027bUnfocused.sortDir,
+    'Feature 027 Scope 2: options-flow-feed-lab\'s own filtered()/renderFocus, EXECUTED over a '
+    + f027bRows.length + '-row fixture, return the identical row set with no subject, with an in-universe subject and with an '
+    + 'off-universe subject, and leave state (including the persisted sortK/sortDir) byte-identical, so the focus band is a '
+    + 'band rather than a filter or a pre-sort (' + f027bFilteredBody.length + ' chars of filtered() also scanned for FOCUS)');
 
-  /* 2.e — the resolved focus is never persisted, because saveState serialises the whole state object. */
+  /* 2.e — the resolved focus is never persisted, RUN rather than matched: saveState() serialises
+     the whole state object, so the only defence is that the focus is not a member of it. */
+  const f027bSaved = f027bFlowBox.__save({ status: 'accepted', subject: 'NVDA' });
   assert(/localStorage\.setItem\(LS, JSON\.stringify\(state\)\)/.test(f027bFlow)
     && !/state\.focus|state\.subject|state\.ticker/.test(f027bFlow)
-    && /var FOCUS = \{ status: "absent", subject: null \};/.test(f027bFlow),
-    'Feature 027 Scope 2: the resolved focus is held off state, so the unchanged saveState(JSON.stringify(state)) cannot persist it');
+    && /var FOCUS = \{ status: "absent", subject: null \};/.test(f027bFlow)
+    && f027bLsSrc.length > 0 && f027bSaved !== null && f027bSaved.key === JSON.parse(f027bLsSrc)
+    && f027bSaved.value.indexOf('NVDA') < 0
+    && Object.keys(JSON.parse(f027bSaved.value)).every((key) => ['focus', 'subject', 'ticker'].indexOf(key) < 0)
+    && JSON.stringify(Object.keys(JSON.parse(f027bSaved.value))) === JSON.stringify(f027bFlowBox.__declaredStateKeys()),
+    'Feature 027 Scope 2: options-flow-feed-lab\'s own saveState(), EXECUTED with an accepted in-universe subject in focus, '
+    + 'writes ' + f027bLsSrc + ' with the route\'s declared state keys only and with the subject string absent from the '
+    + 'persisted payload, so a resolved focus cannot become restored state');
 
   /* 2.f — one status element per route, textContent-written, role=status, hidden when absent. */
   const f027bNotice = (source) => (source.match(/id="linkNotice"/g) || []).length;

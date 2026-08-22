@@ -1507,7 +1507,9 @@
                                     ]
                                 }
                             },
-                            deepLink: "gamma-trading-lab.html?t=" + encodeURIComponent(state.ticker)
+                            /* the link this route publishes about itself must name the parameter this
+                               route reads, so it is composed from the same shared constant boot reads. */
+                            deepLink: "gamma-trading-lab.html?" + RLTKR.SUBJECT_PARAM + "=" + encodeURIComponent(state.ticker)
                         });
                     }
                 } catch (f7Err) { /* publication is additive */ }

@@ -4438,8 +4438,18 @@ my defect, introduced by this phase, and is not attributed elsewhere.
 asserted.** All six sit in the Feature 023 `rltaxuse.js` surface: `TP-04-01`,
 `TP-04-08`, `TP-04-09`, the dwelling-use group throwing
 `Cannot read properties of undefined (reading 'personalPortions')`, the committed
-`pii-scan` wrapper row, and `SCN-027-CANARY`, which fails only because it pins the
-pre-existing green assertion count and that count moved underneath it.
+`pii-scan` wrapper row, and `SCN-027-CANARY`, which reports red as a consequence of
+those upstream failures rather than as a Feature 027 regression of its own.
+
+`SCN-027-CANARY` does not pin the pre-existing green assertion count. Its three
+Feature 027 assertions are `passes > 3000`, `passes > 3140` and `passes > 3145` —
+lower bounds, so each is a **regression floor**, not a pin. A floor catches a bulk
+loss of assertions and nothing finer: the slack between the live count and the
+floor is 145, 15 and 18 assertions respectively, so a handful of assertions being
+deleted would slip past all three unnoticed. The floor is the right shape for this
+tree — an equality pin would report red on every foreign append, and foreign
+appends are landing in `scripts/selftest.mjs` continuously — but it must be read as
+a coarse bulk-loss guard, not as a lock on the count.
 
 | Fact | Value |
 |---|---|
@@ -4966,6 +4976,7 @@ for the reason given in the gate table above.
 | 2026-08-22 | `F-AUDIT-02` | Two of this feature's own precedent routes read `?ticker=` while still emitting `?t=` into the Feature 007 owner-read contract | Medium | **Closed — fixed in code.** Both in-boundary routes now compose the emitted parameter from `RLTKR.SUBJECT_PARAM`, the same constant `boot()` reads. Verified live: `options-structure-lab` publishes `options-structure-lab.html?ticker=NVDA`. | `bubbles.implement` |
 | 2026-08-22 | `F-AUDIT-02b` | `intraday-tape-lab.html:1855` and `swing-structure-lab.html:1693` emit the same dead `?t=` convention | Medium | **Routed, not fixed.** Both are outside `workBoundary.allowedPaths` for this feature and were read-only here. `tests/technical-analysis-decision-lab.spec.mjs:922` navigates `swing-structure-lab.html?t=SPY`, so their owners must reconcile that spec in the same change. | Owners of `intraday-tape-lab` / `swing-structure-lab` |
 | 2026-08-22 | `F-AUDIT-05` | Nothing pinned the subject-parameter convention, so a second name could arrive beside `ticker` unnoticed | Low | **Closed — assertion added.** `scripts/selftest.mjs` assertion 1.20, inside `FEATURE-027-SUBJECT-HANDOFF`, counts names on both sides and was proven able to fail twice by real file mutation. | `bubbles.implement` |
+| 2026-08-22 | `F-AUDIT-07` | `SCN-027-CANARY` is a regression floor (`passes > N`), described in the docs-phase attribution prose as pinning the pre-existing green assertion count | Low | **Closed — wording corrected, guard deliberately unchanged.** The one over-claiming sentence at `report.md:4441` was reworded to name the floor, its live slack (145 / 15 / 18 assertions) and its blind spot for small deletions. The assertions were NOT tightened to equality pins: foreign appends to `scripts/selftest.mjs` are landing continuously in this tree, so an equality pin would report red on work this feature does not own. | `bubbles.docs` |
 
 ## Validate Phase Closeout — nothing certified
 
@@ -5386,7 +5397,382 @@ remain routed to their owners. Four files were changed: `rlticker.js`,
 `company-intelligence-lab.html`, `scripts/selftest.mjs` and
 `tests/company-intelligence-lab.spec.mjs`.
 
+## Test Phase — F-AUDIT-06 closed: three Scope 2 guards strengthened, one reworded (`bubbles.test`)
 
+**Agent:** `bubbles.test`. **Claim Source:** executed.
+
+### The finding
+
+`F-AUDIT-06` is a claim-accuracy defect, not a coverage hole. Scope 2 guards
+`2.b`, `2.c`, `2.d` and `2.e` were single-line regexes over file TEXT, while
+their assertion messages described route BEHAVIOUR. `2.b` said the route
+*"resolves an accepted subject against `runtime.config.assets[].symbol` before
+applying it"* on the strength of a regex matching a source line. The audit's
+`MUT-4` had already shown the asymmetry directly: with a real catalog bypass in
+the file, the structural guard still reported `2b=true` while three
+`SCN-027-012` browser rows went red. The properties were defended — by the
+browser suite, not by these four sentences.
+
+### Disposition per guard
+
+| Guard | Action | Why |
+|---|---|---|
+| `2.b` | **Strengthened** | A real assertion existed to be made. Both routes expose their resolver as a top-level `function`, so `extractFn`/`build` can RUN it against the routes' own committed data. The sentence and the assertion are now the same claim. |
+| `2.c` | **Reworded** | No honest strengthening exists. The claim is a runtime NEGATIVE — "no accepted subject reaches a sink" — which a text scan cannot establish, because an indirection through a local alias defeats every enumerated pattern. The assertion is unchanged; the message now says it is a source scan and names where the runtime proof lives. |
+| `2.d` | **Strengthened** | `filtered()` reads only `ROWS` and `state`, so it can be executed directly and shown to return the identical row set with no subject, with an in-universe subject and with an off-universe subject, leaving `state` byte-identical. |
+| `2.e` | **Strengthened** | `saveState()` is `localStorage.setItem(LS, JSON.stringify(state))`, so it can be executed against a recording stub and the persisted payload inspected for the subject string and for key drift. |
+
+No assertion was removed and no existing conjunct was dropped: every regex the
+four guards previously ran is still run, with executed conjuncts added beside
+it. The assertion count is unchanged at five for the four guards.
+
+### What the strengthened guards now execute
+
+`2.b` builds a sandbox from `volatility-sizing-lab.html`'s own `catalogAsset`,
+`renderLinkNotice` and `applyLinkedSubject`, with the catalog fixture read from
+the committed `volatility-sizing-universe.json` (11 assets) rather than
+hand-written, so the fixture cannot drift from the shipped catalog. It proves
+that an accepted CATALOGUED subject (`NVDA`) becomes the active asset and carries
+its own `defaultTargetVol`, that an accepted UNCATALOGUED subject (`TSLA`) leaves
+the active asset at `SPY` and is only named in the notice, that a refused subject
+applies nothing, and that `catalogAsset` returns `null` rather than throwing when
+`runtime.config` is absent. The options-flow half builds a second sandbox from
+that route's own `inUniverse`, `focusAggregate`, `money` and `renderFocus`, with
+`UNIVERSE` parsed out of the route source, and proves an off-universe subject
+(`ORCL`) renders *"does not include it"* and never a flagged-strike count.
+
+`2.d` and `2.e` reuse the same options-flow sandbox for `filtered()` and
+`saveState()`.
+
+### Red/green proof — each strengthened assertion shown able to fail
+
+Every probe ran through `scripts/red-green-probe.sh`, which arms its revert
+before mutating and verifies the restored file against its committed Git blob.
+The probe refuses a dirty target, so the in-progress `options-flow-feed-lab.html`
+edit was committed first (`options-flow-feed-lab: hand the focus band both row
+sets …`). That commit is why the green baseline reads `3191` here and `3190`
+above: one git-state-sensitive assertion flipped when the file stopped being
+dirty. In each probe exactly one assertion moved.
+
+```text
+$ bash scripts/red-green-probe.sh --file volatility-sizing-lab.html \
+    --label "F-AUDIT-06 2.b volatility: catalogAsset stops discriminating on symbol" \
+    --find 'for (var i = 0; i < assets.length; i += 1) { if (assets[i].symbol === symbol) return assets[i]; }' \
+    --replace 'for (var i = 0; i < assets.length; i += 1) { if (assets[i]) return assets[i]; }' \
+    --summary-match 'Research-Lab self-test:' --bound 300 -- node scripts/selftest.mjs
+probe1 exit=0
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F-AUDIT-06 2.b volatility: catalogAsset stops discriminating on symbol
+file:             volatility-sizing-lab.html
+mutation:         for (var i = 0; i < assets.length; i += 1) { if (assets[i].symbol === symbol) return assets[i]; }  ->  for (var i = 0; i < assets.length; i += 1) { if (assets[i]) return assets[i]; }   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3190 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3191 passed, 0 failed
+summary-compared: Research-Lab self-test: 3190 passed, 1 failed  vs  Research-Lab self-test: 3191 passed, 0 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=04cdc5461aa13e0be5fb44b6873f8e728264b491 restored=04cdc5461aa13e0be5fb44b6873f8e728264b491)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+This mutation is the one the OLD guard could not see. All three of its regexes —
+`function catalogAsset(`, the `runtime.config ? runtime.config.assets : []`
+ternary, and the `var match = handoff.status === "accepted" ? …` call site —
+still match the mutated file verbatim, so the old `2.b` would have stayed green
+while `catalogAsset` returned the first asset for every symbol.
+
+```text
+$ bash scripts/red-green-probe.sh --file options-flow-feed-lab.html \
+    --label "F-AUDIT-06 2.b options-flow: inUniverse stops discriminating, so an off-universe subject would be called covered" \
+    --find 'function inUniverse(sym) { … return false; }' --replace '… return !!sym; }' \
+    --summary-match 'Research-Lab self-test:' --bound 300 -- node scripts/selftest.mjs
+probe2 exit=0
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F-AUDIT-06 2.b options-flow: inUniverse stops discriminating, so an off-universe subject would be called covered
+file:             options-flow-feed-lab.html
+mutation:         function inUniverse(sym) { for (var i = 0; i < UNIVERSE.length; i++) if (UNIVERSE[i] === sym) return true; return false; }  ->  function inUniverse(sym) { for (var i = 0; i < UNIVERSE.length; i++) if (UNIVERSE[i] === sym) return true; return !!sym; }   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3190 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3191 passed, 0 failed
+summary-compared: Research-Lab self-test: 3190 passed, 1 failed  vs  Research-Lab self-test: 3191 passed, 0 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=25c0fb57096719a635f355942f3e5a17cfcf64d9 restored=25c0fb57096719a635f355942f3e5a17cfcf64d9)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The old `2.b` regexes `function inUniverse(sym)` and
+`if (!inUniverse(FOCUS.subject))` both still match the mutated file, so this too
+is a mutation only the executed assertion can see.
+
+```text
+$ bash scripts/red-green-probe.sh --file options-flow-feed-lab.html \
+    --label "F-AUDIT-06 2.d: filtered() gains an extra row filter, named without the token FOCUS, so only the EXECUTED half can see it" \
+    --find 'if (state.dte === "far" && !(isFinite(r.dte) && r.dte > 14)) return false;' \
+    --replace '… return false; if (r.volume > 1000) return false;' \
+    --summary-match 'Research-Lab self-test:' --bound 300 -- node scripts/selftest.mjs
+probe3 exit=0
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F-AUDIT-06 2.d: filtered() gains an extra row filter, named without the token FOCUS, so only the EXECUTED half can see it
+file:             options-flow-feed-lab.html
+mutation:         if (state.dte === "far" && !(isFinite(r.dte) && r.dte > 14)) return false;  ->  if (state.dte === "far" && !(isFinite(r.dte) && r.dte > 14)) return false; if (r.volume > 1000) return false;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3190 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3191 passed, 0 failed
+summary-compared: Research-Lab self-test: 3190 passed, 1 failed  vs  Research-Lab self-test: 3191 passed, 0 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=25c0fb57096719a635f355942f3e5a17cfcf64d9 restored=25c0fb57096719a635f355942f3e5a17cfcf64d9)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The `2.d` mutation deliberately contains no `FOCUS` token, so the surviving text
+conjunct `!/FOCUS/.test(f027bFilteredBody)` stays green and the red is carried
+entirely by the executed row-set comparison.
+
+```text
+$ bash scripts/red-green-probe.sh --file options-flow-feed-lab.html \
+    --label "F-AUDIT-06 2.e: saveState leaks the focus subject under a key none of the old text patterns name" \
+    --find 'function saveState() { try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) { } }' \
+    --replace 'function saveState() { try { state.lastSubject = FOCUS.subject; … } catch (e) { } }' \
+    --summary-match 'Research-Lab self-test:' --bound 300 -- node scripts/selftest.mjs
+probe4 exit=0
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F-AUDIT-06 2.e: saveState leaks the focus subject under a key none of the old text patterns name
+file:             options-flow-feed-lab.html
+mutation:         function saveState() { try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) { } }  ->  function saveState() { try { state.lastSubject = FOCUS.subject; localStorage.setItem(LS, JSON.stringify(state)); } catch (e) { } }   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3190 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3191 passed, 0 failed
+summary-compared: Research-Lab self-test: 3190 passed, 1 failed  vs  Research-Lab self-test: 3191 passed, 0 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=25c0fb57096719a635f355942f3e5a17cfcf64d9 restored=25c0fb57096719a635f355942f3e5a17cfcf64d9)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The `2.e` mutation writes the subject under `state.lastSubject`, which matches
+neither `state.focus`, `state.subject` nor `state.ticker`, and leaves the
+`localStorage.setItem(LS, JSON.stringify(state))` line byte-identical. All three
+surviving text conjuncts stay green; the red is carried by the executed payload
+inspection.
+
+`2.c` was reworded, not strengthened, so it has no new probe. Its assertion is
+byte-identical to the one the audit reviewed; only the message changed.
+
+### Mutation state after the probes
+
+**Claim Source:** executed.
+
+```text
+$ grep -c 'catalogAsset(handoff.subject) : null' volatility-sizing-lab.html
+1
+$ git status --porcelain -- volatility-sizing-lab.html options-flow-feed-lab.html
+(no output — both clean)
+$ grep -n 'return true; return false; }' options-flow-feed-lab.html
+563:      function inUniverse(sym) { for (var i = 0; i < UNIVERSE.length; i++) if (UNIVERSE[i] === sym) return true; return false; }
+$ grep -n 'function saveState()' options-flow-feed-lab.html
+422:      function saveState() { try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) { } }
+```
+
+Every probe mutation was reverted and hash-verified against its committed blob.
+The `catalogAsset(handoff.subject) : null` invariant still holds exactly once.
+
+### Verification — every command executed in this run
+
+**Claim Source:** executed.
+
+| Command | Exit | Result | Baseline |
+|---|---|---|---|
+| `node scripts/selftest.mjs` (pre-change) | `0` | `3190 passed, 0 failed` | matches the stated baseline |
+| `node scripts/selftest.mjs` (post-change) | `0` | `3191 passed, 0 failed` | `+1` from committing `options-flow-feed-lab.html`, not from the guard edit; the guard edit is assertion-count-neutral |
+| `node --test tests/company-intelligence.unit.mjs` | `0` | `tests 90 / pass 90 / fail 0` | unchanged |
+| `playwright … volatility-sizing / options-structure / gamma-trading / options-flow-feed --workers=1` | `0` | `60 passed (1.0m)` | unchanged |
+| `artifact-lint.sh specs/027-company-scoped-owner-deep-links` | `0` | `Artifact lint PASSED.` | unchanged |
+| `red-green-probe.sh` × 4 | `0`, `0`, `0`, `0` | all four `discriminating: yes`, all four `revert-verified: yes` | new |
+
+The assertion count for the four guards is five before and five after — the two
+`2.b` assertions plus one each for `2.c`, `2.d` and `2.e` — which is the
+mechanical check that nothing was dropped while the messages were corrected.
+
+The full 700-test browser suite was NOT run here; the operator reserved it.
+
+### Concurrent-session interference — recorded, routed, not fixed
+
+**Claim Source:** executed.
+
+After every command in the table above had been executed, and after all four
+probe green phases had read `3191 passed, 0 failed`, a concurrent session working
+in the same working tree changed two files. `node scripts/selftest.mjs` now reads
+exit `1`, `3191 passed, 1 failed`, on a single assertion that this run did not
+write and cannot own.
+
+```text
+$ node scripts/selftest.mjs ; echo "exit=$?"
+Research-Lab self-test: 3191 passed, 1 failed
+exit=1
+$ grep '✗ FAIL' <captured output>
+  ✗ FAIL: F-AUDIT-04: the route invokes CO-24 on what it rendered, feeds the summed set from the settlement’s own federa…
+$ git show HEAD:scripts/selftest.mjs | grep -c 'F-AUDIT-04: the route invokes CO-24'
+0
+$ grep -c 'F-AUDIT-04: the route invokes CO-24' scripts/selftest.mjs
+1
+$ git show HEAD:lifetime-tax-strategy-lab.html | grep -c 'legSurfaceCensus'
+0
+$ git diff -U0 -- scripts/selftest.mjs | grep '^@@'
+@@ -25946,8 +25946,109 @@ try {
+@@ -25962,4 +26063,11 @@ try {
+@@ -25966,0 +26075,3 @@ try {
+@@ -25968,5 +26079,13 @@ try {
+@@ -25975,2 +26094,8 @@ try {
+@@ -26745,0 +26871,64 @@ try {
+$ git diff -U0 -- scripts/selftest.mjs | sed -n '/^@@ -26745,0 +26871,64 @@/,$p' | grep -c 'F-AUDIT-04: the route invokes CO-24'
+1
+```
+
+The failing assertion is absent from `HEAD`, present only in the working tree,
+and contained entirely inside the 64-line hunk at `+26871` — a hunk this run did
+not author. The five hunks this run did author all fall in `25946`–`26094`, the
+Feature 027 Scope 2 block. In the same failing output, the Scope 2 group reads
+10 of 10 green.
+
+The two changed files are `scripts/selftest.mjs` (the foreign `F-AUDIT-04` CO-24
+group) and `lifetime-tax-strategy-lab.html` (a new `legSurfaceCensus` host and
+per-row `includedInTotal` flags). `lifetime-tax-strategy-lab.html` is an
+explicitly forbidden path for this run, so the failure is routed to the session
+that owns `F-AUDIT-04` and was neither touched nor fixed here. The last selftest
+reading attributable to this run alone is exit `0`, `3191 passed, 0 failed`,
+which is also the green phase every probe above independently reproduced.
+
+### Boundaries respected
+
+No lifetime-tax path (`rltax*.js`, `lifetime-tax-*`, `tax-rules/`, specs 021–024)
+and no `specs/026-*` artifact was read or written. `intraday-tape-lab.html` and
+`swing-structure-lab.html` were not modified. No `uservalidation.md` item was
+ticked, no `status` was set to `done`, and no `certifiedAt` was written. One
+source file was changed: `scripts/selftest.mjs`. `options-flow-feed-lab.html` was
+committed unchanged from its working-tree content to satisfy the probe harness's
+clean-target requirement; its bytes were not edited in this run.
+
+---
+
+## Docs Phase — F-AUDIT-07 closed: the canary is described as the floor it is (`bubbles.docs`)
+
+`F-AUDIT-07` is a claim-accuracy defect, not a coverage hole. The guard was never
+wrong; one sentence of docs-phase attribution prose described it as doing more than
+it does. Exactly one sentence was reworded. No assertion, no test, no production
+file and no DoD item was touched.
+
+### What was wrong, and what it now says
+
+`report.md:4441` read:
+
+> `pii-scan` wrapper row, and `SCN-027-CANARY`, which fails only because it **pins the
+> pre-existing green assertion count** and that count moved underneath it.
+
+A `passes > N` comparison pins nothing. It is a lower bound, so the sentence
+credited the canary with a resolution it does not have. The passage now names the
+comparison, calls it a regression floor, gives the live slack at each of the three
+Feature 027 canaries, and states plainly that a small number of assertions being
+deleted would pass it unnoticed.
+
+### The floor, measured
+
+Read out of the run below, not asserted:
+
+| Canary | Assertion | Live `passes` at that point | Slack above the floor |
+|---|---|---|---|
+| Scope 1 (`1.19`) | `passes > 3000` | 3145 | 145 |
+| Scope 2 (`2.17`) | `passes > 3140` | 3155 | 15 |
+| Scope 3 (`3.17`) | `passes > 3145` | 3163 | 18 |
+
+A fourth canary, `h.e` (`passes > 3150`, live 3168, slack 18), was added later by
+the `F-AUDIT-08` remediation and carries the same shape and the same caveat.
+
+### The assertions were deliberately NOT tightened
+
+Converting the comparisons to equality pins was considered and rejected, for a
+reason this run observed directly rather than predicted. Three `node scripts/selftest.mjs`
+runs minutes apart in the same tree, with no change to this feature's code between
+them, reported `3192 passed, 0 failed`, then `3193 passed, 1 failed`, then
+`3194 passed, 0 failed`, with `scripts/selftest.mjs` carrying `144` added and `19`
+deleted lines against `HEAD` from concurrent sessions that this phase does not own
+and did not touch. An equality pin would report red on every one of those foreign
+appends. A floor that is honestly described beats a pin that is red for reasons
+belonging to someone else.
+
+### Verification
+
+**Executed:** YES
+**Phase Agent:** bubbles.docs
+**Claim Source:** executed
+
+The first run below is the mid-phase run that carried the foreign failure; the
+second is the final run after the concurrent session's own fix landed. Both are
+recorded rather than only the green one.
+
+```
+$ node scripts/selftest.mjs
+  ✓ Regression: SCN-027-CANARY every pre-existing selftest assertion stays green after the Feature 027 append (3145 assertion(s) already green at this point)
+  ✓ Regression: SCN-027-CANARY every pre-existing selftest assertion stays green after the Feature 027 Scope 2 append (3155 assertion(s) already green at this point)
+  ✓ Regression: SCN-027-CANARY every pre-existing selftest assertion stays green after the Feature 027 Scope 3 append (3163 assertion(s) already green at this point)
+  ✓ Regression: SCN-027-CANARY every pre-existing selftest assertion stays green after the F-AUDIT-08 append (3168 assertion(s) already green at this point)
+  ✗ FAIL: F-AUDIT-02: the AbsentFigure census runs against the pack that actually carries absences rather than one carrying none, reaches the nested per-filing-status amounts map, and holds the non-conformant s…
+Research-Lab self-test: 3193 passed, 1 failed
+SELFTEST_EXIT=1
+
+$ node scripts/selftest.mjs
+  ✓ Regression: SCN-027-CANARY every pre-existing selftest assertion stays green after the Feature 027 append (3145 assertion(s) already green at this point)
+  ✓ Regression: SCN-027-CANARY every pre-existing selftest assertion stays green after the Feature 027 Scope 2 append (3155 assertion(s) already green at this point)
+  ✓ Regression: SCN-027-CANARY every pre-existing selftest assertion stays green after the Feature 027 Scope 3 append (3163 assertion(s) already green at this point)
+  ✓ Regression: SCN-027-CANARY every pre-existing selftest assertion stays green after the F-AUDIT-08 append (3168 assertion(s) already green at this point)
+Research-Lab self-test: 3194 passed, 0 failed
+SELFTEST_EXIT=0
+
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/027-company-scoped-owner-deep-links
+Artifact lint PASSED.
+ARTIFACT_LINT_EXIT=0
+```
+
+The four canary counts are identical in all three runs — `3145`, `3155`, `3163`,
+`3168` — because the foreign appends land after the Feature 027 groups. The slack
+table above therefore holds across the churn.
+
+### The mid-phase failure was not this phase's, established by execution
+
+| Fact | Value | Meaning |
+|---|---|---|
+| `git status --porcelain` for this phase | `M specs/027-company-scoped-owner-deep-links/report.md` | one file changed, and it is prose |
+| `grep -c '027-company-scoped-owner-deep-links' scripts/selftest.mjs` | `0` | no assertion in the suite reads the file this phase edited |
+| Failing assertion location | `scripts/selftest.mjs:27027` | a foreign `F-AUDIT-02`, not Feature 027's |
+| Same assertion at `HEAD` / in worktree | `1` / `1` | committed already; not appended by this phase |
+| Data the assertion reads | `tax-rules/federal/2026.json` | lifetime-tax domain, specs 021–024 |
+| `git status --porcelain -- tax-rules/` | empty | that data file is unmodified |
+| `git status --porcelain -- scripts/selftest.mjs` | `M` | the suite itself is under concurrent foreign edit |
+
+The failure sits in the `AbsentFigure/v1` / `residenceExclusion:useTest` surface,
+which this phase is instructed not to touch and did not touch. It was not fixed,
+not reverted and not worked around.
+
+### Deliberately not done
+
+- No `scripts/selftest.mjs` edit of any kind. This was a prose task.
+- No canary converted to an equality pin, for the reason recorded above.
+- No verbatim command output altered anywhere in this report; only narrative
+  claims around transcripts were corrected.
+- `scopes.md` was checked and left byte-unchanged. Its canary prose at line 495
+  states that row 1.19 "fails if this scope's append to either shared file breaks
+  any pre-existing assertion", and that is accurate as written: row 1.19's own
+  acceptance criterion is `node scripts/selftest.mjs` **exits 0**, which zero
+  failures are required for, so it does catch a single broken assertion. The
+  over-claim was specific to the `passes > N` characterisation in `report.md`, and
+  no edit was manufactured in `scopes.md` to look productive.
+- No `uservalidation.md` item ticked (still 0 ticked / 19 unticked), no `status`
+  set to `done`, no `certifiedAt` written.
 
 
 

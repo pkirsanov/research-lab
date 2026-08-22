@@ -376,24 +376,28 @@ resolving to fewer tests than it claims. Both read green while owned by nothing.
     undeclared-residency raise to the jurisdiction code fell TP-03-07 and TP-03-11
     together (`3089 passed, 3 failed`), proving each pins its specific code. Both
     same-command GREEN runs returned `3091 passed, 1 failed`.
-- [ ] `BI-5` was closed by a retrieval performed in the implementation session and
+- [x] `BI-5` was closed by a retrieval performed in the implementation session and
       recorded with its own `retrievedAt`, or the Florida pack ships
       `imposesIndividualIncomeTax` as an `AbsentFigure/v1` and the sourced-zero
       path is proven by the fixture pack instead.
-  - **Open — the retrieval was performed and did not find the statement.** Branch
-    one was attempted rather than assumed unavailable: five Florida Department of
-    Revenue pages were fetched at `retrievedAt` `2026-08-21T04:31:33Z`. Four
-    retrieved and none states that Florida imposes no individual income tax — they
-    enumerate the taxes the department administers, which is the same
-    administrative absence the pack already cites. The fifth, the GT-800029
-    brochure, returned no extractable content, so nothing may be asserted from it
-    and its wording is not recalled. Branch two is a pack edit that moves
-    `contentSha256` and re-aims assertions in Scopes 03, 04 and 05, so it stays
-    routed to implementation-and-sourcing. **Decidable by:** one retrieved
-    Department of Revenue document whose text states the absence for natural
-    persons; two unreached candidates are named in the report so the next attempt
-    does not start from scratch.
-  - **Phase:** implement · **Command:** the retrieval record in the pack plus `node scripts/selftest.mjs` · **Evidence:** `report.md#sourcing`, `report.md#the-bi-5-retrieval-was-attempted-in-this-session-and-did-not-find-the-statement`
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs`, `npx playwright test tests/lifetime-tax-*.spec.mjs --project=chromium`, and four `scripts/red-green-probe.sh` probes · **Evidence:** `report.md#bi-5-branch-two`, `report.md#sourcing`, `report.md#the-bi-5-retrieval-was-attempted-in-this-session-and-did-not-find-the-statement`
+  - **Closed on branch two.** Branch one was attempted rather than assumed
+    unavailable: five Florida Department of Revenue pages were fetched at
+    `retrievedAt` `2026-08-21T04:31:33Z`. Four retrieved and none states that
+    Florida imposes no individual income tax — they enumerate the taxes the
+    department administers, which is the same administrative absence the pack
+    already cites. The fifth, the GT-800029 brochure, returned no extractable
+    content, so nothing was asserted from it. Branch two was then executed.
+    `imposesIndividualIncomeTax` ships as an `AbsentFigure/v1` carrying
+    `RLTAX-THRESHOLD-UNAVAILABLE`, a domain, a reason stating that a prohibition
+    plus an administrative absence do not state the fact, a
+    `whatWouldMakeItAvailable` and a `missingSource`; `noTaxAuthority` is `null`;
+    `contentSha256` is recomputed. Florida settles to a refusal carrying no
+    numeral, and the sourced-zero path is proven by the new no-tax fixture pack
+    `tax-rules/fixtures/state-no-tax-2999.json`, which declares `state:QQ` and so
+    cannot resolve for any real household. Assertions in Scopes 03, 04 and 05
+    were re-aimed rather than removed, and both browser specs gained a
+    shipped-Florida refusal assertion. Pre-existing pass count unchanged.
 - [x] FR-022-019 is implemented: a sourced zero validates only with the literal
       zero and a citation, the route branches on the contract version rather than
       on the value, and a bare zero is proven to fail.

@@ -172,6 +172,138 @@ so the next attempt starts from them rather than from scratch — the GT-800029
 brochure above, and the department's own FAQ search restricted to the general-tax
 category at `https://floridarevenue.com/faq/pages/faqsearch.aspx?keywords=&cat=4&subcat=0`.
 
+### `BI-5` closed on branch two: the pack now states no imposition {#bi-5-branch-two}
+
+**Claim Source:** executed. Everything above this heading describes the pack as
+it stood BEFORE this change and is left standing rather than rewritten: branch
+one was attempted, was not satisfied, and that negative is what routed the work
+here. Branch two has now been performed. `imposesIndividualIncomeTax` ships as an
+`AbsentFigure/v1` carrying `code` `RLTAX-THRESHOLD-UNAVAILABLE`, a `domain`, a
+`reason`, a `whatWouldMakeItAvailable` and a `missingSource`; `noTaxAuthority` is
+`null`; `contentSha256` is recomputed from the pack's own digest input. The
+reason states plainly that the constitutional prohibition and the departmental
+absence together do not *state* that no individual income tax is imposed, which
+is why no value is asserted. Florida now renders `unavailable` where it rendered
+`$0`, which is the outcome finding F-8 requires.
+
+**Behaviour, executed:**
+
+```
+FL validates true
+FL digest sha256:efac241f4dcbd240cb5e1bd5a811dd759681beb292b59ba5fc888f575e17b2ac
+FL total unavailable: true code: RLTAX-THRESHOLD-UNAVAILABLE
+FL has value member: false
+FL jurisdiction: state:FL order: []
+FL L7: ["L7:holds"]
+QQ sourced zero: true value: 0 ref: contract-fixture-no-tax-authority
+```
+
+**Coverage of the sourced-zero path.** The mechanism is not abandoned with
+Florida. A new fixture pack `tax-rules/fixtures/state-no-tax-2999.json` STATES
+the absence outright, declares `state:QQ` so it can never resolve for a real
+household, and carries `imposesIndividualIncomeTax: false` with the authority
+that establishes it. It is exercised in `scripts/selftest.mjs` at TP-03-04,
+TP-03-05, TP-03-12, TP-04-14, TP-05-02/TP-05-06 and TP-05-12, and is SERVED at
+the declared Florida pack path in `tests/lifetime-tax-state.spec.mjs` and
+`tests/lifetime-tax-combined.spec.mjs` so the sourced-zero RENDERING is still
+proven over the real route. The shipped pack's own refusal is pinned separately
+in both specs. The pre-existing pass count is unchanged at `3183 passed, 0
+failed`.
+
+**Dependants on Florida rendering `$0`, before the change.** Seven selftest
+assertions and the two browser specs depended on it; every one was re-aimed
+rather than removed, and each of the two browser specs gained a shipped-Florida
+refusal assertion it did not previously have.
+
+**RED/GREEN evidence.** Four probes, each through
+`scripts/red-green-probe.sh`, each reverting under a trap inside the applying
+invocation and each verified by blob hash.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BI-5-branch-two-unstated-settlement-branch
+file:             rltaxstate.js
+mutation:         if (rules.isAbsentFigure(statePack.imposesIndividualIncomeTax)) {  ->  if (false && rules.isAbsentFigure(statePack.imposesIndividualIncomeTax)) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3181 passed, 2 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3183 passed, 0 failed
+revert-verified:  yes (committed=a3068f1a5c54060c24d0db5973ebb4190c7ae981 restored=a3068f1a5c54060c24d0db5973ebb4190c7ae981)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BI-5-florida-refusal-code-is-pinned
+file:             tax-rules/state/FL/2026.json
+mutation:         "code": "RLTAX-THRESHOLD-UNAVAILABLE", "domain": "state-imposition:state:FL"  ->  "code": "RLTAX-FEATURE-UNSUPPORTED", "domain": "state-imposition:state:FL"   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3182 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3183 passed, 0 failed
+revert-verified:  yes (committed=fb7b4addd07d93261ccb3ec3fc0f93e09808629d restored=fb7b4addd07d93261ccb3ec3fc0f93e09808629d)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BI-5-unstated-pack-derives-no-calculation-order
+file:             rltaxrules.js
+mutation:         if (isPlainObject(pack) && isAbsentFigure(pack.imposesIndividualIncomeTax)) return [];  ->  if (false && isPlainObject(pack) && isAbsentFigure(pack.imposesIndividualIncomeTax)) return [];   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3180 passed, 3 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3183 passed, 0 failed
+revert-verified:  yes (committed=837012ca9943750fcdfdcdcaff06a145fba6a75a restored=837012ca9943750fcdfdcdcaff06a145fba6a75a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The browser probe records its selection before the run, because a `--project`
+run that selected nothing would also exit 0.
+
+```
+--- selection before probe ---
+  [chromium] › tests/lifetime-tax-state.spec.mjs:79:1 › Regression: SCN-022-009 a jurisdiction that levies no individual income tax renders its sourced zero with the authority that establishes it, and never enters the federal total
+  [chromium] › tests/lifetime-tax-state.spec.mjs:134:1 › Regression: the shipped Florida pack states no imposition, so the route renders a refusal naming the authority that was never retrieved and shows no zero in its place
+Total: 7 tests in 1 file
+
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BI-5-browser-florida-renders-the-refusal-not-a-zero
+file:             rltaxstate.js
+mutation:         if (rules.isAbsentFigure(statePack.imposesIndividualIncomeTax)) {  ->  if (false && rules.isAbsentFigure(statePack.imposesIndividualIncomeTax)) {   (1 occurrence(s))
+command:          npx playwright test tests/lifetime-tax-state.spec.mjs --project=chromium --reporter=line
+red-exit:         1
+red-summary:        6 passed (8.4s)
+green-exit:       0
+green-summary:      7 passed (2.9s)
+revert-verified:  yes (committed=a3068f1a5c54060c24d0db5973ebb4190c7ae981 restored=a3068f1a5c54060c24d0db5973ebb4190c7ae981)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Whole-suite state after the change.**
+
+```
+Research-Lab self-test: 3183 passed, 0 failed
+87 passed (14.6s)          # npx playwright test tests/lifetime-tax-*.spec.mjs --project=chromium
+[spec-test-paths] scanned=686 references=15516 distinctPaths=251 missingPaths=67 baseline=67 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+```
+
+**What remains true.** Branch one is still the better outcome and is still open
+to a later session: one retrieved Department of Revenue document whose text
+states the absence for natural persons would let the pack state the imposition
+and carry the authority. The two unreached candidates named above are unchanged.
+Branch two does not close that door; it stops the pack asserting a fact no
+authority states while the door is shut.
+
+
 
 ## Test Evidence
 

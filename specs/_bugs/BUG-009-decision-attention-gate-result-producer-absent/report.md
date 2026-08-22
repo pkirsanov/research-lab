@@ -929,3 +929,36 @@ policy note.
   uncommitted edits to it in the primary checkout, and writing a phase record from
   this worktree would overwrite that work. The harden phase record is this section.
 
+## Regression E2E
+
+Recorded 2026-08-22. This packet's four scopes carried unit and browser coverage but no
+Definition-of-Done record of E2E regression, which an audit of the sibling BUG-014 packet
+surfaced as 19 gate blocks here. The coverage existed before the record did; what follows
+is the record, not new work claimed as old.
+
+`tests/attention-browser.spec.mjs` drives the real cockpit against the committed payload
+and asserts the surfaces these scopes own: the decision-attention tier render, the
+empty-feed vocabulary that tells a refused feed from a quiet one, and the observation-age
+label. It also holds the module byte budgets.
+
+```
+node node_modules/playwright/cli.js test --config=playwright.config.mjs \
+  --project=system-chrome --workers=1 --reporter=list tests/attention-browser.spec.mjs
+
+16 passed (18.6s)
+```
+
+Re-run after the module byte-budget repair at `ac8d3f3ef`, because the same suite was red
+at `009731726` — `rlattention.js` had crossed the 47104-byte ceiling and the suite had not
+been re-run after the commit that crossed it. That is the reason this section states the
+commit it was run at: a suite result is only valid for the tree it ran against.
+
+### H4 — `attention[].rationale` is bounded by nothing (NOW FIXED)
+
+The hardening pass routed this rather than fixing it. It is now fixed under BUG-014
+FR-014-008: the field stays out of `defaultVisibleFields`, because it is the detail a
+reader opens deliberately, and it carries its own `detailFieldChars` cap of 700 measured
+by the single output-budget owner. Folding it into the card budget was measured and
+rejected — the live card was 194 against a 300 cap and its rationale 575, so folding would
+have refused the only item the feed was publishing.
+

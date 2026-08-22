@@ -5,7 +5,7 @@
   "generatedAt": "2026-08-20T00:00:00Z",
   "stage": "post-implementation",
   "stageNote": "Authored after Scope 1 reached Done, from the Gherkin blocks already present in scopes.md. Every scenarioId, title, scopeId and linkedTests value is TRANSCRIBED from those blocks and from the named selftest assertions that satisfied them, rather than composed here. This manifest reports the plan that was executed and adds no claim of its own. Scope 2 declares no scenario because no work is claimed against it.",
-  "scenarioCount": 7,
+  "scenarioCount": 9,
   "keyShapeNote": "Keyed on `scenarioId`, matching the existing manifests in this repository.",
   "scenarios": [
     {
@@ -129,6 +129,42 @@
       ],
       "linkedTests": [
         "scripts/selftest.mjs :: live config gives tactical a real band and the contract states that band rather than a single value"
+      ]
+    },
+    {
+      "scenarioId": "SCN-BUG014-DETAIL-BOUNDED",
+      "title": "A hidden detail field is bounded by its own cap and stays off the visible card",
+      "scopeId": "03-bound-the-hidden-detail-and-name-the-narrative-keys",
+      "requirement": "FR-014-008",
+      "scope": 3,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "evidenceRefs": [
+        "report.md#independent-audit-2026-08-22-commit-ac8d3f3ef",
+        "scopes.md#scope-3"
+      ],
+      "linkedTests": [
+        "scripts/selftest.mjs :: every declared detail field is absent from defaultVisibleFields, so the hidden detail is bounded without being counted against the card the reader actually sees",
+        "scripts/selftest.mjs :: the detail cap refuses a rationale one character over and admits one exactly at the cap, so the bound is real and is not off by one"
+      ]
+    },
+    {
+      "scenarioId": "SCN-BUG014-KEYS-NAMED",
+      "title": "A lane instruction names the literal narrative keys instead of describing them",
+      "scopeId": "03-bound-the-hidden-detail-and-name-the-narrative-keys",
+      "requirement": "FR-014-009",
+      "scope": 3,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "evidenceRefs": [
+        "report.md#independent-audit-2026-08-22-commit-ac8d3f3ef",
+        "scopes.md#scope-3"
+      ],
+      "linkedTests": [
+        "scripts/selftest.mjs :: the backdrop clause names every declared backdrop key and calls out the one pair that does NOT share a name across the two blocks",
+        "scripts/selftest.mjs :: the core lane imports AND interpolates the backdrop key contract, instead of describing the fields in prose"
       ]
     }
   ]

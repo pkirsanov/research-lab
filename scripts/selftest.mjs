@@ -3106,6 +3106,23 @@ try {
     && observableSubjectTally([]) === 0
     && observableSubjectTally(JSON.parse(read('market-brief.snapshot.json'))) > 0,
     'the observable-subject tally separates a snapshot the gate can read from one it cannot, which is what tells an outage apart from a quiet market');
+  /* A recompose derives its candidates from the PUBLISHED items, so a candidate refused on an
+     earlier run is not present and its refusal can NEVER be re-derived. Treating the fresh list as
+     authoritative whenever candidates existed erased real accounting: one run dropped three
+     recorded RLATTN-OVERLAP refusals and left a one-item tier that no longer said why three
+     subjects were held back. Prior rows survive; a re-derived row replaces its own, not doubling. */
+  const priorRows = [
+    { index: 0, subject: 'XLK', code: 'RLATTN-OVERLAP', field: 'subject', reason: 'prior run' },
+    { index: 1, subject: 'QQQ', code: 'RLATTN-OVERLAP', field: 'subject', reason: 'prior run' }
+  ];
+  const carried = recomposePayloadAttention(
+    { ...JSON.parse(read('market-brief.payload.json')), attentionExclusions: priorRows },
+    JSON.parse(read('market-brief.config.json'))
+  );
+  const carriedKeys = (carried.payload.attentionExclusions || []).map((entry) => `${entry.code}|${entry.subject}`);
+  assert(carriedKeys.includes('RLATTN-OVERLAP|XLK') && carriedKeys.includes('RLATTN-OVERLAP|QQQ')
+    && carriedKeys.filter((key) => key === 'RLATTN-OVERLAP|XLK').length === 1,
+    'a recompose carries forward a refusal it cannot re-derive rather than erasing it, and does not double a row it can');
   assert(/RLATTN-SNAPSHOT-UNOBSERVABLE/.test(read('scripts/build-attention-items.mjs'))
     && /RLATTN-SNAPSHOT-UNOBSERVABLE/.test(read('scripts/validate-brief-payload.mjs')),
     'the systemic no-observable-subject cause is recorded by the composer AND refused by the validator, so an outage cannot ship an empty tier as a calm one');

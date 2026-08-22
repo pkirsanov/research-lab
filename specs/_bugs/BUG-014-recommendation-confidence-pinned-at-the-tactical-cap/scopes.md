@@ -217,3 +217,68 @@ Scenario: SCN-BUG014-CONTRACT-FOLLOWS-CONFIG
       naming 7 rendered actions beneath it, and passes again once restored.
 
 **Evidence:** `report.md` § Threshold Decision.
+
+---
+
+## Scope 3 — Bound the hidden detail, and name the narrative keys
+
+**Status:** Done
+
+Added 2026-08-22 after the audit found two shipped mechanisms with no requirement,
+scenario or Definition of Done anywhere in the three packets. The code was delivered and
+covered by the suite; what was missing was the record. Documenting scope after the fact is
+worse than documenting it first, and better than leaving delivered behaviour unrecorded.
+
+### Test Plan
+
+```gherkin
+Scenario: SCN-BUG014-DETAIL-BOUNDED
+  Given a detail field declared behind the card rather than on it
+  When the output budget is measured
+  Then the field is absent from the visible-field list
+  And a value one character over the detail cap is refused by its own path
+  And a value exactly at the cap is admitted
+
+Scenario: SCN-BUG014-KEYS-NAMED
+  Given a lane instruction that asks for a named narrative block
+  When that instruction is rendered
+  Then it names the literal keys taken from the declared list the gate judges against
+  And it calls out the one pair whose name differs across the two blocks
+```
+
+| Scenario | Where proven |
+| --- | --- |
+| SCN-BUG014-DETAIL-BOUNDED | `scripts/selftest.mjs` — detail-cap off-by-one and visible-field partition |
+| SCN-BUG014-KEYS-NAMED | `scripts/selftest.mjs` — backdrop clause and lane import/interpolation |
+
+### Definition of Done
+
+- [x] SCN-BUG014-DETAIL-BOUNDED: the declared detail field is absent from
+      `defaultVisibleFields`, a value one character over `detailFieldChars` is refused by
+      its own path, and a value exactly at the cap is admitted. (FR-014-008)
+      Evidence: passing pins `every declared detail field is absent from defaultVisibleFields`
+      and `the detail cap refuses a rationale one character over and admits one exactly at
+      the cap`.
+- [x] The cap sits above the observed maximum so nothing already authored breaches it, and
+      the lane is told it. (FR-014-008)
+      Evidence: `market-brief.config.json` `rationaleDecisionNote` records max 575 against a
+      cap of 700; passing pin `the detail budget is stated to the author with the enforced
+      cap`.
+- [x] SCN-BUG014-KEYS-NAMED: the instruction names the literal keys from the declared list
+      and calls out the one pair whose name differs. (FR-014-009)
+      Evidence: passing pin `the backdrop clause names every declared backdrop key and calls
+      out the one pair that does NOT share a name across the two blocks`.
+- [x] The lane both imports AND interpolates it, so neither half can rot. (FR-014-009)
+      Evidence: passing pin `the core lane imports AND interpolates the backdrop key
+      contract`.
+- [x] Both pins are proven load-bearing rather than assumed.
+      Evidence: `report.md` § Independent Audit — dropping the interpolation and truncating
+      the derivation each fail by name, and each passes again when restored.
+- [x] `node scripts/selftest.mjs` passes with no failures.
+      Evidence: `report.md` § Validation Re-Derivation — 3242 passed / 0 failed.
+- [x] Scenario-specific E2E regression coverage persists for the runtime surface this scope
+      touches, and the broader suite runs green with it.
+      Evidence: `report.md` § Regression E2E — `16 passed`, full
+      `tests/attention-browser.spec.mjs` run. `git show --stat` in § Code Diff Evidence.
+
+**Evidence:** `report.md` § Independent Audit.

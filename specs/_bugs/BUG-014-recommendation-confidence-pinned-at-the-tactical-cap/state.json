@@ -49,7 +49,8 @@
       "simplify",
       "stabilize",
       "test",
-      "validate"
+      "validate",
+      "audit"
     ],
     "phaseClaimNote": "Only phases actually dispatched are listed. implement: the delivery itself. regression, security and simplify: real subagent runs against this worktree, each of which changed the delivery — regression found a pin that could not fail, security found an unbudgeted raw interpolation and an unpinned escaping property, simplify found that the rlbrief.js pin guarded spelling rather than behaviour. Their findings and the resulting fixes are in report.md § Specialist Phases. test, stabilize, validate and audit are NOT claimed: they were not run."
   },
@@ -90,7 +91,8 @@
   },
   "completedScopes": [
     "01-tell-both-authoring-lanes-how-to-choose-a-confidence",
-    "02-adjudicate-the-cap-to-floor-collision"
+    "02-adjudicate-the-cap-to-floor-collision",
+    "03-bound-the-hidden-detail-and-name-the-narrative-keys"
   ],
   "certification": {
     "status": "in_progress",
@@ -99,7 +101,8 @@
     "certifiedAt": null,
     "completedScopes": [
       "01-tell-both-authoring-lanes-how-to-choose-a-confidence",
-      "02-adjudicate-the-cap-to-floor-collision"
+      "02-adjudicate-the-cap-to-floor-collision",
+      "03-bound-the-hidden-detail-and-name-the-narrative-keys"
     ],
     "certifiedCompletedPhases": [],
     "certificationFieldWriteNote": "certification.status mirrors the top-level status. completedScopes mirrors SCOPE status and is populated because both scopes are Done on executed evidence; an earlier revision left it empty after conflating it with certifiedCompletedPhases, which is a different claim. certifiedCompletedPhases stays EMPTY: phase certification is bubbles.validate's to write, and no independent party re-derived the measurements in report.md.",
@@ -114,6 +117,12 @@
         "scopeId": "02-adjudicate-the-cap-to-floor-collision",
         "status": "Done",
         "dodChecked": 4,
+        "dodUnchecked": 0
+      },
+      {
+        "scopeId": "03-bound-the-hidden-detail-and-name-the-narrative-keys",
+        "status": "Done",
+        "dodChecked": 7,
         "dodUnchecked": 0
       }
     ]
@@ -233,6 +242,16 @@
       ],
       "action": "re-derived",
       "note": "Independently RE-DERIVED the packet's claims instead of re-reading them. Walked 198 committed payload revisions and reproduced the histograms exactly (structural {56:15,57:19}, swing {55:102}, tactical {55:34}); confirmed min published action confidence 55 across ALL 198, stronger than the 34 claimed; confirmed the live spread 61/57/53/52 with the tactical action at 52 inside the new 50..55 band; confirmed all five committed thresholds. Found NO decoration pin across five mutations, each producing a named failure. Found one BLOCKING defect: this packet's own commit 009731726 pushed rlattention.js to 47369 bytes over the 47104 module ceiling, and the browser suite had not been re-run, so it was red at HEAD. Fixed by condensing this packet's own over-long comments to 46829 bytes with 275 headroom - the ceiling was NOT widened, per the suite's own rule - and the full 16-test suite is green. Also corrected three artifact inaccuracies it surfaced: a DoD item citing a pin Scope 2 had deleted, two DoD items citing a 2-test transcript as evidence for the 16-test suite, and the \"0 failed\" claim that was true pre-rebase and false post-rebase."
+    },
+    {
+      "at": "2026-08-22T00:00:00Z",
+      "agent": "bubbles.audit",
+      "phase": "audit",
+      "phasesExecuted": [
+        "audit"
+      ],
+      "action": "audited",
+      "note": "Final audit before owner hand-off. Verdict was NOT-YET with two blocking items, both now closed. A1: spec.md FR-014-006 said the packet MUST NOT alter either threshold while Scope 2 had moved the floor 55->50; superseded by FR-014-007 with the original text kept visible rather than rewritten, and the audit was right to refuse to weaken a MUST NOT itself. A2: detailFieldChars/detailFields and the backdrop-keys instruction had shipped with no requirement, scenario or DoD; FR-014-008/009 and Scope 3 added with 2 scenarios, 7 evidenced DoD items and 2 manifest entries. It also found B5, a real loss of disclosure: an earlier recompose had silently cleared three recorded RLATTN-OVERLAP refusals. Root cause was that recompose derives candidates from PUBLISHED items, so a prior refusal can never be re-derived, yet the fresh list was treated as authoritative; rows are now carried forward, restored, pinned and mutation-proved. D1-D3 fixed. Corrected one of my own repeated claims: G090 is NOT a worktree artifact and not an open item - it failed only because a fresh clone lacks a gitignored session file. Four findings routed rather than absorbed and recorded in report.md ## Discovered Issues."
     }
   ],
   "activeBugs": [],

@@ -1203,7 +1203,8 @@
     if (!el) return;
     var ranked = rankAttention(cards || [], max || 7);
     if (!ranked.length) { el.innerHTML = emptyAttentionStatement(exclusions); return; }
-    var cap = (cfg && cfg.thresholds && cfg.thresholds.tacticalConfidenceCap) || 55;
+    var capCfg = (cfg && cfg.thresholds) ? cfg.thresholds.tacticalConfidenceCap : undefined;
+    var cap = isFinite(capCfg) ? capCfg : 55;
     el.innerHTML = ranked.map(function (c) {
       /* The href on an attention card is model-authored, and esc() protects the
          ATTRIBUTE but not the SCHEME — `javascript:` survives escaping intact.
@@ -1228,7 +1229,8 @@
   function renderRecs(el, recs, cfg) {
     if (!el) return;
     if (!recs || !recs.length) { el.innerHTML = '<div class="sub">No recommendations in the current payload.</div>'; return; }
-    var cap = (cfg && cfg.thresholds && cfg.thresholds.tacticalConfidenceCap) || 55;
+    var capCfg = (cfg && cfg.thresholds) ? cfg.thresholds.tacticalConfidenceCap : undefined;
+    var cap = isFinite(capCfg) ? capCfg : 55;
     el.innerHTML = recs.map(function (raw) {
       var r = normalizeRecommendation(raw);
       var href = r.deepLink || deepLink(cfg, "", r.subject);

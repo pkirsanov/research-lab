@@ -69,7 +69,29 @@
       "windowTradingDate": "2026-08-24"
     }
   ],
-  "attentionExclusions": [],
+  "attentionExclusions": [
+    {
+      "code": "RLATTN-OVERLAP",
+      "field": "subject",
+      "index": 0,
+      "reason": "this subject is already published as an action and must not be surfaced twice",
+      "subject": "XLK"
+    },
+    {
+      "code": "RLATTN-OVERLAP",
+      "field": "subject",
+      "index": 2,
+      "reason": "this subject is already published as an action and must not be surfaced twice",
+      "subject": "QQQ"
+    },
+    {
+      "code": "RLATTN-OVERLAP",
+      "field": "subject",
+      "index": 3,
+      "reason": "this subject is already published as an action and must not be surfaced twice",
+      "subject": "SPMO"
+    }
+  ],
   "backdrop": {
     "asymmetry": "With the July NFP binary resolved benignly, the multi-month structure intact (SPY 20>50>200 bull-stack) and price roughly 1.6% under the highs rather than a break, the longer-term bull is unbroken, and breadth firmed again into the weekend (58.1% on the 8/21 bar, margin only -1.9, up from 29.99% on 8/20). The offsetting near-term risks eased but did not clear: dealers stay negative gamma (GEX -1.85B, up from Friday's -2.84B) with SPY spot 765.72 about 3 points below the 768.79 flip; breadth still sits under 60% so three-bar persistence is unmet and the latest bar is just below the line; the near-term leader SPMO sits -1.4% below its 50-day (148.73) though it holds +13.75% over its 200-day, QQQ is back exactly at its 50-day (713.44), and XLK is Lagging at its 50-day; intraday-tape-lab reads Friday's session a Reversal risk auction; swing-structure-lab still qualifies a Double top overhead; a SPY 766 PUT ranks among the most-unusual flow prints; and it is a weekend hold into Monday's gap risk. Flow is still call-heavy (callFraction 0.7064) with the most-unusual print an AMD 470 CALL. The near-term stance favors HOLDING the intact core and the first beta-add tranche while pausing the rest until breadth clears and holds 60% for persistence, SPMO reclaims its 50-day, QQQ holds it and SPY reclaims the flip, tilting the rotation toward the Leading energy/healthcare (XLE/XLV/XLB) and Improving defensives (XLU/XLP) funded from weakening financials, HOLDING (not chasing) MSFT, and carrying only a SMALL weekend tail. The residual near-term risk is a close that loses the 765 put wall back into deeper negative gamma, SPMO confirming a close below its 50-day or QQQ losing it, MSFT fading toward ~429.4, the Double top resolving lower, or a weekend gap lower; the near-term upside is a close that reclaims and holds above the 768.79 flip while breadth clears and holds 60% across three bars.",
     "globalBackdrop": [
@@ -2161,7 +2183,7 @@
         "chars": 0
       }
     ],
-    "disclosedTotal": 127127,
+    "disclosedTotal": 127431,
     "caps": {
       "headline": 140,
       "decisionCard": 300,

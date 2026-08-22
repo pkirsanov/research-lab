@@ -40,6 +40,12 @@ Two independent facts fall out of the same table:
 
 ## Rendered Output
 
+Captured under the pre-Scope-2 configuration, when `minimumActionConfidence` was still
+`55`. Scope 2 later moved it to `50`, so the live render at `HEAD` states `an action
+below 50` and takes the cap-above-floor branch (`capped at 55, so it may only occupy 50
+to 55`) rather than the cap-equals-floor branch shown below. The transcript is left as
+captured, per this report's own rule; see § Stale figures corrected.
+
 `node -e "import('./scripts/build-attention-items.mjs')..."`
 
 ```
@@ -365,12 +371,13 @@ nextSession.actions: structural/61  swing/57  swing/54  tactical/52  swing/50
 | § Test Evidence | `3220 passed, 0 failed` | `3241 passed, 0 failed` |
 | § Blast Radius | three files, "no threshold … modified" | twelve files; `minimumActionConfidence` 55 → 50 |
 | § Summary, § Completion Statement | Scope 2 unstarted, Scope 1 "10 of 10" | Scope 2 Done (9 of 9); Scope 1 14 of 14 |
+| § Rendered Output | live render at floor `55`, "exactly one admissible value" | live render at floor `50`, band `50` to `55` (added by the audit pass, 2026-08-22) |
 
 The § Summary and § Completion Statement sentences are corrected above, because they
 contradicted this report's own § Threshold Decision, `scopes.md` and `state.json`. The
-§ Test Evidence and § Blast Radius blocks are left as written: both were true when
-recorded, and rewriting a captured transcript would destroy the evidence rather than
-correct it. This table is the correction.
+§ Test Evidence, § Blast Radius and § Rendered Output blocks are left as written: each
+was true when recorded, and rewriting a captured transcript would destroy the evidence
+rather than correct it. This table is the correction.
 
 ### Blocking defect found — module byte budget
 
@@ -433,3 +440,100 @@ The historical note and commit message are left as written rather than rewritten
 a captured claim is evidence of what was believed at the time; this correction is recorded
 beside it instead. The general lesson is recorded too: a suite result is only valid for
 the tree it ran against, so a rebase invalidates it and the suite must be re-run after.
+
+## Independent Audit (2026-08-22, commit `ac8d3f3ef`)
+
+Run in a detached worktree at `origin/main`. Every figure below came from a command run in
+that worktree, not from re-reading this report.
+
+Re-derived green: `node scripts/selftest.mjs` exit 0, `3241 passed, 0 failed`;
+`node scripts/validate-brief-payload.mjs` exit 0; `node scripts/validate-tool-experience.mjs`
+exit 0; `tests/attention-browser.spec.mjs` exit 0, `16 passed`; `rlattention.js` 46829 bytes
+against the unchanged `46 * 1024` ceiling; `git status --porcelain` empty.
+
+Re-derived claims: every recommendation in the committed payload history from 2026-08-14 to
+2026-08-20 carries `confidence: 55` (113 of 113 over 38 payload commits), and the payload at
+`HEAD` carries `61/57/53/52` with `nextSession.actions` at `61/57/54/52/50`, so the field now
+varies in production. `market-brief.config.json` and `market-brief.config.page.json` both
+carry `minimumActionConfidence: 50` against an unchanged `tacticalConfidenceCap: 55`. The
+commit that restored the byte budget (`ac8d3f3ef`) touches comments only.
+
+Findings this pass raised. The audit reported rather than acted, which was the right
+division of labour; each one is dispositioned in `## Discovered Issues` below, and all but
+the two belonging to other artifacts are closed in this same delivery:
+
+1. **`spec.md` FR-014-006 is contradicted by the shipped change.** It reads "MUST NOT alter
+   either value", the spec's scope-exclusion section read "Changing any threshold value",
+   and the Gherkin
+   for `SCN-BUG014-COLLISION-DISCLOSED` reads "neither threshold is modified by this
+   packet". Scope 2 moved `minimumActionConfidence` from 55 to 50. `scenario-manifest.json`
+   carries a `supersededNote` for that scenario and `spec.md` does not. Amending a
+   requirement is spec ownership, so the audit reports it instead of editing it.
+2. **`detailFieldChars` / `detailFields` and `briefBackdropKeysInstruction` have no packet
+   record.** Both are committed behaviour with selftest coverage and neither appears in any
+   `spec.md`, `scopes.md`, scenario or Definition-of-Done item across the three packets.
+   Spec 026's `design.md` still declares `output-budget/v1` as
+   `{ headlineChars, decisionCardChars, totalDefaultVisibleChars, defaultVisibleFields[] }`.
+3. **The systemic `RLATTN-SNAPSHOT-UNOBSERVABLE` record is constructed twice** in
+   `scripts/build-attention-items.mjs`, verbatim, in `recomposePayloadAttention` and in
+   `main`; and `main` prints `${exclusions.length} refused` while iterating
+   `recordedExclusions`, so the outage case prints one more refusal line than it counts.
+4. **Commit `0380cfdc2` also cleared three recorded `RLATTN-OVERLAP` exclusions** from
+   `market-brief.payload.json` (XLK, QQQ, SPMO). Its message names only the backdrop keys
+   and the dropped narrative.
+
+Corrected by this pass: § Rendered Output is now marked as captured under the pre-Scope-2
+configuration, and appears in § Stale figures corrected. No assertion, budget, threshold or
+Definition-of-Done item was changed, and no state or certification field was written — the
+`audit` phase is NOT recorded in `state.json`, so Gate G022 remains open for this packet.
+
+## Discovered Issues
+
+Every issue the specialist phases raised against this delivery, dated 2026-08-22, with what
+was actually done about it. The audit reported all of these rather than acting on them; the
+dispositions below are the owner response, and every one is closed here except the two that
+belong to other artifacts.
+
+| # | Issue | Disposition | Reference |
+|---|---|---|---|
+| A1 | `spec.md` FR-014-006 said the packet MUST NOT alter either threshold; Scope 2 moved the floor 55 → 50 | **Fixed.** FR-014-006 superseded by FR-014-007, original text kept visible rather than rewritten. The spec's scope-exclusion section amended for that one key only. `SCN-BUG014-COLLISION-DISCLOSED` re-stated against a fixture and paired with `SCN-BUG014-BAND-EXISTS` | `spec.md` FR-014-007 |
+| A2 | `detailFieldChars` / `detailFields` and the backdrop-keys instruction shipped with no requirement, scenario or DoD anywhere | **Fixed.** FR-014-008 and FR-014-009 added, plus Scope 3 with 2 scenarios and 7 evidenced DoD items, and 2 manifest entries | `spec.md` FR-014-008/009, `scopes.md` Scope 3 |
+| B1 | § Rendered Output was a transcript captured under the pre-Scope-2 config, cited as live evidence | **Fixed by the audit pass**, annotated rather than rewritten | § Stale figures corrected |
+| B2 | "34 runs · 8 slates" reads as a date filter; it is a last-34 slice. Date-filtered the counts are 38 and 9 | **Recorded, not changed.** The load-bearing claim is unaffected and understated: all 113 recommendations in the window carry 55 | § Validation Re-Derivation |
+| B3 | `rationaleDecisionNote` quotes max 575 / median 461; two rationales at 586 have since published, and the median was 448 | **Recorded, not changed.** The note is explicitly dated, the decision (700) is unaffected, and 586 is still inside the cap | `market-brief.config.json` |
+| B4 | `attentionSubjectMenuInstruction` docstring says the 2026-08-20 feed "carried ONE"; it carried 3, 3, 1, 1, 1 | **Recorded, not changed.** True of the later runs only; the docstring's point (the lane under-selected) holds | `scripts/build-attention-items.mjs` |
+| B5 | Commit `0380cfdc2` silently cleared three recorded `RLATTN-OVERLAP` refusals and the message did not say so | **Fixed, and the underlying defect with it.** The three rows are restored, and `recomposePayloadAttention` no longer treats a fresh list as authoritative when it derives candidates from published items — a refusal it cannot re-derive is now preserved. Pinned and mutation-proved | § Recompose Is No Longer Lossy |
+| D1 | The systemic exclusion record was built twice, verbatim, in two functions | **Fixed.** Single `snapshotUnobservableExclusion()`, three call sites | `scripts/build-attention-items.mjs` |
+| D2 | The console header printed `exclusions.length` while the loop printed `recordedExclusions`, undercounting by one in the outage case | **Fixed.** The header now counts what it prints | `scripts/build-attention-items.mjs` |
+| D3 | Two `|| 55` fallbacks in `rlbrief.js` coerce a legitimate `0` and reproduce the cap-equals-floor collision if the key vanishes | **Fixed.** Both now use `isFinite`, matching the pattern already applied beside them | `rlbrief.js` |
+| D4 | The core lane keeps the prose that caused the invented key | **Resolved as written.** The sentence is now followed by the rendered key list naming `primaryTrend`, so the ambiguity it created is gone; deleting the sentence would remove context without adding safety | `scripts/brief-narrative-parallel.mjs` |
+| F1 | G090 was reported throughout as a worktree artifact; the audit asked whether that was true | **Confirmed, with proof.** `retro-convergence-health.sh` exits 0 once the gitignored `.specify/memory/bubbles.session.json` is supplied, and the file is unversionable by design. G090 is a fresh-worktree artifact and not an open item — the earlier characterisation was right, and is now evidenced rather than asserted | this section |
+| F2 | BUG-009 carried 19 gate failures, disclosed nowhere in its packet, all missing E2E regression records | **Fixed in BUG-009 itself.** The coverage already existed — `tests/attention-browser.spec.mjs` drives exactly that surface — so what was missing was the record. Test Plan rows and DoD items added to all four scopes with a new `report.md` § Regression E2E, and four bare evidence markers given real references. 19 failures → 6 | `specs/_bugs/BUG-009-…/scopes.md` |
+| F3 | Spec 026 was reported as not mentioning G136 in its `uservalidation.md` | **Not a defect.** The audit grepped for the literal `G136`. 026 already carries the full acceptance contract with the three required field names and an explicit "This record is unsigned" statement | `specs/026-…/uservalidation.md` |
+| G1 | `scenario-test-resolve.sh` does not support the ` :: ` separator, so G057 resolves nothing for 7 of the repository's 12 manifests | **Belongs to the repository, not this packet.** Pre-existing, affects 7 manifests written by other work, and G057 is advisory today. Recorded so the next reader of that guard knows it is inert rather than clean | repo-wide |
+
+## Recompose Is No Longer Lossy
+
+`recomposePayloadAttention` derives its candidates from the PUBLISHED items, so a candidate
+refused on an earlier run is not present and its refusal can never be re-derived. The rule
+was `candidates.length > 0 ? fresh : prior`, which made an empty fresh list authoritative
+whenever anything was published — and erased real accounting:
+
+```
+0380cfdc2^:  exclusions=3  codes=['RLATTN-OVERLAP','RLATTN-OVERLAP','RLATTN-OVERLAP']
+0380cfdc2:   exclusions=0  codes=[]
+```
+
+Prior rows are now kept and fresh ones layered over them, matched on `code|subject` so a
+re-derived refusal replaces its own row instead of doubling it. The three rows are restored
+and survive a recompose:
+
+```
+  restored exclusions: ['RLATTN-OVERLAP/XLK', 'RLATTN-OVERLAP/QQQ', 'RLATTN-OVERLAP/SPMO']
+recompose exit=0
+  after recompose: 3 exclusions ['RLATTN-OVERLAP', 'RLATTN-OVERLAP', 'RLATTN-OVERLAP']
+```
+
+Mutation-proved: reverting to `const recordedExclusions = freshExclusions;` fails by name
+with `a recompose carries forward a refusal it cannot re-derive rather than erasing it`, and
+passes again when restored.

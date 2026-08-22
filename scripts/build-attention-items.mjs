@@ -428,6 +428,18 @@ export function attentionRationaleBudgetInstruction(configOverride) {
 
 /** How many watchlist subjects the gate can actually observe in a snapshot. Zero means the
     snapshot is unreadable or empty, which is an outage and NOT a quiet market. */
+/* One definition, built in two places before: edit one and the other drifts silently. */
+function snapshotUnobservableExclusion() {
+  return Object.freeze({
+    index: -1,
+    subject: null,
+    code: 'RLATTN-SNAPSHOT-UNOBSERVABLE',
+    field: 'snapshot.tracked',
+    reason: 'the committed snapshot yielded no observable subject, so no candidate could be '
+      + 'observed; this is an unreadable or empty snapshot rather than a quiet market'
+  });
+}
+
 export function observableSubjectTally(snapshot) {
   if (!snapshot) return 0;
   const tracked = RLATTNGATE.observableSubjects(snapshot);
@@ -695,14 +707,7 @@ export function recomposePayloadAttention(payload, config, snapshotOverride) {
     snapshotOverride === undefined ? loadSnapshotForGate() : snapshotOverride
   );
   const systemic = (candidates.length > 0 && items.length === 0 && observableSubjectCount === 0)
-    ? [Object.freeze({
-      index: -1,
-      subject: null,
-      code: 'RLATTN-SNAPSHOT-UNOBSERVABLE',
-      field: 'snapshot.tracked',
-      reason: 'the committed snapshot yielded no observable subject, so no candidate could be '
-        + 'observed; this is an unreadable or empty snapshot rather than a quiet market'
-    })]
+    ? [snapshotUnobservableExclusion()]
     : [];
 
   /* Pair each built envelope back to the item it came from BY CANDIDATE ORDER,
@@ -719,13 +724,18 @@ export function recomposePayloadAttention(payload, config, snapshotOverride) {
     ? Object.assign({}, sources[index], built)
     : built);
 
-  /* Additive or nothing, applied to the RECORD and not only to the key set. A recompose with no
-     candidates learned nothing about exclusions, so replacing the prior record with an empty list
-     would erase a previous run's accounting and leave an empty tier that no longer says why it is
-     empty. The freshly computed list is authoritative only when there were candidates to account
-     for; otherwise the existing record stands. */
+  /* Additive or nothing, applied to the RECORD and not only to the key set. A recompose derives its
+     candidates from the PUBLISHED items, so a candidate that was refused last time is not present
+     and its refusal can never be re-derived here. Treating the fresh list as authoritative whenever
+     there were candidates therefore erased real accounting: one run dropped three recorded
+     RLATTN-OVERLAP refusals and left a one-item tier that no longer said why three subjects were
+     held back. Prior records are kept and fresh ones layered over them, matched on code+subject so
+     a re-derived refusal replaces its own prior row instead of doubling it. */
   const priorExclusions = Array.isArray(payload?.attentionExclusions) ? payload.attentionExclusions : [];
-  const recordedExclusions = candidates.length > 0 ? exclusions.concat(systemic) : priorExclusions;
+  const freshExclusions = exclusions.concat(systemic);
+  const freshKeys = new Set(freshExclusions.map((entry) => `${entry?.code}|${entry?.subject}`));
+  const recordedExclusions = freshExclusions
+    .concat(priorExclusions.filter((entry) => !freshKeys.has(`${entry?.code}|${entry?.subject}`)));
 
   return {
     payload: Object.assign({}, payload, { attention: merged, attentionExclusions: recordedExclusions }),
@@ -826,17 +836,11 @@ function main(argv) {
      named the cause. Recorded once here, by name, so the validator can refuse it. */
   const recordedExclusions = (candidates.length > 0 && items.length === 0
     && observableSubjectTally(loadSnapshotForGate()) === 0)
-    ? exclusions.concat([Object.freeze({
-      index: -1,
-      subject: null,
-      code: 'RLATTN-SNAPSHOT-UNOBSERVABLE',
-      field: 'snapshot.tracked',
-      reason: 'the committed snapshot yielded no observable subject, so no candidate could be '
-        + 'observed; this is an unreadable or empty snapshot rather than a quiet market'
-    })])
+    ? exclusions.concat([snapshotUnobservableExclusion()])
     : exclusions;
 
-  console.log(`[build-attention-items] ${items.length} built, ${exclusions.length} refused`);
+  // counts what the loop below actually prints; `exclusions` omits the systemic row.
+  console.log(`[build-attention-items] ${items.length} built, ${recordedExclusions.length} refused`);
   /* prints the RECORDED subject, already redacted for a privacy refusal. Never
      reach back to the candidate here: stdout reaches CI logs and transcripts
      that cannot be retracted. */

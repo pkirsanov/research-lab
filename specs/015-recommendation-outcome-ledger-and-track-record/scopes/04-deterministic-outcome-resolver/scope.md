@@ -450,7 +450,7 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   Every one of the seven E2E cases resolves from committed fixture and calendar bytes with the network
   surface absent, which is the "runs offline from committed repository state only" half executed rather
   than asserted.
-- [ ] **The resolver CONSUMES scope 03's shipped exports and re-implements none of them.** `classifyOutcome`, `flatBandFor`, `outcomeContributionFor`, `buildResolution`, `resolutionHash`, `resolutionObjectPath`, `serializeResolution`, `writeResolutionObject`, `authorizeResolutionWrite`, `enumerateCommittedSeries`, `readClosureEventVocabulary`, `CLOSURE_REASON_CODES`, `NOT_EVALUABLE_REASONS`, `OUTCOME_CLOSURE_EVENTS`, `OUTCOME_CLASSES` are imported from `rlclaims.js` and called; no second copy of any of them exists in 015-authored code.
+- [ ] **The resolver CONSUMES scope 03's shipped exports and re-implements none of them.** `classifyOutcome`, `flatBandFor`, `outcomeContributionFor`, `buildResolution`, `resolutionHash`, `resolutionObjectPath`, `serializeResolution`, `writeResolutionObject`, `authorizeResolutionWrite`, `enumerateCommittedSeries`, `readClosureEventVocabulary`, `CLOSURE_REASON_CODES`, `NOT_EVALUABLE_REASONS`, `OUTCOME_CLOSURE_EVENTS`, `OUTCOME_CLASSES` are imported from `rlclaims.js` and called; no second copy of any of them exists in 015-authored code. *Left unticked: **four** of the fifteen named exports have **zero** references anywhere in `scripts/brief-resolve-outcomes.mjs` — `outcomeContributionFor`, `serializeResolution`, `readClosureEventVocabulary` and `OUTCOME_CLASSES`. Verified by `grep -c "\bNAME\b"` per name over the resolver; the other eleven return 1..7. The namespace import at `:42` (`const claims = require('../rlclaims.js')`) makes all fifteen **importable**, so the failing conjunct is "and called", not "imported". See Ruling **R-04-08**.*
 - [x] **Scope 02's write gate is called, never bypassed.** Every resolution write goes through `writeResolutionObject`, which calls `authorizeResolutionWrite` (`rlclaims.js:733`) first; a claimless row refuses `RTR-LEGACY-BACKFILL` before the resolution is inspected, and nothing in `briefs/objects/resolutions/` is written by any other route.
 
   **Evidence — increment 3 (write slice, commit `c8665265f`).** Executed from `<repo-root>`.
@@ -478,8 +478,8 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   the whole write path. The adversarial input is the **same complete, valid record** the anti-vacuity half writes
   cleanly, so no property of a well-formed resolution can rescue a claimless row; the refusal is
   `RTR-LEGACY-BACKFILL` / `claimless-row-unscoreable` and the store directory is asserted never even created.
-- [ ] The committed symbol set is `enumerateCommittedSeries(readdir(BARS_DIR))` — the **directory listing** availability set, never `data/bars/index.json` (a curation set) and never a count literal.
-- [ ] The due set is computed from reduction state (`entry.state === "active"` ∧ has a `claimRef` ∧ `resolutionDate ≤ asOfDate`), never by scanning the ledger for timestamps.
+- [x] The committed symbol set is `enumerateCommittedSeries(readdir(BARS_DIR))` — the **directory listing** availability set, never `data/bars/index.json` (a curation set) and never a count literal. — Evidence: `scripts/brief-resolve-outcomes.mjs:328` is `claims.enumerateCommittedSeries(readdirSync(path.join(base, claims.BARS_DIR)))`, live via the `loadSubjectBars` default argument at `:369`; `grep -nE "index\.json|\b289\b|\b292\b"` over the resolver returns matches on comment lines `208, 254, 288, 310, 311` only — no executable line reads the manifest or pins a count.
+- [x] The due set is computed from reduction state (`entry.state === "active"` ∧ has a `claimRef` ∧ `resolutionDate ≤ asOfDate`), never by scanning the ledger for timestamps. — Evidence: `dueEntryKeys` (`scripts/brief-resolve-outcomes.mjs:1572`, called at `:1652`) iterates the reduction `entries` and applies exactly the three gates — `entry?.state !== LIVE_ENTRY_STATE` (`:1602`, constant `'active'` at `:1458`), `binding.claimRef === null` (`:1603`), `resolutionDate > asOfDate` (`:1612`); no ledger row or timestamp is scanned in the function.
 - [x] `resolutionDate` is derived by **calendar-session** arithmetic against `data/calendars/xnys/calendar.json`, never by adding calendar days, and each derived session date is cross-checked against `calendar.rows[].regular.startUtc`.
 
   **Evidence — increment 1 (calendar slice, commit `cd1d0d595`).** Executed from `<repo-root>`.
@@ -783,7 +783,7 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 - [ ] A bare `0` never reaches a directional class: `RTR-FLAT-ZERO` (`rlclaims.js:133`) is left to fire from the shipped `buildResolution` and `assertZeroFreeOutcomes` (`:817`), and this scope neither coerces a zero nor pre-filters the array to avoid the refusal.
 - [ ] `not-evaluable` closes at the **first** resolver pass after minting, not at horizon expiry, so a known-unscoreable claim never sits in the open pipeline.
 - [ ] Closures route through `reduceRecommendationEvents` via `run.closures` with `current: []`; the reducer is consumed unchanged, and `rlcontracts.js`, `rlvalidation.js` and `rlclaims.js` are proven unmodified by `git diff --quiet` exiting 0. *An earlier revision asserted "byte-unmodified" with no `sha256` pinned anywhere, which was not decidable as written.* `RTR-CLOSURE-VOCAB` refuses a locally-invented closure type — raised by the shipped `buildResolution`, not re-implemented here.
-- [ ] The resolver does not depend on its own closure ordering, because the reducer sorts by `originRecommendationKey` before processing (`rlcontracts.js:1272`).
+- [x] The resolver does not depend on its own closure ordering, because the reducer sorts by `originRecommendationKey` before processing (`rlcontracts.js:1272`). — Evidence: `rlcontracts.js:1272` reads `var closures = run.closures.slice().sort(...)` comparing `left.originRecommendationKey` to `right.originRecommendationKey` (`:1273-1276`) — the cited line is exact. On the resolver side `grep -nE "\.sort\("` returns `465, 601, 602, 676, 681, 884, 885, 908, 909, 1345, 1588` and none sorts a closures array; the array is appended in loop order at `:1683`, handed straight to `applyClosures` at `:1690`, and re-exported frozen at `:1695` with no positional read of `applied`.
 - [x] `lifecycleBinding.originRecommendationKey` is **derived** by calling `deriveRecommendationKeys` (`rlcontracts.js:1040`), never authored, and is carried in `lifecycleBinding` — a `RESOLUTION_UNHASHED_FIELDS` member (`rlclaims.js:250`) — so it is not added to `claimHash`'s term list.
 
   **Evidence — increment 5 (reducer bridge, commits `d1a953c8d` and `abcaf0174`).** Executed from `<repo-root>`.
@@ -1037,6 +1037,26 @@ F-015-D4-02. Neither alone is sufficient evidence for FR-006.**
 | `recommendation-track-record-lab.html` | Does not exist until scope 07. The resolver renders nothing. |
 | `scripts/validate-recommendation-track-record.mjs` | The consolidated validator is scope 09; this scope's five codes are proven by `node --test`. |
 | Any other `specs/**` directory | Specs 002, 012, 013, 014 and 016 are authored by concurrent sessions and are neither read for mutation nor written. |
+
+---
+
+### Rulings recorded by this scope
+
+**R-04-08 — "imported and called" means CALLED AT A SITE IN THIS SCOPE'S SOURCE, not reached transitively.**
+The consumption item names fifteen scope-03 exports and requires each to be "imported from `rlclaims.js` and
+called". Four are never referenced in `scripts/brief-resolve-outcomes.mjs`: `outcomeContributionFor`,
+`serializeResolution`, `readClosureEventVocabulary`, `OUTCOME_CLASSES`. A softer reading was available and is
+**rejected** — that `serializeResolution` and `OUTCOME_CLASSES` are *reached* because the called
+`writeResolutionObject` and `classifyOutcome` use them internally (`rlclaims.js:816-817`, `:123`). That reading is
+refused for two reasons. First, it is unfalsifiable at this granularity: almost any export of a module is
+transitively reachable from almost any other, so the item would assert nothing and could never fail. Second, the
+item's own second conjunct — "no second copy of any of them exists in 015-authored code" — only has force against a
+**direct** call site, since a transitive reach cannot be shadowed by a local re-implementation the resolver never
+consults. The item therefore stays **unticked** and the four names are recorded on it. This is a defect in the
+**item**, the **source**, or both, and the choice is not this pass's to make: either the resolver has a genuine gap
+(it should be reading the closure vocabulary through `readClosureEventVocabulary` rather than by another route at
+`:884-885`, and routing contributions through `outcomeContributionFor`), or the item over-enumerates and should
+name only the exports this scope actually calls. Routed to the scope owner; no source or test file was modified.
 
 ---
 

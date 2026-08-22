@@ -169,9 +169,7 @@
     "RLATTN-PROVENANCE",
     "RLATTN-VERB",
     "RLATTN-DEEPLINK",
-    /* Systemic rather than per-item: the snapshot yielded no observable subject at all, so no
-       candidate could be observed. Named here because the composer emits it and this list is
-       what the validator checks every exclusion's shape against. */
+    /* Systemic, not per-item: the composer emits it and the validator checks shapes against this list. */
     "RLATTN-SNAPSHOT-UNOBSERVABLE"
   ]);
 
@@ -211,11 +209,8 @@
     return isFinite(Date.parse(s));
   }
 
-  /* DISC-009-004. Tier-A refreshes the page's data several times a day; the attention items are
-     recomposed only when the narrative is, so an item's observation can be older than the data
-     shown around it. brief-refresh.mjs never writes the payload (the R-5 boundary), so the answer
-     is not to recompose on the data path but to SAY SO: stale-but-stable is a fair contract only
-     when the reader can see it. Pure and instant-based so the cockpit and the tests share it. */
+  /* DISC-009-004: items are recomposed only with the narrative, so a reading can predate the data
+     shown around it. brief-refresh never writes the payload (R-5), so the answer is to say so. */
   function observationFreshness(observedAt, asOf) {
     if (!isIsoInstant(observedAt) || !isIsoInstant(asOf)) return "unknown";
     var observed = Date.parse(observedAt);
@@ -228,9 +223,8 @@
     var state = observationFreshness(observedAt, asOf);
     if (state === "current") return null;
     if (state === "unknown") return "Observed: not stated by this item.";
-    /* isIsoInstant validates the TRIMMED value, so surrounding whitespace passes the check and
-       would otherwise ride into the note verbatim — and observedAt is in neither the visible-field
-       list nor detailFields, so nothing bounds the result. Interpolate what was validated. */
+    /* isIsoInstant validates the TRIMMED value, so whitespace would ride into the note, and
+       observedAt is in neither the visible-field list nor detailFields. Interpolate what passed. */
     return "Observed " + trimmed(observedAt) + ", before the " + trimmed(asOf) + " data on this page. "
       + "The reading still stands as published and is not re-checked until the next full compose.";
   }

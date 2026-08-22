@@ -105,12 +105,18 @@ Scenario: SCN-BUG014-COLLISION-DISCLOSED
       to the action floor, when the contract is rendered against that config it states
       plainly that a tactical action has exactly one admissible value, and neither
       threshold is modified by this packet. (FR-014-006)
-      Evidence: passing pin `live config has the tactical cap equal to the action floor`.
+      Evidence: SUPERSEDED BY SCOPE 2, which moved the floor to 50 so the live config no
+      longer has cap equal to floor. The scenario is still proven, on the fixture rather
+      than on live config: passing pin `the confidence contract derives a DIFFERENT tactical
+      clause for cap-below-floor, cap-above-floor and cap-equals-floor`, whose
+      cap-equals-floor case asserts `exactly one admissible value`. The pin this item
+      originally cited was deleted by Scope 2 and no longer exists in the suite.
 - [x] The new pins are proven load-bearing by reverting the fix and observing a named
       failure, not merely by observing them pass.
       Evidence: `report.md` § Adversarial Check, exit 1 with one `✗`.
 - [x] `node scripts/selftest.mjs` passes with no failures.
-      Evidence: `report.md` § Test Evidence, 3200 passed / 0 failed.
+      Evidence: `report.md` § Validation Re-Derivation — 3241 passed / 0 failed at
+      `0380cfdc2`, independently re-run by the validate phase.
 - [x] `node scripts/validate-brief-payload.mjs` still passes.
       Evidence: `report.md` § Validator, exit 0.
 - [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior.
@@ -118,14 +124,17 @@ Scenario: SCN-BUG014-COLLISION-DISCLOSED
       renders clears the committed confidence floor`, proven falsifiable in `report.md`
       § Regression E2E.
 - [x] Broader E2E regression suite passes.
-      Evidence: `report.md` § Regression E2E — `2 passed` across the decision-attention
-      browser suite.
+      Evidence: `report.md` § Regression E2E — the full 16-test decision-attention browser
+      suite, `16 passed`, re-run after the module byte-budget fix. The earlier `2 passed`
+      transcript recorded only the two scenario-specific rows and did not evidence the
+      broader suite; the validate phase caught that, and caught the suite being red at
+      `009731726` on the module byte budget.
 - [x] Scenario-specific regression E2E coverage persists in the suite for the runtime
       surface this scope touches.
       Evidence: `tests/attention-browser.spec.mjs` — `every next-session action the cockpit
       renders clears the committed confidence floor`; `report.md` § Regression E2E.
 - [x] The broader E2E regression suite runs green with that scenario in it.
-      Evidence: `report.md` § Regression E2E, `2 passed`.
+      Evidence: `report.md` § Regression E2E, `16 passed`.
 - [x] No threshold value, gate function, or payload schema is modified. (FR-014-006)
       Evidence: `git diff --numstat` lists exactly three files, recorded in `report.md`.
 

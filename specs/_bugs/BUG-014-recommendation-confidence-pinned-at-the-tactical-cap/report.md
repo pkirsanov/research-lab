@@ -8,8 +8,9 @@ restated from memory or from another packet.
 Every published recommendation carried `confidence: 55` across 34 committed payload runs,
 so the field could neither gate nor rank. Both authoring lanes now render a confidence
 contract derived from the enforced thresholds, and the hand-typed sentence it replaces is
-gone. Scope 1 is delivered with 10 of 10 Definition of Done items evidenced. Scope 2, the
-cap-to-floor threshold collision, is a product decision and is left unstarted.
+gone. Scope 1 is delivered with 14 of 14 Definition of Done items evidenced. Scope 2, the
+cap-to-floor threshold collision, was decided on delegated authority and is delivered with
+9 of 9 Definition of Done items evidenced; see § Threshold Decision.
 
 ## The Measurement That Established The Defect
 
@@ -318,12 +319,117 @@ confirmed at `0 changed files` before the permanent override seam replaced it.
 
 ## Completion Statement
 
-Scope 1 is delivered and every Definition of Done item is evidenced above. Scope 2 is
-unstarted and not agent-dischargeable: it asks whether the tactical cap should equal the
-action floor, which is a product decision about whether tactical reads are actionable.
+Scope 1 is delivered and every Definition of Done item is evidenced above. Scope 2 was
+subsequently taken up and decided on delegated authority — `tacticalConfidenceCap` stays
+at 55 and `minimumActionConfidence` moves to 50 — and is delivered with its own Definition
+of Done evidenced; see § Threshold Decision. The earlier text here recorded Scope 2 as
+unstarted and was left stale when that decision landed.
 
 What is **not** established here: whether stating the contract is by itself sufficient to
 make authored confidence vary in production. That requires observing a narrative run
 composed after this change, and no such run has occurred. The claim proven is that both
 lanes now receive a contract derived from the enforced bands; the claim deliberately not
 made is that the next payload will carry a spread.
+
+## Validation Re-Derivation (2026-08-22, commit 0380cfdc2)
+
+An independent validation pass re-derived the claims above by running the commands rather
+than re-reading the transcripts. Three of the report's own figures had gone stale between
+the last report edit and `HEAD`, and one blocking product defect was found.
+
+The confidence measurement re-derived cleanly. Walking every committed
+`market-brief.payload.json` blob as of `e6dfdeced^` and partitioning `nextSession.actions`
+by horizon over the same 34-run window the report names reproduces its histogram exactly,
+and the minimum holds over all 198 payload revisions, not just the 34:
+
+```
+total payload commits as-of e6dfdeced^: 198
+last-34 window: 2026-08-14T13:52:53-07:00 -> 2026-08-20T14:01:34-07:00
+  last34 structural  {"56":15,"57":19}
+  last34 swing       {"55":102}
+  last34 tactical    {"55":34}
+  ALLHIST min action confidence ever published (as-of e6dfdeced^): 55
+```
+
+The committed payload now carries the spread the packet declined to promise:
+
+```
+recommendation confidences: 61/57/53/52
+nextSession.actions: structural/61  swing/57  swing/54  tactical/52  swing/50
+```
+
+### Stale figures corrected
+
+| Section | Figure as written | Re-derived at `HEAD` |
+|---|---|---|
+| § Test Evidence | `3220 passed, 0 failed` | `3241 passed, 0 failed` |
+| § Blast Radius | three files, "no threshold … modified" | twelve files; `minimumActionConfidence` 55 → 50 |
+| § Summary, § Completion Statement | Scope 2 unstarted, Scope 1 "10 of 10" | Scope 2 Done (9 of 9); Scope 1 14 of 14 |
+
+The § Summary and § Completion Statement sentences are corrected above, because they
+contradicted this report's own § Threshold Decision, `scopes.md` and `state.json`. The
+§ Test Evidence and § Blast Radius blocks are left as written: both were true when
+recorded, and rewriting a captured transcript would destroy the evidence rather than
+correct it. This table is the correction.
+
+### Blocking defect found — module byte budget
+
+`tests/attention-browser.spec.mjs` holds six performance budgets. The delivery pushed
+`rlattention.js` past the module ceiling, and the browser suite was not re-run afterwards:
+
+```
+Error: BUDGET 1 module initialisation: rlattention.js added 47369 bytes to first load, over the 47104 byte ceiling
+  1 failed
+  15 passed (18.1s)
+```
+
+`47369` is the byte size of the committed file. Commit `009731726` took it from `47075` to
+`47369` while the ceiling is `46 * 1024 = 47104`, an overshoot of 265 bytes. The suite's
+own comment states the rule: a red budget is fixed by fixing the code, never by widening
+the ceiling. The ceiling was left untouched by this validation pass and the defect is
+reported rather than absorbed.
+
+This also falsifies two Definition of Done items in each scope that cite
+`report.md § Regression E2E` and the figure `2 passed` as evidence that the *broader* E2E
+regression suite passes. That section records a two-test run, not the sixteen-test suite,
+and the sixteen-test suite is red at `HEAD`.
+
+### Blocking defect fixed (2026-08-22)
+
+The breach was independently re-derived before acting on it:
+
+```
+rlattention.js = 47369 bytes; ceiling = 47104
+overshoot = 265 bytes
+```
+
+Fixed by fixing the code, not the ceiling. The overshoot came from this packet's own
+comments in `rlattention.js`, which were longer than the repository's stated guidance of
+one short line stating what the code cannot show. Three comment blocks were condensed and
+every load-bearing fact kept: the R-5 reason the freshness label exists rather than a
+recompose, the reason `observedAt` is interpolated only after trimming, and the reason the
+systemic code is in `REFUSAL_CODES`. No behaviour, no export and no assertion changed.
+
+```
+rlattention.js = 46829 bytes; ceiling = 47104; headroom = 275
+Research-Lab self-test: 3241 passed, 0 failed
+16 passed (18.5s)
+```
+
+The full sixteen-test browser suite is green, so the two Definition of Done items the
+validate phase falsified now cite that run instead of the two-test one.
+
+### Correction — the "0 failed" claim in commit 009731726
+
+That commit's message and the test-phase note in `state.json` both state `3239 passed,
+0 failed`. The assertion COUNT is right and the suite was genuinely green in the worktree
+where it ran. It was not green at the commit: the worktree was based on a parent that
+predated the payload carrying `backdrop.structuralTrend`, and rebasing onto `bbbe3a481`
+brought in an inherited failure the run had never seen. The honest statement is that the
+suite passed pre-rebase and one inherited assertion failed post-rebase, fixed by
+`0380cfdc2`.
+
+The historical note and commit message are left as written rather than rewritten, because
+a captured claim is evidence of what was believed at the time; this correction is recorded
+beside it instead. The general lesson is recorded too: a suite result is only valid for
+the tree it ran against, so a rebase invalidates it and the suite must be re-run after.

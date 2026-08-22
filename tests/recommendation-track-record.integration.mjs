@@ -558,6 +558,15 @@ function bindingsFor(registry, ...claimObjects) {
     return bound.bindings;
 }
 
+/**
+ * How far each named series has been observed — the fourth due conjunct's input. Every series
+ * these rows use is observed through the LATER session, so the data conjunct is satisfied
+ * throughout and the selection they measure remains the lifecycle one.
+ */
+function seriesAsOfFor(...symbols) {
+    return new Map(symbols.map((symbol) => [claims.seriesRefFor(symbol), LATER_SESSION]));
+}
+
 test('T-04-I1 (increment 5): a closing pass routes through the shipped reducer, re-emits the frozen terms, mints nothing, and leaves a not-due entry alone', () => {
     const committedBefore = readBytes(PARTITION_ABS);
     const registry = toolsRegistry();
@@ -578,6 +587,7 @@ test('T-04-I1 (increment 5): a closing pass routes through the shipped reducer, 
         run,
         asOfDate: RESOLUTION_SESSION,
         bindings: bindingsFor(registry, due, notDue),
+        seriesAsOf: seriesAsOfFor('DVG', 'DVG2'),
     });
     assert.equal(pass.ok, true, JSON.stringify(pass.error ?? null));
 
@@ -677,7 +687,11 @@ test('T-04-I2 (increment 5): a second resolve pass over the same state appends n
     const live = proposeBoth(registry, firstRun, claim);
     const [key] = live.keys;
 
-    const gate = { asOfDate: RESOLUTION_SESSION, bindings: bindingsFor(registry, claim) };
+    const gate = {
+        asOfDate: RESOLUTION_SESSION,
+        bindings: bindingsFor(registry, claim),
+        seriesAsOf: seriesAsOfFor('DVG'),
+    };
     const verdicts = [verdictFor(claim)];
 
     const first = closeDueClaims({ index: live.index, verdicts, toolsRegistry: registry, run: firstRun, ...gate });

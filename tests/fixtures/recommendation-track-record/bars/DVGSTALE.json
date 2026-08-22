@@ -1,0 +1,13 @@
+{
+  "note": "Synthetic, and NOT a hypothetical shape: a series refreshed BEHIND its own horizon is the ordinary state of the tree between two refreshes. Same entry-session close as DVG, but asof stops at 2026-07-28 and the 2026-07-29 row is simply not there yet. A claim resolving on 2026-07-29 has therefore reached its horizon on the CALENDAR while the DATA has not arrived, which is the only condition that draws series-not-yet-observed. Scoring it would close the claim unresolved off a measurement nobody could take.",
+  "sym": "DVGSTALE",
+  "interval": "1d",
+  "range": "1mo",
+  "asof": "2026-07-28",
+  "reconstructedSessions": [],
+  "thinObservedSessions": [],
+  "zeroObservedSessions": [],
+  "rows": [
+    { "t": 1785245400000, "o": 99.0, "h": 101.0, "l": 98.0, "c": 100.0, "v": 1000000, "ac": 100.0 }
+  ]
+}

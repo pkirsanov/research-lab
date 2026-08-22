@@ -46,6 +46,7 @@ import {
     PREDICATE_INVALIDATED_EVENT,
     PREDICATE_SATISFIED_EVENT,
     PRICE_BASIS_CODE,
+    SERIES_NOT_OBSERVED_REASON,
     SESSION_ABSENT_REASON,
     applyClosures,
     basisFingerprint,
@@ -2112,6 +2113,14 @@ function fixtureFences(symbols, resolutionDate = RESOLUTION_SESSION) {
 }
 
 /**
+ * The per-series as-of map the due gate requires: how far each named series has been observed.
+ * Keyed by `seriesRef`, exactly as `claimEntryBindings` records the refs the claim will read.
+ */
+function seriesAsOfMap(symbols, asof) {
+    return new Map(symbols.map((symbol) => [claims.seriesRefFor(symbol), asof]));
+}
+
+/**
  * Mint an evaluable claim over the synthetic series. The committed set is overridden to the
  * fixture symbols so the mint gate sees them as available, which is the same availability rule
  * `enumerateCommittedSeries` applies to the real tree — never `index.json`, never a count.
@@ -2767,7 +2776,11 @@ test('T-04-U9: closing a due claim twice appends nothing the second time', () =>
        and the claim's frozen `horizon.resolutionDate`, keyed by the producer's own key. */
     const bound = claimEntryBindings([{ claim, row: { claimRef: claim.claimHash } }], registry);
     assert.equal(bound.ok, true, JSON.stringify(bound.error ?? null));
-    const gate = { asOfDate: RESOLUTION_SESSION, bindings: bound.bindings };
+    const gate = {
+        asOfDate: RESOLUTION_SESSION,
+        bindings: bound.bindings,
+        seriesAsOf: seriesAsOfMap(['DVG'], RESOLUTION_SESSION),
+    };
     assert.deepEqual(dueEntryKeys(liveIndex, gate).dueEntryKeys, [key], 'so exactly that one key is due');
 
     const verdicts = [{ claim, closureEventType: PREDICATE_SATISFIED_EVENT, reasonCode: 'predicate-satisfied' }];
@@ -3000,7 +3013,12 @@ test('T-04-U12: the due gate evaluates all three conjuncts, and each exclusion n
     assert.equal(bound.bindings.get(matured.key).claimRef, matured.claim.claimHash, 'a bound row carries the claim own address');
     assert.equal(bound.bindings.get(unarrived.key).resolutionDate, LATER_SESSION, 'and the horizon comes off the claim');
 
-    const gated = dueEntryKeys(index, { asOfDate: GATE_SESSION, bindings: bound.bindings });
+    /* EVERY series here is observed through the LATER session, so the data conjunct is satisfied
+       for all four and cannot be the thing selecting between them. The three exclusions below are
+       therefore the three ORIGINAL conjuncts, isolated — T-04-U16 exercises the fourth alone. */
+    const seriesAsOf = seriesAsOfMap(['DVG', 'DVG2', 'RAWONLY', 'PATH3'], LATER_SESSION);
+
+    const gated = dueEntryKeys(index, { asOfDate: GATE_SESSION, bindings: bound.bindings, seriesAsOf });
     assert.equal(gated.ok, true, JSON.stringify(gated.error ?? null));
 
     /* ONE key survives all three conjuncts, and its horizon lands EXACTLY on the as-of date — the
@@ -3039,6 +3057,7 @@ test('T-04-U12: the due gate evaluates all three conjuncts, and each exclusion n
         run,
         asOfDate: GATE_SESSION,
         bindings: bound.bindings,
+        seriesAsOf,
     });
     assert.equal(pass.ok, true, JSON.stringify(pass.error ?? null));
     assert.deepEqual(pass.closures.map((closure) => closure.originRecommendationKey), [matured.key], 'one closure');
@@ -3056,7 +3075,7 @@ test('T-04-U12: the due gate evaluates all three conjuncts, and each exclusion n
        the unarrived horizon joins the due set and the other two exclusions do not move. An
        implementation reporting one undifferentiated "not due" could not produce this, and one
        that ignored the horizon conjunct would have admitted `unarrived` in the first pass. */
-    const tomorrow = dueEntryKeys(index, { asOfDate: LATER_SESSION, bindings: bound.bindings });
+    const tomorrow = dueEntryKeys(index, { asOfDate: LATER_SESSION, bindings: bound.bindings, seriesAsOf });
     assert.equal(tomorrow.ok, true, JSON.stringify(tomorrow.error ?? null));
     assert.deepEqual(
         tomorrow.dueEntryKeys.slice().sort(),
@@ -3075,18 +3094,19 @@ test('T-04-U13: the horizon comparison is exact — a prefix-shaped date refuses
     const bound = claimEntryBindings([{ claim, row: { claimRef: claim.claimHash } }], registry);
     assert.equal(bound.ok, true, JSON.stringify(bound.error ?? null));
     const empty = { entries: {} };
+    const seriesAsOf = seriesAsOfMap(['DVG'], GATE_SESSION);
 
     /* A PREFIX-SHAPED AS-OF DATE REFUSES. `2026-07-1` is not a date this module can compare: it
        sorts BELOW `2026-07-10` and ABOVE `2026-07-09`, so accepting it would call the same claim
        due on one day and not-yet-due on the next. */
-    const malformed = dueEntryKeys(empty, { asOfDate: '2026-07-1', bindings: bound.bindings });
+    const malformed = dueEntryKeys(empty, { asOfDate: '2026-07-1', bindings: bound.bindings, seriesAsOf });
     assert.equal(malformed.ok, false);
     assertRefusal(malformed.error, 'as-of-date-not-iso', 'gate.asOfDate', 'prefix-shaped asOfDate');
 
     /* ANTI-VACUITY: the well-formed neighbours on BOTH sides of that ambiguity are accepted, so
        the refusal is caused by the shape and not by a gate that refuses dates in this region. */
     for (const asOfDate of ['2026-07-01', '2026-07-09', '2026-07-10']) {
-        assert.equal(dueEntryKeys(empty, { asOfDate, bindings: bound.bindings }).ok, true, asOfDate);
+        assert.equal(dueEntryKeys(empty, { asOfDate, bindings: bound.bindings, seriesAsOf }).ok, true, asOfDate);
     }
 
     /* AND ON THE OTHER SIDE OF THE COMPARISON: a prefix-shaped frozen horizon never reaches the
@@ -3106,12 +3126,15 @@ test('T-04-U13: the horizon comparison is exact — a prefix-shaped date refuses
     const paddedKey = originRecommendationKeyFor(padded, registry).originRecommendationKey;
     assert.equal(buildable.bindings.get(paddedKey).resolutionDate, '2026-07-01', 'carried through, never reformatted');
 
-    /* THE GATE IS REQUIRED, NOT OPTIONAL. Omitting it refuses rather than degrading to the state
-       conjunct alone, which would silently admit an unbound or unmatured entry with nothing in
-       the result to say the other two conjuncts were never evaluated. */
-    const ungated = dueEntryKeys(empty, { asOfDate: GATE_SESSION });
+    /* THE GATE IS REQUIRED, NOT OPTIONAL. Omitting either half refuses rather than degrading to a
+       narrower predicate, which would silently admit an unbound, an unmatured, or a not-yet-
+       observed entry with nothing in the result to say that conjunct was never evaluated. */
+    const ungated = dueEntryKeys(empty, { asOfDate: GATE_SESSION, seriesAsOf });
     assert.equal(ungated.ok, false);
     assertRefusal(ungated.error, 'claim-bindings-absent', 'gate.bindings', 'omitted bindings');
+    const unobserved = dueEntryKeys(empty, { asOfDate: GATE_SESSION, bindings: bound.bindings });
+    assert.equal(unobserved.ok, false);
+    assertRefusal(unobserved.error, 'series-as-of-absent', 'gate.seriesAsOf', 'omitted series as-of map');
     assert.equal(dueEntryKeys(empty).ok, false, 'and omitting the gate entirely refuses too');
 });
 
@@ -3378,6 +3401,103 @@ test('T-04-U15: the committed set is the bars LISTING, and an uncommitted leg cl
     assert.equal(honest.ok, true, 'a fully committed subject loads');
     assert.deepEqual([...honest.bars.keys()], [claims.seriesRefFor('SPY')], 'keyed by seriesRef, not by symbol');
     assert.equal(honest.bars.get(claims.seriesRefFor('SPY')).sym, 'SPY', 'and the bars are the validated series');
+});
+
+/* T-04-U16 — the FOURTH due-set conjunct, isolated. T-04-U12 holds every series observed past the
+ * horizon so the other three conjuncts select alone; this row does the mirror image, holding the
+ * entry, the pointer and the run date fixed and moving ONLY how far the series has been observed.
+ *
+ * The distinction is the whole reason the reason exists. `horizon-not-reached` says the RUN date
+ * has not reached the frozen horizon and time alone cures it. `series-not-yet-observed` says the
+ * run date HAS reached it and the SERIES has not — which no later run date cures. Told apart, an
+ * operator refreshes the series; collapsed, they wait for a date that has already passed. */
+test('T-04-U16: the data conjunct gates on the SERIES as-of alone, and no later run date cures it', () => {
+    const foundation = validationRequire('../rlcontracts.js');
+    const registry = toolsRegistry();
+    const run = {
+        runId: `run-${GATE_SESSION}-observed`,
+        occurredAt: `${GATE_SESSION}T20:00:00.000Z`,
+        canonicalMonth: GATE_SESSION.slice(0, 7),
+    };
+
+    /* THE TWO FRESHNESS VALUES ARE COMMITTED FIXTURE FACTS, read from the files rather than
+       authored here: one series reaches the horizon under test, the other stops a session short. */
+    const reached = fixtureBars('DVG').asof;
+    const short = fixtureBars('DVGSTALE').asof;
+    assert.equal(reached, GATE_SESSION, 'the fresh fixture is observed through the horizon');
+    assert.equal(short, ENTRY_SESSION, 'and the stale fixture stops at the entry session');
+    assert.equal(short < reached, true, 'so the two differ in freshness, and in that direction');
+
+    const fixture = gateFixture(registry, ['DVG']);
+    const proposed = foundation.reduceRecommendationEvents(null, [proposalRow(fixture.terms)], run);
+    assert.equal(proposed.ok, true, JSON.stringify(proposed.error ?? null));
+    const index = proposed.value.index;
+    assert.equal(index.entries[fixture.key].state, LIVE_ENTRY_STATE, 'the entry is live');
+
+    const bound = claimEntryBindings([{ claim: fixture.claim, row: fixture.row }], registry);
+    assert.equal(bound.ok, true, JSON.stringify(bound.error ?? null));
+    assert.equal(bound.bindings.get(fixture.key).resolutionDate, GATE_SESSION, 'and its horizon lands exactly ON the run date');
+
+    /* ONE claim, ONE index, ONE binding map, ONE run date. The ONLY thing differing between the
+       two calls is the `asof` the series map reports for the SAME `seriesRef`. */
+    const gate = { asOfDate: GATE_SESSION, bindings: bound.bindings };
+    const observed = dueEntryKeys(index, { ...gate, seriesAsOf: seriesAsOfMap(['DVG'], reached) });
+    const unobserved = dueEntryKeys(index, { ...gate, seriesAsOf: seriesAsOfMap(['DVG'], short) });
+    assert.equal(observed.ok, true, JSON.stringify(observed.error ?? null));
+    assert.equal(unobserved.ok, true, JSON.stringify(unobserved.error ?? null));
+
+    /* NON-VACUITY, and what would break without it. The fresh read is DUE, so the exclusion below
+       is caused by the one value that moved rather than by a gate that excludes this fixture
+       whatever it is told. A conjunct that ignored the series map entirely would put the key in
+       BOTH due sets; one that excluded on any series map at all would put it in NEITHER; and a
+       `>` where the code has `<` would exclude the fresh read, whose asof EQUALS the horizon. */
+    assert.deepEqual(observed.dueEntryKeys, [fixture.key], 'observed through its horizon, the entry is due');
+    assert.deepEqual(observed.notDue, [], 'and nothing is excluded');
+    assert.deepEqual(unobserved.dueEntryKeys, [], 'one session short of it, the entry is not');
+    assert.equal(unobserved.notDue.length, 1, 'and it is reported rather than silently dropped');
+
+    /* THE REASON IS THE SERIES', NOT THE CALENDAR'S — asserted as a NON-equality too, so a change
+       collapsing the two "wait" reasons into one string fails here. */
+    const excluded = unobserved.notDue[0];
+    assert.equal(excluded.originRecommendationKey, fixture.key, 'the excluded entry is the one under test');
+    assert.equal(excluded.reason, SERIES_NOT_OBSERVED_REASON, 'excluded because the SERIES has not been observed that far');
+    assert.notEqual(excluded.reason, HORIZON_NOT_REACHED_REASON, 'and NOT because the run date has not arrived');
+    assert.equal(excluded.remedy, NOT_DUE_REMEDY[SERIES_NOT_OBSERVED_REASON], 'so the remedy names the fact that has to move');
+    assert.notEqual(NOT_DUE_REMEDY[SERIES_NOT_OBSERVED_REASON], NOT_DUE_REMEDY[HORIZON_NOT_REACHED_REASON], 'which is a different fact from waiting for a date');
+
+    /* AND THE FACTS THAT CAUSED IT ARE CARRIED, so a reader can see the run date was not the
+       cause: the horizon HAS arrived on the calendar and only the series is behind it. */
+    assert.equal(excluded.asOfDate, GATE_SESSION, 'measured on the run date');
+    assert.equal(excluded.resolutionDate, GATE_SESSION, 'against a horizon that has already arrived');
+    assert.equal(excluded.observedThrough, short, 'while the series stops short of it');
+    assert.equal(excluded.state, LIVE_ENTRY_STATE, 'the entry is live, so state does not explain it');
+    assert.equal(excluded.claimRef, fixture.claim.claimHash, 'and its row carries a pointer, so neither does that');
+
+    /* NO LATER RUN DATE CURES IT. This is what makes the reason worth keeping apart: in T-04-U12
+       advancing the clock moves the unarrived horizon INTO the due set; here it changes nothing. */
+    const tomorrow = dueEntryKeys(index, { asOfDate: LATER_SESSION, bindings: bound.bindings, seriesAsOf: seriesAsOfMap(['DVG'], short) });
+    assert.equal(tomorrow.ok, true, JSON.stringify(tomorrow.error ?? null));
+    assert.equal(LATER_SESSION > GATE_SESSION, true, 'the clock really did move forward');
+    assert.deepEqual(tomorrow.dueEntryKeys, [], 'a later run date does not make a stale series observable');
+    assert.equal(tomorrow.notDue[0].reason, SERIES_NOT_OBSERVED_REASON, 'and the reason does not change with the clock');
+
+    /* AND NOTHING IS WRITTEN. The point of the conjunct: a claim whose series stopped short must
+       not close `unresolved`, which would record a measurement nobody could take. */
+    const pass = closeDueClaims({
+        index,
+        verdicts: [fixture.verdict],
+        toolsRegistry: registry,
+        run,
+        asOfDate: GATE_SESSION,
+        bindings: bound.bindings,
+        seriesAsOf: seriesAsOfMap(['DVG'], short),
+    });
+    assert.equal(pass.ok, true, JSON.stringify(pass.error ?? null));
+    assert.deepEqual(pass.closures, [], 'no closure is scheduled');
+    assert.equal(pass.events.length, 0, 'no lifecycle event is appended');
+    assert.equal(pass.skipped.length, 1, 'the verdict is accounted for rather than dropped');
+    assert.equal(pass.skipped[0].reason, SERIES_NOT_OBSERVED_REASON, 'carrying the conjunct that declined it');
+    assert.deepEqual(pass.index.entries[fixture.key], index.entries[fixture.key], 'and the entry is untouched in every field');
 });
 
 

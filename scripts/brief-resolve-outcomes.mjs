@@ -397,6 +397,12 @@ export function loadSubjectBars(root, claim, committed = committedSeriesAt(root)
  * future". A claim whose horizon post-dates `bars.asof` is simply not observable yet: the caller
  * SKIPS it and appends nothing. Conflating that with a refusal would fire `RTR-LOOKAHEAD` on every
  * routine run and train everyone to ignore it.
+ *
+ * That skip is enforced one layer up, at `dueEntryKeys`' `series-not-yet-observed` conjunct, which
+ * evaluates the SAME `bars.asof >= resolutionDate` predicate over a per-series as-of map. It is
+ * decided there rather than read off this object because the due set is settled before any fence
+ * exists, and because building one per live entry would make the due set depend on calendar
+ * coverage — dropping a claim that should close `calendar-coverage-exhausted` instead.
  */
 export function fenceObservations(calendar, bars, resolutionDate) {
   if (!ISO_DATE.test(resolutionDate)) {
@@ -1459,11 +1465,11 @@ export const LIVE_ENTRY_STATE = 'active';
 export const CLOSED_ENTRY_STATE = 'closed';
 
 /* Why a derived key was left out of a closing pass. None is a refusal: a re-run, an unarrived
-   horizon and a legacy row are all normal facts about the LEDGER, so the pass reports them and
-   carries on.
+   horizon, a legacy row and a series that has not caught up are all normal facts, so the pass
+   reports them and carries on.
 
-   The three are kept DISTINCT because they are not interchangeable to whoever reads them, and
-   Ruling R-04-06 records the split. A claim whose horizon has not arrived becomes due by the
+   The first three are kept DISTINCT because they are not interchangeable to whoever reads them,
+   and Ruling R-04-06 records the split. A claim whose horizon has not arrived becomes due by the
    PASSAGE OF TIME alone. A closed or superseded entry becomes due again only if the reducer
    re-proposes it — the reduction re-activates an entry on a matching re-proposal
    (`rlcontracts.js:1245`), so this is not permanent either, it just is not a function of the
@@ -1476,12 +1482,71 @@ export const NOT_DUE_REASON = 'entry-not-due';
 export const HORIZON_NOT_REACHED_REASON = 'horizon-not-reached';
 export const ENTRY_UNBOUND_REASON = 'entry-carries-no-claim-ref';
 
+/* The FOURTH exclusion, and the one the calendar cannot express. `resolutionDate <= asOfDate`
+   says the horizon has arrived on the CALENDAR; it says nothing about whether the DATA has. A
+   series whose `asof` still trails its own horizon leaves the fence holding no row at
+   `resolutionDate`, and `basisValueAt` then returns the session-absent CLOSURE — so the claim
+   would close `unresolved` and append an event recording a measurement nobody could take.
+
+   Kept distinct from `horizon-not-reached` for the same reason those three are kept apart: a
+   reader who cannot tell "wait for the date" from "wait for the refresh" is told to wait for a
+   date that has already passed. The remedy names the fact that has to move. */
+export const SERIES_NOT_OBSERVED_REASON = 'series-not-yet-observed';
+
 /** What has to change for an excluded key to be included in a later pass. */
 export const NOT_DUE_REMEDY = Object.freeze({
   [NOT_DUE_REASON]: 'ledger-event',
   [HORIZON_NOT_REACHED_REASON]: 'later-as-of-date',
-  [ENTRY_UNBOUND_REASON]: 'never'
+  [ENTRY_UNBOUND_REASON]: 'never',
+  [SERIES_NOT_OBSERVED_REASON]: 'later-series-asof'
 });
+
+/**
+ * Every `seriesRef` the evaluation will actually read, or `null` when the claim's own shape does
+ * not determine them.
+ *
+ * Read from the SAME `KINDS[...].terms` table the evaluator consumes, so the gate below cannot
+ * name a wider or a narrower set than the arithmetic does. A `primary-only` basket drops its
+ * later legs at weight zero and must not be held open on a series nothing will read; `relative`
+ * and `spread` add the reference leg and must be held open on it.
+ *
+ * `null` rather than a refusal for an underivable shape. Every case that lands here — an
+ * out-of-vocabulary kind, a subject carrying no series, a `relative` naming no reference — is
+ * already a refusal or a shipped closure further down the pass, and each is a permanent fact
+ * about the claim that no later refresh cures. Suppressing it here would convert a verdict the
+ * ledger should record into a claim that stays open forever.
+ */
+export function seriesRefsRead(claim) {
+  const kind = KINDS[claim?.predicate?.kind];
+  if (kind === undefined) return null;
+  const terms = kind.terms(claim);
+  if (terms?.ok !== true) return null;
+  return Object.freeze([...new Set(terms.terms.map((term) => term.seriesRef))]);
+}
+
+/**
+ * The last session EVERY series the claim reads has been observed through, or `null` when none
+ * of them has a known `asof`.
+ *
+ * The MINIMUM, because a basket is observable only as far as its least-fresh leg: scoring a
+ * two-leg claim off one refreshed series and one stale one is the same untraceable substitution
+ * the frozen `priceBasis` exists to prevent, one layer up.
+ *
+ * A ref with no entry in the map does not contribute. That is the UNCOMMITTED case, and it is
+ * already `subjectSymbolsFor`'s to close `not-evaluable`/`no-committed-series` before a single
+ * bar is read — a permanent fact, not a stale one. Treating "absent" as "stale" would hold an
+ * unscoreable claim open forever waiting for a series that is never coming.
+ */
+function observedThroughFor(seriesRefs, seriesAsOf) {
+  if (!Array.isArray(seriesRefs)) return null;
+  let observedThrough = null;
+  for (const seriesRef of seriesRefs) {
+    const asof = seriesAsOf.get(seriesRef);
+    if (typeof asof !== 'string' || !ISO_DATE.test(asof)) continue;
+    if (observedThrough === null || asof < observedThrough) observedThrough = asof;
+  }
+  return observedThrough;
+}
 
 /**
  * The per-key binding the reducer entry cannot carry — Ruling R-04-06.
@@ -1545,15 +1610,22 @@ export function claimEntryBindings(pairs, toolsRegistry) {
       originRecommendationKey,
       claimRef,
       claimHash: claim?.claimHash ?? null,
-      resolutionDate
+      resolutionDate,
+      /* Derived HERE because this is the one site holding the claim, and frozen onto the binding
+         beside the horizon it is compared against — the two halves of "is this measurable yet"
+         travel together rather than being re-derived at the gate from a claim it never sees. */
+      seriesRefs: seriesRefsRead(claim)
     }));
   }
   return { ok: true, bindings };
 }
 
 /**
- * The due set, evaluated as step 3 defines it: the entry is live, AND its ledger row carries a
- * `claimRef`, AND the bound claim's frozen `horizon.resolutionDate` is at or before `asOfDate`.
+ * The due set: the entry is live, AND its ledger row carries a `claimRef`, AND the bound claim's
+ * frozen `horizon.resolutionDate` is at or before `asOfDate`, AND every series the claim reads has
+ * been observed through that date. Step 3 defines the first three; the fourth is the same
+ * `bars.asof >= resolutionDate` fact `fenceObservations` computes as `resolvable`, gated here
+ * because a due set decided on the calendar alone closes claims nobody could yet measure.
  *
  * This IS the idempotence mechanism, not a check bolted on beside one. A claim is closable while
  * its lifecycle entry is live and at no other time, so a second pass over a reduction the first
@@ -1582,12 +1654,21 @@ export function dueEntryKeys(index, gate) {
   if (!(bindings instanceof Map)) {
     return refusal(claims.CONTRACT_VIOLATION_CODE, 'claim-bindings-absent', 'gate.bindings');
   }
+  /* REQUIRED, for the reason the gate itself is required: an optional series map would leave one
+     function name answering a narrower predicate whenever a caller omitted it, admitting a claim
+     whose data has not arrived with nothing in the result to say so. That is exactly the shape of
+     the defect this conjunct closes — a `resolvable` fact computed and then never consulted. */
+  const seriesAsOf = gate?.seriesAsOf;
+  if (!(seriesAsOf instanceof Map)) {
+    return refusal(claims.CONTRACT_VIOLATION_CODE, 'series-as-of-absent', 'gate.seriesAsOf');
+  }
 
   const due = [];
   const notDue = [];
   for (const originRecommendationKey of Object.keys(entries).sort()) {
     const entry = entries[originRecommendationKey];
     const binding = bindings.get(originRecommendationKey) ?? null;
+    const observedThrough = observedThroughFor(binding?.seriesRefs ?? null, seriesAsOf);
     const exclude = (reason) => notDue.push(Object.freeze({
       originRecommendationKey,
       reason,
@@ -1596,6 +1677,7 @@ export function dueEntryKeys(index, gate) {
       claimRef: binding?.claimRef ?? null,
       claimHash: binding?.claimHash ?? null,
       resolutionDate: binding?.resolutionDate ?? null,
+      observedThrough,
       asOfDate
     }));
 
@@ -1611,6 +1693,17 @@ export function dueEntryKeys(index, gate) {
       return refusal(claims.CONTRACT_VIOLATION_CODE, 'binding-resolution-date-not-iso', 'gate.bindings');
     }
     if (resolutionDate > asOfDate) { exclude(HORIZON_NOT_REACHED_REASON); continue; }
+
+    /* THE DATA CONJUNCT, and the distinction it turns on is the whole of it. `observedThrough >=
+       resolutionDate` means the series reaches the horizon, so a claim that simply never hit its
+       target is a REAL `unresolved` and closes here as it always did. Only a series that stops
+       SHORT of its horizon is skipped, and it is skipped in silence — the entry stays live, no
+       verdict is scheduled for it, and the reducer is handed nothing to append. This is
+       `fenceObservations`' `resolvable` predicate, evaluated where the due set is decided. */
+    if (observedThrough !== null && observedThrough < resolutionDate) {
+      exclude(SERIES_NOT_OBSERVED_REASON);
+      continue;
+    }
     due.push(originRecommendationKey);
   }
   return { ok: true, asOfDate, dueEntryKeys: Object.freeze(due), notDue: Object.freeze(notDue) };
@@ -1649,7 +1742,11 @@ export function applyClosures(index, closures, run) {
  * excluded ENTRY, including the ones no verdict in this pass named at all.
  */
 export function closeDueClaims(input) {
-  const due = dueEntryKeys(input?.index, { asOfDate: input?.asOfDate, bindings: input?.bindings });
+  const due = dueEntryKeys(input?.index, {
+    asOfDate: input?.asOfDate,
+    bindings: input?.bindings,
+    seriesAsOf: input?.seriesAsOf
+  });
   if (!due.ok) return due;
   const entries = input.index.entries;
   const dueSet = new Set(due.dueEntryKeys);
@@ -1675,6 +1772,7 @@ export function closeDueClaims(input) {
         remedy: excluded.remedy,
         state: entries[originRecommendationKey].state,
         resolutionDate: excluded.resolutionDate,
+        observedThrough: excluded.observedThrough,
         asOfDate: due.asOfDate
       });
       continue;

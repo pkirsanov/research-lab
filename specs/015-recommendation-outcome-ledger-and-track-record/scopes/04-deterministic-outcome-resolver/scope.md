@@ -171,15 +171,25 @@ same reason this scope already refuses to fork the reducer. The shipped surface 
    tradeable symbol without this scope writing that rule a second time. *Dated observation, deliberately not a
    constant:* on 2026-08-18 the glob matched 293 files, the glob minus the manifest 292, the manifest 289 symbols.
    The tests enumerate the set at run time and assert **no** count literal.
-3. **Compute the due set from reduction state and a passed-in binding, not from timestamps.**
-   `due(asOfDate) = { key ∈ index.entries : entry.state === "active" ∧ binding(key).claimRef !== null ∧ binding(key).resolutionDate ≤ asOfDate }`.
-   Only the first conjunct is a property of the reduction. The other two read facts a
-   `recommendation-index/v1` entry does **not** carry — the ledger ROW's `claimRef` and the CLAIM's frozen
-   `horizon.resolutionDate` — so they arrive through a `gate.bindings` map keyed by the same
-   `originRecommendationKey`, per **Ruling R-04-06** (`report.md`). *An earlier revision wrote the middle conjunct
-   as "entry has a claimRef" and the third as `claim(entry).horizon.resolutionDate`; both were unimplementable —
-   the reducer writes an entry as a closed nine-field object literal in which neither appears, so the literal
-   predicate collapses the due set to EMPTY for every reducer-produced index.*
+3. **Compute the due set from reduction state, a passed-in claim binding, and a required per-series observation
+  binding — never from ledger timestamps.**
+  `observedThrough(key)` is the minimum valid `asof` in `gate.seriesAsOf` for the refs in
+  `binding(key).seriesRefs`, and
+  `due(asOfDate) = { key ∈ index.entries : entry.state === "active" ∧ binding(key).claimRef !== null ∧ binding(key).resolutionDate ≤ asOfDate ∧ (observedThrough(key) === null ∨ observedThrough(key) ≥ binding(key).resolutionDate) }`.
+  Only the first conjunct is a property of the reduction. The next two read facts a `recommendation-index/v1`
+  entry does **not** carry — the ledger ROW's `claimRef` and the CLAIM's frozen `horizon.resolutionDate` — so they
+  arrive through a `gate.bindings` map keyed by the same `originRecommendationKey`, per **Ruling R-04-06**
+  (`report.md`). That binding also carries `seriesRefs`, derived from the same predicate-term table the evaluator
+  reads, so the fourth conjunct cannot gate a wider or narrower series set than evaluation. `gate.seriesAsOf` is a
+  required `Map`, and `closeDueClaims` must forward it to `dueEntryKeys`; omitting it refuses
+  `series-as-of-absent` at `gate.seriesAsOf` rather than silently narrowing the predicate. When a known
+  `observedThrough` trails `resolutionDate`, the mature claim is excluded as `series-not-yet-observed` with remedy
+  `later-series-asof`, remains active, and appends no closure event. A null `observedThrough` is not classified as
+  stale here: underivable or uncommitted series shapes retain their existing downstream refusal/closure handling.
+  *An earlier revision wrote the middle conjunct as "entry has a claimRef" and the third as
+  `claim(entry).horizon.resolutionDate`; both were unimplementable — the reducer writes an entry as a closed
+  nine-field object literal in which neither appears, so the literal predicate collapses the due set to EMPTY for
+  every reducer-produced index.*
    `index` is a `recommendation-index/v1` produced by `reduceRecommendationEvents` (`rlcontracts.js:1140`);
    `entry.state` is set to `"closed"` by the reducer's own closure path (`rlcontracts.js:1284`). The `claimRef`
    field name is `CLAIM_REF_FIELD` (`rlclaims.js:199`) and its shape is `CLAIM_REF_PATTERN`, both consumed rather
@@ -389,7 +399,7 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 | T-04-U2 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | Point comparators evaluate **once** at `resolutionDate`; path comparators (`crosses-above`, `crosses-below`) evaluate over every intervening session using `h` and `l`, and a **gap** in the intervening set closes `unresolved` reason `path-incomplete` rather than evaluating over the partial path. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u2` |
 | T-04-U3 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | Closure event and outcome class are independent: a claim whose predicate is **satisfied** but whose direction-adjusted magnitude is **negative** records `closureEventType: "satisfied"` **and** `outcomeClass: "loss"`. An implementation deriving one axis from the other fails this row. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u3` |
 | T-04-U4 | Unit | `unit` | BS-002 | `tests/recommendation-track-record.unit.mjs` | `RTR-CLOSURE-VOCAB` fires with its exact code when a closure event outside `CLOSE_EVENT_TYPES` is constructed (`"partially-satisfied"`) — raised by the **already-shipped** `buildResolution` (`rlclaims.js:1003`, code at `:267`), asserting the resolver neither re-implements the check nor extends the vocabulary locally. `rlcontracts.js` and `rlclaims.js` are asserted unmodified by `git diff --quiet` exiting 0. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u4` |
-| T-04-U5 | Unit | `unit` | BS-007 | `tests/recommendation-track-record.unit.mjs` | The fence is structural: the slice handed to the evaluator contains **no** row dated after `resolutionDate`, an attempt to consult one fires `RTR-LOOKAHEAD`, **and** the distinct case `bars.asof < resolutionDate` is a **silent skip** that leaves the claim `active` with zero events appended — proving skip and refusal are not conflated. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u5` |
+| T-04-U5 | Unit | `unit` | BS-007 | `tests/recommendation-track-record.unit.mjs` | The fence is structural: the slice handed to the evaluator contains **no** row dated after `resolutionDate`, an attempt to consult one fires `RTR-LOOKAHEAD`, and the distinct `bars.asof < resolutionDate` case reports itself unresolvable. The due-set binding must carry evaluator-derived `seriesRefs` plus a required `seriesAsOf` `Map`, translating that same predicate into the silent `series-not-yet-observed` / `later-series-asof` exclusion that leaves the claim `active` with zero events appended; T-04-R1 re-asserts that lifecycle result end to end. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u5` |
 | T-04-U6 | Unit | `unit` | BS-010 | `tests/recommendation-track-record.unit.mjs` | The reason vocabulary is read from `NOT_EVALUABLE_REASONS` (`rlclaims.js:305`) and its length asserted to equal `MINT_REFUSALS.length + RESOLVER_NOT_EVALUABLE_REASONS.length` — **eleven** today, and the row states no literal so an added mint reason cannot silently go unexercised. *An earlier revision asserted six.* Each of the **three** resolver-raised reasons (`no-committed-reference`, `zero-observed-session`, `calendar-coverage-exhausted`) fires for its own trigger and only its own; each of the eight mint reasons is carried through unaltered; each carries a human-readable sentence. A subject naming a symbol absent from `enumerateCommittedSeries(readdir(BARS_DIR))` — **never `index.json`, and never a count literal** — closes `no-committed-series`, while a `relative` claim with a missing reference closes `no-committed-reference`. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u6` |
 | T-04-U7 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | `outcomeValue = direction × ret(subject)`: a **correct bearish** claim (`trim`, `direction: -1`) on a series that fell produces a **positive** outcome, and a wrong one produces a negative outcome — the adapter without which every correct bearish call would score as a loss under `rlvalidation.js:136` (motivation only; the module is not imported). `hold` (`direction: 0`) closes `neutral-direction-no-magnitude`. The class is assigned by calling `classifyOutcome` (`rlclaims.js:795`), asserting the resolver does not re-derive the band comparison. Unblocked: Ruling R-04-01 is discharged, so the `ret(subject)` half reads the claim's frozen basis. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u7` |
 | T-04-U8 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | **Price basis is frozen on the claim, never chosen by the resolver (Ruling R-04-01).** A fixture series whose `c` and `ac` diverge scores **differently** under each basis, and the row asserts the resolver reads the claim's frozen `priceBasis` term rather than picking one: a claim carrying no such term refuses (`RTR-PRICE-BASIS`, resolver-**owned** per Ruling R-04-05) instead of defaulting, and two claims differing only in basis produce two distinct `resolutionHash` values. The hashed `provenance` additionally records a fingerprint of the exact basis values read at `entryDate` and `resolutionDate`, so a retroactive `ac` rewrite (BUG-012) **moves the content address** — the rewritten reading is written at a second address, both records survive, and the first is byte-unchanged. Unblocked: scope 01 has landed the term. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u8` |
@@ -404,7 +414,7 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 | T-04-I5 | Integration | `integration` | BS-010 | `tests/recommendation-track-record.integration.mjs` | **Scope 02's gate is called, not bypassed.** A resolution written against a ledger row carrying no `claimRef` refuses with `RTR-LEGACY-BACKFILL` (`rlclaims.js:196`, raised by `authorizeResolutionWrite` at `:733`/`:721`) **before** the resolution is inspected in any way, proving a complete and entirely plausible resolution cannot rescue a claimless row; a malformed row still refuses as malformed rather than as legacy; and a resolution whose `claimHash` disagrees with the row's `claimRef` refuses. Nothing is written on any of the three paths. | `node --test tests/recommendation-track-record.integration.mjs` | No | `report.md#t-04-i5` |
 | T-04-E1 | E2E | `e2e` | BS-002, BS-003, BS-010 | `tests/recommendation-track-record.e2e.mjs` | A full resolve pass over a fixture ledger containing a mix of satisfiable, invalidatable, expiring, path-incomplete and not-evaluable claims produces exactly one closure per due claim, leaves not-yet-due claims `active`, writes one resolution object per closure, and the class partition identity holds over the result. | `node --test tests/recommendation-track-record.e2e.mjs` | No | `report.md#t-04-e1` |
 | T-04-V1 | Functional | `functional` | BS-007 | `tests/recommendation-track-record.functional.mjs` | `RTR-NETWORK` fires when the resolver module's source references `fetch(`, `providerFetch(`, `rlProviderConfig`, or any socket/credential surface, and the clean module is asserted to reference none of them — the same idiom as the repo's existing `rlvalid-node-safe-no-dom-storage-network` assertion. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-04-v1` |
-| T-04-R1 | Regression E2E | `e2e` | SCN-015-002, SCN-015-003, SCN-015-007, SCN-015-009, SCN-015-010 | `tests/recommendation-track-record.e2e.mjs` | **Persistent scenario regression for all five owned scenarios.** A second, permanently-retained resolve pass re-asserts end to end that a satisfied claim resolves positive and an invalidated one negative, that the as-of fence still excludes every future row with `RTR-LOOKAHEAD` firing on an attempt while `bars.asof < resolutionDate` stays a silent skip, that a re-run yields zero closures and a byte-identical `indexFingerprint`, and that a claim with no committed series still closes `not-evaluable`. Unlike `T-04-E1`, which proves the first pass, this row is the standing guard that re-runs on every later scope's pass, so a later change to the reducer bridge, the calendar predicate, or the due-set gate fails here. | `node --test tests/recommendation-track-record.e2e.mjs` | No | `report.md#t-04-r1` |
+| T-04-R1 | Regression E2E | `e2e` | SCN-015-002, SCN-015-003, SCN-015-007, SCN-015-009, SCN-015-010 | `tests/recommendation-track-record.e2e.mjs` | **Persistent scenario regression for all five owned scenarios.** A permanently-retained resolve pass re-asserts end to end that a satisfied claim resolves positive and an invalidated one negative; that the four due-set exclusions remain distinct by reason and remedy (`entry-not-due` / `ledger-event`, `entry-carries-no-claim-ref` / `never`, `horizon-not-reached` / `later-as-of-date`, and `series-not-yet-observed` / `later-series-asof`); that `DVGSTALE` supplies the fourth case with `observedThrough < resolutionDate ≤ asOfDate`, leaving the entry active with no event; that the as-of fence still rejects an attempted future read with `RTR-LOOKAHEAD`; that a re-run yields zero closures and a byte-identical `indexFingerprint`; and that a claim with no committed series still closes `not-evaluable`. Unlike `T-04-E1`, which proves the first pass, this row is the standing guard that re-runs on every later scope's pass, so a later change to the reducer bridge, calendar predicate, required series binding, or any due-set conjunct fails here. | `node --test tests/recommendation-track-record.e2e.mjs` | No | `report.md#t-04-r1` |
 | T-04-R2 | Regression E2E | `e2e` | SCN-015-009 | `tests/*.e2e.mjs`, `tests/*.spec.mjs` (committed suites, unfiltered) | **Broader E2E regression suite.** The repo's committed Node E2E files and the whole committed Playwright spec suite both run green after the resolver lands, with no pre-existing test removed, skipped, or newly failing — the proof that routing closures through `reduceRecommendationEvents` with `current: []` left every existing lifecycle consumer of `rlcontracts.js` intact rather than only satisfying 015's own fixtures. | `node --test tests/*.e2e.mjs && npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` | Yes | `report.md#t-04-r2` |
 | T-04-S1 | Project check | project check | — | `scripts/selftest.mjs` (unmodified) | The repo self-test reports **`0 failed`** and a passed count **greater than or equal to** the literal baseline captured immediately before this scope's first change and recorded verbatim in `report.md`. *An earlier revision required `baseline + N` with both `baseline` and `N` unbound, which no reader could decide.* Both operands are now literals at check time: the baseline is pinned in `report.md` and the observed count comes from this run's raw output. | `node scripts/selftest.mjs` | No | `report.md#t-04-s1` |
 
@@ -540,7 +550,13 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   cleanly, so no property of a well-formed resolution can rescue a claimless row; the refusal is
   `RTR-LEGACY-BACKFILL` / `claimless-row-unscoreable` and the store directory is asserted never even created.
 - [x] The committed symbol set is `enumerateCommittedSeries(readdir(BARS_DIR))` — the **directory listing** availability set, never `data/bars/index.json` (a curation set) and never a count literal. — Evidence: `scripts/brief-resolve-outcomes.mjs:328` is `claims.enumerateCommittedSeries(readdirSync(path.join(base, claims.BARS_DIR)))`, live via the `loadSubjectBars` default argument at `:369`; `grep -nE "index\.json|\b289\b|\b292\b"` over the resolver returns matches on comment lines `208, 254, 288, 310, 311` only — no executable line reads the manifest or pins a count.
-- [x] The due set is computed from reduction state (`entry.state === "active"` ∧ has a `claimRef` ∧ `resolutionDate ≤ asOfDate`), never by scanning the ledger for timestamps. — Evidence: `dueEntryKeys` (`scripts/brief-resolve-outcomes.mjs:1572`, called at `:1652`) iterates the reduction `entries` and applies exactly the three gates — `entry?.state !== LIVE_ENTRY_STATE` (`:1602`, constant `'active'` at `:1458`), `binding.claimRef === null` (`:1603`), `resolutionDate > asOfDate` (`:1612`); no ledger row or timestamp is scanned in the function.
+- [x] The due set is computed from reduction state plus required claim and series bindings
+  (`entry.state === "active"` ∧ has a `claimRef` ∧ `resolutionDate ≤ asOfDate` ∧ no known
+  `observedThrough < resolutionDate`), never by scanning the ledger for timestamps. — Evidence: `dueEntryKeys`
+  iterates the reduction `entries`, requires both `gate.bindings` and `gate.seriesAsOf` Maps, computes
+  `observedThrough` from each binding's evaluator-derived `seriesRefs`, and applies all four gates;
+  `closeDueClaims` forwards both Maps. A stale mature series is reported as `series-not-yet-observed` with remedy
+  `later-series-asof`, and no ledger row or timestamp is scanned in the function.
 - [x] `resolutionDate` is derived by **calendar-session** arithmetic against `data/calendars/xnys/calendar.json`, never by adding calendar days, and each derived session date is cross-checked against `calendar.rows[].regular.startUtc`.
 
   **Evidence — increment 1 (calendar slice, commit `cd1d0d595`).** Executed from `<repo-root>`.
@@ -738,27 +754,13 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 - [ ] **A retroactive `ac` rewrite is detectable, not silent — by a MOVED content address, not by a refusal.** The hashed `provenance` records a fingerprint of the exact basis values read at `entryDate` and `resolutionDate`, so a later rewrite (BUG-012) changes the resolution hash and the rewritten reading is written at a **second** address: both records survive, the first is byte-unchanged, and the divergence is the evidence. `RTR-RESOLUTION-CONFLICT` is the **different** case — an *unhashed* field changing at an *already-taken* address — and must not be asserted here; *an earlier revision of this item named it as the mechanism, which the code demonstrably does not raise — see Ruling R-04-03.*
 - [ ] "Not yet resolvable" (`bars.asof < resolutionDate`) is a silent skip leaving the claim `active` with zero events appended — never an `RTR-LOOKAHEAD` refusal.
 
-  **LEFT UNTICKED — the second conjunct holds, the first is UNIMPLEMENTED. No production code reads
-  `fence.resolvable`.** Executed from `<repo-root>`.
-
-  ```
-  $ grep -rnE '\.resolvable\b|resolvable:' --include='*.mjs' --include='*.js' --include='*.html' . | grep -v node_modules
-  ./scripts/brief-resolve-outcomes.mjs:423:    resolvable: bars.asof >= resolutionDate,
-  ./tests/recommendation-track-record.functional.mjs:416:        // Individually resolvable: each address returns ITS OWN horizon under the shared key. This
-  ./tests/recommendation-track-record.unit.mjs:2220:    assert.equal(notYet.resolvable, false, 'it reports itself unresolvable');
-  ./tests/recommendation-track-record.unit.mjs:2221:    assert.equal(fence.resolvable, true, 'paired with an observed horizon that IS resolvable');
-  exit code: 0
-  ```
-
-  One WRITE at `:423` and two test reads. The flag is computed and then never consulted, so the "caller SKIPS it
-  and appends nothing" the header at `:396`–`:399` describes has no caller. The skip that does exist is a
-  *different* predicate: `dueEntryKeys` excludes on `resolutionDate > asOfDate` (`:1613`) where `asOfDate` is the
-  **run's** date supplied by the caller, not the **symbol's** `bars.asof`. A stale series is exactly the gap
-  between them — `bars.asof < resolutionDate <= run asOfDate` makes the claim due, the fence then holds no row at
-  `resolutionDate`, and `basisValueAt` returns the session-absent **closure**. So today that claim closes
-  `unresolved` and an event IS appended, which is the negation of this item, not a variant of it. The
-  `RTR-LOOKAHEAD` half is nonetheless satisfied: `LOOKAHEAD_CODE` is raised only at `:355` for a read past the
-  fence, and never from the `resolvable` computation.
+  **LEFT UNTICKED — lifecycle state is intentionally unchanged by this planning reconciliation.** The source now
+  derives each binding's `seriesRefs` from the same predicate-term table the evaluator reads, requires callers of
+  `dueEntryKeys` / `closeDueClaims` to supply a `seriesAsOf` Map, and excludes a mature claim when the minimum
+  observed-through date trails its frozen resolution date. That exclusion carries `series-not-yet-observed` /
+  `later-series-asof`, schedules no verdict, appends no event, and leaves the entry active; `RTR-LOOKAHEAD` remains
+  reserved for an attempted read beyond the fenced date. This note records inspected source behavior only and
+  adds no current-session test evidence, so the checkbox remains unchecked.
 - [x] All four predicate kinds are implemented; point comparators evaluate once at `resolutionDate` and path comparators require the complete intervening session set, closing `unresolved` reason `path-incomplete` on a gap rather than evaluating a partial path.
 
   **Evidence — increment 4 (predicate slice, commit `65e47272b`).** Executed from `<repo-root>`.
@@ -1147,7 +1149,10 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   `resolutionHash` matches `^sha256:[a-f0-9]{64}$` — so the refusals in the same test are caused by the values
   under test rather than by a builder that refuses everything. Full narrative in [report.md](report.md).
 - [ ] T-04-U4 passes: `RTR-CLOSURE-VOCAB` fires from the shipped `buildResolution` and `git diff --quiet` proves the consumed modules unmodified → evidence recorded in `report.md#t-04-u4`.
-- [ ] T-04-U5 passes: the fence excludes future rows, `RTR-LOOKAHEAD` fires on an attempt, and not-yet-resolvable is a silent skip → evidence recorded in `report.md#t-04-u5`. — proves SCN-015-007
+- [ ] T-04-U5 passes: the fence excludes future rows, `RTR-LOOKAHEAD` fires on an attempt, and the same
+  `bars.asof ≥ resolutionDate` predicate is bound into the due set through evaluator-derived `seriesRefs` plus the
+  required `seriesAsOf` Map; its false case silently excludes with `series-not-yet-observed` /
+  `later-series-asof` → evidence recorded in `report.md#t-04-u5`. — proves SCN-015-007
 - [ ] T-04-U6 passes: the reason set is read from `NOT_EVALUABLE_REASONS`, its length asserted by derivation (eleven today, no literal), each of the three resolver-raised reasons fires for its own trigger only → evidence recorded in `report.md#t-04-u6`. — proves SCN-015-010
 - [ ] T-04-U7 passes: a correct bearish claim yields a positive outcome via `classifyOutcome` and `hold` refuses → evidence recorded in `report.md#t-04-u7`.
 - [x] T-04-U8 passes: divergent `c`/`ac` fixtures score differently, the frozen `priceBasis` term decides which, a claim lacking the term refuses rather than defaulting, and the basis-value fingerprint lands in hashed `provenance` → evidence recorded in `report.md#t-04-u8`. **Ruling R-04-01 is discharged, so this row is no longer blocked.**
@@ -1214,7 +1219,11 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 - [ ] T-04-I5 passes: `authorizeResolutionWrite` is proven to be called first — a claimless row refuses `RTR-LEGACY-BACKFILL` before the resolution is inspected, a malformed row refuses as malformed, and a `claimHash`/`claimRef` mismatch refuses — with nothing written on any path → evidence recorded in `report.md#t-04-i5`.
 - [ ] T-04-E1 passes: a full resolve pass produces one closure per due claim, leaves not-yet-due claims active, and the partition identity holds → evidence recorded in `report.md#t-04-e1`.
 - [ ] T-04-V1 passes: `RTR-NETWORK` fires on a network/credential reference and the clean module references none → evidence recorded in `report.md#t-04-v1`.
-- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope pass — [T-04-R1] the satisfied and invalidated outcomes, the look-ahead fence with its silent-skip counterpart, the byte-identical re-run fingerprint, and the not-evaluable closure all re-assert as a standing guard → evidence recorded in `report.md#t-04-r1`.
+- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope pass — [T-04-R1]
+  the satisfied and invalidated outcomes, all four due-set exclusions with distinct reasons/remedies (including
+  `DVGSTALE` for `series-not-yet-observed` / `later-series-asof`), the look-ahead refusal, the byte-identical re-run
+  fingerprint, and the not-evaluable closure all re-assert as a standing guard → evidence recorded in
+  `report.md#t-04-r1`.
 - [ ] Broader E2E regression suite passes unchanged — [T-04-R2] the committed Node E2E files and the whole committed Playwright spec suite are green, proving every existing `rlcontracts.js` lifecycle consumer survives the closure routing → evidence recorded in `report.md#t-04-r2`.
 - [ ] T-04-S1 passes: `node scripts/selftest.mjs` reports `0 failed` and a passed count no lower than the literal baseline pinned in `report.md` before this scope's first change → evidence recorded in `report.md#t-04-s1`.
 

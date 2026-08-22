@@ -1606,7 +1606,14 @@ test('T-04-E1: a full resolve pass closes each due claim exactly once, leaves th
         registry,
     );
     assert.equal(bound.ok, true, `the bindings must build: ${JSON.stringify(bound.error ?? null)}`);
-    const gate = { asOfDate: E1_AS_OF_SESSION, bindings: bound.bindings, toolsRegistry: registry };
+    /* Every cohort series is observed through the LATER session, so the fourth due conjunct is
+       satisfied throughout and the partition below stays a measurement of the lifecycle gate. */
+    const gate = {
+        asOfDate: E1_AS_OF_SESSION,
+        bindings: bound.bindings,
+        seriesAsOf: new Map(E1_COHORT.map((member) => [claims.seriesRefFor(member.symbol), E1_LATER_SESSION])),
+        toolsRegistry: registry,
+    };
 
     // An EARLIER pass closes exactly the one entry that must already be closed when the measured
     // pass runs. Authoring a `closed` entry by hand would test this row against a state the
@@ -1752,21 +1759,23 @@ test('T-04-E1: a full resolve pass closes each due claim exactly once, leaves th
  * T-04-R1 — the scope-04 regression row. PERMANENT.
  *
  * Every later scope re-runs this file, so a scope that collapses the two predicate verdicts into
- * one, folds the three due-set exclusions back into a single "not due", teaches the data-quality
+ * one, folds the four due-set exclusions back into a single "not due", teaches the data-quality
  * gate to discard a degraded session it should measure, or loosens the horizon comparison fails
  * HERE rather than silently.
  *
  * Five behaviours, each asserted by its own EXACT reason rather than by the fact that SOMETHING
- * was refused. "It threw" is not coverage. Three exclusions that all reported one reason would
+ * was refused. "It threw" is not coverage. Four exclusions that all reported one reason would
  * satisfy a weaker row while telling an operator to wait for a date that can never matter, and
  * that collapse is precisely what this row exists to catch.
  *
  *   1-2. Both predicate verdicts resolve, record and close — and they DIFFER, in the closure
  *        event AND in the outcome class. A resolver returning one verdict for everything passes
  *        each half read alone and fails the pair.
- *   3.   The three due-set exclusions, each with its own reason and its own remedy. The reason
- *        SET is asserted against the shipped remedy table rather than against three strings
- *        named here, so a fourth exclusion added without a fixture fails instead of hiding.
+ *   3.   The four due-set exclusions, each with its own reason and its own remedy. The reason
+ *        SET is asserted against the shipped remedy table rather than against four strings
+ *        named here, so a fifth exclusion added without a fixture fails instead of hiding. The
+ *        two "wait" reasons are held apart by WHICH date is behind: `horizon-not-reached` is the
+ *        RUN's, `series-not-yet-observed` is the SERIES' own `bars.asof`.
  *   4.   The three data-quality verdicts. Zero-observed CLOSES not-evaluable; reconstructed and
  *        thin each RESOLVE and carry their own date into the record's hashed provenance. A gate
  *        that refused all three would pass a row that only checked the refusal, so the two
@@ -1776,7 +1785,7 @@ test('T-04-E1: a full resolve pass closes each due claim exactly once, leaves th
  *        arithmetic and asserted, so "one day" is a measured relation rather than a second
  *        literal that could drift from the first.
  *
- * The three excluded members are offered a WELL-FORMED verdict, so each exclusion is attributable
+ * The four excluded members are offered a WELL-FORMED verdict, so each exclusion is attributable
  * to the gate rather than to a malformed input the pass would have dropped whatever it did.
  *
  * Every price, date and reason comes from a fixture or a shipped table. Nothing here reads a
@@ -1786,8 +1795,10 @@ test('T-04-E1: a full resolve pass closes each due claim exactly once, leaves th
 const {
     ENTRY_UNBOUND_REASON,
     PREDICATE_INVALIDATED_EVENT,
+    SERIES_NOT_OBSERVED_REASON,
     ZERO_OBSERVED_REASON,
     applyClosures,
+    dueEntryKeys,
     evaluatePredicate,
     fenceObservations,
     outcomeValueFor,
@@ -1813,17 +1824,22 @@ const R4_DECLARED_CLOSE = Object.freeze({
     DVG2: { entry: 200, resolution: 190 },
 });
 
-/** Which exclusion each non-closing member must draw. Three buckets, three DIFFERENT reasons. */
+/** Which exclusion each non-closing member must draw. Four buckets, four DIFFERENT reasons. */
 const R4_EXCLUSION = Object.freeze({
     'excluded-wrong-state': NOT_DUE_REASON,
     'excluded-unbound': ENTRY_UNBOUND_REASON,
     'excluded-unmatured': HORIZON_NOT_REACHED_REASON,
+    'excluded-unobserved': SERIES_NOT_OBSERVED_REASON,
 });
 
 /**
  * The cohort. Members 1-2 differ only in the SERIES they measure, so the satisfied/invalidated
  * split is attributable to the price path and not to two differently-authored predicates.
- * Members 3-5 are each excluded for one reason and one reason only.
+ * Members 3-6 are each excluded for one reason and one reason only.
+ *
+ * The last two are the pair the fourth conjunct exists to keep apart, and they differ in exactly
+ * one fact: `excluded-unmatured` freezes a horizon the RUN has not reached, while
+ * `excluded-unobserved` freezes one the run HAS reached over a SERIES that stops short of it.
  */
 const R4_COHORT = Object.freeze([
     { bucket: 'closes-satisfied', family: 'r4-thesis-satisfied', symbol: 'DVG', resolutionDate: R4_AS_OF_SESSION, bound: true, closureEventType: PREDICATE_SATISFIED_EVENT, outcomeClass: 'win' },
@@ -1831,6 +1847,7 @@ const R4_COHORT = Object.freeze([
     { bucket: 'excluded-wrong-state', family: 'r4-thesis-wrong-state', symbol: 'DVG', resolutionDate: R4_AS_OF_SESSION, bound: true, closureEventType: null, outcomeClass: null },
     { bucket: 'excluded-unbound', family: 'r4-thesis-unbound', symbol: 'DVG', resolutionDate: R4_AS_OF_SESSION, bound: false, closureEventType: null, outcomeClass: null },
     { bucket: 'excluded-unmatured', family: 'r4-thesis-unmatured', symbol: 'DVG', resolutionDate: R4_BEYOND_HORIZON, bound: true, closureEventType: null, outcomeClass: null },
+    { bucket: 'excluded-unobserved', family: 'r4-thesis-unobserved', symbol: 'DVGSTALE', resolutionDate: R4_AS_OF_SESSION, bound: true, closureEventType: null, outcomeClass: null },
 ]);
 
 /** The one data-quality array each case sets, the session it sets it on, and the verdict owed. */
@@ -1855,6 +1872,16 @@ function r4Bars(symbol, quality = {}) {
 /** Keyed by `seriesRef` exactly as the value path reads them, fenced at the as-of session. */
 function r4Fences(calendar, symbol, quality = {}) {
     return new Map([[claims.seriesRefFor(symbol), fenceObservations(calendar, r4Bars(symbol, quality), R4_AS_OF_SESSION)]]);
+}
+
+/**
+ * How far each named series has been OBSERVED, read from the fixture file's own `asof` rather
+ * than declared as a literal here. This is the fact the fourth conjunct turns on, so sourcing it
+ * from the committed fixture is what makes the exclusion below a property of the data rather than
+ * of a map this row hand-built to produce the answer it wanted.
+ */
+function r4SeriesAsOf(symbols) {
+    return new Map(symbols.map((symbol) => [claims.seriesRefFor(symbol), r4Bars(symbol).asof]));
 }
 
 function r4Claim(member) {
@@ -1903,6 +1930,15 @@ test('T-04-R1: both verdicts close, each due-set exclusion keeps its own reason 
         assert.equal(rows[1].c, R4_DECLARED_CLOSE[symbol].resolution, `${symbol}: the declared resolution close`);
     }
     const r4ExpectedValue = (symbol) => (R4_DECLARED_CLOSE[symbol].resolution / R4_DECLARED_CLOSE[symbol].entry - 1) * 100;
+
+    // THE FRESHNESS GROUND, and the ONLY fact separating the last two exclusions. The two closing
+    // series are observed through the as-of session; the stale one stops a session short of the
+    // horizon its claim freezes, so the calendar has reached that horizon and the data has not.
+    assert.equal(r4Bars('DVG').asof, R4_AS_OF_SESSION, 'DVG is observed through the as-of session');
+    assert.equal(r4Bars('DVG2').asof, R4_AS_OF_SESSION, 'and so is DVG2');
+    assert.equal(r4Bars('DVGSTALE').asof, R4_ENTRY_SESSION, 'while the stale fixture stops at the entry session');
+    assert.equal(R4_ENTRY_SESSION < R4_AS_OF_SESSION, true, 'which is strictly earlier — that gap IS the fourth exclusion');
+    assert.equal(r4Bars('DVGSTALE').rows.every((row) => row.t <= r4Bars('DVG').rows[0].t), true, 'and the file carries no row past the session it claims');
 
     /* ---- 2. THE COHORT, one lifecycle entry each ------------------------------------------- */
 
@@ -1957,7 +1993,15 @@ test('T-04-R1: both verdicts close, each due-set exclusion keeps its own reason 
         return r4Verdict(member.claim, evaluated.closureEventType);
     });
 
-    const pass = closeDueClaims({ index: before, verdicts, asOfDate: R4_AS_OF_SESSION, bindings: bound.bindings, toolsRegistry: registry, run: e1Run('-r4-measured') });
+    const pass = closeDueClaims({
+        index: before,
+        verdicts,
+        asOfDate: R4_AS_OF_SESSION,
+        bindings: bound.bindings,
+        seriesAsOf: r4SeriesAsOf([...new Set(cohort.map((member) => member.symbol))]),
+        toolsRegistry: registry,
+        run: e1Run('-r4-measured'),
+    });
     assert.equal(pass.ok, true, `the resolve pass must run: ${JSON.stringify(pass.error ?? null)}`);
 
     /* ---- 5. BOTH VERDICTS CLOSE, AND THEY DIFFER ------------------------------------------- */
@@ -2022,13 +2066,13 @@ test('T-04-R1: both verdicts close, each due-set exclusion keeps its own reason 
         }
     });
 
-    /* ---- 7. THE THREE EXCLUSIONS, EACH DISTINCT -------------------------------------------- */
+    /* ---- 7. THE FOUR EXCLUSIONS, EACH DISTINCT --------------------------------------------- */
 
     const excludedByKey = new Map(pass.notDue.map((entry) => [entry.originRecommendationKey, entry]));
     assert.deepEqual(
         [...excludedByKey.keys()].sort(),
         Object.keys(R4_EXCLUSION).map((bucket) => byBucket.get(bucket).key).sort(),
-        'exactly the three non-closing members are excluded',
+        'exactly the four non-closing members are excluded',
     );
 
     for (const [bucket, reason] of Object.entries(R4_EXCLUSION)) {
@@ -2037,14 +2081,15 @@ test('T-04-R1: both verdicts close, each due-set exclusion keeps its own reason 
         assert.equal(excluded.remedy, NOT_DUE_REMEDY[reason], `${bucket}: with the remedy that reason carries`);
     }
 
-    // DISTINCT, not merely all excluded. These are three different FUTURES — a ledger event, a
-    // later as-of date, and never — so collapsing them would tell an operator to wait for a date
-    // that can make no difference. Asserted on both the reason and the remedy, and the reason set
-    // is compared against the shipped remedy table so a fourth exclusion cannot land untested.
+    // DISTINCT, not merely all excluded. These are four different FUTURES — a ledger event, a
+    // later run date, a later series refresh, and never — so collapsing any two would tell an
+    // operator to wait for a fact that can make no difference. Asserted on both the reason and the
+    // remedy, and the reason set is compared against the shipped remedy table so a fifth exclusion
+    // cannot land untested.
     const drawnReasons = Object.values(R4_EXCLUSION);
-    assert.equal(new Set(drawnReasons).size, drawnReasons.length, 'the three exclusions name three different reasons');
-    assert.equal(new Set(drawnReasons.map((reason) => NOT_DUE_REMEDY[reason])).size, drawnReasons.length, 'and promise three different remedies');
-    assert.deepEqual([...drawnReasons].sort(), Object.keys(NOT_DUE_REMEDY).sort(), 'and are exactly the shipped exclusion set — a fourth reason fails here rather than going untested');
+    assert.equal(new Set(drawnReasons).size, drawnReasons.length, 'the four exclusions name four different reasons');
+    assert.equal(new Set(drawnReasons.map((reason) => NOT_DUE_REMEDY[reason])).size, drawnReasons.length, 'and promise four different remedies');
+    assert.deepEqual([...drawnReasons].sort(), Object.keys(NOT_DUE_REMEDY).sort(), 'and are exactly the shipped exclusion set — a fifth reason fails here rather than going untested');
 
     // Each declined verdict is reported with the gate's own reason, so a verdict is never swallowed
     // between the caller and the ledger.
@@ -2052,6 +2097,44 @@ test('T-04-R1: both verdicts close, each due-set exclusion keeps its own reason 
     for (const [bucket, reason] of Object.entries(R4_EXCLUSION)) {
         assert.equal(skippedByKey.get(byBucket.get(bucket).key).reason, reason, `${bucket}: the declined verdict is reported with the same reason`);
     }
+
+    /* ---- 7b. THE TWO "WAIT" REASONS ARE NOT ONE REASON ------------------------------------- */
+
+    // They differ in WHICH date is behind, and each exclusion carries both dates, so the
+    // distinction is read off the gate's own output rather than inferred from the reason string.
+    const unmatured = excludedByKey.get(byBucket.get('excluded-unmatured').key);
+    const unobserved = excludedByKey.get(byBucket.get('excluded-unobserved').key);
+    assert.equal(unmatured.asOfDate < unmatured.resolutionDate, true, 'horizon-not-reached: the RUN date has not reached the horizon');
+    assert.equal(unobserved.asOfDate >= unobserved.resolutionDate, true, 'series-not-yet-observed: the run date HAS reached it, so the calendar is not the cause');
+    assert.equal(unobserved.observedThrough < unobserved.resolutionDate, true, 'and only the SERIES stops short of that horizon');
+    assert.equal(unobserved.observedThrough, r4Bars('DVGSTALE').asof, 'the gate reports the fixture own asof, not a value derived here');
+
+    /* AND THE CLOCK SEPARATES THEM. Re-gate the SAME index, SAME bindings and SAME series map,
+       moving ONLY the run's as-of date one calendar day forward. The horizon exclusion is cured
+       and immediately exposes the stale series underneath it, while the series exclusion does not
+       move — no later run date makes a series that stopped short observable. A gate that answered
+       one reason for both facts could not produce this divergence, which is why the two must not
+       be collapsed: their remedies point at different things. */
+    const later = dueEntryKeys(before, {
+        asOfDate: R4_BEYOND_HORIZON,
+        bindings: bound.bindings,
+        seriesAsOf: r4SeriesAsOf([...new Set(cohort.map((member) => member.symbol))]),
+    });
+    assert.equal(later.ok, true, `the later gate must run: ${JSON.stringify(later.error ?? null)}`);
+    const laterReason = new Map(later.notDue.map((entry) => [entry.originRecommendationKey, entry.reason]));
+    assert.equal(laterReason.get(byBucket.get('excluded-unmatured').key), SERIES_NOT_OBSERVED_REASON, 'a later run date cures the horizon and reveals the series behind it');
+    assert.notEqual(unmatured.reason, laterReason.get(byBucket.get('excluded-unmatured').key), 'so one entry drew TWO different reasons on two run dates — the two are not one reason');
+    assert.equal(unobserved.reason, laterReason.get(byBucket.get('excluded-unobserved').key), 'while the series reason is the one the clock cannot cure');
+    assert.equal(NOT_DUE_REMEDY[HORIZON_NOT_REACHED_REASON] !== NOT_DUE_REMEDY[SERIES_NOT_OBSERVED_REASON], true, 'and they promise different remedies');
+
+    /* AND THE STALE SERIES WRITES NOTHING. This is the whole point of the conjunct: a claim whose
+       series stopped short must not close `unresolved`, which would append a measurement nobody
+       could take into the permanent ledger. */
+    const staleKey = byBucket.get('excluded-unobserved').key;
+    assert.equal(pass.closures.some((closure) => closure.originRecommendationKey === staleKey), false, 'the unobserved member does not close');
+    assert.equal(pass.events.some((event) => event.recommendationKey === staleKey), false, 'and no lifecycle event is appended for it');
+    assert.equal(pass.index.entries[staleKey].state, LIVE_ENTRY_STATE, 'its entry stays live, waiting for a series refresh');
+    assert.deepEqual(pass.index.entries[staleKey], before.entries[staleKey], 'unchanged in every field, not merely in state');
 
     /* ---- 8. THE HORIZON BOUNDARY, FROM BOTH SIDES ------------------------------------------ */
 

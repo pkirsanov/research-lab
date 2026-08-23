@@ -112,9 +112,14 @@ test('Regression: switching direction re-keys the cell the gate reports on', asy
 test('Regression: the power view paints its frontier canvas and exposes its accessible name', async ({ page }) => {
   await page.goto(baseUrl + '/horizon-ladder-lab.html');
   await expect.poll(() => page.locator('#simpleTable tbody tr').count(), { timeout: 15000 }).toBeGreaterThan(0);
-  await page.locator('#modeSeg button[data-mode]').last().click();
+  /* Drive the SHARED shell control, not the page's own #modeSeg. Once rlapp.js mounts the
+     experience shell it hides #modeSeg and #rlviews becomes the control a reader actually has, so
+     a test clicking the hidden one is testing a surface nobody can reach. */
+  await page.locator('#rlviews[data-rlexperience-shell="ready"] button[data-rlview-mode="power"]').click();
   await expect.poll(() => page.evaluate(() => {
-    const canvas = document.querySelector('canvas');
+    /* Addressed by id: a bare querySelector('canvas') silently follows whatever the shell injects
+       first, which would make this assert about someone else's element. */
+    const canvas = document.querySelector('#frontier');
     if (!canvas || !canvas.width || !canvas.height) return false;
     const pixels = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
     for (let i = 3; i < pixels.length; i += 4) if (pixels[i] !== 0) return true;

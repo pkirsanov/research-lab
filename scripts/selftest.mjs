@@ -26252,6 +26252,43 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (narrative lane acceptance group threw): ' + e.message); }
 /* ---------- Narrative lane: the acceptance contract must be stated and retried against (END) ---------- */
 
+/* ---------- Experience shell: every registered tool can actually mount it (START) ---------- */
+/* horizon-ladder-lab registered a Simple model, passed validate-tool-experience, and rendered
+   correctly in a browser — while being the ONLY registered tool with no [data-rlbrief-mount]
+   anchor. rlapp.js mounts the shell from that anchor and from nothing else, so the registered model
+   was unreachable and #rlviews never existed. The page-level gates could not see it; only the
+   deployed-site parity suite could, and that suite blocks Pages. Both halves of the wiring are
+   checked here, for every tool, so the next tool cannot repeat it. */
+try {
+  group('experience shell — every registered tool is mountable');
+  const { existsSync: shellExists, readFileSync: shellRead } = await import('node:fs');
+  const shellRegistry = JSON.parse(read('tools.json')).tools;
+  const shellModels = JSON.parse(read('simple-models.json'));
+  const shellDefs = shellModels.definitions || [];
+
+  const pagedTools = shellRegistry.filter((tool) => shellExists(`${tool.id}.html`));
+  assert(pagedTools.length > 20, `the registered-tool sweep actually has tools to check (found ${pagedTools.length})`);
+
+  const anchorless = pagedTools.filter((tool) => {
+    const html = shellRead(`${tool.id}.html`, 'utf8');
+    return !new RegExp(`data-rlbrief-mount[^>]*data-tool-id="${tool.id}"`).test(html);
+  }).map((tool) => tool.id);
+  assert(anchorless.length === 0,
+    `every registered tool page carries a [data-rlbrief-mount] anchor naming its own tool id — rlapp.js mounts the shell from nothing else (missing: ${anchorless.join(', ') || 'none'})`);
+
+  const duplicateAnchors = pagedTools.filter((tool) => (shellRead(`${tool.id}.html`, 'utf8').match(/data-rlbrief-mount/g) || []).length > 1).map((tool) => tool.id);
+  assert(duplicateAnchors.length === 0,
+    `no page carries two mount anchors — rlapp.js requires exactly one and silently declines to mount otherwise (offenders: ${duplicateAnchors.join(', ') || 'none'})`);
+
+  /* Deliberately NOT asserted: that a page loads the adapterModule its definition names. That
+     looked like the same contract and is not — the shell resolves the binding and loads the module
+     itself, and five tools that ship no adapter script mount correctly today. Pinning it would have
+     failed main for five working tools on the strength of a guess. */
+  assert(shellDefs.every((definition) => !definition.adapterModule || typeof definition.adapterModule === 'string'),
+    'every declared adapterModule is a module path string the shell can resolve against its bindings table');
+} catch (e) { failures++; console.log('  ✗ FAIL (experience shell mountability group threw): ' + e.message); }
+/* ---------- Experience shell: every registered tool can actually mount it (END) ---------- */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

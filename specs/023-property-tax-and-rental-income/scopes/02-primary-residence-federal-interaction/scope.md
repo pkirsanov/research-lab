@@ -302,12 +302,18 @@ error, a missing browser or an absent test does not satisfy RED.
     missing from the storage inventory, or a balance surviving into the exported
     bytes each fails the cited assertion. The live-route half is not covered by
     this scope at all and is opened as `TP-02-29` below.
-- [ ] NFR-023-003 holds on the live route for the mortgage declarations: the
+- [x] NFR-023-003 holds on the live route for the mortgage declarations: the
       request ledger does not grow after first paint and every entry in it is a
       read of a path the route's own configuration declares.
-  - **Phase:** test · **Command:** `TP-02-29` · **Evidence:** not authored — this
-    scope has no live-route privacy row. Opened 2026-08-22 (F-REG-03) rather than
-    ticked, because no executed evidence for it exists.
+  - **Phase:** test · **Command:** `TP-02-29` · **Evidence:** `report.md#tp-02-29-authored--the-live-route-privacy-row-this-scope-never-had-2026-08-22`
+  - **Claim Source:** executed. `TP-02-29` is authored in
+    `tests/lifetime-tax-deduction.spec.mjs` and carries a three-arm probe, each
+    arm discriminating with a hash-verified revert: zeroing the capture reds the
+    non-empty pin, subtracting one from it reds the no-growth equality, and
+    withdrawing the declared pack family from the derivation reds the
+    permitted-set sweep. This closes the gap the row named — the scope's only
+    prior privacy evidence, `TP-02-16`, runs under `node scripts/selftest.mjs`,
+    which has no browser and therefore no request ledger to observe.
 - [x] SUP-023-01 through SUP-023-04 are delivered with their markers, each
       replacement derived from the artifact it describes, each superseded clause
       recorded verbatim, and each intended-RED failure recorded before its green.
@@ -320,6 +326,25 @@ error, a missing browser or an absent test does not satisfy RED.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
 - [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
+  - **Re-examined 2026-08-22, still open, and the reason has changed.**
+    `TP-02-29` now carries a three-arm RED and a same-command GREEN, so the note
+    below no longer applies to it. Auditing the remaining rows against the report
+    surfaced a larger and older gap. Exactly five rows carry a per-row RED aimed
+    at their own assertion: `TP-02-22`, `TP-02-24`, `TP-02-25`, `TP-02-26` and
+    `TP-02-29`. Every other row's entry under `report.md#test-evidence` records a
+    green tick and `Exit 0` and nothing else. The one RED the section does hold,
+    under **Intended RED on entry**, is
+    `✗ FAIL (Feature 023 Scope 02 deduction group threw): createTaxHash is not defined`
+    — a group throw. This programme's own recorded standard, set out in the
+    Feature 023 Scope 03 report when two probes produced the same shape, is that
+    a group throw is a red **command**, not a red **row**: it does not show that
+    any individual row's assertion discriminates, and here it in fact shows the
+    opposite, since every assertion from `TP-02-12` onward was unreachable while
+    it stood. Several rows do carry a built-in adversarial arm — `TP-02-04`
+    zeroes every disallowed amount, `TP-02-14` removes the recomputed decision
+    from each of four surfaces in turn — and that arm is a defensible basis, but
+    this report has never stated it as the basis for those rows and adopting it
+    silently is how an unearned tick happens.
   - **Unticked 2026-08-22 (F-REG-03).** `TP-02-29` was opened in this scope and
     is not authored, so it carries neither a RED nor a GREEN. The word "Every"
     therefore no longer holds. Ticking it again requires `TP-02-29` authored with

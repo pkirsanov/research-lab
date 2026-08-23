@@ -7,7 +7,7 @@ import {
   collectConsole,
   collectRequests,
   declareOrdinaryHousehold,
-  declaredPackPaths,
+  declaredRouteAssets,
   openLifetimeTax,
   openPower
 } from './lifetime-tax.support.mjs';
@@ -20,16 +20,8 @@ const BENEFIT_PACK_PATH = 'tax-rules/benefit/2026.json';
 /* SUP-023-10, as replaced by SUP-024-09. See the companion definition in
    lifetime-tax-foundation.spec.mjs. The asset set the route may request is derived from the
    route's own declarations rather than pinned as a literal, and its pack half is derived from
-   every pack-path member the configuration declares rather than from a hand-listed key set. */
-function declaredRouteAssets() {
-  const routeSource = readFileSync(join(ROOT, 'lifetime-tax-strategy-lab.html'), 'utf8');
-  const config = JSON.parse(readFileSync(join(ROOT, 'lifetime-tax-strategy.config.json'), 'utf8'));
-  const scripts = Array.from(routeSource.matchAll(/<script src="([^"]+)"><\/script>/g))
-    .map((match) => '/' + match[1]);
-  const packs = declaredPackPaths(config).map((path) => '/' + path);
-  return ['/lifetime-tax-strategy-lab.html', '/lifetime-tax-strategy.config.json']
-    .concat(scripts).concat(packs).concat(['/favicon.ico']);
-}
+   every pack-path member the configuration declares rather than from a hand-listed key set. The
+   derivation itself is the shared one in lifetime-tax.support.mjs. */
 
 /* The fixture relief regimes. They carry invented figures and name no jurisdiction, no programme
    and no authority, so a branch that matched on a regime name would have nothing to match. Serving

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { startStaticServer } from './provider-credentials.support.mjs';
 import {
   collectRequests,
-  declaredPackPaths,
+  declaredRouteAssets,
   declareOrdinaryHousehold,
   openLifetimeTax,
   openPower,
@@ -16,16 +16,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 /* SUP-023-10, as replaced by SUP-024-09. The permitted-asset set is DERIVED from the page's own
    script tags and from every pack path the configuration declares, so the mortality pack this
-   scope introduces is admitted by its declaration rather than by a hand-edited literal here. */
-function declaredRouteAssets() {
-  const routeSource = readFileSync(join(ROOT, 'lifetime-tax-strategy-lab.html'), 'utf8');
-  const config = JSON.parse(readFileSync(join(ROOT, 'lifetime-tax-strategy.config.json'), 'utf8'));
-  const scripts = Array.from(routeSource.matchAll(/<script src="([^"]+)"><\/script>/g))
-    .map((match) => '/' + match[1]);
-  const packs = declaredPackPaths(config).map((path) => '/' + path);
-  return ['/lifetime-tax-strategy-lab.html', '/lifetime-tax-strategy.config.json']
-    .concat(scripts).concat(packs).concat(['/favicon.ico']);
-}
+   scope introduces is admitted by its declaration rather than by a hand-edited literal here. The
+   derivation itself is the shared one in lifetime-tax.support.mjs. */
 
 /* One household, declared once. Its primary insurance amount is the household's OWN statement
    figure; every figure that ACTS on it — the reduction for claiming early, the credit for

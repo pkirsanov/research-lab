@@ -9,7 +9,7 @@ import {
   collectConsole,
   collectRequests,
   declareOrdinaryHousehold,
-  declaredPackPaths,
+  declaredRouteAssets,
   openLifetimeTax,
   openPower
 } from './lifetime-tax.support.mjs';
@@ -42,16 +42,8 @@ function servingNoTaxPackAtFlorida() {
 
 /* SUP-023-10, as replaced by SUP-024-09. See the companion definition in
    lifetime-tax-foundation.spec.mjs. The asset set the route may request is derived from the
-   route's own declarations rather than pinned as a literal. */
-function declaredRouteAssets() {
-  const routeSource = readFileSync(join(ROOT, 'lifetime-tax-strategy-lab.html'), 'utf8');
-  const config = JSON.parse(readFileSync(join(ROOT, 'lifetime-tax-strategy.config.json'), 'utf8'));
-  const scripts = Array.from(routeSource.matchAll(/<script src="([^"]+)"><\/script>/g))
-    .map((match) => '/' + match[1]);
-  const packs = declaredPackPaths(config).map((path) => '/' + path);
-  return ['/lifetime-tax-strategy-lab.html', '/lifetime-tax-strategy.config.json']
-    .concat(scripts).concat(packs).concat(['/favicon.ico']);
-}
+   route's own declarations rather than pinned as a literal. The derivation itself is the shared
+   one in lifetime-tax.support.mjs. */
 
 /* The household's own residency declaration. Both members are declared separately because they
    refuse separately: a pattern this tool does not model must not be reported as an unsupported

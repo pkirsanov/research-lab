@@ -7,7 +7,7 @@ import {
   collectConsole,
   collectRequests,
   declareOrdinaryHousehold,
-  declaredPackPaths,
+  declaredRouteAssets,
   openLifetimeTax,
   openPower
 } from './lifetime-tax.support.mjs';
@@ -16,16 +16,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BENEFIT_PACK_PATH = 'tax-rules/benefit/2026.json';
 
 /* SUP-023-10, as replaced by SUP-024-09. See the companion definition in
-   lifetime-tax-foundation.spec.mjs. */
-function declaredRouteAssets() {
-  const routeSource = readFileSync(join(ROOT, 'lifetime-tax-strategy-lab.html'), 'utf8');
-  const config = JSON.parse(readFileSync(join(ROOT, 'lifetime-tax-strategy.config.json'), 'utf8'));
-  const scripts = Array.from(routeSource.matchAll(/<script src="([^"]+)"><\/script>/g))
-    .map((match) => '/' + match[1]);
-  const packs = declaredPackPaths(config).map((path) => '/' + path);
-  return ['/lifetime-tax-strategy-lab.html', '/lifetime-tax-strategy.config.json']
-    .concat(scripts).concat(packs).concat(['/favicon.ico']);
-}
+   lifetime-tax-foundation.spec.mjs. The derivation itself is the shared one in
+   lifetime-tax.support.mjs. */
 
 /* The publication's own worked example, declared as the household would declare it. Every nominal
    amount here is the household's own input; every factor that acts on it is a pack figure. Using

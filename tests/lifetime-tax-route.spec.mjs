@@ -10,6 +10,7 @@ import {
   collectRequests,
   declareOrdinaryHousehold,
   declaredPackPaths,
+  declaredRouteAssets,
   openLifetimeTax,
   openPower,
   sameOriginPaths
@@ -19,16 +20,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 /* SUP-023-10, as replaced by SUP-024-09. See the companion definition in
    lifetime-tax-foundation.spec.mjs. The pack half is derived from every pack-path member the
-   configuration declares rather than from a hand-listed key set. */
-function declaredRouteAssets() {
-  const routeSource = readFileSync(join(ROOT, 'lifetime-tax-strategy-lab.html'), 'utf8');
-  const config = JSON.parse(readFileSync(join(ROOT, 'lifetime-tax-strategy.config.json'), 'utf8'));
-  const scripts = Array.from(routeSource.matchAll(/<script src="([^"]+)"><\/script>/g))
-    .map((match) => '/' + match[1]);
-  const packs = declaredPackPaths(config).map((path) => '/' + path);
-  return ['/lifetime-tax-strategy-lab.html', '/lifetime-tax-strategy.config.json']
-    .concat(scripts).concat(packs).concat(['/favicon.ico']);
-}
+   configuration declares rather than from a hand-listed key set. The derivation itself is the
+   shared one in lifetime-tax.support.mjs. */
 
 
 let site;

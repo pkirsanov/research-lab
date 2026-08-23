@@ -324,8 +324,26 @@ error, a missing browser or an absent test does not satisfy RED.
 - [x] No output states a probability, a lifetime figure, a track record or an error
       rate, and no deduction figure is presented as an estimate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` under `scripts/red-green-probe.sh` · **Evidence:** `report.md#every-remaining-row-carries-an-intended-red-2026-08-23`
+  - **Ticked 2026-08-23, and the count in the note below is corrected.** The
+    audit was re-derived from the Test Plan rather than inherited. Twelve rows,
+    not five, already carried an intended RED: the five the note names plus
+    `TP-02-17`, whose own row failure is captured under its heading, the four
+    browser rows `TP-02-18` to `TP-02-21`, which share one command and one RED
+    block in which all four named tests fail, and `TP-02-27` and `TP-02-28`. The
+    rows genuinely lacking one were `TP-02-01` through `TP-02-16` and
+    `TP-02-23` — seventeen — and each now carries a probe that mutates the
+    shipped module or pack its own assertion reads, pinned by `--summary-match`
+    to its own assertion wording. All seventeen exited `0`, none was retried
+    after a miss, and every revert hash-verified against the committed blob.
+    `TP-02-23` is the single probe carrying no `--summary-match`, because that
+    row's claim is the command's own exit status rather than a per-row line; its
+    verdict is exit `1` under a planted defect against exit `0` clean, with no
+    pass-count arithmetic in it. One qualification travels forward: `TP-02-22`'s
+    pair is still assembled from a probe's red arm and a separate clean run,
+    because the harness's exit channel is unusable for that selector here.
   - **Re-examined 2026-08-22, still open, and the reason has changed.**
     `TP-02-29` now carries a three-arm RED and a same-command GREEN, so the note
     below no longer applies to it. Auditing the remaining rows against the report

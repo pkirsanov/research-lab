@@ -1677,4 +1677,393 @@ ARM_C_EXIT=0
 **Claim Source:** executed. All three blocks are verbatim harness output from this
 session, each with its revert hash-verified against the committed blob.
 
+## Every Remaining Row Carries An Intended RED (2026-08-23)
+
+### The audit, re-derived rather than inherited
+
+The open note on the every-row item said that "exactly five rows carry a per-row
+RED aimed at their own assertion: `TP-02-22`, `TP-02-24`, `TP-02-25`, `TP-02-26`
+and `TP-02-29`". Re-deriving the audit from the Test Plan against this report
+shows that count is **too low**, and the correction is recorded here rather than
+quietly relied on:
+
+| Row | State before this pass |
+| --- | --- |
+| `TP-02-17` | carries its own recorded row failure — `✗ FAIL: TP-02-17: …` — under [TP-02-17](#tp-02-17) |
+| `TP-02-18` to `TP-02-21` | share one command and carry one RED block at [TP-02-21](#tp-02-21) in which all four named tests fail |
+| `TP-02-22`, `TP-02-24`, `TP-02-25`, `TP-02-26` | carry per-row probes, as the note says |
+| `TP-02-27`, `TP-02-28` | carry per-row probes recorded under [F-REG-01 resolved](#f-reg-01-resolved-2026-08-22) |
+| `TP-02-29` | carries a three-arm RED |
+
+Twelve rows, not five. The rows genuinely lacking an intended RED are
+`TP-02-01` through `TP-02-16` and `TP-02-23` — seventeen of them, each entry
+under [Test Evidence](#test-evidence) recording a green tick and `Exit 0` and
+nothing else. This pass supplies all seventeen.
+
+The note's other observation stands and is honoured. Several of these rows do
+carry a built-in adversarial arm, and that arm is a defensible basis; but this
+report has never stated it as the basis, so each row below is given a probe that
+mutates the shipped code path its own assertion reads. Every `--summary-match` is
+pinned to that row's own assertion wording rather than to the suite's aggregate
+pass count, which a concurrent session moves. No mutation was retried after a
+miss: every probe below is the first mutation attempted for its row, and all
+seventeen exited `0`.
+
+### `TP-02-01` — the legacy component
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-01 legacy-component channel: the previously-declared lump sum is carried under a renamed component id, so a Feature 021 or 022 household reaches the same total but the component a downstream surface matches by name is gone
+file:             rltax.js
+mutation:         var DECLARED_COMPONENT_ID = "other-itemized";  ->  var DECLARED_COMPONENT_ID = "declared-itemized";   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-01: a household that declared only the previous lump sum reaches its exact prior deduction under the composed shape, carried as one named component with its origin recorded, and the
+green-exit:       0
+green-summary:      ✓ TP-02-01: a household that declared only the previous lump sum reaches its exact prior deduction under the composed shape, carried as one named component with its origin recorded, and the side a
+summary-compared:   ✗ FAIL: TP-02-01: a household that declared only the previous lump sum reaches its exact prior deduction under the composed shape, carried as one named component with its origin recorded, and the   vs    ✓ TP-02-01: a household that declared only the previous lump sum reaches its exact prior deduction under the composed shape, carried as one named component with its origin recorded, and the side a   (elapsed time normalised out)
+revert-verified:  yes (committed=8294f084523f504fcb19681e0e7cda2cdce457b5 restored=8294f084523f504fcb19681e0e7cda2cdce457b5)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-02-02` — the component contract
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-02 component-contract channel: the reconciliation tolerance is widened past every realistic amount, so a split that does not add back to the component amount is accepted and a dollar can go unaccounted for
+file:             rltaxrules.js
+mutation:         Math.abs((component.allowedAmount + component.disallowedAmount) - component.amount) > 1e-9) {  ->  Math.abs((component.allowedAmount + component.disallowedAmount) - component.amount) > 1e9) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-02: DeductionComponent/v1 refuses a missing origin and a missing disallowed amount, refuses a split that does not add back to the component amount, and ItemizedComposition/v1 refuses
+green-exit:       0
+green-summary:      ✓ TP-02-02: DeductionComponent/v1 refuses a missing origin and a missing disallowed amount, refuses a split that does not add back to the component amount, and ItemizedComposition/v1 refuses a cap
+summary-compared:   ✗ FAIL: TP-02-02: DeductionComponent/v1 refuses a missing origin and a missing disallowed amount, refuses a split that does not add back to the component amount, and ItemizedComposition/v1 refuses  vs    ✓ TP-02-02: DeductionComponent/v1 refuses a missing origin and a missing disallowed amount, refuses a split that does not add back to the component amount, and ItemizedComposition/v1 refuses a cap   (elapsed time normalised out)
+revert-verified:  yes (committed=12f5df8b667f6b854936e6e3a77c1df6e202b12b restored=12f5df8b667f6b854936e6e3a77c1df6e202b12b)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-02-03` — the cap arithmetic
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-03 cap-arithmetic channel: the excess over the sourced cap is understated by one dollar, so the disallowed amounts no longer sum to the excess and the allowed amounts no longer sum to the cap
+file:             rltax.js
+mutation:         var excess = Math.max(0, cappedSum - effective.amount);  ->  var excess = Math.max(0, cappedSum - effective.amount - 1);   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-03: below, exactly at and above the sourced cap the itemised total, the binding and every component’s disallowed amount are exact, the disallowed amounts sum to the excess, the all
+green-exit:       0
+green-summary:      ✓ TP-02-03: below, exactly at and above the sourced cap the itemised total, the binding and every component’s disallowed amount are exact, the disallowed amounts sum to the excess, the allowed a
+summary-compared:   ✗ FAIL: TP-02-03: below, exactly at and above the sourced cap the itemised total, the binding and every component’s disallowed amount are exact, the disallowed amounts sum to the excess, the all  vs    ✓ TP-02-03: below, exactly at and above the sourced cap the itemised total, the binding and every component’s disallowed amount are exact, the disallowed amounts sum to the excess, the allowed a   (elapsed time normalised out)
+revert-verified:  yes (committed=8294f084523f504fcb19681e0e7cda2cdce457b5 restored=8294f084523f504fcb19681e0e7cda2cdce457b5)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-02-04` — the zeroed disallowed amounts
+
+This row is adversarial: it plants a family whose disallowed amounts are all
+zeroed and requires that family to fail. Stopping the apportionment makes the
+**real** family identical to the planted one, so the row's own discrimination
+disappears — which is precisely the state it exists to detect.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-04 zeroed-disallowed channel: the apportionment stops computing each capped component share, so every published disallowed amount is zero and the family the row plants as adversarial becomes indistinguishable from the real one
+file:             rltax.js
+mutation:         var share = cappedSum > 0 ? (entry.amount / cappedSum) * excess : 0;  ->  var share = 0;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-04: an implementation zeroing every disallowed amount fails the excess-sum assertion and fails the component contract, so the amount that bought nothing cannot be hidden behind a cor
+green-exit:       0
+green-summary:      ✓ TP-02-04: an implementation zeroing every disallowed amount fails the excess-sum assertion and fails the component contract, so the amount that bought nothing cannot be hidden behind a correct-l
+summary-compared:   ✗ FAIL: TP-02-04: an implementation zeroing every disallowed amount fails the excess-sum assertion and fails the component contract, so the amount that bought nothing cannot be hidden behind a cor  vs    ✓ TP-02-04: an implementation zeroing every disallowed amount fails the excess-sum assertion and fails the component contract, so the amount that bought nothing cannot be hidden behind a correct-l   (elapsed time normalised out)
+revert-verified:  yes (committed=8294f084523f504fcb19681e0e7cda2cdce457b5 restored=8294f084523f504fcb19681e0e7cda2cdce457b5)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-02-05` — the unretrieved cap
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-05 absent-cap channel: a cap that was never retrieved is published as an unbound cap, so a reader cannot tell a cap that did not bind from one that could not be established
+file:             rltax.js
+mutation:         capBinding: "unavailable",  ->  capBinding: "unbound",   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-05: an unretrieved cap produces an unavailable binding, an unavailable chosen side and a refused itemised total, and no applied deduction is published in its place
+green-exit:       0
+green-summary:      ✓ TP-02-05: an unretrieved cap produces an unavailable binding, an unavailable chosen side and a refused itemised total, and no applied deduction is published in its place
+summary-compared:   ✗ FAIL: TP-02-05: an unretrieved cap produces an unavailable binding, an unavailable chosen side and a refused itemised total, and no applied deduction is published in its place  vs    ✓ TP-02-05: an unretrieved cap produces an unavailable binding, an unavailable chosen side and a refused itemised total, and no applied deduction is published in its place   (elapsed time normalised out)
+revert-verified:  yes (committed=8294f084523f504fcb19681e0e7cda2cdce457b5 restored=8294f084523f504fcb19681e0e7cda2cdce457b5)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-02-06` — the acquisition-debt limit
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-06 mortgage-limit channel: the deductible portion scales by the declared balance over the sourced limit rather than the limit over the balance, so a household above the limit deducts more interest than it paid
+file:             rltax.js
+mutation:         var allowed = balance > limit ? interest * (limit / balance) : interest;  ->  var allowed = balance > limit ? interest * (balance / limit) : interest;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-06: with the declared balance below, exactly at and above the sourced acquisition-debt limit the deductible and disallowed portions are exact, and the declared predecessor tier reach
+green-exit:       0
+green-summary:      ✓ TP-02-06: with the declared balance below, exactly at and above the sourced acquisition-debt limit the deductible and disallowed portions are exact, and the declared predecessor tier reaches its
+summary-compared:   ✗ FAIL: TP-02-06: with the declared balance below, exactly at and above the sourced acquisition-debt limit the deductible and disallowed portions are exact, and the declared predecessor tier reach  vs    ✓ TP-02-06: with the declared balance below, exactly at and above the sourced acquisition-debt limit the deductible and disallowed portions are exact, and the declared predecessor tier reaches its   (elapsed time normalised out)
+revert-verified:  yes (committed=8294f084523f504fcb19681e0e7cda2cdce457b5 restored=8294f084523f504fcb19681e0e7cda2cdce457b5)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-02-07` — the shipped pack
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-07 shipped-pack channel: an unretrieved acquisition-debt limit drops the mortgage component silently instead of refusing it, so the shipped pack a real household gets publishes a composition that simply omits the interest
+file:             rltax.js
+mutation:         return rules.absentFigureRefusal(tier.limits, "deduction-component:mortgage-interest:" + declaredTier);  ->  return null;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-07: an unretrieved acquisition-debt limit refuses the mortgage component on the shipped pack with no numeric member smuggled beside the absence, and mortgage interest declared withou
+green-exit:       0
+green-summary:      ✓ TP-02-07: an unretrieved acquisition-debt limit refuses the mortgage component on the shipped pack with no numeric member smuggled beside the absence, and mortgage interest declared without a ti
+summary-compared:   ✗ FAIL: TP-02-07: an unretrieved acquisition-debt limit refuses the mortgage component on the shipped pack with no numeric member smuggled beside the absence, and mortgage interest declared withou  vs    ✓ TP-02-07: an unretrieved acquisition-debt limit refuses the mortgage component on the shipped pack with no numeric member smuggled beside the absence, and mortgage interest declared without a ti   (elapsed time normalised out)
+revert-verified:  yes (committed=8294f084523f504fcb19681e0e7cda2cdce457b5 restored=8294f084523f504fcb19681e0e7cda2cdce457b5)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-02-08` — the refusal statement
+
+This row's module-facing clause is the published refusal text: it is what proves
+the standard deduction was not substituted for the total the composition could
+not compute. Truncating that sentence is therefore the defect aimed at this row
+rather than at its neighbours.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-08 refusal-statement channel: the refusal stops stating that the standard deduction was not substituted in place of the total it could not compute, which is the one claim this row reads to prove no figure was deducted in full
+file:             rltax.js
+mutation:         chosenReason: "The cap that decides this composition could not be established, so neither total is comparable and the standard deduction is not silently substituted in its place. "  ->  chosenReason: "The cap that decides this composition could not be established. "   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-08: with the limit absent no component, no numeric itemised total and no applied deduction is published, so an implementation deducting the declared interest in full fails here
+green-exit:       0
+green-summary:      ✓ TP-02-08: with the limit absent no component, no numeric itemised total and no applied deduction is published, so an implementation deducting the declared interest in full fails here
+summary-compared:   ✗ FAIL: TP-02-08: with the limit absent no component, no numeric itemised total and no applied deduction is published, so an implementation deducting the declared interest in full fails here  vs    ✓ TP-02-08: with the limit absent no component, no numeric itemised total and no applied deduction is published, so an implementation deducting the declared interest in full fails here   (elapsed time normalised out)
+revert-verified:  yes (committed=8294f084523f504fcb19681e0e7cda2cdce457b5 restored=8294f084523f504fcb19681e0e7cda2cdce457b5)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-02-09` — the declared tie rule
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-09 tie-rule channel: on an exact tie the engine names a fixed side of its own instead of the side the pack declares, so a pack that resolves ties the other way is overridden by an engine preference
+file:             rltax.js
+mutation:         chosen = onTie;  ->  chosen = "standard";   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-09: below, exactly at and above the sourced standard deduction the chosen side is correct at each point, the tie follows the pack’s declared rule rather than an engine preference,
+green-exit:       0
+green-summary:      ✓ TP-02-09: below, exactly at and above the sourced standard deduction the chosen side is correct at each point, the tie follows the pack’s declared rule rather than an engine preference, and a
+summary-compared:   ✗ FAIL: TP-02-09: below, exactly at and above the sourced standard deduction the chosen side is correct at each point, the tie follows the pack’s declared rule rather than an engine preference,   vs    ✓ TP-02-09: below, exactly at and above the sourced standard deduction the chosen side is correct at each point, the tie follows the pack’s declared rule rather than an engine preference, and a    (elapsed time normalised out)
+revert-verified:  yes (committed=8294f084523f504fcb19681e0e7cda2cdce457b5 restored=8294f084523f504fcb19681e0e7cda2cdce457b5)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-02-10` — the declared preference
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-10 declared-preference channel: the settlement engine reads a declared preferred side in place of the pack tie rule, which is exactly the flag this row exists to prove the engine holds no reference to
+file:             rltax.js
+mutation:         var onTie = isPlainObject(pack.deductionChoicePolicy) ? pack.deductionChoicePolicy.onTie : null;  ->  var onTie = workspace.preferredDeductionSide || (isPlainObject(pack.deductionChoicePolicy) ? pack.deductionChoicePolicy.onTie : null);   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-10: a workspace member expressing a preferred deduction side is refused, the member is outside the closed workspace field set, and the settlement engine holds no reference to one, so
+green-exit:       0
+green-summary:      ✓ TP-02-10: a workspace member expressing a preferred deduction side is refused, the member is outside the closed workspace field set, and the settlement engine holds no reference to one, so the d
+summary-compared:   ✗ FAIL: TP-02-10: a workspace member expressing a preferred deduction side is refused, the member is outside the closed workspace field set, and the settlement engine holds no reference to one, so  vs    ✓ TP-02-10: a workspace member expressing a preferred deduction side is refused, the member is outside the closed workspace field set, and the settlement engine holds no reference to one, so the d   (elapsed time normalised out)
+revert-verified:  yes (committed=8294f084523f504fcb19681e0e7cda2cdce457b5 restored=8294f084523f504fcb19681e0e7cda2cdce457b5)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-02-11` — moved rather than vanished
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-11 accounting channel: the capped family is published under one generic component id, so the id that moved out of the unsupported set can no longer be found in the composition and reads as vanished rather than modelled
+file:             rltax.js
+mutation:         components.push(deductionComponent(entry.componentId, entry.componentId, entry.amount,  ->  components.push(deductionComponent("capped-family", entry.componentId, entry.amount,   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-11: the state and local tax id is absent from unsupportedFeatures[] and present as the capped component family the pack’s own cap declares, and the unsupported set, the leg set and
+green-exit:       0
+green-summary:      ✓ TP-02-11: the state and local tax id is absent from unsupportedFeatures[] and present as the capped component family the pack’s own cap declares, and the unsupported set, the leg set and the c
+summary-compared:   ✗ FAIL: TP-02-11: the state and local tax id is absent from unsupportedFeatures[] and present as the capped component family the pack’s own cap declares, and the unsupported set, the leg set and  vs    ✓ TP-02-11: the state and local tax id is absent from unsupportedFeatures[] and present as the capped component family the pack’s own cap declares, and the unsupported set, the leg set and the c   (elapsed time normalised out)
+revert-verified:  yes (committed=8294f084523f504fcb19681e0e7cda2cdce457b5 restored=8294f084523f504fcb19681e0e7cda2cdce457b5)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-02-12` — the carried-instead clause
+
+This is the one probe in this pass that mutates the pack rather than a module,
+because every clause of this row is pack-derived. Emptying the cap's declared
+component family leaves the entry the feature removed from `unsupportedFeatures[]`
+with nothing modelled in its place, which is the quiet-deletion route the
+`carriedInstead` clause exists to close.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-12 carried-instead channel: the cap stops declaring the components it governs, so the entry this feature removed from the unsupported set has nothing modelled in its place and the removal becomes a quiet deletion of a deferral
+file:             tax-rules/federal/2026.json
+mutation:         "cappedComponentIds": ["state-income-tax", "property-tax"],  ->  "cappedComponentIds": [],   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-12: the cap cites exactly one retrieved record with a locator, its filing-status variation names married filing separately as the only different amount, the reduction rate it could n
+green-exit:       0
+green-summary:      ✓ TP-02-12: the cap cites exactly one retrieved record with a locator, its filing-status variation names married filing separately as the only different amount, the reduction rate it could not est
+summary-compared:   ✗ FAIL: TP-02-12: the cap cites exactly one retrieved record with a locator, its filing-status variation names married filing separately as the only different amount, the reduction rate it could n  vs    ✓ TP-02-12: the cap cites exactly one retrieved record with a locator, its filing-status variation names married filing separately as the only different amount, the reduction rate it could not est   (elapsed time normalised out)
+revert-verified:  yes (committed=28c096427fc9e5b56d3be4854473dfcccb5f3425 restored=28c096427fc9e5b56d3be4854473dfcccb5f3425)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-02-13` — leg visibility on a complete fixture
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-13 leg-visibility channel: the membership test is inverted, so a surface that publishes every declared element is reported as missing all of them and the identity no longer holds on a complete fixture
+file:             rltaxproperty.js
+mutation:         if (rendered.indexOf(declared[index]) < 0) missing.push(declared[index]);  ->  if (rendered.indexOf(declared[index]) >= 0) missing.push(declared[index]);   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-13: the itemised composition and the recomputed decision appear in the headline, the comparison, the curve contributors and the export, in both directions, against a fixture in which
+green-exit:       0
+green-summary:      ✓ TP-02-13: the itemised composition and the recomputed decision appear in the headline, the comparison, the curve contributors and the export, in both directions, against a fixture in which both
+summary-compared:   ✗ FAIL: TP-02-13: the itemised composition and the recomputed decision appear in the headline, the comparison, the curve contributors and the export, in both directions, against a fixture in which  vs    ✓ TP-02-13: the itemised composition and the recomputed decision appear in the headline, the comparison, the curve contributors and the export, in both directions, against a fixture in which both    (elapsed time normalised out)
+revert-verified:  yes (committed=bb618aa51ecdbc38a5ac186026e615f7140aac3c restored=bb618aa51ecdbc38a5ac186026e615f7140aac3c)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-02-14` — the failure names the missing element
+
+The mutation leaves the identity failing and removes only the naming, so this
+probe separates `TP-02-14`'s claim from `TP-02-13`'s rather than riding on it.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-14 named-failure channel: the identity still fails when an element is dropped from a surface but no longer names which element is missing, so the failure a reader gets is a bare surface name rather than the leg that did not reach it
+file:             rltaxproperty.js
+mutation:         missingFromSurface: Object.freeze(missing),  ->  missingFromSurface: Object.freeze([]),   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-14: removing the recomputed decision from each of the four surfaces in turn fails the identity and each failure names the missing element
+green-exit:       0
+green-summary:      ✓ TP-02-14: removing the recomputed decision from each of the four surfaces in turn fails the identity and each failure names the missing element
+summary-compared:   ✗ FAIL: TP-02-14: removing the recomputed decision from each of the four surfaces in turn fails the identity and each failure names the missing element  vs    ✓ TP-02-14: removing the recomputed decision from each of the four surfaces in turn fails the identity and each failure names the missing element   (elapsed time normalised out)
+revert-verified:  yes (committed=bb618aa51ecdbc38a5ac186026e615f7140aac3c restored=bb618aa51ecdbc38a5ac186026e615f7140aac3c)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-02-15` — the refusal vocabulary
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-15 vocabulary channel: the refusal vocabulary gains a deduction-cap member, so this scope grows the closed code set it asserts it leaves at its pre-feature size
+file:             rltaxrules.js
+mutation:         "RLTAX-RECONCILE": true,  ->  "RLTAX-RECONCILE": true, "RLTAX-DEDUCTION-CAP-EXCEEDED": true,   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-15: the refusal vocabulary member count equals its pre-feature value and every code the deduction composition raises is an existing member
+green-exit:       0
+green-summary:      ✓ TP-02-15: the refusal vocabulary member count equals its pre-feature value and every code the deduction composition raises is an existing member
+summary-compared:   ✗ FAIL: TP-02-15: the refusal vocabulary member count equals its pre-feature value and every code the deduction composition raises is an existing member  vs    ✓ TP-02-15: the refusal vocabulary member count equals its pre-feature value and every code the deduction composition raises is an existing member   (elapsed time normalised out)
+revert-verified:  yes (committed=12f5df8b667f6b854936e6e3a77c1df6e202b12b restored=12f5df8b667f6b854936e6e3a77c1df6e202b12b)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-02-16` — the export sanitiser
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-16 export-privacy channel: the export sanitiser keeps the declared acquisition-debt balance, so a figure that narrows a household considerably survives an export and is absent from the omitted list that is supposed to name every withheld member
+file:             rltaxworkspace.js
+mutation:         deductionMode: workspace.deductionMode,  ->  deductionMode: workspace.deductionMode, mortgageAcquisitionDebtBalance: workspace.mortgageAcquisitionDebtBalance,   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-16: every mortgage declaration is a declared workspace member, is omitted by the export sanitiser and listed in omittedFields, is described by the storage inventory, and the declared
+green-exit:       0
+green-summary:      ✓ TP-02-16: every mortgage declaration is a declared workspace member, is omitted by the export sanitiser and listed in omittedFields, is described by the storage inventory, and the declared balan
+summary-compared:   ✗ FAIL: TP-02-16: every mortgage declaration is a declared workspace member, is omitted by the export sanitiser and listed in omittedFields, is described by the storage inventory, and the declared  vs    ✓ TP-02-16: every mortgage declaration is a declared workspace member, is omitted by the export sanitiser and listed in omittedFields, is described by the storage inventory, and the declared balan   (elapsed time normalised out)
+revert-verified:  yes (committed=d527e273212ed6fdc08c771ad4bddfea761a1ec9 restored=d527e273212ed6fdc08c771ad4bddfea761a1ec9)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-02-23` — the repository gate, and why it is pinned on the exit channel alone
+
+`TP-02-23` is the one row in this scope whose claim **is** the command's own
+verdict: "the whole-repository suite stays green and the pre-existing pass count
+does not fall". Its own assertion wording is therefore the exit status, not a
+per-row line, and this is the single probe here that carries no
+`--summary-match`. That is not the aggregate-pass-count shortcut this scope has
+otherwise refused: the harness is comparing exit `1` under a planted defect
+against exit `0` clean, which is exactly the state transition the row forbids.
+No pass-count arithmetic enters the verdict.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-23 repo-gate channel: the export surface is dropped from the closed leg-surface set, a defect broad enough to take the whole-repository suite off green, which is the state this row asserts the suite stays out of
+file:             rltaxproperty.js
+mutation:         var LEG_SURFACES = Object.freeze(["headline", "comparison", "curve", "export"]);  ->  var LEG_SURFACES = Object.freeze(["headline", "comparison", "curve"]);   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      ================================================
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=bb618aa51ecdbc38a5ac186026e615f7140aac3c restored=bb618aa51ecdbc38a5ac186026e615f7140aac3c)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### What the seventeen probes share
+
+Every mutation lands in a shipped module or in the shipped pack, never in the
+assertion being measured, so no probe here edits the thing it is testing. Each
+mutation is the first one attempted for its row; none was retried after a miss,
+and none produced exit `7`. Every revert was hash-verified against the committed
+blob, and `git status --porcelain` over `rltax.js`, `rltaxrules.js`,
+`rltaxproperty.js`, `rltaxworkspace.js` and `tax-rules/federal/2026.json` was
+re-read empty after each batch. No assertion was edited, weakened, skipped or
+removed.
+
+### Effect on the DoD row
+
+All twenty-nine rows now carry an intended RED and a same-command GREEN, and the
+every-row item is ticked. One qualification travels with it, stated here rather
+than buried: `TP-02-22`'s pair remains the one assembled from a probe's red arm
+and a separate clean run, because the harness's exit channel is unusable for that
+selector on this machine, and that limitation is recorded above under
+[TP-02-22 intended-RED, cumulative-selector channel](#tp-02-22-intended-red-cumulative-selector-channel-2026-08-22)
+rather than worked around.
+
+**Claim Source:** executed. All seventeen blocks are verbatim harness output from
+this session, each with its own exit code and its own revert verification.
+
 

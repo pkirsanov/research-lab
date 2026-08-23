@@ -1415,3 +1415,89 @@ reason other than the one it names, and `TP-03-25`'s discrimination is a
 pass-count delta because its command's exit code is polluted by a runner teardown
 fault. No assertion was edited, weakened, skipped or removed in this pass, and no
 timeout was raised.
+
+## Eighth Pass — `TP-03-29`, The Live-Route Privacy Row, Carries Its Own RED
+
+The seventh pass closed twenty-eight rows and the DoD row was ticked on that
+count. A twenty-ninth row was then added to this scope's Test Plan: `TP-03-29`,
+the live-route `NFR-023-003` proof this scope previously lacked, authored in
+`tests/lifetime-tax-rental.spec.mjs`. Adding a row reopens a DoD item that
+requires **every** row, which is why the item returned to open rather than
+staying ticked on the older count. This pass supplies the missing evidence.
+
+The row names three separable adversarial cases and no single mutation fails
+more than one of them, so each is probed on its own. Every RED names the row's
+own assertion by file line, which is what distinguishes an intended RED from a
+collateral break. All three blocks are verbatim harness output.
+
+**Arm A — a boot that read nothing.** Zeroing the capture is exactly that state,
+and it is what makes the two assertions below non-vacuous.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-29 arm A, non-empty pin: a boot that read nothing must fail this row, so the no-growth and permitted-set assertions cannot pass vacuously over an empty ledger
+file:             tests/lifetime-tax-rental.spec.mjs
+mutation:         const afterFirstPaint = ledger.length;  ->  const afterFirstPaint = ledger.length * 0;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-009\ the\ request\ ledger\ does\ not\ grow\ after\ the\ rental\ declarations --reporter=line
+red-exit:         1
+red-summary:          > 356 |   expect(afterFirstPaint).toBeGreaterThan(0);
+green-exit:       0
+green-summary:      1 passed (2.3s)
+summary-compared:     > 356 |   expect(afterFirstPaint).toBeGreaterThan(0);  vs     1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=4525b920762833ad036fd1dd68717063dbf95554 restored=4525b920762833ad036fd1dd68717063dbf95554)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Arm B — a request issued after the declarations are entered.** Subtracting one
+from the capture is the arithmetic image of exactly one such request: the
+non-empty pin still holds and only the no-growth equality fails, which is what
+shows the equality is carrying its own weight rather than riding on arm A.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-29 arm B, ledger growth: a request issued after the rental declarations are entered must fail this row
+file:             tests/lifetime-tax-rental.spec.mjs
+mutation:         const afterFirstPaint = ledger.length;  ->  const afterFirstPaint = ledger.length - 1;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-009\ the\ request\ ledger\ does\ not\ grow\ after\ the\ rental\ declarations --reporter=line
+red-exit:         1
+red-summary:          > 371 |   expect(ledger.length).toBe(afterFirstPaint);
+green-exit:       0
+green-summary:      1 passed (2.7s)
+summary-compared:     > 371 |   expect(ledger.length).toBe(afterFirstPaint);  vs     1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=4525b920762833ad036fd1dd68717063dbf95554 restored=4525b920762833ad036fd1dd68717063dbf95554)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Arm C — a read of a path the configuration does not declare.** Withdrawing the
+declared pack family from the derivation leaves the federal pack read, which the
+boot really makes, outside the permitted set.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-29 arm C, permitted-set membership: a read of a path the configuration does not declare must fail this row; withdrawing the declared pack family makes the federal pack read undeclared
+file:             tests/lifetime-tax-rental.spec.mjs
+mutation:         .concat(scripts).concat(packs).concat(['/favicon.ico']);  ->  .concat(scripts).concat([]).concat(['/favicon.ico']);   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-009\ the\ request\ ledger\ does\ not\ grow\ after\ the\ rental\ declarations --reporter=line
+red-exit:         1
+red-summary:          > 379 |   paths.forEach((path) => expect(permitted).toContain(path));
+green-exit:       0
+green-summary:      1 passed (2.3s)
+summary-compared:     > 379 |   paths.forEach((path) => expect(permitted).toContain(path));  vs     1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=4525b920762833ad036fd1dd68717063dbf95554 restored=4525b920762833ad036fd1dd68717063dbf95554)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Claim Source:** executed. All three blocks are verbatim harness output from
+this session. Each revert was hash-verified against the committed blob and
+`git status --short` for the touched spec was re-read clean afterwards.
+
+### Effect on the DoD rows
+
+Two rows are affected. The live-route `NFR-023-003` row is satisfied: the ledger
+does not grow after first paint, every entry is a same-origin read of a declared
+path, and neither assertion can pass over an empty ledger. The every-row
+RED/GREEN item is satisfied again at the new count of twenty-nine, carrying
+forward unchanged the two qualifications the seventh pass recorded.

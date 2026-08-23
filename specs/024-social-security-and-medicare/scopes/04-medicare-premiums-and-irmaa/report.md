@@ -1613,6 +1613,60 @@ the medicare rows that lose their pack outright. The route-level scenarios that
 do not read the request ledger stayed green, which is the discrimination that
 makes this a RED rather than a wholesale break.
 
+## TP-04-33 authored — the ledger-growth constraint `SCN-024-010` lacked (2026-08-22)
+
+`TP-04-33` was opened as `GAP, NOT AUTHORED` because `TP-04-28` pinned the ledger
+non-empty and every entry declared, but placed no bound on ledger growth after
+first paint. A request issued once the lookback was declared would not fail it:
+`expect(paths.length).toBeGreaterThan(0)` and
+`paths.forEach((path) => expect(permitted).toContain(path))` are both satisfied
+by a ledger that grew, so long as what it grew by is a declared path. That is the
+exact shape a leak takes on this route — the second year's finances carried out
+on a request to an asset the configuration already names.
+
+The constraint is now in that same run. `afterFirstPaint` is captured immediately
+after `openLifetimeTax`, and the ledger is asserted equal to it after
+`declareLookback` and the switch to Power. The capture is additionally pinned
+greater than zero, so the equality cannot be the vacuous `expect(0).toBe(0)`.
+The row also adopts the shared `sameOriginPaths` helper described under
+`TP-01-18` in the Feature 021 Scope 01 report.
+
+### Intended RED and same-command GREEN
+
+Subtracting one from the capture is the arithmetic image of a single request
+issued after first paint: every other assertion in the row still holds, and only
+the equality fails. That is what makes this RED the intended contract assertion
+rather than a collateral break — the RED names it by file line.
+
+```
+$ bash scripts/red-green-probe.sh \
+    --file tests/lifetime-tax-medicare.spec.mjs \
+    --find 'const afterFirstPaint = requests.length;' \
+    --replace 'const afterFirstPaint = requests.length - 1;' \
+    --label 'TP-04-33 ledger growth: a request issued once the lookback is declared must fail this row; neither the non-empty pin nor the permitted-set sweep can detect it, because both are satisfied by a ledger that grew' \
+    --bound 300 \
+    --summary-match 'expect\(requests\.length\)\.toBe|1 passed' \
+    -- npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-024-010 every request is a declared same-origin GET" --reporter=line
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-33 ledger growth: a request issued once the lookback is declared must fail this row; neither the non-empty pin nor the permitted-set sweep can detect it, because both are satisfied by a ledger that grew
+file:             tests/lifetime-tax-medicare.spec.mjs
+mutation:         const afterFirstPaint = requests.length;  ->  const afterFirstPaint = requests.length - 1;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-024-010\ every\ request\ is\ a\ declared\ same-origin\ GET --reporter=line
+red-exit:         1
+red-summary:          > 216 |   expect(requests.length).toBe(afterFirstPaint);
+green-exit:       0
+green-summary:      1 passed (2.0s)
+summary-compared:     > 216 |   expect(requests.length).toBe(afterFirstPaint);  vs    1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=bce8371b5dcc5836c014cd27b93a1ba751ae162c restored=bce8371b5dcc5836c014cd27b93a1ba751ae162c)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+TP0433_EXIT=0
+```
+
+**Claim Source:** executed. The block is verbatim harness output from this
+session, with the revert hash-verified against the committed blob.
+
+
 
 
 

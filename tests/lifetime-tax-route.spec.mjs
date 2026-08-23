@@ -308,7 +308,11 @@ test('Regression: SCN-021-015 a private export happens only on explicit action, 
 
   await openLifetimeTax(page, site);
   const afterFirstPaint = ledger.length;
-
+  /* TP-05-18. Without this pin every ledger assertion in this row is a filter over a snapshot that
+     a boot reading NOTHING satisfies: `afterFirstPaint` would be 0, the no-growth check below would
+     read `expect(0).toBe(0)`, and the declared-asset sweep would compare two empty arrays. The row
+     would pass while covering nothing. */
+  expect(afterFirstPaint).toBeGreaterThan(0);
   /* The sensitivity warning is rendered before any file can exist, and the control is disabled
      until the reader acknowledges it. */
   await expect(page.locator('#exportWarning')).toContainText('It is written only when you ask for it');
@@ -363,11 +367,6 @@ test('Regression: SCN-021-015 a private export happens only on explicit action, 
      not by the view switch, and not by the export. */
   await openPower(page);
   expect(ledger.length).toBe(afterFirstPaint);
-  /* TP-05-18. Without this pin every ledger assertion below is a filter over a snapshot that a
-     boot reading NOTHING satisfies: `afterFirstPaint` would be 0, the no-growth check above would
-     read `expect(0).toBe(0)`, and the declared-asset sweep would compare two empty arrays. This
-     row would pass while covering nothing. */
-  expect(afterFirstPaint).toBeGreaterThan(0);
   /* TP-01-18. The origin half, via the shared helper. A pathname is not an origin: the sweep two
      lines down accepts `https://elsewhere.example/rltaxstrategy.js` because its PATHNAME is
      declared. This refuses it. */

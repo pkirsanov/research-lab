@@ -44,6 +44,16 @@ function declaredRouteAssets() {
     .concat(scripts).concat(packs).concat(['/favicon.ico']);
 }
 
+/* F-REG-02. The module half of the derivation above, on its own, because the vacuity pin below
+   needs to name what the boot must actually have read rather than only what it may not read.
+   Derived for the same reason the permitted set is derived: a module a later scope adds moves the
+   expectation with it, while a boot that stopped loading its modules still fails. */
+function declaredRouteModules() {
+  const routeSource = readFileSync(join(ROOT, 'lifetime-tax-strategy-lab.html'), 'utf8');
+  return Array.from(routeSource.matchAll(/<script src="([^"]+)"><\/script>/g))
+    .map((match) => '/' + match[1]);
+}
+
 /* SUP-023-07 and SUP-023-08. The storage inventory's promise is that every key this tool writes
    is described there. Deriving the expected row count from the inventory's own declared key set
    rather than pinning a literal means a key added by a later scope moves the expectation with it,
@@ -284,9 +294,13 @@ test('Regression: SCN-021-002 unsupported year jurisdiction and income kind each
   }
 });
 
-test('Regression: SCN-021-003 the tax workspace issues zero network requests and keeps every household value local', async ({ page }) => {
+test('Regression: SCN-021-003 the tax workspace resolves only its declared reads and keeps every household value local', async ({ page }) => {
   const ledger = collectRequests(page);
   const consoleMessages = collectConsole(page);
+  /* F-REG-02. Responses, not just requests: a read that was ATTEMPTED and failed still appears in
+     the request ledger, so only a success status proves a declared read actually resolved. */
+  const responses = [];
+  page.on('response', (response) => responses.push({ url: response.url(), status: response.status() }));
   await openLifetimeTax(page, site);
   const afterFirstPaint = ledger.length;
 
@@ -344,6 +358,31 @@ test('Regression: SCN-021-003 the tax workspace issues zero network requests and
   /* Nothing at all is requested after first paint: entering household values, computing and
      switching view issue no request of any kind. */
   expect(ledger.length).toBe(afterFirstPaint);
+
+  /* F-REG-02 VACUITY PIN. Every ledger assertion above is an empty-set filter over a snapshot:
+     `foreign`, `unexpected` and the post-paint equality all hold for a boot that issued NO read at
+     all, so a route whose transport stopped working entirely would keep this test green. That is
+     the defect this pin closes. `NFR-021-009` is explicit that such a route does not satisfy it —
+     "a requirement that could be satisfied by a route that reads nothing is not this requirement:
+     the declared reads must still be present and resolvable" — so pin the reads the boot must
+     actually have made, at the shape the route declares. Derived rather than literal, so a module
+     or pack a later scope adds moves the expectation with it. */
+  expect(afterFirstPaint).toBeGreaterThan(0);
+  const resolvedPaths = responses
+    .filter((response) => response.status >= 200 && response.status < 300)
+    .map((response) => new URL(response.url).pathname);
+  /* Every module the page declares really loaded. The count is measured, not assumed: it is the
+     page's own script-tag set, and an empty derivation would make the forEach vacuous in exactly
+     the way this pin exists to prevent. */
+  const declaredModules = declaredRouteModules();
+  expect(declaredModules.length).toBeGreaterThan(0);
+  expect(declaredModules).toContain('/rltax.js');
+  declaredModules.forEach((modulePath) => expect(resolvedPaths).toContain(modulePath));
+  /* And the route's single network primitive really ran and really succeeded: the configuration
+     document and the federal pack it names both returned a success status. A `file://` boot, which
+     issues both requests and fails both, is rejected here — attempted is not resolved. */
+  expect(resolvedPaths).toContain('/' + CONFIG_PATH);
+  expect(resolvedPaths).toContain('/' + PACK_PATH);
 
   /* The sentinel reaches the DOM and this tool's own namespace, and nothing else. */
   expect(ledger.some((entry) => entry.url.includes(SENTINEL_ORDINARY) || entry.postData.includes(SENTINEL_ORDINARY))).toBe(false);

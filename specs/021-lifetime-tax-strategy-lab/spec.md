@@ -581,7 +581,7 @@ Requirements: `FR-021-003`, `FR-021-005`, `FR-021-006`, `FR-021-007`.
 Scenario: SCN-021-003 No household value leaves the local namespace
   Given a household enters income, deduction, and filing values into the workspace
   When the page is exercised end to end and its request ledger, URL, referrer, console output, and storage keys are inspected
-  Then the page has issued zero network requests
+  Then every request the page issued is a same-origin read of a document its own configuration declares, and those declared reads resolved
   And no household value appears in any URL, referrer, console message, or committed artifact
   And every written storage key belongs to this feature's own namespace and none belongs to the portfolio workspace
 ```
@@ -1017,7 +1017,7 @@ one.
 | --- | --- | --- | --- | --- | --- |
 | SCN-021-001 | Self-directed household | Route open, no prior workspace | Enter filing status, year, one income amount, deduction mode | Pack identity strip, source records, unsupported-feature list, a named unavailable row per unsupplied domain | Simple |
 | SCN-021-002 | Self-directed household | Valid workspace | Change year out of range; select a state; add an unsupported income kind | Three distinct unavailable records with three distinct codes; supported federal rows still rendered | Simple |
-| SCN-021-003 | Self-directed household | Route open | Full entry pass, then reload | Zero network requests; storage inventory lists only this feature's keys; sentinel value absent everywhere outside the local namespace | Simple + privacy inventory |
+| SCN-021-003 | Self-directed household | Route open | Full entry pass, then reload | Only declared same-origin reads, and those reads resolved; storage inventory lists only this feature's keys; sentinel value absent everywhere outside the local namespace | Simple + privacy inventory |
 | SCN-021-004 | Self-directed household | Settled workspace | Vary ordinary income across a bracket edge | Exact figures at, below and above the edge; identical repeat run; rule status on every field | Power |
 | SCN-021-005 | Self-directed household | Settled workspace | Add a long-term gain, then raise ordinary income alone | Gain taxed in the bands above ordinary taxable income; gain tax changes when ordinary income changes | Power |
 | SCN-021-006 | Self-directed household | Settled workspace | Switch deduction mode; then clear the mode | Applied deduction and its mode displayed; reconciliation row balances; cleared mode yields an incomplete-input refusal | Simple + Power |

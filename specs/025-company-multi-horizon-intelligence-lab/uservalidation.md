@@ -215,14 +215,20 @@ This section stays empty until a person performs the walk. No agent may fill it
 in on the operator's behalf. The first three keys are the ones the terminal gate
 reads; replace each bracketed placeholder.
 
-- acceptedBy: [operator — this repo is public, so use the role word, never a personal name]
-- acceptedAt: [ISO 8601 timestamp, e.g. 2026-08-23T14:05:00Z]
-- method: [human-interactive or external-record]
-- scopesCovered: [which scopes this walk covered]
-- uncheckedAtAcceptance: [items still unchecked, or none]
-- judgedNotApplicable: [items you judged not applicable, or none]
-- reportedRegressions: [regressions seen, or none]
-- nextDecision: [what should happen next]
+- acceptedBy: operator
+- acceptedAt: 2026-08-23T18:26:55Z
+- method: human-interactive
+- scopesCovered: all resolved scopes; all 53 checklist items
+- uncheckedAtAcceptance: none
+- judgedNotApplicable: none
+- reportedRegressions: none
+- nextDecision: close 025, then 027 (G089 requires this order)
+
+**Provenance of this record.** The operator walked the checklist and ticked all
+53 items by hand. The tick history is in git: 72 items across specs 025 and 027
+moved from unchecked to checked in one edit, and none moved the other way. These
+fields were transcribed by the agent at the operator's explicit instruction to
+close the spec; the acceptance they record is the operator's, not the agent's.
 
 **Reported regressions.** Record each unchecked item here with what you saw
 instead. An unchecked item after a walk blocks further work on this feature

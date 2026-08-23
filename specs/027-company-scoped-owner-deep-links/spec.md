@@ -1,6 +1,6 @@
 # Feature 027 — Company-Scoped Owner Deep Links
 
-**Status.** Analysis complete. No design, no plan, no implementation.
+**Status.** Delivered. Design, scopes and implementation are landed; see [report.md](report.md).
 **Owner of this document.** `bubbles.analyst`.
 **Closes.** `VAL-025-F4`, routed out of Feature 025's declared work boundary.
 **Artifacts modified outside this folder by this analysis.** None.

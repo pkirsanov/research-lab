@@ -344,11 +344,11 @@ any scope. The only identifier that disappears is the private, file-local
 
 **Scope-Kind:** runtime-behavior
 
-**Status:** Done (24 of 24 DoD items ticked)
+**Status:** Done (27 of 27 DoD items ticked)
 
 | Field | Value |
 | --- | --- |
-| Status | Done — implemented and verified; 24 of 24 DoD items ticked with executed evidence |
+| Status | Done — implemented and verified; 27 of 27 DoD items ticked with executed evidence |
 | Priority | P1 |
 | Depends On | none |
 | Tag | foundation:true |
@@ -575,11 +575,11 @@ fails if the append was not an append.
 
 **Scope-Kind:** runtime-behavior
 
-**Status:** Done (26 of 26 DoD items ticked)
+**Status:** Done (29 of 29 DoD items ticked)
 
 | Field | Value |
 | --- | --- |
-| Status | Done — implemented and verified; 26 of 26 DoD items ticked with executed evidence |
+| Status | Done — implemented and verified; 29 of 29 DoD items ticked with executed evidence |
 | Priority | P1 |
 | Depends On | Scope 1 (foundation). Both routes consume `RLTKR.linkedSubject` and define no acceptance rule of their own. |
 | Owns scenarios | SCN-027-001, SCN-027-002, SCN-027-003, SCN-027-004, SCN-027-005, SCN-027-008, SCN-027-012, SCN-027-013 |
@@ -821,11 +821,11 @@ and `trend-dynamics-cycle-lab.html`, which this feature never opens.
 
 **Scope-Kind:** runtime-behavior
 
-**Status:** Done (23 of 23 DoD items ticked)
+**Status:** Done (26 of 26 DoD items ticked)
 
 | Field | Value |
 | --- | --- |
-| Status | Done — implemented and verified; 23 of 23 DoD items ticked with executed evidence |
+| Status | Done — implemented and verified; 26 of 26 DoD items ticked with executed evidence |
 | Priority | P1 |
 | Depends On | Scope 1 and Scope 2. FR-027-027 forbids declaring a subject parameter before its route reads one, so every reader must exist first. |
 | Owns scenarios | SCN-027-014, SCN-027-015, SCN-027-016, SCN-027-018 |

@@ -340,9 +340,11 @@ One pure function, added to the existing `RLTKR` UMD export in `rlticker.js`.
 No new module (P18, P19).
 
 ```
-RLTKR.linkedSubject(search) -> { status, subject, raw }
+RLTKR.linkedSubject(search, paramName) -> { status, subject, raw }
 
-  search   string | URLSearchParams | null   the route's own location.search
+  search      string | URLSearchParams | null   the route's own location.search
+  paramName   string | undefined                overrides SUBJECT_PARAM; the hub
+                                                passes its own parameter name
 
   status   "absent"   the parameter was not present, or was empty or whitespace
            "accepted" the value is an acceptable company identifier
@@ -379,9 +381,10 @@ browser (NFR-027-005).
 ## Concrete Implementations
 
 Each route composes the foundation with its own resolution and its own
-presentation. The foundation owns acceptance; the route owns meaning. Four
-routes consume `RLTKR.linkedSubject`; none of them defines an acceptance rule
-of its own.
+presentation. The foundation owns acceptance; the route owns meaning. Five
+production routes consume `RLTKR.linkedSubject` — the four receiving routes and
+the hub, which routes its own read through the same rule; none of them defines
+an acceptance rule of its own.
 
 | Route | Resolution | Presentation of an accepted subject | Presentation of unresolvable |
 | --- | --- | --- | --- |
@@ -402,8 +405,9 @@ all, so they link bare and declare `ownerBareReason` instead of
 foundation has to make "this owner has no subject" a first-class, stated
 outcome:
 
-- `technical-analysis-decision-lab` — `market-scoped`. The route names no
-  instrument; there is nothing for a subject to bind to.
+- `technical-analysis-decision-lab` — `fixed-subject`. The route names no
+  instrument a caller may choose; there is nothing for a passed subject to bind
+  to.
 - `trend-dynamics-cycle-lab` — `fixed-subject`. The route carries a single SPY
   series; a passed subject could only contradict what is on screen.
 - `company-fundamentals-lab` — `fixed-subject`. The route is hardcoded to

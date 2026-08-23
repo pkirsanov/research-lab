@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs in
 [report.md](report.md).
 
-**Status:** Done with concerns
+**Status:** In Progress (deliverables and tests verified; newly added planning rows unverified)
 **Scope-Kind:** runtime-behavior
 **Tags:** `deterministic:true`, `no-probability:true`, `claim-boundary:true`, `sourcing-gated:true`, `known-value-tested`
 **Depends On:** 01
@@ -223,6 +223,12 @@ framework-managed file.
 touches no tax total and must not require a federal pack edit; if it does, the
 comparison is computing something it should not be.
 
+**Allowed file families:** the *Allowed new* and *Allowed modified* paths named
+above, and nothing else.
+
+**Excluded surfaces:** the byte-identical list named above. Collateral cleanup
+outside the allowed families is opt-in and is not performed under this scope.
+
 **Rollback:** delete `rltaxclaimage.js`, the mortality pack and the fixtures;
 revert the two contracts, the probability refusal, stage `CO-23`, the workspace
 member and the two claim-scan file-set extensions; revert the page section.
@@ -251,6 +257,21 @@ suite goes green.
 Every pre-existing assertion must still pass unchanged at the end of this scope.
 An assertion that fails is either a defect in this scope's change and is fixed, or
 an ASC-8 admission recorded across all four surfaces before the edit.
+
+## Consumer Impact Sweep
+
+This scope fixes the claim-age module name, the mortality pack path and the
+comparison stage identifiers. Any rename, move or removal of one of those
+identifiers reaches the surfaces below, and each surface is swept before the
+scope closes.
+
+| Consumer surface | What a rename or removal would break | Sweep proof |
+| --- | --- | --- |
+| The page's module `src` list and the mortality pack it reads as an API client | A moved module or pack path turns a declared read into an unresolved request | The declared-read canary fails on any declared read that does not resolve |
+| The route's claim-age panel and its anchor ids | A renamed stage leaves the panel unavailable instead of resolved | Every claim age resolves to a rendered comparison row in the browser row |
+| Deep links and breadcrumb anchors into that panel | A renamed anchor id makes a shared deep link land on nothing | Every anchor the page emits is resolved rather than assumed |
+| Sibling scopes that compose the comparison into the route census | A removed identifier drops a leg from the census silently | The census refuses on an unknown leg rather than skipping it |
+| Documentation, notes and any redirect entry | A renamed identifier leaves a stale reference | A repository-wide stale-reference scan for the old identifier returns zero first-party rows |
 
 ## Scenario-First Red/Green Contract
 
@@ -305,6 +326,11 @@ error, a missing browser or an absent test does not satisfy RED.
 A row is checked only when it is genuinely satisfied and was observed to be
 satisfied. A row that is not satisfied stays `[ ]` and carries a stated reason. If
 delivery makes a row's claim false, the row is corrected rather than checked.
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-024-007, SCN-024-008 and SCN-024-009 pass under the exact persistent titles this scope's Test Plan names, and each of those titles is present in the spec file rather than merely selected by `--grep`. Adversarial case: renaming or deleting one of those persistent titles must fail this row, so an empty grep selection can never be read as a pass.
+- [ ] Broader E2E regression suite passes across the whole lifetime-tax browser family, not this scope's own spec file alone. Adversarial case: a change made inside this scope that reddens a sibling scope's persistent title must fail this row even while this scope's own rows stay green.
+- [ ] Change Boundary is respected and zero excluded file families were changed, proven by a path-scoped `git status --porcelain` over the excluded surfaces plus an mtime comparison for any untracked excluded directory. Adversarial case: touching one excluded path must produce a row and fail this item; `git diff --quiet` alone is not accepted, because it reports an untracked path as unchanged.
+- [ ] The Consumer Impact Sweep is complete for every renamed, moved or removed route, path, contract, identifier and UI target in this scope, and zero stale first-party references remain. Adversarial case: one stale reference left in navigation, a breadcrumb, a redirect, a deep link, an API client read or a doc must fail this row, and the proof must be a repository-wide stale-reference scan rather than a spot check.
 
 - [x] FR-024-015 is implemented: the mortality contract refuses a
       probability-bearing, survivorship-count or hazard member naming it, accepts a

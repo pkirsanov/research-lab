@@ -26331,6 +26331,62 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 027 hub-route group threw): ' + e.message); }
 /* FEATURE-027-HUB-ROUTE-END */
 
+/* FEATURE-027-CATALOG-REACH-BEGIN */
+try {
+  group('Feature 027 F-AUDIT-09: the sizing catalog is tied to the corridor grammar');
+  const f027iTickerSource = read('rlticker.js');
+  const f027iParamLine = /\n\s*var SUBJECT_PARAM = [^\n]*\n/.exec(f027iTickerSource);
+  const f027iPatternLine = /\n\s*var SUBJECT_PATTERN = [^\n]*\n/.exec(f027iTickerSource);
+  if (!f027iParamLine || !f027iPatternLine) throw new Error('SUBJECT_PARAM / SUBJECT_PATTERN not declared in rlticker.js');
+  /* SUBJECT_PATTERN is returned beside the two functions so the GRAMMAR half of this proof is
+     read out of the same declaration the reader itself uses. Deciding grammar-validity from a
+     regex retyped here would prove the copy rather than the corridor. */
+  const f027iRule = build(
+    [extractFn(f027iTickerSource, 'normTicker'), extractFn(f027iTickerSource, 'linkedSubject')],
+    ['normTicker', 'linkedSubject', 'SUBJECT_PATTERN'],
+    f027iParamLine[0] + f027iPatternLine[0]);
+  const f027iRead = (value) => f027iRule.linkedSubject('?ticker=' + encodeURIComponent(value));
+  const f027iMembers = JSON.parse(read('volatility-sizing-universe.json')).assets.map((asset) => asset.symbol);
+  const f027iGrammarValid = f027iMembers.filter((symbol) => f027iRule.SUBJECT_PATTERN.test(f027iRule.normTicker(symbol)));
+
+  /* i.a — the REACHABLE half. Nothing else in this tree ties the catalog's CONTENTS to the
+     corridor's GRAMMAR; every other guard picks its own values, so a catalog member could stop
+     being nameable with every assertion still green. The corpus here is the committed catalog,
+     and every member the grammar admits must come back accepted with its normalised value
+     unchanged — proving the reader refuses nothing the grammar does not already state. */
+  const f027iNotAccepted = f027iGrammarValid.filter((symbol) => {
+    const handoff = f027iRead(symbol);
+    return handoff.status !== 'accepted' || handoff.subject !== f027iRule.normTicker(symbol);
+  });
+  assert(f027iMembers.length > 0 && f027iGrammarValid.length > 0 && f027iNotAccepted.length === 0,
+  'Feature 027 F-AUDIT-09: every sizing-catalog member the corridor grammar admits is accepted by the shared reader'
+    + ' with an unchanged normalised value, so the reader refuses nothing the grammar does not ('
+    + f027iGrammarValid.length + ' of ' + f027iMembers.length + ' committed catalog members are grammar-valid, '
+    + f027iNotAccepted.length + ' not accepted: ' + (f027iNotAccepted.join(', ') || 'none') + ')');
+
+  /* i.b — the UNNAMEABLE half, and the valuable one. An EXACT set, not a containment check: it
+     states that the corridor's blind spot is PRECISELY the FX pair and nothing else. Widening
+     the class until CNY=X becomes nameable empties this set; narrowing it until BTC-USD stops
+     being nameable grows it; a second unreachable member added to the catalog grows it too.
+     Each of those goes red here. CNY=X is deliberately NOT filed in F027_REFUSED_CORPUS: that
+     corpus's message calls its values adversarial, and this is a legitimate catalog member the
+     company corridor excludes on purpose. */
+  const F027I_UNNAMEABLE_BY_DESIGN = Object.freeze(['CNY=X']);
+  const f027iUnnameable = f027iMembers.filter((symbol) => f027iRead(symbol).status !== 'accepted');
+  const f027iSortedJson = (values) => JSON.stringify(values.slice().sort());
+  assert(f027iSortedJson(f027iUnnameable) === f027iSortedJson(F027I_UNNAMEABLE_BY_DESIGN),
+  'Feature 027 F-AUDIT-09: the set of sizing-catalog members no deep link can name is EXACTLY the FX pair the company'
+    + ' corridor excludes on purpose (' + (f027iMembers.length - f027iUnnameable.length) + ' of ' + f027iMembers.length
+    + ' committed members are nameable; unnameable: [' + f027iUnnameable.join(', ') + '], expected exactly: ['
+    + F027I_UNNAMEABLE_BY_DESIGN.join(', ') + '])');
+
+  /* i.c — shared-surface canary */
+  assert(passes > 3155,
+    'Regression: SCN-027-CANARY every pre-existing selftest assertion stays green after the F-AUDIT-09 append'
+    + ' (' + passes + ' assertion(s) already green at this point)');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 027 catalog-reach group threw): ' + e.message); }
+/* FEATURE-027-CATALOG-REACH-END */
+
 /* RED-GREEN-PROBE-HARNESS-BEGIN */
 /* The harness exists because a `trap ... EXIT` set in a persistent interactive
    shell never fires, so a truncated dispatch has three times left a live

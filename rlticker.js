@@ -51,6 +51,7 @@
      browser global and the selftest can lift it with no DOM. A refused value is never
      returned in any field, so there is no accessor through which it could reach a sink. */
   var SUBJECT_PARAM = "ticker";
+  /* `=` is excluded deliberately (an FX pair such as CNY=X is not a company); widening this class is security-relevant, because an accepted subject reaches setStatus(), an `innerHTML` sink, at five call sites in options-structure-lab.html. */
   var SUBJECT_PATTERN = /^[A-Z0-9.\-]{1,12}$/;
   function linkedSubject(search, paramName) {
     var params;

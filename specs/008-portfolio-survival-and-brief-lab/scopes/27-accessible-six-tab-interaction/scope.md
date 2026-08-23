@@ -2,7 +2,7 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** In Progress
+**Status:** Done
 **Scope-Kind:** runtime-behavior
 **Tags:** `integration:accessibility`, `remediation`
 **Depends On:** 26
@@ -69,7 +69,7 @@ Scenario: A keyboard and screen-reader user completes the portfolio workflow und
 
 ## Test Plan
 
-**Uncertainty Declaration:** Current repository reads establish authoring only. TP-27-01, TP-27-02, and TP-27-04 have exact test definitions in `tests/portfolio-survival-accessibility.spec.mjs`; TP-27-03 has its exact test definition in `tests/portfolio-survival-mobile.spec.mjs`. TP-27-04 uses Playwright interception for disposable document mutations, so it is a non-live `functional` carrier rather than `e2e-ui`. TP-27-05 reuses the pre-existing shared selftest carrier and is not a Scope 27-authored scenario test. This planning invocation did not execute or validate these rows, records no execution evidence, and completes no DoD item. Current-session execution evidence and independent validation are required before any checkbox or `Done` transition.
+**Execution Reconciliation:** These rows remain planning-owned definitions. Their execution proof is not authored or restated here: each row links to the test-owned report, and its [post-merge validation](report.md#post-merge-validation---2026-08-23) records merged-tree coverage for the SCN-008-053 browser carrier and repository selftest. The eight checked DoD items below resolve to those report anchors, so this planning artifact retains the scope-level `Done` mirror without making a planner execution or feature-certification claim. TP-27-04 uses Playwright interception for disposable document mutations, so it remains a non-live `functional` carrier rather than `e2e-ui`. TP-27-05 reuses the pre-existing shared selftest carrier and is not a Scope 27-authored scenario test.
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Authoring Status | Evidence |
 |---|---|---|---|---|---|---|---|---|---|
@@ -92,6 +92,6 @@ Scenario: A keyboard and screen-reader user completes the portfolio workflow und
 - [x] TP-27-02 reduced-motion/forced-colors/contrast/text-spacing real-page regression passes. Evidence: [TP-27-02](report.md#tp-27-02).
 - [x] TP-27-03 responsive/zoom/no-overlap real-page regression passes. Evidence: [TP-27-03](report.md#tp-27-03).
 - [x] TP-27-04 adversarial mutation carrier fails each reduced accessibility implementation. Evidence: [TP-27-04](report.md#tp-27-04) and the [non-tautology audit](report.md#non-tautology-audit-of-the-mutation-carrier) of its drifted-anchor, no-op-replacement, and same-document-navigation guards.
-- [x] TP-27-05 broader regression passes. Evidence: [TP-27-05](report.md#tp-27-05) — 3306 passed, 0 failed, sha256 over all 3738 output lines.
+- [x] TP-27-05 broader regression passes. Evidence: [TP-27-05](report.md#tp-27-05) and the test-owned [merged repository selftest](report.md#merged-repository-selftest).
 - [x] Shared Infrastructure Impact Sweep and projection-only rollback proof are recorded. Evidence: [shared infrastructure impact sweep](report.md#shared-infrastructure-impact-sweep) and [rollback proof](report.md#rollback-proof--projection-only).
 - [x] Build Quality Gate passes with zero skips/warnings and no excluded-file changes. Evidence: [build quality gate](report.md#build-quality-gate--current-session-2026-08-23).

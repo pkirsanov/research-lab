@@ -569,7 +569,7 @@
         "scope": 27,
         "scopeId": "27-accessible-six-tab-interaction",
         "name": "Accessible Six-Tab Interaction",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "26"
         ],
@@ -645,7 +645,8 @@
       23,
       24,
       25,
-      26
+      26,
+      27
     ]
   },
   "certification": {
@@ -676,7 +677,8 @@
       "23-stress-dependence-and-hedge-effectiveness",
       "24-complete-allocation-and-explicit-views",
       "25-decision-time-dossier-and-immutable-audit",
-      "26-immutable-workspace-compute-and-navigation"
+      "26-immutable-workspace-compute-and-navigation",
+      "27-accessible-six-tab-interaction"
     ],
     "certifiedCompletedPhases": [],
     "scopeProgress": [
@@ -1019,7 +1021,7 @@
         "scope": 27,
         "scopeId": "27-accessible-six-tab-interaction",
         "name": "Accessible Six-Tab Interaction",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "26"
         ],
@@ -1029,7 +1031,7 @@
         ],
         "scopeDir": "scopes/27-accessible-six-tab-interaction",
         "evidenceFile": "scopes/27-accessible-six-tab-interaction/report.md",
-        "certifiedAt": null
+        "certifiedAt": "2026-08-23T18:32:50Z"
       },
       {
         "scope": 28,

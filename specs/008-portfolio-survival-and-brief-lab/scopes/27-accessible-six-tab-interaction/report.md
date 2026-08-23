@@ -657,3 +657,257 @@ Certification remains with `bubbles.validate`; this report makes no certificatio
 ## Audit Verdict
 
 Not yet audited. Ready for audit.
+
+## Post-Merge Validation - 2026-08-23
+
+This report-only pass independently validates the merged tree at
+`a8df784ea222028068abba26f476d8f050a2391a`. It does not change a DoD checkbox,
+scope status, test plan, source, test, state, audit, or certification artifact. The earlier
+`3306 passed, 0 failed` evidence remains above as pre-merge history. The merged-tree truth is
+`3314 passed, 0 failed`: the increase is eight assertions brought in by the merged remote parent,
+not a Scope 27 regression. The parent comparison below shows `scripts/selftest.mjs` grew by 76
+lines, and its assertion-call count increased from 2640 to 2648.
+
+### Merged-Tree Identity And Pre-Edit State
+
+**Phase:** test
+**Claim Source:** executed
+**Command:** `timeout 30 git rev-parse HEAD; timeout 30 git status --porcelain=v1; timeout 30 git diff --check; timeout 30 git show -s --format='HEAD=%H%nPARENTS=%P%nSUBJECT=%s' HEAD; timeout 30 git diff --numstat 0972ddd75..a8df784ea -- scripts/selftest.mjs; timeout 30 git grep -c -E '^[[:space:]]*assert\(' 0972ddd75 -- scripts/selftest.mjs; timeout 30 git grep -c -E '^[[:space:]]*assert\(' a8df784ea -- scripts/selftest.mjs`
+**Exit Code:** 0 for every command
+
+```text
+a8df784ea222028068abba26f476d8f050a2391a
+HEAD_EXIT=0
+ M specs/008-portfolio-survival-and-brief-lab/scopes/27-accessible-six-tab-interaction/scope.md
+STATUS_EXIT=0
+PRE_EDIT_DIFF_CHECK_EXIT=0
+HEAD=a8df784ea222028068abba26f476d8f050a2391a
+PARENTS=0972ddd75672b4c3683dd8c44815ba57109c0176 fc72c8dec8cc58ed2a8356547ea21619ae261036
+SUBJECT=Merge branch 'main' of github.com:pkirsanov/research-lab
+MERGE_IDENTITY_EXIT=0
+76      0       scripts/selftest.mjs
+REMOTE_SELFTEST_NUMSTAT_EXIT=0
+0972ddd75:scripts/selftest.mjs:2640
+PREMERGE_ASSERT_COUNT_EXIT=0
+a8df784ea:scripts/selftest.mjs:2648
+MERGED_ASSERT_COUNT_EXIT=0
+```
+
+The pre-edit status is not clean: a concurrent foreign-owned change changes `scope.md` from
+`In Progress` to `Done`. This test/report pass did not make, accept, revert, or extend that change.
+It remains an unresolved ownership finding because this task expressly forbids editing `scope.md`
+and assigns only `report.md` evidence ownership.
+
+### Exact SCN-008-053 Browser Rows
+
+**Phase:** test
+**Claim Source:** executed
+**Test mechanism:** checkout-local Playwright 1.61.1 drives system Chrome against the real page;
+three regression rows inspect keyboard, screen-reader, preference, responsive, zoom, and modal
+behavior, while the fourth row supplies the negative control by serving five deliberately reduced
+accessibility variants and requiring each to fail closed.
+**Command:** `timeout 600 bash .github/bubbles/scripts/evidence-capture.sh --label "scope-27 post-merge SCN-008-053" -- npx --no-install playwright test tests/portfolio-survival-accessibility.spec.mjs tests/portfolio-survival-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-008-053" --reporter=list`
+**Exit Code:** 0
+
+```text
+# scope-27 post-merge SCN-008-053
+$ npx --no-install playwright test tests/portfolio-survival-accessibility.spec.mjs tests/portfolio-survival-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep SCN-008-053 --reporter=list
+exit: 0
+lines: 23
+sha256: 60d09986bd8bdab4370d984fcd4379e1290bf690351e1e53b7c17700ad3ede6d
+--- output ---
+
+Running 4 tests using 2 workers
+
+[TP-27-03] desktop-1440x1000 bodyOverflow=0 inspected=23 compared=49 clipped=0 overlaps=0 targets=8 minTarget=44
+[TP-27-03] desktop-1440x1000 brief:tables=3/wide=0 risk-xray:tables=0/wide=0 path-lab:tables=0/wide=0 diversification:tables=1/wide=0 allocation:tables=0/wide=0 dossier:tables=0/wide=0
+[TP-27-03-DIAG] desktop-1440x1000 {"docScrollWidth":1440,"docClientWidth":1440,"bodyScrollWidth":2480,"gridWidth":2400,"gridMinWidth":"2400px","mainWidth":1280,"mainOverflowX":"visible","bodyOverflowX":"clip","htmlOverflowX":"clip"}
+  ✓  2 [system-chrome] › tests/portfolio-survival-accessibility.spec.mjs:89:1 › Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete (2.1s)
+[TP-27-03] mobile-390x844 bodyOverflow=0 inspected=23 compared=49 clipped=0 overlaps=0 targets=8 minTarget=44
+[TP-27-03] mobile-390x844 brief:tables=3/wide=0 risk-xray:tables=0/wide=0 path-lab:tables=0/wide=0 diversification:tables=1/wide=0 allocation:tables=0/wide=0 dossier:tables=0/wide=0
+[TP-27-03-DIAG] mobile-390x844 {"docScrollWidth":390,"docClientWidth":390,"bodyScrollWidth":2416,"gridWidth":2400,"gridMinWidth":"2400px","mainWidth":358,"mainOverflowX":"visible","bodyOverflowX":"clip","htmlOverflowX":"clip"}
+[TP-27-03] zoom200-720x500 bodyOverflow=0 inspected=23 compared=49 clipped=0 overlaps=0 targets=8 minTarget=44
+[TP-27-03] zoom200-720x500 brief:tables=3/wide=0 risk-xray:tables=0/wide=0 path-lab:tables=0/wide=0 diversification:tables=1/wide=0 allocation:tables=0/wide=0 dossier:tables=0/wide=0
+[TP-27-03-DIAG] zoom200-720x500 {"docScrollWidth":720,"docClientWidth":720,"bodyScrollWidth":2416,"gridWidth":2400,"gridMinWidth":"2400px","mainWidth":688,"mainOverflowX":"visible","bodyOverflowX":"clip","htmlOverflowX":"clip"}
+[TP-27-03] zoom200-mobile-390x422 bodyOverflow=0 inspected=23 compared=49 clipped=0 overlaps=0 targets=8 minTarget=44
+[TP-27-03] zoom200-mobile-390x422 brief:tables=3/wide=0 risk-xray:tables=0/wide=0 path-lab:tables=0/wide=0 diversification:tables=1/wide=0 allocation:tables=0/wide=0 dossier:tables=0/wide=0
+[TP-27-03-DIAG] zoom200-mobile-390x422 {"docScrollWidth":390,"docClientWidth":390,"bodyScrollWidth":2416,"gridWidth":2400,"gridMinWidth":"2400px","mainWidth":358,"mainOverflowX":"visible","bodyOverflowX":"clip","htmlOverflowX":"clip"}
+[TP-27-03] tablesSeen=16 across 4 projections x 6 tabs
+[TP-27-03] sheet-open-390x422 bodyOverflow=0 clipped=0 overlaps=0 targets=9
+  ✓  1 [system-chrome] › tests/portfolio-survival-mobile.spec.mjs:600:1 › Regression: SCN-008-053 zoom mobile and long content have no overlap clipping or body overflow (3.3s)
+  ✓  3 [system-chrome] › tests/portfolio-survival-accessibility.spec.mjs:316:1 › Regression: SCN-008-053 reduced motion forced colors contrast and text spacing preserve every decision (3.3s)
+  ✓  4 [system-chrome] › tests/portfolio-survival-accessibility.spec.mjs:501:1 › Adversarial: SCN-008-053 reduced accessibility implementations fail closed (3.0s)
+
+  4 passed (10.7s)
+```
+
+The complete 23-line output is covered by
+`sha256:60d09986bd8bdab4370d984fcd4379e1290bf690351e1e53b7c17700ad3ede6d`.
+
+### Merged Repository Selftest
+
+**Phase:** test
+**Claim Source:** executed
+**Command:** `timeout 600 bash .github/bubbles/scripts/evidence-capture.sh --label "scope-27 post-merge repository selftest" -- node scripts/selftest.mjs`
+**Exit Code:** 0
+
+```text
+# scope-27 post-merge repository selftest
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3750
+sha256: 40eb74af06b3f7339aad13a8e12aacdf0f519378473bfc6f4b98e8946c03d56e
+--- first 20 ---
+
+Step 1 security — escaped model sinks and CSP on every page
+  ✓ every shipped HTML page carries a Content-Security-Policy meta
+  ✓ all pages use one identical CSP instead of drifting per page
+  ✓ CSP keeps the single-file inline-script design while defaulting to self
+  ✓ CSP blocks object, base-tag, and form exfiltration paths
+  ✓ CSP connect-src is an explicit origin allowlist, never wildcard https
+  ✓ CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+  ✓ CSP allows no open URL-forwarding relay origin
+  ✓ production pages and shared runtime contain no open URL-forwarding relay chain
+  ✓ no model/config-authored field reaches innerHTML without esc()
+  ✓ the sink detector catches an unescaped model-authored title
+
+Feature 004 RLFX/RLDATA foundation
+  ✓ RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic
+  ✓ RLFX universe is bounded closed and asserts no live source authorization
+  ✓ RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows
+  ✓ RLDATA schema-one bars and legacy tool reads remain compatible beside versioned envelopes
+  ✓ RLDATA Twelve Data mapping: interval/symbol translate, values sort newest-first → oldest-first with UTC epochs, empty volume → null, error/malformed → null
+  ✓ RLFX broad dollar keeps Broad AFE EME and proxy states separate
+--- omitted 3710 line(s); sha256 above covers the full output ---
+--- last 20 ---
+  ✓ the core lane is genuinely required to emit regime.vix.regimeLabel and regime.vix.falsifier, the two leaves it silently omitted 4/4 times
+  ✓ the lane prompt states the required nested fields it will be rejected for omitting — enforcing an acceptance contract the lane was never told is what made the failure deterministic
+  ✓ both prompt branches carry the required-leaf instruction, so no lane is judged against a contract it was not given
+  ✓ a retry is told why the previous attempt was rejected and the reason reaches the prompt — a retry that re-sends the identical input is the same attempt run twice
+
+experience shell — every registered tool is mountable
+  ✓ the registered-tool sweep actually has tools to check (found 29)
+  ✓ every registered tool page carries a [data-rlbrief-mount] anchor naming its own tool id — rlapp.js mounts the shell from nothing else (missing: none)
+  ✓ no page carries two mount anchors — rlapp.js requires exactly one and silently declines to mount otherwise (offenders: none)
+  ✓ every declared adapterModule is a module path string the shell can resolve against its bindings table
+
+brief window cutoff — publisher refuses what the consumer would reject
+  ✓ the consumer module exports its cutoff resolver, so the publish gate resolves cutoffs with the same rule instead of a second copy
+  ✓ a brief whose snapshot and payload are both past the declared cutoff is refused, and each breach is named separately rather than collapsed into one verdict
+  ✓ the ordinary in-band publication, composed inside the lead window, is not refused — the gate must not block the 90% case it exists to protect
+  ✓ all four window bands close at their own cutoff, so a run past the cutoff selects no window rather than one it cannot honestly satisfy (found 4/4)
+
+================================================
+Research-Lab self-test: 3314 passed, 0 failed
+================================================
+```
+
+The bounded transcript covers all 3750 produced lines with
+`sha256:40eb74af06b3f7339aad13a8e12aacdf0f519378473bfc6f4b98e8946c03d56e`.
+The two new selftest groups visible in the captured tail account for the eight remote assertions;
+the focused SCN-008-053 rows remain 4 passed and therefore show no Scope 27 regression.
+
+### Scenario-Link Resolution Finding
+
+**Phase:** test
+**Claim Source:** executed
+**Command:** `timeout 120 bash .github/bubbles/scripts/evidence-capture.sh --label "feature-008 scenario link resolution" -- bash .github/bubbles/scripts/scenario-test-resolve.sh specs/008-portfolio-survival-and-brief-lab`
+**Exit Code:** 1
+
+```text
+# feature-008 scenario link resolution
+$ bash .github/bubbles/scripts/scenario-test-resolve.sh specs/008-portfolio-survival-and-brief-lab
+exit: 1
+lines: 7
+sha256: 7d03d4adf9c5bc124d8d20627302e8f920718393f4c2cab283ba8e110ec6b673
+--- output ---
+scenario-test-resolve: FAIL — linked tests that do not resolve (Gate G057)
+  MISSING-FILE: SCN-008-054 -> tests/portfolio-test-integrity.unit.mjs
+    no such file under the repository root
+  MISSING-TITLE: SCN-008-055 -> tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-055 every published Feature 008 entry opens the Portfolio Brief workspace
+    the referenced file contains no test with this exact title
+
+scenario-test-resolve: 2 unresolved reference(s) of 65 checked.
+```
+
+Neither unresolved reference belongs to SCN-008-053 or Scope 27. They remain open and were not
+repaired in this report-only task. No audit, certification, or terminal-status claim is made.
+
+### Post-Edit Artifact Checks
+
+**Phase:** test
+**Claim Source:** executed
+**Command:** `timeout 600 bash .github/bubbles/scripts/evidence-capture.sh --label "scope-27 post-merge Feature 008 artifact lint" -- bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab`
+**Exit Code:** 0
+
+```text
+# scope-27 post-merge Feature 008 artifact lint
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab
+exit: 0
+lines: 406
+sha256: ed9142d7152044254040019b1b8b5bda8eb2f0e069f511acdd675c357cff0950
+--- first 20 ---
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes/_index.md
+✅ Per-scope layout contains 29 scope file(s)
+✅ Scope report exists: scopes/01-private-portfolio-import-and-atomic-store/report.md
+✅ Scope report exists: scopes/02-mandate-and-cash-need-authority/report.md
+✅ Scope report exists: scopes/03-local-behavior-privacy-inventory-and-clear/report.md
+✅ Scope report exists: scopes/04-public-evidence-barrier-and-coverage/report.md
+✅ Scope report exists: scopes/05-four-window-direct-scope-brief/report.md
+✅ Scope report exists: scopes/06-explainable-research-action-lifecycle/report.md
+✅ Scope report exists: scopes/07-return-and-drawdown-x-ray/report.md
+✅ Scope report exists: scopes/08-concentration-capm-and-risk-contribution/report.md
+✅ Scope report exists: scopes/09-dependent-path-reproducibility/report.md
+✅ Scope report exists: scopes/10-dated-cash-needs-and-survival-states/report.md
+✅ Scope report exists: scopes/11-stress-tail-and-alternative-dependence/report.md
+✅ Scope report exists: scopes/12-hedge-variant-research/report.md
+✅ Scope report exists: scopes/13-six-method-allocation-basis-and-feasibility/report.md
+✅ Scope report exists: scopes/14-allocation-sensitivity-and-explicit-black-litterman/report.md
+--- omitted 366 line(s); sha256 above covers the full output ---
+--- last 20 ---
+✅ No unfilled evidence template placeholders in scopes/14-allocation-sensitivity-and-explicit-black-litterman/report.md
+✅ No unfilled evidence template placeholders in scopes/15-walk-forward-research-dossier-and-claim-boundaries/report.md
+✅ No unfilled evidence template placeholders in scopes/16-integrated-route-accessibility-and-atomic-release/report.md
+✅ No unfilled evidence template placeholders in scopes/17-local-lifecycle-and-verified-clear-foundation/report.md
+✅ No unfilled evidence template placeholders in scopes/18-behavior-identity-and-ranking-foundation/report.md
+✅ No unfilled evidence template placeholders in scopes/19-coverage-aware-market-data-foundation/report.md
+✅ No unfilled evidence template placeholders in scopes/20-generic-evidence-brief-policy-and-api/report.md
+✅ No unfilled evidence template placeholders in scopes/21-partial-risk-input-and-diagnostics/report.md
+✅ No unfilled evidence template placeholders in scopes/22-scenario-contract-and-survival-distributions/report.md
+✅ No unfilled evidence template placeholders in scopes/23-stress-dependence-and-hedge-effectiveness/report.md
+✅ No unfilled evidence template placeholders in scopes/24-complete-allocation-and-explicit-views/report.md
+✅ No unfilled evidence template placeholders in scopes/25-decision-time-dossier-and-immutable-audit/report.md
+✅ No unfilled evidence template placeholders in scopes/26-immutable-workspace-compute-and-navigation/report.md
+✅ No unfilled evidence template placeholders in scopes/27-accessible-six-tab-interaction/report.md
+✅ No unfilled evidence template placeholders in scopes/28-spec-driven-adversarial-test-replacement/report.md
+✅ No unfilled evidence template placeholders in scopes/29-documentation-and-registry-truth/report.md
+
+=== End Anti-Fabrication Checks ===
+
+Artifact lint PASSED.
+```
+
+The bounded transcript covers all 406 produced lines with
+`sha256:ed9142d7152044254040019b1b8b5bda8eb2f0e069f511acdd675c357cff0950`.
+
+**Phase:** test
+**Claim Source:** executed
+**Command:** `timeout 30 git diff --check; timeout 30 git status --short; timeout 30 git diff --name-status`
+**Exit Code:** 0 for every command after the trailing-space repair
+
+```text
+POST_FIX_DIFF_CHECK_EXIT=0
+ M specs/008-portfolio-survival-and-brief-lab/scopes/27-accessible-six-tab-interaction/report.md
+ M specs/008-portfolio-survival-and-brief-lab/scopes/27-accessible-six-tab-interaction/scope.md
+POST_FIX_STATUS_EXIT=0
+M       specs/008-portfolio-survival-and-brief-lab/scopes/27-accessible-six-tab-interaction/report.md
+M       specs/008-portfolio-survival-and-brief-lab/scopes/27-accessible-six-tab-interaction/scope.md
+POST_FIX_NAME_STATUS_EXIT=0
+```
+
+The report is the only file changed by this task. The `scope.md` modification was already present
+at the first pre-edit status check and remains untouched.

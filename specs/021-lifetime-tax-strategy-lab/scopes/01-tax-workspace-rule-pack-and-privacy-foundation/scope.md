@@ -247,9 +247,23 @@ Test Plan row.
       local-only state, and mandatory configuration.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-01` through `report.md#tp-01-10`
   - **Claim Source:** executed · **Result:** all 17 assertions in the appended Scope 01 group pass; suite exits 0 at `2492 passed, 0 failed`. Two defects were found and fixed on the way: `validateRulePack` named an absent member twice, and the citation assertion expected 12 present figures where the pack correctly carries 8.
-- [ ] Every Test Plan row has intended RED evidence and same-command GREEN
+- [x] Every Test Plan row has intended RED evidence and same-command GREEN
       evidence, recorded before the cumulative browser row.
-  - **Re-examined 2026-08-22, still open, and two of the three gaps are closed.**
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` and the TP-01-15 cumulative browser command · **Evidence:** `report.md#tp-01-16-and-tp-01-15-earned--the-last-two-rows-without-a-red-2026-08-23`
+  - **Claim Source:** executed · **Result:** all eighteen rows now carry an intended RED and a same-command GREEN. The two that did not are earned in this session and recorded in the report section named above: `TP-01-16` discriminates at exit `1` against `0` with the pinned assertion moving from `✗ FAIL` to `✓`, and `TP-01-15` discriminates at exit `1` against `0` with the pin on a marginal-spec scenario this scope does not own. Both reverts are hash-verified against the committed blob.
+  - **Ticked 2026-08-23, superseding the two notes below.** The `TP-01-18` and
+    `TP-01-17` gaps those notes record were already closed on 2026-08-22 and are
+    unchanged. The two they left open are closed now. `TP-01-16`'s earlier exit-7
+    result is **not** withdrawn: its own conclusion was that the guard it mutated
+    is unasserted, so that mutation could never reach this row's contract, and
+    that blind spot in `rltaxworkspace.js` remains recorded in the report as a
+    finding. The probe run here is the first one placed inside the row's reach,
+    not a retry of the same experiment. Three limits recorded earlier are carried
+    forward unchanged rather than dissolved by this tick: `TP-01-04`'s
+    zero-substituting half, `TP-01-08`'s forbidden-prefix limb and `TP-01-14`'s
+    cross-origin arm each remain without a single-limb RED, for reasons stated
+    where they were found.
+  - **Superseded note, 2026-08-22.** Two of the three gaps are closed.
     `TP-01-18` is now authored and carries a RED with a same-command GREEN, so
     the note below no longer applies to it. Of the three rows the note itself
     identifies as outside the command range, `TP-01-17` now carries a
@@ -263,7 +277,7 @@ Test Plan row.
     the module, not the row: relaxing the non-empty string guard in
     `rltaxworkspace.js` so a zero-length string is accepted moves no assertion in
     a 3384-assertion suite, so a regression through that guard would ship green.
-  - **Unticked 2026-08-22 (F-REG-03).** `TP-01-18` was opened in this scope and
+  - **Superseded note, 2026-08-22 (F-REG-03).** `TP-01-18` was opened in this scope and
     is not authored, so it carries neither a RED nor a GREEN. The word "Every"
     therefore no longer holds. Note that this item's own **Command** already
     named a narrower range than its headline — `TP-01-01` through `TP-01-14`,

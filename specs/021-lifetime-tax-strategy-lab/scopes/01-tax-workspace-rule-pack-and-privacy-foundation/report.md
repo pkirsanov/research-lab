@@ -1256,4 +1256,128 @@ zero-substituting half and `TP-01-08`'s forbidden-prefix limb are each shielded
 by a second independent check, so no single-limb mutation can make their
 assertion fail.
 
+## `TP-01-16` and `TP-01-15` earned — the last two rows without a RED (2026-08-23)
+
+The section above left exactly two rows unproven. Both are earned here, and both
+blocks are verbatim harness output from this session.
+
+### Why `TP-01-16` is re-probed rather than left at exit 7
+
+The earlier `TP-01-16` probe relaxed a non-empty string guard in
+`rltaxworkspace.js` and returned exit 7. Its own recorded conclusion is that the
+guard **is unasserted** — no assertion in the suite reads it. A mutation that no
+assertion reads cannot reach the row's contract, so exit 7 there was not a
+verdict about the row; it was a measurement of a blind spot in the module. That
+finding stands and is not withdrawn below.
+
+Re-probing with a mutation the suite does read is therefore not a retry of the
+same experiment until it goes red. It is the first probe placed inside the row's
+reach at all. The two probes answer different questions: the earlier one asked
+whether that particular guard is watched, the one below asks whether the repo
+gate detects a defect planted in this scope's own module.
+
+### `TP-01-16` — repo gate, discriminating
+
+The mutation drops `probeKey` from the declared storage-key set in this scope's
+own workspace module. The clear action then still reports removing a key it no
+longer enumerates, which is the shape the Feature 008 boundary exists to refuse.
+The `--summary-match` names the assertion the defect must trip rather than the
+aggregate pass count, so a concurrent session moving the suite total cannot move
+this verdict.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-16 repo gate: a defect planted in this scope own workspace module and reachable by a pre-existing assertion — the declared storage-key set silently loses a member, so the clear action stops removing a key it still declares — must make the whole-repository suite non-green
+file:             rltaxworkspace.js
+mutation:         return Object.freeze([config.storage.workspaceKey, config.storage.pointerKey, config.storage.probeKey]);  ->  return Object.freeze([config.storage.workspaceKey, config.storage.pointerKey]);   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-01-08: clearing private data removes exactly the three declared keys, leaves a portfolio-prefixed key untouched, and a foreign key write is refused
+green-exit:       0
+green-summary:      ✓ TP-01-08: clearing private data removes exactly the three declared keys, leaves a portfolio-prefixed key untouched, and a foreign key write is refused
+summary-compared:   ✗ FAIL: TP-01-08: clearing private data removes exactly the three declared keys, leaves a portfolio-prefixed key untouched, and a foreign key write is refused  vs    ✓ TP-01-08: clearing private data removes exactly the three declared keys, leaves a portfolio-prefixed key untouched, and a foreign key write is refused   (elapsed time normalised out)
+revert-verified:  yes (committed=d527e273212ed6fdc08c771ad4bddfea761a1ec9 restored=d527e273212ed6fdc08c771ad4bddfea761a1ec9)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Both channels moved: exit `1` against `0`, and the named assertion moved from
+`✗ FAIL` to `✓` on the identical command after a hash-verified revert.
+
+### `TP-01-15` — cumulative browser row, discriminating
+
+The mutation drops the ordinary term from the preferential window in `rltax.js`,
+so a gain is priced from zero instead of on top of ordinary income. The comment
+above `stackPreferentialIncome` names that exact defect as the one the function
+exists to prevent. The pin is a `lifetime-tax-marginal.spec.mjs` scenario, which
+this scope does not own, so the RED proves the cumulative run reaches past this
+scope's own foundation spec rather than covering a convenient subset.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-15 cumulative browser row: dropping the ordinary term from the preferential window prices the gain in isolation instead of stacking it on ordinary income — the exact defect stackPreferentialIncome names — and the pin is a marginal-spec scenario this scope does not own, so the cumulative run is proven to reach past its own foundation spec rather than a convenient subset
+file:             rltax.js
+mutation:         Math.max(ordinaryTaxableIncome, band.lowerInclusive)  ->  Math.max(0, band.lowerInclusive)   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-021-00 --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:106:1 › Regression: SCN-021-008 a cliff renders as a step and is never smoothed 
+green-exit:       0
+green-summary:      ✓   5 [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:106:1 › Regression: SCN-021-008 a cliff renders as a step and is never smoothed (603ms)
+summary-compared:     [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:106:1 › Regression: SCN-021-008 a cliff renders as a step and is never smoothed   vs    ✓   5 [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:106:1 › Regression: SCN-021-008 a cliff renders as a step and is never smoothed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=8294f084523f504fcb19681e0e7cda2cdce457b5 restored=8294f084523f504fcb19681e0e7cda2cdce457b5)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**The first pin was wrong and is reported rather than discarded.** The probe was
+first pinned to `SCN-021-005 long term gains stack on ordinary income`, the
+scenario whose title names the very defect being planted. It returned exit 0 on
+the exit channel, but the pinned line read `✓` in **both** arms — the two lines
+differed only by Playwright's worker index, `7` against `6`. That is noise, not
+an outcome, so the verdict rested entirely on the exit channel and the summary
+channel was reporting a discrimination that did not happen. The probe was
+re-pinned to a line that genuinely moves rather than being recorded as it stood.
+
+### Finding — `SCN-021-005` cannot detect the defect its own title names
+
+Diagnosing that first pin produced a finding worth more than the pin. Under the
+mutation the cumulative run failed six of its nine scenarios — `SCN-021-001`,
+`-004`, `-006`, `-007`, `-008` and `-009`, spanning all three spec files — while
+`SCN-021-005`, the scenario named `long term gains stack on ordinary income`,
+**passed**:
+
+```text
+  ✘   2 [system-chrome] › tests/lifetime-tax-federal.spec.mjs:48:1 › Regression: SCN-021-004 federal tax is exact below at and above a bracket edge (5.9s)
+  ✘   3 [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:69:1 › Regression: SCN-021-007 the next dollar is priced as a curve with named thresholds (5.8s)
+  ✓   7 [system-chrome] › tests/lifetime-tax-federal.spec.mjs:77:1 › Regression: SCN-021-005 long term gains stack on ordinary income (715ms)
+  ✘   8 [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:106:1 › Regression: SCN-021-008 a cliff renders as a step and is never smoothed (5.6s)
+  6 failed
+  4 passed (20.1s)
+```
+
+The reason is arithmetic, not accident. That scenario fixes `ordinaryTaxable` at
+`40000`, which sits **below** the pack's carried zero-rate breakpoint. For the
+first preferential band the lower bound is `0`, so `max(ordinary, 0)` and
+`max(0, 0)` both yield `0` — and that band's rate is zero, so its contribution is
+zero either way. For every later band the lower bound is the breakpoint itself,
+which exceeds `40000`, so `max(ordinary, lower)` and `max(0, lower)` both yield
+`lower`. The two expressions coincide for every band, and the headline is
+byte-identical with the stacking term removed.
+
+The scenario is not inert in general — its across-the-breakpoint half still
+proves the gain is priced by the preferential table rather than at the ordinary
+rate. What it cannot do is detect a gain priced *in isolation*, which is the
+property its title asserts. A fixture with `ordinaryTaxable` above the zero-rate
+breakpoint would restore that sensitivity.
+
+`SCN-021-005` is not a row in this scope's Test Plan — this scope owns
+`SCN-021-001` through `SCN-021-003` — so this is routed as a finding to the
+owning scope rather than repaired here, and it does not bear on this scope's own
+row accounting.
+
+**Claim Source:** executed. Every block above is verbatim harness or reporter
+output from this session, each revert hash-verified against the committed blob,
+and `git status --porcelain -- rltax.js` re-read at `0` rows before the final
+probe.
+
 

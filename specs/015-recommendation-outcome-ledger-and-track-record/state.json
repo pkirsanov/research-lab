@@ -65,12 +65,12 @@
     "execution": {
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
-        "currentScope": null,
+        "currentScope": 4,
         "runStartedAt": "2026-07-28T21:05:00Z",
         "completedPhaseClaims": [],
         "pendingTransitionRequests": [],
         "nextRequiredOwner": "bubbles.implement",
-        "nextRequiredTarget": "02-additive-ledger-row-extension",
+        "nextRequiredTarget": "04-deterministic-outcome-resolver",
         "audit": {
             "schemaVersion": "audit-run/v1",
             "runId": null,

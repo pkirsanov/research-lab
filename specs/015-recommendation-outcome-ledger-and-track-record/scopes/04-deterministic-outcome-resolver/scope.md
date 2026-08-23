@@ -400,7 +400,7 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 | T-04-U3 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | Closure event and outcome class are independent: a claim whose predicate is **satisfied** but whose direction-adjusted magnitude is **negative** records `closureEventType: "satisfied"` **and** `outcomeClass: "loss"`. An implementation deriving one axis from the other fails this row. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u3` |
 | T-04-U4 | Unit | `unit` | BS-002 | `tests/recommendation-track-record.unit.mjs` | `RTR-CLOSURE-VOCAB` fires with its exact code when a closure event outside `CLOSE_EVENT_TYPES` is constructed (`"partially-satisfied"`) — raised by the **already-shipped** `buildResolution` (`rlclaims.js:1003`, code at `:267`), asserting the resolver neither re-implements the check nor extends the vocabulary locally. `rlcontracts.js` and `rlclaims.js` are asserted unmodified by `git diff --quiet` exiting 0. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u4` |
 | T-04-U5 | Unit | `unit` | BS-007 | `tests/recommendation-track-record.unit.mjs` | The fence is structural: the slice handed to the evaluator contains **no** row dated after `resolutionDate`, an attempt to consult one fires `RTR-LOOKAHEAD`, and the distinct `bars.asof < resolutionDate` case reports itself unresolvable. The due-set binding must carry evaluator-derived `seriesRefs` plus a required `seriesAsOf` `Map`, translating that same predicate into the silent `series-not-yet-observed` / `later-series-asof` exclusion that leaves the claim `active` with zero events appended; T-04-R1 re-asserts that lifecycle result end to end. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u5` |
-| T-04-U6 | Unit | `unit` | BS-010 | `tests/recommendation-track-record.unit.mjs` | The reason vocabulary is read from `NOT_EVALUABLE_REASONS` (`rlclaims.js:305`) and its length asserted to equal `MINT_REFUSALS.length + RESOLVER_NOT_EVALUABLE_REASONS.length` — **eleven** today, and the row states no literal so an added mint reason cannot silently go unexercised. *An earlier revision asserted six.* Each of the **three** resolver-raised reasons (`no-committed-reference`, `zero-observed-session`, `calendar-coverage-exhausted`) fires for its own trigger and only its own; each of the eight mint reasons is carried through unaltered; each carries a human-readable sentence. A subject naming a symbol absent from `enumerateCommittedSeries(readdir(BARS_DIR))` — **never `index.json`, and never a count literal** — closes `no-committed-series`, while a `relative` claim with a missing reference closes `no-committed-reference`. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u6` |
+| T-04-U6 | Unit | `unit` | BS-010 | `tests/recommendation-track-record.unit.mjs` | The reason vocabulary is read from `NOT_EVALUABLE_REASONS` (`rlclaims.js:305`) and its length asserted to equal `MINT_REFUSALS.length + RESOLVER_NOT_EVALUABLE_REASONS.length` — **twelve** today, and the row states no literal so an added mint reason cannot silently go unexercised. *Earlier revisions asserted six, then eleven; the derivation is what survived both moves.* Each of the **three** resolver-raised reasons (`no-committed-reference`, `zero-observed-session`, `calendar-coverage-exhausted`) fires for its own trigger and only its own; each of the nine mint reasons is carried through unaltered; each carries a human-readable sentence. A subject naming a symbol absent from `enumerateCommittedSeries(readdir(BARS_DIR))` — **never `index.json`, and never a count literal** — closes `no-committed-series`, while a `relative` claim with a missing reference closes `no-committed-reference`. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u6` |
 | T-04-U7 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | `outcomeValue = direction × ret(subject)`: a **correct bearish** claim (`trim`, `direction: -1`) on a series that fell produces a **positive** outcome, and a wrong one produces a negative outcome — the adapter without which every correct bearish call would score as a loss under `rlvalidation.js:136` (motivation only; the module is not imported). `hold` (`direction: 0`) closes `neutral-direction-no-magnitude`. The class is assigned by calling `classifyOutcome` (`rlclaims.js:795`), asserting the resolver does not re-derive the band comparison. Unblocked: Ruling R-04-01 is discharged, so the `ret(subject)` half reads the claim's frozen basis. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u7` |
 | T-04-U8 | Unit | `unit` | BS-002, BS-003 | `tests/recommendation-track-record.unit.mjs` | **Price basis is frozen on the claim, never chosen by the resolver (Ruling R-04-01).** A fixture series whose `c` and `ac` diverge scores **differently** under each basis, and the row asserts the resolver reads the claim's frozen `priceBasis` term rather than picking one: a claim carrying no such term refuses (`RTR-PRICE-BASIS`, resolver-**owned** per Ruling R-04-05) instead of defaulting, and two claims differing only in basis produce two distinct `resolutionHash` values. The hashed `provenance` additionally records a fingerprint of the exact basis values read at `entryDate` and `resolutionDate`, so a retroactive `ac` rewrite (BUG-012) **moves the content address** — the rewritten reading is written at a second address, both records survive, and the first is byte-unchanged. Unblocked: scope 01 has landed the term. | `node --test tests/recommendation-track-record.unit.mjs` | No | `report.md#t-04-u8` |
 | T-04-F1 | Functional | `functional` | BS-007 | `tests/recommendation-track-record.functional.mjs` | Horizon expiry is session arithmetic: a Friday `next-session` claim resolves the following Monday, not Saturday; a claim spanning a `holiday` resolves one session later than day arithmetic says; and each derived session date is cross-checked against `calendar.rows[].regular.startUtc` with a mismatch refusing. **Includes the `early-close` case (P-015-07)** — a `next-session` claim proposed the session before `2026-11-27` or `2026-12-24` must resolve **on** that early-close session, not skip it, and the resolution must record `provenance.earlyCloseSessions: [<tradingDate>]`. Keying the session test on `dateState` instead of `regular !== null` is the D4-owned `RTR-SESSION-PREDICATE` and is asserted to refuse; the derived 2026 session count is **251**. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-04-f1` |
@@ -1148,13 +1148,117 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   The row carries its own anti-vacuity control — the identical call shape with a readable series builds and its
   `resolutionHash` matches `^sha256:[a-f0-9]{64}$` — so the refusals in the same test are caused by the values
   under test rather than by a builder that refuses everything. Full narrative in [report.md](report.md).
-- [ ] T-04-U4 passes: `RTR-CLOSURE-VOCAB` fires from the shipped `buildResolution` and `git diff --quiet` proves the consumed modules unmodified → evidence recorded in `report.md#t-04-u4`.
-- [ ] T-04-U5 passes: the fence excludes future rows, `RTR-LOOKAHEAD` fires on an attempt, and the same
-  `bars.asof ≥ resolutionDate` predicate is bound into the due set through evaluator-derived `seriesRefs` plus the
-  required `seriesAsOf` Map; its false case silently excludes with `series-not-yet-observed` /
-  `later-series-asof` → evidence recorded in `report.md#t-04-u5`. — proves SCN-015-007
-- [ ] T-04-U6 passes: the reason set is read from `NOT_EVALUABLE_REASONS`, its length asserted by derivation (eleven today, no literal), each of the three resolver-raised reasons fires for its own trigger only → evidence recorded in `report.md#t-04-u6`. — proves SCN-015-010
-- [ ] T-04-U7 passes: a correct bearish claim yields a positive outcome via `classifyOutcome` and `hold` refuses → evidence recorded in `report.md#t-04-u7`.
+- [x] T-04-U4 passes: `RTR-CLOSURE-VOCAB` fires from the shipped `buildResolution` and `git diff --quiet` proves the consumed modules unmodified → evidence recorded in `report.md#t-04-u4`.
+
+  **Evidence — evidence pass over the shipped bytes.** Executed from `<repo-root>`.
+
+  ```
+  $ node --test tests/recommendation-track-record.unit.mjs
+  ✔ T-04-U4: RTR-CLOSURE-VOCAB is raised by the shipped buildResolution, never re-implemented by the resolver (80.581096ms)
+  ℹ tests 40
+  ℹ pass 40
+  ℹ fail 0
+  exit code: 0
+
+  $ node --test --test-name-pattern="T-04-U4" tests/recommendation-track-record.unit.mjs
+  ✔ T-04-U4: RTR-CLOSURE-VOCAB is raised by the shipped buildResolution, never re-implemented by the resolver (94.798817ms)
+  ℹ tests 1
+  ℹ pass 1
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  The second clause is a claim about the working tree, so it is verified **outside** the test as well as inside it —
+  a row that only reported its own helper's return would be asserting the assertion:
+
+  ```
+  $ git diff --quiet -- rlclaims.js rlcontracts.js
+  exit code: 0
+  ```
+
+  The refusal is raised by `claims.buildResolution`, and the code identity is read off the `rlclaims.js` export
+  rather than typed into the row, so an upstream rename fails here instead of leaving the assertion pointed at a
+  string the module no longer raises. Two independent controls keep the pass from being vacuous: the identical call
+  differing in **exactly** the closure event is **accepted**, so the refusal is caused by vocabulary membership and
+  not by a builder that refuses everything; and the same offending value handed to the resolver's own axis step
+  refuses under a **different**, resolver-owned code (`closure-event-carries-no-outcome-class`), so reaching
+  `RTR-CLOSURE-VOCAB` genuinely requires the shipped builder. The `git diff --quiet` exit code is likewise a
+  measurement rather than a constant — the same helper is asserted **non-zero** against an absent ref in the same
+  row. Full narrative in [report.md](report.md#t-04-u4).
+- [x] T-04-U5 **and T-04-U16** pass: resolution never reads the future (SCN-015-007): the as-of fence consults only observations at or before the claim's resolution
+  date and excludes future rows; `RTR-LOOKAHEAD` refuses an attempted read beyond that date; and the due gate uses
+  the series observed-through date (`bars.asof ≥ resolutionDate`) and never reads beyond it, with that predicate
+  bound into the due set through evaluator-derived `seriesRefs` plus the required `seriesAsOf` Map; its false case
+  silently excludes with `series-not-yet-observed` /
+  `later-series-asof` → evidence recorded in `report.md#t-04-u5`.
+
+  **Evidence.** The item is a conjunction across two rows, and it now names both. `T-04-U5` (lines 2204–2253) owns
+  the fence clause; `T-04-U16` (line 3414) owns the due-set clause and was added after this item was written.
+  Neither clause is weakened — both are proved, by the row that actually holds each. Executed from `<repo-root>`.
+
+  ```
+  $ node --test --test-name-pattern="T-04-U5|T-04-U16" tests/recommendation-track-record.unit.mjs
+  ✔ T-04-U5 (increment 2): the as-of fence is a slice, and "not yet observed" is not "read the future" (10.966899ms)
+  ✔ T-04-U16: the data conjunct gates on the SERIES as-of alone, and no later run date cures it (60.185382ms)
+  ℹ tests 2
+  ℹ pass 2
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  `T-04-U16` holds the entry, the pointer and the run date fixed and moves only how far the series has been
+  observed, so the exclusion is caused by the one value that moved: the fresh read is due with nothing excluded,
+  the one-session-short read is not due and is *reported* rather than dropped, carrying
+  `series-not-yet-observed` and the `later-series-asof` remedy — both asserted `notEqual` to the
+  `horizon-not-reached` pair, so a change collapsing the two "wait" reasons fails there. Full narrative in
+  [report.md](report.md#t-04-u5).
+- [x] T-04-U6 passes: the reason set is read from `NOT_EVALUABLE_REASONS`, its length asserted by derivation (twelve today, no literal), each of the three resolver-raised reasons fires for its own trigger only → evidence recorded in `report.md#t-04-u6`. — proves SCN-015-010
+
+  **Evidence.** The stale parenthetical is corrected, not the code: the shipped set carries **twelve** (9 + 3),
+  measured from the module below. The normative clause — length asserted BY DERIVATION, never a literal — held
+  throughout and still holds. Executed from `<repo-root>`.
+
+  ```
+  $ node --test --test-name-pattern="T-04-U6" tests/recommendation-track-record.unit.mjs
+  ✔ T-04-U6: the not-evaluable reason set is READ from rlclaims.js, never restated by the resolver (4.427086ms)
+  ℹ tests 1
+  ℹ pass 1
+  ℹ fail 0
+  exit code: 0
+
+  $ node -e "const c=require('./rlclaims.js');console.log('MINT_REFUSALS',c.MINT_REFUSALS.length);console.log('RESOLVER_NOT_EVALUABLE_REASONS',c.RESOLVER_NOT_EVALUABLE_REASONS.length);console.log('NOT_EVALUABLE_REASONS',c.NOT_EVALUABLE_REASONS.length);"
+  MINT_REFUSALS 9
+  RESOLVER_NOT_EVALUABLE_REASONS 3
+  NOT_EVALUABLE_REASONS 12
+  exit code: 0
+  ```
+
+  The count moved 11 → 12 in this scope's own work: `no-authored-price-basis` joined `MINT_REFUSALS` (8 → 9) when
+  Ruling R-04-01 made `priceBasis` a hashed claim term. Because the row asserts
+  `MINT_REFUSALS.length + RESOLVER_NOT_EVALUABLE_REASONS.length` rather than a number, that addition needed no test
+  edit — which is precisely the property the item asks for. Full narrative in [report.md](report.md#t-04-u6).
+- [x] T-04-U7 passes: a correct bearish claim yields a positive outcome via `classifyOutcome` and `hold` refuses → evidence recorded in `report.md#t-04-u7`.
+
+  **Evidence.** The row was extended this pass to prove what the item names. Executed from `<repo-root>`.
+
+  ```
+  $ node --test --test-name-pattern="T-04-U7" tests/recommendation-track-record.unit.mjs
+  ✔ T-04-U7 (increment 2): outcomeValue is direction x ret(subject), exact and unrounded, the class comes from classifyOutcome, hold refuses, and the basis values are fingerprinted (37.828932ms)
+  ℹ tests 1
+  ℹ pass 1
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  A correct bearish `trim` claim on a series that fell 10% now reaches `claims.classifyOutcome`, which returns
+  `outcomeValue > 0`, `outcomeClass: 'win'` and `CONTRIBUTION_NUMBER` — the class is assigned by the shipped
+  classifier, not re-derived. `hold` is exercised against the shipped vocabulary: `MARKET_ACTIONS` admits it,
+  `ACTION_DIRECTION` binds it to `0`, the mint closes `neutral-direction-no-magnitude`, and a cohort of holds alone
+  leaves `resolvedDirectional: 0` so `directionalDenominator` refuses with `no-directional-denominator-to-publish`.
+  The row is non-vacuous by measurement: handing the classifier the **unmultiplied** `subjectReturn` instead of
+  `outcomeValue` — the shape of a dropped or flipped direction multiply — fails the row (`# fail 1`), and the
+  paired control cohort that *does* publish shows the denominator refusal is caused by the hold's neutrality rather
+  than by a builder that refuses everything. Full narrative in [report.md](report.md#t-04-u7).
 - [x] T-04-U8 passes: divergent `c`/`ac` fixtures score differently, the frozen `priceBasis` term decides which, a claim lacking the term refuses rather than defaulting, and the basis-value fingerprint lands in hashed `provenance` → evidence recorded in `report.md#t-04-u8`. **Ruling R-04-01 is discharged, so this row is no longer blocked.**
 
   **Evidence — increments 2 and 3.** Increment 2 (commit `30a9e2624`) proved the first three clauses; increment 3

@@ -577,6 +577,122 @@ identical closure through `run.closures`, which appends exactly one event and mo
 | Idempotence is enforced by the due-set gate … | The gate and the `indexFingerprint` oracle are proven by `T-04-U9`. The content-addressed backstop clause is `T-04-I4`'s row in the *integration* suite, which this evidence pass did not run. |
 | The due set is computed from reduction state | `dueEntryKeys` filters on `entry.state` alone; the `claimRef` and `resolutionDate ≤ asOfDate` conjuncts the item names are not implemented in it. |
 
+### Evidence pass — the four resolver unit rows, one ticked and three refused
+
+The whole unit suite was run first, so every per-row claim below sits on a green baseline rather than on an
+isolated invocation. Executed from `<repo-root>`.
+
+```
+$ node --test tests/recommendation-track-record.unit.mjs
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+exit code: 0
+```
+
+**All four rows pass. Only one of the four DoD items is ticked.** A passing test is not the same thing as a
+satisfied item: three of these items assert something *narrower or different* from what their test executes, and
+ticking them would have recorded a claim the suite does not carry.
+
+#### T-04-U4
+
+```
+$ node --test --test-name-pattern="T-04-U4" tests/recommendation-track-record.unit.mjs
+✔ T-04-U4: RTR-CLOSURE-VOCAB is raised by the shipped buildResolution, never re-implemented by the resolver (94.798817ms)
+ℹ tests 1
+ℹ pass 1
+ℹ fail 0
+exit code: 0
+
+$ git diff --quiet -- rlclaims.js rlcontracts.js
+exit code: 0
+```
+
+**Ticked.** Both clauses hold. `RTR-CLOSURE-VOCAB` is raised by `claims.buildResolution` with the code read off the
+module export rather than typed into the test, and the resolver is proven not to own a second copy — it carries no
+quoted `'RTR-CLOSURE-VOCAB'` and no constant bound to it, and handed the same offending value it refuses under its
+own `closure-event-carries-no-outcome-class` instead. The second clause is a statement about the working tree, so
+it was verified independently of the test as well as inside it; both readings exit `0`. The in-test reading is a
+measurement rather than a constant, because the same helper is asserted **non-zero** against an absent ref.
+
+#### T-04-U5
+
+```
+$ node --test --test-name-pattern="T-04-U5" tests/recommendation-track-record.unit.mjs
+✔ T-04-U5 (increment 2): the as-of fence is a slice, and "not yet observed" is not "read the future" (10.782334ms)
+ℹ tests 1
+ℹ pass 1
+ℹ fail 0
+exit code: 0
+
+$ grep -nE "series-not-yet-observed|later-series-asof|seriesAsOf" tests/recommendation-track-record.unit.mjs
+2119:function seriesAsOfMap(symbols, asof) {
+3411: * has not reached the frozen horizon and time alone cures it. `series-not-yet-observed` says the
+3444:    const observed = dueEntryKeys(index, { ...gate, seriesAsOf: seriesAsOfMap(['DVG'], reached) });
+3445:    const unobserved = dueEntryKeys(index, { ...gate, seriesAsOf: seriesAsOfMap(['DVG'], short) });
+```
+
+**Not ticked.** The item is a conjunction and only its first half is this test's. `T-04-U5` spans lines
+2204–2253: it proves the fence is a slice containing no future row, that `RTR-LOOKAHEAD` fires on an attempt past
+it, and that `bars.asof < resolutionDate` is a silent unresolvable rather than a refusal. It does **not** touch the
+due set. Every occurrence of `seriesAsOf`, `series-not-yet-observed` and `later-series-asof` falls at line 3411 or
+beyond, inside `T-04-U16: the data conjunct gates on the SERIES as-of alone, and no later run date cures it`
+(line 3414) — a different row with its own DoD item. Ticking this item on `T-04-U5`'s pass would credit one row
+with a second row's work.
+
+#### T-04-U6
+
+```
+$ node --test --test-name-pattern="T-04-U6" tests/recommendation-track-record.unit.mjs
+✔ T-04-U6: the not-evaluable reason set is READ from rlclaims.js, never restated by the resolver (4.651871ms)
+ℹ tests 1
+ℹ pass 1
+ℹ fail 0
+exit code: 0
+
+$ node -e "const c=require('./rlclaims.js');console.log('NOT_EVALUABLE_REASONS.length =',c.NOT_EVALUABLE_REASONS.length);console.log('MINT_REFUSALS.length =',c.MINT_REFUSALS.length);console.log('RESOLVER_NOT_EVALUABLE_REASONS =',JSON.stringify(c.RESOLVER_NOT_EVALUABLE_REASONS));console.log('sum =',c.MINT_REFUSALS.length+c.RESOLVER_NOT_EVALUABLE_REASONS.length);"
+NOT_EVALUABLE_REASONS.length = 12
+MINT_REFUSALS.length = 9
+RESOLVER_NOT_EVALUABLE_REASONS = ["no-committed-reference","zero-observed-session","calendar-coverage-exhausted"]
+sum = 12
+exit code: 0
+```
+
+**Not ticked, and the item is wrong rather than merely unproven.** Two of the three clauses hold. The set *is* read
+from `NOT_EVALUABLE_REASONS`; its length *is* asserted by derivation, as
+`MINT_REFUSALS.length + RESOLVER_NOT_EVALUABLE_REASONS.length` with no literal anywhere in the row; and there
+genuinely are **three** resolver-raised reasons. The parenthetical "eleven today" is false — the shipped set
+carries **twelve** (9 + 3), read above from the module itself. The test is explicit that it declines the plan's
+arithmetic for exactly this reason: `MINT_REFUSALS.length + 2` would be 11, but `MINT_REFUSALS` grew to nine and
+`RESOLVER_NOT_EVALUABLE_REASONS` carries three, not two. The derivation is what makes the row survive that drift;
+the item text did not. **The item needs its count corrected before it can be ticked — that is a plan edit, not an
+evidence gap, and it is surfaced here rather than papered over by ticking around it.**
+
+#### T-04-U7
+
+```
+$ node --test --test-name-pattern="T-04-U7" tests/recommendation-track-record.unit.mjs
+✔ T-04-U7 (increment 2): outcomeValue is direction x ret(subject), exact and unrounded, and the basis values are fingerprinted (35.858279ms)
+ℹ tests 1
+ℹ pass 1
+ℹ fail 0
+exit code: 0
+
+$ awk 'NR>=2255 && NR<=2312 && (/classifyOutcome/ || /hold/)' tests/recommendation-track-record.unit.mjs
+(no output)
+```
+
+**Not ticked.** The test proves the *sign*: `trim` carries direction `-1`, so a series that fell scores positive,
+and the row pairs that against a wrong bearish call and a correct bullish one so the multiply is measured rather
+than assumed. But the item names the mechanism and the refusal, and neither is here. The positive outcome is
+produced by `outcomeValueFor` — the direction multiply — not by `classifyOutcome`; and `hold` is never exercised in
+the body. The scan above over the test's own line span returns nothing for either symbol. `hold` having no signed
+outcome is proven, but by `T-01-U7`, and `classifyOutcome` by the `T-03-U*` rows.
+
 ## Completion Statement
 
 Scope 04 is in progress. **16 of 56** Definition of Done items are satisfied — two from the increment-1 calendar

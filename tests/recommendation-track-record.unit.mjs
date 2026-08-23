@@ -2252,12 +2252,13 @@ test('T-04-U5 (increment 2): the as-of fence is a slice, and "not yet observed" 
     }
 });
 
-test('T-04-U7 (increment 2): outcomeValue is direction x ret(subject), exact and unrounded, and the basis values are fingerprinted', () => {
+test('T-04-U7 (increment 2): outcomeValue is direction x ret(subject), exact and unrounded, the class comes from classifyOutcome, hold refuses at BOTH the mint and the resolver, and the basis values are fingerprinted', () => {
     const fences = fixtureFences(['DVG', 'DVG2']);
+    const bearishClaim = syntheticClaim(['DVG'], { priceBasis: 'adjusted-close', action: 'trim' });
 
     /* THE BEARISH ADAPTER. `trim` is direction -1, so a series that FELL is a correct call and
        must score POSITIVE. Without the multiply, every correct bearish call reads as a loss. */
-    const correctBear = outcomeValueFor(syntheticClaim(['DVG'], { priceBasis: 'adjusted-close', action: 'trim' }), fences);
+    const correctBear = outcomeValueFor(bearishClaim, fences);
     assert.equal(correctBear.ok, true);
     assert.equal(correctBear.subjectReturn, DVG_ADJUSTED_RETURN, 'the series fell 10%');
     assert.equal(correctBear.outcomeValue, -DVG_ADJUSTED_RETURN, 'and the correct bearish call scores positive');
@@ -2319,6 +2320,101 @@ test('T-04-U7 (increment 2): outcomeValue is direction x ret(subject), exact and
     assert.equal(built.ok, true, `the fingerprint must be admissible in hashed provenance: ${JSON.stringify(built.error)}`);
     assert.equal(built.resolution.provenance.basisFingerprint, correctBear.basisFingerprint);
     assert.equal(built.resolution.outcomeValue, correctBear.outcomeValue, 'and the value is carried through unrounded');
+
+    /* THE CLASS IS ASSIGNED BY `classifyOutcome`, NOT RE-DERIVED HERE. The sign above is a number;
+       the item's claim is that a correct bearish call reaches a POSITIVE outcome THROUGH the
+       shipped classifier, so the band comparison is exercised where the resolver would meet it.
+
+       `direction-adjusted` is what the frozen `SIGN_CONVENTIONS` calls this multiply, read off the
+       module rather than typed, so a renamed convention fails here instead of drifting silently. */
+    assert.equal(bearishClaim.magnitude.signConvention, claims.SIGN_CONVENTIONS[0], 'the shipped convention names the multiply');
+    const bearClassified = claims.classifyOutcome(correctBear.outcomeValue, bearishClaim);
+    assert.equal(bearClassified.ok, true, JSON.stringify(bearClassified.error ?? null));
+    assert.equal(bearClassified.outcomeValue > 0, true, 'the correct bearish call reaches the classifier POSITIVE');
+    assert.equal(bearClassified.outcomeClass, 'win', 'and classifyOutcome calls it a win');
+    assert.equal(bearClassified.contribution, claims.CONTRIBUTION_NUMBER, 'so it contributes a number to the directional array');
+    assert.equal(bearClassified.outcomeValue, correctBear.outcomeValue, 'carried through verbatim, unrounded');
+
+    /* NON-VACUITY. One claim, one classifier, two inputs: the UNMULTIPLIED series return and the
+       direction-adjusted one land in OPPOSITE classes. A resolver that dropped the multiply — or
+       flipped its sign — would hand the classifier `subjectReturn` and publish this correct
+       bearish call as a `loss`. The pair measures that rather than assuming it. */
+    const unmultiplied = claims.classifyOutcome(correctBear.subjectReturn, bearishClaim);
+    assert.equal(unmultiplied.outcomeClass, 'loss', 'the raw fall classifies as a loss');
+    assert.notEqual(unmultiplied.outcomeClass, bearClassified.outcomeClass, 'so a sign flip is a class flip, not a rounding difference');
+    assert.equal(Math.abs(bearClassified.outcomeValue) > bearClassified.flatBand, true, 'and neither reading sits inside the flat band');
+
+    /* AND `hold` REFUSES — AT THE MINT AND AGAIN AT THE RESOLVER. `MARKET_ACTIONS` admits it as a
+       family, but `ACTION_DIRECTION` binds it to 0 — there is no signed magnitude to score — so the
+       mint closes `neutral-direction-no-magnitude`. Both facts are read from the shipped vocabulary,
+       never restated here. */
+    const vocabulary = foundationActionVocabulary();
+    const holdFixture = loadClaimFixture('not-evaluable-hold-neutral-direction');
+    const holdFamily = holdFixture.input.action.action;
+    const holdDirection = vocabulary.direction[holdFamily];
+    assert.equal(vocabulary.families.includes(holdFamily), true, 'hold IS a market action family');
+    assert.equal(holdDirection, 0, 'bound to the neutral direction');
+    assert.notEqual(vocabulary.direction[bearishClaim.actionFamily], 0, 'unlike the signed family above');
+
+    const held = claims.mintClaim(mintInputFrom(holdFixture));
+    assert.equal(held.ok, true, 'a hold is minted and counted, not dropped');
+    assertRefusal(held.claim.notEvaluable, 'neutral-direction-no-magnitude', 'direction', 'T-04-U7 hold');
+    assert.equal(claims.MINT_REFUSALS.includes(held.claim.notEvaluable.reason), true, 'and the reason is a shipped mint refusal');
+
+    /* THE RESOLVER REFUSES IT INDEPENDENTLY. The mint reason above is what `outcomeValueFor` reads
+       FIRST, so a hold that arrived here having lost it would never reach the multiply check — and
+       `direction-not-bound` is exactly the branch that catches it. Cloning the SIGNED claim and
+       rebinding only `direction` to the shipped `ACTION_DIRECTION.hold` is what puts a neutral claim
+       in front of that branch; the 0 is USED to build the input rather than typed as a literal, so a
+       re-bound hold moves this assertion instead of passing a stale restatement. */
+    const holdShaped = structuredClone(bearishClaim);
+    holdShaped.actionFamily = holdFamily;
+    holdShaped.direction = holdDirection;
+    holdShaped.notEvaluable = null;
+    const heldOutcome = outcomeValueFor(holdShaped, fences);
+    assertViolation(heldOutcome, { reason: 'direction-not-bound', field: 'direction' }, 'T-04-U7 hold at the resolver');
+    assert.equal(Object.prototype.hasOwnProperty.call(heldOutcome, 'outcomeValue'), false, 'and no value is produced');
+
+    /* WHAT THAT REFUSAL PREVENTS. Drop it and the multiply yields `0 x ret` — zero for ANY return —
+       and zero sits inside every legal flat band, so `classifyOutcome` would hand back a RESOLVED
+       verdict. A claim with no directional stake would then be counted as an outcome the desk
+       actually resolved, instead of being withheld as not-evaluable. */
+    // `Math.abs` because `0 x -9.99…` is `-0`, which is the same point: it still sits in the band.
+    assert.equal(Math.abs(holdDirection * correctBear.subjectReturn), 0, '0 x ret is zero even for a 10% move');
+    const wouldHaveScored = claims.classifyOutcome(0, bearishClaim);
+    assert.equal(wouldHaveScored.ok, true, JSON.stringify(wouldHaveScored.error ?? null));
+    assert.equal(wouldHaveScored.outcomeClass, 'resolved-flat', 'the vacuous class a scored hold would land in');
+    assert.equal(wouldHaveScored.contribution, claims.CONTRIBUTION_COUNT, 'counted as a resolved outcome');
+    assert.notEqual(wouldHaveScored.outcomeClass, 'not-evaluable', 'i.e. published as resolved, not withheld');
+
+    /* NON-VACUITY FOR THE RESOLVER REFUSAL. `holdShaped` is a clone of `bearishClaim`, so the pair
+       shares series, dates, basis and fences by construction and differs ONLY in the bound
+       direction — which is what shows the refusal is caused by neutrality and not by a reader that
+       refuses everything reaching this branch. */
+    assert.equal(correctBear.ok, true, 'the signed twin over the same series and dates does NOT refuse');
+    assert.equal(Number.isFinite(correctBear.outcomeValue), true, 'and produces a finite outcomeValue');
+    assert.notEqual(bearishClaim.direction, holdDirection, 'the sole difference between the two inputs');
+
+    /* THE REFUSAL REACHES THE DENOMINATOR. A neutral claim routes to a COUNT, so a cohort of holds
+       alone leaves the directional array empty and `directionalDenominator` refuses to publish a
+       rate with nothing to divide by — the branch a caller is expected to take before summarising. */
+    const holdRecord = { outcomeClass: 'not-evaluable', outcomeValue: null };
+    const holdsOnly = claims.routeOutcomes([holdRecord]);
+    assert.equal(holdsOnly.counts['not-evaluable'], 1, 'the hold is counted');
+    assert.equal(holdsOnly.resolvedDirectional, 0, 'and contributes no number');
+    assertViolation(
+        claims.directionalDenominator(holdsOnly, null),
+        { reason: 'no-directional-denominator-to-publish', field: 'resolvedDirectional' },
+        'T-04-U7 hold-only cohort',
+    );
+
+    /* NON-VACUITY FOR THE REFUSAL. The same cohort plus the bearish win publishes, so the refusal
+       is caused by the hold's neutrality rather than by a denominator that refuses every input. */
+    const withWin = claims.routeOutcomes([holdRecord, { outcomeClass: bearClassified.outcomeClass, outcomeValue: bearClassified.outcomeValue }]);
+    const published = claims.directionalDenominator(withWin, summarizeOutcomes(withWin.directional));
+    assert.equal(published.ok, true, JSON.stringify(published.error ?? null));
+    assert.equal(published.resolvedDirectional, 1, 'the signed call is the whole denominator');
+    assert.equal(published.wins, 1, 'and the correct bearish call is the win in it');
 });
 
 /* ── Scope 04, increment 3 ────────────────────────────────────────────────────────────────

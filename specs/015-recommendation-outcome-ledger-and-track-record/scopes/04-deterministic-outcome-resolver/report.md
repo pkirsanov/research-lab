@@ -1090,11 +1090,112 @@ existing assertions that `advanceSessions` lands on 2026-11-27 instead of steppi
 session predicate retains 251 sessions where the rejected `dateState` rule finds 249, these cases prove that an
 early-close session resolves normally and is recorded rather than excluded. The row is ticked in `scope.md`.
 
+## Evidence pass — the three scope-04 E2E rows, one ticked and two refused
+
+Executed from `<repo-root>`. The file carries 7 top-level rows and all 7 pass, so all three items under
+examination are *passing*. Two are nevertheless refused: a green row named `T-04-V1` does not establish that
+`T-04-V1` asserts what its DoD item claims, which is the same reading that caught `T-04-F1` and `T-04-I3`.
+
+```
+$ node --test tests/recommendation-track-record.e2e.mjs
+✔ T-01-R1: the whole fixture claim set holds the frozen contract against the real store layout (306.481058ms)
+✔ T-01-R2: the committed suites are intact, and the committed Node E2E suite runs green (64524.775526ms)
+✔ T-03-R1: a resolved-flat outcome survives a full classify-route-summarise-store pass as its own class (499.274507ms)
+✔ T-02-R1: a full publish-and-append pass holds the claim-referencing row, the dual-version read, the append-only bytes, and RTR-LEGACY-BACKFILL (71.777337ms)
+✔ T-04-V1: the shipped resolver reaches no network, host or credential, under a scanner proven able to flag each and to ignore prose (402.570206ms)
+✔ T-04-E1: a full resolve pass closes each due claim exactly once, leaves the not-yet-due active, and partitions the whole index (93.779695ms)
+✔ T-04-R1: both verdicts close, each due-set exclusion keeps its own reason and remedy, each data-quality input its own verdict, and the horizon boundary is exact on both sides (146.271258ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 66390.565488
+exit code: 0
+```
+
+#### T-04-E1
+
+**Ticked.** Item clauses: one closure per due claim; not-yet-due claims left active; the partition identity
+holds. All three map onto assertions in the row body.
+
+One closure per due claim: `:1653` requires the closed key set to equal the authored due bucket exactly,
+`:1654` forbids a repeat, and `:1655` requires one reducer event per closure. The selection is measured rather
+than forced — the pass is offered a verdict for EVERY member and `:1648` requires it to close strictly fewer
+than it was offered, so a resolver that closed everything fails. Not-yet-due: `:1672` pins the state and `:1673`
+requires the whole entry to be `deepEqual` to its pre-pass value, closing the clause in every field rather than
+in `state` alone. The partition: asserted as set arithmetic over the WHOLE index — `:1693` covering, `:1701`
+pairwise disjoint, `:1710` the sizes summing to the whole, with each bucket required non-empty so the identity
+cannot be met by collapsing it. `:1727` then re-derives the same identity from the resolver's OWN `notDue`
+report, which is the stronger reading: a pass that excluded an entry without reporting it satisfies the
+index-side identity and fails this one.
+
+#### T-04-V1
+
+**Refused — the first clause is FALSE against the code.** Item clauses: `RTR-NETWORK` fires on a
+network/credential reference; the clean module references none.
+
+`RTR-NETWORK` is defined by no product module, so nothing can make it fire.
+`grep -rn "RTR-NETWORK" --include=*.js --include=*.mjs .` returns four hits and all four are inside
+`tests/recommendation-track-record.e2e.mjs` — header prose at `:1089`, the section banner at `:1475`, and the
+absence assertion at `:1483-1485`. The code is named only by `design.md` and by
+`scopes/09-committed-validator-and-closed-codes/scope.md`, which is where it is scheduled to land. The row
+asserts the exact OPPOSITE of the item: `:1483` requires `shippedCodes.includes('RTR-NETWORK') === false`,
+deriving the shipped `RTR-*` set from the live export surfaces of `resolver` and `claims` rather than from a
+list authored in the test. What the row does prove to fire is its OWN local scanner's `network-call` and
+`credential-lookup` categories against four synthetic sources — a scanner defined in the test file, not a
+shipped refusal code.
+
+The second clause holds: `:1456` requires `flaggedCategories(scan)` to be empty for each of the three files on
+the resolve path, and `:1470-1472` constrains the resolver's whole specifier set to two relative modules and
+three offline builtins, so an import cannot smuggle a reach past the identifier scan.
+
+This is the `T-04-I3` shape under Ruling R-04-10: the item, not the test, is wrong, and the correct repair is to
+reword the item to assert the absence plus the scanner's proven ability to flag. Resolution belongs with scope
+09, which ships the code. Ticking here would record a firing that no executed line performs.
+
+#### T-04-R1
+
+**Refused — two of the five named clauses have no assertion in the row.**
+
+Three hold. Satisfied and invalidated outcomes: `:2029` and `:2030` are the anti-vacuity pair, requiring the two
+closures to differ on BOTH axes, which a resolver returning one verdict for everything cannot satisfy. The four
+due-set exclusions: `:2080-2081` assert each bucket's own reason and its shipped remedy, and `:2090-2092`
+require four distinct reasons, four distinct remedies, and the reason set to equal `Object.keys(NOT_DUE_REMEDY)`
+so a fifth exclusion cannot land untested; `later-series-asof` is reached through that shipped table
+(`brief-resolve-outcomes.mjs:1501`) rather than restated as a literal. `:2107-2110` hold the two "wait" reasons
+apart by WHICH date is behind, and `:2125-2127` re-gate one calendar day later to show the horizon exclusion
+cures while the series exclusion does not — a divergence a single collapsed reason could not produce. The
+not-evaluable closure: `:2170-2172` require `ok === false` with `error === undefined` and
+`closure.closureEventType === 'not-evaluable'` on the shipped `ZERO_OBSERVED_REASON`.
+
+Two do not. **The look-ahead refusal** is never exercised: `fenceObservations` is called through `r4Fences`, but
+no case offers a bar dated after `R4_AS_OF_SESSION` and requires the fence to reject or drop it. `:1941` is a
+fact about the DVGSTALE *fixture file* — that it carries no row past the session it claims — not a refusal by
+the code. **The byte-identical re-run fingerprint** is absent outright: the row never re-runs and never reads a
+fingerprint.
+
+```
+$ awk 'NR>=1907 && NR<=2208' tests/recommendation-track-record.e2e.mjs | grep -niE 'look.?ahead|lookahead|fingerprint|re-?run|rerun|LOOK_AHEAD'
+exit code: 1
+```
+
+The file's only `fingerprint` hit is `R1_RUN_FINGERPRINT` at `:897`, a T-02-R1 fixture constant belonging to a
+different row. `assertBytesUnchanged` at `:2207` proves the COMMITTED partition file was not written, which is a
+different property from a second pass reducing to the same `indexFingerprint`; that idempotence property lives
+in T-04-I2 and T-04-I3 and is not re-asserted here as the standing guard this item promises.
+
+Both gaps are the `T-04-F1` failure shape — the row asserts adjacent, genuinely strong behaviour, so a
+regression in either named clause would pass it silently. The item stays unticked until both are asserted or it
+is corrected under a ruling.
+
 ## Completion Statement
 
-Scope 04 is in progress. **41 of 56** Definition of Done items are satisfied and the remaining 15 are
+Scope 04 is in progress. **42 of 56** Definition of Done items are satisfied and the remaining 14 are
 unsatisfied. The count is read from the artifact rather than accumulated by hand: `grep -c '^- \[x\]' scope.md`
-returns 41 and `grep -c '^- \[ \]' scope.md` returns 15. *The prior statement here read "16 of 56" with a
+returns 42 and `grep -c '^- \[ \]' scope.md` returns 14. *The prior statement here read "16 of 56" with a
 per-increment breakdown summing to 16. That breakdown was stale — it predated later passes that ticked rows
 without revising it — and has been dropped rather than extended, because an enumeration this pass did not verify
 should not be carried forward.* An earlier pass ticked T-04-F2, T-04-F3 and T-04-F4 and identified the missing
@@ -1108,8 +1209,16 @@ Ruling R-04-10 and the item is ticked.**
 The two provenance rows are now both ticked: the data-quality-gate row has every clause asserted, and the
 early-close row covers both endpoint positions plus a clean-span control. This reconciliation moves the current
 count 40 → 41.
+The three scope-04 E2E rows were then examined clause by clause. All three tests pass, but only T-04-E1 has
+every clause of its item asserted, so only it is ticked: 41 → 42. T-04-V1 is refused because its first clause is
+false against the code — `RTR-NETWORK` is defined by no product module and the row asserts its ABSENCE — and
+T-04-R1 is refused because its "look-ahead refusal" and "byte-identical re-run fingerprint" clauses have no
+assertion in the row body. Both refusals are recorded above for a ruling rather than resolved by ticking.
 *The total moved 55 → 56 under Ruling R-04-05, which added the previously-uncovered adjusted-close path
 refusal as an unticked obligation.*
+No scope completion is claimed and no certification is requested. Ruling R-04-01
+is **discharged**: scope 01 landed the frozen hashed `priceBasis` term, and the resolver consumes it rather than
+selecting a basis of its own.
 No scope completion is claimed and no certification is requested. Ruling R-04-01
 is **discharged**: scope 01 landed the frozen hashed `priceBasis` term, and the resolver consumes it rather than
 selecting a basis of its own.

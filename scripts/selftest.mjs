@@ -28212,11 +28212,17 @@ try {
     && sumEarnedNoRate.probability.measuredRateState === 'earned-but-unpopulated',
     'a withheld cell reports no rate, an earned cell reports its actual rate, and an earned cell with no populated rate says so instead of reporting null as a rate');
 
-  // The page must consume the real shared-cache API, not a name that does not exist.
+  /* This pin used to accept store.bars alone, which is a cache READ, and so enshrined the defect it
+     was meant to prevent: on a first visit nothing is cached, every symbol is excluded, and the
+     page renders an empty ladder above a full exclusion ledger. Verified in a browser: before the
+     fix the page issued 0 requests for data/bars and rendered 0 candidates; after it, 25 requests
+     and a populated table. ensureBars is what populates; bars is what reads. Both are required. */
   const hllRldata = read('rldata.js');
-  assert(/RLDATA\.bars\(|store\.bars\(/.test(hllSrc) && /bars: getBars/.test(hllRldata)
+  assert(/store\.ensureBars\(/.test(hllSrc) && /ensureBars: ensureBars/.test(hllRldata)
+    && /store\.bars\(/.test(hllSrc) && /bars: getBars/.test(hllRldata)
+    && /warmBars\(\);/.test(hllSrc)
     && !/getCachedCloses|getCached\(/.test(hllSrc),
-    'the page reads bars through the RLDATA accessor the shared module actually exports');
+    'the page populates the shared cache through ensureBars before reading it through bars, so a first visit is not an empty ladder over a full exclusion ledger');
 
   /* Against the committed bars, not a synthetic series. A random walk puts the nearest pivot above
      and below at roughly equal distance, so it clears no reward-to-risk floor and cannot answer

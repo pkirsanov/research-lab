@@ -25753,6 +25753,55 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 threshold surtax group threw): ' + e.message); }
 /* ---------- Feature 022 Scope 02: threshold surtaxes and declared tax legs (END) ---------- */
 
+/* ---------- spec id uniqueness (BEGIN) ---------- */
+/* Two spec folders sharing one number makes every reference to it ambiguous — a commit reading
+   "bug(009): ..." names one of two different packets, and so does a cross-link. Nothing caught
+   this, so it accumulated: three pairs already exist and a fourth was forming in a working tree
+   when this guard was written. The existing pairs are recorded rather than renamed, because
+   renaming a shipped folder breaks its own commit trail; the point is to stop the NEXT one. */
+try {
+  group('specs — one number, one packet');
+
+  const specRoots = ['specs', 'specs/_bugs'];
+  const specNames = [];
+  for (const root of specRoots) {
+    const abs = join(ROOT, root);
+    if (!existsSync(abs)) continue;
+    for (const entry of readdirSync(abs, { withFileTypes: true })) {
+      if (!entry.isDirectory() || entry.name.startsWith('_') || entry.name.startsWith('.')) continue;
+      specNames.push(entry.name);
+    }
+  }
+
+  /* Recorded because they predate the guard, each with the collision it carries. A new entry
+     here is a deliberate act with a reviewer attached, which is the point. */
+  const GRANDFATHERED_COLLISIONS = Object.freeze(['021', 'BUG-002', 'BUG-009']);
+
+  const byId = new Map();
+  for (const name of specNames) {
+    const match = /^((?:BUG-)?\d{3})-/.exec(name);
+    if (!match) continue;
+    if (!byId.has(match[1])) byId.set(match[1], []);
+    byId.get(match[1]).push(name);
+  }
+  const collisions = [...byId.entries()].filter(([, names]) => names.length > 1).map(([id]) => id);
+  const fresh = collisions.filter((id) => !GRANDFATHERED_COLLISIONS.includes(id));
+
+  assert(specNames.length > 0, 'the spec scan reads real directories rather than passing on an empty list (' + specNames.length + ' found)');
+  assert(fresh.length === 0,
+    'no spec number is used by two packets beyond the recorded pre-existing pairs (new collision(s): '
+    + (fresh.map((id) => id + ' -> ' + byId.get(id).join(' + ')).join('; ') || 'none') + ')');
+  /* ADVERSARIAL: a grandfather list that no longer matches reality is a list that has stopped
+     meaning anything. Every recorded id must still BE a collision, so a pair that gets resolved
+     has to be struck from the list rather than left as permanent cover for a future one. */
+  const staleGrandfathers = GRANDFATHERED_COLLISIONS.filter((id) => !collisions.includes(id));
+  assert(staleGrandfathers.length === 0,
+    'every recorded pre-existing collision is still a real collision, so the list cannot outlive its subject (stale: '
+    + (staleGrandfathers.join(', ') || 'none') + ')');
+
+} catch (e) { failures++; console.log('  ✗ FAIL (spec id uniqueness group threw): ' + e.message); }
+/* ---------- spec id uniqueness (END) ---------- */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

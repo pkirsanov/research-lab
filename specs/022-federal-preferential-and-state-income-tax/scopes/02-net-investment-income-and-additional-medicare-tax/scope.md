@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs in
 [report.md](report.md).
 
-**Status:** Not started
+**Status:** In Progress (deliverables and tests verified; newly added planning rows unverified)
 **Scope-Kind:** runtime-behavior
 **Tags:** `engine:federal`, `sourcing-gated:true`, `known-value-tested`
 **Depends On:** 01
@@ -244,6 +244,12 @@ file is untouched — if the published held-constant list must grow to name the 
 new basis declarations, that is a finding returned to planning, not an in-scope
 edit.
 
+**Allowed file families:** the *Allowed new* and *Allowed modified* paths named
+above, and nothing else.
+
+**Excluded surfaces:** the byte-identical list named above. Collateral cleanup
+outside the allowed families is opt-in and is not performed under this scope.
+
 **Rollback:** revert the engine stages and the leg-set summation, revert the pack
 file, remove the workspace members, delete the fixtures, revert the page panels
 and the appended selftest group. Reverting SUP-022-03, -08, -10, -14, -15, -16,
@@ -378,6 +384,21 @@ field-id token-exclusion clauses **verbatim**. Every Simple surface this scope a
 is a `data-rl-value` field carried in `SIMPLE_FIELDS`, and that carriage is
 enforced by `SUP-023-04` rather than by anything this scope delivers.
 
+## Consumer Impact Sweep
+
+This scope adds leg identifiers to the declared leg set and adds workspace
+members. Any rename, move or removal of a leg identifier, a workspace member
+name or a refusal code reaches the surfaces below, and each surface is swept
+before the scope closes.
+
+| Consumer surface | What a rename or removal would break | Sweep proof |
+| --- | --- | --- |
+| The route's result panels and their anchor ids | A renamed leg leaves a panel rendering an unavailable label instead of a figure | Every leg the pack declares is resolved to a rendered panel in the browser row |
+| Deep links and breadcrumb anchors into those panels | A renamed anchor id makes a shared deep link land on nothing | Every anchor the page emits is resolved rather than assumed |
+| Sibling scope modules that read the leg set as an API client | A removed leg identifier makes a sibling settlement silently short | The leg-set summation refuses on an unknown leg rather than skipping it |
+| Fixture files and the supersession register | A renamed member leaves a fixture asserting an identifier that no longer exists | Every fixture input is re-resolved and an unknown member refuses |
+| Documentation, notes and any redirect entry | A renamed identifier leaves a stale reference | A repository-wide stale-reference scan for the old identifier returns zero first-party rows |
+
 ## Scenario-First Red/Green Contract
 
 Add the named known-value assertion or the persistent browser title first, run the
@@ -421,6 +442,11 @@ an absent test does not satisfy RED.
 | TP-02-24 | Fixture register | unit | SCN-022-004 … -006 | `scripts/selftest.mjs` | Every helper named in the Fixture Input Completion Register declares both bases at `0` and changed no other input member; at least one fixture household keeps both bases `null` and is proven to receive `RLTAX-INPUT-INCOMPLETE` on each leg and on the total; and every previously settled Feature 021 fixture value is byte-identical after completion | `node scripts/selftest.mjs` | No | `report.md#tp-02-24` |
 
 ### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-022-004, SCN-022-005 and SCN-022-006 pass under the exact persistent titles this scope's Test Plan names, and each of those titles is present in the spec file rather than merely selected by `--grep`. Adversarial case: renaming or deleting one of those persistent titles must fail this row, so an empty grep selection can never be read as a pass.
+- [ ] Broader E2E regression suite passes across the whole lifetime-tax browser family, not this scope's own spec file alone. Adversarial case: a change made inside this scope that reddens a sibling scope's persistent title must fail this row even while this scope's own rows stay green.
+- [ ] Change Boundary is respected and zero excluded file families were changed, proven by a path-scoped `git status --porcelain` over the excluded surfaces plus an mtime comparison for any untracked excluded directory. Adversarial case: touching one excluded path must produce a row and fail this item; `git diff --quiet` alone is not accepted, because it reports an untracked path as unchanged.
+- [ ] The Consumer Impact Sweep is complete for every renamed, moved or removed route, path, contract, identifier and UI target in this scope, and zero stale first-party references remain. Adversarial case: one stale reference left in navigation, a breadcrumb, a redirect, a deep link, an API client read or a doc must fail this row, and the proof must be a repository-wide stale-reference scan rather than a spot check.
 
 - [x] FR-022-008 is implemented: `CO-8` sums the pack's declared leg set, returns
       the refusal of the first refusing leg, and equals the previous two-leg sum

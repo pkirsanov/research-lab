@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs in
 [report.md](report.md).
 
-**Status:** In progress — 6 of 12 Definition of Done rows satisfied
+**Status:** In Progress (deliverables and tests verified; newly added planning rows unverified)
 **Scope-Kind:** runtime-behavior
 **Tags:** `capability:jurisdiction-axis`, `sourced-zero:true`, `sourcing-gated:true`, `known-value-tested`
 **Depends On:** 01, 02
@@ -194,6 +194,12 @@ every framework-managed file.
 `tax-rules/federal/**` is excluded deliberately. Opening the jurisdiction axis
 must not require a federal pack edit; if it does, the axis is not a seam.
 
+**Allowed file families:** the *Allowed new* and *Allowed modified* paths named
+above, and nothing else.
+
+**Excluded surfaces:** the byte-identical list named above. Collateral cleanup
+outside the allowed families is opt-in and is not performed under this scope.
+
 **Rollback:** delete `rltaxstate.js`, the Florida pack and the fixtures; revert
 the enum, the grammar, the two stages and the workspace members; revert the page
 panel and the appended selftest group.
@@ -206,6 +212,21 @@ assertion in `scripts/selftest.mjs` and in every Feature 021 Playwright spec mus
 still pass unchanged at the end of this scope. Opening the jurisdiction axis
 changes no behaviour any of them pins, so an assertion that fails here is a defect
 in this scope's change and is fixed rather than edited. This scope appends only.
+
+## Consumer Impact Sweep
+
+This scope fixes the state rule-pack path grammar, the jurisdiction pattern and
+the state refusal codes. Any rename, move or removal of one of those
+identifiers reaches the surfaces below, and each surface is swept before the
+scope closes.
+
+| Consumer surface | What a rename or removal would break | Sweep proof |
+| --- | --- | --- |
+| The state pack path grammar the route reads as an API client | A moved pack path turns a declared read into an unresolved request | The declared-read canary fails on any declared read that does not resolve |
+| The route's state panels and their anchor ids | A renamed jurisdiction field leaves a panel unavailable instead of resolved | Every supported jurisdiction resolves to a rendered panel in the browser row |
+| Deep links and breadcrumb anchors into those panels | A renamed anchor id makes a shared deep link land on nothing | Every anchor the page emits is resolved rather than assumed |
+| Sibling packs and fixtures that name the same grammar | A renamed member leaves a pack asserting a field that no longer exists | Pack validation refuses a missing member by name rather than defaulting it |
+| Documentation, notes and any redirect entry | A renamed identifier leaves a stale reference | A repository-wide stale-reference scan for the old identifier returns zero first-party rows |
 
 ## Scenario-First Red/Green Contract
 
@@ -342,6 +363,11 @@ resolving to fewer tests than it claims. Both read green while owned by nothing.
   smaller run.
 
 ### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-022-007, SCN-022-008 and SCN-022-009 pass under the exact persistent titles this scope's Test Plan names, and each of those titles is present in the spec file rather than merely selected by `--grep`. Adversarial case: renaming or deleting one of those persistent titles must fail this row, so an empty grep selection can never be read as a pass.
+- [ ] Broader E2E regression suite passes across the whole lifetime-tax browser family, not this scope's own spec file alone. Adversarial case: a change made inside this scope that reddens a sibling scope's persistent title must fail this row even while this scope's own rows stay green.
+- [ ] Change Boundary is respected and zero excluded file families were changed, proven by a path-scoped `git status --porcelain` over the excluded surfaces plus an mtime comparison for any untracked excluded directory. Adversarial case: touching one excluded path must produce a row and fail this item; `git diff --quiet` alone is not accepted, because it reports an untracked path as unchanged.
+- [ ] The Consumer Impact Sweep is complete for every renamed, moved or removed route, path, contract, identifier and UI target in this scope, and zero stale first-party references remain. Adversarial case: one stale reference left in navigation, a breadcrumb, a redirect, a deep link, an API client read or a doc must fail this row, and the proof must be a repository-wide stale-reference scan rather than a spot check.
 
 - [x] FR-022-015 is implemented: jurisdiction is a pack field expressed as a
       pattern, and no module holds a state name or postal code.

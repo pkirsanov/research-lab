@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs in
 [report.md](report.md).
 
-**Status:** Not started
+**Status:** In Progress (deliverables and tests verified; newly added planning rows unverified)
 **Scope-Kind:** runtime-behavior
 **Tags:** `pack:state`, `sourcing-gated:true`, `stress-case:true`, `known-value-tested`
 **Depends On:** 01, 02, 03
@@ -173,6 +173,12 @@ edit here is a finding, recorded as such, not absorbed.
 Every module is excluded on purpose. This is the scope that tests whether Scope
 03 produced a contract or a California-shaped hole.
 
+**Allowed file families:** the *Allowed new* and *Allowed modified* paths named
+above, and nothing else.
+
+**Excluded surfaces:** the byte-identical list named above. Collateral cleanup
+outside the allowed families is opt-in and is not performed under this scope.
+
 **Rollback:** delete the California pack and its fixtures; revert the page panels
 and the appended selftest group. No module reverts are needed because none
 changed.
@@ -227,6 +233,10 @@ syntax error, a missing browser or an absent test does not satisfy RED.
 | TP-04-22 | Deploy gate | unit | SCN-022-010 … -012 | `scripts/build-pages-site.mjs` | The Pages plan succeeds and `site-exclusions.json` is unchanged | `node scripts/build-pages-site.mjs --dry-run` | No | `report.md#tp-04-22` |
 
 ### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-022-010, SCN-022-011 and SCN-022-012 pass under the exact persistent titles this scope's Test Plan names, and each of those titles is present in the spec file rather than merely selected by `--grep`. Adversarial case: renaming or deleting one of those persistent titles must fail this row, so an empty grep selection can never be read as a pass.
+- [ ] Broader E2E regression suite passes across the whole lifetime-tax browser family, not this scope's own spec file alone. Adversarial case: a change made inside this scope that reddens a sibling scope's persistent title must fail this row even while this scope's own rows stay green.
+- [ ] Change Boundary is respected and zero excluded file families were changed, proven by a path-scoped `git status --porcelain` over the excluded surfaces plus an mtime comparison for any untracked excluded directory. Adversarial case: touching one excluded path must produce a row and fail this item; `git diff --quiet` alone is not accepted, because it reports an untracked path as unchanged.
 
 - [x] `BI-7` was closed by a retrieval performed in the implementation session and
       recorded with its own `retrievedAt`, or the whole pack ships refusing and no

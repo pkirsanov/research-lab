@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs in
 [report.md](report.md).
 
-**Status:** Not started
+**Status:** In Progress (deliverables and tests verified; newly added planning rows unverified)
 **Scope-Kind:** runtime-behavior
 **Tags:** `foundation:true`, `provenance-critical:true`, `sourcing-gated:true`, `known-value-tested`
 **Depends On:** none
@@ -271,6 +271,12 @@ E1's freeze.
 already written to consume; if the engine needs a change to consume it, the
 contract is wrong and that is a finding rather than an edit.
 
+**Allowed file families:** the *Allowed new* and *Allowed modified* paths named
+above, and nothing else.
+
+**Excluded surfaces:** the byte-identical list named above. Collateral cleanup
+outside the allowed families is opt-in and is not performed under this scope.
+
 **Rollback:** revert the pack file and the validator addition; delete the
 fixtures; revert the page panel and the appended selftest group. Reverting the
 twelve `SUP-022-*` replacements restores the Feature 021 originals verbatim,
@@ -351,6 +357,10 @@ RED.
 | TP-01-21 | Supersession adversarial | unit | SCN-022-002 | `scripts/selftest.mjs` | Regression: each retained branch is proven non-vacuous by running against the absent-table fixture, and the fabricated-figure case — a present preferential table with no citation, and a plausible total returned for the absent-table fixture — is demonstrated to fail | `node scripts/selftest.mjs` | No | `report.md#tp-01-21` |
 
 ### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-022-001, SCN-022-002 and SCN-022-003 pass under the exact persistent titles this scope's Test Plan names, and each of those titles is present in the spec file rather than merely selected by `--grep`. Adversarial case: renaming or deleting one of those persistent titles must fail this row, so an empty grep selection can never be read as a pass.
+- [ ] Broader E2E regression suite passes across the whole lifetime-tax browser family, not this scope's own spec file alone. Adversarial case: a change made inside this scope that reddens a sibling scope's persistent title must fail this row even while this scope's own rows stay green.
+- [ ] Change Boundary is respected and zero excluded file families were changed, proven by a path-scoped `git status --porcelain` over the excluded surfaces plus an mtime comparison for any untracked excluded directory. Adversarial case: touching one excluded path must produce a row and fail this item; `git diff --quiet` alone is not accepted, because it reports an untracked path as unchanged.
 
 - [x] FR-022-001 through FR-022-003 are implemented: a figure carries a default
       citation plus an override list, every effective component citation names a

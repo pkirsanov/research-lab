@@ -325,11 +325,11 @@ meaningful once both settlements exist independently.
 
 | # | Scope | Artifact | Tags | Depends On | Scenarios | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| 01 | Federal Preferential Rate Completion | [`01-federal-preferential-rate-completion/scope.md`](01-federal-preferential-rate-completion/scope.md) | `foundation:true`, `provenance-critical:true`, `sourcing-gated:true` | none | SCN-022-001 … -003 | Not started |
-| 02 | Net Investment Income And Additional Medicare Tax | [`02-net-investment-income-and-additional-medicare-tax/scope.md`](02-net-investment-income-and-additional-medicare-tax/scope.md) | `engine:federal`, `sourcing-gated:true` | 01 | SCN-022-004 … -006 | Not started |
-| 03 | State Rule-Pack Contract, Jurisdiction Resolution, And Florida | [`03-state-rule-pack-contract-and-jurisdiction-resolution/scope.md`](03-state-rule-pack-contract-and-jurisdiction-resolution/scope.md) | `capability:jurisdiction-axis`, `sourced-zero:true` | 01, 02 | SCN-022-007 … -009 | Not started |
-| 04 | California Pack | [`04-california-pack/scope.md`](04-california-pack/scope.md) | `pack:state`, `sourcing-gated:true`, `stress-case:true` | 01, 02, 03 | SCN-022-010 … -012 | Not started |
-| 05 | Combined Settlement And Combined Marginal Curve | [`05-combined-settlement-and-marginal-curve/scope.md`](05-combined-settlement-and-marginal-curve/scope.md) | `route:integrated`, `adversarial-ordering:true`, `no-registration:true` | 01, 02, 03, 04 | SCN-022-013 … -015 | Not started |
+| 01 | Federal Preferential Rate Completion | [`01-federal-preferential-rate-completion/scope.md`](01-federal-preferential-rate-completion/scope.md) | `foundation:true`, `provenance-critical:true`, `sourcing-gated:true` | none | SCN-022-001 … -003 | In Progress |
+| 02 | Net Investment Income And Additional Medicare Tax | [`02-net-investment-income-and-additional-medicare-tax/scope.md`](02-net-investment-income-and-additional-medicare-tax/scope.md) | `engine:federal`, `sourcing-gated:true` | 01 | SCN-022-004 … -006 | In Progress |
+| 03 | State Rule-Pack Contract, Jurisdiction Resolution, And Florida | [`03-state-rule-pack-contract-and-jurisdiction-resolution/scope.md`](03-state-rule-pack-contract-and-jurisdiction-resolution/scope.md) | `capability:jurisdiction-axis`, `sourced-zero:true` | 01, 02 | SCN-022-007 … -009 | In Progress |
+| 04 | California Pack | [`04-california-pack/scope.md`](04-california-pack/scope.md) | `pack:state`, `sourcing-gated:true`, `stress-case:true` | 01, 02, 03 | SCN-022-010 … -012 | In Progress |
+| 05 | Combined Settlement And Combined Marginal Curve | [`05-combined-settlement-and-marginal-curve/scope.md`](05-combined-settlement-and-marginal-curve/scope.md) | `route:integrated`, `adversarial-ordering:true`, `no-registration:true` | 01, 02, 03, 04 | SCN-022-013 … -015 | In Progress |
 
 ## Dependency Graph
 

@@ -1,0 +1,304 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-016-combined-tax-panel-wiring-absent-on-origin-main",
+  "featureName": "BUG-016 The Combined Tax Panel Is Absent From The Deployed Branch, So Its Tests Assert Against A Panel That Is Not There",
+  "createdAt": "2026-08-23T00:00:00Z",
+  "lastUpdatedAt": "2026-08-23T00:00:00Z",
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "priorBlockedReason": null,
+  "blockedReasonResolved": null,
+  "crossFeatureEditAuthorization": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "priorPlanningOnlyJustification": null,
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": "specs/022-federal-preferential-and-state-income-tax",
+  "specDependsOn": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "7d592cf1b",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md"
+  },
+  "execution": {
+    "activeAgent": null,
+    "currentPhase": "bug",
+    "currentPhaseStatus": "complete",
+    "phaseReconciliation": null,
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-23T00:00:00Z",
+    "completedAt": null,
+    "substate": "filed",
+    "currentScope": null,
+    "nextRequiredOwner": "operator — the branch-reconciliation decision in Scope 1 is not agent-dischargeable and was explicitly withheld from this run",
+    "nextRequiredTarget": "specs/_bugs/BUG-016-combined-tax-panel-wiring-absent-on-origin-main/design.md#open-questions-for-the-owner",
+    "nextRequiredReason": "The packet is filed and unstarted. Scope 1 is a branch decision that no evidence selects: the wiring exists at one tip and not the other, the two tips hold different blobs of the same page, and reconciling them is a choice about how the lines should relate rather than a technical question with a derivable answer. Scope 2 has no defined shape until Scope 1 is answered. Scope 3 is undecided by design and its disposition is Scope 1's to record. Gate G136 human acceptance is unestablished and cannot be supplied by automation, because this packet delivers no behaviour to exercise.",
+    "phaseClaimNote": "currentPhase is 'bug' with substate 'filed'. This run created seven artifacts under specs/_bugs/BUG-016-combined-tax-panel-wiring-absent-on-origin-main/ and modified nothing else. It did not touch lifetime-tax-strategy-lab.html, rltaxcombined.js, any file under tests/, .github/workflows/pages.yml, scripts/selftest.mjs, any tax rule pack, any artifact under specs/021-024, specs/025-*, specs/026-* or specs/027-*, and no portfolio-survival, volatility-sizing, company-intelligence, market-brief or briefs path. No branch or remote was pushed, merged, rebased or moved. No selftest assertion was added, deliberately: an assertion that fails on a known-open defect would turn a green suite red. Zero Definition of Done items are ticked across all three scopes and the cross-scope set. completedPhaseClaims records the bug phase as an execution claim only; certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write.",
+    "completedPhaseClaims": [
+      {
+        "phase": "bug",
+        "agent": "bubbles.bug",
+        "claimedAt": "2026-08-23T00:00:00Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      }
+    ],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      {
+        "scopeId": "01-decide-how-the-two-resolutions-are-reconciled",
+        "scope": 1,
+        "status": "Not Started",
+        "dependsOn": [],
+        "resolvedBy": null
+      },
+      {
+        "scopeId": "02-make-the-deployed-branch-carry-the-panel-its-tests-exercise",
+        "scope": 2,
+        "status": "Not Started",
+        "dependsOn": [
+          "01-decide-how-the-two-resolutions-are-reconciled"
+        ],
+        "resolvedBy": null
+      },
+      {
+        "scopeId": "03-notice-the-next-silent-loss",
+        "scope": 3,
+        "status": "Not Started",
+        "dependsOn": [],
+        "resolvedBy": null
+      }
+    ],
+    "audit": null
+  },
+  "defect": {
+    "severity": "Critical",
+    "surface": ".github/workflows/pages.yml job verify, step 'Full browser suite (blocking)'",
+    "measuredAtCommit": "7d592cf1b",
+    "gateWorkflow": ".github/workflows/pages.yml",
+    "gateJob": "verify",
+    "gateStep": "Full browser suite (blocking)",
+    "deployJobDependsOnVerify": true,
+    "deployJobConclusion": "skipped",
+    "consecutiveFailingRuns": 11,
+    "failingRunStreakOldest": "32616864615",
+    "failingRunStreakNewest": "32651572136",
+    "observedRun": "32651572136",
+    "observedRunHeadSha": "fb1033aad",
+    "observedRunTotalTests": 708,
+    "observedRunFailed": 31,
+    "observedRunPassed": 677,
+    "observedRunAccountingReconciles": true,
+    "workerForceKillEstablishedBy": "arithmetic reconciliation: 31 failed plus 677 passed equals the run's own 708 tests, so no test is unaccounted for and no worker teardown loss occurred. NOT established by matching a force-killed string.",
+    "failuresOwnedByThisPacket": 6,
+    "failuresOwnedElsewhere": 25,
+    "failureSplit": [
+      {
+        "spec": "tests/portfolio-survival-brief.spec.mjs",
+        "failures": 16,
+        "lastTouchedBy": "9ee3c39ae",
+        "attribution": "elsewhere"
+      },
+      {
+        "spec": "tests/lifetime-tax-combined.spec.mjs",
+        "failures": 6,
+        "lastTouchedBy": "8135cb540",
+        "attribution": "this-packet"
+      },
+      {
+        "spec": "tests/portfolio-survival-foundation.spec.mjs",
+        "failures": 5,
+        "lastTouchedBy": "9ee3c39ae",
+        "attribution": "elsewhere"
+      },
+      {
+        "spec": "tests/volatility-sizing-lab.spec.mjs",
+        "failures": 3,
+        "lastTouchedBy": "420246341",
+        "attribution": "elsewhere"
+      },
+      {
+        "spec": "tests/portfolio-survival-mobile.spec.mjs",
+        "failures": 1,
+        "lastTouchedBy": "9ee3c39ae",
+        "attribution": "elsewhere"
+      }
+    ],
+    "absentSelectors": [
+      {
+        "selector": "#combinedCurveChart",
+        "failingTests": 3,
+        "reportedAs": "expect(locator).toHaveAttribute(expected) failed / element(s) not found / 5000ms"
+      },
+      {
+        "selector": "#combinedSettlementCard [data-rl-unavailable]",
+        "failingTests": 2,
+        "reportedAs": "expect(locator).toHaveAttribute(expected) failed / element(s) not found / 5000ms"
+      },
+      {
+        "selector": "[data-rl-value=\"combinedFederalLeg\"]",
+        "failingTests": 1,
+        "reportedAs": "locator.textContent: Test timeout of 30000ms exceeded"
+      }
+    ],
+    "markerCounts": [
+      {
+        "marker": "combinedFederalLeg",
+        "local": 2,
+        "originMain": 0
+      },
+      {
+        "marker": "rltaxcombined.js",
+        "local": 1,
+        "originMain": 0
+      },
+      {
+        "marker": "combinedCurveChart",
+        "local": 3,
+        "originMain": 0
+      },
+      {
+        "marker": "combinedSettlementCard",
+        "local": 2,
+        "originMain": 0
+      }
+    ],
+    "markerAbsenceHoldsAtEveryStreakCommit": true,
+    "computationModuleBlobIdenticalAtBothTips": true,
+    "computationModuleBlob": "a24991f8cab5c54964c4efbe74d99fd7d1788954",
+    "specBlobOriginMain": "7515417fb63aea4af494c899d93461e0e64d96b3",
+    "specBlobLocal": "ede1a0b8a47bad86a3fa039c1b6626cada1b7ddf",
+    "pageBlobLocal": "8ffe663489cb6307801d738f8850207de6b09d84",
+    "pageBlobOriginMain": "4c64c6a2cb206b5261798f76d7ff928583c82e4f",
+    "renameCommit": "8135cb5407bbbf9e1aafedbddddf2a6accb1255d",
+    "renameCommitObjectType": "commit",
+    "retiredTestTitleStillOnOriginMain": "Regression: SCN-022-013 the request ledger stays empty across the full combined workflow",
+    "wiringIntroducedBy": "c58719fb4",
+    "wiringIntroducedBySubject": "feat(022): wire combined federal+state settlement and curve into the route",
+    "wiringIntroducedByIsAncestorOfOriginMain": true,
+    "wiringDiscardedByMerges": [
+      "612382ddf",
+      "a30410572",
+      "e8235b996",
+      "1e765338d"
+    ],
+    "mergeBaseOfTips": "4b087cf15",
+    "mergeBaseMarkerCount": 0,
+    "branchDivergenceAheadBehind": "133 ahead, 10 behind",
+    "measurementNote": "Every count, blob hash, commit hash and quoted error string in this packet was derived by execution at 7d592cf1b during the filing session; report.md carries the command and output behind each. Three claims carry a stated method rather than a direct string match and are labelled where they appear: the per-spec failure split was derived from the run's canonical failure list and cross-checked against the report artifact directory names; the absence of worker force-kills was established by arithmetic reconciliation rather than by matching a force-killed string; ownership of the twenty-five failures outside this packet was established from git metadata about their spec files, with no file in those specs read, edited or staged."
+  },
+  "relatedDefects": [
+    {
+      "id": "BUG-017",
+      "path": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos",
+      "relationship": "distinct-and-deliberately-not-merged",
+      "note": "BUG-017 is a macOS-only developer-experience defect in browser worker teardown. It does NOT reproduce in the pipeline: run 32651572136 accounts for all 708 tests as passes or failures with no teardown loss. It is not a cause of this packet's red gate and the two must not be conflated."
+    }
+  ],
+  "terminalTransitionBlockers": [
+    "Scope 1 is undecided and is not agent-dischargeable. Reconciling two branch resolutions of the same file is an operator decision that no evidence selects, and it was explicitly withheld from this run.",
+    "Scope 2 has no defined shape until Scope 1 is answered, because its content differs between a reconciliation and a fresh commit on the deployed line.",
+    "Scope 3 is undecided by design. Whether a coherence check should exist is open question 2 and its disposition belongs to Scope 1.",
+    "No Definition of Done item in scopes.md is ticked, and none should be. Nothing has been designed, built, or tested.",
+    "The defect is live on the deployed branch. Six tests assert against a panel that is not there and the deploy gate has been red for eleven consecutive completed runs.",
+    "Twenty-five of the thirty-one failures are owned elsewhere and are not this packet's to close. The gate stays red until they are also resolved.",
+    "Gate G136 human acceptance is not established. uservalidation.md carries no delivered behaviour to exercise, its Checklist items are unticked, and its Human Acceptance Record is unfilled.",
+    "No independent party re-derived any measurement. certification.certifiedCompletedPhases is empty because phase certification belongs to bubbles.validate."
+  ],
+  "knownLimitation": {
+    "statement": "The defect and its root cause are established by executed inspection of the deployed branch, the run artifact, and the commit graph. What is established: the gate is red across eleven consecutive completed runs and skips deployment; the run accounts for all 708 tests with no teardown loss; six failures wait on three selectors that count zero on the deployed branch at every streak commit; the page rendered without any combined region, observed in the accessibility snapshot the run itself captured; the computation module is byte-identical at both tips while the page is not; the wiring was introduced by c58719fb4, which is an ancestor of origin/main while its content is not, and was discarded by four separate merge resolutions; the merge base of the two tips still carries none of it. What is NOT established: that any particular reconciliation will hold across future merges, since four have already dropped it; whether the twenty-five failures owned elsewhere share a cause with these six, which was deliberately not investigated; and what the remedy should be, which turns on a decision this run was forbidden to make.",
+    "recordedIn": [
+      "bug.md 'The Failure Is Three Selectors, Not One' and 'Root Cause'",
+      "design.md 'The Loss Is Recurrent, Not Singular' and 'Open Questions For The Owner'",
+      "report.md 'Evidence Provenance' and 'Completion Statement'",
+      "scopes.md Scope 1, marked not agent-dischargeable",
+      "uservalidation.md Automation Readiness, three items left unticked with reasons"
+    ],
+    "whyNotClosedHere": "The filing task named documentation as the deliverable and explicitly forbade modifying source, tests, workflows, packs or scripts/selftest.mjs, and forbade pushing, merging, rebasing or altering any branch. Choosing a reconciliation approach inside a filing task would prejudge a branch decision the operator reserved.",
+    "consequenceForStatus": "status is in_progress with certification.status equal to it. All three scopes are Not Started and zero Definition of Done items are ticked, which is the accurate representation of a filed, unstarted packet."
+  },
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "certificationFieldWriteNote": "certification.status was set equal to the top-level status. It reads in_progress because the packet is filed and unstarted: three scopes Not Started, zero Definition of Done items ticked, the branch decision unanswered. completedScopes is empty. certifiedCompletedPhases stays EMPTY: phase certification is bubbles.validate's to write, and no independent party re-derived any evidence in report.md.",
+    "scopeProgress": [
+      {
+        "scopeId": "01-decide-how-the-two-resolutions-are-reconciled",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 4
+      },
+      {
+        "scopeId": "02-make-the-deployed-branch-carry-the-panel-its-tests-exercise",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 8
+      },
+      {
+        "scopeId": "03-notice-the-next-silent-loss",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 5
+      },
+      {
+        "scopeId": "cross-scope",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 4
+      }
+    ]
+  },
+  "completedScopes": [],
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "workflow-forced"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "modeTransitions": [],
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "at": "2026-08-23T00:00:00Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "filed",
+      "note": "Filed the red deploy gate as a defect with an executed root cause. Re-derived every claim at 7d592cf1b rather than inheriting it. Four findings go beyond the reported description. First, the six failures wait on THREE selectors, not one: five report toHaveAttribute element-not-found at 5000ms against #combinedCurveChart and #combinedSettlementCard, and only one is the 30000ms textContent timeout against combinedFederalLeg, so a fix validated against the quotable error alone clears one test of six. Second, the root cause is not an un-landed implementation: c58719fb4 introduced the wiring and IS an ancestor of origin/main, but merges 612382ddf, a30410572, e8235b996 and 1e765338d each took one parent carrying it and one without and resolved to without, and the merge base of the two tips still carries none of it. Third, the computation module rltaxcombined.js is byte-identical at both tips, so only markup and a script tag are missing and the remedy is narrower than the failure count suggests. Fourth, the uploaded report artifact holds 35 result directories against 31 reported failures, so counting directories over-counts by four and mis-attributes four specs. The reported figure of sixteen timeouts was not reproduced: only three result directories in the whole run mention a 30000ms test timeout. The reported concurrent-session spec list was only partly reproduced: portfolio-survival-brief, portfolio-survival-foundation, portfolio-survival-mobile and volatility-sizing-lab failed in this run, while fx-regime-relative-value-lab, technical-analysis-decision-lab, bond-regime-lab, company-intelligence-lab, deployed-site-parity and company-fundamentals-lab did not. No source file was modified, no branch was moved, and no selftest assertion was added."
+    }
+  ]
+}

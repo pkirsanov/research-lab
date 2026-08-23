@@ -1,0 +1,281 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos",
+  "featureName": "BUG-017 On macOS The System-Chrome Browser Project Intermittently Fails To Tear Down, Turning An All-Green Run Into A Non-Zero Exit",
+  "createdAt": "2026-08-23T00:00:00Z",
+  "lastUpdatedAt": "2026-08-23T00:00:00Z",
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "priorBlockedReason": null,
+  "blockedReasonResolved": null,
+  "crossFeatureEditAuthorization": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "priorPlanningOnlyJustification": null,
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "7d592cf1b",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md"
+  },
+  "execution": {
+    "activeAgent": null,
+    "currentPhase": "bug",
+    "currentPhaseStatus": "complete",
+    "phaseReconciliation": null,
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-23T00:00:00Z",
+    "completedAt": null,
+    "substate": "filed",
+    "currentScope": null,
+    "nextRequiredOwner": "owner of the local browser-test toolchain — the remedy choice in design.md open question 1 is not agent-dischargeable",
+    "nextRequiredTarget": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/design.md#open-questions-for-the-owner",
+    "nextRequiredReason": "The packet is filed and unstarted. The root cause is NOT established: four candidate mechanisms are enumerated and the evidence distinguishes none of them. Scope 1 is diagnostic work requiring repeated runs and instrumentation this filing session did not perform. Scope 2 depends on Scope 1's selection. Scope 3 is correct only if Scope 1 concludes the cause is not removable in this repository. Whether diagnosis is worth its cost against simply defaulting the local loop to the bundled project is a judgement about developer time that no evidence settles. Gate G136 human acceptance is unestablished and cannot be supplied by automation, because this packet delivers no behaviour to exercise.",
+    "phaseClaimNote": "currentPhase is 'bug' with substate 'filed'. This run created seven artifacts under specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/ and modified nothing else. It executed Playwright five times for reproduction, directing all output to a temporary directory OUTSIDE the repository, and modified no test, no configuration file, no source file, no workflow and no pack. The tests executed were the twenty lifetime-tax spec files, which belong to this packet owner; no file belonging to a concurrent session was executed, read, edited or staged. No branch or remote was pushed, merged, rebased or moved. Zero Definition of Done items are ticked across all three scopes and the cross-scope set. completedPhaseClaims records the bug phase as an execution claim only; certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write.",
+    "completedPhaseClaims": [
+      {
+        "phase": "bug",
+        "agent": "bubbles.bug",
+        "claimedAt": "2026-08-23T00:00:00Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      }
+    ],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      {
+        "scopeId": "01-characterise-the-stall-well-enough-to-choose",
+        "scope": 1,
+        "status": "Not Started",
+        "dependsOn": [],
+        "resolvedBy": null
+      },
+      {
+        "scopeId": "02-apply-the-selected-remedy",
+        "scope": 2,
+        "status": "Not Started",
+        "dependsOn": [
+          "01-characterise-the-stall-well-enough-to-choose"
+        ],
+        "resolvedBy": null
+      },
+      {
+        "scopeId": "03-disclose-it-where-a-developer-meets-it",
+        "scope": 3,
+        "status": "Not Started",
+        "dependsOn": [
+          "01-characterise-the-stall-well-enough-to-choose"
+        ],
+        "resolvedBy": null
+      }
+    ],
+    "audit": null
+  },
+  "defect": {
+    "severity": "Medium",
+    "class": "developer-experience",
+    "surface": "playwright.config.mjs project system-chrome (channel: chrome), local macOS runs",
+    "measuredAtCommit": "7d592cf1b",
+    "platform": "macOS",
+    "nodeVersion": "v26.4.0",
+    "playwrightVersion": "1.61.1",
+    "systemChromeInstalled": true,
+    "reproducedInFilingSession": true,
+    "reproductionTestSet": "the twenty lifetime-tax spec files, 94 tests, owned by this packet",
+    "playwrightOutputWrittenOutsideRepository": true,
+    "observedRuns": [
+      {
+        "run": 1,
+        "project": "chromium",
+        "workers": 1,
+        "tests": 8,
+        "result": "8 passed (4.5s)",
+        "exit": 0,
+        "wallSeconds": 5,
+        "forceKilledWorkers": 0
+      },
+      {
+        "run": 2,
+        "project": "system-chrome",
+        "workers": 1,
+        "tests": 8,
+        "result": "8 passed (6.5s)",
+        "exit": 0,
+        "wallSeconds": 6,
+        "forceKilledWorkers": 0
+      },
+      {
+        "run": 3,
+        "project": "chromium",
+        "workers": 6,
+        "tests": 94,
+        "result": "94 passed (18.2s)",
+        "exit": 0,
+        "wallSeconds": 19,
+        "forceKilledWorkers": 0
+      },
+      {
+        "run": 4,
+        "project": "system-chrome",
+        "workers": 6,
+        "tests": 94,
+        "result": "94 passed (1.3m)",
+        "exit": 0,
+        "wallSeconds": 77,
+        "forceKilledWorkers": 0
+      },
+      {
+        "run": 5,
+        "project": "system-chrome",
+        "workers": 6,
+        "tests": 94,
+        "result": "94 passed (5.7m)",
+        "exit": 1,
+        "wallSeconds": 342,
+        "forceKilledWorkers": 1,
+        "errorLine": "Error: worker-3 process did not exit within 300000ms after stop, force-killed it",
+        "trailerLine": "1 error was not a part of any test, see above for details"
+      }
+    ],
+    "everyTestPassedInTheFailingRun": true,
+    "exitCodeCause": "browser worker teardown, not a test outcome",
+    "intermittent": true,
+    "intermittenceObserved": "1 of 2 identical runs at 6 workers",
+    "absentAtOneWorker": true,
+    "cleanRunSlowdownRatio": "roughly 4 to 1 against the bundled chromium project on the identical 94-test set",
+    "stalledRunSlowdownRatio": "roughly 18 to 1",
+    "stallOccursAt": "release, not execution — all 94 passes were reported before the wait began",
+    "chromeProcessesBefore": 42,
+    "chromeProcessesAfter": 49,
+    "chromeProcessCountCaveat": "A browser was already open on the machine, so these counts corroborate an incomplete release; they are NOT an exact leak count.",
+    "rootCauseEstablished": false,
+    "candidateMechanisms": [
+      "transport shutdown — the runner-to-browser connection fails to close",
+      "a macOS process-lifecycle interaction between an installed application bundle and a bundled binary",
+      "profile or lock contention across concurrent instances of the same installed browser",
+      "a version-pair interaction between the installed Chrome and the pinned Playwright build"
+    ],
+    "candidateMechanismsDiscriminated": false,
+    "carriedInHypothesisNotVerifiedHere": "Chromium CDP transport over --remote-debugging-pipe. No handle trace was taken in this session; recorded as a candidate only.",
+    "reproducesInPipeline": false,
+    "pipelineNonReproductionEstablishedBy": "Test accounting in pipeline run 32651572136: 31 failed plus 677 passed equals its own 708 tests, so no test was lost to a teardown, and the '1 error was not a part of any test' signature is absent. NOT established by matching a force-killed string.",
+    "measurementNote": "Every timing, exit code and quoted runner line in this packet was produced by a command executed in this filing session on the affected machine at 7d592cf1b; report.md carries the command and output behind each. Two claims carry a stated method and are labelled where they appear: the browser process counts corroborate an incomplete release rather than measuring a leak exactly, because a browser was already open; and pipeline non-reproduction rests on test accounting rather than on a string match. Three reported characteristics were NOT reproduced and are recorded as such: three to six force-killed workers (exactly one was observed, worker-3), a suite of 88 tests (94 were run, the full lifetime-tax family), and the CDP transport attribution (unverified here)."
+  },
+  "relatedDefects": [
+    {
+      "id": "BUG-016",
+      "path": "specs/_bugs/BUG-016-combined-tax-panel-wiring-absent-on-origin-main",
+      "relationship": "distinct-and-deliberately-not-merged",
+      "note": "BUG-016 is the red deploy gate: six tests asserting against a panel the deployed branch does not carry, deterministic across eleven consecutive runs, with a fully established root cause in a recurring merge-resolution loss. THIS defect fails no test, does not reproduce in the pipeline, and has no established cause. It must never be offered as an explanation for that red gate."
+    }
+  ],
+  "terminalTransitionBlockers": [
+    "The root cause is not established. Four candidate mechanisms are enumerated and the evidence gathered here distinguishes none of them.",
+    "No frequency and no concurrency threshold are established. One occurrence in two runs at six workers is not a rate, and a worker count at which the stall was not observed is not thereby known to be safe.",
+    "Scope 1 is diagnostic work requiring repeated runs and instrumentation this filing session did not perform.",
+    "Scope 2 has no defined shape until Scope 1 selects a remedy option.",
+    "Scope 3 is correct only if Scope 1 concludes the cause is not removable in this repository; taking it while a remedy is available would substitute disclosure for a fix.",
+    "No Definition of Done item in scopes.md is ticked, and none should be. Nothing has been designed, built, or tested.",
+    "The defect is live. A green local suite can exit 1 on macOS, so any script or hook keying on the exit code is unreliable there.",
+    "Gate G136 human acceptance is not established. uservalidation.md carries no delivered behaviour to exercise, its Checklist items are unticked, and its Human Acceptance Record is unfilled.",
+    "No independent party re-derived any measurement. certification.certifiedCompletedPhases is empty because phase certification belongs to bubbles.validate."
+  ],
+  "knownLimitation": {
+    "statement": "The defect is established by direct reproduction; its cause is not. What is established: under the system-chrome project on macOS at six workers, a 94-test run reported every test passing and then exited 1 because worker-3 was force-killed at the 300000ms teardown budget, after 342 seconds of wall time; the identical command exited 0 in 77 seconds on the preceding attempt, so the condition is intermittent; the bundled chromium project ran the identical set in 18.2s and exited 0; the two projects differ only in channel: chrome; the condition is absent at one worker, where the two projects differ by about a second; the stall occurs at release rather than during execution, since all 94 passes were reported first; the slowdown is standing at roughly four to one even when the run exits 0; and the condition does not reproduce in the pipeline, whose run accounts for all 708 of its tests. What is NOT established: the mechanism, which of four candidates applies, the frequency, a concurrency threshold, whether more than one worker can be affected, and the carried-in attribution to Chromium's CDP transport over --remote-debugging-pipe, for which no handle trace was taken here.",
+    "recordedIn": [
+      "bug.md 'What Was Not Established' and 'Root Cause'",
+      "design.md 'The Boundary' and 'Candidate Mechanisms'",
+      "report.md 'Evidence Provenance' and 'Completion Statement'",
+      "scopes.md Scope 1, which exists precisely to close this gap",
+      "uservalidation.md Automation Readiness, four items left unticked with reasons"
+    ],
+    "whyNotClosedHere": "The filing task named documentation as the deliverable and explicitly forbade modifying source, tests, workflows, packs or scripts/selftest.mjs. Diagnosing the stall requires instrumentation and repeated runs beyond a filing session, and selecting a remedy would prejudge a developer-time judgement the owner reserved.",
+    "consequenceForStatus": "status is in_progress with certification.status equal to it. All three scopes are Not Started and zero Definition of Done items are ticked, which is the accurate representation of a filed, unstarted packet."
+  },
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "certificationFieldWriteNote": "certification.status was set equal to the top-level status. It reads in_progress because the packet is filed and unstarted: three scopes Not Started, zero Definition of Done items ticked, the root cause unestablished. completedScopes is empty. certifiedCompletedPhases stays EMPTY: phase certification is bubbles.validate's to write, and no independent party re-derived any evidence in report.md.",
+    "scopeProgress": [
+      {
+        "scopeId": "01-characterise-the-stall-well-enough-to-choose",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 7
+      },
+      {
+        "scopeId": "02-apply-the-selected-remedy",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 7
+      },
+      {
+        "scopeId": "03-disclose-it-where-a-developer-meets-it",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 4
+      },
+      {
+        "scopeId": "cross-scope",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 4
+      }
+    ]
+  },
+  "completedScopes": [],
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "workflow-forced"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "modeTransitions": [],
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "at": "2026-08-23T00:00:00Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "filed",
+      "note": "Reproduced the defect rather than recording it on report. Five Playwright runs in one session with the browser project as the only variable: the bundled chromium project ran 94 tests in 18.2s exiting 0, while the system-chrome project ran the identical set twice — once in 77 seconds exiting 0, and once in 342 seconds with 'Error: worker-3 process did not exit within 300000ms after stop, force-killed it' and exit 1, every test passing in all three. All output was written outside the repository and nothing was modified. Filed SEPARATELY from BUG-016 and explicitly not merged with it: pipeline run 32651572136 accounts for all 708 of its tests as passes or failures, so no teardown loss occurred there and this defect cannot explain that red gate. Three reported characteristics were not reproduced and are recorded as such: three to six force-killed workers (exactly one, worker-3, was observed), an 88-test suite (94 were run), and the CDP --remote-debugging-pipe attribution (no handle trace taken here, recorded as a candidate only). Two findings go beyond the report: the slowdown is standing at roughly four to one even on a clean exit-0 run, and the condition is absent at one worker, which is why a single-spec reproduction attempt does not find it."
+    }
+  ]
+}

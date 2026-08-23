@@ -5289,6 +5289,34 @@
       "limitations": ["A stage describes the strength of the causal evidence, never a forecast or a position. Plan eligibility means confirmation conditions are met, not that a trade is advised, and a posture or overlay change never edits evidence."],
       "deepLinkTargets": {"power":"causal-rotation-lab.html#power","journey":"causal-rotation-lab.html#journey"},
       "definitionFingerprint": null
+    },
+    {
+      "contractVersion": "simple-model-definition/v1",
+      "definitionId": "simple-model/horizon-ladder/v1",
+      "toolId": "horizon-ladder-lab",
+      "modelId": "horizon-ladder",
+      "modelVersion": "v1",
+      "researchQuestion": "Recompute the earned-rate gate and the target arithmetic under direction, horizon, resolution rule, target distance, and invalidation distance",
+      "resultSchemaId": "simple-model-output/generic-scenario/v1",
+      "adapterId": "simple-adapter/horizon-ladder/v1",
+      "adapterModule": "rlexperience-adapters/strategy-research.js",
+      "inputRequirements": [{"requirementId":"owner-evidence","sourceClass":"owner-evidence","required":true,"stalePolicy":"reject"}],
+      "parameterDefinitions": [
+        {"parameterId":"direction","label":"Direction","kind":"enum","unit":"direction","domain":{"options":[{"value":"long","label":"Long"},{"value":"short","label":"Short"}]},"defaultValue":"long","defaultSource":"registry","interpretation":"Selects the direction half of the cell whose resolved sample governs whether a rate may be published.","affectsOutputPaths":["summary.cellId","summary.gate"],"disabledWhen":[],"identityBearing":true},
+        {"parameterId":"horizon","label":"Horizon","kind":"enum","unit":"horizon","domain":{"options":[{"value":"h1w","label":"1 week"},{"value":"h2w","label":"2 weeks"},{"value":"h1m","label":"1 month"},{"value":"h3m","label":"3 months"},{"value":"h6m","label":"6 months"},{"value":"h1y","label":"1 year"}]},"defaultValue":"h1m","defaultSource":"registry","interpretation":"Selects the horizon half of the cell whose resolved sample governs whether a rate may be published.","affectsOutputPaths":["summary.cellId","summary.gate"],"disabledWhen":[],"identityBearing":true},
+        {"parameterId":"resolution-rule","label":"Resolution rule","kind":"enum","unit":"rule","domain":{"options":[{"value":"terminal","label":"Terminal"},{"value":"touch","label":"Touch"}]},"defaultValue":"terminal","defaultSource":"registry","interpretation":"Declares whether the target must hold at the horizon end or merely be reached at any point, which roughly doubles the probability of the same target.","affectsOutputPaths":["summary.probability"],"disabledWhen":[],"identityBearing":true},
+        {"parameterId":"target-sigma","label":"Target distance","kind":"number","unit":"sigma","domain":{"min":-1,"max":2.5,"step":0.05},"defaultValue":0.75,"defaultSource":"registry","interpretation":"Places the target in horizon sigma. A larger distance lowers the probability of reaching it.","affectsOutputPaths":["summary.probability","summary.risk"],"disabledWhen":[],"identityBearing":true},
+        {"parameterId":"invalidation-sigma","label":"Invalidation distance","kind":"number","unit":"sigma","domain":{"min":0.1,"max":2.5,"step":0.05},"defaultValue":0.5,"defaultSource":"registry","interpretation":"Places the invalidation level in horizon sigma. A tighter stop raises its touch probability.","affectsOutputPaths":["summary.risk"],"disabledWhen":[],"identityBearing":true}
+      ],
+      "scenarioDefinitions": [{"scenarioId":"baseline","label":"Baseline","parameterOverrides":{}}],
+      "seedPolicy": {"required":false,"defaultSeed":null,"defaultSource":null,"randomnessClass":"none","commonRandomNumbersForSensitivity":false},
+      "sensitivityPolicy": {"method":"one-at-a-time","requireOutputEffect":true,"flatRegionPolicy":"explicit-proof"},
+      "calibrationPolicy": {"class":"owner-evidence-relative","requiredFields":["state","reason"]},
+      "provenancePolicy": {"allowedClasses":["observed-fact","user-assumption","model-estimate","unavailable"],"requireEvidenceCutoff":true},
+      "performancePolicy": {"maxComputeMs":250,"deterministic":true},
+      "limitations": ["The probability reported for a target distance is arithmetic under a declared zero drift, never a measured hit rate. A rate is published only once the selected cell reaches its minimum resolved sample, and no long or short cell has resolved a single outcome yet."],
+      "deepLinkTargets": {"power":"horizon-ladder-lab.html#power","journey":"horizon-ladder-lab.html#journey"},
+      "definitionFingerprint": null
     }
   ]
 }

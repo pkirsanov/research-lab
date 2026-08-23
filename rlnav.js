@@ -104,7 +104,8 @@
     { label: "Trend Dynamics", full: "Trend, Dynamics & Cycle Lab", icon: "📉", file: "trend-dynamics-cycle-lab.html", group: "Market Structure" },
     { label: "Portfolio Survival", full: "Portfolio Survival & Allocation Lab", icon: "🧭", file: "portfolio-survival-allocation-lab.html", group: "Strategy & Validation" },
     { label: "Research Agenda", full: "Research Agenda Lab", icon: "🧭", file: "research-agenda-lab.html", group: "Rotation & Macro" },
-    { label: "Causal Rotation", full: "Causal Rotation Lab", icon: "🔗", file: "causal-rotation-lab.html", group: "Rotation & Macro" }
+    { label: "Causal Rotation", full: "Causal Rotation Lab", icon: "🔗", file: "causal-rotation-lab.html", group: "Rotation & Macro" },
+    { label: "Horizon Ladder", full: "Long/Short Horizon Ladder Lab", icon: "🪜", file: "horizon-ladder-lab.html", group: "Strategy & Validation" }
   );
 
   var LSKEY = "rlnav.pinned";

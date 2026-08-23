@@ -846,29 +846,33 @@
         /* Profiles select among real structure rather than imposing a target distance. */
         function applyProfile(rows, excluded) {
             var kept = [], dropped = [];
+            var floor = CFG.policy.analogProbabilityFloor;
+            var minIndep = CFG.policy.minIndependentWindows;
             for (var i = 0; i < rows.length; i++) {
                 var r = rows[i];
+                /* The probability floor is a property of the TOOL, not of one profile. This ladder
+                   exists to name high-probability candidates, so a name below the floor must not be
+                   published under any profile — the profiles differ in how they RANK the names that
+                   qualify, never in whether a coin flip is allowed to appear. Scoping this to the
+                   high-probability profile alone let the lower-risk list top-rank a 29.5% shot on
+                   the strength of its reward-to-risk, which reads as an endorsement it has not earned. */
+                if (!isFinite(r.analogRate) || r.analogN < CFG.policy.minAnalogSample) {
+                    dropped.push({ symbol: r.symbol, reason: 'no measured rate to stand on: analog sample ' + (isFinite(r.analogN) ? r.analogN : 0) + ' of ' + CFG.policy.minAnalogSample + ' required' });
+                    continue;
+                }
+                /* Analog windows overlap, so a large n can still rest on very few independent
+                   observations. History length divided by the horizon is that independent count. */
+                if (!isFinite(r.analogIndependent) || r.analogIndependent < minIndep) {
+                    dropped.push({ symbol: r.symbol, reason: 'analog windows overlap: only ' + (isFinite(r.analogIndependent) ? r.analogIndependent : 0) + ' independent ' + state.horizon + ' windows in the available history, ' + minIndep + ' required' });
+                    continue;
+                }
+                if (r.analogRate < floor) {
+                    dropped.push({ symbol: r.symbol, reason: 'measured rate ' + (r.analogRate * 100).toFixed(1) + '% is below the ' + (floor * 100).toFixed(0) + '% probability floor this tool publishes at' });
+                    continue;
+                }
                 if (state.profile === 'lower-risk' && !(isFinite(r.rr) && r.rr >= CFG.policy.rewardToRiskFloor)) {
                     dropped.push({ symbol: r.symbol, reason: 'reward-to-risk ' + (isFinite(r.rr) ? r.rr.toFixed(2) : 'n/a') + ' is below the ' + CFG.policy.rewardToRiskFloor + ' floor for the lower-risk profile' });
                     continue;
-                }
-                if (state.profile === 'high-probability') {
-                    var floor = CFG.policy.analogProbabilityFloor;
-                    var minIndep = CFG.policy.minIndependentWindows;
-                    if (!isFinite(r.analogRate) || r.analogN < CFG.policy.minAnalogSample) {
-                        dropped.push({ symbol: r.symbol, reason: 'high-probability profile needs a measured rate: analog sample ' + (isFinite(r.analogN) ? r.analogN : 0) + ' of ' + CFG.policy.minAnalogSample + ' required' });
-                        continue;
-                    }
-                    /* Analog windows overlap, so a large n can still rest on very few independent
-                       observations. History length divided by the horizon is that independent count. */
-                    if (!isFinite(r.analogIndependent) || r.analogIndependent < minIndep) {
-                        dropped.push({ symbol: r.symbol, reason: 'analog windows overlap: only ' + (isFinite(r.analogIndependent) ? r.analogIndependent : 0) + ' independent ' + state.horizon + ' windows in the available history, ' + minIndep + ' required' });
-                        continue;
-                    }
-                    if (r.analogRate < floor) {
-                        dropped.push({ symbol: r.symbol, reason: 'measured rate ' + (r.analogRate * 100).toFixed(1) + '% is below the ' + (floor * 100).toFixed(0) + '% floor for the high-probability profile' });
-                        continue;
-                    }
                 }
                 kept.push(r);
             }

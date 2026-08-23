@@ -72,7 +72,15 @@ test('Regression: switching direction re-keys the cell the gate reports on', asy
   await expect(page.locator('#gateNotice')).toContainText('long:h1m');
   await page.selectOption('#selDirection', 'short');
   await expect(page.locator('#gateNotice')).toContainText('short:h1m');
-  await expect.poll(() => page.locator('#simpleTable tbody tr').count(), { timeout: 15000 }).toBeGreaterThan(0);
+  /* The re-keyed cell must render a DEFINITE answer, not a stale table and not a silent blank.
+     Asserting names here instead would be wrong: the probability floor legitimately empties some
+     cells, and a test that demands names would pressure the floor down to keep itself green. */
+  await expect.poll(async () => {
+    const rows = await page.locator('#simpleTable tbody tr').count();
+    if (rows > 0) return 'named';
+    const body = await page.locator('#simpleTable').innerText();
+    return /No candidate cleared the gates/i.test(body) ? 'refused' : 'silent';
+  }, { timeout: 15000 }).not.toBe('silent');
 });
 
 /* Canvas work in this repo has a known failure mode: a draw deferred to requestAnimationFrame never
@@ -116,6 +124,32 @@ test('Regression: the high-probability profile names candidates above its floor 
        alongside every rate a reader might act on. */
     expect(text).toMatch(/indep/);
   }
+});
+
+/* The floor belongs to the tool, not to one profile. Scoped to high-probability alone, the
+   lower-risk list top-ranked a 29.5% name on the strength of its reward-to-risk — a coin flip
+   presented as the safest idea on the board. Every profile must refuse to publish below the floor;
+   they differ in how they RANK what qualifies. This walks all three and pins that. */
+test('Regression: no profile publishes a name below the probability floor', async ({ page }) => {
+  await page.goto(baseUrl + '/horizon-ladder-lab.html');
+  await expect.poll(() => page.locator('#simpleTable tbody tr').count(), { timeout: 15000 }).toBeGreaterThan(0);
+  await page.selectOption('#selHorizon', 'h1m');
+  const leaders = [];
+  for (const profile of ['lower-risk', 'high-reward', 'high-probability']) {
+    await page.selectOption('#selProfile', profile);
+    await page.waitForTimeout(300);
+    const texts = await page.locator('#simpleTable tbody tr td:nth-child(3)').allInnerTexts();
+    /* Each profile must actually answer at this horizon, or the walk proves nothing. */
+    expect(texts.length, profile + ' named nothing at 1 month').toBeGreaterThan(0);
+    for (const text of texts) {
+      const rate = Number(/([0-9.]+)%/.exec(text)?.[1]);
+      expect(rate, profile + ' published ' + text).toBeGreaterThanOrEqual(55);
+    }
+    leaders.push(await page.locator('#simpleTable tbody tr td:nth-child(1)').first().innerText());
+  }
+  /* A shared floor must not collapse the profiles into one list — they still rank on their own
+     axis, so the top name cannot be identical across all three. */
+  expect(new Set(leaders.map((s) => s.trim())).size).toBeGreaterThan(1);
 });
 
 /* Opened straight off disk, the universe fetch is blocked and the tool has no data at all. Every

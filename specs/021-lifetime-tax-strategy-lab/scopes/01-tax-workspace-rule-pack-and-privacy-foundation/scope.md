@@ -249,6 +249,20 @@ Test Plan row.
   - **Claim Source:** executed · **Result:** all 17 assertions in the appended Scope 01 group pass; suite exits 0 at `2492 passed, 0 failed`. Two defects were found and fixed on the way: `validateRulePack` named an absent member twice, and the citation assertion expected 12 present figures where the pack correctly carries 8.
 - [ ] Every Test Plan row has intended RED evidence and same-command GREEN
       evidence, recorded before the cumulative browser row.
+  - **Re-examined 2026-08-22, still open, and two of the three gaps are closed.**
+    `TP-01-18` is now authored and carries a RED with a same-command GREEN, so
+    the note below no longer applies to it. Of the three rows the note itself
+    identifies as outside the command range, `TP-01-17` now carries a
+    discriminating path-guard probe. Two rows remain without a RED and both are
+    named rather than counted away. `TP-01-15`, the cumulative browser row, was
+    not probed. `TP-01-16`, the repo gate, **was** probed and the harness
+    returned exit 7 — the RED and GREEN channels agreed. That result is recorded
+    in `report.md#tp-01-17-reds-tp-01-16-does-not--one-probe-one-finding-2026-08-22`
+    as a finding rather than retried with a different mutation, because a probe
+    retried until something goes red stops being evidence. The finding is about
+    the module, not the row: relaxing the non-empty string guard in
+    `rltaxworkspace.js` so a zero-length string is accepted moves no assertion in
+    a 3384-assertion suite, so a regression through that guard would ship green.
   - **Unticked 2026-08-22 (F-REG-03).** `TP-01-18` was opened in this scope and
     is not authored, so it carries neither a RED nor a GREEN. The word "Every"
     therefore no longer holds. Note that this item's own **Command** already

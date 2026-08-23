@@ -1179,4 +1179,81 @@ remaining adoption is named here as open work, not asserted as done.
 session. The three-of-six adoption count is executed: it is the set of files this
 dispatch edited, verified against the call sites of `sameOriginPaths`.
 
+## `TP-01-17` Reds, `TP-01-16` Does Not — One Probe, One Finding (2026-08-22)
+
+The every-row DoD item's own note already records that its headline over-claimed
+against its command range: the command names `TP-01-01` through `TP-01-14` while
+`TP-01-15`, `TP-01-16` and `TP-01-17` also exist and carried no RED. Two of the
+three were addressed here. Both blocks are verbatim harness output.
+
+### `TP-01-17` — path guard, discriminating
+
+The mutation targets the guard's own resolution rather than planting a fabricated
+`tests/…` token in a spec artifact. A planted token would survive into this
+report, which is itself scanned, and would turn the guard permanently red.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-17 path guard: a spec-referenced path that does not resolve to a file must be reported as newly missing
+file:             scripts/validate-spec-test-paths.mjs
+mutation:         statSync(resolve(root, path)).isFile()  ->  statSync(resolve(root, path)).isDirectory()   (1 occurrence(s))
+command:          node scripts/validate-spec-test-paths.mjs
+red-exit:         1
+red-summary:      [spec-test-paths] FAIL — 190 new referenced path(s) do not exist
+green-exit:       0
+green-summary:    [spec-test-paths] OK — no new missing test path(s)
+summary-compared: [spec-test-paths] FAIL — 190 new referenced path(s) do not exist  vs  [spec-test-paths] OK — no new missing test path(s)   (elapsed time normalised out)
+revert-verified:  yes (committed=760f9bf0ebc04663675eee3f9d6cd81bcd9c8d0a restored=760f9bf0ebc04663675eee3f9d6cd81bcd9c8d0a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-01-16` — repo gate, exit 7, and the finding it produced
+
+The mutation relaxed the non-empty guard in `rltaxworkspace.js`, this scope's own
+workspace module, so a zero-length string would be accepted wherever the module
+requires a non-empty one. The harness returned exit 7: the RED and GREEN channels
+agreed. That is recorded here as a finding rather than retried with a different
+mutation, because a probe retried until something goes red stops being evidence.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-16 repo gate: a defect planted in this scope own workspace module must make the whole-repository suite non-green and the pre-existing pass count fall
+file:             rltaxworkspace.js
+mutation:         return typeof candidate === "string" && candidate.length > 0;  ->  return typeof candidate === "string" && candidate.length >= 0;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         0
+red-summary:      Research-Lab self-test: 3384 passed, 0 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3384 passed, 0 failed
+summary-compared: Research-Lab self-test: 3384 passed, 0 failed  vs  Research-Lab self-test: 3384 passed, 0 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=d527e273212ed6fdc08c771ad4bddfea761a1ec9 restored=d527e273212ed6fdc08c771ad4bddfea761a1ec9)
+discriminating:   NO (both channels agree: exit 0 == 0, summary "Research-Lab self-test: 3384 passed, 0 failed" identical once elapsed time is normalised)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**What this establishes.** Not that `TP-01-16` is weak — the row claims the suite
+stays green and the pass count does not fall, and this run shows the count
+unchanged, which is the row passing. What it establishes is about the module: the
+non-empty string guard in `rltaxworkspace.js` is unasserted. Relaxing it so that
+an empty string is accepted moves no assertion in a 3384-assertion suite. A
+regression that let a zero-length declaration through that guard would ship
+green. The guard is named here so the finding is available to whoever owns that
+module, and `TP-01-16` is left without a RED rather than being given one by
+searching for a mutation that happens to fail.
+
+**Claim Source:** executed. Both blocks are verbatim harness output from this
+session, each revert hash-verified against the committed blob, and
+`git status --short` for each touched file re-read clean afterwards.
+
+### Effect on the DoD row
+
+The every-row item stays open. `TP-01-17` now carries a RED and a same-command
+GREEN. `TP-01-16` does not, for the reason recorded above. `TP-01-15`, the
+cumulative browser row, still carries GREEN only and was not probed here. Two
+limits recorded earlier are unchanged and not withdrawn: `TP-01-04`'s
+zero-substituting half and `TP-01-08`'s forbidden-prefix limb are each shielded
+by a second independent check, so no single-limb mutation can make their
+assertion fail.
+
 

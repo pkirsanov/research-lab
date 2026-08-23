@@ -271,6 +271,20 @@ Test Plan row.
   - **Claim Source:** executed · **Result:** absence is clean — `grep -c 'lifetime-tax-strategy-lab'` returns `0` for all six surfaces, so the tool is unregistered and unreachable from navigation, the registry, either README or market-brief coverage. Byte-identity is **qualified and the qualification is stated rather than hidden**: five of the six are unmodified, and the sixth, `notes/README.md`, carries one change that is not this scope's — the full diff is two geopolitical note rows added by a concurrent session, neither mentioning the tax lab. The clause's purpose (this scope registers the tool nowhere and modifies no registration surface) is proven; the literal all-six byte-identity does not hold, for a reason outside this scope's control and fully attributed in the report.
 - [ ] Every Test Plan row has intended RED evidence and same-command GREEN
       evidence, recorded before the cumulative browser row.
+  - **Re-examined 2026-08-22, still open, and two of the three gaps are closed.**
+    `TP-05-18` is now authored and carries a RED with a same-command GREEN, so
+    the note below no longer applies to it. Of the three rows the note itself
+    identifies as outside the command range, `TP-05-17` now carries a
+    discriminating path-guard probe. Two rows remain without a RED and both are
+    named rather than counted away. `TP-05-15`, the cumulative browser row, was
+    not probed. `TP-05-16`, the repo gate, **was** probed and the harness
+    returned exit 7 — the RED and GREEN channels agreed. That result is recorded
+    in `report.md#tp-05-17-reds-tp-05-16-does-not--one-probe-one-finding-2026-08-22`
+    as a finding rather than retried with a different mutation. The finding is
+    about the module, not the row: relaxing the non-empty string guard in
+    `rltaxstrategy.js` so a zero-length string is accepted moves no assertion in
+    a 3384-assertion suite. The identical shape was found in `rltaxworkspace.js`
+    under Scope 01's `TP-01-16`, so this is a pair rather than a one-off.
   - **Unticked 2026-08-22 (F-REG-03).** `TP-05-18` was opened in this scope and
     is not authored, so it carries neither a RED nor a GREEN. The word "Every"
     therefore no longer holds. This item's own **Command** already named a

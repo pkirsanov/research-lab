@@ -28451,11 +28451,12 @@ try {
   'H1: the assessment cap ceiling is built from the LOWER of the declared cap rate and the sourced annual index change — an index change below the cap rate reduces the capped value and the tax, one equal to it and one above it both leave the cap rate applied — so an implementation reading the cap rate alone fails here rather than agreeing with a fixture whose two rates are equal');
 
   /* H2. The passive-activity special allowance is the second of the two loss limits, and it caps
-     the loss the first limit let through. Every fixture household declared an at-risk amount BELOW
-     the allowance, so the first limit always shadowed the second and the second disallowed zero
-     everywhere in this suite; removing its bound entirely left all 3384 assertions passing. The
-     household below declares an at-risk amount far above the allowance, so the allowance is the
-     limit that actually binds, and the shadowed household is priced beside it. */
+     the loss the first limit let through. Three of the five households TP-03-10 prices DO reach
+     the binding condition — but the only assertion over them compares amountBefore, allowedAmount
+     and disallowedAmount to each other, and that reconciliation survives the defect: an
+     implementation that allows the whole loss and disallows nothing still satisfies
+     allowed + disallowed === before. Nothing anywhere compared the allowed amount to the
+     allowance, so removing the bound left all 3384 assertions passing. This row compares them. */
   const hAllowancePack = hFederal();
   hAllowancePack.lossLimitPolicy.specialAllowance.maximumAmounts = {
     amount: 20000, sourceRef: 'irs-p925-2025', locator: 'fixture maximum, the implementer\u2019s own figure'
@@ -28533,11 +28534,11 @@ try {
   'H3: where the sourced proportion of the first band is smaller than one-half of the benefit the included amount is the band figure and the component says so through boundedByBenefitProportion, with the ceiling proven slack so the choice is visible in the settled figure, and the household whose benefit proportion is the lower of the two is priced beside it — so an implementation ignoring the band and always including one-half of the benefit fails here');
 
   /* H4. An exemption is allowed only to the extent of the capped assessed value remaining after
-     the exemptions already applied. Every fixture household declared a value two orders of
-     magnitude above the exemption, so the bound never bound and removing it left all 3384
-     assertions passing. The taxable basis is separately clamped at zero, so the defect this
-     catches is a published exemption total larger than the value it was applied against — the
-     tax alone cannot detect it. */
+     the exemptions already applied. No assertion anywhere compared the published exemption total
+     against the remainder it was applied to, so replacing the bound with the declared amount left
+     all 3384 assertions passing. The taxable basis is separately clamped at zero, so the defect
+     this catches is a published exemption total larger than the value it was applied against —
+     the tax alone cannot detect it, which is why the household below is priced on the total. */
   const hSmallHome = hDeclare({
     assessedValue: 20000, priorAssessedValue: 15000, acquisitionValue: 12000,
     localCombinedRate: 0.02, exemptionElections: ['fixture-exemption']

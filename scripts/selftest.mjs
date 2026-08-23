@@ -14655,19 +14655,58 @@ try {
     && refusedWithoutEntry.includes(PAGE),
   'TP-05-10: the pages-site build accepts the finished unregistered page through its site-exclusions decision, and removing that decision is proven to make the build refuse the page');
 
-  /* The zero-network posture is structural: the page carries no runtime transport beyond the two
-     local documents it reads once, and no household value can reach a URL. */
+  /* The zero-network posture is structural: the page carries no runtime transport beyond the
+     documents its own configuration declares, and no household value can reach a URL. */
   const transportTokens = ['XMLHttpRequest', 'sendBeacon', 'EventSource', 'WebSocket', 'serviceWorker',
     'importScripts', 'createElement("script")', 'document.write'];
   const transportHits = transportTokens.filter((token) => page.indexOf(token) >= 0);
   const fetchCalls = (page.match(/window\.fetch\(/g) || []).length;
-  const fetchTargets = (page.match(/loadJson\("[^"]+"\)|loadJson\(config\.rules\.packPath\)/g) || []);
+  /* Every call site is captured whatever the argument form. An earlier detector matched only a
+     string literal or the single member expression config.rules.packPath, so the five
+     variable-argument reads added after Scope 05 moved neither counter and failed no assertion. */
+  const readSitePattern = /(?<!function )loadJson\(([^)]*)\)/g;
+  const readSiteArguments = [];
+  let readSiteHit = readSitePattern.exec(page);
+  while (readSiteHit !== null) {
+    readSiteArguments.push(readSiteHit[1]);
+    readSiteHit = readSitePattern.exec(page);
+  }
+  /* The argument form of each permitted read, named here so a read the page did not have before
+     cannot enter without this list being edited in the same change. */
+  const declaredReadArguments = ['"lifetime-tax-strategy.config.json"', 'config.rules.packPath',
+    'declaredRegimePaths[jurisdiction]', 'declaredStatePaths[jurisdiction]',
+    'declaredBenefitPaths[year]', 'declaredMortalityPaths[year]', 'declaredMedicarePaths[year]'];
+  const undeclaredReadArguments = readSiteArguments.filter((argument) => declaredReadArguments.indexOf(argument) < 0);
+  const unusedReadArguments = declaredReadArguments.filter((argument) => readSiteArguments.indexOf(argument) < 0);
+  /* The documents those reads resolve to, derived from the configuration the page actually loads
+     rather than from a count written by hand. */
+  const readSurfaceRules = JSON.parse(read('lifetime-tax-strategy.config.json')).rules;
+  const readSurfaceGroups = ['propertyPackPaths', 'statePackPaths', 'benefitPackPaths',
+    'mortalityPackPaths', 'medicarePackPaths'];
+  const declaredDocuments = ['lifetime-tax-strategy.config.json', readSurfaceRules.packPath]
+    .concat(readSurfaceGroups.reduce((paths, group) => paths.concat(
+      Object.keys(readSurfaceRules[group] || {}).map((key) => readSurfaceRules[group][key])), []));
+  const missingDocuments = declaredDocuments.filter((path) => read(path) === '');
+  const remoteDocuments = declaredDocuments.filter((path) => /^[a-z][a-z0-9+.-]*:|^\/\//i.test(path));
   const remoteAssets = /<(?:img|script|link)[^>]+(?:src|href)="https?:/i.test(page);
   const hashWrites = (page.match(/window\.location\.hash = /g) || []).length;
   const cspPattern = /<meta\s+http-equiv="Content-Security-Policy"\s+content="([^"]+)"\s*\/?\s*>/i;
   const pageCsp = cspPattern.exec(page);
   const referenceCsp = cspPattern.exec(read('portfolio-survival-allocation-lab.html'));
-  assert(transportHits.length === 0 && fetchCalls === 1 && fetchTargets.length === 2
+  assert(readSiteArguments.length === 7
+    && undeclaredReadArguments.length === 0
+    && unusedReadArguments.length === 0
+    && declaredDocuments.length === 9
+    && missingDocuments.length === 0
+    && remoteDocuments.length === 0
+    && fetchCalls === 1,
+  'TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin documents they resolve to are all present in this checkout and none of them is remote'
+    + (undeclaredReadArguments.length ? ' (undeclared read: ' + undeclaredReadArguments.join(', ') + ')' : '')
+    + (unusedReadArguments.length ? ' (declared read absent from the page: ' + unusedReadArguments.join(', ') + ')' : '')
+    + (missingDocuments.length ? ' (declared document missing: ' + missingDocuments.join(', ') + ')' : '')
+    + (remoteDocuments.length ? ' (remote document declared: ' + remoteDocuments.join(', ') + ')' : ''));
+
+  assert(transportHits.length === 0
     && !remoteAssets && hashWrites === 1 && page.indexOf('location.search') < 0
     && /var wanted = power \? "#power" : "#simple";/.test(page)
     && !!pageCsp && !!referenceCsp && pageCsp[1] === referenceCsp[1]
@@ -14675,7 +14714,7 @@ try {
     && (page.match(/rel="noreferrer noopener"|anchor\.rel = "noreferrer noopener"/g) || []).length >= 2
     && page.indexOf('console.') < 0
     && page.indexOf('innerHTML') < 0,
-  'TP-05-06: the route carries no runtime transport beyond one same-origin read of the two local policy documents, writes only the two view-mode literals to the location hash, never writes a query string, emits no console output, uses no innerHTML, and its CSP is byte-identical to the shared policy');
+  'TP-05-06: the route carries no runtime transport beyond the nine same-origin reads of its own declared local policy and rule-pack documents, writes only the two view-mode literals to the location hash, never writes a query string, emits no console output, uses no innerHTML, and its CSP is byte-identical to the shared policy');
 
   /* Charts are drawn synchronously and only in the mode whose canvas is visible. */
   const drawBody = extractFn(page, 'drawCurveChart');
@@ -27141,6 +27180,150 @@ try {
     + ' (comment ' + coerceComment.length + ' chars, refusal carried on leg: ' + coerceRefusalCarried + ')');
 } catch (e) { failures++; console.log('  ✗ FAIL (exclusion coercion comment/code agreement group threw): ' + e.message); }
 /* ---------- Feature 023 Scope 05: the two routed audit findings are bounded (END) ---------- */
+
+/* ---------- Horizon Ladder Lab: earned-rate gate and frontier arithmetic (START) ---------- */
+try {
+  group('Horizon Ladder Lab — the probability gate withholds until a cell is earned');
+  const hllSrc = read('horizon-ladder-lab.html');
+  const hllUniverse = JSON.parse(read('horizon-ladder-universe.json'));
+  const hllNames = ['hlNormSf', 'hlHorizonSessions', 'hlSigmaHorizon', 'hlTerminalProbability',
+    'hlTouchProbability', 'hlProbabilityFor', 'hlRewardToRisk', 'hlExpectedValueSigma',
+    'hlRateGate', 'hlScoreabilityRefusal', 'hlPercentile', 'hlSortRows', 'hlEarnProgress',
+    'hlRegimeKey', 'hlAnnualisedVol'];
+  const hll = build(hllNames.map((n) => extractFn(hllSrc, n)), hllNames);
+  const near = (a, b, tol) => Math.abs(a - b) <= tol;
+
+  // Closed-form anchors. A broken erf approximation cannot pass all five.
+  assert(near(hll.hlNormSf(0), 0.5, 1e-9) && near(hll.hlNormSf(1), 0.1587, 5e-4)
+    && near(hll.hlNormSf(-0.5), 0.6915, 5e-4) && near(hll.hlNormSf(1.5), 0.0668, 5e-4)
+    && near(hll.hlNormSf(2), 0.0228, 5e-4),
+    'the normal survival function matches its closed form at 0, ±0.5, 1, 1.5 and 2 sigma');
+
+  // The gate boundary, proven from BOTH sides so an off-by-one cannot pass.
+  const gate19 = hll.hlRateGate(50, 20, 19, 20);
+  const gate20 = hll.hlRateGate(50, 20, 20, 20);
+  assert(gate19.published === false && gate19.reason === 'ledger-insufficient-sample'
+    && gate20.published === true && gate20.reason === null,
+    'a cell with 19 resolved outcomes withholds and a cell with 20 publishes, so the minimum is a real boundary');
+  assert(hll.hlRateGate(19, 20, 500, 20).published === false
+    && hll.hlRateGate(19, 20, 500, 20).reason === 'analog-insufficient-sample',
+    'an insufficient analog sample withholds even when the ledger cell is fully earned');
+
+  // Withheld rows never interleave with rated rows and are never imputed.
+  const sorted = hll.hlSortRows([
+    { ev: 1.0, rateWithheld: true }, { ev: 5.0, rateWithheld: false }, { ev: 9.0, rateWithheld: true }
+  ], 'ev');
+  assert(sorted.rated.length === 1 && sorted.rated[0].ev === 5
+    && sorted.withheld.map((r) => r.ev).join(',') === '9,1',
+    'a withheld row sorts into its own section and never outranks a rated row by an imputed number');
+  assert(!/rateWithheld[^]{0,80}?(=\s*0\b|=\s*50\b|\|\|\s*0\.5)/.test(hllSrc),
+    'a withheld rate is never substituted with 0, 50 or a half default');
+
+  // terminal and touch are different questions about the same target.
+  const term = hll.hlProbabilityFor(1, 'terminal');
+  const touch = hll.hlProbabilityFor(1, 'touch');
+  assert(near(term, 0.1587, 5e-4) && near(touch, 0.3173, 1e-3) && touch > term
+    && hll.hlProbabilityFor(1, 'unknown-rule') === null,
+    'touch and terminal give different probabilities for one target and an undeclared rule resolves to nothing');
+  assert(hll.hlTouchProbability(-1) === 1 && hll.hlTouchProbability(0) === 1,
+    'a target at or below the entry is already touched, so its touch probability is one');
+
+  // Sigma scaling is checked at EVERY declared horizon, not only the first.
+  const spy = hllUniverse.policy.sessionsPerYear;
+  const expectedSigma = { h1w: 0.0352, h2w: 0.0498, h1m: 0.0722, h3m: 0.1250, h6m: 0.1768, h1y: 0.2500 };
+  const sigmaMembers = hllUniverse.horizons.map((h) => {
+    const sessions = hll.hlHorizonSessions(hllUniverse.horizons, h.id);
+    const s = hll.hlSigmaHorizon(0.25, sessions, spy);
+    return near(s, expectedSigma[h.id], 5e-4);
+  });
+  assert(hllUniverse.horizons.length === 6 && sigmaMembers.every(Boolean),
+    'horizon sigma scales as the square root of time at all six declared horizons (' + sigmaMembers.length + ' checked)');
+  assert(hll.hlSigmaHorizon(0.25, 0, spy) === null && hll.hlSigmaHorizon(-1, 21, spy) === null,
+    'a non-positive volatility or horizon yields no sigma rather than a fabricated one');
+
+  // Every one of the six scoreability preconditions is separately refusable.
+  const validCandidate = {
+    hasBars: true, entryReference: { level: 100, at: '2026-08-22T00:00:00Z' },
+    target: 0.75, invalidation: 0.5, scoreableAt: '21-sessions',
+    resolutionRule: 'terminal', settlementSource: 'shared rlData daily closes'
+  };
+  assert(hll.hlScoreabilityRefusal(validCandidate) === null, 'a fully specified candidate is scoreable at mint');
+  const breakages = [
+    ['instrument.bars', { hasBars: false }],
+    ['entryReference', { entryReference: null }],
+    ['target', { target: NaN }],
+    ['invalidation', { invalidation: NaN }],
+    ['scoreableAt', { scoreableAt: null }],
+    ['resolutionRule', { resolutionRule: 'vibes' }],
+    ['settlementSource', { settlementSource: '' }]
+  ];
+  const refusals = breakages.map(([field, patch]) => {
+    const broken = Object.assign({}, validCandidate, patch);
+    return hll.hlScoreabilityRefusal(broken) === field;
+  });
+  assert(refusals.length === 7 && refusals.every(Boolean),
+    'each scoreability precondition refuses by its own field path, so an unscoreable candidate is never minted ('
+    + refusals.length + ' enumerated)');
+
+  // Reward-to-risk alone is a trap: a 3:1 payoff at 6.7% is negative expected value.
+  const kHigh = 1.5, mHigh = 0.5;
+  const pHigh = hll.hlTerminalProbability(kHigh);
+  const evHigh = hll.hlExpectedValueSigma(pHigh, kHigh, mHigh);
+  const evEven = hll.hlExpectedValueSigma(hll.hlTerminalProbability(0.5), 0.5, 0.5);
+  assert(near(hll.hlRewardToRisk(kHigh, mHigh), 3, 1e-9) && evHigh < 0 && evEven < 0,
+    'a three-to-one reward-to-risk carries negative expected value at its own probability, so reward-to-risk cannot be the ranking key');
+  assert(hll.hlRewardToRisk(1, 0) === null, 'a zero invalidation distance yields no reward-to-risk rather than infinity');
+
+  // Percentiles and regime conditioning.
+  assert(hll.hlPercentile([1, 2, 3, 4], 0.5) === 2.5 && hll.hlPercentile([], 0.5) === null
+    && hll.hlPercentile([7], 0.25) === 7,
+    'the analog percentile interpolates, survives a single sample and withholds on an empty set');
+  assert(hll.hlRegimeKey(15.17, 'bull-stack') === 'lowvol-bull'
+    && hll.hlRegimeKey(35, 'bear-stack') === 'highvol-bear'
+    && hll.hlRegimeKey(NaN, 'tangled') === 'unknown-mixed',
+    'regime conditioning separates volatility and trend, and an absent reading resolves to unknown rather than a default');
+
+  // Volatility refuses a short series instead of inventing one.
+  const flat = new Array(30).fill(100);
+  assert(hll.hlAnnualisedVol(null, spy) === null && hll.hlAnnualisedVol([1, 2, 3], spy) === null
+    && hll.hlAnnualisedVol(flat, spy) === 0,
+    'annualised volatility withholds without enough bars and reports zero only for a genuinely flat series');
+
+  // Earn progress.
+  const prog0 = hll.hlEarnProgress(0, 20);
+  const prog20 = hll.hlEarnProgress(20, 20);
+  assert(prog0.remaining === 20 && prog0.earned === false && prog20.remaining === 0 && prog20.earned === true,
+    'earn progress reports the exact remaining count and only flips to earned at the minimum');
+
+  // The shipped universe declares all twelve long/short cells at zero, which is the measured truth.
+  const cells = hllUniverse.ledgerSnapshot.cells;
+  const cellIds = Object.keys(cells);
+  assert(cellIds.length === 12 && cellIds.every((id) => cells[id] === 0)
+    && hllUniverse.policy.minResolvedSample === 20,
+    'all twelve long and short cells ship at zero resolved outcomes, matching the ledger that has never minted either direction');
+  assert(hllUniverse.ledgerSnapshot.calibration.filter((b) => b.realised === null).length === 3,
+    'every stated-confidence bucket at or above 60 ships with a withheld realised rate');
+
+  // The page must not wrap canvas drawing in requestAnimationFrame, which never fires in a hidden tab.
+  assert(!/requestAnimationFrame/.test(hllSrc) && /function drawFrontier/.test(hllSrc),
+    'the frontier draws synchronously so it renders in a background or embedded tab');
+
+  // Registration state: staged, not published, and excluded exactly once.
+  const hllRegistry = JSON.parse(read('tools.json')).tools.map((t) => t.id);
+  const hllExclusions = JSON.parse(read('site-exclusions.json')).files.map((f) => f.path);
+  assert(hllRegistry.indexOf('horizon-ladder-lab') < 0
+    && read('index.html').indexOf('horizon-ladder-lab') < 0
+    && read('rlnav.js').indexOf('horizon-ladder-lab') < 0
+    && hllExclusions.filter((p) => p === 'horizon-ladder-lab.html').length === 1
+    && hllExclusions.filter((p) => p === 'horizon-ladder-universe.json').length === 1,
+    'the route is deliberately unregistered and carries exactly one site-exclusions decision per artifact, so the packaged site never ships an unreachable page');
+  assert(existsSync(join(ROOT, 'notes/horizon-ladder-lab.md')), 'the design of record exists');
+  const hllNote = read('notes/horizon-ladder-lab.md');
+  assert(/horizon-ladder-lab\.html/.test(hllNote) && /horizon-ladder-universe\.json/.test(hllNote)
+    && /node scripts\/selftest\.mjs/.test(hllNote),
+    'the note resolves the route, the config and the exact validation command');
+} catch (e) { failures++; console.log('  ✗ FAIL (horizon ladder gate group threw): ' + e.message); }
+/* ---------- Horizon Ladder Lab: earned-rate gate and frontier arithmetic (END) ---------- */
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

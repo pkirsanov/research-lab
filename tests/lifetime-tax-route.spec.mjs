@@ -299,7 +299,7 @@ test('Regression: SCN-021-014 tax and account tables stay readable at the mobile
   expect(Math.round(after.height)).toBe(Math.round(before.height));
 });
 
-test('Regression: SCN-021-015 a private export happens only on explicit action and the request ledger stays empty', async ({ page }) => {
+test('Regression: SCN-021-015 a private export happens only on explicit action, the request ledger does not grow after first paint, and every entry is a declared same-origin read', async ({ page }) => {
   const ledger = collectRequests(page);
   const consoleMessages = collectConsole(page);
   const downloads = [];

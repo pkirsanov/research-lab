@@ -28212,6 +28212,22 @@ try {
     && sumEarnedNoRate.probability.measuredRateState === 'earned-but-unpopulated',
     'a withheld cell reports no rate, an earned cell reports its actual rate, and an earned cell with no populated rate says so instead of reporting null as a rate');
 
+  /* validate-tool-experience --require-simple-adapters is the gate that actually registers adapters,
+     and it is not in the routine command set, so a contract break here passes an ordinary run. One
+     did: this adapter shipped with an invented `explain` method and no `projectOwnerEvidence`, and
+     the gate refused it with E012-REGISTRY while every routine check stayed green. The key set is
+     exact on both sides — an extra field is refused as loudly as a missing one. */
+  const hllAdapterSrc = extractFn(read('rlexperience-adapters/strategy-research.js'), 'createHorizonLadderAdapter');
+  const hllAdapterKeys = (hllAdapterSrc.match(/^ {6}([a-zA-Z]+):/gm) || [])
+    .map((line) => line.trim().replace(':', ''));
+  const hllContractKeys = ['contractVersion', 'adapterId', 'supportedDefinitionIds',
+    'validateDefinition', 'captureEvidence', 'normalizeInputs', 'compute',
+    'compareSensitivity', 'projectOwnerEvidence'];
+  assert(hllAdapterKeys.length === hllContractKeys.length
+    && hllContractKeys.every((key) => hllAdapterKeys.includes(key)),
+    'the horizon-ladder adapter declares exactly the simple-model-adapter/v1 key set, so the release gate can register it (declared: '
+    + hllAdapterKeys.join(', ') + ')');
+
   /* This pin used to accept store.bars alone, which is a cache READ, and so enshrined the defect it
      was meant to prevent: on a first visit nothing is cached, every symbol is excluded, and the
      page renders an empty ladder above a full exclusion ledger. Verified in a browser: before the

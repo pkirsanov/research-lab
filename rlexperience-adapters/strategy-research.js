@@ -1699,24 +1699,22 @@
           }
         };
       },
-      explain: function (output) {
-        var summary = output && output.values && output.values.summary;
-        if (!summary) return { ok: false, error: { reason: "summary unavailable" } };
+      projectOwnerEvidence: function (output) {
+        var summary = output.values.summary;
         return {
           ok: true,
           value: {
-            headline: {
-              label: "Rate for " + summary.cellId,
-              valueText: summary.gate.published
-                ? ("Published on " + summary.gate.ledgerResolved + " resolved outcomes")
-                : ("Withheld — " + summary.gate.ledgerResolved + "/" + summary.gate.ledgerMinimum + " resolved"),
-              numericValue: summary.gate.published ? summary.gate.ledgerResolved : null,
-              unit: "resolved-outcomes",
-              summary: summary.gate.published
-                ? ("The " + summary.cellId + " cell has earned a rate; the target at " + summary.probability.targetSigma + " sigma resolves under the " + summary.probability.rule + " rule.")
-                : ("The " + summary.cellId + " cell withholds its rate: " + summary.gate.remaining + " more outcomes must resolve. The " + summary.probability.rule + " probability shown for a " + summary.probability.targetSigma + " sigma target is arithmetic, not a measured hit rate."),
-              sourceRefs: ["owner-evidence"]
-            }
+            contractVersion: "owner-evidence-projection/v1",
+            state: output.state,
+            valueText: summary.gate.published
+              ? ("Published on " + summary.gate.ledgerResolved + " resolved outcomes")
+              : ("Withheld — " + summary.gate.ledgerResolved + "/" + summary.gate.ledgerMinimum + " resolved"),
+            numericValue: summary.gate.published ? summary.gate.ledgerResolved : null,
+            unit: "resolved-outcomes",
+            summary: summary.gate.published
+              ? ("The " + summary.cellId + " cell has earned a rate; the target at " + summary.probability.targetSigma + " sigma resolves under the " + summary.probability.rule + " rule.")
+              : ("The " + summary.cellId + " cell withholds its rate: " + summary.gate.remaining + " more outcomes must resolve. The " + summary.probability.rule + " probability shown for a " + summary.probability.targetSigma + " sigma target is arithmetic, not a measured hit rate."),
+            sourceRefs: ["owner-evidence"]
           }
         };
       }

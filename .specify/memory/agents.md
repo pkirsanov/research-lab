@@ -253,6 +253,7 @@ every suite has passed in the current session:
 npx --no-install playwright test tests/causal-rotation-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
 npx --no-install playwright test tests/bond-regime-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
 npx --no-install playwright test tests/fx-regime-relative-value-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+npx --no-install playwright test tests/horizon-ladder-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
 npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
 ```
 
@@ -482,6 +483,7 @@ These are product invariants, not optional conventions:
 | Session-review unit tests | `node scripts/session-review.mjs --selftest` |
 | Palm Springs browser E2E | `npx --no-install playwright test tests/palm-springs-rental-market-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` |
 | Causal browser E2E | `npx --no-install playwright test tests/causal-rotation-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` |
+| Horizon Ladder browser E2E | `npx --no-install playwright test tests/horizon-ladder-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` |
 | Tier A refresh | `node scripts/brief-refresh.mjs --window pre-market` |
 | Full scheduled wrapper | `bash scripts/brief-refresh-and-push.sh` |
 | Framework health | `bash .github/bubbles/scripts/cli.sh doctor` |

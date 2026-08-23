@@ -215,6 +215,14 @@
 
         <div id="simpleWrap">
             <div class="panel">
+                <h2>Scheduled events inside this horizon</h2>
+                <div id="eventsPanel"></div>
+            </div>
+            <div class="panel">
+                <h2>What moved since your last look</h2>
+                <div id="changePanel"></div>
+            </div>
+            <div class="panel">
                 <h2 id="simpleTitle">Candidates</h2>
                 <div id="simpleTable"></div>
             </div>
@@ -534,12 +542,101 @@
         }
 
 
+        /* ---------- next events and the change ledger ---------- */
+
+        /* Events are owned by the Market Action Center payload. This selects the ones whose date
+           falls inside the selected horizon window; it never invents a date, a move or a
+           probability, and an event without an implied move stays null rather than being filled. */
+        function hlEventsInWindow(events, sessions, nowMs) {
+            var out = [];
+            if (!events || !events.length || !isFinite(sessions) || !isFinite(nowMs)) return out;
+            var endMs = nowMs + sessions * (365 / 252) * 86400000;
+            for (var i = 0; i < events.length; i++) {
+                var e = events[i];
+                var whenMs = e && e.when ? Date.parse(e.when) : NaN;
+                if (!isFinite(whenMs)) continue;
+                if (whenMs < nowMs - 86400000 || whenMs > endMs) continue;
+                out.push({
+                    event: e.event || e.type || 'unnamed event',
+                    type: e.type || null,
+                    when: e.when,
+                    daysOut: Math.round((whenMs - nowMs) / 86400000),
+                    impliedMovePct: isFinite(e.impliedMovePct) ? e.impliedMovePct : null,
+                    scenarios: Array.isArray(e.scenarios) ? e.scenarios : []
+                });
+            }
+            out.sort(function (a, b) { return a.daysOut - b.daysOut; });
+            return out;
+        }
+
+        /* Declared scenario probabilities are only usable if they form a distribution. A set that
+           does not sum to one is reported as malformed rather than silently renormalised. */
+        function hlScenarioTotal(scenarios) {
+            if (!scenarios || !scenarios.length) return null;
+            var total = 0;
+            for (var i = 0; i < scenarios.length; i++) {
+                if (!isFinite(scenarios[i].prob)) return null;
+                total += scenarios[i].prob;
+            }
+            return total;
+        }
+
+        function hlScenariosUsable(scenarios) {
+            var total = hlScenarioTotal(scenarios);
+            return total !== null && Math.abs(total - 1) <= 0.02;
+        }
+
+        /* A scheduled catalyst inside the horizon is a reason to distrust the analog rate, because
+           the analog sample was conditioned on price structure and not on a known future event. */
+        function hlEventCaveat(eventsInWindow) {
+            if (!eventsInWindow || !eventsInWindow.length) return null;
+            return eventsInWindow.length + ' scheduled event' + (eventsInWindow.length === 1 ? '' : 's')
+                + ' fall inside this horizon. The analog rate was conditioned on price structure only, '
+                + 'so it does not price these catalysts and understates the spread around them.';
+        }
+
+        function hlObservationOf(rows) {
+            var o = {};
+            for (var i = 0; i < rows.length; i++) {
+                var r = rows[i];
+                o[r.symbol] = { ev: r.ev, analogN: r.analogN, rateWithheld: !!r.rateWithheld, k: r.k, m: r.m };
+            }
+            return o;
+        }
+
+        /* The change ledger answers what moved since the last look at this cell. With no prior
+           observation it says so, rather than presenting an first run as a set of changes. */
+        function hlDiffObservation(prev, curr) {
+            if (!prev) return { firstObservation: true, added: [], dropped: [], changed: [] };
+            var added = [], dropped = [], changed = [], sym;
+            for (sym in curr) {
+                if (!Object.prototype.hasOwnProperty.call(curr, sym)) continue;
+                if (!Object.prototype.hasOwnProperty.call(prev, sym)) { added.push(sym); continue; }
+                var a = prev[sym], b = curr[sym];
+                if (a.rateWithheld !== b.rateWithheld) {
+                    changed.push({ symbol: sym, field: 'rate state', from: a.rateWithheld ? 'withheld' : 'published', to: b.rateWithheld ? 'withheld' : 'published' });
+                }
+                if (isFinite(a.ev) && isFinite(b.ev) && Math.abs(b.ev - a.ev) >= 0.01) {
+                    changed.push({ symbol: sym, field: 'expected value', from: a.ev.toFixed(3), to: b.ev.toFixed(3) });
+                }
+                if (isFinite(a.analogN) && isFinite(b.analogN) && a.analogN !== b.analogN) {
+                    changed.push({ symbol: sym, field: 'analog sample', from: String(a.analogN), to: String(b.analogN) });
+                }
+            }
+            for (sym in prev) {
+                if (!Object.prototype.hasOwnProperty.call(prev, sym)) continue;
+                if (!Object.prototype.hasOwnProperty.call(curr, sym)) dropped.push(sym);
+            }
+            return { firstObservation: false, added: added, dropped: dropped, changed: changed };
+        }
+
         /* ---------- state ---------- */
 
         var CFG = null;
         var state = { mode: 'simple', horizon: 'h1m', direction: 'long', profile: 'lower-risk', rule: 'terminal' };
-        var market = { bars: {}, chains: {}, vix: null, maStack: null, available: false };
+        var market = { bars: {}, chains: {}, vix: null, maStack: null, available: false, events: null, eventsState: 'unavailable' };
         var LS_KEY = 'horizon-ladder-lab/v1';
+        var LS_OBS = 'horizon-ladder-lab/observation/v1';
 
         function el(id) { return document.getElementById(id); }
         function pct(x, d) { return isFinite(x) ? (x * 100).toFixed(d === undefined ? 1 : d) + '%' : null; }
@@ -914,9 +1011,12 @@
             });
 
             var built = buildCandidates();
+            var events = hlEventsInWindow(market.events, built.sessions, Date.now());
             el('simpleTitle').textContent = state.direction + ' candidates, '
                 + esc(hlHorizonLabel(state.horizon)) + ', ' + state.profile;
             renderGateNotice(built.gate, built.sessions);
+            renderEvents(events, built.sessions);
+            renderChanges(built.rows);
             renderTable('simpleTable', built.rows.slice(0, 6), false);
             renderTable('powerTable', built.rows, true);
             renderEarn();
@@ -928,6 +1028,69 @@
             el('dataBadge').textContent = market.available ? 'bars from shared cache' : 'no bars in shared cache';
 
             if (state.mode === 'power') drawFrontier();
+        }
+
+        function renderEvents(events, sessions) {
+            var node = el('eventsPanel');
+            if (!node) return;
+            if (market.eventsState !== 'ready') {
+                node.innerHTML = '<p class="unavailable">Scheduled events are unavailable: the Market Action Center payload could not be read, so no catalyst is shown and none is assumed.</p>';
+                return;
+            }
+            if (!events.length) {
+                node.innerHTML = '<p class="dim">No scheduled event in the declared calendar falls inside the next ' + sessions
+                    + ' sessions. That is the calendar being empty, not a guarantee of no catalyst.</p>';
+                return;
+            }
+            var h = '<p class="warn">' + esc(hlEventCaveat(events)) + '</p>';
+            h += '<table><thead><tr><th>Event</th><th>Date</th><th>Days out</th><th>Implied move</th><th>Declared scenarios</th></tr></thead><tbody>';
+            for (var i = 0; i < events.length; i++) {
+                var e = events[i];
+                var scen;
+                if (!e.scenarios.length) {
+                    scen = '<span class="unavailable">none declared</span>';
+                } else if (!hlScenariosUsable(e.scenarios)) {
+                    scen = '<span class="withheld">malformed (sum ' + fmtPct(hlScenarioTotal(e.scenarios)) + ')</span>';
+                } else {
+                    scen = e.scenarios.map(function (s) {
+                        return esc(String(s.name).slice(0, 54)) + ' <strong>' + fmtPct(s.prob) + '</strong>';
+                    }).join('<br>');
+                }
+                h += '<tr><td style="text-align:left">' + esc(String(e.event).slice(0, 80)) + '</td>'
+                    + '<td>' + esc(e.when) + '</td><td>' + e.daysOut + '</td>'
+                    + '<td>' + (e.impliedMovePct === null ? '<span class="unavailable">none</span>' : fmtPct(e.impliedMovePct)) + '</td>'
+                    + '<td style="text-align:left">' + scen + '</td></tr>';
+            }
+            h += '</tbody></table>';
+            node.innerHTML = h;
+        }
+
+        function renderChanges(rows) {
+            var node = el('changePanel');
+            if (!node) return;
+            var cell = cellKey(state.direction, state.horizon);
+            var store = {};
+            try { store = JSON.parse(localStorage.getItem(LS_OBS) || '{}'); } catch (e) { store = {}; }
+            var curr = hlObservationOf(rows);
+            var diff = hlDiffObservation(store[cell] || null, curr);
+            var h = '';
+            if (diff.firstObservation) {
+                h = '<p class="dim">First observation of ' + esc(cell) + ' on this browser. There is nothing to compare against yet, so no change is reported.</p>';
+            } else if (!diff.added.length && !diff.dropped.length && !diff.changed.length) {
+                h = '<p class="dim">Nothing moved in ' + esc(cell) + ' since your last look.</p>';
+            } else {
+                h = '<p class="dim">Since your last look at ' + esc(cell) + ':</p><ul>';
+                if (diff.added.length) h += '<li><strong>Entered:</strong> ' + esc(diff.added.join(', ')) + '</li>';
+                if (diff.dropped.length) h += '<li><strong>Left:</strong> ' + esc(diff.dropped.join(', ')) + '</li>';
+                for (var i = 0; i < diff.changed.length; i++) {
+                    var c = diff.changed[i];
+                    h += '<li>' + esc(c.symbol) + ' ' + esc(c.field) + ': ' + esc(c.from) + ' &rarr; ' + esc(c.to) + '</li>';
+                }
+                h += '</ul>';
+            }
+            node.innerHTML = h;
+            store[cell] = curr;
+            try { localStorage.setItem(LS_OBS, JSON.stringify(store)); } catch (e) { /* storage unavailable is not an error */ }
         }
 
         function hlHorizonLabel(id) {
@@ -973,6 +1136,24 @@
             readSharedCache();
             wire();
             render();
+            loadEvents();
+        }
+
+        /* The Market Action Center owns the event calendar. A failed read leaves the panel
+           explicitly unavailable rather than presenting an empty calendar as no catalyst. */
+        function loadEvents() {
+            fetch('market-brief.payload.json')
+                .then(function (r) { return r.json(); })
+                .then(function (payload) {
+                    market.events = Array.isArray(payload.events) ? payload.events : [];
+                    market.eventsState = 'ready';
+                    render();
+                })
+                .catch(function () {
+                    market.events = null;
+                    market.eventsState = 'unavailable';
+                    render();
+                });
         }
 
         if (typeof document !== 'undefined') {

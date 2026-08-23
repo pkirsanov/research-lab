@@ -19,7 +19,7 @@ node scripts/validate-brief-payload.mjs
 node scripts/build-pages-site.mjs
 ```
 
-The suite carries 40 assertions for this tool under the group
+The suite carries 49 assertions for this tool under the group
 `Horizon Ladder Lab — the probability gate withholds until a cell is earned`.
 
 ## Metric ownership: what this tool delegates and what it owns
@@ -72,6 +72,7 @@ Every surface below had to move together, and the suite pins each one:
 | `journeys.json` | `gate-review` and `frontier-tradeoff` definitions plus their steps, matched both ways |
 | `rlexperience-adapters/strategy-research.js` | `simple-adapter/horizon-ladder/v1` and its production factory registration |
 | `rlexperience-adapters/market-structure.js` | Consumed, not modified. Supplies the owned `smaArr` and `pivots` formulas |
+| `market-brief.payload.json` | Consumed, not modified. Supplies the owned event calendar with its declared scenario probabilities |
 | `market-brief.payload.json`, `market-brief.snapshot.json` | Registry-wide coverage rows, each stating that the ladder publishes no rate |
 | `README.md`, `notes/README.md` | Reader-facing rows |
 
@@ -546,6 +547,33 @@ cases, so each guard can actually fail:
 
 Numeric budgets get a failing test. Do not raise a budget to make a check pass.
 
+## Next events and the change ledger
+
+The request asked the tool to price the next events and to adjust as the latest
+movements arrive. Both are delivered, and both refuse rather than guess.
+
+**Events are consumed, not authored.** The calendar and its scenario
+probabilities are owned by `market-brief.payload.json`. This tool selects the
+events whose date falls inside the selected horizon window and shows each with
+its days-out, its declared implied move and its declared scenarios. An event
+with no implied move stays `null`. A scenario set whose declared probabilities
+do not sum to one is reported as malformed rather than renormalised, because
+silently rescaling someone else's distribution would invent a number. If the
+payload cannot be read the panel says the calendar is unavailable, which is not
+the same claim as no catalyst.
+
+**An event inside the horizon is a limit on the analog rate.** The analog sample
+was conditioned on price structure only, so it does not price a scheduled
+catalyst and understates the spread around one. When events fall inside the
+window the tool states this explicitly rather than letting the analog rate stand
+unqualified.
+
+**The change ledger compares like for like.** Each render stores the per-symbol
+observation for the selected cell and diffs it against the previous one, naming
+entries, exits, rate-state transitions and expected-value moves. A first look
+says so instead of presenting every row as a change, an unchanged cell reports
+no movement, and a move below the reporting threshold is not reported at all.
+
 ## What ships, and what does not
 
 Two different rates appear, and conflating them is the easiest way to misread
@@ -559,7 +587,9 @@ because no long or short claim has ever resolved.
 | --- | --- |
 | Six horizons, long and short | The measured ledger rate on every long and short cell |
 | The analog rate with its `k/n` sample | The high-probability profile grouping |
-| Expected move as a P25/P50/P75 distribution | Calibration of this tool's own stated confidence |
+| Scheduled events inside the selected horizon, with their declared scenario probabilities | Calibration of this tool's own stated confidence |
+| A change ledger naming entries, exits, rate-state transitions and expected-value moves | |
+| Expected move as a P25/P50/P75 distribution | |
 | Sigma-scaled and option-implied moves with provenance | |
 | Targets and invalidation from the name's own structure | |
 | Reward-to-risk and expected value in sigma | |

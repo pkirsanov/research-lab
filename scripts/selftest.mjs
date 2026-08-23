@@ -27423,6 +27423,63 @@ try {
     'the frontier draws synchronously so it renders in a background or embedded tab');
 
   // Registration state: staged, not published, and excluded exactly once.
+  // ---- next events and the change ledger ----
+  const hllEventNames = ['hlEventsInWindow', 'hlScenarioTotal', 'hlScenariosUsable', 'hlEventCaveat',
+    'hlObservationOf', 'hlDiffObservation'];
+  const hllEv = build(hllEventNames.map((n) => extractFn(hllSrc, n)), hllEventNames);
+  const hllRealEvents = JSON.parse(read('market-brief.payload.json')).events;
+  const hllNow = Date.parse('2026-08-19T00:00:00Z');
+  const hllShort = hllEv.hlEventsInWindow(hllRealEvents, 5, hllNow);
+  const hllLong = hllEv.hlEventsInWindow(hllRealEvents, 21, hllNow);
+  assert(Array.isArray(hllRealEvents) && hllRealEvents.length > 0
+    && hllShort.length > 0 && hllLong.length > hllShort.length
+    && hllShort.every((e) => e.daysOut >= 0),
+    'a longer horizon admits strictly more scheduled events than a shorter one, so the window is load-bearing ('
+    + hllShort.length + ' at 5 sessions vs ' + hllLong.length + ' at 21)');
+  assert(hllEv.hlEventsInWindow(null, 21, hllNow).length === 0
+    && hllEv.hlEventsInWindow([{ when: 'not-a-date' }], 21, hllNow).length === 0
+    && hllEv.hlEventsInWindow(hllRealEvents, 21, NaN).length === 0,
+    'an absent calendar, an unparseable date and an unknown horizon each yield no events rather than a fabricated one');
+  assert(hllEv.hlEventsInWindow([{ when: '2026-08-21', impliedMovePct: null, scenarios: [] }], 21, hllNow)[0].impliedMovePct === null,
+    'an event with no declared implied move stays null rather than being filled in');
+
+  // Declared scenario probabilities are only usable if they actually form a distribution.
+  assert(Math.abs(hllEv.hlScenarioTotal(hllLong[0].scenarios) - 1) <= 0.02
+    && hllEv.hlScenariosUsable(hllLong[0].scenarios) === true
+    && hllEv.hlScenariosUsable([{ prob: 0.5 }, { prob: 0.2 }]) === false
+    && hllEv.hlScenariosUsable([{ name: 'no prob' }]) === false
+    && hllEv.hlScenarioTotal([]) === null,
+    'a scenario set is usable only when its declared probabilities sum to one, so a malformed set is reported rather than renormalised');
+
+  // A catalyst inside the horizon must be surfaced as a limit on the analog rate.
+  assert(typeof hllEv.hlEventCaveat(hllLong) === 'string'
+    && /analog rate/.test(hllEv.hlEventCaveat(hllLong))
+    && hllEv.hlEventCaveat([]) === null && hllEv.hlEventCaveat(null) === null,
+    'events inside the horizon produce an explicit caveat that the analog rate does not price them, and an empty calendar produces none');
+
+  // The change ledger must distinguish a first look from a quiet one.
+  const hllPrev = hllEv.hlObservationOf([
+    { symbol: 'AAA', ev: 0.10, analogN: 100, rateWithheld: true, k: 1, m: 1 },
+    { symbol: 'BBB', ev: 0.20, analogN: 50, rateWithheld: true, k: 1, m: 1 }]);
+  const hllCurr = hllEv.hlObservationOf([
+    { symbol: 'AAA', ev: 0.30, analogN: 100, rateWithheld: false, k: 1, m: 1 },
+    { symbol: 'CCC', ev: 0.05, analogN: 9, rateWithheld: true, k: 1, m: 1 }]);
+  const hllFirst = hllEv.hlDiffObservation(null, hllCurr);
+  const hllDiff = hllEv.hlDiffObservation(hllPrev, hllCurr);
+  const hllQuiet = hllEv.hlDiffObservation(hllCurr, hllCurr);
+  assert(hllFirst.firstObservation === true && hllFirst.added.length === 0 && hllFirst.changed.length === 0,
+    'a first observation reports itself as such rather than presenting every row as a change');
+  assert(hllQuiet.firstObservation === false && hllQuiet.added.length === 0
+    && hllQuiet.dropped.length === 0 && hllQuiet.changed.length === 0,
+    'an unchanged cell reports no movement, so the ledger cannot manufacture activity');
+  assert(hllDiff.added.join() === 'CCC' && hllDiff.dropped.join() === 'BBB'
+    && hllDiff.changed.some((c) => c.symbol === 'AAA' && c.field === 'rate state' && c.to === 'published')
+    && hllDiff.changed.some((c) => c.symbol === 'AAA' && c.field === 'expected value'),
+    'the ledger names entries, exits, a rate-state transition and an expected-value move separately');
+  assert(hllEv.hlDiffObservation({ AAA: { ev: 0.100, analogN: 5, rateWithheld: true } },
+    { AAA: { ev: 0.1005, analogN: 5, rateWithheld: true } }).changed.length === 0,
+    'a movement below the reporting threshold is not reported, so the ledger is not noise');
+
   // Registration state: registered in all three registries in identical relative order, and no longer staged.
   const hllRegistry = JSON.parse(read('tools.json')).tools.map((t) => t.id);
   const hllIndexOrder = [...read('index.html').matchAll(/^\s*id: '([a-z0-9-]+)',$/gm)].map((m) => m[1]);

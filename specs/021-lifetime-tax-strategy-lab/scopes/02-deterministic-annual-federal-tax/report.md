@@ -372,6 +372,71 @@ Running 1 test using 1 worker
 TP0212_EXIT=0
 ```
 
+### Correction: SCN-021-005 could not fail on the stacking floor (F-01-P, federal half)
+
+The RED recorded above perturbed the scenario's other legs. It did **not** perturb
+the stacking floor itself, and the scenario is the one named for stacking. Removing
+the floor from `stackPreferentialIncome` — `Math.max(ordinaryTaxableIncome,
+band.lowerInclusive)` reduced to `band.lowerInclusive`, which prices the gain from
+the bottom of the schedule instead of from the top of ordinary income — left the
+scenario green.
+
+The arithmetic reason is that the floor only binds when ordinary taxable income sits
+inside a band above the first. The fixture pinned `ordinaryTaxable = 40000`, inside
+band `b1`, whose rate is `0`. The guard `expect(ordinaryTaxable + acrossGain)
+.toBeGreaterThan(zeroRateEdge)` crossed the breakpoint but never the condition the
+floor decides, so both pricings returned the identical figure. The sibling
+preferential row recorded this same hole as F-01-P and added cases inside the
+fifteen percent band; this row never received the correction.
+
+Probe before the fix — exit 7, the harness refusing because neither channel moved:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            H1 BEFORE: SCN-021-005 is the scenario named for stacking, so removing the stacking floor from the preferential window must fail it
+file:             rltax.js
+mutation:         Math.max(0, Math.min(windowTop, upper) - Math.max(ordinaryTaxableIncome, band.lowerInclusive))  ->  Math.max(0, Math.min(windowTop, upper) - band.lowerInclusive)   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-021-005 --reporter=line
+red-exit:         0
+red-summary:        1 passed (1.9s)
+green-exit:       0
+green-summary:      1 passed (1.8s)
+summary-compared:   1 passed (<elapsed>)  vs    1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=8294f084523f504fcb19681e0e7cda2cdce457b5 restored=8294f084523f504fcb19681e0e7cda2cdce457b5)
+discriminating:   NO (both channels agree: exit 0 == 0, summary "  1 passed (<elapsed>)" identical once elapsed time is normalised)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The fix adds a stacked family whose ordinary taxable income is raised to
+`zeroRateEdge + 10000`, above `preferentialRateTables.single.bands[0].upperExclusive`,
+and runs the existing `belowGain` and `acrossGain` amounts against it. Each case
+first asserts that the pack's stacked pricing and an isolated pricing of the same
+gain genuinely disagree, so the headline assertion that follows is load-bearing
+rather than a figure both a stacking engine and an isolating one would produce. No
+prior clause was removed or relaxed; the zero-rate leg and the breakpoint-crossing
+leg are retained exactly as they stood.
+
+Probe after the fix — the identical command, now exit 0:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            H1 AFTER: SCN-021-005 is the scenario named for stacking, so removing the stacking floor from the preferential window must fail it
+file:             rltax.js
+mutation:         Math.max(0, Math.min(windowTop, upper) - Math.max(ordinaryTaxableIncome, band.lowerInclusive))  ->  Math.max(0, Math.min(windowTop, upper) - band.lowerInclusive)   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-021-005 --reporter=line
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (1.8s)
+summary-compared:   1 failed  vs    1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=8294f084523f504fcb19681e0e7cda2cdce457b5 restored=8294f084523f504fcb19681e0e7cda2cdce457b5)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Claim Source:** executed. Both probes reverted `rltax.js` to the committed blob
+`8294f084523f504fcb19681e0e7cda2cdce457b5` and verified the restore by hash.
+
 ### Scenario SCN-021-006
 
 `Regression: SCN-021-006 deduction selection is explicit and the annual result reconciles`

@@ -1971,3 +1971,154 @@ against a record this session cannot honestly fix.
 
 `node scripts/selftest.mjs` — 3194 passed, 0 failed after both changes.
 
+## Probes 25 to 28 — The Four Rows The Per-Row Pass Never Reached (2026-08-22)
+
+The per-row pass above closed `TP-05-01` through `TP-05-26`, and the Definition
+of Done note recorded its command list as "the exact TP-05-01 through TP-05-26
+commands". Four rows sat outside that list and carried no RED anywhere in this
+report: the three gate rows `TP-05-27`, `TP-05-28` and `TP-05-29`, and
+`TP-05-30`, the live-route `NFR-023-003` proof authored after the pass was
+written. Each is closed below with `scripts/red-green-probe.sh`, whose output is
+pasted unedited and whose revert is proven by blob hash.
+
+### `TP-05-30` — the live-route privacy row, three arms
+
+The row names three separable adversarial cases and no single mutation fails
+more than one of them, so each is probed on its own. Each RED names the row's own
+assertion by file line.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-30 arm A, non-empty pin: a boot that read nothing must fail this row, so the no-growth and permitted-set assertions cannot pass vacuously over an empty ledger
+file:             tests/lifetime-tax-disposition.spec.mjs
+mutation:         const afterFirstPaint = ledger.length;  ->  const afterFirstPaint = ledger.length * 0;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-015\ the\ request\ ledger\ does\ not\ grow\ after\ the\ sale\ is\ declared --reporter=line
+red-exit:         1
+red-summary:          > 394 |   expect(afterFirstPaint).toBeGreaterThan(0);
+green-exit:       0
+green-summary:      1 passed (2.2s)
+summary-compared:     > 394 |   expect(afterFirstPaint).toBeGreaterThan(0);  vs     1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=6731b26c6d37fc0a8257bba2ae6ac506621e84f7 restored=6731b26c6d37fc0a8257bba2ae6ac506621e84f7)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-30 arm B, ledger growth: a request issued after the sale is declared must fail this row
+file:             tests/lifetime-tax-disposition.spec.mjs
+mutation:         const afterFirstPaint = ledger.length;  ->  const afterFirstPaint = ledger.length - 1;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-015\ the\ request\ ledger\ does\ not\ grow\ after\ the\ sale\ is\ declared --reporter=line
+red-exit:         1
+red-summary:          > 409 |   expect(ledger.length).toBe(afterFirstPaint);
+green-exit:       0
+green-summary:      1 passed (2.3s)
+summary-compared:     > 409 |   expect(ledger.length).toBe(afterFirstPaint);  vs     1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=6731b26c6d37fc0a8257bba2ae6ac506621e84f7 restored=6731b26c6d37fc0a8257bba2ae6ac506621e84f7)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-30 arm C, permitted-set membership: a read of a path the configuration does not declare must fail this row; withdrawing the declared pack family makes the federal pack read undeclared
+file:             tests/lifetime-tax-disposition.spec.mjs
+mutation:         .concat(scripts).concat(packs).concat(['/favicon.ico']);  ->  .concat(scripts).concat([]).concat(['/favicon.ico']);   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-015\ the\ request\ ledger\ does\ not\ grow\ after\ the\ sale\ is\ declared --reporter=line
+red-exit:         1
+red-summary:          > 419 |   paths.forEach((path) => expect(permitted).toContain(path));
+green-exit:       0
+green-summary:      1 passed (3.0s)
+summary-compared:     > 419 |   paths.forEach((path) => expect(permitted).toContain(path));  vs     1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=6731b26c6d37fc0a8257bba2ae6ac506621e84f7 restored=6731b26c6d37fc0a8257bba2ae6ac506621e84f7)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-05-27` — repo gate
+
+The mutation lands in `rltaxdisposition.js`, the module this scope introduced,
+and changes one rule identifier so the pricing branch stops matching. It is
+value-free: no figure, rate or threshold is touched. The row claims the suite
+stays green and the pre-existing pass count does not fall, so the red-summary
+carries the count itself rather than a single assertion name.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-27 repo gate: a defect planted in this scope own disposition module must make the whole-repository suite non-green and the pre-existing pass count fall
+file:             rltaxdisposition.js
+mutation:         if (pricingRule === "own-maximum-rate") {  ->  if (pricingRule === "own-maximum-rate-probe-does-not-match") {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3359 passed, 2 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3384 passed, 0 failed
+summary-compared: Research-Lab self-test: 3359 passed, 2 failed  vs  Research-Lab self-test: 3384 passed, 0 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=0abff580d4ff5e5f1633aa9e6fe0d1ef427ce00c restored=0abff580d4ff5e5f1633aa9e6fe0d1ef427ce00c)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-05-28` — path guard
+
+The mutation targets the guard's own resolution rather than planting a fabricated
+`tests/…` token in a spec artifact. A planted token would survive into this
+report, which is itself scanned, and would turn the guard permanently red.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-28 path guard: a spec-referenced path that does not resolve to a file must be reported as newly missing
+file:             scripts/validate-spec-test-paths.mjs
+mutation:         statSync(resolve(root, path)).isFile()  ->  statSync(resolve(root, path)).isDirectory()   (1 occurrence(s))
+command:          node scripts/validate-spec-test-paths.mjs
+red-exit:         1
+red-summary:      [spec-test-paths] FAIL — 190 new referenced path(s) do not exist
+green-exit:       0
+green-summary:    [spec-test-paths] OK — no new missing test path(s)
+summary-compared: [spec-test-paths] FAIL — 190 new referenced path(s) do not exist  vs  [spec-test-paths] OK — no new missing test path(s)   (elapsed time normalised out)
+revert-verified:  yes (committed=760f9bf0ebc04663675eee3f9d6cd81bcd9c8d0a restored=760f9bf0ebc04663675eee3f9d6cd81bcd9c8d0a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-05-29` — deploy gate
+
+This feature's route is deliberately unregistered, so its only deploy decision is
+its entry in the exclusion list. The probe points that entry at a different
+existing file, which leaves the list internally valid and non-stale while leaving
+the route itself without any decision.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-29 deploy gate: this feature route losing its deploy decision must refuse the Pages plan
+file:             site-exclusions.json
+mutation:         "path": "lifetime-tax-strategy-lab.html",  ->  "path": "index.html",   (1 occurrence(s))
+command:          node scripts/build-pages-site.mjs --dry-run
+red-exit:         1
+red-summary:      Error: unregistered root page lacks a deploy decision: lifetime-tax-strategy-lab.html
+green-exit:       0
+green-summary:    {"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":29,"excludedPaths":12,"rootFiles":130,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","
+revert-verified:  yes (committed=29c6fe08a58d97c1f119abdd38706cf02f675d60 restored=29c6fe08a58d97c1f119abdd38706cf02f675d60)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Claim Source:** executed. All six blocks are verbatim harness output from this
+session. Every revert was hash-verified against the committed blob and
+`git status --short` for each touched file was re-read clean afterwards.
+
+### Effect on the DoD rows
+
+Both rows are satisfied. The live-route `NFR-023-003` row holds: the ledger does
+not grow after first paint, every entry is a same-origin read of a declared path,
+and neither assertion can pass over an empty ledger.
+
+The every-row RED/GREEN item is satisfied at the full count of thirty. Probes 1
+to 24 carried `TP-05-01` through `TP-05-26`; probes 25 to 28 above carry
+`TP-05-27` through `TP-05-30`. The finding already recorded against the
+cumulative row travels forward unchanged and is not withdrawn: `TP-05-26`'s GREEN
+reports 77 selected, 77 passed, zero failed and zero skipped — the row's stated
+claim — while exiting 1 on a worker-teardown trailer the runner labels as not
+part of any test. That is a property of the runner, recorded rather than worked
+around, and it does not affect the twenty-nine other rows.
+

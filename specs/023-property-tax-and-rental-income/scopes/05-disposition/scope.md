@@ -333,12 +333,22 @@ missing browser or an absent test does not satisfy RED.
     value shorter than five characters (`if (value.length < 5) continue;`). The
     ledger-growth and declared-asset halves are not covered by this scope at all
     and are opened as `TP-05-30` below.
-- [ ] NFR-023-003 holds on the live route for the disposition declarations: the
+- [x] NFR-023-003 holds on the live route for the disposition declarations: the
       request ledger does not grow after first paint and every entry in it is a
       read of a path the route's own configuration declares.
-  - **Phase:** test · **Command:** `TP-05-30` · **Evidence:** not authored —
-    `SCN-023-015` constrains neither. Opened 2026-08-22 (F-REG-03) rather than
-    ticked, because no executed evidence for it exists.
+  - **Phase:** test · **Command:** `TP-05-30` · **Evidence:** `report.md#probes-25-to-28--the-four-rows-the-per-row-pass-never-reached-2026-08-22`
+  - **Claim Source:** executed. `TP-05-30` is authored in
+    `tests/lifetime-tax-disposition.spec.mjs`: it opens the real route, captures
+    the ledger length immediately after first paint, pins it greater than zero,
+    declares the sale as distinctive sentinels, then asserts the ledger has not
+    grown and that every entry is a same-origin read of a path the route's own
+    configuration declares. Three probes, one per adversarial case, each
+    discriminated with a hash-verified revert: zeroing the capture reds the
+    non-empty pin, subtracting one from it reds the no-growth equality, and
+    withdrawing the declared pack family from the derivation reds the
+    permitted-set sweep. The permitted set is derived from the page's own script
+    tags and `declaredPackPaths`, so a module a later scope adds is admitted by
+    the page's declaration rather than by a literal edited here.
 - [x] SUP-023-09 is delivered with its marker in the file the per-file distribution
       names, its superseded clause recorded verbatim at its own site and the
       superseded literal surviving nowhere else, and the marker check confirms the
@@ -393,8 +403,22 @@ missing browser or an absent test does not satisfy RED.
 - [x] No output states a probability, an appreciation assumption, a lifetime
       figure, a future year, a track record or an error rate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows and the cumulative suite.
+  - **Re-ticked 2026-08-22 at the full count of thirty.** The note below is kept
+    because it records why the item was opened. `TP-05-30` is now authored and
+    carries a three-arm RED with a same-command GREEN. Auditing the rest of the
+    Test Plan while closing it surfaced a second, older gap the note never named:
+    the per-row pass closed `TP-05-01` through `TP-05-26` and its command list
+    says exactly that, so the three gate rows `TP-05-27`, `TP-05-28` and
+    `TP-05-29` had never carried a RED either. All four are now closed by probes
+    25 to 28 in
+    `report.md#probes-25-to-28--the-four-rows-the-per-row-pass-never-reached-2026-08-22`,
+    each a harness run with its revert proven by blob hash. The finding already
+    carried against the cumulative row travels forward unchanged and is not
+    withdrawn: `TP-05-26`'s GREEN reports the 77 selected, 77 passed, zero failed
+    and zero skipped the row claims, while exiting 1 on a worker-teardown trailer
+    the runner labels as not part of any test.
   - **Unticked 2026-08-22 (F-REG-03).** `TP-05-30` was opened in this scope and
     is not authored, so it carries neither a RED nor a GREEN. The word "Every"
     therefore no longer holds. Ticking it again requires `TP-05-30` authored with

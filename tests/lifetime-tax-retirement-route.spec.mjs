@@ -383,7 +383,7 @@ test('Regression: SCN-024-015 a focused control survives a mode switch without b
 });
 
 /* TP-05-25. */
-test('Regression: SCN-024-014 the request ledger stays empty with three new packs loaded and no retirement declaration reaches a URL', async ({ page }) => {
+test('Regression: SCN-024-014 the request ledger does not grow after first paint, every entry is a declared same-origin read with three new packs loaded, and no retirement declaration reaches a URL', async ({ page }) => {
   const ledger = collectRequests(page);
   const consoleMessages = collectConsole(page);
   await openLifetimeTax(page, site);

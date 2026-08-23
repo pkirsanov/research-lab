@@ -11,7 +11,8 @@ import {
   declareOrdinaryHousehold,
   declaredPackPaths,
   openLifetimeTax,
-  openPower
+  openPower,
+  sameOriginPaths
 } from './lifetime-tax.support.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -418,4 +419,38 @@ test('Regression: SCN-021-003 the tax workspace resolves only its declared reads
   const inventoriedKeys = await page.locator('#storageInventoryBody tr td:first-child')
     .evaluateAll((nodes) => nodes.map((node) => node.textContent.trim()));
   inventoriedKeys.forEach((key) => expect(storage.keys).toContain(key));
+});
+
+/* TP-01-18. */
+test('Regression: SCN-021-002 the shared ledger helper refuses a declared pathname served from an undeclared origin', async ({ page }) => {
+  const ledger = collectRequests(page);
+  await openLifetimeTax(page, site);
+  await declareOrdinaryHousehold(page, { ordinary: SENTINEL_ORDINARY, bracketId: 'b3' });
+
+  /* LIVE ARM. On the real route the helper returns the pathnames and refuses nothing, because
+     every read the route makes is its own. The greater-than-zero pin is what stops this arm from
+     being an assertion about an empty list. */
+  const paths = sameOriginPaths(ledger, site);
+  expect(paths.length).toBeGreaterThan(0);
+  const declaredAssets = declaredRouteAssets();
+  paths.forEach((path) => expect(declaredAssets).toContain(path));
+
+  /* ADVERSARIAL ARM, and the reason this row exists. Six rows across Features 021-024 carry the
+     words "declared same-origin read" in their titles but assert only
+     `new URL(entry.url).pathname` against a declared-asset set. A pathname is not an origin, so a
+     read of the route's OWN module from somebody else's host satisfies every one of them while
+     carrying the household's request to a third party. Build exactly that entry — a pathname the
+     route genuinely declares, an origin it never did — and prove the two checks disagree: the
+     pathname-only sweep accepts it, and the shared helper refuses it. */
+  const smuggled = [{ url: 'https://elsewhere.example/rltaxstrategy.js', method: 'GET', postData: '' }];
+  const smuggledPath = new URL(smuggled[0].url).pathname;
+  expect(declaredAssets).toContain(smuggledPath);
+  expect(smuggled.map((entry) => new URL(entry.url).pathname)
+    .filter((path) => !declaredAssets.includes(path))).toEqual([]);
+  expect(() => sameOriginPaths(smuggled, site)).toThrow();
+
+  /* And the refusal is about the ORIGIN, not about the entry being synthetic: the same entry
+     re-based on the route's own origin passes the helper and yields the same pathname. */
+  const local = [{ url: `${site.baseUrl}/rltaxstrategy.js`, method: 'GET', postData: '' }];
+  expect(sameOriginPaths(local, site)).toEqual([smuggledPath]);
 });

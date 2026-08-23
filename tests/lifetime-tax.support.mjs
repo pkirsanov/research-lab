@@ -50,6 +50,22 @@ export function collectRequests(page) {
   return ledger;
 }
 
+/* TP-01-18. The ORIGIN half of the ledger contract, folded into the shared surface rather than
+   repeated per row. A row that compares `new URL(entry.url).pathname` against its declared-asset
+   set constrains the path and nothing else, so a read of
+   `https://elsewhere.example/rltaxstrategy.js` — a declared pathname served from an origin the
+   route never declared — satisfies it. That is the shape a leak takes: the household's own
+   modules, fetched from somewhere that can log the fetch. This helper refuses on origin FIRST and
+   only then hands back the pathnames, so every caller gains the origin constraint by calling it.
+   The message names the offending URLs because the pathname alone cannot show what went wrong. */
+export function sameOriginPaths(ledger, site) {
+  const foreign = ledger.filter((entry) => !entry.url.startsWith(site.baseUrl));
+  expect(foreign.map((entry) => entry.url),
+    'every request the route issued is same-origin: a declared pathname served from an undeclared origin is a leak')
+    .toEqual([]);
+  return ledger.map((entry) => new URL(entry.url).pathname);
+}
+
 export function collectConsole(page) {
   const messages = [];
   page.on('console', (message) => messages.push(message.text()));

@@ -8,7 +8,8 @@ import {
   declaredPackPaths,
   declareOrdinaryHousehold,
   openLifetimeTax,
-  openPower
+  openPower,
+  sameOriginPaths
 } from './lifetime-tax.support.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -200,14 +201,25 @@ test('Regression: SCN-024-012 all three premium legs reach the headline, the com
 test('Regression: SCN-024-010 every request is a declared same-origin GET with the medicare pack among them and no lookback declaration reaches a URL', async ({ page }) => {
   const requests = collectRequests(page);
   await openLifetimeTax(page, site);
+  /* TP-04-33. The ledger the boot produced, measured before the lookback is declared. */
+  const afterFirstPaint = requests.length;
+  expect(afterFirstPaint).toBeGreaterThan(0);
+
   await declareOrdinaryHousehold(page, { ordinary: 60000, bracketId: 'b3' });
   await declareLookback(page, 168421);
   await openPower(page);
 
+  /* TP-04-33. Declaring a second year's finances issued no request. Neither the non-empty pin nor
+     the permitted-set sweep below can detect a request made here, because both are satisfied by a
+     ledger that grew: a leak that fetched a declared path AFTER the lookback was entered would
+     pass every other assertion in this row. */
+  expect(requests.length).toBe(afterFirstPaint);
+
   /* A second year's finances is a household value. It must not appear in any URL the page fetched,
      and the page must have fetched nothing it did not declare. */
   const permitted = declaredRouteAssets();
-  const paths = requests.map((request) => new URL(request.url).pathname);
+  /* TP-01-18. Via the shared helper: a pathname is not an origin. */
+  const paths = sameOriginPaths(requests, site);
   expect(paths.length).toBeGreaterThan(0);
   paths.forEach((path) => expect(permitted).toContain(path));
   requests.forEach((request) => {

@@ -18,6 +18,13 @@ is deliberate. Increment A reports seven of fifteen dimensions as unavailable,
 and an honest product looks thin exactly there. The test of this feature is
 whether an absence reads as a named gap rather than as a fault.
 
+**What to have open.** `company-intelligence-lab.html`. No key and no account
+are required. Serve the folder over http for most of this walk: run
+`python3 -m http.server 8000`, then open
+`http://localhost:8000/company-intelligence-lab.html`. The section **It works
+with nothing** is the exception. Those items are about opening the file
+directly, so open it that way when you reach them and judge what you see there.
+
 ---
 
 ## Checklist

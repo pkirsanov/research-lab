@@ -4985,6 +4985,35 @@ temporary probe specs written to observe the defect were deleted once the cause 
 
 **Claim Source:** executed.
 
+## F-WALK-02 — the acceptance walk gave the reader no way to open the tool — `bubbles.validate`, 2026-08-22
+
+`uservalidation.md` carried no setup instruction. A reader starting the 53-item
+walk had to guess between opening the file directly and serving it over http,
+and the two produce different outcomes.
+
+Opened as a plain file, `company-intelligence-lab.html` renders with zero page
+errors and reports `Data can't load over file:// — open this tool over http. Run
+python3 -m http.server 8000`. No dimension or company item can be exercised in
+that state. The three items under **It works with nothing** are the opposite
+case: they are about the plain file open specifically. The walk therefore needs
+both modes and named neither.
+
+This is the same defect class as `F-WALK-01` on Feature 027, which stated a
+setup fact that was false. Here the document stated nothing, which leaves the
+reader to guess wrong in the same way.
+
+**Fix.** A `What to have open` paragraph now names `python3 -m http.server 8000`
+for the walk and flags **It works with nothing** as the section to open as a
+plain file. It does not tell the reader what to conclude in either mode.
+
+**No checkbox was ticked or reworded.** The checklist stands at 0 ticked and 53
+unticked, byte-identical apart from the paragraph added above it. Every item,
+including the three under **It works with nothing**, remains the reader's to
+judge.
+
+**Claim Source:** executed. The `file://` behaviour above was observed in
+headless Chromium against the committed page, alongside the four owner routes.
+
 **Educational research only. Not investment advice.**
 
 

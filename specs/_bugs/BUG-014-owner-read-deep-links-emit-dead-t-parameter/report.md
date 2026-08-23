@@ -418,6 +418,39 @@ to the paths this packet was told to leave alone rather than to the whole tree.
 
 ---
 
+## Two Producers Disagree About These Links
+
+A follow-up investigation found that each affected tool's owner read has two
+independent producers, and they do not agree.
+
+| Producer | Emitted `deepLink` |
+|---|---|
+| Browser, `RLDATA.putToolRead(...)` at `intraday-tape-lab.html:1855` and `swing-structure-lab.html:1693` | `intraday-tape-lab.html?t=<ticker>` |
+| Server Tier-A, `scripts/brief-refresh.mjs:192`, `:2184`, `:2266` | `intraday-tape-lab.html` (bare) |
+
+The committed graph carries the server form. `briefs/current.json` resolves both
+tools to a bare `intraday-tape-lab.html` and `swing-structure-lab.html` with no
+query string, so the published brief graph does not carry the dead parameter. The
+defect reaches a reader only through the browser-published read, which is
+localStorage-scoped and written when someone visits the tool itself.
+
+Two consequences follow, and this packet acts on neither.
+
+The blast radius is narrower than the filing alone would suggest. The dead
+parameter is absent from the published artifact. Severity is unchanged, because
+the browser read is a real reader path, but the exposure is bounded to it.
+
+The divergence is itself evidence for open question 4. One of the product's two
+producers already publishes these routes as bare-linked. That is not a decision
+and is not read as one here.
+
+One claim is deliberately not made. `ownerDeepLink` is assigned at
+`rlbrief.js:989` and no render site for it was found, so this packet does not
+claim a reader can click one of these links in the brief. It was checked and left
+unproven rather than asserted.
+
+---
+
 ## Completion Statement
 
 **Nothing is fixed and nothing is certified.**

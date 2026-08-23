@@ -248,3 +248,10 @@ permanent rather than transitional. Rejected.
    open from a link, then FR-014-002 is wrong and the correct remedy is to stop publishing a
    subject-bearing `deepLink` rather than to honour one. That would be a smaller change and a
    different one. The owner decides which of the two the routes are for.
+
+   **Evidence added after filing.** The server-side Tier-A producer already publishes both
+   tools with a bare `deepLink` (`scripts/brief-refresh.mjs:192`, `:2184`, `:2266`), and the
+   committed `briefs/current.json` carries that bare form. One of the product's two producers
+   therefore already treats these routes as not subject-addressable. This does not answer the
+   question and is not treated as an answer, but it means the "stop publishing a subject-bearing
+   `deepLink`" branch is consistent with what the product already ships server-side.

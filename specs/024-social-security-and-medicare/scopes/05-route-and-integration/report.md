@@ -1223,6 +1223,18 @@ to, prove anything about a guard that does not exist.
 
 ### `TP-05-25` — privacy
 
+**Renamed 2026-08-22 (F-REG-02).** This row's persistent title was
+`Regression: SCN-024-014 the request ledger stays empty with three new packs loaded and no retirement declaration reaches a URL`
+until this date. That wording was false — the row asserts
+`expect(paths.length).toBeGreaterThan(0)` and then requires each of the three
+packs to appear in the ledger, so an empty ledger would fail it. The title now
+reads
+`Regression: SCN-024-014 the request ledger does not grow after first paint, every entry is a declared same-origin read with three new packs loaded, and no retirement declaration reaches a URL`,
+and the row's `--grep` moved with it in the same change. The probe block below
+was captured under the superseded title and is left exactly as executed; its
+`command:` and `red-summary:` lines therefore still name the old title. A fresh
+capture under the new title follows it.
+
 ```text
 === RED/GREEN PROBE EVIDENCE ===
 label:            TP-05-25 SCN-024-014: a declared birth year carried into the location hash is a household value reaching a URL and must fail the privacy scenario
@@ -1243,6 +1255,22 @@ introduces the query-string machinery with no value in it, while this one carrie
 **declared household value** — the birth year the fixture states — into the only
 thing the route writes to the location. The value never leaves the headless browser
 the probe drives, and it is reverted inside the same invocation.
+
+Fresh capture under the new persistent title, recorded 2026-08-22 after the
+rename, proving the row's `--grep` still selects its own test — selected 1,
+passed 1:
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-014 the request ledger does not grow after first paint, every entry is a declared same-origin read with three new packs loaded, and no retirement declaration reaches a URL" --reporter=line
+exit: 0
+lines: 5
+sha256: a874bc95310b7ee1fd3bde57d59e0e628a7f1f9e14d973e65d275f41c845aa15
+
+Running 1 test using 1 worker
+
+[1/1] [system-chrome] › tests/lifetime-tax-retirement-route.spec.mjs:386:1 › Regression: SCN-024-014 the request ledger does not grow after first paint, every entry is a declared same-origin read with three new packs loaded, and no retirement declaration reaches a URL
+  1 passed (2.5s)
+```
 
 ### `TP-05-19` — one clause discriminates, the other still does not
 

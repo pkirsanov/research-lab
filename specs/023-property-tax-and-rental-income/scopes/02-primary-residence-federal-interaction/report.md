@@ -484,6 +484,48 @@ belong to the `causal-rotation` neighbours, not to this scope;
 `scripts/validate-spec-test-paths.baseline` is on this scope's excluded list and
 was not touched.
 
+#### TP-02-24 intended-RED probe, ratchet channel (2026-08-22)
+
+The section above recorded a GREEN and no intended RED, so `new=0` was a number
+read rather than a gate proven able to move. An earlier attempt reported itself
+blocked, on the reading that planting a new missing path would need either a
+`tests/`-prefixed reference to a file that does not exist or an edit to the
+committed baseline. Neither is needed: the guard decides *missing* by resolving
+each referenced path on disk, and that resolution is the code path the assertion
+reads. Mutating it makes every referenced browser spec fail to resolve, which is
+precisely the new-missing regression the ratchet exists to stop — and it plants
+that regression without writing a single fabricated path into an artifact.
+
+`--summary-match` is pinned to `new=<n> stale=<n>`, this row's own gate wording,
+not to any aggregate pass count.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-24 path guard: every spec-referenced browser spec becomes a path that does not resolve, which is exactly the new-missing regression the ratchet exists to stop
+file:             scripts/validate-spec-test-paths.mjs
+mutation:         try { isFile = statSync(resolve(root, path)).isFile(); } catch { isFile = false; }  ->  try { isFile = statSync(resolve(root, path)).isFile() && !path.endsWith(".spec.mjs"); } catch { isFile = false; }   (1 occurrence(s))
+command:          node scripts/validate-spec-test-paths.mjs
+red-exit:         1
+red-summary:      [spec-test-paths] scanned=693 references=15672 distinctPaths=252 missingPaths=142 baseline=67 new=75 stale=0
+green-exit:       0
+green-summary:    [spec-test-paths] scanned=693 references=15672 distinctPaths=252 missingPaths=67 baseline=67 new=0 stale=0
+summary-compared: [spec-test-paths] scanned=693 references=15672 distinctPaths=252 missingPaths=142 baseline=67 new=75 stale=0  vs  [spec-test-paths] scanned=693 references=15672 distinctPaths=252 missingPaths=67 baseline=67 new=0 stale=0   (elapsed time normalised out)
+revert-verified:  yes (committed=bb6eee2b6ac1a1ea53d61f01463eeace6c70e630 restored=bb6eee2b6ac1a1ea53d61f01463eeace6c70e630)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_EXIT=0
+```
+
+`new=75` under the mutation against `new=0` over the identical command: the gate
+moves, and it moves on the number the row names. `missingPaths` rose from `67` to
+`142` while `baseline` stayed `67`, so the `75` are new rather than re-counted
+frozen debt — the ratchet distinguishes the two, which is the whole reason it
+exists. The counts differ from the GREEN block above because the baseline and the
+spec corpus have both moved since that run; the gate value is `0` in both.
+
+`revert-verified: yes` with matching hashes, and the file is unmodified in the
+tracked tree afterwards.
+
 ### TP-02-25
 
 The Pages plan succeeds and `site-exclusions.json` carries no scope-02 change.
@@ -493,6 +535,158 @@ $ node scripts/build-pages-site.mjs --dry-run
 {"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":9,"rootFiles":111,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/9bb69175f356c240125ee2384f73de8633483fa9b283895c85e3e89fccc66af6","omittedOrphanIndexes":136}
 BUILD_EXIT=0
 ```
+
+#### TP-02-25 intended-RED probe, deploy-decision channel (2026-08-22)
+
+The section above recorded a GREEN and no intended RED. The earlier reading was
+that a RED would need an edit to `site-exclusions.json`, the one file this row
+promises is unchanged. It does not. The row's real subject is the *deploy
+decision*: every shipped root page must be accounted for either by the registry
+or by an exclusion, and the plan refuses when one is accounted for by neither.
+That accounting is computed in `findUnaccountedPages`, and blanking its
+registration side plants the exact defect the row names — a shipped page with no
+deploy decision — while leaving `site-exclusions.json` untouched.
+
+`--summary-match` is pinned to this row's own two outcomes: the
+`pages-site-build-result/v1` contract the plan emits when it succeeds, and the
+`lacks a deploy decision` refusal it emits when it does not.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-25 deploy gate: the registration side of the deploy decision goes blank, so a shipped root page is accounted for by neither the registry nor site-exclusions.json and the Pages plan must refuse
+file:             scripts/build-pages-site.mjs
+mutation:         const registered = registeredPages instanceof Set ? registeredPages : new Set(registeredPages);  ->  const registered = new Set();   (1 occurrence(s))
+command:          node scripts/build-pages-site.mjs --dry-run
+red-exit:         1
+red-summary:      Error: unregistered root page lacks a deploy decision: ai-capex-strategy-lab.html, bond-regime-lab.html, causal-rotation-lab.html, company-fundamentals-lab.html, etf-momentum-lab.html, fx-regime-relat
+green-exit:       0
+green-summary:    {"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":29,"excludedPaths":12,"rootFiles":130,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","
+summary-compared: Error: unregistered root page lacks a deploy decision: ai-capex-strategy-lab.html, bond-regime-lab.html, causal-rotation-lab.html, company-fundamentals-lab.html, etf-momentum-lab.html, fx-regime-relat  vs  {"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":29,"excludedPaths":12,"rootFiles":130,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","   (elapsed time normalised out)
+revert-verified:  yes (committed=c3fe66af9b2dbbe311da3d7d54d9fcf0e3162c04 restored=c3fe66af9b2dbbe311da3d7d54d9fcf0e3162c04)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_EXIT=0
+```
+
+The RED names shipped root pages by filename and refuses; the GREEN over the
+identical command emits the success contract. `excludedPaths` is `12` in the
+GREEN, so the exclusion side of the accounting was read and not bypassed. The
+counts differ from the GREEN block above because the site has grown since that
+run; the outcome is `pages-site-build-result/v1` in both.
+
+The second half of this row — that `site-exclusions.json` is unchanged — is a
+tracked-tree observation rather than something the command asserts, and it is not
+what this probe proves. It is verified directly, and it is the reason the mutation
+was chosen to leave that file alone:
+
+```
+$ git status --porcelain site-exclusions.json
+$ echo "STATUS_EXIT=$?"
+STATUS_EXIT=0
+```
+
+Empty output: no change to `site-exclusions.json`, before or after the probe.
+
+`revert-verified: yes` with matching hashes, and `scripts/build-pages-site.mjs`
+is unmodified in the tracked tree afterwards.
+
+#### TP-02-22 intended-RED, cumulative-selector channel (2026-08-22)
+
+Auditing the whole Test Plan rather than only the two rows the finding named
+surfaced a third weakness. `TP-02-22`'s recorded RED is the pack-member
+withholding at [TP-02-21](#tp-02-21), run against
+`tests/lifetime-tax-deduction.spec.mjs`, and the attribute withholding at
+`SUP-023-03`, whose green is "the 16-test run at TP-02-22". Both predate the row's
+broadening: its own section states that the earlier five-spec form "is superseded
+here by the cumulative selector the row actually names". So the GREEN was
+re-recorded against `--grep "SCN-02[1-4]"` and the RED was not — the same class of
+drift `F-REG-01` raised against `TP-02-20`.
+
+The defect planted is a Feature-022 one on purpose. This row's claim is that the
+whole 021 … 024 family is exercised, "not a convenient subset", so the sharpest
+test of it is whether a defect outside Feature 023 fails the row.
+
+**The harness could not certify it. Both attempts returned exit 7**, verbatim and
+unedited:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-22 cumulative selector: a defect planted in a Feature-022 scenario must fail this row, because the row claims the whole 021-024 family is exercised rather than a convenient subset
+file:             lifetime-tax-strategy-lab.html
+mutation:         var wanted = power ? "#power" : "#simple";  ->  var wanted = (power ? "#power" : "#simple") + "-" + byId("inputOrdinary").value;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-02\[1-4\] --reporter=line
+red-exit:         1
+red-summary:        79 passed (3.6m)
+green-exit:       1
+green-summary:      4 errors were not a part of any test, see above for details
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   NO (red-exit 1 == green-exit 1)
+=== END RED/GREEN PROBE EVIDENCE ===
+red-green-probe: REFUSED — RED and GREEN produced the same outcome (both exited 1). The mutation did not make the command fail, so the assertion under test cannot fail and this is not RED/GREEN evidence.
+PROBE_EXIT=7
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-22 cumulative selector: a defect planted in a Feature-022 scenario must fail this row, because the row claims the whole 021-024 family is exercised rather than a convenient subset
+file:             lifetime-tax-strategy-lab.html
+mutation:         var wanted = power ? "#power" : "#simple";  ->  var wanted = (power ? "#power" : "#simple") + "-" + byId("inputOrdinary").value;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-02\[1-4\] --workers=2 --reporter=line
+red-exit:         1
+red-summary:        79 passed (38.7s)
+green-exit:       1
+green-summary:      2 errors were not a part of any test, see above for details
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   NO (red-exit 1 == green-exit 1)
+=== END RED/GREEN PROBE EVIDENCE ===
+red-green-probe: REFUSED — RED and GREEN produced the same outcome (both exited 1). The mutation did not make the command fail, so the assertion under test cannot fail and this is not RED/GREEN evidence.
+PROBE_EXIT=7
+```
+
+One mutation, run twice; no mutation shopping. The second run differs only in
+worker count, because the first run's green arm failed for a reason the first run
+made visible.
+
+**What exit 7 means here, and what it does not.** The harness's own header records
+that some suites "exit non-zero even unmutated (a teardown fault that force-kills
+a worker after every test passed)", and both green arms above are exactly that:
+their summary is `N errors were not a part of any test`, which is a worker fault
+and not a failed assertion. The green arm was therefore invalid, and a comparison
+against an invalid green arm cannot support the harness's stated conclusion that
+"the assertion under test cannot fail". The measurement says the opposite.
+
+Run outside the harness, unmutated, the identical command is clean:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --workers=2 --reporter=line
+  83 passed (1.1m)
+TP0222_DIAG_EXIT=0
+```
+
+So the same-command pair for this row is:
+
+| arm | command | result |
+| --- | --- | --- |
+| intended RED | `--grep "SCN-02[1-4]" --workers=2` with the mutation applied | `79 passed` |
+| GREEN | `--grep "SCN-02[1-4]" --workers=2` unmutated | `83 passed`, exit `0` |
+
+Eighty-three scenarios are selected and eighty-three pass clean; seventy-nine pass
+under the mutation. **Derived, not asserted:** four of the eighty-three therefore
+did not pass, which is what the row exists to catch — a defect planted in a
+Feature-022 scenario failing a row owned by Feature 023, which is the "not a
+convenient subset" clause doing its job.
+
+**The residue.** This pair is assembled from the probe's red arm and a separate
+clean run, not from a single harness verdict, because the harness's exit channel
+is unusable for this selector on this machine. The harness offers `--summary-match`
+as its second channel for precisely this case, and it is not used here: for this
+row the only summary that expresses its own claim *is* the pass count over its
+selector, and pinning a verdict to an aggregate count is the practice this scope
+has otherwise refused. That is recorded as a limitation rather than worked around.
+
+**Claim Source:** executed for both probe blocks, the diagnostic run and its exit
+code. Interpreted for the four-scenario difference, which is arithmetic over two
+executed counts and is labelled as derived above.
 
 ## Supersession Ledger
 

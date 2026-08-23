@@ -295,9 +295,29 @@ error, a missing browser or an absent test does not satisfy RED.
 - [x] No output states a probability, a lifetime figure, a track record or an error
       rate, and no deduction figure is presented as an estimate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
-  - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-22 commands · **Evidence:** `report.md#test-evidence`, `report.md#f-reg-01-resolved-2026-08-22`
+  - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-22 commands · **Evidence:** `report.md#test-evidence`, `report.md#f-reg-01-resolved-2026-08-22`, `report.md#tp-02-24-intended-red-probe-ratchet-channel-2026-08-22`, `report.md#tp-02-25-intended-red-probe-deploy-decision-channel-2026-08-22`, `report.md#tp-02-22-intended-red-cumulative-selector-channel-2026-08-22`
+  - **Ticked 2026-08-22.** The gap the previous restatement named, `TP-02-26`,
+    was closed by its engine-channel probe. The two rows still carrying GREEN
+    only, `TP-02-24` and `TP-02-25`, now carry harness-certified probes, each
+    mutating the code path its own assertion reads and each pinned to its own
+    gate wording rather than to an aggregate: `new=<n> stale=<n>` for the
+    ratchet, the `pages-site-build-result/v1` contract against the
+    `lacks a deploy decision` refusal for the deploy gate. Neither needed a
+    fabricated test path or an edit to `site-exclusions.json`.
+  - **Audited, not assumed.** All twenty-eight rows were checked rather than the
+    two the finding named. That surfaced a third weakness: `TP-02-22`'s recorded
+    RED predates the row's broadening to the `SCN-02[1-4]` selector, so its RED
+    and GREEN sat on different command forms. A same-command pair is now
+    recorded — `79 passed` under the mutation against `83 passed` at exit `0`
+    clean, on the identical command. Two harness runs of that one mutation both
+    returned exit `7`; both are recorded verbatim, and the reason is disclosed:
+    each green arm ended in `N errors were not a part of any test`, a worker
+    fault rather than a failed assertion, so the harness's exit channel could
+    not certify a pair the measurement does establish. That limitation is
+    recorded rather than worked around, and no verdict here rests on an
+    aggregate pass count standing in for an assertion.
   - **Unticked 2026-08-22 (F-REG-01), plan-owned half discharged.** The Test Plan
     now lists `TP-02-26`, `TP-02-27` and `TP-02-28`, so the half that said this
     Test Plan does not list the assertions the scope ships is answered. Where the

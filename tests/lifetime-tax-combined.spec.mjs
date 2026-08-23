@@ -404,7 +404,7 @@ test('Regression: SCN-022-014 the combined curve is reachable by keyboard and ha
 });
 
 /* TP-05-20. */
-test('Regression: SCN-022-013 the request ledger stays empty across the full combined workflow', async ({ page }) => {
+test('Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow', async ({ page }) => {
   const ledger = collectRequests(page);
   /* The raw request objects, kept alongside the ledger because headers resolve asynchronously and
      `collectRequests` records only the url, the method and the body. Without this the row's

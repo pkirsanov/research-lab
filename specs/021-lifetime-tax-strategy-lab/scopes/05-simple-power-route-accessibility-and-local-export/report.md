@@ -611,8 +611,28 @@ that no table traps the page, not that a class name is present.
 
 ### Scenario SCN-021-015
 
+`Regression: SCN-021-015 a private export happens only on explicit action, the request ledger does not grow after first paint, and every entry is a declared same-origin read`
+Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-015 a private export happens only on explicit action, the request ledger does not grow after first paint, and every entry is a declared same-origin read" --reporter=list`
+
+**Renamed 2026-08-22 (F-REG-02).** The persistent title was
 `Regression: SCN-021-015 a private export happens only on explicit action and the request ledger stays empty`
-Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-015 a private export happens only on explicit action and the request ledger stays empty" --reporter=list`
+until this date. That wording was false: the route issues same-origin document
+reads and `<script src>` module loads during boot, so the ledger is never empty.
+What the row proves is `expect(ledger.length).toBe(afterFirstPaint)` — no growth
+after first paint — and
+`expect(paths.filter((entry) => !declaredAssets.includes(entry))).toEqual([])` —
+every entry is a same-origin read of a document the route's own script tags and
+declared configuration name. Adversarial cases: a request issued after first
+paint moves `ledger.length` and fails the first clause; a read of an undeclared
+or cross-origin document fails the second, which is pinned by
+`expect(declaredAssets).not.toContain('/definitely-not-declared-by-this-route.js')`.
+Unlike the SCN-022-013, SCN-023-001, SCN-024-001 and SCN-024-014 rows, this row
+carries **no** `expect(afterFirstPaint).toBeGreaterThan(0)` pin, so it would still
+pass against a route that read nothing at all; the title therefore does not claim
+that the declared reads resolve. Strengthening that is a planning matter and is
+routed, not taken here. The captured block below was recorded under the
+superseded title and is left exactly as executed; a fresh capture under the new
+title follows it.
 
 **Claim Source:** executed. Raw terminal output, bounded by
 `evidence-capture.sh`:
@@ -629,6 +649,22 @@ Running 1 test using 1 worker
 
   ✓  1 [system-chrome] › tests/lifetime-tax-route.spec.mjs:290:1 › Regression: SCN-021-015 a private export happens only on explicit action and the request ledger stays empty (830ms)
 
+  1 passed (2.3s)
+```
+
+Fresh capture under the new persistent title, recorded 2026-08-22 after the
+rename, proving the row's `--grep` still selects its own test — selected 1,
+passed 1:
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-015 a private export happens only on explicit action, the request ledger does not grow after first paint, and every entry is a declared same-origin read" --reporter=line
+exit: 0
+lines: 5
+sha256: c57f0dcbd134c5a74b5eacd13f85478d343862652e1bec5e22ece8d5c693e543
+
+Running 1 test using 1 worker
+
+[1/1] [system-chrome] › tests/lifetime-tax-route.spec.mjs:302:1 › Regression: SCN-021-015 a private export happens only on explicit action, the request ledger does not grow after first paint, and every entry is a declared same-origin read
   1 passed (2.3s)
 ```
 

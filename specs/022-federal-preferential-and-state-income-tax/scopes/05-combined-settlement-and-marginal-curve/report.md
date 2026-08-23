@@ -1114,8 +1114,17 @@ because it legitimately has no remediation to offer.
 
 ### TP-05-20
 
+`Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow`
+Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow" --reporter=list`
+
+**Renamed 2026-08-22 (F-REG-02).** The persistent title above was
 `Regression: SCN-022-013 the request ledger stays empty across the full combined workflow`
-Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-013 the request ledger stays empty across the full combined workflow" --reporter=list`
+until this date. That wording was false — the row's own first assertion is
+`expect(afterFirstPaint).toBeGreaterThan(0)`, so the ledger is never empty. Every
+captured block below was recorded under the superseded title and is left byte-for-byte
+as it was executed; the `sha256` lines pin that text, so editing them to match the new
+title would destroy the evidence rather than update it. A fresh capture under the new
+title is recorded at the end of this row.
 
 Green, and probed. The row asserts a negative — that nothing was sent — which is
 the class of assertion most likely to be vacuously true, so it was driven by
@@ -1165,6 +1174,23 @@ sha256: 06bb4a758fe73e8752a082a16958dddc946719a6a9e7122f2ce7e10a71c5858a
 The row also covers the surfaces a request ledger alone would miss: the URL search
 string is empty, the hash carries only the view mode, and no console message
 carries the sentinel income, the residency jurisdiction or the word `residency`.
+
+Fresh capture under the new persistent title, recorded 2026-08-22 after the
+rename, proving the row's `--grep` still selects its own test and that the test
+still passes — selected 1, passed 1:
+
+```text
+# TP-05-20 GREEN: renamed persistent title, selector moved with it
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow" --reporter=line
+exit: 0
+lines: 5
+sha256: 329c30b93ccdfb166fd82a0d4d1356ed690f3073ffe6efb92e358c6c5de08407
+
+Running 1 test using 1 worker
+
+[1/1] [system-chrome] › tests/lifetime-tax-combined.spec.mjs:407:1 › Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow
+  1 passed (2.6s)
+```
 
 ### TP-05-21
 

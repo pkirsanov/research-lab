@@ -308,7 +308,7 @@ test('Regression: SCN-023-002 the property leg reaches the headline, the compari
 });
 
 /* TP-01-22. */
-test('Regression: SCN-023-001 the request ledger stays empty and no property declaration reaches a URL', async ({ page }) => {
+test('Regression: SCN-023-001 the request ledger does not grow after first paint, every entry is a declared same-origin read, and no property declaration reaches a URL', async ({ page }) => {
   const ledger = collectRequests(page);
   const consoleMessages = collectConsole(page);
   await openLifetimeTax(page, site);

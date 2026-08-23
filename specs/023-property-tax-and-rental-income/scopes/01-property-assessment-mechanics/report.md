@@ -281,11 +281,34 @@ cannot be satisfied by a zero leg that an addition would balance either way.
 
 ### TP-01-22
 
-The request ledger stays empty and no property declaration reaches a URL.
-Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-001 the request ledger stays empty and no property declaration reaches a URL" --reporter=list`
+The request ledger does not grow after first paint, every entry is a declared
+same-origin read, and no property declaration reaches a URL.
+Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-001 the request ledger does not grow after first paint, every entry is a declared same-origin read, and no property declaration reaches a URL" --reporter=list`
+
+**Renamed 2026-08-22 (F-REG-02).** The persistent title was
+`Regression: SCN-023-001 the request ledger stays empty and no property declaration reaches a URL`
+until this date. That wording was false — the row's own opening assertion is
+`expect(afterFirstPaint).toBeGreaterThan(0)`, so the ledger is never empty. The
+captured blocks below were recorded under the superseded title and are left exactly
+as executed; a fresh capture under the new title is appended at the end of this row.
 
 ```
   ✓  21 [system-chrome] › tests/lifetime-tax-property.spec.mjs:312:1 › Regression: SCN-023-001 the request ledger stays empty and no property declaration reaches a URL (496ms)
+```
+
+Fresh capture under the new persistent title, recorded 2026-08-22, proving the
+row's `--grep` still selects its own test — selected 1, passed 1:
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-001 the request ledger does not grow after first paint, every entry is a declared same-origin read, and no property declaration reaches a URL" --reporter=line
+exit: 0
+lines: 5
+sha256: c6f91e39d07a2e4bd0cd1a474106c666608270be48f742f1f9e89370da282d31
+
+Running 1 test using 1 worker
+
+[1/1] [system-chrome] › tests/lifetime-tax-property.spec.mjs:311:1 › Regression: SCN-023-001 the request ledger does not grow after first paint, every entry is a declared same-origin read, and no property declaration reaches a URL
+  1 passed (2.5s)
 ```
 
 Observed: the ledger length after declaring an assessed value, an acquisition

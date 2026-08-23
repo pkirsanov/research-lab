@@ -1377,3 +1377,139 @@ touched. The regression is therefore routed to the owner of that spec rather tha
 absorbed here: `specs/027-*` is outside this scope's change boundary and editing
 it would be a boundary violation, not a fix.
 
+## Harness Pass 7 — `TP-04-30`, `TP-04-28` And `TP-04-29` Carry Intended REDs
+
+Three rows had no recorded RED and no recorded GREEN in this report. `TP-04-30`
+is the live-route `NFR-023-003` proof authored in `tests/lifetime-tax-use.spec.mjs`
+after the closure table above was written; `TP-04-28` and `TP-04-29` are the two
+gate rows, which the closure table never covered because it ran to `TP-04-25`.
+Every block below is `scripts/red-green-probe.sh` output, pasted unedited, with
+the revert proven by blob hash.
+
+### `TP-04-30` — the live-route privacy row, three arms
+
+The row names three separable adversarial cases and no single mutation fails more
+than one of them, so each is probed on its own. Each RED names the row's own
+assertion by file line.
+
+**Arm A — a boot that read nothing**, which is what makes the other two
+assertions non-vacuous.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-30 arm A, non-empty pin: a boot that read nothing must fail this row, so the no-growth and permitted-set assertions cannot pass vacuously over an empty ledger
+file:             tests/lifetime-tax-use.spec.mjs
+mutation:         const afterFirstPaint = ledger.length;  ->  const afterFirstPaint = ledger.length * 0;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-010\ the\ request\ ledger\ does\ not\ grow\ after\ the\ day-count\ declarations --reporter=line
+red-exit:         1
+red-summary:          > 374 |   expect(afterFirstPaint).toBeGreaterThan(0);
+green-exit:       0
+green-summary:      1 passed (2.9s)
+summary-compared:     > 374 |   expect(afterFirstPaint).toBeGreaterThan(0);  vs     1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=09d9dacef1fc5cd3a33cdc8b801a43841bb89ef3 restored=09d9dacef1fc5cd3a33cdc8b801a43841bb89ef3)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Arm B — a request issued after the declarations are entered.** Subtracting one
+from the capture is the arithmetic image of exactly one such request, so the
+non-empty pin still holds and only the no-growth equality fails.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-30 arm B, ledger growth: a request issued after the day-count declarations are entered must fail this row
+file:             tests/lifetime-tax-use.spec.mjs
+mutation:         const afterFirstPaint = ledger.length;  ->  const afterFirstPaint = ledger.length - 1;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-010\ the\ request\ ledger\ does\ not\ grow\ after\ the\ day-count\ declarations --reporter=line
+red-exit:         1
+red-summary:          > 387 |   expect(ledger.length).toBe(afterFirstPaint);
+green-exit:       0
+green-summary:      1 passed (3.7s)
+summary-compared:     > 387 |   expect(ledger.length).toBe(afterFirstPaint);  vs     1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=09d9dacef1fc5cd3a33cdc8b801a43841bb89ef3 restored=09d9dacef1fc5cd3a33cdc8b801a43841bb89ef3)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Arm C — a read of a path the configuration does not declare.** Withdrawing the
+declared pack family leaves the federal pack read, which the boot really makes,
+outside the permitted set.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-30 arm C, permitted-set membership: a read of a path the configuration does not declare must fail this row; withdrawing the declared pack family makes the federal pack read undeclared
+file:             tests/lifetime-tax-use.spec.mjs
+mutation:         .concat(scripts).concat(packs).concat(['/favicon.ico']);  ->  .concat(scripts).concat([]).concat(['/favicon.ico']);   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-010\ the\ request\ ledger\ does\ not\ grow\ after\ the\ day-count\ declarations --reporter=line
+red-exit:         1
+red-summary:          > 395 |   paths.forEach((path) => expect(permitted).toContain(path));
+green-exit:       0
+green-summary:      1 passed (2.2s)
+summary-compared:     > 395 |   paths.forEach((path) => expect(permitted).toContain(path));  vs     1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=09d9dacef1fc5cd3a33cdc8b801a43841bb89ef3 restored=09d9dacef1fc5cd3a33cdc8b801a43841bb89ef3)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-28` — path guard
+
+The mutation targets the guard's own resolution rather than planting a fabricated
+`tests/…` token in a spec artifact. A planted token would survive into this
+report, which is itself scanned, and would turn the guard permanently red — the
+probe would break the property it exists to prove.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-28 path guard: a spec-referenced path that does not resolve to a file must be reported as newly missing
+file:             scripts/validate-spec-test-paths.mjs
+mutation:         statSync(resolve(root, path)).isFile()  ->  statSync(resolve(root, path)).isDirectory()   (1 occurrence(s))
+command:          node scripts/validate-spec-test-paths.mjs
+red-exit:         1
+red-summary:      [spec-test-paths] FAIL — 190 new referenced path(s) do not exist
+green-exit:       0
+green-summary:    [spec-test-paths] OK — no new missing test path(s)
+summary-compared: [spec-test-paths] FAIL — 190 new referenced path(s) do not exist  vs  [spec-test-paths] OK — no new missing test path(s)   (elapsed time normalised out)
+revert-verified:  yes (committed=760f9bf0ebc04663675eee3f9d6cd81bcd9c8d0a restored=760f9bf0ebc04663675eee3f9d6cd81bcd9c8d0a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-29` — deploy gate
+
+This feature's route is deliberately unregistered, so its only deploy decision is
+its entry in the exclusion list. The probe points that entry at a different
+existing file, which leaves the list internally valid and non-stale while leaving
+the route itself without any decision.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-29 deploy gate: this feature route losing its deploy decision must refuse the Pages plan
+file:             site-exclusions.json
+mutation:         "path": "lifetime-tax-strategy-lab.html",  ->  "path": "index.html",   (1 occurrence(s))
+command:          node scripts/build-pages-site.mjs --dry-run
+red-exit:         1
+red-summary:      Error: unregistered root page lacks a deploy decision: lifetime-tax-strategy-lab.html
+green-exit:       0
+green-summary:    {"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":29,"excludedPaths":12,"rootFiles":130,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","
+revert-verified:  yes (committed=29c6fe08a58d97c1f119abdd38706cf02f675d60 restored=29c6fe08a58d97c1f119abdd38706cf02f675d60)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Claim Source:** executed. All five blocks are verbatim harness output from this
+session. Every revert was hash-verified against the committed blob and
+`git status --short` for each touched file was re-read clean afterwards.
+
+### Effect on the DoD rows
+
+The live-route `NFR-023-003` row is satisfied and ticked: the ledger does not
+grow after first paint, every entry is a same-origin read of a declared path, and
+neither assertion can pass over an empty ledger.
+
+The every-row RED/GREEN item is **not** ticked. One row still carries no observed
+intended RED: `TP-04-26`, the cross-feature cumulative `e2e-ui` row. It is the
+only row the closure table above never reached and the only one no later pass
+addressed. Its own text says the item requires a RED on every row from `TP-04-01`
+through `TP-04-26`, so a single uncovered row leaves the word "Every" false. That
+one row is named here rather than absorbed into a count.
+

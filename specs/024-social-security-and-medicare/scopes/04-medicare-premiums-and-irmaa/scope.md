@@ -458,12 +458,19 @@ delivery makes a row's claim false, the row is corrected rather than checked.
     is named rather than hidden and is opened as `TP-04-33` below: the row places
     no bound on ledger growth after first paint, so a request issued once the
     lookback is declared would not fail it.
-- [ ] `SCN-024-010` constrains ledger growth: the run captures the ledger length
+- [x] `SCN-024-010` constrains ledger growth: the run captures the ledger length
       after first paint and asserts the ledger does not grow past it once the
       lookback is declared.
-  - **Phase:** test · **Command:** `TP-04-33` · **Evidence:** not authored — the
-    scenario currently has no growth constraint. Opened 2026-08-22 (F-REG-03)
-    rather than ticked, because no executed evidence for it exists.
+  - **Phase:** test · **Command:** `TP-04-33` · **Evidence:** `report.md#test-evidence`
+  - **Claim Source:** executed. `tests/lifetime-tax-medicare.spec.mjs` captures
+    `afterFirstPaint` immediately after `openLifetimeTax` and, once the ordinary
+    household and the lookback year are declared and Power is opened, asserts
+    `requests.length` still equals it. The assertion is proven to discriminate by
+    its own harness probe with a hash-verified revert: subtracting one from the
+    capture reds `expect(requests.length).toBe(afterFirstPaint)` while leaving
+    every other assertion in the row green. That isolation is the point — neither
+    the non-empty pin nor the permitted-set sweep can detect a request made after
+    the lookback is entered, because both are satisfied by a ledger that grew.
   - **Claim Source:** executed. TP-04-20 green — no tax module holds a shipped premium, boundary, adjustment amount or authority name, and the detector is proven to fire on a planted figure. Browser row TP-04-28 green — the request ledger contains only declared assets, the medicare pack among them, and no lookback figure reaches a URL. TP-04-21 authored and green, closing the gap this row named: both lookback members are declared workspace fields that start `null`, are named by the unavailable-domain report while undeclared, are omitted by the export sanitizer and listed in `omittedFields`, and never appear in the exported bytes. The declared amount genuinely reaches storage — asserted before the clear — and the clear action removes all three declared keys. The declared storage key count of three is asserted unchanged in that same assertion.
 - [x] The `power-medicare` renderer reads only members the settlement publishes,
       proven by rendering every Power section with each medicare member absent in
@@ -559,8 +566,16 @@ delivery makes a row's claim false, the row is corrected rather than checked.
       estimate or a typical amount.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
   - **Claim Source:** executed. TP-04-CLAIM green. The scan runs over the composed premium legs, the annual cost and the shipped refusal, the detector is proven to fire on the sentence `our estimate of the typical premium`, and the pack is asserted to declare no `effectiveTaxYears` entry beyond the year it was retrieved for.
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence recorded,
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence recorded,
       including the browser rows.
+  - **Re-ticked 2026-08-22 at the full count of thirty-three.** The note below is
+    kept because it records why the item was opened. `TP-04-33` is now authored
+    in `tests/lifetime-tax-medicare.spec.mjs` and carries a RED aimed at its own
+    no-growth assertion, with a same-command GREEN and a hash-verified revert.
+    The thirty-two rows the **Claim Source** note below already accounted for are
+    unchanged, including the two limbs it records as resting on inspection rather
+    than on a RED, so the word "Every" holds again at the new count on exactly the
+    terms that note states.
   - **Unticked 2026-08-22 (F-REG-03).** `TP-04-33` was opened in this scope and
     is not authored, so it carries neither a RED nor a GREEN. The word "Every"
     therefore no longer holds. Ticking it again requires `TP-04-33` authored with

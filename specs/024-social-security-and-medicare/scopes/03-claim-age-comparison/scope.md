@@ -373,12 +373,21 @@ delivery makes a row's claim false, the row is corrected rather than checked.
     `TP-03-29` below: the row places no bound on ledger growth after first paint,
     and it has no non-empty pin, so `requested.forEach(...)` would pass vacuously
     against a route that read nothing.
-- [ ] `SCN-024-009` constrains ledger growth and cannot pass vacuously: the run
+- [x] `SCN-024-009` constrains ledger growth and cannot pass vacuously: the run
       captures the ledger length after first paint, asserts it is greater than
       zero, and asserts the ledger does not grow past it.
-  - **Phase:** test · **Command:** `TP-03-29` · **Evidence:** not authored — the
-    scenario currently proves neither. Opened 2026-08-22 (F-REG-03) rather than
-    ticked, because no executed evidence for it exists.
+  - **Phase:** test · **Command:** `TP-03-29` · **Evidence:** `report.md#test-evidence`
+  - **Claim Source:** executed. `tests/lifetime-tax-claim-age.spec.mjs` captures
+    `afterFirstPaint` immediately after `openLifetimeTax`, pins it greater than
+    zero, and after the comparison is declared, settled and the view switched
+    asserts `ledger.length` still equals it. Both halves are proven to
+    discriminate by their own harness probe, each with a hash-verified revert:
+    arm A zeroes the capture and reds
+    `expect(afterFirstPaint).toBeGreaterThan(0)`, arm B subtracts one from it and
+    reds `expect(ledger.length).toBe(afterFirstPaint)`. Arm B matters on its own
+    because the permitted-set sweep cannot detect a ledger that grew — a request
+    to a declared path made after the declarations would satisfy every other
+    assertion in the row.
 - [x] NFR-024-011 holds: the new module is UMD, every pure analytic function is a
       top-level declaration the extractor lifts, `Number.isFinite` is used rather
       than the bare global, and no drawing in this scope is wrapped in
@@ -449,8 +458,14 @@ delivery makes a row's claim false, the row is corrected rather than checked.
       track record or an error rate, and no claim age is described as optimal,
       recommended or best.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence recorded,
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence recorded,
       including the browser rows.
+  - **Re-ticked 2026-08-22 at the full count of twenty-nine.** The note below is
+    kept because it records why the item was opened. `TP-03-29` is now authored
+    in `tests/lifetime-tax-claim-age.spec.mjs` and carries a two-arm RED with a
+    same-command GREEN, both arms hash-verified on revert. The twenty-eight rows
+    the **Checked because** note already accounted for are unchanged, so the word
+    "Every" holds again at the new count.
   - **Unticked 2026-08-22 (F-REG-03).** `TP-03-29` was opened in this scope and
     is not authored, so it carries neither a RED nor a GREEN. The word "Every"
     therefore no longer holds. Ticking it again requires `TP-03-29` authored with

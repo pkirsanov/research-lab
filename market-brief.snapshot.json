@@ -1,12 +1,12 @@
 {
-  "asOf": "2026-08-23T06:19:19.949Z",
-  "generatedAt": "2026-08-23T06:19:19.949Z",
+  "asOf": "2026-08-23T11:02:37.142Z",
+  "generatedAt": "2026-08-23T11:02:37.142Z",
   "window": "pre-market",
   "marketClosed": true,
   "nextSessionDate": "2026-08-24",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-08-23T06:17:58.265Z",
+      "updated": "2026-08-23T11:01:19.024Z",
       "symbolCount": 289,
       "expectedSessionDate": "2026-08-21",
       "refreshDate": "2026-08-23",
@@ -16,7 +16,7 @@
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-08-23T06:18:01.627Z",
+      "updated": "2026-08-23T11:01:19.141Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
       "refreshDate": "2026-08-23",
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-08-23T06:19:18.207Z",
+      "asOf": "2026-08-23T11:02:35.535Z",
       "read": "Rotate toward XLE as XLF weakens.",
       "metrics": {
         "into": {
@@ -1341,7 +1341,7 @@
           "benchmarkReturn": 0.03959629251529906,
           "usdRelativeReturn": 0.1253835253735951,
           "asOf": "2026-08-21T00:00:00.000Z",
-          "computedAt": "2026-08-23T06:19:18.343Z",
+          "computedAt": "2026-08-23T11:02:35.667Z",
           "freshUntil": null
         },
         "decomposition": {
@@ -1933,7 +1933,7 @@
           "interaction": 0.0006863655520284707,
           "relationship": "Joint Support",
           "asOf": "2026-08-21T00:00:00.000Z",
-          "computedAt": "2026-08-23T06:19:18.343Z",
+          "computedAt": "2026-08-23T11:02:35.667Z",
           "freshUntil": null,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
@@ -1957,7 +1957,7 @@
               "usdLeadership": {
                 "asOf": "2026-08-21T00:00:00.000Z",
                 "benchmarkReturn": 0.03959629251529906,
-                "computedAt": "2026-08-23T06:19:18.343Z",
+                "computedAt": "2026-08-23T11:02:35.667Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -2466,7 +2466,7 @@
                 "approximateLocalReturn": 0.1927781387653964,
                 "asOf": "2026-08-21T00:00:00.000Z",
                 "benchmarkReturnOnDecompositionDates": 0.062387537371614954,
-                "computedAt": "2026-08-23T06:19:18.343Z",
+                "computedAt": "2026-08-23T11:02:35.667Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "SGD",
                 "freshUntil": null,
@@ -3061,7 +3061,7 @@
             "educationalOnly": true
           },
           "deepLink": "global-rotation-lab.html#simple",
-          "computedAt": "2026-08-23T06:19:18.343Z",
+          "computedAt": "2026-08-23T11:02:35.667Z",
           "freshUntil": null
         }
       },
@@ -3321,7 +3321,7 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 49.41684459235195,
+                "score": 49.41684358866233,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
@@ -3496,7 +3496,7 @@
         "horizon": "swing",
         "drivers": {
           "uup63": 0.6130547389119556,
-          "tlt63": -1.4366955699450235,
+          "tlt63": -1.4367046031516173,
           "tip63": -0.12100644758372692,
           "qqq63": -0.04002161509280011,
           "xle63": 8.403440793643036,
@@ -3915,15 +3915,15 @@
     },
     "fx-regime-relative-value-lab": {
       "id": "fx-regime-relative-value-lab",
-      "asOf": "2026-08-23T06:19:19.557Z",
+      "asOf": "2026-08-23T11:02:36.847Z",
       "read": "The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published.",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "source": "owning-tool-functions",
       "state": "unavailable",
       "metrics": {
         "state": "unavailable",
-        "ownerDecisionId": "fxo-v1-d51d75cd",
-        "evidenceIdentity": "fxe-v1-90426a0b",
+        "ownerDecisionId": "fxo-v1-06a7b762",
+        "evidenceIdentity": "fxe-v1-eff10a8c",
         "objective": "foreign-currency-strength",
         "subjectId": "JPY",
         "horizon": "swing",
@@ -4046,8 +4046,8 @@
           "read": "The available evidence does not support a complete attributable recommendation.",
           "metrics": {
             "contractVersion": "rlfx-tool-read/v2",
-            "ownerDecisionId": "fxo-v1-d51d75cd",
-            "evidenceIdentity": "fxe-v1-90426a0b",
+            "ownerDecisionId": "fxo-v1-06a7b762",
+            "evidenceIdentity": "fxe-v1-eff10a8c",
             "state": "unavailable",
             "objective": "foreign-currency-strength",
             "subjectId": "JPY",
@@ -4167,7 +4167,7 @@
                 "REQUIRED_FACT_MISSING",
                 "TRACKING_EVIDENCE_INCOMPLETE"
               ],
-              "evidenceIdentity": "fxe-v1-90426a0b",
+              "evidenceIdentity": "fxe-v1-eff10a8c",
               "evidenceCutoff": null,
               "provenance": [],
               "ownerDeepLink": "fx-regime-relative-value-lab.html#power",
@@ -4192,7 +4192,7 @@
             "executionAvailable": false
           },
           "deepLink": "fx-regime-relative-value-lab.html#power",
-          "computedAt": "2026-08-23T06:19:19.557Z",
+          "computedAt": "2026-08-23T11:02:36.847Z",
           "freshUntil": null
         }
       }
@@ -4218,7 +4218,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-08-23T06:19:19.667Z",
+      "asOf": "2026-08-23T11:02:36.914Z",
       "read": "Leadership is narrow — 58.1% of 134 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",

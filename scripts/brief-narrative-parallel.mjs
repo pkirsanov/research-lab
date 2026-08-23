@@ -215,6 +215,34 @@ function missingRequiredLeaves(fragment, keys) {
     return missing;
 }
 
+/* Why a rejected fragment was rejected, in the lane's own vocabulary. `readCompleteFragment`
+   collapses every rejection to null, so a retry re-sent the identical prompt and reproduced the
+   identical omission: lane=core failed 4/4 across two independent publications on 2026-08-23, every
+   time for the two `regime.vix` leaves, which the prompt never named. A retry that cannot see what
+   it missed is not a second attempt, it is the same attempt run twice. */
+function describeFragmentGap(path, keys, maxBytes = Number.POSITIVE_INFINITY) {
+    if (!existsSync(path)) return 'you wrote no fragment file at all';
+    let parsed;
+    try {
+        if (statSync(path).size > maxBytes) return `your fragment was larger than the ${maxBytes}-byte cap for this lane`;
+        parsed = JSON.parse(readFileSync(path, 'utf8'));
+    } catch (error) {
+        return `your fragment was not parseable as strict JSON (${error.message})`;
+    }
+    if (!hasExactFragmentKeys(parsed, keys)) {
+        const actual = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? Object.keys(parsed) : [];
+        const absent = keys.filter((key) => !actual.includes(key));
+        const extra = actual.filter((key) => !keys.includes(key));
+        const parts = [];
+        if (absent.length) parts.push(`missing top-level key(s): ${absent.join(', ')}`);
+        if (extra.length) parts.push(`unexpected top-level key(s): ${extra.join(', ')}`);
+        return parts.join('; ') || 'your fragment was not a JSON object with exactly the owned top-level keys';
+    }
+    const missing = missingRequiredLeaves(parsed, keys);
+    if (missing.length) return `these required fields were absent or empty: ${missing.join(', ')}`;
+    return '';
+}
+
 function terminateProcessGroup(child, signal) {
     try { process.kill(-child.pid, signal); }
     catch { try { child.kill(signal); } catch { } }
@@ -416,7 +444,7 @@ function laneInput(lane) {
     };
 }
 
-function runLane(lane, laneAttempt) {
+function runLane(lane, laneAttempt, priorGap = '') {
     const outputPath = resolve(WORK_DIR, `${lane.id}.json`);
     const inputPath = resolve(WORK_DIR, `${lane.id}.input.json`);
     const stdoutPath = resolve(WORK_DIR, `${lane.id}.attempt-${laneAttempt}.stdout.log`);
@@ -453,9 +481,20 @@ function runLane(lane, laneAttempt) {
        integer, so no `above` level survived either. Enforced by
        scripts/validate-brief-payload.mjs on the publish path (D16). */
     const evaluabilityInstruction = 'Every tactical or swing call MUST carry, in its invalidation field, a numeric price level on a named instrument that is in the committed universe, written with an explicit direction word AND on the side that would prove the call WRONG. The side is decided by the call, not by preference: for a long-biased call (add, rotate, hold) the invalidation level must be BELOW a price (for example "a daily close below 740.09"); for a short-biased call (trim, hedge) it must be ABOVE a price (for example "a daily close above ~765.0"). A level describing the call WORKING is a TRIGGER, not an invalidation, and it will not be accepted: a hedge is not invalidated by the market falling, and a long is not invalidated by the market rising. Write the number with a decimal or a leading tilde ("~765.0", "765.00"); a bare integer ("765"), a percentage, a relative-strength threshold, a moving-average name with no number, or a purely qualitative condition is NOT a level. The publish gate re-derives this from your own prose and withholds any tactical or swing call that resolves to unscoreable, so a call written with only the working side is dropped from the brief. If the thesis genuinely has no direction-correct price level, withhold the call yourself rather than publishing one that can never be scored.';
+    /* The runner rejects a fragment that omits any of these, but the prompt used to name only the
+       top-level keys, so the acceptance contract was enforced against a lane that was never told it.
+       Stating it here is what makes the check satisfiable rather than a guess about the schema
+       example in the input bundle. */
+    const requiredLeaves = requiredLeavesFor(lane.keys).map((segments) => segments.join('.'));
+    const requiredLeafInstruction = requiredLeaves.length
+        ? `Your fragment is REJECTED unless every one of these nested fields is present and non-empty: ${requiredLeaves.join(', ')}. Owning the top-level key is not the same as answering it.`
+        : '';
+    const retryInstruction = priorGap
+        ? `This is a retry. Your previous attempt was rejected because ${priorGap}. Fix exactly that and keep everything else you already had right.`
+        : '';
     const prompt = lane.id === 'research-acquisition' || lane.kind === 'research'
-        ? `You are the ${lane.id} side process for generation ${researchPreparation.generationId}. Read only .brief-work/${lane.id}.input.json. Do not edit any tracked file. Overwrite only .brief-work/${lane.id}.json with one strict JSON object, no markdown, containing exactly these top-level keys: ${lane.keys.join(', ')}. ${lane.instructions}`
-        : `You are one parallel lane of the Actionable Market Brief for window=${windowId}, today ET=${todayEt}. All allowed repository evidence, current schema examples, and relevant recent history for this lane have already been compacted into .brief-work/${lane.id}.input.json. Read that one input file and no other repository file. The deterministic data and owning-tool reads are already refreshed. ${bundleInstruction} ${vocabularyInstruction} ${evaluabilityInstruction} Structure first, tactical noise last. Count persistence by distinct market-bar dates, not repeated intraday runs. Label estimates, proxies, carried data, and unavailable inputs honestly. Do not edit market-brief.payload.json, market-brief.config.json, the tool bundle, or any other repository file. Overwrite only .brief-work/${lane.id}.json with one strict JSON object, no markdown, containing exactly these top-level keys: ${lane.keys.join(', ')}. ${lane.instructions}`;
+        ? `You are the ${lane.id} side process for generation ${researchPreparation.generationId}. Read only .brief-work/${lane.id}.input.json. Do not edit any tracked file. Overwrite only .brief-work/${lane.id}.json with one strict JSON object, no markdown, containing exactly these top-level keys: ${lane.keys.join(', ')}. ${requiredLeafInstruction} ${retryInstruction} ${lane.instructions}`
+        : `You are one parallel lane of the Actionable Market Brief for window=${windowId}, today ET=${todayEt}. All allowed repository evidence, current schema examples, and relevant recent history for this lane have already been compacted into .brief-work/${lane.id}.input.json. Read that one input file and no other repository file. The deterministic data and owning-tool reads are already refreshed. ${bundleInstruction} ${vocabularyInstruction} ${evaluabilityInstruction} Structure first, tactical noise last. Count persistence by distinct market-bar dates, not repeated intraday runs. Label estimates, proxies, carried data, and unavailable inputs honestly. Do not edit market-brief.payload.json, market-brief.config.json, the tool bundle, or any other repository file. Overwrite only .brief-work/${lane.id}.json with one strict JSON object, no markdown, containing exactly these top-level keys: ${lane.keys.join(', ')}. ${requiredLeafInstruction} ${retryInstruction} ${lane.instructions}`;
 
     const args = ['-p', prompt, '--allow-all-tools', '--deny-tool=shell'];
     if (lane.web && process.env.BRIEF_NO_WEB !== '1') {
@@ -565,9 +604,10 @@ function validateLaneResult(result) {
 async function runLaneWithRetries(lane) {
     let lastError;
     let result;
+    let priorGap = '';
     const attemptLimit = lane.attempts || laneAttempts;
     for (let attempt = 1; attempt <= attemptLimit; attempt += 1) {
-        result = await runLane(lane, attempt);
+        result = await runLane(lane, attempt, priorGap);
         try {
             result.fragment = validateLaneResult(result);
             if (result.recovered) {
@@ -577,6 +617,8 @@ async function runLaneWithRetries(lane) {
             return result;
         } catch (error) {
             lastError = error;
+            priorGap = describeFragmentGap(result.outputPath || resolve(WORK_DIR, `${lane.id}.json`), lane.keys, lane.maxOutputBytes);
+            if (priorGap) console.log(`[brief-parallel] lane=${lane.id} attempt=${attempt} rejected: ${priorGap}`);
             if (attempt < attemptLimit) {
                 if (isTransientCopilotServiceFailure(result)) {
                     const backoffSeconds = transientBackoffSeconds * attempt;

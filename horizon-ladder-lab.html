@@ -681,6 +681,27 @@
 
         /* ---------- market data: cache-first, honest degradation ---------- */
 
+        /* store.bars is a cache READ. On a first visit it returns nothing for every symbol, the whole
+           watchlist lands in the exclusion ledger, and the page reads as "no candidates" when the
+           real cause is that nobody asked for the data. ensureBars is the accessor that populates
+           from the same-origin data/bars snapshot, so warm the cache before reading it. */
+        function warmBars() {
+            var store = (typeof window !== 'undefined' && window.RLDATA) ? window.RLDATA : null;
+            if (!store || typeof store.ensureBars !== 'function') return;
+            var wanted = [], seen = {};
+            function want(sym) { if (sym && !seen[sym]) { seen[sym] = 1; wanted.push(sym); } }
+            for (var i = 0; i < CFG.watchlist.length; i++) want(CFG.watchlist[i].symbol);
+            want('^VIX');
+            want(CFG.policy.benchmarkSymbol || 'SPY');
+            var pending = [];
+            for (var j = 0; j < wanted.length; j++) {
+                try { pending.push(store.ensureBars(wanted[j], '1d', 24)['catch'](function () { return null; })); }
+                catch (e) { /* one unreachable symbol must not stop the rest */ }
+            }
+            Promise.all(pending).then(function () { readSharedCache(); render(); },
+                function () { readSharedCache(); render(); });
+        }
+
         function readSharedCache() {
             var store = (typeof window !== 'undefined' && window.RLDATA) ? window.RLDATA : null;
             if (!store || typeof store.bars !== 'function') return;
@@ -1139,6 +1160,7 @@
             wire();
             render();
             loadEvents();
+            warmBars();
         }
 
         /* The Market Action Center owns the event calendar. A failed read leaves the panel

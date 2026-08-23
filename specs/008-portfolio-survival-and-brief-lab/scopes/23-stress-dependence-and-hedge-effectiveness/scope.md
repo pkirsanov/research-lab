@@ -2,7 +2,7 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** In Progress
+**Status:** Done
 **Scope-Kind:** runtime-behavior
 **Tags:** `overlay:diversification`, `remediation`
 **Depends On:** 22
@@ -70,7 +70,7 @@ Scenario: A user evaluates diversification and hedge effectiveness across normal
 
 ## Test Plan
 
-Every remediation assertion and exact title below is `planned-not-authored` at P1. Existing carrier paths do not imply that the new test exists.
+All six remediation rows are authored. Their current execution evidence is recorded in the linked Scope 23 report sections.
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Evidence |
 |---|---|---|---|---|---|---|---|---|
@@ -89,12 +89,12 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 
 ### Definition of Done - Tiered Validation
 
-- [ ] SCN-008-049 is implemented with distinct samples, qualified adjustment, appraisal limits, regression basis risk, costs, and common paths.
-- [ ] TP-23-01 unit evidence passes.
-- [ ] TP-23-02 functional evidence passes.
-- [ ] TP-23-03 complete real-page regression passes.
-- [ ] TP-23-04 adversarial mutation proof rejects every audited shortcut.
-- [ ] TP-23-05 common-path real-page regression passes.
-- [ ] TP-23-06 broader regression passes.
-- [ ] Shared Infrastructure Impact Sweep and rollback proof are recorded.
-- [ ] Build Quality Gate passes with zero skips/warnings and no excluded-file changes.
+- [x] SCN-008-049 is implemented with distinct samples, qualified adjustment, appraisal limits, regression basis risk, costs, and common paths. Evidence: [scenario contract](report.md#scenario-contract-evidence), [coverage](report.md#coverage-report), and [real-page behavior](report.md#tp-23-03-and-tp-23-05).
+- [x] TP-23-01 unit evidence passes. Evidence: [TP-23-01](report.md#tp-23-01).
+- [x] TP-23-02 functional evidence passes. Evidence: [TP-23-02](report.md#tp-23-02).
+- [x] TP-23-03 complete real-page regression passes. Evidence: [TP-23-03 and complete carrier](report.md#tp-23-03-and-tp-23-05).
+- [x] TP-23-04 adversarial mutation proof rejects every audited shortcut. Evidence: [TP-23-04](report.md#tp-23-04).
+- [x] TP-23-05 common-path real-page regression passes. Evidence: [TP-23-05 and complete carrier](report.md#tp-23-03-and-tp-23-05).
+- [x] TP-23-06 broader regression passes. Evidence: [TP-23-06](report.md#tp-23-06).
+- [x] Shared Infrastructure Impact Sweep and rollback proof are recorded. Evidence: [shared infrastructure and rollback](report.md#shared-infrastructure-and-rollback) and [last-valid preservation](report.md#tp-23-02).
+- [x] Build Quality Gate passes with zero skips/warnings and no excluded-file changes. Evidence: [lint and quality](report.md#lint-and-quality) and [bounded code diff](report.md#code-diff-evidence).

@@ -252,6 +252,43 @@
         ],
         "hedgeRegressionMinimumObservations": 5,
         "allocationUnstableRangeThreshold": 0.05,
+        "allocationCommissionFraction": 0.001,
+        "allocationSpreadFraction": 0.0005,
+        "allocationSlippageFraction": 0.0005,
+        "allocationFinancingFraction": 0,
+        "allocationCarryFraction": 0,
+        "allocationRebalanceTiming": "decision-close",
+        "allocationAssetMinimum": 0,
+        "allocationAssetMaximum": 1,
+        "allocationGroupMinimum": 0,
+        "allocationGroupMaximum": 1,
+        "allocationNetSum": 1,
+        "allocationGrossLeverageLimit": 1,
+        "allocationTurnoverBudget": 1,
+        "allocationSensitivityAxes": {
+            "history": [
+                {
+                    "id": "short-window",
+                    "covarianceScale": 0.9,
+                    "meanShift": -0.005
+                },
+                {
+                    "id": "long-window",
+                    "covarianceScale": 1.1,
+                    "meanShift": 0.005
+                }
+            ],
+            "means": [-0.01, 0, 0.01],
+            "covariance": [0.9, 1, 1.1],
+            "views": [0.75, 1, 1.25],
+            "costs": [0.5, 1, 1.5],
+            "assetBounds": [0, 0.02],
+            "groupBounds": [0, 0.02],
+            "turnover": [-0.05, 0, 0.05],
+            "cash": [0, 0.02],
+            "leverage": [1, 1.05, 1.1],
+            "riskAversion": [2, 2.5, 3]
+        },
         "blackLittermanRiskAversion": 2.5,
         "blackLittermanTau": 0.05,
         "hedgeCommissionFraction": 0.001,
@@ -314,8 +351,11 @@
     },
     "solver": {
         "contractVersion": "portfolio-solver-policy/v1",
+        "fingerprint": "portfolio-solver-policy/v1:dykstra-projected-gradient",
         "maximumIterations": 5000,
-        "convergenceTolerance": 0.00000001
+        "projectionIterations": 5000,
+        "convergenceTolerance": 0.00000001,
+        "stepSize": 0.05
     },
     "calibration": {
         "contractVersion": "portfolio-calibration-policy/v1",

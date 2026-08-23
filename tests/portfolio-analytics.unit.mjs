@@ -2945,6 +2945,325 @@ test('TP-14-01 sensitivity reports reversal conditions when two holdings swap or
 });
 
 /* ---------------------------------------------------------------------------
+   Scope 24 - complete allocation basis and six constrained interfaces
+   --------------------------------------------------------------------------- */
+
+const SCOPE24_BASIS = {
+  contractVersion: 'AllocationBasis/v1',
+  eligibleAssets: [
+    { symbol: 'A', group: 'growth' },
+    { symbol: 'B', group: 'defensive' },
+    { symbol: 'CASH', group: 'cash' }
+  ],
+  currentWeights: [0.45, 0.45, 0.10],
+  evidenceIdentity: 'evidence:scope24-fixture',
+  covarianceIdentity: 'covariance:scope24-fixture',
+  covariance: [
+    [0.0400, 0.0180, 0.0000],
+    [0.0180, 0.0900, 0.0000],
+    [0.0000, 0.0000, 0.1600]
+  ],
+  expectedReturnPolicy: {
+    policyId: 'explicit-scope24-returns',
+    expectedReturns: [0.08, 0.12, 0.02]
+  },
+  valuationCurrency: 'USD',
+  mandateIdentity: 'mandate:scope24-fixture',
+  assetBounds: {
+    A: { minimum: 0.10, maximum: 0.60 },
+    B: { minimum: 0.10, maximum: 0.60 },
+    CASH: { minimum: 0.10, maximum: 0.30 }
+  },
+  exclusions: [],
+  cashBounds: { symbol: 'CASH', minimum: 0.10, maximum: 0.30 },
+  netSum: 1,
+  grossLeverageLimit: 1,
+  turnoverBudget: 0.70,
+  groupBounds: [
+    { group: 'growth', members: ['A'], minimum: 0.10, maximum: 0.60 },
+    { group: 'defensive', members: ['B'], minimum: 0.10, maximum: 0.60 },
+    { group: 'cash', members: ['CASH'], minimum: 0.10, maximum: 0.30 }
+  ],
+  costPolicy: {
+    commissionFraction: 0.0010,
+    spreadFraction: 0.0005,
+    slippageFraction: 0.0005,
+    financingFraction: 0,
+    carryFraction: 0,
+    rebalanceTiming: 'decision-close'
+  },
+  commonScenarioIdentity: 'scenario:scope24-fixture',
+  commonPathIds: ['path:scope24:1', 'path:scope24:2', 'path:scope24:3'],
+  commonPathAssetReturns: [
+    [0.10, 0.03, 0.001],
+    [-0.18, -0.06, 0.001],
+    [0.04, 0.08, 0.001]
+  ],
+  survivalDefinition: { startingValue: 1, floorValue: 0.85 },
+  solverPolicy: {
+    policyId: 'allocation-solver:scope24',
+    maximumIterations: 4000,
+    tolerance: 1e-8,
+    stepSize: 0.05
+  }
+};
+
+const SCOPE24_BL_INPUT = {
+  contractVersion: 'BlackLittermanInput/v1',
+  benchmarkIdentity: 'benchmark:qualified-fixture',
+  benchmarkWeights: [0.50, 0.40, 0.10],
+  riskAversion: 2.5,
+  tau: 0.05,
+  views: [{
+    contractVersion: 'BlackLittermanView/v1',
+    viewId: 'view:A-bullish',
+    horizonSessions: 63,
+    coefficients: [1, 0, 0],
+    magnitudeRange: { low: 0.10, central: 0.14, high: 0.18 },
+    confidenceSource: 'user-stated-range',
+    uncertaintyVariance: 0.0025,
+    userAuthority: 'explicit-user-entry',
+    evidenceCutoff: '2026-05-29',
+    invalidation: 'Invalidate when the stated thesis or horizon changes.'
+  }]
+};
+
+const SCOPE24_SENSITIVITY_AXES = {
+  history: [
+    { id: 'short', covarianceScale: 0.9, meanShift: -0.005 },
+    { id: 'long', covarianceScale: 1.1, meanShift: 0.005 }
+  ],
+  means: [-0.01, 0.01],
+  covariance: [0.9, 1.1],
+  views: [0.8, 1.2],
+  costs: [0.5, 1.5],
+  assetBounds: [0, 0.02],
+  groupBounds: [0, 0.02],
+  turnover: [-0.05, 0.05],
+  cash: [0, 0.02],
+  leverage: [1, 1.05],
+  riskAversion: [2, 3]
+};
+
+test('TP-24-01 six real methods consume one complete basis and expose solver diagnostics', () => {
+  assert.equal(RLPA.validateAllocationBasis(SCOPE24_BASIS).ok, true);
+
+  const result = RLPA.runAllocationComparison({
+    basis: SCOPE24_BASIS,
+    blackLittermanInput: SCOPE24_BL_INPUT,
+    expectedReturnInput: SCOPE24_BASIS.expectedReturnPolicy,
+    riskAversion: 2.5
+  });
+  assert.equal(result.state, 'ok');
+  assert.equal(result.contractVersion, 'AllocationComparison/v1');
+  assert.deepEqual(result.candidates.map((candidate) => candidate.method), RLPA.ALLOCATION_METHODS);
+  assert.equal(result.recommendedMethod, null);
+  assert.equal(result.bestMethod, null);
+
+  for (const candidate of result.candidates) {
+    assert.equal(candidate.contractVersion, 'AllocationCandidate/v1');
+    assert.equal(candidate.basisFingerprint, result.basisFingerprint);
+    assert.ok(['feasible', 'infeasible', 'unstable', 'unavailable'].includes(candidate.state));
+    assert.equal(candidate.commonPathOutcomes.scenarioIdentity, SCOPE24_BASIS.commonScenarioIdentity);
+    assert.deepEqual(candidate.commonPathOutcomes.pathIds, SCOPE24_BASIS.commonPathIds);
+    assert.equal(candidate.fullCosts.complete, true);
+    assert.ok(Number.isFinite(candidate.turnover));
+    assert.ok(candidate.concentration && Number.isFinite(candidate.concentration.herfindahl));
+    assert.ok(candidate.riskContribution && Array.isArray(candidate.riskContribution.contributionShare));
+    assert.ok(candidate.returnContribution && Array.isArray(candidate.returnContribution.values));
+    assert.ok(candidate.survivalOutcomes && candidate.survivalOutcomes.state === 'ok');
+    assert.ok(candidate.solver && typeof candidate.solver.convergenceReason === 'string');
+  }
+});
+
+test('TP-24-01 risk parity solves equal contribution and constrained MVO never clips an unconstrained vector', () => {
+  const erc = RLPA.solveEqualRiskContribution(SCOPE24_BASIS, [1 / 3, 1 / 3, 1 / 3], SCOPE24_BASIS.solverPolicy);
+  assert.equal(erc.state, 'feasible');
+  assert.ok(erc.solver.equalRiskContributionResidual <= SCOPE24_BASIS.solverPolicy.tolerance * 10);
+
+  const inverseVolatility = [1 / 0.2, 1 / 0.3, 1 / 0.01];
+  const inverseVolatilityTotal = inverseVolatility.reduce((sum, value) => sum + value, 0);
+  const inverseVolatilityWeights = inverseVolatility.map((value) => value / inverseVolatilityTotal);
+  assert.ok(erc.weights.some((weight, index) => Math.abs(weight - inverseVolatilityWeights[index]) > 0.01),
+    'equal-risk-contribution must differ from inverse volatility on this correlated constrained basis');
+
+  const mvo = RLPA.solveConstrainedMvo(
+    SCOPE24_BASIS,
+    SCOPE24_BASIS.expectedReturnPolicy,
+    2.5,
+    SCOPE24_BASIS.solverPolicy
+  );
+  assert.equal(mvo.state, 'feasible');
+  assert.ok(mvo.weights[0] >= 0.10 && mvo.weights[0] <= 0.60);
+  assert.ok(mvo.weights[1] >= 0.10 && mvo.weights[1] <= 0.60);
+  assert.ok(mvo.weights[2] >= 0.10 && mvo.weights[2] <= 0.30);
+  assert.ok(mvo.solver.kktResidual <= SCOPE24_BASIS.solverPolicy.tolerance * 10);
+  assert.equal(mvo.solver.postHocClipping, false);
+});
+
+test('TP-24-01 explicit Black Litterman posterior is the allocation input', () => {
+  const withView = RLPA.solveBlackLittermanAllocation(
+    SCOPE24_BASIS,
+    SCOPE24_BL_INPUT,
+    SCOPE24_BASIS.solverPolicy
+  );
+  const equilibriumOnly = RLPA.solveBlackLittermanAllocation(
+    SCOPE24_BASIS,
+    { ...SCOPE24_BL_INPUT, views: [] },
+    SCOPE24_BASIS.solverPolicy
+  );
+  assert.equal(withView.state, 'feasible');
+  assert.equal(equilibriumOnly.state, 'feasible');
+  assert.equal(withView.blackLitterman.state, 'ok');
+  assert.equal(equilibriumOnly.blackLitterman.state, 'equilibrium-only');
+  assert.deepEqual(withView.expectedReturnsUsed, withView.blackLitterman.posteriorMean);
+  assert.notDeepEqual(withView.weights, equilibriumOnly.weights,
+    'changing the explicit view must change posterior-driven allocation weights');
+  assert.equal(withView.blackLitterman.benchmarkIdentity, SCOPE24_BL_INPUT.benchmarkIdentity);
+  assert.equal(withView.blackLitterman.views[0].horizonSessions, 63);
+  assert.equal(withView.blackLitterman.views[0].confidenceSource, 'user-stated-range');
+});
+
+test('Adversarial: heuristic clipped and disconnected allocation methods cannot satisfy the six method contract', () => {
+  const erc = RLPA.solveEqualRiskContribution(
+    SCOPE24_BASIS,
+    [1 / 3, 1 / 3, 1 / 3],
+    SCOPE24_BASIS.solverPolicy
+  );
+  assert.equal(erc.state, 'feasible');
+
+  const inverseVolatility = [1 / Math.sqrt(0.04), 1 / Math.sqrt(0.09), 1 / Math.sqrt(0.16)];
+  const inverseTotal = inverseVolatility.reduce((sum, value) => sum + value, 0);
+  const inverseWeights = inverseVolatility.map((value) => value / inverseTotal);
+  const inverseMap = Object.fromEntries(['A', 'B', 'CASH'].map((symbol, index) => [symbol, inverseWeights[index]]));
+  const inverseRisk = RLPA.riskContributions(
+    ['A', 'B', 'CASH'],
+    inverseMap,
+    SCOPE24_BASIS.covariance,
+    { reconciliationTolerance: SCOPE24_BASIS.solverPolicy.tolerance }
+  );
+  const inverseResidual = Math.max(...inverseRisk.contributionShare.map((share) => Math.abs(share - 1 / 3)));
+  assert.ok(inverseResidual > SCOPE24_BASIS.solverPolicy.tolerance * 1000,
+    'inverse-volatility weights must visibly fail the equal-risk-contribution identity');
+  assert.ok(erc.solver.equalRiskContributionResidual < inverseResidual);
+
+  const constrained = RLPA.solveConstrainedMvo(
+    SCOPE24_BASIS,
+    SCOPE24_BASIS.expectedReturnPolicy,
+    2.5,
+    SCOPE24_BASIS.solverPolicy
+  );
+  assert.equal(constrained.state, 'feasible');
+  assert.equal(constrained.solver.postHocClipping, false);
+  const clippedShortcut = [0.8, 0.2, 0];
+  const repaired = RLPA.projectBoundedConstraints(
+    SCOPE24_BASIS,
+    clippedShortcut,
+    SCOPE24_BASIS.solverPolicy
+  );
+  assert.equal(repaired.state, 'feasible');
+  assert.notDeepEqual(repaired.weights, clippedShortcut,
+    'a clipped unconstrained vector violates the explicit cash floor and cannot masquerade as the solve');
+
+  const tighter = {
+    ...SCOPE24_BASIS,
+    assetBounds: {
+      ...SCOPE24_BASIS.assetBounds,
+      A: { minimum: 0.10, maximum: 0.20 }
+    }
+  };
+  const boundAware = RLPA.solveConstrainedMvo(
+    tighter,
+    tighter.expectedReturnPolicy,
+    2.5,
+    tighter.solverPolicy
+  );
+  assert.ok(boundAware.weights[0] <= 0.20 + tighter.solverPolicy.tolerance,
+    'the common asset bound must affect the solve rather than being audited after it');
+
+  const impossible = {
+    ...SCOPE24_BASIS,
+    assetBounds: {
+      A: { minimum: 0.70, maximum: 0.90 },
+      B: { minimum: 0.60, maximum: 0.90 },
+      CASH: { minimum: 0.10, maximum: 0.30 }
+    }
+  };
+  const conflict = RLPA.findIrreducibleConflict(impossible);
+  assert.equal(conflict.state, 'infeasible');
+  assert.equal(conflict.irreducible, true);
+  assert.equal(conflict.globallySmallest, false);
+  assert.ok(conflict.conflictSet.includes('net-sum'));
+  assert.ok(conflict.conflictSet.filter((id) => id.startsWith('minimum:')).length >= 2);
+  assert.equal(
+    RLPA.projectBoundedConstraints(impossible, impossible.currentWeights, impossible.solverPolicy).state,
+    'infeasible'
+  );
+
+  const fakeBenchmark = RLPA.solveBlackLittermanAllocation(
+    SCOPE24_BASIS,
+    { ...SCOPE24_BL_INPUT, benchmarkIdentity: '' },
+    SCOPE24_BASIS.solverPolicy
+  );
+  assert.equal(fakeBenchmark.state, 'unavailable');
+  assert.equal(fakeBenchmark.blackLitterman.reason, 'black-litterman-input-invalid');
+
+  const withView = RLPA.solveBlackLittermanAllocation(
+    SCOPE24_BASIS,
+    SCOPE24_BL_INPUT,
+    SCOPE24_BASIS.solverPolicy
+  );
+  const withoutView = RLPA.solveBlackLittermanAllocation(
+    SCOPE24_BASIS,
+    { ...SCOPE24_BL_INPUT, views: [] },
+    SCOPE24_BASIS.solverPolicy
+  );
+  assert.notDeepEqual(withView.blackLitterman.posteriorMean, withoutView.blackLitterman.posteriorMean);
+  assert.notDeepEqual(withView.weights, withoutView.weights,
+    'a solver disconnected from posterior means would return the same weights and fail here');
+});
+
+test('TP-24-01 all declared sensitivity axes produce attributable method trials and ranges', () => {
+  const sensitivity = RLPA.runAllocationSensitivity({
+    basis: SCOPE24_BASIS,
+    blackLittermanInput: SCOPE24_BL_INPUT,
+    expectedReturnInput: SCOPE24_BASIS.expectedReturnPolicy,
+    riskAversion: 2.5,
+    axes: SCOPE24_SENSITIVITY_AXES
+  });
+  assert.equal(sensitivity.state, 'ok');
+  assert.deepEqual(sensitivity.declaredAxes, [
+    'history', 'means', 'covariance', 'views', 'costs', 'assetBounds',
+    'groupBounds', 'turnover', 'cash', 'leverage', 'riskAversion'
+  ]);
+  const pointCount = Object.values(SCOPE24_SENSITIVITY_AXES).reduce((sum, values) => sum + values.length, 0);
+  assert.equal(sensitivity.totalTrials, pointCount * RLPA.ALLOCATION_METHODS.length);
+  assert.equal(sensitivity.methods.length, RLPA.ALLOCATION_METHODS.length);
+  assert.equal(sensitivity.recommendedMethod, null);
+  for (const method of sensitivity.methods) {
+    assert.equal(method.trials.length, pointCount);
+    assert.equal(method.validTrials + method.failedTrials, pointCount);
+    assert.equal(method.weightRanges.length, SCOPE24_BASIS.eligibleAssets.length);
+  }
+  for (const axis of sensitivity.declaredAxes) {
+    assert.ok(sensitivity.trialLedger.some((trial) => trial.axis === axis));
+  }
+
+  const missingAxis = { ...SCOPE24_SENSITIVITY_AXES };
+  delete missingAxis.cash;
+  assert.deepEqual(
+    RLPA.runAllocationSensitivity({
+      basis: SCOPE24_BASIS,
+      blackLittermanInput: SCOPE24_BL_INPUT,
+      expectedReturnInput: SCOPE24_BASIS.expectedReturnPolicy,
+      riskAversion: 2.5,
+      axes: missingAxis
+    }),
+    { state: 'invalid', reason: 'sensitivity-axes-incomplete' }
+  );
+});
+
+/* ---------------------------------------------------------------------------
    Scope 15 - walk-forward dossier and claim boundaries
    --------------------------------------------------------------------------- */
 

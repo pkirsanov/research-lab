@@ -88,6 +88,10 @@
       "minimumDistinctUtcDates", "outcomeCommands", "outcomeStates", "recentSupportDays"
     ]),
     analytics: Object.freeze([
+      "allocationCarryFraction", "allocationCommissionFraction", "allocationFinancingFraction",
+      "allocationAssetMaximum", "allocationAssetMinimum", "allocationGrossLeverageLimit",
+      "allocationGroupMaximum", "allocationGroupMinimum", "allocationNetSum", "allocationRebalanceTiming",
+      "allocationSensitivityAxes", "allocationSlippageFraction", "allocationSpreadFraction", "allocationTurnoverBudget",
       "allocationUnstableRangeThreshold", "benchmarkSymbol", "blackLittermanRiskAversion",
       "blackLittermanTau", "concentrationAlertWeight", "concentrationLenses", "contractVersion",
       "covarianceSensitivity", "covarianceShrinkageLambda", "dossierTrialsSearched",
@@ -104,7 +108,9 @@
       "riskFreeAnnual", "riskReconciliationTolerance", "targetHistoryCalendarYears",
       "walkForwardFolds"
     ]),
-    solver: Object.freeze(["contractVersion", "convergenceTolerance", "maximumIterations"]),
+    solver: Object.freeze([
+      "contractVersion", "convergenceTolerance", "fingerprint", "maximumIterations", "projectionIterations", "stepSize"
+    ]),
     calibration: Object.freeze([
       "contractVersion", "initialSeed", "materialExposureWeight", "nearCashNeedCalendarDays", "parameterDrawCount",
       "pathCount", "scenarioChunkSize", "scenarioCostTiming", "scenarioDriftRange", "scenarioMaximumWorkUnits",
@@ -355,6 +361,23 @@
     return true;
   }
 
+  function validAllocationSensitivityAxes(value) {
+    var keys = [
+      "assetBounds", "cash", "costs", "covariance", "groupBounds", "history",
+      "leverage", "means", "riskAversion", "turnover", "views"
+    ];
+    if (!isPlainObject(value) || Object.keys(value).sort().join("|") !== keys.join("|")) return false;
+    if (!keys.every(function (key) { return Array.isArray(value[key]) && value[key].length > 0; })) return false;
+    if (!value.history.every(function (entry) {
+      return isPlainObject(entry) && Object.keys(entry).sort().join("|") === "covarianceScale|id|meanShift" &&
+        nonEmptyString(entry.id) && finitePositive(entry.covarianceScale) &&
+        typeof entry.meanShift === "number" && Number.isFinite(entry.meanShift);
+    })) return false;
+    return keys.filter(function (key) { return key !== "history"; }).every(function (key) {
+      return value[key].every(function (entry) { return typeof entry === "number" && Number.isFinite(entry); });
+    });
+  }
+
   function exactStringSet(value, expected) {
     if (!stringArray(value, false) || value.length !== expected.length) return false;
     var actual = value.slice().sort();
@@ -457,6 +480,23 @@
         !Number.isInteger(value.analytics.hedgeRegressionMinimumObservations) || value.analytics.hedgeRegressionMinimumObservations < 3 ||
         !finitePositive(value.analytics.allocationUnstableRangeThreshold) ||
         value.analytics.allocationUnstableRangeThreshold > 1 ||
+        !finiteNonNegative(value.analytics.allocationCommissionFraction) ||
+        !finiteNonNegative(value.analytics.allocationSpreadFraction) ||
+        !finiteNonNegative(value.analytics.allocationSlippageFraction) ||
+        !finiteNonNegative(value.analytics.allocationFinancingFraction) ||
+        !finiteNonNegative(value.analytics.allocationCarryFraction) ||
+        typeof value.analytics.allocationRebalanceTiming !== "string" || !value.analytics.allocationRebalanceTiming.trim() ||
+        !finiteNonNegative(value.analytics.allocationAssetMinimum) ||
+        !finitePositive(value.analytics.allocationAssetMaximum) ||
+        value.analytics.allocationAssetMinimum > value.analytics.allocationAssetMaximum ||
+        !finiteNonNegative(value.analytics.allocationGroupMinimum) ||
+        !finitePositive(value.analytics.allocationGroupMaximum) ||
+        value.analytics.allocationGroupMinimum > value.analytics.allocationGroupMaximum ||
+        !finitePositive(value.analytics.allocationNetSum) ||
+        !finitePositive(value.analytics.allocationGrossLeverageLimit) ||
+        value.analytics.allocationGrossLeverageLimit < value.analytics.allocationNetSum ||
+        !finiteNonNegative(value.analytics.allocationTurnoverBudget) ||
+        !validAllocationSensitivityAxes(value.analytics.allocationSensitivityAxes) ||
         !finitePositive(value.analytics.blackLittermanRiskAversion) ||
         !finitePositive(value.analytics.blackLittermanTau) || value.analytics.blackLittermanTau > 1 ||
         !finiteNonNegative(value.analytics.hedgeCommissionFraction) ||
@@ -488,7 +528,7 @@
     var numericSectionNames = ["behavior", "solver", "calibration", "queue"];
     for (var numericIndex = 0; numericIndex < numericSections.length; numericIndex += 1) {
       var numericKeys = Object.keys(numericSections[numericIndex]).filter(function (key) {
-        return key !== "contractVersion" && key !== "scenarioCostTiming" && key !== "scenarioDriftRange" &&
+        return key !== "contractVersion" && key !== "fingerprint" && key !== "scenarioCostTiming" && key !== "scenarioDriftRange" &&
           BEHAVIOR_VOCABULARY_FIELDS.indexOf(key) < 0;
       });
       if (!numericKeys.every(function (key) {

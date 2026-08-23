@@ -93,10 +93,10 @@
   "certifiedAt": null,
   "requiresRevalidation": false,
   "execution": {
-    "activeAgent": "bubbles.implement",
-    "currentPhase": "implement",
-    "currentPhaseStatus": "in_progress",
-    "currentScope": 23,
+    "activeAgent": "bubbles.plan",
+    "currentPhase": "plan",
+    "currentPhaseStatus": "not_started",
+    "currentScope": null,
     "runStartedAt": "2026-08-20T19:11:37Z",
     "completedPhaseClaims": [
       {
@@ -427,7 +427,7 @@
         "scope": 23,
         "scopeId": "23-stress-dependence-and-hedge-effectiveness",
         "name": "Stress Dependence And Hedge Effectiveness",
-        "status": "in_progress",
+        "status": "done",
         "dependsOn": [
           "22"
         ],
@@ -442,7 +442,7 @@
         "scope": 24,
         "scopeId": "24-complete-allocation-and-explicit-views",
         "name": "Complete Allocation And Explicit Views",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "23"
         ],
@@ -529,8 +529,8 @@
         "evidenceFile": "scopes/29-documentation-and-registry-truth/report.md"
       }
     ],
-    "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/scopes/23-stress-dependence-and-hedge-effectiveness/scope.md",
+    "nextRequiredOwner": "bubbles.validate",
+    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/state.json",
     "audit": {
       "schemaVersion": "audit-run/v1",
       "runId": null,
@@ -556,7 +556,12 @@
       16,
       17,
       18,
-      19
+      19,
+      20,
+      21,
+      22,
+      23,
+      24
     ]
   },
   "certification": {
@@ -583,7 +588,8 @@
       "19-coverage-aware-market-data-foundation",
       "20-generic-evidence-brief-policy-and-api",
       "21-partial-risk-input-and-diagnostics",
-      "22-scenario-contract-and-survival-distributions"
+      "22-scenario-contract-and-survival-distributions",
+      "23-stress-dependence-and-hedge-effectiveness"
     ],
     "certifiedCompletedPhases": [],
     "scopeProgress": [
@@ -862,7 +868,7 @@
         "scope": 23,
         "scopeId": "23-stress-dependence-and-hedge-effectiveness",
         "name": "Stress Dependence And Hedge Effectiveness",
-        "status": "in_progress",
+        "status": "done",
         "dependsOn": [
           "22"
         ],
@@ -878,7 +884,7 @@
         "scope": 24,
         "scopeId": "24-complete-allocation-and-explicit-views",
         "name": "Complete Allocation And Explicit Views",
-        "status": "not_started",
+        "status": "in_progress",
         "dependsOn": [
           "23"
         ],

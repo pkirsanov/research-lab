@@ -154,8 +154,8 @@ Scope pickup is sequential: a scope may move to `In Progress` only when every li
 | 20 | [Generic Evidence Brief Policy And API](20-generic-evidence-brief-policy-and-api/scope.md) | `overlay:brief` | 19 | SCN-008-046 | generic evidence, brief API/policy, route | Done |
 | 21 | [Partial Risk Input And Diagnostics](21-partial-risk-input-and-diagnostics/scope.md) | `overlay:risk` | 20 | SCN-008-047 | analytics, Risk X-Ray Simple/Power | Done |
 | 22 | [Scenario Contract And Survival Distributions](22-scenario-contract-and-survival-distributions/scope.md) | `overlay:paths` | 21 | SCN-008-048 | analytics, Path Lab, compute lifecycle | Done |
-| 23 | [Stress Dependence And Hedge Effectiveness](23-stress-dependence-and-hedge-effectiveness/scope.md) | `overlay:diversification` | 22 | SCN-008-049 | dependence, alternatives, hedge, common paths | In Progress |
-| 24 | [Complete Allocation And Explicit Views](24-complete-allocation-and-explicit-views/scope.md) | `overlay:allocation` | 23 | SCN-008-050 | constrained solvers, BL editor, sensitivity | Not Started |
+| 23 | [Stress Dependence And Hedge Effectiveness](23-stress-dependence-and-hedge-effectiveness/scope.md) | `overlay:diversification` | 22 | SCN-008-049 | dependence, alternatives, hedge, common paths | Done |
+| 24 | [Complete Allocation And Explicit Views](24-complete-allocation-and-explicit-views/scope.md) | `overlay:allocation` | 23 | SCN-008-050 | constrained solvers, BL editor, sensitivity | Done |
 | 25 | [Decision-Time Dossier And Immutable Audit](25-decision-time-dossier-and-immutable-audit/scope.md) | `overlay:dossier` | 24 | SCN-008-051 | walk-forward, costs/trials, dossier store/export | Not Started |
 | 26 | [Immutable Workspace Compute And Navigation](26-immutable-workspace-compute-and-navigation/scope.md) | `integration:workspace` | 25 | SCN-008-052 | controller, view model, ReturnContext, `rlnav.js` | Not Started |
 | 27 | [Accessible Six-Tab Interaction](27-accessible-six-tab-interaction/scope.md) | `integration:accessibility` | 26 | SCN-008-053 | route accessibility and responsive behavior | Not Started |
@@ -330,7 +330,7 @@ The route remains directly testable and unregistered through Scopes 01-15. Scope
 
 ## Active Remediation Completion Gate
 
-Scope 17 is the exact next pickup and the only eligible `Not Started` scope: Scope 16 is Done, while every later remediation scope depends transitively on an unfinished predecessor. Scope 29 remains the final execution site after Scopes 17-28 complete. Historical Scopes 01-16 remain Done records but cannot satisfy a repaired-behavior checkbox or current evidence row.
+Scope 25 remains `Not Started` and is the sole dependency-unblocked next remediation scope: Scope 24 is Done, while every later remediation scope depends transitively on unfinished Scope 25. Scope 25 is eligible for execution-owner reconciliation to `In Progress`; this planning closeout does not start it. Scope 29 remains the final execution site after Scopes 17-28 complete. Historical Scopes 01-16 remain Done records but cannot satisfy a repaired-behavior checkbox or current evidence row.
 
 Active completion requires all of the following:
 

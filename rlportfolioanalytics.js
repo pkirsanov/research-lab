@@ -4717,6 +4717,1030 @@
   }
 
   /* ---------------------------------------------------------------------
+     Scope 24 - complete constrained allocation and explicit views
+     --------------------------------------------------------------------- */
+
+  function allocationFailure(reason, path) {
+    return { ok: false, reason: reason, path: path || "$" };
+  }
+
+  function allocationNumberArray(value, length) {
+    return Array.isArray(value) && value.length === length && value.every(isNum);
+  }
+
+  function allocationAssetProfile(basis) {
+    if (Array.isArray(basis.eligibleAssets) && basis.eligibleAssets.length) {
+      var eligibleSymbols = basis.eligibleAssets.map(function (asset) { return asset && asset.symbol; });
+      if (!eligibleSymbols.every(function (symbol) { return typeof symbol === "string" && symbol; })) return null;
+      return {
+        symbols: eligibleSymbols,
+        groups: basis.eligibleAssets.map(function (asset) {
+          return typeof asset.group === "string" && asset.group ? [asset.group] : [];
+        })
+      };
+    }
+    if (!Array.isArray(basis.assetOrder) || !basis.assetOrder.length || !Array.isArray(basis.assets)) return null;
+    var bySymbol = {};
+    basis.assets.forEach(function (asset) { if (asset && typeof asset.symbol === "string") bySymbol[asset.symbol] = asset; });
+    if (!basis.assetOrder.every(function (symbol) { return bySymbol[symbol] && bySymbol[symbol].eligible === true; })) return null;
+    return {
+      symbols: basis.assetOrder.slice(),
+      groups: basis.assetOrder.map(function (symbol) {
+        return Array.isArray(bySymbol[symbol].groups) ? bySymbol[symbol].groups.slice() : [];
+      })
+    };
+  }
+
+  function allocationBounds(basis, symbols) {
+    var bounds = [];
+    for (var i = 0; i < symbols.length; i += 1) {
+      var row = Array.isArray(basis.assetBounds)
+        ? basis.assetBounds.find(function (candidate) { return candidate && candidate.symbol === symbols[i]; })
+        : basis.assetBounds && basis.assetBounds[symbols[i]];
+      if (!row || !isNum(row.minimum) || !isNum(row.maximum)) return null;
+      bounds.push({ symbol: symbols[i], minimum: row.minimum, maximum: row.maximum });
+    }
+    (basis.exclusions || []).forEach(function (symbol) {
+      var index = symbols.indexOf(symbol);
+      if (index !== -1) bounds[index] = { symbol: symbol, minimum: 0, maximum: 0 };
+    });
+    return bounds;
+  }
+
+  function allocationCostPolicy(policy) {
+    if (!policy || typeof policy !== "object") return null;
+    var values = {
+      commission: isNum(policy.commissionFraction) ? policy.commissionFraction : policy.commissionRate,
+      spread: isNum(policy.spreadFraction) ? policy.spreadFraction : policy.spreadRate,
+      slippage: isNum(policy.slippageFraction) ? policy.slippageFraction : policy.slippageRate,
+      financing: isNum(policy.financingFraction) ? policy.financingFraction : policy.financingRate,
+      carry: isNum(policy.carryFraction) ? policy.carryFraction : policy.carryRate,
+      rebalanceTiming: policy.rebalanceTiming
+    };
+    if (![values.commission, values.spread, values.slippage, values.financing, values.carry].every(isNum) ||
+        typeof values.rebalanceTiming !== "string" || !values.rebalanceTiming) return null;
+    return values;
+  }
+
+  function allocationScenario(basis, symbols) {
+    if (typeof basis.commonScenarioIdentity === "string" && Array.isArray(basis.commonPathIds) &&
+        Array.isArray(basis.commonPathAssetReturns) && basis.survivalDefinition) {
+      if (basis.commonPathIds.length !== basis.commonPathAssetReturns.length ||
+          !basis.commonPathAssetReturns.every(function (row) { return allocationNumberArray(row, symbols.length); })) return null;
+      return {
+        identity: basis.commonScenarioIdentity,
+        startingValue: basis.survivalDefinition.startingValue,
+        floorValue: basis.survivalDefinition.floorValue,
+        survivalAvailable: basis.survivalDefinition.state !== "unavailable" && isNum(basis.survivalDefinition.floorValue),
+        cashNeeds: [],
+        paths: basis.commonPathIds.map(function (pathId, index) {
+          var returnsByAsset = {};
+          symbols.forEach(function (symbol, symbolIndex) {
+            returnsByAsset[symbol] = [basis.commonPathAssetReturns[index][symbolIndex]];
+          });
+          return { pathId: pathId, returnsByAsset: returnsByAsset };
+        })
+      };
+    }
+    var scenario = basis.commonScenario;
+    if (!scenario || scenario.contractVersion !== "AllocationCommonScenario/v1" ||
+        typeof scenario.scenarioIdentity !== "string" || !Array.isArray(scenario.paths)) return null;
+    var validPaths = scenario.paths.every(function (path) {
+      if (!path || typeof path.pathId !== "string" || !path.returnsByAsset) return false;
+      var length = null;
+      return symbols.every(function (symbol) {
+        var rows = path.returnsByAsset[symbol];
+        if (!Array.isArray(rows) || !rows.length || !rows.every(isNum)) return false;
+        if (length === null) length = rows.length;
+        return rows.length === length;
+      });
+    });
+    if (!validPaths || !isNum(scenario.startingValue) || !isNum(scenario.survivalFloor)) return null;
+    return {
+      identity: scenario.scenarioIdentity,
+      startingValue: scenario.startingValue,
+      floorValue: scenario.survivalFloor,
+      survivalAvailable: isNum(scenario.survivalFloor),
+      cashNeeds: Array.isArray(scenario.cashNeeds) ? scenario.cashNeeds.slice() : [],
+      paths: scenario.paths.map(function (path) {
+        return { pathId: path.pathId, returnsByAsset: path.returnsByAsset };
+      })
+    };
+  }
+
+  function allocationSolverPolicy(policy) {
+    if (!policy || typeof policy !== "object") return null;
+    var tolerance = isNum(policy.tolerance) ? policy.tolerance : policy.convergenceTolerance;
+    if (!Number.isInteger(policy.maximumIterations) || policy.maximumIterations <= 0 ||
+        !isNum(tolerance) || tolerance <= 0 || !isNum(policy.stepSize) || policy.stepSize <= 0) return null;
+    return {
+      identity: policy.policyId || policy.fingerprint,
+      maximumIterations: policy.maximumIterations,
+      projectionIterations: Number.isInteger(policy.projectionIterations) && policy.projectionIterations > 0
+        ? policy.projectionIterations : policy.maximumIterations,
+      tolerance: tolerance,
+      stepSize: policy.stepSize
+    };
+  }
+
+  function normalizeAllocationBasis(basis) {
+    if (!basis || basis.contractVersion !== "AllocationBasis/v1") return allocationFailure("basis-version", "$.contractVersion");
+    var assets = allocationAssetProfile(basis);
+    if (!assets) return allocationFailure("eligible-assets", "$.eligibleAssets");
+    var n = assets.symbols.length;
+    if (!allocationNumberArray(basis.currentWeights, n)) return allocationFailure("current-weights", "$.currentWeights");
+    if (!Array.isArray(basis.covariance) || basis.covariance.length !== n ||
+        !basis.covariance.every(function (row) { return allocationNumberArray(row, n); })) {
+      return allocationFailure("covariance-shape", "$.covariance");
+    }
+    for (var i = 0; i < n; i += 1) {
+      if (!(basis.covariance[i][i] > 0)) return allocationFailure("covariance-diagonal", "$.covariance[" + i + "][" + i + "]");
+      for (var j = 0; j < n; j += 1) {
+        if (Math.abs(basis.covariance[i][j] - basis.covariance[j][i]) > 1e-10) {
+          return allocationFailure("covariance-not-symmetric", "$.covariance");
+        }
+      }
+    }
+    var bounds = allocationBounds(basis, assets.symbols);
+    if (!bounds) return allocationFailure("asset-bounds", "$.assetBounds");
+    var costs = allocationCostPolicy(basis.costPolicy);
+    if (!costs) return allocationFailure("cost-policy", "$.costPolicy");
+    var scenario = allocationScenario(basis, assets.symbols);
+    if (!scenario) return allocationFailure("common-scenario", "$.commonScenarioIdentity");
+    var solver = allocationSolverPolicy(basis.solverPolicy);
+    if (!solver || typeof solver.identity !== "string" || !solver.identity) return allocationFailure("solver-policy", "$.solverPolicy");
+    var expectedReturns = Array.isArray(basis.expectedReturns) ? basis.expectedReturns
+      : basis.expectedReturnPolicy && basis.expectedReturnPolicy.expectedReturns;
+    if (expectedReturns !== null && expectedReturns !== undefined && !allocationNumberArray(expectedReturns, n)) {
+      return allocationFailure("expected-return-policy", "$.expectedReturnPolicy");
+    }
+    if ((expectedReturns === null || expectedReturns === undefined) &&
+        (!basis.expectedReturnPolicy || basis.expectedReturnPolicy.state !== "unavailable")) {
+      return allocationFailure("expected-return-policy", "$.expectedReturnPolicy");
+    }
+    if (!isNum(basis.netSum) || !isNum(basis.grossLeverageLimit) || !isNum(basis.turnoverBudget)) {
+      return allocationFailure("portfolio-constraints", "$.netSum");
+    }
+    var cashNotHeld = basis.cashBounds && basis.cashBounds.state === "not-held" &&
+      basis.cashBounds.symbol === null && basis.cashBounds.minimum === 0 && basis.cashBounds.maximum === 0;
+    if (!cashNotHeld && (!basis.cashBounds || typeof basis.cashBounds.symbol !== "string" ||
+        !isNum(basis.cashBounds.minimum) || !isNum(basis.cashBounds.maximum))) {
+      return allocationFailure("cash-bounds", "$.cashBounds");
+    }
+    if (!Array.isArray(basis.groupBounds)) return allocationFailure("group-bounds", "$.groupBounds");
+    var groups = basis.groupBounds.map(function (group) {
+      return {
+        id: group.group || group.groupId,
+        members: Array.isArray(group.members) ? group.members.slice() : [],
+        minimum: group.minimum,
+        maximum: group.maximum
+      };
+    });
+    if (!groups.every(function (group) {
+      return typeof group.id === "string" && group.id && group.members.length &&
+        group.members.every(function (symbol) { return assets.symbols.indexOf(symbol) !== -1; }) &&
+        isNum(group.minimum) && isNum(group.maximum);
+    })) return allocationFailure("group-bounds", "$.groupBounds");
+    var normalized = {
+      source: basis,
+      symbols: assets.symbols,
+      groupsByAsset: assets.groups,
+      currentWeights: basis.currentWeights.slice(),
+      covariance: basis.covariance.map(function (row) { return row.slice(); }),
+      expectedReturns: expectedReturns ? expectedReturns.slice() : null,
+      bounds: bounds,
+      exclusions: (basis.exclusions || []).slice(),
+      cashBounds: basis.cashBounds,
+      netSum: basis.netSum,
+      grossLeverageLimit: basis.grossLeverageLimit,
+      turnoverBudget: basis.turnoverBudget,
+      groupBounds: groups,
+      costs: costs,
+      scenario: scenario,
+      solverPolicy: solver
+    };
+    return { ok: true, value: normalized, basisFingerprint: stableRecordFingerprint(basis) };
+  }
+
+  function validateAllocationBasis(basis) {
+    var result = normalizeAllocationBasis(basis);
+    return result.ok ? { ok: true, basisFingerprint: result.basisFingerprint } : result;
+  }
+
+  function allocationVectorNorm(values) {
+    return Math.sqrt(values.reduce(function (sum, value) { return sum + value * value; }, 0));
+  }
+
+  function projectL1Ball(values, radius) {
+    var absolute = values.map(Math.abs);
+    if (absolute.reduce(function (sum, value) { return sum + value; }, 0) <= radius) return values.slice();
+    var sorted = absolute.slice().sort(function (a, b) { return b - a; });
+    var cumulative = 0, threshold = 0;
+    for (var i = 0; i < sorted.length; i += 1) {
+      cumulative += sorted[i];
+      var candidate = (cumulative - radius) / (i + 1);
+      if (sorted[i] > candidate) threshold = candidate;
+    }
+    return values.map(function (value) {
+      return Math.sign(value) * Math.max(Math.abs(value) - threshold, 0);
+    });
+  }
+
+  function allocationConstraintSets(normalized) {
+    var sets = [{
+      id: "asset-bounds",
+      project: function (values) {
+        return values.map(function (value, index) {
+          return Math.max(normalized.bounds[index].minimum, Math.min(normalized.bounds[index].maximum, value));
+        });
+      }
+    }, {
+      id: "net-sum",
+      project: function (values) {
+        var delta = (normalized.netSum - values.reduce(function (sum, value) { return sum + value; }, 0)) / values.length;
+        return values.map(function (value) { return value + delta; });
+      }
+    }, {
+      id: "gross-leverage",
+      project: function (values) { return projectL1Ball(values, normalized.grossLeverageLimit); }
+    }, {
+      id: "turnover-budget",
+      project: function (values) {
+        var delta = values.map(function (value, index) { return value - normalized.currentWeights[index]; });
+        var projected = projectL1Ball(delta, normalized.turnoverBudget * 2);
+        return projected.map(function (value, index) { return normalized.currentWeights[index] + value; });
+      }
+    }];
+    normalized.groupBounds.forEach(function (group) {
+      var memberIndexes = group.members.map(function (symbol) { return normalized.symbols.indexOf(symbol); });
+      var normSquared = memberIndexes.length;
+      sets.push({
+        id: "group-minimum:" + group.id,
+        project: function (values) {
+          var total = memberIndexes.reduce(function (sum, index) { return sum + values[index]; }, 0);
+          if (total >= group.minimum) return values.slice();
+          var delta = (group.minimum - total) / normSquared;
+          return values.map(function (value, index) { return memberIndexes.indexOf(index) === -1 ? value : value + delta; });
+        }
+      });
+      sets.push({
+        id: "group-maximum:" + group.id,
+        project: function (values) {
+          var total = memberIndexes.reduce(function (sum, index) { return sum + values[index]; }, 0);
+          if (total <= group.maximum) return values.slice();
+          var delta = (total - group.maximum) / normSquared;
+          return values.map(function (value, index) { return memberIndexes.indexOf(index) === -1 ? value : value - delta; });
+        }
+      });
+    });
+    return sets;
+  }
+
+  function allocationConstraintResiduals(normalized, weights) {
+    var rows = [];
+    normalized.bounds.forEach(function (bound, index) {
+      rows.push({ id: "minimum:" + bound.symbol, residual: Math.max(0, bound.minimum - weights[index]) });
+      rows.push({ id: "maximum:" + bound.symbol, residual: Math.max(0, weights[index] - bound.maximum) });
+    });
+    var sum = weights.reduce(function (total, value) { return total + value; }, 0);
+    rows.push({ id: "net-sum", residual: Math.abs(sum - normalized.netSum) });
+    rows.push({
+      id: "gross-leverage",
+      residual: Math.max(0, weights.reduce(function (total, value) { return total + Math.abs(value); }, 0) - normalized.grossLeverageLimit)
+    });
+    rows.push({
+      id: "turnover-budget",
+      residual: Math.max(0, weights.reduce(function (total, value, index) {
+        return total + Math.abs(value - normalized.currentWeights[index]);
+      }, 0) / 2 - normalized.turnoverBudget)
+    });
+    normalized.groupBounds.forEach(function (group) {
+      var total = group.members.reduce(function (value, symbol) {
+        return value + weights[normalized.symbols.indexOf(symbol)];
+      }, 0);
+      rows.push({ id: "group-minimum:" + group.id, residual: Math.max(0, group.minimum - total) });
+      rows.push({ id: "group-maximum:" + group.id, residual: Math.max(0, total - group.maximum) });
+    });
+    var maximum = rows.reduce(function (value, row) { return Math.max(value, row.residual); }, 0);
+    return { maximum: maximum, rows: rows, violations: rows.filter(function (row) { return row.residual > normalized.solverPolicy.tolerance; }) };
+  }
+
+  function findAllocationConflictFromNormalized(normalized) {
+    for (var i = 0; i < normalized.bounds.length; i += 1) {
+      if (normalized.bounds[i].minimum > normalized.bounds[i].maximum) {
+        return {
+          state: "infeasible",
+          irreducible: true,
+          globallySmallest: false,
+          conflictSet: ["minimum:" + normalized.bounds[i].symbol, "maximum:" + normalized.bounds[i].symbol]
+        };
+      }
+    }
+    var lower = normalized.bounds.map(function (bound) {
+      return { id: "minimum:" + bound.symbol, value: bound.minimum };
+    }).filter(function (row) { return row.value > 0; });
+    var lowerTotal = lower.reduce(function (sum, row) { return sum + row.value; }, 0);
+    if (lowerTotal > normalized.netSum + normalized.solverPolicy.tolerance) {
+      for (var lowerIndex = 0; lowerIndex < lower.length;) {
+        if (lowerTotal - lower[lowerIndex].value > normalized.netSum + normalized.solverPolicy.tolerance) {
+          lowerTotal -= lower[lowerIndex].value;
+          lower.splice(lowerIndex, 1);
+        } else lowerIndex += 1;
+      }
+      return {
+        state: "infeasible",
+        irreducible: true,
+        globallySmallest: false,
+        conflictSet: lower.map(function (row) { return row.id; }).concat(["net-sum"])
+      };
+    }
+    var upper = normalized.bounds.map(function (bound) {
+      return { id: "maximum:" + bound.symbol, value: bound.maximum };
+    });
+    var upperTotal = upper.reduce(function (sum, row) { return sum + row.value; }, 0);
+    if (upperTotal < normalized.netSum - normalized.solverPolicy.tolerance) {
+      for (var upperIndex = 0; upperIndex < upper.length;) {
+        if (upperTotal - upper[upperIndex].value >= normalized.netSum - normalized.solverPolicy.tolerance) {
+          upperTotal -= upper[upperIndex].value;
+          upper.splice(upperIndex, 1);
+        } else upperIndex += 1;
+      }
+      return {
+        state: "infeasible",
+        irreducible: true,
+        globallySmallest: false,
+        conflictSet: upper.map(function (row) { return row.id; }).concat(["net-sum"])
+      };
+    }
+    for (var groupIndex = 0; groupIndex < normalized.groupBounds.length; groupIndex += 1) {
+      var group = normalized.groupBounds[groupIndex];
+      if (group.minimum > group.maximum) {
+        return {
+          state: "infeasible",
+          irreducible: true,
+          globallySmallest: false,
+          conflictSet: ["group-minimum:" + group.id, "group-maximum:" + group.id]
+        };
+      }
+    }
+    if (normalized.grossLeverageLimit < Math.abs(normalized.netSum) - normalized.solverPolicy.tolerance) {
+      return {
+        state: "infeasible",
+        irreducible: true,
+        globallySmallest: false,
+        conflictSet: ["gross-leverage", "net-sum"]
+      };
+    }
+    return { state: "unknown", irreducible: false, globallySmallest: false, conflictSet: [] };
+  }
+
+  function findIrreducibleConflict(basis) {
+    var validated = normalizeAllocationBasis(basis);
+    if (!validated.ok) return { state: "invalid", reason: validated.reason, path: validated.path };
+    return findAllocationConflictFromNormalized(validated.value);
+  }
+
+  function projectAllocationBasis(normalized, target, policy) {
+    var structuralConflict = findAllocationConflictFromNormalized(normalized);
+    if (structuralConflict.state === "infeasible") {
+      return {
+        state: "infeasible",
+        weights: null,
+        iterations: 0,
+        residuals: null,
+        conflictSet: structuralConflict.conflictSet,
+        irreducibleConflict: structuralConflict
+      };
+    }
+    var sets = allocationConstraintSets(normalized);
+    var corrections = sets.map(function () { return target.map(function () { return 0; }); });
+    var weights = target.slice(), iterations = 0, movement = Infinity;
+    for (iterations = 1; iterations <= policy.projectionIterations; iterations += 1) {
+      var previous = weights.slice();
+      for (var setIndex = 0; setIndex < sets.length; setIndex += 1) {
+        var shifted = weights.map(function (value, index) { return value + corrections[setIndex][index]; });
+        var projected = sets[setIndex].project(shifted);
+        corrections[setIndex] = shifted.map(function (value, index) { return value - projected[index]; });
+        weights = projected;
+      }
+      movement = allocationVectorNorm(weights.map(function (value, index) { return value - previous[index]; }));
+      var residuals = allocationConstraintResiduals(normalized, weights);
+      if (movement <= policy.tolerance && residuals.maximum <= policy.tolerance) {
+        return { state: "feasible", weights: weights, iterations: iterations, residuals: residuals };
+      }
+    }
+    var finalResiduals = allocationConstraintResiduals(normalized, weights);
+    return {
+      state: finalResiduals.maximum <= policy.tolerance ? "feasible" : "infeasible",
+      weights: finalResiduals.maximum <= policy.tolerance ? weights : null,
+      iterations: iterations - 1,
+      residuals: finalResiduals,
+      conflictSet: finalResiduals.violations.map(function (row) { return row.id; })
+    };
+  }
+
+  function projectBoundedConstraints(basis, target, solverPolicy) {
+    var validated = normalizeAllocationBasis(basis);
+    if (!validated.ok) return { state: "invalid", reason: validated.reason, path: validated.path };
+    if (!allocationNumberArray(target, validated.value.symbols.length)) return { state: "invalid", reason: "target-shape" };
+    var policy = allocationSolverPolicy(solverPolicy || basis.solverPolicy);
+    if (!policy) return { state: "invalid", reason: "solver-policy" };
+    return projectAllocationBasis(validated.value, target, policy);
+  }
+
+  function allocationQuadratic(weights, covariance) {
+    return weights.reduce(function (total, weight, i) {
+      return total + weight * covariance[i].reduce(function (rowTotal, value, j) {
+        return rowTotal + value * weights[j];
+      }, 0);
+    }, 0);
+  }
+
+  function allocationProjectedOptimize(normalized, start, policy, objective, gradient) {
+    var initial = projectAllocationBasis(normalized, start, policy);
+    if (initial.state !== "feasible") return initial;
+    var weights = initial.weights, currentObjective = objective(weights), iteration = 0;
+    for (iteration = 1; iteration <= policy.maximumIterations; iteration += 1) {
+      var grad = gradient(weights);
+      var step = policy.stepSize, accepted = null;
+      for (var search = 0; search < 24; search += 1) {
+        var target = weights.map(function (value, index) { return value - step * grad[index]; });
+        var projected = projectAllocationBasis(normalized, target, policy);
+        if (projected.state === "feasible" && objective(projected.weights) <= currentObjective + policy.tolerance) {
+          accepted = projected.weights;
+          break;
+        }
+        step /= 2;
+      }
+      if (!accepted) break;
+      var movement = allocationVectorNorm(accepted.map(function (value, index) { return value - weights[index]; }));
+      weights = accepted;
+      currentObjective = objective(weights);
+      if (movement <= policy.tolerance) break;
+    }
+    var mappingTarget = weights.map(function (value, index) { return value - policy.stepSize * gradient(weights)[index]; });
+    var mapping = projectAllocationBasis(normalized, mappingTarget, policy);
+    var residual = mapping.state === "feasible"
+      ? allocationVectorNorm(mapping.weights.map(function (value, index) { return value - weights[index]; }))
+      : Infinity;
+    var constraints = allocationConstraintResiduals(normalized, weights);
+    return {
+      state: residual <= policy.tolerance * 10 && constraints.maximum <= policy.tolerance ? "feasible" : "unstable",
+      weights: weights,
+      iterations: iteration,
+      objective: currentObjective,
+      projectedGradientResidual: residual,
+      residuals: constraints,
+      convergenceReason: residual <= policy.tolerance * 10 ? "projected-gradient-tolerance" : "iteration-or-line-search-limit"
+    };
+  }
+
+  function allocationExpectedReturns(input, normalized) {
+    var values = input && input.expectedReturns;
+    if (!allocationNumberArray(values, normalized.symbols.length)) return null;
+    return values.slice();
+  }
+
+  function allocationCosts(normalized, weights) {
+    var turnover = weights.reduce(function (total, value, index) {
+      return total + Math.abs(value - normalized.currentWeights[index]);
+    }, 0) / 2;
+    var gross = weights.reduce(function (total, value) { return total + Math.abs(value); }, 0);
+    var costs = {
+      complete: true,
+      turnover: turnover,
+      commission: turnover * normalized.costs.commission,
+      spread: turnover * normalized.costs.spread,
+      slippage: turnover * normalized.costs.slippage,
+      financing: Math.max(0, gross - 1) * normalized.costs.financing,
+      carry: gross * normalized.costs.carry,
+      rebalanceTiming: normalized.costs.rebalanceTiming
+    };
+    costs.total = costs.commission + costs.spread + costs.slippage + costs.financing + costs.carry;
+    return costs;
+  }
+
+  function allocationPathOutcomes(normalized, weights, costs) {
+    var rows = normalized.scenario.paths.map(function (path) {
+      var periods = path.returnsByAsset[normalized.symbols[0]].length;
+      var value = normalized.scenario.startingValue * (1 - costs.total), minimum = value;
+      for (var period = 0; period < periods; period += 1) {
+        var portfolioReturn = normalized.symbols.reduce(function (total, symbol, index) {
+          return total + weights[index] * path.returnsByAsset[symbol][period];
+        }, 0);
+        value *= 1 + portfolioReturn;
+        normalized.scenario.cashNeeds.filter(function (need) { return need.session === period + 1; })
+          .forEach(function (need) { value -= need.amount; });
+        minimum = Math.min(minimum, value);
+      }
+      return {
+        pathId: path.pathId,
+        endingValue: value,
+        minimumValue: minimum,
+        survived: normalized.scenario.survivalAvailable ? minimum >= normalized.scenario.floorValue : null
+      };
+    });
+    return {
+      state: "ok",
+      scenarioIdentity: normalized.scenario.identity,
+      pathIds: rows.map(function (row) { return row.pathId; }),
+      rows: rows
+    };
+  }
+
+  function allocationCandidate(method, normalized, basisFingerprint, solved, expectedReturns, extra) {
+    var weights = Array.isArray(solved.weights) ? solved.weights.slice() : null;
+    var constraints = weights ? allocationConstraintResiduals(normalized, weights) : solved.residuals;
+    var costs = weights ? allocationCosts(normalized, weights) : null;
+    var paths = weights ? allocationPathOutcomes(normalized, weights, costs) : null;
+    var weightMap = {};
+    if (weights) normalized.symbols.forEach(function (symbol, index) { weightMap[symbol] = weights[index]; });
+    var risk = weights ? riskContributions(normalized.symbols, weightMap, normalized.covariance, {
+      reconciliationTolerance: normalized.solverPolicy.tolerance
+    }) : { state: "unavailable" };
+    var candidate = {
+      contractVersion: "AllocationCandidate/v1",
+      method: method,
+      basisFingerprint: basisFingerprint,
+      state: solved.state,
+      weights: weights,
+      objective: isNum(solved.objective) ? solved.objective : null,
+      solver: {
+        iterations: Number.isInteger(solved.iterations) ? solved.iterations : 0,
+        convergenceReason: solved.convergenceReason || (solved.state === "feasible" ? "direct-evaluation" : "unavailable"),
+        projectedGradientResidual: isNum(solved.projectedGradientResidual) ? solved.projectedGradientResidual : null,
+        kktResidual: isNum(solved.kktResidual) ? solved.kktResidual
+          : (isNum(solved.projectedGradientResidual) ? solved.projectedGradientResidual : null),
+        equalRiskContributionResidual: isNum(solved.equalRiskContributionResidual) ? solved.equalRiskContributionResidual : null,
+        postHocClipping: false
+      },
+      constraintResiduals: constraints || null,
+      conflictSet: solved.conflictSet || [],
+      turnover: costs ? costs.turnover : null,
+      fullCosts: costs,
+      concentration: weights ? {
+        herfindahl: weights.reduce(function (total, value) { return total + value * value; }, 0),
+        maximumWeight: Math.max.apply(null, weights)
+      } : null,
+      expectedReturnsUsed: expectedReturns ? expectedReturns.slice() : null,
+      returnContribution: {
+        values: weights && expectedReturns ? weights.map(function (value, index) { return value * expectedReturns[index]; }) : []
+      },
+      riskContribution: risk,
+      commonPathOutcomes: paths,
+      survivalOutcomes: paths ? {
+        state: "ok",
+        floorValue: normalized.scenario.floorValue,
+        survivedPathCount: paths.rows.filter(function (row) { return row.survived; }).length,
+        pathCount: paths.rows.length,
+        survivalRate: paths.rows.filter(function (row) { return row.survived; }).length / paths.rows.length
+      } : null,
+      sensitivity: { state: "not-run", axes: [] },
+      warnings: solved.state === "feasible" ? [] : [solved.convergenceReason || solved.state]
+    };
+    var labels = {
+      current: "Current portfolio",
+      "equal-weight": "Equal weight",
+      "minimum-variance": "Minimum variance",
+      "risk-parity": "Equal-risk-contribution risk parity",
+      "black-litterman": "Black-Litterman",
+      "constrained-mvo": "Constrained mean-variance"
+    };
+    var assumptions = {
+      current: ["Observed baseline only. It is visible even when it violates the declared mandate."],
+      "equal-weight": ["Assumes nothing about return, risk, or correlation. Equal eligible weights are projected into the common feasible set."],
+      "minimum-variance": ["Uses the complete conditioned covariance and the common constraints; it makes no return forecast."],
+      "risk-parity": ["Solves correlation-aware component risk contribution balance; inverse volatility is not substituted."],
+      "black-litterman": ["Uses an explicit benchmark and only user-stated views, then sends posterior means to the common constrained optimizer."],
+      "constrained-mvo": ["Uses the explicitly supplied expected-return vector, risk aversion, and every common constraint inside the solve."]
+    };
+    candidate.label = labels[method];
+    candidate.assumptions = assumptions[method].slice();
+    candidate.portfolioVolatility = weights ? Math.sqrt(Math.max(0, allocationQuadratic(weights, normalized.covariance))) : null;
+    candidate.feasibility = weights ? {
+      state: constraints.maximum <= normalized.solverPolicy.tolerance ? "feasible" : "infeasible",
+      universallyInfeasible: solved.state === "infeasible",
+      conflictingSet: solved.conflictSet || constraints.violations,
+      explanation: constraints.maximum <= normalized.solverPolicy.tolerance
+        ? "Every declared common constraint is satisfied within the solver tolerance."
+        : "The candidate remains visible with its constraint residuals. No constraint was relaxed and the current portfolio is unchanged."
+    } : { state: "unavailable", reason: solved.reason || solved.convergenceReason || solved.state };
+    candidate.survivalOutcomes = !paths || !normalized.scenario.survivalAvailable ? {
+      state: "unavailable",
+      reason: "survival-floor-not-declared",
+      floorValue: null,
+      survivedPathCount: null,
+      pathCount: paths ? paths.rows.length : 0,
+      survivalRate: null
+    } : candidate.survivalOutcomes;
+    Object.keys(extra || {}).forEach(function (key) { candidate[key] = extra[key]; });
+    return candidate;
+  }
+
+  function allocationUnavailableCandidate(method, context, reason, extra) {
+    var candidate = allocationCandidate(method, context.normalized, context.fingerprint, {
+      state: "unavailable",
+      weights: null,
+      reason: reason,
+      convergenceReason: reason
+    }, null, extra);
+    candidate.reason = reason;
+    return candidate;
+  }
+
+  function allocationContext(basis, solverPolicy) {
+    var validated = normalizeAllocationBasis(basis);
+    if (!validated.ok) return validated;
+    var policy = allocationSolverPolicy(solverPolicy || basis.solverPolicy);
+    if (!policy) return allocationFailure("solver-policy", "$.solverPolicy");
+    return { ok: true, normalized: validated.value, fingerprint: validated.basisFingerprint, policy: policy };
+  }
+
+  function evaluateCurrentAllocation(basis) {
+    var context = allocationContext(basis, basis && basis.solverPolicy);
+    if (!context.ok) return { state: "invalid", reason: context.reason, path: context.path };
+    var residuals = allocationConstraintResiduals(context.normalized, context.normalized.currentWeights);
+    return allocationCandidate("current", context.normalized, context.fingerprint, {
+      state: residuals.maximum <= context.policy.tolerance ? "feasible" : "infeasible",
+      weights: context.normalized.currentWeights,
+      residuals: residuals,
+      conflictSet: residuals.violations.map(function (row) { return row.id; }),
+      convergenceReason: "observed-baseline"
+    }, context.normalized.expectedReturns);
+  }
+
+  function solveEqualWeight(basis) {
+    var context = allocationContext(basis, basis && basis.solverPolicy);
+    if (!context.ok) return { state: "invalid", reason: context.reason, path: context.path };
+    var target = context.normalized.symbols.map(function () { return context.normalized.netSum / context.normalized.symbols.length; });
+    var projected = projectAllocationBasis(context.normalized, target, context.policy);
+    projected.convergenceReason = projected.state === "feasible" ? "feasible-projection" : "constraint-set-infeasible";
+    return allocationCandidate("equal-weight", context.normalized, context.fingerprint, projected, context.normalized.expectedReturns);
+  }
+
+  function solveMinimumVariance(basis, solverPolicy) {
+    var context = allocationContext(basis, solverPolicy);
+    if (!context.ok) return { state: "invalid", reason: context.reason, path: context.path };
+    var covariance = context.normalized.covariance;
+    var solved = allocationProjectedOptimize(context.normalized, context.normalized.currentWeights, context.policy,
+      function (weights) { return allocationQuadratic(weights, covariance); },
+      function (weights) { return matrixVector(covariance, weights).map(function (value) { return 2 * value; }); });
+    solved.kktResidual = solved.projectedGradientResidual;
+    return allocationCandidate("minimum-variance", context.normalized, context.fingerprint, solved, context.normalized.expectedReturns);
+  }
+
+  function allocationRiskShares(weights, covariance) {
+    var marginal = matrixVector(covariance, weights);
+    var variance = weights.reduce(function (sum, weight, index) { return sum + weight * marginal[index]; }, 0);
+    return variance > 0 ? weights.map(function (weight, index) { return weight * marginal[index] / variance; }) : null;
+  }
+
+  function allocationRiskBudgetObjective(weights, covariance, budget) {
+    var shares = allocationRiskShares(weights, covariance);
+    if (!shares) return Infinity;
+    return shares.reduce(function (sum, value, index) {
+      var delta = value - budget[index];
+      return sum + delta * delta;
+    }, 0);
+  }
+
+  function allocationRiskBudgetGradient(weights, covariance, budget) {
+    var marginal = matrixVector(covariance, weights);
+    var numerators = weights.map(function (weight, index) { return weight * marginal[index]; });
+    var variance = numerators.reduce(function (sum, value) { return sum + value; }, 0);
+    if (!(variance > 0)) return weights.map(function () { return 0; });
+    var shares = numerators.map(function (value) { return value / variance; });
+    return weights.map(function (_weight, k) {
+      var gradient = 0;
+      for (var i = 0; i < weights.length; i += 1) {
+        var numeratorDerivative = (i === k ? marginal[i] : 0) + weights[i] * covariance[i][k];
+        var shareDerivative = (numeratorDerivative * variance - numerators[i] * 2 * marginal[k]) / (variance * variance);
+        gradient += 2 * (shares[i] - budget[i]) * shareDerivative;
+      }
+      return gradient;
+    });
+  }
+
+  function solveEqualRiskContribution(basis, riskBudget, solverPolicy) {
+    var context = allocationContext(basis, solverPolicy);
+    if (!context.ok) return { state: "invalid", reason: context.reason, path: context.path };
+    if (!allocationNumberArray(riskBudget, context.normalized.symbols.length)) return { state: "invalid", reason: "risk-budget" };
+    var budget = normalizeWeights(riskBudget);
+    if (!budget || budget.some(function (value) { return value <= 0; })) return { state: "invalid", reason: "risk-budget" };
+    var solved = allocationProjectedOptimize(context.normalized, budget, context.policy,
+      function (weights) { return allocationRiskBudgetObjective(weights, context.normalized.covariance, budget); },
+      function (weights) { return allocationRiskBudgetGradient(weights, context.normalized.covariance, budget); });
+    var shares = allocationRiskShares(solved.weights, context.normalized.covariance);
+    solved.equalRiskContributionResidual = shares ? shares.reduce(function (value, share, index) {
+      return Math.max(value, Math.abs(share - budget[index]));
+    }, 0) : Infinity;
+    solved.state = solved.equalRiskContributionResidual <= context.policy.tolerance * 10 &&
+      solved.residuals.maximum <= context.policy.tolerance ? "feasible" : "unstable";
+    solved.convergenceReason = solved.state === "feasible" ? "equal-risk-contribution-tolerance" : "risk-budget-residual";
+    return allocationCandidate("risk-parity", context.normalized, context.fingerprint, solved, context.normalized.expectedReturns);
+  }
+
+  function scope24BlackLittermanPosterior(normalized, input) {
+    if (!input || input.contractVersion !== "BlackLittermanInput/v1" ||
+        typeof input.benchmarkIdentity !== "string" || !input.benchmarkIdentity ||
+        !allocationNumberArray(input.benchmarkWeights, normalized.symbols.length) ||
+        !isNum(input.riskAversion) || input.riskAversion <= 0 || !isNum(input.tau) || input.tau <= 0 ||
+        !Array.isArray(input.views)) return { state: "unavailable", reason: "black-litterman-input-invalid" };
+    var implied = matrixVector(normalized.covariance, input.benchmarkWeights)
+      .map(function (value) { return value * input.riskAversion; });
+    if (!input.views.length) {
+      return {
+        contractVersion: "BlackLittermanPosterior/v1",
+        state: "equilibrium-only",
+        symbols: normalized.symbols.slice(),
+        benchmarkIdentity: input.benchmarkIdentity,
+        views: [],
+        impliedEquilibriumReturns: implied,
+        priorCovariance: normalized.covariance.map(function (row) { return row.slice(); }),
+        viewMatrix: [], viewReturns: [], viewUncertainty: [],
+        posteriorMean: implied.slice(), posteriorCovariance: matrixScale(normalized.covariance, input.tau),
+        candidateInputFingerprint: stableRecordFingerprint(input),
+        note: "No explicit view was supplied. The candidate is equilibrium-only under the qualified benchmark."
+      };
+    }
+    var valid = input.views.every(function (view) {
+      var magnitude = view && view.magnitudeRange;
+      var central = magnitude && !Array.isArray(magnitude) ? magnitude.central
+        : (Array.isArray(magnitude) && magnitude.length === 2 && magnitude.every(isNum) ? (magnitude[0] + magnitude[1]) / 2 : null);
+      return view && typeof view.viewId === "string" && view.viewId &&
+        (Number.isInteger(view.horizonSessions) && view.horizonSessions > 0 || typeof view.horizon === "string" && view.horizon) &&
+        allocationNumberArray(view.coefficients, normalized.symbols.length) && isNum(central) &&
+        typeof view.confidenceSource === "string" && view.confidenceSource && isNum(view.uncertaintyVariance) &&
+        view.uncertaintyVariance > 0 && typeof view.userAuthority === "string" && view.userAuthority &&
+        typeof view.evidenceCutoff === "string" && typeof view.invalidation === "string" && view.invalidation;
+    });
+    if (!valid) return { state: "unavailable", reason: "black-litterman-view-invalid" };
+    var P = input.views.map(function (view) { return view.coefficients.slice(); });
+    var q = input.views.map(function (view) {
+      return Array.isArray(view.magnitudeRange)
+        ? (view.magnitudeRange[0] + view.magnitudeRange[1]) / 2 : view.magnitudeRange.central;
+    });
+    var omega = input.views.map(function (view, i) {
+      return input.views.map(function (_other, j) { return i === j ? view.uncertaintyVariance : 0; });
+    });
+    var tauCovariance = matrixScale(normalized.covariance, input.tau);
+    var tauInverse = matrixInverse(tauCovariance), omegaInverse = matrixInverse(omega), transpose = matrixTranspose(P);
+    if (!tauInverse || !omegaInverse) return { state: "unavailable", reason: "black-litterman-matrix-invertible" };
+    var precision = matrixAdd(tauInverse, matrixMultiply(matrixMultiply(transpose, omegaInverse), P));
+    var posteriorCovariance = matrixInverse(precision);
+    if (!posteriorCovariance) return { state: "unavailable", reason: "black-litterman-posterior-invertible" };
+    var rhs = matrixVector(tauInverse, implied);
+    var viewTerm = matrixVector(matrixMultiply(transpose, omegaInverse), q);
+    var posteriorMean = matrixVector(posteriorCovariance, rhs.map(function (value, index) { return value + viewTerm[index]; }));
+    return {
+      contractVersion: "BlackLittermanPosterior/v1",
+      state: "ok",
+      symbols: normalized.symbols.slice(),
+      benchmarkIdentity: input.benchmarkIdentity,
+      views: input.views.map(function (view) { return JSON.parse(JSON.stringify(view)); }),
+      impliedEquilibriumReturns: implied,
+      priorCovariance: normalized.covariance.map(function (row) { return row.slice(); }),
+      viewMatrix: P, viewReturns: q, viewUncertainty: omega,
+      posteriorMean: posteriorMean, posteriorCovariance: posteriorCovariance,
+      candidateInputFingerprint: stableRecordFingerprint(input),
+      note: "The posterior keeps benchmark equilibrium, explicit user views, uncertainty, and resulting means separately attributable, so you can see which part of the answer is the market's and which is yours."
+    };
+  }
+
+  function solveConstrainedMvo(basis, expectedReturnInput, riskAversion, solverPolicy) {
+    var context = allocationContext(basis, solverPolicy);
+    if (!context.ok) return { state: "invalid", reason: context.reason, path: context.path };
+    var expectedReturns = allocationExpectedReturns(expectedReturnInput, context.normalized);
+    if (!expectedReturns || !isNum(riskAversion) || riskAversion <= 0) {
+      return allocationUnavailableCandidate("constrained-mvo", context, "expected-returns-or-risk-aversion");
+    }
+    var covariance = context.normalized.covariance;
+    var solved = allocationProjectedOptimize(context.normalized, context.normalized.currentWeights, context.policy,
+      function (weights) {
+        return riskAversion * allocationQuadratic(weights, covariance) / 2 -
+          weights.reduce(function (total, value, index) { return total + value * expectedReturns[index]; }, 0);
+      },
+      function (weights) {
+        return matrixVector(covariance, weights).map(function (value, index) { return riskAversion * value - expectedReturns[index]; });
+      });
+    solved.kktResidual = solved.projectedGradientResidual;
+    return allocationCandidate("constrained-mvo", context.normalized, context.fingerprint, solved, expectedReturns);
+  }
+
+  function solveBlackLittermanAllocation(basis, blackLittermanInput, solverPolicy) {
+    var context = allocationContext(basis, solverPolicy);
+    if (!context.ok) return { state: "invalid", reason: context.reason, path: context.path };
+    var posterior = scope24BlackLittermanPosterior(context.normalized, blackLittermanInput);
+    if (posterior.state !== "ok" && posterior.state !== "equilibrium-only") {
+      return allocationUnavailableCandidate("black-litterman", context, posterior.reason, { blackLitterman: posterior });
+    }
+    var candidate = solveConstrainedMvo(basis, {
+      expectedReturns: posterior.posteriorMean
+    }, blackLittermanInput.riskAversion, solverPolicy);
+    candidate.method = "black-litterman";
+    candidate.blackLitterman = posterior;
+    candidate.expectedReturnsUsed = posterior.posteriorMean.slice();
+    return candidate;
+  }
+
+  function runAllocationComparison(request) {
+    if (!request || typeof request !== "object") return { state: "invalid", reason: "request-invalid" };
+    var context = allocationContext(request.basis, request.basis && request.basis.solverPolicy);
+    if (!context.ok) return { state: "invalid", reason: context.reason, path: context.path };
+    var riskBudget = context.normalized.symbols.map(function () { return 1 / context.normalized.symbols.length; });
+    var candidates = [
+      evaluateCurrentAllocation(request.basis),
+      solveEqualWeight(request.basis),
+      solveMinimumVariance(request.basis, request.basis.solverPolicy),
+      solveEqualRiskContribution(request.basis, riskBudget, request.basis.solverPolicy),
+      solveBlackLittermanAllocation(request.basis, request.blackLittermanInput, request.basis.solverPolicy),
+      solveConstrainedMvo(request.basis, request.expectedReturnInput, request.riskAversion, request.basis.solverPolicy)
+    ];
+    return {
+      contractVersion: "AllocationComparison/v1",
+      state: candidates.some(function (candidate) { return candidate.state === "invalid"; }) ? "invalid" : "ok",
+      basisFingerprint: context.fingerprint,
+      symbols: context.normalized.symbols.slice(),
+      basisFrozen: true,
+      methods: ALLOCATION_METHODS.slice(),
+      candidates: candidates,
+      recommendedMethod: null,
+      bestMethod: null,
+      claimBoundary: "None is labelled best or recommended; an in-sample lead is the weakest kind of evidence. No candidate is universally best, suitable, or authorized to replace the current portfolio."
+    };
+  }
+
+  var ALLOCATION_SENSITIVITY_AXES = [
+    "history", "means", "covariance", "views", "costs", "assetBounds",
+    "groupBounds", "turnover", "cash", "leverage", "riskAversion"
+  ];
+
+  function allocationClone(value) {
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  function allocationScaleMatrix(matrix, scale) {
+    return matrix.map(function (row) { return row.map(function (value) { return value * scale; }); });
+  }
+
+  function allocationShiftBounds(bounds, delta) {
+    if (Array.isArray(bounds)) {
+      bounds.forEach(function (bound) {
+        bound.minimum = Math.max(0, bound.minimum - delta);
+        bound.maximum += delta;
+      });
+      return;
+    }
+    Object.keys(bounds).forEach(function (symbol) {
+      bounds[symbol].minimum = Math.max(0, bounds[symbol].minimum - delta);
+      bounds[symbol].maximum += delta;
+    });
+  }
+
+  function allocationSensitivityVariant(request, axis, point) {
+    var variant = {
+      basis: allocationClone(request.basis),
+      blackLittermanInput: request.blackLittermanInput ? allocationClone(request.blackLittermanInput) : null,
+      expectedReturnInput: request.expectedReturnInput ? allocationClone(request.expectedReturnInput) : null,
+      riskAversion: request.riskAversion
+    };
+    if (axis === "history") {
+      variant.basis.covariance = allocationScaleMatrix(variant.basis.covariance, point.covarianceScale);
+      variant.expectedReturnInput.expectedReturns = variant.expectedReturnInput.expectedReturns.map(function (value) {
+        return value + point.meanShift;
+      });
+    } else if (axis === "means") {
+      variant.expectedReturnInput.expectedReturns = variant.expectedReturnInput.expectedReturns.map(function (value) { return value + point; });
+    } else if (axis === "covariance") {
+      variant.basis.covariance = allocationScaleMatrix(variant.basis.covariance, point);
+    } else if (axis === "views") {
+      variant.blackLittermanInput.views.forEach(function (view) {
+        if (Array.isArray(view.magnitudeRange)) {
+          view.magnitudeRange = view.magnitudeRange.map(function (value) { return value * point; });
+        } else {
+          Object.keys(view.magnitudeRange).forEach(function (key) { view.magnitudeRange[key] *= point; });
+        }
+      });
+    } else if (axis === "costs") {
+      ["commissionFraction", "spreadFraction", "slippageFraction", "financingFraction", "carryFraction",
+        "commissionRate", "spreadRate", "slippageRate", "financingRate", "carryRate"].forEach(function (key) {
+        if (isNum(variant.basis.costPolicy[key])) variant.basis.costPolicy[key] *= point;
+      });
+    } else if (axis === "assetBounds") {
+      allocationShiftBounds(variant.basis.assetBounds, point);
+    } else if (axis === "groupBounds") {
+      variant.basis.groupBounds.forEach(function (bound) {
+        bound.minimum = Math.max(0, bound.minimum - point);
+        bound.maximum += point;
+      });
+    } else if (axis === "turnover") {
+      variant.basis.turnoverBudget = Math.max(0, variant.basis.turnoverBudget + point);
+    } else if (axis === "cash") {
+      if (variant.basis.cashBounds.state !== "not-held") {
+        variant.basis.cashBounds.minimum = Math.max(0, variant.basis.cashBounds.minimum - point);
+        variant.basis.cashBounds.maximum += point;
+      }
+    } else if (axis === "leverage") {
+      variant.basis.grossLeverageLimit = point;
+    } else if (axis === "riskAversion") {
+      variant.riskAversion = point;
+      variant.blackLittermanInput.riskAversion = point;
+    }
+    return variant;
+  }
+
+  function solveAllocationSensitivityMethod(method, variant) {
+    var n = normalizeAllocationBasis(variant.basis);
+    if (!n.ok) return { state: "invalid", reason: n.reason };
+    var riskBudget = n.value.symbols.map(function () { return 1 / n.value.symbols.length; });
+    if (method === "current") return evaluateCurrentAllocation(variant.basis);
+    if (method === "equal-weight") return solveEqualWeight(variant.basis);
+    if (method === "minimum-variance") return solveMinimumVariance(variant.basis, variant.basis.solverPolicy);
+    if (method === "risk-parity") return solveEqualRiskContribution(variant.basis, riskBudget, variant.basis.solverPolicy);
+    if (method === "black-litterman") {
+      return solveBlackLittermanAllocation(variant.basis, variant.blackLittermanInput, variant.basis.solverPolicy);
+    }
+    return solveConstrainedMvo(variant.basis, variant.expectedReturnInput, variant.riskAversion, variant.basis.solverPolicy);
+  }
+
+  function allocationRange(values) {
+    if (!values.length) return { low: null, high: null, span: null };
+    var low = Math.min.apply(null, values), high = Math.max.apply(null, values);
+    return { low: low, high: high, span: high - low };
+  }
+
+  function summarizeAllocationSensitivity(method, symbols, trials) {
+    var valid = trials.filter(function (trial) { return trial.state === "feasible" && Array.isArray(trial.weights); });
+    return {
+      method: method,
+      state: valid.length ? "ok" : "unavailable",
+      validTrials: valid.length,
+      failedTrials: trials.length - valid.length,
+      weightRanges: symbols.map(function (symbol, index) {
+        var range = allocationRange(valid.map(function (trial) { return trial.weights[index]; }));
+        return { symbol: symbol, low: range.low, high: range.high, span: range.span };
+      }),
+      objectiveRange: allocationRange(valid.map(function (trial) { return trial.objective; }).filter(isNum)),
+      turnoverRange: allocationRange(valid.map(function (trial) { return trial.turnover; }).filter(isNum)),
+      survivalRange: allocationRange(valid.map(function (trial) { return trial.survivalRate; }).filter(isNum)),
+      trials: trials
+    };
+  }
+
+  function runAllocationSensitivity(request) {
+    if (!request || typeof request !== "object") return { state: "invalid", reason: "request-invalid" };
+    var validated = normalizeAllocationBasis(request.basis);
+    if (!validated.ok) return { state: "invalid", reason: validated.reason, path: validated.path };
+    var axes = request.axes || request.basis.sensitivityAxes;
+    if (!axes || typeof axes !== "object" || ALLOCATION_SENSITIVITY_AXES.some(function (axis) {
+      return !Array.isArray(axes[axis]) || !axes[axis].length;
+    })) return { state: "invalid", reason: "sensitivity-axes-incomplete" };
+    if (!request.expectedReturnInput || !request.blackLittermanInput || !isNum(request.riskAversion)) {
+      return { state: "unavailable", reason: "complete-allocation-inputs-required" };
+    }
+    var ledger = [];
+    var byMethod = ALLOCATION_METHODS.map(function (method) {
+      var trials = [];
+      ALLOCATION_SENSITIVITY_AXES.forEach(function (axis) {
+        axes[axis].forEach(function (point, pointIndex) {
+          var variant = allocationSensitivityVariant(request, axis, point);
+          var candidate = solveAllocationSensitivityMethod(method, variant);
+          var record = {
+            contractVersion: "AllocationSensitivityTrial/v1",
+            trialId: stableRecordFingerprint({ method: method, axis: axis, pointIndex: pointIndex, point: point }),
+            method: method,
+            axis: axis,
+            pointIndex: pointIndex,
+            point: allocationClone(point),
+            state: candidate.state,
+            weights: Array.isArray(candidate.weights) ? candidate.weights.slice() : null,
+            objective: candidate.objective,
+            turnover: candidate.turnover,
+            survivalRate: candidate.survivalOutcomes && candidate.survivalOutcomes.state === "ok"
+              ? candidate.survivalOutcomes.survivalRate : null,
+            basisFingerprint: candidate.basisFingerprint || null,
+            reason: candidate.reason || null
+          };
+          trials.push(record);
+          ledger.push(record);
+        });
+      });
+      return summarizeAllocationSensitivity(method, validated.value.symbols, trials);
+    });
+    return {
+      contractVersion: "AllocationSensitivity/v1",
+      state: "ok",
+      basisFingerprint: validated.basisFingerprint,
+      declaredAxes: ALLOCATION_SENSITIVITY_AXES.slice(),
+      totalTrials: ledger.length,
+      methods: byMethod,
+      trialLedger: ledger,
+      recommendedMethod: null,
+      claimBoundary: "Sensitivity ranges describe only the declared perturbations. They do not select a winner or imply suitability."
+    };
+  }
+
+  /* ---------------------------------------------------------------------
      Scope 14 - allocation sensitivity and explicit Black-Litterman
      --------------------------------------------------------------------- */
 
@@ -5169,6 +6193,17 @@
     validateDiversificationProjection: validateDiversificationProjection,
     computeDiversificationProjection: computeDiversificationProjection,
     ALLOCATION_METHODS: ALLOCATION_METHODS,
+    validateAllocationBasis: validateAllocationBasis,
+    projectBoundedConstraints: projectBoundedConstraints,
+    findIrreducibleConflict: findIrreducibleConflict,
+    evaluateCurrentAllocation: evaluateCurrentAllocation,
+    solveEqualWeight: solveEqualWeight,
+    solveMinimumVariance: solveMinimumVariance,
+    solveEqualRiskContribution: solveEqualRiskContribution,
+    solveBlackLittermanAllocation: solveBlackLittermanAllocation,
+    solveConstrainedMvo: solveConstrainedMvo,
+    runAllocationComparison: runAllocationComparison,
+    runAllocationSensitivity: runAllocationSensitivity,
     evaluateFeasibility: evaluateFeasibility,
     compareAllocationMethods: compareAllocationMethods,
     allocationSensitivity: allocationSensitivity,

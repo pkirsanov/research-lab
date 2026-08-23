@@ -1124,6 +1124,11 @@
                 lastValidGenericWindow: null,
                 genericWindowError: null,
                 genericEvidenceSourceCount: 0,
+                allocationInputs: null,
+                allocationInputError: null,
+                allocationSensitivity: null,
+                blViews: [],
+                blError: null,
                 pathScenarioSeed: null,
                 pathComputeController: null,
                 pathComputeWorkspaceIdentity: null,
@@ -1728,43 +1733,365 @@
                 ctx.fillText("Modeled volatility · lower is not thereby better · none is recommended", 10, 14);
             }
 
-            function allocationModel() {
-                var probe = riskProjection();
+            function allocationVector(text, expectedLength) {
+                var parts = String(text || "").split(",").map(function (part) { return part.trim(); });
+                if (parts.length !== expectedLength || parts.some(function (part) { return part === ""; })) return null;
+                var values = parts.map(Number);
+                return values.every(isFiniteNumber) ? values : null;
+            }
+
+            function allocationHoldingGroups(revision, symbols) {
+                return symbols.map(function (symbol) {
+                    var holding = revision.holdings.find(function (entry) { return entry.symbol === symbol; });
+                    return holding && typeof holding.assetClass === "string" && holding.assetClass
+                        ? [holding.assetClass] : [];
+                });
+            }
+
+            function allocationConstraintBasis(symbols, groupsByAsset) {
+                var policy = state.policy.analytics;
+                var bounds = {};
+                symbols.forEach(function (symbol) {
+                    bounds[symbol] = {
+                        minimum: policy.allocationAssetMinimum,
+                        maximum: policy.allocationAssetMaximum
+                    };
+                });
+                var exclusions = [];
+                var grossLeverageLimit = policy.allocationGrossLeverageLimit;
+                var turnoverBudget = policy.allocationTurnoverBudget;
+                var mandate = currentMandate();
+                (mandate && Array.isArray(mandate.constraints) ? mandate.constraints : []).forEach(function (constraint) {
+                    if (constraint.constraintKind !== "hard" || constraint.unit !== "portfolio-fraction") return;
+                    var index = symbols.indexOf(constraint.subject);
+                    if (constraint.kind === "minimum-exposure" && index !== -1 && isFiniteNumber(constraint.minimum)) {
+                        bounds[constraint.subject].minimum = constraint.minimum;
+                    } else if (constraint.kind === "maximum-exposure" && index !== -1 && isFiniteNumber(constraint.maximum)) {
+                        bounds[constraint.subject].maximum = constraint.maximum;
+                    } else if (constraint.kind === "exclusion" && index !== -1) {
+                        exclusions.push(constraint.subject);
+                    } else if (constraint.kind === "leverage-limit" && isFiniteNumber(constraint.maximum)) {
+                        grossLeverageLimit = constraint.maximum;
+                    } else if (constraint.kind === "turnover-budget" && isFiniteNumber(constraint.maximum)) {
+                        turnoverBudget = constraint.maximum;
+                    }
+                });
+                var groupIds = [];
+                groupsByAsset.forEach(function (groups) {
+                    groups.forEach(function (group) { if (groupIds.indexOf(group) === -1) groupIds.push(group); });
+                });
+                return {
+                    assetBounds: bounds,
+                    exclusions: exclusions,
+                    grossLeverageLimit: grossLeverageLimit,
+                    turnoverBudget: turnoverBudget,
+                    groupBounds: groupIds.map(function (group) {
+                        return {
+                            group: group,
+                            members: symbols.filter(function (_symbol, index) { return groupsByAsset[index].indexOf(group) !== -1; }),
+                            minimum: policy.allocationGroupMinimum,
+                            maximum: policy.allocationGroupMaximum
+                        };
+                    })
+                };
+            }
+
+            function allocationBasis(probe) {
                 if (!probe.available) return { available: false, state: probe.state };
                 if (!probe.covariance || !probe.covariance.conditioned) {
                     return { available: false, state: "covariance-unavailable" };
                 }
+                var revision = currentRevision();
+                if (!revision) return { available: false, state: "portfolio-revision-unavailable" };
                 var mandate = currentMandate();
-                var constraints = mandate && Array.isArray(mandate.constraints)
-                    ? mandate.constraints.map(function (c) {
-                        return { subject: c.subject, minimum: c.minimum, maximum: c.maximum };
-                    })
-                    : [];
-                /* probe.weights is a symbol-keyed map, not a positional array.
-                   Reading it in the covariance's own symbol order is what keeps
-                   the current-portfolio row aligned with every other candidate. */
+                var groupsByAsset = allocationHoldingGroups(revision, probe.symbols);
+                var constraints = allocationConstraintBasis(probe.symbols, groupsByAsset);
                 var currentWeights = probe.symbols.map(function (symbol) {
                     return isFiniteNumber(probe.weights[symbol]) ? probe.weights[symbol] : 0;
                 });
-                var comparison = window.RLPORTFOLIOANALYTICS.compareAllocationMethods({
-                    symbols: probe.symbols,
-                    covariance: probe.covariance.conditioned,
+                var pathCount = Math.min.apply(null, probe.symbols.map(function (symbol) {
+                    return (probe.perSymbolReturns[symbol] || []).length;
+                }));
+                if (!Number.isInteger(pathCount) || pathCount < 1) return { available: false, state: "allocation-paths-unavailable" };
+                var pathIds = [];
+                var pathReturns = [];
+                for (var pathIndex = 0; pathIndex < pathCount; pathIndex += 1) {
+                    pathIds.push("observed-path:" + (probe.rows[pathIndex + 1] ? probe.rows[pathIndex + 1].date : String(pathIndex + 1)));
+                    pathReturns.push(probe.symbols.map(function (symbol) { return probe.perSymbolReturns[symbol][pathIndex]; }));
+                }
+                var researchInputs = state.allocationInputs;
+                var analyticsPolicy = state.policy.analytics;
+                var basis = {
+                    contractVersion: "AllocationBasis/v1",
+                    eligibleAssets: probe.symbols.map(function (symbol, index) {
+                        return { symbol: symbol, group: groupsByAsset[index][0] || null };
+                    }),
                     currentWeights: currentWeights,
-                    constraints: constraints,
-                    // Views and expected returns are NEVER inferred. They stay
-                    // absent unless the user states them, so the two
-                    // forecast-dependent methods report unavailable by design.
-                    views: null,
-                    viewConfidence: null,
-                    expectedReturns: null
+                    evidenceIdentity: probe.identity,
+                    covarianceIdentity: probe.covariance.conditionedDiagnostics.fingerprint,
+                    covariance: probe.covariance.conditioned,
+                    expectedReturnPolicy: researchInputs ? {
+                        policyId: researchInputs.expectedReturnIdentity,
+                        expectedReturns: researchInputs.expectedReturns.slice()
+                    } : { policyId: "expected-returns:user-entry-required", state: "unavailable" },
+                    valuationCurrency: revision.valuationCurrency,
+                    mandateIdentity: mandate ? mandate.semanticFingerprint : "mandate:none-declared",
+                    assetBounds: constraints.assetBounds,
+                    exclusions: constraints.exclusions,
+                    cashBounds: { state: "not-held", symbol: null, minimum: 0, maximum: 0 },
+                    netSum: analyticsPolicy.allocationNetSum,
+                    grossLeverageLimit: constraints.grossLeverageLimit,
+                    turnoverBudget: constraints.turnoverBudget,
+                    groupBounds: constraints.groupBounds,
+                    costPolicy: {
+                        commissionFraction: analyticsPolicy.allocationCommissionFraction,
+                        spreadFraction: analyticsPolicy.allocationSpreadFraction,
+                        slippageFraction: analyticsPolicy.allocationSlippageFraction,
+                        financingFraction: analyticsPolicy.allocationFinancingFraction,
+                        carryFraction: analyticsPolicy.allocationCarryFraction,
+                        rebalanceTiming: analyticsPolicy.allocationRebalanceTiming
+                    },
+                    commonScenarioIdentity: "allocation-common-paths:" + probe.identity,
+                    commonPathIds: pathIds,
+                    commonPathAssetReturns: pathReturns,
+                    survivalDefinition: {
+                        state: isFiniteNumber(state.survivalFloor) ? "available" : "unavailable",
+                        startingValue: state.policy.calibration.scenarioStartingValue,
+                        floorValue: isFiniteNumber(state.survivalFloor) ? state.survivalFloor : null
+                    },
+                    solverPolicy: {
+                        policyId: state.policy.solver.fingerprint,
+                        maximumIterations: state.policy.solver.maximumIterations,
+                        projectionIterations: state.policy.solver.projectionIterations,
+                        tolerance: state.policy.solver.convergenceTolerance,
+                        stepSize: state.policy.solver.stepSize
+                    }
+                };
+                var validation = window.RLPORTFOLIOANALYTICS.validateAllocationBasis(basis);
+                return validation.ok
+                    ? { available: true, state: "ready", basis: basis, basisFingerprint: validation.basisFingerprint }
+                    : { available: false, state: "allocation-basis-invalid:" + validation.reason };
+            }
+
+            function allocationModel() {
+                var probe = riskProjection();
+                var basisResult = allocationBasis(probe);
+                if (!basisResult.available) return basisResult;
+                var researchInputs = state.allocationInputs;
+                var comparison = window.RLPORTFOLIOANALYTICS.runAllocationComparison({
+                    basis: basisResult.basis,
+                    blackLittermanInput: researchInputs ? {
+                        contractVersion: "BlackLittermanInput/v1",
+                        benchmarkIdentity: researchInputs.benchmarkIdentity,
+                        benchmarkWeights: researchInputs.benchmarkWeights.slice(),
+                        riskAversion: researchInputs.riskAversion,
+                        tau: state.policy.analytics.blackLittermanTau,
+                        views: state.blViews.slice()
+                    } : null,
+                    expectedReturnInput: researchInputs ? {
+                        policyId: researchInputs.expectedReturnIdentity,
+                        expectedReturns: researchInputs.expectedReturns.slice()
+                    } : null,
+                    riskAversion: researchInputs ? researchInputs.riskAversion : null
                 });
+                if (state.allocationSensitivity &&
+                    state.allocationSensitivity.basisFingerprint === basisResult.basisFingerprint) {
+                    comparison.candidates.forEach(function (candidate) {
+                        candidate.sensitivity = state.allocationSensitivity.methods.find(function (method) {
+                            return method.method === candidate.method;
+                        }) || { state: "unavailable", reason: "method-sensitivity-missing" };
+                    });
+                }
                 return {
                     available: comparison.state === "ok",
                     state: comparison.state === "ok" ? "ok" : (comparison.reason || comparison.state),
                     comparison: comparison,
                     identity: probe.identity,
-                    constraintCount: constraints.length
+                    basis: basisResult.basis,
+                    basisFingerprint: basisResult.basisFingerprint,
+                    researchInputs: researchInputs
                 };
+            }
+
+            function appendAllocationInputEditor(band, model) {
+                var editor = document.createElement("div");
+                editor.className = "band";
+                editor.id = "allocationResearchInputs";
+                var heading = document.createElement("h5");
+                heading.textContent = "Explicit research inputs";
+                editor.appendChild(heading);
+                var order = document.createElement("p");
+                order.id = "allocationAssetOrder";
+                order.className = "microcopy";
+                order.textContent = "Vector order: " + model.comparison.symbols.join(", ") +
+                    ". Expected returns and benchmark weights remain empty until you state them.";
+                editor.appendChild(order);
+                var row = document.createElement("div");
+                row.className = "row";
+                var expected = document.createElement("input");
+                expected.id = "allocationExpectedReturns";
+                expected.type = "text";
+                expected.placeholder = "Expected returns, comma-separated";
+                expected.setAttribute("aria-label", "Expected returns in displayed asset order");
+                expected.value = state.allocationInputs ? state.allocationInputs.expectedReturns.join(", ") : "";
+                var benchmark = document.createElement("input");
+                benchmark.id = "blBenchmarkWeights";
+                benchmark.type = "text";
+                benchmark.placeholder = "Benchmark weights, comma-separated";
+                benchmark.setAttribute("aria-label", "Black-Litterman benchmark weights in displayed asset order");
+                benchmark.value = state.allocationInputs ? state.allocationInputs.benchmarkWeights.join(", ") : "";
+                var riskAversion = document.createElement("input");
+                riskAversion.id = "allocationRiskAversion";
+                riskAversion.type = "number";
+                riskAversion.step = "0.1";
+                riskAversion.min = "0.1";
+                riskAversion.setAttribute("aria-label", "Allocation risk aversion research parameter");
+                riskAversion.value = String(state.allocationInputs
+                    ? state.allocationInputs.riskAversion : state.policy.analytics.blackLittermanRiskAversion);
+                var apply = document.createElement("button");
+                apply.id = "allocationApplyInputs";
+                apply.type = "button";
+                apply.textContent = "Apply research inputs";
+                apply.addEventListener("click", function () {
+                    var expectedValues = allocationVector(expected.value, model.comparison.symbols.length);
+                    var benchmarkValues = allocationVector(benchmark.value, model.comparison.symbols.length);
+                    var riskValue = Number(riskAversion.value);
+                    var benchmarkTotal = benchmarkValues
+                        ? benchmarkValues.reduce(function (sum, value) { return sum + value; }, 0) : NaN;
+                    if (!expectedValues || !benchmarkValues || benchmarkValues.some(function (value) { return value < 0; }) ||
+                        Math.abs(benchmarkTotal - 1) > state.policy.solver.convergenceTolerance ||
+                        !isFiniteNumber(riskValue) || riskValue <= 0) {
+                        state.allocationInputError = "Expected returns and non-negative benchmark weights must each match the displayed order; benchmark weights must sum to one and risk aversion must be positive.";
+                        refreshWorkspaceViews();
+                        return;
+                    }
+                    state.allocationInputError = null;
+                    state.allocationSensitivity = null;
+                    state.allocationInputs = {
+                        expectedReturns: expectedValues,
+                        expectedReturnIdentity: contracts.fingerprint("allocation-expected-returns", {
+                            contractVersion: "allocation-expected-returns/v1",
+                            symbols: model.comparison.symbols,
+                            values: expectedValues
+                        }),
+                        benchmarkWeights: benchmarkValues,
+                        benchmarkIdentity: contracts.fingerprint("allocation-benchmark", {
+                            contractVersion: "allocation-benchmark/v1",
+                            symbols: model.comparison.symbols,
+                            values: benchmarkValues
+                        }),
+                        riskAversion: riskValue
+                    };
+                    refreshWorkspaceViews();
+                });
+                var runSensitivity = document.createElement("button");
+                runSensitivity.id = "allocationRunSensitivity";
+                runSensitivity.type = "button";
+                runSensitivity.textContent = "Run declared sensitivity";
+                runSensitivity.disabled = !state.allocationInputs;
+                runSensitivity.addEventListener("click", function () {
+                    if (!state.allocationInputs) return;
+                    var input = state.allocationInputs;
+                    state.allocationSensitivity = window.RLPORTFOLIOANALYTICS.runAllocationSensitivity({
+                        basis: model.basis,
+                        blackLittermanInput: {
+                            contractVersion: "BlackLittermanInput/v1",
+                            benchmarkIdentity: input.benchmarkIdentity,
+                            benchmarkWeights: input.benchmarkWeights.slice(),
+                            riskAversion: input.riskAversion,
+                            tau: state.policy.analytics.blackLittermanTau,
+                            views: state.blViews.slice()
+                        },
+                        expectedReturnInput: {
+                            policyId: input.expectedReturnIdentity,
+                            expectedReturns: input.expectedReturns.slice()
+                        },
+                        riskAversion: input.riskAversion,
+                        axes: state.policy.analytics.allocationSensitivityAxes
+                    });
+                    refreshWorkspaceViews();
+                });
+                [expected, benchmark, riskAversion, apply, runSensitivity].forEach(function (control) { row.appendChild(control); });
+                editor.appendChild(row);
+                var status = document.createElement("p");
+                status.id = "allocationInputStatus";
+                status.className = state.allocationInputError ? "state-message error" : "microcopy";
+                status.textContent = state.allocationInputError || (state.allocationInputs
+                    ? "Explicit expected returns, benchmark weights, and risk aversion are active for this local comparison."
+                    : "MVO and Black-Litterman stay unavailable until these explicit inputs are complete.");
+                editor.appendChild(status);
+                var sensitivityStatus = document.createElement("p");
+                sensitivityStatus.id = "allocationSensitivityStatus";
+                sensitivityStatus.className = "microcopy";
+                sensitivityStatus.textContent = state.allocationSensitivity
+                    ? state.allocationSensitivity.totalTrials + " declared method-axis trials completed; no winner selected."
+                    : "Sensitivity has not run. Point weights remain conditional on the current declared inputs.";
+                editor.appendChild(sensitivityStatus);
+                band.appendChild(editor);
+            }
+
+            function appendCompleteAllocationSensitivity(band, model) {
+                var section = document.createElement("div");
+                section.className = "band";
+                section.id = "allocationCompleteSensitivity";
+                var heading = document.createElement("h5");
+                heading.textContent = "Complete method sensitivity";
+                section.appendChild(heading);
+                var result = state.allocationSensitivity;
+                section.dataset.sensitivityState = result ? result.state : "not-run";
+                if (!result || result.basisFingerprint !== model.basisFingerprint) {
+                    var pending = document.createElement("p");
+                    pending.className = "state-message";
+                    pending.textContent = "Complete sensitivity not run on this basis. Use the declared sensitivity command after supplying explicit research inputs.";
+                    section.appendChild(pending);
+                    band.appendChild(section);
+                    return;
+                }
+                var summary = document.createElement("p");
+                summary.id = "allocationSensitivitySummary";
+                summary.className = "microcopy";
+                summary.textContent = result.totalTrials + " trials · axes " + result.declaredAxes.join(", ") + ". " + result.claimBoundary;
+                section.appendChild(summary);
+                var wrap = document.createElement("div");
+                wrap.style.overflowX = "auto";
+                wrap.style.maxWidth = "100%";
+                var table = document.createElement("table");
+                table.id = "allocationCompleteSensitivityTable";
+                table.innerHTML = "<thead><tr><th scope=\"col\">Method</th><th scope=\"col\">Valid / failed</th>" +
+                    "<th scope=\"col\">Largest weight span</th><th scope=\"col\">Turnover range</th>" +
+                    "<th scope=\"col\">Survival range</th></tr></thead>";
+                var body = document.createElement("tbody");
+                result.methods.forEach(function (method) {
+                    var row = document.createElement("tr");
+                    row.id = "allocation-sensitivity-" + method.method;
+                    row.dataset.method = method.method;
+                    var largest = method.weightRanges.reduce(function (current, range) {
+                        return !isFiniteNumber(current.span) || isFiniteNumber(range.span) && range.span > current.span
+                            ? range : current;
+                    }, { symbol: "Unavailable", span: null });
+                    var cells = [
+                        method.method,
+                        method.validTrials + " / " + method.failedTrials,
+                        isFiniteNumber(largest.span) ? largest.symbol + " " + (largest.span * 100).toFixed(2) + " points" : "Unavailable",
+                        isFiniteNumber(method.turnoverRange.low)
+                            ? (method.turnoverRange.low * 100).toFixed(2) + "% to " + (method.turnoverRange.high * 100).toFixed(2) + "%"
+                            : "Unavailable",
+                        isFiniteNumber(method.survivalRange.low)
+                            ? (method.survivalRange.low * 100).toFixed(1) + "% to " + (method.survivalRange.high * 100).toFixed(1) + "%"
+                            : "Unavailable"
+                    ];
+                    cells.forEach(function (value, index) {
+                        var cell = document.createElement(index === 0 ? "th" : "td");
+                        if (index === 0) cell.setAttribute("scope", "row");
+                        cell.textContent = value;
+                        row.appendChild(cell);
+                    });
+                    body.appendChild(row);
+                });
+                table.appendChild(body);
+                wrap.appendChild(table);
+                section.appendChild(wrap);
+                band.appendChild(section);
             }
 
             function appendAllocationComparison(panel) {
@@ -1791,6 +2118,16 @@
                 }
 
                 var c = model.comparison;
+                band.dataset.basisFingerprint = model.basisFingerprint;
+
+                var basisSummary = document.createElement("p");
+                basisSummary.id = "allocationBasisSummary";
+                basisSummary.className = "microcopy";
+                basisSummary.textContent = "One frozen basis · " + c.symbols.length + " eligible assets · " +
+                    model.basis.commonPathIds.length + " common path IDs · costs complete · " +
+                    (currentMandate() ? "confirmed mandate constraints" : "no mandate declared") + ".";
+                band.appendChild(basisSummary);
+                appendAllocationInputEditor(band, model);
 
                 var canvas = document.createElement("canvas");
                 canvas.id = "allocationCanvas";
@@ -1812,12 +2149,14 @@
                 table.id = "allocationTable";
                 table.innerHTML = "<thead><tr><th scope=\"col\">Method</th><th scope=\"col\">Weights</th>" +
                     "<th scope=\"col\">Modeled volatility</th><th scope=\"col\">Feasibility</th>" +
-                    "<th scope=\"col\">State</th></tr></thead>";
+                    "<th scope=\"col\">Solver</th><th scope=\"col\">Turnover and cost</th>" +
+                    "<th scope=\"col\">Common paths and survival</th><th scope=\"col\">State</th></tr></thead>";
                 var body = document.createElement("tbody");
                 c.candidates.forEach(function (candidate) {
                     var tr = document.createElement("tr");
                     tr.id = "alloccandidate-" + candidate.method;
                     tr.dataset.method = candidate.method;
+                    tr.dataset.basisFingerprint = candidate.basisFingerprint;
                     tr.dataset.feasibility = candidate.feasibility ? candidate.feasibility.state : "unavailable";
                     var weightText = candidate.weights
                         ? c.symbols.map(function (symbol, i) {
@@ -1831,6 +2170,21 @@
                             : (candidate.feasibility.universallyInfeasible
                                 ? "Infeasible for ANY allocation"
                                 : "Infeasible — breaches " + candidate.feasibility.conflictingSet.length + " stated constraint(s)"));
+                    var solverText = candidate.solver.convergenceReason +
+                        (isFiniteNumber(candidate.solver.equalRiskContributionResidual)
+                            ? " · ERC residual " + candidate.solver.equalRiskContributionResidual.toExponential(2)
+                            : (isFiniteNumber(candidate.solver.kktResidual)
+                                ? " · KKT residual " + candidate.solver.kktResidual.toExponential(2) : ""));
+                    var costText = candidate.fullCosts
+                        ? "Turnover " + (candidate.turnover * 100).toFixed(2) + "% · total " +
+                          (candidate.fullCosts.total * 100).toFixed(3) + "%"
+                        : "Unavailable";
+                    var pathText = candidate.commonPathOutcomes
+                        ? candidate.commonPathOutcomes.pathIds.length + " shared paths · survival " +
+                          (candidate.survivalOutcomes.state === "ok"
+                              ? (candidate.survivalOutcomes.survivalRate * 100).toFixed(1) + "%"
+                              : "unavailable")
+                        : "Unavailable";
                     var cells = [
                         candidate.label,
                         weightText,
@@ -1838,6 +2192,9 @@
                             ? "Unavailable"
                             : (candidate.portfolioVolatility * 100).toFixed(2) + "%",
                         feasibilityText,
+                        solverText,
+                        costText,
+                        pathText,
                         candidate.state === "unavailable" ? "Unavailable — " + candidate.reason : "Solved"
                     ];
                     cells.forEach(function (value, i) {
@@ -1852,7 +2209,7 @@
                     assumptionRow.id = "allocassumptions-" + candidate.method;
                     assumptionRow.dataset.assumptionsFor = candidate.method;
                     var assumptionCell = document.createElement("td");
-                    assumptionCell.setAttribute("colspan", "5");
+                    assumptionCell.setAttribute("colspan", "8");
                     assumptionCell.className = "microcopy";
                     assumptionCell.textContent = "Assumes: " + candidate.assumptions.join(" ");
                     assumptionRow.appendChild(assumptionCell);
@@ -1881,6 +2238,7 @@
                 band.appendChild(boundary);
 
                 appendAllocationSensitivity(band, model);
+                appendCompleteAllocationSensitivity(band, model);
                 appendBlackLittermanEditor(band, model);
 
                 panel.appendChild(band);
@@ -1990,7 +2348,6 @@
             }
 
             function appendBlackLittermanEditor(band, model) {
-                var policy = (state.policy && state.policy.analytics) || {};
                 var probe = riskProjection();
                 var blBand = document.createElement("div");
                 blBand.className = "band";
@@ -2005,7 +2362,15 @@
                     ? state.opened.workspace.interestSignals
                     : [];
                 var viewAudit = window.RLPORTFOLIOANALYTICS.blackLittermanViews({
-                    statedViews: state.blViews || [],
+                    statedViews: (state.blViews || []).map(function (view) {
+                        var index = view.coefficients.findIndex(function (coefficient) { return coefficient === 1; });
+                        return {
+                            subject: model.comparison.symbols[index],
+                            expectedReturn: view.magnitudeRange.central,
+                            confidence: 1,
+                            source: "user-stated"
+                        };
+                    }),
                     behaviorSignals: behaviorSignals
                 });
                 var exclusion = document.createElement("p");
@@ -2029,40 +2394,85 @@
                 expected.id = "blExpectedReturn";
                 expected.type = "number";
                 expected.step = "0.01";
-                expected.placeholder = "Expected return";
-                expected.setAttribute("aria-label", "Black-Litterman expected return");
-                var confidence = document.createElement("input");
-                confidence.id = "blConfidence";
-                confidence.type = "number";
-                confidence.step = "0.1";
-                confidence.min = "0";
-                confidence.max = "1";
-                confidence.placeholder = "Confidence 0-1";
-                confidence.setAttribute("aria-label", "Black-Litterman confidence");
+                expected.placeholder = "Central magnitude";
+                expected.setAttribute("aria-label", "Black-Litterman central view magnitude");
+                function numberInput(id, label, placeholder, step) {
+                    var input = document.createElement("input");
+                    input.id = id;
+                    input.type = "number";
+                    input.step = step;
+                    input.placeholder = placeholder;
+                    input.setAttribute("aria-label", label);
+                    return input;
+                }
+                var horizon = numberInput("blHorizonSessions", "Black-Litterman view horizon in sessions", "Horizon sessions", "1");
+                var low = numberInput("blMagnitudeLow", "Black-Litterman low view magnitude", "Low magnitude", "0.01");
+                var high = numberInput("blMagnitudeHigh", "Black-Litterman high view magnitude", "High magnitude", "0.01");
+                var uncertainty = numberInput("blUncertaintyVariance", "Black-Litterman view uncertainty variance", "Uncertainty variance", "0.0001");
+                var confidenceSource = document.createElement("select");
+                confidenceSource.id = "blConfidenceSource";
+                confidenceSource.setAttribute("aria-label", "Black-Litterman confidence source");
+                ["user-stated-range", "external-research-range"].forEach(function (value) {
+                    var option = document.createElement("option");
+                    option.value = value;
+                    option.textContent = value;
+                    confidenceSource.appendChild(option);
+                });
+                var invalidation = document.createElement("input");
+                invalidation.id = "blInvalidation";
+                invalidation.type = "text";
+                invalidation.placeholder = "Invalidation condition";
+                invalidation.setAttribute("aria-label", "Black-Litterman view invalidation condition");
                 var apply = document.createElement("button");
                 apply.id = "blApply";
                 apply.type = "button";
                 apply.textContent = "Add view";
                 apply.addEventListener("click", function () {
-                    var e = Number(byId("blExpectedReturn").value);
-                    var c = Number(byId("blConfidence").value);
-                    if (byId("blExpectedReturn").value === "" || byId("blConfidence").value === "" ||
-                        !isFiniteNumber(e) || !isFiniteNumber(c) || c <= 0 || c > 1) {
-                        state.blError = "A view requires an expected return and a confidence between 0 and 1. " +
-                            "Neither is inferred, and no value is prefilled from your holdings or behavior.";
+                    var h = Number(horizon.value), lo = Number(low.value), central = Number(expected.value);
+                    var hi = Number(high.value), variance = Number(uncertainty.value);
+                    if (!Number.isInteger(h) || h <= 0 || !isFiniteNumber(lo) || !isFiniteNumber(central) ||
+                        !isFiniteNumber(hi) || lo > central || central > hi || !isFiniteNumber(variance) || variance <= 0 ||
+                        !invalidation.value.trim()) {
+                        state.blError = "A view requires a positive horizon, ordered low/central/high magnitudes, a positive uncertainty variance, a confidence source, and an invalidation condition. Nothing is inferred.";
                         refreshWorkspaceViews();
                         return;
                     }
+                    if (!state.allocationInputs) {
+                        state.blError = "State explicit expected returns and benchmark weights before adding a view.";
+                        refreshWorkspaceViews();
+                        return;
+                    }
+                    var coefficients = model.comparison.symbols.map(function (symbol) {
+                        return symbol === subject.value ? 1 : 0;
+                    });
                     state.blError = null;
+                    state.allocationSensitivity = null;
                     state.blViews = (state.blViews || []).concat([{
-                        subject: byId("blSubject").value,
-                        expectedReturn: e,
-                        confidence: c,
-                        source: "user-stated"
+                        contractVersion: "BlackLittermanView/v1",
+                        viewId: contracts.fingerprint("black-litterman-view", {
+                            contractVersion: "black-litterman-view-identity/v1",
+                            subject: subject.value,
+                            horizonSessions: h,
+                            coefficients: coefficients,
+                            magnitudeRange: [lo, central, hi],
+                            confidenceSource: confidenceSource.value,
+                            uncertaintyVariance: variance,
+                            evidenceCutoff: probe.cutoff,
+                            invalidation: invalidation.value.trim()
+                        }),
+                        horizonSessions: h,
+                        coefficients: coefficients,
+                        magnitudeRange: { low: lo, central: central, high: hi },
+                        confidenceSource: confidenceSource.value,
+                        uncertaintyVariance: variance,
+                        userAuthority: "explicit-user-entry",
+                        evidenceCutoff: probe.cutoff,
+                        invalidation: invalidation.value.trim()
                     }]);
                     refreshWorkspaceViews();
                 });
-                [subject, expected, confidence, apply].forEach(function (el) { form.appendChild(el); });
+                [subject, horizon, low, expected, high, confidenceSource, uncertainty, invalidation, apply]
+                    .forEach(function (el) { form.appendChild(el); });
                 blBand.appendChild(form);
 
                 if (state.blError) {
@@ -2073,14 +2483,10 @@
                     blBand.appendChild(error);
                 }
 
-                var posterior = window.RLPORTFOLIOANALYTICS.blackLittermanPosterior({
-                    symbols: model.comparison.symbols,
-                    covariance: probe.covariance.conditioned,
-                    benchmarkWeights: model.comparison.candidates[1].weights,
-                    riskAversion: policy.blackLittermanRiskAversion,
-                    tau: policy.blackLittermanTau,
-                    views: state.blViews || []
+                var blCandidate = model.comparison.candidates.find(function (candidate) {
+                    return candidate.method === "black-litterman";
                 });
+                var posterior = blCandidate.blackLitterman || { state: "unavailable", reason: blCandidate.reason };
                 blBand.dataset.posteriorState = posterior.state;
 
                 if (posterior.state === "unavailable") {
@@ -2107,7 +2513,7 @@
                     "<th scope=\"col\">Posterior</th></tr></thead>";
                 var body = document.createElement("tbody");
                 posterior.symbols.forEach(function (symbol, i) {
-                    var stated = (state.blViews || []).filter(function (view) { return view.subject === symbol; });
+                    var stated = (state.blViews || []).filter(function (view) { return view.coefficients[i] !== 0; });
                     var tr = document.createElement("tr");
                     tr.id = "bl-" + symbol;
                     tr.dataset.hasView = stated.length ? "true" : "false";
@@ -2115,8 +2521,9 @@
                         symbol,
                         (posterior.impliedEquilibriumReturns[i] * 100).toFixed(2) + "%",
                         stated.length
-                            ? (stated[stated.length - 1].expectedReturn * 100).toFixed(2) + "% at confidence " +
-                              stated[stated.length - 1].confidence
+                                                        ? (stated[stated.length - 1].magnitudeRange.low * 100).toFixed(2) + "% to " +
+                                                            (stated[stated.length - 1].magnitudeRange.high * 100).toFixed(2) + "% · " +
+                                                            stated[stated.length - 1].confidenceSource
                             : "None stated",
                         (posterior.posteriorMean[i] * 100).toFixed(2) + "%"
                     ];
@@ -6162,6 +6569,11 @@
                             requestedPathCount: 0, completedPathCount: 0, completedWorkUnits: 0,
                             requestedWorkUnits: 0, errorCode: null, lastSettlementCode: null, result: null
                         };
+                        state.allocationInputs = null;
+                        state.allocationInputError = null;
+                        state.allocationSensitivity = null;
+                        state.blViews = [];
+                        state.blError = null;
                         state.hedge = null;
                     }
                 };
@@ -6639,7 +7051,10 @@
 
             ROUTE_TABS.forEach(function (route) {
                 byId(route.tab).addEventListener("click", function () {
-                    if (window.location.hash !== "#" + route.hash) window.location.hash = route.hash;
+                    if (window.location.hash !== "#" + route.hash) {
+                        window.location.hash = route.hash;
+                        return;
+                    }
                     applyRoute(route.hash);
                 });            });
 

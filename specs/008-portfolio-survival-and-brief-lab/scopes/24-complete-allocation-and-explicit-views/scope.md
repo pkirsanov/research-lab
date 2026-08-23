@@ -2,7 +2,7 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** Not Started
+**Status:** Done
 **Scope-Kind:** runtime-behavior
 **Tags:** `overlay:allocation`, `remediation`
 **Depends On:** 23
@@ -91,12 +91,12 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 
 ### Definition of Done - Tiered Validation
 
-- [ ] SCN-008-050 is implemented with real constrained methods, explicit BL posterior, complete outcomes, and no universal winner.
-- [ ] TP-24-01 unit evidence passes.
-- [ ] TP-24-02 functional evidence passes.
-- [ ] TP-24-03 complete real-page regression passes.
-- [ ] TP-24-04 adversarial mutation proof rejects every audited heuristic or disconnected behavior.
-- [ ] TP-24-05 constraint/BL real-page regression passes.
-- [ ] TP-24-06 broader regression passes.
-- [ ] Shared Infrastructure Impact Sweep and immutable rollback proof are recorded.
-- [ ] Build Quality Gate passes with zero skips/warnings and no excluded-file changes.
+- [x] SCN-008-050 is implemented with real constrained methods, explicit BL posterior, complete outcomes, and no universal winner. Evidence: [scenario contract](report.md#scenario-contract-evidence), [coverage](report.md#coverage-report), and [real-page behavior](report.md#tp-24-03-and-tp-24-05).
+- [x] TP-24-01 unit evidence passes. Evidence: [TP-24-01](report.md#tp-24-01).
+- [x] TP-24-02 functional evidence passes. Evidence: [TP-24-02](report.md#tp-24-02).
+- [x] TP-24-03 complete real-page regression passes. Evidence: [TP-24-03 and complete carrier](report.md#tp-24-03-and-tp-24-05).
+- [x] TP-24-04 adversarial mutation proof rejects every audited heuristic or disconnected behavior. Evidence: [TP-24-04](report.md#tp-24-04).
+- [x] TP-24-05 constraint/BL real-page regression passes. Evidence: [TP-24-05 and complete carrier](report.md#tp-24-03-and-tp-24-05).
+- [x] TP-24-06 broader regression passes. Evidence: [TP-24-06](report.md#tp-24-06).
+- [x] Shared Infrastructure Impact Sweep and immutable rollback proof are recorded. Evidence: [shared infrastructure and rollback](report.md#shared-infrastructure-and-rollback-evidence) and [last-valid preservation](report.md#tp-24-02).
+- [x] Build Quality Gate passes with zero skips/warnings and no excluded-file changes. Evidence: [lint and quality](report.md#lint-and-quality) and [bounded code diff](report.md#code-diff-evidence).

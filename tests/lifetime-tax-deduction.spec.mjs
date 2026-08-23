@@ -6,9 +6,12 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { startStaticServer } from './provider-credentials.support.mjs';
 import {
+  collectRequests,
+  declaredPackPaths,
   declareOrdinaryHousehold,
   openLifetimeTax,
-  openPower
+  openPower,
+  sameOriginPaths
 } from './lifetime-tax.support.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -100,6 +103,20 @@ async function declareMortgage(page, values) {
 
 const legSetOf = (page, selector) => page.locator(selector)
   .evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-rl-leg')).sort());
+
+/* The permitted-asset set, DERIVED from the page's own script tags and from every pack path the
+   configuration declares. A derived set admits only what the page itself asks for; a hand-listed
+   literal has to be edited to admit a new module, and such an edit is indistinguishable from one
+   admitting a leak. */
+function declaredRouteAssets() {
+  const routeSource = readFileSync(join(ROOT, 'lifetime-tax-strategy-lab.html'), 'utf8');
+  const config = JSON.parse(readFileSync(join(ROOT, CONFIG_PATH), 'utf8'));
+  const scripts = Array.from(routeSource.matchAll(/<script src="([^"]+)"><\/script>/g))
+    .map((match) => '/' + match[1]);
+  const packs = declaredPackPaths(config).map((path) => '/' + path);
+  return ['/lifetime-tax-strategy-lab.html', '/' + CONFIG_PATH]
+    .concat(scripts).concat(packs).concat(['/favicon.ico']);
+}
 
 const splitAttribute = (raw) => (raw === null || raw === '' ? [] : raw.split(','));
 
@@ -569,4 +586,61 @@ test('Regression: SCN-023-006 the composition and the decision reach the headlin
   } finally {
     await legSite.close();
   }
+});
+
+/* TP-02-29. */
+test('Regression: SCN-023-005 the request ledger does not grow after the mortgage declarations and every entry is a declared same-origin read', async ({ page }) => {
+  const ledger = collectRequests(page);
+  await openLifetimeTax(page, site);
+  /* Measured before a single declaration is entered. Every assertion below is a statement about
+     THIS number, so a route whose transport stopped working entirely would make all of them
+     vacuous — which is why the pin comes first. */
+  const afterFirstPaint = ledger.length;
+  expect(afterFirstPaint).toBeGreaterThan(0);
+
+  /* Distinctive mortgage figures. Both legitimately appear in the DOM and in this tool's own
+     local-storage namespace. Being distinctive is what stops the URL scan from passing on a digit
+     sequence some other declared member happens to share. */
+  const interestSentinel = 20417;
+  const balanceSentinel = 1130729;
+  await declareOrdinaryHousehold(page, { ordinary: 60000, bracketId: 'b3' });
+  await openPower(page);
+  await declareMortgage(page, {
+    interest: interestSentinel, balance: balanceSentinel, tier: 'acquisition-debt-current'
+  });
+
+  /* NFR-023-003, first half. Declaring the mortgage, resolving the debt limit and rendering the
+     refusal issued no request at all. */
+  expect(ledger.length).toBe(afterFirstPaint);
+
+  /* NFR-023-003, second half. Every request the route did make is one the route itself declares,
+     read from the route's own origin. The origin half runs first, in the shared helper: a
+     pathname is not an origin, so `https://elsewhere.example/rltaxstrategy.js` would satisfy the
+     membership sweep below on its own. */
+  const permitted = declaredRouteAssets();
+  const paths = sameOriginPaths(ledger, site);
+  paths.forEach((path) => expect(permitted).toContain(path));
+  /* The derived set is the page's own declaration set rather than everything or nothing, so the
+     sweep above is a real constraint. */
+  expect(permitted).toContain('/' + FEDERAL_PACK_PATH);
+  expect(permitted).not.toContain('/definitely-not-declared-by-this-route.js');
+  expect(paths).toContain('/' + FEDERAL_PACK_PATH);
+
+  /* No mortgage declaration reaches any URL, query string or request body, and nothing was POSTed. */
+  ledger.forEach((entry) => {
+    [String(interestSentinel), String(balanceSentinel), 'acquisition-debt-current'].forEach((sentinel) => {
+      expect(entry.url).not.toContain(sentinel);
+      expect(entry.postData).not.toContain(sentinel);
+    });
+    expect(entry.method).toBe('GET');
+  });
+  const address = page.url();
+  expect(address).not.toContain(String(interestSentinel));
+  expect(address).not.toContain(String(balanceSentinel));
+  expect(new URL(address).search).toBe('');
+
+  /* The declarations really are present, so every scan above ran against a live household rather
+     than an empty one. */
+  await expect(page.locator('#inputMortgageInterestPaid')).toHaveValue(String(interestSentinel));
+  await expect(page.locator('#inputMortgageAcquisitionDebtBalance')).toHaveValue(String(balanceSentinel));
 });

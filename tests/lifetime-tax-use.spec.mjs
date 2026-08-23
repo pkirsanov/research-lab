@@ -4,9 +4,12 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { startStaticServer } from './provider-credentials.support.mjs';
 import {
+  collectRequests,
+  declaredPackPaths,
   declareOrdinaryHousehold,
   openLifetimeTax,
-  openPower
+  openPower,
+  sameOriginPaths
 } from './lifetime-tax.support.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -56,6 +59,19 @@ async function declareRental(page, values) {
 async function declareUseDays(page, fairRentalDays, personalUseDays) {
   await page.fill('#inputRentalFairRentalDays', String(fairRentalDays));
   await page.fill('#inputRentalPersonalUseDays', String(personalUseDays));
+}
+
+/* The permitted-asset set, DERIVED from the page's own script tags and from every pack path the
+   configuration declares, so a module a later scope adds is admitted by the page's own
+   declaration rather than by a literal edited here. */
+function declaredRouteAssets() {
+  const routeSource = readFileSync(join(ROOT, 'lifetime-tax-strategy-lab.html'), 'utf8');
+  const config = JSON.parse(readFileSync(join(ROOT, 'lifetime-tax-strategy.config.json'), 'utf8'));
+  const scripts = Array.from(routeSource.matchAll(/<script src="([^"]+)"><\/script>/g))
+    .map((match) => '/' + match[1]);
+  const packs = declaredPackPaths(config).map((path) => '/' + path);
+  return ['/lifetime-tax-strategy-lab.html', '/lifetime-tax-strategy.config.json']
+    .concat(scripts).concat(packs).concat(['/favicon.ico']);
 }
 
 async function comparisonResult(page, comparisonId) {
@@ -345,4 +361,58 @@ test('Regression: SCN-023-013 mixed use allocates by declared days and the perso
   const exportedLegs = await page.locator('body').getAttribute('data-rl-legs-record');
   expect(exportedLegs.split(',')).toContain('dwelling-use');
   expect(exportedLegs.split(',')).toContain('rental-net');
+});
+
+/* TP-04-30. */
+test('Regression: SCN-023-010 the request ledger does not grow after the day-count declarations and every entry is a declared same-origin read', async ({ page }) => {
+  const ledger = collectRequests(page);
+  await openLifetimeTax(page, site);
+  /* Measured before a single declaration is entered. Every assertion below is a statement about
+     THIS number, so a route whose transport stopped working entirely would make all of them
+     vacuous — which is why the pin comes first. */
+  const afterFirstPaint = ledger.length;
+  expect(afterFirstPaint).toBeGreaterThan(0);
+
+  /* Distinctive day counts. Both legitimately appear in the DOM and in this tool's own
+     local-storage namespace, and both are the household values this classification turns on. */
+  const fairRentalSentinel = 187;
+  const personalUseSentinel = 43;
+  await declareOrdinaryHousehold(page, { ordinary: 90000, bracketId: 'b3' });
+  await openPower(page);
+  await declareRental(page, BASE_RENTAL);
+  await declareUseDays(page, fairRentalSentinel, personalUseSentinel);
+
+  /* NFR-023-003, first half. Declaring both day counts, classifying the dwelling and rendering
+     every comparison issued no request at all. */
+  expect(ledger.length).toBe(afterFirstPaint);
+
+  /* NFR-023-003, second half. Every request the route did make is one the route itself declares,
+     read from the route's own origin. The origin half runs first, in the shared helper: a
+     pathname is not an origin, so `https://elsewhere.example/rltaxstrategy.js` would satisfy the
+     membership sweep below on its own. */
+  const permitted = declaredRouteAssets();
+  const paths = sameOriginPaths(ledger, site);
+  paths.forEach((path) => expect(permitted).toContain(path));
+  expect(permitted).toContain('/' + FEDERAL_PACK_PATH);
+  expect(permitted).not.toContain('/definitely-not-declared-by-this-route.js');
+  expect(paths).toContain('/' + FEDERAL_PACK_PATH);
+
+  /* Neither day count reaches any URL, query string or request body, and nothing was POSTed.
+     The existing unit row's "nor any query string" clause scans the route's SOURCE; this scans
+     the ledger a real boot produced, which is the thing the requirement is about. */
+  ledger.forEach((entry) => {
+    [String(fairRentalSentinel), String(personalUseSentinel)].forEach((sentinel) => {
+      expect(entry.url).not.toContain(sentinel);
+      expect(entry.postData).not.toContain(sentinel);
+    });
+    expect(entry.method).toBe('GET');
+  });
+  const address = page.url();
+  expect(address).not.toContain(String(fairRentalSentinel));
+  expect(address).not.toContain(String(personalUseSentinel));
+  expect(new URL(address).search).toBe('');
+
+  /* Both declarations really are present, so every scan above ran against a live household. */
+  await expect(page.locator('#inputRentalFairRentalDays')).toHaveValue(String(fairRentalSentinel));
+  await expect(page.locator('#inputRentalPersonalUseDays')).toHaveValue(String(personalUseSentinel));
 });

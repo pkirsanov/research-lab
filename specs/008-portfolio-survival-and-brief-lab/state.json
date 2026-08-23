@@ -93,10 +93,10 @@
   "certifiedAt": null,
   "requiresRevalidation": false,
   "execution": {
-    "activeAgent": "bubbles.plan",
-    "currentPhase": "plan",
-    "currentPhaseStatus": "not_started",
-    "currentScope": null,
+    "activeAgent": "bubbles.implement",
+    "currentPhase": "implement",
+    "currentPhaseStatus": "in_progress",
+    "currentScope": 25,
     "runStartedAt": "2026-08-20T19:11:37Z",
     "completedPhaseClaims": [
       {
@@ -457,7 +457,7 @@
         "scope": 25,
         "scopeId": "25-decision-time-dossier-and-immutable-audit",
         "name": "Decision-Time Dossier And Immutable Audit",
-        "status": "not_started",
+        "status": "in_progress",
         "dependsOn": [
           "24"
         ],
@@ -529,8 +529,8 @@
         "evidenceFile": "scopes/29-documentation-and-registry-truth/report.md"
       }
     ],
-    "nextRequiredOwner": "bubbles.validate",
-    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/state.json",
+    "nextRequiredOwner": "bubbles.implement",
+    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/scopes/25-decision-time-dossier-and-immutable-audit/scope.md",
     "audit": {
       "schemaVersion": "audit-run/v1",
       "runId": null,
@@ -589,7 +589,8 @@
       "20-generic-evidence-brief-policy-and-api",
       "21-partial-risk-input-and-diagnostics",
       "22-scenario-contract-and-survival-distributions",
-      "23-stress-dependence-and-hedge-effectiveness"
+      "23-stress-dependence-and-hedge-effectiveness",
+      "24-complete-allocation-and-explicit-views"
     ],
     "certifiedCompletedPhases": [],
     "scopeProgress": [
@@ -884,7 +885,7 @@
         "scope": 24,
         "scopeId": "24-complete-allocation-and-explicit-views",
         "name": "Complete Allocation And Explicit Views",
-        "status": "in_progress",
+        "status": "done",
         "dependsOn": [
           "23"
         ],

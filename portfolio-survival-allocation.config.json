@@ -4,13 +4,22 @@
         "contractVersion": "portfolio-storage-policy/v1",
         "workspaceContractVersion": "PortfolioWorkspace/v1",
         "pointerContractVersion": "portfolio-workspace-pointer/v1",
+        "dossierContractVersion": "ResearchDossierCollection/v1",
+        "dossierPointerContractVersion": "portfolio-dossier-pointer/v1",
         "workspaceNamespace": "rlPortfolioWorkspaceV1",
+        "dossierNamespace": "rlPortfolioDossiersV1",
         "pointerKey": "rlPortfolioWorkspaceV1.pointer",
+        "dossierPointerKey": "rlPortfolioDossiersV1.pointer",
         "slotKeys": [
             "rlPortfolioWorkspaceV1.slotA",
             "rlPortfolioWorkspaceV1.slotB"
         ],
+        "dossierSlotKeys": [
+            "rlPortfolioDossiersV1.slotA",
+            "rlPortfolioDossiersV1.slotB"
+        ],
         "quarantineKey": "rlPortfolioWorkspaceV1.quarantine",
+        "dossierQuarantineKey": "rlPortfolioDossiersV1.quarantine",
         "displayModeKey": "rlPortfolioWorkspaceV1.displayMode",
         "sessionKey": "rlPortfolioWorkspaceSessionV1",
         "returnContextKey": "rlReturnContextV1",
@@ -297,6 +306,9 @@
         "hedgeRebalancesPerYear": 4,
         "hedgeInstrumentClass": "listed-proxy-etf",
         "walkForwardFolds": 4,
+        "dossierPurgeObservations": 1,
+        "dossierEmbargoObservations": 1,
+        "dossierTurnoverFraction": 0.25,
         "dossierTrialsSearched": 12,
         "efficiencyFormTested": "weak",
         "efficiencyInformationSet": "past prices and returns held in this workspace",

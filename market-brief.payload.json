@@ -1343,7 +1343,7 @@
     {
       "deepLink": "horizon-ladder-lab.html",
       "id": "horizon-ladder-lab",
-      "reason": "Every long and short cell sits at zero resolved outcomes against a minimum of twenty, so the ladder withholds a rate at all six horizons and publishes no owning-tool call into this pre-close window. The arithmetic it does show describes the probability of a declared target distance, which is not a measured hit rate and must not be folded into the brief as one.",
+      "reason": "Every long and short cell sits at zero resolved outcomes against a minimum of twenty, so the ladder withholds a rate at all six horizons and publishes no owning-tool call into this pre-market window. The arithmetic it does show describes the probability of a declared target distance, which is not a measured hit rate and must not be folded into the brief as one.",
       "status": "not-relevant"
     }
   ],
@@ -2197,7 +2197,7 @@
         "chars": 0
       }
     ],
-    "disclosedTotal": 126258,
+    "disclosedTotal": 126674,
     "caps": {
       "headline": 140,
       "decisionCard": 300,

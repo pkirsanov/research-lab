@@ -393,6 +393,8 @@
             return vol + '-' + trend;
         }
 
+        // Volatility, sigma, and every *Pct value derived from them are FRACTIONS (0.026 = 2.6%).
+        // Display multiplies by 100 in fmtPct; do not scale twice.
         function hlAnnualisedVol(closes, sessionsPerYear) {
             if (!closes || closes.length < 22) return null;
             var rets = [];
@@ -715,7 +717,7 @@
 
         function buildCandidates() {
             var sessions = hlHorizonSessions(CFG.horizons, state.horizon);
-            var spy = CFG.policy.sessionsPerYear;
+            var sessionsPerYear = CFG.policy.sessionsPerYear;
             var minAnalog = CFG.policy.minAnalogSample;
             var minLedger = CFG.policy.minResolvedSample;
             var ledgerResolved = ledgerResolvedFor(state.direction, state.horizon);
@@ -736,8 +738,8 @@
                     continue;
                 }
                 var closes = bars.map(function (r) { return r.c; });
-                var vol = hlAnnualisedVol(closes.slice(-volWindow), spy);
-                var sigma = hlSigmaHorizon(vol, sessions, spy);
+                var vol = hlAnnualisedVol(closes.slice(-volWindow), sessionsPerYear);
+                var sigma = hlSigmaHorizon(vol, sessions, sessionsPerYear);
                 if (sigma === null) {
                     excluded.push({ symbol: w.symbol, reason: 'not scoreable at mint: instrument.bars (volatility unavailable)' });
                     continue;
@@ -767,7 +769,7 @@
                 var targetMovePct = struct.k * sigma;
                 var series = hlMaSeries(bars, structureApi());
                 var currentClass = hlSetupClass(closes, closes.length - 1, vol, series);
-                var forward = hlAnalogForwardReturns(closes, sessions, currentClass, volWindow, spy, series);
+                var forward = hlAnalogForwardReturns(closes, sessions, currentClass, volWindow, sessionsPerYear, series);
                 var analog = hlAnalogRate(forward, targetMovePct, state.direction);
                 var sortedForward = forward.slice().sort(function (a, b) { return a - b; });
 

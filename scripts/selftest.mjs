@@ -28217,6 +28217,46 @@ try {
   assert(/RLDATA\.bars\(|store\.bars\(/.test(hllSrc) && /bars: getBars/.test(hllRldata)
     && !/getCachedCloses|getCached\(/.test(hllSrc),
     'the page reads bars through the RLDATA accessor the shared module actually exports');
+
+  /* Against the committed bars, not a synthetic series. A random walk puts the nearest pivot above
+     and below at roughly equal distance, so it clears no reward-to-risk floor and cannot answer
+     whether the default view is empty for a real user. These are the same files the page reads. */
+  const hllRealCfg = JSON.parse(read('horizon-ladder-universe.json'));
+  const hllRealPolicy = hllRealCfg.policy;
+  const hllRealClearance = (sessions, direction) => {
+    let cleared = 0;
+    const ratios = [];
+    for (const w of hllRealCfg.watchlist) {
+      if (direction === 'short' && !w.shortable) continue;
+      const parsed = JSON.parse(read('data/bars/' + w.symbol + '.json'));
+      const barRows = Array.isArray(parsed) ? parsed : (parsed.rows || parsed.bars || []);
+      if (barRows.length < 200 + sessions) continue;
+      const closes = barRows.map((r) => r.c);
+      const vol = hll.hlAnnualisedVol(closes.slice(-hllRealPolicy.volWindowSessions), hllRealPolicy.sessionsPerYear);
+      const sigma = hll.hlSigmaHorizon(vol, sessions, hllRealPolicy.sessionsPerYear);
+      if (sigma === null) continue;
+      const struct = hll.hlStructureDistances(barRows, sigma, direction, hllRealPolicy.pivotSpan, HLMS);
+      if (!struct) continue;
+      const rr = hll.hlRewardToRisk(struct.k, struct.m);
+      if (!isFinite(rr)) continue;
+      ratios.push(rr);
+      if (rr >= hllRealPolicy.rewardToRiskFloor) cleared++;
+    }
+    return { cleared: cleared, ratios: ratios };
+  };
+  const hllRealShort = hllRealClearance(hllRealCfg.horizons[0].sessions, 'long');
+  const hllRealLong = hllRealClearance(hllRealCfg.horizons[hllRealCfg.horizons.length - 1].sessions, 'long');
+  assert(hllRealShort.cleared > 0 && hllRealLong.cleared > 0,
+    'the default lower-risk profile returns candidates against the committed bars rather than an empty table ('
+    + hllRealShort.cleared + ' cleared at the shortest horizon, ' + hllRealLong.cleared + ' at the longest)');
+
+  /* k and m are both distances measured in sigma, so sigma cancels in k/m and the reward-to-risk
+     floor admits one set of names across all six horizons. The horizon moves the probability and the
+     expected move, never this ordering. Pinned so a later edit cannot make the floor
+     horizon-dependent without changing this line and saying why. */
+  assert(hllRealShort.ratios.length === hllRealLong.ratios.length
+    && hllRealShort.ratios.every((r, i) => Math.abs(r - hllRealLong.ratios[i]) < 1e-9),
+    'reward-to-risk is horizon-invariant because sigma cancels in k over m, so the floor admits the same names at every horizon');
 } catch (e) { failures++; console.log('  ✗ FAIL (horizon ladder gate group threw): ' + e.message); }
 /* ---------- Horizon Ladder Lab: earned-rate gate and frontier arithmetic (END) ---------- */
 

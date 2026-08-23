@@ -1032,21 +1032,82 @@ Moving the legacy branch ahead of `validateLedgerRow` fails `:456`:
 Both mutations were reverted; `git diff --quiet -- rlclaims.js` exits 0, so the module is byte-identical to the
 index and was consumed rather than edited.
 
+## Evidence pass — the two provenance rows, both ticked
+
+This pass examined the early-close row and the data-quality-gate row against the tests named for them,
+`T-04-F1` and `T-04-F4`, and read every clause of each item rather than the phrase it is usually cited by. The
+existing `T-04-F4` evidence below remains unchanged. The current `T-04-F1` carrier now exercises both endpoint
+positions plus a clean-span control. The owning scope records the full functional carrier as 13/13 passing and
+the captured full-output SHA-256 as
+`fe93e8132703fc6c2f72455ed44eb8bae2d3da4669adb3e80e94363a1746a4c2`.
+
+```
+$ node --test --test-name-pattern="T-04-F" tests/recommendation-track-record.functional.mjs
+ok 4 - T-04-F4: the data-quality gate refuses only zero-observed sessions, records the degraded ones, and is scoped to the measured window
+# tests 4
+# pass 4
+# fail 0
+exit code: 0
+```
+
+### Ticked — the data-quality gates (`T-04-F4`)
+
+The item carries four clauses and each is asserted. `zeroObservedSessions` closes `not-evaluable` at
+`tests/recommendation-track-record.functional.mjs:1464`–`:1471`, and the loop runs it for **both** window
+endpoints rather than one. `:1467` is the clause most easily lost: `error === undefined` distinguishes a
+closure *about the claim* from an `RTR-*` refusal about our own substrate, which are different records with
+different consequences for the ledger. `:1454` binds the reason to the shipped `RESOLVER_NOT_EVALUABLE_REASONS`
+rather than to a local string, so a rename upstream fails here instead of minting a reason the ledger will not
+admit. The two degraded fields resolve at `:1496`–`:1498` — `ok === true`, scoring exactly the clean value — and
+are recorded at `:1502`–`:1503`, where the sibling field is asserted to stay `[]` so neither degradation is
+invented.
+
+Two rows carry the weight of the rest. The control at `:1458`–`:1460` scores a clean window first, so each
+refusal is attributable to the gate rather than to a resolver that refuses this fixture whatever it is handed.
+The scoping row at `:1476`–`:1479` dates the same bad session before the measured window and asserts the claim
+still scores the clean value; a file-global gate would satisfy every other assertion and fail exactly there.
+`:1515` is the paired negative for the recording clause — a gated claim carries no sourcing block at all,
+because an empty degraded-session list on a `not-evaluable` record would imply a clean read that never happened.
+
+The gate is also grounded in the committed tree rather than only in a fixture this test wrote for itself:
+`:1519`–`:1523` reads the real `data/bars/EA.json` with its real zero-observed session on `2026-08-10`, and
+`:1527`–`:1531` reads the real `data/bars/NDX.json`, written before these fields existed, to prove the empty
+default serves file age rather than opening a hole — `:1536`–`:1537` still throws on a present-but-malformed
+field.
+
+### Ticked — the early-close row (`T-04-F1`)
+
+`T-04-F1` now proves both halves of "when `entryDate` or `resolutionDate` falls on one". The existing
+resolution-side case spans regular `entryDate` 2026-11-25 to early-close `resolutionDate` 2026-11-27 and asserts
+both `ok === true` and `provenance.earlyCloseSessions === ['2026-11-27']` (`:1177`–`:1179`). The new entry-side
+case reverses the relevant endpoint shape: `entryDate` is the early close 2026-11-27, `resolutionDate` is the
+ordinary regular session 2026-11-30, and the recorded list still contains 2026-11-27 (`:1182`–`:1187`). An
+implementation that dropped either endpoint can no longer satisfy the row.
+
+The clean span from 2026-01-02 to 2026-01-05 records an empty early-close list (`:1189`–`:1192`), making both
+flagged cases non-vacuous rather than satisfiable by an implementation that flags every span. Together with the
+existing assertions that `advanceSessions` lands on 2026-11-27 instead of stepping over it and that the accepted
+session predicate retains 251 sessions where the rejected `dateState` rule finds 249, these cases prove that an
+early-close session resolves normally and is recorded rather than excluded. The row is ticked in `scope.md`.
+
 ## Completion Statement
 
-Scope 04 is in progress. **38 of 56** Definition of Done items are satisfied and the remaining 18 are
+Scope 04 is in progress. **41 of 56** Definition of Done items are satisfied and the remaining 15 are
 unsatisfied. The count is read from the artifact rather than accumulated by hand: `grep -c '^- \[x\]' scope.md`
-returns 38 and `grep -c '^- \[ \]' scope.md` returns 18. *The prior statement here read "16 of 56" with a
+returns 41 and `grep -c '^- \[ \]' scope.md` returns 15. *The prior statement here read "16 of 56" with a
 per-increment breakdown summing to 16. That breakdown was stale — it predated later passes that ticked rows
 without revising it — and has been dropped rather than extended, because an enumeration this pass did not verify
-should not be carried forward.* An earlier pass ticked T-04-F2, T-04-F3 and T-04-F4 and left T-04-F1 open: its
-test passed, but the clause `provenance.earlyCloseSessions` is recorded had no assertion in the body. That pass
-added the assertion, its non-vacuity pair and its snapshot check, and ticked T-04-F1.
+should not be carried forward.* An earlier pass ticked T-04-F2, T-04-F3 and T-04-F4 and identified the missing
+entry-side assertion in T-04-F1. The current carrier adds that endpoint case and the clean-span non-vacuity
+control, so T-04-F1 is now ticked.
 This pass examined the four reducer-bridge and gate rows and ticked three. T-04-I1 and T-04-I2 were already
 fully asserted. T-04-I5 was short by two clauses — the ordering it names and the malformed-row case — both of
 which were closed inside the existing test and proven by mutation. T-04-I3 was left open at the time because its
 fingerprint clause stated a property the system does not have; **that clause has since been corrected under
 Ruling R-04-10 and the item is ticked.**
+The two provenance rows are now both ticked: the data-quality-gate row has every clause asserted, and the
+early-close row covers both endpoint positions plus a clean-span control. This reconciliation moves the current
+count 40 → 41.
 *The total moved 55 → 56 under Ruling R-04-05, which added the previously-uncovered adjusted-close path
 refusal as an unticked obligation.*
 No scope completion is claimed and no certification is requested. Ruling R-04-01

@@ -15,6 +15,8 @@
   var HOLDING_VERSION = "HoldingEntry/v1";
   var ERROR_VERSION = "PortfolioError/v1";
   var POINTER_VERSION = "portfolio-workspace-pointer/v1";
+  var DOSSIER_COLLECTION_VERSION = "ResearchDossierCollection/v1";
+  var DOSSIER_POINTER_VERSION = "portfolio-dossier-pointer/v1";
   var PREVIEW_VERSION = "portfolio-import-preview/v1";
   var STORAGE_STATE_VERSION = "portfolio-storage-state/v1";
   var PORTFOLIO_DRAFT_VERSION = "PortfolioDraft/v1";
@@ -55,6 +57,7 @@
     "P008-SOLVER": true,
     "P008-GENERIC-EVIDENCE": true,
     "P008-EXPORT": true,
+    "P008-DOSSIER": true,
     "P008-HOLDING-EDIT": true,
     "P008-CLEAR-CONFIRMATION": true,
     "P008-CLEAR-UNDECLARED": true,
@@ -70,8 +73,10 @@
   ]);
   var POLICY_SECTION_FIELDS = Object.freeze({
     storage: Object.freeze([
-      "contractVersion", "displayModeKey", "migrationVersions", "pointerContractVersion", "pointerKey", "probeValue",
-      "quarantineKey", "returnContextKey", "sessionKey", "slotKeys", "workspaceContractVersion", "workspaceNamespace"
+      "contractVersion", "displayModeKey", "dossierContractVersion", "dossierNamespace", "dossierPointerContractVersion",
+      "dossierPointerKey", "dossierQuarantineKey", "dossierSlotKeys", "migrationVersions", "pointerContractVersion",
+      "pointerKey", "probeValue", "quarantineKey", "returnContextKey", "sessionKey", "slotKeys",
+      "workspaceContractVersion", "workspaceNamespace"
     ]),
     import: Object.freeze([
       "allowedFileKinds", "assetTypes", "contractVersion", "duplicateChoices", "fieldAliases", "maxBytes", "maxRows",
@@ -94,7 +99,8 @@
       "allocationSensitivityAxes", "allocationSlippageFraction", "allocationSpreadFraction", "allocationTurnoverBudget",
       "allocationUnstableRangeThreshold", "benchmarkSymbol", "blackLittermanRiskAversion",
       "blackLittermanTau", "concentrationAlertWeight", "concentrationLenses", "contractVersion",
-      "covarianceSensitivity", "covarianceShrinkageLambda", "dossierTrialsSearched",
+      "covarianceSensitivity", "covarianceShrinkageLambda", "dossierEmbargoObservations",
+      "dossierPurgeObservations", "dossierTrialsSearched", "dossierTurnoverFraction",
       "dependenceBootstrapBlockLength", "dependenceBootstrapConfidence", "dependenceBootstrapDrawCount",
       "dependenceBootstrapSeed", "dependenceDownsideThreshold", "dependenceDrawdownThreshold",
       "dependenceMinimumJointTailEvents", "dependenceMinimumObservations", "dependenceRecoveryThreshold",
@@ -242,7 +248,11 @@
     "rlPortfolioWorkspaceV1.slotA",
     "rlPortfolioWorkspaceV1.slotB",
     "rlPortfolioWorkspaceV1.quarantine",
-    "rlPortfolioWorkspaceV1.displayMode"
+    "rlPortfolioWorkspaceV1.displayMode",
+    "rlPortfolioDossiersV1.pointer",
+    "rlPortfolioDossiersV1.slotA",
+    "rlPortfolioDossiersV1.slotB",
+    "rlPortfolioDossiersV1.quarantine"
   ]);
   var FOUNDATION_SESSION_KEYS = Object.freeze([
     "rlPortfolioWorkspaceSessionV1",
@@ -410,8 +420,13 @@
     }
     var storage = value.storage;
     if (storage.workspaceContractVersion !== WORKSPACE_VERSION || storage.pointerContractVersion !== POINTER_VERSION ||
+      storage.dossierContractVersion !== DOSSIER_COLLECTION_VERSION ||
+      storage.dossierPointerContractVersion !== DOSSIER_POINTER_VERSION ||
         storage.workspaceNamespace !== "rlPortfolioWorkspaceV1" || storage.pointerKey !== "rlPortfolioWorkspaceV1.pointer" ||
         !exactStringSet(storage.slotKeys, ["rlPortfolioWorkspaceV1.slotA", "rlPortfolioWorkspaceV1.slotB"]) ||
+      storage.dossierNamespace !== "rlPortfolioDossiersV1" || storage.dossierPointerKey !== "rlPortfolioDossiersV1.pointer" ||
+      !exactStringSet(storage.dossierSlotKeys, ["rlPortfolioDossiersV1.slotA", "rlPortfolioDossiersV1.slotB"]) ||
+      storage.dossierQuarantineKey !== "rlPortfolioDossiersV1.quarantine" ||
         storage.quarantineKey !== "rlPortfolioWorkspaceV1.quarantine" || storage.sessionKey !== "rlPortfolioWorkspaceSessionV1" ||
         storage.displayModeKey !== "rlPortfolioWorkspaceV1.displayMode" ||
         storage.returnContextKey !== "rlReturnContextV1" || !stringArray(storage.migrationVersions, true) ||
@@ -505,6 +520,9 @@
         !finiteNonNegative(value.analytics.hedgeRebalancesPerYear) ||
         typeof value.analytics.hedgeInstrumentClass !== "string" || !value.analytics.hedgeInstrumentClass.trim() ||
         !Number.isInteger(value.analytics.walkForwardFolds) || value.analytics.walkForwardFolds < 2 ||
+        !Number.isInteger(value.analytics.dossierPurgeObservations) || value.analytics.dossierPurgeObservations < 1 ||
+        !Number.isInteger(value.analytics.dossierEmbargoObservations) || value.analytics.dossierEmbargoObservations < 1 ||
+        !finiteNonNegative(value.analytics.dossierTurnoverFraction) || value.analytics.dossierTurnoverFraction > 1 ||
         !Number.isInteger(value.analytics.dossierTrialsSearched) || value.analytics.dossierTrialsSearched < 1 ||
         ["weak", "semi-strong", "strong"].indexOf(value.analytics.efficiencyFormTested) < 0 ||
         typeof value.analytics.efficiencyInformationSet !== "string" || !value.analytics.efficiencyInformationSet.trim() ||
@@ -2658,6 +2676,494 @@
     });
   }
 
+  var RESEARCH_DOSSIER_VERSION = "ResearchDossier/v1";
+  var DOSSIER_RECORD_VERSION = "DossierRecord/v1";
+  var DOSSIER_CORRECTION_VERSION = "CorrectionRecord/v1";
+  var DOSSIER_RECORD_TYPES = Object.freeze([
+    "created", "decision-fold", "candidate-result", "stress-result", "trial",
+    "claim", "correction", "invalidation", "export-receipt"
+  ]);
+  var DOSSIER_EXPORT_FIELDS = Object.freeze(["header", "records", "corrections", "provenance"]);
+  var RESEARCH_DOSSIER_FIELDS = Object.freeze([
+    "contractVersion", "createdAt", "dossierId", "headRecordHash", "policyFingerprints", "records", "workspaceIdentity"
+  ]);
+  var DOSSIER_RECORD_FIELDS = Object.freeze([
+    "contentSha256", "contractVersion", "createdAt", "dossierId", "payload", "payloadIdentity",
+    "previousRecordHash", "recordId", "recordType", "sequence"
+  ]);
+  var DOSSIER_COLLECTION_FIELDS = Object.freeze([
+    "contentSha256", "contractVersion", "createdAt", "dossiers", "generation", "semanticFingerprint", "updatedAt"
+  ]);
+  var DOSSIER_POINTER_FIELDS = Object.freeze([
+    "activeSlot", "contentSha256", "contractVersion", "generation", "semanticFingerprint"
+  ]);
+
+  function dossierFailure(reason, field, recoverable) {
+    return failure("P008-DOSSIER", reason, field || "dossier", null, Boolean(recoverable));
+  }
+
+  function dossierRecordPayload(record) {
+    var payload = clone(record);
+    delete payload.recordId;
+    delete payload.contentSha256;
+    return payload;
+  }
+
+  function buildDossierRecord(dossierId, sequence, previousRecordHash, recordType, payloadIdentity, payload, createdAt) {
+    var record = {
+      contractVersion: DOSSIER_RECORD_VERSION,
+      dossierId: dossierId,
+      sequence: sequence,
+      recordId: null,
+      previousRecordHash: previousRecordHash,
+      recordType: recordType,
+      createdAt: createdAt,
+      payloadIdentity: payloadIdentity,
+      payload: clone(payload),
+      contentSha256: null
+    };
+    var identityPayload = dossierRecordPayload(record);
+    record.recordId = contracts.fingerprint("portfolio-dossier-record", {
+      contractVersion: "portfolio-dossier-record-identity/v1",
+      record: identityPayload
+    });
+    identityPayload.recordId = record.recordId;
+    record.contentSha256 = contracts.contentSha256(identityPayload, "portfolio-dossier-record-content/v1");
+    return record;
+  }
+
+  function validateDossierRecord(record, dossierId, sequence, previousRecordHash, policy) {
+    if (!isPlainObject(record) || hasOnlyFields(record, DOSSIER_RECORD_FIELDS) ||
+        Object.keys(record).length !== DOSSIER_RECORD_FIELDS.length || record.contractVersion !== DOSSIER_RECORD_VERSION ||
+        record.dossierId !== dossierId || record.sequence !== sequence || record.previousRecordHash !== previousRecordHash ||
+        DOSSIER_RECORD_TYPES.indexOf(record.recordType) < 0 || !canonicalTimestamp(record.createdAt) ||
+        !nonEmptyString(record.payloadIdentity) || !isPlainObject(record.payload) ||
+        !HASH_PATTERN.test(record.recordId || "") || !HASH_PATTERN.test(record.contentSha256 || "")) {
+      return dossierFailure("record-invalid", "records", false);
+    }
+    if (findSecretPath(record.payload, policy, "dossier.records[" + (sequence - 1) + "].payload")) {
+      return dossierFailure("secret-shaped-content", "records", false);
+    }
+    var identityPayload = dossierRecordPayload(record);
+    var expectedRecordId = contracts.fingerprint("portfolio-dossier-record", {
+      contractVersion: "portfolio-dossier-record-identity/v1",
+      record: identityPayload
+    });
+    identityPayload.recordId = expectedRecordId;
+    var expectedContent = contracts.contentSha256(identityPayload, "portfolio-dossier-record-content/v1");
+    if (record.recordId !== expectedRecordId || record.contentSha256 !== expectedContent) {
+      return dossierFailure("record-hash-invalid", "records", false);
+    }
+    return success(record);
+  }
+
+  function validateResearchDossier(value, policy) {
+    var policyResult = validatePolicy(policy);
+    if (!policyResult.ok) return policyResult;
+    if (!isPlainObject(value) || hasOnlyFields(value, RESEARCH_DOSSIER_FIELDS) ||
+        Object.keys(value).length !== RESEARCH_DOSSIER_FIELDS.length || value.contractVersion !== RESEARCH_DOSSIER_VERSION ||
+        !HASH_PATTERN.test(value.dossierId || "") || !HASH_PATTERN.test(value.workspaceIdentity || "") ||
+        !canonicalTimestamp(value.createdAt) || !Array.isArray(value.policyFingerprints) || !value.policyFingerprints.length ||
+        !value.policyFingerprints.every(nonEmptyString) || !Array.isArray(value.records) || !value.records.length ||
+        !HASH_PATTERN.test(value.headRecordHash || "")) {
+      return dossierFailure("dossier-invalid", "dossier", false);
+    }
+    var expectedDossierId = contracts.fingerprint("research-dossier", {
+      contractVersion: "research-dossier-identity/v1",
+      workspaceIdentity: value.workspaceIdentity,
+      createdAt: value.createdAt,
+      policyFingerprints: value.policyFingerprints
+    });
+    if (value.dossierId !== expectedDossierId) return dossierFailure("dossier-identity-invalid", "dossierId", false);
+    var previous = null;
+    for (var index = 0; index < value.records.length; index += 1) {
+      var recordResult = validateDossierRecord(value.records[index], value.dossierId, index + 1, previous, policy);
+      if (!recordResult.ok) return recordResult;
+      if (index === 0 && value.records[index].recordType !== "created") {
+        return dossierFailure("creation-record-required", "records", false);
+      }
+      previous = value.records[index].contentSha256;
+    }
+    if (value.headRecordHash !== previous) return dossierFailure("head-record-mismatch", "headRecordHash", false);
+    return success(value);
+  }
+
+  function createResearchDossier(request, policy) {
+    var policyResult = validatePolicy(policy);
+    if (!policyResult.ok) return policyResult;
+    if (!isPlainObject(request) || hasOnlyFields(request, ["createdAt", "policyFingerprints", "workspaceIdentity"]) ||
+        Object.keys(request).length !== 3 || !HASH_PATTERN.test(request.workspaceIdentity || "") ||
+        !canonicalTimestamp(request.createdAt) || !Array.isArray(request.policyFingerprints) ||
+        !request.policyFingerprints.length || !request.policyFingerprints.every(nonEmptyString)) {
+      return dossierFailure("creation-input-invalid", "request", false);
+    }
+    var dossierId = contracts.fingerprint("research-dossier", {
+      contractVersion: "research-dossier-identity/v1",
+      workspaceIdentity: request.workspaceIdentity,
+      createdAt: request.createdAt,
+      policyFingerprints: request.policyFingerprints
+    });
+    var createdPayload = {
+      contractVersion: "DossierCreated/v1",
+      workspaceIdentity: request.workspaceIdentity,
+      createdAt: request.createdAt,
+      policyFingerprints: request.policyFingerprints.slice()
+    };
+    var record = buildDossierRecord(
+      dossierId, 1, null, "created",
+      contracts.contentSha256(createdPayload, "portfolio-dossier-created/v1"), createdPayload, request.createdAt
+    );
+    var dossier = {
+      contractVersion: RESEARCH_DOSSIER_VERSION,
+      dossierId: dossierId,
+      workspaceIdentity: request.workspaceIdentity,
+      createdAt: request.createdAt,
+      policyFingerprints: request.policyFingerprints.slice(),
+      headRecordHash: record.contentSha256,
+      records: [record]
+    };
+    var validation = validateResearchDossier(dossier, policy);
+    return validation.ok ? success({ dossier: dossier, record: record, accepted: true, reason: null }) : validation;
+  }
+
+  function appendDossierRecord(value, request, policy) {
+    var validation = validateResearchDossier(value, policy);
+    if (!validation.ok) return validation;
+    if (!isPlainObject(request) || hasOnlyFields(request, ["createdAt", "payload", "payloadIdentity", "recordType"]) ||
+        Object.keys(request).length !== 4 || DOSSIER_RECORD_TYPES.indexOf(request.recordType) < 0 ||
+        request.recordType === "created" || !canonicalTimestamp(request.createdAt) ||
+        request.createdAt < value.records[value.records.length - 1].createdAt ||
+        !nonEmptyString(request.payloadIdentity) || !isPlainObject(request.payload)) {
+      return dossierFailure("append-input-invalid", "request", false);
+    }
+    if (findSecretPath(request.payload, policy, "dossier.append.payload")) {
+      return dossierFailure("secret-shaped-content", "payload", false);
+    }
+    if (request.recordType === "trial" && value.records.some(function (record) {
+      return record.recordType === "trial" && record.payloadIdentity === request.payloadIdentity;
+    })) {
+      return success({ dossier: clone(value), record: null, accepted: false, reason: "duplicate-trial" });
+    }
+    var record = buildDossierRecord(
+      value.dossierId, value.records.length + 1, value.headRecordHash,
+      request.recordType, request.payloadIdentity, request.payload, request.createdAt
+    );
+    var dossier = clone(value);
+    dossier.records.push(record);
+    dossier.headRecordHash = record.contentSha256;
+    var appended = validateResearchDossier(dossier, policy);
+    return appended.ok ? success({ dossier: dossier, record: record, accepted: true, reason: null }) : appended;
+  }
+
+  function appendDossierCorrection(value, request, policy) {
+    var validation = validateResearchDossier(value, policy);
+    if (!validation.ok) return validation;
+    if (!isPlainObject(request) || hasOnlyFields(request, [
+      "correctsRecordId", "createdAt", "invalidationEffect", "reason", "replacementPayloadIdentity"
+    ]) || Object.keys(request).length !== 5 || !HASH_PATTERN.test(request.correctsRecordId || "") ||
+        !nonEmptyString(request.reason) || request.reason.length > 400 ||
+        !HASH_PATTERN.test(request.replacementPayloadIdentity || "") ||
+        !SAFE_REASON_PATTERN.test(request.invalidationEffect || "") || !canonicalTimestamp(request.createdAt)) {
+      return dossierFailure("correction-input-invalid", "request", false);
+    }
+    if (!value.records.some(function (record) { return record.recordId === request.correctsRecordId; })) {
+      return dossierFailure("correction-target-missing", "correctsRecordId", false);
+    }
+    var payload = {
+      contractVersion: DOSSIER_CORRECTION_VERSION,
+      correctsRecordId: request.correctsRecordId,
+      reason: request.reason,
+      replacementPayloadIdentity: request.replacementPayloadIdentity,
+      invalidationEffect: request.invalidationEffect
+    };
+    return appendDossierRecord(value, {
+      recordType: "correction",
+      createdAt: request.createdAt,
+      payloadIdentity: contracts.contentSha256(payload, "portfolio-dossier-correction/v1"),
+      payload: payload
+    }, policy);
+  }
+
+  function dossierCollectionPayload(value) {
+    var payload = clone(value);
+    delete payload.semanticFingerprint;
+    delete payload.contentSha256;
+    return payload;
+  }
+
+  function withDossierCollectionHashes(value) {
+    var output = clone(value);
+    delete output.semanticFingerprint;
+    delete output.contentSha256;
+    output.semanticFingerprint = contracts.fingerprint("portfolio-dossier-collection", {
+      contractVersion: "portfolio-dossier-collection-identity/v1",
+      collection: dossierCollectionPayload(output)
+    });
+    output.contentSha256 = contracts.contentSha256(output, "portfolio-dossier-collection-content/v1");
+    return output;
+  }
+
+  function validateDossierCollection(value, policy) {
+    if (!isPlainObject(value) || hasOnlyFields(value, DOSSIER_COLLECTION_FIELDS) ||
+        Object.keys(value).length !== DOSSIER_COLLECTION_FIELDS.length ||
+        value.contractVersion !== DOSSIER_COLLECTION_VERSION || !Number.isInteger(value.generation) || value.generation < 0 ||
+        !canonicalTimestamp(value.createdAt) || !canonicalTimestamp(value.updatedAt) || !Array.isArray(value.dossiers) ||
+        !HASH_PATTERN.test(value.semanticFingerprint || "") || !HASH_PATTERN.test(value.contentSha256 || "")) {
+      return dossierFailure("collection-invalid", "collection", false);
+    }
+    var seen = Object.create(null);
+    for (var index = 0; index < value.dossiers.length; index += 1) {
+      var dossierResult = validateResearchDossier(value.dossiers[index], policy);
+      if (!dossierResult.ok) return dossierResult;
+      if (seen[value.dossiers[index].dossierId]) return dossierFailure("duplicate-dossier", "dossiers", false);
+      seen[value.dossiers[index].dossierId] = true;
+    }
+    var expected = withDossierCollectionHashes(value);
+    if (expected.semanticFingerprint !== value.semanticFingerprint || expected.contentSha256 !== value.contentSha256) {
+      return dossierFailure("collection-hash-invalid", "collection", false);
+    }
+    return success(value);
+  }
+
+  function createEmptyDossierCollection(now) {
+    return withDossierCollectionHashes({
+      contractVersion: DOSSIER_COLLECTION_VERSION,
+      generation: 0,
+      dossiers: [],
+      createdAt: now,
+      updatedAt: now,
+      semanticFingerprint: null,
+      contentSha256: null
+    });
+  }
+
+  function validateDossierPointer(value, policy) {
+    if (!isPlainObject(value) || hasOnlyFields(value, DOSSIER_POINTER_FIELDS) ||
+        Object.keys(value).length !== DOSSIER_POINTER_FIELDS.length ||
+        value.contractVersion !== policy.storage.dossierPointerContractVersion ||
+        ["slotA", "slotB"].indexOf(value.activeSlot) < 0 || !Number.isInteger(value.generation) || value.generation < 1 ||
+        !HASH_PATTERN.test(value.semanticFingerprint || "") || !HASH_PATTERN.test(value.contentSha256 || "")) {
+      return dossierFailure("pointer-invalid", "pointer", false);
+    }
+    return success(value);
+  }
+
+  function dossierSlotKey(policy, activeSlot) {
+    return policy.storage.dossierSlotKeys[activeSlot === "slotA" ? 0 : 1];
+  }
+
+  function dossierPrefixPreserved(previous, next) {
+    if (previous.dossierId !== next.dossierId || previous.records.length > next.records.length) return false;
+    for (var index = 0; index < previous.records.length; index += 1) {
+      if (previous.records[index].recordId !== next.records[index].recordId ||
+          previous.records[index].contentSha256 !== next.records[index].contentSha256) return false;
+    }
+    return true;
+  }
+
+  function createDossierStore(storageAdapters, policy) {
+    var policyResult = validatePolicy(policy);
+    if (!policyResult.ok) throw new Error("P008-CONFIG policy invalid");
+    if (!isPlainObject(storageAdapters) || !storageAdapters.localStorage) {
+      throw new Error("P008-STORE-UNAVAILABLE dossier storage adapter required");
+    }
+    var local = storageAdapters.localStorage;
+
+    function openDossiers(now) {
+      if (!canonicalTimestamp(now)) return dossierFailure("timestamp-invalid", "now", false);
+      var pointerRaw;
+      try { pointerRaw = local.getItem(policy.storage.dossierPointerKey); }
+      catch (error) { return dossierFailure("pointer-read-failed", "pointer", true); }
+      if (pointerRaw === null) {
+        return success({ collection: createEmptyDossierCollection(now), storageState: "durable-empty" });
+      }
+      var pointerParsed = parseJson(pointerRaw);
+      if (!pointerParsed.ok) return dossierFailure("pointer-json-invalid", "pointer", false);
+      var pointerResultValue = validateDossierPointer(pointerParsed.value, policy);
+      if (!pointerResultValue.ok) return pointerResultValue;
+      var slotKey = dossierSlotKey(policy, pointerParsed.value.activeSlot);
+      var slotRaw;
+      try { slotRaw = local.getItem(slotKey); }
+      catch (error) { return dossierFailure("slot-read-failed", slotKey, true); }
+      if (slotRaw === null) return dossierFailure("active-slot-missing", slotKey, false);
+      var slotParsed = parseJson(slotRaw);
+      if (!slotParsed.ok) return dossierFailure("slot-json-invalid", slotKey, false);
+      var collectionResult = validateDossierCollection(slotParsed.value, policy);
+      if (!collectionResult.ok) return collectionResult;
+      if (pointerParsed.value.generation !== slotParsed.value.generation ||
+          pointerParsed.value.semanticFingerprint !== slotParsed.value.semanticFingerprint ||
+          pointerParsed.value.contentSha256 !== slotParsed.value.contentSha256) {
+        return dossierFailure("pointer-slot-mismatch", slotKey, false);
+      }
+      return success({ collection: slotParsed.value, storageState: "durable" });
+    }
+
+    function commitDossier(dossier, expectedGeneration, now) {
+      var dossierResult = validateResearchDossier(dossier, policy);
+      if (!dossierResult.ok) return dossierResult;
+      if (!Number.isInteger(expectedGeneration) || expectedGeneration < 0 || !canonicalTimestamp(now)) {
+        return dossierFailure("commit-arguments-invalid", "generation", false);
+      }
+      var opened = openDossiers(now);
+      if (!opened.ok) return opened;
+      if (opened.value.collection.generation !== expectedGeneration) {
+        return dossierFailure("generation-conflict", "generation", true);
+      }
+      var collection = clone(opened.value.collection);
+      var existingIndex = collection.dossiers.findIndex(function (entry) { return entry.dossierId === dossier.dossierId; });
+      if (existingIndex >= 0) {
+        if (!dossierPrefixPreserved(collection.dossiers[existingIndex], dossier)) {
+          return dossierFailure("append-only-prefix-required", "dossier", false);
+        }
+        collection.dossiers[existingIndex] = clone(dossier);
+      } else {
+        collection.dossiers.push(clone(dossier));
+      }
+      collection.generation = expectedGeneration + 1;
+      collection.updatedAt = now;
+      collection = withDossierCollectionHashes(collection);
+      var collectionValidation = validateDossierCollection(collection, policy);
+      if (!collectionValidation.ok) return collectionValidation;
+      var pointerRaw = null;
+      try { pointerRaw = local.getItem(policy.storage.dossierPointerKey); }
+      catch (error) { return dossierFailure("pointer-read-failed", "pointer", true); }
+      var activeSlot = null;
+      if (pointerRaw !== null) {
+        var parsedPointer = parseJson(pointerRaw);
+        if (!parsedPointer.ok || !validateDossierPointer(parsedPointer.value, policy).ok) {
+          return dossierFailure("pointer-invalid", "pointer", false);
+        }
+        activeSlot = parsedPointer.value.activeSlot;
+      }
+      var nextSlot = activeSlot === "slotA" ? "slotB" : "slotA";
+      var slotKey = dossierSlotKey(policy, nextSlot);
+      var serialized = contracts.canonicalize(collection, "portfolio-dossier-collection-content/v1");
+      try {
+        local.setItem(slotKey, serialized);
+        var reread = local.getItem(slotKey);
+        var parsedSlot = parseJson(reread);
+        if (reread !== serialized || !parsedSlot.ok || !validateDossierCollection(parsedSlot.value, policy).ok) {
+          return dossierFailure("slot-verification-failed", slotKey, true);
+        }
+      } catch (error) { return dossierFailure("slot-write-failed", slotKey, true); }
+      var pointer = {
+        contractVersion: policy.storage.dossierPointerContractVersion,
+        activeSlot: nextSlot,
+        generation: collection.generation,
+        semanticFingerprint: collection.semanticFingerprint,
+        contentSha256: collection.contentSha256
+      };
+      var serializedPointer = contracts.canonicalize(pointer, pointer.contractVersion);
+      try {
+        local.setItem(policy.storage.dossierPointerKey, serializedPointer);
+        if (local.getItem(policy.storage.dossierPointerKey) !== serializedPointer) {
+          if (pointerRaw === null) local.removeItem(policy.storage.dossierPointerKey);
+          else local.setItem(policy.storage.dossierPointerKey, pointerRaw);
+          return dossierFailure("pointer-verification-failed", "pointer", true);
+        }
+      } catch (error) { return dossierFailure("pointer-write-failed", "pointer", true); }
+      return success({ collection: collection, dossier: clone(dossier), storageState: "durable" });
+    }
+
+    return Object.freeze({ openDossiers: openDossiers, commitDossier: commitDossier });
+  }
+
+  function selectedDossierExport(selection, policy) {
+    if (!isPlainObject(selection) || !isPlainObject(selection.dossier) || !Array.isArray(selection.fields) ||
+        !selection.fields.length || new Set(selection.fields).size !== selection.fields.length ||
+        !selection.fields.every(function (field) { return DOSSIER_EXPORT_FIELDS.indexOf(field) >= 0; })) {
+      return failure("P008-EXPORT", "selection-invalid", "selection", null, false);
+    }
+    if (findSecretPath(selection.dossier, policy, "dossier-export")) {
+      return failure("P008-EXPORT", "secret-shaped-content", "dossier", null, false);
+    }
+    var validation = validateResearchDossier(selection.dossier, policy);
+    if (!validation.ok) return validation;
+    var dossier = selection.dossier;
+    var output = {};
+    selection.fields.forEach(function (field) {
+      if (field === "header") {
+        output.header = {
+          contractVersion: dossier.contractVersion,
+          dossierId: dossier.dossierId,
+          workspaceIdentity: dossier.workspaceIdentity,
+          createdAt: dossier.createdAt,
+          headRecordHash: dossier.headRecordHash
+        };
+      } else if (field === "records") output.records = clone(dossier.records);
+      else if (field === "corrections") {
+        output.corrections = clone(dossier.records.filter(function (record) { return record.recordType === "correction"; }));
+      } else if (field === "provenance") {
+        output.provenance = {
+          policyFingerprints: dossier.policyFingerprints.slice(),
+          payloadIdentities: dossier.records.map(function (record) { return record.payloadIdentity; })
+        };
+      }
+    });
+    return success(output);
+  }
+
+  function previewDossierExport(selection, policy) {
+    var policyResult = validatePolicy(policy);
+    if (!policyResult.ok) return policyResult;
+    var selected = selectedDossierExport(selection, policy);
+    if (!selected.ok) return selected;
+    return success({
+      contractVersion: "portfolio-dossier-export-preview/v1",
+      selectedFields: selection.fields.slice(),
+      recordCount: selection.dossier.records.length,
+      correctionCount: selection.dossier.records.filter(function (record) { return record.recordType === "correction"; }).length,
+      recordTypes: Array.from(new Set(selection.dossier.records.map(function (record) { return record.recordType; }))),
+      warning: policy.display.privateExportWarning,
+      personalValuesIncluded: true,
+      publicUrl: null
+    });
+  }
+
+  function exportDossierPrivate(selection, policy) {
+    var policyResult = validatePolicy(policy);
+    if (!policyResult.ok) return policyResult;
+    if (!isPlainObject(selection) || selection.userGesture !== true || !canonicalTimestamp(selection.exportedAt)) {
+      return failure("P008-EXPORT", selection && selection.userGesture !== true ? "user-gesture-required" : "export-request-invalid", "selection", null, false);
+    }
+    var selected = selectedDossierExport({ dossier: selection.dossier, fields: selection.fields }, policy);
+    if (!selected.ok) return selected;
+    return success({
+      contractVersion: "portfolio-dossier-private-export/v1",
+      mimeType: "application/json",
+      fileName: "portfolio-research-dossier.json",
+      warning: policy.display.privateExportWarning,
+      exportedAt: selection.exportedAt,
+      publicUrl: null,
+      networkRequest: null,
+      text: contracts.canonicalize(selected.value, "portfolio-dossier-private-export-content/v1")
+    });
+  }
+
+  function clearDossierStorage(storageAdapters, policy) {
+    var policyResult = validatePolicy(policy);
+    if (!policyResult.ok) return policyResult;
+    if (!isPlainObject(storageAdapters) || !storageAdapters.localStorage) {
+      return dossierFailure("storage-adapter-required", "storage", false);
+    }
+    var keys = [policy.storage.dossierPointerKey]
+      .concat(policy.storage.dossierSlotKeys)
+      .concat([policy.storage.dossierQuarantineKey]);
+    var local = storageAdapters.localStorage;
+    try { keys.forEach(function (key) { local.removeItem(key); }); }
+    catch (error) { return dossierFailure("clear-failed", "storage", true); }
+    var remaining;
+    try { remaining = keys.filter(function (key) { return local.getItem(key) !== null; }); }
+    catch (error) { return dossierFailure("clear-verification-failed", "storage", true); }
+    if (remaining.length) return dossierFailure("clear-verification-failed", "storage", true);
+    return success({
+      contractVersion: "portfolio-dossier-clear-result/v1",
+      verifiedEmpty: true,
+      clearedKeyCount: keys.length,
+      remainingKeys: []
+    });
+  }
+
   /* A saved allocation stores its BASIS identity and a summary, never the full
      candidate matrix. The basis reproduces the candidate exactly, so persisting
      the weights would duplicate derivable data in private storage and widen
@@ -3931,6 +4437,14 @@
     buildAllocationCandidate: buildAllocationCandidate,
     buildDossierCandidate: buildDossierCandidate,
     validateDossier: validateDossier,
+    createResearchDossier: createResearchDossier,
+    appendDossierRecord: appendDossierRecord,
+    appendDossierCorrection: appendDossierCorrection,
+    validateResearchDossier: validateResearchDossier,
+    createDossierStore: createDossierStore,
+    previewDossierExport: previewDossierExport,
+    exportDossierPrivate: exportDossierPrivate,
+    clearDossierStorage: clearDossierStorage,
     validateScenario: validateScenario,
     buildInterestSignalCandidate: buildInterestSignalCandidate,
     deriveInterestSignals: deriveInterestSignals,

@@ -5946,6 +5946,216 @@
      Scope 15 - walk-forward dossier and claim boundaries
      --------------------------------------------------------------------- */
 
+  var DECISION_FOLD_VERSION = "DecisionFold/v1";
+  var DECISION_FOLD_REQUEST_VERSION = "decision-fold-request/v1";
+  var DECISION_INTERVAL_VERSION = "decision-interval/v1";
+  var DECISION_OBSERVATION_VERSION = "decision-observation/v1";
+  var DECISION_COSTS_VERSION = "decision-costs/v1";
+  var TRIAL_LEDGER_VERSION = "TrialLedger/v1";
+  var TRIAL_LEDGER_ENTRY_VERSION = "TrialLedgerEntry/v1";
+  var HASH_RE = /^sha256:[a-f0-9]{64}$/;
+  var DECISION_RESULT_STATES = Object.freeze([
+    "in-sample", "out-of-sample", "stress", "gross-only", "net",
+    "not-evaluated", "infeasible", "unavailable"
+  ]);
+  var TRIAL_KINDS = Object.freeze([
+    "method", "parameter-vector", "history-sample", "stress-definition",
+    "view-set", "desmoothing-point", "hedge-ratio", "selected-output"
+  ]);
+
+  function isTimestamp(value) {
+    return typeof value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value) &&
+      Number.isFinite(Date.parse(value));
+  }
+
+  function hasExactKeys(value, keys) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+    var actual = Object.keys(value).sort();
+    var expected = keys.slice().sort();
+    return actual.length === expected.length && actual.every(function (key, index) { return key === expected[index]; });
+  }
+
+  function validDecisionInterval(value) {
+    return hasExactKeys(value, ["contractVersion", "endDate", "startDate"]) &&
+      value.contractVersion === DECISION_INTERVAL_VERSION && isDate(value.startDate) && isDate(value.endDate) &&
+      value.startDate <= value.endDate;
+  }
+
+  function validDecisionObservation(value) {
+    return hasExactKeys(value, [
+      "availableAt", "contractVersion", "date", "observationId", "portfolioReturn", "sourceVintageId", "stress"
+    ]) && value.contractVersion === DECISION_OBSERVATION_VERSION && typeof value.observationId === "string" &&
+      value.observationId.length > 0 && isDate(value.date) && isTimestamp(value.availableAt) &&
+      isNum(value.portfolioReturn) && value.portfolioReturn > -1 && HASH_RE.test(value.sourceVintageId || "") &&
+      typeof value.stress === "boolean";
+  }
+
+  function completeDecisionCosts(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+    if (!hasExactKeys(value, [
+      "carryFraction", "commissionFraction", "contractVersion", "financingFraction", "rebalanceTiming",
+      "slippageFraction", "spreadFraction", "turnoverFraction"
+    ]) || value.contractVersion !== DECISION_COSTS_VERSION ||
+        typeof value.rebalanceTiming !== "string" || value.rebalanceTiming.length === 0) return false;
+    return ["commissionFraction", "spreadFraction", "slippageFraction", "turnoverFraction", "financingFraction", "carryFraction"]
+      .every(function (key) { return isNum(value[key]) && value[key] >= 0; });
+  }
+
+  function compoundedReturn(observations) {
+    var wealth = 1;
+    for (var index = 0; index < observations.length; index += 1) wealth *= 1 + observations[index].portfolioReturn;
+    return wealth - 1;
+  }
+
+  function decisionResult(state, value, observationIds, reason) {
+    return {
+      contractVersion: "DecisionResult/v1",
+      state: state,
+      value: isNum(value) ? value : null,
+      observationIds: observationIds.slice(),
+      observationCount: observationIds.length,
+      reason: reason || null
+    };
+  }
+
+  function evaluateDecisionFold(request) {
+    if (!hasExactKeys(request, [
+      "applicationEnd", "applicationStart", "candidateIdentity", "contractVersion", "costs", "decisionCutoff",
+      "embargo", "fittedParameterIdentities", "observations", "purge", "rebalanceDate", "sourceVintages",
+      "trainingEnd", "trainingStart"
+    ]) || request.contractVersion !== DECISION_FOLD_REQUEST_VERSION) {
+      return { state: "unavailable", reason: "request-invalid" };
+    }
+    if (!isDate(request.trainingStart) || !isDate(request.trainingEnd) || request.trainingStart > request.trainingEnd ||
+        !isTimestamp(request.decisionCutoff) || !validDecisionInterval(request.embargo) ||
+        !validDecisionInterval(request.purge) || !isDate(request.rebalanceDate) || !isDate(request.applicationStart) ||
+        !isDate(request.applicationEnd) || request.applicationStart > request.applicationEnd ||
+        request.trainingEnd >= request.applicationStart || request.rebalanceDate > request.applicationStart ||
+        request.embargo.endDate >= request.applicationStart || !HASH_RE.test(request.candidateIdentity || "")) {
+      return { state: "unavailable", reason: "decision-clock-invalid" };
+    }
+    if (!Array.isArray(request.observations) || !request.observations.length ||
+        !request.observations.every(validDecisionObservation) ||
+        !Array.isArray(request.fittedParameterIdentities) || !request.fittedParameterIdentities.length ||
+        !request.fittedParameterIdentities.every(function (identity) { return HASH_RE.test(identity || ""); }) ||
+        !Array.isArray(request.sourceVintages) || !request.sourceVintages.length ||
+        !request.sourceVintages.every(function (source) {
+          return hasExactKeys(source, ["publishedAt", "sourceId", "vintageId"]) &&
+            typeof source.sourceId === "string" && source.sourceId.length > 0 &&
+            HASH_RE.test(source.vintageId || "") && isTimestamp(source.publishedAt);
+        })) {
+      return { state: "unavailable", reason: "decision-evidence-invalid" };
+    }
+
+    var cutoffEpoch = Date.parse(request.decisionCutoff);
+    var eligibleTraining = [];
+    var excludedLookAhead = [];
+    var excludedPurged = [];
+    var application = [];
+    request.observations.forEach(function (observation) {
+      var insideTraining = observation.date >= request.trainingStart && observation.date <= request.trainingEnd;
+      var insidePurge = observation.date >= request.purge.startDate && observation.date <= request.purge.endDate;
+      if (insideTraining && Date.parse(observation.availableAt) > cutoffEpoch) excludedLookAhead.push(observation);
+      else if (insideTraining && insidePurge) excludedPurged.push(observation);
+      else if (insideTraining) eligibleTraining.push(observation);
+      if (observation.date >= request.applicationStart && observation.date <= request.applicationEnd) {
+        application.push(observation);
+      }
+    });
+    if (!eligibleTraining.length || !application.length) {
+      return { state: "unavailable", reason: !eligibleTraining.length ? "training-sample-empty" : "application-sample-empty" };
+    }
+
+    var gross = compoundedReturn(application);
+    var stress = application.filter(function (observation) { return observation.stress; });
+    var costs = cloneData(request.costs);
+    var costsComplete = completeDecisionCosts(costs);
+    var totalCost = costsComplete
+      ? (costs.commissionFraction + costs.spreadFraction + costs.slippageFraction) * costs.turnoverFraction +
+        costs.financingFraction + costs.carryFraction
+      : null;
+    var results = {
+      inSample: decisionResult("in-sample", compoundedReturn(eligibleTraining), eligibleTraining.map(function (row) { return row.observationId; })),
+      outOfSample: decisionResult("out-of-sample", gross, application.map(function (row) { return row.observationId; })),
+      stress: stress.length
+        ? decisionResult("stress", compoundedReturn(stress), stress.map(function (row) { return row.observationId; }))
+        : decisionResult("not-evaluated", null, [], "no-stress-observations"),
+      gross: decisionResult("gross-only", gross, application.map(function (row) { return row.observationId; })),
+      net: costsComplete
+        ? decisionResult("net", gross - totalCost, application.map(function (row) { return row.observationId; }))
+        : decisionResult("unavailable", null, application.map(function (row) { return row.observationId; }), "complete-cost-authority-required")
+    };
+    var foldIdentityInput = cloneData(request);
+    var foldId = stableRecordFingerprint(foldIdentityInput);
+    var resultIdentities = {};
+    Object.keys(results).forEach(function (key) { resultIdentities[key] = stableRecordFingerprint(results[key]); });
+    return {
+      contractVersion: DECISION_FOLD_VERSION,
+      state: "ok",
+      foldId: foldId,
+      trainingStart: request.trainingStart,
+      trainingEnd: request.trainingEnd,
+      decisionCutoff: request.decisionCutoff,
+      embargo: cloneData(request.embargo),
+      purge: cloneData(request.purge),
+      rebalanceDate: request.rebalanceDate,
+      applicationStart: request.applicationStart,
+      applicationEnd: request.applicationEnd,
+      sourceVintages: cloneData(request.sourceVintages),
+      eligibleTrainingObservationIds: eligibleTraining.map(function (row) { return row.observationId; }),
+      excludedLookAheadObservationIds: excludedLookAhead.map(function (row) { return row.observationId; }),
+      excludedPurgedObservationIds: excludedPurged.map(function (row) { return row.observationId; }),
+      applicationObservationIds: application.map(function (row) { return row.observationId; }),
+      fittedParameterIdentities: request.fittedParameterIdentities.slice(),
+      candidateIdentity: request.candidateIdentity,
+      costs: costs,
+      totalCostFraction: totalCost,
+      results: results,
+      resultIdentities: resultIdentities,
+      resultStates: DECISION_RESULT_STATES.slice(),
+      requestIdentityInput: foldIdentityInput,
+      claimBoundary: "Training evidence is limited to observations available by the decision cutoff. Application starts after the declared embargo; gross, net, stress, infeasible, unavailable, and not-evaluated are distinct states."
+    };
+  }
+
+  function buildTrialLedger(trials) {
+    if (!Array.isArray(trials) || !trials.length) return { state: "unavailable", reason: "trials-required" };
+    var entries = [];
+    var seen = Object.create(null);
+    var duplicateCount = 0;
+    for (var index = 0; index < trials.length; index += 1) {
+      var trial = trials[index];
+      if (!hasExactKeys(trial, ["selected", "trialIdentity", "trialKind"]) ||
+          TRIAL_KINDS.indexOf(trial.trialKind) < 0 || !HASH_RE.test(trial.trialIdentity || "") ||
+          typeof trial.selected !== "boolean") {
+        return { state: "unavailable", reason: "trial-invalid", trialIndex: index };
+      }
+      var key = trial.trialKind + "|" + trial.trialIdentity;
+      if (seen[key]) { duplicateCount += 1; continue; }
+      seen[key] = true;
+      entries.push({
+        contractVersion: TRIAL_LEDGER_ENTRY_VERSION,
+        sequence: entries.length + 1,
+        trialKind: trial.trialKind,
+        trialIdentity: trial.trialIdentity,
+        selected: trial.selected
+      });
+    }
+    return {
+      contractVersion: TRIAL_LEDGER_VERSION,
+      state: "ok",
+      ledgerIdentity: stableRecordFingerprint(entries),
+      entries: entries,
+      duplicateCount: duplicateCount,
+      selectionBiasDisclosure: {
+        trialsInspected: entries.length,
+        selectedOutputs: entries.filter(function (entry) { return entry.selected; }).length,
+        statement: entries.length + " distinct tried variant" + (entries.length === 1 ? " was" : "s were") +
+          " inspected. Selection among inspected variants can overstate historical evidence."
+      }
+    };
+  }
+
   /**
    * Split a return sample into walk-forward folds and evaluate each separately.
    *
@@ -6209,6 +6419,8 @@
     allocationSensitivity: allocationSensitivity,
     blackLittermanViews: blackLittermanViews,
     blackLittermanPosterior: blackLittermanPosterior,
+    evaluateDecisionFold: evaluateDecisionFold,
+    buildTrialLedger: buildTrialLedger,
     walkForwardDossier: walkForwardDossier,
     marketEfficiencyClaim: marketEfficiencyClaim,
     replacementComparison: replacementComparison,

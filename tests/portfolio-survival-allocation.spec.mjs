@@ -25,7 +25,7 @@ const DATES = ['2026-05-04', '2026-05-05', '2026-05-06', '2026-05-07', '2026-05-
 async function openLab(page) {
   const errors = [];
   PAGE_ERRORS.set(page, errors);
-  page.on('pageerror', (error) => errors.push(String(error)));
+  page.on('pageerror', (error) => errors.push(error.stack || String(error)));
   const response = await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#brief`);
   expect(response?.status(), 'the Allocation host page must be served').toBe(200);
   await expect(page.locator('#workspaceTabBrief')).toHaveAttribute('aria-selected', 'true');
@@ -543,6 +543,97 @@ test('Regression: SCN-008-031 dossier separates in sample walk forward costs and
   expect(bodyText).not.toMatch(/\bproves\b/);
   expect(bodyText).not.toMatch(/\bguaranteed\b/);
   expect(bodyText).not.toMatch(/this rule will outperform(?! in future\.)/);
+});
+
+test('Regression: SCN-008-051 dossier preserves decision time costs trials corrections reload and private export', async ({ page }) => {
+  await seedLongHistory(page, 'TP-25-03 immutable dossier');
+  let panel = await openDossier(page);
+
+  await expect(panel.locator('#dossierDecisionTable')).toBeVisible();
+  const decision = await panel.locator('#dossierDecisionTable tbody tr').evaluate((row) => ({
+    training: row.querySelector('[data-field="training"]').textContent.trim(),
+    cutoff: row.querySelector('[data-field="decision-cutoff"]').textContent.trim(),
+    embargo: row.querySelector('[data-field="embargo"]').textContent.trim(),
+    rebalance: row.querySelector('[data-field="rebalance"]').textContent.trim(),
+    application: row.querySelector('[data-field="application"]').textContent.trim()
+  }));
+  expect(decision.training).toMatch(/^\d{4}-\d{2}-\d{2} → \d{4}-\d{2}-\d{2}$/);
+  expect(decision.cutoff).toMatch(/T00:00:00\.000Z$/);
+  expect(decision.embargo).toContain('→');
+  expect(decision.rebalance).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  expect(decision.application).toContain('→');
+  const sourceVintages = await panel.locator('#dossierSourceVintageTable tbody tr').evaluateAll((rows) => rows.map((row) => row.dataset.vintageId));
+  expect(sourceVintages.length).toBeGreaterThanOrEqual(1);
+  sourceVintages.forEach((identity) => expect(identity).toMatch(/^sha256:[a-f0-9]{64}$/));
+
+  const costRows = await panel.locator('#dossierCostTable tbody tr').evaluateAll((rows) => rows.map((row) => row.dataset.cost));
+  expect(costRows).toEqual(['commission', 'spread', 'slippage', 'turnover', 'financing', 'carry', 'rebalance-timing']);
+  await expect(panel.locator('#dossierResultTable [data-result="gross"]')).toHaveAttribute('data-state', 'gross-only');
+  await expect(panel.locator('#dossierResultTable [data-result="net"]')).toHaveAttribute('data-state', 'net');
+  const trialRows = await panel.locator('#dossierTrialTable tbody tr').count();
+  expect(trialRows).toBeGreaterThanOrEqual(5);
+  await expect(panel.locator('#dossierTrialDisclosure')).toContainText(`${trialRows} distinct tried variants`);
+  const limitationText = (await panel.locator('#dossierAuditLimitations').textContent()).toLowerCase();
+  ['survivorship', 'stale classification', 'data availability', 'look-ahead', 'selection', 'source limitation']
+    .forEach((term) => expect(limitationText).toContain(term));
+
+  await panel.locator('#saveResearchDossier').click();
+  await expect(panel.locator('#dossierSaveStatus')).toContainText('Saved locally');
+  const before = await panel.locator('#dossierRecordTable tbody tr').evaluateAll((rows) => rows.map((row) => row.dataset.recordId));
+  expect(before.length).toBeGreaterThanOrEqual(5);
+  const headBefore = await panel.locator('#dossierAuditHead').getAttribute('data-head-record-hash');
+  expect(headBefore).toMatch(/^sha256:[a-f0-9]{64}$/);
+
+  await page.reload();
+  await expect(page.locator('#workspaceTabDossier')).toHaveAttribute('aria-selected', 'true');
+  panel = page.locator('[data-route="dossier"]');
+  await expect(panel).toBeVisible();
+  await expect(panel.locator('#dossierSaveStatus')).toContainText('Reloaded local dossier');
+  const afterReload = await panel.locator('#dossierRecordTable tbody tr').evaluateAll((rows) => rows.map((row) => row.dataset.recordId));
+  expect(afterReload).toEqual(before);
+  await expect(panel.locator('#dossierAuditHead')).toHaveAttribute('data-head-record-hash', headBefore);
+  const reloadedTypes = await panel.locator('#dossierRecordTable tbody tr').evaluateAll((rows) => rows.map((row) => row.dataset.recordType));
+  expect(reloadedTypes).toContain('claim');
+  await expect(panel.locator('#appendDossierCorrection')).toBeEnabled();
+
+  await panel.locator('#dossierCorrectionReason').fill('Clarify the claim boundary without rewriting prior evidence.');
+  await panel.locator('#appendDossierCorrection').click();
+  expect(PAGE_ERRORS.get(page), 'appending a correction must not throw').toEqual([]);
+  await expect(panel.locator('#dossierSaveStatus')).toContainText('Correction appended');
+  const afterCorrection = await panel.locator('#dossierRecordTable tbody tr').evaluateAll((rows) => rows.map((row) => ({
+    id: row.dataset.recordId,
+    type: row.dataset.recordType
+  })));
+  expect(afterCorrection.slice(0, before.length).map((row) => row.id)).toEqual(before);
+  expect(afterCorrection.at(-1).type).toBe('correction');
+  const headAfter = await panel.locator('#dossierAuditHead').getAttribute('data-head-record-hash');
+  expect(headAfter).not.toBe(headBefore);
+
+  await page.reload();
+  panel = page.locator('[data-route="dossier"]');
+  await expect(panel).toBeVisible();
+  const correctionReload = await panel.locator('#dossierRecordTable tbody tr').evaluateAll((rows) => rows.map((row) => ({
+    id: row.dataset.recordId,
+    type: row.dataset.recordType
+  })));
+  expect(correctionReload).toEqual(afterCorrection);
+  await expect(panel.locator('#dossierAuditHead')).toHaveAttribute('data-head-record-hash', headAfter);
+
+  await panel.locator('#dossierExportHeader').check();
+  await panel.locator('#dossierExportCorrections').check();
+  await panel.locator('#previewDossierExport').click();
+  await expect(panel.locator('#dossierExportPreview')).toContainText('header, corrections');
+  await expect(panel.locator('#dossierExportPreview')).toContainText('Private local export');
+  await panel.locator('#dossierExportAcknowledgement').check();
+  const urlBefore = page.url();
+  const downloadPromise = page.waitForEvent('download');
+  await panel.locator('#downloadDossierExport').click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe('portfolio-research-dossier.json');
+  expect(page.url()).toBe(urlBefore);
+  await expect(panel.locator('#dossierSaveStatus')).toContainText('Private export receipt appended');
+  await expect(panel.locator('#dossierRecordTable tbody tr').last()).toHaveAttribute('data-record-type', 'export-receipt');
+  expect(PAGE_ERRORS.get(page), 'the full dossier workflow must not throw').toEqual([]);
 });
 
 test('Regression: SCN-008-032 efficiency claim is scoped to one tested information set', async ({ page }) => {

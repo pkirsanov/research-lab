@@ -1782,3 +1782,66 @@ the tracked tree.
 ## Completion Statement
 
 Filled at execution.
+
+## SCN-022-013 request-ledger row, verifying pass (2026-08-22)
+
+The restated DoD row was assessed against its own cited evidence,
+`report.md#tp-05-20`, whose command is the `SCN-022-013` browser row in
+`tests/lifetime-tax-combined.spec.mjs`. The command passes:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-013 the request ledger stays empty across the full combined workflow" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/lifetime-tax-combined.spec.mjs:407:1 › Regression: SCN-022-013 the request ledger stays empty across the full combined workflow (896ms)
+
+  1 passed (2.4s)
+```
+
+The row states three propositions. Two of them the run does establish. The third
+it establishes on three of the four surfaces it names, and not on the fourth.
+
+| the row's proposition | what the cited test asserts | established |
+| --- | --- | --- |
+| the ledger does not grow after first paint across the full combined workflow | `expect(ledger.length).toBe(afterFirstPaint)`, taken after the household declaration, the residency declaration, the Power switch with the combined curve drawn, and the return to Simple | yes |
+| every entry is a same-origin read of a document the page's own declarations name | the cross-origin filter over the whole ledger, plus `expect(permitted).toContain(pathname)` for every entry against a set derived from the page's own script tags and configuration, plus the two vacuity pins that the set contains `/rltaxcombined.js` and does not contain an undeclared path | yes |
+| no household value reaches any URL, request, referrer or console message | URL: the page URL, its search and its hash. Request: each entry's URL against the sentinel, the residency token and its encoded form, plus an empty `postData`. Console: each message against the sentinel and the residency token. Referrer: nothing | no — three of four surfaces |
+
+### The referrer surface is not asserted
+
+`tests/lifetime-tax-combined.spec.mjs` contains zero occurrences of `referrer`.
+The gap is structural rather than an omitted line: the ledger those assertions
+filter is built by `collectRequests` in `tests/lifetime-tax.support.mjs`, which
+records exactly three fields per request —
+
+```
+export function collectRequests(page) {
+  const ledger = [];
+  page.on('request', (request) => ledger.push({
+    url: request.url(),
+    method: request.method(),
+    postData: request.postData() || ''
+  }));
+  return ledger;
+}
+```
+
+— so no referrer value is captured for any assertion to read, and none is read
+from the document either. A referrer is a request header; neither `page.url()`
+nor `postData` is a substitute for it.
+
+This is a genuine gap in the row rather than a repo-wide convention. The sibling
+canary in `tests/lifetime-tax-foundation.spec.mjs` reads `document.referrer` off
+the page and asserts against it directly, so the surface is one this family
+already knows how to cover.
+
+The row therefore stays open. Its first two propositions are earned and its third
+is three-quarters earned, and a tick would assert the referrer surface on evidence
+that does not exist. Closing it needs a referrer assertion in the cited browser
+row, which is a change to a test file rather than a re-reading of one, and is left
+to a pass that owns that change.
+
+**Claim Source:** executed for the command output and for both quoted source
+excerpts, which are read verbatim from the tracked tree. No mutation was applied.
+

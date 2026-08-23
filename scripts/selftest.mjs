@@ -26214,6 +26214,44 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (horizon ladder gate group threw): ' + e.message); }
 /* ---------- Horizon Ladder Lab: earned-rate gate and frontier arithmetic (END) ---------- */
 
+/* ---------- Narrative lane: the acceptance contract must be stated and retried against (START) ---------- */
+/* On 2026-08-23 lane=core failed 4/4 across two independent publications and discarded both
+   windows. It was rejected every time for `regime.vix.regimeLabel` and `regime.vix.falsifier`,
+   two leaves `readCompleteFragment` requires and the prompt never named — the model wrote the 9
+   required direct children of `regime` and stopped. The retry then re-sent the identical prompt,
+   so attempt 2 reproduced attempt 1 exactly. Two things have to hold: the contract is stated, and
+   a retry is told what it missed. */
+try {
+  group('brief narrative lane — stated acceptance contract and informed retry');
+  const laneAcceptSrc = read('scripts/brief-narrative-parallel.mjs');
+  const { BRIEF_NARRATIVE_FIELDS_REQUIRED: laneRequired } = await import('./reader-vocabulary.mjs');
+
+  /* The behavioural half: the leaves that actually broke the lane are genuinely required of it,
+     so this pins the contract rather than the wording of one sentence. */
+  const coreOwned = new Set(['nextSession', 'dataAsOf', 'regime', 'backdrop', 'psychology']);
+  const coreRequired = laneRequired
+    .filter((pattern) => !pattern.includes('*') && !pattern.includes('[]'))
+    .filter((pattern) => pattern.split('.').length > 1 && coreOwned.has(pattern.split('.')[0]));
+  assert(coreRequired.includes('regime.vix.regimeLabel') && coreRequired.includes('regime.vix.falsifier'),
+    'the core lane is genuinely required to emit regime.vix.regimeLabel and regime.vix.falsifier, the two leaves it silently omitted 4/4 times');
+
+  assert(/const requiredLeaves = requiredLeavesFor\(lane\.keys\)/.test(laneAcceptSrc)
+    && /REJECTED unless every one of these nested fields is present/.test(laneAcceptSrc),
+    'the lane prompt states the required nested fields it will be rejected for omitting — enforcing an acceptance contract the lane was never told is what made the failure deterministic');
+
+  /* Both prompt branches must carry it: the research branch builds its own string, so wiring only
+     the main branch would leave the research lanes judged by an unstated contract. */
+  assert((laneAcceptSrc.match(/\$\{requiredLeafInstruction\}/g) || []).length === 2,
+    'both prompt branches carry the required-leaf instruction, so no lane is judged against a contract it was not given');
+
+  assert(/function runLane\(lane, laneAttempt, priorGap = ''\)/.test(laneAcceptSrc)
+    && /\$\{retryInstruction\}/.test(laneAcceptSrc)
+    && /priorGap = describeFragmentGap\(/.test(laneAcceptSrc)
+    && /runLane\(lane, attempt, priorGap\)/.test(laneAcceptSrc),
+    'a retry is told why the previous attempt was rejected and the reason reaches the prompt — a retry that re-sends the identical input is the same attempt run twice');
+} catch (e) { failures++; console.log('  ✗ FAIL (narrative lane acceptance group threw): ' + e.message); }
+/* ---------- Narrative lane: the acceptance contract must be stated and retried against (END) ---------- */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

@@ -1062,13 +1062,14 @@
                 </div>
                 <p id="deductionCapLine" class="subtle"></p>
                 <div class="table-scroll">
-                    <table id="deductionDecision" aria-label="The itemised total beside the standard deduction, and the side actually applied">
-                        <caption>The side applied is recomputed from the two totals. It is never read from a declared preference.</caption>
+                    <table id="deductionDecision" aria-label="The itemised total beside the standard deduction, the side this comparison names as larger, and the side that priced the tax">
+                        <caption>The larger side is recomputed from the two totals and is never read from a declared preference. Naming it is a comparison: the tax was priced on the deduction named in the last column.</caption>
                         <thead>
                             <tr>
                                 <th scope="col">Side</th>
                                 <th scope="col">Total</th>
-                                <th scope="col">Applied</th>
+                                <th scope="col">Comparison</th>
+                                <th scope="col">Priced the tax</th>
                             </tr>
                         </thead>
                         <tbody id="deductionDecisionBody"></tbody>
@@ -1710,7 +1711,7 @@
                Simple at all. */
             var SIMPLE_FIELDS = ["packIdentity", "headlineFederalTax", "conversionAmount",
                 "federalTaxDifference", "effectiveMarginalRateAtEdge", "strongestTradeoff", "resultKind",
-                "deductionSideChosen", "propertyTax", "rentalNet", "dwellingUseCategory", "dispositionTax",
+                "deductionApplied", "deductionSideChosen", "propertyTax", "rentalNet", "dwellingUseCategory", "dispositionTax",
                 "annualBenefit", "taxableBenefitPortion", "annualMedicareCost",
                 "netInvestmentIncomeSurtax", "additionalMedicareSurtax", "conversionAsymmetry",
                 "stateIncomeTax", "combinedTotalTax", "combinedFederalLeg", "combinedStateLeg",
@@ -2829,15 +2830,32 @@
                     /* Simple stays decision-level: the SIDE, not the composition. The component
                        table, the cap binding and the disallowed amounts live in power-deduction,
                        and the withheld-detail row links there. */
-                    var deductionRow = document.createElement("div");
-                    deductionRow.appendChild(text("span", "Deduction actually applied: ", "label"));
-                    if (envelope.deduction && envelope.deduction.refusal !== null) {
-                        card.appendChild(unavailableNode(envelope.deduction.refusal, "Deduction actually applied"));
-                    } else if (envelope.deduction) {
-                        deductionRow.appendChild(simpleValueNode("deductionSideChosen",
-                            envelope.deduction.chosen + " \u00b7 " + dollars(envelope.deduction.appliedDeduction),
-                            "The side this settlement actually applied, recomputed from the itemised total and the standard deduction rather than read from anything you declared. " + envelope.deduction.chosenReason));
-                        card.appendChild(deductionRow);
+                    /* F-REG-01. Two deductions, named apart, because they are two different
+                       things. The SETTLEMENT priced the tax on the mode the household declared.
+                       `CO-18` is a comparison answering which side would be larger. One row each,
+                       so neither figure can be read as the other. */
+                    if (envelope.deduction) {
+                        var settledRow = document.createElement("div");
+                        settledRow.appendChild(text("span", "Deduction that priced the tax: ", "label"));
+                        if (RULES.isUnavailable(envelope.deduction.settlementDeduction)) {
+                            card.appendChild(unavailableNode(envelope.deduction.settlementDeduction,
+                                "Deduction that priced the tax"));
+                        } else {
+                            settledRow.appendChild(simpleValueNode("deductionApplied",
+                                envelope.deduction.settlementDeduction.mode + " \u00b7 " + dollars(envelope.deduction.settlementDeduction.value),
+                                "The deduction this settlement subtracted from income to produce the tax on this card. It is the mode the household declared: a declaration is applied rather than replaced by a computed side."));
+                            card.appendChild(settledRow);
+                        }
+                        var comparedRow = document.createElement("div");
+                        comparedRow.appendChild(text("span", "Larger side, by comparison: ", "label"));
+                        if (envelope.deduction.refusal !== null) {
+                            card.appendChild(unavailableNode(envelope.deduction.refusal, "Larger side by comparison"));
+                        } else {
+                            comparedRow.appendChild(simpleValueNode("deductionSideChosen",
+                                envelope.deduction.chosen + " \u00b7 " + dollars(envelope.deduction.appliedDeduction),
+                                "A comparison, and not the figure above: the larger of the itemised total and the standard deduction, recomputed from the two totals rather than read from anything you declared. " + envelope.deduction.chosenReason));
+                            card.appendChild(comparedRow);
+                        }
                     }
 
                     tradeoffHost.appendChild(text("h3", "The strongest tradeoff"));
@@ -4043,10 +4061,19 @@
                     + (composition.capBinding === "bound"
                         ? ", so " + dollars(composition.capExcess) + " of the capped components bought nothing."
                         : ", so every capped dollar was deductible.");
+                /* F-REG-01. The third column is this comparison's own verdict; the fourth is the
+                   settlement's. The two disagree whenever the declared mode is not the larger
+                   side, and a reader can now see which column said what. */
+                var settled = composition.settlementDeduction;
+                var pricedBy = RULES.isUnavailable(settled) ? null : settled.mode;
+                var pricedCell = function (side) {
+                    if (pricedBy === null) return "no deduction was established";
+                    return pricedBy === side ? "priced the tax" : "did not price the tax";
+                };
                 appendRow(decisionBody, ["Itemised total", dollars(composition.itemizedTotal),
-                    composition.chosen === "itemized" ? "applied" : "not applied"]);
+                    composition.chosen === "itemized" ? "named" : "not named", pricedCell("itemized")]);
                 appendRow(decisionBody, ["Standard deduction", dollars(composition.standardDeduction),
-                    composition.chosen === "standard" ? "applied" : "not applied"]);
+                    composition.chosen === "standard" ? "named" : "not named", pricedCell("standard")]);
                 byId("deductionChosenLine").textContent = composition.chosenReason;
             }
 

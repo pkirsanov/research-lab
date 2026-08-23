@@ -1004,6 +1004,35 @@ failure moves the aggregate under this sweep, the aggregate summary is not a
 reliable probe channel in this session, and the count is quoted here only as the
 observation it was.
 
+#### The same probe re-run once the shared file went green
+
+The concurrent session's failure cleared later in this session, so the identical
+probe was run again against a clean baseline. It is recorded rather than
+substituted for the capture above, because an evidence block is not rewritten
+after the fact.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            simple-deduction-row-renders-composed-not-settled (clean baseline)
+file:             lifetime-tax-strategy-lab.html
+mutation:         envelope.deduction.chosen + " \u00b7 " + dollars(envelope.deduction.appliedDeduction),  ->  envelope.deduction.settlementDeduction.mode + " \u00b7 " + dollars(envelope.deduction.settlementDeduction.value),   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         0
+red-summary:      Research-Lab self-test: 3244 passed, 0 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3244 passed, 0 failed
+summary-compared: Research-Lab self-test: 3244 passed, 0 failed  vs  Research-Lab self-test: 3244 passed, 0 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=a2bdfa4a1b312df877c58d1b19d995716393595b restored=a2bdfa4a1b312df877c58d1b19d995716393595b)
+discriminating:   NO (both channels agree: exit 0 == 0, summary "Research-Lab self-test: 3244 passed, 0 failed" identical once elapsed time is normalised)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_EXIT=7
+```
+
+Both halves green, both halves identical, exit 7. The finding does not depend on
+the concurrent failure and is not an artefact of it. A whole suite of 3,244
+assertions cannot tell whether the Simple panel names the deduction that priced
+the tax or the one that did not.
+
 **Claim Source:** executed. The probe above ran in this session. The greps for
 `settlementDeduction`, `agreesWithSettlement`, `appliedDeduction` and
 `actually applied` ran in this session. `rltax.js:130-150`,
@@ -1031,3 +1060,270 @@ Owner: `bubbles.plan` for the `FR-023-012` / `FR-023-014` question, then
 No DoD item in this scope claims the Simple row names the settled deduction. The
 `CO-18` items claim the composition recomputes the decision and surfaces it, which
 it does. Nothing is unticked for this finding.
+
+## F-REG-01 resolved (2026-08-22)
+
+The routing above named the second admissible resolution: stop the sentence and
+the `applied` label claiming the composition priced the tax. That is what was
+built. The settlement still applies the mode the household declared, and `CO-18`
+is still a comparison recomputed from the two totals, per `FR-023-012` and
+`FR-023-014`. What changed is that both facts are now stated, and neither is
+stated as the other.
+
+### What each surface said, and what it says now
+
+| surface | before | after |
+| --- | --- | --- |
+| Simple, label | `Deduction actually applied: ` | two rows: `Deduction that priced the tax: ` and `Larger side, by comparison: ` |
+| Simple, value | one value, `deductionSideChosen`, fed from `chosen` and `appliedDeduction` | `deductionApplied` fed from `settlementDeduction.mode` and `settlementDeduction.value`; `deductionSideChosen` unchanged in what it reads, moved under the comparison label |
+| Simple, tooltip on the composed value | `The side this settlement actually applied, recomputed from the itemised total and the standard deduction rather than read from anything you declared.` followed by `It did not price the tax: …` | `A comparison, and not the figure above: the larger of the itemised total and the standard deduction, recomputed from the two totals rather than read from anything you declared.` followed by `This comparison did not price the tax: …` |
+| Power, table `aria-label` | `…and the side actually applied` | `…the side this comparison names as larger, and the side that priced the tax` |
+| Power, caption | `The side applied is recomputed from the two totals.` | `The larger side is recomputed from the two totals … Naming it is a comparison: the tax was priced on the deduction named in the last column.` |
+| Power, decision table | three columns, third headed `Applied`, cells `applied` / `not applied`, keyed on the composed side | four columns, `Comparison` (`named` / `not named`, keyed on the composed side) and `Priced the tax` (`priced the tax` / `did not price the tax`, keyed on `settlementDeduction.mode`) |
+| `rltax.js` tie refusal | `…so the side actually applied cannot be named` | `…so the larger side cannot be named` |
+| `rltax.js` appended clause | `It did not price the tax: this settlement applied the <mode> deduction…` | `This comparison did not price the tax: the settlement applied the <mode> deduction…` |
+
+The self-contradiction is gone because the two halves no longer share a subject.
+The hard-coded prefix now says the value beside it is a comparison, and the clause
+appended after it names that comparison rather than leaving `It` to be read as the
+settlement.
+
+Under the fixture the browser rows use — single filer, declared mode `standard`,
+itemised total set to `$21,100` against a sourced standard deduction of `$16,100`
+— Simple previously showed one row reading `itemized · $21,100` under the label
+`Deduction actually applied`. It now shows `standard · $16,100` under
+`Deduction that priced the tax`, and `itemized · $21,100` under
+`Larger side, by comparison`. The `$5,000` of deduction the finding names is no
+longer attributed to a settlement that never applied it.
+
+### Harness — the same probe move, exit 7 to exit 0
+
+The move is the defect itself: feed the row that claims to have priced the tax
+from the composed amount. Before the assertion existed, that move produced exit 7
+on `node scripts/selftest.mjs`. It now produces exit 0 on the identical command.
+Both halves ran in this session, against the committed tree, minutes apart.
+
+Exit 7, before `TP-02-27` existed. Run against commit `15faccf3b`, which shipped
+the corrected surfaces but no node assertion able to read them. No
+`--summary-match` is pinned here: the aggregate count moves under a concurrent
+session and is not a verdict channel, so the exit code carries the whole verdict.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F-REG-01 same mutation, node channel: still cannot see a DOM surface
+file:             lifetime-tax-strategy-lab.html
+mutation:         envelope.deduction.settlementDeduction.mode + " \u00b7 " + dollars(envelope.deduction.settlementDeduction.value),  ->  envelope.deduction.chosen + " \u00b7 " + dollars(envelope.deduction.appliedDeduction),   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         0
+red-summary:      ================================================
+green-exit:       0
+green-summary:    ================================================
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   NO (red-exit 0 == green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+red-green-probe: REFUSED — RED and GREEN produced the same outcome (both exited 0). The mutation did not make the command fail, so the assertion under test cannot fail and this is not RED/GREEN evidence.
+PROBE_EXIT=7
+```
+
+Exit 0, after `TP-02-27` landed in commit `838a908ad`. Same file, same mutation,
+same command. `--summary-match` is pinned to the assertion's own wording, so the
+matched line is the assertion's verdict rather than an aggregate a concurrent
+session can move.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F-REG-01 the priced-the-tax row is fed from the composed amount — node channel, the same command that returned exit 7
+file:             lifetime-tax-strategy-lab.html
+mutation:         envelope.deduction.settlementDeduction.mode + " \u00b7 " + dollars(envelope.deduction.settlementDeduction.value),  ->  envelope.deduction.chosen + " \u00b7 " + dollars(envelope.deduction.appliedDeduction),   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-27: the Simple panel feeds its priced-the-tax row from the settled deduction and its comparison row from the composed amount, neither is described as the other, no surface still says
+green-exit:       0
+green-summary:      ✓ TP-02-27: the Simple panel feeds its priced-the-tax row from the settled deduction and its comparison row from the composed amount, neither is described as the other, no surface still says the c
+summary-compared:   ✗ FAIL: TP-02-27: the Simple panel feeds its priced-the-tax row from the settled deduction and its comparison row from the composed amount, neither is described as the other, no surface still says  vs    ✓ TP-02-27: the Simple panel feeds its priced-the-tax row from the settled deduction and its comparison row from the composed amount, neither is described as the other, no surface still says the c   (elapsed time normalised out)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_EXIT=0
+```
+
+The same mutation on the browser channel, pinned to the new row's own title.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F-REG-01 the priced-the-tax row is fed from the composed amount (the defect, reintroduced)
+file:             lifetime-tax-strategy-lab.html
+mutation:         envelope.deduction.settlementDeduction.mode + " \u00b7 " + dollars(envelope.deduction.settlementDeduction.value),  ->  envelope.deduction.chosen + " \u00b7 " + dollars(envelope.deduction.appliedDeduction),   (1 occurrence(s))
+command:          npx playwright test tests/lifetime-tax-deduction.spec.mjs --project=system-chrome --grep F-REG-01 --reporter=line
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-deduction.spec.mjs:416:1 › Regression: F-REG-01 no surface names the composed side as the deduction that priced the tax 
+green-exit:       0
+green-summary:    [1/1] [system-chrome] › tests/lifetime-tax-deduction.spec.mjs:416:1 › Regression: F-REG-01 no surface names the composed side as the deduction that priced the tax
+summary-compared:     [system-chrome] › tests/lifetime-tax-deduction.spec.mjs:416:1 › Regression: F-REG-01 no surface names the composed side as the deduction that priced the tax   vs  [1/1] [system-chrome] › tests/lifetime-tax-deduction.spec.mjs:416:1 › Regression: F-REG-01 no surface names the composed side as the deduction that priced the tax   (elapsed time normalised out)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_EXIT=0
+```
+
+The corrected `TP-02-20` is discriminating rather than weakened. Making the
+Power `Priced the tax` column echo the comparison instead of the settlement fails
+it, which is the assertion the old row could not have made because it read only
+three columns and demanded the composed side in the third.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F-REG-01 the Power priced-the-tax column echoes the comparison instead of the settlement
+file:             lifetime-tax-strategy-lab.html
+mutation:         return pricedBy === side ? "priced the tax" : "did not price the tax";  ->  return composition.chosen === side ? "priced the tax" : "did not price the tax";   (1 occurrence(s))
+command:          npx playwright test tests/lifetime-tax-deduction.spec.mjs --project=system-chrome --grep itemized\ versus\ standard\ decision --reporter=line
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-deduction.spec.mjs:334:1 › Regression: SCN-023-006 the itemized versus standard decision is recomputed and the chosen side is named 
+green-exit:       0
+green-summary:    [1/1] [system-chrome] › tests/lifetime-tax-deduction.spec.mjs:334:1 › Regression: SCN-023-006 the itemized versus standard decision is recomputed and the chosen side is named
+summary-compared:     [system-chrome] › tests/lifetime-tax-deduction.spec.mjs:334:1 › Regression: SCN-023-006 the itemized versus standard decision is recomputed and the chosen side is named   vs  [1/1] [system-chrome] › tests/lifetime-tax-deduction.spec.mjs:334:1 › Regression: SCN-023-006 the itemized versus standard decision is recomputed and the chosen side is named   (elapsed time normalised out)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_EXIT=0
+```
+
+The tooltip half is pinned too. Restoring the old self-contradicting prefix fails
+the new row.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F-REG-01 the composed tooltip carries the old self-contradicting prefix again
+file:             lifetime-tax-strategy-lab.html
+mutation:         "A comparison, and not the figure above: the larger of the itemised total and the standard deduction, recomputed from the two totals rather than read from anything you declared. "  ->  "The side this settlement actually applied, recomputed from the itemised total and the standard deduction rather than read from anything you declared. "   (1 occurrence(s))
+command:          npx playwright test tests/lifetime-tax-deduction.spec.mjs --project=system-chrome --grep F-REG-01 --reporter=line
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-deduction.spec.mjs:416:1 › Regression: F-REG-01 no surface names the composed side as the deduction that priced the tax 
+green-exit:       0
+green-summary:    [1/1] [system-chrome] › tests/lifetime-tax-deduction.spec.mjs:416:1 › Regression: F-REG-01 no surface names the composed side as the deduction that priced the tax
+summary-compared:     [system-chrome] › tests/lifetime-tax-deduction.spec.mjs:416:1 › Regression: F-REG-01 no surface names the composed side as the deduction that priced the tax   vs  [1/1] [system-chrome] › tests/lifetime-tax-deduction.spec.mjs:416:1 › Regression: F-REG-01 no surface names the composed side as the deduction that priced the tax   (elapsed time normalised out)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_EXIT=0
+```
+
+### The assertions were corrected, not deleted
+
+`tests/lifetime-tax-deduction.spec.mjs` pinned the wrong behaviour in both
+directions. Every fixture is kept, including the two built so the declared mode
+and the composed side deliberately disagree, because that disagreement is the only
+thing that makes the row discriminating. What changed is what the fixtures are
+asserted to produce.
+
+| fixture | the old assertion | the corrected assertion |
+| --- | --- | --- |
+| declares `standard`, itemised `$21,100` | `itemised.applied === 'applied'`, `standard.applied === 'not applied'`, `deductionSideChosen` contains `itemized` | comparison column `named` / `not named` unchanged in meaning; `priced` column asserts `did not price the tax` on itemising and `priced the tax` on the standard side; `deductionApplied` must read `standard` and `$16,100` while `deductionSideChosen` reads `itemized` and `$21,100` |
+| declares `itemized`, itemised `$11,100` | `standard.applied === 'applied'`, `deductionSideChosen` contains `standard`, amount is the larger of the two totals | the same comparison verdict, plus `priced the tax` on itemising, `deductionApplied` reading `itemized` and `$11,100`, and `deductionSideChosen` reading `standard` and `$16,100` |
+| tie at `$16,100`, declared `itemized`, pack `onTie` is `standard` | `deductionSideChosen` contains the pack's tie side | the same, plus `deductionApplied` reading `itemized` — a third disagreement the old row could not see |
+
+Two assertions were added rather than replaced: `#deductionChosenLine` must contain
+`did not price the tax`, and the priced-the-tax row's amount must not be the
+composed one. Coverage went up. Nothing was removed.
+
+`TP-02-28` is the row the finding says was missing. It fails if any surface
+presents the composed side as the deduction that priced the tax, and it reads the
+label, the tooltip, the value, the Power headers and the table `aria-label`. It
+asserts its own fixture is still discriminating — that the two figures disagree —
+so a later pack edit that made them agree would fail the row rather than silently
+neuter it.
+
+### A correction to this report's own earlier wording
+
+The narrative under `### Scenario SCN-023-006` above says the decisive assertion is
+that a household declaring `standard` with an itemised total above the standard
+deduction *is still shown the itemised side*. That sentence described the defect as
+though it were the requirement. It is left in place rather than rewritten, because
+an evidence narrative is not edited after the fact, and it is corrected here: the
+decisive assertion is now that such a household is shown BOTH — the standard
+deduction as the one that priced its tax, and the itemised side as the larger of
+the two totals.
+
+### DoD items unticked
+
+One item is unticked. Its evidence no longer describes the shipped tests.
+
+`Every Test Plan row has intended RED and same-command GREEN evidence recorded,
+including the browser rows.` The recorded GREEN for `TP-02-20` was produced by
+assertions that have since been replaced, so it evidences a row that no longer
+exists in that form. The scope also now ships three assertions the Test Plan does
+not list: `TP-02-26`, `TP-02-27` and `TP-02-28`. Both halves are reasons the tick
+is not currently earned, and a false tick is what produced this finding.
+
+The RED and GREEN for the changed and new rows are the four probe blocks above and
+the browser run below. Re-ticking the item needs the Test Plan rows to exist first,
+which is `bubbles.plan`'s artifact, so the item stays open here.
+
+Nothing else is unticked. The `FR-023-012` item claims the decision is recomputed
+from the two totals and the chosen side is named; it still is, and its evidence
+(`report.md#tp-02-09`, `report.md#tp-02-10`) is engine-level and untouched. The
+`FR-023-014` item claims the composition and the decision are surfaced on four
+surfaces; they still are, under a label that no longer misdescribes them.
+
+### Routed to `bubbles.plan`
+
+Three Test Plan rows are needed in `scope.md`, which this agent does not own:
+
+| id | type | category | scenario | file | what it pins |
+| --- | --- | --- | --- | --- | --- |
+| `TP-02-26` | Known value | unit | SCN-023-006 | `scripts/selftest.mjs` | the settled and composed deductions disagree, and the settled one is what `computeAnnualFederalTax` subtracted |
+| `TP-02-27` | Adversarial | unit | SCN-023-006 | `scripts/selftest.mjs` | no rendered surface feeds a priced-the-tax claim from the composed amount; both regressions planted and proven to fail |
+| `TP-02-28` | Regression E2E | e2e-ui | SCN-023-006 | `lifetime-tax-deduction.spec.mjs` | `Regression: F-REG-01 no surface names the composed side as the deduction that priced the tax` |
+
+### Verification
+
+`node scripts/selftest.mjs`, verbatim summary line:
+
+```
+Research-Lab self-test: 3255 passed, 0 failed
+```
+
+The recorded baseline was `3244 passed, 0 failed`. The count did not fall. Eleven
+of the gain is not mine: a concurrent session committed horizon-ladder, scenario
+and ledger assertions in `8013cd150` and `09d139bad` between the baseline reading
+and this one. Comparing the two runs assertion line by assertion line, thirteen
+lines are new and four are gone, all four of the gone lines being the same
+stochastic and commit-count checks reprinted with a different observed value, and
+zero of the seventeen mention a deduction, `lifetime-tax` or a `TP-02` marker. My
+own contribution is the two lines `TP-02-26` and `TP-02-27`.
+
+The browser suite for this scope's file:
+
+```
+$ npx playwright test tests/lifetime-tax-deduction.spec.mjs --reporter=line
+  10 passed (5.8s)
+```
+
+Four lifetime-tax browser specs together, checked for collateral damage:
+
+```
+$ npx playwright test tests/lifetime-tax-deduction.spec.mjs tests/lifetime-tax-foundation.spec.mjs tests/lifetime-tax-route.spec.mjs tests/lifetime-tax-conversion.spec.mjs --reporter=line
+  30 passed (8.6s)
+```
+
+`node scripts/validate-spec-test-paths.mjs`:
+
+```
+[spec-test-paths] scanned=693 references=15620 distinctPaths=252 missingPaths=67 baseline=67 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+```
+
+`bash .github/bubbles/scripts/artifact-lint.sh` on all four lifetime-tax features:
+
+```
+artifact-lint 021-lifetime-tax-strategy-lab EXIT=0
+artifact-lint 022-federal-preferential-and-state-income-tax EXIT=0
+artifact-lint 023-property-tax-and-rental-income EXIT=0
+artifact-lint 024-social-security-and-medicare EXIT=0
+```
+
+**Claim Source:** executed. Every block above is the output of a command run in
+this session. The two commits are `15faccf3b` (surfaces and corrected browser
+assertions) and `838a908ad` (the node assertions), each verified with
+`git cat-file -t` as an object of type `commit`.
+

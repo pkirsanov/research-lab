@@ -13300,6 +13300,10 @@ try {
   delete brokenSweepConfig.sweep.probe;
   const brokenSweepVerdict = RLTAXWORKSPACE.validateConfig(brokenSweepConfig);
   const inventoryUnderBrokenConfig = RLTAXWORKSPACE.privacyInventory(fakeTaxStorage, brokenSweepConfig);
+  /* Re-stocked deliberately: the clear above emptied this store, and clearAllPrivateData reports
+     only keys it genuinely removed. Clearing an empty store would prove reachability over a
+     no-op. */
+  RLTAXWORKSPACE.writeWorkspace(fakeTaxStorage, brokenSweepConfig, viableWorkspace);
   const clearUnderBrokenConfig = RLTAXWORKSPACE.clearAllPrivateData(fakeTaxStorage, brokenSweepConfig);
   const fallbackScan = newTaxModules.filter((file) => /(config|pack)\.[A-Za-z0-9_.]+\s*\|\|/.test(read(file)));
   assert(configOk.ok
@@ -15349,9 +15353,11 @@ try {
     && Object.keys(routeStore).length === 1
     && routeStore['rlPortfolioWorkspaceV1.workspace'] === 'foreign-value'
     && declaredKeys.every((key) => !RLTAXWORKSPACE.isForbiddenKey(routeConfig, key))
-    && pageStorageWrites === 1
-    && /localStorage\.setItem\(MODE_KEY/.test(page),
-  'TP-05-08: the written storage key set is unchanged from Scope 01, clear-all removes exactly those three keys while leaving a portfolio-prefixed key standing, and the page itself writes only the display-mode key directly');
+    /* The page performs no storage write of its own. A direct write would sit outside the closed
+       writer, and therefore outside the inventory and outside the clear path, while the privacy
+       panel claims no key outside the declared namespace was touched. */
+    && pageStorageWrites === 0,
+  'TP-05-08: the written storage key set is unchanged from Scope 01, clear-all removes exactly those three keys while leaving a portfolio-prefixed key standing, and the page itself writes no storage key directly');
 
   /* TP-05-09: the tool stays absent from every registration surface. */
   const registrationSurfaces = ['tools.json', 'index.html', 'rlnav.js', 'README.md', 'notes/README.md', 'market-brief.config.json'];
@@ -15500,6 +15506,33 @@ try {
     + (rejectedShippedUrls.length ? ' (wrongly rejected a shipped url: ' + rejectedShippedUrls.slice(0, 3).join(', ') + ')' : '')
     + (hostilePackVerdict.ok !== false ? ' (the validator admitted a javascript: url)' : '')
     + (hrefGuarded ? '' : ' (the renderer assigns record.url to href without the scheme gate)'));
+
+  /* resolveRulePack compares the configured pointer against the digest the pack DECLARES ABOUT
+     ITSELF; it computes nothing over the fetched bytes, so on its own it is a version pin and a
+     pack edited together with its own digest member would pass it. What makes the declared digest
+     mean something is this: every shipped pack that carries one has it RECOMPUTED here from the
+     pack's own content, so a decorative or stale digest cannot be committed. The pin and this
+     check are complementary, and the code no longer describes the pin as integrity. */
+  const { createHash: digestHash } = await import('node:crypto');
+  const packFiles = ['tax-rules/federal/2026.json', 'tax-rules/state/CA/2026.json',
+    'tax-rules/state/FL/2026.json', 'tax-rules/fixtures/state-no-tax-2999.json',
+    'tax-rules/fixtures/state-contract-no-preferential-2999.json'];
+  const declaredDigestPacks = packFiles.map((file) => ({ file: file, pack: JSON.parse(read(file)) }))
+    .filter((entry) => typeof entry.pack.contentSha256 === 'string');
+  const decorativeDigests = declaredDigestPacks.filter((entry) =>
+    ('sha256:' + digestHash('sha256').update(URLRULES.packContentDigestInput(entry.pack)).digest('hex')) !== entry.pack.contentSha256);
+  /* The pin's own refusal must not describe itself as byte integrity, and the comparison must
+     still be the self-declared member rather than something this assertion imagines. */
+  const rulesSource = read('rltaxrules.js');
+  const pinDescribesItselfHonestly = rulesSource.indexOf('A VERSION PIN, NOT AN INTEGRITY CHECK') >= 0
+    && rulesSource.indexOf('the pack does not declare the version this configuration pins') >= 0
+    && rulesSource.indexOf('the pack digest does not match the configured pointer') < 0;
+  assert(declaredDigestPacks.length === 5
+    && decorativeDigests.length === 0
+    && pinDescribesItselfHonestly,
+  'TP-05-06: every shipped pack that declares a contentSha256 has that digest recomputed from its own content, so a decorative digest cannot be committed, and the runtime pointer comparison names itself a version pin rather than claiming an integrity it does not compute'
+    + (decorativeDigests.length ? ' (declared digest does not match its content: ' + decorativeDigests.map((entry) => entry.file).join(', ') + ')' : '')
+    + (pinDescribesItselfHonestly ? '' : ' (the pin still describes itself as a digest/integrity match)'));
 
   /* Charts are drawn synchronously and only in the mode whose canvas is visible. */
   const drawBody = extractFn(page, 'drawCurveChart');
@@ -17830,6 +17863,75 @@ try {
   assert(!claimScan02.test(read('rltax.js').slice(read('rltax.js').indexOf('CO-18')))
     && claimScan02.test('this is our estimate of the deduction') === true,
     'TP-02-CLAIM: nothing the deduction composition emits states a probability, a lifetime figure, a track record, an error rate or an estimate, and the detector is proven to fire on a sentence that does');
+
+  /* TP-02-26 F-REG-01. The engine publishes two different deductions and they are NOT
+     interchangeable: `settlementDeduction` priced the tax and follows the declared mode;
+     `appliedDeduction` is this comparison's larger side. The fixture below is built so the two
+     DISAGREE, because under agreement no assertion could tell them apart — which is exactly how a
+     suite of 3,244 checks passed while every rendered surface named the wrong one. */
+  const declaredStandard02 = declare02({
+    deductionMode: 'standard',
+    itemizedAmount: PACK02.standardDeductions.single.amount + 5000
+  });
+  const disagreeing02 = TAX02.composeItemizedDeduction(declaredStandard02, PACK02,
+    { 'property-tax': PACK02.standardDeductions.single.amount + 5000, 'state-income-tax': undefined });
+  const settledTax02 = TAX02.computeAnnualFederalTax(declaredStandard02, PACK02);
+  assert(disagreeing02.chosen === 'itemized'
+    && disagreeing02.settlementDeduction.mode === 'standard'
+    && disagreeing02.settlementDeduction.value === PACK02.standardDeductions.single.amount
+    && disagreeing02.appliedDeduction !== disagreeing02.settlementDeduction.value
+    && disagreeing02.agreesWithSettlement === false
+    /* The settlement really did price the tax on the settled figure, so the two members are not
+       merely different labels for the same arithmetic. */
+    && settledTax02.appliedDeduction.value === disagreeing02.settlementDeduction.value
+    && settledTax02.appliedDeduction.mode === 'standard',
+    'TP-02-26: when the declared mode is not the larger side the composition names itemising while the settlement prices the tax on the declared standard deduction, the two amounts differ, agreesWithSettlement reports the disagreement, and the settled figure is the one computeAnnualFederalTax actually subtracted');
+
+  /* TP-02-27 F-REG-01 SURFACE HONESTY. The node suite could not see this defect because it never
+     read the rendered surface. It does now: the Simple panel must feed its priced-the-tax row
+     from `settlementDeduction` and its comparison row from the composed amount, and neither row
+     may be labelled or described as the other. */
+  const pageText02surface = read('lifetime-tax-strategy-lab.html');
+  const simpleDeductionBlock02 = (source) => {
+    const start = source.indexOf('"Deduction that priced the tax: "');
+    const end = source.indexOf('tradeoffHost.appendChild', start);
+    return start < 0 || end < 0 ? '' : source.slice(start, end);
+  };
+  const deductionValueExpr02 = (block, fieldId) => {
+    const at = block.indexOf('simpleValueNode("' + fieldId + '"');
+    return at < 0 ? '' : block.slice(at, block.indexOf('));', at));
+  };
+  const deductionSurfaceFaults02 = (source) => {
+    const block = simpleDeductionBlock02(source);
+    if (block === '') return ['no priced-the-tax row is rendered at all'];
+    const settled = deductionValueExpr02(block, 'deductionApplied');
+    const compared = deductionValueExpr02(block, 'deductionSideChosen');
+    const faults = [];
+    if (settled.indexOf('settlementDeduction') < 0) faults.push('the priced-the-tax row is not fed from settlementDeduction');
+    if (/appliedDeduction|deduction\.chosen\b/.test(settled)) faults.push('the priced-the-tax row names the composed side');
+    if (compared.indexOf('appliedDeduction') < 0) faults.push('the comparison row is not fed from the composed amount');
+    if (/actually applied/i.test(compared)) faults.push('the comparison row claims the composed side was actually applied');
+    if (compared.indexOf('A comparison') < 0) faults.push('the comparison row does not say it is a comparison');
+    return faults;
+  };
+  const surfaceFaults02 = deductionSurfaceFaults02(pageText02surface);
+  /* Adversarial: the exact regression this finding names, planted, must be caught. */
+  const plantedComposed02 = deductionSurfaceFaults02(pageText02surface.replace(
+    'envelope.deduction.settlementDeduction.mode + " \\u00b7 " + dollars(envelope.deduction.settlementDeduction.value)',
+    'envelope.deduction.chosen + " \\u00b7 " + dollars(envelope.deduction.appliedDeduction)'));
+  /* Adversarial: the self-contradicting tooltip, planted, must be caught. */
+  const plantedTooltip02 = deductionSurfaceFaults02(pageText02surface.replace(
+    '"A comparison, and not the figure above: the larger of the itemised total',
+    '"The side this settlement actually applied, recomputed from the itemised total'));
+  assert(surfaceFaults02.length === 0
+    && plantedComposed02.length > 0 && plantedTooltip02.length > 0
+    /* No surviving surface claims the composed side was the one applied. */
+    && pageText02surface.indexOf('Deduction actually applied') < 0
+    && read('rltax.js').indexOf('the side actually applied cannot be named') < 0
+    /* One string may not assert both sides: the clause appended to chosenReason names the
+       comparison as its subject rather than leaving "It" to be read as the settlement. */
+    && read('rltax.js').indexOf('This comparison did not price the tax:') >= 0,
+    'TP-02-27: the Simple panel feeds its priced-the-tax row from the settled deduction and its comparison row from the composed amount, neither is described as the other, no surface still says the composed side was actually applied, and both the composed-amount regression and the self-contradicting tooltip are proven to fail the detector: ' + surfaceFaults02.join(', '));
 
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 023 Scope 02 deduction group threw): ' + e.message); }
 
@@ -27782,9 +27884,25 @@ try {
   const hllNames = ['hlNormSf', 'hlHorizonSessions', 'hlSigmaHorizon', 'hlTerminalProbability',
     'hlTouchProbability', 'hlProbabilityFor', 'hlRewardToRisk', 'hlExpectedValueSigma',
     'hlRateGate', 'hlScoreabilityRefusal', 'hlPercentile', 'hlSortRows', 'hlEarnProgress',
-    'hlRegimeKey', 'hlAnnualisedVol'];
+    'hlRegimeKey', 'hlAnnualisedVol', 'hlSwingPivots', 'hlNearestLevel', 'hlStructureDistances',
+    'hlMaSeries', 'hlMaStackFromSeries', 'hlSetupClass', 'hlTrailingVolAt', 'hlAnalogForwardReturns',
+    'hlAnalogRate', 'hlImpliedMoveFromChain'];
   const hll = build(hllNames.map((n) => extractFn(hllSrc, n)), hllNames);
   const near = (a, b, tol) => Math.abs(a - b) <= tol;
+
+  // smaArr and pivots are owned by rlexperience-adapters/market-structure.js. The page delegates
+  // to it rather than keeping a private copy, so the test injects the real owner exactly as the
+  // market-heatmap group does.
+  const { createRequire: hllCreateRequire } = await import('node:module');
+  const hllRequire = hllCreateRequire(import.meta.url);
+  delete hllRequire.cache[hllRequire.resolve('../rlexperience-adapters/market-structure.js')];
+  const HLMS = hllRequire('../rlexperience-adapters/market-structure.js');
+  assert(/RLMARKETSTRUCTURE/.test(hllSrc) && /structureApi\(\)/.test(hllSrc)
+    && !/function hlSma\b/.test(hllSrc) && !/function hlMaStackAt\b/.test(hllSrc),
+    'the page delegates the moving-average and pivot formulas to RLMARKETSTRUCTURE and keeps no private copy');
+  assert(hll.hlSwingPivots(Array.from({ length: 400 }, (_, i) => ({ t: i, o: 100, h: 100 + (i % 7), l: 100 - (i % 5), c: 100, v: 1 })), 3, null).highs.length === 0
+    && hll.hlMaSeries(Array.from({ length: 400 }, (_, i) => ({ t: i, c: 100 + i })), null) === null,
+    'without the owning module the page withholds pivots and moving averages rather than falling back to a private formula');
 
   // Closed-form anchors. A broken erf approximation cannot pass all five.
   assert(near(hll.hlNormSf(0), 0.5, 1e-9) && near(hll.hlNormSf(1), 0.1587, 5e-4)
@@ -27902,6 +28020,63 @@ try {
     'the frontier draws synchronously so it renders in a background or embedded tab');
 
   // Registration state: staged, not published, and excluded exactly once.
+  // ---- next events and the change ledger ----
+  const hllEventNames = ['hlEventsInWindow', 'hlScenarioTotal', 'hlScenariosUsable', 'hlEventCaveat',
+    'hlObservationOf', 'hlDiffObservation'];
+  const hllEv = build(hllEventNames.map((n) => extractFn(hllSrc, n)), hllEventNames);
+  const hllRealEvents = JSON.parse(read('market-brief.payload.json')).events;
+  const hllNow = Date.parse('2026-08-19T00:00:00Z');
+  const hllShort = hllEv.hlEventsInWindow(hllRealEvents, 5, hllNow);
+  const hllLong = hllEv.hlEventsInWindow(hllRealEvents, 21, hllNow);
+  assert(Array.isArray(hllRealEvents) && hllRealEvents.length > 0
+    && hllShort.length > 0 && hllLong.length > hllShort.length
+    && hllShort.every((e) => e.daysOut >= 0),
+    'a longer horizon admits strictly more scheduled events than a shorter one, so the window is load-bearing ('
+    + hllShort.length + ' at 5 sessions vs ' + hllLong.length + ' at 21)');
+  assert(hllEv.hlEventsInWindow(null, 21, hllNow).length === 0
+    && hllEv.hlEventsInWindow([{ when: 'not-a-date' }], 21, hllNow).length === 0
+    && hllEv.hlEventsInWindow(hllRealEvents, 21, NaN).length === 0,
+    'an absent calendar, an unparseable date and an unknown horizon each yield no events rather than a fabricated one');
+  assert(hllEv.hlEventsInWindow([{ when: '2026-08-21', impliedMovePct: null, scenarios: [] }], 21, hllNow)[0].impliedMovePct === null,
+    'an event with no declared implied move stays null rather than being filled in');
+
+  // Declared scenario probabilities are only usable if they actually form a distribution.
+  assert(Math.abs(hllEv.hlScenarioTotal(hllLong[0].scenarios) - 1) <= 0.02
+    && hllEv.hlScenariosUsable(hllLong[0].scenarios) === true
+    && hllEv.hlScenariosUsable([{ prob: 0.5 }, { prob: 0.2 }]) === false
+    && hllEv.hlScenariosUsable([{ name: 'no prob' }]) === false
+    && hllEv.hlScenarioTotal([]) === null,
+    'a scenario set is usable only when its declared probabilities sum to one, so a malformed set is reported rather than renormalised');
+
+  // A catalyst inside the horizon must be surfaced as a limit on the analog rate.
+  assert(typeof hllEv.hlEventCaveat(hllLong) === 'string'
+    && /analog rate/.test(hllEv.hlEventCaveat(hllLong))
+    && hllEv.hlEventCaveat([]) === null && hllEv.hlEventCaveat(null) === null,
+    'events inside the horizon produce an explicit caveat that the analog rate does not price them, and an empty calendar produces none');
+
+  // The change ledger must distinguish a first look from a quiet one.
+  const hllPrev = hllEv.hlObservationOf([
+    { symbol: 'AAA', ev: 0.10, analogN: 100, rateWithheld: true, k: 1, m: 1 },
+    { symbol: 'BBB', ev: 0.20, analogN: 50, rateWithheld: true, k: 1, m: 1 }]);
+  const hllCurr = hllEv.hlObservationOf([
+    { symbol: 'AAA', ev: 0.30, analogN: 100, rateWithheld: false, k: 1, m: 1 },
+    { symbol: 'CCC', ev: 0.05, analogN: 9, rateWithheld: true, k: 1, m: 1 }]);
+  const hllFirst = hllEv.hlDiffObservation(null, hllCurr);
+  const hllDiff = hllEv.hlDiffObservation(hllPrev, hllCurr);
+  const hllQuiet = hllEv.hlDiffObservation(hllCurr, hllCurr);
+  assert(hllFirst.firstObservation === true && hllFirst.added.length === 0 && hllFirst.changed.length === 0,
+    'a first observation reports itself as such rather than presenting every row as a change');
+  assert(hllQuiet.firstObservation === false && hllQuiet.added.length === 0
+    && hllQuiet.dropped.length === 0 && hllQuiet.changed.length === 0,
+    'an unchanged cell reports no movement, so the ledger cannot manufacture activity');
+  assert(hllDiff.added.join() === 'CCC' && hllDiff.dropped.join() === 'BBB'
+    && hllDiff.changed.some((c) => c.symbol === 'AAA' && c.field === 'rate state' && c.to === 'published')
+    && hllDiff.changed.some((c) => c.symbol === 'AAA' && c.field === 'expected value'),
+    'the ledger names entries, exits, a rate-state transition and an expected-value move separately');
+  assert(hllEv.hlDiffObservation({ AAA: { ev: 0.100, analogN: 5, rateWithheld: true } },
+    { AAA: { ev: 0.1005, analogN: 5, rateWithheld: true } }).changed.length === 0,
+    'a movement below the reporting threshold is not reported, so the ledger is not noise');
+
   // Registration state: registered in all three registries in identical relative order, and no longer staged.
   const hllRegistry = JSON.parse(read('tools.json')).tools.map((t) => t.id);
   const hllIndexOrder = [...read('index.html').matchAll(/^\s*id: '([a-z0-9-]+)',$/gm)].map((m) => m[1]);
@@ -27928,8 +28103,223 @@ try {
   assert(/horizon-ladder-lab\.html/.test(hllNote) && /horizon-ladder-universe\.json/.test(hllNote)
     && /node scripts\/selftest\.mjs/.test(hllNote),
     'the note resolves the route, the config and the exact validation command');
+
+  /* ---- structure, analogs and the earned path ---- */
+
+  const hllMk = (seed, drift, amp) => {
+    let x = seed, px = 100; const rows = [];
+    for (let i = 0; i < 900; i++) {
+      x = (x * 1103515245 + 12345) % 2147483648;
+      const u = (x / 2147483648 - 0.5);
+      px = px * (1 + drift + 0.012 * u) + amp * Math.sin(i / 17);
+      rows.push({ t: Date.UTC(2023, 0, 1) + i * 86400000, o: px, h: px * 1.008, l: px * 0.992, c: px, v: 1e6 });
+    }
+    return rows;
+  };
+  const seriesA = hllMk(7, 0.0004, 0.10);
+  const seriesB = hllMk(99, 0.0001, 0.45);
+  const seriesC = hllMk(1234, -0.0002, 0.05);
+
+  // A pivot must be a genuine local extreme, so a flat series has none at all.
+  // RLMARKETSTRUCTURE.pivots compares non-strictly, so a perfectly flat series marks every
+  // interior bar as both a high and a low. That is the owner's semantics and this tool adopts it
+  // rather than keeping a stricter private copy; the refusal that matters happens downstream,
+  // where no level lies strictly beyond the price so no target can be placed.
+  const pivA = hll.hlSwingPivots(seriesA, 3, HLMS);
+  const hllFlatRows = Array.from({ length: 400 }, (_, i) => ({ t: i, o: 50, h: 50, l: 50, c: 50, v: 1 }));
+  const pivFlat = hll.hlSwingPivots(hllFlatRows, 3, HLMS);
+  assert(pivA.highs.length > 0 && pivA.lows.length > 0
+    && pivA.highs.length < seriesA.length && pivA.lows.length < seriesA.length
+    && pivFlat.highs.length > 0
+    && hll.hlNearestLevel(pivFlat.highs, 50, 'above') === null
+    && hll.hlStructureDistances(hllFlatRows, 0.05, 'long', 3, HLMS) === null,
+    'a real series yields some pivots and a flat series places no level beyond the price, so it is refused rather than given a zero-distance target');
+  assert(hll.hlNearestLevel([{ price: 90 }, { price: 105 }, { price: 120 }], 100, 'above') === 105
+    && hll.hlNearestLevel([{ price: 90 }, { price: 105 }], 100, 'below') === 90
+    && hll.hlNearestLevel([{ price: 90 }], 100, 'above') === null,
+    'the nearest level is the closest pivot on the requested side, and no pivot on that side yields nothing');
+
+  // The ranking must actually discriminate: distinct structure must give distinct expected value.
+  const hllEvOf = (rows) => {
+    const closes = rows.map((r) => r.c);
+    const vol = hll.hlAnnualisedVol(closes.slice(-63), 252);
+    const sigma = hll.hlSigmaHorizon(vol, 21, 252);
+    const st = hll.hlStructureDistances(rows, sigma, 'long', 3, HLMS);
+    if (!st) return null;
+    return hll.hlExpectedValueSigma(hll.hlProbabilityFor(st.k, 'terminal'), st.k, st.m);
+  };
+  const hllEvs = [seriesA, seriesB, seriesC].map(hllEvOf);
+  assert(hllEvs.every((v) => isFinite(v)) && new Set(hllEvs.map((v) => v.toFixed(6))).size === 3,
+    'three names with different structure produce three distinct expected values, so the ranking key can order them ('
+    + hllEvs.map((v) => v.toFixed(4)).join(', ') + ')');
+
+  // No structure on the required side is a refusal, not a substituted distance.
+  const hllRising = Array.from({ length: 400 }, (_, i) => ({ t: i, o: 100 + i, h: 100 + i, l: 100 + i, c: 100 + i, v: 1 }));
+  assert(hll.hlStructureDistances(hllRising, 0.05, 'long', 3, HLMS) === null
+    && hll.hlStructureDistances(null, 0.05, 'long', 3, HLMS) === null
+    && hll.hlStructureDistances(seriesA, 0, 'long', 3, HLMS) === null,
+    'a series with no pivot on the required side, no bars, or no sigma yields no distances rather than a fabricated target');
+
+  // The setup class may not read the future it is used to describe.
+  const hllClosesA = seriesA.map((r) => r.c);
+  const hllSeriesA = hll.hlMaSeries(seriesA, HLMS);
+  const hllAt = 700;
+  const hllVolAt = hll.hlTrailingVolAt(hllClosesA, hllAt, 63, 252);
+  assert(hll.hlSetupClass(hllClosesA, hllAt, hllVolAt, hllSeriesA) === hll.hlSetupClass(hllClosesA.slice(0, hllAt + 1), hllAt, hllVolAt, hllSeriesA),
+    'the setup class at a bar is identical whether or not later bars exist, so the analog scan cannot look ahead');
+  assert(hll.hlSetupClass(hllClosesA, 10, 0.2, hllSeriesA) === null && hll.hlMaStackFromSeries(hllSeriesA, 10) === null
+    && hll.hlMaStackFromSeries({ m20: [null], m50: [null], m200: [null] }, 0) === null,
+    'a bar without a full 200-session history yields no setup class, and a null moving average is refused rather than silently read as zero');
+
+  // Regime conditioning must change the analog sample, or it is decorative.
+  const hllVolNow = hll.hlAnnualisedVol(hllClosesA.slice(-63), 252);
+  const hllClassNow = hll.hlSetupClass(hllClosesA, hllClosesA.length - 1, hllVolNow, hllSeriesA);
+  const hllMatched = hll.hlAnalogForwardReturns(hllClosesA, 21, hllClassNow, 63, 252, hllSeriesA);
+  const hllOtherRegime = hll.hlAnalogForwardReturns(hllClosesA, 21, 'highvol|bear-stack|far-below', 63, 252, hllSeriesA);
+  assert(hllClassNow !== null && hllMatched.length > 0 && hllOtherRegime.length !== hllMatched.length,
+    'conditioning on a different regime yields a different analog sample, so the conditioning is load-bearing ('
+    + hllMatched.length + ' vs ' + hllOtherRegime.length + ')');
+  assert(hll.hlAnalogForwardReturns(hllClosesA, 21, null, 63, 252, hllSeriesA).length === 0,
+    'an unavailable setup class yields no analogs rather than the unconditional sample');
+
+  // The analog rate counts only moves that actually reached the target, in the stated direction.
+  const hllRate = hll.hlAnalogRate([0.05, 0.01, -0.06, 0.04, -0.02], 0.03, 'long');
+  const hllRateShort = hll.hlAnalogRate([0.05, 0.01, -0.06, 0.04, -0.02], 0.03, 'short');
+  assert(hllRate.n === 5 && hllRate.k === 2 && Math.abs(hllRate.rate - 0.4) < 1e-9
+    && hllRateShort.k === 1 && hll.hlAnalogRate([], 0.03, 'long').rate === null,
+    'the analog rate counts direction-correct target hits and withholds entirely on an empty sample');
+
+  // Implied move is consumed when a chain exists and withheld when it does not.
+  assert(hll.hlImpliedMoveFromChain(null, 21, 100) === null
+    && hll.hlImpliedMoveFromChain({ expiries: [] }, 21, 100) === null
+    && hll.hlImpliedMoveFromChain({ expiries: [{ expiryMs: Date.now() + 30 * 86400000, atmIv: 0.28 }] }, 21, 100) > 0,
+    'an option-implied move is used when a chain is present and withheld when it is absent');
+
+  // The earned path must return the rate, not a dead ternary.
+  const STRAT = await import('../rlexperience-adapters/strategy-research.js').then((m) => m.default || m);
+  const hllOwnerWithheld = { asOf: '2026-08-20T00:00:00Z', policy: { minResolvedSample: 20 }, cells: { 'long:h1m': 0 }, rates: {} };
+  const hllOwnerEarned = { asOf: '2026-08-20T00:00:00Z', policy: { minResolvedSample: 20 }, cells: { 'long:h1m': 25 }, rates: { 'long:h1m': 0.58 } };
+  const hllOwnerEarnedNoRate = { asOf: '2026-08-20T00:00:00Z', policy: { minResolvedSample: 20 }, cells: { 'long:h1m': 25 }, rates: {} };
+  const hllParams = { direction: 'long', horizon: 'h1m', 'resolution-rule': 'terminal', 'target-sigma': 0.75, 'invalidation-sigma': 0.5 };
+  const sumWithheld = STRAT.computeHorizonLadderSummary(hllOwnerWithheld, hllParams);
+  const sumEarned = STRAT.computeHorizonLadderSummary(hllOwnerEarned, hllParams);
+  const sumEarnedNoRate = STRAT.computeHorizonLadderSummary(hllOwnerEarnedNoRate, hllParams);
+  assert(sumWithheld.gate.published === false && sumWithheld.probability.measuredRate === null
+    && sumWithheld.probability.measuredRateState === 'withheld'
+    && sumEarned.gate.published === true && sumEarned.probability.measuredRate === 0.58
+    && sumEarned.probability.measuredRateState === 'published'
+    && sumEarnedNoRate.probability.measuredRate === null
+    && sumEarnedNoRate.probability.measuredRateState === 'earned-but-unpopulated',
+    'a withheld cell reports no rate, an earned cell reports its actual rate, and an earned cell with no populated rate says so instead of reporting null as a rate');
+
+  // The page must consume the real shared-cache API, not a name that does not exist.
+  const hllRldata = read('rldata.js');
+  assert(/RLDATA\.bars\(|store\.bars\(/.test(hllSrc) && /bars: getBars/.test(hllRldata)
+    && !/getCachedCloses|getCached\(/.test(hllSrc),
+    'the page reads bars through the RLDATA accessor the shared module actually exports');
 } catch (e) { failures++; console.log('  ✗ FAIL (horizon ladder gate group threw): ' + e.message); }
 /* ---------- Horizon Ladder Lab: earned-rate gate and frontier arithmetic (END) ---------- */
+
+/* ================================================================================
+   Lifetime tax — security review follow-up F4, F5 and F6. Appended; this block
+   edits no pre-existing assertion.
+   ================================================================================ */
+try {
+  group('Lifetime tax — clear-report honesty, closed storage writer and export omission depth');
+  const secRequire = (await import('node:module')).createRequire(import.meta.url);
+  const SECWS = secRequire('../rltaxworkspace.js');
+  const secConfig = JSON.parse(read('lifetime-tax-strategy.config.json'));
+  const secPage = read('lifetime-tax-strategy-lab.html');
+  const secStore = (seed) => {
+    const cells = Object.assign({}, seed);
+    return {
+      cells,
+      getItem: (key) => (Object.prototype.hasOwnProperty.call(cells, key) ? cells[key] : null),
+      setItem: (key, value) => { cells[key] = String(value); },
+      removeItem: (key) => { delete cells[key]; }
+    };
+  };
+  const secDeclared = SECWS.declaredStorageKeys(secConfig).slice().sort();
+
+  /* F5. removedKeys[] is a claim about what the call REMOVED, so it is compared against the set
+     measured PRESENT immediately beforehand. Reading removedKeys[] on its own cannot catch the
+     defect: removeItem is a silent no-op on an absent key, so a loop that pushes every declared
+     key unconditionally produces a full, plausible, and false list over an empty browser. */
+  const partialSeed = {};
+  partialSeed[secConfig.storage.probeKey] = secConfig.storage.probeValue;
+  const partialStorage = secStore(partialSeed);
+  const presentBeforePartial = secDeclared.filter((key) => partialStorage.getItem(key) !== null);
+  const partialCleared = SECWS.clearAllPrivateData(partialStorage, secConfig);
+  const emptyCleared = SECWS.clearAllPrivateData(secStore({}), secConfig);
+  const stockedStorage = secStore({});
+  secDeclared.forEach((key) => SECWS.writeStorageKey(stockedStorage, secConfig, key, 'stocked'));
+  const presentBeforeStocked = secDeclared.filter((key) => stockedStorage.getItem(key) !== null);
+  const stockedCleared = SECWS.clearAllPrivateData(stockedStorage, secConfig);
+  assert(presentBeforePartial.length === 1
+    && JSON.stringify(partialCleared.removedKeys.slice().sort()) === JSON.stringify(presentBeforePartial)
+    && emptyCleared.removedKeys.length === 0
+    && presentBeforeStocked.length === secDeclared.length
+    && JSON.stringify(stockedCleared.removedKeys.slice().sort()) === JSON.stringify(presentBeforeStocked)
+    && Object.keys(partialStorage.cells).length === 0
+    && Object.keys(stockedStorage.cells).length === 0,
+  'F5: the clear report names only the declared keys the browser genuinely held, measured present before the removal — one key reported from a store holding one, none from an empty store, all of them from a fully stocked store — and every declared key is gone afterwards');
+
+  /* F4. The closed writer is what makes the inventory trustworthy, so it may not be optional.
+     The page performs no storage write of its own and names no storage key of its own; every key
+     it can write is declared in configuration, passes the writer, appears in the inventory and is
+     removed by the clear path. */
+  const secDirectWrites = (secPage.match(/localStorage\.setItem\(/g) || []).length;
+  const secKeyLiterals = (secPage.match(/["']rl[A-Za-z0-9_.]*["']/g) || [])
+    .filter((literal) => /rlLifetimeTax|rlPortfolio|rlReturnContext/.test(literal));
+  const secWriterAccepts = secDeclared
+    .filter((key) => SECWS.writeStorageKey(secStore({}), secConfig, key, 'x') === null);
+  const secInventoryKeys = SECWS.privacyInventory(secStore({}), secConfig)
+    .entries.map((entry) => entry.key).slice().sort();
+  const secOutsideNamespace = secDeclared
+    .filter((key) => key.indexOf(secConfig.storage.namespace + '.') !== 0);
+  assert(secDirectWrites === 0
+    && secKeyLiterals.length === 0
+    && secWriterAccepts.length === secDeclared.length
+    && secOutsideNamespace.length === 0
+    && JSON.stringify(secInventoryKeys) === JSON.stringify(secDeclared)
+    && JSON.stringify(stockedCleared.removedKeys.slice().sort()) === JSON.stringify(secDeclared),
+  'F4: the page writes no storage key directly and carries no storage-key literal of its own, so every key this tool can write is declared in configuration, sits inside the declared namespace, passes the closed writer, appears in the privacy inventory and is removed by the clear path');
+
+  /* F6. The omission accounting descends. A member added inside a container the sanitiser
+     rebuilds member by member must be NAMED, not silently dropped — the defect the function's
+     own comment says the shape exists to prevent. */
+  const secExpectedOmissions = (source, kept, prefix) => Object.keys(source).reduce((acc, member) => {
+    const path = prefix === '' ? member : prefix + '.' + member;
+    if (!Object.prototype.hasOwnProperty.call(kept, member)) return acc.concat([path]);
+    const bothContainers = source[member] !== null && typeof source[member] === 'object' && !Array.isArray(source[member])
+      && kept[member] !== null && typeof kept[member] === 'object' && !Array.isArray(kept[member]);
+    return bothContainers ? acc.concat(secExpectedOmissions(source[member], kept[member], path)) : acc;
+  }, []);
+  const secNested = SECWS.createEmptyWorkspace();
+  secNested.income.undeclaredNestedIncome = 515151;
+  secNested.investmentIncomeBasis.undeclaredNestedBasis = 626262;
+  secNested.wageBasis.undeclaredNestedWage = 737373;
+  const secNestedSanitized = SECWS.sanitizeForExport(secNested);
+  const secNestedText = JSON.stringify(secNestedSanitized.workspace);
+  const secNestedPaths = ['income.undeclaredNestedIncome',
+    'investmentIncomeBasis.undeclaredNestedBasis', 'wageBasis.undeclaredNestedWage'];
+  const secFlatSanitized = SECWS.sanitizeForExport(SECWS.createEmptyWorkspace());
+  const secUnderReporting = secNestedSanitized.omittedFields.slice(1);
+  assert(secNestedPaths.every((path) => secNestedSanitized.omittedFields.indexOf(path) >= 0)
+    && ['515151', '626262', '737373'].every((figure) => secNestedText.indexOf(figure) < 0)
+    /* Derived on both sides: the reported set equals the withheld set at every depth. */
+    && JSON.stringify(secNestedSanitized.omittedFields.slice().sort())
+      === JSON.stringify(secExpectedOmissions(secNested, secNestedSanitized.workspace, '').slice().sort())
+    && JSON.stringify(secFlatSanitized.omittedFields.slice().sort())
+      === JSON.stringify(secExpectedOmissions(SECWS.createEmptyWorkspace(), secFlatSanitized.workspace, '').slice().sort())
+    /* Top-level names stay bare, so the depth-1 callers across the four features are unaffected. */
+    && secFlatSanitized.omittedFields.every((path) => path.indexOf('.') < 0)
+    && secFlatSanitized.omittedFields.indexOf('propertyJurisdiction') >= 0
+    /* An under-reporting list is proven to disagree, so the identity is not two empty sets. */
+    && secUnderReporting.length !== secNestedSanitized.omittedFields.length
+    && secNestedSanitized.omittedFields.length > secFlatSanitized.omittedFields.length,
+  'F6: the export omission accounting descends into every container the sanitiser rebuilds member by member, so a member added inside income, investmentIncomeBasis or wageBasis is named as container.member and its figure never reaches the exported bytes, top-level members keep their bare names, and an under-reporting list is proven to disagree');
+} catch (e) { failures++; console.log('  ✗ FAIL (lifetime-tax security follow-up group threw): ' + e.message); }
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

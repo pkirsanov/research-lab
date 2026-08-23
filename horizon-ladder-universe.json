@@ -1,0 +1,106 @@
+{
+  "schema": "horizon-ladder-universe/v1",
+  "updated": "2026-08-22",
+  "note": "Universe and policy for the Long/Short Horizon Ladder Lab. Design of record: notes/horizon-ladder-lab.md. No candidate names, levels or probabilities are declared here; this file carries only the screening population and the gate policy.",
+
+  "horizons": [
+    { "id": "h1w", "label": "1 week", "sessions": 5, "band": "0-2w" },
+    { "id": "h2w", "label": "2 weeks", "sessions": 10, "band": "0-2w" },
+    { "id": "h1m", "label": "1 month", "sessions": 21, "band": "2-8w" },
+    { "id": "h3m", "label": "3 months", "sessions": 63, "band": "2-6m" },
+    { "id": "h6m", "label": "6 months", "sessions": 126, "band": "2-6m" },
+    { "id": "h1y", "label": "1 year", "sessions": 252, "band": ">6m" }
+  ],
+
+  "directions": ["long", "short"],
+
+  "policy": {
+    "minResolvedSample": 20,
+    "minAnalogSample": 20,
+    "sessionsPerYear": 252,
+    "benchmarkSymbol": "SPY",
+    "pivotSpan": 3,
+    "volWindowSessions": 63,
+    "candidateCapPerCell": 12,
+    "rewardToRiskFloor": 1.5,
+    "defaultResolutionRule": "terminal",
+    "driftAssumption": "zero",
+    "driftProvenance": "declared-zero; any non-zero drift would be a forecast and must be sourced before use"
+  },
+
+  "profiles": [
+    {
+      "id": "lower-risk",
+      "label": "Lower risk",
+      "rule": "Smallest invalidation distance m, subject to reward-to-risk at or above the floor.",
+      "cost": "A tight stop is touched more often. Stop-touch probability is displayed next to every row."
+    },
+    {
+      "id": "high-reward",
+      "label": "High reward",
+      "rule": "Largest target distance k, no cap on m.",
+      "cost": "Terminal probability falls steeply with k. Expected value can be negative at high reward-to-risk."
+    },
+    {
+      "id": "high-probability",
+      "label": "High probability",
+      "rule": "Highest measured rate for the cell.",
+      "cost": "Withheld until the cell reaches the minimum resolved sample. Ships empty by design."
+    }
+  ],
+
+  "ledgerSnapshot": {
+    "asOf": "2026-08-20T05:45:45.184Z",
+    "source": "market-brief.scorecard.json (brief-scorecard/v1) and briefs/history/recommendations/*.jsonl",
+    "provenance": "measured",
+    "supersededByLiveFetchWhenAvailable": true,
+    "note": "Resolved counts for the long and short directions are zero because no long or short row has ever been minted. The three reference cells are the existing direction-agnostic horizon buckets, shown for context only.",
+    "cells": {
+      "long:h1w": 0, "long:h2w": 0, "long:h1m": 0, "long:h3m": 0, "long:h6m": 0, "long:h1y": 0,
+      "short:h1w": 0, "short:h2w": 0, "short:h1m": 0, "short:h3m": 0, "short:h6m": 0, "short:h1y": 0
+    },
+    "ratesNote": "A cell's realised rate stays null until that cell reaches minResolvedSample. Populating a rate before its count clears the minimum would defeat the gate.",
+    "rates": {
+      "long:h1w": null, "long:h2w": null, "long:h1m": null, "long:h3m": null, "long:h6m": null, "long:h1y": null,
+      "short:h1w": null, "short:h2w": null, "short:h1m": null, "short:h3m": null, "short:h6m": null, "short:h1y": null
+    },
+    "referenceCells": [
+      { "id": "tactical", "sessions": 3, "resolved": 22, "satisfied": 2, "invalidated": 20, "expired": 26, "hitRate": 0.0909 },
+      { "id": "swing", "resolved": 95, "satisfied": 56, "invalidated": 39, "expired": 7, "hitRate": 0.5895 },
+      { "id": "structural", "resolved": 54, "satisfied": 31, "invalidated": 23, "expired": 0, "hitRate": 0.5741 }
+    ],
+    "calibration": [
+      { "bucket": "50-59", "resolved": 152, "stated": 0.554, "realised": 0.5 },
+      { "bucket": "60-69", "resolved": 18, "stated": 0.608, "realised": null },
+      { "bucket": "70-79", "resolved": 1, "stated": 0.7, "realised": null },
+      { "bucket": "gte-80", "resolved": 0, "stated": null, "realised": null }
+    ]
+  },
+
+  "watchlist": [
+    { "symbol": "SPY", "kind": "etf", "shortable": true },
+    { "symbol": "QQQ", "kind": "etf", "shortable": true },
+    { "symbol": "IWM", "kind": "etf", "shortable": true },
+    { "symbol": "XLE", "kind": "etf", "shortable": true },
+    { "symbol": "XLK", "kind": "etf", "shortable": true },
+    { "symbol": "XLF", "kind": "etf", "shortable": true },
+    { "symbol": "XLV", "kind": "etf", "shortable": true },
+    { "symbol": "XLP", "kind": "etf", "shortable": true },
+    { "symbol": "SOXX", "kind": "etf", "shortable": true },
+    { "symbol": "GLD", "kind": "etf", "shortable": true },
+    { "symbol": "TLT", "kind": "etf", "shortable": true },
+    { "symbol": "AAPL", "kind": "stock", "shortable": true },
+    { "symbol": "MSFT", "kind": "stock", "shortable": true },
+    { "symbol": "NVDA", "kind": "stock", "shortable": true },
+    { "symbol": "AMZN", "kind": "stock", "shortable": true },
+    { "symbol": "GOOGL", "kind": "stock", "shortable": true },
+    { "symbol": "META", "kind": "stock", "shortable": true },
+    { "symbol": "AVGO", "kind": "stock", "shortable": true },
+    { "symbol": "AMD", "kind": "stock", "shortable": true },
+    { "symbol": "XOM", "kind": "stock", "shortable": true },
+    { "symbol": "CVX", "kind": "stock", "shortable": true },
+    { "symbol": "JPM", "kind": "stock", "shortable": true },
+    { "symbol": "UNH", "kind": "stock", "shortable": true },
+    { "symbol": "COST", "kind": "stock", "shortable": true }
+  ]
+}

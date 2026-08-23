@@ -1480,4 +1480,141 @@ in the table above, the household-value claim, which is true and proven. No DoD
 row asserts the page issues no requests. The false statements live in requirement
 and narrative text, which carries no tick of its own.
 
+### F-REG-03 — the F5 fix removed a storage key the privacy allow-list still permits
+
+`08caba331` deleted `MODE_KEY = "rlLifetimeTaxDisplayMode"` and dropped the
+`persist` parameter from `applyDisplayMode`, so the view mode is now carried by
+the location hash alone and that key is never written. The commit subject names
+only the `removed.push` correction, so the second change travels unannounced.
+
+The SCN-021-003 privacy assertion still allows the deleted key —
+`tests/lifetime-tax-foundation.spec.mjs:370`:
+
+```js
+expect(storage.keys.every((key) => key.indexOf('rlLifetimeTaxV1.') === 0 || key === 'rlLifetimeTaxDisplayMode')).toBe(true);
+```
+
+The second disjunct is now dead. It cannot be exercised, and it permits a key
+that the closed writer rejects and that appears in no configured inventory. An
+allow-list clause that outlives the thing it allowed is a widened assertion: this
+one would still pass if the key returned, which is the state F5 set out to make
+impossible.
+
+#### Severity is low, and the reason is a second assertion rather than optimism
+
+The invariant is held elsewhere, and more strictly. The F4 assertion in
+`scripts/selftest.mjs` pins it at the source level:
+
+> F4: the page writes no storage key directly and carries no storage-key literal
+> of its own, so every key this tool can write is declared in configuration, sits
+> inside the declared namespace, passes the closed writer, appears in the privacy
+> inventory and is removed by the clear path
+
+A returning `rlLifetimeTaxDisplayMode` literal fails F4 before it could reach the
+browser assertion that would wave it through. So this is a dead clause, not a
+live hole, and it is reported at that weight rather than inflated to match the
+seriousness of the file it sits in.
+
+The configuration declares three keys — `rlLifetimeTaxV1.workspace`,
+`rlLifetimeTaxV1.pointer` and `rlLifetimeTaxV1.probe` — and all three match the
+first disjunct, so deleting the second changes no passing outcome.
+
+**Claim Source:** executed. `git show 08caba331` was read in this session.
+`tests/lifetime-tax-foundation.spec.mjs:355-378`,
+`lifetime-tax-strategy.config.json:3-12` and the F4 assertion text at
+`scripts/selftest.mjs:27632` were read in this session. The grep for
+`rlLifetimeTaxDisplayMode` and `MODE_KEY` ran in this session and returned that
+line as the only surviving reference inside this feature family.
+
+#### Routed, not fixed
+
+Deleting the disjunct is a one-line change and this sweep does not make it, for
+one reason: it cannot be proven here. `tests/` is `bubbles.test`'s artifact, the
+change is only meaningful under a browser run, and this sweep runs no browser. An
+edit whose effect cannot be observed is not a fix, it is an assertion about a fix.
+
+Owner: `bubbles.test`, alongside the SCN-021-003 title rename the F2 census
+already routed, so both land in one browser run.
+
+### F-REG-04 — three of the six security fixes are in the tree and in no report
+
+Only `F1` and `F2` have evidence sections. `F3`, `F4` and `F5` have none, in any
+`report.md`, across all four features. Grepped this session for
+`Remediation F3|F4|F5`, for heading forms, and for `isSafeSourceUrl`; every
+search returned empty.
+
+What landed unrecorded:
+
+| finding | commits | shipped files changed |
+| --- | --- | --- |
+| F3 | `39b1cb7bd`, `64dbef87b` | `rltaxrules.js`, `lifetime-tax-strategy-lab.html` |
+| F4 | assertion at `scripts/selftest.mjs:27632` | closed-writer pin |
+| F5 | `08caba331` | `lifetime-tax-strategy-lab.html`, `rltaxworkspace.js` |
+
+These are not cosmetic. F3 added a scheme guard and a renderer refusal path, F5
+removed a storage key and a persistence behaviour, and F4 added the assertion
+that now carries the invariant F-REG-03 describes. None has a recorded
+before-and-after, a probe, or a claim-source line in the artifact that owns it.
+
+This is the mechanism behind F-REG-03 rather than a separate accident. F5's
+persistence removal was never written down, so nobody reconciled it against the
+allow-list that still permits its key. The same exposure applies to the other
+two: a later reader has the commits and no statement of what was verified.
+
+**Claim Source:** executed. The heading and mention greps ran in this session
+over `specs/021*`, `specs/022*`, `specs/023*` and `specs/024*`. The commit and
+file lists come from `git show --numstat` on each commit, run in this session.
+
+Owner: whoever performed the security phase, to bank the three missing evidence
+sections. This sweep does not write another agent's evidence, because evidence
+records what its author executed and this author executed the sweep, not the fix.
+
+## Regression sweep — what was checked and found clean
+
+Recorded so the sweep's silence is legible. A check that ran and found nothing is
+not the same as a check that never ran.
+
+| area | check | result |
+| --- | --- | --- |
+| leg-set integrity | engine sums only legs whose `includedInTotal` is true, at `rltax.js:436-437` | clean |
+| leg-set integrity | cost legs do reach `declaredLegs`, so the `CO-24` mis-summed pass can fire; the `includedInTotal !== true` filter is scoped to the federal `taxLegs` branch alone, and the property and premium branches push their own flag | clean |
+| leg-set integrity | `federalLegIds` is built by `settledLegIds(settlement, null, null, null, null, null, null, null)`, so no cost leg can enter it by construction | clean |
+| leg-set integrity | `F-AUDIT-04` census wiring discriminates on the real route — probe below | clean |
+| refusal propagation | the `F3` renderer refuses a non-https source url with inert text naming the withholding, not a blank and not a live link | clean |
+| refusal propagation | the census clean line claims only surface membership and cost-leg exclusion, so it does not certify a leg whose input refused | clean, and precisely scoped |
+| refusal propagation | the disposition exclusion still coerces a refusal to zero — this is `F-AUDIT-05`, already open and routed, and this sweep found no change to it | pre-existing, unchanged |
+| coverage | no assertion in this feature family was deleted or weakened by the fix commits | clean |
+| coverage | passed count rose, `3242` to `3244`, from a concurrent session's additions | clean |
+
+The one deletion in a fix commit was `39b1cb7bd`, which removed seven lines from
+`scripts/selftest.mjs` and added seventy-one. The removed lines belong to a
+concurrent session's `horizon-ladder-lab` registry assertions and were replaced
+in the same commit by expanded forms of themselves, flipping them from
+unregistered to registered. Nothing in this feature family was touched, and no
+assertion was weakened. It is noted only because a security commit for this
+family carrying another feature's registry edits is a shared-file hazard worth
+seeing, not because it cost coverage.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F-AUDIT-04 census summed-set made self-referential on the real route
+file:             lifetime-tax-strategy-lab.html
+mutation:         envelope.federalLegIds || []);  ->  declaredLegs.map(function (leg) { return leg.legId; }));   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: F-AUDIT-04: the route invokes CO-24 on what it rendered, feeds the summed set from the settlement’s own federalLegIds rather than from the flag it is auditing, carries each leg’s own i
+green-exit:       0
+green-summary:      ✓ F-AUDIT-04: the route invokes CO-24 on what it rendered, feeds the summed set from the settlement’s own federalLegIds rather than from the flag it is auditing, carries each leg’s own include
+revert-verified:  yes (committed=a2bdfa4a1b312df877c58d1b19d995716393595b restored=a2bdfa4a1b312df877c58d1b19d995716393595b)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_EXIT=0
+```
+
+Pinned to the assertion's own wording rather than to the aggregate, because the
+aggregate moved twice during this sweep under a concurrent session. The census
+wiring the `F-AUDIT-04` fix added is real: making its summed set self-referential
+fails the assertion by name.
+
+
 

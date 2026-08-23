@@ -4513,6 +4513,12 @@
       "deepLink": "causal-rotation-lab.html",
       "status": "fresh-headless",
       "reason": "watch: Selective credit transmission; not plan-eligible; confirmation remains required."
+    },
+    {
+      "id": "horizon-ladder-lab",
+      "deepLink": "horizon-ladder-lab.html",
+      "status": "browser-or-agent-read",
+      "reason": "No deterministic Tier-A adapter; the ladder computes in-browser from the shared cache and withholds a rate at every horizon until a cell reaches its minimum resolved sample."
     }
   ],
   "tracked": {

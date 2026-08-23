@@ -1652,5 +1652,55 @@ aggregate moved twice during this sweep under a concurrent session. The census
 wiring the `F-AUDIT-04` fix added is real: making its summed set self-referential
 fails the assertion by name.
 
+## TP-05-18 authored — the non-empty pin `SCN-021-015` lacked (2026-08-22)
+
+`TP-05-18` was opened as `GAP, NOT AUTHORED` because `TP-05-14` captured
+`afterFirstPaint = ledger.length` and asserted `expect(ledger.length).toBe(afterFirstPaint)`
+without ever asserting the capture was greater than zero — alone in the 021-024
+privacy family. Against a route that read nothing the no-growth check reads
+`expect(0).toBe(0)` and the declared-asset sweep compares two empty arrays, so
+the row passes while covering nothing.
+
+The pin is now the statement immediately after the capture, which is where the
+row requires it, and the row also adopts the shared same-origin helper described
+under `TP-01-18` in the Scope 01 report.
+
+### Intended RED and same-command GREEN
+
+The mutation zeroes the captured length, which is exactly the state a boot that
+issued no request would produce. The RED names the pin by file line, so the
+failure is the intended contract assertion rather than a collateral one.
+
+```
+$ bash scripts/red-green-probe.sh \
+    --file tests/lifetime-tax-route.spec.mjs \
+    --find 'const afterFirstPaint = ledger.length;' \
+    --replace 'const afterFirstPaint = ledger.length * 0;' \
+    --label 'TP-05-18 non-empty pin: a boot that issued no request at all must fail this row; before the pin, afterFirstPaint of 0 made the no-growth check read expect(0).toBe(0) and the declared-asset sweep compare two empty arrays' \
+    --bound 300 \
+    --summary-match 'expect\(afterFirstPaint\)\.toBeGreaterThan|1 passed' \
+    -- npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-015 a private export happens only on explicit action" --reporter=line
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-18 non-empty pin: a boot that issued no request at all must fail this row; before the pin, afterFirstPaint of 0 made the no-growth check read expect(0).toBe(0) and the declared-asset sweep compare two empty arrays
+file:             tests/lifetime-tax-route.spec.mjs
+mutation:         const afterFirstPaint = ledger.length;  ->  const afterFirstPaint = ledger.length * 0;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-021-015\ a\ private\ export\ happens\ only\ on\ explicit\ action --reporter=line
+red-exit:         1
+red-summary:          > 315 |   expect(afterFirstPaint).toBeGreaterThan(0);
+green-exit:       0
+green-summary:      1 passed (2.1s)
+summary-compared:     > 315 |   expect(afterFirstPaint).toBeGreaterThan(0);  vs     1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=f4afe1a260905d3185246119f9fd675d381a250f restored=f4afe1a260905d3185246119f9fd675d381a250f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_TP0518B_EXIT=0
+```
+
+The `--summary-match` is pinned to the pin's own source text rather than to a
+pass count, so a concurrent session moving the aggregate cannot move this
+verdict. The GREEN arm's `1 passed` is the same single grepped title, not a
+suite total.
+
+
 
 

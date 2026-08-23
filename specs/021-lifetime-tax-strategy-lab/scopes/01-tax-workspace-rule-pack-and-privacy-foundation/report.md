@@ -1101,3 +1101,82 @@ verbatim harness output from this session. The 24-request measurement is execute
 a local static server plus a Chromium request listener over one first paint. The
 failing-line attribution inside the first probe is interpreted, not executed.
 
+## TP-01-18 authored — the origin half, folded into the shared helper (2026-08-22)
+
+`TP-01-18` was opened as `GAP, NOT AUTHORED` on a route-wide title-versus-assertion
+mismatch. Six rows across Features 021-024 carry the words "declared same-origin
+read" or "declared same-origin GET" in their persistent titles but assert only
+`new URL(entry.url).pathname` against a declared-asset set, which returns bare
+paths: `SCN-021-015`, `SCN-023-001`, `SCN-024-001`, `SCN-024-009`, `SCN-024-010`
+and `SCN-024-014`. A read of `https://elsewhere.example/rltaxstrategy.js` has a
+declared pathname and passes all six while carrying the household's request to a
+third party.
+
+This scope owns the shared privacy contract, so the fix is a shared helper rather
+than six copies of a filter. `sameOriginPaths(ledger, site)` in
+`tests/lifetime-tax.support.mjs` refuses on origin first and only then returns the
+pathnames, so a row gains the origin constraint by calling it.
+
+The row itself is authored in `tests/lifetime-tax-foundation.spec.mjs` against
+`SCN-021-002` and carries two arms. The live arm runs the real route, calls the
+helper, pins the returned list non-empty and checks every path against the
+declared set. The adversarial arm builds the exact entry the six rows cannot see —
+a pathname the route genuinely declares, an origin it never did — and proves the
+two checks disagree: the pathname-only sweep accepts it, the helper refuses it. A
+third assertion re-bases the same entry on the route's own origin and shows the
+helper accepts it, so the refusal is about the origin rather than about the entry
+being synthetic.
+
+### Intended RED and same-command GREEN
+
+The mutation reverts the helper to precisely the pathname-only predicate the six
+rows already had. Every pathname begins with a slash, so `foreign` becomes
+permanently empty and the helper stops refusing anything.
+
+```
+$ bash scripts/red-green-probe.sh \
+    --file tests/lifetime-tax.support.mjs \
+    --find 'const foreign = ledger.filter((entry) => !entry.url.startsWith(site.baseUrl));' \
+    --replace 'const foreign = ledger.filter((entry) => !new URL(entry.url).pathname.startsWith("/"));' \
+    --label 'TP-01-18 shared origin filter: reverting the helper to the pathname-only check the six rows already had must fail this row, because a declared pathname served from an undeclared origin is then accepted' \
+    --bound 300 \
+    --summary-match 'toThrow|1 passed' \
+    -- npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-002 the shared ledger helper refuses a declared pathname served from an undeclared origin" --reporter=line
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-18 shared origin filter: reverting the helper to the pathname-only check the six rows already had must fail this row, because a declared pathname served from an undeclared origin is then accepted
+file:             tests/lifetime-tax.support.mjs
+mutation:         const foreign = ledger.filter((entry) => !entry.url.startsWith(site.baseUrl));  ->  const foreign = ledger.filter((entry) => !new URL(entry.url).pathname.startsWith("/"));   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-021-002\ the\ shared\ ledger\ helper\ refuses\ a\ declared\ pathname\ served\ from\ an\ undeclared\ origin --reporter=line
+red-exit:         1
+red-summary:          > 450 |   expect(() => sameOriginPaths(smuggled, site)).toThrow();
+green-exit:       0
+green-summary:      1 passed (2.1s)
+summary-compared:     > 450 |   expect(() => sameOriginPaths(smuggled, site)).toThrow();  vs    1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=a6f68db3cecd8ed4cb33abaede3f091ad7f9cdad restored=a6f68db3cecd8ed4cb33abaede3f091ad7f9cdad)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_TP0118_EXIT=0
+```
+
+### What this closes, and what it does not
+
+The `foreign` predicate now has an OBSERVED RED. The section immediately above
+recorded that it had none — it was reasoned about by analogy with `unexpected`
+and recorded as weaker than an observed RED. That gap is discharged: the RED
+above names the assertion by file line.
+
+**Not closed, and reported rather than hidden.** Of the six rows the gap names,
+three now route through the shared helper: `SCN-021-015`, `SCN-024-009` and
+`SCN-024-010`. Three do not — `SCN-023-001` in `tests/lifetime-tax-property.spec.mjs`,
+`SCN-024-001` in `tests/lifetime-tax-benefit.spec.mjs` and `SCN-024-014` in
+`tests/lifetime-tax-retirement-route.spec.mjs`. Those three files are excluded
+paths for every scope in this dispatch and are owned by scopes whose Definition
+of Done is not open, so adopting the helper there is a change outside this
+dispatch's boundary. The helper is in place and the call site is one line; the
+remaining adoption is named here as open work, not asserted as done.
+
+**Claim Source:** executed. The probe block is verbatim harness output from this
+session. The three-of-six adoption count is executed: it is the set of files this
+dispatch edited, verified against the call sites of `sameOriginPaths`.
+
+

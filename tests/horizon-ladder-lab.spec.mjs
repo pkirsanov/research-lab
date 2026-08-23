@@ -60,3 +60,33 @@ test('Regression: an unearned cell withholds its rate and states the distance to
   await expect(page.locator('#gateNotice')).toContainText('0 of 20');
   await expect(page.locator('#gateNotice')).toContainText('not a measured hit rate');
 });
+
+/* A control that changes nothing is worse than an absent one, because it implies the view responds
+   to a choice it is ignoring. The assertion is on the cell key the gate prints, which is composed
+   from the direction the computation actually used. Comparing rendered symbol text instead looked
+   reasonable and was not: it passed with the direction handler deleted, because the cache warm
+   re-renders asynchronously and the two captures differed on formatting rather than on direction. */
+test('Regression: switching direction re-keys the cell the gate reports on', async ({ page }) => {
+  await page.goto(baseUrl + '/horizon-ladder-lab.html');
+  await expect.poll(() => page.locator('#simpleTable tbody tr').count(), { timeout: 15000 }).toBeGreaterThan(0);
+  await expect(page.locator('#gateNotice')).toContainText('long:h1m');
+  await page.selectOption('#selDirection', 'short');
+  await expect(page.locator('#gateNotice')).toContainText('short:h1m');
+  await expect.poll(() => page.locator('#simpleTable tbody tr').count(), { timeout: 15000 }).toBeGreaterThan(0);
+});
+
+/* Canvas work in this repo has a known failure mode: a draw deferred to requestAnimationFrame never
+   runs in a hidden or background tab, leaving the element at its default size with nothing painted.
+   The element existing proves nothing, so this reads the alpha channel. */
+test('Regression: the power view paints its frontier canvas rather than leaving it blank', async ({ page }) => {
+  await page.goto(baseUrl + '/horizon-ladder-lab.html');
+  await expect.poll(() => page.locator('#simpleTable tbody tr').count(), { timeout: 15000 }).toBeGreaterThan(0);
+  await page.locator('#modeSeg button[data-mode]').last().click();
+  await expect.poll(() => page.evaluate(() => {
+    const canvas = document.querySelector('canvas');
+    if (!canvas || !canvas.width || !canvas.height) return false;
+    const pixels = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+    for (let i = 3; i < pixels.length; i += 4) if (pixels[i] !== 0) return true;
+    return false;
+  }), { timeout: 15000 }).toBeTruthy();
+});

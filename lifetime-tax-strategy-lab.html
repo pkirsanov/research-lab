@@ -5685,12 +5685,14 @@
                         })).then(function () {
                         /* The state packs are DECLARED by the configuration exactly as the federal
                            pack and the regime packs are, and read from this checkout by the same
-                           local path mechanism. Declaring them is what lets the permitted-asset
-                           derivation absorb them from the page's own declarations rather than from
-                           a hand-listed path, so a request to a pack the configuration never
-                           declared is still an undeclared request. A pack that fails to read leaves
-                           that jurisdiction unresolved and its residency refuses by name; no
-                           average, no national default and no zero is substituted for it. */
+                           local path mechanism. Declaring them is what lets declaredPackPaths in
+                           tests/lifetime-tax.support.mjs — the permitted-asset derivation the
+                           privacy-ledger specs share — absorb them from the page's own declarations
+                           rather than from a hand-listed path, so a request to a pack the
+                           configuration never declared is still an undeclared request. A pack that
+                           fails to read leaves that jurisdiction unresolved and its residency
+                           refuses by name; no average, no national default and no zero is
+                           substituted for it. */
                         var declaredStatePaths = config.rules.statePackPaths;
                         return Promise.all(Object.keys(declaredStatePaths).map(function (jurisdiction) {
                             return loadJson(declaredStatePaths[jurisdiction]).then(function (statePack) {
@@ -5702,9 +5704,10 @@
                            pack and the regime packs are, and read from this checkout by the same
                            local path mechanism. Declaring it rather than assembling its path here
                            is what lets every consumer that must know which assets this route may
-                           request — the route itself and the privacy ledger's permitted-asset
-                           derivation alike — read that answer off the page's own declarations
-                           instead of re-deriving it. No year and no figure is held by the page. A
+                           request — the route itself and declaredPackPaths in
+                           tests/lifetime-tax.support.mjs alike — read that answer off the page's own
+                           declarations instead of re-deriving it. No year and no figure is held by
+                           the page. A
                            pack that fails to read leaves the benefit unsettled and its leg refuses
                            by name; nothing is substituted for it. */
                         var declaredBenefitPaths = config.rules.benefitPackPaths;
@@ -5715,8 +5718,8 @@
                         }));
                         }).then(function () {
                         /* The mortality pack is DECLARED exactly as the benefit pack is, so the
-                           permitted-asset derivation the privacy ledger reads absorbs it from the
-                           page's own declarations rather than from a hand-listed path. A pack that
+                           declaredPackPaths derivation the privacy-ledger specs read absorbs it from
+                           the page's own declarations rather than from a hand-listed path. A pack that
                            fails to read leaves the comparison without a sourced remaining-years
                            figure, the totals are withheld by name, and no horizon is substituted. */
                         var declaredMortalityPaths = config.rules.mortalityPackPaths;
@@ -5727,7 +5730,7 @@
                         }));
                         }).then(function () {
                         /* The medicare pack is DECLARED exactly as the benefit and mortality packs
-                           are, so the permitted-asset derivation absorbs it without an edit. A pack
+                           are, so the declaredPackPaths derivation absorbs it without an edit. A pack
                            that fails to read leaves the premium stage without a sourced premium and
                            its three legs refuse by name; no typical premium is substituted. */
                         var declaredMedicarePaths = config.rules.medicarePackPaths;

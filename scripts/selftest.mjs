@@ -14716,6 +14716,20 @@ try {
     && page.indexOf('innerHTML') < 0,
   'TP-05-06: the route carries no runtime transport beyond the nine same-origin reads of its own declared local policy and rule-pack documents, writes only the two view-mode literals to the location hash, never writes a query string, emits no console output, uses no innerHTML, and its CSP is byte-identical to the shared policy');
 
+  /* What the panel tells the reader has to survive the count measured just above. The shipped
+     disclosure opened with "This page issues zero network requests", which was true when Scope 05
+     shipped and false from Feature 022 onward, and nothing was watching the two apart. */
+  const networkDisclosure = JSON.parse(read('lifetime-tax-strategy.config.json')).display.localNetworkPolicy;
+  const absoluteAbsencePhrases = ['zero network request', 'no network request', 'issues no request',
+    'makes no request', 'never issues a request', 'sends no request'];
+  const disclaimedAbsence = absoluteAbsencePhrases.filter((phrase) => networkDisclosure.toLowerCase().indexOf(phrase) >= 0);
+  assert((readSiteArguments.length === 0 || disclaimedAbsence.length === 0)
+    && /reads its own policy and rule-pack documents from this site/.test(networkDisclosure)
+    && networkDisclosure.indexOf('it sends nothing') >= 0
+    && networkDisclosure.indexOf('never placed in a URL, a request, a referrer or a console message') >= 0,
+  'TP-05-06: the privacy panel claims no absence of requests the route does not actually have — while any read site stands, the disclosure describes the same-origin reads it performs and still promises the household values reach no URL, request, referrer or console'
+    + (disclaimedAbsence.length ? ' (claims absence: ' + disclaimedAbsence.join(', ') + ' beside ' + readSiteArguments.length + ' read sites)' : ''));
+
   /* Charts are drawn synchronously and only in the mode whose canvas is visible. */
   const drawBody = extractFn(page, 'drawCurveChart');
   assert(drawBody.indexOf('requestAnimationFrame') < 0

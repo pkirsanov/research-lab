@@ -160,6 +160,42 @@ rlticker.js:154:  root.RLTKR.linkedSubject = linkedSubject;
 
 Five call sites. Neither affected file is among them.
 
+### The consequence, observed in a browser
+
+The filing above derives the consequence from the absence of a reader. This
+section observes it instead, against the repository's own `startStaticServer()`
+harness — the same server the committed route specs use — so the routes are
+real, same-origin and unmocked. The reading is `#ticker`, the input each route
+reflects its resolved subject into.
+
+The first two rows are a positive control. Without them, "both routes showed
+`SPY`" would be indistinguishable from a broken measurement.
+
+```
+$ node --input-type=module -e '<startStaticServer + playwright chromium; read #ticker per route>'
+CONTROL options-structure ?ticker=NVDA -> NVDA
+CONTROL options-structure  no query    -> SPY
+TEST    intraday-tape     ?t=NVDA     -> SPY
+TEST    intraday-tape     ?ticker=NVDA-> SPY
+TEST    intraday-tape      no query   -> SPY
+TEST    swing-structure   ?t=NVDA     -> SPY
+TEST    swing-structure    no query   -> SPY
+```
+
+The control moves `SPY` to `NVDA`, so a working corridor is detectable by this
+reading. Both affected routes stay at `SPY`: a published link naming `NVDA`
+opens `SPY`, with nothing on screen saying the subject was dropped.
+
+The fourth row is the one that changes the remedy. `?ticker=NVDA` — the
+canonical spelling, the exact value the emitting-half fix would produce — is
+**equally ignored**. Renaming the parameter at the two emission sites would
+leave every observed value identical. The two-halves finding is therefore
+measured, not inferred, and a fix that ships only the precedent's one-line swap
+would close this bug while changing nothing a reader can see.
+
+This observes the DEFECT. It is not the Scope 2 proof, which requires the same
+reading to return `NVDA` after the fix lands.
+
 ### Why it fails silently — the contract validates shape, not liveness
 
 ```

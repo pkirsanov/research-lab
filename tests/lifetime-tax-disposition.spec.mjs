@@ -304,7 +304,7 @@ test('Regression: SCN-023-014 both disposition legs reach the headline, the comp
 });
 
 /* TP-05-25. */
-test('Regression: SCN-023-015 the request ledger stays empty and no disposition declaration reaches a URL', async ({ page }) => {
+test('Regression: SCN-023-015 no disposition declaration reaches a requested URL, the address bar, the referrer or a console message', async ({ page }) => {
   const requests = [];
   page.on('request', (request) => { requests.push(request.url()); });
   const consoleMessages = [];

@@ -448,9 +448,34 @@ TP_05_24_EXIT=0
 
 ### TP-05-25
 
-The request ledger stays empty and no disposition declaration reaches a URL.
-Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-015 the request ledger stays empty and no disposition declaration reaches a URL" --reporter=list`
+No disposition declaration reaches a requested URL, the address bar, the referrer
+or a console message.
+Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-015 no disposition declaration reaches a requested URL, the address bar, the referrer or a console message" --reporter=list`
 Exit code: `0`
+
+**Renamed 2026-08-22 (F-REG-02), and narrowed rather than restated.** The
+persistent title was
+`Regression: SCN-023-015 the request ledger stays empty and no disposition declaration reaches a URL`
+until this date. Two things were wrong with it. The ledger is never empty — the
+route issues same-origin document reads and `<script src>` module loads at boot.
+And unlike the SCN-022-013, SCN-023-001, SCN-024-001 and SCN-024-014 rows, **this
+row asserts nothing about the ledger's contents or its growth at all**: it holds
+no `expect(ledger.length).toBe(afterFirstPaint)`, no
+`expect(afterFirstPaint).toBeGreaterThan(0)`, and no membership check against the
+route's declared assets. Its only use of the request list is
+`requests.filter((url) => !url.endsWith('.js') && !url.endsWith('.css'))`, which
+discards the module loads and then checks the remainder for declared values. So
+the corrected wording could not be "the ledger does not grow after first paint
+and every entry is a declared same-origin read" — that would have replaced one
+false claim with another. The title now names only what the body proves: no
+declared sale figure and no declared member name appears in any requested URL, in
+`location.search`, in `location.hash`, in `location.href`, in `document.referrer`
+or in any console message. Adversarial cases: pushing any declared sale figure or
+member name into a request URL, the query string, the hash, the referrer or a
+console message fails the corresponding loop. That this row does not constrain
+the ledger is a planning gap, not something a rename can fix, and it is routed.
+The captured blocks below were recorded under the superseded title and are left
+exactly as executed; a fresh capture under the new title follows.
 
 ```
 Running 1 test using 1 worker
@@ -459,6 +484,22 @@ Running 1 test using 1 worker
 
   1 passed (1.6s)
 TP_05_25_EXIT=0
+```
+
+Fresh capture under the new persistent title, recorded 2026-08-22 after the
+rename, proving the row's `--grep` still selects its own test — selected 1,
+passed 1:
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-015 no disposition declaration reaches a requested URL, the address bar, the referrer or a console message" --reporter=line
+exit: 0
+lines: 5
+sha256: fc2df6ed04ba5fedcf03799ac7a39fc16b309dbc6029820d378e69eaacaf3bb2
+
+Running 1 test using 1 worker
+
+[1/1] [system-chrome] › tests/lifetime-tax-disposition.spec.mjs:307:1 › Regression: SCN-023-015 no disposition declaration reaches a requested URL, the address bar, the referrer or a console message
+  1 passed (3.0s)
 ```
 
 ### TP-05-26

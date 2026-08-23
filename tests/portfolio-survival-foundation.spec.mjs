@@ -13,6 +13,19 @@ test.afterAll(async () => {
   if (server) await server.close();
 });
 
+const SCOPE19_MSFT_SNAPSHOT = JSON.parse(readFileSync(resolve(ROOT, 'data/bars/MSFT.json'), 'utf8'));
+const SCOPE19_MSFT_DATES = SCOPE19_MSFT_SNAPSHOT.rows
+  .map((row) => new Date(row.t).toISOString().slice(0, 10))
+  .sort();
+
+function subtractCalendarYears(date, years) {
+  const [year, month, day] = date.split('-').map(Number);
+  const targetYear = year - years;
+  const lastDay = new Date(Date.UTC(targetYear, month, 0)).getUTCDate();
+  return [targetYear, month, Math.min(day, lastDay)].map((value, index) =>
+    String(value).padStart(index === 0 ? 4 : 2, '0')).join('-');
+}
+
 async function blockStorage(page, mode) {
   await page.addInitScript((requestedMode) => {
     function blockedStorage() {
@@ -37,7 +50,7 @@ async function blockStorage(page, mode) {
 async function openRoute(page) {
   const browserRequests = [];
   page.on('request', (request) => browserRequests.push(request.url()));
-  const response = await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#workspace`);
+  const response = await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#brief`);
   expect(response?.status(), 'unregistered portfolio route foundation must be served').toBe(200);
   await expect(page.getByRole('heading', { name: 'Portfolio Brief' })).toBeVisible();
   await expect(page.locator('#localBoundary')).toContainText('Local-only');
@@ -728,7 +741,7 @@ test('Regression: SCN-008-011 clear behavior removes ranking influence and prese
         asOf: null,
         freshUntil: null,
         computedAt: '2026-08-14T00:00:00.000Z',
-        deepLink: 'portfolio-survival-allocation-lab.html#workspace'
+        deepLink: 'portfolio-survival-allocation-lab.html#brief'
       }
     }
   })));
@@ -1536,7 +1549,7 @@ test('Regression: SCN-008-035 partial data corrupt schema and localStorage disab
   // Phase E — storage degraded to session-only. Truth must still render and still not substitute.
   const sessionPage = await page.context().newPage();
   await blockStorage(sessionPage, 'session');
-  await sessionPage.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#workspace`);
+  await sessionPage.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#brief`);
   await expect(sessionPage.locator('#storageMode')).toContainText('Session-only');
   await expect(sessionPage.locator('#truthSummary'), 'with no durable revision the surface states unavailability rather than inventing rows')
     .toContainText('Holding evidence unavailable');
@@ -1548,4 +1561,172 @@ test('Regression: SCN-008-035 partial data corrupt schema and localStorage disab
   console.log('[TP-04-06] phaseC staleNamed=MSFT lastObservation=2026-04-30');
   console.log(`[TP-04-06] phaseD quarantined=true syntheticRows=0 rows=${afterCorruption.length}`);
   console.log('[TP-04-06] phaseE sessionOnly rows=0 unavailableStated=true');
+});
+
+test('Regression: SCN-008-042 holdings can be added edited removed and cleared to an honest empty portfolio', async ({ page }) => {
+  await openRoute(page);
+  await importValid(page, 'Scope 17 editable portfolio');
+  const initial = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+
+  await page.locator('#beginHoldingEdit').click();
+  await page.locator('#manualAssetType').selectOption('cash');
+  await page.locator('#manualCurrency').fill('USD');
+  await page.locator('#manualSymbol').fill('USD-CASH');
+  await page.locator('#manualValue').fill('5000');
+  await page.locator('#addHoldingRow').click();
+
+  await page.locator('#manualAssetType').selectOption('manual-alternative');
+  await page.locator('#manualSymbol').fill('');
+  await page.locator('#manualLabel').fill('Private credit sleeve');
+  await page.locator('#manualValue').fill('2000');
+  await page.locator('#manualValuationDate').fill('2026-07-15');
+  await page.locator('#manualValuationMethod').fill('Owner statement');
+  await page.locator('#manualLiquidity').fill('quarterly');
+  await page.locator('#manualValuationFrequency').fill('quarterly');
+  await page.locator('#manualTransactionCost').fill('25');
+  await page.locator('#manualUncertainty').fill('Illiquid estimate with owner-entered uncertainty');
+  await page.locator('#addHoldingRow').click();
+
+  const rows = page.locator('#holdingEditorRows tr[data-holding-id]');
+  await expect(rows).toHaveCount(4);
+  await rows.first().getByRole('button', { name: 'Edit holding' }).click();
+  await page.locator('#manualQuantity').fill('11');
+  await page.locator('#applyHoldingEdit').click();
+  await rows.nth(1).getByRole('button', { name: 'Remove holding' }).click();
+  await expect(rows).toHaveCount(3);
+
+  await page.locator('#confirmHoldingRevision').click();
+  await expect(page.locator('#currentRevision')).toContainText('3 holdings');
+  const revised = await page.evaluate(() => {
+    const pointer = JSON.parse(localStorage.getItem('rlPortfolioWorkspaceV1.pointer'));
+    const workspace = JSON.parse(localStorage.getItem('rlPortfolioWorkspaceV1.' + pointer.activeSlot));
+    return {
+      diagnostics: window.__PORTFOLIO_DIAGNOSTICS__,
+      active: workspace.portfolioRevisions.find((entry) => entry.portfolioId === workspace.currentPortfolioId)
+    };
+  });
+  expect(revised.diagnostics.currentPortfolioId).not.toBe(initial.currentPortfolioId);
+  expect(revised.active.supersedes).toBe(initial.currentPortfolioId);
+  expect(revised.active.holdings.map((entry) => entry.assetType).sort()).toEqual(['cash', 'listed', 'manual-alternative']);
+
+  await page.locator('#beginHoldingEdit').click();
+  while (await page.locator('#holdingEditorRows button[data-remove-holding]').count()) {
+    await page.locator('#holdingEditorRows button[data-remove-holding]').first().click();
+  }
+  await expect(page.locator('#holdingEditorEmpty')).toHaveText('Portfolio empty');
+  await page.locator('#confirmHoldingRevision').click();
+  await expect(page.locator('#currentRevision')).toContainText('Portfolio empty');
+
+  const emptyBeforeReload = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+  expect(emptyBeforeReload.currentPortfolioId).not.toBe(null);
+  expect(emptyBeforeReload.holdingCount).toBe(0);
+  await page.reload();
+  await expect(page.locator('#currentRevision')).toContainText('Portfolio empty');
+  const emptyAfterReload = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+  expect(emptyAfterReload.currentPortfolioId).toBe(emptyBeforeReload.currentPortfolioId);
+
+  await page.locator('#exportAcknowledgement').check();
+  const download = page.waitForEvent('download');
+  await page.locator('#exportPortfolio').click();
+  expect((await download).suggestedFilename()).toBe('portfolio-private-export.json');
+});
+
+test('Regression: SCN-008-043 full personal clear tombstones derives and verifies every personal category', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('rlProviderConfig', '{"provider":"public-capability"}');
+    sessionStorage.setItem('rlReturnContextV1', '{"route":"brief"}');
+  });
+  await openRoute(page);
+  await importValid(page, 'Scope 17 full clear portfolio');
+  await page.locator('#openPrivacy').click();
+
+  const publicBefore = await page.evaluate(() => ({
+    data: localStorage.getItem('rlData'),
+    provider: localStorage.getItem('rlProviderConfig')
+  }));
+  await page.locator('#fullClearConfirmation').fill('clear all local data');
+  await page.locator('#emergencyClear').click();
+  await expect(page.locator('#privacyResult')).toContainText('P008-CLEAR-CONFIRMATION');
+
+  await page.locator('#fullClearConfirmation').fill('CLEAR ALL LOCAL DATA');
+  await page.locator('#emergencyClear').click();
+  await expect(page.locator('#privacyResult')).toContainText('Full personal data cleared');
+  const result = await page.evaluate(() => ({
+    diagnostics: window.__PORTFOLIO_DIAGNOSTICS__,
+    localKeys: Object.keys(localStorage).sort(),
+    sessionKeys: Object.keys(sessionStorage).sort(),
+    data: localStorage.getItem('rlData'),
+    provider: localStorage.getItem('rlProviderConfig')
+  }));
+  expect(result.diagnostics.lastFullClear.status).toBe('cleared');
+  expect(result.diagnostics.lastFullClear.tombstoneCommitted).toBe(true);
+  expect(result.diagnostics.currentPortfolioId).toBe(null);
+  expect(result.sessionKeys).toEqual([]);
+  expect(result.localKeys).toEqual(['rlData', 'rlProviderConfig']);
+  expect(result.data).toBe(publicBefore.data);
+  expect(result.provider).toBe(publicBefore.provider);
+
+  await page.reload();
+  await expect(page.locator('#currentRevision')).toContainText('No local portfolio');
+  await page.locator('#openPrivacy').click();
+  await page.locator('#fullClearConfirmation').fill('CLEAR ALL LOCAL DATA');
+  await page.evaluate(() => localStorage.setItem('rlPortfolioUndeclaredV1', 'private-value-that-must-not-echo'));
+  await page.locator('#emergencyClear').click();
+  await expect(page.locator('#privacyResult')).toContainText('P008-CLEAR-UNDECLARED');
+  await expect(page.locator('#privacyResult')).not.toContainText('private-value-that-must-not-echo');
+  await expect(page.locator('#privacyResult')).not.toContainText('Full personal data cleared');
+});
+
+test('Regression: SCN-008-045 five year coverage measures dates appends allowed sources and preserves partial truth', async ({ page }) => {
+  const requestStart = server.requests.length;
+  const browserRequests = await openRoute(page);
+  const requestedEndDate = SCOPE19_MSFT_SNAPSHOT.asof;
+  const requestedStartDate = subtractCalendarYears(requestedEndDate, 5);
+
+  const result = await page.evaluate(async ({ start, end }) => {
+    return RLDATA.ensureBarCoverage('MSFT', '1d', {
+      contractVersion: 'BarCoverageTarget/v1',
+      requestedStartDate: start,
+      requestedEndDate: end,
+      targetCalendarYears: 5,
+      maximumAgeHours: 48,
+      requiredCurrency: 'USD',
+      requiredTransform: 'adjusted-close',
+      requiredCorporateActionState: 'qualified-adjusted'
+    }, {
+      contractVersion: 'BarCoverageSourcePolicy/v1',
+      mode: 'same-origin-only',
+      conflictPolicy: 'reject-date',
+      publicProviderId: 'yahoo'
+    });
+  }, { start: requestedStartDate, end: requestedEndDate });
+
+  expect(result.contractVersion).toBe('BarCoverageResult/v1');
+  expect(result.state, 'the two-year committed snapshot must not masquerade as five years').toBe('partial');
+  expect(result.firstDate).toBe(SCOPE19_MSFT_DATES[0]);
+  expect(result.lastDate).toBe(SCOPE19_MSFT_DATES.at(-1));
+  expect(result.missingBounds).toEqual({ start: true, end: false });
+  expect(result.observedCount).toBe(SCOPE19_MSFT_SNAPSHOT.rows.length);
+  expect(result.rows.length).toBeGreaterThan(0);
+  expect(result.sourceIds).toContain('pages-snapshot');
+  expect(result.requestState).toBe('not-permitted');
+  expect(result.reasons).toContain('required-start-missing');
+  expect(result.reasons).toContain('currency-undeclared');
+  expect(result.reasons).toContain('transform-undeclared');
+  expect(result.reasons).toContain('corporate-action-undeclared');
+
+  const scopeRequests = server.requests.slice(requestStart).filter(({ pathname }) =>
+    pathname.includes('/data/bars/MSFT.json') || pathname.includes('/v8/finance/chart/'));
+  expect(scopeRequests.map(({ pathname }) => pathname)).toEqual(['/data/bars/MSFT.json']);
+  expect(scopeRequests[0].search).toBe('');
+  expect(browserRequests.some((url) => /query1\.finance\.yahoo\.com|twelvedata/i.test(url))).toBe(false);
+
+  const cached = await page.evaluate(() => RLDATA.bars('MSFT', '1d'));
+  expect(cached.length).toBe(SCOPE19_MSFT_SNAPSHOT.rows.length);
+  expect(new Date(cached[0].t).toISOString().slice(0, 10)).toBe(SCOPE19_MSFT_DATES[0]);
+  expect(new Date(cached.at(-1).t).toISOString().slice(0, 10)).toBe(SCOPE19_MSFT_DATES.at(-1));
+
+  console.log(`[TP-19-03] requested=${requestedStartDate}..${requestedEndDate}`);
+  console.log(`[TP-19-03] actual=${result.firstDate}..${result.lastDate} rows=${result.rows.length} state=${result.state}`);
+  console.log(`[TP-19-03] requests=${scopeRequests.map(({ pathname }) => pathname).join(',')}`);
 });

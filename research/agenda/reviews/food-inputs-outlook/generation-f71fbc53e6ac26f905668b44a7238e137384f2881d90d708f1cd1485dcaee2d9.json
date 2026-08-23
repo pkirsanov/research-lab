@@ -1,0 +1,103 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-9736e1db77712f2948b0abfc17c2a3f236c17e34a6240125df381170251b4fb4",
+  "generationId": "generation-f71fbc53e6ac26f905668b44a7238e137384f2881d90d708f1cd1485dcaee2d9",
+  "topicId": "food-inputs-outlook",
+  "attemptedAt": "2026-08-22T11:01:38.676Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "cadence",
+  "selectionReason": "cadence-elapsed",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "topic-model-not-applicable",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "grains-outlook",
+      "status": "unavailable",
+      "interpretation": "No public grains observation is available this generation. The acquisition bundle retained zero sources (sources: []) and its single grains-covering claim 'food-inputs-outlook:public-crop-and-input-observations' is marked authorable:false with corroborationState uncorroborated and freshnessState unsupported. Requirement 'public-crop-and-input-observations' (official and industry-data classes, 720h freshness, covering grains) returned missing-or-stale with a null record, and committedEvidence is empty. No production, inventory, trade, or weather observation for grains exists to condition a read, so no grains finding is authored.",
+      "gaps": [
+        "Requirement 'public-crop-and-input-observations' (claim coverage: grains, fertilizer, catalyst) is missing-or-stale with a null record.",
+        "Bundle claim 'food-inputs-outlook:public-crop-and-input-observations' is authorable:false (uncorroborated, freshness unsupported).",
+        "No official or industry-data grains observation was retained within the 720h freshness window."
+      ]
+    },
+    {
+      "sectionId": "fertilizer-inputs",
+      "status": "unavailable",
+      "interpretation": "No public fertilizer-input observation is available. Both fertilizer-covering claims — 'food-inputs-outlook:public-crop-and-input-observations' and 'food-inputs-outlook:fertilizer-cost-and-energy-inputs' — are authorable:false with no source excerpt refs, and their requirements ('public-crop-and-input-observations' and 'fertilizer-cost-and-energy-inputs', both official/industry-data, 720h) returned missing-or-stale. No nitrogen, phosphate, potash, ammonia, or natural-gas feedstock observation exists to ground the fertilizer read, so no fertilizer finding is authored.",
+      "gaps": [
+        "Requirement 'fertilizer-cost-and-energy-inputs' (claim coverage: fertilizer, catalyst) is missing-or-stale with a null record.",
+        "Requirement 'public-crop-and-input-observations' fertilizer claim coverage is unmet.",
+        "No observed nitrogen/phosphate/potash/ammonia price or natural-gas feedstock input this generation."
+      ]
+    },
+    {
+      "sectionId": "input-cost-transmission",
+      "status": "unavailable",
+      "interpretation": "No input-cost transmission can be read. Transmission from fertilizer and feedstock costs into crop economics requires at least one current fertilizer or energy input observation; none was acquired (all input-covering claims authorable:false, both cost requirements missing-or-stale). The input-cost-threshold trigger (inputCostChangePercent at-least 10) cannot be evaluated without an observed input cost, and no prior transmission read is carryable because priorDossier is null.",
+      "gaps": [
+        "No current fertilizer or feedstock cost observation exists to seed a transmission read.",
+        "The input-cost-threshold trigger cannot be evaluated without an observed inputCostChangePercent.",
+        "priorDossier is null, so no prior transmission read can be carried forward."
+      ]
+    },
+    {
+      "sectionId": "declared-catalysts",
+      "status": "unavailable",
+      "interpretation": "No declared catalyst is confirmed. Catalyst coverage rides on the missing-or-stale 'public-crop-and-input-observations' and 'fertilizer-cost-and-energy-inputs' requirements, both of whose catalyst-covering claims are authorable:false. No public crop or fertilizer catalyst (production report, policy or export-restriction action, or weather event) was observed within the 720h window, and the material-input-observation trigger has no observed change to evaluate.",
+      "gaps": [
+        "Catalyst claim coverage is unmet because both covering requirements returned missing-or-stale.",
+        "No material-input-observation trigger can be evaluated without an observed change (materialChange).",
+        "No export-restriction, policy, or weather catalyst source was retained."
+      ]
+    },
+    {
+      "sectionId": "move-ranges",
+      "status": "unavailable",
+      "interpretation": "No situation-side move context is available and no range is asserted here (move ranges are model-owned). Requirement 'committed-public-bars' (claim coverage: public-bar) returned missing-or-stale with a null record and its claim 'food-inputs-outlook:committed-public-bars' is authorable:false, so no same-origin committed agriculture or materials proxy bars were retained to ground any move interpretation this generation.",
+      "gaps": [
+        "Requirement 'committed-public-bars' (claim coverage: public-bar) is missing-or-stale with a null record.",
+        "No same-origin committed agriculture or materials proxy bars were retained.",
+        "No current input observation exists to contextualize a proxy move."
+      ]
+    },
+    {
+      "sectionId": "invalidations",
+      "status": "unavailable",
+      "interpretation": "No invalidation state can be confirmed. The input-observation-superseded invalidation requires a later public observation to supersede a prior crop or fertilizer input; no current observation was acquired and priorDossier is null, so there is neither a superseding observation nor a prior input to supersede. The cadence-elapsed trigger is a timing condition, not evidence, and no situation-side finding depends on it.",
+      "gaps": [
+        "No later public crop or fertilizer observation was acquired to evaluate the superseded condition.",
+        "priorDossier is null — no prior input remains supported to be invalidated."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "The source ledger is empty for this generation. The acquisition bundle retained zero sources (retainedSourceCount 0, independentOriginCount 0), all three material claims were rejected (rejectedMaterialClaimCount 3), committedEvidence is empty, and every declared requirement ('public-crop-and-input-observations', 'fertilizer-cost-and-energy-inputs', 'committed-public-bars') returned missing-or-stale with a null record. No source qualifies to enter the ledger, so sourceLedger is empty.",
+      "gaps": [
+        "'public-crop-and-input-observations' missing-or-stale (official, industry-data).",
+        "'fertilizer-cost-and-energy-inputs' missing-or-stale (official, industry-data).",
+        "'committed-public-bars' missing-or-stale (committed-bar); no same-origin bars retained."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "No change can be described (the change assessment itself is a model-side output and is not authored here). priorDossier is null for this topic, so there is no predecessor situation against which an evidence-level delta could be observed, and no current findings exist this generation to form one side of a comparison.",
+      "gaps": [
+        "priorDossier is null — no predecessor situation to compare against.",
+        "No current findings were authored this generation, so no observed delta exists."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

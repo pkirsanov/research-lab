@@ -75,6 +75,7 @@ The tool list itself is **not** enumerated here — [`tools.json`](tools.json) i
 ├── rljourney.js                      # guided-journey runtime (mounts on [data-rljourney-mount])
 ├── rlbrief.js  rlmarketaction.js     # brief rendering + market-action triage
 ├── rlattention.js                    # the brief's decision-attention tier — composer, validator, ranking
+├── rlattentiongate.js                # derives each attention candidate's observed half from Tier-A state
 ├── rlviews.js  rlcontext.js          # view focus + contextual tooltips
 ├── rlsession.js rlvol.js rlportfolio.js rlrental.js rlcompany.js rlfx.js rlcausal.js rlvalidation.js
 │                                     # domain engines consumed by the tools that own them

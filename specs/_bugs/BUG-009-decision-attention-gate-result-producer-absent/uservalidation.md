@@ -117,3 +117,30 @@ an open owner decision, that is stated instead.
   - **Verify:** `report.md` §E11
   - **Evidence:** report.md#e11-clean-tree-evidence
   - **Notes:** An empty honest feed is correct; a populated invented one is not. That constraint outranked restoring the feed.
+
+## What acceptance still requires, and why an agent did not supply it
+
+This section is deliberately NOT the acceptance record, and adding it did not and
+cannot satisfy Gate G136. It exists so the remaining step is three lines of typing
+rather than a research task.
+
+Every checklist item above is checked and the acceptance library reports exactly one
+finding, `PD12-NO-RECORD`: the file carries no authored `## Human Acceptance Record`.
+Checked boxes are deliberately not sufficient, because a template can ship pre-checked.
+
+The gate is not merely unsatisfied by an agent — it refuses one. `acceptance-authority-lib.sh`
+emits `PD12-AUTOMATION-ACCEPTOR` when `acceptedBy` is an automation identity, and its own
+comment states that checking a box on the author's behalf "would fabricate the one fact
+this whole surface exists to require". So the omission below is the gate working, not an
+unfinished task.
+
+To accept, add a `## Human Acceptance Record` heading carrying the three required fields
+`acceptedBy`, `acceptedAt`, and `method`. `method` is a closed vocabulary of exactly
+`human-interactive` or `external-record`; choosing `external-record` additionally requires
+a `record` field pointing at where the acceptance happened. `acceptedAt` is an ISO instant.
+
+What is being accepted is the behavior this bug restored: the attention feed publishes
+again, currently one item, having published nothing for ten days. The evidence is in
+`report.md`; the two open reader-experience questions are recorded in
+`market-brief.config.json` under `measuredBaseline` and `rationaleMeasuredNote`, and
+neither blocks acceptance of the restored behavior.

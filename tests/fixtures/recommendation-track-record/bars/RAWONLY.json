@@ -1,0 +1,14 @@
+{
+  "note": "Synthetic, and NOT a hypothetical shape: 54 of the 292 committed series carry rows with no adjusted close, EA for all 328 of its rows. Same raw closes as DVG, so an adjusted-close claim here MUST refuse rather than quietly score the +10% the raw series would have given. That silent substitution is the failure magnitude.priceBasis exists to make impossible.",
+  "sym": "RAWONLY",
+  "interval": "1d",
+  "range": "1mo",
+  "asof": "2026-07-29",
+  "reconstructedSessions": [],
+  "thinObservedSessions": [],
+  "zeroObservedSessions": [],
+  "rows": [
+    { "t": 1785245400000, "o": 99.0, "h": 101.0, "l": 98.0, "c": 100.0, "v": 1000000 },
+    { "t": 1785331800000, "o": 100.5, "h": 112.0, "l": 98.5, "c": 110.0, "v": 1200000 }
+  ]
+}

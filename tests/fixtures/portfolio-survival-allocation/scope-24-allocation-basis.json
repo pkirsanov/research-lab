@@ -1,0 +1,147 @@
+{
+  "basis": {
+    "contractVersion": "AllocationBasis/v1",
+    "assetOrder": ["ALP", "BRV", "CRN", "CASH"],
+    "assets": [
+      {"symbol": "ALP", "eligible": true, "groups": ["risk-assets", "growth"]},
+      {"symbol": "BRV", "eligible": true, "groups": ["risk-assets", "defensive"]},
+      {"symbol": "CRN", "eligible": true, "groups": ["risk-assets", "diversifier"]},
+      {"symbol": "CASH", "eligible": true, "groups": ["cash"]}
+    ],
+    "currentWeights": [0.35, 0.3, 0.25, 0.1],
+    "portfolioRevisionId": "portfolio:scope-24",
+    "evidenceSetIdentity": "evidence:scope-24-common-history",
+    "evidenceCutoff": "2026-05-08",
+    "valuationCurrency": "USD",
+    "covariance": [
+      [0.04, 0.03, 0.005, 0],
+      [0.03, 0.09, 0.025, 0],
+      [0.005, 0.025, 0.0625, 0],
+      [0, 0, 0, 0.16]
+    ],
+    "covariancePolicy": {
+      "identity": "covariance:scope-24-shrunk",
+      "sampleSize": 756,
+      "conditioning": "diagonal-shrinkage",
+      "shrinkage": 0.2
+    },
+    "expectedReturnPolicy": {
+      "identity": "means:scope-24-explicit-research-input",
+      "state": "available",
+      "source": "explicit-research-input"
+    },
+    "expectedReturns": [0.07, 0.11, 0.08, 0.02],
+    "mandateIdentity": "mandate:scope-24",
+    "assetBounds": [
+      {"symbol": "ALP", "minimum": 0.1, "maximum": 0.6},
+      {"symbol": "BRV", "minimum": 0.1, "maximum": 0.6},
+      {"symbol": "CRN", "minimum": 0.1, "maximum": 0.6},
+      {"symbol": "CASH", "minimum": 0.1, "maximum": 0.2}
+    ],
+    "exclusions": [],
+    "cashBounds": {"symbol": "CASH", "minimum": 0.1, "maximum": 0.2},
+    "netSum": 1,
+    "grossLeverageLimit": 1,
+    "turnoverBudget": 0.5,
+    "groupBounds": [
+      {"groupId": "risk-assets", "members": ["ALP", "BRV", "CRN"], "minimum": 0.8, "maximum": 0.9}
+    ],
+    "costPolicy": {
+      "identity": "cost:scope-24-complete",
+      "currency": "USD",
+      "commissionRate": 0.001,
+      "spreadRate": 0.0005,
+      "slippageRate": 0.0005,
+      "financingRate": 0.0002,
+      "carryRate": 0.0001,
+      "rebalanceTiming": "close"
+    },
+    "commonScenario": {
+      "contractVersion": "AllocationCommonScenario/v1",
+      "scenarioIdentity": "scenario:scope-24-common-streams",
+      "startingValue": 100000,
+      "survivalFloor": 85000,
+      "cashNeeds": [
+        {"session": 2, "amount": 4000, "label": "declared cash need"}
+      ],
+      "paths": [
+        {
+          "pathId": "scope-24-path:1",
+          "returnsByAsset": {
+            "ALP": [0.03, -0.04, 0.02, 0.01],
+            "BRV": [0.01, -0.01, 0.015, 0.005],
+            "CRN": [-0.005, 0.02, 0.01, -0.002],
+            "CASH": [0.0001, 0.0001, 0.0001, 0.0001]
+          }
+        },
+        {
+          "pathId": "scope-24-path:2",
+          "returnsByAsset": {
+            "ALP": [-0.08, -0.03, 0.04, 0.02],
+            "BRV": [0.015, 0.01, -0.005, 0.012],
+            "CRN": [-0.02, 0.03, 0.025, -0.01],
+            "CASH": [0.0001, 0.0001, 0.0001, 0.0001]
+          }
+        },
+        {
+          "pathId": "scope-24-path:3",
+          "returnsByAsset": {
+            "ALP": [0.02, 0.015, -0.01, 0.025],
+            "BRV": [-0.01, 0.008, 0.012, 0.006],
+            "CRN": [0.025, -0.005, 0.018, 0.01],
+            "CASH": [0.0001, 0.0001, 0.0001, 0.0001]
+          }
+        }
+      ]
+    },
+    "solverPolicy": {
+      "fingerprint": "solver:scope-24-projected-v1",
+      "maximumIterations": 5000,
+      "projectionIterations": 5000,
+      "convergenceTolerance": 1e-8,
+      "stepSize": 0.2
+    },
+    "sensitivityAxes": {
+      "history": [
+        {"id": "short-window", "covarianceScale": 0.9, "meanShift": -0.005},
+        {"id": "long-window", "covarianceScale": 1.1, "meanShift": 0.005}
+      ],
+      "means": [-0.01, 0, 0.01],
+      "covariance": [0.9, 1, 1.1],
+      "views": [0.75, 1, 1.25],
+      "costs": [0.5, 1, 1.5],
+      "assetBounds": [-0.02, 0, 0.02],
+      "groupBounds": [-0.02, 0, 0.02],
+      "turnover": [-0.05, 0, 0.05],
+      "cash": [-0.02, 0, 0.02],
+      "leverage": [1, 1.05, 1.1],
+      "riskAversion": [2, 3, 4]
+    }
+  },
+  "blackLittermanInput": {
+    "contractVersion": "BlackLittermanInput/v1",
+    "benchmarkIdentity": "benchmark:user-entered-scope-24",
+    "benchmarkAuthority": "user-entered",
+    "benchmarkWeights": [0.4, 0.3, 0.2, 0.1],
+    "riskAversion": 2.5,
+    "tau": 0.05,
+    "views": [
+      {
+        "viewId": "view:alp-over-brv",
+        "horizon": "12-month",
+        "coefficients": [1, -1, 0, 0],
+        "magnitudeRange": [0.02, 0.04],
+        "confidenceSource": "user-stated-range",
+        "uncertaintyVariance": 0.0004,
+        "userAuthority": "explicit",
+        "evidenceCutoff": "2026-05-08",
+        "invalidation": "ALP minus BRV expected-return spread falls below 0.02"
+      }
+    ]
+  },
+  "constrainedMvoInput": {
+    "expectedReturnIdentity": "means:scope-24-explicit-research-input",
+    "expectedReturns": [0.07, 0.11, 0.08, 0.02],
+    "riskAversion": 3
+  }
+}

@@ -483,6 +483,7 @@ test('route projection cites one mandate revision and reports mandate-absent sta
 });
 
 const RESULT_IDENTITY = `sha256:${'ab12'.repeat(16)}`;
+const GENERIC_EVIDENCE_IDENTITY = `sha256:${'cd34'.repeat(16)}`;
 const SUBJECT_ALPHA = 'subject-alpha';
 const SUBJECT_BETA = 'subject-beta';
 const BENIGN_EXTRA_FIELD = 'alphaBetaGamma';
@@ -496,6 +497,7 @@ function behaviorDraft(overrides = {}) {
     category: 'ticker-research-completed',
     completionConditionId: 'risk-panel-reviewed',
     domain: 'equity-research',
+    genericEvidenceIdentity: GENERIC_EVIDENCE_IDENTITY,
     horizon: 'medium-term',
     resultIdentity: RESULT_IDENTITY,
     sourceSurface: 'risk-xray',
@@ -608,7 +610,7 @@ test('every declared excluded behavior source is rejected by name in any casing 
   assert.equal(stored.error.field, 'behaviorEvent.engagement');
 });
 
-test('semantic de-duplication collapses same-day repeats to the earliest occurrence without shrinking distinct evidence', () => {
+test('semantic de-duplication collapses repeated meaning while retaining distinct occurrences', () => {
   const { api, policy } = loadContracts();
   const atNow = builtEvent(api, policy, {}, NOW);
   const atEarlier = builtEvent(api, policy, {}, EARLIER);
@@ -618,15 +620,17 @@ test('semantic de-duplication collapses same-day repeats to the earliest occurre
 
   assert.equal(atNow.dedupeKey, atEarlier.dedupeKey, 'occurrence time is deliberately absent from the de-duplication payload');
   assert.notEqual(atNow.eventId, atEarlier.eventId, 'identity must still distinguish two reports of the same completion');
-  assert.notEqual(atNow.dedupeKey, atNextDay.dedupeKey, 'a different UTC day is different evidence');
+  assert.equal(atNow.dedupeKey, atNextDay.dedupeKey, 'a later occurrence of the same ten-field meaning is not new semantic evidence');
+  assert.notEqual(atNow.occurrence.occurrenceId, atNextDay.occurrence.occurrenceId, 'the later occurrence remains independently auditable');
+  assert.notEqual(atNow.occurrence.newYorkCivilDate, atNextDay.occurrence.newYorkCivilDate, 'civil dates remain occurrence evidence rather than identity fields');
   assert.notEqual(atNow.dedupeKey, otherSubject.dedupeKey, 'a different subject is different evidence');
   assert.equal(builtEvent(api, policy, {}, NOW).eventId, atNow.eventId, 'identity is deterministic for identical inputs');
 
   const repeated = api.dedupeBehaviorEvents([atNow, atEarlier, atSameDayLater, atNextDay, otherSubject], policy);
   assert.equal(repeated.ok, true);
   assert.equal(repeated.value.inputCount, 5);
-  assert.equal(repeated.value.retainedCount, 3);
-  assert.equal(repeated.value.collapsedCount, 2);
+  assert.equal(repeated.value.retainedCount, 2);
+  assert.equal(repeated.value.collapsedCount, 3);
   assert.equal(repeated.value.inputCount > repeated.value.retainedCount, true, 'a real collapse must have happened or the retained assertions prove nothing');
   const survivor = repeated.value.events.find((entry) => entry.dedupeKey === atNow.dedupeKey);
   assert.equal(survivor.occurredAt, EARLIER, 'the earliest occurrence survives regardless of input order');
@@ -634,10 +638,10 @@ test('semantic de-duplication collapses same-day repeats to the earliest occurre
 
   // Control: an all-distinct set must collapse nothing, so the collapse above is caused by
   // semantic repetition rather than by the reducer always discarding inputs.
-  const distinct = api.dedupeBehaviorEvents([atEarlier, atNextDay, otherSubject], policy);
+  const distinct = api.dedupeBehaviorEvents([atEarlier, otherSubject], policy);
   assert.equal(distinct.value.collapsedCount, 0);
-  assert.equal(distinct.value.retainedCount, 3);
-  assert.deepEqual(distinct.value.events.map((entry) => entry.eventId), [atEarlier.eventId, atNextDay.eventId, otherSubject.eventId]);
+  assert.equal(distinct.value.retainedCount, 2);
+  assert.deepEqual(distinct.value.events.map((entry) => entry.eventId), [atEarlier.eventId, otherSubject.eventId]);
 
   assert.equal(api.dedupeBehaviorEvents([{ ...atNow, subjectId: SUBJECT_BETA }], policy).error.reason, 'behavior-event-identity-mismatch');
   assert.equal(api.dedupeBehaviorEvents([atNow, atNow], policy).value.retainedCount, 1, 'a byte-identical repeat is one piece of evidence');
@@ -703,7 +707,7 @@ test('privacy inventory reports real category counts and carries no stored subje
   assert.deepEqual(populated.behaviorEvents.map((entry) => entry.subjectId).sort(), [SUBJECT_ALPHA, SUBJECT_BETA]);
   const serialized = JSON.stringify(inventory.value);
   [SUBJECT_ALPHA, SUBJECT_BETA, RESULT_IDENTITY, populated.currentPortfolioId, populated.currentMandateId].forEach((value) => {
-    assert.equal(serialized.includes(value), false, 'the inventory reports counts and states only, never a stored value');
+    assert.equal(serialized.includes(value), false, `the inventory reports counts and states only, never stored value ${value}`);
   });
   assert.equal(JSON.stringify(populated).includes(SUBJECT_ALPHA), true, 'the value is genuinely stored, so its absence from the inventory is meaningful');
 
@@ -730,10 +734,21 @@ test('privacy inventory reports real category counts and carries no stored subje
       'category ' + entry.category + ' projects exactly the declared count and state fields and carries no additional value-bearing field');
   });
 
-  const duplicate = api.buildBehaviorCandidate(behaviorDraft(), populated, { now: SAME_DAY_LATER }, policy);
-  assert.equal(duplicate.value.accepted, false);
-  assert.equal(duplicate.value.reason, 'duplicate-completion');
-  assert.equal(duplicate.value.workspace.behaviorEvents.length, 2, 'a semantic repeat must not grow stored evidence');
+  const laterOccurrence = api.buildBehaviorCandidate(behaviorDraft(), populated, { now: SAME_DAY_LATER }, policy);
+  assert.equal(laterOccurrence.value.accepted, true);
+  assert.equal(laterOccurrence.value.reason, null);
+  assert.equal(laterOccurrence.value.event.eventIdentity, populated.behaviorEvents[0].eventIdentity,
+    'the later report keeps the same semantic identity');
+  assert.notEqual(laterOccurrence.value.event.occurrence.occurrenceId, populated.behaviorEvents[0].occurrence.occurrenceId,
+    'the later report remains an independently auditable occurrence');
+  assert.equal(laterOccurrence.value.workspace.behaviorEvents.length, 3,
+    'a later occurrence grows occurrence evidence without pretending to be a new semantic completion');
+
+  const exactRepeat = api.buildBehaviorCandidate(behaviorDraft(), populated, { now: populated.behaviorEvents[0].occurredAt }, policy);
+  assert.equal(exactRepeat.value.accepted, false);
+  assert.equal(exactRepeat.value.reason, 'duplicate-completion');
+  assert.equal(exactRepeat.value.workspace.behaviorEvents.length, 2,
+    'a byte-identical occurrence cannot inflate the store');
 });
 
 test('behavior clear empties behavior categories only after they are proven non-empty and preserves portfolio and mandate identity', () => {
@@ -884,7 +899,7 @@ test('verified clear covers every policy-declared personal key and leaves the ra
   // Pinned against the DERIVED set, so the literal and the subject are two sources that can
   // disagree. A seventh `policy.storage` key reddens here rather than arriving unswept, and once
   // the pin is updated to admit it the coverage assertions below force the clear to sweep it.
-  assert.equal(declared.local.length, 4, 'the policy-derived local surface is the pointer, both slots, and quarantine');
+  assert.equal(declared.local.length, 5, 'the policy-derived local surface is the pointer, both slots, quarantine, and display mode');
   assert.equal(declared.session.length, 2, 'the policy-derived session surface is the session fallback and the return context');
   assert.equal(new Set([...declared.local, ...declared.session]).size, declaredCount, 'a duplicate key would let one survivor hide behind another');
 
@@ -1567,6 +1582,12 @@ function strippedSource(source) {
   return source.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/.*$/gm, '$1');
 }
 
+function egressScannableSource(source) {
+  return strippedSource(source)
+    .replace(/\blocation\s*:/g, 'categoryLocation:')
+    .replace(/\b(?!window\b|globalThis\b)([A-Za-z_$][\w$]*)\.location\b/g, '$1.categoryLocation');
+}
+
 // Every network sink, navigation surface, and browser-owned persistence surface a
 // local-only contract cannot reach. `globalThis` and `require` are excluded on purpose:
 // they are this module's own dual-runtime bootstrap and export tail, not a sink.
@@ -1582,7 +1603,7 @@ test('FR-023: the module carries no egress sink, every byte it writes lands in t
   // 1. No sink exists. A local-only contract that grew a network, navigation, or
   // unmanaged-persistence surface goes red here before any data claim is reached.
   const source = readFileSync(MODULE_PATH, 'utf8');
-  const scannable = strippedSource(source);
+  const scannable = egressScannableSource(source);
   assert.equal(scannable.length > source.length * 0.5, true, 'FR-023 comment stripping must leave the module substantially intact, or every sink claim below is made against a blank file');
   assert.equal(FR023_EGRESS_IDENTIFIERS.length > 0, true, 'FR-023 an empty sink list would make the per-sink claims vacuous');
   let scanned = 0;
@@ -1592,6 +1613,10 @@ test('FR-023: the module carries no egress sink, every byte it writes lands in t
   });
   assert.equal(scanned, FR023_EGRESS_IDENTIFIERS.length, 'FR-023 every declared sink must have been scanned, not merely listed');
   assert.match(`${scannable}\nfetch("https://example.com");`, /\bfetch\b/, 'FR-023 control: the same scan must find a sink that is genuinely present, so "no match" is caused by the module and not by a pattern that matches nothing');
+  assert.match(egressScannableSource(`${source}\nlocation.href = "https://example.com";`), /\blocation\b/,
+    'FR-023 control: a bare browser location reference must remain visible to the sink scan');
+  assert.match(egressScannableSource(`${source}\nwindow.location = "https://example.com";`), /\blocation\b/,
+    'FR-023 control: an explicit window.location navigation must remain visible to the sink scan');
 
   // 2. Populate and prove. Each noun FR-023 names gets one sentinel that is genuinely in
   // the workspace, so its later confinement is an observation rather than an empty set.
@@ -2820,5 +2845,172 @@ test('SCN-008-035 TP-04-01: a mismatched trading calendar is measured against a 
   assert.equal(spanReport.calendar.state, 'aligned',
     'a later start is short history, not a trading-calendar mismatch');
   assert.equal(spanReport.symbols['SCOPE04-SPAN-B'].missingBars.count, 0);
+});
+
+test('SCN-008-042 immutable PortfolioDraft lifecycle preserves stable holdings and commits an honest empty revision', () => {
+  const { api, policy } = loadContracts();
+  const localStorage = createStorage();
+  const sessionStorage = createStorage();
+  const store = api.createPortfolioStore({ localStorage, sessionStorage }, policy);
+  const opened = store.openWorkspace(NOW);
+  const initialCandidate = api.buildWorkspaceCandidate(
+    validDraft(api, policy),
+    opened.value.workspace,
+    { name: 'Scope 17 lifecycle base', now: NOW },
+    policy
+  );
+  const initial = store.commitWorkspace(initialCandidate.value, 0, NOW);
+  assert.equal(initial.ok, true);
+
+  let draft = api.createPortfolioDraft(initial.value.workspace, '2026-07-15T13:31:00.000Z', policy);
+  assert.equal(draft.ok, true);
+  assert.equal(draft.value.contractVersion, 'PortfolioDraft/v1');
+  assert.equal(Object.isFrozen(draft.value), true);
+  const editedHoldingId = draft.value.rows[0].holdingId;
+
+  const cash = api.validateManualDraft({
+    assetType: 'cash', symbol: 'USD-CASH', currency: 'USD', localValue: 5000
+  }, initial.value.workspace, policy);
+  const manual = api.validateImport('json', fixture('manual-alternative.json'), initial.value.workspace, policy);
+  assert.equal(cash.value.canConfirm, true);
+  assert.equal(manual.value.canConfirm, true);
+
+  draft = api.addHoldingRow(draft.value, cash.value.holdings[0], policy);
+  assert.equal(draft.ok, true);
+  const cashHoldingId = draft.value.rows.at(-1).holdingId;
+  draft = api.addHoldingRow(draft.value, manual.value.holdings[0], policy);
+  assert.equal(draft.ok, true);
+  const manualHoldingId = draft.value.rows.at(-1).holdingId;
+
+  draft = api.editHoldingRow(draft.value, editedHoldingId, { quantity: 11 }, policy);
+  assert.equal(draft.ok, true);
+  assert.equal(draft.value.rows[0].holdingId, editedHoldingId, 'editing preserves the stable holding identity');
+  assert.equal(draft.value.rows[0].quantity, 11);
+  const removedHoldingId = draft.value.rows[1].holdingId;
+  draft = api.removeHoldingRow(draft.value, removedHoldingId, policy);
+  assert.equal(draft.ok, true);
+  assert.deepEqual(
+    draft.value.rows.map((row) => row.holdingId),
+    [editedHoldingId, cashHoldingId, manualHoldingId],
+    'add, edit, and remove preserve declared order and stable identities'
+  );
+
+  const confirmed = api.confirmPortfolioDraft(
+    store,
+    draft.value,
+    initial.value.workspace.generation,
+    '2026-07-15T13:32:00.000Z'
+  );
+  assert.equal(confirmed.ok, true);
+  assert.equal(confirmed.value.workspace.portfolioRevisions.length, 2);
+  assert.equal(confirmed.value.revision.supersedes, initial.value.workspace.currentPortfolioId);
+  assert.equal(confirmed.value.workspaceIdentity.supersedesIdentity, initial.value.workspace.currentPortfolioId);
+  assert.equal(
+    confirmed.value.workspaceIdentity.priorResults[0].supersededByIdentity,
+    confirmed.value.revision.portfolioId
+  );
+
+  let emptyDraft = api.createPortfolioDraft(
+    confirmed.value.workspace,
+    '2026-07-15T13:33:00.000Z',
+    policy
+  );
+  for (const row of [...emptyDraft.value.rows]) {
+    emptyDraft = api.removeHoldingRow(emptyDraft.value, row.holdingId, policy);
+    assert.equal(emptyDraft.ok, true);
+  }
+  assert.equal(emptyDraft.value.rows.length, 0);
+  assert.equal(emptyDraft.value.validation.valid, true, 'removing the final row is a valid draft state');
+
+  const emptied = api.confirmPortfolioDraft(
+    store,
+    emptyDraft.value,
+    confirmed.value.workspace.generation,
+    '2026-07-15T13:34:00.000Z'
+  );
+  assert.equal(emptied.ok, true);
+  assert.notEqual(emptied.value.workspace.currentPortfolioId, null, 'empty is a real current revision');
+  assert.equal(emptied.value.revision.name, 'Portfolio empty');
+  assert.equal(emptied.value.revision.inputBasis, 'empty');
+  assert.deepEqual(emptied.value.revision.holdings, []);
+  assert.equal(emptied.value.revision.supersedes, confirmed.value.revision.portfolioId);
+
+  const reloaded = api.createPortfolioStore({ localStorage, sessionStorage }, policy)
+    .openWorkspace('2026-07-15T13:35:00.000Z');
+  assert.equal(reloaded.value.workspace.currentPortfolioId, emptied.value.revision.portfolioId);
+  const exported = api.exportPrivate({ portfolio: emptied.value.revision });
+  assert.equal(exported.ok, true);
+  assert.match(exported.value.text, /"holdings":\[\]/);
+  assert.match(exported.value.text, /"name":"Portfolio empty"/);
+});
+
+test('SCN-008-043 validated ClearTombstone commits before verified deletion and returns value-safe evidence', () => {
+  const { api, policy } = loadContracts();
+  const publicLocal = {
+    rlData: '{"bars":{"PUBLIC":[]}}',
+    rlProviderConfig: '{"capability":"configured"}'
+  };
+  const localStorage = createStorage({ initial: publicLocal });
+  const sessionStorage = createStorage({ initial: { rlReturnContextV1: '{"route":"brief"}' } });
+  const store = api.createPortfolioStore({ localStorage, sessionStorage }, policy);
+  const opened = store.openWorkspace(NOW);
+  const candidate = api.buildWorkspaceCandidate(
+    validDraft(api, policy),
+    opened.value.workspace,
+    { name: 'Clear transaction base', now: NOW },
+    policy
+  );
+  const committed = store.commitWorkspace(candidate.value, 0, NOW);
+  assert.equal(committed.ok, true);
+
+  const emptyController = api.createEmptyControllerPersonalState();
+  const controller = {
+    controllerPersonalState: Object.fromEntries(Object.entries(emptyController).map(([key, value]) => [
+      key,
+      Array.isArray(value) ? [{ private: key }] : value === null ? { private: key } : value === false ? true : { private: key }
+    ])),
+    replacePersonalState(next) { this.controllerPersonalState = next; }
+  };
+  const publicAssets = {
+    evidence: '{"generic":true}',
+    watchlist: '["SPY"]',
+    tools: '[{"id":"portfolio-survival-allocation-lab"}]'
+  };
+  const privateSentinel = 'SCOPE17-PRIVATE-' + Date.now();
+  controller.controllerPersonalState.editorDrafts.push({ private: privateSentinel });
+
+  const result = api.clearAllPersonalData({
+    store,
+    storageAdapters: { localStorage, sessionStorage },
+    controller,
+    publicAssetReader: { readAll: () => ({ ...publicAssets }) },
+    confirmation: 'CLEAR ALL LOCAL DATA',
+    expectedGeneration: committed.value.workspace.generation,
+    now: '2026-07-15T13:36:00.000Z',
+    policy
+  });
+
+  assert.equal(result.ok, true, JSON.stringify({
+    error: result.error || null,
+    status: result.value?.status || null,
+    residueCategories: (result.value?.categoryResults || [])
+      .filter((entry) => entry.empty === false)
+      .map((entry) => entry.categoryId)
+  }));
+  assert.equal(result.value.contractVersion, 'FullClearResult/v1');
+  assert.equal(result.value.status, 'cleared');
+  assert.equal(result.value.tombstoneCommitted, true);
+  assert.equal(result.value.categoryResults.every((entry) => !Object.hasOwn(entry, 'value')), true);
+  assert.equal(JSON.stringify(result).includes(privateSentinel), false, 'clear evidence never echoes stored values');
+  assert.deepEqual(localStorage.snapshot(), publicLocal, 'public cache and provider settings remain byte-identical');
+  assert.deepEqual(sessionStorage.snapshot(), {});
+  assert.deepEqual(controller.controllerPersonalState, emptyController);
+  assert.deepEqual(publicAssets, {
+    evidence: '{"generic":true}', watchlist: '["SPY"]', tools: '[{"id":"portfolio-survival-allocation-lab"}]'
+  });
+
+  const tombstoneWrite = localStorage.writes().find((write) => write.value.includes('"contractVersion":"ClearTombstone/v1"'));
+  assert.ok(tombstoneWrite, 'a validated ClearTombstone is written through an inactive slot before deletion');
+  assert.equal(localStorage.writes().some((write) => write.key === policy.storage.pointerKey), true);
 });
 

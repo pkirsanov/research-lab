@@ -307,7 +307,7 @@
         "gammaFlipProximityPct": 0.5,
         "attentionMaxCards": 7,
         "nextSessionMaxActions": 5,
-        "minimumActionConfidence": 55,
+        "minimumActionConfidence": 50,
         "minimumAttentionConfidence": 55,
         "macroCacheMaxAgeMin": 30,
         "notableMemberMinMovePct": 3,
@@ -550,8 +550,16 @@
         "headlineChars": 140,
         "decisionCardChars": 300,
         "totalDefaultVisibleChars": 3000,
+        "detailFieldChars": 700,
+        "detailFields": [
+            "attention[].rationale"
+        ],
+        "rationaleDecisionNote": "DECIDED 2026-08-20, closing the open question the previous note left. attention[].rationale STAYS OUT of defaultVisibleFields: it is the detail a reader opens deliberately, and the brief's stated shape is a short card whose detail is hidden by default and available on demand. Folding it in was measured and rejected — the published VGT item measures 194 against the 300 decisionCardChars cap, its rationale measures 575, and the two together measure 769, so the very next recompose would have refused the only item the feed was publishing. What was actually wrong is that a hidden field was bounded NOWHERE and could grow without limit. detailFieldChars now bounds it. 700 is set above the observed maximum of 575 across 12 published rationales (min 284, median 461) so nothing already authored breaches it, and deliberately not at 600: a per-card breach discards the WHOLE narrative, and this packet has already seen 14 characters cost an entire brief. The lane is told the cap and told to aim well under it, so the bound is satisfiable rather than a trap.",
+        "badgeMeasurementNote": "ADDED 2026-08-22, found by opening the page rather than by a gate. dataAsOf.labels.bars and dataAsOf.labels.macro render into the header badge ABOVE every decision — the most prominent text on the cockpit — and were absent from this list, so the budget whose entire purpose is bounding the default view never measured its most visible element. The badge was rendering the FULL dataAsOf.* narratives at 3,266 characters until the renderer was pointed at the condensed labels; even condensed it is 1,173. Only the two fields the badge actually renders are declared here, which is both semantically right (this list is the default-VISIBLE surface) and non-destructive: measured total moves 887 -> 2,060 against the 3,000 cap, whereas declaring all four labels would total 3,424 and breach on the next publish. No per-field cap is set in the same change that first states the contract, for the reason the confidence contract records: state it, observe a run, then tighten. The 3,000 total is the live enforcement and leaves 940 characters of headroom.",
         "defaultVisibleFields": [
             "headline",
+            "dataAsOf.labels.bars",
+            "dataAsOf.labels.macro",
             "attention[].headline",
             "attention[].what",
             "attention[].escalationTrigger",
@@ -576,6 +584,8 @@
             { "severity": "severe", "minAbsPct": 15 }
         ],
         "severityBandsNote": "Read against the subject's percentage distance from its 200-day moving average. A reading under the narrowest band produces NO observation at all rather than a 'mild' one, which is how a quiet day stays quiet. 'mild' is left undeclared on purpose: nothing in this repository has yet earned the right to interrupt a reader at that size.",
+        "measuredBaseline": "MEASURED 2026-08-20 against the 201 snapshots in brief-history.jsonl, so a later tuning decision starts from evidence rather than from the conservative intent above. At the current minAbsPct 8, 88.1% of subject-days across the 12 mapped subjects already clear the band and 191 of 201 snapshots carry at least one eligible subject; lowering it to 6 moves that to 94.7% and to 4 moves it to 96.4%. These bands are therefore NEAR-SATURATED, not conservative, and the 'first failure mode is silence' intent is not what these particular numbers are producing.",
+        "measuredBaselineLever": "A quiet feed is NOT evidence that these numbers are too tight, and widening them is unlikely to add a single item. recomposePayloadAttention starts from payload.attention — the items the signals lane AUTHORED — and transmissionBySubject is only ever a lookup for a named subject, never enumerated to propose one. The band can therefore subtract from what the lane wrote but can never add to it. On the live payload the composer reported '1 built, 0 refused': the gate refused nothing, so a wider band would have admitted nothing. If the feed should carry more items, the lever is how many candidates the signals lane authors, not these thresholds.",
         "imminentWithinPct": 2,
         "developingWithinPct": 6,
         "sourceToolId": "etf-momentum-lab",

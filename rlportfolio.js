@@ -17,6 +17,11 @@
   var POINTER_VERSION = "portfolio-workspace-pointer/v1";
   var PREVIEW_VERSION = "portfolio-import-preview/v1";
   var STORAGE_STATE_VERSION = "portfolio-storage-state/v1";
+  var PORTFOLIO_DRAFT_VERSION = "PortfolioDraft/v1";
+  var WORKSPACE_IDENTITY_VERSION = "WorkspaceIdentity/v1";
+  var PERSONAL_CATEGORY_REGISTRY_VERSION = "PersonalCategoryRegistry/v1";
+  var CLEAR_TOMBSTONE_VERSION = "ClearTombstone/v1";
+  var FULL_CLEAR_RESULT_VERSION = "FullClearResult/v1";
   var MANDATE_VERSION = "MandateRevision/v1";
   var CASH_NEED_VERSION = "CashNeed/v1";
   var CONSTRAINT_VERSION = "MandateConstraint/v1";
@@ -49,14 +54,23 @@
     "P008-INFEASIBLE": true,
     "P008-SOLVER": true,
     "P008-GENERIC-EVIDENCE": true,
-    "P008-EXPORT": true
+    "P008-EXPORT": true,
+    "P008-HOLDING-EDIT": true,
+    "P008-CLEAR-CONFIRMATION": true,
+    "P008-CLEAR-UNDECLARED": true,
+    "P008-CLEAR-PARTIAL": true,
+    "P008-BEHAVIOR-IDENTITY": true,
+    "P008-BEHAVIOR-TIME": true,
+    "P008-BEHAVIOR-FLOOR": true,
+    "P008-ACTION-RANK": true,
+    "P008-ACTION-WHY": true
   });
   var TOP_POLICY_FIELDS = Object.freeze([
     "analytics", "behavior", "calibration", "contractVersion", "display", "import", "mandate", "queue", "solver", "storage"
   ]);
   var POLICY_SECTION_FIELDS = Object.freeze({
     storage: Object.freeze([
-      "contractVersion", "migrationVersions", "pointerContractVersion", "pointerKey", "probeValue",
+      "contractVersion", "displayModeKey", "migrationVersions", "pointerContractVersion", "pointerKey", "probeValue",
       "quarantineKey", "returnContextKey", "sessionKey", "slotKeys", "workspaceContractVersion", "workspaceNamespace"
     ]),
     import: Object.freeze([
@@ -74,22 +88,34 @@
       "minimumDistinctUtcDates", "outcomeCommands", "outcomeStates", "recentSupportDays"
     ]),
     analytics: Object.freeze([
+      "allocationCarryFraction", "allocationCommissionFraction", "allocationFinancingFraction",
+      "allocationAssetMaximum", "allocationAssetMinimum", "allocationGrossLeverageLimit",
+      "allocationGroupMaximum", "allocationGroupMinimum", "allocationNetSum", "allocationRebalanceTiming",
+      "allocationSensitivityAxes", "allocationSlippageFraction", "allocationSpreadFraction", "allocationTurnoverBudget",
       "allocationUnstableRangeThreshold", "benchmarkSymbol", "blackLittermanRiskAversion",
       "blackLittermanTau", "concentrationAlertWeight", "concentrationLenses", "contractVersion",
       "covarianceSensitivity", "covarianceShrinkageLambda", "dossierTrialsSearched",
-      "efficiencyFormTested", "efficiencyInformationSet", "hedgeBasisCorrelation",
+      "dependenceBootstrapBlockLength", "dependenceBootstrapConfidence", "dependenceBootstrapDrawCount",
+      "dependenceBootstrapSeed", "dependenceDownsideThreshold", "dependenceDrawdownThreshold",
+      "dependenceMinimumJointTailEvents", "dependenceMinimumObservations", "dependenceRecoveryThreshold",
+      "dependenceSearchedVariantCount", "dependenceStressQuantile", "efficiencyFormTested",
+      "efficiencyInformationSet", "appraisalMinimumObservations", "appraisalRhoGrid",
       "hedgeCommissionFraction", "hedgeInstrumentClass", "hedgeLiquidity",
-      "hedgeRebalancesPerYear", "hedgeSlippageFraction", "hedgeSpreadFraction",
+      "hedgeRebalancesPerYear", "hedgeRegressionMinimumObservations", "hedgeSlippageFraction", "hedgeSpreadFraction",
       "lowerTailQuantile", "maximumListedAssets",
       "minimumCapmObservations", "minimumJointTailEvents", "minimumRiskObservations", "minimumTailObservations",
       "proxyFactors", "proxyFactorsVersion",
       "riskFreeAnnual", "riskReconciliationTolerance", "targetHistoryCalendarYears",
       "walkForwardFolds"
     ]),
-    solver: Object.freeze(["contractVersion", "convergenceTolerance", "maximumIterations"]),
+    solver: Object.freeze([
+      "contractVersion", "convergenceTolerance", "fingerprint", "maximumIterations", "projectionIterations", "stepSize"
+    ]),
     calibration: Object.freeze([
       "contractVersion", "initialSeed", "materialExposureWeight", "nearCashNeedCalendarDays", "parameterDrawCount",
-      "pathCount", "stationaryBootstrapMeanBlockSessions", "stationaryBootstrapSensitivity"
+      "pathCount", "scenarioChunkSize", "scenarioCostTiming", "scenarioDriftRange", "scenarioMaximumWorkUnits",
+      "scenarioRecurringCostFraction", "scenarioStartingValue", "stationaryBootstrapMeanBlockSessions",
+      "stationaryBootstrapSensitivity"
     ]),
     queue: Object.freeze(["contractVersion", "directActionCap", "generalInterestActionCap"]),
     display: Object.freeze([
@@ -117,6 +143,14 @@
   var REVISION_FIELDS = Object.freeze([
     "contractVersion", "createdAt", "holdings", "inputBasis", "name", "portfolioId", "semanticFingerprint",
     "supersedes", "valuationCurrency"
+  ]);
+  var PORTFOLIO_DRAFT_FIELDS = Object.freeze([
+    "basePortfolioId", "contractVersion", "createdAt", "draftId", "rows", "validation", "valuationCurrency"
+  ]);
+  var HOLDING_EDITABLE_FIELDS = Object.freeze([
+    "acquisitionDate", "assetClass", "assetType", "costBasis", "currency", "factorTags", "geography", "issuer",
+    "label", "liquidityClass", "localValue", "lotId", "price", "quantity", "sector", "symbol",
+    "transactionCost", "uncertaintyNote", "valuationDate", "valuationFrequency", "valuationMethod", "weight"
   ]);
   var WORKSPACE_FIELDS = Object.freeze([
     "actionOutcomes", "behaviorEvents", "contentSha256", "contractVersion", "createdAt", "currentMandateId",
@@ -152,13 +186,21 @@
     "costPolicy", "expectedReturnPolicy", "rebalancePolicy", "survivalDefinition"
   ]);
   var BEHAVIOR_EVENT_VERSION = "BehaviorEvent/v1";
+  var BEHAVIOR_EVENT_IDENTITY_VERSION = "BehaviorEventIdentity/v1";
+  var BEHAVIOR_OCCURRENCE_VERSION = "BehaviorOccurrence/v1";
   var ACTION_OUTCOME_VERSION = "ActionOutcome/v1";
-  var BEHAVIOR_EVENT_FIELDS = Object.freeze([
+  var LEGACY_BEHAVIOR_EVENT_FIELDS = Object.freeze([
     "category", "completionConditionId", "contractVersion", "dedupeKey", "domain", "eventId", "horizon",
     "lifecycleState", "occurredAt", "policyVersion", "resultIdentity", "sourceSurface", "subjectId", "subjectKind"
   ]);
+  var BEHAVIOR_EVENT_FIELDS = Object.freeze([
+    "category", "completionConditionId", "contractVersion", "dedupeKey", "domain", "eventId", "horizon",
+    "eventIdentity", "genericEvidenceIdentity", "lifecycleState", "occurredAt", "occurrence", "policyVersion",
+    "resultIdentity", "sourceSurface", "subjectId", "subjectKind"
+  ]);
   var BEHAVIOR_EVENT_DRAFT_FIELDS = Object.freeze([
-    "category", "completionConditionId", "domain", "horizon", "resultIdentity", "sourceSurface", "subjectId", "subjectKind"
+    "category", "completionConditionId", "domain", "genericEvidenceIdentity", "horizon", "resultIdentity",
+    "sourceSurface", "subjectId", "subjectKind"
   ]);
   var INTEREST_SIGNAL_VERSION = "InterestSignal/v1";
   /* Closed per design.md "InterestSignal/v1". It carries NO market or model confidence and no
@@ -199,7 +241,8 @@
     "rlPortfolioWorkspaceV1.pointer",
     "rlPortfolioWorkspaceV1.slotA",
     "rlPortfolioWorkspaceV1.slotB",
-    "rlPortfolioWorkspaceV1.quarantine"
+    "rlPortfolioWorkspaceV1.quarantine",
+    "rlPortfolioWorkspaceV1.displayMode"
   ]);
   var FOUNDATION_SESSION_KEYS = Object.freeze([
     "rlPortfolioWorkspaceSessionV1",
@@ -318,6 +361,23 @@
     return true;
   }
 
+  function validAllocationSensitivityAxes(value) {
+    var keys = [
+      "assetBounds", "cash", "costs", "covariance", "groupBounds", "history",
+      "leverage", "means", "riskAversion", "turnover", "views"
+    ];
+    if (!isPlainObject(value) || Object.keys(value).sort().join("|") !== keys.join("|")) return false;
+    if (!keys.every(function (key) { return Array.isArray(value[key]) && value[key].length > 0; })) return false;
+    if (!value.history.every(function (entry) {
+      return isPlainObject(entry) && Object.keys(entry).sort().join("|") === "covarianceScale|id|meanShift" &&
+        nonEmptyString(entry.id) && finitePositive(entry.covarianceScale) &&
+        typeof entry.meanShift === "number" && Number.isFinite(entry.meanShift);
+    })) return false;
+    return keys.filter(function (key) { return key !== "history"; }).every(function (key) {
+      return value[key].every(function (entry) { return typeof entry === "number" && Number.isFinite(entry); });
+    });
+  }
+
   function exactStringSet(value, expected) {
     if (!stringArray(value, false) || value.length !== expected.length) return false;
     var actual = value.slice().sort();
@@ -353,6 +413,7 @@
         storage.workspaceNamespace !== "rlPortfolioWorkspaceV1" || storage.pointerKey !== "rlPortfolioWorkspaceV1.pointer" ||
         !exactStringSet(storage.slotKeys, ["rlPortfolioWorkspaceV1.slotA", "rlPortfolioWorkspaceV1.slotB"]) ||
         storage.quarantineKey !== "rlPortfolioWorkspaceV1.quarantine" || storage.sessionKey !== "rlPortfolioWorkspaceSessionV1" ||
+        storage.displayModeKey !== "rlPortfolioWorkspaceV1.displayMode" ||
         storage.returnContextKey !== "rlReturnContextV1" || !stringArray(storage.migrationVersions, true) ||
         !nonEmptyString(storage.probeValue)) {
       return failure("P008-CONFIG", "invalid-policy", "storage", null, false);
@@ -402,15 +463,46 @@
         !value.analytics.concentrationLenses.every(function (lens) { return HOLDING_FIELDS.indexOf(lens) !== -1; }) ||
         !finitePositive(value.analytics.concentrationAlertWeight) || value.analytics.concentrationAlertWeight > 1 ||
         !finitePositive(value.analytics.lowerTailQuantile) || value.analytics.lowerTailQuantile >= 0.5 ||
+        !Number.isInteger(value.analytics.dependenceMinimumObservations) || value.analytics.dependenceMinimumObservations < 2 ||
+        !Number.isInteger(value.analytics.dependenceMinimumJointTailEvents) || value.analytics.dependenceMinimumJointTailEvents < 1 ||
+        !finitePositive(value.analytics.dependenceStressQuantile) || value.analytics.dependenceStressQuantile >= 0.5 ||
+        !finitePositive(value.analytics.dependenceBootstrapConfidence) || value.analytics.dependenceBootstrapConfidence >= 1 ||
+        !Number.isInteger(value.analytics.dependenceBootstrapBlockLength) || value.analytics.dependenceBootstrapBlockLength < 1 ||
+        !Number.isInteger(value.analytics.dependenceBootstrapDrawCount) || value.analytics.dependenceBootstrapDrawCount < 2 ||
+        !Number.isInteger(value.analytics.dependenceBootstrapSeed) || value.analytics.dependenceBootstrapSeed < 0 ||
+        !Number.isInteger(value.analytics.dependenceSearchedVariantCount) || value.analytics.dependenceSearchedVariantCount < 1 ||
+        !finiteNonNegative(value.analytics.dependenceDownsideThreshold) ||
+        !finitePositive(value.analytics.dependenceDrawdownThreshold) || value.analytics.dependenceDrawdownThreshold >= 1 ||
+        !finiteNonNegative(value.analytics.dependenceRecoveryThreshold) || value.analytics.dependenceRecoveryThreshold >= 1 ||
+        !Number.isInteger(value.analytics.appraisalMinimumObservations) || value.analytics.appraisalMinimumObservations < 2 ||
+        !Array.isArray(value.analytics.appraisalRhoGrid) || value.analytics.appraisalRhoGrid.length === 0 ||
+        !value.analytics.appraisalRhoGrid.every(function (rho) { return finitePositive(rho) && rho < 1; }) ||
+        !Number.isInteger(value.analytics.hedgeRegressionMinimumObservations) || value.analytics.hedgeRegressionMinimumObservations < 3 ||
         !finitePositive(value.analytics.allocationUnstableRangeThreshold) ||
         value.analytics.allocationUnstableRangeThreshold > 1 ||
+        !finiteNonNegative(value.analytics.allocationCommissionFraction) ||
+        !finiteNonNegative(value.analytics.allocationSpreadFraction) ||
+        !finiteNonNegative(value.analytics.allocationSlippageFraction) ||
+        !finiteNonNegative(value.analytics.allocationFinancingFraction) ||
+        !finiteNonNegative(value.analytics.allocationCarryFraction) ||
+        typeof value.analytics.allocationRebalanceTiming !== "string" || !value.analytics.allocationRebalanceTiming.trim() ||
+        !finiteNonNegative(value.analytics.allocationAssetMinimum) ||
+        !finitePositive(value.analytics.allocationAssetMaximum) ||
+        value.analytics.allocationAssetMinimum > value.analytics.allocationAssetMaximum ||
+        !finiteNonNegative(value.analytics.allocationGroupMinimum) ||
+        !finitePositive(value.analytics.allocationGroupMaximum) ||
+        value.analytics.allocationGroupMinimum > value.analytics.allocationGroupMaximum ||
+        !finitePositive(value.analytics.allocationNetSum) ||
+        !finitePositive(value.analytics.allocationGrossLeverageLimit) ||
+        value.analytics.allocationGrossLeverageLimit < value.analytics.allocationNetSum ||
+        !finiteNonNegative(value.analytics.allocationTurnoverBudget) ||
+        !validAllocationSensitivityAxes(value.analytics.allocationSensitivityAxes) ||
         !finitePositive(value.analytics.blackLittermanRiskAversion) ||
         !finitePositive(value.analytics.blackLittermanTau) || value.analytics.blackLittermanTau > 1 ||
         !finiteNonNegative(value.analytics.hedgeCommissionFraction) ||
         !finiteNonNegative(value.analytics.hedgeSpreadFraction) ||
         !finiteNonNegative(value.analytics.hedgeSlippageFraction) ||
         !finiteNonNegative(value.analytics.hedgeRebalancesPerYear) ||
-        !finiteNonNegative(value.analytics.hedgeBasisCorrelation) || value.analytics.hedgeBasisCorrelation > 1 ||
         typeof value.analytics.hedgeInstrumentClass !== "string" || !value.analytics.hedgeInstrumentClass.trim() ||
         !Number.isInteger(value.analytics.walkForwardFolds) || value.analytics.walkForwardFolds < 2 ||
         !Number.isInteger(value.analytics.dossierTrialsSearched) || value.analytics.dossierTrialsSearched < 1 ||
@@ -436,13 +528,25 @@
     var numericSectionNames = ["behavior", "solver", "calibration", "queue"];
     for (var numericIndex = 0; numericIndex < numericSections.length; numericIndex += 1) {
       var numericKeys = Object.keys(numericSections[numericIndex]).filter(function (key) {
-        return key !== "contractVersion" && BEHAVIOR_VOCABULARY_FIELDS.indexOf(key) < 0;
+        return key !== "contractVersion" && key !== "fingerprint" && key !== "scenarioCostTiming" && key !== "scenarioDriftRange" &&
+          BEHAVIOR_VOCABULARY_FIELDS.indexOf(key) < 0;
       });
       if (!numericKeys.every(function (key) {
         var item = numericSections[numericIndex][key];
         if (Array.isArray(item)) return item.length > 0 && item.every(finiteNonNegative);
         return finiteNonNegative(item);
       })) return failure("P008-CONFIG", "invalid-policy", numericSectionNames[numericIndex], null, false);
+    }
+    if (!Number.isInteger(value.calibration.scenarioChunkSize) || value.calibration.scenarioChunkSize < 1 ||
+        !Number.isInteger(value.calibration.scenarioMaximumWorkUnits) ||
+        value.calibration.scenarioMaximumWorkUnits !== value.calibration.pathCount * value.calibration.parameterDrawCount ||
+        !finitePositive(value.calibration.scenarioStartingValue) ||
+        !Array.isArray(value.calibration.scenarioDriftRange) || value.calibration.scenarioDriftRange.length !== 2 ||
+        !value.calibration.scenarioDriftRange.every(function (entry) { return typeof entry === "number" && Number.isFinite(entry); }) ||
+        value.calibration.scenarioDriftRange[1] < value.calibration.scenarioDriftRange[0] ||
+        !finiteNonNegative(value.calibration.scenarioRecurringCostFraction) ||
+        ["start-of-step", "end-of-step"].indexOf(value.calibration.scenarioCostTiming) < 0) {
+      return failure("P008-CONFIG", "invalid-policy", "calibration", null, false);
     }
     if (value.display.defaultMode !== "simple" || value.display.defaultWorkspaceHash !== "#brief" ||
         value.display.localNetworkPolicy !== "same-origin-only" || !nonEmptyString(value.display.policyLabel) ||
@@ -705,9 +809,6 @@
     }
     if ((value.assetType === "listed" || value.assetType === "cash") && !nonEmptyString(value.symbol)) return failure("P008-IDENTITY", "identity-required", "symbol", null, false);
     if (value.assetType === "manual-alternative" && !nonEmptyString(value.label)) return failure("P008-IDENTITY", "identity-required", "label", null, false);
-    if (value.holdingId !== contracts.fingerprint("portfolio-holding", holdingIdentityPayload(value))) {
-      return failure("P008-IDENTITY", "holding-identity-mismatch", "holdingId", null, false);
-    }
     var numericFields = ["weight", "quantity", "price", "localValue", "derivedValue", "derivedWeight", "costBasis", "transactionCost"];
     for (var numericIndex = 0; numericIndex < numericFields.length; numericIndex += 1) {
       var numericValue = value[numericFields[numericIndex]];
@@ -1050,9 +1151,12 @@
     if (unknown || Object.keys(value).length !== REVISION_FIELDS.length) return failure("P008-SCHEMA-CORRUPT", "unknown-field", unknown || "revision", null, false);
     if (value.contractVersion !== REVISION_VERSION || !HASH_PATTERN.test(value.portfolioId || "") || !HASH_PATTERN.test(value.semanticFingerprint || "") ||
         !nonEmptyString(value.name) || !CURRENCY_PATTERN.test(value.valuationCurrency || "") ||
-        ["weight", "local-value"].indexOf(value.inputBasis) < 0 || !Array.isArray(value.holdings) || value.holdings.length === 0 ||
+        ["weight", "local-value", "empty"].indexOf(value.inputBasis) < 0 || !Array.isArray(value.holdings) ||
         !canonicalTimestamp(value.createdAt) || (value.supersedes !== null && !HASH_PATTERN.test(value.supersedes || ""))) {
       return failure("P008-SCHEMA-CORRUPT", "revision-invalid", "revision", null, false);
+    }
+    if ((value.holdings.length === 0) !== (value.inputBasis === "empty")) {
+      return failure("P008-SCHEMA-CORRUPT", "revision-empty-state-invalid", "revision", null, false);
     }
     var seen = Object.create(null);
     for (var index = 0; index < value.holdings.length; index += 1) {
@@ -1065,6 +1169,238 @@
     var expectedId = contracts.fingerprint("portfolio-revision", revisionIdentityPayload(value));
     if (value.semanticFingerprint !== expectedSemantic || value.portfolioId !== expectedId) return failure("P008-IDENTITY", "revision-identity-mismatch", "portfolioId", null, false);
     return success(clone(value));
+  }
+
+  function currentPortfolioRevision(workspace) {
+    if (!workspace || workspace.currentPortfolioId === null) return null;
+    for (var index = 0; index < workspace.portfolioRevisions.length; index += 1) {
+      if (workspace.portfolioRevisions[index].portfolioId === workspace.currentPortfolioId) {
+        return workspace.portfolioRevisions[index];
+      }
+    }
+    return null;
+  }
+
+  function draftValidation(rows, valuationCurrency, policy) {
+    var errors = [];
+    var seen = Object.create(null);
+    var allWeights = rows.length > 0;
+    var allValues = rows.length > 0;
+    rows.forEach(function (holding, index) {
+      var validated = validateHoldingEntry(holding, policy);
+      if (!validated.ok) {
+        errors.push(portfolioError("P008-HOLDING-EDIT", validated.error.reason, "rows[" + index + "]", index + 1, true));
+        return;
+      }
+      if (holding.currency !== valuationCurrency) {
+        errors.push(portfolioError("P008-HOLDING-EDIT", "common-currency-required", "rows[" + index + "].currency", index + 1, true));
+      }
+      if (seen[holding.holdingId]) {
+        errors.push(portfolioError("P008-HOLDING-EDIT", "duplicate-holding-id", "rows[" + index + "].holdingId", index + 1, true));
+      }
+      seen[holding.holdingId] = true;
+      allWeights = allWeights && holding.inputBasis === "weight";
+      allValues = allValues && (holding.inputBasis === "quantity-price" || holding.inputBasis === "local-value");
+    });
+    if (rows.length > 0 && !allWeights && !allValues) {
+      errors.push(portfolioError("P008-HOLDING-EDIT", "mixed-input-basis", "rows", null, true));
+    }
+    if (allWeights) {
+      var weightSum = rows.reduce(function (sum, holding) { return sum + holding.weight; }, 0);
+      if (Math.abs(weightSum - 1) > policy.import.weightTolerance) {
+        errors.push(portfolioError("P008-HOLDING-EDIT", "weight-sum-invalid", "rows", null, true));
+      }
+    }
+    return { valid: errors.length === 0, errorCount: errors.length, errors: errors };
+  }
+
+  function draftIdentityPayload(basePortfolioId, valuationCurrency, rows, createdAt) {
+    return {
+      contractVersion: "portfolio-draft-identity/v1",
+      basePortfolioId: basePortfolioId,
+      valuationCurrency: valuationCurrency,
+      rows: rows,
+      createdAt: createdAt
+    };
+  }
+
+  function portfolioDraftFromRows(basePortfolioId, valuationCurrency, rows, createdAt, policy) {
+    if ((basePortfolioId !== null && !HASH_PATTERN.test(basePortfolioId || "")) ||
+        !CURRENCY_PATTERN.test(valuationCurrency || "") || !Array.isArray(rows) || !canonicalTimestamp(createdAt)) {
+      return failure("P008-HOLDING-EDIT", "draft-shape-invalid", "draft", null, true);
+    }
+    var copiedRows = rows.map(clone);
+    var validation = draftValidation(copiedRows, valuationCurrency, policy);
+    var draft = {
+      contractVersion: PORTFOLIO_DRAFT_VERSION,
+      draftId: contracts.fingerprint("portfolio-draft", draftIdentityPayload(basePortfolioId, valuationCurrency, copiedRows, createdAt)),
+      basePortfolioId: basePortfolioId,
+      valuationCurrency: valuationCurrency,
+      rows: copiedRows,
+      validation: validation,
+      createdAt: createdAt
+    };
+    return success(deepFreeze(draft));
+  }
+
+  function validatePortfolioDraft(value, policy) {
+    var policyResult = validatePolicy(policy);
+    if (!policyResult.ok) return policyResult;
+    if (!isPlainObject(value) || hasOnlyFields(value, PORTFOLIO_DRAFT_FIELDS) ||
+        Object.keys(value).length !== PORTFOLIO_DRAFT_FIELDS.length || value.contractVersion !== PORTFOLIO_DRAFT_VERSION) {
+      return failure("P008-HOLDING-EDIT", "draft-shape-invalid", "draft", null, true);
+    }
+    var rebuilt = portfolioDraftFromRows(value.basePortfolioId, value.valuationCurrency, value.rows, value.createdAt, policy);
+    if (!rebuilt.ok) return rebuilt;
+    if (rebuilt.value.draftId !== value.draftId ||
+        contracts.canonicalize(rebuilt.value.validation, "portfolio-draft-validation/v1") !==
+          contracts.canonicalize(value.validation, "portfolio-draft-validation/v1")) {
+      return failure("P008-HOLDING-EDIT", "draft-identity-invalid", "draftId", null, true);
+    }
+    return success(clone(value));
+  }
+
+  function createPortfolioDraft(currentWorkspace, now, policy) {
+    var workspaceResult = validateWorkspace(currentWorkspace, policy);
+    if (!workspaceResult.ok) return workspaceResult;
+    if (!canonicalTimestamp(now)) return failure("P008-HOLDING-EDIT", "timestamp-invalid", "now", null, true);
+    var revision = currentPortfolioRevision(workspaceResult.value);
+    if (!revision) return failure("P008-HOLDING-EDIT", "current-portfolio-required", "currentPortfolioId", null, true);
+    return portfolioDraftFromRows(revision.portfolioId, revision.valuationCurrency, revision.holdings, now, policy);
+  }
+
+  function stableAddedHoldingId(draft, holding) {
+    return contracts.fingerprint("portfolio-draft-holding", {
+      contractVersion: "portfolio-draft-holding-identity/v1",
+      draftId: draft.draftId,
+      ordinal: draft.rows.length,
+      sourceHoldingId: holding.holdingId
+    });
+  }
+
+  function addHoldingRow(draft, row, policy) {
+    var draftResult = validatePortfolioDraft(draft, policy);
+    if (!draftResult.ok) return draftResult;
+    var holdingResult = validateHoldingEntry(row, policy);
+    if (!holdingResult.ok) return failure("P008-HOLDING-EDIT", holdingResult.error.reason, holdingResult.error.field, null, true);
+    var holding = clone(holdingResult.value);
+    holding.holdingId = stableAddedHoldingId(draftResult.value, holding);
+    return portfolioDraftFromRows(
+      draftResult.value.basePortfolioId,
+      draftResult.value.valuationCurrency,
+      draftResult.value.rows.concat([holding]),
+      draftResult.value.createdAt,
+      policy
+    );
+  }
+
+  function editableHolding(holding) {
+    var output = {};
+    HOLDING_EDITABLE_FIELDS.forEach(function (field) { output[field] = clone(holding[field]); });
+    return output;
+  }
+
+  function editHoldingRow(draft, holdingId, patch, policy) {
+    var draftResult = validatePortfolioDraft(draft, policy);
+    if (!draftResult.ok) return draftResult;
+    if (!HASH_PATTERN.test(holdingId || "") || !isPlainObject(patch)) {
+      return failure("P008-HOLDING-EDIT", "edit-arguments-invalid", "holdingId", null, true);
+    }
+    var unknownPatch = hasOnlyFields(patch, HOLDING_EDITABLE_FIELDS);
+    if (unknownPatch) return failure("P008-HOLDING-EDIT", "editable-field-invalid", unknownPatch, null, true);
+    var found = false;
+    var rows = draftResult.value.rows.map(function (holding, index) {
+      if (holding.holdingId !== holdingId) return clone(holding);
+      found = true;
+      var raw = editableHolding(holding);
+      Object.keys(patch).forEach(function (field) { raw[field] = patch[field]; });
+      var rebuilt = rawHoldingResult(raw, index + 1, policy);
+      if (!rebuilt.ok) return { editError: rebuilt.errors[0] };
+      var edited = clone(rebuilt.holding);
+      edited.holdingId = holdingId;
+      return edited;
+    });
+    if (!found) return failure("P008-HOLDING-EDIT", "holding-not-found", "holdingId", null, true);
+    var failedRow = rows.find(function (row) { return row && row.editError; });
+    if (failedRow) return failure("P008-HOLDING-EDIT", failedRow.editError.reason, failedRow.editError.field, null, true);
+    return portfolioDraftFromRows(
+      draftResult.value.basePortfolioId,
+      draftResult.value.valuationCurrency,
+      rows,
+      draftResult.value.createdAt,
+      policy
+    );
+  }
+
+  function removeHoldingRow(draft, holdingId, policy) {
+    var draftResult = validatePortfolioDraft(draft, policy);
+    if (!draftResult.ok) return draftResult;
+    if (!HASH_PATTERN.test(holdingId || "") ||
+        !draftResult.value.rows.some(function (row) { return row.holdingId === holdingId; })) {
+      return failure("P008-HOLDING-EDIT", "holding-not-found", "holdingId", null, true);
+    }
+    return portfolioDraftFromRows(
+      draftResult.value.basePortfolioId,
+      draftResult.value.valuationCurrency,
+      draftResult.value.rows.filter(function (row) { return row.holdingId !== holdingId; }),
+      draftResult.value.createdAt,
+      policy
+    );
+  }
+
+  function revisionFromPortfolioDraft(draft, now, policy) {
+    var draftResult = validatePortfolioDraft(draft, policy);
+    if (!draftResult.ok) return draftResult;
+    if (!draftResult.value.validation.valid) return failure("P008-HOLDING-EDIT", "draft-invalid", "validation", null, true);
+    if (!canonicalTimestamp(now)) return failure("P008-HOLDING-EDIT", "timestamp-invalid", "now", null, true);
+    var rows = draftResult.value.rows.map(clone);
+    var inputBasis = rows.length === 0 ? "empty" :
+      (rows.every(function (holding) { return holding.inputBasis === "weight"; }) ? "weight" : "local-value");
+    if (inputBasis === "local-value") {
+      var totalValue = rows.reduce(function (sum, holding) { return sum + holding.derivedValue; }, 0);
+      rows = rows.map(function (holding) {
+        var output = clone(holding);
+        output.derivedWeight = output.derivedValue / totalValue;
+        return output;
+      });
+    }
+    var revision = {
+      contractVersion: REVISION_VERSION,
+      portfolioId: null,
+      name: rows.length === 0 ? "Portfolio empty" : "Portfolio revision",
+      valuationCurrency: draftResult.value.valuationCurrency,
+      inputBasis: inputBasis,
+      holdings: rows,
+      createdAt: now,
+      supersedes: draftResult.value.basePortfolioId,
+      semanticFingerprint: null
+    };
+    revision.semanticFingerprint = contracts.fingerprint("portfolio-revision-semantic", revisionSemanticPayload(revision));
+    revision.portfolioId = contracts.fingerprint("portfolio-revision", revisionIdentityPayload(revision));
+    return success(revision);
+  }
+
+  function buildEmptyPortfolioRevision(draft, now, policy) {
+    if (!isPlainObject(draft) || !Array.isArray(draft.rows) || draft.rows.length !== 0) {
+      return failure("P008-HOLDING-EDIT", "empty-draft-required", "rows", null, true);
+    }
+    return revisionFromPortfolioDraft(draft, now, policy);
+  }
+
+  function workspaceIdentityProjection(workspace, activeRevision) {
+    return {
+      contractVersion: WORKSPACE_IDENTITY_VERSION,
+      activeIdentity: activeRevision.portfolioId,
+      supersedesIdentity: activeRevision.supersedes,
+      priorResults: workspace.portfolioRevisions.filter(function (entry) {
+        return entry.portfolioId !== activeRevision.portfolioId;
+      }).map(function (entry) {
+        var superseding = workspace.portfolioRevisions.find(function (candidate) {
+          return candidate.supersedes === entry.portfolioId;
+        });
+        return { identity: entry.portfolioId, supersededByIdentity: superseding ? superseding.portfolioId : null };
+      })
+    };
   }
 
   function buildPortfolioRevision(draft, currentWorkspace, options, policy) {
@@ -1716,9 +2052,9 @@
 
   // Semantic identity: the same completed research condition, on the same subject, on the
   // same UTC day is one piece of evidence however many times the surface reports it.
-  // Occurrence time and result identity are deliberately absent so a repeat cannot inflate
-  // the distinct-completion count the evidence floor reads.
-  function behaviorDedupePayload(event) {
+  // Retained only for persisted BehaviorEvent/v1 rows written before Scope 18. These rows can be
+  // read and cleared, but cannot support relevance because they lack genericEvidenceIdentity.
+  function legacyBehaviorDedupePayload(event) {
     return {
       contractVersion: "portfolio-behavior-dedupe/v1",
       category: event.category,
@@ -1730,8 +2066,8 @@
     };
   }
 
-  function behaviorIdentityPayload(event) {
-    var payload = behaviorDedupePayload(event);
+  function legacyBehaviorIdentityPayload(event) {
+    var payload = legacyBehaviorDedupePayload(event);
     payload.contractVersion = "portfolio-behavior-event/v1";
     payload.horizon = event.horizon;
     payload.sourceSurface = event.sourceSurface;
@@ -1740,18 +2076,80 @@
     return payload;
   }
 
+  function behaviorIdentityPayload(event) {
+    return {
+      contractVersion: BEHAVIOR_EVENT_IDENTITY_VERSION,
+      category: event.category,
+      subjectKind: event.subjectKind,
+      subjectId: event.subjectId,
+      domain: event.domain,
+      horizon: event.horizon,
+      sourceSurface: event.sourceSurface,
+      resultIdentity: event.resultIdentity,
+      genericEvidenceIdentity: event.genericEvidenceIdentity,
+      completionConditionId: event.completionConditionId,
+      policyVersion: event.policyVersion
+    };
+  }
+
+  function canonicalBehaviorIdentity(event, policy) {
+    var policyResult = validatePolicy(policy);
+    if (!policyResult.ok) return policyResult;
+    if (!isPlainObject(event)) return failure("P008-BEHAVIOR-IDENTITY", "behavior-identity-required", "event", null, false);
+    var payload = behaviorIdentityPayload(event);
+    if (policy.behavior.eventCategories.indexOf(payload.category) < 0 ||
+      typeof payload.policyVersion !== "string" || !/^[A-Za-z0-9][A-Za-z0-9._\/-]*$/.test(payload.policyVersion) ||
+        !safeToken(payload.subjectKind) || !safeToken(payload.subjectId) || !safeToken(payload.domain) ||
+        !safeToken(payload.horizon) || !safeToken(payload.sourceSurface) ||
+        !safeToken(payload.completionConditionId) || !HASH_PATTERN.test(payload.resultIdentity || "") ||
+        !HASH_PATTERN.test(payload.genericEvidenceIdentity || "")) {
+      return failure("P008-BEHAVIOR-IDENTITY", "behavior-identity-invalid", "event", null, false);
+    }
+    var fingerprintPayload = clone(payload);
+    fingerprintPayload.contractVersion = "portfolio-behavior-event-identity/v1";
+    payload.eventIdentity = contracts.fingerprint("portfolio-behavior-event-identity", fingerprintPayload);
+    return success(payload);
+  }
+
+  function newYorkCivilDate(occurredAt) {
+    var parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/New_York",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).formatToParts(new Date(occurredAt));
+    var values = {};
+    parts.forEach(function (part) { values[part.type] = part.value; });
+    return values.year + "-" + values.month + "-" + values.day;
+  }
+
+  function buildBehaviorOccurrence(eventIdentity, occurredAt) {
+    if (!HASH_PATTERN.test(eventIdentity || "")) {
+      return failure("P008-BEHAVIOR-IDENTITY", "event-identity-invalid", "eventIdentity", null, false);
+    }
+    if (!canonicalTimestamp(occurredAt)) {
+      return failure("P008-BEHAVIOR-TIME", "occurred-at-invalid", "occurredAt", null, false);
+    }
+    var occurrence = {
+      contractVersion: BEHAVIOR_OCCURRENCE_VERSION,
+      eventIdentity: eventIdentity,
+      occurredAt: occurredAt,
+      newYorkCivilDate: newYorkCivilDate(occurredAt),
+      occurrenceId: null
+    };
+    var fingerprintPayload = clone(occurrence);
+    fingerprintPayload.contractVersion = "portfolio-behavior-occurrence/v1";
+    occurrence.occurrenceId = contracts.fingerprint("portfolio-behavior-occurrence", fingerprintPayload);
+    return success(occurrence);
+  }
+
   function safeToken(value) {
     return typeof value === "string" && SAFE_REASON_PATTERN.test(value);
   }
 
-  function validateBehaviorEvent(value, policy) {
-    var policyResult = validatePolicy(policy);
-    if (!policyResult.ok) return policyResult;
-    if (!isPlainObject(value)) return failure("P008-SCHEMA-CORRUPT", "behavior-event-required", "behaviorEvent", null, false);
-    var forbidden = findForbiddenBehaviorPath(value, policy, "behaviorEvent");
-    if (forbidden) return failure("P008-SCHEMA-CORRUPT", "forbidden-behavior-source", forbidden, null, false);
-    var unknown = hasOnlyFields(value, BEHAVIOR_EVENT_FIELDS);
-    if (unknown || Object.keys(value).length !== BEHAVIOR_EVENT_FIELDS.length) {
+  function readLegacyBehaviorEventV1(value, policy) {
+    var unknown = hasOnlyFields(value, LEGACY_BEHAVIOR_EVENT_FIELDS);
+    if (unknown || Object.keys(value).length !== LEGACY_BEHAVIOR_EVENT_FIELDS.length) {
       return failure("P008-SCHEMA-CORRUPT", "unknown-field", unknown || "behaviorEvent", null, false);
     }
     if (value.contractVersion !== BEHAVIOR_EVENT_VERSION || policy.behavior.eventCategories.indexOf(value.category) < 0 ||
@@ -1763,9 +2161,52 @@
         !HASH_PATTERN.test(value.eventId || "") || !HASH_PATTERN.test(value.dedupeKey || "")) {
       return failure("P008-SCHEMA-CORRUPT", "behavior-event-invalid", "behaviorEvent", null, false);
     }
-    var expectedDedupe = contracts.fingerprint("portfolio-behavior-dedupe", behaviorDedupePayload(value));
-    var expectedId = contracts.fingerprint("portfolio-behavior-event", behaviorIdentityPayload(value));
+    var expectedDedupe = contracts.fingerprint("portfolio-behavior-dedupe", legacyBehaviorDedupePayload(value));
+    var expectedId = contracts.fingerprint("portfolio-behavior-event", legacyBehaviorIdentityPayload(value));
     if (value.dedupeKey !== expectedDedupe || value.eventId !== expectedId) {
+      return failure("P008-IDENTITY", "behavior-event-identity-mismatch", "eventId", null, false);
+    }
+    return success(clone(value));
+  }
+
+  function validateBehaviorEvent(value, policy) {
+    var policyResult = validatePolicy(policy);
+    if (!policyResult.ok) return policyResult;
+    if (!isPlainObject(value)) return failure("P008-SCHEMA-CORRUPT", "behavior-event-required", "behaviorEvent", null, false);
+    var forbidden = findForbiddenBehaviorPath(value, policy, "behaviorEvent");
+    if (forbidden) return failure("P008-SCHEMA-CORRUPT", "forbidden-behavior-source", forbidden, null, false);
+    if (hasOnlyFields(value, LEGACY_BEHAVIOR_EVENT_FIELDS) === null &&
+        Object.keys(value).length === LEGACY_BEHAVIOR_EVENT_FIELDS.length) {
+      return readLegacyBehaviorEventV1(value, policy);
+    }
+    var unknown = hasOnlyFields(value, BEHAVIOR_EVENT_FIELDS);
+    if (unknown || Object.keys(value).length !== BEHAVIOR_EVENT_FIELDS.length) {
+      return failure("P008-SCHEMA-CORRUPT", "unknown-field", unknown || "behaviorEvent", null, false);
+    }
+    if (value.contractVersion !== BEHAVIOR_EVENT_VERSION || policy.behavior.eventCategories.indexOf(value.category) < 0 ||
+        policy.behavior.eventLifecycleStates.indexOf(value.lifecycleState) < 0 ||
+        value.policyVersion !== policy.behavior.contractVersion ||
+        !safeToken(value.subjectKind) || !safeToken(value.subjectId) || !safeToken(value.domain) ||
+        !safeToken(value.horizon) || !safeToken(value.sourceSurface) || !safeToken(value.completionConditionId) ||
+        !HASH_PATTERN.test(value.resultIdentity || "") || !HASH_PATTERN.test(value.genericEvidenceIdentity || "") ||
+        !canonicalTimestamp(value.occurredAt) || !HASH_PATTERN.test(value.eventId || "") ||
+        !HASH_PATTERN.test(value.eventIdentity || "") || !HASH_PATTERN.test(value.dedupeKey || "") ||
+        !isPlainObject(value.occurrence)) {
+      return failure("P008-SCHEMA-CORRUPT", "behavior-event-invalid", "behaviorEvent", null, false);
+    }
+    var identityResult = canonicalBehaviorIdentity(value, policy);
+    if (!identityResult.ok) return identityResult;
+    var occurrenceResult = buildBehaviorOccurrence(identityResult.value.eventIdentity, value.occurredAt);
+    if (!occurrenceResult.ok) return occurrenceResult;
+    var occurrence = value.occurrence;
+    var expectedOccurrence = occurrenceResult.value;
+    var occurrenceFields = ["contractVersion", "eventIdentity", "newYorkCivilDate", "occurredAt", "occurrenceId"];
+    if (value.eventIdentity !== identityResult.value.eventIdentity || value.dedupeKey !== value.eventIdentity ||
+        value.eventId !== expectedOccurrence.occurrenceId ||
+        hasOnlyFields(occurrence, occurrenceFields) !== null || Object.keys(occurrence).length !== occurrenceFields.length ||
+        occurrence.contractVersion !== expectedOccurrence.contractVersion ||
+        occurrence.eventIdentity !== expectedOccurrence.eventIdentity || occurrence.occurredAt !== expectedOccurrence.occurredAt ||
+        occurrence.newYorkCivilDate !== expectedOccurrence.newYorkCivilDate || occurrence.occurrenceId !== expectedOccurrence.occurrenceId) {
       return failure("P008-IDENTITY", "behavior-event-identity-mismatch", "eventId", null, false);
     }
     return success(clone(value));
@@ -1787,10 +2228,7 @@
     if (!isPlainObject(options) || !canonicalTimestamp(options.now)) {
       return failure("P008-SCHEMA-CORRUPT", "behavior-options-invalid", "options", null, true);
     }
-    var event = {
-      contractVersion: BEHAVIOR_EVENT_VERSION,
-      eventId: null,
-      dedupeKey: null,
+    var identityResult = canonicalBehaviorIdentity({
       category: draft.category,
       subjectKind: draft.subjectKind,
       subjectId: draft.subjectId,
@@ -1798,13 +2236,37 @@
       horizon: draft.horizon,
       sourceSurface: draft.sourceSurface,
       resultIdentity: draft.resultIdentity,
+      genericEvidenceIdentity: draft.genericEvidenceIdentity,
+      completionConditionId: draft.completionConditionId,
+      policyVersion: policy.behavior.contractVersion
+    }, policy);
+    if (!identityResult.ok) {
+      if (identityResult.error && identityResult.error.reason === "behavior-identity-invalid") {
+        return failure("P008-SCHEMA-CORRUPT", "behavior-event-invalid", "draft", null, true);
+      }
+      return identityResult;
+    }
+    var occurrenceResult = buildBehaviorOccurrence(identityResult.value.eventIdentity, options.now);
+    if (!occurrenceResult.ok) return occurrenceResult;
+    var event = {
+      contractVersion: BEHAVIOR_EVENT_VERSION,
+      eventId: occurrenceResult.value.occurrenceId,
+      dedupeKey: identityResult.value.eventIdentity,
+      category: draft.category,
+      subjectKind: draft.subjectKind,
+      subjectId: draft.subjectId,
+      domain: draft.domain,
+      horizon: draft.horizon,
+      sourceSurface: draft.sourceSurface,
+      resultIdentity: draft.resultIdentity,
+      genericEvidenceIdentity: draft.genericEvidenceIdentity,
       completionConditionId: draft.completionConditionId,
       occurredAt: options.now,
+      eventIdentity: identityResult.value.eventIdentity,
+      occurrence: occurrenceResult.value,
       policyVersion: policy.behavior.contractVersion,
       lifecycleState: "eligible"
     };
-    event.dedupeKey = contracts.fingerprint("portfolio-behavior-dedupe", behaviorDedupePayload(event));
-    event.eventId = contracts.fingerprint("portfolio-behavior-event", behaviorIdentityPayload(event));
     return validateBehaviorEvent(event, policy);
   }
 
@@ -1935,7 +2397,7 @@
     var eventResult = buildBehaviorEvent(draft, options, policy);
     if (!eventResult.ok) return eventResult;
     var candidate = clone(currentWorkspace);
-    var duplicate = candidate.behaviorEvents.some(function (entry) { return entry.dedupeKey === eventResult.value.dedupeKey; });
+    var duplicate = candidate.behaviorEvents.some(function (entry) { return entry.eventId === eventResult.value.eventId; });
     if (!duplicate) {
       if (candidate.behaviorEvents.length + 1 > policy.behavior.maxBehaviorEvents) {
         return failure("P008-SCHEMA-CORRUPT", "behavior-event-cap-exceeded", "behaviorEvents", null, true);
@@ -1974,25 +2436,34 @@
     workspace.behaviorEvents.forEach(function (event) {
       if (!event || !event.domain) return;
       if (event.lifecycleState !== "eligible") return;
+      if (!event.genericEvidenceIdentity || !event.eventIdentity || !event.occurrence) return;
       var key = String(event.domain);
       if (!byDomain[key]) {
-        byDomain[key] = { domain: key, subjectKind: "domain", horizon: null, eventIds: [], dates: Object.create(null), latest: null, score: 0 };
+        byDomain[key] = {
+          domain: key,
+          subjectKind: "domain",
+          horizon: null,
+          eventIdentities: Object.create(null),
+          dates: Object.create(null),
+          latest: null,
+          score: 0
+        };
       }
       var bucket = byDomain[key];
-      bucket.eventIds.push(event.eventId);
-      bucket.dates[String(event.occurredAt).slice(0, 10)] = true;
+      var ageDays = (Date.parse(now) - Date.parse(event.occurredAt)) / 86400000;
+      if (ageDays < 0 || ageDays > behavior.maximumEvidenceAgeDays) return;
+      bucket.eventIdentities[event.eventIdentity] = true;
+      bucket.dates[event.occurrence.newYorkCivilDate] = true;
       if (!bucket.horizon && event.horizon) bucket.horizon = event.horizon;
       if (!bucket.latest || event.occurredAt > bucket.latest) bucket.latest = event.occurredAt;
-      var ageDays = (Date.parse(now) - Date.parse(event.occurredAt)) / 86400000;
-      if (ageDays <= behavior.maximumEvidenceAgeDays) {
-        bucket.score += Math.pow(0.5, ageDays / behavior.halfLifeDays);
-      }
+      bucket.score += Math.pow(0.5, ageDays / behavior.halfLifeDays);
     });
 
     var signals = Object.keys(byDomain).sort().map(function (key) {
       var bucket = byDomain[key];
       var distinctDates = Object.keys(bucket.dates).length;
-      var distinctEvents = bucket.eventIds.length;
+      var eventIds = Object.keys(bucket.eventIdentities).sort();
+      var distinctEvents = eventIds.length;
       var satisfied = distinctEvents >= behavior.minimumDistinctCompletions &&
         distinctDates >= behavior.minimumDistinctUtcDates;
       var band = "insufficient-evidence";
@@ -2007,7 +2478,7 @@
         subjectKind: bucket.subjectKind,
         domain: bucket.domain,
         horizon: bucket.horizon,
-        supportingEventIds: bucket.eventIds.slice().sort(),
+        supportingEventIds: eventIds,
         distinctUtcDateCount: distinctDates,
         evidenceScore: Math.round(bucket.score * 10000) / 10000,
         floorSatisfied: satisfied,
@@ -2436,6 +2907,535 @@
     return success(clone(value));
   }
 
+  function createEmptyControllerPersonalState() {
+    return deepFreeze({
+      editorDrafts: [],
+      mandateAndCashNeedDrafts: [],
+      scenarioInputs: [],
+      hedgeVariants: [],
+      blackLittermanViews: [],
+      activeIdentities: {},
+      draftIdentities: {},
+      activeViewModels: {},
+      lastValidViewModels: {},
+      computeState: null,
+      displayState: {},
+      disclosureState: {},
+      focusRestorationState: null
+    });
+  }
+
+  function storageEntries(storage) {
+    var entries = [];
+    for (var index = 0; index < storage.length; index += 1) {
+      var key = storage.key(index);
+      if (typeof key === "string") entries.push({ key: key, value: storage.getItem(key) });
+    }
+    entries.sort(function (left, right) { return left.key < right.key ? -1 : (left.key > right.key ? 1 : 0); });
+    return entries;
+  }
+
+  function reservedPersonalKey(key) {
+    return typeof key === "string" && (key.indexOf("rlPortfolio") === 0 || key === "rlReturnContextV1");
+  }
+
+  function personalDescriptor(categoryId, categoryLocation, sourcePath, emptyRule) {
+    return {
+      contractVersion: "PersonalCategoryDescriptor/v1",
+      categoryId: categoryId,
+      location: categoryLocation,
+      sourcePath: sourcePath,
+      clearMode: "all-personal",
+      emptyRule: emptyRule,
+      sensitive: true
+    };
+  }
+
+  function declaredStorageDescriptors(policy) {
+    var descriptors = [
+      personalDescriptor("storage:local:" + policy.storage.pointerKey, "local-storage", policy.storage.pointerKey, "absent"),
+      personalDescriptor("storage:local:" + policy.storage.quarantineKey, "local-storage", policy.storage.quarantineKey, "absent"),
+      personalDescriptor("storage:local:" + policy.storage.displayModeKey, "local-storage", policy.storage.displayModeKey, "absent"),
+      personalDescriptor("storage:session:" + policy.storage.sessionKey, "session-storage", policy.storage.sessionKey, "absent"),
+      personalDescriptor("storage:session:" + policy.storage.returnContextKey, "session-storage", policy.storage.returnContextKey, "absent")
+    ];
+    policy.storage.slotKeys.forEach(function (key) {
+      descriptors.push(personalDescriptor("storage:local:" + key, "local-storage", key, "absent"));
+    });
+    return descriptors.sort(function (left, right) { return left.categoryId < right.categoryId ? -1 : 1; });
+  }
+
+  function workspaceDescriptors(emptyWorkspace) {
+    var descriptors = Object.keys(emptyWorkspace).filter(function (field) {
+      return emptyWorkspace[field] === null || Array.isArray(emptyWorkspace[field]);
+    }).map(function (field) {
+      return personalDescriptor(
+        "workspace:" + field,
+        "workspace-section",
+        field,
+        Array.isArray(emptyWorkspace[field]) ? "empty-array" : "null"
+      );
+    });
+    descriptors.push(personalDescriptor("workspace:cash-needs", "workspace-section", "mandateRevisions[].cashNeeds", "empty-array"));
+    descriptors.push(personalDescriptor("workspace:supersession-records", "workspace-section", "portfolioRevisions[].supersedes", "empty-array"));
+    return descriptors.sort(function (left, right) { return left.categoryId < right.categoryId ? -1 : 1; });
+  }
+
+  function controllerDescriptors(emptyController) {
+    return Object.keys(emptyController).sort().map(function (field) {
+      var value = emptyController[field];
+      var rule = Array.isArray(value) ? "empty-array" : value === null ? "null" : value === false ? "false" : "empty-object";
+      return personalDescriptor("controller:" + field, "controller-state", field, rule);
+    });
+  }
+
+  function safeValueHash(value, categoryId) {
+    return contracts.contentSha256({ categoryId: categoryId, value: value }, "portfolio-clear-residue/v1");
+  }
+
+  function derivePersonalCategoryRegistry(request) {
+    if (!isPlainObject(request) || !isPlainObject(request.storageAdapters) ||
+        !request.storageAdapters.localStorage || !request.storageAdapters.sessionStorage ||
+        !isPlainObject(request.controller) || !isPlainObject(request.controller.controllerPersonalState)) {
+      return failure("P008-CLEAR-PARTIAL", "clear-adapters-required", "request", null, false);
+    }
+    var policyResult = validatePolicy(request.policy);
+    if (!policyResult.ok) return policyResult;
+    var workspaceResult = validateWorkspace(request.workspace, request.policy);
+    if (!workspaceResult.ok) return workspaceResult;
+    var emptyWorkspaceResult = createEmptyWorkspace(request.policy, request.now);
+    if (!emptyWorkspaceResult.ok) return emptyWorkspaceResult;
+    var emptyController = createEmptyControllerPersonalState();
+    var storageCategories = declaredStorageDescriptors(request.policy);
+    var declared = Object.create(null);
+    storageCategories.forEach(function (descriptor) {
+      declared[descriptor.location + ":" + descriptor.sourcePath] = true;
+    });
+    var discoveredUndeclared = [];
+    var publicExclusions = [];
+    try {
+      [
+        { storage: request.storageAdapters.localStorage, location: "local-storage" },
+        { storage: request.storageAdapters.sessionStorage, location: "session-storage" }
+      ].forEach(function (entry) {
+        storageEntries(entry.storage).forEach(function (stored) {
+          var locationKey = entry.location + ":" + stored.key;
+          if (reservedPersonalKey(stored.key) && !declared[locationKey]) {
+            discoveredUndeclared.push({
+              categoryId: "undeclared:" + locationKey,
+              location: entry.location,
+              sourcePath: stored.key,
+              residueHash: safeValueHash(stored.value, locationKey)
+            });
+          } else if (!reservedPersonalKey(stored.key)) {
+            publicExclusions.push({
+              categoryId: "public:" + locationKey,
+              location: entry.location,
+              sourcePath: stored.key,
+              contentSha256: safeValueHash(stored.value, "public:" + locationKey)
+            });
+          }
+        });
+      });
+    } catch (error) {
+      return failure("P008-CLEAR-PARTIAL", "storage-enumeration-failed", "storage", null, true);
+    }
+    var controllerCategories = controllerDescriptors(emptyController);
+    var declaredController = Object.create(null);
+    controllerCategories.forEach(function (descriptor) { declaredController[descriptor.sourcePath] = true; });
+    Object.keys(request.controller.controllerPersonalState).sort().forEach(function (field) {
+      if (!declaredController[field]) {
+        discoveredUndeclared.push({
+          categoryId: "undeclared:controller-state:" + field,
+          location: "controller-state",
+          sourcePath: field,
+          residueHash: safeValueHash(request.controller.controllerPersonalState[field], "controller:" + field)
+        });
+      }
+    });
+    discoveredUndeclared.sort(function (left, right) { return left.categoryId < right.categoryId ? -1 : 1; });
+    publicExclusions.sort(function (left, right) { return left.categoryId < right.categoryId ? -1 : 1; });
+    var registry = {
+      contractVersion: PERSONAL_CATEGORY_REGISTRY_VERSION,
+      registryFingerprint: null,
+      ownedStoragePrefixes: ["rlPortfolio*", "rlReturnContextV1"],
+      storageCategories: storageCategories,
+      workspaceCategories: workspaceDescriptors(emptyWorkspaceResult.value),
+      controllerCategories: controllerCategories,
+      discoveredUndeclared: discoveredUndeclared,
+      publicExclusions: publicExclusions
+    };
+    var fingerprintPayload = clone(registry);
+    delete fingerprintPayload.registryFingerprint;
+    registry.registryFingerprint = contracts.contentSha256(fingerprintPayload, "personal-category-registry/v1");
+    return success(deepFreeze(registry));
+  }
+
+  function validateClearTombstone(value, policy) {
+    var fields = [
+      "contentSha256", "contractVersion", "createdAt", "operationId", "registryFingerprint", "semanticFingerprint", "workspace"
+    ];
+    if (!isPlainObject(value) || hasOnlyFields(value, fields) || Object.keys(value).length !== fields.length ||
+        value.contractVersion !== CLEAR_TOMBSTONE_VERSION || !HASH_PATTERN.test(value.operationId || "") ||
+        !HASH_PATTERN.test(value.registryFingerprint || "") || !HASH_PATTERN.test(value.semanticFingerprint || "") ||
+        !HASH_PATTERN.test(value.contentSha256 || "") || !canonicalTimestamp(value.createdAt)) {
+      return failure("P008-CLEAR-PARTIAL", "tombstone-invalid", "tombstone", null, false);
+    }
+    var workspaceResult = validateWorkspace(value.workspace, policy);
+    if (!workspaceResult.ok) return workspaceResult;
+    var payload = clone(value);
+    delete payload.semanticFingerprint;
+    delete payload.contentSha256;
+    if (value.semanticFingerprint !== contracts.contentSha256(payload, "clear-tombstone-semantic/v1") ||
+        value.contentSha256 !== contracts.contentSha256(payload, "clear-tombstone-content/v1")) {
+      return failure("P008-CLEAR-PARTIAL", "tombstone-identity-invalid", "tombstone", null, false);
+    }
+    return success(clone(value));
+  }
+
+  function buildClearTombstone(registry, expectedGeneration, now, policy) {
+    var empty = createEmptyWorkspace(policy, now);
+    if (!empty.ok) return empty;
+    var workspace = clone(empty.value);
+    workspace.generation = expectedGeneration + 1;
+    workspace.updatedAt = now;
+    workspace = withWorkspaceHashes(workspace);
+    var workspaceValidation = validateWorkspace(workspace, policy);
+    if (!workspaceValidation.ok) return workspaceValidation;
+    var payload = {
+      contractVersion: CLEAR_TOMBSTONE_VERSION,
+      operationId: contracts.fingerprint("portfolio-clear-operation", {
+        contractVersion: "portfolio-clear-operation/v1",
+        registryFingerprint: registry.registryFingerprint,
+        expectedGeneration: expectedGeneration,
+        createdAt: now
+      }),
+      registryFingerprint: registry.registryFingerprint,
+      workspace: workspaceValidation.value,
+      createdAt: now
+    };
+    var tombstone = clone(payload);
+    tombstone.semanticFingerprint = contracts.contentSha256(payload, "clear-tombstone-semantic/v1");
+    tombstone.contentSha256 = contracts.contentSha256(payload, "clear-tombstone-content/v1");
+    return validateClearTombstone(tombstone, policy);
+  }
+
+  function commitClearTombstone(storageAdapters, tombstone, expectedGeneration, policy) {
+    var local = storageAdapters.localStorage;
+    var pointerRaw;
+    try { pointerRaw = local.getItem(policy.storage.pointerKey); } catch (error) {
+      return failure("P008-CLEAR-PARTIAL", "pointer-read-failed", "pointer", null, true);
+    }
+    var activeSlot = null;
+    if (pointerRaw !== null) {
+      var parsed = parseJson(pointerRaw);
+      if (!parsed.ok || !pointerResult(parsed.value).ok || parsed.value.generation !== expectedGeneration) {
+        return failure("P008-STORE-CONFLICT", "generation-conflict", "generation", null, true);
+      }
+      activeSlot = parsed.value.activeSlot;
+    } else if (expectedGeneration !== 0) {
+      return failure("P008-STORE-CONFLICT", "generation-conflict", "generation", null, true);
+    }
+    var inactiveSlot = activeSlot === "slotA" ? "slotB" : "slotA";
+    var inactiveKey = policy.storage.workspaceNamespace + "." + inactiveSlot;
+    var serialized = contracts.canonicalize(tombstone, "clear-tombstone-content/v1");
+    try {
+      local.setItem(inactiveKey, serialized);
+      var reread = local.getItem(inactiveKey);
+      var parsedTombstone = parseJson(reread);
+      if (reread !== serialized || !parsedTombstone.ok || !validateClearTombstone(parsedTombstone.value, policy).ok) {
+        return failure("P008-CLEAR-PARTIAL", "tombstone-verification-failed", inactiveKey, null, true);
+      }
+      var pointer = {
+        contractVersion: POINTER_VERSION,
+        activeSlot: inactiveSlot,
+        generation: tombstone.workspace.generation,
+        semanticFingerprint: tombstone.semanticFingerprint,
+        contentSha256: tombstone.contentSha256
+      };
+      var pointerBytes = contracts.canonicalize(pointer, pointer.contractVersion);
+      local.setItem(policy.storage.pointerKey, pointerBytes);
+      if (local.getItem(policy.storage.pointerKey) !== pointerBytes || local.getItem(inactiveKey) !== serialized) {
+        return failure("P008-CLEAR-PARTIAL", "pointer-verification-failed", "pointer", null, true);
+      }
+      return success({ activeSlot: inactiveSlot, activeKey: inactiveKey });
+    } catch (error) {
+      return failure("P008-CLEAR-PARTIAL", "tombstone-commit-failed", "storage", null, true);
+    }
+  }
+
+  function workspaceCategoryValue(workspace, descriptor) {
+    if (descriptor.sourcePath === "mandateRevisions[].cashNeeds") {
+      return workspace.mandateRevisions.reduce(function (items, revision) { return items.concat(revision.cashNeeds); }, []);
+    }
+    if (descriptor.sourcePath === "portfolioRevisions[].supersedes") {
+      return workspace.portfolioRevisions.filter(function (revision) { return revision.supersedes !== null; })
+        .map(function (revision) { return revision.supersedes; });
+    }
+    return workspace[descriptor.sourcePath];
+  }
+
+  function emptyByRule(value, rule) {
+    if (rule === "absent") return value === null;
+    if (rule === "empty-array") return Array.isArray(value) && value.length === 0;
+    if (rule === "null") return value === null;
+    if (rule === "false") return value === false;
+    return isPlainObject(value) && Object.keys(value).length === 0;
+  }
+
+  function safeCount(value) {
+    if (value === null || value === false) return 0;
+    if (Array.isArray(value)) return value.length;
+    if (isPlainObject(value)) return Object.keys(value).length;
+    return 1;
+  }
+
+  function resultCategory(categoryId, categoryLocation, sourcePath, beforeValue, afterValue, emptyRule) {
+    var empty = emptyByRule(afterValue, emptyRule);
+    return {
+      categoryId: categoryId,
+      location: categoryLocation,
+      sourcePath: sourcePath,
+      beforeCount: safeCount(beforeValue),
+      afterCount: safeCount(afterValue),
+      empty: empty,
+      residueHash: empty ? null : safeValueHash(afterValue, categoryId)
+    };
+  }
+
+  function publicSnapshot(storageAdapters, publicAssetReader) {
+    if (!publicAssetReader || typeof publicAssetReader.readAll !== "function") {
+      return failure("P008-CLEAR-PARTIAL", "public-reader-required", "publicAssetReader", null, false);
+    }
+    try {
+      var local = storageEntries(storageAdapters.localStorage).filter(function (entry) { return !reservedPersonalKey(entry.key); });
+      var session = storageEntries(storageAdapters.sessionStorage).filter(function (entry) { return !reservedPersonalKey(entry.key); });
+      var assets = publicAssetReader.readAll();
+      if (!isPlainObject(assets)) return failure("P008-CLEAR-PARTIAL", "public-assets-invalid", "publicAssetReader", null, false);
+      return success({
+        fingerprint: contracts.contentSha256({ local: local, session: session, assets: assets }, "portfolio-public-exclusions/v1"),
+        counts: { local: local.length, session: session.length, assets: Object.keys(assets).length }
+      });
+    } catch (error) {
+      return failure("P008-CLEAR-PARTIAL", "public-read-failed", "publicAssetReader", null, true);
+    }
+  }
+
+  function clearResult(tombstone, registry, status, categoryResults, publicBefore, publicAfter, now) {
+    var ordered = categoryResults.slice().sort(function (left, right) { return left.categoryId < right.categoryId ? -1 : 1; });
+    return {
+      contractVersion: FULL_CLEAR_RESULT_VERSION,
+      operationId: tombstone ? tombstone.operationId : null,
+      status: status,
+      registryFingerprint: registry ? registry.registryFingerprint : null,
+      tombstoneCommitted: tombstone !== null,
+      categoryResults: ordered,
+      safeResidueHashes: ordered.filter(function (entry) { return entry.residueHash !== null; })
+        .map(function (entry) { return { categoryId: entry.categoryId, residueHash: entry.residueHash }; }),
+      publicBeforeFingerprint: publicBefore ? publicBefore.fingerprint : null,
+      publicAfterFingerprint: publicAfter ? publicAfter.fingerprint : null,
+      verifiedAt: now
+    };
+  }
+
+  function clearFailure(code, reason, field, result) {
+    var output = failure(code, reason, field, null, true);
+    if (result) output.value = deepFreeze(result);
+    return output;
+  }
+
+  function clearAllPersonalData(request) {
+    if (!isPlainObject(request) || request.confirmation !== "CLEAR ALL LOCAL DATA") {
+      return clearFailure("P008-CLEAR-CONFIRMATION", "confirmation-mismatch", "confirmation", null);
+    }
+    if (!request.store || typeof request.store.openWorkspace !== "function" ||
+        !isPlainObject(request.storageAdapters) || !request.storageAdapters.localStorage || !request.storageAdapters.sessionStorage ||
+        !request.controller || typeof request.controller.replacePersonalState !== "function" ||
+        !Number.isInteger(request.expectedGeneration) || !canonicalTimestamp(request.now)) {
+      return clearFailure("P008-CLEAR-PARTIAL", "clear-request-invalid", "request", null);
+    }
+    var policyResult = validatePolicy(request.policy);
+    if (!policyResult.ok) return policyResult;
+    var opened = request.store.openWorkspace(request.now);
+    if (!opened.ok) return opened;
+    if (opened.value.workspace.generation !== request.expectedGeneration) {
+      return failure("P008-STORE-CONFLICT", "generation-conflict", "generation", null, true);
+    }
+    var registryResult = derivePersonalCategoryRegistry({
+      storageAdapters: request.storageAdapters,
+      workspace: opened.value.workspace,
+      controller: request.controller,
+      policy: request.policy,
+      now: request.now
+    });
+    if (!registryResult.ok) return registryResult;
+    var registry = registryResult.value;
+    var publicBeforeResult = publicSnapshot(request.storageAdapters, request.publicAssetReader);
+    if (!publicBeforeResult.ok) return publicBeforeResult;
+    var tombstoneResult = buildClearTombstone(registry, request.expectedGeneration, request.now, request.policy);
+    if (!tombstoneResult.ok) return tombstoneResult;
+    var tombstone = tombstoneResult.value;
+    var tombstoneCommit = commitClearTombstone(request.storageAdapters, tombstone, request.expectedGeneration, request.policy);
+    if (!tombstoneCommit.ok) return tombstoneCommit;
+
+    var beforeController = clone(request.controller.controllerPersonalState);
+    var failures = [];
+    var keepLocal = Object.create(null);
+    keepLocal[request.policy.storage.pointerKey] = true;
+    keepLocal[tombstoneCommit.value.activeKey] = true;
+    try {
+      storageEntries(request.storageAdapters.localStorage).forEach(function (entry) {
+        if (reservedPersonalKey(entry.key) && !keepLocal[entry.key]) request.storageAdapters.localStorage.removeItem(entry.key);
+      });
+      storageEntries(request.storageAdapters.sessionStorage).forEach(function (entry) {
+        if (reservedPersonalKey(entry.key)) request.storageAdapters.sessionStorage.removeItem(entry.key);
+      });
+    } catch (error) {
+      failures.push("storage-delete-failed");
+    }
+    try {
+      request.controller.replacePersonalState(clone(createEmptyControllerPersonalState()));
+    } catch (error) {
+      failures.push("controller-reset-failed");
+    }
+
+    var categoryResults = [];
+    registry.storageCategories.forEach(function (descriptor) {
+      var storage = descriptor.location === "local-storage"
+        ? request.storageAdapters.localStorage : request.storageAdapters.sessionStorage;
+      var afterValue = null;
+      try { afterValue = storage.getItem(descriptor.sourcePath); } catch (error) { afterValue = "unavailable"; }
+      if (descriptor.sourcePath === request.policy.storage.pointerKey || descriptor.sourcePath === tombstoneCommit.value.activeKey) {
+        afterValue = null;
+      }
+      categoryResults.push(resultCategory(
+        descriptor.categoryId, descriptor.location, descriptor.sourcePath, "present", afterValue, descriptor.emptyRule
+      ));
+    });
+    registry.workspaceCategories.forEach(function (descriptor) {
+      categoryResults.push(resultCategory(
+        descriptor.categoryId,
+        descriptor.location,
+        descriptor.sourcePath,
+        workspaceCategoryValue(opened.value.workspace, descriptor),
+        workspaceCategoryValue(tombstone.workspace, descriptor),
+        descriptor.emptyRule
+      ));
+    });
+    var afterController = isPlainObject(request.controller.controllerPersonalState)
+      ? request.controller.controllerPersonalState : {};
+    registry.controllerCategories.forEach(function (descriptor) {
+      categoryResults.push(resultCategory(
+        descriptor.categoryId,
+        descriptor.location,
+        descriptor.sourcePath,
+        beforeController[descriptor.sourcePath],
+        afterController[descriptor.sourcePath],
+        descriptor.emptyRule
+      ));
+    });
+    registry.discoveredUndeclared.forEach(function (descriptor) {
+      categoryResults.push({
+        categoryId: descriptor.categoryId,
+        location: descriptor.location,
+        sourcePath: descriptor.sourcePath,
+        beforeCount: 1,
+        afterCount: 0,
+        empty: true,
+        residueHash: descriptor.residueHash
+      });
+    });
+
+    var postRegistry = derivePersonalCategoryRegistry({
+      storageAdapters: request.storageAdapters,
+      workspace: tombstone.workspace,
+      controller: request.controller,
+      policy: request.policy,
+      now: request.now
+    });
+    if (!postRegistry.ok) failures.push("post-registry-failed");
+    if (postRegistry.ok && postRegistry.value.discoveredUndeclared.length > 0) {
+      postRegistry.value.discoveredUndeclared.forEach(function (descriptor) {
+        failures.push(descriptor.categoryId);
+        categoryResults.push({
+          categoryId: descriptor.categoryId,
+          location: descriptor.location,
+          sourcePath: descriptor.sourcePath,
+          beforeCount: 0,
+          afterCount: 1,
+          empty: false,
+          residueHash: descriptor.residueHash
+        });
+      });
+    }
+    if (categoryResults.some(function (entry) { return !entry.empty; })) failures.push("category-residue");
+
+    var undeclared = registry.discoveredUndeclared.length > 0;
+    if (failures.length > 0 || undeclared) {
+      var partialPublic = publicSnapshot(request.storageAdapters, request.publicAssetReader);
+      return clearFailure(
+        undeclared ? "P008-CLEAR-UNDECLARED" : "P008-CLEAR-PARTIAL",
+        undeclared ? "undeclared-personal-category" : "clear-verification-failed",
+        undeclared ? registry.discoveredUndeclared[0].categoryId : "clear",
+        clearResult(
+          tombstone,
+          registry,
+          "partial",
+          categoryResults,
+          publicBeforeResult.value,
+          partialPublic.ok ? partialPublic.value : null,
+          request.now
+        )
+      );
+    }
+
+    try {
+      request.storageAdapters.localStorage.removeItem(tombstoneCommit.value.activeKey);
+      request.storageAdapters.localStorage.removeItem(request.policy.storage.pointerKey);
+    } catch (error) {
+      return clearFailure(
+        "P008-CLEAR-PARTIAL",
+        "tombstone-delete-failed",
+        "storage",
+        clearResult(tombstone, registry, "partial", categoryResults, publicBeforeResult.value, null, request.now)
+      );
+    }
+    var finalPersonal = [];
+    try {
+      storageEntries(request.storageAdapters.localStorage).concat(storageEntries(request.storageAdapters.sessionStorage))
+        .forEach(function (entry) { if (reservedPersonalKey(entry.key)) finalPersonal.push(entry.key); });
+    } catch (error) {
+      finalPersonal.push("storage-reread-failed");
+    }
+    var publicAfterResult = publicSnapshot(request.storageAdapters, request.publicAssetReader);
+    if (!publicAfterResult.ok || finalPersonal.length > 0 ||
+        publicAfterResult.value.fingerprint !== publicBeforeResult.value.fingerprint) {
+      return clearFailure(
+        "P008-CLEAR-PARTIAL",
+        "final-verification-failed",
+        "clear",
+        clearResult(
+          tombstone,
+          registry,
+          "partial",
+          categoryResults,
+          publicBeforeResult.value,
+          publicAfterResult.ok ? publicAfterResult.value : null,
+          request.now
+        )
+      );
+    }
+    return success(clearResult(
+      tombstone,
+      registry,
+      "cleared",
+      categoryResults,
+      publicBeforeResult.value,
+      publicAfterResult.value,
+      request.now
+    ));
+  }
+
   function createPortfolioStore(storageAdapters, policy) {
     var policyResult = validatePolicy(policy);
     if (!policyResult.ok) throw new Error("P008-CONFIG policy invalid");
@@ -2485,6 +3485,20 @@
       if (!slotParsed.ok) {
         writeQuarantine(slotKey, slotRaw, null, "slot-json-invalid", now);
         return failure("P008-SCHEMA-CORRUPT", "slot-json-invalid", slotKey, null, false);
+      }
+      if (slotParsed.value.contractVersion === CLEAR_TOMBSTONE_VERSION) {
+        var tombstoneValidation = validateClearTombstone(slotParsed.value, policy);
+        if (!tombstoneValidation.ok) return tombstoneValidation;
+        if (pointerParsed.value.generation !== tombstoneValidation.value.workspace.generation ||
+            pointerParsed.value.semanticFingerprint !== tombstoneValidation.value.semanticFingerprint ||
+            pointerParsed.value.contentSha256 !== tombstoneValidation.value.contentSha256) {
+          return failure("P008-CLEAR-PARTIAL", "pointer-tombstone-mismatch", slotKey, null, false);
+        }
+        memoryWorkspace = tombstoneValidation.value.workspace;
+        return success({
+          workspace: tombstoneValidation.value.workspace,
+          storageState: storageState("durable", policy, true, tombstoneValidation.value.workspace.generation)
+        });
       }
       var versionNumber = workspaceVersionNumber(slotParsed.value.contractVersion);
       if (versionNumber !== null && versionNumber > 1) {
@@ -2646,9 +3660,33 @@
       return commitMemory(candidateValidation.value, expectedGeneration, now);
     }
 
+    function commitPortfolioDraft(draft, expectedGeneration, now) {
+      var active = openWorkspace(now);
+      if (!active.ok) return active;
+      var draftResult = validatePortfolioDraft(draft, policy);
+      if (!draftResult.ok) return draftResult;
+      if (draftResult.value.basePortfolioId !== active.value.workspace.currentPortfolioId) {
+        return failure("P008-STORE-CONFLICT", "draft-base-conflict", "basePortfolioId", null, true);
+      }
+      var revisionResult = revisionFromPortfolioDraft(draftResult.value, now, policy);
+      if (!revisionResult.ok) return revisionResult;
+      var candidate = clone(active.value.workspace);
+      candidate.portfolioRevisions.push(revisionResult.value);
+      candidate.currentPortfolioId = revisionResult.value.portfolioId;
+      candidate.updatedAt = now;
+      candidate.policyRefs = policyRefs(policy);
+      var committed = commitWorkspace(withWorkspaceHashes(candidate), expectedGeneration, now);
+      if (!committed.ok) return committed;
+      var output = clone(committed.value);
+      output.revision = clone(revisionResult.value);
+      output.workspaceIdentity = workspaceIdentityProjection(output.workspace, output.revision);
+      return success(output);
+    }
+
     return Object.freeze({
       openWorkspace: openWorkspace,
       commitWorkspace: commitWorkspace,
+      commitPortfolioDraft: commitPortfolioDraft,
       currentMemoryWorkspace: function () { return unsavedWorkspace !== null ? unsavedWorkspace : memoryWorkspace; }
     });
   }
@@ -2660,6 +3698,13 @@
   function commitWorkspace(store, candidate, expectedGeneration, now) {
     if (!store || typeof store.commitWorkspace !== "function") return failure("P008-STORE-UNAVAILABLE", "store-required", "store", null, false);
     return store.commitWorkspace(candidate, expectedGeneration, now);
+  }
+
+  function confirmPortfolioDraft(store, draft, expectedGeneration, now) {
+    if (!store || typeof store.commitPortfolioDraft !== "function") {
+      return failure("P008-STORE-UNAVAILABLE", "store-required", "store", null, false);
+    }
+    return store.commitPortfolioDraft(draft, expectedGeneration, now);
   }
 
   function exportPreview(selection) {
@@ -2875,8 +3920,11 @@
   /* ---------- End Feature 008 Scope 04 ---------- */
 
   var api = Object.freeze({
+    addHoldingRow: addHoldingRow,
     applyDraftRemoval: applyDraftRemoval,
     buildBehaviorCandidate: buildBehaviorCandidate,
+    buildBehaviorOccurrence: buildBehaviorOccurrence,
+    canonicalBehaviorIdentity: canonicalBehaviorIdentity,
     actionIdentity: actionIdentity,
     buildActionOutcomeCandidate: buildActionOutcomeCandidate,
     buildScenarioCandidate: buildScenarioCandidate,
@@ -2892,19 +3940,28 @@
     buildMandateCandidate: buildMandateCandidate,
     buildMandateClearCandidate: buildMandateClearCandidate,
     buildPortfolioClearCandidate: buildPortfolioClearCandidate,
+    buildEmptyPortfolioRevision: buildEmptyPortfolioRevision,
     buildWorkspaceCandidate: buildWorkspaceCandidate,
+    clearAllPersonalData: clearAllPersonalData,
     commitWorkspace: commitWorkspace,
+    confirmPortfolioDraft: confirmPortfolioDraft,
+    createPortfolioDraft: createPortfolioDraft,
+    createEmptyControllerPersonalState: createEmptyControllerPersonalState,
     createEmptyWorkspace: createEmptyWorkspace,
     createPortfolioStore: createPortfolioStore,
     clearFoundationStorage: clearFoundationStorage,
     dedupeBehaviorEvents: dedupeBehaviorEvents,
+    derivePersonalCategoryRegistry: derivePersonalCategoryRegistry,
+    editHoldingRow: editHoldingRow,
     exportPreview: exportPreview,
     exportPrivate: exportPrivate,
     foundationPrivacyInventory: foundationPrivacyInventory,
     openWorkspace: openWorkspace,
     privacyInventory: privacyInventory,
     projectRouteStates: projectRouteStates,
+    removeHoldingRow: removeHoldingRow,
     reduceActionOutcome: reduceActionOutcome,
+    readLegacyBehaviorEventV1: readLegacyBehaviorEventV1,
     resolveDuplicates: resolveDuplicates,
     validateActionOutcome: validateActionOutcome,
     validateBehaviorEvent: validateBehaviorEvent,
@@ -2914,6 +3971,7 @@
     validateMandateRevision: validateMandateRevision,
     validateManualDraft: validateManualDraft,
     validatePolicy: validatePolicy,
+    validatePortfolioDraft: validatePortfolioDraft,
     validatePortfolioError: validatePortfolioError,
     validatePortfolioRevision: validatePortfolioRevision,
     validateWorkspace: validateWorkspace,

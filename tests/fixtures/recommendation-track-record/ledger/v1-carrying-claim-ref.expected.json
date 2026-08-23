@@ -1,0 +1,8 @@
+{
+  "code": "RTR-ROW-CONTRACT",
+  "reason": "unknown-field",
+  "field": "claimRef",
+  "repairByDeletingField": "claimRef",
+  "repairMatchesCommittedRow": true,
+  "why": "v1's seven-field list is closed. The claimRef value here is a well-formed sha256: pointer, so the row is refused for its VERSION STAMP and not for a malformed value — which is what keeps the stamp meaningful. Deleting the one offending key restores a row byte-identical to a real committed v1 line."
+}

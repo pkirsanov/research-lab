@@ -65,12 +65,12 @@
     "execution": {
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
-        "currentScope": null,
+        "currentScope": 4,
         "runStartedAt": "2026-07-28T21:05:00Z",
         "completedPhaseClaims": [],
         "pendingTransitionRequests": [],
         "nextRequiredOwner": "bubbles.implement",
-        "nextRequiredTarget": "01-frozen-claim-contract",
+        "nextRequiredTarget": "04-deterministic-outcome-resolver",
         "audit": {
             "schemaVersion": "audit-run/v1",
             "runId": null,
@@ -80,7 +80,9 @@
     },
     "certification": {
         "status": "in_progress",
-        "completedScopes": [],
+        "completedScopes": [
+            "01-frozen-claim-contract"
+        ],
         "certifiedCompletedPhases": [],
         "lockdownState": {
             "active": false,
@@ -90,7 +92,7 @@
             {
                 "scope": 1,
                 "name": "Frozen claim contract",
-                "status": "not_started",
+                "status": "done",
                 "dependsOn": [],
                 "tags": [
                     "foundation:true"
@@ -490,7 +492,7 @@
     "activeBugs": [],
     "resolvedBugs": [],
     "failures": [],
-    "lastUpdatedAt": "2026-08-18T04:50:26Z",
+    "lastUpdatedAt": "2026-08-19T21:22:29Z",
     "scopeLayout": "per-scope-directory",
     "artifacts": {
         "spec": "spec.md",

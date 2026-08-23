@@ -14,10 +14,23 @@
  * only `resolvesTo` and no ticker is ever parsed out of prose — inferring one would score the
  * funding leg of a rotation as though the claim were long it.
  *
- * Absence is not an error. Each of the seven mint reasons names the field that caused it and the
+ * Absence is not an error. Each of the eight mint reasons names the field that caused it and the
  * claim is still minted and still counted, so the coverage line can say WHICH input was missing
  * instead of showing one opaque bucket. Dropping a call because an input was absent would shrink
  * the denominator in the direction that flatters.
+ *
+ * It also carries the LEDGER ROW side of the same pointer: `claimRef`, one optional member added
+ * to the existing `brief-recommendation-history-row/v2`, and the dual-version reader that accepts
+ * `v1` and `v2` alike. That lives here rather than in `rlcontracts.js` because `rlcontracts.js` is
+ * Feature 002-owned and read-only to this feature, and because `claimRef` is a pointer at the
+ * `claimHash` this module already mints — splitting the two halves of one pointer across two
+ * modules is how they drift.
+ *
+ * And it carries the closed OUTCOME-CLASS vocabulary with the table that routes each class either
+ * to the array fed to `rlvSummarizeOutcomes` or to a count beside it. A resolved-flat outcome is
+ * exactly `0` often enough to matter and the primitive reads `0` as never-resolved, so the class
+ * is decided HERE — against the band frozen into the claim at proposal, which is inside the hash —
+ * and its value is withheld from the array rather than nudged to a sign the data does not support.
  */
 (function (factory) {
     "use strict";
@@ -54,6 +67,17 @@
        primary-only basket are different measurements, not different renderings of one. */
     var SUBJECT_WEIGHTINGS = Object.freeze(["equal", "primary-only"]);
 
+    /* The closed price-basis vocabulary (Ruling R-04-01). Committed bar rows are
+       `{ t, o, h, l, c, v, ac }` and carry exactly two closing-price fields, so `c` and `ac` are
+       the only two series a return can actually be computed from — `o`/`h`/`l` have no adjusted
+       counterpart and name a point WITHIN a session, which `magnitude.entryBasis` already records.
+       Roughly 74% of committed series have `ac !== c`, so `ret(x)` is two functions rather than
+       one, and the claim must say which of the two it was measured against. */
+    var PRICE_BASES = Object.freeze(["raw-close", "adjusted-close"]);
+    /* The row field each member reads, so a consumer binds the basis to the data through this
+       table instead of restating `c`/`ac` as literals at its own call site. */
+    var PRICE_BASIS_ROW_FIELD = Object.freeze({ "raw-close": "c", "adjusted-close": "ac" });
+
     /* The nine hashed terms and the complete five-field unhashed set. With `claimHash` — the
        digest, which cannot contain itself — they partition all fifteen declared fields of the
        contract exhaustively, so no field sits outside the partition. There is no unhashed block;
@@ -80,14 +104,261 @@
         "no-authored-thesis-family",
         "no-authored-horizon",
         "no-authored-predicate",
-        "neutral-direction-no-magnitude"
+        "neutral-direction-no-magnitude",
+        "no-authored-flat-band",
+        "no-authored-price-basis"
     ]);
+
+    /* ── The closed outcome-class vocabulary and its contribution routing ───────────────────
+       `rlvSummarizeOutcomes` — Feature 007-owned, consumed unmodified and NOT imported here —
+       filters wins with `value > 0` and losses with `value < 0`, then derives `unresolved` by
+       subtraction. An outcome of exactly `0` is neither, so a claim that DID resolve, against
+       committed data, to a flat result is reported as though it was never resolved at all. That
+       is the HC-7 violation, and it is fixed at the SOURCE rather than downstream because the
+       primitive deep-freezes its results and offers no seam to patch.
+
+       So every call carries exactly one of these six classes, and the class ALONE decides whether
+       it contributes a NUMBER to the array handed to the primitive or a COUNT to the surrounding
+       report. An unrecognised value refuses; it is never coerced and never passes through. */
+    var OUTCOME_CLASSES = Object.freeze([
+        "win", "loss", "resolved-flat", "unresolved", "not-evaluable", "unresolvable-legacy"
+    ]);
+
+    var CONTRIBUTION_NUMBER = "number";
+    var CONTRIBUTION_COUNT = "count";
+
+    /* The routing table. `resolved-flat` sits on the COUNT side while still carrying its exact
+       value in the resolution record — which is precisely what makes it distinguishable from
+       `unresolved` in both places at once: the record says what it resolved TO, the report says
+       how many did. Selecting and ordering elements is ROUTING, not estimation; no statistic is
+       computed anywhere in this block. */
+    var OUTCOME_CONTRIBUTIONS = Object.freeze({
+        "win": CONTRIBUTION_NUMBER,
+        "loss": CONTRIBUTION_NUMBER,
+        "resolved-flat": CONTRIBUTION_COUNT,
+        "unresolved": CONTRIBUTION_COUNT,
+        "not-evaluable": CONTRIBUTION_COUNT,
+        "unresolvable-legacy": CONTRIBUTION_COUNT
+    });
+
+    /* The refusal for a bare `0` reaching the array fed to the primitive. */
+    var FLAT_ZERO_CODE = "RTR-FLAT-ZERO";
+
+    function outcomeClassesContributing(contribution) {
+        var out = [];
+        for (var i = 0; i < OUTCOME_CLASSES.length; i += 1) {
+            if (OUTCOME_CONTRIBUTIONS[OUTCOME_CLASSES[i]] === contribution) out.push(OUTCOME_CLASSES[i]);
+        }
+        return Object.freeze(out);
+    }
+
+    /* Derived from the table, never hand-typed a second time — the same reason `ROW_V2_FIELDS` is
+       derived. A literal list here would let a class be re-routed in the table while the set that
+       consumes it kept the old answer, and the two would disagree silently. */
+    var DIRECTIONAL_OUTCOME_CLASSES = outcomeClassesContributing(CONTRIBUTION_NUMBER);
+    var COUNTED_OUTCOME_CLASSES = outcomeClassesContributing(CONTRIBUTION_COUNT);
+
+    /* ── The denominator contract ───────────────────────────────────────────────────────────
+       `winRate` divides by the fed array's length (`rlvalidation.js#L147`), so the fed array's
+       composition IS the published denominator — there is no second quantity to publish. The
+       label is declared HERE, beside the array whose length defines it, and rendered by scope 05:
+       one definition, so a surface cannot render a bare "hit rate" over a directional-only
+       denominator and read as though the four withheld classes were counted in it. */
+    var DIRECTIONAL_RATE_LABEL = "directional hit rate";
+
+    /* ── The ledger row contract ────────────────────────────────────────────────────────────
+       Both row versions are Feature 002-owned identifiers. Feature 015 READS them and adds
+       exactly ONE optional member to the EXISTING `…/v2`: `claimRef`, an opaque `sha256:…`
+       pointer at the claim minted in the same pass. No `v3` is minted, no existing field is
+       touched, and no committed row is rewritten, migrated or re-hashed.
+
+       `v1` stays CLOSED at its measured seven fields — one shape across all 240 committed `v1`
+       rows. A `v1` row carrying `claimRef` is refused as an unknown field, and that refusal is
+       what keeps the version stamp meaningful: without it the stamp would be decoration, because
+       any row could then carry any field and still claim to be `v1`.
+
+       `v2` is NOT a closed list and never was. Measured over the 1,140 committed `v2` rows on
+       2026-08-19 it presents a 32-key union across three live shapes (17 / 25 / 27 keys), of
+       which 12 appear in every row and 20 are optional. `claimRef` becomes the twenty-first
+       optional member — which is why this is one field on a contract already built to grow by
+       optional field groups, not a version event. `v2` is still not permissive: a name outside
+       the union ∪ {`claimRef`} is refused, so the addition is not an escape hatch. */
+    var ROW_CONTRACT_V1 = "brief-recommendation-history-row/v1";
+    var ROW_CONTRACT_V2 = "brief-recommendation-history-row/v2";
+
+    /* The code carried by every ledger-row violation. Distinct from the claim code so a consumer
+       can tell a malformed ROW from a malformed CLAIM. */
+    var ROW_CONTRACT_VIOLATION_CODE = "RTR-ROW-CONTRACT";
+
+    /* The refusal for a resolution written against a row that carries no `claimRef`. Absence of
+       the pointer is the permanent legacy marker, so this code is what makes those rows
+       unscoreable BY CONSTRUCTION rather than merely unscored. */
+    var LEGACY_BACKFILL_CODE = "RTR-LEGACY-BACKFILL";
+
+    /* The pointer this feature adds: one field, an opaque string, never a nested object. */
+    var CLAIM_REF_FIELD = "claimRef";
+    var CLAIM_REF_PATTERN = /^sha256:[a-f0-9]{64}$/;
+
+    var ROW_V1_FIELDS = Object.freeze([
+        "canonicalMonth", "contractVersion", "eventId", "eventType",
+        "occurredAt", "recommendationKey", "runId"
+    ]);
+
+    /* `v2`'s measured live field set, split rather than stated as one list: a required key cannot
+       then be demoted to optional by a typo, and `deriveRowFieldUnion` can re-derive BOTH halves
+       from the committed ledger to prove these constants still describe what is on disk. */
+    var ROW_V2_REQUIRED_FIELDS = Object.freeze([
+        "canonicalMonth", "confidence", "contractVersion", "deepLink", "direction", "eventId",
+        "eventType", "horizon", "instrument", "occurredAt", "recommendationKey", "runId"
+    ]);
+    var ROW_V2_MEASURED_OPTIONAL_FIELDS = Object.freeze([
+        "bodyContractVersion", "bodySource", "directionSign", "evaluability", "evaluabilityReason",
+        "evaluatedAsOf", "instruments", "invalidation", "levels", "levelsText", "outcome",
+        "outcomeContractVersion", "proposedAt", "rationale", "reasonCode", "restoresEventId",
+        "sourceCommit", "structuralAnchor", "subject", "trigger"
+    ]);
+
+    function unionSorted(lists) {
+        var seen = Object.create(null);
+        var out = [];
+        for (var i = 0; i < lists.length; i += 1) {
+            for (var j = 0; j < lists[i].length; j += 1) {
+                if (seen[lists[i][j]]) continue;
+                seen[lists[i][j]] = true;
+                out.push(lists[i][j]);
+            }
+        }
+        return Object.freeze(out.sort());
+    }
+
+    /* Derived, never hand-typed a second time: the acceptance set IS the measured union plus the
+       one field this feature adds. Writing the 33 names out again is precisely how the added
+       field and the accepted set drift apart. */
+    var ROW_V2_FIELDS = unionSorted([ROW_V2_REQUIRED_FIELDS, ROW_V2_MEASURED_OPTIONAL_FIELDS, [CLAIM_REF_FIELD]]);
 
     var CLAIM_STORE_DIR = "briefs/objects/claims";
     var BARS_DIR = "data/bars";
     /* The refresh manifest, not a price series — excluded so a claim can never resolve to it. */
     var BARS_MANIFEST_FILENAME = "index.json";
     var SERIES_INTERVAL = "1d";
+
+    /* ── brief-recommendation-resolution/v1 ─────────────────────────────────────────────────
+       The 015-owned record of what a claim resolved TO. Eleven fields partitioned exhaustively:
+       eight hashed content terms, two unhashed provenance fields, and the digest — which cannot
+       contain itself.
+
+       `eventId` and `lifecycleBinding` sit OUTSIDE the address for the same reason `claimHash`
+       excludes `proposalRunId`: `lifecycleEventId` hashes `runId`, so the same closure re-emitted
+       tomorrow carries a different `eventId`. Hashing it would give one outcome two content
+       addresses, and so two entries in an accounting that is supposed to count each call once.
+       Identity is content; provenance is metadata. */
+    var RESOLUTION_CONTRACT_VERSION = "brief-recommendation-resolution/v1";
+    var RESOLUTION_STORE_DIR = "briefs/objects/resolutions";
+
+    var RESOLUTION_HASHED_TERMS = Object.freeze([
+        "contractVersion", "claimHash", "resolutionDate", "closureEventType",
+        "outcomeClass", "outcomeValue", "reasonCode", "provenance"
+    ]);
+    var RESOLUTION_UNHASHED_FIELDS = Object.freeze(["eventId", "lifecycleBinding"]);
+    /* Derived, never hand-typed a second time: the accepted field set IS the partition. A term
+       added to the hash but not to the accepted set would refuse as an unknown field. */
+    var RESOLUTION_FIELDS = unionSorted([RESOLUTION_HASHED_TERMS, RESOLUTION_UNHASHED_FIELDS, ["resolutionHash"]]);
+
+    /* Keys that are RUN-SCOPED and therefore may never appear inside the HASHED `provenance`
+       block. A run id or a wall clock there would move the content address on every pass, which
+       is exactly the idempotence the content-addressed store exists to provide. They belong in
+       `lifecycleBinding`, which is deliberately outside the hash. */
+    var RUN_SCOPED_KEYS = Object.freeze([
+        "runId", "resolvedAt", "computedAt", "generatedAt", "observedAt"
+    ]);
+
+    var SESSION_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+    var CLOSURE_VOCABULARY_SOURCE = "rlcontracts.js";
+    /* The refusal for a closure event outside the 002-owned vocabulary. */
+    var CLOSURE_VOCAB_CODE = "RTR-CLOSURE-VOCAB";
+    /* The refusal for a content-addressed write that would change existing bytes. */
+    var RESOLUTION_CONFLICT_CODE = "RTR-RESOLUTION-CONFLICT";
+
+    /* Which closure events each outcome class may be recorded under, keyed by the 015-OWNED
+       vocabulary rather than by the 002-owned one. The DIRECTION of this table is the point.
+       `CLOSE_EVENT_TYPES` is private to rlcontracts.js and is read from its source text, so
+       restating its members here would be exactly the shadow copy that would go stale. Keying by
+       `outcomeClass` names only the five closure events 015 actually emits; `withdrawn` is never
+       written down at all and falls out as the residue of the source vocabulary that no class
+       admits — D4's "never resolver-emitted" DERIVED rather than restated. A withdrawal is an
+       authoring act, and a resolver that could withdraw a claim could withdraw the ones it was
+       about to score badly.
+
+       The two axes do not determine each other and are both recorded. A `satisfied` claim can
+       carry a NEGATIVE `outcomeValue` — a threshold clearing on the resolution session after an
+       adverse path — so collapsing the axes would quietly overwrite one of them. */
+    var OUTCOME_CLOSURE_EVENTS = Object.freeze({
+        "win": Object.freeze(["satisfied", "invalidated"]),
+        "loss": Object.freeze(["satisfied", "invalidated"]),
+        "resolved-flat": Object.freeze(["satisfied", "invalidated"]),
+        "unresolved": Object.freeze(["expired", "unresolved"]),
+        "not-evaluable": Object.freeze(["not-evaluable"]),
+        /* A legacy row carries no claim, so there is nothing to address a resolution BY. It is
+           counted permanently and never recorded — the same fact RTR-LEGACY-BACKFILL states from
+           the row side, here stated from the record side. */
+        "unresolvable-legacy": Object.freeze([])
+    });
+
+    /* The not-evaluable reasons that cannot be known at mint because they are properties of the
+       OBSERVATIONS rather than of the authored claim. */
+    var RESOLVER_NOT_EVALUABLE_REASONS = Object.freeze([
+        "no-committed-reference", "zero-observed-session", "calendar-coverage-exhausted"
+    ]);
+
+    /* Derived from `MINT_REFUSALS`, never restated: every mint reason is a legal not-evaluable
+       reason BY CONSTRUCTION, so a ninth mint reason can never land as an unrecordable outcome
+       whose claim then falls out of the accounting. */
+    var NOT_EVALUABLE_REASONS = unionSorted([MINT_REFUSALS, RESOLVER_NOT_EVALUABLE_REASONS]);
+
+    var CLOSURE_REASON_CODES = Object.freeze({
+        "satisfied": Object.freeze(["predicate-satisfied"]),
+        "invalidated": Object.freeze(["predicate-invalidated"]),
+        "expired": Object.freeze(["horizon-elapsed"]),
+        "unresolved": Object.freeze(["session-absent", "path-incomplete"]),
+        "not-evaluable": NOT_EVALUABLE_REASONS
+    });
+
+    /* The classes that carry a magnitude. `resolved-flat` sits on the COUNT side of the routing
+       table and STILL carries its exact value — that pairing IS HC-7. The record says what the
+       claim resolved TO while the report says how many did, so a resolved-flat outcome stays
+       distinguishable from an unresolved one in both places at once. */
+    var MAGNITUDE_BEARING_OUTCOME_CLASSES = unionSorted([DIRECTIONAL_OUTCOME_CLASSES, ["resolved-flat"]]);
+
+    /* ── The class partition ────────────────────────────────────────────────────────────────
+       Seven buckets accounting for every proposed call exactly once. Five carry the six outcome
+       classes — `win` and `loss` share `resolvedDirectional` because that sum IS the fed array's
+       length and therefore the published denominator. `withdrawn` and `open` are lifecycle states
+       that no outcome class describes: a withdrawal is never resolver-emitted, and an open claim
+       has not resolved yet. Both are still counted, because excluded is not the same as hidden. */
+    var PARTITION_BUCKET_FOR_CLASS = Object.freeze({
+        "win": "resolvedDirectional",
+        "loss": "resolvedDirectional",
+        "resolved-flat": "resolvedFlat",
+        "unresolved": "unresolved",
+        "not-evaluable": "notEvaluable",
+        "unresolvable-legacy": "unresolvableLegacy"
+    });
+    var NON_CLASS_PARTITION_BUCKETS = Object.freeze(["withdrawn", "open"]);
+
+    /* Derived from the map in vocabulary order, so a seventh class cannot appear without a
+       bucket and a renamed bucket cannot appear without a class. */
+    function partitionBucketsFromClasses() {
+        var out = [];
+        for (var i = 0; i < OUTCOME_CLASSES.length; i += 1) {
+            var bucket = PARTITION_BUCKET_FOR_CLASS[OUTCOME_CLASSES[i]];
+            if (bucket !== undefined && out.indexOf(bucket) === -1) out.push(bucket);
+        }
+        for (var n = 0; n < NON_CLASS_PARTITION_BUCKETS.length; n += 1) out.push(NON_CLASS_PARTITION_BUCKETS[n]);
+        return Object.freeze(out);
+    }
+
+    var PARTITION_BUCKETS = partitionBucketsFromClasses();
 
     /* The publisher's positional fallbacks. A key derived from one of these is not semantically
        stable across runs, so minting on it would create a resolvable-looking claim whose subject
@@ -357,6 +628,661 @@
 
     function nonEmptyString(value) { return typeof value === "string" && value.length > 0; }
 
+    /* ── The dual-version ledger row reader ─────────────────────────────────────────────────
+       Accepts BOTH live versions. `v1` is not deprecated, is never rewritten, and no migration
+       runs — a reader that quietly "upgraded" a row on read would rewrite history in memory and
+       make the two versions indistinguishable to everything downstream.
+
+       Absence of `claimRef` is never an error here. It IS the permanent unresolvable-legacy
+       marker under HC-4 / BP-015-002, and it covers all 1,380 committed rows — `v1` and body-`v2`
+       alike — so nothing is null-filled, back-filled or estimated. */
+
+    /* The repository's closed-field-list idiom, mirroring `hasOnlyFields` in rlcontracts.js
+       (Feature 002-owned, read as precedent and never modified; this module stays dependency-free
+       so it loads under file://). Returns the first offending KEY, because "some unknown field"
+       does not tell a publisher which one to drop. */
+    function hasOnlyFields(value, fields) {
+        var allowed = Object.create(null);
+        var keys = Object.keys(value);
+        var index;
+        for (index = 0; index < fields.length; index += 1) allowed[fields[index]] = true;
+        for (index = 0; index < keys.length; index += 1) {
+            if (!allowed[keys[index]]) return keys[index];
+        }
+        return null;
+    }
+
+    function rowFieldsFor(contractVersion) {
+        if (contractVersion === ROW_CONTRACT_V1) return ROW_V1_FIELDS;
+        if (contractVersion === ROW_CONTRACT_V2) return ROW_V2_FIELDS;
+        return null;
+    }
+
+    function rowRequiredFieldsFor(contractVersion) {
+        if (contractVersion === ROW_CONTRACT_V1) return ROW_V1_FIELDS;
+        if (contractVersion === ROW_CONTRACT_V2) return ROW_V2_REQUIRED_FIELDS;
+        return null;
+    }
+
+    function rowViolation(reason, field) {
+        return { ok: false, error: { code: ROW_CONTRACT_VIOLATION_CODE, reason: reason, field: field } };
+    }
+
+    /* Rule order is deliberate: `unknown-field` is evaluated BEFORE the required sweep, so a `v1`
+       row carrying `claimRef` refuses on the field that is actually wrong rather than on whichever
+       required key a malformed row also happened to drop. */
+    function validateLedgerRow(row) {
+        if (!isPlainObject(row)) return rowViolation("row-not-an-object", "row");
+
+        var accepted = rowFieldsFor(row.contractVersion);
+        if (accepted === null) return rowViolation("row-contract-version-not-allowed", "contractVersion");
+
+        var unknown = hasOnlyFields(row, accepted);
+        if (unknown !== null) return rowViolation("unknown-field", unknown);
+
+        var required = rowRequiredFieldsFor(row.contractVersion);
+        for (var i = 0; i < required.length; i += 1) {
+            if (!Object.prototype.hasOwnProperty.call(row, required[i])) {
+                return rowViolation("row-required-field-missing", required[i]);
+            }
+        }
+
+        /* Present-but-malformed is a different defect from absent. A nested object here would
+           make the row a payload rather than a pointer, so the type rule is part of the contract. */
+        if (Object.prototype.hasOwnProperty.call(row, CLAIM_REF_FIELD)
+            && !(typeof row[CLAIM_REF_FIELD] === "string" && CLAIM_REF_PATTERN.test(row[CLAIM_REF_FIELD]))) {
+            return rowViolation("claim-ref-not-opaque-sha256", CLAIM_REF_FIELD);
+        }
+
+        return { ok: true, row: row };
+    }
+
+    /* Re-derive a version's live field set from real rows. The constants above are a MEASUREMENT
+       of the committed ledger, and a measurement nothing re-checks decays into a guess — so this
+       is what a test uses to prove they still describe what is on disk. "Required" means present
+       in EVERY row, which is only meaningful over a non-empty set; an empty input therefore
+       yields empty halves rather than declaring every key required. */
+    function deriveRowFieldUnion(rows) {
+        var counts = Object.create(null);
+        var union = [];
+        var total = 0;
+        for (var i = 0; i < rows.length; i += 1) {
+            if (!isPlainObject(rows[i])) continue;
+            total += 1;
+            var keys = Object.keys(rows[i]);
+            for (var k = 0; k < keys.length; k += 1) {
+                if (counts[keys[k]] === undefined) { counts[keys[k]] = 0; union.push(keys[k]); }
+                counts[keys[k]] += 1;
+            }
+        }
+        union.sort();
+        var required = [];
+        var optional = [];
+        for (var u = 0; u < union.length; u += 1) {
+            if (total > 0 && counts[union[u]] === total) required.push(union[u]);
+            else optional.push(union[u]);
+        }
+        return {
+            rowCount: total,
+            union: Object.freeze(union),
+            required: Object.freeze(required),
+            optional: Object.freeze(optional)
+        };
+    }
+
+    /* ── RTR-LEGACY-BACKFILL ────────────────────────────────────────────────────────────────
+       The gate every resolution write passes through. Scope 03 owns the resolution OBJECT; this
+       owns the single question of whether the target row may be resolved at all.
+
+       Rule order is the whole contract. The legacy check runs BEFORE the resolution is inspected
+       in any way, so no property of the resolution can rescue a claimless row: a complete,
+       well-formed, entirely plausible predicate is refused exactly as loudly as a malformed one.
+       Inspecting the resolution first and refusing only when it looked wrong is precisely the
+       imputation BP-015-002 forbids — it would score 1,380 rows against terms nobody authored.
+
+       Malformed-row still wins over legacy, because a row that is not a valid ledger row is a
+       different defect and reporting it as legacy would hide it. */
+    function authorizeResolutionWrite(row, resolution) {
+        var rowCheck = validateLedgerRow(row);
+        if (!rowCheck.ok) return rowCheck;
+
+        if (!Object.prototype.hasOwnProperty.call(row, CLAIM_REF_FIELD)) {
+            return {
+                ok: false,
+                error: {
+                    code: LEGACY_BACKFILL_CODE,
+                    reason: "claimless-row-unscoreable",
+                    field: CLAIM_REF_FIELD,
+                    eventId: row.eventId
+                }
+            };
+        }
+
+        if (!isPlainObject(resolution)) return rowViolation("resolution-not-an-object", "resolution");
+
+        return { ok: true, claimRef: row[CLAIM_REF_FIELD], eventId: row.eventId };
+    }
+
+    /* ── The proposal-frozen flat band ──────────────────────────────────────────────────────
+       The band is read from the MINTED CLAIM and never taken as an argument, because `magnitude`
+       is a hashed term: a band chosen at scoring time would sit OUTSIDE `claimHash`, so one
+       content address could yield a different `outcomeClass` on a later run and the record would
+       stop being reproducible from its own identity. Making the claim the only source is what
+       keeps that structural rather than a convention.
+
+       Finite AND strictly positive is a PRECONDITION, asserted before any class is assigned and
+       never repaired here. `Math.abs(v) <= null` is exactly `v === 0` — the degenerate classifier
+       the boundary row exists to defeat, reached without anyone writing `=== 0` — and a negative
+       band makes `resolved-flat` unreachable for every value, so the class is not merely vacuous
+       but dead. Supplying a default instead of refusing would move the boundary outside the
+       content address, which is the one repair this module must never make. */
+    function flatBandFor(claim) {
+        if (!isPlainObject(claim) || !isPlainObject(claim.magnitude)) {
+            return violation("claim-magnitude-invalid", "magnitude");
+        }
+        var band = claim.magnitude.flatBand;
+        if (!Number.isFinite(band) || band <= 0) {
+            return violation("flat-band-not-finite-positive", "magnitude.flatBand");
+        }
+        return { ok: true, flatBand: band };
+    }
+
+    /* ── The proposal-frozen price basis ────────────────────────────────────────────────────
+       Read from the MINTED CLAIM for the identical reason `flatBandFor` is: `magnitude` is a
+       hashed term, so a basis chosen at scoring time would sit OUTSIDE `claimHash` and one
+       content address could yield two different `outcomeValue`s on two runs. Membership of the
+       closed set is a PRECONDITION, asserted before any return is computed and never repaired
+       here — supplying a default would move the choice outside the content address, which is the
+       one repair this module must never make.
+
+       This returns the basis ALONE. It deliberately does not fingerprint the values read at
+       `entryDate` / `resolutionDate`; a frozen basis makes the CHOICE reproducible, and making a
+       retroactive `ac` rewrite DETECTABLE is the separate obligation R-04-01 leaves with the
+       resolver. */
+    function priceBasisFor(claim) {
+        if (!isPlainObject(claim) || !isPlainObject(claim.magnitude)) {
+            return violation("claim-magnitude-invalid", "magnitude");
+        }
+        var basis = claim.magnitude.priceBasis;
+        if (!inSet(PRICE_BASES, basis)) {
+            return violation("price-basis-not-allowed", "magnitude.priceBasis");
+        }
+        return { ok: true, priceBasis: basis, rowField: PRICE_BASIS_ROW_FIELD[basis] };
+    }
+
+    /* The routing a class implies. The membership test runs against the frozen array rather than
+       against the table's keys, so an inherited property name such as `constructor` refuses like
+       any other value outside the vocabulary instead of resolving through the prototype. */
+    function outcomeContributionFor(outcomeClass) {
+        if (!inSet(OUTCOME_CLASSES, outcomeClass)) {
+            return violation("outcome-class-not-allowed", "outcomeClass");
+        }
+        return { ok: true, outcomeClass: outcomeClass, contribution: OUTCOME_CONTRIBUTIONS[outcomeClass] };
+    }
+
+    /* ── classifyOutcome ────────────────────────────────────────────────────────────────────
+       One resolved numeric outcome to exactly one class, plus the routing that class implies.
+
+       The value is carried through VERBATIM. No rounding, no `±ε` nudge, no fabricated sign: a
+       flat outcome pushed to `+ε` so that it lands in `wins` would manufacture a directional
+       result the data does not support, and would bias `averageWin` toward whatever ε was picked.
+       Only the ROUTING differs between a flat outcome and a small win — never the value. */
+    function classifyOutcome(outcomeValue, claim) {
+        var band = flatBandFor(claim);
+        if (!band.ok) return band;
+        if (!Number.isFinite(outcomeValue)) return violation("outcome-value-not-finite", "outcomeValue");
+
+        /* Inclusive at both edges and evaluated FIRST, so every value inside the authored band —
+           an exact `0` among them — is resolved-flat before `win`/`loss` are considered. A bare
+           `0` therefore cannot reach the directional array by classification at all. */
+        var outcomeClass;
+        if (Math.abs(outcomeValue) <= band.flatBand) outcomeClass = "resolved-flat";
+        else if (outcomeValue > 0) outcomeClass = "win";
+        else outcomeClass = "loss";
+
+        return {
+            ok: true,
+            outcomeClass: outcomeClass,
+            outcomeValue: outcomeValue,
+            flatBand: band.flatBand,
+            contribution: OUTCOME_CONTRIBUTIONS[outcomeClass]
+        };
+    }
+
+    /* ── RTR-FLAT-ZERO ──────────────────────────────────────────────────────────────────────
+       The gate on the array handed to `rlvSummarizeOutcomes`. `-0 === 0` is true, so a negative
+       zero — which the primitive would also drop into `unresolved` — refuses here too. Nothing is
+       coerced: a non-number is not read as a zero, it falls through to the finite check and
+       refuses for what it actually is. */
+    function assertZeroFreeOutcomes(values) {
+        if (!Array.isArray(values)) return violation("directional-array-not-an-array", "outcomes");
+        for (var i = 0; i < values.length; i += 1) {
+            if (values[i] === 0) {
+                return {
+                    ok: false,
+                    error: {
+                        code: FLAT_ZERO_CODE,
+                        reason: "bare-zero-in-directional-array",
+                        field: "outcomes[" + i + "]",
+                        index: i
+                    }
+                };
+            }
+            if (!Number.isFinite(values[i])) return violation("outcome-value-not-finite", "outcomes[" + i + "]");
+        }
+        return { ok: true, outcomes: values.slice() };
+    }
+
+    /* ── routeOutcomes ──────────────────────────────────────────────────────────────────────
+       The table applied to a cohort: `win` and `loss` become numbers in the directional array,
+       the other four become counts beside it. `resolvedDirectional` is that array's length and
+       therefore — because `winRate` divides by it — the published denominator, exposed here so a
+       caller can branch BEFORE reaching a primitive that refuses an empty array.
+
+       Every counted class is seeded at zero rather than added on first sight, so a class that
+       never fired reads as an explicit `0` instead of a missing key. A missing key is how a
+       bucket quietly leaves a partition that is supposed to sum to the proposed total. */
+    function routeOutcomes(records) {
+        if (!Array.isArray(records)) return violation("outcome-records-not-an-array", "records");
+
+        var counts = {};
+        var c;
+        for (c = 0; c < COUNTED_OUTCOME_CLASSES.length; c += 1) counts[COUNTED_OUTCOME_CLASSES[c]] = 0;
+
+        var directional = [];
+        for (var i = 0; i < records.length; i += 1) {
+            if (!isPlainObject(records[i])) return violation("outcome-record-not-an-object", "records[" + i + "]");
+            var routed = outcomeContributionFor(records[i].outcomeClass);
+            if (!routed.ok) return routed;
+            if (routed.contribution === CONTRIBUTION_COUNT) {
+                counts[routed.outcomeClass] += 1;
+                continue;
+            }
+            if (!Number.isFinite(records[i].outcomeValue)) {
+                return violation("outcome-value-not-finite", "records[" + i + "].outcomeValue");
+            }
+            directional.push(records[i].outcomeValue);
+        }
+
+        /* The same gate applied where the array is BUILT, not only where it is consumed: a
+           resolved-flat value mis-routed onto the number side refuses with RTR-FLAT-ZERO rather
+           than being summarised as a claim that never resolved. */
+        var gated = assertZeroFreeOutcomes(directional);
+        if (!gated.ok) return gated;
+
+        return {
+            ok: true,
+            directional: gated.outcomes,
+            counts: counts,
+            resolvedDirectional: gated.outcomes.length
+        };
+    }
+
+    /* ── directionalDenominator ─────────────────────────────────────────────────────────────
+       The denominator contract, declared rather than left as a convention two surfaces are
+       trusted to keep. `winRate` divides by the fed array's length, so `resolvedDirectional` is
+       not a quantity that HAPPENS to agree with the published denominator — it IS it, and this
+       binds the two at one place so they cannot drift apart.
+
+       No statistic is computed. `summary` is the primitive's own frozen result, read verbatim;
+       the only work here is refusing the pairings that would make the label a lie:
+
+       - a summary produced from a DIFFERENT array than the one routing built (`count` mismatch),
+         which is how a filtered, padded or re-derived array quietly moves the denominator;
+       - `wins + losses !== resolvedDirectional`, which under the zero-free convention can only
+         mean a zero reached the array and was absorbed into the primitive's `unresolved`;
+       - a rate published with no denominator to publish beside it (`resolvedDirectional === 0`),
+         which is the branch the caller is expected to take BEFORE calling at all. */
+    function directionalDenominator(routed, summary) {
+        if (!isPlainObject(routed) || routed.ok !== true || !Array.isArray(routed.directional)
+            || !Number.isInteger(routed.resolvedDirectional)) {
+            return violation("routed-outcomes-invalid", "routed");
+        }
+        if (routed.resolvedDirectional !== routed.directional.length) {
+            return violation("resolved-directional-is-not-the-fed-array-length", "resolvedDirectional");
+        }
+        if (routed.resolvedDirectional === 0) {
+            return violation("no-directional-denominator-to-publish", "resolvedDirectional");
+        }
+
+        if (!isPlainObject(summary) || summary.ok !== true || !Number.isInteger(summary.count)
+            || !Number.isInteger(summary.wins) || !Number.isInteger(summary.losses)
+            || !Number.isFinite(summary.winRate)) {
+            return violation("outcome-summary-invalid", "summary");
+        }
+        if (summary.count !== routed.resolvedDirectional) {
+            return violation("summary-count-is-not-the-fed-array-length", "count");
+        }
+        if (summary.wins + summary.losses !== routed.resolvedDirectional) {
+            return violation("wins-plus-losses-is-not-the-fed-array-length", "resolvedDirectional");
+        }
+
+        return {
+            ok: true,
+            label: DIRECTIONAL_RATE_LABEL,
+            resolvedDirectional: routed.resolvedDirectional,
+            wins: summary.wins,
+            losses: summary.losses,
+            /* The primitive's own value passed through — never recomputed here, because a second
+               division is a second answer, and the two would eventually disagree. */
+            rate: summary.winRate
+        };
+    }
+
+    /* ── The closure-event vocabulary, read from its single definition ─────────────────────
+       `CLOSE_EVENT_TYPES` is private to rlcontracts.js — it is NOT on that module's exported api
+       (measured: 20 keys, none matching /clos|EVENT_TYPE/i). Rather than shadow it with a second
+       copy that would silently go stale, the frozen literal is read out of the module's own
+       source text, exactly as MARKET_ACTIONS and ACTION_DIRECTION already are. There is therefore
+       exactly one definition in the repository, and if the literal moves or changes shape this
+       THROWS instead of validating against a stale vocabulary. */
+    function readClosureEventVocabulary(sourceText) {
+        if (typeof sourceText !== "string" || sourceText.length === 0) {
+            throw new Error("rlclaims: " + CLOSURE_VOCABULARY_SOURCE + " source text is required to read the closure-event vocabulary");
+        }
+        var literal = extractFrozenLiteral(sourceText, "CLOSE_EVENT_TYPES");
+        if (!literal) throw new Error("rlclaims: CLOSE_EVENT_TYPES not found in " + CLOSURE_VOCABULARY_SOURCE);
+
+        var names = Object.keys(literal).sort();
+        if (names.length === 0) throw new Error("rlclaims: CLOSE_EVENT_TYPES is empty in " + CLOSURE_VOCABULARY_SOURCE);
+        for (var i = 0; i < names.length; i += 1) {
+            if (literal[names[i]] !== true) {
+                throw new Error("rlclaims: CLOSE_EVENT_TYPES member '" + names[i] + "' changed shape in " + CLOSURE_VOCABULARY_SOURCE);
+            }
+        }
+
+        /* Every closure event 015 emits must still exist upstream. A renamed member would leave
+           the pairing table pointing at nothing and silently stop admitting a whole outcome
+           class — a vocabulary drift that presents as an empty column rather than as an error. */
+        var classes = Object.keys(OUTCOME_CLOSURE_EVENTS);
+        for (var c = 0; c < classes.length; c += 1) {
+            var allowed = OUTCOME_CLOSURE_EVENTS[classes[c]];
+            for (var a = 0; a < allowed.length; a += 1) {
+                if (names.indexOf(allowed[a]) === -1) {
+                    throw new Error("rlclaims: closure event '" + allowed[a] + "' is absent from CLOSE_EVENT_TYPES in " + CLOSURE_VOCABULARY_SOURCE);
+                }
+            }
+        }
+        return Object.freeze(names);
+    }
+
+    /* ── resolutionHash ────────────────────────────────────────────────────────────────────
+       Exactly the eight hashed terms. `eventId` and `lifecycleBinding` — which carry `runId` and
+       the wall clock — are excluded, so two passes over unchanged inputs recompute one address
+       and the repeat write is a byte-identical no-op. */
+    function resolutionHashedTermsOf(resolution) {
+        var terms = {};
+        for (var i = 0; i < RESOLUTION_HASHED_TERMS.length; i += 1) {
+            terms[RESOLUTION_HASHED_TERMS[i]] = resolution[RESOLUTION_HASHED_TERMS[i]];
+        }
+        return terms;
+    }
+
+    function resolutionHash(resolution) { return stableSha(resolutionHashedTermsOf(resolution)); }
+
+    function resolutionObjectPath(hash) {
+        var hex = String(hash).replace(/^sha256:/, "");
+        if (!/^[a-f0-9]{64}$/.test(hex)) throw new Error("rlclaims: resolutionHash is not a bare lowercase sha256 hex");
+        return RESOLUTION_STORE_DIR + "/" + hex + ".json";
+    }
+
+    function serializeResolution(resolution) { return stableStringify(resolution); }
+
+    /* ── buildResolution ────────────────────────────────────────────────────────────────────
+       One resolved claim to one `brief-recommendation-resolution/v1` record.
+
+       The value is carried through VERBATIM — no rounding, no `±ε` nudge, no fabricated sign.
+       Rounding lives at render, so identical inputs produce identical bits, which is what
+       determinism actually requires. What varies between a flat outcome and a small win is the
+       ROUTING the class implies, never the number the record stores. */
+    function buildResolution(input) {
+        if (!isPlainObject(input)) return violation("resolution-input-invalid", "input");
+
+        var vocabulary = input.closureVocabulary;
+        if (!Array.isArray(vocabulary) || vocabulary.length === 0) {
+            return violation("closure-vocabulary-invalid", "closureVocabulary");
+        }
+
+        var routed = outcomeContributionFor(input.outcomeClass);
+        if (!routed.ok) return routed;
+        var outcomeClass = routed.outcomeClass;
+
+        var allowedClosures = OUTCOME_CLOSURE_EVENTS[outcomeClass];
+        if (!Array.isArray(allowedClosures)) return violation("outcome-class-has-no-closure-mapping", "outcomeClass");
+        if (allowedClosures.length === 0) return violation("outcome-class-carries-no-resolution", "outcomeClass");
+
+        /* The 002-owned vocabulary is the ACCEPTANCE set and is checked first, so a value outside
+           it refuses for what it is rather than for the pairing it happens to miss. The SUPPLIED
+           array is the set — restating the six members here would be the stale shadow copy that
+           `readClosureEventVocabulary` exists to avoid, and a restricted vocabulary would then
+           silently fail to restrict. */
+        if (!inSet(vocabulary, input.closureEventType)) {
+            return {
+                ok: false,
+                error: { code: CLOSURE_VOCAB_CODE, reason: "closure-event-not-in-vocabulary", field: "closureEventType" }
+            };
+        }
+        if (allowedClosures.indexOf(input.closureEventType) === -1) {
+            return violation("closure-event-not-allowed-for-outcome-class", "closureEventType");
+        }
+
+        var allowedReasons = CLOSURE_REASON_CODES[input.closureEventType];
+        if (!Array.isArray(allowedReasons)) return violation("closure-event-has-no-reason-codes", "closureEventType");
+        if (!inSet(allowedReasons, input.reasonCode)) {
+            return violation("reason-code-not-allowed-for-closure-event", "reasonCode");
+        }
+
+        if (!nonEmptyString(input.claimHash) || !CLAIM_REF_PATTERN.test(input.claimHash)) {
+            return violation("claim-hash-not-opaque-sha256", "claimHash");
+        }
+        if (!nonEmptyString(input.eventId)) return violation("event-id-absent", "eventId");
+
+        /* A SESSION date, not a wall clock. The date is hashed, so a timestamp here would move
+           the content address on every pass; and the resolver resolves against sessions, so a
+           value carrying a time of day would describe a read the resolver never performed. */
+        if (!nonEmptyString(input.resolutionDate) || !SESSION_DATE_PATTERN.test(input.resolutionDate)) {
+            return violation("resolution-date-not-a-session-date", "resolutionDate");
+        }
+
+        var carriesMagnitude = inSet(MAGNITUDE_BEARING_OUTCOME_CLASSES, outcomeClass);
+        if (carriesMagnitude) {
+            if (!Number.isFinite(input.outcomeValue)) return violation("outcome-value-not-finite", "outcomeValue");
+            /* A directional class holding an exact zero is HC-7 arriving one step earlier than
+               the array gate: the primitive would drop it into `unresolved`, so it refuses here
+               with the same owned code rather than being summarised as never resolved. */
+            if (routed.contribution === CONTRIBUTION_NUMBER && input.outcomeValue === 0) {
+                return {
+                    ok: false,
+                    error: { code: FLAT_ZERO_CODE, reason: "bare-zero-in-directional-class", field: "outcomeValue" }
+                };
+            }
+            if (outcomeClass === "win" && !(input.outcomeValue > 0)) {
+                return violation("outcome-value-sign-contradicts-class", "outcomeValue");
+            }
+            if (outcomeClass === "loss" && !(input.outcomeValue < 0)) {
+                return violation("outcome-value-sign-contradicts-class", "outcomeValue");
+            }
+        } else if (input.outcomeValue !== null) {
+            /* `null` is required rather than absent, because an absent key and a null one read
+               the same to a consumer that only asks whether a value is falsy. */
+            return violation("outcome-value-must-be-null", "outcomeValue");
+        }
+
+        if (!isPlainObject(input.provenance)) return violation("provenance-not-an-object", "provenance");
+        var provenanceKeys = Object.keys(input.provenance);
+        for (var p = 0; p < provenanceKeys.length; p += 1) {
+            if (inSet(RUN_SCOPED_KEYS, provenanceKeys[p])) {
+                return violation("run-scoped-key-in-hashed-provenance", "provenance." + provenanceKeys[p]);
+            }
+        }
+        if (!isPlainObject(input.lifecycleBinding)) return violation("lifecycle-binding-not-an-object", "lifecycleBinding");
+
+        var resolution = {
+            contractVersion: RESOLUTION_CONTRACT_VERSION,
+            claimHash: input.claimHash,
+            eventId: input.eventId,
+            resolutionDate: input.resolutionDate,
+            closureEventType: input.closureEventType,
+            outcomeClass: outcomeClass,
+            /* Verbatim. `sortValue` is applied to the two object blocks so key order cannot vary
+               the address, and to nothing else — a number is never passed through a transform. */
+            outcomeValue: carriesMagnitude ? input.outcomeValue : null,
+            reasonCode: input.reasonCode,
+            provenance: sortValue(input.provenance),
+            lifecycleBinding: sortValue(input.lifecycleBinding),
+            resolutionHash: null
+        };
+        resolution.resolutionHash = resolutionHash(resolution);
+        return { ok: true, resolution: resolution, contribution: routed.contribution };
+    }
+
+    /* ── The content-addressed resolution store ─────────────────────────────────────────────
+       Mirrors the claim store's depth (`briefs/objects/claims`) and the evidence store's bare
+       lowercase-hex filename. Re-resolving an unchanged claim recomputes the identical hash and
+       writes identical bytes; a write that would CHANGE the bytes at an existing address aborts
+       with RTR-RESOLUTION-CONFLICT and never overwrites. */
+    function writeResolutionObject(resolution, row, ports) {
+        /* Scope 02's gate FIRST, before the resolution is inspected in any way. It owns the
+           single question of whether the target row may be resolved at all, and its rule order is
+           what makes a claimless row unscoreable BY CONSTRUCTION: no property of a well-formed
+           resolution can rescue one. Called, never re-implemented and never bypassed. */
+        var authorized = authorizeResolutionWrite(row, resolution);
+        if (!authorized.ok) return authorized;
+
+        if (!isPlainObject(ports) || typeof ports.existsSync !== "function"
+            || typeof ports.readFileSync !== "function" || typeof ports.writeFileSync !== "function"
+            || typeof ports.mkdirSync !== "function") {
+            throw new Error("rlclaims: writeResolutionObject requires { existsSync, readFileSync, writeFileSync, mkdirSync }");
+        }
+
+        if (resolution.contractVersion !== RESOLUTION_CONTRACT_VERSION) {
+            return violation("resolution-contract-version-not-allowed", "contractVersion");
+        }
+        var unknown = hasOnlyFields(resolution, RESOLUTION_FIELDS);
+        if (unknown !== null) return violation("unknown-field", unknown);
+        for (var f = 0; f < RESOLUTION_FIELDS.length; f += 1) {
+            if (!Object.prototype.hasOwnProperty.call(resolution, RESOLUTION_FIELDS[f])) {
+                return violation("required-field-absent", RESOLUTION_FIELDS[f]);
+            }
+        }
+        /* The address must BE the content. A record whose digest does not cover its own terms
+           would be filed under a name that says nothing about what is inside it. */
+        if (resolution.resolutionHash !== resolutionHash(resolution)) {
+            return violation("resolution-hash-does-not-match-content", "resolutionHash");
+        }
+        /* The resolution must be ABOUT the claim the row points at. The gate returns that pointer
+           precisely so it can be bound rather than assumed. */
+        if (resolution.claimHash !== authorized.claimRef) {
+            return violation("resolution-claim-hash-does-not-match-row", "claimHash");
+        }
+
+        var root = nonEmptyString(ports.root) ? ports.root : "";
+        var relativePath = resolutionObjectPath(resolution.resolutionHash);
+        var fullPath = root ? root + "/" + relativePath : relativePath;
+        var bytes = serializeResolution(resolution);
+
+        if (ports.existsSync(fullPath)) {
+            var existing = ports.readFileSync(fullPath, "utf8");
+            if (existing === bytes) return { ok: true, path: relativePath, written: false, reused: true };
+            return {
+                ok: false,
+                error: {
+                    code: RESOLUTION_CONFLICT_CODE,
+                    reason: "resolution-conflict-refused",
+                    field: "resolutionHash",
+                    path: relativePath
+                }
+            };
+        }
+
+        var directory = root ? root + "/" + RESOLUTION_STORE_DIR : RESOLUTION_STORE_DIR;
+        ports.mkdirSync(directory, { recursive: true });
+        ports.writeFileSync(fullPath, bytes);
+        return { ok: true, path: relativePath, written: true, reused: false };
+    }
+
+    /* ── assertClassPartition ───────────────────────────────────────────────────────────────
+       Asserted, not asserted-to. A failure means a claim fell out of the accounting, which is
+       precisely how a denominator gets quietly flattered.
+
+       An ABSENT bucket refuses rather than reading as zero, and an unknown bucket name refuses
+       rather than being ignored. Both are the same defect seen from two sides: a mistyped bucket
+       silently contributes nothing while looking like it contributes, and that is exactly how a
+       class leaves a partition without anyone noticing. */
+    function assertClassPartition(parts) {
+        if (!isPlainObject(parts)) return violation("partition-input-invalid", "parts");
+
+        var unknown = hasOnlyFields(parts, unionSorted([PARTITION_BUCKETS, ["totalProposed"]]));
+        if (unknown !== null) return violation("unknown-partition-bucket", unknown);
+
+        if (!Number.isInteger(parts.totalProposed) || parts.totalProposed < 0) {
+            return violation("partition-total-not-a-count", "totalProposed");
+        }
+
+        var buckets = {};
+        var sum = 0;
+        for (var i = 0; i < PARTITION_BUCKETS.length; i += 1) {
+            var name = PARTITION_BUCKETS[i];
+            if (!Object.prototype.hasOwnProperty.call(parts, name)) {
+                return violation("partition-bucket-absent", name);
+            }
+            if (!Number.isInteger(parts[name]) || parts[name] < 0) {
+                return violation("partition-bucket-not-a-count", name);
+            }
+            buckets[name] = parts[name];
+            sum += parts[name];
+        }
+
+        if (sum !== parts.totalProposed) {
+            return {
+                ok: false,
+                error: {
+                    code: CONTRACT_VIOLATION_CODE,
+                    reason: "partition-does-not-sum-to-proposed",
+                    field: "totalProposed",
+                    sum: sum,
+                    totalProposed: parts.totalProposed,
+                    unaccounted: parts.totalProposed - sum
+                }
+            };
+        }
+        return { ok: true, buckets: buckets, sum: sum, totalProposed: parts.totalProposed };
+    }
+
+    /* The partition built FROM the routing rather than counted a second time beside it. Two
+       independent tallies of one cohort is how the visible report and the published denominator
+       come to disagree, so the five class buckets are derived from `routeOutcomes`' own result
+       and only the two lifecycle buckets — states no outcome class describes — are supplied. */
+    function classPartition(routed, lifecycle) {
+        if (!isPlainObject(routed) || routed.ok !== true || !Array.isArray(routed.directional)
+            || !isPlainObject(routed.counts) || !Number.isInteger(routed.resolvedDirectional)) {
+            return violation("routed-outcomes-invalid", "routed");
+        }
+        if (!isPlainObject(lifecycle)) return violation("lifecycle-counts-invalid", "lifecycle");
+
+        var parts = { totalProposed: lifecycle.totalProposed };
+        for (var b = 0; b < PARTITION_BUCKETS.length; b += 1) parts[PARTITION_BUCKETS[b]] = 0;
+        parts.resolvedDirectional = routed.resolvedDirectional;
+
+        var counted = Object.keys(routed.counts);
+        for (var c = 0; c < counted.length; c += 1) {
+            if (!Object.prototype.hasOwnProperty.call(PARTITION_BUCKET_FOR_CLASS, counted[c])) {
+                return violation("partition-bucket-undeclared-for-class", counted[c]);
+            }
+            parts[PARTITION_BUCKET_FOR_CLASS[counted[c]]] += routed.counts[counted[c]];
+        }
+
+        for (var n = 0; n < NON_CLASS_PARTITION_BUCKETS.length; n += 1) {
+            var lifecycleName = NON_CLASS_PARTITION_BUCKETS[n];
+            if (!Object.prototype.hasOwnProperty.call(lifecycle, lifecycleName)) {
+                return violation("lifecycle-count-absent", lifecycleName);
+            }
+            parts[lifecycleName] = lifecycle[lifecycleName];
+        }
+
+        return assertClassPartition(parts);
+    }
+
     /* ── mintClaim ──────────────────────────────────────────────────────────────────────────
        Two outcomes, deliberately distinct:
          • a CONTRACT VIOLATION ({ ok: false }) — an out-of-vocabulary value or a direction that
@@ -463,7 +1389,8 @@
             entryBasis: nonEmptyString(input.entryBasis) ? input.entryBasis : "close",
             entryDate: nonEmptyString(input.entryDate) ? input.entryDate : null,
             signConvention: signConvention,
-            flatBand: claimInput && Number.isFinite(claimInput.flatBand) ? claimInput.flatBand : null
+            flatBand: claimInput && Number.isFinite(claimInput.flatBand) ? claimInput.flatBand : null,
+            priceBasis: claimInput && nonEmptyString(claimInput.priceBasis) ? claimInput.priceBasis : null
         };
 
         var thesisFamily = claimInput && nonEmptyString(claimInput.thesisFamily) ? claimInput.thesisFamily : null;
@@ -535,6 +1462,19 @@
         if (claim.direction === 0) {
             return { reason: "neutral-direction-no-magnitude", field: "direction" };
         }
+        /* Finite AND strictly positive, never defaulted: `resolved-flat` is `|outcome| <= flatBand`,
+           so a null or zero band makes the flat class unreachable and a negative one makes it empty. */
+        if (!Number.isFinite(claim.magnitude.flatBand) || claim.magnitude.flatBand <= 0) {
+            return { reason: "no-authored-flat-band", field: "magnitude.flatBand" };
+        }
+        /* Authored AND a member of `PRICE_BASES`, never defaulted. Absent and present-but-outside
+           -the-set are ONE defect here for the same reason absent and non-positive are one for
+           `flatBand`: both leave `ret(x)` undefined, so the outcome is not merely unknown but
+           unmeasurable. Defaulting instead would pick a basis on the claim's behalf — and with
+           `ac !== c` on ~74% of series, that silently decides the outcome. */
+        if (!inSet(PRICE_BASES, claim.magnitude.priceBasis)) {
+            return { reason: "no-authored-price-basis", field: "magnitude.priceBasis" };
+        }
         return null;
     }
 
@@ -596,17 +1536,72 @@
         HORIZON_KINDS: HORIZON_KINDS,
         MAGNITUDE_UNITS: MAGNITUDE_UNITS,
         SIGN_CONVENTIONS: SIGN_CONVENTIONS,
+        PRICE_BASES: PRICE_BASES,
+        PRICE_BASIS_ROW_FIELD: PRICE_BASIS_ROW_FIELD,
         HASHED_TERMS: HASHED_TERMS,
         UNHASHED_FIELDS: UNHASHED_FIELDS,
         MINT_REFUSALS: MINT_REFUSALS,
+        OUTCOME_CLASSES: OUTCOME_CLASSES,
+        OUTCOME_CONTRIBUTIONS: OUTCOME_CONTRIBUTIONS,
+        DIRECTIONAL_OUTCOME_CLASSES: DIRECTIONAL_OUTCOME_CLASSES,
+        COUNTED_OUTCOME_CLASSES: COUNTED_OUTCOME_CLASSES,
+        CONTRIBUTION_NUMBER: CONTRIBUTION_NUMBER,
+        CONTRIBUTION_COUNT: CONTRIBUTION_COUNT,
+        DIRECTIONAL_RATE_LABEL: DIRECTIONAL_RATE_LABEL,
+        MAGNITUDE_BEARING_OUTCOME_CLASSES: MAGNITUDE_BEARING_OUTCOME_CLASSES,
+        FLAT_ZERO_CODE: FLAT_ZERO_CODE,
+        RESOLUTION_CONTRACT_VERSION: RESOLUTION_CONTRACT_VERSION,
+        RESOLUTION_STORE_DIR: RESOLUTION_STORE_DIR,
+        RESOLUTION_HASHED_TERMS: RESOLUTION_HASHED_TERMS,
+        RESOLUTION_UNHASHED_FIELDS: RESOLUTION_UNHASHED_FIELDS,
+        RESOLUTION_FIELDS: RESOLUTION_FIELDS,
+        RUN_SCOPED_KEYS: RUN_SCOPED_KEYS,
+        CLOSURE_VOCABULARY_SOURCE: CLOSURE_VOCABULARY_SOURCE,
+        CLOSURE_VOCAB_CODE: CLOSURE_VOCAB_CODE,
+        RESOLUTION_CONFLICT_CODE: RESOLUTION_CONFLICT_CODE,
+        OUTCOME_CLOSURE_EVENTS: OUTCOME_CLOSURE_EVENTS,
+        CLOSURE_REASON_CODES: CLOSURE_REASON_CODES,
+        RESOLVER_NOT_EVALUABLE_REASONS: RESOLVER_NOT_EVALUABLE_REASONS,
+        NOT_EVALUABLE_REASONS: NOT_EVALUABLE_REASONS,
+        PARTITION_BUCKET_FOR_CLASS: PARTITION_BUCKET_FOR_CLASS,
+        NON_CLASS_PARTITION_BUCKETS: NON_CLASS_PARTITION_BUCKETS,
+        PARTITION_BUCKETS: PARTITION_BUCKETS,
         CLAIM_STORE_DIR: CLAIM_STORE_DIR,
         BARS_DIR: BARS_DIR,
         BARS_MANIFEST_FILENAME: BARS_MANIFEST_FILENAME,
         ACTION_VOCABULARY_SOURCE: ACTION_VOCABULARY_SOURCE,
+        ROW_CONTRACT_V1: ROW_CONTRACT_V1,
+        ROW_CONTRACT_V2: ROW_CONTRACT_V2,
+        ROW_CONTRACT_VIOLATION_CODE: ROW_CONTRACT_VIOLATION_CODE,
+        LEGACY_BACKFILL_CODE: LEGACY_BACKFILL_CODE,
+        CLAIM_REF_FIELD: CLAIM_REF_FIELD,
+        CLAIM_REF_PATTERN: CLAIM_REF_PATTERN,
+        ROW_V1_FIELDS: ROW_V1_FIELDS,
+        ROW_V2_REQUIRED_FIELDS: ROW_V2_REQUIRED_FIELDS,
+        ROW_V2_MEASURED_OPTIONAL_FIELDS: ROW_V2_MEASURED_OPTIONAL_FIELDS,
+        ROW_V2_FIELDS: ROW_V2_FIELDS,
+        validateLedgerRow: validateLedgerRow,
+        deriveRowFieldUnion: deriveRowFieldUnion,
+        authorizeResolutionWrite: authorizeResolutionWrite,
+        flatBandFor: flatBandFor,
+        priceBasisFor: priceBasisFor,
+        outcomeContributionFor: outcomeContributionFor,
+        classifyOutcome: classifyOutcome,
+        assertZeroFreeOutcomes: assertZeroFreeOutcomes,
+        routeOutcomes: routeOutcomes,
+        directionalDenominator: directionalDenominator,
+        buildResolution: buildResolution,
+        resolutionHash: resolutionHash,
+        resolutionObjectPath: resolutionObjectPath,
+        serializeResolution: serializeResolution,
+        writeResolutionObject: writeResolutionObject,
+        assertClassPartition: assertClassPartition,
+        classPartition: classPartition,
         stableStringify: stableStringify,
         sha256Hex: sha256Hex,
         stableSha: stableSha,
         readFoundationActionVocabulary: readFoundationActionVocabulary,
+        readClosureEventVocabulary: readClosureEventVocabulary,
         enumerateCommittedSeries: enumerateCommittedSeries,
         seriesRefFor: seriesRefFor,
         symbolFromSeriesRef: symbolFromSeriesRef,

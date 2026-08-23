@@ -202,17 +202,46 @@ capability that produces nothing, because producing nothing is conformant.** Eve
 tier composed from N inputs needs one assertion per input that the input has a
 producer, not only that the composition validates.
 
-## 6. Secondary finding — the scheduled job cannot publish the payload
+## 6. Secondary observation — the scheduled job does not publish the payload
 
-Independent of the producer hole, `.github/workflows/tier-a.yml` does not include
-`market-brief.payload.json` in its `git add` list, and never references
-`scripts/brief-refresh-and-push.sh`. The scheduled CI job therefore cannot publish an
-attention feed even if a producer existed. The payload is committed exclusively by
-the operator-hosted wrapper, visible in the commit authorship
-(`market-brief: auto-refresh + narrative <date> <window>`).
+`.github/workflows/tier-a.yml` does not include `market-brief.payload.json` in its
+`git add` list, and never references `scripts/brief-refresh-and-push.sh`. The payload
+is committed exclusively by the operator-hosted wrapper, visible in the commit
+authorship (`market-brief: auto-refresh + narrative <date> <window>`).
 
-This is recorded as `DISC-009-004` and must be resolved as part of any remedy that
-places attention production on the scheduled path (AC-7).
+**Re-classified 2026-08-20.** This was originally recorded as a secondary DEFECT, as
+if the workflow had forgotten a path. It had not. `brief-refresh.mjs` reads the payload
+as a COMMITTED artifact and never writes it, and says so in its own comment, naming the
+R-5 boundary. Across 197 commits touching the payload the tier-a bot has authored
+**zero** of them, so the boundary is not merely stated, it has held. Adding the path to
+that `git add` list would stage whatever happened to be dirty in the runner — precisely
+what the step's own comment forbids. The narrative is authored by four LLM lanes in the
+operator-hosted wrapper, and the scheduled job deliberately calls no external model.
+This re-classification was made after nearly applying the wrong fix.
+
+**The real question, still open.** The OBSERVED half of an attention item is derived
+from committed Tier-A state and needs no model at all. The scheduled job could
+therefore run `build-attention-items.mjs --recompose --write` and keep published
+observations consistent with current data between narrative runs. Today an item can go
+on referencing a reading that has since moved out of band — and conversely, recomposing
+would make published items disappear as data moves. Whether stale-but-stable or
+fresh-but-disappearing is the better contract for a reader is an owner decision, and it
+is what `DISC-009-004` now tracks. It is NOT a missing path.
+
+**The mechanism was then executed, so the decision is not also a gamble on the tooling.**
+Run against the live payload on 2026-08-20, `build-attention-items.mjs --recompose`
+exits 0 and reports `1 built, 0 refused` with `violations=0`. Adding `--write` rewrites
+88 lines, which looks alarming and is not: comparing the payload before and after shows
+**zero semantic change**, and the only two top-level keys that move are `attention` and
+`budget` — precisely the two the step owns. A second `--write` is byte-identical to the
+first, so the step is idempotent after one normalization and does not churn. The 88 lines
+are key ordering inside the regions it legitimately rewrites, which is why the step's own
+"additive or nothing" guard — which checks for LOST keys — correctly does not fire.
+
+That narrows `DISC-009-004` to what it always was. The scheduled job COULD call this step
+safely today; the reason not to is the reader contract, not a defect. An owner choosing
+stale-but-stable is accepting a known-good mechanism they have decided not to run, which
+is a different and much smaller decision than the one this record used to imply.
 
 ---
 

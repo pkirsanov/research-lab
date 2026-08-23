@@ -28,10 +28,19 @@
   "use strict";
 
   var CONTRACT = "attention-gate/v1";
+  /* The only vocabulary this module VALIDATES against: resolvePolicy refuses a band
+     whose severity is not one of these. The imminence, confirmation and disposition
+     vocabularies were declared beside it for symmetry and never read by anything —
+     each is produced as a literal by its own banding function — so they are gone
+     rather than left as three arrays a reader would take for enforcement. */
   var SEVERITIES = ["mild", "moderate", "severe"];
-  var IMMINENCE = ["imminent", "developing", "latent"];
-  var CONFIRMATION = ["present", "absent", "partial"];
-  var DISPOSITIONS = ["attention", "context", "no-action"];
+
+  /* The authored fields `resolveSubject` scans for a tracked symbol. Named and
+     exported rather than inlined because the authoring lane must be TOLD this
+     set: the resolver refuses a candidate naming two tracked symbols anywhere
+     across it, and an author told only about the headline will breach it in the
+     rationale without ever learning why the item vanished. */
+  var SUBJECT_RESOLUTION_FIELDS = ["headline", "rationale", "escalationTrigger", "invalidation"];
 
   function isPlainObject(v) { return !!v && typeof v === "object" && !Array.isArray(v); }
   function isNonEmptyString(v) { return typeof v === "string" && v.trim().length > 0; }
@@ -190,7 +199,7 @@
     if (isPlainObject(candidate) && isNonEmptyString(candidate.subject)) return candidate.subject;
     if (!isPlainObject(candidate) || !isPlainObject(tracked)) return null;
     var text = "";
-    ["headline", "rationale", "escalationTrigger", "invalidation"].forEach(function (k) {
+    SUBJECT_RESOLUTION_FIELDS.forEach(function (k) {
       if (isNonEmptyString(candidate[k])) text += " " + candidate[k];
     });
     if (!text) return null;
@@ -217,7 +226,12 @@
      Measured directly on 2026-08-19 before this was reverted. */
   function observableSubjects(snapshot) {
     var tracked = isPlainObject(snapshot) && isPlainObject(snapshot.tracked) ? snapshot.tracked : {};
-    var out = {};
+    /* NULL-prototype on purpose. A plain `{}` answers `tracked["__proto__"]` with
+       Object.prototype, which passes isPlainObject — so a candidate naming
+       `__proto__` as its subject was treated as a real tracked subject and read
+       on down the path. Nothing inherited is ever a watchlist symbol, so the map
+       carries no inheritance at all. */
+    var out = Object.create(null);
     Object.keys(tracked).forEach(function (k) { out[k] = tracked[k]; });
     return out;
   }
@@ -225,6 +239,17 @@
   function attachObserved(candidates, snapshot, policy, options) {
     if (!Array.isArray(candidates)) return [];
     var tracked = observableSubjects(snapshot);
+    /* The header promises a missing or unreadable snapshot yields no observations
+       rather than aborting the composer, and loadSnapshotForGate hands over null
+       to mean exactly that. Reading `snapshot.asOf` off it threw instead, which
+       is the one outcome the promise rules out, so the snapshot is narrowed to an
+       object once and read from that.
+       This is defence in depth and is honestly labelled as such: with the
+       null-prototype map above, nothing reaches this line holding a non-object
+       snapshot, so reverting this line alone leaves the suite green. Reverting
+       BOTH restores the throw. It stays because the safety of a local read should
+       not rest on a non-local invariant. */
+    var snap = isPlainObject(snapshot) ? snapshot : {};
     var opts = isPlainObject(options) ? options : {};
     return candidates.map(function (candidate) {
       if (!isPlainObject(candidate)) return candidate;
@@ -235,7 +260,7 @@
         subject: subject,
         tracked: tracked[subject],
         policy: policy,
-        observedAt: isNonEmptyString(snapshot.asOf) ? snapshot.asOf : null,
+        observedAt: isNonEmptyString(snap.asOf) ? snap.asOf : null,
         sourceId: opts.sourceId
       });
       if (!gate) return candidate;
@@ -249,9 +274,7 @@
   return Object.freeze({
     CONTRACT: CONTRACT,
     SEVERITIES: Object.freeze(SEVERITIES.slice()),
-    IMMINENCE: Object.freeze(IMMINENCE.slice()),
-    CONFIRMATION: Object.freeze(CONFIRMATION.slice()),
-    DISPOSITIONS: Object.freeze(DISPOSITIONS.slice()),
+    SUBJECT_RESOLUTION_FIELDS: Object.freeze(SUBJECT_RESOLUTION_FIELDS.slice()),
     resolvePolicy: resolvePolicy,
     resolveSubject: resolveSubject,
     observableSubjects: observableSubjects,

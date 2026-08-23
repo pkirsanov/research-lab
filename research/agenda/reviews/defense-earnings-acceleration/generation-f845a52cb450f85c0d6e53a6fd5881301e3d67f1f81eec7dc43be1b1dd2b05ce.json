@@ -1,0 +1,95 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-39116d4d1b32d8c58c514bfee6469b87b87e08b440552dd2cfa76c11151332cf",
+  "generationId": "generation-f845a52cb450f85c0d6e53a6fd5881301e3d67f1f81eec7dc43be1b1dd2b05ce",
+  "topicId": "defense-earnings-acceleration",
+  "attemptedAt": "2026-08-21T11:01:03.099Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "cadence",
+  "selectionReason": "cadence-elapsed",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "topic-model-not-applicable",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "consensus-revisions",
+      "status": "unavailable",
+      "interpretation": "No authorable evidence was acquired this run. The web evidence bundle retained zero sources and the company-filings-and-guidance claim (covering earnings-revision, capacity, backlog) is marked uncorroborated, freshness unsupported, and not authorable. Committed evidence and any prior dossier are both empty, so no consensus estimate or guidance observation can be read for any declared public manufacturer without inventing it.",
+      "gaps": [
+        "No official-filing or company-guidance source retained for requirement company-filings-and-guidance (state missing-or-stale, record null).",
+        "No current consensus earnings estimate observed for any declared manufacturer over the three, six, or twelve month horizons in the declared question.",
+        "Bundle coverage shows retainedSourceCount 0 and corroboratedMaterialClaimCount 0, so the earnings-revision claim cannot be supported by an observed fact."
+      ]
+    },
+    {
+      "sectionId": "revision-gap-ranking",
+      "status": "unavailable",
+      "interpretation": "A revision-gap ranking requires per-manufacturer consensus-versus-actual revision inputs, none of which were acquired. Because the consensus-revisions section is unavailable and no funded-award threshold observation exists, there is no observed basis to rank any manufacturer by revision gap. Authoring a ranking here would require fabricating a direction or magnitude the evidence does not carry.",
+      "gaps": [
+        "No per-manufacturer earnings-revision observations to compare against consensus.",
+        "The funded-award-observed trigger (awardUsdBillions at-least 1) has no supporting source to re-read the funded ceiling.",
+        "Ranking inputs depend on unavailable consensus-revisions and funded-program-catalysts sections."
+      ]
+    },
+    {
+      "sectionId": "funded-program-catalysts",
+      "status": "unavailable",
+      "interpretation": "No named funded program, appropriation, or multi-year framework award was retained. The consensus-estimates-and-funded-programs requirement (covering earnings-revision and catalyst) is missing-or-stale with a null record and its material claim is not authorable. No observed award can be tied to a declared manufacturer's production or backlog input.",
+      "gaps": [
+        "No official-filing or company-guidance source retained for requirement consensus-estimates-and-funded-programs.",
+        "No observed award or appropriation available to test the awardUsdBillions at-least 1 threshold.",
+        "Catalyst claim coverage is unsupported (corroborationState uncorroborated, freshnessState unsupported)."
+      ]
+    },
+    {
+      "sectionId": "production-capacity",
+      "status": "unavailable",
+      "interpretation": "Production-capacity reads depend on filing or guidance statements about capacity expansion or utilization, which the bundle did not retain. The capacity claim coverage under company-filings-and-guidance is unsupported, so no material-guidance-change observation exists to update a declared production input. No capacity figure can be reported without inventing it.",
+      "gaps": [
+        "No filing or guidance excerpt describing capacity for any declared manufacturer.",
+        "materialChange trigger for production-capacity has no source observation to evaluate.",
+        "Capacity claim is part of the non-authorable company-filings-and-guidance claim."
+      ]
+    },
+    {
+      "sectionId": "backlog-conversion",
+      "status": "unavailable",
+      "interpretation": "Backlog-conversion analysis needs observed backlog and revenue-recognition inputs from filings or guidance. The backlog claim coverage under company-filings-and-guidance is unsupported and no committed public bars were retained (committed-public-bars requirement missing-or-stale, record null). There is no observed backlog series or conversion rate to interpret.",
+      "gaps": [
+        "No backlog observation retained for any declared manufacturer.",
+        "No committed-bar source retained for requirement committed-public-bars (public-bar coverage unsupported).",
+        "Backlog conversion depends on unavailable filing and guidance evidence."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "The source ledger is empty because the acquisition bundle retained no sources (sources array empty, retainedSourceCount 0, three material claims rejected) and no committed evidence or prior dossier was supplied. There are no source rows to record for this run.",
+      "gaps": [
+        "Zero retained sources across all three source requirements.",
+        "No reusable ledger rows from committed evidence (committedEvidence empty).",
+        "No prior dossier source ledger to carry forward (priorDossier null)."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "No predecessor dossier exists for this topic (priorDossier null), so there is no prior authored state to compare against and no change to assess. Change assessment is outside this current-evidence side process's ownership, and with no prior baseline and no current authorable evidence there is nothing to characterize as changed or unchanged.",
+      "gaps": [
+        "priorDossier is null; there is no predecessor situation to diff.",
+        "No current authorable evidence to compare against a baseline.",
+        "Change direction and assessment are not authored by this current-evidence side process."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

@@ -136,6 +136,15 @@ shared data/status canaries, registry parity (`tools.json`, `index.html`, and
 `rlnav.js`), Market Brief contract tests, and the currently registered model
 invariants.
 
+### Node integration tests
+
+```bash
+node --test tests/*.integration.mjs
+```
+
+This selects every committed Node integration suite. A new integration test is
+therefore executable through a stable command without editing this registry.
+
 ### Contract validators
 
 Validate the committed Market Brief payload:

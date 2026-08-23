@@ -317,7 +317,8 @@ is what demonstrates the previous coverage could not carry these clauses.
 
 **Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-02,red timeout 300 bash .github/bubbles/scripts/tool-log.sh node --test tests/portfolio-privacy.functional.mjs`
 
-**Exit Code:** 1 · **Claim Source:** executed
+**Exit Code:** 1
+**Claim Source:** executed
 
 ```text
 # Subtest: explicit mandate revisions commit and reload atomically while portfolio generation semantics are preserved
@@ -390,7 +391,8 @@ the tree.
 
 **Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-02,green timeout 300 bash .github/bubbles/scripts/tool-log.sh node --test tests/portfolio-privacy.functional.mjs`
 
-**Exit Code:** 0 · **Claim Source:** executed
+**Exit Code:** 0
+**Claim Source:** executed
 
 ```text
 TAP version 13
@@ -645,7 +647,8 @@ literal is reproduced here, because this file is tracked.
 
 **Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-02,green,DOD-89,DOD-90,DOD-91 timeout 300 bash .github/bubbles/scripts/tool-log.sh node --test tests/portfolio-privacy.functional.mjs`
 
-**Exit Code:** 0 · **Claim Source:** executed
+**Exit Code:** 0
+**Claim Source:** executed
 
 ```text
 TAP version 13
@@ -849,7 +852,8 @@ as tests 4-6. All are green at the current HEAD.
 
 **Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-01,green,DOD-scope01-unchanged timeout 300 bash .github/bubbles/scripts/tool-log.sh node --test tests/portfolio-foundation.unit.mjs`
 
-**Exit Code:** 0 · **Claim Source:** executed
+**Exit Code:** 0
+**Claim Source:** executed
 
 ```text
 TAP version 13
@@ -893,7 +897,8 @@ line and the unabridged tail counters are verbatim.
 
 **Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-02,green,DOD-scope01-unchanged timeout 300 bash .github/bubbles/scripts/tool-log.sh node --test tests/portfolio-privacy.functional.mjs`
 
-**Exit Code:** 0 · **Claim Source:** executed
+**Exit Code:** 0
+**Claim Source:** executed
 
 ```text
 TAP version 13
@@ -923,7 +928,8 @@ FUNCTIONAL_EXIT=0
 
 **Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=TP-02-03,green,DOD-scope01-unchanged timeout 600 bash .github/bubbles/scripts/tool-log.sh npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/portfolio-survival-foundation.spec.mjs`
 
-**Exit Code:** 0 · **Claim Source:** executed
+**Exit Code:** 0
+**Claim Source:** executed
 
 ```text
 Running 6 tests using 1 worker
@@ -1828,7 +1834,8 @@ Exact rollback is carried by subtest 11 above, green on the same command.
 
 **Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=build-quality-gate,traceability,current-scope timeout 600 bash .github/bubbles/scripts/tool-log.sh bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
 
-**Exit Code:** 1 · **Claim Source:** executed
+**Exit Code:** 1
+**Claim Source:** executed
 
 ```text
 ℹ️  Checking traceability for scopes/02-mandate-and-cash-need-authority/scope.md
@@ -2147,7 +2154,8 @@ Editor diagnostics: **no errors** on `rlportfolio.js`,
 
 **Command:** `BUBBLES_AGENT_NAME=bubbles.implement BUBBLES_SPEC=specs/008-portfolio-survival-and-brief-lab BUBBLES_SCOPE=SCOPE-02 BUBBLES_TOOL_LOG_TAGS=build-quality-gate,traceability,current-scope timeout 900 bash .github/bubbles/scripts/tool-log.sh bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
 
-**Exit Code:** 1 · **Claim Source:** executed
+**Exit Code:** 1
+**Claim Source:** executed
 
 ```text
 ℹ️  Checking traceability for scopes/02-mandate-and-cash-need-authority/scope.md
@@ -2320,7 +2328,8 @@ a stale premise.
 
 **Command:** `grep -c -i -E "mandate|cashNeed|constraint" tests/portfolio-privacy.functional.mjs`
 
-**Exit Code:** 0 · **Claim Source:** executed
+**Exit Code:** 0
+**Claim Source:** executed
 
 ```text
 === TP-02-02 target file: mandate/cashNeed/constraint occurrences ===
@@ -2426,3 +2435,9 @@ rlportfolio.js` was verified empty before and after.
 ## Audit Verdict
 
 No validation or audit verdict is recorded during planning.
+
+<!-- bubbles:certifying-window-begin -->
+
+## Current Certifying Window
+
+The prior execution record is preserved above. Current status is governed by the canonical transition checks.

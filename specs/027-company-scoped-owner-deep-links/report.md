@@ -1594,7 +1594,7 @@ $ git status --porcelain
 ?? run_accessibility_map.py
 ?? specs/_bugs/BUG-009-decision-attention-gate-result-producer-absent/scenario-manifest.json
 ?? temp_script.scpt
-?? tests/zz-probe-focusable.spec.mjs
+?? <temporary-focus-probe>
 ```
 
 Every feature-027 path in that list is inside `workBoundary.allowedPaths`:

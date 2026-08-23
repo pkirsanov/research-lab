@@ -18,6 +18,10 @@ const NOW = '2026-07-15T14:00:00.000Z';
 const MODULE_PATH = resolve(ROOT, 'rlportfolio.js');
 const ANALYTICS_PATH = resolve(ROOT, 'rlportfolioanalytics.js');
 const POLICY_PATH = resolve(ROOT, 'portfolio-survival-allocation.config.json');
+const SCOPE24_FIXTURE_PATH = resolve(
+  ROOT,
+  'tests/fixtures/portfolio-survival-allocation/scope-24-allocation-basis.json'
+);
 
 const BASIS = 'basis=exact-common-date-intersection|cutoff=2026-05-08|symbols=BND,MSFT';
 
@@ -218,6 +222,65 @@ test('TP-14-02 production sensitivity and Black-Litterman lifecycle run on the c
 
   // The policy the page loads is the policy this row exercised.
   assert.equal(api.validatePolicy(policy).ok, true);
+});
+
+test('TP-24-02 six complete candidates retain one basis costs paths survival and no winner', () => {
+  const { analytics } = loadRuntime();
+  const input = JSON.parse(readFileSync(SCOPE24_FIXTURE_PATH, 'utf8'));
+  assert.equal(analytics.validateAllocationBasis(input.basis).ok, true);
+
+  const comparison = analytics.runAllocationComparison({
+    basis: input.basis,
+    blackLittermanInput: input.blackLittermanInput,
+    expectedReturnInput: input.constrainedMvoInput,
+    riskAversion: input.constrainedMvoInput.riskAversion
+  });
+  assert.equal(comparison.state, 'ok');
+  assert.equal(comparison.contractVersion, 'AllocationComparison/v1');
+  assert.deepEqual(comparison.candidates.map((candidate) => candidate.method), analytics.ALLOCATION_METHODS);
+  assert.equal(comparison.recommendedMethod, null);
+  assert.equal(comparison.bestMethod, null);
+
+  for (const candidate of comparison.candidates) {
+    assert.equal(candidate.contractVersion, 'AllocationCandidate/v1');
+    assert.equal(candidate.basisFingerprint, comparison.basisFingerprint);
+    assert.ok(['feasible', 'infeasible', 'unstable', 'unavailable'].includes(candidate.state));
+    assert.equal(candidate.fullCosts.complete, true);
+    assert.equal(candidate.fullCosts.rebalanceTiming, input.basis.costPolicy.rebalanceTiming);
+    assert.equal(candidate.commonPathOutcomes.scenarioIdentity, input.basis.commonScenario.scenarioIdentity);
+    assert.deepEqual(
+      candidate.commonPathOutcomes.pathIds,
+      input.basis.commonScenario.paths.map((path) => path.pathId)
+    );
+    assert.equal(candidate.survivalOutcomes.pathCount, input.basis.commonScenario.paths.length);
+    assert.equal(candidate.returnContribution.values.length, input.basis.assetOrder.length);
+    assert.equal(candidate.riskContribution.contributionShare.length, input.basis.assetOrder.length);
+    assert.ok(Number.isFinite(candidate.turnover));
+    assert.ok(Number.isFinite(candidate.concentration.herfindahl));
+  }
+
+  const publicRoundTrip = JSON.parse(JSON.stringify(comparison));
+  assert.deepEqual(publicRoundTrip, comparison);
+  assert.match(comparison.claimBoundary, /No candidate is universally best/);
+  assert.equal(JSON.stringify(comparison).includes('recommendedMethod":"current'), false);
+
+  const sensitivity = analytics.runAllocationSensitivity({
+    basis: input.basis,
+    blackLittermanInput: input.blackLittermanInput,
+    expectedReturnInput: input.constrainedMvoInput,
+    riskAversion: input.constrainedMvoInput.riskAversion,
+    axes: input.basis.sensitivityAxes
+  });
+  assert.equal(sensitivity.state, 'ok');
+  assert.deepEqual(sensitivity.declaredAxes, [
+    'history', 'means', 'covariance', 'views', 'costs', 'assetBounds',
+    'groupBounds', 'turnover', 'cash', 'leverage', 'riskAversion'
+  ]);
+  const declaredPointCount = Object.values(input.basis.sensitivityAxes)
+    .reduce((sum, points) => sum + points.length, 0);
+  assert.equal(sensitivity.totalTrials, declaredPointCount * analytics.ALLOCATION_METHODS.length);
+  assert.equal(sensitivity.methods.length, analytics.ALLOCATION_METHODS.length);
+  assert.deepEqual(JSON.parse(JSON.stringify(sensitivity)), sensitivity);
 });
 
 /* TP-15-02 — the production dossier projection, exercised through the real

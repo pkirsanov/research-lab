@@ -23,14 +23,44 @@
  */
 
 import assert from 'node:assert/strict';
-import { readdirSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import test from 'node:test';
+
+import { buildPublishSet } from '../scripts/brief-publication.mjs';
+import {
+    CALENDAR_COVERAGE_CODE,
+    CALENDAR_COVERAGE_REASON,
+    DETERMINED_CLOSURE_CLASS,
+    MEASURED_CLOSURE_EVENTS,
+    SESSION_PREDICATE_CODE,
+    SESSION_PREDICATE_KEY,
+    ZERO_OBSERVED_REASON,
+    advanceSessions,
+    dataQualitySessionsIn,
+    earlyCloseSessionsIn,
+    fenceObservations,
+    loadCalendar,
+    outcomeValueFor,
+    readBars,
+    readCalendar,
+    resolutionAxesFor,
+    resolutionProvenanceFor,
+    sessionDateForEpoch,
+    sessionsBy,
+} from '../scripts/brief-resolve-outcomes.mjs';
+import { loadInstrumentUniverse, recommendationRowsFromPayload } from '../scripts/recommendation-body.mjs';
+import { CLAIM_NOT_EVALUABLE_FIELD, attachClaimRefs, mintClaimRecords } from '../scripts/recommendation-claim-mint.mjs';
+import { buildRun } from './fixtures/feature-002/history/history-fixture-builder.mjs';
 
 import {
     REPO_ROOT,
     assertBytesUnchanged,
     assertEvaluable,
+    assertRefusal,
+    committedSeries,
+    foundationSourceText,
     loadClaimFixture,
     loadClaimsModule,
     mintInputFrom,
@@ -397,3 +427,1113 @@ test('T-01-F3: recommendationKey is one-to-many with claimHash across horizon ki
         assert.equal(resolved[0].recommendationKey, base.claim.recommendationKey, 'and it is the publisher key');
     });
 });
+
+/* ═══════════════════════════════════════════════════════════════════════════════════════════
+ * Scope 03 — the cohort-level halves of the resolution record: T-03-F1, T-03-F2, T-03-F3.
+ *
+ * The unit rows prove these properties one function at a time. These three prove what they MEAN
+ * once a whole cohort moves through routing and into the store: that a second resolving pass over
+ * an unchanged outcome occupies one file rather than two, that no class can leave the accounting
+ * without the shortfall being named, and that a cohort with nothing directional in it never
+ * reaches a primitive that would refuse it.
+ *
+ * Every class below is produced by `classifyOutcome` against a REAL minted claim's frozen band
+ * rather than hand-labelled in the fixture, so a classifier that regressed would change the
+ * cohort these rows partition instead of leaving them agreeing with a stale literal.
+ *
+ * Nothing here reads a clock and nothing here writes into the committed
+ * `briefs/objects/resolutions/` tree.
+ * ═══════════════════════════════════════════════════════════════════════════════════════════ */
+
+const validationRequire = createRequire(import.meta.url);
+const LEDGER_DIR = path.join(REPO_ROOT, 'briefs', 'history', 'recommendations');
+
+/** The 007-owned primitive, loaded lazily so importing this file opens nothing. */
+function loadSummarizeOutcomes() {
+    return validationRequire('../rlvalidation.js').rlvSummarizeOutcomes;
+}
+
+/** The closure vocabulary, read from rlcontracts.js's own source text — never a local copy. */
+function closureVocabulary() {
+    return claims.readClosureEventVocabulary(foundationSourceText());
+}
+
+function committedV2Row() {
+    const row = readdirSync(LEDGER_DIR)
+        .filter((f) => f.endsWith('.jsonl'))
+        .sort()
+        .flatMap((f) => readFileSync(path.join(LEDGER_DIR, f), 'utf8').split('\n').filter((l) => l.trim().length > 0))
+        .map((line) => JSON.parse(line))
+        .find((r) => r.contractVersion === claims.ROW_CONTRACT_V2);
+    assert.ok(row, 'the committed ledger must carry a v2 row for these rows to mean anything');
+    return row;
+}
+
+/** The committed row made resolvable by the single optional pointer scope 02 added. */
+function resolvableRow(claimHash) {
+    return { ...committedV2Row(), [claims.CLAIM_REF_FIELD]: claimHash };
+}
+
+/**
+ * A resolution input in which every field is a legal member of its own vocabulary, so a refusal
+ * below is caused by the ONE overridden value and never by incidental malformation.
+ */
+function resolutionInput(overrides = {}) {
+    return {
+        closureVocabulary: closureVocabulary(),
+        claimHash: mintEvaluable('evaluable-instrument-add').claim.claimHash,
+        eventId: committedV2Row().eventId,
+        resolutionDate: '2026-07-15',
+        closureEventType: 'satisfied',
+        outcomeClass: 'resolved-flat',
+        outcomeValue: 0,
+        reasonCode: 'predicate-satisfied',
+        provenance: { seriesRef: 'bars/SPY/1d', entryDate: '2026-07-14', entryBasis: 'close' },
+        lifecycleBinding: { runId: 'run-2026-07-15T20-00-00', resolvedAt: '2026-07-15T20:00:00.000Z' },
+        ...overrides,
+    };
+}
+
+function builtResolution(overrides = {}) {
+    const built = claims.buildResolution(resolutionInput(overrides));
+    assert.equal(built.ok, true, `buildResolution refused: ${JSON.stringify(built.error)}`);
+    return built.resolution;
+}
+
+function resolutionStoreListing(root) {
+    return readdirSync(path.join(root, claims.RESOLUTION_STORE_DIR)).sort();
+}
+
+/** The hashed terms picked off a built record, so "no hashed term moved" is checkable directly. */
+function hashedTermsOfResolution(resolution) {
+    return Object.fromEntries(claims.RESOLUTION_HASHED_TERMS.map((term) => [term, resolution[term]]));
+}
+
+/*
+ * One replacement per hashed term and one per unhashed field. The key sets are asserted against
+ * the module's own two lists below, so a term moved between them — or a ninth term added to
+ * either — fails this row rather than silently going uncovered.
+ */
+const HASHED_TERM_MUTATION = Object.freeze({
+    contractVersion: 'brief-recommendation-resolution/v2',
+    claimHash: `sha256:${'0'.repeat(64)}`,
+    resolutionDate: '2026-07-16',
+    closureEventType: 'invalidated',
+    outcomeClass: 'win',
+    outcomeValue: 0.0009765625,
+    reasonCode: 'predicate-invalidated',
+    provenance: { seriesRef: 'bars/QQQ/1d', entryDate: '2026-07-14', entryBasis: 'close' },
+});
+
+const UNHASHED_FIELD_MUTATION = Object.freeze({
+    eventId: 'evt-a-later-pass-over-the-same-outcome',
+    lifecycleBinding: { runId: 'run-2027-01-02T09-30-00', resolvedAt: '2027-01-02T09:30:00.000Z' },
+});
+
+test('T-03-F1: resolutionHash is content-only and the content-addressed write is a byte-identical no-op', () => {
+    const claimHash = mintEvaluable('evaluable-instrument-add').claim.claimHash;
+    const row = resolvableRow(claimHash);
+    const base = builtResolution({ claimHash });
+
+    // A SECOND RESOLVING PASS over the SAME outcome: new run id, new wall clock, new event id.
+    // Every difference lands in a field the module declares unhashed, so an address that moved
+    // here would give one resolved claim two entries in an accounting that counts each call once.
+    const rerun = builtResolution({ claimHash, ...UNHASHED_FIELD_MUTATION });
+    assert.notEqual(rerun.eventId, base.eventId, 'the pair must genuinely differ in event id');
+    assert.notDeepEqual(rerun.lifecycleBinding, base.lifecycleBinding, 'and in run id and wall clock');
+    assert.deepEqual(hashedTermsOfResolution(rerun), hashedTermsOfResolution(base), 'while no hashed term moved');
+    assert.equal(rerun.resolutionHash, base.resolutionHash, 'run identity is outside the content address');
+    assert.notEqual(claims.serializeResolution(rerun), claims.serializeResolution(base), 'the BYTES do differ');
+
+    // Every hashed term moves the address. Driven by the module's list, so a term that quietly
+    // left the hash fails here instead of leaving the address blind to a change in the record.
+    assert.deepEqual(
+        Object.keys(HASHED_TERM_MUTATION).sort(),
+        [...claims.RESOLUTION_HASHED_TERMS].sort(),
+        'a hashed term with no mutation authored here would go uncovered',
+    );
+    for (const term of claims.RESOLUTION_HASHED_TERMS) {
+        const mutated = { ...base, [term]: HASHED_TERM_MUTATION[term] };
+        assert.notDeepEqual(mutated[term], base[term], `${term}: the mutation must genuinely differ`);
+        assert.notEqual(
+            claims.resolutionHash(mutated),
+            base.resolutionHash,
+            `${term} is hashed: changing it MUST move the content address`,
+        );
+    }
+
+    // And no unhashed field does — the other half of the same partition.
+    assert.deepEqual(
+        Object.keys(UNHASHED_FIELD_MUTATION).sort(),
+        [...claims.RESOLUTION_UNHASHED_FIELDS].sort(),
+        'an unhashed field with no mutation authored here would go uncovered',
+    );
+    for (const field of claims.RESOLUTION_UNHASHED_FIELDS) {
+        const mutated = { ...base, [field]: UNHASHED_FIELD_MUTATION[field] };
+        assert.notDeepEqual(mutated[field], base[field], `${field}: the mutation must genuinely differ`);
+        assert.equal(claims.resolutionHash(mutated), base.resolutionHash, `${field} is provenance, not identity`);
+    }
+
+    withDisposableStore(({ root, ports }) => {
+        assertOutsideRepository(root);
+
+        const first = claims.writeResolutionObject(base, row, ports);
+        assert.equal(first.ok, true, `the first write must succeed: ${JSON.stringify(first.error)}`);
+        assert.equal(first.written, true, 'the first write must create the object');
+        assert.equal(first.reused, false, 'nothing exists to reuse yet');
+
+        const hex = bareHexOf(base.resolutionHash);
+        assert.equal(first.path, `${claims.RESOLUTION_STORE_DIR}/${hex}.json`, 'the bare lowercase hex filename');
+        assert.equal(first.path.includes(SHA256_PREFIX), false, 'no sha256: prefix in the stored path');
+
+        const objectPath = path.join(root, first.path);
+        const before = readBytes(objectPath);
+        assert.notEqual(before, null, 'the object must land at <bare-hex>.json');
+        assert.equal(before, claims.serializeResolution(base), 'the stored bytes are the serialized resolution');
+        assert.equal(JSON.parse(before).resolutionHash, base.resolutionHash, 'the body keeps the prefixed address');
+
+        // THE REPEAT: re-derived from the identical input, so identical bytes at one address.
+        const repeat = claims.writeResolutionObject(builtResolution({ claimHash }), row, ports);
+        assert.equal(repeat.ok, true, 'an identical re-resolution must not be refused');
+        assert.equal(repeat.written, false, 'a second file would count one resolution twice');
+        assert.equal(repeat.reused, true, 'the repeat reuses the first object');
+        assert.equal(repeat.path, first.path, 'the repeat resolves to the first path');
+        assertBytesUnchanged(before, readBytes(objectPath), 'T-03-F1 repeat');
+        assert.deepEqual(resolutionStoreListing(root), [`${hex}.json`], 'exactly one object across both passes');
+
+        // The rerun shares the address but not the bytes, so the append-only store refuses rather
+        // than overwriting the run identity already on record.
+        const conflict = claims.writeResolutionObject(rerun, row, ports);
+        assert.equal(conflict.ok, false, 'differing bytes at one address must not overwrite');
+        assert.equal(conflict.error.code, claims.RESOLUTION_CONFLICT_CODE, 'the conflict names its own code');
+        assertRefusal(conflict.error, 'resolution-conflict-refused', 'resolutionHash', 'T-03-F1 conflict');
+        assertBytesUnchanged(before, readBytes(objectPath), 'T-03-F1 conflict');
+        assert.deepEqual(resolutionStoreListing(root), [`${hex}.json`], 'and writes nothing');
+    });
+});
+
+/**
+ * A cohort whose directional and flat classes are ASSIGNED BY THE MODULE from values derived from
+ * the claim's own frozen band, so the row partitions what the classifier actually produced. The
+ * three withheld classes carry no magnitude and are appended as counts.
+ */
+function classifiedCohort() {
+    const { claim } = mintEvaluable('evaluable-instrument-add');
+    const band = claims.flatBandFor(claim);
+    assert.equal(band.ok, true, `the fixture claim must carry a usable band: ${JSON.stringify(band.error)}`);
+
+    const values = [band.flatBand * 6, band.flatBand * 3, -band.flatBand * 9, 0, band.flatBand * 0.4, -band.flatBand * 0.2];
+    const magnitudeBearing = values.map((value) => {
+        const classified = claims.classifyOutcome(value, claim);
+        assert.equal(classified.ok, true, `classifyOutcome refused ${value}: ${JSON.stringify(classified.error)}`);
+        return { outcomeClass: classified.outcomeClass, outcomeValue: classified.outcomeValue };
+    });
+    assert.deepEqual(
+        magnitudeBearing.map((r) => r.outcomeClass),
+        ['win', 'win', 'loss', 'resolved-flat', 'resolved-flat', 'resolved-flat'],
+        'the module — not this row — assigned the directional and flat classes',
+    );
+
+    return Object.freeze([
+        ...magnitudeBearing,
+        { outcomeClass: 'unresolved', outcomeValue: null },
+        { outcomeClass: 'unresolved', outcomeValue: null },
+        { outcomeClass: 'not-evaluable', outcomeValue: null },
+        { outcomeClass: 'unresolvable-legacy' },
+    ]);
+}
+
+test('T-03-F2: the class partition holds over a classified cohort and fails when a whole class is dropped', () => {
+    const cohort = classifiedCohort();
+    const lifecycle = { totalProposed: cohort.length + 3, withdrawn: 2, open: 1 };
+
+    const routed = claims.routeOutcomes([...cohort]);
+    assert.equal(routed.ok, true, `the cohort must route: ${JSON.stringify(routed.error)}`);
+
+    const partition = claims.classPartition(routed, lifecycle);
+    assert.equal(partition.ok, true, `the complete accounting must be accepted: ${JSON.stringify(partition.error)}`);
+    assert.equal(partition.sum, lifecycle.totalProposed, 'and sum to the proposed total');
+    assert.deepEqual(
+        partition.buckets,
+        { resolvedDirectional: 3, resolvedFlat: 3, unresolved: 2, notEvaluable: 1, unresolvableLegacy: 1, withdrawn: 2, open: 1 },
+        'every bucket carries its own count, and resolvedDirectional IS the published denominator',
+    );
+    assert.equal(partition.buckets.resolvedDirectional, routed.directional.length, 'the denominator is the fed length');
+
+    /* THE ADVERSARIAL HALF: DROP A WHOLE CLASS, OBSERVE, REVERT. Every occurrence of one class is
+       removed while the proposed total is held FIXED, the exact shortfall is required in the
+       refusal, and the intact cohort is then re-asserted green — so the failure is attributable to
+       the drop and to nothing else. A partition that only ever sees a correct cohort is
+       decoration, and a dropped class is precisely how a denominator gets quietly flattered. */
+    for (const outcomeClass of claims.OUTCOME_CLASSES) {
+        const kept = cohort.filter((record) => record.outcomeClass !== outcomeClass);
+        const droppedCount = cohort.length - kept.length;
+        assert.ok(droppedCount > 0, `${outcomeClass}: the cohort must genuinely contain the class to drop`);
+
+        const refused = claims.classPartition(claims.routeOutcomes(kept), lifecycle);
+        assert.equal(refused.ok, false, `${outcomeClass}: a dropped class must be detected`);
+        assert.equal(refused.error.code, claims.CONTRACT_VIOLATION_CODE, `${outcomeClass}: code`);
+        assertRefusal(refused.error, 'partition-does-not-sum-to-proposed', 'totalProposed', `dropped every ${outcomeClass}`);
+        assert.equal(refused.error.unaccounted, droppedCount, `${outcomeClass}: the refusal names the exact shortfall`);
+        assert.equal(refused.error.sum, lifecycle.totalProposed - droppedCount, `${outcomeClass}: and the sum it reached`);
+
+        // REVERT.
+        const restored = claims.classPartition(claims.routeOutcomes([...cohort]), lifecycle);
+        assert.equal(restored.ok, true, `${outcomeClass}: restoring the class must make the identity hold again`);
+        assert.deepEqual(restored.buckets, partition.buckets, `${outcomeClass}: and restore every bucket exactly`);
+    }
+
+    // The same for the two lifecycle states no outcome class describes: excluded is not hidden.
+    for (const bucket of claims.NON_CLASS_PARTITION_BUCKETS) {
+        const dropped = { ...lifecycle, [bucket]: 0 };
+        const refused = claims.classPartition(routed, dropped);
+        assert.equal(refused.ok, false, `${bucket}: a dropped lifecycle class must be detected`);
+        assertRefusal(refused.error, 'partition-does-not-sum-to-proposed', 'totalProposed', `dropped every ${bucket}`);
+        assert.equal(refused.error.unaccounted, lifecycle[bucket], `${bucket}: the refusal names the exact shortfall`);
+        assert.equal(claims.classPartition(routed, lifecycle).ok, true, `${bucket}: restored`);
+    }
+});
+
+test('T-03-F3: resolvedDirectional === 0 is reachable and the primitive is never called', () => {
+    const cohort = classifiedCohort();
+
+    /* A COUNTING SEAM around the 007-owned primitive. Its own export object is deep-frozen and
+       cannot be patched, so the count is taken at the ONLY route this row gives the scoring pass
+       to reach it. The counter is asserted directly — never inferred from an output that a
+       withheld cohort would produce either way. */
+    let primitiveCalls = 0;
+    const summarize = (values) => {
+        primitiveCalls += 1;
+        return loadSummarizeOutcomes()(values);
+    };
+
+    /* The scoring pass exactly as the contract prescribes it: route, then ask the MODULE — with no
+       summary in hand at all — whether there is a denominator to publish, and reach the primitive
+       only when there is. The two refusals are distinguished rather than lumped together, which is
+       what pins the ORDER of the module's own checks: an implementation that validated `summary`
+       first would answer `outcome-summary-invalid` for the empty cohort too, and the caller would
+       have had to call the primitive to find out it should not have. */
+    function score(records) {
+        const routed = claims.routeOutcomes(records);
+        assert.equal(routed.ok, true, `the cohort must route: ${JSON.stringify(routed.error)}`);
+        const branch = claims.directionalDenominator(routed, null);
+        assert.equal(branch.ok, false, 'a null summary can never be accepted');
+        if (branch.error.reason === 'no-directional-denominator-to-publish') return { routed, refusal: branch.error };
+        assertRefusal(branch.error, 'outcome-summary-invalid', 'summary', 'a denominator exists, so a summary is required');
+        return { routed, summary: summarize(routed.directional) };
+    }
+
+    // A cohort in which every claim resolved flat, unresolved, not-evaluable or unresolvable-legacy.
+    const withheld = cohort.filter((record) => !claims.DIRECTIONAL_OUTCOME_CLASSES.includes(record.outcomeClass));
+    assert.equal(withheld.length > 0, true, 'the withheld cohort must genuinely contain claims');
+    assert.equal(
+        withheld.length,
+        cohort.length - claims.routeOutcomes([...cohort]).resolvedDirectional,
+        'and must be exactly the non-directional remainder of the classified cohort',
+    );
+
+    const empty = score([...withheld]);
+    assert.equal(empty.routed.resolvedDirectional, 0, 'resolvedDirectional === 0 is REACHABLE, not theoretical');
+    assert.deepEqual(empty.routed.directional, [], 'the fed array is genuinely empty');
+    assert.equal(primitiveCalls, 0, 'THE ASSERTION: the primitive was not called even once');
+    assert.equal(empty.summary, undefined, 'and no summary was produced to be published');
+
+    /* The verdict was reached WITHOUT a summary at all — `null` was passed and the refusal still
+       names `resolvedDirectional`. An implementation that validated the summary first would refuse
+       with `outcome-summary-invalid` here, which is a caller that has already had to call. */
+    assertRefusal(empty.refusal, 'no-directional-denominator-to-publish', 'resolvedDirectional', 'empty cohort');
+    assert.equal(empty.refusal.code, claims.CONTRACT_VIOLATION_CODE, 'the refusal carries the contract code');
+
+    // WHAT THE PRIMITIVE WOULD HAVE DONE. One deliberate call, counted, proving the branch is not
+    // decoration: the empty array is refused outright rather than summarised as a zero rate.
+    const wouldHave = summarize(empty.routed.directional);
+    assert.equal(primitiveCalls, 1, 'the deliberate counterfactual call is the first call in this row');
+    assert.equal(wouldHave.ok, false, 'the primitive refuses an empty array');
+    assert.deepEqual(
+        wouldHave.errors.map((e) => e.code),
+        ['RLV-OUTCOME-VALUES'],
+        'with the code the caller would have had to handle',
+    );
+
+    /* THE POSITIVE CONTROL. The identical seam DOES observe a call once the cohort has something
+       directional in it — so the zero above is a branch not taken, never a spy that never worked. */
+    const scored = score([...cohort]);
+    assert.equal(primitiveCalls, 2, 'the directional cohort reaches the primitive exactly once');
+    assert.equal(scored.refusal, undefined, 'and is not refused a denominator');
+    assert.equal(scored.summary.ok, true, 'the primitive accepts the zero-free finite array');
+    assert.equal(scored.routed.resolvedDirectional > 0, true, 'the control cohort is genuinely directional');
+
+    const published = claims.directionalDenominator(scored.routed, scored.summary);
+    assert.equal(published.ok, true, `the pairing must be accepted: ${JSON.stringify(published.error)}`);
+    assert.equal(published.resolvedDirectional, scored.routed.directional.length, 'the denominator IS the fed length');
+    assert.equal(published.label, claims.DIRECTIONAL_RATE_LABEL, 'and the rate is labelled directional');
+    assert.equal(primitiveCalls, 2, 'publishing the denominator calls the primitive no second time');
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════════════════════
+ * Scope 02 — the additive ledger-row extension, at the level where the contract MEANS something.
+ *
+ * Three properties the unit rows cannot reach: where `claimRef` lands once a row is serialised,
+ * what ABSENCE of the key is allowed to mean, and what a refused mint is allowed to emit.
+ *
+ * Every row here reads REAL committed rows rather than a synthetic shape, because the point of
+ * each is compatibility with what is already on disk. Every one carries the permissive behaviour
+ * it must exclude — a `null` wearing the legacy marker's clothes, a classifier keying on the
+ * version stamp, a projector that grew an eighth field, a hook that attaches a pointer anyway.
+ *
+ * `LEDGER_DIR` is the module-level constant declared with the scope 03 helpers above.
+ * ═══════════════════════════════════════════════════════════════════════════════════════════ */
+
+/** Every committed row, in file-name then file order. Nothing here is a literal. */
+function committedLedgerRows() {
+    return readdirSync(LEDGER_DIR)
+        .filter((f) => f.endsWith('.jsonl'))
+        .sort()
+        .flatMap((f) => readFileSync(path.join(LEDGER_DIR, f), 'utf8').split('\n').filter((l) => l.trim().length > 0))
+        .map((line) => JSON.parse(line));
+}
+
+/** One real row per live `v2` key-count, READ from the ledger rather than declared as a literal. */
+function liveV2Shapes(rows) {
+    const byShape = new Map();
+    for (const row of rows) {
+        if (row.contractVersion !== claims.ROW_CONTRACT_V2) continue;
+        const count = Object.keys(row).length;
+        if (!byShape.has(count)) byShape.set(count, row);
+    }
+    return [...byShape.entries()].sort((a, b) => a[0] - b[0]);
+}
+
+/** A deterministic, module-produced pointer. Never a hand-typed digest. */
+function pointerFor(row) {
+    return claims.stableSha({ contractVersion: claims.CONTRACT_VERSION, eventId: row.eventId });
+}
+
+/**
+ * The serialised key order, READ BACK OUT of the canonical serialiser's own output rather than
+ * recomputed here with `.sort()`. A test that sorted the keys itself would agree with a serialiser
+ * that did not sort at all — which is the one failure this row exists to catch.
+ */
+function canonicalKeyOrder(row) {
+    return Object.keys(JSON.parse(claims.stableStringify(row)));
+}
+
+/** The seven-field projection, taking its names from the module's frozen `v1` list. */
+function projectSevenFields(row) {
+    const projection = {};
+    for (const field of claims.ROW_V1_FIELDS) projection[field] = row[field];
+    return projection;
+}
+
+/** A row refusal: the closed code, the exact reason, and the field that caused it. */
+function assertRowRefusal(result, expected, label) {
+    assert.equal(result.ok, false, `${label}: expected a row refusal, got an accepted row`);
+    assert.equal(result.error.code, expected.code, `${label}: code`);
+    assertRefusal(result.error, expected.reason, expected.field, label);
+}
+
+test('T-02-F1: claimRef canonicalises immediately after canonicalMonth on every live shape, and the seven-field projection is unchanged', () => {
+    const rows = committedLedgerRows();
+    const shapes = liveV2Shapes(rows);
+    assert.equal(shapes.length > 0, true, 'the committed ledger must carry v2 rows for this row to mean anything');
+
+    for (const [shape, committed] of shapes) {
+        const label = `v2 shape ${shape}`;
+        assert.equal(
+            Object.prototype.hasOwnProperty.call(committed, claims.CLAIM_REF_FIELD),
+            false,
+            `${label}: the committed row must be pre-contract, so the position under test is genuinely new`,
+        );
+
+        const withRef = { ...committed, [claims.CLAIM_REF_FIELD]: pointerFor(committed) };
+        assert.equal(claims.validateLedgerRow(withRef).ok, true, `${label}: the row under test must validate`);
+
+        const order = canonicalKeyOrder(withRef);
+        const at = order.indexOf(claims.CLAIM_REF_FIELD);
+        assert.equal(at > 0, true, `${label}: claimRef must appear in the canonical order`);
+        assert.equal(order[at - 1], 'canonicalMonth', `${label}: claimRef's canonical predecessor`);
+        assert.equal(order[at + 1], 'confidence', `${label}: claimRef's canonical successor is confidence`);
+        assert.notEqual(order[at + 1], 'contractVersion', `${label}: the v1-shaped successor must NOT hold on a v2 row`);
+
+        /* Determinism, proven against a genuinely different insertion order rather than against the
+           same object serialised twice — which would hold under a serialiser that emitted whatever
+           order it was handed. */
+        const reversed = {};
+        for (const key of Object.keys(withRef).reverse()) reversed[key] = withRef[key];
+        assert.notDeepEqual(Object.keys(reversed), Object.keys(withRef), `${label}: the two builds must differ in insertion order`);
+        assert.equal(
+            claims.stableStringify(withRef),
+            claims.stableStringify(reversed),
+            `${label}: two independent serialisations must be byte-identical`,
+        );
+
+        // The seven-field projection is UNCHANGED by the addition: same names, same bytes.
+        const projected = projectSevenFields(withRef);
+        assert.deepEqual(Object.keys(projected), [...claims.ROW_V1_FIELDS], `${label}: exactly the seven v1 key names`);
+        assert.equal(Object.keys(projected).length, 7, `${label}: seven, not eight`);
+        assert.equal(
+            Object.prototype.hasOwnProperty.call(projected, claims.CLAIM_REF_FIELD),
+            false,
+            `${label}: a projector that grew an eighth field must fail here`,
+        );
+        assert.equal(
+            claims.stableStringify(projected),
+            claims.stableStringify(projectSevenFields(committed)),
+            `${label}: the projection is byte-identical with and without claimRef`,
+        );
+    }
+
+    /* THE CONTROL that makes the successor assertion non-vacuous. On a SEVEN-FIELD row the
+       successor genuinely IS `contractVersion` — so `confidence` above is a measured property of
+       the live v2 shape and not a name that happens to sort into place on every row. */
+    const v1Row = rows.find((r) => r.contractVersion === claims.ROW_CONTRACT_V1);
+    assert.ok(v1Row, 'the committed ledger must carry a v1 row');
+    const v1Order = canonicalKeyOrder({ ...v1Row, [claims.CLAIM_REF_FIELD]: pointerFor(v1Row) });
+    const v1At = v1Order.indexOf(claims.CLAIM_REF_FIELD);
+    assert.equal(v1Order[v1At - 1], 'canonicalMonth', 'the predecessor is the same on both shapes');
+    assert.equal(v1Order[v1At + 1], 'contractVersion', 'on a seven-field shape the successor IS contractVersion');
+    assert.equal(claims.ROW_V1_FIELDS.includes('confidence'), false, 'v1 carries no confidence — which is why the two successors differ');
+});
+
+/* The imputation a permissive classifier most wants through: complete, well-formed, plausible,
+   and authored by nobody. Declared once and reused, so both rows below probe the same input. */
+const PLAUSIBLE_RESOLUTION = Object.freeze({
+    contractVersion: 'brief-recommendation-resolution/v1',
+    predicate: { kind: 'threshold', basis: 'close', comparator: 'lte', value: 100 },
+    horizon: { kind: 'next-session', resolutionDate: '2026-07-15' },
+    outcomeClass: 'satisfied',
+    outcomeValue: -2.4,
+    resolvedAt: '2026-07-15T20:00:00.000Z',
+});
+
+test('T-02-F2: a pre-contract row of either version has no claimRef key at all, and the classifier keys on absence rather than null', () => {
+    const rows = committedLedgerRows();
+    const legacyV1 = rows.find((r) => r.contractVersion === claims.ROW_CONTRACT_V1);
+    const legacyV2 = rows.find((r) => r.contractVersion === claims.ROW_CONTRACT_V2);
+    assert.ok(legacyV1 && legacyV2, 'the committed ledger must carry a pre-contract row of each version');
+
+    const legacyExpected = {
+        code: claims.LEGACY_BACKFILL_CODE,
+        reason: 'claimless-row-unscoreable',
+        field: claims.CLAIM_REF_FIELD,
+    };
+
+    for (const [label, row] of [['pre-contract v1', legacyV1], ['pre-contract body-v2', legacyV2]]) {
+        /* ABSENCE, asserted four ways. A `claimRef: null` row passes the first two and FAILS the
+           last two, which is exactly the distinction this row exists to hold. */
+        assert.equal(Object.prototype.hasOwnProperty.call(row, claims.CLAIM_REF_FIELD), false, `${label}: no own key`);
+        assert.equal(claims.CLAIM_REF_FIELD in row, false, `${label}: nothing inherited either`);
+        assert.equal(canonicalKeyOrder(row).includes(claims.CLAIM_REF_FIELD), false, `${label}: absent from the canonical key order`);
+        assert.equal(claims.stableStringify(row).includes('"claimRef"'), false, `${label}: the name appears nowhere in the bytes`);
+
+        // The classifier reaches the SAME refusal on both versions — so the marker is not the stamp.
+        assertRowRefusal(claims.authorizeResolutionWrite(row, PLAUSIBLE_RESOLUTION), legacyExpected, label);
+    }
+
+    /** Legacy under the shipped classifier, expressed once so the disagreements below are exact. */
+    const shippedSaysLegacy = (row) => {
+        const outcome = claims.authorizeResolutionWrite(row, PLAUSIBLE_RESOLUTION);
+        return outcome.ok === false && outcome.error.code === claims.LEGACY_BACKFILL_CODE;
+    };
+
+    /* A NULL IS NOT LEGACY. It is a malformed value on the contract, refused on a different code —
+       a back-fill wearing the marker's clothes must not be able to pass as never-minted. */
+    const nulled = { ...legacyV2, [claims.CLAIM_REF_FIELD]: null };
+    assertRowRefusal(
+        claims.authorizeResolutionWrite(nulled, PLAUSIBLE_RESOLUTION),
+        { code: claims.ROW_CONTRACT_VIOLATION_CODE, reason: 'claim-ref-not-opaque-sha256', field: claims.CLAIM_REF_FIELD },
+        'null claimRef',
+    );
+    assert.equal(shippedSaysLegacy(nulled), false, 'a null row is NOT classified legacy');
+    const nullTolerantSaysLegacy = (row) => row[claims.CLAIM_REF_FIELD] === undefined || row[claims.CLAIM_REF_FIELD] === null;
+    assert.equal(nullTolerantSaysLegacy(nulled), true, 'a null-tolerant classifier WOULD call it legacy');
+    assert.equal(
+        nullTolerantSaysLegacy(nulled) === shippedSaysLegacy(nulled),
+        false,
+        'the two classifiers must genuinely disagree — otherwise this row guards nothing',
+    );
+
+    /* AND THE STAMP IS NOT THE MARKER. A version-stamp classifier ("v1 is legacy, v2 is current")
+       disagrees with the shipped one on the claimless v2 row, and the claim-bearing v2 row is
+       accepted — so the refusals above are absence-driven, not a blanket refusal. */
+    const versionStampSaysLegacy = (row) => row.contractVersion === claims.ROW_CONTRACT_V1;
+    assert.equal(shippedSaysLegacy(legacyV2), true, 'a claimless v2 row IS legacy');
+    assert.equal(versionStampSaysLegacy(legacyV2), false, 'a version-stamp classifier would call it current');
+
+    const bearing = { ...legacyV2, [claims.CLAIM_REF_FIELD]: pointerFor(legacyV2) };
+    assert.equal(shippedSaysLegacy(bearing), false, 'the same row plus a pointer is NOT legacy');
+    const authorized = claims.authorizeResolutionWrite(bearing, PLAUSIBLE_RESOLUTION);
+    assert.equal(authorized.ok, true, 'and the identical resolution is accepted against it');
+    assert.equal(authorized.claimRef, bearing[claims.CLAIM_REF_FIELD], 'the authorisation returns the pointer to resolve against');
+});
+
+/* One publisher run, held FIXED so any drift in an identifier is attributable to the hook alone. */
+const REFUSAL_RUN_FINGERPRINT = claims.stableSha({ fixture: 'T-02-F3 run fingerprint' });
+const REFUSAL_RUN_ID = 'dist-2026-07-14-morning-refusal';
+const REFUSAL_OCCURRED_AT = '2026-07-14T12:40:00.000Z';
+
+function refusalEventIdFor(recommendationKey, index) {
+    return claims.stableSha({
+        contractVersion: 'brief-distributed-eventid/v1',
+        runFingerprint: REFUSAL_RUN_FINGERPRINT,
+        recommendationKey,
+        index,
+    });
+}
+
+/** A fully authored action. Every claim term is declared; nothing is defaulted into existence. */
+function authoredAction(symbol) {
+    return {
+        action: 'trim',
+        subject: `Trim ${symbol} into the event print`,
+        horizon: 'next-session',
+        trigger: `${symbol} closes below 100`,
+        invalidation: `${symbol} closes above 120`,
+        deepLink: 'sector-research-lab.html',
+        confidence: 55,
+        claim: {
+            subjectKind: 'instrument',
+            resolvesTo: [symbol],
+            thesisFamily: 'positioning-unwind',
+            horizonKind: 'event-bound',
+            eventRef: 'fixture-event-2026-07-15',
+            predicate: { kind: 'threshold', basis: 'close', comparator: 'lte', value: 100 },
+            flatBand: 0.25,
+            priceBasis: 'adjusted-close',
+        },
+    };
+}
+
+/** The rows this run appends to the recommendation partition, from the REAL writer. */
+function appendedRecommendationRows(events) {
+    const built = buildPublishSet(buildRun({ recommendationEvents: events }));
+    assert.equal(built.ok, true, 'the publish set must build for the row assertions to mean anything');
+    const partition = Object.keys(built.staging.historyPartitions).find((p) => p.includes('/recommendations/'));
+    assert.ok(partition, 'the publish set must carry a recommendation partition');
+    return built.staging.historyPartitions[partition].appendedBytes
+        .toString('utf8')
+        .split('\n')
+        .filter((line) => line.trim().length > 0)
+        .map((line) => JSON.parse(line));
+}
+
+test('T-02-F3: a refused mint degrades to an event without claimRef, carrying its reason', () => {
+    const series = committedSeries();
+    assert.equal(series.length > 0, true, 'the committed bars set must be non-empty');
+    const symbol = series[0];
+    const absentSymbol = 'ZZZZNOSERIES';
+    assert.equal(series.includes(absentSymbol), false, 'the refusing symbol must genuinely have no committed series');
+
+    /* Three actions, one evaluable and two refused for DIFFERENT reasons: the publisher's
+       positional fallback, and a fully authored action whose subject resolves to no committed
+       series. Two distinct refusals rule out a hook that hard-codes one reason. */
+    const payload = {
+        nextSession: { actions: [authoredAction(symbol), { action: 'note', subject: 'action-1' }, authoredAction(absentSymbol)] },
+        recommendations: [],
+    };
+    const universe = loadInstrumentUniverse(REPO_ROOT);
+    const build = () => recommendationRowsFromPayload(payload, {
+        root: REPO_ROOT,
+        occurredAt: REFUSAL_OCCURRED_AT,
+        universe,
+        eventIdFor: refusalEventIdFor,
+    }).map((event) => ({ ...event, bodySource: 'next-session-action' }));
+    const mintOptions = { root: REPO_ROOT, proposalRunId: REFUSAL_RUN_ID, proposedAt: REFUSAL_OCCURRED_AT };
+
+    const before = build();
+    const after = attachClaimRefs(build(), payload, mintOptions);
+    const records = mintClaimRecords(build(), payload, mintOptions);
+    assert.equal(before.length, payload.nextSession.actions.length, 'one event per authored action');
+    assert.equal(after.length, before.length, 'the hook adds and removes no event');
+
+    const expected = [
+        { refusal: null },
+        { refusal: { reason: 'non-semantic-subject', field: 'actionFamily' } },
+        { refusal: { reason: 'no-committed-series', field: 'subject.seriesRefs' } },
+    ];
+
+    for (let i = 0; i < expected.length; i += 1) {
+        const label = `event ${i}`;
+        if (expected[i].refusal === null) {
+            // The evaluable half. Without it "no event gained a pointer" would be trivially true.
+            assert.equal(Object.prototype.hasOwnProperty.call(after[i], claims.CLAIM_REF_FIELD), true, `${label}: must gain a pointer`);
+            assert.equal(after[i][claims.CLAIM_REF_FIELD], records[i].claim.claimHash, `${label}: the pointer is the minted claimHash`);
+            continue;
+        }
+
+        assert.equal(Object.prototype.hasOwnProperty.call(after[i], claims.CLAIM_REF_FIELD), false, `${label}: a refused mint attaches no claimRef`);
+        assert.equal(records[i].claimRef, null, `${label}: the record carries no pointer either`);
+        assertRefusal(after[i][CLAIM_NOT_EVALUABLE_FIELD], expected[i].refusal.reason, expected[i].refusal.field, `${label} refusal`);
+
+        /* NOTHING FABRICATED. The refused event's key set is the pre-hook event's plus exactly the
+           one refusal field — no invented subject, predicate or horizon rides along, and no
+           claimHash from the refused mint leaks onto the event under another name. */
+        assert.deepEqual(
+            Object.keys(after[i]).sort(),
+            [...Object.keys(before[i]), CLAIM_NOT_EVALUABLE_FIELD].sort(),
+            `${label}: exactly one key was added`,
+        );
+        if (records[i].claim !== null) {
+            assert.deepEqual(records[i].claim.notEvaluable, expected[i].refusal, `${label}: the claim records the same refusal`);
+            assert.equal(
+                claims.stableStringify(after[i]).includes(records[i].claim.claimHash),
+                false,
+                `${label}: the refused claim's address must appear nowhere on the event`,
+            );
+        }
+    }
+
+    // Selective, not global: exactly one of the three events gained a pointer.
+    const bearingEvents = after.filter((e) => Object.prototype.hasOwnProperty.call(e, claims.CLAIM_REF_FIELD));
+    assert.equal(bearingEvents.length, 1, 'exactly one event gains a claimRef');
+    assert.equal(claims.CLAIM_REF_PATTERN.test(bearingEvents[0][claims.CLAIM_REF_FIELD]), true, 'and it is an opaque sha256');
+
+    /* AND THE REASON NEVER REACHES A ROW. The real writer emits the refusal as an ABSENT key, not
+       a null and not a carried-through refusal field — v2 gains exactly one optional member. */
+    const emitted = appendedRecommendationRows(after);
+    assert.equal(emitted.length, after.length, 'one ledger row per event');
+    const claimless = emitted.filter((row) => !Object.prototype.hasOwnProperty.call(row, claims.CLAIM_REF_FIELD));
+    assert.equal(claimless.length, expected.filter((e) => e.refusal !== null).length, 'one claimless row per refused mint');
+    for (const row of emitted) {
+        assert.equal(claims.validateLedgerRow(row).ok, true, 'every emitted row must validate');
+        assert.equal(Object.prototype.hasOwnProperty.call(row, CLAIM_NOT_EVALUABLE_FIELD), false, 'the refusal travels on the event, never into the row');
+    }
+    for (const row of claimless) {
+        assert.equal(row[claims.CLAIM_REF_FIELD], undefined, 'a claimless row has NO claimRef key — absence, never null');
+        assertRowRefusal(
+            claims.authorizeResolutionWrite(row, PLAUSIBLE_RESOLUTION),
+            { code: claims.LEGACY_BACKFILL_CODE, reason: 'claimless-row-unscoreable', field: claims.CLAIM_REF_FIELD },
+            'freshly refused row',
+        );
+    }
+});
+
+/* ── Scope 04, increment 1 ────────────────────────────────────────────────────────────────
+   Increment 1 lands the calendar-session substrate ONLY: the session predicate, session
+   arithmetic, the bar-to-session mapping and the early-close flag. The predicate evaluators,
+   the as-of fence, the data-quality gates, the outcome magnitude and the reducer bridge are
+   later increments, so both rows carry an `(increment 1)` marker and neither claims its Test
+   Plan row whole. Every date below is read from a committed artifact; nothing reads a clock. */
+
+const UTC_MIDNIGHT = (date) => Date.parse(`${date}T00:00:00.000Z`);
+const shiftDays = (date, days) => new Date(UTC_MIDNIGHT(date) + days * 86400000).toISOString().slice(0, 10);
+
+test('T-04-F1 (increment 1): a trading session is a non-null regular block, and horizon arithmetic counts sessions rather than days', () => {
+    const calendar = loadCalendar(REPO_ROOT);
+    const sessions = sessionsBy(calendar, SESSION_PREDICATE_KEY);
+    assert.equal(sessions.ok, true, 'the one permitted predicate must resolve');
+
+    /* THE PREDICATE, derived from the rows AND cross-checked against the count the design
+       records — so a calendar edit and a predicate regression cannot cancel each other out. */
+    const byRegularBlock = calendar.rows.filter((row) => row.regular !== null).map((row) => row.tradingDate);
+    const byDateState = calendar.rows.filter((row) => row.dateState === 'regular').map((row) => row.tradingDate);
+    assert.deepEqual([...sessions.tradingDates], byRegularBlock, 'the predicate is the regular block');
+    assert.equal(sessions.tradingDates.length, 251, '2026 carries 251 sessions');
+    assert.equal(byDateState.length, 249, 'and the dateState rule finds 249 — the two it drops are genuine sessions');
+
+    /* AND THE REJECTED RULE REFUSES rather than merely going unused. */
+    assertRowRefusal(
+        sessionsBy(calendar, 'date-state'),
+        { code: SESSION_PREDICATE_CODE, reason: 'session-predicate-not-allowed', field: 'predicateKey' },
+        'a dateState-keyed session predicate',
+    );
+
+    /* SESSIONS, NOT DAYS — across a weekend and across a holiday. Each case pins the row day
+       arithmetic would have landed on, which the calendar itself marks closed. */
+    const stateOn = (date) => calendar.rows.find((row) => row.tradingDate === date).dateState;
+
+    assert.equal(advanceSessions(calendar, '2026-01-02', 1).tradingDate, '2026-01-05', 'a Friday next-session claim resolves on Monday');
+    assert.equal(stateOn(shiftDays('2026-01-02', 1)), 'weekend', 'where day arithmetic would have resolved on a closed row');
+
+    assert.equal(advanceSessions(calendar, '2026-01-16', 1).tradingDate, '2026-01-20', 'a claim spanning a holiday resolves one session later than day arithmetic says');
+    assert.equal(stateOn('2026-01-19'), 'holiday', 'and the row it steps over is the holiday itself');
+
+    /* AN EARLY CLOSE RESOLVES ON ITSELF AND IS FLAGGED, never skipped. This is the exact miss
+       the dateState rule produces, and it is a silent one: it resolves three sessions late. */
+    const resolved = advanceSessions(calendar, '2026-11-25', 1);
+    assert.equal(resolved.tradingDate, '2026-11-27', 'the next session after 2026-11-25 IS the early close');
+    assert.equal(byDateState.includes('2026-11-27'), false, 'which the dateState rule does not even list');
+    assert.equal(byDateState.filter((date) => date > '2026-11-25')[0], '2026-11-30', 'so it would have resolved three sessions late');
+    assert.deepEqual([...earlyCloseSessionsIn(calendar, ['2026-11-25', resolved.tradingDate])], ['2026-11-27'], 'and the early close is flagged for provenance');
+    assert.deepEqual([...earlyCloseSessionsIn(calendar, byRegularBlock)], ['2026-11-27', '2026-12-24'], 'exactly two 2026 sessions closed early');
+    for (const date of ['2026-11-27', '2026-12-24']) {
+        assert.equal(stateOn(date), 'early-close', 'the span-derived flag agrees with the label it never reads');
+    }
+
+    /* AND THE FLAG IS RECORDED, not merely computable. The two rows above prove the HELPER; they
+       say nothing about the CALL SITE, which hands it the claim's own two authored sessions. A
+       wrong argument there — the whole year's trading dates, say — returns a correct answer for
+       the wrong input, and every assertion above still passes while the record carries flags for
+       sessions the resolution never measured. */
+    const provenanceSpanning = (entryDate, resolutionDate) => resolutionProvenanceFor(
+        calendar,
+        mintEvaluable('evaluable-instrument-add', (input) => {
+            input.binding.entryDate = entryDate;
+            input.binding.resolutionDate = resolutionDate;
+        }).claim,
+        null,
+    );
+
+    const acrossEarlyClose = provenanceSpanning('2026-11-25', resolved.tradingDate);
+    assert.equal(acrossEarlyClose.ok, true, 'provenance must assemble for a span landing on the early close');
+    assert.deepEqual(acrossEarlyClose.provenance.earlyCloseSessions, ['2026-11-27'], 'and record the early close that span touched');
+
+    /* NON-VACUITY. A span touching neither early close records an EMPTY list, so the row above
+       cannot be satisfied by an implementation that flags every session handed to it. */
+    assert.deepEqual(provenanceSpanning('2026-01-02', '2026-01-05').provenance.earlyCloseSessions, [], 'a span clear of both early closes records nothing');
+
+    /* A SNAPSHOT, NOT A LIVE REFERENCE. The recorded array is the caller's own copy, so writing
+       to it reaches neither the calendar-derived flag nor the next resolution assembled from it. */
+    acrossEarlyClose.provenance.earlyCloseSessions.push('2026-01-05');
+    assert.deepEqual([...earlyCloseSessionsIn(calendar, ['2026-11-25', '2026-11-27'])], ['2026-11-27'], 'a caller write does not move the calendar-derived flag');
+    assert.deepEqual(provenanceSpanning('2026-11-25', '2026-11-27').provenance.earlyCloseSessions, ['2026-11-27'], 'nor the next resolution built from the same calendar');
+
+    /* THE BAR-TO-SESSION MAPPING over a real committed series. Acceptance rests on exact
+       `regular.startUtc` equality, so a bar stamped at any other instant cannot map. */
+    const bars = JSON.parse(readFileSync(path.join(REPO_ROOT, 'data', 'bars', 'SPY.json'), 'utf8'));
+    let mapped = 0;
+    for (const row of bars.rows) {
+        const utcDate = new Date(row.t).toISOString().slice(0, 10);
+        if (utcDate < calendar.coverageStart || utcDate > calendar.coverageEnd) continue;
+        const session = sessionDateForEpoch(calendar, row.t);
+        assert.equal(session.ok, true, `the committed bar at ${utcDate} must map to a session`);
+        assert.equal(session.tradingDate, utcDate, 'and to its own UTC calendar date');
+        mapped += 1;
+    }
+    assert.equal(mapped > 0, true, 'the committed series must carry in-window bars for this to mean anything');
+
+    const openOf = (date) => Date.parse(calendar.rows.find((row) => row.tradingDate === date).regular.startUtc);
+    assertRowRefusal(
+        sessionDateForEpoch(calendar, openOf('2026-01-05') + 1),
+        { code: SESSION_PREDICATE_CODE, reason: 'session-open-mismatch', field: 'observation.t' },
+        'one millisecond past the regular open',
+    );
+    assertRowRefusal(
+        sessionDateForEpoch(calendar, Date.parse('2026-01-03T14:30:00.000Z')),
+        { code: SESSION_PREDICATE_CODE, reason: 'not-a-trading-session', field: 'observation.t' },
+        'a weekend instant at the usual open time',
+    );
+});
+
+test('T-04-F2 (increment 1): RTR-CALENDAR-COVERAGE refuses past the committed window and extrapolates nothing', () => {
+    const calendar = loadCalendar(REPO_ROOT);
+    const sessions = sessionsBy(calendar, SESSION_PREDICATE_KEY).tradingDates;
+    const lastSession = sessions[sessions.length - 1];
+
+    /* THE REASON IS THE SHIPPED ONE. A locally-invented reason would be rejected by
+       `buildResolution` against every closure event, so membership is asserted, not assumed. */
+    assert.equal(claims.RESOLVER_NOT_EVALUABLE_REASONS.includes(CALENDAR_COVERAGE_REASON), true, 'the coverage reason is a shipped resolver reason');
+
+    const beyond = advanceSessions(calendar, lastSession, 1);
+    assertRowRefusal(beyond, { code: CALENDAR_COVERAGE_CODE, reason: CALENDAR_COVERAGE_REASON, field: 'resolutionDate' }, 'one session past the last');
+    assert.equal(Object.prototype.hasOwnProperty.call(beyond, 'tradingDate'), false, 'and no date is extrapolated past the window');
+
+    /* THE OVERRUN IS PAIRED WITH A HORIZON THAT FITS. Without the pair, an implementation that
+       refused every multi-session horizon would pass this row. */
+    const fifthFromLast = sessions[sessions.length - 5];
+    assert.equal(advanceSessions(calendar, fifthFromLast, 4).tradingDate, lastSession, 'a four-session horizon that fits resolves');
+    assertRowRefusal(
+        advanceSessions(calendar, fifthFromLast, 5),
+        { code: CALENDAR_COVERAGE_CODE, reason: CALENDAR_COVERAGE_REASON, field: 'resolutionDate' },
+        'one session too far',
+    );
+
+    /* OUTSIDE THE WINDOW ON EITHER SIDE, distinguished by its FIELD: the sessions between an
+       out-of-window start and the window are unknown rather than absent, which is a different
+       fact from a horizon that simply overran the end. */
+    for (const start of [shiftDays(calendar.coverageEnd, 1), shiftDays(calendar.coverageStart, -1)]) {
+        assertRowRefusal(
+            advanceSessions(calendar, start, 1),
+            { code: CALENDAR_COVERAGE_CODE, reason: CALENDAR_COVERAGE_REASON, field: 'fromDate' },
+            `starting from ${start}`,
+        );
+    }
+
+    /* AN UNCOVERED OBSERVATION REFUSES AS COVERAGE, not as a session-predicate failure: a bar
+       the calendar does not cover is a different fact from one stamped at a non-open instant. */
+    assertRowRefusal(
+        sessionDateForEpoch(calendar, Date.parse(`${shiftDays(calendar.coverageEnd, 1)}T14:30:00.000Z`)),
+        { code: CALENDAR_COVERAGE_CODE, reason: CALENDAR_COVERAGE_REASON, field: 'observation.t' },
+        'an observation past coverageEnd',
+    );
+
+    /* A MALFORMED CALENDAR THROWS instead of closing a claim not-evaluable. Scoring around a
+       broken committed substrate would report a claim as unscoreable when the defect is ours. */
+    const shuffled = structuredClone(calendar);
+    [shuffled.rows[10], shuffled.rows[11]] = [shuffled.rows[11], shuffled.rows[10]];
+    assert.throws(() => readCalendar(JSON.stringify(shuffled)), /not strictly ascending/, 'out-of-order rows are a substrate defect');
+    assert.throws(
+        () => readCalendar(JSON.stringify({ ...calendar, contractVersion: 'xnys-calendar/v2' })),
+        /contractVersion/,
+        'an unknown contract version is a substrate defect',
+    );
+});
+
+/* ── Scope 04, increment 3 ────────────────────────────────────────────────────────────────
+   `withdrawn` is a source-of-truth outcome the resolver must never EMIT: it is the residue of an
+   operator withdrawal, never a verdict scoring arrives at. The temptation it guards against is
+   specific — a claim about to score badly being quietly re-labelled as one that was pulled — so
+   the row asserts unreachability STRUCTURALLY over the whole emission surface rather than by
+   sampling inputs, which could only ever prove that the paths someone happened to try were clean. */
+
+const WITHDRAWN = 'withdrawn';
+
+/** The resolver's own source. Reading it as TEXT is the only way to assert what it does NOT say. */
+function resolverSourceText() {
+    return readFileSync(path.join(REPO_ROOT, 'scripts', 'brief-resolve-outcomes.mjs'), 'utf8');
+}
+
+/**
+ * Comments removed, so prose is legitimate BY CONSTRUCTION rather than by exemption. The line-
+ * comment rule skips a `//` preceded by `:` so a URL inside a string cannot truncate the line and
+ * hide an emission that follows it on the same line.
+ */
+function codeWithoutComments(source) {
+    return source.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/gm, '$1 ');
+}
+
+/* A quoted `withdrawn` in CODE is an emission unless it sits on the excluded side of a negated
+   comparison or a negated membership test — `event !== 'withdrawn'` and `!admits.includes(...)`
+   are the two shapes a correct implementation legitimately uses to keep the residue out. */
+const WITHDRAWN_LITERAL = /(['"`])withdrawn\1/g;
+const EXCLUDES_WITHDRAWN = /(?:!==?\s*|![\w.$]*(?:includes|has|indexOf)\(\s*)$/;
+
+function withdrawnEmissions(source) {
+    const code = codeWithoutComments(source);
+    return [...code.matchAll(WITHDRAWN_LITERAL)]
+        .filter((match) => !EXCLUDES_WITHDRAWN.test(code.slice(0, match.index)))
+        .map((match) => code.slice(Math.max(0, match.index - 48), match.index + match[0].length).trim());
+}
+
+test('T-04-F3: `withdrawn` is unreachable from every resolver path — the residue no class admits', () => {
+    /* THE RESIDUE IS REAL. `withdrawn` is a member of the 002-owned closure vocabulary, so its
+       absence below is a genuine EXCLUSION rather than a name that never existed — without this
+       the whole row would pass against a typo. */
+    const vocabulary = closureVocabulary();
+    assert.equal(vocabulary.includes(WITHDRAWN), true, 'withdrawn is a shipped closure event, not an invented one');
+
+    /* EVERY CLOSURE EVENT THE RESOLVER CAN EMIT, enumerated from the two exports rather than
+       sampled. Their union is the whole emission surface: `resolutionAxesFor` measures a
+       MEASURED_CLOSURE_EVENTS member and looks up a DETERMINED_CLOSURE_CLASS one, and refuses
+       anything in neither — so an event absent from both cannot leave the resolver at all. */
+    const emittable = [...MEASURED_CLOSURE_EVENTS, ...Object.keys(DETERMINED_CLOSURE_CLASS)].sort();
+    assert.equal(MEASURED_CLOSURE_EVENTS.includes(WITHDRAWN), false, 'withdrawn is not a measured closure event');
+    assert.equal(
+        Object.prototype.hasOwnProperty.call(DETERMINED_CLOSURE_CLASS, WITHDRAWN),
+        false,
+        'withdrawn determines no outcome class',
+    );
+    assert.equal(Object.values(DETERMINED_CLOSURE_CLASS).includes(WITHDRAWN), false, 'and is no class a closure lands in');
+    assert.equal(emittable.includes(WITHDRAWN), false, 'so it is outside the whole emission surface');
+    assert.deepEqual(
+        vocabulary.filter((event) => !emittable.includes(event)),
+        [WITHDRAWN],
+        'withdrawn is EXACTLY the residue — the one vocabulary member no outcome class admits',
+    );
+
+    /* AND IT IS NOT AN OUTCOME CLASS EITHER. A withdrawal is a lifecycle state, still counted in
+       the partition, which is what stops "never emitted" from meaning "quietly dropped". */
+    assert.equal(claims.OUTCOME_CLASSES.includes(WITHDRAWN), false, 'withdrawn is no outcome class');
+    assert.equal(claims.NON_CLASS_PARTITION_BUCKETS.includes(WITHDRAWN), true, 'it is a counted lifecycle bucket');
+
+    /* THE SOURCE SCAN. The resolver names `withdrawn` once, in prose; comment-stripping removes
+       that occurrence entirely, which is asserted directly so the empty emission list below is
+       attributable to the stripper doing its job rather than to the token being absent outright. */
+    const source = resolverSourceText();
+    assert.equal(source.includes(WITHDRAWN), true, 'the resolver does discuss the residue in prose');
+    assert.equal(codeWithoutComments(source).includes(WITHDRAWN), false, 'and only in prose — never in code');
+    assert.deepEqual(withdrawnEmissions(source), [], 'no authored withdrawn emission anywhere in the resolver');
+
+    /* THE SCANNER IS NON-VACUOUS, in BOTH directions. Over a synthetic source it must flag the
+       assignment and must NOT flag the prose or the exclusion — a scanner that returned `[]` for
+       everything, or flagged every mention, would have passed the assertion above either way. */
+    const synthetic = [
+        '/* `withdrawn` is the residue no class admits — prose, and legitimate. */',
+        "const admitted = vocabulary.filter((event) => event !== 'withdrawn');",
+        "if (!admitted.includes('withdrawn')) return { ok: true, admitted };",
+        "return { ok: true, closureEventType, outcomeClass: 'withdrawn' };",
+    ].join('\n');
+    const flagged = withdrawnEmissions(synthetic);
+    assert.equal(flagged.length, 1, `the scanner must flag exactly the assignment, got ${JSON.stringify(flagged)}`);
+    assert.equal(flagged[0].includes("outcomeClass: 'withdrawn'"), true, 'and it must be the assignment it flagged');
+
+    /* THE BEHAVIOURAL HALF. A claim scoring clearly NEGATIVE must still score negative: the
+       verdict is the module's own, taken from `classifyOutcome`, so this row asserts what the
+       resolver produced rather than restating a class it expected. */
+    const { claim } = mintEvaluable('evaluable-instrument-add');
+    const band = claims.flatBandFor(claim);
+    assert.equal(band.ok, true, `the fixture claim must carry a usable band: ${JSON.stringify(band.error)}`);
+
+    const clearlyNegative = -band.flatBand * 9;
+    const classified = claims.classifyOutcome(clearlyNegative, claim);
+    assert.equal(classified.ok, true, `classifyOutcome refused: ${JSON.stringify(classified.error)}`);
+    assert.equal(classified.outcomeClass, 'loss', 'the module — not this row — calls a large negative a loss');
+    assert.equal(claims.DIRECTIONAL_OUTCOME_CLASSES.includes(classified.outcomeClass), true, 'and counts it in the denominator');
+
+    for (const closureEventType of MEASURED_CLOSURE_EVENTS) {
+        const axes = resolutionAxesFor(claim, closureEventType, { ok: true, outcomeValue: clearlyNegative });
+        assert.equal(axes.ok, true, `${closureEventType}: a measured closure over a real value must resolve`);
+        assert.equal(axes.outcomeClass, classified.outcomeClass, `${closureEventType}: the bad score stays a loss`);
+        assert.notEqual(axes.outcomeClass, WITHDRAWN, `${closureEventType}: a bad score is never re-labelled a withdrawal`);
+        assert.equal(axes.closureEventType, closureEventType, `${closureEventType}: and the closure axis survives intact`);
+    }
+
+    /* The determined half of the same surface, over the same negative outcome: neither axis of a
+       resolution the resolver builds can carry the residue, whichever event fired. */
+    for (const [closureEventType, outcomeClass] of Object.entries(DETERMINED_CLOSURE_CLASS)) {
+        const axes = resolutionAxesFor(claim, closureEventType, { ok: true, outcomeValue: clearlyNegative });
+        assert.equal(axes.ok, true, `${closureEventType}: a determined closure must resolve`);
+        assert.equal(axes.outcomeClass, outcomeClass, `${closureEventType}: its single admitting class IS its class`);
+        assert.notEqual(axes.outcomeClass, WITHDRAWN, `${closureEventType}: and never the residue`);
+        assert.equal(axes.outcomeValue, null, `${closureEventType}: a determined class carries no magnitude`);
+    }
+
+    /* AND ASKED FOR IT DIRECTLY, THE RESOLVER REFUSES — before a record exists, rather than
+       building one an append-only store would then be stuck with. */
+    assertRowRefusal(
+        resolutionAxesFor(claim, WITHDRAWN, { ok: true, outcomeValue: clearlyNegative }),
+        {
+            code: claims.CONTRACT_VIOLATION_CODE,
+            reason: 'closure-event-carries-no-outcome-class',
+            field: 'closureEventType',
+        },
+        'withdrawn supplied as a closure event',
+    );
+});
+
+/* ── Scope 04, increment 5 ────────────────────────────────────────────────────────────────
+   The data-quality gate. `fetch-bars` records three DIFFERENT facts about a session and the
+   resolver owes each a different answer: a zero-observed session did not trade and cannot be
+   scored, while a reconstructed or a thin one DID trade and must be measured — recorded, not
+   discarded, because refusing a real price for being an imperfect one silently drops outcomes.
+
+   The row that carries the design is the OUT-OF-WINDOW one. The committed arrays are file-level
+   and span a symbol's whole history, so the tempting implementation — "does this file list a
+   zero-observed session?" — passes every other assertion here while refusing every claim on any
+   symbol that ever had one bad session. Only a case whose bad session sits OUTSIDE the measured
+   window can tell the two implementations apart. */
+
+const BARS_FIXTURE_DIR = path.join(REPO_ROOT, 'tests', 'fixtures', 'recommendation-track-record', 'bars');
+const QUALITY_ENTRY_SESSION = '2026-07-28';
+const QUALITY_RESOLUTION_SESSION = '2026-07-29';
+const BEFORE_THE_WINDOW = '2026-01-05';
+
+/** The synthetic two-session series, rewritten with the data-quality arrays one case needs. */
+function qualityBars(quality) {
+    const source = JSON.parse(readFileSync(path.join(BARS_FIXTURE_DIR, 'DVG.json'), 'utf8'));
+    return readBars(JSON.stringify({ ...source, ...quality }));
+}
+
+/** Keyed by `seriesRef` exactly as `subjectReturn` reads them, over the fixture's own window. */
+function qualityFences(quality) {
+    return new Map([[
+        claims.seriesRefFor('DVG'),
+        fenceObservations(loadCalendar(REPO_ROOT), qualityBars(quality), QUALITY_RESOLUTION_SESSION),
+    ]]);
+}
+
+function qualityClaim() {
+    const fixture = structuredClone(loadClaimFixture('evaluable-instrument-add'));
+    fixture.input.action.claim.resolvesTo = ['DVG'];
+    fixture.input.action.claim.weighting = 'primary-only';
+    fixture.input.action.claim.priceBasis = 'raw-close';
+    fixture.input.binding.entryDate = QUALITY_ENTRY_SESSION;
+    fixture.input.binding.resolutionDate = QUALITY_RESOLUTION_SESSION;
+    const result = claims.mintClaim(mintInputFrom(fixture, { committedSeries: ['DVG'] }));
+    assertEvaluable(result, 'synthetic DVG data-quality claim');
+    return result.claim;
+}
+
+test('T-04-F4: the data-quality gate refuses only zero-observed sessions, records the degraded ones, and is scoped to the measured window', () => {
+    const calendar = loadCalendar(REPO_ROOT);
+    const claim = qualityClaim();
+    const resolve = (quality) => outcomeValueFor(claim, qualityFences(quality));
+
+    /* THE REASON IS THE SHIPPED ONE, and it is the one the vocabulary has always carried with
+       nothing to raise it — so this row wires an existing name rather than inventing one. */
+    assert.equal(claims.RESOLVER_NOT_EVALUABLE_REASONS.includes(ZERO_OBSERVED_REASON), true, 'the gate reason is a shipped resolver reason');
+
+    /* THE CONTROL. A clean window scores, so every refusal below is attributable to the fact
+       under test rather than to a resolver that refuses this fixture whatever it is handed. */
+    const clean = resolve({});
+    assert.equal(clean.ok, true, `a clean window must score: ${JSON.stringify(clean.error ?? clean.closure)}`);
+    assert.equal(clean.subjectReturn, (110 / 100 - 1) * 100, 'the fixture rises 10% on raw-close');
+
+    /* ZERO-OBSERVED IN-WINDOW CLOSES. Nothing traded, so there is no return to compute — and it
+       is a CLOSURE about the claim, not an `RTR-*` refusal about our substrate. */
+    for (const session of [QUALITY_ENTRY_SESSION, QUALITY_RESOLUTION_SESSION]) {
+        const gated = resolve({ zeroObservedSessions: [session] });
+        assert.equal(gated.ok, false, `${session}: a zero-observed session in the window must not score`);
+        assert.equal(gated.error, undefined, `${session}: it is a fact about the claim, not a substrate refusal`);
+        assert.equal(gated.closure.closureEventType, 'not-evaluable', `${session}: closes not-evaluable`);
+        assert.equal(gated.closure.reasonCode, ZERO_OBSERVED_REASON, `${session}: on the shipped reason`);
+        assert.equal(gated.closure.field.endsWith(session), true, `${session}: naming the session that did not trade`);
+    }
+
+    /* THE SCOPING ROW. The same bad session dated BEFORE the window does not block: the claim
+       measured 2026-07-28..2026-07-29 and says nothing about January. A file-global gate passes
+       every assertion above and fails exactly here. */
+    assert.equal(BEFORE_THE_WINDOW < QUALITY_ENTRY_SESSION, true, 'the out-of-window date really is outside the window');
+    const distant = resolve({ zeroObservedSessions: [BEFORE_THE_WINDOW] });
+    assert.equal(distant.ok, true, 'a zero-observed session outside the window must not block the claim');
+    assert.equal(distant.outcomeValue, clean.outcomeValue, 'and the measurement is the clean one, unchanged');
+
+    /* AND THE WINDOW COMES FROM THE FENCE THE VALUE PATH READS, so the two cannot disagree about
+       which sessions were consulted. Asked directly, the gate partitions one array by the window. */
+    const [fence] = [...qualityFences({ zeroObservedSessions: [BEFORE_THE_WINDOW, QUALITY_RESOLUTION_SESSION] }).values()];
+    assert.equal(fence.asOfDate, QUALITY_RESOLUTION_SESSION, 'the upper bound IS the fence');
+    assert.deepEqual(
+        [...dataQualitySessionsIn(fence, QUALITY_ENTRY_SESSION).zeroObservedSessions],
+        [QUALITY_RESOLUTION_SESSION],
+        'exactly the in-window member, from an array carrying both',
+    );
+
+    /* DEGRADED SESSIONS RESOLVE AND ARE RECORDED. Same number as the clean read — a repaired or
+       thin session is measured, never discarded — with the dates carried into hashed provenance
+       so a later reader can weigh the outcome against how it was sourced. */
+    for (const field of ['reconstructedSessions', 'thinObservedSessions']) {
+        const other = field === 'reconstructedSessions' ? 'thinObservedSessions' : 'reconstructedSessions';
+        const degraded = resolve({ [field]: [QUALITY_ENTRY_SESSION, BEFORE_THE_WINDOW] });
+        assert.equal(degraded.ok, true, `${field}: a degraded session traded, so it must still score`);
+        assert.equal(degraded.outcomeValue, clean.outcomeValue, `${field}: and score exactly what the clean read scored`);
+
+        const provenance = resolutionProvenanceFor(calendar, claim, degraded);
+        assert.equal(provenance.ok, true, `${field}: provenance must assemble`);
+        assert.deepEqual(provenance.provenance[field], [QUALITY_ENTRY_SESSION], `${field}: the in-window date is recorded, the out-of-window one is not`);
+        assert.deepEqual(provenance.provenance[other], [], `${field}: and the other degradation is not invented`);
+
+        /* ADDITIVE. The three fields increment 3 established are untouched beside the new pair. */
+        for (const existing of ['earlyCloseSessions', 'priceBasis', 'basisFingerprint']) {
+            assert.equal(Object.prototype.hasOwnProperty.call(provenance.provenance, existing), true, `${field}: ${existing} survives`);
+        }
+        assert.equal(provenance.provenance.basisFingerprint, degraded.basisFingerprint, `${field}: and the fingerprint is still the reused one`);
+    }
+
+    /* A GATED CLAIM RECORDS NO DEGRADED SESSIONS, because it measured nothing to qualify — an
+       empty list on a not-evaluable record would imply a clean read that never happened. */
+    const gatedProvenance = resolutionProvenanceFor(calendar, claim, resolve({ zeroObservedSessions: [QUALITY_ENTRY_SESSION] }));
+    assert.deepEqual(Object.keys(gatedProvenance.provenance), ['earlyCloseSessions'], 'an unmeasured claim carries no sourcing block');
+
+    /* THE COMMITTED INSTANCE. `EA` is a real series with a real zero-observed session, so the
+       gate is grounded in the tree rather than only in a fixture this row wrote for itself. */
+    const ea = readBars(readFileSync(path.join(REPO_ROOT, 'data', 'bars', 'EA.json'), 'utf8'));
+    assert.deepEqual([...ea.zeroObservedSessions], ['2026-08-10'], 'EA carries the committed zero-observed session');
+    const eaFence = fenceObservations(calendar, ea, '2026-08-11');
+    assert.deepEqual([...dataQualitySessionsIn(eaFence, '2026-08-03').zeroObservedSessions], ['2026-08-10'], 'a claim spanning it is gated');
+    assert.deepEqual([...dataQualitySessionsIn(eaFence, '2026-08-11').zeroObservedSessions], [], 'one entered after it is not');
+
+    /* ABSENT DEFAULTS TO EMPTY, and the default is load-bearing rather than theoretical: `NDX`
+       is a real committed series of 469 rows written before the fields existed. */
+    const rawNdx = JSON.parse(readFileSync(path.join(REPO_ROOT, 'data', 'bars', 'NDX.json'), 'utf8'));
+    const ndx = readBars(JSON.stringify(rawNdx));
+    for (const field of ['reconstructedSessions', 'thinObservedSessions', 'zeroObservedSessions']) {
+        assert.equal(Object.prototype.hasOwnProperty.call(rawNdx, field), false, `the committed NDX genuinely omits ${field}`);
+        assert.deepEqual(ndx[field], [], `${field} defaults to empty rather than refusing a legitimate older series`);
+    }
+
+    /* A PRESENT FIELD IS STILL VALIDATED STRICTLY, so defaulting is a concession to file age and
+       not a hole a malformed array walks through. */
+    assert.throws(() => qualityBars({ zeroObservedSessions: '2026-07-29' }), /zeroObservedSessions is not an array/, 'a bare string is a substrate defect');
+    assert.throws(() => qualityBars({ thinObservedSessions: ['2026-7-29'] }), /not a session date/, 'and so is a malformed date');
+});
+

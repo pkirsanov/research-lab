@@ -563,6 +563,13 @@ REASONS_OUTSIDE_DECLARED_SET=[]
 
 Exactly two keys on every path, all seven declared reasons reachable, and `REASONS_OUTSIDE_DECLARED_SET=[]`.
 
+**Cardinality at this run: seven — the set is now eight.** The transcript above is preserved verbatim as taken at
+`0e51d602f`, `MINT_REFUSALS_DECLARED(7)` included, because it is a record of that run and rewriting it would
+fabricate a measurement. `F-015-03-01` has since added `no-authored-flat-band` (field `magnitude.flatBand`), so the
+declared set is **eight** and a re-run would drive a ninth refusal path. What this evidence establishes — exactly
+two keys on every not-evaluable path and no reason firing outside the declared set — is a shape property and is
+unaffected by the cardinality. See [Refusal set re-baselined to eight](#refusal-set-re-baselined-to-eight).
+
 **Second conjunct — `lifecycleTerms`, re-swept at this `HEAD`.** [Sweep A](#sweep-a--lifecycleterms) closed this in
 a prior pass; it is re-run here rather than cited, because a tick resting on a sweep taken at a different commit is
 a tick resting on an assumption. Three sweeps, each once, unfiltered.
@@ -616,7 +623,7 @@ because a tally that moves from `10` to `17` in one pass would otherwise read as
 items. It ticked **one**.
 
 **2. The *Not ticked* table in [scope.md](scope.md)'s closure record still lists seven items that are ticked.**
-Six core items — the six vocabularies, the seven-reason set, `Number.isFinite`, *only new files*, *no statistic*,
+Six core items — the six vocabularies, the mint-refusal set, `Number.isFinite`, *only new files*, *no statistic*,
 and `thesisFamily`/P-015-03 — plus test row `T-01-C2` appear in **both** the *Ticked* and *Not ticked* tables. The
 closure refresh added them to *Ticked* without pruning *Not ticked*. Only this pass's own row is moved; the other
 six are outside this pass's mandate. **Route:** the artifact's owner, to prune the six stale rows.
@@ -682,9 +689,10 @@ fixtures including `violation-magnitude-sign-convention-one-char-off`, and it cl
 That assertion makes under-coverage impossible to pass silently: adding a vocabulary to the module without a
 fixture fails the row. `magnitude.signConvention` **is** covered, and the executed green row at
 [`#t-01-u6`](#t-01-u6) proves it. What is genuinely true is narrower and is a **description** defect, not a
-coverage one: the `T-01-U6` Test Plan row in [scope.md](scope.md) enumerates five vocabularies in its prose while
-the test it names probes six plus `MARKET_ACTIONS`. **Route:** `bubbles.plan`, to align the row's prose with the
-delivered assertion. It does not block the core item, whose own text names all six and whose evidence covers all
+coverage one: the `T-01-U6` Test Plan row in [scope.md](scope.md) enumerated five vocabularies in its prose while
+the test it names probes six plus `MARKET_ACTIONS`. **Route:** `bubbles.plan` — **discharged 2026-08-19**: the row
+was corrected to name all six closed vocabularies plus `MARKET_ACTIONS` and to quote this completeness assertion;
+see *Still open* item 3. It never blocked the core item, whose own text names all six and whose evidence covers all
 six.
 
 <a id="p-015-03-ruling"></a>
@@ -1321,10 +1329,17 @@ CMD5_EXIT=0
 
 A full mint pass re-asserts, end to end against the real `briefs/objects/claims/` layout, that re-minting identical
 terms is a byte-identical no-op, that a byte-changing write aborts with `RTR-PREDICATE-AMEND` leaving the on-disk
-bytes unchanged, that each of the seven mint-refusal reasons fires for its own trigger and only its own, and that an
-unmatched `deepLink` still **mints** with `citedToolId: null`. This row is permanent: a later scope that narrows the
-hashed-term list, softens the append-only store, drops a refusal, or reinstates `unresolvable-owning-tool` fails
-here.
+bytes unchanged, that each mint-refusal reason declared by `MINT_REFUSALS` fires for its own trigger and only its
+own, and that an unmatched `deepLink` still **mints** with `citedToolId: null`. This row is permanent: a later scope
+that narrows the hashed-term list, softens the append-only store, drops a refusal, or reinstates
+`unresolvable-owning-tool` fails here.
+
+**Cardinality at this run: seven; the set is eight since `F-015-03-01` (2026-08-20).** The row's assertion is
+`assert.deepEqual([...observed.keys()].sort(), [...claims.MINT_REFUSALS].sort(), …)` — derived from the module on
+both sides rather than pinned to a literal — so adding `no-authored-flat-band` (field `magnitude.flatBand`) moved
+the count **without editing this row**, and an eighth member arriving without a triggering fixture would have failed
+here rather than passing silently. That is the mechanism scope 03's ruling relied on when it routed the fix to
+scope 01. Re-baseline record: [Refusal set re-baselined to eight](#refusal-set-re-baselined-to-eight).
 
 <a id="t-01-r2"></a>
 
@@ -1810,7 +1825,7 @@ committed, and the tree is clean again at `HEAD`.
 
 | # | Family | Nature |
 |---|---|---|
-| 1 | `rlclaims.js` | New file. The contract shape, the six closed vocabularies, `claimHash`, the content-addressed write, and the closed seven-reason mint-refusal set. |
+| 1 | `rlclaims.js` | New file. The contract shape, the six closed vocabularies, `claimHash`, the content-addressed write, and the closed **eight**-reason mint-refusal set — seven as first delivered by this scope, re-baselined to eight on 2026-08-20 under `F-015-03-01`. |
 | 2 | `tests/recommendation-track-record.*` | New files — `support.mjs`, `unit.mjs`, `functional.mjs`, `canary.mjs`, `e2e.mjs`. Created here and **extended**, never rewritten, by scopes 02 – 10. |
 | 3 | `tests/fixtures/recommendation-track-record/**` | New inputs with their `*.expected.json` siblings, one rule violated per negative input. |
 | 4 | `briefs/objects/claims/**` | Written at runtime by the store under test; append-only, never rewritten and never garbage-collected. |
@@ -1825,6 +1840,86 @@ prefix-widening guard — `rlclaims.js.bak`. Also excluded and unopened: `rlcont
 `MARKET_ACTIONS` and `ACTION_DIRECTION`), the persisted `rldata.js` cache schema, the Market Action Center four-view
 composition, the three committed sibling validators, every counted registry (`tools.json` is **read** to resolve
 `citedToolId` and never written), and every committed `briefs/history/**` and `data/**` byte.
+
+---
+
+<a id="refusal-set-re-baselined-to-eight"></a>
+
+## Refusal set re-baselined to **eight** — `F-015-03-01`, recorded 2026-08-20
+
+**Claim Source:** `executed`, this session, for the cardinality measurement; the artifact edits it forces are
+recorded below with old → new for each.
+
+**What changed.** Routed defect **`F-015-03-01`** added an eighth member to the closed `MINT_REFUSALS` vocabulary in
+`rlclaims.js`: **`no-authored-flat-band`**, naming field **`magnitude.flatBand`**. A degenerate band — absent,
+`null`, `NaN`, `Infinity`, negative, or zero — previously coerced to `null` and reached scoring, where
+`|outcome| <= null` collapses to `<= 0` and makes **HC-7 vacuous** rather than strict. It now refuses at mint, on
+the not-evaluable path, exactly like the other seven members. The fix is scope-01-owned by ruling, not by
+convenience: see
+[`../03-resolved-flat-sentinel-and-resolution-record/report.md`](../03-resolved-flat-sentinel-and-resolution-record/report.md)
+→ *RULING — recorded 2026-08-20: the fix is a **scope 01 defect** (`F-015-03-01`)*, at commit `7198f22d8`, which
+placed it here because the freeze obligation is foundation-owned and only the mint can satisfy HC-6.
+
+**Measured, not asserted.** **Command:**
+
+```text
+$ node -e "const c=require('./rlclaims.js'); console.log(c.MINT_REFUSALS.length, JSON.stringify(c.MINT_REFUSALS));"
+8 ["non-semantic-subject","no-authored-subject","no-committed-series","no-authored-thesis-family","no-authored-horizon","no-authored-predicate","neutral-direction-no-magnitude","no-authored-flat-band"]
+```
+
+**Exit code:** `0`.
+
+**The property is unchanged; only the cardinality moved.** This is the whole point of the re-baseline and it is
+stated rather than left implied. The property this scope specified, tested and ticked is: *the mint-refusal set is
+**closed**, and **every** member names the field that caused it.* Both halves still hold. The set is still closed —
+`REASONS_OUTSIDE_DECLARED_SET=[]`, and the E2E row asserts membership against the module rather than a literal, so
+a reason outside the declared set cannot fire unnoticed. Every member still names its field — the new one names
+`magnitude.flatBand`, in the same `{ reason, field }` shape as the other seven. **Cardinality was never the property
+under test.** It appeared in the artifact text only as a convenient label for the set, and a label is what went
+stale.
+
+**Old → new, every occurrence.**
+
+| # | File · line (pre-edit) | Old | New |
+|---|---|---|---|
+| 1 | `scope.md` · Impl. Plan step 1 | *"one member of the closed **seven**-reason mint-refusal set"* | *"…closed **eight**-reason mint-refusal set"* |
+| 2 | `scope.md` · Impl. Plan step 8 heading | *"the closed mint-refusal reason set — **seven** reasons"* | *"— **eight** reasons"* |
+| 3 | `scope.md` · Impl. Plan step 8 enumeration | the set enumerated at **7**, ending `no-authored-predicate` | the eighth appended **in the same style** — `no-authored-flat-band` (`magnitude.flatBand` absent, `null`, non-finite, negative, or zero), with its HC-7 rationale |
+| 4 | `scope.md` · Test Plan row `T-01-R1` | *"each of the **seven** mint-refusal reasons still fires"* | *"each of the **eight**…"*, plus a note that the assertion deep-equals against `MINT_REFUSALS` rather than a literal |
+| 5 | `scope.md` · DoD core item (**ticked**) | *"The closed **seven**-reason mint-refusal set (7 names)"* | *"The closed **eight**-reason mint-refusal set (8 names)"* — `no-authored-flat-band` appended to the enumeration; **tick retained** |
+| 6 | `scope.md` · DoD test item (**ticked**) | *"all **seven** mint refusals"* | *"all **eight** mint refusals"*; **tick retained** |
+| 7 | `scope.md` · *Ticked — core items* table | *"**Seven**-reason refusal set, each naming its field"* | *"**Eight**-reason refusal set…"* + the derived-assertion note |
+| 8 | `scope.md` · *Not ticked* table | *"Core — **seven**-reason refusal set…"* / *"The **seven**-reason set and the per-trigger isolation…"* | *"**eight**-reason"* in both places; the row's standing, reason and owner are **otherwise unchanged** |
+| 9 | `report.md` · D1 field parity, re-measured | *"all **seven** declared reasons reachable"* | **left as written** — it describes a run at `0e51d602f`; a dated note was appended instead (below) |
+| 10 | `report.md` · Stale records item 2 | the set named by its then-cardinality (**7**) as an item **label** | *"the mint-refusal set"* — the item identity is unchanged; only the cardinality label was dropped so it cannot go stale again |
+| 11 | `report.md` · `T-01-R1` | *"each of the **seven** mint-refusal reasons fires"* | *"each mint-refusal reason declared by `MINT_REFUSALS` fires"* + a dated cardinality note |
+| 12 | `report.md` · Change Boundary, allowed-family table | *"the closed **seven**-reason mint-refusal set"* | *"the closed **eight**-reason…, seven as first delivered, re-baselined 2026-08-20"* |
+
+**What this re-baseline does *not* do — no tick is moved.** Items 5 and 6 above stay **`[x]`**. Their substance was
+verified and still holds; unticking them would assert that a verified property had failed, and nothing failed. The
+`17 of 17` core-item tally is likewise unchanged: this pass added, removed, ticked and unticked **zero** items. It
+edited prose that had become false about a count, which is a different act from moving evidence, and it is recorded
+separately here so the two are never conflated.
+
+**Verbatim evidence was not rewritten.** The transcript under
+[D1 field parity, re-measured](#d1-field-parity-remeasured) still prints `MINT_REFUSALS_DECLARED(7)` and still lists
+seven observed reasons, because that is what the run at `0e51d602f` produced. Editing a captured transcript to match
+today's module would fabricate a measurement that was never taken. It carries a dated note instead.
+
+**Knock-on staleness, disclosed rather than repaired.** Two counts elsewhere in these artifacts are downstream of
+the refusal set and are now **stale in the same way**, and they are named here rather than silently adjusted,
+because no measurement supporting a new value has been taken:
+
+1. *"all **eight** refusal paths were driven"* — `report.md` → D1 field parity (twice) and `scope.md` → *Ticked —
+   core items* / *R21 closed*. Eight **paths**, not eight reasons: `non-semantic-subject` fires on two fixtures.
+   With an eighth reason a re-run would drive **nine** paths. Changing the figure without re-running the
+   introspection would be a fabricated measurement, so it is left at `8` with this note attached.
+2. *"**eight** of the **nine** mint-reason branches are pure functions of hashed terms"* — `scope.md` → *R20*,
+   quoting `design.md`. That sentence quotes a design document this scope does not own; it needs the design owner's
+   re-derivation, not an edit here.
+
+**Owner for the knock-on.** `bubbles.implement` for item 1 (re-run the `notEvaluable`-shape introspection at the
+current `HEAD` and record the new path count); the `design.md` owner for item 2.
 
 ---
 
@@ -1850,11 +1945,20 @@ across `rlclaims.js`, all five `tests/recommendation-track-record.*.mjs` files a
 the suite is unchanged at `7 pass, 0 fail`
 ([Suite invocation F](#suite-invocation-f--unit-after-the-comment-reword)). **This item is closed.**
 
-**3. The `T-01-U6` Test Plan row under-describes the assertion it names.** `executed`. The row's prose enumerates
-five vocabularies; the delivered test probes **six plus `MARKET_ACTIONS`**, with a completeness assertion that
-makes under-coverage impossible to pass silently. This is a description defect in plan-owned prose, not a coverage
-gap — the dependent core item is fully evidenced and is ticked. Detail and the quoted assertion are at
-[Vocabulary constants](#vocabulary-constants-are-frozen-and-call-sites-reference-them). **Route:** `bubbles.plan`.
+**3. The `T-01-U6` Test Plan row under-description is RESOLVED.** `executed`, 2026-08-19. The route to
+`bubbles.plan` was acted on and the row in [scope.md](scope.md) was corrected. **Old wording:** *"Each closed
+vocabulary refuses a value one character off a legal member (`subject.kind`, `predicate.kind`,
+`predicate.comparator`, `horizon.kind`, `magnitude.unit`), so a `startsWith` or prefix check fails the row; and
+`actionFamily` outside `MARKET_ACTIONS` refuses."* — five vocabularies enumerated, `magnitude.signConvention`
+unnamed, and the completeness assertion unmentioned. **New wording:** the row now names all **six** closed
+vocabularies including `magnitude.signConvention`, states that `MARKET_ACTIONS` brings the probed total to
+**seven** across seven fixtures with `violation-magnitude-sign-convention-one-char-off` named, and quotes the
+closing completeness assertion that makes under-coverage impossible to pass silently. **The underlying coverage
+was never in doubt:** the delivered test probed all seven from the start, [`#t-01-u6`](#t-01-u6) is green, and the
+dependent core item was already evidenced and ticked. This edit changed **prose only** — no test, fixture or module
+byte moved — and `T-01-U6` was re-run against the unchanged suite immediately after the edit at `1 pass, 0 fail`,
+exit `0`. Detail and the quoted assertion remain at
+[Vocabulary constants](#vocabulary-constants-are-frozen-and-call-sites-reference-them). **This item is closed.**
 
 **4. The DoD count discrepancy is RESOLVED: the total is 33.** `executed`. The earlier entry recorded, as
 operator-reported diagnostic input the report neither confirmed nor disputed, that [scope.md](scope.md) carries 33
@@ -1923,7 +2027,7 @@ one holds. Three hold on evidence executed this session, one holds by prior reco
 | # | Conjunct | Verdict | Evidence |
 |---|---|---|---|
 | 1 | Zero warnings across `node --test` output and `node scripts/selftest.mjs` | **holds** — `executed` | [Suite invocation F](#suite-invocation-f--unit-after-the-comment-reword): `7 pass, 0 fail`, `skipped 0`, `todo 0`, exit `0`. [Suite invocation G](#suite-invocation-g--project-check-after-the-comment-reword): `2487 passed, 0 failed`, exit `0`, zero failure-shaped lines across the full 2824-line capture |
-| 2 | Zero issues deferred, skipped, or worked around | **DOES NOT HOLD** — `executed` | *Still open* carries two live entries: **3** (`T-01-U6` row under-describes → `bubbles.plan`) and **6** (`T-01-R2` Playwright half at `497 / 498` → Feature 012 owner, or `bubbles.plan` on the wording). Entry 6 is a genuine deferral in the gate's sense: the residual failure is routed to another owner, not repaired here |
+| 2 | Zero issues deferred, skipped, or worked around | **DOES NOT HOLD** — `executed` | *Still open* carries **one** live entry: **6** (`T-01-R2` Playwright half at `497 / 498` → Feature 012 owner, or `bubbles.plan` on the wording), a genuine deferral in the gate's sense — the residual failure is routed to another owner, not repaired here. Entry **3** (`T-01-U6` row under-describes → `bubbles.plan`) was **discharged 2026-08-19** by correcting the row's prose; it was a description defect, never a coverage gap, so its closure moves no test evidence and does not by itself rescue this conjunct |
 | 3 | Every negative test verified to fail when the behaviour it guards is reverted | **holds by prior record** — `not-run` | [Adversarial proof — completed (P23)](#adversarial-proof--completed-p23): six behaviour reversions across `T-01-F1`–`T-01-F3` and three derivation perturbations against `T-01-C2`, each detected, each applied in a disposable copy with a green control. Not re-executed here, and no mutation harness was created in this pass |
 | 4 | `spec.md` and `design.md` unmodified **by this scope** | **holds — but only on an authorship reading, and the distinction is load-bearing** — `executed` | See the conjunct-4 nuance below, then the change-set commands |
 | 5 | No other spec's artifacts touched | **holds** — `executed` | change-set commands below |

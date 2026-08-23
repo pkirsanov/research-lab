@@ -1,0 +1,35 @@
+{
+  "note": "Negative: `flatBand` is authored as 0. Zero is the adversarial value rather than an absent key — it is finite, it looks authored, and it passes every absence check, yet `resolved-flat` is `|outcomeValue| <= flatBand`, so a zero band makes the flat class unreachable and silently absorbs a genuinely flat outcome into `unresolved`. The band is frozen at PROPOSAL time (HC-6), so it is authored or the claim is not evaluable — never defaulted. Everything else is complete.",
+  "binding": {
+    "proposalRunId": "dist-2026-07-28-open-0001",
+    "proposalEventId": "sha256:9090909090909090909090909090909090909090909090909090909090909090",
+    "proposedAt": "2026-07-28T13:30:00.000Z",
+    "entryDate": "2026-07-28",
+    "entryBasis": "close",
+    "resolutionDate": "2026-07-31"
+  },
+  "action": {
+    "action": "trim",
+    "subject": "Fade the semis bounce into the 7/29 print — trim SOXX on strength",
+    "horizon": "swing",
+    "deepLink": "sector-research-lab.html",
+    "claim": {
+      "contractVersion": "brief-action-claim-input/v1",
+      "subjectKind": "instrument",
+      "resolvesTo": ["SOXX"],
+      "weighting": "primary-only",
+      "thesisFamily": "positioning-unwind",
+      "horizonKind": "multi-session",
+      "horizonSessions": 3,
+      "predicate": {
+        "kind": "directional",
+        "basis": "close",
+        "comparator": "lt",
+        "value": 0.0,
+        "reference": null
+      },
+      "flatBand": 0,
+      "priceBasis": "adjusted-close"
+    }
+  }
+}

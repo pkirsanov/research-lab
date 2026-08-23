@@ -83,6 +83,7 @@ hold, silently, would let a reader believe a need landed on a real trading day.
 **Command:** `node --test tests/portfolio-analytics.unit.mjs`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -136,6 +137,7 @@ same command.
 **Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-020 dated cash need records before and after collision capital" --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -159,6 +161,7 @@ moved.
 **Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-021 missing survival definition renders distributions without probability" --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -193,6 +196,7 @@ Reverted, back to GREEN.
 **Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 cash need timeline and path table preserve order and mobile canvas parity" --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -221,6 +225,7 @@ no label produces the three-field refusal, zero timeline rows, and
 **Command:** `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -245,6 +250,7 @@ Running 9 tests using 1 worker
 **Command:** `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
 
 **Exit Code:** 1
+**Claim Source:** executed
 
 **Output:**
 
@@ -275,6 +281,7 @@ guard caught a real omission rather than a formatting quibble.
 **Command:** `node scripts/selftest.mjs` and the node and browser suites
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -289,3 +296,9 @@ $ npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs 
 $ git diff --check
 (clean)
 ```
+
+<!-- bubbles:certifying-window-begin -->
+
+## Current Certifying Window
+
+The prior execution record is preserved above. Current status is governed by the canonical transition checks.

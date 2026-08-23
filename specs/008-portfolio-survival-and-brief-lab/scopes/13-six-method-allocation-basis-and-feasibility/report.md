@@ -96,6 +96,7 @@ it, and exactly what the copy scan forbids.
 **Command:** `node --test tests/portfolio-analytics.unit.mjs`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -137,6 +138,7 @@ Both reverted, both back to `# pass 63 # fail 0`.
 **Command:** `node --test tests/portfolio-allocation.functional.mjs`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -157,6 +159,7 @@ forbids this".
 **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-026 all six allocation methods share one frozen basis" --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -178,6 +181,7 @@ that was never considered.
 **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-027 allocation comparison presents tradeoffs and no universal winner" --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -211,6 +215,7 @@ Reverted.
 **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-029 conflicting constraints remain infeasible without relaxation" --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -232,6 +237,7 @@ checked from unchecked.
 **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 six allocation rows preserve ordered mobile canvas table parity and infeasible states" --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -254,6 +260,7 @@ exactly the rows where the mandate is being breached.
 **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -274,6 +281,7 @@ Running 5 tests using 1 worker
 **Command:** `node --test tests/portfolio-allocation.functional.mjs`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -338,6 +346,7 @@ occurrence of the structural class first recorded as F-08-CONFIG-BOUNDARY.
 **Command:** `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
 
 **Exit Code:** 1
+**Claim Source:** executed
 
 **Output:**
 
@@ -358,6 +367,7 @@ to a later scope.
 **Command:** `node scripts/selftest.mjs` and the node and browser suites
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -372,3 +382,9 @@ $ npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs 
 $ git diff --check
 (clean)
 ```
+
+<!-- bubbles:certifying-window-begin -->
+
+## Current Certifying Window
+
+The prior execution record is preserved above. Current status is governed by the canonical transition checks.

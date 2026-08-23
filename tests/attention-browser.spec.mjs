@@ -308,6 +308,41 @@ test.afterEach(() => {
     .toEqual([]);
 });
 
+/* ═══════════════ the shut card tells the reader it opens ═══════════════ */
+
+/* The card hides most of itself — the rationale that says WHY the reader is being interrupted,
+   plus the trigger, the invalidation and the expiry — behind a summary whose marker is suppressed
+   by list-style:none. A title attribute already said the card opens, but a tooltip needs a hover
+   a touch reader never makes. Behavioural, not spelling: this measures what a reader can SEE with
+   the card shut, and that the cue gets out of the way once it is open. */
+test('a shut decision card shows a visible cue naming what opening it reveals', async ({ page }) => {
+  test.setTimeout(90_000);
+  await openBrief(page);
+  await expect(page.locator('#decisionAttention details').first()).toBeAttached({ timeout: 30000 });
+
+  const read = await page.evaluate(() => {
+    const card = document.querySelector('#decisionAttention details');
+    const hint = card.querySelector('.attn-hint');
+    const body = card.querySelector('.attn-body');
+    const shutVisible = hint ? getComputedStyle(hint).display !== 'none' : false;
+    card.setAttribute('open', '');
+    const openVisible = hint ? getComputedStyle(hint).display !== 'none' : false;
+    card.removeAttribute('open');
+    return {
+      shutVisible,
+      openVisible,
+      hintText: hint ? hint.textContent.trim() : '',
+      hiddenChars: body ? body.textContent.length : 0
+    };
+  });
+
+  expect(read.hiddenChars, 'the card hides a body substantial enough to be worth announcing').toBeGreaterThan(200);
+  expect(read.shutVisible, 'the cue is visible while the card is shut').toBe(true);
+  expect(read.hintText, "the cue carries the page's own disclosure glyph").toContain('⌄');
+  expect(read.hintText.length, 'the cue says what opening reveals rather than only "more"').toBeGreaterThan(20);
+  expect(read.openVisible, 'the cue gets out of the way once the card is open').toBe(false);
+});
+
 /* ═══════════════ TP-03-01 — SCN-017-028 tier + record from committed data ═══════════════ */
 
 test('decision attention tier renders items and record from committed data', async ({ page }) => {
@@ -1408,3 +1443,156 @@ test('SCN-017-065 An item links to its owning tool and a hostile link never beco
     'a hostile deep link must never execute').toBe(false);
   expect(pageErrors, `browser errors during owner-link render: ${pageErrors.join(' | ')}`).toEqual([]);
 });
+
+/* SCN-BUG009-OBSERVATION-AGE — DISC-009-004, in the browser.
+   The page's market data refreshes several times a day; the decision list is recomposed only
+   when the narrative is. So a published reading can predate the numbers shown beside it, and
+   until now nothing told the reader. Recomposing on the data path was rejected (it breaches the
+   R-5 boundary) and dropping the item was rejected (a decision would vanish mid-session), so the
+   contract is to LABEL it. Both directions are asserted here against the SAME committed asOf:
+   a reading older than the page data must say so, and one taken from it must add nothing —
+   otherwise the label is noise on every card and stops carrying information. */
+const COMMITTED_AS_OF = PAYLOAD.asOf;
+
+test('a decision older than the page data says so, and one taken from it stays silent', async ({ page }) => {
+  test.setTimeout(90_000);
+  await clearProviderAccess(page);
+  await openBrief(page);
+
+  expect(typeof COMMITTED_AS_OF, 'the committed payload states the instant its data was taken')
+    .toBe('string');
+
+  const staleInstant = new Date(Date.parse(COMMITTED_AS_OF) - 3 * 60 * 60 * 1000)
+    .toISOString().replace(/\.(\d{3})\d*Z$/, '.$1Z');
+
+  await renderFixture(page, {
+    nowUtc: FIXTURE_NOW,
+    generatedAt: FIXTURE_NOW,
+    attention: [fixtureItem({ id: 'attn-observation-age-stale', expiry: LIVE_EXPIRY, observedAt: staleInstant })]
+  });
+  const staleNote = page.locator('#decisionAttention [data-attn-field="observation-age"]');
+  await expect(staleNote, 'a reading taken before the page data is labelled rather than shown as current')
+    .toHaveCount(1);
+  await expect(staleNote).toContainText(staleInstant);
+  await expect(staleNote).toContainText(COMMITTED_AS_OF);
+
+  await renderFixture(page, {
+    nowUtc: FIXTURE_NOW,
+    generatedAt: FIXTURE_NOW,
+    attention: [fixtureItem({ id: 'attn-observation-age-current', expiry: LIVE_EXPIRY, observedAt: COMMITTED_AS_OF })]
+  });
+  await expect(page.locator('#decisionAttention [data-attn-field="observation-age"]'),
+    'a reading taken from the page data adds no age label, so the label keeps meaning something')
+    .toHaveCount(0);
+});
+
+/* SCN-BUG014-FLOOR-ZERO-HONOURED — the 0-coercion defect, pinned by BEHAVIOUR.
+
+   The first attempt at this was a source-text assertion that `rlbrief.js` holds no
+   `thresholds.minimumActionConfidence || 55`. A simplify pass defeated it in one move:
+   reintroducing the identical defect spelled `var f = thresholds.minimumActionConfidence;
+   var actionFloor = f || 55;` left the whole suite green. I reproduced that — 3221 passed,
+   0 failed with the bug present. A pin that guards spelling guards nothing.
+
+   This drives the real coercion site instead. renderNextSession applies the floor only in
+   its FALLBACK path, when payload.nextSession.actions is absent and it must derive actions
+   from recommendations, so the fixture omits nextSession deliberately. With a configured
+   floor of 0, an action at confidence 10 must render; under `|| 55` the 0 becomes 55 and
+   the action disappears. */
+test('a configured action floor of zero is honoured rather than swallowed by a falsy default', async ({ page }) => {
+  await openBrief(page);
+  const rendered = await page.evaluate(() => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const recs = [{
+      instrument: 'ZZTEST low-conviction probe',
+      direction: 'add',
+      horizon: 'swing',
+      confidence: 10,
+      rationale: 'probe',
+      structuralAnchor: 'probe anchor',
+      trigger: 'probe trigger',
+      invalidation: 'probe invalidation',
+      deepLink: ''
+    }];
+    const cfg = { thresholds: { minimumActionConfidence: 0, nextSessionMaxActions: 5 } };
+    window.RLBRIEF.renderNextSession(host, null, recs, cfg, { nextSessionDate: '2026-08-21' });
+    const text = host.textContent || '';
+    host.remove();
+    return { showsProbe: text.indexOf('ZZTEST') !== -1, clearedBar: text.indexOf('clears the immediate-action bar') !== -1 };
+  });
+  expect(rendered.showsProbe,
+    'a confidence-10 action clears a configured floor of 0, so a deliberate "no floor" is not replaced by the 55 fallback')
+    .toBe(true);
+  expect(rendered.clearedBar, 'the cockpit did not fall through to its no-action copy').toBe(false);
+});
+
+/* SCN-BUG009-FIELD-ESCAPES — the property that makes the whole tier safe, pinned.
+
+   A security pass proved every rendered field reaches the DOM through `attnField`, whose sink
+   is `node.textContent = text`, and that a hostile payload string is therefore serialised
+   rather than parsed. That property was asserted NOWHERE: a future refactor of attnField to
+   innerHTML would keep every existing test green while turning an LLM-authored payload into
+   an injection surface. `rationale` is the right probe field because it has no format
+   validator at all, unlike observedAt which the ISO-instant check would reject first. */
+test('a hostile payload string is rendered as text, not parsed as markup', async ({ page }) => {
+  await openBrief(page);
+  const hostile = '<img id="rl-tier-xss-probe" src=x onerror="globalThis.__rlTierInjected=true">';
+  await renderFixture(page, {
+    nowUtc: FIXTURE_NOW,
+    generatedAt: FIXTURE_NOW,
+    attention: [fixtureItem({ id: 'attn-escaping-probe', expiry: LIVE_EXPIRY, rationale: hostile })]
+  });
+  await expect(page.locator('#rl-tier-xss-probe'),
+    'markup inside a payload string must never become an element in the rendered tier')
+    .toHaveCount(0);
+  const injected = await page.evaluate(() => globalThis.__rlTierInjected === true);
+  expect(injected, 'no handler inside a payload string may execute').toBe(false);
+  const shown = await page.evaluate((needle) => {
+    const nodes = Array.from(document.querySelectorAll('#decisionAttention [data-attn-field]'));
+    const hit = nodes.find((node) => node.textContent.indexOf(needle) !== -1);
+    return hit ? { text: hit.textContent.indexOf(needle) !== -1, children: hit.children.length } : null;
+  }, hostile);
+  expect(shown, 'the hostile string is rendered somewhere in the tier, so this test is not vacuous')
+    .not.toBeNull();
+  expect(shown.text, 'the hostile string appears verbatim as text content').toBe(true);
+  expect(shown.children, 'the field that carries it holds no child elements').toBe(0);
+});
+
+/* SCN-BUG014-GATE-HONOURS-FLOOR — BUG-014 Scope 2, in the browser.
+   minimumActionConfidence moved 55 -> 50 to give a tactical action a band above the floor
+   instead of the single admissible value the cap collision forced on all 34 committed runs.
+
+   Where the floor actually bites was established by probe, not assumed. renderNextSession
+   applies it only in its FALLBACK path: when payload.nextSession.actions exists it renders
+   those verbatim, so the floor is enforced at PUBLISH (validate-brief-payload refuses an action
+   below it) rather than at render. This test therefore asserts agreement between the committed
+   config and the committed payload: raising the floor without recomposing would leave the page
+   rendering actions the current config would refuse, silently. Proven falsifiable — with the
+   floor temporarily at 60 this scenario fails naming 7 rendered actions beneath it. */
+const ACTION_FLOOR = JSON.parse(
+  readFileSync(new URL('../market-brief.config.json', import.meta.url), 'utf8')
+).thresholds.minimumActionConfidence;
+
+test('every next-session action the cockpit renders clears the committed confidence floor', async ({ page }) => {
+  test.setTimeout(90_000);
+  await clearProviderAccess(page);
+  await openBrief(page);
+
+  expect(Number.isFinite(ACTION_FLOOR), 'the committed config states an action confidence floor')
+    .toBe(true);
+
+  const rendered = await page.locator('#nextSession .pill').allTextContents();
+  const confidences = rendered
+    .map((text) => /^conf\s+(\d+)/.exec(text.trim()))
+    .filter(Boolean)
+    .map((match) => Number(match[1]));
+
+  expect(confidences.length,
+    'the cockpit renders at least one next-session action carrying a confidence, so this invariant is not vacuous')
+    .toBeGreaterThan(0);
+  expect(confidences.filter((value) => value < ACTION_FLOOR),
+    `every rendered action clears the committed floor of ${ACTION_FLOOR}`)
+    .toEqual([]);
+});
+

@@ -80,6 +80,7 @@ window straight back into the result.
 
 **Command:** `node --test tests/portfolio-analytics.unit.mjs`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -95,6 +96,7 @@ result; `scoredFolds` moved 1 -> 2 and the row went RED:
 **Command:** `node --test tests/portfolio-analytics.unit.mjs` (with the fold
 loop starting at 0)
 **Exit Code:** 1
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -117,6 +119,7 @@ trusting a green run is the correction, and it is now the habit.
 
 **Command:** `node --test tests/portfolio-allocation.functional.mjs`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -137,6 +140,7 @@ proves nothing about the record that shipped.
 
 **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-008-031 dossier separates" --reporter=list`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -151,6 +155,7 @@ that costs must strictly reduce the figure:
 
 **Command:** same command, cost-adjusted row bound to `walkForwardReturn`
 **Exit Code:** 1
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -164,6 +169,7 @@ that costs must strictly reduce the figure:
 
 **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-008-032 efficiency claim" --reporter=list`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -181,6 +187,7 @@ The row asserts the untested forms are named, not merely that the tested one is.
 
 **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-008-033 correlation never" --reporter=list`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -195,6 +202,7 @@ boundary copy turned the row RED:
 
 **Command:** same command, with a negative verdict appended to the boundary copy
 **Exit Code:** 1
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -211,6 +219,7 @@ correlation number would be answering to a tax authority on their behalf.
 
 **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Feature 008 dossier ledgers" --reporter=list`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -223,6 +232,7 @@ correlation number would be answering to a tax authority on their behalf.
 
 **Command:** `npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -241,6 +251,7 @@ clear matrix. None were loosened.
 
 **Command:** `node scripts/selftest.mjs`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text

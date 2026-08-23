@@ -100,6 +100,7 @@ A function that never received those inputs could not prove it ignored them.
 **Command:** `node --test tests/portfolio-analytics.unit.mjs`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -144,6 +145,7 @@ Both reverted, both back to `# pass 74 # fail 0`.
 **Command:** `node --test tests/portfolio-allocation.functional.mjs`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -162,6 +164,7 @@ numbers would prove the engine works on values nothing in production uses.
 **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-028 unstable allocation shows weight ranges and reversal conditions" --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -183,6 +186,7 @@ reported including the honest "none" case.
 **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-030 behavior cannot alter Black Litterman views returns or confidence" --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -204,6 +208,7 @@ empty fields refuses instead of part-accepting.
 **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-030 explicit Black Litterman view keeps equilibrium view posterior and uncertainty separate" --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -236,6 +241,7 @@ Reverted.
 **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 allocation sensitivity ranges and Black Litterman editor preserve mobile table parity" --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -256,6 +262,7 @@ that there is no body overflow at 1440x1000, 390x844, or 130% text.
 **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -300,6 +307,7 @@ first recorded as F-08-CONFIG-BOUNDARY.
 **Command:** `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
 
 **Exit Code:** 1
+**Claim Source:** executed
 
 **Output:**
 
@@ -319,6 +327,7 @@ to a later scope.
 **Command:** `node scripts/selftest.mjs` and the node and browser suites
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 

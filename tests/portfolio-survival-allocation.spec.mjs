@@ -10,6 +10,7 @@ import { resolve } from 'node:path';
 import { FIXTURE_ROOT, startPortfolioServer } from './portfolio-survival.support.mjs';
 
 let server;
+const PAGE_ERRORS = new WeakMap();
 
 test.beforeAll(async () => {
   server = await startPortfolioServer();
@@ -22,7 +23,10 @@ test.afterAll(async () => {
 const DATES = ['2026-05-04', '2026-05-05', '2026-05-06', '2026-05-07', '2026-05-08', '2026-05-11'];
 
 async function openLab(page) {
-  const response = await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#workspace`);
+  const errors = [];
+  PAGE_ERRORS.set(page, errors);
+  page.on('pageerror', (error) => errors.push(String(error)));
+  const response = await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#brief`);
   expect(response?.status(), 'the Allocation host page must be served').toBe(200);
   await expect(page.locator('#workspaceTabBrief')).toHaveAttribute('aria-selected', 'true');
 }
@@ -65,6 +69,43 @@ async function seedPortfolio(page, name) {
   await seedBars(page, 'BND', series(DATES, [50, 51, 50, 50, 52, 52]));
 }
 
+async function applyAllocationInputs(page, panel, expectedReturns = '0.04, 0.08', benchmarkWeights = '0.5, 0.5') {
+  await panel.locator('#allocationExpectedReturns').fill(expectedReturns);
+  await panel.locator('#blBenchmarkWeights').fill(benchmarkWeights);
+  await panel.locator('#allocationRiskAversion').fill('2.5');
+  await panel.locator('#allocationApplyInputs').click();
+  expect(PAGE_ERRORS.get(page), 'applying complete research inputs must not throw').toEqual([]);
+  await expect(panel.locator('#allocationInputStatus')).toContainText('are active for this local comparison');
+}
+
+async function addExplicitView(panel, central = 0.20) {
+  await panel.locator('#blHorizonSessions').fill('63');
+  await panel.locator('#blMagnitudeLow').fill(String(central - 0.02));
+  await panel.locator('#blExpectedReturn').fill(String(central));
+  await panel.locator('#blMagnitudeHigh').fill(String(central + 0.02));
+  await panel.locator('#blConfidenceSource').selectOption('user-stated-range');
+  await panel.locator('#blUncertaintyVariance').fill('0.0025');
+  await panel.locator('#blInvalidation').fill('Invalidate when the stated thesis or horizon changes.');
+  await panel.locator('#blApply').click();
+  await expect(panel.locator('#blackLittermanEditor')).toHaveAttribute('data-posterior-state', 'ok');
+}
+
+async function declareSurvivalFloor(page, floor = '85000') {
+  await page.locator('#workspaceTabPathLab').click();
+  const pathPanel = page.locator('[data-route="path-lab"]');
+  await expect(pathPanel).toBeVisible();
+  await pathPanel.locator('#survivalFloor').fill(floor);
+  await pathPanel.locator('#survivalFloorApply').click();
+}
+
+async function confirmMandate(page, fixtureName) {
+  await page.locator('#mandateFile').setInputFiles(resolve(FIXTURE_ROOT, fixtureName));
+  await expect(page.locator('#mandateResult')).not.toHaveText('No mandate draft previewed.');
+  await expect(page.locator('#confirmMandate')).toBeEnabled();
+  await page.locator('#confirmMandate').click();
+  await expect(page.locator('#currentMandate')).toContainText('Current mandate');
+}
+
 test('Regression: SCN-008-026 all six allocation methods share one frozen basis', async ({ page }) => {
   await seedPortfolio(page, 'TP-13-02 six methods');
   const panel = await openAllocation(page);
@@ -87,10 +128,10 @@ test('Regression: SCN-008-026 all six allocation methods share one frozen basis'
 
   // The forecast-dependent methods report unavailable rather than inventing the
   // inputs they need.
-  const blState = await panel.locator('#alloccandidate-black-litterman td').nth(3).textContent();
-  expect(blState).toContain('views-and-confidence-required');
-  const mvoState = await panel.locator('#alloccandidate-constrained-mvo td').nth(3).textContent();
-  expect(mvoState).toContain('expected-returns-required');
+  const blState = await panel.locator('#alloccandidate-black-litterman td').last().textContent();
+  expect(blState).toContain('black-litterman-input-invalid');
+  const mvoState = await panel.locator('#alloccandidate-constrained-mvo td').last().textContent();
+  expect(mvoState).toContain('expected-returns-or-risk-aversion');
 });
 
 test('Regression: SCN-008-027 allocation comparison presents tradeoffs and no universal winner', async ({ page }) => {
@@ -255,8 +296,15 @@ test('Regression: SCN-008-030 behavior cannot alter Black Litterman views return
 
   await expect(panel.locator('#blackLittermanEditor')).toBeVisible();
 
-  // With no stated view the candidate is equilibrium-only and the posterior
-  // equals the implied equilibrium on every row.
+  // No benchmark is inferred from holdings or equal weight.
+  await expect(panel.locator('#blackLittermanEditor')).toHaveAttribute('data-posterior-state', 'unavailable');
+  expect(await panel.locator('#allocationExpectedReturns').inputValue()).toBe('');
+  expect(await panel.locator('#blBenchmarkWeights').inputValue()).toBe('');
+
+  await applyAllocationInputs(page, panel);
+
+  // With an explicit benchmark but no stated view the candidate is
+  // equilibrium-only and the posterior equals the implied equilibrium.
   await expect(panel.locator('#blackLittermanEditor')).toHaveAttribute('data-posterior-state', 'equilibrium-only');
   const before = await panel.locator('#blTable tbody tr').evaluateAll((rows) => rows.map((row) => {
     const cells = Array.from(row.querySelectorAll('td')).map((cell) => cell.textContent);
@@ -277,19 +325,22 @@ test('Regression: SCN-008-030 behavior cannot alter Black Litterman views return
   expect(note).toContain('0 views derived');
   expect(note).toContain('No expected return, confidence, or view is prefilled or suggested');
 
-  // Nothing is prefilled: the editor fields start empty regardless of holdings.
+  // Nothing view-shaped is prefilled regardless of holdings.
   expect(await panel.locator('#blExpectedReturn').inputValue()).toBe('');
-  expect(await panel.locator('#blConfidence').inputValue()).toBe('');
+  expect(await panel.locator('#blHorizonSessions').inputValue()).toBe('');
+  expect(await panel.locator('#blUncertaintyVariance').inputValue()).toBe('');
 
   // An incomplete view is refused rather than part-accepted.
   await panel.locator('#blApply').click();
-  await expect(panel.locator('#blError')).toContainText('requires an expected return and a confidence');
+  await expect(panel.locator('#blError')).toContainText('requires a positive horizon');
   await expect(panel.locator('#blackLittermanEditor')).toHaveAttribute('data-posterior-state', 'equilibrium-only');
 });
 
 test('Regression: SCN-008-030 explicit Black Litterman view keeps equilibrium view posterior and uncertainty separate', async ({ page }) => {
   await seedPortfolio(page, 'TP-14-05 explicit view');
   const panel = await openAllocation(page);
+
+  await applyAllocationInputs(page, panel);
 
   const readBlColumn = (index) => panel.locator('#blTable tbody tr').evaluateAll(
     (rows, i) => rows.map((row) => Array.from(row.querySelectorAll('td'))[i].textContent), index
@@ -298,23 +349,19 @@ test('Regression: SCN-008-030 explicit Black Litterman view keeps equilibrium vi
   const equilibriumBefore = await readBlColumn(0);
   const subject = await panel.locator('#blSubject').inputValue();
 
-  await panel.locator('#blExpectedReturn').fill('0.2');
-  await panel.locator('#blConfidence').fill('0.8');
-  await panel.locator('#blApply').click();
-
-  await expect(panel.locator('#blackLittermanEditor')).toHaveAttribute('data-posterior-state', 'ok');
+  await addExplicitView(panel, 0.20);
 
   // The equilibrium column is UNCHANGED by the view. If stating a view rewrote
   // the equilibrium, the reader could no longer see what the market thought.
   const equilibriumAfter = await readBlColumn(0);
   expect(equilibriumAfter, 'a stated view must not alter the implied equilibrium').toEqual(equilibriumBefore);
 
-  // The stated view is shown as the user's own, with its confidence.
+  // The stated view is shown as the user's own range, with its confidence source.
   const viewCells = await readBlColumn(1);
   const stated = viewCells.filter((cell) => cell !== 'None stated');
   expect(stated.length).toBe(1);
-  expect(stated[0]).toContain('20.00%');
-  expect(stated[0]).toContain('confidence 0.8');
+  expect(stated[0]).toContain('18.00% to 22.00%');
+  expect(stated[0]).toContain('user-stated-range');
 
   // The posterior moved and is now distinct from the equilibrium on the viewed row.
   const rowCells = await panel.locator('#bl-' + subject).locator('td').allTextContents();
@@ -328,6 +375,7 @@ test('Regression: SCN-008-030 explicit Black Litterman view keeps equilibrium vi
 test('Regression: Feature 008 allocation sensitivity ranges and Black Litterman editor preserve mobile table parity', async ({ page }) => {
   await seedPortfolio(page, 'TP-14-06 parity');
   const panel = await openAllocation(page);
+  await applyAllocationInputs(page, panel);
 
   const sensitivityRows = await panel.locator('#sensitivityTable tbody tr').count();
   const blRows = await panel.locator('#blTable tbody tr').count();
@@ -358,6 +406,69 @@ test('Regression: Feature 008 allocation sensitivity ranges and Black Litterman 
   const overflowZoom = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflowZoom, 'no horizontal overflow at 130% text').toBeLessThanOrEqual(1);
   await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
+});
+
+test('Regression: SCN-008-050 six real allocation methods enforce one complete basis and explicit views', async ({ page }) => {
+  await seedPortfolio(page, 'TP-24-03 complete allocation');
+  await declareSurvivalFloor(page);
+  const panel = await openAllocation(page);
+  await applyAllocationInputs(page, panel);
+  await addExplicitView(panel, 0.16);
+  await panel.locator('#allocationRunSensitivity').click();
+  await expect(panel.locator('#allocationSensitivityStatus')).toContainText('declared method-axis trials completed');
+
+  await expect(panel.locator('#allocationComparison')).toHaveAttribute('data-allocation-state', 'ok');
+  const basisFingerprint = await panel.locator('#allocationComparison').getAttribute('data-basis-fingerprint');
+  expect(basisFingerprint).toMatch(/^fnv1a64:/);
+  const rows = panel.locator('#allocationTable tbody tr[data-method]');
+  expect(await rows.count()).toBe(6);
+  expect(await rows.evaluateAll((items) => new Set(items.map((item) => item.dataset.basisFingerprint)).size)).toBe(1);
+
+  const methods = await rows.evaluateAll((items) => items.map((item) => item.dataset.method));
+  expect(methods).toEqual([
+    'current', 'equal-weight', 'minimum-variance', 'risk-parity', 'black-litterman', 'constrained-mvo'
+  ]);
+  await expect(panel.locator('#alloccandidate-risk-parity')).toContainText('ERC residual');
+  await expect(panel.locator('#alloccandidate-constrained-mvo')).toContainText('KKT residual');
+  for (const method of methods) {
+    const text = await panel.locator(`#alloccandidate-${method}`).textContent();
+    expect(text).toContain('shared paths');
+    expect(text).toContain('Turnover');
+    expect(text).toMatch(/survival \d+\.\d%/);
+  }
+
+  await expect(panel.locator('#allocationCompleteSensitivity')).toHaveAttribute('data-sensitivity-state', 'ok');
+  expect(await panel.locator('#allocationCompleteSensitivityTable tbody tr').count()).toBe(6);
+  const sensitivitySummary = await panel.locator('#allocationSensitivitySummary').textContent();
+  for (const axis of [
+    'history', 'means', 'covariance', 'views', 'costs', 'assetBounds',
+    'groupBounds', 'turnover', 'cash', 'leverage', 'riskAversion'
+  ]) expect(sensitivitySummary).toContain(axis);
+
+  const boundary = await panel.locator('#allocationClaimBoundary').textContent();
+  expect(boundary).toContain('None is labelled best or recommended');
+  expect(boundary).toContain('your current portfolio is not modified');
+  expect(await panel.locator('[data-best], [data-recommended], .winner').count()).toBe(0);
+});
+
+test('Regression: SCN-008-050 infeasible constraints remain visible and explicit BL posterior changes allocation', async ({ page }) => {
+  await seedPortfolio(page, 'TP-24-05 constraints and posterior');
+  await confirmMandate(page, 'mandate-allocation-infeasible.json');
+  const panel = await openAllocation(page);
+
+  await expect(panel.locator('#alloccandidate-current')).toHaveAttribute('data-feasibility', 'infeasible');
+  await expect(panel.locator('[data-infeasible-for="current"]')).toContainText('No constraint was relaxed');
+
+  await applyAllocationInputs(page, panel);
+  const equilibriumWeights = await panel.locator('#alloccandidate-black-litterman td').nth(0).textContent();
+  const equilibriumColumn = await panel.locator('#blTable tbody tr td:nth-child(4)').allTextContents();
+  await addExplicitView(panel, 0.20);
+  const viewedWeights = await panel.locator('#alloccandidate-black-litterman td').nth(0).textContent();
+  const posteriorColumn = await panel.locator('#blTable tbody tr td:nth-child(4)').allTextContents();
+  expect(viewedWeights).not.toBe(equilibriumWeights);
+  expect(posteriorColumn).not.toEqual(equilibriumColumn);
+  await expect(panel.locator('#blackLittermanEditor')).toHaveAttribute('data-posterior-state', 'ok');
+  expect(await panel.locator('#alloccandidate-black-litterman').getAttribute('data-feasibility')).toBe('feasible');
 });
 
 /* Scope 15 needs a history long enough for real walk-forward folds. The dossier

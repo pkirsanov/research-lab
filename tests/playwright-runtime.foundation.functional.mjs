@@ -15,59 +15,80 @@ import test from 'node:test';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as directRuntime from 'playwright/test';
 import playwrightConfig from '../playwright.config.mjs';
+import {
+  collectDeclaredTestGlobs,
+  globToRegExp
+} from '../scripts/validate-test-file-reachability.mjs';
 import * as sharedRuntime from './playwright-runtime.mjs';
 
 const ROOT = realpathSync(resolve(dirname(fileURLToPath(import.meta.url)), '..'));
 const HELPER = resolve(ROOT, 'tests/playwright-runtime.mjs');
+const TESTS_DIR = resolve(ROOT, 'tests');
 const LOCAL_PACKAGE = realpathSync(resolve(ROOT, 'node_modules/playwright'));
 const LOCAL_CLI = realpathSync(resolve(ROOT, 'node_modules/.bin/playwright'));
-const EXPECTED_BROWSER_SPEC_PATHS = [
-  'tests/attention-browser.spec.mjs',
-  'tests/bond-regime-lab.spec.mjs',
-  'tests/brief-payload-escaping.spec.mjs',
+
+/* A committed `playwright*.config.*`, discovered rather than named, so "sole
+   committed browser config" is an assertion instead of an assumption. */
+const PLAYWRIGHT_CONFIG_FILE = /(?:^|\/)playwright[^/]*\.config\.[cm]?[jt]s$/;
+
+/* The `.test.mjs` family, kept as a literal because it is a naming convention
+   with no behavioural signature to derive from: other node-selected families
+   run under node:test too, yet may legitimately import the Playwright API —
+   this very `.functional.mjs` file does, to compare runtime identity. */
+const DIRECT_NODE_SUITE_SUFFIX = '.test.mjs';
+
+/* Pre-existing crossings, frozen so NEW ones fail (the ratchet
+   `scripts/validate-test-file-reachability.mjs` uses, for the same reason).
+   `notes/causal-rotation-lab.md:119` and `specs/012-.../test-plan.json` declare
+   `node --test` globs that also select browser specs; that debt predates this
+   boundary. This list must shrink, never grow. */
+const KNOWN_DISCOVERY_CROSSINGS = [
+  'tests/causal-rotation-adversarial.spec.mjs',
+  'tests/causal-rotation-brief.spec.mjs',
+  'tests/causal-rotation-chaos.spec.mjs',
+  'tests/causal-rotation-consumers.spec.mjs',
+  'tests/causal-rotation-delivery.spec.mjs',
   'tests/causal-rotation-lab.spec.mjs',
-  'tests/company-fundamentals-lab.spec.mjs',
-  'tests/contextual-tooltip.spec.mjs',
-  'tests/deployed-site-parity.spec.mjs',
-  'tests/distributed-briefs.spec.mjs',
-  'tests/fx-regime-relative-value-lab.spec.mjs',
-  'tests/journey-mobile.spec.mjs',
-  'tests/journey.spec.mjs',
-  'tests/market-action-center.spec.mjs',
-  'tests/market-brief-freshness.spec.mjs',
-  'tests/market-brief-scorecard.spec.mjs',
-  'tests/market-brief-session-date-drift.spec.mjs',
-  'tests/market-heatmap-control-surface.spec.mjs',
-  'tests/msft-july-market-refresh.spec.mjs',
-  'tests/palm-springs-rental-market-lab.spec.mjs',
-  'tests/portfolio-survival-foundation.spec.mjs',
-  'tests/provider-credentials.spec.mjs',
-  'tests/provider-fallback-status.spec.mjs',
-  'tests/red-alert.spec.mjs',
-  'tests/simple-model-adapters-macro-fundamental.spec.mjs',
-  'tests/simple-model-adapters-market.spec.mjs',
-  'tests/simple-model-adapters-strategy-property.spec.mjs',
-  'tests/simple-models.spec.mjs',
-  'tests/simple-production-wiring.spec.mjs',
-  'tests/technical-analysis-decision-lab.spec.mjs',
-  'tests/tool-discovery.spec.mjs',
-  'tests/tool-experience-mobile.spec.mjs',
-  'tests/tool-experience.spec.mjs',
-  'tests/trend-dynamics-cycle-lab.spec.mjs',
-  'tests/volatility-sizing-lab.spec.mjs',
-  'tests/web-evidence.spec.mjs'
+  'tests/causal-rotation-pages.spec.mjs',
+  'tests/causal-rotation-registry.spec.mjs',
+  'tests/distributed-briefs.spec.mjs'
 ];
-const EXPECTED_NODE_SUITE_PATHS = [
-  'tests/attention-payload-contract.test.mjs',
-  'tests/brief-d16-direction-aware-publish-gate.test.mjs',
-  'tests/brief-refresh-atomicity.test.mjs',
-  'tests/feature-004-brief-eligibility.test.mjs',
-  'tests/feature-004-collision-invariant.test.mjs',
-  'tests/feature-004-journey-evidence-refresh.test.mjs',
-  'tests/feature-004-tool-control-binding.test.mjs',
-  'tests/feature-004-vehicle-universe.test.mjs',
-  'tests/rlattention.test.mjs'
-];
+
+/* Both discovery sides are read from the repository at run time. A frozen
+   inventory of either is the exact rot this file was repaired from, so the
+   declared-glob derivation is imported from the reachability guard rather than
+   reimplemented — one definition of "declared glob", not two. */
+let declaredGlobsCache = null;
+function declaredGlobs() {
+  if (declaredGlobsCache === null) declaredGlobsCache = collectDeclaredTestGlobs(ROOT);
+  return declaredGlobsCache;
+}
+
+function repoTestFiles() {
+  return readdirSync(TESTS_DIR)
+    .filter((name) => name.endsWith('.mjs'))
+    .sort()
+    .map((name) => `tests/${name}`);
+}
+
+/* Files a discovery mechanism actually selects, plus the patterns and the
+   artifacts that declare them. */
+function discovery(kind, testFiles) {
+  const globs = declaredGlobs().globs.filter((glob) => glob.kind === kind);
+  const patterns = globs.map((glob) => glob.pattern);
+  const matchers = patterns.map(globToRegExp);
+  return {
+    patterns,
+    declaredBy: [...new Set(globs.flatMap((glob) => glob.sites.map((site) => site.artifact)))].sort(),
+    selected: testFiles.filter((path) => matchers.some((matcher) => matcher.test(path)))
+  };
+}
+
+function committedPlaywrightConfigs() {
+  const tracked = spawnSync('git', ['ls-files', '-z'], { cwd: ROOT, encoding: 'utf8' });
+  assert.equal(tracked.status, 0, 'git ls-files must succeed to enumerate committed configs');
+  return tracked.stdout.split('\0').filter((path) => PLAYWRIGHT_CONFIG_FILE.test(path)).sort();
+}
 
 test('shared runtime exports the exact checkout-local Playwright 1.61.1 API', () => {
   const manifest = JSON.parse(readFileSync(resolve(LOCAL_PACKAGE, 'package.json'), 'utf8'));
@@ -164,89 +185,98 @@ test('shared runtime contains no browser executable or package fallback authorit
 });
 
 test('every Playwright spec uses the shared seam and sole committed browser config', () => {
-  const testsDir = resolve(ROOT, 'tests');
-  const testFileNames = readdirSync(testsDir);
-  const specPaths = testFileNames
-    .filter((name) => name.endsWith('.spec.mjs'))
-    .sort()
-    .map((name) => resolve(testsDir, name));
-  const nodeTestNames = testFileNames
-    .filter((name) => name.endsWith('.test.mjs'))
-    .sort();
+  const testFiles = repoTestFiles();
+  const browser = discovery('playwright-testMatch', testFiles);
+  const committedConfigs = committedPlaywrightConfigs();
   const importers = [];
   const absoluteOverrides = [];
 
-  for (const specPath of specPaths) {
-    const source = readFileSync(specPath, 'utf8');
-    if (source.includes("from './playwright-runtime.mjs'")) importers.push(specPath);
+  for (const specPath of browser.selected) {
+    const source = readFileSync(resolve(ROOT, specPath), 'utf8');
+    if (/from\s+['"]\.\/playwright-runtime\.mjs['"]/.test(source)) importers.push(specPath);
     if (source.includes('executablePath')) absoluteOverrides.push(specPath);
   }
 
-  console.log('[playwright-runtime] discoveredSpecs=' + specPaths.length);
-  console.log('[playwright-runtime] excludedNodeSuites=' + nodeTestNames.length);
+  console.log('[playwright-runtime] committedBrowserConfigs=' + committedConfigs.join(','));
+  console.log('[playwright-runtime] testMatch=' + browser.patterns.join(','));
+  console.log('[playwright-runtime] discoveredSpecs=' + browser.selected.length);
   console.log('[playwright-runtime] sharedImporters=' + importers.length);
   console.log('[playwright-runtime] absoluteOverrides=' + absoluteOverrides.length);
-  for (const specPath of importers) {
-    console.log('[playwright-runtime] importer=' + specPath.slice(ROOT.length + 1));
-  }
-  assert.equal(specPaths.length, 34);
-  assert.deepEqual(
-    specPaths.map((specPath) => specPath.slice(ROOT.length + 1)),
-    EXPECTED_BROWSER_SPEC_PATHS
-  );
-  assert.deepEqual(
-    nodeTestNames.map((nodeTestName) => `tests/${nodeTestName}`),
-    EXPECTED_NODE_SUITE_PATHS
-  );
-  assert.deepEqual(importers, specPaths);
+
+  /* SOLE committed browser config: exactly one is tracked, and the discovery
+     patterns are declared by that same file and nothing else. The identity of
+     the file is derived, so renaming it does not need an edit here. */
+  assert.equal(committedConfigs.length, 1, `expected one committed Playwright config, got ${committedConfigs.length}`);
+  assert.deepEqual(browser.declaredBy, committedConfigs);
+
+  /* Non-vacuity. A derivation that selects nothing would satisfy every
+     per-spec assertion below without checking anything — the one guarantee the
+     replaced literal count gave incidentally, now stated on purpose. */
+  assert.ok(browser.patterns.length > 0, 'committed browser config declares no testMatch pattern');
+  assert.ok(browser.selected.length > 0, 'committed testMatch selects no spec under tests/');
+
+  /* The invariant, asserted per discovered spec: the count now follows from
+     the derivation instead of being pinned to a number that rots. */
+  assert.deepEqual(importers, browser.selected);
   assert.deepEqual(absoluteOverrides, []);
 });
 
 test('committed discovery boundary keeps browser specs and direct Node suites disjoint', () => {
-  const testsDir = resolve(ROOT, 'tests');
-  const testFileNames = readdirSync(testsDir);
-  const browserSpecNames = testFileNames
-    .filter((name) => name.endsWith('.spec.mjs'))
-    .sort();
-  const nodeSuiteNames = testFileNames
-    .filter((name) => name.endsWith('.test.mjs'))
-    .sort();
+  const testFiles = repoTestFiles();
+  const browser = discovery('playwright-testMatch', testFiles);
+  const directNode = discovery('node-test-argument', testFiles);
+  const browserSelected = new Set(browser.selected);
 
-  assert.equal(playwrightConfig.testMatch, '**/*.spec.mjs');
-  assert.deepEqual(
-    browserSpecNames.map((browserSpecName) => `tests/${browserSpecName}`),
-    EXPECTED_BROWSER_SPEC_PATHS
-  );
-  assert.deepEqual(
-    nodeSuiteNames.map((nodeSuiteName) => `tests/${nodeSuiteName}`),
-    EXPECTED_NODE_SUITE_PATHS
-  );
+  /* DISJOINTNESS as a set relation between the two runner-selection
+     mechanisms: no file may be selected by both the browser matcher and a
+     declared `node --test` glob. */
+  const crossings = directNode.selected.filter((path) => browserSelected.has(path));
+  const newCrossings = crossings.filter((path) => !KNOWN_DISCOVERY_CROSSINGS.includes(path));
+  const staleFrozen = KNOWN_DISCOVERY_CROSSINGS.filter((path) => !crossings.includes(path));
 
-  for (const browserSpecName of browserSpecNames) {
-    const source = readFileSync(resolve(testsDir, browserSpecName), 'utf8');
+  /* Derivation consistency: the statically parsed matcher equals the one the
+     imported config exposes, so the parse driving discovery cannot drift. */
+  const configuredTestMatch = Array.isArray(playwrightConfig.testMatch)
+    ? playwrightConfig.testMatch
+    : [playwrightConfig.testMatch];
+  assert.deepEqual(browser.patterns, configuredTestMatch);
+
+  assert.ok(browser.selected.length > 0, 'browser matcher selects nothing — disjointness would be vacuous');
+  assert.ok(directNode.selected.length > 0, 'no declared node --test glob selects anything — disjointness would be vacuous');
+  assert.deepEqual(newCrossings, [], 'file selected by both the browser matcher and a declared node --test glob');
+  assert.deepEqual(staleFrozen, [], 'frozen crossing no longer crosses — remove it, the list only shrinks');
+
+  const directNodeSuites = testFiles.filter((path) => path.endsWith(DIRECT_NODE_SUITE_SUFFIX));
+  assert.ok(directNodeSuites.length > 0, 'no direct Node suite found under tests/');
+
+  for (const specPath of browser.selected) {
+    const source = readFileSync(resolve(ROOT, specPath), 'utf8');
     assert.match(
       source,
       /from\s+['"]\.\/playwright-runtime\.mjs['"]/,
-      `${browserSpecName} must import the shared Playwright runtime`
+      `${specPath} must import the shared Playwright runtime`
     );
   }
 
-  for (const nodeSuiteName of nodeSuiteNames) {
-    const source = readFileSync(resolve(testsDir, nodeSuiteName), 'utf8');
+  for (const suitePath of directNodeSuites) {
+    const source = readFileSync(resolve(ROOT, suitePath), 'utf8');
     assert.match(
       source,
       /(?:from\s+['"]node:test['"]|import\(\s*['"]node:test['"]\s*\))/,
-      `${nodeSuiteName} must use node:test`
+      `${suitePath} must use node:test`
     );
     assert.doesNotMatch(
       source,
       /from\s+['"](?:playwright\/test|\.\/playwright-runtime\.mjs)['"]/,
-      `${nodeSuiteName} must remain direct-node-only`
+      `${suitePath} must remain direct-node-only`
     );
   }
 
-  console.log('[playwright-runtime] matcher=' + playwrightConfig.testMatch);
-  console.log('[playwright-runtime] browserInventory=' + browserSpecNames.length);
-  console.log('[playwright-runtime] directNodeInventory=' + nodeSuiteNames.length);
+  console.log('[playwright-runtime] matcher=' + browser.patterns.join(','));
+  console.log('[playwright-runtime] browserSelected=' + browser.selected.length);
+  console.log('[playwright-runtime] nodeGlobSelected=' + directNode.selected.length);
+  console.log('[playwright-runtime] directNodeSuites=' + directNodeSuites.length);
+  console.log('[playwright-runtime] frozenCrossings=' + KNOWN_DISCOVERY_CROSSINGS.length);
+  console.log('[playwright-runtime] newCrossings=' + newCrossings.length);
   console.log('[playwright-runtime] discoveryTaxonomy=PASS');
 });

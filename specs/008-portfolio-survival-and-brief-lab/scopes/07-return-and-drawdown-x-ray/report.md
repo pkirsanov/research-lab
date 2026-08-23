@@ -59,6 +59,7 @@ records only what actually ran.
 
 **Command:** `node --test tests/portfolio-analytics.unit.mjs`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -144,6 +145,7 @@ pass.
 
 **Command:** `node scripts/selftest.mjs`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -177,6 +179,7 @@ both `state.json` progress mirrors.
 
 **Command:** `npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
 **Exit Code:** 0
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -260,6 +263,7 @@ no test-only entry point on the page.
 
 **Command:** `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
 **Exit Code:** 1
+**Claim Source:** executed
 **Output:**
 
 ```text
@@ -289,3 +293,9 @@ already marked done, so the run precedes the status flip rather than following i
 The whole-feature `--all-scopes` traceability run is **not** clean and is **not** claimed here. The
 Feature Completion Gate enforces it once, in Scope 16, and it cannot pass until scopes 08 through 16
 ship their test files. Scopes 08 through 16 remain `Not Started`.
+
+<!-- bubbles:certifying-window-begin -->
+
+## Current Certifying Window
+
+The prior execution record is preserved above. Current status is governed by the canonical transition checks.

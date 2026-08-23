@@ -52,7 +52,15 @@
   "use strict";
 
   var TRADING_DAYS = 252;
+  var CALENDAR_DAYS_PER_YEAR = 365.2425;
   var DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+  var RISK_METRIC_FAMILIES = Object.freeze([
+    "descriptive-concentration",
+    "return-cagr-drawdown",
+    "daily-covariance-asset-risk",
+    "capm-proxy-factor",
+    "paths-allocation"
+  ]);
 
   function isNum(x) { return typeof x === "number" && Number.isFinite(x); }
   function isDate(x) { return typeof x === "string" && DATE_RE.test(x); }
@@ -92,7 +100,11 @@
     }
     // A weight set that does not sum to 1 is not "close enough" — it silently rescales every
     // downstream return. Tolerance is float-noise only, not a business allowance.
-    if (Math.abs(wsum - 1) > 1e-9) return alignFailure("weights-invalid", cutoff);
+    if (opts.allowPartialWeight === true) {
+      if (!(wsum > 0) || wsum > 1 + 1e-9) return alignFailure("weights-invalid", cutoff);
+    } else if (Math.abs(wsum - 1) > 1e-9) {
+      return alignFailure("weights-invalid", cutoff);
+    }
 
     // Per symbol: cutoff-bounded, de-duplicated, positive closes only. A non-positive close cannot
     // produce a simple return and is a source defect, not a zero.
@@ -123,8 +135,9 @@
     });
     common.sort();
 
+    var commonSet = new Set(common);
     var excludedDates = [];
-    union.forEach(function (d) { if (common.indexOf(d) === -1) excludedDates.push(d); });
+    union.forEach(function (d) { if (!commonSet.has(d)) excludedDates.push(d); });
     excludedDates.sort();
 
     if (!common.length) return alignFailure("no-common-dates", cutoff, excludedDates, excludedBySymbol);
@@ -160,6 +173,7 @@
       symbols: symbols.slice().sort(),
       cutoff: cutoff === undefined ? null : cutoff,
       basis: "exact-common-date-intersection",
+      weightSum: wsum,
       commonDates: common,
       returns: returns,
       perSymbolReturns: perSymbol,
@@ -180,6 +194,7 @@
       symbols: [],
       cutoff: cutoff === undefined ? null : (cutoff === null ? null : cutoff),
       basis: "exact-common-date-intersection",
+      weightSum: 0,
       commonDates: [],
       returns: [],
       perSymbolReturns: {},
@@ -216,7 +231,11 @@
 
     var returns = aligned.returns;
     var idx = aligned.wealthIndex;
-    var years = returns.length / ppy;
+    var firstDate = aligned.commonDates[0];
+    var lastDate = aligned.commonDates[aligned.commonDates.length - 1];
+    var elapsedDays = (Date.parse(lastDate + "T00:00:00.000Z") - Date.parse(firstDate + "T00:00:00.000Z")) / 86400000;
+    if (!(elapsedDays > 0)) return { state: "elapsed-time-invalid", firstDate: firstDate, lastDate: lastDate };
+    var years = elapsedDays / CALENDAR_DAYS_PER_YEAR;
 
     var arithmetic = RLMETRICS.annualizedArithmetic(returns, ppy);
     var compounded = RLMETRICS.cagr(idx[0], idx[idx.length - 1], years);
@@ -228,9 +247,10 @@
       state: "ok",
       periodsPerYear: ppy,
       sampleSize: returns.length,
+      elapsedDays: elapsedDays,
       years: years,
-      firstDate: aligned.commonDates[0],
-      lastDate: aligned.commonDates[aligned.commonDates.length - 1],
+      firstDate: firstDate,
+      lastDate: lastDate,
       cutoff: aligned.cutoff,
       arithmeticAnnualized: arithmetic,
       compoundedCagr: compounded,
@@ -239,6 +259,7 @@
       dragApprox: dragApprox,
       dragApproxIsConditional: true,
       dragApproxAssumptions: "Holds under continuous compounding of a log-normal process; a finite discrete sample is not that, so this cross-checks the observed drag rather than replacing it.",
+      cagrAnnualizationPolicy: "exact-elapsed-calendar-days/365.2425",
       // A sample this short cannot support an annualized claim without saying so out loud.
       annualizationState: returns.length >= ppy ? "supported-by-sample" : "extrapolated-from-short-sample"
     };
@@ -356,6 +377,266 @@
     return { state: "ok", weights: weights, symbols: keys.sort(), totalValue: total };
   }
 
+  function holdingIdentity(holding, index) {
+    if (holding && typeof holding.holdingId === "string" && holding.holdingId) return holding.holdingId;
+    if (holding && typeof holding.id === "string" && holding.id) return holding.id;
+    if (holding && typeof holding.symbol === "string" && holding.symbol) return holding.symbol;
+    return "holding-" + String(index + 1);
+  }
+
+  function holdingInputClass(holding) {
+    var declared = holding && holding.inputClass;
+    if (declared === "listed-explicit-weight" || declared === "listed-quantity-value" ||
+        declared === "cash" || declared === "manual-dated-series" ||
+        declared === "manual-no-series" || declared === "unresolved-unsupported") return declared;
+    if (!holding) return "unresolved-unsupported";
+    if (holding.assetType === "cash") return "cash";
+    if (holding.assetType === "manual-alternative") {
+      return holding.manualSeries && Array.isArray(holding.manualSeries.rows)
+        ? "manual-dated-series"
+        : "manual-no-series";
+    }
+    if (holding.assetType === "unresolved" || holding.assetType === "unsupported") return "unresolved-unsupported";
+    if (isNum(holding.weight) || isNum(holding.explicitWeight)) return "listed-explicit-weight";
+    if (isNum(holding.derivedValue) || isNum(holding.localValue) || isNum(holding.quantity)) return "listed-quantity-value";
+    return "unresolved-unsupported";
+  }
+
+  function declaredHoldingWeight(holding) {
+    if (holding && isNum(holding.weight) && holding.weight >= 0) return holding.weight;
+    if (holding && isNum(holding.explicitWeight) && holding.explicitWeight >= 0) return holding.explicitWeight;
+    return null;
+  }
+
+  function holdingValue(holding) {
+    if (holding && isNum(holding.derivedValue) && holding.derivedValue > 0) return holding.derivedValue;
+    if (holding && isNum(holding.localValue) && holding.localValue > 0) return holding.localValue;
+    return null;
+  }
+
+  function deriveRiskWeights(holdings) {
+    if (!Array.isArray(holdings) || !holdings.length) {
+      return { state: "no-holdings", holdingWeights: {}, symbolWeights: {}, records: [], knownWeight: 0, unknownIds: [] };
+    }
+    var records = [], explicitTotal = 0, valueTotal = 0, valueRecords = [], unknown = [];
+    for (var i = 0; i < holdings.length; i += 1) {
+      var holding = holdings[i];
+      var id = holdingIdentity(holding, i);
+      var weight = declaredHoldingWeight(holding);
+      var value = holdingValue(holding);
+      var record = { id: id, holding: holding, inputClass: holdingInputClass(holding), weight: weight, value: value };
+      records.push(record);
+      if (weight !== null) explicitTotal += weight;
+      else if (value !== null) { valueTotal += value; valueRecords.push(record); }
+      else unknown.push(id);
+    }
+    if (explicitTotal > 1 + 1e-9) {
+      return { state: "weights-invalid", holdingWeights: {}, symbolWeights: {}, records: records, knownWeight: 0, unknownIds: unknown.sort() };
+    }
+    var remainder = Math.max(0, 1 - explicitTotal);
+    for (var j = 0; j < valueRecords.length; j += 1) {
+      valueRecords[j].weight = valueTotal > 0 ? remainder * valueRecords[j].value / valueTotal : null;
+    }
+    var holdingWeights = {}, symbolWeights = {}, knownWeight = 0;
+    for (var k = 0; k < records.length; k += 1) {
+      var item = records[k];
+      if (!isNum(item.weight)) continue;
+      holdingWeights[item.id] = item.weight;
+      knownWeight += item.weight;
+      if (item.holding && typeof item.holding.symbol === "string" && item.holding.symbol) {
+        symbolWeights[item.holding.symbol] = (symbolWeights[item.holding.symbol] || 0) + item.weight;
+      }
+    }
+    return {
+      state: unknown.length || Math.abs(knownWeight - 1) > 1e-9 ? "partial" : "ok",
+      holdingWeights: holdingWeights,
+      symbolWeights: symbolWeights,
+      records: records,
+      knownWeight: knownWeight,
+      unknownIds: unknown.sort()
+    };
+  }
+
+  function usableSeries(rows, cutoff) {
+    if (!Array.isArray(rows)) return false;
+    var count = 0;
+    for (var i = 0; i < rows.length; i += 1) {
+      var row = rows[i];
+      if (row && isDate(row.date) && (!cutoff || row.date <= cutoff) && isNum(row.close) && row.close > 0) count += 1;
+    }
+    return count >= 2;
+  }
+
+  function evidenceIdsFor(record, frequency, cutoff) {
+    var holding = record.holding || {};
+    var ids = Array.isArray(holding.evidenceIds) ? holding.evidenceIds.slice() : [];
+    if (holding.manualSeries && Array.isArray(holding.manualSeries.evidenceIds)) ids = ids.concat(holding.manualSeries.evidenceIds);
+    if (holding.cashTreatment && Array.isArray(holding.cashTreatment.evidenceIds)) ids = ids.concat(holding.cashTreatment.evidenceIds);
+    if (!ids.length && frequency === "daily" && holding.symbol) ids.push("series:" + holding.symbol + ":" + (cutoff || "unbounded"));
+    return Array.from(new Set(ids)).sort();
+  }
+
+  function eligibilityRow(record, family, state, frequency, reasons, cutoff) {
+    var weight = isNum(record.weight) ? record.weight : 0;
+    var included = state === "eligible" || state === "eligible-compatible-frequency";
+    return {
+      contractVersion: "AssetMetricEligibility/v1",
+      holdingId: record.id,
+      symbol: record.holding && record.holding.symbol ? record.holding.symbol : null,
+      inputClass: record.inputClass,
+      metricFamily: family,
+      state: state,
+      frequency: frequency || null,
+      evidenceIds: evidenceIdsFor(record, frequency, cutoff),
+      includedWeight: included ? weight : 0,
+      excludedWeight: included ? 0 : weight,
+      reasons: reasons.slice()
+    };
+  }
+
+  function buildRiskEligibility(weightResult, series, cutoff) {
+    var rows = [];
+    for (var i = 0; i < weightResult.records.length; i += 1) {
+      var record = weightResult.records[i];
+      var holding = record.holding || {};
+      var hasWeight = isNum(record.weight);
+      var daily = hasWeight && usableSeries((series || {})[holding.symbol], cutoff);
+      var inputClass = record.inputClass;
+      var supported = inputClass !== "unresolved-unsupported";
+      var descriptiveState = hasWeight && supported ? "eligible" : "unavailable";
+      rows.push(eligibilityRow(record, RISK_METRIC_FAMILIES[0], descriptiveState, null,
+        descriptiveState === "eligible" ? [] : [hasWeight ? "unsupported-input-class" : "weight-unavailable"], cutoff));
+
+      var returnState = "unavailable", returnFrequency = null, returnReasons = [];
+      if (inputClass === "listed-explicit-weight" || inputClass === "listed-quantity-value") {
+        returnFrequency = "daily";
+        if (daily) returnState = "eligible";
+        else returnReasons.push("return-series-unavailable");
+      } else if (inputClass === "cash") {
+        returnFrequency = holding.cashTreatment && holding.cashTreatment.frequency || null;
+        if (holding.cashTreatment && returnFrequency === "daily" && daily) returnState = "eligible";
+        else returnReasons.push(holding.cashTreatment ? "cash-series-unavailable" : "cash-treatment-required");
+      } else if (inputClass === "manual-dated-series") {
+        returnFrequency = holding.manualSeries && holding.manualSeries.frequency || null;
+        if (returnFrequency && holding.manualSeries && usableSeries(holding.manualSeries.rows, cutoff)) returnState = "eligible-compatible-frequency";
+        else returnReasons.push("manual-series-unavailable");
+      } else if (inputClass === "manual-no-series") {
+        returnReasons.push("dated-series-required");
+      } else {
+        returnReasons.push("unsupported-input-class");
+      }
+      if (!hasWeight) { returnState = "unavailable"; returnReasons = ["weight-unavailable"]; }
+      rows.push(eligibilityRow(record, RISK_METRIC_FAMILIES[1], returnState, returnFrequency, returnReasons, cutoff));
+
+      var covarianceEligible = returnState === "eligible" && returnFrequency === "daily";
+      rows.push(eligibilityRow(record, RISK_METRIC_FAMILIES[2], covarianceEligible ? "eligible" : "unavailable",
+        covarianceEligible ? "daily" : returnFrequency,
+        covarianceEligible ? [] : [returnState === "eligible-compatible-frequency" ? "frequency-incompatible-with-daily-matrix" : (returnReasons[0] || "daily-return-required")], cutoff));
+
+      var modelEligible = covarianceEligible && (inputClass === "listed-explicit-weight" || inputClass === "listed-quantity-value");
+      rows.push(eligibilityRow(record, RISK_METRIC_FAMILIES[3], modelEligible ? "eligible" : "unavailable",
+        modelEligible ? "daily" : returnFrequency,
+        modelEligible ? [] : [inputClass === "cash" ? "explicit-factor-treatment-required" : (returnState === "eligible-compatible-frequency" ? "compatible-proxy-required" : (returnReasons[0] || "listed-return-series-required"))], cutoff));
+
+      var pathEligible = covarianceEligible ||
+        (inputClass === "manual-no-series" && Array.isArray(holding.scenarioRanges) && holding.scenarioRanges.length > 0) ||
+        (inputClass === "manual-dated-series" && Array.isArray(holding.scenarioRanges) && holding.scenarioRanges.length > 0);
+      rows.push(eligibilityRow(record, RISK_METRIC_FAMILIES[4], pathEligible ? "eligible" : "unavailable",
+        covarianceEligible ? "daily" : returnFrequency,
+        pathEligible ? [] : [inputClass.indexOf("manual-") === 0 ? "scenario-range-required" : (returnReasons[0] || "dependent-evidence-unavailable")], cutoff));
+    }
+    return rows;
+  }
+
+  function familyEligibility(eligibility, family) {
+    return eligibility.filter(function (entry) { return entry.metricFamily === family; });
+  }
+
+  function uniqueSorted(values) { return Array.from(new Set(values)).sort(); }
+
+  function metricResult(metricId, family, eligibility, includedEntries, state, frequency, aligned, cutoff) {
+    var familyRows = familyEligibility(eligibility, family);
+    var includedIds = uniqueSorted(includedEntries.map(function (entry) { return entry.holdingId; }));
+    var includedSet = new Set(includedIds);
+    var excludedIds = uniqueSorted(familyRows.filter(function (entry) { return !includedSet.has(entry.holdingId); })
+      .map(function (entry) { return entry.holdingId; }));
+    var coveredWeight = includedEntries.reduce(function (sum, entry) { return sum + entry.includedWeight; }, 0);
+    if (coveredWeight > 1 && coveredWeight < 1 + 1e-9) coveredWeight = 1;
+    return {
+      contractVersion: "RiskMetricResult/v1",
+      metricId: metricId,
+      metricFamily: family,
+      eligibility: familyRows,
+      includedIds: includedIds,
+      excludedIds: excludedIds,
+      coveredWeight: coveredWeight,
+      uncoveredWeight: Math.max(0, 1 - coveredWeight),
+      frequency: frequency || null,
+      firstDate: aligned && aligned.state === "ok" ? aligned.commonDates[0] : null,
+      lastDate: aligned && aligned.state === "ok" ? aligned.commonDates[aligned.commonDates.length - 1] : null,
+      cutoff: cutoff || null,
+      state: state
+    };
+  }
+
+  var COMPATIBLE_PERIODS_PER_YEAR = Object.freeze({
+    weekly: 52,
+    monthly: 12,
+    quarterly: 4,
+    annual: 1
+  });
+
+  function compatibleFrequencyRiskResults(weightResult, eligibility, cutoff) {
+    var returnRows = familyEligibility(eligibility, RISK_METRIC_FAMILIES[1]).filter(function (entry) {
+      return entry.state === "eligible-compatible-frequency";
+    });
+    var recordsById = {};
+    weightResult.records.forEach(function (record) { recordsById[record.id] = record; });
+    return returnRows.map(function (entry) {
+      var record = recordsById[entry.holdingId];
+      var manualSeries = record && record.holding && record.holding.manualSeries;
+      var periodsPerYear = COMPATIBLE_PERIODS_PER_YEAR[entry.frequency];
+      var seriesId = "manual:" + entry.holdingId;
+      var aligned = alignFailure("compatible-frequency-unavailable", cutoff);
+      if (manualSeries && Array.isArray(manualSeries.rows) && periodsPerYear) {
+        var series = {};
+        var weights = {};
+        series[seriesId] = manualSeries.rows;
+        weights[seriesId] = 1;
+        aligned = alignPortfolioReturns({ series: series, weights: weights, cutoff: cutoff });
+      }
+      var metrics = computeReturnMetrics(aligned, { periodsPerYear: periodsPerYear });
+      var drawdown = computeDrawdown(aligned);
+      var resultState = aligned.state === "ok"
+        ? (entry.includedWeight < 1 - 1e-9 ? "partial" : "ok")
+        : "unavailable";
+      return {
+        contractVersion: "CompatibleFrequencyRiskResult/v1",
+        holdingId: entry.holdingId,
+        symbol: entry.symbol,
+        holdingWeight: entry.includedWeight,
+        frequency: entry.frequency,
+        periodsPerYear: periodsPerYear || null,
+        evidenceIds: entry.evidenceIds.slice(),
+        alignment: aligned,
+        metrics: metrics,
+        drawdown: drawdown,
+        metricResult: metricResult("compatible-return:" + entry.holdingId,
+          RISK_METRIC_FAMILIES[1], eligibility, aligned.state === "ok" ? [entry] : [],
+          resultState, entry.frequency, aligned, cutoff)
+      };
+    }).sort(function (left, right) { return left.holdingId < right.holdingId ? -1 : 1; });
+  }
+
+  function preserveLastValid(failure, lastValid) {
+    if (!lastValid || lastValid.available !== true) return failure;
+    var preserved = Object.assign({}, lastValid);
+    preserved.state = "preserved-last-valid";
+    preserved.lastValidState = lastValid.state;
+    preserved.candidateFailure = failure;
+    return preserved;
+  }
+
   /* --------------------------------------------------------------- projection */
 
   /**
@@ -367,19 +648,30 @@
    */
   function riskXRayProjection(input) {
     var opts = input || {};
-    var weightResult = deriveWeights(opts.holdings);
-    if (weightResult.state !== "ok") {
-      return { state: weightResult.state, available: false, symbol: weightResult.symbol || null, points: [], rows: [] };
+    var weightResult = deriveRiskWeights(opts.holdings);
+    if (weightResult.state === "no-holdings" || weightResult.state === "weights-invalid") {
+      return preserveLastValid({ state: weightResult.state, available: false, points: [], rows: [], cutoff: opts.cutoff || null }, opts.lastValid);
     }
-
-    var aligned = alignPortfolioReturns({
-      series: opts.series,
-      weights: weightResult.weights,
-      cutoff: opts.cutoff
+    var eligibility = buildRiskEligibility(weightResult, opts.series, opts.cutoff);
+    var compatibleFrequencyResults = compatibleFrequencyRiskResults(weightResult, eligibility, opts.cutoff);
+    var returnEligibility = familyEligibility(eligibility, RISK_METRIC_FAMILIES[1]);
+    var dailyReturnEntries = returnEligibility.filter(function (entry) {
+      return entry.state === "eligible" && entry.frequency === "daily";
     });
-    if (aligned.state !== "ok") {
-      return { state: aligned.state, available: false, points: [], rows: [], cutoff: opts.cutoff || null };
+    var dailySymbols = uniqueSorted(dailyReturnEntries.map(function (entry) { return entry.symbol; }).filter(Boolean));
+    var dailyWeights = {}, dailySeries = {};
+    for (var de = 0; de < dailyReturnEntries.length; de += 1) {
+      var dailyEntry = dailyReturnEntries[de];
+      dailyWeights[dailyEntry.symbol] = (dailyWeights[dailyEntry.symbol] || 0) + dailyEntry.includedWeight;
     }
+    for (var ds = 0; ds < dailySymbols.length; ds += 1) dailySeries[dailySymbols[ds]] = (opts.series || {})[dailySymbols[ds]];
+
+    var aligned = dailySymbols.length ? alignPortfolioReturns({
+      series: dailySeries,
+      weights: dailyWeights,
+      cutoff: opts.cutoff,
+      allowPartialWeight: true
+    }) : alignFailure("no-eligible-series", opts.cutoff);
 
     var metrics = computeReturnMetrics(aligned, { periodsPerYear: opts.periodsPerYear });
     var drawdown = computeDrawdown(aligned);
@@ -394,7 +686,12 @@
       capm = fitCapm(aligned.returns, opts.benchmarkReturns, {
         periodsPerYear: opts.periodsPerYear,
         riskFreeAnnual: opts.riskFreeAnnual,
-        minimumObservations: opts.minimumCapmObservations
+        minimumObservations: opts.minimumCapmObservations,
+        benchmarkSymbol: opts.benchmarkSymbol,
+        sourceSymbols: opts.benchmarkSymbol ? [opts.benchmarkSymbol] : [],
+        frequency: "daily",
+        firstDate: aligned.commonDates[0],
+        lastDate: aligned.commonDates[aligned.commonDates.length - 1]
       });
     }
 
@@ -402,51 +699,103 @@
     if (opts.factorReturns && Object.keys(opts.factorReturns).length) {
       factors = fitFactors(aligned.returns, opts.factorReturns, {
         periodsPerYear: opts.periodsPerYear,
-        factorsVersion: opts.proxyFactorsVersion
+        factorsVersion: opts.proxyFactorsVersion,
+        factorSourceSymbols: opts.factorSourceSymbols,
+        frequency: "daily",
+        firstDate: aligned.commonDates[0],
+        lastDate: aligned.commonDates[aligned.commonDates.length - 1]
       });
     }
 
     var covariance = { state: "not-computed" };
     var contributions = { state: "not-computed" };
     if (aligned.returns.length >= 2) {
-      covariance = computeCovariance(aligned.perSymbolReturns, { shrinkageLambda: opts.shrinkageLambda });
-      if (covariance.state === "ok") {
+      covariance = computeCovariance(aligned.perSymbolReturns, {
+        shrinkageLambda: opts.shrinkageLambda,
+        firstDate: aligned.commonDates[0],
+        lastDate: aligned.commonDates[aligned.commonDates.length - 1]
+      });
+      if (covariance.state === "ok" && covariance.conditionedPositiveDefinite) {
         // Contributions run on the CONDITIONED matrix, and the projection carries which one was
         // used so a reader is never left guessing whether a shrinkage assumption is baked in.
-        contributions = riskContributions(covariance.symbols, weightResult.weights, covariance.conditioned, {
+        contributions = riskContributions(covariance.symbols, dailyWeights, covariance.conditioned, {
           reconciliationTolerance: opts.reconciliationTolerance
         });
+        contributions.model = "asset-covariance";
         contributions.basis = "conditioned";
         contributions.shrinkageLambda = covariance.shrinkageLambda;
       }
     }
 
-    var returnSplit = returnContributions(weightResult.symbols, weightResult.weights, aligned.perSymbolReturns, {
-      reconciliationTolerance: opts.reconciliationTolerance
-    });
+    var returnSplit = aligned.state === "ok"
+      ? returnContributions(aligned.symbols, dailyWeights, aligned.perSymbolReturns, { reconciliationTolerance: opts.reconciliationTolerance })
+      : { state: "not-computed" };
+    if (returnSplit.state === "ok") returnSplit.model = "realized-return";
+    var factorContributions = factors && factors.factorVarianceContributions
+      ? Object.assign({ model: "proxy-factor-variance" }, factors.factorVarianceContributions)
+      : { state: factors.state === "ok" ? "not-computed" : factors.state };
 
     // Canvas points and table rows come from the SAME wealth index in the SAME order.
-    var points = aligned.commonDates.map(function (date, i) {
+    var points = aligned.state === "ok" ? aligned.commonDates.map(function (date, i) {
       return {
         pointId: "rx-" + date.replace(/-/g, ""),
         date: date,
         wealth: aligned.wealthIndex[i],
         drawdownAt: (aligned.wealthIndex[i] / runningPeakAt(aligned.wealthIndex, i)) - 1
       };
-    });
+    }) : [];
+
+    var descriptiveEntries = familyEligibility(eligibility, RISK_METRIC_FAMILIES[0]).filter(function (entry) { return entry.state === "eligible"; });
+    var modelEntries = familyEligibility(eligibility, RISK_METRIC_FAMILIES[3]).filter(function (entry) { return entry.state === "eligible"; });
+    var dailyCoverage = dailyReturnEntries.reduce(function (sum, entry) { return sum + entry.includedWeight; }, 0);
+    var partial = weightResult.state === "partial" || dailyCoverage < 1 - 1e-9 || eligibility.some(function (entry) { return entry.state === "unavailable"; });
+    var available = aligned.state === "ok" || descriptiveEntries.length > 0;
+    var projectionState = available ? (partial ? "partial" : "ok") : aligned.state;
+    var returnsState = metrics.state === "ok" ? (dailyCoverage < 1 - 1e-9 ? "partial" : "ok") : "unavailable";
+    var covarianceState = covariance.state === "ok" ? (dailyCoverage < 1 - 1e-9 ? "partial" : "ok") : "unavailable";
+    var capmState = capm.state === "ok" ? (dailyCoverage < 1 - 1e-9 ? "partial" : "ok") : capm.state;
+    var factorsState = factors.state === "ok" ? (dailyCoverage < 1 - 1e-9 ? "partial" : "ok") : factors.state;
+    var assetContributionState = contributions.state === "ok" ? (dailyCoverage < 1 - 1e-9 ? "partial" : "ok") : "unavailable";
+    var factorContributionState = factorContributions.state === "ok" ? (dailyCoverage < 1 - 1e-9 ? "partial" : "ok") : factorContributions.state;
+    var returnContributionState = returnSplit.state === "ok" ? (dailyCoverage < 1 - 1e-9 ? "partial" : "ok") : "unavailable";
+    var descriptiveCoverage = descriptiveEntries.reduce(function (sum, entry) { return sum + entry.includedWeight; }, 0);
+    var metricResults = {
+      descriptive: metricResult("descriptive", RISK_METRIC_FAMILIES[0], eligibility, descriptiveEntries,
+        descriptiveEntries.length ? (descriptiveCoverage < 1 - 1e-9 ? "partial" : "ok") : "unavailable", "mixed", null, opts.cutoff),
+      returns: metricResult("returns", RISK_METRIC_FAMILIES[1], eligibility, dailyReturnEntries, returnsState, "daily", aligned, opts.cutoff),
+      drawdown: metricResult("drawdown", RISK_METRIC_FAMILIES[1], eligibility, dailyReturnEntries, returnsState, "daily", aligned, opts.cutoff),
+      covariance: metricResult("covariance", RISK_METRIC_FAMILIES[2], eligibility, dailyReturnEntries, covarianceState, "daily", aligned, opts.cutoff),
+      capm: metricResult("capm", RISK_METRIC_FAMILIES[3], eligibility, capm.state === "ok" ? modelEntries : [], capmState, "daily", aligned, opts.cutoff),
+      factors: metricResult("factors", RISK_METRIC_FAMILIES[3], eligibility, factors.state === "ok" ? modelEntries : [], factorsState, "daily", aligned, opts.cutoff),
+      assetContributions: metricResult("assetContributions", RISK_METRIC_FAMILIES[2], eligibility, contributions.state === "ok" ? dailyReturnEntries : [], assetContributionState, "daily", aligned, opts.cutoff),
+      factorContributions: metricResult("factorContributions", RISK_METRIC_FAMILIES[3], eligibility, factorContributions.state === "ok" ? modelEntries : [], factorContributionState, "daily", aligned, opts.cutoff),
+      returnContributions: metricResult("returnContributions", RISK_METRIC_FAMILIES[1], eligibility, returnSplit.state === "ok" ? dailyReturnEntries : [], returnContributionState, "daily", aligned, opts.cutoff)
+    };
+    if (!available) {
+      return preserveLastValid({
+        contractVersion: "RiskDiagnosticSet/v1", state: projectionState, available: false,
+        eligibility: eligibility, metricResults: metricResults,
+        compatibleFrequencyResults: compatibleFrequencyResults,
+        points: [], rows: [], cutoff: opts.cutoff || null
+      }, opts.lastValid);
+    }
 
     return {
-      state: "ok",
-      available: true,
+      contractVersion: "RiskDiagnosticSet/v1",
+      state: projectionState,
+      available: available,
       identity: analyticsIdentity({
-        weights: weightResult.weights,
+        weights: weightResult.symbolWeights,
         cutoff: opts.cutoff,
         periodsPerYear: opts.periodsPerYear
       }),
       cutoff: aligned.cutoff,
-      symbols: weightResult.symbols,
-      weights: weightResult.weights,
+      symbols: aligned.state === "ok" ? aligned.symbols : Object.keys(weightResult.symbolWeights).sort(),
+      weights: weightResult.symbolWeights,
       alignment: aligned.alignment,
+      eligibility: eligibility,
+      metricResults: metricResults,
+      compatibleFrequencyResults: compatibleFrequencyResults,
       // The exact portfolio return sample every later stage must resample, so a path scenario can
       // never be built on a basis the rest of the surface did not use.
       alignedReturns: aligned.returns,
@@ -462,6 +811,7 @@
       benchmarkSymbol: opts.benchmarkSymbol || null,
       covariance: covariance,
       contributions: contributions,
+      factorContributions: factorContributions,
       returnContributions: returnSplit,
       assetTreatment: assetTreatment(opts.holdings, opts.lookThroughSource),
       points: points,
@@ -488,21 +838,44 @@
   function computeConcentration(holdings, lens) {
     if (!Array.isArray(holdings) || !holdings.length) return { state: "no-holdings", lens: lens, buckets: [], missing: [] };
     if (typeof lens !== "string" || !lens) return { state: "lens-invalid", lens: lens, buckets: [], missing: [] };
-    var weightResult = deriveWeights(holdings);
-    if (weightResult.state !== "ok") return { state: weightResult.state, lens: lens, buckets: [], missing: [] };
+    var weightResult = deriveRiskWeights(holdings);
+    if (weightResult.state === "no-holdings" || weightResult.state === "weights-invalid") {
+      return { state: weightResult.state, lens: lens, buckets: [], missing: [] };
+    }
 
-    var totals = {}, missing = [], coveredWeight = 0, i, h, key, w;
-    var bySymbol = {};
-    for (i = 0; i < holdings.length; i += 1) {
-      h = holdings[i];
-      if (bySymbol[h.symbol]) continue;
-      bySymbol[h.symbol] = true;
-      key = h[lens];
-      w = weightResult.weights[h.symbol];
-      if (typeof key !== "string" || !key.trim()) { missing.push(h.symbol); continue; }
-      key = key.trim();
-      totals[key] = (totals[key] || 0) + w;
-      coveredWeight += w;
+    var totals = {}, missing = [], coveredWeight = 0, includedIds = [], i, key;
+    for (i = 0; i < weightResult.records.length; i += 1) {
+      var record = weightResult.records[i];
+      var holding = record.holding || {};
+      var weight = isNum(record.weight) ? record.weight : 0;
+      var exposure = holding[lens];
+      var displayId = holding.symbol || record.id;
+      if (typeof exposure === "string" && exposure.trim()) {
+        key = exposure.trim();
+        totals[key] = (totals[key] || 0) + weight;
+        coveredWeight += weight;
+        includedIds.push(record.id);
+        continue;
+      }
+      if (exposure && typeof exposure === "object" && !Array.isArray(exposure)) {
+        var exposureKeys = Object.keys(exposure).sort();
+        var exposureTotal = 0, valid = exposureKeys.length > 0;
+        for (var e = 0; e < exposureKeys.length; e += 1) {
+          var fraction = exposure[exposureKeys[e]];
+          if (!isNum(fraction) || fraction < 0) { valid = false; break; }
+          exposureTotal += fraction;
+        }
+        if (valid && exposureTotal <= 1 + 1e-9) {
+          for (var x = 0; x < exposureKeys.length; x += 1) {
+            totals[exposureKeys[x]] = (totals[exposureKeys[x]] || 0) + weight * exposure[exposureKeys[x]];
+          }
+          coveredWeight += weight * Math.min(1, exposureTotal);
+          includedIds.push(record.id);
+          if (exposureTotal < 1 - 1e-9) missing.push(displayId);
+          continue;
+        }
+      }
+      missing.push(displayId);
     }
 
     var buckets = Object.keys(totals).sort().map(function (name) {
@@ -515,9 +888,14 @@
       buckets: buckets,
       largest: buckets.length ? buckets[0] : null,
       coveredWeight: coveredWeight,
-      missing: missing.sort(),
+      uncoveredWeight: Math.max(0, 1 - coveredWeight),
+      includedIds: uniqueSorted(includedIds),
+      excludedIds: uniqueSorted(weightResult.records.filter(function (record) {
+        return includedIds.indexOf(record.id) === -1;
+      }).map(function (record) { return record.id; })),
+      missing: uniqueSorted(missing),
       // Coverage is stated so a lens explaining a third of the book cannot read like a full picture.
-      coverageState: missing.length === 0 ? "complete" : (coveredWeight > 0 ? "partial" : "none")
+      coverageState: missing.length === 0 && coveredWeight >= 1 - 1e-9 ? "complete" : (coveredWeight > 0 ? "partial" : "none")
     };
   }
 
@@ -576,6 +954,11 @@
 
     return {
       state: "ok",
+      benchmarkSymbol: opts.benchmarkSymbol || null,
+      sourceSymbols: Array.isArray(opts.sourceSymbols) ? opts.sourceSymbols.slice() : [],
+      frequency: opts.frequency || null,
+      firstDate: opts.firstDate || null,
+      lastDate: opts.lastDate || null,
       sampleSize: n,
       periodsPerYear: ppy,
       beta: beta,
@@ -587,7 +970,13 @@
       // Explanatory power is reported as its own state so a low-fit beta is never read as a precise one.
       fitState: rSquared === null ? "unavailable" : (rSquared < 0.3 ? "low-explanatory-power" : "explained"),
       sampleState: n >= minimum ? "meets-minimum" : "below-configured-minimum",
-      configuredMinimum: minimum
+      configuredMinimum: minimum,
+      uncertainty: {
+        betaStandardError: betaStdError,
+        sampleState: n >= minimum ? "meets-minimum" : "below-configured-minimum",
+        configuredMinimum: minimum,
+        fitState: rSquared === null ? "unavailable" : (rSquared < 0.3 ? "low-explanatory-power" : "explained")
+      }
     };
   }
 
@@ -598,6 +987,89 @@
   }
 
   /* ------------------------------------------------------- Scope 08 covariance */
+
+  function matrixFingerprint(matrix) {
+    var text = matrix.map(function (row) {
+      return row.map(function (value) { return isNum(value) ? value.toPrecision(15) : String(value); }).join(",");
+    }).join(";");
+    var hash = 2166136261;
+    for (var i = 0; i < text.length; i += 1) {
+      hash ^= text.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return "covariance:" + (hash >>> 0).toString(16).padStart(8, "0");
+  }
+
+  function symmetricEigenvalues(matrix) {
+    var n = Array.isArray(matrix) ? matrix.length : 0;
+    if (!n) return null;
+    var a = [], i, j;
+    for (i = 0; i < n; i += 1) {
+      if (!Array.isArray(matrix[i]) || matrix[i].length !== n || !matrix[i].every(isNum)) return null;
+      a.push(matrix[i].slice());
+    }
+    if (n === 1) return [a[0][0]];
+    var scale = 0;
+    for (i = 0; i < n; i += 1) for (j = 0; j < n; j += 1) scale = Math.max(scale, Math.abs(a[i][j]));
+    var tolerance = Math.max(Number.EPSILON, scale * 1e-12);
+    for (var iteration = 0; iteration < 100 * n * n; iteration += 1) {
+      var p = 0, q = 1, largest = Math.abs(a[p][q]);
+      for (i = 0; i < n; i += 1) {
+        for (j = i + 1; j < n; j += 1) {
+          if (Math.abs(a[i][j]) > largest) { largest = Math.abs(a[i][j]); p = i; q = j; }
+        }
+      }
+      if (largest <= tolerance) break;
+      var angle = 0.5 * Math.atan2(2 * a[p][q], a[q][q] - a[p][p]);
+      var cosine = Math.cos(angle), sine = Math.sin(angle);
+      var app = a[p][p], aqq = a[q][q], apq = a[p][q];
+      for (i = 0; i < n; i += 1) {
+        if (i === p || i === q) continue;
+        var aip = a[i][p], aiq = a[i][q];
+        a[i][p] = a[p][i] = cosine * aip - sine * aiq;
+        a[i][q] = a[q][i] = sine * aip + cosine * aiq;
+      }
+      a[p][p] = cosine * cosine * app - 2 * sine * cosine * apq + sine * sine * aqq;
+      a[q][q] = sine * sine * app + 2 * sine * cosine * apq + cosine * cosine * aqq;
+      a[p][q] = a[q][p] = 0;
+    }
+    return a.map(function (row, index) { return row[index]; }).sort(function (left, right) { return left - right; });
+  }
+
+  function covarianceDiagnostics(matrix, observationCount, firstDate, lastDate) {
+    var eigenvalues = symmetricEigenvalues(matrix);
+    if (!eigenvalues) {
+      return {
+        observationCount: observationCount,
+        firstDate: firstDate || null,
+        lastDate: lastDate || null,
+        minimumEigenvalue: null,
+        choleskyState: "invalid",
+        rank: 0,
+        conditionEstimate: null,
+        fingerprint: null,
+        state: "invalid"
+      };
+    }
+    var maximumMagnitude = eigenvalues.reduce(function (largest, value) { return Math.max(largest, Math.abs(value)); }, 0);
+    var tolerance = Math.max(Number.EPSILON, maximumMagnitude * 1e-10);
+    var rank = eigenvalues.filter(function (value) { return Math.abs(value) > tolerance; }).length;
+    var positive = eigenvalues.filter(function (value) { return value > tolerance; });
+    var positiveDefinite = isPositiveDefinite(matrix);
+    return {
+      observationCount: observationCount,
+      firstDate: firstDate || null,
+      lastDate: lastDate || null,
+      minimumEigenvalue: eigenvalues[0],
+      choleskyState: positiveDefinite ? "positive-definite" : "failed",
+      rank: rank,
+      conditionEstimate: rank === matrix.length && positive.length
+        ? maximumMagnitude / Math.min.apply(null, positive)
+        : null,
+      fingerprint: matrixFingerprint(matrix),
+      state: positiveDefinite ? "positive-definite" : (rank < matrix.length ? "singular" : "non-positive-definite")
+    };
+  }
 
   /**
    * Raw sample covariance and, separately, a fixed-lambda diagonally shrunk matrix.
@@ -646,6 +1118,9 @@
       }
     }
 
+    var rawDiagnostics = covarianceDiagnostics(raw, n, opts.firstDate, opts.lastDate);
+    var conditionedDiagnostics = covarianceDiagnostics(conditioned, n, opts.firstDate, opts.lastDate);
+
     return {
       state: "ok",
       symbols: symbols,
@@ -653,9 +1128,18 @@
       raw: raw,
       conditioned: conditioned,
       shrinkageLambda: lambda,
-      rawPositiveDefinite: isPositiveDefinite(raw),
-      conditionedPositiveDefinite: isPositiveDefinite(conditioned),
-      lambdaWasAutoRaised: false
+      rawPositiveDefinite: rawDiagnostics.choleskyState === "positive-definite",
+      conditionedPositiveDefinite: conditionedDiagnostics.choleskyState === "positive-definite",
+      lambdaWasAutoRaised: false,
+      rawDiagnostics: rawDiagnostics,
+      conditionedDiagnostics: conditionedDiagnostics,
+      conditioning: {
+        method: lambda === 0 ? "none" : "diagonal-shrinkage",
+        lambda: lambda,
+        lambdaWasAutoRaised: false,
+        parentRawFingerprint: rawDiagnostics.fingerprint,
+        resultDiagnostics: conditionedDiagnostics
+      }
     };
   }
 
@@ -801,12 +1285,40 @@
       }
     }
 
+    var designDiagnostics = covarianceDiagnostics(XtX, n, opts.firstDate, opts.lastDate);
+    var sourceSymbols = {}, missingSourceFactors = [];
+    for (i = 0; i < ids.length; i += 1) {
+      var declaredSources = opts.factorSourceSymbols && opts.factorSourceSymbols[ids[i]];
+      sourceSymbols[ids[i]] = Array.isArray(declaredSources) ? declaredSources.slice() : [];
+      if (!sourceSymbols[ids[i]].length) missingSourceFactors.push(ids[i]);
+    }
+
     if (!isPositiveDefinite(XtX)) {
-      return { state: "rank-deficient", available: available, unavailable: unavailable, sampleSize: n };
+      return {
+        state: "rank-deficient", available: available, unavailable: unavailable, sampleSize: n,
+        definitionVersion: opts.factorsVersion || null,
+        factorsVersion: opts.factorsVersion || null,
+        sourceSymbols: sourceSymbols,
+        missingSourceFactors: missingSourceFactors,
+        rank: designDiagnostics.rank,
+        conditionEstimate: designDiagnostics.conditionEstimate,
+        conditionState: designDiagnostics.state
+      };
     }
 
     var beta = solveSymmetric(XtX, Xty);
-    if (!beta) return { state: "rank-deficient", available: available, unavailable: unavailable, sampleSize: n };
+    if (!beta) {
+      return {
+        state: "rank-deficient", available: available, unavailable: unavailable, sampleSize: n,
+        definitionVersion: opts.factorsVersion || null,
+        factorsVersion: opts.factorsVersion || null,
+        sourceSymbols: sourceSymbols,
+        missingSourceFactors: missingSourceFactors,
+        rank: designDiagnostics.rank,
+        conditionEstimate: designDiagnostics.conditionEstimate,
+        conditionState: designDiagnostics.state
+      };
+    }
 
     var ssResidual = 0, ssTotal = 0, my = mean(y);
     for (k = 0; k < n; k += 1) {
@@ -822,18 +1334,62 @@
 
     var rSquared = ssTotal > 0 ? 1 - (ssResidual / ssTotal) : null;
     var adjusted = (ssTotal > 0 && n > p) ? 1 - ((1 - rSquared) * (n - 1)) / (n - p) : null;
+    var factorInput = {};
+    for (i = 0; i < available.length; i += 1) factorInput[available[i]] = factorSeries[available[i]];
+    var factorCovarianceResult = computeCovariance(factorInput, {
+      shrinkageLambda: 0,
+      firstDate: opts.firstDate,
+      lastDate: opts.lastDate
+    });
+    var factorCovariance = factorCovarianceResult.state === "ok" ? factorCovarianceResult.raw : null;
+    var factorContribution = [], factorVariance = null, contributionSum = null;
+    if (factorCovariance) {
+      var exposureVector = available.map(function (id) { return exposures[id]; });
+      var covarianceTimesExposure = matrixVector(factorCovariance, exposureVector);
+      factorContribution = exposureVector.map(function (exposure, index) { return exposure * covarianceTimesExposure[index]; });
+      contributionSum = factorContribution.reduce(function (sum, value) { return sum + value; }, 0);
+      factorVariance = contributionSum;
+    }
+    var residualVariance = n > p ? ssResidual / (n - p) : null;
+    var factorTolerance = 1e-12;
+    var factorVarianceContributions = factorCovariance ? {
+      state: "ok",
+      factors: available.slice(),
+      contribution: factorContribution,
+      contributionSum: contributionSum,
+      factorVariance: factorVariance,
+      reconciliationResidual: Math.abs(contributionSum - factorVariance),
+      reconciliationTolerance: factorTolerance,
+      reconciled: Math.abs(contributionSum - factorVariance) <= factorTolerance
+    } : { state: factorCovarianceResult.state };
 
     return {
       state: "ok",
+      definitionVersion: opts.factorsVersion || null,
       factorsVersion: opts.factorsVersion || null,
       // Named a proxy in the payload itself so a consumer cannot quietly promote it to a real factor.
       basis: "declared-proxy-spreads",
       sampleSize: n,
       parameters: p,
+      frequency: opts.frequency || null,
+      firstDate: opts.firstDate || null,
+      lastDate: opts.lastDate || null,
       available: available,
       unavailable: unavailable,
+      sourceSymbols: sourceSymbols,
+      missingSourceFactors: missingSourceFactors,
+      sourceState: missingSourceFactors.length ? "partial" : "complete",
+      rank: designDiagnostics.rank,
+      conditionEstimate: designDiagnostics.conditionEstimate,
+      conditionState: designDiagnostics.state,
       interceptAnnualized: beta[0] * ppy,
       exposures: exposures,
+      coefficients: exposures,
+      factorCovariance: factorCovariance,
+      factorCovarianceDiagnostics: factorCovarianceResult.rawDiagnostics || null,
+      factorVarianceContributions: factorVarianceContributions,
+      residualVariance: residualVariance,
+      totalModelVariance: factorVariance === null || residualVariance === null ? null : factorVariance + residualVariance,
       rSquared: rSquared,
       adjustedRSquared: adjusted,
       residualRiskAnnualized: n > p ? Math.sqrt((ssResidual / (n - p)) * ppy) : null,
@@ -912,6 +1468,30 @@
       if (h.assetType === "listed") marketBased.push(h.symbol);
       else excluded.push({ symbol: h.symbol, assetType: h.assetType || "unknown" });
     }
+    var weights = deriveRiskWeights(holdings);
+    var coveredIds = [], missingIds = [], coveredWeight = 0;
+    for (var r = 0; r < weights.records.length; r += 1) {
+      var record = weights.records[r];
+      var lookThrough = record.holding && record.holding.lookThrough;
+      var keys = lookThrough && typeof lookThrough === "object" && !Array.isArray(lookThrough)
+        ? Object.keys(lookThrough)
+        : [];
+      var total = 0, valid = keys.length > 0;
+      for (var k = 0; k < keys.length; k += 1) {
+        if (!isNum(lookThrough[keys[k]]) || lookThrough[keys[k]] < 0) { valid = false; break; }
+        total += lookThrough[keys[k]];
+      }
+      if (valid && total <= 1 + 1e-9) {
+        coveredIds.push(record.id);
+        coveredWeight += (isNum(record.weight) ? record.weight : 0) * Math.min(1, total);
+        if (total < 1 - 1e-9) missingIds.push(record.id);
+      } else {
+        missingIds.push(record.id);
+      }
+    }
+    var lookThroughState = coveredIds.length
+      ? (missingIds.length || coveredWeight < 1 - 1e-9 ? "partial" : "complete")
+      : (lookThroughSource ? "available" : "no-configured-source");
     return {
       state: "ok",
       marketBased: marketBased.sort(),
@@ -919,12 +1499,18 @@
       // Absent by design in this deployment: no constituent source is configured, and inventing one
       // from a vehicle's own ticker would be a fabricated decomposition.
       lookThrough: {
-        state: lookThroughSource ? "available" : "no-configured-source",
-        source: lookThroughSource || null,
-        covered: [],
-        reason: lookThroughSource
-          ? "Constituent data is available for the declared source."
-          : "No constituent source is configured, so overlapping exposure inside pooled vehicles cannot be measured. It is not assumed absent."
+        state: lookThroughState,
+        source: lookThroughSource || (coveredIds.length ? "holding-declared" : null),
+        covered: uniqueSorted(coveredIds),
+        coveredIds: uniqueSorted(coveredIds),
+        missingIds: uniqueSorted(missingIds),
+        coveredWeight: coveredWeight,
+        uncoveredWeight: Math.max(0, 1 - coveredWeight),
+        reason: coveredIds.length
+          ? "Holding-declared constituent weights cover " + (coveredWeight * 100).toFixed(2) + "% of portfolio weight; every uncovered holding remains named."
+          : (lookThroughSource
+            ? "Constituent data is available for the declared source."
+            : "No constituent source is configured, so overlapping exposure inside pooled vehicles cannot be measured. It is not assumed absent.")
       }
     };
   }
@@ -994,9 +1580,79 @@
   }
 
   var SCENARIO_KEYS = [
-    "contractVersion", "returnFingerprint", "method", "seed", "meanBlockSessions",
-    "horizonSessions", "pathCount", "parameterDrawCount", "driftRange", "startingValue"
+    "contractVersion", "workspaceIdentity", "portfolioRevisionId", "mandateRevisionId",
+    "allocationCandidateId", "evidenceSet", "method", "seed", "horizon", "pathCount",
+    "chunkSize", "parameterPolicy", "rebalancePolicy", "costPolicy", "contributions",
+    "withdrawals", "cashNeeds", "survivalDefinition", "constraintsFingerprint",
+    "uncertaintyPolicy", "policyFingerprint"
   ];
+  var SCENARIO_EVIDENCE_KEYS = [
+    "returnFingerprint", "sourceIds", "cutoffAt", "firstDate", "lastDate", "frequency",
+    "currency", "eligibleDateFingerprint"
+  ];
+  var SCENARIO_METHOD_KEYS = [
+    "family", "blockPolicy", "regimePolicy", "fatTailPolicy", "calibrationIdentity", "availability"
+  ];
+  var SCENARIO_BLOCK_KEYS = ["family", "meanBlockSessions", "wrapPolicy"];
+  var SCENARIO_REGIME_KEYS = [
+    "state", "stateDefinitions", "transitionMatrix", "fittingSample", "minimumSamplePolicy",
+    "fitDiagnostics", "uncertainty"
+  ];
+  var SCENARIO_FAT_TAIL_KEYS = ["state", "innovationFamily", "tailParameters"];
+  var SCENARIO_AVAILABILITY_KEYS = ["state", "reason"];
+  var SCENARIO_HORIZON_KEYS = ["startDate", "endDate", "stepFrequency", "stepCount"];
+  var SCENARIO_PARAMETER_POLICY_KEYS = ["drawCount", "ranges", "distributions", "gridIdentity"];
+  var SCENARIO_PARAMETER_RANGE_KEYS = ["parameter", "low", "high"];
+  var SCENARIO_PARAMETER_DISTRIBUTION_KEYS = ["parameter", "family", "parameters"];
+  var SCENARIO_REBALANCE_KEYS = ["family", "frequency"];
+  var SCENARIO_COST_KEYS = ["currency", "recurringFraction", "timing"];
+  var SCENARIO_FLOW_KEYS = ["localId", "amount", "currency", "date", "timing", "label"];
+  var SCENARIO_CASH_NEED_KEYS = SCENARIO_FLOW_KEYS.concat(["priority", "treatment"]);
+  var SCENARIO_SURVIVAL_KEYS = [
+    "state", "floorValue", "condition", "cashNeedPolicy", "currency", "startingValue"
+  ];
+  var SCENARIO_UNCERTAINTY_KEYS = ["intervalMethod", "quantiles", "separatePathAndParameter"];
+
+  function isPlainObject(value) {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+  }
+
+  function hasExactKeys(value, keys) {
+    return isPlainObject(value) && Object.keys(value).sort().join("|") === keys.slice().sort().join("|");
+  }
+
+  function isNonEmptyString(value) {
+    return typeof value === "string" && value.length > 0;
+  }
+
+  function isIsoDate(value) {
+    return isNonEmptyString(value) && /^\d{4}-\d{2}-\d{2}$/.test(value);
+  }
+
+  function isNullableString(value) {
+    return value === null || isNonEmptyString(value);
+  }
+
+  function isNullableObject(value) {
+    return value === null || isPlainObject(value);
+  }
+
+  function validateScenarioFlowRecords(records, keys, requireCashNeedFields) {
+    if (!Array.isArray(records)) return false;
+    var seen = {};
+    for (var i = 0; i < records.length; i += 1) {
+      var record = records[i];
+      if (!hasExactKeys(record, keys)) return false;
+      if (!isNonEmptyString(record.localId) || seen[record.localId]) return false;
+      seen[record.localId] = true;
+      if (!isNum(record.amount) || record.amount <= 0 || !isNonEmptyString(record.currency)) return false;
+      if (!isIsoDate(record.date) || !isNonEmptyString(record.label)) return false;
+      if (record.timing !== "start-of-step" && record.timing !== "end-of-step") return false;
+      if (requireCashNeedFields && (!Number.isInteger(record.priority) || record.priority < 1 ||
+        !isNonEmptyString(record.treatment))) return false;
+    }
+    return true;
+  }
 
   /**
    * ScenarioSpecification/v1 — every field that changes a result must be present and explicit.
@@ -1006,21 +1662,151 @@
    * collision the identity exists to prevent.
    */
   function validateScenarioSpecification(spec) {
-    if (!spec || typeof spec !== "object" || Array.isArray(spec)) return { ok: false, reason: "spec-invalid" };
-    var keys = Object.keys(spec).sort();
-    if (keys.join("|") !== SCENARIO_KEYS.slice().sort().join("|")) return { ok: false, reason: "spec-keys-exact" };
+    if (!isPlainObject(spec)) return { ok: false, reason: "spec-invalid" };
+    if (!hasExactKeys(spec, SCENARIO_KEYS)) return { ok: false, reason: "spec-keys-exact" };
     if (spec.contractVersion !== "ScenarioSpecification/v1") return { ok: false, reason: "contract-version" };
-    if (typeof spec.returnFingerprint !== "string" || !spec.returnFingerprint) return { ok: false, reason: "return-fingerprint" };
-    if (spec.method !== "stationary-bootstrap" && spec.method !== "iid") return { ok: false, reason: "method" };
+    if (![spec.workspaceIdentity, spec.portfolioRevisionId, spec.mandateRevisionId,
+      spec.allocationCandidateId, spec.constraintsFingerprint, spec.policyFingerprint].every(isNonEmptyString)) {
+      return { ok: false, reason: "identity-authority" };
+    }
+    if (!hasExactKeys(spec.evidenceSet, SCENARIO_EVIDENCE_KEYS)) return { ok: false, reason: "spec-keys-exact" };
+    if (!isNonEmptyString(spec.evidenceSet.returnFingerprint) ||
+      !Array.isArray(spec.evidenceSet.sourceIds) || spec.evidenceSet.sourceIds.length === 0 ||
+      !spec.evidenceSet.sourceIds.every(isNonEmptyString) || !isNonEmptyString(spec.evidenceSet.cutoffAt) ||
+      !isIsoDate(spec.evidenceSet.firstDate) || !isIsoDate(spec.evidenceSet.lastDate) ||
+      !isNonEmptyString(spec.evidenceSet.frequency) || !isNonEmptyString(spec.evidenceSet.currency) ||
+      !isNonEmptyString(spec.evidenceSet.eligibleDateFingerprint)) {
+      return { ok: false, reason: "evidence-set" };
+    }
+    if (!isPlainObject(spec.method)) return { ok: false, reason: "method" };
+    if (!hasExactKeys(spec.method, SCENARIO_METHOD_KEYS) ||
+      !hasExactKeys(spec.method.blockPolicy, SCENARIO_BLOCK_KEYS) ||
+      !hasExactKeys(spec.method.regimePolicy, SCENARIO_REGIME_KEYS) ||
+      !hasExactKeys(spec.method.fatTailPolicy, SCENARIO_FAT_TAIL_KEYS) ||
+      !hasExactKeys(spec.method.availability, SCENARIO_AVAILABILITY_KEYS)) {
+      return { ok: false, reason: "spec-keys-exact" };
+    }
+    if (["stationary-bootstrap", "iid-comparison", "regime-fat-tail"].indexOf(spec.method.family) === -1) {
+      return { ok: false, reason: "method" };
+    }
+    if (!isNonEmptyString(spec.method.blockPolicy.family) ||
+      !isNum(spec.method.blockPolicy.meanBlockSessions) || spec.method.blockPolicy.meanBlockSessions < 1 ||
+      ["cyclic", "no-wrap"].indexOf(spec.method.blockPolicy.wrapPolicy) === -1) {
+      return { ok: false, reason: "mean-block" };
+    }
+    if (["not-requested", "unavailable", "calibrated"].indexOf(spec.method.regimePolicy.state) === -1 ||
+      !Array.isArray(spec.method.regimePolicy.stateDefinitions) ||
+      !Array.isArray(spec.method.regimePolicy.transitionMatrix) ||
+      !isNullableString(spec.method.regimePolicy.fittingSample) ||
+      !isNullableString(spec.method.regimePolicy.minimumSamplePolicy) ||
+      !isNullableObject(spec.method.regimePolicy.fitDiagnostics) ||
+      !isNullableObject(spec.method.regimePolicy.uncertainty)) {
+      return { ok: false, reason: "regime-policy" };
+    }
+    if (["not-requested", "unavailable", "calibrated"].indexOf(spec.method.fatTailPolicy.state) === -1 ||
+      !isNullableString(spec.method.fatTailPolicy.innovationFamily) ||
+      !isNullableObject(spec.method.fatTailPolicy.tailParameters)) {
+      return { ok: false, reason: "fat-tail-policy" };
+    }
+    if (!isNonEmptyString(spec.method.calibrationIdentity) ||
+      ["calibrated", "unavailable"].indexOf(spec.method.availability.state) === -1 ||
+      !isNullableString(spec.method.availability.reason)) {
+      return { ok: false, reason: "method-availability" };
+    }
     if (!Number.isInteger(spec.seed) || spec.seed < 0) return { ok: false, reason: "seed" };
-    if (!isNum(spec.meanBlockSessions) || spec.meanBlockSessions < 1) return { ok: false, reason: "mean-block" };
-    if (!Number.isInteger(spec.horizonSessions) || spec.horizonSessions < 1) return { ok: false, reason: "horizon" };
+    if (!hasExactKeys(spec.horizon, SCENARIO_HORIZON_KEYS)) return { ok: false, reason: "spec-keys-exact" };
+    if (!isIsoDate(spec.horizon.startDate) || !isIsoDate(spec.horizon.endDate) ||
+      spec.horizon.endDate < spec.horizon.startDate || !isNonEmptyString(spec.horizon.stepFrequency) ||
+      !Number.isInteger(spec.horizon.stepCount) || spec.horizon.stepCount < 1) {
+      return { ok: false, reason: "horizon" };
+    }
     if (!Number.isInteger(spec.pathCount) || spec.pathCount < 1) return { ok: false, reason: "path-count" };
-    if (!Number.isInteger(spec.parameterDrawCount) || spec.parameterDrawCount < 1) return { ok: false, reason: "parameter-draws" };
-    if (!spec.driftRange || !isNum(spec.driftRange.low) || !isNum(spec.driftRange.high)) return { ok: false, reason: "drift-range" };
-    if (spec.driftRange.high < spec.driftRange.low) return { ok: false, reason: "drift-range" };
-    if (!isNum(spec.startingValue) || spec.startingValue <= 0) return { ok: false, reason: "starting-value" };
+    if (!Number.isInteger(spec.chunkSize) || spec.chunkSize < 1) return { ok: false, reason: "chunk-size" };
+    if (!hasExactKeys(spec.parameterPolicy, SCENARIO_PARAMETER_POLICY_KEYS)) return { ok: false, reason: "spec-keys-exact" };
+    if (!Number.isInteger(spec.parameterPolicy.drawCount) || spec.parameterPolicy.drawCount < 1 ||
+      !Array.isArray(spec.parameterPolicy.ranges) || spec.parameterPolicy.ranges.length === 0 ||
+      !Array.isArray(spec.parameterPolicy.distributions) || spec.parameterPolicy.distributions.length === 0 ||
+      !isNonEmptyString(spec.parameterPolicy.gridIdentity)) {
+      return { ok: false, reason: "parameter-policy" };
+    }
+    for (var r = 0; r < spec.parameterPolicy.ranges.length; r += 1) {
+      var range = spec.parameterPolicy.ranges[r];
+      if (!hasExactKeys(range, SCENARIO_PARAMETER_RANGE_KEYS)) return { ok: false, reason: "spec-keys-exact" };
+      if (!isNonEmptyString(range.parameter) || !isNum(range.low) || !isNum(range.high) || range.high < range.low) {
+        return { ok: false, reason: "drift-range" };
+      }
+    }
+    for (var d = 0; d < spec.parameterPolicy.distributions.length; d += 1) {
+      var distribution = spec.parameterPolicy.distributions[d];
+      if (!hasExactKeys(distribution, SCENARIO_PARAMETER_DISTRIBUTION_KEYS)) {
+        return { ok: false, reason: "spec-keys-exact" };
+      }
+      if (!isNonEmptyString(distribution.parameter) || !isNonEmptyString(distribution.family) ||
+        !isPlainObject(distribution.parameters)) return { ok: false, reason: "parameter-distribution" };
+    }
+    if (!hasExactKeys(spec.rebalancePolicy, SCENARIO_REBALANCE_KEYS)) return { ok: false, reason: "spec-keys-exact" };
+    if (!isNonEmptyString(spec.rebalancePolicy.family) || !isNullableString(spec.rebalancePolicy.frequency)) {
+      return { ok: false, reason: "rebalance-policy" };
+    }
+    if (!hasExactKeys(spec.costPolicy, SCENARIO_COST_KEYS)) return { ok: false, reason: "spec-keys-exact" };
+    if (!isNonEmptyString(spec.costPolicy.currency) || !isNum(spec.costPolicy.recurringFraction) ||
+      spec.costPolicy.recurringFraction < 0 ||
+      ["start-of-step", "end-of-step"].indexOf(spec.costPolicy.timing) === -1) {
+      return { ok: false, reason: "cost-policy" };
+    }
+    if (!Array.isArray(spec.contributions) || !Array.isArray(spec.withdrawals) || !Array.isArray(spec.cashNeeds)) {
+      return { ok: false, reason: "flow-policy" };
+    }
+    var flowGroups = [
+      { records: spec.contributions, keys: SCENARIO_FLOW_KEYS },
+      { records: spec.withdrawals, keys: SCENARIO_FLOW_KEYS },
+      { records: spec.cashNeeds, keys: SCENARIO_CASH_NEED_KEYS }
+    ];
+    for (var fg = 0; fg < flowGroups.length; fg += 1) {
+      for (var fr = 0; fr < flowGroups[fg].records.length; fr += 1) {
+        if (!hasExactKeys(flowGroups[fg].records[fr], flowGroups[fg].keys)) {
+          return { ok: false, reason: "spec-keys-exact" };
+        }
+      }
+    }
+    if (!validateScenarioFlowRecords(spec.contributions, SCENARIO_FLOW_KEYS, false) ||
+      !validateScenarioFlowRecords(spec.withdrawals, SCENARIO_FLOW_KEYS, false) ||
+      !validateScenarioFlowRecords(spec.cashNeeds, SCENARIO_CASH_NEED_KEYS, true)) {
+      return { ok: false, reason: "flow-policy" };
+    }
+    if (!hasExactKeys(spec.survivalDefinition, SCENARIO_SURVIVAL_KEYS)) {
+      return { ok: false, reason: "spec-keys-exact" };
+    }
+    if (["available", "unavailable"].indexOf(spec.survivalDefinition.state) === -1 ||
+      !isNum(spec.survivalDefinition.floorValue) || spec.survivalDefinition.floorValue < 0 ||
+      !isNonEmptyString(spec.survivalDefinition.condition) ||
+      !isNonEmptyString(spec.survivalDefinition.cashNeedPolicy) ||
+      !isNonEmptyString(spec.survivalDefinition.currency) ||
+      !isNum(spec.survivalDefinition.startingValue) || spec.survivalDefinition.startingValue <= 0) {
+      return { ok: false, reason: "starting-value" };
+    }
+    if (!hasExactKeys(spec.uncertaintyPolicy, SCENARIO_UNCERTAINTY_KEYS)) {
+      return { ok: false, reason: "spec-keys-exact" };
+    }
+    if (!isNonEmptyString(spec.uncertaintyPolicy.intervalMethod) ||
+      !Array.isArray(spec.uncertaintyPolicy.quantiles) || spec.uncertaintyPolicy.quantiles.length !== 3 ||
+      !spec.uncertaintyPolicy.quantiles.every(function (value) { return isNum(value) && value >= 0 && value <= 1; }) ||
+      spec.uncertaintyPolicy.quantiles[0] > spec.uncertaintyPolicy.quantiles[1] ||
+      spec.uncertaintyPolicy.quantiles[1] > spec.uncertaintyPolicy.quantiles[2] ||
+      typeof spec.uncertaintyPolicy.separatePathAndParameter !== "boolean") {
+      return { ok: false, reason: "uncertainty-policy" };
+    }
     return { ok: true };
+  }
+
+  function canonicalScenarioValue(value) {
+    if (Array.isArray(value)) return "[" + value.map(canonicalScenarioValue).join(",") + "]";
+    if (isPlainObject(value)) {
+      return "{" + Object.keys(value).sort().map(function (key) {
+        return JSON.stringify(key) + ":" + canonicalScenarioValue(value[key]);
+      }).join(",") + "}";
+    }
+    return JSON.stringify(value);
   }
 
   /** Stable identity over every field that changes the result. */
@@ -1028,10 +1814,10 @@
     var check = validateScenarioSpecification(spec);
     if (!check.ok) return null;
     return SCENARIO_KEYS.map(function (key) {
-      var value = spec[key];
-      if (key === "driftRange") return "driftRange=" + value.low + ":" + value.high;
-      return key + "=" + value;
-    }).join("|");
+      return key + "=" + canonicalScenarioValue(spec[key]);
+    }).join("|") +
+      "|meanBlockSessions=" + spec.method.blockPolicy.meanBlockSessions +
+      "|horizonSessions=" + spec.horizon.stepCount;
   }
 
   function percentile(sorted, q) {
@@ -1176,6 +1962,750 @@
       representativePathIsExample: true,
       noExpectedPathClaim: "No path here is the expected future. The fan is a distribution of resampled histories, not a forecast."
     };
+  }
+
+  function scenarioMethodState(spec) {
+    var check = validateScenarioSpecification(spec);
+    if (!check.ok) return null;
+    return {
+      family: spec.method.family,
+      state: spec.method.availability.state,
+      reason: spec.method.availability.reason,
+      calibrationIdentity: spec.method.calibrationIdentity
+    };
+  }
+
+  function scenarioComputeFailure(code, details) {
+    var error = { contractVersion: "PortfolioError/v1", code: code };
+    Object.keys(details || {}).forEach(function (key) { error[key] = details[key]; });
+    return { state: "error", error: error };
+  }
+
+  function scenarioBudget(spec, options) {
+    var requested = spec.pathCount * spec.parameterPolicy.drawCount;
+    var budget = requested;
+    if (options && Number.isInteger(options.maximumWorkUnits)) budget = options.maximumWorkUnits;
+    else if (options && Number.isInteger(options.maximumPaths)) budget = options.maximumPaths;
+    if (budget < requested) {
+      return scenarioComputeFailure("P008-COMPUTE-BUDGET", {
+        requestedWorkUnits: requested,
+        budgetWorkUnits: budget
+      });
+    }
+    return { state: "ok", requestedWorkUnits: requested, budgetWorkUnits: budget };
+  }
+
+  function scenarioParameterRange(spec, parameter) {
+    for (var i = 0; i < spec.parameterPolicy.ranges.length; i += 1) {
+      if (spec.parameterPolicy.ranges[i].parameter === parameter) return spec.parameterPolicy.ranges[i];
+    }
+    return null;
+  }
+
+  function scenarioParameterValues(spec) {
+    var range = scenarioParameterRange(spec, "drift");
+    return range ? parameterGrid(range, spec.parameterPolicy.drawCount) : null;
+  }
+
+  function scenarioSessionDates(spec) {
+    var dates = [spec.horizon.startDate];
+    var cursor = new Date(spec.horizon.startDate + "T00:00:00.000Z");
+    while (dates.length <= spec.horizon.stepCount) {
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
+      if (spec.horizon.stepFrequency === "business-day") {
+        var day = cursor.getUTCDay();
+        if (day === 0 || day === 6) continue;
+      }
+      dates.push(cursor.toISOString().slice(0, 10));
+    }
+    return dates;
+  }
+
+  function scenarioPathSeed(spec, pathIndex) {
+    return (spec.seed ^ Math.imul(pathIndex + 1, 0x9e3779b1)) >>> 0;
+  }
+
+  function scenarioPathIndices(spec, sampleSize, pathIndex) {
+    var random = mulberry32(scenarioPathSeed(spec, pathIndex));
+    if (spec.method.family === "iid-comparison") {
+      return iidIndices(sampleSize, spec.horizon.stepCount, random);
+    }
+    return stationaryBootstrapIndices(
+      sampleSize,
+      spec.horizon.stepCount,
+      spec.method.blockPolicy.meanBlockSessions,
+      random
+    );
+  }
+
+  function scenarioBasePath(spec, sampleReturns, pathIndex, drift) {
+    var indices = scenarioPathIndices(spec, sampleReturns.length, pathIndex);
+    var values = [spec.survivalDefinition.startingValue];
+    for (var i = 0; i < indices.length; i += 1) {
+      values.push(values[values.length - 1] * (1 + sampleReturns[indices[i]] + drift));
+    }
+    return { indices: indices, values: values };
+  }
+
+  function firstScenarioSessionOnOrAfter(date, sessionDates) {
+    for (var i = 0; i < sessionDates.length; i += 1) {
+      if (sessionDates[i] >= date) return i;
+    }
+    return -1;
+  }
+
+  function scenarioScheduledEvents(spec, sessionDates) {
+    var scheduled = [];
+    var rejected = [];
+    var add = function (records, kind) {
+      records.forEach(function (record) {
+        var session = firstScenarioSessionOnOrAfter(record.date, sessionDates);
+        if (session < 0) {
+          rejected.push({ localId: record.localId, reason: "out-of-horizon", declaredDate: record.date });
+          return;
+        }
+        scheduled.push({
+          kind: kind,
+          localId: record.localId,
+          amount: record.amount,
+          currency: record.currency,
+          declaredDate: record.date,
+          modeledDate: sessionDates[session],
+          session: session,
+          timing: record.timing,
+          label: record.label,
+          priority: kind === "cash-need" ? record.priority : null,
+          treatment: kind === "cash-need" ? record.treatment : null
+        });
+      });
+    };
+    add(spec.contributions, "contribution");
+    add(spec.withdrawals, "withdrawal");
+    add(spec.cashNeeds, "cash-need");
+    return { scheduled: scheduled, rejected: rejected };
+  }
+
+  function scenarioEventRank(event) {
+    return { cost: 0, contribution: 1, withdrawal: 2, "cash-need": 3 }[event.kind];
+  }
+
+  function sortScenarioEvents(events) {
+    return events.slice().sort(function (a, b) {
+      var rank = scenarioEventRank(a) - scenarioEventRank(b);
+      if (rank !== 0) return rank;
+      return a.localId < b.localId ? -1 : (a.localId > b.localId ? 1 : 0);
+    });
+  }
+
+  function scenarioCostEvent(spec, session, modeledDate) {
+    return {
+      kind: "cost",
+      localId: "recurring-cost",
+      amount: null,
+      currency: spec.costPolicy.currency,
+      declaredDate: modeledDate,
+      modeledDate: modeledDate,
+      session: session,
+      timing: spec.costPolicy.timing,
+      label: "Recurring cost",
+      priority: null,
+      treatment: "recurring-fraction"
+    };
+  }
+
+  function scenarioMetrics(values, events, survivalDefinition) {
+    var peak = values[0];
+    var maximumDrawdown = 0;
+    var timeUnderWater = 0;
+    var underwater = false;
+    var recovery = null;
+    var firstFloorBreach = null;
+    for (var i = 0; i < values.length; i += 1) {
+      if (values[i] > peak) {
+        peak = values[i];
+        if (underwater && recovery === null) recovery = i;
+        underwater = false;
+      } else if (values[i] < peak) {
+        underwater = true;
+        timeUnderWater += 1;
+        maximumDrawdown = Math.max(maximumDrawdown, (peak - values[i]) / peak);
+      }
+      if (firstFloorBreach === null && values[i] < survivalDefinition.floorValue) firstFloorBreach = i;
+    }
+    var cashNeedEvents = events.filter(function (event) { return event.kind === "cash-need"; });
+    var firstCollision = null;
+    cashNeedEvents.forEach(function (event) {
+      if (firstCollision === null && event.duringDrawdown) firstCollision = event.session;
+    });
+    var fundedFraction = cashNeedEvents.length
+      ? mean(cashNeedEvents.map(function (event) { return event.fundedFraction; }))
+      : 1;
+    return {
+      terminalWealth: values[values.length - 1],
+      maximumDrawdown: maximumDrawdown,
+      timeUnderWater: timeUnderWater,
+      recovery: recovery,
+      firstFloorBreach: firstFloorBreach,
+      cashNeedFundedFraction: fundedFraction,
+      firstCollision: firstCollision,
+      infeasibility: cashNeedEvents.some(function (event) { return event.fundedFraction < 1; })
+    };
+  }
+
+  function applyScenarioFlows(spec, baseValues, sessionDates) {
+    if (!Array.isArray(baseValues) || baseValues.length !== spec.horizon.stepCount + 1 ||
+      !baseValues.every(isNum)) return { state: "path-invalid" };
+    var schedule = scenarioScheduledEvents(spec, sessionDates);
+    var capital = baseValues[0];
+    var peak = capital;
+    var values = [];
+    var events = [];
+    var applyEvents = function (candidates) {
+      sortScenarioEvents(candidates).forEach(function (event) {
+        var before = capital;
+        var requested = event.kind === "cost"
+          ? Math.max(capital, 0) * spec.costPolicy.recurringFraction
+          : event.amount;
+        var applied = requested;
+        if (event.kind === "contribution") capital += applied;
+        else {
+          applied = Math.min(requested, Math.max(capital, 0));
+          capital -= applied;
+        }
+        var fundedFraction = requested === 0 ? 1 : applied / requested;
+        events.push({
+          kind: event.kind,
+          localId: event.localId,
+          label: event.label,
+          timing: event.timing,
+          session: event.session,
+          declaredDate: event.declaredDate,
+          modeledDate: event.modeledDate,
+          requestedAmount: requested,
+          appliedAmount: applied,
+          capitalBefore: before,
+          capitalAfter: capital,
+          fundedFraction: fundedFraction,
+          duringDrawdown: before < peak,
+          priority: event.priority,
+          treatment: event.treatment
+        });
+        if (capital > peak) peak = capital;
+      });
+    };
+    for (var session = 0; session < baseValues.length; session += 1) {
+      var scheduled = schedule.scheduled.filter(function (event) { return event.session === session; });
+      var starts = scheduled.filter(function (event) { return event.timing === "start-of-step"; });
+      var ends = scheduled.filter(function (event) { return event.timing === "end-of-step"; });
+      if (session > 0 && spec.costPolicy.recurringFraction > 0 && spec.costPolicy.timing === "start-of-step") {
+        starts.push(scenarioCostEvent(spec, session, sessionDates[session]));
+      }
+      applyEvents(starts);
+      if (session > 0) {
+        var growth = baseValues[session - 1] === 0 ? 0 : baseValues[session] / baseValues[session - 1] - 1;
+        capital *= 1 + growth;
+        if (capital > peak) peak = capital;
+      }
+      if (session > 0 && spec.costPolicy.recurringFraction > 0 && spec.costPolicy.timing === "end-of-step") {
+        ends.push(scenarioCostEvent(spec, session, sessionDates[session]));
+      }
+      applyEvents(ends);
+      values.push(capital);
+    }
+    return {
+      state: "ok",
+      values: values,
+      events: events,
+      cashNeedOutcomes: events.filter(function (event) { return event.kind === "cash-need"; }),
+      rejectedEvents: schedule.rejected,
+      metrics: scenarioMetrics(values, events, spec.survivalDefinition)
+    };
+  }
+
+  function scenarioRandomPathId(spec, pathIndex) {
+    return "random-path:" + stableRecordFingerprint({
+      evidence: spec.evidenceSet.returnFingerprint,
+      seed: spec.seed,
+      block: spec.method.blockPolicy,
+      horizon: spec.horizon,
+      pathIndex: pathIndex
+    });
+  }
+
+  function buildScenarioWorkItem(spec, sampleReturns, parameterValues, parameterIndex, pathIndex) {
+    var drift = parameterValues[parameterIndex];
+    var base = scenarioBasePath(spec, sampleReturns, pathIndex, drift);
+    var applied = applyScenarioFlows(spec, base.values, scenarioSessionDates(spec));
+    return {
+      parameterIndex: parameterIndex,
+      pathIndex: pathIndex,
+      pathId: scenarioRandomPathId(spec, pathIndex),
+      parameterValues: { drift: drift },
+      baseIndices: base.indices,
+      baseValues: base.values,
+      state: applied.state,
+      values: applied.values,
+      events: applied.events,
+      cashNeedOutcomes: applied.cashNeedOutcomes,
+      rejectedEvents: applied.rejectedEvents,
+      metrics: applied.metrics
+    };
+  }
+
+  function tokenFailure(token) {
+    if (token.state === "cancel-requested" || token.state === "cancelled") {
+      return scenarioComputeFailure("P008-COMPUTE-CANCELLED", { tokenId: token.tokenId });
+    }
+    if (token.state === "superseded") {
+      return scenarioComputeFailure("P008-COMPUTE-SUPERSEDED", { tokenId: token.tokenId });
+    }
+    return null;
+  }
+
+  function runScenarioChunk(spec, token, cursor, context) {
+    var check = validateScenarioSpecification(spec);
+    if (!check.ok) return { state: "spec-invalid", reason: check.reason };
+    if (!token || token.contractVersion !== "ComputeToken/v1") return scenarioComputeFailure("P008-INTERNAL", { reason: "token-invalid" });
+    var identity = scenarioIdentity(spec);
+    if (token.workspaceIdentity !== spec.workspaceIdentity || token.scenarioIdentity !== identity) {
+      return scenarioComputeFailure("P008-COMPUTE-SUPERSEDED", { tokenId: token.tokenId });
+    }
+    var terminal = tokenFailure(token);
+    if (terminal) return terminal;
+    var budget = scenarioBudget(spec, context || {});
+    if (budget.state !== "ok") return budget;
+    if (!context || !Array.isArray(context.sampleReturns) || context.sampleReturns.length < 2) {
+      return { state: "insufficient-sample" };
+    }
+    if (!context.sampleReturns.every(isNum)) return { state: "non-finite-input" };
+    var start = cursor && Number.isInteger(cursor.workIndex) ? cursor.workIndex : 0;
+    if (start < 0 || start > budget.requestedWorkUnits) return scenarioComputeFailure("P008-INTERNAL", { reason: "cursor-invalid" });
+    var end = Math.min(start + spec.chunkSize, budget.requestedWorkUnits);
+    var parameterValues = scenarioParameterValues(spec);
+    if (!parameterValues) return { state: "spec-invalid", reason: "parameter-policy" };
+    var work = [];
+    for (var workIndex = start; workIndex < end; workIndex += 1) {
+      var parameterIndex = Math.floor(workIndex / spec.pathCount);
+      var pathIndex = workIndex % spec.pathCount;
+      work.push(buildScenarioWorkItem(spec, context.sampleReturns, parameterValues, parameterIndex, pathIndex));
+    }
+    return {
+      state: "ok",
+      tokenId: token.tokenId,
+      scenarioIdentity: identity,
+      work: work,
+      nextCursor: end < budget.requestedWorkUnits ? { workIndex: end } : null,
+      completed: end === budget.requestedWorkUnits,
+      completedWorkUnits: end,
+      requestedWorkUnits: budget.requestedWorkUnits
+    };
+  }
+
+  function distributionRecord(values, intervalMethod) {
+    var finite = values.map(function (value) { return typeof value === "boolean" ? (value ? 1 : 0) : value; })
+      .filter(isNum).sort(function (a, b) { return a - b; });
+    return {
+      state: finite.length === 0 ? "unavailable" : (finite.length === values.length ? "ok" : "partial"),
+      count: values.length,
+      finiteCount: finite.length,
+      quantiles: {
+        p05: percentile(finite, 0.05),
+        p50: percentile(finite, 0.5),
+        p95: percentile(finite, 0.95)
+      },
+      minimum: finite.length ? finite[0] : null,
+      maximum: finite.length ? finite[finite.length - 1] : null,
+      intervalMethod: intervalMethod
+    };
+  }
+
+  function sequenceExamples(records) {
+    if (!records.length) return [];
+    var ordered = records.slice().sort(function (a, b) { return a.metrics.terminalWealth - b.metrics.terminalWealth; });
+    var choices = [
+      { role: "lower-terminal-example", record: ordered[0] },
+      { role: "median-terminal-example", record: ordered[Math.floor((ordered.length - 1) / 2)] },
+      { role: "upper-terminal-example", record: ordered[ordered.length - 1] }
+    ];
+    var seen = {};
+    return choices.filter(function (choice) {
+      var id = choice.record.pathId;
+      if (seen[id]) return false;
+      seen[id] = true;
+      return true;
+    }).map(function (choice) {
+      return {
+        role: choice.role,
+        pathId: choice.record.pathId,
+        terminalWealth: choice.record.metrics.terminalWealth,
+        values: choice.record.values.slice()
+      };
+    });
+  }
+
+  function distributionSource(records, spec) {
+    var intervalMethod = spec.uncertaintyPolicy.intervalMethod;
+    var wealthByHorizon = [];
+    for (var session = 0; session <= spec.horizon.stepCount; session += 1) {
+      wealthByHorizon.push(distributionRecord(records.map(function (record) { return record.values[session]; }), intervalMethod));
+    }
+    var outcome = function (key) {
+      return distributionRecord(records.map(function (record) { return record.metrics[key]; }), intervalMethod);
+    };
+    return {
+      state: records.length ? "ok" : "unavailable",
+      count: records.length,
+      finiteCount: records.filter(function (record) { return isNum(record.metrics.terminalWealth); }).length,
+      intervalMethod: intervalMethod,
+      outcomes: {
+        wealthByHorizon: wealthByHorizon,
+        terminalWealth: outcome("terminalWealth"),
+        maximumDrawdown: outcome("maximumDrawdown"),
+        timeUnderWater: outcome("timeUnderWater"),
+        recovery: outcome("recovery"),
+        firstFloorBreach: outcome("firstFloorBreach"),
+        cashNeedFundedFraction: outcome("cashNeedFundedFraction"),
+        firstCollision: outcome("firstCollision"),
+        infeasibility: outcome("infeasibility"),
+        sequenceExamples: sequenceExamples(records)
+      }
+    };
+  }
+
+  function parameterMarginalRecords(work, spec) {
+    var records = [];
+    for (var parameterIndex = 0; parameterIndex < spec.parameterPolicy.drawCount; parameterIndex += 1) {
+      var group = work.filter(function (item) { return item.parameterIndex === parameterIndex; });
+      var values = [];
+      for (var session = 0; session <= spec.horizon.stepCount; session += 1) {
+        var atSession = group.map(function (item) { return item.values[session]; }).sort(function (a, b) { return a - b; });
+        values.push(percentile(atSession, 0.5));
+      }
+      var metric = function (key) {
+        var entries = group.map(function (item) {
+          return typeof item.metrics[key] === "boolean" ? (item.metrics[key] ? 1 : 0) : item.metrics[key];
+        }).filter(isNum).sort(function (a, b) { return a - b; });
+        return percentile(entries, 0.5);
+      };
+      records.push({
+        pathId: "parameter-marginal:" + parameterIndex,
+        values: values,
+        metrics: {
+          terminalWealth: metric("terminalWealth"),
+          maximumDrawdown: metric("maximumDrawdown"),
+          timeUnderWater: metric("timeUnderWater"),
+          recovery: metric("recovery"),
+          firstFloorBreach: metric("firstFloorBreach"),
+          cashNeedFundedFraction: metric("cashNeedFundedFraction"),
+          firstCollision: metric("firstCollision"),
+          infeasibility: metric("infeasibility")
+        }
+      });
+    }
+    return records;
+  }
+
+  function buildScenarioDistributionSet(spec, identity, conditional, parameterMarginal, combined) {
+    return {
+      contractVersion: "ScenarioDistributionSet/v1",
+      scenarioIdentity: identity,
+      conditionalPath: distributionSource(conditional, spec),
+      parameterMarginal: distributionSource(parameterMarginal, spec),
+      combined: distributionSource(combined, spec)
+    };
+  }
+
+  function validateDistributionRecord(record) {
+    return hasExactKeys(record, ["state", "count", "finiteCount", "quantiles", "minimum", "maximum", "intervalMethod"]) &&
+      hasExactKeys(record.quantiles, ["p05", "p50", "p95"]);
+  }
+
+  function validateDistributionSource(source, spec) {
+    if (!hasExactKeys(source, ["state", "count", "finiteCount", "intervalMethod", "outcomes"])) return false;
+    var outcomeKeys = [
+      "wealthByHorizon", "terminalWealth", "maximumDrawdown", "timeUnderWater", "recovery",
+      "firstFloorBreach", "cashNeedFundedFraction", "firstCollision", "infeasibility", "sequenceExamples"
+    ];
+    if (!hasExactKeys(source.outcomes, outcomeKeys) ||
+      !Array.isArray(source.outcomes.wealthByHorizon) ||
+      source.outcomes.wealthByHorizon.length !== spec.horizon.stepCount + 1 ||
+      !source.outcomes.wealthByHorizon.every(validateDistributionRecord) ||
+      !Array.isArray(source.outcomes.sequenceExamples)) return false;
+    return outcomeKeys.filter(function (key) {
+      return key !== "wealthByHorizon" && key !== "sequenceExamples";
+    }).every(function (key) { return validateDistributionRecord(source.outcomes[key]); });
+  }
+
+  function validateScenarioDistributionSet(set, spec) {
+    if (!hasExactKeys(set, ["contractVersion", "scenarioIdentity", "conditionalPath", "parameterMarginal", "combined"])) {
+      return { ok: false, reason: "distribution-keys-exact" };
+    }
+    if (set.contractVersion !== "ScenarioDistributionSet/v1") return { ok: false, reason: "distribution-contract-version" };
+    if (set.scenarioIdentity !== scenarioIdentity(spec)) return { ok: false, reason: "distribution-identity" };
+    if (!validateDistributionSource(set.conditionalPath, spec) ||
+      !validateDistributionSource(set.parameterMarginal, spec) ||
+      !validateDistributionSource(set.combined, spec)) return { ok: false, reason: "distribution-shape" };
+    if (set.conditionalPath.count !== spec.pathCount ||
+      set.parameterMarginal.count !== spec.parameterPolicy.drawCount ||
+      set.combined.count !== spec.pathCount * spec.parameterPolicy.drawCount) {
+      return { ok: false, reason: "distribution-count" };
+    }
+    return { ok: true };
+  }
+
+  function fanBandsFromPaths(paths, stepCount) {
+    var bands = [];
+    for (var session = 0; session <= stepCount; session += 1) {
+      var values = paths.map(function (path) { return path.values[session]; }).sort(function (a, b) { return a - b; });
+      bands.push({
+        session: session,
+        p05: percentile(values, 0.05),
+        p50: percentile(values, 0.5),
+        p95: percentile(values, 0.95)
+      });
+    }
+    return bands;
+  }
+
+  function assembleScenarioResult(spec, work) {
+    var identity = scenarioIdentity(spec);
+    var centralParameterIndex = Math.floor((spec.parameterPolicy.drawCount - 1) / 2);
+    var conditional = work.filter(function (item) { return item.parameterIndex === centralParameterIndex; })
+      .sort(function (a, b) { return a.pathIndex - b.pathIndex; });
+    var parameterMarginal = parameterMarginalRecords(work, spec);
+    var distributionSet = buildScenarioDistributionSet(spec, identity, conditional, parameterMarginal, work);
+    var terminal = conditional.map(function (path) { return path.metrics.terminalWealth; }).sort(function (a, b) { return a - b; });
+    var parameterTerminals = parameterMarginal.map(function (path) { return path.metrics.terminalWealth; }).sort(function (a, b) { return a - b; });
+    var combinedTerminals = work.map(function (path) { return path.metrics.terminalWealth; }).sort(function (a, b) { return a - b; });
+    var survivalDefinition = spec.survivalDefinition.state === "available" ? {
+      floorValue: spec.survivalDefinition.floorValue,
+      horizonSessions: spec.horizon.stepCount,
+      currency: spec.survivalDefinition.currency,
+      startingValue: spec.survivalDefinition.startingValue
+    } : null;
+    var survival = computeSurvival(survivalDefinition, conditional.map(function (path) { return path.values; }));
+    var method = scenarioMethodState(spec);
+    var driftRange = scenarioParameterRange(spec, "drift");
+    return {
+      state: "ok",
+      identity: identity,
+      scenarioSpecification: cloneData(spec),
+      method: spec.method.family,
+      methodAvailability: method,
+      methodNote: spec.method.family === "iid-comparison"
+        ? "IID resampling is an independence simplification: it discards the serial dependence that produces clustered drawdowns."
+        : "Stationary bootstrap with geometric blocks and cyclic wrap, preserving short-run dependence.",
+      meanBlockSessions: spec.method.blockPolicy.meanBlockSessions,
+      horizonSessions: spec.horizon.stepCount,
+      startingValue: spec.survivalDefinition.startingValue,
+      pathCount: spec.pathCount,
+      parameterDrawCount: spec.parameterPolicy.drawCount,
+      workUnitCount: work.length,
+      commonRandomStreams: true,
+      paths: conditional,
+      fanBands: fanBandsFromPaths(conditional, spec.horizon.stepCount),
+      survival: survival,
+      distributionSet: distributionSet,
+      pathRandomness: {
+        label: "Path randomness at the central assumption",
+        drift: scenarioParameterValues(spec)[centralParameterIndex],
+        p05: percentile(terminal, 0.05),
+        p50: percentile(terminal, 0.5),
+        p95: percentile(terminal, 0.95)
+      },
+      parameterUncertainty: {
+        label: "Across-parameter dispersion of the median outcome",
+        gridLow: driftRange.low,
+        gridHigh: driftRange.high,
+        medianLow: parameterTerminals[0],
+        medianHigh: parameterTerminals[parameterTerminals.length - 1],
+        failureRateLow: distributionSet.parameterMarginal.outcomes.infeasibility.minimum,
+        failureRateHigh: distributionSet.parameterMarginal.outcomes.infeasibility.maximum
+      },
+      combined: {
+        label: "Combined path and parameter distribution",
+        p05: percentile(combinedTerminals, 0.05),
+        p50: percentile(combinedTerminals, 0.5),
+        p95: percentile(combinedTerminals, 0.95)
+      },
+      influence: {
+        assumption: "drift",
+        rangeLow: driftRange.low,
+        rangeHigh: driftRange.high,
+        medianSpread: parameterTerminals[parameterTerminals.length - 1] - parameterTerminals[0]
+      },
+      representativePathIsExample: true,
+      noExpectedPathClaim: "No path here is the expected future. The fan is a distribution of resampled histories, not a forecast."
+    };
+  }
+
+  function validateScenarioResult(result, spec) {
+    if (!result || result.state !== "ok" || !isNonEmptyString(result.identity)) return { ok: false, reason: "result-identity" };
+    if (result.identity !== scenarioIdentity(spec)) return { ok: false, reason: "result-identity" };
+    if (!Array.isArray(result.paths) || result.paths.length !== spec.pathCount) return { ok: false, reason: "result-path-count" };
+    for (var i = 0; i < result.paths.length; i += 1) {
+      if (!Array.isArray(result.paths[i].values) || result.paths[i].values.length !== spec.horizon.stepCount + 1) {
+        return { ok: false, reason: "result-horizon" };
+      }
+    }
+    if (!result.survival) return { ok: false, reason: "result-survival" };
+    if (spec.survivalDefinition.state === "available") {
+      if (result.survival.state !== "ok" || result.survival.pathCount !== spec.pathCount) {
+        return { ok: false, reason: "result-survival-path-count" };
+      }
+    } else if (result.survival.state !== "unavailable" ||
+      Object.prototype.hasOwnProperty.call(result.survival, "survivalProbability")) {
+      return { ok: false, reason: "result-survival-unavailable" };
+    }
+    var distributionCheck = validateScenarioDistributionSet(result.distributionSet, spec);
+    if (!distributionCheck.ok) return distributionCheck;
+    return { ok: true };
+  }
+
+  function cloneData(value) {
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  function createScenarioComputeController(options) {
+    var workspaceIdentity = options && options.workspaceIdentity;
+    var lastValidViewModel = options && options.lastValidViewModel ? cloneData(options.lastValidViewModel) : null;
+    var tokens = {};
+    var activeTokenId = null;
+    var nextOrdinal = 1;
+    var issue = function (spec, details) {
+      if (activeTokenId && tokens[activeTokenId] &&
+        ["issued", "running", "cancel-requested"].indexOf(tokens[activeTokenId].state) !== -1) {
+        tokens[activeTokenId].state = "superseded";
+      }
+      var token = {
+        contractVersion: "ComputeToken/v1",
+        tokenId: details.tokenId,
+        ordinal: nextOrdinal,
+        workspaceIdentity: workspaceIdentity,
+        scenarioIdentity: scenarioIdentity(spec),
+        issuedAt: details.issuedAt,
+        state: "issued"
+      };
+      nextOrdinal += 1;
+      tokens[token.tokenId] = token;
+      activeTokenId = token.tokenId;
+      return cloneData(token);
+    };
+    return {
+      issue: issue,
+      start: function (tokenId) {
+        if (tokens[tokenId] && tokens[tokenId].state === "issued") tokens[tokenId].state = "running";
+        return tokens[tokenId] ? cloneData(tokens[tokenId]) : null;
+      },
+      requestCancel: function (tokenId) {
+        if (tokens[tokenId] && ["issued", "running"].indexOf(tokens[tokenId].state) !== -1) {
+          tokens[tokenId].state = "cancel-requested";
+        }
+        return tokens[tokenId] ? cloneData(tokens[tokenId]) : null;
+      },
+      token: function (tokenId) { return tokens[tokenId] ? cloneData(tokens[tokenId]) : null; },
+      settle: function (failure) {
+        var tokenId = failure && failure.error && failure.error.tokenId;
+        if (!tokens[tokenId]) return null;
+        if (failure.error.code === "P008-COMPUTE-CANCELLED") tokens[tokenId].state = "cancelled";
+        else if (failure.error.code === "P008-COMPUTE-SUPERSEDED") tokens[tokenId].state = "superseded";
+        else tokens[tokenId].state = "failed";
+        return cloneData(tokens[tokenId]);
+      },
+      publish: function (tokenId, result) {
+        var token = tokens[tokenId];
+        if (!token || tokenId !== activeTokenId || token.state === "superseded" ||
+          token.scenarioIdentity !== result.scenarioIdentity && token.scenarioIdentity !== result.identity) {
+          return scenarioComputeFailure("P008-COMPUTE-SUPERSEDED", { tokenId: tokenId });
+        }
+        var resultCheck = validateScenarioResult(result, result.scenarioSpecification);
+        if (!resultCheck.ok) {
+          token.state = "failed";
+          return scenarioComputeFailure("P008-INTERNAL", { tokenId: tokenId, reason: resultCheck.reason });
+        }
+        token.state = "completed";
+        lastValidViewModel = { scenarioIdentity: result.identity, result: cloneData(result) };
+        return { state: "ok", token: cloneData(token), lastValidViewModel: cloneData(lastValidViewModel) };
+      },
+      snapshot: function () {
+        return {
+          activeTokenId: activeTokenId,
+          activeToken: activeTokenId && tokens[activeTokenId] ? cloneData(tokens[activeTokenId]) : null,
+          lastValidViewModel: lastValidViewModel ? cloneData(lastValidViewModel) : null
+        };
+      }
+    };
+  }
+
+  function runCompleteScenario(spec, sampleReturns, options) {
+    var check = validateScenarioSpecification(spec);
+    if (!check.ok) return { state: "spec-invalid", reason: check.reason };
+    if (!Array.isArray(sampleReturns) || sampleReturns.length < 2) return { state: "insufficient-sample" };
+    if (!sampleReturns.every(isNum)) return { state: "non-finite-input" };
+    var method = scenarioMethodState(spec);
+    if (method.state !== "calibrated") return { state: "method-unavailable", methodAvailability: method };
+    var budget = scenarioBudget(spec, options || {});
+    if (budget.state !== "ok") return budget;
+    var identity = scenarioIdentity(spec);
+    var token = {
+      contractVersion: "ComputeToken/v1",
+      tokenId: "synchronous:" + identity,
+      ordinal: 0,
+      workspaceIdentity: spec.workspaceIdentity,
+      scenarioIdentity: identity,
+      issuedAt: "synchronous",
+      state: "running"
+    };
+    var cursor = { workIndex: 0 };
+    var work = [];
+    do {
+      var chunk = runScenarioChunk(spec, token, cursor, {
+        sampleReturns: sampleReturns,
+        maximumWorkUnits: budget.budgetWorkUnits
+      });
+      if (chunk.state !== "ok") return chunk;
+      work = work.concat(chunk.work);
+      cursor = chunk.nextCursor;
+    } while (cursor);
+    return assembleScenarioResult(spec, work);
+  }
+
+  async function runScenarioJob(spec, sampleReturns, options) {
+    var controller = options && options.controller;
+    var tokenId = options && options.tokenId;
+    if (!controller || !isNonEmptyString(tokenId)) return scenarioComputeFailure("P008-INTERNAL", { reason: "controller-required" });
+    var token = controller.start(tokenId);
+    if (!token) return scenarioComputeFailure("P008-INTERNAL", { reason: "token-unknown" });
+    var cursor = { workIndex: 0 };
+    var work = [];
+    do {
+      token = controller.token(tokenId);
+      var chunk = runScenarioChunk(spec, token, cursor, {
+        sampleReturns: sampleReturns,
+        maximumWorkUnits: options.maximumWorkUnits
+      });
+      if (chunk.state !== "ok") {
+        controller.settle(chunk);
+        return chunk;
+      }
+      work = work.concat(chunk.work);
+      if (typeof options.onChunk === "function") await options.onChunk(chunk);
+      token = controller.token(tokenId);
+      var settled = tokenFailure(token);
+      if (settled) {
+        controller.settle(settled);
+        return settled;
+      }
+      cursor = chunk.nextCursor;
+      if (cursor) await new Promise(function (resolve) { setTimeout(resolve, 0); });
+    } while (cursor);
+    var result = assembleScenarioResult(spec, work);
+    var publication = controller.publish(tokenId, result);
+    if (publication.state !== "ok") {
+      controller.settle(publication);
+      return publication;
+    }
+    return result;
   }
 
   function iidIndices(sampleSize, drawCount, random) {
@@ -1500,6 +3030,9 @@
    * from the number alone.
    */
   function forbesRigobonAdjustment(input) {
+    if (input && input.contractVersion === "ForbesRigobonRequest/v1") {
+      return qualifiedForbesRigobonAdjustment(input);
+    }
     if (!input || typeof input !== "object") return { state: "unavailable", reason: "input-invalid" };
     if (!isNum(input.rawStressCorrelation)) return { state: "unavailable", reason: "raw-correlation-required" };
     if (Math.abs(input.rawStressCorrelation) > 1) return { state: "unavailable", reason: "correlation-out-of-range" };
@@ -1808,6 +3341,933 @@
       claimBoundary: "All rows share one frozen basis, so a difference between them is attributable " +
         "to the ratio and not to a changed assumption. None of them is recommended."
     };
+  }
+
+  /* ---------------------------------------------------------------------
+     Scope 23 - complete dependence, appraisal, and hedge contracts
+     --------------------------------------------------------------------- */
+
+  var DEPENDENCE_SAMPLE_INPUT_KEYS = [
+    "a", "b", "contractVersion", "cutoff", "definitionKind", "memberDates",
+    "pair", "sampleId", "searchedVariantCount", "selectionRule", "sourceFingerprints"
+  ];
+  var DEPENDENCE_SAMPLE_KEYS = [
+    "a", "b", "contractVersion", "cutoff", "definitionKind", "firstDate", "lastDate",
+    "memberDateFingerprint", "memberDates", "observationCount", "pair", "sampleId",
+    "searchedVariantCount", "selectionRule", "sourceFingerprints", "state"
+  ];
+  var HEDGE_COST_INPUT_KEYS = [
+    "carryFraction", "commissionFraction", "financingFraction", "liquidityFraction",
+    "rebalanceCostFraction", "slippageFraction", "spreadFraction", "turnoverFraction"
+  ];
+  var HEDGE_COST_OUTPUT_KEYS = [
+    "carry", "commission", "financing", "liquidity", "rebalance", "slippage", "spread", "turnover"
+  ];
+
+  function scope23ExactKeys(value, keys) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+    var actual = Object.keys(value).sort();
+    var expected = keys.slice().sort();
+    if (actual.length !== expected.length) return false;
+    for (var i = 0; i < expected.length; i += 1) {
+      if (actual[i] !== expected[i]) return false;
+    }
+    return true;
+  }
+
+  function scope23Date(value) {
+    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    var parsed = new Date(value + "T00:00:00.000Z");
+    return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+  }
+
+  function stableRecordFingerprint(value) {
+    var text = JSON.stringify(value);
+    var hash = 14695981039346656037n;
+    var prime = 1099511628211n;
+    for (var i = 0; i < text.length; i += 1) {
+      hash ^= BigInt(text.charCodeAt(i));
+      hash = BigInt.asUintN(64, hash * prime);
+    }
+    return "fnv1a64:" + hash.toString(16).padStart(16, "0");
+  }
+
+  function scope23Unavailable(reason, details) {
+    var out = { state: "unavailable", reason: reason };
+    Object.keys(details || {}).forEach(function (key) { out[key] = details[key]; });
+    return out;
+  }
+
+  function buildDependenceSample(input) {
+    if (!scope23ExactKeys(input, DEPENDENCE_SAMPLE_INPUT_KEYS)) {
+      return scope23Unavailable("dependence-sample-shape-invalid");
+    }
+    if (input.contractVersion !== "DependenceSample/v1") {
+      return scope23Unavailable("dependence-sample-version-invalid");
+    }
+    if (typeof input.sampleId !== "string" || !input.sampleId ||
+        typeof input.definitionKind !== "string" || !input.definitionKind ||
+        typeof input.selectionRule !== "string" || !input.selectionRule ||
+        !scope23Date(input.cutoff)) {
+      return scope23Unavailable("dependence-sample-identity-invalid");
+    }
+    if (!Array.isArray(input.memberDates) || input.memberDates.length < 2 ||
+        !input.memberDates.every(scope23Date) ||
+        input.memberDates.some(function (date, index) {
+          return index > 0 && date <= input.memberDates[index - 1];
+        })) {
+      return scope23Unavailable("member-dates-invalid");
+    }
+    if (!Array.isArray(input.a) || !Array.isArray(input.b) ||
+        input.a.length !== input.memberDates.length || input.b.length !== input.memberDates.length ||
+        !input.a.every(isNum) || !input.b.every(isNum)) {
+      return scope23Unavailable("aligned-returns-invalid");
+    }
+    if (!Array.isArray(input.sourceFingerprints) || input.sourceFingerprints.length !== 2 ||
+        !input.sourceFingerprints.every(function (value) { return typeof value === "string" && Boolean(value); }) ||
+        !scope23ExactKeys(input.pair, ["anchor", "dependent"]) ||
+        typeof input.pair.anchor !== "string" || !input.pair.anchor ||
+        typeof input.pair.dependent !== "string" || !input.pair.dependent ||
+        input.pair.anchor === input.pair.dependent ||
+        !Number.isInteger(input.searchedVariantCount) || input.searchedVariantCount < 1) {
+      return scope23Unavailable("dependence-sample-provenance-invalid");
+    }
+    return {
+      contractVersion: "DependenceSample/v1",
+      state: "ok",
+      sampleId: input.sampleId,
+      definitionKind: input.definitionKind,
+      memberDateFingerprint: stableRecordFingerprint(input.memberDates),
+      sourceFingerprints: input.sourceFingerprints.slice(),
+      firstDate: input.memberDates[0],
+      lastDate: input.memberDates[input.memberDates.length - 1],
+      observationCount: input.memberDates.length,
+      selectionRule: input.selectionRule,
+      cutoff: input.cutoff,
+      searchedVariantCount: input.searchedVariantCount,
+      pair: { anchor: input.pair.anchor, dependent: input.pair.dependent },
+      memberDates: input.memberDates.slice(),
+      a: input.a.slice(),
+      b: input.b.slice()
+    };
+  }
+
+  function validDependenceSample(sample) {
+    return scope23ExactKeys(sample, DEPENDENCE_SAMPLE_KEYS) &&
+      sample.contractVersion === "DependenceSample/v1" && sample.state === "ok" &&
+      typeof sample.sampleId === "string" && Boolean(sample.sampleId) &&
+      typeof sample.definitionKind === "string" && Boolean(sample.definitionKind) &&
+      Array.isArray(sample.memberDates) && sample.memberDates.length >= 2 &&
+      sample.memberDates.every(scope23Date) &&
+      sample.memberDates.every(function (date, index) { return index === 0 || date > sample.memberDates[index - 1]; }) &&
+      sample.memberDateFingerprint === stableRecordFingerprint(sample.memberDates) &&
+      sample.firstDate === sample.memberDates[0] && sample.lastDate === sample.memberDates[sample.memberDates.length - 1] &&
+      sample.observationCount === sample.memberDates.length &&
+      Array.isArray(sample.a) && Array.isArray(sample.b) &&
+      sample.a.length === sample.memberDates.length && sample.b.length === sample.memberDates.length &&
+      sample.a.every(isNum) && sample.b.every(isNum) &&
+      Array.isArray(sample.sourceFingerprints) && sample.sourceFingerprints.length === 2 &&
+      sample.sourceFingerprints.every(function (value) { return typeof value === "string" && Boolean(value); }) &&
+      scope23ExactKeys(sample.pair, ["anchor", "dependent"]) &&
+      typeof sample.selectionRule === "string" && Boolean(sample.selectionRule) &&
+      scope23Date(sample.cutoff) && Number.isInteger(sample.searchedVariantCount) && sample.searchedVariantCount >= 1;
+  }
+
+  function scope23SamplesDisjoint(first, second) {
+    var members = {};
+    first.memberDates.forEach(function (date) { members[date] = true; });
+    return !second.memberDates.some(function (date) { return members[date]; });
+  }
+
+  function scope23SamePair(first, second) {
+    return first.pair.anchor === second.pair.anchor && first.pair.dependent === second.pair.dependent &&
+      first.sourceFingerprints[0] === second.sourceFingerprints[0] &&
+      first.sourceFingerprints[1] === second.sourceFingerprints[1];
+  }
+
+  function validBlockBootstrapPolicy(policy) {
+    return scope23ExactKeys(policy, ["blockLength", "confidence", "contractVersion", "drawCount", "seed"]) &&
+      policy.contractVersion === "BlockBootstrapPolicy/v1" &&
+      isNum(policy.confidence) && policy.confidence > 0 && policy.confidence < 1 &&
+      Number.isInteger(policy.blockLength) && policy.blockLength >= 1 &&
+      Number.isInteger(policy.drawCount) && policy.drawCount >= 2 &&
+      Number.isInteger(policy.seed) && policy.seed >= 0;
+  }
+
+  function scope23BootstrapIndices(length, policy, draw) {
+    var random = mulberry32((policy.seed + Math.imul(draw + 1, 2654435761)) >>> 0);
+    var indices = [];
+    while (indices.length < length) {
+      var start = Math.floor(random() * length);
+      for (var offset = 0; offset < policy.blockLength && indices.length < length; offset += 1) {
+        indices.push((start + offset) % length);
+      }
+    }
+    return indices;
+  }
+
+  function scope23Quantile(values, probability) {
+    if (!values.length) return null;
+    var sorted = values.slice().sort(function (a, b) { return a - b; });
+    var position = probability * (sorted.length - 1);
+    var low = Math.floor(position), high = Math.ceil(position);
+    return sorted[low] + (sorted[high] - sorted[low]) * (position - low);
+  }
+
+  function scope23BootstrapInterval(estimate, sample, policy, estimator) {
+    if (!validBlockBootstrapPolicy(policy)) return scope23Unavailable("bootstrap-policy-invalid");
+    var draws = [];
+    for (var draw = 0; draw < policy.drawCount; draw += 1) {
+      var indices = scope23BootstrapIndices(sample.observationCount, policy, draw);
+      var a = indices.map(function (index) { return sample.a[index]; });
+      var b = indices.map(function (index) { return sample.b[index]; });
+      var value = estimator(a, b);
+      if (isNum(value)) draws.push(value);
+    }
+    if (draws.length < 2) return scope23Unavailable("bootstrap-degenerate");
+    var deviations = draws.map(function (value) { return Math.abs(value - estimate); });
+    var radius = scope23Quantile(deviations, policy.confidence);
+    return {
+      contractVersion: "BlockBootstrapInterval/v1",
+      method: "moving-block-bootstrap-symmetric",
+      confidence: policy.confidence,
+      blockPolicy: { family: "fixed-moving-block", blockLength: policy.blockLength, wrapPolicy: "cyclic" },
+      drawCount: policy.drawCount,
+      seed: policy.seed,
+      usableDrawCount: draws.length,
+      low: estimate - radius,
+      high: estimate + radius
+    };
+  }
+
+  function scope23DependenceEstimate(sample, intervalPolicy) {
+    var correlation = pearson(sample.a, sample.b);
+    var anchorVariance = sampleVariance(sample.a);
+    var dependentVariance = sampleVariance(sample.b);
+    if (correlation === null || anchorVariance === null || dependentVariance === null) {
+      return scope23Unavailable("dependence-estimate-degenerate", { sampleId: sample.sampleId });
+    }
+    var interval = scope23BootstrapInterval(correlation, sample, intervalPolicy, pearson);
+    if (interval.state === "unavailable") return interval;
+    return {
+      contractVersion: "DependenceEstimate/v1",
+      state: "ok",
+      sampleId: sample.sampleId,
+      memberDateFingerprint: sample.memberDateFingerprint,
+      correlation: correlation,
+      anchorVariance: anchorVariance,
+      dependentVariance: dependentVariance,
+      observationCount: sample.observationCount,
+      interval: interval
+    };
+  }
+
+  function computeStressDependence(request) {
+    if (!request || request.contractVersion !== "StressDependenceRequest/v1") {
+      return scope23Unavailable("stress-dependence-request-invalid");
+    }
+    if (!validDependenceSample(request.normal) || !validDependenceSample(request.stress)) {
+      return scope23Unavailable("dependence-sample-contract-required");
+    }
+    if (request.normal.sampleId === request.stress.sampleId) return scope23Unavailable("samples-not-distinct");
+    if (!scope23SamplesDisjoint(request.normal, request.stress)) return scope23Unavailable("samples-not-disjoint");
+    if (!scope23SamePair(request.normal, request.stress)) return scope23Unavailable("sample-pair-mismatch");
+    if (!Number.isInteger(request.minimumObservations) || request.minimumObservations < 2) {
+      return scope23Unavailable("minimum-observations-invalid");
+    }
+    if (request.normal.observationCount < request.minimumObservations ||
+        request.stress.observationCount < request.minimumObservations) {
+      return scope23Unavailable("minimum-observations-not-met");
+    }
+    if (!validBlockBootstrapPolicy(request.intervalPolicy)) return scope23Unavailable("bootstrap-policy-invalid");
+    var normal = scope23DependenceEstimate(request.normal, request.intervalPolicy);
+    var stress = scope23DependenceEstimate(request.stress, request.intervalPolicy);
+    if (normal.state !== "ok" || stress.state !== "ok") return scope23Unavailable("dependence-estimate-unavailable");
+    return {
+      contractVersion: "DependenceEvidenceSet/v1",
+      state: "ok",
+      pair: { anchor: request.normal.pair.anchor, dependent: request.normal.pair.dependent },
+      normal: normal,
+      stress: stress,
+      rawCorrelationChange: stress.correlation - normal.correlation,
+      varianceRatio: normal.anchorVariance === 0 ? null : stress.anchorVariance / normal.anchorVariance,
+      selectionBias: {
+        normalSelectionRule: request.normal.selectionRule,
+        stressSelectionRule: request.stress.selectionRule,
+        searchedVariantCount: request.normal.searchedVariantCount + request.stress.searchedVariantCount
+      },
+      conclusion: {
+        prescription: null,
+        invalidationConditions: ["sample-membership-changed", "source-fingerprint-changed", "cutoff-changed"],
+        boundary: "The raw difference is a finite-sample diagnostic, not an automatic contagion verdict."
+      }
+    };
+  }
+
+  function qualifiedForbesRigobonAdjustment(input) {
+    var tranquil = input.tranquilSample, turbulent = input.turbulentSample;
+    if (tranquil && turbulent && Array.isArray(tranquil.memberDates) && Array.isArray(turbulent.memberDates) &&
+        !scope23SamplesDisjoint(tranquil, turbulent)) {
+      return scope23Unavailable("samples-not-disjoint");
+    }
+    if (!validDependenceSample(tranquil) || !validDependenceSample(turbulent)) {
+      return scope23Unavailable("dependence-sample-contract-required");
+    }
+    if (!scope23SamePair(tranquil, turbulent)) return scope23Unavailable("sample-pair-mismatch");
+    if (!Number.isInteger(input.minimumObservations) || input.minimumObservations < 2) {
+      return scope23Unavailable("minimum-observations-invalid");
+    }
+    if (tranquil.observationCount < input.minimumObservations || turbulent.observationCount < input.minimumObservations) {
+      return scope23Unavailable("minimum-observations-not-met");
+    }
+    var orientation;
+    if (input.anchorSeries === tranquil.pair.anchor) {
+      orientation = { anchor: tranquil.pair.anchor, dependent: tranquil.pair.dependent };
+    } else if (input.anchorSeries === tranquil.pair.dependent) {
+      orientation = { anchor: tranquil.pair.dependent, dependent: tranquil.pair.anchor };
+    } else {
+      return scope23Unavailable("anchor-series-not-in-pair");
+    }
+    if (!validBlockBootstrapPolicy(input.intervalPolicy)) return scope23Unavailable("bootstrap-policy-invalid");
+    var anchorIndex = input.anchorSeries === tranquil.pair.anchor ? "a" : "b";
+    var dependentIndex = anchorIndex === "a" ? "b" : "a";
+    var tranquilVariance = sampleVariance(tranquil[anchorIndex]);
+    var turbulentVariance = sampleVariance(turbulent[anchorIndex]);
+    var raw = pearson(turbulent[anchorIndex], turbulent[dependentIndex]);
+    if (tranquilVariance === null || tranquilVariance <= 0 || turbulentVariance === null || turbulentVariance <= tranquilVariance || raw === null) {
+      return scope23Unavailable(turbulentVariance !== null && tranquilVariance !== null && turbulentVariance <= tranquilVariance
+        ? "turbulent-anchor-variance-not-higher" : "adjustment-input-degenerate");
+    }
+    var delta = turbulentVariance / tranquilVariance - 1;
+    var adjusted = raw / Math.sqrt(1 + delta * (1 - raw * raw));
+    var interval = scope23BootstrapInterval(adjusted, turbulent, input.intervalPolicy, function (a, b) {
+      var orientedA = anchorIndex === "a" ? a : b;
+      var orientedB = anchorIndex === "a" ? b : a;
+      var rho = pearson(orientedA, orientedB);
+      if (rho === null) return null;
+      return rho / Math.sqrt(1 + delta * (1 - rho * rho));
+    });
+    if (interval.state === "unavailable") return interval;
+    return {
+      contractVersion: "ForbesRigobonAdjustment/v1",
+      state: "ok",
+      anchorOrientation: orientation,
+      tranquilSampleId: tranquil.sampleId,
+      turbulentSampleId: turbulent.sampleId,
+      rawStressCorrelation: raw,
+      tranquilAnchorVariance: tranquilVariance,
+      turbulentAnchorVariance: turbulentVariance,
+      delta: delta,
+      adjustedEstimate: adjusted,
+      interval: interval,
+      caveat: "The adjustment addresses one heteroskedasticity mechanism. It does not prove contagion and does not disprove contagion.",
+      invalidationConditions: ["anchor-orientation-changed", "sample-membership-changed", "variance-assumption-failed"]
+    };
+  }
+
+  function scope23SetIntersection(first, second) {
+    var right = {};
+    second.forEach(function (value) { right[value] = true; });
+    return first.filter(function (value) { return right[value]; });
+  }
+
+  function scope23SetUnion(first, second) {
+    var seen = {}, out = [];
+    first.concat(second).forEach(function (value) {
+      if (!seen[value]) { seen[value] = true; out.push(value); }
+    });
+    return out;
+  }
+
+  function scope23DrawdownDates(returns, dates, threshold) {
+    var wealth = 1, peak = 1, out = [];
+    for (var i = 0; i < returns.length; i += 1) {
+      wealth *= 1 + returns[i];
+      if (wealth > peak) peak = wealth;
+      if (peak > 0 && (peak - wealth) / peak >= threshold) out.push(dates[i]);
+    }
+    return out;
+  }
+
+  function scope23RecoveryDates(returns, dates, drawdownThreshold, recoveryThreshold) {
+    var wealth = 1, peak = 1, recoveryPeak = null, active = false, out = [];
+    for (var i = 0; i < returns.length; i += 1) {
+      wealth *= 1 + returns[i];
+      if (!active && wealth > peak) peak = wealth;
+      var drawdown = peak > 0 ? (peak - wealth) / peak : 0;
+      if (!active && drawdown >= drawdownThreshold) {
+        active = true;
+        recoveryPeak = peak;
+      }
+      if (active) {
+        out.push(dates[i]);
+        if (wealth >= recoveryPeak * (1 - recoveryThreshold)) {
+          active = false;
+          peak = wealth;
+          recoveryPeak = null;
+        }
+      }
+    }
+    return out;
+  }
+
+  function scope23OverlapEstimate(first, second) {
+    var union = scope23SetUnion(first, second);
+    return union.length ? scope23SetIntersection(first, second).length / union.length : 0;
+  }
+
+  function computeDependenceOverlaps(request) {
+    if (!request || request.contractVersion !== "DependenceOverlapRequest/v1" || !validDependenceSample(request.sample)) {
+      return scope23Unavailable("dependence-overlap-request-invalid");
+    }
+    if (!isNum(request.quantile) || request.quantile <= 0 || request.quantile >= 0.5 ||
+        !Number.isInteger(request.minimumJointEvents) || request.minimumJointEvents < 1 ||
+        !isNum(request.downsideThreshold) || !isNum(request.drawdownThreshold) || request.drawdownThreshold <= 0 ||
+        !isNum(request.recoveryThreshold) || request.recoveryThreshold < 0 ||
+        !validBlockBootstrapPolicy(request.intervalPolicy)) {
+      return scope23Unavailable("dependence-overlap-policy-invalid");
+    }
+    var sample = request.sample;
+    var sortedA = sample.a.slice().sort(function (a, b) { return a - b; });
+    var sortedB = sample.b.slice().sort(function (a, b) { return a - b; });
+    var thresholdA = scope23Quantile(sortedA, request.quantile);
+    var thresholdB = scope23Quantile(sortedB, request.quantile);
+    var tailDatesA = [], tailDatesB = [], downsideA = [], downsideB = [];
+    sample.memberDates.forEach(function (date, index) {
+      if (sample.a[index] <= thresholdA) tailDatesA.push(date);
+      if (sample.b[index] <= thresholdB) tailDatesB.push(date);
+      if (sample.a[index] < request.downsideThreshold) downsideA.push(date);
+      if (sample.b[index] < request.downsideThreshold) downsideB.push(date);
+    });
+    var jointTail = scope23SetIntersection(tailDatesA, tailDatesB);
+    if (jointTail.length < request.minimumJointEvents) {
+      return scope23Unavailable("thin-tail-sample", {
+        jointEventCount: jointTail.length,
+        minimumJointEvents: request.minimumJointEvents
+      });
+    }
+    var tailEstimate = tailDatesA.length ? jointTail.length / tailDatesA.length : null;
+    var tailInterval = scope23BootstrapInterval(tailEstimate, sample, request.intervalPolicy, function (a, b) {
+      var localA = a.slice().sort(function (x, y) { return x - y; });
+      var localB = b.slice().sort(function (x, y) { return x - y; });
+      var cutA = scope23Quantile(localA, request.quantile);
+      var cutB = scope23Quantile(localB, request.quantile);
+      var marginal = 0, joint = 0;
+      for (var i = 0; i < a.length; i += 1) {
+        if (a[i] <= cutA) marginal += 1;
+        if (a[i] <= cutA && b[i] <= cutB) joint += 1;
+      }
+      return marginal ? joint / marginal : null;
+    });
+    var drawdownA = scope23DrawdownDates(sample.a, sample.memberDates, request.drawdownThreshold);
+    var drawdownB = scope23DrawdownDates(sample.b, sample.memberDates, request.drawdownThreshold);
+    var recoveryA = scope23RecoveryDates(sample.a, sample.memberDates, request.drawdownThreshold, request.recoveryThreshold);
+    var recoveryB = scope23RecoveryDates(sample.b, sample.memberDates, request.drawdownThreshold, request.recoveryThreshold);
+    function overlapContract(version, first, second, policy) {
+      var intersection = scope23SetIntersection(first, second);
+      var union = scope23SetUnion(first, second);
+      var estimate = union.length ? intersection.length / union.length : 0;
+      var interval = scope23BootstrapInterval(estimate, sample, request.intervalPolicy, function (a, b) {
+        var dates = sample.memberDates;
+        var one, two;
+        if (version === "DownsideOverlap/v1") {
+          one = dates.filter(function (_date, index) { return a[index] < request.downsideThreshold; });
+          two = dates.filter(function (_date, index) { return b[index] < request.downsideThreshold; });
+        } else if (version === "DrawdownOverlap/v1") {
+          one = scope23DrawdownDates(a, dates, request.drawdownThreshold);
+          two = scope23DrawdownDates(b, dates, request.drawdownThreshold);
+        } else {
+          one = scope23RecoveryDates(a, dates, request.drawdownThreshold, request.recoveryThreshold);
+          two = scope23RecoveryDates(b, dates, request.drawdownThreshold, request.recoveryThreshold);
+        }
+        return scope23OverlapEstimate(one, two);
+      });
+      return {
+        contractVersion: version,
+        state: "ok",
+        sampleId: sample.sampleId,
+        policy: policy,
+        firstDates: first.slice(),
+        secondDates: second.slice(),
+        intersectionDates: intersection,
+        unionCount: union.length,
+        estimate: estimate,
+        interval: interval
+      };
+    }
+    var downside = overlapContract("DownsideOverlap/v1", downsideA, downsideB,
+      { returnThreshold: request.downsideThreshold });
+    downside.sharedDates = downside.intersectionDates.slice();
+    return {
+      contractVersion: "DependenceOverlapSet/v1",
+      state: "ok",
+      sampleId: sample.sampleId,
+      tail: {
+        contractVersion: "EmpiricalTailDependence/v1",
+        state: "ok",
+        sampleId: sample.sampleId,
+        thresholdPolicy: { family: "empirical-rank", quantile: request.quantile },
+        thresholds: { anchor: thresholdA, dependent: thresholdB },
+        jointEventCount: jointTail.length,
+        denominator: tailDatesA.length,
+        estimate: tailEstimate,
+        interval: tailInterval
+      },
+      downside: downside,
+      drawdown: overlapContract("DrawdownOverlap/v1", drawdownA, drawdownB,
+        { drawdownThreshold: request.drawdownThreshold }),
+      recovery: overlapContract("RecoveryOverlap/v1", recoveryA, recoveryB,
+        { recoveryThreshold: request.recoveryThreshold, unrecoveredEpisodeEnd: sample.cutoff })
+    };
+  }
+
+  function computeAppraisalSensitivity(request) {
+    if (!request || request.contractVersion !== "AppraisalSensitivityRequest/v1") {
+      return scope23Unavailable("appraisal-request-invalid");
+    }
+    var missing = [];
+    ["assetId", "valuationFrequency", "lastValuation", "evidenceCutoff", "sourceMethod", "liquidity"].forEach(function (key) {
+      if (typeof request[key] !== "string" || !request[key]) missing.push(key);
+    });
+    if (!scope23Date(request.lastValuation)) missing.push("lastValuation");
+    if (!scope23Date(request.evidenceCutoff)) missing.push("evidenceCutoff");
+    if (!scope23ExactKeys(request.costs, ["insuranceFraction", "storageFraction", "transactionFraction"]) ||
+        !Object.keys(request.costs || {}).every(function (key) { return isNum(request.costs[key]) && request.costs[key] >= 0; })) {
+      missing.push("costs");
+    }
+    if (!Array.isArray(request.economicDrivers) || !request.economicDrivers.length ||
+        !request.economicDrivers.every(function (value) { return typeof value === "string" && Boolean(value); })) {
+      missing.push("economicDrivers");
+    }
+    if (!Array.isArray(request.idiosyncraticRisks) || !request.idiosyncraticRisks.length ||
+        !request.idiosyncraticRisks.every(function (value) { return typeof value === "string" && Boolean(value); })) {
+      missing.push("idiosyncraticRisks");
+    }
+    if (!validDependenceSample(request.observedSample)) missing.push("observedSample");
+    if (!isNum(request.smoothingEstimate) || request.smoothingEstimate <= 0 || request.smoothingEstimate >= 1) {
+      missing.push("smoothingEstimate");
+    }
+    if (!Array.isArray(request.rhoGrid) || !request.rhoGrid.length ||
+        !request.rhoGrid.every(function (rho) { return isNum(rho) && rho > 0 && rho < 1; })) {
+      missing.push("rhoGrid");
+    }
+    if (!Number.isInteger(request.minimumObservations) || request.minimumObservations < 2 ||
+        (validDependenceSample(request.observedSample) && request.observedSample.observationCount < request.minimumObservations)) {
+      missing.push("minimumObservations");
+    }
+    if (missing.length) return scope23Unavailable("appraisal-evidence-incomplete", { missing: missing });
+    var cutoff = new Date(request.evidenceCutoff + "T00:00:00.000Z");
+    var last = new Date(request.lastValuation + "T00:00:00.000Z");
+    if (last > cutoff) return scope23Unavailable("last-valuation-after-cutoff");
+    var observedVolatility = Math.sqrt(sampleVariance(request.observedSample.a));
+    var observedDependence = pearson(request.observedSample.a, request.observedSample.b);
+    var grid = request.rhoGrid.map(function (rho) {
+      var desmoothed = desmoothReturns(request.observedSample.a, rho);
+      if (desmoothed.state !== "ok") return { state: "unavailable", rho: rho, reason: desmoothed.reason };
+      var sample = buildDependenceSample({
+        contractVersion: "DependenceSample/v1",
+        sampleId: request.observedSample.sampleId + "|desmoothed-rho=" + rho,
+        definitionKind: "appraisal-desmoothed-sensitivity",
+        memberDates: request.observedSample.memberDates.slice(1),
+        sourceFingerprints: request.observedSample.sourceFingerprints.slice(),
+        selectionRule: "explicit de-smoothing sensitivity rho=" + rho,
+        cutoff: request.observedSample.cutoff,
+        searchedVariantCount: request.observedSample.searchedVariantCount,
+        pair: { anchor: request.observedSample.pair.anchor, dependent: request.observedSample.pair.dependent },
+        a: desmoothed.desmoothed,
+        b: request.observedSample.b.slice(1)
+      });
+      return {
+        state: sample.state,
+        rho: rho,
+        sample: sample,
+        volatility: sample.state === "ok" ? Math.sqrt(sampleVariance(sample.a)) : null,
+        dependence: sample.state === "ok" ? pearson(sample.a, sample.b) : null
+      };
+    });
+    if (grid.some(function (row) { return row.state !== "ok"; })) {
+      return scope23Unavailable("appraisal-grid-unavailable", { grid: grid });
+    }
+    return {
+      contractVersion: "AppraisalSensitivity/v1",
+      state: "ok",
+      assetId: request.assetId,
+      valuationFrequency: request.valuationFrequency,
+      lastValuation: request.lastValuation,
+      evidenceCutoff: request.evidenceCutoff,
+      valuationAgeDays: Math.round((cutoff.getTime() - last.getTime()) / 86400000),
+      sourceMethod: request.sourceMethod,
+      liquidity: request.liquidity,
+      costs: {
+        transactionFraction: request.costs.transactionFraction,
+        storageFraction: request.costs.storageFraction,
+        insuranceFraction: request.costs.insuranceFraction
+      },
+      economicDrivers: request.economicDrivers.slice(),
+      idiosyncraticRisks: request.idiosyncraticRisks.slice(),
+      observedReturnIdentity: {
+        sampleId: request.observedSample.sampleId,
+        memberDateFingerprint: request.observedSample.memberDateFingerprint
+      },
+      smoothingEstimate: request.smoothingEstimate,
+      observed: {
+        sample: request.observedSample,
+        volatility: observedVolatility,
+        dependence: observedDependence
+      },
+      grid: grid,
+      strongConclusionState: "qualified",
+      prescribedDiversifier: null,
+      invalidationConditions: ["valuation-updated", "liquidity-changed", "cost-evidence-changed", "rho-grid-changed"]
+    };
+  }
+
+  function scope23Ols(sample) {
+    var x = sample.b, y = sample.a;
+    var meanX = mean(x), meanY = mean(y), sxx = 0, sxy = 0;
+    for (var i = 0; i < x.length; i += 1) {
+      sxx += (x[i] - meanX) * (x[i] - meanX);
+      sxy += (x[i] - meanX) * (y[i] - meanY);
+    }
+    if (sxx <= 0) return null;
+    var beta = sxy / sxx;
+    var alpha = meanY - beta * meanX;
+    var residuals = y.map(function (value, index) { return value - alpha - beta * x[index]; });
+    var sse = residuals.reduce(function (total, value) { return total + value * value; }, 0);
+    var sst = y.reduce(function (total, value) { return total + (value - meanY) * (value - meanY); }, 0);
+    return {
+      alpha: alpha,
+      beta: beta,
+      residuals: residuals,
+      residualVariance: sse / (x.length - 2),
+      residualCorrelation: pearson(residuals, x),
+      rSquared: sst === 0 ? null : 1 - sse / sst,
+      sse: sse,
+      sxx: sxx
+    };
+  }
+
+  function fitHedgeRegression(request) {
+    if (!request || request.contractVersion !== "HedgeRegressionRequest/v1" || !validDependenceSample(request.sample)) {
+      return scope23Unavailable("hedge-regression-request-invalid");
+    }
+    if (request.sample.definitionKind !== "aligned-excess-returns") {
+      return scope23Unavailable("excess-return-sample-required");
+    }
+    if (!Number.isInteger(request.minimumObservations) || request.minimumObservations < 3 ||
+        request.sample.observationCount < request.minimumObservations) {
+      return scope23Unavailable("minimum-observations-not-met");
+    }
+    if (!validBlockBootstrapPolicy(request.intervalPolicy)) return scope23Unavailable("bootstrap-policy-invalid");
+    var fit = scope23Ols(request.sample);
+    if (!fit || !isNum(fit.residualVariance)) return scope23Unavailable("hedge-regression-degenerate");
+    var coefficientInterval = scope23BootstrapInterval(fit.beta, request.sample, request.intervalPolicy, function (a, b) {
+      var derived = {
+        a: a, b: b,
+        observationCount: a.length
+      };
+      var local = scope23Ols(derived);
+      return local ? local.beta : null;
+    });
+    if (coefficientInterval.state === "unavailable") return coefficientInterval;
+    return {
+      contractVersion: "HedgeRegression/v1",
+      state: "ok",
+      alpha: fit.alpha,
+      beta: fit.beta,
+      betaDiagnostic: { value: fit.beta, prescribedRatio: null, diagnosticOnly: true },
+      coefficientInterval: coefficientInterval,
+      residualVariance: fit.residualVariance,
+      residualCorrelation: fit.residualCorrelation === null ? 0 : fit.residualCorrelation,
+      fit: { rSquared: fit.rSquared, residualSumSquares: fit.sse, proxyCenteredSumSquares: fit.sxx },
+      sample: request.sample,
+      dateBounds: { firstDate: request.sample.firstDate, lastDate: request.sample.lastDate },
+      sourceIdentities: request.sample.sourceFingerprints.slice(),
+      invalidationConditions: ["aligned-member-dates-changed", "target-source-changed", "proxy-source-changed"]
+    };
+  }
+
+  function scope23Effectiveness(sample, beta, ratio) {
+    var residual = sample.a.map(function (value, index) { return value - ratio * beta * sample.b[index]; });
+    var unhedgedVariance = sampleVariance(sample.a);
+    var residualVariance = sampleVariance(residual);
+    return {
+      state: unhedgedVariance === null || residualVariance === null ? "unavailable" : "ok",
+      sampleId: sample.sampleId,
+      memberDateFingerprint: sample.memberDateFingerprint,
+      unhedgedVariance: unhedgedVariance,
+      residualVariance: residualVariance,
+      grossVarianceReduction: unhedgedVariance === null || residualVariance === null
+        ? null : unhedgedVariance - residualVariance
+    };
+  }
+
+  function scope23PathEffectiveness(input, beta, ratio) {
+    if (!input.scenarioSpecification || input.scenarioSpecification.contractVersion !== "ScenarioSpecification/v1" ||
+        !input.scenarioResult || input.scenarioResult.state !== "ok" ||
+        !Array.isArray(input.scenarioResult.paths) || !input.scenarioResult.paths.length ||
+        !validDependenceSample(input.alignedPathSample)) {
+      return scope23Unavailable("common-path-evidence-required");
+    }
+    var validation = validateScenarioSpecification(input.scenarioSpecification);
+    if (!validation.ok) return scope23Unavailable("scenario-specification-invalid");
+    var identity = scenarioIdentity(input.scenarioSpecification);
+    if (input.scenarioResult.identity !== identity) return scope23Unavailable("scenario-identity-mismatch");
+    var target = [], residual = [], pathIds = [], seen = {};
+    input.scenarioResult.paths.forEach(function (path) {
+      if (!path || typeof path.pathId !== "string" || !Array.isArray(path.baseIndices)) return;
+      if (!seen[path.pathId]) { seen[path.pathId] = true; pathIds.push(path.pathId); }
+      path.baseIndices.forEach(function (index) {
+        var local = index % input.alignedPathSample.observationCount;
+        var targetReturn = input.alignedPathSample.a[local];
+        var proxyReturn = input.alignedPathSample.b[local];
+        target.push(targetReturn);
+        residual.push(targetReturn - ratio * beta * proxyReturn);
+      });
+    });
+    if (target.length < 2 || pathIds.length !== input.scenarioSpecification.pathCount) {
+      return scope23Unavailable("common-path-records-incomplete");
+    }
+    var unhedgedVariance = sampleVariance(target), residualVariance = sampleVariance(residual);
+    return {
+      state: "ok",
+      scenarioIdentity: identity,
+      pathIds: pathIds,
+      unhedgedVariance: unhedgedVariance,
+      residualVariance: residualVariance,
+      grossVarianceReduction: unhedgedVariance - residualVariance
+    };
+  }
+
+  function scope23CostResult(variant, exposureValue) {
+    var missing = HEDGE_COST_INPUT_KEYS.filter(function (key) {
+      return !variant || !variant.costs || !isNum(variant.costs[key]) || variant.costs[key] < 0;
+    });
+    var provided = variant && scope23ExactKeys(variant.costs, HEDGE_COST_INPUT_KEYS) && !missing.length &&
+      HEDGE_COST_INPUT_KEYS.every(function (key) { return isNum(variant.costs[key]) && variant.costs[key] >= 0; });
+    var costs = {};
+    HEDGE_COST_OUTPUT_KEYS.forEach(function (key) { costs[key] = null; });
+    if (!provided) return { complete: false, costs: costs, totalCost: null, missing: missing };
+    var notional = exposureValue * variant.hedgeRatio;
+    costs.carry = notional * variant.costs.carryFraction * variant.horizonYears;
+    costs.commission = notional * variant.costs.commissionFraction;
+    costs.spread = notional * variant.costs.spreadFraction;
+    costs.slippage = notional * variant.costs.slippageFraction;
+    costs.turnover = notional * variant.costs.turnoverFraction *
+      (variant.costs.commissionFraction + variant.costs.spreadFraction + variant.costs.slippageFraction);
+    costs.rebalance = notional * variant.costs.rebalanceCostFraction * variant.horizonYears;
+    costs.liquidity = notional * variant.costs.liquidityFraction;
+    costs.financing = notional * variant.costs.financingFraction * variant.horizonYears;
+    return {
+      complete: true,
+      costs: costs,
+      totalCost: HEDGE_COST_OUTPUT_KEYS.reduce(function (total, key) { return total + costs[key]; }, 0),
+      missing: []
+    };
+  }
+
+  function computeHedgeComparison(input) {
+    if (!input || !input.regression || input.regression.contractVersion !== "HedgeRegression/v1" ||
+        input.regression.state !== "ok") {
+      return scope23Unavailable("hedge-regression-required");
+    }
+    if (input.contractVersion !== "HedgeComparisonRequest/v1" ||
+        !input.exposure || typeof input.exposure.exposureId !== "string" || !input.exposure.exposureId ||
+        typeof input.exposure.targetSymbol !== "string" || !input.exposure.targetSymbol ||
+        !isNum(input.exposure.targetExposureValue) || input.exposure.targetExposureValue <= 0 ||
+        !validDependenceSample(input.normalSample) || !validDependenceSample(input.stressSample) ||
+        !Array.isArray(input.variants) || !input.variants.length) {
+      return scope23Unavailable("hedge-comparison-input-invalid");
+    }
+    var scenarioProbe = scope23PathEffectiveness(input, input.regression.beta, 0);
+    var scenarioBasis = scenarioProbe.state === "ok" ? {
+      scenarioSpecificationContractVersion: "ScenarioSpecification/v1",
+      scenarioIdentity: scenarioProbe.scenarioIdentity,
+      pathIds: scenarioProbe.pathIds.slice()
+    } : {
+      scenarioSpecificationContractVersion: input.scenarioSpecification && input.scenarioSpecification.contractVersion === "ScenarioSpecification/v1"
+        ? "ScenarioSpecification/v1" : null,
+      scenarioIdentity: null,
+      pathIds: []
+    };
+    var anyPartial = scenarioProbe.state !== "ok";
+    var variants = input.variants.map(function (variant) {
+      if (!variant || typeof variant.variantId !== "string" || !variant.variantId ||
+          !isNum(variant.hedgeRatio) || variant.hedgeRatio < 0 || variant.hedgeRatio > 1 ||
+          !isNum(variant.horizonYears) || variant.horizonYears <= 0) {
+        anyPartial = true;
+        return scope23Unavailable("hedge-variant-invalid");
+      }
+      var cost = scope23CostResult(variant, input.exposure.targetExposureValue);
+      var normal = scope23Effectiveness(input.normalSample, input.regression.beta, variant.hedgeRatio);
+      var stress = scope23Effectiveness(input.stressSample, input.regression.beta, variant.hedgeRatio);
+      var commonPath = scope23PathEffectiveness(input, input.regression.beta, variant.hedgeRatio);
+      if (!cost.complete || normal.state !== "ok" || stress.state !== "ok" || commonPath.state !== "ok") anyPartial = true;
+      var residualExposure = input.exposure.targetExposureValue * (1 - variant.hedgeRatio * input.regression.beta);
+      var grossRiskEffect = normal.grossVarianceReduction === null
+        ? null : normal.grossVarianceReduction * input.exposure.targetExposureValue * variant.horizonYears;
+      return {
+        contractVersion: "HedgeVariant/v1",
+        state: normal.state === "ok" && stress.state === "ok" ? (cost.complete ? "ok" : "gross-only") : "unavailable",
+        variantId: variant.variantId,
+        hedgeRatio: variant.hedgeRatio,
+        horizonYears: variant.horizonYears,
+        residualVariance: input.regression.residualVariance,
+        residualExposure: residualExposure,
+        costs: cost.costs,
+        missing: cost.missing,
+        totalCost: cost.totalCost,
+        grossRiskEffect: grossRiskEffect,
+        netState: cost.complete && grossRiskEffect !== null ? "available" : "unavailable",
+        netModeledOutcome: cost.complete && grossRiskEffect !== null ? grossRiskEffect - cost.totalCost : null,
+        effectiveness: { normal: normal, stress: stress, commonPath: commonPath },
+        prescribed: false,
+        executable: false
+      };
+    });
+    return {
+      contractVersion: "HedgeComparison/v1",
+      state: anyPartial ? "partial" : "ok",
+      exposure: {
+        exposureId: input.exposure.exposureId,
+        targetSymbol: input.exposure.targetSymbol,
+        targetExposureValue: input.exposure.targetExposureValue
+      },
+      regression: input.regression,
+      normalSampleId: input.normalSample.sampleId,
+      stressSampleId: input.stressSample.sampleId,
+      scenarioBasis: scenarioBasis,
+      variants: variants,
+      prescribedRatio: null,
+      executable: false,
+      claimBoundary: "No ratio is prescribed or recommended. Every ratio and horizon is an explicit research variant; no contract is selected and nothing is executed.",
+      invalidationConditions: ["regression-sample-changed", "cost-input-changed", "scenario-or-path-identity-changed"]
+    };
+  }
+
+  function validateDiversificationProjection(value) {
+    if (!value || value.contractVersion !== "DiversificationProjection/v1" ||
+        (value.state !== "ok" && value.state !== "partial")) {
+      return { ok: false, reason: "diversification-projection-invalid" };
+    }
+    if (!value.dependence || value.dependence.contractVersion !== "DependenceEvidenceSet/v1" ||
+        !value.dependence.adjustment || value.dependence.adjustment.contractVersion !== "ForbesRigobonAdjustment/v1") {
+      return { ok: false, reason: "dependence-adjustment-required" };
+    }
+    if (!value.overlaps || !value.overlaps.tail || value.overlaps.tail.contractVersion !== "EmpiricalTailDependence/v1" ||
+        !value.overlaps.downside || value.overlaps.downside.contractVersion !== "DownsideOverlap/v1" ||
+        !value.overlaps.drawdown || value.overlaps.drawdown.contractVersion !== "DrawdownOverlap/v1" ||
+        !value.overlaps.recovery || value.overlaps.recovery.contractVersion !== "RecoveryOverlap/v1") {
+      return { ok: false, reason: "distinct-overlap-contracts-required" };
+    }
+    if (!value.appraisal || value.appraisal.contractVersion !== "AppraisalSensitivity/v1" ||
+        !value.hedge || value.hedge.contractVersion !== "HedgeComparison/v1") {
+      return { ok: false, reason: "appraisal-and-hedge-contracts-required" };
+    }
+    var ratios = value.hedge.variants.map(function (variant) { return variant.hedgeRatio; });
+    if (ratios.some(function (ratio, index) { return ratios.indexOf(ratio) !== index; })) {
+      return { ok: false, reason: "explicit-variant-ratios-not-distinct" };
+    }
+    for (var i = 0; i < value.hedge.variants.length; i += 1) {
+      var variant = value.hedge.variants[i];
+      if (!scope23ExactKeys(variant.costs, HEDGE_COST_OUTPUT_KEYS) ||
+          (variant.netState === "available" && HEDGE_COST_OUTPUT_KEYS.some(function (key) { return !isNum(variant.costs[key]); }))) {
+        return { ok: false, reason: "complete-cost-components-required" };
+      }
+    }
+    return { ok: true, reason: null };
+  }
+
+  function scope23ProjectionRefusal(reason, lastValid) {
+    return {
+      contractVersion: "DiversificationProjectionRefusal/v1",
+      state: "unavailable",
+      reason: reason,
+      published: false,
+      lastValidProjection: lastValid && validateDiversificationProjection(lastValid).ok
+        ? JSON.parse(JSON.stringify(lastValid)) : null
+    };
+  }
+
+  function computeDiversificationProjection(request) {
+    if (!request || request.contractVersion !== "DiversificationProjectionRequest/v1") {
+      return scope23ProjectionRefusal("diversification-request-invalid", request && request.lastValidProjection);
+    }
+    if (!validDependenceSample(request.normalSample) || !validDependenceSample(request.stressSample) ||
+        !validDependenceSample(request.tailSample)) {
+      return scope23ProjectionRefusal("dependence-sample-contract-required", request.lastValidProjection);
+    }
+    if (request.normalSample.sampleId === request.stressSample.sampleId) {
+      return scope23ProjectionRefusal("samples-not-distinct", request.lastValidProjection);
+    }
+    var dependence = computeStressDependence({
+      contractVersion: "StressDependenceRequest/v1",
+      normal: request.normalSample,
+      stress: request.stressSample,
+      minimumObservations: request.minimumObservations,
+      intervalPolicy: request.intervalPolicy
+    });
+    if (dependence.state !== "ok") return scope23ProjectionRefusal(dependence.reason, request.lastValidProjection);
+    var adjustment = qualifiedForbesRigobonAdjustment({
+      contractVersion: "ForbesRigobonRequest/v1",
+      tranquilSample: request.normalSample,
+      turbulentSample: request.stressSample,
+      anchorSeries: request.normalSample.pair.anchor,
+      minimumObservations: request.minimumObservations,
+      intervalPolicy: request.intervalPolicy
+    });
+    if (adjustment.state !== "ok") return scope23ProjectionRefusal(adjustment.reason, request.lastValidProjection);
+    dependence.adjustment = adjustment;
+    var overlapPolicy = request.overlapPolicy || {};
+    var overlaps = computeDependenceOverlaps({
+      contractVersion: "DependenceOverlapRequest/v1",
+      sample: request.tailSample,
+      quantile: overlapPolicy.quantile,
+      minimumJointEvents: overlapPolicy.minimumJointEvents,
+      downsideThreshold: overlapPolicy.downsideThreshold,
+      drawdownThreshold: overlapPolicy.drawdownThreshold,
+      recoveryThreshold: overlapPolicy.recoveryThreshold,
+      intervalPolicy: request.intervalPolicy
+    });
+    if (overlaps.state !== "ok") return scope23ProjectionRefusal(overlaps.reason, request.lastValidProjection);
+    var appraisal = computeAppraisalSensitivity(request.appraisal);
+    var hedge;
+    if (request.precomputedHedgeComparison) {
+      hedge = request.precomputedHedgeComparison;
+    } else {
+      var hedgeRequest = request.hedge || {};
+      var regression = fitHedgeRegression(hedgeRequest.regressionRequest);
+      hedge = regression.state === "ok" ? computeHedgeComparison({
+        contractVersion: "HedgeComparisonRequest/v1",
+        exposure: hedgeRequest.exposure,
+        regression: regression,
+        normalSample: request.normalSample,
+        stressSample: request.stressSample,
+        scenarioSpecification: hedgeRequest.scenarioSpecification,
+        scenarioResult: hedgeRequest.scenarioResult,
+        alignedPathSample: hedgeRequest.alignedPathSample,
+        variants: hedgeRequest.variants
+      }) : regression;
+    }
+    var partial = appraisal.state !== "ok" || hedge.state !== "ok";
+    var projection = {
+      contractVersion: "DiversificationProjection/v1",
+      state: partial ? "partial" : "ok",
+      published: true,
+      dependence: dependence,
+      overlaps: overlaps,
+      appraisal: appraisal,
+      hedge: hedge,
+      conclusion: {
+        state: partial ? "qualified-partial" : "qualified",
+        prescription: null,
+        invalidationConditions: [
+          "dependence-sample-or-cutoff-changed", "appraisal-quality-or-rho-grid-changed",
+          "hedge-regression-cost-or-common-path-changed"
+        ]
+      }
+    };
+    return projection;
   }
 
   /* ---------------------------------------------------------------------
@@ -2257,6 +4717,1030 @@
   }
 
   /* ---------------------------------------------------------------------
+     Scope 24 - complete constrained allocation and explicit views
+     --------------------------------------------------------------------- */
+
+  function allocationFailure(reason, path) {
+    return { ok: false, reason: reason, path: path || "$" };
+  }
+
+  function allocationNumberArray(value, length) {
+    return Array.isArray(value) && value.length === length && value.every(isNum);
+  }
+
+  function allocationAssetProfile(basis) {
+    if (Array.isArray(basis.eligibleAssets) && basis.eligibleAssets.length) {
+      var eligibleSymbols = basis.eligibleAssets.map(function (asset) { return asset && asset.symbol; });
+      if (!eligibleSymbols.every(function (symbol) { return typeof symbol === "string" && symbol; })) return null;
+      return {
+        symbols: eligibleSymbols,
+        groups: basis.eligibleAssets.map(function (asset) {
+          return typeof asset.group === "string" && asset.group ? [asset.group] : [];
+        })
+      };
+    }
+    if (!Array.isArray(basis.assetOrder) || !basis.assetOrder.length || !Array.isArray(basis.assets)) return null;
+    var bySymbol = {};
+    basis.assets.forEach(function (asset) { if (asset && typeof asset.symbol === "string") bySymbol[asset.symbol] = asset; });
+    if (!basis.assetOrder.every(function (symbol) { return bySymbol[symbol] && bySymbol[symbol].eligible === true; })) return null;
+    return {
+      symbols: basis.assetOrder.slice(),
+      groups: basis.assetOrder.map(function (symbol) {
+        return Array.isArray(bySymbol[symbol].groups) ? bySymbol[symbol].groups.slice() : [];
+      })
+    };
+  }
+
+  function allocationBounds(basis, symbols) {
+    var bounds = [];
+    for (var i = 0; i < symbols.length; i += 1) {
+      var row = Array.isArray(basis.assetBounds)
+        ? basis.assetBounds.find(function (candidate) { return candidate && candidate.symbol === symbols[i]; })
+        : basis.assetBounds && basis.assetBounds[symbols[i]];
+      if (!row || !isNum(row.minimum) || !isNum(row.maximum)) return null;
+      bounds.push({ symbol: symbols[i], minimum: row.minimum, maximum: row.maximum });
+    }
+    (basis.exclusions || []).forEach(function (symbol) {
+      var index = symbols.indexOf(symbol);
+      if (index !== -1) bounds[index] = { symbol: symbol, minimum: 0, maximum: 0 };
+    });
+    return bounds;
+  }
+
+  function allocationCostPolicy(policy) {
+    if (!policy || typeof policy !== "object") return null;
+    var values = {
+      commission: isNum(policy.commissionFraction) ? policy.commissionFraction : policy.commissionRate,
+      spread: isNum(policy.spreadFraction) ? policy.spreadFraction : policy.spreadRate,
+      slippage: isNum(policy.slippageFraction) ? policy.slippageFraction : policy.slippageRate,
+      financing: isNum(policy.financingFraction) ? policy.financingFraction : policy.financingRate,
+      carry: isNum(policy.carryFraction) ? policy.carryFraction : policy.carryRate,
+      rebalanceTiming: policy.rebalanceTiming
+    };
+    if (![values.commission, values.spread, values.slippage, values.financing, values.carry].every(isNum) ||
+        typeof values.rebalanceTiming !== "string" || !values.rebalanceTiming) return null;
+    return values;
+  }
+
+  function allocationScenario(basis, symbols) {
+    if (typeof basis.commonScenarioIdentity === "string" && Array.isArray(basis.commonPathIds) &&
+        Array.isArray(basis.commonPathAssetReturns) && basis.survivalDefinition) {
+      if (basis.commonPathIds.length !== basis.commonPathAssetReturns.length ||
+          !basis.commonPathAssetReturns.every(function (row) { return allocationNumberArray(row, symbols.length); })) return null;
+      return {
+        identity: basis.commonScenarioIdentity,
+        startingValue: basis.survivalDefinition.startingValue,
+        floorValue: basis.survivalDefinition.floorValue,
+        survivalAvailable: basis.survivalDefinition.state !== "unavailable" && isNum(basis.survivalDefinition.floorValue),
+        cashNeeds: [],
+        paths: basis.commonPathIds.map(function (pathId, index) {
+          var returnsByAsset = {};
+          symbols.forEach(function (symbol, symbolIndex) {
+            returnsByAsset[symbol] = [basis.commonPathAssetReturns[index][symbolIndex]];
+          });
+          return { pathId: pathId, returnsByAsset: returnsByAsset };
+        })
+      };
+    }
+    var scenario = basis.commonScenario;
+    if (!scenario || scenario.contractVersion !== "AllocationCommonScenario/v1" ||
+        typeof scenario.scenarioIdentity !== "string" || !Array.isArray(scenario.paths)) return null;
+    var validPaths = scenario.paths.every(function (path) {
+      if (!path || typeof path.pathId !== "string" || !path.returnsByAsset) return false;
+      var length = null;
+      return symbols.every(function (symbol) {
+        var rows = path.returnsByAsset[symbol];
+        if (!Array.isArray(rows) || !rows.length || !rows.every(isNum)) return false;
+        if (length === null) length = rows.length;
+        return rows.length === length;
+      });
+    });
+    if (!validPaths || !isNum(scenario.startingValue) || !isNum(scenario.survivalFloor)) return null;
+    return {
+      identity: scenario.scenarioIdentity,
+      startingValue: scenario.startingValue,
+      floorValue: scenario.survivalFloor,
+      survivalAvailable: isNum(scenario.survivalFloor),
+      cashNeeds: Array.isArray(scenario.cashNeeds) ? scenario.cashNeeds.slice() : [],
+      paths: scenario.paths.map(function (path) {
+        return { pathId: path.pathId, returnsByAsset: path.returnsByAsset };
+      })
+    };
+  }
+
+  function allocationSolverPolicy(policy) {
+    if (!policy || typeof policy !== "object") return null;
+    var tolerance = isNum(policy.tolerance) ? policy.tolerance : policy.convergenceTolerance;
+    if (!Number.isInteger(policy.maximumIterations) || policy.maximumIterations <= 0 ||
+        !isNum(tolerance) || tolerance <= 0 || !isNum(policy.stepSize) || policy.stepSize <= 0) return null;
+    return {
+      identity: policy.policyId || policy.fingerprint,
+      maximumIterations: policy.maximumIterations,
+      projectionIterations: Number.isInteger(policy.projectionIterations) && policy.projectionIterations > 0
+        ? policy.projectionIterations : policy.maximumIterations,
+      tolerance: tolerance,
+      stepSize: policy.stepSize
+    };
+  }
+
+  function normalizeAllocationBasis(basis) {
+    if (!basis || basis.contractVersion !== "AllocationBasis/v1") return allocationFailure("basis-version", "$.contractVersion");
+    var assets = allocationAssetProfile(basis);
+    if (!assets) return allocationFailure("eligible-assets", "$.eligibleAssets");
+    var n = assets.symbols.length;
+    if (!allocationNumberArray(basis.currentWeights, n)) return allocationFailure("current-weights", "$.currentWeights");
+    if (!Array.isArray(basis.covariance) || basis.covariance.length !== n ||
+        !basis.covariance.every(function (row) { return allocationNumberArray(row, n); })) {
+      return allocationFailure("covariance-shape", "$.covariance");
+    }
+    for (var i = 0; i < n; i += 1) {
+      if (!(basis.covariance[i][i] > 0)) return allocationFailure("covariance-diagonal", "$.covariance[" + i + "][" + i + "]");
+      for (var j = 0; j < n; j += 1) {
+        if (Math.abs(basis.covariance[i][j] - basis.covariance[j][i]) > 1e-10) {
+          return allocationFailure("covariance-not-symmetric", "$.covariance");
+        }
+      }
+    }
+    var bounds = allocationBounds(basis, assets.symbols);
+    if (!bounds) return allocationFailure("asset-bounds", "$.assetBounds");
+    var costs = allocationCostPolicy(basis.costPolicy);
+    if (!costs) return allocationFailure("cost-policy", "$.costPolicy");
+    var scenario = allocationScenario(basis, assets.symbols);
+    if (!scenario) return allocationFailure("common-scenario", "$.commonScenarioIdentity");
+    var solver = allocationSolverPolicy(basis.solverPolicy);
+    if (!solver || typeof solver.identity !== "string" || !solver.identity) return allocationFailure("solver-policy", "$.solverPolicy");
+    var expectedReturns = Array.isArray(basis.expectedReturns) ? basis.expectedReturns
+      : basis.expectedReturnPolicy && basis.expectedReturnPolicy.expectedReturns;
+    if (expectedReturns !== null && expectedReturns !== undefined && !allocationNumberArray(expectedReturns, n)) {
+      return allocationFailure("expected-return-policy", "$.expectedReturnPolicy");
+    }
+    if ((expectedReturns === null || expectedReturns === undefined) &&
+        (!basis.expectedReturnPolicy || basis.expectedReturnPolicy.state !== "unavailable")) {
+      return allocationFailure("expected-return-policy", "$.expectedReturnPolicy");
+    }
+    if (!isNum(basis.netSum) || !isNum(basis.grossLeverageLimit) || !isNum(basis.turnoverBudget)) {
+      return allocationFailure("portfolio-constraints", "$.netSum");
+    }
+    var cashNotHeld = basis.cashBounds && basis.cashBounds.state === "not-held" &&
+      basis.cashBounds.symbol === null && basis.cashBounds.minimum === 0 && basis.cashBounds.maximum === 0;
+    if (!cashNotHeld && (!basis.cashBounds || typeof basis.cashBounds.symbol !== "string" ||
+        !isNum(basis.cashBounds.minimum) || !isNum(basis.cashBounds.maximum))) {
+      return allocationFailure("cash-bounds", "$.cashBounds");
+    }
+    if (!Array.isArray(basis.groupBounds)) return allocationFailure("group-bounds", "$.groupBounds");
+    var groups = basis.groupBounds.map(function (group) {
+      return {
+        id: group.group || group.groupId,
+        members: Array.isArray(group.members) ? group.members.slice() : [],
+        minimum: group.minimum,
+        maximum: group.maximum
+      };
+    });
+    if (!groups.every(function (group) {
+      return typeof group.id === "string" && group.id && group.members.length &&
+        group.members.every(function (symbol) { return assets.symbols.indexOf(symbol) !== -1; }) &&
+        isNum(group.minimum) && isNum(group.maximum);
+    })) return allocationFailure("group-bounds", "$.groupBounds");
+    var normalized = {
+      source: basis,
+      symbols: assets.symbols,
+      groupsByAsset: assets.groups,
+      currentWeights: basis.currentWeights.slice(),
+      covariance: basis.covariance.map(function (row) { return row.slice(); }),
+      expectedReturns: expectedReturns ? expectedReturns.slice() : null,
+      bounds: bounds,
+      exclusions: (basis.exclusions || []).slice(),
+      cashBounds: basis.cashBounds,
+      netSum: basis.netSum,
+      grossLeverageLimit: basis.grossLeverageLimit,
+      turnoverBudget: basis.turnoverBudget,
+      groupBounds: groups,
+      costs: costs,
+      scenario: scenario,
+      solverPolicy: solver
+    };
+    return { ok: true, value: normalized, basisFingerprint: stableRecordFingerprint(basis) };
+  }
+
+  function validateAllocationBasis(basis) {
+    var result = normalizeAllocationBasis(basis);
+    return result.ok ? { ok: true, basisFingerprint: result.basisFingerprint } : result;
+  }
+
+  function allocationVectorNorm(values) {
+    return Math.sqrt(values.reduce(function (sum, value) { return sum + value * value; }, 0));
+  }
+
+  function projectL1Ball(values, radius) {
+    var absolute = values.map(Math.abs);
+    if (absolute.reduce(function (sum, value) { return sum + value; }, 0) <= radius) return values.slice();
+    var sorted = absolute.slice().sort(function (a, b) { return b - a; });
+    var cumulative = 0, threshold = 0;
+    for (var i = 0; i < sorted.length; i += 1) {
+      cumulative += sorted[i];
+      var candidate = (cumulative - radius) / (i + 1);
+      if (sorted[i] > candidate) threshold = candidate;
+    }
+    return values.map(function (value) {
+      return Math.sign(value) * Math.max(Math.abs(value) - threshold, 0);
+    });
+  }
+
+  function allocationConstraintSets(normalized) {
+    var sets = [{
+      id: "asset-bounds",
+      project: function (values) {
+        return values.map(function (value, index) {
+          return Math.max(normalized.bounds[index].minimum, Math.min(normalized.bounds[index].maximum, value));
+        });
+      }
+    }, {
+      id: "net-sum",
+      project: function (values) {
+        var delta = (normalized.netSum - values.reduce(function (sum, value) { return sum + value; }, 0)) / values.length;
+        return values.map(function (value) { return value + delta; });
+      }
+    }, {
+      id: "gross-leverage",
+      project: function (values) { return projectL1Ball(values, normalized.grossLeverageLimit); }
+    }, {
+      id: "turnover-budget",
+      project: function (values) {
+        var delta = values.map(function (value, index) { return value - normalized.currentWeights[index]; });
+        var projected = projectL1Ball(delta, normalized.turnoverBudget * 2);
+        return projected.map(function (value, index) { return normalized.currentWeights[index] + value; });
+      }
+    }];
+    normalized.groupBounds.forEach(function (group) {
+      var memberIndexes = group.members.map(function (symbol) { return normalized.symbols.indexOf(symbol); });
+      var normSquared = memberIndexes.length;
+      sets.push({
+        id: "group-minimum:" + group.id,
+        project: function (values) {
+          var total = memberIndexes.reduce(function (sum, index) { return sum + values[index]; }, 0);
+          if (total >= group.minimum) return values.slice();
+          var delta = (group.minimum - total) / normSquared;
+          return values.map(function (value, index) { return memberIndexes.indexOf(index) === -1 ? value : value + delta; });
+        }
+      });
+      sets.push({
+        id: "group-maximum:" + group.id,
+        project: function (values) {
+          var total = memberIndexes.reduce(function (sum, index) { return sum + values[index]; }, 0);
+          if (total <= group.maximum) return values.slice();
+          var delta = (total - group.maximum) / normSquared;
+          return values.map(function (value, index) { return memberIndexes.indexOf(index) === -1 ? value : value - delta; });
+        }
+      });
+    });
+    return sets;
+  }
+
+  function allocationConstraintResiduals(normalized, weights) {
+    var rows = [];
+    normalized.bounds.forEach(function (bound, index) {
+      rows.push({ id: "minimum:" + bound.symbol, residual: Math.max(0, bound.minimum - weights[index]) });
+      rows.push({ id: "maximum:" + bound.symbol, residual: Math.max(0, weights[index] - bound.maximum) });
+    });
+    var sum = weights.reduce(function (total, value) { return total + value; }, 0);
+    rows.push({ id: "net-sum", residual: Math.abs(sum - normalized.netSum) });
+    rows.push({
+      id: "gross-leverage",
+      residual: Math.max(0, weights.reduce(function (total, value) { return total + Math.abs(value); }, 0) - normalized.grossLeverageLimit)
+    });
+    rows.push({
+      id: "turnover-budget",
+      residual: Math.max(0, weights.reduce(function (total, value, index) {
+        return total + Math.abs(value - normalized.currentWeights[index]);
+      }, 0) / 2 - normalized.turnoverBudget)
+    });
+    normalized.groupBounds.forEach(function (group) {
+      var total = group.members.reduce(function (value, symbol) {
+        return value + weights[normalized.symbols.indexOf(symbol)];
+      }, 0);
+      rows.push({ id: "group-minimum:" + group.id, residual: Math.max(0, group.minimum - total) });
+      rows.push({ id: "group-maximum:" + group.id, residual: Math.max(0, total - group.maximum) });
+    });
+    var maximum = rows.reduce(function (value, row) { return Math.max(value, row.residual); }, 0);
+    return { maximum: maximum, rows: rows, violations: rows.filter(function (row) { return row.residual > normalized.solverPolicy.tolerance; }) };
+  }
+
+  function findAllocationConflictFromNormalized(normalized) {
+    for (var i = 0; i < normalized.bounds.length; i += 1) {
+      if (normalized.bounds[i].minimum > normalized.bounds[i].maximum) {
+        return {
+          state: "infeasible",
+          irreducible: true,
+          globallySmallest: false,
+          conflictSet: ["minimum:" + normalized.bounds[i].symbol, "maximum:" + normalized.bounds[i].symbol]
+        };
+      }
+    }
+    var lower = normalized.bounds.map(function (bound) {
+      return { id: "minimum:" + bound.symbol, value: bound.minimum };
+    }).filter(function (row) { return row.value > 0; });
+    var lowerTotal = lower.reduce(function (sum, row) { return sum + row.value; }, 0);
+    if (lowerTotal > normalized.netSum + normalized.solverPolicy.tolerance) {
+      for (var lowerIndex = 0; lowerIndex < lower.length;) {
+        if (lowerTotal - lower[lowerIndex].value > normalized.netSum + normalized.solverPolicy.tolerance) {
+          lowerTotal -= lower[lowerIndex].value;
+          lower.splice(lowerIndex, 1);
+        } else lowerIndex += 1;
+      }
+      return {
+        state: "infeasible",
+        irreducible: true,
+        globallySmallest: false,
+        conflictSet: lower.map(function (row) { return row.id; }).concat(["net-sum"])
+      };
+    }
+    var upper = normalized.bounds.map(function (bound) {
+      return { id: "maximum:" + bound.symbol, value: bound.maximum };
+    });
+    var upperTotal = upper.reduce(function (sum, row) { return sum + row.value; }, 0);
+    if (upperTotal < normalized.netSum - normalized.solverPolicy.tolerance) {
+      for (var upperIndex = 0; upperIndex < upper.length;) {
+        if (upperTotal - upper[upperIndex].value >= normalized.netSum - normalized.solverPolicy.tolerance) {
+          upperTotal -= upper[upperIndex].value;
+          upper.splice(upperIndex, 1);
+        } else upperIndex += 1;
+      }
+      return {
+        state: "infeasible",
+        irreducible: true,
+        globallySmallest: false,
+        conflictSet: upper.map(function (row) { return row.id; }).concat(["net-sum"])
+      };
+    }
+    for (var groupIndex = 0; groupIndex < normalized.groupBounds.length; groupIndex += 1) {
+      var group = normalized.groupBounds[groupIndex];
+      if (group.minimum > group.maximum) {
+        return {
+          state: "infeasible",
+          irreducible: true,
+          globallySmallest: false,
+          conflictSet: ["group-minimum:" + group.id, "group-maximum:" + group.id]
+        };
+      }
+    }
+    if (normalized.grossLeverageLimit < Math.abs(normalized.netSum) - normalized.solverPolicy.tolerance) {
+      return {
+        state: "infeasible",
+        irreducible: true,
+        globallySmallest: false,
+        conflictSet: ["gross-leverage", "net-sum"]
+      };
+    }
+    return { state: "unknown", irreducible: false, globallySmallest: false, conflictSet: [] };
+  }
+
+  function findIrreducibleConflict(basis) {
+    var validated = normalizeAllocationBasis(basis);
+    if (!validated.ok) return { state: "invalid", reason: validated.reason, path: validated.path };
+    return findAllocationConflictFromNormalized(validated.value);
+  }
+
+  function projectAllocationBasis(normalized, target, policy) {
+    var structuralConflict = findAllocationConflictFromNormalized(normalized);
+    if (structuralConflict.state === "infeasible") {
+      return {
+        state: "infeasible",
+        weights: null,
+        iterations: 0,
+        residuals: null,
+        conflictSet: structuralConflict.conflictSet,
+        irreducibleConflict: structuralConflict
+      };
+    }
+    var sets = allocationConstraintSets(normalized);
+    var corrections = sets.map(function () { return target.map(function () { return 0; }); });
+    var weights = target.slice(), iterations = 0, movement = Infinity;
+    for (iterations = 1; iterations <= policy.projectionIterations; iterations += 1) {
+      var previous = weights.slice();
+      for (var setIndex = 0; setIndex < sets.length; setIndex += 1) {
+        var shifted = weights.map(function (value, index) { return value + corrections[setIndex][index]; });
+        var projected = sets[setIndex].project(shifted);
+        corrections[setIndex] = shifted.map(function (value, index) { return value - projected[index]; });
+        weights = projected;
+      }
+      movement = allocationVectorNorm(weights.map(function (value, index) { return value - previous[index]; }));
+      var residuals = allocationConstraintResiduals(normalized, weights);
+      if (movement <= policy.tolerance && residuals.maximum <= policy.tolerance) {
+        return { state: "feasible", weights: weights, iterations: iterations, residuals: residuals };
+      }
+    }
+    var finalResiduals = allocationConstraintResiduals(normalized, weights);
+    return {
+      state: finalResiduals.maximum <= policy.tolerance ? "feasible" : "infeasible",
+      weights: finalResiduals.maximum <= policy.tolerance ? weights : null,
+      iterations: iterations - 1,
+      residuals: finalResiduals,
+      conflictSet: finalResiduals.violations.map(function (row) { return row.id; })
+    };
+  }
+
+  function projectBoundedConstraints(basis, target, solverPolicy) {
+    var validated = normalizeAllocationBasis(basis);
+    if (!validated.ok) return { state: "invalid", reason: validated.reason, path: validated.path };
+    if (!allocationNumberArray(target, validated.value.symbols.length)) return { state: "invalid", reason: "target-shape" };
+    var policy = allocationSolverPolicy(solverPolicy || basis.solverPolicy);
+    if (!policy) return { state: "invalid", reason: "solver-policy" };
+    return projectAllocationBasis(validated.value, target, policy);
+  }
+
+  function allocationQuadratic(weights, covariance) {
+    return weights.reduce(function (total, weight, i) {
+      return total + weight * covariance[i].reduce(function (rowTotal, value, j) {
+        return rowTotal + value * weights[j];
+      }, 0);
+    }, 0);
+  }
+
+  function allocationProjectedOptimize(normalized, start, policy, objective, gradient) {
+    var initial = projectAllocationBasis(normalized, start, policy);
+    if (initial.state !== "feasible") return initial;
+    var weights = initial.weights, currentObjective = objective(weights), iteration = 0;
+    for (iteration = 1; iteration <= policy.maximumIterations; iteration += 1) {
+      var grad = gradient(weights);
+      var step = policy.stepSize, accepted = null;
+      for (var search = 0; search < 24; search += 1) {
+        var target = weights.map(function (value, index) { return value - step * grad[index]; });
+        var projected = projectAllocationBasis(normalized, target, policy);
+        if (projected.state === "feasible" && objective(projected.weights) <= currentObjective + policy.tolerance) {
+          accepted = projected.weights;
+          break;
+        }
+        step /= 2;
+      }
+      if (!accepted) break;
+      var movement = allocationVectorNorm(accepted.map(function (value, index) { return value - weights[index]; }));
+      weights = accepted;
+      currentObjective = objective(weights);
+      if (movement <= policy.tolerance) break;
+    }
+    var mappingTarget = weights.map(function (value, index) { return value - policy.stepSize * gradient(weights)[index]; });
+    var mapping = projectAllocationBasis(normalized, mappingTarget, policy);
+    var residual = mapping.state === "feasible"
+      ? allocationVectorNorm(mapping.weights.map(function (value, index) { return value - weights[index]; }))
+      : Infinity;
+    var constraints = allocationConstraintResiduals(normalized, weights);
+    return {
+      state: residual <= policy.tolerance * 10 && constraints.maximum <= policy.tolerance ? "feasible" : "unstable",
+      weights: weights,
+      iterations: iteration,
+      objective: currentObjective,
+      projectedGradientResidual: residual,
+      residuals: constraints,
+      convergenceReason: residual <= policy.tolerance * 10 ? "projected-gradient-tolerance" : "iteration-or-line-search-limit"
+    };
+  }
+
+  function allocationExpectedReturns(input, normalized) {
+    var values = input && input.expectedReturns;
+    if (!allocationNumberArray(values, normalized.symbols.length)) return null;
+    return values.slice();
+  }
+
+  function allocationCosts(normalized, weights) {
+    var turnover = weights.reduce(function (total, value, index) {
+      return total + Math.abs(value - normalized.currentWeights[index]);
+    }, 0) / 2;
+    var gross = weights.reduce(function (total, value) { return total + Math.abs(value); }, 0);
+    var costs = {
+      complete: true,
+      turnover: turnover,
+      commission: turnover * normalized.costs.commission,
+      spread: turnover * normalized.costs.spread,
+      slippage: turnover * normalized.costs.slippage,
+      financing: Math.max(0, gross - 1) * normalized.costs.financing,
+      carry: gross * normalized.costs.carry,
+      rebalanceTiming: normalized.costs.rebalanceTiming
+    };
+    costs.total = costs.commission + costs.spread + costs.slippage + costs.financing + costs.carry;
+    return costs;
+  }
+
+  function allocationPathOutcomes(normalized, weights, costs) {
+    var rows = normalized.scenario.paths.map(function (path) {
+      var periods = path.returnsByAsset[normalized.symbols[0]].length;
+      var value = normalized.scenario.startingValue * (1 - costs.total), minimum = value;
+      for (var period = 0; period < periods; period += 1) {
+        var portfolioReturn = normalized.symbols.reduce(function (total, symbol, index) {
+          return total + weights[index] * path.returnsByAsset[symbol][period];
+        }, 0);
+        value *= 1 + portfolioReturn;
+        normalized.scenario.cashNeeds.filter(function (need) { return need.session === period + 1; })
+          .forEach(function (need) { value -= need.amount; });
+        minimum = Math.min(minimum, value);
+      }
+      return {
+        pathId: path.pathId,
+        endingValue: value,
+        minimumValue: minimum,
+        survived: normalized.scenario.survivalAvailable ? minimum >= normalized.scenario.floorValue : null
+      };
+    });
+    return {
+      state: "ok",
+      scenarioIdentity: normalized.scenario.identity,
+      pathIds: rows.map(function (row) { return row.pathId; }),
+      rows: rows
+    };
+  }
+
+  function allocationCandidate(method, normalized, basisFingerprint, solved, expectedReturns, extra) {
+    var weights = Array.isArray(solved.weights) ? solved.weights.slice() : null;
+    var constraints = weights ? allocationConstraintResiduals(normalized, weights) : solved.residuals;
+    var costs = weights ? allocationCosts(normalized, weights) : null;
+    var paths = weights ? allocationPathOutcomes(normalized, weights, costs) : null;
+    var weightMap = {};
+    if (weights) normalized.symbols.forEach(function (symbol, index) { weightMap[symbol] = weights[index]; });
+    var risk = weights ? riskContributions(normalized.symbols, weightMap, normalized.covariance, {
+      reconciliationTolerance: normalized.solverPolicy.tolerance
+    }) : { state: "unavailable" };
+    var candidate = {
+      contractVersion: "AllocationCandidate/v1",
+      method: method,
+      basisFingerprint: basisFingerprint,
+      state: solved.state,
+      weights: weights,
+      objective: isNum(solved.objective) ? solved.objective : null,
+      solver: {
+        iterations: Number.isInteger(solved.iterations) ? solved.iterations : 0,
+        convergenceReason: solved.convergenceReason || (solved.state === "feasible" ? "direct-evaluation" : "unavailable"),
+        projectedGradientResidual: isNum(solved.projectedGradientResidual) ? solved.projectedGradientResidual : null,
+        kktResidual: isNum(solved.kktResidual) ? solved.kktResidual
+          : (isNum(solved.projectedGradientResidual) ? solved.projectedGradientResidual : null),
+        equalRiskContributionResidual: isNum(solved.equalRiskContributionResidual) ? solved.equalRiskContributionResidual : null,
+        postHocClipping: false
+      },
+      constraintResiduals: constraints || null,
+      conflictSet: solved.conflictSet || [],
+      turnover: costs ? costs.turnover : null,
+      fullCosts: costs,
+      concentration: weights ? {
+        herfindahl: weights.reduce(function (total, value) { return total + value * value; }, 0),
+        maximumWeight: Math.max.apply(null, weights)
+      } : null,
+      expectedReturnsUsed: expectedReturns ? expectedReturns.slice() : null,
+      returnContribution: {
+        values: weights && expectedReturns ? weights.map(function (value, index) { return value * expectedReturns[index]; }) : []
+      },
+      riskContribution: risk,
+      commonPathOutcomes: paths,
+      survivalOutcomes: paths ? {
+        state: "ok",
+        floorValue: normalized.scenario.floorValue,
+        survivedPathCount: paths.rows.filter(function (row) { return row.survived; }).length,
+        pathCount: paths.rows.length,
+        survivalRate: paths.rows.filter(function (row) { return row.survived; }).length / paths.rows.length
+      } : null,
+      sensitivity: { state: "not-run", axes: [] },
+      warnings: solved.state === "feasible" ? [] : [solved.convergenceReason || solved.state]
+    };
+    var labels = {
+      current: "Current portfolio",
+      "equal-weight": "Equal weight",
+      "minimum-variance": "Minimum variance",
+      "risk-parity": "Equal-risk-contribution risk parity",
+      "black-litterman": "Black-Litterman",
+      "constrained-mvo": "Constrained mean-variance"
+    };
+    var assumptions = {
+      current: ["Observed baseline only. It is visible even when it violates the declared mandate."],
+      "equal-weight": ["Assumes nothing about return, risk, or correlation. Equal eligible weights are projected into the common feasible set."],
+      "minimum-variance": ["Uses the complete conditioned covariance and the common constraints; it makes no return forecast."],
+      "risk-parity": ["Solves correlation-aware component risk contribution balance; inverse volatility is not substituted."],
+      "black-litterman": ["Uses an explicit benchmark and only user-stated views, then sends posterior means to the common constrained optimizer."],
+      "constrained-mvo": ["Uses the explicitly supplied expected-return vector, risk aversion, and every common constraint inside the solve."]
+    };
+    candidate.label = labels[method];
+    candidate.assumptions = assumptions[method].slice();
+    candidate.portfolioVolatility = weights ? Math.sqrt(Math.max(0, allocationQuadratic(weights, normalized.covariance))) : null;
+    candidate.feasibility = weights ? {
+      state: constraints.maximum <= normalized.solverPolicy.tolerance ? "feasible" : "infeasible",
+      universallyInfeasible: solved.state === "infeasible",
+      conflictingSet: solved.conflictSet || constraints.violations,
+      explanation: constraints.maximum <= normalized.solverPolicy.tolerance
+        ? "Every declared common constraint is satisfied within the solver tolerance."
+        : "The candidate remains visible with its constraint residuals. No constraint was relaxed and the current portfolio is unchanged."
+    } : { state: "unavailable", reason: solved.reason || solved.convergenceReason || solved.state };
+    candidate.survivalOutcomes = !paths || !normalized.scenario.survivalAvailable ? {
+      state: "unavailable",
+      reason: "survival-floor-not-declared",
+      floorValue: null,
+      survivedPathCount: null,
+      pathCount: paths ? paths.rows.length : 0,
+      survivalRate: null
+    } : candidate.survivalOutcomes;
+    Object.keys(extra || {}).forEach(function (key) { candidate[key] = extra[key]; });
+    return candidate;
+  }
+
+  function allocationUnavailableCandidate(method, context, reason, extra) {
+    var candidate = allocationCandidate(method, context.normalized, context.fingerprint, {
+      state: "unavailable",
+      weights: null,
+      reason: reason,
+      convergenceReason: reason
+    }, null, extra);
+    candidate.reason = reason;
+    return candidate;
+  }
+
+  function allocationContext(basis, solverPolicy) {
+    var validated = normalizeAllocationBasis(basis);
+    if (!validated.ok) return validated;
+    var policy = allocationSolverPolicy(solverPolicy || basis.solverPolicy);
+    if (!policy) return allocationFailure("solver-policy", "$.solverPolicy");
+    return { ok: true, normalized: validated.value, fingerprint: validated.basisFingerprint, policy: policy };
+  }
+
+  function evaluateCurrentAllocation(basis) {
+    var context = allocationContext(basis, basis && basis.solverPolicy);
+    if (!context.ok) return { state: "invalid", reason: context.reason, path: context.path };
+    var residuals = allocationConstraintResiduals(context.normalized, context.normalized.currentWeights);
+    return allocationCandidate("current", context.normalized, context.fingerprint, {
+      state: residuals.maximum <= context.policy.tolerance ? "feasible" : "infeasible",
+      weights: context.normalized.currentWeights,
+      residuals: residuals,
+      conflictSet: residuals.violations.map(function (row) { return row.id; }),
+      convergenceReason: "observed-baseline"
+    }, context.normalized.expectedReturns);
+  }
+
+  function solveEqualWeight(basis) {
+    var context = allocationContext(basis, basis && basis.solverPolicy);
+    if (!context.ok) return { state: "invalid", reason: context.reason, path: context.path };
+    var target = context.normalized.symbols.map(function () { return context.normalized.netSum / context.normalized.symbols.length; });
+    var projected = projectAllocationBasis(context.normalized, target, context.policy);
+    projected.convergenceReason = projected.state === "feasible" ? "feasible-projection" : "constraint-set-infeasible";
+    return allocationCandidate("equal-weight", context.normalized, context.fingerprint, projected, context.normalized.expectedReturns);
+  }
+
+  function solveMinimumVariance(basis, solverPolicy) {
+    var context = allocationContext(basis, solverPolicy);
+    if (!context.ok) return { state: "invalid", reason: context.reason, path: context.path };
+    var covariance = context.normalized.covariance;
+    var solved = allocationProjectedOptimize(context.normalized, context.normalized.currentWeights, context.policy,
+      function (weights) { return allocationQuadratic(weights, covariance); },
+      function (weights) { return matrixVector(covariance, weights).map(function (value) { return 2 * value; }); });
+    solved.kktResidual = solved.projectedGradientResidual;
+    return allocationCandidate("minimum-variance", context.normalized, context.fingerprint, solved, context.normalized.expectedReturns);
+  }
+
+  function allocationRiskShares(weights, covariance) {
+    var marginal = matrixVector(covariance, weights);
+    var variance = weights.reduce(function (sum, weight, index) { return sum + weight * marginal[index]; }, 0);
+    return variance > 0 ? weights.map(function (weight, index) { return weight * marginal[index] / variance; }) : null;
+  }
+
+  function allocationRiskBudgetObjective(weights, covariance, budget) {
+    var shares = allocationRiskShares(weights, covariance);
+    if (!shares) return Infinity;
+    return shares.reduce(function (sum, value, index) {
+      var delta = value - budget[index];
+      return sum + delta * delta;
+    }, 0);
+  }
+
+  function allocationRiskBudgetGradient(weights, covariance, budget) {
+    var marginal = matrixVector(covariance, weights);
+    var numerators = weights.map(function (weight, index) { return weight * marginal[index]; });
+    var variance = numerators.reduce(function (sum, value) { return sum + value; }, 0);
+    if (!(variance > 0)) return weights.map(function () { return 0; });
+    var shares = numerators.map(function (value) { return value / variance; });
+    return weights.map(function (_weight, k) {
+      var gradient = 0;
+      for (var i = 0; i < weights.length; i += 1) {
+        var numeratorDerivative = (i === k ? marginal[i] : 0) + weights[i] * covariance[i][k];
+        var shareDerivative = (numeratorDerivative * variance - numerators[i] * 2 * marginal[k]) / (variance * variance);
+        gradient += 2 * (shares[i] - budget[i]) * shareDerivative;
+      }
+      return gradient;
+    });
+  }
+
+  function solveEqualRiskContribution(basis, riskBudget, solverPolicy) {
+    var context = allocationContext(basis, solverPolicy);
+    if (!context.ok) return { state: "invalid", reason: context.reason, path: context.path };
+    if (!allocationNumberArray(riskBudget, context.normalized.symbols.length)) return { state: "invalid", reason: "risk-budget" };
+    var budget = normalizeWeights(riskBudget);
+    if (!budget || budget.some(function (value) { return value <= 0; })) return { state: "invalid", reason: "risk-budget" };
+    var solved = allocationProjectedOptimize(context.normalized, budget, context.policy,
+      function (weights) { return allocationRiskBudgetObjective(weights, context.normalized.covariance, budget); },
+      function (weights) { return allocationRiskBudgetGradient(weights, context.normalized.covariance, budget); });
+    var shares = allocationRiskShares(solved.weights, context.normalized.covariance);
+    solved.equalRiskContributionResidual = shares ? shares.reduce(function (value, share, index) {
+      return Math.max(value, Math.abs(share - budget[index]));
+    }, 0) : Infinity;
+    solved.state = solved.equalRiskContributionResidual <= context.policy.tolerance * 10 &&
+      solved.residuals.maximum <= context.policy.tolerance ? "feasible" : "unstable";
+    solved.convergenceReason = solved.state === "feasible" ? "equal-risk-contribution-tolerance" : "risk-budget-residual";
+    return allocationCandidate("risk-parity", context.normalized, context.fingerprint, solved, context.normalized.expectedReturns);
+  }
+
+  function scope24BlackLittermanPosterior(normalized, input) {
+    if (!input || input.contractVersion !== "BlackLittermanInput/v1" ||
+        typeof input.benchmarkIdentity !== "string" || !input.benchmarkIdentity ||
+        !allocationNumberArray(input.benchmarkWeights, normalized.symbols.length) ||
+        !isNum(input.riskAversion) || input.riskAversion <= 0 || !isNum(input.tau) || input.tau <= 0 ||
+        !Array.isArray(input.views)) return { state: "unavailable", reason: "black-litterman-input-invalid" };
+    var implied = matrixVector(normalized.covariance, input.benchmarkWeights)
+      .map(function (value) { return value * input.riskAversion; });
+    if (!input.views.length) {
+      return {
+        contractVersion: "BlackLittermanPosterior/v1",
+        state: "equilibrium-only",
+        symbols: normalized.symbols.slice(),
+        benchmarkIdentity: input.benchmarkIdentity,
+        views: [],
+        impliedEquilibriumReturns: implied,
+        priorCovariance: normalized.covariance.map(function (row) { return row.slice(); }),
+        viewMatrix: [], viewReturns: [], viewUncertainty: [],
+        posteriorMean: implied.slice(), posteriorCovariance: matrixScale(normalized.covariance, input.tau),
+        candidateInputFingerprint: stableRecordFingerprint(input),
+        note: "No explicit view was supplied. The candidate is equilibrium-only under the qualified benchmark."
+      };
+    }
+    var valid = input.views.every(function (view) {
+      var magnitude = view && view.magnitudeRange;
+      var central = magnitude && !Array.isArray(magnitude) ? magnitude.central
+        : (Array.isArray(magnitude) && magnitude.length === 2 && magnitude.every(isNum) ? (magnitude[0] + magnitude[1]) / 2 : null);
+      return view && typeof view.viewId === "string" && view.viewId &&
+        (Number.isInteger(view.horizonSessions) && view.horizonSessions > 0 || typeof view.horizon === "string" && view.horizon) &&
+        allocationNumberArray(view.coefficients, normalized.symbols.length) && isNum(central) &&
+        typeof view.confidenceSource === "string" && view.confidenceSource && isNum(view.uncertaintyVariance) &&
+        view.uncertaintyVariance > 0 && typeof view.userAuthority === "string" && view.userAuthority &&
+        typeof view.evidenceCutoff === "string" && typeof view.invalidation === "string" && view.invalidation;
+    });
+    if (!valid) return { state: "unavailable", reason: "black-litterman-view-invalid" };
+    var P = input.views.map(function (view) { return view.coefficients.slice(); });
+    var q = input.views.map(function (view) {
+      return Array.isArray(view.magnitudeRange)
+        ? (view.magnitudeRange[0] + view.magnitudeRange[1]) / 2 : view.magnitudeRange.central;
+    });
+    var omega = input.views.map(function (view, i) {
+      return input.views.map(function (_other, j) { return i === j ? view.uncertaintyVariance : 0; });
+    });
+    var tauCovariance = matrixScale(normalized.covariance, input.tau);
+    var tauInverse = matrixInverse(tauCovariance), omegaInverse = matrixInverse(omega), transpose = matrixTranspose(P);
+    if (!tauInverse || !omegaInverse) return { state: "unavailable", reason: "black-litterman-matrix-invertible" };
+    var precision = matrixAdd(tauInverse, matrixMultiply(matrixMultiply(transpose, omegaInverse), P));
+    var posteriorCovariance = matrixInverse(precision);
+    if (!posteriorCovariance) return { state: "unavailable", reason: "black-litterman-posterior-invertible" };
+    var rhs = matrixVector(tauInverse, implied);
+    var viewTerm = matrixVector(matrixMultiply(transpose, omegaInverse), q);
+    var posteriorMean = matrixVector(posteriorCovariance, rhs.map(function (value, index) { return value + viewTerm[index]; }));
+    return {
+      contractVersion: "BlackLittermanPosterior/v1",
+      state: "ok",
+      symbols: normalized.symbols.slice(),
+      benchmarkIdentity: input.benchmarkIdentity,
+      views: input.views.map(function (view) { return JSON.parse(JSON.stringify(view)); }),
+      impliedEquilibriumReturns: implied,
+      priorCovariance: normalized.covariance.map(function (row) { return row.slice(); }),
+      viewMatrix: P, viewReturns: q, viewUncertainty: omega,
+      posteriorMean: posteriorMean, posteriorCovariance: posteriorCovariance,
+      candidateInputFingerprint: stableRecordFingerprint(input),
+      note: "The posterior keeps benchmark equilibrium, explicit user views, uncertainty, and resulting means separately attributable, so you can see which part of the answer is the market's and which is yours."
+    };
+  }
+
+  function solveConstrainedMvo(basis, expectedReturnInput, riskAversion, solverPolicy) {
+    var context = allocationContext(basis, solverPolicy);
+    if (!context.ok) return { state: "invalid", reason: context.reason, path: context.path };
+    var expectedReturns = allocationExpectedReturns(expectedReturnInput, context.normalized);
+    if (!expectedReturns || !isNum(riskAversion) || riskAversion <= 0) {
+      return allocationUnavailableCandidate("constrained-mvo", context, "expected-returns-or-risk-aversion");
+    }
+    var covariance = context.normalized.covariance;
+    var solved = allocationProjectedOptimize(context.normalized, context.normalized.currentWeights, context.policy,
+      function (weights) {
+        return riskAversion * allocationQuadratic(weights, covariance) / 2 -
+          weights.reduce(function (total, value, index) { return total + value * expectedReturns[index]; }, 0);
+      },
+      function (weights) {
+        return matrixVector(covariance, weights).map(function (value, index) { return riskAversion * value - expectedReturns[index]; });
+      });
+    solved.kktResidual = solved.projectedGradientResidual;
+    return allocationCandidate("constrained-mvo", context.normalized, context.fingerprint, solved, expectedReturns);
+  }
+
+  function solveBlackLittermanAllocation(basis, blackLittermanInput, solverPolicy) {
+    var context = allocationContext(basis, solverPolicy);
+    if (!context.ok) return { state: "invalid", reason: context.reason, path: context.path };
+    var posterior = scope24BlackLittermanPosterior(context.normalized, blackLittermanInput);
+    if (posterior.state !== "ok" && posterior.state !== "equilibrium-only") {
+      return allocationUnavailableCandidate("black-litterman", context, posterior.reason, { blackLitterman: posterior });
+    }
+    var candidate = solveConstrainedMvo(basis, {
+      expectedReturns: posterior.posteriorMean
+    }, blackLittermanInput.riskAversion, solverPolicy);
+    candidate.method = "black-litterman";
+    candidate.blackLitterman = posterior;
+    candidate.expectedReturnsUsed = posterior.posteriorMean.slice();
+    return candidate;
+  }
+
+  function runAllocationComparison(request) {
+    if (!request || typeof request !== "object") return { state: "invalid", reason: "request-invalid" };
+    var context = allocationContext(request.basis, request.basis && request.basis.solverPolicy);
+    if (!context.ok) return { state: "invalid", reason: context.reason, path: context.path };
+    var riskBudget = context.normalized.symbols.map(function () { return 1 / context.normalized.symbols.length; });
+    var candidates = [
+      evaluateCurrentAllocation(request.basis),
+      solveEqualWeight(request.basis),
+      solveMinimumVariance(request.basis, request.basis.solverPolicy),
+      solveEqualRiskContribution(request.basis, riskBudget, request.basis.solverPolicy),
+      solveBlackLittermanAllocation(request.basis, request.blackLittermanInput, request.basis.solverPolicy),
+      solveConstrainedMvo(request.basis, request.expectedReturnInput, request.riskAversion, request.basis.solverPolicy)
+    ];
+    return {
+      contractVersion: "AllocationComparison/v1",
+      state: candidates.some(function (candidate) { return candidate.state === "invalid"; }) ? "invalid" : "ok",
+      basisFingerprint: context.fingerprint,
+      symbols: context.normalized.symbols.slice(),
+      basisFrozen: true,
+      methods: ALLOCATION_METHODS.slice(),
+      candidates: candidates,
+      recommendedMethod: null,
+      bestMethod: null,
+      claimBoundary: "None is labelled best or recommended; an in-sample lead is the weakest kind of evidence. No candidate is universally best, suitable, or authorized to replace the current portfolio."
+    };
+  }
+
+  var ALLOCATION_SENSITIVITY_AXES = [
+    "history", "means", "covariance", "views", "costs", "assetBounds",
+    "groupBounds", "turnover", "cash", "leverage", "riskAversion"
+  ];
+
+  function allocationClone(value) {
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  function allocationScaleMatrix(matrix, scale) {
+    return matrix.map(function (row) { return row.map(function (value) { return value * scale; }); });
+  }
+
+  function allocationShiftBounds(bounds, delta) {
+    if (Array.isArray(bounds)) {
+      bounds.forEach(function (bound) {
+        bound.minimum = Math.max(0, bound.minimum - delta);
+        bound.maximum += delta;
+      });
+      return;
+    }
+    Object.keys(bounds).forEach(function (symbol) {
+      bounds[symbol].minimum = Math.max(0, bounds[symbol].minimum - delta);
+      bounds[symbol].maximum += delta;
+    });
+  }
+
+  function allocationSensitivityVariant(request, axis, point) {
+    var variant = {
+      basis: allocationClone(request.basis),
+      blackLittermanInput: request.blackLittermanInput ? allocationClone(request.blackLittermanInput) : null,
+      expectedReturnInput: request.expectedReturnInput ? allocationClone(request.expectedReturnInput) : null,
+      riskAversion: request.riskAversion
+    };
+    if (axis === "history") {
+      variant.basis.covariance = allocationScaleMatrix(variant.basis.covariance, point.covarianceScale);
+      variant.expectedReturnInput.expectedReturns = variant.expectedReturnInput.expectedReturns.map(function (value) {
+        return value + point.meanShift;
+      });
+    } else if (axis === "means") {
+      variant.expectedReturnInput.expectedReturns = variant.expectedReturnInput.expectedReturns.map(function (value) { return value + point; });
+    } else if (axis === "covariance") {
+      variant.basis.covariance = allocationScaleMatrix(variant.basis.covariance, point);
+    } else if (axis === "views") {
+      variant.blackLittermanInput.views.forEach(function (view) {
+        if (Array.isArray(view.magnitudeRange)) {
+          view.magnitudeRange = view.magnitudeRange.map(function (value) { return value * point; });
+        } else {
+          Object.keys(view.magnitudeRange).forEach(function (key) { view.magnitudeRange[key] *= point; });
+        }
+      });
+    } else if (axis === "costs") {
+      ["commissionFraction", "spreadFraction", "slippageFraction", "financingFraction", "carryFraction",
+        "commissionRate", "spreadRate", "slippageRate", "financingRate", "carryRate"].forEach(function (key) {
+        if (isNum(variant.basis.costPolicy[key])) variant.basis.costPolicy[key] *= point;
+      });
+    } else if (axis === "assetBounds") {
+      allocationShiftBounds(variant.basis.assetBounds, point);
+    } else if (axis === "groupBounds") {
+      variant.basis.groupBounds.forEach(function (bound) {
+        bound.minimum = Math.max(0, bound.minimum - point);
+        bound.maximum += point;
+      });
+    } else if (axis === "turnover") {
+      variant.basis.turnoverBudget = Math.max(0, variant.basis.turnoverBudget + point);
+    } else if (axis === "cash") {
+      if (variant.basis.cashBounds.state !== "not-held") {
+        variant.basis.cashBounds.minimum = Math.max(0, variant.basis.cashBounds.minimum - point);
+        variant.basis.cashBounds.maximum += point;
+      }
+    } else if (axis === "leverage") {
+      variant.basis.grossLeverageLimit = point;
+    } else if (axis === "riskAversion") {
+      variant.riskAversion = point;
+      variant.blackLittermanInput.riskAversion = point;
+    }
+    return variant;
+  }
+
+  function solveAllocationSensitivityMethod(method, variant) {
+    var n = normalizeAllocationBasis(variant.basis);
+    if (!n.ok) return { state: "invalid", reason: n.reason };
+    var riskBudget = n.value.symbols.map(function () { return 1 / n.value.symbols.length; });
+    if (method === "current") return evaluateCurrentAllocation(variant.basis);
+    if (method === "equal-weight") return solveEqualWeight(variant.basis);
+    if (method === "minimum-variance") return solveMinimumVariance(variant.basis, variant.basis.solverPolicy);
+    if (method === "risk-parity") return solveEqualRiskContribution(variant.basis, riskBudget, variant.basis.solverPolicy);
+    if (method === "black-litterman") {
+      return solveBlackLittermanAllocation(variant.basis, variant.blackLittermanInput, variant.basis.solverPolicy);
+    }
+    return solveConstrainedMvo(variant.basis, variant.expectedReturnInput, variant.riskAversion, variant.basis.solverPolicy);
+  }
+
+  function allocationRange(values) {
+    if (!values.length) return { low: null, high: null, span: null };
+    var low = Math.min.apply(null, values), high = Math.max.apply(null, values);
+    return { low: low, high: high, span: high - low };
+  }
+
+  function summarizeAllocationSensitivity(method, symbols, trials) {
+    var valid = trials.filter(function (trial) { return trial.state === "feasible" && Array.isArray(trial.weights); });
+    return {
+      method: method,
+      state: valid.length ? "ok" : "unavailable",
+      validTrials: valid.length,
+      failedTrials: trials.length - valid.length,
+      weightRanges: symbols.map(function (symbol, index) {
+        var range = allocationRange(valid.map(function (trial) { return trial.weights[index]; }));
+        return { symbol: symbol, low: range.low, high: range.high, span: range.span };
+      }),
+      objectiveRange: allocationRange(valid.map(function (trial) { return trial.objective; }).filter(isNum)),
+      turnoverRange: allocationRange(valid.map(function (trial) { return trial.turnover; }).filter(isNum)),
+      survivalRange: allocationRange(valid.map(function (trial) { return trial.survivalRate; }).filter(isNum)),
+      trials: trials
+    };
+  }
+
+  function runAllocationSensitivity(request) {
+    if (!request || typeof request !== "object") return { state: "invalid", reason: "request-invalid" };
+    var validated = normalizeAllocationBasis(request.basis);
+    if (!validated.ok) return { state: "invalid", reason: validated.reason, path: validated.path };
+    var axes = request.axes || request.basis.sensitivityAxes;
+    if (!axes || typeof axes !== "object" || ALLOCATION_SENSITIVITY_AXES.some(function (axis) {
+      return !Array.isArray(axes[axis]) || !axes[axis].length;
+    })) return { state: "invalid", reason: "sensitivity-axes-incomplete" };
+    if (!request.expectedReturnInput || !request.blackLittermanInput || !isNum(request.riskAversion)) {
+      return { state: "unavailable", reason: "complete-allocation-inputs-required" };
+    }
+    var ledger = [];
+    var byMethod = ALLOCATION_METHODS.map(function (method) {
+      var trials = [];
+      ALLOCATION_SENSITIVITY_AXES.forEach(function (axis) {
+        axes[axis].forEach(function (point, pointIndex) {
+          var variant = allocationSensitivityVariant(request, axis, point);
+          var candidate = solveAllocationSensitivityMethod(method, variant);
+          var record = {
+            contractVersion: "AllocationSensitivityTrial/v1",
+            trialId: stableRecordFingerprint({ method: method, axis: axis, pointIndex: pointIndex, point: point }),
+            method: method,
+            axis: axis,
+            pointIndex: pointIndex,
+            point: allocationClone(point),
+            state: candidate.state,
+            weights: Array.isArray(candidate.weights) ? candidate.weights.slice() : null,
+            objective: candidate.objective,
+            turnover: candidate.turnover,
+            survivalRate: candidate.survivalOutcomes && candidate.survivalOutcomes.state === "ok"
+              ? candidate.survivalOutcomes.survivalRate : null,
+            basisFingerprint: candidate.basisFingerprint || null,
+            reason: candidate.reason || null
+          };
+          trials.push(record);
+          ledger.push(record);
+        });
+      });
+      return summarizeAllocationSensitivity(method, validated.value.symbols, trials);
+    });
+    return {
+      contractVersion: "AllocationSensitivity/v1",
+      state: "ok",
+      basisFingerprint: validated.basisFingerprint,
+      declaredAxes: ALLOCATION_SENSITIVITY_AXES.slice(),
+      totalTrials: ledger.length,
+      methods: byMethod,
+      trialLedger: ledger,
+      recommendedMethod: null,
+      claimBoundary: "Sensitivity ranges describe only the declared perturbations. They do not select a winner or imply suitability."
+    };
+  }
+
+  /* ---------------------------------------------------------------------
      Scope 14 - allocation sensitivity and explicit Black-Litterman
      --------------------------------------------------------------------- */
 
@@ -2661,10 +6145,13 @@
 
   return {
     TRADING_DAYS: TRADING_DAYS,
+    CALENDAR_DAYS_PER_YEAR: CALENDAR_DAYS_PER_YEAR,
+    RISK_METRIC_FAMILIES: RISK_METRIC_FAMILIES,
     alignPortfolioReturns: alignPortfolioReturns,
     computeReturnMetrics: computeReturnMetrics,
     computeDrawdown: computeDrawdown,
     deriveWeights: deriveWeights,
+    deriveRiskWeights: deriveRiskWeights,
     riskXRayProjection: riskXRayProjection,
     computeConcentration: computeConcentration,
     fitCapm: fitCapm,
@@ -2678,19 +6165,45 @@
     parameterGrid: parameterGrid,
     validateScenarioSpecification: validateScenarioSpecification,
     scenarioIdentity: scenarioIdentity,
-    runScenario: runScenario,
+    scenarioMethodState: scenarioMethodState,
+    runScenarioChunk: runScenarioChunk,
+    runScenarioJob: runScenarioJob,
+    createScenarioComputeController: createScenarioComputeController,
+    applyScenarioFlows: applyScenarioFlows,
+    validateScenarioDistributionSet: validateScenarioDistributionSet,
+    validateScenarioResult: validateScenarioResult,
+    runScenario: runCompleteScenario,
     validateCashFlow: validateCashFlow,
     scheduleCashFlows: scheduleCashFlows,
     applyCashFlows: applyCashFlows,
     computeSurvival: computeSurvival,
     compareStressDependence: compareStressDependence,
+    buildDependenceSample: buildDependenceSample,
+    computeStressDependence: computeStressDependence,
     forbesRigobonAdjustment: forbesRigobonAdjustment,
     lowerTailDependence: lowerTailDependence,
+    computeDependenceOverlaps: computeDependenceOverlaps,
     alternativeAssetQuality: alternativeAssetQuality,
     desmoothReturns: desmoothReturns,
+    computeAppraisalSensitivity: computeAppraisalSensitivity,
+    fitHedgeRegression: fitHedgeRegression,
     computeHedgeVariant: computeHedgeVariant,
     compareHedgeVariants: compareHedgeVariants,
+    computeHedgeComparison: computeHedgeComparison,
+    validateDiversificationProjection: validateDiversificationProjection,
+    computeDiversificationProjection: computeDiversificationProjection,
     ALLOCATION_METHODS: ALLOCATION_METHODS,
+    validateAllocationBasis: validateAllocationBasis,
+    projectBoundedConstraints: projectBoundedConstraints,
+    findIrreducibleConflict: findIrreducibleConflict,
+    evaluateCurrentAllocation: evaluateCurrentAllocation,
+    solveEqualWeight: solveEqualWeight,
+    solveMinimumVariance: solveMinimumVariance,
+    solveEqualRiskContribution: solveEqualRiskContribution,
+    solveBlackLittermanAllocation: solveBlackLittermanAllocation,
+    solveConstrainedMvo: solveConstrainedMvo,
+    runAllocationComparison: runAllocationComparison,
+    runAllocationSensitivity: runAllocationSensitivity,
     evaluateFeasibility: evaluateFeasibility,
     compareAllocationMethods: compareAllocationMethods,
     allocationSensitivity: allocationSensitivity,

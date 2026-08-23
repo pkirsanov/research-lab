@@ -27,7 +27,8 @@
         "value": 0.0,
         "reference": null
       },
-      "flatBand": 0.25
+      "flatBand": 0.25,
+      "priceBasis": "adjusted-close"
     }
   }
 }

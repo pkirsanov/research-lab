@@ -12,6 +12,7 @@ const NOW = '2026-07-15T14:00:00.000Z';
 const NEXT_DAY = '2026-07-16T10:00:00.000Z';
 const AFTER_CLEAR = '2026-07-20T08:00:00.000Z';
 const RESULT_IDENTITY = `sha256:${'ab12'.repeat(16)}`;
+const GENERIC_EVIDENCE_IDENTITY = `sha256:${'cd34'.repeat(16)}`;
 const SUBJECT_ALPHA = 'brief-subject-alpha';
 const SUBJECT_BETA = 'brief-subject-beta';
 const BENIGN_EXTRA_FIELD = 'alphaBetaGamma';
@@ -30,6 +31,7 @@ function behaviorDraft(overrides = {}) {
     category: 'ticker-research-completed',
     completionConditionId: 'risk-panel-reviewed',
     domain: 'equity-research',
+    genericEvidenceIdentity: GENERIC_EVIDENCE_IDENTITY,
     horizon: 'medium-term',
     resultIdentity: RESULT_IDENTITY,
     sourceSurface: 'risk-xray',
@@ -255,10 +257,11 @@ const MARKET_BRIEF_CONFIG = resolve(ROOT, 'market-brief.config.json');
 function loadBrief() {
   assert.equal(existsSync(BRIEF_MODULE_PATH), true, 'RLPORTFOLIOBRIEF production module must exist');
   const brief = require('../rlportfoliobrief.js');
+  const portfolio = require('../rlportfolio.js');
   const policy = JSON.parse(readFileSync(POLICY_PATH, 'utf8'));
   // Windows are READ from the generic public config; the local composer never declares its own.
   const windows = JSON.parse(readFileSync(MARKET_BRIEF_CONFIG, 'utf8')).windows;
-  return { brief, policy, windows };
+  return { brief, policy, portfolio, windows };
 }
 
 const BRIEF_DAY = '2026-07-15';
@@ -402,6 +405,33 @@ test('SCN-008-010 TP-05-01: below the behavior floor the inferred lane is empty 
   assert.equal(quiet.ok, true);
   assert.equal(quiet.value.states.materialChange, 'no-material-change');
   assert.equal(quiet.value.states.itemCount, 0);
+});
+
+test('SCN-008-010 TP-05-01: unrelated completions cannot jointly clear an inferred domain floor', () => {
+  const loaded = loadBrief();
+  const composed = loaded.brief.composeBrief(briefInput({
+    loaded,
+    input: {
+      completions: [
+        { subjectId: 'BND', subjectKind: 'ticker', domain: 'bonds', completedAt: '2026-07-14T12:00:00.000Z' },
+        { subjectId: 'MSFT', subjectKind: 'ticker', domain: 'equities', completedAt: '2026-07-15T12:00:00.000Z' }
+      ],
+      evidence: [
+        ev('e-bonds', 'bonds', 'domain', `${BRIEF_DAY}T13:00:00.000Z`, 0.6),
+        ev('e-equities', 'equities', 'domain', `${BRIEF_DAY}T13:00:00.000Z`, 0.6)
+      ]
+    }
+  }));
+
+  assert.equal(composed.ok, true, JSON.stringify(composed.error || {}));
+  assert.equal(composed.value.states.behaviorFloor.satisfied, true,
+    'the aggregate history must genuinely clear its floor for this adversary to discriminate');
+  assert.deepEqual(composed.value.lanes.inferredRelevance, [],
+    'each inferred domain must clear the evidence floor from its own supporting completions');
+  assert.deepEqual(composed.value.noAction
+    .filter((item) => item.lane === 'inferredRelevance')
+    .map((item) => item.subjectId), ['bonds', 'equities'],
+    'under-supported inferred domains stay accounted for rather than disappearing');
 });
 
 test('SCN-008-007 TP-05-01: the visible queue is bounded by policy and ordered by materiality', () => {
@@ -847,4 +877,422 @@ test('SCN-008-034 TP-06-01: no authored action carries an order verb or a size i
         'holding something is not evidence of preferring it');
     }
   }
+});
+
+/* ---------- Scope 18 TP-18-01/04: canonical behavior identity and rank ---------- */
+
+const SECOND_RESULT_IDENTITY = `sha256:${'ef56'.repeat(16)}`;
+const SECOND_EVIDENCE_IDENTITY = `sha256:${'7890'.repeat(16)}`;
+const BEHAVIOR_CUTOFF = '2026-07-15T15:40:00.000Z';
+
+function canonicalBehaviorRecord(policy, overrides = {}) {
+  return {
+    category: 'ticker-research-completed',
+    completionConditionId: 'risk-panel-reviewed',
+    domain: 'equity-research',
+    genericEvidenceIdentity: GENERIC_EVIDENCE_IDENTITY,
+    horizon: 'medium-term',
+    occurredAt: '2026-07-15T03:30:00.000Z',
+    policyVersion: policy.behavior.contractVersion,
+    resultIdentity: RESULT_IDENTITY,
+    sourceSurface: 'risk-xray',
+    subjectId: SUBJECT_ALPHA,
+    subjectKind: 'ticker',
+    ...overrides
+  };
+}
+
+function canonicalAction(overrides = {}) {
+  return {
+    actionId: 'action-inferred-alpha',
+    datedUrgency: 'none',
+    directAuthority: 'inferred-relevance',
+    evidenceState: 'current',
+    explicitExposure: 'none',
+    integrity: 'verified',
+    lane: 'inferredRelevance',
+    relevanceScore: 0.75,
+    subject: SUBJECT_ALPHA,
+    subjectId: SUBJECT_ALPHA,
+    triggerState: 'active',
+    ...overrides
+  };
+}
+
+test('SCN-008-044 behavior identity civil time distinct floors and global ranking are canonical', () => {
+  const loaded = loadBrief();
+  const base = canonicalBehaviorRecord(loaded.policy);
+  const identityVariants = [
+    canonicalBehaviorRecord(loaded.policy, { category: 'risk-analysis-completed' }),
+    canonicalBehaviorRecord(loaded.policy, { subjectKind: 'domain' }),
+    canonicalBehaviorRecord(loaded.policy, { subjectId: SUBJECT_BETA }),
+    canonicalBehaviorRecord(loaded.policy, { domain: 'fixed-income-research' }),
+    canonicalBehaviorRecord(loaded.policy, { horizon: 'long-term' }),
+    canonicalBehaviorRecord(loaded.policy, { sourceSurface: 'path-lab' }),
+    canonicalBehaviorRecord(loaded.policy, { resultIdentity: SECOND_RESULT_IDENTITY }),
+    canonicalBehaviorRecord(loaded.policy, { genericEvidenceIdentity: SECOND_EVIDENCE_IDENTITY }),
+    canonicalBehaviorRecord(loaded.policy, { completionConditionId: 'path-review-complete' }),
+    canonicalBehaviorRecord(loaded.policy, { policyVersion: 'portfolio-behavior-policy/v2' })
+  ];
+  const sameSemanticLaterOccurrence = canonicalBehaviorRecord(loaded.policy, {
+    occurredAt: '2026-07-15T04:30:00.000Z'
+  });
+
+  const deduped = loaded.brief.dedupeBehaviorEvents({
+    behaviorCutoffAt: BEHAVIOR_CUTOFF,
+    events: [base, sameSemanticLaterOccurrence, ...identityVariants],
+    policy: loaded.policy
+  });
+  assert.equal(deduped.ok, true, JSON.stringify(deduped.error || {}));
+  assert.equal(deduped.value.semanticEvents.length, 11,
+    'only the equal ten-field semantic identity collapses; every required identity dimension remains distinct');
+  assert.equal(deduped.value.occurrences.length, 12,
+    'semantic collapse must retain both occurrence records rather than erasing their civil dates');
+  assert.equal(deduped.value.semanticEvents[0].eventIdentity.startsWith('sha256:'), true);
+  assert.deepEqual(
+    deduped.value.occurrences.slice(0, 2).map((entry) => entry.newYorkCivilDate),
+    ['2026-07-14', '2026-07-15'],
+    'America/New_York, not a UTC slice, owns the civil-date boundary'
+  );
+  assert.equal(deduped.value.occurrences[0].contractVersion, 'BehaviorOccurrence/v1');
+
+  const stored = loaded.portfolio.buildBehaviorEvent(
+    {
+      category: base.category,
+      completionConditionId: base.completionConditionId,
+      domain: base.domain,
+      genericEvidenceIdentity: base.genericEvidenceIdentity,
+      horizon: base.horizon,
+      resultIdentity: base.resultIdentity,
+      sourceSurface: base.sourceSurface,
+      subjectId: base.subjectId,
+      subjectKind: base.subjectKind
+    },
+    { now: base.occurredAt },
+    loaded.policy
+  );
+  assert.equal(stored.ok, true, JSON.stringify(stored.error || {}));
+  assert.equal(stored.value.eventIdentity, deduped.value.semanticEvents[0].eventIdentity,
+    'storage and brief de-duplication must use the same semantic identity');
+  assert.deepEqual(stored.value.occurrence, deduped.value.occurrences[0]);
+
+  const eligibleSecondIdentity = canonicalBehaviorRecord(loaded.policy, {
+    genericEvidenceIdentity: SECOND_EVIDENCE_IDENTITY,
+    occurredAt: '2026-07-15T04:30:00.000Z',
+    resultIdentity: SECOND_RESULT_IDENTITY,
+    subjectId: SUBJECT_BETA
+  });
+  const future = canonicalBehaviorRecord(loaded.policy, {
+    genericEvidenceIdentity: `sha256:${'1357'.repeat(16)}`,
+    occurredAt: '2026-07-15T16:00:00.000Z',
+    resultIdentity: `sha256:${'2468'.repeat(16)}`,
+    subjectId: 'brief-subject-future'
+  });
+  const interests = loaded.brief.deriveInterestSignals({
+    behaviorCutoffAt: BEHAVIOR_CUTOFF,
+    events: [base, sameSemanticLaterOccurrence, eligibleSecondIdentity, future],
+    policy: loaded.policy
+  });
+  assert.equal(interests.ok, true, JSON.stringify(interests.error || {}));
+  assert.equal(interests.value.eligibleOccurrences.length, 3);
+  assert.equal(interests.value.quarantinedOccurrences.length, 1);
+  assert.equal(interests.value.quarantinedOccurrences[0].error.code, 'P008-BEHAVIOR-TIME');
+  assert.equal(interests.value.quarantinedOccurrences[0].occurrence.occurrenceId.startsWith('sha256:'), true);
+  assert.equal(interests.value.interestSignals[0].floor.distinctCompletionIdentities, 2);
+  assert.equal(interests.value.interestSignals[0].floor.distinctNewYorkCivilDates, 2);
+  assert.equal(interests.value.interestSignals[0].floor.satisfied, true);
+  assert.equal(interests.value.interestSignals[0].supportingOccurrenceIds.includes(
+    interests.value.quarantinedOccurrences[0].occurrence.occurrenceId), false,
+  'a future occurrence is recorded for audit but contributes no score or floor support');
+
+  const thin = loaded.brief.deriveInterestSignals({
+    behaviorCutoffAt: BEHAVIOR_CUTOFF,
+    events: [base, { ...base }, { ...base }],
+    policy: loaded.policy
+  });
+  assert.equal(thin.ok, true);
+  assert.equal(thin.value.interestSignals[0].floor.rawOccurrenceCount, 3,
+    'the adversarial raw count is present so the distinct-count assertion is not vacuous');
+  assert.equal(thin.value.interestSignals[0].floor.distinctCompletionIdentities, 1);
+  assert.equal(thin.value.interestSignals[0].floor.distinctNewYorkCivilDates, 1);
+  assert.equal(thin.value.interestSignals[0].floor.satisfied, false,
+    'repeated rows can satisfy neither the completion-identity floor nor the civil-date floor');
+
+  const rankPolicy = JSON.parse(JSON.stringify(loaded.policy));
+  rankPolicy.queue.visibleActionCap = 3;
+  const actions = [
+    canonicalAction(),
+    canonicalAction({ actionId: 'action-held-zeta', directAuthority: 'held', explicitExposure: 'held', lane: 'held', relevanceScore: 0.05, subject: 'ZZZ', subjectId: 'ZZZ' }),
+    canonicalAction({ actionId: 'action-watch-beta', directAuthority: 'watchlist', lane: 'watchlist', relevanceScore: 0.95, subject: 'BBB', subjectId: 'BBB' }),
+    canonicalAction({ actionId: 'action-held-alpha', directAuthority: 'held', explicitExposure: 'held', lane: 'held', relevanceScore: 0.05, subject: 'AAA', subjectId: 'AAA' }),
+    canonicalAction({ actionId: 'action-completed-gamma', directAuthority: 'completed-research', lane: 'completedResearch', relevanceScore: 0.9, subject: 'CCC', subjectId: 'CCC' })
+  ];
+  const ranked = loaded.brief.rankResearchActions({
+    actions,
+    behaviorCutoffAt: BEHAVIOR_CUTOFF,
+    genericWindowIdentity: `sha256:${'aaaa'.repeat(16)}`,
+    interestResult: interests.value,
+    policy: rankPolicy
+  });
+  assert.equal(ranked.ok, true, JSON.stringify(ranked.error || {}));
+  assert.equal(ranked.value.contractVersion, 'BehaviorRankResult/v1');
+  assert.equal(ranked.value.visibleActionCap, 3);
+  assert.deepEqual(ranked.value.rankedActions.map((entry) => entry.actionId),
+    ['action-held-alpha', 'action-held-zeta', 'action-watch-beta'],
+  'one global sort keeps direct authority ahead of relevance and resolves equal tuples by subject');
+  assert.deepEqual(ranked.value.suppressedActions.map((entry) => entry.actionId),
+    ['action-completed-gamma', 'action-inferred-alpha']);
+  assert.equal(ranked.value.suppressedActions.every((entry) => entry.suppressionReason === 'below-global-cap'), true);
+  assert.equal(ranked.value.rankedActions.every((entry) => entry.rankReason.tieBreakers.length > 0), true,
+    'every visible row exposes deterministic tuple and tie reasoning');
+  assert.equal(Object.isFrozen(ranked.value), true);
+  assert.equal(Object.isFrozen(ranked.value.rankedActions), true);
+  assert.equal(Object.isFrozen(ranked.value.rankedActions[0].rankReason), true);
+
+  const repeatedRank = loaded.brief.rankResearchActions({
+    actions: actions.slice().reverse(),
+    behaviorCutoffAt: BEHAVIOR_CUTOFF,
+    genericWindowIdentity: `sha256:${'aaaa'.repeat(16)}`,
+    interestResult: interests.value,
+    policy: rankPolicy
+  });
+  assert.equal(repeatedRank.value.rankingFingerprint, ranked.value.rankingFingerprint,
+    'input order cannot alter the canonical ranking fingerprint');
+
+  const composed = loaded.brief.composePortfolioBrief({
+    ...briefInput({ loaded }),
+    behaviorRankResult: ranked.value
+  });
+  assert.equal(composed.ok, true, JSON.stringify(composed.error || {}));
+  assert.strictEqual(composed.value.behaviorRankResult, ranked.value,
+    'composition consumes the immutable result object rather than independently sorting');
+  assert.deepEqual(composed.value.rankedActions.map((entry) => entry.actionId),
+    ranked.value.rankedActions.map((entry) => entry.actionId));
+  const why = ranked.value.rankedActions.map((entry) => loaded.brief.whyShown(ranked.value, entry.actionId));
+  assert.equal(why.every((entry) => entry.ok), true);
+  assert.deepEqual(why.map((entry) => entry.value.actionId), ranked.value.rankedActions.map((entry) => entry.actionId));
+  assert.deepEqual(why.map((entry) => entry.value.rankReason), ranked.value.rankedActions.map((entry) => entry.rankReason));
+});
+
+test('Adversarial: behavior identity and temporal guards prevent false relevance', () => {
+  const loaded = loadBrief();
+  const base = canonicalBehaviorRecord(loaded.policy);
+  const distinct = canonicalBehaviorRecord(loaded.policy, {
+    genericEvidenceIdentity: SECOND_EVIDENCE_IDENTITY,
+    resultIdentity: SECOND_RESULT_IDENTITY
+  });
+  const events = [base, distinct];
+  const canonical = loaded.brief.dedupeBehaviorEvents({
+    behaviorCutoffAt: BEHAVIOR_CUTOFF,
+    events,
+    policy: loaded.policy
+  });
+  assert.equal(canonical.ok, true);
+
+  const reducedIdentity = (entry) => [
+    entry.category, entry.subjectId, entry.domain, entry.completionConditionId,
+    entry.occurredAt.slice(0, 10)
+  ].join('|');
+  assert.equal(new Set(events.map(reducedIdentity)).size, 1,
+    'the shipped reduced key really would collapse the adversarial result/evidence pair');
+  assert.equal(canonical.value.semanticEvents.length, 2,
+    'the canonical key must make the reduced-identity alternative fail');
+
+  const future = canonicalBehaviorRecord(loaded.policy, {
+    occurredAt: '2026-07-15T16:40:00.000Z',
+    resultIdentity: `sha256:${'1111'.repeat(16)}`,
+    genericEvidenceIdentity: `sha256:${'2222'.repeat(16)}`
+  });
+  const naiveFutureAgeDays = (Date.parse(BEHAVIOR_CUTOFF) - Date.parse(future.occurredAt)) / 86400000;
+  const naiveFutureWeight = Math.pow(0.5, naiveFutureAgeDays / loaded.policy.behavior.halfLifeDays);
+  assert.equal(naiveFutureWeight > 1, true,
+    'the old exponential formula genuinely rewards a future timestamp, so the guard is load-bearing');
+  const guarded = loaded.brief.deriveInterestSignals({
+    behaviorCutoffAt: BEHAVIOR_CUTOFF,
+    events: [base, distinct, future],
+    policy: loaded.policy
+  });
+  assert.equal(guarded.ok, true);
+  assert.equal(guarded.value.quarantinedOccurrences.length, 1);
+  assert.equal(guarded.value.quarantinedOccurrences[0].error.code, 'P008-BEHAVIOR-TIME');
+  assert.equal(guarded.value.interestSignals[0].score <= 2, true,
+    'future weight cannot enter the score after quarantine');
+
+  const repeated = loaded.brief.deriveInterestSignals({
+    behaviorCutoffAt: BEHAVIOR_CUTOFF,
+    events: [base, { ...base }, { ...base }],
+    policy: loaded.policy
+  });
+  assert.equal(repeated.ok, true);
+  assert.equal(repeated.value.interestSignals[0].floor.rawOccurrenceCount >= loaded.policy.behavior.minimumDistinctCompletions, true,
+    'the old raw-count alternative genuinely reaches the numeric floor');
+  assert.equal(repeated.value.interestSignals[0].floor.satisfied, false,
+    'distinct semantic identities and New York dates make the raw-count alternative fail');
+});
+
+/* ---------- Scope 20 TP-20-01/04: complete generic evidence and API ---------- */
+
+const HASH_A = `sha256:${'a1'.repeat(32)}`;
+const HASH_B = `sha256:${'b2'.repeat(32)}`;
+const HASH_C = `sha256:${'c3'.repeat(32)}`;
+const HASH_D = `sha256:${'d4'.repeat(32)}`;
+
+function genericWindow(overrides = {}) {
+  const tradingDate = overrides.windowTradingDate || '2026-03-09';
+  const cutoffAt = overrides.cutoffAt || '2026-03-09T11:30:00.000Z';
+  return {
+    contractVersion: 'GenericEvidenceWindow/v1',
+    windowId: 'pre-market',
+    timezone: 'America/New_York',
+    windowTradingDate: tradingDate,
+    scheduledCivilTime: '07:30',
+    cutoffAt,
+    snapshotRef: {
+      state: 'current', contentSha256: HASH_A, window: 'pre-market', asOf: cutoffAt,
+      generatedAt: cutoffAt, nextSessionDate: tradingDate, dataFreshnessSha256: HASH_B
+    },
+    payloadRef: {
+      state: 'current', contentSha256: HASH_B, asOf: cutoffAt,
+      attentionIds: ['attention-1'], recommendationIds: ['recommendation-1'],
+      deepLinkIds: ['tool.html'], lifecycleIds: ['lifecycle-1']
+    },
+    historyRefs: [
+      { lineIdentity: HASH_C, window: 'pre-market', observedAt: cutoffAt,
+        evidenceFingerprint: HASH_D, sourceToken: 'brief-history-recent', contentSha256: HASH_C },
+      { lineIdentity: HASH_C, window: 'pre-market', observedAt: cutoffAt,
+        evidenceFingerprint: HASH_D, sourceToken: 'brief-history-recent', contentSha256: HASH_C }
+    ],
+    watchlistRef: { state: 'current', contentSha256: HASH_D, orderedTickerFingerprint: HASH_A },
+    ownerReadRefs: [{
+      sourceContract: 'tool-model-read/v1', toolId: 'technical-analysis-decision-lab', role: 'owner',
+      profile: 'technical', availability: 'current', adapterId: 'market-structure', modelVersion: 'v1',
+      deepLink: 'technical-analysis-decision-lab.html#power', evidenceCutoff: cutoffAt,
+      evidenceFingerprints: [HASH_A], interpretationFingerprints: [HASH_B],
+      actionEligibilityEffect: 'eligible', contentSha256: HASH_D
+    }],
+    publisherIdentity: null,
+    genericEvidenceIdentity: null,
+    retrievedAt: cutoffAt,
+    composedAt: '2026-03-09T11:40:00.000Z',
+    state: 'current',
+    reasons: [],
+    ...overrides
+  };
+}
+
+test('SCN-008-046 complete generic evidence validates all five inputs and resolves DST by New York civil time', () => {
+  const { brief, policy } = loadBrief();
+  const required = [
+    'validateGenericWindow', 'dedupeBehaviorEvents', 'deriveInterestSignals', 'buildActionCandidates',
+    'rankResearchActions', 'composePortfolioBrief', 'whyShown', 'reduceResearchActionLifecycle'
+  ];
+  assert.deepEqual(required.filter((name) => typeof brief[name] !== 'function'), [],
+    'browser/CommonJS boundary exposes all eight designed functions');
+  assert.equal(Object.isFrozen(brief), true);
+
+  const spring = brief.validateGenericWindow(genericWindow(), policy, { now: '2026-03-09T11:40:00.000Z' });
+  assert.equal(spring.ok, true, JSON.stringify(spring.error || {}));
+  assert.equal(spring.value.cutoffAt, '2026-03-09T11:30:00.000Z', '07:30 after spring transition is EDT');
+  assert.equal(spring.value.selectedHistoryRefs.length, 1,
+    'repeated history with one evidence fingerprint contributes once');
+  assert.equal(spring.value.publisherIdentity.startsWith('sha256:'), true);
+  assert.equal(spring.value.genericEvidenceIdentity.startsWith('sha256:'), true);
+  assert.equal(spring.value.ownerReadRefs[0].toolId, 'technical-analysis-decision-lab');
+
+  const fallInput = genericWindow({
+    windowTradingDate: '2026-11-02', cutoffAt: '2026-11-02T12:30:00.000Z',
+    retrievedAt: '2026-11-02T12:30:00.000Z', composedAt: '2026-11-02T12:40:00.000Z',
+    snapshotRef: { ...genericWindow().snapshotRef, asOf: '2026-11-02T12:30:00.000Z', generatedAt: '2026-11-02T12:30:00.000Z', nextSessionDate: '2026-11-02' },
+    payloadRef: { ...genericWindow().payloadRef, asOf: '2026-11-02T12:30:00.000Z' },
+    historyRefs: [{ ...genericWindow().historyRefs[0], observedAt: '2026-11-02T12:30:00.000Z' }],
+    ownerReadRefs: [{ ...genericWindow().ownerReadRefs[0], evidenceCutoff: '2026-11-02T12:30:00.000Z' }]
+  });
+  const fall = brief.validateGenericWindow(fallInput, policy, { now: '2026-11-02T12:40:00.000Z' });
+  assert.equal(fall.ok, true, JSON.stringify(fall.error || {}));
+  assert.equal(fall.value.cutoffAt, '2026-11-02T12:30:00.000Z', '07:30 after fall transition is EST');
+  assert.notEqual(fall.value.cutoffAt.slice(11, 16), spring.value.cutoffAt.slice(11, 16),
+    'a fixed UTC-4 offset cannot satisfy both transition sides');
+});
+
+test('SCN-008-046 action candidates enforce generic freshness and one lifecycle reducer', () => {
+  const { brief, policy } = loadBrief();
+  const current = brief.validateGenericWindow(genericWindow(), policy, { now: '2026-03-09T11:40:00.000Z' });
+  assert.equal(current.ok, true);
+  const built = brief.buildActionCandidates({
+    genericWindow: current.value,
+    directSubjects: [{ subjectId: 'MSFT', lane: 'held', materiality: 0.5, evidenceState: 'current' }],
+    inferredSubjects: [{ subjectId: 'semiconductors', lane: 'inferredRelevance', materiality: 0.9, evidenceState: 'current' }]
+  }, policy);
+  assert.equal(built.ok, true, JSON.stringify(built.error || {}));
+  assert.equal(built.value.actions.length, 2);
+  assert.equal(built.value.actions.every((entry) => entry.researchVerb === 'review' || entry.researchVerb === 'inspect'), true);
+
+  const staleInput = genericWindow({
+    state: 'stale', reasons: ['snapshot-stale'],
+    snapshotRef: { ...genericWindow().snapshotRef, state: 'stale' },
+    payloadRef: { ...genericWindow().payloadRef, state: 'stale' }
+  });
+  const stale = brief.validateGenericWindow(staleInput, policy, { now: '2026-03-09T11:40:00.000Z' });
+  assert.equal(stale.ok, true);
+  const staleBuilt = brief.buildActionCandidates({
+    genericWindow: stale.value,
+    directSubjects: [{ subjectId: 'MSFT', lane: 'held', materiality: 0.5, evidenceState: 'stale' }],
+    inferredSubjects: []
+  }, policy);
+  assert.equal(staleBuilt.ok, true);
+  assert.equal(['refresh', 'revisit-thesis'].includes(staleBuilt.value.actions[0].researchVerb), true);
+  assert.equal(staleBuilt.value.actions[0].staleCondition.length > 0, true);
+  assert.equal(staleBuilt.value.actions[0].evidenceAgeHours >= 0, true);
+
+  const lifecycle = brief.reduceResearchActionLifecycle(staleBuilt.value.actions, {
+    actionId: staleBuilt.value.actions[0].actionId, command: 'complete', reason: 'owner-review'
+  }, '2026-03-09T12:00:00.000Z');
+  assert.equal(lifecycle.ok, true, JSON.stringify(lifecycle.error || {}));
+  assert.equal(lifecycle.value.actions[0].lifecycleState, 'completed');
+  assert.equal(lifecycle.value.actions[0].completedAt, '2026-03-09T12:00:00.000Z');
+  assert.equal(Object.isFrozen(lifecycle.value), true);
+});
+
+test('SCN-008-046 every public boundary emits a closed value-safe PortfolioError', () => {
+  const { brief, policy } = loadBrief();
+  const invalid = genericWindow({ portfolioId: 'PRIVATE-PORTFOLIO' });
+  const result = brief.validateGenericWindow(invalid, policy, { now: '2026-03-09T11:40:00.000Z' });
+  assert.equal(result.ok, false);
+  assert.deepEqual(Object.keys(result.error).sort(),
+    ['code', 'contractVersion', 'field', 'reason', 'recoverable', 'row', 'valueEchoed']);
+  assert.equal(result.error.contractVersion, 'PortfolioError/v1');
+  assert.equal(result.error.code, 'P008-BRIEF-INPUT');
+  assert.equal(result.error.valueEchoed, false);
+  assert.equal(JSON.stringify(result.error).includes('PRIVATE-PORTFOLIO'), false);
+});
+
+test('Adversarial: reduced brief evidence policy and API cannot satisfy the complete contract', () => {
+  const { brief, policy } = loadBrief();
+  const required = [
+    'validateGenericWindow', 'dedupeBehaviorEvents', 'deriveInterestSignals', 'buildActionCandidates',
+    'rankResearchActions', 'composePortfolioBrief', 'whyShown', 'reduceResearchActionLifecycle'
+  ];
+  assert.equal(required.length, 8);
+  assert.equal(required.every((name) => typeof brief[name] === 'function'), true,
+    'removing any designed export fails the closed API assertion');
+
+  const springFixedOffset = new Date(Date.parse('2026-03-09T07:30:00.000Z') + 240 * 60000).toISOString();
+  const fallFixedOffset = new Date(Date.parse('2026-11-02T07:30:00.000Z') + 240 * 60000).toISOString();
+  assert.equal(springFixedOffset, '2026-03-09T11:30:00.000Z');
+  assert.equal(fallFixedOffset, '2026-11-02T11:30:00.000Z');
+  assert.notEqual(fallFixedOffset, '2026-11-02T12:30:00.000Z',
+    'the old fixed-offset implementation genuinely fails the fall transition');
+
+  const stale = brief.validateGenericWindow(genericWindow({
+    state: 'stale', reasons: ['snapshot-stale'],
+    snapshotRef: { ...genericWindow().snapshotRef, state: 'stale' }
+  }), policy, { now: '2026-03-09T11:40:00.000Z' });
+  const staleActions = brief.buildActionCandidates({
+    genericWindow: stale.value,
+    directSubjects: [{ subjectId: 'MSFT', lane: 'held', materiality: 1, evidenceState: 'stale' }],
+    inferredSubjects: []
+  }, policy);
+  assert.equal(staleActions.value.actions[0].researchVerb === 'review', false,
+    'the old unconditional Review verb cannot pass stale policy');
+  assert.equal(['refresh', 'revisit-thesis'].includes(staleActions.value.actions[0].researchVerb), true);
 });

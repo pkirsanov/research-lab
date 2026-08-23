@@ -3,7 +3,7 @@
   "featureDir": "specs/026-actionable-brief-brevity-and-cross-asset",
   "featureName": "Actionable Brief Brevity and Cross-Asset Coverage",
   "createdAt": "2026-08-18T00:00:00Z",
-  "lastUpdatedAt": "2026-08-19T07:10:00Z",
+  "lastUpdatedAt": "2026-08-20T18:00:00Z",
   "status": "in_progress",
   "workflowMode": "full-delivery",
   "planningOnly": false,
@@ -36,21 +36,71 @@
     "runStartedAt": "2026-08-18T00:00:00Z",
     "completedAt": null,
     "completedPhaseClaims": [
-      { "phase": "analyze", "agent": "bubbles.analyst", "evidence": "spec.md 40 FRs, 31 BS scenarios, UX layer inline" },
-      { "phase": "design", "agent": "bubbles.design", "evidence": "design.md D1-D3 contracts, schema and consumer map" },
-      { "phase": "plan", "agent": "bubbles.plan", "evidence": "scopes.md 5 scopes, 40/40 FR coverage map, findings R-5 and R-6 corrected" },
-      { "phase": "implement", "agent": "bubbles.goal", "evidence": "Scopes 1-5 committed; published payload 682 default-visible chars against a 3000 cap, 0 violations" },
-      { "phase": "test", "agent": "bubbles.goal", "evidence": "node scripts/selftest.mjs 3051 passed 0 failed exit 0; market-brief-cockpit.spec.mjs 28 passed exit 0" },
-      { "phase": "regression", "agent": "bubbles.goal", "evidence": "full browser suite 1220 tests end to end; its one failure fixed inline, tool-experience.spec.mjs 34 passed exit 0" },
-      { "phase": "chaos", "agent": "bubbles.goal", "evidence": "2048 adversarial call combinations across all 8 public rlcockpit.js functions, 0 crashes, module frozen, 5MB input survived" },
-      { "phase": "harden", "agent": "bubbles.goal", "evidence": "7 malformed payloads probed; 2 accepted shapes found and closed - a dark card carrying a figure and a v2 run with budget stripped" },
-      { "phase": "gaps", "agent": "bubbles.goal", "evidence": "40/40 FRs and 31/31 BS scenarios referenced by a scope, 0 uncovered" },
-      { "phase": "simplify", "agent": "bubbles.goal", "evidence": "all 8 public functions defined exactly once in rlcockpit.js, no duplicate definition repository-wide" },
-      { "phase": "stabilize", "agent": "bubbles.goal", "evidence": "SCN-012-029 traced to a pre-existing failure with a baseline git worktree after a wrong first attribution, then fixed inline" },
-      { "phase": "security", "agent": "bubbles.goal", "evidence": "pii-scan 8034 files 0 findings exit 0; audit-reader-legibility 28 pages 0 leaks exit 0" },
-      { "phase": "audit", "agent": "bubbles.goal", "evidence": "4 subagent/self claims overturned by independent verification, each recorded where the error was made" },
-      { "phase": "docs", "agent": "bubbles.goal", "evidence": "notes/market-brief.md sections 5, 9a, 9b, 9c and a 10a correction that had contradicted shipped code" },
-      { "phase": "validate", "agent": "bubbles.goal", "evidence": "validator, site build, cache, artifact-lint and pii-scan all exit 0" }
+      {
+        "phase": "analyze",
+        "agent": "bubbles.analyst",
+        "evidence": "spec.md 40 FRs, 31 BS scenarios, UX layer inline"
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.goal",
+        "evidence": "Scopes 1-5 committed; published payload 682 default-visible chars against a 3000 cap, 0 violations"
+      },
+      {
+        "phase": "test",
+        "agent": "bubbles.goal",
+        "evidence": "node scripts/selftest.mjs 3051 passed 0 failed exit 0; market-brief-cockpit.spec.mjs 28 passed exit 0"
+      },
+      {
+        "phase": "regression",
+        "agent": "bubbles.goal",
+        "evidence": "full browser suite 1220 tests end to end; its one failure fixed inline, tool-experience.spec.mjs 34 passed exit 0"
+      },
+      {
+        "phase": "chaos",
+        "agent": "bubbles.goal",
+        "evidence": "2048 adversarial call combinations across all 8 public rlcockpit.js functions, 0 crashes, module frozen, 5MB input survived"
+      },
+      {
+        "phase": "harden",
+        "agent": "bubbles.goal",
+        "evidence": "7 malformed payloads probed; 2 accepted shapes found and closed - a dark card carrying a figure and a v2 run with budget stripped"
+      },
+      {
+        "phase": "gaps",
+        "agent": "bubbles.goal",
+        "evidence": "40/40 FRs and 31/31 BS scenarios referenced by a scope, 0 uncovered"
+      },
+      {
+        "phase": "simplify",
+        "agent": "bubbles.goal",
+        "evidence": "all 8 public functions defined exactly once in rlcockpit.js, no duplicate definition repository-wide"
+      },
+      {
+        "phase": "stabilize",
+        "agent": "bubbles.goal",
+        "evidence": "SCN-012-029 traced to a pre-existing failure with a baseline git worktree after a wrong first attribution, then fixed inline"
+      },
+      {
+        "phase": "security",
+        "agent": "bubbles.goal",
+        "evidence": "pii-scan 8034 files 0 findings exit 0; audit-reader-legibility 28 pages 0 leaks exit 0"
+      },
+      {
+        "phase": "audit",
+        "agent": "bubbles.goal",
+        "evidence": "4 subagent/self claims overturned by independent verification, each recorded where the error was made"
+      },
+      {
+        "phase": "docs",
+        "agent": "bubbles.goal",
+        "evidence": "notes/market-brief.md sections 5, 9a, 9b, 9c and a 10a correction that had contradicted shipped code"
+      },
+      {
+        "phase": "validate",
+        "agent": "bubbles.goal",
+        "evidence": "validator, site build, cache, artifact-lint and pii-scan all exit 0"
+      }
     ],
     "pendingTransitionRequests": [],
     "nextRequiredOwner": "bubbles.validate",
@@ -235,7 +285,9 @@
     },
     {
       "agent": "bubbles.design",
-      "phasesExecuted": ["design"],
+      "phasesExecuted": [
+        "design"
+      ],
       "statusBefore": "in_progress",
       "statusAfter": "in_progress",
       "startedAt": "2026-08-18T00:00:00Z",
@@ -247,7 +299,9 @@
     },
     {
       "agent": "bubbles.plan",
-      "phasesExecuted": ["plan"],
+      "phasesExecuted": [
+        "plan"
+      ],
       "statusBefore": "in_progress",
       "statusAfter": "in_progress",
       "startedAt": "2026-08-18T00:00:00Z",
@@ -263,7 +317,14 @@
       "expandedBy": "bubbles.goal",
       "expansionReason": "runSubagent stopped resolving the named phase specialists mid-session: the tool returned 'Requested agent not found' for bubbles.implement and the same capability was unavailable for every downstream phase owner. The authorized parent runner performed these phases itself rather than recording specialist work that never happened.",
       "expansionEvidenceRef": "specs/026-actionable-brief-brevity-and-cross-asset/report.md",
-      "phasesExecuted": ["implement", "test", "regression", "security", "docs", "validate"],
+      "phasesExecuted": [
+        "implement",
+        "test",
+        "regression",
+        "security",
+        "docs",
+        "validate"
+      ],
       "statusBefore": "in_progress",
       "statusAfter": "in_progress",
       "startedAt": "2026-08-19T00:00:00Z",
@@ -279,7 +340,14 @@
       "expandedBy": "bubbles.goal",
       "expansionReason": "runSubagent remained unavailable for the verification phase owners, so the authorized parent runner executed these six phases directly against the shipped code. Two of them produced real defects rather than a clean report, which is the evidence that they were performed and not assumed.",
       "expansionEvidenceRef": "specs/026-actionable-brief-brevity-and-cross-asset/report.md",
-      "phasesExecuted": ["chaos", "harden", "gaps", "simplify", "stabilize", "audit"],
+      "phasesExecuted": [
+        "chaos",
+        "harden",
+        "gaps",
+        "simplify",
+        "stabilize",
+        "audit"
+      ],
       "statusBefore": "in_progress",
       "statusAfter": "in_progress",
       "startedAt": "2026-08-19T00:00:00Z",

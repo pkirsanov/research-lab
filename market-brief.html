@@ -939,6 +939,19 @@
             overflow-wrap: anywhere
         }
 
+        /* The card's own disclosure cue. summary's marker is suppressed, so without this the
+           reader sees no sign that most of the card is one click away. Hidden once open. */
+        .attn-hint {
+            font-size: 12px;
+            color: var(--dim);
+            margin-top: 6px;
+            overflow-wrap: anywhere
+        }
+
+        details[open] > summary .attn-hint {
+            display: none
+        }
+
         .attn-body {
             margin-top: 10px;
             padding-top: 9px;
@@ -1117,6 +1130,13 @@
             <section id="attentionRecord" aria-label="How the decision list has actually turned out"></section>
         </div>
 
+        <details class="drawer" data-mac-block="data-freshness" data-mac-default="collapsed">
+            <summary data-mac-summary="data-freshness">⌄ Data freshness — the full read</summary>
+            <div class="body">
+                <div class="sub" id="dataAsOfDetail"></div>
+            </div>
+        </details>
+
         <details class="drawer" data-mac-block="regime" data-mac-default="collapsed">
             <summary data-mac-summary="regime">⌄ Regime and live layer</summary>
             <div class="body">
@@ -1294,7 +1314,40 @@
                         a.setAttribute("title", "No market-brief.payload.json loaded yet — open on GitHub Pages or run /market-brief-update.");
                     }
                 }
-                var d = el("dataAge"); if (d) { var da = PAYLOAD && PAYLOAD.dataAsOf; d.textContent = da ? ("data: bars " + (da.bars || "—") + " · macro " + (da.macro || "—")) : "data —"; }
+                /* The pill carries the CONDENSED label, not the full narrative. The lane authors
+                   both — dataAsOf.labels.* is the reader-facing short form of dataAsOf.* — and this
+                   badge was rendering bars + macro at their full length, 3,266 characters into a
+                   pill, above every decision on the page. The full read moves to its own collapsed
+                   drawer. Falls back to the long form when a payload carries no labels, so an older
+                   payload still says something true rather than nothing. */
+                var d = el("dataAge");
+                if (d) {
+                    var da = PAYLOAD && PAYLOAD.dataAsOf;
+                    var lab = (da && da.labels) || {};
+                    var shortBars = lab.bars || (da && da.bars) || "—";
+                    var shortMacro = lab.macro || (da && da.macro) || "—";
+                    d.textContent = da ? ("data: bars " + shortBars + " · macro " + shortMacro) : "data —";
+                }
+                var detail = el("dataAsOfDetail");
+                if (detail) {
+                    detail.textContent = "";
+                    var daFull = PAYLOAD && PAYLOAD.dataAsOf;
+                    if (!daFull) {
+                        detail.textContent = "No payload is loaded, so no freshness read is available.";
+                    } else {
+                        ["bars", "options", "macro", "events"].forEach(function (field) {
+                            var body = daFull[field];
+                            if (!body) return;
+                            var row = document.createElement("p");
+                            row.style.margin = "0 0 8px";
+                            var name = document.createElement("b");
+                            name.textContent = field + ": ";
+                            row.appendChild(name);
+                            row.appendChild(document.createTextNode(String(body)));
+                            detail.appendChild(row);
+                        });
+                    }
+                }
             }
 
             function renderComputed() {
@@ -1500,6 +1553,15 @@
                     + (ATTN_VERB[vm.verb] || "follow the step it published in its own words") + ".")
                     .className = "attn-next";
 
+                /* A VISIBLE affordance. The card hides 87% of itself — the rationale, the trigger,
+                   the invalidation and the expiry — behind a summary whose marker is suppressed by
+                   list-style:none. The title attribute already said the card opens, but a tooltip
+                   needs a hover a touch reader never makes. The page's own drawers all lead with
+                   "⌄", so this follows them rather than inventing a control. */
+                attnField(summary, "div", "open-hint", "⌄ Why this, what would break it, and when it stops counting",
+                    "Opens the rest of this card. Reading now: the headline above is the claim; opening it shows the reasoning behind it, what would escalate it, what would prove it wrong, and the moment it stops counting.")
+                    .className = "attn-hint";
+
                 details.appendChild(summary);
 
                 var body = document.createElement("div");
@@ -1563,6 +1625,17 @@
                     attnField(body, "p", "rank-reason", RLATTN.rankRationale(previous, item),
                         "Why this item sits where it does in the list. Reading now: the order is urgency first, then whether a route to prices is identified, then how soon a decision is due \u2014 never how bad the outcome would be.")
                         .className = "attn-note";
+                }
+
+                /* DISC-009-004: the data on this page refreshes several times a day, the decision
+                   list only when the narrative is recomposed. Say when they disagree. */
+                if (typeof RLATTN.observationFreshnessNote === "function") {
+                    var freshNote = RLATTN.observationFreshnessNote(item.observedAt, (PAYLOAD && PAYLOAD.asOf) || null);
+                    if (freshNote) {
+                        attnField(body, "p", "observation-age", freshNote,
+                            "How old this reading is relative to the data shown elsewhere on the page. Reading now: the market data refreshes more often than the decision list, so a reading can predate the numbers beside it; it is labelled rather than silently refreshed or dropped.")
+                            .className = "attn-note";
+                    }
                 }
 
                 /* An authored deep link is untrusted input. Only a same-document

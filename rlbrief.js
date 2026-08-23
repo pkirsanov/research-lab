@@ -1203,9 +1203,19 @@
     if (!el) return;
     var ranked = rankAttention(cards || [], max || 7);
     if (!ranked.length) { el.innerHTML = emptyAttentionStatement(exclusions); return; }
-    var cap = (cfg && cfg.thresholds && cfg.thresholds.tacticalConfidenceCap) || 55;
+    var capCfg = (cfg && cfg.thresholds) ? cfg.thresholds.tacticalConfidenceCap : undefined;
+    var cap = isFinite(capCfg) ? capCfg : 55;
     el.innerHTML = ranked.map(function (c) {
-      var href = c.deepLink || deepLink(cfg, c.domain);
+      /* The href on an attention card is model-authored, and esc() protects the
+         ATTRIBUTE but not the SCHEME — `javascript:` survives escaping intact.
+         briefClassifyLink already rejects javascript/data/vbscript/file/blob,
+         protocol-relative, credentialed and non-https URLs, so route through it
+         rather than adding a second, weaker rule. An unsafe link is dropped: a
+         card without a link still reads correctly, and a card that navigates
+         somewhere hostile does not. */
+      var rawHref = c.deepLink || deepLink(cfg, c.domain);
+      var classified = rawHref ? briefClassifyLink(rawHref, { allowHtml: true }) : null;
+      var href = (classified && classified.kind !== "unsafe") ? (classified.href || rawHref) : "";
       var conf = capConfidence(c.confidence, c.horizon, cap);
       return '<div class="acard ' + esc(c.domain || "") + '" data-tkr-auto title="Attention card — domain: ' + esc(c.domain || "") + '. Ranked by confidence × domain-importance; confidence = how much the evidence agrees, not a win-rate."><div class="ah"><span class="an">' + c.rank + '</span>' +
         '<b>' + esc(c.title || "") + '</b>' + horizonPill(c.horizon) + confPill(conf) + '</div>' +
@@ -1219,7 +1229,8 @@
   function renderRecs(el, recs, cfg) {
     if (!el) return;
     if (!recs || !recs.length) { el.innerHTML = '<div class="sub">No recommendations in the current payload.</div>'; return; }
-    var cap = (cfg && cfg.thresholds && cfg.thresholds.tacticalConfidenceCap) || 55;
+    var capCfg = (cfg && cfg.thresholds) ? cfg.thresholds.tacticalConfidenceCap : undefined;
+    var cap = isFinite(capCfg) ? capCfg : 55;
     el.innerHTML = recs.map(function (raw) {
       var r = normalizeRecommendation(raw);
       var href = r.deepLink || deepLink(cfg, "", r.subject);
@@ -1236,7 +1247,11 @@
   function renderNextSession(el, nextSession, recs, cfg, snap) {
     if (!el) return;
     var thresholds = (cfg && cfg.thresholds) || {};
-    var actions = nextSession && Array.isArray(nextSession.actions) ? nextSession.actions.map(normalizeRecommendation) : nextSessionActions(recs || [], thresholds.nextSessionMaxActions || 5, thresholds.minimumActionConfidence || 55);
+    /* `||` treats a configured 0 as absent, so a deliberate "no floor" silently became 55 while
+       the attention path honoured it. Fall back only when the value is genuinely not a number. */
+    var maxActions = isFinite(thresholds.nextSessionMaxActions) ? thresholds.nextSessionMaxActions : 5;
+    var actionFloor = isFinite(thresholds.minimumActionConfidence) ? thresholds.minimumActionConfidence : 55;
+    var actions = nextSession && Array.isArray(nextSession.actions) ? nextSession.actions.map(normalizeRecommendation) : nextSessionActions(recs || [], maxActions, actionFloor);
     var sessionDate = (nextSession && nextSession.sessionDate) || (snap && snap.nextSessionDate) || "next trading session";
     var thesis = nextSession && nextSession.thesis;
     if (!actions.length) {

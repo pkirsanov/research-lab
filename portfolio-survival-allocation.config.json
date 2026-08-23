@@ -11,6 +11,7 @@
             "rlPortfolioWorkspaceV1.slotB"
         ],
         "quarantineKey": "rlPortfolioWorkspaceV1.quarantine",
+        "displayModeKey": "rlPortfolioWorkspaceV1.displayMode",
         "sessionKey": "rlPortfolioWorkspaceSessionV1",
         "returnContextKey": "rlReturnContextV1",
         "migrationVersions": [],
@@ -232,14 +233,68 @@
         "minimumTailObservations": 250,
         "minimumJointTailEvents": 8,
         "lowerTailQuantile": 0.1,
+        "dependenceMinimumObservations": 5,
+        "dependenceMinimumJointTailEvents": 2,
+        "dependenceStressQuantile": 0.25,
+        "dependenceBootstrapConfidence": 0.9,
+        "dependenceBootstrapBlockLength": 2,
+        "dependenceBootstrapDrawCount": 128,
+        "dependenceBootstrapSeed": 23049,
+        "dependenceSearchedVariantCount": 1,
+        "dependenceDownsideThreshold": 0,
+        "dependenceDrawdownThreshold": 0.03,
+        "dependenceRecoveryThreshold": 0,
+        "appraisalMinimumObservations": 6,
+        "appraisalRhoGrid": [
+            0.2,
+            0.4,
+            0.6
+        ],
+        "hedgeRegressionMinimumObservations": 5,
         "allocationUnstableRangeThreshold": 0.05,
+        "allocationCommissionFraction": 0.001,
+        "allocationSpreadFraction": 0.0005,
+        "allocationSlippageFraction": 0.0005,
+        "allocationFinancingFraction": 0,
+        "allocationCarryFraction": 0,
+        "allocationRebalanceTiming": "decision-close",
+        "allocationAssetMinimum": 0,
+        "allocationAssetMaximum": 1,
+        "allocationGroupMinimum": 0,
+        "allocationGroupMaximum": 1,
+        "allocationNetSum": 1,
+        "allocationGrossLeverageLimit": 1,
+        "allocationTurnoverBudget": 1,
+        "allocationSensitivityAxes": {
+            "history": [
+                {
+                    "id": "short-window",
+                    "covarianceScale": 0.9,
+                    "meanShift": -0.005
+                },
+                {
+                    "id": "long-window",
+                    "covarianceScale": 1.1,
+                    "meanShift": 0.005
+                }
+            ],
+            "means": [-0.01, 0, 0.01],
+            "covariance": [0.9, 1, 1.1],
+            "views": [0.75, 1, 1.25],
+            "costs": [0.5, 1, 1.5],
+            "assetBounds": [0, 0.02],
+            "groupBounds": [0, 0.02],
+            "turnover": [-0.05, 0, 0.05],
+            "cash": [0, 0.02],
+            "leverage": [1, 1.05, 1.1],
+            "riskAversion": [2, 2.5, 3]
+        },
         "blackLittermanRiskAversion": 2.5,
         "blackLittermanTau": 0.05,
         "hedgeCommissionFraction": 0.001,
         "hedgeSpreadFraction": 0.0005,
         "hedgeSlippageFraction": 0.0005,
         "hedgeRebalancesPerYear": 4,
-        "hedgeBasisCorrelation": 0.9,
         "hedgeInstrumentClass": "listed-proxy-etf",
         "walkForwardFolds": 4,
         "dossierTrialsSearched": 12,
@@ -296,8 +351,11 @@
     },
     "solver": {
         "contractVersion": "portfolio-solver-policy/v1",
+        "fingerprint": "portfolio-solver-policy/v1:dykstra-projected-gradient",
         "maximumIterations": 5000,
-        "convergenceTolerance": 0.00000001
+        "projectionIterations": 5000,
+        "convergenceTolerance": 0.00000001,
+        "stepSize": 0.05
     },
     "calibration": {
         "contractVersion": "portfolio-calibration-policy/v1",
@@ -309,6 +367,15 @@
         ],
         "pathCount": 2000,
         "parameterDrawCount": 21,
+        "scenarioChunkSize": 2000,
+        "scenarioMaximumWorkUnits": 42000,
+        "scenarioStartingValue": 100000,
+        "scenarioDriftRange": [
+            -0.0002,
+            0.0002
+        ],
+        "scenarioRecurringCostFraction": 0,
+        "scenarioCostTiming": "end-of-step",
         "initialSeed": 20260715,
         "materialExposureWeight": 0.05,
         "nearCashNeedCalendarDays": 30

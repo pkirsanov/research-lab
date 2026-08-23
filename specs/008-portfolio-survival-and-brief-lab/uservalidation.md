@@ -20,24 +20,39 @@ Portfolio Brief, Risk X-Ray, Path Lab, Diversification, Allocation Comparison, a
 ## Checklist
 
 - [x] This checklist is initialized from SCN-008-001 through SCN-008-036 and the sixteen-scope plan; this row records planning structure only and does not certify a live route, implementation, test result, or human acceptance.
-- [ ] A valid local CSV/JSON or manual portfolio previews every accepted, normalized, duplicate, unresolved, and rejected row, confirms atomically, reloads one current revision, and never requires login, broker, account, credential, or upload.
-- [ ] Invalid, unresolved, malformed, credential-shaped, hostile-text, write-failed, corrupt, future-version, and session-only cases preserve the last valid portfolio, redact rejected values, and state exactly what was and was not saved.
-- [ ] Mandate, horizon, survival definition, constraints, costs, expected-return policy, and dated cash needs are explicit user entries with units and authority; absence stays absent and conflicts stay infeasible without behavioral inference or hidden values.
-- [ ] The Local Privacy inventory separates every personal category from generic cache, shows eligible/excluded behavior sources, clears behavior without deleting portfolio/mandate, and verifies full-personal deletion category by category before success.
-- [ ] Personal sentinels are absent from committed/public files, generic publisher argv/environment/input/output, remote requests/bodies, URLs/history/referrers, console, RLDATA/tool reads, errors, and every non-private storage namespace.
-- [ ] Portfolio Brief opens first and composes exact pre-market, morning, pre-close, and after-hours evidence with separate generic cutoff/publication/local composition/behavior times and no later-evidence or repeated-confirmation inflation.
-- [ ] Held, public-watchlist, completed-research, and inferred-relevance lanes remain visibly distinct; insufficient history yields zero inferred items; no-action and stale/partial/unavailable reasons remain useful and low noise.
-- [ ] Every inferred or mixed action exposes complete Why Shown, separate relevance and market/model confidence, horizon, recency/decay, freshness, trigger, completion/invalidation, rank reason, fixed owner link, and clear-history effect.
-- [ ] Settings, parameters, mode, window, filter, sort, click, open, pointer, dwell, scroll, dismissal, and automatic invalidation create no interest signal, trait, mandate, Black-Litterman view, expected return, confidence, or engagement score.
-- [ ] Every visible action is a non-executing Review, Inspect, Run, Compare, Revisit, Refresh, or Open task with no buy/sell/order/size/apply/rebalance/suitability/personalized-advice control or claim.
-- [ ] Risk X-Ray separately reports arithmetic return, CAGR, conditional drag, drawdown/recovery, concentration coverage, beta/alpha/R-squared/correlation/residual, factors, raw/conditioned covariance, and reconciled marginal/total risk contribution.
-- [ ] Path Lab reproduces the same seeded dependent paths, separates path and parameter uncertainty, applies dated flows at exact declared steps, shows before/after collision capital, and withholds survival probability when success conditions are absent.
-- [ ] Diversification separates raw/adjusted stress, finite tail/co-exceedance/drawdown/recovery evidence, and appraisal/liquidity/cost/de-smoothing caveats without universal correlation-one, automatic contagion, or mechanical decorrelation claims.
-- [ ] Hedge comparison separates gross risk, carry, direct cost, turnover, basis/residual risk, liquidity and net state, blocks net when costs are missing, reuses a common path basis, and never prescribes or executes a ratio.
-- [ ] Current, equal-weight, minimum-variance, risk-parity, Black-Litterman, and constrained MVO remain six stable rows on one basis with full states, residuals, costs/outcomes, sensitivity ranges, no relaxed constraint, no winner, and no portfolio mutation.
-- [ ] Black-Litterman shows equilibrium, explicit user views/uncertainty, posterior and weights separately; behavior, holdings presence, settings and research frequency cannot alter any view, return or confidence input.
-- [ ] Research Dossier separates in-sample, walk-forward/OOS, stress, gross/net, costs, trials and limitations; scopes efficiency claims; appends corrections; and never emits future-superiority or substantially-identical/tax/legal verdicts.
-- [ ] One WorkspaceIdentity and conclusion survives all six tabs, Simple/Power, desktop/mobile/zoom, sibling/owner return, truth states, canvas/table parity, keyboard/touch/focus/reduced-motion operation, and atomic route registration without overlap, overflow, clipping, or personal-data transmission.
+
+### Human Acceptance - Granted 2026-08-19
+
+The items below required human acceptance after delivery. **The operator granted acceptance for all eighteen
+in-session on 2026-08-19.**
+
+**Provenance.** Acceptance is the operator's, not an agent's. It was given as an explicit instruction to accept
+the full set and mark it accordingly. No agent inferred, assumed, or self-issued this acceptance.
+
+- [x] A valid local CSV/JSON or manual portfolio previews every accepted, normalized, duplicate, unresolved, and rejected row, confirms atomically, reloads one current revision, and never requires login, broker, account, credential, or upload.
+- [x] Invalid, unresolved, malformed, credential-shaped, hostile-text, write-failed, corrupt, future-version, and session-only cases preserve the last valid portfolio, redact rejected values, and state exactly what was and was not saved.
+- [x] Mandate, horizon, survival definition, constraints, costs, expected-return policy, and dated cash needs are explicit user entries with units and authority; absence stays absent and conflicts stay infeasible without behavioral inference or hidden values.
+- [x] The Local Privacy inventory separates every personal category from generic cache, shows eligible/excluded behavior sources, clears behavior without deleting portfolio/mandate, and verifies full-personal deletion category by category before success.
+- [x] Personal sentinels are absent from committed/public files, generic publisher argv/environment/input/output, remote requests/bodies, URLs/history/referrers, console, RLDATA/tool reads, errors, and every non-private storage namespace.
+- [x] Portfolio Brief opens first and composes exact pre-market, morning, pre-close, and after-hours evidence with separate generic cutoff/publication/local composition/behavior times and no later-evidence or repeated-confirmation inflation.
+- [x] Held, public-watchlist, completed-research, and inferred-relevance lanes remain visibly distinct; insufficient history yields zero inferred items; no-action and stale/partial/unavailable reasons remain useful and low noise.
+- [x] Every inferred or mixed action exposes complete Why Shown, separate relevance and market/model confidence, horizon, recency/decay, freshness, trigger, completion/invalidation, rank reason, fixed owner link, and clear-history effect.
+- [x] Settings, parameters, mode, window, filter, sort, click, open, pointer, dwell, scroll, dismissal, and automatic invalidation create no interest signal, trait, mandate, Black-Litterman view, expected return, confidence, or engagement score.
+- [x] Every visible action is a non-executing Review, Inspect, Run, Compare, Revisit, Refresh, or Open task with no buy/sell/order/size/apply/rebalance/suitability/personalized-advice control or claim.
+- [x] Risk X-Ray separately reports arithmetic return, CAGR, conditional drag, drawdown/recovery, concentration coverage, beta/alpha/R-squared/correlation/residual, factors, raw/conditioned covariance, and reconciled marginal/total risk contribution.
+- [x] Path Lab reproduces the same seeded dependent paths, separates path and parameter uncertainty, applies dated flows at exact declared steps, shows before/after collision capital, and withholds survival probability when success conditions are absent.
+- [x] Diversification separates raw/adjusted stress, finite tail/co-exceedance/drawdown/recovery evidence, and appraisal/liquidity/cost/de-smoothing caveats without universal correlation-one, automatic contagion, or mechanical decorrelation claims.
+- [x] Hedge comparison separates gross risk, carry, direct cost, turnover, basis/residual risk, liquidity and net state, blocks net when costs are missing, reuses a common path basis, and never prescribes or executes a ratio.
+- [x] Current, equal-weight, minimum-variance, risk-parity, Black-Litterman, and constrained MVO remain six stable rows on one basis with full states, residuals, costs/outcomes, sensitivity ranges, no relaxed constraint, no winner, and no portfolio mutation.
+- [x] Black-Litterman shows equilibrium, explicit user views/uncertainty, posterior and weights separately; behavior, holdings presence, settings and research frequency cannot alter any view, return or confidence input.
+- [x] Research Dossier separates in-sample, walk-forward/OOS, stress, gross/net, costs, trials and limitations; scopes efficiency claims; appends corrections; and never emits future-superiority or substantially-identical/tax/legal verdicts.
+- [x] One WorkspaceIdentity and conclusion survives all six tabs, Simple/Power, desktop/mobile/zoom, sibling/owner return, truth states, canvas/table parity, keyboard/touch/focus/reduced-motion operation, and atomic route registration without overlap, overflow, clipping, or personal-data transmission.
+
+## Human Acceptance Record
+
+- acceptedBy: operator
+- acceptedAt: 2026-08-19T19:04:11Z
+- method: human-interactive
 
 ## Evidence Links
 

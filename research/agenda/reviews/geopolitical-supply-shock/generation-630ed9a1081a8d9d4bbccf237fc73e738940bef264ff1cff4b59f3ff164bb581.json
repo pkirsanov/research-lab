@@ -1,0 +1,105 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-1e47d8d4450caa506d4bcff394fc450a06f21b60d7e438893af5008493b1844a",
+  "generationId": "generation-630ed9a1081a8d9d4bbccf237fc73e738940bef264ff1cff4b59f3ff164bb581",
+  "topicId": "geopolitical-supply-shock",
+  "attemptedAt": "2026-08-20T20:31:05.598Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "RLAGENDA-CONTRACT-MISSING-MEMBER",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "No current, in-window evidence was acquired for U.S., Iran, Houthi, Gulf-exporter, mediator, or shipping-insurer reaction functions. The acquisition bundle retained zero sources and the official-policy-and-statements requirement resolved missing-or-stale, so no actor-state observation can be cited. No reaction-function change is asserted.",
+      "gaps": [
+        "Source requirement official-policy-and-statements is missing-or-stale (record: null); no official statement or declared policy was retained within the 24h freshness window.",
+        "No observed-fact evidence exists to characterize any actor dimension (military-pressure, blockade-enforcement, inventory-response, escort-and-reinsurance, negotiation-posture).",
+        "Web acquisition was disabled/empty (bundle sources: [], retainedSourceCount 0), so no verifiable actor claim can be authored without fabrication."
+      ]
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "No fresh evidence supports any entry trigger or invalidation across the staged-reopening, managed-coercion, escalation, single-route-disruption, or dual-route-or-infrastructure-shock nodes. Scenario probabilities are owned by the deterministic model and are not authored here; without evidence there are no weighted impacts to supply.",
+      "gaps": [
+        "No trigger observations (transit-restriction-observed, insured-capacity-tightens, inventory-response-confirmed) are corroborated by retained sources.",
+        "No evidence records exist to attach model impacts to any scenarioId, so the probability update has no in-window inputs.",
+        "No predecessor dossier exists to inherit a prior scenario state from (priorDossier: null)."
+      ]
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "No measured transit, loading, delay, or insured-capacity observation was retained for Hormuz, Bab el-Mandeb, or the Red Sea. Physical and insured pass fractions cannot be established from evidence, so chokepoint state is left empty rather than asserted at an unverified baseline.",
+      "gaps": [
+        "Source requirement measured-maritime-flow is missing-or-stale (record: null); physical-flow and insured-flow claim coverage is unmet.",
+        "No maritime-observation or official source was retained to quantify physicalPassFraction, insuredPassFraction, or delayDays for any declared route.",
+        "modelInputs.chokepointState is intentionally empty because no route state is observable within the freshness window."
+      ]
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "No inventory, production, export, or policy-response evidence was retained for oil, refined-products, LNG, fertilizer, aluminum, or shipping. Channel transmission inputs (inventory gaps, demand and policy-response levers) cannot be grounded in observation and are left empty.",
+      "gaps": [
+        "Source requirement energy-and-input-balances is missing-or-stale (record: null); transmission-input claim coverage is unmet within the 72h window.",
+        "No industry-data or official balance observation exists to set inventoryGapByChannel for any declared channel.",
+        "No evidence supports the inventoryPolicyResponseOffset or demandOffset levers."
+      ]
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "unavailable",
+      "interpretation": "No committed same-origin daily bars were retained for the declared public proxies, and proxy sensitivity ranges are owned by the deterministic calibration model rather than authored here. Without proxy-bar coverage there is no basis to characterize current proxy state.",
+      "gaps": [
+        "Source requirement committed-public-bars is missing-or-stale (record: null); proxy-bar claim coverage is unmet within the 48h window.",
+        "committedEvidence is empty, so no committed-bar source is available for any declared proxy ticker.",
+        "Proxy sensitivity calibration cannot run without fresh bars; no proxy read is asserted."
+      ]
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "No trigger or invalidation can be marked fired or cleared: every supporting source requirement resolved missing-or-stale and no evidence remains inside the evidence freshness window. Under the evidence-stales invalidation logic, the absence of any in-window observation leaves all trigger and invalidation states unavailable.",
+      "gaps": [
+        "transit-restriction-observed and transit-normalizes cannot be evaluated without measured physicalPassFraction observations.",
+        "insured-capacity-tightens and insurance-normalizes cannot be evaluated without measured insuredPassFraction observations.",
+        "inventory-response-confirmed cannot be evaluated without a confirmed public inventory or coordinated policy-response source."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "The source ledger is empty. The acquisition bundle retained zero sources and rejected all four material claims (rejectedMaterialClaimCount 4, corroboratedMaterialClaimCount 0), so there are no https-canonical, content-hashed sources to record.",
+      "gaps": [
+        "Bundle coverage shows retainedSourceCount 0 and independentOriginCount 0; no source can be entered into the ledger.",
+        "All four claims are authorable: false with freshnessState unsupported.",
+        "No evidence records were authored, so newEvidenceIds is empty."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "No predecessor dossier exists (priorDossier: null), so no change relative to a prior generation can be assessed. Change classification is owned by the deterministic model and is not authored here; with no prior baseline and no new evidence there is nothing to compare.",
+      "gaps": [
+        "priorDossier is null; there is no reusable prior state to diff against.",
+        "No current-generation evidence was authored, so a change direction cannot be grounded.",
+        "Change assessment is deferred to the deterministic model, which has no in-window inputs this generation."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

@@ -457,7 +457,7 @@ Feature 008 has four trust zones. Crossing a zone requires an explicit, user-vis
 
 ## Business Scenarios
 
-Each `BS-008-NNN` is a stable business identifier and the candidate title for a later plan-owned `SCN-008-NNN` scenario contract.
+Each paired `BS-008-NNN` and `SCN-008-NNN` is a stable, authoritative business contract. The word `Candidate` remains in headings 001-036 only to preserve their historical text. It does not make those contracts provisional.
 
 ### BS-008-001 / SCN-008-001 Candidate: Valid local portfolio import
 
@@ -875,7 +875,364 @@ Scenario: The user switches between Simple and Power or follows a brief deep lin
   And Power adds evidence without upgrading or changing the conclusion
 ```
 
+### Clear-Contract Reconciliation For SCN-008-037 Through SCN-008-041
+
+No conflict exists with the original product contract. These five scenarios specialize FR-029 and NFR-024 by proving that each downstream personal category is populated before a full-personal clear and empty afterward. They preserve FR-028 and FR-063 because a behavior-only clear still preserves holdings, mandate, and cash needs. Their Gherkin behavior below matches the current plan-owned manifest contracts without weakening SCN-008-001 through SCN-008-036.
+
+### BS-008-037 / SCN-008-037: Full-personal clear empties derived interests and outcomes
+
+- **Actor:** Behavior-Aware Returning User and Privacy And Research Auditor.
+- **User Value:** The user can remove behavioral influence without losing explicit portfolio facts.
+- **Failure Or Degraded Behavior:** Any retained interest or outcome blocks a success claim. A behavior-only clear that changes holdings, mandate, or cash needs is a failed clear.
+- **Exact Acceptance Outcome:** Both sections are proven non-empty first, then read empty from storage after the full-personal clear. A behavior-only clear preserves the exact prior holdings, mandate, and cash-need counts.
+
+```gherkin
+Scenario: A user clears all personal data after research actions have accumulated
+  Given at least one derived InterestSignal and one actionOutcome are genuinely persisted
+  When the user confirms the full-personal clear
+  Then the interest-signal and action-outcome sections are empty on a storage reread
+  And a behavior-only clear instead leaves holdings, mandate, and cash-need counts unchanged
+  And the emptiness is read back off the storage adapters rather than the module's own report
+```
+
+### BS-008-038 / SCN-008-038: Full-personal clear empties stored scenarios
+
+- **Actor:** Goals-First Planner and Privacy And Research Auditor.
+- **User Value:** The user can persist scenario research locally, then remove it completely without damaging public evidence.
+- **Failure Or Degraded Behavior:** Scenario residue or any mutation of public generic assets produces a named partial-clear failure instead of success.
+- **Exact Acceptance Outcome:** A genuinely persisted scenario is read empty from storage after the clear, while public generic assets outside Feature 008 remain byte-identical.
+
+```gherkin
+Scenario: A user clears all personal data after running dependent-path scenarios
+  Given at least one scenario is genuinely persisted from a completed run
+  When the user confirms the full-personal clear
+  Then the scenario section is empty on a storage reread
+  And public generic assets outside the Feature 008 namespace are byte-identical
+  And the emptiness is read back off the storage adapters rather than the module's own report
+```
+
+### BS-008-039 / SCN-008-039: Full-personal clear empties stored allocations
+
+- **Actor:** Allocation Method Evaluator and Privacy And Research Auditor.
+- **User Value:** The user can remove local allocation candidates without altering public research assets.
+- **Failure Or Degraded Behavior:** Allocation residue or a changed public generic asset blocks the full-clear success state.
+- **Exact Acceptance Outcome:** A genuinely persisted allocation candidate is read empty from storage after the clear, while public generic assets outside Feature 008 remain byte-identical.
+
+```gherkin
+Scenario: A user clears all personal data after computing allocation candidates
+  Given at least one allocation candidate is genuinely persisted
+  When the user confirms the full-personal clear
+  Then the allocation section is empty on a storage reread
+  And public generic assets outside the Feature 008 namespace are byte-identical
+  And the emptiness is read back off the storage adapters rather than the module's own report
+```
+
+### BS-008-040 / SCN-008-040: Full-personal clear empties stored dossiers
+
+- **Actor:** Privacy And Research Auditor.
+- **User Value:** The user can erase private dossier records while retaining public evidence unchanged.
+- **Failure Or Degraded Behavior:** Dossier residue or mutation of public generic assets produces a named partial-clear failure.
+- **Exact Acceptance Outcome:** A genuinely persisted dossier is read empty from storage after the clear, while public generic assets outside Feature 008 remain byte-identical.
+
+```gherkin
+Scenario: A user clears all personal data after producing a walk-forward dossier
+  Given at least one dossier is genuinely persisted
+  When the user confirms the full-personal clear
+  Then the dossier section is empty on a storage reread
+  And public generic assets outside the Feature 008 namespace are byte-identical
+  And the emptiness is read back off the storage adapters rather than the module's own report
+```
+
+### BS-008-041 / SCN-008-041: Full-personal clear empties UI state and closes the personal-category set
+
+- **Actor:** Privacy And Research Auditor.
+- **User Value:** The user receives one complete, inspectable proof that no personal category survives the clear.
+- **Failure Or Degraded Behavior:** Any undeclared personal key, retained category, or changed public asset blocks success and names the remaining category.
+- **Exact Acceptance Outcome:** Every runtime-declared category is populated before the clear, read empty afterward, and absent outside the sweep. Public generic assets remain byte-identical.
+
+```gherkin
+Scenario: A user clears all personal data from the complete six-tab route
+  Given every personal category the finished tool can create is genuinely populated
+  When the user confirms the full-personal clear
+  Then every declared personal category is empty on a storage reread
+  And no personal storage key survives outside the declared sweep
+  And public generic assets outside the Feature 008 namespace are byte-identical
+  And the declared category set is derived from the runtime rather than a hand-written list
+```
+
+### BS-008-042 / SCN-008-042: Holdings remain editable through an honest empty portfolio
+
+- **Actor:** Portfolio Researcher.
+- **User Value:** The user can revise individual holdings without rebuilding the portfolio or accepting a hidden all-cash interpretation.
+- **Failure Or Degraded Behavior:** An invalid edit preserves the current revision. Removing the last row produces an explicit empty state, never a rejection or inferred cash holding.
+- **Exact Acceptance Outcome:** One confirmed replacement revision contains exactly the edited rows. Prior result identities remain linked as superseded.
+
+```gherkin
+Scenario: A user revises every holding without replacing the draft
+  Given a valid local portfolio contains multiple listed, cash, and manual holdings
+  When the user adds one holding, edits another, removes another, and confirms the revision
+  Then one immutable replacement revision contains exactly the confirmed rows
+  And removing the final holding produces Portfolio empty rather than an all-cash assumption or rejection
+  And prior result identities remain linked as superseded rather than silently rewritten
+```
+
+### BS-008-043 / SCN-008-043: Full-personal clear derives and verifies every runtime category
+
+- **Actor:** Privacy And Research Auditor.
+- **User Value:** The user can prove that one clear operation removes every persisted and live personal category while preserving public research data.
+- **Failure Or Degraded Behavior:** Any retained key, live category, or non-sentinel value returns a named partial-clear failure. The product never reports full success from its intended deletion list alone.
+- **Exact Acceptance Outcome:** A validated tombstone precedes deletion. Every runtime-derived category is empty on adapter reread and controller inspection, while public generic evidence and the public watchlist remain byte-identical.
+
+```gherkin
+Scenario: A user clears every personal category from populated durable and live state
+  Given every personal storage namespace and in-memory controller category is populated
+  When the user types CLEAR ALL LOCAL DATA and confirms the full-personal clear
+  Then a validated tombstone commits before destructive deletion
+  And every runtime-derived personal category is empty on storage reread and live-controller inspection
+  And public generic evidence and the public watchlist are byte-identical
+  And any retained key or non-sentinel value produces a named partial-clear failure instead of success
+```
+
+### BS-008-044 / SCN-008-044: Behavior relevance is identity-complete and temporally honest
+
+- **Actor:** Behavior-Aware Returning User and Privacy And Research Auditor.
+- **User Value:** The user sees one explainable research order that neither inflates repeated evidence nor rewards future timestamps.
+- **Failure Or Degraded Behavior:** Future-dated or invalid events are rejected or quarantined. Thin distinct evidence remains below the declared relevance floor.
+- **Exact Acceptance Outcome:** Only exact semantic duplicates collapse. Storage, Brief, Why shown, and route order expose identical action identities, order, and reasons.
+
+```gherkin
+Scenario: Repeated completed research produces one consistent relevance result
+  Given completed events vary by result identity, evidence source, horizon, completion condition, and occurrence date
+  When events are de-duplicated, decayed, floored, and ranked
+  Then only exact semantic duplicates collapse
+  And future-dated events are rejected or quarantined instead of receiving extra weight
+  And the evidence floor uses distinct eligible dates and completion identities rather than raw event count
+  And storage, Portfolio Brief, Why shown, and route order expose the same canonical ranked action identities
+```
+
+### BS-008-045 / SCN-008-045: Requested daily coverage is measured and acquired honestly
+
+- **Actor:** Data-Constrained User and Risk Researcher.
+- **User Value:** The user knows whether a requested five-year analysis has actual date coverage instead of a misleading row count or range label.
+- **Failure Or Degraded Behavior:** Same-origin-only operation preserves partial rows and exact bounds. Public lookup occurs only with permission and carries public symbol, interval, and range fields.
+- **Exact Acceptance Outcome:** Eligible static and approved public rows append and de-duplicate before coverage is measured. Complete appears only when actual dates and source checks satisfy the requested contract.
+
+```gherkin
+Scenario: A five-year request starts from a short same-origin cache
+  Given the merged cache contains fewer dates than the explicit requested start and end
+  When ensureBarCoverage runs under same-origin-only and public-lookup-enabled policies
+  Then it appends and de-duplicates eligible static dates before measuring coverage
+  And same-origin-only returns retained partial rows with exact first and last dates
+  And public lookup requests only the public symbol interval and range then appends missing dates
+  And complete is returned only when actual dates meet the target-years contract and source checks
+  And existing ensureBars callers retain their prior behavior
+```
+
+### BS-008-046 / SCN-008-046: Complete generic evidence authors one bounded honest queue
+
+- **Actor:** Portfolio Researcher and Behavior-Aware Returning User.
+- **User Value:** The user receives one low-noise queue whose evidence, time window, ranking, and errors are inspectable.
+- **Failure Or Degraded Behavior:** Stale evidence may author only Refresh or Revisit work. Invalid inputs preserve the last valid brief and return a closed, value-safe error.
+- **Exact Acceptance Outcome:** America/New_York civil time selects the window. All generic evidence identities drive one globally capped queue with urgent direct work ahead of general-interest work.
+
+```gherkin
+Scenario: Portfolio Brief composes a DST-boundary window from generic evidence and local scope
+  Given matching generic snapshot, payload, history, watchlist, and qualified owner reads exist around an America New York DST transition
+  When the complete RLPORTFOLIO_BRIEF API validates, de-duplicates, derives, builds, ranks, composes, explains, and reduces the action lifecycle
+  Then the selected window and cutoff follow America New_York civil time
+  And freshness, catalyst, action, publisher identity, and repeated-evidence identity come from the generic artifacts
+  And one global queue cap preserves urgent direct work before general-interest work
+  And stale evidence authors only Refresh or Revisit actions with stale conditions
+  And every failure returns the closed PortfolioError v1 shape and declared P008 code without leaking values
+```
+
+### BS-008-047 / SCN-008-047: Mixed inputs produce complete eligible risk diagnostics
+
+- **Actor:** Risk Researcher and Data-Constrained User.
+- **User Value:** The user keeps every valid risk result even when one holding or metric family lacks evidence.
+- **Failure Or Degraded Behavior:** Unsupported inputs limit only affected metrics. Invalid or conditioned covariance remains visibly separate from raw evidence and cannot be repaired silently.
+- **Exact Acceptance Outcome:** Eligible listed, weight-only, cash, and manual holdings contribute only to supported metric families, with exact per-result coverage, uncertainty, and reconciliation.
+
+```gherkin
+Scenario: A portfolio combines weight-only listed assets cash and a manual alternative
+  Given each holding supplies only the evidence required by its eligible metric families
+  When Risk X-Ray freezes the common cutoff and computes diagnostics
+  Then valid listed and weight-only holdings contribute to every supported return and risk metric
+  And cash and manual alternatives retain explicit treatment frequency and unavailable fields
+  And one unsupported holding limits only affected metrics rather than refusing the portfolio
+  And CAGR uses exact elapsed dates while factor look-through CAPM covariance and asset/factor contributions expose coverage uncertainty and reconciliation
+  And non-positive-definite or conditioned covariance remains visibly distinct
+```
+
+### BS-008-048 / SCN-008-048: Complete scenarios publish only matching path and survival distributions
+
+- **Actor:** Goals-First Planner and Risk Researcher.
+- **User Value:** The user can trust that every visible distribution belongs to the exact current scenario and applies every declared cash flow to every path.
+- **Failure Or Degraded Behavior:** Cancellation, supersession, budget limits, or unavailable regime calibration preserves the last valid result with an explicit state.
+- **Exact Acceptance Outcome:** Only the matching compute identity publishes. Path and parameter uncertainty cover wealth, drawdown, recovery, floor, collision, cash-need, and terminal outcomes.
+
+```gherkin
+Scenario: A user runs and supersedes a complete dependent survival scenario
+  Given one ScenarioSpecification freezes portfolio evidence dates method seed path count block or regime tail policy flows costs mandate cash needs survival floor and uncertainty ranges
+  When the chunked computation runs is cancelled or is superseded by an edited specification
+  Then only the matching compute token may publish and the last valid result remains visible otherwise
+  And every path applies each contribution withdrawal fee and CashNeed at its declared timing
+  And wealth drawdown recovery floor breach collision and terminal distributions include path and parameter uncertainty
+  And regime or fat-tail state is calibrated and disclosed or explicitly unavailable
+  And no hidden 200-path cap fixed horizon drift or median-only cash adjustment changes the result
+```
+
+### BS-008-049 / SCN-008-049: Stress diversification and hedge claims use distinct evidence and common scenarios
+
+- **Actor:** Diversification And Hedge Researcher.
+- **User Value:** The user can distinguish observed stress dependence, appraisal uncertainty, and modeled hedge effectiveness before acting on a diversification narrative.
+- **Failure Or Degraded Behavior:** Thin, stale, incompatible, or incomplete evidence yields qualified, partial, gross-only, or unavailable states instead of a strong conclusion.
+- **Exact Acceptance Outcome:** Normal, stress, tail, appraisal, and hedge results retain separate samples, intervals, costs, regression basis risk, and one common scenario identity.
+
+```gherkin
+Scenario: A user evaluates diversification and hedge effectiveness across normal stress and path states
+  Given tranquil and stress samples are distinct and a hedge proxy has aligned target and proxy returns
+  When dependence appraisal and hedge diagnostics run on the frozen evidence and common ScenarioSpecification
+  Then raw and Forbes Rigobon qualified stress estimates show sample variance orientation and intervals separately
+  And tail co-exceedance downside drawdown and recovery overlap remain distinct
+  And appraisal assets expose valuation age liquidity cost smoothing and de-smoothing sensitivity before a conclusion
+  And hedge ratio horizon carry direct cost turnover liquidity basis regression and residual exposure are explicit
+  And normal stress and path effectiveness share the same scenario basis without prescribing a personal hedge
+```
+
+### BS-008-050 / SCN-008-050: Six real methods share all constraints and explicit views
+
+- **Actor:** Allocation Method Evaluator and Goals-First Planner.
+- **User Value:** The user compares six genuine methods on one constrained basis and can see why results differ or fail.
+- **Failure Or Degraded Behavior:** Conflicting constraints remain infeasible with diagnostics. Solver failure, instability, missing views, or missing evidence stays visible and never triggers clipping or silent relaxation.
+- **Exact Acceptance Outcome:** Every candidate reports its method-specific result, common basis, constraints, costs, contributions, common paths, survival outcomes, and sensitivity without a winner.
+
+```gherkin
+Scenario: A user compares six allocations with exclusions cash leverage turnover groups and an explicit Black Litterman view
+  Given one frozen basis contains eligible assets evidence covariance expected-return policy costs common paths and every explicit constraint
+  When current equal-weight minimum-variance equal-risk-contribution Black-Litterman and constrained-MVO candidates run
+  Then each method enforces the common applicable constraints or returns infeasible with diagnostics
+  And risk parity solves contribution balance rather than inverse volatility
+  And constrained MVO optimizes within the feasible set rather than clipping an unconstrained answer
+  And the explicit BL horizon magnitude range confidence source and uncertainty produce posterior returns used by its allocation
+  And every candidate exposes convergence constraint cost contribution path survival turnover and sensitivity outcomes without a winner
+```
+
+### BS-008-051 / SCN-008-051: Walk-forward records are decision-time complete and append-only
+
+- **Actor:** Privacy And Research Auditor and Allocation Method Evaluator.
+- **User Value:** The user can reconstruct what was knowable at each decision, which variants were tried, and how later corrections changed the conclusion.
+- **Failure Or Degraded Behavior:** Missing cost components preserve gross-only status. Missing decision-time, rebalance, embargo, trial, or persistence evidence blocks stronger claims.
+- **Exact Acceptance Outcome:** A durable dossier separates every result state and itemizes complete costs and trials. It appends corrections, survives reload, and exports only explicitly selected private fields.
+
+```gherkin
+Scenario: A user audits and corrects a cost-aware walk-forward allocation dossier
+  Given explicit decision dates rebalance dates embargo cost components source vintages and tried variant identities exist
+  When walk-forward evaluation fits only decision-time evidence and the user appends a correction
+  Then in-sample out-of-sample stress gross net not-evaluated infeasible and unavailable states remain distinct
+  And commission spread slippage turnover financing carry and rebalance timing are itemized or net remains unavailable
+  And every tried method parameter sample stress view and hedge ratio is counted
+  And the correction supersedes without rewriting the prior record
+  And reload and explicit private export preserve identities provenance invalidation and privacy warnings
+```
+
+### BS-008-052 / SCN-008-052: One workspace compute survives navigation and supersession
+
+- **Actor:** All Feature 008 research actors.
+- **User Value:** The user can navigate, compare, and visit owning tools without changing the active evidence or losing their place.
+- **Failure Or Degraded Behavior:** A failed, cancelled, or obsolete compute cannot publish. The last valid view remains visible, and invalid return context is ignored without exposing private data.
+- **Exact Acceptance Outcome:** One immutable view model feeds every mode and tab. Explicit rebase replaces all projections atomically, and owner return restores the action disclosure and focus.
+
+```gherkin
+Scenario: A user switches modes tabs and owning tools while a newer workspace compute completes
+  Given one active immutable workspace view model and one later draft identity exist
+  When the user switches Simple and Power changes tabs starts a rebase opens an owning tool and returns
+  Then mode and tab navigation render the active view model without recomputing analytics
+  And only the newest matching compute token may publish while last-valid results remain visible
+  And an explicit rebase atomically replaces every sibling projection under one identity
+  And ReturnContext is consumed by the owning destination and renders a visible From Portfolio Brief return strip
+  And returning restores the original action disclosure and keyboard focus without private URL or public read data
+```
+
+### BS-008-053 / SCN-008-053: Every workspace decision is equivalent under assistive interaction
+
+- **Actor:** Any user who relies on keyboard, screen reader, zoom, high contrast, reduced motion, touch, or narrow-mobile presentation.
+- **User Value:** The user reaches the same decisions, evidence, errors, and controls without pointer precision, color, motion, or desktop width.
+- **Failure Or Degraded Behavior:** Missing semantics, trapped focus, animated dependence, color-only meaning, clipping, overlap, or body overflow blocks equivalent use.
+- **Exact Acceptance Outcome:** Mode, tabs, sheets, charts, tables, statuses, and return targets expose deterministic focus and equivalent content under all declared accessibility preferences.
+
+```gherkin
+Scenario: A keyboard and screen-reader user completes the portfolio workflow under accessibility preferences
+  Given reduced motion forced colors 200 percent zoom and text-spacing overrides are active
+  When the user uses the skip link navigates mode and workspace tabs with Arrow Home End Enter and Space opens and closes modal sheets and inspects every chart table and truth state
+  Then focus order selection announcements labels errors and return targets are deterministic
+  And modal focus is trapped only while open and returns to the invoker
+  And every chart decision is available in an equivalent table without motion or color dependence
+  And no text control focus ring tooltip sheet or status overlaps clips or causes body-level horizontal scrolling
+```
+
+### BS-008-054 / SCN-008-054: Protected tests detect every audited defect class
+
+- **Actor:** Privacy And Research Auditor.
+- **User Value:** The auditor can trust that a passing remediation proof would fail if any audited shortcut returned.
+- **Failure Or Degraded Behavior:** A missing title, zero-match selector, proxy assertion, optional assertion, interception, bailout, or historical receipt is a failed proof.
+- **Exact Acceptance Outcome:** Every authoritative scenario reaches production behavior, and each isolated hostile case fails. The repaired behavior passes the identical command without mutating shipped source.
+
+```gherkin
+Scenario: A repaired Feature 008 behavior is challenged by its original reduced implementation
+  Given the complete authoritative scenario set and one adversarial case for every audited defect class
+  When focused Node and real-page browser carriers execute production code
+  Then every required title is discovered and reaches its assertions
+  And each adversarial case fails when the audited defect is represented in an isolated test fixture or disposable copy
+  And the repaired implementation passes the identical behavioral command
+  And no file-wrapper success proxy optional assertion interception bailout or historical receipt substitutes for behavior proof
+```
+
+### BS-008-055 / SCN-008-055: Published Feature 008 guidance matches the executable route
+
+- **Actor:** Portfolio Researcher and Privacy And Research Auditor.
+- **User Value:** A reader enters the real Brief workspace and receives only claims that current behavior and evidence support.
+- **Failure Or Degraded Behavior:** A stale hash, unreachable entry, reduced behavior described as complete, or omitted partial/unavailable limit fails publication truth.
+- **Exact Acceptance Outcome:** Every named repository entry opens the `#brief` route, and every capability claim matches executable states, limits, privacy, accessibility, and current proof.
+
+```gherkin
+Scenario: A reader opens Feature 008 from every published repository surface
+  Given the repaired implementation and Scope 28 evidence are current
+  When the reader follows the note tools registry landing page navigation and README links
+  Then every entry opens portfolio-survival-allocation-lab.html#brief
+  And one-compute stress appraisal hedge allocation dossier accessibility and privacy claims match executable states and limits
+  And no source describes the former #workspace hash or a reduced behavior as complete
+```
+
+### Stable Scenario Authority And Audit Traceability
+
+Feature 008 now defines 55 authoritative business scenarios. SCN-008-001 through SCN-008-036 remain behaviorally unchanged. SCN-008-037 through SCN-008-041 preserve the current manifest Gherkin. SCN-008-042 through SCN-008-055 establish analyst authority for the plan reservations. The plan-owned manifest remains unchanged until P1 binds those fourteen scenarios to exact tests and evidence.
+
+| Scenario Authority | Existing Requirement Coverage | Audited Finding Authority |
+| --- | --- | --- |
+| SCN-008-037 through SCN-008-041 | FR-027 through FR-029, FR-063, NFR-024 | F008-SPEC-SCENARIO-001 and downstream full-clear category proof |
+| SCN-008-042 | FR-001, FR-008, FR-009, NFR-007 | F008-PORTFOLIO-LIFECYCLE-001 |
+| SCN-008-043 | FR-027, FR-029, FR-151, NFR-024 | F008-CLEAR-RUNTIME-001, F008-CLEAR-TEST-001 |
+| SCN-008-044 | FR-034, FR-036, FR-056, FR-057, FR-067, NFR-002, NFR-006, NFR-023 | F008-BEHAVIOR-CONTRACT-001 |
+| SCN-008-045 | FR-020, FR-050, FR-083, FR-152, NFR-005, NFR-006, NFR-010, NFR-021 | F008-BAR-COVERAGE-001 |
+| SCN-008-046 | FR-040 through FR-057, FR-067, FR-153, NFR-006, NFR-021, NFR-023 | F008-BRIEF-EVIDENCE-001, F008-BRIEF-POLICY-001, F008-BROWSER-API-001 |
+| SCN-008-047 | FR-068 through FR-085, NFR-005, NFR-021 | F008-RISK-INPUT-001, F008-RISK-DIAGNOSTICS-001 |
+| SCN-008-048 | FR-086 through FR-104, NFR-002, NFR-012, NFR-021 | F008-PATH-CONTRACT-001, F008-SURVIVAL-PATH-001 |
+| SCN-008-049 | FR-105 through FR-122, NFR-005, NFR-006, NFR-021 | F008-DIVERSIFICATION-001, F008-HEDGE-001 |
+| SCN-008-050 | FR-123 through FR-141, NFR-002, NFR-005, NFR-017, NFR-021 | F008-ALLOCATION-001, F008-SENSITIVITY-BL-001 |
+| SCN-008-051 | FR-142 through FR-150, NFR-009, NFR-023 | F008-DOSSIER-001 |
+| SCN-008-052 | FR-067, FR-154, NFR-002, NFR-012, NFR-013 | F008-COMPUTE-NAV-001 |
+| SCN-008-053 | NFR-013 through NFR-016 | F008-ACCESSIBILITY-001 |
+| SCN-008-054 | NFR-025 | F008-TEST-INTEGRITY-001, F008-PLAN-COHERENCE-001 |
+| SCN-008-055 | NFR-026 | F008-DOC-INTEGRATION-001 |
+
+F008-TEST-SCENARIO-RECEIPTS-001 remains an external Bubbles framework-control finding. It does not gain a Feature 008 product scenario or authorize any downstream framework edit.
+
 ## Requirements
+
+### P25 Remediation Exception And Requirement Reconciliation
+
+Feature 008 predates the current P25 guideline and already contains 150 functional requirements across one coupled cockpit. The remediation plan extends the existing delivery chain to 29 scopes. This amendment records a narrow exception instead of splitting one privacy boundary, workspace identity, clear contract, and audit chain across competing specifications. It adds four functional requirements and two non-functional requirements only where the audited behavior had no complete numbered requirement. Future unrelated capability expansion must use a separate specification.
 
 ### Local Portfolio, Mandate, And Cash Needs
 
@@ -1047,6 +1404,13 @@ Scenario: The user switches between Simple and Power or follows a brief deep lin
 - **FR-148:** Market-efficiency discussion must identify the tested information set and form/hypothesis and cannot conclude all forms are simply false.
 - **FR-149:** Any tax-related feature must remain analytical/educational, must not infer tax status, and must not issue filing or transaction advice.
 - **FR-150:** Substantially identical analysis must state the IRS facts-and-circumstances boundary and cannot reduce the determination to correlation, tracking error, holdings overlap, or any numeric threshold.
+
+### Remediation Integrity Requirements
+
+- **FR-151:** A full-personal clear must derive the complete personal category set from current persistent and live state. It must commit a validated empty tombstone before deletion and verify every category through independent reread and controller inspection. It must preserve public generic assets and return a named partial failure for any residue.
+- **FR-152:** Requested historical coverage must be measured from actual eligible dates and qualified sources. Same-origin data must append and de-duplicate before measurement. Approved public lookup must require explicit permission and public-only request fields. Partial coverage must retain exact observed bounds rather than become complete from row count or labels.
+- **FR-153:** Portfolio Brief must select windows by America/New_York civil time, including daylight-saving transitions. It must consume each required generic evidence identity and apply one global queue cap. Stale evidence may author only Refresh or Revisit work. A failure must preserve the last valid brief and return only declared, value-safe errors at public capability boundaries.
+- **FR-154:** One immutable workspace computation must feed every mode and tab. Only the newest matching computation may publish. An explicit rebase must replace every sibling projection atomically. Owning-tool navigation must consume a private session handoff that restores visible return context, disclosure, and focus without placing personal data in URLs or public reads.
 
 ## Edge, Error, And Degraded Paths
 
@@ -2508,6 +2872,8 @@ stateDiagram-v2
 - **NFR-022 Educational boundary:** Every output remains research, not advice, execution, guarantee, legal/tax determination, or suitability assessment.
 - **NFR-023 Auditability:** A user can trace every recommendation to direct scope and/or exact event categories and can inspect what clearing history changes.
 - **NFR-024 Local deletion:** Confirmed local-history and personal-data clearing is complete, observable, and does not depend on a remote deletion request.
+- **NFR-025 Proof integrity:** Every stable scenario must resolve to a discoverable exact test that executes the required production behavior. Each audited defect class must have an isolated adversarial case that fails when the defect returns. No proxy, zero-match selector, optional assertion, interception, bailout, or historical receipt may substitute for current behavior proof.
+- **NFR-026 Published truth:** Every active Feature 008 link and capability claim must match the executable route, current evidence, and known limits. The claim must preserve partial and unavailable states and the privacy boundary. Superseded hashes or reduced behavior must not remain described as current or complete.
 
 ## Measurable Success Criteria
 

@@ -168,7 +168,9 @@
     "RLATTN-CONFIRMATION",
     "RLATTN-PROVENANCE",
     "RLATTN-VERB",
-    "RLATTN-DEEPLINK"
+    "RLATTN-DEEPLINK",
+    /* Systemic, not per-item: the composer emits it and the validator checks shapes against this list. */
+    "RLATTN-SNAPSHOT-UNOBSERVABLE"
   ]);
 
   /* only a non-committal gate disposition may become an attention item. */
@@ -205,6 +207,26 @@
     var s = v.trim();
     if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/.test(s)) return false;
     return isFinite(Date.parse(s));
+  }
+
+  /* DISC-009-004: items are recomposed only with the narrative, so a reading can predate the data
+     shown around it. brief-refresh never writes the payload (R-5), so the answer is to say so. */
+  function observationFreshness(observedAt, asOf) {
+    if (!isIsoInstant(observedAt) || !isIsoInstant(asOf)) return "unknown";
+    var observed = Date.parse(observedAt);
+    var current = Date.parse(asOf);
+    if (observed >= current) return "current";
+    return "behind-data";
+  }
+
+  function observationFreshnessNote(observedAt, asOf) {
+    var state = observationFreshness(observedAt, asOf);
+    if (state === "current") return null;
+    if (state === "unknown") return "Observed: not stated by this item.";
+    /* isIsoInstant validates the TRIMMED value, so whitespace would ride into the note, and
+       observedAt is in neither the visible-field list nor detailFields. Interpolate what passed. */
+    return "Observed " + trimmed(observedAt) + ", before the " + trimmed(asOf) + " data on this page. "
+      + "The reading still stands as published and is not re-checked until the next full compose.";
   }
 
   function isIsoDate(v) {
@@ -930,9 +952,17 @@
     ATTENTION_LIFECYCLE_STATES: ATTENTION_LIFECYCLE_STATES,
     ATTENTION_LIFECYCLE_TRANSITIONS: ATTENTION_LIFECYCLE_TRANSITIONS,
     DECISION_WINDOWS: DECISION_WINDOWS,
+    /* exported so the authoring instruction's worked example can be proven against the SAME
+       predicate the expiry check refuses on, rather than against a restated regex. */
+    isIsoInstant: isIsoInstant,
+    observationFreshness: observationFreshness,
+    observationFreshnessNote: observationFreshnessNote,
     /* exported so the authoring instruction can be RENDERED from the same frozen array
        checkVerb refuses on, rather than keeping a second copy that drifts. */
     RESEARCH_VERBS: RESEARCH_VERBS,
+    /* exported so the authoring instruction can render the headline cap from the SAME
+       frozen limit checkHeadline refuses on, rather than restating the number. */
+    LIMITS: LIMITS,
     TERMINAL_OUTCOME_CLASSES: TERMINAL_OUTCOME_CLASSES,
     REFUSAL_CODES: REFUSAL_CODES,
     resolveDecisionWindow: resolveDecisionWindow,

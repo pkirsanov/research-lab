@@ -1,0 +1,171 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/_bugs/BUG-014-recommendation-confidence-pinned-at-the-tactical-cap",
+  "generatedBy": "bubbles.bug",
+  "generatedAt": "2026-08-20T00:00:00Z",
+  "stage": "post-implementation",
+  "stageNote": "Authored after Scope 1 reached Done, from the Gherkin blocks already present in scopes.md. Every scenarioId, title, scopeId and linkedTests value is TRANSCRIBED from those blocks and from the named selftest assertions that satisfied them, rather than composed here. This manifest reports the plan that was executed and adds no claim of its own. Scope 2 declares no scenario because no work is claimed against it.",
+  "scenarioCount": 9,
+  "keyShapeNote": "Keyed on `scenarioId`, matching the existing manifests in this repository.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-BUG014-BANDS-RENDERED",
+      "title": "The rendered contract states the three enforced thresholds and copies none of them",
+      "scopeId": "01-tell-both-authoring-lanes-how-to-choose-a-confidence",
+      "requirement": "FR-014-002",
+      "scope": 1,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "evidenceRefs": [
+        "report.md#test-evidence",
+        "scopes.md#scope-1"
+      ],
+      "linkedTests": [
+        "scripts/selftest.mjs :: the confidence contract states the enforced minimumActionConfidence of 50 and follows it when that one threshold moves, so the value is read rather than coincidentally present",
+        "scripts/selftest.mjs :: the confidence contract states the enforced minimumAttentionConfidence of 55 and follows it when that one threshold moves, so the value is read rather than coincidentally present",
+        "scripts/selftest.mjs :: the confidence contract states the enforced tacticalConfidenceCap of 55 and follows it when that one threshold moves, so the value is read rather than coincidentally present"
+      ]
+    },
+    {
+      "scenarioId": "SCN-BUG014-RANKING-STATED",
+      "title": "The contract tells the author the number ranks and must vary across items",
+      "scopeId": "01-tell-both-authoring-lanes-how-to-choose-a-confidence",
+      "requirement": "FR-014-001",
+      "scope": 1,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "evidenceRefs": [
+        "report.md#test-evidence",
+        "scopes.md#scope-1"
+      ],
+      "linkedTests": [
+        "scripts/selftest.mjs :: the confidence contract tells the author the number ranks, and to vary it - the two facts that make a pinned value harmful"
+      ]
+    },
+    {
+      "scenarioId": "SCN-BUG014-TACTICAL-RELATIONSHIP",
+      "title": "The tactical clause differs for cap-below-floor, cap-equal-floor and cap-above-floor",
+      "scopeId": "01-tell-both-authoring-lanes-how-to-choose-a-confidence",
+      "requirement": "FR-014-003",
+      "scope": 1,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "evidenceRefs": [
+        "report.md#test-evidence",
+        "scopes.md#scope-1"
+      ],
+      "linkedTests": [
+        "scripts/selftest.mjs :: the confidence contract derives a DIFFERENT tactical clause for cap-below-floor, cap-above-floor and cap-equals-floor rather than restating one fixed sentence"
+      ]
+    },
+    {
+      "scenarioId": "SCN-BUG014-BOTH-LANES",
+      "title": "Both authoring lanes interpolate the contract and the hand-typed sentence is gone",
+      "scopeId": "01-tell-both-authoring-lanes-how-to-choose-a-confidence",
+      "requirement": "FR-014-005",
+      "scope": 1,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "evidenceRefs": [
+        "report.md#test-evidence",
+        "scopes.md#scope-1"
+      ],
+      "linkedTests": [
+        "scripts/selftest.mjs :: both the core and signals lanes render the confidence contract, because both author a confidence",
+        "scripts/selftest.mjs :: the hand-typed tactical-cap sentence is gone rather than left beside the rendered contract as a second copy"
+      ]
+    },
+    {
+      "scenarioId": "SCN-BUG014-COLLISION-DISCLOSED",
+      "title": "The cap-floor relationship is stated from config and is now a band, not a single value",
+      "scopeId": "01-tell-both-authoring-lanes-how-to-choose-a-confidence",
+      "requirement": "FR-014-006",
+      "scope": 1,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "evidenceRefs": [
+        "report.md#test-evidence",
+        "scopes.md#scope-1"
+      ],
+      "linkedTests": [
+        "scripts/selftest.mjs :: the tactical cap leaves a band above the action floor, so a tactical action is not forced onto a single admissible value"
+      ],
+      "supersededNote": "Scope 2 changed the live relationship from cap == floor to cap > floor, so the assertion this scenario linked was replaced. Recorded rather than deleted: the scenario was true when written and its successor pin proves the same property against the new configuration."
+    },
+    {
+      "scenarioId": "SCN-BUG014-BAND-EXISTS",
+      "title": "The tactical cap sits strictly above the action floor, so a tactical action is not forced onto one value",
+      "scopeId": "02-adjudicate-the-cap-to-floor-collision",
+      "requirement": "FR-014-006",
+      "scope": 2,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "evidenceRefs": [
+        "report.md#threshold-decision",
+        "scopes.md#scope-2"
+      ],
+      "linkedTests": [
+        "scripts/selftest.mjs :: the tactical cap leaves a band above the action floor, so a tactical action is not forced onto a single admissible value"
+      ]
+    },
+    {
+      "scenarioId": "SCN-BUG014-CONTRACT-FOLLOWS-CONFIG",
+      "title": "The rendered contract states the new band with no code change",
+      "scopeId": "02-adjudicate-the-cap-to-floor-collision",
+      "requirement": "FR-014-003",
+      "scope": 2,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "evidenceRefs": [
+        "report.md#threshold-decision",
+        "scopes.md#scope-2"
+      ],
+      "linkedTests": [
+        "scripts/selftest.mjs :: live config gives tactical a real band and the contract states that band rather than a single value"
+      ]
+    },
+    {
+      "scenarioId": "SCN-BUG014-DETAIL-BOUNDED",
+      "title": "A hidden detail field is bounded by its own cap and stays off the visible card",
+      "scopeId": "03-bound-the-hidden-detail-and-name-the-narrative-keys",
+      "requirement": "FR-014-008",
+      "scope": 3,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "evidenceRefs": [
+        "report.md#independent-audit-2026-08-22-commit-ac8d3f3ef",
+        "scopes.md#scope-3"
+      ],
+      "linkedTests": [
+        "scripts/selftest.mjs :: every declared detail field is absent from defaultVisibleFields, so the hidden detail is bounded without being counted against the card the reader actually sees",
+        "scripts/selftest.mjs :: the detail cap refuses a rationale one character over and admits one exactly at the cap, so the bound is real and is not off by one"
+      ]
+    },
+    {
+      "scenarioId": "SCN-BUG014-KEYS-NAMED",
+      "title": "A lane instruction names the literal narrative keys instead of describing them",
+      "scopeId": "03-bound-the-hidden-detail-and-name-the-narrative-keys",
+      "requirement": "FR-014-009",
+      "scope": 3,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "evidenceRefs": [
+        "report.md#independent-audit-2026-08-22-commit-ac8d3f3ef",
+        "scopes.md#scope-3"
+      ],
+      "linkedTests": [
+        "scripts/selftest.mjs :: the backdrop clause names every declared backdrop key and calls out the one pair that does NOT share a name across the two blocks",
+        "scripts/selftest.mjs :: the core lane imports AND interpolates the backdrop key contract, instead of describing the fields in prose"
+      ]
+    }
+  ]
+}

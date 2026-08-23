@@ -61,6 +61,22 @@
  * did. Attribution is by COMMIT throughout and never by path prefix: a prefix test would credit
  * this scope with whatever anyone else happens to write under its feature directory.
  *
+ * Which commits are this scope's is decided by ITS OWN SCOPE DIRECTORY and by nothing else. The
+ * module whose first appearance dates the scope used to serve double duty as an authorship anchor,
+ * on the premise that anchoring "can only widen what is judged, never narrow it". That premise held
+ * exactly as long as the module was this scope's alone. It stopped holding the moment scope 02
+ * edited the same module to thread `claimRef` through it: a shared substrate is what later scopes
+ * are SUPPOSED to touch, so touching it is evidence of nothing. Under the old anchor a scope 02
+ * commit was read as scope 01's, and everything it carried was judged against scope 01's Change
+ * Boundary — including a scope 02 deliverable, `scripts/recommendation-claim-mint.mjs`, and scope
+ * 02's own `report.md` and `scope.md`. The row was therefore red at `HEAD` for work that was never
+ * scope 01's, and widening the families to quiet it would have surrendered the exact boundary claim
+ * the row exists to prove, once per scope, for eight more scopes.
+ *
+ * A scope directory does not have that failure mode: it is not shared, and a sibling scope writes
+ * to its own. The module keeps its OTHER role unchanged — it still DATES the boundary, because
+ * first appearance is a fact about when the scope landed and not a claim about who edited it since.
+ *
  * Scopes 02 - 10 EXTEND this file; they do not rewrite it.
  */
 
@@ -373,7 +389,12 @@ function isAllowedPath(candidate) {
  * wrong commit fails there rather than quietly restoring the wrong content.
  * ------------------------------------------------------------------------------------------- */
 
-/** The file whose first appearance dates this scope. It is the scope's own module, added by it. */
+/**
+ * The file whose first appearance DATES this scope. It is the scope's own module, added by it.
+ *
+ * Dating only. It is deliberately NOT an authorship anchor: scopes 02 - 10 edit this module by
+ * design, so a commit touching it says nothing about whose commit it is. See `isScopeAnchorPath`.
+ */
 const SCOPE_ORIGIN_PATH = 'rlclaims.js';
 
 /**
@@ -381,15 +402,24 @@ const SCOPE_ORIGIN_PATH = 'rlclaims.js';
  *
  * Each must be PRESENT in the worktree at `HEAD` — otherwise the back-out has nothing to remove and
  * a rehearsal that silently did nothing would leave the two sides identical and every derived
- * magnitude zero — and ABSENT once it has run. The directory is listed alongside the two files
- * because `git rm` of the last entry under a tree should take the now-empty tree with it, and a
- * lingering directory is a back-out that only half happened.
+ * magnitude zero — and ABSENT once it has run.
  */
 const BACK_OUT_WITNESS_PATHS = Object.freeze([
     'rlclaims.js',
     'tests/recommendation-track-record.support.mjs',
-    'tests/fixtures/recommendation-track-record',
 ]);
+
+/**
+ * The tree that witnesses the back-out's treatment of directories.
+ *
+ * `git rm` of the LAST entry under a tree should take the now-empty tree with it, and a lingering
+ * directory would be a back-out that only half happened. It cannot be asserted absent flatly,
+ * though: scope 02 added ledger fixtures under this same tree, and those are its files, so the tree
+ * legitimately survives a back-out of scope 01 alone. The expectation is therefore DERIVED — gone
+ * exactly when this scope owned every entry in it — which keeps the empty-tree property and adds a
+ * second one the flat form never had: no file this scope owns may survive under it.
+ */
+const BACK_OUT_WITNESS_DIRECTORY = 'tests/fixtures/recommendation-track-record';
 
 /** Whether `commit` carries `candidate` at that exact path. */
 function commitCarriesPath(commit, candidate) {
@@ -440,21 +470,58 @@ function preScopeCommit() {
  * it wrong is therefore visible in the transcript, not just in a bucket name.
  *
  * The partition asks which COMMITS are this scope's before asking which files they touched. A
- * commit is this scope's when it touches one of the scope's identity anchors: its own scope
- * directory, or the module whose first appearance dates the scope. Both are declared by the scope
- * and neither is the allowed-family classifier, which is what keeps this from going circular — the
- * anchors decide whose commit it is, and then EVERY file that commit touched is judged against the
- * families. Anchoring can only widen what is judged, never narrow it.
+ * commit is this scope's when it touches this scope's OWN SCOPE DIRECTORY. That anchor is declared
+ * by the scope and is not the allowed-family classifier, which is what keeps this from going
+ * circular — the anchor decides whose commit it is, and then EVERY file that commit touched is
+ * judged against the families, in-family or not.
+ *
+ * The scope's origin module is NOT an anchor, and that is the whole correction. It was one, on the
+ * reasoning that anchoring can only widen what is judged and never narrow it. Widening is only
+ * harmless while the widened set is still this scope's, and a substrate module is precisely the
+ * thing later scopes are meant to build on: scope 02 edited it to thread `claimRef` through the
+ * live row, so its commits were read as scope 01's and its own deliverables were judged against
+ * scope 01's Change Boundary. An anchor has to be evidence of AUTHORSHIP, and a shared module is
+ * evidence of dependency instead.
+ *
+ * A scope directory carries that evidence: it is not shared, and scope 02 writes its report and its
+ * scope file into its own. The narrowing is provably one-directional here — every path it moves out
+ * of this scope's half is scope 02's work — and it cannot go vacuous, because the commit that
+ * introduced this scope is asserted below to still be attributed.
+ *
+ * One rule survives on top of the anchor, because a commit is not always one scope's work. The
+ * BUG-011 packet landed in a commit that ALSO wrote three hundred lines of evidence into this
+ * scope's own `report.md`, so the anchor reads it as this scope's — correctly, for the report — and
+ * then hands the bug's `spec.md`, `design.md`, `state.json` and six siblings to this scope's family
+ * check, which has never heard of them. An ARTIFACT PACKET IS SELF-IDENTIFYING: a file under
+ * `specs/_bugs/<id>/` is that bug's and a file under `specs/<feature>/scopes/<scope>/` is that
+ * scope's, whichever commit carried it. So those go to the foreign half by path, and the anchor
+ * decides only the rest. This narrows what is judged, which the old doctrine forbade, and the
+ * safety argument is that it narrows by OWNERSHIP rather than by convenience: it can only exclude a
+ * path another packet already owns, and this scope's Change Boundary contains no such path — its
+ * own prefix is excluded from the rule first, which is asserted as a known answer below.
  * ------------------------------------------------------------------------------------------- */
+
+/** The artifact roots that identify a path as another governed packet's work, whoever committed it. */
+const FOREIGN_PACKET_ROOTS = Object.freeze([
+    /^specs\/_bugs\/[^/]+\//,
+    /^specs\/[^/]+\/scopes\/[^/]+\//,
+]);
+
+/** Whether `candidate` is owned by a governed packet that is not this scope. */
+function isForeignPacketPath(candidate) {
+    // This scope's own packet is checked first, because the second pattern matches it too.
+    if (candidate.startsWith(SCOPE_ARTIFACT_PREFIX)) return false;
+    return FOREIGN_PACKET_ROOTS.some((pattern) => pattern.test(candidate));
+}
 
 /** The paths that identify a commit as this scope's own work, rather than a concurrent actor's. */
 function isScopeAnchorPath(candidate) {
-    return candidate === SCOPE_ORIGIN_PATH || candidate.startsWith(SCOPE_ARTIFACT_PREFIX);
+    return candidate.startsWith(SCOPE_ARTIFACT_PREFIX);
 }
 
-/** The commits between the boundary and `HEAD` that touch one of this scope's identity anchors. */
+/** The commits between the boundary and `HEAD` that touch this scope's identity anchor. */
 function scopeCommits(preScope) {
-    return git(['log', '--format=%H', `${preScope}..HEAD`, '--', SCOPE_ARTIFACT_PREFIX, SCOPE_ORIGIN_PATH])
+    return git(['log', '--format=%H', `${preScope}..HEAD`, '--', SCOPE_ARTIFACT_PREFIX])
         .split('\n')
         .filter((line) => line !== '');
 }
@@ -499,12 +566,19 @@ function pathsTouchedBy(commits, diffFilter) {
  * planning pass already created, so its single largest transcript contribution lives entirely in
  * this half — dropping it would make the row rehearse a back-out that never happened.
  *
- * Provenance here is decided by COMMIT, never by path prefix. A prefix test — "anything under this
- * scope's feature directory is this scope's" — would credit the scope with edits made by whoever
- * else works in that tree, which is guessing dressed as a derivation; `pathsTouchedBy` instead
- * proves that one of the commits already attributed to this scope actually touched the path. When
- * both a scope commit and a concurrent one edited the same file the scope half wins, because the
- * conservative direction is to hold this scope answerable and let the family checks judge it.
+ * Provenance here is decided by COMMIT, never by the allowed families. A family test — "anything in
+ * this scope's Change Boundary is this scope's" — would be circular, since the families are what the
+ * partition then feeds; `pathsTouchedBy` instead proves that one of the commits already attributed
+ * to this scope actually touched the path. When both a scope commit and a concurrent one edited the
+ * same file the scope half wins, because the conservative direction is to hold this scope answerable
+ * and let the family checks judge it.
+ *
+ * The one thing a commit cannot decide is ownership of another governed packet's artifacts, because
+ * commits are not always one scope's work: `isForeignPacketPath` sends a bug packet's or a sibling
+ * scope's own files to the foreign half even when a scope commit carried them. That is ownership by
+ * path, which is precisely what the previous paragraph refuses for the families — the difference is
+ * that it reads ANOTHER packet's identity root, never this scope's, so it cannot certify this
+ * scope's own work and cannot go circular.
  */
 function partitionBoundaryDelta(preScope, untrackedTargets) {
     const commits = scopeCommits(preScope);
@@ -519,12 +593,19 @@ function partitionBoundaryDelta(preScope, untrackedTargets) {
     const removedByScope = pathsTouchedBy(commits, 'D');
     const modifiedByScope = pathsTouchedBy(commits, 'M');
 
-    const addedScope = [...new Set([...netAdded.filter((entry) => addedByScope.has(entry)), ...untrackedTargets])].sort();
-    const addedForeign = netAdded.filter((entry) => !addedByScope.has(entry)).sort();
-    const removedScope = netRemoved.filter((entry) => removedByScope.has(entry)).sort();
-    const removedForeign = netRemoved.filter((entry) => !removedByScope.has(entry)).sort();
-    const modifiedScope = netModified.filter((entry) => modifiedByScope.has(entry)).sort();
-    const modifiedForeign = netModified.filter((entry) => !modifiedByScope.has(entry)).sort();
+    const addedScope = [...new Set([
+        ...netAdded.filter((entry) => addedByScope.has(entry) && !isForeignPacketPath(entry)),
+        ...untrackedTargets,
+    ])].sort();
+    const removedScope = netRemoved.filter((entry) => removedByScope.has(entry) && !isForeignPacketPath(entry)).sort();
+    const modifiedScope = netModified.filter((entry) => modifiedByScope.has(entry) && !isForeignPacketPath(entry)).sort();
+
+    // The foreign half is the complement of the scope half rather than an independent filter, so the
+    // two stay exhaustive over the net sets no matter what moves a path out of the scope half.
+    const inScope = { added: new Set(addedScope), removed: new Set(removedScope), modified: new Set(modifiedScope) };
+    const addedForeign = netAdded.filter((entry) => !inScope.added.has(entry)).sort();
+    const removedForeign = netRemoved.filter((entry) => !inScope.removed.has(entry)).sort();
+    const modifiedForeign = netModified.filter((entry) => !inScope.modified.has(entry)).sort();
 
     return {
         commits,
@@ -554,6 +635,10 @@ function partitionBoundaryDelta(preScope, untrackedTargets) {
  * Entries the scope added that are absent from `HEAD` — untracked work in progress — are reported
  * rather than removed. They are already absent from a worktree at `HEAD`, so the two sides differ
  * by them without the back-out doing anything.
+ *
+ * The freeze travels with the tree. `refreezeRemovedPaths` and `unfreezeRemovedTestFiles` are the
+ * third half of the back-out, and neither is an afterthought: see their own notes for why a freeze
+ * left at `HEAD` judges the wrong tree.
  */
 function backOutScope(worktree, preScope, delta) {
     const atHead = trackedPaths(worktree);
@@ -563,8 +648,76 @@ function backOutScope(worktree, preScope, delta) {
 
     if (dropped.length > 0) git(['rm', '--quiet', '--force', '--', ...dropped], worktree);
     if (restored.length > 0) git(['checkout', preScope, '--', ...restored], worktree);
+    const refrozen = refreezeRemovedPaths(worktree, preScope, dropped);
+    const unfrozen = unfreezeRemovedTestFiles(worktree, dropped);
 
-    return { dropped, restored, untrackedInLiveTree };
+    return { dropped, restored, refrozen, unfrozen, untrackedInLiveTree };
+}
+
+/**
+ * Give every path the back-out REMOVED its pre-scope freeze back.
+ *
+ * The freeze is DERIVED FROM THE TREE, so it must travel with the tree: roll the tree back and
+ * leave the freeze at `HEAD`, and the reconstructed tree is judged by a freeze describing another.
+ *
+ * Restored PER REMOVED PATH rather than by checking the whole file out at `preScope`, because the
+ * file also carries concurrent actors' later edits, which describe parts of the tree this back-out
+ * does not roll back. Wholesale is wrong in both directions and provably so: it drops a freeze a
+ * neighbouring feature added for its own since-deleted scratch file — whose references are foreign,
+ * present in both trees, and fail as newly missing — and resurrects six entries another feature
+ * retired, which report as stale. Intersecting `preScope`'s freeze with this back-out's own
+ * removals touches only what this back-out itself made absent, so nothing it does not own can go
+ * stale. Entries the live tree still freezes are skipped — that freeze already travelled.
+ */
+function refreezeRemovedPaths(worktree, preScope, dropped) {
+    const frozenAtPreScope = parseFrozenSpecTestPaths(git(['show', `${preScope}:${SPEC_TEST_PATH_BASELINE}`]));
+    const stillFrozen = frozenSpecTestPathBaseline(worktree);
+    const refrozen = dropped.filter((entry) => frozenAtPreScope.has(entry) && !stillFrozen.has(entry)).sort();
+    if (refrozen.length === 0) return refrozen;
+
+    const target = path.join(worktree, SPEC_TEST_PATH_BASELINE);
+    const carried = fs.readFileSync(target, 'utf8').replace(/\n*$/, '\n');
+    fs.writeFileSync(target, `${carried}${refrozen.join('\n')}\n`);
+    return refrozen;
+}
+
+/**
+ * Take every path the back-out REMOVED back out of the test-file reachability freeze.
+ *
+ * Same principle as `refreezeRemovedPaths`, opposite direction, because the two freezes have
+ * opposite polarity. The spec-test-path freeze lists paths that are MISSING, so removing a file
+ * puts it back IN. The reachability freeze lists files that EXIST and that no declared verification
+ * glob selects, so removing a file must take it OUT — a freeze entry naming a file the tree does not
+ * have describes another tree, and the guard says so out loud by reporting it STALE.
+ *
+ * Left alone, that is exactly what happened: the backed-out tree reported this scope's three frozen
+ * orphans as stale while the live tree reported them as known, so a freeze belonging to `HEAD` was
+ * judging a tree that no longer matched it.
+ *
+ * Intersected with this back-out's OWN removals rather than checked out wholesale at `preScope`, for
+ * the same reason its sibling is. Wholesale is doubly wrong here: the guard and its baseline are not
+ * this scope's — they postdate the boundary and belong to another actor's commit — so `preScope`
+ * carries no baseline at all, and restoring that absence would report the guard itself as missing
+ * and every pre-existing orphan as new. Touching only what this back-out itself made absent leaves
+ * every entry it does not own exactly where the live tree has it.
+ *
+ * Comment and blank lines are preserved verbatim; only entry lines naming a removed path are
+ * dropped, so the file the backed-out tree parses is the live one minus this back-out's own footprint.
+ */
+function unfreezeRemovedTestFiles(worktree, dropped) {
+    const target = path.join(worktree, REACHABILITY_BASELINE);
+    if (!fs.existsSync(target)) return [];
+    const frozen = frozenTestFileReachabilityBaseline(worktree);
+    const unfrozen = dropped.filter((entry) => frozen.has(entry)).sort();
+    if (unfrozen.length === 0) return unfrozen;
+
+    const drop = new Set(unfrozen);
+    const kept = fs
+        .readFileSync(target, 'utf8')
+        .split('\n')
+        .filter((line) => !drop.has(line.trim()));
+    fs.writeFileSync(target, kept.join('\n'));
+    return unfrozen;
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -634,14 +787,18 @@ function isScannedProductionSource(candidate) {
     return PRODUCTION_SOURCE_EXTENSIONS.some((ext) => candidate.endsWith(ext));
 }
 
-function frozenSpecTestPathBaseline(root) {
+/** The freeze parser, shared so the back-out reads a `preScope` blob exactly as the tally reads a tree. */
+function parseFrozenSpecTestPaths(text) {
     return new Set(
-        fs
-            .readFileSync(path.join(root, SPEC_TEST_PATH_BASELINE), 'utf8')
+        text
             .split(/\r?\n/)
             .map((line) => line.trim())
             .filter((line) => line !== '' && !line.startsWith('#')),
     );
+}
+
+function frozenSpecTestPathBaseline(root) {
+    return parseFrozenSpecTestPaths(fs.readFileSync(path.join(root, SPEC_TEST_PATH_BASELINE), 'utf8'));
 }
 
 /* ---- The committed-surface file universe -----------------------------------------------------
@@ -695,15 +852,21 @@ function isPiiScanCounted(root, tracked, candidate) {
 const SPEC_ARTIFACT_DIR = 'specs';
 const SPEC_TEST_PATH_TOKEN = /(?<![A-Za-z0-9._/-])tests\/[A-Za-z0-9._/-]*\.mjs/g;
 
-function countSpecTestPathReferences(text) {
+/* `referencedPaths` collects the DISTINCT matched tokens, which is a different quantity from the
+ * tally: `sitesByPath.size` counts paths, the return value counts occurrences of them. */
+function countSpecTestPathReferences(text, referencedPaths) {
     SPEC_TEST_PATH_TOKEN.lastIndex = 0;
     let found = 0;
-    while (SPEC_TEST_PATH_TOKEN.exec(text) !== null) found += 1;
+    let match;
+    while ((match = SPEC_TEST_PATH_TOKEN.exec(text)) !== null) {
+        found += 1;
+        if (referencedPaths !== undefined) referencedPaths.add(match[0]);
+    }
     return found;
 }
 
 /** Every artifact the guard would scan under `<root>/specs`, mapped to its reference count. */
-function specArtifactReferenceCounts(root) {
+function specArtifactReferenceCounts(root, referencedPaths) {
     const counts = new Map();
     const base = path.join(root, SPEC_ARTIFACT_DIR);
     if (!fs.existsSync(base)) return counts;
@@ -723,11 +886,155 @@ function specArtifactReferenceCounts(root) {
                 continue;
             }
             if (text.includes('\u0000')) continue; // binary artifact, not a text reference surface
-            counts.set(path.relative(root, child).split(path.sep).join('/'), countSpecTestPathReferences(text));
+            counts.set(
+                path.relative(root, child).split(path.sep).join('/'),
+                countSpecTestPathReferences(text, referencedPaths),
+            );
         }
     };
     walk(base);
     return counts;
+}
+
+/* ---- The test-file reachability universe -----------------------------------------------------
+ *
+ * `validate-test-file-reachability.mjs` prints four tree-derived counts across two assertion lines:
+ * how many `tests/*.mjs` exist, how many artifacts its declaration scan read, how many entries its
+ * orphan freeze carries, and how many files its one exemption rule excuses. A back-out that removes
+ * five test files and un-freezes three of them moves all four, and none is a regression.
+ *
+ * Each is MIRRORED here rather than read back from the guard. Calling the guard would restate the
+ * transcript instead of corroborating it — one derivation cannot disagree with itself, so it could
+ * never catch a count that moved for a reason this scope does not own. The mirror is self-checking
+ * in the usual way: every derived size is bound to the EXACT number the transcript printed, so a
+ * mirror that drifted leaves the line unattributed rather than green.
+ *
+ * The declaration-scan universe is bound as a pre/live PAIR rather than as a delta, and that is
+ * load-bearing rather than stylistic. A delta would have to equal "the files the back-out removed",
+ * which holds only when the live tree is a primary checkout's twin: the backed-out side is always a
+ * LINKED worktree, where `.git` is a FILE this walker counts, while a primary checkout carries it
+ * as a directory the walker skips. Binding both sizes measures whatever each tree actually holds
+ * and is therefore correct from either.
+ * ------------------------------------------------------------------------------------------- */
+
+const REACHABILITY_TESTS_DIR = 'tests';
+const REACHABILITY_BASELINE = 'scripts/validate-test-file-reachability.baseline';
+const REACHABILITY_SELF = 'scripts/validate-test-file-reachability.mjs';
+
+/* `node:test` in any of the three spellings that register the runner, verbatim from the guard: a
+ * file that registers a test of its own is never exempt, however it is named. */
+const REACHABILITY_NODE_TEST_IMPORT = /(?:from\s*|import\s*|require\s*\(\s*)(['"])node:test\1/;
+
+function escapeForRegExp(text) {
+    return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/** The directory names the guard's walk skips, read out of `.gitignore` exactly as it reads them. */
+function reachabilityIgnoredDirectories(root) {
+    const matchers = [/^\.git$/];
+    const gitignore = path.join(root, '.gitignore');
+    if (!fs.existsSync(gitignore)) return matchers;
+    for (const raw of fs.readFileSync(gitignore, 'utf8').split(/\r?\n/)) {
+        const line = raw.trim();
+        if (line === '' || line.startsWith('#') || line.startsWith('!')) continue;
+        const name = line.replace(/^\//, '').replace(/\/$/, '');
+        if (name === '' || name.includes('/')) continue;
+        if (name.startsWith('*.') || name.endsWith('.pyc') || name.endsWith('.flock')) continue;
+        matchers.push(new RegExp('^' + name.split('*').map(escapeForRegExp).join('[^/]*') + '$'));
+    }
+    return matchers;
+}
+
+/** How many files the guard's declaration scan would READ in the tree at `root`. */
+function reachabilityScannedArtifacts(root) {
+    const ignored = reachabilityIgnoredDirectories(root);
+    const self = path.join(root, REACHABILITY_SELF);
+    const baseline = path.join(root, REACHABILITY_BASELINE);
+    let scanned = 0;
+
+    const walk = (directory) => {
+        let entries;
+        try {
+            entries = fs.readdirSync(directory, { withFileTypes: true });
+        } catch {
+            return;
+        }
+        for (const entry of entries) {
+            const child = path.join(directory, entry.name);
+            if (entry.isDirectory()) {
+                if (ignored.some((matcher) => matcher.test(entry.name))) continue;
+                walk(child);
+                continue;
+            }
+            if (!entry.isFile()) continue;
+            if (child === self || child === baseline) continue;
+            let text;
+            try {
+                text = fs.readFileSync(child, 'utf8');
+            } catch {
+                continue;
+            }
+            if (text.includes('\u0000')) continue;
+            scanned += 1;
+        }
+    };
+    walk(root);
+    return scanned;
+}
+
+/** The file set the guard counts: `tests/*.mjs` at the top level of the directory, never nested. */
+function reachabilityTestFiles(root) {
+    const base = path.join(root, REACHABILITY_TESTS_DIR);
+    if (!fs.existsSync(base)) return [];
+    return fs
+        .readdirSync(base)
+        .filter((name) => name.endsWith('.mjs'))
+        .map((name) => `${REACHABILITY_TESTS_DIR}/${name}`)
+        .sort();
+}
+
+/** Whether a repository-relative path would land in that file set, used to filter the added set. */
+function isReachabilityTestFile(candidate) {
+    return candidate.startsWith(`${REACHABILITY_TESTS_DIR}/`)
+        && candidate.endsWith('.mjs')
+        && !candidate.slice(REACHABILITY_TESTS_DIR.length + 1).includes('/');
+}
+
+/** The `shared-helper-module` rule, both clauses evidenced from file contents as the guard does. */
+function reachabilityExemptFiles(root) {
+    const testFiles = reachabilityTestFiles(root);
+    const sources = new Map();
+    for (const entry of testFiles) {
+        try {
+            sources.set(entry, fs.readFileSync(path.join(root, entry), 'utf8'));
+        } catch {
+            sources.set(entry, '');
+        }
+    }
+
+    const exempt = [];
+    for (const entry of testFiles) {
+        if (REACHABILITY_NODE_TEST_IMPORT.test(sources.get(entry))) continue;
+        const basename = entry.slice(REACHABILITY_TESTS_DIR.length + 1);
+        const specifier = new RegExp(
+            `(?:from\\s*|import\\s*\\(\\s*)(['"])\\.{1,2}/(?:${escapeForRegExp(REACHABILITY_TESTS_DIR)}/)?${escapeForRegExp(basename)}\\1`,
+        );
+        if (testFiles.some((other) => other !== entry && specifier.test(sources.get(other)))) exempt.push(entry);
+    }
+    return exempt;
+}
+
+/** The committed orphan freeze the guard reads, parsed as it parses it. */
+function frozenTestFileReachabilityBaseline(root) {
+    const target = path.join(root, REACHABILITY_BASELINE);
+    if (!fs.existsSync(target)) return new Set();
+    return new Set(
+        fs
+            .readFileSync(target, 'utf8')
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .filter((line) => line !== '' && !line.startsWith('#')),
+    );
 }
 
 /**
@@ -771,7 +1078,7 @@ function isScopeOwnedSpecArtifact(candidate, addedSet, modifiedSet) {
  * that does not exist. Provenance is still carried alongside rather than folded in, so the caller
  * can prove the partition was exhaustive.
  */
-function deriveAttribution(liveRoot, backedOutRoot, delta) {
+function deriveAttribution(liveRoot, backedOutRoot, delta, refrozen, unfrozen) {
     const addedPaths = delta.added.scope;
     const removedPaths = delta.removed.scope;
 
@@ -810,8 +1117,10 @@ function deriveAttribution(liveRoot, backedOutRoot, delta) {
     const foreignAddedSet = new Set(delta.added.foreign);
     const scopeModifiedSet = new Set(delta.modified.scope);
     const foreignModifiedSet = new Set(delta.modified.foreign);
-    const liveArtifacts = specArtifactReferenceCounts(liveRoot);
-    const preArtifacts = specArtifactReferenceCounts(backedOutRoot);
+    const liveReferencedPaths = new Set();
+    const preReferencedPaths = new Set();
+    const liveArtifacts = specArtifactReferenceCounts(liveRoot, liveReferencedPaths);
+    const preArtifacts = specArtifactReferenceCounts(backedOutRoot, preReferencedPaths);
     let ownedDelta = 0;
     let foreignDelta = 0;
     let totalDelta = 0;
@@ -832,11 +1141,38 @@ function deriveAttribution(liveRoot, backedOutRoot, delta) {
         }
     }
 
+    /* What the back-out's own refreeze did to the freeze, derived from the two trees rather than
+     * from what `refreezeRemovedPaths` reported doing. Two derivations agreeing is what makes this
+     * an attribution: `entries` is the rehearsal's account, `added` is the trees'. */
+    const preBaseline = frozenSpecTestPathBaseline(backedOutRoot);
+
+    /* The four counts the reachability guard derives from its tree, measured in both trees. The
+     * `fromAddedSet` halves are the second derivation, and they come from a different source: git
+     * says which paths this scope added, the two trees say which files they differ by. Requiring
+     * them equal is what makes each pair an attribution rather than a restatement of the transcript. */
+    const preReachabilityTestFiles = reachabilityTestFiles(backedOutRoot);
+    const liveReachabilityTestFiles = reachabilityTestFiles(liveRoot);
+    const preReachabilityTestFileSet = new Set(preReachabilityTestFiles);
+    const liveReachabilityTestFileSet = new Set(liveReachabilityTestFiles);
+    const preReachabilityExempt = reachabilityExemptFiles(backedOutRoot);
+    const liveReachabilityExempt = reachabilityExemptFiles(liveRoot);
+    const preReachabilityExemptSet = new Set(preReachabilityExempt);
+    const liveReachabilityExemptSet = new Set(liveReachabilityExempt);
+    const preReachabilityFrozen = frozenTestFileReachabilityBaseline(backedOutRoot);
+    const liveReachabilityFrozen = frozenTestFileReachabilityBaseline(liveRoot);
+
     return {
         scanUniverse: { pre: preScanned.length, live: liveScanned.length, added, removed, fromAddedSet },
         baselineReclassification: {
             magnitude: resolvedBaselineEntries.length,
             entries: resolvedBaselineEntries,
+        },
+        baselineRefreeze: {
+            magnitude: refrozen.length,
+            entries: [...refrozen].sort(),
+            added: [...preBaseline].filter((entry) => !baseline.has(entry)).sort(),
+            removed: [...baseline].filter((entry) => !preBaseline.has(entry)).sort(),
+            size: { pre: preBaseline.size, live: baseline.size },
         },
         scannedFileUniverse: {
             magnitude: countedAdded.length - countedRemoved.length,
@@ -854,13 +1190,28 @@ function deriveAttribution(liveRoot, backedOutRoot, delta) {
             contributingArtifacts: contributingArtifacts.sort(),
             foreignContributingArtifacts: foreignContributingArtifacts.sort(),
             unexplainedContributingArtifacts: unexplainedContributingArtifacts.sort(),
+            // The DISTINCT paths the guard's `sitesByPath` keys on, derived from the same walk as
+            // `magnitude` but a different quantity: that one counts occurrences, this one counts paths.
+            referencedPaths: { pre: preReferencedPaths.size, live: liveReferencedPaths.size },
             artifacts: { pre: preArtifacts.size, live: liveArtifacts.size },
             artifactsAdded: [...liveArtifacts.keys()].filter((entry) => !preArtifacts.has(entry)).sort(),
             artifactsRemoved: [...preArtifacts.keys()].filter((entry) => !liveArtifacts.has(entry)).sort(),
-            baselineEntries: {
-                pre: [...frozenSpecTestPathBaseline(backedOutRoot)].sort(),
-                live: [...baseline].sort(),
-            },
+        },
+        testFileReachability: {
+            testFiles: { pre: preReachabilityTestFiles.length, live: liveReachabilityTestFiles.length },
+            artifacts: { pre: reachabilityScannedArtifacts(backedOutRoot), live: reachabilityScannedArtifacts(liveRoot) },
+            frozen: { pre: preReachabilityFrozen.size, live: liveReachabilityFrozen.size },
+            exempt: { pre: preReachabilityExempt.length, live: liveReachabilityExempt.length },
+            // The trees' account of what the back-out removed, against git's account of what this
+            // scope added. Two sources agreeing is what anchors the pair below.
+            testFilesAdded: liveReachabilityTestFiles.filter((entry) => !preReachabilityTestFileSet.has(entry)).sort(),
+            testFilesRemoved: preReachabilityTestFiles.filter((entry) => !liveReachabilityTestFileSet.has(entry)).sort(),
+            testFilesFromAddedSet: addedPaths.filter(isReachabilityTestFile).sort(),
+            exemptAdded: liveReachabilityExempt.filter((entry) => !preReachabilityExemptSet.has(entry)).sort(),
+            exemptRemoved: preReachabilityExempt.filter((entry) => !liveReachabilityExemptSet.has(entry)).sort(),
+            unfrozen: [...unfrozen].sort(),
+            unfrozenFromTrees: [...liveReachabilityFrozen].filter((entry) => !preReachabilityFrozen.has(entry)).sort(),
+            refrozenFromTrees: [...preReachabilityFrozen].filter((entry) => !liveReachabilityFrozen.has(entry)).sort(),
         },
     };
 }
@@ -898,13 +1249,19 @@ function splitNumbers(line) {
 const PII_FILE_COUNT_MARKER = 'the scan covered the repository (files=';
 const PII_MESSAGE_COUNT_MARKER = 'the scan covered commit messages (messages=';
 const SPEC_TEST_REFERENCE_MARKER = 'reference(s) across';
+const SPEC_TEST_BUCKET_MARKER = 'known-missing';
+const REACHABILITY_SCAN_MARKER = 'declared glob(s) across';
+const REACHABILITY_BUCKET_MARKER = 'known-orphan,';
 
 /** The closed set of reasons a difference may carry. Anything else is a bug in the classifier. */
 const ATTRIBUTION_REASONS = Object.freeze([
     'production-source-scan-universe',
     'frozen-baseline-reclassification',
+    'frozen-baseline-refreeze',
+    'frozen-baseline-refreeze-and-referenced-paths',
     'committed-surface-file-universe',
     'scope-artifact-test-references',
+    'test-file-reachability-universe',
 ]);
 
 /**
@@ -947,17 +1304,82 @@ function classifyDifference(preLine, liveLine, attribution) {
     // the identical history and that line must be byte-identical; the row asserts that directly and
     // any movement reaches this classifier unattributed, which is the intended failure.
 
-    // The spec-artifact reference tally, which grows by the `tests/*.mjs` references this scope's
-    // own artifacts contribute. The single-move requirement is the invariant half: this scope adds
-    // no spec artifact and no baseline entry, so those two counters on the same line must not move.
+    /* The spec-artifact reference tally and the FREEZE SIZE share one line. This scope's own
+     * artifacts move the first; the back-out's refreeze moves the second, and in the opposite
+     * direction, since the backed-out tree freezes strictly more. The freeze movement is bound to
+     * the two EXACT sizes rather than to a delta, so another counter moving by the same amount
+     * cannot borrow the explanation. Every moved number must be one of the two, which preserves
+     * what the old single-move requirement asserted: the artifact tally between them cannot move. */
     const references = attribution.specTestReferences;
+    const refreeze = attribution.baselineRefreeze;
+    if (preLine.includes(SPEC_TEST_REFERENCE_MARKER) && references.magnitude !== 0) {
+        const isReferenceMove = (entry) => entry.delta === references.magnitude;
+        const isFreezeMove = (entry) => entry.pre === refreeze.size.pre && entry.live === refreeze.size.live;
+        if (moved.some(isReferenceMove) && moved.every((entry) => isReferenceMove(entry) || isFreezeMove(entry))) {
+            return 'scope-artifact-test-references';
+        }
+    }
+
+    /* The freeze the back-out restored. Every re-frozen path is missing-and-frozen in the backed-out
+     * tree and neither missing nor frozen in the live one, so exactly ONE bucket moves — by exactly
+     * what was re-frozen. Anchored, because an unanchored magnitude rule would claim any counter
+     * that happened to move by the same amount. */
     if (
-        preLine.includes(SPEC_TEST_REFERENCE_MARKER)
+        preLine.includes(SPEC_TEST_BUCKET_MARKER)
+        && refreeze.magnitude > 0
         && moved.length === 1
-        && references.magnitude !== 0
-        && moved[0].delta === references.magnitude
+        && moved[0].delta === -refreeze.magnitude
     ) {
-        return 'scope-artifact-test-references';
+        return 'frozen-baseline-refreeze';
+    }
+
+    // Two moves, two independent anchors, neither able to cover both: the magnitude forbids a bucket
+    // falling further than was re-frozen, the exact sizes forbid another counter borrowing the +1.
+    const isRefrozenBucketMove = (entry) => entry.delta === -refreeze.magnitude;
+    const isReferencedPathMove = (entry) => entry.pre === references.referencedPaths.pre
+        && entry.live === references.referencedPaths.live;
+    if (
+        preLine.includes(SPEC_TEST_BUCKET_MARKER)
+        && refreeze.magnitude > 0
+        && references.referencedPaths.live !== references.referencedPaths.pre
+        && moved.length === 2
+        && (
+            (isRefrozenBucketMove(moved[0]) && isReferencedPathMove(moved[1]))
+            || (isRefrozenBucketMove(moved[1]) && isReferencedPathMove(moved[0]))
+        )
+    ) {
+        return 'frozen-baseline-refreeze-and-referenced-paths';
+    }
+
+    /* The reachability guard's two lines. Four counts move across them and not one of them is a
+     * delta: each is bound to the EXACT pre and live size a mirror measured in that tree, so a
+     * counter that happens to move by the same amount as another cannot borrow its explanation.
+     * That matters more here than anywhere else on this list, because two of the four move by three
+     * and two of the remaining counters on these same lines are `0 new` and `0 stale` — a magnitude
+     * rule would wave a genuine regression in either straight through.
+     *
+     * The pairs are consumed rather than merely matched, so one anchor can never cover two moves.
+     * Greedy consumption is exact here because a pair matches by value equality: two moved counters
+     * can only contend for one anchor when they carry identical pre and live values, in which case
+     * the anchors are interchangeable and the assignment is arbitrary either way.
+     *
+     * The known-orphan bucket is anchored to the FREEZE SIZE rather than to a bucket count of its
+     * own, which is exact rather than approximate: an entry is known-orphan exactly when it is both
+     * frozen and still orphaned, so the bucket equals the freeze precisely while nothing is stale.
+     * That is the state the back-out now produces — un-freezing what it removed is what takes the
+     * stale counter to zero on both sides — and it fails closed if it ever stops holding, because a
+     * stale entry drives the bucket off the freeze size and no anchor then matches. */
+    const reach = attribution.testFileReachability;
+    if (preLine.includes(REACHABILITY_SCAN_MARKER) || preLine.includes(REACHABILITY_BUCKET_MARKER)) {
+        const anchors = [reach.testFiles, reach.artifacts, reach.frozen, reach.exempt]
+            .filter((pair) => pair.pre !== pair.live);
+        const claimed = moved.every((entry) => {
+            const index = anchors.findIndex((pair) => entry.pre === pair.pre && entry.live === pair.live);
+            if (index === -1) return false;
+            anchors.splice(index, 1);
+            return true;
+        });
+        if (claimed) return 'test-file-reachability-universe';
     }
 
     // Growth of the production-source scan universe, bound to the EXACT sizes of the two trees
@@ -1317,15 +1739,62 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
     assert.equal(isScannedProductionSource('notes/market-brief.md'), false, 'a note is not a production source');
 
     // The provenance classifier decides whose commit an addition came from, so it is checked against
-    // known answers too. It is deliberately keyed on the scope's identity anchors rather than on the
+    // known answers too. It is deliberately keyed on the scope's identity anchor rather than on the
     // allowed families: one that answered true for every path would hand a concurrent actor's files
     // to this scope's family check, and one that answered false for everything would hand this
     // scope's own files to nobody and go vacuously green.
-    assert.equal(isScopeAnchorPath(SCOPE_ORIGIN_PATH), true, "the scope's own module anchors its commits");
     assert.equal(isScopeAnchorPath(`${SCOPE_ARTIFACT_PREFIX}report.md`), true, "the scope's own artifacts anchor its commits");
     assert.equal(isScopeAnchorPath('scripts/selftest.mjs'), false, 'the baseline script anchors nothing');
     assert.equal(isScopeAnchorPath('tests/recommendation-track-record.canary.mjs'), false, 'an in-family file is not by itself an anchor');
-    assert.equal(isScopeAnchorPath(`${SCOPE_ORIGIN_PATH}.bak`), false, 'the anchor is an exact path, never a prefix');
+
+    // The origin module dates the boundary and anchors NOTHING. It is the substrate scopes 02 - 10
+    // are built to edit, so a commit touching it is evidence of dependency, not of authorship —
+    // which is exactly how a scope 02 commit came to be judged against scope 01's Change Boundary.
+    assert.equal(
+        isScopeAnchorPath(SCOPE_ORIGIN_PATH),
+        false,
+        'the shared substrate module must not attest authorship — later scopes edit it by design',
+    );
+
+    // The anchor is a prefix, so it gets the negative that proves a prefix cannot over-widen: it
+    // must stop at the directory separator, and it must not reach a sibling scope's own artifacts.
+    assert.equal(
+        isScopeAnchorPath('specs/015-recommendation-outcome-ledger-and-track-record/scopes/02-additive-ledger-row-extension/report.md'),
+        false,
+        "a sibling scope's own artifacts must never anchor this scope's commits",
+    );
+    assert.equal(
+        isScopeAnchorPath(`${SCOPE_ARTIFACT_PREFIX.replace(/\/$/, '')}-notes.md`),
+        false,
+        'the anchor prefix must carry its trailing separator, or it widens into an adjacent sibling name',
+    );
+
+    // The packet-ownership classifier overrides the anchor for another packet's own artifacts, so it
+    // gets known answers at both ends. One that answered true for everything would empty this
+    // scope's half and go vacuously green; one that answered false for everything would restore the
+    // defect where a bug packet landing beside this scope's evidence is judged against its families.
+    assert.equal(
+        isForeignPacketPath('specs/_bugs/BUG-011-causal-consumer-tests-inherit-implicit-30s-budget/spec.md'),
+        true,
+        "a bug packet's artifacts are that bug's, whichever commit carried them",
+    );
+    assert.equal(
+        isForeignPacketPath('specs/015-recommendation-outcome-ledger-and-track-record/scopes/02-additive-ledger-row-extension/report.md'),
+        true,
+        "a sibling scope's artifacts are that scope's, whichever commit carried them",
+    );
+    assert.equal(
+        isForeignPacketPath(`${SCOPE_ARTIFACT_PREFIX}report.md`),
+        false,
+        "this scope's own artifacts must never be disowned — the rule reads other packets' roots only",
+    );
+    assert.equal(
+        isForeignPacketPath('specs/015-recommendation-outcome-ledger-and-track-record/scopes/_index.md'),
+        false,
+        'a file directly under the scopes directory belongs to no scope packet and must not be disowned',
+    );
+    assert.equal(isForeignPacketPath('rlclaims.js'), false, 'a production module is not an artifact packet');
+    assert.equal(isForeignPacketPath('specs/_bugs/BUG-011-x'), false, 'a packet root must be a directory, not a prefix of a name');
 
     const porcelain = git(['status', '--porcelain']).split('\n').filter((line) => line !== '');
     const workingTree = porcelain.map((entry) => ({ raw: entry, status: entry.slice(0, 2), target: entry.slice(3) }));
@@ -1496,6 +1965,8 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
             assert.equal(fs.existsSync(path.join(worktree, witness)), true,
                 `the worktree at HEAD must carry ${witness}, or the back-out has nothing to remove`);
         }
+        assert.equal(fs.existsSync(path.join(worktree, BACK_OUT_WITNESS_DIRECTORY)), true,
+            `the worktree at HEAD must carry ${BACK_OUT_WITNESS_DIRECTORY}, or the back-out has nothing to remove`);
 
         const backOut = backOutScope(worktree, preScope, delta);
 
@@ -1516,11 +1987,31 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
             );
         }
 
-        // And the removal must have taken every witness with it, empty directories included.
+        // And the removal must have taken every witness file with it.
         for (const witness of BACK_OUT_WITNESS_PATHS) {
             assert.equal(fs.existsSync(path.join(worktree, witness)), false,
                 `the backed-out tree must no longer contain ${witness}`);
         }
+
+        // The witness tree, judged against a derived expectation rather than a flat one. Whatever
+        // this scope owns under it must be gone; the tree itself survives exactly when something
+        // another packet owns is still there to hold it up.
+        const witnessEntriesAtHead = git(['ls-tree', '-r', '--name-only', 'HEAD', '--', BACK_OUT_WITNESS_DIRECTORY])
+            .split('\n')
+            .filter((line) => line !== '');
+        assert.ok(witnessEntriesAtHead.length > 0, `${BACK_OUT_WITNESS_DIRECTORY} must carry entries at HEAD`);
+        const witnessSurvivors = witnessEntriesAtHead.filter((entry) => !scopeOwned.has(entry));
+        for (const owned of witnessEntriesAtHead.filter((entry) => scopeOwned.has(entry))) {
+            assert.equal(fs.existsSync(path.join(worktree, owned)), false,
+                `the backed-out tree must no longer contain ${owned}`);
+        }
+        assert.equal(
+            fs.existsSync(path.join(worktree, BACK_OUT_WITNESS_DIRECTORY)),
+            witnessSurvivors.length > 0,
+            witnessSurvivors.length > 0
+                ? `${BACK_OUT_WITNESS_DIRECTORY} must survive, holding ${witnessSurvivors.length} entry/entries this scope does not own`
+                : `${BACK_OUT_WITNESS_DIRECTORY} must be removed with its last entry — an emptied tree left behind is a half back-out`,
+        );
         assert.equal(fs.existsSync(path.join(worktree, 'scripts', 'selftest.mjs')), true,
             'the back-out must not have taken the baseline script with it');
 
@@ -1538,7 +2029,7 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
         // line that moved is accounted for by this scope's own additions. This is AC-018's "no
         // pre-existing count decreasing" stated exactly, plus the attribution that makes a
         // difference either explained or a failure — never merely tolerated.
-        const attribution = deriveAttribution(REPO_ROOT, worktree, delta);
+        const attribution = deriveAttribution(REPO_ROOT, worktree, delta, backOut.refrozen, backOut.unfrozen);
 
         /* The commit-message tally the retired rule used to excuse. Both trees are checked out at
          * the same commit, so `git log` walks the identical history and this counter cannot move —
@@ -1612,9 +2103,9 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
         }
 
         /* The spec-artifact reference surface. The invariant halves are asserted directly rather
-         * than left to the classifier: this scope writes into artifacts that already existed and
-         * adds no frozen baseline entry, so it must contribute no artifact of its own and leave the
-         * baseline identical across the two trees.
+         * than left to the classifier: this scope writes into artifacts that already existed, so it
+         * must contribute no artifact of its own. The freeze is handled just below, and separately,
+         * because the back-out now moves it deliberately.
          *
          * The artifact tally used to be allowed to move, because a neighbouring spec landing its own
          * artifacts in the same commit range showed up as growth this scope had to tolerate. Two
@@ -1637,10 +2128,105 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
             attribution.specTestReferences.artifactsAdded.length,
             'the scanned-artifact tally must move by exactly the artifacts the two trees differ by',
         );
+        /* The freeze is NOT identical across the two trees, and that is the back-out working rather
+         * than a defect: it gives every path it removed the pre-scope freeze back, so the backed-out
+         * tree carries exactly those entries more. The claim is therefore the EXACT difference
+         * rather than none — nothing may leave the freeze, what it gains must be precisely what the
+         * rehearsal reported re-freezing, and every re-frozen entry must still sit inside this
+         * scope's families. The two sides are derived independently: `added` is read off the trees,
+         * `entries` is the rehearsal's own account, and requiring them equal is what stops a
+         * back-out that re-froze something it had no business touching from reporting green. */
         assert.deepEqual(
-            attribution.specTestReferences.baselineEntries.live,
-            attribution.specTestReferences.baselineEntries.pre,
-            'this scope adds no frozen baseline entry, so the baseline must be identical across the two trees',
+            attribution.baselineRefreeze.removed,
+            [],
+            'no entry may leave the freeze — the back-out restores, it never prunes',
+        );
+        assert.deepEqual(
+            attribution.baselineRefreeze.added,
+            attribution.baselineRefreeze.entries,
+            'the two trees may differ by exactly the freeze the back-out restored, and by nothing else',
+        );
+        for (const entry of attribution.baselineRefreeze.entries) {
+            assert.equal(isAllowedPath(entry), true, `re-frozen entry outside the allowed families: ${entry}`);
+        }
+        assert.equal(
+            attribution.baselineRefreeze.size.pre - attribution.baselineRefreeze.size.live,
+            attribution.baselineRefreeze.magnitude,
+            'the derived freeze sizes must differ by exactly the number of paths the back-out re-froze',
+        );
+
+        /* The reachability freeze travels the OTHER way, because it lists files that exist rather
+         * than paths that are missing: the back-out takes its own removals out of it. The claim is
+         * again the exact difference, derived twice — `unfrozen` is the rehearsal's account,
+         * `unfrozenFromTrees` is the two baselines'. Nothing may ENTER it: an entry present only in
+         * the backed-out tree would mean the back-out froze a file it had not removed. */
+        assert.deepEqual(
+            attribution.testFileReachability.refrozenFromTrees,
+            [],
+            'no entry may enter the reachability freeze — the back-out un-freezes, it never adds',
+        );
+        assert.deepEqual(
+            attribution.testFileReachability.unfrozenFromTrees,
+            attribution.testFileReachability.unfrozen,
+            'the two reachability freezes may differ by exactly what the back-out un-froze, and by nothing else',
+        );
+        assert.ok(
+            attribution.testFileReachability.unfrozen.length > 0,
+            'the back-out must un-freeze at least one reachability entry, or that half of the rehearsal is inert',
+        );
+        for (const entry of attribution.testFileReachability.unfrozen) {
+            assert.equal(isAllowedPath(entry), true, `un-frozen reachability entry outside the allowed families: ${entry}`);
+            assert.equal(
+                backOut.dropped.includes(entry),
+                true,
+                `the back-out un-froze ${entry}, which it never removed — it may only un-freeze its own footprint`,
+            );
+        }
+        assert.equal(
+            attribution.testFileReachability.frozen.live - attribution.testFileReachability.frozen.pre,
+            attribution.testFileReachability.unfrozen.length,
+            'the derived reachability freeze sizes must differ by exactly the number of entries the back-out un-froze',
+        );
+
+        /* The file and exemption universes behind the other two reachability anchors, each derived
+         * twice: the two trees say what they differ by, git says what this scope added. Neither may
+         * gain anything by being backed out. */
+        assert.deepEqual(
+            attribution.testFileReachability.testFilesRemoved,
+            [],
+            'no tests/*.mjs may appear only in the backed-out tree — the back-out removes, it never adds',
+        );
+        assert.deepEqual(
+            attribution.testFileReachability.testFilesAdded,
+            attribution.testFileReachability.testFilesFromAddedSet,
+            "the two trees' tests/*.mjs difference must be exactly the set git attributes to this scope",
+        );
+        assert.ok(
+            attribution.testFileReachability.testFilesAdded.length > 0,
+            'this scope must add at least one tests/*.mjs, or the reachability file-count anchor is inert',
+        );
+        for (const entry of attribution.testFileReachability.testFilesAdded) {
+            assert.equal(isAllowedPath(entry), true, `added test file outside the allowed families: ${entry}`);
+        }
+        assert.deepEqual(
+            attribution.testFileReachability.exemptRemoved,
+            [],
+            'no file may become exempt by backing this scope out',
+        );
+        assert.deepEqual(
+            attribution.testFileReachability.exemptAdded.filter(
+                (entry) => !attribution.testFileReachability.testFilesAdded.includes(entry),
+            ),
+            [],
+            'a file became exempt without this scope adding it — the exemption anchor would explain a difference it does not own',
+        );
+        assert.ok(
+            attribution.testFileReachability.exemptAdded.length > 0,
+            'this scope must add at least one shared-helper-module file, or the exemption anchor is inert',
+        );
+        assert.ok(
+            attribution.testFileReachability.artifacts.live > attribution.testFileReachability.artifacts.pre,
+            'the backed-out tree must hold fewer scanned artifacts, or the reachability artifact anchor is inert',
         );
 
         /* The sharp half, and it stays sharp under the new shape — what it detects has changed
@@ -1712,22 +2298,63 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
             'the scan size must land on the live tree size exactly, not merely move',
         );
 
-        const magnitude = attribution.baselineReclassification.magnitude;
+        /* Both freeze rules are probed against a SYNTHETIC magnitude rather than the live one.
+         * Either can legitimately derive zero — reclassification is zero exactly when a concurrent
+         * actor has pruned this scope's paths from the freeze, which is the situation the refreeze
+         * exists for, and refreeze is zero when nobody pruned — and a zero magnitude would leave
+         * these probes exercising nothing while still reporting green. */
+        const magnitude = 2;
+        const reclassifying = { ...attribution, baselineReclassification: { magnitude, entries: [] } };
         const bucketShape = (known, stale) => `${known} known-missing, ${stale} stale of 221 referenced`;
         assert.equal(
-            classifyDifference(bucketShape(71, 6), bucketShape(71 - magnitude, 6 + magnitude), attribution),
+            classifyDifference(bucketShape(71, 6), bucketShape(71 - magnitude, 6 + magnitude), reclassifying),
             'frozen-baseline-reclassification',
             'an equal-and-opposite move of the derived magnitude is attributable',
         );
         assert.equal(
-            classifyDifference(bucketShape(71, 6), bucketShape(71 - magnitude - 1, 6 + magnitude + 1), attribution),
+            classifyDifference(bucketShape(71, 6), bucketShape(71 - magnitude - 1, 6 + magnitude + 1), reclassifying),
             null,
             'a reclassification larger than this scope accounts for is unattributable',
         );
         assert.equal(
-            classifyDifference(bucketShape(71, 6), bucketShape(71 - magnitude, 6 + magnitude + 1), attribution),
+            classifyDifference(bucketShape(71, 6), bucketShape(71 - magnitude, 6 + magnitude + 1), reclassifying),
             null,
             'a reclassification that does not conserve its total is unattributable',
+        );
+
+        const refrozenMagnitude = 3;
+        const refreezing = {
+            ...attribution,
+            baselineRefreeze: { ...attribution.baselineRefreeze, magnitude: refrozenMagnitude },
+        };
+        /* One past the BACKED-OUT scan size, for the same reason the anchored probes below use that
+         * base: the unanchored scan-universe rule requires the pre value to land on the backed-out
+         * size exactly, so no probe here can be claimed by it and each exercises the rule it names. */
+        const refreezeBase = attribution.scanUniverse.pre + 1;
+        const refreezeShape = (known) => `0 new, ${known} known-missing, 0 stale of 221 referenced`;
+        assert.equal(
+            classifyDifference(refreezeShape(refreezeBase), refreezeShape(refreezeBase - refrozenMagnitude), refreezing),
+            'frozen-baseline-refreeze',
+            'a single bucket falling by exactly the re-frozen count is attributable',
+        );
+        assert.equal(
+            classifyDifference(refreezeShape(refreezeBase), refreezeShape(refreezeBase - refrozenMagnitude - 1), refreezing),
+            null,
+            'a bucket move larger than the back-out re-froze is unattributable',
+        );
+        assert.equal(
+            classifyDifference(refreezeShape(refreezeBase - refrozenMagnitude), refreezeShape(refreezeBase), refreezing),
+            null,
+            'the backed-out tree freezes MORE, so a bucket that grew toward the live tree is unattributable',
+        );
+        assert.equal(
+            classifyDifference(
+                `a line carrying ${refreezeBase} things`,
+                `a line carrying ${refreezeBase - refrozenMagnitude} things`,
+                refreezing,
+            ),
+            null,
+            'the re-frozen count is unattributable on a line that is not the bucket line',
         );
 
         /* Adversarial half for the two anchored rules. The probe base is one past the BACKED-OUT
@@ -1815,6 +2442,90 @@ test('T-01-C2: the restore path is rehearsed in a disposable worktree, never on 
             ),
             null,
             'a moving baseline tally is unattributable however the references moved',
+        );
+
+        /* Adversarial half for the reachability rule. Every probe is built from the real derived
+         * pairs, so each one exercises the anchor it names rather than a shape invented for it. The
+         * last pair is the sharp one: it carries the SAME anchor's pre/live values on two different
+         * counters, which is exactly what a rule that merely matched anchors instead of consuming
+         * them would wave through. */
+        const reach = attribution.testFileReachability;
+        const reachScanShape = (files, artifacts, entries) =>
+            `a present baseline (${files} test file(s), 6 ${REACHABILITY_SCAN_MARKER} ${artifacts} artifact(s), baseline ${entries} entries)`;
+        assert.equal(
+            classifyDifference(
+                reachScanShape(reach.testFiles.pre, reach.artifacts.pre, reach.frozen.pre),
+                reachScanShape(reach.testFiles.live, reach.artifacts.live, reach.frozen.live),
+                attribution,
+            ),
+            'test-file-reachability-universe',
+            'the exact pre/live reachability sizes are attributable',
+        );
+        assert.equal(
+            classifyDifference(
+                reachScanShape(reach.testFiles.pre, reach.artifacts.pre, reach.frozen.pre),
+                reachScanShape(reach.testFiles.live + 1, reach.artifacts.live, reach.frozen.live),
+                attribution,
+            ),
+            null,
+            'a test-file count that moved further than this scope added is unattributable',
+        );
+        assert.equal(
+            classifyDifference(
+                reachScanShape(reach.testFiles.pre, reach.artifacts.pre, reach.frozen.pre),
+                reachScanShape(reach.testFiles.live, reach.artifacts.live + 1, reach.frozen.live),
+                attribution,
+            ),
+            null,
+            'a scanned-artifact count that does not land on the live tree size exactly is unattributable',
+        );
+        assert.equal(
+            classifyDifference(
+                `an unrelated message carrying ${reach.testFiles.pre} files`,
+                `an unrelated message carrying ${reach.testFiles.live} files`,
+                attribution,
+            ),
+            null,
+            'the reachability sizes on a line the rule is not anchored to are unattributable',
+        );
+
+        const reachBucketShape = (known, stale, exempt, files) =>
+            `0 new, ${known} ${REACHABILITY_BUCKET_MARKER} ${stale} stale, ${exempt} exempt, of ${files} file(s)`;
+        assert.equal(
+            classifyDifference(
+                reachBucketShape(reach.frozen.pre, 0, reach.exempt.pre, reach.testFiles.pre),
+                reachBucketShape(reach.frozen.live, 0, reach.exempt.live, reach.testFiles.live),
+                attribution,
+            ),
+            'test-file-reachability-universe',
+            'the bucket line moving by exactly the freeze, exemption and file sizes is attributable',
+        );
+        assert.equal(
+            classifyDifference(
+                reachBucketShape(reach.frozen.pre, 0, reach.exempt.pre, reach.testFiles.pre),
+                reachBucketShape(reach.frozen.live, reach.unfrozen.length, reach.exempt.live, reach.testFiles.live),
+                attribution,
+            ),
+            null,
+            'a stale count appearing is unattributable, however plausible its size — an un-travelled freeze judges the wrong tree',
+        );
+        assert.equal(
+            classifyDifference(
+                reachBucketShape(reach.frozen.pre, 0, reach.exempt.pre, reach.testFiles.pre),
+                reachBucketShape(reach.frozen.live, 0, reach.exempt.live + 1, reach.testFiles.live),
+                attribution,
+            ),
+            null,
+            'an exemption count that does not land on the live tree size exactly is unattributable',
+        );
+        assert.equal(
+            classifyDifference(
+                reachBucketShape(reach.frozen.pre, reach.frozen.pre, reach.exempt.pre, reach.testFiles.pre),
+                reachBucketShape(reach.frozen.live, reach.frozen.live, reach.exempt.live, reach.testFiles.live),
+                attribution,
+            ),
+            null,
+            'one anchor may not explain two counters — the freeze size is consumed by the first that claims it',
         );
 
         const liveByName = new Map(live.groups.map((group) => [group.name, group]));

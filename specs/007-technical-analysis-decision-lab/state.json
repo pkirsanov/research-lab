@@ -3,8 +3,9 @@
   "featureDir": "specs/007-technical-analysis-decision-lab",
   "featureName": "Technical Analysis Decision Lab",
   "createdAt": "2026-07-15T15:54:54Z",
-  "status": "blocked",
-  "blockedReason": "OPERATOR ACTION REQUIRED — Gate G136 human acceptance. All nine scopes are Done with executed evidence, but specs/007-technical-analysis-decision-lab/uservalidation.md has 17 unchecked acceptance items. A terminal transition to done claims human acceptance of every one, and an agent checking those boxes would fabricate that acceptance, so no agent can clear this. UNBLOCK BY: reviewing the 17 items in uservalidation.md and checking or rejecting each. A rejection routes to /bubbles.validate for root cause. SECONDARY (non-blocking for the operator, agent-actionable in a dedicated planning pass): state-transition-guard reports 160 residual findings, all planning-artifact template shape requirements applied uniformly to all nine scope.md files (DoD-Gherkin content fidelity, shared-infrastructure canary Test Plan rows and rollback/canary DoD items, change-boundary surface enumeration, consumer-impact-sweep sections, scenario-specific and broader E2E DoD items) plus deferral-language hits confined to scopes 01-04. These predate this delivery session and apply identically to scopes 01-04 authored earlier. They were NOT retrofitted here because authoring planning artifacts after delivery purely to satisfy a guard is the fabrication pattern the framework exists to prevent; they need a real planning pass.",
+  "status": "in_progress",
+  "blockedReason": null,
+  "resolvedBlockedReason": "OPERATOR ACTION REQUIRED — Gate G136 human acceptance. All nine scopes are Done with executed evidence, but specs/007-technical-analysis-decision-lab/uservalidation.md has 17 unchecked acceptance items. A terminal transition to done claims human acceptance of every one, and an agent checking those boxes would fabricate that acceptance, so no agent can clear this. UNBLOCK BY: reviewing the 17 items in uservalidation.md and checking or rejecting each. A rejection routes to /bubbles.validate for root cause. SECONDARY (non-blocking for the operator, agent-actionable in a dedicated planning pass): state-transition-guard reports 160 residual findings, all planning-artifact template shape requirements applied uniformly to all nine scope.md files (DoD-Gherkin content fidelity, shared-infrastructure canary Test Plan rows and rollback/canary DoD items, change-boundary surface enumeration, consumer-impact-sweep sections, scenario-specific and broader E2E DoD items) plus deferral-language hits confined to scopes 01-04. These predate this delivery session and apply identically to scopes 01-04 authored earlier. They were NOT retrofitted here because authoring planning artifacts after delivery purely to satisfy a guard is the fabrication pattern the framework exists to prevent; they need a real planning pass.",
   "supersededBlockedReason": "The owner five-gate decision model is unimplemented: `computeTechnicalFiveGateSummary` in rlexperience-adapters/market-structure.js returns state `unavailable` unconditionally and publishes the gap verbatim as \"The owner five-gate model (context/location/confirmation/validation gate scoring plus setup-state and expectancy) is not implemented in technical-analysis-decision-lab.html, a Scope-01 foundation-receipt validator that publishes no analytic result (ownerReadPublished:false).\" The shipped page is therefore a data-foundation receipt only, not an analytic surface. This capability is unbuilt rather than merely unrecorded: 8 of this spec's 9 scopes are Not Started — including 04-five-gate-synthesis, 03-setup-lifecycle, and 07-validation-risk-process, the scopes that would build the gate scoring, setup-state, and expectancy the runtime names as missing — and the ninth, 01-capability-foundation, is Blocked. Unblocking Scope 01 requires the canonical traceability run recorded in statusReconciliation.resolution; Scopes 02-09 cannot start until it clears.",
   "statusReconciliation": {
     "recordedBy": "orchestrator",
@@ -27,6 +28,40 @@
       "deltaFromPriorMeasurement": "Prior re-measurement at blockerReverification recorded exit 1 with 54 failures, mapped 7 / unmapped 25, declared=0. The declared=0 that proved the defect was structural is now declared=56, and unmapped 25 is now 0.",
       "statusJustificationSuperseded": "blockerReverification.statusJustification retained 'blocked' because the largest failure class was a real external dependency on an upstream fix. That dependency is discharged: the fix was made in the canonical framework and consumed here. Nothing external now gates this spec, so the lifecycle status is corrected to in_progress. The remaining 8 scopes are unbuilt, which is in_progress work, not a blocker.",
       "notCertified": "Scope 01 is implement-complete with its full closure battery recorded in scopes/01-capability-foundation/report.md. certification.* remains validate-owned and untouched; no scope is claimed as certified."
+    },
+    "humanAcceptanceBlockerResolution": {
+      "resolvedAt": "2026-08-19T19:11:32Z",
+      "resolvedBy": "bubbles.validate",
+      "operatorGrant": {
+        "statement": "all accepted, mark as such",
+        "acceptedBy": "operator",
+        "acceptedAt": "2026-08-19T19:04:11Z",
+        "method": "human-interactive",
+        "acceptedItemCount": 17
+      },
+      "previousStatus": "blocked",
+      "currentStatus": "in_progress",
+      "previousBlockedReasonRef": "$.resolvedBlockedReason",
+      "guardExecution": {
+        "command": "timeout 600 bash .github/bubbles/scripts/evidence-capture.sh --label \"Feature 007 pre-reconciliation transition guard\" -- bash .github/bubbles/scripts/state-transition-guard.sh specs/007-technical-analysis-decision-lab",
+        "executedAt": "2026-08-19T19:11:32Z",
+        "exitCode": 1,
+        "verdict": "FAIL",
+        "relevantPassedGateIds": [
+          "G136"
+        ],
+        "failedGateIds": [
+          "G022",
+          "G053",
+          "G040",
+          "G068",
+          "G084"
+        ],
+        "failureCount": 152,
+        "outputSha256": "1c9c3b74a1e48e378d00b7e48b7c82cc9a228f9327e869eac309753b26cee647"
+      },
+      "resolution": "The operator-only G136 blocker is cleared. The lifecycle is in_progress because delivery-completion evidence debt remains agent-actionable.",
+      "notCertified": "No terminal certification is claimed; the fresh transition guard still refuses targetStatus done."
     },
     "noScopeClaimed": "No scope was marked complete and no certification field was touched. This edit corrects the lifecycle status only.",
     "blockerReverification": {
@@ -201,7 +236,7 @@
     }
   },
   "certification": {
-    "status": "blocked",
+    "status": "in_progress",
     "completedScopes": [],
     "certifiedCompletedPhases": [],
     "scopeProgress": [

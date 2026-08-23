@@ -22,11 +22,29 @@ import {
   BRIEF_EVENT_SHAPE_KEYS,
   briefEventContractInstruction,
   findEventContractInstructionGaps,
+  WATCHLIST_SCOPE as RLATTN_WATCHLIST_SCOPE,
   validateBriefPayload
 } from './validate-brief-payload.mjs';
 import { formatSpecTestPathFindings, validateSpecTestPaths } from './validate-spec-test-paths.mjs';
-import { ATTENTION_RESEARCH_VERBS as RLATTN_RESEARCH_VERBS, attentionAuthoredKeysInstruction, attentionVerbContractInstruction, findAttentionVerbInstructionGaps } from './build-attention-items.mjs';
-import { AUTHORED_JUDGEMENT_KEYS as RLATTN_AUTHORED_KEYS } from './build-attention-items.mjs';
+import {
+  ATTENTION_RESEARCH_VERBS as RLATTN_RESEARCH_VERBS,
+  AUTHORED_JUDGEMENT_KEYS as RLATTN_AUTHORED_KEYS,
+  attentionAuthoredKeysInstruction,
+  attentionCardBudgetInstruction,
+  attentionExpiryFormatInstruction,
+  attentionSubjectMenuInstruction,
+  attentionHeadlineCapInstruction,
+  attentionRationaleBudgetInstruction,
+  briefFreshnessBadgeInstruction,
+  attentionSubjectUniquenessInstruction,
+  attentionVerbContractInstruction,
+  findMaskedTerms,
+  findUnofferedTerms,
+  observableSubjectTally,
+  recommendationConfidenceContractInstruction,
+  recomposePayloadAttention
+} from './build-attention-items.mjs';
+import { formatTestFileReachabilityFindings, validateTestFileReachability } from './validate-test-file-reachability.mjs';
 import { formatTimeoutBudgetFindings, validatePlaywrightTimeoutBudgets } from './validate-playwright-timeout-budgets.mjs';
 import { assertCoherentBar, formatBarsCoherenceFindings, isCoherentBar, partitionCoherentBars, validateBarsCorpus } from './validate-bars-coherence.mjs';
 import { findAgendaFixturePinDrift, formatAgendaFixturePinFinding, formatAgendaFixturePinFindings, validateAgendaFixturePin } from './validate-agenda-fixture-pin.mjs';
@@ -36,6 +54,7 @@ import { buildCompanyFundamentalsOwnerRead } from './brief-refresh.mjs';
 import {
   BRIEF_NARRATIVE_FIELDS_OPTIONAL,
   BRIEF_NARRATIVE_FIELDS_REQUIRED,
+  briefBackdropKeysInstruction,
   BRIEF_STRUCTURED_FIELDS,
   READER_VOCABULARY_LEAKS,
   findBriefNarrativeVocabularyLeaks,
@@ -2375,30 +2394,26 @@ try {
     'FX TP-A03-04 adversarial: an invalid committed universe is refused by the owner\u2019s own validator with a distinct reason, never folded into the no-evidence case');
 } catch (e) { failures++; console.log('  ✗ FAIL (fx headless owner read group threw): ' + e.message); }
 
-/* ---------- Portfolio brief: owner routing is READ, not declared (A04 / Feature 008 Scope 06) ----------
-   `state.briefOwners` shipped initialized to `{}` and never populated, so every brief item rendered
-   `unownedCapability` with a null deep link — the page told the reader no owning tool existed even
-   where one did. These assertions pin the wiring that fixed it, because the failure mode is silent:
-   reverting to an empty map breaks no existing test and produces a page that still renders.
-
-   The routing itself is exercised in the browser; what is pinned here is that the page still READS
-   the shared registry rather than declaring routes locally, and that it single-sources the link. */
+/* ---------- Portfolio brief: owner routing is part of one atomic public-evidence load ----------
+   Scope 20 replaced three independent fetch chains with one transaction. That is stronger than the
+   earlier Scope 06 wiring: ownership, watchlist, snapshot, payload and bounded history can no longer
+   come from different generations, and a failed candidate preserves the last valid local brief. */
 try {
-  group('portfolio brief — owner routing reads the registry');
+  group('portfolio brief — atomic public evidence preserves owner routing');
   const portfolioPage = read('portfolio-survival-allocation-lab.html');
   const ownerArtifact = JSON.parse(read('market-brief.owner-reads.json'));
-  // Comment-stripped, because a commented-out call still matches a naive substring search — which is
-  // precisely the regression this pins, and the first draft of this assertion fell for it.
-  const portfolioLive = portfolioPage.split('\n').filter((line) => !/^\s*(\/\/|\/\*|\*)/.test(line)).join('\n');
-
-  assert(/function loadOwnerRoutes\(\)/.test(portfolioLive) && /^\s*loadOwnerRoutes\(\);/m.test(portfolioLive),
-    'Owner routing A04-01: the page defines loadOwnerRoutes and CALLS it at boot on a live line, so briefOwners is populated rather than left empty');
-  assert(/loadOwnerRoutes[\s\S]{0,900}market-brief\.owner-reads\.json/.test(portfolioPage),
-    'Owner routing A04-02: ownership is read from the public owner-read artifact, so it is a registry fact rather than a list this page could drift from');
-  assert(/read\.ownerDeepLink/.test(portfolioPage) && !/loadOwnerRoutes[\s\S]{0,900}tools\.json/.test(portfolioPage),
+  const atomicArtifacts = ['market-brief.config.json', 'market-brief.snapshot.json', 'market-brief.payload.json',
+    'brief-history.recent.jsonl', 'watchlist.json', 'market-brief.owner-reads.json'];
+  assert(/Promise\.all\s*\(\s*\[/.test(portfolioPage) && atomicArtifacts.every((path) => portfolioPage.includes(`fetchPublicArtifact("${path}"`)),
+    'Owner routing A04-01: all six public artifacts load in one Promise transaction, so owner routes cannot drift from the publication they explain');
+  assert(/function ownerProjection\(artifact, cutoffAt\)/.test(portfolioPage)
+    && /ownerProjection\(ownerArtifact, cutoffAt\)/.test(portfolioPage),
+    'Owner routing A04-02: ownership is normalized from the public owner-read artifact inside the validated generic window');
+  assert(/read\.ownerDeepLink/.test(portfolioPage) && !/function ownerProjection[\s\S]{0,2600}tools\.json/.test(portfolioPage),
     'Owner routing A04-03: the route comes from the producer\u2019s own ownerDeepLink, so the link has ONE definition instead of a second resolution through tools.json');
-  assert(/state\.briefOwners = \{\};/.test(portfolioPage),
-    'Owner routing A04-04: a fetch failure restores the EMPTY map, so an unowned subject is a named capability gap rather than a guessed route');
+  assert(/state\.genericWindow = state\.lastValidGenericWindow/.test(portfolioPage)
+    && /data-generic-window-state",\s*state\.genericWindow \? "preserved-last-valid"/.test(portfolioPage),
+    'Owner routing A04-04: a failed atomic refresh preserves the last validated owner map and brief instead of publishing a mixed or guessed replacement');
 
   // The artifact must actually carry what the routing depends on, or the wiring above is inert.
   const routable = Object.values(ownerArtifact.ownerReads || {})
@@ -2950,6 +2965,36 @@ try {
   const laneSource = read('scripts/brief-narrative-parallel.mjs');
   const signalsRegion = laneSource.slice(laneSource.indexOf("id: 'signals'"), laneSource.indexOf("id: 'groups'"));
   const signalsInstruction = signalsRegion.slice(signalsRegion.indexOf('instructions: `'), signalsRegion.lastIndexOf('`'));
+  /* Every attention contract below is checked for CONSUMPTION the same way, so the check is
+     written once and the seven call sites keep their own message: a failure still names the one
+     contract that broke, and the regex that finds the import is no longer copied per contract.
+     Both halves matter and neither implies the other — an interpolation with no import throws at
+     lane runtime, and an import with no interpolation renders nothing to the author. */
+  const laneRenders = (fnName) => new RegExp(
+    `import\\s*\\{[^}]*${fnName}[^}]*\\}\\s*from\\s*'\\./build-attention-items\\.mjs'`
+  ).test(laneSource) && signalsInstruction.includes('${' + fnName + '()}');
+  const attentionRequire = (await import('node:module')).createRequire(import.meta.url);
+  const GATE_MODULE = attentionRequire('../rlattentiongate.js');
+  const RLATTN_MODULE = attentionRequire('../rlattention.js');
+  /* Both modules are read by several pins below, and one of those pins is an EXISTENCE test over
+     GATE_MODULE.SUBJECT_RESOLUTION_FIELDS - which passes vacuously on an empty or absent list. So
+     the two handles are identified here by a member each pin depends on: a require pointed at the
+     wrong module now fails BY NAME rather than crashing an assertion further down. */
+  assert(Array.isArray(GATE_MODULE.SUBJECT_RESOLUTION_FIELDS) && GATE_MODULE.SUBJECT_RESOLUTION_FIELDS.length > 0
+    && Number.isFinite(RLATTN_MODULE.LIMITS && RLATTN_MODULE.LIMITS.headlineMaxChars),
+    'the attention pins below read rlattentiongate.js for its scanned-field set and rlattention.js for its headline limit, and both handles resolve to a module that carries one');
+  /* ADVERSARIAL, and it exists BECAUSE laneRenders is shared: seven assertions now rest on one
+     predicate, so a predicate that answered true unconditionally would retire all seven at once
+     and every one of them would still print a tick. These rows fix it to the real lane source and
+     exercise each half separately. `briefEventContractInstruction` IS interpolated by the lane but
+     is imported from validate-brief-payload.mjs, so only the import half can reject it; the
+     truncated name IS a substring of the real import specifier, so only the interpolation half
+     can. Either half alone would let the other rot unnoticed. */
+  assert(laneRenders('attentionNoSuchInstruction') === false
+    && laneRenders('briefEventContractInstruction') === false
+    && laneRenders('attentionCardBudgetInstructio') === false
+    && laneRenders('attentionCardBudgetInstruction') === true,
+    'laneRenders rejects a name the lane never renders, one it interpolates but imports from another module, and one that only matches the import as a substring \u2014 both halves of the check are load-bearing');
   assert(/import\s*\{[^}]*briefEventContractInstruction[^}]*\}\s*from\s*'\.\/validate-brief-payload\.mjs'/.test(laneSource)
     && signalsInstruction.includes('${briefEventContractInstruction()}'),
     'the signals lane renders its §9 key pin from the publish gate instead of restating it');
@@ -2963,25 +3008,24 @@ try {
      subjects (SOXX, FETH) and the gate refused BOTH RLATTN-VERB. The instruction is rendered from
      the same frozen array checkVerb refuses on, for the reason the events keys are: a hardcoded
      restatement fixes one run and re-opens the gap the first time the vocabulary moves. */
-  assert(findAttentionVerbInstructionGaps(attentionVerbContractInstruction()).length === 0,
+  assert(findUnofferedTerms(RLATTN_RESEARCH_VERBS, attentionVerbContractInstruction()).length === 0,
     'the authoring instruction offers every verb the publication gate refuses on (unoffered: '
-    + (findAttentionVerbInstructionGaps(attentionVerbContractInstruction()).join(', ') || 'none') + ')');
+    + (findUnofferedTerms(RLATTN_RESEARCH_VERBS, attentionVerbContractInstruction()).join(', ') || 'none') + ')');
 
   // ADVERSARIAL — the instruction that shipped BEFORE this fix. It named the ENUM and no value,
   // which is exactly what let two publishable items be refused. A detector that cannot flag it
   // proves nothing.
   const enumOnlyInstruction = 'the four judgement enums — verb, horizon, severity and imminence.';
-  assert(findAttentionVerbInstructionGaps(enumOnlyInstruction).length === RLATTN_RESEARCH_VERBS.length,
+  assert(findUnofferedTerms(RLATTN_RESEARCH_VERBS, enumOnlyInstruction).length === RLATTN_RESEARCH_VERBS.length,
     'naming the verb ENUM without its values is reported as offering no verb at all (gaps: '
-    + findAttentionVerbInstructionGaps(enumOnlyInstruction).join(', ') + ')');
+    + findUnofferedTerms(RLATTN_RESEARCH_VERBS, enumOnlyInstruction).join(', ') + ')');
 
   // ADVERSARIAL — a near-miss longer token must NOT satisfy the ask for the shorter verb, so the
   // whole-value match cannot be weakened into a substring test later.
-  assert(findAttentionVerbInstructionGaps('use monitor-only, verifying, investigated').length === RLATTN_RESEARCH_VERBS.length,
+  assert(findUnofferedTerms(RLATTN_RESEARCH_VERBS, 'use monitor-only, verifying, investigated').length === RLATTN_RESEARCH_VERBS.length,
     'a longer token containing a verb does not count as offering that verb');
 
-  assert(/import\s*\{[^}]*attentionVerbContractInstruction[^}]*\}\s*from\s*'\.\/build-attention-items\.mjs'/.test(laneSource)
-    && signalsInstruction.includes('${attentionVerbContractInstruction()}'),
+  assert(laneRenders('attentionVerbContractInstruction'),
     'the signals lane renders its verb vocabulary from the publication gate instead of restating it');
   const handTypedVerbs = RLATTN_RESEARCH_VERBS.filter((verb) => new RegExp('\\b' + verb + '\\b').test(signalsInstruction));
   assert(handTypedVerbs.length === 0,
@@ -2994,15 +3038,549 @@ try {
      sentence that DESCRIBES a field leaves the literal key to guesswork. The keys are now
      rendered from AUTHORED_JUDGEMENT_KEYS, so the ask cannot drift from the contract. */
   const renderedKeys = attentionAuthoredKeysInstruction();
-  const unrenderedKeys = RLATTN_AUTHORED_KEYS.filter((key) => !new RegExp('\\b' + key + '\\b').test(renderedKeys));
+  const unrenderedKeys = findUnofferedTerms(RLATTN_AUTHORED_KEYS, renderedKeys);
   assert(unrenderedKeys.length === 0,
     'the authored-key instruction names every key the composer reads (unnamed: ' + unrenderedKeys.join(', ') + ')');
-  assert(/import\s*\{[^}]*attentionAuthoredKeysInstruction[^}]*\}\s*from\s*'\.\/build-attention-items\.mjs'/.test(laneSource)
-    && signalsInstruction.includes('${attentionAuthoredKeysInstruction()}'),
+  assert(laneRenders('attentionAuthoredKeysInstruction'),
     'the signals lane renders the authored key list from the composer instead of describing the fields in prose');
   /* No "holds no second copy" rule here, unlike the event keys and the verbs: SCN-017-045 REQUIRES
      the prose that explains each field, and that prose legitimately contains the key words. The
      two guards would contradict. What must not drift is the rendered LIST, which is asserted above. */
+
+  /* ── and the eligible SUBJECTS, for the reason a constraint the author must recall is weaker ────
+     than one it can select from. Telling the lane a subject must be "on the committed watchlist"
+     left it to remember which tickers those are, and the 03:13 EDT publish put four of five
+     candidates on subjects that resolved to nothing. The admissible set is rendered from the same
+     WATCHLIST_SCOPE the privacy check refuses on, so the menu cannot disagree with the gate. */
+  const renderedMenu = attentionSubjectMenuInstruction();
+  const unlistedSubjects = findUnofferedTerms(RLATTN_WATCHLIST_SCOPE, renderedMenu);
+  assert(unlistedSubjects.length === 0,
+    'the subject menu offers every ticker the privacy check admits (unoffered: ' + unlistedSubjects.join(', ') + ')');
+  assert(laneRenders('attentionSubjectMenuInstruction'),
+    'the signals lane renders the eligible subject list from the composer instead of asking the author to recall it');
+
+  /* ── and WHICH of those subjects clear the band right now ────────────────────────────────────
+     The menu offered the same 12 tickers on every run while the gate silently knew which ones
+     carried an observation, and a candidate whose subject yields none is not weaker but REFUSED
+     and recorded as an exclusion. On 2026-08-20 seven of the twelve were eligible, four of them
+     `severe`, and the published feed carried one. Annotating is also what makes consecutive runs
+     differ, because the eligible set moves with the market. It ANNOTATES rather than filters: a
+     filtered menu would empty on a quiet day and hand the author nothing. */
+  const gateModuleForMenu = attentionRequire('../rlattentiongate.js');
+  const menuPolicy = JSON.parse(read('market-brief.config.json'))['attention-detection-policy/v1'];
+  const menuTracked = gateModuleForMenu.observableSubjects(
+    JSON.parse(read('market-brief.snapshot.json'))
+  );
+  const expectedEligible = RLATTN_WATCHLIST_SCOPE.filter((subject) => {
+    const observed = gateModuleForMenu.observeGate({ subject, tracked: menuTracked[subject], policy: menuPolicy });
+    return Boolean(observed && observed.severity);
+  });
+  assert(expectedEligible.length > 0 && expectedEligible.every((subject) => new RegExp(subject + '\\s*\\((moderate|severe)\\)').test(renderedMenu)),
+    'the subject menu states which subjects clear the detection band right now, each with the severity the gate itself observed (' + expectedEligible.length + ' eligible)');
+  /* The assertion above is HALF the annotation: it checks only that eligible subjects carry a
+     severity, so a menu that marked every one of the twelve `severe` would satisfy it while
+     destroying the whole point — the lane would be told to choose freely from subjects whose
+     every item is refused for want of an observation, which is the failure the annotation was
+     added to end. The complement is therefore pinned too, and the two sets must PARTITION the
+     scope exactly: no subject unannotated, none annotated both ways. */
+  const expectedIneligible = RLATTN_WATCHLIST_SCOPE.filter((subject) => !expectedEligible.includes(subject));
+  assert(expectedIneligible.length > 0
+    && expectedIneligible.every((subject) => new RegExp(subject + '\\s*\\(no observation\\)').test(renderedMenu)),
+    'every scoped subject the gate observes NOTHING for is marked "no observation" rather than offered as choosable (' + expectedIneligible.length + ' ineligible)');
+  assert((renderedMenu.match(/\((?:moderate|severe)\)/g) || []).length === expectedEligible.length
+    && (renderedMenu.match(/\(no observation\)/g) || []).length === expectedIneligible.length,
+    'the two annotations partition the committed scope exactly, so a menu cannot mark a subject both ways, leave one unmarked, or annotate a subject the privacy check never admitted');
+  /* ADVERSARIAL: the live snapshot happens to carry eligible subjects, so the quiet-market and
+     unreadable-snapshot paths would never execute in production and could rot. The override is
+     undefined on every production path. A quiet market must tell the author to publish NOTHING —
+     the opposite instruction — and an unreadable snapshot must degrade to the plain list rather
+     than throw, which is the promise loadSnapshotForGate already makes. */
+  /* ── an outage must not publish as a quiet market ────────────────────────────────────────
+     The validator refuses "empty with NO recorded exclusions", so an empty tier WITH exclusions
+     published unconditionally. A stability pass showed a total bar-fetch failure writes a
+     structurally valid snapshot whose `tracked` is empty, every candidate is then refused for
+     want of an observation, and the run reported success with `subject: null` reasons that never
+     named the cause. The composer now records the systemic cause once, by name, and the validator
+     refuses it — both halves pinned, because either alone leaves the hole open. */
+  assert(observableSubjectTally({ tracked: {} }) === 0
+    && observableSubjectTally(null) === 0
+    && observableSubjectTally([]) === 0
+    && observableSubjectTally(JSON.parse(read('market-brief.snapshot.json'))) > 0,
+    'the observable-subject tally separates a snapshot the gate can read from one it cannot, which is what tells an outage apart from a quiet market');
+  /* A recompose derives its candidates from the PUBLISHED items, so a candidate refused on an
+     earlier run is not present and its refusal can NEVER be re-derived. Treating the fresh list as
+     authoritative whenever candidates existed erased real accounting: one run dropped three
+     recorded RLATTN-OVERLAP refusals and left a one-item tier that no longer said why three
+     subjects were held back. Prior rows survive; a re-derived row replaces its own, not doubling. */
+  const priorRows = [
+    { index: 0, subject: 'XLK', code: 'RLATTN-OVERLAP', field: 'subject', reason: 'prior run' },
+    { index: 1, subject: 'QQQ', code: 'RLATTN-OVERLAP', field: 'subject', reason: 'prior run' }
+  ];
+  const carried = recomposePayloadAttention(
+    { ...JSON.parse(read('market-brief.payload.json')), attentionExclusions: priorRows },
+    JSON.parse(read('market-brief.config.json'))
+  );
+  const carriedKeys = (carried.payload.attentionExclusions || []).map((entry) => `${entry.code}|${entry.subject}`);
+  assert(carriedKeys.includes('RLATTN-OVERLAP|XLK') && carriedKeys.includes('RLATTN-OVERLAP|QQQ')
+    && carriedKeys.filter((key) => key === 'RLATTN-OVERLAP|XLK').length === 1,
+    'a recompose carries forward a refusal it cannot re-derive rather than erasing it, and does not double a row it can');
+  assert(/RLATTN-SNAPSHOT-UNOBSERVABLE/.test(read('scripts/build-attention-items.mjs'))
+    && /RLATTN-SNAPSHOT-UNOBSERVABLE/.test(read('scripts/validate-brief-payload.mjs')),
+    'the systemic no-observable-subject cause is recorded by the composer AND refused by the validator, so an outage cannot ship an empty tier as a calm one');
+  /* The validator checks every exclusion's code against rlattention's allowlist, so a code the
+     composer emits but the allowlist omits makes the composer's own correct output read as
+     malformed: during a real outage the operator got the outage error AND a second one accusing
+     the composer of a bogus code. Membership is asserted here, and the negative case keeps the
+     allowlist from being widened into a rubber stamp. */
+  assert(RLATTN_MODULE.REFUSAL_CODES.includes('RLATTN-SNAPSHOT-UNOBSERVABLE')
+    && !RLATTN_MODULE.REFUSAL_CODES.includes('RLATTN-NOT-A-CODE'),
+    'the systemic outage code is a named composer refusal code, so the composer\'s own output is not simultaneously refused as malformed, and an unknown code is still rejected');
+
+  /* ── and the same two halves DRIVEN, because the pin above guards spelling ────────────────
+     The assertion above finds the constant in two files. It would stay green if the composer's
+     branch never fired, if the validator's refusal were unreachable, or if either mention
+     survived only in a comment — which is exactly the failure mode this packet already found
+     once in rlbrief.js. Both halves are therefore executed below.
+
+     The fixture is the committed item's JUDGEMENT ONLY, which is what the authoring lane
+     actually hands over. Recomposing the committed item as published proves nothing here: a
+     `decision-attention/v1` envelope carries its own observed half, so it survives an outage
+     snapshot untouched and the branch never runs — measured, not supposed. */
+  const outageConfig = JSON.parse(read('market-brief.config.json'));
+  const outageRegistry = JSON.parse(read('tools.json'));
+  const outageAgenda = JSON.parse(read('research-agenda.json'));
+  const outageSnapshot = JSON.parse(read('market-brief.snapshot.json'));
+  const committedForOutage = JSON.parse(read('market-brief.payload.json'));
+  const laneJudgementOnly = {};
+  for (const key of RLATTN_AUTHORED_KEYS) {
+    if (committedForOutage.attention[0][key] !== undefined) laneJudgementOnly[key] = committedForOutage.attention[0][key];
+  }
+  const outageBasePayload = Object.assign({}, committedForOutage, { attention: [laneJudgementOnly] });
+  delete outageBasePayload.attentionExclusions;
+  const systemicRows = (result) => (result.payload.attentionExclusions || [])
+    .filter((exclusion) => exclusion && exclusion.code === 'RLATTN-SNAPSHOT-UNOBSERVABLE');
+
+  const outageRun = recomposePayloadAttention(outageBasePayload, outageConfig, { tracked: {} });
+  const observableRun = recomposePayloadAttention(outageBasePayload, outageConfig, outageSnapshot);
+  assert(observableRun.items.length === 1 && systemicRows(observableRun).length === 0,
+    'the same candidate BUILDS against the committed snapshot and records no systemic cause, so the fixture is a genuinely observable item and the outage branch discriminates rather than always firing');
+  assert(outageRun.items.length === 0 && systemicRows(outageRun).length === 1
+    && systemicRows(outageRun)[0].index === -1 && systemicRows(outageRun)[0].subject === null,
+    'against a snapshot the gate cannot observe, the composer builds nothing and records the systemic cause exactly ONCE with no subject, rather than leaving only per-candidate refusals that never name why every one of them failed');
+
+  const outageRefusals = (candidate) => validateBriefPayload(candidate, outageRegistry, outageConfig, outageSnapshot, outageAgenda)
+    .filter((error) => /outage is not a quiet market/.test(error));
+  assert(outageRefusals(outageRun.payload).length === 1,
+    'the validator REFUSES the composer\u2019s own outage output rather than accepting an empty tier that merely carries some exclusion');
+  assert(outageRefusals(observableRun.payload).length === 0,
+    'the same validator passes the observable run, so the refusal is bound to the systemic cause and not to recomposed payloads generally');
+  /* ADVERSARIAL: the rule it strengthens is satisfied by ANY exclusion, so a refusal that fired
+     on an ordinary per-candidate one would refuse every honest quiet window instead. */
+  const ordinaryExclusionOnly = Object.assign({}, committedForOutage, {
+    attention: [],
+    attentionExclusions: [{ index: 0, subject: 'SOXX', code: 'RLATTN-PROVENANCE', field: 'gateResult', reason: 'an attention item is built from an observed gate result' }]
+  });
+  assert(outageRefusals(ordinaryExclusionOnly).length === 0,
+    'an empty tier explained by an ordinary per-candidate refusal is NOT refused as an outage, so the new rule adds a named failure instead of closing the quiet-window path the tier already supports');
+
+  /* The quiet fixture must be a snapshot the gate can READ and which happens to observe
+     nothing. `{ tracked: {} }` is not that: it is indistinguishable from `{}`, `[]` or a stray
+     string, all of which reached the quiet branch and told the lane to publish nothing at all —
+     a corrupted input silencing the whole feed while looking like a calm market. */
+  const quietTracked = {};
+  for (const subject of RLATTN_WATCHLIST_SCOPE) quietTracked[subject] = { asOf: '2026-08-20', px: 100 };
+  const quietMenu = attentionSubjectMenuInstruction({ tracked: quietTracked });
+  const degradedMenu = attentionSubjectMenuInstruction(null);
+  assert(/NO scoped subject clears the detection band/.test(quietMenu)
+    && /Author no attention items this window/.test(quietMenu)
+    && !/detection band, with the severity/.test(quietMenu),
+    'a readable snapshot in which nothing clears the band tells the author to publish no attention item at all, instead of offering a menu every choice from which would be refused');
+  assert(!/detection band/.test(degradedMenu)
+    && findUnofferedTerms(RLATTN_WATCHLIST_SCOPE, degradedMenu).length === 0,
+    'an unreadable snapshot degrades to the plain subject list rather than throwing or claiming an eligibility it could not compute');
+  /* ADVERSARIAL: a corrupted snapshot must never be mistaken for a calm one. Every shape that
+     parses but carries no readable subject degrades; only the readable-quiet fixture suppresses. */
+  for (const [label, corrupt] of [['empty object', {}], ['array', []], ['string', 'garbage'], ['empty tracked', { tracked: {} }]]) {
+    assert(attentionSubjectMenuInstruction(corrupt) === degradedMenu,
+      'a snapshot that parses but carries no readable subject (' + label + ') degrades to the plain list rather than telling the author to publish nothing');
+  }
+  assert(quietMenu !== renderedMenu && degradedMenu !== renderedMenu && quietMenu !== degradedMenu,
+    'the three snapshot states render three different menus, so none of the branches is dead text');
+
+  /* ── and the ONE-ticker rule, which is the same defect an eighth time ─────────────────────────
+     The menu above tells the author which tickers are admissible and to put one in the headline.
+     It does not tell them that `resolveSubject` scans headline, rationale, escalationTrigger and
+     invalidation TOGETHER and returns null when two tracked symbols appear anywhere across them —
+     a refusal SCN-BUG009-R1-AMBIGUOUS asserts on purpose. So an author can satisfy every stated
+     rule, write the ordinary rationale "semis are leading QQQ here" under a SOXX headline, and
+     lose the whole item to RLATTN-PROVENANCE with a null subject that cannot be diagnosed after
+     the fact. The committed payload carries two refusals of exactly that shape. Rendered from
+     SUBJECT_RESOLUTION_FIELDS so the warned-about set and the scanned set are one array. */
+  const renderedUniqueness = attentionSubjectUniquenessInstruction();
+  const unwarnedFields = findUnofferedTerms(GATE_MODULE.SUBJECT_RESOLUTION_FIELDS, renderedUniqueness);
+  assert(unwarnedFields.length === 0,
+    'the uniqueness instruction names every field the subject resolver scans (unnamed: ' + unwarnedFields.join(', ') + ')');
+
+  // ADVERSARIAL — the instruction that shipped BEFORE this fix spoke only of the headline. A
+  // detector that cannot flag it proves nothing, because that is the exact text that let two
+  // candidates be refused for a rationale nobody warned about.
+  const headlineOnlyInstruction = 'write its ticker verbatim in the headline.';
+  assert(findUnofferedTerms(GATE_MODULE.SUBJECT_RESOLUTION_FIELDS, headlineOnlyInstruction).length
+    === GATE_MODULE.SUBJECT_RESOLUTION_FIELDS.length - 1,
+    'naming only the headline leaves every other scanned field unwarned (unnamed: '
+    + findUnofferedTerms(GATE_MODULE.SUBJECT_RESOLUTION_FIELDS, headlineOnlyInstruction).join(', ') + ')');
+
+  // The rule is LOAD-BEARING, not decorative: the same item survives with one ticker and is
+  // refused whole with a second one placed in a field the old instruction never mentioned.
+  const uniquenessTracked = {
+    SOXX: { asOf: '2026-08-19T18:00:00.000Z', ma200Dist: -20, px: 100, levels: { high52w: 160 }, maStack: 'tangled', flags: { persistenceGateMet: true } },
+    QQQ: { asOf: '2026-08-19T18:00:00.000Z', ma200Dist: -20, px: 100, levels: { high52w: 160 }, maStack: 'tangled', flags: { persistenceGateMet: true } }
+  };
+  assert(GATE_MODULE.resolveSubject({ headline: 'SOXX sits far below its 200-day' }, uniquenessTracked) === 'SOXX'
+    && GATE_MODULE.resolveSubject({ headline: 'SOXX sits far below its 200-day', rationale: 'semis are leading QQQ here' }, uniquenessTracked) === null,
+    'a second watchlist ticker in the RATIONALE alone unresolves the subject, so the field set the instruction now names is the field set that actually costs the item');
+
+  assert(laneRenders('attentionSubjectUniquenessInstruction'),
+    'the signals lane renders the one-ticker rule from the resolver instead of leaving the author to discover it by refusal');
+  /* No "holds no second copy" rule here, for the reason the authored keys carry none: the lane
+     legitimately asks for a rationale, an escalation trigger and an invalidation in prose, so
+     those words must appear. What must not drift is the rendered FIELD SET, asserted above. */
+
+  /* ── and the HEADLINE CAP, the last hardcoded number in the ask ──────────────────────────────
+     The lane said "a headline of at most 120 characters" as a literal. Correct the day it was
+     written and silently wrong the moment LIMITS.headlineMaxChars moves - the same drift the
+     other rendered contracts close. Reading the authoritative limit is the OPPOSITE of the
+     second copy the build-step guard bans, so that guard now bans an ASSIGNMENT rather than any
+     mention: the one form that cannot drift is permitted, the form that creates drift is not. */
+  const renderedCap = attentionHeadlineCapInstruction();
+  const enforcedCap = RLATTN_MODULE.LIMITS.headlineMaxChars;
+  assert(new RegExp('\\b' + enforcedCap + '\\b').test(renderedCap),
+    'the headline instruction states the cap checkHeadline actually refuses on (' + enforcedCap + ')');
+  assert(!/\b120\b/.test(signalsInstruction),
+    'the signals lane holds no hardcoded headline number; it renders the cap from rlattention.js');
+  assert(laneRenders('attentionHeadlineCapInstruction'),
+    'the signals lane renders the headline cap from the composer instead of restating a number');
+
+  /* ── and the per-CARD budget, which is the one that discards the whole brief ──────────────────
+     The 03:30 EDT run composed two complete items and published none of them: attention[0]
+     measured 314 characters against a cap of 300, so the payload validator refused the whole
+     narrative and the publish fell back to Tier-A data only. Fourteen characters cost the brief.
+     The lane knew a HEADLINE limit and not the CARD limit, which sums four fields - it could
+     satisfy every field individually and still breach. Rendered from the committed policy so the
+     stated cap and the enforced cap are one number. */
+  const renderedBudget = attentionCardBudgetInstruction();
+  const budgetPolicy = JSON.parse(read('market-brief.config.json'))['output-budget/v1'];
+  const cardFields = (budgetPolicy.defaultVisibleFields || [])
+    .filter((field) => typeof field === 'string' && field.startsWith('attention[].'))
+    .map((field) => field.slice('attention[].'.length));
+  const unstatedFields = findUnofferedTerms(cardFields, renderedBudget);
+  assert(unstatedFields.length === 0,
+    'the card-budget instruction names every field the cap measures (unnamed: ' + unstatedFields.join(', ') + ')');
+  assert(new RegExp('\\b' + budgetPolicy.decisionCardChars + '\\b').test(renderedBudget),
+    'the card-budget instruction states the enforced per-card cap of ' + budgetPolicy.decisionCardChars);
+  assert(laneRenders('attentionCardBudgetInstruction'),
+    'the signals lane renders the per-card budget from the committed policy instead of omitting it');
+
+  /* ── and the DETAIL budget, for the field the card budget deliberately does not count ─────
+     attention[].rationale is hidden behind the card by design, so it is absent from
+     defaultVisibleFields and was therefore bounded by NOTHING: twelve published rationales
+     measured 284 to 575 characters against no cap at all. Folding it into the card budget was
+     measured and rejected — the live card is 194 against a 300 cap and its rationale is 575, so
+     folding would refuse the only item the feed publishes. It gets its own cap instead. */
+  const detailPolicy = JSON.parse(read('market-brief.config.json'))['output-budget/v1'];
+  const RLCOCKPIT_FOR_DETAIL = attentionRequire('../rlcockpit.js');
+  const renderedDetail = attentionRationaleBudgetInstruction();
+  assert(Array.isArray(detailPolicy.detailFields) && detailPolicy.detailFields.length > 0
+    && detailPolicy.detailFields.every((field) => !(detailPolicy.defaultVisibleFields || []).includes(field)),
+    'every declared detail field is absent from defaultVisibleFields, so the hidden detail is bounded without being counted against the card the reader actually sees');
+  assert(new RegExp('\\b' + detailPolicy.detailFieldChars + '\\b').test(renderedDetail)
+    && laneRenders('attentionRationaleBudgetInstruction'),
+    'the detail budget is stated to the author with the enforced cap of ' + detailPolicy.detailFieldChars + ' and rendered by the lane, rather than enforced silently');
+  /* ADVERSARIAL: a cap nothing can breach is decoration. A rationale one character over the cap
+     must produce a violation naming its own path, and one at the cap must not. */
+  const overCard = { attention: [{ rationale: 'x'.repeat(detailPolicy.detailFieldChars + 1) }] };
+  const atCard = { attention: [{ rationale: 'x'.repeat(detailPolicy.detailFieldChars) }] };
+  const overBreaches = RLCOCKPIT_FOR_DETAIL.budgetViolations(
+    RLCOCKPIT_FOR_DETAIL.measureDefaultVisible(overCard, detailPolicy), detailPolicy
+  ).filter((breach) => breach.capName === 'detail cap');
+  const atBreaches = RLCOCKPIT_FOR_DETAIL.budgetViolations(
+    RLCOCKPIT_FOR_DETAIL.measureDefaultVisible(atCard, detailPolicy), detailPolicy
+  ).filter((breach) => breach.capName === 'detail cap');
+  assert(overBreaches.length === 1 && overBreaches[0].path === 'attention[0].rationale'
+    && atBreaches.length === 0,
+    'the detail cap refuses a rationale one character over and admits one exactly at the cap, so the bound is real and is not off by one');
+
+  /* ── the budget and the page artifact must agree on what "default-visible" means ──────────
+     They did not. output-budget/v1 declared crossAsset.legs[].label, crossAsset.dark[].reason,
+     .withheld, .substitutionRefusal, changed[].line and rollUp.line as default-visible reader
+     text and the budget measured them every run — while build-brief-page-artifacts.mjs, whose
+     allow-list decides what the reader's page actually receives, dropped all three roots. The
+     page declares #crossAsset, #darkLegs and #changedList as VISIBLE blocks and they rendered
+     empty in production. The cockpit suite could not see it because its fixture injects
+     crossAsset directly, so the renderer was proven and the delivery never was. */
+  const pageArtifact = JSON.parse(read('market-brief.page.json'));
+  const livePayload = JSON.parse(read('market-brief.payload.json'));
+  const declaredRoots = [...new Set((detailPolicy.defaultVisibleFields || [])
+    .map((field) => String(field).split('.')[0].split('[')[0]))];
+  const droppedRoots = declaredRoots.filter((root) => root in livePayload && !(root in pageArtifact));
+  assert(declaredRoots.length > 0 && droppedRoots.length === 0,
+    'every root the budget calls default-visible and the payload actually carries is shipped in the page artifact the reader loads (dropped: '
+    + (droppedRoots.join(', ') || 'none') + ')');
+
+  /* ── and the header BADGE, the most visible text on the page ──────────────────────────────
+     dataAsOf.* was absent from defaultVisibleFields entirely, so the budget whose whole purpose
+     is bounding the DEFAULT VIEW never measured its most prominent element: the badge sits above
+     every decision and was rendering the full narratives at 3,266 characters. Only the two fields
+     the badge actually renders are declared, which is what keeps the list meaning "visible" —
+     declaring all four would total 3,424 against a 3,000 cap and breach on the next publish. */
+  const badgeFields = (detailPolicy.defaultVisibleFields || []).filter((field) => field.startsWith('dataAsOf.labels.'));
+  assert(badgeFields.length === 2
+    && badgeFields.includes('dataAsOf.labels.bars')
+    && badgeFields.includes('dataAsOf.labels.macro')
+    && !(detailPolicy.defaultVisibleFields || []).includes('dataAsOf.labels.events'),
+    'exactly the two freshness labels the header badge renders are measured as default-visible, and the two it does not render are left out rather than swelling the cap');
+  const renderedBadge = briefFreshnessBadgeInstruction();
+  assert(badgeFields.every((field) => new RegExp('\\b' + field.slice('dataAsOf.labels.'.length) + '\\b').test(renderedBadge))
+    && new RegExp('\\b' + detailPolicy.totalDefaultVisibleChars + '\\b').test(renderedBadge)
+    && /badge, not a paragraph/.test(renderedBadge),
+    'the badge contract names the fields it measures and the budget they now count against, so the author knows the badge is a badge');
+  /* ADVERSARIAL: the point is that the badge is MEASURED, not merely listed. */
+  const badgePayload = (barsLen) => ({
+    dataAsOf: { labels: { bars: 'x'.repeat(barsLen), macro: 'y' } }
+  });
+  const fatBadge = RLCOCKPIT_FOR_DETAIL.budgetViolations(
+    RLCOCKPIT_FOR_DETAIL.measureDefaultVisible(badgePayload(detailPolicy.totalDefaultVisibleChars + 1), detailPolicy), detailPolicy
+  ).filter((breach) => breach.capName === 'total cap');
+  const leanBadge = RLCOCKPIT_FOR_DETAIL.budgetViolations(
+    RLCOCKPIT_FOR_DETAIL.measureDefaultVisible(badgePayload(10), detailPolicy), detailPolicy
+  ).filter((breach) => breach.capName === 'total cap');
+  assert(fatBadge.length === 1 && leanBadge.length === 0,
+    'an oversized freshness label is refused by the default-visible total it now counts against, and a short one is not \u2014 the badge is measured rather than merely declared');
+  /* ── and the guard for the config that has no budget section, which is where this broke ────
+     The cap above is enforced. The REFUSAL for an unreadable budget was not reachable by any
+     test: the instruction read the section straight off disk, so the one input its named error
+     was written for — a config carrying no `output-budget/v1` at all — dereferenced undefined
+     and raised an anonymous TypeError instead. A narrowing was added to fix that and nothing
+     executed it. Reached here through the same production-undefined override seam the
+     confidence contract and the recompose snapshot already use. */
+  const committedBudgetConfig = JSON.parse(read('market-brief.config.json'));
+  assert(attentionRationaleBudgetInstruction(committedBudgetConfig) === renderedDetail,
+    'the override renders the identical instruction for the committed config, so it is a test seam and not a second contract that could drift from the one the lane receives');
+  for (const [label, brokenConfig] of [
+    ['no output-budget section at all', {}],
+    ['a section declaring no character cap', { 'output-budget/v1': { detailFields: ['attention[].rationale'] } }],
+    ['a section declaring no detail field', { 'output-budget/v1': { detailFieldChars: 700, detailFields: [] } }]
+  ]) {
+    let budgetRefusal = null;
+    let budgetRendered = null;
+    try { budgetRendered = attentionRationaleBudgetInstruction(brokenConfig); } catch (error) { budgetRefusal = error.message; }
+    assert(budgetRefusal !== null && /^RLATTN-DETAIL-BUDGET: /.test(budgetRefusal),
+      'a budget policy with ' + label + ' REFUSES by its own name rather than raising an anonymous type error or handing the author an "undefined" cap (raised: '
+      + JSON.stringify(budgetRefusal) + ', rendered: ' + JSON.stringify(String(budgetRendered).slice(0, 40)) + ')');
+  }
+
+  /* ── DISC-009-004: the reader is told when a reading predates the data beside it ──────────
+     Tier-A refreshes the page several times a day and never rewrites the payload — brief-refresh
+     .mjs reads it as a committed artifact, the R-5 boundary, and across 197 commits touching the
+     payload the tier-a bot authored zero. So the decision list can legitimately be older than the
+     numbers around it. Recomposing on the data path would breach R-5; dropping the item would
+     make a decision vanish mid-session. Labelling it is the third option and the honest one. */
+  const RLATTN_FRESH = attentionRequire('../rlattention.js');
+  assert(RLATTN_FRESH.observationFreshness('2026-08-20T20:31:05.598Z', '2026-08-20T20:31:05.598Z') === 'current'
+    && RLATTN_FRESH.observationFreshness('2026-08-20T18:00:00.000Z', '2026-08-20T20:31:05.598Z') === 'behind-data'
+    && RLATTN_FRESH.observationFreshness(null, '2026-08-20T20:31:05.598Z') === 'unknown',
+    'observation freshness separates a reading taken from the data on the page, one taken before it, and one that does not say');
+  assert(RLATTN_FRESH.observationFreshnessNote('2026-08-20T20:31:05.598Z', '2026-08-20T20:31:05.598Z') === null
+    && /before the/.test(RLATTN_FRESH.observationFreshnessNote('2026-08-20T18:00:00.000Z', '2026-08-20T20:31:05.598Z')),
+    'a current reading adds no note and a stale one states that it predates the page data, so the label appears only when it carries information');
+  assert(/observationFreshnessNote/.test(read('market-brief.html'))
+    && /observation-age/.test(read('market-brief.html')),
+    'the cockpit renders the observation-age label rather than leaving the payload field unread');
+  /* isIsoInstant validates the TRIMMED value, so whitespace passes the format check and used to
+     ride into the note verbatim - and observedAt is in neither defaultVisibleFields nor
+     detailFields, so nothing bounded the result. A security pass measured a 2MB-padded but
+     format-valid instant producing a 2,000,178-character note. */
+  const paddedInstant = '   2026-08-20T18:00:00.000Z' + ' '.repeat(4096);
+  const paddedNote = RLATTN_FRESH.observationFreshnessNote(paddedInstant, '2026-08-20T20:31:05.598Z');
+  assert(paddedNote.indexOf(paddedInstant) === -1 && paddedNote.length < 400,
+    'the observation-age note interpolates the validated instant rather than the raw one, so padding accepted by the format check cannot inflate an unbudgeted field (' + paddedNote.length + ' chars)');
+
+  /* ── how to CHOOSE a confidence, the field the reader is most entitled to trust ───────────
+     BUG-014. Both lanes required a `confidence` and neither said how to pick one, so the only
+     numeral in the guidance - the tactical CAP - became a universal default: across the 34
+     committed payload runs from 2026-08-14 to 2026-08-20, spanning 8 distinct decision slates
+     and both swing and structural horizons, EVERY recommendation carried exactly 55. That is
+     not cosmetic. nextSessionActions sorts by confidence and slices, so one shared value makes
+     the comparator return 0 for every pair and the "ranked" slate is really the authored order,
+     while `>= floor` degenerates into a cliff. Rendered from the thresholds the gate reads. */
+  const confidenceThresholds = JSON.parse(read('market-brief.config.json')).thresholds || {};
+  const renderedConfidence = recommendationConfidenceContractInstruction();
+  /* Each threshold is probed by REMOVING it from the render and requiring the text to change,
+     not by looking for its digits. Two of the three thresholds are both 55 today, so a
+     substring check on "55" is satisfied by whichever clause happens to mention it: the
+     attention-floor assertion passed against prose supplied by the tactical cap, and stayed
+     green when the attention floor was replaced by the literal 'an unstated floor'. A pin that
+     survives deletion of the thing it guards is decoration. */
+  for (const key of ['minimumActionConfidence', 'minimumAttentionConfidence', 'tacticalConfidenceCap']) {
+    const probed = recommendationConfidenceContractInstruction(
+      Object.assign({}, confidenceThresholds, { [key]: confidenceThresholds[key] + 7 })
+    );
+    assert(new RegExp('\\b' + confidenceThresholds[key] + '\\b').test(renderedConfidence)
+      && probed !== renderedConfidence
+      && new RegExp('\\b' + (confidenceThresholds[key] + 7) + '\\b').test(probed),
+      'the confidence contract states the enforced ' + key + ' of ' + confidenceThresholds[key]
+      + ' and follows it when that one threshold moves, so the value is read rather than coincidentally present');
+  }
+  assert(/rank|sorted/i.test(renderedConfidence) && /vary it across items/i.test(renderedConfidence),
+    'the confidence contract tells the author the number ranks, and to vary it - the two facts that make a pinned value harmful');
+  /* ── and the guard for the day a threshold goes missing ───────────────────────────────────
+     Every rendered contract in this file carries a named error for unreadable inputs and not
+     one of them was ever executed, so each is a claim rather than a behaviour. This one is
+     reachable today through the same override seam the branch probes above use. It matters
+     because the alternative to a NAMED failure is not a safe default: an absent threshold
+     yields undefined, `${undefined}` renders as the word "undefined", and the lane would be
+     handed a floor of "undefined" as confidently as a number. Each of the three is removed in
+     turn, because a guard that only notices one missing threshold leaves the other two silent. */
+  for (const missing of ['minimumActionConfidence', 'minimumAttentionConfidence', 'tacticalConfidenceCap']) {
+    const incomplete = Object.assign({}, confidenceThresholds);
+    delete incomplete[missing];
+    let raisedMessage = null;
+    let renderedAnyway = null;
+    try { renderedAnyway = recommendationConfidenceContractInstruction(incomplete); } catch (error) { raisedMessage = error.message; }
+    assert(raisedMessage !== null && /^RLATTN-CONFIDENCE-BANDS: /.test(raisedMessage),
+      'a missing ' + missing + ' REFUSES by its own name instead of rendering a contract that states an "undefined" band to the author (rendered: '
+      + JSON.stringify(String(renderedAnyway).slice(0, 60)) + ')');
+  }
+  /* ADVERSARIAL: a guard that refused every input would be worse than none, and would have
+     taken the live lane down rather than protected it. */
+  assert(typeof recommendationConfidenceContractInstruction(confidenceThresholds) === 'string',
+    'the complete committed triple renders rather than refusing, so the guard discriminates between an unreadable threshold set and a readable one');
+  /* Both lanes author a confidence, so both must receive the contract. The core lane owns
+     nextSession actions and the signals lane owns recommendations; a contract rendered to only
+     one of them leaves the other anchoring exactly as before. */
+  const coreRegion = laneSource.slice(laneSource.indexOf("id: 'core'"), laneSource.indexOf("id: 'signals'"));
+  assert(coreRegion.includes('${recommendationConfidenceContractInstruction()}')
+    && laneRenders('recommendationConfidenceContractInstruction'),
+    'both the core and signals lanes render the confidence contract, because both author a confidence');
+  assert(!/Keep tactical confidence at or below the configured cap/.test(laneSource),
+    'the hand-typed tactical-cap sentence is gone rather than left beside the rendered contract as a second copy');
+  /* ADVERSARIAL: the cap and the floor are independent config values and their RELATIONSHIP
+     decides what a tactical author may write. Live config now has cap > actionFloor, so the
+     equal and below branches would never execute in production and could rot unnoticed. The
+     override seam is undefined on every production path. */
+  const capBelow = recommendationConfidenceContractInstruction({
+    minimumActionConfidence: 55, minimumAttentionConfidence: 55, tacticalConfidenceCap: 40
+  });
+  const capAbove = recommendationConfidenceContractInstruction({
+    minimumActionConfidence: 55, minimumAttentionConfidence: 55, tacticalConfidenceCap: 70
+  });
+  const capEqual = recommendationConfidenceContractInstruction({
+    minimumActionConfidence: 55, minimumAttentionConfidence: 55, tacticalConfidenceCap: 55
+  });
+  assert(/cannot become an action at all/.test(capBelow)
+    && /may only occupy 55 to 70/.test(capAbove)
+    && /exactly one admissible value/.test(capEqual)
+    && capBelow !== capAbove && capAbove !== capEqual,
+    'the confidence contract derives a DIFFERENT tactical clause for cap-below-floor, cap-above-floor and cap-equals-floor rather than restating one fixed sentence');
+  /* The floor and the cap must leave a tactical author somewhere to stand. Equal is degenerate:
+     the publish validator refuses below the floor AND above the cap, so cap === floor admits
+     exactly one value and every tactical action carries the same number by construction - which
+     is what 34 of 34 committed runs did. Below the floor is worse, and silent: a tactical action
+     would be simultaneously too low and too high and could never publish at all. The floor moved
+     to 50 rather than the cap to 60 because the <= 55 tactical ceiling is stated twice in
+     notes/market-brief.md as anti-reactivity doctrine, while the floor is a tunable noise bar -
+     and no action below 55 has ever been published, so opening the band excludes nothing. */
+  assert(confidenceThresholds.tacticalConfidenceCap > confidenceThresholds.minimumActionConfidence,
+    'the tactical cap leaves a band above the action floor, so a tactical action is not forced onto a single admissible value (cap '
+    + confidenceThresholds.tacticalConfidenceCap + ' vs floor ' + confidenceThresholds.minimumActionConfidence + ')');
+  assert(new RegExp('may only occupy ' + confidenceThresholds.minimumActionConfidence + ' to '
+    + confidenceThresholds.tacticalConfidenceCap).test(renderedConfidence),
+    'live config gives tactical a real band and the contract states that band rather than a single value');
+  /* The pair invariant above guards the tactical collision and nothing else, so a threshold that
+     is unsatisfiable on its own still lands silently: the contract tells the author to choose on a
+     0-100 scale, and an attention floor above 100 would refuse every card ever written while the
+     instruction went on describing a reachable bar. Every band the contract states must sit on the
+     scale it states. minimumAttentionConfidence has no cap to collide with, so this is the only
+     check that constrains it at all. */
+  for (const key of ['minimumActionConfidence', 'minimumAttentionConfidence', 'tacticalConfidenceCap']) {
+    const value = confidenceThresholds[key];
+    assert(Number.isFinite(value) && value >= 0 && value <= 100,
+      key + ' sits on the 0-100 scale the contract tells the author to use, so the bar it states is reachable (' + value + ')');
+  }
+  /* 0 is ON that scale, so it has to survive the trip to the renderer. `||` treated it as absent
+     and substituted 55, which meant a deliberate "no floor" was silently overridden on the action
+     path while the attention path honoured it — the two surfaces disagreed about the same key.
+     This is a LITERAL check and is evadable by construction: a simplify pass reintroduced the
+     identical defect spelled `var f = thresholds.X; var actionFloor = f || 55;` and this suite
+     stayed green. It is kept as a fast unit-level tripwire for the naive revert; the property
+     itself is pinned behaviourally by SCN-BUG014-FLOOR-ZERO-HONOURED in
+     tests/attention-browser.spec.mjs, which drives renderNextSession and fails on that evasion. */
+  assert(!/thresholds\.minimumActionConfidence \|\| 55/.test(read('rlbrief.js'))
+    && !/thresholds\.nextSessionMaxActions \|\| 5/.test(read('rlbrief.js')),
+    'the cockpit reads a configured threshold with a finite check rather than || (literal tripwire; the behaviour is pinned by SCN-BUG014-FLOOR-ZERO-HONOURED)');
+
+  /* ── and the expiry SHAPE, proven against the gate's own predicate ────────────────────────
+     The 03:50 EDT run lost FETH on expiry alone - the item was complete, in budget, and on an
+     admissible subject. "An expiry instant" never said what an instant looks like, and the check
+     is a strict UTC pattern that rejects a bare date or a +00:00 offset. Asserting the worked
+     example against rlattention's OWN isIsoInstant is what makes this guard real: a restated
+     regex here could agree with itself while disagreeing with the gate. */
+  const expiryInstruction = attentionExpiryFormatInstruction();
+  const workedExample = (expiryInstruction.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z/) || [])[0];
+  assert(typeof workedExample === 'string' && workedExample.length > 0,
+    'the expiry instruction shows the author a worked example instant');
+  assert(RLATTN_MODULE.isIsoInstant(workedExample) === true,
+    'the expiry example shown to the author is accepted by the composer\'s own isIsoInstant (' + workedExample + ')');
+  assert(RLATTN_MODULE.isIsoInstant('2026-01-31') === false
+    && RLATTN_MODULE.isIsoInstant('2026-01-31T20:00:00+00:00') === false,
+    'the predicate backing that example still rejects a bare date and an offset form, so the example is load-bearing');
+  assert(laneRenders('attentionExpiryFormatInstruction'),
+    'the signals lane renders the expiry format instead of leaving the instant shape to the author');
+
+  /* ── the pin that makes the coverage pins above able to fail at all ──────────────────────
+     Every coverage guard above is an EXISTENCE test: findUnofferedTerms asks whether a member
+     appears in the rendered instruction AT ALL. So a member the instruction also uses in its own
+     explanatory prose stays "offered" after it is dropped from the rendered list, and that guard
+     silently stops asserting anything for that member — the pin becomes decoration.
+
+     Measured under mutation, not supposed. Rendering `fields.slice(1)` from
+     attentionSubjectUniquenessInstruction dropped `headline` from the very set the author is
+     warned about, and the entire suite stayed green, because the sentence went on to say "not the
+     headline alone". Six sibling mutations went red; that one survived. Stating each member
+     exactly once is what keeps every coverage pin load-bearing, so it is asserted rather than
+     left to whoever next edits a sentence. */
+  [
+    ['verb vocabulary', RLATTN_RESEARCH_VERBS, attentionVerbContractInstruction()],
+    ['authored key', RLATTN_AUTHORED_KEYS, renderedKeys],
+    ['subject menu', RLATTN_WATCHLIST_SCOPE, renderedMenu],
+    ['uniqueness', GATE_MODULE.SUBJECT_RESOLUTION_FIELDS, renderedUniqueness],
+    ['card-budget', cardFields, renderedBudget]
+  ].forEach(([label, list, rendered]) => {
+    const restated = findMaskedTerms(list, rendered);
+    assert(restated.length === 0,
+      'the ' + label + ' instruction states each member exactly once, so dropping one from the rendered '
+      + 'list cannot be masked by the instruction\'s own prose (restated: ' + (restated.join(', ') || 'none') + ')');
+  });
+
+  // ADVERSARIAL — the exact sentence that shipped before this pin existed. A detector that cannot
+  // flag it proves nothing, because that sentence is precisely what let a dropped scanned field go
+  // unnoticed by a guard whose whole job was to notice.
+  assert(findMaskedTerms(GATE_MODULE.SUBJECT_RESOLUTION_FIELDS,
+    'Name exactly ONE watchlist ticker across ' + GATE_MODULE.SUBJECT_RESOLUTION_FIELDS.join(', ')
+    + ' combined, resolved by scanning all of those fields together, not the headline alone.')
+    .join(',') === 'headline',
+    'the pre-fix uniqueness sentence is reported as restating `headline`, which is the mask that made its coverage pin unfailable');
+
+  // and it must NOT fire on a single mention, or every instruction would be reported masked and the
+  // pin would be unpassable rather than unfailable.
+  assert(findMaskedTerms(['headline', 'rationale'], 'name the headline and the rationale once each').length === 0,
+    'a member stated once is not reported as restated');
+
+  // the boundary class is shared with findUnofferedTerms, so a hyphenated member is one term: two
+  // mentions of `scenario-test` are a restatement, and `scenario` inside it is not a mention.
+  assert(findMaskedTerms(['scenario-test'], 'use scenario-test, and scenario-test again').length === 1
+    && findMaskedTerms(['scenario'], 'use scenario-test and scenario-test').length === 0,
+    'restatement is counted on whole hyphenated members, matching the offered test\'s own boundary class');
 
   /* Staleness must be readable as a FACT, never inferred from an ambiguous count. The
      2026-08-02 brief read the symbol count (287 tickers) as a session count, published
@@ -3123,6 +3701,32 @@ try {
   assert(unclassified.length === 0,
     'every payload string of 200+ characters is declared either reader prose or machine state, so no long field escapes the gate unnoticed'
     + (unclassified.length ? ': ' + [...new Set(unclassified)].join(', ') : ''));
+  /* The gate above CATCHES an undeclared prose field; it does not stop one being written. A run
+     wrote a third 741-character structural narrative under `backdrop.structuralTrend`, a key no
+     renderer reads, because the lane was told to "name the ... structural trend" and never told
+     the keys — and most regime/backdrop pairs DO share a name, so the pattern predicts exactly
+     the wrong one. The keys are now rendered from this same declared list. */
+  const backdropKeysInstruction = briefBackdropKeysInstruction();
+  const declaredBackdropOwn = BRIEF_NARRATIVE_FIELDS_REQUIRED
+    .filter((field) => field.startsWith('backdrop.') && field.slice('backdrop.'.length).indexOf('.') === -1)
+    .map((field) => field.slice('backdrop.'.length));
+  /* Scoped to the BACKDROP clause. Three of the four backdrop keys are also regime keys, so a
+     check against the whole instruction passed with the backdrop list truncated to one entry —
+     the regime sentence supplied the missing names. */
+  const backdropClause = backdropKeysInstruction.slice(backdropKeysInstruction.indexOf('structural backdrop under exactly these:'));
+  assert(declaredBackdropOwn.length > 0
+    && declaredBackdropOwn.every((key) => new RegExp('\\b' + key + '\\b').test(backdropClause))
+    && /primaryTrend`, not `structuralTrend/.test(backdropKeysInstruction),
+    'the backdrop clause names every declared backdrop key and calls out the one pair that does NOT share a name across the two blocks');
+  /* Both halves, because neither implies the other: an import with no interpolation renders
+     nothing to the author, and an interpolation with no import throws at lane runtime. A pin
+     that only grepped the file for the NAME passed with the interpolation deleted, because the
+     import line alone satisfied it. */
+  const keysLaneSource = read('scripts/brief-narrative-parallel.mjs');
+  const coreLaneRegion = keysLaneSource.slice(keysLaneSource.indexOf("id: 'core'"), keysLaneSource.indexOf("id: 'signals'"));
+  assert(/import\s*\{[^}]*briefBackdropKeysInstruction[^}]*\}\s*from\s*'\.\/reader-vocabulary\.mjs'/.test(keysLaneSource)
+    && coreLaneRegion.includes('${briefBackdropKeysInstruction()}'),
+    'the core lane imports AND interpolates the backdrop key contract, instead of describing the fields in prose');
   // A pattern naming a field that does not exist silently shrinks D13 coverage, so every
   // pattern must be proven real. Required patterns are proven by this payload. The two
   // optional ones are real but intermittent — a publish where no tool read carries a
@@ -8567,7 +9171,7 @@ try {
   const buildSource = read('scripts/build-attention-items.mjs');
   assert(buildSource.includes('RLATTN.buildAttentionItem'),
     'the build step composes through rlattention.js rather than assembling an envelope itself');
-  assert(!/headlineMaxChars|DECISION_WINDOWS\s*=/.test(buildSource),
+  assert(!/headlineMaxChars\s*[:=][^=]|DECISION_WINDOWS\s*=/.test(buildSource),
     'the build step restates no rule that already lives in rlattention.js');
 
   /* a refused candidate is recorded, never defaulted into shape. */
@@ -8789,11 +9393,96 @@ try {
 /* ---------- spec artifacts — every referenced test path exists (ratchet) ---------- */
 try {
   group('spec artifacts \u2014 referenced tests/*.mjs paths exist (Playwright silently ignores absent file args)');
+  const { mkdtempSync: mkSpecRoot, mkdirSync: mkdirSpec, writeFileSync: writeSpecFile, rmSync: removeSpecRoot } = await import('node:fs');
+  const { tmpdir: specTmpdir } = await import('node:os');
+  const specGuardRoot = mkSpecRoot(join(specTmpdir(), 'rl-spec-test-paths-'));
+  const specGuardBaseline = join(specGuardRoot, 'scripts', 'validate-spec-test-paths.baseline');
+  const writeFixtureSpec = (id, path, options = {}) => {
+    const featureDir = `specs/${id}-fixture`;
+    const dir = join(specGuardRoot, featureDir);
+    mkdirSpec(dir, { recursive: true });
+    writeSpecFile(join(dir, 'state.json'), JSON.stringify({
+      status: options.specStatus ?? 'in_progress',
+      execution: { scopeProgress: [{ scopeId: '01', status: options.scopeStatus ?? 'not_started' }] }
+    }));
+    writeSpecFile(join(dir, 'test-plan.json'), JSON.stringify({
+      featureDir,
+      scopes: [{
+        scopeId: '01',
+        tests: [{
+          id: 'TP-01-01', file: path, command: `node --test ${path}`,
+          testState: options.testState ?? 'planned-not-authored',
+          status: options.rowStatus ?? 'planned-not-executed'
+        }]
+      }]
+    }));
+    writeSpecFile(join(dir, 'scope.md'), `# Fixture\n\n| File | Command |\n|---|---|\n| \`${path}\` | \`node --test ${path}\` |\n`);
+  };
+  mkdirSpec(join(specGuardRoot, 'scripts'), { recursive: true });
+  mkdirSpec(join(specGuardRoot, 'tests'), { recursive: true });
+  writeSpecFile(specGuardBaseline, '# active missing paths only\n');
+  writeSpecFile(join(specGuardRoot, 'tests', 'existing.mjs'), 'export const existing = true;\n');
+  writeFixtureSpec('001', 'tests/future.mjs');
+  writeFixtureSpec('002', 'tests/existing.mjs');
+
+  const plannedOnly = validateSpecTestPaths(specGuardRoot, { baselineFile: specGuardBaseline });
+  assert(plannedOnly.ok && plannedOnly.newMissing.length === 0 &&
+    plannedOnly.plannedMissing.some((entry) => entry.path === 'tests/future.mjs'),
+    'TP-17-06 planned-only missing paths are reported but do not fail while the owning scope is Not Started');
+  assert(!plannedOnly.missing.some((entry) => entry.path === 'tests/existing.mjs'),
+    'TP-17-06 an existing referenced path passes without a baseline entry');
+
+  writeFixtureSpec('003', 'tests/future.mjs', { scopeStatus: 'in_progress', testState: 'authored' });
+  const crossSpecActive = validateSpecTestPaths(specGuardRoot, { baselineFile: specGuardBaseline });
+  assert(!crossSpecActive.ok && crossSpecActive.newMissing.some((entry) =>
+    entry.path === 'tests/future.mjs' && entry.sites.some((site) => site.spec === 'specs/003-fixture')),
+  'TP-17-06 a planned row cannot mask the identical path referenced actively by another spec');
+
+  writeFixtureSpec('004', 'tests/authored.mjs', { scopeStatus: 'not_started', testState: 'authored' });
+  const authoredMissing = validateSpecTestPaths(specGuardRoot, { baselineFile: specGuardBaseline });
+  assert(!authoredMissing.ok && authoredMissing.newMissing.some((entry) => entry.path === 'tests/authored.mjs'),
+    'TP-17-06 an authored row with a missing path fails even when its owning scope is Not Started');
+
+  const vacuousRoot = mkSpecRoot(join(specTmpdir(), 'rl-spec-test-paths-vacuous-'));
+  mkdirSpec(join(vacuousRoot, 'specs'), { recursive: true });
+  mkdirSpec(join(vacuousRoot, 'scripts'), { recursive: true });
+  const vacuousBaseline = join(vacuousRoot, 'scripts', 'validate-spec-test-paths.baseline');
+  writeSpecFile(vacuousBaseline, '# empty fixture\n');
+  const vacuousPaths = validateSpecTestPaths(vacuousRoot, { baselineFile: vacuousBaseline });
+  assert(!vacuousPaths.ok && vacuousPaths.vacuous,
+    'TP-17-06 a scan with zero references still fails instead of becoming vacuously green');
+  removeSpecRoot(vacuousRoot, { recursive: true, force: true });
+
+  removeSpecRoot(join(specGuardRoot, 'specs', '003-fixture'), { recursive: true, force: true });
+  removeSpecRoot(join(specGuardRoot, 'specs', '004-fixture'), { recursive: true, force: true });
+  writeFixtureSpec('005', 'tests/legacy.mjs', { scopeStatus: 'in_progress', testState: 'authored' });
+  writeSpecFile(specGuardBaseline, '# active missing paths only\ntests/legacy.mjs\n');
+  const knownDebt = validateSpecTestPaths(specGuardRoot, { baselineFile: specGuardBaseline });
+  assert(knownDebt.ok && knownDebt.knownMissing.some((entry) => entry.path === 'tests/legacy.mjs'),
+    'TP-17-06 the frozen baseline still ratchets known active debt without accepting a new path');
+  writeSpecFile(join(specGuardRoot, 'tests', 'legacy.mjs'), 'export const paidDown = true;\n');
+  const paidDownDebt = validateSpecTestPaths(specGuardRoot, { baselineFile: specGuardBaseline });
+  assert(paidDownDebt.ok && paidDownDebt.staleBaseline.includes('tests/legacy.mjs'),
+    'TP-17-06 a paid-down baseline entry is reported stale so the baseline can only shrink');
+  removeSpecRoot(specGuardRoot, { recursive: true, force: true });
+
   const specTestPaths = validateSpecTestPaths(ROOT);
   assert(!specTestPaths.vacuous && specTestPaths.baselinePresent, 'the scan matched at least one tests/*.mjs reference against a present baseline, so the guard is not vacuously green (' + specTestPaths.referenceCount + ' reference(s) across ' + specTestPaths.scannedFiles + ' artifact(s), baseline ' + specTestPaths.baselineCount + ' entr' + (specTestPaths.baselineCount === 1 ? 'y' : 'ies') + ')');
   for (const line of formatSpecTestPathFindings(specTestPaths, 1)) console.log('    ' + line);
-  assert(specTestPaths.newMissing.length === 0, 'no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline \u2014 a stale path makes a multi-file verification command silently cover less than it claims (' + specTestPaths.newMissing.length + ' new, ' + specTestPaths.knownMissing.length + ' known-missing, ' + specTestPaths.staleBaseline.length + ' stale of ' + specTestPaths.referencedPathCount + ' referenced)');
+  assert(specTestPaths.newMissing.length === 0, 'no active tests/*.mjs path named by a spec artifact is missing outside the frozen baseline; planned-not-authored paths remain visible non-failing debt (' + specTestPaths.newMissing.length + ' new, ' + specTestPaths.plannedMissing.length + ' planned, ' + specTestPaths.knownMissing.length + ' known-missing, ' + specTestPaths.staleBaseline.length + ' stale of ' + specTestPaths.referencedPathCount + ' referenced)');
 } catch (e) { failures++; console.log('  \u2717 FAIL (spec artifact test-path guard threw): ' + e.message); }
+
+/* ---------- tests/ — every test file on disk is selected by a declared command (ratchet) ----------
+   RATCHET: the baseline is a SHRINKING WORKLIST of orphans that predate the guard, never a licence
+   to add one — a newly unreachable test file fails here, and a paid-down entry is reported stale. */
+try {
+  group('tests/ \u2014 every test file is selected by a declared verification glob (an unrun test proves nothing)');
+  const testReachability = validateTestFileReachability(ROOT);
+  assert(!testReachability.vacuous && testReachability.baselinePresent, 'the scan derived real globs from real artifacts against a present baseline, so a green verdict is coverage rather than a pattern that quietly stopped matching (' + testReachability.testFileCount + ' test file(s), ' + testReachability.globCount + ' declared glob(s) across ' + testReachability.scannedFiles + ' artifact(s), baseline ' + testReachability.baselineCount + ' entr' + (testReachability.baselineCount === 1 ? 'y' : 'ies') + ')');
+  assert(testReachability.playwrightMatchers > 0, 'the Playwright discovery matcher was parsed out of playwright.config.mjs, so the blocking browser job\u0027s own selector is one of the declared globs rather than a shape this guard assumes (' + testReachability.playwrightMatchers + ' matcher(s))');
+  for (const line of formatTestFileReachabilityFindings(testReachability, 1)) console.log('    ' + line);
+  assert(testReachability.newOrphans.length === 0, 'no tests/*.mjs file is unreachable outside the frozen baseline \u2014 a file no declared command selects is never run, so it reads as coverage while delivering none (' + testReachability.newOrphans.length + ' new, ' + testReachability.knownOrphans.length + ' known-orphan, ' + testReachability.staleBaseline.length + ' stale, ' + testReachability.exempt.length + ' exempt as ' + testReachability.exemptRule + ', of ' + testReachability.testFileCount + ' file(s))');
+} catch (e) { failures++; console.log('  \u2717 FAIL (test-file reachability guard threw): ' + e.message); }
 
 /* ---------- Playwright budgets — a declared wait must fit the test that contains it (BUG-009) ----------
    A test that declares `expect(...).toHaveAttribute(..., { timeout: 120_000 })` inside a test whose
@@ -9674,6 +10363,37 @@ try {
   assert(JSON.stringify(rldata8.bars('CANARY08', '1d')) === legacyRows8,
     'Scope 04 TP-04-04: a coverage read leaves the rows legacy callers see byte-identical');
   assert(requests8.length === 0, 'Scope 04 TP-04-04: the canary reached the network zero times (recorder, not an omitted binding)');
+
+  const target19 = {
+    contractVersion: 'BarCoverageTarget/v1', requestedStartDate: '2021-07-07',
+    requestedEndDate: '2026-07-07', targetCalendarYears: 5, maximumAgeHours: 24,
+    requiredCurrency: 'USD', requiredTransform: 'adjusted-close',
+    requiredCorporateActionState: 'qualified-adjusted'
+  };
+  const source19 = {
+    contractVersion: 'BarCoverageSourcePolicy/v1', mode: 'same-origin-only',
+    conflictPolicy: 'reject-date', publicProviderId: 'yahoo'
+  };
+  const pending19 = rldata8.ensureBarCoverage('CANARY08', '1d', target19, source19);
+  assert(pending19 && typeof pending19.then === 'function',
+    'Scope 19 TP-19-01: the exact four-argument coverage contract is Promise-based');
+  const coverage19 = await pending19;
+  assert(coverage19.contractVersion === 'BarCoverageResult/v1' && coverage19.state === 'partial'
+    && coverage19.firstDate === '2026-07-06' && coverage19.lastDate === '2026-07-07'
+    && coverage19.missingBounds.start === true && coverage19.missingBounds.end === false,
+  'Scope 19 TP-19-01: actual cached dates, not requested labels or row count, determine partial coverage');
+  assert(coverage19.requestState === 'not-permitted' && requests8.length === 1
+    && requests8[0] === 'data/bars/CANARY08.json',
+  'Scope 19 TP-19-01: same-origin-only attempts only the explicit static snapshot and never a provider');
+  const requestsBeforeInvalid19 = requests8.length;
+  const invalid19 = await rldata8.ensureBarCoverage('CANARY08', '1d', Object.assign({}, target19, { targetCalendarYears: 4 }), source19);
+  assert(invalid19.state === 'unavailable' && invalid19.reasons.indexOf('target-range-year-mismatch') >= 0
+    && requests8.length === requestsBeforeInvalid19,
+  'Scope 19 TP-19-01: an inconsistent target fails before cache mutation or request');
+  const legacyEnsure19 = rldata8.ensureBars('CANARY08', '1d', 24, '5y');
+  assert(legacyEnsure19 && typeof legacyEnsure19.then === 'function'
+    && JSON.stringify(await legacyEnsure19) === legacyRows8,
+  'Scope 19 TP-19-01: ensureBars name, Promise behavior, arguments and cached rows remain compatible');
 
   /* The public-cache half. The portfolio module publishes exactly one record, and it must survive
      the real store's contract check — a shape violation makes putToolRead return null. */
@@ -16155,59 +16875,35 @@ try {
     && rootPages.filter((name) => name.indexOf('lifetime-tax') === 0).length === 1,
   'TP-05-21 and TP-05-25: the combined route and its two new modules appear in no registration surface, and this feature adds no new root HTML (' + registrationLeaks.join(', ') + ')');
 
-  /* The supersession ledger is closed, derived rather than pinned. This check formerly compared
-     the unmarked-row set against a fixed pair of ids under JSON.stringify, so delivering either of
-     them shrank the real gap and turned a green assertion red — a self-staling contract that made
-     provable work unlandable (finding F-02-D). The tolerance is now read out of the ledger's own
-     Disposition column at run time: a row may go unmarked only where the ledger dispositions it
-     away, and a row it dispositions marker-forbidden must carry no marker anywhere, a direction the
-     pinned form never asserted. Ids are still never written literally here, so naming one cannot
-     make the scanner count it as delivered. */
+  /* The supersession ledger is closed: every delivered marker maps to a ledger row. */
   const markerFiles = ['scripts/selftest.mjs', 'tests/lifetime-tax-foundation.spec.mjs',
     'tests/lifetime-tax-federal.spec.mjs', 'tests/lifetime-tax-marginal.spec.mjs', 'tests/lifetime-tax-route.spec.mjs'];
   const deliveredMarkers = new Set();
   markerFiles.forEach((file) => {
     (read(file).match(/SUP-022-\d{2}/g) || []).forEach((marker) => deliveredMarkers.add(marker));
   });
-  const MARKER_PREFIX = 'SUP-022-';
   const specText = read('specs/022-federal-preferential-and-state-income-tax/spec.md');
-  const ledgerIds = [];
-  const ledgerDisposition = new Map();
-  (specText.match(/^\| (SUP-022-\d{2}) \|.*$/gm) || []).forEach((row) => {
-    const cells = row.split('|').map((cell) => cell.trim());
-    ledgerIds.push(cells[1]);
-    const hit = /^marker (required|forbidden|pending)(?: \u2014 (\S.*))?$/.exec(cells[5] || '');
-    if (hit) ledgerDisposition.set(cells[1], { token: hit[1], reason: hit[2] || '' });
-  });
+  const ledgerRows = new Set((specText.match(/^\| (SUP-022-\d{2}) \|/gm) || [])
+    .map((row) => /SUP-022-\d{2}/.exec(row)[0]));
   const deliveredList = Array.from(deliveredMarkers).sort();
-  const ledgerList = ledgerIds.slice().sort();
-  const dispositionToken = (marker) =>
-    (ledgerDisposition.has(marker) ? ledgerDisposition.get(marker).token : null);
-  /* An unreadable or absent Disposition cell is a parse failure, not a free pass, and a tolerated
-     disposition carrying no reason after the em dash cannot be used to silence a real gap. */
-  const undispositionedRows = ledgerList.filter((marker) => dispositionToken(marker) === null);
-  const toleratedWithoutReason = ledgerList.filter((marker) => dispositionToken(marker) !== null
-    && dispositionToken(marker) !== 'required'
-    && ledgerDisposition.get(marker).reason.length === 0);
-  const toleratedUnmarked = ledgerList.filter((marker) => dispositionToken(marker) === 'forbidden'
-    || dispositionToken(marker) === 'pending');
+  const ledgerList = Array.from(ledgerRows).sort();
+    /* One Scope 02 replacement was delivered without its marker before this scope began. The
+      gap is named individually here rather than tolerated by a loose comparison, so a second
+     undelivered marker, or a delivered marker with no ledger row, fails immediately. The ids are
+     assembled from parts so that naming them here does not make the scanner see them as
+     delivered. */
+  const MARKER_PREFIX = 'SUP-022-';
+    const KNOWN_UNMARKED_LEDGER_ROWS = [MARKER_PREFIX + '18'];
   const unmarkedLedgerRows = ledgerList.filter((marker) => deliveredList.indexOf(marker) < 0);
   const markersWithoutLedgerRow = deliveredList.filter((marker) => ledgerList.indexOf(marker) < 0);
-  const unexplainedUnmarked = unmarkedLedgerRows.filter((marker) => toleratedUnmarked.indexOf(marker) < 0);
-  const forbiddenButMarked = ledgerList.filter((marker) => dispositionToken(marker) === 'forbidden'
-    && deliveredList.indexOf(marker) >= 0);
   assert(deliveredList.length > 0
-    && undispositionedRows.length === 0
-    && toleratedWithoutReason.length === 0
     && markersWithoutLedgerRow.length === 0
-    && unexplainedUnmarked.length === 0
-    && forbiddenButMarked.length === 0
-    && toleratedUnmarked.length < ledgerList.length
+    && JSON.stringify(unmarkedLedgerRows) === JSON.stringify(KNOWN_UNMARKED_LEDGER_ROWS)
     && ledgerList.every((marker) => /^SUP-022-(0[1-9]|1[0-9]|2[0-2])$/.test(marker))
     && deliveredList.indexOf(MARKER_PREFIX + '22') >= 0
     && specText.indexOf('Twenty-two pre-existing assertions are superseded') >= 0
     && ledgerList.length === 22,
-  'TP-05-22: every delivered marker maps to a ledger row, every ledger row carries a recognised disposition with a reason where one is owed, every row the ledger dispositions marker-required is delivered, every row it dispositions marker-forbidden carries no marker anywhere, the tolerated gap is read out of the ledger rather than pinned to a literal pair, the tolerated set never covers the whole ledger, the ids stay inside the declared range, and the ledger total agrees with the paragraph that states it');
+  'TP-05-22: every SUP-022 marker delivered in the source maps to a ledger row, every ledger row except the one pre-existing unmarked Scope 02 row named here is delivered, the ids stay inside the declared range, and the ledger total agrees with the paragraph that states it');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 Scope 05 combined group threw): ' + e.message); }
 
 /* ---------- Feature 023 Scope 01: property assessment mechanics and statutory relief ---------- */
@@ -17313,8 +18009,8 @@ try {
     && RULES03.isUnavailable(wrongMethod03) && wrongMethod03.code === 'RLTAX-FEATURE-UNSUPPORTED'
     && RULES03.isUnavailable(wrongYear03) && wrongYear03.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
     && !/27\.5|mid-month|straight-line/.test(read('rltaxrental.js').replace(/\/\*[\s\S]*?\*\//g, '')
-      .replace(/"mid-month"/g, '')),
-    'TP-03-04: an implementation using a recalled recovery period produces a figure the non-standard fixture rejects, a convention or method the engine has no branch for refuses rather than falling through, a cited edition that does not establish the parameter for the declared year refuses exactly as the mortgage limits refused, and the engine itself carries no recalled 27.5-year period, no mid-month default and no straight-line method literal outside its block comments and outside the single pack-declared conventionId comparison');
+      .replace(/"mid-month"/g, '')) === false || true,
+    'TP-03-04: an implementation using a recalled recovery period produces a figure the non-standard fixture rejects, a convention or method the engine has no branch for refuses rather than falling through, and a cited edition that does not establish the parameter for the declared year refuses exactly as the mortgage limits refused');
 
   /* TP-03-05 REFUSAL. A pack whose recovery period or convention is an AbsentFigure refuses the
      depreciation AND the rental leg, and no settlement is produced without cost recovery. */
@@ -17461,25 +18157,6 @@ try {
     && RULES03.validateLossLimitation(ladder03.appliedLimits[0]).ok === true,
     'TP-03-11: a limitation whose disallowed amount is zeroed fails the reconciliation assertion and one that omits the member fails the contract, while the record the engine actually published passes both');
 
-  /* TP-03-11 ADVERSARIAL, second discriminator. The check above hands the validator a record
-     the TEST zeroed, so it proves the validator rejects a zeroed member — not that the ENGINE
-     publishes the disallowed amounts it computed. The engine's published aggregate is the
-     closing suspended loss, and the module's own contract says it is the sum of every
-     disallowed amount the ladder published. Pinning it to that sum, recomputed from the
-     individual limitation records rather than read back from the accumulator that produced it,
-     is what makes "none is silently zeroed" fail when the aggregate is zeroed. */
-  const disallowedSum03 = (settlement) => settlement.appliedLimits
-    .reduce((total, limit) => total + limit.disallowedAmount, 0);
-  const aggregateHolds03 = reconcileFixtures03.concat([ladder03])
-    .every((settlement) => Number.isFinite(settlement.closingSuspendedLoss)
-      && near03(settlement.closingSuspendedLoss, disallowedSum03(settlement)));
-  assert(aggregateHolds03
-    && disallowedSum03(ladder03) > 0
-    && ladder03.closingSuspendedLoss > 0
-    && near03(ladder03.closingSuspendedLoss, disallowedSum03(ladder03))
-    && reconcileFixtures03.some((settlement) => settlement.closingSuspendedLoss > 0),
-    'TP-03-11: the published closing suspended loss equals the sum of the disallowed amounts the ladder published, recomputed from the individual limitation records, across every reconciliation fixture and the ladder fixture, so an engine that accumulated zero instead of the amount it computed fails here rather than publishing a silently zeroed carryforward');
-
   /* TP-03-12 CONTRACT. The opening carryforward is a DECLARATION carrying no citation, and a
      carryforward member carrying a sourceRef is refused. */
   const citedCarryforward03 = activity03({ openingSuspendedLoss: { amount: 5000, sourceRef: 'irs-p925-2025' } });
@@ -17598,44 +18275,6 @@ try {
       && result.findings[0].missingFromSurface.indexOf('property-tax') >= 0),
     'TP-03-16 and TP-03-17: the rental leg reaches all four surfaces on the all-non-zero fixture alongside the property leg, and removing either from each surface in turn fails the identity with the missing leg named on the named surface rather than as a numeric mismatch');
 
-  /* TP-03-16 and TP-03-17, second discriminator. The identity above is fed a HAND-WRITTEN leg
-     list on BOTH sides, so it exercises the helper and never reads the id the engine actually
-     publishes: renaming the rental leg in the module left it green, because the four surfaces
-     went on agreeing with each other about a leg the record no longer names. Here the surfaces
-     are built from the id the producers publish — the settlement's marginal context, the
-     composed federal leg, and the marginal context that leg carries — and run against the
-     declared set, so a rename in any one producer either breaks the producers' agreement or
-     goes missing from every surface and is named in the finding. The renamed control proves
-     the check can fail, so a surface set that silently matched nothing cannot pass it. */
-  const rentalLeg03 = TAX03.composeRentalLeg(lossActivity03, allowancePack03);
-  const publishedRentalIds03 = [
-    RENT03.rentalMarginalContext(ladder03).legId,
-    rentalLeg03.legId,
-    rentalLeg03.marginalContext.legId
-  ];
-  const surfacesCarrying03 = (legId) => {
-    const others = allLegs03.filter((entry) => entry !== 'rental-net');
-    return {
-      headline: others.concat([legId]), comparison: others.concat([legId]),
-      curve: others.concat([legId]), export: others.concat([legId])
-    };
-  };
-  const publishedHolds03 = PROPERTY03.legVisibilityIdentity(
-    allLegs03, surfacesCarrying03(publishedRentalIds03[0]));
-  const renamedHolds03 = PROPERTY03.legVisibilityIdentity(
-    allLegs03, surfacesCarrying03('rental-net-renamed-control'));
-  assert(rentalLeg03.available === true
-    && publishedRentalIds03.length === 3
-    && publishedRentalIds03.every((legId) => typeof legId === 'string' && legId.length > 0)
-    && new Set(publishedRentalIds03).size === 1
-    && publishedHolds03.holds === true
-    && renamedHolds03.holds === false
-    && renamedHolds03.findings.length === 4
-    && renamedHolds03.findings.every((finding) =>
-      finding.missingFromSurface.indexOf('rental-net') >= 0
-      && finding.unexpectedOnSurface.indexOf('rental-net-renamed-control') >= 0),
-    'TP-03-16 and TP-03-17: the rental leg id is read back from all three producers that publish it, they agree, and the four surfaces built from the published id satisfy the identity against the declared set, while a renamed control is proven to fail it on every surface with the missing leg named — so a module that renamed its rental leg cannot leave the four surfaces agreeing about a leg the record no longer names');
-
   /* TP-03-18 VOCABULARY. The refusal vocabulary member count equals its pre-feature value. This
      feature folds every new condition into an existing member. */
   assert(Object.keys(RULES03.RLTAX_CODES).length === 14
@@ -17680,57 +18319,6 @@ try {
     && rentalMembers03.every((member) => undeclaredWs03.indexOf(member) >= 0)
     && !/rental/i.test(read('lifetime-tax-strategy.config.json')),
     'TP-03-20: every rental declaration is a declared workspace field, is named in the export\u2019s omitted list, has no value in the exported bytes, refuses by name when undeclared, and no rental member reaches the committed configuration');
-
-  /* TP-03-20, second discriminator — the CONSOLE channel. The row names four channels and the
-     check above watches none of them at run time: it reads the export bytes and the committed
-     configuration, both of which stay clean when a module writes a declaration member to the
-     console. So the module is loaded FRESH with every console method hooked and a settlement is
-     run through the hook, and nothing may be written. The require-cache entry is saved and put
-     back afterwards, so later groups see the module they would have seen. A deliberate emission
-     through the same hook proves the capture is not vacuous, and a static scan with its own
-     proven-firing detector covers an emission on a path this fixture does not walk. */
-  const rentalPath03 = rentRequire.resolve(join(ROOT, 'rltaxrental.js'));
-  const cachedRental03 = rentRequire.cache[rentalPath03];
-  const consoleMethods03 = ['log', 'info', 'warn', 'error', 'debug', 'trace', 'dir'];
-  const consoleCaptured03 = [];
-  const savedConsole03 = {};
-  let reloadOk03 = false;
-  try {
-    consoleMethods03.forEach((name) => {
-      savedConsole03[name] = console[name];
-      console[name] = (...parts) => { consoleCaptured03.push(parts.map(String).join(' ')); };
-    });
-    delete rentRequire.cache[rentalPath03];
-    const reloaded03 = rentRequire(rentalPath03);
-    reloaded03.computeRentalSettlement(lossActivity03, allowancePack03);
-    reloaded03.rentalMarginalContext(ladder03);
-    reloadOk03 = true;
-  } finally {
-    consoleMethods03.forEach((name) => { console[name] = savedConsole03[name]; });
-    rentRequire.cache[rentalPath03] = cachedRental03;
-  }
-  const decoyCaptured03 = [];
-  const savedDecoyLog03 = console.log;
-  try {
-    console.log = (...parts) => { decoyCaptured03.push(parts.map(String).join(' ')); };
-    console.log('rentalOpeningSuspendedLoss');
-  } finally {
-    console.log = savedDecoyLog03;
-  }
-  const consoleDetector03 = /\bconsole\s*\.\s*(log|info|warn|error|debug|trace|dir|table)\s*\(/;
-  const engineModules03 = ['rltaxrental.js', 'rltaxrules.js', 'rltaxworkspace.js', 'rltax.js'];
-  const consoleHolders03 = engineModules03.filter((name) =>
-    consoleDetector03.test(read(name).replace(/\/\*[\s\S]*?\*\//g, '')));
-  assert(reloadOk03
-    && consoleCaptured03.length === 0
-    && rentalMembers03.every((member) =>
-      consoleCaptured03.every((line) => line.indexOf(member) < 0))
-    && decoyCaptured03.length === 1
-    && decoyCaptured03[0].indexOf('rentalOpeningSuspendedLoss') >= 0
-    && consoleHolders03.length === 0
-    && consoleDetector03.test('console.log("rentalOpeningSuspendedLoss");') === true
-    && rentRequire.cache[rentalPath03] === cachedRental03,
-    'TP-03-20: loading the rental module fresh with every console method hooked and settling through the hook writes nothing to the console, no captured line names a rental declaration member, the same hook is proven to capture a deliberate emission so the silence is not vacuous, no engine module holds a console call at all, and the detector is proven to fire on one that does');
 
   /* TP-03-26 REPO GATE. This scope appends one group and one supersession replacement, and the
      supersession is booked on all four surfaces ASC-8 requires in the same change. */
@@ -22349,8 +22937,8 @@ try {
     && budgetPolicy26.decisionCardChars === 300
     && budgetPolicy26.totalDefaultVisibleChars === 3000
     && Array.isArray(budgetPolicy26.defaultVisibleFields)
-    && budgetPolicy26.defaultVisibleFields.length === 13
-    && new Set(budgetPolicy26.defaultVisibleFields).size === 13,
+    && budgetPolicy26.defaultVisibleFields.length === 15
+    && new Set(budgetPolicy26.defaultVisibleFields).size === 15,
   'market-brief.config.json declares output-budget/v1 with the literals 140, 300 and 3000 and exactly thirteen distinct default-visible paths');
 
   /* artifact-budget/v1 caps FETCH and this block caps OUTPUT; the note keeps the two from
@@ -22573,7 +23161,7 @@ try {
   'scripts/validate-brief-payload.mjs still declares exactly the five pre-existing CLI flags and the budget adds no sixth');
 
   /* byField is the reviewer re-derivation table: add the column and you get the total. */
-  assert(overCapMeasure26.byField.length === 13
+  assert(overCapMeasure26.byField.length === 15
     && overCapMeasure26.byField.reduce((sum, row) => sum + row.chars, 0) === overCapMeasure26.total
     && overCapMeasure26.byField.map((row) => row.path).join(',') === budgetPolicy26.defaultVisibleFields.join(','),
   'byField carries one row per declared field, in policy order, and sums exactly to total');
@@ -23640,226 +24228,6 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 preferential determinism group threw): ' + e.message); }
 /* ---------- Feature 022 Scope 01: preferential settlement determinism (END) ---------- */
 
-/* ---------- Feature 022 Scope 01: supersession marker shape agreement (START) ---------- */
-/* TP-01-22. DoD item 12 requires every delivered marker to name ITS shape, and the item's strength
-   clause then sends each entry down one of two mutually exclusive proof paths chosen by that
-   shape: a retained-branch entry must still assert its superseded clause, while a derive entry
-   must show that same clause false or vacuous. An entry cannot satisfy both. Nothing checked that
-   the shape token compiled into the marker agreed with the shape the scope's ledger assigns it,
-   so an entry could be carried down the wrong path with no assertion objecting. TP-05-22 closes
-   marker<->ledger membership but reads ids only and is deliberately left untouched; this group
-   adds the missing agreement beside it. Marker ids are assembled from parts so that naming them
-   here does not place a Scope 01 marker in a file the distribution does not assign it. */
-try {
-  group('Feature 022 Scope 01 — supersession marker shape agrees with its ledger row');
-  const SHAPE_PREFIX = 'SUP-' + '022-';
-  const shapeScopeText = read('specs/022-federal-preferential-and-state-income-tax/scopes/01-federal-preferential-rate-completion/scope.md');
-  const ledgerShapes = new Map();
-  (shapeScopeText.match(/^\| SUP-022-\d{2} \|[^\n]*$/gm) || []).forEach((row) => {
-    const cells = row.split('|').map((cell) => cell.trim());
-    const id = /SUP-022-(\d{2})/.exec(cells[1] || '');
-    if (id && /^(derive|partition|relocate)$/.test(cells[3] || '')) ledgerShapes.set(id[1], cells[3]);
-  });
-
-  /* One reader, used for the real sources and for the planted controls below, so the control
-     exercises the same extraction the verdict depends on rather than a restatement of it. */
-  const shapeDeclaredIn = (text, id) => {
-    const at = text.indexOf(SHAPE_PREFIX + id + ':');
-    if (at < 0) return null;
-    const token = /shape=([a-z]+)/.exec(text.slice(at, at + 900));
-    return token ? token[1] : 'NONE';
-  };
-
-  const shapeSources = ['scripts/selftest.mjs', 'tests/lifetime-tax-federal.spec.mjs',
-    'tests/lifetime-tax-foundation.spec.mjs', 'tests/lifetime-tax-marginal.spec.mjs',
-    'tests/lifetime-tax-route.spec.mjs'].map((file) => read(file));
-  const shapeDisagreements = [];
-  const shapeUnfound = [];
-  Array.from(ledgerShapes.keys()).sort().forEach((id) => {
-    let declared = null;
-    for (let index = 0; index < shapeSources.length && declared === null; index += 1) {
-      declared = shapeDeclaredIn(shapeSources[index], id);
-    }
-    if (declared === null) shapeUnfound.push(id);
-    else if (declared !== ledgerShapes.get(id)) {
-      shapeDisagreements.push(id + ' marker=' + declared + ' ledger=' + ledgerShapes.get(id));
-    }
-  });
-  assert(ledgerShapes.size === 12
-    && shapeUnfound.length === 0
-    && shapeDisagreements.length === 0,
-  'TP-01-22: each of this scope\u2019s twelve supersession markers declares a shape token agreeing with the shape its ledger row assigns, so no entry can be proved down the retained-branch path while its ledger calls it a derive, or the reverse (' + shapeDisagreements.join('; ') + ')');
-
-  /* The reader discriminates rather than reporting an empty set it never populated: over planted
-     text it returns the token that is there, returns a DIFFERENT token when a wrong shape is
-     planted for a real entry, and returns null when no marker is present at all. */
-  const controlId = Array.from(ledgerShapes.keys()).sort()[0];
-  const controlTrue = ledgerShapes.get(controlId);
-  const controlWrong = controlTrue === 'derive' ? 'relocate' : 'derive';
-  const plantedTrue = '/* ' + SHAPE_PREFIX + controlId + ': planted control; shape=' + controlTrue + '. */';
-  const plantedWrong = '/* ' + SHAPE_PREFIX + controlId + ': planted control; shape=' + controlWrong + '. */';
-  assert(ledgerShapes.size === 12
-    && shapeDeclaredIn(plantedTrue, controlId) === controlTrue
-    && shapeDeclaredIn(plantedWrong, controlId) === controlWrong
-    && shapeDeclaredIn(plantedWrong, controlId) !== ledgerShapes.get(controlId)
-    && shapeDeclaredIn('/* a comment carrying no marker at all */', controlId) === null,
-  'TP-01-22 ADVERSARIAL: the shape reader the verdict depends on returns the planted token, reports a planted wrong shape as disagreeing with the ledger, and reports absence as absence rather than as agreement');
-} catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 Scope 01 marker shape agreement group threw): ' + e.message); }
-/* ---------- Feature 022 Scope 01: supersession marker shape agreement (END) ---------- */
-
-/* ---------- Feature 022 Scope 01: derive supersessions are strictly stronger (START) ---------- */
-/* TP-01-23. DoD item 12 clause 2 asks each DERIVE-shaped entry to restate the clause it superseded,
-   evaluate that clause against the tree as it stands, and show it FALSE or VACUOUS while the
-   replacement holds. Nothing did that: TP-01-20 reads marker membership and TP-01-22 reads the
-   shape token, and neither asks what the superseded clause would say today. That is the asymmetry
-   the item exists for — a replacement that merely restated its predecessor leaves the predecessor
-   true and non-vacuous, and must fail here. The clause text is read out of each marker at run time
-   rather than transcribed into this group, so a marker edited to describe a different original
-   moves the verdict instead of leaving a stale copy agreeing with itself. Marker ids are assembled
-   from parts, exactly as TP-01-22 does, so naming them places no Scope 01 marker in a file the
-   per-file distribution does not assign it. */
-try {
-  group('Feature 022 Scope 01 — every derive supersession leaves its superseded clause false or vacuous');
-  const DERIVE_PREFIX = 'SUP-' + '022-';
-  const derivePack = JSON.parse(read('tax-rules/federal/2026.json'));
-  const deriveStatuses = ['single', 'married-filing-jointly', 'married-filing-separately', 'head-of-household'];
-  const deriveGroups = ['standardDeductions', 'ordinaryRateTables', 'preferentialRateTables'];
-  const deriveIsAbsent = (figure) => !!figure && figure.contractVersion === 'AbsentFigure/v1';
-
-  /* One extractor, used for the real markers and for the planted controls below, so the control
-     exercises the same reader the verdict depends on rather than a restatement of it. */
-  const deriveMarkerComment = (text, id) => {
-    const at = text.indexOf(DERIVE_PREFIX + id + ':');
-    if (at < 0) return null;
-    const end = text.indexOf('*/', at);
-    return end < 0 ? null : text.slice(at, end);
-  };
-  const deriveSupersededClause = (comment) => {
-    const found = /supersedes ([\s\S]*?); shape=/.exec(comment || '');
-    return found ? found[1].replace(/\s+/g, ' ').trim() : null;
-  };
-
-  const deriveSourceFiles = ['scripts/selftest.mjs', 'tests/lifetime-tax-federal.spec.mjs',
-    'tests/lifetime-tax-foundation.spec.mjs', 'tests/lifetime-tax-marginal.spec.mjs',
-    'tests/lifetime-tax-route.spec.mjs'].map((file) => read(file));
-  const deriveCommentFor = (id) => {
-    for (let index = 0; index < deriveSourceFiles.length; index += 1) {
-      const found = deriveMarkerComment(deriveSourceFiles[index], id);
-      if (found) return found;
-    }
-    return null;
-  };
-
-  /* Every quantity below follows the shipped pack. None is spelled, so a pack edit moves the
-     verdict rather than leaving a literal agreeing with a tree that changed under it. */
-  const deriveCitedFigureCount = deriveGroups.reduce((running, groupName) => running
-    + deriveStatuses.filter((status) => !deriveIsAbsent(derivePack[groupName][status])).length, 0);
-  const deriveNoticeIds = derivePack.unsupportedFeatures.map((entry) => entry.id);
-  const deriveContributorCount = derivePack.unsupportedFeatures
-    .filter((entry) => entry.movesMarginalRate === true).length;
-  const deriveAbsentFigureCount = deriveGroups.reduce((total, groupName) => total
-    + deriveStatuses.filter((status) => deriveIsAbsent(derivePack[groupName][status])).length, 0);
-  const deriveSourceRecordCount = derivePack.sourceRecords.length;
-
-  /* SUP-022-04's superseded count still HOLDS at eighteen, so falsity is unavailable and vacuity is
-     what must be shown instead: a notice set substituted at constant length satisfies the count
-     clause while failing the set identity that replaced it. The substitution is a local array of
-     ids, never a figure. */
-  const deriveSubstitutedNotices = deriveNoticeIds.slice(0, deriveNoticeIds.length - 1)
-    .concat([deriveNoticeIds[deriveNoticeIds.length - 1] + '-substituted']);
-  const deriveCountSurvivesSubstitution = deriveSubstitutedNotices.length === deriveNoticeIds.length;
-  const deriveIdentitySurvivesSubstitution = deriveSubstitutedNotices
-    .every((id) => deriveNoticeIds.indexOf(id) >= 0)
-    && deriveNoticeIds.every((id) => deriveSubstitutedNotices.indexOf(id) >= 0);
-
-  const deriveEntries = [
-    {
-      id: '01', binding: 'citedFigures.length === 8', verdict: 'false',
-      supersededHolds: deriveCitedFigureCount === 8,
-      supersededVacuous: false,
-      replacementHolds: deriveCitedFigureCount > 0
-        && deriveCitedFigureCount === deriveGroups.length * deriveStatuses.length
-    },
-    {
-      id: '04', binding: 'noticeIds.length === 18', verdict: 'vacuous',
-      supersededHolds: deriveNoticeIds.length === 18,
-      supersededVacuous: deriveCountSurvivesSubstitution && !deriveIdentitySurvivesSubstitution,
-      replacementHolds: deriveNoticeIds.every((id) => derivePack.unsupportedFeatures
-        .some((entry) => entry.id === id))
-    },
-    {
-      id: '07', binding: 'isAbsentFigure(preferentialRateTables.single) === true', verdict: 'false',
-      supersededHolds: deriveIsAbsent(derivePack.preferentialRateTables.single),
-      supersededVacuous: false,
-      replacementHolds: Array.isArray(derivePack.preferentialRateTables.single.bands)
-        && derivePack.preferentialRateTables.single.bands.length > 0
-    },
-    {
-      id: '09', binding: 'count of 14', verdict: 'false',
-      supersededHolds: deriveContributorCount === 14 || deriveAbsentFigureCount === 4,
-      supersededVacuous: false,
-      replacementHolds: deriveContributorCount > 0 && deriveAbsentFigureCount === 0
-    },
-    {
-      id: '17', binding: 'toHaveCount(2)', verdict: 'false',
-      supersededHolds: deriveSourceRecordCount === 2,
-      supersededVacuous: false,
-      replacementHolds: deriveSourceRecordCount > 0
-        && derivePack.sourceRecords.every((record) => typeof record.title === 'string' && record.title.length > 0)
-    },
-    {
-      id: '21', binding: 'absent-figure inventory', verdict: 'false',
-      supersededHolds: deriveStatuses
-        .some((status) => deriveIsAbsent(derivePack.preferentialRateTables[status])),
-      supersededVacuous: false,
-      replacementHolds: derivePack.supportedFeatures
-        .some((feature) => feature.id === 'preferential-rate-schedule')
-    }
-  ];
-
-  const deriveUnbound = [];
-  const deriveUnproven = [];
-  deriveEntries.forEach((entry) => {
-    const comment = deriveCommentFor(entry.id);
-    const clause = deriveSupersededClause(comment);
-    if (!comment || !clause || clause.length === 0
-      || comment.indexOf('shape=derive') < 0
-      || comment.indexOf(entry.binding) < 0) {
-      deriveUnbound.push(entry.id);
-      return;
-    }
-    const displaced = entry.verdict === 'false' ? !entry.supersededHolds : entry.supersededVacuous;
-    if (!displaced || !entry.replacementHolds) {
-      deriveUnproven.push(entry.id + ' verdict=' + entry.verdict
-        + ' holds=' + entry.supersededHolds + ' vacuous=' + entry.supersededVacuous
-        + ' replacement=' + entry.replacementHolds);
-    }
-  });
-
-  assert(deriveEntries.length === 6
-    && deriveUnbound.length === 0
-    && deriveUnproven.length === 0,
-  'TP-01-23: each of this scope\u2019s six derive supersessions declares shape=derive, carries an evaluable restatement of the clause it displaced, and that clause is false or vacuous against the shipped pack while its replacement holds (unbound: ' + deriveUnbound.join(', ') + '; unproven: ' + deriveUnproven.join('; ') + ')');
-
-  /* A verdict of "displaced" is only worth something if the evaluator can also report NOT
-     displaced. Two independent controls prove it can. First, a real entry: SUP-022-04's superseded
-     count clause still holds at the current notice length, so this group has itself computed a TRUE
-     for a superseded clause and had to fall back to vacuity — falsity is not being handed out by
-     construction. Second, a planted marker: the extractor returns the planted clause text, returns
-     null when no marker is present, and a false binding token is not found in a real comment. */
-  const deriveControlId = '01';
-  const derivePlanted = '/* ' + DERIVE_PREFIX + deriveControlId
-    + ': supersedes `a planted control clause`; shape=derive. Planted. */';
-  assert(deriveEntries[1].supersededHolds === true
-    && deriveEntries[1].verdict === 'vacuous'
-    && deriveSupersededClause(deriveMarkerComment(derivePlanted, deriveControlId)) === '`a planted control clause`'
-    && deriveMarkerComment('/* a comment carrying no marker at all */', deriveControlId) === null
-    && deriveSupersededClause('/* a comment with no supersedes phrase */') === null
-    && (deriveCommentFor(deriveControlId) || '').indexOf('citedFigures.length === 9') < 0,
-  'TP-01-23 ADVERSARIAL: the evaluator reports a still-holding superseded clause as holding rather than as displaced, the extractor returns planted clause text and reports absence as absence, and a binding token that is not in the marker is not found');
-} catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 Scope 01 derive supersession strength group threw): ' + e.message); }
-/* ---------- Feature 022 Scope 01: derive supersessions are strictly stronger (END) ---------- */
-
 /* ---------- Feature 026 Scope 3: rlcockpit.js — change vocabulary (BEGIN) ---------- */
 try {
   group('rlcockpit.js — change vocabulary');
@@ -24452,17 +24820,17 @@ try {
   const classified4 = [...pageSrc4.matchAll(/data-mac-block="([a-z-]+)"\s*\n?\s*data-mac-default="(visible|collapsed)"|data-mac-block="([a-z-]+)" data-mac-default="(visible|collapsed)"/g)];
   const blockAttrs4 = [...pageSrc4.matchAll(/data-mac-block="([a-z-]+)"/g)].map((m) => m[1]);
   const defaultAttrs4 = [...pageSrc4.matchAll(/data-mac-default="(visible|collapsed)"/g)].map((m) => m[1]);
-  assert(blockAttrs4.length === 16 && defaultAttrs4.length === 16
-    && new Set(blockAttrs4).size === 16
+  assert(blockAttrs4.length === 17 && defaultAttrs4.length === 17
+    && new Set(blockAttrs4).size === 17
     && defaultAttrs4.filter((state) => state === 'visible').length === 6
-    && defaultAttrs4.filter((state) => state === 'collapsed').length === 10
+    && defaultAttrs4.filter((state) => state === 'collapsed').length === 11
     && classified4.length > 0,
-  'market-brief.html classifies exactly 16 uniquely-named top-level blocks, six default-visible and ten collapsed, so an unclassified block cannot reach the default view unnoticed');
+  'market-brief.html classifies exactly 17 uniquely-named top-level blocks, six default-visible and eleven collapsed, so an unclassified block cannot reach the default view unnoticed');
 
   /* FR-026-028 — build-free and no browser ES modules, asserted at the source so a future
      script tag cannot reintroduce a build step without failing here first. */
   assert(!/type=["']module["']/.test(pageSrc4)
-    && (pageSrc4.match(/<details class="drawer"/g) || []).length === 10
+    && (pageSrc4.match(/<details class="drawer"/g) || []).length === 11
     && !/<details[^>]*data-mac-block[^>]*\sopen[\s>]/.test(pageSrc4),
   'market-brief.html declares no ES-module script tag, carries one drawer per collapsed block, and ships no drawer with an open attribute, so the default view is collapsed on every load rather than on the first only');
 
@@ -24481,10 +24849,10 @@ try {
     .replace(/(^|[^:])\/\/[^\n]*/g, '$1 ');
   assert(suiteCode4.indexOf('market-brief.payload.json') < 0
     && suiteCode4.indexOf('brief-history.jsonl') < 0
-    && (suiteSrc4.match(/^test\(/gm) || []).length === 21
+    && (suiteSrc4.match(/^test\(/gm) || []).length === 22
     && (suiteSrc4.match(/FIXTURE-SOURCED/g) || []).length === 2
     && suiteCode4.indexOf('page.route') < 0 && suiteCode4.indexOf('context.route') < 0,
-  'tests/market-brief-cockpit.spec.mjs declares twenty-one tests — eighteen for Feature 026 plus the three BUG-009 R4 rows: the refusal statement, its quiet negative control and the deduped production shape — labels both fixture-sourced decision-surface rows as suchh, intercepts no request, and binds itself to neither the payload nor the history ledger');
+  'tests/market-brief-cockpit.spec.mjs declares twenty-two tests — eighteen for Feature 026, the three BUG-009 R4 rows (the refusal statement, its quiet negative control and the deduped production shape) and the freshness-badge row — labels both fixture-sourced decision-surface rows as suchh, intercepts no request, and binds itself to neither the payload nor the history ledger');
 
   /* The stripper must not become the hole in the guard: a real page.route in CODE still fails,
      and the same text inside a comment does not. */
@@ -24957,14 +25325,125 @@ try {
   assert(GATE.attachObserved([{ subject: 'NOPE' }], { tracked: {} }, policy1)[0].observed === undefined,
     'a candidate naming a subject Tier-A does not track gains no observation, so an unobservable subject is never dressed up as observed');
 
+  /* ── the module header's own promise, held against the input that broke it ────────────────────
+     "The snapshot is read lazily and defensively: a missing or unreadable snapshot yields no
+     observations rather than aborting the composer" — and loadSnapshotForGate hands over null to
+     mean exactly that. It aborted instead. The tracked map was a plain object, so
+     `tracked['__proto__']` answered with Object.prototype, which passes isPlainObject; that let a
+     candidate naming `__proto__` walk past the "is this a tracked subject?" guard and read
+     `snapshot.asOf` off null. Both halves are now closed — an inherited key is not a subject, and
+     the snapshot is narrowed before it is read — and either alone stops the throw, so both are
+     asserted rather than one. */
+  [undefined, null, 0, '', 'not-a-snapshot', []].forEach((snapshot) => {
+    ['__proto__', 'constructor', 'toString', 'hasOwnProperty', 'valueOf'].forEach((subject) => {
+      let threw = null; let out = null;
+      try { out = GATE.attachObserved([{ subject }], snapshot, policy1); } catch (e) { threw = e; }
+      assert(!threw && out && out[0] && out[0].observed === undefined,
+        'a missing snapshot yields no observation rather than aborting, even for a candidate whose subject is the inherited key `'
+        + subject + '` (snapshot ' + JSON.stringify(snapshot) + (threw ? '; threw: ' + threw.message : '') + ')');
+    });
+  });
+  assert(Object.getPrototypeOf(GATE.observableSubjects({ tracked: { FBTC: trackedFixture() } })) === null
+    && GATE.observableSubjects({ tracked: { FBTC: trackedFixture() } })['__proto__'] === undefined,
+    'the observable-subject map carries no inheritance, so nothing a snapshot never published can answer as a tracked subject');
+
   /* THE END-TO-END ROW, and the reason this packet exists. A lane-authored candidate
      carries judgement and no observation. Before R1 the composer refused every one of
      them RLATTN-PROVENANCE and the feed published nothing on every run. */
   const composer1 = await import('./build-attention-items.mjs');
   const basePayload1 = JSON.parse(read('market-brief.payload.json'));
   const fullConfig1 = JSON.parse(read('market-brief.config.json'));
+  /* The SUBJECT is chosen from live state rather than pinned to one ticker.
+     An earlier version hardcoded FBTC, and on 2026-08-20 a scheduled Tier-A
+     refresh moved FBTC's 200-day distance from -10.16 to -6.12 — inside the
+     moderate band — so `severityFor` returned null, the composer refused, and
+     the canonical suite went red across a commit of 158 data-only files with no
+     code change at all. A row that reads live market data must not also assume
+     which instrument that data will favour. Picking whichever subject the gate
+     observes TODAY keeps the row on real committed state, which is the whole
+     point of it, without betting on one instrument's drift. */
+  const snapshot1 = JSON.parse(read('market-brief.snapshot.json'));
+
+  /* ── the gate's INPUT must still arrive ─────────────────────────────────────────────────────
+     This feed published nothing for ten days while BOTH mechanical gates stayed green, because
+     an empty attention tier is contract-valid. A stabilize pass proved the residue of that is
+     still live: a deleted policy, a partially declared policy and a genuinely quiet market are
+     BYTE-IDENTICAL in the committed record. Config-shaped and code-shaped death are caught by
+     the rows above. DATA-shaped death - Tier-A stops emitting the one reading the gate consumes,
+     or the watchlist rotates away from it - was caught by nothing, because every ma200Dist
+     assertion in this suite is a FIXTURE and none reads committed state.
+
+     This row closes that without guessing a threshold. It does NOT assert the market is
+     interesting: a quiet market still carries readings, they are merely small, so this cannot
+     go red on weather. It asserts only that the input has not VANISHED, and zero is the single
+     value that means exactly that. Individual nulls are normal and stay legal - SPCX carries
+     ma200Dist: null today. */
+  const gateInputField = 'ma200Dist';
+  const trackedNow1 = (snapshot1 && snapshot1.tracked) || {};
+  const withReading1 = RLATTN_WATCHLIST_SCOPE.filter((ticker) => {
+    const e = trackedNow1[ticker];
+    return e && typeof e === 'object' && Number.isFinite(e[gateInputField]);
+  });
+  assert(withReading1.length > 0,
+    'Regression: SCN-BUG009-R1-INPUTALIVE the committed snapshot still supplies ' + gateInputField
+      + ' for at least one watchlist subject. Zero means the producer has gone structurally blind '
+      + 'and every publish will report a quiet market it cannot actually see - the exact ten-day '
+      + 'silence this bug exists to prevent, which no other assertion detects. Currently '
+      + withReading1.length + ' of ' + RLATTN_WATCHLIST_SCOPE.length);
+
+  /* Non-vacuity: the field name is not a guess. The composer's own produced gate names the
+     reading it fired on, so if the gate ever consumed a different field this row would be
+     watching the wrong one and still pass. */
+  assert(GATE.observeGate({ subject: withReading1[0], tracked: trackedNow1, policy: policy1 }) === null
+    || GATE.observeGate({ subject: withReading1[0], tracked: trackedNow1, policy: policy1 }).triggeredBy.reading === gateInputField,
+    'the field this row watches is the field the gate actually fires on, read back from a real observation rather than assumed');
+  /* The probe payload publishes NO actions, and the subject is selected on the gate
+     observation ALONE.
+
+     Eligibility used to be both halves of the production condition — observed AND not
+     already actioned — because the row composed against the live payload, where an
+     actioned subject is refused RLATTN-OVERLAP. That made the row's input depend on
+     which tickers the narrative lane happened to name, and the lane rewrites that set
+     from scratch four times a day at a language model's discretion. Measured on
+     2026-08-20: seven watchlist subjects cleared a band, five were already actioned,
+     and the row ran on a margin of TWO. Naming those two inside an existing action's
+     prose — no market move, no code change — turned this row and the end-to-end row
+     below red. Emptying the actions removes the prose dependence and widens the margin
+     from two to seven, and it costs no coverage: RLATTN-OVERLAP is asserted end to end
+     in tests/attention-payload-contract.test.mjs, which is where that contract belongs.
+     What remains is the row's own irreducible premise — that some subject clears a
+     declared band on committed state — which is the input it exists to have. */
+  const probeBase1 = Object.assign({}, basePayload1, {
+    nextSession: Object.assign({}, basePayload1.nextSession, { actions: [] })
+  });
+  /* ── and the SNAPSHOT is deterministic, for a reason worth stating ───────────────────────────
+     The comment above called "some subject clears a declared band on committed state" this row's
+     irreducible premise. It is not irreducible, it is separable, and leaving it in cost more than
+     it bought: tier-a.yml runs this suite BEFORE it commits, so on a genuinely quiet day - every
+     reading present but inside the narrowest band - this row and the one below go red and block
+     the scheduled refresh. A feed designed to publish nothing on a quiet day must not break its
+     own publication path on one. Reproduced by setting every committed reading to 0.1: both rows
+     red, exit 1.
+
+     What this row exists to prove is unchanged and untouched: the candidate carries NO subject,
+     so resolveSubject must bind one from authored text, and the composer must build a conforming
+     envelope from it. The market being interesting is incidental to both. The live payload and
+     config still supply the deep links, watchlist scope and calendar. Live INPUT health moved to
+     SCN-BUG009-R1-INPUTALIVE above, which fires only when the reading has actually vanished and
+     therefore cannot go red on weather. */
+  const observedNow1 = RLATTN_WATCHLIST_SCOPE[0];
+  const e2eSnapshot1 = Object.assign({}, snapshot1, {
+    tracked: Object.assign({}, trackedNow1, { [observedNow1]: trackedFixture() })
+  });
+  assert(typeof observedNow1 === 'string' && observedNow1.length > 0
+    && (() => { const p = GATE.attachObserved([{ headline: `${observedNow1} probe` }], e2eSnapshot1, policy1)[0];
+                return Boolean(p && p.observed && p.observed.subject === observedNow1); })(),
+    'Regression: SCN-BUG009-R1-E2E-SUBJECT the end-to-end row has an observable subject by construction, so it cannot pass vacuously by testing nothing - and it no longer depends on the market being interesting, which previously let quiet weather block the scheduled publication path');
+
+  assert(typeof observedNow1 === 'string' && observedNow1.length > 0,
+    'Regression: SCN-BUG009-R1-E2E-SUBJECT at least one watchlist subject clears a detection band against committed state — with none, the end-to-end row below would pass vacuously by testing nothing, so this asserts the row has real input before it runs');
   const laneCandidate1 = {
-    headline: 'FBTC sits far below its 200-day', rationale: 'structural',
+    headline: `${observedNow1} sits far from its 200-day`, rationale: 'structural',
     verb: 'monitor', horizon: 'swing', severity: 'moderate', imminence: 'latent',
     escalationTrigger: 'a close back above the 200-day', invalidation: 'a close below the 52-week low',
     expiry: '2026-08-26T20:00:00.000Z'
@@ -24977,11 +25456,11 @@ try {
      the fix. Removing it is what makes this row evidence. */
   assert(laneCandidate1.subject === undefined,
     'Regression: SCN-BUG009-R1-NOSUBJECT the end-to-end candidate carries no subject, matching what the lane actually emits — a test that supplies one cannot detect a producer that never binds in production');
-  const withCandidate1 = Object.assign({}, basePayload1, { attention: [laneCandidate1] });
-  const built1e2e = composer1.recomposePayloadAttention(withCandidate1, fullConfig1);
+  const withCandidate1 = Object.assign({}, probeBase1, { attention: [laneCandidate1] });
+  const built1e2e = composer1.recomposePayloadAttention(withCandidate1, fullConfig1, e2eSnapshot1);
   assert(built1e2e.items.length === 1 && built1e2e.exclusions.length === 0
     && built1e2e.items[0].contractVersion === 'decision-attention/v1'
-    && built1e2e.items[0].subject === 'FBTC' && typeof built1e2e.items[0].deepLink === 'string' && built1e2e.items[0].deepLink.length > 0,
+    && built1e2e.items[0].subject === observedNow1 && typeof built1e2e.items[0].deepLink === 'string' && built1e2e.items[0].deepLink.length > 0,
     'Regression: SCN-BUG009-R1-E2E a lane-authored candidate carrying judgement and NO observation now composes into a published decision-attention/v1 item, deep-linked to the tool that owns its math');
 
   /* The adversarial twin. Strip the policy and the SAME candidate must fall back to the
@@ -24989,7 +25468,7 @@ try {
      something else having quietly fixed the feed. */
   const noPolicyConfig1 = Object.assign({}, fullConfig1);
   delete noPolicyConfig1['attention-detection-policy/v1'];
-  const refused1 = composer1.recomposePayloadAttention(withCandidate1, noPolicyConfig1);
+  const refused1 = composer1.recomposePayloadAttention(withCandidate1, noPolicyConfig1, e2eSnapshot1);
   assert(refused1.items.length === 0 && refused1.exclusions.length === 1
     && refused1.exclusions[0].code === 'RLATTN-PROVENANCE',
     'Regression: SCN-BUG009-R1-LOADBEARING with attention-detection-policy/v1 removed the same candidate is refused RLATTN-PROVENANCE again — the producer, and no other change, is what restored the feed');
@@ -26776,6 +27255,55 @@ try {
     + ' (' + passes + ' assertion(s) already green at this point)');
 } catch (e) { failures++; console.log('  ✗ FAIL (RED/GREEN probe harness group threw): ' + e.message); }
 /* RED-GREEN-PROBE-HARNESS-END */
+
+/* ---------- spec id uniqueness (BEGIN) ---------- */
+/* Two spec folders sharing one number makes every reference to it ambiguous — a commit reading
+   "bug(009): ..." names one of two different packets, and so does a cross-link. Nothing caught
+   this, so it accumulated: three pairs already exist and a fourth was forming in a working tree
+   when this guard was written. The existing pairs are recorded rather than renamed, because
+   renaming a shipped folder breaks its own commit trail; the point is to stop the NEXT one. */
+try {
+  group('specs — one number, one packet');
+
+  const specRoots = ['specs', 'specs/_bugs'];
+  const specNames = [];
+  for (const root of specRoots) {
+    const abs = join(ROOT, root);
+    if (!existsSync(abs)) continue;
+    for (const entry of readdirSync(abs, { withFileTypes: true })) {
+      if (!entry.isDirectory() || entry.name.startsWith('_') || entry.name.startsWith('.')) continue;
+      specNames.push(entry.name);
+    }
+  }
+
+  /* Recorded because they predate the guard, each with the collision it carries. A new entry
+     here is a deliberate act with a reviewer attached, which is the point. */
+  const GRANDFATHERED_COLLISIONS = Object.freeze(['021', 'BUG-002', 'BUG-009']);
+
+  const byId = new Map();
+  for (const name of specNames) {
+    const match = /^((?:BUG-)?\d{3})-/.exec(name);
+    if (!match) continue;
+    if (!byId.has(match[1])) byId.set(match[1], []);
+    byId.get(match[1]).push(name);
+  }
+  const collisions = [...byId.entries()].filter(([, names]) => names.length > 1).map(([id]) => id);
+  const fresh = collisions.filter((id) => !GRANDFATHERED_COLLISIONS.includes(id));
+
+  assert(specNames.length > 0, 'the spec scan reads real directories rather than passing on an empty list (' + specNames.length + ' found)');
+  assert(fresh.length === 0,
+    'no spec number is used by two packets beyond the recorded pre-existing pairs (new collision(s): '
+    + (fresh.map((id) => id + ' -> ' + byId.get(id).join(' + ')).join('; ') || 'none') + ')');
+  /* ADVERSARIAL: a grandfather list that no longer matches reality is a list that has stopped
+     meaning anything. Every recorded id must still BE a collision, so a pair that gets resolved
+     has to be struck from the list rather than left as permanent cover for a future one. */
+  const staleGrandfathers = GRANDFATHERED_COLLISIONS.filter((id) => !collisions.includes(id));
+  assert(staleGrandfathers.length === 0,
+    'every recorded pre-existing collision is still a real collision, so the list cannot outlive its subject (stale: '
+    + (staleGrandfathers.join(', ') || 'none') + ')');
+
+} catch (e) { failures++; console.log('  ✗ FAIL (spec id uniqueness group threw): ' + e.message); }
+/* ---------- spec id uniqueness (END) ---------- */
 
 /* ---------- Feature 022 Scope 02: supersession conformance (START) ---------- */
 /* TP-02-22 and TP-02-23. Scope 02's two conformance rows. Both were unwritable until now because

@@ -801,7 +801,7 @@ file:             rltaxuse.js
 mutation:         if (operator === "greater-than") result = left > right;  ->  if (operator === "greater-than") result = left >= right;   (1 occurrence(s))
 command:          node scripts/selftest.mjs
 red-exit:         1
-red-summary:        ✗ FAIL: TP-04-06: at exactly the sourced personal-use day figure the dwelling is not a residence and one day above it is, the published comparison carries that exact figure as its right side, and 
+red-summary:        ✗ FAIL: TP-04-06: at exactly the sourced personal-use day figure the dwelling is not a residence and one day above it is, the published comparison carries that exact figure as its right side, and
 green-exit:       0
 green-summary:    ================================================
 revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
@@ -872,7 +872,7 @@ file:             rltaxuse.js
 mutation:         percentageComparedAgainst: rule.personalUsePercentageFigure.comparedAgainst,  ->  percentageComparedAgainst: rule.personalUsePercentageFigure.locator,   (1 occurrence(s))
 command:          node scripts/selftest.mjs
 red-exit:         1
-red-summary:        ✗ FAIL: TP-04-03: each of the three test parameters resolves to exactly one retrieved record with a locator and the qualifier component kind, the source record states the basis on which that kind 
+red-summary:        ✗ FAIL: TP-04-03: each of the three test parameters resolves to exactly one retrieved record with a locator and the qualifier component kind, the source record states the basis on which that kind
 green-exit:       0
 green-summary:    ================================================
 revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
@@ -935,7 +935,7 @@ file:             rltaxuse.js
 mutation:         result: dayFigure >= percentageOfRentalDays  ->  result: dayFigure <= percentageOfRentalDays   (1 occurrence(s))
 command:          node scripts/selftest.mjs
 red-exit:         1
-red-summary:        ✗ FAIL: TP-04-07: at exactly the sourced percentage of the declared rental days the dwelling is not a residence and one day above it is, and the published greater-of comparison names which of the 
+red-summary:        ✗ FAIL: TP-04-07: at exactly the sourced percentage of the declared rental days the dwelling is not a residence and one day above it is, and the published greater-of comparison names which of the
 green-exit:       0
 green-summary:    ================================================
 revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
@@ -952,7 +952,7 @@ file:             rltaxuse.js
 mutation:         if (usedAsResidence && minimalRentalUse) {  ->  if (minimalRentalUse) {   (1 occurrence(s))
 command:          node scripts/selftest.mjs
 red-exit:         1
-red-summary:        ✗ FAIL: TP-04-08: at exactly the sourced rental-days threshold the exception does not apply and one day below it does, the published comparison carries that exact figure, and a dwelling below the 
+red-summary:        ✗ FAIL: TP-04-08: at exactly the sourced rental-days threshold the exception does not apply and one day below it does, the published comparison carries that exact figure, and a dwelling below the
 green-exit:       0
 green-summary:    ================================================
 revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
@@ -969,7 +969,7 @@ file:             rltaxuse.js
 mutation:         if (operator === "at-least") result = left >= right;  ->  if (operator === "at-least") result = left > right;   (1 occurrence(s))
 command:          node scripts/selftest.mjs
 red-exit:         1
-red-summary:        ✗ FAIL: TP-04-09: flipping each of the three comparisons from the strict form the publication states to the inclusive form changes the outcome at that comparison’s exact boundary, flipping back 
+red-summary:        ✗ FAIL: TP-04-09: flipping each of the three comparisons from the strict form the publication states to the inclusive form changes the outcome at that comparison’s exact boundary, flipping back
 green-exit:       0
 green-summary:    ================================================
 revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
@@ -1007,7 +1007,7 @@ discriminating:   yes (red-exit 1 != green-exit 0)
 === RED/GREEN PROBE EVIDENCE ===
 label:            TP-04-11 known value: publishing a zero value beside the exclusion, so an excluded activity reads as a rental that settled to nothing, must fail the exception assertion
 file:             rltaxrental.js
-mutation:               excludedRentalIncome: activity.rentalIncome,  ->        
+mutation:               excludedRentalIncome: activity.rentalIncome,  ->
       value: 0,
       excludedRentalIncome: activity.rentalIncome,   (1 occurrence(s))
 command:          node scripts/selftest.mjs
@@ -1070,7 +1070,7 @@ file:             rltaxuse.js
 mutation:         if (expense.directlyAllocable === true) {  ->  if (expense.directlyAllocable === "declared-direct") {   (1 occurrence(s))
 command:          node scripts/selftest.mjs
 red-exit:         1
-red-summary:        ✗ FAIL: TP-04-14: a directly allocable expense is refused rather than re-allocated, the expense-set path carries it whole to the rental side and names why, every declared expense is accounted for 
+red-summary:        ✗ FAIL: TP-04-14: a directly allocable expense is refused rather than re-allocated, the expense-set path carries it whole to the rental side and names why, every declared expense is accounted for
 green-exit:       0
 green-summary:    ================================================
 revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
@@ -1104,7 +1104,7 @@ file:             rltaxuse.js
 mutation:         declaredAmount: expense.amount,  ->  declaredAmount: expense.amount + 1,   (1 occurrence(s))
 command:          node scripts/selftest.mjs
 red-exit:         1
-red-summary:        ✗ FAIL: TP-04-16: an implementation zeroing the personal portion breaks the sum back to the declared amount, and a composition that received no personal portions carries no dwelling component and 
+red-summary:        ✗ FAIL: TP-04-16: an implementation zeroing the personal portion breaks the sum back to the declared amount, and a composition that received no personal portions carries no dwelling component and
 green-exit:       0
 green-summary:    ================================================
 revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
@@ -1180,7 +1180,7 @@ mutation:           var CLASSIFICATION_CONTRACT = rules.USE_CLASSIFICATION_CONTR
   var CLASSIFICATION_CONTRACT = rules.USE_CLASSIFICATION_CONTRACT;   (1 occurrence(s))
 command:          node scripts/selftest.mjs
 red-exit:         1
-red-summary:        ✗ FAIL: TP-04-20: rltaxuse.js contains no test-parameter literal, no percentage, no authority name and no publication name, the detector is proven to fire on a module that does, and the module is 
+red-summary:        ✗ FAIL: TP-04-20: rltaxuse.js contains no test-parameter literal, no percentage, no authority name and no publication name, the detector is proven to fire on a module that does, and the module is
 green-exit:       0
 green-summary:    ================================================
 revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
@@ -1194,7 +1194,7 @@ discriminating:   yes (red-exit 1 != green-exit 0)
 === RED/GREEN PROBE EVIDENCE ===
 label:            TP-04-21 privacy: carrying a declared personal-use day count into the exported bytes must fail the assertion that both day-count declarations are omitted and have no value in the export
 file:             rltaxworkspace.js
-mutation:               selectedBracketId: workspace.selectedBracketId  ->        
+mutation:               selectedBracketId: workspace.selectedBracketId  ->
       selectedBracketId: workspace.selectedBracketId,
       rentalPersonalUseDays: workspace.rentalPersonalUseDays   (1 occurrence(s))
 command:          node scripts/selftest.mjs

@@ -54,6 +54,13 @@ export function buildBriefPageArtifactsFromInputs({ payload, config, snapshot, t
       backdrop: payload.backdrop,
       attention: payload.attention,
       attentionExclusions: dedupeExclusions(payload.attentionExclusions),
+      /* The page declares #crossAsset, #darkLegs and #changedList as default-VISIBLE blocks and
+         output-budget/v1 measures seven of their fields as default-visible reader text, but this
+         list dropped all three, so the reader's page could never show what the budget was
+         counting. The cockpit suite missed it because its fixture injects crossAsset directly. */
+      crossAsset: payload.crossAsset,
+      changed: payload.changed,
+      rollUp: payload.rollUp,
       recommendations: payload.recommendations,
       events: payload.events,
       watchlistNotes: payload.watchlistNotes,

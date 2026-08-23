@@ -92,6 +92,7 @@ are appraised, not because the asset is stable.
 **Command:** `node --test tests/portfolio-analytics.unit.mjs`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -137,6 +138,7 @@ Both reverted, both back to `# pass 53 # fail 0`.
 **Command:** `npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-022 raw stress correlation shows volatility context and qualified adjustment" --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -158,6 +160,7 @@ the page printed "contagion detected" beside it would fail here.
 **Command:** `npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-023 finite tail evidence never claims universal correlation one" --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -186,6 +189,7 @@ correlations go to one", "everything is correlated in a crisis", and
 **Command:** `npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-024 appraisal smoothing and illiquidity block mechanical decorrelation" --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -207,6 +211,7 @@ raises variance while leaving the observed record verbatim.
 **Command:** `npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 dependence matrix alternatives and tables preserve desktop mobile pixel parity" --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -236,6 +241,7 @@ emitting the proper quote URL.
 **Command:** `npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -297,6 +303,7 @@ route set would no longer catch an accidentally-added route.
 **Command:** `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --current-scope`
 
 **Exit Code:** 1
+**Claim Source:** executed
 
 **Output:**
 
@@ -319,6 +326,7 @@ name test files for scopes 13-16, which have not been built.
 **Command:** `node scripts/selftest.mjs` and the node and browser suites
 
 **Exit Code:** 0
+**Claim Source:** executed
 
 **Output:**
 
@@ -333,3 +341,9 @@ $ npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs 
 $ git diff --check
 (clean)
 ```
+
+<!-- bubbles:certifying-window-begin -->
+
+## Current Certifying Window
+
+The prior execution record is preserved above. Current status is governed by the canonical transition checks.

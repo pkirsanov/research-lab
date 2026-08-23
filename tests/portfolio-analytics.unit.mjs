@@ -131,9 +131,14 @@ test("TP-07-01 arithmetic, compounded and drag are separate and independently co
   const expectedMean = (0.5 * 3 + (-1 / 3) * 2) / 5;
   assert.ok(near(m.arithmeticAnnualized, expectedMean * 252, 1e-9));
 
-  // Independent compounded: wealth 1 -> 1.5 over 5 periods, years = 5/252.
-  const expectedCagr = Math.pow(1.5, 1 / (5 / 252)) - 1;
+  // Independent compounded: wealth 1 -> 1.5 over the exact seven elapsed calendar days.
+  // Return count is not elapsed time: using 5/252 would annualize a date fact from a market-session
+  // convention and materially overstate the result.
+  const elapsedDays = (Date.parse("2026-01-09T00:00:00.000Z") - Date.parse("2026-01-02T00:00:00.000Z")) / 86400000;
+  const expectedCagr = Math.pow(1.5, 1 / (elapsedDays / 365.2425)) - 1;
   assert.ok(near(m.compoundedCagr, expectedCagr, 1e-6));
+  assert.equal(m.elapsedDays, elapsedDays);
+  assert.ok(near(m.years, elapsedDays / 365.2425, 1e-12));
 
   // The three are genuinely distinct quantities here.
   assert.notEqual(m.arithmeticAnnualized, m.compoundedCagr);
@@ -333,22 +338,238 @@ test("TP-07-01 the projection is one immutable result behind canvas and table", 
 
 test("TP-07-01 ADVERSARIAL the projection refuses instead of rendering a partial portfolio", () => {
   const unusable = RLPA.riskXRayProjection({
-    holdings: [{ symbol: "AAA", derivedValue: 100 }, { symbol: "BBB", derivedValue: 0 }],
+    holdings: [
+      { holdingId: "holding-aaa", symbol: "AAA", assetType: "listed", inputClass: "listed-quantity-value", weight: 0.75, derivedValue: 100 },
+      { holdingId: "holding-bbb", symbol: "BBB", assetType: "unresolved", inputClass: "unresolved-unsupported", weight: 0.25, derivedValue: 0 }
+    ],
     series: { AAA: [{ date: "2026-07-01", close: 1 }, { date: "2026-07-02", close: 2 }] },
     cutoff: "2026-07-02"
   });
-  assert.equal(unusable.available, false);
-  assert.equal(unusable.state, "value-unavailable");
-  assert.deepEqual(unusable.points, []);
+  // Historical title retained as a persistent carrier. D1-Q5 supersedes its old whole-refusal
+  // assertion: the unsupported holding is now a scoped exclusion and the 75% eligible sleeve is
+  // measured at its ORIGINAL weight rather than silently reweighted to 100%.
+  assert.equal(unusable.available, true);
+  assert.equal(unusable.state, "partial");
+  assert.deepEqual(unusable.metricResults.returns.includedIds, ["holding-aaa"]);
+  assert.deepEqual(unusable.metricResults.returns.excludedIds, ["holding-bbb"]);
+  assert.ok(near(unusable.metricResults.returns.coveredWeight, 0.75));
+  assert.ok(near(unusable.metricResults.returns.uncoveredWeight, 0.25));
+  assert.ok(near(unusable.alignedReturns[0], 0.75), "AAA's +100% return contributes +75%, not a reweighted +100%");
 
-  // A symbol with no cached observations cannot intersect, so the portfolio is not measurable.
+  // A symbol with no cached observations limits return coverage without erasing independent
+  // descriptive and concentration results.
   const missing = RLPA.riskXRayProjection({
-    holdings: [{ symbol: "AAA", derivedValue: 100 }, { symbol: "BBB", derivedValue: 100 }],
+    holdings: [
+      { holdingId: "holding-aaa", symbol: "AAA", assetType: "listed", inputClass: "listed-quantity-value", weight: 0.5, derivedValue: 100 },
+      { holdingId: "holding-bbb", symbol: "BBB", assetType: "listed", inputClass: "listed-quantity-value", weight: 0.5, derivedValue: 100 }
+    ],
     series: { AAA: [{ date: "2026-07-01", close: 1 }, { date: "2026-07-02", close: 2 }], BBB: [] },
-    cutoff: "2026-07-02"
+    cutoff: "2026-07-02",
+    concentrationLenses: ["symbol"]
   });
-  assert.equal(missing.available, false);
-  assert.deepEqual(missing.points, []);
+  assert.equal(missing.available, true);
+  assert.equal(missing.state, "partial");
+  assert.deepEqual(missing.metricResults.returns.includedIds, ["holding-aaa"]);
+  assert.deepEqual(missing.metricResults.returns.excludedIds, ["holding-bbb"]);
+  assert.equal(missing.concentration[0].state, "ok");
+});
+
+function scope21MixedRiskInput() {
+  const dates = ["2026-01-02", "2026-01-05", "2026-01-06", "2026-01-08", "2026-01-09", "2026-01-12"];
+  const rows = (closes) => dates.map((date, index) => ({ date, close: closes[index] }));
+  return {
+    holdings: [
+      {
+        holdingId: "listed-weight", symbol: "LWT", assetType: "listed",
+        inputClass: "listed-explicit-weight", weight: 0.25,
+        issuer: "Issuer A", sector: "Technology", factor: "growth",
+        lookThrough: { "Issuer A": 0.7, "Issuer X": 0.3 }
+      },
+      {
+        holdingId: "listed-value", symbol: "LQV", assetType: "listed",
+        inputClass: "listed-quantity-value", weight: 0.25, derivedValue: 250,
+        issuer: "Issuer B", sector: "Industrials", factor: "quality",
+        lookThrough: { "Issuer B": 1 }
+      },
+      {
+        holdingId: "cash", symbol: "CASH", assetType: "cash", inputClass: "cash",
+        weight: 0.1, derivedValue: 100,
+        cashTreatment: { kind: "public-proxy", sourceSymbol: "BIL", frequency: "daily", evidenceIds: ["cash-policy/v1"] },
+        issuer: "Cash reserve", sector: "Cash", factor: "cash"
+      },
+      {
+        holdingId: "manual-dated", symbol: "ALT", assetType: "manual-alternative",
+        inputClass: "manual-dated-series", weight: 0.15, derivedValue: 150,
+        manualSeries: {
+          frequency: "monthly", evidenceIds: ["manual-alt/v1"],
+          rows: [{ date: "2025-11-30", close: 100 }, { date: "2025-12-31", close: 102 }]
+        },
+        issuer: "Private issuer", sector: "Alternatives", factor: "illiquidity"
+      },
+      {
+        holdingId: "manual-no-series", symbol: "ART", assetType: "manual-alternative",
+        inputClass: "manual-no-series", weight: 0.1, derivedValue: 100,
+        scenarioRanges: [{ low: -0.2, high: 0.15, horizon: "one-year" }],
+        issuer: "Owner appraisal", sector: "Collectibles"
+      },
+      {
+        holdingId: "unsupported", symbol: "UNKNOWN", assetType: "unresolved",
+        inputClass: "unresolved-unsupported", weight: 0.15, derivedValue: 150
+      }
+    ],
+    series: {
+      LWT: rows([100, 102, 101, 104, 103, 106]),
+      LQV: rows([50, 49, 50, 51, 52, 51]),
+      CASH: rows([100, 100.04, 100.02, 100.07, 100.05, 100.11])
+    },
+    cutoff: dates.at(-1),
+    periodsPerYear: 252,
+    concentrationLenses: ["issuer", "sector", "factor", "lookThrough"],
+    benchmarkReturns: [0.01, -0.004, 0.012, -0.006, 0.009],
+    benchmarkSymbol: "SPY",
+    factorReturns: {
+      market: [0.009, -0.005, 0.011, -0.004, 0.008],
+      size: [0.003, 0.004, -0.002, 0.005, -0.003]
+    },
+    factorSourceSymbols: { market: ["SPY"], size: ["IWM", "SPY"] },
+    proxyFactorsVersion: "proxy-factors/v1",
+    shrinkageLambda: 0.2,
+    reconciliationTolerance: 1e-8
+  };
+}
+
+test("TP-21-01 SCN-008-047 emits complete per-metric eligibility and diagnostic contracts", () => {
+  const projection = RLPA.riskXRayProjection(scope21MixedRiskInput());
+
+  assert.equal(projection.contractVersion, "RiskDiagnosticSet/v1");
+  assert.equal(projection.state, "partial");
+  assert.equal(projection.available, true);
+  assert.equal(projection.eligibility.length, 30, "six holdings x five metric families must be explicit");
+  for (const entry of projection.eligibility) {
+    assert.equal(entry.contractVersion, "AssetMetricEligibility/v1");
+    for (const key of ["holdingId", "inputClass", "metricFamily", "state", "frequency", "evidenceIds", "includedWeight", "excludedWeight", "reasons"]) {
+      assert.ok(Object.prototype.hasOwnProperty.call(entry, key), `${key} is required on every eligibility row`);
+    }
+  }
+
+  const manualReturn = projection.eligibility.find((entry) =>
+    entry.holdingId === "manual-dated" && entry.metricFamily === "return-cagr-drawdown"
+  );
+  assert.equal(manualReturn.state, "eligible-compatible-frequency");
+  assert.equal(manualReturn.frequency, "monthly");
+  assert.deepEqual(manualReturn.evidenceIds, ["manual-alt/v1"]);
+  assert.equal(projection.compatibleFrequencyResults.length, 1,
+    "the eligible monthly series must be computed separately rather than only labelled eligible");
+  const compatible = projection.compatibleFrequencyResults[0];
+  assert.equal(compatible.contractVersion, "CompatibleFrequencyRiskResult/v1");
+  assert.equal(compatible.holdingId, "manual-dated");
+  assert.equal(compatible.frequency, "monthly");
+  assert.ok(near(compatible.holdingWeight, 0.15));
+  assert.deepEqual(compatible.alignment.commonDates, ["2025-11-30", "2025-12-31"]);
+  assert.equal(compatible.metrics.elapsedDays, 31);
+  assert.equal(compatible.metrics.cagrAnnualizationPolicy, "exact-elapsed-calendar-days/365.2425");
+  assert.equal(compatible.drawdown.state, "ok");
+  assert.deepEqual(compatible.metricResult.includedIds, ["manual-dated"]);
+  assert.ok(near(compatible.metricResult.coveredWeight, 0.15));
+  const unsupported = projection.eligibility.filter((entry) => entry.holdingId === "unsupported");
+  assert.equal(unsupported.length, 5);
+  assert.ok(unsupported.every((entry) => entry.state === "unavailable" && entry.reasons.length > 0));
+
+  const resultNames = ["descriptive", "returns", "drawdown", "covariance", "capm", "factors", "assetContributions", "factorContributions", "returnContributions"];
+  for (const name of resultNames) {
+    const result = projection.metricResults[name];
+    assert.equal(result.contractVersion, "RiskMetricResult/v1", `${name} carries the metric-result contract`);
+    for (const key of ["eligibility", "includedIds", "excludedIds", "coveredWeight", "uncoveredWeight", "frequency", "firstDate", "lastDate", "cutoff", "state"]) {
+      assert.ok(Object.prototype.hasOwnProperty.call(result, key), `${name}.${key} is required`);
+    }
+    assert.ok(near(result.coveredWeight + result.uncoveredWeight, 1), `${name} coverage must reconcile`);
+  }
+  assert.deepEqual(projection.metricResults.returns.includedIds, ["cash", "listed-value", "listed-weight"]);
+  assert.deepEqual(projection.metricResults.returns.excludedIds, ["manual-dated", "manual-no-series", "unsupported"]);
+  assert.ok(near(projection.metricResults.returns.coveredWeight, 0.6));
+  assert.ok(near(projection.metricResults.returns.uncoveredWeight, 0.4));
+
+  const exactDays = (Date.parse("2026-01-12T00:00:00.000Z") - Date.parse("2026-01-02T00:00:00.000Z")) / 86400000;
+  assert.equal(projection.metrics.elapsedDays, exactDays);
+  assert.ok(near(projection.metrics.years, exactDays / 365.2425, 1e-12));
+  assert.notEqual(projection.metrics.arithmeticAnnualized, projection.metrics.compoundedCagr);
+  assert.ok(Object.prototype.hasOwnProperty.call(projection.metrics, "dragObserved"));
+
+  assert.equal(projection.capm.benchmarkSymbol, "SPY");
+  assert.deepEqual(projection.capm.sourceSymbols, ["SPY"]);
+  for (const key of ["beta", "alphaAnnualized", "rSquared", "correlation", "residualRiskAnnualized", "betaStandardError", "fitState"]) {
+    assert.ok(Object.prototype.hasOwnProperty.call(projection.capm, key), `CAPM ${key} must stay explicit`);
+  }
+
+  assert.equal(projection.factors.definitionVersion, "proxy-factors/v1");
+  assert.deepEqual(projection.factors.sourceSymbols, { market: ["SPY"], size: ["IWM", "SPY"] });
+  assert.equal(projection.factors.rank, 3);
+  assert.ok(Number.isFinite(projection.factors.conditionEstimate));
+  assert.equal(projection.factors.factorCovariance.length, 2);
+  assert.ok(near(
+    projection.factors.factorVarianceContributions.contributionSum,
+    projection.factors.factorVarianceContributions.factorVariance,
+    1e-12
+  ));
+  assert.ok(near(
+    projection.factors.factorVarianceContributions.factorVariance + projection.factors.residualVariance,
+    projection.factors.totalModelVariance,
+    1e-12
+  ));
+
+  const cov = projection.covariance;
+  for (const key of ["observationCount", "firstDate", "lastDate", "minimumEigenvalue", "choleskyState", "rank", "conditionEstimate", "fingerprint"]) {
+    assert.ok(Object.prototype.hasOwnProperty.call(cov.rawDiagnostics, key), `raw covariance ${key} must be reported`);
+  }
+  assert.equal(cov.conditioning.method, "diagonal-shrinkage");
+  assert.equal(cov.conditioning.lambda, 0.2);
+  assert.equal(cov.conditioning.lambdaWasAutoRaised, false);
+  assert.equal(cov.conditioning.parentRawFingerprint, cov.rawDiagnostics.fingerprint);
+  assert.deepEqual(cov.conditioning.resultDiagnostics, cov.conditionedDiagnostics);
+
+  assert.equal(projection.contributions.model, "asset-covariance");
+  assert.equal(projection.contributions.reconciled, true);
+  assert.ok(near(projection.contributions.contributionSum, projection.contributions.portfolioRisk, 1e-12));
+  assert.equal(projection.factorContributions.model, "proxy-factor-variance");
+  assert.equal(projection.factorContributions.reconciled, true);
+  assert.ok(near(projection.factorContributions.contributionSum, projection.factorContributions.factorVariance, 1e-12));
+  assert.equal(projection.returnContributions.model, "realized-return");
+  assert.notEqual(projection.returnContributions, projection.contributions);
+});
+
+test("Adversarial: reduced risk input and diagnostic paths cannot satisfy Risk X Ray", () => {
+  const dates = ["2026-02-02", "2026-02-03", "2026-02-04"];
+  const reduced = RLPA.riskXRayProjection({
+    holdings: [
+      { holdingId: "eligible", symbol: "AAA", assetType: "listed", inputClass: "listed-explicit-weight", weight: 0.6 },
+      { holdingId: "unsupported", symbol: "UNKNOWN", assetType: "unresolved", inputClass: "unresolved-unsupported", weight: 0.4 }
+    ],
+    series: { AAA: dates.map((date, index) => ({ date, close: [100, 101, 99][index] })) },
+    cutoff: dates.at(-1),
+    concentrationLenses: ["issuer", "sector", "factor", "lookThrough"],
+    shrinkageLambda: 0
+  });
+
+  assert.equal(reduced.available, true, "the eligible return path survives");
+  assert.equal(reduced.state, "partial", "reduced evidence cannot be promoted to complete");
+  assert.equal(reduced.metricResults.capm.state, "benchmark-unavailable");
+  assert.equal(reduced.metricResults.factors.state, "factors-unavailable");
+  assert.ok(reduced.metricResults.returns.uncoveredWeight > 0);
+  assert.ok(reduced.concentration.every((lens) => lens.coverageState !== "complete"));
+  assert.equal(reduced.covariance.rawDiagnostics.choleskyState, "positive-definite");
+  assert.equal(reduced.covariance.conditioning.lambda, 0, "conditioning cannot be silently increased");
+  assert.equal(reduced.covariance.conditioning.lambdaWasAutoRaised, false);
+
+  const noReturn = RLPA.riskXRayProjection({
+    holdings: [{ holdingId: "manual", symbol: "ART", assetType: "manual-alternative", inputClass: "manual-no-series", weight: 1, derivedValue: 100 }],
+    series: {},
+    cutoff: "2026-02-04",
+    concentrationLenses: ["issuer"]
+  });
+  assert.equal(noReturn.state, "partial");
+  assert.equal(noReturn.metricResults.returns.state, "unavailable");
+  assert.equal(noReturn.metricResults.covariance.state, "unavailable");
+  assert.equal(noReturn.metricResults.descriptive.state, "ok");
 });
 
 /* ------------------------------------------- Scope 08: concentration and CAPM */
@@ -664,19 +885,131 @@ test('TP-08-01 ADVERSARIAL a flat portfolio reports no return share rather than 
 const SAMPLE = [0.010, -0.020, 0.015, -0.005, 0.020, -0.010, 0.008, -0.012, 0.011, -0.007, 0.013, -0.009];
 
 function scenario(overrides = {}) {
-  return {
+  const specification = {
     contractVersion: 'ScenarioSpecification/v1',
-    returnFingerprint: 'sha256:fixture',
-    method: 'stationary-bootstrap',
+    workspaceIdentity: 'workspace:fixture',
+    portfolioRevisionId: 'portfolio-revision:fixture',
+    mandateRevisionId: 'mandate-revision:fixture',
+    allocationCandidateId: 'allocation-candidate:fixture',
+    evidenceSet: {
+      returnFingerprint: 'sha256:fixture',
+      sourceIds: ['AAA', 'BBB'],
+      cutoffAt: '2026-01-31T00:00:00.000Z',
+      firstDate: '2025-01-02',
+      lastDate: '2026-01-30',
+      frequency: 'daily',
+      currency: 'USD',
+      eligibleDateFingerprint: 'sha256:eligible-dates-fixture'
+    },
+    method: {
+      family: 'stationary-bootstrap',
+      blockPolicy: {
+        family: 'politis-romano-geometric',
+        meanBlockSessions: 10,
+        wrapPolicy: 'cyclic'
+      },
+      regimePolicy: {
+        state: 'not-requested',
+        stateDefinitions: [],
+        transitionMatrix: [],
+        fittingSample: null,
+        minimumSamplePolicy: null,
+        fitDiagnostics: null,
+        uncertainty: null
+      },
+      fatTailPolicy: {
+        state: 'not-requested',
+        innovationFamily: null,
+        tailParameters: null
+      },
+      calibrationIdentity: 'calibration:stationary-fixture',
+      availability: {
+        state: 'calibrated',
+        reason: null
+      }
+    },
     seed: 20260715,
-    meanBlockSessions: 10,
-    horizonSessions: 20,
+    horizon: {
+      startDate: '2026-02-02',
+      endDate: '2026-03-01',
+      stepFrequency: 'business-day',
+      stepCount: 20
+    },
     pathCount: 200,
-    parameterDrawCount: 21,
-    driftRange: { low: -0.0002, high: 0.0002 },
-    startingValue: 100000,
-    ...overrides
+    chunkSize: 25,
+    parameterPolicy: {
+      drawCount: 21,
+      ranges: [{ parameter: 'drift', low: -0.0002, high: 0.0002 }],
+      distributions: [{ parameter: 'drift', family: 'deterministic-stratified', parameters: {} }],
+      gridIdentity: 'grid:drift:fixture'
+    },
+    rebalancePolicy: {
+      family: 'buy-and-hold',
+      frequency: null
+    },
+    costPolicy: {
+      currency: 'USD',
+      recurringFraction: 0,
+      timing: 'end-of-step'
+    },
+    contributions: [],
+    withdrawals: [],
+    cashNeeds: [],
+    survivalDefinition: {
+      state: 'available',
+      floorValue: 50000,
+      condition: 'minimum-wealth-through-horizon',
+      cashNeedPolicy: 'fund-in-declared-order',
+      currency: 'USD',
+      startingValue: 100000
+    },
+    constraintsFingerprint: 'sha256:constraints-fixture',
+    uncertaintyPolicy: {
+      intervalMethod: 'empirical-quantile',
+      quantiles: [0.05, 0.5, 0.95],
+      separatePathAndParameter: true
+    },
+    policyFingerprint: 'sha256:scenario-policy-fixture'
   };
+
+  const requested = { ...overrides };
+  if (Object.prototype.hasOwnProperty.call(requested, 'returnFingerprint')) {
+    specification.evidenceSet.returnFingerprint = requested.returnFingerprint;
+    delete requested.returnFingerprint;
+  }
+  if (Object.prototype.hasOwnProperty.call(requested, 'method')) {
+    if (requested.method === 'stationary-bootstrap' || requested.method === 'iid') {
+      specification.method.family = requested.method === 'iid' ? 'iid-comparison' : requested.method;
+    } else {
+      specification.method = requested.method;
+    }
+    delete requested.method;
+  }
+  if (Object.prototype.hasOwnProperty.call(requested, 'meanBlockSessions')) {
+    specification.method.blockPolicy.meanBlockSessions = requested.meanBlockSessions;
+    delete requested.meanBlockSessions;
+  }
+  if (Object.prototype.hasOwnProperty.call(requested, 'horizonSessions')) {
+    specification.horizon.stepCount = requested.horizonSessions;
+    delete requested.horizonSessions;
+  }
+  if (Object.prototype.hasOwnProperty.call(requested, 'parameterDrawCount')) {
+    specification.parameterPolicy.drawCount = requested.parameterDrawCount;
+    delete requested.parameterDrawCount;
+  }
+  if (Object.prototype.hasOwnProperty.call(requested, 'driftRange')) {
+    specification.parameterPolicy.ranges[0] = {
+      parameter: 'drift',
+      low: requested.driftRange.low,
+      high: requested.driftRange.high
+    };
+    delete requested.driftRange;
+  }
+  if (Object.prototype.hasOwnProperty.call(requested, 'startingValue')) {
+    specification.survivalDefinition.startingValue = requested.startingValue;
+    delete requested.startingValue;
+  }
+  return Object.assign(specification, requested);
 }
 
 test('TP-09-01 the same specification reproduces byte-identical results', () => {
@@ -801,7 +1134,9 @@ test('TP-09-01 the scenario contract is exact and refuses incomplete or contradi
   assert.equal(RLPA.runScenario(scenario(), [0.1], {}).state, 'insufficient-sample');
   assert.equal(RLPA.runScenario(scenario(), [0.1, NaN], {}).state, 'non-finite-input');
   // A budget refuses rather than freezing the tab on an unbounded run.
-  assert.equal(RLPA.runScenario(scenario(), SAMPLE, { maximumPaths: 10 }).state, 'budget-exceeded');
+  const budgetRefusal = RLPA.runScenario(scenario(), SAMPLE, { maximumWorkUnits: 10 });
+  assert.equal(budgetRefusal.state, 'error');
+  assert.equal(budgetRefusal.error.code, 'P008-COMPUTE-BUDGET');
 });
 
 test('TP-09-01 the parameter grid is deterministic and stratified', () => {
@@ -816,10 +1151,8 @@ test('TP-09-01 the parameter grid is deterministic and stratified', () => {
 
 test('TP-09-01 fan bands come from the same streams as the terminals and widen with horizon', () => {
   const sample = [0.01, -0.02, 0.015, -0.005, 0.02, -0.01, 0.008, -0.012];
-  const spec = {
-    contractVersion: 'ScenarioSpecification/v1',
+  const spec = scenario({
     returnFingerprint: 'sha256:fan-band-fixture',
-    method: 'stationary-bootstrap',
     meanBlockSessions: 3,
     horizonSessions: 10,
     pathCount: 200,
@@ -827,17 +1160,17 @@ test('TP-09-01 fan bands come from the same streams as the terminals and widen w
     driftRange: { low: -0.0002, high: 0.0002 },
     startingValue: 1,
     seed: 11
-  };
-  const run = RLPA.runScenario(spec, sample, { maximumPaths: 20000 });
+  });
+  const run = RLPA.runScenario(spec, sample, { maximumWorkUnits: 20000 });
   assert.equal(run.state, 'ok');
 
   // One band per session boundary, including the known starting point.
-  assert.equal(run.fanBands.length, spec.horizonSessions + 1);
+  assert.equal(run.fanBands.length, spec.horizon.stepCount + 1);
   assert.equal(run.fanBands[0].session, 0);
   // At session 0 every path is the starting value, so the band has zero width. A non-zero band
   // there would mean the chart started from something the run did not.
-  assert.ok(near(run.fanBands[0].p05, spec.startingValue, 1e-12));
-  assert.ok(near(run.fanBands[0].p95, spec.startingValue, 1e-12));
+  assert.ok(near(run.fanBands[0].p05, spec.survivalDefinition.startingValue, 1e-12));
+  assert.ok(near(run.fanBands[0].p95, spec.survivalDefinition.startingValue, 1e-12));
 
   // Percentiles are ordered at every session, or the band is not a band.
   run.fanBands.forEach((band) => {
@@ -860,8 +1193,419 @@ test('TP-09-01 fan bands come from the same streams as the terminals and widen w
   assert.ok(near(finalBand.p95, run.pathRandomness.p95, 1e-9));
 
   // Reproducible: the same specification produces the identical fan.
-  const rerun = RLPA.runScenario(spec, sample, { maximumPaths: 20000 });
+  const rerun = RLPA.runScenario(spec, sample, { maximumWorkUnits: 20000 });
   assert.deepEqual(rerun.fanBands, run.fanBands);
+});
+
+/* ---------------------------------------------------------------------------
+   Scope 22 - complete scenario, compute lifecycle, and survival distributions
+   --------------------------------------------------------------------------- */
+
+const copyScenario = (value) => JSON.parse(JSON.stringify(value));
+
+function scope22Scenario(overrides = {}) {
+  const specification = scenario({
+    pathCount: 5,
+    chunkSize: 2,
+    parameterDrawCount: 3,
+    horizonSessions: 4,
+    meanBlockSessions: 3,
+    driftRange: { low: -0.001, high: 0.001 },
+    startingValue: 1000,
+    seed: 22
+  });
+  specification.horizon = {
+    startDate: '2026-02-02',
+    endDate: '2026-02-06',
+    stepFrequency: 'business-day',
+    stepCount: 4
+  };
+  specification.parameterPolicy.gridIdentity = 'grid:scope-22';
+  specification.costPolicy.recurringFraction = 0.01;
+  specification.contributions = [{
+    localId: 'contribution-a', amount: 100, currency: 'USD', date: '2026-02-03',
+    timing: 'end-of-step', label: 'Contribution A'
+  }];
+  specification.withdrawals = [{
+    localId: 'withdrawal-a', amount: 50, currency: 'USD', date: '2026-02-03',
+    timing: 'end-of-step', label: 'Withdrawal A'
+  }];
+  specification.cashNeeds = [
+    {
+      localId: 'need-b', amount: 60, currency: 'USD', date: '2026-02-03',
+      timing: 'end-of-step', label: 'Need B', priority: 1, treatment: 'eligible-capital'
+    },
+    {
+      localId: 'need-a', amount: 40, currency: 'USD', date: '2026-02-03',
+      timing: 'end-of-step', label: 'Need A', priority: 1, treatment: 'eligible-capital'
+    }
+  ];
+  specification.survivalDefinition = {
+    state: 'available',
+    floorValue: 700,
+    condition: 'minimum-wealth-through-horizon',
+    cashNeedPolicy: 'fund-in-declared-order',
+    currency: 'USD',
+    startingValue: 1000
+  };
+  return Object.assign(specification, overrides);
+}
+
+function atPath(target, path) {
+  return path.reduce((value, key) => value[key], target);
+}
+
+test('TP-22-01 complete ScenarioSpecification/v1 uses exact keys at every nested boundary', () => {
+  const specification = scope22Scenario();
+  const expectedRoot = [
+    'contractVersion', 'workspaceIdentity', 'portfolioRevisionId', 'mandateRevisionId',
+    'allocationCandidateId', 'evidenceSet', 'method', 'seed', 'horizon', 'pathCount',
+    'chunkSize', 'parameterPolicy', 'rebalancePolicy', 'costPolicy', 'contributions',
+    'withdrawals', 'cashNeeds', 'survivalDefinition', 'constraintsFingerprint',
+    'uncertaintyPolicy', 'policyFingerprint'
+  ].sort();
+  assert.deepEqual(Object.keys(specification).sort(), expectedRoot);
+  assert.deepEqual(RLPA.validateScenarioSpecification(specification), { ok: true });
+
+  const boundaries = [
+    [[], expectedRoot],
+    [['evidenceSet'], ['returnFingerprint', 'sourceIds', 'cutoffAt', 'firstDate', 'lastDate', 'frequency', 'currency', 'eligibleDateFingerprint']],
+    [['method'], ['family', 'blockPolicy', 'regimePolicy', 'fatTailPolicy', 'calibrationIdentity', 'availability']],
+    [['method', 'blockPolicy'], ['family', 'meanBlockSessions', 'wrapPolicy']],
+    [['method', 'regimePolicy'], ['state', 'stateDefinitions', 'transitionMatrix', 'fittingSample', 'minimumSamplePolicy', 'fitDiagnostics', 'uncertainty']],
+    [['method', 'fatTailPolicy'], ['state', 'innovationFamily', 'tailParameters']],
+    [['method', 'availability'], ['state', 'reason']],
+    [['horizon'], ['startDate', 'endDate', 'stepFrequency', 'stepCount']],
+    [['parameterPolicy'], ['drawCount', 'ranges', 'distributions', 'gridIdentity']],
+    [['parameterPolicy', 'ranges', 0], ['parameter', 'low', 'high']],
+    [['parameterPolicy', 'distributions', 0], ['parameter', 'family', 'parameters']],
+    [['rebalancePolicy'], ['family', 'frequency']],
+    [['costPolicy'], ['currency', 'recurringFraction', 'timing']],
+    [['contributions', 0], ['localId', 'amount', 'currency', 'date', 'timing', 'label']],
+    [['withdrawals', 0], ['localId', 'amount', 'currency', 'date', 'timing', 'label']],
+    [['cashNeeds', 0], ['localId', 'amount', 'currency', 'date', 'timing', 'label', 'priority', 'treatment']],
+    [['survivalDefinition'], ['state', 'floorValue', 'condition', 'cashNeedPolicy', 'currency', 'startingValue']],
+    [['uncertaintyPolicy'], ['intervalMethod', 'quantiles', 'separatePathAndParameter']]
+  ];
+
+  for (const [path, expected] of boundaries) {
+    assert.deepEqual(Object.keys(atPath(specification, path)).sort(), expected.slice().sort(), path.join('.') || 'root');
+    const missing = copyScenario(specification);
+    delete atPath(missing, path)[expected[0]];
+    const missingCheck = RLPA.validateScenarioSpecification(missing);
+    assert.equal(missingCheck.ok, false, `${path.join('.') || 'root'} must reject a missing key`);
+    assert.equal(missingCheck.reason, 'spec-keys-exact');
+    const extra = copyScenario(specification);
+    atPath(extra, path).uncontractedField = true;
+    const extraCheck = RLPA.validateScenarioSpecification(extra);
+    assert.equal(extraCheck.ok, false, `${path.join('.') || 'root'} must reject an extra key`);
+    assert.equal(extraCheck.reason, 'spec-keys-exact');
+  }
+
+  const reducedLegacy = {
+    contractVersion: 'ScenarioSpecification/v1', returnFingerprint: 'sha256:legacy',
+    method: 'stationary-bootstrap', seed: 1, meanBlockSessions: 5, horizonSessions: 20,
+    pathCount: 200, parameterDrawCount: 21, driftRange: { low: -0.01, high: 0.01 },
+    startingValue: 1000
+  };
+  assert.equal(RLPA.validateScenarioSpecification(reducedLegacy).ok, false);
+  assert.equal(RLPA.validateScenarioSpecification(reducedLegacy).reason, 'spec-keys-exact');
+});
+
+test('TP-22-01 every ScenarioSpecification identity field changes the scenario identity', () => {
+  const base = scope22Scenario();
+  const baseIdentity = RLPA.scenarioIdentity(base);
+  assert.equal(typeof baseIdentity, 'string');
+  const invalidVersion = copyScenario(base);
+  invalidVersion.contractVersion = 'ScenarioSpecification/v1.0';
+  assert.equal(RLPA.validateScenarioSpecification(invalidVersion).reason, 'contract-version');
+  assert.equal(RLPA.scenarioIdentity(invalidVersion), null,
+    'a different contract version is an invalid record, not a second v1 identity');
+  const cases = [
+    ['workspaceIdentity', (s) => { s.workspaceIdentity = 'workspace:other'; }],
+    ['portfolioRevisionId', (s) => { s.portfolioRevisionId = 'portfolio-revision:other'; }],
+    ['mandateRevisionId', (s) => { s.mandateRevisionId = 'mandate-revision:other'; }],
+    ['allocationCandidateId', (s) => { s.allocationCandidateId = 'allocation-candidate:other'; }],
+    ['evidence return fingerprint', (s) => { s.evidenceSet.returnFingerprint = 'sha256:other'; }],
+    ['evidence source IDs', (s) => { s.evidenceSet.sourceIds = ['AAA', 'CCC']; }],
+    ['evidence cutoff', (s) => { s.evidenceSet.cutoffAt = '2026-01-30T00:00:00.000Z'; }],
+    ['evidence first date', (s) => { s.evidenceSet.firstDate = '2025-01-03'; }],
+    ['evidence last date', (s) => { s.evidenceSet.lastDate = '2026-01-29'; }],
+    ['evidence frequency', (s) => { s.evidenceSet.frequency = 'weekly'; }],
+    ['evidence currency', (s) => { s.evidenceSet.currency = 'EUR'; }],
+    ['eligible dates', (s) => { s.evidenceSet.eligibleDateFingerprint = 'sha256:eligible-other'; }],
+    ['method family', (s) => { s.method.family = 'iid-comparison'; }],
+    ['block family', (s) => { s.method.blockPolicy.family = 'fixed-block'; }],
+    ['block length', (s) => { s.method.blockPolicy.meanBlockSessions = 4; }],
+    ['block wrapping', (s) => { s.method.blockPolicy.wrapPolicy = 'no-wrap'; }],
+    ['regime state', (s) => { s.method.regimePolicy.state = 'unavailable'; }],
+    ['regime definitions', (s) => { s.method.regimePolicy.stateDefinitions = ['calm', 'stress']; }],
+    ['regime transitions', (s) => { s.method.regimePolicy.transitionMatrix = [[0.9, 0.1], [0.2, 0.8]]; }],
+    ['regime fitting sample', (s) => { s.method.regimePolicy.fittingSample = 'sample:other'; }],
+    ['regime minimum sample', (s) => { s.method.regimePolicy.minimumSamplePolicy = 'minimum:500'; }],
+    ['regime diagnostics', (s) => { s.method.regimePolicy.fitDiagnostics = { state: 'insufficient' }; }],
+    ['regime uncertainty', (s) => { s.method.regimePolicy.uncertainty = { state: 'wide' }; }],
+    ['tail state', (s) => { s.method.fatTailPolicy.state = 'unavailable'; }],
+    ['innovation family', (s) => { s.method.fatTailPolicy.innovationFamily = 'student-t'; }],
+    ['tail parameters', (s) => { s.method.fatTailPolicy.tailParameters = { degreesOfFreedom: 6 }; }],
+    ['calibration identity', (s) => { s.method.calibrationIdentity = 'calibration:other'; }],
+    ['availability state', (s) => { s.method.availability.state = 'unavailable'; }],
+    ['availability reason', (s) => { s.method.availability.reason = 'minimum-sample-not-met'; }],
+    ['seed', (s) => { s.seed += 1; }],
+    ['horizon start', (s) => { s.horizon.startDate = '2026-02-03'; }],
+    ['horizon end', (s) => { s.horizon.endDate = '2026-02-09'; }],
+    ['horizon frequency', (s) => { s.horizon.stepFrequency = 'calendar-day'; }],
+    ['horizon count', (s) => { s.horizon.stepCount += 1; }],
+    ['path count', (s) => { s.pathCount += 1; }],
+    ['chunk size', (s) => { s.chunkSize += 1; }],
+    ['parameter draw count', (s) => { s.parameterPolicy.drawCount += 1; }],
+    ['parameter range', (s) => { s.parameterPolicy.ranges[0].high += 0.001; }],
+    ['parameter distribution', (s) => { s.parameterPolicy.distributions[0].family = 'uniform-grid'; }],
+    ['parameter distribution parameters', (s) => { s.parameterPolicy.distributions[0].parameters = { bins: 3 }; }],
+    ['parameter grid identity', (s) => { s.parameterPolicy.gridIdentity = 'grid:other'; }],
+    ['rebalance family', (s) => { s.rebalancePolicy.family = 'periodic'; }],
+    ['rebalance frequency', (s) => { s.rebalancePolicy.frequency = 'monthly'; }],
+    ['cost currency', (s) => { s.costPolicy.currency = 'EUR'; }],
+    ['cost fraction', (s) => { s.costPolicy.recurringFraction = 0.02; }],
+    ['cost timing', (s) => { s.costPolicy.timing = 'start-of-step'; }],
+    ['contribution', (s) => { s.contributions[0].amount += 1; }],
+    ['withdrawal', (s) => { s.withdrawals[0].date = '2026-02-04'; }],
+    ['cash need', (s) => { s.cashNeeds[0].priority = 2; }],
+    ['survival state', (s) => { s.survivalDefinition.state = 'unavailable'; }],
+    ['survival floor', (s) => { s.survivalDefinition.floorValue = 650; }],
+    ['survival condition', (s) => { s.survivalDefinition.condition = 'terminal-wealth'; }],
+    ['cash need policy', (s) => { s.survivalDefinition.cashNeedPolicy = 'require-full-funding'; }],
+    ['survival currency', (s) => { s.survivalDefinition.currency = 'EUR'; }],
+    ['starting value', (s) => { s.survivalDefinition.startingValue = 1100; }],
+    ['constraints', (s) => { s.constraintsFingerprint = 'sha256:constraints-other'; }],
+    ['interval method', (s) => { s.uncertaintyPolicy.intervalMethod = 'percentile-bootstrap'; }],
+    ['quantiles', (s) => { s.uncertaintyPolicy.quantiles = [0.1, 0.5, 0.9]; }],
+    ['source separation', (s) => { s.uncertaintyPolicy.separatePathAndParameter = false; }],
+    ['policy', (s) => { s.policyFingerprint = 'sha256:policy-other'; }]
+  ];
+  for (const [label, mutate] of cases) {
+    const changed = copyScenario(base);
+    mutate(changed);
+    const identity = RLPA.scenarioIdentity(changed);
+    assert.equal(typeof identity, 'string', `${label} remains a complete specification`);
+    assert.notEqual(identity, baseIdentity, `${label} must change scenarioIdentity`);
+  }
+  assert.equal(new Set(cases.map(([label, mutate]) => {
+    const changed = copyScenario(base);
+    mutate(changed);
+    return RLPA.scenarioIdentity(changed);
+  })).size, cases.length, 'each audited identity mutation produces its own identity');
+});
+
+test('TP-22-01 full requested path count runs deterministically and budget overflow refuses without truncation', () => {
+  const specification = scope22Scenario({ pathCount: 201, chunkSize: 64 });
+  specification.parameterPolicy.drawCount = 1;
+  specification.parameterPolicy.ranges[0] = { parameter: 'drift', low: 0, high: 0 };
+  const first = RLPA.runScenario(specification, [0.01, -0.01], { maximumWorkUnits: 201 });
+  const second = RLPA.runScenario(specification, [0.01, -0.01], { maximumWorkUnits: 201 });
+  assert.equal(first.state, 'ok');
+  assert.equal(first.pathCount, 201);
+  assert.equal(first.paths.length, 201, 'all 201 requested paths run; 200 is not a hidden cap');
+  assert.deepEqual(first, second, 'the complete requested run is deterministic');
+  assert.deepEqual(first.paths.map((path) => path.pathId), second.paths.map((path) => path.pathId));
+
+  const overBudget = copyScenario(specification);
+  overBudget.parameterPolicy.drawCount = 2;
+  const refused = RLPA.runScenario(overBudget, [0.01, -0.01], { maximumWorkUnits: 401 });
+  assert.equal(refused.state, 'error');
+  assert.equal(refused.error.code, 'P008-COMPUTE-BUDGET');
+  assert.equal(refused.error.requestedWorkUnits, 402);
+  assert.equal(refused.error.budgetWorkUnits, 401);
+  assert.equal(refused.paths, undefined, 'a refused budget never publishes a truncated path set');
+});
+
+test('TP-22-01 deterministic chunks stop at exact boundaries and tokens cancel or supersede without publication', () => {
+  const specification = scope22Scenario({ pathCount: 5, chunkSize: 3 });
+  specification.parameterPolicy.drawCount = 2;
+  const controller = RLPA.createScenarioComputeController({
+    workspaceIdentity: specification.workspaceIdentity,
+    lastValidViewModel: { scenarioIdentity: 'scenario:last-valid', marker: 'keep-me' }
+  });
+  const firstToken = controller.issue(specification, {
+    tokenId: 'compute-token-1', issuedAt: '2026-08-21T00:00:00.000Z'
+  });
+  assert.equal(firstToken.contractVersion, 'ComputeToken/v1');
+  assert.equal(firstToken.state, 'issued');
+  assert.equal(controller.start(firstToken.tokenId).state, 'running');
+
+  const firstChunk = RLPA.runScenarioChunk(specification, controller.token(firstToken.tokenId), { workIndex: 0 }, {
+    sampleReturns: [0.01, -0.01], maximumWorkUnits: 10
+  });
+  assert.equal(firstChunk.state, 'ok');
+  assert.deepEqual(firstChunk.work.map((item) => [item.parameterIndex, item.pathIndex]), [[0, 0], [0, 1], [0, 2]]);
+  assert.deepEqual(firstChunk.nextCursor, { workIndex: 3 });
+  const secondChunk = RLPA.runScenarioChunk(specification, controller.token(firstToken.tokenId), firstChunk.nextCursor, {
+    sampleReturns: [0.01, -0.01], maximumWorkUnits: 10
+  });
+  assert.deepEqual(secondChunk.work.map((item) => [item.parameterIndex, item.pathIndex]), [[0, 3], [0, 4], [1, 0]]);
+  assert.deepEqual(secondChunk.nextCursor, { workIndex: 6 });
+
+  assert.equal(controller.requestCancel(firstToken.tokenId).state, 'cancel-requested');
+  const cancelled = RLPA.runScenarioChunk(specification, controller.token(firstToken.tokenId), secondChunk.nextCursor, {
+    sampleReturns: [0.01, -0.01], maximumWorkUnits: 10
+  });
+  assert.equal(cancelled.state, 'error');
+  assert.equal(cancelled.error.code, 'P008-COMPUTE-CANCELLED');
+  assert.equal(controller.settle(cancelled).state, 'cancelled');
+  assert.deepEqual(controller.snapshot().lastValidViewModel, { scenarioIdentity: 'scenario:last-valid', marker: 'keep-me' });
+
+  const oldToken = controller.issue(specification, {
+    tokenId: 'compute-token-2', issuedAt: '2026-08-21T00:00:01.000Z'
+  });
+  controller.start(oldToken.tokenId);
+  const edited = copyScenario(specification);
+  edited.seed += 1;
+  const currentToken = controller.issue(edited, {
+    tokenId: 'compute-token-3', issuedAt: '2026-08-21T00:00:02.000Z'
+  });
+  assert.equal(controller.token(oldToken.tokenId).state, 'superseded');
+  const superseded = RLPA.runScenarioChunk(specification, controller.token(oldToken.tokenId), { workIndex: 0 }, {
+    sampleReturns: [0.01, -0.01], maximumWorkUnits: 10
+  });
+  assert.equal(superseded.error.code, 'P008-COMPUTE-SUPERSEDED');
+  assert.equal(controller.publish(oldToken.tokenId, { scenarioIdentity: RLPA.scenarioIdentity(specification) }).error.code,
+    'P008-COMPUTE-SUPERSEDED');
+  assert.equal(currentToken.ordinal, oldToken.ordinal + 1);
+  assert.deepEqual(controller.snapshot().lastValidViewModel, { scenarioIdentity: 'scenario:last-valid', marker: 'keep-me' });
+});
+
+test('TP-22-01 all paths apply costs contributions withdrawals and CashNeeds in exact tie order', () => {
+  const specification = scope22Scenario({ pathCount: 3, chunkSize: 2 });
+  specification.parameterPolicy.drawCount = 1;
+  specification.parameterPolicy.ranges[0] = { parameter: 'drift', low: 0, high: 0 };
+  const result = RLPA.runScenario(specification, [0, 0], { maximumWorkUnits: 3 });
+  assert.equal(result.state, 'ok');
+  assert.equal(result.paths.length, 3);
+  for (const path of result.paths) {
+    const tied = path.events.filter((event) => event.modeledDate === '2026-02-03');
+    assert.deepEqual(tied.map((event) => [event.kind, event.localId]), [
+      ['cost', 'recurring-cost'],
+      ['contribution', 'contribution-a'],
+      ['withdrawal', 'withdrawal-a'],
+      ['cash-need', 'need-a'],
+      ['cash-need', 'need-b']
+    ]);
+    assert.deepEqual(tied.map((event) => event.capitalBefore), [1000, 990, 1090, 1040, 1000]);
+    assert.deepEqual(tied.map((event) => event.capitalAfter), [990, 1090, 1040, 1000, 940]);
+    assert.equal(path.cashNeedOutcomes.length, 2);
+  }
+  assert.equal(result.survival.pathCount, 3, 'survival consumes every path, not only the median path');
+  assert.equal(result.distributionSet.conditionalPath.count, 3);
+  assert.equal(result.distributionSet.combined.count, 3);
+});
+
+test('TP-22-01 ScenarioDistributionSet/v1 is complete and keeps path parameter and combined uncertainty separate', () => {
+  const specification = scope22Scenario({ pathCount: 4, chunkSize: 3 });
+  const result = RLPA.runScenario(specification, [0.02, -0.03, 0.01], { maximumWorkUnits: 12 });
+  assert.equal(result.state, 'ok');
+  const distributions = result.distributionSet;
+  assert.equal(distributions.contractVersion, 'ScenarioDistributionSet/v1');
+  assert.equal(distributions.scenarioIdentity, result.identity);
+  assert.deepEqual(Object.keys(distributions).sort(), [
+    'combined', 'conditionalPath', 'contractVersion', 'parameterMarginal', 'scenarioIdentity'
+  ]);
+  const outcomeKeys = [
+    'wealthByHorizon', 'terminalWealth', 'maximumDrawdown', 'timeUnderWater', 'recovery',
+    'firstFloorBreach', 'cashNeedFundedFraction', 'firstCollision', 'infeasibility', 'sequenceExamples'
+  ].sort();
+  for (const source of ['conditionalPath', 'parameterMarginal', 'combined']) {
+    const record = distributions[source];
+    assert.deepEqual(Object.keys(record).sort(), ['count', 'finiteCount', 'intervalMethod', 'outcomes', 'state']);
+    assert.deepEqual(Object.keys(record.outcomes).sort(), outcomeKeys);
+    for (const outcome of outcomeKeys.filter((key) => key !== 'sequenceExamples' && key !== 'wealthByHorizon')) {
+      assert.deepEqual(Object.keys(record.outcomes[outcome]).sort(), [
+        'count', 'finiteCount', 'intervalMethod', 'maximum', 'minimum', 'quantiles', 'state'
+      ]);
+      assert.deepEqual(Object.keys(record.outcomes[outcome].quantiles).sort(), ['p05', 'p50', 'p95']);
+    }
+    assert.equal(record.outcomes.wealthByHorizon.length, specification.horizon.stepCount + 1);
+    assert.equal(record.outcomes.sequenceExamples.length > 0, true);
+  }
+  assert.equal(distributions.conditionalPath.count, 4);
+  assert.equal(distributions.parameterMarginal.count, 3);
+  assert.equal(distributions.combined.count, 12);
+  assert.notDeepEqual(distributions.conditionalPath.outcomes.terminalWealth.quantiles,
+    distributions.combined.outcomes.terminalWealth.quantiles);
+  assert.equal(RLPA.validateScenarioDistributionSet(distributions, specification).ok, true);
+});
+
+test('TP-22-01 regime and fat-tail method state is structured as calibrated or explicitly unavailable', () => {
+  const stationary = scope22Scenario();
+  assert.deepEqual(RLPA.scenarioMethodState(stationary), {
+    family: 'stationary-bootstrap',
+    state: 'calibrated',
+    reason: null,
+    calibrationIdentity: 'calibration:stationary-fixture'
+  });
+
+  const unavailable = scope22Scenario();
+  unavailable.method = {
+    family: 'regime-fat-tail',
+    blockPolicy: {
+      family: 'politis-romano-geometric', meanBlockSessions: 3, wrapPolicy: 'cyclic'
+    },
+    regimePolicy: {
+      state: 'unavailable', stateDefinitions: [], transitionMatrix: [],
+      fittingSample: 'sample:thin', minimumSamplePolicy: 'minimum:500',
+      fitDiagnostics: { observationCount: 12 }, uncertainty: null
+    },
+    fatTailPolicy: {
+      state: 'unavailable', innovationFamily: 'student-t', tailParameters: null
+    },
+    calibrationIdentity: 'calibration:regime-thin',
+    availability: {
+      state: 'unavailable', reason: 'minimum-sample-not-met'
+    }
+  };
+  assert.equal(RLPA.validateScenarioSpecification(unavailable).ok, true);
+  assert.deepEqual(RLPA.scenarioMethodState(unavailable), {
+    family: 'regime-fat-tail',
+    state: 'unavailable',
+    reason: 'minimum-sample-not-met',
+    calibrationIdentity: 'calibration:regime-thin'
+  });
+  const result = RLPA.runScenario(unavailable, SAMPLE, { maximumWorkUnits: 15 });
+  assert.equal(result.state, 'method-unavailable');
+  assert.deepEqual(result.methodAvailability, RLPA.scenarioMethodState(unavailable));
+  assert.equal(result.paths, undefined);
+});
+
+test('Adversarial: reduced ScenarioSpecification and median only survival cannot pass', () => {
+  const specification = scope22Scenario({ pathCount: 201, chunkSize: 50 });
+  specification.parameterPolicy.drawCount = 1;
+  const valid = RLPA.runScenario(specification, SAMPLE, { maximumWorkUnits: 201 });
+  assert.equal(valid.state, 'ok');
+  assert.equal(RLPA.validateScenarioResult(valid, specification).ok, true);
+
+  const reducedSpecification = {
+    contractVersion: 'ScenarioSpecification/v1', returnFingerprint: 'sha256:fixture',
+    method: 'stationary-bootstrap', seed: 22, meanBlockSessions: 3, horizonSessions: 4,
+    pathCount: 201, parameterDrawCount: 1, driftRange: { low: 0, high: 0 }, startingValue: 1000
+  };
+  assert.equal(RLPA.validateScenarioSpecification(reducedSpecification).ok, false);
+
+  const hiddenCap = copyScenario(valid);
+  hiddenCap.paths = hiddenCap.paths.slice(0, 200);
+  assert.equal(RLPA.validateScenarioResult(hiddenCap, specification).reason, 'result-path-count');
+
+  const disposableHorizon = copyScenario(valid);
+  disposableHorizon.paths[0].values.pop();
+  assert.equal(RLPA.validateScenarioResult(disposableHorizon, specification).reason, 'result-horizon');
+
+  const medianOnly = copyScenario(valid);
+  medianOnly.paths = [medianOnly.paths[Math.floor(medianOnly.paths.length / 2)]];
+  medianOnly.survival.pathCount = 1;
+  medianOnly.distributionSet.conditionalPath.count = 1;
+  assert.equal(RLPA.validateScenarioResult(medianOnly, specification).reason, 'result-path-count');
+
+  const missingIdentity = copyScenario(valid);
+  delete missingIdentity.identity;
+  assert.equal(RLPA.validateScenarioResult(missingIdentity, specification).reason, 'result-identity');
 });
 
 test("TP-07-01 return math is delegated to rlmetrics, not redefined here", () => {
@@ -1364,6 +2108,387 @@ test('TP-12-01 variants are compared on one frozen basis and none is prescribed'
 });
 
 /* ---------------------------------------------------------------------------
+   Scope 23 - complete dependence, appraisal, and hedge contracts
+   --------------------------------------------------------------------------- */
+
+const SCOPE_23_INTERVAL = Object.freeze({
+  contractVersion: 'BlockBootstrapPolicy/v1',
+  confidence: 0.90,
+  blockLength: 2,
+  drawCount: 128,
+  seed: 23049
+});
+
+function scope23Sample({ id, dates, target, proxy, kind = 'named-date-set', searched = 1 }) {
+  return RLPA.buildDependenceSample({
+    contractVersion: 'DependenceSample/v1',
+    sampleId: id,
+    definitionKind: kind,
+    memberDates: dates,
+    sourceFingerprints: ['sha256:target-source', 'sha256:proxy-source'],
+    selectionRule: kind === 'frozen-anchor-downside'
+      ? 'TARGET return at or below the frozen 25th percentile'
+      : 'pre-registered calendar members',
+    cutoff: '2026-06-30',
+    searchedVariantCount: searched,
+    pair: { anchor: 'TARGET', dependent: 'PROXY' },
+    a: target,
+    b: proxy
+  });
+}
+
+const SCOPE_23_NORMAL = Object.freeze({
+  dates: ['2026-01-05', '2026-01-06', '2026-01-07', '2026-01-08', '2026-01-09', '2026-01-12'],
+  target: [0.010, -0.004, 0.008, -0.006, 0.012, -0.005],
+  proxy: [0.006, -0.003, 0.004, -0.002, 0.007, -0.004]
+});
+
+const SCOPE_23_STRESS = Object.freeze({
+  dates: ['2026-03-02', '2026-03-03', '2026-03-04', '2026-03-05', '2026-03-06', '2026-03-09'],
+  target: [-0.060, -0.030, 0.025, -0.050, 0.035, -0.040],
+  proxy: [-0.040, -0.018, 0.012, -0.032, 0.018, -0.028]
+});
+
+function completeScope23Samples() {
+  return {
+    normal: scope23Sample({
+      id: 'dependence:normal:2026-h1', dates: SCOPE_23_NORMAL.dates,
+      target: SCOPE_23_NORMAL.target, proxy: SCOPE_23_NORMAL.proxy
+    }),
+    stress: scope23Sample({
+      id: 'dependence:stress:2026-q1', dates: SCOPE_23_STRESS.dates,
+      target: SCOPE_23_STRESS.target, proxy: SCOPE_23_STRESS.proxy,
+      kind: 'frozen-anchor-downside'
+    }),
+    tail: scope23Sample({
+      id: 'dependence:tail:2026-h1',
+      dates: SCOPE_23_NORMAL.dates.concat(SCOPE_23_STRESS.dates),
+      target: SCOPE_23_NORMAL.target.concat(SCOPE_23_STRESS.target),
+      proxy: SCOPE_23_NORMAL.proxy.concat(SCOPE_23_STRESS.proxy),
+      kind: 'empirical-rank-tail'
+    })
+  };
+}
+
+test('TP-23-01 DependenceSample/v1 freezes exact members, provenance, selection, and cutoff', () => {
+  const { normal, stress } = completeScope23Samples();
+  assert.equal(normal.contractVersion, 'DependenceSample/v1');
+  assert.equal(normal.state, 'ok');
+  assert.equal(normal.sampleId, 'dependence:normal:2026-h1');
+  assert.equal(normal.definitionKind, 'named-date-set');
+  assert.equal(normal.observationCount, SCOPE_23_NORMAL.dates.length);
+  assert.equal(normal.firstDate, SCOPE_23_NORMAL.dates[0]);
+  assert.equal(normal.lastDate, SCOPE_23_NORMAL.dates.at(-1));
+  assert.equal(normal.cutoff, '2026-06-30');
+  assert.equal(normal.searchedVariantCount, 1);
+  assert.deepEqual(normal.sourceFingerprints, ['sha256:target-source', 'sha256:proxy-source']);
+  assert.match(normal.memberDateFingerprint, /^fnv1a64:/);
+  assert.notEqual(normal.sampleId, stress.sampleId);
+  assert.equal(normal.memberDates.some((date) => stress.memberDates.includes(date)), false,
+    'normal and stress membership must be disjoint');
+
+  const changed = scope23Sample({
+    id: normal.sampleId,
+    dates: normal.memberDates.slice(0, -1).concat('2026-01-13'),
+    target: normal.a,
+    proxy: normal.b
+  });
+  assert.notEqual(changed.memberDateFingerprint, normal.memberDateFingerprint,
+    'the exact member dates are part of sample identity');
+});
+
+test('TP-23-01 stress estimates retain distinct samples and block-bootstrap intervals', () => {
+  const { normal, stress } = completeScope23Samples();
+  const out = RLPA.computeStressDependence({
+    contractVersion: 'StressDependenceRequest/v1', normal, stress,
+    minimumObservations: 6, intervalPolicy: SCOPE_23_INTERVAL
+  });
+  assert.equal(out.contractVersion, 'DependenceEvidenceSet/v1');
+  assert.equal(out.state, 'ok');
+  assert.equal(out.normal.sampleId, normal.sampleId);
+  assert.equal(out.stress.sampleId, stress.sampleId);
+  assert.notEqual(out.normal.sampleId, out.stress.sampleId);
+  for (const estimate of [out.normal, out.stress]) {
+    assert.equal(estimate.interval.contractVersion, 'BlockBootstrapInterval/v1');
+    assert.equal(estimate.interval.confidence, SCOPE_23_INTERVAL.confidence);
+    assert.equal(estimate.interval.blockPolicy.blockLength, SCOPE_23_INTERVAL.blockLength);
+    assert.equal(estimate.interval.drawCount, SCOPE_23_INTERVAL.drawCount);
+    assert.equal(estimate.interval.seed, SCOPE_23_INTERVAL.seed);
+    assert.ok(estimate.interval.low <= estimate.correlation);
+    assert.ok(estimate.interval.high >= estimate.correlation);
+  }
+  assert.equal(out.selectionBias.searchedVariantCount, 2);
+  assert.equal(out.conclusion.prescription, null);
+  assert.ok(out.conclusion.invalidationConditions.includes('sample-membership-changed'));
+});
+
+test('TP-23-01 Forbes-Rigobon adjustment enforces orientation, alignment, minimums, and eligibility', () => {
+  const { normal, stress } = completeScope23Samples();
+  const out = RLPA.forbesRigobonAdjustment({
+    contractVersion: 'ForbesRigobonRequest/v1',
+    tranquilSample: normal,
+    turbulentSample: stress,
+    anchorSeries: 'TARGET',
+    minimumObservations: 6,
+    intervalPolicy: SCOPE_23_INTERVAL
+  });
+  assert.equal(out.contractVersion, 'ForbesRigobonAdjustment/v1');
+  assert.equal(out.state, 'ok');
+  assert.deepEqual(out.anchorOrientation, { anchor: 'TARGET', dependent: 'PROXY' });
+  assert.equal(out.tranquilSampleId, normal.sampleId);
+  assert.equal(out.turbulentSampleId, stress.sampleId);
+  assert.ok(out.turbulentAnchorVariance > out.tranquilAnchorVariance);
+  assert.ok(out.delta > 0);
+  assert.ok(out.interval.low <= out.adjustedEstimate && out.adjustedEstimate <= out.interval.high);
+  assert.match(out.caveat, /does not prove|does not disprove/i);
+
+  const overlapping = scope23Sample({
+    id: 'dependence:stress:overlap', dates: normal.memberDates,
+    target: SCOPE_23_STRESS.target, proxy: SCOPE_23_STRESS.proxy,
+    kind: 'frozen-anchor-downside'
+  });
+  assert.equal(RLPA.forbesRigobonAdjustment({
+    contractVersion: 'ForbesRigobonRequest/v1', tranquilSample: normal,
+    turbulentSample: overlapping, anchorSeries: 'TARGET', minimumObservations: 6,
+    intervalPolicy: SCOPE_23_INTERVAL
+  }).reason, 'samples-not-disjoint');
+  assert.equal(RLPA.forbesRigobonAdjustment({
+    contractVersion: 'ForbesRigobonRequest/v1', tranquilSample: normal,
+    turbulentSample: stress, anchorSeries: 'PROXY', minimumObservations: 7,
+    intervalPolicy: SCOPE_23_INTERVAL
+  }).reason, 'minimum-observations-not-met');
+});
+
+test('TP-23-01 tail, downside, drawdown, and recovery overlaps remain distinct contracts', () => {
+  const { tail } = completeScope23Samples();
+  const out = RLPA.computeDependenceOverlaps({
+    contractVersion: 'DependenceOverlapRequest/v1', sample: tail,
+    quantile: 0.25, minimumJointEvents: 2, downsideThreshold: 0,
+    drawdownThreshold: 0.03, recoveryThreshold: 0,
+    intervalPolicy: SCOPE_23_INTERVAL
+  });
+  assert.equal(out.state, 'ok');
+  assert.deepEqual(
+    [out.tail.contractVersion, out.downside.contractVersion, out.drawdown.contractVersion, out.recovery.contractVersion],
+    ['EmpiricalTailDependence/v1', 'DownsideOverlap/v1', 'DrawdownOverlap/v1', 'RecoveryOverlap/v1']
+  );
+  assert.equal(out.tail.sampleId, tail.sampleId);
+  assert.equal(out.tail.thresholdPolicy.quantile, 0.25);
+  assert.ok(out.tail.jointEventCount >= 2);
+  assert.ok(out.tail.interval.low <= out.tail.estimate && out.tail.estimate <= out.tail.interval.high);
+  assert.ok(Array.isArray(out.downside.sharedDates));
+  assert.ok(Array.isArray(out.drawdown.intersectionDates));
+  assert.ok(Array.isArray(out.recovery.intersectionDates));
+  assert.notDeepEqual(out.downside.sharedDates, out.drawdown.intersectionDates,
+    'return downside dates are not drawdown-state dates');
+  assert.notStrictEqual(out.drawdown, out.recovery, 'drawdown and recovery retain separate records');
+  assert.deepEqual(out.drawdown.policy, { drawdownThreshold: 0.03 });
+  assert.deepEqual(out.recovery.policy, { recoveryThreshold: 0, unrecoveredEpisodeEnd: tail.cutoff });
+  assert.equal(out.linearCorrelation, undefined, 'overlap contracts are not a renamed correlation row');
+});
+
+test('TP-23-01 AppraisalSensitivity/v1 keeps complete quality evidence and every rho grid point', () => {
+  const dates = ['2025-03-31', '2025-06-30', '2025-09-30', '2025-12-31', '2026-03-31', '2026-06-30'];
+  const observed = [0.020, 0.021, 0.019, 0.022, 0.018, 0.020];
+  const benchmark = [0.010, -0.008, 0.012, -0.010, 0.009, -0.006];
+  const sample = scope23Sample({
+    id: 'appraisal:observed:alt-credit', dates, target: observed, proxy: benchmark,
+    kind: 'appraisal-observed'
+  });
+  const out = RLPA.computeAppraisalSensitivity({
+    contractVersion: 'AppraisalSensitivityRequest/v1',
+    assetId: 'ALT-CREDIT', valuationFrequency: 'quarterly', lastValuation: '2026-06-30',
+    evidenceCutoff: '2026-08-21', sourceMethod: 'manager-appraisal', liquidity: 'quarterly-window',
+    costs: { transactionFraction: 0.06, storageFraction: 0.002, insuranceFraction: 0.001 },
+    economicDrivers: ['credit-spreads', 'default-cycle'],
+    idiosyncraticRisks: ['manager-valuation', 'gating'],
+    observedSample: sample, smoothingEstimate: 0.4, rhoGrid: [0.2, 0.4, 0.6],
+    minimumObservations: 6
+  });
+  assert.equal(out.contractVersion, 'AppraisalSensitivity/v1');
+  assert.equal(out.state, 'ok');
+  assert.equal(out.valuationAgeDays, 52);
+  assert.equal(out.observedReturnIdentity.sampleId, sample.sampleId);
+  assert.deepEqual(out.costs, { transactionFraction: 0.06, storageFraction: 0.002, insuranceFraction: 0.001 });
+  assert.deepEqual(out.economicDrivers, ['credit-spreads', 'default-cycle']);
+  assert.deepEqual(out.idiosyncraticRisks, ['manager-valuation', 'gating']);
+  assert.deepEqual(out.grid.map((row) => row.rho), [0.2, 0.4, 0.6]);
+  for (const row of out.grid) {
+    assert.equal(row.state, 'ok');
+    assert.equal(row.sample.contractVersion, 'DependenceSample/v1');
+    assert.equal(row.sample.definitionKind, 'appraisal-desmoothed-sensitivity');
+    assert.ok(Number.isFinite(row.volatility));
+    assert.ok(Number.isFinite(row.dependence));
+  }
+  assert.ok(out.grid.at(-1).volatility > out.observed.volatility);
+  assert.equal(out.strongConclusionState, 'qualified');
+  assert.equal(out.prescribedDiversifier, null);
+});
+
+function scope23RegressionSample() {
+  const dates = ['2026-04-01', '2026-04-02', '2026-04-03', '2026-04-06', '2026-04-07', '2026-04-08'];
+  const proxy = [-0.03, -0.02, -0.01, 0.01, 0.02, 0.03];
+  const residual = [0.001, -0.001, 0, 0, -0.001, 0.001];
+  const target = proxy.map((value, index) => 0.002 + 1.5 * value + residual[index]);
+  return scope23Sample({
+    id: 'hedge-regression:target-proxy', dates, target, proxy,
+    kind: 'aligned-excess-returns'
+  });
+}
+
+test('TP-23-01 HedgeRegression/v1 recovers known coefficient and residual variance from aligned returns', () => {
+  const sample = scope23RegressionSample();
+  const out = RLPA.fitHedgeRegression({
+    contractVersion: 'HedgeRegressionRequest/v1', sample,
+    minimumObservations: 6, intervalPolicy: SCOPE_23_INTERVAL
+  });
+  assert.equal(out.contractVersion, 'HedgeRegression/v1');
+  assert.equal(out.state, 'ok');
+  assert.ok(near(out.alpha, 0.002, 1e-12));
+  assert.ok(near(out.beta, 1.5, 1e-12));
+  assert.ok(near(out.residualVariance, 0.000001, 1e-12));
+  assert.ok(near(out.residualCorrelation, 0, 1e-12));
+  assert.equal(out.sample.sampleId, sample.sampleId);
+  assert.deepEqual(out.dateBounds, { firstDate: sample.firstDate, lastDate: sample.lastDate });
+  assert.deepEqual(out.sourceIdentities, sample.sourceFingerprints);
+  assert.ok(out.coefficientInterval.low <= out.beta && out.beta <= out.coefficientInterval.high);
+  assert.ok(out.fit.rSquared > 0.99);
+});
+
+function scope23HedgeComparison() {
+  const samples = completeScope23Samples();
+  const regression = RLPA.fitHedgeRegression({
+    contractVersion: 'HedgeRegressionRequest/v1', sample: scope23RegressionSample(),
+    minimumObservations: 6, intervalPolicy: SCOPE_23_INTERVAL
+  });
+  const scenarioSpecification = scope22Scenario({ pathCount: 3, chunkSize: 2 });
+  scenarioSpecification.parameterPolicy.drawCount = 1;
+  const scenarioResult = RLPA.runScenario(scenarioSpecification, scope23RegressionSample().a, { maximumWorkUnits: 3 });
+  return RLPA.computeHedgeComparison({
+    contractVersion: 'HedgeComparisonRequest/v1',
+    exposure: { exposureId: 'portfolio:target', targetSymbol: 'TARGET', targetExposureValue: 100000 },
+    regression,
+    normalSample: samples.normal,
+    stressSample: samples.stress,
+    scenarioSpecification,
+    scenarioResult,
+    alignedPathSample: scope23RegressionSample(),
+    variants: [
+      {
+        variantId: 'unhedged:one-year', hedgeRatio: 0, horizonYears: 1,
+        costs: { carryFraction: 0, commissionFraction: 0, spreadFraction: 0, slippageFraction: 0,
+          turnoverFraction: 0, rebalanceCostFraction: 0, liquidityFraction: 0, financingFraction: 0 }
+      },
+      {
+        variantId: 'explicit-half:one-year', hedgeRatio: 0.5, horizonYears: 1,
+        costs: { carryFraction: 0.01, commissionFraction: 0.001, spreadFraction: 0.0005,
+          slippageFraction: 0.0005, turnoverFraction: 0.20, rebalanceCostFraction: 0.0002,
+          liquidityFraction: 0.001, financingFraction: 0.003 }
+      }
+    ]
+  });
+}
+
+function scope23CompleteProjection() {
+  const samples = completeScope23Samples();
+  const appraisalSample = scope23Sample({
+    id: 'appraisal:observed:adversarial',
+    dates: ['2025-03-31', '2025-06-30', '2025-09-30', '2025-12-31', '2026-03-31', '2026-06-30'],
+    target: [0.020, 0.021, 0.019, 0.022, 0.018, 0.020],
+    proxy: [0.010, -0.008, 0.012, -0.010, 0.009, -0.006],
+    kind: 'appraisal-observed'
+  });
+  const hedge = scope23HedgeComparison();
+  return RLPA.computeDiversificationProjection({
+    contractVersion: 'DiversificationProjectionRequest/v1',
+    normalSample: samples.normal,
+    stressSample: samples.stress,
+    tailSample: samples.tail,
+    minimumObservations: 6,
+    intervalPolicy: SCOPE_23_INTERVAL,
+    overlapPolicy: {
+      quantile: 0.25, minimumJointEvents: 2, downsideThreshold: 0,
+      drawdownThreshold: 0.03, recoveryThreshold: 0
+    },
+    appraisal: {
+      contractVersion: 'AppraisalSensitivityRequest/v1', assetId: 'ALT-CREDIT',
+      valuationFrequency: 'quarterly', lastValuation: '2026-06-30', evidenceCutoff: '2026-08-21',
+      sourceMethod: 'manager-appraisal', liquidity: 'quarterly-window',
+      costs: { transactionFraction: 0.06, storageFraction: 0.002, insuranceFraction: 0.001 },
+      economicDrivers: ['credit-spreads'], idiosyncraticRisks: ['manager-valuation'],
+      observedSample: appraisalSample, smoothingEstimate: 0.4, rhoGrid: [0.2, 0.4, 0.6],
+      minimumObservations: 6
+    },
+    precomputedHedgeComparison: hedge
+  });
+}
+
+test('TP-23-01 HedgeComparison/v1 keeps explicit variants, full costs, residuals, and common paths', () => {
+  const out = scope23HedgeComparison();
+  assert.equal(out.contractVersion, 'HedgeComparison/v1');
+  assert.equal(out.state, 'ok');
+  assert.equal(out.regression.contractVersion, 'HedgeRegression/v1');
+  assert.equal(out.prescribedRatio, null);
+  assert.equal(out.executable, false);
+  assert.deepEqual(out.variants.map((variant) => variant.hedgeRatio), [0, 0.5]);
+  assert.deepEqual(out.variants.map((variant) => variant.horizonYears), [1, 1]);
+  const half = out.variants[1];
+  assert.deepEqual(Object.keys(half.costs).sort(), [
+    'carry', 'commission', 'financing', 'liquidity', 'rebalance', 'slippage', 'spread', 'turnover'
+  ]);
+  assert.ok(half.totalCost > 0);
+  assert.ok(Number.isFinite(half.residualVariance));
+  assert.ok(Number.isFinite(half.residualExposure));
+  assert.equal(half.effectiveness.normal.sampleId, out.normalSampleId);
+  assert.equal(half.effectiveness.stress.sampleId, out.stressSampleId);
+  assert.equal(half.effectiveness.commonPath.scenarioIdentity, out.scenarioBasis.scenarioIdentity);
+  assert.deepEqual(half.effectiveness.commonPath.pathIds, out.scenarioBasis.pathIds);
+  assert.equal(out.scenarioBasis.scenarioSpecificationContractVersion, 'ScenarioSpecification/v1');
+  assert.equal(out.scenarioBasis.pathIds.length, 3);
+  assert.match(out.claimBoundary, /No ratio is prescribed|not recommended/i);
+});
+
+test('Adversarial: reduced diversification and hedge shortcuts cannot satisfy the contract', () => {
+  const samples = completeScope23Samples();
+  const reducedSample = { name: 'tranquil', a: samples.normal.a, b: samples.normal.b };
+  assert.equal(RLPA.computeStressDependence({
+    contractVersion: 'StressDependenceRequest/v1', normal: reducedSample, stress: reducedSample,
+    minimumObservations: 6, intervalPolicy: SCOPE_23_INTERVAL
+  }).reason, 'dependence-sample-contract-required');
+
+  const sameMembers = scope23Sample({
+    id: 'dependence:stress:same-members', dates: samples.normal.memberDates,
+    target: samples.stress.a, proxy: samples.stress.b, kind: 'frozen-anchor-downside'
+  });
+  assert.equal(RLPA.computeStressDependence({
+    contractVersion: 'StressDependenceRequest/v1', normal: samples.normal, stress: sameMembers,
+    minimumObservations: 6, intervalPolicy: SCOPE_23_INTERVAL
+  }).reason, 'samples-not-disjoint');
+
+  const complete = scope23CompleteProjection();
+  const noAdjustment = structuredClone(complete);
+  delete noAdjustment.dependence.adjustment;
+  assert.equal(RLPA.validateDiversificationProjection(noAdjustment).reason, 'dependence-adjustment-required');
+
+  const noRecovery = structuredClone(complete);
+  noRecovery.overlaps = { tail: {}, downside: {}, drawdown: {} };
+  assert.equal(RLPA.validateDiversificationProjection(noRecovery).reason, 'distinct-overlap-contracts-required');
+
+  const fixedRatio = structuredClone(complete);
+  fixedRatio.hedge.variants = fixedRatio.hedge.variants.map((variant) => ({ ...variant, hedgeRatio: 0.5 }));
+  assert.equal(RLPA.validateDiversificationProjection(fixedRatio).reason, 'explicit-variant-ratios-not-distinct');
+
+  const freeNet = structuredClone(complete);
+  delete freeNet.hedge.variants[1].costs.liquidity;
+  freeNet.hedge.variants[1].netState = 'available';
+  freeNet.hedge.variants[1].netModeledOutcome = 0;
+  assert.equal(RLPA.validateDiversificationProjection(freeNet).reason, 'complete-cost-components-required');
+
+  assert.equal(RLPA.computeHedgeComparison({ basisCorrelation: 0.9, targetVolatility: 0.2 }).reason,
+    'hedge-regression-required');
+});
+
+/* ---------------------------------------------------------------------------
    Scope 13 - six-method allocation basis and feasibility
    --------------------------------------------------------------------------- */
 
@@ -1817,6 +2942,325 @@ test('TP-14-01 sensitivity reports reversal conditions when two holdings swap or
   assert.equal(stable.state, 'ok');
   assert.deepEqual(stable.reversalConditions, [],
     'a pair whose ordering never flips must report no reversal');
+});
+
+/* ---------------------------------------------------------------------------
+   Scope 24 - complete allocation basis and six constrained interfaces
+   --------------------------------------------------------------------------- */
+
+const SCOPE24_BASIS = {
+  contractVersion: 'AllocationBasis/v1',
+  eligibleAssets: [
+    { symbol: 'A', group: 'growth' },
+    { symbol: 'B', group: 'defensive' },
+    { symbol: 'CASH', group: 'cash' }
+  ],
+  currentWeights: [0.45, 0.45, 0.10],
+  evidenceIdentity: 'evidence:scope24-fixture',
+  covarianceIdentity: 'covariance:scope24-fixture',
+  covariance: [
+    [0.0400, 0.0180, 0.0000],
+    [0.0180, 0.0900, 0.0000],
+    [0.0000, 0.0000, 0.1600]
+  ],
+  expectedReturnPolicy: {
+    policyId: 'explicit-scope24-returns',
+    expectedReturns: [0.08, 0.12, 0.02]
+  },
+  valuationCurrency: 'USD',
+  mandateIdentity: 'mandate:scope24-fixture',
+  assetBounds: {
+    A: { minimum: 0.10, maximum: 0.60 },
+    B: { minimum: 0.10, maximum: 0.60 },
+    CASH: { minimum: 0.10, maximum: 0.30 }
+  },
+  exclusions: [],
+  cashBounds: { symbol: 'CASH', minimum: 0.10, maximum: 0.30 },
+  netSum: 1,
+  grossLeverageLimit: 1,
+  turnoverBudget: 0.70,
+  groupBounds: [
+    { group: 'growth', members: ['A'], minimum: 0.10, maximum: 0.60 },
+    { group: 'defensive', members: ['B'], minimum: 0.10, maximum: 0.60 },
+    { group: 'cash', members: ['CASH'], minimum: 0.10, maximum: 0.30 }
+  ],
+  costPolicy: {
+    commissionFraction: 0.0010,
+    spreadFraction: 0.0005,
+    slippageFraction: 0.0005,
+    financingFraction: 0,
+    carryFraction: 0,
+    rebalanceTiming: 'decision-close'
+  },
+  commonScenarioIdentity: 'scenario:scope24-fixture',
+  commonPathIds: ['path:scope24:1', 'path:scope24:2', 'path:scope24:3'],
+  commonPathAssetReturns: [
+    [0.10, 0.03, 0.001],
+    [-0.18, -0.06, 0.001],
+    [0.04, 0.08, 0.001]
+  ],
+  survivalDefinition: { startingValue: 1, floorValue: 0.85 },
+  solverPolicy: {
+    policyId: 'allocation-solver:scope24',
+    maximumIterations: 4000,
+    tolerance: 1e-8,
+    stepSize: 0.05
+  }
+};
+
+const SCOPE24_BL_INPUT = {
+  contractVersion: 'BlackLittermanInput/v1',
+  benchmarkIdentity: 'benchmark:qualified-fixture',
+  benchmarkWeights: [0.50, 0.40, 0.10],
+  riskAversion: 2.5,
+  tau: 0.05,
+  views: [{
+    contractVersion: 'BlackLittermanView/v1',
+    viewId: 'view:A-bullish',
+    horizonSessions: 63,
+    coefficients: [1, 0, 0],
+    magnitudeRange: { low: 0.10, central: 0.14, high: 0.18 },
+    confidenceSource: 'user-stated-range',
+    uncertaintyVariance: 0.0025,
+    userAuthority: 'explicit-user-entry',
+    evidenceCutoff: '2026-05-29',
+    invalidation: 'Invalidate when the stated thesis or horizon changes.'
+  }]
+};
+
+const SCOPE24_SENSITIVITY_AXES = {
+  history: [
+    { id: 'short', covarianceScale: 0.9, meanShift: -0.005 },
+    { id: 'long', covarianceScale: 1.1, meanShift: 0.005 }
+  ],
+  means: [-0.01, 0.01],
+  covariance: [0.9, 1.1],
+  views: [0.8, 1.2],
+  costs: [0.5, 1.5],
+  assetBounds: [0, 0.02],
+  groupBounds: [0, 0.02],
+  turnover: [-0.05, 0.05],
+  cash: [0, 0.02],
+  leverage: [1, 1.05],
+  riskAversion: [2, 3]
+};
+
+test('TP-24-01 six real methods consume one complete basis and expose solver diagnostics', () => {
+  assert.equal(RLPA.validateAllocationBasis(SCOPE24_BASIS).ok, true);
+
+  const result = RLPA.runAllocationComparison({
+    basis: SCOPE24_BASIS,
+    blackLittermanInput: SCOPE24_BL_INPUT,
+    expectedReturnInput: SCOPE24_BASIS.expectedReturnPolicy,
+    riskAversion: 2.5
+  });
+  assert.equal(result.state, 'ok');
+  assert.equal(result.contractVersion, 'AllocationComparison/v1');
+  assert.deepEqual(result.candidates.map((candidate) => candidate.method), RLPA.ALLOCATION_METHODS);
+  assert.equal(result.recommendedMethod, null);
+  assert.equal(result.bestMethod, null);
+
+  for (const candidate of result.candidates) {
+    assert.equal(candidate.contractVersion, 'AllocationCandidate/v1');
+    assert.equal(candidate.basisFingerprint, result.basisFingerprint);
+    assert.ok(['feasible', 'infeasible', 'unstable', 'unavailable'].includes(candidate.state));
+    assert.equal(candidate.commonPathOutcomes.scenarioIdentity, SCOPE24_BASIS.commonScenarioIdentity);
+    assert.deepEqual(candidate.commonPathOutcomes.pathIds, SCOPE24_BASIS.commonPathIds);
+    assert.equal(candidate.fullCosts.complete, true);
+    assert.ok(Number.isFinite(candidate.turnover));
+    assert.ok(candidate.concentration && Number.isFinite(candidate.concentration.herfindahl));
+    assert.ok(candidate.riskContribution && Array.isArray(candidate.riskContribution.contributionShare));
+    assert.ok(candidate.returnContribution && Array.isArray(candidate.returnContribution.values));
+    assert.ok(candidate.survivalOutcomes && candidate.survivalOutcomes.state === 'ok');
+    assert.ok(candidate.solver && typeof candidate.solver.convergenceReason === 'string');
+  }
+});
+
+test('TP-24-01 risk parity solves equal contribution and constrained MVO never clips an unconstrained vector', () => {
+  const erc = RLPA.solveEqualRiskContribution(SCOPE24_BASIS, [1 / 3, 1 / 3, 1 / 3], SCOPE24_BASIS.solverPolicy);
+  assert.equal(erc.state, 'feasible');
+  assert.ok(erc.solver.equalRiskContributionResidual <= SCOPE24_BASIS.solverPolicy.tolerance * 10);
+
+  const inverseVolatility = [1 / 0.2, 1 / 0.3, 1 / 0.01];
+  const inverseVolatilityTotal = inverseVolatility.reduce((sum, value) => sum + value, 0);
+  const inverseVolatilityWeights = inverseVolatility.map((value) => value / inverseVolatilityTotal);
+  assert.ok(erc.weights.some((weight, index) => Math.abs(weight - inverseVolatilityWeights[index]) > 0.01),
+    'equal-risk-contribution must differ from inverse volatility on this correlated constrained basis');
+
+  const mvo = RLPA.solveConstrainedMvo(
+    SCOPE24_BASIS,
+    SCOPE24_BASIS.expectedReturnPolicy,
+    2.5,
+    SCOPE24_BASIS.solverPolicy
+  );
+  assert.equal(mvo.state, 'feasible');
+  assert.ok(mvo.weights[0] >= 0.10 && mvo.weights[0] <= 0.60);
+  assert.ok(mvo.weights[1] >= 0.10 && mvo.weights[1] <= 0.60);
+  assert.ok(mvo.weights[2] >= 0.10 && mvo.weights[2] <= 0.30);
+  assert.ok(mvo.solver.kktResidual <= SCOPE24_BASIS.solverPolicy.tolerance * 10);
+  assert.equal(mvo.solver.postHocClipping, false);
+});
+
+test('TP-24-01 explicit Black Litterman posterior is the allocation input', () => {
+  const withView = RLPA.solveBlackLittermanAllocation(
+    SCOPE24_BASIS,
+    SCOPE24_BL_INPUT,
+    SCOPE24_BASIS.solverPolicy
+  );
+  const equilibriumOnly = RLPA.solveBlackLittermanAllocation(
+    SCOPE24_BASIS,
+    { ...SCOPE24_BL_INPUT, views: [] },
+    SCOPE24_BASIS.solverPolicy
+  );
+  assert.equal(withView.state, 'feasible');
+  assert.equal(equilibriumOnly.state, 'feasible');
+  assert.equal(withView.blackLitterman.state, 'ok');
+  assert.equal(equilibriumOnly.blackLitterman.state, 'equilibrium-only');
+  assert.deepEqual(withView.expectedReturnsUsed, withView.blackLitterman.posteriorMean);
+  assert.notDeepEqual(withView.weights, equilibriumOnly.weights,
+    'changing the explicit view must change posterior-driven allocation weights');
+  assert.equal(withView.blackLitterman.benchmarkIdentity, SCOPE24_BL_INPUT.benchmarkIdentity);
+  assert.equal(withView.blackLitterman.views[0].horizonSessions, 63);
+  assert.equal(withView.blackLitterman.views[0].confidenceSource, 'user-stated-range');
+});
+
+test('Adversarial: heuristic clipped and disconnected allocation methods cannot satisfy the six method contract', () => {
+  const erc = RLPA.solveEqualRiskContribution(
+    SCOPE24_BASIS,
+    [1 / 3, 1 / 3, 1 / 3],
+    SCOPE24_BASIS.solverPolicy
+  );
+  assert.equal(erc.state, 'feasible');
+
+  const inverseVolatility = [1 / Math.sqrt(0.04), 1 / Math.sqrt(0.09), 1 / Math.sqrt(0.16)];
+  const inverseTotal = inverseVolatility.reduce((sum, value) => sum + value, 0);
+  const inverseWeights = inverseVolatility.map((value) => value / inverseTotal);
+  const inverseMap = Object.fromEntries(['A', 'B', 'CASH'].map((symbol, index) => [symbol, inverseWeights[index]]));
+  const inverseRisk = RLPA.riskContributions(
+    ['A', 'B', 'CASH'],
+    inverseMap,
+    SCOPE24_BASIS.covariance,
+    { reconciliationTolerance: SCOPE24_BASIS.solverPolicy.tolerance }
+  );
+  const inverseResidual = Math.max(...inverseRisk.contributionShare.map((share) => Math.abs(share - 1 / 3)));
+  assert.ok(inverseResidual > SCOPE24_BASIS.solverPolicy.tolerance * 1000,
+    'inverse-volatility weights must visibly fail the equal-risk-contribution identity');
+  assert.ok(erc.solver.equalRiskContributionResidual < inverseResidual);
+
+  const constrained = RLPA.solveConstrainedMvo(
+    SCOPE24_BASIS,
+    SCOPE24_BASIS.expectedReturnPolicy,
+    2.5,
+    SCOPE24_BASIS.solverPolicy
+  );
+  assert.equal(constrained.state, 'feasible');
+  assert.equal(constrained.solver.postHocClipping, false);
+  const clippedShortcut = [0.8, 0.2, 0];
+  const repaired = RLPA.projectBoundedConstraints(
+    SCOPE24_BASIS,
+    clippedShortcut,
+    SCOPE24_BASIS.solverPolicy
+  );
+  assert.equal(repaired.state, 'feasible');
+  assert.notDeepEqual(repaired.weights, clippedShortcut,
+    'a clipped unconstrained vector violates the explicit cash floor and cannot masquerade as the solve');
+
+  const tighter = {
+    ...SCOPE24_BASIS,
+    assetBounds: {
+      ...SCOPE24_BASIS.assetBounds,
+      A: { minimum: 0.10, maximum: 0.20 }
+    }
+  };
+  const boundAware = RLPA.solveConstrainedMvo(
+    tighter,
+    tighter.expectedReturnPolicy,
+    2.5,
+    tighter.solverPolicy
+  );
+  assert.ok(boundAware.weights[0] <= 0.20 + tighter.solverPolicy.tolerance,
+    'the common asset bound must affect the solve rather than being audited after it');
+
+  const impossible = {
+    ...SCOPE24_BASIS,
+    assetBounds: {
+      A: { minimum: 0.70, maximum: 0.90 },
+      B: { minimum: 0.60, maximum: 0.90 },
+      CASH: { minimum: 0.10, maximum: 0.30 }
+    }
+  };
+  const conflict = RLPA.findIrreducibleConflict(impossible);
+  assert.equal(conflict.state, 'infeasible');
+  assert.equal(conflict.irreducible, true);
+  assert.equal(conflict.globallySmallest, false);
+  assert.ok(conflict.conflictSet.includes('net-sum'));
+  assert.ok(conflict.conflictSet.filter((id) => id.startsWith('minimum:')).length >= 2);
+  assert.equal(
+    RLPA.projectBoundedConstraints(impossible, impossible.currentWeights, impossible.solverPolicy).state,
+    'infeasible'
+  );
+
+  const fakeBenchmark = RLPA.solveBlackLittermanAllocation(
+    SCOPE24_BASIS,
+    { ...SCOPE24_BL_INPUT, benchmarkIdentity: '' },
+    SCOPE24_BASIS.solverPolicy
+  );
+  assert.equal(fakeBenchmark.state, 'unavailable');
+  assert.equal(fakeBenchmark.blackLitterman.reason, 'black-litterman-input-invalid');
+
+  const withView = RLPA.solveBlackLittermanAllocation(
+    SCOPE24_BASIS,
+    SCOPE24_BL_INPUT,
+    SCOPE24_BASIS.solverPolicy
+  );
+  const withoutView = RLPA.solveBlackLittermanAllocation(
+    SCOPE24_BASIS,
+    { ...SCOPE24_BL_INPUT, views: [] },
+    SCOPE24_BASIS.solverPolicy
+  );
+  assert.notDeepEqual(withView.blackLitterman.posteriorMean, withoutView.blackLitterman.posteriorMean);
+  assert.notDeepEqual(withView.weights, withoutView.weights,
+    'a solver disconnected from posterior means would return the same weights and fail here');
+});
+
+test('TP-24-01 all declared sensitivity axes produce attributable method trials and ranges', () => {
+  const sensitivity = RLPA.runAllocationSensitivity({
+    basis: SCOPE24_BASIS,
+    blackLittermanInput: SCOPE24_BL_INPUT,
+    expectedReturnInput: SCOPE24_BASIS.expectedReturnPolicy,
+    riskAversion: 2.5,
+    axes: SCOPE24_SENSITIVITY_AXES
+  });
+  assert.equal(sensitivity.state, 'ok');
+  assert.deepEqual(sensitivity.declaredAxes, [
+    'history', 'means', 'covariance', 'views', 'costs', 'assetBounds',
+    'groupBounds', 'turnover', 'cash', 'leverage', 'riskAversion'
+  ]);
+  const pointCount = Object.values(SCOPE24_SENSITIVITY_AXES).reduce((sum, values) => sum + values.length, 0);
+  assert.equal(sensitivity.totalTrials, pointCount * RLPA.ALLOCATION_METHODS.length);
+  assert.equal(sensitivity.methods.length, RLPA.ALLOCATION_METHODS.length);
+  assert.equal(sensitivity.recommendedMethod, null);
+  for (const method of sensitivity.methods) {
+    assert.equal(method.trials.length, pointCount);
+    assert.equal(method.validTrials + method.failedTrials, pointCount);
+    assert.equal(method.weightRanges.length, SCOPE24_BASIS.eligibleAssets.length);
+  }
+  for (const axis of sensitivity.declaredAxes) {
+    assert.ok(sensitivity.trialLedger.some((trial) => trial.axis === axis));
+  }
+
+  const missingAxis = { ...SCOPE24_SENSITIVITY_AXES };
+  delete missingAxis.cash;
+  assert.deepEqual(
+    RLPA.runAllocationSensitivity({
+      basis: SCOPE24_BASIS,
+      blackLittermanInput: SCOPE24_BL_INPUT,
+      expectedReturnInput: SCOPE24_BASIS.expectedReturnPolicy,
+      riskAversion: 2.5,
+      axes: missingAxis
+    }),
+    { state: 'invalid', reason: 'sensitivity-axes-incomplete' }
+  );
 });
 
 /* ---------------------------------------------------------------------------

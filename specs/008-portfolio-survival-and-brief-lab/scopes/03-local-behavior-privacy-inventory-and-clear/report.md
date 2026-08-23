@@ -1188,3 +1188,9 @@ All four suites pass. Suite health is not the constraint on this scope; evidence
 ## Audit Verdict
 
 No audit verdict is recorded. Scope 03 is not eligible for audit while five DoD items lack evidence.
+
+<!-- bubbles:certifying-window-begin -->
+
+## Current Certifying Window
+
+The prior execution record is preserved above. Current status is governed by the canonical transition checks.

@@ -20,7 +20,7 @@ test.afterAll(async () => {
   if (server) await server.close();
 });
 
-const ROUTES = ['workspace', 'risk-xray', 'path-lab', 'diversification', 'allocation', 'dossier'];
+const ROUTES = ['brief', 'risk-xray', 'path-lab', 'diversification', 'allocation', 'dossier'];
 const TABS = [
   'workspaceTabBrief', 'workspaceTabRiskXray', 'workspaceTabPathLab',
   'workspaceTabDiversification', 'workspaceTabAllocation', 'workspaceTabDossier'
@@ -30,7 +30,7 @@ const TABS = [
    appears in a public read or a publisher input, the boundary has failed. */
 const SENTINEL_NAME = 'ZZSENTINELPORTFOLIO';
 
-async function openLab(page, hash = 'workspace') {
+async function openLab(page, hash = 'brief') {
   const response = await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#${hash}`);
   expect(response?.status(), 'the integrated route must be served directly').toBe(200);
   await expect(page.locator('#workspaceIdentity')).toBeVisible();
@@ -99,7 +99,7 @@ test('Regression: SCN-008-036 Simple Power mobile and deep link return preserve 
 
   /* The evidence Power adds must actually appear, or "Power" is a no-op label.
      The Brief tab renders its own workspace and has no route panel. */
-  for (const route of ROUTES.filter((name) => name !== 'workspace')) {
+  for (const route of ROUTES.filter((name) => name !== 'brief')) {
     await page.locator(`#${TABS[ROUTES.indexOf(route)]}`).click();
     await expect(page.locator(`[data-power-evidence="${route}"]`)).toBeVisible();
   }
@@ -107,6 +107,10 @@ test('Regression: SCN-008-036 Simple Power mobile and deep link return preserve 
   /* Simple must genuinely hide it again — otherwise the two modes are one mode. */
   await page.locator('#modeSimple').click();
   await expect(page.locator('[data-power-evidence="risk-xray"]')).toBeHidden();
+
+  await page.locator('#workspaceTabAllocation').click();
+  await page.locator('#workspaceTabBrief').click();
+  await expect(page).toHaveURL(new RegExp('#brief$'));
 
   /* Mobile is the same tool, not a reduced one. */
   await page.setViewportSize({ width: 390, height: 844 });
@@ -134,7 +138,7 @@ test('Regression: SCN-008-036 every canvas is synchronous nonblank and equivalen
 
   for (const size of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
     await page.setViewportSize(size);
-    for (const route of ROUTES.filter((name) => name !== 'workspace')) {
+    for (const route of ROUTES.filter((name) => name !== 'brief')) {
       await page.locator(`#${TABS[ROUTES.indexOf(route)]}`).click();
 
       /* Synchronous: pixels are asserted with no wait. A chart that needs a

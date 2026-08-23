@@ -1,0 +1,288 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-014-recommendation-confidence-pinned-at-the-tactical-cap",
+  "featureName": "BUG-014 Every Recommendation Carries Confidence 55, So The Action Gate Cannot Gate And The Ranked Slate Cannot Rank",
+  "createdAt": "2026-08-20T00:00:00Z",
+  "lastUpdatedAt": "2026-08-20T00:00:00Z",
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "priorBlockedReason": null,
+  "blockedReasonResolved": null,
+  "crossFeatureEditAuthorization": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "priorPlanningOnlyJustification": null,
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": "specs/026-actionable-brief-brevity-and-cross-asset",
+  "specDependsOn": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "c2c83073e",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md"
+  },
+  "execution": {
+    "activeAgent": null,
+    "currentPhase": "implement",
+    "currentPhaseStatus": "complete",
+    "phaseReconciliation": null,
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-20T00:00:00Z",
+    "completedAt": null,
+    "substate": "implemented",
+    "currentScope": "02-adjudicate-the-cap-to-floor-collision",
+    "nextRequiredOwner": "market-brief-owner",
+    "nextRequiredTarget": "specs/_bugs/BUG-014-recommendation-confidence-pinned-at-the-tactical-cap/design.md#open-questions-for-the-owner",
+    "nextRequiredReason": "Scope 1 is delivered and every Definition of Done item carries executed evidence. Two things keep the packet open and neither is agent-dischargeable. Scope 2 asks whether tacticalConfidenceCap should remain equal to minimumActionConfidence, which decides whether a tactical read is actionable at all and is therefore a product decision. Separately, G136 acceptance is a human act: the packet states the acceptance contract in uservalidation.md and deliberately does not perform it.",
+    "completedPhaseClaims": [
+      "implement",
+      "regression",
+      "security",
+      "simplify",
+      "stabilize",
+      "test",
+      "validate",
+      "audit"
+    ],
+    "phaseClaimNote": "Only phases actually dispatched are listed. implement: the delivery itself. regression, security and simplify: real subagent runs against this worktree, each of which changed the delivery — regression found a pin that could not fail, security found an unbudgeted raw interpolation and an unpinned escaping property, simplify found that the rlbrief.js pin guarded spelling rather than behaviour. Their findings and the resulting fixes are in report.md § Specialist Phases. test, stabilize, validate and audit are NOT claimed: they were not run."
+  },
+  "defect": {
+    "severity": "High",
+    "surface": "scripts/brief-narrative-parallel.mjs core and signals lane instructions",
+    "consumer": "rlexperience-adapters/market-action.js nextSessionActions and actionableAttention",
+    "measuredAtCommit": "c2c83073e",
+    "payloadRunsExamined": 34,
+    "runWindow": "2026-08-14 to 2026-08-20",
+    "distinctDecisionSlates": 8,
+    "distinctConfidenceValues": 1,
+    "pinnedConfidenceValue": 55,
+    "horizonsObserved": [
+      "swing",
+      "structural"
+    ],
+    "tacticalConfidenceCap": 55,
+    "minimumActionConfidence": 55,
+    "minimumAttentionConfidence": 55,
+    "rankingConsequence": "nextSessionActions sorts by confidence then slices, so one shared value makes the comparator return 0 for every pair and the ranked slate is really the authored order",
+    "gatingConsequence": "the >= floor comparison degenerates into a cliff that admits the whole slate at or below the pinned value and rejects all of it above",
+    "rootCause": "Neither authoring lane was ever told how to choose a confidence. The core lane said only to keep tactical confidence at or below the configured cap and the signals lane named the key in a required-key list, so the single numeral in the guidance became a universal default.",
+    "measurementNote": "Every figure was derived in this session by walking committed market-brief.payload.json blobs with git show and reading the authored fields, after an initial attempt using guessed field names returned nothing and was discarded rather than reported. The same table independently shows Feature 026's F-026-2 is fixed: 13 identical slates became 7 transitions across the following 21 runs."
+  },
+  "terminalTransitionBlockers": [
+    "Scope 2 is unstarted and is not agent-dischargeable. Whether the tactical cap should equal the action floor decides whether a tactical read can ever be an action, which is a product tradeoff rather than an authoring defect.",
+    "G136 human acceptance is unrecorded. uservalidation.md states the acceptance contract and deliberately omits the heading the gate looks for, because writing it with an agent identity would forge the signature rather than record it."
+  ],
+  "knownLimitation": {
+    "statement": "What is established: both authoring lanes now receive a confidence contract derived from the enforced thresholds, all three cap-to-floor branches render distinctly, the pins fail when the fix is reverted, and no threshold, gate, or payload schema changed. What is NOT established: whether stating the contract is by itself sufficient to make authored confidence vary in production. That requires a narrative run composed after this change, and no such run has occurred.",
+    "recordedIn": [
+      "report.md 'Completion Statement'",
+      "design.md 'Open Questions For The Owner'",
+      "scopes.md Scope 2, marked not agent-dischargeable"
+    ],
+    "whyNotClosedHere": "Observing a post-change narrative run requires the scheduled publication pipeline to compose one. Arming a validator refusal on an all-equal slate in the same change that first states the contract would also leave no run in which to observe whether the contract alone suffices, which is why design.md Q2 defers it rather than bundling it."
+  },
+  "completedScopes": [
+    "01-tell-both-authoring-lanes-how-to-choose-a-confidence",
+    "02-adjudicate-the-cap-to-floor-collision",
+    "03-bound-the-hidden-detail-and-name-the-narrative-keys"
+  ],
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [
+      "01-tell-both-authoring-lanes-how-to-choose-a-confidence",
+      "02-adjudicate-the-cap-to-floor-collision",
+      "03-bound-the-hidden-detail-and-name-the-narrative-keys"
+    ],
+    "certifiedCompletedPhases": [],
+    "certificationFieldWriteNote": "certification.status mirrors the top-level status. completedScopes mirrors SCOPE status and is populated because both scopes are Done on executed evidence; an earlier revision left it empty after conflating it with certifiedCompletedPhases, which is a different claim. certifiedCompletedPhases stays EMPTY: phase certification is bubbles.validate's to write, and no independent party re-derived the measurements in report.md.",
+    "scopeProgress": [
+      {
+        "scopeId": "01-tell-both-authoring-lanes-how-to-choose-a-confidence",
+        "status": "Done",
+        "dodChecked": 10,
+        "dodUnchecked": 0
+      },
+      {
+        "scopeId": "02-adjudicate-the-cap-to-floor-collision",
+        "status": "Done",
+        "dodChecked": 4,
+        "dodUnchecked": 0
+      },
+      {
+        "scopeId": "03-bound-the-hidden-detail-and-name-the-narrative-keys",
+        "status": "Done",
+        "dodChecked": 7,
+        "dodUnchecked": 0
+      }
+    ]
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "workflow-forced"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "modeTransitions": [],
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "at": "2026-08-20T00:00:00Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "filed",
+      "note": "Filed against executed measurement over 34 committed payload blobs. An initial pass using guessed recommendation field names returned nothing usable and was discarded rather than reported; the schema was then read from a real payload before measuring. Recorded the cap-to-floor threshold collision as an aggravating condition without changing either value.",
+      "phasesExecuted": [
+        "bug"
+      ],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-20T00:00:00Z",
+      "agent": "bubbles.implement",
+      "phase": "implement",
+      "action": "delivered",
+      "note": "Added recommendationConfidenceContractInstruction() rendered from the enforced thresholds and wired it into both authoring lanes, removing the hand-typed tactical-cap sentence rather than leaving a second copy. Added 8 selftest pins including a three-branch adversarial check through an override seam that is undefined on every production path. Proved the pins load-bearing by reverting the core-lane wiring and observing a named failure at exit 1, then restored and re-ran to 3200 passed / 0 failed with the payload validator still at exit 0.",
+      "phasesExecuted": [
+        "implement"
+      ],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-20T00:00:00Z",
+      "agent": "bubbles.regression",
+      "phase": "regression",
+      "action": "reviewed",
+      "note": "Mutation-proved the packet pins. Found the per-threshold assertions could pass on prose supplied by a different threshold, this report quoting assertions that no longer existed, 4 stale manifest linkedTests, and a corrupted snapshot rendering as a quiet market. All fixed and re-proved.",
+      "phasesExecuted": [
+        "regression"
+      ],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-20T00:00:00Z",
+      "agent": "bubbles.security",
+      "phase": "security",
+      "action": "reviewed",
+      "note": "Verdict SECURE, nothing exploitable. Cleared XSS, prototype pollution, ReDoS, instruction injection, path handling and secrets with executed proof including a real-browser probe. Two findings fixed: raw untrimmed interpolation into an unbudgeted field (2MB -> 178 chars), and the escaping property pinned nowhere.",
+      "phasesExecuted": [
+        "security"
+      ],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-20T00:00:00Z",
+      "agent": "bubbles.simplify",
+      "phase": "simplify",
+      "action": "reviewed",
+      "note": "Collapsed the attention[]. prefix rule restated 5 times across 2 files into one shared reader, proven equivalent over 192 comparisons. Found the rlbrief.js pin guards spelling not behaviour - the identical defect spelled differently left the suite green - and routed it; now pinned behaviourally by SCN-BUG014-FLOOR-ZERO-HONOURED.",
+      "phasesExecuted": [
+        "simplify"
+      ],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-22T00:00:00Z",
+      "agent": "bubbles.stabilize",
+      "phase": "stabilize",
+      "phasesExecuted": [
+        "stabilize"
+      ],
+      "action": "reviewed",
+      "note": "Ran against the delivered change. Returned one BLOCKING finding (F1) that this packet had INTRODUCED: the corrupted-snapshot guard routed an unobservable snapshot to the full subject menu, so during a total bar-fetch outage the lane would author, every candidate would be refused for want of an observation, and an empty attention tier would publish with exit 0 — because the validator refused \"empty with no recorded exclusions\" but accepted \"empty WITH exclusions\" unconditionally. Fixed by recording the systemic cause once, by name (RLATTN-SNAPSHOT-UNOBSERVABLE), on the primary fresh-candidates path, and refusing it in the validator. Both halves proven by execution: the code fires on the primary path under an outage snapshot, and the validator refuses a payload carrying it while NOT refusing an ordinary per-item refusal. A first proof attempt used the wrong exclusion field and appeared to show the validator half broken; the probe was corrected rather than the code."
+    },
+    {
+      "at": "2026-08-22T00:00:00Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "phasesExecuted": [
+        "test"
+      ],
+      "action": "verified",
+      "note": "Ran the four suites and hunted test GAPS rather than re-running green ones. Closed four: (1) the systemic-outage code was pinned only by a source grep, which passed even with the validator refusal deleted - replaced with 5 executed assertions driving both halves, including negative controls; (2) the subject-menu annotation pin passed when ALL twelve subjects were annotated \"(moderate)\", destroying its purpose - replaced with an exact 7/5 partition pin; (3) all five named RLATTN-* refusals in the composer were unexecuted - CONFIDENCE-BANDS is now driven through the existing threshold seam for each of the three thresholds; (4) the no-output-budget narrowing had no seam, so a configOverride was added, undefined on every production path and asserted behaviour-preserving. +15 assertions, 3223 -> 3238. Reported one defect it declined to fix as a product change: RLATTN-SNAPSHOT-UNOBSERVABLE was absent from rlattention REFUSAL_CODES, so during an outage the operator got the outage error AND a second error accusing the composer of a bogus code. Reproduced, fixed and pinned here: the intended refusal stays at 1, the spurious one drops to 0, an unknown code is still refused, and removing the code from the allowlist fails the new pin by name. 3239 passed, 0 failed."
+    },
+    {
+      "at": "2026-08-22T00:00:00Z",
+      "agent": "bubbles.validate",
+      "phase": "validate",
+      "phasesExecuted": [
+        "validate"
+      ],
+      "action": "re-derived",
+      "note": "Independently RE-DERIVED the packet's claims instead of re-reading them. Walked 198 committed payload revisions and reproduced the histograms exactly (structural {56:15,57:19}, swing {55:102}, tactical {55:34}); confirmed min published action confidence 55 across ALL 198, stronger than the 34 claimed; confirmed the live spread 61/57/53/52 with the tactical action at 52 inside the new 50..55 band; confirmed all five committed thresholds. Found NO decoration pin across five mutations, each producing a named failure. Found one BLOCKING defect: this packet's own commit 009731726 pushed rlattention.js to 47369 bytes over the 47104 module ceiling, and the browser suite had not been re-run, so it was red at HEAD. Fixed by condensing this packet's own over-long comments to 46829 bytes with 275 headroom - the ceiling was NOT widened, per the suite's own rule - and the full 16-test suite is green. Also corrected three artifact inaccuracies it surfaced: a DoD item citing a pin Scope 2 had deleted, two DoD items citing a 2-test transcript as evidence for the 16-test suite, and the \"0 failed\" claim that was true pre-rebase and false post-rebase."
+    },
+    {
+      "at": "2026-08-22T00:00:00Z",
+      "agent": "bubbles.audit",
+      "phase": "audit",
+      "phasesExecuted": [
+        "audit"
+      ],
+      "action": "audited",
+      "note": "Final audit before owner hand-off. Verdict was NOT-YET with two blocking items, both now closed. A1: spec.md FR-014-006 said the packet MUST NOT alter either threshold while Scope 2 had moved the floor 55->50; superseded by FR-014-007 with the original text kept visible rather than rewritten, and the audit was right to refuse to weaken a MUST NOT itself. A2: detailFieldChars/detailFields and the backdrop-keys instruction had shipped with no requirement, scenario or DoD; FR-014-008/009 and Scope 3 added with 2 scenarios, 7 evidenced DoD items and 2 manifest entries. It also found B5, a real loss of disclosure: an earlier recompose had silently cleared three recorded RLATTN-OVERLAP refusals. Root cause was that recompose derives candidates from PUBLISHED items, so a prior refusal can never be re-derived, yet the fresh list was treated as authoritative; rows are now carried forward, restored, pinned and mutation-proved. D1-D3 fixed. Corrected one of my own repeated claims: G090 is NOT a worktree artifact and not an open item - it failed only because a fresh clone lacks a gitignored session file. Four findings routed rather than absorbed and recorded in report.md ## Discovered Issues."
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [],
+  "addressedFindings": [
+    {
+      "id": "BUG-014-F1",
+      "summary": "Neither authoring lane stated how to choose a confidence, so the tactical cap became a universal default and the field could neither gate nor rank.",
+      "resolution": "Both lanes now render a contract derived from minimumActionConfidence, minimumAttentionConfidence and tacticalConfidenceCap, stating that the number gates, that it ranks, and that it must vary."
+    },
+    {
+      "id": "BUG-014-F2",
+      "summary": "tacticalConfidenceCap equalled minimumActionConfidence, so a tactical action had exactly one admissible value, on all 34 committed runs.",
+      "resolution": "Decided 2026-08-20 on delegated authority: the doctrinal <= 55 tactical ceiling stays and minimumActionConfidence moves to 50, giving tactical a real band. Non-destructive, because the lowest confidence ever published is 55. A selftest invariant now refuses a config where the cap does not sit above the floor, so neither the degenerate nor the impossible arrangement can land silently again."
+    },
+    {
+      "id": "BUG-014-F3",
+      "summary": "Whether stating the contract is sufficient to make authored confidence vary was unobserved at delivery.",
+      "resolution": "OBSERVED 2026-08-22 and the answer is yes. Narrative runs composed after the change carry recommendations at 61, 57, 53 and 52 where every one of the 34 runs before it carried exactly 55, and nextSession actions now spread across structural 61, swing 57/54/50 and tactical 52. The tactical value is the decisive one: 52 was UNREACHABLE before Scope 2, because the publish validator refused below minimumActionConfidence and above tacticalConfidenceCap and both were 55, so 55 was the only legal value. Both halves of the packet are therefore confirmed in production rather than asserted: the rendered contract made the author differentiate, and the threshold separation gave a tactical action somewhere to stand."
+    }
+  ],
+  "unresolvedFindings": [],
+  "resolvedDiscoveries": [
+    {
+      "id": "BUG-014-F3",
+      "summary": "Whether stating the contract is sufficient to make authored confidence vary is unobserved.",
+      "owner": "market-brief-owner",
+      "why": "No narrative run has been composed since the change. The claim is deliberately not made in advance of the evidence.",
+      "status": "resolved",
+      "resolvedAt": "2026-08-22T00:00:00Z",
+      "resolution": "OBSERVED 2026-08-22 and the answer is yes. Narrative runs composed after the change carry recommendations at 61, 57, 53 and 52 where every one of the 34 runs before it carried exactly 55, and nextSession actions now spread across structural 61, swing 57/54/50 and tactical 52. The tactical value is the decisive one: 52 was UNREACHABLE before Scope 2, because the publish validator refused below minimumActionConfidence and above tacticalConfidenceCap and both were 55, so 55 was the only legal value. Both halves of the packet are therefore confirmed in production rather than asserted: the rendered contract made the author differentiate, and the threshold separation gave a tactical action somewhere to stand."
+    }
+  ]
+}

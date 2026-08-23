@@ -1,0 +1,31 @@
+{
+  "objectiveLabel": "Expose a current allocation breach without constraining every candidate to one boundary",
+  "valuationCurrency": "USD",
+  "horizon": {
+    "endDate": "2036-12-31",
+    "unit": "calendar-date"
+  },
+  "survivalDefinition": null,
+  "rebalancePolicy": null,
+  "costPolicy": null,
+  "expectedReturnPolicy": null,
+  "constraints": [
+    {
+      "kind": "maximum-exposure",
+      "subject": "MSFT",
+      "constraintKind": "hard",
+      "unit": "portfolio-fraction",
+      "minimum": null,
+      "maximum": 0.7
+    },
+    {
+      "kind": "minimum-exposure",
+      "subject": "BND",
+      "constraintKind": "hard",
+      "unit": "portfolio-fraction",
+      "minimum": 0.1,
+      "maximum": null
+    }
+  ],
+  "cashNeeds": []
+}

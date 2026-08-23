@@ -22,7 +22,7 @@ test.afterAll(async () => {
 const DATES = ['2026-05-04', '2026-05-05', '2026-05-06', '2026-05-07', '2026-05-08', '2026-05-11'];
 
 async function openLab(page) {
-  const response = await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#workspace`);
+  const response = await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#brief`);
   expect(response?.status(), 'the Path Lab host page must be served').toBe(200);
   await expect(page.locator('#workspaceTabBrief')).toHaveAttribute('aria-selected', 'true');
 }
@@ -159,10 +159,13 @@ test('Regression: SCN-008-038 a saved scenario survives reload and is removed by
   // A parallel top-level key would have survived, which is why the field lives where it does.
   await page.locator('#workspaceTabBrief').click();
   await page.locator('#openPrivacy').click();
+  await page.locator('#fullClearConfirmation').fill('CLEAR ALL LOCAL DATA');
   await page.locator('#emergencyClear').click();
-  await expect(page.locator('#privacyResult')).not.toHaveText('No clear requested.');
-  const afterClear = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__.scenarioCount);
-  expect(afterClear, 'a full personal clear must remove every saved scenario').toBe(0);
+  await expect(page.locator('#privacyResult')).toContainText('Full personal data cleared');
+  const afterClear = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+  expect(afterClear.scenarioCount, 'a full personal clear must remove every saved scenario').toBe(0);
+  expect(afterClear.pathScenario.computeState, 'the in-memory compute controller is personal scenario state').toBe('idle');
+  expect(afterClear.pathScenario.scenarioIdentity, 'no completed scenario identity survives the full clear').toBeNull();
 });
 
 test('Regression: Feature 008 dependent path fan and uncertainty tables remain equivalent at desktop mobile and zoom', async ({ page }) => {
@@ -275,6 +278,7 @@ test('Regression: SCN-008-020 dated cash need records before and after collision
   await panel.locator('#cashNeedDate').fill(firstSession);
   await panel.locator('#cashNeedLabel').fill('Tuition');
   await panel.locator('#cashNeedAdd').click();
+  await expect(panel.locator('#pathComputeStatus')).toHaveAttribute('data-compute-state', 'completed');
 
   const row = panel.locator('#cashNeedTimeline tbody tr').first();
   await expect(row).toBeVisible();
@@ -353,6 +357,7 @@ test('Regression: Feature 008 cash need timeline and path table preserve order a
     await panel.locator('#cashNeedDate').fill(date);
     await panel.locator('#cashNeedLabel').fill(label);
     await panel.locator('#cashNeedAdd').click();
+    await expect(panel.locator('#pathComputeStatus')).toHaveAttribute('data-compute-state', 'completed');
   }
 
   const labels = await panel.locator('#cashNeedTimeline tbody tr th').allTextContents();
@@ -412,4 +417,78 @@ test('Regression: Feature 008 an incomplete cash need is refused rather than par
   expect(await panel.locator('#cashNeedTimeline tbody tr').count()).toBe(0);
   const diagnostics = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
   expect(diagnostics.cashNeedCount).toBe(0);
+});
+
+test('Regression: SCN-008-048 complete scenario cash needs uncertainty and compute tokens govern every path', async ({ page }) => {
+  await seedPortfolio(page, 'TP-22-03 complete scenario');
+  const panel = await openPathLab(page);
+  const status = panel.locator('#pathComputeStatus');
+  await expect(status).toHaveAttribute('data-compute-state', 'completed');
+  await expect(status).toHaveAttribute('data-requested-paths', '2000');
+  await expect(status).toHaveAttribute('data-completed-paths', '2000');
+  await expect(status).toHaveAttribute('data-token-state', 'completed');
+  await expect(panel.locator('#pathMethod')).toContainText('2000 paths');
+  await expect(panel.locator('#pathMethodAvailability')).toContainText('stationary-bootstrap');
+  await expect(panel.locator('#pathMethodAvailability')).toContainText('calibrated');
+
+  const note = await firstModeledSession(page);
+  const firstSession = note.match(/Modeled sessions (\d{4}-\d{2}-\d{2})/)[1];
+  for (const [amount, label] of [['20000', 'Tuition'], ['10000', 'Roof']]) {
+    await panel.locator('#cashNeedAmount').fill(amount);
+    await panel.locator('#cashNeedDate').fill(firstSession);
+    await panel.locator('#cashNeedLabel').fill(label);
+    await panel.locator('#cashNeedAdd').click();
+    await expect(panel.locator('#pathComputeStatus')).toHaveAttribute('data-compute-state', 'completed');
+  }
+  await panel.locator('#survivalFloor').fill('1');
+  await panel.locator('#survivalFloorApply').click();
+  await expect(panel.locator('#pathComputeStatus')).toHaveAttribute('data-compute-state', 'completed');
+
+  await expect(panel.locator('#cashNeedPathCoverage')).toContainText('2000 of 2000 paths');
+  await expect(panel.locator('#survivalResult')).toContainText('2000 modeled series');
+  await expect(panel.locator('#pathDistributionSet')).toHaveAttribute('data-contract-version', 'ScenarioDistributionSet/v1');
+  await expect(panel.locator('#pathDistributionSet')).toContainText('Conditional path');
+  await expect(panel.locator('#pathDistributionSet')).toContainText('Parameter marginal');
+  await expect(panel.locator('#pathDistributionSet')).toContainText('Combined');
+  await expect(panel.locator('#pathDistributionSet')).toContainText('terminal wealth');
+  await expect(panel.locator('#pathDistributionSet')).toContainText('maximum drawdown');
+  await expect(panel.locator('#pathDistributionSet')).toContainText('cash need funded fraction');
+
+  const diagnostics = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+  expect(diagnostics.pathScenario.requestedPathCount).toBe(2000);
+  expect(diagnostics.pathScenario.completedPathCount).toBe(2000);
+  expect(diagnostics.pathScenario.survivalPathCount).toBe(2000);
+  expect(diagnostics.pathScenario.distributionContractVersion).toBe('ScenarioDistributionSet/v1');
+});
+
+test('Regression: SCN-008-048 cancelled and superseded path jobs cannot replace the last valid view', async ({ page }) => {
+  await seedPortfolio(page, 'TP-22-05 cancellation and supersession');
+  const panel = await openPathLab(page);
+  const status = panel.locator('#pathComputeStatus');
+  await expect(status).toHaveAttribute('data-compute-state', 'completed');
+  const initialIdentity = await panel.locator('#pathIdentity').textContent();
+  const initialBands = await panel.locator('#pathBands').innerText();
+
+  const seed = panel.locator('#pathScenarioSeed');
+  await seed.fill('20260822');
+  await panel.locator('#pathRunScenario').click();
+  await expect(status).toHaveAttribute('data-compute-state', 'running');
+  await panel.locator('#pathCancelScenario').click();
+  await expect(status).toHaveAttribute('data-compute-state', 'cancelled');
+  await expect(status).toHaveAttribute('data-error-code', 'P008-COMPUTE-CANCELLED');
+  expect(await panel.locator('#pathIdentity').textContent()).toBe(initialIdentity);
+  expect(await panel.locator('#pathBands').innerText()).toBe(initialBands);
+
+  await seed.fill('20260823');
+  await panel.locator('#pathRunScenario').click();
+  await expect(status).toHaveAttribute('data-compute-state', 'running');
+  await seed.fill('20260824');
+  await panel.locator('#pathRunScenario').click();
+  await expect(status).toHaveAttribute('data-last-settlement-code', 'P008-COMPUTE-SUPERSEDED');
+  await expect(status).toHaveAttribute('data-compute-state', 'completed');
+  await expect(status).toHaveAttribute('data-token-state', 'completed');
+  const replacementIdentity = await panel.locator('#pathIdentity').textContent();
+  expect(replacementIdentity).not.toBe(initialIdentity);
+  expect(replacementIdentity).toContain('seed=20260824');
+  await expect(panel.locator('#pathComputeStatus')).toContainText('matching complete token');
 });

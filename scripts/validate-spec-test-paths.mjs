@@ -82,6 +82,102 @@ function listFilesRecursive(absDir) {
   return found;
 }
 
+const OPEN_SPEC_STATUSES = new Set(['not_started', 'in_progress', 'blocked']);
+
+function normalizedStatus(value) {
+  return typeof value === 'string' ? value.trim().toLowerCase().replace(/[ -]+/g, '_') : 'unknown';
+}
+
+function testPathsIn(value) {
+  TEST_PATH_TOKEN.lastIndex = 0;
+  return [...String(value ?? '').matchAll(TEST_PATH_TOKEN)].map((match) => match[0]);
+}
+
+function progressByScopeId(state) {
+  const progress = [
+    ...(Array.isArray(state?.execution?.scopeProgress) ? state.execution.scopeProgress : []),
+    ...(Array.isArray(state?.certification?.scopeProgress) ? state.certification.scopeProgress : [])
+  ];
+  const byId = new Map();
+  for (const entry of progress) {
+    for (const key of [entry?.scopeId, entry?.scope]) {
+      if (key === null || key === undefined) continue;
+      const id = String(key);
+      const status = normalizedStatus(entry.status);
+      const previous = byId.get(id);
+      if (!previous || previous === 'unknown' || status !== 'unknown') byId.set(id, status);
+    }
+  }
+  return byId;
+}
+
+/* Structured planning metadata is the independent authority for whether a missing
+   carrier is honest future work. Text prose is never enough: every row must be
+   planned-not-authored, planned-not-executed, and owned by a Not Started scope.
+   The enclosing spec may be in_progress while an earlier scope executes; requiring
+   the whole spec to be not_started would recreate the linear-DAG deadlock this
+   classifier exists to prevent. Terminal specs are never eligible. */
+export function collectStructuredTestPathStates(root = ROOT, specsDir = SPECS_DIR) {
+  const absSpecs = resolve(root, specsDir);
+  const rowsBySpecPath = new Map();
+  const specRoots = [];
+  if (!existsSync(absSpecs)) return { rowsBySpecPath, specRoots };
+
+  const plans = listFilesRecursive(absSpecs)
+    .filter((abs) => abs.endsWith('/test-plan.json') || abs.endsWith('\\test-plan.json'))
+    .sort();
+  for (const absPlan of plans) {
+    let plan;
+    try { plan = JSON.parse(readFileSync(absPlan, 'utf8')); } catch { continue; }
+    const absSpec = dirname(absPlan);
+    const fallbackSpec = relative(root, absSpec).split('\\').join('/');
+    const spec = typeof plan.featureDir === 'string' && plan.featureDir.startsWith('specs/')
+      ? plan.featureDir : fallbackSpec;
+    let state = {};
+    try { state = JSON.parse(readFileSync(join(absSpec, 'state.json'), 'utf8')); } catch { state = {}; }
+    const specStatus = normalizedStatus(state.status);
+    const scopeStatuses = progressByScopeId(state);
+    specRoots.push(spec);
+
+    for (const scope of Array.isArray(plan.scopes) ? plan.scopes : []) {
+      const scopeId = String(scope?.scopeId ?? scope?.scope ?? '');
+      const scopeStatus = scopeStatuses.get(scopeId) ?? 'unknown';
+      for (const row of Array.isArray(scope?.tests) ? scope.tests : []) {
+        const paths = new Set([...testPathsIn(row.file), ...testPathsIn(row.command)]);
+        for (const path of paths) {
+          const key = spec + '\0' + path;
+          if (!rowsBySpecPath.has(key)) rowsBySpecPath.set(key, []);
+          rowsBySpecPath.get(key).push({
+            spec,
+            path,
+            scopeId,
+            scopeStatus,
+            specStatus,
+            testState: row.testState ?? null,
+            status: row.status ?? null,
+            rowId: row.id ?? null
+          });
+        }
+      }
+    }
+  }
+  specRoots.sort((left, right) => right.length - left.length || byteOrder(left, right));
+  return { rowsBySpecPath, specRoots: [...new Set(specRoots)] };
+}
+
+function specForArtifact(artifact, specRoots) {
+  return specRoots.find((spec) => artifact === spec || artifact.startsWith(spec + '/')) ?? specOf(artifact);
+}
+
+function isPlannedOnlyGroup(rows) {
+  return rows.length > 0 && rows.every((row) =>
+    OPEN_SPEC_STATUSES.has(row.specStatus) &&
+    row.scopeStatus === 'not_started' &&
+    row.testState === 'planned-not-authored' &&
+    row.status === 'planned-not-executed'
+  );
+}
+
 /* Every `tests/*.mjs` reference in every text artifact under `<root>/<specsDir>`,
    each carrying the artifact and line that names it. */
 export function collectSpecTestPathReferences(root = ROOT, specsDir = SPECS_DIR) {
@@ -127,6 +223,7 @@ export function validateSpecTestPaths(root = ROOT, options = {}) {
     ? resolve(options.baselineFile)
     : resolve(root, BASELINE_REL);
   const { scannedFiles, references } = collectSpecTestPathReferences(root, specsDir);
+  const structured = collectStructuredTestPathStates(root, specsDir);
 
   const sitesByPath = new Map();
   for (const ref of references) {
@@ -135,22 +232,41 @@ export function validateSpecTestPaths(root = ROOT, options = {}) {
   }
 
   const missing = [];
+  const actionableMissing = [];
+  const plannedMissing = [];
   for (const path of [...sitesByPath.keys()].sort(byteOrder)) {
     let isFile = false;
     try { isFile = statSync(resolve(root, path)).isFile(); } catch { isFile = false; }
-    if (!isFile) missing.push({ path, sites: sitesByPath.get(path) });
+    if (isFile) continue;
+    const sites = sitesByPath.get(path);
+    missing.push({ path, sites });
+    const bySpec = new Map();
+    for (const site of sites) {
+      const spec = specForArtifact(site.artifact, structured.specRoots);
+      if (!bySpec.has(spec)) bySpec.set(spec, []);
+      bySpec.get(spec).push(site);
+    }
+    const plannedGroups = [];
+    const activeSites = [];
+    for (const [spec, specSites] of bySpec) {
+      const rows = structured.rowsBySpecPath.get(spec + '\0' + path) ?? [];
+      if (isPlannedOnlyGroup(rows)) plannedGroups.push({ spec, sites: specSites, rows });
+      else activeSites.push(...specSites.map((site) => ({ ...site, spec })));
+    }
+    if (plannedGroups.length > 0) plannedMissing.push({ path, groups: plannedGroups });
+    if (activeSites.length > 0) actionableMissing.push({ path, sites: activeSites });
   }
 
   const baseline = readBaseline(baselineFile);
   const baselinePresent = baseline !== null;
   const known = baseline ?? new Set();
-  const missingPaths = new Set(missing.map((entry) => entry.path));
+  const actionablePaths = new Set(actionableMissing.map((entry) => entry.path));
 
-  const newMissing = missing.filter((entry) => !known.has(entry.path));
-  const knownMissing = missing.filter((entry) => known.has(entry.path));
+  const newMissing = actionableMissing.filter((entry) => !known.has(entry.path));
+  const knownMissing = actionableMissing.filter((entry) => known.has(entry.path));
   /* No longer missing: the file exists again, or every reference to it was
      removed. Either way the debt was paid and the entry must leave the file. */
-  const staleBaseline = [...known].filter((path) => !missingPaths.has(path)).sort(byteOrder);
+  const staleBaseline = [...known].filter((path) => !actionablePaths.has(path)).sort(byteOrder);
 
   const vacuous = references.length === 0;
   return {
@@ -163,6 +279,8 @@ export function validateSpecTestPaths(root = ROOT, options = {}) {
     referenceCount: references.length,
     referencedPathCount: sitesByPath.size,
     missing,
+    actionableMissing,
+    plannedMissing,
     newMissing,
     knownMissing,
     staleBaseline
@@ -303,6 +421,13 @@ export function formatSpecTestPathFindings(result, limitSites = Infinity) {
     return lines;
   }
 
+  for (const entry of result.plannedMissing ?? []) {
+    for (const group of entry.groups) {
+      lines.push('PLANNED-MISSING ' + entry.path + ' (' + group.spec + ', ' + group.rows.length +
+        ' structured planned-not-authored row(s), non-failing until the owning scope starts)');
+    }
+  }
+
   for (const entry of result.newMissing) {
     lines.push('NEW-MISSING ' + entry.path + ' (' + entry.sites.length + ' reference site(s))');
     const shown = entry.sites.slice(0, limitSites);
@@ -380,9 +505,10 @@ function main() {
     }
     const target = baselineFile ?? resolve(root, BASELINE_REL);
     const today = new Date().toISOString().slice(0, 10);
-    writeFileSync(target, renderBaseline(result, computeDebtAttribution(result.missing, root), today));
-    console.log('[spec-test-paths] baseline written with ' + result.missing.length + ' entr' +
-      (result.missing.length === 1 ? 'y' : 'ies'));
+    const baselineResult = { ...result, missing: result.actionableMissing };
+    writeFileSync(target, renderBaseline(baselineResult, computeDebtAttribution(result.actionableMissing, root), today));
+    console.log('[spec-test-paths] baseline written with ' + result.actionableMissing.length + ' entr' +
+      (result.actionableMissing.length === 1 ? 'y' : 'ies'));
     console.log('  ' + displayPath(root, target));
     process.exit(0);
   }
@@ -391,6 +517,7 @@ function main() {
     ' references=' + result.referenceCount +
     ' distinctPaths=' + result.referencedPathCount +
     ' missingPaths=' + result.missing.length +
+    ' plannedMissing=' + result.plannedMissing.length +
     ' baseline=' + result.baselineCount +
     ' new=' + result.newMissing.length +
     ' stale=' + result.staleBaseline.length);

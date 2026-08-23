@@ -5991,5 +5991,67 @@ artifact_lint_exit=0
 - No `uservalidation.md` item ticked (still 0 ticked / 19 unticked), no `status`
   set to `done`, no `certifiedAt` written. `G136` is human-only.
 
+## Spec-Review Phase — ten drift findings, all documentation (`bubbles.spec-review`)
+
+**Executed:** YES
+**Phase Agent:** bubbles.spec-review
+**Claim Source:** executed
+
+The phase was missing: `full-delivery` requires `spec-review`, and neither the
+report nor `execution.completedPhaseClaims` carried one. It was run read-only
+against HEAD `505a41038`.
+
+**Verdict.** Trust classification **MINOR_DRIFT**. Every functional requirement
+checked is satisfied by shipped code — the single shared rule at `rlticker.js`
+lines 53-72, its five production consumers, the four-row `ownerSubjectParam` and
+seven-row `ownerBareReason` registry matching `design.md` lines 493-503, the
+exactly-one `C025-CONFIG-SCHEMA` rule at `rlcompanyintel.js` lines 351-354, and
+`scopes.md` scope statuses agreeing with `state.json` (`done` x3, 0 unticked).
+Ten findings, all documentation-only; none contradicted shipped behavior and
+nothing was obsolete.
+
+**Corrected in this pass.**
+
+- D1 — `spec.md` announced "Analysis complete. No design, no plan, no
+  implementation." for a landed feature.
+- D3 — `design.md` declared `linkedSubject(search)`; F-AUDIT-08 added the
+  `paramName` override, so the signature and its parameter table were wrong.
+- D4 — "Four routes consume `RLTKR.linkedSubject`"; there are five, the fifth
+  being the hub itself.
+- D6 — `technicals` was named `market-scoped`; the shipped config and this
+  design's own registry table both say `fixed-subject`. The two enum values
+  render different reader-visible sentences, so the bullet described output that
+  row can never produce.
+- D8 — DoD counts read 24/26/23 in six places (three `scopes.md` status lines,
+  three scope tables) and in three `state.json` `dodTicked` fields; the actual
+  ticked counts are 27/29/26.
+- D9 — three G068 preambles asserted "They ship UNCHECKED: no evidence has been
+  recorded against them yet" directly above nine items that are ticked and carry
+  executed evidence.
+- D2 — `spec.md` still classified the fundamentals and valuation rows as
+  company-scoped gaps and listed subject-carrying arrival on that route as
+  `planned`; design ruling D1 made the route bare (`fixed-subject`) and it reads
+  no query parameter. Both are now marked superseded rather than rewritten.
+
+**Left as recorded.** D5, D7 and D10 are narrative imprecision and moved line
+citations in prose that is otherwise accurate; they are noted here rather than
+edited, because rewriting a historical analyst snapshot to match current line
+numbers would destroy the record it exists to preserve.
+
+**Verification after the corrections:**
+
+```
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3404 passed, 0 failed
+
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/027-company-scoped-owner-deep-links
+Artifact lint PASSED.
+exit=0  issues=0
+
+$ grep -c "They ship UNCHECKED" specs/027-company-scoped-owner-deep-links/scopes.md
+0
+```
+
+
 
 

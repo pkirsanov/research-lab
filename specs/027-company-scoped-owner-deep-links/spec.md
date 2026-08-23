@@ -167,8 +167,8 @@ Read from `company-intelligence.config.json`.
 | # | Dimension | Owner route | Subject param today | Classification |
 | --- | --- | --- | --- | --- |
 | 1 | `performance` | `market-brief.html` | none | Market-scoped. Correct as a bare link. |
-| 2 | `fundamentals` | `company-fundamentals-lab.html` | none | **Gap.** Company-scoped. |
-| 3 | `valuation` | `company-fundamentals-lab.html` | none | **Gap.** Company-scoped. |
+| 2 | `fundamentals` | `company-fundamentals-lab.html` | none | ~~**Gap.** Company-scoped.~~ **Superseded** by design.md D1: shipped as `ownerBareReason: fixed-subject`. |
+| 3 | `valuation` | `company-fundamentals-lab.html` | none | ~~**Gap.** Company-scoped.~~ **Superseded** by design.md D1: shipped as `ownerBareReason: fixed-subject`. |
 | 4 | `technicals` | `technical-analysis-decision-lab.html` | none | **Gap, constrained.** See Honest Finding 2. |
 | 5 | `cycles` | `trend-dynamics-cycle-lab.html` | none | **Gap, constrained.** See Honest Finding 2. |
 | 6 | `options-structure` | `options-structure-lab.html` | `ticker` | Working precedent. |
@@ -947,7 +947,7 @@ changes are to what an existing screen shows on arrival.
 | Capability | Surface class | Surface id | Status | Plan |
 | --- | --- | --- | --- | --- |
 | Shared subject-handoff definition | internal | one owning shared module already loaded by every consumer | planned | Consumed in production by every subject-carrying owner route delivered in this feature |
-| Subject-carrying arrival on the fundamentals route | uiRoute | `company-fundamentals-lab.html` | planned | Already registered in `tools.json`; this feature adds subject arrival, not a new surface |
+| Subject-carrying arrival on the fundamentals route | uiRoute | `company-fundamentals-lab.html` | superseded | Design ruling D1 made this route bare (`fixed-subject`); it reads no query parameter and gained no subject arrival |
 | Subject-carrying arrival on the volatility route | uiRoute | `volatility-sizing-lab.html` | planned | Already registered in `tools.json`; this feature adds subject arrival |
 | Subject-carrying arrival on the options-flow route | uiRoute | `options-flow-feed-lab.html` | planned | Already registered in `tools.json`; this feature adds subject arrival |
 | Subject-carrying arrival on the options-structure route | uiRoute | `options-structure-lab.html` | delivered | Verified reading `ticker` at line 2524 today |

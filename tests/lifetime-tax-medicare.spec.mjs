@@ -197,7 +197,7 @@ test('Regression: SCN-024-012 all three premium legs reach the headline, the com
 });
 
 /* TP-04-28. */
-test('Regression: SCN-024-010 the request ledger stays empty and no lookback declaration reaches a URL', async ({ page }) => {
+test('Regression: SCN-024-010 every request is a declared same-origin GET with the medicare pack among them and no lookback declaration reaches a URL', async ({ page }) => {
   const requests = collectRequests(page);
   await openLifetimeTax(page, site);
   await declareOrdinaryHousehold(page, { ordinary: 60000, bracketId: 'b3' });

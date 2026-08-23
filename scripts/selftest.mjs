@@ -26289,6 +26289,45 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (experience shell mountability group threw): ' + e.message); }
 /* ---------- Experience shell: every registered tool can actually mount it (END) ---------- */
 
+/* ---------- Brief window cutoff: the publisher enforces what consumers require (START) ---------- */
+/* A brief that declares window W must carry evidence no later than W's civil cutoff. The consumer
+   (rlportfoliobrief validateGenericWindow) refuses otherwise and the whole Portfolio Brief reads
+   "Brief unavailable" — 16 browser regressions at once. The publisher never asked the same question,
+   and the scheduler's window bands were open at the top, so a run finishing at 11:37 ET still
+   labelled itself `morning` (cutoff 11:00). Both halves are pinned. */
+try {
+  group('brief window cutoff — publisher refuses what the consumer would reject');
+  const { createRequire: createCutoffRequire } = await import('node:module');
+  const cutoffRequire = createCutoffRequire(import.meta.url);
+  const CUTOFFBRIEF = cutoffRequire('../rlportfoliobrief.js');
+  const { findWindowCutoffBreaches } = await import('./validate-brief-payload.mjs');
+
+  assert(typeof CUTOFFBRIEF.newYorkCivilCutoff === 'function',
+    'the consumer module exports its cutoff resolver, so the publish gate resolves cutoffs with the same rule instead of a second copy');
+
+  const cutoffConfig = { windows: [{ id: 'morning', etTime: '11:00', label: 'Morning' }] };
+  const late = findWindowCutoffBreaches(
+    { asOf: '2026-08-23T15:37:31.147Z' },
+    { window: 'morning', asOf: '2026-08-23T15:37:31.147Z' },
+    cutoffConfig);
+  assert(late.length === 2 && late.every((entry) => /later than the morning cutoff/.test(entry)),
+    'a brief whose snapshot and payload are both past the declared cutoff is refused, and each breach is named separately rather than collapsed into one verdict');
+
+  const onTime = findWindowCutoffBreaches(
+    { asOf: '2026-08-23T14:31:00.000Z' },
+    { window: 'morning', asOf: '2026-08-23T14:31:00.000Z' },
+    cutoffConfig);
+  assert(onTime.length === 0,
+    'the ordinary in-band publication, composed inside the lead window, is not refused — the gate must not block the 90% case it exists to protect');
+
+  /* The scheduler half: every band closes at its own cutoff, so a late run selects no window. */
+  const schedulerSource = read('scripts/brief-refresh-scheduled.sh');
+  const closedBands = (schedulerSource.match(/-le (?:450|660|900|1020)\b/g) || []).length;
+  assert(closedBands === 4,
+    `all four window bands close at their own cutoff, so a run past the cutoff selects no window rather than one it cannot honestly satisfy (found ${closedBands}/4)`);
+} catch (e) { failures++; console.log('  ✗ FAIL (brief window cutoff group threw): ' + e.message); }
+/* ---------- Brief window cutoff: the publisher enforces what consumers require (END) ---------- */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

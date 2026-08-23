@@ -1019,6 +1019,9 @@
     laneSource: LANE_SOURCE,
     researchVerbs: RESEARCH_VERBS.slice(),
     relevanceConfidenceScale: RELEVANCE_CONFIDENCE.slice(),
+    /* Exported so the PUBLISHER can refuse a brief this module would reject, rather than shipping
+       one and leaving every consumer to discover the conflict. One cutoff rule, two callers. */
+    newYorkCivilCutoff: newYorkCivilCutoff,
     validateGenericWindow: validateGenericWindow,
     composeBrief: composeBrief,
     dedupeBehaviorEvents: dedupeBehaviorEvents,

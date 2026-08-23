@@ -22,6 +22,7 @@ const RLAGENDA = createRequire(import.meta.url)(resolve(ROOT, 'rlagenda.js'));
    composer allocates against this function and this file refuses against it, so a run
    can never be sized by one measurement and judged by another. */
 const RLCOCKPIT = createRequire(import.meta.url)(resolve(ROOT, 'rlcockpit.js'));
+const RLPORTFOLIOBRIEF = createRequire(import.meta.url)(resolve(ROOT, 'rlportfoliobrief.js'));
 
 /* The payload stamp that turns the budget on. It is a hard per-payload cutover, not an
    advisory mode and not a flag: a payload that does not declare it is a v1 payload with
@@ -961,6 +962,27 @@ function findMissingRequiredNarrativeFields(payload) {
  *                        yet. It skips only the disk page comparison; every payload, agenda, toolRead,
  *                        D16, coverage, schema and generation-accounting check still runs.
  */
+/* The window a brief declares carries a civil cutoff, and the brief's own evidence must not be
+   later than it. The cutoff itself is resolved by the CONSUMER's exported helper so publisher and
+   consumer cannot drift; only the calendar date is derived here, from the same ET zone. */
+export function findWindowCutoffBreaches(payload, snapshot, config) {
+  if (!payload || !snapshot || !config || !Array.isArray(config.windows)) return [];
+  const window = config.windows.find((entry) => entry && entry.id === snapshot.window);
+  if (!window || !hasText(window.etTime)) return [`snapshot window "${snapshot.window}" is not declared in market-brief.config.json`];
+  const anchor = hasText(snapshot.asOf) ? snapshot.asOf : null;
+  if (!anchor) return ['market-brief.snapshot.json carries no asOf to place against a cutoff'];
+  const tradingDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(anchor));
+  const cutoffAt = RLPORTFOLIOBRIEF.newYorkCivilCutoff(tradingDate, window.etTime);
+  if (!cutoffAt) return [`the cutoff for window "${window.id}" at ${window.etTime} ET on ${tradingDate} is unresolvable`];
+  const breaches = [];
+  for (const [label, value] of [['snapshot.asOf', snapshot.asOf], ['payload.asOf', payload.asOf]]) {
+    if (hasText(value) && value > cutoffAt) {
+      breaches.push(`${label} ${value} is later than the ${window.id} cutoff ${cutoffAt} (${window.etTime} ET on ${tradingDate})`);
+    }
+  }
+  return breaches;
+}
+
 function main() {
   const args = process.argv.slice(2);
   const flags = args.filter((arg) => arg.startsWith('--'));
@@ -1002,6 +1024,24 @@ function main() {
     process.exit(1);
   }
   console.log('[brief-contract] company owner-read names its producing adapter and states that no recommendation is produced: PASS');
+
+  /* A brief whose evidence post-dates its own window cutoff is refused by every generic-evidence
+     consumer (rlportfoliobrief validateGenericWindow -> generic-evidence-cutoff-conflict), which
+     takes the whole Portfolio Brief down to "Brief unavailable". It shipped anyway because the
+     publisher never asked the question the consumer asks: the scheduler's window bands are open at
+     the top, so a run finishing after 11:00 ET still labelled itself `morning`, and 4 of the last
+     40 publications carried evidence later than the cutoff they declared.
+
+     Checked HERE, at publish, using the consumer's OWN exported cutoff so the two cannot drift.
+     Refusing costs one window and leaves the previous valid brief standing; publishing costs every
+     consumer of that brief until the next run happens to land in-band. */
+  const cutoffBreaches = findWindowCutoffBreaches(payload, loadJsonIfPresent('market-brief.snapshot.json'), loadJsonIfPresent('market-brief.config.json'));
+  if (cutoffBreaches.length) {
+    console.error('[brief-contract] FAIL: the brief carries evidence later than the window cutoff it declares');
+    cutoffBreaches.forEach((breach) => console.error('  - ' + breach));
+    process.exit(1);
+  }
+  console.log('[brief-contract] every evidence timestamp is at or before the declared window cutoff: PASS');
 
   if (requireNarrativeFields) {
     const missing = findMissingRequiredNarrativeFields(payload);

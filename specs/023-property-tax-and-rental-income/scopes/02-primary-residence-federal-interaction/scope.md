@@ -292,9 +292,15 @@ error, a missing browser or an absent test does not satisfy RED.
 - [x] No output states a probability, a lifetime figure, a track record or an error
       rate, and no deduction figure is presented as an estimate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [x] Every Test Plan row has intended RED and same-command GREEN evidence
+- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
-  - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-22 commands · **Evidence:** `report.md#test-evidence`
+  - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-22 commands · **Evidence:** `report.md#test-evidence`, `report.md#f-reg-01-resolved-2026-08-22`
+  - **Unticked 2026-08-22 (F-REG-01).** TP-02-20's recorded GREEN was produced by
+    assertions that have since been replaced, so it evidences a row that no longer
+    exists in that form, and the scope now ships TP-02-26, TP-02-27 and TP-02-28,
+    which this Test Plan does not list. Adding those rows is `bubbles.plan`'s
+    artifact, so the item stays open. RED and GREEN for the changed and new rows
+    are recorded in `report.md#f-reg-01-resolved-2026-08-22`.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths,
       and `node scripts/build-pages-site.mjs --dry-run` succeeds.

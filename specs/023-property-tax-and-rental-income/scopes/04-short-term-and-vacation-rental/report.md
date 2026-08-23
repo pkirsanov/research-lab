@@ -1513,3 +1513,113 @@ addressed. Its own text says the item requires a RED on every row from `TP-04-01
 through `TP-04-26`, so a single uncovered row leaves the word "Every" false. That
 one row is named here rather than absorbed into a count.
 
+## TP-04-26 probe A — rejected, and two findings it produced (2026-08-22)
+
+This is the first mutation ever aimed at `TP-04-26`. The harness exited `0` and
+printed `discriminating: yes`. **That verdict is not accepted here**, and the
+reasons are recorded rather than the exit code banked.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-26 cross-feature cumulative browser row: a Feature-024 defect — an off-by-one that stops selecting the IRMAA bracket at its exact sourced lower bound — must make the whole 021-024 cumulative run fail, because this row claims the entire family is exercised rather than a convenient subset
+file:             rltaxmedicare.js
+mutation:         result: amount >= bracket.lowerBound  ->  result: amount > bracket.lowerBound   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-02\[1-4\] --reporter=list
+red-exit:         1
+red-summary:        ✓  50 [system-chrome] › tests/lifetime-tax-medicare.spec.mjs:81:1 › Regression: SCN-024-011 the bracket is selected at the exact boundary and both part adjustments are shown with their citatio
+green-exit:       1
+green-summary:      ✓  48 [system-chrome] › tests/lifetime-tax-medicare.spec.mjs:81:1 › Regression: SCN-024-011 the bracket is selected at the exact boundary and both part adjustments are shown with their citatio
+summary-compared:   ✓  50 [system-chrome] › tests/lifetime-tax-medicare.spec.mjs:81:1 › Regression: SCN-024-011 the bracket is selected at the exact boundary and both part adjustments are shown with their citatio  vs    ✓  48 [system-chrome] › tests/lifetime-tax-medicare.spec.mjs:81:1 › Regression: SCN-024-011 the bracket is selected at the exact boundary and both part adjustments are shown with their citatio   (elapsed time normalised out)
+revert-verified:  yes (committed=b208de7cd8d48817baf21dabb6a92d9c48ca1d13 restored=b208de7cd8d48817baf21dabb6a92d9c48ca1d13)
+discriminating:   yes (summary differs: "  ✓  50 [system-chrome] › tests/lifetime-tax-medicare.spec.mjs:81:1 › Regression: SCN-024-011 the bracket is selected at the exact boundary and both part adjustments are shown with their citatio" vs "  ✓  48 [system-chrome] › tests/lifetime-tax-medicare.spec.mjs:81:1 › Regression: SCN-024-011 the bracket is selected at the exact boundary and both part adjustments are shown with their citatio")
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Why the verdict is rejected.** The pinned scenario carries `✓` in *both*
+captures, so it passed with the defect planted. The only difference between the
+two lines is the `--reporter=list` running ordinal, `50` against `48`, which is a
+parallel-scheduling artefact and not an outcome. `normalize_summary` strips
+elapsed time but has no reason to strip an ordinal, so a per-test list line is
+not a safe `--summary-match` target for this runner. Reading this as a RED would
+have recorded a passing scenario as a failing one.
+
+**Finding A — the mutation was mis-aimed, and the row's own spec says so.**
+`rltaxmedicare.js` splits the boundary test by the pack's declared
+`boundaryOperator`. The mutation edited the `greater-than-or-equal` branch, but
+the comment inside `SCN-024-011` states that the row above the first boundary
+declares `greater-than`, so the tested boundary never reaches the branch that was
+edited. The defect was therefore unreachable from this scenario. This is a wrong
+target, not a weak assertion, and it is corrected in probe B rather than being
+answered by trying further mutations.
+
+**Finding B — this row's own command exits non-zero intermittently on a clean
+tree, so its exit channel cannot be read on its own.** `green-exit` is `1` above
+with the target file hash-verified back to its committed blob. A clean baseline
+run of the identical command, captured separately, ends:
+
+```text
+Error: worker-3 process did not exit within 300000ms after stop, force-killed it
+Error: worker-1 process did not exit within 300000ms after stop, force-killed it
+
+  88 passed (5.4m)
+  2 errors were not a part of any test, see above for details
+```
+
+Every scenario passes and the run still exits `1`, because two workers miss the
+teardown deadline. **Corrected by probe B below:** this is intermittent, not
+deterministic. Probe B's GREEN arm ran the same command and exited `0` at
+`88 passed (2.8m)`, so the earlier wording here — that the command *cannot* exit
+zero — was wrong and is withdrawn. What survives is narrower and still worth
+naming: a passing run of this row's command sometimes exits `1` on worker
+teardown, so a bare exit status is not by itself a safe reading of the row's
+"zero failed and zero skipped" claim, and a probe pinned only to the exit channel
+could report an inert mutation as discriminating.
+
+## TP-04-26 probe B — the intended RED, aimed at the branch the boundary takes (2026-08-22)
+
+Probe A's Finding A said the target was wrong rather than the assertion weak, and
+this probe corrects the aim without changing the defect's shape. The pack row
+above the first boundary declares `greater-than`, so the reachable defect is
+making that comparison inclusive: a household sitting exactly on the sourced
+figure is then pulled into the row above, which is precisely the off-by-one
+`SCN-024-011` exists to catch.
+
+`--summary-match` is pinned to the run's own verdict line rather than to a
+per-test list line, because probe A showed the list line carries a parallel
+running ordinal that moves between runs on its own. The count it reads is this
+row's own family total, not a repository-wide aggregate: the grep is
+`SCN-02[1-4]`, so a concurrent session's spec cannot enter or leave it.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-26 cross-feature cumulative browser row: a Feature-024 defect — the IRMAA boundary above the first bracket declares greater-than, so making it inclusive pulls a household sitting exactly on the sourced figure into the row above — must make the whole 021-024 cumulative run fail, because this row claims the entire family is exercised rather than a convenient subset
+file:             rltaxmedicare.js
+mutation:         result: amount > bracket.lowerBound  ->  result: amount >= bracket.lowerBound   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-02\[1-4\] --reporter=list
+red-exit:         1
+red-summary:        87 passed (5.1m)
+green-exit:       0
+green-summary:      88 passed (2.8m)
+summary-compared:   87 passed (<elapsed>)  vs    88 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=b208de7cd8d48817baf21dabb6a92d9c48ca1d13 restored=b208de7cd8d48817baf21dabb6a92d9c48ca1d13)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Both channels moved: the exit status went `1` against `0`, and the family total
+fell from `88 passed` to `87 passed`. One scenario failed and no other, so the
+mutation was caught by the assertion that names it rather than by collateral
+breakage, and the row's claim that the whole `SCN-021` … `SCN-024` family is
+exercised is what carried the failure out of Feature 024 and into this row.
+
+**Claim Source:** executed. Both blocks are verbatim harness output from this
+session. The revert is hash-verified against the committed blob in each, and
+`git status --short -- rltaxmedicare.js` was re-read clean afterwards.
+
+### Effect on the DoD row, restated
+
+`TP-04-26` was the single named row the item stayed open on. It now carries an
+observed intended RED and a same-command GREEN, so every row from `TP-04-01`
+through `TP-04-30` carries both arms and the word "Every" holds. The item is
+ticked.
+

@@ -364,8 +364,26 @@ syntax error, a missing browser or an absent test does not satisfy RED.
 - [x] No output states a probability, a lifetime figure, a track record or an error
       rate, and no classification is presented as an estimate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
+  - **Ticked 2026-08-22 on the one row that was owed.** `TP-04-26` was the single
+    named row this item stayed open on. It now carries an observed intended RED
+    and a same-command GREEN, recorded in
+    `report.md#tp-04-26-probe-b--the-intended-red-aimed-at-the-branch-the-boundary-takes-2026-08-22`.
+    All thirty rows were re-checked individually rather than the one the note
+    named: every `TP-04-01` … `TP-04-30` id resolves either to a harness `label:`
+    naming it or to an observed `✗ FAIL:` line carrying its own assertion text,
+    so the word "Every" now holds against the whole table and not against the
+    `TP-04-01` … `TP-04-26` range this item's **Command** line quotes.
+  - **The first mutation aimed at `TP-04-26` was rejected, not banked.** Probe A
+    exited `0` with `discriminating: yes`, and that verdict was refused: the
+    pinned scenario carried `✓` in both captures and the two lines differed only
+    by the `--reporter=list` running ordinal. It is recorded in full at
+    `report.md#tp-04-26-probe-a--rejected-and-two-findings-it-produced-2026-08-22`
+    with the two findings it produced — a mis-aimed mutation, and an intermittent
+    non-zero exit on worker teardown that makes this row's bare exit status
+    unsafe to read alone. Probe B changed the aim, not the defect's shape, after
+    the spec's own comment showed which branch the tested boundary takes.
   - **Re-examined 2026-08-22, still open, and the reason has changed.**
     `TP-04-30` now carries a three-arm RED and a same-command GREEN, and the two
     gate rows `TP-04-28` and `TP-04-29` — which the closure table never reached,

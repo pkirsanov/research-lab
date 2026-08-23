@@ -942,3 +942,68 @@ planning-owned edits to this scope's Change Boundary, so they are routed to
 
 **Claim Source:** executed. The residual counts are re-read from the rolled-back
 copy, not recalled.
+
+#### Re-verification 2026-08-23 — the row still fails, independently reproduced
+
+The verdict above was re-derived from scratch rather than accepted, because a
+row that stays open on a recalled result is indistinguishable from a row nobody
+re-checked. `HEAD` was materialised with `git archive` into a scratch directory
+outside the repository, so the concurrent session in this working tree could not
+be disturbed. The documented rollback was then applied to that copy verbatim:
+delete `rltaxstrategy.js`, delete `tests/lifetime-tax-conversion.spec.mjs`,
+remove the `power-conversion` band and the module's script tag, excise the
+appended Feature 021 Scope 04 selftest group.
+
+```text
+### pre-change state at b9d92a3f1^ (the commit that introduced all five scopes)
+    rltaxstrategy.js                             prechange=absent
+    tests/lifetime-tax-conversion.spec.mjs       prechange=absent
+    scripts/selftest.mjs                         prechange=present
+    lifetime-tax-strategy-lab.html               prechange=absent
+
+### residual scan of the rolled-back page
+    power-conversion refs : 2
+    RLTAXSTRATEGY refs    : 1
+    1671: var STRATEGY = window.RLTAXSTRATEGY;
+    1687: "power-reconciliation", "power-curve", "power-conversion", "power-property",
+    1702: { detail: "Both settlements side by side and what was held constant", section: "power-conversion
+ROLLBACK-DEFECT PANEL-RESIDUAL
+ROLLBACK_REHEARSAL mode=full prechange_module=absent parse=ok defects=1 verdict=FAIL
+ROLLBACK_FULL_EXIT=1
+```
+
+The counts match the earlier rehearsal exactly — two `power-conversion`
+references and one `RLTAXSTRATEGY` reference survive a rollback that is supposed
+to remove the panel. The excised selftest file still passes `node --check`, so
+the single defect is the panel, not collateral damage from the excision. The
+live tree was confirmed unchanged afterwards: a path-scoped `git status --short`
+over `lifetime-tax-strategy-lab.html`, `scripts/selftest.mjs`,
+`rltaxstrategy.js` and `tests/lifetime-tax-conversion.spec.mjs` returned zero
+rows, and the scratch copy was removed.
+
+The row therefore remains unticked on measurement, not on assumption. Ticking it
+would require the documented rollback in this scope's Shared Infrastructure
+Impact Sweep and Change Boundary to name the section registration, the
+withheld-detail link and the Simple-side conversion nodes. Those two surfaces are
+planning text, owned by `bubbles.plan`.
+
+**Claim Source:** executed.
+
+#### Disclosure — `scripts/validate-spec-test-paths.baseline` changed outside this scope
+
+This scope's excluded byte-identical list names
+`scripts/validate-spec-test-paths.baseline`. That file was modified in commit
+`7373ed24e`, under a separate directed remedy for the spec-test-path guard, which
+reported `new=4` after this scope's work had already been recorded. The four
+accepted paths are superseded Feature 021 proposal names that appear only inside
+a fenced captured block in Scope 01's report, where the consumer sweep is
+recorded finding them stale. Rewriting that capture to satisfy the guard would
+falsify execution evidence, so the guard's own sanctioned remedy — accepting the
+paths in the baseline in a reviewed commit — was used instead.
+
+The Change Boundary row above is unaffected and stays ticked. Its evidence was
+captured over the changes this scope made, and the baseline was byte-identical
+throughout that work; the guard-remedy commit is not a Scope 04 change. This
+disclosure exists so the interaction is visible rather than silent.
+
+**Claim Source:** executed.

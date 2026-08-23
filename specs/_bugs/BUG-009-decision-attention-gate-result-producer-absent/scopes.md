@@ -242,9 +242,17 @@ this window." while structurally unable to produce one. The first-class publishe
 form of the honest alternative is claimed by spec 026 as `IP-026-004`, so this must
 be executed with spec 026 rather than independently.
 
-**4b — the scheduled job cannot publish the payload.** `.github/workflows/tier-a.yml`
-omits `market-brief.payload.json` from its `git add` list and never references
-`scripts/brief-refresh-and-push.sh`. See `design.md` §6 and `DISC-009-004`.
+**4b — the scheduled job does not publish the payload, and that is a boundary rather
+than an oversight.** `.github/workflows/tier-a.yml` omits `market-brief.payload.json`
+from its `git add` list. The observation is correct; the original classification as a
+secondary DEFECT was not. `brief-refresh.mjs` reads the payload as a COMMITTED
+artifact and never writes it — its own comment names this the R-5 boundary — and
+across 197 commits touching the payload the tier-a bot has authored **zero**. Adding
+the path would stage whatever happened to be dirty in the runner, which the step's own
+comment forbids: *"A scheduled job must never sweep in unrelated working-tree
+changes."* The narrative is authored by four LLM lanes in the operator-hosted wrapper,
+and the scheduled job deliberately calls no external model. See `design.md` §6 and
+`DISC-009-004` for the real question this leaves open.
 
 ### Gherkin Scenarios
 

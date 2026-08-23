@@ -3185,12 +3185,22 @@
                 for (index = 0; index < state.pack.sourceRecords.length; index += 1) {
                     var record = state.pack.sourceRecords[index];
                     var item = document.createElement("li");
-                    var anchor = document.createElement("a");
-                    anchor.href = record.url;
-                    anchor.rel = "noreferrer noopener";
-                    anchor.target = "_blank";
-                    anchor.textContent = record.title;
-                    item.appendChild(anchor);
+                    /* Second gate on the same rule pack validation applies. A url reaching an
+                       href is an executable surface — javascript: would run in this origin with
+                       this tool's local storage, and the CSP carries 'unsafe-inline' so it would
+                       not refuse. A record that fails the scheme check is shown as inert text
+                       naming the refusal, never as a live link. */
+                    if (RULES.isSafeSourceUrl(record.url)) {
+                        var anchor = document.createElement("a");
+                        anchor.href = record.url;
+                        anchor.rel = "noreferrer noopener";
+                        anchor.target = "_blank";
+                        anchor.textContent = record.title;
+                        item.appendChild(anchor);
+                    } else {
+                        item.appendChild(text("span", record.title, "subtle"));
+                        item.appendChild(text("div", "Source link withheld: this record's url is not an https URL, so it is not rendered as a link.", "microcopy"));
+                    }
                     item.appendChild(text("div", record.publisher + " \u00b7 " + record.documentKind
                         + " \u00b7 published " + record.publishedAt
                         + " \u00b7 " + record.retrievalOutcome

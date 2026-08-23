@@ -3951,7 +3951,7 @@ try {
   assert(JSON.stringify(sharedApi.toolRead('feature-006-canary')) === toolReadBefore && JSON.stringify(sharedApi.dataState()) === dataStateBefore, 'Trend Dynamics shared canary leaves RLDATA toolReads and RLAPP resource state unchanged');
   assert(sharedStorage.getItem('rlApiKeys') === credentialsBefore && tdcSource.indexOf('localStorage.rlApiKeys') < 0 && tdcSource.indexOf("localStorage.setItem('rlApiKeys'") < 0, 'Trend Dynamics shared canary leaves central credential ownership unchanged');
   const toolIds = JSON.parse(read('tools.json')).tools.map((tool) => tool.id);
-  assert(toolIds.indexOf('trend-dynamics-cycle-lab') === toolIds.indexOf('portfolio-survival-allocation-lab') - 1 && toolIds.indexOf('portfolio-survival-allocation-lab') === toolIds.indexOf('research-agenda-lab') - 1 && toolIds.indexOf('research-agenda-lab') === toolIds.indexOf('causal-rotation-lab') - 1 && toolIds.indexOf('causal-rotation-lab') === toolIds.length - 1, 'Portfolio Survival, Research Agenda and Causal Rotation append after Trend Dynamics without reordering the prior registry');
+  assert(toolIds.indexOf('trend-dynamics-cycle-lab') === toolIds.indexOf('portfolio-survival-allocation-lab') - 1 && toolIds.indexOf('portfolio-survival-allocation-lab') === toolIds.indexOf('research-agenda-lab') - 1 && toolIds.indexOf('research-agenda-lab') === toolIds.indexOf('causal-rotation-lab') - 1 && toolIds.indexOf('causal-rotation-lab') === toolIds.indexOf('horizon-ladder-lab') - 1 && toolIds.indexOf('horizon-ladder-lab') === toolIds.length - 1, 'Portfolio Survival, Research Agenda, Causal Rotation and Horizon Ladder append after Trend Dynamics without reordering the prior registry');
 } catch (e) { failures++; console.log('  ✗ FAIL (Trend Dynamics foundation group threw): ' + e.message); }
 
 /* ---------- Feature 007: Technical Analysis Decision foundation ---------- */
@@ -14729,6 +14729,57 @@ try {
     && networkDisclosure.indexOf('never placed in a URL, a request, a referrer or a console message') >= 0,
   'TP-05-06: the privacy panel claims no absence of requests the route does not actually have — while any read site stands, the disclosure describes the same-origin reads it performs and still promises the household values reach no URL, request, referrer or console'
     + (disclaimedAbsence.length ? ' (claims absence: ' + disclaimedAbsence.join(', ') + ' beside ' + readSiteArguments.length + ' read sites)' : ''));
+
+  /* A pack-authored url is written into an anchor's href. A pack is content, so the scheme is an
+     executable surface: the route's CSP carries 'unsafe-inline', which permits a javascript: URL
+     to run in this origin with this tool's local storage. Validation admitted any non-empty
+     string. Both gates are pinned here — the pack must refuse the record, and the renderer must
+     refuse to build a live link out of one that somehow reaches it. */
+  const urlRequire = (await import('node:module')).createRequire(import.meta.url);
+  const URLRULES = urlRequire('../rltaxrules.js');
+  const hostileSchemes = ['javascript:alert(localStorage.rlLifetimeTaxV1)', 'JaVaScRiPt:alert(1)',
+    'data:text/html;base64,PHNjcmlwdD4x', 'vbscript:msgbox(1)', 'http://example.gov/x', '//example.gov/x',
+    ' javascript:alert(1)', 'file:///etc/passwd'];
+  const admittedHostile = hostileSchemes.filter((candidate) => URLRULES.isSafeSourceUrl(candidate));
+  /* And the check must not be vacuous: a real shipped url has to still pass. */
+  const shippedUrls = [];
+  const shippedPackFiles = ['tax-rules/federal/2026.json', 'tax-rules/state/CA/2026.json',
+    'tax-rules/benefit/2026.json', 'tax-rules/medicare/2026.json', 'tax-rules/mortality/2026.json'];
+  shippedPackFiles.forEach((file) => {
+    const collect = (node) => {
+      if (Array.isArray(node)) node.forEach(collect);
+      else if (node && typeof node === 'object') {
+        Object.keys(node).forEach((key) => {
+          if (key === 'url' && typeof node[key] === 'string') shippedUrls.push(node[key]);
+          else collect(node[key]);
+        });
+      }
+    };
+    collect(JSON.parse(read(file)));
+  });
+  const rejectedShippedUrls = shippedUrls.filter((url) => !URLRULES.isSafeSourceUrl(url));
+  /* Wiring, not just the predicate: a predicate nothing calls refuses nothing. Run the real
+     validator over the real shipped pack with one hostile url substituted. */
+  const hostilePack = JSON.parse(read('tax-rules/federal/2026.json'));
+  const cleanPackVerdict = URLRULES.validateRulePack(JSON.parse(read('tax-rules/federal/2026.json')));
+  hostilePack.sourceRecords[0].url = 'javascript:alert(localStorage.rlLifetimeTaxV1)';
+  const hostilePackVerdict = URLRULES.validateRulePack(hostilePack);
+  const urlRefusal = (hostilePackVerdict.refusals || []).filter((refusal) => String(refusal.domain).indexOf('.url') >= 0);
+  /* The render path is guarded, and the raw assignment no longer stands unconditionally. */
+  const hrefGuarded = /if \(RULES\.isSafeSourceUrl\(record\.url\)\) \{[\s\S]{0,200}?anchor\.href = record\.url;/.test(page);
+  assert(admittedHostile.length === 0
+    && shippedUrls.length > 0
+    && rejectedShippedUrls.length === 0
+    && cleanPackVerdict.ok === true
+    && hostilePackVerdict.ok === false
+    && urlRefusal.length === 1
+    && hrefGuarded
+    && typeof URLRULES.isSafeSourceUrl === 'function',
+  'TP-05-06: a pack-authored source url reaches an href only when it is an https URL — a javascript:, data:, vbscript:, file:, plain-http or scheme-relative url is refused by the real pack validator and the renderer will not build a link from one, while every url the shipped packs carry still passes'
+    + (admittedHostile.length ? ' (admitted: ' + admittedHostile.join(', ') + ')' : '')
+    + (rejectedShippedUrls.length ? ' (wrongly rejected a shipped url: ' + rejectedShippedUrls.slice(0, 3).join(', ') + ')' : '')
+    + (hostilePackVerdict.ok !== false ? ' (the validator admitted a javascript: url)' : '')
+    + (hrefGuarded ? '' : ' (the renderer assigns record.url to href without the scheme gate)'));
 
   /* Charts are drawn synchronously and only in the mode whose canvas is visible. */
   const drawBody = extractFn(page, 'drawCurveChart');
@@ -27323,14 +27374,27 @@ try {
     'the frontier draws synchronously so it renders in a background or embedded tab');
 
   // Registration state: staged, not published, and excluded exactly once.
+  // Registration state: registered in all three registries in identical relative order, and no longer staged.
   const hllRegistry = JSON.parse(read('tools.json')).tools.map((t) => t.id);
+  const hllIndexOrder = [...read('index.html').matchAll(/^\s*id: '([a-z0-9-]+)',$/gm)].map((m) => m[1]);
+  const hllNavOrder = [...read('rlnav.js').matchAll(/file: "([a-z0-9.-]+)\.html"/g)].map((m) => m[1]);
   const hllExclusions = JSON.parse(read('site-exclusions.json')).files.map((f) => f.path);
-  assert(hllRegistry.indexOf('horizon-ladder-lab') < 0
-    && read('index.html').indexOf('horizon-ladder-lab') < 0
-    && read('rlnav.js').indexOf('horizon-ladder-lab') < 0
-    && hllExclusions.filter((p) => p === 'horizon-ladder-lab.html').length === 1
-    && hllExclusions.filter((p) => p === 'horizon-ladder-universe.json').length === 1,
-    'the route is deliberately unregistered and carries exactly one site-exclusions decision per artifact, so the packaged site never ships an unreachable page');
+  assert(hllRegistry.indexOf('horizon-ladder-lab') >= 0
+    && hllIndexOrder.indexOf('horizon-ladder-lab') >= 0
+    && hllNavOrder.indexOf('horizon-ladder-lab') >= 0,
+    'the route is registered in tools.json, index.html and rlnav.js');
+  const hllCommon = hllRegistry.filter((id) => hllIndexOrder.includes(id) && hllNavOrder.includes(id));
+  assert(JSON.stringify(hllCommon) === JSON.stringify(hllCommon.slice().sort((l, r) => hllIndexOrder.indexOf(l) - hllIndexOrder.indexOf(r)))
+    && JSON.stringify(hllCommon) === JSON.stringify(hllCommon.slice().sort((l, r) => hllNavOrder.indexOf(l) - hllNavOrder.indexOf(r))),
+    'registering the route preserved identical relative order across tools.json, index.html and rlnav.js');
+  assert(hllExclusions.indexOf('horizon-ladder-lab.html') < 0
+    && hllExclusions.indexOf('horizon-ladder-universe.json') < 0,
+    'the staging decisions are removed now that the route is reachable, so the pages build ships it');
+  const hllTool = JSON.parse(read('tools.json')).tools.find((t) => t.id === 'horizon-ladder-lab');
+  assert(hllTool.experience.simpleModelDefinitionId === 'simple-model/horizon-ladder/v1'
+    && JSON.parse(read('simple-models.json')).definitions.filter((d) => d.toolId === 'horizon-ladder-lab').length === 1
+    && JSON.parse(read('journeys.json')).definitions.filter((d) => d.toolId === 'horizon-ladder-lab').length === hllTool.experience.journeyDefinitionIds.length,
+    'the route owns exactly one simple-model definition and its journey definitions match its declared references');
   assert(existsSync(join(ROOT, 'notes/horizon-ladder-lab.md')), 'the design of record exists');
   const hllNote = read('notes/horizon-ladder-lab.md');
   assert(/horizon-ladder-lab\.html/.test(hllNote) && /horizon-ladder-universe\.json/.test(hllNote)

@@ -282,6 +282,17 @@
   var TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
   var SHA_PATTERN = /^sha256:[a-f0-9]{64}$/;
 
+  /* A source record's url is written into an anchor's href by the route. A pack is authored
+     content, so the scheme is an executable surface: javascript: in this field would run in
+     the page's own origin, with its local storage, and the route's CSP carries 'unsafe-inline'
+     so it would not refuse. Only https is admitted. Every one of the 102 url fields across the
+     14 shipped packs is already https, so this closes the hole without narrowing any pack. */
+  var SOURCE_URL_PATTERN = /^https:\/\/[^\s]+$/;
+
+  function isSafeSourceUrl(candidate) {
+    return typeof candidate === "string" && SOURCE_URL_PATTERN.test(candidate);
+  }
+
   /* The legal standing of a field. Not a confidence, and never probabilistic. */
   var RULE_STATUS = Object.freeze({
     "enacted-current-law": true,
@@ -853,6 +864,8 @@
       }
       if (!isNonEmptyString(record.title) || !isNonEmptyString(record.url) || !isNonEmptyString(record.publisher)) {
         refuseMember(refusals, label + ".title/url/publisher", "a source record needs a title, url and publisher");
+      } else if (!isSafeSourceUrl(record.url)) {
+        refuseMember(refusals, label + ".url", "a source record url must be an https URL; the route writes it into an href, so any other scheme is refused rather than rendered");
       }
       if (DOCUMENT_KINDS[record.documentKind] !== true) {
         refuseMember(refusals, label + ".documentKind", "documentKind must be one of the four declared kinds");
@@ -3466,6 +3479,7 @@
     COMPONENT_KINDS: COMPONENT_KINDS,
     PACK_REQUIRED_MEMBERS: PACK_REQUIRED_MEMBERS,
     PACK_V2_REQUIRED_MEMBERS: PACK_V2_REQUIRED_MEMBERS,
+    isSafeSourceUrl: isSafeSourceUrl,
     V1_TAX_LEGS: V1_TAX_LEGS,
     CAP_BINDINGS: CAP_BINDINGS,
     CHOSEN_DEDUCTION_SIDES: CHOSEN_DEDUCTION_SIDES,

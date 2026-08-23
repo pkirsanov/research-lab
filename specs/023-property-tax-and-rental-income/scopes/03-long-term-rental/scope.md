@@ -376,8 +376,24 @@ all. A syntax error, a missing browser or an absent test does not satisfy RED.
 - [x] No output states a probability, a lifetime figure, a future year, a track
       record or an error rate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` under `scripts/red-green-probe.sh` · **Evidence:** `report.md#ninth-pass--the-four-rows-whose-red-resolved-to-nothing-now-carry-one-2026-08-23`
+  - **Ticked 2026-08-23. The four rows the note below names now carry a RED.**
+    The audit was re-derived from the Test Plan rather than taken from the note:
+    all twenty-nine rows were checked, the four the note named are the four that
+    lacked a recorded RED, and no fifth row was found in the same state.
+    `TP-03-07`, `TP-03-12`, `TP-03-13` and `TP-03-14` each gained a
+    harness-certified probe against `rltaxrental.js`, each mutating the shipped
+    code path its own assertion reads and each pinned by `--summary-match` to its
+    own assertion wording rather than to the suite's aggregate pass count. All
+    four exited `0`, all four reverts hash-verified against the same committed
+    blob, and no mutation was retried after a miss. The two qualifications the
+    seventh pass recorded travel forward unchanged: `TP-03-04`'s convention
+    conjunct is true for a reason other than the one it names, and `TP-03-25`'s
+    discrimination is a pass-count delta because its command's exit code is
+    polluted by a runner teardown fault. Both are recorded weaknesses in rows
+    that carry both arms, not missing arms.
   - **Re-examined 2026-08-22, still open, and the reason has changed.** The
     twenty-ninth row `TP-03-29` now carries a three-arm RED and a same-command
     GREEN, so the reason recorded below no longer applies to it. The item stays

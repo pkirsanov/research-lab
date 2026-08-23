@@ -682,6 +682,42 @@ of the four has since had its own intended RED derived on its own named command
 — TP-04-24 under Probe 12, TP-04-25 under Probe 13b, TP-04-26 under Probe 14 and
 TP-04-28 under Probe 15.
 
+**TP-04-28 renamed 2026-08-22 (F-REG-02), and narrowed rather than restated.**
+Its persistent title was
+`Regression: SCN-024-010 the request ledger stays empty and no lookback declaration reaches a URL`
+until this date. That wording contradicted the row's own assertions: it holds
+`expect(paths.length).toBeGreaterThan(0)` and then requires the medicare pack to
+be among the requested paths, so an empty ledger would fail it. The row also
+holds **no** `expect(ledger.length).toBe(afterFirstPaint)`, so it cannot carry
+the "does not grow after first paint" wording used on SCN-022-013 either. The
+title now reads
+`Regression: SCN-024-010 every request is a declared same-origin GET with the medicare pack among them and no lookback declaration reaches a URL`,
+and the row's `--grep` moved with it in the same change. Adversarial cases: a
+read of a path the configuration does not declare fails
+`paths.forEach((path) => expect(permitted).toContain(path))`; a boot that read
+nothing fails `expect(paths.length).toBeGreaterThan(0)`; a run in which the
+medicare pack is not fetched fails the pack-prefix pin; a non-GET request or any
+request body fails the method and body pins; and the lookback figure appearing in
+a URL fails the value scan. That this row does not constrain ledger growth is a
+planning gap and is routed. Every captured block in this report was recorded
+under the superseded title and is left exactly as executed.
+
+Fresh capture under the new persistent title, recorded 2026-08-22 after the
+rename, proving the row's `--grep` still selects its own test — selected 1,
+passed 1:
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-010 every request is a declared same-origin GET with the medicare pack among them and no lookback declaration reaches a URL" --reporter=line
+exit: 0
+lines: 5
+sha256: 4820c10cd413ae7167378b1d33fc755cbf1764c39d5d8551a694206b238cfce2
+
+Running 1 test using 1 worker
+
+[1/1] [system-chrome] › tests/lifetime-tax-medicare.spec.mjs:200:1 › Regression: SCN-024-010 every request is a declared same-origin GET with the medicare pack among them and no lookback declaration reaches a URL
+  1 passed (2.6s)
+```
+
 ### TP-04-29
 
 **Now run as its own command, and green.** The outstanding defect recorded by

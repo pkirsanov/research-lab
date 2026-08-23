@@ -1794,10 +1794,13 @@ test('T-04-E1: a full resolve pass closes each due claim exactly once, leaves th
 
 const {
     ENTRY_UNBOUND_REASON,
+    LOOKAHEAD_CODE,
     PREDICATE_INVALIDATED_EVENT,
     SERIES_NOT_OBSERVED_REASON,
+    SESSION_ABSENT_REASON,
     ZERO_OBSERVED_REASON,
     applyClosures,
+    basisValueAt,
     dueEntryKeys,
     evaluatePredicate,
     fenceObservations,
@@ -1968,6 +1971,53 @@ test('T-04-R1: both verdicts close, each due-set exclusion keeps its own reason 
     assert.equal(before.entries[byBucket.get('excluded-wrong-state').key].state, CLOSED_ENTRY_STATE, 'the reducer closed the wrong-state entry');
     assert.equal(before.entries[byBucket.get('excluded-unbound').key].state, LIVE_ENTRY_STATE, 'and the unbound entry is still LIVE, so only its pointer can exclude it');
 
+    /* ---- 2b. THE LOOKAHEAD FENCE, FED A REAL POST-AS-OF BAR --------------------------------
+       Section 1 asserts a fact about the FIXTURE FILE — that the stale series carries no row past
+       the session it claims. That is an INPUT, not a refusal, and it says nothing about what the
+       code does when a post-horizon row IS present, which is the only case `RTR-LOOKAHEAD` exists
+       for. So one is built here and the shipped reader is made to raise it. */
+
+    const source = r4Bars('DVG');
+    const lastRow = source.rows[source.rows.length - 1];
+    const beyondRow = { ...lastRow, t: lastRow.t + 24 * 60 * 60 * 1000 };
+    assert.equal(new Date(beyondRow.t).toISOString().slice(0, 10), R4_BEYOND_HORIZON, 'the appended bar is dated one calendar day past the as-of session');
+    const withFutureBar = readBars(JSON.stringify({ ...source, asof: R4_BEYOND_HORIZON, rows: [...source.rows, beyondRow] }));
+
+    // The basis is READ from the cohort's own frozen claim through the shipped reader, so neither
+    // `raw-close` nor the row field it binds to is restated at this call site.
+    const r4Basis = claims.priceBasisFor(byBucket.get('closes-satisfied').claim);
+    assert.equal(r4Basis.ok, true, `the cohort frozen price basis must read: ${JSON.stringify(r4Basis.error ?? null)}`);
+
+    // THE FENCE SAW IT AND DROPPED IT, and COUNTED the drop — which is what keeps "excluded"
+    // distinguishable from "never existed" for everything that follows.
+    const fencedAtAsOf = fenceObservations(calendar, withFutureBar, R4_AS_OF_SESSION);
+    assert.equal(fencedAtAsOf.excluded.future, 1, 'the post-as-of bar is really in the series and the fence excluded exactly it');
+    assert.equal(fencedAtAsOf.observations.has(R4_BEYOND_HORIZON), false, 'so it never entered the map a reader is handed');
+
+    // AND THE READ REFUSES. Produced by EXECUTING the shipped reader against that fence, not read
+    // off a fixture: this is the refusal itself rather than a fact about the file that provokes it.
+    const lookahead = basisValueAt(fencedAtAsOf, r4Basis.priceBasis, R4_BEYOND_HORIZON);
+    assert.equal(lookahead.ok, false, 'a read past the resolution date must not return a value');
+    assert.equal(lookahead.closure, undefined, 'and it is an RTR refusal about our substrate, not a closure about the claim');
+    assert.equal(lookahead.error.code, LOOKAHEAD_CODE, 'on the shipped lookahead code');
+    assert.equal(lookahead.error.reason, 'observation-past-resolution-date', 'naming the fact that a post-resolution observation was consulted');
+    assert.equal(lookahead.error.field, 'sessionDate', 'and the field that carried it');
+
+    /* NON-VACUITY, ON BOTH SIDES OF THE FENCE. The SAME row, at the SAME session, RESOLVES once
+       the fence is moved to admit it — so the refusal is the fence and not a missing, malformed or
+       unmappable bar. And a session genuinely absent from the map closes `unresolved`/
+       `session-absent` instead, so a reader that answered one thing for both facts could not
+       produce this pair: lookahead and absence are different verdicts with different remedies. */
+    const fencedBeyond = fenceObservations(calendar, withFutureBar, R4_BEYOND_HORIZON);
+    const admitted = basisValueAt(fencedBeyond, r4Basis.priceBasis, R4_BEYOND_HORIZON);
+    assert.equal(admitted.ok, true, `the identical row resolves once the fence admits it: ${JSON.stringify(admitted.error ?? admitted.closure)}`);
+    assert.equal(admitted.value, R4_DECLARED_CLOSE.DVG.resolution, 'carrying the close the appended bar copied');
+
+    const staleRef = claims.seriesRefFor('DVGSTALE');
+    const absent = basisValueAt(r4Fences(calendar, 'DVGSTALE').get(staleRef), r4Basis.priceBasis, R4_AS_OF_SESSION);
+    assert.equal(absent.error, undefined, 'a session simply missing from the map is not a lookahead refusal');
+    assert.equal(absent.closure.reasonCode, SESSION_ABSENT_REASON, 'it closes unresolved/session-absent — a fact about the claim, not about our substrate');
+
     /* ---- 3. THE BINDINGS. Only the unbound member's row carries no pointer ------------------ */
 
     const bound = claimEntryBindings(
@@ -2029,6 +2079,54 @@ test('T-04-R1: both verdicts close, each due-set exclusion keeps its own reason 
     assert.equal(new Set(closing.map((member) => member.closureEventType)).size, 2, 'the two closures are different closure events');
     assert.equal(new Set(closing.map((member) => member.outcomeClass)).size, 2, 'and fall in different outcome classes');
 
+    /* ---- 5b. AND THE SAME PASS, RE-RUN OVER ITS OWN OUTPUT, APPENDS NOTHING -----------------
+       WHICH ARTEFACT CARRIES THE GUARANTEE IS NOT A MATTER OF TASTE. `indexFingerprint` covers
+       `{ contractVersion, entries }` ONLY — Ruling R-04-10, measured in T-04-I3 across a duplicate
+       that WAS appended — so it is an index-STATE oracle and can never detect an append. It is
+       therefore paired here with an INDEPENDENT event-count oracle, exactly as T-04-I2 pairs them;
+       either read alone would be vacuous for idempotence. The bytes of the RESOLUTION RECORD are
+       guaranteed by a different artefact — `writeResolutionObject` compares `existing === bytes`
+       at the content address — and that half is asserted in section 6.
+
+       The re-run carries a NEW runId and a LATER occurredAt. That is the adversarial form:
+       `lifecycleEventId` folds the run in, so a duplicate would arrive under a fresh event id that
+       no within-run dedupe could collapse. Anything suppressing it here is the due-set gate. */
+
+    const secondRun = { ...e1Run('-r4-second'), occurredAt: `${R4_BEYOND_HORIZON}T20:00:00.000Z` };
+    assert.notEqual(secondRun.runId, e1Run('-r4-measured').runId, 'the re-run is a genuinely different run, not the measured one replayed');
+    const second = closeDueClaims({
+        index: pass.index,
+        verdicts,
+        asOfDate: R4_AS_OF_SESSION,
+        bindings: bound.bindings,
+        seriesAsOf: r4SeriesAsOf([...new Set(cohort.map((member) => member.symbol))]),
+        toolsRegistry: registry,
+        run: secondRun,
+    });
+    assert.equal(second.ok, true, `the second pass must run: ${JSON.stringify(second.error ?? null)}`);
+
+    assert.equal(second.events.length, 0, 'THE APPEND ORACLE: the second pass appends no lifecycle event at all');
+    assert.equal(second.closures.length, 0, 'and schedules no closure');
+    assert.equal(
+        second.index.indexFingerprint,
+        pass.index.indexFingerprint,
+        'THE STATE ORACLE: the reduction is byte-identical, compared as one fingerprint rather than field by field',
+    );
+
+    // ACCOUNTED FOR, NOT DROPPED. Every verdict offered comes back reported, and the two that
+    // closed last pass are now withheld for the state the FIRST pass itself put them in.
+    assert.equal(second.skipped.length, verdicts.length, 'every offered verdict is reported as skipped rather than silently discarded');
+    const secondSkipByKey = new Map(second.skipped.map((entry) => [entry.originRecommendationKey, entry]));
+    for (const member of closing) {
+        assert.equal(secondSkipByKey.get(member.key).reason, NOT_DUE_REASON, `${member.bucket}: withheld because its entry is no longer live`);
+        assert.equal(secondSkipByKey.get(member.key).state, CLOSED_ENTRY_STATE, `${member.bucket}: naming the state the first pass put it in`);
+    }
+
+    // NON-VACUITY. The second pass being empty means nothing unless the first was non-empty on the
+    // SAME verdicts — a resolver that closed nothing, ever, satisfies every line above.
+    assert.equal(pass.events.length > 0, true, 'the first pass appended on this same input');
+    assert.equal(pass.closures.length > 0, true, 'and closed, which the second did not');
+
     /* ---- 6. AND EACH RECORDS, into a disposable store outside the repository ---------------- */
 
     const ledgerRow = committedV2Row();
@@ -2040,22 +2138,21 @@ test('T-04-R1: both verdicts close, each due-set exclusion keeps its own reason 
             assert.equal(outcome.ok, true, `${member.bucket}: the claim must measure: ${JSON.stringify(outcome.error ?? outcome.closure)}`);
             assert.equal(outcome.outcomeValue, r4ExpectedValue(member.symbol), `${member.bucket}: the exact unrounded return over the declared closes`);
 
-            const recorded = recordResolution(
-                {
-                    claim: member.claim,
-                    calendar,
-                    closureVocabulary,
-                    closureEventType: member.closureEventType,
-                    reasonCode: claims.CLOSURE_REASON_CODES[member.closureEventType][0],
-                    outcome,
-                    // The lifecycle id the pass ITSELF appended, so the record names the event that
-                    // closed the entry rather than a plausible identifier authored by this row.
-                    eventId: eventByKey.get(member.key).eventId,
-                    lifecycleBinding: { originRecommendationKey: member.key },
-                },
-                { ...ledgerRow, [claims.CLAIM_REF_FIELD]: member.claim.claimHash },
-                ports,
-            );
+            const recordInput = {
+                claim: member.claim,
+                calendar,
+                closureVocabulary,
+                closureEventType: member.closureEventType,
+                reasonCode: claims.CLOSURE_REASON_CODES[member.closureEventType][0],
+                outcome,
+                // The lifecycle id the pass ITSELF appended, so the record names the event that
+                // closed the entry rather than a plausible identifier authored by this row.
+                eventId: eventByKey.get(member.key).eventId,
+                lifecycleBinding: { originRecommendationKey: member.key },
+            };
+            const recordRow = { ...ledgerRow, [claims.CLAIM_REF_FIELD]: member.claim.claimHash };
+
+            const recorded = recordResolution(recordInput, recordRow, ports);
             assert.equal(recorded.ok, true, `${member.bucket}: the record must write: ${JSON.stringify(recorded.error ?? null)}`);
             assert.equal(recorded.written, true, `${member.bucket}: and actually reach the store`);
             assert.equal(recorded.resolution.closureEventType, member.closureEventType, `${member.bucket}: recording its closure event`);
@@ -2063,6 +2160,26 @@ test('T-04-R1: both verdicts close, each due-set exclusion keeps its own reason 
             assert.equal(claims.MAGNITUDE_BEARING_OUTCOME_CLASSES.includes(member.outcomeClass), true, `${member.bucket}: which is a shipped magnitude-bearing class`);
             assert.equal(recorded.resolution.outcomeValue, outcome.outcomeValue, `${member.bucket}: carrying the measured value verbatim`);
             assert.equal(fs.existsSync(path.join(root, recorded.path)), true, `${member.bucket}: the object is on disk at its content address`);
+
+            /* THE RE-RUN'S OTHER HALF, and the artefact that actually carries a BYTE guarantee.
+               `writeResolutionObject` recomputes the address AND the byte string and compares
+               `existing === bytes`, so `reused` is a byte verdict rather than a file-exists check.
+               Same input, same address, nothing rewritten. */
+            const rerecorded = recordResolution(recordInput, recordRow, ports);
+            assert.equal(rerecorded.ok, true, `${member.bucket}: the repeat must be accepted: ${JSON.stringify(rerecorded.error ?? null)}`);
+            assert.equal(rerecorded.written, false, `${member.bucket}: the repeat rewrites nothing`);
+            assert.equal(rerecorded.reused, true, `${member.bucket}: because the recomputed bytes are byte-identical to the stored ones`);
+            assert.equal(rerecorded.path, recorded.path, `${member.bucket}: at the very same content address`);
+            assert.equal(rerecorded.resolution.resolutionHash, recorded.resolution.resolutionHash, `${member.bucket}: over the same hashed content`);
+
+            /* AND `reused` IS A REAL READING, not a constant. `eventId` is a RESOLUTION_UNHASHED
+               field: changing it leaves the ADDRESS alone and moves the BYTES, so the identical
+               write refuses `RTR-RESOLUTION-CONFLICT` instead of quietly overwriting. A store that
+               only checked for the file would have reused here too. */
+            const conflicted = recordResolution({ ...recordInput, eventId: `${recordInput.eventId}-re-emitted` }, recordRow, ports);
+            assert.equal(conflicted.ok, false, `${member.bucket}: different bytes at one address must not be accepted`);
+            assert.equal(conflicted.error.code, claims.RESOLUTION_CONFLICT_CODE, `${member.bucket}: on the shipped conflict code`);
+            assert.equal(conflicted.error.path, recorded.path, `${member.bucket}: naming the address the identical re-record had just reused`);
         }
     });
 

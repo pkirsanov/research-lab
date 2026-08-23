@@ -140,13 +140,18 @@ et_hour="$(TZ=America/New_York date +%H)"
 et_minute="$(TZ=America/New_York date +%M)"
 et_minutes=$((10#$et_hour * 60 + 10#$et_minute))
 RUN_WINDOW=""
-if [ "$et_minutes" -ge $((1020 - PUBLICATION_LEAD_MINUTES)) ]; then
+# Each band CLOSES at its own cutoff. Open-topped bands made a window stay selectable long past the
+# civil time it names: a run at 11:37 ET still called itself `morning` (cutoff 11:00) and published
+# evidence dated after its own cutoff, which every generic-evidence consumer refuses outright. Four
+# of the last forty publications carried that conflict. Past the cutoff the honest answer is that no
+# window is due, so the previous valid brief stands rather than being replaced by an unusable one.
+if [ "$et_minutes" -ge $((1020 - PUBLICATION_LEAD_MINUTES)) ] && [ "$et_minutes" -le 1020 ]; then
   RUN_WINDOW="after-hours"
-elif [ "$et_minutes" -ge $((900 - PUBLICATION_LEAD_MINUTES)) ]; then
+elif [ "$et_minutes" -ge $((900 - PUBLICATION_LEAD_MINUTES)) ] && [ "$et_minutes" -le 900 ]; then
   RUN_WINDOW="pre-close"
-elif [ "$et_minutes" -ge $((660 - PUBLICATION_LEAD_MINUTES)) ]; then
+elif [ "$et_minutes" -ge $((660 - PUBLICATION_LEAD_MINUTES)) ] && [ "$et_minutes" -le 660 ]; then
   RUN_WINDOW="morning"
-elif [ "$et_minutes" -ge $((450 - PUBLICATION_LEAD_MINUTES)) ]; then
+elif [ "$et_minutes" -ge $((450 - PUBLICATION_LEAD_MINUTES)) ] && [ "$et_minutes" -le 450 ]; then
   RUN_WINDOW="pre-market"
 fi
 if [ -n "${BRIEF_SCHEDULE_RUN_KEY:-}" ]; then

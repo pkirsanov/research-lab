@@ -274,8 +274,7 @@
 
     <script src="rldata.js"></script>
     <script src="rlapp.js"></script>
-    <script src="rlexperience-adapters/market-structure.js"></script>
-    <script src="rlticker.js"></script>
+    <script src="rlexperience-adapters/market-structure.js"></script>    <script src="rlticker.js"></script>
     <script src="rlnav.js"></script>
     <script>
         /* ---------- pure helpers (extracted by scripts/selftest.mjs) ---------- */
@@ -1233,6 +1232,11 @@
                 });
         }
     </script>
+    <!-- rlapp.js mounts the shared experience shell only from this anchor, and only when exactly
+         one exists. Without it the page rendered fine locally while the registered Simple model was
+         never reachable, which is what the deployed-site parity gate catches. -->
+    <section data-rlbrief-mount data-tool-id="horizon-ladder-lab" data-simple-target="rlbrief-simple"
+        data-power-target="rlbrief-power"></section>
 </body>
 
 </html>

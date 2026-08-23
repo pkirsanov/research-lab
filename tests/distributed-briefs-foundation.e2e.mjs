@@ -5,7 +5,7 @@
  * Builds ONE real production MarketSessionEvidence/v1 bundle through the production
  * entry points and freezes the COMPLETE runtime-discovered registry through the
  * production registry form of `scripts/brief-refresh.mjs::freezeToolReads`. It proves
- * the whole current registry graph: exactly 22 source reads with the Market Brief
+ * the whole current registry graph: every registry-declared source read with the Market Brief
  * final aggregator excluded (SCN-002-001); unavailable / non-live / off-theme
  * evidence never becomes a market recommendation (SCN-002-002); and a registry-only
  * addition joins every read consumer with no inventory edit (SCN-002-003). Validation
@@ -25,6 +25,12 @@ const require = createRequire(import.meta.url);
 const RLCONTRACTS = require('../rlcontracts.js');
 const RLDATA = globalThis.RLDATA;
 const registry = JSON.parse(readFileSync(new URL('../tools.json', import.meta.url), 'utf8'));
+const registrySourceToolIds = registry.tools
+    .filter((entry) => entry.briefing?.role === 'source')
+    .map((entry) => entry.id);
+const registryAggregatorToolIds = registry.tools
+    .filter((entry) => entry.briefing?.role === 'final-aggregator')
+    .map((entry) => entry.id);
 const marketConfig = JSON.parse(readFileSync(new URL('../market-brief.config.json', import.meta.url), 'utf8'));
 const committedCalendar = JSON.parse(readFileSync(new URL('../data/calendars/xnys/calendar.json', import.meta.url), 'utf8'));
 const CUTOFF = '2026-07-14T12:40:00.000Z';
@@ -74,13 +80,14 @@ async function acquireEvidence() {
 const evidence = await acquireEvidence();
 const adapters = { evidence, registryConfig: registryConfig() };
 
-test('Regression: SCN-002-001 current registry freezes 22 source reads and one non-recursive final aggregator', () => {
+test('Regression: SCN-002-001 current registry freezes every source read and one non-recursive final aggregator', () => {
     const frozen = freezeToolReads(registry, adapters, { symbol: 'SPY' });
     // Every current source ID validates exactly once; the aggregator is excluded (never recursive).
-    assert.equal(frozen.participantCount, 28);
-    assert.equal(frozen.sourceCount, 27);
+    assert.deepEqual(registryAggregatorToolIds, ['market-brief']);
+    assert.equal(frozen.participantCount, registrySourceToolIds.length + registryAggregatorToolIds.length);
+    assert.equal(frozen.sourceCount, registrySourceToolIds.length);
     assert.equal(frozen.aggregatorToolId, 'market-brief');
-    assert.equal(Object.keys(frozen.reads).length, 27);
+    assert.equal(Object.keys(frozen.reads).length, registrySourceToolIds.length);
     assert.equal(Object.prototype.hasOwnProperty.call(frozen.reads, 'market-brief'), false);
     const seen = new Set();
     for (const toolId of frozen.orderedSourceToolIds) {
@@ -91,7 +98,7 @@ test('Regression: SCN-002-001 current registry freezes 22 source reads and one n
         assert.equal(read.role, 'source');
         assert.notEqual(read.toolId, 'market-brief');
     }
-    assert.equal(seen.size, 27);
+    assert.equal(seen.size, registrySourceToolIds.length);
 });
 
 test('Regression: SCN-002-002 unavailable non-live and off-theme evidence never becomes a market recommendation', () => {
@@ -119,19 +126,19 @@ test('Regression: SCN-002-002 unavailable non-live and off-theme evidence never 
 
 test('Regression: SCN-002-003 registry-only addition joins every read consumer without inventory edits', () => {
     const baseline = freezeToolReads(registry, adapters, { symbol: 'SPY' });
-    assert.equal(baseline.participantCount, 28);
-    assert.equal(baseline.sourceCount, 27);
+    assert.equal(baseline.participantCount, registrySourceToolIds.length + registryAggregatorToolIds.length);
+    assert.equal(baseline.sourceCount, registrySourceToolIds.length);
 
     // A registry-only addition (one valid new source) flows through the SAME production loops: the next
-    // freeze derives 24/23 and produces a complete read for the added source with no scheduler-list,
+    // freeze derives both counts from the registry and produces a complete read for the added source with no scheduler-list,
     // validator-count, or coverage-list edit.
     const mutated = JSON.parse(JSON.stringify(registry));
     mutated.tools.push(addedSourceEntry());
     const frozen = freezeToolReads(mutated, adapters, { symbol: 'SPY' });
-    assert.equal(frozen.participantCount, 29);
-    assert.equal(frozen.sourceCount, 28);
+    assert.equal(frozen.participantCount, baseline.participantCount + 1);
+    assert.equal(frozen.sourceCount, baseline.sourceCount + 1);
     assert.equal(frozen.orderedSourceToolIds[frozen.orderedSourceToolIds.length - 1], 'demo-added-source-lab');
-    assert.equal(Object.keys(frozen.reads).length, 28);
+    assert.equal(Object.keys(frozen.reads).length, baseline.sourceCount + 1);
     const addedRead = frozen.reads['demo-added-source-lab'];
     assert.equal(RLDATA.validateToolModelRead(addedRead).ok, true);
     // The added live-market source has no declared owner adapter yet, so it is explicitly not-integrated

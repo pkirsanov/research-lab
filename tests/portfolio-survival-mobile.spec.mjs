@@ -25,6 +25,12 @@ const TABS = [
   'workspaceTabBrief', 'workspaceTabRiskXray', 'workspaceTabPathLab',
   'workspaceTabDiversification', 'workspaceTabAllocation', 'workspaceTabDossier'
 ];
+const BRIEF_CONFIG = JSON.parse(readFileSync(resolve(ROOT, 'market-brief.config.json'), 'utf8'));
+const BRIEF_SNAPSHOT = JSON.parse(readFileSync(resolve(ROOT, 'market-brief.snapshot.json'), 'utf8'));
+const OWNER_WINDOW = BRIEF_CONFIG.windows.find((entry) => entry.id === BRIEF_SNAPSHOT.window);
+if (!OWNER_WINDOW) throw new Error('the committed snapshot window is required for TP-26-04');
+const OWNER_EVIDENCE_DAY = new Date(Date.parse(`${BRIEF_SNAPSHOT.asOf.slice(0, 10)}T00:00:00.000Z`) - 86400000)
+  .toISOString().slice(0, 10);
 
 /* A sentinel that could only come from personal state. If one of these ever
    appears in a public read or a publisher input, the boundary has failed. */
@@ -45,6 +51,13 @@ async function importValid(page, name) {
   await page.locator('#localOnlyAcknowledgement').check();
   await page.locator('#confirmImport').click();
   await expect(page.locator('#currentRevision')).toContainText('Current revision');
+}
+
+async function seedOwnerEvidence(page) {
+  await page.evaluate((day) => {
+    window.RLDATA.putBars('MSFT', '1d', [{ t: Date.parse(`${day}T00:00:00.000Z`), c: 100 }], 'tp-26-owner-fixture');
+  }, OWNER_EVIDENCE_DAY);
+  await page.locator('#briefWindow').selectOption(OWNER_WINDOW.id);
 }
 
 /* The identity a reader would use to decide whether two views describe the same
@@ -129,6 +142,58 @@ test('Regression: SCN-008-036 Simple Power mobile and deep link return preserve 
   /* The URL carries the route and nothing else. A personal value in a hash
      leaves the device in history, referrers and shared links. */
   expect(page.url()).toBe(`${server.baseUrl}/portfolio-survival-allocation-lab.html#allocation`);
+});
+
+test('Regression: SCN-008-052 owning tool consumes ReturnContext and restores Portfolio Brief focus', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await openLab(page);
+  await importValid(page, 'TP-26-04 owner return');
+  await seedOwnerEvidence(page);
+
+  const ownerLink = page.locator('#briefLanes li[data-subject="MSFT"] a[data-owner-handoff]');
+  await expect(ownerLink, 'a real held action must expose its registry-selected owning tool').toBeVisible();
+  const href = await ownerLink.getAttribute('href');
+  const ownerToolId = await ownerLink.getAttribute('data-owner-handoff');
+  const actionId = await ownerLink.getAttribute('data-owner-action');
+  const disclosureId = await ownerLink.getAttribute('data-owner-disclosure');
+  const focusRestoreId = await ownerLink.getAttribute('data-owner-focus');
+  expect(href).toMatch(/^[a-z0-9-]+\.html#power$/);
+  expect(href).not.toContain('?');
+
+  const disclosure = page.locator(`[id="${disclosureId}"]`);
+  await disclosure.locator('summary').click();
+  await expect(disclosure).toHaveAttribute('open', '');
+  await ownerLink.focus();
+  await expect(ownerLink).toBeFocused();
+  await ownerLink.click();
+
+  const destination = new URL(page.url());
+  expect(destination.pathname.endsWith(`/${href.split('#')[0]}`)).toBe(true);
+  expect(destination.search).toBe('');
+  expect(destination.hash).toBe('#power');
+  expect(page.url()).not.toContain(actionId);
+
+  const strip = page.locator('#rlreturn-strip');
+  await expect(strip, 'the owning page must render the consumed private context').toBeVisible();
+  await expect(strip.locator('b')).toHaveText('From Portfolio Brief');
+  await expect(strip.locator('.rlreturn-owner')).toContainText(ownerToolId);
+  await expect(strip).toHaveAttribute('data-action-id', actionId);
+  await expect(strip).toHaveAttribute('data-focus-restore-id', focusRestoreId);
+  expect(await page.evaluate(() => sessionStorage.getItem('rlReturnContextV1')),
+    'the owner consumes ReturnContext exactly once').toBeNull();
+
+  const returnLink = page.locator('#rlreturn-back');
+  await expect(returnLink).toHaveAttribute('href', 'portfolio-survival-allocation-lab.html#brief');
+  await returnLink.click();
+  await expect(page).toHaveURL(`${server.baseUrl}/portfolio-survival-allocation-lab.html#brief`);
+  await expect(page.locator('#workspaceCompute')).toHaveAttribute('data-return-restored', actionId);
+  await expect(page.locator(`[id="${disclosureId}"]`)).toHaveAttribute('open', '');
+  await expect(page.locator(`[id="${focusRestoreId}"]`)).toBeFocused();
+  expect(await page.evaluate(() => history.state && history.state.portfolioReturnFocus),
+    'the focus restore record is removed from the source history entry after use').toBeUndefined();
+
+  console.log(`[TP-26-04] owner=${ownerToolId} action=${actionId} destination=${href}`);
+  console.log(`[TP-26-04] restored=${focusRestoreId} disclosure=${disclosureId} privateUrlFields=0`);
 });
 
 test('Regression: SCN-008-036 every canvas is synchronous nonblank and equivalent to its table at desktop and mobile', async ({ page }) => {
@@ -362,6 +427,7 @@ test('Regression: SCN-008-036 personal sentinels stay absent from complete route
 
   /* A full-personal clear must leave nothing behind that names the sentinel. */
   await page.locator('#openPrivacy').click();
+  await page.locator('#fullClearConfirmation').fill('CLEAR ALL LOCAL DATA');
   await page.locator('#emergencyClear').click();
   const residue = await page.evaluate((sentinel) => {
     const found = [];

@@ -156,8 +156,8 @@ Scope pickup is sequential: a scope may move to `In Progress` only when every li
 | 22 | [Scenario Contract And Survival Distributions](22-scenario-contract-and-survival-distributions/scope.md) | `overlay:paths` | 21 | SCN-008-048 | analytics, Path Lab, compute lifecycle | Done |
 | 23 | [Stress Dependence And Hedge Effectiveness](23-stress-dependence-and-hedge-effectiveness/scope.md) | `overlay:diversification` | 22 | SCN-008-049 | dependence, alternatives, hedge, common paths | Done |
 | 24 | [Complete Allocation And Explicit Views](24-complete-allocation-and-explicit-views/scope.md) | `overlay:allocation` | 23 | SCN-008-050 | constrained solvers, BL editor, sensitivity | Done |
-| 25 | [Decision-Time Dossier And Immutable Audit](25-decision-time-dossier-and-immutable-audit/scope.md) | `overlay:dossier` | 24 | SCN-008-051 | walk-forward, costs/trials, dossier store/export | In Progress |
-| 26 | [Immutable Workspace Compute And Navigation](26-immutable-workspace-compute-and-navigation/scope.md) | `integration:workspace` | 25 | SCN-008-052 | controller, view model, ReturnContext, `rlnav.js` | Not Started |
+| 25 | [Decision-Time Dossier And Immutable Audit](25-decision-time-dossier-and-immutable-audit/scope.md) | `overlay:dossier` | 24 | SCN-008-051 | walk-forward, costs/trials, dossier store/export | Done |
+| 26 | [Immutable Workspace Compute And Navigation](26-immutable-workspace-compute-and-navigation/scope.md) | `integration:workspace` | 25 | SCN-008-052 | controller, view model, ReturnContext, `rlnav.js` | Done |
 | 27 | [Accessible Six-Tab Interaction](27-accessible-six-tab-interaction/scope.md) | `integration:accessibility` | 26 | SCN-008-053 | route accessibility and responsive behavior | Not Started |
 | 28 | [Spec-Driven Adversarial Test Replacement](28-spec-driven-adversarial-test-replacement/scope.md) | `test-integrity` | 27 | SCN-008-054 plus all authoritative scenarios | Feature 008 tests, fixtures, support server, validators | Not Started |
 | 29 | [Documentation And Registry Truth](29-documentation-and-registry-truth/scope.md) | `docs-integration` | 28 | SCN-008-055 | note, tools, index, rlnav, README | Not Started |
@@ -330,7 +330,7 @@ The route remains directly testable and unregistered through Scopes 01-15. Scope
 
 ## Active Remediation Completion Gate
 
-Scope 25 is `In Progress` and is the sole active dependency-unblocked remediation scope: Scope 24 is Done, while every later remediation scope depends transitively on unfinished Scope 25. Scope 25 is activated for execution-owner pickup; no later remediation scope is active. Scope 29 remains the final execution site after Scopes 17-28 complete. Historical Scopes 01-16 remain Done records but cannot satisfy a repaired-behavior checkbox or current evidence row.
+Scope 27 is `Not Started` and is the sole dependency-unblocked remediation scope: Scope 26 is Done, while every later remediation scope depends transitively on unfinished Scope 27. Scope 27 is available for execution-owner pickup; no remediation scope is currently in progress. Scope 29 remains the final execution site after Scopes 17-28 complete. Historical Scopes 01-16 remain Done records but cannot satisfy a repaired-behavior checkbox or current evidence row.
 
 Active completion requires all of the following:
 

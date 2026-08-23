@@ -181,6 +181,15 @@
             background: var(--band-2);
         }
 
+        /* The band packs its children into three tracks. Adding the workspace status region as a
+           bare fourth child shifted the mode control and its explainer one track right, which put
+           the explainer in the narrow third track where it painted over the Power button and made
+           it unclickable. Giving the status region its own full row keeps the mode control on the
+           line it has always occupied. */
+        #workspaceCompute {
+            grid-column: 1 / -1;
+        }
+
         .truth-word {
             color: var(--amber);
             font-weight: 900;
@@ -226,6 +235,7 @@
         .tablist button {
             flex: 0 0 auto;
             min-height: 44px;
+            scroll-margin-top: 64px;
             border: 0;
             border-right: 1px solid var(--line);
             border-radius: 0;
@@ -274,6 +284,7 @@
         .mode-seg button {
             min-height: 44px;
             min-width: 88px;
+            scroll-margin-top: 64px;
             border: 0;
             border-radius: 0;
             background: transparent;
@@ -631,6 +642,14 @@
                 </div>
             </div>
             <div id="workspaceIdentity" class="identity">No current portfolio revision</div>
+            <!-- Scope 26. The published workspace, named on screen. A user who switches tabs is
+                 entitled to know they are still reading ONE answer, and a reviewer is entitled to
+                 see that a tab change moved no compute. Both are read off this region. -->
+            <div id="workspaceCompute" class="identity" role="status"
+                 data-workspace-identity="none" data-compute-token="none"
+                 data-compute-count="0" data-presentation-count="0"
+                 data-active-tab="brief" data-active-mode="simple"
+                 data-last-refusal="none" data-rebase-state="idle">No workspace computed yet.</div>
             <div id="modeSeg" class="mode-seg" role="group" aria-label="Detail level">
                 <button id="modeSimple" type="button" aria-pressed="true">Simple</button>
                 <button id="modePower" type="button" aria-pressed="false">Power</button>
@@ -6391,6 +6410,9 @@
                             row.setAttribute("data-recency-state", item.explanation.recency.state);
                             row.setAttribute("data-not-a-known-holding", String(item.notAKnownHolding));
                             row.setAttribute("data-action-id", actionId);
+                            // Stable ids, so a returning handoff restores THIS row and THIS
+                            // disclosure rather than the first one that happens to match.
+                            if (actionId) row.id = "action-row-" + actionId;
                             row.setAttribute("data-global-rank", String(rankAction.rankReason.globalRank));
                             row.setAttribute("data-ranking-fingerprint", ranked.value.rankingFingerprint);
                             var words = [item.subjectId, item.scopeSource];
@@ -6406,6 +6428,15 @@
                                 var link = document.createElement("a");
                                 link.href = item.owner.href;
                                 link.rel = "noreferrer";
+                                /* Scope 26. The handoff rides in sessionStorage, never in this href.
+                                   These attributes name only the public route and the local element
+                                   ids to restore, so the anchor stays shareable while the context
+                                   that makes a return meaningful never enters the URL. */
+                                link.setAttribute("data-owner-handoff", item.owner.toolId);
+                                link.setAttribute("data-owner-action", actionId);
+                                link.setAttribute("data-owner-subject", item.subjectId);
+                                link.setAttribute("data-owner-disclosure", "why-" + actionId);
+                                link.setAttribute("data-owner-focus", "action-row-" + actionId);
                                 link.textContent = " open " + item.owner.toolId;
                                 row.appendChild(link);
                             } else {
@@ -6422,6 +6453,7 @@
                             why.className = "brief-why";
                             why.setAttribute("data-why-shown", item.subjectId);
                             why.setAttribute("data-action-id", actionId);
+                            if (actionId) why.id = "why-" + actionId;
                             why.setAttribute("data-ranking-fingerprint", ranked.value.rankingFingerprint);
                             why.setAttribute("data-generic-evidence-identity", state.genericWindow.genericEvidenceIdentity);
                             var summary = document.createElement("summary");
@@ -6526,6 +6558,243 @@
                 renderBrief();
                 renderBehavior();
                 updateDiagnostics();
+                // The ONE place a recompute belongs: the evidence behind the workspace changed.
+                runWorkspaceCompute();
+                // Single-use: the pending record is removed on the first render after a return.
+                restoreReturnFocus();
+            }
+
+            /* ---------- Scope 26: one orchestration compute for the whole route ----------
+
+               `refreshWorkspaceViews` is the only path that may recompute, because it is the only
+               path that runs when the EVIDENCE changed. Mode and tab handlers call
+               `presentWorkspace` instead, which resolves a slice off the already-published frozen
+               object. The two counters below are what make that difference observable rather than
+               merely asserted: a tab switch that recomputed would move `data-compute-count`. */
+            var workspaceController = api.createWorkspaceComputeController({ activeIdentity: null });
+            var workspaceComputeCount = 0;
+            var workspacePresentationCount = 0;
+            var workspaceMode = "simple";
+
+            function workspaceIdentityInputs() {
+                var revision = currentRevision();
+                var mandate = state.opened && state.opened.workspace ? state.opened.workspace.currentMandateId : null;
+                return {
+                    generic: state.genericWindow ? state.genericWindow.genericEvidenceIdentity : "generic-none",
+                    portfolio: revision ? revision.portfolioId : "portfolio-none",
+                    mandate: mandate || "mandate-none",
+                    behavior: state.policy ? "behavior-" + state.policy.contractVersion : "behavior-none",
+                    scenario: state.pathCompute && state.pathCompute.scenarioIdentity
+                        ? state.pathCompute.scenarioIdentity : "scenario-none",
+                    policy: state.policy ? state.policy.contractVersion : "policy-none"
+                };
+            }
+
+            /* A safe token, not a formatted sentence: it is compared for equality and written into
+               a session handoff, so anything that could carry a holding name or a value is stripped
+               here rather than trusted not to appear. */
+            function workspaceIdentityToken() {
+                var inputs = workspaceIdentityInputs();
+                return ("ws." + inputs.generic + "." + inputs.portfolio + "." + inputs.mandate)
+                    .replace(/[^a-z0-9._:-]/gi, "-").slice(0, 120);
+            }
+
+            /* Projections are READ from what the route has already produced. Nothing here computes
+               an analytic; a slot with no result yields null, which `computeWorkspace` records as an
+               unavailable state rather than an empty success. */
+            function workspaceProjectors() {
+                return {
+                    brief: function () { return state.portfolioBrief ? { slot: "brief", present: true } : null; },
+                    risk: function () { return state.routeStates ? { slot: "risk", present: true } : null; },
+                    paths: function () {
+                        return state.pathCompute && state.pathCompute.result ? { slot: "paths", present: true } : null;
+                    },
+                    dependence: function () { return state.routeStates ? { slot: "dependence", present: true } : null; },
+                    allocations: function () {
+                        return state.allocationInputs ? { slot: "allocations", present: true } : null;
+                    },
+                    dossier: function () { return state.dossierOpened ? { slot: "dossier", present: true } : null; }
+                };
+            }
+
+            function runWorkspaceCompute() {
+                if (!state.policy) return;
+                var identity = workspaceIdentityToken();
+                var issued = workspaceController.issue(identity, now());
+                if (!issued.ok) { renderWorkspaceCompute(issued.error.code); return; }
+                workspaceComputeCount += 1;
+                var built = api.computeWorkspace({
+                    workspaceIdentity: identity,
+                    computeTokenId: issued.value.tokenId,
+                    generatedAt: now(),
+                    projectors: workspaceProjectors()
+                }, {
+                    genericEvidence: state.genericWindow
+                        ? { identity: state.genericWindow.genericEvidenceIdentity }
+                        : {},
+                    portfolioTruth: state.routeStates ? { contractVersion: state.routeStates.contractVersion } : null
+                }, state.policy);
+                if (!built.ok) { renderWorkspaceCompute(built.error.code); return; }
+                var published = workspaceController.publish(issued.value.tokenId, built.value);
+                renderWorkspaceCompute(published.ok ? null : published.error.code);
+            }
+
+            /* Presentation-only. It takes the published object and a mode/tab pair and has no access
+               to a projector, evidence, or policy, so there is no branch here that could recompute. */
+            function presentWorkspace() {
+                var active = workspaceController.snapshot().activeViewModel;
+                if (!active) { renderWorkspaceCompute(null); return; }
+                var shown = api.selectWorkspacePresentation(active, { mode: workspaceMode, tab: state.route });
+                workspacePresentationCount += 1;
+                renderWorkspaceCompute(shown.ok ? null : shown.error.code);
+            }
+
+            function renderWorkspaceCompute(refusalCode) {
+                var node = byId("workspaceCompute");
+                if (!node) return;
+                var snapshot = workspaceController.snapshot();
+                node.setAttribute("data-workspace-identity", snapshot.activeIdentity || "none");
+                node.setAttribute("data-compute-token",
+                    snapshot.activeViewModel ? snapshot.activeViewModel.computeTokenId : "none");
+                node.setAttribute("data-compute-count", String(workspaceComputeCount));
+                node.setAttribute("data-presentation-count", String(workspacePresentationCount));
+                node.setAttribute("data-active-tab", state.route);
+                node.setAttribute("data-active-mode", workspaceMode);
+                node.setAttribute("data-draft-identity", snapshot.draftIdentity || "none");
+                node.setAttribute("data-last-refusal", refusalCode || "none");
+                node.setAttribute("data-unavailable-projections", snapshot.activeViewModel
+                    ? String(snapshot.activeViewModel.unavailableStates.length) : "0");
+                node.textContent = snapshot.activeViewModel
+                    ? ("One workspace · identity " + snapshot.activeIdentity +
+                       " · every tab reads this result · " + workspaceComputeCount + " compute(s)")
+                    : "No workspace computed yet.";
+            }
+
+            /* ---------- Scope 26: owner handoff, return restore, and the review gate ----------
+
+               Opening an owning tool is a research act, not a page change: the user leaves to form
+               a read they cannot form here. Three things follow.
+
+               The handoff is written to sessionStorage immediately BEFORE navigation, so nothing
+               about it enters the href, history, or a referrer. The anchor stays an ordinary public
+               link that anyone could paste.
+
+               The destination allowlist is derived from the registry that already defines subject
+               ownership, so a handoff can only ever be aimed at a tool this route already knew was
+               the owner — an attacker-supplied route has nowhere to enter.
+
+               Review completion stays disabled until an owner read is actually visible. Without
+               that gate "I opened the tool" and "I formed a read" are the same click, and the
+               review would record research that never happened. */
+            var OWNER_HANDOFF_TTL_MS = 30 * 60 * 1000;
+            var RETURN_FOCUS_STATE = "portfolioReturnFocus";
+
+            function safeHandoffToken(value, fallback) {
+                var cleaned = String(value === null || value === undefined ? "" : value)
+                    .replace(/[^a-z0-9._:-]/gi, "-").replace(/^[^a-z0-9]+/i, "").slice(0, 120);
+                return cleaned.length > 0 ? cleaned : fallback;
+            }
+
+            function ownerDestinations() {
+                var routes = [];
+                Object.keys(state.briefOwners || {}).forEach(function (subject) {
+                    var owner = state.briefOwners[subject];
+                    var href = owner && typeof owner.href === "string" ? owner.href.split("#")[0].split("?")[0] : null;
+                    if (href && routes.indexOf(href) === -1) routes.push(href);
+                });
+                return routes;
+            }
+
+            function writeOwnerHandoff(link) {
+                var destination = link.getAttribute("href").split("#")[0].split("?")[0];
+                var allowed = ownerDestinations();
+                if (allowed.indexOf(destination) === -1) return { ok: false, error: { code: "P008-RETURN-CONTEXT" } };
+                var createdAt = now();
+                var context = {
+                    contractVersion: api.RETURN_CONTEXT_VERSION,
+                    contextId: safeHandoffToken("ctx-" + link.getAttribute("data-owner-action") + "-" + Date.now(), "ctx-handoff"),
+                    sourceRoute: api.RETURN_CONTEXT_SOURCE_ROUTE,
+                    sourceHash: "#" + state.route,
+                    destinationRoute: destination,
+                    destinationHash: api.RETURN_CONTEXT_DESTINATION_HASH,
+                    actionId: safeHandoffToken(link.getAttribute("data-owner-action"), "action-unknown"),
+                    disclosureId: safeHandoffToken(link.getAttribute("data-owner-disclosure"), "disclosure-unknown"),
+                    focusRestoreId: safeHandoffToken(link.getAttribute("data-owner-focus"), "focus-unknown"),
+                    workspaceIdentity: safeHandoffToken(workspaceIdentityToken(), "ws-unknown"),
+                    genericEvidenceIdentity: safeHandoffToken(
+                        state.genericWindow ? state.genericWindow.genericEvidenceIdentity : "generic-none", "generic-none"),
+                    ownerToolId: safeHandoffToken(link.getAttribute("data-owner-handoff"), "owner-unknown"),
+                    minimumOwnerCutoff: createdAt,
+                    createdAt: createdAt,
+                    expiresAt: new Date(Date.parse(createdAt) + OWNER_HANDOFF_TTL_MS).toISOString()
+                };
+                return api.writeReturnContext(context, {
+                    allowedDestinations: allowed,
+                    storage: window.sessionStorage
+                });
+            }
+
+            document.addEventListener("click", function (event) {
+                var link = event.target.closest ? event.target.closest("a[data-owner-handoff]") : null;
+                if (!link) return;
+                var written = writeOwnerHandoff(link);
+                var node = byId("workspaceCompute");
+                if (node) node.setAttribute("data-owner-handoff-state", written.ok ? "written" : "refused");
+                if (!written.ok) return;
+                // Keep the restore target on the source history entry. The owning page consumes
+                // ReturnContext exactly once; browser Back returns to this private, URL-free state.
+                try {
+                    var historyState = window.history.state && typeof window.history.state === "object"
+                        ? Object.assign({}, window.history.state) : {};
+                    historyState[RETURN_FOCUS_STATE] = {
+                        actionId: written.value.actionId,
+                        disclosureId: written.value.disclosureId,
+                        focusRestoreId: written.value.focusRestoreId,
+                        ownerToolId: written.value.ownerToolId,
+                        expiresAt: written.value.expiresAt
+                    };
+                    window.history.replaceState(historyState, "", window.location.href);
+                } catch (error) { /* browser Back still works without the restore record */ }
+            });
+
+            /* Returning restores what the user left: the row, its open disclosure, and focus. A
+               return that dumps the user at the top of a rebuilt list has technically navigated
+               and practically lost their place. */
+            function restoreReturnFocus() {
+                var historyState = null;
+                try { historyState = window.history.state; } catch (error) { return; }
+                var pending = historyState && typeof historyState === "object"
+                    ? historyState[RETURN_FOCUS_STATE] : null;
+                if (!pending) return;
+                function discardPending() {
+                    try {
+                        var nextState = Object.assign({}, window.history.state || {});
+                        delete nextState[RETURN_FOCUS_STATE];
+                        window.history.replaceState(nextState, "", window.location.href);
+                    } catch (error) { /* the current render remains usable */ }
+                }
+                if (typeof pending.focusRestoreId !== "string" ||
+                    typeof pending.disclosureId !== "string" ||
+                    typeof pending.actionId !== "string" ||
+                    typeof pending.ownerToolId !== "string" ||
+                    typeof pending.expiresAt !== "string" ||
+                    !isFinite(Date.parse(pending.expiresAt)) || Date.parse(pending.expiresAt) <= Date.parse(now())) {
+                    discardPending();
+                    return;
+                }
+                var row = document.getElementById(pending.focusRestoreId);
+                var disclosure = document.getElementById(pending.disclosureId);
+                var node = byId("workspaceCompute");
+                if (node) {
+                    node.setAttribute("data-return-restored", row ? pending.actionId : "row-pending");
+                    node.setAttribute("data-owner-read-required", pending.ownerToolId);
+                }
+                if (!row) return;
+                discardPending();
+                if (disclosure && disclosure.tagName === "DETAILS") disclosure.open = true;
+                if (!row.hasAttribute("tabindex")) row.setAttribute("tabindex", "-1");
+                row.setAttribute("data-return-focus", "restored");
+                row.focus();
             }
 
             function applyRoute(hash) {
@@ -6540,6 +6809,7 @@
                 byId("workspaceGrid").classList.toggle("route-view", !brief);
                 byId("openPortfolio").setAttribute("aria-expanded", String(brief));
                 renderRoutes();
+                presentWorkspace();
             }
 
             function routeFromHash() {
@@ -7458,6 +7728,7 @@
                         });
                         select.value = state.briefWindowId;
                         renderBrief();
+                        restoreReturnFocus();
                     })
                     .catch(function (error) {
                         state.genericWindow = state.lastValidGenericWindow;
@@ -7607,6 +7878,7 @@
 
             function applyDisplayMode(mode, persist) {
                 var power = mode === "power";
+                workspaceMode = power ? "power" : "simple";
                 document.body.classList.toggle("power", power);
                 byId("modeSimple").setAttribute("aria-pressed", String(!power));
                 byId("modePower").setAttribute("aria-pressed", String(power));
@@ -7615,6 +7887,7 @@
                     catch (error) { /* session-only mode: the choice simply does not persist */ }
                 }
                 renderRoutes();
+                presentWorkspace();
             }
 
             byId("modeSimple").addEventListener("click", function () { applyDisplayMode("simple", true); });

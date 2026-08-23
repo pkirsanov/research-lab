@@ -2,11 +2,13 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** Not Started
+**Status:** Done
 **Scope-Kind:** runtime-behavior
 **Tags:** `integration:workspace`, `remediation`
 **Depends On:** 25
 **Entry Gate:** Every scope in `Depends On` must be Done.
+**Execution State:** Scope 26 is Done. All nine DoD items are checked with evidence in [report.md](report.md). Scope 27 is the next dependency-unblocked remediation scope and has not started. Scopes 27-29 remain Not Started.
+**Worktree Reality:** `rlportfolio.js` contains the delivered `PortfolioWorkspaceViewModel/v1` and `WorkspaceComputeController/v1` work, and `rlnav.js` contains the strict `ReturnContext/v1` consumer. All six Test Plan rows are executed and passing; see [test evidence](report.md#test-evidence).
 **Finding:** F008-COMPUTE-NAV-001
 **Requirements:** FR-067, FR-154; NFR-002, NFR-012, NFR-013.
 
@@ -72,7 +74,7 @@ Scenario: A user switches modes tabs and owning tools while a newer workspace co
 
 ## Test Plan
 
-Every remediation assertion and exact title below is `planned-not-authored` at P1. Existing carrier paths do not imply that the new test exists.
+All six rows are authored and executed. TP-26-01 and TP-26-05 are carried by `tests/portfolio-workspace.functional.mjs`. Per-row results, provenance and exit codes are recorded in [report.md](report.md#test-evidence).
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Evidence |
 |---|---|---|---|---|---|---|---|---|
@@ -91,12 +93,12 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 
 ### Definition of Done - Tiered Validation
 
-- [ ] SCN-008-052 is implemented with one compute, token/last-valid/rebase safety, visible owner-return strip, and exact focus restoration.
-- [ ] TP-26-01 workspace functional evidence passes.
-- [ ] TP-26-02 ReturnContext functional evidence passes.
-- [ ] TP-26-03 one-compute/rebase real-page regression passes.
-- [ ] TP-26-04 owner-return real-page regression passes on the owning page and return page.
-- [ ] TP-26-05 adversarial mutation proof rejects every audited compute or navigation shortcut.
-- [ ] TP-26-06 shared-shell consumer canary passes.
-- [ ] Consumer/Shared Infrastructure Impact Sweeps and rollback proof are recorded.
-- [ ] Build Quality Gate passes with zero skips/warnings and no excluded-file changes.
+- [x] SCN-008-052 is implemented with one compute, token/last-valid/rebase safety, visible owner-return strip, and exact focus restoration. Evidence: [scenario contract](report.md#scenario-contract-evidence), [coverage](report.md#coverage-report), and [real-page behavior](report.md#tp-26-03).
+- [x] TP-26-01 workspace functional evidence passes. Evidence: [TP-26-01](report.md#tp-26-01).
+- [x] TP-26-02 ReturnContext functional evidence passes. Evidence: [TP-26-02](report.md#tp-26-02).
+- [x] TP-26-03 one-compute/rebase real-page regression passes. Evidence: [TP-26-03](report.md#tp-26-03).
+- [x] TP-26-04 owner-return real-page regression passes on the owning page and return page. Evidence: [TP-26-04](report.md#tp-26-04).
+- [x] TP-26-05 adversarial mutation proof rejects every audited compute or navigation shortcut. Evidence: [TP-26-05](report.md#tp-26-05), [non-tautology mutation proof](report.md#non-tautology-proof-applied-mutation-observed-failure-byte-exact-revert), and [declared mutation-proof scope](report.md#uncertainty-declarations).
+- [x] TP-26-06 shared-shell consumer canary passes. Evidence: [TP-26-06](report.md#tp-26-06).
+- [x] Consumer/Shared Infrastructure Impact Sweeps and rollback proof are recorded. Evidence: [consumer impact sweep](report.md#consumer-impact-sweep) and [shared infrastructure and rollback](report.md#shared-infrastructure-and-rollback-evidence).
+- [x] Build Quality Gate passes with zero skips/warnings and no excluded-file changes. Evidence: [build quality gate](report.md#build-quality-gate--current-session-2026-08-23), [lint and quality](report.md#lint-and-quality), and [bounded code diff](report.md#code-diff-evidence).

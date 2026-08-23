@@ -66,7 +66,8 @@
     "P008-BEHAVIOR-TIME": true,
     "P008-BEHAVIOR-FLOOR": true,
     "P008-ACTION-RANK": true,
-    "P008-ACTION-WHY": true
+    "P008-ACTION-WHY": true,
+    "P008-RETURN-CONTEXT": true
   });
   var TOP_POLICY_FIELDS = Object.freeze([
     "analytics", "behavior", "calibration", "contractVersion", "display", "import", "mandate", "queue", "solver", "storage"
@@ -4425,6 +4426,475 @@
   }
   /* ---------- End Feature 008 Scope 04 ---------- */
 
+  /* ---------- Feature 008 Scope 26: ReturnContext/v1 session handoff ----------
+
+     The handoff exists so a Brief row can send the user to the tool that OWNS a
+     subject and bring them back to the exact row they left. Two properties make
+     that safe rather than merely convenient.
+
+     First, the record never travels in a URL. A query string or hash is written
+     to history, sent as a referrer, and readable by any later page; a session
+     record is scoped to one tab and dies with it.
+
+     Second, the schema is CLOSED and every field is format-constrained. That is
+     what keeps personal data out structurally instead of by review: there is no
+     admissible shape for a holding, quantity, value, cost, mandate field,
+     behavior string, or model output. An unknown key is a rejection, not an
+     ignored extra. */
+  var RETURN_CONTEXT_VERSION = "ReturnContext/v1";
+  var RETURN_CONTEXT_KEY = "rlReturnContextV1";
+  var RETURN_CONTEXT_FIELDS = Object.freeze([
+    "contractVersion", "contextId", "sourceRoute", "sourceHash", "destinationRoute", "destinationHash",
+    "actionId", "disclosureId", "focusRestoreId", "workspaceIdentity", "genericEvidenceIdentity",
+    "ownerToolId", "minimumOwnerCutoff", "createdAt", "expiresAt"
+  ]);
+  var RETURN_CONTEXT_SOURCE_ROUTE = "portfolio-survival-allocation-lab.html";
+  var RETURN_CONTEXT_DESTINATION_HASH = "#portfolio-brief-handoff";
+  var RETURN_CONTEXT_SOURCE_HASHES = Object.freeze([
+    "#brief", "#risk-xray", "#path-lab", "#diversification", "#allocation", "#dossier"
+  ]);
+  var ROUTE_FILE_PATTERN = /^[a-z0-9][a-z0-9-]*\.html$/;
+  var HASH_PATTERN_STRICT = /^#[a-z0-9][a-z0-9-]*$/;
+  var SAFE_TOKEN_PATTERN = /^[a-z0-9][a-z0-9._:-]{0,127}$/i;
+
+  function returnContextFailure(reason, field) {
+    return failure("P008-RETURN-CONTEXT", reason, field || null, null, true);
+  }
+
+  function returnContextStorage(options) {
+    var supplied = options && options.storage;
+    if (supplied) return supplied;
+    try { return root.sessionStorage || null; } catch (error) { return null; }
+  }
+
+  /* Strict by construction. Every branch returns a reason token rather than echoing the
+     offending value, so a rejection can be logged without becoming the leak it refused. */
+  function validateReturnContext(value, options) {
+    var settings = options || {};
+    if (!isPlainObject(value)) return returnContextFailure("value-not-an-object", "value");
+    var unknown = hasOnlyFields(value, RETURN_CONTEXT_FIELDS);
+    if (unknown) return returnContextFailure("unknown-field", unknown);
+    var index;
+    for (index = 0; index < RETURN_CONTEXT_FIELDS.length; index += 1) {
+      if (!Object.prototype.hasOwnProperty.call(value, RETURN_CONTEXT_FIELDS[index])) {
+        return returnContextFailure("missing-field", RETURN_CONTEXT_FIELDS[index]);
+      }
+    }
+    if (value.contractVersion !== RETURN_CONTEXT_VERSION) {
+      return returnContextFailure("contract-version-unsupported", "contractVersion");
+    }
+    var tokens = ["contextId", "actionId", "disclosureId", "focusRestoreId", "ownerToolId",
+      "workspaceIdentity", "genericEvidenceIdentity"];
+    for (index = 0; index < tokens.length; index += 1) {
+      if (!nonEmptyString(value[tokens[index]]) || !SAFE_TOKEN_PATTERN.test(value[tokens[index]])) {
+        return returnContextFailure("field-not-a-safe-token", tokens[index]);
+      }
+    }
+    if (value.sourceRoute !== RETURN_CONTEXT_SOURCE_ROUTE) {
+      return returnContextFailure("source-route-not-allowlisted", "sourceRoute");
+    }
+    if (RETURN_CONTEXT_SOURCE_HASHES.indexOf(value.sourceHash) === -1) {
+      return returnContextFailure("source-hash-not-allowlisted", "sourceHash");
+    }
+    if (!nonEmptyString(value.destinationRoute) || !ROUTE_FILE_PATTERN.test(value.destinationRoute)) {
+      return returnContextFailure("destination-route-not-a-base-file", "destinationRoute");
+    }
+    var allowed = Array.isArray(settings.allowedDestinations) ? settings.allowedDestinations : null;
+    if (!allowed || allowed.length === 0) {
+      return returnContextFailure("destination-allowlist-required", "destinationRoute");
+    }
+    if (allowed.indexOf(value.destinationRoute) === -1) {
+      return returnContextFailure("destination-route-not-allowlisted", "destinationRoute");
+    }
+    if (value.destinationHash !== RETURN_CONTEXT_DESTINATION_HASH ||
+      !HASH_PATTERN_STRICT.test(value.destinationHash)) {
+      return returnContextFailure("destination-hash-not-allowlisted", "destinationHash");
+    }
+    var instants = ["minimumOwnerCutoff", "createdAt", "expiresAt"];
+    for (index = 0; index < instants.length; index += 1) {
+      if (!nonEmptyString(value[instants[index]]) || !TIMESTAMP_PATTERN.test(value[instants[index]])) {
+        return returnContextFailure("field-not-an-instant", instants[index]);
+      }
+    }
+    if (Date.parse(value.expiresAt) <= Date.parse(value.createdAt)) {
+      return returnContextFailure("expiry-not-after-creation", "expiresAt");
+    }
+    return success({
+      contractVersion: RETURN_CONTEXT_VERSION,
+      contextId: value.contextId,
+      sourceRoute: value.sourceRoute,
+      sourceHash: value.sourceHash,
+      destinationRoute: value.destinationRoute,
+      destinationHash: value.destinationHash,
+      actionId: value.actionId,
+      disclosureId: value.disclosureId,
+      focusRestoreId: value.focusRestoreId,
+      workspaceIdentity: value.workspaceIdentity,
+      genericEvidenceIdentity: value.genericEvidenceIdentity,
+      ownerToolId: value.ownerToolId,
+      minimumOwnerCutoff: value.minimumOwnerCutoff,
+      createdAt: value.createdAt,
+      expiresAt: value.expiresAt
+    });
+  }
+
+  function writeReturnContext(value, options) {
+    var validated = validateReturnContext(value, options);
+    if (!validated.ok) return validated;
+    var storage = returnContextStorage(options);
+    if (!storage) return returnContextFailure("session-storage-unavailable", "storage");
+    try { storage.setItem(RETURN_CONTEXT_KEY, JSON.stringify(validated.value)); }
+    catch (error) { return returnContextFailure("session-storage-write-refused", "storage"); }
+    return validated;
+  }
+
+  /* Consumption is single-use and self-cleaning. A record that is expired, malformed, or
+     addressed to a different tool is REMOVED before the caller is told no, so a stale
+     handoff cannot sit in the tab waiting to be matched by a later navigation. */
+  function consumeReturnContext(currentFile, nowInstant, options) {
+    var storage = returnContextStorage(options);
+    if (!storage) return returnContextFailure("session-storage-unavailable", "storage");
+    var raw = null;
+    try { raw = storage.getItem(RETURN_CONTEXT_KEY); }
+    catch (error) { return returnContextFailure("session-storage-read-refused", "storage"); }
+    if (raw === null || raw === undefined) return returnContextFailure("no-context-present", "storage");
+    function discard() { try { storage.removeItem(RETURN_CONTEXT_KEY); } catch (error) { /* already gone */ } }
+    var parsed = null;
+    try { parsed = JSON.parse(raw); }
+    catch (error) { discard(); return returnContextFailure("context-not-parseable", "storage"); }
+    var validated = validateReturnContext(parsed, options);
+    if (!validated.ok) { discard(); return validated; }
+    if (!nonEmptyString(currentFile) || validated.value.destinationRoute !== currentFile) {
+      /* Wrong destination is NOT a discard: the record still belongs to the tool it names,
+         and this page merely has no claim on it. Deleting here would break the handoff for
+         the page that is about to receive it. */
+      return returnContextFailure("destination-mismatch", "destinationRoute");
+    }
+    if (!nonEmptyString(nowInstant) || !TIMESTAMP_PATTERN.test(nowInstant)) {
+      return returnContextFailure("now-not-an-instant", "now");
+    }
+    if (Date.parse(nowInstant) >= Date.parse(validated.value.expiresAt)) {
+      discard();
+      return returnContextFailure("context-expired", "expiresAt");
+    }
+    discard();
+    return validated;
+  }
+
+  /* ---------- Feature 008 Scope 26: one orchestration compute ----------
+
+     `computeWorkspace` is the ONLY place a workspace result is assembled. Six sibling
+     projections are produced together, in one pass, and published as one deeply frozen
+     object. That shape is the whole point: when Simple, Power and all six tabs read slices
+     of a single frozen result, they CANNOT disagree, and a tab switch has nothing left to
+     recompute because there is no per-tab compute to run.
+
+     Analytics stay out of this module. Every projection arrives through an injected
+     projector, so the orchestration discipline (freeze, token, rebase) is testable in
+     isolation while the formulas remain owned by the analytics module and the route.
+
+     A projector that is absent, throws, or returns a non-object yields an entry in
+     `unavailableStates` — never a zero, an empty list, or a previous value wearing the new
+     identity. An unavailable projection is a fact the user can read; a synthetic one is a
+     lie the user cannot detect. */
+  var WORKSPACE_VIEW_MODEL_VERSION = "PortfolioWorkspaceViewModel/v1";
+  var WORKSPACE_CONTROLLER_VERSION = "WorkspaceComputeController/v1";
+  var WORKSPACE_REBASE_PREVIEW_VERSION = "PortfolioWorkspaceRebasePreview/v1";
+  var WORKSPACE_PRESENTATION_VERSION = "PortfolioWorkspacePresentation/v1";
+  /* The sibling set. An accepted rebase must replace every one of these or none. */
+  var WORKSPACE_SIBLING_PROJECTIONS = Object.freeze([
+    "brief", "risk", "paths", "dependence", "allocations", "dossier"
+  ]);
+  var WORKSPACE_IDENTITY_INPUTS = Object.freeze([
+    "generic", "portfolio", "mandate", "behavior", "scenario", "policy"
+  ]);
+  var WORKSPACE_MODES = Object.freeze(["simple", "power"]);
+  var WORKSPACE_TABS = Object.freeze([
+    "brief", "risk-xray", "path-lab", "diversification", "allocation", "dossier"
+  ]);
+  /* Tab hash -> projection slot. Navigation resolves a slice through this map instead of
+     calling anything, which is what makes "presentation-only" structural rather than a
+     promise in a comment. */
+  var WORKSPACE_TAB_PROJECTIONS = Object.freeze({
+    "brief": "brief",
+    "risk-xray": "risk",
+    "path-lab": "paths",
+    "diversification": "dependence",
+    "allocation": "allocations",
+    "dossier": "dossier"
+  });
+
+  function workspaceComputeFailure(reason, field) {
+    return failure("P008-WORKSPACE-COMPUTE", reason, field || null, null, true);
+  }
+
+  function safeToken(value) {
+    return nonEmptyString(value) && SAFE_TOKEN_PATTERN.test(value);
+  }
+
+  function computeWorkspace(context, evidence, policy) {
+    var policyResult = validatePolicy(policy);
+    if (!policyResult.ok) return policyResult;
+    if (!isPlainObject(context)) return workspaceComputeFailure("context-not-an-object", "context");
+    if (!isPlainObject(evidence)) return workspaceComputeFailure("evidence-not-an-object", "evidence");
+    var identityFields = ["workspaceIdentity", "computeTokenId"];
+    var index;
+    for (index = 0; index < identityFields.length; index += 1) {
+      if (!safeToken(context[identityFields[index]])) {
+        return workspaceComputeFailure("context-field-not-a-safe-token", identityFields[index]);
+      }
+    }
+    if (!canonicalTimestamp(context.generatedAt)) {
+      return workspaceComputeFailure("generated-at-not-an-instant", "generatedAt");
+    }
+    if (!isPlainObject(context.projectors)) {
+      return workspaceComputeFailure("projectors-required", "projectors");
+    }
+    var strayProjector = hasOnlyFields(context.projectors, WORKSPACE_SIBLING_PROJECTIONS);
+    if (strayProjector) {
+      return workspaceComputeFailure("projector-not-a-sibling-projection", strayProjector);
+    }
+
+    var projections = {};
+    var unavailableStates = [];
+    var diagnostics = [];
+    WORKSPACE_SIBLING_PROJECTIONS.forEach(function (name) {
+      var projector = context.projectors[name];
+      if (typeof projector !== "function") {
+        projections[name] = null;
+        unavailableStates.push({ projection: name, reason: "projector-absent" });
+        diagnostics.push({ projection: name, state: "unavailable" });
+        return;
+      }
+      var produced = null;
+      try { produced = projector(evidence, policy); }
+      catch (error) {
+        projections[name] = null;
+        unavailableStates.push({ projection: name, reason: "projector-failed" });
+        diagnostics.push({ projection: name, state: "failed" });
+        return;
+      }
+      if (!isPlainObject(produced)) {
+        projections[name] = null;
+        unavailableStates.push({ projection: name, reason: "projection-not-an-object" });
+        diagnostics.push({ projection: name, state: "unavailable" });
+        return;
+      }
+      projections[name] = clone(produced);
+      diagnostics.push({ projection: name, state: "computed" });
+    });
+
+    return success({
+      contractVersion: WORKSPACE_VIEW_MODEL_VERSION,
+      workspaceIdentity: context.workspaceIdentity,
+      computeTokenId: context.computeTokenId,
+      generatedAt: context.generatedAt,
+      genericEvidence: isPlainObject(evidence.genericEvidence) ? clone(evidence.genericEvidence) : {},
+      portfolioTruth: isPlainObject(evidence.portfolioTruth) ? clone(evidence.portfolioTruth) : null,
+      brief: projections.brief,
+      risk: projections.risk,
+      paths: projections.paths,
+      dependence: projections.dependence,
+      allocations: projections.allocations,
+      dossier: projections.dossier,
+      diagnostics: diagnostics,
+      unavailableStates: unavailableStates
+    });
+  }
+
+  function workspaceIdentityFingerprint(identityInputs) {
+    return WORKSPACE_IDENTITY_INPUTS.map(function (name) {
+      return name + "=" + String(identityInputs[name]);
+    }).join("|");
+  }
+
+  /* `WorkspaceComputeController/v1`.
+
+     The controller exists because a compute takes time and a user does not wait. While one
+     runs the user edits, switches tabs, opens a tool. Two rules keep that safe:
+
+     Publication is TOKEN-GATED. Every issue raises the ordinal, so an older running compute
+     is superseded the moment a newer identity is requested. When the old one finally
+     finishes it is refused — not merged, not compared, refused — because a result computed
+     from inputs the user has already replaced is stale no matter how correct its arithmetic.
+
+     Refusal is NON-DESTRUCTIVE. A superseded, cancelled, or failed compute leaves
+     `activeViewModel` and `lastValidViewModel` exactly as they were. Blanking the screen
+     while a newer answer is still computing would punish the user for editing. */
+  function createWorkspaceComputeController(options) {
+    var settings = isPlainObject(options) ? options : {};
+    var activeIdentity = safeToken(settings.activeIdentity) ? settings.activeIdentity : null;
+    var activeViewModel = null;
+    var lastValidViewModel = null;
+    var draftIdentity = null;
+    var currentToken = null;
+    var cancelState = "idle";
+    var ordinal = 0;
+    var supersededTokenIds = [];
+
+    function snapshot() {
+      return deepFreeze({
+        contractVersion: WORKSPACE_CONTROLLER_VERSION,
+        activeIdentity: activeIdentity,
+        activeViewModel: activeViewModel,
+        draftIdentity: draftIdentity,
+        currentToken: currentToken === null ? null : clone(currentToken),
+        cancelState: cancelState,
+        lastValidViewModel: lastValidViewModel,
+        supersededTokenIds: supersededTokenIds.slice()
+      });
+    }
+
+    function issue(identity, issuedAt) {
+      if (!safeToken(identity)) return workspaceComputeFailure("identity-not-a-safe-token", "identity");
+      if (!canonicalTimestamp(issuedAt)) return workspaceComputeFailure("issued-at-not-an-instant", "issuedAt");
+      if (currentToken !== null && currentToken.state === "running") {
+        supersededTokenIds.push(currentToken.tokenId);
+        cancelState = "superseded";
+      }
+      ordinal += 1;
+      currentToken = {
+        contractVersion: WORKSPACE_CONTROLLER_VERSION,
+        tokenId: contracts.fingerprint("workspace-compute-token", {
+          contractVersion: "workspace-compute-token/v1",
+          identity: identity,
+          issuedAt: issuedAt,
+          ordinal: ordinal
+        }),
+        ordinal: ordinal,
+        identity: identity,
+        issuedAt: issuedAt,
+        state: "running"
+      };
+      draftIdentity = identity === activeIdentity ? null : identity;
+      return success(clone(currentToken));
+    }
+
+    function retokenized(token, nextState) {
+      var next = clone(token);
+      next.state = nextState;
+      return next;
+    }
+
+    function cancel(tokenId) {
+      if (currentToken === null || currentToken.tokenId !== tokenId) {
+        return workspaceComputeFailure("token-not-current", "tokenId");
+      }
+      currentToken = retokenized(currentToken, "cancelled");
+      cancelState = "cancelled";
+      return success(clone(currentToken));
+    }
+
+    /* The single publication gate. Everything about supersession safety is enforced here so
+       no caller can bypass it by publishing directly. */
+    function publish(tokenId, viewModel) {
+      if (!isPlainObject(viewModel) || viewModel.contractVersion !== WORKSPACE_VIEW_MODEL_VERSION) {
+        return workspaceComputeFailure("view-model-contract-unsupported", "viewModel");
+      }
+      if (!Object.isFrozen(viewModel)) {
+        return workspaceComputeFailure("view-model-not-frozen", "viewModel");
+      }
+      if (currentToken === null) return supersededRefusal("no-current-token", "tokenId");
+      if (currentToken.tokenId !== tokenId) return supersededRefusal("token-superseded", "tokenId");
+      if (currentToken.state !== "running") return supersededRefusal("token-not-running", "tokenId");
+      if (viewModel.computeTokenId !== tokenId) return supersededRefusal("token-mismatch", "computeTokenId");
+      if (viewModel.workspaceIdentity !== currentToken.identity) {
+        return supersededRefusal("identity-mismatch", "workspaceIdentity");
+      }
+      activeIdentity = viewModel.workspaceIdentity;
+      activeViewModel = viewModel;
+      lastValidViewModel = viewModel;
+      currentToken = retokenized(currentToken, "published");
+      draftIdentity = null;
+      cancelState = "idle";
+      return success({ contractVersion: WORKSPACE_CONTROLLER_VERSION, published: true, workspaceIdentity: activeIdentity });
+    }
+
+    function supersededRefusal(reason, field) {
+      return failure("P008-COMPUTE-SUPERSEDED", reason, field || null, null, true);
+    }
+
+    /* An explicit rebase names WHICH identity inputs changed before anything is recomputed.
+       A user asked to accept a rebase deserves to see what is being replaced. */
+    function previewRebase(nextIdentityInputs, currentIdentityInputs) {
+      if (!isPlainObject(nextIdentityInputs) || !isPlainObject(currentIdentityInputs)) {
+        return workspaceComputeFailure("identity-inputs-not-an-object", "identityInputs");
+      }
+      var changed = WORKSPACE_IDENTITY_INPUTS.filter(function (name) {
+        return String(nextIdentityInputs[name]) !== String(currentIdentityInputs[name]);
+      });
+      return success({
+        contractVersion: WORKSPACE_REBASE_PREVIEW_VERSION,
+        changedIdentityInputs: changed,
+        unchangedIdentityInputs: WORKSPACE_IDENTITY_INPUTS.filter(function (name) {
+          return changed.indexOf(name) === -1;
+        }),
+        nextIdentityFingerprint: workspaceIdentityFingerprint(nextIdentityInputs),
+        currentIdentityFingerprint: workspaceIdentityFingerprint(currentIdentityInputs),
+        siblingProjections: WORKSPACE_SIBLING_PROJECTIONS.slice(),
+        rebaseRequired: changed.length > 0
+      });
+    }
+
+    /* Atomicity is enforced by REFUSING a partial sibling set, not by swapping what arrived
+       and hoping the rest follows. A workspace showing a new Brief beside an old Allocation
+       is worse than one that refused the rebase: the user cannot see that the two halves
+       disagree, so they would compare them as if they were one answer. */
+    function acceptRebase(tokenId, viewModel) {
+      if (!isPlainObject(viewModel) || viewModel.contractVersion !== WORKSPACE_VIEW_MODEL_VERSION) {
+        return workspaceComputeFailure("view-model-contract-unsupported", "viewModel");
+      }
+      var missing = WORKSPACE_SIBLING_PROJECTIONS.filter(function (name) {
+        return !isPlainObject(viewModel[name]);
+      });
+      if (missing.length > 0) {
+        return failure("P008-REBASE-PARTIAL", "sibling-projection-missing", missing[0], null, true);
+      }
+      return publish(tokenId, viewModel);
+    }
+
+    return Object.freeze({
+      contractVersion: WORKSPACE_CONTROLLER_VERSION,
+      acceptRebase: acceptRebase,
+      cancel: cancel,
+      issue: issue,
+      previewRebase: previewRebase,
+      publish: publish,
+      snapshot: snapshot
+    });
+  }
+
+  /* Presentation resolution. It reads a slice off the already-published frozen view model
+     and takes no projector, no evidence and no policy — so there is nothing here that COULD
+     acquire or recompute. `recomputed` and `acquired` are reported as literal false because
+     the function has no branch that could make them true. */
+  function selectWorkspacePresentation(viewModel, presentation) {
+    if (!isPlainObject(viewModel) || viewModel.contractVersion !== WORKSPACE_VIEW_MODEL_VERSION) {
+      return workspaceComputeFailure("view-model-contract-unsupported", "viewModel");
+    }
+    if (!isPlainObject(presentation)) return workspaceComputeFailure("presentation-not-an-object", "presentation");
+    if (WORKSPACE_MODES.indexOf(presentation.mode) === -1) {
+      return workspaceComputeFailure("mode-not-allowlisted", "mode");
+    }
+    if (WORKSPACE_TABS.indexOf(presentation.tab) === -1) {
+      return workspaceComputeFailure("tab-not-allowlisted", "tab");
+    }
+    var slot = WORKSPACE_TAB_PROJECTIONS[presentation.tab];
+    return success({
+      contractVersion: WORKSPACE_PRESENTATION_VERSION,
+      mode: presentation.mode,
+      tab: presentation.tab,
+      projectionSlot: slot,
+      workspaceIdentity: viewModel.workspaceIdentity,
+      computeTokenId: viewModel.computeTokenId,
+      available: isPlainObject(viewModel[slot]),
+      unavailableReason: isPlainObject(viewModel[slot]) ? null : "projection-unavailable",
+      recomputed: false,
+      acquired: false
+    });
+  }
+  /* ---------- End Feature 008 Scope 26 ---------- */
+
   var api = Object.freeze({
     addHoldingRow: addHoldingRow,
     applyDraftRemoval: applyDraftRemoval,
@@ -4491,7 +4961,26 @@
     validateWorkspace: validateWorkspace,
     privacyBoundaryToolRead: privacyBoundaryToolRead,
     portfolioTruthState: portfolioTruthState,
-    PRIVACY_BOUNDARY_TOOL_ID: PRIVACY_BOUNDARY_TOOL_ID
+    consumeReturnContext: consumeReturnContext,
+    validateReturnContext: validateReturnContext,
+    writeReturnContext: writeReturnContext,
+    computeWorkspace: computeWorkspace,
+    createWorkspaceComputeController: createWorkspaceComputeController,
+    selectWorkspacePresentation: selectWorkspacePresentation,
+    WORKSPACE_CONTROLLER_VERSION: WORKSPACE_CONTROLLER_VERSION,
+    WORKSPACE_IDENTITY_INPUTS: WORKSPACE_IDENTITY_INPUTS,
+    WORKSPACE_MODES: WORKSPACE_MODES,
+    WORKSPACE_SIBLING_PROJECTIONS: WORKSPACE_SIBLING_PROJECTIONS,
+    WORKSPACE_TABS: WORKSPACE_TABS,
+    WORKSPACE_TAB_PROJECTIONS: WORKSPACE_TAB_PROJECTIONS,
+    WORKSPACE_VIEW_MODEL_VERSION: WORKSPACE_VIEW_MODEL_VERSION,
+    PRIVACY_BOUNDARY_TOOL_ID: PRIVACY_BOUNDARY_TOOL_ID,
+    RETURN_CONTEXT_DESTINATION_HASH: RETURN_CONTEXT_DESTINATION_HASH,
+    RETURN_CONTEXT_FIELDS: RETURN_CONTEXT_FIELDS,
+    RETURN_CONTEXT_KEY: RETURN_CONTEXT_KEY,
+    RETURN_CONTEXT_SOURCE_HASHES: RETURN_CONTEXT_SOURCE_HASHES,
+    RETURN_CONTEXT_SOURCE_ROUTE: RETURN_CONTEXT_SOURCE_ROUTE,
+    RETURN_CONTEXT_VERSION: RETURN_CONTEXT_VERSION
   });
 
   root.RLPORTFOLIO = api;

@@ -9,7 +9,8 @@ import {
   declareOrdinaryHousehold,
   declaredRouteAssets,
   openLifetimeTax,
-  openPower
+  openPower,
+  sameOriginPaths
 } from './lifetime-tax.support.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -291,8 +292,10 @@ test('Regression: SCN-024-001 the request ledger does not grow after first paint
 
   /* Every request the route did make is one the route itself declares, including the benefit pack
      — which is permitted because the configuration declares it, not because a list was edited. */
+  /* F-REG-03: the same-origin half of this row's title. A pathname sweep alone accepts a declared
+     module served from a host the route never declared; the shared helper refuses on origin first. */
   const permitted = declaredRouteAssets();
-  const paths = ledger.map((entry) => new URL(entry.url).pathname);
+  const paths = sameOriginPaths(ledger, site);
   paths.forEach((path) => expect(permitted).toContain(path));
   expect(paths).toContain('/' + BENEFIT_PACK_PATH);
 

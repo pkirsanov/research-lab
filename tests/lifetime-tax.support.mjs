@@ -81,9 +81,17 @@ export function collectRequests(page) {
    route never declared — satisfies it. That is the shape a leak takes: the household's own
    modules, fetched from somewhere that can log the fetch. This helper refuses on origin FIRST and
    only then hands back the pathnames, so every caller gains the origin constraint by calling it.
-   The message names the offending URLs because the pathname alone cannot show what went wrong. */
+   The message names the offending URLs because the pathname alone cannot show what went wrong.
+
+   The refusal is a CONJUNCTION of two limbs, not one test written twice. The prefix limb is the
+   original: it rejects an origin that shares no leading text with the route's own. The parsed-origin
+   limb is added because a prefix is not an origin — `http://localhost:8080.evil.com/rltaxstrategy.js`
+   begins with the base URL of a route served from `http://localhost:8080`, so the prefix limb alone
+   admits a host somebody else controls. An entry must clear both limbs to be counted local. */
 export function sameOriginPaths(ledger, site) {
-  const foreign = ledger.filter((entry) => !entry.url.startsWith(site.baseUrl));
+  const routeOrigin = new URL(site.baseUrl).origin;
+  const foreign = ledger.filter((entry) => !entry.url.startsWith(site.baseUrl)
+    || new URL(entry.url).origin !== routeOrigin);
   expect(foreign.map((entry) => entry.url),
     'every request the route issued is same-origin: a declared pathname served from an undeclared origin is a leak')
     .toEqual([]);

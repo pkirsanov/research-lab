@@ -9,7 +9,8 @@ import {
   declaredRouteAssets,
   declareOrdinaryHousehold,
   openLifetimeTax,
-  openPower
+  openPower,
+  sameOriginPaths
 } from './lifetime-tax.support.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -389,8 +390,11 @@ test('Regression: SCN-024-014 the request ledger does not grow after first paint
 
   /* Everything the route DID read is a local asset it declared, including the three packs this
      feature added. */
+  /* F-REG-03: "local asset it declared" is a claim about the origin as well as the path, and a
+     pathname sweep alone cannot make it. The shared helper refuses a declared pathname served
+     from an undeclared origin before it hands back any pathname at all. */
   const permitted = declaredRouteAssets();
-  const paths = ledger.map((request) => new URL(request.url).pathname);
+  const paths = sameOriginPaths(ledger, site);
   expect(paths.length).toBeGreaterThan(0);
   paths.forEach((path) => expect(permitted).toContain(path));
   ['/tax-rules/benefit/2026.json', '/tax-rules/mortality/2026.json', '/tax-rules/medicare/2026.json']

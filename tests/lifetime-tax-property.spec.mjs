@@ -9,7 +9,8 @@ import {
   declareOrdinaryHousehold,
   declaredRouteAssets,
   openLifetimeTax,
-  openPower
+  openPower,
+  sameOriginPaths
 } from './lifetime-tax.support.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -324,9 +325,12 @@ test('Regression: SCN-023-001 the request ledger does not grow after first paint
      both were read before first paint. */
   expect(ledger.length).toBe(afterFirstPaint);
 
-  /* Every request the route did make is one the route itself declares. */
+  /* Every request the route did make is one the route itself declares, AND it came from the
+     route's own origin. F-REG-03: this row's title promises a declared same-origin read, and a
+     pathname sweep alone cannot keep that promise — `https://elsewhere.example/rltaxstrategy.js`
+     carries a declared pathname. The shared helper refuses on origin before it yields a pathname. */
   const permitted = declaredRouteAssets();
-  const paths = ledger.map((entry) => new URL(entry.url).pathname);
+  const paths = sameOriginPaths(ledger, site);
   paths.forEach((path) => expect(permitted).toContain(path));
   expect(paths).toContain('/' + FL_REGIME_PATH);
   expect(paths).toContain('/' + CA_REGIME_PATH);

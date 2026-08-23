@@ -298,12 +298,21 @@ missing browser or an absent test does not satisfy RED.
       reachable by keyboard, and no unavailable state renders as an empty box, a
       bare dash or an unattributed zero.
   - **Phase:** implement · **Command:** the accessibility browser row · **Evidence:** `report.md#tp-05-19`
-- [ ] The request ledger does not grow after first paint across the full combined
+- [x] The request ledger does not grow after first paint across the full combined
       workflow, every entry in it is a same-origin read of a document the page's
       own configuration declares, and no household value reaches any URL,
       request, referrer or console message.
   - **Restated 2026-08-22 (F-REG-02).** The superseded text read "The request ledger stays empty across the full combined workflow", which is false: the cited row captures `afterFirstPaint = ledger.length` and asserts `expect(afterFirstPaint).toBeGreaterThan(0)` on the very next line, so the row and its own evidence asserted opposite things. The row now states the three propositions the run actually establishes, and each stays falsifiable. Adversarial cases: a request issued after first paint fails `expect(ledger.length).toBe(afterFirstPaint)`; a read of a document the configuration does not declare, or of any remote document, fails the permitted-path and cross-origin filters; a residency or income declaration reaching a URL, a request body, a referrer or a console message fails the sentinel assertions; and a boot that read nothing fails `expect(afterFirstPaint).toBeGreaterThan(0)`. This restatement matches the corrected `NFR-022-002`. The persistent title of the browser row still carries the superseded wording; renaming it is a test artifact and is routed rather than taken here. This restatement is `bubbles.plan`'s artifact; the tick is not, and remains for a verifying pass.
-  - **Phase:** implement · **Command:** the privacy browser row · **Evidence:** `report.md#tp-05-20`
+  - **Ticked 2026-08-22.** The referrer surface the previous pass recorded as
+    unasserted is now read by the cited row itself: `document.referrer`, every
+    header of every request resolved through `allHeaders()`, and the page URL
+    that is the referrer's source, all feeding one `expect(carriers).toEqual([])`
+    verdict with a non-empty-corpus pin and a live-detector control. The clause
+    is proven falsifiable by an intended-RED probe whose summary is pinned to
+    this scan's own `page-url:` carrier label, so the recorded RED is the
+    referrer verdict failing rather than some other assertion in the row. No
+    wording was narrowed to earn the tick.
+  - **Phase:** implement · **Command:** the privacy browser row · **Evidence:** `report.md#tp-05-20`, `report.md#scn-022-013-referrer-surface-closed-2026-08-22`
 - [x] The tool is still absent from `tools.json`, `index.html`, `rlnav.js`,
       `README.md`, `notes/README.md` and market-brief coverage, and no new root
       HTML exists.

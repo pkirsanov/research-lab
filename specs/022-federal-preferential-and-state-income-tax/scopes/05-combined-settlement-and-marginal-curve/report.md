@@ -1845,3 +1845,103 @@ to a pass that owns that change.
 **Claim Source:** executed for the command output and for both quoted source
 excerpts, which are read verbatim from the tracked tree. No mutation was applied.
 
+## SCN-022-013 referrer surface, closed (2026-08-22)
+
+The gap recorded immediately above is closed by asserting the surface rather than
+by narrowing the row. `tests/lifetime-tax-combined.spec.mjs` went from `0` to `14`
+occurrences of `referrer`, measured on the tracked file before and after:
+
+```
+$ for f in tests/lifetime-tax-*.mjs; do printf '%s: %s\n' "$f" "$(grep -c 'referrer' "$f")"; done
+tests/lifetime-tax-benefit.spec.mjs: 2
+tests/lifetime-tax-california.spec.mjs: 0
+tests/lifetime-tax-claim-age.spec.mjs: 0
+tests/lifetime-tax-combined.spec.mjs: 0
+tests/lifetime-tax-conversion.spec.mjs: 0
+tests/lifetime-tax-deduction.spec.mjs: 0
+tests/lifetime-tax-disposition.spec.mjs: 3
+tests/lifetime-tax-federal.spec.mjs: 0
+tests/lifetime-tax-foundation.spec.mjs: 2
+tests/lifetime-tax-inclusion.spec.mjs: 0
+tests/lifetime-tax-marginal.spec.mjs: 0
+tests/lifetime-tax-medicare.spec.mjs: 0
+tests/lifetime-tax-preferential.spec.mjs: 1
+tests/lifetime-tax-property.spec.mjs: 0
+tests/lifetime-tax-rental.spec.mjs: 0
+tests/lifetime-tax-retirement-route.spec.mjs: 0
+tests/lifetime-tax-route.spec.mjs: 4
+tests/lifetime-tax-state.spec.mjs: 1
+tests/lifetime-tax-surtax.spec.mjs: 7
+tests/lifetime-tax-use.spec.mjs: 0
+OTHERS_TOTAL=20
+```
+
+The concept was asserted `20` times across the family and `0` times in the
+workflow this row cites — the row named a surface its own evidence never read.
+
+### What the row now reads
+
+Three carriers feed one verdict, `expect(carriers).toEqual([])`:
+
+- `document.referrer`, read off the page.
+- Every header of every request the route issued, resolved through `allHeaders()`
+  rather than the synchronous view.
+- The page URL, because it is the referrer's *source*: a value smuggled into it
+  becomes the `Referer` of every subsequent request.
+
+Every header is scanned rather than the `Referer` name alone. That is not a
+widening for its own sake — the sibling row `Regression: SCN-022-005 neither
+declared surtax basis reaches a URL, a request, a referrer or a console message`
+in `tests/lifetime-tax-surtax.spec.mjs` records that no request this route issues
+presents a `Referer` at all, even through `allHeaders()`. A referrer-only clause
+would therefore have reported a clean channel it had never read. The whole header
+set subsumes the referrer clause and gives the scan a corpus that is provably
+non-empty, which the row now pins with `expect(headerLedger.length)` and
+`expect(headerValues)` both `toBeGreaterThan(0)`.
+
+The detector is separately proven live by a control string built and scanned
+inside the test process only — nothing is navigated, fetched, logged or rendered
+— so a clean verdict cannot be a detector that never worked.
+
+### Intended RED, same-command GREEN
+
+The mutation plants exactly the defect the clause names: the view-mode write, the
+only writer this route has for the page URL, appends the declared ordinary amount.
+`--summary-match` is pinned to `page-url:` — the carrier label this row's own scan
+emits — so the recorded RED proves the *referrer verdict* failed, not merely that
+some assertion somewhere in the row failed.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-20 referrer channel: the view-mode write smuggles a declared amount into the page URL, which is the referrer source every subsequent request would carry as Referer
+file:             lifetime-tax-strategy-lab.html
+mutation:         var wanted = power ? "#power" : "#simple";  ->  var wanted = (power ? "#power" : "#simple") + "-" + byId("inputOrdinary").value;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-022-013\ the\ request\ ledger\ stays\ empty\ across\ the\ full\ combined\ workflow --reporter=line
+red-exit:         1
+red-summary:          +   "page-url:123457",
+green-exit:       0
+green-summary:      1 passed (1.9s)
+summary-compared:     +   "page-url:123457",  vs    1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_EXIT=0
+```
+
+`123457` is `SENTINEL_ORDINARY`, the declared ordinary income. The RED names it in
+the referrer carrier array; the GREEN over the identical command finds nothing.
+
+### The one thing this does not claim
+
+No probe plants a household value directly into a request header or into
+`document.referrer`. Neither is reachable: every request this route issues is made
+during first paint, before any declaration exists, and `document.referrer` is set
+by navigation rather than by page code. Planting one would require making the page
+transmit a declaration, which is the exact act the harness's exfiltration rail
+refuses and which this scope's privacy posture forbids. The page URL is therefore
+the carrier through which the clause is falsifiable at all, and it is the carrier
+the probe uses — the same reasoning the surtax row records.
+
+**Claim Source:** executed. The referrer counts, the probe block and its exit code
+are verbatim tool output from this session.
+

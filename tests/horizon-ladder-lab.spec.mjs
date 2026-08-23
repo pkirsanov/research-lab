@@ -2,7 +2,7 @@ import { test, expect } from './playwright-runtime.mjs';
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { dirname, extname, normalize, resolve, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.jsonl': 'application/x-ndjson; charset=utf-8' };
@@ -95,4 +95,18 @@ test('Regression: the power view paints its frontier canvas and exposes its acce
   }), { timeout: 15000 }).toBeTruthy();
   await expect(page.getByRole('img', { name: /Frontier of target distance/ })).toHaveCount(1);
   await expect(page.locator('#frontierFallback')).not.toBeEmpty();
+});
+
+/* Opened straight off disk, the universe fetch is blocked and the tool has no data at all. Every
+   peer tool fetches its universe the same way, so this is the house pattern rather than a defect —
+   but the refusal is the product here, and a blank page would read as "no candidates" instead of
+   "no data". The page must SAY it has nothing and must not throw doing it. */
+test('Regression: opened from the filesystem the tool states it has no universe instead of rendering a silent blank', async ({ page }) => {
+  const pageErrors = [];
+  page.on('pageerror', (error) => pageErrors.push(error.message));
+  await page.goto(pathToFileURL(resolve(ROOT, 'horizon-ladder-lab.html')).href);
+  await expect(page.locator('#gateNotice')).toContainText('Universe unavailable');
+  await expect(page.locator('#gateNotice')).toContainText('Nothing is substituted');
+  expect(await page.locator('#simpleTable tbody tr').count()).toBe(0);
+  expect(pageErrors).toEqual([]);
 });

@@ -298,8 +298,9 @@ missing browser or an absent test does not satisfy RED.
       reachable by keyboard, and no unavailable state renders as an empty box, a
       bare dash or an unattributed zero.
   - **Phase:** implement · **Command:** the accessibility browser row · **Evidence:** `report.md#tp-05-19`
-- [x] The request ledger stays empty across the full combined workflow and no
+- [ ] The request ledger stays empty across the full combined workflow and no
       household value reaches any URL, request, referrer or console message.
+  - **Uncertainty Declaration (F-REG-02):** unticked. The second arm is proven; the first arm is not, and cannot be — the ledger is never empty. A first paint records 24 requests, and the test the row cites asserts `expect(afterFirstPaint).toBeGreaterThan(0)` immediately after capturing it, so the row and its own evidence assert opposite things. What the run proves is that the ledger holds only declared same-origin reads and does not grow after first paint. `NFR-022-002` was corrected to that measured truth; restating this row against it is `bubbles.plan`-owned.
   - **Phase:** implement · **Command:** the privacy browser row · **Evidence:** `report.md#tp-05-20`
 - [x] The tool is still absent from `tools.json`, `index.html`, `rlnav.js`,
       `README.md`, `notes/README.md` and market-brief coverage, and no new root

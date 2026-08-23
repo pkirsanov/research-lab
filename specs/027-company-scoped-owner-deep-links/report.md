@@ -4977,6 +4977,7 @@ for the reason given in the gate table above.
 | 2026-08-22 | `F-AUDIT-02b` | `intraday-tape-lab.html:1855` and `swing-structure-lab.html:1693` emit the same dead `?t=` convention | Medium | **Routed, not fixed.** Both are outside `workBoundary.allowedPaths` for this feature and were read-only here. `tests/technical-analysis-decision-lab.spec.mjs:922` navigates `swing-structure-lab.html?t=SPY`, so their owners must reconcile that spec in the same change. | Owners of `intraday-tape-lab` / `swing-structure-lab` |
 | 2026-08-22 | `F-AUDIT-05` | Nothing pinned the subject-parameter convention, so a second name could arrive beside `ticker` unnoticed | Low | **Closed — assertion added.** `scripts/selftest.mjs` assertion 1.20, inside `FEATURE-027-SUBJECT-HANDOFF`, counts names on both sides and was proven able to fail twice by real file mutation. | `bubbles.implement` |
 | 2026-08-22 | `F-AUDIT-07` | `SCN-027-CANARY` is a regression floor (`passes > N`), described in the docs-phase attribution prose as pinning the pre-existing green assertion count | Low | **Closed — wording corrected, guard deliberately unchanged.** The one over-claiming sentence at `report.md:4441` was reworded to name the floor, its live slack (145 / 15 / 18 assertions) and its blind spot for small deletions. The assertions were NOT tightened to equality pins: foreign appends to `scripts/selftest.mjs` are landing continuously in this tree, so an equality pin would report red on work this feature does not own. | `bubbles.docs` |
+| 2026-08-22 | `F-AUDIT-09` | A sizing-catalog member (`CNY=X`) is structurally unnameable by a deep link, and nothing ties the catalog's contents to the corridor's grammar | Informational | **Closed — assertion added.** `scripts/selftest.mjs` group `FEATURE-027-CATALOG-REACH` executes the real `linkedSubject` against the committed `volatility-sizing-universe.json`: every grammar-valid member is accepted with an unchanged normalised value (10 of 11), and the unnameable set is asserted EXACTLY equal to `["CNY=X"]`. Proven able to fail three times by real file mutation. `CNY=X` was deliberately NOT filed in `F027_REFUSED_CORPUS`, whose message calls its values adversarial. | `bubbles.test` |
 
 ## Validate Phase Closeout — nothing certified
 
@@ -5773,6 +5774,207 @@ not reverted and not worked around.
   no edit was manufactured in `scopes.md` to look productive.
 - No `uservalidation.md` item ticked (still 0 ticked / 19 unticked), no `status`
   set to `done`, no `certifiedAt` written.
+
+## Test Phase — F-AUDIT-09 closed: the sizing catalog is tied to the corridor grammar (`bubbles.test`)
+
+`F-AUDIT-09` was filed `informational` with no owner. It is nonetheless a real
+unguarded boundary, so it is closed with an executed assertion rather than left
+as prose.
+
+### What was actually missing
+
+Four facts were re-confirmed by execution before anything was written, because
+the finding's value depends on all four:
+
+| Claim | Re-confirmed by | Result |
+|---|---|---|
+| `volatility-sizing-universe.json` `.assets` holds 11 members | `node -e` over the committed file | `SPY QQQ IWM AAPL MSFT NVDA BTC-USD ETH-USD GLD USO CNY=X` |
+| Exactly one member is outside `SUBJECT_PATTERN` | the same run, filtering on `/^[A-Z0-9.\-]{1,12}$/` | `invalid= ["CNY=X"]`, `valid=` the other ten |
+| `BTC-USD` / `ETH-USD` are accepted, because `-` is in the class | the same run | both in `valid` |
+| `normTicker` does not strip punctuation, so `CNY=X` is REFUSED rather than silently renormalised to a DIFFERENT asset | the same run | `normCNY= "CNY=X"` |
+
+The fourth is the one that would have made this a defect rather than a note. It
+is false: `normTicker` trims and upper-cases only, so `CNY=X` reaches
+`SUBJECT_PATTERN` unchanged and is refused. It does not become `CNYX` and select
+some other row.
+
+The grammar half was already guarded — `F027H_REFUSED` in the `F-AUDIT-08` group
+already carries `'EURUSD=X'` and proves an FX-shaped value is refused — and that
+guard was **not** duplicated. What no assertion did was tie the CATALOG's
+CONTENTS to the corridor's GRAMMAR. Every existing guard picks its own values, so
+a catalog member could silently stop being nameable with the whole suite green.
+That cross-artefact link is the whole finding, and it is what was added.
+
+### The guard
+
+`scripts/selftest.mjs` group `FEATURE-027-CATALOG-REACH`, a pure append after
+`FEATURE-027-HUB-ROUTE-END`; no pre-existing line was deleted or modified (the
+diff is a single `@@ -26333,0 +26334,56 @@` hunk). It lifts `normTicker`,
+`linkedSubject` **and** `SUBJECT_PATTERN` out of `rlticker.js` through the same
+`build(...)` idiom the neighbouring groups use, and reads the catalogue the way
+Scope 2 does, with `JSON.parse(read('volatility-sizing-universe.json'))`.
+`SUBJECT_PATTERN` is returned beside the two functions on purpose: deciding
+grammar-validity from a regex retyped in the test would prove the copy, not the
+corridor.
+
+- **i.a — the reachable half.** Every catalog member the grammar admits must come
+  back `accepted` with `subject` equal to `normTicker(symbol)`. This is the "ten
+  of them today" claim, and it fails if the reader ever acquires a refusal the
+  grammar does not state.
+- **i.b — the unnameable half, and the valuable one.** The set of members the
+  corridor cannot name is asserted EXACTLY equal to `["CNY=X"]`. An exact set,
+  not a containment check: it states the blind spot is precisely the FX pair and
+  not accidental collateral. Widening the class until `CNY=X` is nameable empties
+  the set; tightening it until `BTC-USD` silently breaks grows it; a second
+  unreachable catalog member grows it too. All three go red.
+- **i.c — the `SCN-027-CANARY` floor**, in the same shape as the other three.
+
+`CNY=X` was deliberately **not** appended to `F027_REFUSED_CORPUS`. That corpus's
+assertion message calls its values adversarial, and `CNY=X` is a legitimate
+catalog member the company corridor excludes on purpose. Filing it there would
+mislabel it, which is the same class of defect `F-AUDIT-06` was about.
+
+One comment line was added in `rlticker.js` above the declaration, recording that
+the `=` exclusion is deliberate and that widening the class is security-relevant.
+The sink count in that line was measured, not assumed: `options-structure-lab.html`
+is the only route that both calls `RLTKR.linkedSubject` and defines an
+`innerHTML`-writing `setStatus`, and exactly five of its thirteen `setStatus`
+call sites interpolate the subject-derived `tk`.
+
+**Claim Source: executed.**
+
+```text
+$ node scripts/selftest.mjs
+Feature 027 F-AUDIT-09: the sizing catalog is tied to the corridor grammar
+  ✓ Feature 027 F-AUDIT-09: every sizing-catalog member the corridor grammar admits is accepted by the shared reader with an unchanged normalised value, so the reader refuses nothing the grammar does not (10 of 11 committed catalog members are grammar-valid, 0 not accepted: none)
+  ✓ Feature 027 F-AUDIT-09: the set of sizing-catalog members no deep link can name is EXACTLY the FX pair the company corridor excludes on purpose (10 of 11 committed members are nameable; unnameable: [CNY=X], expected exactly: [CNY=X])
+  ✓ Regression: SCN-027-CANARY every pre-existing selftest assertion stays green after the F-AUDIT-09 append (3171 assertion(s) already green at this point)
+Research-Lab self-test: 3197 passed, 0 failed
+selftest_exit=0
+```
+
+Baseline was `3194 passed, 0 failed`; the append adds exactly the three
+assertions above and breaks none.
+
+### RED → GREEN, three ways
+
+Every probe ran through `scripts/red-green-probe.sh`, which arms its revert
+before mutating and refuses a dirty target. `--summary-match` pins the comparison
+to the specific assertion under test, so "discriminating" means THAT assertion
+flipped, not merely that some assertion somewhere did.
+
+**Claim Source: executed.**
+
+```text
+$ bash scripts/red-green-probe.sh --file rlticker.js \
+    --find '/^[A-Z0-9.\-]{1,12}$/' --replace '/^[A-Z0-9.\-=]{1,12}$/' \
+    --label 'F-AUDIT-09 i.b: the grammar is widened until CNY=X becomes nameable, so the unnameable set empties' \
+    --bound 300 --summary-match 'F-AUDIT-09: the set of sizing-catalog members' \
+    -- node scripts/selftest.mjs
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F-AUDIT-09 i.b: the grammar is widened until CNY=X becomes nameable, so the unnameable set empties
+file:             rlticker.js
+mutation:         /^[A-Z0-9.\-]{1,12}$/  ->  /^[A-Z0-9.\-=]{1,12}$/   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: Feature 027 F-AUDIT-09: the set of sizing-catalog members no deep link can name is EXACTLY the FX pair the company corridor excludes on purpose (11 of 11 committed members are nameable; un
+green-exit:       0
+green-summary:      ✓ Feature 027 F-AUDIT-09: the set of sizing-catalog members no deep link can name is EXACTLY the FX pair the company corridor excludes on purpose (10 of 11 committed members are nameable; unnameab
+revert-verified:  yes (committed=23ea6d2fa56130810d5ef44d548697d4c94a7cb8 restored=23ea6d2fa56130810d5ef44d548697d4c94a7cb8)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe1_exit=0
+```
+
+```text
+$ bash scripts/red-green-probe.sh --file rlticker.js \
+    --find 'if (!SUBJECT_PATTERN.test(normalised)) return' \
+    --replace 'if (!SUBJECT_PATTERN.test(normalised) || normalised.indexOf("-") >= 0) return' \
+    --label 'F-AUDIT-09 i.a: the reader gains a refusal the grammar does not state, so grammar-valid BTC-USD / ETH-USD stop being accepted' \
+    --bound 300 --summary-match 'F-AUDIT-09: every sizing-catalog member' \
+    -- node scripts/selftest.mjs
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F-AUDIT-09 i.a: the reader gains a refusal the grammar does not state, so grammar-valid BTC-USD / ETH-USD stop being accepted
+file:             rlticker.js
+mutation:         if (!SUBJECT_PATTERN.test(normalised)) return  ->  if (!SUBJECT_PATTERN.test(normalised) || normalised.indexOf("-") >= 0) return   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: Feature 027 F-AUDIT-09: every sizing-catalog member the corridor grammar admits is accepted by the shared reader with an unchanged normalised value, so the reader refuses nothing the gramm
+green-exit:       0
+green-summary:      ✓ Feature 027 F-AUDIT-09: every sizing-catalog member the corridor grammar admits is accepted by the shared reader with an unchanged normalised value, so the reader refuses nothing the grammar doe
+revert-verified:  yes (committed=23ea6d2fa56130810d5ef44d548697d4c94a7cb8 restored=23ea6d2fa56130810d5ef44d548697d4c94a7cb8)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe2_exit=0
+```
+
+```text
+$ bash scripts/red-green-probe.sh --file rlticker.js \
+    --find '/^[A-Z0-9.\-]{1,12}$/' --replace '/^[A-Z0-9.]{1,12}$/' \
+    --label 'F-AUDIT-09 i.b: the grammar is tightened so BTC-USD and ETH-USD silently stop being nameable, so the unnameable set grows past the FX pair' \
+    --bound 300 --summary-match 'F-AUDIT-09: the set of sizing-catalog members' \
+    -- node scripts/selftest.mjs
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F-AUDIT-09 i.b: the grammar is tightened so BTC-USD and ETH-USD silently stop being nameable, so the unnameable set grows past the FX pair
+file:             rlticker.js
+mutation:         /^[A-Z0-9.\-]{1,12}$/  ->  /^[A-Z0-9.]{1,12}$/   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: Feature 027 F-AUDIT-09: the set of sizing-catalog members no deep link can name is EXACTLY the FX pair the company corridor excludes on purpose (8 of 11 committed members are nameable; unn
+green-exit:       0
+green-summary:      ✓ Feature 027 F-AUDIT-09: the set of sizing-catalog members no deep link can name is EXACTLY the FX pair the company corridor excludes on purpose (10 of 11 committed members are nameable; unnameab
+revert-verified:  yes (committed=23ea6d2fa56130810d5ef44d548697d4c94a7cb8 restored=23ea6d2fa56130810d5ef44d548697d4c94a7cb8)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe3_exit=0
+$ git status --porcelain -- rlticker.js
+(empty — byte-identical to committed blob 23ea6d2fa)
+```
+
+| Probe | Mutation | Assertion driven RED | `discriminating` | `revert-verified` |
+|---|---|---|---|---|
+| 1 | `=` added to the class | i.b — unnameable set empties (11 of 11 nameable) | yes | yes |
+| 2 | reader refuses any `-` | i.a — grammar-valid `BTC-USD` / `ETH-USD` no longer accepted | yes | yes |
+| 3 | `\-` removed from the class | i.b — unnameable set grows to three (8 of 11 nameable) | yes | yes |
+
+Probe 3 is the scenario the finding exists for: a later tightening that silently
+breaks `BTC-USD` while leaving `CNY=X` refused for the documented reason. A
+containment check would have stayed green through it; the exact set does not.
+
+### Artifact lint
+
+**Claim Source: executed.**
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/027-company-scoped-owner-deep-links
+✅ Detected state.json status: in_progress
+✅ Top-level status matches certification.status
+ℹ️  Workflow mode 'full-delivery' allows status 'done'; current status is 'in_progress'
+=== Anti-Fabrication Evidence Checks ===
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+=== End Anti-Fabrication Checks ===
+Artifact lint PASSED.
+artifact_lint_exit=0
+```
+
+### Deliberately not done
+
+- The audit's own findings table at `report.md:4637` was left byte-unchanged.
+  Closure is recorded in the `## Discovered Issues` ledger, which is where
+  `F-AUDIT-02`, `F-AUDIT-05` and `F-AUDIT-07` were closed. Rewriting the audit's
+  record of what it found would destroy the history the ledger exists to track.
+- `CNY=X` was not appended to `F027_REFUSED_CORPUS`, for the reason above.
+- No `volatility-sizing-lab.html` edit — `catalogAsset(handoff.subject) : null`
+  still occurs exactly once. No `options-flow-feed-lab.html`,
+  `intraday-tape-lab.html` or `swing-structure-lab.html` edit.
+- No lifetime-tax path (`rltax*.js`, `lifetime-tax-*`, `tax-rules/`,
+  `specs/021`–`024`) and no `specs/026-*` artefact was read or written.
+- The full browser suite was not re-run. This is a Node-only guard in
+  `scripts/selftest.mjs`, and no page loads that file.
+- No `uservalidation.md` item ticked (still 0 ticked / 19 unticked), no `status`
+  set to `done`, no `certifiedAt` written. `G136` is human-only.
 
 
 

@@ -28257,6 +28257,12 @@ try {
   assert(hllRealShort.ratios.length === hllRealLong.ratios.length
     && hllRealShort.ratios.every((r, i) => Math.abs(r - hllRealLong.ratios[i]) < 1e-9),
     'reward-to-risk is horizon-invariant because sigma cancels in k over m, so the floor admits the same names at every horizon');
+
+  /* Verified by swapping the pre-rename page in: every gate stayed green, so the rename could be
+     reverted by a merge taking a stale side and nothing would say so. The name matters because the
+     same scope iterates a watchlist containing SPY and reads policy.benchmarkSymbol = SPY. */
+  assert(!/\bvar\s+spy\b/.test(hllSrc) && /\bvar\s+sessionsPerYear\s*=/.test(hllSrc),
+    'the sessions-per-year local is not named spy, which the same scope would otherwise share with the SPY ticker it iterates');
 } catch (e) { failures++; console.log('  ✗ FAIL (horizon ladder gate group threw): ' + e.message); }
 /* ---------- Horizon Ladder Lab: earned-rate gate and frontier arithmetic (END) ---------- */
 

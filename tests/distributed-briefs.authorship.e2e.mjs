@@ -2,7 +2,7 @@
  * tests/distributed-briefs.authorship.e2e.mjs — Feature 002 Scope 06 (SCN-002-004/005/006).
  *
  * Scenario-specific persistent regression tests over the full production authorship graph: freezing the
- * live 22-source registry into one validated brief outcome per source (complete barrier, aggregator never
+ * live registry into one validated brief outcome per source (complete barrier, aggregator never
  * self-consumed, no invented evidence), proving unchanged/duplicate work creates no author call, no new
  * event, and no second content object, and proving the recommendation lifecycle preserves prior terms,
  * merges independent origins at minimum-retained confidence with shared causes counted once, and exposes
@@ -51,18 +51,18 @@ function poolAuthorFn() {
 }
 const RUN = { occurredAt: '2026-07-14T12:41:00.000Z', canonicalMonth: '2026-07' };
 
-test('Regression: SCN-002-004 all 22 source reads reach one truthful validated brief outcome', async () => {
+test('Regression: SCN-002-004 every registry source read reaches one truthful validated brief outcome', async () => {
   const frozen = freezeToolReads(readRegistry(), { evidence: evidenceBundle(), registryConfig: registryConfig() }, { symbol: 'SPY' });
   const budgets = profileBudgets();
   const reads = frozen.orderedSourceToolIds.map((toolId) => ({ toolId, read: frozen.reads[toolId], profile: frozen.reads[toolId].profile, profileBudget: budgets[frozen.reads[toolId].profile] }));
 
-  const pool = await runToolAuthorPool({ reads, identity: authorIdentity(), runBudget: runBudget(22), workers: 4, maxRetries: 2, authorFn: poolAuthorFn() });
+  const pool = await runToolAuthorPool({ reads, identity: authorIdentity(), runBudget: runBudget(frozen.sourceCount), workers: 4, maxRetries: 2, authorFn: poolAuthorFn() });
   assert.equal(pool.ok, true, pool.ok ? '' : JSON.stringify(pool.refusal));
 
   // The all-source barrier: the outcome IDs EXACTLY equal orderedSourceToolIds and the final aggregator is
   // never self-consumed — no source is omitted or invented.
   assert.deepEqual(Object.keys(pool.outcomes).sort(), frozen.orderedSourceToolIds.slice().sort());
-  assert.equal(Object.keys(pool.outcomes).length, 27);
+  assert.equal(Object.keys(pool.outcomes).length, frozen.sourceCount);
   assert.equal(pool.outcomes[frozen.aggregatorToolId], undefined);
   for (const toolId of frozen.orderedSourceToolIds) {
     const outcome = pool.outcomes[toolId];

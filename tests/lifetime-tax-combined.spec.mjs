@@ -406,6 +406,11 @@ test('Regression: SCN-022-014 the combined curve is reachable by keyboard and ha
 /* TP-05-20. */
 test('Regression: SCN-022-013 the request ledger stays empty across the full combined workflow', async ({ page }) => {
   const ledger = collectRequests(page);
+  /* The raw request objects, kept alongside the ledger because headers resolve asynchronously and
+     `collectRequests` records only the url, the method and the body. Without this the row's
+     referrer clause had nothing behind it. */
+  const issued = [];
+  page.on('request', (request) => issued.push(request));
   const consoleMessages = collectConsole(page);
   await openLifetimeTax(page, site);
   const afterFirstPaint = ledger.length;
@@ -438,6 +443,55 @@ test('Regression: SCN-022-013 the request ledger stays empty across the full com
     expect(entry.url).not.toContain(SENTINEL_ORDINARY);
     expect(entry.postData).toBe('');
   });
+
+  /* The referrer channel, which the ledger above cannot see at all. Two referrers exist on this
+     route and both are read here: the page's own `document.referrer`, and the `Referer` a request
+     carries. The request side is resolved through `allHeaders()` and scanned across EVERY header
+     rather than the referrer name alone, because the sibling privacy row `Regression: SCN-022-005
+     neither declared surtax basis reaches a URL, a request, a referrer or a console message` in
+     `lifetime-tax-surtax.spec.mjs` established that no request this route issues presents a
+     `Referer` even through `allHeaders()`. A referrer-only clause would therefore report a clean
+     channel it had never read, while the whole header set both subsumes the referrer and gives
+     the scan a corpus that is provably non-empty. The page URL is scanned into the SAME verdict
+     because it is the referrer's source: a value smuggled into it becomes the `Referer` of every
+     subsequent request, so it is the carrier through which this clause is falsifiable at all. */
+  const headerLedger = [];
+  for (const request of issued) {
+    headerLedger.push({ url: request.url(), headers: await request.allHeaders() });
+  }
+  const pageReferrer = await page.evaluate(() => document.referrer);
+  const needles = [SENTINEL_ORDINARY, 'state:FL', 'residency'];
+  const carriersIn = (label, text, sink) => {
+    needles.forEach((needle) => {
+      if (String(text).includes(needle)) sink.push(`${label}:${needle}`);
+    });
+  };
+
+  const carriers = [];
+  carriersIn('document-referrer', pageReferrer, carriers);
+  carriersIn('page-url', page.url(), carriers);
+  headerLedger.forEach((entry, index) => {
+    Object.keys(entry.headers).forEach((name) => {
+      carriersIn(`request-header[${index}].${name}`, entry.headers[name], carriers);
+    });
+  });
+  expect(carriers).toEqual([]);
+
+  /* Non-vacuity. A clean verdict over an empty corpus would prove nothing, so the run must
+     actually have observed requests AND a non-empty header corpus. */
+  expect(headerLedger.length).toBeGreaterThan(0);
+  const headerValues = headerLedger.reduce((count, entry) => count + Object.keys(entry.headers).length, 0);
+  expect(headerValues).toBeGreaterThan(0);
+
+  /* The detector is proven able to name a planted value without routing any declaration through
+     the page. The control string is built and scanned inside this test process only — nothing is
+     navigated, fetched, logged or rendered — so a slipped revert cannot disclose anything. */
+  const control = [];
+  carriersIn('control-referrer', `${site.baseUrl}/elsewhere?ordinary=${SENTINEL_ORDINARY}&residency=state:FL`, control);
+  expect(control).toContain(`control-referrer:${SENTINEL_ORDINARY}`);
+  expect(control).toContain('control-referrer:state:FL');
+  expect(control).toContain('control-referrer:residency');
+  expect(control.length).toBe(3);
 
   /* No household value and no residency reaches the URL, the query string or the hash. The hash
      carries the view mode and nothing else. */

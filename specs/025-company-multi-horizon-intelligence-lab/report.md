@@ -5016,5 +5016,90 @@ headless Chromium against the committed page, alongside the four owner routes.
 
 **Educational research only. Not investment advice.**
 
+## Spec-Review Phase — no drift found on the core claims (`bubbles.spec-review`)
+
+**Executed:** YES
+**Phase Agent:** bubbles.spec-review
+**Claim Source:** executed
+
+The phase was missing: `full-delivery` requires `spec-review`, and neither this
+report nor `execution.completedPhaseClaims` carried one, while every other
+required phase was already claimed. This pass is read-only against the shipped
+module, route and config; no source file, test, `state.json` or
+`uservalidation.md` was modified by it.
+
+**Verdict.** Trust classification **CURRENT**. Each core claim was checked
+against shipped code rather than against the design that proposed it.
+
+```
+$ node -e 'const c=JSON.parse(require("fs").readFileSync("company-intelligence.config.json","utf8"));for(const k of Object.keys(c)){const v=c[k];if(Array.isArray(v))console.log(k+" = "+v.length+" entries");}'
+coverageRegistry = 15 entries
+horizons = 4 entries
+
+$ grep -oiE '"(broad|narrow|thin|absent)"' rlcompanyintel.js | sort -u
+"absent" "broad" "narrow" "thin"
+
+$ grep -cEi 'winProbability|probabilityOfProfit|confidencePercent|chanceOf' rlcompanyintel.js company-intelligence-lab.html
+rlcompanyintel.js:0
+company-intelligence-lab.html:0
+
+$ grep -cEi 'overallVerdict|blendedDirection|mergedHorizon|compositeVerdict' rlcompanyintel.js
+0
+
+$ grep -c 'ownerDeepLink' company-intelligence.config.json
+15
+
+$ grep -c 'unavailable' rlcompanyintel.js
+53
+```
+
+Read as claims: four horizons and fifteen dimensions are structural in the
+config rather than asserted in prose; the confidence vocabulary is exactly the
+four evidence-quality words, with no numeric or probability form anywhere in
+either the module or the route; no construct merges the horizons into a single
+verdict; every one of the fifteen registry rows carries an `ownerDeepLink`, so
+the owner-routing rule is total rather than partial; and `unavailable` is a
+named state reached from 53 sites rather than a blank fallback.
+
+**One near-miss worth recording.** A first pass grepped
+`"(provenanceClass|asOf|source)"` in quoted form and matched only `"asOf"`,
+which would have read as missing provenance. The narrower pattern was the
+defect, not the code — the identifiers appear unquoted.
+
+```
+$ grep -oiE '[a-z]*provenance[a-z]*|sourceUrl|sourceName' rlcompanyintel.js | sort | uniq -c | sort -rn
+  51 sourceName
+  11 sourceUrl
+   4 provenanceClass
+   2 provenance
+```
+
+**Artifact counts checked, not assumed.** The sibling spec 027 carried a DoD
+miscount across six prose sites and three `state.json` fields, so the same check
+was run here rather than inferred from that result. It is clean.
+
+```
+$ awk '/^## Scope/{s++} /^- \[x\]/{c[s]++} /^- \[ \]/{u[s]++} END{for(i=1;i<=s;i++) printf "scope%d ticked=%d unticked=%d\n", i, c[i], u[i]}' scopes.md
+scope2 ticked=38 unticked=0
+scope3 ticked=32 unticked=0
+scope4 ticked=19 unticked=0
+scope5 ticked=22 unticked=0
+
+state.json dodTicked=[38,32,19,22]  dodUnticked=[0,0,0,0]
+scope status=["done","done","done","done"]
+
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3404 passed, 0 failed
+
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/025-company-multi-horizon-intelligence-lab
+lint_exit=0
+```
+
+**Nothing certified by this phase.** No `status` set to `done`, no `certifiedAt`
+written, no `uservalidation.md` item touched.
+
+**Educational research only. Not investment advice.**
+
+
 
 

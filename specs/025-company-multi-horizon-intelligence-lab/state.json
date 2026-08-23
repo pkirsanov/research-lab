@@ -228,6 +228,20 @@
         "durationSeconds": 930,
         "durationBasis": "Measured. Start is the repository-binding preflight instant this pass committed, recorded as control revision 57 in the session control file with timestamp 2026-08-19T20:41:12Z; end is the instant this claim was written, read from date -u.",
         "evidenceRef": "specs/025-company-multi-horizon-intelligence-lab/report.md#aud-025-f1-closure--the-four-surviving-mutations-now-have-assertions-that-kill-them"
+      },
+      {
+        "phase": "spec-review",
+        "agent": "bubbles.spec-review",
+        "scopes": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "claimedAt": "2026-08-23T19:20:00Z",
+        "startedAt": "2026-08-23T19:12:00Z",
+        "durationBasis": "UNMEASURED. No preflight instant was captured for this pass, so startedAt and completedAt bound the review rather than measure it; no durationSeconds is asserted because none was observed.",
+        "evidenceRef": "specs/025-company-multi-horizon-intelligence-lab/report.md#spec-review-phase--no-drift-found-on-the-core-claims-bubblesspec-review"
       }
     ],
     "pendingTransitionRequests": [],
@@ -676,6 +690,18 @@
       "finishedAt": "2026-08-19T20:56:42Z",
       "outcome": "completed_owned",
       "summary": "Closure pass for AUD-025-F1, the four recheck mutations the audit phase recorded as surviving. Repository binding was resolved from the host first: repository-binding-host-context.sh returned expectedControlRevision 56 after refusing the workspace root AirbnbScraperDS as not a Git worktree and printing the exact re-run form; repository-binding.sh preflight --request-class STRUCTURED then printed PREFLIGHT_COMMITTED decision rb:vscode-76796f8295100da71eb37ed18f20cd77:57 revision 57 with actionable true, and the transition-history entry for revision 57 carries timestamp 2026-08-19T20:41:12Z, which is this row's measured start. Four assertions were added to tests/company-intelligence.unit.mjs, one per surviving mutation: the ticker and cik legs of envelopeSubjectMismatch (M14-recheck, FR-025-013), buildCoverageAccount's refusal when a registry dimension produced no read, asserted for all fifteen dimensions in turn (M17-recheck, FR-025-018), the date leg of selectUpcomingCatalysts (M11-recheck, FR-025-031), and makeRead's closed-reason-code refusal (M01-recheck, FR-025-006). Each was proven both ways by applying the audit's own mutation verbatim from /private/tmp/rl-audit-025/mutations.json to the working-tree source, running the suite, and reverting in a finally block: every mutated run reported exit 1 with pass 73 fail 1, naming only the matching new test, which also proves no pre-existing assertion was weakened or removed to make room. rlcompanyintel.js entered and left at sha256 4881db1647da6400b36efa0f71c1bd790738c8a3b1f8e82ef675517849acae8e at 114317 bytes, verified identical after every single revert, and the four mutated hashes are recorded in report.md so no mutated state can be mistaken for the shipped file. M01-recheck required a stated reachability limitation rather than a black-box assertion: makeRead is not exported, all sixteen of its call sites pass a literal from REASON_CODES and mergeDimensionReads only forwards an adapter-produced code, so over the public API it is an equivalent mutant; the test therefore re-evaluates the shipped source with one key added to the returned object and nothing else altered, which is disclosed in report.md rather than presented as public-surface coverage. AUD-025-F3 was closed after verifying both Uncertainty Declarations stale against the rewritten DoD lines at scopes.md 562 and 589, with an independent recount over Definition of Done blocks returning 38/0, 32/0, 19/0 and 22/0 for a total of 111 ticked and 0 unticked; the declarations were annotated with their resolutions rather than deleted, and the one genuinely open method disclosure about the committed bars aging past the freshness window was left open and labelled. VAL-025-F3 was closed by replacing the prose Claim Source value with the taxonomy value executed. Measured after the change: node --test tests/company-intelligence.unit.mjs exit 0 at tests 74 pass 74 fail 0 skipped 0 todo 0, and the system-chrome browser suite exit 0 at 29 passed. This pass ticked no acceptance-checklist item, authored no Human Acceptance Record, wrote no certification field, no certifiedAt and no terminal status, edited no DoD text, modified no production source, and read or wrote no file under any lifetime-tax path, specs/021 through specs/024 or specs/026. G136 remains open and human-owned."
+    },
+    {
+      "agent": "bubbles.spec-review",
+      "phasesExecuted": [
+        "spec-review"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-23T19:12:00Z",
+      "finishedAt": "2026-08-23T19:20:00Z",
+      "outcome": "completed_owned",
+      "summary": "Spec-review phase, run read-only because full-delivery requires it and neither report.md nor completedPhaseClaims carried one while every other required phase was already claimed. DURATION IS UNMEASURED: no preflight instant was captured, so startedAt and finishedAt bound the review rather than measure it. VERDICT: CURRENT, no drift found on the core claims, each checked against shipped code rather than against the design that proposed it. Four horizons and fifteen dimensions are structural in company-intelligence.config.json (horizons = 4 entries, coverageRegistry = 15 entries) rather than asserted in prose; the confidence vocabulary in rlcompanyintel.js is exactly absent/broad/narrow/thin with zero matches for winProbability, probabilityOfProfit, confidencePercent or chanceOf in either the module or the route; zero matches for overallVerdict, blendedDirection, mergedHorizon or compositeVerdict, so nothing merges the horizons into a single answer; all fifteen registry rows carry an ownerDeepLink, making the owner-routing rule total rather than partial; and unavailable is a named state reached from 53 sites rather than a blank fallback. ONE NEAR-MISS RECORDED IN THE REPORT: a first pass grepped the quoted form \"(provenanceClass|asOf|source)\" and matched only \"asOf\", which would have read as missing provenance; the narrow pattern was the defect, not the code - sourceName appears 51 times, sourceUrl 11 and provenanceClass 4, unquoted. ARTIFACT COUNTS CHECKED RATHER THAN ASSUMED: sibling spec 027 carried a DoD miscount across six prose sites and three state.json fields, so the same check was run here and is clean at 38/32/19/22 ticked, 0 unticked, matching scopes.md and state.json. Selftest 3404 passed 0 failed; artifact lint exit 0. NOTHING CERTIFIED: no status set to done, no certifiedAt written, no uservalidation item touched."
     }
   ],
   "activeBugs": [],

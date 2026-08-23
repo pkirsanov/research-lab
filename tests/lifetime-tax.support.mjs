@@ -1,4 +1,9 @@
 import { expect } from './playwright-runtime.mjs';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 export const LIFETIME_TAX_ROUTE = '/lifetime-tax-strategy-lab.html';
 
@@ -38,6 +43,25 @@ export function declaredPackPaths(config) {
         ? [declared]
         : Object.keys(declared).map((inner) => declared[inner]));
     }, []);
+}
+
+/* The permitted-asset set, DERIVED from the route's own `<script src>` tags and from every pack
+   path the configuration declares, so a pack a later scope introduces is admitted by its own
+   declaration rather than by a literal edited here.
+
+   Ten spec files held a byte-identical copy of this derivation. They are one function now, not
+   because ten copies were untidy but because ten copies are ten places an admission could be
+   widened, and a widened admission is exactly what this set exists to refuse. The two callers
+   that parameterise the configuration path keep their own derivation: collapsing those would
+   hard-code a path they deliberately made a variable. */
+export function declaredRouteAssets() {
+  const routeSource = readFileSync(join(ROOT, 'lifetime-tax-strategy-lab.html'), 'utf8');
+  const config = JSON.parse(readFileSync(join(ROOT, 'lifetime-tax-strategy.config.json'), 'utf8'));
+  const scripts = Array.from(routeSource.matchAll(/<script src="([^"]+)"><\/script>/g))
+    .map((match) => '/' + match[1]);
+  const packs = declaredPackPaths(config).map((path) => '/' + path);
+  return ['/lifetime-tax-strategy-lab.html', '/lifetime-tax-strategy.config.json']
+    .concat(scripts).concat(packs).concat(['/favicon.ico']);
 }
 
 export function collectRequests(page) {

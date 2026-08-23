@@ -28559,6 +28559,63 @@ try {
   'H4: an exemption larger than the capped assessed value remaining is applied only to the extent of that remainder and the published exemption total says so, while a household whose capped value exceeds the exemption applies it whole — so an implementation applying the declared amount unbounded overstates the exemption it reports even though the taxable basis is separately clamped at zero');
 } catch (e) { failures++; console.log('  ✗ FAIL (lifetime-tax lesser-of bound group threw): ' + e.message); }
 
+/* Four merges (612382ddf, a30410572, e8235b996, 1e765338d) each had one parent carrying the
+   combined federal-plus-state panel and one parent without it, and each resolved to WITHOUT.
+   rltaxcombined.js survived every one of them byte-identical — only the <script src> tag and the
+   panel markup were dropped. Nothing here compared the route against the things it depends on, so
+   3388 assertions passed on a page that never loads the module, and the only witness was the
+   browser suite: six 30s locator timeouts inside a run already red for other reasons.
+
+   Both required sets are DERIVED, never listed, so neither rots as the tool grows — and neither
+   can be satisfied by deleting the very markup that would otherwise define it:
+     * modules — every rltax*.js in the repo root. The family is route-exclusive (W1 establishes
+       that), so a module sitting on disk that the route never loads is a dropped tag.
+     * markers — the DOM anchors tests/lifetime-tax-combined.spec.mjs actually locates. Deriving
+       from the browser spec rather than from the route is what keeps this honest: on origin/main
+       the route lost the panel markup AND its window.RLTAXCOMBINED read together, so a guard
+       reading only the route would agree with the damage and pass on an empty page.
+   Each set carries a floor, so emptying a derivation's source fails here instead of passing. */
+try {
+  group('Lifetime tax — the route wires every module and panel marker it depends on (BUG-016)');
+  const wRoute = 'lifetime-tax-strategy-lab.html';
+  const wRouteSrc = read(wRoute);
+  const wSpecPath = 'tests/lifetime-tax-combined.spec.mjs';
+  const wSpecSrc = read(wSpecPath);
+
+  const wModules = readdirSync(ROOT).filter((f) => /^rltax[a-z0-9]*\.js$/.test(f)).sort();
+  const wOtherConsumers = readdirSync(ROOT)
+    .filter((f) => f.endsWith('.html') && f !== wRoute)
+    .filter((f) => read(f).indexOf('src="rltax') >= 0);
+  assert(wOtherConsumers.length === 0 && wModules.length >= 10,
+    'W1: the rltax module family is exclusive to ' + wRoute + ' — ' + wModules.length
+    + ' modules on disk, other HTML consumers: ' + (wOtherConsumers.join(', ') || 'none')
+    + ' — which is what licenses W2 to require the route to load every one of them');
+
+  const wUnwired = wModules.filter((f) => wRouteSrc.indexOf('src="' + f + '"') < 0);
+  assert(wUnwired.length === 0 && wModules.length >= 10,
+    'W2: ' + wRoute + ' carries a <script src> for every rltax module on disk — '
+    + wModules.length + ' modules, unwired: ' + (wUnwired.join(', ') || 'none')
+    + ' — an unwired module still ships its file and still passes its own unit checks, but never'
+    + ' loads in the browser, so the panel it powers is silently absent from the page');
+
+  const wIdMarkers = Array.from(new Set((wSpecSrc.match(/['"]#(combined[A-Za-z0-9_-]*)/g) || [])
+    .map((m) => m.slice(2)))).sort();
+  const wMissingIds = wIdMarkers.filter((id) => wRouteSrc.indexOf('id="' + id + '"') < 0);
+  assert(wMissingIds.length === 0 && wIdMarkers.length >= 8,
+    'W3: every #combined anchor ' + wSpecPath + ' locates exists as an element id in the route — '
+    + wIdMarkers.length + ' anchors, missing: ' + (wMissingIds.join(', ') || 'none')
+    + ' — a missing anchor is precisely what turns a browser assertion into a 30s locator timeout');
+
+  const wValueMarkers = Array.from(new Set((wSpecSrc.match(/data-rl-value="combined[A-Za-z0-9_-]*"/g) || [])
+    .map((m) => m.slice('data-rl-value="'.length, -1)))).sort();
+  const wMissingValues = wValueMarkers.filter((v) => wRouteSrc.indexOf('"' + v + '"') < 0);
+  assert(wMissingValues.length === 0 && wValueMarkers.length >= 5,
+    'W4: every combined data-rl-value name ' + wSpecPath + ' locates appears in the route — '
+    + wValueMarkers.length + ' names, missing: ' + (wMissingValues.join(', ') || 'none')
+    + ' — the route script emits these nodes, so a name it never mentions means the combined'
+    + ' settlement is not rendered at all, not merely mislabelled');
+} catch (e) { failures++; console.log('  ✗ FAIL (lifetime-tax route wiring group threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

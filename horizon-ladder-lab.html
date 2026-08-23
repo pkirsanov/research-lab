@@ -815,6 +815,8 @@
                     analogN: analog.n,
                     analogK: analog.k,
                     analogRate: usesAnalog ? analog.rate : null,
+                    // Overlapping windows: n counts starts, this counts non-overlapping ones.
+                    analogIndependent: Math.floor(closes.length / sessions),
                     moveP25: hlPercentile(sortedForward, 0.25),
                     moveP50: hlPercentile(sortedForward, 0.50),
                     moveP75: hlPercentile(sortedForward, 0.75),
@@ -844,14 +846,32 @@
         /* Profiles select among real structure rather than imposing a target distance. */
         function applyProfile(rows, excluded) {
             var kept = [], dropped = [];
+            var floor = CFG.policy.analogProbabilityFloor;
+            var minIndep = CFG.policy.minIndependentWindows;
             for (var i = 0; i < rows.length; i++) {
                 var r = rows[i];
-                if (state.profile === 'lower-risk' && !(isFinite(r.rr) && r.rr >= CFG.policy.rewardToRiskFloor)) {
-                    dropped.push({ symbol: r.symbol, reason: 'reward-to-risk ' + (isFinite(r.rr) ? r.rr.toFixed(2) : 'n/a') + ' is below the ' + CFG.policy.rewardToRiskFloor + ' floor for the lower-risk profile' });
+                /* The probability floor is a property of the TOOL, not of one profile. This ladder
+                   exists to name high-probability candidates, so a name below the floor must not be
+                   published under any profile — the profiles differ in how they RANK the names that
+                   qualify, never in whether a coin flip is allowed to appear. Scoping this to the
+                   high-probability profile alone let the lower-risk list top-rank a 29.5% shot on
+                   the strength of its reward-to-risk, which reads as an endorsement it has not earned. */
+                if (!isFinite(r.analogRate) || r.analogN < CFG.policy.minAnalogSample) {
+                    dropped.push({ symbol: r.symbol, reason: 'no measured rate to stand on: analog sample ' + (isFinite(r.analogN) ? r.analogN : 0) + ' of ' + CFG.policy.minAnalogSample + ' required' });
                     continue;
                 }
-                if (state.profile === 'high-probability' && r.rateWithheld) {
-                    dropped.push({ symbol: r.symbol, reason: 'high-probability profile requires an earned rate; this cell is withheld' });
+                /* Analog windows overlap, so a large n can still rest on very few independent
+                   observations. History length divided by the horizon is that independent count. */
+                if (!isFinite(r.analogIndependent) || r.analogIndependent < minIndep) {
+                    dropped.push({ symbol: r.symbol, reason: 'analog windows overlap: only ' + (isFinite(r.analogIndependent) ? r.analogIndependent : 0) + ' independent ' + state.horizon + ' windows in the available history, ' + minIndep + ' required' });
+                    continue;
+                }
+                if (r.analogRate < floor) {
+                    dropped.push({ symbol: r.symbol, reason: 'measured rate ' + (r.analogRate * 100).toFixed(1) + '% is below the ' + (floor * 100).toFixed(0) + '% probability floor this tool publishes at' });
+                    continue;
+                }
+                if (state.profile === 'lower-risk' && !(isFinite(r.rr) && r.rr >= CFG.policy.rewardToRiskFloor)) {
+                    dropped.push({ symbol: r.symbol, reason: 'reward-to-risk ' + (isFinite(r.rr) ? r.rr.toFixed(2) : 'n/a') + ' is below the ' + CFG.policy.rewardToRiskFloor + ' floor for the lower-risk profile' });
                     continue;
                 }
                 kept.push(r);
@@ -862,23 +882,43 @@
         function sortKeyForProfile() {
             if (state.profile === 'high-reward') return 'movePct';
             if (state.profile === 'lower-risk') return 'rr';
+            if (state.profile === 'high-probability') return 'analogRate';
             return 'ev';
         }
 
 
         /* ---------- rendering ---------- */
 
-        function renderGateNotice(gate, sessions) {
+        function renderGateNotice(gate, sessions, rows) {
             var cell = cellKey(state.direction, state.horizon);
             var progress = hlEarnProgress(gate.ledgerResolved, gate.ledgerMin);
+            var list = rows || [];
+            var analogRows = 0, modelRows = 0;
+            for (var i = 0; i < list.length; i++) {
+                if (list[i].probabilitySource === 'analog') { analogRows++; } else { modelRows++; }
+            }
             var html = '';
             if (!gate.published) {
-                html += '<strong>Probability withheld for ' + esc(cell) + '.</strong> ';
+                html += '<strong>Measured rate withheld for ' + esc(cell) + '.</strong> ';
                 html += 'Reason <code>' + esc(gate.reason) + '</code>. ';
                 html += 'Resolved outcomes ' + progress.resolved + ' of ' + progress.minimum + ' required; '
-                    + progress.remaining + ' more must resolve before any rate is shown for this cell. ';
-                html += 'The model probability column below is arithmetic from the target distance and the chosen '
-                    + 'resolution rule. It is not a measured hit rate and must not be read as one.';
+                    + progress.remaining + ' more must resolve before the Measured rate column fills for this cell. ';
+                /* This sentence has to describe the column that is actually on screen. It used to
+                   assert the Prob. column was always arithmetic, which stopped being true when the
+                   profiles began ranking on the analog rate: the table read "75.0% analog" directly
+                   beneath a claim that it was not a measured rate. */
+                if (analogRows && !modelRows) {
+                    html += 'The Prob. column below is the measured analog rate, a hit rate over regime-matched '
+                        + 'history. That is not the same claim as a forward track record, which is what the '
+                        + 'Measured rate column above is waiting on.';
+                } else if (analogRows && modelRows) {
+                    html += 'The Prob. column below is mixed: ' + analogRows + ' row' + (analogRows === 1 ? '' : 's')
+                        + ' carry the measured analog rate over regime-matched history and ' + modelRows
+                        + ' fall back to arithmetic from the target distance. Each row names its own source.';
+                } else {
+                    html += 'The Prob. column below is arithmetic from the target distance and the chosen '
+                        + 'resolution rule. It is not a measured hit rate and must not be read as one.';
+                }
             } else {
                 html += '<strong>Rate published for ' + esc(cell) + '.</strong> Both the analog and ledger samples cleared their minimum.';
             }
@@ -896,7 +936,10 @@
             if (!isFinite(row.analogRate)) {
                 return '<span class="withheld">n=' + row.analogN + '</span>';
             }
-            return fmtPct(row.analogRate) + ' <span class="dim">(' + row.analogK + '/' + row.analogN + ')</span>';
+            /* n counts overlapping window starts, so it overstates evidence on its own. The
+               independent count is what a reader should weigh a high rate against. */
+            return fmtPct(row.analogRate) + ' <span class="dim">(' + row.analogK + '/' + row.analogN
+                + ', ' + (isFinite(row.analogIndependent) ? row.analogIndependent : 0) + ' indep)</span>';
         }
 
         function renderTable(target, rows, full) {
@@ -1037,7 +1080,7 @@
             var events = hlEventsInWindow(market.events, built.sessions, Date.now());
             el('simpleTitle').textContent = state.direction + ' candidates, '
                 + esc(hlHorizonLabel(state.horizon)) + ', ' + state.profile;
-            renderGateNotice(built.gate, built.sessions);
+            renderGateNotice(built.gate, built.sessions, built.rows);
             renderEvents(events, built.sessions);
             renderChanges(built.rows);
             renderTable('simpleTable', built.rows.slice(0, 6), false);

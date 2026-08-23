@@ -77,13 +77,39 @@ Every surface below had to move together, and the suite pins each one:
 | `README.md`, `notes/README.md` | Reader-facing rows |
 
 The coverage rows are deliberately `not-relevant` and `browser-or-agent-read`
-rather than `analyzed`. The ladder withholds a rate at all six horizons, so it
-contributes no owning-tool conclusion to a brief window, and saying otherwise
-would put a number into the cockpit that no resolved sample supports.
+rather than `analyzed`. The LIVE ledger is what the brief would inherit, and it
+holds zero resolved outcomes, so the ladder contributes no owning-tool conclusion
+to a brief window.
 
-This brief is a design and a delivery record. It contains no candidate names, no
-levels, and no probabilities, because the repository cannot yet substantiate
-any.
+That live ledger is not the same thing as the tool having nothing to say. The
+high-probability profile ranks on the MEASURED analog rate, which is a real hit
+rate over regime-matched history with its sample shown, and it names candidates
+today at every horizon the data supports. The first build gated that profile on
+the live ledger instead, so it dropped every name at every horizon and answered
+an empty table forever. That was a defect, not restraint: a measured rate was
+already computed and sitting unused.
+
+Two floors keep the published list honest, and they belong to the TOOL rather
+than to one profile. A rate must clear 55%, and the history must hold at least
+three INDEPENDENT windows at the selected horizon, because analog windows overlap
+and a large `n` can rest on very few independent observations. Every displayed
+rate carries that independent count beside it, so a reader weighing
+`100.0% (60/60, 4 indep)` can see the 100% rests on four windows, not sixty. At
+one year the committed history yields two independent windows, so nothing is
+named there and the exclusion ledger says why.
+
+Scoping those floors to the high-probability profile alone was the second half of
+the same defect. The lower-risk list went on top-ranking a 29.5% name on the
+strength of its reward-to-risk — a coin flip presented as the safest idea on the
+board, in a tool whose stated job is to name high-probability candidates. The
+floors now apply to every profile; the profiles differ in how they RANK what
+qualifies, never in whether a coin flip may appear. At one month long that gives
+three different leaders from one qualifying set: META on reward-to-risk, AMD on
+expected move, SOXX on measured rate.
+
+The cost is a shorter list, and on the short side a much shorter one, because
+shorts rarely clear a 55% floor over these lookbacks. That is the honest shape of
+the evidence rather than a gap to be papered over.
 
 
 

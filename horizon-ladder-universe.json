@@ -17,6 +17,8 @@
   "policy": {
     "minResolvedSample": 20,
     "minAnalogSample": 20,
+    "analogProbabilityFloor": 0.55,
+    "minIndependentWindows": 3,
     "sessionsPerYear": 252,
     "benchmarkSymbol": "SPY",
     "pivotSpan": 3,

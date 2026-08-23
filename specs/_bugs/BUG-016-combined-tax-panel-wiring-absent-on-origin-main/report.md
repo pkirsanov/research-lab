@@ -435,3 +435,239 @@ is undecided by design.
 Status is `in_progress` and certification status matches it. `certifiedCompletedPhases` is
 empty: phase certification belongs to the validating agent, and no independent party has
 re-derived any measurement recorded here.
+
+## Durable Guard Added After The Filing Above
+
+Everything below postdates the Completion Statement. A separate run was directed to add the
+fast check that Scope 3 describes. The Completion Statement above is left exactly as filed and
+is accurate for the run that wrote it.
+
+**No Definition of Done item is ticked by this work, and none should be.** Scope 3 carries
+`Disposition: undecided — Scope 1 records whether this is taken or declined`, and Scope 1 is
+the branch-reconciliation decision that this run was again forbidden to make. Ticking Scope 3
+would decide Scope 1 by implication. The evidence below is recorded so that whoever answers
+Scope 1 can tick against executed output rather than re-run it.
+
+### The guard, and how its required sets are derived
+
+Four assertions were appended at the tail of `scripts/selftest.mjs`, in a group named
+`Lifetime tax — the route wires every module and panel marker it depends on (BUG-016)`.
+
+Neither required set is written down. Both are derived, so neither rots as the tool grows, and
+neither can be satisfied by deleting the markup that would otherwise define it:
+
+- **Modules** are every `rltax*.js` in the repo root, read with `readdirSync`. W1 establishes
+  the premise that licenses this: the `rltax` family is consumed by exactly one page, so a
+  module sitting on disk that the route never loads is a dropped tag rather than a spare part.
+- **Markers** are the DOM anchors that `tests/lifetime-tax-combined.spec.mjs` actually locates
+  — `'#combined…'` id locators for W3, `data-rl-value="combined…"` names for W4.
+
+Deriving the markers from the browser spec rather than from the route is the load-bearing
+choice, and it corrects an assumption worth stating plainly. **On `origin/main` the route does
+not read `window.RLTAXCOMBINED` either.** The panel markup, the script tag and the module's
+only reader were dropped by the same resolution, together. A guard that asked "does the route
+wire what the route references" would therefore have agreed with the damage and passed on an
+empty page. The browser spec survived all four merges intact, so it is the stable side of the
+comparison.
+
+Each derivation carries a floor — `modules >= 10`, id anchors `>= 8`, value names `>= 5` — so
+emptying a derivation's source fails here instead of passing vacuously.
+
+The assertion text, as printed on a coherent branch:
+
+```text
+Lifetime tax — the route wires every module and panel marker it depends on (BUG-016)
+  ✓ W1: the rltax module family is exclusive to lifetime-tax-strategy-lab.html — 14 modules on disk, other HTML consumers: none — which is what licenses W2 to require the route to load every one of them
+  ✓ W2: lifetime-tax-strategy-lab.html carries a <script src> for every rltax module on disk — 14 modules, unwired: none — an unwired module still ships its file and still passes its own unit checks, but never loads in the browser, so the panel it powers is silently absent from the page
+  ✓ W3: every #combined anchor tests/lifetime-tax-combined.spec.mjs locates exists as an element id in the route — 10 anchors, missing: none — a missing anchor is precisely what turns a browser assertion into a 30s locator timeout
+  ✓ W4: every combined data-rl-value name tests/lifetime-tax-combined.spec.mjs locates appears in the route — 6 names, missing: none — the route script emits these nodes, so a name it never mentions means the combined settlement is not rendered at all, not merely mislabelled
+```
+
+### The guard fires on the deployed branch, read directly from the ref
+
+Before the guard was written, its two rules were evaluated against `origin/main` content read
+straight out of the ref, to confirm the guard would not pass vacuously on the very branch the
+defect is on. Seventeen findings, from a spec that is present and intact at that ref:
+
+```text
+$ git ls-tree origin/main -- tests/lifetime-tax-combined.spec.mjs
+100644 blob 7515417fb63aea4af494c899d93461e0e64d96b3    tests/lifetime-tax-combined.spec.mjs
+origin_spec_id_locators=10 origin_spec_value_locators=6
+
+=== A-set (10 id locators) vs ORIGIN route ===
+  MISSING  combinedCurveChart
+  MISSING  combinedCurveIncompleteLabel
+  MISSING  combinedCurveTextEquivalent
+  MISSING  combinedCurveTextEquivalentBody
+  MISSING  combinedIndependenceLine
+  MISSING  combinedItemizedNotice
+  MISSING  combinedLegBreakdownBody
+  MISSING  combinedPackYearsBody
+  MISSING  combinedRefusal
+  MISSING  combinedSettlementCard
+
+=== B-set (6 value locators) vs ORIGIN route ===
+  MISSING  combined-federal-total
+  MISSING  combined-state-total
+  MISSING  combined-total
+  MISSING  combinedFederalLeg
+  MISSING  combinedStateLeg
+  MISSING  combinedTotalTax
+
+=== module wiring vs ORIGIN route ===
+  UNWIRED  rltaxcombined.js
+(only UNWIRED shown)
+```
+
+This is the Scope 3 condition stated as "the check is not satisfiable by a branch that carries
+the spec and not the selectors", demonstrated against that branch's real content.
+
+### Probe 1 — a merge drops the `rltaxcombined.js` script tag
+
+```text
+$ bash scripts/red-green-probe.sh \
+    --file lifetime-tax-strategy-lab.html \
+    --find '<script src="rltaxcombined.js"></script>' \
+    --replace '<!-- probe: combined module tag absent -->' \
+    --label 'BUG-016 W2 — merge drops the rltaxcombined.js script tag' \
+    --bound 600 --summary-match 'W2: ' \
+    -- node scripts/selftest.mjs
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BUG-016 W2 — merge drops the rltaxcombined.js script tag
+file:             lifetime-tax-strategy-lab.html
+mutation:         <script src="rltaxcombined.js"></script>  ->  <!-- probe: combined module tag absent -->   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: W2: lifetime-tax-strategy-lab.html carries a <script src> for every rltax module on disk — 14 modules, unwired: rltaxcombined.js — an unwired module still ships its file and still pass
+green-exit:       0
+green-summary:      ✓ W2: lifetime-tax-strategy-lab.html carries a <script src> for every rltax module on disk — 14 modules, unwired: none — an unwired module still ships its file and still passes its own unit ch
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE1_EXIT=0
+```
+
+The mutation reproduces the exact shape of the defect: the module file is untouched and every
+unit assertion over it still passes, while the page no longer loads it. The RED summary names
+`rltaxcombined.js` by name. `--summary-match` is pinned to the assertion's own `W2: ` token
+rather than to the aggregate pass count, because a concurrent session moves the aggregate.
+
+### Probe 2 — a merge drops the combined curve anchor from the markup
+
+```text
+$ bash scripts/red-green-probe.sh \
+    --file lifetime-tax-strategy-lab.html \
+    --find 'id="combinedCurveChart"' \
+    --replace 'id="probeRemovedCurveChart"' \
+    --label 'BUG-016 W3 — merge drops the combined curve anchor from the markup' \
+    --bound 600 --summary-match 'W3: ' \
+    -- node scripts/selftest.mjs
+pre-probe tree (must be empty): []
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BUG-016 W3 — merge drops the combined curve anchor from the markup
+file:             lifetime-tax-strategy-lab.html
+mutation:         id="combinedCurveChart"  ->  id="probeRemovedCurveChart"   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: W3: every #combined anchor tests/lifetime-tax-combined.spec.mjs locates exists as an element id in the route — 10 anchors, missing: combinedCurveChart — a missing anchor is precisely w
+green-exit:       0
+green-summary:      ✓ W3: every #combined anchor tests/lifetime-tax-combined.spec.mjs locates exists as an element id in the route — 10 anchors, missing: none — a missing anchor is precisely what turns a browser
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE2_EXIT=0
+```
+
+`combinedCurveChart` is the anchor behind one of the three absent selectors recorded earlier in
+this report. The neighbouring `id="combinedCurveChartFallback"` is deliberately not a false
+match: the assertion looks for `id="combinedCurveChart"` with its closing quote, so the longer
+id does not satisfy the shorter one.
+
+### Probe 3 — a merge drops the combined federal leg value name
+
+Two probes were required. A third was run because the markers split into two families that fail
+independently, and a guard proven only on the id family would leave the other half unproven.
+
+```text
+$ bash scripts/red-green-probe.sh \
+    --file lifetime-tax-strategy-lab.html \
+    --find '"combinedFederalLeg"' \
+    --replace '"probeRemovedFederalLeg"' \
+    --label 'BUG-016 W4 — merge drops the combined federal leg value name' \
+    --bound 600 --summary-match 'W4: ' \
+    -- node scripts/selftest.mjs
+pre-probe tree (must be empty): []
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BUG-016 W4 — merge drops the combined federal leg value name
+file:             lifetime-tax-strategy-lab.html
+mutation:         "combinedFederalLeg"  ->  "probeRemovedFederalLeg"   (2 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: W4: every combined data-rl-value name tests/lifetime-tax-combined.spec.mjs locates appears in the route — 6 names, missing: combinedFederalLeg — the route script emits these nodes, so
+green-exit:       0
+green-summary:      ✓ W4: every combined data-rl-value name tests/lifetime-tax-combined.spec.mjs locates appears in the route — 6 names, missing: none — the route script emits these nodes, so a name it never ment
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE3_EXIT=0
+```
+
+The mutation reports two occurrences, which matters: `combinedFederalLeg` appears twice in the
+route — once in the declared value-name list and once where the node is built — and W4 is only
+honest if it fails when the name is gone from both. The harness substituted both, and it failed.
+
+All three probes reverted to the committed blob `8ffe663489cb6307801d738f8850207de6b09d84`,
+hash-verified by the harness on each run.
+
+### Validation after the guard landed
+
+The suite gains exactly four assertions and loses none. The baseline recorded at filing time was
+`3388 passed, 0 failed`; it is now `3392 passed, 0 failed`.
+
+```text
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3854
+sha256: 986eb21e81eddcb591f56ef4b6f01940e69b60d6f88f970c6e1c3de2468f243a
+================================================
+Research-Lab self-test: 3392 passed, 0 failed
+================================================
+
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-016-combined-tax-panel-wiring-absent-on-origin-main
+Artifact lint PASSED.
+ARTIFACT_LINT_EXIT=0
+
+$ echo "[$(git status --porcelain lifetime-tax-strategy-lab.html rltax*.js)]"
+[]
+$ git hash-object lifetime-tax-strategy-lab.html
+8ffe663489cb6307801d738f8850207de6b09d84
+$ git rev-parse HEAD:lifetime-tax-strategy-lab.html
+8ffe663489cb6307801d738f8850207de6b09d84
+```
+
+The route and every module are byte-identical to their committed blobs, so no probe left residue.
+
+### What this run did not do, and what it hands back
+
+This run added a check and nothing else. It did not push, merge, rebase, or alter any branch,
+and it did not restore the panel on the deployed branch. The eleven-run red gate is unchanged,
+because the guard reports the condition rather than repairing it.
+
+Two things are routed back rather than decided here:
+
+- **Scope 1 remains unanswered.** Scope 3 is dispositioned `undecided`, with Scope 1 recording
+  whether it is taken or declined. The evidence above satisfies Scope 3's Definition of Done on
+  the merits, but ticking those boxes would decide Scope 1 by implication, so none are ticked.
+- **The guard is not yet wired to run before publication.** Scope 3's implementation plan has
+  three steps; this run completed the first two — deciding the check's scope and establishing
+  that it fails on the defective condition and passes on a coherent one. The third, wiring it
+  where it runs before publication, depends on where the publication gate is defined and was
+  not attempted.
+
+One correction to the premise this run was given. The briefing described the defect as the
+script tag and the panel markup going missing. That is true, but it understates the loss: the
+route's `window.RLTAXCOMBINED` read went with them, so at that ref the page neither loads the
+module, renders the panel, nor references the module's namespace anywhere. This is why the
+guard derives its markers from the browser spec rather than from the route — the route on the
+deployed branch is internally consistent about the panel not existing, and would have satisfied
+any guard that only compared the route against itself.

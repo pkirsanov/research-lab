@@ -346,7 +346,11 @@ passed (`✓ 12 … (1.2s)`). Unit evidence is [TP-03-07](#tp-03-07),
 
 Green. `tests/lifetime-tax-claim-age.spec.mjs:179` —
 `Regression: SCN-024-009 the claim ages render in declared order with nothing marked best, optimal, recommended or preferred`
-and the request-ledger row `Regression: SCN-024-009 the request ledger stays empty and no declared claim age reaches a URL`
+and the request-ledger row, whose persistent title was
+`Regression: SCN-024-009 the request ledger stays empty and no declared claim age reaches a URL`
+at the time of this run and is now
+`Regression: SCN-024-009 every request is a declared same-origin GET and no declared claim age reaches a URL`
+(renamed 2026-08-22, F-REG-02 — see [TP-03-24](#tp-03-24)),
 both passed among the 51 tests recorded at [TP-03-25](#tp-03-25). Unit evidence
 is [TP-03-13](#tp-03-13) and [TP-03-14](#tp-03-14).
 
@@ -561,6 +565,26 @@ of the 51 tests that passed with zero failures.
 
 ### TP-03-24
 
+**Renamed 2026-08-22 (F-REG-02), and narrowed rather than restated.** This row's
+persistent title was
+`Regression: SCN-024-009 the request ledger stays empty and no declared claim age reaches a URL`
+until this date. The ledger is never empty — the route issues same-origin
+document reads and `<script src>` module loads at boot, and this very row then
+requires the mortality pack to be among them. This row also holds **no**
+`expect(ledger.length).toBe(afterFirstPaint)` and **no**
+`expect(afterFirstPaint).toBeGreaterThan(0)`, so it cannot carry the
+"does not grow after first paint" wording used on SCN-022-013 either. The title
+now names what the body proves:
+`requested.forEach((path) => expect(permitted).toContain(path))` — every request
+is a same-origin read of a path the configuration declares — together with
+`expect(entry.postData).toBe('')` and `expect(entry.method).toBe('GET')`, and the
+absence of any declared claim age or mortality column from every URL. Adversarial
+cases: a read of an undeclared path fails the membership loop; a non-GET request
+or any request body fails the method and body pins; a declared claim age reaching
+a URL fails the value scan. That this row does not constrain ledger growth is a
+planning gap and is routed. The captured evidence below was recorded under the
+superseded title and is left exactly as executed.
+
 Green, in the same run — `Regression: SCN-024-009 the request ledger stays empty
 and no declared claim age reaches a URL`, one of the 51 tests that passed. The
 mortality pack is now fetched from disk by the route, and it is admitted by
@@ -568,6 +592,22 @@ mortality pack is now fetched from disk by the route, and it is admitted by
 `config.rules` via `declaredPackPaths()`; `mortalityPackPaths` in
 `lifetime-tax-strategy.config.json` is that declaration. An undeclared pack path
 would still fail this row.
+
+Fresh capture under the new persistent title, recorded 2026-08-22 after the
+rename, proving the row's `--grep` still selects its own test — selected 1,
+passed 1:
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-009 every request is a declared same-origin GET and no declared claim age reaches a URL" --reporter=line
+exit: 0
+lines: 5
+sha256: be78e2eebdbbd2cfa14377a1b37fecbe327f4f1809d147d50f70fcc2f892291b
+
+Running 1 test using 1 worker
+
+[1/1] [system-chrome] › tests/lifetime-tax-claim-age.spec.mjs:201:1 › Regression: SCN-024-009 every request is a declared same-origin GET and no declared claim age reaches a URL
+  1 passed (4.7s)
+```
 
 ### TP-03-25
 

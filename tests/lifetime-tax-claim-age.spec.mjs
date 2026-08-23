@@ -198,7 +198,7 @@ test('Regression: SCN-024-009 the claim ages render in declared order with nothi
 });
 
 /* TP-03-24. */
-test('Regression: SCN-024-009 the request ledger stays empty and no declared claim age reaches a URL', async ({ page }) => {
+test('Regression: SCN-024-009 every request is a declared same-origin GET and no declared claim age reaches a URL', async ({ page }) => {
   const ledger = collectRequests(page);
   await openLifetimeTax(page, site);
   await declareOrdinaryHousehold(page, { ordinary: 40000, bracketId: 'b3' });

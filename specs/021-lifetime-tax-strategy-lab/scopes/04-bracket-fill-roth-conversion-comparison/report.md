@@ -727,3 +727,218 @@ every member name in the comparison record and asserts none matches
 ## Completion Statement
 
 Filled at execution.
+
+## DoD Closure: 2026-08-23
+
+Five DoD rows were added to this scope by a planning pass and were correctly left
+unticked. Four are closed below against commands run in this session. The fifth,
+the rollback row, is **left open**: executing the documented rollback falsified
+it, and the finding is recorded rather than absorbed.
+
+### Row: scenario-specific E2E regression under the exact persistent titles
+
+The Test Plan names three persistent titles for this scope: `TP-04-12`,
+`TP-04-13` and `TP-04-14`. Presence is read out of
+`tests/lifetime-tax-conversion.spec.mjs` as a literal string, so an empty
+`--grep` selection cannot be read as a pass.
+
+```text
+===== SCOPE 04 =====
+
+Running 3 tests using 1 worker
+
+  ✓  1 …on policies are compared and the fill amount comes from the pack (393ms)
+  ✓  2 … the conversion comparison discloses everything it did not model (501ms)
+  ✓  3 …s a single year federal difference and no probability or ranking (323ms)
+
+  3 passed (4.3s)
+S04_EXIT=0
+```
+
+Adversarial case. Renaming one persistent title turns the check red:
+
+```text
+label:            021-04 persistent title presence is non-vacuous
+file:             tests/lifetime-tax-conversion.spec.mjs
+mutation:         SCN-021-010 two conversion policies are compared  ->  SCN-021-010 two renamed policies are compared   (1 occurrence(s))
+red-exit:         1
+red-summary:      TITLE_PRESENCE scope=04 checked=3 missing=1 verdict=FAIL
+green-exit:       0
+green-summary:    TITLE_PRESENCE scope=04 checked=3 missing=0 verdict=PASS
+revert-verified:  yes (committed=05a66ccd1e743e79f686596597776b2ad7dc0844 restored=05a66ccd1e743e79f686596597776b2ad7dc0844)
+discriminating:   yes (exit 1 != 0)
+```
+
+**Claim Source:** executed.
+
+### Row: broader E2E regression suite across the whole lifetime-tax family
+
+The whole browser family was run, not this scope's spec file alone. Twenty spec
+files, every scope of Features 021 through 024:
+
+```text
+Running 94 tests using 6 workers
+  94 passed (17.1s)
+FAMILY_EXIT=0
+```
+
+**Claim Source:** executed.
+
+### Row: Change Boundary respected, zero excluded file families changed
+
+The check attributes per commit. It walks every non-merge commit in
+`b9d92a3f1^..HEAD` that touched a 021-owned surface, intersects that commit's
+file list with this scope's 23 excluded globs, and separately reads
+`git status --porcelain --untracked-files=all` over the same globs. `-uall` is
+used deliberately, because the row rejects `git diff --quiet`, which reports an
+untracked path as unchanged; every excluded root here is tracked, and the
+untracked enumeration over those roots returns zero rows.
+
+```text
+CHANGE_BOUNDARY scope=04 control=False globs=23 owning_commits=78 violations=0 worktree_dirty=0 verdict=PASS
+  CB04_EXIT=0
+```
+
+Adversarial case. `lifetime-tax-strategy-lab.html` is *allowed modified* for this
+scope, so injecting it into the excluded set is a synthetic control rather than a
+real breach. It flips the same command to FAIL, which is what the row asks the
+check to be able to do:
+
+```text
+CHANGE_BOUNDARY scope=04 control=True globs=24 owning_commits=78 violations=10 worktree_dirty=0 verdict=FAIL
+  CTRL04_EXIT=1
+```
+
+**Claim Source:** executed.
+
+### Row: independent canary suite for shared fixture and bootstrap contracts
+
+The canary is its own command and runs ahead of `node scripts/selftest.mjs`. It
+does not invent a rule: it reuses the ratified `TP-04-03` shape, stripping block
+comments, string literals and line comments from `rltaxstrategy.js` and then
+treating any surviving numeric literal other than `0` or `1` as a tax-domain
+constant. It covers the four shared surfaces this scope's Shared Infrastructure
+Impact Sweep names: the strategy module, the Scope 02 and 03 settlement it must
+call rather than approximate, the page CSP, and the rule packs it bootstraps
+from.
+
+```text
+SHARED_FIXTURE_CANARY constants=0 declaresTable=false cspTwins=31 packs=14/14 failures=0 verdict=PASS
+CANARY_EXIT=0
+```
+
+Adversarial case, first direction. Breaking one shared contract — hard-coding a
+bracket edge into the strategy module — reddens the canary:
+
+```text
+label:            021-04 shared-fixture canary reddens on a hard-coded bracket edge
+file:             rltaxstrategy.js
+mutation:         var FUNDING_SOURCES = Object.freeze({ "outside-funds": true, "withheld": true });  ->  var FUNDING_SOURCES = Object.freeze({ "outside-funds": true, "withheld": true });
+  var HARDCODED_BRACKET_EDGE = 105700;   (1 occurrence(s))
+red-exit:         1
+red-summary:      SHARED_FIXTURE_CANARY constants=1 declaresTable=false cspTwins=31 packs=14/14 failures=1 verdict=FAIL
+green-exit:       0
+green-summary:    SHARED_FIXTURE_CANARY constants=0 declaresTable=false cspTwins=31 packs=14/14 failures=0 verdict=PASS
+revert-verified:  yes (committed=f4dbb4a9c8dcf3b60a9aee0c4e3816f880ead964 restored=f4dbb4a9c8dcf3b60a9aee0c4e3816f880ead964)
+discriminating:   yes (exit 1 != 0)
+```
+
+Adversarial case, second direction. The row calls a canary that stays green
+while the broad suite fails a defect in itself. The identical mutation was run
+against the whole-repository gate, pinned to the `TP-04-03` assertion's own
+wording rather than to the aggregate pass count, which a concurrent session
+moves:
+
+```text
+label:            021-04 the broad gate also reddens on the same break, so the canary is not green-while-broad-red
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-03: mutating the pack bracket edge moves the conversion amount, and rltaxstrategy.js carries no tax-domain numeric constant and declares no bracket edge (105700)
+green-exit:       0
+green-summary:      ✓ TP-04-03: mutating the pack bracket edge moves the conversion amount, and rltaxstrategy.js carries no tax-domain numeric constant and declares no bracket edge ()
+revert-verified:  yes (committed=f4dbb4a9c8dcf3b60a9aee0c4e3816f880ead964 restored=f4dbb4a9c8dcf3b60a9aee0c4e3816f880ead964)
+discriminating:   yes (exit 1 != 0)
+```
+
+Both go red on the same break, so the canary is not green-while-broad-red on the
+contract it guards.
+
+**Claim Source:** executed.
+
+### Row: rollback verified by executing it — LEFT OPEN
+
+The documented rollback is: delete `rltaxstrategy.js`, its fixtures and the new
+spec; revert the panel and the appended selftest group. It was executed, not
+asserted. Execution was performed against a materialised copy of `HEAD`
+(`git archive HEAD` unpacked under a scratch directory) so that a concurrent
+session working in this repository could not be disturbed; the rollback commands
+themselves ran for real, and the live tree stayed at zero changed rows
+throughout.
+
+Two facts govern the result. First, this scope owns no fixture files: its
+selftest group reads the shared `tax-rules/federal/2026.json` and
+`lifetime-tax-strategy.config.json`, so that clause of the rollback is empty.
+Second, Scope 04 has no isolated commit. `rltaxstrategy.js` was introduced in
+exactly one commit, `b9d92a3f1`, which introduced all five scopes at once.
+
+Pre-change state at `b9d92a3f1^`:
+
+```text
+rltaxstrategy.js                             prechange=absent
+tests/lifetime-tax-conversion.spec.mjs       prechange=absent
+scripts/selftest.mjs                         prechange=present
+lifetime-tax-strategy-lab.html               prechange=absent
+```
+
+The executed rollback:
+
+```text
+ROLLBACK-DEFECT PANEL-RESIDUAL
+ROLLBACK_REHEARSAL mode=full prechange_module=absent parse=ok restore_byte_identical=True defects=1 verdict=FAIL
+ROLLBACK_FULL_EXIT=1
+```
+
+Deleting the module and the spec reproduces their pre-change state exactly, both
+absent. Excising the selftest group by its own banner and closing `catch` leaves
+a file that still parses. The restore round-trip returns every touched surface
+byte-identically. Reverting the panel does not succeed. Removing the
+`power-conversion` band leaves the section registered in the declared Power
+section list and still linked from the Simple withheld-detail table:
+
+```text
+1686:                "power-reconciliation", "power-curve", "power-conversion", "power-property",
+1701:                { detail: "Both settlements side by side and what was held constant", section: "power-conversion" },
+```
+
+and the page continues to read a global whose script tag the rollback removed:
+
+```text
+power-conversion refs      : 2
+RLTAXSTRATEGY refs         : 1
+conversion* element ids    : 2
+notModeled refs            : 24
+1670:            var STRATEGY = window.RLTAXSTRATEGY;
+```
+
+A deliberately incomplete rollback, skipping the selftest excision, fails on the
+extra count, so the verification discriminates rather than failing for everything:
+
+```text
+ROLLBACK-DEFECT SELFTEST-GROUP-RESIDUAL
+ROLLBACK-DEFECT PANEL-RESIDUAL
+ROLLBACK_REHEARSAL mode=incomplete prechange_module=absent parse=ok restore_byte_identical=True defects=2 verdict=FAIL
+ROLLBACK_INCOMPLETE_EXIT=1
+```
+
+The row's own adversarial case is therefore met in the failing direction: the
+rollback leaves the shared surface differing from its pre-change state, so the
+row fails. It stays unticked. Repairing it means restating the documented
+rollback so that reverting the panel also retires the section registration, the
+withheld-detail link and the Simple-side conversion nodes, and acknowledging
+that `scripts/selftest.mjs` and `lifetime-tax-strategy-lab.html` can never
+return to a `b9d92a3f1^` hash while the other four scopes remain. Both are
+planning-owned edits to this scope's Change Boundary, so they are routed to
+`bubbles.plan` rather than made here.
+
+**Claim Source:** executed. The residual counts are re-read from the rolled-back
+copy, not recalled.

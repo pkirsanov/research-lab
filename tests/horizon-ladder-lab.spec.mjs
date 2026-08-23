@@ -77,8 +77,12 @@ test('Regression: switching direction re-keys the cell the gate reports on', asy
 
 /* Canvas work in this repo has a known failure mode: a draw deferred to requestAnimationFrame never
    runs in a hidden or background tab, leaving the element at its default size with nothing painted.
-   The element existing proves nothing, so this reads the alpha channel. */
-test('Regression: the power view paints its frontier canvas rather than leaving it blank', async ({ page }) => {
+   The element existing proves nothing, so this reads the alpha channel. The accessible name is
+   checked in the same place because an aria-label on a bare canvas is inert — assistive technology
+   surfaces it only once the element carries an image role, and this one did not until it was given
+   one. Simple mode is deliberately excluded: the canvas is display:none there, and a hidden element
+   is correctly absent from the tree. */
+test('Regression: the power view paints its frontier canvas and exposes its accessible name', async ({ page }) => {
   await page.goto(baseUrl + '/horizon-ladder-lab.html');
   await expect.poll(() => page.locator('#simpleTable tbody tr').count(), { timeout: 15000 }).toBeGreaterThan(0);
   await page.locator('#modeSeg button[data-mode]').last().click();
@@ -89,4 +93,6 @@ test('Regression: the power view paints its frontier canvas rather than leaving 
     for (let i = 3; i < pixels.length; i += 4) if (pixels[i] !== 0) return true;
     return false;
   }), { timeout: 15000 }).toBeTruthy();
+  await expect(page.getByRole('img', { name: /Frontier of target distance/ })).toHaveCount(1);
+  await expect(page.locator('#frontierFallback')).not.toBeEmpty();
 });

@@ -2416,7 +2416,11 @@
     var eventResult = buildBehaviorEvent(draft, options, policy);
     if (!eventResult.ok) return eventResult;
     var candidate = clone(currentWorkspace);
-    var duplicate = candidate.behaviorEvents.some(function (entry) { return entry.eventId === eventResult.value.eventId; });
+    // Same content on the same civil day. `eventId` fingerprints occurredAt, so it never repeats.
+    var duplicate = candidate.behaviorEvents.some(function (entry) {
+      return entry.dedupeKey === eventResult.value.dedupeKey &&
+        entry.occurrence.newYorkCivilDate === eventResult.value.occurrence.newYorkCivilDate;
+    });
     if (!duplicate) {
       if (candidate.behaviorEvents.length + 1 > policy.behavior.maxBehaviorEvents) {
         return failure("P008-SCHEMA-CORRUPT", "behavior-event-cap-exceeded", "behaviorEvents", null, true);

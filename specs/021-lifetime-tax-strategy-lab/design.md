@@ -40,7 +40,9 @@ year, at least one supported income amount, and a deduction mode. The route
 resolves one source-qualified rule pack, settles the federal year under it,
 prices the next dollar as a curve, compares exactly two Roth conversion policies,
 and names every figure it cannot produce. Every household value stays in a local
-namespace this feature owns alone and the page issues zero network requests.
+namespace this feature owns alone, and the page's only runtime transport is a
+bounded set of same-origin reads of its own declared policy and rule-pack
+documents.
 
 ### Patterns To Follow
 
@@ -1211,12 +1213,19 @@ written key against both the allowed closed set and the forbidden prefixes.
   literals `#simple` and `#power`. No query string is ever written. A route test
   asserts `location.search === ''` and that the hash matches `^#(simple|power)$`
   after a full entry pass.
-- **Request.** Zero network requests at runtime. The page has no `fetch`, no
+- **Request.** A bounded set of same-origin reads at runtime, and nothing else.
+  The page has exactly one network primitive — a single `window.fetch` inside
+  `loadJson` — reached from seven call sites that read nine documents: the
+  configuration and the eight rule packs that configuration declares. Fourteen
+  same-origin `<script src>` module loads complete before that. The page has no
   `XMLHttpRequest`, no `navigator.sendBeacon`, no `EventSource`, no
   `WebSocket`, no dynamic `<script>`, no `<img>` with a remote `src`, no
   webfont, and no service worker. A source scan asserts each absence, and the
-  Playwright run asserts an empty request ledger with no interception, which is
-  the assertion that actually proves it.
+  Playwright run asserts a request ledger holding only declared same-origin
+  reads, that those declared reads resolved, and that nothing at all is
+  requested after first paint — which is the assertion that actually proves it.
+  Nothing here is conditional on the household-value guarantee, which is
+  unconditional: no household value may be carried by any request.
 - **Referrer.** Every outbound anchor carries `rel="noreferrer noopener"`, and
   the page URL carries no household value in the first place.
 - **Console.** Error paths log the `RLTAX-*` code and the domain only. No module
@@ -1437,7 +1446,7 @@ so a reviewer can find the mechanism rather than trust the claim.
 | P6 say when the read is old | `publishedAt`, `retrievedAt`, `expiryPolicy.onExpiry: "refuse"` |
 | P7 no blackbox numbers | `stages{}` and `bandDetail[]` on the result; the five reconciliation legs displayed in `#power-reconciliation` |
 | P8 model text is data | Pack strings reach the DOM through `textContent` only |
-| P9 works with nothing | Zero network requests; no key, proxy, account, or server |
+| P9 works with nothing | Same-origin reads of its own declared documents only; no key, proxy, account, or remote service; a local static origin is required because those reads are `fetch` calls |
 | P10 UMD never ESM | Four UMD dual modules; the file surface table |
 | P12 cache-first automatic first paint | Simple paints from local state without user action; `IncompleteStateNotice` when there is no answer yet |
 | P13 tickers only | Closed three-key namespace; nothing committed; export explicit and manifested |

@@ -352,8 +352,9 @@ prevent. Routed to `bubbles.design`; recorded as a blocking implementation
 input.
 
 **F-5 — `tax-rules/` is not in the published-directory allowlist.** The pack
-directory is reachable from `file://` and from a repository checkout, which is
-all this feature needs, but a later registration feature that adds the page to
+directory is reachable from a repository checkout served over a local static
+origin, which is all this feature needs, but a later registration feature that
+adds the page to
 `tools.json` without adding `tax-rules/` to `PUBLIC_DIRECTORIES` would ship a
 page whose rule pack 404s. Recorded here so the later feature inherits the
 constraint rather than rediscovering it in production.
@@ -995,7 +996,7 @@ obligation.
 
 | Capability | Surface class | Surface id | Status | Plan |
 | --- | --- | --- | --- | --- |
-| Household tax workspace, federal settlement, marginal curve, conversion comparison | `uiRoute` | `lifetime-tax-strategy-lab.html` | `delivered` | Reachable from a repository checkout and from `file://`. Deliberately excluded from the packaged Pages site by a `site-exclusions.json` entry per the operator's registration deferral. |
+| Household tax workspace, federal settlement, marginal curve, conversion comparison | `uiRoute` | `lifetime-tax-strategy-lab.html` | `delivered` | Reachable from a repository checkout served over a local static origin. A `file://` origin loads the modules but blocks the configuration and rule-pack reads, so the route refuses with `RLTAX-CONFIG-INVALID` rather than settling. Deliberately excluded from the packaged Pages site by a `site-exclusions.json` entry per the operator's registration deferral. |
 | Rule-pack contract, workspace contract, refusal vocabulary | `internal` | `rltaxrules.js`, `rltaxworkspace.js` | `internal` | In-repo caller is `lifetime-tax-strategy-lab.html`. No other consumer, and tests are not consumers. |
 | Federal settlement and curve engine | `internal` | `rltax.js` | `internal` | In-repo caller is `lifetime-tax-strategy-lab.html`. |
 | Conversion comparison engine | `internal` | `rltaxstrategy.js` | `internal` | In-repo caller is `lifetime-tax-strategy-lab.html`. |
@@ -1050,7 +1051,7 @@ proposal.
 | State tax | yes | yes | yes | no | **explicitly unavailable** |
 | IRMAA / ACA targeting | yes | not stated | not stated | no | **explicitly unavailable** |
 | Monte Carlo and historical paths | yes | yes | yes | no | **explicitly unavailable** |
-| Runs with no server or account | no | Gold and Bronze only | no | yes | yes |
+| Runs with no remote service or account | no | Gold and Bronze only | no | yes | yes, on a local static origin |
 | Open source and inspectable | no | no | no | yes | yes |
 | Names what it cannot compute | not stated | not stated | not stated | not stated | yes, structurally |
 
@@ -1075,8 +1076,10 @@ count rather than presenting itself as whole.
 traces to a dated pack with recorded source records, a publication date and a
 retrieval date.
 
-**Runs from a file with no account.** Local-only; the only transport is
-same-origin reads of its own declared documents.
+**Runs with no remote service and no account.** Local-only; the only transport
+is same-origin reads of its own declared documents. Those reads are `fetch`
+calls, so the route needs a local static origin to serve them; a `file://`
+origin blocks them and the route refuses rather than settling.
 
 ### Rejected claim: published error rate
 
@@ -1170,7 +1173,7 @@ measurement of decision quality, and makes no claim that it does.
 | **P6 — Say when the read is old** | The pack carries `publishedAt`, `retrievedAt` and an `expiryPolicy`; an expired pack refuses rather than serving a stale figure as current. | `FR-021-002`, `FR-021-003` |
 | **P7 — No blackbox numbers** | Every figure is computed in the browser from the resolved pack. The reconciliation identity is displayed, not asserted. Power exposes the rule ledger, per-bracket detail and the curve table. | `FR-021-016`, `FR-021-032`, `NFR-021-023` |
 | **P8 — Model-authored text is data, never markup** | No model-authored text exists in this feature. Pack-authored strings — reasons, source titles, feature names — are rendered through the same escaping discipline at every sink. | `FR-021-005` |
-| **P9 — Works with nothing** | The tool requires no key, no proxy, no account and no server. Its only transport is same-origin reads of its own declared policy and rule-pack documents, so there is no third-party dependency to degrade against. | `NFR-021-009` |
+| **P9 — Works with nothing** | The tool requires no key, no proxy, no account and no remote service. Its only transport is same-origin reads of its own declared policy and rule-pack documents, so there is no third-party dependency to degrade against. It does require a local static origin: those reads are `fetch` calls, and a `file://` origin blocks them. | `NFR-021-009` |
 | **P10 — UMD, never ESM** | Every new shared module is a UMD dual module with a global attach, loadable from `file://` with no bundler and no build step. | Repository convention inherited by every scope |
 | **P11 — Reuse, never refetch** | No market data is fetched. The rule pack is a local artifact read once. | `NFR-021-009` |
 | **P12 — Cache-first, automatic first paint** | Simple paints on load without user action from local state. **With one honest limit:** on an empty workspace there is no result to paint, so the first paint is a named incomplete state stating exactly which members are missing — never an empty shell and never a placeholder figure. | `FR-021-031` |
@@ -1202,7 +1205,7 @@ measurement of decision quality, and makes no claim that it does.
 | Accessibility | Contextual tooltip on every value; text-equivalent table per chart; keyboard-reachable and mobile-readable unavailable states | `NFR-021-033`, `NFR-021-034` |
 | Honesty | No error-rate, self-invalidation, track-record, accuracy or plan-success-probability claim | `NFR-021-036` |
 | Deploy and registration | Absent from every registry; root page carries a `site-exclusions.json` deploy decision | `NFR-021-038` |
-| Portability | UMD dual modules, no bundler, no build step, works from `file://`, single standard CSP | Repository convention |
+| Portability | UMD dual modules, no bundler, no build step, single standard CSP; the modules load from `file://`, while the route's own document reads need a local static origin | Repository convention |
 
 ---
 

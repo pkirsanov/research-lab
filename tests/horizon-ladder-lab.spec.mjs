@@ -52,13 +52,32 @@ test('Regression: a first visit fetches the bar snapshots rather than reading an
   await expect(page.locator('#exclusionTable')).not.toContainText('not scoreable at mint');
 });
 
-/* The gate is the product: a cell with no resolved outcomes must refuse to publish a rate and must
-   say how far it is from earning one, rather than presenting model arithmetic as a measured rate. */
-test('Regression: an unearned cell withholds its rate and states the distance to earning one', async ({ page }) => {
+/* The gate is the product: a cell with no resolved outcomes must refuse to publish a forward track
+   record and must say how far it is from earning one. The second half of this test is a cross-check
+   between two regions, because the first version pinned the literal words "not a measured hit rate"
+   and so enshrined them — when the profiles began ranking on the analog rate the notice went on
+   asserting the Prob. column was not measured while the table printed "75.0% analog" beneath it, and
+   the test stayed green through the contradiction. The notice must now agree with the column. */
+test('Regression: an unearned cell withholds its rate and describes the column it actually shows', async ({ page }) => {
   await page.goto(baseUrl + '/horizon-ladder-lab.html');
-  await expect(page.locator('#gateNotice')).toContainText('Probability withheld');
+  await expect(page.locator('#gateNotice')).toContainText('withheld');
   await expect(page.locator('#gateNotice')).toContainText('0 of 20');
-  await expect(page.locator('#gateNotice')).toContainText('not a measured hit rate');
+
+  await expect.poll(() => page.locator('#simpleTable tbody tr').count(), { timeout: 15000 }).toBeGreaterThan(0);
+  const notice = await page.locator('#gateNotice').innerText();
+  const probCells = await page.locator('#simpleTable tbody tr td:nth-child(4)').allInnerTexts();
+  const analogRows = probCells.filter((t) => /analog/i.test(t)).length;
+
+  if (analogRows === probCells.length) {
+    expect(notice, 'every Prob. cell reads analog, so the notice may not deny it is measured').toContain('measured analog rate');
+    expect(notice).not.toContain('not a measured hit rate');
+  } else if (analogRows > 0) {
+    expect(notice, 'the column is mixed and the notice must say so').toContain('mixed');
+  } else {
+    expect(notice).toContain('not a measured hit rate');
+  }
+  /* The withheld thing is the forward track record, and the notice must not blur the two. */
+  expect(notice).toMatch(/Measured rate/);
 });
 
 /* A control that changes nothing is worse than an absent one, because it implies the view responds

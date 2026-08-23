@@ -889,17 +889,36 @@
 
         /* ---------- rendering ---------- */
 
-        function renderGateNotice(gate, sessions) {
+        function renderGateNotice(gate, sessions, rows) {
             var cell = cellKey(state.direction, state.horizon);
             var progress = hlEarnProgress(gate.ledgerResolved, gate.ledgerMin);
+            var list = rows || [];
+            var analogRows = 0, modelRows = 0;
+            for (var i = 0; i < list.length; i++) {
+                if (list[i].probabilitySource === 'analog') { analogRows++; } else { modelRows++; }
+            }
             var html = '';
             if (!gate.published) {
-                html += '<strong>Probability withheld for ' + esc(cell) + '.</strong> ';
+                html += '<strong>Measured rate withheld for ' + esc(cell) + '.</strong> ';
                 html += 'Reason <code>' + esc(gate.reason) + '</code>. ';
                 html += 'Resolved outcomes ' + progress.resolved + ' of ' + progress.minimum + ' required; '
-                    + progress.remaining + ' more must resolve before any rate is shown for this cell. ';
-                html += 'The model probability column below is arithmetic from the target distance and the chosen '
-                    + 'resolution rule. It is not a measured hit rate and must not be read as one.';
+                    + progress.remaining + ' more must resolve before the Measured rate column fills for this cell. ';
+                /* This sentence has to describe the column that is actually on screen. It used to
+                   assert the Prob. column was always arithmetic, which stopped being true when the
+                   profiles began ranking on the analog rate: the table read "75.0% analog" directly
+                   beneath a claim that it was not a measured rate. */
+                if (analogRows && !modelRows) {
+                    html += 'The Prob. column below is the measured analog rate, a hit rate over regime-matched '
+                        + 'history. That is not the same claim as a forward track record, which is what the '
+                        + 'Measured rate column above is waiting on.';
+                } else if (analogRows && modelRows) {
+                    html += 'The Prob. column below is mixed: ' + analogRows + ' row' + (analogRows === 1 ? '' : 's')
+                        + ' carry the measured analog rate over regime-matched history and ' + modelRows
+                        + ' fall back to arithmetic from the target distance. Each row names its own source.';
+                } else {
+                    html += 'The Prob. column below is arithmetic from the target distance and the chosen '
+                        + 'resolution rule. It is not a measured hit rate and must not be read as one.';
+                }
             } else {
                 html += '<strong>Rate published for ' + esc(cell) + '.</strong> Both the analog and ledger samples cleared their minimum.';
             }
@@ -1061,7 +1080,7 @@
             var events = hlEventsInWindow(market.events, built.sessions, Date.now());
             el('simpleTitle').textContent = state.direction + ' candidates, '
                 + esc(hlHorizonLabel(state.horizon)) + ', ' + state.profile;
-            renderGateNotice(built.gate, built.sessions);
+            renderGateNotice(built.gate, built.sessions, built.rows);
             renderEvents(events, built.sessions);
             renderChanges(built.rows);
             renderTable('simpleTable', built.rows.slice(0, 6), false);

@@ -693,13 +693,178 @@ produced by `outcomeValueFor` — the direction multiply — not by `classifyOut
 the body. The scan above over the test's own line span returns nothing for either symbol. `hold` having no signed
 outcome is proven, but by `T-01-U7`, and `classifyOutcome` by the `T-03-U*` rows.
 
+## Evidence pass — the four resolver functional rows, all four ticked
+
+All four tests live in `tests/recommendation-track-record.functional.mjs` and all four pass. Passing was not
+treated as sufficient: each DoD item was decomposed into clauses and each clause was matched to a specific
+assertion in the test body. Three rows matched every clause on the first pass. T-04-F1 did not, and
+was left unticked until its missing clause was asserted in its own body; it now matches all seven.
+
+```
+$ node --test --test-name-pattern="T-04-F" tests/recommendation-track-record.functional.mjs
+✔ T-04-F1 (increment 1): a trading session is a non-null regular block, and horizon arithmetic counts sessions rather than days (9.12114ms)
+✔ T-04-F2 (increment 1): RTR-CALENDAR-COVERAGE refuses past the committed window and extrapolates nothing (6.551757ms)
+✔ T-04-F3: `withdrawn` is unreachable from every resolver path — the residue no class admits (9.899135ms)
+✔ T-04-F4: the data-quality gate refuses only zero-observed sessions, records the degraded ones, and is scoped to the measured window (35.497167ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+exit code: 0
+```
+
+#### T-04-F1
+
+**Ticked — seven clauses of seven.** Line references are into
+`tests/recommendation-track-record.functional.mjs`.
+
+| Clause | Assertion | Held |
+|---|---|---|
+| weekend boundary | `:1145` resolves 2026-01-02 +1 session to 2026-01-05; `:1146` pins the skipped row as `weekend` | yes |
+| holiday boundary | `:1148` resolves 2026-01-16 +1 session to 2026-01-20; `:1149` pins 2026-01-19 as `holiday` | yes |
+| early-close boundary | `:1153` resolves 2026-11-25 +1 session onto the early close 2026-11-27; `:1154-1156` show the `dateState` rule would land three sessions late | yes |
+| `startUtc` cross-check | `:1205` reads `regular.startUtc` via `openOf`; `:1206-1209` refuse `session-open-mismatch` one millisecond past it; `:1211-1214` refuse a weekend instant at the usual open time | yes |
+| `RTR-SESSION-PREDICATE` refuses a `dateState` key | `:1135-1139` asserts `session-predicate-not-allowed` on field `predicateKey`; the code is `'RTR-SESSION-PREDICATE'` at `scripts/brief-resolve-outcomes.mjs:53` | yes |
+| 2026 session count is 251 | `:1131` asserts `sessions.tradingDates.length === 251`; `:1132` pins the rejected rule at 249 | yes |
+| `provenance.earlyCloseSessions` is recorded | `:1177-1179` assert `resolutionProvenanceFor` records `['2026-11-27']`; `:1183` asserts an empty list for a span clear of both early closes; `:1187-1189` prove the recorded array is the caller's own copy | yes |
+
+The previously open clause is now closed in this row's own body. `:1157-1158` still assert
+`earlyCloseSessionsIn(calendar, span)` — the span-derived flag helper, the *source* of the value —
+and `:1177-1189` now assert the *recording*: a claim minted with `binding.entryDate` 2026-11-25 and
+`binding.resolutionDate` 2026-11-27 is handed to `resolutionProvenanceFor`, whose block carries
+`earlyCloseSessions: ['2026-11-27']`. The two are different facts. The helper can be correct while
+the call site at `scripts/brief-resolve-outcomes.mjs:780` passes it the wrong sessions, and the
+answer would still be correct — for an input the resolution never measured.
+
+Three assertions rather than one, because a single positive row proves less than it appears to.
+
+- The positive row, `:1179`, pins the exact list for a span that touches one early close.
+- The negative row, `:1183`, pins an **empty** list for the 2026-01-02..2026-01-05 span. Without it
+  the positive row is also satisfied by an implementation that flags every session it is given.
+- The isolation row, `:1187-1189`, writes into the returned array and then re-reads both
+  `earlyCloseSessionsIn` and a freshly assembled resolution, both unchanged. The recorded value is
+  a snapshot, so a caller cannot write back into the calendar-derived flag.
+
+Both properties were confirmed by mutating the shipped line and observing the failure, then
+reverting. Replacing the `sessions` argument at `scripts/brief-resolve-outcomes.mjs:780` with the
+whole calendar's trading dates fails `:1179`:
+
+```
+$ node --test --test-name-pattern="T-04-F1" tests/recommendation-track-record.functional.mjs
+not ok 1 - T-04-F1 (increment 1): a trading session is a non-null regular block, and horizon arithmetic counts sessions rather than days
+  failureType: 'testCodeFailure'
+  error: |-
+    + actual - expected
+        '2026-11-27',
+    +   '2026-12-24'
+# fail 1
+```
+
+`2026-12-24` is the December early close. The November span never touched it, so a record carrying
+it is a flag for a session the resolution did not measure — which is the defect the clause names.
+Dropping the `.slice()` on the same line fails `:1187` with
+`TypeError: Cannot add property 1, object is not extensible`, because `earlyCloseSessionsIn`
+returns a frozen array and the copy is what makes the recorded value the caller's own.
+
+After both reverts, `git diff -- scripts/brief-resolve-outcomes.mjs` is empty and the suite is
+`tests 13 / pass 13 / fail 0`.
+
+#### T-04-F2
+
+**Ticked.** Item clauses: `RTR-CALENDAR-COVERAGE` fires beyond `coverageEnd`; nothing is extrapolated.
+
+```
+$ node --test --test-name-pattern="T-04-F2" tests/recommendation-track-record.functional.mjs
+✔ T-04-F2 (increment 1): RTR-CALENDAR-COVERAGE refuses past the committed window and extrapolates nothing (11.01762ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+exit code: 0
+```
+
+Fires beyond `coverageEnd`: `:1216-1221` refuses `advanceSessions` started one day past `coverageEnd` and one day
+before `coverageStart` with `CALENDAR_COVERAGE_CODE` on field `fromDate`; `:1226-1229` refuses an observation
+stamped past `coverageEnd` on field `observation.t`; `:1200` refuses one session past the last session on field
+`resolutionDate`. The code is `'RTR-CALENDAR-COVERAGE'` at `scripts/brief-resolve-outcomes.mjs:54`, so the refusal
+carries the shipped identifier. No extrapolation: `:1201` asserts the refusal has no `tradingDate` key at all.
+Non-vacuous: `:1206` requires a four-session horizon that fits to resolve to the last session, so a resolver that
+refused every multi-session horizon fails the row.
+
+#### T-04-F3
+
+**Ticked.** Item clause: `withdrawn` is unreachable from every resolver path.
+
+```
+$ node --test --test-name-pattern="T-04-F3" tests/recommendation-track-record.functional.mjs
+✔ T-04-F3: `withdrawn` is unreachable from every resolver path — the residue no class admits (23.775943ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+exit code: 0
+```
+
+"Every path" is asserted three ways rather than sampled. Structurally, `:1290` builds `emittable` as the union of
+`MEASURED_CLOSURE_EVENTS` and the keys of `DETERMINED_CLOSURE_CLASS` — the whole surface `resolutionAxesFor` can
+leave through — and `:1299` places `withdrawn` outside it while `:1300-1304` assert it is exactly the one
+vocabulary member no class admits. Behaviourally, `:1345-1352` iterates every measured event and `:1355-1361`
+every determined event, asserting the outcome class is never `withdrawn` on a clearly negative score, and
+`:1366-1373` asserts a direct request refuses with `closure-event-carries-no-outcome-class`. In source,
+`:1315-1317` assert the resolver names `withdrawn` in prose only and that no authored emission survives comment
+stripping. Non-vacuous in both directions: `:1284` asserts `withdrawn` is a real shipped vocabulary member so the
+exclusions are an absence and not a typo, and `:1322-1330` run the scanner over a synthetic source and require it
+to flag exactly the assignment and neither the prose nor the negated membership test.
+
+#### T-04-F4
+
+**Ticked.** Item clauses: `zeroObservedSessions` closes not-evaluable; reconstructed and thin sessions resolve;
+their provenance is recorded.
+
+```
+$ node --test --test-name-pattern="T-04-F4" tests/recommendation-track-record.functional.mjs
+✔ T-04-F4: the data-quality gate refuses only zero-observed sessions, records the degraded ones, and is scoped to the measured window (37.822489ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+exit code: 0
+```
+
+Closes not-evaluable: `:1437-1443` gates each in-window session and asserts `closureEventType` is `not-evaluable`,
+`reasonCode` is `ZERO_OBSERVED_REASON`, `error` is `undefined`, and the field names the session that did not
+trade — a closure about the claim, not a substrate refusal. `:1428` asserts the reason is a shipped member of
+`RESOLVER_NOT_EVALUABLE_REASONS`. Degraded sessions resolve: `:1466-1470` runs `reconstructedSessions` and
+`thinObservedSessions` and requires `ok` and an `outcomeValue` equal to the clean read. Provenance recorded:
+`:1472-1475` asserts `resolutionProvenanceFor` carries the in-window date under the degraded field and an empty
+array under the other. Non-vacuous: `:1431-1433` is a clean control that must score, and `:1449-1451` places the
+same bad session outside the measured window and requires the claim to still score, which is the case a
+file-global gate fails.
+
 ## Completion Statement
 
-Scope 04 is in progress. **16 of 56** Definition of Done items are satisfied — two from the increment-1 calendar
-slice, three from the increment-2 value slice, seven from the increment-3 write slice, three from the increment-4
-predicate slice, and one from the increment-5 reducer bridge, all recorded above — and the remaining 40 are
-unsatisfied. *The total moved 55 → 56 under Ruling R-04-05, which added the previously-uncovered adjusted-close path
-refusal as an unticked obligation; the satisfied count is unchanged because no ruling in this pass ticked anything.*
+Scope 04 is in progress. **35 of 56** Definition of Done items are satisfied and the remaining 21 are
+unsatisfied. The count is read from the artifact rather than accumulated by hand: `grep -c '^- \[x\]' scope.md`
+returns 35 and `grep -c '^- \[ \]' scope.md` returns 21. *The prior statement here read "16 of 56" with a
+per-increment breakdown summing to 16. That breakdown was stale — it predated later passes that ticked rows
+without revising it — and has been dropped rather than extended, because an enumeration this pass did not verify
+should not be carried forward.* An earlier pass ticked T-04-F2, T-04-F3 and T-04-F4 and left T-04-F1 open: its
+test passed, but the clause `provenance.earlyCloseSessions` is recorded had no assertion in the body. This pass
+added that assertion, its non-vacuity pair and its snapshot check, and ticked T-04-F1.
+*The total moved 55 → 56 under Ruling R-04-05, which added the previously-uncovered adjusted-close path
+refusal as an unticked obligation.*
 No scope completion is claimed and no certification is requested. Ruling R-04-01
 is **discharged**: scope 01 landed the frozen hashed `priceBasis` term, and the resolver consumes it rather than
 selecting a basis of its own.

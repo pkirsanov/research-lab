@@ -1160,6 +1160,34 @@ test('T-04-F1 (increment 1): a trading session is a non-null regular block, and 
         assert.equal(stateOn(date), 'early-close', 'the span-derived flag agrees with the label it never reads');
     }
 
+    /* AND THE FLAG IS RECORDED, not merely computable. The two rows above prove the HELPER; they
+       say nothing about the CALL SITE, which hands it the claim's own two authored sessions. A
+       wrong argument there — the whole year's trading dates, say — returns a correct answer for
+       the wrong input, and every assertion above still passes while the record carries flags for
+       sessions the resolution never measured. */
+    const provenanceSpanning = (entryDate, resolutionDate) => resolutionProvenanceFor(
+        calendar,
+        mintEvaluable('evaluable-instrument-add', (input) => {
+            input.binding.entryDate = entryDate;
+            input.binding.resolutionDate = resolutionDate;
+        }).claim,
+        null,
+    );
+
+    const acrossEarlyClose = provenanceSpanning('2026-11-25', resolved.tradingDate);
+    assert.equal(acrossEarlyClose.ok, true, 'provenance must assemble for a span landing on the early close');
+    assert.deepEqual(acrossEarlyClose.provenance.earlyCloseSessions, ['2026-11-27'], 'and record the early close that span touched');
+
+    /* NON-VACUITY. A span touching neither early close records an EMPTY list, so the row above
+       cannot be satisfied by an implementation that flags every session handed to it. */
+    assert.deepEqual(provenanceSpanning('2026-01-02', '2026-01-05').provenance.earlyCloseSessions, [], 'a span clear of both early closes records nothing');
+
+    /* A SNAPSHOT, NOT A LIVE REFERENCE. The recorded array is the caller's own copy, so writing
+       to it reaches neither the calendar-derived flag nor the next resolution assembled from it. */
+    acrossEarlyClose.provenance.earlyCloseSessions.push('2026-01-05');
+    assert.deepEqual([...earlyCloseSessionsIn(calendar, ['2026-11-25', '2026-11-27'])], ['2026-11-27'], 'a caller write does not move the calendar-derived flag');
+    assert.deepEqual(provenanceSpanning('2026-11-25', '2026-11-27').provenance.earlyCloseSessions, ['2026-11-27'], 'nor the next resolution built from the same calendar');
+
     /* THE BAR-TO-SESSION MAPPING over a real committed series. Acceptance rests on exact
        `regular.startUtc` equality, so a bar stamped at any other instant cannot map. */
     const bars = JSON.parse(readFileSync(path.join(REPO_ROOT, 'data', 'bars', 'SPY.json'), 'utf8'));

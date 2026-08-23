@@ -1286,10 +1286,131 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   was computed from, not to a second read that could differ. The paired assertion is that an **unmeasured** claim
   gets a provenance block whose only key is `earlyCloseSessions`, so no basis is invented for a read that never
   happened.
-- [ ] T-04-F1 passes: session arithmetic is correct across weekend, holiday and **early-close** boundaries with the `startUtc` cross-check, `provenance.earlyCloseSessions` is recorded, `RTR-SESSION-PREDICATE` refuses a `dateState`-keyed test, and the derived 2026 session count is 251 → evidence recorded in `report.md#t-04-f1`.
-- [ ] T-04-F2 passes: `RTR-CALENDAR-COVERAGE` fires beyond `coverageEnd` with no extrapolation → evidence recorded in `report.md#t-04-f2`.
-- [ ] T-04-F3 passes: `withdrawn` is unreachable from every resolver path → evidence recorded in `report.md#t-04-f3`.
-- [ ] T-04-F4 passes: `zeroObservedSessions` closes not-evaluable while reconstructed and thin sessions resolve with recorded provenance → evidence recorded in `report.md#t-04-f4`.
+- [x] T-04-F1 passes: session arithmetic is correct across weekend, holiday and **early-close** boundaries with the `startUtc` cross-check, `provenance.earlyCloseSessions` is recorded, `RTR-SESSION-PREDICATE` refuses a `dateState`-keyed test, and the derived 2026 session count is 251 → evidence recorded in `report.md#t-04-f1`.
+
+  **Evidence.** All seven clauses are asserted in the T-04-F1 body in
+  `tests/recommendation-track-record.functional.mjs`. Executed from `<repo-root>`.
+
+  - weekend boundary — `:1145` resolves 2026-01-02 +1 session to 2026-01-05; `:1146` pins the row
+    day arithmetic would have landed on as `weekend`.
+  - holiday boundary — `:1148` resolves 2026-01-16 +1 session to 2026-01-20; `:1149` pins the row
+    it steps over, 2026-01-19, as `holiday`.
+  - early-close boundary — `:1153-1154` resolve 2026-11-25 +1 session onto the early close
+    2026-11-27; `:1155-1156` show the `dateState` rule landing three sessions late; `:1157-1158`
+    derive the flag from the regular block's own span.
+  - `startUtc` cross-check — `:1205` reads `regular.startUtc` through `openOf`; `:1206-1209` refuse
+    `session-open-mismatch` one millisecond past it; `:1211-1214` refuse a weekend instant at the
+    usual open time.
+  - `provenance.earlyCloseSessions` is recorded — `:1177-1179` assert `resolutionProvenanceFor`
+    records `['2026-11-27']` for a claim whose two authored sessions land on the early close;
+    `:1183` asserts an **empty** list for a span clear of both 2026 early closes, so the positive
+    row cannot be met by an implementation that flags every session handed to it; `:1187-1189`
+    write into the recorded array and re-read both the helper and a fresh resolution unchanged.
+  - `RTR-SESSION-PREDICATE` refuses a `dateState` key — `:1135-1139` assert
+    `session-predicate-not-allowed` on field `predicateKey`.
+  - the derived 2026 session count is 251 — `:1131` asserts `sessions.tradingDates.length === 251`;
+    `:1132` pins the rejected `dateState` rule at 249.
+
+  ```
+  $ node --test --test-name-pattern="T-04-F1" tests/recommendation-track-record.functional.mjs
+  ✔ T-04-F1 (increment 1): a trading session is a non-null regular block, and horizon arithmetic counts sessions rather than days (24.607438ms)
+  ℹ tests 1
+  ℹ pass 1
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  ```
+  $ node --test tests/recommendation-track-record.functional.mjs
+  ℹ tests 13
+  ℹ pass 13
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  The recording clause was closed by mutation, not by reading. Handing the whole year's trading
+  dates to `earlyCloseSessionsIn` at `scripts/brief-resolve-outcomes.mjs:780` — a wrong argument
+  the helper still answers correctly — fails `:1179` with `+ '2026-12-24'`, the December early
+  close the November span never touched. Dropping the `.slice()` on that same line fails `:1187`
+  with `TypeError: Cannot add property 1, object is not extensible`, because the helper returns a
+  frozen array and the copy is what makes the recorded value the caller's own. Both mutations were
+  reverted and `git diff -- scripts/brief-resolve-outcomes.mjs` is empty.
+- [x] T-04-F2 passes: `RTR-CALENDAR-COVERAGE` fires beyond `coverageEnd` with no extrapolation → evidence recorded in `report.md#t-04-f2`.
+
+  **Evidence.** Both clauses are asserted in `tests/recommendation-track-record.functional.mjs`.
+  Executed from `<repo-root>`.
+
+  ```
+  $ node --test --test-name-pattern="T-04-F2" tests/recommendation-track-record.functional.mjs
+  ✔ T-04-F2 (increment 1): RTR-CALENDAR-COVERAGE refuses past the committed window and extrapolates nothing (11.01762ms)
+  ℹ tests 1
+  ℹ pass 1
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  - *Fires beyond `coverageEnd`* — `:1216-1221` runs `advanceSessions` from `shiftDays(coverageEnd, 1)`
+    and from `shiftDays(coverageStart, -1)` and asserts `CALENDAR_COVERAGE_CODE` on field `fromDate`;
+    `:1226-1229` asserts the same code on field `observation.t` for a bar stamped past `coverageEnd`;
+    `:1200` covers one session past the last session on field `resolutionDate`. `CALENDAR_COVERAGE_CODE`
+    is `'RTR-CALENDAR-COVERAGE'` at `scripts/brief-resolve-outcomes.mjs:54`, so the named code is the
+    shipped one rather than a local string.
+  - *No extrapolation* — `:1201` asserts `hasOwnProperty(beyond, 'tradingDate') === false`, so the
+    refusal carries no invented date.
+  - *Non-vacuous* — `:1206` pairs the overrun with a four-session horizon that fits and must resolve to
+    `lastSession`. An implementation that refused every multi-session horizon fails that line.
+- [x] T-04-F3 passes: `withdrawn` is unreachable from every resolver path → evidence recorded in `report.md#t-04-f3`.
+
+  **Evidence.** Unreachability is asserted over the whole emission surface, not sampled.
+  Executed from `<repo-root>`.
+
+  ```
+  $ node --test --test-name-pattern="T-04-F3" tests/recommendation-track-record.functional.mjs
+  ✔ T-04-F3: `withdrawn` is unreachable from every resolver path — the residue no class admits (23.775943ms)
+  ℹ tests 1
+  ℹ pass 1
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  - *Every path, structurally* — `:1290` forms `emittable` as the union of `MEASURED_CLOSURE_EVENTS` and
+    the keys of `DETERMINED_CLOSURE_CLASS`, which is the whole set `resolutionAxesFor` can emit; `:1299`
+    asserts `withdrawn` is outside it and `:1300-1304` asserts it is *exactly* the residue.
+  - *Every path, behaviourally* — `:1345-1352` loops every measured event and `:1355-1361` loops every
+    determined event, asserting `notEqual(axes.outcomeClass, WITHDRAWN)` in both; `:1366-1373` asserts a
+    direct request for `withdrawn` refuses with `closure-event-carries-no-outcome-class`.
+  - *Every path, in source* — `:1315-1317` asserts the resolver names `withdrawn` in prose only and that
+    `withdrawnEmissions` finds no authored emission.
+  - *Non-vacuous* — `:1284` asserts `withdrawn` is a real member of the shipped closure vocabulary, so the
+    exclusions are a genuine absence rather than a typo; `:1322-1330` runs the scanner over a synthetic
+    source and asserts it flags exactly the assignment and not the prose or the negated membership test,
+    so the empty result above is attributable to the resolver and not to a scanner that returns `[]`.
+- [x] T-04-F4 passes: `zeroObservedSessions` closes not-evaluable while reconstructed and thin sessions resolve with recorded provenance → evidence recorded in `report.md#t-04-f4`.
+
+  **Evidence.** All three clauses are asserted. Executed from `<repo-root>`.
+
+  ```
+  $ node --test --test-name-pattern="T-04-F4" tests/recommendation-track-record.functional.mjs
+  ✔ T-04-F4: the data-quality gate refuses only zero-observed sessions, records the degraded ones, and is scoped to the measured window (37.822489ms)
+  ℹ tests 1
+  ℹ pass 1
+  ℹ fail 0
+  exit code: 0
+  ```
+
+  - *`zeroObservedSessions` closes not-evaluable* — `:1437-1443` gates each of the two in-window sessions
+    and asserts `closure.closureEventType === 'not-evaluable'` with `closure.reasonCode ===
+    ZERO_OBSERVED_REASON` and `error === undefined`, so it closes the claim rather than refusing the
+    substrate. `:1428` asserts that reason is a member of the shipped `RESOLVER_NOT_EVALUABLE_REASONS`.
+  - *Reconstructed and thin sessions resolve* — `:1466-1470` runs both `reconstructedSessions` and
+    `thinObservedSessions` and asserts `degraded.ok === true` and `degraded.outcomeValue ===
+    clean.outcomeValue`, so a degraded session is measured rather than dropped.
+  - *With recorded provenance* — `:1472-1475` asserts `resolutionProvenanceFor` returns
+    `provenance[field] === [QUALITY_ENTRY_SESSION]` and `provenance[other] === []`, so the in-window date
+    is recorded and the other degradation is not invented.
+  - *Non-vacuous* — `:1431-1433` is a clean-window control that must score, so every refusal is
+    attributable to the fact under test; `:1449-1451` puts the same bad session outside the measured
+    window and requires the claim to still score, which a file-global gate fails.
 - [ ] T-04-I1 passes: closures route through the reducer with `current: []`, one event per due claim, frozen terms re-emitted, and the still-active case proven to fail → evidence recorded in `report.md#t-04-i1`. — proves SCN-015-002
 - [ ] T-04-I2 passes: **idempotence case 1** — pass 2 is a no-op with a byte-identical `indexFingerprint` → evidence recorded in `report.md#t-04-i2`. — proves SCN-015-009
 - [ ] T-04-I3 passes: **idempotence case 2** — the reducer is proven to *accept* a double closure when the gate is bypassed and the fingerprint changes → evidence recorded in `report.md#t-04-i3`.

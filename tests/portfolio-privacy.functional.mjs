@@ -1118,7 +1118,10 @@ function declaredKeysByAdapter(policy) {
       policy.storage.pointerKey,
       ...policy.storage.slotKeys,
       policy.storage.quarantineKey,
-      policy.storage.displayModeKey
+      policy.storage.displayModeKey,
+      policy.storage.dossierPointerKey,
+      ...policy.storage.dossierSlotKeys,
+      policy.storage.dossierQuarantineKey
     ].slice().sort(),
     session: [policy.storage.sessionKey, policy.storage.returnContextKey].slice().sort()
   };

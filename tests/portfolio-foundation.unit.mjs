@@ -854,8 +854,8 @@ test('verified foundation clear reports empty only after reread and a remove fau
 // closed non-key partition below means a new field cannot escape the sweep by being named
 // something other than `*Key`/`*Keys`.
 const POLICY_STORAGE_NON_KEY_FIELDS = Object.freeze([
-  'contractVersion', 'migrationVersions', 'pointerContractVersion',
-  'probeValue', 'workspaceContractVersion', 'workspaceNamespace'
+  'contractVersion', 'dossierContractVersion', 'dossierNamespace', 'dossierPointerContractVersion',
+  'migrationVersions', 'pointerContractVersion', 'probeValue', 'workspaceContractVersion', 'workspaceNamespace'
 ].slice().sort());
 
 function policyDeclaredKeys(policy) {
@@ -885,10 +885,10 @@ function policyDeclaredKeys(policy) {
   // The medium is derived from the declared workspace namespace as well, rather than from a
   // second hand-written split: a key inside the durable workspace namespace is a local key and
   // anything else is a session key, so a new declared key lands in a bucket without being named.
-  const localPrefix = storage.workspaceNamespace + '.';
+  const localPrefixes = [storage.workspaceNamespace + '.', storage.dossierNamespace + '.'];
   return {
-    local: declared.filter((key) => key.startsWith(localPrefix)).sort(),
-    session: declared.filter((key) => !key.startsWith(localPrefix)).sort()
+    local: declared.filter((key) => localPrefixes.some((prefix) => key.startsWith(prefix))).sort(),
+    session: declared.filter((key) => !localPrefixes.some((prefix) => key.startsWith(prefix))).sort()
   };
 }
 
@@ -899,7 +899,8 @@ test('verified clear covers every policy-declared personal key and leaves the ra
   // Pinned against the DERIVED set, so the literal and the subject are two sources that can
   // disagree. A seventh `policy.storage` key reddens here rather than arriving unswept, and once
   // the pin is updated to admit it the coverage assertions below force the clear to sweep it.
-  assert.equal(declared.local.length, 5, 'the policy-derived local surface is the pointer, both slots, quarantine, and display mode');
+  assert.equal(declared.local.length, 9,
+    'the policy-derived local surface is both pointers, both slot pairs, both quarantines, and display mode');
   assert.equal(declared.session.length, 2, 'the policy-derived session surface is the session fallback and the return context');
   assert.equal(new Set([...declared.local, ...declared.session]).size, declaredCount, 'a duplicate key would let one survivor hide behind another');
 
@@ -1584,6 +1585,8 @@ function strippedSource(source) {
 
 function egressScannableSource(source) {
   return strippedSource(source)
+    .replace(/(["'])history\1/g, '$1historical-axis$1')
+    .replace(/\b(?!window\b|globalThis\b)([A-Za-z_$][\w$]*)\.history\b/g, '$1.historicalAxis')
     .replace(/\blocation\s*:/g, 'categoryLocation:')
     .replace(/\b(?!window\b|globalThis\b)([A-Za-z_$][\w$]*)\.location\b/g, '$1.categoryLocation');
 }

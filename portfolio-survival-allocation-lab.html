@@ -1095,6 +1095,9 @@
                 policy: null,
                 store: null,
                 opened: null,
+                dossierStore: null,
+                dossierOpened: null,
+                dossierStatus: "Dossier not saved locally.",
                 draft: null,
                 mandateDraft: null,
                 behaviorDraft: null,
@@ -1283,6 +1286,13 @@
                         errorCode: state.pathCompute.errorCode,
                         lastSettlementCode: state.pathCompute.lastSettlementCode
                     },
+                    dossierAudit: {
+                        generation: state.dossierOpened ? state.dossierOpened.collection.generation : null,
+                        dossierCount: state.dossierOpened ? state.dossierOpened.collection.dossiers.length : 0,
+                        headRecordHash: state.dossierOpened && state.dossierOpened.collection.dossiers.length
+                            ? state.dossierOpened.collection.dossiers[state.dossierOpened.collection.dossiers.length - 1].headRecordHash
+                            : null
+                    },
                     lastFullClear: state.lastFullClear
                 });
             }
@@ -1439,7 +1449,518 @@
                 return panel;
             }
 
-            /* ------------------------------------------ Scope 15 Research Dossier */
+            /* ------------------------------------------ Scope 15/25 Research Dossier */
+
+            function scope25Identity(label, value) {
+                return contracts.contentSha256(value, label);
+            }
+
+            function scope25SavedDossier(workspaceIdentity) {
+                if (!state.dossierOpened) return null;
+                return state.dossierOpened.collection.dossiers.find(function (dossier) {
+                    return dossier.workspaceIdentity === workspaceIdentity;
+                }) || null;
+            }
+
+            function scope25TrialLedger(probe) {
+                function trial(trialKind, contractVersion, payload, selected) {
+                    var identityPayload = { contractVersion: contractVersion, payload: payload };
+                    return {
+                        trialKind: trialKind,
+                        trialIdentity: scope25Identity(contractVersion, identityPayload),
+                        selected: selected
+                    };
+                }
+                var trials = [
+                    trial("method", "portfolio-dossier-method-trial/v1", {
+                        method: "decision-time-walk-forward", evidenceIdentity: probe.identity
+                    }, false),
+                    trial("parameter-vector", "portfolio-dossier-parameter-trial/v1", {
+                        purgeObservations: state.policy.analytics.dossierPurgeObservations,
+                        embargoObservations: state.policy.analytics.dossierEmbargoObservations,
+                        turnoverFraction: state.policy.analytics.dossierTurnoverFraction
+                    }, false),
+                    trial("history-sample", "portfolio-dossier-history-trial/v1", {
+                        evidenceIdentity: probe.identity,
+                        dates: probe.rows.map(function (row) { return row.date; })
+                    }, false),
+                    trial("stress-definition", "portfolio-dossier-stress-trial/v1", {
+                        downsideThreshold: state.policy.analytics.dependenceDownsideThreshold
+                    }, false),
+                    trial("selected-output", "portfolio-dossier-selected-output-trial/v1", {
+                        evidenceIdentity: probe.identity,
+                        output: "current-decision-fold"
+                    }, true)
+                ];
+                if (state.allocationInputs) {
+                    window.RLPORTFOLIOANALYTICS.ALLOCATION_METHODS.forEach(function (method) {
+                        trials.push(trial("method", "portfolio-dossier-allocation-method-trial/v1", {
+                            method: method,
+                            expectedReturnInputIdentity: state.allocationInputs.expectedReturnIdentity,
+                            benchmarkInputIdentity: state.allocationInputs.benchmarkIdentity,
+                            riskAversion: state.allocationInputs.riskAversion
+                        }, false));
+                    });
+                }
+                (state.blViews || []).forEach(function (view) {
+                    trials.push(trial("view-set", "portfolio-dossier-view-trial/v1", {
+                        viewId: view.viewId,
+                        horizonSessions: view.horizonSessions
+                    }, false));
+                });
+                if (state.hedge && Array.isArray(state.hedge.ratios)) {
+                    state.hedge.ratios.forEach(function (ratio) {
+                        trials.push(trial("hedge-ratio", "portfolio-dossier-hedge-ratio-trial/v1", {
+                            proxySymbol: state.hedge.proxySymbol,
+                            ratio: ratio,
+                            horizonYears: state.hedge.horizonYears
+                        }, false));
+                    });
+                }
+                return window.RLPORTFOLIOANALYTICS.buildTrialLedger(trials);
+            }
+
+            function scope25DecisionFold(probe) {
+                var analyticsPolicy = state.policy.analytics;
+                var observations = (probe.alignedReturns || []).map(function (portfolioReturn, index) {
+                    var date = probe.rows[index + 1].date;
+                    var stress = portfolioReturn <= analyticsPolicy.dependenceDownsideThreshold;
+                    return {
+                        contractVersion: "decision-observation/v1",
+                        observationId: scope25Identity("portfolio-dossier-observation/v1", {
+                            contractVersion: "portfolio-dossier-observation/v1",
+                            evidenceIdentity: probe.identity,
+                            date: date
+                        }),
+                        date: date,
+                        availableAt: date + "T22:00:00.000Z",
+                        portfolioReturn: portfolioReturn,
+                        sourceVintageId: scope25Identity("portfolio-dossier-source-vintage/v1", {
+                            contractVersion: "portfolio-dossier-source-vintage/v1",
+                            evidenceIdentity: probe.identity,
+                            stress: stress
+                        }),
+                        stress: stress
+                    };
+                });
+                var trainingCount = Math.floor(observations.length / 2);
+                var purgeCount = analyticsPolicy.dossierPurgeObservations;
+                var embargoCount = analyticsPolicy.dossierEmbargoObservations;
+                var applicationIndex = trainingCount + embargoCount;
+                if (trainingCount <= purgeCount || applicationIndex >= observations.length) {
+                    return { state: "unavailable", reason: "decision-sample-too-short" };
+                }
+                var sourceVintages = Array.from(new Set(observations.map(function (row) { return row.sourceVintageId; }))).map(function (vintageId, index) {
+                    return {
+                        sourceId: index === 0 ? "held-common-date-bars" : "held-common-date-stress-subset",
+                        vintageId: vintageId,
+                        publishedAt: observations[trainingCount - 1].availableAt
+                    };
+                });
+                return window.RLPORTFOLIOANALYTICS.evaluateDecisionFold({
+                    contractVersion: "decision-fold-request/v1",
+                    trainingStart: observations[0].date,
+                    trainingEnd: observations[trainingCount - 1].date,
+                    decisionCutoff: observations[trainingCount].date + "T00:00:00.000Z",
+                    embargo: {
+                        contractVersion: "decision-interval/v1",
+                        startDate: observations[trainingCount].date,
+                        endDate: observations[applicationIndex - 1].date
+                    },
+                    purge: {
+                        contractVersion: "decision-interval/v1",
+                        startDate: observations[trainingCount - purgeCount].date,
+                        endDate: observations[trainingCount - 1].date
+                    },
+                    rebalanceDate: observations[applicationIndex].date,
+                    applicationStart: observations[applicationIndex].date,
+                    applicationEnd: observations[observations.length - 1].date,
+                    observations: observations,
+                    sourceVintages: sourceVintages,
+                    fittedParameterIdentities: [scope25Identity("portfolio-dossier-fitted-parameters/v1", {
+                        contractVersion: "portfolio-dossier-fitted-parameters/v1",
+                        evidenceIdentity: probe.identity,
+                        trainingEnd: observations[trainingCount - 1].date
+                    })],
+                    candidateIdentity: scope25Identity("portfolio-dossier-candidate/v1", {
+                        contractVersion: "portfolio-dossier-candidate/v1",
+                        evidenceIdentity: probe.identity,
+                        workspaceIdentity: state.opened.workspace.semanticFingerprint
+                    }),
+                    costs: {
+                        contractVersion: "decision-costs/v1",
+                        commissionFraction: analyticsPolicy.allocationCommissionFraction,
+                        spreadFraction: analyticsPolicy.allocationSpreadFraction,
+                        slippageFraction: analyticsPolicy.allocationSlippageFraction,
+                        turnoverFraction: analyticsPolicy.dossierTurnoverFraction,
+                        financingFraction: analyticsPolicy.allocationFinancingFraction,
+                        carryFraction: analyticsPolicy.allocationCarryFraction,
+                        rebalanceTiming: analyticsPolicy.allocationRebalanceTiming
+                    }
+                });
+            }
+
+            function scope25BuildDossier(probe) {
+                var fold = scope25DecisionFold(probe);
+                var ledger = scope25TrialLedger(probe);
+                if (fold.state !== "ok" || ledger.state !== "ok") {
+                    return { state: "unavailable", reason: fold.reason || ledger.reason };
+                }
+                var createdAt = state.opened.workspace.updatedAt;
+                var built = api.createResearchDossier({
+                    workspaceIdentity: state.opened.workspace.semanticFingerprint,
+                    createdAt: createdAt,
+                    policyFingerprints: [
+                        state.policy.solver.fingerprint,
+                        scope25Identity("portfolio-dossier-analytics-policy/v1", state.policy.analytics)
+                    ]
+                }, state.policy);
+                if (!built.ok) return { state: "unavailable", reason: built.error.reason };
+                function append(recordType, payloadIdentity, payload) {
+                    built = api.appendDossierRecord(built.value.dossier, {
+                        recordType: recordType,
+                        createdAt: createdAt,
+                        payloadIdentity: payloadIdentity,
+                        payload: payload
+                    }, state.policy);
+                    return built.ok;
+                }
+                if (!append("decision-fold", fold.foldId, fold)) return { state: "unavailable", reason: built.error.reason };
+                ["inSample", "outOfSample", "gross", "net"].forEach(function (key) {
+                    if (built.ok) append("candidate-result", fold.resultIdentities[key], fold.results[key]);
+                });
+                if (built.ok) append("stress-result", fold.resultIdentities.stress, fold.results.stress);
+                ledger.entries.forEach(function (entry) {
+                    if (built.ok) append("trial", entry.trialIdentity, entry);
+                });
+                var claim = {
+                    contractVersion: "DossierClaim/v1",
+                    claim: "Decision-time walk-forward results are descriptive historical evidence and do not establish future superiority.",
+                    invalidationConditions: ["source-vintage-changed", "decision-clock-changed", "cost-authority-changed"],
+                    limitations: [
+                        "Survivorship: the held universe does not reconstruct delisted constituents.",
+                        "Stale classification: current classifications are not treated as historical classifications.",
+                        "Data availability: only observations published by each decision cutoff enter fitting.",
+                        "Look-ahead: post-cutoff observations are excluded rather than moved backward.",
+                        "Selection: every inspected variant is counted in the trial ledger.",
+                        "Source limitation: the result is bounded to the displayed source vintages and common-date bars."
+                    ]
+                };
+                if (built.ok) append("claim", scope25Identity("portfolio-dossier-claim/v1", claim), claim);
+                if (!built.ok) return { state: "unavailable", reason: built.error.reason };
+                return { state: "ok", fold: fold, ledger: ledger, claim: claim, dossier: built.value.dossier };
+            }
+
+            function scope25AppendCell(row, field, text, header) {
+                var cell = document.createElement(header ? "th" : "td");
+                if (header) cell.setAttribute("scope", "row");
+                if (field) cell.dataset.field = field;
+                cell.textContent = text;
+                row.appendChild(cell);
+            }
+
+            function scope25Percent(result) {
+                return result && isFiniteNumber(result.value) ? (result.value * 100).toFixed(2) + "%" : "Unavailable";
+            }
+
+            function appendScope25Audit(band, projection) {
+                var saved = scope25SavedDossier(state.opened.workspace.semanticFingerprint);
+                var dossier = saved || projection.dossier;
+                var fold = projection.fold;
+
+                var decisionWrap = document.createElement("div");
+                decisionWrap.style.overflowX = "auto";
+                var decisionTable = document.createElement("table");
+                decisionTable.id = "dossierDecisionTable";
+                decisionTable.innerHTML = "<thead><tr><th scope=\"col\">Training</th><th scope=\"col\">Decision cutoff</th><th scope=\"col\">Embargo</th><th scope=\"col\">Rebalance</th><th scope=\"col\">Application</th></tr></thead>";
+                var decisionBody = document.createElement("tbody");
+                var decisionRow = document.createElement("tr");
+                scope25AppendCell(decisionRow, "training", fold.trainingStart + " → " + fold.trainingEnd);
+                scope25AppendCell(decisionRow, "decision-cutoff", fold.decisionCutoff);
+                scope25AppendCell(decisionRow, "embargo", fold.embargo.startDate + " → " + fold.embargo.endDate);
+                scope25AppendCell(decisionRow, "rebalance", fold.rebalanceDate);
+                scope25AppendCell(decisionRow, "application", fold.applicationStart + " → " + fold.applicationEnd);
+                decisionBody.appendChild(decisionRow);
+                decisionTable.appendChild(decisionBody);
+                decisionWrap.appendChild(decisionTable);
+                band.appendChild(decisionWrap);
+
+                var sourceTable = document.createElement("table");
+                sourceTable.id = "dossierSourceVintageTable";
+                sourceTable.innerHTML = "<thead><tr><th>Source</th><th>Vintage identity</th><th>Published at</th></tr></thead>";
+                var sourceBody = document.createElement("tbody");
+                fold.sourceVintages.forEach(function (source) {
+                    var row = document.createElement("tr");
+                    row.dataset.vintageId = source.vintageId;
+                    scope25AppendCell(row, null, source.sourceId, true);
+                    scope25AppendCell(row, null, source.vintageId);
+                    scope25AppendCell(row, null, source.publishedAt);
+                    sourceBody.appendChild(row);
+                });
+                sourceTable.appendChild(sourceBody);
+                band.appendChild(sourceTable);
+
+                var costTable = document.createElement("table");
+                costTable.id = "dossierCostTable";
+                costTable.innerHTML = "<thead><tr><th scope=\"col\">Cost authority</th><th scope=\"col\">Declared value</th></tr></thead>";
+                var costBody = document.createElement("tbody");
+                [
+                    ["commission", fold.costs.commissionFraction], ["spread", fold.costs.spreadFraction],
+                    ["slippage", fold.costs.slippageFraction], ["turnover", fold.costs.turnoverFraction],
+                    ["financing", fold.costs.financingFraction], ["carry", fold.costs.carryFraction],
+                    ["rebalance-timing", fold.costs.rebalanceTiming]
+                ].forEach(function (entry) {
+                    var row = document.createElement("tr");
+                    row.dataset.cost = entry[0];
+                    scope25AppendCell(row, null, entry[0], true);
+                    scope25AppendCell(row, null, typeof entry[1] === "number" ? String(entry[1]) : entry[1]);
+                    costBody.appendChild(row);
+                });
+                costTable.appendChild(costBody);
+                band.appendChild(costTable);
+
+                var resultTable = document.createElement("table");
+                resultTable.id = "dossierResultTable";
+                resultTable.innerHTML = "<thead><tr><th scope=\"col\">Result</th><th scope=\"col\">State</th><th scope=\"col\">Value</th><th scope=\"col\">Observations</th></tr></thead>";
+                var resultBody = document.createElement("tbody");
+                [["in-sample", fold.results.inSample], ["out-of-sample", fold.results.outOfSample],
+                    ["stress", fold.results.stress], ["gross", fold.results.gross], ["net", fold.results.net]]
+                    .forEach(function (entry) {
+                        var row = document.createElement("tr");
+                        row.dataset.result = entry[0];
+                        row.dataset.state = entry[1].state;
+                        scope25AppendCell(row, null, entry[0], true);
+                        scope25AppendCell(row, null, entry[1].state);
+                        scope25AppendCell(row, null, scope25Percent(entry[1]));
+                        scope25AppendCell(row, null, String(entry[1].observationCount));
+                        resultBody.appendChild(row);
+                    });
+                resultTable.appendChild(resultBody);
+                band.appendChild(resultTable);
+
+                var trialTable = document.createElement("table");
+                trialTable.id = "dossierTrialTable";
+                trialTable.innerHTML = "<thead><tr><th scope=\"col\">Sequence</th><th scope=\"col\">Kind</th><th scope=\"col\">Identity</th><th scope=\"col\">Selected</th></tr></thead>";
+                var trialBody = document.createElement("tbody");
+                projection.ledger.entries.forEach(function (entry) {
+                    var row = document.createElement("tr");
+                    row.dataset.trialIdentity = entry.trialIdentity;
+                    scope25AppendCell(row, null, String(entry.sequence), true);
+                    scope25AppendCell(row, null, entry.trialKind);
+                    scope25AppendCell(row, null, entry.trialIdentity);
+                    scope25AppendCell(row, null, entry.selected ? "yes" : "no");
+                    trialBody.appendChild(row);
+                });
+                trialTable.appendChild(trialBody);
+                band.appendChild(trialTable);
+                var disclosure = document.createElement("p");
+                disclosure.id = "dossierTrialDisclosure";
+                disclosure.className = "microcopy";
+                disclosure.textContent = projection.ledger.entries.length + " distinct tried variants · " +
+                    projection.ledger.selectionBiasDisclosure.statement;
+                band.appendChild(disclosure);
+                var auditLimitations = document.createElement("ul");
+                auditLimitations.id = "dossierAuditLimitations";
+                auditLimitations.className = "route-states";
+                projection.claim.limitations.forEach(function (limitation) {
+                    var item = document.createElement("li");
+                    item.textContent = limitation;
+                    auditLimitations.appendChild(item);
+                });
+                band.appendChild(auditLimitations);
+
+                var auditHead = document.createElement("p");
+                auditHead.id = "dossierAuditHead";
+                auditHead.className = "microcopy";
+                auditHead.dataset.headRecordHash = dossier.headRecordHash;
+                auditHead.textContent = "Append-only audit head · " + dossier.headRecordHash;
+                band.appendChild(auditHead);
+                var records = document.createElement("table");
+                records.id = "dossierRecordTable";
+                records.innerHTML = "<thead><tr><th scope=\"col\">Sequence</th><th scope=\"col\">Type</th><th scope=\"col\">Record ID</th><th scope=\"col\">Previous hash</th></tr></thead>";
+                var recordBody = document.createElement("tbody");
+                dossier.records.forEach(function (record) {
+                    var row = document.createElement("tr");
+                    row.dataset.recordId = record.recordId;
+                    row.dataset.recordType = record.recordType;
+                    scope25AppendCell(row, null, String(record.sequence), true);
+                    scope25AppendCell(row, null, record.recordType);
+                    scope25AppendCell(row, null, record.recordId);
+                    scope25AppendCell(row, null, record.previousRecordHash || "origin");
+                    recordBody.appendChild(row);
+                });
+                records.appendChild(recordBody);
+                band.appendChild(records);
+
+                var save = document.createElement("button");
+                save.id = "saveResearchDossier";
+                save.type = "button";
+                save.textContent = saved ? "Dossier already saved" : "Save research dossier";
+                save.disabled = Boolean(saved);
+                band.appendChild(save);
+                var status = document.createElement("p");
+                status.id = "dossierSaveStatus";
+                status.className = "state-message";
+                status.textContent = state.dossierStatus;
+                band.appendChild(status);
+
+                var correctionLabel = document.createElement("label");
+                correctionLabel.setAttribute("for", "dossierCorrectionReason");
+                correctionLabel.textContent = "Correction reason";
+                var correctionInput = document.createElement("input");
+                correctionInput.id = "dossierCorrectionReason";
+                correctionInput.type = "text";
+                correctionInput.maxLength = 400;
+                correctionLabel.appendChild(correctionInput);
+                band.appendChild(correctionLabel);
+                var correctionButton = document.createElement("button");
+                correctionButton.id = "appendDossierCorrection";
+                correctionButton.type = "button";
+                correctionButton.textContent = "Append correction";
+                correctionButton.disabled = !saved;
+                band.appendChild(correctionButton);
+
+                var exportFieldset = document.createElement("fieldset");
+                var exportLegend = document.createElement("legend");
+                exportLegend.textContent = "Private export fields";
+                exportFieldset.appendChild(exportLegend);
+                [["Header", "header"], ["Records", "records"], ["Corrections", "corrections"], ["Provenance", "provenance"]]
+                    .forEach(function (entry) {
+                        var label = document.createElement("label");
+                        var input = document.createElement("input");
+                        input.type = "checkbox";
+                        input.id = "dossierExport" + entry[0];
+                        input.value = entry[1];
+                        label.appendChild(input);
+                        label.appendChild(document.createTextNode(" " + entry[0]));
+                        exportFieldset.appendChild(label);
+                    });
+                band.appendChild(exportFieldset);
+                var previewButton = document.createElement("button");
+                previewButton.id = "previewDossierExport";
+                previewButton.type = "button";
+                previewButton.textContent = "Preview private export";
+                band.appendChild(previewButton);
+                var exportPreview = document.createElement("p");
+                exportPreview.id = "dossierExportPreview";
+                exportPreview.className = "state-message";
+                exportPreview.textContent = "Choose fields and preview before download.";
+                band.appendChild(exportPreview);
+                var exportAckLabel = document.createElement("label");
+                var exportAck = document.createElement("input");
+                exportAck.id = "dossierExportAcknowledgement";
+                exportAck.type = "checkbox";
+                exportAckLabel.appendChild(exportAck);
+                exportAckLabel.appendChild(document.createTextNode(" I reviewed the private export destination warning."));
+                band.appendChild(exportAckLabel);
+                var download = document.createElement("button");
+                download.id = "downloadDossierExport";
+                download.type = "button";
+                download.textContent = "Download selected dossier fields";
+                download.disabled = true;
+                band.appendChild(download);
+
+                function selectedExportFields() {
+                    return ["Header", "Records", "Corrections", "Provenance"].filter(function (name) {
+                        return byId("dossierExport" + name).checked;
+                    }).map(function (name) { return byId("dossierExport" + name).value; });
+                }
+
+                save.addEventListener("click", function () {
+                    var committed = state.dossierStore.commitDossier(projection.dossier, state.dossierOpened.collection.generation, now());
+                    if (!committed.ok) {
+                        state.dossierStatus = committed.error.code + " · " + committed.error.reason;
+                    } else {
+                        state.dossierOpened = committed.value;
+                        state.dossierStatus = "Saved locally · generation " + committed.value.collection.generation;
+                    }
+                    renderRoutes();
+                });
+                correctionButton.addEventListener("click", function () {
+                    var current = scope25SavedDossier(state.opened.workspace.semanticFingerprint);
+                    var claim = current && current.records.slice().reverse().find(function (record) { return record.recordType === "claim"; });
+                    if (!current || !claim) return;
+                    var reason = correctionInput.value.trim();
+                    var corrected = api.appendDossierCorrection(current, {
+                        correctsRecordId: claim.recordId,
+                        reason: reason,
+                        replacementPayloadIdentity: scope25Identity("portfolio-dossier-correction-replacement/v1", {
+                            contractVersion: "portfolio-dossier-correction-replacement/v1",
+                            claimRecordId: claim.recordId,
+                            reason: reason
+                        }),
+                        invalidationEffect: "supersedes-for-current-reading",
+                        createdAt: now()
+                    }, state.policy);
+                    if (!corrected.ok) {
+                        state.dossierStatus = corrected.error.code + " · " + corrected.error.reason;
+                        renderRoutes();
+                        return;
+                    }
+                    var committed = state.dossierStore.commitDossier(
+                        corrected.value.dossier, state.dossierOpened.collection.generation, now()
+                    );
+                    if (!committed.ok) state.dossierStatus = committed.error.code + " · " + committed.error.reason;
+                    else {
+                        state.dossierOpened = committed.value;
+                        state.dossierStatus = "Correction appended · generation " + committed.value.collection.generation;
+                    }
+                    renderRoutes();
+                });
+                previewButton.addEventListener("click", function () {
+                    var fields = selectedExportFields();
+                    var preview = api.previewDossierExport({ dossier: dossier, fields: fields }, state.policy);
+                    if (!preview.ok) {
+                        exportPreview.textContent = preview.error.code + " · " + preview.error.reason;
+                        download.disabled = true;
+                        return;
+                    }
+                    exportPreview.textContent = "Selected fields: " + fields.join(", ") + " · " +
+                        preview.value.recordCount + " records · " + preview.value.warning;
+                    download.disabled = !exportAck.checked;
+                });
+                exportAck.addEventListener("change", function () {
+                    download.disabled = !exportAck.checked || !/^Selected fields:/.test(exportPreview.textContent);
+                });
+                download.addEventListener("click", function () {
+                    var fields = selectedExportFields();
+                    var exportedAt = now();
+                    var exported = api.exportDossierPrivate({
+                        dossier: dossier, fields: fields, userGesture: true, exportedAt: exportedAt
+                    }, state.policy);
+                    if (!exported.ok) return;
+                    var href = URL.createObjectURL(new Blob([exported.value.text], { type: exported.value.mimeType }));
+                    var link = document.createElement("a");
+                    link.href = href;
+                    link.download = exported.value.fileName;
+                    link.click();
+                    URL.revokeObjectURL(href);
+                    var persisted = scope25SavedDossier(state.opened.workspace.semanticFingerprint);
+                    if (!persisted) return;
+                    var receipt = {
+                        contractVersion: "DossierExportReceipt/v1",
+                        selectedFields: fields,
+                        exportedAt: exportedAt,
+                        destination: "browser-download",
+                        publicUrl: null
+                    };
+                    var appended = api.appendDossierRecord(persisted, {
+                        recordType: "export-receipt",
+                        createdAt: exportedAt,
+                        payloadIdentity: scope25Identity("portfolio-dossier-export-receipt/v1", receipt),
+                        payload: receipt
+                    }, state.policy);
+                    if (!appended.ok) return;
+                    var committed = state.dossierStore.commitDossier(
+                        appended.value.dossier, state.dossierOpened.collection.generation, exportedAt
+                    );
+                    if (!committed.ok) return;
+                    state.dossierOpened = committed.value;
+                    state.dossierStatus = "Private export receipt appended · generation " +
+                        committed.value.collection.generation;
+                    renderRoutes();
+                });
+            }
 
             function appendResearchDossier(panel) {
                 var band = document.createElement("div");
@@ -1472,6 +1993,16 @@
                     trialsSearched: policy.dossierTrialsSearched
                 });
                 band.dataset.dossierState = dossier.state;
+
+                var scope25 = scope25BuildDossier(probe);
+                if (scope25.state === "ok") appendScope25Audit(band, scope25);
+                else {
+                    var scope25Unavailable = document.createElement("p");
+                    scope25Unavailable.id = "dossierAuditUnavailable";
+                    scope25Unavailable.className = "state-message";
+                    scope25Unavailable.textContent = "Decision-time audit unavailable · " + scope25.reason;
+                    band.appendChild(scope25Unavailable);
+                }
 
                 if (dossier.state !== "ok") {
                     var refused = document.createElement("p");
@@ -6688,6 +7219,17 @@
                             return;
                         }
                         state.opened = opened.value;
+                        state.dossierStore = api.createDossierStore({ localStorage: state.adapters.localStorage }, state.policy);
+                        var dossierOpened = state.dossierStore.openDossiers(now());
+                        if (dossierOpened.ok) {
+                            state.dossierOpened = dossierOpened.value;
+                            state.dossierStatus = dossierOpened.value.collection.dossiers.length
+                                ? "Reloaded local dossier · generation " + dossierOpened.value.collection.generation
+                                : "Dossier not saved locally.";
+                        } else {
+                            state.dossierOpened = null;
+                            state.dossierStatus = dossierOpened.error.code + " · " + dossierOpened.error.reason;
+                        }
                         state.configReady = true;
                         populateDuplicateChoices();
                         populateBehaviorVocabulary();
@@ -7360,6 +7902,11 @@
                     return;
                 }
                 state.opened = reopened.value;
+                state.dossierStore = api.createDossierStore({ localStorage: state.adapters.localStorage }, state.policy);
+                var dossierReopened = state.dossierStore.openDossiers(now());
+                state.dossierOpened = dossierReopened.ok ? dossierReopened.value : null;
+                state.dossierStatus = dossierReopened.ok ? "Dossier not saved locally." :
+                    dossierReopened.error.code + " · " + dossierReopened.error.reason;
                 state.draft = null;
                 state.holdingDraft = null;
                 state.holdingEditId = null;

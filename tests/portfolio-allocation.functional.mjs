@@ -457,3 +457,92 @@ test('TP-15-08 a persisted dossier is swept by the full-personal clear and survi
   assert.equal(reread.value.workspace.dossiers.length, 0,
     'the full-personal clear must empty the dossier section on a storage REREAD, not merely in memory');
 });
+
+test('TP-25-01 decision-time folds preserve clocks costs states and exact tried variants', () => {
+  const { analytics } = loadRuntime();
+  const observations = [
+    ['obs-01', '2026-01-02', '2026-01-02T22:00:00.000Z', 0.01, false],
+    ['obs-02', '2026-01-05', '2026-01-05T22:00:00.000Z', -0.005, false],
+    ['obs-03', '2026-01-06', '2026-01-06T22:00:00.000Z', 0.015, false],
+    ['obs-04', '2026-01-07', '2026-01-07T22:00:00.000Z', 0.004, false],
+    ['obs-lookahead', '2026-01-08', '2026-01-12T22:00:00.000Z', 0.90, false],
+    ['obs-05', '2026-01-13', '2026-01-13T22:00:00.000Z', 0.02, false],
+    ['obs-06', '2026-01-14', '2026-01-14T22:00:00.000Z', -0.01, true],
+    ['obs-07', '2026-01-15', '2026-01-15T22:00:00.000Z', 0.012, false]
+  ].map(([observationId, date, availableAt, portfolioReturn, stress]) => ({
+    contractVersion: 'decision-observation/v1',
+    observationId,
+    date,
+    availableAt,
+    portfolioReturn,
+    sourceVintageId: 'sha256:' + (stress ? 'b' : 'a').repeat(64),
+    stress
+  }));
+  const costs = {
+    contractVersion: 'decision-costs/v1',
+    commissionFraction: 0.0004,
+    spreadFraction: 0.0006,
+    slippageFraction: 0.0005,
+    turnoverFraction: 0.20,
+    financingFraction: 0.0002,
+    carryFraction: 0.0001,
+    rebalanceTiming: 'application-start'
+  };
+  const fold = analytics.evaluateDecisionFold({
+    contractVersion: 'decision-fold-request/v1',
+    trainingStart: '2026-01-02',
+    trainingEnd: '2026-01-08',
+    decisionCutoff: '2026-01-09T00:00:00.000Z',
+    embargo: { contractVersion: 'decision-interval/v1', startDate: '2026-01-09', endDate: '2026-01-12' },
+    purge: { contractVersion: 'decision-interval/v1', startDate: '2026-01-08', endDate: '2026-01-08' },
+    rebalanceDate: '2026-01-13',
+    applicationStart: '2026-01-13',
+    applicationEnd: '2026-01-15',
+    observations,
+    sourceVintages: [
+      { sourceId: 'fixture-bars', vintageId: 'sha256:' + 'a'.repeat(64), publishedAt: '2026-01-07T22:00:00.000Z' },
+      { sourceId: 'fixture-stress', vintageId: 'sha256:' + 'b'.repeat(64), publishedAt: '2026-01-14T22:00:00.000Z' }
+    ],
+    fittedParameterIdentities: ['sha256:' + 'c'.repeat(64)],
+    candidateIdentity: 'sha256:' + 'd'.repeat(64),
+    costs
+  });
+
+  assert.equal(fold.state, 'ok');
+  assert.equal(fold.contractVersion, 'DecisionFold/v1');
+  assert.deepEqual(fold.eligibleTrainingObservationIds, ['obs-01', 'obs-02', 'obs-03', 'obs-04']);
+  assert.equal(fold.excludedLookAheadObservationIds.includes('obs-lookahead'), true,
+    'the strong return published after the decision cutoff must not enter fitting');
+  assert.equal(fold.applicationObservationIds.includes('obs-lookahead'), false,
+    'the look-ahead discriminator is neither training evidence nor an application return');
+  assert.equal(fold.results.inSample.state, 'in-sample');
+  assert.equal(fold.results.outOfSample.state, 'out-of-sample');
+  assert.equal(fold.results.stress.state, 'stress');
+  assert.equal(fold.results.gross.state, 'gross-only');
+  assert.equal(fold.results.net.state, 'net');
+  assert.equal(fold.results.net.value < fold.results.gross.value, true);
+  assert.deepEqual(Object.keys(fold.costs).sort(), Object.keys(costs).sort());
+
+  const grossOnly = analytics.evaluateDecisionFold({
+    ...fold.requestIdentityInput,
+    costs: { ...costs, carryFraction: null }
+  });
+  assert.equal(grossOnly.state, 'ok');
+  assert.equal(grossOnly.results.gross.state, 'gross-only');
+  assert.equal(grossOnly.results.net.state, 'unavailable');
+  assert.equal(grossOnly.results.net.reason, 'complete-cost-authority-required');
+
+  const ledger = analytics.buildTrialLedger([
+    { trialKind: 'method', trialIdentity: 'sha256:' + '1'.repeat(64), selected: false },
+    { trialKind: 'parameter-vector', trialIdentity: 'sha256:' + '2'.repeat(64), selected: true },
+    { trialKind: 'method', trialIdentity: 'sha256:' + '1'.repeat(64), selected: false },
+    { trialKind: 'stress-definition', trialIdentity: 'sha256:' + '3'.repeat(64), selected: false },
+    { trialKind: 'view-set', trialIdentity: 'sha256:' + '4'.repeat(64), selected: false },
+    { trialKind: 'hedge-ratio', trialIdentity: 'sha256:' + '5'.repeat(64), selected: false }
+  ]);
+  assert.equal(ledger.state, 'ok');
+  assert.equal(ledger.entries.length, 5, 'an identical inspected trial counts exactly once');
+  assert.equal(ledger.duplicateCount, 1);
+  assert.equal(ledger.selectionBiasDisclosure.trialsInspected, 5);
+  assert.equal(ledger.selectionBiasDisclosure.selectedOutputs, 1);
+});

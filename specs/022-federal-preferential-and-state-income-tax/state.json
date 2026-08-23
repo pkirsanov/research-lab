@@ -112,7 +112,7 @@
         }
     },
     "certification": {
-        "status": "not_started",
+        "status": "in_progress",
         "certifiedAt": null,
         "completedScopes": [],
         "certifiedCompletedPhases": [],
@@ -189,5 +189,31 @@
                 "summary": "This feature extends the existing lifetime-tax-strategy-lab.html and creates no new root HTML file, so site-exclusions.json is unchanged and every scope asserts it. Had a new root page been created it would have required a site-exclusions.json entry in the same scope that created it, because scripts/build-pages-site.mjs refuses an unregistered root HTML and that refusal breaks the live Pages deploy. Every scope runs node scripts/build-pages-site.mjs --dry-run as a deploy gate to prove the condition holds."
             }
         ]
+    },
+    "policySnapshot": {
+        "grill": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "tdd": {
+            "mode": "scenario-first",
+            "source": "repo-default"
+        },
+        "autoCommit": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "lockdown": {
+            "mode": "off",
+            "source": "repo-default"
+        },
+        "regression": {
+            "mode": "protected-scenarios",
+            "source": "repo-default"
+        },
+        "validation": {
+            "mode": "certification-required",
+            "source": "repo-default"
+        }
     }
 }

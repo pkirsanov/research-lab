@@ -85,9 +85,13 @@ export function collectRequests(page) {
 
    The refusal is a CONJUNCTION of two limbs, not one test written twice. The prefix limb is the
    original: it rejects an origin that shares no leading text with the route's own. The parsed-origin
-   limb is added because a prefix is not an origin — `http://localhost:8080.evil.com/rltaxstrategy.js`
-   begins with the base URL of a route served from `http://localhost:8080`, so the prefix limb alone
-   admits a host somebody else controls. An entry must clear both limbs to be counted local. */
+   limb is added because a prefix is not an origin. A URL may begin with the whole base URL and
+   still be served by somebody else: `http://127.0.0.1:8123@evil.example/rltaxstrategy.js` starts
+   with `http://127.0.0.1:8123`, carries a declared pathname, and has origin `http://evil.example`,
+   because everything before the `@` is userinfo rather than a host. The prefix limb alone admits
+   it. An entry must clear BOTH limbs to be counted local. `SCN-021-002` in
+   lifetime-tax-foundation.spec.mjs holds that case so the second limb is asserted rather than
+   merely present. */
 export function sameOriginPaths(ledger, site) {
   const routeOrigin = new URL(site.baseUrl).origin;
   const foreign = ledger.filter((entry) => !entry.url.startsWith(site.baseUrl)

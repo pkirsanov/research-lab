@@ -453,4 +453,19 @@ test('Regression: SCN-021-002 the shared ledger helper refuses a declared pathna
      re-based on the route's own origin passes the helper and yields the same pathname. */
   const local = [{ url: `${site.baseUrl}/rltaxstrategy.js`, method: 'GET', postData: '' }];
   expect(sameOriginPaths(local, site)).toEqual([smuggledPath]);
+
+  /* SECOND ADVERSARIAL ARM. Refusing on `startsWith(site.baseUrl)` is not refusing on origin,
+     and the difference is not academic: everything before an `@` in an authority is userinfo,
+     not a host. So this URL begins with the whole base URL, carries a declared pathname, and is
+     served by `evil.example`. The prefix test alone hands the household's own modules — and the
+     fact that this household loaded them — to a third party. Pin both halves: the prefix limb
+     genuinely accepts it, so the assertion below is not a restatement of the arm above, and the
+     shipped conjunct refuses it anyway. Without this arm the parsed-origin limb is unasserted,
+     and an unasserted guard can be deleted without a single assertion moving. */
+  const userinfoSmuggled = `${site.baseUrl}@evil.example/rltaxstrategy.js`;
+  expect(userinfoSmuggled.startsWith(site.baseUrl)).toBe(true);
+  expect(new URL(userinfoSmuggled).origin).not.toBe(new URL(site.baseUrl).origin);
+  expect(declaredAssets).toContain(new URL(userinfoSmuggled).pathname);
+  expect(() => sameOriginPaths([{ url: userinfoSmuggled, method: 'GET', postData: '' }], site))
+    .toThrow();
 });

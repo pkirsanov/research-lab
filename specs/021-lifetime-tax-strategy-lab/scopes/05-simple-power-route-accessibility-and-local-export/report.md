@@ -1382,3 +1382,102 @@ that `ledger.length` is pinned to `afterFirstPaint`. That is a runtime browser
 observation and it remains true and remains proven; this finding concerns the
 static detector standing beside it, which is why the row keeps its tick.
 
+## Regression sweep across Features 021-024 (2026-08-22)
+
+### F-REG-02 — the false zero-network claim survives as three normative requirements, and the security census undercounted it
+
+The F2 remediation above corrected the privacy panel, which was the live
+user-facing surface, and then recorded what it had chosen not to correct:
+
+> The identical "zero network requests" wording also appears in:
+> [...]
+> Two further surfaces carry the same false claim, and are reported rather than changed
+
+Those two are `tests/lifetime-tax-foundation.spec.mjs:287` and
+`specs/021-lifetime-tax-strategy-lab/scenario-manifest.json:103`. The census
+stops there. It is short by fourteen sites, and it misses every requirement-level
+statement of the claim.
+
+Grepped this session across the four features, excluding evidence reports. The
+fourteen sites the census does not name:
+
+| file | line | text |
+| --- | --- | --- |
+| `specs/021-lifetime-tax-strategy-lab/spec.md` | 448 | Privacy And Trust Model item 2, `The page performs zero network requests at runtime.` |
+| `specs/021-lifetime-tax-strategy-lab/spec.md` | 581 | SCN-021-003 Gherkin, `Then the page has issued zero network requests` |
+| `specs/021-lifetime-tax-strategy-lab/spec.md` | 845 | **NFR-021-009**, `The page performs zero network requests at runtime.` |
+| `specs/021-lifetime-tax-strategy-lab/spec.md` | 1065 | `Local-only, zero network requests.` |
+| `specs/021-lifetime-tax-strategy-lab/spec.md` | 1159 | **P9**, `It performs zero network requests by design, which is stronger than degrading honestly.` |
+| `specs/021-lifetime-tax-strategy-lab/design.md` | 43 | `the page issues zero network requests.` |
+| `specs/021-lifetime-tax-strategy-lab/scopes/_index.md` | 337 | the **PRA-021-009** row, `The page performs zero network requests.` |
+| `.../scopes/01-tax-workspace-rule-pack-and-privacy-foundation/scope.md` | 23, 37, 61 | narrative, the **PRA-021-009** definition, and the Gherkin |
+| `.../scopes/01-tax-workspace-rule-pack-and-privacy-foundation/scope.md` | 231 | the **TP-01-14** row, which quotes the test title twice: as the test name and inside its `--grep` command |
+| `.../scopes/05-simple-power-route-accessibility-and-local-export/scope.md` | 49 | the re-assertion of **PRA-021-009** |
+| `specs/023-property-tax-and-rental-income/spec.md` | 738 | **NFR-023-002**, `zero network requests at runtime, including regime pack loading.` |
+| `specs/024-social-security-and-medicare/spec.md` | 883 | **NFR-024-002**, `zero network requests at runtime, including benefit, mortality and medicare pack loading.` |
+
+The last two are the sharpest. They do not merely repeat a loose phrase. Each one
+names the pack loads explicitly and then asserts there are zero of them. The
+detector this scope repaired counts those same loads and pins the count:
+
+> TP-05-06: every loadJson call site is counted whatever its argument form, the
+> route holds exactly seven of them, each one names a read this list declares, and
+> the nine same-origin documents they resolve to are all present in this checkout
+> and none of them is remote
+
+So `NFR-023-002` states that regime pack loading is zero network requests, while
+the assertion standing beside it states that pack loading is nine of them. Both
+are ticked. They cannot both be describing the same page.
+
+#### What is and is not false here
+
+Three claims share this wording and only some are false. Separating them is the
+whole point, because a blanket rewrite would delete true statements.
+
+| claim | verdict |
+| --- | --- |
+| no household value reaches any request, URL, referrer, console message or committed artifact | TRUE, and proven at runtime by the SCN-021-003 ledger assertion |
+| the tool needs no key, no proxy, no account and no server | TRUE |
+| the page performs zero network requests at runtime | FALSE, nine same-origin document reads |
+
+`spec.md:745` and the first sentence of `spec.md:844` are the first kind and must
+be left alone. The second sentence of `spec.md:845` is the third kind. They sit in
+the same paragraph, which is how this survived. The `PRA-021-009` row at
+`_index.md:337` mixes the two inside a single table cell the same way.
+
+**Claim Source:** executed. The census grep ran in this session over
+`specs/021*`, `specs/022*`, `specs/023*`, `specs/024*`, `lifetime-tax-strategy.config.json`,
+`lifetime-tax-strategy-lab.html` and `tests/`, excluding `report.md` paths.
+`specs/023-property-tax-and-rental-income/spec.md:734-742`,
+`specs/024-social-security-and-medicare/spec.md:879-888` and
+`.../scopes/01-.../scope.md:35-39` were read in this session. The nine-document
+count is quoted from the shipped TP-05-06 assertion text, not restated.
+
+#### Routed, not fixed
+
+`spec.md`, `design.md`, `scope.md`, `_index.md` and `scenario-manifest.json` are
+planning-owned and design-owned artifacts. This sweep is diagnostic and does not
+edit them, which is the same boundary the F2 remediation drew when it declined to
+edit the scenario manifest.
+
+The decision is not editorial. `NFR-021-009`, `NFR-023-002` and `NFR-024-002` are
+normative requirements, `P9` and `P11` in the Feature 021 product-principle table
+cite `NFR-021-009` as their evidence, and `PRA-021-009` is inherited by two
+scopes. Whoever owns the correction has to choose whether the requirement becomes
+"no remote network requests, and no household value in any request", or whether it
+keeps a zero-request form and the page changes to satisfy it. That choice reaches
+three features.
+
+Owner: `bubbles.plan` for `NFR-021-009`, `NFR-023-002`, `NFR-024-002`,
+`PRA-021-009` and the two Gherkin clauses; `bubbles.design` for
+`design.md:43`; `bubbles.test` for the test title the F2 census already routed.
+
+#### Ticked evidence this finding does invalidate
+
+None is unticked by this sweep, and the reason is worth stating rather than
+assuming. Every zero-network DoD row in this family is worded as the first claim
+in the table above, the household-value claim, which is true and proven. No DoD
+row asserts the page issues no requests. The false statements live in requirement
+and narrative text, which carries no tick of its own.
+
+

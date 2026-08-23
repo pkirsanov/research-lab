@@ -28389,6 +28389,175 @@ try {
   'F6: the export omission accounting descends into every container the sanitiser rebuilds member by member, so a member added inside income, investmentIncomeBasis or wageBasis is named as container.member and its figure never reaches the exported bytes, top-level members keep their bare names, and an under-reporting list is proven to disagree');
 } catch (e) { failures++; console.log('  ✗ FAIL (lifetime-tax security follow-up group threw): ' + e.message); }
 
+/* ================================================================================
+   Lifetime tax — hardening review H1..H4. Four statutory "lesser of" bounds were
+   each found removable without any assertion in this suite failing, because every
+   fixture that reaches them pins the two operands so the bound cannot bind. Each
+   row below supplies the missing adversarial direction and pairs it with the
+   non-binding direction, so the bound is proven to be read rather than merely
+   present. Appended; this block edits no pre-existing assertion.
+   ================================================================================ */
+try {
+  group('Lifetime tax — every statutory lesser-of bound is exercised in the direction that binds');
+  const hRequire = (await import('node:module')).createRequire(import.meta.url);
+  const hProperty = hRequire('../rltax.js');
+  const hRental = hRequire('../rltaxrental.js');
+  const hInclusion = hRequire('../rltaxinclusion.js');
+  const hFixtures = JSON.parse(read('tax-rules/fixtures/property-regimes-2999.json')).regimes;
+  const hFederal = () => JSON.parse(read('tax-rules/federal/2026.json'));
+  const hNear = (a, b) => Math.abs(a - b) < 0.0000001;
+
+  /* H1. The assessment cap is the LOWER of the declared cap rate and the sourced annual index
+     change — the shipped Florida sourcing note states the constitution that way. Every regime in
+     the fixture pack carries capIndexRate EQUAL to capRate, and both shipped packs carry the
+     index rate as an AbsentFigure so their leg refuses before the comparison is reached. The
+     comparison therefore had no discriminating input anywhere: replacing it with the cap rate
+     alone left all 3384 assertions passing. Three regimes are priced here — index below the cap
+     rate, index equal to it, index above it — so whichever operand is lower is the one applied. */
+  const hDeclare = (overrides) => Object.assign({
+    contractVersion: 'PropertyAssessment/v1', origin: 'declared',
+    assessedValue: null, priorAssessedValue: null, acquisitionValue: null,
+    localCombinedRate: null, exemptionElections: []
+  }, overrides || {});
+  const hHousehold = hDeclare({
+    assessedValue: 400000, priorAssessedValue: 300000, acquisitionValue: 200000,
+    localCombinedRate: 0.02, exemptionElections: ['fixture-exemption']
+  });
+  const hCapRegime = (indexRate) => {
+    const regime = JSON.parse(JSON.stringify(hFixtures['prior-assessed-value-cap']));
+    regime.assessmentCap.capIndexRate = indexRate;
+    return regime;
+  };
+  const hCapLeg = (indexRate) => hProperty.composePropertyLeg(hHousehold, hCapRegime(indexRate));
+  const hShippedCapRate = hFixtures['prior-assessed-value-cap'].assessmentCap.capRate;
+  const hIndexBelow = hCapLeg(0.01);
+  const hIndexEqual = hCapLeg(hShippedCapRate);
+  const hIndexAbove = hCapLeg(0.09);
+  /* Every expectation is recomputed from the declaration and the regime rather than restated, so
+     an engine that read the wrong basis fails here instead of agreeing with a transcribed total. */
+  const hCeilingAt = (rate) => hHousehold.priorAssessedValue * (1 + rate);
+  const hTaxAt = (rate) => (Math.min(hHousehold.assessedValue, hCeilingAt(rate))
+    - hIndexEqual.settlement.exemptionTotal) * hHousehold.localCombinedRate;
+  assert(hIndexBelow.available === true && hIndexEqual.available === true && hIndexAbove.available === true
+    && hNear(hIndexBelow.settlement.cappedAssessedValue, hCeilingAt(0.01))
+    && hNear(hIndexEqual.settlement.cappedAssessedValue, hCeilingAt(hShippedCapRate))
+    && hNear(hIndexAbove.settlement.cappedAssessedValue, hCeilingAt(hShippedCapRate))
+    && hNear(hIndexBelow.value, hTaxAt(0.01))
+    && hNear(hIndexEqual.value, hTaxAt(hShippedCapRate))
+    /* The binding direction moves the tax. Without this the comparison is inert: the fixture's
+       equal rates and the shipped packs' absent index rate make every other case agree. */
+    && hIndexBelow.value < hIndexEqual.value
+    && hNear(hIndexAbove.value, hIndexEqual.value),
+  'H1: the assessment cap ceiling is built from the LOWER of the declared cap rate and the sourced annual index change — an index change below the cap rate reduces the capped value and the tax, one equal to it and one above it both leave the cap rate applied — so an implementation reading the cap rate alone fails here rather than agreeing with a fixture whose two rates are equal');
+
+  /* H2. The passive-activity special allowance is the second of the two loss limits, and it caps
+     the loss the first limit let through. Every fixture household declared an at-risk amount BELOW
+     the allowance, so the first limit always shadowed the second and the second disallowed zero
+     everywhere in this suite; removing its bound entirely left all 3384 assertions passing. The
+     household below declares an at-risk amount far above the allowance, so the allowance is the
+     limit that actually binds, and the shadowed household is priced beside it. */
+  const hAllowancePack = hFederal();
+  hAllowancePack.lossLimitPolicy.specialAllowance.maximumAmounts = {
+    amount: 20000, sourceRef: 'irs-p925-2025', locator: 'fixture maximum, the implementer\u2019s own figure'
+  };
+  hAllowancePack.lossLimitPolicy.specialAllowance.phaseOutRange = {
+    startsAbove: 80000, exhaustedAtOrAbove: 120000,
+    sourceRef: 'irs-p925-2025', locator: 'fixture range, the implementer\u2019s own figures'
+  };
+  hAllowancePack.lossLimitPolicy.specialAllowance.reductionRate = {
+    rate: 0.5, sourceRef: 'irs-p925-2025', locator: 'fixture rate, the implementer\u2019s own figure'
+  };
+  const hActivity = (overrides) => Object.assign({
+    contractVersion: 'RentalActivity/v1', origin: 'declared', declaredTaxYear: 2026,
+    rentalIncome: 10000, operatingExpenses: 30000, depreciableBasis: 160000,
+    placedInServiceMonth: 2, recoveryYearOrdinal: 1, atRiskAmount: 500000,
+    activeParticipation: true, modifiedAdjustedGrossIncome: 90000, openingSuspendedLoss: 0
+  }, overrides || {});
+  const hAllowanceBinds = hRental.computeRentalSettlement(hActivity({}), hAllowancePack);
+  const hAtRiskShadows = hRental.computeRentalSettlement(
+    hActivity({ atRiskAmount: 12000 }), hAllowancePack);
+  const hLimitOf = (settlement, limitId) =>
+    settlement.appliedLimits.filter((limit) => limit.limitId === limitId)[0];
+  const hPassive = hLimitOf(hAllowanceBinds, 'passive-activity');
+  const hShadowedPassive = hLimitOf(hAtRiskShadows, 'passive-activity');
+  const hAllowanceAmount = hAllowanceBinds.specialAllowance.amount;
+  assert(hAllowanceBinds.lossBeforeLimits > hAllowanceAmount
+    /* The first limit lets the whole loss through, so the second is the one under test. */
+    && hNear(hLimitOf(hAllowanceBinds, 'at-risk').allowedAmount, hAllowanceBinds.lossBeforeLimits)
+    && hLimitOf(hAllowanceBinds, 'at-risk').disallowedAmount === 0
+    && hNear(hPassive.allowedAmount, hAllowanceAmount)
+    && hNear(hPassive.disallowedAmount, hAllowanceBinds.lossBeforeLimits - hAllowanceAmount)
+    && hPassive.disallowedAmount > 0
+    && hNear(hAllowanceBinds.allowedLoss, hAllowanceAmount)
+    && hAllowanceBinds.allowedLoss < hAllowanceBinds.lossBeforeLimits
+    /* And the shadowed household — the only shape this suite carried — is proven to disallow
+       nothing at the second limit, which is why the bound was invisible. */
+    && hShadowedPassive.disallowedAmount === 0
+    && hNear(hAtRiskShadows.allowedLoss, 12000),
+  'H2: when the at-risk amount exceeds the sourced special allowance the passive-activity limit is the one that binds — it allows exactly the allowance, disallows the remainder of the loss and sets the allowed loss below the loss before limits — while the at-risk-shadowed household this suite already carried is proven to disallow nothing there, so an implementation applying the allowance without bounding the loss by it fails here');
+
+  /* H3. Section 86's first tier is the LESSER of the sourced proportion of the first band and the
+     benefit-proportion part of provisional income. Only ONE of the two directions was reachable
+     in this suite. The household it already carried has the benefit proportion as the lower of
+     the two, so an implementation dropping that bound is caught; but no household anywhere had
+     the BAND as the lower of the two with the eighty-five percent ceiling not masking the
+     difference, so an implementation ignoring the band entirely and always including one-half of
+     the benefit left all 3384 assertions passing. The household below supplies that direction: it
+     sits exactly at the second base amount, so the second tier contributes nothing and the
+     ceiling is slack, which is what makes the first-tier choice visible in the settled figure. */
+  const hFederalPack = hFederal();
+  const hSettleBenefit = (other, benefit) => hInclusion.computeInclusionSettlement(
+    { filingStatus: 'single', otherTaxableIncome: other, taxExemptInterest: 0 }, benefit, hFederalPack);
+  const hBandBinds = hSettleBenefit(29000, 10000);
+  const hBenefitBinds = hSettleBenefit(28990, 5980);
+  const hFirstTier = (settlement) =>
+    settlement.includedComponents.filter((part) => part.componentId === 'first-tier-amount')[0];
+  const hBandTier = hFirstTier(hBandBinds);
+  const hBenefitTier = hFirstTier(hBenefitBinds);
+  const hBandAmount = hBandTier.proportion * hBandTier.appliedTo;
+  assert(hBandTier.boundedByBenefitProportion === false
+    /* One-half of the benefit would have produced strictly more, so the lesser-of genuinely
+       chose the band. This is the direction nothing in the suite reached. */
+    && 0.5 * 10000 > hBandAmount
+    && hNear(hBandTier.amount, hBandAmount)
+    /* The ceiling that follows is slack here, so the settled figure carries the first-tier choice
+       rather than hiding it behind the eighty-five percent limit. */
+    && hBandBinds.inclusion.ceilingBound === false
+    && hNear(hBandBinds.value, hBandAmount)
+    && hBandBinds.value < 0.5 * 10000
+    /* The opposite direction, on the household this suite already carried. */
+    && hBenefitTier.boundedByBenefitProportion === true
+    && hBenefitBinds.inclusion.ceilingBound === false
+    && hNear(hBenefitTier.amount, 0.5 * 5980)
+    && hBenefitTier.amount < hBenefitTier.proportion * hBenefitTier.appliedTo,
+  'H3: where the sourced proportion of the first band is smaller than one-half of the benefit the included amount is the band figure and the component says so through boundedByBenefitProportion, with the ceiling proven slack so the choice is visible in the settled figure, and the household whose benefit proportion is the lower of the two is priced beside it — so an implementation ignoring the band and always including one-half of the benefit fails here');
+
+  /* H4. An exemption is allowed only to the extent of the capped assessed value remaining after
+     the exemptions already applied. Every fixture household declared a value two orders of
+     magnitude above the exemption, so the bound never bound and removing it left all 3384
+     assertions passing. The taxable basis is separately clamped at zero, so the defect this
+     catches is a published exemption total larger than the value it was applied against — the
+     tax alone cannot detect it. */
+  const hSmallHome = hDeclare({
+    assessedValue: 20000, priorAssessedValue: 15000, acquisitionValue: 12000,
+    localCombinedRate: 0.02, exemptionElections: ['fixture-exemption']
+  });
+  const hSmallLeg = hProperty.composePropertyLeg(hSmallHome, hFixtures['prior-assessed-value-cap']);
+  const hLargeLeg = hProperty.composePropertyLeg(hHousehold, hFixtures['prior-assessed-value-cap']);
+  const hDeclaredExemption = hFixtures['prior-assessed-value-cap'].exemptions
+    .filter((entry) => entry.exemptionId === 'fixture-exemption')[0].amount;
+  assert(hSmallLeg.available === true
+    /* The declared exemption exceeds everything left to exempt, so the bound is the one binding. */
+    && hDeclaredExemption > hSmallLeg.settlement.cappedAssessedValue
+    && hNear(hSmallLeg.settlement.exemptionTotal, hSmallLeg.settlement.cappedAssessedValue)
+    && hSmallLeg.settlement.exemptionTotal < hDeclaredExemption
+    && hSmallLeg.settlement.taxableBasis === 0
+    /* The opposite direction: a value above the exemption applies it whole. */
+    && hLargeLeg.settlement.cappedAssessedValue > hDeclaredExemption
+    && hNear(hLargeLeg.settlement.exemptionTotal, hDeclaredExemption),
+  'H4: an exemption larger than the capped assessed value remaining is applied only to the extent of that remainder and the published exemption total says so, while a household whose capped value exceeds the exemption applies it whole — so an implementation applying the declared amount unbounded overstates the exemption it reports even though the taxable basis is separately clamped at zero');
+} catch (e) { failures++; console.log('  ✗ FAIL (lifetime-tax lesser-of bound group threw): ' + e.message); }
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

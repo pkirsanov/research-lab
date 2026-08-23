@@ -1888,9 +1888,9 @@
     var settlementDeduction = selectDeduction(workspace, pack);
     var settlementSettled = !rules.isUnavailable(settlementDeduction);
     var settlementClause = settlementSettled
-      ? "It did not price the tax: this settlement applied the " + settlementDeduction.mode
+      ? "This comparison did not price the tax: the settlement applied the " + settlementDeduction.mode
         + " deduction, which is the mode the household declared, and that deduction is stated with its own amount on the settlement row."
-      : "It did not price the tax: this settlement could not establish a deduction at all, so no deduction amount was applied and none is shown as though it were.";
+      : "This comparison did not price the tax: the settlement could not establish a deduction at all, so no deduction amount was applied and none is shown as though it were.";
 
     function unavailableComposition(refusal) {
       return Object.freeze({
@@ -2004,7 +2004,7 @@
     } else {
       return unavailableComposition(rules.unavailable("RLTAX-THRESHOLD-UNAVAILABLE",
         "itemized-composition:tie",
-        "the two totals are equal and the pack declares no tie rule, so the side actually applied cannot be named",
+        "the two totals are equal and the pack declares no tie rule, so the larger side cannot be named",
         "declare a deductionChoicePolicy.onTie member in the pack"));
     }
 

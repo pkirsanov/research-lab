@@ -1752,8 +1752,6 @@
                 { detail: "Both packs' effective years and the agreement verdict, the per-jurisdiction breakdown behind the combined total, the coupling this tool does not model, and the combined marginal curve with the jurisdiction that owns every step", section: "power-combined" }
             ];
 
-            var MODE_KEY = "rlLifetimeTaxDisplayMode";
-
             var state = {
                 config: null,
                 configRefusals: [],
@@ -5541,20 +5539,20 @@
 
             /* ---------- display mode ---------- */
 
-            function applyDisplayMode(mode, persist) {
+            function applyDisplayMode(mode) {
                 var power = mode === "power";
                 state.mode = power ? "power" : "simple";
                 document.body.classList.toggle("power", power);
                 byId("modeSimple").setAttribute("aria-pressed", String(!power));
                 byId("modePower").setAttribute("aria-pressed", String(power));
                 /* The location hash carries the view mode and nothing else. No query string is
-                   ever written, so no household value can reach the URL. */
+                   ever written, so no household value can reach the URL. The hash is also the
+                   ONLY carrier the chosen view persists through: every byte this tool puts in
+                   storage goes through the closed writer, which accepts none but the three keys
+                   the configuration declares, so a view preference cannot open a fourth key
+                   outside the inventory and outside the clear path. */
                 var wanted = power ? "#power" : "#simple";
                 if (window.location.hash !== wanted) window.location.hash = wanted;
-                if (persist) {
-                    try { window.localStorage.setItem(MODE_KEY, power ? "power" : "simple"); }
-                    catch (error) { /* session-only mode: the choice simply does not persist */ }
-                }
                 if (state.envelope) renderPower();
             }
 
@@ -5602,8 +5600,12 @@
             function clearPrivateData() {
                 if (!state.config) return;
                 var cleared = WORKSPACE.clearAllPrivateData(window.localStorage, state.config);
-                byId("privacyResult").textContent = "Removed exactly these keys: " + cleared.removedKeys.join(", ")
-                    + ". No key outside this tool's declared namespace was touched.";
+                /* The sentence reports what was removed, not what was attempted. An already-empty
+                   browser says so rather than naming three keys it never held. */
+                byId("privacyResult").textContent = (cleared.removedKeys.length === 0
+                    ? "This browser held none of this tool's keys, so nothing was removed."
+                    : "Removed exactly these keys: " + cleared.removedKeys.join(", ") + ".")
+                    + " No key outside this tool's declared namespace was touched.";
                 state.workspace = WORKSPACE.createEmptyWorkspace();
                 applyWorkspaceToForm();
                 render();
@@ -5632,15 +5634,15 @@
                     region.hidden = !region.hidden;
                     this.setAttribute("aria-expanded", String(!region.hidden));
                 });
-                byId("modeSimple").addEventListener("click", function () { applyDisplayMode("simple", true); });
-                byId("modePower").addEventListener("click", function () { applyDisplayMode("power", true); });
+                byId("modeSimple").addEventListener("click", function () { applyDisplayMode("simple"); });
+                byId("modePower").addEventListener("click", function () { applyDisplayMode("power"); });
                 byId("exportAcknowledgement").addEventListener("change", updateExportEnabled);
                 byId("exportPrivateFile").addEventListener("click", exportPrivateFile);
                 byId("clearAllPrivateData").addEventListener("click", clearPrivateData);
                 byId("powerLinkRows").addEventListener("click", function (event) {
                     var section = event.target.getAttribute("data-power-section");
                     if (!section) return;
-                    applyDisplayMode("power", true);
+                    applyDisplayMode("power");
                     var host = byId(section);
                     if (host) {
                         host.setAttribute("tabindex", "-1");
@@ -5761,11 +5763,14 @@
                             byId(DECLARATION_INPUTS[index]).addEventListener("change", onWorkspaceEdit);
                             byId(DECLARATION_INPUTS[index]).addEventListener("input", onWorkspaceEdit);
                         }
-                        var storedMode = "simple";
-                        try { storedMode = window.localStorage.getItem(MODE_KEY) === "power" ? "power" : "simple"; }
-                        catch (error) { storedMode = "simple"; }
+                        /* The opening view comes from the hash this page itself writes on every
+                           mode change, so a reload or a bookmark reopens the view it left in. A
+                           bare URL opens in the view the configuration declares. Nothing is read
+                           from a storage key outside the three the configuration declares. */
+                        var openingMode = window.location.hash === "#power" ? "power"
+                            : (window.location.hash === "#simple" ? "simple" : config.display.defaultView);
                         render();
-                        applyDisplayMode(storedMode, false);
+                        applyDisplayMode(openingMode);
                         document.body.setAttribute("data-rl-tax-state", "ready");
                         document.body.setAttribute("data-rl-power-sections", POWER_SECTION_IDS.join(","));
                         document.body.setAttribute("data-rl-simple-fields", SIMPLE_FIELDS.join(","));

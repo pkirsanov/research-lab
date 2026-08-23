@@ -1083,6 +1083,152 @@ Filled at execution. Holds the text scan proving no published error rate, no
 self-invalidation statistic, no track record, no accuracy figure and no plan
 success probability appears anywhere in the finished route.
 
+## Security Remediation F2 — the privacy panel claimed an absence the route does not have
+
+### The false sentence
+
+`lifetime-tax-strategy.config.json` carried, and `<p id="localNetworkPolicy">`
+rendered verbatim, this opening:
+
+```
+$ grep -n 'zero network' lifetime-tax-strategy.config.json
+57:    "localNetworkPolicy": "This page issues zero network requests. Your filing status, income amounts and deduction choices stay in this browser's local storage under this tool's own namespace and are never placed in a URL, a request, a referrer or a console message."
+$ grep -n 'localNetworkPolicy' lifetime-tax-strategy-lab.html
+448:            <p id="localNetworkPolicy" class="subtle">Resolving the declared local-network policy.</p>
+1862:                byId("localNetworkPolicy").textContent = inventory.localNetworkPolicy;
+```
+
+Sentence one is false. The route performs nine same-origin GETs at boot, counted
+in the F2 remediation above from the page's own configuration. Sentence two —
+that the household values reach no URL, request, referrer or console — was checked
+clause by clause and holds, so it is kept word for word.
+
+**Claim Source:** executed for the greps; the nine-document count is the derived
+figure evidenced in the F1 section immediately above.
+
+### The correction
+
+Sentence one now says what happens rather than asserting an absence:
+
+```
+"When it loads, this page reads its own policy and rule-pack documents from this site, and it sends nothing. Your filing status, income amounts and deduction choices stay in this browser's local storage under this tool's own namespace and are never placed in a URL, a request, a referrer or a console message."
+```
+
+It does not overstate in the other direction either: the reads are named as the
+page's own documents on this site, and "sends nothing" is retained because it is
+true — every one of the nine is a GET of a local rule document.
+
+### The guard binds the claim to the count
+
+The panel text and the measured read count were never checked against each other,
+which is how the sentence stayed shipped through three features that added reads.
+The new assertion refuses a claim of absence *while any read site stands*, and
+holds the verified second clause in place. Both directions are probed.
+
+A reader-facing false claim cannot return:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F2-false-absence-claim-cannot-return
+file:             lifetime-tax-strategy.config.json
+mutation:         When it loads, this page reads its own policy and rule-pack documents from this site, and it sends nothing.  ->  This page issues zero network requests.   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-06: the privacy panel claims no absence of requests the route does not actually have — while any read site stands, the disclosure describes the same-origin reads it performs and st
+green-exit:       0
+green-summary:      ✓ TP-05-06: the privacy panel claims no absence of requests the route does not actually have — while any read site stands, the disclosure describes the same-origin reads it performs and still pr
+summary-compared:   ✗ FAIL: TP-05-06: the privacy panel claims no absence of requests the route does not actually have — while any read site stands, the disclosure describes the same-origin reads it performs and st  vs    ✓ TP-05-06: the privacy panel claims no absence of requests the route does not actually have — while any read site stands, the disclosure describes the same-origin reads it performs and still pr   (elapsed time normalised out)
+revert-verified:  yes (committed=ac13755c5f1ab9630106b321aeb1672d64deac7b restored=ac13755c5f1ab9630106b321aeb1672d64deac7b)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+And the true promise cannot be quietly softened while nobody is looking, which is
+the failure mode a correction like this invites:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F2-the-true-clause-cannot-be-quietly-dropped
+file:             lifetime-tax-strategy.config.json
+mutation:         and are never placed in a URL, a request, a referrer or a console message.  ->  and are handled carefully.   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-06: the privacy panel claims no absence of requests the route does not actually have — while any read site stands, the disclosure describes the same-origin reads it performs and st
+green-exit:       0
+green-summary:      ✓ TP-05-06: the privacy panel claims no absence of requests the route does not actually have — while any read site stands, the disclosure describes the same-origin reads it performs and still pr
+summary-compared:   ✗ FAIL: TP-05-06: the privacy panel claims no absence of requests the route does not actually have — while any read site stands, the disclosure describes the same-origin reads it performs and st  vs    ✓ TP-05-06: the privacy panel claims no absence of requests the route does not actually have — while any read site stands, the disclosure describes the same-origin reads it performs and still pr   (elapsed time normalised out)
+revert-verified:  yes (committed=ac13755c5f1ab9630106b321aeb1672d64deac7b restored=ac13755c5f1ab9630106b321aeb1672d64deac7b)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Claim Source:** executed. Raw harness output.
+
+### The four boot comments — the finding as reported is wrong, and the real defect is findability
+
+The review reported that the four boot comments reference "the privacy ledger's
+permitted-asset derivation", that `grep -rn 'permittedAsset'` returns nothing
+repo-wide, and therefore that no such derivation exists. The first two statements
+are correct. The conclusion is not.
+
+The camelCase identifier does not exist, but the derivation does. It is called
+`declaredPackPaths`, it lives in `tests/lifetime-tax.support.mjs`, and it is
+consumed by nine privacy-ledger specs:
+
+```
+$ grep -rn 'permittedAsset' --include='*.html' --include='*.js' --include='*.mjs' --include='*.json' . | grep -v node_modules
+(no output; grep pipeline exit 1)
+$ grep -rn 'declaredPackPaths' tests/ | wc -l
+      26
+$ grep -n 'declaredPackPaths' tests/lifetime-tax.support.mjs
+33:export function declaredPackPaths(config) {
+$ grep -rln 'declaredPackPaths' tests/
+tests/lifetime-tax.support.mjs
+tests/lifetime-tax-combined.spec.mjs
+tests/lifetime-tax-property.spec.mjs
+tests/lifetime-tax-route.spec.mjs
+tests/lifetime-tax-benefit.spec.mjs
+tests/lifetime-tax-foundation.spec.mjs
+tests/lifetime-tax-claim-age.spec.mjs
+tests/lifetime-tax-medicare.spec.mjs
+tests/lifetime-tax-state.spec.mjs
+tests/lifetime-tax-retirement-route.spec.mjs
+```
+
+One support module plus nine specs. The `permittedAsset` grep is scoped to code
+surfaces above because this report now contains the word itself, so the
+unrestricted form the review ran no longer reproduces its own empty result.
+
+So the comments' mechanism claim — that declaring a pack path in the configuration
+lets the permitted-asset set absorb it without a hand edit — is accurate. Deleting
+them, as the finding proposed, would have deleted a true statement.
+
+The real defect is the one that produced the false finding: the comments named a
+*concept* and no *symbol*, so a reviewer could not confirm them in one grep. They
+now name `declaredPackPaths` and the file it lives in. A future reviewer resolves
+the claim in a single search instead of concluding it is fiction.
+
+**Claim Source:** executed. Both greps above were run in this session; the first
+produced no output, which is the observation that made the finding look sound.
+
+### Two further surfaces carry the same false claim, and are reported rather than changed
+
+The identical "zero network requests" wording also appears in:
+
+- `tests/lifetime-tax-foundation.spec.mjs:287` — the *title* of the SCN-021-003
+  regression. Its assertions are correct and strong: they pin every request to a
+  same-origin read of a derived declared asset and pin `ledger.length` after first
+  paint. Only the title repeats the false claim. Renaming it is a one-line change,
+  but that title appears verbatim inside roughly ten committed Playwright evidence
+  blocks across the Feature 021 and 024 reports, and a rename would need a fresh
+  browser run to re-evidence rather than leaving those blocks describing a test
+  name that no longer exists. Left for a scope that can run the browser suite.
+- `specs/021-lifetime-tax-strategy-lab/scenario-manifest.json:103` — the SCN-021-003
+  `then` clause. Planning-owned artifact; not edited here.
+
+Neither is a live claim rendered to a reader. Both are recorded so the correction
+is not mistaken for complete.
+
 ## Completion Statement
 
 Filled at execution.

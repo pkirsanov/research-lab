@@ -356,6 +356,7 @@ missing browser or an absent test does not satisfy RED.
 | TP-04-30 | Repo gate | unit | SCN-024-010 … -012 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-04-30` |
 | TP-04-31 | Path guard | unit | SCN-024-010 … -012 | `scripts/validate-spec-test-paths.mjs` | Zero new missing spec-referenced test paths | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-04-31` |
 | TP-04-32 | Deploy gate | unit | SCN-024-010 … -012 | `scripts/build-pages-site.mjs` | The Pages plan succeeds, `site-exclusions.json` is unchanged, and `tax-rules/` remains outside the public directories | `node scripts/build-pages-site.mjs --dry-run` | No | `report.md#tp-04-32` |
+| TP-04-33 | Privacy E2E | e2e-ui | SCN-024-010 | `tests/lifetime-tax-medicare.spec.mjs` | GAP, NOT AUTHORED (opened 2026-08-22, F-REG-03). `TP-04-28` pins the ledger non-empty and every entry declared, but places no bound on ledger growth after first paint, so a request issued once the lookback is declared would not fail it. Required, in that same run: `afterFirstPaint` captured after `openLifetimeTax` and the ledger asserted not to grow past it once `declareLookback` has run. Adversarial case: a request issued after the lookback is declared fails the no-growth assertion, which the existing non-empty and permitted-set assertions cannot detect because both are satisfied by a ledger that grew | not authored | Yes | not authored |
 
 ### Definition of Done
 
@@ -437,10 +438,32 @@ delivery makes a row's claim false, the row is corrected rather than checked.
   - **Claim Source:** executed. This row found a real defect: the page surfaced the premium legs on the export record only, and never pushed them into the comparison table, the curve contributor table or the headline as per-leg hosts. The renderer now derives its premium rows by walking the legs the stage published. TP-04-18 extracts the page's own two surface builders and asserts the record, headline, comparison and curve sets identical in both directions with all three premium legs present; the record carries four federal legs beside them, so the identity is not three ids agreeing with themselves. TP-04-19 removes each premium leg from each surface in turn — twelve cases — and each fails naming both the leg and the surface, while the unmutated identity holds. The summed-into-total case is reported by the name of the entering leg and by the settlement refusing its own total. Browser row TP-04-27 authored and green, asserting the same identity over the rendered DOM. Intended RED observed for all three: `2810 passed, 2 failed` on the identical selftest command, and `Error: leg medicare-part-b-premium missing from the comparison surface` on the identical Playwright command.
 - [x] NFR-024-003 and NFR-024-005 hold: the lookback declaration and its year are
       inventoried, cleared and redacted, the declared storage key count is asserted
-      unchanged in the same assertion, the request ledger stays empty with a
-      medicare pack now loaded from disk, and no module holds a figure, an offset or
-      an authority name.
+      unchanged in the same assertion, the request ledger is non-empty and every
+      entry in it is a GET carrying no body for a path the route's own
+      configuration declares, a medicare pack is present in the ledger the run
+      produced, and no module holds a figure, an offset or an authority name.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the browser privacy row · **Evidence:** `report.md#tp-04-20`, `report.md#tp-04-21`, `report.md#tp-04-28`
+  - **Restated 2026-08-22 (F-REG-03).** The superseded text read "the request
+    ledger stays empty with a medicare pack now loaded from disk", which is false
+    and self-contradictory: a ledger holding the medicare pack read is not empty.
+    The cited row `TP-04-28` (`SCN-024-010`) asserts
+    `expect(paths.length).toBeGreaterThan(0)`, then
+    `paths.forEach((path) => expect(permitted).toContain(path))`, then
+    `expect(paths.some((path) => path.indexOf('/tax-rules/medicare/') === 0)).toBe(true)`
+    against the ledger the run produced. Adversarial cases: a read of a path the
+    configuration does not declare fails the permitted-set assertion; a boot that
+    read nothing fails the greater-than-zero pin; a medicare pack that is
+    permitted but never fetched fails the `some` pin; and the lookback figure
+    reaching a URL fails `expect(request.url).not.toContain('168421')`. One limit
+    is named rather than hidden and is opened as `TP-04-33` below: the row places
+    no bound on ledger growth after first paint, so a request issued once the
+    lookback is declared would not fail it.
+- [ ] `SCN-024-010` constrains ledger growth: the run captures the ledger length
+      after first paint and asserts the ledger does not grow past it once the
+      lookback is declared.
+  - **Phase:** test · **Command:** `TP-04-33` · **Evidence:** not authored — the
+    scenario currently has no growth constraint. Opened 2026-08-22 (F-REG-03)
+    rather than ticked, because no executed evidence for it exists.
   - **Claim Source:** executed. TP-04-20 green — no tax module holds a shipped premium, boundary, adjustment amount or authority name, and the detector is proven to fire on a planted figure. Browser row TP-04-28 green — the request ledger contains only declared assets, the medicare pack among them, and no lookback figure reaches a URL. TP-04-21 authored and green, closing the gap this row named: both lookback members are declared workspace fields that start `null`, are named by the unavailable-domain report while undeclared, are omitted by the export sanitizer and listed in `omittedFields`, and never appear in the exported bytes. The declared amount genuinely reaches storage — asserted before the clear — and the clear action removes all three declared keys. The declared storage key count of three is asserted unchanged in that same assertion.
 - [x] The `power-medicare` renderer reads only members the settlement publishes,
       proven by rendering every Power section with each medicare member absent in
@@ -536,8 +559,12 @@ delivery makes a row's claim false, the row is corrected rather than checked.
       estimate or a typical amount.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
   - **Claim Source:** executed. TP-04-CLAIM green. The scan runs over the composed premium legs, the annual cost and the shipped refusal, the detector is proven to fire on the sentence `our estimate of the typical premium`, and the pack is asserted to declare no `effectiveTaxYears` entry beyond the year it was retrieved for.
-- [x] Every Test Plan row has intended RED and same-command GREEN evidence recorded,
+- [ ] Every Test Plan row has intended RED and same-command GREEN evidence recorded,
       including the browser rows.
+  - **Unticked 2026-08-22 (F-REG-03).** `TP-04-33` was opened in this scope and
+    is not authored, so it carries neither a RED nor a GREEN. The word "Every"
+    therefore no longer holds. Ticking it again requires `TP-04-33` authored with
+    a RED and a same-command GREEN.
   - **Phase:** implement · **Command:** the exact TP-04-01 through TP-04-32 commands · **Evidence:** `report.md#test-evidence`
   - **Claim Source:** executed. All 32 rows now carry an observed intended RED and a same-command GREEN, recorded row by row in `report.md#per-row-results` and derived in Probes 1 through 18. The two defects that kept this row open are discharged. TP-04-29 was run as its own named command for the first time — `77 passed`, zero failed, zero skipped — and then driven to `64 passed / 13 failed` by Probe 18's value-free mutation on that identical command, so the cumulative gate is shown to be load-bearing rather than merely green. TP-04-28's RED is Probe 15, obtained by redirecting an existing fetch to an undeclared pathname rather than by placing a household value in a URL, which is the privacy defect the row itself forbids; the limb keyed to the declared amount is recorded as resting on inspection rather than on a RED, because no permissible mutation can drive it. TP-04-30's RED is Probes 1 through 11, each of which drives `node scripts/selftest.mjs` — TP-04-30's own command — from green to red and back. TP-04-31 is Probe 16 and TP-04-32 is Probe 17. Three rows earned their RED only after a strengthening, because each first passed under its own mutation: TP-04-23, TP-04-25 and TP-04-26. Those misses, and one mutation that landed on text its command does not read, are recorded in `report.md` rather than discarded.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,

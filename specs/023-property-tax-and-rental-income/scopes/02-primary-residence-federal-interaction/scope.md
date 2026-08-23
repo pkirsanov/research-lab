@@ -248,6 +248,7 @@ error, a missing browser or an absent test does not satisfy RED.
 | TP-02-26 | Known value | unit | SCN-023-006 | `scripts/selftest.mjs` | Against a fixture built so the two deductions disagree, the composition names itemising while the settlement prices the tax on the declared standard deduction, the two amounts differ, `agreesWithSettlement` reports the disagreement, and the settled figure is the one `computeAnnualFederalTax` actually subtracted | `node scripts/selftest.mjs` | No | `report.md#f-reg-01-resolved-2026-08-22` |
 | TP-02-27 | Adversarial | unit | SCN-023-006 | `scripts/selftest.mjs` | The Simple panel feeds its priced-the-tax row from the settled deduction and its comparison row from the composed amount, neither is described as the other, no surface still says the composed side was actually applied, and the composed-amount regression and the self-contradicting tooltip are both planted and proven to fail the detector | `node scripts/selftest.mjs` | No | `report.md#f-reg-01-resolved-2026-08-22` |
 | TP-02-28 | Regression E2E | e2e-ui | SCN-023-006 | `lifetime-tax-deduction.spec.mjs` | `Regression: F-REG-01 no surface names the composed side as the deduction that priced the tax` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: F-REG-01 no surface names the composed side as the deduction that priced the tax" --reporter=list` | Yes | `report.md#f-reg-01-resolved-2026-08-22` |
+| TP-02-29 | Privacy E2E | e2e-ui | SCN-023-005 | `tests/lifetime-tax-deduction.spec.mjs` | GAP, NOT AUTHORED (opened 2026-08-22, F-REG-03). This scope has no live-route privacy row at all: its only privacy evidence, `TP-02-16`, is a `unit` row run by `node scripts/selftest.mjs`, which has no browser and so no request ledger to observe. Required: on the live route, with the mortgage declarations populated, `afterFirstPaint` is captured after `openLifetimeTax`, is asserted greater than zero, the ledger is asserted not to grow past it, and every entry's pathname is asserted to be a member of `declaredRouteAssets()`. Adversarial cases: a request issued after the declarations are entered fails the no-growth assertion; a read of a path the configuration does not declare fails the permitted-set assertion; and a boot that read nothing fails the greater-than-zero pin, so the row cannot pass vacuously | not authored | Yes | not authored |omposed side as the deduction that priced the tax" --reporter=list` | Yes | `report.md#f-reg-01-resolved-2026-08-22` |
 
 ### Definition of Done
 
@@ -282,9 +283,31 @@ error, a missing browser or an absent test does not satisfy RED.
 - [x] NFR-023-004 holds: the refusal vocabulary member count equals its pre-feature
       value.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-15`
-- [x] NFR-023-003 holds: the mortgage declarations are inventoried, cleared and
-      redacted, and the request ledger stays empty.
+- [x] NFR-023-003 holds for the mortgage declarations as far as the cited
+      evidence reaches: each is a declared workspace member, is omitted by the
+      export sanitizer and listed in `omittedFields`, is described by the storage
+      inventory, and the declared balance does not survive an export.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-16`
+  - **Restated 2026-08-22 (F-REG-03).** The superseded text read "and the request
+    ledger stays empty", which is false — the route issues its document reads and
+    its `<script src>` loads on every boot — and, worse, it was unsupported by the
+    only evidence this item cites. `TP-02-16` is a `unit` row whose command is
+    `node scripts/selftest.mjs`; a Node run has no browser and therefore no
+    request ledger to observe. Its assertion reads "every mortgage declaration is
+    a declared workspace member, is omitted by the export sanitiser and listed in
+    omittedFields, is described by the storage inventory, and the declared balance
+    does not survive an export" — nothing about a request. The item now claims
+    exactly that. Adversarial cases: a declaration absent from the workspace
+    contract, one the sanitizer keeps, one missing from `omittedFields`, one
+    missing from the storage inventory, or a balance surviving into the exported
+    bytes each fails the cited assertion. The live-route half is not covered by
+    this scope at all and is opened as `TP-02-29` below.
+- [ ] NFR-023-003 holds on the live route for the mortgage declarations: the
+      request ledger does not grow after first paint and every entry in it is a
+      read of a path the route's own configuration declares.
+  - **Phase:** test · **Command:** `TP-02-29` · **Evidence:** not authored — this
+    scope has no live-route privacy row. Opened 2026-08-22 (F-REG-03) rather than
+    ticked, because no executed evidence for it exists.
 - [x] SUP-023-01 through SUP-023-04 are delivered with their markers, each
       replacement derived from the artifact it describes, each superseded clause
       recorded verbatim, and each intended-RED failure recorded before its green.
@@ -295,8 +318,12 @@ error, a missing browser or an absent test does not satisfy RED.
 - [x] No output states a probability, a lifetime figure, a track record or an error
       rate, and no deduction figure is presented as an estimate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [x] Every Test Plan row has intended RED and same-command GREEN evidence
+- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
+  - **Unticked 2026-08-22 (F-REG-03).** `TP-02-29` was opened in this scope and
+    is not authored, so it carries neither a RED nor a GREEN. The word "Every"
+    therefore no longer holds. Ticking it again requires `TP-02-29` authored with
+    a RED and a same-command GREEN.
   - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-22 commands · **Evidence:** `report.md#test-evidence`, `report.md#f-reg-01-resolved-2026-08-22`, `report.md#tp-02-24-intended-red-probe-ratchet-channel-2026-08-22`, `report.md#tp-02-25-intended-red-probe-deploy-decision-channel-2026-08-22`, `report.md#tp-02-22-intended-red-cumulative-selector-channel-2026-08-22`
   - **Ticked 2026-08-22.** The gap the previous restatement named, `TP-02-26`,
     was closed by its engine-channel probe. The two rows still carrying GREEN

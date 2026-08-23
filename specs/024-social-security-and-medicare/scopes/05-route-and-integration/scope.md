@@ -352,9 +352,27 @@ delivery makes a row's claim false, the row is corrected rather than checked.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-15`
 - [x] NFR-024-003 holds at feature end: no household value this feature added
       reaches any URL, query string, hash, request, referrer or console message,
-      asserted per declaration, with three new packs now loaded from disk and the
-      request ledger still empty.
+      asserted per declaration, the request ledger does not grow after first paint,
+      every entry in it is a read of a path the route's own configuration declares,
+      and all three new packs are present in the ledger the run produced.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the browser privacy row · **Evidence:** `report.md#tp-05-16`, `report.md#tp-05-25`
+  - **Restated 2026-08-22 (F-REG-03).** The superseded text read "with three new
+    packs now loaded from disk and the request ledger still empty", which is false
+    and self-contradictory: a ledger holding three pack reads is not empty. The
+    cited row `TP-05-25` (`SCN-024-014`) asserts
+    `expect(ledger.length).toBe(afterFirstPaint)`, then
+    `expect(paths.length).toBeGreaterThan(0)`, then
+    `paths.forEach((path) => expect(permitted).toContain(path))`, then pins each
+    of `/tax-rules/benefit/2026.json`, `/tax-rules/mortality/2026.json` and
+    `/tax-rules/medicare/2026.json` present in the ledger the run produced.
+    Adversarial cases: a request issued after first paint fails the no-growth
+    assertion; a read of a path the configuration does not declare fails the
+    permitted-set assertion; a boot that read nothing fails the greater-than-zero
+    pin; and a pack that is permitted but never fetched fails its named
+    `toContain` pin with the message `the pack <path> was not loaded`. The row
+    does NOT constrain the origin of an entry — it compares
+    `new URL(request.url).pathname` only — so no same-origin claim is made here;
+    that gap is carried by Feature 021 Scope 01 `TP-01-18`.
 - [x] NFR-024-004 holds at feature end: the refusal vocabulary member count and the
       supported income-kind count each equal their pre-feature values across the
       whole feature, not only within this scope.

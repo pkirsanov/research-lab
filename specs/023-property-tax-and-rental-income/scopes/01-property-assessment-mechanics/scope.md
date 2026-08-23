@@ -295,9 +295,26 @@ does not satisfy RED.
       value and no member's meaning changed.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-14`
 - [x] NFR-023-003 and NFR-023-005 hold: every property declaration is inventoried,
-      cleared and redacted, the request ledger stays empty with two regime packs
-      now loaded from disk, and no module holds a regime name or a figure.
+      cleared and redacted, the request ledger does not grow after first paint,
+      every entry in it is a read of a path the route's own configuration
+      declares, both regime packs are present in the ledger the run produced, and
+      no module holds a regime name or a figure.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the browser privacy row · **Evidence:** `report.md#tp-01-15`, `report.md#tp-01-16`, `report.md#tp-01-22`
+  - **Restated 2026-08-22 (F-REG-03).** The superseded text read "the request
+    ledger stays empty with two regime packs now loaded from disk", which is
+    false and self-contradictory: a ledger holding two pack reads is not empty.
+    The cited row TP-01-22 (`SCN-023-001`) captures `afterFirstPaint =
+    ledger.length`, asserts `expect(afterFirstPaint).toBeGreaterThan(0)`, and
+    then asserts `expect(ledger.length).toBe(afterFirstPaint)` — no-growth, not
+    emptiness. The restatement names only what that row establishes. Adversarial
+    cases: a request issued after first paint fails the no-growth assertion; a
+    read of a path the configuration does not declare fails
+    `paths.forEach((path) => expect(permitted).toContain(path))`; a boot that
+    read nothing fails the greater-than-zero pin; and a regime pack that is
+    permitted but never fetched fails `expect(paths).toContain('/' +
+    FL_REGIME_PATH)`. The row does NOT constrain the origin of an entry — it
+    compares `new URL(entry.url).pathname` only — so no same-origin claim is
+    made here; that gap is carried by Feature 021 Scope 01 `TP-01-18`.
 - [x] SUP-023-05 through SUP-023-08 are delivered with their markers, each
       replacement derived from the artifact it describes, each superseded clause
       recorded verbatim, and each intended-RED failure recorded before its green.

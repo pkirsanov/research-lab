@@ -232,6 +232,7 @@ implementation, rerun the identical command for GREEN.
 | TP-01-15 | Broader Regression E2E | e2e-ui | SCN-021-001 … -003 | `lifetime-tax-foundation.spec.mjs` | Execute the complete cumulative Scope 01 browser suite over the real route with no request interception, no service worker and no external provider | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-00" --reporter=list` | Yes | `report.md#tp-01-15` |
 | TP-01-16 | Repo gate | unit | SCN-021-001 … -003 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-01-16` |
 | TP-01-17 | Path guard | unit | SCN-021-001 … -003 | `scripts/validate-spec-test-paths.mjs` | The spec-artifact test-path guard reports zero new missing paths for this scope's artifacts | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-01-17` |
+| TP-01-18 | Privacy E2E | e2e-ui | SCN-021-002 | `tests/lifetime-tax-foundation.spec.mjs` | GAP, NOT AUTHORED (opened 2026-08-22, F-REG-03). Route-wide title-versus-assertion mismatch. Three rows in the 021-024 privacy family really do constrain the origin of a ledger entry, each via `expect(ledger.filter((entry) => !entry.url.startsWith(site.baseUrl))).toEqual([])`: `SCN-021-003` (this scope's canary, `TP-01-14`), `SCN-022-007` and `SCN-022-013`. Six others carry the words "declared same-origin read" or "declared same-origin GET" in their persistent titles but assert only `new URL(entry.url).pathname` against `declaredRouteAssets()`, which returns bare paths: `SCN-021-015`, `SCN-023-001`, `SCN-024-001`, `SCN-024-009`, `SCN-024-010` and `SCN-024-014`. A read of `https://elsewhere.example/rltaxstrategy.js` has a declared pathname and would pass all six. The route-wide canary covers only the state that canary itself declares, so it does not stand in for the six. This scope owns the shared privacy contract, so the fix belongs here rather than being copied six times: fold the origin filter into the shared helper each row already calls. Adversarial case: a request whose pathname is declared but whose origin is not `site.baseUrl` must fail each of the six; today only the three named rows detect it | not authored | Yes | not authored |
 
 Before any browser row, run `node scripts/validate-node-source-lock.mjs` and
 `npx --no-install playwright --version`. These environment gates do not replace a
@@ -246,8 +247,16 @@ Test Plan row.
       local-only state, and mandatory configuration.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-01` through `report.md#tp-01-10`
   - **Claim Source:** executed · **Result:** all 17 assertions in the appended Scope 01 group pass; suite exits 0 at `2492 passed, 0 failed`. Two defects were found and fixed on the way: `validateRulePack` named an absent member twice, and the citation assertion expected 12 present figures where the pack correctly carries 8.
-- [x] Every Test Plan row has intended RED evidence and same-command GREEN
+- [ ] Every Test Plan row has intended RED evidence and same-command GREEN
       evidence, recorded before the cumulative browser row.
+  - **Unticked 2026-08-22 (F-REG-03).** `TP-01-18` was opened in this scope and
+    is not authored, so it carries neither a RED nor a GREEN. The word "Every"
+    therefore no longer holds. Note that this item's own **Command** already
+    named a narrower range than its headline — `TP-01-01` through `TP-01-14`,
+    while `TP-01-15` through `TP-01-17` also exist — so the headline over-claimed
+    before this change too; the new row makes that unambiguous rather than
+    creating it. Ticking it again requires `TP-01-18` authored with a RED and a
+    same-command GREEN, not a narrowing of the headline.
   - **Phase:** implement · **Command:** the exact TP-01-01 through TP-01-14 commands · **Evidence:** `report.md#test-evidence`
   - **Claim Source:** executed. The earlier "Not met" note is superseded: the route and `tests/lifetime-tax-foundation.spec.mjs` both exist now, so the four rows it deferred were run. Every TP-01-01 through TP-01-14 row now carries an intended RED and a same-command GREEN, and TP-01-15 was executed last at `9 passed`, which is the ordering this item requires. TP-01-02 is a real defect caught before the fix; TP-01-08 and TP-01-13 were probed in this session through `scripts/red-green-probe.sh` and both discriminated with a hash-verified revert. Two limits are recorded rather than papered over: TP-01-04's zero-substituting half and TP-01-08's forbidden-prefix limb are each shielded by a second independent check, so no single-limb mutation can make their assertion fail. Both are named as unproven in `report.md`.
 - [x] The federal pack covers exactly one declared tax year, cites primary IRS

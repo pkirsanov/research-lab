@@ -298,6 +298,7 @@ error, a missing browser or an absent test does not satisfy RED.
 | TP-03-26 | Repo gate | unit | SCN-024-007 … -009 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-03-26` |
 | TP-03-27 | Path guard | unit | SCN-024-007 … -009 | `scripts/validate-spec-test-paths.mjs` | Zero new missing spec-referenced test paths | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-03-27` |
 | TP-03-28 | Deploy gate | unit | SCN-024-007 … -009 | `scripts/build-pages-site.mjs` | The Pages plan succeeds, `site-exclusions.json` is unchanged, and `tax-rules/` remains outside the public directories | `node scripts/build-pages-site.mjs --dry-run` | No | `report.md#tp-03-28` |
+| TP-03-29 | Privacy E2E | e2e-ui | SCN-024-009 | `tests/lifetime-tax-claim-age.spec.mjs` | GAP, NOT AUTHORED (opened 2026-08-22, F-REG-03). `TP-03-24` places no bound on ledger growth after first paint and has no non-empty pin, so its `requested.forEach((path) => expect(permitted).toContain(path))` would pass vacuously against a route that read nothing — the guard-that-cannot-fail class. Required, in that same run: `afterFirstPaint` captured after `openLifetimeTax`, asserted greater than zero, and the ledger asserted not to grow past it once the claim-age comparison is declared. Adversarial cases: a request issued after the comparison is declared fails the no-growth assertion, and a boot that read nothing fails the greater-than-zero pin, which also makes the existing permitted-set sweep non-vacuous | not authored | Yes | not authored |
 
 ### Definition of Done
 
@@ -352,9 +353,32 @@ delivery makes a row's claim false, the row is corrected rather than checked.
   - **Phase:** implement · **Command:** the retrieval record in the mortality pack plus `node scripts/selftest.mjs` · **Evidence:** `report.md#sourcing`, `report.md#tp-03-15`
 - [x] NFR-024-003 and NFR-024-005 hold: the declared claim-age set is inventoried,
       cleared and redacted, the declared storage key count is asserted unchanged in
-      the same assertion, the request ledger stays empty with a mortality pack now
-      loaded from disk, and no module holds a figure or an authority name.
+      the same assertion, every entry in the request ledger is a GET carrying no
+      body for a path the route's own configuration declares, no declared claim age
+      and no mortality column reaches a URL, and no module holds a figure or an
+      authority name.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the browser privacy row · **Evidence:** `report.md#tp-03-16`, `report.md#tp-03-17`, `report.md#tp-03-24`
+  - **Restated 2026-08-22 (F-REG-03).** The superseded text read "the request
+    ledger stays empty with a mortality pack now loaded from disk", which was
+    false twice over. First, the ledger is never empty. Second, the cited row
+    `TP-03-24` (`SCN-024-009`) does not establish that the mortality pack was
+    fetched at all: its two `toContain` assertions are made against `permitted =
+    declaredRouteAssets()`, the set of paths the route is ALLOWED to read, not
+    against `requested`. That clause has been dropped rather than reworded.
+    Adversarial cases for what remains: a read of a path the configuration does
+    not declare fails `requested.forEach((path) => expect(permitted).toContain(path))`;
+    a POST or a request carrying a body fails the method and `postData`
+    assertions; and a claim age or the mortality column id reaching a URL fails
+    the `urls` scan. Two limits are named rather than hidden and are opened as
+    `TP-03-29` below: the row places no bound on ledger growth after first paint,
+    and it has no non-empty pin, so `requested.forEach(...)` would pass vacuously
+    against a route that read nothing.
+- [ ] `SCN-024-009` constrains ledger growth and cannot pass vacuously: the run
+      captures the ledger length after first paint, asserts it is greater than
+      zero, and asserts the ledger does not grow past it.
+  - **Phase:** test · **Command:** `TP-03-29` · **Evidence:** not authored — the
+    scenario currently proves neither. Opened 2026-08-22 (F-REG-03) rather than
+    ticked, because no executed evidence for it exists.
 - [x] NFR-024-011 holds: the new module is UMD, every pure analytic function is a
       top-level declaration the extractor lifts, `Number.isFinite` is used rather
       than the bare global, and no drawing in this scope is wrapped in
@@ -425,8 +449,12 @@ delivery makes a row's claim false, the row is corrected rather than checked.
       track record or an error rate, and no claim age is described as optimal,
       recommended or best.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [x] Every Test Plan row has intended RED and same-command GREEN evidence recorded,
+- [ ] Every Test Plan row has intended RED and same-command GREEN evidence recorded,
       including the browser rows.
+  - **Unticked 2026-08-22 (F-REG-03).** `TP-03-29` was opened in this scope and
+    is not authored, so it carries neither a RED nor a GREEN. The word "Every"
+    therefore no longer holds. Ticking it again requires `TP-03-29` authored with
+    a RED and a same-command GREEN.
   - **Phase:** implement · **Command:** the exact TP-03-01 through TP-03-28 commands · **Evidence:** `report.md#test-evidence`
   - **Claim Source:** executed for all 28 rows.
   - **Checked because:** every one of the 28 rows now carries a RED and a GREEN

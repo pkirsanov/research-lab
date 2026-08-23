@@ -432,9 +432,29 @@ resolving to fewer tests than it claims. Both read green while owned by nothing.
     that group (`3087 passed, 5 failed`) — a cascade that shows `L7` is load-bearing.
     Both reverted with `git checkout --` inside the applying invocation with the
     leftover counts re-read as zero; the same command returned `3099 passed, 1 failed`.
-- [x] The residency state is inventoried, cleared and redacted, and the request
-      ledger stays empty with two pack files now loaded from disk.
+- [x] The residency state is inventoried, cleared and redacted, the request
+      ledger does not grow after first paint, every entry in it is a same-origin
+      read of a path the route's own configuration declares, and both the federal
+      pack and the resolved state pack are present in the ledger the run produced.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the browser privacy row · **Evidence:** `report.md#tp-03-15`, `report.md#tp-03-21`
+  - **Restated 2026-08-22 (F-REG-03).** The superseded text read "the request
+    ledger stays empty with two pack files now loaded from disk", which is false
+    and self-contradictory on its own terms: a ledger holding two pack reads is
+    not empty. This is the strongest-supported instance in the family, so the
+    restatement is correspondingly strong. The cited row `TP-03-21`
+    (`SCN-022-007`) asserts `expect(afterFirstPaint).toBeGreaterThan(0)`, then
+    `expect(ledger.length).toBe(afterFirstPaint)`, then
+    `expect(ledger.filter((entry) => !entry.url.startsWith(site.baseUrl))).toEqual([])`
+    — the only same-origin assertion in this family besides `SCN-022-013`'s —
+    then `paths.forEach((path) => expect(permitted).toContain(path))`, and finally
+    pins BOTH `/tax-rules/federal/2026.json` and `/tax-rules/state/CA/2026.json`
+    present in the ledger the run produced rather than merely permitted.
+    Adversarial cases: a request issued after first paint fails the no-growth
+    assertion; a cross-origin read fails the `startsWith(site.baseUrl)` filter
+    even when its path collides with a declared one; a read of an undeclared path
+    fails the permitted-set assertion; a boot that read nothing fails the
+    greater-than-zero pin; and a state pack that is permitted but never fetched
+    fails the two `expect(paths).toContain(...)` pins.
   - **Closed 2026-08-21.** The row is one nine-term conjunction, so a single probe
     cannot show every clause is read; an earlier draft misdescribed it as separate
     assertions and that correction is recorded. Each of the three state clauses was

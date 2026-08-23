@@ -359,9 +359,26 @@ delivery makes a row's claim false, the row is corrected rather than checked.
 - [x] NFR-024-003 and NFR-024-005 hold: every one of the four declarations is
       inventoried, cleared and redacted, the declared storage key count is asserted
       unchanged in the same assertion that asserts each declaration is inventoried,
-      the request ledger stays empty with a benefit pack now loaded from disk, and
-      no module holds a figure or an authority name.
+      the request ledger does not grow after first paint, every entry in it is a
+      read of a path the route's own configuration declares, the benefit pack is
+      present in the ledger the run produced, and no module holds a figure or an
+      authority name.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the browser privacy row · **Evidence:** `report.md#tp-01-15`, `report.md#tp-01-16`, `report.md#tp-01-24`
+  - **Restated 2026-08-22 (F-REG-03).** The superseded text read "the request
+    ledger stays empty with a benefit pack now loaded from disk", which is false
+    and self-contradictory: a ledger holding the benefit pack read is not empty.
+    The cited row `TP-01-24` (`SCN-024-001`) asserts
+    `expect(afterFirstPaint).toBeGreaterThan(0)`, then
+    `expect(ledger.length).toBe(afterFirstPaint)`, then
+    `paths.forEach((path) => expect(permitted).toContain(path))`, then
+    `expect(paths).toContain('/' + BENEFIT_PACK_PATH)`. Adversarial cases: a
+    request issued after first paint fails the no-growth assertion; a read of a
+    path the configuration does not declare fails the permitted-set assertion; a
+    boot that read nothing fails the greater-than-zero pin; and a benefit pack
+    that is permitted but never fetched fails the `toContain` pin. The row does
+    NOT constrain the origin of an entry — it compares `new URL(entry.url).pathname`
+    only — so no same-origin claim is made here; that gap is carried by Feature
+    021 Scope 01 `TP-01-18`.
 - [x] NFR-024-011 holds: the new module is UMD, every pure analytic function is a
       top-level declaration the extractor lifts, `Number.isFinite` is used rather
       than the bare global, and no drawing is wrapped in `requestAnimationFrame`.

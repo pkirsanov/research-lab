@@ -272,6 +272,7 @@ syntax error, a missing browser or an absent test does not satisfy RED.
 | TP-04-27 | Repo gate | unit | SCN-023-010 … -013 | `scripts/selftest.mjs` | The whole-repository suite stays green, the pre-existing pass count does not fall, and both ASC-8 admissions are booked on all four surfaces and agree: the ledger carries fourteen rows of which exactly the two the ownership table claims for Scope 04 are owned by it, the opening count paragraph names the same two admissions and the same per-scope total, and the per-file marker distribution places each marker in the file that carries it | `node scripts/selftest.mjs` | No | `report.md#tp-04-27` |
 | TP-04-28 | Path guard | unit | SCN-023-010 … -013 | `scripts/validate-spec-test-paths.mjs` | Zero new missing spec-referenced test paths | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-04-28` |
 | TP-04-29 | Deploy gate | unit | SCN-023-010 … -013 | `scripts/build-pages-site.mjs` | The Pages plan succeeds and `site-exclusions.json` is unchanged | `node scripts/build-pages-site.mjs --dry-run` | No | `report.md#tp-04-29` |
+| TP-04-30 | Privacy E2E | e2e-ui | SCN-023-010 | `tests/lifetime-tax-use.spec.mjs` | GAP, NOT AUTHORED (opened 2026-08-22, F-REG-03). This scope has no live-route privacy row at all: its only privacy evidence, `TP-04-21`, is a `unit` row run by `node scripts/selftest.mjs`, which has no browser and so no request ledger to observe — its "nor any query string" clause scans the route's source, not a ledger. Required: on the live route, with both day-count declarations populated, `afterFirstPaint` is captured after `openLifetimeTax`, is asserted greater than zero, the ledger is asserted not to grow past it, and every entry's pathname is asserted to be a member of `declaredRouteAssets()`. Adversarial cases: a request issued after the declarations are entered fails the no-growth assertion; a read of a path the configuration does not declare fails the permitted-set assertion; and a boot that read nothing fails the greater-than-zero pin, so the row cannot pass vacuously | not authored | Yes | not authored |
 
 ### Definition of Done
 
@@ -311,9 +312,32 @@ syntax error, a missing browser or an absent test does not satisfy RED.
 - [x] NFR-023-004 and NFR-023-005 hold: the refusal vocabulary member count is
       unchanged and `rltaxuse.js` carries no test-parameter literal.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-19`, `report.md#tp-04-20`
-- [x] NFR-023-003 holds: the day-count declarations are inventoried, cleared and
-      redacted, and the request ledger stays empty.
+- [x] NFR-023-003 holds for the day-count declarations as far as the cited
+      evidence reaches: both are declared workspace fields, are named in the
+      export's omitted list, have no value in the exported bytes, are named in the
+      privacy inventory purpose, refuse by name when undeclared, are recorded as
+      location-adjacent, and reach neither the committed configuration nor any
+      query string.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-21`
+  - **Restated 2026-08-22 (F-REG-03).** The superseded text read "and the request
+    ledger stays empty", which is false — the route issues its document reads and
+    its `<script src>` loads on every boot — and was unsupported by the only
+    evidence this item cites. `TP-04-21` is a `unit` row whose command is `node
+    scripts/selftest.mjs`; a Node run has no browser and therefore no request
+    ledger to observe. Its "nor any query string" clause is a scan of the route's
+    own source, not of a ledger. The item now claims exactly what that assertion
+    establishes. Adversarial cases: a declaration absent from the workspace
+    contract, one missing from the export's omitted list, one whose value survives
+    into the exported bytes, one missing from the privacy inventory purpose, one
+    that fails to refuse by name when undeclared, or a query string assembled
+    anywhere in the route each fails the cited assertion. The live-route half is
+    not covered by this scope at all and is opened as `TP-04-30` below.
+- [ ] NFR-023-003 holds on the live route for the day-count declarations: the
+      request ledger does not grow after first paint and every entry in it is a
+      read of a path the route's own configuration declares.
+  - **Phase:** test · **Command:** `TP-04-30` · **Evidence:** not authored — this
+    scope has no live-route privacy row. Opened 2026-08-22 (F-REG-03) rather than
+    ticked, because no executed evidence for it exists.
 - [x] `SUP-023-13` and `SUP-023-14` are delivered under ASC-8: each superseded
       literal is recorded with its replacement and its adversarial cases, each
       marker sits in the file the distribution places it in, and the ledger, its
@@ -330,8 +354,13 @@ syntax error, a missing browser or an absent test does not satisfy RED.
 - [x] No output states a probability, a lifetime figure, a track record or an error
       rate, and no classification is presented as an estimate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [x] Every Test Plan row has intended RED and same-command GREEN evidence
+- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
+  - **Unticked 2026-08-22 (F-REG-03).** `TP-04-30` was opened in this scope and
+    is not authored, so it carries neither a RED nor a GREEN. The **Satisfied**
+    note below remains accurate for the rows that existed when it was written;
+    it is no longer accurate for the word "Every". Ticking it again requires
+    `TP-04-30` authored with a RED and a same-command GREEN.
       **Satisfied.** Every row now carries an observed intended RED beside its
       same-command GREEN. The twenty-five rows this row was owed were closed one
       at a time through `scripts/red-green-probe.sh`, each from a mutation aimed

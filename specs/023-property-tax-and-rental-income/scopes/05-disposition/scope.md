@@ -253,6 +253,7 @@ missing browser or an absent test does not satisfy RED.
 | TP-05-27 | Repo gate | unit | SCN-023-014 … -015 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-05-27` |
 | TP-05-28 | Path guard | unit | SCN-023-014 … -015 | `scripts/validate-spec-test-paths.mjs` | Zero new missing spec-referenced test paths | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-05-28` |
 | TP-05-29 | Deploy gate | unit | SCN-023-014 … -015 | `scripts/build-pages-site.mjs` | The Pages plan succeeds, `site-exclusions.json` is unchanged, no new root HTML exists, and `tax-rules/` remains outside the public directories | `node scripts/build-pages-site.mjs --dry-run` | No | `report.md#tp-05-29` |
+| TP-05-30 | Privacy E2E | e2e-ui | SCN-023-015 | `tests/lifetime-tax-disposition.spec.mjs` | GAP, NOT AUTHORED (opened 2026-08-22, F-REG-03). `SCN-023-015` is the only member of this feature family's privacy set that constrains *neither* ledger growth *nor* the declared-asset set: its body holds no `afterFirstPaint`, no `declaredRouteAssets` and no `permitted`, and its sole use of the request list is `requests.filter((url) => !url.endsWith('.js') && !url.endsWith('.css'))`. Required, in the same run: `afterFirstPaint` captured after `openLifetimeTax` and asserted greater than zero, the ledger asserted not to grow past it once the sale is declared, and every entry's pathname asserted to be a member of `declaredRouteAssets()` — which also removes the `.js`/`.css` blind spot, because a filtered-out asset URL would then have to be a declared path. Adversarial cases: a request issued after the sale is declared fails the no-growth assertion; a read of a path the configuration does not declare fails the permitted-set assertion; a sale figure smuggled onto a `.js` URL, which the current filter cannot see, fails the permitted-set assertion; and a boot that read nothing fails the greater-than-zero pin | not authored | Yes | not authored |
 
 ### Definition of Done
 
@@ -311,8 +312,33 @@ missing browser or an absent test does not satisfy RED.
       value, confirming this feature added no code.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-17`
 - [x] NFR-023-003 holds: the disposition declarations are inventoried, cleared and
-      redacted, and the request ledger stays empty.
+      redacted, and no disposition declaration and no disposition member name
+      reaches a requested URL outside the route's own script and stylesheet
+      loads, the address bar, the referrer or a console message.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the browser privacy row · **Evidence:** `report.md#tp-05-18`, `report.md#tp-05-25`
+  - **Restated 2026-08-22 (F-REG-03).** The superseded text read "and the request
+    ledger stays empty", which is false — the route issues its document reads and
+    its `<script src>` loads on every boot. It was also the weakest-supported
+    instance in this family: the cited browser row `TP-05-25` (`SCN-023-015`)
+    proves *neither* of the two propositions the rest of the family proves. Its
+    body holds no `afterFirstPaint`, no `declaredRouteAssets` and no `permitted`
+    set; its only use of the request list is
+    `requests.filter((url) => !url.endsWith('.js') && !url.endsWith('.css'))`,
+    which it then scans for declared values and member names. The item now claims
+    exactly that. Adversarial cases: a sale figure or a member name reaching a
+    requested non-asset URL, the address bar, `document.referrer` or a console
+    message each fails the scan. Two limits are deliberate and named rather than
+    hidden: the row cannot see a value smuggled onto a `.js` or `.css` URL,
+    because those are filtered out before the scan, and it skips any declared
+    value shorter than five characters (`if (value.length < 5) continue;`). The
+    ledger-growth and declared-asset halves are not covered by this scope at all
+    and are opened as `TP-05-30` below.
+- [ ] NFR-023-003 holds on the live route for the disposition declarations: the
+      request ledger does not grow after first paint and every entry in it is a
+      read of a path the route's own configuration declares.
+  - **Phase:** test · **Command:** `TP-05-30` · **Evidence:** not authored —
+    `SCN-023-015` constrains neither. Opened 2026-08-22 (F-REG-03) rather than
+    ticked, because no executed evidence for it exists.
 - [x] SUP-023-09 is delivered with its marker in the file the per-file distribution
       names, its superseded clause recorded verbatim at its own site and the
       superseded literal surviving nowhere else, and the marker check confirms the
@@ -367,8 +393,12 @@ missing browser or an absent test does not satisfy RED.
 - [x] No output states a probability, an appreciation assumption, a lifetime
       figure, a future year, a track record or an error rate.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [x] Every Test Plan row has intended RED and same-command GREEN evidence
+- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows and the cumulative suite.
+  - **Unticked 2026-08-22 (F-REG-03).** `TP-05-30` was opened in this scope and
+    is not authored, so it carries neither a RED nor a GREEN. The word "Every"
+    therefore no longer holds. Ticking it again requires `TP-05-30` authored with
+    a RED and a same-command GREEN.
   - **Phase:** implement · **Command:** the exact TP-05-01 through TP-05-26 commands · **Evidence:** `report.md#per-row-intended-red-probes`
   - **Closed by probes 20 to 24.** Probes 1 to 19 already carried `TP-05-01`
     through `TP-05-21`, every one under `node scripts/selftest.mjs`. The five

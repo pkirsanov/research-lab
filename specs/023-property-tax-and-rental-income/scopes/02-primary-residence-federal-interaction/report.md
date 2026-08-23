@@ -897,3 +897,137 @@ discriminates by two assertions rather than one.
 This correction was made under an explicit operator instruction to verify and
 correct the wording, and it is recorded here rather than presented as this
 scope's own planning authority. No `scope.md` was touched.
+
+## Regression sweep across Features 021-024 (2026-08-22)
+
+Cross-feature sweep run after the audit and security phases landed behavioural
+changes in the shared engine and the shared route. One finding belongs to this
+scope. It is routed, not fixed.
+
+### F-REG-01 — the F-AUDIT-01 fix stopped at the engine; both rendered surfaces still claim the composed deduction priced the tax
+
+`e41cc4af0` published two new members on the `CO-18` record, `settlementDeduction`
+and `agreesWithSettlement`, and appended a corrective clause to `chosenReason`.
+Its own commit comment states the purpose:
+
+> Publishing the settled deduction here is what lets every surface name which of
+> the two produced the figure beside it instead of asserting the composed one did.
+
+No surface consumes either member. Grepped across every `.js`, `.html` and `.mjs`
+in the checkout, `settlementDeduction` and `agreesWithSettlement` appear only
+inside `rltax.js`. They reach no renderer and no assertion.
+
+What the Simple panel still renders, at
+[lifetime-tax-strategy-lab.html](../../../../lifetime-tax-strategy-lab.html#L2833):
+
+| line | text |
+| --- | --- |
+| 2833 | visible label `"Deduction actually applied: "` |
+| 2838 | visible value `envelope.deduction.chosen` and `dollars(envelope.deduction.appliedDeduction)` |
+| 2839 | tooltip prose `"The side this settlement actually applied, recomputed from the itemised total and the standard deduction rather than read from anything you declared. "` |
+
+`envelope.deduction` is `ENGINE.composeItemizedDeduction(...)`, assigned at line
+2514, so all three name the composed comparison. The settlement prices the tax on
+`selectDeduction`, which returns the amount for `workspace.deductionMode` and
+nothing else — confirmed by reading `rltax.js` lines 130-150 in this session.
+
+The appended clause lands in that same tooltip, so the tooltip now contradicts
+itself in one string: its first sentence says this is the side the settlement
+applied, and the clause concatenated after it says `It did not price the tax`.
+
+Three further sites carry the same claim and were also untouched:
+
+| site | text |
+| --- | --- |
+| `lifetime-tax-strategy-lab.html:1065` | table `aria-label` `"…and the side actually applied"` |
+| `lifetime-tax-strategy-lab.html:4045,4047` | decision-table third column, literal `"applied"` / `"not applied"` keyed on `composition.chosen` |
+| `rltax.js:2007` | tie refusal `"the side actually applied cannot be named"` |
+
+#### The audit understated the remediation cost, and this is the part that changes the routing
+
+The F-AUDIT-01 entry above states:
+
+> No assertion covers the relationship. `tests/lifetime-tax-deduction.spec.mjs`
+> references neither `appliedDeduction` nor `chosenReason`
+
+That is true of those two field names and false of the behaviour. The same file
+pins the Simple row directly, and it chooses fixtures in which the composed side
+and the declared mode deliberately disagree:
+
+| line | fixture | assertion |
+| --- | --- | --- |
+| 349-359 | declares `standard`, itemised total set to `STANDARD_SINGLE + 5000` | `deductionSideChosen` must contain `itemized` |
+| 362-371 | declares `itemized`, itemised total set to `STANDARD_SINGLE - 5000` | `deductionSideChosen` must contain `standard` |
+| 373-376 | same | the amount shown must be the larger of the two totals |
+
+Its own comment at line 346 makes the intent explicit:
+
+> The decision follows the two totals, so the declared mode changes nothing: an
+> implementation reading the mode flag would name the standard side here.
+
+So in the first fixture the household declared `standard`, the settlement priced
+the tax on the standard deduction, and a passing suite requires Simple to display
+`itemized` at an amount `$5,000` higher. The assertion set does not merely fail to
+cover the defect. It enforces it, in both directions, and it is the contract a fix
+has to change.
+
+#### Harness evidence — the node suite cannot discriminate
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            simple-deduction-row-renders-composed-not-settled
+file:             lifetime-tax-strategy-lab.html
+mutation:         envelope.deduction.chosen + " \u00b7 " + dollars(envelope.deduction.appliedDeduction),  ->  envelope.deduction.settlementDeduction.mode + " \u00b7 " + dollars(envelope.deduction.settlementDeduction.value),   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3204 passed, 1 failed
+green-exit:       1
+green-summary:    Research-Lab self-test: 3204 passed, 1 failed
+summary-compared: Research-Lab self-test: 3204 passed, 1 failed  vs  Research-Lab self-test: 3204 passed, 1 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=a2bdfa4a1b312df877c58d1b19d995716393595b restored=a2bdfa4a1b312df877c58d1b19d995716393595b)
+discriminating:   NO (both channels agree: exit 1 == 1, summary "Research-Lab self-test: 3204 passed, 1 failed" identical once elapsed time is normalised)
+=== END RED/GREEN PROBE EVIDENCE ===
+red-green-probe: REFUSED — RED and GREEN produced the same outcome on both channels
+PROBE_EXIT=7
+```
+
+Swapping the Simple row from the composed deduction to the settled one changes
+nothing the node suite reports. Exit 7 is the finding: no node assertion can tell
+the two apart, so the browser contract quoted above is the only thing holding this
+surface, and it holds it to the wrong side.
+
+The `1 failed` in both halves is not mine. It is
+`horizon ladder gate group threw: function not found: hlSma`, from a concurrent
+session's uncommitted work in `scripts/selftest.mjs` and its untracked
+`horizon-ladder-lab.html`. No file in this feature family is dirty. Because that
+failure moves the aggregate under this sweep, the aggregate summary is not a
+reliable probe channel in this session, and the count is quoted here only as the
+observation it was.
+
+**Claim Source:** executed. The probe above ran in this session. The greps for
+`settlementDeduction`, `agreesWithSettlement`, `appliedDeduction` and
+`actually applied` ran in this session. `rltax.js:130-150`,
+`lifetime-tax-strategy-lab.html:2475-2530,2800-2860,4008-4050` and
+`tests/lifetime-tax-deduction.spec.mjs:340-420` were read in this session.
+
+#### Routed, not fixed
+
+The audit routed F-AUDIT-01 with two admissible resolutions: the settlement
+consumes the `CO-18` decision, or the sentence and the `applied` label stop
+claiming it did. `e41cc4af0` took neither. It added the honest members and left
+every label, every rendered value and the browser contract in place.
+
+Choosing between those two remains an `FR-023-012` and `FR-023-014` scope
+question, and the second one now also requires rewriting three assertions in
+`tests/lifetime-tax-deduction.spec.mjs` and re-running the Playwright suite to
+re-evidence roughly ten committed evidence blocks. This sweep runs no browser, so
+it does not take that decision.
+
+Owner: `bubbles.plan` for the `FR-023-012` / `FR-023-014` question, then
+`bubbles.implement` for the surface and `bubbles.test` for the three assertions.
+
+#### Ticked evidence this finding does not invalidate
+
+No DoD item in this scope claims the Simple row names the settled deduction. The
+`CO-18` items claim the composition recomputes the decision and surfaces it, which
+it does. Nothing is unticked for this finding.

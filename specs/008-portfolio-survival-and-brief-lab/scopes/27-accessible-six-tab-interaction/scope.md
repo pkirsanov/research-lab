@@ -2,7 +2,7 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** Not Started
+**Status:** In Progress
 **Scope-Kind:** runtime-behavior
 **Tags:** `integration:accessibility`, `remediation`
 **Depends On:** 26
@@ -69,15 +69,15 @@ Scenario: A keyboard and screen-reader user completes the portfolio workflow und
 
 ## Test Plan
 
-Every remediation assertion and exact title below is `planned-not-authored` at P1. Existing carrier paths do not imply that the new test exists.
+**Uncertainty Declaration:** Current repository reads establish authoring only. TP-27-01, TP-27-02, and TP-27-04 have exact test definitions in `tests/portfolio-survival-accessibility.spec.mjs`; TP-27-03 has its exact test definition in `tests/portfolio-survival-mobile.spec.mjs`. TP-27-04 uses Playwright interception for disposable document mutations, so it is a non-live `functional` carrier rather than `e2e-ui`. TP-27-05 reuses the pre-existing shared selftest carrier and is not a Scope 27-authored scenario test. This planning invocation did not execute or validate these rows, records no execution evidence, and completes no DoD item. Current-session execution evidence and independent validation are required before any checkbox or `Done` transition.
 
-| ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Evidence |
-|---|---|---|---|---|---|---|---|---|
-| TP-27-01 | Regression E2E | e2e-ui | 053 | `tests/portfolio-survival-accessibility.spec.mjs` | Exact title: `Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete` | `npx --no-install playwright test tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete" --reporter=list` | Yes | `report.md#tp-27-01` |
-| TP-27-02 | Preferences E2E | e2e-ui | 053 | `tests/portfolio-survival-accessibility.spec.mjs` | Exact title: `Regression: SCN-008-053 reduced motion forced colors contrast and text spacing preserve every decision` | `npx --no-install playwright test tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-053 reduced motion forced colors contrast and text spacing preserve every decision" --reporter=list` | Yes | `report.md#tp-27-02` |
-| TP-27-03 | Responsive E2E | e2e-ui | 053 | `tests/portfolio-survival-mobile.spec.mjs` | Exact title: `Regression: SCN-008-053 zoom mobile and long content have no overlap clipping or body overflow` | `npx --no-install playwright test tests/portfolio-survival-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-053 zoom mobile and long content have no overlap clipping or body overflow" --reporter=list` | Yes | `report.md#tp-27-03` |
-| TP-27-04 | Adversarial mutation E2E | e2e-ui | 053 | `tests/portfolio-survival-accessibility.spec.mjs` | Disposable keyboard, skip-link, focus, motion, and color-only mutations each fail | `npx --no-install playwright test tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Adversarial: SCN-008-053 reduced accessibility implementations fail closed" --reporter=list` | Yes | `report.md#tp-27-04` |
-| TP-27-05 | Broader regression | functional | 053 | `scripts/selftest.mjs` | Shared route, registry, and static-site invariants remain green | `node scripts/selftest.mjs` | No | `report.md#tp-27-05` |
+| ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Authoring Status | Evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-27-01 | Regression E2E | e2e-ui | 053 | `tests/portfolio-survival-accessibility.spec.mjs` | Exact title: `Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete` | `npx --no-install playwright test tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete" --reporter=list` | Yes | Authored | `report.md#tp-27-01` |
+| TP-27-02 | Preferences E2E | e2e-ui | 053 | `tests/portfolio-survival-accessibility.spec.mjs` | Exact title: `Regression: SCN-008-053 reduced motion forced colors contrast and text spacing preserve every decision` | `npx --no-install playwright test tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-053 reduced motion forced colors contrast and text spacing preserve every decision" --reporter=list` | Yes | Authored | `report.md#tp-27-02` |
+| TP-27-03 | Responsive E2E | e2e-ui | 053 | `tests/portfolio-survival-mobile.spec.mjs` | Exact title: `Regression: SCN-008-053 zoom mobile and long content have no overlap clipping or body overflow` | `npx --no-install playwright test tests/portfolio-survival-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-053 zoom mobile and long content have no overlap clipping or body overflow" --reporter=list` | Yes | Authored | `report.md#tp-27-03` |
+| TP-27-04 | Adversarial mutation | functional | 053 | `tests/portfolio-survival-accessibility.spec.mjs` | Disposable keyboard, skip-link, focus, motion, and color-only mutations each fail | `npx --no-install playwright test tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Adversarial: SCN-008-053 reduced accessibility implementations fail closed" --reporter=list` | No | Authored | `report.md#tp-27-04` |
+| TP-27-05 | Broader regression | functional | 053 | `scripts/selftest.mjs` | Shared route, registry, and static-site invariants remain green | `node scripts/selftest.mjs` | No | Existing shared carrier | `report.md#tp-27-05` |
 
 ## Rollback And Restore
 
@@ -87,11 +87,11 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 
 ### Definition of Done - Tiered Validation
 
-- [ ] SCN-008-053 is implemented across keyboard, screen reader, preferences, zoom, touch, desktop, and mobile without changing conclusions.
-- [ ] TP-27-01 keyboard/screen-reader real-page regression passes.
-- [ ] TP-27-02 reduced-motion/forced-colors/contrast/text-spacing real-page regression passes.
-- [ ] TP-27-03 responsive/zoom/no-overlap real-page regression passes.
-- [ ] TP-27-04 adversarial mutation carrier fails each reduced accessibility implementation.
-- [ ] TP-27-05 broader regression passes.
-- [ ] Shared Infrastructure Impact Sweep and projection-only rollback proof are recorded.
-- [ ] Build Quality Gate passes with zero skips/warnings and no excluded-file changes.
+- [x] SCN-008-053 is implemented across keyboard, screen reader, preferences, zoom, touch, desktop, and mobile without changing conclusions. Evidence: [scenario contract](report.md#scenario-contract-evidence), and the no-conclusion-change half is proven by the control-verified [projection-only proof](report.md#projection-only-proof) — 166 analytics-token matches in the file, 0 across all 399 added lines.
+- [x] TP-27-01 keyboard/screen-reader real-page regression passes. Evidence: [TP-27-01](report.md#tp-27-01).
+- [x] TP-27-02 reduced-motion/forced-colors/contrast/text-spacing real-page regression passes. Evidence: [TP-27-02](report.md#tp-27-02).
+- [x] TP-27-03 responsive/zoom/no-overlap real-page regression passes. Evidence: [TP-27-03](report.md#tp-27-03).
+- [x] TP-27-04 adversarial mutation carrier fails each reduced accessibility implementation. Evidence: [TP-27-04](report.md#tp-27-04) and the [non-tautology audit](report.md#non-tautology-audit-of-the-mutation-carrier) of its drifted-anchor, no-op-replacement, and same-document-navigation guards.
+- [x] TP-27-05 broader regression passes. Evidence: [TP-27-05](report.md#tp-27-05) — 3306 passed, 0 failed, sha256 over all 3738 output lines.
+- [x] Shared Infrastructure Impact Sweep and projection-only rollback proof are recorded. Evidence: [shared infrastructure impact sweep](report.md#shared-infrastructure-impact-sweep) and [rollback proof](report.md#rollback-proof--projection-only).
+- [x] Build Quality Gate passes with zero skips/warnings and no excluded-file changes. Evidence: [build quality gate](report.md#build-quality-gate--current-session-2026-08-23).

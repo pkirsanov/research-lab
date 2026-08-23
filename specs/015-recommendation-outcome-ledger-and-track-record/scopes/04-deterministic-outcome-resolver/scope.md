@@ -409,7 +409,7 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
 | T-04-F4 | Functional | `functional` | BS-010 | `tests/recommendation-track-record.functional.mjs` | Data-quality gates: an `entryDate` or `resolutionDate` in `zeroObservedSessions` closes `not-evaluable` reason `zero-observed-session`, while a `reconstructedSessions` or `thinObservedSessions` hit **resolves normally** and is recorded verbatim in the resolution object's `provenance`. Blocking on a reconstructed bar would fail the row. | `node --test tests/recommendation-track-record.functional.mjs` | No | `report.md#t-04-f4` |
 | T-04-I1 | Integration | `integration` | BS-002, BS-003 | `tests/recommendation-track-record.integration.mjs` | The closure enters through `run.closures` with `current: []`, `reduceRecommendationEvents` returns `ok`, exactly one event is appended per due claim, the entry's `state` becomes `"closed"`, and the closure event carries the claim's **original frozen terms**. Calling with a non-empty `current` containing the same key is asserted to fail `recommendation-closure-still-active`, proving the closing-pass discipline is necessary. | `node --test tests/recommendation-track-record.integration.mjs` | No | `report.md#t-04-i1` |
 | T-04-I2 | Integration | `integration` | BS-009 | `tests/recommendation-track-record.integration.mjs` | **Idempotence case 1 — the gate holds.** Pass 2 over an unchanged ledger yields `run.closures.length === 0`, zero appended events, zero new resolution objects, and an `indexFingerprint` **byte-identical** to pass 1. | `node --test tests/recommendation-track-record.integration.mjs` | No | `report.md#t-04-i2` |
-| T-04-I3 | Integration | `integration` | BS-009 | `tests/recommendation-track-record.integration.mjs` | **Idempotence case 2 — the adversarial half.** Feeding `reduceRecommendationEvents` a second closure for an **already-closed** entry, bypassing the due-set gate, asserts the reducer **accepts** it and the `indexFingerprint` **changes**. This is an acceptance assertion on purpose: it fails if the reducer is hardened without telling the resolver, and it is what proves case 1 is load-bearing rather than incidental. | `node --test tests/recommendation-track-record.integration.mjs` | No | `report.md#t-04-i3` |
+| T-04-I3 | Integration | `integration` | BS-009 | `tests/recommendation-track-record.integration.mjs` | **Idempotence case 2 — the adversarial half.** Feeding `reduceRecommendationEvents` a second closure for an **already-closed** entry, bypassing the due-set gate, asserts the reducer **accepts** it, that a duplicate event **is appended**, and that `indexFingerprint` is **byte-identical** across that append. *An earlier revision of this row asserted the fingerprint **changes**. That was wrong: `rlcontracts.js:1318` fingerprints `{ contractVersion, entries }` only, and a repeat closure of the same type moves neither `state` nor `lastEventType`, so the append is invisible to it (Ruling R-04-10).* This is an acceptance assertion on purpose: it fails if the reducer is hardened without telling the resolver, and it establishes that the due-set gate is the **sole** enforcement point for FR-006 — nothing downstream detects the duplicate. | `node --test tests/recommendation-track-record.integration.mjs` | No | `report.md#t-04-i3` |
 | T-04-I4 | Integration | `integration` | BS-009 | `tests/recommendation-track-record.integration.mjs` | `RTR-RESOLUTION-CONFLICT` fires with its exact code when a second resolution for the same `claimHash` would produce different bytes at the same content-addressed path, and the on-disk bytes are asserted **unchanged** afterwards. Raised by the **already-shipped** `writeResolutionObject` (`rlclaims.js:1109`, code at `:269`), asserting the resolver calls it rather than writing to `RESOLUTION_STORE_DIR` by any other route. | `node --test tests/recommendation-track-record.integration.mjs` | No | `report.md#t-04-i4` |
 | T-04-I5 | Integration | `integration` | BS-010 | `tests/recommendation-track-record.integration.mjs` | **Scope 02's gate is called, not bypassed.** A resolution written against a ledger row carrying no `claimRef` refuses with `RTR-LEGACY-BACKFILL` (`rlclaims.js:196`, raised by `authorizeResolutionWrite` at `:733`/`:721`) **before** the resolution is inspected in any way, proving a complete and entirely plausible resolution cannot rescue a claimless row; a malformed row still refuses as malformed rather than as legacy; and a resolution whose `claimHash` disagrees with the row's `claimRef` refuses. Nothing is written on any of the three paths. | `node --test tests/recommendation-track-record.integration.mjs` | No | `report.md#t-04-i5` |
 | T-04-E1 | E2E | `e2e` | BS-002, BS-003, BS-010 | `tests/recommendation-track-record.e2e.mjs` | A full resolve pass over a fixture ledger containing a mix of satisfiable, invalidatable, expiring, path-incomplete and not-evaluable claims produces exactly one closure per due claim, leaves not-yet-due claims `active`, writes one resolution object per closure, and the class partition identity holds over the result. | `node --test tests/recommendation-track-record.e2e.mjs` | No | `report.md#t-04-e1` |
@@ -1411,9 +1411,82 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   - *Non-vacuous* — `:1431-1433` is a clean-window control that must score, so every refusal is
     attributable to the fact under test; `:1449-1451` puts the same bad session outside the measured
     window and requires the claim to still score, which a file-global gate fails.
-- [ ] T-04-I1 passes: closures route through the reducer with `current: []`, one event per due claim, frozen terms re-emitted, and the still-active case proven to fail → evidence recorded in `report.md#t-04-i1`. — proves SCN-015-002
-- [ ] T-04-I2 passes: **idempotence case 1** — pass 2 is a no-op with a byte-identical `indexFingerprint` → evidence recorded in `report.md#t-04-i2`. — proves SCN-015-009
-- [ ] T-04-I3 passes: **idempotence case 2** — the reducer is proven to *accept* a double closure when the gate is bypassed and the fingerprint changes → evidence recorded in `report.md#t-04-i3`.
+- [x] T-04-I1 passes: closures route through the reducer with `current: []`, one event per due claim, frozen terms re-emitted, and the still-active case proven to fail → evidence recorded in `report.md#t-04-i1`. — proves SCN-015-002
+
+  **Evidence.** All four clauses are asserted in the T-04-I1 body in
+  `tests/recommendation-track-record.integration.mjs`. Executed from `<repo-root>`.
+
+  - `current: []` — `:708-712` asserts no `proposed`, `reaffirmed` or `modified` event is
+    appended, and `:714-718` asserts the entry key set is unchanged, so the closing pass minted
+    nothing. `:727-729` is the decisive one: the reducer refuses
+    `recommendation-closure-still-active` on field `run.closures.0` when a single run both
+    re-proposes and closes a key, so the pass that DID return cannot have carried that key in
+    `current`.
+  - one event per due claim — the pass is handed BOTH verdicts, so the count is a selection
+    rather than the only input. `:654-656` asserts one closure scheduled and one event appended;
+    `:655` names the due key; `:658-660` pins the event type, its key, and the closed transition.
+  - frozen terms re-emitted — `:664-668` asserts the event's `observationTerms` equal the entry's
+    frozen terms object; `:675-681` asserts each measured origin term equals the minted claim.
+    `:686-691` is the non-vacuity: the bridge supplies `null` for five terms, so carrying the
+    proposal values instead is reachable only by re-emitting what the proposal froze.
+  - the still-active case proven to fail — `:727-729`, as above, with the reason and field pinned.
+  - the not-due entry is accounted for — `:695-699` asserts it is still LIVE and unchanged in
+    every field; `:701-703` asserts it is reported as skipped with the gate's own reason.
+
+  ```
+  $ node --test --test-name-pattern="T-04-I" tests/recommendation-track-record.integration.mjs
+  # tests 5
+  # pass 5
+  # fail 0
+  ```
+- [x] T-04-I2 passes: **idempotence case 1** — pass 2 is a no-op with a byte-identical `indexFingerprint` → evidence recorded in `report.md#t-04-i2`. — proves SCN-015-009
+
+  **Evidence.** Both clauses are asserted in the T-04-I2 body in
+  `tests/recommendation-track-record.integration.mjs`. Executed from `<repo-root>`.
+
+  - pass 2 is a no-op — `:767` is the append oracle: pass two appends zero events. `:776-778`
+    asserts nothing is scheduled and the claim is reported as skipped naming the closed state, so
+    the result is suppressed-and-accounted rather than merely empty.
+  - a byte-identical `indexFingerprint` — `:768-772` compares the two reductions as one
+    fingerprint rather than field by field.
+  - non-vacuity — `:782-783` asserts pass one closed and appended on the SAME verdicts, so the
+    emptiness of pass two is not the behaviour of a resolver that closes nothing.
+  - the adversarial form — pass two runs under a later `runId`, and `lifecycleEventId` folds
+    `runId` in, so a duplicate here carries a new event id and the reducer's within-run dedupe
+    cannot account for the zero. T-04-I3 `:854-858` measures that dedupe and confirms it is
+    within-run only.
+- [x] T-04-I3 passes: **idempotence case 2** — with the due-set gate bypassed the reducer *accepts* a double closure, a duplicate event **is appended**, and `indexFingerprint` is **byte-identical** across that append, so the gate is the sole enforcement point for FR-006 → evidence recorded in `report.md#t-04-i3`. — proves SCN-015-009
+
+  **Evidence — item corrected before ticking (Ruling R-04-10).** The prior wording — *"and the
+  fingerprint changes"* — was wrong. The fingerprint does not change. All clauses below are
+  asserted in the T-04-I3 body in `tests/recommendation-track-record.integration.mjs`. Executed
+  from `<repo-root>`.
+
+  - the reducer accepts the double closure —
+    `tests/recommendation-track-record.integration.mjs:815` measures `twice.ok === true` against
+    an entry the first closure already closed; `:818-822` measures a genuinely new `eventId`,
+    because `lifecycleEventId` folds `runId` in and the second pass runs under a later run.
+  - a duplicate event is appended — `:816` measures `twice.events.length === 1`; `:817` pins it
+    to the same closure type; `:827-831` measures two appended events across the ungated pair,
+    which is what makes T-04-I2's zero attributable to the gate rather than to a reducer defence.
+  - the fingerprint is byte-identical — `:837-841` compares `twice.index.indexFingerprint` to
+    `once.index.indexFingerprint` **across that appended duplicate** and finds them equal.
+    `rlcontracts.js:1318` covers `{ contractVersion, entries }` only, and a repeat closure of the
+    same type moves neither `state` nor `lastEventType`, so the append is outside what it reads.
+  - non-vacuity — `:844-848` measures that the FIRST closure DID move the fingerprint, so its
+    later stability is a reading rather than inertia.
+  - the gate is the sole enforcement point — the reducer's only defence is within-run dedupe by
+    `eventId`, measured at `:854-858`, which cannot apply across calls. Nothing downstream reads
+    the append either, since the fingerprint does not. Delete the gate and the double closure
+    lands with no detector behind it.
+
+  ```
+  $ node --test tests/recommendation-track-record.integration.mjs
+  # tests 7
+  # pass 7
+  # fail 0
+  # skipped 0
+  ```
 - [x] T-04-I4 passes: `RTR-RESOLUTION-CONFLICT` fires from the shipped `writeResolutionObject` and the on-disk bytes are unchanged → evidence recorded in `report.md#t-04-i4`.
 
   **Evidence — increment 3 (write slice, commit `c8665265f`).** Executed from `<repo-root>`.
@@ -1441,7 +1514,39 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   and the store still holds exactly one object, so the refusal overwrites nothing. The preceding half of the same
   test is the anti-vacuity control: an unchanged repeat is `reused: true, written: false` rather than a conflict,
   so the code is not simply firing on every second write.
-- [ ] T-04-I5 passes: `authorizeResolutionWrite` is proven to be called first — a claimless row refuses `RTR-LEGACY-BACKFILL` before the resolution is inspected, a malformed row refuses as malformed, and a `claimHash`/`claimRef` mismatch refuses — with nothing written on any path → evidence recorded in `report.md#t-04-i5`.
+- [x] T-04-I5 passes: `authorizeResolutionWrite` is proven to be called first — a claimless row refuses `RTR-LEGACY-BACKFILL` before the resolution is inspected, a malformed row refuses as malformed, and a `claimHash`/`claimRef` mismatch refuses — with nothing written on any path → evidence recorded in `report.md#t-04-i5`.
+
+  **Evidence.** All four clauses are asserted in the T-04-I5 body in
+  `tests/recommendation-track-record.integration.mjs`. Executed from `<repo-root>`. The ordering
+  clause and the malformed-row clause were added by this pass; the other two were already
+  asserted.
+
+  - a claimless row refuses `RTR-LEGACY-BACKFILL` — `:429-431` pins the code, the reason
+    `claimless-row-unscoreable` and the field `claimRef`.
+  - before the resolution is inspected — `:492-498` offers ONE refusable resolution behind a
+    claimless row and reads the GATE's code back, for two independent defects: a non-object
+    resolution and an unusable `contractVersion`. `:505-511` is the non-vacuity pair — the same
+    object behind an AUTHORIZED row reports its OWN defect and never the legacy code, so the two
+    codes do distinguish the two stages and the precedence is measured rather than an absence.
+    `:429` and `:441` alone could not carry this clause: both ran against a well-formed record,
+    which is equally consistent with a writer that reads the resolution first, finds nothing
+    wrong, and only then reaches the gate.
+  - a malformed row refuses as malformed — `:455-459`. The row is ALSO claimless, so both rules
+    match it and the report is a precedence question; `:456-457` requires `RTR-ROW-CONTRACT` and
+    forbids `RTR-LEGACY-BACKFILL`, which would file a structural defect under a policy one.
+  - a `claimHash`/`claimRef` mismatch refuses — `:441-443`, on field `claimHash`.
+  - nothing written on any path — `:432`, `:444` and `:460` assert the store directory is never
+    created; `:512` asserts no second object appears after the control write; `:516` asserts the
+    committed partition bytes are unchanged.
+  - non-vacuity for the refusals — `:469-471` writes the identical record against the same row
+    plus the right `claimRef`, so a writer that refused everything would fail here.
+
+  Both added clauses were closed by mutation, not by reading. Reordering
+  `authorizeResolutionWrite` so the resolution is inspected before the legacy branch fails `:493`
+  with `expected: 'RTR-LEGACY-BACKFILL'` / `actual: 'RTR-ROW-CONTRACT'`. Moving the legacy branch
+  ahead of `validateLedgerRow` fails `:456` with `expected: 'RTR-ROW-CONTRACT'` /
+  `actual: 'RTR-LEGACY-BACKFILL'`. Both mutations were reverted and `rlclaims.js` is
+  byte-identical to the index.
 - [ ] T-04-E1 passes: a full resolve pass produces one closure per due claim, leaves not-yet-due claims active, and the partition identity holds → evidence recorded in `report.md#t-04-e1`.
 - [ ] T-04-V1 passes: `RTR-NETWORK` fires on a network/credential reference and the clean module references none → evidence recorded in `report.md#t-04-v1`.
 - [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope pass — [T-04-R1]

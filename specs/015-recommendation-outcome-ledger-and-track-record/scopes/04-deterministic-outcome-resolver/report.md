@@ -4,9 +4,10 @@ Evidence contract: [scope.md](scope.md), [spec.md](../../spec.md), [scope index]
 
 **Evidence status:** In progress. Five increments have executed — the calendar, value, write, predicate and
 reducer-bridge slices, all recorded under `## Test Evidence`. The sections before it record **plan corrections and
-six rulings** (R-04-01 through R-04-06), not execution evidence. **R-04-02 through R-04-06 are a PLAN pass:** they
-correct item text and add one missing obligation, and they tick and untick nothing. No scope completion is claimed
-and no certification is requested.
+eight rulings** (R-04-01 through R-04-07, and R-04-10), not execution evidence. **R-04-02 through R-04-06 are a
+PLAN pass:** they correct item text and add one missing obligation, and they tick and untick nothing. **R-04-10
+corrects a false claim in three artifacts and ticks the one item that claim was blocking.** No scope completion is
+claimed and no certification is requested.
 
 ## Summary
 
@@ -331,6 +332,61 @@ annotated in place rather than rewritten, because rewriting a DoD item to match 
 these rulings exist to prevent. Rewording is scope 05's to route, together with the statistic it will feed.
 
 **DoD total: 56 → 56.** No item added or removed. This ruling records a defect and claims no evidence.
+
+---
+
+## Ruling R-04-10 — "the fingerprint changes" across a double closure is FALSE; the gate is the sole enforcement point
+
+**The claim as written.** Three artifacts stated that when a double closure is forced past the due-set gate the
+`indexFingerprint` **changes**: the `T-04-I3` DoD item in `scope.md` (*"the reducer is proven to accept a double
+closure when the gate is bypassed and the fingerprint changes"*), the `T-04-I3` Test Plan row at `scope.md:412`
+(*"asserts the reducer accepts it and the `indexFingerprint` changes"*), and finding `F-015-D4-02` in
+`scopes/_index.md` (*"and that the fingerprint changes"*).
+
+**The measurement that refutes it.** The fingerprint is byte-identical across the appended duplicate:
+
+```
+$ node --test tests/recommendation-track-record.integration.mjs
+# tests 7
+# pass 7
+# fail 0
+# skipped 0
+```
+
+`tests/recommendation-track-record.integration.mjs:837-841` compares `twice.index.indexFingerprint` to
+`once.index.indexFingerprint` **after** `:816` has measured a second appended event, and requires them equal.
+The reading is live, not inert: `:844-848` requires the FIRST closure to have moved the fingerprint.
+
+**The source line.** `rlcontracts.js:1318`:
+
+```
+    index.indexFingerprint = fingerprint("recommendation-index", {
+      contractVersion: "recommendation-index/v1",
+      entries: newEntries
+    });
+```
+
+It covers `{ contractVersion, entries }` — the index. It does **not** cover `events`. A repeat closure of the
+same type sets `closureEntry.state = "closed"` and `closureEntry.lastEventType` to values they already hold
+(`rlcontracts.js:1284-1285`), so `entries` is unchanged and the digest is byte-identical. The claim could only
+have been made true by editing `rlcontracts.js`, which is feature 002-owned and read-only here. The claim was
+wrong; the code and the test are right.
+
+**The corrected statement.** With the gate bypassed the reducer **accepts** the double closure, a duplicate
+event **is appended** under a new `eventId`, and `indexFingerprint` is **byte-identical** across that append.
+
+**The consequence.** This is a stronger reading than the one the plan intended, not a weaker one. If the
+fingerprint cannot see an appended duplicate, it is not sufficient on its own to prove idempotence, and no other
+reader of the reduction detects the duplicate either. The due-set gate is therefore the **sole** enforcement
+point for FR-006 — a single point of failure with nothing behind it. Two things follow. `indexFingerprint` is an
+**index-state oracle, not an event-append oracle**, and any idempotence assertion resting on it alone would pass
+with the gate deleted. And `T-04-I2` must not rest on it alone: it does not — its append oracle is `:767`
+(`second.events.length === 0`), independent of the fingerprint comparison at `:768-772`.
+
+All three carriers are corrected in place. `F-015-D4-02` is **not** deleted: the correction strengthens it, and
+the row records that it was corrected.
+
+**DoD total: 56 → 56.** No item added or removed. `T-04-I3` is corrected and ticked; `[x]` count 38 → 39.
 
 ---
 
@@ -853,16 +909,144 @@ array under the other. Non-vacuous: `:1431-1433` is a clean control that must sc
 same bad session outside the measured window and requires the claim to still score, which is the case a
 file-global gate fails.
 
+## Evidence pass — the four reducer-bridge and gate integration rows, three ticked and one refused
+
+Executed from `<repo-root>`. The single file carries 7 top-level rows; the integration glob carries 36.
+
+```
+$ node --test tests/recommendation-track-record.integration.mjs
+# tests 7
+# pass 7
+# fail 0
+
+$ node --test tests/*.integration.mjs
+# tests 36
+# pass 36
+# fail 0
+```
+
+#### T-04-I1
+
+**Ticked.** Item clauses: closures route through the reducer with `current: []`; one event per due claim;
+frozen terms re-emitted; the still-active case proven to fail.
+
+```
+$ node --test --test-name-pattern="T-04-I" tests/recommendation-track-record.integration.mjs
+# tests 5
+# pass 5
+# fail 0
+```
+
+`current: []`: `:708-712` requires that no `proposed`, `reaffirmed` or `modified` event is appended, and
+`:714-718` requires the entry key set to be unchanged — a closing pass mints nothing. `:727-729` is the
+decisive reading rather than an inference: the reducer refuses `recommendation-closure-still-active` on
+`run.closures.0` when one run both re-proposes and closes a key, so the pass that returned cannot have carried
+that key in `current`. One event per due claim: the pass is handed BOTH verdicts, so the count is a selection;
+`:654-656` requires one closure and one appended event, `:655` names the due key, `:658-660` pins the type, the
+key and the closed transition. Frozen terms: `:664-668` requires the event's `observationTerms` to equal the
+entry's frozen terms object and `:675-681` requires each measured origin term to equal the minted claim;
+`:686-691` is the anti-vacuity, since the bridge supplies `null` for five terms and carrying the proposal
+values instead is reachable only by re-emission. The not-due entry is left LIVE and unchanged in every field
+(`:695-699`) and reported as skipped with the gate's reason (`:701-703`) rather than dropped.
+
+#### T-04-I2
+
+**Ticked.** Item clauses: pass 2 is a no-op; the `indexFingerprint` is byte-identical.
+
+The no-op: `:767` is the append oracle — pass two appends zero events — and `:776-778` requires nothing
+scheduled and the claim reported as skipped naming the closed state, so the result is suppressed-and-accounted
+rather than merely empty. The fingerprint: `:768-772` compares the two reductions as one value rather than
+field by field. Non-vacuity: `:782-783` requires pass one to have closed and appended on the SAME verdicts, so
+the emptiness of pass two is not the behaviour of a resolver that closes nothing. The adversarial detail is the
+`runId`: pass two runs under a later one and `lifecycleEventId` folds `runId` in, so a duplicate here would
+carry a new event id and the reducer's within-run dedupe cannot account for the zero — T-04-I3 `:854-858`
+measures that dedupe and confirms it is within-run only.
+
+#### T-04-I3
+
+**Ticked — after the item itself was corrected under Ruling R-04-10.** Item clauses (corrected): the reducer
+accepts the double closure with the gate bypassed; a duplicate event is appended; `indexFingerprint` is
+byte-identical across that append; the gate is the sole enforcement point.
+
+The acceptance and the append. `:815-818` measures `ok === true`, one appended event, the same closure type
+and a genuinely new `eventId` when the same closure is replayed against the index the first one produced;
+`:827-831` measures two appended events across the ungated pair, which is what makes T-04-I2's zero
+attributable to the due-set gate rather than to a reducer defence.
+
+The fingerprint. `:837-841` measures it **byte-identical** across the duplicate that `:816` just measured as
+appended. `indexFingerprint` covers `{ contractVersion, entries }` (`rlcontracts.js:1318`), and a repeat closure
+of the same type leaves both `state` and `lastEventType` where they already were, so an appended duplicate is
+outside what it reads. The reading is live, not inert: `:844-848` requires the FIRST closure to have moved it.
+
+The prior revision of this section recorded the item as **not ticked** because it demanded that the fingerprint
+**change**. That demand was wrong, not unmet — the DoD item, the Test Plan row at `scope.md:412` and finding
+`F-015-D4-02` in `scopes/_index.md` all carried it, and all three are now corrected. Ruling R-04-10 records the
+measurement, the source line and the consequence: the fingerprint is an index-state oracle rather than an
+event-append oracle, so the due-set gate is the sole enforcement point for FR-006. That is also why T-04-I2
+needs its own append oracle at `:767` and could not lean on the fingerprint alone. The reducer's only self-defence
+is within-run dedupe by `eventId`, measured at `:854-858`, which cannot apply across calls.
+
+#### T-04-I5
+
+**Ticked.** Item clauses: a claimless row refuses `RTR-LEGACY-BACKFILL` before the resolution is inspected; a
+malformed row refuses as malformed; a `claimHash`/`claimRef` mismatch refuses; nothing is written on any path.
+
+Two clauses were already asserted. The claimless refusal is pinned at `:429-431` by code, reason
+`claimless-row-unscoreable` and field `claimRef`; the mismatch at `:441-443` on field `claimHash`; and
+`:469-471` is the anti-vacuity control that writes the identical record against the same row plus the right
+`claimRef`, so a writer that refused everything would fail.
+
+Two clauses were not, and this pass added them. **Ordering** was the subtler gap: every refusal in the body ran
+against a well-formed resolution, which establishes that the gate refuses a valid record but not that it runs
+*before* the record is read — the same output follows from a writer that inspects the resolution, finds nothing
+wrong, and only then reaches the gate. `:492-498` discriminates by offering ONE refusable resolution behind two
+rows, for two independent defects (a non-object resolution and an unusable `contractVersion`): behind the
+claimless row the GATE's code comes back. `:505-511` is the non-vacuity pair — behind an authorized row the
+same object reports its OWN defect and never the legacy code — so the resolution is genuinely refusable and the
+precedence is a measurement. **Malformed-row precedence** was absent entirely: `:455-459` feeds a row that is
+both malformed and claimless, so both rules match it, and requires `RTR-ROW-CONTRACT` while forbidding
+`RTR-LEGACY-BACKFILL`, which would file a structural defect under a policy one.
+
+Nothing written: `:432`, `:444` and `:460` require the store directory never to be created; `:512` requires no
+second object after the control write; `:516` requires the committed partition bytes to be unchanged.
+
+Both added clauses were closed by mutation rather than by reading. Reordering `authorizeResolutionWrite` so the
+resolution is inspected before the legacy branch fails `:493`:
+
+```
+    a non-object resolution: reported as LEGACY, so the gate ran before this resolution was inspected
+  expected: 'RTR-LEGACY-BACKFILL'
+  actual: 'RTR-ROW-CONTRACT'
+  operator: 'strictEqual'
+```
+
+Moving the legacy branch ahead of `validateLedgerRow` fails `:456`:
+
+```
+    as a row-contract violation
+  expected: 'RTR-ROW-CONTRACT'
+  actual: 'RTR-LEGACY-BACKFILL'
+  operator: 'strictEqual'
+```
+
+Both mutations were reverted; `git diff --quiet -- rlclaims.js` exits 0, so the module is byte-identical to the
+index and was consumed rather than edited.
+
 ## Completion Statement
 
-Scope 04 is in progress. **35 of 56** Definition of Done items are satisfied and the remaining 21 are
+Scope 04 is in progress. **38 of 56** Definition of Done items are satisfied and the remaining 18 are
 unsatisfied. The count is read from the artifact rather than accumulated by hand: `grep -c '^- \[x\]' scope.md`
-returns 35 and `grep -c '^- \[ \]' scope.md` returns 21. *The prior statement here read "16 of 56" with a
+returns 38 and `grep -c '^- \[ \]' scope.md` returns 18. *The prior statement here read "16 of 56" with a
 per-increment breakdown summing to 16. That breakdown was stale — it predated later passes that ticked rows
 without revising it — and has been dropped rather than extended, because an enumeration this pass did not verify
 should not be carried forward.* An earlier pass ticked T-04-F2, T-04-F3 and T-04-F4 and left T-04-F1 open: its
-test passed, but the clause `provenance.earlyCloseSessions` is recorded had no assertion in the body. This pass
-added that assertion, its non-vacuity pair and its snapshot check, and ticked T-04-F1.
+test passed, but the clause `provenance.earlyCloseSessions` is recorded had no assertion in the body. That pass
+added the assertion, its non-vacuity pair and its snapshot check, and ticked T-04-F1.
+This pass examined the four reducer-bridge and gate rows and ticked three. T-04-I1 and T-04-I2 were already
+fully asserted. T-04-I5 was short by two clauses — the ordering it names and the malformed-row case — both of
+which were closed inside the existing test and proven by mutation. T-04-I3 was left open at the time because its
+fingerprint clause stated a property the system does not have; **that clause has since been corrected under
+Ruling R-04-10 and the item is ticked.**
 *The total moved 55 → 56 under Ruling R-04-05, which added the previously-uncovered adjusted-close path
 refusal as an unticked obligation.*
 No scope completion is claimed and no certification is requested. Ruling R-04-01

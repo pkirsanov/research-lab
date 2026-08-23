@@ -443,6 +443,22 @@ test('T-04-I5 (increment 3): the write runs scope 02 gate first, so a claimless 
         assert.equal(mismatched.error.field, 'claimHash', 'field');
         assert.equal(existsSync(storeDir), false, 'still nothing written');
 
+        /* A MALFORMED ROW REFUSES AS MALFORMED. This row is ALSO claimless, so both rules match it
+           and the report is a precedence question rather than a lookup: answering
+           `RTR-LEGACY-BACKFILL` would file a structural defect under a policy one and the row
+           would look merely unscoreable when it is not a ledger row at all. */
+        const malformed = recordResolution(
+            resolverInput(claim, outcome),
+            { ...claimless, unexpectedKey: true },
+            ports,
+        );
+        assert.equal(malformed.ok, false, 'a malformed row must refuse');
+        assert.equal(malformed.error.code, claims.ROW_CONTRACT_VIOLATION_CODE, 'as a row-contract violation');
+        assert.notEqual(malformed.error.code, claims.LEGACY_BACKFILL_CODE, 'never as legacy, which would mask it');
+        assert.equal(malformed.error.reason, 'unknown-field', 'reason');
+        assert.equal(malformed.error.field, 'unexpectedKey', 'naming the key that made it malformed');
+        assert.equal(existsSync(storeDir), false, 'still nothing written');
+
         /* ANTI-VACUITY. The IDENTICAL record against the SAME row plus the right claimRef writes.
            Without it, both refusals above would pass under a writer that refused everything. */
         const written = recordResolution(
@@ -453,6 +469,48 @@ test('T-04-I5 (increment 3): the write runs scope 02 gate first, so a claimless 
         assert.equal(written.ok, true, `the control must write: ${JSON.stringify(written.error)}`);
         assert.equal(written.written, true);
         assert.equal(readdirSync(storeDir).length, 1, 'exactly one object, created only by the accepted write');
+
+        /* ORDERING, MEASURED. Every refusal above ran against a WELL-FORMED resolution, which is
+           equally consistent with a writer that reads the resolution first, finds nothing wrong,
+           and only then reaches the gate — so those rows establish that the refusal fires, not
+           that it fires FIRST. These do: one REFUSABLE resolution is offered behind two rows, and
+           the claimless row surfaces the GATE's code while the authorized row surfaces the
+           RESOLUTION's own. Only an order in which the gate precedes the read produces both.
+
+           `written.resolution` is the record the shipped builder just wrote, so each case below
+           differs from an accepted write in exactly the one field named. */
+        const authorizedRow = { ...claimless, [claims.CLAIM_REF_FIELD]: claim.claimHash };
+        for (const [label, badResolution, ownReason] of [
+            ['a non-object resolution', null, 'resolution-not-an-object'],
+            [
+                'a resolution carrying an unusable contract version',
+                { ...written.resolution, contractVersion: 'not-a-resolution-contract-version' },
+                'resolution-contract-version-not-allowed',
+            ],
+        ]) {
+            const gateFirst = claims.writeResolutionObject(badResolution, claimless, ports);
+            assert.equal(gateFirst.ok, false, `${label}: behind a claimless row, still refuses`);
+            assert.equal(
+                gateFirst.error.code,
+                claims.LEGACY_BACKFILL_CODE,
+                `${label}: reported as LEGACY, so the gate ran before this resolution was inspected`,
+            );
+            assert.equal(gateFirst.error.reason, 'claimless-row-unscoreable', `${label}: on the row, not the record`);
+
+            /* NON-VACUITY FOR THE ORDERING. Without this the row above would be satisfied by a
+               resolution nothing ever objects to, and "the gate ran first" would be unfalsifiable.
+               The same object behind an AUTHORIZED row reports its OWN defect, so it is genuinely
+               refusable and the precedence above is a measurement rather than an absence. */
+            const resolutionRead = claims.writeResolutionObject(badResolution, authorizedRow, ports);
+            assert.equal(resolutionRead.ok, false, `${label}: is refusable in its own right`);
+            assert.equal(resolutionRead.error.reason, ownReason, `${label}: on its own terms`);
+            assert.notEqual(
+                resolutionRead.error.code,
+                claims.LEGACY_BACKFILL_CODE,
+                `${label}: and never as legacy, so the two codes do distinguish the two stages`,
+            );
+            assert.equal(readdirSync(storeDir).length, 1, `${label}: and neither path writes a second object`);
+        }
     });
 
     assertBytesUnchanged(committedBefore, readBytes(PARTITION_ABS), `${PARTITION_REL} bytes`);

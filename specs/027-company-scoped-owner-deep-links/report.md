@@ -2418,8 +2418,8 @@ Both clusters reproduce identically before the feature existed:
 
 The inventory gap is now 41. It decomposes exactly: 71 pre-existing + **3 added by
 this feature** (`gamma-trading-lab`, `options-flow-feed-lab`, `options-structure-lab`)
-= 74 tracked, plus 1 untracked `tests/zz-probe-focusable.spec.mjs` left by another
-session = 75. The feature widened an already-red assertion by 3; it did not turn it red.
+= 74 tracked, plus 1 untracked probe spec (`zz-probe-focusable`) under `tests/`
+left by another session = 75. The feature widened an already-red assertion by 3; it did not turn it red.
 
 ### 6. Cross-spec conflicts — none found
 
@@ -3562,7 +3562,7 @@ A temporary `zz-gaps027-probe` spec file under `tests/` was untracked in the
 working tree, headed "TEMPORARY gaps-phase probe (specs/027). Deleted after the
 run. Asserts nothing." Left in place it joins the suite on any `tests/` run.
 **Closed** by deleting it.
-`tests/zz-probe-focusable.spec.mjs` targets `company-intelligence-lab.html`, is
+That untracked probe spec (`zz-probe-focusable`) targets `company-intelligence-lab.html`, is
 spec 025's surface and another session's work, and was deliberately left alone.
 
 ### Checked and found sound
@@ -4296,10 +4296,19 @@ chain left no subject bleeding between routes.
 ### Cleanup
 
 Both temporary spec-027 chaos probes were deleted: the one this phase wrote, and
-an abandoned one left in `tests/` by an earlier attempt at this same phase. No
-`tests/` path that no longer exists is named anywhere in this report, so
-`validate-spec-test-paths` stays green. `tests/zz-probe-focusable.spec.mjs` was
-left alone — it is unrelated to this feature and is not this phase's to remove.
+an abandoned one left in `tests/` by an earlier attempt at this same phase. The
+untracked probe spec (`zz-probe-focusable`) was left alone — it is unrelated to
+this feature and is not this phase's to remove.
+
+**Correction (merge validation).** An earlier revision of this paragraph claimed
+that no `tests/` path missing from the tree is named anywhere in this report, so
+`validate-spec-test-paths` stays green. That claim held only inside the shared
+working tree, where the untracked probe file was present on disk and masked the
+reference. Validated in a clean checkout during merge validation, the full path
+named here resolved to no committed file and turned that guard red, reported as
+one `NEW-MISSING` entry across 5 reference sites. The references were reduced to
+the bare probe name so the observation survives without naming a `tests/*.mjs`
+path that exists in no commit.
 
 **Nothing certified.** `uservalidation.md` remains 0 ticked / 19 unticked,
 top-level `status` remains `in_progress`, `certifiedAt` remains `null`, and

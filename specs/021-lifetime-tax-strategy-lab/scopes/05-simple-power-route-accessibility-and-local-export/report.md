@@ -1086,3 +1086,153 @@ success probability appears anywhere in the finished route.
 ## Completion Statement
 
 Filled at execution.
+
+## Security Remediation F1 — the zero-network detector was blind to variable-argument reads
+
+Found by a `bubbles.security` review of the finished lab across Features 021-024
+and fixed here, in the scope that owns the detector.
+
+### The defect, measured
+
+The TP-05-06 transport detector collected its read targets with
+
+```
+const fetchTargets = (page.match(/loadJson\("[^"]+"\)|loadJson\(config\.rules\.packPath\)/g) || []);
+```
+
+That alternation matches a string-literal argument or the single literal member
+expression `config.rules.packPath`, and nothing else. Features 022-024 added five
+call sites whose argument is a variable expression, so the counter never moved:
+
+```
+$ grep -c 'loadJson(' lifetime-tax-strategy-lab.html   # 8, one of which is the declaration
+$ grep -n 'loadJson(' lifetime-tax-strategy-lab.html
+5609:            function loadJson(path) {
+5650:                loadJson("lifetime-tax-strategy.config.json").then(function (config) {
+5660:                    return loadJson(config.rules.packPath).then(function (pack) {
+5682:                            return loadJson(declaredRegimePaths[jurisdiction]).then(function (regime) {
+5696:                            return loadJson(declaredStatePaths[jurisdiction]).then(function (statePack) {
+5712:                            return loadJson(declaredBenefitPaths[year]).then(function (benefitPack) {
+5724:                            return loadJson(declaredMortalityPaths[year]).then(function (mortalityPack) {
+5735:                            return loadJson(declaredMedicarePaths[year]).then(function (medicarePack) {
+```
+
+Seven call sites; the detector saw two. Resolving the configuration's own
+declarations gives the document count the page actually requests at boot:
+
+```
+  config document: lifetime-tax-strategy.config.json
+  packPath             -> 1  tax-rules/federal/2026.json
+  propertyPackPaths    -> 2  ['tax-rules/property/CA/2026.json', 'tax-rules/property/FL/2026.json']
+  statePackPaths       -> 2  ['tax-rules/state/CA/2026.json', 'tax-rules/state/FL/2026.json']
+  benefitPackPaths     -> 1  ['tax-rules/benefit/2026.json']
+  mortalityPackPaths   -> 1  ['tax-rules/mortality/2026.json']
+  medicarePackPaths    -> 1  ['tax-rules/medicare/2026.json']
+TOTAL DOCUMENTS AT BOOT = 9
+```
+
+Nine. The assertion pinned two. A new `loadJson(<expression>)` carrying a
+household value would have moved neither counter and failed no assertion — and
+this route has already had a real same-origin probe request planted in it, which
+the page's CSP would not have stopped either.
+
+**Claim Source:** executed. The counts above are raw output of the two commands
+shown, run in this session against the working tree.
+
+### The fix
+
+The count is no longer bounded to two argument forms. Every `loadJson(` call site
+is captured whatever its argument, the permitted set is closed by argument text in
+*both* directions (an unrecognised argument fails, and a declared argument that
+disappears from the page also fails), and the document count is derived from the
+configuration the page actually loads instead of being written by hand.
+
+The message is corrected. It said "one same-origin read of the two local policy
+documents" — true when Scope 05 shipped, false from Feature 022 — and now names
+the nine reads that occur.
+
+### Proof the new guard discriminates
+
+Three probes, each a real defect the old detector could not see.
+
+The blind spot itself — an existing read redirected to a variable the guard has
+never heard of:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F1-variable-argument-read-is-seen
+file:             lifetime-tax-strategy-lab.html
+mutation:         return loadJson(declaredMedicarePaths[year]).then(function (medicarePack) {  ->  return loadJson(sneakPath).then(function (medicarePack) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin document
+green-exit:       0
+green-summary:      ✓ TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin documents they
+summary-compared:   ✗ FAIL: TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin document  vs    ✓ TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin documents they   (elapsed time normalised out)
+revert-verified:  yes (committed=2e4c48120928652240f26e2e88123370184ac66e restored=2e4c48120928652240f26e2e88123370184ac66e)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+A read of a document the configuration never declared — same-origin, so neither
+the CSP nor a cross-origin check would refuse it:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F1-new-undeclared-document-read-is-caught
+file:             lifetime-tax-strategy-lab.html
+mutation:         loadJson(declaredBenefitPaths[year]).then(function (benefitPack) {  ->  loadJson("household-summary.json").then(function (benefitPack) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin document
+green-exit:       0
+green-summary:      ✓ TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin documents they
+summary-compared:   ✗ FAIL: TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin document  vs    ✓ TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin documents they   (elapsed time normalised out)
+revert-verified:  yes (committed=2e4c48120928652240f26e2e88123370184ac66e restored=2e4c48120928652240f26e2e88123370184ac66e)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+And the count itself, proven derived rather than hand-written — one extra declared
+jurisdiction moves it off nine:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F1-document-count-is-derived-not-hand-written
+file:             lifetime-tax-strategy.config.json
+mutation:         "state:CA": "tax-rules/state/CA/2026.json"
+    },  ->  "state:CA": "tax-rules/state/CA/2026.json",
+      "state:NV": "tax-rules/state/CA/2026.json"
+    },   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin document
+green-exit:       0
+green-summary:      ✓ TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin documents they
+summary-compared:   ✗ FAIL: TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin document  vs    ✓ TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin documents they   (elapsed time normalised out)
+revert-verified:  yes (committed=0c62867fd6285d2bbad4b9ea983893d1433ea80f restored=0c62867fd6285d2bbad4b9ea983893d1433ea80f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Claim Source:** executed. Each block is raw harness output; the harness refuses
+a dirty target, reverts by checkout, and reports the restored blob hash.
+
+### Effect on the suite
+
+```
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3221 passed, 0 failed
+```
+
+One assertion added, none removed, none failing. The prior baseline was
+`3220 passed, 0 failed`.
+
+### No ticked item is invalidated
+
+The zero-network DoD row on this scope claims that a sentinel household value
+reaches no request, URL, referrer, console message or committed artifact, and
+that `ledger.length` is pinned to `afterFirstPaint`. That is a runtime browser
+observation and it remains true and remains proven; this finding concerns the
+static detector standing beside it, which is why the row keeps its tick.
+

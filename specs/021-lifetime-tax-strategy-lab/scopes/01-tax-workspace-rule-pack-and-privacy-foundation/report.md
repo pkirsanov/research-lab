@@ -1673,5 +1673,165 @@ row-by-row table is executed: it is the call sites of `sameOriginPaths` and of
 `ledger.map(... pathname)` re-read after the final commit, not a recollection of
 what was edited.
 
+## DoD Closure: 2026-08-23
+
+Four DoD rows were added to this scope by a planning pass and were correctly left
+unticked. Each is closed below against a command run in this session, with the
+exit code captured into a variable before any other command ran, and with an
+adversarial demonstration that the check can fail.
+
+### Row: scenario-specific E2E regression under the exact persistent titles
+
+The Test Plan names three persistent titles for this scope: `TP-01-12`,
+`TP-01-13` and `TP-01-14`. Presence is read out of the spec file as a literal
+string, so an empty `--grep` selection cannot be read as a pass.
+
+```text
+TITLE_PRESENCE scope=ALL checked=16 missing=0 verdict=PASS
+PRESENCE_EXIT=0
+```
+
+Execution of those titles, `--project=chromium`:
+
+```text
+===== SCOPE 01 =====
+
+Running 4 tests using 1 worker
+
+  ✓  1 …put resolves one federal pack and names every unavailable domain (317ms)
+  ✓  2 …ar jurisdiction and income kind each refuse without substitution (489ms)
+  ✓  3 …es only its declared reads and keeps every household value local (304ms)
+  ✓  4 …per refuses a declared pathname served from an undeclared origin (228ms)
+
+  4 passed (5.3s)
+S01_EXIT=0
+```
+
+Adversarial case. Renaming one persistent title turns the check red:
+
+```text
+label:            021-01 persistent title presence is non-vacuous
+file:             tests/lifetime-tax-foundation.spec.mjs
+mutation:         SCN-021-001 minimum viable input resolves  ->  SCN-021-001 renamed viable input resolves   (1 occurrence(s))
+red-exit:         1
+red-summary:      TITLE_PRESENCE scope=01 checked=3 missing=1 verdict=FAIL
+green-exit:       0
+green-summary:    TITLE_PRESENCE scope=01 checked=3 missing=0 verdict=PASS
+revert-verified:  yes (committed=994288f6bfd7d514bb131f50e2d3720f73eea7a0 restored=994288f6bfd7d514bb131f50e2d3720f73eea7a0)
+discriminating:   yes (exit 1 != 0)
+```
+
+**Claim Source:** executed.
+
+### Row: broader E2E regression suite across the whole lifetime-tax family
+
+The whole browser family was run, not this scope's spec file alone. Twenty spec
+files, every scope of Features 021 through 024:
+
+```text
+Running 94 tests using 6 workers
+  94 passed (17.1s)
+FAMILY_EXIT=0
+```
+
+A sibling scope's persistent title reddening would fail this row, because the
+run selects every `lifetime-tax-*.spec.mjs` file rather than this scope's own.
+
+**Claim Source:** executed.
+
+### Row: Change Boundary respected, zero excluded file families changed
+
+The check attributes per commit. It walks every non-merge commit in
+`b9d92a3f1^..HEAD` that touched a 021-owned surface, intersects that commit's
+file list with this scope's 26 excluded globs, and separately reads
+`git status --porcelain --untracked-files=all` over the same globs. `-uall` is
+used deliberately, because the row rejects `git diff --quiet`, which reports an
+untracked path as unchanged; every excluded root here is tracked, and the
+untracked enumeration over those roots returns zero rows.
+
+```text
+CHANGE_BOUNDARY scope=01 control=False globs=26 owning_commits=78 violations=0 worktree_dirty=0 verdict=PASS
+  CB01_EXIT=0
+```
+
+Adversarial case. Injecting one path the 021 commits demonstrably did touch
+into the excluded set flips the same command to FAIL:
+
+```text
+CHANGE_BOUNDARY scope=01 control=True globs=27 owning_commits=78 violations=10 worktree_dirty=0 verdict=FAIL
+  CTRL01_EXIT=1
+```
+
+**Claim Source:** executed.
+
+### Row: Consumer Impact Sweep complete, zero stale first-party references
+
+This scope's sweep names the route path, the configuration document name, the
+rule-pack path grammar and the `RLTAX-*` refusal identifiers. The scan covers
+six limbs across the repository rather than spot-checking one surface: renamed
+or removed 021-owned paths, declared module reads, Power deep-link targets, the
+closed refusal vocabulary, the deliberately unregistered route, and path
+references in the tool's notes page.
+
+The first run failed and the failure was real. The rule-pack path grammar was
+renamed during delivery, and the notes page still carried only the proposal
+forms, so eight backticked paths resolved to nothing:
+
+```text
+STALE-NOTES-PATH rllifetime.js
+STALE-NOTES-PATH tests/lifetime-tax-rules.unit.mjs
+STALE-NOTES-PATH tests/lifetime-household.functional.mjs
+STALE-NOTES-PATH tests/lifetime-privacy.functional.mjs
+STALE-NOTES-PATH tests/lifetime-tax-strategy-lab.spec.mjs
+CONSUMER_SWEEP control=False renames=0 reads=14 deeplinks=20 codes=14 notes_paths=16 stale=6 verdict=FAIL
+SWEEP_EXIT=1
+```
+
+That run also reported `DANGLING-DEEP-LINK power-link`, which was a defect in
+the check rather than in the page: `power-link` is assigned to `className`, not
+to an element id. The extraction now strips `className` and `class` before
+reading deep-link targets.
+
+Commit `0efc20250` maps each superseded proposal name to the file that shipped,
+without rewriting the proposal record. After it, the sweep is clean:
+
+```text
+CONSUMER_SWEEP control=False renames=0 reads=14 deeplinks=19 codes=14 notes_paths=34 superseded=8 stale=0 verdict=PASS
+SWEEP_EXIT=0
+```
+
+Adversarial case, two directions. An injected stale reference in each limb:
+
+```text
+UNRESOLVED-DECLARED-READ rltaxstrategy-moved.js
+DANGLING-DEEP-LINK power-retired-section
+UNDECLARED-REFUSAL-CODE RLTAX-RETIRED-CODE
+STALE-NOTES-PATH rltaxworkspace-moved.js
+CONSUMER_SWEEP control=True renames=0 reads=15 deeplinks=20 codes=15 notes_paths=35 superseded=8 stale=4 verdict=FAIL
+SWEEP_CONTROL_EXIT=1
+```
+
+And a real mutation of the page, proving the sweep reads the shipped file rather
+than only an injected set:
+
+```text
+label:            Consumer sweep detects a moved module in the real page
+file:             lifetime-tax-strategy-lab.html
+mutation:         src="rltaxstrategy.js"  ->  src="rltaxstrategy-moved.js"   (1 occurrence(s))
+red-exit:         1
+red-summary:      CONSUMER_SWEEP stale=1 verdict=FAIL
+green-exit:       0
+green-summary:    CONSUMER_SWEEP stale=0 verdict=PASS
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+```
+
+The rename limb reports zero because there is nothing to report: no 021-owned
+path was renamed or removed in any of the 78 owning commits. The same command
+form without the path filter returns 8 rows over the same range, so the empty
+result is a measurement rather than an inert check.
+
+**Claim Source:** executed.
+
 
 

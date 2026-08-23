@@ -16,25 +16,23 @@ let server;
 test.beforeAll(async () => {
   server = await startPortfolioServer();
 });
-
 test.afterAll(async () => {
   if (server) await server.close();
 });
-
 const BRIEF_CONFIG = JSON.parse(readFileSync(resolve(ROOT, 'market-brief.config.json'), 'utf8'));
 const BRIEF_SNAPSHOT = JSON.parse(readFileSync(resolve(ROOT, 'market-brief.snapshot.json'), 'utf8'));
 const WINDOWS = BRIEF_CONFIG.windows;
 const WINDOW_IDS = WINDOWS.map((entry) => entry.id);
+const NON_SNAPSHOT_WINDOW_ID = WINDOW_IDS.find((id) => id !== BRIEF_SNAPSHOT.window);
+if (!NON_SNAPSHOT_WINDOW_ID) throw new Error('a non-snapshot window is required for refusal coverage');
 
-/* Fixture dates are DERIVED from the generic config's own as-of date rather than hard-coded, so a
-   later config refresh cannot silently turn these observations into after-cutoff ones and quietly
-  empty every lane. EVIDENCE_DAY precedes the earliest cutoff; SNAPSHOT_LATE_DAY follows the
-  current validated publication rather than the historical config date. */
+/* Fixture dates are derived from the committed publication rather than the static config's release
+   metadata. EVIDENCE_DAY precedes the publication; SNAPSHOT_LATE_DAY follows it. */
 function shiftDay(iso, days) {
   const base = Date.parse(`${iso}T00:00:00.000Z`);
   return new Date(base + days * 86400000).toISOString().slice(0, 10);
 }
-const EVIDENCE_DAY = shiftDay(BRIEF_CONFIG.asOf, -1);
+const EVIDENCE_DAY = shiftDay(BRIEF_SNAPSHOT.asOf.slice(0, 10), -1);
 const SNAPSHOT_LATE_DAY = shiftDay(BRIEF_SNAPSHOT.asOf.slice(0, 10), 1);
 
 async function openBrief(page) {
@@ -177,7 +175,7 @@ test('Regression: SCN-008-007 held watch completed-research and inferred-relevan
   // MSFT is held (from the fixture) AND on the public watchlist; QQQ is watchlist-only.
   await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
   await seedBars(page, 'QQQ', [EVIDENCE_DAY]);
-  await selectWindow(page, 'after-hours');
+  await selectWindow(page, BRIEF_SNAPSHOT.window);
 
   expect(await laneSubjects(page, 'held')).toContain('MSFT');
   expect(await laneSubjects(page, 'watchlist'), 'QQQ qualifies only through the public watchlist').toContain('QQQ');
@@ -214,7 +212,7 @@ test('Regression: SCN-008-010 insufficient completed history produces zero infer
   await openBrief(page);
   await importValid(page, 'TP-05-04 floor');
   await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
-  await selectWindow(page, 'after-hours');
+  await selectWindow(page, BRIEF_SNAPSHOT.window);
 
   // No completion has been recorded, so the browser is below the declared floor on both counts.
   await expect(page.locator('#briefStates')).toHaveAttribute('data-behavior-history', 'insufficient-history');
@@ -243,7 +241,7 @@ test('Regression: Feature 008 four-window brief preserves source lanes at deskto
   await importValid(page, 'TP-05-05 responsive');
   await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
   await seedBars(page, 'QQQ', [EVIDENCE_DAY]);
-  await selectWindow(page, 'after-hours');
+  await selectWindow(page, BRIEF_SNAPSHOT.window);
 
   const viewports = [
     { name: 'desktop', width: 1440, height: 900 },
@@ -314,7 +312,7 @@ test('Regression: SCN-008-007 TP-05-07 a completed-research subject renders in i
    * be keyed exactly as the completion names it. Seeding 'NVDA' for a subject 'nvda' would leave
    * the lane evidence-less and make this row pass for the wrong reason. */
   await seedBars(page, 'nvda', [EVIDENCE_DAY]);
-  await selectWindow(page, 'after-hours');
+  await selectWindow(page, BRIEF_SNAPSHOT.window);
   expect(await laneSubjects(page, 'completedResearch'), 'the lane is empty before any completion is recorded').toEqual([]);
 
   await recordCompletion(page, { category: 'ticker-research-completed', subject: 'nvda' });
@@ -350,7 +348,7 @@ test('Regression: SCN-008-007 TP-05-08 a scoped subject with no surviving eviden
    * in scope with nothing observed. Before FR-064 they rendered nowhere at all and the reader
    * could not distinguish "nothing to do" from "we never looked". */
   await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
-  await selectWindow(page, 'after-hours');
+  await selectWindow(page, BRIEF_SNAPSHOT.window);
 
   const explained = await page.$$eval('#briefNoAction li', (nodes) => nodes.map((node) => ({
     subject: node.getAttribute('data-no-action-subject'),
@@ -375,7 +373,7 @@ test('Regression: SCN-008-007 TP-05-09 brief identity binds revision window poli
   await openBrief(page);
   await importValid(page, 'TP-05-09 identity');
   await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
-  await selectWindow(page, 'after-hours');
+  await selectWindow(page, BRIEF_SNAPSHOT.window);
 
   const identity = page.locator('#briefIdentity');
   const revision = await identity.getAttribute('data-revision');
@@ -390,21 +388,21 @@ test('Regression: SCN-008-007 TP-05-09 brief identity binds revision window poli
 
   /* Changing the window changes the cutoff and therefore what may qualify. The identity must move
    * with it, otherwise two different briefs would present the same identity. */
-  await selectWindow(page, 'pre-market');
-  const preMarketSignature = await identity.getAttribute('data-action-signature');
+  await selectWindow(page, NON_SNAPSHOT_WINDOW_ID);
+  const alternateWindowSignature = await identity.getAttribute('data-action-signature');
   expect(await identity.getAttribute('data-policy-version')).toBe(policyVersion);
-  expect(preMarketSignature).not.toBe(null);
+  expect(alternateWindowSignature).not.toBe(null);
 
   console.log('[TP-05-09] revision=' + revision + ' policy=' + policyVersion);
-  console.log('[TP-05-09] afterHoursSignature=' + signature);
-  console.log('[TP-05-09] preMarketSignature=' + preMarketSignature);
+  console.log('[TP-05-09] snapshotWindowSignature=' + signature);
+  console.log('[TP-05-09] alternateWindowSignature=' + alternateWindowSignature);
 });
 
 test('Regression: SCN-008-008 TP-06-03 every rendered item discloses why it appears', async ({ page }) => {
   await openBrief(page);
   await importValid(page, 'TP-06-03 disclosure');
   await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
-  await selectWindow(page, 'after-hours');
+  await selectWindow(page, BRIEF_SNAPSHOT.window);
 
   const rows = page.locator('#briefLanes li');
   const count = await rows.count();
@@ -440,7 +438,7 @@ test('Regression: SCN-008-034 TP-06-05 the route exposes research and lifecycle 
   await openBrief(page);
   await importValid(page, 'TP-06-05 verbs');
   await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
-  await selectWindow(page, 'after-hours');
+  await selectWindow(page, BRIEF_SNAPSHOT.window);
 
   // Every authored action verb comes from the closed research set.
   const verbs = await page.$$eval('#briefLanes li', (nodes) =>
@@ -543,7 +541,7 @@ test('Regression: SCN-008-034 TP-06-09 a lifecycle outcome is recorded without b
   await openBrief(page);
   await importValid(page, 'TP-06-04 lifecycle');
   await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
-  await selectWindow(page, 'after-hours');
+  await selectWindow(page, BRIEF_SNAPSHOT.window);
 
   const before = await page.locator('#briefLifecycleResult').innerText();
   expect(before).toContain('No research outcome recorded');
@@ -579,7 +577,7 @@ test('Regression: SCN-008-008 TP-06-10 the clear control is exposed where behavi
   await openBrief(page);
   await importValid(page, 'TP-06-10 clear control');
   await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
-  await selectWindow(page, 'after-hours');
+  await selectWindow(page, BRIEF_SNAPSHOT.window);
 
   /* FR-062 is about REACH: the control must be present where the ranking it governs is shown,
    * not only on a separate privacy panel the reader may never open. */
@@ -608,7 +606,7 @@ test('Regression: Feature 008 why shown lifecycle and return focus remain access
   await openBrief(page);
   await importValid(page, 'TP-06-06 responsive');
   await seedBars(page, 'MSFT', [EVIDENCE_DAY]);
-  await selectWindow(page, 'after-hours');
+  await selectWindow(page, BRIEF_SNAPSHOT.window);
 
   for (const [label, width, height] of [['desktop', 1280, 900], ['mobile', 390, 844], ['zoom', 640, 480]]) {
     await page.setViewportSize({ width, height });
@@ -660,17 +658,18 @@ test('Regression: Feature 008 why shown lifecycle and return focus remain access
 
 test('Regression: SCN-008-044 behavior identity decay floor and ranking remain canonical across every projection', async ({ page }) => {
   await openBrief(page);
-  const firstDay = shiftDay(BRIEF_CONFIG.asOf, -2);
-  const secondDay = shiftDay(BRIEF_CONFIG.asOf, -1);
-  const cutoffDay = shiftDay(BRIEF_CONFIG.asOf, 0);
-  const futureDay = shiftDay(BRIEF_CONFIG.asOf, 1);
+  const publicationDay = BRIEF_SNAPSHOT.asOf.slice(0, 10);
+  const firstDay = shiftDay(publicationDay, -2);
+  const secondDay = shiftDay(publicationDay, -1);
+  const cutoffDay = shiftDay(publicationDay, 0);
+  const futureDay = shiftDay(publicationDay, 1);
 
   await page.clock.setSystemTime(new Date(`${firstDay}T14:00:00.000Z`));
   await importValid(page, 'TP-18-03 canonical rank');
   await seedBars(page, 'scope18-alpha', [EVIDENCE_DAY]);
   await seedBars(page, 'scope18-beta', [EVIDENCE_DAY]);
   await seedBars(page, 'scope18-future', [EVIDENCE_DAY]);
-  await selectWindow(page, 'after-hours');
+  await selectWindow(page, BRIEF_SNAPSHOT.window);
   await recordCompletion(page, { category: 'ticker-research-completed', subject: 'scope18-alpha' });
 
   await page.clock.setSystemTime(new Date(`${secondDay}T14:00:00.000Z`));
@@ -725,7 +724,7 @@ test('Regression: SCN-008-044 behavior identity decay floor and ranking remain c
   await expect(page.locator('#portfolioBrief')).toBeVisible();
   await expect.poll(async () => page.locator('#briefWindow option').count()).toBe(WINDOWS.length);
   await page.clock.setSystemTime(new Date(`${cutoffDay}T14:00:00.000Z`));
-  await selectWindow(page, 'after-hours');
+  await selectWindow(page, BRIEF_SNAPSHOT.window);
   const afterReload = await projection();
   const withoutFingerprint = (rows) => rows.map(({ rankingFingerprint, whyFingerprint, ...entry }) => entry);
   expect(withoutFingerprint(afterReload),
@@ -792,3 +791,93 @@ test('Regression: SCN-008-046 generic evidence DST policy complete API and globa
   console.log(`[TP-20-03] genericEvidenceIdentity=${accepted.genericEvidenceIdentity} visibleCap=${accepted.visibleActionCap}`);
   console.log(`[TP-20-03] preservedWindow=${differentWindow} ranked=${preserved.rankedActionIds.length}`);
 });
+
+/* TP-26-03. The functional suite proves the CONTROLLER refuses a stale publish and that the
+ * presentation resolver cannot recompute. Neither fact tells you what the real page does when a
+ * user actually switches Simple to Power and walks all six tabs — a page can hold a correct
+ * controller and still call the compute path from its own tab handler. So this row drives the
+ * real route and reads the counters the page itself maintains.
+ */
+test('Regression: SCN-008-052 mode tabs rebase and compute tokens preserve one immutable workspace', async ({ page }) => {
+  await openBrief(page);
+  await importValid(page, 'TP-26-03 workspace');
+
+  const compute = page.locator('#workspaceCompute');
+  await expect(compute, 'the page must name the published workspace').toBeVisible();
+  await expect.poll(async () => compute.getAttribute('data-workspace-identity'),
+    { message: 'a workspace must publish once evidence exists' }).not.toBe('none');
+
+  const identity = await compute.getAttribute('data-workspace-identity');
+  const token = await compute.getAttribute('data-compute-token');
+  const computesAfterImport = Number(await compute.getAttribute('data-compute-count'));
+  const presentationsAfterImport = Number(await compute.getAttribute('data-presentation-count'));
+  expect(computesAfterImport, 'importing evidence is a real compute').toBeGreaterThan(0);
+  expect(token, 'the published workspace must cite its compute token').not.toBe('none');
+
+  // Every mode against every tab. Twelve presentation operations, zero computes.
+  const tabs = ['workspaceTabBrief', 'workspaceTabRiskXray', 'workspaceTabPathLab',
+    'workspaceTabDiversification', 'workspaceTabAllocation', 'workspaceTabDossier'];
+  const hashes = ['brief', 'risk-xray', 'path-lab', 'diversification', 'allocation', 'dossier'];
+  for (const mode of ['modePower', 'modeSimple', 'modePower']) {
+    await page.locator(`#${mode}`).click();
+    for (let index = 0; index < tabs.length; index += 1) {
+      await page.locator(`#${tabs[index]}`).click();
+      await expect(page.locator(`#${tabs[index]}`)).toHaveAttribute('aria-selected', 'true');
+      expect(await compute.getAttribute('data-active-tab'),
+        'the page must report the tab it is actually showing').toBe(hashes[index]);
+      expect(await compute.getAttribute('data-workspace-identity'),
+        `${hashes[index]} must render the one active identity`).toBe(identity);
+      expect(await compute.getAttribute('data-compute-token'),
+        `${hashes[index]} must cite the one published compute token`).toBe(token);
+      expect(await compute.getAttribute('data-last-refusal'),
+        'presentation must not be refused on a valid tab').toBe('none');
+    }
+  }
+
+  const computesAfterNavigation = Number(await compute.getAttribute('data-compute-count'));
+  const presentationsAfterNavigation = Number(await compute.getAttribute('data-presentation-count'));
+  expect(computesAfterNavigation,
+    'eighteen tab operations across three mode switches must not recompute analytics').toBe(computesAfterImport);
+  expect(presentationsAfterNavigation,
+    'the same operations must all have gone through the presentation path').toBeGreaterThan(presentationsAfterImport);
+
+  // A deep link is navigation too: arriving at a tab directly must not fork the identity.
+  await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#allocation`);
+  await expect(page.locator('#workspaceCompute')).toBeVisible();
+  expect(await page.locator('#workspaceCompute').getAttribute('data-active-tab')).toBe('allocation');
+
+  // Rebase: new evidence produces a NEW identity and a NEW token, and every tab moves together.
+  // A full reload, not a hash change: the deep link above already left the page on this document,
+  // so `page.goto` alone would be a same-document navigation that never re-serves the route or
+  // rebuilds the import editor this section depends on.
+  await page.goto(`${server.baseUrl}/portfolio-survival-allocation-lab.html#brief`);
+  await page.reload();
+  await expect(page.locator('#portfolioBrief')).toBeVisible();
+  await expect.poll(async () => page.locator('#briefWindow option').count(),
+    { message: 'the four generic windows must reload from market-brief.config.json' }).toBe(WINDOWS.length);
+  const beforeRebase = await compute.getAttribute('data-workspace-identity');
+  await page.locator('#beginHoldingEdit').click();
+  const holdingRows = page.locator('#holdingEditorRows tr[data-holding-id]');
+  await expect(holdingRows).toHaveCount(2);
+  await holdingRows.first().getByRole('button', { name: 'Edit holding' }).click();
+  await page.locator('#manualQuantity').fill('13');
+  await page.locator('#applyHoldingEdit').click();
+  await page.locator('#confirmHoldingRevision').click();
+  await expect.poll(async () => compute.getAttribute('data-workspace-identity'),
+    { message: 'accepted new evidence must publish a new identity' }).not.toBe(beforeRebase);
+  const rebasedIdentity = await compute.getAttribute('data-workspace-identity');
+  const rebasedToken = await compute.getAttribute('data-compute-token');
+  expect(rebasedToken, 'a rebase must issue a new compute token').not.toBe(token);
+  for (let index = 0; index < tabs.length; index += 1) {
+    await page.locator(`#${tabs[index]}`).click();
+    expect(await compute.getAttribute('data-workspace-identity'),
+      `${hashes[index]} must be rebased with its siblings, never left on the previous identity`).toBe(rebasedIdentity);
+    expect(await compute.getAttribute('data-compute-token')).toBe(rebasedToken);
+  }
+  expect(await compute.getAttribute('data-draft-identity'),
+    'an accepted rebase leaves no dangling draft').toBe('none');
+
+  console.log(`[TP-26-03] identity=${identity} token=${token} computes=${computesAfterNavigation}`);
+  console.log(`[TP-26-03] presentations=${presentationsAfterNavigation} rebasedIdentity=${rebasedIdentity}`);
+});
+// TP-26-04 continues the workspace journey in portfolio-survival-mobile.spec.mjs.

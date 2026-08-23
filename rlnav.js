@@ -303,3 +303,183 @@
     (document.head || document.documentElement).appendChild(s);
   } catch (e) { /* never break a tool over the switch loader */ }
 })();
+
+/* ═══════════ RL Return — generic strict ReturnContext/v1 strip (Feature 008 Scope 26) ═══════════
+   A tool that OWNS a research subject can be opened from another tool's brief. This is the
+   consuming half of that handoff, and it lives in the shared shell because every registered tool
+   is a possible destination — putting it in the producer would mean every owner page importing a
+   private store it has no other use for.
+
+   Three properties are load-bearing:
+
+   • It reads a SESSION record, never a URL. Nothing about the handoff enters history, a referrer,
+     or a public read, so a shared link can never carry someone's research context.
+   • Validation is STRICT and CLOSED: exactly the 15 declared fields, allowlisted routes and
+     hashes, safe-token formats, and an unexpired window. An unknown key is a rejection. That is
+     what structurally excludes a holding, quantity, value, mandate field, or model output — there
+     is no admissible shape for one.
+   • It is INERT by default. A page with no context, a context addressed to a different tool, or an
+     expired one renders no strip, allocates no storage, and moves no focus.
+
+   This is the consuming end of a contract whose producing end is RLPORTFOLIO.writeReturnContext.
+   The two are held together by a parity test rather than by a shared import, because they run in
+   different documents with only sessionStorage between them. */
+(function rlReturnStrip() {
+  var root = (typeof window !== "undefined") ? window : {};
+  var KEY = "rlReturnContextV1";
+  var VERSION = "ReturnContext/v1";
+  var FIELDS = [
+    "contractVersion", "contextId", "sourceRoute", "sourceHash", "destinationRoute", "destinationHash",
+    "actionId", "disclosureId", "focusRestoreId", "workspaceIdentity", "genericEvidenceIdentity",
+    "ownerToolId", "minimumOwnerCutoff", "createdAt", "expiresAt"
+  ];
+  var SOURCE_ROUTE = "portfolio-survival-allocation-lab.html";
+  var SOURCE_HASHES = ["#brief", "#risk-xray", "#path-lab", "#diversification", "#allocation", "#dossier"];
+  var DESTINATION_HASH = "#portfolio-brief-handoff";
+  var ROUTE_FILE = /^[a-z0-9][a-z0-9-]*\.html$/;
+  var SAFE_TOKEN = /^[a-z0-9][a-z0-9._:-]{0,127}$/i;
+  var INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+  var TOKEN_FIELDS = ["contextId", "actionId", "disclosureId", "focusRestoreId", "ownerToolId",
+    "workspaceIdentity", "genericEvidenceIdentity"];
+  var INSTANT_FIELDS = ["minimumOwnerCutoff", "createdAt", "expiresAt"];
+
+  function refuse(reason, field) {
+    return { ok: false, code: "P008-RETURN-CONTEXT", reason: reason, field: field || null };
+  }
+
+  function plainObject(value) {
+    return Boolean(value) && Object.prototype.toString.call(value) === "[object Object]";
+  }
+
+  function validate(value) {
+    if (!plainObject(value)) return refuse("value-not-an-object", "value");
+    var keys = Object.keys(value), i;
+    for (i = 0; i < keys.length; i++) {
+      if (FIELDS.indexOf(keys[i]) === -1) return refuse("unknown-field", keys[i]);
+    }
+    for (i = 0; i < FIELDS.length; i++) {
+      if (!Object.prototype.hasOwnProperty.call(value, FIELDS[i])) return refuse("missing-field", FIELDS[i]);
+    }
+    if (value.contractVersion !== VERSION) return refuse("contract-version-unsupported", "contractVersion");
+    for (i = 0; i < TOKEN_FIELDS.length; i++) {
+      var token = value[TOKEN_FIELDS[i]];
+      if (typeof token !== "string" || !SAFE_TOKEN.test(token)) return refuse("field-not-a-safe-token", TOKEN_FIELDS[i]);
+    }
+    if (value.sourceRoute !== SOURCE_ROUTE) return refuse("source-route-not-allowlisted", "sourceRoute");
+    if (SOURCE_HASHES.indexOf(value.sourceHash) === -1) return refuse("source-hash-not-allowlisted", "sourceHash");
+    if (typeof value.destinationRoute !== "string" || !ROUTE_FILE.test(value.destinationRoute)) {
+      return refuse("destination-route-not-a-base-file", "destinationRoute");
+    }
+    if (value.destinationHash !== DESTINATION_HASH) return refuse("destination-hash-not-allowlisted", "destinationHash");
+    for (i = 0; i < INSTANT_FIELDS.length; i++) {
+      var instant = value[INSTANT_FIELDS[i]];
+      if (typeof instant !== "string" || !INSTANT.test(instant)) return refuse("field-not-an-instant", INSTANT_FIELDS[i]);
+    }
+    if (Date.parse(value.expiresAt) <= Date.parse(value.createdAt)) return refuse("expiry-not-after-creation", "expiresAt");
+    return { ok: true, value: value };
+  }
+
+  /* Single-use and self-cleaning. Expired or malformed records are removed here so a stale
+     handoff cannot sit in the tab waiting to be matched by a later navigation. A record for a
+     DIFFERENT tool is left alone: it still belongs to the page it names, and deleting it here
+     would break the handoff for the page about to receive it. */
+  function consume(storage, currentFile, nowInstant) {
+    if (!storage) return refuse("session-storage-unavailable", "storage");
+    var raw;
+    try { raw = storage.getItem(KEY); } catch (e) { return refuse("session-storage-read-refused", "storage"); }
+    if (raw === null || raw === undefined) return refuse("no-context-present", "storage");
+    function discard() { try { storage.removeItem(KEY); } catch (e) { /* already gone */ } }
+    var parsed;
+    try { parsed = JSON.parse(raw); } catch (e) { discard(); return refuse("context-not-parseable", "storage"); }
+    var checked = validate(parsed);
+    if (!checked.ok) { discard(); return checked; }
+    if (typeof currentFile !== "string" || checked.value.destinationRoute !== currentFile) {
+      return refuse("destination-mismatch", "destinationRoute");
+    }
+    if (typeof nowInstant !== "string" || !INSTANT.test(nowInstant)) return refuse("now-not-an-instant", "now");
+    if (Date.parse(nowInstant) >= Date.parse(checked.value.expiresAt)) { discard(); return refuse("context-expired", "expiresAt"); }
+    discard();
+    return checked;
+  }
+
+  function injectCSS(doc) {
+    if (doc.getElementById("rlreturn-css")) return;
+    var st = doc.createElement("style");
+    st.id = "rlreturn-css";
+    st.textContent = [
+      "#rlreturn-strip{position:sticky;top:0;z-index:99998;display:flex;flex-wrap:wrap;gap:10px;",
+      "align-items:center;background:#12202b;color:#e6edf3;border-bottom:1px solid #2e4254;",
+      "padding:8px 14px;font:13px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}",
+      "#rlreturn-strip b{color:#2dd4bf;font-weight:600}",
+      "#rlreturn-strip .rlreturn-owner{color:#8aa0b3}",
+      "#rlreturn-strip a{color:#5aa9f0;text-decoration:underline;padding:4px 6px;border-radius:4px;min-height:24px}",
+      "#rlreturn-strip a:focus-visible{outline:2px solid #f5b942;outline-offset:2px}"
+    ].join("");
+    (doc.head || doc.documentElement).appendChild(st);
+  }
+
+  /* The strip is a real landmark, not decoration: it names WHERE the user came from, WHICH owner
+     read they are here to form, and offers one keyboard-reachable way back. The return link
+     carries only the public source hash, so the address bar still holds nothing personal. */
+  function renderStrip(doc, context) {
+    if (doc.getElementById("rlreturn-strip")) return doc.getElementById("rlreturn-strip");
+    injectCSS(doc);
+    var strip = doc.createElement("div");
+    strip.id = "rlreturn-strip";
+    strip.setAttribute("role", "region");
+    strip.setAttribute("aria-label", "Return to Portfolio Brief");
+    strip.setAttribute("data-return-context", "active");
+    strip.setAttribute("data-owner-tool", context.ownerToolId);
+    strip.setAttribute("data-action-id", context.actionId);
+    strip.setAttribute("data-focus-restore-id", context.focusRestoreId);
+
+    var label = doc.createElement("b");
+    label.textContent = "From Portfolio Brief";
+    strip.appendChild(label);
+
+    var owner = doc.createElement("span");
+    owner.className = "rlreturn-owner";
+    owner.setAttribute("data-owner-read-state", "awaiting-owner-read");
+    owner.textContent = "Form your own read in " + context.ownerToolId +
+      ", then return. Review completion stays disabled until this owner read is visible.";
+    strip.appendChild(owner);
+
+    var back = doc.createElement("a");
+    back.id = "rlreturn-back";
+    back.href = context.sourceRoute + context.sourceHash;
+    back.rel = "noreferrer";
+    back.setAttribute("data-return-to", context.sourceHash);
+    back.textContent = "Return to Portfolio Brief";
+    back.addEventListener("click", function (event) {
+      if (!root.history || root.history.length <= 1) return;
+      event.preventDefault();
+      root.history.back();
+    });
+    strip.appendChild(back);
+
+    var host = doc.body || doc.documentElement;
+    host.insertBefore(strip, host.firstChild);
+    return strip;
+  }
+
+  function currentFileName() {
+    var p = (location.pathname || "").split("/").pop();
+    return (!p || p === "") ? "index.html" : p;
+  }
+
+  function boot() {
+    try {
+      if (typeof document === "undefined") return;
+      var storage = null;
+      try { storage = root.sessionStorage || null; } catch (e) { storage = null; }
+      var result = consume(storage, currentFileName(), new Date().toISOString());
+      if (!result.ok) return;
+      renderStrip(document, result.value);
+    } catch (e) { /* never break a tool over the return strip */ }
+  }
+
+  root.RLNAVRETURN = { KEY: KEY, FIELDS: FIELDS, VERSION: VERSION, consume: consume, validate: validate };
+  if (typeof document === "undefined") return;
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+})();

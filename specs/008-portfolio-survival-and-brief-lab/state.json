@@ -137,7 +137,7 @@
     "activeAgent": "bubbles.implement",
     "currentPhase": "implement",
     "currentPhaseStatus": "not_started",
-    "currentScope": 26,
+    "currentScope": 27,
     "runStartedAt": "2026-08-20T19:11:37Z",
     "completedPhaseClaims": [
       {
@@ -522,7 +522,7 @@
         "scope": 26,
         "scopeId": "26-immutable-workspace-compute-and-navigation",
         "name": "Immutable Workspace Compute And Navigation",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "25"
         ],
@@ -612,7 +612,8 @@
       22,
       23,
       24,
-      25
+      25,
+      26
     ]
   },
   "certification": {

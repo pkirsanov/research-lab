@@ -74,7 +74,6 @@ test('real-format import previews commits reloads and exports one local revision
   assert.equal(privateExport.value.warning, 'Private local export - review the destination before saving');
   assert.equal(privateExport.value.mimeType, 'application/json');
 });
-
 test('secret-bearing import is redacted and cannot mutate any storage namespace', () => {
   const { api, policy } = loadRuntime();
   const localStorage = createStorage();
@@ -93,7 +92,6 @@ test('secret-bearing import is redacted and cannot mutate any storage namespace'
   assert.equal(JSON.stringify(sessionStorage.snapshot()).includes(sentinel), false);
   assert.equal(store.openWorkspace(NOW).value.workspace.currentPortfolioId, first.value.workspace.currentPortfolioId);
 });
-
 test('atomic write failures preserve the active pointer and retain a validated candidate only in memory', () => {
   const { api, policy } = loadRuntime();
   const localStorage = createStorage();
@@ -2077,3 +2075,158 @@ test('Adversarial: full personal clear detects undeclared keys live state and ar
   assert.equal(confirmationResult.ok, false);
   assert.equal(confirmationResult.error.code, 'P008-CLEAR-CONFIRMATION');
 });
+
+/*
+ * TP-26-02. The ReturnContext handoff belongs in the PRIVACY carrier rather than beside the
+ * compute tests, because what it must prove is not that navigation works but that navigation
+ * carries nothing. A handoff is the natural place for personal data to escape: it crosses a
+ * document boundary, so the obvious implementation is a query string, and the obvious payload
+ * is "whatever the destination might need". Both are refused here.
+ */
+function returnContextFixture(overrides = {}) {
+  return {
+    contractVersion: 'ReturnContext/v1',
+    contextId: 'ctx-26-02',
+    sourceRoute: 'portfolio-survival-allocation-lab.html',
+    sourceHash: '#brief',
+    destinationRoute: 'bond-regime-lab.html',
+    destinationHash: '#portfolio-brief-handoff',
+    actionId: 'action-review-duration',
+    disclosureId: 'disclosure-review-duration',
+    focusRestoreId: 'brief-action-row-3',
+    workspaceIdentity: 'ws-2026-07-15',
+    genericEvidenceIdentity: 'generic:2026-07-15',
+    ownerToolId: 'bond-regime-lab',
+    minimumOwnerCutoff: '2026-07-15T00:00:00.000Z',
+    createdAt: '2026-07-15T14:00:00.000Z',
+    expiresAt: '2026-07-15T14:30:00.000Z',
+    ...overrides
+  };
+}
+
+function returnContextSession(policy) {
+  const backing = new Map();
+  return {
+    backing,
+    options: {
+      allowedDestinations: ['bond-regime-lab.html', 'causal-rotation-lab.html', 'trend-dynamics-cycle-lab.html'],
+      storage: {
+        getItem: (key) => (backing.has(key) ? backing.get(key) : null),
+        setItem: (key, value) => backing.set(key, value),
+        removeItem: (key) => backing.delete(key)
+      }
+    },
+    key: policy.storage.returnContextKey
+  };
+}
+
+test('TP-26-02 the ReturnContext handoff writes consumes and refuses under a strict closed contract', () => {
+  const { api, policy } = loadRuntime();
+  const session = returnContextSession(policy);
+  const inside = '2026-07-15T14:10:00.000Z';
+
+  // The key is read from the policy that declares it, so a renamed key is a policy change and
+  // not invisible drift between the producer, the consumer, and the clear transaction.
+  assert.equal(api.RETURN_CONTEXT_KEY, policy.storage.returnContextKey);
+  assert.equal(api.RETURN_CONTEXT_FIELDS.length, 15);
+  assert.equal(api.RETURN_CONTEXT_VERSION, 'ReturnContext/v1');
+
+  // ---- Write then consume, exactly once, by the named destination ----
+  const written = api.writeReturnContext(returnContextFixture(), session.options);
+  assert.equal(written.ok, true);
+  assert.deepEqual(Object.keys(written.value).sort(), api.RETURN_CONTEXT_FIELDS.slice().sort(),
+    'the stored record must carry exactly the declared fields');
+  assert.equal(session.backing.has(session.key), true, 'the handoff lives under the declared session key');
+  assert.equal(session.backing.size, 1, 'the handoff must not allocate a second key');
+
+  const consumed = api.consumeReturnContext('bond-regime-lab.html', inside, session.options);
+  assert.equal(consumed.ok, true);
+  assert.equal(consumed.value.focusRestoreId, 'brief-action-row-3');
+  assert.equal(consumed.value.disclosureId, 'disclosure-review-duration');
+  assert.equal(session.backing.has(session.key), false, 'consumption is single use');
+  const replay = api.consumeReturnContext('bond-regime-lab.html', inside, session.options);
+  assert.equal(replay.ok, false, 'a consumed handoff cannot be replayed');
+  assert.equal(replay.error.reason, 'no-context-present');
+
+  // ---- Destination discipline ----
+  // A wrong-destination read must NOT delete: the record still belongs to the tool it names,
+  // and a bystander page deleting it would break the handoff for the page about to receive it.
+  api.writeReturnContext(returnContextFixture(), session.options);
+  const bystander = api.consumeReturnContext('causal-rotation-lab.html', inside, session.options);
+  assert.equal(bystander.ok, false);
+  assert.equal(bystander.error.reason, 'destination-mismatch');
+  assert.equal(session.backing.has(session.key), true, 'a bystander page must leave the record intact');
+  assert.equal(api.consumeReturnContext('bond-regime-lab.html', inside, session.options).ok, true,
+    'the named owner still receives the handoff after a bystander read');
+
+  for (const route of ['attacker-site.html', 'portfolio-survival-allocation-lab.html', 'bond-regime-lab.html?q=1', '../bond-regime-lab.html']) {
+    const refused = api.validateReturnContext(returnContextFixture({ destinationRoute: route }), session.options);
+    assert.equal(refused.ok, false, `destination "${route}" must be refused`);
+    assert.equal(refused.error.code, 'P008-RETURN-CONTEXT');
+  }
+  assert.equal(api.validateReturnContext(returnContextFixture(), { allowedDestinations: [] }).ok, false,
+    'an empty allowlist must refuse rather than admit every destination');
+  assert.equal(api.validateReturnContext(returnContextFixture({ destinationHash: '#somewhere-else' }), session.options).ok, false,
+    'the destination hash is fixed, so a handoff cannot be aimed at an arbitrary anchor');
+  assert.equal(api.validateReturnContext(returnContextFixture({ sourceHash: '#workspace' }), session.options).ok, false,
+    'a retired source hash must not be admissible');
+
+  // ---- Expiry ----
+  const expiring = returnContextSession(policy);
+  api.writeReturnContext(returnContextFixture(), expiring.options);
+  const expired = api.consumeReturnContext('bond-regime-lab.html', '2026-07-15T14:30:00.000Z', expiring.options);
+  assert.equal(expired.ok, false, 'a handoff at or past its expiry must not be consumed');
+  assert.equal(expired.error.reason, 'context-expired');
+  assert.equal(expiring.backing.has(expiring.key), false, 'an expired handoff is removed, not left to linger');
+  assert.equal(api.validateReturnContext(returnContextFixture({ expiresAt: '2026-07-15T13:00:00.000Z' }), session.options).ok, false,
+    'an expiry before creation must be refused');
+  assert.equal(api.validateReturnContext(returnContextFixture({ createdAt: '2026-07-15' }), session.options).ok, false,
+    'a calendar date is not an instant');
+
+  // ---- Private fields cannot enter, structurally ----
+  const personal = {
+    holdings: [{ symbol: 'ACME', quantity: 1200 }],
+    quantity: 1200,
+    marketValue: 84000,
+    costBasis: 61000,
+    mandateText: 'retire at 62',
+    behaviorNote: 'sold in a panic',
+    modelOutput: { survivalProbability: 0.71 },
+    dossierPayload: { records: [] }
+  };
+  for (const [field, value] of Object.entries(personal)) {
+    const leaky = api.validateReturnContext(returnContextFixture({ [field]: value }), session.options);
+    assert.equal(leaky.ok, false, `"${field}" must be refused, not silently stripped`);
+    assert.equal(leaky.error.reason, 'unknown-field');
+    assert.equal(leaky.error.field, field);
+    assert.equal(leaky.error.valueEchoed, false);
+    assert.equal(JSON.stringify(leaky).includes('1200'), false, 'a refusal must not echo the value it refused');
+    assert.equal(JSON.stringify(leaky).includes('panic'), false);
+  }
+  // Smuggling through a declared field is the remaining route in, so declared fields are
+  // format-constrained rather than merely present.
+  for (const smuggled of ['row?symbol=ACME&qty=1200', 'row#84000', 'row/../../etc', 'sold in a panic', '']) {
+    assert.equal(api.validateReturnContext(returnContextFixture({ focusRestoreId: smuggled }), session.options).ok, false,
+      `focusRestoreId "${smuggled}" must be refused`);
+  }
+
+  // A malformed stored record is discarded on read rather than left for a later navigation.
+  const malformed = returnContextSession(policy);
+  malformed.options.storage.setItem(malformed.key, '{not json');
+  const unparseable = api.consumeReturnContext('bond-regime-lab.html', inside, malformed.options);
+  assert.equal(unparseable.ok, false);
+  assert.equal(unparseable.error.reason, 'context-not-parseable');
+  assert.equal(malformed.backing.has(malformed.key), false, 'an unparseable record is removed on read');
+
+  // The shared consumer in rlnav.js is a separate document with only sessionStorage between it
+  // and the producer, so parity is asserted against its published surface rather than assumed.
+  const navSource = readFileSync(resolve(ROOT, 'rlnav.js'), 'utf8');
+  assert.equal(navSource.includes('"rlReturnContextV1"'), true, 'the shared consumer must read the declared key');
+  assert.equal(navSource.includes('"ReturnContext/v1"'), true, 'the shared consumer must pin the declared contract version');
+  for (const field of api.RETURN_CONTEXT_FIELDS) {
+    assert.equal(navSource.includes(`"${field}"`), true, `the shared consumer must know the declared field "${field}"`);
+  }
+  assert.equal(/location\.search|URLSearchParams|history\.pushState\([^)]*rlReturnContext/.test(navSource), false,
+    'the handoff must never be read from or written to a URL');
+});
+// The cross-page consumption and focus-return carrier lives in portfolio-survival-mobile.spec.mjs.

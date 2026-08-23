@@ -215,7 +215,7 @@ This section stays empty until a person performs the walk. No agent may fill it
 in on the operator's behalf. The first three keys are the ones the terminal gate
 reads; replace each bracketed placeholder.
 
-- acceptedBy: [your name or handle]
+- acceptedBy: [operator — this repo is public, so use the role word, never a personal name]
 - acceptedAt: [ISO 8601 timestamp, e.g. 2026-08-23T14:05:00Z]
 - method: [human-interactive or external-record]
 - scopesCovered: [which scopes this walk covered]

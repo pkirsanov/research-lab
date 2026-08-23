@@ -93,7 +93,7 @@ from a disk with no network. That half stays yours.
 Filled in by you, after the walk. No agent writes these values. The first three
 keys are the ones the terminal gate reads; replace each bracketed placeholder.
 
-- acceptedBy: [your name or handle]
+- acceptedBy: [operator — this repo is public, so use the role word, never a personal name]
 - acceptedAt: [ISO 8601 timestamp, e.g. 2026-08-23T14:05:00Z]
 - method: [human-interactive or external-record]
 - scopesCovered: [which scopes this walk covered]

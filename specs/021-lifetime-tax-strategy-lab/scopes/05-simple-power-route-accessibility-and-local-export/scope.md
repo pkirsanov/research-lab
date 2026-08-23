@@ -269,9 +269,24 @@ Test Plan row.
       byte-identical.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a path-scoped `git status` · **Evidence:** `report.md#tp-05-09`, `report.md#registration-absence`
   - **Claim Source:** executed · **Result:** absence is clean — `grep -c 'lifetime-tax-strategy-lab'` returns `0` for all six surfaces, so the tool is unregistered and unreachable from navigation, the registry, either README or market-brief coverage. Byte-identity is **qualified and the qualification is stated rather than hidden**: five of the six are unmodified, and the sixth, `notes/README.md`, carries one change that is not this scope's — the full diff is two geopolitical note rows added by a concurrent session, neither mentioning the tax lab. The clause's purpose (this scope registers the tool nowhere and modifies no registration surface) is proven; the literal all-six byte-identity does not hold, for a reason outside this scope's control and fully attributed in the report.
-- [ ] Every Test Plan row has intended RED evidence and same-command GREEN
+- [x] Every Test Plan row has intended RED evidence and same-command GREEN
       evidence, recorded before the cumulative browser row.
-  - **Re-examined 2026-08-22, still open, and two of the three gaps are closed.**
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` and the TP-05-15 cumulative browser command · **Evidence:** `report.md#tp-05-16-and-tp-05-15-earned--the-last-two-rows-without-a-red-2026-08-23`
+  - **Claim Source:** executed · **Result:** all eighteen rows now carry an intended RED and a same-command GREEN. The two that did not are earned in this session and recorded in the report section named above: `TP-05-16` discriminates at exit `1` against `0` with the pinned assertion moving from `✗ FAIL` to `✓`, and `TP-05-15` discriminates at exit `1` against `0` with the pin on a conversion-spec scenario this scope does not own. Both reverts are hash-verified against the committed blob.
+  - **Ticked 2026-08-23, superseding the two notes below, and correcting one of
+    them.** `TP-05-15` was described there as carrying "GREEN only". That was
+    wrong: its section held no run of its own `--grep "SCN-021-0"` command at
+    all, and `Gate 1`'s explicit five-file, 16-test command is a different
+    selection that does not stand in for it. Both arms are supplied now — a
+    17-test same-command GREEN captured under `evidence-capture.sh` at exit 0,
+    and an intended RED on the identical command. `TP-05-16`'s earlier exit-7
+    result is **not** withdrawn: its own conclusion was that the guard it mutated
+    is unasserted, so that mutation could never reach this row's contract, and
+    that blind spot in `rltaxstrategy.js` — paired with the identical shape in
+    `rltaxworkspace.js` — remains recorded in the report as a finding. The probe
+    run here is the first one placed inside the row's reach, not a retry of the
+    same experiment.
+  - **Superseded note, 2026-08-22.** Two of the three gaps are closed.
     `TP-05-18` is now authored and carries a RED with a same-command GREEN, so
     the note below no longer applies to it. Of the three rows the note itself
     identifies as outside the command range, `TP-05-17` now carries a
@@ -285,7 +300,7 @@ Test Plan row.
     `rltaxstrategy.js` so a zero-length string is accepted moves no assertion in
     a 3384-assertion suite. The identical shape was found in `rltaxworkspace.js`
     under Scope 01's `TP-01-16`, so this is a pair rather than a one-off.
-  - **Unticked 2026-08-22 (F-REG-03).** `TP-05-18` was opened in this scope and
+  - **Superseded note, 2026-08-22 (F-REG-03).** `TP-05-18` was opened in this scope and
     is not authored, so it carries neither a RED nor a GREEN. The word "Every"
     therefore no longer holds. This item's own **Command** already named a
     narrower range than its headline — `TP-05-01` through `TP-05-14`, while

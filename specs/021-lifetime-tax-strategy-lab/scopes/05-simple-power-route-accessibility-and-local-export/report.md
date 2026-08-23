@@ -1772,7 +1772,127 @@ session, each revert hash-verified against the committed blob, and
 
 The every-row item stays open. `TP-05-17` now carries a RED and a same-command
 GREEN. `TP-05-16` does not, for the reason recorded above. `TP-05-15`, the
-cumulative browser row, still carries GREEN only and was not probed here.
+cumulative browser row, was not probed here.
+
+## `TP-05-16` and `TP-05-15` earned — the last two rows without a RED (2026-08-23)
+
+The section above left exactly two rows unproven. Both are earned here, and every
+block below is verbatim harness or capture output from this session.
+
+### Why `TP-05-16` is re-probed rather than left at exit 7
+
+The earlier `TP-05-16` probe relaxed a non-empty string guard in
+`rltaxstrategy.js` and returned exit 7. Its own recorded conclusion is that the
+guard **is unasserted** — no assertion in the suite reads it. A mutation that no
+assertion reads cannot reach the row's contract, so exit 7 there was not a
+verdict about the row; it was a measurement of a blind spot in the module. That
+finding stands, is not withdrawn, and its pairing with the identical shape in
+`rltaxworkspace.js` under `TP-01-16` is unchanged.
+
+Re-probing with a mutation the suite does read is therefore not a retry of the
+same experiment until it goes red. It is the first probe placed inside the row's
+reach at all.
+
+### `TP-05-16` — repo gate, discriminating
+
+The mutation hands a household already past the selected bracket edge the raw
+negative distance instead of the labelled zero the module promises in its own
+comment. The `--summary-match` names the assertion the defect must trip rather
+than the aggregate pass count, so a concurrent session moving the suite total
+cannot move this verdict.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-16 repo gate: a defect planted in this scope own strategy module and reachable by a pre-existing assertion — a household already past the selected bracket edge is handed the raw negative distance instead of the labelled zero the module promises — must make the whole-repository suite non-green
+file:             rltaxstrategy.js
+mutation:         value: atOrAboveEdge ? 0 : distance,  ->  value: distance,   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-06: a household at or above the selected edge receives an explicitly labelled zero-amount conversion rather than a negative amount or an Unavailable
+green-exit:       0
+green-summary:      ✓ TP-04-06: a household at or above the selected edge receives an explicitly labelled zero-amount conversion rather than a negative amount or an Unavailable
+summary-compared:   ✗ FAIL: TP-04-06: a household at or above the selected edge receives an explicitly labelled zero-amount conversion rather than a negative amount or an Unavailable  vs    ✓ TP-04-06: a household at or above the selected edge receives an explicitly labelled zero-amount conversion rather than a negative amount or an Unavailable   (elapsed time normalised out)
+revert-verified:  yes (committed=f4dbb4a9c8dcf3b60a9aee0c4e3816f880ead964 restored=f4dbb4a9c8dcf3b60a9aee0c4e3816f880ead964)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-05-15` — the row had no same-command GREEN either, and now has both
+
+The correction first. The preceding section says this row "carries GREEN only".
+That is wrong, and the record is corrected rather than repeated: this row's
+section held no run of its own command at all. `Gate 1` ran a **different**
+command — an explicit five-file list, 16 tests — which is not the row's
+`--grep "SCN-021-0"` selection and does not stand in for it. So the row was
+missing both arms, not one.
+
+Same-command GREEN, captured through `evidence-capture.sh` so the `sha256`
+covers every line the run produced and is re-derivable with `--verify`:
+
+```text
+# TP-05-15 cumulative Feature 021 browser suite
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-021-0 --reporter=list
+exit: 0
+lines: 22
+sha256: 4ee42710e16a99dfe607726f953ce8a9354fc7303690c0d50898b981c8b350b8
+--- output ---
+
+Running 17 tests using 5 workers
+
+  ✓   1 [system-chrome] › tests/lifetime-tax-conversion.spec.mjs:35:1 › Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack (1.4s)
+  ✓   3 [system-chrome] › tests/lifetime-tax-route.spec.mjs:38:1 › Regression: SCN-021-013 Simple opens first with a decision level answer and Power holds the detail (1.6s)
+  ✓   4 [system-chrome] › tests/lifetime-tax-foundation.spec.mjs:141:1 › Regression: SCN-021-001 minimum viable input resolves one federal pack and names every unavailable domain (1.4s)
+  ✓  16 [system-chrome] › tests/lifetime-tax-foundation.spec.mjs:425:1 › Regression: SCN-021-002 the shared ledger helper refuses a declared pathname served from an undeclared origin (433ms)
+  ✓  17 [system-chrome] › tests/lifetime-tax-route.spec.mjs:303:1 › Regression: SCN-021-015 a private export happens only on explicit action, the request ledger does not grow after first paint, and every entry is a declared same-origin read (549ms)
+
+  17 passed (6.3s)
+```
+
+Seventeen tests across five spec files, no request interception, no service
+worker and no external provider. Five of the seventeen lines are reproduced
+above; the `sha256` covers all 22 lines of the capture.
+
+Intended RED on the identical command. The mutation reads the selected band's
+edge off the wrong end, so the fill amount stops coming from the pack edge the
+household named. The pin is a `lifetime-tax-conversion.spec.mjs` scenario, which
+this scope does not own, so the RED proves the cumulative run reaches past this
+scope's own route spec rather than covering a convenient subset.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-15 cumulative browser row: the bracket edge is read off the wrong end of the selected band, so the fill amount no longer comes from the pack edge the household named — and the pin is a conversion-spec scenario this scope does not own, so the cumulative run is proven to reach past its own route spec rather than a convenient subset
+file:             rltaxstrategy.js
+mutation:         value: table.bands[index].upperExclusive,  ->  value: table.bands[index].lowerInclusive,   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-021-0 --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-conversion.spec.mjs:35:1 › Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack 
+green-exit:       0
+green-summary:      ✓   5 [system-chrome] › tests/lifetime-tax-conversion.spec.mjs:35:1 › Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack (1.8s)
+summary-compared:     [system-chrome] › tests/lifetime-tax-conversion.spec.mjs:35:1 › Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack   vs    ✓   5 [system-chrome] › tests/lifetime-tax-conversion.spec.mjs:35:1 › Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=f4dbb4a9c8dcf3b60a9aee0c4e3816f880ead964 restored=f4dbb4a9c8dcf3b60a9aee0c4e3816f880ead964)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The pinned line moved from a failure-detail header carrying no tick to a `✓`
+result on the identical command, and the exit channel moved `1` to `0`
+independently, so the verdict does not rest on one channel.
+
+### Routed finding from the sibling scope, recorded here because it bears on this row's grep
+
+While earning Scope 01's `TP-01-15`, a scenario inside this row's own
+`--grep "SCN-021-0"` selection was found unable to detect the defect its title
+names. `SCN-021-005 long term gains stack on ordinary income` passes with the
+ordinary term removed from the preferential stacking window, because its fixture
+fixes ordinary taxable income below the pack's zero-rate breakpoint, where
+`max(ordinary, lower)` and `max(0, lower)` coincide for every band. The full
+measurement and the reasoning are recorded in the Scope 01 report under
+`TP-01-16` and `TP-01-15`. It is routed to the owning scope, not repaired here,
+and it does not bear on this scope's own row accounting.
+
+**Claim Source:** executed. Each revert is hash-verified against the committed
+blob, and `git status --porcelain -- rltaxstrategy.js` was re-read at `0` rows
+between the two probes.
 
 
 

@@ -1,0 +1,99 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-002-full-clear-tombstone-authority",
+  "generatedAt": "2026-08-23T00:00:00Z",
+  "generatedBy": "bubbles.bug",
+  "provenance": "Initial diagnostic transcription from BUG-002 scopes.md. All scenarios remain planned and uncertified. The linked current browser row carries a stale residue-count premise and is not accepted as satisfying these contracts.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-B002-POINTER-FAULT-PRESERVES-AUTHORITY",
+      "scopeId": "01-preserve-full-clear-tombstone-authority",
+      "scope": 1,
+      "title": "Pointer deletion failure preserves authoritative tombstone state",
+      "gherkin": {
+        "given": "a populated durable workspace, a committed validated empty tombstone, and every other personal category reread empty",
+        "when": "final pointer deletion throws",
+        "then": "the result is a named P008-CLEAR-PARTIAL, the pointer resolves to the retained validated tombstone, public data is unchanged, and Verified empty is absent"
+      },
+      "status": "planned",
+      "behaviorClass": "ui",
+      "changeType": "bugfix",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-survival-foundation.spec.mjs",
+          "testId": "Regression: TP-03-06 every declared foundation clear step refuses success on its own and retains only its own key",
+          "coverageStatus": "requires-authority-assertion-correction"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#bug-002-f1---production-authority-loss",
+        "report.md#test-evidence"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B002-TOMBSTONE-FAULT-COMPENSATES",
+      "scopeId": "01-preserve-full-clear-tombstone-authority",
+      "scope": 1,
+      "title": "Active tombstone deletion failure restores the authority pair",
+      "gherkin": {
+        "given": "a populated durable workspace and a committed validated empty tombstone",
+        "when": "active-tombstone deletion throws after final cleanup begins",
+        "then": "the result is P008-CLEAR-PARTIAL and compensation restores and rereads the pointer and active tombstone as one valid pair"
+      },
+      "status": "planned",
+      "behaviorClass": "ui",
+      "changeType": "bugfix",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-survival-foundation.spec.mjs",
+          "testId": "Regression: TP-03-06 every declared foundation clear step refuses success on its own and retains only its own key",
+          "coverageStatus": "requires-compensation-assertion"
+        }
+      ],
+      "evidenceRefs": [
+        "design.md#expected-minimal-repair",
+        "report.md#test-evidence"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B002-EARLY-FAULT-RETAINS-PAIR-AND-RESIDUE",
+      "scopeId": "01-preserve-full-clear-tombstone-authority",
+      "scope": 1,
+      "title": "Pre-final deletion failure retains authority and the named residue",
+      "gherkin": {
+        "given": "a populated durable workspace and a committed validated empty tombstone",
+        "when": "one pre-final declared key cannot be deleted",
+        "then": "the named residue remains when present, the pointer and active tombstone remain authoritative, and no exactly-one-key residue premise is applied"
+      },
+      "status": "planned",
+      "behaviorClass": "ui",
+      "changeType": "bugfix",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-survival-foundation.spec.mjs",
+          "testId": "Regression: TP-03-06 every declared foundation clear step refuses success on its own and retains only its own key",
+          "coverageStatus": "stale-exactly-one-residue-premise"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#bug-002-f2---stale-exactly-one-residue-test-premise",
+        "report.md#test-evidence"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    }
+  ]
+}

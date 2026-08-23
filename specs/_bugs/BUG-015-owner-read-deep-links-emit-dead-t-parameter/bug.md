@@ -1,4 +1,4 @@
-# BUG-014: Two Owner-Read Deep Links Name A Subject Under A Parameter No Route Reads
+# BUG-015: Two Owner-Read Deep Links Name A Subject Under A Parameter No Route Reads
 
 **Status:** Reported
 **Severity:** Medium

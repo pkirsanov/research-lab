@@ -1,8 +1,21 @@
-# Report: BUG-014 — Dead Subject Parameter In Two Owner-Read Deep Links
+# Report: BUG-015 — Dead Subject Parameter In Two Owner-Read Deep Links
 
 **Filed at commit:** `752699a60`
 **Filed:** 2026-08-22
 **Phase:** bug (filing only)
+
+> **Renumbered from BUG-014 on 2026-08-22.** This packet was filed as `BUG-014`
+> after a check that read only the local working tree. `origin/main` already
+> carried a different `BUG-014`, `BUG-014-recommendation-confidence-pinned-at-the-tactical-cap`,
+> so the two would have collided on merge. `origin/main` also carries a spec-id
+> uniqueness assertion whose `GRANDFATHERED_COLLISIONS` list is
+> `['021', 'BUG-002', 'BUG-009']`, so a third collision would have been a fresh
+> one and would have failed that assertion. The published number kept its id and
+> this unpushed packet moved to `BUG-015`.
+>
+> The captured command output below is left exactly as recorded and still shows
+> the `BUG-014` path, because that is the path those commands were run against.
+> Rewriting a capture to match a later rename would falsify it.
 
 ---
 

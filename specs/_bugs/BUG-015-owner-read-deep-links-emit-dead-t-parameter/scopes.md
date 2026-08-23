@@ -1,4 +1,4 @@
-# Scopes: BUG-014 — Dead Subject Parameter In Two Owner-Read Deep Links
+# Scopes: BUG-015 — Dead Subject Parameter In Two Owner-Read Deep Links
 
 **Workflow mode:** `bugfix-fastlane`
 **Filed at commit:** `752699a60`

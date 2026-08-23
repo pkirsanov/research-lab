@@ -1,7 +1,7 @@
 {
   "version": 3,
-  "featureDir": "specs/_bugs/BUG-014-owner-read-deep-links-emit-dead-t-parameter",
-  "featureName": "BUG-014 Two Owner-Read Deep Links Name A Subject Under A Parameter No Route Reads",
+  "featureDir": "specs/_bugs/BUG-015-owner-read-deep-links-emit-dead-t-parameter",
+  "featureName": "BUG-015 Two Owner-Read Deep Links Name A Subject Under A Parameter No Route Reads",
   "createdAt": "2026-08-22T00:00:00Z",
   "lastUpdatedAt": "2026-08-22T00:00:00Z",
   "certifiedAt": null,
@@ -40,9 +40,9 @@
     "substate": "filed",
     "currentScope": null,
     "nextRequiredOwner": "owner of intraday-tape-lab / swing-structure-lab (the Feature 007 owner-publication surface, which introduced all three affected lines in commit a4b10dc5b)",
-    "nextRequiredTarget": "specs/_bugs/BUG-014-owner-read-deep-links-emit-dead-t-parameter/design.md#open-questions-for-the-owner",
+    "nextRequiredTarget": "specs/_bugs/BUG-015-owner-read-deep-links-emit-dead-t-parameter/design.md#open-questions-for-the-owner",
     "nextRequiredReason": "The packet is filed and unstarted. Scope 1 is a product decision that no evidence selects: refused, absent and out-of-catalog subjects currently collapse to silence, and what replaces that is a choice about how much a reader is told when a link did not do what its text implied. Open question 4 sits in front of it and may remove the receiving half entirely if these routes are not meant to be openable by link. Scope 2 is implementable once Scope 1 is answered, but both affected files were outside this run's authorisation, which permitted filing only. Gate G136 human acceptance is unestablished and cannot be supplied by automation, because this packet delivers no behaviour to exercise.",
-    "phaseClaimNote": "currentPhase is 'bug' with substate 'filed'. This run created seven artifacts under specs/_bugs/BUG-014-owner-read-deep-links-emit-dead-t-parameter/ and modified nothing else. It did not touch intraday-tape-lab.html, swing-structure-lab.html, rlticker.js, rldata.js, scripts/selftest.mjs, tests/technical-analysis-decision-lab.spec.mjs, any artifact under specs/027-company-scoped-owner-deep-links/, any lifetime-tax path (rltax*.js, lifetime-tax-*, tax-rules/, specs/021-024), or any specs/026-* artifact. No selftest assertion was added, deliberately: an assertion that fails on a known-open defect would turn the suite red. Zero Definition of Done items are ticked across both scopes and the cross-scope set. completedPhaseClaims records the bug phase as an execution claim only; certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write.",
+    "phaseClaimNote": "currentPhase is 'bug' with substate 'filed'. This run created seven artifacts under specs/_bugs/BUG-015-owner-read-deep-links-emit-dead-t-parameter/ and modified nothing else. It did not touch intraday-tape-lab.html, swing-structure-lab.html, rlticker.js, rldata.js, scripts/selftest.mjs, tests/technical-analysis-decision-lab.spec.mjs, any artifact under specs/027-company-scoped-owner-deep-links/, any lifetime-tax path (rltax*.js, lifetime-tax-*, tax-rules/, specs/021-024), or any specs/026-* artifact. No selftest assertion was added, deliberately: an assertion that fails on a known-open defect would turn the suite red. Zero Definition of Done items are ticked across both scopes and the cross-scope set. completedPhaseClaims records the bug phase as an execution claim only; certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write.",
     "completedPhaseClaims": [
       {
         "phase": "bug",

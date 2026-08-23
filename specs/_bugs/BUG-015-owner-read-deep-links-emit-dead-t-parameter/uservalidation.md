@@ -1,4 +1,4 @@
-# User Validation: BUG-014 — Filed, Nothing Delivered
+# User Validation: BUG-015 — Filed, Nothing Delivered
 
 This packet files a defect and implements nothing. There is no delivered behaviour to exercise.
 
@@ -23,7 +23,7 @@ product question at the centre of the remedy has not been answered.
 - [x] A live test navigates the dead spelling. **`tests/technical-analysis-decision-lab.spec.mjs:922` goes to `swing-structure-lab.html?t=SPY`; its surrounding code seeds `SPY` into `RLDATA` directly, which is why it passes while the parameter is inert.**
 - [x] The existing convention guard is blind to these routes by construction. **`scripts/selftest.mjs` assertion 1.20 pins the property in both directions over `F027_SUBJECT_ROUTES`, a frozen two-element allowlist holding only the precedent routes.**
 - [x] The enabling commit is identified and introduced all three lines together. **`git show a4b10dc5b` adds both `deepLink` expressions and the `?t=SPY` navigation; `a4b10dc5b` is the most recent commit touching either affected file.**
-- [x] No source file was modified and no selftest assertion was added. **The only additions are this packet's seven artifacts under `specs/_bugs/BUG-014-owner-read-deep-links-emit-dead-t-parameter/`.**
+- [x] No source file was modified and no selftest assertion was added. **The only additions are this packet's seven artifacts under `specs/_bugs/BUG-015-owner-read-deep-links-emit-dead-t-parameter/`.**
 - [x] The user-visible consequence was observed in a browser. **Observed against the repository's own `startStaticServer()` harness, reading `#ticker` on each real route. Control: `options-structure-lab.html?ticker=NVDA` yields `NVDA` and no query yields `SPY`, so a working corridor is detectable by this reading. `intraday-tape-lab.html?t=NVDA` and `swing-structure-lab.html?t=NVDA` both yield `SPY` — a link naming `NVDA` opens `SPY`. `intraday-tape-lab.html?ticker=NVDA` also yields `SPY`, so the emitting-half rename alone would change no observed value; the two-halves finding is measured, not derived. Full block in `report.md` § The consequence, observed in a browser. This observes the DEFECT only — Scope 2's Definition of Done still requires the post-fix reading to return `NVDA`.**
 - [ ] The outcome for a subject that cannot be honoured is chosen. **Left unticked deliberately. `refused`, `absent` and out-of-catalog currently collapse to silence. What replaces that is a product choice, enumerated as open question 1 in `design.md` and owned by Scope 1.**
 - [ ] Whether these routes should be openable by link at all is answered. **Left unticked deliberately. Open question 4 in `design.md`. If the answer is no, the correct remedy is to stop publishing a subject-bearing link, and Scope 2 shrinks to deleting two expressions.**

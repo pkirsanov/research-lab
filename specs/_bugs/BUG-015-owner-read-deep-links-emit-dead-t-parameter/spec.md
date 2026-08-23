@@ -1,4 +1,4 @@
-# Spec: BUG-014 — A Published Deep Link That Names A Subject Opens On That Subject
+# Spec: BUG-015 — A Published Deep Link That Names A Subject Opens On That Subject
 
 **Status:** Filed, not started
 **Workflow mode:** `bugfix-fastlane`

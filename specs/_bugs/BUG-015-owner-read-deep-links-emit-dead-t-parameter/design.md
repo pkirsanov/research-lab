@@ -1,4 +1,4 @@
-# Design: BUG-014 — Analysis Of The Dead Subject Parameter
+# Design: BUG-015 — Analysis Of The Dead Subject Parameter
 
 **Filed at commit:** `752699a60`
 **Status:** Analysis complete, remedy known, nothing implemented

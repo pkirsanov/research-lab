@@ -273,7 +273,7 @@ test('Regression: SCN-024-003 the benefit leg reaches the headline, the comparis
 });
 
 /* TP-01-24. */
-test('Regression: SCN-024-001 the request ledger stays empty and no benefit declaration reaches a URL', async ({ page }) => {
+test('Regression: SCN-024-001 the request ledger does not grow after first paint, every entry is a declared same-origin read, and no benefit declaration reaches a URL', async ({ page }) => {
   const ledger = collectRequests(page);
   const consoleMessages = collectConsole(page);
   await openLifetimeTax(page, site);

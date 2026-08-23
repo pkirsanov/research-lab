@@ -1043,6 +1043,17 @@ Running 1 test using 1 worker
 
 ### TP-01-24 — the privacy browser row
 
+**Renamed 2026-08-22 (F-REG-02).** This row's persistent title was
+`Regression: SCN-024-001 the request ledger stays empty and no benefit declaration reaches a URL`
+until this date. That wording was false — the row's own opening assertion is
+`expect(afterFirstPaint).toBeGreaterThan(0)`, so the ledger is never empty. The
+title now reads
+`Regression: SCN-024-001 the request ledger does not grow after first paint, every entry is a declared same-origin read, and no benefit declaration reaches a URL`,
+and the row's `--grep` moved with it in the same change. The RED and GREEN blocks
+below were captured under the superseded title and are left exactly as executed —
+their `sha256` lines pin that text. A fresh capture under the new title is
+appended at the end of this row.
+
 **Mutation.** A `window.history.replaceState` was added to the route's workspace
 read, immediately after the statement Primary Insurance Amount is taken from its
 input, writing that declaration into the page's query string as `?pia=<amount>`.
@@ -1088,6 +1099,22 @@ printed nothing.
 Running 1 test using 1 worker
   ✓  1 [system-chrome] › tests/lifetime-tax-benefit.spec.mjs:276:1 › Regression: SCN-024-001 the request ledger stays empty and no benefit declaration reaches a URL (668ms)
   1 passed (1.6s)
+```
+
+Fresh capture under the new persistent title, recorded 2026-08-22 after the
+rename, proving the row's `--grep` still selects its own test — selected 1,
+passed 1:
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-001 the request ledger does not grow after first paint, every entry is a declared same-origin read, and no benefit declaration reaches a URL" --reporter=line
+exit: 0
+lines: 5
+sha256: fe419e9cb9cc623c8e896ab6614fd99a6d484071cfbb6d01c55bc6040229d5d4
+
+Running 1 test using 1 worker
+
+[1/1] [system-chrome] › tests/lifetime-tax-benefit.spec.mjs:276:1 › Regression: SCN-024-001 the request ledger does not grow after first paint, every entry is a declared same-origin read, and no benefit declaration reaches a URL
+  1 passed (2.5s)
 ```
 
 ### TP-01-27 — `node scripts/validate-spec-test-paths.mjs`

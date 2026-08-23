@@ -1467,6 +1467,262 @@
     };
   }
 
+  /* ═══════════ horizon-ladder adapter ═══════════
+     The gate is the model. A rate is published only when the cell has reached its minimum resolved
+     sample; otherwise the summary carries an explicit withheld reason and no number. The probability
+     it does report is arithmetic from the declared target distance, never a measured hit rate. */
+
+  var HORIZON_LADDER_OUTPUT_PATHS = {
+    "direction": ["summary.cellId", "summary.gate"],
+    "horizon": ["summary.cellId", "summary.gate"],
+    "resolution-rule": ["summary.probability"],
+    "target-sigma": ["summary.probability", "summary.risk"],
+    "invalidation-sigma": ["summary.risk"]
+  };
+
+  function horizonLadderSummaryPath(summary, path) {
+    if (path === "summary.cellId") return summary.cellId;
+    if (path === "summary.gate") return summary.gate;
+    if (path === "summary.probability") return summary.probability;
+    if (path === "summary.risk") return summary.risk;
+    return null;
+  }
+
+  function horizonLadderNormSf(z) {
+    var sign = z < 0 ? -1 : 1;
+    var x = Math.abs(z) / Math.SQRT2;
+    var t = 1 / (1 + 0.3275911 * x);
+    var y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+    return 0.5 * (1 - sign * y);
+  }
+
+  function horizonLadderProbability(k, rule) {
+    if (rule === "touch") return k <= 0 ? 1 : Math.min(1, 2 * horizonLadderNormSf(k));
+    if (rule === "terminal") return horizonLadderNormSf(k);
+    return null;
+  }
+
+  function computeHorizonLadderSummary(ownerState, values) {
+    var direction = String(values["direction"] || "long");
+    var horizon = String(values["horizon"] || "h1m");
+    var rule = String(values["resolution-rule"] || "terminal");
+    var k = isFiniteNumber(values["target-sigma"]) ? values["target-sigma"] : 0.75;
+    var m = isFiniteNumber(values["invalidation-sigma"]) ? values["invalidation-sigma"] : 0.5;
+    var minimum = (ownerState.policy && isFiniteNumber(ownerState.policy.minResolvedSample)) ? ownerState.policy.minResolvedSample : 20;
+    var cellId = direction + ":" + horizon;
+    var resolved = (ownerState.cells && isFiniteNumber(ownerState.cells[cellId])) ? ownerState.cells[cellId] : 0;
+    var published = resolved >= minimum;
+    var declaredRate = (ownerState.rates && isFiniteNumber(ownerState.rates[cellId])) ? ownerState.rates[cellId] : null;
+    var probability = horizonLadderProbability(k, rule);
+    var stopTouch = horizonLadderProbability(m, "touch");
+    return {
+      cellId: cellId,
+      gate: {
+        published: published,
+        reason: published ? null : "ledger-insufficient-sample",
+        ledgerResolved: resolved,
+        ledgerMinimum: minimum,
+        remaining: Math.max(0, minimum - resolved)
+      },
+      probability: {
+        rule: rule,
+        targetSigma: k,
+        modelProbability: probability,
+        measuredRate: published ? declaredRate : null,
+        measuredRateState: published
+          ? (declaredRate === null ? "earned-but-unpopulated" : "published")
+          : "withheld"
+      },
+      risk: {
+        invalidationSigma: m,
+        stopTouchProbability: stopTouch,
+        rewardToRisk: m > 0 ? k / m : null,
+        expectedValueSigma: (probability === null) ? null : (probability * k - (1 - probability) * m)
+      }
+    };
+  }
+
+  function horizonLadderEvidenceState(ownerState) {
+    var hasCells = ownerState && ownerState.cells && typeof ownerState.cells === "object" && Object.keys(ownerState.cells).length === 12;
+    var hasPolicy = ownerState && ownerState.policy && isFiniteNumber(ownerState.policy.minResolvedSample);
+    var stamp = ownerState && ownerState.asOf;
+    var hasStamp = typeof stamp === "string" && stamp.length >= 8;
+    return (hasCells && hasPolicy && hasStamp) ? "ready" : "unavailable";
+  }
+
+  function buildHorizonLadderEvidence(api, ownerState) {
+    var state = horizonLadderEvidenceState(ownerState);
+    var cutoff = String(ownerState.asOf || "unavailable");
+    var sourceClass = String(ownerState.sourceClass || "observed-fact");
+    var evidence = {
+      contractVersion: "simple-evidence-snapshot/v1",
+      toolId: "horizon-ladder-lab",
+      state: state,
+      evidenceCutoff: cutoff,
+      evidenceRefs: [{
+        requirementId: "owner-evidence",
+        evidenceRef: "owner:horizon-ladder-lab:cells:" + cutoff,
+        semanticFingerprint: ownerStateFingerprint(api, ownerState),
+        sourceClass: sourceClass,
+        observedAsOf: cutoff,
+        retrievedOrPublishedAt: cutoff,
+        freshness: "cache-current-for-render",
+        dataTier: String(ownerState.source || "scored recommendation ledger"),
+        valueState: state === "ready" ? "ready" : "unavailable"
+      }],
+      parameterValues: {},
+      assumptions: [
+        "Target and invalidation distances are expressed in horizon sigma, so the probability is a property of the distance and the resolution rule rather than of the instrument.",
+        "Drift is declared zero; any non-zero drift would be a forecast and is not applied."
+      ],
+      limitations: [
+        "A published probability requires the cell to reach its minimum resolved sample. No long or short claim has resolved yet, so every cell withholds.",
+        "The model probability is arithmetic from the declared distance and is never a measured hit rate."
+      ],
+      invalidationConditions: [
+        "The resolved-outcome count for any long or short cell changes, or the minimum resolved sample is revised."
+      ],
+      evidenceIdentity: null
+    };
+    evidence.evidenceIdentity = evidenceIdentityOf(api, evidence);
+    return evidence;
+  }
+
+  function horizonLadderOutput(input, summary) {
+    var scenarioValues = { summary: summary };
+    return {
+      contractVersion: "simple-model-output/v1",
+      state: "ready",
+      values: scenarioValues,
+      scenarios: input.scenarios.map(function (scenario) {
+        return { scenarioId: scenario.scenarioId, state: "ready", values: scenarioValues };
+      }),
+      calibration: {
+        state: summary.gate.published ? "cell-earned" : "cell-withheld",
+        reason: summary.gate.published
+          ? ("The " + summary.cellId + " cell has " + summary.gate.ledgerResolved + " resolved outcomes, at or above the " + summary.gate.ledgerMinimum + " minimum.")
+          : ("The " + summary.cellId + " cell has " + summary.gate.ledgerResolved + " resolved outcomes and needs " + summary.gate.ledgerMinimum + "; " + summary.gate.remaining + " more must resolve before any rate is shown.")
+      },
+      provenance: { classes: ["observed-fact", "model-estimate"], evidenceIdentity: input.evidenceIdentity },
+      uncertainty: {
+        state: summary.gate.published ? "bounded" : "unavailable",
+        rangeOrBand: summary.gate.published
+          ? (summary.gate.ledgerResolved + " resolved outcomes")
+          : ("withheld pending " + summary.gate.remaining + " further resolutions"),
+        reason: "Uncertainty follows the resolved sample for the cell, not the arithmetic of the target distance."
+      },
+      assumptions: [
+        "One cell is evaluated at a time; direction and horizon together select the cell whose sample governs publication."
+      ],
+      limitations: [
+        "Reward-to-risk alone is not a ranking key. A high ratio can carry negative expected value at its own probability."
+      ],
+      invalidationConditions: [
+        "The resolved-outcome count for the selected cell changes."
+      ],
+      flatRegionProofs: []
+    };
+  }
+
+  function createHorizonLadderAdapter(api, definition, ownerByIdentity) {
+    return {
+      contractVersion: "simple-model-adapter/v1",
+      adapterId: definition.adapterId,
+      supportedDefinitionIds: [definition.definitionId],
+      validateDefinition: function (candidate) {
+        return { ok: true, value: candidate };
+      },
+      captureEvidence: function (ownerContext) {
+        if (!ownerContext || typeof ownerContext !== "object") {
+          return { ok: false, error: { reason: "owner context required" } };
+        }
+        var ownerState = ownerContext.ownerState;
+        if (!ownerState || typeof ownerState !== "object" || !ownerState.cells || typeof ownerState.cells !== "object") {
+          return { ok: false, error: { reason: "horizon ladder cell owner state required" } };
+        }
+        var frozen = deepFreeze(JSON.parse(JSON.stringify(ownerState)));
+        var evidence = buildHorizonLadderEvidence(api, frozen);
+        ownerByIdentity.set(evidence.evidenceIdentity, frozen);
+        return { ok: true, value: evidence };
+      },
+      normalizeInputs: function (candidate, evidence, parameterValues, seed, scenarioIds) {
+        return api.normalizeSimpleInput(candidate, evidence, parameterValues, seed, scenarioIds);
+      },
+      compute: function (input) {
+        var ownerState = ownerByIdentity.get(input.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for this evidence identity" } };
+        }
+        return { ok: true, value: horizonLadderOutput(input, computeHorizonLadderSummary(ownerState, paramMap(input))) };
+      },
+      compareSensitivity: function (baselineInput, currentInput) {
+        var ownerState = ownerByIdentity.get(currentInput.evidenceIdentity);
+        if (!ownerState) {
+          return { ok: false, error: { reason: "frozen owner state is unavailable for sensitivity" } };
+        }
+        var baselineValues = paramMap(baselineInput);
+        var currentValues = paramMap(currentInput);
+        var baselineSummary = computeHorizonLadderSummary(ownerState, baselineValues);
+        var currentSummary = computeHorizonLadderSummary(ownerState, currentValues);
+        var effects = [];
+        Object.keys(currentValues).forEach(function (parameterId) {
+          if (baselineValues[parameterId] === currentValues[parameterId]) return;
+          var paths = HORIZON_LADDER_OUTPUT_PATHS[parameterId] || [];
+          var changed = paths.some(function (path) {
+            return fingerprintOf(api, horizonLadderSummaryPath(baselineSummary, path)) !== fingerprintOf(api, horizonLadderSummaryPath(currentSummary, path));
+          });
+          effects.push({
+            parameterId: parameterId,
+            oldValue: baselineValues[parameterId],
+            newValue: currentValues[parameterId],
+            direction: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (currentValues[parameterId] > baselineValues[parameterId] ? "higher" : "lower")
+              : "changed",
+            magnitude: (typeof currentValues[parameterId] === "number" && typeof baselineValues[parameterId] === "number")
+              ? (Math.abs(currentValues[parameterId] - baselineValues[parameterId]) || 1)
+              : 1,
+            nonlinear: false,
+            resultPaths: paths,
+            outputChanged: changed,
+            flatRegionProof: changed ? null : {
+              parameterId: parameterId,
+              resultPaths: paths,
+              reason: "Every long and short cell is withheld at zero resolved outcomes, so the gate verdict is identical across this parameter change."
+            }
+          });
+        });
+        return {
+          ok: true,
+          value: {
+            contractVersion: "simple-sensitivity/v1",
+            effects: effects
+          }
+        };
+      },
+      explain: function (output) {
+        var summary = output && output.values && output.values.summary;
+        if (!summary) return { ok: false, error: { reason: "summary unavailable" } };
+        return {
+          ok: true,
+          value: {
+            headline: {
+              label: "Rate for " + summary.cellId,
+              valueText: summary.gate.published
+                ? ("Published on " + summary.gate.ledgerResolved + " resolved outcomes")
+                : ("Withheld — " + summary.gate.ledgerResolved + "/" + summary.gate.ledgerMinimum + " resolved"),
+              numericValue: summary.gate.published ? summary.gate.ledgerResolved : null,
+              unit: "resolved-outcomes",
+              summary: summary.gate.published
+                ? ("The " + summary.cellId + " cell has earned a rate; the target at " + summary.probability.targetSigma + " sigma resolves under the " + summary.probability.rule + " rule.")
+                : ("The " + summary.cellId + " cell withholds its rate: " + summary.gate.remaining + " more outcomes must resolve. The " + summary.probability.rule + " probability shown for a " + summary.probability.targetSigma + " sigma target is arithmetic, not a measured hit rate."),
+              sourceRefs: ["owner-evidence"]
+            }
+          }
+        };
+      }
+    };
+  }
+
   /* ═══════════ registration ═══════════
      Build every implemented strategy adapter for the supplied definitions. A tool whose owner seam is not
      yet extracted is simply absent, so the shared runtime renders the explicit unavailable state for it. */
@@ -1490,6 +1746,10 @@
       var validationDefinition = byToolId["strategy-validation-lab"];
       adapters[validationDefinition.adapterId] = createWalkForwardValidationAdapter(api, validationDefinition, ownerByIdentity);
     }
+    if (byToolId["horizon-ladder-lab"]) {
+      var horizonLadderDefinition = byToolId["horizon-ladder-lab"];
+      adapters[horizonLadderDefinition.adapterId] = createHorizonLadderAdapter(api, horizonLadderDefinition, ownerByIdentity);
+    }
     return adapters;
   }
 
@@ -1507,7 +1767,7 @@
   return {
     contractVersion: "strategy-research-adapters/v1",
     module: "rlexperience-adapters/strategy-research.js",
-    supportedAdapterIds: ["simple-adapter/strategy-evolution/v1", "simple-adapter/disclosure-decay/v1", "simple-adapter/walk-forward-validation/v1"],
+    supportedAdapterIds: ["simple-adapter/strategy-evolution/v1", "simple-adapter/disclosure-decay/v1", "simple-adapter/walk-forward-validation/v1", "simple-adapter/horizon-ladder/v1"],
     mulberry32: mulberry32,
     gauss: gauss,
     genSeries: genSeries,
@@ -1529,6 +1789,9 @@
     scorePass: scorePass,
     allPass: allPass,
     computeWalkForwardValidationSummary: computeWalkForwardValidationSummary,
+    horizonLadderNormSf: horizonLadderNormSf,
+    horizonLadderProbability: horizonLadderProbability,
+    computeHorizonLadderSummary: computeHorizonLadderSummary,
     createStrategyResearchAdapters: createStrategyResearchAdapters,
     registerStrategyResearchAdapters: registerStrategyResearchAdapters
   };

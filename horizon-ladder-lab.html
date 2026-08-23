@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://127.0.0.1:* https://*.ts.net:* https://api.nasdaq.com https://api.stlouisfed.org https://api.twelvedata.com https://cdn.cboe.com https://data.sec.gov https://finnhub.io https://home.treasury.gov https://production.dataviz.cnn.io https://query1.finance.yahoo.com https://query2.finance.yahoo.com https://stockanalysis.com https://www.alphavantage.co; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'; media-src 'none'; manifest-src 'self'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>Long/Short Horizon Ladder Lab</title>
+    <meta name="description"
+        content="Rank long and short equity candidates across six horizons with an earned-rate gate: a probability is shown only when the cell has reached its minimum resolved sample, and is withheld with its count otherwise.">
+    <style>
+        :root {
+            --bg: #0a0f14;
+            --surface: #111a22;
+            --surface-2: #172430;
+            --line: #2a3a48;
+            --text: #eaf2f8;
+            --muted: #9db0be;
+            --jade: #55d6a6;
+            --gold: #e4b55f;
+            --coral: #f17f6f;
+            --cyan: #65c9d8;
+            --violet: #a99bf0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .wrap {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 18px;
+        }
+
+        h1 {
+            font-size: 20px;
+            margin: 10px 0 4px;
+        }
+
+        h2 {
+            font-size: 15px;
+            margin: 0 0 10px;
+            color: var(--cyan);
+        }
+
+        .dim {
+            color: var(--muted);
+        }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin: 12px 0;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        select,
+        button {
+            background: var(--surface-2);
+            color: var(--text);
+            border: 1px solid var(--line);
+            border-radius: 7px;
+            padding: 6px 10px;
+            font: inherit;
+        }
+
+        .viewseg {
+            display: inline-flex;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .viewseg button {
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            padding: 6px 14px;
+        }
+
+        .viewseg button.on {
+            background: var(--cyan);
+            color: #06121a;
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th,
+        td {
+            text-align: right;
+            padding: 6px 8px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        th:first-child,
+        td:first-child {
+            text-align: left;
+        }
+
+        th {
+            color: var(--muted);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .withheld {
+            color: var(--gold);
+            font-style: italic;
+        }
+
+        .unavailable {
+            color: var(--muted);
+            font-style: italic;
+        }
+
+        .pos {
+            color: var(--jade);
+        }
+
+        .neg {
+            color: var(--coral);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            border: 1px solid var(--line);
+            color: var(--muted);
+        }
+
+        .warn {
+            border-left: 3px solid var(--gold);
+            padding-left: 12px;
+            margin: 10px 0;
+        }
+
+        canvas {
+            width: 100%;
+            height: 260px;
+            display: block;
+        }
+
+        body:not(.power) .pw {
+            display: none;
+        }
+
+        body.power #simpleWrap {
+            display: none;
+        }
+
+        .grid2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width:820px) {
+            .grid2 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <h1>Long/Short Horizon Ladder Lab</h1>
+        <p class="dim" style="margin-top:0">
+            Ranked long and short candidates across six horizons. A probability appears only when its cell has reached
+            the minimum resolved sample; otherwise it is withheld and the count is shown. Educational only, not
+            investment advice.
+        </p>
+
+        <div class="panel controls">
+            <div class="viewseg" id="modeSeg" role="tablist" aria-label="View mode">
+                <button type="button" data-mode="simple" class="on" role="tab" aria-selected="true">Simple</button>
+                <button type="button" data-mode="power" role="tab" aria-selected="false">Power</button>
+            </div>
+            <label>Horizon <select id="selHorizon"></select></label>
+            <label>Direction <select id="selDirection"></select></label>
+            <label>Profile <select id="selProfile"></select></label>
+            <label>Resolution <select id="selRule">
+                    <option value="terminal">terminal</option>
+                    <option value="touch">touch</option>
+                </select></label>
+            <span class="badge" id="regimeBadge">regime unavailable</span>
+            <span class="badge" id="dataBadge">data unavailable</span>
+        </div>
+
+        <div id="gateNotice" class="panel warn"></div>
+
+        <div id="simpleWrap">
+            <div class="panel">
+                <h2>Scheduled events inside this horizon</h2>
+                <div id="eventsPanel"></div>
+            </div>
+            <div class="panel">
+                <h2>What moved since your last look</h2>
+                <div id="changePanel"></div>
+            </div>
+            <div class="panel">
+                <h2 id="simpleTitle">Candidates</h2>
+                <div id="simpleTable"></div>
+            </div>
+            <div class="panel">
+                <h2>Why this cell has no probability yet</h2>
+                <div id="earnSummary"></div>
+            </div>
+        </div>
+
+        <div class="pw panel">
+            <h2>Probability and move are a frontier, not two sort keys</h2>
+            <p class="dim" style="margin-top:0">Target distance in sigma against the probability of reaching it. Chosen
+                resolution rule applies. Drift is declared zero, so any upward tilt would be a forecast and is not
+                applied.</p>
+            <canvas id="frontier" aria-label="Frontier of target distance in sigma against probability of reaching the
+                target at the selected horizon"></canvas>
+            <p class="dim" id="frontierFallback"></p>
+        </div>
+
+        <div class="pw panel">
+            <h2>Full candidate table</h2>
+            <div id="powerTable"></div>
+        </div>
+
+        <div class="pw grid2">
+            <div class="panel">
+                <h2>Earn progress by cell</h2>
+                <div id="earnTable"></div>
+            </div>
+            <div class="panel">
+                <h2>Exclusions</h2>
+                <div id="exclusionTable"></div>
+            </div>
+        </div>
+
+        <div class="pw panel">
+            <h2>Measured record this gate inherits</h2>
+            <div id="recordTable"></div>
+        </div>
+
+        <p class="dim" style="font-size:12px">
+            Design of record: <a href="notes/horizon-ladder-lab.md" style="color:var(--cyan)">notes/horizon-ladder-lab.md</a>.
+            Owning tools for the underlying maths: <a href="swing-structure-lab.html" style="color:var(--cyan)">Swing
+                Structure</a>, <a href="options-structure-lab.html" style="color:var(--cyan)">Options Structure</a>,
+            <a href="volatility-sizing-lab.html" style="color:var(--cyan)">Volatility Sizing</a>,
+            <a href="market-brief.html" style="color:var(--cyan)">Market Action Center</a>.
+        </p>
+    </div>
+
+    <script src="rldata.js"></script>
+    <script src="rlapp.js"></script>
+    <script src="rlexperience-adapters/market-structure.js"></script>
+    <script src="rlticker.js"></script>
+    <script src="rlnav.js"></script>
+    <script>
+        /* ---------- pure helpers (extracted by scripts/selftest.mjs) ---------- */
+
+        function hlNormSf(z) {
+            var sign = z < 0 ? -1 : 1;
+            var x = Math.abs(z) / Math.SQRT2;
+            var t = 1 / (1 + 0.3275911 * x);
+            var y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+            var erf = sign * y;
+            return 0.5 * (1 - erf);
+        }
+
+        function hlHorizonSessions(horizons, id) {
+            for (var i = 0; i < horizons.length; i++) {
+                if (horizons[i].id === id) return horizons[i].sessions;
+            }
+            return null;
+        }
+
+        function hlSigmaHorizon(annualVol, sessions, sessionsPerYear) {
+            if (!isFinite(annualVol) || !isFinite(sessions) || !isFinite(sessionsPerYear)) return null;
+            if (annualVol <= 0 || sessions <= 0 || sessionsPerYear <= 0) return null;
+            return annualVol * Math.sqrt(sessions / sessionsPerYear);
+        }
+
+        function hlTerminalProbability(k) {
+            return hlNormSf(k);
+        }
+
+        function hlTouchProbability(k) {
+            if (k <= 0) return 1;
+            return Math.min(1, 2 * hlNormSf(k));
+        }
+
+        function hlProbabilityFor(k, resolutionRule) {
+            if (resolutionRule === 'touch') return hlTouchProbability(k);
+            if (resolutionRule === 'terminal') return hlTerminalProbability(k);
+            return null;
+        }
+
+        function hlRewardToRisk(k, m) {
+            if (!isFinite(k) || !isFinite(m) || m <= 0) return null;
+            return k / m;
+        }
+
+        function hlExpectedValueSigma(p, k, m) {
+            if (!isFinite(p) || !isFinite(k) || !isFinite(m)) return null;
+            return p * k - (1 - p) * m;
+        }
+
+        function hlRateGate(analogN, analogMin, ledgerResolved, ledgerMin) {
+            var a = isFinite(analogN) ? analogN : 0;
+            var r = isFinite(ledgerResolved) ? ledgerResolved : 0;
+            if (r < ledgerMin) {
+                return { published: false, reason: 'ledger-insufficient-sample', analogN: a, ledgerResolved: r, ledgerMin: ledgerMin, analogMin: analogMin };
+            }
+            if (a < analogMin) {
+                return { published: false, reason: 'analog-insufficient-sample', analogN: a, ledgerResolved: r, ledgerMin: ledgerMin, analogMin: analogMin };
+            }
+            return { published: true, reason: null, analogN: a, ledgerResolved: r, ledgerMin: ledgerMin, analogMin: analogMin };
+        }
+
+        function hlScoreabilityRefusal(candidate) {
+            if (!candidate) return 'candidate';
+            if (!candidate.hasBars) return 'instrument.bars';
+            if (!candidate.entryReference || !isFinite(candidate.entryReference.level) || !candidate.entryReference.at) return 'entryReference';
+            if (!isFinite(candidate.target)) return 'target';
+            if (!isFinite(candidate.invalidation)) return 'invalidation';
+            if (!candidate.scoreableAt) return 'scoreableAt';
+            if (candidate.resolutionRule !== 'terminal' && candidate.resolutionRule !== 'touch') return 'resolutionRule';
+            if (!candidate.settlementSource) return 'settlementSource';
+            return null;
+        }
+
+        function hlPercentile(sortedValues, p) {
+            if (!sortedValues || sortedValues.length === 0) return null;
+            if (sortedValues.length === 1) return sortedValues[0];
+            var idx = (sortedValues.length - 1) * p;
+            var lo = Math.floor(idx);
+            var hi = Math.ceil(idx);
+            if (lo === hi) return sortedValues[lo];
+            return sortedValues[lo] + (sortedValues[hi] - sortedValues[lo]) * (idx - lo);
+        }
+
+        function hlSortRows(rows, key) {
+            var rated = [];
+            var withheld = [];
+            for (var i = 0; i < rows.length; i++) {
+                if (rows[i].rateWithheld) withheld.push(rows[i]); else rated.push(rows[i]);
+            }
+            var cmp = function (a, b) {
+                var av = a[key], bv = b[key];
+                if (!isFinite(av)) av = -Infinity;
+                if (!isFinite(bv)) bv = -Infinity;
+                return bv - av;
+            };
+            rated.sort(cmp);
+            withheld.sort(cmp);
+            return { rated: rated, withheld: withheld };
+        }
+
+        function hlEarnProgress(resolved, minimum) {
+            var r = isFinite(resolved) ? resolved : 0;
+            var remaining = Math.max(0, minimum - r);
+            return { resolved: r, minimum: minimum, remaining: remaining, earned: remaining === 0 };
+        }
+
+        function hlRegimeKey(vix, maStack) {
+            var vol = 'unknown';
+            if (isFinite(vix)) vol = vix < 18 ? 'lowvol' : (vix < 28 ? 'midvol' : 'highvol');
+            var trend = 'mixed';
+            if (maStack === 'bull-stack') trend = 'bull';
+            else if (maStack === 'bear-stack') trend = 'bear';
+            return vol + '-' + trend;
+        }
+
+        function hlAnnualisedVol(closes, sessionsPerYear) {
+            if (!closes || closes.length < 22) return null;
+            var rets = [];
+            for (var i = 1; i < closes.length; i++) {
+                if (!isFinite(closes[i]) || !isFinite(closes[i - 1]) || closes[i - 1] <= 0) continue;
+                rets.push(Math.log(closes[i] / closes[i - 1]));
+            }
+            if (rets.length < 21) return null;
+            var mean = 0, j;
+            for (j = 0; j < rets.length; j++) mean += rets[j];
+            mean /= rets.length;
+            var v = 0;
+            for (j = 0; j < rets.length; j++) v += (rets[j] - mean) * (rets[j] - mean);
+            v /= (rets.length - 1);
+            return Math.sqrt(v) * Math.sqrt(sessionsPerYear);
+        }
+
+        /* Swing pivots: a bar is a pivot high when its high is the strict maximum of the
+           surrounding +/- span window, and a pivot low when its low is the strict minimum. */
+        /* Swing pivots are owned by RLMARKETSTRUCTURE. The api is injected rather than read from a
+           global so the function stays pure and testable, and an absent api withholds instead of
+           falling back to a private copy of a formula this tool does not own. */
+        function hlSwingPivots(rows, span, structureApi) {
+            var empty = { highs: [], lows: [] };
+            if (!structureApi || typeof structureApi.pivots !== 'function') return empty;
+            if (!rows || rows.length < (2 * span + 1)) return empty;
+            var owned = structureApi.pivots(rows, span);
+            if (!owned) return empty;
+            var highs = (owned.hs || []).map(function (h) { return { i: h.i, price: h.p }; });
+            var lows = (owned.ls || []).map(function (l) { return { i: l.i, price: l.p }; });
+            return { highs: highs, lows: lows };
+        }
+
+        function hlNearestLevel(pivots, price, side) {
+            var best = null;
+            for (var i = 0; i < pivots.length; i++) {
+                var p = pivots[i].price;
+                if (side === 'above' && p > price) { if (best === null || p < best) best = p; }
+                if (side === 'below' && p < price) { if (best === null || p > best) best = p; }
+            }
+            return best;
+        }
+
+        /* Target and invalidation come from the name's own structure, so two names with the
+           same volatility but different levels produce different k, m and expected value. */
+        function hlStructureDistances(rows, sigmaHorizonPct, direction, span, structureApi) {
+            if (!rows || !rows.length || !isFinite(sigmaHorizonPct) || sigmaHorizonPct <= 0) return null;
+            var px = rows[rows.length - 1].c;
+            if (!isFinite(px) || px <= 0) return null;
+            var piv = hlSwingPivots(rows, span, structureApi);
+            var targetPrice = direction === 'long'
+                ? hlNearestLevel(piv.highs, px, 'above')
+                : hlNearestLevel(piv.lows, px, 'below');
+            var invalidationPrice = direction === 'long'
+                ? hlNearestLevel(piv.lows, px, 'below')
+                : hlNearestLevel(piv.highs, px, 'above');
+            if (targetPrice === null || invalidationPrice === null) return null;
+            var k = Math.abs(targetPrice - px) / (px * sigmaHorizonPct);
+            var m = Math.abs(invalidationPrice - px) / (px * sigmaHorizonPct);
+            if (!isFinite(k) || !isFinite(m) || m <= 0) return null;
+            return { price: px, targetPrice: targetPrice, invalidationPrice: invalidationPrice, k: k, m: m };
+        }
+
+        /* Moving averages are owned by RLMARKETSTRUCTURE.smaArr. Computing the three series once
+           per symbol also removes the per-bar recomputation the analog scan would otherwise repeat. */
+        function hlMaSeries(rows, structureApi) {
+            if (!structureApi || typeof structureApi.smaArr !== 'function' || !rows || !rows.length) return null;
+            return { m20: structureApi.smaArr(rows, 20), m50: structureApi.smaArr(rows, 50), m200: structureApi.smaArr(rows, 200) };
+        }
+
+        function hlMaStackFromSeries(series, i) {
+            if (!series) return null;
+            var a = series.m20 && series.m20[i], b = series.m50 && series.m50[i], c = series.m200 && series.m200[i];
+            /* smaArr yields null during the warm-up window, and isFinite(null) is true, so the
+               type check is what actually refuses an incomplete history. */
+            if (typeof a !== 'number' || typeof b !== 'number' || typeof c !== 'number') return null;
+            if (!isFinite(a) || !isFinite(b) || !isFinite(c)) return null;
+            if (a > b && b > c) return 'bull-stack';
+            if (a < b && b < c) return 'bear-stack';
+            return 'tangled';
+        }
+
+        /* Setup class uses only information available at bar i, so an analog scan can never
+           read the future it is being asked to describe. */
+        function hlSetupClass(closes, i, trailingVolPct, series) {
+            var stack = hlMaStackFromSeries(series, i);
+            if (stack === null) return null;
+            var ma200 = series.m200[i];
+            if (typeof ma200 !== 'number' || !isFinite(ma200) || ma200 <= 0) return null;
+            var dist = (closes[i] - ma200) / ma200;
+            var distBucket = dist > 0.10 ? 'far-above' : (dist > 0.02 ? 'above' : (dist > -0.02 ? 'at' : (dist > -0.10 ? 'below' : 'far-below')));
+            var volBucket = !isFinite(trailingVolPct) ? 'unknown' : (trailingVolPct < 0.18 ? 'lowvol' : (trailingVolPct < 0.30 ? 'midvol' : 'highvol'));
+            return volBucket + '|' + stack + '|' + distBucket;
+        }
+
+        function hlTrailingVolAt(closes, i, window, sessionsPerYear) {
+            if (i < window) return null;
+            var slice = closes.slice(i - window + 1, i + 1);
+            return hlAnnualisedVol(slice, sessionsPerYear);
+        }
+
+        /* Forward returns for every prior bar whose setup class matches the current one. */
+        function hlAnalogForwardReturns(closes, sessions, currentClass, volWindow, sessionsPerYear, series) {
+            var out = [];
+            if (!closes || !currentClass || !series) return out;
+            for (var i = 200; i < closes.length - sessions; i++) {
+                var vol = hlTrailingVolAt(closes, i, volWindow, sessionsPerYear);
+                if (vol === null) continue;
+                if (hlSetupClass(closes, i, vol, series) !== currentClass) continue;
+                if (!isFinite(closes[i]) || closes[i] <= 0) continue;
+                out.push((closes[i + sessions] - closes[i]) / closes[i]);
+            }
+            return out;
+        }
+
+        function hlAnalogRate(forwardReturns, targetMovePct, direction) {
+            var n = forwardReturns ? forwardReturns.length : 0;
+            if (!n) return { n: 0, k: 0, rate: null };
+            var hits = 0;
+            for (var i = 0; i < n; i++) {
+                var r = forwardReturns[i];
+                if (direction === 'long' ? (r >= targetMovePct) : (r <= -targetMovePct)) hits++;
+            }
+            return { n: n, k: hits, rate: hits / n };
+        }
+
+        /* Option-implied move for the nearest expiry at or beyond the horizon. Absent chain
+           yields null so the column renders unavailable rather than a substituted figure. */
+        function hlImpliedMoveFromChain(chain, sessions, price) {
+            if (!chain || !isFinite(price) || price <= 0) return null;
+            var expiries = chain.expiries || chain.exp || null;
+            if (!expiries || !expiries.length) return null;
+            var wantMs = Date.now() + sessions * (365 / 252) * 86400000;
+            var best = null;
+            for (var i = 0; i < expiries.length; i++) {
+                var e = expiries[i];
+                var t = e && (e.expiryMs || e.t || e.date);
+                var iv = e && (e.atmIv || e.iv);
+                if (!isFinite(t) || !isFinite(iv)) continue;
+                if (t < Date.now()) continue;
+                if (best === null || Math.abs(t - wantMs) < Math.abs(best.t - wantMs)) best = { t: t, iv: iv };
+            }
+            if (!best) return null;
+            var years = (best.t - Date.now()) / (365 * 86400000);
+            if (years <= 0) return null;
+            return best.iv * Math.sqrt(years);
+        }
+
+
+        /* ---------- next events and the change ledger ---------- */
+
+        /* Events are owned by the Market Action Center payload. This selects the ones whose date
+           falls inside the selected horizon window; it never invents a date, a move or a
+           probability, and an event without an implied move stays null rather than being filled. */
+        function hlEventsInWindow(events, sessions, nowMs) {
+            var out = [];
+            if (!events || !events.length || !isFinite(sessions) || !isFinite(nowMs)) return out;
+            var endMs = nowMs + sessions * (365 / 252) * 86400000;
+            for (var i = 0; i < events.length; i++) {
+                var e = events[i];
+                var whenMs = e && e.when ? Date.parse(e.when) : NaN;
+                if (!isFinite(whenMs)) continue;
+                if (whenMs < nowMs - 86400000 || whenMs > endMs) continue;
+                out.push({
+                    event: e.event || e.type || 'unnamed event',
+                    type: e.type || null,
+                    when: e.when,
+                    daysOut: Math.round((whenMs - nowMs) / 86400000),
+                    impliedMovePct: isFinite(e.impliedMovePct) ? e.impliedMovePct : null,
+                    scenarios: Array.isArray(e.scenarios) ? e.scenarios : []
+                });
+            }
+            out.sort(function (a, b) { return a.daysOut - b.daysOut; });
+            return out;
+        }
+
+        /* Declared scenario probabilities are only usable if they form a distribution. A set that
+           does not sum to one is reported as malformed rather than silently renormalised. */
+        function hlScenarioTotal(scenarios) {
+            if (!scenarios || !scenarios.length) return null;
+            var total = 0;
+            for (var i = 0; i < scenarios.length; i++) {
+                if (!isFinite(scenarios[i].prob)) return null;
+                total += scenarios[i].prob;
+            }
+            return total;
+        }
+
+        function hlScenariosUsable(scenarios) {
+            var total = hlScenarioTotal(scenarios);
+            return total !== null && Math.abs(total - 1) <= 0.02;
+        }
+
+        /* A scheduled catalyst inside the horizon is a reason to distrust the analog rate, because
+           the analog sample was conditioned on price structure and not on a known future event. */
+        function hlEventCaveat(eventsInWindow) {
+            if (!eventsInWindow || !eventsInWindow.length) return null;
+            return eventsInWindow.length + ' scheduled event' + (eventsInWindow.length === 1 ? '' : 's')
+                + ' fall inside this horizon. The analog rate was conditioned on price structure only, '
+                + 'so it does not price these catalysts and understates the spread around them.';
+        }
+
+        function hlObservationOf(rows) {
+            var o = {};
+            for (var i = 0; i < rows.length; i++) {
+                var r = rows[i];
+                o[r.symbol] = { ev: r.ev, analogN: r.analogN, rateWithheld: !!r.rateWithheld, k: r.k, m: r.m };
+            }
+            return o;
+        }
+
+        /* The change ledger answers what moved since the last look at this cell. With no prior
+           observation it says so, rather than presenting an first run as a set of changes. */
+        function hlDiffObservation(prev, curr) {
+            if (!prev) return { firstObservation: true, added: [], dropped: [], changed: [] };
+            var added = [], dropped = [], changed = [], sym;
+            for (sym in curr) {
+                if (!Object.prototype.hasOwnProperty.call(curr, sym)) continue;
+                if (!Object.prototype.hasOwnProperty.call(prev, sym)) { added.push(sym); continue; }
+                var a = prev[sym], b = curr[sym];
+                if (a.rateWithheld !== b.rateWithheld) {
+                    changed.push({ symbol: sym, field: 'rate state', from: a.rateWithheld ? 'withheld' : 'published', to: b.rateWithheld ? 'withheld' : 'published' });
+                }
+                if (isFinite(a.ev) && isFinite(b.ev) && Math.abs(b.ev - a.ev) >= 0.01) {
+                    changed.push({ symbol: sym, field: 'expected value', from: a.ev.toFixed(3), to: b.ev.toFixed(3) });
+                }
+                if (isFinite(a.analogN) && isFinite(b.analogN) && a.analogN !== b.analogN) {
+                    changed.push({ symbol: sym, field: 'analog sample', from: String(a.analogN), to: String(b.analogN) });
+                }
+            }
+            for (sym in prev) {
+                if (!Object.prototype.hasOwnProperty.call(prev, sym)) continue;
+                if (!Object.prototype.hasOwnProperty.call(curr, sym)) dropped.push(sym);
+            }
+            return { firstObservation: false, added: added, dropped: dropped, changed: changed };
+        }
+
+        /* ---------- state ---------- */
+
+        var CFG = null;
+        var state = { mode: 'simple', horizon: 'h1m', direction: 'long', profile: 'lower-risk', rule: 'terminal' };
+        var market = { bars: {}, chains: {}, vix: null, maStack: null, available: false, events: null, eventsState: 'unavailable' };
+        var LS_KEY = 'horizon-ladder-lab/v1';
+        var LS_OBS = 'horizon-ladder-lab/observation/v1';
+
+        function el(id) { return document.getElementById(id); }
+        function pct(x, d) { return isFinite(x) ? (x * 100).toFixed(d === undefined ? 1 : d) + '%' : null; }
+        function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
+
+        function saveState() {
+            try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable is not an error */ }
+        }
+
+        function loadState() {
+            try {
+                var raw = localStorage.getItem(LS_KEY);
+                if (!raw) return;
+                var saved = JSON.parse(raw);
+                for (var k in saved) { if (Object.prototype.hasOwnProperty.call(state, k)) state[k] = saved[k]; }
+            } catch (e) { /* ignore malformed persisted state */ }
+        }
+
+        function cellKey(direction, horizonId) { return direction + ':' + horizonId; }
+
+        function ledgerResolvedFor(direction, horizonId) {
+            var cells = CFG && CFG.ledgerSnapshot && CFG.ledgerSnapshot.cells;
+            if (!cells) return 0;
+            var v = cells[cellKey(direction, horizonId)];
+            return isFinite(v) ? v : 0;
+        }
+
+        /* The realised rate for a cell, published only once that cell has earned it. */
+        function ledgerRateFor(direction, horizonId) {
+            var rates = CFG && CFG.ledgerSnapshot && CFG.ledgerSnapshot.rates;
+            if (!rates) return null;
+            var v = rates[cellKey(direction, horizonId)];
+            return isFinite(v) ? v : null;
+        }
+
+        function fmtPct(x, d) {
+            if (!isFinite(x)) return '<span class="unavailable">unavailable</span>';
+            return (x * 100).toFixed(d === undefined ? 1 : d) + '%';
+        }
+
+        /* ---------- market data: cache-first, honest degradation ---------- */
+
+        function readSharedCache() {
+            var store = (typeof window !== 'undefined' && window.RLDATA) ? window.RLDATA : null;
+            if (!store || typeof store.bars !== 'function') return;
+            var got = 0;
+            for (var i = 0; i < CFG.watchlist.length; i++) {
+                var sym = CFG.watchlist[i].symbol, rows = null;
+                try { rows = store.bars(sym, '1d', null); } catch (e) { rows = null; }
+                if (rows && rows.length) { market.bars[sym] = rows; got++; }
+                if (typeof store.options === 'function') {
+                    try { market.chains[sym] = store.options(sym) || null; } catch (e) { market.chains[sym] = null; }
+                }
+            }
+            market.available = got > 0;
+
+            try {
+                var vixRows = store.bars('^VIX', '1d', null);
+                if (vixRows && vixRows.length) market.vix = vixRows[vixRows.length - 1].c;
+            } catch (e) { market.vix = null; }
+            try {
+                var benchRows = store.bars(CFG.policy.benchmarkSymbol || 'SPY', '1d', null);
+                if (benchRows && benchRows.length >= 200) {
+                    market.maStack = hlMaStackFromSeries(hlMaSeries(benchRows, structureApi()), benchRows.length - 1);
+                }
+            } catch (e) { market.maStack = null; }
+        }
+
+        /* ---------- candidate construction ---------- */
+
+        /* The owning module for smaArr and pivots. Absent it, structure-derived rows withhold
+           rather than fall back to a private copy of a formula this tool does not own. */
+        function structureApi() {
+            return (typeof RLMARKETSTRUCTURE !== 'undefined') ? RLMARKETSTRUCTURE : null;
+        }
+
+        function buildCandidates() {
+            var sessions = hlHorizonSessions(CFG.horizons, state.horizon);
+            var spy = CFG.policy.sessionsPerYear;
+            var minAnalog = CFG.policy.minAnalogSample;
+            var minLedger = CFG.policy.minResolvedSample;
+            var ledgerResolved = ledgerResolvedFor(state.direction, state.horizon);
+            var span = CFG.policy.pivotSpan || 3;
+            var volWindow = CFG.policy.volWindowSessions || 63;
+            var rows = [];
+            var excluded = [];
+
+            for (var i = 0; i < CFG.watchlist.length; i++) {
+                var w = CFG.watchlist[i];
+                if (state.direction === 'short' && !w.shortable) {
+                    excluded.push({ symbol: w.symbol, reason: 'not shortable in this universe' });
+                    continue;
+                }
+                var bars = market.bars[w.symbol] || null;
+                if (!bars || bars.length < 200 + sessions) {
+                    excluded.push({ symbol: w.symbol, reason: 'not scoreable at mint: instrument.bars (needs ' + (200 + sessions) + ' sessions, has ' + (bars ? bars.length : 0) + ')' });
+                    continue;
+                }
+                var closes = bars.map(function (r) { return r.c; });
+                var vol = hlAnnualisedVol(closes.slice(-volWindow), spy);
+                var sigma = hlSigmaHorizon(vol, sessions, spy);
+                if (sigma === null) {
+                    excluded.push({ symbol: w.symbol, reason: 'not scoreable at mint: instrument.bars (volatility unavailable)' });
+                    continue;
+                }
+
+                var struct = hlStructureDistances(bars, sigma, state.direction, span, structureApi());
+                if (!struct) {
+                    excluded.push({ symbol: w.symbol, reason: 'no swing structure on the ' + state.direction + ' side to place a target and an invalidation' });
+                    continue;
+                }
+
+                var candidate = {
+                    hasBars: true,
+                    entryReference: { level: struct.price, at: new Date(bars[bars.length - 1].t).toISOString() },
+                    target: struct.targetPrice,
+                    invalidation: struct.invalidationPrice,
+                    scoreableAt: String(sessions) + '-sessions',
+                    resolutionRule: state.rule,
+                    settlementSource: 'shared rlData daily closes'
+                };
+                var refusal = hlScoreabilityRefusal(candidate);
+                if (refusal) {
+                    excluded.push({ symbol: w.symbol, reason: 'not scoreable at mint: ' + refusal });
+                    continue;
+                }
+
+                var targetMovePct = struct.k * sigma;
+                var series = hlMaSeries(bars, structureApi());
+                var currentClass = hlSetupClass(closes, closes.length - 1, vol, series);
+                var forward = hlAnalogForwardReturns(closes, sessions, currentClass, volWindow, spy, series);
+                var analog = hlAnalogRate(forward, targetMovePct, state.direction);
+                var sortedForward = forward.slice().sort(function (a, b) { return a - b; });
+
+                var gate = hlRateGate(analog.n, minAnalog, ledgerResolved, minLedger);
+                var usesAnalog = analog.n >= minAnalog && analog.rate !== null;
+                var p = usesAnalog ? analog.rate : hlProbabilityFor(struct.k, state.rule);
+
+                rows.push({
+                    symbol: w.symbol,
+                    kind: w.kind,
+                    setupClass: currentClass,
+                    price: struct.price,
+                    targetPrice: struct.targetPrice,
+                    invalidationPrice: struct.invalidationPrice,
+                    sigmaPct: sigma,
+                    movePct: targetMovePct,
+                    stopPct: struct.m * sigma,
+                    k: struct.k,
+                    m: struct.m,
+                    probability: p,
+                    probabilitySource: usesAnalog ? 'analog' : 'model',
+                    analogN: analog.n,
+                    analogK: analog.k,
+                    analogRate: usesAnalog ? analog.rate : null,
+                    moveP25: hlPercentile(sortedForward, 0.25),
+                    moveP50: hlPercentile(sortedForward, 0.50),
+                    moveP75: hlPercentile(sortedForward, 0.75),
+                    impliedMove: hlImpliedMoveFromChain(market.chains[w.symbol], sessions, struct.price),
+                    stopTouch: hlTouchProbability(struct.m),
+                    rr: hlRewardToRisk(struct.k, struct.m),
+                    ev: hlExpectedValueSigma(p, struct.k, struct.m),
+                    measuredRate: gate.published ? ledgerRateFor(state.direction, state.horizon) : null,
+                    rateWithheld: !gate.published,
+                    gateReason: gate.reason
+                });
+            }
+
+            var selected = applyProfile(rows, excluded);
+            var cap = CFG.policy.candidateCapPerCell;
+            var sorted = hlSortRows(selected.kept, sortKeyForProfile());
+            var kept = sorted.rated.concat(sorted.withheld).slice(0, cap);
+            return {
+                rows: kept,
+                considered: CFG.watchlist.length,
+                excluded: excluded.concat(selected.excluded),
+                gate: hlRateGate(rows.length ? rows[0].analogN : 0, minAnalog, ledgerResolved, minLedger),
+                sessions: sessions
+            };
+        }
+
+        /* Profiles select among real structure rather than imposing a target distance. */
+        function applyProfile(rows, excluded) {
+            var kept = [], dropped = [];
+            for (var i = 0; i < rows.length; i++) {
+                var r = rows[i];
+                if (state.profile === 'lower-risk' && !(isFinite(r.rr) && r.rr >= CFG.policy.rewardToRiskFloor)) {
+                    dropped.push({ symbol: r.symbol, reason: 'reward-to-risk ' + (isFinite(r.rr) ? r.rr.toFixed(2) : 'n/a') + ' is below the ' + CFG.policy.rewardToRiskFloor + ' floor for the lower-risk profile' });
+                    continue;
+                }
+                if (state.profile === 'high-probability' && r.rateWithheld) {
+                    dropped.push({ symbol: r.symbol, reason: 'high-probability profile requires an earned rate; this cell is withheld' });
+                    continue;
+                }
+                kept.push(r);
+            }
+            return { kept: kept, excluded: dropped };
+        }
+
+        function sortKeyForProfile() {
+            if (state.profile === 'high-reward') return 'movePct';
+            if (state.profile === 'lower-risk') return 'rr';
+            return 'ev';
+        }
+
+
+        /* ---------- rendering ---------- */
+
+        function renderGateNotice(gate, sessions) {
+            var cell = cellKey(state.direction, state.horizon);
+            var progress = hlEarnProgress(gate.ledgerResolved, gate.ledgerMin);
+            var html = '';
+            if (!gate.published) {
+                html += '<strong>Probability withheld for ' + esc(cell) + '.</strong> ';
+                html += 'Reason <code>' + esc(gate.reason) + '</code>. ';
+                html += 'Resolved outcomes ' + progress.resolved + ' of ' + progress.minimum + ' required; '
+                    + progress.remaining + ' more must resolve before any rate is shown for this cell. ';
+                html += 'The model probability column below is arithmetic from the target distance and the chosen '
+                    + 'resolution rule. It is not a measured hit rate and must not be read as one.';
+            } else {
+                html += '<strong>Rate published for ' + esc(cell) + '.</strong> Both the analog and ledger samples cleared their minimum.';
+            }
+            el('gateNotice').innerHTML = html;
+        }
+
+        function probCell(row) {
+            if (row.rateWithheld || !isFinite(row.measuredRate)) {
+                return '<span class="withheld">withheld</span>';
+            }
+            return fmtPct(row.measuredRate);
+        }
+
+        function analogCell(row) {
+            if (!isFinite(row.analogRate)) {
+                return '<span class="withheld">n=' + row.analogN + '</span>';
+            }
+            return fmtPct(row.analogRate) + ' <span class="dim">(' + row.analogK + '/' + row.analogN + ')</span>';
+        }
+
+        function renderTable(target, rows, full) {
+            if (!rows.length) {
+                el(target).innerHTML = '<p class="unavailable">No candidate cleared the gates. '
+                    + (market.available ? 'Every name was excluded; the exclusion ledger below names each reason.' : 'No price series is present in the shared cache, so structure, volatility and analogs cannot be computed. Open another Research Lab tool to populate the cache, then reload.') + '</p>';
+                return;
+            }
+            var h = '<table><thead><tr><th>Symbol</th><th>Measured rate</th><th>Analog rate</th><th>Prob.</th><th>Expected move</th>'
+                + '<th>Invalidation</th><th>Stop touch</th><th>R:R</th><th>EV (σ)</th>'
+                + (full ? '<th>P25 / P50 / P75</th><th>Implied</th><th>Setup</th>' : '') + '</tr></thead><tbody>';
+            for (var i = 0; i < rows.length; i++) {
+                var r = rows[i];
+                h += '<tr>'
+                    + '<td>' + esc(r.symbol) + '</td>'
+                    + '<td>' + probCell(r) + '</td>'
+                    + '<td>' + analogCell(r) + '</td>'
+                    + '<td>' + fmtPct(r.probability) + ' <span class="dim">' + esc(r.probabilitySource) + '</span></td>'
+                    + '<td>' + fmtPct(r.movePct) + '</td>'
+                    + '<td>' + fmtPct(r.stopPct) + '</td>'
+                    + '<td>' + fmtPct(r.stopTouch) + '</td>'
+                    + '<td>' + (isFinite(r.rr) ? r.rr.toFixed(2) : '<span class="unavailable">n/a</span>') + '</td>'
+                    + '<td class="' + (r.ev >= 0 ? 'pos' : 'neg') + '">' + (isFinite(r.ev) ? r.ev.toFixed(3) : '') + '</td>'
+                    + (full ? '<td>' + fmtPct(r.moveP25) + ' / ' + fmtPct(r.moveP50) + ' / ' + fmtPct(r.moveP75) + '</td>'
+                        + '<td>' + fmtPct(r.impliedMove) + '</td>'
+                        + '<td class="dim">' + esc(r.setupClass || 'unavailable') + '</td>' : '')
+                    + '</tr>';
+            }
+            h += '</tbody></table>';
+            el(target).innerHTML = h;
+        }
+
+        function renderEarn() {
+            var h = '<table><thead><tr><th>Cell</th><th>Resolved</th><th>Required</th><th>Remaining</th><th>State</th></tr></thead><tbody>';
+            for (var d = 0; d < CFG.directions.length; d++) {
+                for (var i = 0; i < CFG.horizons.length; i++) {
+                    var dir = CFG.directions[d], hz = CFG.horizons[i];
+                    var pr = hlEarnProgress(ledgerResolvedFor(dir, hz.id), CFG.policy.minResolvedSample);
+                    h += '<tr><td>' + esc(dir + ':' + hz.id) + '</td><td>' + pr.resolved + '</td><td>' + pr.minimum
+                        + '</td><td>' + pr.remaining + '</td><td>' + (pr.earned ? '<span class="pos">earned</span>' : '<span class="withheld">withheld</span>') + '</td></tr>';
+                }
+            }
+            h += '</tbody></table>';
+            el('earnTable').innerHTML = h;
+        }
+
+        function renderEarnSummary(gate) {
+            var pr = hlEarnProgress(gate.ledgerResolved, gate.ledgerMin);
+            var ref = CFG.ledgerSnapshot.referenceCells;
+            var h = '<p>This cell has <strong>' + pr.resolved + '</strong> resolved outcomes and needs <strong>'
+                + pr.minimum + '</strong>. No long or short claim has ever been minted in this repository, so every '
+                + 'one of the twelve cells starts empty.</p>';
+            h += '<p class="dim">Nearest measured neighbours, direction-agnostic, as of '
+                + esc(CFG.ledgerSnapshot.asOf) + ':</p><table><thead><tr><th>Bucket</th><th>Resolved</th><th>Hit rate</th></tr></thead><tbody>';
+            for (var i = 0; i < ref.length; i++) {
+                h += '<tr><td>' + esc(ref[i].id) + '</td><td>' + ref[i].resolved + '</td><td>' + pct(ref[i].hitRate) + '</td></tr>';
+            }
+            h += '</tbody></table>';
+            el('earnSummary').innerHTML = h;
+        }
+
+        function renderRecord() {
+            var cal = CFG.ledgerSnapshot.calibration;
+            var h = '<p class="dim">Calibration of the existing system. Every bucket at or above 60 stated confidence is '
+                + 'withheld for insufficient sample, which is why this tool cannot inherit a high-probability claim.</p>';
+            h += '<table><thead><tr><th>Stated bucket</th><th>Resolved</th><th>Stated</th><th>Realised</th></tr></thead><tbody>';
+            for (var i = 0; i < cal.length; i++) {
+                h += '<tr><td>' + esc(cal[i].bucket) + '</td><td>' + cal[i].resolved + '</td><td>'
+                    + (cal[i].stated === null ? '<span class="unavailable">n/a</span>' : pct(cal[i].stated))
+                    + '</td><td>' + (cal[i].realised === null ? '<span class="withheld">withheld</span>' : pct(cal[i].realised))
+                    + '</td></tr>';
+            }
+            h += '</tbody></table>';
+            el('recordTable').innerHTML = h;
+        }
+
+        function renderExclusions(considered, excluded, kept) {
+            var h = '<p class="dim">Considered ' + considered + ', built ' + kept + ', excluded ' + excluded.length
+                + '. Built plus excluded equals considered.</p>';
+            if (!excluded.length) { el('exclusionTable').innerHTML = h; return; }
+            h += '<table><thead><tr><th>Symbol</th><th>Reason</th></tr></thead><tbody>';
+            for (var i = 0; i < excluded.length; i++) {
+                h += '<tr><td>' + esc(excluded[i].symbol) + '</td><td style="text-align:left">' + esc(excluded[i].reason) + '</td></tr>';
+            }
+            h += '</tbody></table>';
+            el('exclusionTable').innerHTML = h;
+        }
+
+        function drawFrontier() {
+            var cv = el('frontier');
+            if (!cv) return;
+            var w = cv.clientWidth || 600, hgt = cv.clientHeight || 260;
+            cv.width = w; cv.height = hgt;
+            var ctx = cv.getContext('2d');
+            if (!ctx) return;
+            ctx.clearRect(0, 0, w, hgt);
+            var pad = 40;
+            ctx.strokeStyle = '#2a3a48'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(pad, 10); ctx.lineTo(pad, hgt - pad); ctx.lineTo(w - 10, hgt - pad); ctx.stroke();
+            ctx.fillStyle = '#9db0be'; ctx.font = '11px sans-serif';
+            ctx.fillText('probability', 4, 16);
+            ctx.fillText('target distance in sigma', w - 150, hgt - 14);
+            var kMin = -1, kMax = 2.5;
+            ctx.strokeStyle = '#65c9d8'; ctx.lineWidth = 2; ctx.beginPath();
+            var first = true;
+            for (var px = pad; px <= w - 10; px++) {
+                var k = kMin + (kMax - kMin) * (px - pad) / (w - 10 - pad);
+                var p = hlProbabilityFor(k, state.rule);
+                var py = (hgt - pad) - p * (hgt - pad - 10);
+                if (first) { ctx.moveTo(px, py); first = false; } else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+            var marks = [0, 0.5, 1];
+            ctx.fillStyle = '#e4b55f';
+            for (var i = 0; i < marks.length; i++) {
+                var mk = marks[i];
+                var mx = pad + (mk - kMin) / (kMax - kMin) * (w - 10 - pad);
+                var mp = hlProbabilityFor(mk, state.rule);
+                var my = (hgt - pad) - mp * (hgt - pad - 10);
+                ctx.beginPath(); ctx.arc(mx, my, 3, 0, Math.PI * 2); ctx.fill();
+                ctx.fillText(mk + 'σ ' + pct(mp, 0), mx + 6, my - 6);
+            }
+            el('frontierFallback').textContent = 'At the selected ' + state.rule
+                + ' rule, a target at plus one sigma reaches ' + pct(hlProbabilityFor(1, state.rule))
+                + ' and a target at minus half a sigma reaches ' + pct(hlProbabilityFor(-0.5, state.rule))
+                + '. Higher probability requires a smaller move.';
+        }
+
+        function render() {
+            document.body.classList.toggle('power', state.mode === 'power');
+            el('modeSeg').querySelectorAll('button[data-mode]').forEach(function (b) {
+                var on = b.getAttribute('data-mode') === state.mode;
+                b.classList.toggle('on', on);
+                b.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+
+            var built = buildCandidates();
+            var events = hlEventsInWindow(market.events, built.sessions, Date.now());
+            el('simpleTitle').textContent = state.direction + ' candidates, '
+                + esc(hlHorizonLabel(state.horizon)) + ', ' + state.profile;
+            renderGateNotice(built.gate, built.sessions);
+            renderEvents(events, built.sessions);
+            renderChanges(built.rows);
+            renderTable('simpleTable', built.rows.slice(0, 6), false);
+            renderTable('powerTable', built.rows, true);
+            renderEarn();
+            renderEarnSummary(built.gate);
+            renderRecord();
+            renderExclusions(built.considered, built.excluded, built.rows.length);
+
+            el('regimeBadge').textContent = 'regime ' + hlRegimeKey(market.vix, market.maStack);
+            el('dataBadge').textContent = market.available ? 'bars from shared cache' : 'no bars in shared cache';
+
+            if (state.mode === 'power') drawFrontier();
+        }
+
+        function renderEvents(events, sessions) {
+            var node = el('eventsPanel');
+            if (!node) return;
+            if (market.eventsState !== 'ready') {
+                node.innerHTML = '<p class="unavailable">Scheduled events are unavailable: the Market Action Center payload could not be read, so no catalyst is shown and none is assumed.</p>';
+                return;
+            }
+            if (!events.length) {
+                node.innerHTML = '<p class="dim">No scheduled event in the declared calendar falls inside the next ' + sessions
+                    + ' sessions. That is the calendar being empty, not a guarantee of no catalyst.</p>';
+                return;
+            }
+            var h = '<p class="warn">' + esc(hlEventCaveat(events)) + '</p>';
+            h += '<table><thead><tr><th>Event</th><th>Date</th><th>Days out</th><th>Implied move</th><th>Declared scenarios</th></tr></thead><tbody>';
+            for (var i = 0; i < events.length; i++) {
+                var e = events[i];
+                var scen;
+                if (!e.scenarios.length) {
+                    scen = '<span class="unavailable">none declared</span>';
+                } else if (!hlScenariosUsable(e.scenarios)) {
+                    scen = '<span class="withheld">malformed (sum ' + fmtPct(hlScenarioTotal(e.scenarios)) + ')</span>';
+                } else {
+                    scen = e.scenarios.map(function (s) {
+                        return esc(String(s.name).slice(0, 54)) + ' <strong>' + fmtPct(s.prob) + '</strong>';
+                    }).join('<br>');
+                }
+                h += '<tr><td style="text-align:left">' + esc(String(e.event).slice(0, 80)) + '</td>'
+                    + '<td>' + esc(e.when) + '</td><td>' + e.daysOut + '</td>'
+                    + '<td>' + (e.impliedMovePct === null ? '<span class="unavailable">none</span>' : fmtPct(e.impliedMovePct)) + '</td>'
+                    + '<td style="text-align:left">' + scen + '</td></tr>';
+            }
+            h += '</tbody></table>';
+            node.innerHTML = h;
+        }
+
+        function renderChanges(rows) {
+            var node = el('changePanel');
+            if (!node) return;
+            var cell = cellKey(state.direction, state.horizon);
+            var store = {};
+            try { store = JSON.parse(localStorage.getItem(LS_OBS) || '{}'); } catch (e) { store = {}; }
+            var curr = hlObservationOf(rows);
+            var diff = hlDiffObservation(store[cell] || null, curr);
+            var h = '';
+            if (diff.firstObservation) {
+                h = '<p class="dim">First observation of ' + esc(cell) + ' on this browser. There is nothing to compare against yet, so no change is reported.</p>';
+            } else if (!diff.added.length && !diff.dropped.length && !diff.changed.length) {
+                h = '<p class="dim">Nothing moved in ' + esc(cell) + ' since your last look.</p>';
+            } else {
+                h = '<p class="dim">Since your last look at ' + esc(cell) + ':</p><ul>';
+                if (diff.added.length) h += '<li><strong>Entered:</strong> ' + esc(diff.added.join(', ')) + '</li>';
+                if (diff.dropped.length) h += '<li><strong>Left:</strong> ' + esc(diff.dropped.join(', ')) + '</li>';
+                for (var i = 0; i < diff.changed.length; i++) {
+                    var c = diff.changed[i];
+                    h += '<li>' + esc(c.symbol) + ' ' + esc(c.field) + ': ' + esc(c.from) + ' &rarr; ' + esc(c.to) + '</li>';
+                }
+                h += '</ul>';
+            }
+            node.innerHTML = h;
+            store[cell] = curr;
+            try { localStorage.setItem(LS_OBS, JSON.stringify(store)); } catch (e) { /* storage unavailable is not an error */ }
+        }
+
+        function hlHorizonLabel(id) {
+            for (var i = 0; i < CFG.horizons.length; i++) if (CFG.horizons[i].id === id) return CFG.horizons[i].label;
+            return id;
+        }
+
+        function fillSelect(id, items, valueKey, labelKey, current) {
+            var s = el(id), h = '';
+            for (var i = 0; i < items.length; i++) {
+                var v = valueKey ? items[i][valueKey] : items[i];
+                var l = labelKey ? items[i][labelKey] : items[i];
+                h += '<option value="' + esc(v) + '"' + (v === current ? ' selected' : '') + '>' + esc(l) + '</option>';
+            }
+            s.innerHTML = h;
+        }
+
+        function wire() {
+            el('modeSeg').addEventListener('click', function (e) {
+                var b = e.target.closest('button[data-mode]');
+                if (!b) return;
+                state.mode = b.getAttribute('data-mode'); saveState(); render();
+            });
+            ['selHorizon', 'selDirection', 'selProfile', 'selRule'].forEach(function (id) {
+                el(id).addEventListener('change', function () {
+                    if (id === 'selHorizon') state.horizon = el(id).value;
+                    if (id === 'selDirection') state.direction = el(id).value;
+                    if (id === 'selProfile') state.profile = el(id).value;
+                    if (id === 'selRule') state.rule = el(id).value;
+                    saveState(); render();
+                });
+            });
+            window.addEventListener('resize', function () { if (state.mode === 'power') drawFrontier(); });
+        }
+
+        function boot(cfg) {
+            CFG = cfg;
+            loadState();
+            fillSelect('selHorizon', CFG.horizons, 'id', 'label', state.horizon);
+            fillSelect('selDirection', CFG.directions, null, null, state.direction);
+            fillSelect('selProfile', CFG.profiles, 'id', 'label', state.profile);
+            el('selRule').value = state.rule;
+            readSharedCache();
+            wire();
+            render();
+            loadEvents();
+        }
+
+        /* The Market Action Center owns the event calendar. A failed read leaves the panel
+           explicitly unavailable rather than presenting an empty calendar as no catalyst. */
+        function loadEvents() {
+            fetch('market-brief.payload.json')
+                .then(function (r) { return r.json(); })
+                .then(function (payload) {
+                    market.events = Array.isArray(payload.events) ? payload.events : [];
+                    market.eventsState = 'ready';
+                    render();
+                })
+                .catch(function () {
+                    market.events = null;
+                    market.eventsState = 'unavailable';
+                    render();
+                });
+        }
+
+        if (typeof document !== 'undefined') {
+            fetch('horizon-ladder-universe.json')
+                .then(function (r) { return r.json(); })
+                .then(boot)
+                .catch(function () {
+                    var n = el('gateNotice');
+                    if (n) n.innerHTML = '<strong>Universe unavailable.</strong> horizon-ladder-universe.json could not be read, so no cell, gate or candidate is shown. Nothing is substituted.';
+                });
+        }
+    </script>
+</body>
+
+</html>

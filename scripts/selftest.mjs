@@ -4555,7 +4555,7 @@ try {
   assert(JSON.stringify(sharedApi.toolRead('feature-006-canary')) === toolReadBefore && JSON.stringify(sharedApi.dataState()) === dataStateBefore, 'Trend Dynamics shared canary leaves RLDATA toolReads and RLAPP resource state unchanged');
   assert(sharedStorage.getItem('rlApiKeys') === credentialsBefore && tdcSource.indexOf('localStorage.rlApiKeys') < 0 && tdcSource.indexOf("localStorage.setItem('rlApiKeys'") < 0, 'Trend Dynamics shared canary leaves central credential ownership unchanged');
   const toolIds = JSON.parse(read('tools.json')).tools.map((tool) => tool.id);
-  assert(toolIds.indexOf('trend-dynamics-cycle-lab') === toolIds.indexOf('portfolio-survival-allocation-lab') - 1 && toolIds.indexOf('portfolio-survival-allocation-lab') === toolIds.indexOf('research-agenda-lab') - 1 && toolIds.indexOf('research-agenda-lab') === toolIds.indexOf('causal-rotation-lab') - 1 && toolIds.indexOf('causal-rotation-lab') === toolIds.length - 1, 'Portfolio Survival, Research Agenda and Causal Rotation append after Trend Dynamics without reordering the prior registry');
+  assert(toolIds.indexOf('trend-dynamics-cycle-lab') === toolIds.indexOf('portfolio-survival-allocation-lab') - 1 && toolIds.indexOf('portfolio-survival-allocation-lab') === toolIds.indexOf('research-agenda-lab') - 1 && toolIds.indexOf('research-agenda-lab') === toolIds.indexOf('causal-rotation-lab') - 1 && toolIds.indexOf('causal-rotation-lab') === toolIds.indexOf('horizon-ladder-lab') - 1 && toolIds.indexOf('horizon-ladder-lab') === toolIds.length - 1, 'Portfolio Survival, Research Agenda, Causal Rotation and Horizon Ladder append after Trend Dynamics without reordering the prior registry');
 } catch (e) { failures++; console.log('  ✗ FAIL (Trend Dynamics foundation group threw): ' + e.message); }
 
 /* ---------- Feature 007: Technical Analysis Decision foundation ---------- */
@@ -25801,6 +25801,350 @@ try {
 
 } catch (e) { failures++; console.log('  ✗ FAIL (spec id uniqueness group threw): ' + e.message); }
 /* ---------- spec id uniqueness (END) ---------- */
+
+/* ---------- Horizon Ladder Lab: earned-rate gate and frontier arithmetic (START) ---------- */
+try {
+  group('Horizon Ladder Lab — the probability gate withholds until a cell is earned');
+  const hllSrc = read('horizon-ladder-lab.html');
+  const hllUniverse = JSON.parse(read('horizon-ladder-universe.json'));
+  const hllNames = ['hlNormSf', 'hlHorizonSessions', 'hlSigmaHorizon', 'hlTerminalProbability',
+    'hlTouchProbability', 'hlProbabilityFor', 'hlRewardToRisk', 'hlExpectedValueSigma',
+    'hlRateGate', 'hlScoreabilityRefusal', 'hlPercentile', 'hlSortRows', 'hlEarnProgress',
+    'hlRegimeKey', 'hlAnnualisedVol', 'hlSwingPivots', 'hlNearestLevel', 'hlStructureDistances',
+    'hlMaSeries', 'hlMaStackFromSeries', 'hlSetupClass', 'hlTrailingVolAt', 'hlAnalogForwardReturns',
+    'hlAnalogRate', 'hlImpliedMoveFromChain'];
+  const hll = build(hllNames.map((n) => extractFn(hllSrc, n)), hllNames);
+  const near = (a, b, tol) => Math.abs(a - b) <= tol;
+
+  // smaArr and pivots are owned by rlexperience-adapters/market-structure.js. The page delegates
+  // to it rather than keeping a private copy, so the test injects the real owner exactly as the
+  // market-heatmap group does.
+  const { createRequire: hllCreateRequire } = await import('node:module');
+  const hllRequire = hllCreateRequire(import.meta.url);
+  delete hllRequire.cache[hllRequire.resolve('../rlexperience-adapters/market-structure.js')];
+  const HLMS = hllRequire('../rlexperience-adapters/market-structure.js');
+  assert(/RLMARKETSTRUCTURE/.test(hllSrc) && /structureApi\(\)/.test(hllSrc)
+    && !/function hlSma\b/.test(hllSrc) && !/function hlMaStackAt\b/.test(hllSrc),
+    'the page delegates the moving-average and pivot formulas to RLMARKETSTRUCTURE and keeps no private copy');
+  assert(hll.hlSwingPivots(Array.from({ length: 400 }, (_, i) => ({ t: i, o: 100, h: 100 + (i % 7), l: 100 - (i % 5), c: 100, v: 1 })), 3, null).highs.length === 0
+    && hll.hlMaSeries(Array.from({ length: 400 }, (_, i) => ({ t: i, c: 100 + i })), null) === null,
+    'without the owning module the page withholds pivots and moving averages rather than falling back to a private formula');
+
+  // Closed-form anchors. A broken erf approximation cannot pass all five.
+  assert(near(hll.hlNormSf(0), 0.5, 1e-9) && near(hll.hlNormSf(1), 0.1587, 5e-4)
+    && near(hll.hlNormSf(-0.5), 0.6915, 5e-4) && near(hll.hlNormSf(1.5), 0.0668, 5e-4)
+    && near(hll.hlNormSf(2), 0.0228, 5e-4),
+    'the normal survival function matches its closed form at 0, ±0.5, 1, 1.5 and 2 sigma');
+
+  // The gate boundary, proven from BOTH sides so an off-by-one cannot pass.
+  const gate19 = hll.hlRateGate(50, 20, 19, 20);
+  const gate20 = hll.hlRateGate(50, 20, 20, 20);
+  assert(gate19.published === false && gate19.reason === 'ledger-insufficient-sample'
+    && gate20.published === true && gate20.reason === null,
+    'a cell with 19 resolved outcomes withholds and a cell with 20 publishes, so the minimum is a real boundary');
+  assert(hll.hlRateGate(19, 20, 500, 20).published === false
+    && hll.hlRateGate(19, 20, 500, 20).reason === 'analog-insufficient-sample',
+    'an insufficient analog sample withholds even when the ledger cell is fully earned');
+
+  // Withheld rows never interleave with rated rows and are never imputed.
+  const sorted = hll.hlSortRows([
+    { ev: 1.0, rateWithheld: true }, { ev: 5.0, rateWithheld: false }, { ev: 9.0, rateWithheld: true }
+  ], 'ev');
+  assert(sorted.rated.length === 1 && sorted.rated[0].ev === 5
+    && sorted.withheld.map((r) => r.ev).join(',') === '9,1',
+    'a withheld row sorts into its own section and never outranks a rated row by an imputed number');
+  assert(!/rateWithheld[^]{0,80}?(=\s*0\b|=\s*50\b|\|\|\s*0\.5)/.test(hllSrc),
+    'a withheld rate is never substituted with 0, 50 or a half default');
+
+  // terminal and touch are different questions about the same target.
+  const term = hll.hlProbabilityFor(1, 'terminal');
+  const touch = hll.hlProbabilityFor(1, 'touch');
+  assert(near(term, 0.1587, 5e-4) && near(touch, 0.3173, 1e-3) && touch > term
+    && hll.hlProbabilityFor(1, 'unknown-rule') === null,
+    'touch and terminal give different probabilities for one target and an undeclared rule resolves to nothing');
+  assert(hll.hlTouchProbability(-1) === 1 && hll.hlTouchProbability(0) === 1,
+    'a target at or below the entry is already touched, so its touch probability is one');
+
+  // Sigma scaling is checked at EVERY declared horizon, not only the first.
+  const spy = hllUniverse.policy.sessionsPerYear;
+  const expectedSigma = { h1w: 0.0352, h2w: 0.0498, h1m: 0.0722, h3m: 0.1250, h6m: 0.1768, h1y: 0.2500 };
+  const sigmaMembers = hllUniverse.horizons.map((h) => {
+    const sessions = hll.hlHorizonSessions(hllUniverse.horizons, h.id);
+    const s = hll.hlSigmaHorizon(0.25, sessions, spy);
+    return near(s, expectedSigma[h.id], 5e-4);
+  });
+  assert(hllUniverse.horizons.length === 6 && sigmaMembers.every(Boolean),
+    'horizon sigma scales as the square root of time at all six declared horizons (' + sigmaMembers.length + ' checked)');
+  assert(hll.hlSigmaHorizon(0.25, 0, spy) === null && hll.hlSigmaHorizon(-1, 21, spy) === null,
+    'a non-positive volatility or horizon yields no sigma rather than a fabricated one');
+
+  // Every one of the six scoreability preconditions is separately refusable.
+  const validCandidate = {
+    hasBars: true, entryReference: { level: 100, at: '2026-08-22T00:00:00Z' },
+    target: 0.75, invalidation: 0.5, scoreableAt: '21-sessions',
+    resolutionRule: 'terminal', settlementSource: 'shared rlData daily closes'
+  };
+  assert(hll.hlScoreabilityRefusal(validCandidate) === null, 'a fully specified candidate is scoreable at mint');
+  const breakages = [
+    ['instrument.bars', { hasBars: false }],
+    ['entryReference', { entryReference: null }],
+    ['target', { target: NaN }],
+    ['invalidation', { invalidation: NaN }],
+    ['scoreableAt', { scoreableAt: null }],
+    ['resolutionRule', { resolutionRule: 'vibes' }],
+    ['settlementSource', { settlementSource: '' }]
+  ];
+  const refusals = breakages.map(([field, patch]) => {
+    const broken = Object.assign({}, validCandidate, patch);
+    return hll.hlScoreabilityRefusal(broken) === field;
+  });
+  assert(refusals.length === 7 && refusals.every(Boolean),
+    'each scoreability precondition refuses by its own field path, so an unscoreable candidate is never minted ('
+    + refusals.length + ' enumerated)');
+
+  // Reward-to-risk alone is a trap: a 3:1 payoff at 6.7% is negative expected value.
+  const kHigh = 1.5, mHigh = 0.5;
+  const pHigh = hll.hlTerminalProbability(kHigh);
+  const evHigh = hll.hlExpectedValueSigma(pHigh, kHigh, mHigh);
+  const evEven = hll.hlExpectedValueSigma(hll.hlTerminalProbability(0.5), 0.5, 0.5);
+  assert(near(hll.hlRewardToRisk(kHigh, mHigh), 3, 1e-9) && evHigh < 0 && evEven < 0,
+    'a three-to-one reward-to-risk carries negative expected value at its own probability, so reward-to-risk cannot be the ranking key');
+  assert(hll.hlRewardToRisk(1, 0) === null, 'a zero invalidation distance yields no reward-to-risk rather than infinity');
+
+  // Percentiles and regime conditioning.
+  assert(hll.hlPercentile([1, 2, 3, 4], 0.5) === 2.5 && hll.hlPercentile([], 0.5) === null
+    && hll.hlPercentile([7], 0.25) === 7,
+    'the analog percentile interpolates, survives a single sample and withholds on an empty set');
+  assert(hll.hlRegimeKey(15.17, 'bull-stack') === 'lowvol-bull'
+    && hll.hlRegimeKey(35, 'bear-stack') === 'highvol-bear'
+    && hll.hlRegimeKey(NaN, 'tangled') === 'unknown-mixed',
+    'regime conditioning separates volatility and trend, and an absent reading resolves to unknown rather than a default');
+
+  // Volatility refuses a short series instead of inventing one.
+  const flat = new Array(30).fill(100);
+  assert(hll.hlAnnualisedVol(null, spy) === null && hll.hlAnnualisedVol([1, 2, 3], spy) === null
+    && hll.hlAnnualisedVol(flat, spy) === 0,
+    'annualised volatility withholds without enough bars and reports zero only for a genuinely flat series');
+
+  // Earn progress.
+  const prog0 = hll.hlEarnProgress(0, 20);
+  const prog20 = hll.hlEarnProgress(20, 20);
+  assert(prog0.remaining === 20 && prog0.earned === false && prog20.remaining === 0 && prog20.earned === true,
+    'earn progress reports the exact remaining count and only flips to earned at the minimum');
+
+  // The shipped universe declares all twelve long/short cells at zero, which is the measured truth.
+  const cells = hllUniverse.ledgerSnapshot.cells;
+  const cellIds = Object.keys(cells);
+  assert(cellIds.length === 12 && cellIds.every((id) => cells[id] === 0)
+    && hllUniverse.policy.minResolvedSample === 20,
+    'all twelve long and short cells ship at zero resolved outcomes, matching the ledger that has never minted either direction');
+  assert(hllUniverse.ledgerSnapshot.calibration.filter((b) => b.realised === null).length === 3,
+    'every stated-confidence bucket at or above 60 ships with a withheld realised rate');
+
+  // The page must not wrap canvas drawing in requestAnimationFrame, which never fires in a hidden tab.
+  assert(!/requestAnimationFrame/.test(hllSrc) && /function drawFrontier/.test(hllSrc),
+    'the frontier draws synchronously so it renders in a background or embedded tab');
+
+  // Registration state: staged, not published, and excluded exactly once.
+  // ---- next events and the change ledger ----
+  const hllEventNames = ['hlEventsInWindow', 'hlScenarioTotal', 'hlScenariosUsable', 'hlEventCaveat',
+    'hlObservationOf', 'hlDiffObservation'];
+  const hllEv = build(hllEventNames.map((n) => extractFn(hllSrc, n)), hllEventNames);
+  const hllRealEvents = JSON.parse(read('market-brief.payload.json')).events;
+  const hllNow = Date.parse('2026-08-19T00:00:00Z');
+  const hllShort = hllEv.hlEventsInWindow(hllRealEvents, 5, hllNow);
+  const hllLong = hllEv.hlEventsInWindow(hllRealEvents, 21, hllNow);
+  assert(Array.isArray(hllRealEvents) && hllRealEvents.length > 0
+    && hllShort.length > 0 && hllLong.length > hllShort.length
+    && hllShort.every((e) => e.daysOut >= 0),
+    'a longer horizon admits strictly more scheduled events than a shorter one, so the window is load-bearing ('
+    + hllShort.length + ' at 5 sessions vs ' + hllLong.length + ' at 21)');
+  assert(hllEv.hlEventsInWindow(null, 21, hllNow).length === 0
+    && hllEv.hlEventsInWindow([{ when: 'not-a-date' }], 21, hllNow).length === 0
+    && hllEv.hlEventsInWindow(hllRealEvents, 21, NaN).length === 0,
+    'an absent calendar, an unparseable date and an unknown horizon each yield no events rather than a fabricated one');
+  assert(hllEv.hlEventsInWindow([{ when: '2026-08-21', impliedMovePct: null, scenarios: [] }], 21, hllNow)[0].impliedMovePct === null,
+    'an event with no declared implied move stays null rather than being filled in');
+
+  // Declared scenario probabilities are only usable if they actually form a distribution.
+  assert(Math.abs(hllEv.hlScenarioTotal(hllLong[0].scenarios) - 1) <= 0.02
+    && hllEv.hlScenariosUsable(hllLong[0].scenarios) === true
+    && hllEv.hlScenariosUsable([{ prob: 0.5 }, { prob: 0.2 }]) === false
+    && hllEv.hlScenariosUsable([{ name: 'no prob' }]) === false
+    && hllEv.hlScenarioTotal([]) === null,
+    'a scenario set is usable only when its declared probabilities sum to one, so a malformed set is reported rather than renormalised');
+
+  // A catalyst inside the horizon must be surfaced as a limit on the analog rate.
+  assert(typeof hllEv.hlEventCaveat(hllLong) === 'string'
+    && /analog rate/.test(hllEv.hlEventCaveat(hllLong))
+    && hllEv.hlEventCaveat([]) === null && hllEv.hlEventCaveat(null) === null,
+    'events inside the horizon produce an explicit caveat that the analog rate does not price them, and an empty calendar produces none');
+
+  // The change ledger must distinguish a first look from a quiet one.
+  const hllPrev = hllEv.hlObservationOf([
+    { symbol: 'AAA', ev: 0.10, analogN: 100, rateWithheld: true, k: 1, m: 1 },
+    { symbol: 'BBB', ev: 0.20, analogN: 50, rateWithheld: true, k: 1, m: 1 }]);
+  const hllCurr = hllEv.hlObservationOf([
+    { symbol: 'AAA', ev: 0.30, analogN: 100, rateWithheld: false, k: 1, m: 1 },
+    { symbol: 'CCC', ev: 0.05, analogN: 9, rateWithheld: true, k: 1, m: 1 }]);
+  const hllFirst = hllEv.hlDiffObservation(null, hllCurr);
+  const hllDiff = hllEv.hlDiffObservation(hllPrev, hllCurr);
+  const hllQuiet = hllEv.hlDiffObservation(hllCurr, hllCurr);
+  assert(hllFirst.firstObservation === true && hllFirst.added.length === 0 && hllFirst.changed.length === 0,
+    'a first observation reports itself as such rather than presenting every row as a change');
+  assert(hllQuiet.firstObservation === false && hllQuiet.added.length === 0
+    && hllQuiet.dropped.length === 0 && hllQuiet.changed.length === 0,
+    'an unchanged cell reports no movement, so the ledger cannot manufacture activity');
+  assert(hllDiff.added.join() === 'CCC' && hllDiff.dropped.join() === 'BBB'
+    && hllDiff.changed.some((c) => c.symbol === 'AAA' && c.field === 'rate state' && c.to === 'published')
+    && hllDiff.changed.some((c) => c.symbol === 'AAA' && c.field === 'expected value'),
+    'the ledger names entries, exits, a rate-state transition and an expected-value move separately');
+  assert(hllEv.hlDiffObservation({ AAA: { ev: 0.100, analogN: 5, rateWithheld: true } },
+    { AAA: { ev: 0.1005, analogN: 5, rateWithheld: true } }).changed.length === 0,
+    'a movement below the reporting threshold is not reported, so the ledger is not noise');
+
+  // Registration state: registered in all three registries in identical relative order, and no longer staged.
+  const hllRegistry = JSON.parse(read('tools.json')).tools.map((t) => t.id);
+  const hllIndexOrder = [...read('index.html').matchAll(/^\s*id: '([a-z0-9-]+)',$/gm)].map((m) => m[1]);
+  const hllNavOrder = [...read('rlnav.js').matchAll(/file: "([a-z0-9.-]+)\.html"/g)].map((m) => m[1]);
+  const hllExclusions = JSON.parse(read('site-exclusions.json')).files.map((f) => f.path);
+  assert(hllRegistry.indexOf('horizon-ladder-lab') >= 0
+    && hllIndexOrder.indexOf('horizon-ladder-lab') >= 0
+    && hllNavOrder.indexOf('horizon-ladder-lab') >= 0,
+    'the route is registered in tools.json, index.html and rlnav.js');
+  const hllCommon = hllRegistry.filter((id) => hllIndexOrder.includes(id) && hllNavOrder.includes(id));
+  assert(JSON.stringify(hllCommon) === JSON.stringify(hllCommon.slice().sort((l, r) => hllIndexOrder.indexOf(l) - hllIndexOrder.indexOf(r)))
+    && JSON.stringify(hllCommon) === JSON.stringify(hllCommon.slice().sort((l, r) => hllNavOrder.indexOf(l) - hllNavOrder.indexOf(r))),
+    'registering the route preserved identical relative order across tools.json, index.html and rlnav.js');
+  assert(hllExclusions.indexOf('horizon-ladder-lab.html') < 0
+    && hllExclusions.indexOf('horizon-ladder-universe.json') < 0,
+    'the staging decisions are removed now that the route is reachable, so the pages build ships it');
+  const hllTool = JSON.parse(read('tools.json')).tools.find((t) => t.id === 'horizon-ladder-lab');
+  assert(hllTool.experience.simpleModelDefinitionId === 'simple-model/horizon-ladder/v1'
+    && JSON.parse(read('simple-models.json')).definitions.filter((d) => d.toolId === 'horizon-ladder-lab').length === 1
+    && JSON.parse(read('journeys.json')).definitions.filter((d) => d.toolId === 'horizon-ladder-lab').length === hllTool.experience.journeyDefinitionIds.length,
+    'the route owns exactly one simple-model definition and its journey definitions match its declared references');
+  assert(existsSync(join(ROOT, 'notes/horizon-ladder-lab.md')), 'the design of record exists');
+  const hllNote = read('notes/horizon-ladder-lab.md');
+  assert(/horizon-ladder-lab\.html/.test(hllNote) && /horizon-ladder-universe\.json/.test(hllNote)
+    && /node scripts\/selftest\.mjs/.test(hllNote),
+    'the note resolves the route, the config and the exact validation command');
+
+  /* ---- structure, analogs and the earned path ---- */
+
+  const hllMk = (seed, drift, amp) => {
+    let x = seed, px = 100; const rows = [];
+    for (let i = 0; i < 900; i++) {
+      x = (x * 1103515245 + 12345) % 2147483648;
+      const u = (x / 2147483648 - 0.5);
+      px = px * (1 + drift + 0.012 * u) + amp * Math.sin(i / 17);
+      rows.push({ t: Date.UTC(2023, 0, 1) + i * 86400000, o: px, h: px * 1.008, l: px * 0.992, c: px, v: 1e6 });
+    }
+    return rows;
+  };
+  const seriesA = hllMk(7, 0.0004, 0.10);
+  const seriesB = hllMk(99, 0.0001, 0.45);
+  const seriesC = hllMk(1234, -0.0002, 0.05);
+
+  // A pivot must be a genuine local extreme, so a flat series has none at all.
+  // RLMARKETSTRUCTURE.pivots compares non-strictly, so a perfectly flat series marks every
+  // interior bar as both a high and a low. That is the owner's semantics and this tool adopts it
+  // rather than keeping a stricter private copy; the refusal that matters happens downstream,
+  // where no level lies strictly beyond the price so no target can be placed.
+  const pivA = hll.hlSwingPivots(seriesA, 3, HLMS);
+  const hllFlatRows = Array.from({ length: 400 }, (_, i) => ({ t: i, o: 50, h: 50, l: 50, c: 50, v: 1 }));
+  const pivFlat = hll.hlSwingPivots(hllFlatRows, 3, HLMS);
+  assert(pivA.highs.length > 0 && pivA.lows.length > 0
+    && pivA.highs.length < seriesA.length && pivA.lows.length < seriesA.length
+    && pivFlat.highs.length > 0
+    && hll.hlNearestLevel(pivFlat.highs, 50, 'above') === null
+    && hll.hlStructureDistances(hllFlatRows, 0.05, 'long', 3, HLMS) === null,
+    'a real series yields some pivots and a flat series places no level beyond the price, so it is refused rather than given a zero-distance target');
+  assert(hll.hlNearestLevel([{ price: 90 }, { price: 105 }, { price: 120 }], 100, 'above') === 105
+    && hll.hlNearestLevel([{ price: 90 }, { price: 105 }], 100, 'below') === 90
+    && hll.hlNearestLevel([{ price: 90 }], 100, 'above') === null,
+    'the nearest level is the closest pivot on the requested side, and no pivot on that side yields nothing');
+
+  // The ranking must actually discriminate: distinct structure must give distinct expected value.
+  const hllEvOf = (rows) => {
+    const closes = rows.map((r) => r.c);
+    const vol = hll.hlAnnualisedVol(closes.slice(-63), 252);
+    const sigma = hll.hlSigmaHorizon(vol, 21, 252);
+    const st = hll.hlStructureDistances(rows, sigma, 'long', 3, HLMS);
+    if (!st) return null;
+    return hll.hlExpectedValueSigma(hll.hlProbabilityFor(st.k, 'terminal'), st.k, st.m);
+  };
+  const hllEvs = [seriesA, seriesB, seriesC].map(hllEvOf);
+  assert(hllEvs.every((v) => isFinite(v)) && new Set(hllEvs.map((v) => v.toFixed(6))).size === 3,
+    'three names with different structure produce three distinct expected values, so the ranking key can order them ('
+    + hllEvs.map((v) => v.toFixed(4)).join(', ') + ')');
+
+  // No structure on the required side is a refusal, not a substituted distance.
+  const hllRising = Array.from({ length: 400 }, (_, i) => ({ t: i, o: 100 + i, h: 100 + i, l: 100 + i, c: 100 + i, v: 1 }));
+  assert(hll.hlStructureDistances(hllRising, 0.05, 'long', 3, HLMS) === null
+    && hll.hlStructureDistances(null, 0.05, 'long', 3, HLMS) === null
+    && hll.hlStructureDistances(seriesA, 0, 'long', 3, HLMS) === null,
+    'a series with no pivot on the required side, no bars, or no sigma yields no distances rather than a fabricated target');
+
+  // The setup class may not read the future it is used to describe.
+  const hllClosesA = seriesA.map((r) => r.c);
+  const hllSeriesA = hll.hlMaSeries(seriesA, HLMS);
+  const hllAt = 700;
+  const hllVolAt = hll.hlTrailingVolAt(hllClosesA, hllAt, 63, 252);
+  assert(hll.hlSetupClass(hllClosesA, hllAt, hllVolAt, hllSeriesA) === hll.hlSetupClass(hllClosesA.slice(0, hllAt + 1), hllAt, hllVolAt, hllSeriesA),
+    'the setup class at a bar is identical whether or not later bars exist, so the analog scan cannot look ahead');
+  assert(hll.hlSetupClass(hllClosesA, 10, 0.2, hllSeriesA) === null && hll.hlMaStackFromSeries(hllSeriesA, 10) === null
+    && hll.hlMaStackFromSeries({ m20: [null], m50: [null], m200: [null] }, 0) === null,
+    'a bar without a full 200-session history yields no setup class, and a null moving average is refused rather than silently read as zero');
+
+  // Regime conditioning must change the analog sample, or it is decorative.
+  const hllVolNow = hll.hlAnnualisedVol(hllClosesA.slice(-63), 252);
+  const hllClassNow = hll.hlSetupClass(hllClosesA, hllClosesA.length - 1, hllVolNow, hllSeriesA);
+  const hllMatched = hll.hlAnalogForwardReturns(hllClosesA, 21, hllClassNow, 63, 252, hllSeriesA);
+  const hllOtherRegime = hll.hlAnalogForwardReturns(hllClosesA, 21, 'highvol|bear-stack|far-below', 63, 252, hllSeriesA);
+  assert(hllClassNow !== null && hllMatched.length > 0 && hllOtherRegime.length !== hllMatched.length,
+    'conditioning on a different regime yields a different analog sample, so the conditioning is load-bearing ('
+    + hllMatched.length + ' vs ' + hllOtherRegime.length + ')');
+  assert(hll.hlAnalogForwardReturns(hllClosesA, 21, null, 63, 252, hllSeriesA).length === 0,
+    'an unavailable setup class yields no analogs rather than the unconditional sample');
+
+  // The analog rate counts only moves that actually reached the target, in the stated direction.
+  const hllRate = hll.hlAnalogRate([0.05, 0.01, -0.06, 0.04, -0.02], 0.03, 'long');
+  const hllRateShort = hll.hlAnalogRate([0.05, 0.01, -0.06, 0.04, -0.02], 0.03, 'short');
+  assert(hllRate.n === 5 && hllRate.k === 2 && Math.abs(hllRate.rate - 0.4) < 1e-9
+    && hllRateShort.k === 1 && hll.hlAnalogRate([], 0.03, 'long').rate === null,
+    'the analog rate counts direction-correct target hits and withholds entirely on an empty sample');
+
+  // Implied move is consumed when a chain exists and withheld when it does not.
+  assert(hll.hlImpliedMoveFromChain(null, 21, 100) === null
+    && hll.hlImpliedMoveFromChain({ expiries: [] }, 21, 100) === null
+    && hll.hlImpliedMoveFromChain({ expiries: [{ expiryMs: Date.now() + 30 * 86400000, atmIv: 0.28 }] }, 21, 100) > 0,
+    'an option-implied move is used when a chain is present and withheld when it is absent');
+
+  // The earned path must return the rate, not a dead ternary.
+  const STRAT = await import('../rlexperience-adapters/strategy-research.js').then((m) => m.default || m);
+  const hllOwnerWithheld = { asOf: '2026-08-20T00:00:00Z', policy: { minResolvedSample: 20 }, cells: { 'long:h1m': 0 }, rates: {} };
+  const hllOwnerEarned = { asOf: '2026-08-20T00:00:00Z', policy: { minResolvedSample: 20 }, cells: { 'long:h1m': 25 }, rates: { 'long:h1m': 0.58 } };
+  const hllOwnerEarnedNoRate = { asOf: '2026-08-20T00:00:00Z', policy: { minResolvedSample: 20 }, cells: { 'long:h1m': 25 }, rates: {} };
+  const hllParams = { direction: 'long', horizon: 'h1m', 'resolution-rule': 'terminal', 'target-sigma': 0.75, 'invalidation-sigma': 0.5 };
+  const sumWithheld = STRAT.computeHorizonLadderSummary(hllOwnerWithheld, hllParams);
+  const sumEarned = STRAT.computeHorizonLadderSummary(hllOwnerEarned, hllParams);
+  const sumEarnedNoRate = STRAT.computeHorizonLadderSummary(hllOwnerEarnedNoRate, hllParams);
+  assert(sumWithheld.gate.published === false && sumWithheld.probability.measuredRate === null
+    && sumWithheld.probability.measuredRateState === 'withheld'
+    && sumEarned.gate.published === true && sumEarned.probability.measuredRate === 0.58
+    && sumEarned.probability.measuredRateState === 'published'
+    && sumEarnedNoRate.probability.measuredRate === null
+    && sumEarnedNoRate.probability.measuredRateState === 'earned-but-unpopulated',
+    'a withheld cell reports no rate, an earned cell reports its actual rate, and an earned cell with no populated rate says so instead of reporting null as a rate');
+
+  // The page must consume the real shared-cache API, not a name that does not exist.
+  const hllRldata = read('rldata.js');
+  assert(/RLDATA\.bars\(|store\.bars\(/.test(hllSrc) && /bars: getBars/.test(hllRldata)
+    && !/getCachedCloses|getCached\(/.test(hllSrc),
+    'the page reads bars through the RLDATA accessor the shared module actually exports');
+} catch (e) { failures++; console.log('  ✗ FAIL (horizon ladder gate group threw): ' + e.message); }
+/* ---------- Horizon Ladder Lab: earned-rate gate and frontier arithmetic (END) ---------- */
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

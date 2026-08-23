@@ -454,9 +454,10 @@ not this agent's to edit. It is reconciled rather than modified:
   `bubbles.validate`. This agent did not modify `state.json` and makes no certification claim, so
   the independent-validation clause remains genuinely outstanding and owned by validate.
 
-One artifact-hygiene follow-up is left for `bubbles.plan`: the declaration now describes a
-superseded state and would read more truthfully if refreshed to note that execution has since
-occurred. It is not a blocker for scope `Done` and was not edited here.
+The earlier artifact-hygiene finding recorded that the planning declaration described a
+superseded state. `bubbles.plan` later reconciled the Test Plan in `scope.md` with the executed
+report anchors. This report preserves that planning-era history and records the completed
+reconciliation.
 
 ## Honest Findings
 
@@ -708,6 +709,7 @@ behavior, while the fourth row supplies the negative control by serving five del
 accessibility variants and requiring each to fail closed.
 **Command:** `timeout 600 bash .github/bubbles/scripts/evidence-capture.sh --label "scope-27 post-merge SCN-008-053" -- npx --no-install playwright test tests/portfolio-survival-accessibility.spec.mjs tests/portfolio-survival-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "SCN-008-053" --reporter=list`
 **Exit Code:** 0
+**Claim Source:** executed
 
 ```text
 # scope-27 post-merge SCN-008-053

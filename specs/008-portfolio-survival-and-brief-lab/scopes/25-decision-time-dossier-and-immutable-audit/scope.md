@@ -2,7 +2,7 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** In Progress
+**Status:** Done
 **Scope-Kind:** runtime-behavior
 **Tags:** `overlay:dossier`, `remediation`
 **Depends On:** 24
@@ -88,11 +88,11 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 
 ### Definition of Done - Tiered Validation
 
-- [ ] SCN-008-051 is implemented with decision-time walk-forward, complete cost/trial/state records, append corrections, persistence, and private export.
-- [ ] TP-25-01 allocation functional evidence passes.
-- [ ] TP-25-02 dossier functional evidence passes.
-- [ ] TP-25-03 real-page regression passes.
-- [ ] TP-25-04 adversarial mutation proof rejects every audited incomplete or mutable behavior.
-- [ ] TP-25-05 broader regression passes.
-- [ ] Shared Infrastructure Impact Sweep and immutable rollback proof are recorded.
-- [ ] Build Quality Gate passes with zero skips/warnings and no excluded-file changes.
+- [x] SCN-008-051 is implemented with decision-time walk-forward, complete cost/trial/state records, append corrections, persistence, and private export. Evidence: [scenario contract](report.md#scenario-contract-evidence), [coverage](report.md#coverage-report), and [real-page behavior](report.md#tp-25-03).
+- [x] TP-25-01 allocation functional evidence passes. Evidence: [TP-25-01](report.md#tp-25-01).
+- [x] TP-25-02 dossier functional evidence passes. Evidence: [TP-25-02](report.md#tp-25-02).
+- [x] TP-25-03 real-page regression passes. Evidence: [TP-25-03](report.md#tp-25-03).
+- [x] TP-25-04 adversarial mutation proof rejects every audited incomplete or mutable behavior. Evidence: [TP-25-04](report.md#tp-25-04) and [audited mutations](report.md#shared-infrastructure-and-rollback-evidence).
+- [x] TP-25-05 broader regression passes. Evidence: [TP-25-05](report.md#tp-25-05).
+- [x] Shared Infrastructure Impact Sweep and immutable rollback proof are recorded. Evidence: [shared infrastructure and rollback](report.md#shared-infrastructure-and-rollback-evidence) and [privacy clear canary](report.md#privacy-and-clear-canary).
+- [x] Build Quality Gate passes with zero skips/warnings and no excluded-file changes. Evidence: [build quality gate](report.md#build-quality-gate--current-session-2026-08-23), [lint and quality](report.md#lint-and-quality), and [bounded code diff](report.md#code-diff-evidence).

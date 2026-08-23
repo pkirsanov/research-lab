@@ -79,7 +79,8 @@ not model.
   No recommendation.
 - No published error rate, self-invalidation statistic, track record or accuracy
   figure anywhere in spec text, scope text or user-facing copy.
-- Local-only. Zero network requests at runtime. No household value in any URL,
+- Local-only. The only runtime transport is same-origin reads of this route's own
+  declared policy and rule-pack documents. No household value in any URL,
   request, referrer, console message or committed artifact.
 - Educational only. Not tax advice. Does not prepare or file a return.
 
@@ -445,7 +446,9 @@ summary may aid discovery and may never supply a pack value.
 
 1. Household state lives in a closed local namespace owned solely by this
    feature. No key is shared with the Feature 008 portfolio workspace.
-2. The page performs zero network requests at runtime.
+2. The page's only runtime transport is a bounded set of same-origin reads of its
+   own declared policy and rule-pack documents. Nothing is read from another
+   origin, and nothing the configuration does not declare is read at all.
 3. No household value appears in a URL, request body, referrer, console message,
    service worker, or committed artifact.
 4. The tool stores no name, address, account number, tax identifier, or
@@ -842,7 +845,17 @@ obligation.
   computation of the domains that were supplied.
 - **NFR-021-009** — No household value leaves the local namespace. It appears in
   no network request, no URL, no referrer, no console output and no committed
-  artifact. The page performs zero network requests at runtime.
+  artifact. That guarantee is about what a request may *carry*, and it is
+  unconditional. Separately, and without qualifying it: the route's only runtime
+  transport is a bounded set of same-origin reads of its own local policy and
+  rule-pack documents, every one of them declared by the configuration the page
+  loads — measured at nine documents across seven call sites. No read reaches
+  another origin, and a read site or document the declaration list does not name
+  cannot enter without that list changing in the same change.
+  **Adversarial cases.** A sentinel household value reaching any URL, request,
+  referrer or console message fails. An undeclared, additional or remote read
+  fails. A requirement that could be satisfied by a route that reads nothing is
+  not this requirement: the declared reads must still be present and resolvable.
 - **FR-021-010** — Configuration is mandatory. A missing, malformed or
   unknown-version configuration blocks dependent computation visibly, while the
   privacy inventory and the clear action stay reachable.
@@ -1062,7 +1075,8 @@ count rather than presenting itself as whole.
 traces to a dated pack with recorded source records, a publication date and a
 retrieval date.
 
-**Runs from a file with no account.** Local-only, zero network requests.
+**Runs from a file with no account.** Local-only; the only transport is
+same-origin reads of its own declared documents.
 
 ### Rejected claim: published error rate
 
@@ -1156,7 +1170,7 @@ measurement of decision quality, and makes no claim that it does.
 | **P6 — Say when the read is old** | The pack carries `publishedAt`, `retrievedAt` and an `expiryPolicy`; an expired pack refuses rather than serving a stale figure as current. | `FR-021-002`, `FR-021-003` |
 | **P7 — No blackbox numbers** | Every figure is computed in the browser from the resolved pack. The reconciliation identity is displayed, not asserted. Power exposes the rule ledger, per-bracket detail and the curve table. | `FR-021-016`, `FR-021-032`, `NFR-021-023` |
 | **P8 — Model-authored text is data, never markup** | No model-authored text exists in this feature. Pack-authored strings — reasons, source titles, feature names — are rendered through the same escaping discipline at every sink. | `FR-021-005` |
-| **P9 — Works with nothing** | The tool requires no key, no proxy, no account and no server. It performs zero network requests by design, which is stronger than degrading honestly. | `NFR-021-009` |
+| **P9 — Works with nothing** | The tool requires no key, no proxy, no account and no server. Its only transport is same-origin reads of its own declared policy and rule-pack documents, so there is no third-party dependency to degrade against. | `NFR-021-009` |
 | **P10 — UMD, never ESM** | Every new shared module is a UMD dual module with a global attach, loadable from `file://` with no bundler and no build step. | Repository convention inherited by every scope |
 | **P11 — Reuse, never refetch** | No market data is fetched. The rule pack is a local artifact read once. | `NFR-021-009` |
 | **P12 — Cache-first, automatic first paint** | Simple paints on load without user action from local state. **With one honest limit:** on an empty workspace there is no result to paint, so the first paint is a named incomplete state stating exactly which members are missing — never an empty shell and never a placeholder figure. | `FR-021-031` |
@@ -1181,7 +1195,7 @@ measurement of decision quality, and makes no claim that it does.
 | Attribute | Requirement | Where stated |
 | --- | --- | --- |
 | Isolation | No shared module, namespace or key with Feature 008; Feature 008 byte-identical | `NFR-021-001` |
-| Privacy | Zero network requests; no household value in any URL, request, referrer, console message or committed artifact | `NFR-021-009` |
+| Privacy | Transport bounded to same-origin reads of the declared policy and pack documents; no household value in any URL, request, referrer, console message or committed artifact | `NFR-021-009` |
 | Determinism | Byte-identical result for identical input; no clock, random source or network read in the computation path | `NFR-021-011` |
 | Precision | Pack-declared calculation rounding applied where declared; display rounding separate and disclosed | `NFR-021-017` |
 | Single definition | No rule value or tax definition outside the pack and the settlement | `NFR-021-023` |

@@ -107,7 +107,8 @@ with the jurisdiction that owns it.
   break-even year. No ranking. No recommendation.
 - No published error rate, self-invalidation statistic, track record or accuracy
   figure anywhere in spec text, scope text or user-facing copy.
-- Local-only. Zero network requests at runtime. No household value in any URL,
+- Local-only. The only runtime transport is same-origin reads of the declared
+  policy and pack documents. No household value in any URL,
   query string, hash, request, referrer, console message or committed artifact.
 - Educational only. Not tax advice. Does not prepare or file a return.
 
@@ -2095,7 +2096,7 @@ both year sets
 | ID | Requirement |
 | --- | --- |
 | NFR-022-001 | Identical input produces a byte-identical result. No clock, random source or network value enters any computation. |
-| NFR-022-002 | Zero network requests at runtime, including pack loading, proven by a request ledger rather than asserted. |
+| NFR-022-002 | No household value reaches any request, URL, referrer or console message; that guarantee is unconditional. Separately: runtime transport is a bounded set of same-origin reads of the configuration-declared policy and pack documents, pack loading included, and no read reaches another origin. Proven by a request ledger rather than asserted. **Adversarial cases.** A read of a document the configuration does not declare, or of any remote document, fails; a household value appearing in any request, URL, referrer or console message fails. |
 | NFR-022-003 | No household value — including the residency state and both new basis declarations — appears in any URL, query string, hash, request, referrer, console message or committed artifact. |
 | NFR-022-004 | The refusal vocabulary is extended additively by exactly two members. No existing member's meaning changes. |
 | NFR-022-005 | No module carries a bracket, rate, edge, threshold or jurisdiction name. A scan asserts it and is demonstrated to fail on a module that does. |

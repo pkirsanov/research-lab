@@ -143,7 +143,8 @@ into a tax total.
   No ranking. No recommendation. No future-year premium, benefit or tax figure.
 - No published error rate, self-invalidation statistic, track record or accuracy
   figure anywhere in spec text, scope text or user-facing copy.
-- Local-only. Zero network requests at runtime. No household value — including
+- Local-only. The only runtime transport is same-origin reads of the declared
+  policy and pack documents. No household value — including
   the earnings record, the birth year, the claim age and the lookback modified
   adjusted gross income — in any URL, query string, hash, request, referrer,
   console message or committed artifact.
@@ -880,8 +881,16 @@ switching modes while a control has focus does not detach the control.
 
 - **NFR-024-001** — every figure is sourced or declared, and never presented as the
   other.
-- **NFR-024-002** — zero network requests at runtime, including benefit, mortality
-  and medicare pack loading.
+- **NFR-024-002** — runtime transport is a bounded set of same-origin reads of the
+  configuration-declared policy and pack documents, benefit, mortality and
+  medicare pack loading included, and no read reaches another origin. No read
+  carries a household value; that guarantee is `NFR-024-003` and this requirement
+  does not qualify it.
+  **Adversarial cases.** A read of a benefit, mortality or medicare pack the
+  configuration does not declare, or of any remote document, fails; an earnings
+  record, a birth year, a claim age or a lookback income appearing in any request,
+  URL, referrer or console message fails. The declared pack reads must still be
+  present and resolvable, so a route that reads nothing does not satisfy this.
 - **NFR-024-003** — no household value, including the earnings record, the birth
   year, the claim age and the lookback income, reaches any URL, query string,
   hash, request, referrer, console message or committed artifact.

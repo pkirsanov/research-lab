@@ -455,6 +455,17 @@ resolving to fewer tests than it claims. Both read green while owned by nothing.
     fails the permitted-set assertion; a boot that read nothing fails the
     greater-than-zero pin; and a state pack that is permitted but never fetched
     fails the two `expect(paths).toContain(...)` pins.
+  - **Amended 2026-08-23 (F-REG-03 closure).** The mechanism named above has
+    changed and the claim has strengthened. `SCN-022-007` no longer refuses a
+    foreign origin with an inline `startsWith(site.baseUrl)` filter; it projects
+    the ledger through the shared `sameOriginPaths(ledger, site)`, which applies
+    that prefix test AND a parsed-origin comparison as a conjunct. The reason is
+    that a prefix is not an origin: everything before an `@` in an authority is
+    userinfo, so `site.baseUrl + "@evil.example"` begins with the whole base URL,
+    carries a declared pathname, and is served by `evil.example`. The inline
+    filter admitted it. Every other assertion and adversarial case above is
+    unchanged, including both named pack pins. The tick is not withdrawn: the
+    same-origin claim it rests on is still made, by a strictly stronger test.
   - **Closed 2026-08-21.** The row is one nine-term conjunction, so a single probe
     cannot show every clause is read; an earlier draft misdescribed it as separate
     assertions and that correction is recorded. Each of the three state clauses was

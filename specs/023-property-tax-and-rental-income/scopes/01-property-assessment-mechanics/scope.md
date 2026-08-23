@@ -315,6 +315,17 @@ does not satisfy RED.
     FL_REGIME_PATH)`. The row does NOT constrain the origin of an entry — it
     compares `new URL(entry.url).pathname` only — so no same-origin claim is
     made here; that gap is carried by Feature 021 Scope 01 `TP-01-18`.
+  - **Amended 2026-08-23 (F-REG-03 closure).** The final sentence above no
+    longer describes the row. `SCN-023-001` now projects the ledger through the
+    shared `sameOriginPaths(ledger, site)`, which refuses on origin before it
+    returns any pathname, so the row DOES constrain the origin of an entry. The
+    change is a conjunct rather than a replacement: `paths.forEach((path) =>
+    expect(permitted).toContain(path))` is unchanged and every adversarial case
+    listed above still holds. The new one is a read whose pathname is declared
+    but whose origin is not the route's; it is probed in
+    `specs/021-lifetime-tax-strategy-lab/scopes/01-tax-workspace-rule-pack-and-privacy-foundation/report.md#the-decisive-probe--a-cross-origin-url-with-a-declared-pathname`.
+    The tick above is not withdrawn: the item's claim was about no-growth and
+    declared paths, both still executed and both now strictly better supported.
 - [x] SUP-023-05 through SUP-023-08 are delivered with their markers, each
       replacement derived from the artifact it describes, each superseded clause
       recorded verbatim, and each intended-RED failure recorded before its green.

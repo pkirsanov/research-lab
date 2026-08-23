@@ -303,6 +303,15 @@ missing browser or an absent test does not satisfy RED.
       own configuration declares, and no household value reaches any URL,
       request, referrer or console message.
   - **Restated 2026-08-22 (F-REG-02).** The superseded text read "The request ledger stays empty across the full combined workflow", which is false: the cited row captures `afterFirstPaint = ledger.length` and asserts `expect(afterFirstPaint).toBeGreaterThan(0)` on the very next line, so the row and its own evidence asserted opposite things. The row now states the three propositions the run actually establishes, and each stays falsifiable. Adversarial cases: a request issued after first paint fails `expect(ledger.length).toBe(afterFirstPaint)`; a read of a document the configuration does not declare, or of any remote document, fails the permitted-path and cross-origin filters; a residency or income declaration reaching a URL, a request body, a referrer or a console message fails the sentinel assertions; and a boot that read nothing fails `expect(afterFirstPaint).toBeGreaterThan(0)`. This restatement matches the corrected `NFR-022-002`. **Rename discharged 2026-08-22 (F-REG-02).** The routed test-artifact rename has now been taken: the persistent title of the browser row reads `Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow`, and the row's `--grep` selector was moved with it in the same change, so the row still selects its own test. This restatement is `bubbles.plan`'s artifact; the tick is not, and remains for a verifying pass.
+  - **Amended 2026-08-23 (F-REG-03 closure).** The "cross-origin filter" the
+    restatement names is now the shared `sameOriginPaths(ledger, site)` rather
+    than an inline `startsWith(site.baseUrl)`. The inline form was a prefix test,
+    and a prefix is not an origin: everything before an `@` in an authority is
+    userinfo, so `site.baseUrl + "@evil.example"` begins with the whole base URL,
+    carries a declared pathname, and is served by `evil.example`. The shared
+    helper applies the prefix test and a parsed-origin comparison as a conjunct.
+    Every proposition and adversarial case above is unchanged; only the test
+    behind the cross-origin clause is stronger.
   - **Ticked 2026-08-22.** The referrer surface the previous pass recorded as
     unasserted is now read by the cited row itself: `document.referrer`, every
     header of every request resolved through `allHeaders()`, and the page URL

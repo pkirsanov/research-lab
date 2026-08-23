@@ -379,6 +379,17 @@ delivery makes a row's claim false, the row is corrected rather than checked.
     NOT constrain the origin of an entry — it compares `new URL(entry.url).pathname`
     only — so no same-origin claim is made here; that gap is carried by Feature
     021 Scope 01 `TP-01-18`.
+  - **Amended 2026-08-23 (F-REG-03 closure).** The final sentence above no
+    longer describes the row. `SCN-024-001` now projects the ledger through the
+    shared `sameOriginPaths(ledger, site)`, which refuses on origin before it
+    returns any pathname, so the row DOES constrain the origin of an entry. The
+    change is a conjunct rather than a replacement: every assertion and every
+    adversarial case listed above is unchanged. The new adversarial case is a
+    read whose pathname is declared but whose origin is not the route's, probed
+    at
+    `specs/021-lifetime-tax-strategy-lab/scopes/01-tax-workspace-rule-pack-and-privacy-foundation/report.md#the-decisive-probe--a-cross-origin-url-with-a-declared-pathname`.
+    The tick above is not withdrawn: its claim was about no-growth and declared
+    paths, both still executed and both now strictly better supported.
 - [x] NFR-024-011 holds: the new module is UMD, every pure analytic function is a
       top-level declaration the extractor lifts, `Number.isFinite` is used rather
       than the bare global, and no drawing is wrapped in `requestAnimationFrame`.

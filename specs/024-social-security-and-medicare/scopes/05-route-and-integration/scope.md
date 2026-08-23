@@ -373,6 +373,18 @@ delivery makes a row's claim false, the row is corrected rather than checked.
     does NOT constrain the origin of an entry — it compares
     `new URL(request.url).pathname` only — so no same-origin claim is made here;
     that gap is carried by Feature 021 Scope 01 `TP-01-18`.
+  - **Amended 2026-08-23 (F-REG-03 closure).** The final sentence above no
+    longer describes the row. `SCN-024-014` now projects the ledger through the
+    shared `sameOriginPaths(ledger, site)`, which refuses on origin before it
+    returns any pathname, so the row DOES constrain the origin of an entry. The
+    change is a conjunct rather than a replacement: every assertion and every
+    adversarial case listed above is unchanged, including each named pack pin.
+    The new adversarial case is a read whose pathname is declared but whose
+    origin is not the route's, probed at
+    `specs/021-lifetime-tax-strategy-lab/scopes/01-tax-workspace-rule-pack-and-privacy-foundation/report.md#the-decisive-probe--a-cross-origin-url-with-a-declared-pathname`.
+    The tick above is not withdrawn: its claim was about no-growth, declared
+    paths and pack presence, all still executed and all now strictly better
+    supported.
 - [x] NFR-024-004 holds at feature end: the refusal vocabulary member count and the
       supported income-kind count each equal their pre-feature values across the
       whole feature, not only within this scope.

@@ -77,13 +77,26 @@ Every surface below had to move together, and the suite pins each one:
 | `README.md`, `notes/README.md` | Reader-facing rows |
 
 The coverage rows are deliberately `not-relevant` and `browser-or-agent-read`
-rather than `analyzed`. The ladder withholds a rate at all six horizons, so it
-contributes no owning-tool conclusion to a brief window, and saying otherwise
-would put a number into the cockpit that no resolved sample supports.
+rather than `analyzed`. The LIVE ledger is what the brief would inherit, and it
+holds zero resolved outcomes, so the ladder contributes no owning-tool conclusion
+to a brief window.
 
-This brief is a design and a delivery record. It contains no candidate names, no
-levels, and no probabilities, because the repository cannot yet substantiate
-any.
+That live ledger is not the same thing as the tool having nothing to say. The
+high-probability profile ranks on the MEASURED analog rate, which is a real hit
+rate over regime-matched history with its sample shown, and it names candidates
+today at every horizon the data supports. The first build gated that profile on
+the live ledger instead, so it dropped every name at every horizon and answered
+an empty table forever. That was a defect, not restraint: a measured rate was
+already computed and sitting unused.
+
+Two floors keep the profile honest. A rate must clear 55%, so a 0% row cannot
+appear in a list labelled high-probability. And the history must hold at least
+three INDEPENDENT windows at the selected horizon, because analog windows
+overlap and a large `n` can rest on very few independent observations. Every
+displayed rate carries that independent count beside it, so a reader weighing
+`100.0% (60/60, 4 indep)` can see the 100% rests on four windows, not sixty. At
+one year the committed history yields two independent windows, so the profile
+names nothing there and the exclusion ledger says why.
 
 
 

@@ -97,6 +97,27 @@ test('Regression: the power view paints its frontier canvas and exposes its acce
   await expect(page.locator('#frontierFallback')).not.toBeEmpty();
 });
 
+/* The tool exists to name high-probability candidates. It shipped unable to: the profile gated on
+   the LIVE ledger, which starts at zero resolved outcomes, so every name was dropped at every
+   horizon and the answer was permanently empty. A measured rate was already available and unused.
+   This asserts the product does its job — names, above the floor, with their sample shown. */
+test('Regression: the high-probability profile names candidates above its floor rather than returning an empty answer', async ({ page }) => {
+  await page.goto(baseUrl + '/horizon-ladder-lab.html');
+  await expect.poll(() => page.locator('#simpleTable tbody tr').count(), { timeout: 15000 }).toBeGreaterThan(0);
+  await page.selectOption('#selProfile', 'high-probability');
+  await page.selectOption('#selHorizon', 'h1m');
+  await expect.poll(() => page.locator('#simpleTable tbody tr').count(), { timeout: 15000 }).toBeGreaterThan(0);
+  const analogTexts = await page.locator('#simpleTable tbody tr td:nth-child(3)').allInnerTexts();
+  expect(analogTexts.length).toBeGreaterThan(0);
+  for (const text of analogTexts) {
+    const rate = Number(/([0-9.]+)%/.exec(text)?.[1]);
+    expect(rate).toBeGreaterThanOrEqual(55);
+    /* n alone overstates evidence because the windows overlap, so the independent count must ride
+       alongside every rate a reader might act on. */
+    expect(text).toMatch(/indep/);
+  }
+});
+
 /* Opened straight off disk, the universe fetch is blocked and the tool has no data at all. Every
    peer tool fetches its universe the same way, so this is the house pattern rather than a defect —
    but the refusal is the product here, and a blank page would read as "no candidates" instead of

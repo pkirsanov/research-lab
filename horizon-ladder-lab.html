@@ -815,6 +815,8 @@
                     analogN: analog.n,
                     analogK: analog.k,
                     analogRate: usesAnalog ? analog.rate : null,
+                    // Overlapping windows: n counts starts, this counts non-overlapping ones.
+                    analogIndependent: Math.floor(closes.length / sessions),
                     moveP25: hlPercentile(sortedForward, 0.25),
                     moveP50: hlPercentile(sortedForward, 0.50),
                     moveP75: hlPercentile(sortedForward, 0.75),
@@ -850,9 +852,23 @@
                     dropped.push({ symbol: r.symbol, reason: 'reward-to-risk ' + (isFinite(r.rr) ? r.rr.toFixed(2) : 'n/a') + ' is below the ' + CFG.policy.rewardToRiskFloor + ' floor for the lower-risk profile' });
                     continue;
                 }
-                if (state.profile === 'high-probability' && r.rateWithheld) {
-                    dropped.push({ symbol: r.symbol, reason: 'high-probability profile requires an earned rate; this cell is withheld' });
-                    continue;
+                if (state.profile === 'high-probability') {
+                    var floor = CFG.policy.analogProbabilityFloor;
+                    var minIndep = CFG.policy.minIndependentWindows;
+                    if (!isFinite(r.analogRate) || r.analogN < CFG.policy.minAnalogSample) {
+                        dropped.push({ symbol: r.symbol, reason: 'high-probability profile needs a measured rate: analog sample ' + (isFinite(r.analogN) ? r.analogN : 0) + ' of ' + CFG.policy.minAnalogSample + ' required' });
+                        continue;
+                    }
+                    /* Analog windows overlap, so a large n can still rest on very few independent
+                       observations. History length divided by the horizon is that independent count. */
+                    if (!isFinite(r.analogIndependent) || r.analogIndependent < minIndep) {
+                        dropped.push({ symbol: r.symbol, reason: 'analog windows overlap: only ' + (isFinite(r.analogIndependent) ? r.analogIndependent : 0) + ' independent ' + state.horizon + ' windows in the available history, ' + minIndep + ' required' });
+                        continue;
+                    }
+                    if (r.analogRate < floor) {
+                        dropped.push({ symbol: r.symbol, reason: 'measured rate ' + (r.analogRate * 100).toFixed(1) + '% is below the ' + (floor * 100).toFixed(0) + '% floor for the high-probability profile' });
+                        continue;
+                    }
                 }
                 kept.push(r);
             }
@@ -862,6 +878,7 @@
         function sortKeyForProfile() {
             if (state.profile === 'high-reward') return 'movePct';
             if (state.profile === 'lower-risk') return 'rr';
+            if (state.profile === 'high-probability') return 'analogRate';
             return 'ev';
         }
 
@@ -896,7 +913,10 @@
             if (!isFinite(row.analogRate)) {
                 return '<span class="withheld">n=' + row.analogN + '</span>';
             }
-            return fmtPct(row.analogRate) + ' <span class="dim">(' + row.analogK + '/' + row.analogN + ')</span>';
+            /* n counts overlapping window starts, so it overstates evidence on its own. The
+               independent count is what a reader should weigh a high rate against. */
+            return fmtPct(row.analogRate) + ' <span class="dim">(' + row.analogK + '/' + row.analogN
+                + ', ' + (isFinite(row.analogIndependent) ? row.analogIndependent : 0) + ' indep)</span>';
         }
 
         function renderTable(target, rows, full) {

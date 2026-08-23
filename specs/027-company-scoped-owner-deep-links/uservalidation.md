@@ -12,7 +12,13 @@ instead — that is a finding, and it is routed rather than argued with.
 **What to have open.** `company-intelligence-lab.html` on any company, and the
 four owner routes it links to: `options-structure-lab.html`,
 `gamma-trading-lab.html`, `volatility-sizing-lab.html` and
-`options-flow-feed-lab.html`. No key, no account and no server is required.
+`options-flow-feed-lab.html`. No key and no account are required. Serve the
+folder over http for this walk: run `python3 -m http.server 8000`, then open
+`http://localhost:8000/company-intelligence-lab.html`. Opened as a plain file,
+each of these tools renders but reports that data cannot load over `file://`, so
+the company-scoped items below cannot be exercised that way. That plain-file
+behaviour is itself one of the things you are judging, which is why the
+`file://` row in the coverage table below is marked Partly.
 
 ---
 

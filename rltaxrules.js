@@ -1794,11 +1794,18 @@
     if (!validation.ok) {
       return Object.freeze({ ok: false, refusals: validation.refusals, pack: null });
     }
+    /* A VERSION PIN, NOT AN INTEGRITY CHECK. This compares the configured pointer against the
+       digest the pack DECLARES ABOUT ITSELF; no digest is computed here over the bytes that were
+       fetched. It therefore catches a pack swapped for a different version without the
+       configuration being updated, and it does NOT catch a pack whose content was edited and
+       whose own contentSha256 member was edited to match. The complementary check that the
+       declared digest is real — recomputed from packContentDigestInput over the pack's own
+       content — runs in the repository self-test, so a decorative digest cannot be committed. */
     if (isNonEmptyString(ask.expectedContentSha256) && ask.expectedContentSha256 !== pack.contentSha256) {
       return Object.freeze({
         ok: false,
         refusals: Object.freeze([unavailable("RLTAX-PACK-INVALID", "pack:contentSha256",
-          "the pack digest does not match the configured pointer",
+          "the pack does not declare the version this configuration pins",
           "regenerate the pack digest or correct rules.packContentSha256 in the configuration")]),
         pack: null
       });

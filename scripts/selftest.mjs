@@ -17168,6 +17168,75 @@ try {
     && claimScan02.test('this is our estimate of the deduction') === true,
     'TP-02-CLAIM: nothing the deduction composition emits states a probability, a lifetime figure, a track record, an error rate or an estimate, and the detector is proven to fire on a sentence that does');
 
+  /* TP-02-26 F-REG-01. The engine publishes two different deductions and they are NOT
+     interchangeable: `settlementDeduction` priced the tax and follows the declared mode;
+     `appliedDeduction` is this comparison's larger side. The fixture below is built so the two
+     DISAGREE, because under agreement no assertion could tell them apart — which is exactly how a
+     suite of 3,244 checks passed while every rendered surface named the wrong one. */
+  const declaredStandard02 = declare02({
+    deductionMode: 'standard',
+    itemizedAmount: PACK02.standardDeductions.single.amount + 5000
+  });
+  const disagreeing02 = TAX02.composeItemizedDeduction(declaredStandard02, PACK02,
+    { 'property-tax': PACK02.standardDeductions.single.amount + 5000, 'state-income-tax': undefined });
+  const settledTax02 = TAX02.computeAnnualFederalTax(declaredStandard02, PACK02);
+  assert(disagreeing02.chosen === 'itemized'
+    && disagreeing02.settlementDeduction.mode === 'standard'
+    && disagreeing02.settlementDeduction.value === PACK02.standardDeductions.single.amount
+    && disagreeing02.appliedDeduction !== disagreeing02.settlementDeduction.value
+    && disagreeing02.agreesWithSettlement === false
+    /* The settlement really did price the tax on the settled figure, so the two members are not
+       merely different labels for the same arithmetic. */
+    && settledTax02.appliedDeduction.value === disagreeing02.settlementDeduction.value
+    && settledTax02.appliedDeduction.mode === 'standard',
+    'TP-02-26: when the declared mode is not the larger side the composition names itemising while the settlement prices the tax on the declared standard deduction, the two amounts differ, agreesWithSettlement reports the disagreement, and the settled figure is the one computeAnnualFederalTax actually subtracted');
+
+  /* TP-02-27 F-REG-01 SURFACE HONESTY. The node suite could not see this defect because it never
+     read the rendered surface. It does now: the Simple panel must feed its priced-the-tax row
+     from `settlementDeduction` and its comparison row from the composed amount, and neither row
+     may be labelled or described as the other. */
+  const pageText02surface = read('lifetime-tax-strategy-lab.html');
+  const simpleDeductionBlock02 = (source) => {
+    const start = source.indexOf('"Deduction that priced the tax: "');
+    const end = source.indexOf('tradeoffHost.appendChild', start);
+    return start < 0 || end < 0 ? '' : source.slice(start, end);
+  };
+  const deductionValueExpr02 = (block, fieldId) => {
+    const at = block.indexOf('simpleValueNode("' + fieldId + '"');
+    return at < 0 ? '' : block.slice(at, block.indexOf('));', at));
+  };
+  const deductionSurfaceFaults02 = (source) => {
+    const block = simpleDeductionBlock02(source);
+    if (block === '') return ['no priced-the-tax row is rendered at all'];
+    const settled = deductionValueExpr02(block, 'deductionApplied');
+    const compared = deductionValueExpr02(block, 'deductionSideChosen');
+    const faults = [];
+    if (settled.indexOf('settlementDeduction') < 0) faults.push('the priced-the-tax row is not fed from settlementDeduction');
+    if (/appliedDeduction|deduction\.chosen\b/.test(settled)) faults.push('the priced-the-tax row names the composed side');
+    if (compared.indexOf('appliedDeduction') < 0) faults.push('the comparison row is not fed from the composed amount');
+    if (/actually applied/i.test(compared)) faults.push('the comparison row claims the composed side was actually applied');
+    if (compared.indexOf('A comparison') < 0) faults.push('the comparison row does not say it is a comparison');
+    return faults;
+  };
+  const surfaceFaults02 = deductionSurfaceFaults02(pageText02surface);
+  /* Adversarial: the exact regression this finding names, planted, must be caught. */
+  const plantedComposed02 = deductionSurfaceFaults02(pageText02surface.replace(
+    'envelope.deduction.settlementDeduction.mode + " \\u00b7 " + dollars(envelope.deduction.settlementDeduction.value)',
+    'envelope.deduction.chosen + " \\u00b7 " + dollars(envelope.deduction.appliedDeduction)'));
+  /* Adversarial: the self-contradicting tooltip, planted, must be caught. */
+  const plantedTooltip02 = deductionSurfaceFaults02(pageText02surface.replace(
+    '"A comparison, and not the figure above: the larger of the itemised total',
+    '"The side this settlement actually applied, recomputed from the itemised total'));
+  assert(surfaceFaults02.length === 0
+    && plantedComposed02.length > 0 && plantedTooltip02.length > 0
+    /* No surviving surface claims the composed side was the one applied. */
+    && pageText02surface.indexOf('Deduction actually applied') < 0
+    && read('rltax.js').indexOf('the side actually applied cannot be named') < 0
+    /* One string may not assert both sides: the clause appended to chosenReason names the
+       comparison as its subject rather than leaving "It" to be read as the settlement. */
+    && read('rltax.js').indexOf('This comparison did not price the tax:') >= 0,
+    'TP-02-27: the Simple panel feeds its priced-the-tax row from the settled deduction and its comparison row from the composed amount, neither is described as the other, no surface still says the composed side was actually applied, and both the composed-amount regression and the self-contradicting tooltip are proven to fail the detector: ' + surfaceFaults02.join(', '));
+
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 023 Scope 02 deduction group threw): ' + e.message); }
 
 /* ---------- Feature 023 Scope 03 — long-term rental, cost recovery and loss limits ---------- */

@@ -408,7 +408,7 @@ test('Regression: SCN-023-006 the itemized versus standard decision is recompute
   await expect(page.locator('#deductionChosenLine')).toContainText('declared tie rule');
 });
 
-/* TP-02-20b. The assertion F-REG-01 says was missing: it fails if any surface presents the
+/* TP-02-28. The assertion F-REG-01 says was missing: it fails if any surface presents the
    COMPOSED side as the deduction that priced the tax. It is run under the fixture in which the
    declared mode and the composed side deliberately disagree, because under agreement no
    assertion here could tell the two apart — that is precisely how the defect survived a suite of

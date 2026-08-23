@@ -1571,3 +1571,110 @@ surface, `TP-02-28` on the browser grep.
 **Claim Source:** executed. The block above is the verbatim stdout of the harness
 invocation run in this session, with its exit code appended.
 
+## TP-02-29 authored — the live-route privacy row this scope never had (2026-08-22)
+
+`TP-02-29` was opened as `GAP, NOT AUTHORED` because this scope's only privacy
+evidence, `TP-02-16`, is a `unit` row run by `node scripts/selftest.mjs`. That
+command has no browser and therefore no request ledger to observe: its assertion
+is about the workspace contract, the export sanitiser and the storage inventory,
+and says nothing about a request. `NFR-023-003` on the live route was not covered
+by this scope at all.
+
+It is covered now. `tests/lifetime-tax-deduction.spec.mjs` carries a row that
+opens the real route, captures `afterFirstPaint` immediately after
+`openLifetimeTax`, pins it greater than zero, declares the mortgage interest and
+acquisition-debt balance as distinctive sentinels, and then asserts the ledger has
+not grown and that every entry is a same-origin read of a path the route's own
+configuration declares. The permitted set is derived from the page's script tags
+and from `declaredPackPaths`, so a module a later scope adds is admitted by the
+page's own declaration rather than by a literal edited here. The origin half runs
+first through the shared `sameOriginPaths` helper described under `TP-01-18` in
+the Feature 021 Scope 01 report.
+
+### Intended RED and same-command GREEN — three arms, one per adversarial case
+
+The row names three adversarial cases and no single mutation fails more than one
+of them, so each is probed on its own. Every RED names its own assertion by file
+line, which is what makes it the intended contract assertion rather than a
+collateral break.
+
+**Arm A — a boot that read nothing.** Zeroing the capture is exactly that state.
+
+```
+$ bash scripts/red-green-probe.sh --file tests/lifetime-tax-deduction.spec.mjs \
+    --find 'const afterFirstPaint = ledger.length;' --replace 'const afterFirstPaint = ledger.length * 0;' \
+    --label 'TP-02-29 arm A, non-empty pin: a boot that read nothing must fail this row, so the no-growth and permitted-set assertions cannot pass vacuously over an empty ledger' \
+    --bound 300 --summary-match 'expect\(afterFirstPaint\)\.toBeGreaterThan|1 passed' \
+    -- npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-023-005 the request ledger does not grow after the mortgage declarations" --reporter=line
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-29 arm A, non-empty pin: a boot that read nothing must fail this row, so the no-growth and permitted-set assertions cannot pass vacuously over an empty ledger
+file:             tests/lifetime-tax-deduction.spec.mjs
+mutation:         const afterFirstPaint = ledger.length;  ->  const afterFirstPaint = ledger.length * 0;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-005\ the\ request\ ledger\ does\ not\ grow\ after\ the\ mortgage\ declarations --reporter=line
+red-exit:         1
+red-summary:          > 599 |   expect(afterFirstPaint).toBeGreaterThan(0);
+green-exit:       0
+green-summary:      1 passed (2.1s)
+summary-compared:     > 599 |   expect(afterFirstPaint).toBeGreaterThan(0);  vs    1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=72be1fc826c3b5d91be5e3c79a96b8b607bf7729 restored=72be1fc826c3b5d91be5e3c79a96b8b607bf7729)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+ARM_A_EXIT=0
+```
+
+**Arm B — a request issued after the declarations are entered.** Subtracting one
+from the capture is the arithmetic image of exactly one such request: the pin
+still holds and only the equality fails.
+
+```
+$ bash scripts/red-green-probe.sh --file tests/lifetime-tax-deduction.spec.mjs \
+    --find 'const afterFirstPaint = ledger.length;' --replace 'const afterFirstPaint = ledger.length - 1;' \
+    --label 'TP-02-29 arm B, ledger growth: a request issued after the mortgage declarations are entered must fail this row' \
+    --bound 300 --summary-match 'expect\(ledger\.length\)\.toBe|1 passed' \
+    -- npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-023-005 the request ledger does not grow after the mortgage declarations" --reporter=line
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-29 arm B, ledger growth: a request issued after the mortgage declarations are entered must fail this row
+file:             tests/lifetime-tax-deduction.spec.mjs
+mutation:         const afterFirstPaint = ledger.length;  ->  const afterFirstPaint = ledger.length - 1;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-005\ the\ request\ ledger\ does\ not\ grow\ after\ the\ mortgage\ declarations --reporter=line
+red-exit:         1
+red-summary:          > 614 |   expect(ledger.length).toBe(afterFirstPaint);
+green-exit:       0
+green-summary:      1 passed (2.7s)
+summary-compared:     > 614 |   expect(ledger.length).toBe(afterFirstPaint);  vs    1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=72be1fc826c3b5d91be5e3c79a96b8b607bf7729 restored=72be1fc826c3b5d91be5e3c79a96b8b607bf7729)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+ARM_B_EXIT=0
+```
+
+**Arm C — a read of a path the configuration does not declare.** Withdrawing the
+declared pack family from the derivation leaves the federal pack read, which the
+boot really makes, outside the permitted set.
+
+```
+$ bash scripts/red-green-probe.sh --file tests/lifetime-tax-deduction.spec.mjs \
+    --find ".concat(scripts).concat(packs).concat(['/favicon.ico']);" --replace ".concat(scripts).concat([]).concat(['/favicon.ico']);" \
+    --label 'TP-02-29 arm C, permitted-set membership: a read of a path the configuration does not declare must fail this row; withdrawing the declared pack family makes the federal pack read undeclared' \
+    --bound 300 --summary-match 'expect\(permitted\)\.toContain\(path\)|1 passed' \
+    -- npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-023-005 the request ledger does not grow after the mortgage declarations" --reporter=line
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-29 arm C, permitted-set membership: a read of a path the configuration does not declare must fail this row; withdrawing the declared pack family makes the federal pack read undeclared
+file:             tests/lifetime-tax-deduction.spec.mjs
+mutation:         .concat(scripts).concat(packs).concat(['/favicon.ico']);  ->  .concat(scripts).concat([]).concat(['/favicon.ico']);   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-005\ the\ request\ ledger\ does\ not\ grow\ after\ the\ mortgage\ declarations --reporter=line
+red-exit:         1
+red-summary:          > 622 |   paths.forEach((path) => expect(permitted).toContain(path));
+green-exit:       0
+green-summary:      1 passed (2.1s)
+summary-compared:     > 622 |   paths.forEach((path) => expect(permitted).toContain(path));  vs    1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=72be1fc826c3b5d91be5e3c79a96b8b607bf7729 restored=72be1fc826c3b5d91be5e3c79a96b8b607bf7729)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+ARM_C_EXIT=0
+```
+
+**Claim Source:** executed. All three blocks are verbatim harness output from this
+session, each with its revert hash-verified against the committed blob.
+
+

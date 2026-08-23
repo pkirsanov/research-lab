@@ -26252,6 +26252,82 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (narrative lane acceptance group threw): ' + e.message); }
 /* ---------- Narrative lane: the acceptance contract must be stated and retried against (END) ---------- */
 
+/* ---------- Experience shell: every registered tool can actually mount it (START) ---------- */
+/* horizon-ladder-lab registered a Simple model, passed validate-tool-experience, and rendered
+   correctly in a browser — while being the ONLY registered tool with no [data-rlbrief-mount]
+   anchor. rlapp.js mounts the shell from that anchor and from nothing else, so the registered model
+   was unreachable and #rlviews never existed. The page-level gates could not see it; only the
+   deployed-site parity suite could, and that suite blocks Pages. Both halves of the wiring are
+   checked here, for every tool, so the next tool cannot repeat it. */
+try {
+  group('experience shell — every registered tool is mountable');
+  const { existsSync: shellExists, readFileSync: shellRead } = await import('node:fs');
+  const shellRegistry = JSON.parse(read('tools.json')).tools;
+  const shellModels = JSON.parse(read('simple-models.json'));
+  const shellDefs = shellModels.definitions || [];
+
+  const pagedTools = shellRegistry.filter((tool) => shellExists(`${tool.id}.html`));
+  assert(pagedTools.length > 20, `the registered-tool sweep actually has tools to check (found ${pagedTools.length})`);
+
+  const anchorless = pagedTools.filter((tool) => {
+    const html = shellRead(`${tool.id}.html`, 'utf8');
+    return !new RegExp(`data-rlbrief-mount[^>]*data-tool-id="${tool.id}"`).test(html);
+  }).map((tool) => tool.id);
+  assert(anchorless.length === 0,
+    `every registered tool page carries a [data-rlbrief-mount] anchor naming its own tool id — rlapp.js mounts the shell from nothing else (missing: ${anchorless.join(', ') || 'none'})`);
+
+  const duplicateAnchors = pagedTools.filter((tool) => (shellRead(`${tool.id}.html`, 'utf8').match(/data-rlbrief-mount/g) || []).length > 1).map((tool) => tool.id);
+  assert(duplicateAnchors.length === 0,
+    `no page carries two mount anchors — rlapp.js requires exactly one and silently declines to mount otherwise (offenders: ${duplicateAnchors.join(', ') || 'none'})`);
+
+  /* Deliberately NOT asserted: that a page loads the adapterModule its definition names. That
+     looked like the same contract and is not — the shell resolves the binding and loads the module
+     itself, and five tools that ship no adapter script mount correctly today. Pinning it would have
+     failed main for five working tools on the strength of a guess. */
+  assert(shellDefs.every((definition) => !definition.adapterModule || typeof definition.adapterModule === 'string'),
+    'every declared adapterModule is a module path string the shell can resolve against its bindings table');
+} catch (e) { failures++; console.log('  ✗ FAIL (experience shell mountability group threw): ' + e.message); }
+/* ---------- Experience shell: every registered tool can actually mount it (END) ---------- */
+
+/* ---------- Brief window cutoff: the publisher enforces what consumers require (START) ---------- */
+/* A brief that declares window W must carry evidence no later than W's civil cutoff. The consumer
+   (rlportfoliobrief validateGenericWindow) refuses otherwise and the whole Portfolio Brief reads
+   "Brief unavailable" — 16 browser regressions at once. The publisher never asked the same question,
+   and the scheduler's window bands were open at the top, so a run finishing at 11:37 ET still
+   labelled itself `morning` (cutoff 11:00). Both halves are pinned. */
+try {
+  group('brief window cutoff — publisher refuses what the consumer would reject');
+  const { createRequire: createCutoffRequire } = await import('node:module');
+  const cutoffRequire = createCutoffRequire(import.meta.url);
+  const CUTOFFBRIEF = cutoffRequire('../rlportfoliobrief.js');
+  const { findWindowCutoffBreaches } = await import('./validate-brief-payload.mjs');
+
+  assert(typeof CUTOFFBRIEF.newYorkCivilCutoff === 'function',
+    'the consumer module exports its cutoff resolver, so the publish gate resolves cutoffs with the same rule instead of a second copy');
+
+  const cutoffConfig = { windows: [{ id: 'morning', etTime: '11:00', label: 'Morning' }] };
+  const late = findWindowCutoffBreaches(
+    { asOf: '2026-08-23T15:37:31.147Z' },
+    { window: 'morning', asOf: '2026-08-23T15:37:31.147Z' },
+    cutoffConfig);
+  assert(late.length === 2 && late.every((entry) => /later than the morning cutoff/.test(entry)),
+    'a brief whose snapshot and payload are both past the declared cutoff is refused, and each breach is named separately rather than collapsed into one verdict');
+
+  const onTime = findWindowCutoffBreaches(
+    { asOf: '2026-08-23T14:31:00.000Z' },
+    { window: 'morning', asOf: '2026-08-23T14:31:00.000Z' },
+    cutoffConfig);
+  assert(onTime.length === 0,
+    'the ordinary in-band publication, composed inside the lead window, is not refused — the gate must not block the 90% case it exists to protect');
+
+  /* The scheduler half: every band closes at its own cutoff, so a late run selects no window. */
+  const schedulerSource = read('scripts/brief-refresh-scheduled.sh');
+  const closedBands = (schedulerSource.match(/-le (?:450|660|900|1020)\b/g) || []).length;
+  assert(closedBands === 4,
+    `all four window bands close at their own cutoff, so a run past the cutoff selects no window rather than one it cannot honestly satisfy (found ${closedBands}/4)`);
+} catch (e) { failures++; console.log('  ✗ FAIL (brief window cutoff group threw): ' + e.message); }
+/* ---------- Brief window cutoff: the publisher enforces what consumers require (END) ---------- */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

@@ -19,7 +19,7 @@ node scripts/validate-brief-payload.mjs
 node scripts/build-pages-site.mjs
 ```
 
-The suite carries 49 assertions for this tool under the group
+The suite carries 51 assertions for this tool under the group
 `Horizon Ladder Lab — the probability gate withholds until a cell is earned`.
 
 ## Metric ownership: what this tool delegates and what it owns

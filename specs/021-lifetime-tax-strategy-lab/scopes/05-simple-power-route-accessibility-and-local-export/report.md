@@ -1894,6 +1894,159 @@ and it does not bear on this scope's own row accounting.
 blob, and `git status --porcelain -- rltaxstrategy.js` was re-read at `0` rows
 between the two probes.
 
+## DoD Closure: 2026-08-23
+
+Four DoD rows were added to this scope by a planning pass and were correctly left
+unticked. Each is closed below against a command run in this session, with the
+exit code captured into a variable before any other command ran.
+
+### Row: scenario-specific E2E regression under the exact persistent titles
+
+The Test Plan names four persistent titles for this scope, `TP-05-11` through
+`TP-05-14`, covering `SCN-021-013`, `SCN-021-014` twice and `SCN-021-015`.
+Presence is read out of `tests/lifetime-tax-route.spec.mjs` as a literal string,
+so an empty `--grep` selection cannot be read as a pass.
+
+```text
+===== SCOPE 05 =====
+
+Running 4 tests using 1 worker
+
+  ✓  1 …ns first with a decision level answer and Power holds the detail (432ms)
+  ✓  2 …e is explained and every unavailable state is keyboard reachable (596ms)
+  ✓  3 …-014 tax and account tables stay readable at the mobile viewport (340ms)
+  ✓  4 …fter first paint, and every entry is a declared same-origin read (391ms)
+
+  4 passed (2.7s)
+S05_EXIT=0
+```
+
+Adversarial case. Renaming one persistent title turns the check red:
+
+```text
+label:            021-05 persistent title presence is non-vacuous
+file:             tests/lifetime-tax-route.spec.mjs
+mutation:         SCN-021-013 Simple opens first with a decision  ->  SCN-021-013 Renamed opens first with a decision   (1 occurrence(s))
+red-exit:         1
+red-summary:      TITLE_PRESENCE scope=05 checked=4 missing=1 verdict=FAIL
+green-exit:       0
+green-summary:    TITLE_PRESENCE scope=05 checked=4 missing=0 verdict=PASS
+revert-verified:  yes (committed=1b5d96f32d8a4ec2d1c69bab1a779f671c709bfa restored=1b5d96f32d8a4ec2d1c69bab1a779f671c709bfa)
+discriminating:   yes (exit 1 != 0)
+```
+
+This row also depends on `TP-05-18`, which this scope's Test Plan still carried
+as an unauthored gap against `SCN-021-015`. The gap is not open. The required
+pin, `expect(afterFirstPaint).toBeGreaterThan(0)`, is live at
+`tests/lifetime-tax-route.spec.mjs` line 308 and landed on 2026-08-22 in
+`58c9605823` with a comment naming the row; only the Test Plan status was left
+stale. It is proven consequential rather than merely present, by mutating the
+capture into exactly the boot-that-read-nothing the row describes:
+
+```text
+label:            TP-05-18: a boot that issued no request must fail SCN-021-015
+file:             tests/lifetime-tax-route.spec.mjs
+mutation:         const afterFirstPaint = ledger.length;  ->  const afterFirstPaint = 0;   (1 occurrence(s))
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (1.0s)
+revert-verified:  yes (committed=1b5d96f32d8a4ec2d1c69bab1a779f671c709bfa restored=1b5d96f32d8a4ec2d1c69bab1a779f671c709bfa)
+discriminating:   yes (exit 1 != 0)
+```
+
+**Claim Source:** executed.
+
+### Row: broader E2E regression suite across the whole lifetime-tax family
+
+The whole browser family was run, not this scope's spec file alone. Twenty spec
+files, every scope of Features 021 through 024:
+
+```text
+Running 94 tests using 6 workers
+  94 passed (17.1s)
+FAMILY_EXIT=0
+```
+
+**Claim Source:** executed.
+
+### Row: Change Boundary respected, zero excluded file families changed
+
+The check attributes per commit. It walks every non-merge commit in
+`b9d92a3f1^..HEAD` that touched a 021-owned surface, intersects that commit's
+file list with this scope's 27 excluded globs, and separately reads
+`git status --porcelain --untracked-files=all` over the same globs. `-uall` is
+used deliberately, because the row rejects `git diff --quiet`, which reports an
+untracked path as unchanged; every excluded root here is tracked, and the
+untracked enumeration over those roots returns zero rows.
+
+```text
+CHANGE_BOUNDARY scope=05 control=False globs=27 owning_commits=78 violations=0 worktree_dirty=0 verdict=PASS
+  CB05_EXIT=0
+```
+
+Adversarial case. Injecting one path the 021 commits demonstrably did touch
+into the excluded set flips the same command to FAIL:
+
+```text
+CHANGE_BOUNDARY scope=05 control=True globs=28 owning_commits=78 violations=10 worktree_dirty=0 verdict=FAIL
+  CTRL05_EXIT=1
+```
+
+**Claim Source:** executed.
+
+### Row: Consumer Impact Sweep complete, zero stale first-party references
+
+This scope's sweep names the Simple and Power mode identifiers, the export
+action's control identifier and the route's panel anchor ids. The scan is the
+same repository-wide six-limb scan the Scope 01 report records, because the two
+rows share one surface: renamed or removed 021-owned paths, declared module
+reads, Power deep-link targets, the closed refusal vocabulary, the deliberately
+unregistered route, and path references in the tool's notes page.
+
+The deep-link limb is the one this scope owns. Every `power-*` section id the
+page references resolves to a declared element id, which is what a renamed panel
+anchor would break.
+
+```text
+CONSUMER_SWEEP control=False renames=0 reads=14 deeplinks=19 codes=14 notes_paths=34 superseded=8 stale=0 verdict=PASS
+SWEEP_EXIT=0
+```
+
+The first run of this scan failed on five dead paths in the tool notes and on one
+false positive of its own, `power-link`, which is assigned to `className` rather
+than to an element id. Both are recorded in the Scope 01 report; the notes were
+repaired in `0efc20250` and the extraction now strips `className` and `class`
+before reading deep-link targets.
+
+Adversarial case, two directions. An injected stale reference in each limb:
+
+```text
+UNRESOLVED-DECLARED-READ rltaxstrategy-moved.js
+DANGLING-DEEP-LINK power-retired-section
+UNDECLARED-REFUSAL-CODE RLTAX-RETIRED-CODE
+STALE-NOTES-PATH rltaxworkspace-moved.js
+CONSUMER_SWEEP control=True renames=0 reads=15 deeplinks=20 codes=15 notes_paths=35 superseded=8 stale=4 verdict=FAIL
+SWEEP_CONTROL_EXIT=1
+```
+
+And a real mutation of the page, proving the sweep reads the shipped file rather
+than only an injected set:
+
+```text
+label:            Consumer sweep detects a moved module in the real page
+file:             lifetime-tax-strategy-lab.html
+mutation:         src="rltaxstrategy.js"  ->  src="rltaxstrategy-moved.js"   (1 occurrence(s))
+red-exit:         1
+red-summary:      CONSUMER_SWEEP stale=1 verdict=FAIL
+green-exit:       0
+green-summary:    CONSUMER_SWEEP stale=0 verdict=PASS
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+```
+
+**Claim Source:** executed.
+
 
 
 

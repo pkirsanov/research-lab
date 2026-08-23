@@ -1004,6 +1004,35 @@ failure moves the aggregate under this sweep, the aggregate summary is not a
 reliable probe channel in this session, and the count is quoted here only as the
 observation it was.
 
+#### The same probe re-run once the shared file went green
+
+The concurrent session's failure cleared later in this session, so the identical
+probe was run again against a clean baseline. It is recorded rather than
+substituted for the capture above, because an evidence block is not rewritten
+after the fact.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            simple-deduction-row-renders-composed-not-settled (clean baseline)
+file:             lifetime-tax-strategy-lab.html
+mutation:         envelope.deduction.chosen + " \u00b7 " + dollars(envelope.deduction.appliedDeduction),  ->  envelope.deduction.settlementDeduction.mode + " \u00b7 " + dollars(envelope.deduction.settlementDeduction.value),   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         0
+red-summary:      Research-Lab self-test: 3244 passed, 0 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3244 passed, 0 failed
+summary-compared: Research-Lab self-test: 3244 passed, 0 failed  vs  Research-Lab self-test: 3244 passed, 0 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=a2bdfa4a1b312df877c58d1b19d995716393595b restored=a2bdfa4a1b312df877c58d1b19d995716393595b)
+discriminating:   NO (both channels agree: exit 0 == 0, summary "Research-Lab self-test: 3244 passed, 0 failed" identical once elapsed time is normalised)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_EXIT=7
+```
+
+Both halves green, both halves identical, exit 7. The finding does not depend on
+the concurrent failure and is not an artefact of it. A whole suite of 3,244
+assertions cannot tell whether the Simple panel names the deduction that priced
+the tax or the one that did not.
+
 **Claim Source:** executed. The probe above ran in this session. The greps for
 `settlementDeduction`, `agreesWithSettlement`, `appliedDeduction` and
 `actually applied` ran in this session. `rltax.js:130-150`,

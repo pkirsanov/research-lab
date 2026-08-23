@@ -573,3 +573,84 @@ table; that arithmetic is proven against the fixture pack only, exactly as the
 design directs.
 
 Scope status remains **In progress**.
+
+## DoD Closure: 2026-08-23
+
+Three DoD rows were added to this scope by a planning pass and were correctly left
+unticked. Each is closed below against a command run in this session, with the
+exit code captured into a variable before any other command ran.
+
+### Row: scenario-specific E2E regression under the exact persistent titles
+
+The Test Plan names three persistent titles for this scope: `TP-02-11`,
+`TP-02-12` and `TP-02-13`. Presence is read out of
+`tests/lifetime-tax-federal.spec.mjs` as a literal string, so an empty `--grep`
+selection cannot be read as a pass. The repository-wide reading is 16 titles
+checked across the five scopes with zero missing.
+
+```text
+===== SCOPE 02 =====
+
+Running 3 tests using 1 worker
+
+  ✓  1 …N-021-004 federal tax is exact below at and above a bracket edge (388ms)
+  ✓  2 …Regression: SCN-021-005 long term gains stack on ordinary income (407ms)
+  ✓  3 …deduction selection is explicit and the annual result reconciles (334ms)
+
+  3 passed (2.2s)
+S02_EXIT=0
+```
+
+Adversarial case. Renaming one persistent title turns the check red:
+
+```text
+label:            021-02 persistent title presence is non-vacuous
+file:             tests/lifetime-tax-federal.spec.mjs
+mutation:         SCN-021-004 federal tax is exact below  ->  SCN-021-004 renamed tax is exact below   (1 occurrence(s))
+red-exit:         1
+red-summary:      TITLE_PRESENCE scope=02 checked=3 missing=1 verdict=FAIL
+green-exit:       0
+green-summary:    TITLE_PRESENCE scope=02 checked=3 missing=0 verdict=PASS
+revert-verified:  yes (committed=faed04dfdf31dd255726fb226e645f8e3197bc24 restored=faed04dfdf31dd255726fb226e645f8e3197bc24)
+discriminating:   yes (exit 1 != 0)
+```
+
+**Claim Source:** executed.
+
+### Row: broader E2E regression suite across the whole lifetime-tax family
+
+The whole browser family was run, not this scope's spec file alone. Twenty spec
+files, every scope of Features 021 through 024:
+
+```text
+Running 94 tests using 6 workers
+  94 passed (17.1s)
+FAMILY_EXIT=0
+```
+
+**Claim Source:** executed.
+
+### Row: Change Boundary respected, zero excluded file families changed
+
+The check attributes per commit. It walks every non-merge commit in
+`b9d92a3f1^..HEAD` that touched a 021-owned surface, intersects that commit's
+file list with this scope's 15 excluded globs, and separately reads
+`git status --porcelain --untracked-files=all` over the same globs. `-uall` is
+used deliberately, because the row rejects `git diff --quiet`, which reports an
+untracked path as unchanged; every excluded root here is tracked, and the
+untracked enumeration over those roots returns zero rows.
+
+```text
+CHANGE_BOUNDARY scope=02 control=False globs=15 owning_commits=78 violations=0 worktree_dirty=0 verdict=PASS
+  CB02_EXIT=0
+```
+
+Adversarial case. Injecting one path the 021 commits demonstrably did touch
+into the excluded set flips the same command to FAIL:
+
+```text
+CHANGE_BOUNDARY scope=02 control=True globs=16 owning_commits=78 violations=10 worktree_dirty=0 verdict=FAIL
+  CTRL02_EXIT=1
+```
+
+**Claim Source:** executed.

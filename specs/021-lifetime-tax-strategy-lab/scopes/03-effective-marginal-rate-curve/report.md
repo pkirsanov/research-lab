@@ -411,3 +411,84 @@ rendering to `segmentKind`.
 `node scripts/selftest.mjs` is `3042 passed, 0 failed`, unchanged from the count
 at the start of this dispatch. No assertion was weakened, skipped or
 re-baselined, and no timeout was raised.
+
+## DoD Closure: 2026-08-23
+
+Three DoD rows were added to this scope by a planning pass and were correctly left
+unticked. Each is closed below against a command run in this session, with the
+exit code captured into a variable before any other command ran.
+
+### Row: scenario-specific E2E regression under the exact persistent titles
+
+The Test Plan names three persistent titles for this scope: `TP-03-12`,
+`TP-03-13` and `TP-03-14`. Presence is read out of
+`tests/lifetime-tax-marginal.spec.mjs` as a literal string, so an empty `--grep`
+selection cannot be read as a pass. The repository-wide reading is 16 titles
+checked across the five scopes with zero missing.
+
+```text
+===== SCOPE 03 =====
+
+Running 3 tests using 1 worker
+
+  ✓  1 …1-007 the next dollar is priced as a curve with named thresholds (302ms)
+  ✓  2 …ion: SCN-021-008 a cliff renders as a step and is never smoothed (264ms)
+  ✓  3 …med unavailable contributors and the curve is labeled incomplete (635ms)
+
+  3 passed (9.7s)
+S03_EXIT=0
+```
+
+Adversarial case. Renaming one persistent title turns the check red:
+
+```text
+label:            021-03 persistent title presence is non-vacuous
+file:             tests/lifetime-tax-marginal.spec.mjs
+mutation:         SCN-021-007 the next dollar is priced  ->  SCN-021-007 the renamed dollar is priced   (1 occurrence(s))
+red-exit:         1
+red-summary:      TITLE_PRESENCE scope=03 checked=3 missing=1 verdict=FAIL
+green-exit:       0
+green-summary:    TITLE_PRESENCE scope=03 checked=3 missing=0 verdict=PASS
+revert-verified:  yes (committed=4a04f50c77d25304e54ee08f47df8f89c4b7d3b0 restored=4a04f50c77d25304e54ee08f47df8f89c4b7d3b0)
+discriminating:   yes (exit 1 != 0)
+```
+
+**Claim Source:** executed.
+
+### Row: broader E2E regression suite across the whole lifetime-tax family
+
+The whole browser family was run, not this scope's spec file alone. Twenty spec
+files, every scope of Features 021 through 024:
+
+```text
+Running 94 tests using 6 workers
+  94 passed (17.1s)
+FAMILY_EXIT=0
+```
+
+**Claim Source:** executed.
+
+### Row: Change Boundary respected, zero excluded file families changed
+
+The check attributes per commit. It walks every non-merge commit in
+`b9d92a3f1^..HEAD` that touched a 021-owned surface, intersects that commit's
+file list with this scope's 23 excluded globs, and separately reads
+`git status --porcelain --untracked-files=all` over the same globs. `-uall` is
+used deliberately, because the row rejects `git diff --quiet`, which reports an
+untracked path as unchanged; every excluded root here is tracked, and the
+untracked enumeration over those roots returns zero rows.
+
+```text
+CHANGE_BOUNDARY scope=03 control=False globs=23 owning_commits=78 violations=0 worktree_dirty=0 verdict=PASS
+  CB03_EXIT=0
+```
+
+Adversarial case. Injecting one path the 021 commits demonstrably did touch
+into the excluded set flips the same command to FAIL:
+
+```text
+CHANGE_BOUNDARY scope=03 control=True globs=24 owning_commits=78 violations=10 worktree_dirty=0 verdict=FAIL
+  CTRL03_EXIT=1
+```
+
+**Claim Source:** executed.

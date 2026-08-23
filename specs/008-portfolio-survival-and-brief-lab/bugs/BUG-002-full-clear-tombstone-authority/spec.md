@@ -10,6 +10,12 @@ sufficient when the remaining authority record points to missing bytes.
 This bug specification narrows parent FR-151. It does not introduce a new clear
 contract, storage namespace, or public-data policy.
 
+### Single-Capability Justification
+
+This bug repairs Feature 008's existing local full-personal clear capability
+and its established pointer/tombstone authority contract. It adds no second
+clear capability, provider, storage implementation, or reusable foundation.
+
 ## Requirements
 
 ### FR-B002-001 - Partial clear preserves tombstone authority

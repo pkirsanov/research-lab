@@ -245,6 +245,9 @@ error, a missing browser or an absent test does not satisfy RED.
 | TP-02-23 | Repo gate | unit | SCN-023-004 … -006 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-02-23` |
 | TP-02-24 | Path guard | unit | SCN-023-004 … -006 | `scripts/validate-spec-test-paths.mjs` | Zero new missing spec-referenced test paths | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-02-24` |
 | TP-02-25 | Deploy gate | unit | SCN-023-004 … -006 | `scripts/build-pages-site.mjs` | The Pages plan succeeds and `site-exclusions.json` is unchanged | `node scripts/build-pages-site.mjs --dry-run` | No | `report.md#tp-02-25` |
+| TP-02-26 | Known value | unit | SCN-023-006 | `scripts/selftest.mjs` | Against a fixture built so the two deductions disagree, the composition names itemising while the settlement prices the tax on the declared standard deduction, the two amounts differ, `agreesWithSettlement` reports the disagreement, and the settled figure is the one `computeAnnualFederalTax` actually subtracted | `node scripts/selftest.mjs` | No | `report.md#f-reg-01-resolved-2026-08-22` |
+| TP-02-27 | Adversarial | unit | SCN-023-006 | `scripts/selftest.mjs` | The Simple panel feeds its priced-the-tax row from the settled deduction and its comparison row from the composed amount, neither is described as the other, no surface still says the composed side was actually applied, and the composed-amount regression and the self-contradicting tooltip are both planted and proven to fail the detector | `node scripts/selftest.mjs` | No | `report.md#f-reg-01-resolved-2026-08-22` |
+| TP-02-28 | Regression E2E | e2e-ui | SCN-023-006 | `lifetime-tax-deduction.spec.mjs` | `Regression: F-REG-01 no surface names the composed side as the deduction that priced the tax` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: F-REG-01 no surface names the composed side as the deduction that priced the tax" --reporter=list` | Yes | `report.md#f-reg-01-resolved-2026-08-22` |
 
 ### Definition of Done
 
@@ -295,12 +298,24 @@ error, a missing browser or an absent test does not satisfy RED.
 - [ ] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
   - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-22 commands · **Evidence:** `report.md#test-evidence`, `report.md#f-reg-01-resolved-2026-08-22`
-  - **Unticked 2026-08-22 (F-REG-01).** TP-02-20's recorded GREEN was produced by
-    assertions that have since been replaced, so it evidences a row that no longer
-    exists in that form, and the scope now ships TP-02-26, TP-02-27 and TP-02-28,
-    which this Test Plan does not list. Adding those rows is `bubbles.plan`'s
-    artifact, so the item stays open. RED and GREEN for the changed and new rows
-    are recorded in `report.md#f-reg-01-resolved-2026-08-22`.
+  - **Unticked 2026-08-22 (F-REG-01), plan-owned half discharged.** The Test Plan
+    now lists `TP-02-26`, `TP-02-27` and `TP-02-28`, so the half that said this
+    Test Plan does not list the assertions the scope ships is answered. Where the
+    recorded evidence sits, per row, all of it inside
+    `report.md#f-reg-01-resolved-2026-08-22`: `TP-02-27` has the same-command
+    pair, exit 7 before it existed and exit 0 after it landed in `838a908ad`, on
+    `node scripts/selftest.mjs` with `--summary-match` pinned to its own wording.
+    `TP-02-28` has two intended-RED probes on its own grep — the composed-amount
+    regression and the self-contradicting tooltip — each with a same-command
+    GREEN. The corrected `TP-02-20` has its own probe, the Power priced-the-tax
+    column echoing the comparison instead of the settlement, so the half about
+    `TP-02-20`'s superseded GREEN is answered too. `TP-02-26` has a recorded
+    GREEN, `3255 passed, 0 failed` in that section's `Verification` block, which
+    also names it as one of the two assertion lines this work added; it has no
+    recorded intended-RED probe of its own, because every probe in that section
+    mutates a rendered surface and `TP-02-26` is an engine-level row those
+    mutations cannot reach. That single gap is what the item now waits on. The
+    tick belongs to a verifying pass, not to this restatement.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths,
       and `node scripts/build-pages-site.mjs --dry-run` succeeds.

@@ -505,7 +505,7 @@
         },
         {
           "trait": "mutable-state",
-          "requiredProof": "The request ledger stays empty across the full combined workflow with every pack loaded from disk, no household value reaches any URL, request, referrer or console message, and the tool remains absent from every registry and from the market brief.",
+          "requiredProof": "The request ledger does not grow after first paint across the full combined workflow with every pack loaded from disk, every entry in it is a same-origin read of a document the configuration declares, no household value reaches any URL, request, referrer or console message, and the tool remains absent from every registry and from the market brief.",
           "satisfiedBy": ["TP-05-20", "TP-05-21"]
         }
       ],

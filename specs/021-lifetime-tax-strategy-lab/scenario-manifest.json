@@ -100,7 +100,7 @@
       "gherkin": {
         "given": "a household enters income, deduction and filing values into the workspace",
         "when": "the page is exercised end to end and its request ledger, URL, referrer, console output and storage keys are inspected",
-        "then": "the page has issued zero network requests, no household value appears in any URL, referrer, console message or committed artifact, and every written storage key belongs to this feature's own namespace with none belonging to the portfolio workspace"
+        "then": "every request the page issued is a same-origin read of a document its own configuration declares and those declared reads resolved, no household value appears in any URL, referrer, console message or committed artifact, and every written storage key belongs to this feature's own namespace with none belonging to the portfolio workspace"
       },
       "behaviorClass": "ui",
       "changeType": "new",

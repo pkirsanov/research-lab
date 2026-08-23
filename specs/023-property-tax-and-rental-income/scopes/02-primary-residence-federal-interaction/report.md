@@ -1327,3 +1327,53 @@ this session. The two commits are `15faccf3b` (surfaces and corrected browser
 assertions) and `838a908ad` (the node assertions), each verified with
 `git cat-file -t` as an object of type `commit`.
 
+## TP-02-26 intended-RED probe, engine channel (2026-08-22)
+
+The section above recorded a GREEN for `TP-02-26` and no intended RED. The reason
+was structural rather than an oversight: every probe in that section mutates a
+rendered surface in `lifetime-tax-strategy-lab.html`, and `TP-02-26` asserts over
+`composeItemizedDeduction` and `computeAnnualFederalTax`, which no surface
+mutation reaches. A row's RED has to be demonstrated on the channel the row
+actually reads, so the probe below mutates the engine instead.
+
+The defect reintroduced is the one the row exists to refuse: the composition
+republishes the settled figure as its own applied amount, so the two published
+deductions collapse into one and `appliedDeduction !== settlementDeduction.value`
+stops holding. That is the engine-level form of F-REG-01 — the same
+interchangeability that let a suite of 3,244 checks pass while every rendered
+surface named the wrong side.
+
+`--summary-match` is pinned to `TP-02-26`'s own assertion wording, not to the
+aggregate pass count. A concurrent session moves the aggregate, so the aggregate
+is not a verdict channel for this row.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-26 engine channel: the composition republishes the settled figure as its own applied amount, collapsing the two published deductions into one
+file:             rltax.js
+mutation:         appliedDeduction: composedAmount,  ->  appliedDeduction: settlementSettled ? settlementDeduction.value : composedAmount,   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-26: when the declared mode is not the larger side the composition names itemising while the settlement prices the tax on the declared standard deduction, the two amounts differ, agre
+green-exit:       0
+green-summary:      ✓ TP-02-26: when the declared mode is not the larger side the composition names itemising while the settlement prices the tax on the declared standard deduction, the two amounts differ, agreesWith
+summary-compared:   ✗ FAIL: TP-02-26: when the declared mode is not the larger side the composition names itemising while the settlement prices the tax on the declared standard deduction, the two amounts differ, agre  vs    ✓ TP-02-26: when the declared mode is not the larger side the composition names itemising while the settlement prices the tax on the declared standard deduction, the two amounts differ, agreesWith   (elapsed time normalised out)
+revert-verified:  yes (committed=8294f084523f504fcb19681e0e7cda2cdce457b5 restored=8294f084523f504fcb19681e0e7cda2cdce457b5)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_EXIT=0
+```
+
+The RED and the GREEN are the same command, `node scripts/selftest.mjs`, run
+either side of one mutation the harness applied and reverted. `revert-verified`
+reports the same blob hash before and after, so the engine file the GREEN ran
+against is byte-identical to the committed one.
+
+With this block, all three of `TP-02-26`, `TP-02-27` and `TP-02-28` carry a
+recorded intended RED and a same-command GREEN, each on the channel its own row
+names: `TP-02-26` on the engine, `TP-02-27` on the node read of the rendered
+surface, `TP-02-28` on the browser grep.
+
+**Claim Source:** executed. The block above is the verbatim stdout of the harness
+invocation run in this session, with its exit code appended.
+

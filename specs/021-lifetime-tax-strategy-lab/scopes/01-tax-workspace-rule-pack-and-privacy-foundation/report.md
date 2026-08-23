@@ -1021,3 +1021,83 @@ explicitly instructed not to create the page, so the route-level zero-network
 proof is outstanding.
 
 Scope status remains **In progress**.
+
+## SCN-021-003 adversarial arm probes (2026-08-22)
+
+The declared-read canary names four adversarial cases. Two of them already carry
+an observed RED, recorded against the DoD item itself: the undeclared-document
+arm (`expect(unexpected).toEqual([])`, RED with `Received + 11` after a value-free
+undeclared same-origin request was added to `render()`) and the sentinel arm
+(RED with `Received string: "#simple-123457"` after the declared amount was
+appended to the never-transmitted location hash). The two arms below had no
+recorded RED. This section closes one of them and records, rather than hides, why
+the other cannot be closed by this harness.
+
+### The read-nothing arm is discriminating
+
+`expect(afterFirstPaint).toBeGreaterThan(0)` cannot fail on its own. The document
+request alone puts one entry in the ledger before that line runs, so read as a
+single expression it is an existence test that no route could fail. Measured at
+first paint on a local static server, the route issues 24 requests — the document,
+the fourteen modules the markup names, the configuration document and the eight
+packs the configuration names — so the expression is satisfied twenty-four times
+over and pins nothing by itself.
+
+What makes the arm real is the pins immediately after it: every module the page
+declares must appear in the set of responses that returned a 2xx status, and so
+must the configuration document and the federal pack. Those are the assertions
+that separate *attempted* from *resolved*. The probe below attacks exactly that
+distinction — the markup declares a module that is requested and 404s, so it is
+declared (the undeclared-document arm still passes, correctly) but never
+resolves.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-14 read-nothing arm: the markup declares a module that is requested but never resolves, so attempted is not resolved
+file:             lifetime-tax-strategy-lab.html
+mutation:         <script src="rltax.js"></script>  ->  <script src="rltax-declared-but-never-resolves.js"></script><script src="rltax.js"></script>   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-021-003\ the\ tax\ workspace\ resolves\ only\ its\ declared\ reads\ and\ keeps\ every\ household\ value\ local --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-foundation.spec.mjs:297:1 › Regression: SCN-021-003 the tax workspace resolves only its declared reads and keeps every household value local 
+green-exit:       0
+green-summary:      ✓  1 [system-chrome] › tests/lifetime-tax-foundation.spec.mjs:297:1 › Regression: SCN-021-003 the tax workspace resolves only its declared reads and keeps every household value local (723ms)
+summary-compared:     [system-chrome] › tests/lifetime-tax-foundation.spec.mjs:297:1 › Regression: SCN-021-003 the tax workspace resolves only its declared reads and keeps every household value local   vs    ✓  1 [system-chrome] › tests/lifetime-tax-foundation.spec.mjs:297:1 › Regression: SCN-021-003 the tax workspace resolves only its declared reads and keeps every household value local (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_EXIT=0
+```
+
+The mutation is constructed against the resolved-response pin and no other: the
+added path is same-origin, so the cross-origin filter still passes, and it is in
+the markup's own script-tag set, so the derived declaration set still names it
+and the undeclared filter still passes. What it is not is resolvable. The failing
+line was not read out of the RED capture, so the attribution above is derived
+from the assertion order in the test rather than observed; the observed fact is
+that the same command exits 1 under the mutation and 0 without it.
+
+### The cross-origin arm cannot be probed by this harness, by design
+
+`expect(foreign).toEqual([])` has no RED here and will not get one from
+`red-green-probe.sh`. Making a route reach another origin means introducing a
+network sink, and the harness refuses any replacement containing `fetch(`:
+
+```
+red-green-probe: REFUSED — --replace contains fetch(. A probe mutation must be value-free by construction: it may not open a network sink or a navigation sink that could carry the operator's data off the page.
+PROBE_EXIT=3
+```
+
+That refusal is correct and is not worked around. Exit 3 is a rejected input, not
+a verdict, so it says nothing about whether the assertion could detect the defect
+it names — it says the safe harness will not build that defect. What supports the
+arm instead is indirect and is stated as such: `foreign` and `unexpected` filter
+the same ledger snapshot, and `unexpected` has an observed RED, which establishes
+that the ledger is populated and that an empty-set filter over it does fail when a
+disallowed entry is present. `foreign` differs only in its predicate. That is
+weaker than an observed RED and is recorded as weaker.
+
+**Claim Source:** executed for the probe block and the refusal block, both being
+verbatim harness output from this session. The 24-request measurement is executed:
+a local static server plus a Chromium request listener over one first paint. The
+failing-line attribution inside the first probe is interpreted, not executed.
+

@@ -11,7 +11,8 @@ import {
   declareOrdinaryHousehold,
   declaredRouteAssets,
   openLifetimeTax,
-  openPower
+  openPower,
+  sameOriginPaths
 } from './lifetime-tax.support.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -284,8 +285,10 @@ test('Regression: SCN-022-007 the residency declaration reaches no URL, no reque
      configuration declares. The state packs are permitted because the configuration declares
      them, not because this file lists them. */
   const permitted = declaredRouteAssets();
-  const paths = ledger.map((entry) => new URL(entry.url).pathname);
-  expect(ledger.filter((entry) => !entry.url.startsWith(site.baseUrl))).toEqual([]);
+  /* F-REG-03. This row already refused a foreign origin, but it refused with a bare prefix test,
+     and a prefix is not an origin: `site.baseUrl + "@evil.example"` begins with the whole base URL
+     and is served by evil.example. The shared helper carries that case as a second conjunct. */
+  const paths = sameOriginPaths(ledger, site);
   paths.forEach((path) => expect(permitted).toContain(path));
   expect(permitted).toContain('/rltaxstate.js');
   expect(permitted).toContain('/tax-rules/state/CA/2026.json');

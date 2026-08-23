@@ -309,9 +309,12 @@ test('Regression: SCN-021-003 the tax workspace resolves only its declared reads
   await openPower(page);
   await page.locator('#modeSimple').click();
 
-  /* Every request in the whole session is a same-origin read of one declared local asset. */
-  const paths = ledger.map((entry) => new URL(entry.url).pathname);
-  const foreign = ledger.filter((entry) => !entry.url.startsWith(site.baseUrl));
+  /* Every request in the whole session is a same-origin read of one declared local asset.
+     F-REG-03. The superseded form refused a foreign origin with a bare `startsWith(site.baseUrl)`,
+     which is a prefix test rather than an origin test: `site.baseUrl + "@evil.example"` begins
+     with the whole base URL and is served by evil.example. Projecting through the shared helper
+     applies both limbs, so this canary refuses the same shapes the six rows now refuse. */
+  const paths = sameOriginPaths(ledger, site);
   /* SUP-023-10. The superseded clause filtered against ALLOWED_ASSET_PATHS, a hand-maintained
      literal naming the route's four modules. Feature 023 Scope 01 deliberately adds a fifth, so
      the literal no longer describes the route. The replacement DERIVES the permitted set from
@@ -321,7 +324,6 @@ test('Regression: SCN-021-003 the tax workspace resolves only its declared reads
      derived set admits only what the page itself asks for and rots into no false green. */
   const declaredAssets = declaredRouteAssets();
   const unexpected = paths.filter((path) => !declaredAssets.includes(path));
-  expect(foreign).toEqual([]);
   expect(unexpected).toEqual([]);
   /* SUP-023-10 ADVERSARIAL. A derivation that returned everything, or nothing, would pass the
      filter above for any input and prove nothing. Pin that the set really is the page's own

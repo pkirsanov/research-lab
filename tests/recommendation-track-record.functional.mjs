@@ -1178,8 +1178,17 @@ test('T-04-F1 (increment 1): a trading session is a non-null regular block, and 
     assert.equal(acrossEarlyClose.ok, true, 'provenance must assemble for a span landing on the early close');
     assert.deepEqual(acrossEarlyClose.provenance.earlyCloseSessions, ['2026-11-27'], 'and record the early close that span touched');
 
-    /* NON-VACUITY. A span touching neither early close records an EMPTY list, so the row above
-       cannot be satisfied by an implementation that flags every session handed to it. */
+    /* THE ENTRY SIDE, which the span above leaves unproven: it hands a REGULAR session as the
+       entry, so an implementation reading only `resolutionDate` satisfies it. Here the entry IS
+       the early close and the resolution is the regular session that follows, so the flag can
+       only come from the entry endpoint. */
+    const enteringOnEarlyClose = provenanceSpanning('2026-11-27', '2026-11-30');
+    assert.equal(byDateState.includes('2026-11-30'), true, 'the resolution endpoint here is an ordinary regular session');
+    assert.deepEqual(enteringOnEarlyClose.provenance.earlyCloseSessions, ['2026-11-27'], 'so the entry-side early close is what the record flags');
+
+    /* NON-VACUITY, covering BOTH rows above. A span touching neither early close records an
+       EMPTY list, so neither can be satisfied by an implementation that flags every session
+       handed to it. */
     assert.deepEqual(provenanceSpanning('2026-01-02', '2026-01-05').provenance.earlyCloseSessions, [], 'a span clear of both early closes records nothing');
 
     /* A SNAPSHOT, NOT A LIVE REFERENCE. The recorded array is the caller's own copy, so writing

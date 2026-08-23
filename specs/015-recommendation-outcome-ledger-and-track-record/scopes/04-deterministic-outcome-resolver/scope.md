@@ -614,7 +614,32 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   `sessionsBy(calendar, 'date-state')` **refuses** `RTR-SESSION-PREDICATE` / `session-predicate-not-allowed` rather
   than merely going unused. The ruling implemented is recorded in [report.md](report.md).
 
-- [ ] An `early-close` session **resolves normally and is flagged, not excluded**: when `entryDate` or `resolutionDate` falls on one, the resolution records `provenance.earlyCloseSessions: [<tradingDate>…]`.
+- [x] An `early-close` session **resolves normally and is flagged, not excluded**: when `entryDate` or `resolutionDate` falls on one, the resolution records `provenance.earlyCloseSessions: [<tradingDate>…]`.
+
+  **Evidence — full functional carrier.** Executed from `<repo-root>`; the current rerun matched
+  the supplied 13/13 result. Supplied full-output evidence-capture SHA-256:
+  `fe93e8132703fc6c2f72455ed44eb8bae2d3da4669adb3e80e94363a1746a4c2`.
+
+  ```
+  $ node --test tests/recommendation-track-record.functional.mjs
+  ✔ T-04-F1 (increment 1): a trading session is a non-null regular block, and horizon arithmetic counts sessions rather than days (12.846908ms)
+  ℹ tests 13
+  ℹ suites 0
+  ℹ pass 13
+  ℹ fail 0
+  ℹ cancelled 0
+  ℹ skipped 0
+  ℹ todo 0
+  ℹ duration_ms 412.435362
+  exit code: 0
+  ```
+
+  T-04-F1 covers both endpoint cases and a non-vacuity control: `enteringOnEarlyClose =
+  provenanceSpanning('2026-11-27', '2026-11-30')` exercises an early-close `entryDate`; the
+  existing opposite-endpoint row exercises an early-close `resolutionDate`; and the clean-span
+  row records no early-close sessions. In both flagged cases the span resolves normally rather
+  than excluding the early-close session.
+
 - [x] `RTR-CALENDAR-COVERAGE` is implemented; a `resolutionDate` beyond `coverageEnd` refuses and closes `not-evaluable` reason `calendar-coverage-exhausted` with no extrapolation.
 
   **Evidence — the coverage refusal, located in the executed source.** Executed from `<repo-root>`.
@@ -862,7 +887,47 @@ without telling the resolver, and case 1 fails the moment the due-set predicate 
   all 150,061 committed bar rows yields `ac,c,h,l,o,sourceBars,sourceCoverage,sourceExpectedBars,sourceFirstObservedAt,sourceLastObservedAt,sourceState,t,v`
   and no adjusted-extreme key. The refusal at `:1186`–`:1195` therefore fires *before* any value is read, so the
   raw-`h`-over-adjusted-close division the item forbids is unreachable rather than merely unwritten.
-- [ ] The data-quality gates are applied: `zeroObservedSessions` closes `not-evaluable`; `reconstructedSessions` and `thinObservedSessions` do not block resolution and are recorded verbatim in the resolution object's `provenance`.
+- [x] The data-quality gates are applied: `zeroObservedSessions` closes `not-evaluable`; `reconstructedSessions` and `thinObservedSessions` do not block resolution and are recorded verbatim in the resolution object's `provenance`.
+
+  **Evidence — T-04-F4, one clause at a time.** Executed from `<repo-root>`.
+
+  ```
+  $ node --test --test-name-pattern="T-04-F" tests/recommendation-track-record.functional.mjs
+  ok 4 - T-04-F4: the data-quality gate refuses only zero-observed sessions, records the degraded ones, and is scoped to the measured window
+  # tests 4
+  # pass 4
+  # fail 0
+  exit code: 0
+  ```
+
+  Every citation below is `tests/recommendation-track-record.functional.mjs`.
+
+  | Clause | Asserted at |
+  |---|---|
+  | `zeroObservedSessions` closes `not-evaluable` | `:1464`–`:1471`, for **both** window endpoints: `ok === false`, `closureEventType === 'not-evaluable'`, `reasonCode === ZERO_OBSERVED_REASON`, and `field` naming the session that did not trade |
+  | …as a closure, not a substrate refusal | `:1467` — `error === undefined`, so it is a fact about the claim rather than an `RTR-*` refusal about our own inputs |
+  | …on a reason the ledger already admits | `:1454` — the reason is a member of the shipped `RESOLVER_NOT_EVALUABLE_REASONS`, not a string minted here |
+  | `reconstructedSessions` and `thinObservedSessions` do **not** block resolution | `:1496`–`:1498` — each field in turn resolves `ok === true` and scores exactly `clean.outcomeValue` |
+  | …and are recorded in the resolution's `provenance` | `:1502`–`:1503` — `provenance[field]` carries the session date, and the sibling field stays `[]`, so neither degradation is invented |
+
+  Two rows keep the table from being vacuous. The control at `:1458`–`:1460` scores a clean window
+  first, so each refusal above is attributable to the gate rather than to a resolver that refuses
+  this fixture whatever it is handed. The scoping row at `:1476`–`:1479` dates the same bad session
+  *before* the measured window and asserts the claim still scores the clean value — a file-global
+  gate would pass every other row and fail exactly there.
+
+  "Verbatim" is the session dates themselves, not a count or a boolean, and the recorded list is
+  window-scoped: `:1496` hands in `[QUALITY_ENTRY_SESSION, BEFORE_THE_WINDOW]` and `:1502` asserts
+  only the in-window date comes back. `:1515` is the paired negative — a gated claim records no
+  sourcing block at all, because an empty degraded-session list on a `not-evaluable` record would
+  imply a clean read that never happened.
+
+  The gate is grounded in the committed tree, not only in this fixture. `:1519`–`:1523` reads the
+  real `data/bars/EA.json`, which carries a real zero-observed session on `2026-08-10`, and asserts
+  a claim spanning it is gated while one entered after it is not. `:1527`–`:1531` reads the real
+  `data/bars/NDX.json`, written before these fields existed, and asserts the absent fields default
+  to `[]` rather than refusing a legitimate older series — while `:1536`–`:1537` keeps that default
+  from becoming a hole, since a present-but-malformed field still throws.
 - [x] `outcomeValue = direction × ret(subject)` with `direction` frozen from `ACTION_DIRECTION` (`rlcontracts.js:720`); the class is assigned by calling `classifyOutcome` (`rlclaims.js:795`) rather than re-deriving the band comparison; values are stored unrounded as IEEE-754 doubles with rounding applied only at render; `direction === 0` closes `neutral-direction-no-magnitude`. Unblocked: Ruling R-04-01 is discharged, so the `ret(subject)` half reads the claim's frozen basis. *An earlier revision of this item still read "Blocked on Ruling R-04-01" while ticked — see Ruling R-04-04.*
 
   **Evidence — increment 3 (write slice, commit `c8665265f`) closing the `classifyOutcome` half.** Increment 2

@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs
 in [report.md](report.md).
 
-**Status:** In progress — contract layer delivered, route layer not started
+**Status:** In Progress (deliverables and tests verified; newly added planning rows unverified)
 **Scope-Kind:** capability-foundation
 **Tags:** `foundation:true`, `privacy-critical:true`, `deploy-gate:true`, `closed-vocabulary`, `named-refusal`
 **Depends On:** none — this is the only root scope
@@ -200,8 +200,29 @@ script under `scripts/brief-*` · `watchlist.json` ·
 **Dirty-work discipline:** capture a path-scoped `git status` and a zero-context
 diff before each allowed path. No formatter and no broad rewrite runs.
 
+**Allowed file families:** the *Allowed new* and *Allowed modified* paths named
+above, and nothing else.
+
+**Excluded surfaces:** the byte-identical list named above. Collateral cleanup
+outside the allowed families is opt-in and is not performed under this scope.
+
 **Rollback:** delete the new files, revert the two appended edits. No user
 storage key is deleted automatically.
+
+## Consumer Impact Sweep
+
+This scope fixes the route path, the configuration document name, the rule-pack
+path grammar and the `RLTAX-*` refusal identifiers. Any rename, move or removal
+of one of those identifiers reaches the surfaces below, and each surface is
+swept before the scope closes.
+
+| Consumer surface | What a rename or removal would break | Sweep proof |
+| --- | --- | --- |
+| Site navigation (`rlnav.js`), `index.html`, `tools.json` | This route is deliberately unregistered, so a rename must leave all three byte-identical rather than update them | Path-scoped `git status --porcelain` over the three returns no rows |
+| In-page deep links and breadcrumb anchors | A renamed anchor id leaves an unreachable deep link | Every anchor the page emits is resolved in the browser row rather than assumed |
+| The page's own module `src` list and its API client reads | A moved module or pack path turns a declared read into an unresolved request | The declared-read canary fails on any declared read that does not resolve |
+| Redirect and deploy-decision entries (`site-exclusions.json`) | A moved page loses its deploy decision | The pages-site build refuses an unregistered root page that carries no decision |
+| Documentation and notes (`README.md`, `notes/README.md`) | A renamed identifier leaves a stale reference | A repository-wide stale-reference scan for the old identifier returns zero first-party rows |
 
 ## Scenario-First Red/Green Contract
 
@@ -239,6 +260,11 @@ Before any browser row, run `node scripts/validate-node-source-lock.mjs` and
 Test Plan row.
 
 ### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-021-001, SCN-021-002 and SCN-021-003 pass under the exact persistent titles this scope's Test Plan names, and each of those titles is present in the spec file rather than merely selected by `--grep`. Adversarial case: renaming or deleting one of those persistent titles must fail this row, so an empty grep selection can never be read as a pass.
+- [ ] Broader E2E regression suite passes across the whole lifetime-tax browser family, not this scope's own spec file alone. Adversarial case: a change made inside this scope that reddens a sibling scope's persistent title must fail this row even while this scope's own rows stay green.
+- [ ] Change Boundary is respected and zero excluded file families were changed, proven by a path-scoped `git status --porcelain` over the excluded surfaces plus an mtime comparison for any untracked excluded directory. Adversarial case: touching one excluded path must produce a row and fail this item; `git diff --quiet` alone is not accepted, because it reports an untracked path as unchanged.
+- [ ] The Consumer Impact Sweep is complete for every renamed, moved or removed route, path, contract, identifier and UI target in this scope, and zero stale first-party references remain. Adversarial case: one stale reference left in navigation, a breadcrumb, a redirect, a deep link, an API client read or a doc must fail this row, and the proof must be a repository-wide stale-reference scan rather than a spot check.
 
 - [x] PRA-021-001 through PRA-021-010 are implemented: independent workspace
       contract, complete pack member set, jurisdiction/program/year resolution,

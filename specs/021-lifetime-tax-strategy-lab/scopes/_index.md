@@ -277,11 +277,11 @@ refusal.
 
 | # | Scope | Artifact | Tags | Depends On | Scenarios | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| 01 | Tax Workspace, Federal Rule Pack, And Privacy Foundation | [`01-tax-workspace-rule-pack-and-privacy-foundation/scope.md`](01-tax-workspace-rule-pack-and-privacy-foundation/scope.md) | `foundation:true`, `privacy-critical:true`, `deploy-gate:true` | none | SCN-021-001 … -003 | Not started |
-| 02 | Deterministic Annual Federal Tax | [`02-deterministic-annual-federal-tax/scope.md`](02-deterministic-annual-federal-tax/scope.md) | `engine:federal` | 01 | SCN-021-004 … -006 | Not started |
-| 03 | Effective Marginal Rate Curve | [`03-effective-marginal-rate-curve/scope.md`](03-effective-marginal-rate-curve/scope.md) | `engine:federal` | 01, 02 | SCN-021-007 … -009 | Not started |
-| 04 | Bracket-Fill Roth Conversion Comparison | [`04-bracket-fill-roth-conversion-comparison/scope.md`](04-bracket-fill-roth-conversion-comparison/scope.md) | `strategy:single-year` | 01, 02, 03 | SCN-021-010 … -012 | Not started |
-| 05 | Simple/Power Route, Accessibility, And Local Export | [`05-simple-power-route-accessibility-and-local-export/scope.md`](05-simple-power-route-accessibility-and-local-export/scope.md) | `route:integrated`, `no-registration:true` | 01, 02, 03, 04 | SCN-021-013 … -015 | Not started |
+| 01 | Tax Workspace, Federal Rule Pack, And Privacy Foundation | [`01-tax-workspace-rule-pack-and-privacy-foundation/scope.md`](01-tax-workspace-rule-pack-and-privacy-foundation/scope.md) | `foundation:true`, `privacy-critical:true`, `deploy-gate:true` | none | SCN-021-001 … -003 | In Progress |
+| 02 | Deterministic Annual Federal Tax | [`02-deterministic-annual-federal-tax/scope.md`](02-deterministic-annual-federal-tax/scope.md) | `engine:federal` | 01 | SCN-021-004 … -006 | In Progress |
+| 03 | Effective Marginal Rate Curve | [`03-effective-marginal-rate-curve/scope.md`](03-effective-marginal-rate-curve/scope.md) | `engine:federal` | 01, 02 | SCN-021-007 … -009 | In Progress |
+| 04 | Bracket-Fill Roth Conversion Comparison | [`04-bracket-fill-roth-conversion-comparison/scope.md`](04-bracket-fill-roth-conversion-comparison/scope.md) | `strategy:single-year` | 01, 02, 03 | SCN-021-010 … -012 | In Progress |
+| 05 | Simple/Power Route, Accessibility, And Local Export | [`05-simple-power-route-accessibility-and-local-export/scope.md`](05-simple-power-route-accessibility-and-local-export/scope.md) | `route:integrated`, `no-registration:true` | 01, 02, 03, 04 | SCN-021-013 … -015 | In Progress |
 
 ## Dependency Graph
 

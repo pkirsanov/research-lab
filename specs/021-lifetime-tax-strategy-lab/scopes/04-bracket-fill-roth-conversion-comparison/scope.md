@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs
 in [report.md](report.md).
 
-**Status:** Not started
+**Status:** In Progress (deliverables and tests verified; newly added planning rows unverified)
 **Scope-Kind:** runtime-behavior
 **Tags:** `strategy:single-year`, `two-policy`, `disclosure-bound`
 **Depends On:** 01, 02, 03
@@ -173,6 +173,12 @@ Scenario: SCN-021-012 The comparison emits a single-year federal cost difference
 **Dirty-work discipline:** capture a path-scoped `git status` and a zero-context
 diff before each allowed path. No formatter and no broad rewrite runs.
 
+**Allowed file families:** the *Allowed new* and *Allowed modified* paths named
+above, and nothing else.
+
+**Excluded surfaces:** the byte-identical list named above. Collateral cleanup
+outside the allowed families is opt-in and is not performed under this scope.
+
 **Rollback:** delete `rltaxstrategy.js`, its fixtures and the new spec; revert
 the panel and the appended selftest group.
 
@@ -188,6 +194,7 @@ rerun the identical command for GREEN.
 
 | ID | Type | Category | Scenario | File | Exact Behavior / Persistent Title | Command | Live System | Evidence Anchor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| TP-04-00 | Fixture Canary | unit | SCN-021-010 … -012 | `scripts/selftest.mjs` | Canary: the shared selftest harness plus this scope's own fixture files load and the pre-existing assertion count does not fall, run alone before any broad rerun. Adversarial case: a fixture whose contract changed must redden this row before the broad suite is re-run, so a broad green can never be the first signal | `node scripts/selftest.mjs` | No | `report.md#tp-04-00` |
 | TP-04-01 | Contract | unit | SCN-021-010 | `scripts/selftest.mjs` | The comparison returns exactly two policies, no conversion and fill-to-bracket, both computed from the identical workspace and the identical resolved pack | `node scripts/selftest.mjs` | No | `report.md#tp-04-01` |
 | TP-04-02 | Known value | unit | SCN-021-010 | `scripts/selftest.mjs` | The conversion amount equals the distance from current ordinary taxable income to the named bracket edge, for every supported filing status and every bracket in the pack | `node scripts/selftest.mjs` | No | `report.md#tp-04-02` |
 | TP-04-03 | No-shadow | unit | SCN-021-010 | `scripts/selftest.mjs` | Regression: mutating the pack's bracket edge changes the conversion amount; `rltaxstrategy.js` holds no tax-domain numeric constant and declares no bracket edge | `node scripts/selftest.mjs` | No | `report.md#tp-04-03` |
@@ -211,6 +218,12 @@ Before any browser row, run `node scripts/validate-node-source-lock.mjs` and
 Test Plan row.
 
 ### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-021-010, SCN-021-011 and SCN-021-012 pass under the exact persistent titles this scope's Test Plan names, and each of those titles is present in the spec file rather than merely selected by `--grep`. Adversarial case: renaming or deleting one of those persistent titles must fail this row, so an empty grep selection can never be read as a pass.
+- [ ] Broader E2E regression suite passes across the whole lifetime-tax browser family, not this scope's own spec file alone. Adversarial case: a change made inside this scope that reddens a sibling scope's persistent title must fail this row even while this scope's own rows stay green.
+- [ ] Change Boundary is respected and zero excluded file families were changed, proven by a path-scoped `git status --porcelain` over the excluded surfaces plus an mtime comparison for any untracked excluded directory. Adversarial case: touching one excluded path must produce a row and fail this item; `git diff --quiet` alone is not accepted, because it reports an untracked path as unchanged.
+- [ ] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns, run as its own command ahead of the whole-repository gate. Adversarial case: breaking one shared fixture contract must redden the canary first; a canary that stays green while the broad suite fails is itself a defect and fails this row.
+- [ ] Rollback or restore path for shared infrastructure changes is documented and verified by executing it, not by asserting that it exists. Adversarial case: a rollback that leaves the shared surface differing from its pre-change hash must fail this row.
 
 - [x] PRA-021-025 through PRA-021-030 are implemented: exactly two policies on
       identical inputs, a pack-derived fill amount, the reported amount, per-policy

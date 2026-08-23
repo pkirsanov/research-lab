@@ -366,6 +366,7 @@ syntax error, a missing browser or an absent test does not satisfy RED.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
 - [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
+  - **Phase:** implement · **Command:** the cumulative browser selector under `scripts/red-green-probe.sh` · **Evidence:** `report.md#tp-04-26-probe-b--the-intended-red-aimed-at-the-branch-the-boundary-takes-2026-08-22`
   - **Ticked 2026-08-22 on the one row that was owed.** `TP-04-26` was the single
     named row this item stayed open on. It now carries an observed intended RED
     and a same-command GREEN, recorded in

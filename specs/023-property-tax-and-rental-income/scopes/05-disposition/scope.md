@@ -405,6 +405,7 @@ missing browser or an absent test does not satisfy RED.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
 - [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows and the cumulative suite.
+  - **Phase:** implement · **Command:** the four rows' own commands under `scripts/red-green-probe.sh` · **Evidence:** `report.md#probes-25-to-28--the-four-rows-the-per-row-pass-never-reached-2026-08-22`
   - **Re-ticked 2026-08-22 at the full count of thirty.** The note below is kept
     because it records why the item was opened. `TP-05-30` is now authored and
     carries a three-arm RED with a same-command GREEN. Auditing the rest of the

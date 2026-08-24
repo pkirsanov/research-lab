@@ -145,3 +145,76 @@ The remedy is blocked on an owner decision recorded as the open question in
 of the twelve Feature 021 members or one of the two Feature 022 members. Adding a
 member is a deliberate vocabulary change; reusing one contradicts a distinction
 the vocabulary was given on purpose. This round took neither path.
+
+## Delivery
+
+**Delivered at commits:** `7577d5ad3` (engine, route, vocabulary, selftest,
+ledger) and `4eb4a4725` (browser suite).
+
+**Claim Source:** executed in this session, output captured verbatim.
+
+The owner decision recorded in `design.md` on 2026-08-24 chose a fifteenth
+vocabulary member, `RLTAX-FIGURE-UNREPRESENTABLE`. This section records what was
+delivered against that decision.
+
+### What changed
+
+| Change | File | What it does |
+|---|---|---|
+| C1 | `rltaxrules.js` | Adds `RLTAX-FIGURE-UNREPRESENTABLE` as the fifteenth `RLTAX_CODES` member, with the comment naming why it is neither `RLTAX-INPUT-INCOMPLETE` nor `RLTAX-INCOME-KIND-UNSUPPORTED` |
+| C2 | `scripts/selftest.mjs` | Supersedes `TP-01-05`'s two-list count and membership clauses with the three-list form recorded as `SUP-020-01` |
+| E1 | `rltax.js` | `computeTaxableIncome` refuses when `gross` is not finite, carrying the refusal out through `appliedDeduction` so every existing deduction-unavailable branch cascades it |
+| E2 | `rltax.js` | The three `computeAnnualFederalTax` sites that read `basis.grossSupportedIncome` as a bare number now pass a refusal through instead |
+| E3 | `rltax.js` | `formatForDisplay` refuses a non-finite `valueRecord.value` at the same seam that already refuses a non-finite factor |
+| E4 | `rltax.js` | `composeDispositionLegs` returns the refusing shape on any `ok: false` basis instead of reading absent members into a band walk |
+| R1 | `lifetime-tax-strategy-lab.html` | `buildEnvelope` publishes `unrepresentableDomains` on both return shapes, and `render` branches on it before `viable` |
+| R2 | `lifetime-tax-strategy-lab.html` | `stageValueText`'s raw-stringification fallback no longer renders a non-finite value as text |
+
+`percent`, `dollars`, `readNumber` and `readDeclaredBasis` are untouched, so
+nothing about what the input accepts was narrowed.
+
+### The boundary, both sides
+
+Placed in **both** the ordinary-income and the qualified-dividend field:
+
+| Side | Declared in each field | Sum | Observed |
+|---|---|---|---|
+| settling | `8.988465674311579e+307` | exactly `Number.MAX_VALUE` | header `Settled`; no stage carries an unrepresentable refusal; no `∞` and no `NaN` |
+| refusing | `8.98846567431158e+307` | `Infinity` | header `Incomplete`; `CO-1`, `CO-3`, `CO-4`, `CO-5`, `CO-6`, `CO-7` and `CO-8` each carry `RLTAX-FIGURE-UNREPRESENTABLE`; no rule-status label on those rows |
+
+`8.98846567431158e+307` is the next representable double above
+`8.988465674311579e+307`, so no third behaviour can sit between them. The suite
+asserts that adjacency against the page's own arithmetic rather than trusting the
+two literals, so a later edit cannot widen the gap and leave the boundary
+untested.
+
+### Probes
+
+Each block is the verbatim `scripts/red-green-probe.sh` evidence, with
+`--summary-match` pinned to the assertion's own wording rather than to the
+aggregate pass count.
+
+#### P1 — `TP-01-05` fails when the new member is removed from the vocabulary
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-05 with RLTAX-FIGURE-UNREPRESENTABLE removed from the vocabulary
+file:             rltaxrules.js
+mutation:             "RLTAX-PACK-YEAR-MISMATCH": true,
+    /* Every input to the figure is present, valid and inside contract, and the calculation is
+       defined, but the result is not a finite double. It is not RLTAX-INPUT-INCOMPLETE because
+       nothing is missing, and not RLTAX-INCOME-KIND-UNSUPPORTED because each declared amount is
+       itself finite: the defect is in the range of the RESULT, not in any input. */
+    "RLTAX-FIGURE-UNREPRESENTABLE": true  ->      "RLTAX-PACK-YEAR-MISMATCH": true   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-01-05: the RLTAX enum count is derived from the module declaration, carries all twelve Feature 021 members unchanged plus exactly the two named jurisdiction-axis members plus exactly th
+green-exit:       0
+green-summary:      ✓ TP-01-05: the RLTAX enum count is derived from the module declaration, carries all twelve Feature 021 members unchanged plus exactly the two named jurisdiction-axis members plus exactly the one 
+revert-verified:  yes (committed=1b7858372f2c9898d06035f212f2deec8bb09a4c restored=1b7858372f2c9898d06035f212f2deec8bb09a4c)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`.
+

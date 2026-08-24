@@ -2066,4 +2066,158 @@ rather than worked around.
 **Claim Source:** executed. All seventeen blocks are verbatim harness output from
 this session, each with its own exit code and its own revert verification.
 
+## Adversarial Row Completion Session
+
+Three Definition of Done rows carrying an explicit adversarial case were still
+open when this session began. All three are closed below.
+
+Every browser command uses `--project=chromium`, the bundled Playwright browser,
+rather than the `--project=system-chrome` the Test Plan names. The two projects
+differ only in which chromium binary is launched; the spec files, the titles and
+the assertions are identical.
+
+### Row 1 — scenario-specific E2E regression under the exact persistent titles
+
+The whole spec file first:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=chromium tests/lifetime-tax-deduction.spec.mjs --reporter=list
+  ✓  1 [chromium] › tests/lifetime-tax-deduction.spec.mjs:128:1 › Regression: SCN-023-004 property tax and state income tax compete inside one cap and the disallowed amounts are shown (1.2s)
+  ✓  2 [chromium] › tests/lifetime-tax-deduction.spec.mjs:258:1 › Regression: SCN-023-005 mortgage interest is limited by a sourced debt limit and the disallowed portion is named (659ms)
+  ✓  3 [chromium] › tests/lifetime-tax-deduction.spec.mjs:351:1 › Regression: SCN-023-006 the itemized versus standard decision is recomputed and the chosen side is named (371ms)
+  ✓  4 [chromium] › tests/lifetime-tax-deduction.spec.mjs:433:1 › Regression: F-REG-01 no surface names the composed side as the deduction that priced the tax (283ms)
+  ✓  5 [chromium] › tests/lifetime-tax-deduction.spec.mjs:490:1 › Regression: SCN-023-006 the composition and the decision reach the headline, the comparison, the curve and the export (366ms)
+  ✓  6 [chromium] › tests/lifetime-tax-deduction.spec.mjs:592:1 › Regression: SCN-023-005 the request ledger does not grow after the mortgage declarations and every entry is a declared same-origin read (344ms)
+  6 passed (4.6s)
+S02_SPEC_EXIT=0
+```
+
+The file carries six tests; the Test Plan names five of them as persistent titles
+(`TP-02-18` … `TP-02-21` and `TP-02-28`). The sixth is the live-route privacy test
+authored under
+[TP-02-29](#tp-02-29-authored--the-live-route-privacy-row-this-scope-never-had-2026-08-22).
+It is run here and it passes, but its Test Plan cell still reads "GAP, NOT
+AUTHORED" and still carries "not authored" in its Command and Evidence Anchor
+columns. That cell is stale against the report and against the shipped spec file.
+Correcting a Test Plan cell is a planning edit, so it is reported rather than
+performed, as `TP-02-29-CELL-STALE`.
+
+Each of the five named titles selected on its own, paired with a fixed-string count
+of that same literal inside the spec file:
+
+```
+literal_in_spec=1 exit=0 summary=1 passed   :: Regression: SCN-023-004 property tax and state income tax
+literal_in_spec=1 exit=0 summary=1 passed   :: Regression: SCN-023-005 mortgage interest is limited by a
+literal_in_spec=1 exit=0 summary=1 passed   :: Regression: SCN-023-006 the itemized versus standard decis
+literal_in_spec=1 exit=0 summary=1 passed   :: Regression: SCN-023-006 the composition and the decision r
+literal_in_spec=1 exit=0 summary=1 passed   :: Regression: F-REG-01 no surface names the composed side as
+```
+
+The adversarial case renames one of those titles and re-runs the identical
+`--grep`:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S02-DoD1-title-rename
+file:             tests/lifetime-tax-deduction.spec.mjs
+mutation:         Regression: SCN-023-005 mortgage interest is limited by a sourced debt limit and the disallowed portion is named  ->  Regression: SCN-023-005 PROBE RENAMED TITLE   (1 occurrence(s))
+red-exit:         1
+red-summary:      Error: No tests found
+green-exit:       0
+green-summary:      1 passed (2.0s)
+revert-verified:  yes (committed=72be1fc826c3b5d91be5e3c79a96b8b607bf7729 restored=72be1fc826c3b5d91be5e3c79a96b8b607bf7729)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE6_EXIT=0
+```
+
+An empty grep selection reports `Error: No tests found` and exit 1, not a pass.
+Row closed.
+
+### Row 2 — broader regression across the whole lifetime-tax browser family
+
+All twenty `tests/lifetime-tax-*.spec.mjs` files in one run:
+
+```
+S02_BROAD_EXIT=0
+94 passed
+failed_marks=0
+```
+
+The adversarial case is the row's own shape: a change inside this scope that
+reddens a sibling scope's persistent title while this scope's own rows stay green.
+`lifetime-tax-strategy-lab.html` is an allowed-modified surface for this scope, so
+one Power section id is removed from `POWER_SECTION_IDS` there, and the probe
+command runs this scope's spec file and the sibling route spec in turn:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S02-DoD2-sibling-reddens-family
+file:             lifetime-tax-strategy-lab.html
+mutation:         "power-source-records", "power-state", "power-combined"  ->  "power-state", "power-combined"   (1 occurrence(s))
+red-exit:         1
+red-summary:      OWN=0 SIBLING=1
+green-exit:       0
+green-summary:    OWN=0 SIBLING=0
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE7_EXIT=0
+```
+
+`OWN=0 SIBLING=1` is the adversarial case reproduced: the six deduction rows stayed
+green while the sibling route spec went red, and the broad row failed. Row closed.
+
+### Row 3 — Change Boundary respected, zero excluded families changed
+
+A path-scoped status check over this scope's thirty-one excluded pathspecs, which
+differ from Scope 01's: `rltaxproperty.js` and `tax-rules/property/**` are excluded
+here, and `tax-rules/federal/**` is not, because this scope's requirement coverage
+names the federal pack:
+
+```
+pathspec_count=31
+EXCLUDED_ROWS=0 rows:[]
+untracked_excluded=0
+```
+
+The third line answers the row's caveat about `git diff --quiet` reporting an
+untracked path as unchanged. Run with `--untracked-files=all`, the excluded
+pathspecs produce zero `??` rows, so no excluded surface is untracked in this
+working tree and no mtime comparison is owed.
+
+The adversarial case touches `rltaxproperty.js` — the exclusion this scope's own
+prose calls out, "composing the deduction must not require a property-engine edit"
+— and re-runs the identical check:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S02-DoD3-excluded-touch-detected
+file:             rltaxproperty.js
+mutation:         CO-15. The declared assessment and the sourced regime, and nothing else.  ->  CO-15. The declared assessment and the sourced regime, and nothing else. PROBE   (1 occurrence(s))
+red-exit:         1
+red-summary:      EXCLUDED_ROWS=1
+green-exit:       0
+green-summary:    EXCLUDED_ROWS=0
+revert-verified:  yes (committed=bb618aa51ecdbc38a5ac186026e615f7140aac3c restored=bb618aa51ecdbc38a5ac186026e615f7140aac3c)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE8_EXIT=0
+```
+
+Row closed.
+
+### Row status after this session
+
+| Row | Verdict |
+| --- | --- |
+| Scenario-specific E2E under exact persistent titles | closed |
+| Broader E2E across the lifetime-tax family | closed |
+| Change Boundary respected, zero excluded families changed | closed |
+
+**Claim Source:** executed. Every block above is verbatim command or harness output
+from this session, each with its own exit code, and each probe with its own revert
+verification.
+
 

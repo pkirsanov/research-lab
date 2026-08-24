@@ -124,6 +124,7 @@ newer half of it.
 | Layer | Files |
 |-------|-------|
 | Analytics units | `tests/portfolio-analytics.unit.mjs`, `tests/portfolio-foundation.unit.mjs` |
+| Behavior occurrence | `tests/portfolio-behavior-occurrence.unit.mjs` — distinct audit occurrences, exact-repeat refusal, and semantic anti-inflation |
 | Test integrity | `tests/portfolio-test-integrity.unit.mjs` — challenges each protective test with the reduced implementation it exists to reject, so a test that could no longer fail is caught as a receipt |
 | Workspace, brief and privacy | `tests/portfolio-workspace.functional.mjs`, `tests/portfolio-brief.functional.mjs`, `tests/portfolio-privacy.functional.mjs`, `tests/portfolio-publisher-boundary.functional.mjs` |
 | Per-tab contracts | `tests/portfolio-risk.functional.mjs`, `tests/portfolio-paths.functional.mjs`, `tests/portfolio-diversification.functional.mjs`, `tests/portfolio-allocation.functional.mjs`, `tests/portfolio-dossier.functional.mjs` |

@@ -1369,12 +1369,45 @@ Awaiting scope execution.
 
 ### Audit Evidence
 
-**Executed:** NO
-**Command:** not run
+**Executed:** YES
+**Command:** `node scripts/selftest.mjs`, `node --test tests/company-intelligence.unit.mjs`,
+`npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome
+--workers=1 --reporter=line <the five spec files carrying SCN-027>`, three mutate/kill/revert
+probes, and `node scripts/pii-scan.mjs`
 **Phase Agent:** bubbles.audit
-**Claim Source:** not-run
+**Claim Source:** executed
 
-Awaiting scope execution.
+Three load-bearing lines were mutated in shipped source, each killed by a committed
+test, each reverted byte-exactly. Every touched file hashes to its pre-probe value
+and the tree is byte-identical to HEAD.
+
+```text
+$ node scripts/selftest.mjs
+SELFTEST_EXIT=0
+Research-Lab self-test: 3405 passed, 0 failed
+
+$ npx --no-install playwright test --project=system-chrome --workers=1 --reporter=line \
+    tests/company-intelligence-lab.spec.mjs tests/gamma-trading-lab.spec.mjs \
+    tests/options-flow-feed-lab.spec.mjs tests/options-structure-lab.spec.mjs \
+    tests/volatility-sizing-lab.spec.mjs
+BROWSER_EXIT=0
+Running 99 tests using 1 worker
+  99 passed (1.4m)
+
+$ node scripts/pii-scan.mjs
+PII_EXIT=0
+[pii-scan] files=9628 messages=2070 findings=0 OK
+```
+
+Five findings, none blocking: `R-027-A1` (the sixth registry claim is carried as a
+focus band, not a control), `R-027-A2` (band text is asynchronously decorated, so its
+exact text is time-dependent), `R-027-A3` (restored session state and free-text input
+remain ungrammared, as already declared), `R-027-A4` (the first mutated run's `SPY?`
+reading, explained and closed), and `R-027-A5` (the first draft of this Audit Evidence
+section itself failed the lint by carrying only one of the two required signal classes;
+the lint caught it, the block was corrected, and the defect is recorded rather than
+hidden). Full evidence in `## Audit Phase — three mutations killed, five findings,
+nothing certified (bubbles.audit)` at the end of this report.
 
 ---
 
@@ -6716,6 +6749,273 @@ exit=0  issues=0
 $ grep -c "They ship UNCHECKED" specs/027-company-scoped-owner-deep-links/scopes.md
 0
 ```
+
+## Audit Phase — three mutations killed, five findings, nothing certified (bubbles.audit)
+
+This phase audited the delivered surface by execution, not by reading the design.
+It changed no production file. Every mutation below was applied to shipped source,
+proven to be killed by a committed test, and reverted byte-exactly before the next
+probe began.
+
+### Mutation resistance — three load-bearing lines, three kills
+
+Each probe removed exactly one shipped guarantee and re-ran the test that claims to
+protect it. A mutation no test killed would have been recorded as a finding; none
+survived.
+
+**M1 — the GAP-2a escape at the `pillTk` text position.** `esc(state.ticker)` was
+reduced to `state.ticker` at `options-structure-lab.html:1971`, restoring the exact
+pre-fix shape. The widened markup scan named the line and the column:
+
+```text
+$ git diff -U0 -- options-structure-lab.html
+-      el('pillTk').innerHTML = ... yLink(state.ticker, esc(state.ticker) + ...
++      el('pillTk').innerHTML = ... yLink(state.ticker, state.ticker + ...
+
+$ node --test tests/company-intelligence.unit.mjs
+M1_UNIT_EXIT=1
+✖ 027 security — no markup-bearing subject can reach a receiver markup sink, and every subject-fed sink escapes (2.748958ms)
+ℹ tests 90
+ℹ pass 89
+ℹ fail 1
+    options-structure-lab.html:1971 → state.ticker (direct innerHTML) @col67
+```
+
+This is the GAP-2 and GAP-2a pair re-proven live in one probe: the escape fix is on
+disk, and the widened scan can still see the sink shape that the superseded narrow
+anchor missed. After revert, `tests 90 / pass 90 / fail 0`, exit `0`.
+
+**M2 — the subject half of the composed owner href.** `ownerRouteFor` in
+`rlcompanyintel.js:516` was made to return the bare route while still reporting
+`carriesSubject: true` — a route claiming a subject it no longer holds. Two committed
+tests killed it, one of them the security row:
+
+```text
+$ node --test tests/company-intelligence.unit.mjs
+M2_UNIT_EXIT=1
+ℹ tests 90
+ℹ pass 88
+ℹ fail 2
+✖ a subject-carrying owner link opens the owning tool on the same company and can carry nothing else (0.623083ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual   - expected
+  + 'options-structure-lab.html'
+  - 'options-structure-lab.html?ticker=MSFT'
+✖ 027 security — no hostile subject can give the composed owner href a scheme, an authority, a second parameter or a fragment (0.242834ms)
+    actual: false, expected: true,
+```
+
+**M3 — the F-CHAOS-01 fix itself.** The re-render call `showLinkNotice();` was deleted
+from `fetchAll` at `options-structure-lab.html:1476`, which is precisely the boot-only
+rendering the chaos phase found. The durable regression row killed it and reproduced
+the original defect wording:
+
+```text
+$ npx --no-install playwright test --project=system-chrome --workers=1 --reporter=line \
+    -g "SCN-027-013 the refusal notice keeps naming the subject actually on screen" \
+    tests/options-structure-lab.spec.mjs
+M3_RED_EXIT=1
+Running 1 test using 1 worker
+  1) [system-chrome] › tests/options-structure-lab.spec.mjs:269:1 › Regression: SCN-027-013 ...
+    Error: the notice still names the replaced subject, so the page states two subjects
+    Expected substring: "AAPL"
+    Received string:    "The link named a company this tool could not accept, so it is showing SPY."
+  1 failed
+```
+
+On unmutated code the same row passes: `Running 1 test using 1 worker`, `1 passed (2.4s)`,
+exit `0`, measured both before and after the probe.
+
+### Source-file safety — every touched file byte-identical
+
+Hashes were taken before the first probe and after the last. They match, and git agrees
+that nothing in the tree differs from `HEAD`:
+
+```text
+$ shasum -a 256 options-structure-lab.html rlcompanyintel.js gamma-trading-lab.html volatility-sizing-lab.html options-flow-feed-lab.html
+0284b4c6af354ceb8c6469945faf1a76572ec22d6b394933b0fdfd03613462fc  options-structure-lab.html
+8e507fe614e7c5cc3d7b546f937ba38fe862210b57624aa404becbd2e5a592bf  rlcompanyintel.js
+af78cef4f56427ead344cf6c838e13b7e4a43bb1ad3530d45e670536e310736d  gamma-trading-lab.html
+0f227598b27c5e23b8127692b17def33a392bac30a4a6fc265a252730ccf3b53  volatility-sizing-lab.html
+f3a8cfe4398ac0be3a666fd3190118bc19f166e17278d3609a2f6a5f9f2cdc26  options-flow-feed-lab.html
+
+$ git status --porcelain=v1 --untracked-files=no
+(no output — every touched file byte-identical to HEAD)
+```
+
+The `options-structure-lab.html` and `gamma-trading-lab.html` values are the same
+`0284b4c6…` and `af78cef4…` this report already records for the GAP-2a escape fix, so
+the escape fix is confirmed present on disk by hash as well as by mutation.
+
+### Deep-link integrity — the registry's claims against the routes' behaviour
+
+The shipped registry was enumerated and each carriage claim was opened in a browser.
+Three of the four carrying rows land the subject in a reader-visible control:
+
+```text
+$ node <deep-link probe>   # opens each composed href, reads the route's subject control
+LANDED options-structure    options-structure-lab.html?ticker=MSFT    observed ticker=MSFT
+LANDED dealer-gamma         gamma-trading-lab.html?ticker=MSFT        observed ticker=MSFT
+MISSED options-flow         options-flow-feed-lab.html?ticker=MSFT    observed <no subject control found>
+LANDED volatility           volatility-sizing-lab.html?ticker=MSFT    observed assetSelect=MSFT
+carrying rows=4 landed=3 missed=1
+rows=15  carrying=4  bare-with-reason=7  ownerless=4
+```
+
+**Finding R-027-A1 (informational) — the fourth claim is honoured by a focus band, not
+a control, and the probe above was wrong rather than the route.** `options-flow-feed-lab.html`
+is a scanner over a fixed universe and has no single-subject control to fill, which is
+the design's stated shape for it. Reading what it actually renders shows the subject
+does land, and that an uncovered subject is refused honestly rather than silently:
+
+```text
+$ node <focus-band probe>   # opens options-flow-feed-lab.html?ticker=<subject>
+subject="MSFT"
+  band="Focus: MSFT — 783 flagged strikes · call premium $42.3M vs put premium $17.4M · end-of-day proxy over 12 liquid names, not a real-time tape."
+  band-hidden=no  band-names-subject=true
+subject="ZZZZ"
+  band="Focus: ZZZZ — this scanner covers 12 liquid names and does not include it, so the full scan below is unchanged."
+  band-hidden=no  band-names-subject=true
+FLOW_EXIT=0
+```
+
+`F-CHAOS-01` was separately re-confirmed closed by measurement rather than by reading
+the fix. The shipped route stays coherent across the whole reader journey, where the
+chaos phase found it stating two subjects at once:
+
+```text
+$ node <notice-coherence probe>   # unmutated options-structure-lab.html
+AFTER-BOOT   #ticker="SPY"   notice-names-the-control-subject=true
+AFTER-REVEAL #ticker="SPY"   notice-names-the-control-subject=true
+AFTER-READER #ticker="AAPL"  notice-names-the-control-subject=true
+```
+
+Under M3 the same probe returns `AFTER-READER #ticker="AAPL"` with
+`notice-names-the-control-subject=false`, so the coherence is produced by the fix and
+not by the harness.
+
+### Finding R-027-A4 — a `SPY?` reading that took four measurements to close
+
+The first mutated run reported `"…so it is showing SPY?."`. A byte dump ruled out a
+console artifact — under `LC_ALL=C` the em-dash correctly renders as an octal escape
+while the stray character stays a literal `?`:
+
+```text
+$ grep -a "Received string" <first mutated run> | LC_ALL=C od -An -c
+   R   e   c   e   i   v   e   d       s   t   r   i   n   g   :
+   "   T   h   e       l   i   n   k       n   a   m   e   d ...
+
+$ node <codepoint probe>   # options-flow-feed-lab.html?ticker=MSFT
+band[0..16]   = "Focus: MSFT? — 7"
+band codepoints = 0046 006f 0063 0075 0073 003a 0020 004d 0053 0046 0054 003f 0020 2014 0020 0037
+band has U+003F QUESTION MARK: true
+```
+
+That is a real `U+003F` in the DOM, and `RLTKR.linkedSubject` cannot produce one —
+`SUBJECT_PATTERN` is `/^[A-Z0-9.\-]{1,12}$/`, which admits no `?`. Trapping writes to
+the band resolved the contradiction: the string the route writes is clean, and the `?`
+appears only on read-back.
+
+```text
+$ node <write-trap probe>
+PAGE WRITE "Focus: MSFT — 783 flagged strikes · call" <- at renderFocus (options-flow-feed-lab.html:605:26) | at render (options-flow-feed-lab.html:614:9)
+FINAL "Focus: MSFT? — 783 flagged strikes · cal"
+
+$ node <DOM-shape probe>
+band.innerHTML = Focus: <span data-tkr="MSFT" data-rltkr-done="1"><span class="rltkr-wrap" data-tkr-symbol="MSFT"><a class="rltkr" href="https://finance.yahoo.com/quote/MSFT" ... aria-label="Microsoft · Technology — open Yahoo Finan
+  element children: SPAN#-.- text="MSFT?"
+```
+
+**Closed, not a defect.** The `?` is the shared contextual-tooltip trigger the ticker
+decorator appends to a *recognised* symbol, which is why `ZZZZ` carries none. It is the
+repository's own "every ticker keeps its contextual explanation" affordance, not a
+subject the route invented.
+
+**Finding R-027-A2 (low) — band text is decorated asynchronously, so its exact text is
+time-dependent.** The decorator runs after `renderFocus`, so `#linkNotice.textContent`
+reads `MSFT` or `MSFT?` depending on timing. That is why the first mutated run and the
+second disagreed on a string neither assertion depended on. Every current Feature 027
+band assertion is substring- or pattern-based — `toContain`, `toMatch`, a length check,
+or an inequality between two equally-decorated strings — so none of them can flake on
+this. The finding is recorded because an exact-equality assertion added to a decorated
+band later *would* be flaky, and the next author deserves to know before writing one.
+
+**Finding R-027-A3 (informational) — restored session state and free-text input remain
+ungrammared.** `loadState()` at `options-structure-lab.html:1275` restores `state.ticker`
+with no pattern check, and the `#ticker` input accepts free text; `SUBJECT_PATTERN` lives
+in `rlticker.js` and gates the deep link only. This report already declares that property
+under GAP-2a, and it is unchanged rather than newly introduced. It is re-recorded here
+because both paths reach the notice sink that the escape fix protects, so the escape is
+load-bearing for more than the deep link.
+
+### Independent verification and evidence integrity
+
+Every figure below was measured in this run, not carried over.
+
+```text
+$ node --test tests/company-intelligence.unit.mjs
+UNIT_EXIT=0
+ℹ tests 90
+ℹ pass 90
+ℹ fail 0
+
+$ npx --no-install playwright test --project=system-chrome --workers=1 --reporter=line \
+    tests/company-intelligence-lab.spec.mjs tests/gamma-trading-lab.spec.mjs \
+    tests/options-flow-feed-lab.spec.mjs tests/options-structure-lab.spec.mjs \
+    tests/volatility-sizing-lab.spec.mjs
+BROWSER_EXIT=0
+Running 99 tests using 1 worker
+  99 passed (1.4m)
+
+$ node scripts/selftest.mjs
+SELFTEST_EXIT=0
+Research-Lab self-test: 3405 passed, 0 failed
+
+$ node scripts/pii-scan.mjs
+PII_EXIT=0
+[pii-scan] files=9628 messages=2070 findings=0 OK
+```
+
+The selftest is re-derived here rather than quoted from an earlier phase: it is
+nondeterministic while concurrent sessions write, and the total moved from `3181` at the
+previous audit to `3405` now because other features landed rows in between. No skip
+marker was found in the Feature 027 suites, and no test was modified by this phase.
+
+### Nothing certified
+
+This phase wrote only its own audit evidence. `uservalidation.md` was not touched and
+remains human-owned. Top-level `status` remains `in_progress`, `certifiedAt` remains
+`null`, `certification.certifiedCompletedPhases` remains empty, and no DoD item was
+ticked, reworded or added. Certification is `bubbles.validate`'s call, not this phase's.
+
+The `done`-status artifact-lint measurement below was taken by temporarily setting
+`status` and `certification.status` to `done`, running the lint, and reverting both with
+`git checkout --` in the same step. The spec was never left at `done`.
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/027-company-scoped-owner-deep-links   # at status=done, BEFORE
+LINT_EXIT_BEFORE=1
+❌ full-delivery done status requires '**Executed:** YES' in section 'Validation Evidence'
+❌ full-delivery done status requires '**Executed:** YES' in section 'Audit Evidence'
+Artifact lint FAILED with 2 issue(s).
+
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/027-company-scoped-owner-deep-links   # at status=done, AFTER
+LINT_EXIT_AFTER=1
+❌ full-delivery done status requires '**Executed:** YES' in section 'Validation Evidence'
+Artifact lint FAILED with 1 issue(s).
+```
+
+The Audit Evidence gate is closed. The one remaining issue is the Validation Evidence
+marker, which belongs to `bubbles.validate` and is outside this phase's ownership.
+
+**Finding R-027-A5 (recorded against this phase) — the first draft of this section
+introduced a new lint failure.** The focus-band evidence block carried only one of the
+two required terminal-output signal classes, because its output names no file with an
+extension. The lint caught it, the block was corrected by naming the route the probe
+actually opens, and the AFTER measurement above was re-taken. It is recorded rather
+than quietly fixed, because an audit that hid its own defect would be the exact failure
+mode this phase exists to detect.
+
 
 
 

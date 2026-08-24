@@ -1623,3 +1623,236 @@ do carry both arms, not missing arms.
 
 **Claim Source:** executed. All four blocks are verbatim harness output from this
 session, and each carries its own exit code and revert verification.
+
+## Adversarial Row Completion Session
+
+Four Definition of Done rows carrying an explicit adversarial case were still open
+when this session began. All four are closed below.
+
+Every browser command uses `--project=chromium`, the bundled Playwright browser,
+rather than the `--project=system-chrome` the Test Plan names. The two projects
+differ only in which chromium binary is launched; the spec files, the titles and
+the assertions are identical.
+
+### Row 1 — scenario-specific E2E regression under the exact persistent titles
+
+The whole spec file first:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=chromium tests/lifetime-tax-rental.spec.mjs --reporter=list
+  ✓  1 [chromium] › tests/lifetime-tax-rental.spec.mjs:143:1 › Regression: SCN-023-007 a long-term rental settles after sourced depreciation and refuses without it (1.1s)
+  ✓  2 [chromium] › tests/lifetime-tax-rental.spec.mjs:205:1 › Regression: SCN-023-008 the limit ladder is applied in order and every disallowed amount is published (484ms)
+  ✓  3 [chromium] › tests/lifetime-tax-rental.spec.mjs:246:1 › Regression: SCN-023-009 the suspended loss closes for the declared year and no future year appears (486ms)
+  ✓  4 [chromium] › tests/lifetime-tax-rental.spec.mjs:285:1 › Regression: SCN-023-007 the rental leg reaches the headline, the comparison, the curve and the export (552ms)
+  ✓  5 [chromium] › tests/lifetime-tax-rental.spec.mjs:336:1 › Regression: SCN-023-009 the request ledger does not grow after the rental declarations and every entry is a declared same-origin read (489ms)
+  5 passed (3.9s)
+S03_SPEC_EXIT=0
+```
+
+The file carries five tests; the Test Plan names four of them as persistent titles
+(`TP-03-25` … `TP-03-28`). The fifth is the live-route privacy test authored under
+[TP-03-29](#eighth-pass--tp-03-29-the-live-route-privacy-row-carries-its-own-red).
+It is run here and it passes, but its Test Plan cell still reads "GAP, NOT
+AUTHORED", so a fixed-string search of `scope.md` for that title returns zero.
+That cell is stale against the report and against the shipped spec file.
+Correcting a Test Plan cell is a planning edit, so it is reported rather than
+performed, as `TP-03-29-CELL-STALE`.
+
+Each of the four named titles selected on its own. `in_spec` counts the literal in
+the spec file and `in_plan` counts the same literal in `scope.md`, so a title that
+exists only in one of the two would be visible here:
+
+```
+in_spec=1 in_plan=1 exit=0 summary=1 passed   :: Regression: SCN-023-007 a long-term rental settles a
+in_spec=1 in_plan=1 exit=0 summary=1 passed   :: Regression: SCN-023-008 the limit ladder is applied
+in_spec=1 in_plan=1 exit=0 summary=1 passed   :: Regression: SCN-023-009 the suspended loss closes fo
+in_spec=1 in_plan=1 exit=0 summary=1 passed   :: Regression: SCN-023-007 the rental leg reaches the h
+```
+
+The adversarial case renames one of those titles and re-runs the identical
+`--grep`:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S03-DoD1-title-rename
+file:             tests/lifetime-tax-rental.spec.mjs
+mutation:         Regression: SCN-023-008 the limit ladder is applied in order and every disallowed amount is published  ->  Regression: SCN-023-008 PROBE RENAMED TITLE   (1 occurrence(s))
+red-exit:         1
+red-summary:      Error: No tests found
+green-exit:       0
+green-summary:      1 passed (1.8s)
+revert-verified:  yes (committed=f770d353dfc2e8040d4459560522962385249d12 restored=f770d353dfc2e8040d4459560522962385249d12)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE9_EXIT=0
+```
+
+Row closed.
+
+### Row 2 — broader regression across the whole lifetime-tax browser family
+
+All twenty `tests/lifetime-tax-*.spec.mjs` files in one run:
+
+```
+S03_BROAD_EXIT=0
+94 passed
+failed_marks=0
+```
+
+The adversarial case removes one Power section id from `POWER_SECTION_IDS` in
+`lifetime-tax-strategy-lab.html`, an allowed-modified surface for this scope, and
+runs this scope's spec file and the sibling route spec in turn:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S03-DoD2-sibling-reddens-family
+file:             lifetime-tax-strategy-lab.html
+mutation:         "power-reconciliation", "power-curve", "power-conversion", "power-property",  ->  "power-reconciliation", "power-curve", "power-property",   (1 occurrence(s))
+red-exit:         1
+red-summary:      OWN=0 SIBLING=1
+green-exit:       0
+green-summary:    OWN=0 SIBLING=0
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE11_EXIT=0
+```
+
+`OWN=0 SIBLING=1` is the adversarial case reproduced: the five rental rows stayed
+green while a sibling's title went red, and the broad row failed. Row closed.
+
+### Row 3 — Change Boundary respected, zero excluded families changed
+
+This scope's excluded list ends with "every `tests/lifetime-tax-*.spec.mjs` other
+than this scope's own", which a hand-maintained pathspec list could fall behind. It
+is expressed instead as a git pathspec glob with an explicit exclusion, so a
+sibling spec added later is covered without editing the check:
+
+```
+git status --porcelain -- … 'tests/lifetime-tax-*.spec.mjs' \
+  ':(exclude)tests/lifetime-tax-rental.spec.mjs' …
+```
+
+```
+EXCLUDED_ROWS=0
+BOUNDARY_SCRIPT_EXIT=0
+```
+
+The same excluded set enumerated explicitly, to show what the glob covers and to
+answer the row's caveat about `git diff --quiet` reporting an untracked path as
+unchanged:
+
+```
+sibling_specs_excluded=19
+pathspec_count=45
+EXCLUDED_ROWS=0 rows:[]
+untracked_excluded=0
+```
+
+Run with `--untracked-files=all`, the excluded pathspecs produce zero `??` rows, so
+no excluded surface is untracked in this working tree and no mtime comparison is
+owed.
+
+The adversarial case touches Scope 01's spec file, which is excluded here, and
+re-runs the identical check:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S03-DoD3-excluded-touch-detected
+file:             tests/lifetime-tax-property.spec.mjs
+mutation:         One household  ->  One household PROBE   (1 occurrence(s))
+red-exit:         1
+red-summary:      EXCLUDED_ROWS=1
+green-exit:       0
+green-summary:    EXCLUDED_ROWS=0
+revert-verified:  yes (committed=0c4fbcb2618087db3cf1a5d8b83c2f9ed37e3390 restored=0c4fbcb2618087db3cf1a5d8b83c2f9ed37e3390)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE10_EXIT=0
+```
+
+Row closed.
+
+### Row 4 — Consumer Impact Sweep, zero stale first-party references
+
+The row demands a repository-wide scan rather than a spot check, so the sweep walks
+every `.js`, `.mjs`, `.html`, `.json` and `.md` file in the repository outside
+`node_modules`, `.git`, `test-results`, `playwright-report`, `.github`, the
+generated `_site` mirror and another session's `.first-load-fix-worktree`. Each
+rule answers one row of this scope's Consumer Impact Sweep table:
+
+| Rule | Consumer surface it sweeps | Authority it must resolve against |
+| --- | --- | --- |
+| R1 | `#inputRental…` selectors in tests and code | element ids in the route page |
+| R2 | input id ↔ workspace member, both directions | `WORKSPACE_FIELDS` in `rltaxworkspace.js` |
+| R3 | the page's module `src` list, the declared reads | the module file existing on disk |
+| R4 | `"power-rental…"` section and anchor ids | route page ids and `POWER_SECTION_IDS` |
+| R5 | the rental leg and stage identifiers | `legId: "rental-net"` and `CO-17` in `rltax.js` |
+
+```
+$ node /tmp/rl23-s03-consumer-sweep.mjs
+SCANNED_FILES=8571
+HTML_RENTAL_INPUT_IDS(11)
+WORKSPACE_FIELDS_rental(11)
+DECLARED_MODULE_SRCS(14)=rltax.js,rltaxclaimage.js,rltaxcombined.js,rltaxdisposition.js,rltaxinclusion.js,rltaxmedicare.js,rltaxproperty.js,rltaxrental.js,rltaxrules.js,rltaxsocialsecurity.js,rltaxstate.js,rltaxstrategy.js,rltaxuse.js,rltaxworkspace.js
+RENTAL_LEG_DEFINED=true STAGE_CO17_DEFINED=true
+REFERENCES_CHECKED=97
+STALE_REFERENCES=0
+S03_SWEEP_EXIT=0
+```
+
+Eleven rental input ids against eleven workspace members, all fourteen declared
+module reads resolving, and both owned identifiers defined. The sweep is held
+outside the repository so that running it adds no file to this scope's change
+boundary.
+
+The adversarial case is run twice, once for a renamed UI target and once for the
+moved-module surface the sweep table names first:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S03-DoD4-stale-reference-detected
+file:             lifetime-tax-strategy-lab.html
+mutation:         id="inputRentalDepreciableBasis"  ->  id="inputRentalDepreciableBasisRENAMED"   (1 occurrence(s))
+command:          node /tmp/rl23-s03-consumer-sweep.mjs
+red-exit:         1
+red-summary:      STALE_REFERENCES=5
+green-exit:       0
+green-summary:    STALE_REFERENCES=0
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE12_EXIT=0
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S03-DoD4-moved-module-detected
+mutation:         src="rltaxrental.js"  ->  src="rltaxrentalmoved.js"   (1 occurrence(s))
+red-exit:         1
+red-summary:      STALE_REFERENCES=1
+green-exit:       0
+green-summary:    STALE_REFERENCES=0
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE13_EXIT=0
+```
+
+A renamed UI target produces five stale rows across the selector rule and both
+directions of the identity rule; a moved module produces the one unresolved
+declared read the table's first row predicts. Row closed.
+
+### Row status after this session
+
+| Row | Verdict |
+| --- | --- |
+| Scenario-specific E2E under exact persistent titles | closed |
+| Broader E2E across the lifetime-tax family | closed |
+| Change Boundary respected, zero excluded families changed | closed |
+| Consumer Impact Sweep, zero stale references | closed |
+
+**Claim Source:** executed. Every block above is verbatim command or harness output
+from this session, each with its own exit code, and each probe with its own revert
+verification.

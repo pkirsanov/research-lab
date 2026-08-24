@@ -464,6 +464,129 @@ unproven rather than asserted.
 
 ---
 
+## Scope 1 Execution — The Four Open Questions Answered
+
+Measured and decided at commit `8dd19dd6e`.
+
+**Q4 — do these routes need the handoff, or only a correct link? Honour the subject.** Two routes
+already ship the full handoff (`options-structure-lab.html`, `gamma-trading-lab.html`), so
+honouring it makes all four uniform rather than leaving two permanently unaddressable. What this
+gives up is recorded: the server-side Tier-A producer publishes these two tools with a bare
+`deepLink`, so the two producers still disagree about whether these routes are subject-addressable.
+This decision resolves the disagreement toward addressable, and does not change the server-side
+producer.
+
+**Q1 — what does a reader see when a subject cannot be honoured? The disclosure that already
+ships.** `showLinkNotice` exists in both correct routes and was copied rather than reinvented:
+`refused` shows a notice naming what is being shown instead, `absent` shows nothing because nothing
+was named, `accepted` opens on the named subject. The notice is cleared when the reader picks a
+ticker themselves, so the page never states two subjects at once.
+
+**Q3 — should `F027_SUBJECT_ROUTES` stay an allowlist? No, derive it.** The allowlist named two
+routes while four existed, and the two it omitted were exactly the two emitting a dead parameter.
+The blind spot was the mechanism, not an oversight within it. Derivation was measured before it was
+chosen:
+
+```
+$ node -e '…filter(f => /deepLink:\s*"[^"]*\?/.test(f.source))…'
+derived routes (4): gamma-trading-lab.html, intraday-tape-lab.html, options-structure-lab.html, swing-structure-lab.html
+consumers: 4/4
+```
+
+Four routes, zero false positives, so the wider failure surface `design.md` warned about did not
+materialise on today's tree. The assertion carries a `length > 0` non-vacuity guard so an empty
+derivation cannot pass silently.
+
+**Q2 — should the owner-read contract detect a dead parameter? Deferred, with reason.** Assertion
+1.20 already performs the check statically, and it now performs it over a derived set rather than an
+allowlist, which is where the original gap was. A contract change reaches every producer, not these
+two routes. Recorded as answered-by-deferral, not built.
+
+## Scope 2 Execution — Both Halves, And A Trap
+
+### The precedent did not transplant
+
+The two correct routes guard boot on `DOMContentLoaded`; the two broken ones called `boot()`
+synchronously while `rlticker.js` loads `defer`:
+
+```
+-- intraday-tape-lab.html   rlticker tag: 2226: <script src="rlticker.js" defer>  boot invocation: 2221: boot();
+-- swing-structure-lab.html rlticker tag: 2056: <script src="rlticker.js" defer>  boot invocation: 2051: boot();
+-- options-structure-lab.html  boot invocation: if (document.readyState === 'loading') …DOMContentLoaded', boot); else boot();
+-- gamma-trading-lab.html      boot invocation: if (document.readyState === 'loading') …DOMContentLoaded', boot); else boot();
+```
+
+Copying the `RLTKR.linkedSubject` call into `boot()` without changing this would have dereferenced
+an undefined `RLTKR` on two shipped routes. Both now use the same guard the working routes use.
+
+### Both directions, proven in a browser
+
+```
+=== FR-014-004: zero ?t= emission sites ===
+0
+intraday-tape-lab.html  accepted={"ticker":"QQQ","notice":true}  refused={"ticker":"QQQ","noticeHidden":false,"noticeText":"The link named a company this tool could not accept, so it is showing "}
+swing-structure-lab.html  accepted={"ticker":"QQQ","notice":true}  refused={"ticker":"QQQ","noticeHidden":false,"noticeText":"The link named a company this tool could not accept, so it is showing "}
+pageErrors: []
+```
+
+### The runtime assertion, and the mistake it caught
+
+The owner-read block asserted a dozen fields and never the published link, so the defect this packet
+exists for would have satisfied every existing assertion. The first version of the new assertion was
+wrong and the run said so:
+
+```
+    Error: expect(received).toBe(expected) // Object.is equality
+    Expected: "swing-structure-lab.html?ticker=SPY"
+    Received: undefined
+  1 failed
+  37 passed (54.4s)
+```
+
+`deepLink` is a sibling of `metrics` on the tool read, not a field of the nested owner passport. A
+source grep would have shown the corrected expression and proven nothing about publication. Read
+from the right place, it passes, and the emitted link round-trips:
+
+```
+  38 passed (46.1s)
+```
+
+### Every new assertion was proven able to fail
+
+Derived-route guard — one route stops consuming the shared reader:
+
+```
+red-exit: 1   red-summary:   Research-Lab self-test: 3404 passed, 2 failed
+green-exit: 0 green-summary: Research-Lab self-test: 3406 passed, 0 failed
+revert-verified: yes (committed=67d827919… restored=67d827919…)
+discriminating: yes
+```
+
+Runtime link assertion — the dead parameter is reintroduced:
+
+```
+red-exit: 1   red-summary:     37 passed (53.3s)
+green-exit: 0 green-summary:   38 passed (46.6s)
+revert-verified: yes (committed=f93306b34… restored=f93306b34…)
+discriminating: yes
+```
+
+### Suite and validators
+
+```
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3406 passed, 0 failed
+
+72 passed (47.4s)        # technical-analysis, intraday-tape, swing-structure, deployed-site-parity
+validate-tool-experience exit=0
+build-pages-site exit=0
+pii-scan exit=0
+validate-spec-test-paths exit=0
+validate-test-file-reachability exit=0
+```
+
+No assertion count was reduced. The remedy added two assertions and removed none.
+
 ## Completion Statement
 
 **Nothing is fixed and nothing is certified.**
@@ -490,3 +613,49 @@ Zero Definition of Done items are ticked across both scopes and the cross-scope 
 `in_progress`, `certification.status` matches it, `certifiedAt` is `null`, and
 `certification.certifiedCompletedPhases` is empty. Human acceptance has not occurred and cannot:
 this packet delivers no behaviour to exercise.
+
+---
+
+## Execution Closeout
+
+The paragraph above described this packet at filing and is left standing as the record of that
+state. It no longer describes the packet: both scopes are executed, their Definition of Done items
+are ticked against the raw output recorded above, and the packet now delivers behaviour.
+
+`bug.md` moves to `Fixed — awaiting independent verification`. Not `Verified`: this execution
+measured its own remedy, and verification by the party that wrote the fix is not independent.
+
+`status` stays `in_progress` and `certification.certifiedCompletedPhases` stays empty. Certification
+belongs to the validating agent. `uservalidation.md` is untouched and its Human Acceptance Record
+remains unfilled, because that artifact is human-owned — an agent filling it would be granting
+itself the acceptance the file exists to withhold.
+
+What this execution did **not** establish: the two producers still disagree. The server-side Tier-A
+producer publishes these routes with a bare `deepLink` while the client now publishes a
+subject-bearing one. Q4 was decided for the client half only, which is the half this packet owns.
+Reconciling the server-side producer is real remaining work and is not claimed here.
+
+### Correction — the server-side half needs no reconciliation
+
+The paragraph above is left standing because it was written before the server-side producer was
+read, and overstating a disagreement in a spec artifact is the kind of drift this packet exists to
+remove. It is wrong, and the correction is this.
+
+The server-side entry is a declaration in `OWNER_EVIDENCE_DECLARATIONS`, and it carries a **set** of
+covered symbols rather than one current subject:
+
+```
+Command: git show origin/main:scripts/brief-refresh.mjs | sed -n '190,200p'
+  toolId: 'intraday-tape-lab', adapterId: 'intraday-tape-owning-model-v1', owningModelVersion: 'intraday-tape/v1',
+  profile: 'live-market', deepLink: 'intraday-tape-lab.html',
+  symbols: Object.freeze(['SPY', 'QQQ']), nonApplicableSymbols: Object.freeze([]),
+Exit Code: 0
+```
+
+A tool-level link is the correct shape for a declaration covering two symbols, because there is no
+single subject to name. The client publishes a subject-bearing link because it knows the one
+subject on screen. The two producers are answering different questions, not disagreeing about the
+same one, so there is nothing to reconcile and no follow-up work is owed.
+
+`design.md` records the bare server-side link as evidence bearing on Q4. That evidence is real; the
+inference that it implies a standing disagreement is what this correction withdraws.

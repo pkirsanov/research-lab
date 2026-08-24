@@ -1,6 +1,6 @@
 # BUG-017: On macOS The System-Chrome Browser Project Intermittently Fails To Tear Down, Turning An All-Green Run Into A Non-Zero Exit
 
-- **Status:** Confirmed
+- **Status:** Fixed — awaiting independent verification
 - **Severity:** Medium — developer experience only; does not reproduce in the pipeline
 - **Surface:** `playwright.config.mjs` project `system-chrome` (`channel: 'chrome'`), local macOS runs
 - **Filed at commit:** `7d592cf1b`

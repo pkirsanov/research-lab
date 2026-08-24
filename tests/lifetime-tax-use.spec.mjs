@@ -7,6 +7,7 @@ import {
   collectRequests,
   declaredRouteAssets,
   declareOrdinaryHousehold,
+  leakCarriers,
   openLifetimeTax,
   openPower,
   sameOriginPaths
@@ -387,16 +388,17 @@ test('Regression: SCN-023-010 the request ledger does not grow after the day-cou
   /* Neither day count reaches any URL, query string or request body, and nothing was POSTed.
      The existing unit row's "nor any query string" clause scans the route's SOURCE; this scans
      the ledger a real boot produced, which is the thing the requirement is about. */
+  /* Scan only the parts a leak could reach; the harness's own port is not household data. */
   ledger.forEach((entry) => {
     [String(fairRentalSentinel), String(personalUseSentinel)].forEach((sentinel) => {
-      expect(entry.url).not.toContain(sentinel);
+      expect(leakCarriers(entry.url)).not.toContain(sentinel);
       expect(entry.postData).not.toContain(sentinel);
     });
     expect(entry.method).toBe('GET');
   });
   const address = page.url();
-  expect(address).not.toContain(String(fairRentalSentinel));
-  expect(address).not.toContain(String(personalUseSentinel));
+  expect(leakCarriers(address)).not.toContain(String(fairRentalSentinel));
+  expect(leakCarriers(address)).not.toContain(String(personalUseSentinel));
   expect(new URL(address).search).toBe('');
 
   /* Both declarations really are present, so every scan above ran against a live household. */

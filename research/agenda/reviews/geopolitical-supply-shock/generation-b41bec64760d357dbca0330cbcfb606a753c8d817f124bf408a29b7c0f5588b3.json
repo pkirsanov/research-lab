@@ -1,0 +1,100 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-27f544caa9277ead9fc11151910b4a953632898c90e5f14f3268067404d64cb3",
+  "generationId": "generation-b41bec64760d357dbca0330cbcfb606a753c8d817f124bf408a29b7c0f5588b3",
+  "topicId": "geopolitical-supply-shock",
+  "attemptedAt": "2026-08-24T11:06:29.082Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "RLAGENDA-CONTRACT-UNKNOWN-MEMBER",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "No fresh official statement or verified policy action was acquired this generation. The acquisition bundle retained zero sources and the official-policy-and-statements material claim is uncorroborated, consistent, and freshness-unsupported (authorable=false). No observed reaction state can be established for United States, Iran, Oman mediators, Gulf exporters, Houthis, shipping insurers, or OPEC buffer producers, so each actor dimension stays observed-change-only with no observed change. No unobserved intent is inferred.",
+      "gaps": [
+        "official-policy-and-statements requirement missing-or-stale: no official source acquired; actor-state claim unsupported",
+        "No verified statement or declared-policy source available to populate any actor reaction rule"
+      ]
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "No scenario probability is authored here (owned downstream by the deterministic model). No trigger or invalidation observation was acquired to justify a prior update: transit-restriction-observed, insured-capacity-tightens, and inventory-response-confirmed are all unevaluated because their underlying maritime-flow and official-policy evidence is absent. The staged-reopening, managed-coercion, escalation, single-route-disruption, and dual-route-or-infrastructure-shock nodes therefore have no fresh evidence bearing on their entry or invalidation conditions this generation.",
+      "gaps": [
+        "measured-maritime-flow requirement missing-or-stale: no observation to evaluate any entryTrigger or invalidation",
+        "official-policy-and-statements requirement missing-or-stale: no actor-state change to condition scenario transitions"
+      ]
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "No measured maritime transit, loadings, delay, or insured-capacity observation was acquired. The measured-maritime-flow claim covering physical-flow and insured-flow is uncorroborated and freshness-unsupported (authorable=false). Physical and insured pass fractions and delay days for Hormuz, Bab el-Mandeb, and the Red Sea remain unobserved for this generation; no impairment or normalization can be asserted from evidence.",
+      "gaps": [
+        "measured-maritime-flow requirement missing-or-stale: physicalPassFraction, insuredPassFraction, and delayDays unobserved for hormuz, bab-el-mandeb, and red-sea",
+        "No maritime-observation or official flow source retained (retainedSourceCount=0)"
+      ]
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "No channel inventory, production, export, or policy-response observation was acquired. The energy-and-input-balances claim covering transmission-input is uncorroborated and freshness-unsupported. Transmission state for oil, refined-products, lng, fertilizer, aluminum, and shipping cannot be observed this generation; no inventory gap by channel is measured and none is estimated.",
+      "gaps": [
+        "energy-and-input-balances requirement missing-or-stale: transmission-input unobserved for every declared channel",
+        "No official or industry-data source retained to establish inventory, production, or export balances"
+      ]
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "stale",
+      "interpretation": "No proxy range or sensitivity is authored here. One committed public-bar source exists (sourceId geopolitical-supply-shock-committed-public-bars-committed-bars, observedAt 2026-08-21T23:59:59Z, claimCoverage proxy-bar), but at the generation cutoff of 2026-08-24T11:06Z it is roughly 59 hours old and therefore outside the 48-hour committed-public-bars freshness window. No fresh committed daily bars were acquired for the declared public proxies this generation, so no current proxy sensitivity can be calibrated from in-window data.",
+      "gaps": [
+        "committed-public-bars requirement missing-or-stale: single committed-bar source is older than its 48h freshness window",
+        "No in-window proxy-bar evidence to calibrate U.S.-listed proxy sensitivity"
+      ]
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "None of the declared triggers or invalidations can be evaluated this generation. transit-restriction-observed and transit-normalizes depend on a physicalPassFraction observation for Hormuz, Bab el-Mandeb, or the Red Sea; insured-capacity-tightens and insurance-normalizes depend on an insuredPassFraction observation for shipping insurers; inventory-response-confirmed depends on a confirmed policyResponse. All of these underlying observations are absent. The evidence-stales invalidation would fire, since no supporting observation remains inside the 24-hour evidence freshness window.",
+      "gaps": [
+        "measured-maritime-flow requirement missing-or-stale: physicalPassFraction and insuredPassFraction conditions unevaluable",
+        "energy-and-input-balances requirement missing-or-stale: policyResponse condition unevaluable",
+        "No supporting observation inside the 24h evidence freshness window (evidence-stales condition met)"
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "stale",
+      "interpretation": "The acquisition bundle retained zero web sources and rejected all four material claims (materialClaimCount=4, corroboratedMaterialClaimCount=0, retainedSourceCount=0). No official, maritime-observation, or industry-data source is present. The only ledger entry is the single committed-public-bars source (observedAt 2026-08-21T23:59:59Z), which is stale against its 48-hour freshness policy at the cutoff. The current ledger is insufficient to support any authorable finding.",
+      "gaps": [
+        "official-policy-and-statements: no source retained",
+        "measured-maritime-flow: no source retained",
+        "energy-and-input-balances: no source retained",
+        "committed-public-bars: only source is stale relative to its 48h freshness window"
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "priorDossier is null: there is no predecessor situation for this topic, so no change direction is assessed and none is authored here. This is a first observation attempt for the topic in the available record, and with no fresh in-window evidence acquired there is no basis on which to compare against a prior state.",
+      "gaps": [
+        "No predecessor dossier available; no prior situation to compare",
+        "No fresh in-window evidence acquired this generation to characterize change"
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

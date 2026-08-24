@@ -1,0 +1,114 @@
+{
+  "version": 3,
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-002-full-clear-tombstone-authority",
+  "featureName": "BUG-002 Full Clear Can Return Partial Without An Authoritative Tombstone",
+  "createdAt": "2026-08-23T00:00:00Z",
+  "lastUpdatedAt": "2026-08-23T00:00:00Z",
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/008-portfolio-survival-and-brief-lab",
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "flagsIntroduced": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "648e0992b82066fe3e166d0ff38b068e64423f12",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json"
+  },
+  "execution": {
+    "activeAgent": "bubbles.bug",
+    "currentPhase": "bug",
+    "currentPhaseStatus": "route_required",
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-23T00:00:00Z",
+    "completedAt": null,
+    "substate": "diagnosed",
+    "currentScope": null,
+    "nextRequiredOwner": "bubbles.design",
+    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-002-full-clear-tombstone-authority/design.md",
+    "nextRequiredReason": "Finalize a compensating final-cleanup design that preserves or restores and rereads the pointer/tombstone authority pair. A simple call-order reversal is insufficient.",
+    "completedPhaseClaims": [],
+    "pendingTransitionRequests": []
+  },
+  "completedScopes": [],
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": []
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": { "mode": "off", "source": "repo-default" },
+    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
+    "autoCommit": { "mode": "off", "source": "repo-default" },
+    "lockdown": { "mode": "off", "source": "repo-default" },
+    "regression": { "mode": "protected-scenarios", "source": "workflow-forced" },
+    "validation": { "mode": "certification-required", "source": "repo-default" }
+  },
+  "modeTransitions": [],
+  "transitionRequests": [
+    {
+      "id": "BUG-002-ROUTE-001",
+      "status": "pending",
+      "fromAgent": "bubbles.bug",
+      "nextRequiredOwner": "bubbles.design",
+      "target": "design.md",
+      "reason": "The production defect is confirmed by source/contract inspection. Final compensation and compensation-failure semantics are design-owned."
+    }
+  ],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "at": "2026-08-23T00:00:00Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "filed-and-routed",
+      "note": "Verified current rlportfolio.js, parent Full Clear Transaction design, FR-151, and the exact Scope 28 browser row. Separated the stale exactly-one-residue test premise from the independent dangling-pointer production defect. No product source or test was edited or executed.",
+      "phasesExecuted": ["bug"],
+      "provenanceMode": "specialist"
+    }
+  ],
+  "addressedFindings": [
+    {
+      "id": "BUG-002-D1",
+      "summary": "The Scope 28 signal was classified into two independent findings so a test correction cannot conceal the product cleanup defect.",
+      "evidenceRef": "report.md#findings"
+    }
+  ],
+  "unresolvedFindings": [
+    {
+      "id": "BUG-002-F1",
+      "summary": "Final active-tombstone-first cleanup can leave a dangling pointer on pointer-removal failure.",
+      "owner": "bubbles.design",
+      "followUpOwner": "bubbles.implement",
+      "evidenceRef": "report.md#bug-002-f1---production-authority-loss",
+      "status": "route_required"
+    },
+    {
+      "id": "BUG-002-F2",
+      "summary": "The browser matrix incorrectly requires exactly one surviving key instead of an authoritative pointer/tombstone pair plus any named residue.",
+      "owner": "bubbles.plan",
+      "followUpOwner": "bubbles.test",
+      "evidenceRef": "report.md#bug-002-f2---stale-exactly-one-residue-test-premise",
+      "status": "route_required"
+    }
+  ],
+  "resolvedDiscoveries": [],
+  "openDiscoveries": []
+}

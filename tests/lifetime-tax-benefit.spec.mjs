@@ -8,6 +8,7 @@ import {
   collectRequests,
   declareOrdinaryHousehold,
   declaredRouteAssets,
+  leakCarriers,
   openLifetimeTax,
   openPower,
   sameOriginPaths
@@ -305,7 +306,7 @@ test('Regression: SCN-024-001 the request ledger does not grow after first paint
   const sentinels = [statementSentinel, earningsSentinel, birthYearSentinel];
   ledger.forEach((entry) => {
     sentinels.forEach((sentinel) => {
-      expect(entry.url).not.toContain(sentinel);
+      expect(leakCarriers(entry.url)).not.toContain(sentinel);
       expect(entry.postData).not.toContain(sentinel);
     });
     expect(entry.method).toBe('GET');

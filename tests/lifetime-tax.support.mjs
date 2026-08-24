@@ -102,6 +102,17 @@ export function sameOriginPaths(ledger, site) {
   return ledger.map((entry) => new URL(entry.url).pathname);
 }
 
+/* The parts of a URL a declared household value could actually reach. The origin belongs to the
+   harness, never to the household, and an ephemeral port is a decimal number that can contain a
+   short declared value outright — 127.0.0.1:43131 holds "43", 127.0.0.1:19640 holds "1964".
+   Scanning a whole URL for such a sentinel fails on the port, which is not what the leak
+   requirement is about, so every leak scan reads the pathname, query and fragment instead. The
+   origin is already constrained by sameOriginPaths, so nothing is given up here. */
+export function leakCarriers(url) {
+  const target = new URL(url);
+  return target.pathname + target.search + target.hash;
+}
+
 export function collectConsole(page) {
   const messages = [];
   page.on('console', (message) => messages.push(message.text()));

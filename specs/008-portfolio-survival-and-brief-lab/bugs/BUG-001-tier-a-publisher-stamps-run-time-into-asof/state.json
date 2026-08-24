@@ -1,0 +1,296 @@
+{
+  "version": 3,
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-001-tier-a-publisher-stamps-run-time-into-asof",
+  "featureName": "BUG-001 The Tier-A Publisher Stamps Run Time Into asOf, So A Late Run Publishes A Brief Its Own Consumer Must Refuse",
+  "createdAt": "2026-08-23T00:00:00Z",
+  "lastUpdatedAt": "2026-08-23T21:15:37Z",
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "priorBlockedReason": null,
+  "blockedReasonResolved": null,
+  "crossFeatureEditAuthorization": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "priorPlanningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/008-portfolio-survival-and-brief-lab",
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "648e0992b",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json"
+  },
+  "artifactSetNote": "The packet now carries the required uservalidation.md and scenario-manifest.json artifacts. uservalidation.md separates automation readiness from human acceptance, leaves every human acceptance item unchecked, and leaves the acceptance record unfilled. scenario-manifest.json transcribes all six scope scenarios and links them only to persistent test declarations. Adding these packet artifacts does not change status, claim a validation phase, or certify the delivery.",
+  "execution": {
+    "activeAgent": null,
+    "currentPhase": "bug",
+    "currentPhaseStatus": "complete",
+    "phaseReconciliation": null,
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-23T00:00:00Z",
+    "completedAt": null,
+    "substate": "implemented",
+    "currentScope": "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible",
+    "nextRequiredOwner": "research-lab-owner",
+    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-001-tier-a-publisher-stamps-run-time-into-asof/report.md#delivery-state",
+    "nextRequiredReason": "The fix is implemented and its verification was executed and observed. Two things keep this packet non-terminal. First, the delivery is present in the working tree at 648e0992b and is uncommitted; the artifact turn was instructed not to commit or push. Second, no validate/certification phase ran, so certification.status stays in_progress and certifiedAt stays null. Separately, design.md Q1 (whether a persistently late publication should surface its lateness as an operational signal) is recorded for the owner and is not blocking.",
+    "completedPhaseClaims": [
+      "bug",
+      "design",
+      "implement",
+      "regression"
+    ],
+    "phaseClaimNote": "Only phases actually executed are listed. bug: the defect was reproduced against the live published artifacts and its provenance established by two surgical reverts. design: the decision not to weaken the consumer boundary, and the shared-helper approach. implement: the seven-surface fix and the two data corrections. regression: the adversarial row at tests/portfolio-survival-brief.spec.mjs:902 plus the four verification gates. NOT claimed: validate, docs, audit, security, simplify — none were dispatched."
+  },
+  "defect": {
+    "severity": "High",
+    "surface": "scripts/brief-refresh.mjs snapshot construction (defect at line 2632, fix at 2637-2639)",
+    "consumer": "rlportfoliobrief.js validateGenericWindow, reached through portfolio-survival-allocation-lab.html#brief",
+    "observedAtCommit": "648e0992b",
+    "refusalCode": "P008-BRIEF-EVIDENCE",
+    "refusalReason": "generic-evidence-cutoff-conflict",
+    "refusalSiteBeforeFix": "rlportfoliobrief.js:217",
+    "refusalSiteAfterFix": "rlportfoliobrief.js:232",
+    "refusalSiteShiftExplanation": "15 of the 16 added lines land above the condition (the windowCutoffAt helper and its comment); the sixteenth is the export at line 1040. git diff --numstat reports 16 insertions and 0 deletions, so the condition is provably unedited.",
+    "declaredWindow": "morning",
+    "declaredEtTime": "11:00",
+    "declaredAnchor": "open",
+    "declaredOffsetMinutes": 90,
+    "consumerDerivedCutoffAt": "2026-08-23T15:00:00.000Z",
+    "publishedAsOfBeforeFix": "2026-08-23T15:37:31.147Z",
+    "publishedGeneratedAtBeforeFix": "2026-08-23T15:37:31.147Z",
+    "clocksWereByteIdenticalBeforeFix": true,
+    "publishedAsOfAfterFix": "2026-08-23T15:00:00.000Z",
+    "publishedGeneratedAtAfterFix": "2026-08-23T15:37:31.147Z",
+    "userVisibleSymptom": "The Portfolio Brief tab could not compose. The evidence-window selector #briefWindow rendered zero options, so the tab read as 'nothing here' rather than 'this was refused, and why'.",
+    "rootCause": "notes/market-brief.md line 645 defines asOf as the analyzed window and generatedAt as the run wall-clock, and then admitted in the same paragraph that Tier-A set both to the run time. The definition is authoritative; the admission described the defect. scripts/brief-refresh.mjs bound both fields to snap.ts, so any run that did not begin exactly on its window boundary published a self-refuting artifact.",
+    "siblingPrecedent": "scripts/brief-publication.mjs:275 already bound asOf: run.evidence.cutoffAt. Two publishers disagreed about one field and the correct rule was already committed in the repository.",
+    "secondaryDefect": "portfolio-survival-allocation-lab.html read the publication clock from payloadRef.asOf. That was silently correct only while the two fields were byte-identical, and became wrong the moment the publisher fix made them differ. Corrected to snapshotRef.generatedAt at line 8110.",
+    "measurementNote": "Every structural figure in bug.md, design.md, scopes.md and report.md marked 'executed (artifact turn)' was derived in this session by reading the committed working tree with grep, sed, git diff and python3. Figures marked 'executed (fix turn)' were observed during the fix earlier in the same session and were not re-run while these artifacts were written."
+  },
+  "provenance": {
+    "preExisting": true,
+    "notCausedByScopes": [
+      "25-decision-time-dossier-and-immutable-audit",
+      "26-immutable-workspace-compute-and-navigation",
+      "27-accessible-six-tab-interaction"
+    ],
+    "revertProbes": [
+      {
+        "surface": "rlnav.js",
+        "revertedTo": "744ac6a54^",
+        "commitTitle": "feat(008): complete immutable workspace navigation",
+        "result": "still failed",
+        "restored": true
+      },
+      {
+        "surface": "portfolio-survival-allocation-lab.html",
+        "revertedTo": "0972ddd75^",
+        "commitTitle": "feat(008): implement accessible six-tab interaction",
+        "result": "still failed",
+        "restored": true
+      }
+    ],
+    "conclusion": "A latent defect exposed by that day's publication timing, not introduced by recent scope delivery. It had been publishing correct-looking artifacts for as long as runs happened to land close enough to their window boundary."
+  },
+  "fixSurfaces": [
+    { "path": "scripts/brief-refresh.mjs", "change": "asOf bound to the analyzed window's evidence cutoff; generatedAt unchanged; throws when a window has no resolvable cutoff", "numstat": "9 +, 2 -" },
+    { "path": "rlportfoliobrief.js", "change": "ADDITIVE ONLY: shared windowCutoffAt() helper (line 171) and its export (line 1040)", "numstat": "16 +, 0 -" },
+    { "path": "portfolio-survival-allocation-lab.html", "change": "schedule rendered before composition; refusal named via data-generic-window-error; publication clock reads snapshotRef.generatedAt", "numstat": "50 +, 13 -" },
+    { "path": "scripts/brief-narrative-parallel.mjs", "change": "payload inherits the published cutoff; wall-clock fallback chain replaced with a loud throw", "numstat": "8 +, 1 -" },
+    { "path": "scripts/validate-brief-payload.mjs", "change": "derives the cutoff through the shared helper", "numstat": "2 +, 2 -" },
+    { "path": "notes/market-brief.md", "change": "the sentence documenting the defect as intended behaviour replaced with the implemented rule", "numstat": "1 +, 1 -" },
+    { "path": "market-brief.snapshot.json", "change": "asOf corrected to the window cutoff; generatedAt untouched", "numstat": "1 +, 1 -" },
+    { "path": "market-brief.payload.json", "change": "asOf corrected under the same rule", "numstat": "1 +, 1 -" },
+    { "path": "market-brief.page.json", "change": "derived page artifact regenerated", "numstat": "single-line artifact" },
+    { "path": "market-brief.snapshot.page.json", "change": "derived page artifact regenerated", "numstat": "single-line artifact" },
+    { "path": "tests/portfolio-survival-brief.spec.mjs", "change": "adversarial regression row at line 902", "numstat": "84 +, 0 -" }
+  ],
+  "notThisPacket": {
+    "note": "Modified in the same working tree but belonging to Scope 28 (spec-driven adversarial test replacement). Named so this bug's footprint is not later misread from the diff.",
+    "paths": [
+      "tests/portfolio-publisher-boundary.functional.mjs",
+      "tests/portfolio-survival.support.mjs",
+      "tests/portfolio-defect-injector.cjs",
+      "tests/portfolio-test-integrity.unit.mjs",
+      ".specify/memory/agents.md",
+      "specs/008-portfolio-survival-and-brief-lab/scopes/28-spec-driven-adversarial-test-replacement/report.md",
+      "specs/008-portfolio-survival-and-brief-lab/scopes/28-spec-driven-adversarial-test-replacement/scope.md",
+      "specs/008-portfolio-survival-and-brief-lab/scopes/_index.md",
+      "specs/008-portfolio-survival-and-brief-lab/test-plan.json"
+    ],
+    "clarification": "tests/portfolio-publisher-boundary.functional.mjs appears in report.md § Test Evidence because it was run as a verification gate, not because this packet authored it."
+  },
+  "verification": {
+    "claimSource": "executed (fix turn) — run and observed during the fix earlier in this session; NOT re-run while these artifacts were written",
+    "results": [
+      { "command": "tests/portfolio-survival-brief.spec.mjs", "before": "3 passed / 14 failed", "after": "17 passed / 0 failed" },
+      { "command": "node --test tests/portfolio-publisher-boundary.functional.mjs", "before": null, "after": "exit 0, fail 0" },
+      { "command": "node scripts/validate-brief-payload.mjs", "before": null, "after": "exit 0, PASS" },
+      { "command": "node scripts/selftest.mjs", "before": null, "after": "exit 0, 3314 passed, 0 failed" },
+      { "command": "git diff --check", "before": null, "after": "exit 0" }
+    ]
+  },
+  "adversarialRegression": {
+    "file": "tests/portfolio-survival-brief.spec.mjs",
+    "line": 902,
+    "name": "Regression: BUG-001 a publication later than its declared window cutoff is refused by name and never empties the schedule",
+    "receipts": [
+      "[BUG-001] window=morning cutoffAt=2026-08-23T15:00:00.000Z publishedLateAt=2026-08-23T15:37:00.000Z",
+      "[BUG-001] options=4 state=unavailable named=generic-evidence-cutoff-conflict"
+    ],
+    "nonTautologyBasis": "The served fixture publishes strictly LATER (15:37) than the cutoff of the window it declares (15:00), and the row asserts that lateness about its own fixture before asserting anything about the page. A fixture published at the cutoff would validate, the refusal path would never execute, and every later assertion would pass vacuously.",
+    "provesNotARelaxation": "One row pins both halves of the contract: the boundary still REFUSES the late publication (state=unavailable, named generic-evidence-cutoff-conflict, zero lane items composed) WHILE the schedule stays fully populated (4 of 4 declared windows). Neither half can be traded for the other."
+  },
+  "terminalTransitionBlockers": [
+    "The delivery is present in the working tree at 648e0992b and is uncommitted. The artifact turn was instructed not to commit or push, so no commit exists for the fix and none is claimed.",
+    "No validate or certification phase was dispatched. certification.status is in_progress and certifiedAt is null; certification is not claimed on the strength of the fix-turn test results alone."
+  ],
+  "knownLimitation": {
+    "statement": "What is established: asOf is the analyzed window's evidence cutoff, generatedAt is the run instant, publisher and consumer share one cutoff rule, the consumer boundary is byte-identical (16 insertions and 0 deletions), a refused evidence window leaves the schedule populated and names its contract code and reason on screen, and an adversarial regression row pins both halves of that contract. What is NOT established: certification, a commit for the delivery, and whether a persistently late publication should surface its lateness as an operational signal.",
+    "recordedIn": [
+      "report.md 'Completion Statement'",
+      "report.md 'Delivery State'",
+      "design.md 'Open Question For The Owner'"
+    ],
+    "whyNotClosedHere": "The artifact turn was scoped to documentation only: no source, test, script, config or data file was modified, no long test suite was run, and nothing was committed. Certifying on that basis would be a claim without a validate phase behind it."
+  },
+  "completedScopes": [
+    "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible"
+  ],
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [
+      "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible"
+    ],
+    "certifiedCompletedPhases": [],
+    "certificationFieldWriteNote": "certification.status mirrors the top-level status and is deliberately in_progress: no validate phase ran in this turn, so no certification is claimed. completedScopes mirrors SCOPE status, which is Done with 17 of 17 Definition of Done items checked and evidenced; scope completion and packet certification are separate claims and only the first is made here.",
+    "scopeProgress": [
+      {
+        "scopeId": "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible",
+        "status": "Done",
+        "dodChecked": 17,
+        "dodUnchecked": 0
+      }
+    ]
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": { "mode": "off", "source": "repo-default" },
+    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
+    "autoCommit": { "mode": "off", "source": "repo-default" },
+    "lockdown": { "mode": "off", "source": "repo-default" },
+    "regression": { "mode": "protected-scenarios", "source": "workflow-forced" },
+    "validation": { "mode": "certification-required", "source": "repo-default" }
+  },
+  "modeTransitions": [],
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "at": "2026-08-23T00:00:00Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "filed",
+      "note": "Filed against a live reproduction: the Portfolio Brief tab could not compose and #briefWindow rendered zero options, with tests/portfolio-survival-brief.spec.mjs at 3 passed / 14 failed. Provenance was established rather than assumed — rlnav.js was reverted to 744ac6a54^ and portfolio-survival-allocation-lab.html to 0972ddd75^, the failure survived both, and both files were restored clean.",
+      "phasesExecuted": ["bug"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-23T00:00:00Z",
+      "agent": "bubbles.bug",
+      "phase": "design",
+      "action": "decided",
+      "note": "Decided NOT to weaken the consumer boundary at rlportfoliobrief.js. Relaxing the comparison was the cheapest fix and would have destroyed Feature 008's decision-time evidence guarantee. The publisher was identified as the wrong side on three pieces of already-committed evidence: the runbook definition, the runbook's own admission of the violation, and scripts/brief-publication.mjs:275 which already bound asOf to the evidence cutoff.",
+      "phasesExecuted": ["design"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-23T00:00:00Z",
+      "agent": "bubbles.bug",
+      "phase": "implement",
+      "action": "delivered",
+      "note": "Seven surfaces plus two corrected data artifacts and their derived page files. The shared windowCutoffAt() helper was placed in rlportfoliobrief.js so the publisher imports the consumer's own definition of the boundary it will later be judged against, rather than a second implementation that merely agrees today. The presentation-side conflation at portfolio-survival-allocation-lab.html:8110 was found because the publisher fix made the two clocks differ and exposed it.",
+      "phasesExecuted": ["implement"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-23T00:00:00Z",
+      "agent": "bubbles.bug",
+      "phase": "regression",
+      "action": "verified",
+      "note": "tests/portfolio-survival-brief.spec.mjs moved from 3 passed / 14 failed to 17 passed / 0 failed. The adversarial row at line 902 serves a fixture 37 minutes past its declared cutoff and asserts that lateness about its own fixture before asserting anything about the page, so it cannot pass vacuously. node scripts/selftest.mjs reported 3314 passed / 0 failed; the payload validator and the publisher-boundary functional suite both passed; git diff --check exited 0.",
+      "phasesExecuted": ["regression"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-23T00:00:00Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "artifacts-recorded",
+      "note": "Recorded bug.md, spec.md, design.md, scopes.md, report.md and this state file. The turn was scoped to documentation: no source, test, script, config or data file was modified, no long test suite was run, and nothing was committed. Every structural claim in the artifacts was re-derived from the committed working tree in this turn and tagged 'executed (artifact turn)'; the five test results were tagged 'executed (fix turn)' because they were observed earlier in the session and not re-run here.",
+      "phasesExecuted": ["bug"],
+      "provenanceMode": "specialist"
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [],
+  "addressedFindings": [
+    {
+      "id": "BUG-001-F1",
+      "summary": "The Tier-A publisher bound asOf to the run wall-clock, a field the contract defines as the analyzed window, so any run not beginning exactly on its window boundary published an artifact its own consumer had to refuse.",
+      "resolution": "scripts/brief-refresh.mjs now sets asOf from RLPORTFOLIOBRIEF.windowCutoffAt(cfg.windows, window, snap.ts) and throws when a window has no resolvable cutoff. generatedAt keeps the run instant, so the two clocks are genuinely distinct on the published artifacts."
+    },
+    {
+      "id": "BUG-001-F2",
+      "summary": "The cutoff rule existed in two places that could drift: the consumer derived it from the declared schedule, and any publisher deriving it independently would agree only until the schedule changed.",
+      "resolution": "windowCutoffAt() is defined once in rlportfoliobrief.js and exported. The publisher, the payload validator and the consumer all call it, and the declared ET times are never restated as literals."
+    },
+    {
+      "id": "BUG-001-F3",
+      "summary": "A refused evidence window emptied the schedule selector, because the schedule and the evidence window shared one load transaction. A control with zero options tells the reader 'there is nothing here', which is false.",
+      "resolution": "portfolio-survival-allocation-lab.html renders the selector from the public schedule before composition is attempted, and the .catch() names the contract code and reason via data-generic-window-error and in reader-visible copy."
+    },
+    {
+      "id": "BUG-001-F4",
+      "summary": "The cockpit read the publication clock from payloadRef.asOf. That was silently correct only because the publisher stamped both fields identically, and became wrong the moment the publisher fix made them differ.",
+      "resolution": "The publication clock reads snapshotRef.generatedAt at portfolio-survival-allocation-lab.html:8110. This is the characteristic hazard of un-collapsing two wrongly-equal fields: every consumer that read either one was correct by accident, and the fix converts each into a real choice."
+    },
+    {
+      "id": "BUG-001-F5",
+      "summary": "scripts/brief-narrative-parallel.mjs fell back from snapshot.asOf to snapshot.generatedAt and then to a fresh wall-clock, either of which would republish the defect under a different name.",
+      "resolution": "The fallback chain is replaced by an explicit throw. Absence fails loudly rather than being papered over with a run clock."
+    },
+    {
+      "id": "BUG-001-F6",
+      "summary": "notes/market-brief.md documented the defect as intended behaviour, stating that Tier-A sets both fields to the run time.",
+      "resolution": "The sentence now states the implemented rule. The definition in the preceding sentences was already correct and is unchanged."
+    }
+  ],
+  "unresolvedFindings": [],
+  "resolvedDiscoveries": [],
+  "openDiscoveries": [
+    {
+      "id": "BUG-001-Q1",
+      "summary": "Whether a persistently late publication should surface HOW late it was, rather than only being made honest about its two clocks.",
+      "owner": "research-lab-owner",
+      "why": "The fix makes an 11:37 publication of the 11:00 window honest: it declares 11:00 evidence and discloses an 11:37 publication instant. It does not surface lateness as an operational signal, and a brief published hours after its cutoff is well-formed but practically stale. Adding a staleness disclosure in the same change that first makes the two clocks differ would leave no run in which to observe whether the distinction alone is sufficient.",
+      "status": "open",
+      "recordedIn": "design.md 'Open Question For The Owner'",
+      "blocking": false
+    }
+  ]
+}

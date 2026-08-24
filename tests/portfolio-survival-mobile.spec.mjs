@@ -440,3 +440,223 @@ test('Regression: SCN-008-036 personal sentinels stay absent from complete route
   }, SENTINEL_NAME);
   expect(residue, 'no personal residue may survive the clear').toEqual([]);
 });
+
+/* ------------------------------------------------------------------ TP-27-03
+   Feature 008 Scope 27 — SCN-008-053, the responsive half.
+
+   The other Scope 27 rows ask whether a reader who navigates by keyboard or
+   listens rather than looks reaches the same answer. This one asks the reader
+   who ENLARGES the page: 200% zoom, a 390x844 phone, WCAG 1.4.12 text-spacing
+   overrides, and a maximum-length portfolio label flowing through every
+   identity surface at once. A layout that computes the right answer and then
+   hides it behind an overlap, a clip, or a sideways document scroll has not
+   given the reader the answer.
+
+   Containment is the distinction that makes this row honest rather than
+   merely strict. A wide table is fine INSIDE its own scroller and a defect
+   when it widens the DOCUMENT, because only the second makes the reader drag
+   the whole page sideways to finish a row. So `overflow: hidden` (content the
+   reader can never reach) is separated from `auto`/`scroll` (content the
+   reader reaches inside the region), and body-level overflow is asserted on
+   its own. */
+
+/* WCAG 1.4.12. Applied for the whole traversal, not toggled per assertion:
+   spacing is a persistent reading preference, not a momentary state. */
+const TEXT_SPACING_OVERRIDE = `* { line-height: 1.5 !important; letter-spacing: 0.12em !important;
+  word-spacing: 0.16em !important; }
+  p, li { margin-bottom: 2em !important; }`;
+
+/* 200% zoom is not a separate rendering mode: doubling the zoom halves the CSS
+   viewport the layout is solved against. 720x500 is 1440x1000 read at 200%.
+   Desktop is carried as a control so a probe that silently stopped inspecting
+   anything cannot be mistaken for a layout that holds. */
+const LAYOUTS = [
+  { name: 'desktop-1440x1000', width: 1440, height: 1000 },
+  { name: 'mobile-390x844', width: 390, height: 844 },
+  { name: 'zoom200-720x500', width: 720, height: 500 },
+  { name: 'zoom200-mobile-390x422', width: 390, height: 422 }
+];
+
+/* The longest label the name field accepts, as one unbroken token. A hyphenated
+   string would give the line breaker escape hatches the real stress case does
+   not have, and `overflow-wrap: anywhere` is exactly what this asserts. */
+const LONG_LABEL = `TP-27-03 ${'X'.repeat(111)}`;
+
+async function probeLayout(page, where) {
+  return page.evaluate((label) => {
+    const doc = document.documentElement;
+    const main = document.querySelector('main');
+    const tablist = document.querySelector('[aria-label="Portfolio workspace"]');
+    const visible = (node) => node.getClientRects().length > 0;
+    const nameOf = (node) => `${node.tagName.toLowerCase()}#${node.id || '(anonymous)'}`;
+
+    /* Clipping: content the reader can never reach by any gesture. */
+    const clipCandidates = Array.from(main.querySelectorAll(
+      '.identity, .state-message, .subtle, .microcopy, .truth-word, .route-states > li, h2, h3, table, th, td'
+    )).filter(visible);
+    const clipped = clipCandidates.filter((node) => {
+      const style = getComputedStyle(node);
+      return (style.overflowX === 'hidden' && node.scrollWidth - node.clientWidth > 1)
+        || (style.overflowY === 'hidden' && node.scrollHeight - node.clientHeight > 1);
+    }).map(nameOf);
+
+    /* Overlap: two regions on the same pixels hide text rather than move it.
+       Ancestor/descendant pairs are skipped because containment is not
+       collision, and a 1px epsilon keeps subpixel adjacency from reading as a
+       hit. */
+    const regions = [
+      ['workspaceIdentity', document.getElementById('workspaceIdentity')],
+      ['workspaceCompute', document.getElementById('workspaceCompute')],
+      ['modeSeg', document.getElementById('modeSeg')],
+      ['tablist', tablist],
+      ...Array.from(tablist.querySelectorAll('[role="tab"]')).map((tab) => [tab.id, tab]),
+      ['activePanel', document.querySelector('#workspaceGrid [role="tabpanel"]:not([hidden])')]
+    ].filter((entry) => entry[1] && visible(entry[1]));
+
+    const overlaps = [];
+    let compared = 0;
+    for (let i = 0; i < regions.length; i += 1) {
+      for (let j = i + 1; j < regions.length; j += 1) {
+        const [aName, a] = regions[i];
+        const [bName, b] = regions[j];
+        if (a.contains(b) || b.contains(a)) continue;
+        compared += 1;
+        const ra = a.getBoundingClientRect();
+        const rb = b.getBoundingClientRect();
+        if (!(ra.bottom <= rb.top + 1 || rb.bottom <= ra.top + 1
+          || ra.right <= rb.left + 1 || rb.right <= ra.left + 1)) overlaps.push(`${aName}|${bName}`);
+      }
+    }
+
+    /* Touch targets, scoped to the controls THIS scope owns. The shared shell
+       renders its own chrome, whose sizing is Feature 012's contract to keep. */
+    const targets = Array.from(document.querySelectorAll(
+      '[aria-label="Portfolio workspace"] [role="tab"], #modeSeg button, .sheet-close'
+    )).filter(visible).map((node) => ({ id: node.id, height: node.getBoundingClientRect().height }));
+
+    /* A table is allowed to be wider than the phone; it is not allowed to be
+       wider than the phone with nowhere to scroll. */
+    const tables = Array.from(main.querySelectorAll('table')).filter(visible).map((table) => {
+      let ancestor = table.parentElement;
+      let contained = false;
+      while (ancestor && ancestor !== document.body) {
+        const style = getComputedStyle(ancestor);
+        if (style.overflowX === 'auto' || style.overflowX === 'scroll') { contained = true; break; }
+        ancestor = ancestor.parentElement;
+      }
+      const holder = table.parentElement;
+      return {
+        id: table.id || '(anonymous)',
+        wider: holder ? table.getBoundingClientRect().width > holder.clientWidth + 1 : false,
+        contained,
+        rows: table.querySelectorAll('tbody tr').length
+      };
+    });
+
+    const grid = document.getElementById('workspaceGrid');
+    const diag = {
+      docScrollWidth: doc.scrollWidth,
+      docClientWidth: doc.clientWidth,
+      bodyScrollWidth: document.body.scrollWidth,
+      gridWidth: grid ? Math.round(grid.getBoundingClientRect().width) : -1,
+      gridMinWidth: grid ? getComputedStyle(grid).minWidth : 'none',
+      mainWidth: Math.round(main.getBoundingClientRect().width),
+      mainOverflowX: getComputedStyle(main).overflowX,
+      bodyOverflowX: getComputedStyle(document.body).overflowX,
+      htmlOverflowX: getComputedStyle(doc).overflowX
+    };
+
+    return {
+      label,
+      bodyOverflow: doc.scrollWidth - doc.clientWidth,
+      inspected: clipCandidates.length,
+      clipped,
+      compared,
+      overlaps,
+      targets,
+      tables,
+      diag
+    };
+  }, where);
+}
+
+function assertLayoutHolds(reading, context) {
+  /* An empty candidate set would satisfy every verdict below without having
+     looked at a single node, so each population is asserted before its verdict. */
+  expect(reading.inspected, `${context}: the clipping probe must have surfaces to inspect`).toBeGreaterThan(0);
+  expect(reading.compared, `${context}: the overlap probe must have region pairs to compare`).toBeGreaterThan(0);
+  expect(reading.targets.length, `${context}: the touch-target probe must find the workspace controls`)
+    .toBeGreaterThanOrEqual(8);
+
+  expect(reading.clipped, `${context}: no surface may clip content out of reach`).toEqual([]);
+  expect(reading.overlaps, `${context}: no two workspace regions may overlap`).toEqual([]);
+  expect(reading.bodyOverflow, `${context}: the document must not scroll sideways`).toBeLessThanOrEqual(1);
+  expect(reading.targets.filter((target) => target.height < 44),
+    `${context}: every workspace control must stay at least 44px tall`).toEqual([]);
+  expect(reading.tables.filter((table) => table.wider && !table.contained),
+    `${context}: a table wider than its holder must live in a scroller`).toEqual([]);
+}
+
+test('Regression: SCN-008-053 zoom mobile and long content have no overlap clipping or body overflow', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await openLab(page);
+  await importValid(page, LONG_LABEL);
+
+  /* The label must actually have reached a rendered surface, otherwise the
+     traversal below stresses the short fixture string and proves nothing about
+     long content. `#workspaceIdentity` carries Scope 26's content hash, so the
+     user-supplied label is read from the revision line that actually shows it. */
+  await expect(page.locator('#currentRevision'), 'the maximum-length label must reach a rendered surface')
+    .toContainText('X'.repeat(111));
+
+  await page.addStyleTag({ content: TEXT_SPACING_OVERRIDE });
+  await page.addStyleTag({ content: '#workspaceGrid { min-width: 2400px !important; }' });
+
+  let tablesSeen = 0;
+  for (const layout of LAYOUTS) {
+    await page.setViewportSize({ width: layout.width, height: layout.height });
+    const perRoute = [];
+
+    for (const route of ROUTES) {
+      const tab = TABS[ROUTES.indexOf(route)];
+      await page.locator(`#${tab}`).click();
+      /* A tab click sets `location.hash` and the route is applied from the
+         queued `hashchange` handler, so the click resolves BEFORE the panel
+         swaps. Measuring here without settling reads the previous tab. */
+      await expect(page.locator(`#${tab}`), 'the routed tab must settle before it is measured')
+        .toHaveAttribute('aria-selected', 'true');
+
+      const reading = await probeLayout(page, `${layout.name} ${route}`);
+      tablesSeen += reading.tables.length;
+      perRoute.push(`${route}:tables=${reading.tables.length}/wide=${reading.tables.filter((t) => t.wider).length}`);
+      assertLayoutHolds(reading, `${layout.name} ${route}`);
+    }
+
+    const summary = await probeLayout(page, layout.name);
+    console.log(`[TP-27-03] ${layout.name} bodyOverflow=${summary.bodyOverflow} inspected=${summary.inspected} `
+      + `compared=${summary.compared} clipped=${summary.clipped.length} overlaps=${summary.overlaps.length} `
+      + `targets=${summary.targets.length} minTarget=${Math.min(...summary.targets.map((t) => t.height))}`);
+    console.log(`[TP-27-03] ${layout.name} ${perRoute.join(' ')}`);
+    console.log(`[TP-27-03-DIAG] ${layout.name} ${JSON.stringify(summary.diag)}`);
+  }
+
+  /* Tables are the widest thing on the page, so a traversal that met none has
+     not exercised the containment rule it just asserted. */
+  expect(tablesSeen, 'the traversal must actually meet tables across the six tabs').toBeGreaterThan(0);
+  console.log(`[TP-27-03] tablesSeen=${tablesSeen} across ${LAYOUTS.length} projections x ${ROUTES.length} tabs`);
+
+  /* A sheet is the one surface that can widen the document after the layout has
+     already settled, so it is opened at the narrowest projection. */
+  await page.setViewportSize({ width: 390, height: 422 });
+  await page.locator('#openPrivacy').click();
+  await expect(page.locator('#privacyPanel')).toBeVisible();
+  const sheet = await probeLayout(page, 'sheet-open-390x422');
+  expect(sheet.targets.some((target) => target.id === 'closePrivacy'),
+    'the open sheet must expose its own close control as a touch target').toBe(true);
+  assertLayoutHolds(sheet, 'sheet-open-390x422');
+  console.log(`[TP-27-03] sheet-open-390x422 bodyOverflow=${sheet.bodyOverflow} `
+    + `clipped=${sheet.clipped.length} overlaps=${sheet.overlaps.length} targets=${sheet.targets.length}`);
+
+  await page.locator('#closePrivacy').click();
+  await expect(page.locator('#privacyPanel')).toBeHidden();
+});

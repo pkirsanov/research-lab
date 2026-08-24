@@ -7,6 +7,7 @@ import {
   collectRequests,
   declaredRouteAssets,
   declareOrdinaryHousehold,
+  leakCarriers,
   openLifetimeTax,
   openPower,
   sameOriginPaths
@@ -371,7 +372,7 @@ test('Regression: SCN-023-009 the request ledger does not grow after the rental 
   /* No rental declaration reaches any URL, query string or request body, and nothing was POSTed. */
   ledger.forEach((entry) => {
     [String(incomeSentinel), String(basisSentinel)].forEach((sentinel) => {
-      expect(entry.url).not.toContain(sentinel);
+      expect(leakCarriers(entry.url)).not.toContain(sentinel);
       expect(entry.postData).not.toContain(sentinel);
     });
     expect(entry.method).toBe('GET');

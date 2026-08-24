@@ -145,6 +145,15 @@ node --test tests/*.integration.mjs
 This selects every committed Node integration suite. A new integration test is
 therefore executable through a stable command without editing this registry.
 
+### Node unit tests
+
+```bash
+node --test tests/*.unit.mjs
+```
+
+This selects every committed Node unit suite. A new unit test is therefore
+executable through a stable command without editing this registry.
+
 ### Contract validators
 
 Validate the committed Market Brief payload:

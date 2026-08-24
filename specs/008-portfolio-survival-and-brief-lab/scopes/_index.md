@@ -130,6 +130,8 @@ Each audit finding appears exactly once. The scope column is the sole execution 
 
 Scope pickup is sequential: a scope may move to `In Progress` only when every listed dependency is `Done`. The linearized DAG keeps red-green evidence focused and prevents an overlay from becoming the accidental foundation.
 
+Scope 28 owns SCN-008-054 and the exact test-integrity audit of carriers owned through Scope 28. It does not own, author, execute, or require the SCN-008-055 documentation-integration carrier. Scope 29 remains dependent on Scope 28 and is the sole owner of that carrier, so the sequence stays `28 -> 29` without either scope requiring work from its dependent.
+
 | # | Scope | Tags | Depends On | Stable Scenarios | Primary Surfaces | Status |
 |---|-------|------|------------|------------------|------------------|--------|
 | 01 | [Private Portfolio Import And Atomic Store](01-private-portfolio-import-and-atomic-store/scope.md) | `foundation:true` | - | SCN-008-001, SCN-008-002 | config, `rlportfolio.js`, setup route, fixtures | Done |
@@ -158,8 +160,8 @@ Scope pickup is sequential: a scope may move to `In Progress` only when every li
 | 24 | [Complete Allocation And Explicit Views](24-complete-allocation-and-explicit-views/scope.md) | `overlay:allocation` | 23 | SCN-008-050 | constrained solvers, BL editor, sensitivity | Done |
 | 25 | [Decision-Time Dossier And Immutable Audit](25-decision-time-dossier-and-immutable-audit/scope.md) | `overlay:dossier` | 24 | SCN-008-051 | walk-forward, costs/trials, dossier store/export | Done |
 | 26 | [Immutable Workspace Compute And Navigation](26-immutable-workspace-compute-and-navigation/scope.md) | `integration:workspace` | 25 | SCN-008-052 | controller, view model, ReturnContext, `rlnav.js` | Done |
-| 27 | [Accessible Six-Tab Interaction](27-accessible-six-tab-interaction/scope.md) | `integration:accessibility` | 26 | SCN-008-053 | route accessibility and responsive behavior | Not Started |
-| 28 | [Spec-Driven Adversarial Test Replacement](28-spec-driven-adversarial-test-replacement/scope.md) | `test-integrity` | 27 | SCN-008-054 plus all authoritative scenarios | Feature 008 tests, fixtures, support server, validators | Not Started |
+| 27 | [Accessible Six-Tab Interaction](27-accessible-six-tab-interaction/scope.md) | `integration:accessibility` | 26 | SCN-008-053 | route accessibility and responsive behavior | Done |
+| 28 | [Spec-Driven Adversarial Test Replacement](28-spec-driven-adversarial-test-replacement/scope.md) | `test-integrity` | 27 | SCN-008-054 plus all authoritative scenarios | Feature 008 tests, fixtures, support server, validators | In Progress |
 | 29 | [Documentation And Registry Truth](29-documentation-and-registry-truth/scope.md) | `docs-integration` | 28 | SCN-008-055 | note, tools, index, rlnav, README | Not Started |
 
 ## Authoritative Scenario Distribution - 55 Current Contracts
@@ -188,7 +190,7 @@ The first table preserves the 41 authoritative contracts and historical Scope 01
 
 ### Remediation Scenario Ownership
 
-These stable IDs are authoritative manifest entries. Each has one owning remediation scope, exact planned test bindings, scenario-derived obligations, and a scope-local evidence target. Their tests remain honestly marked planned-not-authored and planned-not-executed until their owning scope runs.
+These stable IDs are authoritative manifest entries. Each has one owning remediation scope, exact planned test bindings, scenario-derived obligations, and a scope-local evidence target. Authoring and execution state is recorded per owning scope rather than inferred from this index. Scope 27 retains TP-27-01 through TP-27-04 as authored and TP-27-05 as an existing shared carrier, with its checked DoD items linked to the test-owned report. Scope 28 is `In Progress`; TP-28-04 and its in-memory injector support are authored but not executed, while the disposable interception-based TP-27-04 control is neither a persistent Scope 28 carrier nor live E2E evidence. This planning reconciliation creates no execution evidence.
 
 | Scope | Scenario IDs | Exact purpose |
 |---|---|---|
@@ -330,7 +332,7 @@ The route remains directly testable and unregistered through Scopes 01-15. Scope
 
 ## Active Remediation Completion Gate
 
-Scope 27 is `Not Started` and is the sole dependency-unblocked remediation scope: Scope 26 is Done, while every later remediation scope depends transitively on unfinished Scope 27. Scope 27 is available for execution-owner pickup; no remediation scope is currently in progress. Scope 29 remains the final execution site after Scopes 17-28 complete. Historical Scopes 01-16 remain Done records but cannot satisfy a repaired-behavior checkbox or current evidence row.
+Scope 27 is `Done`, matching its checked DoD and test-owned report links. Scope 28 is `In Progress` after its sole dependency, Scope 27, reached Done; Scope 29 remains blocked on Scope 28 and is the final execution site after Scopes 17-28 complete. Historical Scopes 01-16 remain Done records but cannot satisfy a repaired-behavior checkbox or current evidence row.
 
 Active completion requires all of the following:
 

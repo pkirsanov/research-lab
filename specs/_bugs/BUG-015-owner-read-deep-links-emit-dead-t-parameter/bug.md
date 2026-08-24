@@ -1,6 +1,6 @@
 # BUG-015: Two Owner-Read Deep Links Name A Subject Under A Parameter No Route Reads
 
-**Status:** Reported
+**Status:** Fixed — awaiting independent verification
 **Severity:** Medium
 **Filed:** 2026-08-22
 **Affected files:** `intraday-tape-lab.html`, `swing-structure-lab.html`

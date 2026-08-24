@@ -95,7 +95,11 @@ export function createStorage(options = {}) {
   };
 }
 
-export async function startPortfolioServer() {
+/* `overrides` maps an exact pathname to the bytes to serve for it. It exists so a regression can
+   pin a PUBLICATION the committed artifacts do not currently contain, without the test becoming a
+   mock: the page still performs a real same-origin fetch over real HTTP and runs the real
+   production load path. Nothing else is intercepted, and the default is the committed tree. */
+export async function startPortfolioServer({ overrides = {} } = {}) {
   const requests = [];
   const server = createServer((request, response) => {
     const requestUrl = new URL(request.url || '/', 'http://127.0.0.1');
@@ -106,6 +110,16 @@ export async function startPortfolioServer() {
       referer: request.headers.referer || ''
     }));
     const requestPath = decodeURIComponent(requestUrl.pathname);
+    if (Object.prototype.hasOwnProperty.call(overrides, requestPath)) {
+      const body = overrides[requestPath];
+      response.writeHead(200, {
+        'cache-control': 'no-store',
+        'content-type': MIME[extname(requestPath)] || 'application/octet-stream',
+        'referrer-policy': 'no-referrer'
+      });
+      response.end(body);
+      return;
+    }
     const relative = normalize(requestPath === '/' ? 'index.html' : requestPath.replace(/^\/+/, ''));
     const filePath = resolve(ROOT, relative);
     if ((filePath !== ROOT && !filePath.startsWith(ROOT + sep)) || !existsSync(filePath) || !statSync(filePath).isFile()) {
@@ -129,4 +143,65 @@ export async function startPortfolioServer() {
       server.closeAllConnections?.();
     })
   });
+}
+
+/* ---------------------------------------------------------------------------
+   Path-compute settlement
+
+   `#pathComputeStatus[data-compute-state]` is a closed lifecycle: `idle` and
+   `running` mean the job is still in flight, and `completed`, `cancelled`,
+   `superseded` and `failed` are settlements. Asserting the single value
+   `completed` on one fixed budget treats those two kinds alike, so a job that
+   settled WRONG and a job that is merely slow both surface as the same
+   timeout. Waiting for SETTLEMENT and then asserting the settled value
+   separates them: a wrong settlement fails at once and names itself, and only
+   the genuinely in-flight window spends the budget.
+   --------------------------------------------------------------------------- */
+
+const PATH_COMPUTE_SETTLED = /^(completed|cancelled|superseded|failed)$/;
+
+/* `runScenarioJob` walks the configured 2000-path bootstrap in chunks and yields with
+   `setTimeout(…, 0)` between them, so the wall time to settle is bound by the CPU share
+   this browser gets, not by anything the assertion controls. A settle that fits inside
+   Playwright's 5s default on an idle machine does not fit under the concurrency this
+   matrix selects for itself: Playwright derives 4 workers from 8 cores, and the host
+   also carries other repositories' suites (1/5/15-minute load observed at 4.88/8.17/9.05,
+   peak 29.09). At load 29 on 8 cores a process holds roughly 8/29 of a core, a ~3.6x
+   wall-time penalty on a sub-5s settle, and the `setTimeout(…, 0)` chunk boundaries are
+   themselves dispatched late under the same contention. 30s covers that worst case; it
+   is not a round number chosen to make a red run green. */
+const PATH_COMPUTE_SETTLE_TIMEOUT_MS = 30_000;
+
+/* `expect` is loaded on first use rather than imported at module scope: seven
+   `node --test` carriers import this module, and a top-level `playwright/test`
+   import costs each of those processes ~0.46s of load for an API they never call. */
+let expectPromise = null;
+function playwrightExpect() {
+  if (expectPromise === null) expectPromise = import('./playwright-runtime.mjs').then((mod) => mod.expect);
+  return expectPromise;
+}
+
+/* Waits for the path compute to SETTLE and asserts it settled `completed`.
+   `scope` is the Page or the Path Lab panel Locator that contains the status. */
+export async function expectPathComputeCompleted(scope) {
+  const expect = await playwrightExpect();
+  const status = scope.locator('#pathComputeStatus');
+  /* The status element is destroyed and rebuilt on every workspace re-render, so a read
+     can land between renders. That is an in-flight observation, not a settlement. */
+  const readComputeState = async () => {
+    try {
+      return (await status.getAttribute('data-compute-state', { timeout: 1_000 })) || '';
+    } catch {
+      return '';
+    }
+  };
+  let settledState = '';
+  await expect
+    .poll(async () => (settledState = await readComputeState()), {
+      timeout: PATH_COMPUTE_SETTLE_TIMEOUT_MS,
+      message: 'the path compute must reach a settled data-compute-state'
+    })
+    .toMatch(PATH_COMPUTE_SETTLED);
+  expect(settledState, 'the path compute must settle completed, not abandoned part-way').toBe('completed');
+  return status;
 }

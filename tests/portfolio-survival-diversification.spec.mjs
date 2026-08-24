@@ -7,7 +7,7 @@
  */
 import { expect, test } from './playwright-runtime.mjs';
 import { resolve } from 'node:path';
-import { FIXTURE_ROOT, startPortfolioServer } from './portfolio-survival.support.mjs';
+import { FIXTURE_ROOT, expectPathComputeCompleted, startPortfolioServer } from './portfolio-survival.support.mjs';
 
 let server;
 const PAGE_ERRORS = new WeakMap();
@@ -95,7 +95,7 @@ async function runCommonPathScenario(page) {
   await page.locator('#workspaceTabPathLab').click();
   const panel = page.locator('[data-route="path-lab"]');
   await expect(panel).toBeVisible();
-  await expect(panel.locator('#pathComputeStatus')).toHaveAttribute('data-compute-state', 'completed');
+  await expectPathComputeCompleted(panel);
   return page.evaluate(() => ({
     scenarioIdentity: window.__PORTFOLIO_DIAGNOSTICS__.pathScenario.scenarioIdentity,
     requestedPathCount: window.__PORTFOLIO_DIAGNOSTICS__.pathScenario.requestedPathCount

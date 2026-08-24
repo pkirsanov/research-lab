@@ -519,6 +519,123 @@
         (capability.durable ? 'Durable — progress is saved locally and survives reload.' : 'Session only — local storage is unavailable; progress is not saved across reloads. Safe export remains available.') + '</div>';
       host.innerHTML = capHtml + '<ul data-rljourney-chooser>' + listHtml + '</ul><section data-rljourney-active hidden></section>';
     }
+    function compiledFor(definitionId) {
+      return compiledRegistry ? compiledRegistry.definitions[definitionId] : null;
+    }
+    /* The chooser labels its buttons with the human goal title, so the panel a click opens must not
+       fall back to raw identifiers. A reader who clicks "Read why a cell publishes or withholds its
+       rate" should not land on "gate-review" and a bare step id. */
+    function goalHeadingFor(session) {
+      var compiled = compiledFor(session.definitionId);
+      return compiled && compiled.title ? compiled.title : session.goalId;
+    }
+    /* Titles, prose, schema and links come from the RAW registry: the compiled projection carries
+       only the graph and mechanism fields a session needs, and deliberately drops the rest. */
+    function rawStepFor(stepId) {
+      var steps = journeys && journeys.steps ? journeys.steps : [];
+      for (var i = 0; i < steps.length; i += 1) {
+        if (steps[i].stepId === stepId) return steps[i];
+      }
+      return null;
+    }
+    function rawDefinitionFor(definitionId) {
+      var defs = journeys && journeys.definitions ? journeys.definitions : [];
+      for (var i = 0; i < defs.length; i += 1) {
+        if (defs[i].definitionId === definitionId) return defs[i];
+      }
+      return null;
+    }
+    function stepTitleFor(stepId) {
+      var step = rawStepFor(stepId);
+      return step && step.title ? step.title : stepId;
+    }
+    function humanize(token) {
+      var spaced = String(token).replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/[-_]+/g, " ").trim();
+      return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+    }
+    /* The step surface is rendered FROM THE REGISTRY — the fields a step accepts, the evidence
+       slots it requires, the provenance its definition allows, the prose and the owner deep links
+       it already declares. Nothing here is per-definition, so a newly registered goal becomes
+       operable by being registered rather than by editing this function.
+       inputSchema declares allowedFields and requiredFields and NO types, and the runtime does not
+       type-check input, so each declared field is a free-text field rather than a guessed widget. */
+    function stepFormHtml(session, stepId) {
+      var step = rawStepFor(stepId);
+      if (!step) return "";
+      var definition = rawDefinitionFor(session.definitionId);
+      var policy = definition && definition.evidencePolicy ? definition.evidencePolicy : {};
+      var allowedProvenance = policy.allowedProvenance || [];
+      var schema = step.inputSchema || {};
+      var allowed = schema.allowedFields || [];
+      var required = schema.requiredFields || [];
+      var fieldsHtml = allowed.map(function (field) {
+        var isRequired = required.indexOf(field) !== -1;
+        var id = "rljf-" + field;
+        return '<p class="rlj-field"><label for="' + esc(id) + '">' + esc(humanize(field)) + (isRequired ? " (required)" : " (optional)") + '</label>' +
+          '<input id="' + esc(id) + '" type="text" data-rljourney-input="' + esc(field) + '"' + (isRequired ? ' required aria-required="true"' : "") + '></p>';
+      }).join("");
+      var slots = (step.requiredEvidenceSlots || []).map(function (slot) { return { slot: slot, required: true }; })
+        .concat((step.optionalEvidenceSlots || []).map(function (slot) { return { slot: slot, required: false }; }));
+      var evidenceHtml = slots.map(function (entry) {
+        var id = "rlje-" + entry.slot;
+        var options = allowedProvenance.slice();
+        if (options.indexOf(entry.slot) !== -1) options = [entry.slot].concat(options.filter(function (p) { return p !== entry.slot; }));
+        if (options.length === 0) options = [entry.slot];
+        return '<p class="rlj-field"><label for="' + esc(id) + '">' + esc(humanize(entry.slot)) + (entry.required ? " (required)" : " (optional)") + '</label>' +
+          '<input id="' + esc(id) + '" type="text" data-rljourney-evidence-ref="' + esc(entry.slot) + '"' + (entry.required ? ' required aria-required="true"' : "") + ' placeholder="a reference you can point back to">' +
+          '<select data-rljourney-evidence-provenance="' + esc(entry.slot) + '" aria-label="' + esc("Provenance for " + humanize(entry.slot)) + '">' +
+          options.map(function (p) { return '<option value="' + esc(p) + '">' + esc(humanize(p)) + '</option>'; }).join("") + '</select></p>';
+      }).join("");
+      var links = (step.ownerDeepLinks || []).map(function (href) {
+        return '<li><a data-rljourney-deep-link href="' + esc(href) + '">' + esc(href) + '</a></li>';
+      }).join("");
+      var access = step.accessibility || {};
+      return '<form data-rljourney-step-form="' + esc(stepId) + '" data-rljourney-mechanism-role="' + esc(step.mechanismRole || "") + '"' +
+        (access.label ? ' aria-label="' + esc(access.label) + '"' : "") + '>' +
+        '<h4 data-rljourney-step-heading>' + esc(step.title || stepId) + '</h4>' +
+        (step.purpose ? '<p data-rljourney-step-purpose>' + esc(step.purpose) + '</p>' : "") +
+        (links ? '<ul data-rljourney-step-links aria-label="Where to look">' + links + '</ul>' : "") +
+        fieldsHtml + evidenceHtml +
+        '<button type="submit" data-rljourney-complete="' + esc(stepId) + '">Record this step</button>' +
+        '</form>';
+    }
+    function packetFormHtml(session) {
+      if (session.status !== "steps-complete" || state.packet) return "";
+      var outcomes = (runtime.PACKET_OUTCOMES || ["complete", "partial", "refused"]).slice();
+      return '<form data-rljourney-packet-form>' +
+        '<h4>Close this journey</h4>' +
+        '<p class="rlj-field"><label for="rljp-outcome">Outcome</label>' +
+        '<select id="rljp-outcome" data-rljourney-packet-outcome>' +
+        outcomes.map(function (o) { return '<option value="' + esc(o) + '">' + esc(humanize(o)) + '</option>'; }).join("") +
+        '</select></p>' +
+        '<p class="rlj-field"><label for="rljp-signoff">Who reviewed this</label>' +
+        '<input id="rljp-signoff" type="text" data-rljourney-packet-signoff></p>' +
+        '<p data-rljourney-packet-note>A complete outcome needs a named reviewer. Building a packet records your conclusions locally and runs nothing.</p>' +
+        '<button type="submit" data-rljourney-build-packet>Build the packet</button></form>';
+    }
+    function reviewFormHtml() {
+      if (!state.packet || state.packet.reviewRecorded) return "";
+      return '<form data-rljourney-review-form>' +
+        '<p class="rlj-field"><label for="rljr-reviewer">Record a review</label>' +
+        '<input id="rljr-reviewer" type="text" data-rljourney-review-reviewer></p>' +
+        '<button type="submit" data-rljourney-record-review>Record the review</button></form>';
+    }
+    /* Backtracking REQUIRES a reason, and it stales every transitive dependent. Both facts belong
+       to the reader before they commit, so Revisit opens this form rather than reopening silently. */
+    function revisitFormHtml() {
+      if (!revisitPreview) return "";
+      var staled = revisitPreview.staleDependents || [];
+      var consequence = staled.length > 0
+        ? 'Reopening this also marks ' + staled.length + ' later step' + (staled.length === 1 ? '' : 's') + ' stale: ' + staled.map(stepTitleFor).join('; ') + '.'
+        : 'No later step depends on this one, so nothing else becomes stale.';
+      return '<form data-rljourney-revisit-form="' + esc(revisitPreview.stepId) + '">' +
+        '<h4>Revisit “' + esc(stepTitleFor(revisitPreview.stepId)) + '”</h4>' +
+        '<p data-rljourney-revisit-consequence>' + esc(consequence) + '</p>' +
+        '<p class="rlj-field"><label for="rljb-reason">Why are you reopening it? (required)</label>' +
+        '<input id="rljb-reason" type="text" data-rljourney-revisit-reason required aria-required="true"></p>' +
+        '<button type="submit" data-rljourney-confirm-revisit>Reopen this step</button>' +
+        '<button type="button" data-rljourney-cancel-revisit>Keep it as recorded</button></form>';
+    }
     function renderActive() {
       if (!host) return;
       var section = host.querySelector("[data-rljourney-active]");
@@ -533,21 +650,145 @@
         return '<li data-rljourney-step="' + esc(stepId) + '" data-rljourney-status="' + esc(record.status) + '"' +
           (current ? ' aria-current="step"' : '') +
           (record.staleReason ? ' data-rljourney-stale-reason="' + esc(record.staleReason) + '"' : '') +
-          ' data-rljourney-evidence-count="' + (record.evidence || []).length + '"><span>' + esc(stepId) + '</span></li>';
+          ' data-rljourney-evidence-count="' + (record.evidence || []).length + '"><span>' + esc(stepTitleFor(stepId)) + '</span>' +
+          (record.status === "complete" ? '<button type="button" data-rljourney-backtrack="' + esc(stepId) + '">Revisit</button>' : "") +
+          '</li>';
       }).join("");
       var packetHtml = "";
       if (state.packet) {
         var p = state.packet;
         packetHtml = '<div data-rljourney-packet="' + esc(p.outcome) + '" data-rljourney-executed="' + (p.executed ? "true" : "false") + '" data-rljourney-review="' + (p.reviewRecorded ? "true" : "false") + '" data-rljourney-excluded-stale="' + esc(p.excludedStaleSteps.join(",")) + '"><p data-rljourney-disclaimer>' + esc(p.disclaimer) + '</p></div>';
       }
-      section.innerHTML = '<h3 data-rljourney-goal-title>' + esc(s.goalId) + '</h3>' +
+      var nextStepId = s.nextRequiredStepId;
+      section.removeAttribute("data-rljourney-refusal");
+      section.innerHTML = '<h3 data-rljourney-goal-title>' + esc(goalHeadingFor(s)) + '</h3>' +
         '<ol data-rljourney-progress aria-label="Journey progress">' + stepsHtml + '</ol>' +
-        '<div data-rljourney-next="' + esc(s.nextRequiredStepId || "none") + '"></div>' + packetHtml;
+        revisitFormHtml() +
+        '<div data-rljourney-next="' + esc(nextStepId || "none") + '">' + (nextStepId ? stepFormHtml(s, nextStepId) : "") + '</div>' +
+        packetFormHtml(s) + packetHtml + reviewFormHtml();
+    }
+    function renderOpenRefusal(definitionId, message) {
+      /* A refusal has to be readable. Silence is precisely the defect this path exists to prevent. */
+      var section = host ? host.querySelector("[data-rljourney-active]") : null;
+      if (!section) return;
+      var compiled = compiledFor(definitionId);
+      section.removeAttribute("hidden");
+      section.setAttribute("data-rljourney-refusal", "open-failed");
+      section.innerHTML = '<h3 data-rljourney-goal-title>' + esc(compiled && compiled.title ? compiled.title : definitionId) + '</h3>' +
+        '<p data-rljourney-refusal-reason>This goal could not be started: ' + esc(message) + '</p>';
+    }
+    /* An in-session refusal keeps what the reader already has on screen and states the reason
+       beside it, rather than replacing their progress with an error. */
+    function renderStepRefusal(kind, message) {
+      var section = host ? host.querySelector("[data-rljourney-active]") : null;
+      if (!section) return;
+      section.setAttribute("data-rljourney-refusal", kind);
+      var existing = section.querySelector("[data-rljourney-refusal-reason]");
+      var target = existing;
+      if (!target) {
+        target = document.createElement("p");
+        target.setAttribute("data-rljourney-refusal-reason", "");
+        section.appendChild(target);
+      }
+      target.textContent = "That could not be recorded: " + message;
+    }
+    function runGuarded(kind, action) {
+      try { action(); } catch (error) { renderStepRefusal(kind, (error && error.message) || "unknown error"); }
+    }
+    function submitStepForm(form) {
+      var stepId = form.getAttribute("data-rljourney-step-form");
+      var input = {};
+      Array.prototype.forEach.call(form.querySelectorAll("[data-rljourney-input]"), function (el) {
+        var value = String(el.value || "").trim();
+        if (value.length > 0) input[el.getAttribute("data-rljourney-input")] = value;
+      });
+      var evidence = [];
+      Array.prototype.forEach.call(form.querySelectorAll("[data-rljourney-evidence-ref]"), function (el) {
+        var ref = String(el.value || "").trim();
+        if (ref.length === 0) return;
+        var slot = el.getAttribute("data-rljourney-evidence-ref");
+        var select = form.querySelector('[data-rljourney-evidence-provenance="' + slot + '"]');
+        evidence.push({ slot: slot, ref: ref, provenance: select ? select.value : slot });
+      });
+      runGuarded("step-failed", function () {
+        api.completeStep(stepId, { input: input, evidence: evidence, completedAt: new Date().toISOString() });
+      });
+    }
+    function submitPacketForm(form) {
+      var outcomeEl = form.querySelector("[data-rljourney-packet-outcome]");
+      var signoffEl = form.querySelector("[data-rljourney-packet-signoff]");
+      var options = { outcome: outcomeEl ? outcomeEl.value : "partial" };
+      var reviewer = signoffEl ? String(signoffEl.value || "").trim() : "";
+      if (reviewer.length > 0) options.signoff = { reviewer: reviewer, at: new Date().toISOString() };
+      runGuarded("packet-failed", function () { api.buildPacket(options); });
+    }
+    function submitReviewForm(form) {
+      var el = form.querySelector("[data-rljourney-review-reviewer]");
+      var reviewer = el ? String(el.value || "").trim() : "";
+      runGuarded("review-failed", function () {
+        api.recordReview({ reviewer: reviewer, at: new Date().toISOString() });
+      });
+    }
+    function submitRevisitForm(form) {
+      var stepId = form.getAttribute("data-rljourney-revisit-form");
+      var el = form.querySelector("[data-rljourney-revisit-reason]");
+      var reason = el ? String(el.value || "").trim() : "";
+      runGuarded("revisit-failed", function () {
+        revisitPreview = null;
+        api.backtrack(stepId, { reason: reason, at: new Date().toISOString() });
+      });
+    }
+    var revisitPreview = null;
+    var controlsBound = false;
+    function bindControls() {
+      /* renderChooser and renderActive replace their subtrees wholesale, so every control is
+         delegated from the host and bound exactly once. Without this the surface is inert: the
+         markup carried data-rljourney-goal but nothing ever reached openGoal, so a click did
+         nothing at all and only the test suite, which calls the controller directly, ever ran a
+         journey. */
+      if (controlsBound || !host || typeof host.addEventListener !== "function") return;
+      controlsBound = true;
+      host.addEventListener("click", function (event) {
+        var node = event.target;
+        if (!node || typeof node.closest !== "function") return;
+        var goal = node.closest("[data-rljourney-goal]");
+        if (goal && host.contains(goal)) {
+          event.preventDefault();
+          var definitionId = goal.getAttribute("data-rljourney-goal");
+          revisitPreview = null;
+          try { api.openGoal(definitionId); }
+          catch (error) { renderOpenRefusal(definitionId, (error && error.message) || "unknown error"); }
+          return;
+        }
+        var cancel = node.closest("[data-rljourney-cancel-revisit]");
+        if (cancel && host.contains(cancel)) {
+          event.preventDefault();
+          revisitPreview = null;
+          renderActive();
+          return;
+        }
+        var back = node.closest("[data-rljourney-backtrack]");
+        if (back && host.contains(back)) {
+          event.preventDefault();
+          runGuarded("revisit-failed", function () {
+            revisitPreview = api.previewBacktrack(back.getAttribute("data-rljourney-backtrack"));
+            renderActive();
+          });
+        }
+      });
+      host.addEventListener("submit", function (event) {
+        var form = event.target;
+        if (!form || !host.contains(form) || typeof form.getAttribute !== "function") return;
+        if (form.hasAttribute("data-rljourney-step-form")) { event.preventDefault(); submitStepForm(form); return; }
+        if (form.hasAttribute("data-rljourney-revisit-form")) { event.preventDefault(); submitRevisitForm(form); return; }
+        if (form.hasAttribute("data-rljourney-packet-form")) { event.preventDefault(); submitPacketForm(form); return; }
+        if (form.hasAttribute("data-rljourney-review-form")) { event.preventDefault(); submitReviewForm(form); }
+      });
     }
 
-    return {
+    var api = {
       capability: function () { return JSON.parse(JSON.stringify(capability)); },
-      mount: function () { renderChooser(); var rows = chooserRows(); return { toolCount: rows.length, rows: rows.map(function (r) { return { registryId: r.registryId, kind: r.kind, goalCount: r.goals.length }; }) }; },
+      mount: function () { renderChooser(); bindControls(); var rows = chooserRows(); return { toolCount: rows.length, rows: rows.map(function (r) { return { registryId: r.registryId, kind: r.kind, goalCount: r.goals.length }; }) }; },
       chooser: function () { return chooserRows(); },
       openGoal: function (definitionId, options) {
         var compiled = compiledRegistry ? compiledRegistry.definitions[definitionId] : null;
@@ -624,6 +865,7 @@
       sessionState: function () { return journeySessionState(state); },
       packetState: function () { return journeyPacketState(state.packet); }
     };
+    return api;
   }
   function mountJourney() {
     var anchors = document.querySelectorAll ? document.querySelectorAll("[data-rljourney-mount]") : [];

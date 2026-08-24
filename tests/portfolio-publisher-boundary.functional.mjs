@@ -45,6 +45,17 @@ function digest(value) {
   return `sha256:${createHash('sha256').update(typeof value === 'string' ? value : JSON.stringify(value)).digest('hex')}`;
 }
 
+// Inverse of the publisher cutoff rule: an instant rendered as its New York civil date and HH:MM.
+function newYorkCivilLabel(instantMs) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+  }).formatToParts(new Date(instantMs));
+  const value = {};
+  for (const part of parts) value[part.type] = part.value;
+  return { tradingDate: `${value.year}-${value.month}-${value.day}`, civilTime: `${value.hour}:${value.minute}` };
+}
+
 function publisherSources() {
   return PUBLISHER_SCRIPTS.map((relative) => {
     const absolute = resolve(ROOT, relative);
@@ -143,22 +154,45 @@ test('SCN-008-005 TP-04-02: a publisher subprocess given sentinel env and argv e
 });
 
 test('SCN-008-005 TP-04-02: the publisher boundary run mutates no tracked public artifact', () => {
-  const status = spawnSync('git', ['status', '--porcelain'], { cwd: ROOT, encoding: 'utf8' });
-  assert.equal(status.status, 0, 'git status must succeed');
+  /* This row asserts a CAUSAL claim — that exercising the boundary leaves the publisher bytes
+   * untouched — so it takes its own before/after reading around its own run. A post-hoc
+   * `git status` cannot support that claim: it reports that a publisher file is dirty without
+   * saying what made it dirty, so an in-flight edit by the developer and a rewrite by the run
+   * are indistinguishable. The file already narrowed a whole-tree status check for exactly this
+   * reason; the publisher's own file needs the same treatment, and a content comparison across
+   * the run gives it. It is also strictly stricter: a run that rewrote a locally-edited publisher
+   * back to its committed bytes left `git status` clean and would have passed unnoticed. */
+  const before = new Map(publisherSources().map((entry) => [entry.relative, digest(entry.source)]));
 
-  /* Only this feature's own surface is asserted clean. Other features share this working tree, so
-   * asserting a globally empty status would fail for reasons that have nothing to do with the
-   * publisher boundary and would make this row unrunnable rather than strict. */
-  const publisherDirt = (status.stdout || '')
-    .split('\n')
-    .filter(Boolean)
-    .map((line) => line.slice(3).trim())
-    .filter((path) => PUBLISHER_SCRIPTS.includes(path));
+  const workspace = mkdtempSync(join(tmpdir(), 'rl-publisher-mutation-'));
+  try {
+    const run = spawnSync(process.execPath, [resolve(ROOT, 'scripts/brief-publication.mjs'), '--portfolio', SENTINEL], {
+      cwd: workspace,
+      encoding: 'utf8',
+      timeout: 60000,
+      env: { ...process.env, RL_PORTFOLIO_HOLDINGS: SENTINEL, RL_PERSONAL_WORKSPACE: SENTINEL }
+    });
+    assert.equal(run.error === undefined, true, `the boundary run must actually execute: ${run.error && run.error.message}`);
 
-  assert.deepEqual(
-    publisherDirt, [],
-    'no publisher script may be modified by exercising the boundary — the publisher is read-only here'
-  );
+    const after = new Map(publisherSources().map((entry) => [entry.relative, digest(entry.source)]));
+    const mutated = PUBLISHER_SCRIPTS.filter((path) => before.get(path) !== after.get(path));
+    assert.deepEqual(
+      mutated, [],
+      'no publisher script may be modified by exercising the boundary — the publisher is read-only here'
+    );
+
+    /* Non-vacuous control: the comparator must be able to report a mutation, otherwise the empty
+     * result above would be a property of the comparison rather than of the run. */
+    const tampered = new Map(after);
+    tampered.set(PUBLISHER_SCRIPTS[0], digest('a-publisher-rewritten-by-the-run'));
+    assert.deepEqual(
+      PUBLISHER_SCRIPTS.filter((path) => before.get(path) !== tampered.get(path)),
+      [PUBLISHER_SCRIPTS[0]],
+      'control: a changed publisher byte IS reported, so the clean result above is a boundary result'
+    );
+  } finally {
+    rmSync(workspace, { force: true, recursive: true });
+  }
 });
 
 test('SCN-008-046 all five public artifacts contribute independently to one local generic evidence identity', () => {
@@ -178,10 +212,24 @@ test('SCN-008-046 all five public artifacts contribute independently to one loca
   const payload = JSON.parse(payloadText);
   const watchlist = JSON.parse(watchlistText);
   const ownerArtifact = JSON.parse(ownerText);
+
+  // The live brief artifacts advance several times a day, so the window is derived from the current snapshot rather than pinned to a calendar date the data would move past.
+  const evidenceFloorMs = Math.max(Date.parse(snapshot.asOf), Date.parse(payload.asOf));
+  assert.equal(Number.isFinite(evidenceFloorMs), true, 'the live snapshot and payload must carry parseable asOf instants');
+  const windowId = snapshot.window;
+  assert.equal(typeof windowId === 'string' && windowId.length > 0, true, 'the live snapshot must name the window it belongs to');
+  const cutoffMs = Math.ceil(evidenceFloorMs / 3600000) * 3600000;
+  const { tradingDate, civilTime } = newYorkCivilLabel(cutoffMs);
+  const cutoffAt = brief.newYorkCivilCutoff(tradingDate, civilTime);
+  assert.equal(
+    cutoffAt, new Date(cutoffMs).toISOString(),
+    'the derived civil window must round-trip through the publisher cutoff rule that validation applies'
+  );
+
   const history = historyText.split('\n').map((line) => JSON.parse(line))
-    .filter((row) => row.window === 'after-hours' && Date.parse(row.ts) <= Date.parse('2026-08-20T21:00:00.000Z'))
+    .filter((row) => row.window === windowId && Date.parse(row.ts) <= cutoffMs)
     .slice(-2);
-  assert.equal(history.length > 0, true, 'the bounded history contributes at least one observed after-hours row');
+  assert.equal(history.length > 0, true, `the bounded history contributes at least one observed ${windowId} row`);
   const ownerToolId = Object.keys(ownerArtifact.ownerReads).sort()[0];
   const ownerTicker = Object.keys(ownerArtifact.ownerReads[ownerToolId]).sort()[0];
   const owner = ownerArtifact.ownerReads[ownerToolId][ownerTicker];
@@ -189,8 +237,8 @@ test('SCN-008-046 all five public artifacts contribute independently to one loca
   function input(overrides = {}) {
     return {
       contractVersion: 'GenericEvidenceWindow/v1',
-      windowId: 'after-hours', timezone: 'America/New_York', windowTradingDate: '2026-08-20',
-      scheduledCivilTime: '17:00', cutoffAt: '2026-08-20T21:00:00.000Z',
+      windowId, timezone: 'America/New_York', windowTradingDate: tradingDate,
+      scheduledCivilTime: civilTime, cutoffAt,
       snapshotRef: {
         state: 'current', contentSha256: digest(snapshotText), window: snapshot.window,
         asOf: snapshot.asOf, generatedAt: snapshot.generatedAt, nextSessionDate: snapshot.nextSessionDate,
@@ -218,12 +266,12 @@ test('SCN-008-046 all five public artifacts contribute independently to one loca
         contentSha256: digest(owner)
       }],
       publisherIdentity: null, genericEvidenceIdentity: null,
-      retrievedAt: snapshot.generatedAt, composedAt: '2026-08-20T20:40:00.000Z', state: 'current', reasons: [],
+      retrievedAt: snapshot.generatedAt, composedAt: cutoffAt, state: 'current', reasons: [],
       ...overrides
     };
   }
 
-  const base = brief.validateGenericWindow(input(), policy, { now: '2026-08-20T20:45:00.000Z' });
+  const base = brief.validateGenericWindow(input(), policy, { now: cutoffAt });
   assert.equal(base.ok, true, JSON.stringify(base.error || {}));
   assert.equal(base.value.selectedHistoryRefs.length > 0, true);
   const mutations = [
@@ -233,7 +281,7 @@ test('SCN-008-046 all five public artifacts contribute independently to one loca
     { watchlistRef: { ...input().watchlistRef, orderedTickerFingerprint: digest('changed-watchlist') } },
     { ownerReadRefs: [{ ...input().ownerReadRefs[0], contentSha256: digest('changed-owner') }] }
   ];
-  const changed = mutations.map((mutation) => brief.validateGenericWindow(input(mutation), policy, { now: '2026-08-20T20:45:00.000Z' }));
+  const changed = mutations.map((mutation) => brief.validateGenericWindow(input(mutation), policy, { now: cutoffAt }));
   assert.equal(changed.every((entry) => entry.ok), true);
   assert.equal(changed.every((entry) => entry.value.genericEvidenceIdentity !== base.value.genericEvidenceIdentity), true,
     'snapshot, payload, history, watchlist and owner reads each affect the local generic evidence identity');

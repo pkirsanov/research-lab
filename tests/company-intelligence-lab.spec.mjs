@@ -1535,4 +1535,79 @@ test('Regression: F-AUDIT-08 a subject the shared grammar refuses never becomes 
     }
 });
 
+test('Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it', async ({ page }) => {
+    /* Every other assertion in this file enters through `openComposedRoute`, whose gate waits for
+       `data-corpus-status` to leave `pending`. That gate is correct for asserting settled
+       behaviour and it is exactly why nothing here could see this defect: the fixture waits the
+       pending window out. This test uses the fixture only to reach a settled starting page, and
+       then enters the window on purpose by sampling the attribute inside the same task as the
+       click handler — before any microtask, any paint, and any corpus request can land.
+
+       Unfixed, `applySubject()` painted the new subject while `corpusStatus` still held the
+       previous subject's value, and only reset it one turn later inside `loadCorpus()`. So the
+       attribute read `loaded` for a corpus that had never been requested, and a consumer using
+       this file's own readiness convention (`wait until it is loaded or unavailable`) returned
+       immediately on a stale value with no protection at all. */
+    test.setTimeout(120_000);
+
+    await openComposedRoute(page);
+    await expect(page.locator('body')).toHaveAttribute('data-corpus-status', 'loaded');
+
+    /* Hold the committed corpus so the in-flight window is wide enough to be read deliberately
+       rather than raced. The attribute claim below does not depend on this delay — it is sampled
+       synchronously — but the recovery assertion needs the window to have actually existed. */
+    await page.route('**/data/**', async (route) => {
+        await new Promise((resolve) => setTimeout(resolve, 2500));
+        await route.continue();
+    });
+
+    /* AAPL is covered by the committed corpus and is not the standing subject, so applying it is
+       a real subject change that issues a real corpus request. */
+    const onApplyPaint = await page.evaluate(() => {
+        document.getElementById('subject-input').value = 'AAPL';
+        document.getElementById('subject-apply').click();
+        return {
+            corpusStatus: document.body.getAttribute('data-corpus-status'),
+            runStatus: document.body.getAttribute('data-run-status'),
+            identity: document.getElementById('subject-identity').textContent
+        };
+    });
+
+    /* The paint really did adopt the new subject, so the attribute below is being read on a body
+       that is showing AAPL. Without this the `pending` assertion could pass on a page that simply
+       never applied anything. */
+    expect(onApplyPaint.identity, 'the apply paint did not adopt the new subject').toContain('AAPL');
+    expect(onApplyPaint.runStatus, 'the apply paint did not compose').toBe('composed');
+    expect(
+        onApplyPaint.corpusStatus,
+        `data-corpus-status read "${onApplyPaint.corpusStatus}" for a subject whose corpus had not been requested`
+    ).toBe('pending');
+
+    /* And the window closes: the attribute is a transient truth, not a new permanent state. */
+    await expect(page.locator('body')).toHaveAttribute('data-corpus-status', /^(loaded|unavailable)$/, { timeout: 60_000 });
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
+
+    /* A refused entry requests no corpus, so it must not claim the standing subject's corpus is
+       pending either. Both refusal shapes are covered: the shared input rule refuses before the
+       subject changes at all, and the resolver refuses after it does. */
+    await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed');
+    const settledBeforeRefusal = await page.locator('body').getAttribute('data-corpus-status');
+
+    for (const [value, expectedCode] of [['120 shares at cost basis 210.44', 'C025-INPUT-REFUSED'], ['ABCDEFGHIJKLM', 'C025-IDENTITY-UNRESOLVED']]) {
+        const onRefusalPaint = await page.evaluate((entry) => {
+            document.getElementById('subject-input').value = entry;
+            document.getElementById('subject-apply').click();
+            return {
+                corpusStatus: document.body.getAttribute('data-corpus-status'),
+                refusalCode: document.getElementById('subject-refusal').getAttribute('data-refusal-code')
+            };
+        }, value);
+        expect(onRefusalPaint.refusalCode, `${value} was not refused`).toBe(expectedCode);
+        expect(
+            onRefusalPaint.corpusStatus,
+            `${value} was refused yet the standing subject's corpus was reported as ${onRefusalPaint.corpusStatus}`
+        ).toBe(settledBeforeRefusal);
+    }
+});
+
 

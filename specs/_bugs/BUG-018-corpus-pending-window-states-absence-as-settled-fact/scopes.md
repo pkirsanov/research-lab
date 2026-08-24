@@ -1,7 +1,9 @@
 # Scopes: BUG-018 — The Corpus-Pending Window States Absence As Settled Fact
 
-**Every Definition of Done item below is unticked, and every one of them should be.** This packet
-is filed and unstarted. Nothing has been designed to completion, built, or tested.
+**Scope 1 is delivered and its six Definition of Done items are ticked against the evidence in
+`report.md`, `## Scope 1 Delivery Evidence`. Every Scope 2, Scope 3 and cross-scope item below is
+unticked, and every one of them should be.** Facet 2 is closed; facet 1 is not, and the packet
+remains `in_progress`.
 
 ## Sequencing Note
 
@@ -17,7 +19,9 @@ Scope 3 depends on Scope 2, because the assertion it adds must assert the chosen
 
 ## Scope 1: Make `data-corpus-status` Describe The Subject On Screen
 
-**Status:** Not started
+**Status:** Done
+**Delivered by:** `bubbles.implement`, 2026-08-23. Evidence: `report.md`,
+`## Scope 1 Delivery Evidence`.
 
 ### Problem This Scope Resolves
 
@@ -69,18 +73,37 @@ Feature: The corpus attribute describes the current subject
 
 ### Definition of Done
 
-- [ ] The stale-attribute reproduction in `report.md` no longer reproduces
-- [ ] A browser test fails before the change and passes after, for the attribute reason
-- [ ] `tests/company-intelligence-lab.spec.mjs` passes at 37 or more
-- [ ] `tests/company-intelligence.unit.mjs` passes at 90
-- [ ] `node scripts/selftest.mjs` reports 3404 passed, 0 failed
-- [ ] The refusal path is exercised and unaffected
+- [x] The stale-attribute reproduction in `report.md` no longer reproduces. → Evidence: sampling
+      the body in the same task as the click handler now yields `pending`, where the recorded
+      reproduction yielded `loaded` for a subject whose corpus had never been requested. Run and
+      output in [report.md](report.md), "The same case passes after the change".
+- [x] A browser test fails before the change and passes after, for the attribute reason. →
+      Evidence: `npx --no-install playwright test --config=playwright.config.mjs
+      --project=system-chrome tests/company-intelligence-lab.spec.mjs --grep "BUG-018 scope 1"` →
+      `RED_EXIT=1` on `Expected: "pending" / Received: "loaded"`, which is the attribute assertion
+      and not a timeout, then `GREEN_EXIT=0`, `1 passed (4.4s)`. Both transcripts in
+      [report.md](report.md).
+- [x] `tests/company-intelligence-lab.spec.mjs` passes at 37 or more. → Evidence: `38 passed
+      (45.8s)`, exit 0, capture sha256 `9e4f1aca55fd662005bf1748e1f84a5c3f261a25c8a7180a0ca002c4a2b18686`.
+      The count rose by the added case; no existing assertion was removed or weakened.
+- [x] `tests/company-intelligence.unit.mjs` passes at 90. → Evidence: `node --test
+      tests/company-intelligence.unit.mjs` → `tests 90 / pass 90 / fail 0 / skipped 0`,
+      `UNIT_EXIT=0`, unchanged because readiness is still not an input to `rlcompanyintel.js`.
+- [x] `node scripts/selftest.mjs` reports 3404 passed, 0 failed. → Evidence: `Research-Lab
+      self-test: 3404 passed, 0 failed`, exit 0, measured at `HEAD` (`6a6f8a36e`) plus this
+      scope's two files in a detached worktree, because the shared working tree carries a
+      concurrent session's uncommitted `lifetime-tax-strategy-lab.html` whose `TP-05-01` and
+      `TP-05-09` fail independently of this change. Both runs in [report.md](report.md).
+- [x] The refusal path is exercised and unaffected. → Evidence: the new case asserts both refusal
+      shapes — `C025-INPUT-REFUSED` from the shared input rule and `C025-IDENTITY-UNRESOLVED` from
+      the resolver — each required to leave the standing subject's `data-corpus-status` at the
+      value it held before the refused entry rather than resetting it to `pending`.
 
 ---
 
 ## Scope 2: Stop Asserting Absence The Route Has Not Established
 
-**Status:** Not started
+**Status:** Not Started
 **Blocked on:** `design.md` open question 1, a product decision
 
 ### Problem This Scope Resolves
@@ -158,7 +181,7 @@ Feature: A composed reading states only what it has established
 
 ## Scope 3: Close The Structural Test Gap
 
-**Status:** Not started
+**Status:** Not Started
 **Depends on:** Scope 2
 
 ### Problem This Scope Resolves

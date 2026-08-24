@@ -272,31 +272,254 @@ the check and its result are recorded in the commit.
 declined to file it across a staging boundary; editing it now would falsify that record. The
 routing it requested is discharged by this packet's existence.
 
+## Scope 1 Delivery Evidence — bubbles.implement, 2026-08-23
+
+Scope 1 only. Scopes 2 and 3 remain Not Started and untouched: Scope 2 is blocked on the product
+decision in `design.md` open question 1, and Scope 3 is blocked on Scope 2. Neither the coverage
+sentence at `company-intelligence-lab.html:1460-1462` nor the horizon cards at
+`company-intelligence-lab.html:1085` were edited, which is the boundary that separates Scope 1
+from Scope 2.
+
+### The change
+
+One ordering correction in `applySubject()`. The reset moves ahead of the synchronous
+compose-and-render, and is skipped on the refusal path because a refused entry issues no corpus
+request and must keep reporting the standing subject:
+
+```js
+currentTicker = raw.toUpperCase();
+var result = compose();
+if (!result.refusal) corpusStatus = "pending";
+render(result);
+if (!result.refusal) loadCorpus();
+```
+
+The reset inside `loadCorpus()` at `company-intelligence-lab.html:1540` is retained. It is now
+redundant for the manual-apply path and still load-bearing for `boot()`, which reaches
+`loadCorpus()` without passing through `applySubject()`.
+
+### The regression case fails before the change, for the attribute reason
+
+`tests/company-intelligence-lab.spec.mjs`, `Regression: BUG-018 scope 1 data-corpus-status
+describes the subject on screen, not the one that left it`. It does not enter through
+`openComposedRoute` for the assertion under test: the fixture is used only to reach a settled
+starting page, and the window is then entered on purpose by sampling the body inside the same task
+as the click handler. Run against the unfixed route:
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome \
+    tests/company-intelligence-lab.spec.mjs --grep "BUG-018 scope 1" --reporter=list
+RED_EXIT=1
+
+Running 1 test using 1 worker
+
+  ✘  1 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1538:1 › Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it (655ms)
+
+  1) [system-chrome] › tests/company-intelligence-lab.spec.mjs:1538:1 › Regression: BUG-018 scope 1 ...
+
+    Error: data-corpus-status read "loaded" for a subject whose corpus had not been requested
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "pending"
+    Received: "loaded"
+
+      1582 |         onApplyPaint.corpusStatus,
+    > 1584 |     ).toBe('pending');
+
+  1 failed
+```
+
+The failure is the attribute assertion, not a timeout and not a fixture error. The two guard
+assertions above it passed, so the paint really had adopted `AAPL` and really had reported
+`data-run-status="composed"` while claiming a corpus it had never requested. That is the facet 2
+reproduction recorded earlier in this file, now expressed as a committed assertion.
+
+### The same case passes after the change
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome \
+    tests/company-intelligence-lab.spec.mjs --grep "BUG-018 scope 1" --reporter=list
+GREEN_EXIT=0
+
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1538:1 › Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it (3.3s)
+
+  1 passed (4.4s)
+```
+
+The case carries three claims and no conditional early return: the apply paint reads `pending`;
+the attribute then recovers to `loaded` or `unavailable` once the held corpus resolves, so the
+window is transient rather than a new permanent state; and both refusal shapes
+(`C025-INPUT-REFUSED` from the shared input rule, `C025-IDENTITY-UNRESOLVED` from the resolver)
+leave the standing subject's value untouched rather than falsely resetting it to `pending`.
+
+### The committed browser suite rises from 37 to 38 with nothing removed
+
+Captured with `.github/bubbles/scripts/evidence-capture.sh`; the hash covers every line produced.
+
+```text
+# BUG-018 S1 full 025 browser suite after fix
+$ gtimeout 1800 npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/company-intelligence-lab.spec.mjs --reporter=line
+exit: 0
+lines: 42
+sha256: 9e4f1aca55fd662005bf1748e1f84a5c3f261a25c8a7180a0ca002c4a2b18686
+
+Running 38 tests using 1 worker
+[1/38] ... four horizon regions render with four summaries and four deep-dive controls
+[29/38] ... Chaos: a background corpus paint does not close a deep dive the reader opened
+[31/38] ... the first paint composes with every data request still outstanding, then reconciles to the served registry
+[38/38] ... Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it
+  38 passed (45.8s)
+```
+
+Test 31 matters here: it is the offline / all-requests-outstanding first-paint guard, and it still
+passes, so the reset did not disturb the deep-link path that `design.md` warns any remedy must
+preserve.
+
+### The module suite is unchanged at 90
+
+```text
+$ node --test tests/company-intelligence.unit.mjs
+UNIT_EXIT=0
+ℹ tests 90
+ℹ suites 0
+ℹ pass 90
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 123.69325
+```
+
+Expected: Scope 1 is an ordering correction inside the route, and readiness is still not an input
+to `rlcompanyintel.js`. Making it one is Scope 2's option A, which is not taken here.
+
+### The selftest baseline holds at 3404, measured in isolation
+
+Run in the shared working tree, `node scripts/selftest.mjs` reported `3402 passed, 2 failed`. The
+two failures are `TP-05-01` and `TP-05-09`, both of which read `lifetime-tax-strategy-lab.html`.
+That file is a concurrent session's **uncommitted** spec-023 edit sitting in the same shared tree;
+it is named in neither this packet nor route 025. Rather than assert that from inspection, the
+change was isolated in a detached worktree at `HEAD` (`6a6f8a36e`):
+
+```text
+$ git worktree add --detach /tmp/rl-bug018-wt HEAD
+HEAD is now at 6a6f8a36e spec-023 scope-02: earn all three adversarial DoD rows
+
+# clean HEAD, no changes from this scope
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3403 passed, 1 failed
+  ✗ FAIL: no active tests/*.mjs path named by a spec artifact is missing outside the frozen baseline
+    NEW-MISSING tests/zz-probe-focusable.spec.mjs (1 reference site(s))
+
+# HEAD plus only this scope's two files
+$ node scripts/selftest.mjs
+MINE_EXIT=0
+Research-Lab self-test: 3404 passed, 0 failed
+```
+
+`HEAD` plus this scope's two files gives **3404 passed, 0 failed**, which is the stated baseline.
+The two `TP-05-*` failures are therefore not attributable to this change, and the `TP-05` pair is
+left to its owning session.
+
+That session has since committed (`3faa6a463 spec-023 scope-03`), which removed its uncommitted
+file from the shared tree, so the isolation argument above could be replaced by a direct
+measurement. It was, with every artifact of this scope in place:
+
+```text
+$ git log --oneline -1
+3faa6a463 spec-023 scope-03: earn the long-term rental regression and boundary DoD rows
+
+$ node scripts/selftest.mjs
+SELFTEST_EXIT=0
+Research-Lab self-test: 3404 passed, 0 failed
+```
+
+The clean-`HEAD` run also surfaces something this packet owns and did not previously know: the
+`NEW-MISSING` line names `tests/zz-probe-focusable.spec.mjs`, referenced at `report.md:266` of
+this very packet. That path is untracked debris belonging to another session, so the reference
+passes today only because the debris happens to exist on this machine. When it is cleaned up the
+selftest's spec-referenced-test-path scan will fail on this packet. It is recorded here as an open
+finding for the packet owner; it is outside Scope 1 and was not changed.
+
+### Governance checks on this packet
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+LINT_EXIT=0
+Artifact lint PASSED.
+
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+GUARD_EXIT=1
+ℹ️  INFO: Resolved scopes: total=3, Done=1, In Progress=0, Not Started=2, Blocked=0
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 43
+```
+
+The guard refusing is the correct outcome and no terminal transition was requested. It answers
+"may this packet become `done`", and the answer is no: two scopes are Not Started with 23 unticked
+Definition of Done items between them, and seven specialist phases have never run. `status` stays
+`in_progress`.
+
+Three of its blocks are packet-shape debt this scope did not create and did not silently rewrite:
+
+- **G055** — `policySnapshot` carries five fields and the guard wants `grill`, `tdd`, `autoCommit`,
+  `lockdown`, `regression` and `validation`. Supplying them would mean inventing the effective
+  defaults for this repository's `bugfix-fastlane` mode, which is the packet owner's to record,
+  not this scope's to guess.
+- **G057** — the resolved scopes define Gherkin scenarios and no `scenario-manifest.json` exists.
+- **The untracked test-path reference** described above.
+
+Two `certification` fields were written, both factual mirrors of `scopes.md` rather than verdicts:
+`scopeProgress`, and `completedScopes`, which the guard reports as an integrity failure when a
+scope artifact reads `Done` while the list is empty. `certification.status` stays `in_progress`
+and `certifiedCompletedPhases` stays empty, because phase certification is `bubbles.validate`'s.
+
+### Nothing outside Scope 1 was modified
+
+Two shipped files: `company-intelligence-lab.html` (the ordering correction) and
+`tests/company-intelligence-lab.spec.mjs` (the added case). Plus this packet's own artifacts. No
+untracked path belonging to a concurrent session was staged, deleted, or modified, and the
+concurrently-modified `lifetime-tax-strategy-lab.html` was left alone. The staged set was listed
+explicitly and every entry verified before committing.
+
 ## What Was Not Established
 
 - **A printed number drifting behind the stale attribute.** Facet 2's lie is observed directly. A
   case where the stale `loaded` paint prints a count that later changes was not produced: both
   subjects tried settle at the count they showed during the apply. It is reachable by construction
   for any subject whose settled account differs from its empty-cache account, and `MSFT` is such a
-  subject, but that specific pairing was not run. Recorded as reachable-by-argument.- **Behaviour under `file://`.** All observations were made over `http://`. The route is designed to
+  subject, but that specific pairing was not run. Recorded as reachable-by-argument.
+- **Behaviour under `file://`.** All observations were made over `http://`. The route is designed to
   degrade honestly under `file://`, where the corpus resolves to `unavailable` rather than staying
   `pending`; that path was not exercised here and Scope 2 must not assume it.
 - **Frequency on a real network.** The window's width was measured only against a local static
   server with and without an artificial hold. No production timing was gathered.
 - **Which remedy is correct.** `design.md` enumerates three and selects none. The choice changes
   what a reader sees on first paint of every load and is a product decision.
+- **Facet 1.** Scope 1 closes facet 2 only. The pending window still prints a definite absence
+  count with no user-visible readiness wording. Scope 2 owns that and remains blocked.
 
 ## Completion Statement
 
-This packet is **filed and unstarted**. Three scopes are Not Started and zero Definition of Done
-items are ticked, which is the accurate representation of the work. `status` is `in_progress` and
-`certification.status` equals it. `certification.certifiedCompletedPhases` is empty, because phase
-certification belongs to `bubbles.validate` and no independent party re-derived the evidence above.
+**Scope 1 is delivered. Scopes 2 and 3 are Not Started, and the packet remains `in_progress`.**
+Six of six Scope 1 Definition of Done items are ticked with the evidence above; every Scope 2 and
+Scope 3 item is untouched and unticked, which is the accurate representation of the work.
+`certification.status` equals `status`, and `certification.certifiedCompletedPhases` is empty,
+because phase certification belongs to `bubbles.validate` and no independent party re-derived the
+evidence above.
+
+Facet 2 is closed: `data-corpus-status` now describes the subject on screen, so a consumer
+following the committed suite's readiness convention is protected during a manual apply again.
+Facet 1 is open and is Scope 2's, because it turns on a product decision about the route's first
+impression that is not agent-dischargeable.
 
 The root cause **is** established, unlike some sibling packets: the mechanism is read from the
 shipped source, the ordering that produces it is unconditional rather than racy, and both facets
-were reproduced. What remains open is the remedy choice, not the diagnosis.
+were reproduced. What remains open is the remedy choice for facet 1, not the diagnosis.
 
-No shipped file, test, configuration or workflow was modified. No branch was pushed.
+No branch was pushed.
 
 **Educational research only. Not investment advice.**

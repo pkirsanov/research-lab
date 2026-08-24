@@ -1501,6 +1501,13 @@
                 }
                 currentTicker = raw.toUpperCase();
                 var result = compose();
+                /* Readiness has to describe the subject this paint is about to put on screen.
+                   The reset used to live in loadCorpus() alone, one turn after render() had
+                   already copied the departing subject's value onto the body, so the attribute
+                   could read "loaded" for a corpus that was never requested — and a consumer
+                   waiting for it to leave "pending" returned immediately on that stale value.
+                   A refused entry requests no corpus, so it is left reporting the standing one. */
+                if (!result.refusal) corpusStatus = "pending";
                 render(result);
                 /* An unresolved identifier never triggers a corpus request, because asking the
                    server for a symbol the tool already refused would only produce a 404. */

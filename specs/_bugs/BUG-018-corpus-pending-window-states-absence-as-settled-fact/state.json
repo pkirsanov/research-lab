@@ -30,19 +30,19 @@
   },
   "execution": {
     "activeAgent": null,
-    "currentPhase": "bug",
+    "currentPhase": "implement",
     "currentPhaseStatus": "complete",
     "phaseReconciliation": null,
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
     "runStartedAt": "2026-08-23T00:00:00Z",
     "completedAt": null,
-    "substate": "filed",
-    "currentScope": null,
-    "nextRequiredOwner": "bubbles.implement, for Scope 1 only; Scope 2 is blocked on a product decision that is not agent-dischargeable",
-    "nextRequiredTarget": "specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact/scopes.md#scope-1-make-data-corpus-status-describe-the-subject-on-screen",
-    "nextRequiredReason": "Scope 1 is a self-contained ordering correction in company-intelligence-lab.html applySubject/loadCorpus: the corpusStatus reset at line 1540 executes one turn after the paint at line 1504 has already copied the previous subject's value onto the body. It is independently deliverable and restores the only workaround consumers have. Scope 2 must NOT begin first: design.md open question 1 asks whether the pending window withholds the coverage claim or marks it provisional, which changes the first paint of every load and is a product judgement no evidence settles. Scope 3 depends on Scope 2 because the assertion it adds must assert the chosen copy. Gate G136 human acceptance is unestablished and cannot be supplied by automation, because this packet delivers no behaviour to exercise.",
-    "phaseClaimNote": "currentPhase is 'bug' with substate 'filed'. This run created seven artifacts under specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact/ and modified nothing else. It reproduced both facets in a real browser against a local static server, passing probe code to the browser driver rather than writing any probe file into the repository, so no test path was added and none was removed. It executed node scripts/selftest.mjs, node --test tests/company-intelligence.unit.mjs and the 025 Playwright spec as read-only baselines; it modified no test, no configuration file, no source file, no workflow and no pack. specs/025-company-multi-horizon-intelligence-lab/report.md was deliberately not edited: its Chaos Evidence section is the record of the phase that found this defect and declined to file it across a staging boundary. No branch or remote was pushed, merged, rebased or moved. Zero Definition of Done items are ticked across all three scopes and the cross-scope set. completedPhaseClaims records the bug phase as an execution claim only; certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write.",
+    "substate": "implemented",
+    "currentScope": "01-make-data-corpus-status-describe-the-subject-on-screen",
+    "nextRequiredOwner": "the product owner, to answer design.md open question 1; Scope 2 must not begin before that answer and Scope 3 depends on Scope 2",
+    "nextRequiredTarget": "specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact/design.md#open-questions-for-the-owner",
+    "nextRequiredReason": "Scope 1 is delivered: the corpusStatus reset now precedes the synchronous compose-and-render in applySubject(), so data-corpus-status describes the subject on screen and facet 2 is closed. Facet 1 is untouched and is Scope 2's. Scope 2 remains blocked on design.md open question 1, which asks whether the pending window withholds the coverage claim or marks it provisional. That changes the first paint of every load, it is a product judgement no evidence settles, and it is not agent-dischargeable. Scope 3 depends on Scope 2 because the assertion it adds must assert the chosen copy. Gate G136 human acceptance remains unestablished: Scope 1 delivers an attribute correction with no rendered surface for a human to accept.",
+    "phaseClaimNote": "currentPhase is 'implement' with substate 'implemented', covering Scope 1 ONLY. Two shipped files changed: company-intelligence-lab.html (one ordering correction in applySubject, guarded so the refusal path still reports the standing subject) and tests/company-intelligence-lab.spec.mjs (one added regression case; nothing removed, nothing weakened). This packet's report.md, scopes.md and state.json were updated. The coverage sentence at company-intelligence-lab.html:1460-1462 and the horizon cards at company-intelligence-lab.html:1085 were NOT edited, which is the boundary separating Scope 1 from Scope 2. The new case fails against the unfixed route on the attribute assertion (Expected pending, Received loaded) and not on a timeout, and passes after; both runs are recorded verbatim in report.md. The 025 browser suite rose 37 to 38 with nothing removed, the 025 unit suite held at 90, and the selftest baseline of 3404 passed 0 failed was measured at HEAD plus this scope's two files in a detached worktree, because the shared working tree carries a concurrent session's uncommitted lifetime-tax-strategy-lab.html that fails TP-05-01 and TP-05-09 independently of this change. specs/025-company-multi-horizon-intelligence-lab/report.md was not edited. No branch or remote was pushed, merged, rebased or moved. Six of six Scope 1 Definition of Done items are ticked; every Scope 2, Scope 3 and cross-scope item remains unticked. completedPhaseClaims records the implement phase as an execution claim only; certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write.",
     "completedPhaseClaims": [
       {
         "phase": "bug",
@@ -50,6 +50,15 @@
         "claimedAt": "2026-08-23T00:00:00Z",
         "evidenceRef": "report.md#test-evidence",
         "scopes": []
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-08-23T00:00:00Z",
+        "evidenceRef": "report.md#scope-1-delivery-evidence--bubblesimplement-2026-08-23",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen"
+        ]
       }
     ],
     "pendingTransitionRequests": [],
@@ -57,9 +66,9 @@
       {
         "scopeId": "01-make-data-corpus-status-describe-the-subject-on-screen",
         "scope": 1,
-        "status": "Not Started",
+        "status": "Done",
         "dependsOn": [],
-        "resolvedBy": null
+        "resolvedBy": "bubbles.implement, 2026-08-23, report.md '## Scope 1 Delivery Evidence'"
       },
       {
         "scopeId": "02-stop-asserting-absence-the-route-has-not-established",
@@ -88,6 +97,14 @@
       "action": "filed",
       "atCommit": "dc54a8547",
       "note": "Independently re-verified F-CHAOS-025-01 in a real browser rather than accepting the routed summary, reproduced both facets, established the root cause from the shipped source, and created seven artifacts. No shipped file, test, configuration or workflow was modified and no branch was pushed."
+    },
+    {
+      "at": "2026-08-23T00:00:00Z",
+      "phase": "implement",
+      "agent": "bubbles.implement",
+      "action": "scope-1-delivered",
+      "atCommit": "6a6f8a36e",
+      "note": "Scope 1 only. Moved the corpusStatus reset ahead of the synchronous compose-and-render in applySubject(), guarded so a refused entry keeps reporting the standing subject, and added one regression case that samples the body inside the click task instead of entering through the openComposedRoute fixture that waits the window out. Failing-then-passing proof recorded verbatim: the unfixed route reports Expected pending, Received loaded, which is the attribute assertion and not a timeout. 025 browser suite 37 to 38 with nothing removed; 025 unit suite unchanged at 90; selftest 3404 passed 0 failed measured at HEAD plus these two files in a detached worktree. Scopes 2 and 3 untouched and Not Started; the coverage sentence and the horizon cards were not edited. No branch was pushed."
     }
   ],
   "defect": {
@@ -188,39 +205,41 @@
     "result": "zero matches; no existing packet covers this surface or this mechanism"
   },
   "terminalTransitionBlockers": [
-    "All three scopes are Not Started and zero Definition of Done items are ticked. Nothing has been built or tested.",
+    "Scope 1 is Done with six of six Definition of Done items ticked, but Scopes 2 and 3 are Not Started with zero of ten and zero of six ticked, and the cross-scope set is untouched.",
+    "Facet 1 is live. The pending window still prints a definite absence count with no user-visible readiness wording; only facet 2, the stale attribute, is closed.",
     "Scope 2 is blocked on design.md open question 1, a product decision about what a reader sees on the first paint of every load. No evidence settles it and it is not agent-dischargeable.",
     "Scope 3 cannot begin before Scope 2, because the assertion it adds must assert the chosen copy.",
-    "The defect is live at dc54a8547 and reproduces with zero injected delay.",
-    "Gate G136 human acceptance is not established. uservalidation.md carries no delivered behaviour to exercise, its Checklist items are unticked, and its Human Acceptance Record is unfilled.",
+    "Gate G136 human acceptance is not established. uservalidation.md Checklist items are unticked and its Human Acceptance Record is unfilled; Scope 1 delivers an attribute correction with no rendered surface for a human to exercise.",
     "No independent party re-derived any measurement. certification.certifiedCompletedPhases is empty because phase certification belongs to bubbles.validate."
   ],
   "knownLimitation": {
-    "statement": "The defect and its cause are both established. What is established: at dc54a8547, the first composed paint of every load precedes the first corpus request unconditionally, so data-run-status reads composed while data-corpus-status reads pending; in that window, with ZERO injected delay on a cold cache, the cockpit prints '15 of 15 mandatory dimensions have no usable source in this run' and all four horizon cards read none/absent, against a settled 13 of 15 in which three horizons carry directions; a case-insensitive body-text scan for readiness wording returns nothing; the magnitude falls to 14 of 15 on a warm cache because loadOne serves one bar leg synchronously, so a returning reader sees a smaller but still wrong overstatement; and during a manual apply data-corpus-status retains the previous subject's value, observed reading loaded for a subject whose corpus had not been requested. What is NOT established: a printed count that drifts behind that stale attribute, which is reachable by construction but was not produced because both subjects tried settle at the count they showed; behaviour under file://, where the corpus resolves to unavailable rather than staying pending; the window's width on a real network; and which of the three remedies in design.md is correct.",
+    "statement": "The defect and its cause are both established. What is established: at dc54a8547, the first composed paint of every load precedes the first corpus request unconditionally, so data-run-status reads composed while data-corpus-status reads pending; in that window, with ZERO injected delay on a cold cache, the cockpit prints '15 of 15 mandatory dimensions have no usable source in this run' and all four horizon cards read none/absent, against a settled 13 of 15 in which three horizons carry directions; a case-insensitive body-text scan for readiness wording returns nothing; the magnitude falls to 14 of 15 on a warm cache because loadOne serves one bar leg synchronously, so a returning reader sees a smaller but still wrong overstatement; and during a manual apply data-corpus-status retains the previous subject's value, observed reading loaded for a subject whose corpus had not been requested. What is NOT established: a printed count that drifts behind that stale attribute, which is reachable by construction but was not produced because both subjects tried settle at the count they showed; behaviour under file://, where the corpus resolves to unavailable rather than staying pending; the window's width on a real network; and which of the three remedies in design.md is correct. Scope 1 has since closed the last of those observations: as of 2026-08-23 the corpusStatus reset precedes the paint in applySubject(), so during a manual apply data-corpus-status reads pending for the subject on screen rather than retaining the previous subject's value. Every other statement here still describes live behaviour, because facet 1 is untouched.",
     "recordedIn": [
       "bug.md 'The Second Facet, Stated Separately' and 'Root Cause'",
       "design.md 'Mechanism' and 'Open Questions For The Owner'",
       "report.md 'What Was Not Established' and 'Completion Statement'",
-      "scopes.md, whose three scopes are all Not Started",
+      "scopes.md, where Scope 1 is Done and Scopes 2 and 3 are Not Started",
       "uservalidation.md Automation Readiness, four items left unticked with reasons"
     ],
-    "whyNotClosedHere": "The task named filing and root-cause analysis as the deliverable and explicitly forbade fixing. Selecting between withholding the claim and marking it provisional would prejudge a product judgement the owner reserves.",
-    "consequenceForStatus": "status is in_progress with certification.status equal to it. All three scopes are Not Started and zero Definition of Done items are ticked, which is the accurate representation of a filed, unstarted packet."
+    "whyNotClosedHere": "Scope 1 was delivered because it is a self-contained ordering correction that no product decision gates. Scope 2 was not: selecting between withholding the claim and marking it provisional would prejudge a product judgement the owner reserves, and Scope 3 cannot assert copy that has not been chosen.",
+    "consequenceForStatus": "status stays in_progress with certification.status equal to it. Scope 1 is Done with six of six Definition of Done items ticked; Scopes 2 and 3 are Not Started with zero ticked, which is the accurate representation of a packet whose second facet is closed and whose first is not."
   },
   "certification": {
     "status": "in_progress",
     "lockdownState": "unlocked",
     "completedAt": null,
     "certifiedAt": null,
-    "completedScopes": [],
+    "completedScopes": [
+      "01-make-data-corpus-status-describe-the-subject-on-screen"
+    ],
     "certifiedCompletedPhases": [],
-    "certificationFieldWriteNote": "certification.status was set equal to the top-level status. It reads in_progress because the packet is filed and unstarted: three scopes Not Started, zero Definition of Done items ticked. completedScopes is empty. certifiedCompletedPhases stays EMPTY: phase certification is bubbles.validate's to write, and no independent party re-derived any evidence in report.md.",
+    "certificationFieldWriteNote": "certification.status remains in_progress and equal to the top-level status, because Scopes 2 and 3 are Not Started and facet 1 is still live. certifiedCompletedPhases stays EMPTY: it is bubbles.validate's to write, and no independent party re-derived any evidence in report.md. bubbles.implement touched exactly two fields in this object, both factual mirrors of scopes.md rather than verdicts: scopeProgress, and completedScopes, which now names Scope 1 because the state-transition guard reports an integrity failure when a scope artifact reads Done and this list is empty. Leaving either one reading zero while scopes.md reads six ticked would itself be a false record.",
     "scopeProgress": [
       {
         "scopeId": "01-make-data-corpus-status-describe-the-subject-on-screen",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 6
+        "status": "Done",
+        "dodChecked": 6,
+        "dodUnchecked": 0
       },
       {
         "scopeId": "02-stop-asserting-absence-the-route-has-not-established",

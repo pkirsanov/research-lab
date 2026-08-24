@@ -425,6 +425,35 @@ $ git status --short --untracked-files=no
 The tracked tree is clean and every probe reported `revert-verified: yes`, so no probe residue
 remains in any shipped module or pack.
 
+### One Flake, Recorded Rather Than Rerun Quietly
+
+A third run of the same family returned `1 failed, 96 passed (38.3s)`:
+
+```
+  1) [chromium] › tests/lifetime-tax-california.spec.mjs:226:1 › Regression: SCN-022-012 the surcharge threshold is identical for every filing status
+    Test timeout of 30000ms exceeded.
+    Error: page.fill: Test timeout of 30000ms exceeded.
+```
+
+It is recorded because a rerun that turns green is not by itself proof of a flake. Three facts
+separate this from a regression. The spec contains zero references to `benefit`, `claimAge`,
+`earliest` or `socialsecurity`, so it does not reach any code this round changed. Run in isolation
+it returns `3 passed (3.2s)` at exit 0. The failing run took 38.3s where the clean runs took 18.1s
+and 17.2s, and the failure mode is a `page.fill` timeout rather than a value mismatch — the shape a
+loaded machine produces, not the shape a wrong number produces.
+
+```
+$ npx playwright test --project=chromium tests/lifetime-tax-california.spec.mjs
+Running 3 tests using 1 worker
+  3 passed (3.2s)
+california_exit=0
+
+$ npx playwright test --project=chromium tests/lifetime-tax-*.spec.mjs
+Running 97 tests using 6 workers
+  97 passed (17.2s)
+playwright_exit=0
+```
+
 ## What This Round Did Not Establish
 
 - The pinned `packContentSha256` in `lifetime-tax-strategy.config.json` pins the **federal income

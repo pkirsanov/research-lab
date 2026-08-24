@@ -11,7 +11,7 @@ decision.
 
 ## Scope 1: Refuse A Non-Finite Figure At The Display Seam
 
-**Status:** not_started
+**Status:** in_progress
 
 ### Problem This Scope Resolves
 
@@ -68,18 +68,18 @@ Scenario: a declaration inside the representable range is unchanged
 
 ### Definition of Done
 
-- [ ] The owner's refusal-code decision is recorded in `design.md` under the open question, with the date and the reasoning.
-- [ ] SCN-020-01 holds: two fields at `9e307` refuse by name on every non-finite stage, and no such row carries a rule-status label.
-- [ ] SCN-020-02 holds: the settlement header does not read `Settled` for that declaration and names the unrepresentable domain.
-- [ ] SCN-020-03 holds: two fields at `8.9e307` settle with every figure, rounding and rule status unchanged from the pre-change observation recorded in `report.md`.
-- [ ] `formatForDisplay` refuses a non-finite value at the same seam that already refuses a non-finite factor, and the refusal names the domain.
-- [ ] If a vocabulary member was added, `scripts/selftest.mjs` assertion `TP-01-05` enumerates it by name and still fails on a fabricated addition and on a repurposed member.
-- [ ] A red-green probe through `scripts/red-green-probe.sh` proves each new assertion fails when the guard is removed, with the probe output recorded in `report.md`.
-- [ ] `node scripts/selftest.mjs` reports `0 failed` and no fewer assertions than before this scope.
+- [x] The owner's refusal-code decision is recorded in `design.md` under the open question, with the date and the reasoning. → Evidence: `design.md` `## The Decision`, "Decided 2026-08-24. Authorised by the owner", with the reasoning in `### Why a new member rather than a reused one` and the rejected alternative in `### The alternative rejected`.
+- [x] SCN-020-01 holds: two fields at `9e307` refuse by name on every non-finite stage, and no such row carries a rule-status label. → Evidence: asserted at the reported declaration itself by `tests/lifetime-tax-representable.spec.mjs` test 6, over `CO-1`, `CO-3`, `CO-4`, `CO-5`, `CO-6`, `CO-7` and `CO-8`; run recorded in `report.md` `## The Reported Pair, Asserted In Its Own Right`.
+- [x] SCN-020-02 holds: the settlement header does not read `Settled` for that declaration and names the unrepresentable domain. → Evidence: test 7, asserting the header is not `Settled` and that `#truthDetail` names `income:grossSupportedIncome`.
+- [x] SCN-020-03 holds: two fields at `8.9e307` settle with every figure, rounding and rule status unchanged from the pre-change observation recorded in `report.md`. → Evidence: test 8 asserts the three facts the pre-change observation actually records (`truth=Settled`, no infinity symbol, no `NaN`) and adds a rounded figure and `enacted-current-law` standing on `CO-1`, which that observation could not carry; probe `P12` establishes the "unchanged" clause by measurement, showing the guard is not on this declaration's path at all.
+- [x] `formatForDisplay` refuses a non-finite value at the same seam that already refuses a non-finite factor, and the refusal names the domain. → Evidence: `rltax.js:1205`, guarding `valueRecord.value` beside the existing factor guard and naming domain `display:value`; asserted by `TB-020-04` and proven to discriminate by probe `P3`.
+- [x] If a vocabulary member was added, `scripts/selftest.mjs` assertion `TP-01-05` enumerates it by name and still fails on a fabricated addition and on a repurposed member. → Evidence: `BUG_020_CODES` names the member; the assertion carries the `fabricatedAddition` and `repurposedVocabulary` limbs as live conjuncts; probe `P2` proves the fabricated-addition direction against the module source and probe `P1` the removal direction.
+- [ ] A red-green probe through `scripts/red-green-probe.sh` proves each new assertion fails when the guard is removed, with the probe output recorded in `report.md`. → OPEN. Eight of the nine assertions are proven to discriminate (`P1`, `P2`, `P3`, `P4`, `P5`, `P7`, `P8`, `P9`, `P10`, `P11`). `TB-020-03` is not: its adversarial case needs two mutations in two files, and each half alone leaves the other two layers sufficient, so both `P6` and `P6b` returned exit `7`. Recorded in `report.md` under `#### P6 and P6b`.
+- [x] `node scripts/selftest.mjs` reports `0 failed` and no fewer assertions than before this scope. → Evidence: `self-test: 3408 passed, 0 failed`, exit `0`; recorded in `report.md` `## Validation`.
 
 ## Scope 2: Pin The Boundary From Both Sides
 
-**Status:** not_started
+**Status:** done
 
 ### Problem This Scope Resolves
 
@@ -121,9 +121,9 @@ Scenario: the refusing side of the boundary is pinned
 
 ### Definition of Done
 
-- [ ] SCN-020-04 holds against a declaration just inside the boundary.
-- [ ] SCN-020-05 holds against a declaration just outside the boundary.
-- [ ] The two declarations are close enough that no untested behaviour sits between them, and `report.md` states the two values.
-- [ ] Each assertion is proven to discriminate by a `scripts/red-green-probe.sh` run recorded verbatim in `report.md`, with `--summary-match` pinned to that assertion's own wording.
-- [ ] `node scripts/validate-spec-test-paths.mjs` reports `new=0 stale=0`.
-- [ ] The lifetime-tax browser suite passes on `--project=chromium` with no fewer assertions than before this scope.
+- [x] SCN-020-04 holds against a declaration just inside the boundary. → Evidence: `8.988465674311579e+307` in both income fields, summing to exactly `Number.MAX_VALUE`; test 4 asserts `Settled` and no unrepresentable refusal on any stage.
+- [x] SCN-020-05 holds against a declaration just outside the boundary. → Evidence: `8.98846567431158e+307` in both fields; test 5 asserts `Incomplete` and at least one rendered `RLTAX-FIGURE-UNREPRESENTABLE`.
+- [x] The two declarations are close enough that no untested behaviour sits between them, and `report.md` states the two values. → Evidence: both values are stated in `report.md` `### The boundary, both sides`; test 5 derives the adjacency from the page's own arithmetic rather than trusting the literals, asserting that the refusing amount is the immediate successor double, that each round-trips through the input, that the settling pair sums to exactly `Number.MAX_VALUE` and that the refusing pair overflows.
+- [x] Each assertion is proven to discriminate by a `scripts/red-green-probe.sh` run recorded verbatim in `report.md`, with `--summary-match` pinned to that assertion's own wording. → Evidence: probe `P7` for the settling side against a widened guard, probe `P8` for the refusing side against a removed guard; each `--summary-match` names its own scenario title, and both returned exit `0`.
+- [x] `node scripts/validate-spec-test-paths.mjs` reports `new=0 stale=0`. → Evidence: recorded in `report.md` `## Validation`.
+- [x] The lifetime-tax browser suite passes on `--project=chromium` with no fewer assertions than before this scope. → Evidence: recorded in `report.md` `## The Lifetime-Tax Browser Suite`.

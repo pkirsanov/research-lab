@@ -1,0 +1,72 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-021-pack-read-has-no-bound-so-the-route-waits-without-end",
+  "featureName": "BUG-021 A Pack Read That Never Completes Leaves The Route Waiting Without End",
+  "createdAt": "2026-08-24T00:00:00Z",
+  "lastUpdatedAt": "2026-08-24T00:00:00Z",
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "priorBlockedReason": null,
+  "blockedReasonResolved": null,
+  "crossFeatureEditAuthorization": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "priorPlanningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/021-lifetime-tax-strategy-lab",
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "7f0c6ce38",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md"
+  },
+  "execution": {
+    "activeAgent": null,
+    "currentPhase": "stabilize",
+    "currentPhaseStatus": "complete",
+    "phaseReconciliation": null,
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-24T00:00:00Z",
+    "completedAt": null,
+    "substate": "filed",
+    "currentScope": null,
+    "nextRequiredOwner": "bubbles.plan, to answer both parts of the open question in design.md: where a read bound is declared given that validateConfig validates an exact key set per section, and what governs the read that fetches the configuration itself, since that read is issued by the same helper the bound would govern. Scope 1 cannot begin until both are recorded.",
+    "nextRequiredTarget": "specs/_bugs/BUG-021-pack-read-has-no-bound-so-the-route-waits-without-end/design.md",
+    "nextRequiredReason": "The defect is reproduced and the downstream failure handling is shown to be already complete for every stage, so the remedy is one rejection that today never happens. The bound that would produce it must be declared rather than embedded, and declaring it changes a validated contract. That is an owner decision rather than an implementer's edit.",
+    "phaseClaimNote": "currentPhase is 'stabilize' with substate 'filed'. A bubbles.stabilize round drove sixteen damage modes against the Lifetime Tax Strategy Lab route. Fifteen reached a terminal named state in about sixty milliseconds; the sixteenth, an origin that accepts a pack request and never responds, left the route at truthState Loading with no data-rl-tax-state attribute after twenty seconds. The round also established, with a household declared in the damaged jurisdiction, that an unreadable optional pack refuses by name and substitutes nothing. No shipped file was changed. Nothing is delivered and no Definition of Done item is ticked.",
+    "executionHistory": [
+      {
+        "phase": "stabilize",
+        "agent": "bubbles.stabilize",
+        "startedAt": "2026-08-24T00:00:00Z",
+        "completedAt": "2026-08-24T00:00:00Z",
+        "durationUnmeasured": true,
+        "durationUnmeasuredReason": "The round was driven as many separate browser measurement runs rather than as one timed invocation, so no single elapsed measurement describes it and none is asserted.",
+        "outcome": "completed_diagnostic",
+        "summary": "Stabilization round against the Lifetime Tax Strategy Lab route. Sixteen damage modes driven; one unbounded-read defect reproduced deterministically and filed as this packet. No shipped file changed."
+      }
+    ],
+    "transitionQueue": [],
+    "reworkQueue": []
+  },
+  "certification": {
+    "status": "in_progress",
+    "certifiedBy": null,
+    "certifiedAt": null,
+    "assuranceLevel": null,
+    "evidence": null
+  },
+  "policySnapshot": {
+    "capturedAt": "2026-08-24T00:00:00Z",
+    "source": "bubbles.stabilize filing"
+  }
+}

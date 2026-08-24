@@ -2416,14 +2416,103 @@ against `coveredSubjects` and returns a committed path, so no user-influenced
 string is ever concatenated into a fetch path. Line 1194 additionally wraps its
 symbol in `encodeURIComponent`.
 
-**5. Home-path and PII leakage — clean; the prior redaction is holding.**
-Grepping this feature's spec artifacts, its five files and all fixtures for
-`/Users/|/home/[a-z]|C:\\Users|pkirsanov|Philippes-MacBook|.local/state|/var/folders/|localhost:NNNN`
-returns exactly one hit, `report.md` line 440, and it is the **already-redacted**
-form `file:///Users/<user>/Projects/research-lab/tests/company-intelligence.unit.mjs:1440:12`.
-The username is replaced by the `<user>` placeholder. No operator username, no
-machine name, no absolute home path and no environment identifier leaks from this
-feature. No new leak was introduced by this pass.
+**5. Home-path and PII leakage — one real leak, and it was in this paragraph;
+corrected and re-measured here.** The sweep covers this feature's spec artifacts,
+its product and test files and all fixtures, and matches this *class* of
+identifier:
+
+`/Users/|/home/[a-z]|C:\\Users|<operator-username>|<machine-name>|.local/state|/var/folders/|localhost:[0-9]+`
+
+The last two alternates are written as classes, not specimens. The shell expands
+`<operator-username>` from `id -un` and `<machine-name>` from the host name at run
+time, so the check still tests for both without this artifact having to carry
+either value — the same `<user>` redaction convention the rest of this paragraph
+already uses. That substitution is the correction. The previous revision of this
+paragraph spelled both alternates out literally inside the pattern, which made the
+one sentence asserting that no operator username and no machine name leak from
+this feature the only place in the file where either actually appeared. The claim
+falsified itself, in a public repository. Nothing else in the feature carried
+them: before this edit the operator username matched exactly once and the machine
+name exactly once, both on that single pattern line.
+
+The two numeric claims the previous revision made were also wrong. It said the
+sweep returned "exactly one hit, `report.md` line 440". Re-run rather than
+restated, it returns nine, and the redacted stack frame it was pointing at is at
+line 487, not 440:
+
+```
+$ U=$(id -un); M=$(scutil --get ComputerName | tr -d ' ')
+$ grep -rnE "/Users/|/home/[a-z]|C:\\\\Users|${U}|${M}|\.local/state|/var/folders/|localhost:[0-9]+" \
+    specs/025-company-multi-horizon-intelligence-lab/ rlcompanyintel.js \
+    company-intelligence.config.json company-intelligence-lab.html \
+    notes/company-intelligence-lab.md tests/company-intelligence.unit.mjs \
+    tests/company-intelligence-lab.spec.mjs data/company-intelligence/ \
+    > /tmp/rl025-pii.txt 2>/tmp/rl025-pii.err; echo "exit code: $?"
+exit code: 0
+$ wc -l < /tmp/rl025-pii.txt; wc -c < /tmp/rl025-pii.err
+       9
+       0
+$ cut -d: -f1,2 /tmp/rl025-pii.txt
+specs/025-company-multi-horizon-intelligence-lab/state.json:582
+specs/025-company-multi-horizon-intelligence-lab/report.md:487
+specs/025-company-multi-horizon-intelligence-lab/report.md:2424
+specs/025-company-multi-horizon-intelligence-lab/report.md:2445
+specs/025-company-multi-horizon-intelligence-lab/report.md:2468
+specs/025-company-multi-horizon-intelligence-lab/report.md:2469
+specs/025-company-multi-horizon-intelligence-lab/report.md:2474
+specs/025-company-multi-horizon-intelligence-lab/report.md:2476
+specs/025-company-multi-horizon-intelligence-lab/uservalidation.md:24
+```
+
+Every one is benign, and six of the nine are this section quoting itself. Line
+2424 is the class pattern above, which necessarily matches its own `/Users/`,
+`C:\\Users`, `.local/state` and `/var/folders/` alternates; line 2445 is the
+grep invocation in the block above, which restates the same pattern. Lines 2468,
+2469, 2474 and 2476 are this classification paragraph, which quotes each matched
+form in order to explain it. `report.md` line 487 and `state.json` line 582 carry
+the **already-redacted**
+`file:///Users/<user>/Projects/research-lab/tests/company-intelligence.unit.mjs:1440:12`,
+where the username is replaced by the `<user>` placeholder. `uservalidation.md`
+line 24 is `http://localhost:8000/company-intelligence-lab.html`, the loopback
+URL a human opens to reproduce the validation step — a documented local port on a
+reserved-name host, carrying no operator identity. The previous revision missed
+the `state.json` and `uservalidation.md` hits entirely, which is the other half of
+why "exactly one hit" was not a measurement.
+
+A note on the exit status, because it is easy to misread: `grep -rnE` above exits
+`0` because it *did* match, and its stderr was empty (`0` bytes). Had the sweep
+found nothing it would have exited `1`, which is the success condition for a leak
+scan but breaks a naïve `&&` chain and can be mistaken for a broken command. The
+count is therefore taken from `wc -l` on the captured file rather than from
+`grep -c`, whose own exit status is `1` on a zero count for the same reason.
+
+After the correction, neither the operator username nor the machine name appears
+anywhere in this file — verified with a check that reads both values from the
+environment rather than writing either into the artifact:
+
+```
+$ grep -c "$(id -un)" specs/025-company-multi-horizon-intelligence-lab/report.md; echo "exit code: $?"
+0
+exit code: 1
+$ grep -ci "$(scutil --get ComputerName | tr -d ' ')" specs/025-company-multi-horizon-intelligence-lab/report.md; echo "exit code: $?"
+0
+exit code: 1
+```
+
+Both report `0` with exit `1`, which for a leak scan is the passing outcome: zero
+matches. No operator username, no machine name, no absolute home path and no
+environment identifier leaks from this feature.
+
+**Severity.** LOW, and lower than the phrasing "PII leak" suggests, but a real
+defect either way. The exposed username is also the owner's public GitHub handle
+and appears legitimately in `github.com/<handle>/bubbles` URLs across roughly
+thirty tracked framework files, so it was never secret; the machine name is a
+default-format host nickname. Neither is a credential, a private path or a
+routable identifier, and there is no attacker action either enables. What makes it
+worth fixing is not the disclosure but the integrity failure: a security section
+asserted the absence of exactly the two strings it was itself printing, so the
+check as written could never have failed, and a reader would have been told a
+verified-sounding thing that the same paragraph disproved.
 
 ### What This Pass Did Not Do
 

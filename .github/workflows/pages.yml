@@ -53,7 +53,15 @@ jobs:
     # parallel execution; no external-provider availability is accepted as a reason to publish a
     # red build.
     - name: Full browser suite (blocking)
-      run: npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --workers=2 --reporter=list
+      env:
+        PLAYWRIGHT_JSON_OUTPUT_NAME: playwright-report.json
+      run: npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --workers=2 --reporter=list,json
+    # A red gate that fails in more than one owned area should say so here, so a reader can find
+    # their own failures without downloading and parsing the report artifact by hand. This only
+    # formats the failures the run already produced; the suite's exit code above remains the gate.
+    - name: Name the owners of a red run
+      if: failure()
+      run: node scripts/summarize-failures.mjs playwright-report.json >> "$GITHUB_STEP_SUMMARY"
     - name: Upload browser report
       if: always()
       uses: actions/upload-artifact@v4
@@ -61,6 +69,7 @@ jobs:
         name: playwright-report
         path: |
           playwright-report/
+          playwright-report.json
           test-results/
         retention-days: 7
         if-no-files-found: ignore

@@ -84,6 +84,23 @@ in the acceptance set.
 A declaration that triggers the refusal, persisted and reloaded, refuses again on
 reopening rather than settling.
 
+## Supersession Ledger
+
+The ledger is the audit surface for a protection this remedy had to replace
+rather than keep. Each delivered replacement carries its `SUP-020-NN` marker
+beside it in the source, so the ledger and the code are greppable against each
+other.
+
+| Id | Superseded clause | Scope | Marker | Replacement |
+|---|---|---|---|---|
+| `SUP-020-01` | `scripts/selftest.mjs` `TP-01-05` — `liveCodeNames.length === FEATURE_021_CODES.length + FEATURE_022_CODES.length` and the two-list membership clause | 1 | marker required | A count derived from three named lists, the new member asserted present by name, and a third adversarial limb proving a vocabulary missing it fails |
+
+Both superseded clauses became false the moment the fifteenth vocabulary member
+landed, and they became false whatever the implementation did. The derivation is
+not widened: the declared member names are still scraped from `rltaxrules.js` and
+compared against the live keys, so a member added to one and not the other still
+fails.
+
 ## Explicitly Out Of Scope
 
 - Changing what the input fields accept. Rejecting large entries at the input is

@@ -171,6 +171,22 @@
     }
     /* Tax-exempt interest is retained as a recorded input and excluded from gross. */
     var gross = income.ordinary + preferentialIncome;
+    /* E1 (BUG-020). Each declared amount cleared the finiteness guard above; their SUM need not.
+       The refusal travels out through `appliedDeduction`, which is the channel this function
+       already uses to carry a refusal outward, so every consumer's existing deduction-unavailable
+       branch cascades it without gaining a branch. Its domain names the income sum, not the
+       deduction, so the reader is told what was actually unrepresentable. */
+    if (!Number.isFinite(gross)) {
+      var overflow = rules.unavailable("RLTAX-FIGURE-UNREPRESENTABLE", "income:grossSupportedIncome",
+        "each declared amount is inside the range a double can represent and their sum is not, so no figure derived from that sum exists",
+        "declare amounts whose sum is at most 1.7976931348623157e+308");
+      return Object.freeze({
+        ok: false,
+        grossSupportedIncome: overflow,
+        taxExemptInterestRecorded: income.taxExemptInterest,
+        appliedDeduction: overflow
+      });
+    }
     var deduction = selectDeduction(workspace, pack);
     if (rules.isUnavailable(deduction)) {
       return Object.freeze({
@@ -627,10 +643,17 @@
     var status = rules.ruleStatusFor(pack, pack);
     var basis = computeTaxableIncome(workspace, pack);
 
-    var grossRecord = valued(basis.grossSupportedIncome, status);
+    /* E2 (BUG-020). CO-1 is assembled from the gross member directly and does not pass through
+       `deductionUnavailable`, so it needs its own guard: on the overflow path that member is
+       itself the refusal rather than a number. */
+    var grossRecord = rules.isUnavailable(basis.grossSupportedIncome)
+      ? basis.grossSupportedIncome
+      : valued(basis.grossSupportedIncome, status);
     var exemptRecord = valued(basis.taxExemptInterestRecorded, status);
     var stages = {};
-    stages["CO-1"] = stageRecord(basis.grossSupportedIncome, status, null);
+    stages["CO-1"] = rules.isUnavailable(basis.grossSupportedIncome)
+      ? basis.grossSupportedIncome
+      : stageRecord(basis.grossSupportedIncome, status, null);
 
     var deduction = basis.appliedDeduction;
     var deductionUnavailable = rules.isUnavailable(deduction);
@@ -780,7 +803,7 @@
       }),
       modifiedAdjustedGross: Object.freeze({
         contractVersion: "MeasureCompleteness/v1",
-        value: basis.grossSupportedIncome,
+        value: rules.isUnavailable(basis.grossSupportedIncome) ? null : basis.grossSupportedIncome,
         complete: isPlainObject(pack.modifiedAdjustedGrossCompleteness)
           ? pack.modifiedAdjustedGrossCompleteness.complete === true
           : false,
@@ -1172,6 +1195,16 @@
       return rules.unavailable("RLTAX-CONFIG-INVALID", "display:displayRounding.factor",
         "the display rounding factor must be a finite number greater than zero",
         "correct display.displayRounding.factor in the configuration");
+    }
+    /* E3 (BUG-020). The sibling guard the factor already carries, on the operand it is applied to.
+       Its domain is `display:value` rather than a stage name because this function is generic over
+       every value record the tool produces and must not claim to know which leg produced this one;
+       E1 names the origin. After E1 and E2 this is unreachable from the acceptance set, and it
+       exists so a future record-producing path cannot reopen the same hole. */
+    if (!Number.isFinite(valueRecord.value)) {
+      return rules.unavailable("RLTAX-FIGURE-UNREPRESENTABLE", "display:value",
+        "the record handed to the display formatter carries a value that is not a finite double, so there is no amount to round or to render",
+        "correct the calculation that produced this record; a figure outside the representable range is refused at its origin and must not reach a formatter");
     }
     return Object.freeze({
       contractVersion: DISPLAY_CONTRACT,
@@ -1682,6 +1715,21 @@
     }
     var status = rules.ruleStatusFor(pack, pack);
     var basis = computeTaxableIncome(workspace, pack);
+    /* E4 (BUG-020). On any `ok: false` basis the taxable members below are absent, and the band
+       walk turns `undefined` into NaN. The hole predates this defect — it is reachable whenever
+       the deduction refuses and a disposition is declared — but E1 routes new traffic into it.
+       The shape returned is the one this function already returns when the disposition settlement
+       itself refuses, so no consumer gains a branch. */
+    if (basis.ok !== true) {
+      return Object.freeze({
+        stageId: "CO-19",
+        available: false,
+        refusal: rules.isUnavailable(basis) ? basis : basis.appliedDeduction,
+        basisOrigin: basisOrigin,
+        legs: Object.freeze([]),
+        marginalContext: context
+      });
+    }
     var preferentialTable = pack.preferentialRateTables[workspace.filingStatus];
     var recaptureComponent = null;
     var remainderComponent = null;

@@ -301,9 +301,9 @@
     "unavailable": true
   });
 
-  /* The closed refusal vocabulary. Fourteen members: Feature 021's twelve, unchanged in meaning
-     and in raising site, plus the two the jurisdiction axis needs. This is the ONLY declaration
-     in the repository; every consumer imports it and none extends it. */
+  /* The closed refusal vocabulary. Fifteen members: Feature 021's twelve, unchanged in meaning
+     and in raising site, the two the jurisdiction axis needs, and the one BUG-020 needs. This is
+     the ONLY declaration in the repository; every consumer imports it and none extends it. */
   var RLTAX_CODES = Object.freeze({
     "RLTAX-CONFIG-INVALID": true,
     "RLTAX-PACK-INVALID": true,
@@ -323,7 +323,12 @@
     /* Two packs resolved for one combined settlement do not both declare the requested year
        effective. Neither pack is individually invalid, which is why this is not
        RLTAX-YEAR-UNSUPPORTED: the defect is in the relationship between two packs. */
-    "RLTAX-PACK-YEAR-MISMATCH": true
+    "RLTAX-PACK-YEAR-MISMATCH": true,
+    /* Every input to the figure is present, valid and inside contract, and the calculation is
+       defined, but the result is not a finite double. It is not RLTAX-INPUT-INCOMPLETE because
+       nothing is missing, and not RLTAX-INCOME-KIND-UNSUPPORTED because each declared amount is
+       itself finite: the defect is in the range of the RESULT, not in any input. */
+    "RLTAX-FIGURE-UNREPRESENTABLE": true
   });
 
   /* The jurisdiction grammar. A pattern, never an enumeration: no module names a state. */

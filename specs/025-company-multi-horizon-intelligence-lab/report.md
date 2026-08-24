@@ -601,7 +601,32 @@ feed by accession number. Four of the five carry an accession and all four hit a
 real `8-K` whose `items` include `2.02`; the fifth is the forward `estimated`
 row, which correctly carries no accession and no observed outcome.
 
+The original run of this check recorded its output without its invocation line,
+so the resolver below is a **reconstruction**, disclosed as such: it reads the
+committed file, pulls each row's accession out of that row's own `sourceUrl`,
+and looks that accession up in the live `filings.recent` arrays. Re-executed in
+this session, it reproduces the earlier reading exactly.
+
 ```
+$ node -e '
+const fs=require("fs");
+const p="data/company-intelligence/company-msft/events.json";
+const f=JSON.parse(fs.readFileSync(p,"utf8"));
+const ua={"User-Agent":"research-lab spec-025 verification (contact: repository owner)"};
+fetch(f.sourceUrl,{headers:ua}).then(r=>r.json()).then(j=>{
+const rec=j.filings.recent;
+console.log("source file: "+p);
+console.log("live recent filing count: "+rec.accessionNumber.length);
+console.log("earliest recent filingDate: "+rec.filingDate[rec.filingDate.length-1]);
+for(const e of f.events){
+const m=(e.sourceUrl.match(/([0-9]{10}-[0-9]{2}-[0-9]{6})/)||[])[1]||null;
+let live="NONE";
+if(m){const i=rec.accessionNumber.indexOf(m); if(i>=0) live=JSON.stringify({form:rec.form[i],filingDate:rec.filingDate[i],items:rec.items[i]});}
+console.log(e.eventId+" | date="+e.date+" | class="+e.dateClass+" | accession="+m+" | liveMatch="+live);
+}
+}).catch(err=>{console.error("ERROR "+err.message);process.exit(2);});
+'
+source file: data/company-intelligence/company-msft/events.json
 live recent filing count: 1001
 earliest recent filingDate: 2020-04-30
 msft-results-2025-10-28 | date=2025-10-28 | class=scheduled | accession=0001193125-25-256310 | liveMatch={"form":"8-K","filingDate":"2025-10-29","items":"2.02,7.01,9.01"}
@@ -609,8 +634,13 @@ msft-results-2026-01-28 | date=2026-01-28 | class=scheduled | accession=00011931
 msft-results-2026-04-29 | date=2026-04-29 | class=scheduled | accession=0001193125-26-191457 | liveMatch={"form":"8-K","filingDate":"2026-04-29","items":"2.02,9.01"}
 msft-results-2026-07-29 | date=2026-07-29 | class=scheduled | accession=0001193125-26-323632 | liveMatch={"form":"8-K","filingDate":"2026-07-29","items":"2.02,9.01"}
 msft-results-2026-10-28 | date=2026-10-28 | class=estimated | accession=null | liveMatch=NONE
-VERIFY_PIPELINE_EXIT=0
+Exit Code: 0
 ```
+
+The live feed still returns 1,001 recent filings back to 2020-04-30, and all
+four accessions still resolve to an `8-K` carrying `2.02`. The one `estimated`
+row still resolves to nothing, which is the correct reading for a date no filing
+has yet been published for.
 
 #### Row 3.7 — the canary, exit 1 with two foreign failures
 
@@ -739,20 +769,55 @@ runs exercise the same shipped source.
 | Branch budget | One branch beyond the declared `maxBranches` | `one branch beyond the declared maxBranches raises C025-PLAN-BUDGET` passes with `overBudget.refusals[0].code === 'C025-PLAN-BUDGET'`, and the declared budget is asserted unchanged against `company-intelligence.config.json` | Same test asserts a plan exactly at budget publishes with zero refusals |
 | Determinism | Change one input in the frozen bundle | The determinism test asserts a differently sourced bundle yields a different `contentFingerprint`, so the equality it asserts is not a constant | Two runs over one frozen bundle produce one identical canonical string and one identical fingerprint |
 
+The original harness recorded its own `RESULT:` lines and carried no runner
+output. It was re-executed this session as a **reconstruction**, disclosed as
+such, and strengthened on one axis: instead of the harness asserting by hand, it
+seeds the CommonJS require cache with the patched api and then runs the REAL
+committed 90-assertion unit suite against it. The removal is therefore judged by
+the suite that ships, not by the harness's own opinion.
+
 ```text
-=== GUARD PRESENT: horizon isolation ===
-RESULT: assertion HELD (guard present)
-=== GUARD REMOVED: partition rank filter ===
-RESULT: assertion FAILED -> structural horizon changed when a tactical read was added
-=== GUARD PRESENT: publication read-back ===
-RESULT: assertion HELD (guard present)
-=== GUARD REMOVED: publication read-back ===
-RESULT: assertion FAILED -> a store that dropped freshUntil returned ["asOf","availability","computedAt","contractVersion","deepLink","id","metrics","read"] instead of C025-PUBLISH-LOSSY
-=== GUARD PRESENT: fixture filter ===
-RESULT: assertion HELD (guard present)
-=== GUARD REMOVED: fixture filter ===
-RESULT: assertion FAILED -> fundamentals read state=current reason=null
+$ node /tmp/rl025-adversarial/harness.mjs none
+PATCH APPLIED: none (pristine committed source)
+ℹ tests 90
+ℹ pass 90
+ℹ fail 0
+Exit Code: 0
+
+$ node /tmp/rl025-adversarial/harness.mjs rank-filter
+PATCH APPLIED: rank-filter :: return HORIZON_RANKS.indexOf(read.maxHorizon) >= minimum;  ->  return true;
+ℹ tests 90
+ℹ pass 61
+ℹ fail 29
+✖ adversarial: adding a tactical read leaves the structural horizon byte-identical (0.580833ms)
+✖ every claim cites a value present in its own horizon input set (1.3365ms)
+Exit Code: 1
+
+$ node /tmp/rl025-adversarial/harness.mjs publish-readback
+PATCH APPLIED: publish-readback :: if (before !== after) {  ->  if (false) {
+ℹ tests 90
+ℹ pass 88
+ℹ fail 2
+✖ adversarial: an extra published key raises C025-PUBLISH-LOSSY rather than reporting success (1.566333ms)
+✖ all eleven C025 refusal codes are raised by a real call path (2.452625ms)
+Exit Code: 1
+
+$ node /tmp/rl025-adversarial/harness.mjs fixture-filter
+PATCH APPLIED: fixture-filter :: if (looksLikeFixture(envelope)) {  ->  if (false) {
+ℹ tests 90
+ℹ pass 89
+ℹ fail 1
+✖ adversarial: a fixture-sourced read reaches no horizon and reads fixture-only-evidence (0.632041ms)
+Exit Code: 1
 ```
+
+Every one of the three guards is load-bearing: the pristine source is 90/90, and
+removing any single guard turns the committed suite red on the assertion that
+names that guard's behaviour. The `rank-filter` removal is the widest, taking 29
+of 90 assertions down, which is the expected shape for a filter every horizon
+composer depends on. The harness lives outside the working tree and the working
+tree was never modified; the `✖` lines above are quoted from each run's own
+`failing tests:` listing.
 
 ---
 
@@ -1778,11 +1843,37 @@ directory, so check (c) discharges it rather than this feature owning it.
 
 ### The One Red Selftest Assertion Is Foreign — Re-Confirmed This Pass
 
-The single failing assertion is:
+The single failing assertion recorded at the time of that pass was, quoted from
+that pass's own capture:
+
+> `✗ FAIL: no tests/*.mjs path named by a spec artifact is missing outside the
+> frozen baseline — a stale path makes a multi-file verification command
+> silently cover less than it claims (1 new, 66 known-missing, 5 stale of 240
+> referenced)`
+
+**Superseded, and re-measured this session.** That failure no longer exists. The
+selftest was re-executed unfiltered and now exits 0 with zero failing
+assertions, so the foreign owner cleared it in the interval. The finding is
+recorded rather than deleted, because the reasoning below about why this feature
+did not adopt it still stands and is what kept it from being papered over.
 
 ```text
-✗ FAIL: no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline — a stale path makes a multi-file verification command silently cover less than it claims (1 new, 66 known-missing, 5 stale of 240 referenced)
+$ node scripts/selftest.mjs
+================================================
+Research-Lab self-test: 3404 passed, 0 failed
+================================================
+Exit Code: 0
+
+$ grep -c '✗' /tmp/rl025-selftest.log
+0
 ```
+
+The count moved from `2945 passed, 1 failed` at the time of the gate pass to
+`3404 passed, 0 failed` now. Both the growth and the cleared failure are foreign
+work landing on the shared surface; this feature added no assertion in that
+interval. The `Regression: SCN-025-CANARY` assertion, which exists to go red if
+this feature's shared-surface append broke a pre-existing assertion, is inside
+that green count.
 
 `scripts/validate-spec-test-paths.mjs` was called directly to name the cause.
 The one new absent path is the market-brief cockpit browser spec under `tests/`,

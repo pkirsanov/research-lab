@@ -1400,3 +1400,142 @@ Error: unregistered root page lacks a deploy decision: lifetime-tax-inclusion-pa
   in which **`tax-rules` does not appear**. The pack this scope authored therefore
   remains outside the public directories, which is the third clause of this row's
   claim, read from the command's own output rather than asserted about it.
+
+## Delivery-Completion Evidence Session — The Three Remaining Rows
+
+Every block below is verbatim command or harness output from this session, each
+with its own captured exit code, and each probe with its own revert verification.
+
+### Row 1 — Scenario-specific E2E under the exact persistent titles
+
+The titles are extracted from this scope's own Test Plan table and matched against
+the spec file as literal `test('…'` declarations, so presence is established
+independently of anything `--grep` selects:
+
+```
+$ node /tmp/rl24-titles.mjs specs/024-social-security-and-medicare/scopes/02-benefit-taxation
+TP-02-21: broader-regression row, no single persistent title
+TP-02-22: present=true file=tests/lifetime-tax-inclusion.spec.mjs :: Regression: SCN-024-004 provisional income shows every part by
+TP-02-23: present=true file=tests/lifetime-tax-inclusion.spec.mjs :: Regression: SCN-024-005 the tier is selected at the exact base
+TP-02-24: present=true file=tests/lifetime-tax-inclusion.spec.mjs :: Regression: SCN-024-006 a base amount from another edition sho
+TP-02-25: present=true file=tests/lifetime-tax-inclusion.spec.mjs :: Regression: SCN-024-005 the inclusion leg reaches the headline
+TP-02-26: broader-regression row, no single persistent title
+TITLES_CHECKED=4
+SPEC_FILES=tests/lifetime-tax-inclusion.spec.mjs
+TITLES_MISSING=0
+TITLES_EXIT=0
+```
+
+Each title's own selection is listed rather than inferred from a pass count, so a
+selection of zero could not be mistaken for a pass:
+
+```
+exit=0 selected=1 :: Regression: SCN-024-004 provisional income shows every
+exit=0 selected=1 :: Regression: SCN-024-005 the tier is selected at the exa
+exit=0 selected=1 :: Regression: SCN-024-006 a base amount from another edit
+exit=0 selected=1 :: Regression: SCN-024-005 the inclusion leg reaches the h
+```
+
+The four then run, exit **0**:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium tests/lifetime-tax-inclusion.spec.mjs --reporter=list
+RUN02_EXIT=0
+4 passed (2.7s)
+```
+
+The adversarial case renames one persistent title mid-string, so the original grep
+can no longer match it as a substring:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            scope02-title-rename-empties-grep
+file:             tests/lifetime-tax-inclusion.spec.mjs
+red-exit:         1
+red-summary:      Error: No tests found
+green-exit:       0
+green-summary:      1 passed (1.9s)
+revert-verified:  yes (committed=063676ac4fad615e679bb1f3d1870f7212d29a88 restored=063676ac4fad615e679bb1f3d1870f7212d29a88)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Row closed.
+
+### Row 2 — Broader E2E across the whole lifetime-tax family
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep 'SCN-02[1-4]' --reporter=list
+S02_BROAD_EXIT=0 88 passed (15.7s)
+```
+
+Eighty-eight scenarios across twenty spec files, not this scope's four. The
+adversarial case requires a failure this scope's own file does not see. One
+mutation is run against both commands: it drops `power-medicare` from the route's
+declared `POWER_SECTION_IDS`, which is the hand-maintained-list regression, and the
+route page is a surface this scope's Change Boundary admits. Against this scope's
+own spec file the probe refuses, because nothing changed:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            scope02-own-file-blind
+file:             lifetime-tax-strategy-lab.html
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium tests/lifetime-tax-inclusion.spec.mjs --reporter=list
+red-exit:         0
+red-summary:        4 passed (2.6s)
+green-exit:       0
+green-summary:      4 passed (2.2s)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   NO (red-exit 0 == green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Exit 7 — four passed with the defect present and four without it. The identical
+mutation against the broad command, recorded in this feature's Scope 01 report
+under the same committed file hash `8ffe6634`, fails: `red-exit: 1`,
+`red-summary: 86 passed`, against `green-exit: 0`, `green-summary: 88 passed`. Two
+sibling titles redden and the broad command fails while this scope's own rows stay
+green, which is the row's adversarial case exactly. Row closed.
+
+### Row 3 — Change Boundary respected, zero excluded families changed
+
+Content, not mtime, is the instrument for a tracked path. The path-scoped status
+over every excluded surface this scope names — which includes
+`rltaxsocialsecurity.js`, `tax-rules/benefit/**` and `tests/lifetime-tax.support.mjs`,
+the three surfaces Scope 01 owns and this scope must not open:
+
+```
+S02_EXCLUDED_ROWS=0
+untracked_under_excluded=0
+```
+
+Zero rows, and no untracked file exists anywhere under the excluded directories, so
+the row's mtime clause has no applicable target and the content comparison is
+authoritative for every excluded surface.
+
+The adversarial case mutates one excluded file and re-runs the identical check:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            scope02-excluded-touch-produces-a-row
+file:             rltaxsocialsecurity.js
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=78a9f9e91f5343d1c2eb4759f2814b2c34216dc6 restored=78a9f9e91f5343d1c2eb4759f2814b2c34216dc6)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Touching an excluded path produces a row and fails the check. Row closed.
+
+### Row status after this session
+
+| Row | Verdict |
+| --- | --- |
+| Scenario-specific E2E under exact persistent titles | closed |
+| Broader E2E across the lifetime-tax family | closed |
+| Change Boundary respected, zero excluded families changed | closed |
+
+**Claim Source:** executed. Every block above is verbatim command or harness output
+from this session, each with its own exit code, and each probe with its own revert
+verification.

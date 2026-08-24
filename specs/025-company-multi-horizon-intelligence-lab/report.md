@@ -691,6 +691,14 @@ full, with their attribution, under
 below. The `Feature 025 company multi-horizon intelligence` group itself is
 entirely green in that same run, including `SCN-025-CANARY`.
 
+*(Superseded 2026-08-24 — the heading and the paragraph above read as a standing
+state and are not one. The finding they forward to is closed in place inside its
+own section: row 3.7 subsequently reached exit 0, and neither of the two failures
+named here is in the finding set any longer. Read both as the reading taken while
+this scope was being recorded. See
+[Stale-Claim Class Sweep](#stale-claim-class-sweep--2026-08-24) for the standing
+form of the claim.)*
+
 #### Gate exit codes recorded for this scope
 
 | Gate | Command | Exit code |
@@ -1338,6 +1346,11 @@ record of why it was left open, and is closed here.
 
 ### Unresolved Finding — The Canary Row Is Red On Foreign Work
 
+*(Superseded 2026-08-24 — this finding is closed. The **Resolved.** subsection
+below closes it in place, and row 3.7 reached exit 0 there. The heading is left
+unchanged because the audit trail should still show that the finding was raised
+while open, and because other sections link to this anchor.)*
+
 Test Plan row 3.7 (`node scripts/selftest.mjs`) did not reach exit 0, so the
 Tier 1 DoD item that requires it to exit 0 with zero failures is **not ticked**.
 The run ends `2841 passed, 2 failed`, exit `1`, sha256
@@ -1690,6 +1703,17 @@ fifty-nine pre-existing rows on exactly the inputs they had.
 
 ### The One Red Selftest Assertion Is Foreign, And This Phase Confirmed It Again
 
+*(Superseded 2026-08-24 — this whole subsection, heading included, is written in
+the present tense about a repository state that has since moved. `node
+scripts/selftest.mjs` does not stand at `2868 passed, 1 failed`, the market-brief
+cockpit path it attributes is no longer in the validator's finding set, and there
+is no standing "one red assertion" to confirm. Every number below is an
+observation taken while this phase ran, not a property of the repository. The
+reasoning is preserved because refusing to adopt a foreign failure is the part of
+this record worth keeping. The standing claim, and why it is stated as an
+attribution rather than a tally, is in
+[Stale-Claim Class Sweep](#stale-claim-class-sweep--2026-08-24).)*
+
 `node scripts/selftest.mjs` exits 1 with `Research-Lab self-test: 2868 passed, 1
 failed`. The failing assertion is `no tests/*.mjs path named by a spec artifact
 is missing outside the frozen baseline`. Running its validator directly,
@@ -1729,6 +1753,12 @@ rewritten to describe the path instead of naming it. The 30 foreign sites remain
 so the assertion remains red and remains foreign-owned. What changed is that this
 feature no longer contributes to it.
 
+*(Superseded 2026-08-24 — "remains red" and "the 30 foreign sites remain" were
+true when written and are not standing facts. The clause that survives
+unchanged, and the only one this feature can speak for, is the last sentence:
+this feature contributes zero sites, which has measured `0` in every reading any
+pass has taken.)*
+
 Second, one selftest run during this phase reported `2867 passed, 2 failed`, the
 extra red being `TP-03-15`, a mortality-pack assertion belonging to the
 concurrent Lifetime Tax work. Two later runs both reported `2868 passed, 1
@@ -1752,6 +1782,12 @@ conjunctions whose browser half is green and whose selftest half is held red by
 the foreign missing path described above. The four equivalent conjunction rows in
 Scopes 2, 3 and 4 already carried their own declarations and were left as their
 authors recorded them.
+
+*(Superseded 2026-08-24 — both clauses have moved. Scope 1 does not stand at 36
+of 38; a later pass recorded it at 38 of 38 in its own "DoD Rows This Phase
+Moved" table. And no conjunction's selftest half is held red by the path named
+here, because that path is no longer in the validator's finding set. Read the
+paragraph as this phase's closing position, not as current DoD arithmetic.)*
 
 ---
 
@@ -1785,6 +1821,13 @@ scripts/validate-spec-test-paths.mjs`:
 The foreign count moved from 30 to 31 because the concurrent owner was writing
 its own artifacts between the two readings. That is recorded rather than smoothed
 over, for the same reason the earlier non-determinism note in this report was.
+
+*(Superseded 2026-08-24 — the `31` in the table above, and the sentence below
+reading "31 of them sit inside a family the Change Boundary forbids", are both
+present-tense readings of a count that has since gone to zero: the absent path
+they count sites for is no longer in the validator's finding set at all. The row
+that did not move, and the only one this feature owns, is `of those, inside this
+feature | 8 | 0`.)*
 
 **What could not be finished, and the premise that was wrong.** This pass was
 begun on the stated premise that repairing the two `report.md` sites would return
@@ -1915,6 +1958,12 @@ assertions, so the foreign owner cleared it in the interval. The finding is
 recorded rather than deleted, because the reasoning below about why this feature
 did not adopt it still stands and is what kept it from being papered over.
 
+*(Amended 2026-08-24 — "now exits 0" pinned a new absolute state and so repeated
+the defect it was correcting; the selftest was observed at exit 1 again within
+minutes of that sentence being written. Read it as: at the moment of the capture
+below, the selftest exited 0. What is durable is the attribution, not the exit
+code — no failing site in any reading has belonged to `specs/025-*`.)*
+
 ```text
 $ node scripts/selftest.mjs
 ================================================
@@ -1932,6 +1981,12 @@ work landing on the shared surface; this feature added no assertion in that
 interval. The `Regression: SCN-025-CANARY` assertion, which exists to go red if
 this feature's shared-surface append broke a pre-existing assertion, is inside
 that green count.
+
+*(Amended 2026-08-24 — the word "now" attaches an absolute tally to an unbounded
+present. Read it as "at the instant of the capture above". The tally is a
+reading; the sentence that survives re-reading is the one about
+`SCN-025-CANARY`, which has printed green in every observation any pass has
+recorded.)*
 
 `scripts/validate-spec-test-paths.mjs` was called directly to name the cause.
 The one new absent path is the market-brief cockpit browser spec under `tests/`,
@@ -1987,6 +2042,12 @@ result. The unit suite now reports 67 tests where an earlier Scope 1 DoD row
 recorded 41; the row's claim of exit 0 with zero failing and zero skipped still
 holds, and the count grew because later passes added tests. That stale figure is
 disclosed here rather than silently rewritten.
+
+*(Amended 2026-08-24 — "now reports 67" is itself the stale figure now; the same
+suite was observed at `tests 90 / pass 90 / fail 0 / skipped 0`, exit 0, on
+2026-08-24. The paragraph's actual point survives every re-count: the row's
+clause is about exit 0 with zero failing and zero skipped, and only the
+transcribed total drifts.)*
 
 **Claim Source:** executed.
 
@@ -2823,6 +2884,13 @@ this phase drew is unchanged and now rests on the validator rather than on hand
 greps — spec 025 appears zero times in the finding set, so it names no absent
 test path and contributes nothing to the repo-wide count.
 
+*(Amended 2026-08-24 — "now reports … and exits 0" pins this validator's exit
+code as a standing property, and it is not one: it has been observed at exit 1
+since, on `new` paths referenced entirely from another spec family. Two of its
+readings have held across every observation any pass has taken — `stale=0`, and
+zero finding sites under `specs/025-*` — and those are the two the conclusion
+above actually rests on.)*
+
 ### Change boundary
 
 Exactly one file was modified by this phase, by pure append:
@@ -3129,7 +3197,10 @@ matches, and both are routed rather than edited, because `scopes.md` is
 1. **Stale counts.** Several Scope 1 rows cite `tests 41 / pass 41` or
    `tests 67 / pass 67`. The suite now reports 70. The rows claim "exits 0 with
    zero failing and zero skipped tests", which is TRUE now; only the transcribed
-   count is stale.
+   count is stale. *(Amended 2026-08-24 — "now reports 70" has itself gone
+   stale; the suite was observed at `tests 90 / pass 90` on 2026-08-24. The
+   finding does not change, and this is the second time restating the total
+   rather than the clause has produced a fresh stale number.)*
 2. **FR ids conflated with SCN ids.** The row *"Each of FR-025-017, FR-025-018
    and FR-025-019 names at least one passing test row → Evidence: rows 1.14
    through 1.16 pass"* cites rows whose Scenario column reads SCN-025-017/018/019
@@ -4427,6 +4498,14 @@ every spec in the repository.
 Because the run reports exactly one failure and that failure is accounted for above, every
 Feature 025 assertion in the repository selftest is green by elimination of the single red line.
 
+*(Superseded 2026-08-24 — there is no standing "single red line". The PII finding this section
+attributes to `specs/021` was not present in any observation taken on 2026-08-24, all of which
+reported zero `✗` lines. The elimination argument was sound on the run it was made against, and
+it is retained for that reason; it is not a current statement of the selftest's failure set. The
+durable form of its conclusion — attribution by whether any failing site belongs to this feature,
+which has measured zero every time — is in
+[Stale-Claim Class Sweep](#stale-claim-class-sweep--2026-08-24).)*
+
 **Claim Source:** interpreted.
 **Interpretation:** the selftest prints one aggregate counter (`3064 passed, 1 failed`) rather
 than a per-group pass list, so "the Feature 025 group is green" is derived from two executed
@@ -4650,6 +4729,11 @@ failing gate and `failedChecks` is empty. That is the same shape the validate ph
 `G022` no longer among the failing gates. The guard also emits two non-blocking notes that predate
 this pass and are unchanged by it — a Check-11 warning about evidence blocks without terminal
 output signals, and an advisory `vertical-delivery-plan-guard` unexposed-increment nudge.
+
+*(Superseded 2026-08-24 — "the guard's exit 1" is no longer the observed state. Run against this
+spec directory on 2026-08-24 the guard reported `failedGateIds: []`, `failureCount: 0`,
+`verdict: PASS`, exit 0. The reasoning above about why a `G136`-only failure is not a regression is
+preserved because it is what stopped the human-acceptance gate being treated as a defect.)*
 
 **Claim Source:** executed.
 
@@ -5329,6 +5413,11 @@ symbol before any code moves, so it is routed rather than patched.
 Row 2.13 remains RED for the reason the previous pass recorded, and the browser suite therefore
 exits 1. That failure was present before this pass and is untouched by it. It was not relaxed.
 
+*(Superseded 2026-08-24 — row 2.13 was fixed by a later pass. The named `file://` first-paint test
+printed `✓` and the feature browser suite exited 0 in a run taken on 2026-08-24. The refusal
+recorded here — declining to weaken the row to `refused` so the suite could exit 0 — is preserved
+because it is why the defect was fixed rather than absorbed.)*
+
 ### Suites and guards after the change
 
 Recorded verbatim in the RESULT-ENVELOPE for this pass. Unit 74/74 exit 0; browser 30 passed / 1
@@ -6006,6 +6095,13 @@ bar, and every one of them sits in a section another phase authored. The transit
 return `verdict: PASS` while `artifact-lint.sh` exits 1, and this phase cannot clear those ten
 without editing six other agents' evidence records.
 
+*(Superseded 2026-08-24 — the first of the two findings is closed. `artifact-lint.sh` was run
+against this spec directory on 2026-08-24 and exited 0, reporting all 106 evidence blocks in
+`report.md` as legitimate, and the same result held on a throwaway copy with `status` and
+`certification.status` flipped to `done`. The transition guard returned `verdict: PASS` in the same
+session. The ten blocks were cleared by their own authors. The second finding below is not affected
+by this note, and this pass takes no position on it.)*
+
 **Second, and the finding that matters more: `BUG-018` is open on this feature's own delivered
 surface.** `specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact` has three
 scopes. Scope 1 is `Done`. Scope 2, "Stop Asserting Absence The Route Has Not Established", and
@@ -6278,6 +6374,241 @@ contributing sites here" was false: this feature had three. After it, the clause
 is true in every reading OBS-1 records. Had the repair not been made, certifying
 this feature would have meant certifying a report whose own evidence paste was
 the single cause of a red repository selftest.
+
+---
+
+## Stale-Claim Class Sweep — 2026-08-24
+
+Four consecutive passes each found one more instance of the same defect in this
+file, because each was scoped to a section rather than to the defect. This pass
+was dispatched to sweep the class instead of the next instance, so it enumerates
+the whole file first and reports what it judged accurate as well as what it
+marked.
+
+**The class.** A claim in this report that asserts a *current* selftest, suite,
+lint or guard state — a tally, an exit code, a "the one residual failure"
+attribution, a present-tense restatement — where that state has since moved. A
+tally recorded as an observation of a named run is not in the class. A tally
+recorded as a standing property is.
+
+**The one file this pass modified is this `report.md`.** No product file, no test
+file, no `spec.md`, `design.md`, `scopes.md`, `uservalidation.md` and no
+`state.json` was touched, no DoD row was ticked, and no certification field was
+written. No original reasoning was deleted; every correction is a dated marker
+beside the claim it supersedes.
+
+### How the file was enumerated
+
+Not by reading for stale-sounding prose. The file was scanned mechanically for
+the shapes the class takes, with fenced evidence blocks and evidence tables
+excluded so that historical captures were not mistaken for standing claims, and
+every surviving hit was then read in context and judged individually.
+
+```text
+# class enumeration over report.md — prose only, fenced blocks and tables excluded
+$ node -e '<scan: split on ```, skip fenced regions and | table rows, match
+    tally / exit-code / is-red / remains-green / now-exits shapes>'
+NON-FENCE NON-TABLE HITS = 62
+exit code: 0
+```
+
+Sixty-two prose hits, triaged below into fifteen class instances and the
+remainder judged accurate.
+
+### Instances found, and their disposition
+
+| # | Site | Claim as written | Disposition |
+| --- | --- | --- | --- |
+| C-01 | Scope 3, `Row 3.7 — the canary, exit 1 with two foreign failures` | heading and body assert two *remaining* failures and forward to an open finding | **Marked.** That finding is closed in place; row 3.7 later reached exit 0 |
+| C-02 | `Unresolved Finding — The Canary Row Is Red On Foreign Work` | heading asserts an unresolved red state | **Marked.** The section closes itself further down; the heading alone misleads. Heading text left intact because other sections link to the anchor |
+| C-03 | `The One Red Selftest Assertion Is Foreign, And This Phase Confirmed It Again` | `exits 1 with 2868 passed, 1 failed`, present tense | **Marked.** This is the instance the dispatch named, and the reason a section-scoped fix keeps producing a next instance |
+| C-04 | same section, path-token paragraph | `the assertion remains red and remains foreign-owned` | **Marked.** The surviving clause is the zero-contribution one |
+| C-05 | same phase, `DoD Rows This Phase Moved` | `Scope 1 now stands at 36 of 38`, selftest half `held red` | **Marked.** A later pass recorded 38 of 38, and nothing is held red by that path |
+| C-06 | `Path-Token De-Pollution`, before/after table and the paragraph under it | `31 of them sit inside a family the Change Boundary forbids` | **Marked.** The count has gone to zero; the `8 → 0` row is the one this feature owns |
+| C-07 | `Re-Confirmed This Pass` | `now exits 0 with zero failing assertions` | **Marked.** This was itself a *repair* that pinned a new absolute state, and it went stale within minutes |
+| C-08 | same section | `the count moved … to 3404 passed, 0 failed now` | **Marked.** "now" reattached to the instant of its capture |
+| C-09 | `What This Pass Did Not Do` | `The unit suite now reports 67 tests` | **Marked.** Observed at 90 on 2026-08-24 |
+| C-10 | gaps phase, validator re-execution | `the validator now reports new=0 stale=0 and exits 0` | **Marked.** Its exit code moves with concurrent work; `stale=0` and zero spec-025 sites do not |
+| C-11 | `Stale ticks, and why none was removed` | `The suite now reports 70` | **Marked.** Second restatement of a total to go stale; observed at 90 |
+| C-12 | `The single selftest failure is foreign, and here is the proof` | `green by elimination of the single red line` | **Marked.** No residual line in any 2026-08-24 reading |
+| C-13 | `VAL-025-F4` guard note | `The guard's exit 1 is the correct state` | **Marked.** Guard observed at `verdict: PASS`, exit 0 |
+| C-14 | `VAL-025-F5` | `Row 2.13 remains RED … the browser suite therefore exits 1` | **Marked.** Row 2.13 passes; suite exit 0 |
+| C-15 | validate phase, certification refusal | `the artifact lint does not reach zero`, `ten evidence blocks remain` | **Marked.** Lint exits 0 with 106 legitimate blocks |
+
+Judged **still accurate**, and why, so the reader can see what was considered
+rather than only what was changed:
+
+| Site | Why it is not an instance |
+| --- | --- |
+| `Foreign Failure Note — The Two Red Assertions Were Not This Feature's` | Records three readings in the past tense, names the disagreement between them explicitly, and states that a selftest result here is a reading and not a durable property. This is the form the rest of the file is being moved toward |
+| Every per-scope gate-exit table | Scoped by construction to the run that produced it; the exit codes are captures, not standing claims |
+| `Uncertainty Declarations` items | Each declaration is followed by the resolution that closed it, so no reader can take the open state as current |
+| `Row 4.8 is recorded at its real exit 1 rather than rounded to a pass` | Past tense about a recorded row, and the point of the sentence is the refusal to round |
+| `Unit count moved 67 → 68, selftest held at 3019 …` | Past tense, phase-scoped, and cited as a delta rather than a state |
+| docs-phase `3051 passed, 0 failed` narrative | Explicitly scoped: "held on every run in this phase" |
+| chaos-phase `round 2 passed all 8 journeys with exit 0` | Past tense about a named harness round |
+| `Read this table as what that pass observed on that day` | Already carries the exact disclaimer this sweep is propagating |
+| `git check-ignore exits 1`, `grep -c exits 1` | Exit codes of assertions about file contents, not suite state |
+
+### This pass's own selftest observations
+
+Run repeatedly, on purpose, because a single reading is what produced several of
+the instances above.
+
+```text
+# spec-025 class sweep — repository selftest, four consecutive observations
+$ date -u +%Y-%m-%dT%H:%M:%SZ
+2026-08-24T04:37:26Z
+$ node scripts/selftest.mjs        # observation A
+exit: 0   lines: 3871   Research-Lab self-test: 3404 passed, 0 failed
+sha256: 4edc9c839f2196c9b826cfeee1d75d07640e79f7a978d419ad7b16d93e6f99f4
+$ node scripts/selftest.mjs        # observation B, 04:38:06Z
+exit: 0   lines: 3871   Research-Lab self-test: 3404 passed, 0 failed
+sha256: 3ca5ace3ea731a18f08cef2d368ad8fb903f8fbf198e00d32ebcfe9777e54750
+$ node scripts/selftest.mjs        # observations C and D
+C exit=0   D exit=0
+$ grep -c '✗' <C> <D>
+0
+0
+```
+
+**Claim Source:** executed.
+
+Four observations, all exit 0, all `3404 passed, 0 failed`, all with zero `✗`
+lines. **This pass did not reproduce the exit-1 readings recorded under OBS-1**,
+and says so plainly rather than presenting agreement it did not observe.
+
+### Two disagreements worth recording
+
+**First: agreeing runs, disagreeing hashes.** Observations A and B returned the
+same exit code, the same line count and the same summary line, and different
+capture hashes. Diffing two raw runs isolates the cause, and it is not
+concurrency:
+
+```text
+# why two identical-looking selftest runs hash differently
+$ diff <run C> <run D>
+55,56c55,56
+<   ✓ scaled Student-t(5) variance ~ 1 (preserves target sigma), got 0.998
+<   ✓ scaled Student-t(5) kurtosis > 3 (fat tails), got 9.71
+---
+>   ✓ scaled Student-t(5) variance ~ 1 (preserves target sigma), got 0.999
+>   ✓ scaled Student-t(5) kurtosis > 3 (fat tails), got 7.11
+1681c1681
+< (node:11558) ExperimentalWarning: localStorage is not available …
+---
+> (node:19140) ExperimentalWarning: localStorage is not available …
+diff_exit=1
+```
+
+Two assertion lines print statistics from a fresh random draw, and one warning
+line carries the process id. So the selftest's output is nondeterministic in
+content on a *quiet* tree, independently of the concurrent-editing
+nondeterminism this report already records.
+
+**Second, and the consequence: a selftest capture hash cannot be re-derived.**
+This pass tested its own hash, recorded ninety seconds earlier:
+
+```text
+# does a selftest capture hash actually verify?
+$ bash .github/bubbles/scripts/evidence-capture.sh --verify \
+    4edc9c839f2196c9b826cfeee1d75d07640e79f7a978d419ad7b16d93e6f99f4 -- node scripts/selftest.mjs
+[evidence-capture] MISMATCH
+  recorded: 4edc9c839f2196c9b826cfeee1d75d07640e79f7a978d419ad7b16d93e6f99f4
+  observed: b3b484030783e1189b7334f30f0b99ba1aff3aa3fcf2f56841c91eb456cf080a
+exit code: 1
+```
+
+**Claim Source:** executed.
+
+Recorded as a finding rather than suppressed. Several `<!-- verify: … -- node
+scripts/selftest.mjs -->` markers in this file invite a reader to re-derive a
+hash that cannot re-derive, and a `MISMATCH` on one of them means the two
+sampled statistics moved, not that the evidence was fabricated. The hashes still
+do the work that matters — they bind a bounded block to the full output captured
+at that instant — but for this one command they are not a reproducibility claim.
+This pass does not edit those markers: they sit inside other phases' evidence
+records, and rewriting captured evidence is exactly the line this report has
+refused to cross elsewhere. It is disclosed here and left to their authors.
+
+### The state this pass actually measured
+
+Every row is an observation at the timestamp given, not a standing property.
+
+```text
+# spec-025 class sweep — surrounding surfaces, 2026-08-24
+$ node --test tests/company-intelligence.unit.mjs
+ℹ tests 90   ℹ pass 90   ℹ fail 0   ℹ skipped 0
+unit_exit=0
+$ npx --no-install playwright test tests/company-intelligence-lab.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list
+  ✓  30 … the route reaches its first paint from a file:// origin with no server
+        and no off-origin request (315ms)
+  39 passed (45.9s)
+browser_exit=0
+$ node scripts/validate-spec-test-paths.mjs
+[spec-test-paths] scanned=748 references=17283 distinctPaths=266 missingPaths=73
+  plannedMissing=3 baseline=70 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+vstp_exit=0
+$ grep -c '025-company-multi-horizon' <validator output>
+0
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/025-company-multi-horizon-intelligence-lab
+✅ All 106 evidence blocks in report.md contain legitimate terminal output
+Artifact lint PASSED.
+lint_real_exit=0
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/025-company-multi-horizon-intelligence-lab
+failedGateIds: []   failureCount: 0   verdict: PASS
+guard_exit=0
+```
+
+**Claim Source:** executed. The validator's three `PLANNED-MISSING` rows are
+withheld here for the reason OBS-4 gives: they name `tests/*.mjs` paths as
+literals, and pasting them would make this report a reference site for paths that
+do not exist. The command, exit code, counts line and closing line are carried
+through unchanged.
+
+The lint was also re-measured on a throwaway copy of this spec directory with
+`status` and `certification.status` flipped to `done`, because the block-legitimacy
+gate only engages at a terminal status. That copy also reported all 106 blocks
+legitimate at exit 0, and was deleted. **This pass wrote no status anywhere.**
+`status` and `certification.status` in the real `state.json` remain
+`in_progress`; certification is `bubbles.validate`'s call.
+
+### The standing form of the attribution
+
+Stated once here so no later pass has to re-derive it from a tally:
+
+> Whether the repository selftest exits 0 is not a property this feature can
+> assert, because the file is shared and other sessions write to it. What this
+> feature can assert, and what has held in **every** reading recorded anywhere in
+> this report, is that **no failing site has ever belonged to
+> `specs/025-company-multi-horizon-intelligence-lab`**, and that
+> `Regression: SCN-025-CANARY` — the assertion that exists to go red if this
+> feature's shared-surface append broke a pre-existing one — has printed green in
+> every one of them.
+
+That claim survives a moving tree. A tally does not. Any future pass that needs
+to record a number should record it the way the rows above do: with the command,
+the exit code and the timestamp attached, and no verb in the present tense.
+
+### Is the class exhausted in this file?
+
+This pass believes so, and states what it did to establish that rather than
+asserting it. The file was enumerated mechanically rather than by reading, over
+the shapes the class takes, with evidence blocks and tables excluded so historical
+captures were not confused with standing claims; all sixty-two prose hits were
+triaged individually; fifteen were marked and the rest are listed above with the
+reason each was judged accurate. Every claim whose truth this pass could measure —
+unit suite, browser suite, selftest, spec-test-path validator, artifact lint,
+transition guard — was re-executed rather than reasoned about.
+
+Two honest limits. The enumeration keys on the vocabulary this file happens to
+use for suite state, so a claim phrased in some other vocabulary could survive it.
+And several of the markers this pass added describe surfaces that other sessions
+are still writing, so a marker can go stale the same way the claim under it did —
+which is why they are written as attributions and dated observations rather than
+as replacement tallies.
 
 **Educational research only. Not investment advice.**
 

@@ -24,7 +24,7 @@ separate authorised run.
 
 ## Scope 1: Decide What A Route Does With A Subject It Cannot Honour
 
-**Status:** Not started
+**Status:** Done
 **Depends On:** none
 **Owner:** the owner of `intraday-tape-lab` / `swing-structure-lab`. **Not agent-dischargeable.**
 
@@ -81,17 +81,27 @@ Feature: A reader learns when the subject they named was not honoured
 
 ### Definition of Done
 
-- [ ] Open question 4 is answered: whether these two routes are openable by a subject-bearing link.
-- [ ] The outcome for `refused`, `absent`, and out-of-catalog is chosen and recorded with its reason.
-- [ ] The recorded decision names what it gives up, not only what it achieves.
-- [ ] Open questions 1, 2 and 3 from `design.md` are each answered or explicitly deferred with a reason.
-- [ ] No source file was modified by this scope.
+- [x] Open question 4 is answered: whether these two routes are openable by a subject-bearing link.
+- [x] The outcome for `refused`, `absent`, and out-of-catalog is chosen and recorded with its reason.
+- [x] The recorded decision names what it gives up, not only what it achieves.
+- [x] Open questions 1, 2 and 3 from `design.md` are each answered or explicitly deferred with a reason.
+- [x] No source file was modified by this scope.
+
+**Evidence** — decisions and their tradeoffs are recorded in `report.md` § *Scope 1 Execution*.
+The Q3 derivation was measured before it was chosen:
+
+```
+Command: node -e '…filter(f => /deepLink:\s*"[^"]*\?/.test(f.source))…'
+derived routes (4): gamma-trading-lab.html, intraday-tape-lab.html, options-structure-lab.html, swing-structure-lab.html
+consumers: 4/4
+Exit Code: 0
+```
 
 ---
 
 ## Scope 2: Make The Published Link Live In Both Directions
 
-**Status:** Not started
+**Status:** Done
 **Depends On:** Scope 1
 
 ### Problem This Scope Resolves
@@ -158,21 +168,54 @@ Feature: A published subject-bearing deep link opens on the subject it names
 
 ### Definition of Done
 
-- [ ] Both `deepLink` expressions compose their parameter from `RLTKR.SUBJECT_PARAM` (FR-014-001).
-- [ ] Both routes read the subject back through `RLTKR.linkedSubject(window.location.search)` and open on an `accepted` subject (FR-014-002).
-- [ ] The Scope 1 outcome for a subject that cannot be honoured is implemented and asserted (FR-014-003).
-- [ ] `grep -rn '?t=' *.html` returns zero emission sites (FR-014-004).
-- [ ] `F027_SUBJECT_ROUTES` contains all four subject-bearing routes and assertion 1.20 passes over the widened set (FR-014-005).
-- [ ] `tests/technical-analysis-decision-lab.spec.mjs:922` navigates the canonical parameter and passes (FR-014-006).
-- [ ] The fix is proven in a real browser, with the republished `deepLink` read out of `RLDATA.toolRead(...)`, not by source match alone.
-- [ ] Every new assertion was proven able to fail, by real file mutation, before being trusted.
-- [ ] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count from the baseline at the fixing commit (FR-014-007).
+- [x] Both `deepLink` expressions compose their parameter from `RLTKR.SUBJECT_PARAM` (FR-014-001).
+- [x] Both routes read the subject back through `RLTKR.linkedSubject(window.location.search)` and open on an `accepted` subject (FR-014-002).
+- [x] The Scope 1 outcome for a subject that cannot be honoured is implemented and asserted (FR-014-003).
+- [x] `grep -rn '?t=' *.html` returns zero emission sites (FR-014-004).
+- [x] `F027_SUBJECT_ROUTES` contains all four subject-bearing routes and assertion 1.20 passes over the widened set (FR-014-005).
+- [x] `tests/technical-analysis-decision-lab.spec.mjs:922` navigates the canonical parameter and passes (FR-014-006).
+- [x] The fix is proven in a real browser, with the republished `deepLink` read out of `RLDATA.toolRead(...)`, not by source match alone.
+- [x] Every new assertion was proven able to fail, by real file mutation, before being trusted.
+- [x] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count from the baseline at the fixing commit (FR-014-007).
+
+**Evidence** — full raw output in `report.md` § *Scope 2 Execution*. Both directions in a browser,
+the runtime link read out of `RLDATA.toolRead`, and both new assertions proven able to fail:
+
+```
+Command: grep -rn 'deepLink: "[^"]*?t=' *.html | wc -l
+0
+
+Command: npx playwright test --project=system-chrome tests/technical-analysis-decision-lab.spec.mjs
+  38 passed (46.1s)
+Exit Code: 0
+
+Command: node scripts/selftest.mjs
+Research-Lab self-test: 3406 passed, 0 failed
+Exit Code: 0
+
+red-green (derived guard):   3404 passed, 2 failed  ->  3406 passed, 0 failed   revert-verified: yes
+red-green (runtime link):      37 passed, 1 failed  ->    38 passed             revert-verified: yes
+```
 
 ---
 
 ## Cross-Scope Definition of Done
 
-- [ ] The audit finding `F-AUDIT-02b` is discoverable from this packet, and this packet is discoverable from a search for that finding id.
-- [ ] `bug.md` status reads Fixed only after Scope 2's browser proof exists.
-- [ ] No artifact under `specs/027-company-scoped-owner-deep-links/` was modified by any scope.
-- [ ] The remedy added detection power and removed none.
+- [x] The audit finding `F-AUDIT-02b` is discoverable from this packet, and this packet is discoverable from a search for that finding id.
+- [x] `bug.md` status reads Fixed only after Scope 2's browser proof exists.
+- [x] No artifact under `specs/027-company-scoped-owner-deep-links/` was modified by any scope.
+- [x] The remedy added detection power and removed none.
+
+**Evidence** — ownership boundaries held and detection widened rather than narrowed:
+
+```
+Command: git diff --name-only origin/main -- specs/027-company-scoped-owner-deep-links/
+(no output — 0 files)
+
+Command: git diff --name-only origin/main -- <packet>/uservalidation.md
+(no output — 0 files; the Human Acceptance Record is human-owned and stays unfilled)
+
+F-AUDIT-02b appears in this packet's bug.md Provenance line.
+Assertions: two added (derived-route guard widened 2 -> 4 routes; runtime deepLink), none removed.
+Exit Code: 0
+```

@@ -3102,6 +3102,9 @@ repository selftest holds spec artifacts to naming only test paths that exist.
 
 ### Findings
 
+> Scoped to the 2026-08-19 round. Superseded by the 2026-08-23 re-execution under
+> `### Chaos Evidence` below, which found one P2 defect (F-CHAOS-025-01).
+
 **Zero defects were found.** Every journey completed against the live route with no page-level
 exception, no cross-origin request, no unbounded refetch, no duplicated paint, no cross-subject
 leakage and no merged horizon reading. This is reported as observed; no defect was manufactured to
@@ -3152,21 +3155,26 @@ No existing assertion was weakened to make anything pass. The committed suite wa
 
 ### Evidence
 
-Baselines re-run before chaos, all green:
+Baselines re-run before chaos, all green. The counts below are the 2026-08-23 re-execution, not the
+2026-08-19 figures the narrative above records; every baseline in this repository has moved since
+that round, so the earlier numbers are left in place as history rather than restated as current.
 
-| Command | Exit |
-|---|---|
-| `node --test tests/company-intelligence.unit.mjs` | 0 |
-| `node scripts/selftest.mjs` | 0 |
-| `npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | 0 (29 passed) |
+| Command | Exit | Re-executed result |
+|---|---|---|
+| `node --test tests/company-intelligence.unit.mjs` | 0 | 90 pass, 0 fail |
+| `node scripts/selftest.mjs` | 0 | 3404 passed, 0 failed |
+| `npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | 0 | 37 passed |
 
 ```
-# baseline unit + selftest
-exit: 0
-lines: 2
-sha256: 9eaf51e94ec3622adb086c5815d9d07cd9e581db0ed42e916863821f410dee95
---- output ---
+$ node --test tests/company-intelligence.unit.mjs
+ℹ tests 90
+ℹ suites 0
+ℹ pass 90
+ℹ fail 0
+ℹ duration_ms 221.379834
 unit_exit=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3404 passed, 0 failed
 selftest_exit=0
 ```
 
@@ -3199,16 +3207,21 @@ sha256: e4b12de94b129f612de723974bf8e35c25e65f31382c086d4332ddcb8943823e
   11 passed (16.8s)
 ```
 
-Post-chaos baseline re-run, to prove the round left the committed surface intact:
+Post-chaos baseline re-run, to prove the round left the committed surface intact. Re-executed
+2026-08-23 after the temporary harness was deleted:
 
 ```
-# post-chaos baselines (after report path correction)
-exit: 0
-lines: 3
-sha256: 8ed3be23a08111157d523aa57765f4d54db20531172616a9b78bc491e0a23063
---- output ---
+$ node --test tests/company-intelligence.unit.mjs
+ℹ tests 90
+ℹ pass 90
+ℹ fail 0
+ℹ duration_ms 412.78725
 unit_exit=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3404 passed, 0 failed
 selftest_exit=0
+$ npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+  37 passed (37.4s)
 browser_exit=0
 ```
 
@@ -3236,20 +3249,126 @@ artifact_lint_exit=0
 **Claim Source:** executed. Every table row above is read from a command executed in that session
 and captured by `bubbles/scripts/evidence-capture.sh`. No count was estimated.
 
+### Chaos Evidence
+
+**Executed:** YES
+**Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list` against a temporary seeded chaos harness (8 journeys CJ1-CJ8), plus `node --test tests/company-intelligence.unit.mjs`, `node scripts/selftest.mjs` and `npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` as before-and-after baselines
+**Phase Agent:** bubbles.chaos
+**Claim Source:** executed
+
+A fresh chaos round was executed on 2026-08-23 rather than renaming the 2026-08-19 material above.
+Every baseline that round recorded has moved (70 unit / 29 browser / 3065 selftest then; 90 / 37 /
+3404 now), so restating those figures under a canonical heading would have published numbers that
+no longer reproduce. The earlier narrative stands unedited as the historical record.
+
+Harness: a temporary seeded spec written into the repository test directory for the duration of
+the round and deleted at the end of it, reusing `startStaticServer` from
+`tests/provider-credentials.support.mjs` and the `system-chrome` project in `playwright.config.mjs`.
+It is deliberately not named here as a resolvable test path, because the repository selftest holds
+spec artifacts to naming only test paths that exist. Seeds `20260823`, `4242`, `11`, `987654`. No
+module was stubbed. The two latency journeys delayed only the committed corpus DEPENDENCY, so the
+route still fetched and rendered whatever it actually observed.
+
+Round 1 returned 5 failures. All 5 were diagnosed to a single harness defect plus one wrong
+accounting model, and both diagnoses were CONFIRMED by probe before anything was changed:
+
+| Round-1 failure | Diagnosis | Confirming probe |
+|---|---|---|
+| CJ2 reading drifted on apply 1, CJ4 reading changed across a round trip, CJ7 refusal appeared to mutate the composed reading, CJ3 read 0 committed events | The harness waited only on `data-run-status=composed` and omitted the `data-corpus-status` wait the committed surface uses, so it sampled a pre-corpus paint | With the corpus wait added, deep-link and manual apply converge byte-for-byte, the round trip is stable, and the committed event rows count 5 |
+| CJ1 counted 25 cockpit paints against a budget of 24 | The budget assumed two paints per apply and charged nothing for a mode toggle, which does repaint the cockpit | Instrumented probe: apply costs 2 paints, a mode toggle costs 1, a deep-dive toggle costs 0 |
+
+No assertion was weakened to make anything pass, and the committed suite was not edited. After the
+harness was corrected, round 2 passed all 8 journeys with exit 0.
+
+| Journey | What it chained | Measured |
+|---|---|---|
+| CJ1 | 40 seeded steps interleaving apply, deep dives, mode and viewport churn, out of order | 12 applies, 14 dives, 8 modes, 6 resizes, 24 paints against a 32 budget. No growth. |
+| CJ2 | 12 consecutive applies on an already-composed unchanged subject | 24 paints, exactly 2 per apply, flat; 0 bar refetches after the first; reading byte-identical across all 12 |
+| CJ3 | 20 rapid out-of-order `AAPL`/`MSFT` switches with no wait, then the same with the event file delayed 900 ms | 5 committed `MSFT` event ids, 0 leaked into an `AAPL` composition |
+| CJ4 | Navigate away to `index.html` and back, a fresh no-query load, then a 6-width viewport sweep | Round-trip reading stable; no sideways scroll at 320, 375, 768, 1024, 1440 or 1600 CSS pixels |
+| CJ5 | 24 seeded refusal-fuzz payloads interleaved with valid subjects | 13 refusals shown; 3 failed responses, all the designed `404` absence path under `data/bars/`; 0 hostile payloads persisted to storage |
+| CJ6 | Overlapping runs with BOTH corpus legs delayed 800 ms, DOM sampled continuously | 4 mid-flight samples, 0 showing one subject identity beside another subject's events |
+| CJ7 | A refusal entered against a composed page | Composed reading, identity line and coverage totals all unchanged; refusal cleared by a later valid entry |
+| CJ8 | CJ1/CJ5-shaped churn replayed under three further seeds | 42 steps, 0 page-level exceptions, 0 cross-origin requests |
+
+```
+$ npx --no-install playwright test <temporary chaos harness> --config=playwright.config.mjs --project=system-chrome --reporter=list
+[chaos CJ1] steps=40 applies=12 dives=14 modes=8 resizes=6 paints=24 budget=32
+[chaos CJ2] applies=12 paints=24 bar_refetches_after_first=0
+[chaos CJ3] switches=20 delayed_leg=events.json msft_event_ids=5 leaked_into_AAPL=0
+[chaos CJ4] roundtrip_reading_stable=yes fresh_load_identity_len=75 sideways_scroll=none
+[chaos CJ5] payloads=24 refusals_shown=13 failed_responses=3 outside_designed_absence=0 persisted_hostile_keys=0
+[chaos CJ6] mid_flight_samples=4 composing_paints=0 mixed_identity_vs_events=0
+[chaos CJ7] refusal_shown=true composed_state_preserved=yes refusal_cleared_by_valid_entry=true
+[chaos CJ8] sweep seed=11:steps=14 seed=987654:steps=14 seed=20260819:steps=14 pageerrors=0 cross_origin=0
+  8 passed (8.7s)
+chaos_round2_exit=0
+```
+
+#### Finding F-CHAOS-025-01 — the corpus-pending window states absence as settled fact
+
+Diagnosing the round-1 failures surfaced a defect in the ROUTE, not the harness. `data-run-status`
+becomes `composed` on the synchronous registry paint, while `data-corpus-status` is still `pending`.
+In that window the cockpit renders a DEFINITE absence claim — "15 of 15 mandatory dimensions have
+no usable source in this run" with all four horizons at `none`/`absent` — and no user-visible
+wording anywhere in the body says the corpus is still arriving. The settled truth for the same
+subject is 13 of 15, with three of the four horizons carrying a direction.
+
+The window is not an artefact of injected latency: it was reached with ZERO added delay on a
+local static server, which is what made four round-1 journeys read pre-corpus state. The delay
+below only widens it enough to sample the copy.
+
+This contradicts the repository's own binding product principle that missing data must render as
+unavailable or incomplete and never as a settled reading, and the matching blocking pattern
+"missing data rendered as zero, neutral, or inferred". The machine-readable `data-corpus-status`
+attribute distinguishes the two states; no human-readable surface does.
+
+Severity **P2**. It is transient and self-correcting, it corrupts no data and breaks no workflow,
+but on any real network the window is readable and it overstates absence while it lasts.
+
+```
+$ npx --no-install playwright test <temporary chaos probe> --config=playwright.config.mjs --project=system-chrome --reporter=list
+[probe3] PENDING corpusStatus = pending  runStatus = composed
+[probe3] PENDING coverageLine = 15 of 15 mandatory dimensions have no usable source in this run. Each one names its reason below.
+[probe3] PENDING horizons     = event=none/absent immediate=none/absent structural=none/absent swing=none/absent
+[probe3] PENDING user-visible pending wording present? = false
+[probe3] SETTLED corpusStatus = loaded
+[probe3] SETTLED coverageLine = 13 of 15 mandatory dimensions have no usable source in this run. Each one names its reason below.
+[probe3] SETTLED horizons     = event=flat/thin immediate=constructive/thin structural=none/absent swing=constructive/thin
+  1 passed (16.9s)
+probe3_exit=0
+```
+
+Reproduction: load `company-intelligence-lab.html?symbol=MSFT`, delay `**/data/**` by 2500 ms, wait
+only for `data-run-status=composed`, and read `#cockpit-coverage-line` before `data-corpus-status`
+leaves `pending`.
+
+No bug artifact was created by this phase. Bug artifacts in this repository live under
+`specs/_bugs/`, outside the `specs/025-` path this phase is authorised to stage, so filing one here
+would have breached the staging boundary. The finding is routed to the next owner instead, with the
+reproduction above; it is recorded rather than smoothed over.
+
 ### Cleanup
 
-The temporary harness spec was removed after the round. The route wrote nothing
+The temporary harness and its three diagnostic probes were removed after the round; the working
+tree carries no residual chaos spec. The route wrote nothing
 outside the browser session it owned, the ephemeral static server was closed by the harness
 `afterAll`, and no committed corpus file, registry entry or navigation record was mutated.
 
 ### Handoff
 
-No P0-P3 finding, so no bug artifact and no fix cycle. One durable-coverage recommendation for
+The 2026-08-19 round found no P0-P3 defect. The 2026-08-23 re-execution DID: F-CHAOS-025-01 above
+is a live P2, so the "no finding, no fix cycle" reading of this phase no longer holds. That finding
+needs a bug artifact under `specs/_bugs/` and then a fix; neither is this phase's to create, and
+both are routed rather than performed.
+
+One durable-coverage recommendation stands for
 `bubbles.test`, which owns the committed spec: the J6 probe — sampling the DOM continuously while
 two compositions overlap, and asserting no paint shows one subject's identity beside another
 subject's events — is not covered by the committed suite, which asserts only settled state. It is
 a candidate for promotion into `tests/company-intelligence-lab.spec.mjs`. That promotion is a
-spec-owner decision and was deliberately not made here.
+spec-owner decision and was deliberately not made here. The re-execution adds a second candidate:
+an assertion that the corpus-pending window never renders a settled absence reading.
 
 ## Docs Phase
 

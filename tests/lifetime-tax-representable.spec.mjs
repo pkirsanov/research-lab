@@ -170,3 +170,73 @@ test('Regression: SCN-020-05 the refusing side of the boundary refuses on the ne
   expect(refusalCount,
     'the refusing side of the adjacent-double boundary raises the named refusal').toBeGreaterThan(0);
 });
+
+/* The pair `bug.md` reported and the scenarios name literally. The adjacent-double pair above is
+   the tighter pin and the design says so; these three keep the reported reproduction asserted in
+   its own right, so a reader who follows `bug.md` step for step is following something the suite
+   covers rather than something inferred from a neighbouring value. */
+const REPORTED_REFUSING = '9e307';
+const REPORTED_SETTLING = '8.9e307';
+
+test('Regression: SCN-020-01 the reported pair at 9e307 refuses by name on every dependent stage', async ({ page }) => {
+  await openLifetimeTax(page, site);
+  await declareAt(page, REPORTED_REFUSING);
+  await openPower(page);
+
+  const cells = await page.locator('#settlementStagesBody tr').evaluateAll((nodes) => nodes.map((node) => ({
+    stage: node.children[0] ? node.children[0].textContent : '',
+    value: node.children[1] ? node.children[1].textContent : '',
+    standing: node.children[2] ? node.children[2].textContent : ''
+  })));
+  const dependent = ['CO-1', 'CO-3', 'CO-4', 'CO-5', 'CO-6', 'CO-7', 'CO-8'];
+  dependent.forEach((stageId) => {
+    const row = cells.find((entry) => entry.stage === stageId);
+    expect(row, `stage ${stageId} is rendered at the reported declaration`).toBeTruthy();
+    expect(row.value, `stage ${stageId} refuses by name at the reported declaration`)
+      .toContain('RLTAX-FIGURE-UNREPRESENTABLE');
+    expect(row.standing, `stage ${stageId} carries no rule-status label at the reported declaration`)
+      .not.toContain('enacted-current-law');
+  });
+  const body = await renderedText(page);
+  expect(body, 'the reported refusing pair renders no infinity symbol').not.toContain('\u221e');
+  expect(body, 'the reported refusing pair renders no NaN').not.toMatch(/\bNaN\b/);
+});
+
+test('Regression: SCN-020-02 the settlement header at the reported 9e307 pair names the unrepresentable domain', async ({ page }) => {
+  await openLifetimeTax(page, site);
+  await declareAt(page, REPORTED_REFUSING);
+
+  await expect(page.locator('#truthState')).not.toHaveText('Settled');
+  await expect(page.locator('#truthDetail')).toContainText('income:grossSupportedIncome');
+});
+
+test('Regression: SCN-020-03 the reported settling pair at 8.9e307 is unchanged by the guard', async ({ page }) => {
+  await openLifetimeTax(page, site);
+  await declareAt(page, REPORTED_SETTLING);
+
+  /* The pre-change observation `report.md` records for this declaration is `truth=Settled`, `inf=0`
+     and `nan=0` in both views. Those three are asserted below unchanged. The two clauses after them
+     are STRONGER than what was recorded: every stage carries a figure the formatter produced and
+     the rule standing it came from, which is what "unchanged rounding and rule status" means and
+     what the coarser pre-change record could not have shown. */
+  await expect(page.locator('#truthState')).toHaveText('Settled');
+  const simpleBody = await renderedText(page);
+  await openPower(page);
+  const powerBody = await renderedText(page);
+  [['Simple', simpleBody], ['Power', powerBody]].forEach(([view, body]) => {
+    expect(body, `${view} renders no infinity symbol at the reported settling pair`).not.toContain('\u221e');
+    expect(body, `${view} renders no NaN at the reported settling pair`).not.toMatch(/\bNaN\b/);
+  });
+
+  const cells = await page.locator('#settlementStagesBody tr').evaluateAll((nodes) => nodes.map((node) => ({
+    stage: node.children[0] ? node.children[0].textContent : '',
+    value: node.children[1] ? node.children[1].textContent : '',
+    standing: node.children[2] ? node.children[2].textContent : ''
+  })));
+  expect(cells.map((entry) => entry.stage), 'the stage table rendered').toContain('CO-1');
+  const co1 = cells.find((entry) => entry.stage === 'CO-1');
+  expect(co1.value, 'CO-1 carries a rounded dollar figure rather than a refusal at the reported settling pair')
+    .toMatch(/^\$[\d,]+(\.\d+)?$/);
+  expect(co1.standing, 'CO-1 carries the rule standing it carried before the guard')
+    .toContain('enacted-current-law');
+});

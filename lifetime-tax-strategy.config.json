@@ -11,8 +11,9 @@
     "forbiddenKeyPrefixes": ["rlPortfolio", "rlReturnContext", "rlPortfolioWorkspace"]
   },
   "rules": {
-    "contractVersion": "lifetime-tax-rules-policy/v1",
+    "contractVersion": "lifetime-tax-rules-policy/v2",
     "packPath": "tax-rules/federal/2026.json",
+    "packReadBoundMs": 10000,
     "jurisdiction": "federal",
     "program": "income-tax",
     "declaredTaxYear": 2026,

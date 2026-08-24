@@ -1706,6 +1706,13 @@
             var STATE = window.RLTAXSTATE;
             var COMBINED = window.RLTAXCOMBINED;
 
+            /* BUG-021. Stratum 0: the bound governing the one read that precedes the configuration,
+               taken from the module that owns the configuration contract because the configuration
+               itself has not arrived yet. `boot` promotes this to the declared stratum-1 bound the
+               moment the configuration validates, before any pack read is issued. Never a literal
+               here, and never a fallback there. */
+            var readBoundMs = WORKSPACE.CONFIG_READ_BOUND_MS;
+
             /* Simple may render only decision-level fields. The restriction is a closed list the
                renderer enforces, not a review convention: a field outside it cannot be drawn into
                Simple at all. */
@@ -1763,6 +1770,7 @@
                 benefitPack: null,
                 mortalityPack: null,
                 medicarePack: null,
+                unreadDocuments: [],
                 workspace: null,
                 envelope: null,
                 mode: "simple"
@@ -3232,6 +3240,22 @@
                         + " \u00b7 " + record.retrievalOutcome
                         + (record.retrievalOutcome === "retrieved" ? " " + record.retrievedAt : ""), "microcopy"));
                     sourceHost.appendChild(item);
+                }
+                /* BUG-021 R3. A declared document that did not arrive belongs beside the documents
+                   that did, so the reader sees the absence in the same place they read the
+                   provenance. No figure is substituted for it; the per-domain refusals that name
+                   the unresolved jurisdiction, year or domain are untouched. */
+                for (index = 0; index < state.unreadDocuments.length; index += 1) {
+                    var unread = state.unreadDocuments[index];
+                    var unreadItem = document.createElement("li");
+                    unreadItem.setAttribute("data-rl-unread-document", unread.path);
+                    unreadItem.appendChild(text("span", unread.path, "subtle"));
+                    unreadItem.appendChild(text("div", unread.boundExceeded
+                        ? "This declared document did not arrive within the declared read bound of "
+                            + readBoundMs + " milliseconds. Every domain that depends on it is refused by name."
+                        : "This declared document could not be read. Every domain that depends on it is refused by name.",
+                        "microcopy"));
+                    sourceHost.appendChild(unreadItem);
                 }
             }
 
@@ -5688,12 +5712,48 @@
                 renderPrivacy();
             }
 
+            function readFailure(path, boundExceeded) {
+                var failure = new Error(path);
+                failure.rlDocument = path;
+                failure.boundExceeded = boundExceeded === true;
+                return failure;
+            }
+
+            /* BUG-021. Every declared document is read through here, and until this change none of
+               those reads had a bound of any kind: a pack origin that accepted the request and
+               never answered suspended the boot chain for as long as the tab stayed open. The
+               request is aborted rather than merely abandoned, so nothing is left outstanding, and
+               the rejection reaches the same per-stage handlers a 404 already reaches. `bound` is
+               read into a local before the timer is armed so a read already in flight cannot have
+               its bound changed underneath it by the stratum promotion in `boot`. */
             function loadJson(path) {
-                return window.fetch(path, { cache: "no-store", credentials: "same-origin" })
-                    .then(function (response) {
-                        if (!response.ok) throw new Error(path);
-                        return response.json();
-                    });
+                var controller = new AbortController();
+                var bound = readBoundMs;
+                var timer = window.setTimeout(function () { controller.abort(); }, bound);
+                return window.fetch(path, {
+                    cache: "no-store",
+                    credentials: "same-origin",
+                    signal: controller.signal
+                }).then(function (response) {
+                    window.clearTimeout(timer);
+                    if (!response.ok) throw readFailure(path, false);
+                    return response.json();
+                }, function (readError) {
+                    window.clearTimeout(timer);
+                    throw readFailure(path, !!readError && readError.name === "AbortError");
+                });
+            }
+
+            /* The five optional-pack handlers keep their `return null` contract; this adds the one
+               thing they were missing, which is a record of WHICH document did not arrive. */
+            function recordUnreadDocument(readError) {
+                if (readError && typeof readError.rlDocument === "string") {
+                    state.unreadDocuments.push(Object.freeze({
+                        path: readError.rlDocument,
+                        boundExceeded: readError.boundExceeded === true
+                    }));
+                }
+                return null;
             }
 
             function boot() {
@@ -5737,6 +5797,10 @@
                         return null;
                     }
                     state.config = config;
+                    /* Stratum 1. A plain assignment, issued before any pack read, never
+                       `config.rules.packReadBoundMs || something`: a fallback here would be the
+                       default the declaration exists to replace. */
+                    readBoundMs = config.rules.packReadBoundMs;
                     renderPrivacy();
                     updateExportEnabled();
                     return loadJson(config.rules.packPath).then(function (pack) {
@@ -5763,7 +5827,7 @@
                         return Promise.all(regimeJurisdictions.map(function (jurisdiction) {
                             return loadJson(declaredRegimePaths[jurisdiction]).then(function (regime) {
                                 state.propertyRegimes[jurisdiction] = regime;
-                            }).catch(function () { return null; });
+                            }).catch(recordUnreadDocument);
                         })).then(function () {
                         /* The state packs are DECLARED by the configuration exactly as the federal
                            pack and the regime packs are, and read from this checkout by the same
@@ -5779,7 +5843,7 @@
                         return Promise.all(Object.keys(declaredStatePaths).map(function (jurisdiction) {
                             return loadJson(declaredStatePaths[jurisdiction]).then(function (statePack) {
                                 state.statePacks[jurisdiction] = statePack;
-                            }).catch(function () { return null; });
+                            }).catch(recordUnreadDocument);
                         }));
                         }).then(function () {
                         /* The benefit pack is DECLARED by the configuration, exactly as the rule
@@ -5796,7 +5860,7 @@
                         return Promise.all(Object.keys(declaredBenefitPaths).map(function (year) {
                             return loadJson(declaredBenefitPaths[year]).then(function (benefitPack) {
                                 if (year === String(config.rules.declaredTaxYear)) state.benefitPack = benefitPack;
-                            }).catch(function () { return null; });
+                            }).catch(recordUnreadDocument);
                         }));
                         }).then(function () {
                         /* The mortality pack is DECLARED exactly as the benefit pack is, so the
@@ -5808,7 +5872,7 @@
                         return Promise.all(Object.keys(declaredMortalityPaths).map(function (year) {
                             return loadJson(declaredMortalityPaths[year]).then(function (mortalityPack) {
                                 if (year === String(config.rules.declaredTaxYear)) state.mortalityPack = mortalityPack;
-                            }).catch(function () { return null; });
+                            }).catch(recordUnreadDocument);
                         }));
                         }).then(function () {
                         /* The medicare pack is DECLARED exactly as the benefit and mortality packs
@@ -5819,7 +5883,7 @@
                         return Promise.all(Object.keys(declaredMedicarePaths).map(function (year) {
                             return loadJson(declaredMedicarePaths[year]).then(function (medicarePack) {
                                 if (year === String(config.rules.declaredTaxYear)) state.medicarePack = medicarePack;
-                            }).catch(function () { return null; });
+                            }).catch(recordUnreadDocument);
                         }));
                         }).then(function () {
                         var stored = WORKSPACE.readWorkspace(window.localStorage, state.config);
@@ -5846,10 +5910,19 @@
                         document.body.setAttribute("data-rl-simple-fields", SIMPLE_FIELDS.join(","));
                         });
                     });
-                }).catch(function () {
-                    bootFailure(RULES.unavailable("RLTAX-CONFIG-INVALID", "config:load",
-                        "the mandatory configuration or the declared rule pack could not be read from this origin",
-                        "serve this page from a checkout that carries lifetime-tax-strategy.config.json and the declared rule pack"));
+                }).catch(function (readError) {
+                    /* One handler, two failure modes, one outcome. A read that exceeded its bound
+                       and a read that 404ed are the same event here, which is why BUG-021 added no
+                       refusal branch; all this adds is the name of the document and the reason. */
+                    var document_ = readError && typeof readError.rlDocument === "string"
+                        ? readError.rlDocument
+                        : "the mandatory configuration or the declared rule pack";
+                    var why = readError && readError.boundExceeded === true
+                        ? "did not arrive within the declared read bound of " + readBoundMs + " milliseconds"
+                        : "could not be read from this origin";
+                    bootFailure(RULES.unavailable("RLTAX-CONFIG-INVALID", "config:load:" + document_,
+                        document_ + " " + why,
+                        "serve this page from a checkout that carries lifetime-tax-strategy.config.json and the declared rule pack, from an origin that answers within the declared bound"));
                     document.body.setAttribute("data-rl-tax-state", "config-blocked");
                 });
             }

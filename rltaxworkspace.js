@@ -24,6 +24,14 @@
   var INVENTORY_CONTRACT = "lifetime-tax-privacy-inventory/v1";
   var CONFIG_CONTRACT = "lifetime-tax-strategy-policy/v1";
 
+  /* The bound on the ONE read that precedes the configuration: the read of the configuration
+     itself. It cannot come from the configuration, because that document has not arrived yet.
+     It lives here because this module already owns what a configuration must be, and it is a
+     declaration rather than a default — it stands in for nothing, and its absence is a module
+     defect rather than a quietly filled hole. Every other read is bounded by the declared
+     rules.packReadBoundMs. See BUG-021 design.md, "How the circularity is resolved". */
+  var CONFIG_READ_BOUND_MS = 10000;
+
   var TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 
   var CONFIG_TOP_FIELDS = Object.freeze(["contractVersion", "display", "rules", "storage", "sweep"]);
@@ -35,7 +43,7 @@
     rules: Object.freeze([
       "benefitPackPaths", "contractVersion", "declaredTaxYear", "jurisdiction", "medicarePackPaths",
       "mortalityPackPaths",
-      "packContentSha256", "packPath", "program", "propertyPackPaths", "statePackPaths"
+      "packContentSha256", "packPath", "packReadBoundMs", "program", "propertyPackPaths", "statePackPaths"
     ]),
     sweep: Object.freeze([
       "contractVersion", "end", "kinds", "maxPoints", "probe", "start", "step"
@@ -47,7 +55,7 @@
   });
   var CONFIG_SECTION_VERSIONS = Object.freeze({
     storage: "lifetime-tax-storage-policy/v1",
-    rules: "lifetime-tax-rules-policy/v1",
+    rules: "lifetime-tax-rules-policy/v2",
     sweep: "lifetime-tax-sweep-policy/v1",
     display: "lifetime-tax-display-policy/v1"
   });
@@ -274,6 +282,15 @@
           refusals.push(configRefusal("storage.keys", "every declared storage key must sit inside the declared namespace"));
           break;
         }
+      }
+    }
+    if (isPlainObject(config.rules)) {
+      /* The first value check this section carries. The key-set comparison above already refuses a
+         document without the member; this refuses one that carries it as a non-number, as zero or
+         as a negative, each of which would arm a timer that fires at once or never. */
+      if (!Number.isFinite(config.rules.packReadBoundMs) || config.rules.packReadBoundMs <= 0) {
+        refusals.push(configRefusal("rules.packReadBoundMs",
+          "the declared document read bound must be a finite number of milliseconds greater than zero"));
       }
     }
     if (isPlainObject(config.sweep)) {
@@ -822,6 +839,7 @@
 
   var api = Object.freeze({
     BASIS_CONTAINERS: BASIS_CONTAINERS,
+    CONFIG_READ_BOUND_MS: CONFIG_READ_BOUND_MS,
     NEVER_COLLECTED: NEVER_COLLECTED,
     PROPERTY_DECLARATIONS: PROPERTY_DECLARATIONS,
     PROPERTY_STRING_DECLARATIONS: PROPERTY_STRING_DECLARATIONS,

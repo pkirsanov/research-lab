@@ -1,0 +1,72 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-019-claim-ages-below-statutory-earliest-priced-as-settled",
+  "featureName": "BUG-019 Claim Ages Below The Statutory Earliest Age Are Priced As Settled",
+  "createdAt": "2026-08-23T00:00:00Z",
+  "lastUpdatedAt": "2026-08-23T00:00:00Z",
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "priorBlockedReason": null,
+  "blockedReasonResolved": null,
+  "crossFeatureEditAuthorization": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "priorPlanningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/024-social-security-and-medicare",
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "bf56460a8",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md"
+  },
+  "execution": {
+    "activeAgent": null,
+    "currentPhase": "chaos",
+    "currentPhaseStatus": "complete",
+    "phaseReconciliation": null,
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-23T00:00:00Z",
+    "completedAt": null,
+    "substate": "filed",
+    "currentScope": null,
+    "nextRequiredOwner": "bubbles.plan, to decide the two pack-contract questions in design.md before any code is written; then bubbles.implement for Scopes 1 to 3; then a human for the uservalidation.md Human Acceptance Record",
+    "nextRequiredTarget": "specs/_bugs/BUG-019-claim-ages-below-statutory-earliest-priced-as-settled/design.md#open-questions-for-the-owner",
+    "nextRequiredReason": "Scope 2 cannot be implemented before Scope 1, and Scope 1 cannot be implemented before the owner decides where the earliest claim age lives in the pack contract and whether the sub-zero band refuses under the same code as the priced band. Both questions change the shape of every future benefit pack, so they are not an implementer's call. A third question, whether the delayed-credit clamp should be disclosed as a note or as a refusal, is lower stakes but is recorded in the same place because the figure at the stopping age is genuinely correct and refusing it would withhold a true answer. The fix that must NOT be taken is recorded too: clamping the reduction total at the pack's stated maximum would price a claim at 60 as a claim at 62, which replaces one wrong number with another.",
+    "phaseClaimNote": "currentPhase is 'chaos' with substate 'filed'. The round that produced this packet executed roughly 950 browser actions against a locally served copy of lifetime-tax-strategy-lab.html on --project=chromium, across adversarial numeric input, rapid mode toggling, out-of-order declaration, rapid repeated interaction, workspace persistence and clearing, and the pack refusal surface. It changed no shipped file, no module, no rule pack and no committed test. The temporary Playwright drivers it wrote were removed at the end of the round, which is why report.md states its reproduction as route steps and declares the one omission it made from a verbatim capture: two Playwright header lines naming a driver that no longer exists were left out, because a committed artifact naming a tests/ path that does not exist is itself a defect the repository's spec-test-path validator catches. No observed value was altered. One defect was reproduced deterministically and is filed here. The round's negative results are recorded in report.md '## What Was Not Established' rather than as a claim of coverage.",
+    "executionHistory": [
+      {
+        "phase": "chaos",
+        "agent": "bubbles.chaos",
+        "startedAt": "2026-08-23T00:00:00Z",
+        "completedAt": "2026-08-23T00:00:00Z",
+        "durationUnmeasured": true,
+        "durationUnmeasuredReason": "The round was driven interactively across many separate browser runs rather than as one timed invocation, so no single elapsed measurement describes it and none is asserted.",
+        "outcome": "completed_owned",
+        "summary": "Stochastic chaos round against the Lifetime Tax Strategy Lab route. One defect reproduced deterministically and filed as this packet. No shipped file changed."
+      }
+    ],
+    "transitionQueue": [],
+    "reworkQueue": []
+  },
+  "certification": {
+    "status": "in_progress",
+    "certifiedBy": null,
+    "certifiedAt": null,
+    "assuranceLevel": null,
+    "evidence": null
+  },
+  "policySnapshot": {
+    "capturedAt": "2026-08-23T00:00:00Z",
+    "source": "bubbles.chaos filing"
+  }
+}

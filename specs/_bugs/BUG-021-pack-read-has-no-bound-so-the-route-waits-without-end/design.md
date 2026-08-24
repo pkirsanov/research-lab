@@ -174,7 +174,8 @@ refuse an old document, so the bump buys no extra refusal — it buys honesty. A
 contracts, and leaving both stamped `/v1` makes the version string false for one
 of them. The string exists so a reader of the document can tell which contract it
 satisfies. The change costs two lines: this one and `CONFIG_SECTION_VERSIONS` in
-`rltaxworkspace.js`, which are the only two occurrences in the repository.
+`rltaxworkspace.js`, which are the only two shipped-file occurrences of that
+version string.
 
 ### C2 — the expected key set
 

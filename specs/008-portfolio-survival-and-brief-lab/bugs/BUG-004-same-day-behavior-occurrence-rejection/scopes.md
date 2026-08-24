@@ -5,12 +5,14 @@
 **Packet status:** `in_progress`
 **Next required owner:** `bubbles.validate`
 
-The projection repair is committed at `a59e38d71` and eleven of twelve
-Definition of Done items now carry executed current-session evidence. The Change
-Boundary was widened to the delivered product source set in this invocation,
-which closes G-3. Certification is still not claimed: `certification.*` is owned
-by `bubbles.validate`, and the Build Quality Gate (G-4) remains unchecked. See
-`report.md#remaining-open-2026-08-24-closeout` for the originating gap list.
+The projection repair is committed at `a59e38d71` and thirteen of fourteen
+Definition of Done items now carry executed evidence. This planning invocation
+added one faithful DoD item per Gherkin scenario (closing G068), restated the
+containment item in the canonical change-boundary form, and enumerated the
+excluded surfaces. Certification is still not claimed: `certification.*` is
+owned by `bubbles.validate`, and the Build Quality Gate (G-4) remains
+unchecked. See `report.md#remaining-open-2026-08-24-closeout` for the
+originating gap list.
 
 ## Scope 1 - Preserve Occurrences Without Relevance Inflation
 
@@ -21,26 +23,56 @@ by `bubbles.validate`, and the Build Quality Gate (G-4) remains unchecked. See
 
 ### Change Boundary
 
-Allowed owned paths by execution order:
+Allowed file families, by execution order and owning agent:
 
-- `specs/008-portfolio-survival-and-brief-lab/design.md` for `bubbles.design`;
-- `tests/portfolio-foundation.unit.mjs`,
+- Parent design prose — `specs/008-portfolio-survival-and-brief-lab/design.md`,
+  owned by `bubbles.design`;
+- Product source — `rlportfolio.js` and `rlportfoliobrief.js`, owned by
+  `bubbles.implement`. These are the ONLY two product files in the boundary;
+- Node test carriers — `tests/portfolio-foundation.unit.mjs`,
   `tests/portfolio-behavior-occurrence.unit.mjs`, and
-  `tests/portfolio-brief.functional.mjs` for `bubbles.test`;
-- `rlportfolio.js` and `rlportfoliobrief.js` for `bubbles.implement`;
-- `tests/portfolio-survival-foundation.spec.mjs` for `bubbles.test`.
+  `tests/portfolio-brief.functional.mjs`, owned by `bubbles.test`;
+- Browser test carrier — `tests/portfolio-survival-foundation.spec.mjs`, owned
+  by `bubbles.test`;
+- This bug packet's own artifacts — `bug.md`, `spec.md`, `design.md`,
+  `scopes.md`, `report.md`, `uservalidation.md`, `scenario-manifest.json`,
+  `state.json`, each owned by its declared agent.
 
 `rlportfoliobrief.js` is inside the boundary because the relevance-scoring loop
 lives there, so a storage-only dedupe confined to `rlportfolio.js` would still
 let a repeat same-day occurrence buy unearned relevance — it inflated
 `evidenceScore` from `1.6062` to `2.4094` and flipped `finalRankedOrder`
-(`report.md:692`). The semantic collapse is applied at
-`rlportfoliobrief.js:461`. This widens the boundary to exactly the two product
-source files `a59e38d71` touched and no further.
+(`report.md:692`). The repair therefore has two halves: storage
+(`rlportfolio.js:2294`, called at `2479`, exported at `4947`) and relevance
+scoring (`rlportfoliobrief.js:331`, called at `408`, with
+`portfolio.dedupeBehaviorEvents` applied at `461` directly above the
+`bucket.score` accumulation). `git show --stat a59e38d71` lists exactly two
+product source files — `rlportfolio.js` (18 lines) and `rlportfoliobrief.js`
+(53 lines) — so the boundary is the delivered set and no wider.
+
+Excluded surfaces (MUST remain untouched; collateral cleanup is opt-in, not
+implicit):
+
+- Every other tool source file at the repository root, including
+  `rlbrief.js`, `rldata.js`, `rlapp.js`, `rlnav.js`, `rlchart.js`,
+  `rlticker.js`, `rlg.js`, and every `*.html` tool page;
+- `tools.json`, `index.html`, and the navigation registry — no tool is being
+  added, removed, or re-registered by this repair;
+- `scripts/selftest.mjs` and every other repository check script — the selftest
+  is a carrier to be run, never a surface to be relaxed;
+- The concurrent `BUG-003-behavior-dedup-contradicts-occurrence-model` packet
+  and all of its artifacts;
+- Every Playwright carrier other than
+  `tests/portfolio-survival-foundation.spec.mjs`, including the seven other
+  Feature 008 browser specs, which are run as regression and not edited;
+- Every other `specs/` packet, including the parent feature's own `spec.md`,
+  `scopes.md`, `report.md`, and `state.json`;
+- Committed data snapshots under `data/` and every brief payload or history
+  file.
 
 The existing uncommitted candidate and test hunks are protected concurrent
-work. The concurrent `BUG-003-behavior-dedup-contradicts-occurrence-model`
-packet is excluded. Every other dirty path is also excluded.
+work and are preserved rather than reverted. Every dirty path outside the
+allowed families above is excluded.
 
 ### Gherkin Scenarios
 
@@ -86,6 +118,53 @@ Scenario: SCN-B004-SEMANTIC-ANTI-INFLATION
 
 #### Core Items
 
+- [x] `SCN-B004-OCCURRENCE-ADMISSION` holds: given one stored occurrence for a
+  valid semantic completion, the same semantic completion at another instant on
+  the same New York civil date is stored as a distinct occurrence, and an exact
+  repeated occurrence is rejected.
+      Evidence: `report.md#tp-b004-002` — Exit Code 0, `tests 5`, `pass 5`,
+      `fail 0`, `skipped 0`. Both halves of the scenario's Then clause are
+      separate green rows in that one run: "a later same-civil-day completion is
+      a distinct occurrence under one semantic identity" (admission) and "an
+      exact occurrence repeat is still refused as a duplicate" (rejection). The
+      pair is discriminating rather than vacuous because the fifth row in the
+      same file reinstates the superseded content-plus-civil-day predicate and
+      requires the accepted-occurrence assertion to turn red. The earlier
+      4-pass/1-fail red receipt for the same file against the pre-repair
+      projection is preserved at
+      `report.md#post-edit-focused-bug-004-carrier`, so the green is a genuine
+      transition. Live-stack confirmation of the same admission claim is at
+      `report.md#g2-same-civil-day-browser`, where the browser row reports
+      `anchorCivilDate` equal to `repeatCivilDate=2026-05-05` and
+      `eligibleOccurrencesBefore=4` moving to `eligibleOccurrencesAfter=5`,
+      proving the second same-civil-date occurrence was stored and not
+      collapsed.
+- [x] `SCN-B004-SEMANTIC-ANTI-INFLATION` holds: given a baseline stream and an
+  augmented stream that adds occurrences of one existing semantic identity, the
+  augmented stream retains more audit occurrences while score, floor state,
+  relevance band, supporting identities, and canonical order equal the baseline.
+      Evidence: `report.md#tp-b004-003-red-green` — the discriminating pair was
+      executed in this packet. RED at the pre-repair parent `a59e38d71^` in an
+      isolated detached worktree: Exit Code 1, `pass 0`, `fail 1`, failing on
+      "the fixture must append genuinely new evidence, not collapse into a
+      duplicate", capture sha256
+      `e674e8548b8313eb39d8489bf9742c69d7386bbe65eae1228c979f9d242d8661`. GREEN
+      at `HEAD`: Exit Code 0, `tests 1`, `pass 1`, `fail 0`, capture sha256
+      `2bbd09ecfae14c6bd87e9e7e11d7bcd3caa7f1802237c0d477b0c2bdb423d3b2`. The
+      invariance itself is asserted field-by-field at `report.md#tp-b004-002`:
+      a full `deepEqual` over `evidenceScore`, `semanticScore`,
+      `floorEligibility` (`distinctCompletionIdentities`,
+      `distinctNewYorkCivilDates`, `floorSatisfied`, `relevanceBand`),
+      `supportingSemanticIdentities`, `semanticEvidenceContribution`,
+      `signalIdentity`, `candidateActionIdentities`, `rankIdentity`, and
+      `finalRankedOrder`, with three `notEqual`/`notDeepEqual` controls proving
+      a genuinely distinct third-date completion still moves all three, so the
+      equality is not asserted on a dead projection. The exact inflation this
+      scenario forbids is recorded pre-repair at `report.md:692`:
+      `evidenceScore` `1.6062` to `2.4094`, `finalRankedOrder` flipping from
+      `comparison-research, equity-research` to `equity-research,
+      comparison-research`.
+
 - [x] Parent design separates exact-occurrence storage from semantic relevance
   de-duplication without changing SCN-008-044.
       Evidence: `report.md#design-reconciled` — `git log` shows the parent
@@ -111,8 +190,8 @@ Scenario: SCN-B004-SEMANTIC-ANTI-INFLATION
       `signalIdentity`, `candidateActionIdentities`, `rankIdentity`, and
       `finalRankedOrder`, with three `notEqual`/`notDeepEqual` controls proving
       a genuinely distinct third-date completion still moves all three.
-- [x] The change boundary is respected and every pre-existing dirty path is
-  preserved.
+- [x] Change Boundary is respected and zero excluded file families were changed
+  — every pre-existing dirty path is also preserved.
   Historical evidence (preserved verbatim; it records the boundary before
   this planning reconciliation):
   Evidence: OPEN, routed to `bubbles.plan`; see
@@ -148,6 +227,15 @@ Scenario: SCN-B004-SEMANTIC-ANTI-INFLATION
       `tests/portfolio-survival-foundation.spec.mjs`, both already authorized
       for `bubbles.test`. No path outside the declared boundary is dirty, and no
       pre-existing dirty path was reverted. Closes finding `BUG-004-G3`.
+      Excluded-surface half: the Change Boundary above now enumerates the
+      excluded surfaces explicitly — every other root tool source and `*.html`
+      page, `tools.json`/`index.html`/the navigation registry,
+      `scripts/selftest.mjs` and the other check scripts, the concurrent
+      `BUG-003` packet, the seven non-owned Feature 008 Playwright carriers,
+      every other `specs/` packet including the parent feature's own artifacts,
+      and committed `data/` snapshots. The `git show --stat a59e38d71` file list
+      above intersects that excluded set at zero paths, so no excluded family
+      was changed.
 - [x] `TP-B004-001` focused unit regression passes with current-session
   evidence in `report.md#tp-b004-001`.
       Evidence: `report.md#closeout-lanes-2026-08-24` — the exact planned
@@ -245,16 +333,19 @@ Scenario: SCN-B004-SEMANTIC-ANTI-INFLATION
       `certification.*` is owned by `bubbles.validate` and was not written by
       `bubbles.implement`.
 
-Eleven of twelve Definition of Done items are checked with executed
-current-session evidence. `TP-B004-003` (G-1) and the scenario-specific E2E item
-(G-2) closed in the preceding `bubbles.implement` invocation, the first on a
-RED-to-GREEN pair and the second on live paired controls. The Change Boundary
-item (G-3) closed in this `bubbles.plan` invocation, once the boundary was
-widened to `rlportfoliobrief.js` — the second product source file the fix
-touches, and the file that owns the relevance-scoring loop. One item remains
-unchecked: the Build Quality Gate (G-4), which needs `bubbles.validate`
-certification and is not `bubbles.plan` content. The scope is therefore not
-Done.
+Thirteen of fourteen Definition of Done items are checked with executed
+evidence. `TP-B004-003` (G-1) and the scenario-specific E2E item (G-2) closed in
+the preceding `bubbles.implement` invocation, the first on a RED-to-GREEN pair
+and the second on live paired controls. This `bubbles.plan` invocation closed
+three plan-owned gaps: both Gherkin scenarios now have a faithful DoD item that
+cites the scenario id and resolves to executed evidence already filed in
+`report.md` (G068); the containment item is restated in the canonical
+`Change Boundary is respected and zero excluded file families were changed`
+form; and the Change Boundary now enumerates allowed file families and excluded
+surfaces separately. No new evidence was manufactured here — every citation
+points at a receipt that already existed. One item remains unchecked: the Build
+Quality Gate (G-4), which needs `bubbles.validate` certification and is not
+`bubbles.plan` content. The scope is therefore not Done.
 
 The user-authorized routing/finding mirror in `state.json` now records
 `nextRequiredOwner: bubbles.validate`, lists G-3 in `addressedFindings`, and

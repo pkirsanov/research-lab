@@ -652,7 +652,16 @@ test('Regression: SCN-027-004 the active subject is readable as page text and in
     await openWithQuery(page, '?ticker=NVDA');
     await openNativeResearchSurface(page);
     const named = page.locator('#simpleView [data-asset-name], #powerView [data-asset-name]').first();
-    await expect(named).toHaveText('NVDA');
+    /* The RLTKR decorator injects an "Explain <ticker>" affordance button after every KNOWN
+     * ticker, so this node renders as "NVDA?" wherever that decorator has run — which depends on
+     * the shared cache and so differs between a local run and CI. Strip ONLY those injected
+     * buttons: the subject itself must still render verbatim as page text, which is the claim. */
+    const namedText = () => named.evaluate((node) => {
+      const clone = node.cloneNode(true);
+      clone.querySelectorAll('.rltkr-context').forEach((button) => button.remove());
+      return (clone.textContent || '').trim();
+    });
+    await expect.poll(namedText).toBe('NVDA');
     expect(await named.evaluate((node) => node.closest('canvas') === null)).toBe(true);
     const option = page.locator('#assetSelect option[value="NVDA"]');
     await expect(option).toHaveCount(1);

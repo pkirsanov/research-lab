@@ -39,7 +39,7 @@
       "businessScenario": "BS-027-001",
       "scopeId": "02-catalog-bound-receiving-routes",
       "scope": 2,
-      "status": "not_started",
+      "status": "done",
       "title": "A company-scoped owner opens on the company that was being read",
       "gherkin": {
         "given": "the researcher is reading a company on the company intelligence route and the dimension's owner route can resolve a company subject",
@@ -67,15 +67,20 @@
         "2.3",
         "2.9"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/volatility-sizing-lab.spec.mjs#Regression: SCN-027-001 ?ticker=NVDA selects NVDA in the asset select and names it on screen",
+        "tests/options-flow-feed-lab.spec.mjs#Regression: SCN-027-001 ?ticker=NVDA renders a focus band naming NVDA with its flagged-strike count and call-versus-put premium split"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-027-002",
       "businessScenario": "BS-027-002",
       "scopeId": "02-catalog-bound-receiving-routes",
       "scope": 2,
-      "status": "not_started",
+      "status": "done",
       "title": "The link outranks whatever the tool remembered",
       "gherkin": {
         "given": "an owner route remembers a different company from a previous visit",
@@ -109,15 +114,19 @@
       "testRows": [
         "2.11"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/options-flow-feed-lab.spec.mjs#Regression: SCN-027-002 a link outranks saved state for this visit and the linked subject is absent from localStorage afterwards"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-027-003",
       "businessScenario": "BS-027-003",
       "scopeId": "02-catalog-bound-receiving-routes",
       "scope": 2,
-      "status": "not_started",
+      "status": "done",
       "title": "A scanner focuses the named company without hiding the scan",
       "gherkin": {
         "given": "the owner route presents many companies at once",
@@ -143,15 +152,19 @@
       "testRows": [
         "2.10"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/options-flow-feed-lab.spec.mjs#Regression: SCN-027-003 the focus band is present and the feed, table and by-ticker row counts equal the unlinked baseline exactly"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-027-004",
       "businessScenario": "BS-027-004",
       "scopeId": "02-catalog-bound-receiving-routes",
       "scope": 2,
-      "status": "not_started",
+      "status": "done",
       "title": "The reader can always tell which company is shown",
       "gherkin": {
         "given": "the researcher has arrived on an owner route through a deep link",
@@ -187,15 +200,20 @@
         "2.4",
         "2.12"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/volatility-sizing-lab.spec.mjs#Regression: SCN-027-004 the active subject is readable as page text and in the accessibility tree, not only inside a chart",
+        "tests/options-flow-feed-lab.spec.mjs#Regression: SCN-027-004 the focus band names the active subject as page text rather than only in a table cell"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-027-005",
       "businessScenario": "BS-027-005",
       "scopeId": "02-catalog-bound-receiving-routes",
       "scope": 2,
-      "status": "not_started",
+      "status": "done",
       "title": "No parameter means today's behaviour",
       "gherkin": {
         "given": "a receiving owner route",
@@ -224,15 +242,20 @@
         "2.2",
         "2.8"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/volatility-sizing-lab.spec.mjs#Regression: SCN-027-005 with no subject parameter the first-paint DOM and the computed decision are identical to the pre-feature baseline",
+        "tests/options-flow-feed-lab.spec.mjs#Regression: SCN-027-005 with no subject parameter the verdict text, feed row count and order, default-sort table order, by-ticker order, status line and persisted-state round trip match the captured pre-change baseline"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-027-006",
       "businessScenario": "BS-027-006",
       "scopeId": "01-shared-subject-handoff-rule",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "An empty subject is the same as no subject",
       "gherkin": {
         "given": "a receiving owner route",
@@ -270,15 +293,21 @@
         "1.18",
         "2.7"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "scripts/selftest.mjs#Feature 027: a missing, empty and whitespace-only subject all yield status absent with subject null",
+        "tests/options-structure-lab.spec.mjs#Regression: SCN-027-006 no parameter, an empty parameter and a whitespace parameter render identical first paints",
+        "tests/gamma-trading-lab.spec.mjs#Regression: SCN-027-006 no parameter, an empty parameter and a whitespace parameter render identical first paints"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-027-007",
       "businessScenario": "BS-027-007",
       "scopeId": "01-shared-subject-handoff-rule",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "Existing query parameters keep their meaning",
       "gherkin": {
         "given": "an owner route that already accepted its own query parameters",
@@ -308,15 +337,19 @@
       "testRows": [
         "1.2"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "scripts/selftest.mjs#Feature 027: linkedSubject reads only SUBJECT_PARAM and ignores every other key in the query string"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-027-008",
       "businessScenario": "BS-027-008",
       "scopeId": "02-catalog-bound-receiving-routes",
       "scope": 2,
-      "status": "not_started",
+      "status": "done",
       "title": "A certified feature's accepted behaviour is re-proved",
       "gherkin": {
         "given": "a receiving route belongs to a feature that was already accepted",
@@ -342,15 +375,19 @@
       "testRows": [
         "2.1"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/volatility-sizing-lab.spec.mjs"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-027-009",
       "businessScenario": "BS-027-009",
       "scopeId": "01-shared-subject-handoff-rule",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "A malformed subject is refused and the tool still works",
       "gherkin": {
         "given": "an owner route is opened with a subject value that is not an acceptable company identifier",
@@ -387,15 +424,21 @@
         "1.11",
         "1.15"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "scripts/selftest.mjs#Feature 027: every value in the adversarial corpus yields status refused with subject null and raw null",
+        "tests/options-structure-lab.spec.mjs#Regression: SCN-027-009 a refused subject leaves the default subject active and every control usable",
+        "tests/gamma-trading-lab.spec.mjs#Regression: SCN-027-009 a refused subject leaves the default subject active and every control usable"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-027-010",
       "businessScenario": "BS-027-010",
       "scopeId": "01-shared-subject-handoff-rule",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "A crafted value never reaches the page",
       "gherkin": {
         "given": "an owner route is opened with a subject value carrying a scheme, markup, or a control character",
@@ -442,15 +485,22 @@
         "2.7",
         "3.11"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "scripts/selftest.mjs#Feature 027: every value in the adversarial corpus yields status refused with subject null and raw null",
+        "tests/options-structure-lab.spec.mjs#Regression: SCN-027-010 no adversarial corpus value appears in the body, in any attribute or in localStorage",
+        "tests/gamma-trading-lab.spec.mjs#Regression: SCN-027-010 no adversarial corpus value appears in the body, in any attribute or in localStorage",
+        "tests/volatility-sizing-lab.spec.mjs#Regression: SCN-027-010 no adversarial corpus value appears in the body, in any attribute or in localStorage, and empty and whitespace parameters match the no-parameter paint"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-027-011",
       "businessScenario": "BS-027-011",
       "scopeId": "01-shared-subject-handoff-rule",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "The reader is told the subject was not accepted",
       "gherkin": {
         "given": "an owner route refused the subject named in the link",
@@ -486,15 +536,21 @@
         "1.12",
         "1.16"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/options-structure-lab.spec.mjs#Regression: SCN-027-011 the notice states that the link named a subject it could not accept and which subject is shown",
+        "tests/gamma-trading-lab.spec.mjs#Regression: SCN-027-011 the notice states that the link named a subject it could not accept and which subject is shown",
+        "tests/options-structure-lab.spec.mjs#Regression: SCN-027-006 no parameter, an empty parameter and a whitespace parameter render identical first paints"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-027-012",
       "businessScenario": "BS-027-012",
       "scopeId": "02-catalog-bound-receiving-routes",
       "scope": 2,
-      "status": "not_started",
+      "status": "done",
       "title": "A valid company with no data is named as unavailable",
       "gherkin": {
         "given": "an owner route is opened with an acceptable company it holds no data for",
@@ -532,15 +588,20 @@
         "2.15",
         "2.16"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/volatility-sizing-lab.spec.mjs#Regression: SCN-027-012 an acceptable company outside the eleven-asset universe is named as unavailable and the default asset stays fully computed",
+        "tests/options-flow-feed-lab.spec.mjs#Regression: SCN-027-012 a covered ticker with no flagged strike and an uncovered ticker render two distinct named statements, neither blank"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-027-013",
       "businessScenario": "BS-027-013",
       "scopeId": "02-catalog-bound-receiving-routes",
       "scope": 2,
-      "status": "not_started",
+      "status": "done",
       "title": "A refusal never leaves the tool half-configured",
       "gherkin": {
         "given": "an owner route began applying a subject and then refused it",
@@ -575,15 +636,20 @@
         "2.6",
         "2.14"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/volatility-sizing-lab.spec.mjs#Regression: SCN-027-013 after a refusal every control reflects one single subject and none reflects the refused value",
+        "tests/options-flow-feed-lab.spec.mjs#Regression: SCN-027-013 a refused subject leaves the scan unchanged and every control reflecting one subject"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-027-014",
       "businessScenario": "BS-027-014",
       "scopeId": "03-registry-declarations-and-bare-reasons",
       "scope": 3,
-      "status": "not_started",
+      "status": "done",
       "title": "A market-scoped owner stays a bare link",
       "gherkin": {
         "given": "a dimension whose owner route answers a market-wide question",
@@ -619,15 +685,20 @@
         "3.6",
         "3.10"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#a market-scoped row composes a bare href and its statement says the owner answers a market-wide question",
+        "tests/company-intelligence-lab.spec.mjs#Regression: SCN-027-014 every bare owner row renders its stated reason beside the link on both the coverage table and the dimension card"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-027-015",
       "businessScenario": "BS-027-015",
       "scopeId": "03-registry-declarations-and-bare-reasons",
       "scope": 3,
-      "status": "not_started",
+      "status": "done",
       "title": "A route with no company subject stays bare and says why",
       "gherkin": {
         "given": "a dimension whose owner route has no company subject concept",
@@ -663,15 +734,20 @@
         "3.6",
         "3.10"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#a fixed-subject row composes a bare href and its statement says the owner opens on its own subject",
+        "tests/company-intelligence-lab.spec.mjs#Regression: SCN-027-014 every bare owner row renders its stated reason beside the link on both the coverage table and the dimension card"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-027-016",
       "businessScenario": "BS-027-016",
       "scopeId": "03-registry-declarations-and-bare-reasons",
       "scope": 3,
-      "status": "not_started",
+      "status": "done",
       "title": "A declaration without a reader is refused",
       "gherkin": {
         "given": "a registry row declares a subject parameter",
@@ -709,15 +785,21 @@
         "3.3",
         "3.8"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#a row with an ownerDeepLink declaring neither ownerSubjectParam nor ownerBareReason raises C025-CONFIG-SCHEMA naming its dimension id",
+        "tests/company-intelligence.unit.mjs#a row declaring both ownerSubjectParam and ownerBareReason raises C025-CONFIG-SCHEMA naming its dimension id",
+        "tests/company-intelligence.unit.mjs#an ownerBareReason outside the closed enum, and an ownerBareReason on a row with no ownerDeepLink, each raise C025-CONFIG-SCHEMA"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-027-017",
       "businessScenario": "BS-027-017",
       "scopeId": "01-shared-subject-handoff-rule",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "One convention across every subject-carrying route",
       "gherkin": {
         "given": "more than one route carries a company subject",
@@ -757,15 +839,21 @@
         "1.10",
         "3.7"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "scripts/selftest.mjs#Feature 027: the shared rule and the removed private rule agree on the full corpus, so the precedent accept-set is unchanged",
+        "scripts/selftest.mjs#Feature 027: exactly one definition of the linked-subject rule exists in the tree and every subject-carrying route consumes it",
+        "tests/gamma-trading-lab.spec.mjs#Regression: SCN-027-009 a refused subject leaves the default subject active and every control usable"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-027-018",
       "businessScenario": "BS-027-018",
       "scopeId": "03-registry-declarations-and-bare-reasons",
       "scope": 3,
-      "status": "not_started",
+      "status": "done",
       "title": "The upstream promise becomes satisfiable",
       "gherkin": {
         "given": "every owner route that can resolve a company now reads the shared subject parameter and every row for those routes declares it",
@@ -801,8 +889,14 @@
         "3.9",
         "3.10"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#every declared ownerSubjectParam is the single shared parameter name and no second convention exists",
+        "tests/company-intelligence-lab.spec.mjs#Regression: SCN-027-018 every subject-carrying owner link opens its owner route on the company being read",
+        "tests/company-intelligence-lab.spec.mjs#Regression: SCN-027-014 every bare owner row renders its stated reason beside the link on both the coverage table and the dimension card"
+      ],
+      "evidenceRefs": [
+        "report.md#test-evidence"
+      ]
     }
   ]
 }

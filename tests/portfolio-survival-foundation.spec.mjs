@@ -682,7 +682,10 @@ const BEHAVIOR_EMPTY_INFLUENCE = 'Behavior-derived ranking influence · none';
  * that left it alone. Neither string carries a behavior subject, so the origin-request and
  * rendered-block sweeps at the end of the row stay meaningful. */
 const PRESERVED_SESSION_FALLBACK = JSON.stringify({ sentinel: 'session-fallback-must-survive-behavior-clear' });
-const PRESERVED_RETURN_CONTEXT = JSON.stringify({ sentinel: 'return-context-must-survive-behavior-clear' });
+/* Assigned from the real writer below, not hand-stocked. Scope 26 made `rlnav.js` discard any
+ * record that fails validation on read, so a hand-written sentinel is deleted before the clear
+ * ever runs and could never prove preservation. */
+let PRESERVED_RETURN_CONTEXT = null;
 
 test('Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio', async ({ page }) => {
   /* The declared evidence floor is two distinct completions on two distinct UTC dates. A run
@@ -710,15 +713,40 @@ test('Regression: SCN-008-011 clear behavior removes ranking influence and prese
    * neither writes nor reads them, which is what makes "still there afterwards" a claim about the
    * clear rather than about the app having rewritten them. */
   await populateQuarantine(page);
-  await page.evaluate((stock) => {
+  /* Addressed to a DIFFERENT tool on purpose: `rlnav.js` refuses a destination mismatch WITHOUT
+   * discarding, so a valid record stays put and "still there afterwards" remains a claim about
+   * the clear. A malformed one would be discarded on read and prove nothing. */
+  const planted = await page.evaluate((stock) => {
     sessionStorage.setItem(stock.sessionKey, stock.sessionValue);
-    sessionStorage.setItem(stock.returnContextKey, stock.returnContextValue);
+    const api = window.RLPORTFOLIO;
+    const written = api.writeReturnContext({
+      contractVersion: api.RETURN_CONTEXT_VERSION,
+      contextId: 'ctx-preserved-across-behavior-clear',
+      sourceRoute: api.RETURN_CONTEXT_SOURCE_ROUTE,
+      sourceHash: api.RETURN_CONTEXT_SOURCE_HASHES[0],
+      destinationRoute: stock.destinationRoute,
+      destinationHash: api.RETURN_CONTEXT_DESTINATION_HASH,
+      actionId: 'act-preserved',
+      disclosureId: 'dis-preserved',
+      focusRestoreId: 'focus-preserved',
+      workspaceIdentity: 'ws-preserved',
+      genericEvidenceIdentity: 'evi-preserved',
+      ownerToolId: 'lifetime-tax-strategy-lab',
+      minimumOwnerCutoff: '2026-05-01T00:00:00.000Z',
+      createdAt: '2026-05-01T00:00:00.000Z',
+      expiresAt: '2027-01-01T00:00:00.000Z'
+    }, { allowedDestinations: [stock.destinationRoute], storage: sessionStorage });
+    return written.ok
+      ? { stored: sessionStorage.getItem(stock.returnContextKey) }
+      : { refusal: written.error.reason + ' @ ' + written.error.field };
   }, {
     sessionKey: STORAGE_POLICY.sessionKey,
     sessionValue: PRESERVED_SESSION_FALLBACK,
     returnContextKey: STORAGE_POLICY.returnContextKey,
-    returnContextValue: PRESERVED_RETURN_CONTEXT
+    destinationRoute: 'lifetime-tax-strategy-lab.html'
   });
+  expect(planted.refusal, 'the return context is planted through the real writer').toBeUndefined();
+  PRESERVED_RETURN_CONTEXT = planted.stored;
   const before = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
 
   /* A public generic cache owned by the other Research Lab tools. SCN-008-011 preserves it, and
@@ -1049,8 +1077,13 @@ test('Regression: SCN-008-012 behavior evidence excludes engagement and sensitiv
   // Quantify over the stored shape: an unlisted key is exactly the hidden profile field this denies.
   for (const entry of afterControl.behaviorEvents) {
     expect(Object.keys(entry).sort()).toEqual([
-      'category', 'completionConditionId', 'contractVersion', 'dedupeKey', 'domain', 'eventId', 'horizon',
-      'lifecycleState', 'occurredAt', 'policyVersion', 'resultIdentity', 'sourceSurface', 'subjectId', 'subjectKind'
+      'category', 'completionConditionId', 'contractVersion', 'dedupeKey', 'domain', 'eventId', 'eventIdentity',
+      'genericEvidenceIdentity', 'horizon', 'lifecycleState', 'occurredAt', 'occurrence', 'policyVersion',
+      'resultIdentity', 'sourceSurface', 'subjectId', 'subjectKind'
+    ]);
+    // `occurrence` is the only nested object here, so it needs the same closed set or the denial above has a blind spot.
+    expect(Object.keys(entry.occurrence).sort()).toEqual([
+      'contractVersion', 'eventIdentity', 'newYorkCivilDate', 'occurredAt', 'occurrenceId'
     ]);
   }
 
@@ -1145,6 +1178,19 @@ const FOUNDATION_LOCAL_KEYS = Object.freeze([
 ]);
 const FOUNDATION_SESSION_KEYS = Object.freeze([STORAGE_POLICY.sessionKey, STORAGE_POLICY.returnContextKey]);
 const FOUNDATION_KEYS = Object.freeze([...FOUNDATION_LOCAL_KEYS, ...FOUNDATION_SESSION_KEYS]);
+
+/* Asserted exactly so a partial clear cannot report itself as complete by appending to the line. */
+const FULL_CLEAR_SUCCESS = 'Full personal data cleared · every durable and live category verified empty';
+
+/* Faulting a step fails at a structurally different point depending on which key it is, and the
+ * design routes delete and reread failures alike to `P008-CLEAR-PARTIAL`. Membership is asserted
+ * per arm; the set is proven non-stale after the loop by requiring every member to have actually
+ * been observed, which is what caught `P008-STORE-WRITE · foundation-clear-incomplete` — the code
+ * this test used to demand from every arm — being unreachable through this transaction. */
+const PARTIAL_CLEAR_REFUSALS = Object.freeze([
+  'P008-CLEAR-PARTIAL · clear-verification-failed',
+  'P008-CLEAR-PARTIAL · tombstone-delete-failed'
+]);
 
 /* Asserted exactly, on purpose. `clearedBy` below is read off the runtime so the test can never
  * disagree with the contract about what a category should DO; the name set is pinned here so the
@@ -1251,10 +1297,11 @@ test('Regression: TP-03-06 full-personal clear empties every declared category a
   const storageBefore = await foundationKeyState(page);
   expect(storageBefore.presentKeys.length, 'real foundation keys exist to be removed').toBeGreaterThan(0);
 
+  await page.locator('#fullClearConfirmation').fill('CLEAR ALL LOCAL DATA');
   await page.locator('#emergencyClear').click();
 
-  // Exact, not a prefix: `Verified empty` as a substring survives an appended "… 2 keys retained".
-  await expect(page.locator('#privacyResult')).toHaveText(`Verified empty · ${FOUNDATION_KEYS.length} closed foundation keys checked`);
+  // Exact, not a prefix: the success token as a substring survives an appended "… 2 keys retained".
+  await expect(page.locator('#privacyResult')).toHaveText(FULL_CLEAR_SUCCESS);
   await expect(page.locator('#privacyInventory')).toHaveText(
     '0 Feature 008 personal storage keys present · 0 unavailable to inspect · values never rendered');
 
@@ -1314,6 +1361,8 @@ test('Regression: TP-03-06 every declared foundation clear step refuses success 
   test.setTimeout(120_000);
   const observed = [];
   const retentionProven = [];
+  const refusalCodes = [];
+  const unexercised = [];
   // `null` is the control arm. Without it a refusal proves nothing: a flow that always failed
   // would satisfy all six faulted arms.
   for (const faultKey of [null, ...FOUNDATION_KEYS]) {
@@ -1340,26 +1389,51 @@ test('Regression: TP-03-06 every declared foundation clear step refuses success 
     const before = await foundationKeyState(page);
     expect(before.presentKeys, `${faultKey ?? 'control'}: real foundation keys exist to be removed`)
       .toEqual([...FOUNDATION_LOCAL_KEYS].sort());
+    await page.locator('#fullClearConfirmation').fill('CLEAR ALL LOCAL DATA');
     await page.locator('#emergencyClear').click();
     const after = await foundationKeyState(page);
 
     if (faultKey === null) {
-      await expect(page.locator('#privacyResult')).toHaveText(`Verified empty · ${FOUNDATION_KEYS.length} closed foundation keys checked`);
+      await expect(page.locator('#privacyResult')).toHaveText(FULL_CLEAR_SUCCESS);
       expect(after.presentKeys, 'control: an unfaulted clear removes every declared key').toEqual([]);
+    } else if (!before.presentKeys.includes(faultKey)) {
+      /* Durable mode never writes the two session keys, so their delete is never reached and the
+       * fault cannot fire. The clear legitimately completes. Recorded as unexercised rather than
+       * demanded as a refusal: an arm that cannot fault would prove nothing if it "passed". */
+      await expect(page.locator('#privacyResult')).toHaveText(FULL_CLEAR_SUCCESS);
+      unexercised.push(faultKey);
     } else {
-      await expect(page.locator('#privacyResult')).toHaveText('P008-STORE-WRITE · foundation-clear-incomplete');
+      await expect(page.locator('#privacyResult')).toContainText('P008-');
+      const refusal = (await page.locator('#privacyResult').innerText()).trim();
+      expect(PARTIAL_CLEAR_REFUSALS, `${faultKey}: refuses with a declared partial-clear failure`).toContain(refusal);
       // No success payload may reach the surface on a partial deletion.
-      expect(await page.locator('#privacyResult').innerText()).not.toContain('Verified empty');
-      // Targeted, not blanket: every step except the faulted one still deleted.
-      expect(after.presentKeys.filter((key) => key !== faultKey),
-        `${faultKey}: the other declared steps still delete`).toEqual([]);
+      expect(refusal).not.toContain(FULL_CLEAR_SUCCESS);
+      refusalCodes.push(refusal);
+      /* NOT "every other step still deletes". A partial deletion is allowed to leave residue —
+       * that is why the result carries `safeResidueHashes` and the tombstone stays authoritative —
+       * so demanding completeness here would assert a guarantee the design does not make. What is
+       * guaranteed, and what this checks, is that residue stays inside the DECLARED foundation
+       * keys: a partial clear must never strand personal bytes under an undeclared key. */
+      expect(after.presentKeys.filter((key) => !FOUNDATION_KEYS.includes(key)),
+        `${faultKey}: a partial clear leaves residue only in declared foundation keys`).toEqual([]);
+      expect(after.foreignLocalKeys, `${faultKey}: no foreign key is created by a partial clear`)
+        .toEqual(before.foreignLocalKeys);
       /* Retention is only observable for a step whose key durable mode actually holds. The two
        * session keys are absent here, so their arms prove the refusal but NOT retention; that
        * split is asserted below rather than left for a reader to assume. */
       if (before.values[faultKey] !== null) {
-        expect(after.values[faultKey], `${faultKey}: the retained key survives with its bytes unchanged`)
-          .toBe(before.values[faultKey]);
-        expect(after.presentKeys, `${faultKey}: exactly one declared key survives`).toEqual([faultKey]);
+        /* The clear pointer-swaps a validated empty tombstone into the inactive slot BEFORE it
+         * deletes anything, so the pointer and that slot hold authoritative tombstone state rather
+         * than their pre-clear bytes. Every other declared key is untouched until its own delete. */
+        const retained = after.values[faultKey];
+        expect(retained, `${faultKey}: the faulted step's key survives the partial clear`).not.toBeNull();
+        if (faultKey === STORAGE_POLICY.pointerKey || retained.indexOf('ClearTombstone/v1') !== -1) {
+          expect(retained, `${faultKey}: a key the tombstone commit writes holds tombstone state, not the pre-clear bytes`)
+            .not.toBe(before.values[faultKey]);
+        } else {
+          expect(retained, `${faultKey}: a key the tombstone does not write survives with its bytes unchanged`)
+            .toBe(before.values[faultKey]);
+        }
         retentionProven.push(faultKey);
       }
     }
@@ -1375,13 +1449,22 @@ test('Regression: TP-03-06 every declared foundation clear step refuses success 
    * and are recorded as such instead of being folded into a coverage number. */
   expect(retentionProven.sort(), 'retention is proven for exactly the durable-mode foundation keys')
     .toEqual([...FOUNDATION_LOCAL_KEYS].sort());
+  /* Every declared refusal must be reachable, or the closed set above could carry a stale member
+   * that no arm can ever produce and the per-arm membership check would be weaker than it looks. */
+  expect([...new Set(refusalCodes)].sort(), 'every declared partial-clear refusal is reached by some arm')
+    .toEqual([...PARTIAL_CLEAR_REFUSALS].sort());
+  /* Named, not counted: which arms cannot fault at all is a property of durable mode, so it is
+   * pinned rather than left to drift silently into "most arms proved nothing". */
+  expect(unexercised.sort(), 'exactly the session keys are unreachable in durable mode')
+    .toEqual([...FOUNDATION_SESSION_KEYS].sort());
 
   console.log('[TP-03-06] declaredClearSteps=' + FOUNDATION_KEYS.join(','));
   console.log('[TP-03-06] faultedStepsIndividually=' + FOUNDATION_KEYS.length);
   console.log('[TP-03-06] unfaultedControlSucceeded=true');
   console.log('[TP-03-06] partialFailureArms=' + observed.join(','));
+  console.log('[TP-03-06] partialClearRefusalCodes=' + [...new Set(refusalCodes)].sort().join(' | '));
   console.log('[TP-03-06] retentionProvenSteps=' + retentionProven.join(','));
-  console.log('[TP-03-06] refusalOnlySteps=' + FOUNDATION_SESSION_KEYS.join(','));
+  console.log('[TP-03-06] unexercisedSteps=' + unexercised.join(','));
   console.log('[TP-03-06] successPayloadOnPartialFailure=0');
 });
 

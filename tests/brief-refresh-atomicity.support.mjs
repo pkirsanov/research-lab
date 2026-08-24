@@ -170,7 +170,9 @@ function baselineSnapshot(sessionDate) {
   const snapshot = JSON.parse(readFileSync(resolve(ROOT, 'market-brief.snapshot.json'), 'utf8'));
   snapshot.asOf = `${sessionDate}T14:00:00.000Z`;
   snapshot.generatedAt = `${sessionDate}T14:00:00.000Z`;
-  snapshot.window = 'pre-market';
+  // 14:00Z is 10:00 ET, which is inside `morning` (11:00 ET) and past `pre-market` (07:30 ET).
+  // The publisher refuses a brief carrying evidence later than the window it declares.
+  snapshot.window = 'morning';
   snapshot.marketClosed = false;
   snapshot.nextSessionDate = sessionDate;
   for (const [toolId, toolRead] of Object.entries(snapshot.toolReads || {})) {
@@ -186,7 +188,7 @@ function baselineSnapshot(sessionDate) {
 function fixtureHistory(sessionDate) {
   return `${JSON.stringify({
     ts: `${sessionDate}T14:00:00.000Z`,
-    window: 'pre-market',
+    window: 'morning',
     marketClosed: false,
     nextSessionDate: sessionDate,
     source: 'bug-002-baseline'
@@ -335,7 +337,7 @@ if (process.argv[1] && resolvePath(process.argv[1]) === SCRIPT_PATH) {
   const fixturePayloadPath = resolve(repoRoot, 'market-brief.payload.json');
   const fixturePayload = JSON.parse(readFileSync(fixturePayloadPath, 'utf8'));
   if (!options.agendaAssets) delete fixturePayload.researchAgenda;
-  fixturePayload.window = 'pre-market';
+  fixturePayload.window = 'morning';
   fixturePayload.asOf = `${baselineDate}T14:05:00.000Z`;
   fixturePayload.generatedAt = `${baselineDate}T14:05:00.000Z`;
   fixturePayload.nextSession.sessionDate = baselineDate;
@@ -465,7 +467,7 @@ if (process.argv[1] && resolvePath(process.argv[1]) === SCRIPT_PATH) {
   writeFileSync(snapshotUrl, JSON.stringify(snapshot, null, 2) + '\\n');
   appendFileSync(historyUrl, JSON.stringify({
     ts: process.env.BUG002_CANDIDATE_DATE + 'T14:00:00.000Z',
-    window: 'pre-market',
+    window: 'morning',
     marketClosed: false,
     nextSessionDate: process.env.BUG002_CANDIDATE_DATE,
     source: 'bug-002-candidate'

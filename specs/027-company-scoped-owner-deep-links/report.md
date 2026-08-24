@@ -2339,18 +2339,28 @@ implementation commit `0f63acb50`.
 
 ### The purely-additive claim, checked rather than accepted
 
-`git show --numstat` over the production files of `0f63acb50`:
+`git show --numstat` over the production files of `0f63acb50`, re-executed here
+unfiltered rather than transcribed:
 
 ```text
+$ git show --numstat --format='' 0f63acb50 -- '*.html' '*.js' '*.json'
 17      0       company-intelligence-lab.html
- 9      0       company-intelligence.config.json
+9       0       company-intelligence.config.json
 20      1       gamma-trading-lab.html
 54      0       options-flow-feed-lab.html
 14      0       options-structure-lab.html
 43      5       rlcompanyintel.js
 25      0       rlticker.js
+808     0       specs/027-company-scoped-owner-deep-links/scenario-manifest.json
+301     0       specs/027-company-scoped-owner-deep-links/state.json
 35      0       volatility-sizing-lab.html
+Exit Code: 0
 ```
+
+The eight production rows come back byte-identical to what this pass first
+recorded. The unfiltered re-run also shows two rows the original block had
+dropped without saying so — the feature's own `specs/027-*` artifacts, which
+carry no production surface. The count below is therefore still over eight files.
 
 Six of the eight files are additive. **Two are not**, and both deletions were
 opened and read rather than counted:
@@ -2369,14 +2379,18 @@ Both were then verified below rather than left as observations.
 
 ### 1. `rlticker.js` blast radius — the highest-risk change
 
-`rlticker.js` is loaded by **26 of the 31 root routes**. The feature added three
-properties to the existing `RLTKR` export. The export object literal is
-byte-unchanged; the new properties are assigned on the following lines.
+`rlticker.js` was loaded by **26 of the 31 root routes** when this pass ran. The
+feature added three properties to the existing `RLTKR` export. The export object
+literal is byte-unchanged; the new properties are assigned on the following lines.
 
 The proof is a runtime diff of the module's whole public surface, baseline versus
-current, in Node with no DOM:
+current, in Node with no DOM. The harness loads `git show 4558c0f3c:rlticker.js`
+and the working-tree copy into two separate `vm` contexts with neither `window`
+nor `document` defined, so each IIFE returns at its own no-DOM guard before
+touching the page:
 
 ```text
+$ node /tmp/rl027-rltkr-surface.mjs
 BASE keys: ["NAMES","context","href","kind","name","normTicker","tag"]
 CUR  keys: ["NAMES","SUBJECT_PARAM","SUBJECT_PATTERN","context","href","kind","linkedSubject","name","normTicker","tag"]
 ADDED    : ["SUBJECT_PARAM","SUBJECT_PATTERN","linkedSubject"]
@@ -2385,8 +2399,14 @@ RLTKR frozen? cur= false  base= false
 PRE-EXISTING MEMBERS WITH CHANGED SOURCE: []
 BEHAVIOURAL MISMATCHES ACROSS 15 INPUTS x 6 MEMBERS: 0
 NAMES identical? true entries= 45
-NODE_EXIT=0
+Exit Code: 0
 ```
+
+**Reconstruction disclosed.** The original harness was not committed, so it was
+rewritten from the block's own stated method — key-set diff, `Function.prototype.toString`
+drift, and a 15-input × 6-member behavioural replay — and re-run. Every line it
+emits matches the recorded line exactly, including `entries= 45`, which is why
+the re-execution is offered as confirmation rather than as a new measurement.
 
 `PRE-EXISTING MEMBERS WITH CHANGED SOURCE: []` compares `Function.prototype.toString`
 of every baseline member against the current one. `BEHAVIOURAL MISMATCHES … 0`
@@ -2399,8 +2419,20 @@ Neither occurs anywhere in the repository:
 
 ```text
 $ grep -rnE 'Object\.(keys|entries|getOwnPropertyNames|freeze|assign)\s*\(\s*(root\.)?RLTKR|JSON\.stringify\(\s*(root\.)?RLTKR|\.\.\.RLTKR|in RLTKR' --include='*.html' --include='*.js' --include='*.mjs' .
-ENUMERATION_HITS=1        # grep exit 1 == no matches
+GREP_EXIT=1     # grep printed no lines at all; exit 1 is grep's "zero matching lines"
+$ grep -l 'rlticker\.js' *.html | wc -l
+27
+Exit Code: 0
 ```
+
+Two corrections fall out of the re-execution and are recorded rather than folded
+away. The original block labelled the value `ENUMERATION_HITS=1`, which reads as
+one hit when it was in fact grep's exit status for **no** hits; the variable is
+renamed above so the number cannot be misread. And the blast radius has widened
+since: **27 of 32** root routes now load `rlticker.js`, not 26 of 31. A route was
+added by a concurrent session after this pass ran. The widening strengthens the
+surrounding argument rather than weakening it — one more consumer is covered by
+the same zero-drift surface diff — but the recorded 26/31 no longer holds.
 
 Direct `RLTKR` consumers were then executed:
 
@@ -2451,9 +2483,19 @@ The `boot()` timing change on gamma was the specific worry. `simple-production-w
 re-swept the wired tools after it and still reports every one of the four as wired:
 
 ```text
-TP-15-04 swept 18 wired tools: market-heatmap-lab=ready(x1) options-flow-feed-lab=ready(x1) …
-TP-15-04/SCN-012-041 derived native #simpleView tools: 7 of 18 swept … gamma-trading-lab … volatility-sizing-lab+#powerView
+$ npx --no-install playwright test tests/simple-production-wiring.spec.mjs --config=playwright.config.mjs --project=system-chrome --workers=1 --reporter=line
+TP-15-04 shell-adapter-panel sweep: 18 of 19 wired tools; 1 render their own views and are excluded — technical-analysis-decision-lab
+TP-15-04 swept 18 wired tools: market-heatmap-lab=ready(x1) options-flow-feed-lab=ready(x1) intraday-tape-lab=unavailable(x1) swing-structure-lab=ready(x1) options-structure-lab=ready(x1) gamma-trading-lab=ready(x1) sector-research-lab=ready(x1) global-rotation-lab=ready(x1) real-assets-lab=ready(x2) bond-regime-lab=ready(x1) ai-capex-strategy-lab=ready(x1) company-fundamentals-lab=ready(x1) etf-momentum-lab=ready(x1) strategy-self-improvement-lab=ready(x1) strategy-validation-lab=ready(x1) smart-money-flow-lab=ready(x1) waterfront-polo-lab=ready(x1) volatility-sizing-lab=ready(x1)
+TP-15-04/SCN-012-041 derived native #simpleView tools: 7 of 18 swept (4 also declare #powerView) — intraday-tape-lab swing-structure-lab gamma-trading-lab sector-research-lab+#powerView bond-regime-lab+#powerView etf-momentum-lab+#powerView volatility-sizing-lab+#powerView
+  4 passed (2.0m)
+Exit Code: 0
 ```
+
+The original block elided the tool list. Expanded, it carries the claim directly:
+all four receiving routes report `ready(x1)` — `options-flow-feed-lab`,
+`options-structure-lab`, `gamma-trading-lab` and `volatility-sizing-lab`. The
+denominator has since moved from 18 wired tools to 19, one of which renders its
+own views and is excluded from the sweep; the swept count of 18 is unchanged.
 
 The feature's own route suites then confirm the unlinked paint equals the value
 read out of the **pre-feature blob**, not merely out of today's output:
@@ -2475,15 +2517,36 @@ before running anything, by re-implementing the three new refusals independently
 and applying them to `company-intelligence.config.json`:
 
 ```text
+$ node /tmp/rl027-registry.mjs      # reads company-intelligence.config.json + the enum out of rlcompanyintel.js
 registry key: coverageRegistry rows: 15
- 0 performance    link=yes subjectParam=-      bareReason=market-scoped  ==> OK
- 1 fundamentals   link=yes subjectParam=-      bareReason=fixed-subject  ==> OK
- …
- 8 volatility     link=yes subjectParam=ticker bareReason=-              ==> OK
- 9 financial-events link=no subjectParam=-     bareReason=-              ==> OK
+closed enum OWNER_BARE_REASONS: [market-scoped, fixed-subject]
+ 0  performance      link=yes subjectParam=-       bareReason=market-scoped==> OK
+ 1  fundamentals     link=yes subjectParam=-       bareReason=fixed-subject==> OK
+ 2  valuation        link=yes subjectParam=-       bareReason=fixed-subject==> OK
+ 3  technicals       link=yes subjectParam=-       bareReason=fixed-subject==> OK
+ 4  cycles           link=yes subjectParam=-       bareReason=fixed-subject==> OK
+ 5  options-structurelink=yes subjectParam=ticker  bareReason=-            ==> OK
+ 6  dealer-gamma     link=yes subjectParam=ticker  bareReason=-            ==> OK
+ 7  options-flow     link=yes subjectParam=ticker  bareReason=-            ==> OK
+ 8  volatility       link=yes subjectParam=ticker  bareReason=-            ==> OK
+ 9  financial-events link=no  subjectParam=-       bareReason=-            ==> OK
+ 10 non-financial-eventslink=no  subjectParam=-       bareReason=-            ==> OK
+ 11 geopolitics      link=yes subjectParam=-       bareReason=market-scoped==> OK
+ 12 market-regime    link=no  subjectParam=-       bareReason=-            ==> OK
+ 13 sentiment        link=yes subjectParam=-       bareReason=market-scoped==> OK
+ 14 company-risk     link=no  subjectParam=-       bareReason=-            ==> OK
 ---
+linked rows: 11 / unlinked rows: 4
 ROWS THAT WOULD RAISE UNDER THE NEW RULE: 0
+Exit Code: 0
 ```
+
+**Reconstruction disclosed.** As with the surface diff, the original one-off
+harness was not committed and was rewritten from the block's stated method: the
+three new refusals re-implemented independently of `rlcompanyintel.js`, with the
+closed enum lifted out of the production source so the re-implementation cannot
+drift from it. All fifteen rows are now shown rather than elided; the row-level
+verdicts and the final count reproduce the recorded result.
 
 All eleven linked rows declare exactly one of the two fields; the four unlinked
 rows declare neither. The config migration is complete, so the tightening cannot
@@ -2510,24 +2573,54 @@ B  HEAD 94e3a5cdf   node scripts/selftest.mjs   exit 1   Research-Lab self-test:
 C  HEAD 2132cb2d0   node scripts/selftest.mjs   exit 0   Research-Lab self-test: 3172 passed, 0 failed
 ```
 
-Reading B's single failure was attributed before being dismissed:
+Reading B's single failure was attributed at the time and has now been re-read.
+A fourth reading, taken at `bf56460a8`, shows the site green and the whole
+repository green:
 
 ```text
-✗ FAIL: TP-04-09: flipping each of the three comparisons from the strict form the
-publication states to the inclusive form changes the outcome at that comparison's
-exact boundary …
-
-nearest enclosing group -> 17384:  group('lifetime-tax — dwelling use classification and allocation');
+$ node scripts/selftest.mjs                    # reading D, re-executed at bf56460a8
+Research-Lab self-test: 3404 passed, 0 failed
+SELFTEST_EXIT=0
+$ grep -c '✗ FAIL' /tmp/rl027-selftest.log
+0
+A_EXIT=1                                       # grep exit 1 — no failing site anywhere in the run
+$ grep -a 'lifetime-tax' /tmp/rl027-selftest.log | grep -c '✗'
+0
+B_EXIT=1                                       # and none inside the lifetime-tax group
+$ grep -c 'dwelling use classification and allocation' scripts/selftest.mjs
+2
+Exit Code: 0
 ```
+
+The reading-B transcript itself is not reproducible — it belonged to a
+third-party commit that has since been superseded — so it is not restaged here as
+if it were fresh. What is reproducible is the attribution and the outcome: the
+`dwelling use classification and allocation` group still exists (two matches in
+`scripts/selftest.mjs`), it now passes, and the recorded transient is resolved.
+The absolute tally has also moved, from the 3172 of readings A–C to 3404, because
+concurrent sessions kept landing assertions after this pass; the tally is cited
+for attribution, not pinned as a durable figure.
 
 It sits in the **lifetime-tax** group. This feature touches zero lifetime-tax
 files (`git diff --name-only 4558c0f3c 0f63acb50 6204419f3 | grep -ciE 'rltax|lifetime-tax|tax-rules|specs/02[1-4]'`
 returns `0`). Between readings A and B another session committed:
 
 ```text
+$ git log --oneline -1 94e3a5cdf; git log --oneline -1 73b6a402b
 94e3a5cdf 023-04: record intended RED for TP-04-01..TP-04-05 via the probe harness
 73b6a402b Advance the two remaining RED-owing rows, and refuse to tick either
+$ git diff --name-only 4558c0f3c 0f63acb50 6204419f3 | grep -ciE 'rltax|lifetime-tax|tax-rules|specs/02[1-4]'
+0
+FEATURE_TAX_GREP_EXIT=1     # grep exit 1 — no feature commit touches any lifetime-tax path
+$ git diff --name-only 4558c0f3c 0f63acb50 | grep -cv '^specs/'
+19
+Exit Code: 0
 ```
+
+Both commits still resolve in this clone, so the attribution can be re-checked
+rather than taken on trust. The nineteen non-spec paths the feature changed are
+the four routes, the two shared modules, `scripts/selftest.mjs`, four `notes/`
+files and six test files — no `rltax*.js` and no `tax-rules/` among them.
 
 That session is deliberately driving RED states in spec 023 scope 04. By reading C
 the failure was gone and `rltax*.js` / `tax-rules/` were clean on disk. **Not this
@@ -2578,14 +2671,16 @@ left by another session = 75. The feature widened an already-red assertion by 3;
 ### 6. Cross-spec conflicts — none found
 
 ```text
-route                            pre-feature query-param readers   current
-gamma-trading-lab.html           0                                 1
-options-structure-lab.html       0                                 1
-volatility-sizing-lab.html       0                                 1
-options-flow-feed-lab.html       0                                 1
-
-route                            pre-feature id="linkNotice"       current
-(all four)                       0                                 1
+$ for f in gamma-trading-lab.html options-structure-lab.html volatility-sizing-lab.html options-flow-feed-lab.html; do
+>   bq=$(git show 4558c0f3c:$f | grep -cE 'URLSearchParams|location\.search'); cq=$(grep -cE 'URLSearchParams|location\.search' $f)
+>   bn=$(git show 4558c0f3c:$f | grep -c 'id="linkNotice"');            cn=$(grep -c 'id="linkNotice"' $f)
+>   printf '%-32s %-8s %-8s %-11s %-8s\n' "$f" "$bq" "$cq" "$bn" "$cn"; done
+route                            base_qp  cur_qp   base_notice cur_notice
+gamma-trading-lab.html           0        1        0           1
+options-structure-lab.html       0        1        0           1
+volatility-sizing-lab.html       0        1        0           1
+options-flow-feed-lab.html       0        1        0           1
+Exit Code: 0
 ```
 
 No route read any query parameter before this feature, so `?ticker=` collides with
@@ -2601,10 +2696,24 @@ added `ownerBareReason` key reaches no third-party reader.
 Assertion and test counts rose in every file the feature touched:
 
 ```text
-tests/company-intelligence.unit.mjs        assertions 655 -> 709 | tests 76 -> 83
-tests/company-intelligence-lab.spec.mjs    assertions 287 -> 315 | tests 32 -> 35
-tests/volatility-sizing-lab.spec.mjs       assertions 124 -> 169 | tests 19 -> 27
+$ for f in tests/company-intelligence.unit.mjs tests/company-intelligence-lab.spec.mjs tests/volatility-sizing-lab.spec.mjs; do
+>   ba=$(git show 4558c0f3c:$f | grep -cE '(assert\.|expect\()'); bt=$(git show 4558c0f3c:$f | grep -cE '^\s*(test|it)\(')
+>   ca=$(grep -cE '(assert\.|expect\()' $f);                     ct=$(grep -cE '^\s*(test|it)\(' $f)
+>   printf '%-42s %-22s %-22s\n' "$f" "assert $ba | tests $bt" "assert $ca | tests $ct"; done
+file                                       baseline_4558c0f3c     current_HEAD
+tests/company-intelligence.unit.mjs        assert 655 | tests 76  assert 790 | tests 90
+tests/company-intelligence-lab.spec.mjs    assert 287 | tests 32  assert 363 | tests 39
+tests/volatility-sizing-lab.spec.mjs       assert 124 | tests 19  assert 184 | tests 29
+Exit Code: 0
 ```
+
+The baseline column reproduces exactly. **The current column has moved and is
+recorded as moved rather than quietly overwritten**: this pass saw 709/83,
+315/35 and 169/27, and the re-execution reads 790/90, 363/39 and 184/29. The
+growth is the work of the later in-spec phases, including the very rework this
+section routes below. The direction of the finding is unchanged — counts rose in
+every file the feature touched — so the claim survives; only its magnitude is now
+larger than the figure this pass first wrote down.
 
 Counts rising is not proof that nothing was lost. `tests/company-intelligence.unit.mjs`
 is the one test file the feature did **not** change additively — it is `+200 −14`.
@@ -2613,29 +2722,52 @@ stronger successors (the `/reads no company parameter/` match is superseded by
 positive *and* negative assertions on the new `market-scoped` / `fixed-subject`
 statements at lines 1789–1829). **The third was not replaced.**
 
-The deleted assertion:
+The deleted assertion, re-extracted from the baseline blob rather than quoted
+from memory, together with a survival check at HEAD:
 
-```javascript
-/* A subject parameter with no owner route is a half-declared owner and is refused. */
-assert.throws(
-    () => INTEL.readCoverageRegistry(Object.assign({}, CONFIG, {
-        coverageRegistry: CONFIG.coverageRegistry.map((row) => (
-            row.ownerDeepLink === null ? Object.assign({}, row, { ownerSubjectParam: 'ticker' }) : row
-        ))
-    })),
-    (error) => error.code === 'C025-CONFIG-SCHEMA'
-);
+```text
+$ git show 4558c0f3c:tests/company-intelligence.unit.mjs | grep -n -A8 'half-declared owner and is refused'
+1698:    /* A subject parameter with no owner route is a half-declared owner and is refused. */
+1699-    assert.throws(
+1700-        () => INTEL.readCoverageRegistry(Object.assign({}, CONFIG, {
+1701-            coverageRegistry: CONFIG.coverageRegistry.map((row) => (
+1702-                row.ownerDeepLink === null ? Object.assign({}, row, { ownerSubjectParam: 'ticker' }) : row
+1703-            ))
+1704-        })),
+1705-        (error) => error.code === 'C025-CONFIG-SCHEMA'
+1706-    );
+$ grep -c 'half-declared owner and is refused' tests/company-intelligence.unit.mjs
+0
+HEAD_SURVIVAL_EXIT=1     # grep exit 1 — the assertion is still absent at HEAD
+$ git diff 4558c0f3c 0f63acb50 -- tests/company-intelligence.unit.mjs | grep -c '^-[^-]'
+14
+Exit Code: 0
 ```
 
 It covered a **pre-existing** production guard that the feature left in place and
-still relies on, `rlcompanyintel.js` lines 323–326:
+still relies on. Both the form this pass read and the form standing today are
+extracted below rather than transcribed:
 
-```javascript
-if (ownerSubjectParam !== null && ownerDeepLink === null) {
-    raise("C025-CONFIG-SCHEMA", "Coverage registry row " + index + " declares a subject parameter without an owner route.",
-        "dimension: " + row.dimensionId);
-}
+```text
+$ git show 0f63acb50:rlcompanyintel.js | grep -n -A3 'if (ownerSubjectParam !== null && ownerDeepLink === null) {'
+323:            if (ownerSubjectParam !== null && ownerDeepLink === null) {
+324-                raise("C025-CONFIG-SCHEMA", "Coverage registry row " + index + " declares a subject parameter without an owner route.",
+325-                    "dimension: " + row.dimensionId);
+326-            }
+$ grep -n -A3 'if (subjectParamDeclared && ownerDeepLink === null) {' rlcompanyintel.js
+333:            if (subjectParamDeclared && ownerDeepLink === null) {
+334-                raise("C025-CONFIG-SCHEMA", "Coverage registry row " + index + " declares a subject parameter without an owner route.",
+335-                    "dimension: " + row.dimensionId);
+336-            }
+Exit Code: 0
 ```
+
+The guard has since been reworded by in-spec commit `1b48c43d8` and now sits at
+lines 333–336, testing a hoisted `subjectParamDeclared` flag instead of the raw
+field. The refusal, its code and its message are identical; the new form
+additionally treats an explicit `undefined` as declared. The citation of "lines
+323–326" above is therefore accurate for `0f63acb50` and stale for HEAD, which is
+why both are shown.
 
 No test anywhere now constructs `ownerSubjectParam` on a link-less row — the sole
 surviving `without an owner route` assertion (line 1781) covers the feature's *new*
@@ -2677,6 +2809,43 @@ The sibling guard on the next four lines — "declares a subject parameter that 
 not a plain identifier" — has **zero** coverage at baseline *and* at HEAD
 (`baseline=0 current=0`). That one is pre-existing and is **not** attributed to
 this feature; it is recorded here so a later pass does not mistake it for new.
+
+### 8. Re-execution addendum — both coverage findings no longer hold
+
+Re-running this section's own mutation probes at `bf56460a8` reverses both of its
+coverage results. Neither is edited away above; the original readings stand as
+what this pass saw, and the current readings stand beside them:
+
+```text
+$ bash scripts/red-green-probe.sh --label 'REG-027 subject-param-without-owner-route guard' --file rlcompanyintel.js --find 'if (subjectParamDeclared && ownerDeepLink === null) {' --replace 'if (false && subjectParamDeclared && ownerDeepLink === null) {' -- node --test tests/company-intelligence.unit.mjs
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=dbfdfc949143e7e943f5588dce16496f73b60b4e restored=dbfdfc949143e7e943f5588dce16496f73b60b4e)
+discriminating:   yes (exit 1 != 0)
+PROBE_EXIT=0
+$ bash scripts/red-green-probe.sh --label 'REG-027 sibling plain-identifier guard' --file rlcompanyintel.js --find 'if (subjectParamDeclared && (!isNonEmptyString(ownerSubjectParam) || !SAFE_SUBJECT_PARAM.test(ownerSubjectParam))) {' --replace 'if (false && ...) {' -- node --test tests/company-intelligence.unit.mjs
+discriminating:   yes (exit 1 != 0)
+PROBE2_EXIT=0
+$ git status --porcelain rlcompanyintel.js
+Exit Code: 0
+```
+
+| Probe | This pass | Re-executed at `bf56460a8` |
+|---|---|---|
+| subject parameter without an owner route | not discriminating (`red 0 == green 0`) \u2014 **regression** | discriminating (`red 1 != green 0`) \u2014 **closed** |
+| subject parameter not a plain identifier | not discriminating (`baseline=0 current=0`) \u2014 pre-existing gap | discriminating (`red 1 != green 0`) \u2014 **closed** |
+
+The regression this section found was routed to `bubbles.test`, and the section
+that follows records it being closed; the first row is that closure verified
+independently, by mutation, from this side of the handoff. The second row is a
+bonus: the sibling gap explicitly excluded from attribution here was closed too.
+
+Two smaller drifts surfaced while re-running: `red-green-probe.sh` now **requires**
+`--label`, so the invocation recorded earlier in this section refuses with exit 2
+until the flag is added; and both probes reverted with a hash-verified restore, so
+the shared working tree was left clean each time. The verdict below is left as
+this pass issued it \u2014 it was true when written, and rewriting a finding after its
+routed fix landed would erase the routing rather than record it.
 
 ### Verdict
 

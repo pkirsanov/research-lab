@@ -5065,22 +5065,44 @@ head of this pass. The files this pass changed are `company-intelligence-lab.htm
 **Phase:** implement. One reproducible product defect, root-caused by observation rather than
 by reading, fixed at its cause, and re-verified under repetition.
 
-### The failure as reported
+### The failure as reported, and that same command re-executed
 
-```
-npx --no-install playwright test tests/chaos-company-intelligence.spec.mjs \
-  --config=playwright.config.mjs --project=system-chrome --grep "Chaos J7" --repeat-each 3 --reporter=line
+**Re-execution note, `bubbles.implement`, 2026-08-23.** Seven evidence blocks in this section
+were recorded too thinly in the 2026-08-19 pass to be checkable. Four of them name a command
+that still runs, and those four are re-executed below with their full current output. Three do
+not: they are transcripts of the BEFORE state, and the fix removed the cause that produced them.
+Those three are demoted to quoted historical narrative and are labelled as such rather than
+being padded into something that looks re-derivable. Nothing outside this section was touched.
+
+This is the command the operator ran to surface the defect. Re-executed today against the
+corrected route it passes, which is the AFTER state:
+
+```text
+$ npx --no-install playwright test tests/chaos-company-intelligence.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --grep "Chaos J7" --repeat-each 3 --reporter=line
+J7_REPEAT3_EXIT=0
+
+Running 3 tests using 3 workers
+
+[1/3] [system-chrome] › tests/chaos-company-intelligence.spec.mjs:488:1 › Chaos J7: a refused entry leaves the previous subject whole rather than a half-updated page
+[2/3] [system-chrome] › tests/chaos-company-intelligence.spec.mjs:488:1 › Chaos J7: a refused entry leaves the previous subject whole rather than a half-updated page
+[3/3] [system-chrome] › tests/chaos-company-intelligence.spec.mjs:488:1 › Chaos J7: a refused entry leaves the previous subject whole rather than a half-updated page
+  3 passed (2.8s)
 ```
 
-3 failed, 3 of 3 runs, at `tests/chaos-company-intelligence.spec.mjs:498`, on the FIRST payload
-of the loop — `300 shares at cost basis 12.5`, the FR-025 privacy refusal:
+The test has since moved from line 498 to line 488 of that file, which is why the historical
+transcript below names a different line.
 
-```
-Error: 300 shares at cost basis 12.5
-expect(received).toBe(expected) // Object.is equality
-Expected: "Microsoft Corporation (MSFT) resolved on sec-cik, SEC identity 0000789019."
-Received: "Microsoft Corporation (MSFT?) resolved on sec-cik, SEC identity 0000789019."
-```
+The BEFORE state was 3 failed, 3 of 3 runs, on the FIRST payload of the loop —
+`300 shares at cost basis 12.5`, the FR-025 privacy refusal. **It is not re-executable**: the
+`enhanceTickers()` call that closed the timing window is now in the shipped route, so the same
+command cannot produce this output again without deliberately reintroducing the defect. It is
+quoted as superseded historical narrative, not offered as current evidence:
+
+> Error: 300 shares at cost basis 12.5
+> expect(received).toBe(expected) // Object.is equality
+> Expected: "Microsoft Corporation (MSFT) resolved on sec-cik, SEC identity 0000789019."
+> Received: "Microsoft Corporation (MSFT?) resolved on sec-cik, SEC identity 0000789019."
 
 ### Root cause — stated plainly
 
@@ -5095,26 +5117,28 @@ to any ticker. The `?` does not come from this feature's code at all.
 It was found by instrumenting the page instead of reasoning about it. A temporary probe
 wrapped the `Node.prototype.textContent` setter and recorded every write to
 `#subject-identity` with its stack, then dumped the element's `outerHTML` after the refusal.
-Both recorded writes carried the CLEAN string:
+**That probe is not re-executable**: the two temporary probe specs were deleted once the cause
+was known, and the line numbers in the stacks belong to the pre-fix file. Both recorded writes
+carried the CLEAN string, quoted here as superseded historical narrative:
 
-```
-PROBE write[0]=Microsoft Corporation (MSFT) resolved on sec-cik, SEC identity 0000789019.
-PROBE stack[0]=... at setText (...:758) <<>> at render (...:1407) <<>> at run (...:1437)
-               <<>> at paintFromEmbedded (...:1652) <<>> at boot (...:1674)
-PROBE write[1]=Microsoft Corporation (MSFT) resolved on sec-cik, SEC identity 0000789019.
-PROBE stack[1]=... at setText (...:758) <<>> at render (...:1407) <<>> at run (...:1437) <<>> at ...:1499
-```
+> PROBE write[0]=Microsoft Corporation (MSFT) resolved on sec-cik, SEC identity 0000789019.
+> PROBE stack[0]=... at setText (...:758) <<>> at render (...:1407) <<>> at run (...:1437)
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <<>> at paintFromEmbedded (...:1652) <<>> at boot (...:1674)
+> PROBE write[1]=Microsoft Corporation (MSFT) resolved on sec-cik, SEC identity 0000789019.
+> PROBE stack[1]=... at setText (...:758) <<>> at render (...:1407) <<>> at run (...:1437) <<>> at ...:1499
 
-…and yet the element read back as `(MSFT?)`. The `outerHTML` named the culprit outright:
+…and yet the element read back as `(MSFT?)`. The `outerHTML` named the culprit outright. That
+one IS re-executable, because the affordance is still injected today — the fix changed *when*
+the enhancement runs, not *what* it produces. Re-captured from the shipped route in a real
+browser, unelided this time:
 
-```html
-<p id="subject-identity">Microsoft Corporation (<span data-tkr="MSFT" data-rltkr-done="1">
-  <span class="rltkr-wrap" data-tkr-symbol="MSFT">
-    <a class="rltkr" href="https://finance.yahoo.com/quote/MSFT" ... data-rlk-done="1"
-       aria-label="Microsoft · Technology — open Yahoo Finance">MSFT</a>
-    <button class="rltkr-context" type="button" data-tkr-context="MSFT"
-            aria-label="Explain MSFT">?</button>
-  </span></span>) resolved on sec-cik, SEC identity 0000789019.</p>
+```text
+$ node --input-type=module -e '<chromium via playwright, served by tests/provider-credentials.support.mjs::startStaticServer>'
+Exit Code: 0
+url=http://127.0.0.1:56211/company-intelligence-lab.html
+outerHTML bytes=482
+<p id="subject-identity">Microsoft Corporation (<span data-tkr="MSFT" data-rltkr-done="1"><span class="rltkr-wrap" data-tkr-symbol="MSFT"><a class="rltkr" href="https://finance.yahoo.com/quote/MSFT" target="_blank" rel="noopener" data-rlk-done="1" aria-label="Microsoft · Technology — open Yahoo Finance">MSFT</a><button class="rltkr-context" type="button" data-tkr-context="MSFT" aria-label="Explain MSFT">?</button></span></span>) resolved on sec-cik, SEC identity 0000789019.</p>
+explain-button label = "?"
 ```
 
 The `?` is the label of the shared enhancer's *explain this ticker* button
@@ -5143,13 +5167,24 @@ and the refusal assertion straddled 240 ms on every run.
 
 `company-intelligence-lab.html` now applies the shared enhancement **synchronously, as the last
 step of a paint**, immediately before the run status is published, in both `render()` and
-`renderRefusal()`:
+`renderRefusal()`. Read back out of the shipped file rather than quoted from memory:
 
-```js
-function enhanceTickers() {
-    if (window.RLTKR && typeof window.RLTKR.scan === "function") window.RLTKR.scan(document);
-}
+```text
+$ grep -n -A2 'function enhanceTickers' company-intelligence-lab.html
+1050:            function enhanceTickers() {
+1051-                if (window.RLTKR && typeof window.RLTKR.scan === "function") window.RLTKR.scan(document);
+1052-            }
+GREP_EXIT=0
+
+$ grep -n 'enhanceTickers()' company-intelligence-lab.html
+1050:            function enhanceTickers() {
+1081:                enhanceTickers();
+1483:                enhanceTickers();
 ```
+
+Line 1081 is the last statement of `renderRefusal()` before `setBodyState("refused", 0)`, and
+line 1483 is the last statement of `render()` before `setBodyState("composed", ...)`, so both
+paths publish a status only after the page is final.
 
 What is on screen when a run reports its status is now what stays there. The later debounced
 pass still runs, finds every ticker already carrying `data-rltkr-done` / `data-rlk-done`, and
@@ -5176,21 +5211,30 @@ Making the enhancement deterministic exposed an extraction assumption in the **J
 which pulled the subject out of the identity line with `/\(([A-Z.]+)\)/`. With the affordance
 now always present that pattern matches nothing, so every sample degraded to `'none'` and J6's
 own self-check `expect(identities.size).toBeGreaterThan(1)` correctly reported that the sampler
-had stopped seeing subjects:
+had stopped seeing subjects. **That failure is not re-executable** either: the extraction was
+corrected in the same pass, so the pattern that produced it is no longer in the file. Quoted as
+superseded historical narrative:
 
-```
-[chaos J6] samples=17 distinct subjects seen=none composing-state paints=0 msft event ids=5
-  1) Chaos J6 ... Error: the sampler really saw more than one subject mid-flight
-     Expected: > 1   Received: 1
-```
+> [chaos J6] samples=17 distinct subjects seen=none composing-state paints=0 msft event ids=5
+> &nbsp;&nbsp;1) Chaos J6 ... Error: the sampler really saw more than one subject mid-flight
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Expected: > 1   Received: 1
 
 The extraction — not the assertion — was corrected to `/\(([A-Z.]+)\??\)/`: still the
 parenthesised uppercase ticker, with the enhancer's affordance allowed between the symbol and
 the closing parenthesis. Nothing J6 asserts was relaxed, and the guard reads real subjects
-again:
+again. Re-executed today, the sampler line is unchanged from the 2026-08-19 pass:
 
-```
+```text
+$ npx --no-install playwright test tests/chaos-company-intelligence.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --grep "Chaos J6" --reporter=line
+J6_EXIT=0
+
+Running 1 test using 1 worker
+
+[1/1] [system-chrome] › tests/chaos-company-intelligence.spec.mjs:424:1 › Chaos J6: every intermediate paint during overlapping runs names one subject and only its own events
 [chaos J6] samples=17 distinct subjects seen=MSFT,AAPL composing-state paints=0 msft event ids=5
+
+  1 passed (6.6s)
 ```
 
 ### The `?`-in-a-ticker concern — checked, and it does not apply
@@ -5213,6 +5257,12 @@ governs this, in `tests/company-intelligence.unit.mjs`: `'MSFT?'`, `'MSFT?x=1'`,
 counter-case proving plain `'MSFT'` still resolves so the guard is not refusing everything.
 
 ### Verification — every command and its verbatim exit code
+
+**These are the 2026-08-19 figures and they are history, not a current baseline.** The counts
+below have all moved since: the same commands today give 90 unit tests rather than 76, 37 in
+`tests/company-intelligence-lab.spec.mjs` rather than the 43 that pairing produced, and 3404
+selftest assertions rather than 3103. Read this table as what that pass observed on that day.
+The re-executed blocks earlier in this section carry the current readings.
 
 | Command | Result | Exit |
 |---|---|---|

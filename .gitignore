@@ -10,6 +10,9 @@ improvements/
 /node_modules
 /test-results/
 /playwright-report/
+# The JSON reporter's output, which the red-run owner summary reads. A sibling of the report
+# directory above, so the directory rule does not cover it.
+/playwright-report.json
 /_site/
 /.rl-site-*/
 

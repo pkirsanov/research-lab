@@ -28681,6 +28681,25 @@ try {
   assert(duplicateAnchors.length === 0,
     `no page carries two mount anchors — rlapp.js requires exactly one and silently declines to mount otherwise (offenders: ${duplicateAnchors.join(', ') || 'none'})`);
 
+  /* An anchor with no `rlbrief-enabled` meta is INERT: rlapp's mountBriefs() marks it idle and
+     renders nothing. Asserting the anchor EXISTS was never enough, which is how horizon-ladder-lab
+     shipped a permanently empty Brief view while this group passed. */
+  const briefMountExempt = new Set(['market-brief']);
+  const inertMounts = pagedTools.filter((tool) => {
+    if (briefMountExempt.has(tool.id)) return false;
+    const html = shellRead(`${tool.id}.html`, 'utf8');
+    return /data-rlbrief-mount/.test(html) && !/name="rlbrief-enabled"/.test(html);
+  }).map((tool) => tool.id);
+  assert(inertMounts.length === 0,
+    `every tool page carrying a mount anchor also enables it with <meta name="rlbrief-enabled"> (inert: ${inertMounts.join(', ') || 'none'})`);
+
+  /* The exemption has to stay earned. market-brief IS the brief, so the per-tool mount there
+     resolves to integrity-error rather than content — measured, not assumed. If that page ever
+     gains the meta, or loses its anchor, this exemption is stale and must be re-decided. */
+  const marketBriefHtml = shellExists('market-brief.html') ? shellRead('market-brief.html', 'utf8') : '';
+  assert(/data-rlbrief-mount/.test(marketBriefHtml) && !/name="rlbrief-enabled"/.test(marketBriefHtml),
+    'the market-brief mount exemption is still live: that page carries an anchor and deliberately does not enable it');
+
   /* Deliberately NOT asserted: that a page loads the adapterModule its definition names. That
      looked like the same contract and is not — the shell resolves the binding and loads the module
      itself, and five tools that ship no adapter script mount correctly today. Pinning it would have

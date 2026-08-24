@@ -182,3 +182,267 @@ No shipped file, module, rule pack or committed test was modified by this round.
 Playwright drivers it used were removed, the `test-results` directory was removed, and the local
 static server was closed by the fixture that started it.
 
+---
+
+# Implementation Round
+
+Everything above this line belongs to the filing round and describes the packet as filed and
+unstarted. That was true when it was written. This section records a later round that delivered
+the fix. It does not amend the section above.
+
+**Landed at commits:** `e28be5814` (pack, engine, comparison surface, route, and a temporal-dead-zone
+repair in `scripts/selftest.mjs`) and `eeb2ac7cc` (the boundary regressions).
+
+**Claim Source:** executed in this session, output captured verbatim.
+
+## The Repo Gate Was Red On A Temporal Dead Zone
+
+`node scripts/selftest.mjs` reported `3393 passed, 1 failed` before this round:
+
+```
+✗ FAIL (Feature 024 Scope 01 benefit group threw): Cannot access 'sourceIds24' before initialization
+```
+
+`sourceIds24` was read by the BUG-019 assertion — which resolves the earliest age's `sourceRef`
+against the pack's source records — but was declared twenty-three lines further down, inside the
+TP-01-11 sourcing census. A `const` is not hoisted into its initialised state, so the read threw
+and the throw took the whole Feature 024 Scope 01 group with it, including every assertion after
+it. The count was low because the group aborted, not because assertions were missing.
+
+The declaration was moved above its first use and left in the same scope, so both readers see the
+same list. No assertion was deleted, weakened or reordered. The single deleted line was the
+declaration in its former position:
+
+```
+$ git --no-pager diff -U0 -- scripts/selftest.mjs | grep -E '^-[^-]'
+-  const sourceIds24 = benefitPack24.sourceRecords.map((record) => record.sourceId);
+```
+
+After the move:
+
+```
+$ node scripts/selftest.mjs
+self-test: 3405 passed, 0 failed
+selftest_exit=0
+```
+
+3405 is above the 3404 floor the three scopes each name. The eleven-assertion recovery is the rest
+of the aborted group running again plus the BUG-019 assertion itself.
+
+## The Bound Now Lives In The Pack
+
+`tax-rules/benefit/2026.json` carries `earlyReductionRule.earliestClaimAge` as a structured member
+alongside the prose it previously only stated:
+
+```
+"earliestClaimAge": {
+  "contractVersion": "EarliestClaimAge/v1",
+  "sourceRef": "ssa-age-reduction-by-birth-year",
+  "locator": "Table \"Full Retirement and Age 62 Benefit By Year Of Birth\" — the table's own title and its terminal row",
+  "ageYears": 62,
+  "maximumReductionMonths": 60,
+  ...
+}
+```
+
+This mirrors the shape the delayed-credit rule has always had. That rule carried `stoppingAgeYears`
+as a structured field and the engine honoured it; the early rule carried its maximum only in prose
+and nothing compared a candidate age against it. The asymmetry was the defect.
+
+`rltaxsocialsecurity.js` reads `earliest.ageYears` from the pack, multiplies by `MONTHS_PER_YEAR`,
+records the comparison, and refuses below it. The refusal quotes the pack's own figure and the
+citation resolved from the pack's source records — no age literal appears in the engine. The
+selftest asserts that absence directly across `rltaxsocialsecurity.js`, `rltaxclaimage.js` and
+`rltaxrules.js`, and a probe below proves the bound moves when the pack moves.
+
+It refuses rather than clamping. Answering a claim at sixty with the figure for sixty-two replaces
+one wrong number with another, so the selftest builds the clamping implementation explicitly and
+proves it produces the age-62 figure — recorded as different, not shipped.
+
+## Both Sides Of The One-Month Boundary
+
+```
+$ npx playwright test --project=chromium tests/lifetime-tax-benefit.spec.mjs -g 'the earliest priceable claim age prices and one month below it refuses'
+
+Running 1 test using 1 worker
+
+  ✓  1 [chromium] › tests/lifetime-tax-benefit.spec.mjs:332:1 › Regression: BUG-019 the earliest priceable claim age prices and one month below it refuses (1.1s)
+
+  1 passed (4.7s)
+sample_exit=0
+```
+
+744 months prices to a `$25,200` headline with sixty counted months and sixty-six adjustment rows.
+743 months refuses under `RLTAX-THRESHOLD-UNAVAILABLE`, carries the pack figure `744` and the word
+`earliest`, renders no `[data-rl-value]` at all, no factor row, no `$2,087`, no `$2,100`, no `$0`,
+and empties the settled-fact line while it is refusing.
+
+## Probe Evidence
+
+Five probes were run through `scripts/red-green-probe.sh`. Each mutates one committed literal,
+runs the assertion under test, reverts, and re-runs the identical command. `--summary-match` is
+pinned to each assertion's own title rather than to an aggregate pass count. Every probe reported
+`revert-verified: yes` against the committed blob hash.
+
+### Probe 1 — the refusing side, exit 0 (discriminated)
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BUG-019 refusing side: engine stops refusing below the declared earliest age
+file:             rltaxsocialsecurity.js
+mutation:         if (claimAgeMonths < earliestMonths) {  ->  if (false && claimAgeMonths < earliestMonths) {   (1 occurrence(s))
+command:          npx playwright test --project=chromium tests/lifetime-tax-benefit.spec.mjs -g the\ earliest\ priceable\ claim\ age\ prices\ and\ one\ month\ below\ it\ refuses
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=95beaaed147e301bcf2cae7a858b1e0463cdc1c6 restored=95beaaed147e301bcf2cae7a858b1e0463cdc1c6)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe1_exit=0
+```
+
+### Probe 2 — first attempt, exit 7 (did not discriminate), recorded rather than discarded
+
+The first attempt at the priced side mutated the wrong occurrence. `claimAgeMonths < earliestMonths`
+appears twice: once inside the published `comparisonRecord` and once in the enforcing `if`. Mutating
+the published record changed nothing the browser assertion reads.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BUG-019 priced side: the earliest age itself stops pricing when the bound is widened by one month
+file:             rltaxsocialsecurity.js
+mutation:         claimAgeMonths, "less-than", earliestMonths, claimAgeMonths < earliestMonths  ->  claimAgeMonths, "less-than", earliestMonths, claimAgeMonths <= earliestMonths   (1 occurrence(s))
+red-exit:         0
+green-exit:       0
+revert-verified:  yes (committed=95beaaed147e301bcf2cae7a858b1e0463cdc1c6 restored=95beaaed147e301bcf2cae7a858b1e0463cdc1c6)
+discriminating:   NO (both channels agree: exit 0 == 0, summary identical once elapsed time is normalised)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe2_exit=7
+```
+
+This is a real finding about coverage, not a harness misfire. The published
+`claim-age-below-earliest-priceable-age` comparison record's boolean is asserted by
+`scripts/selftest.mjs` and by no browser case, so a browser probe cannot make it fail. It is
+recorded here so the gap is visible rather than hidden by a probe that was quietly rerun.
+
+### Probe 2b — the priced side against the enforcing guard, exit 0 (discriminated)
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BUG-019 priced side: widening the enforcing guard by one month stops the earliest age itself from pricing
+file:             rltaxsocialsecurity.js
+mutation:         if (claimAgeMonths < earliestMonths) {  ->  if (claimAgeMonths <= earliestMonths) {   (1 occurrence(s))
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=95beaaed147e301bcf2cae7a858b1e0463cdc1c6 restored=95beaaed147e301bcf2cae7a858b1e0463cdc1c6)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe2b_exit=0
+```
+
+Widening the guard by one month moves the boundary onto the earliest age itself and the priced half
+fails. Together with Probe 1 this pins the boundary from both sides: neither half passes by
+accident, and a fix that refused every early claim would fail this one.
+
+### Probe 3 — the bound is read from the pack, exit 0 (discriminated)
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BUG-019 the bound is read from the pack: moving the packs declared age moves the boundary
+file:             tax-rules/benefit/2026.json
+mutation:         "ageYears": 62,  ->  "ageYears": 63,   (1 occurrence(s))
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=7e690813e707f3f0931b1fe8cd2cc276bdbb200b restored=7e690813e707f3f0931b1fe8cd2cc276bdbb200b)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe3_exit=0
+```
+
+This is the probe that proves the age is not hard-coded. Editing only the pack — no module changed
+— moves the boundary and the age-62 case stops pricing. An engine carrying its own literal would
+have been unmoved.
+
+### Probe 4 — the sub-zero band, exit 0 (discriminated)
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BUG-019 sub-zero band: the band below the bound stops refusing when the guard is disabled
+file:             rltaxsocialsecurity.js
+mutation:         if (claimAgeMonths < earliestMonths) {  ->  if (false && claimAgeMonths < earliestMonths) {   (1 occurrence(s))
+command:          npx playwright test --project=chromium tests/lifetime-tax-benefit.spec.mjs -g every\ claim\ age\ below\ the\ earliest\ priceable\ age\ refuses
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=95beaaed147e301bcf2cae7a858b1e0463cdc1c6 restored=95beaaed147e301bcf2cae7a858b1e0463cdc1c6)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe4_exit=0
+```
+
+### Probe 5 — the comparison table refuses per candidate, exit 0 (discriminated)
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BUG-019 comparison table: a per-candidate refusal that returns wholesale drops the priceable rows
+file:             rltaxclaimage.js
+mutation:         if (settlement.domain !== socialsecurity.BELOW_EARLIEST_CLAIM_AGE_DOMAIN) return settlement;  ->  if (settlement.domain !== socialsecurity.BELOW_EARLIEST_CLAIM_AGE_DOMAIN || true) return settlement;   (1 occurrence(s))
+command:          npx playwright test --project=chromium tests/lifetime-tax-claim-age.spec.mjs -g a\ comparison\ list\ mixing\ priceable\ and\ unpriceable\ ages
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=00701ee85fdc0f3f7c4c5746cee80d9e9f84a2df restored=00701ee85fdc0f3f7c4c5746cee80d9e9f84a2df)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe5_exit=0
+```
+
+Restoring the wholesale return withholds the two ages the pack can price. The scoped refusal is
+what keeps `62` and `67` on screen while `60` refuses in place.
+
+## Validation Run
+
+```
+$ node scripts/selftest.mjs
+self-test: 3405 passed, 0 failed
+selftest_exit=0
+
+$ node scripts/validate-spec-test-paths.mjs
+new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+vstp_exit=0
+
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/024-social-security-and-medicare
+Artifact lint PASSED.
+lint024_exit=0
+
+$ npx playwright test --project=chromium tests/lifetime-tax-*.spec.mjs
+Running 97 tests using 6 workers
+  97 passed (18.1s)
+playwright_exit=0
+
+$ git status --short --untracked-files=no
+(empty)
+```
+
+The tracked tree is clean and every probe reported `revert-verified: yes`, so no probe residue
+remains in any shipped module or pack.
+
+## What This Round Did Not Establish
+
+- The pinned `packContentSha256` in `lifetime-tax-strategy.config.json` pins the **federal income
+  tax** pack, not the benefit pack. The benefit pack carries no `contentSha256` and is referenced
+  by path through `rules.benefitPackPaths`. Scope 1 step 4 asks for that pin to be updated on the
+  premise that editing the benefit pack moves it; measured, it does not. The federal digest
+  assertion in `scripts/selftest.mjs` still passes and the route still reaches `ready`, so the
+  outcome the step protects holds — but by a different mechanism than the step describes, and that
+  discrepancy belongs to `bubbles.plan`.
+- The published `claim-age-below-earliest-priceable-age` comparison record is asserted only by
+  `scripts/selftest.mjs`. Probe 2's exit 7 is the proof: no browser case can make it fail.
+- The delayed-credit clamp is disclosed through `creditBoundByStoppingAge` and rendered by the
+  route, and the selftest asserts the bound. Whether the **disclosure** is asserted anywhere was
+  not established in this round, so the Scope 2 item naming it stays unticked.
+- The two pack-contract questions `design.md` routes to the owner were not answered by this round.
+  The delivered shape — a nested `earliestClaimAge` object on `earlyReductionRule`, and the same
+  `RLTAX-THRESHOLD-UNAVAILABLE` code for the sub-zero band as for the priced band — is what landed,
+  and it is recorded here as a delivered fact awaiting the owner's decision rather than as that
+  decision having been made.
+- No human acceptance was recorded. `uservalidation.md` is untouched by this round.
+

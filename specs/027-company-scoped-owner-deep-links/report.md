@@ -2888,33 +2888,55 @@ The old assertion was not re-added verbatim. The surrounding module gained the
 `withRow` / `refusalFor` helpers and a fourth ownerless dimension in scope 3, so
 the assertion is written against the current shape and against **every** ownerless
 row rather than a single probe row. Added to `tests/company-intelligence.unit.mjs`
-at line 1764, immediately after the sibling "declares both fields" refusal:
+at line 1764, immediately after the sibling "declares both fields" refusal. The
+assertion is re-read here from the committed file rather than re-quoted, and run
+on its own, so the extract cannot drift from what actually ships:
 
-```javascript
-test('an ownerSubjectParam on a row with no ownerDeepLink raises C025-CONFIG-SCHEMA naming its dimension id', () => {
-    const ownerless = INTEL.readCoverageRegistry(CONFIG).rows
-        .filter((row) => row.ownerDeepLink === null)
-        .map((row) => row.dimensionId);
-    assert.deepEqual(ownerless.slice().sort(),
-        ['company-risk', 'financial-events', 'market-regime', 'non-financial-events'],
-        'the ownerless set is the one this assertion claims to walk');
+```text
+$ awk 'NR>=1764 && NR<=1797 {printf "%d:%s\n", NR, $0}' tests/company-intelligence.unit.mjs
+1764:test('an ownerSubjectParam on a row with no ownerDeepLink raises C025-CONFIG-SCHEMA naming its dimension id', () => {
+1765:    /* A parameter names the query key a ROUTE reads a company from. Declared on a row that has
+1766:       no route, it is a half-declared owner: the reader is told how the company travels while
+1767:       nothing carries it. The mirror case — a bare reason with no route — is asserted in the
+1768:       enum test below; this is the half the sibling guard does not reach.
+1769:
+1770:       Every ownerless row is exercised, not merely the first, because a guard that fired for
+1771:       one dimension and not the rest would still pass a single-row probe. */
+1772:    const ownerless = INTEL.readCoverageRegistry(CONFIG).rows
+1773:        .filter((row) => row.ownerDeepLink === null)
+1774:        .map((row) => row.dimensionId);
+1775:    assert.deepEqual(ownerless.slice().sort(),
+1776:        ['company-risk', 'financial-events', 'market-regime', 'non-financial-events'],
+1777:        'the ownerless set is the one this assertion claims to walk');
+1778:
+1779:    ownerless.forEach((dimensionId) => {
+1780:        const error = refusalFor(withRow(dimensionId, { ownerSubjectParam: 'ticker' }));
+1781:        assert.ok(error, dimensionId + ': a subject parameter with no owner route is refused');
+1782:        assert.equal(error.code, 'C025-CONFIG-SCHEMA', dimensionId);
+1783:        assert.match(error.record.detail, new RegExp('dimension: ' + dimensionId), dimensionId);
+1784:        assert.match(error.message, /declares a subject parameter without an owner route/, dimensionId);
+1785:        /* Named by the guard under test, not by a neighbour that happens to share the code. */
+1786:        assert.ok(!/bare-link reason/.test(error.message), dimensionId + ' was refused by the wrong guard');
+1787:        assert.ok(!/exactly one of/.test(error.message), dimensionId + ' was refused by the wrong guard');
+1788:    });
+1789:
+1790:    /* ADVERSARIAL COUNTER-CASE: the guard is not refusing every ownerless row. Each one reads
+1791:       untouched, and the parameter is legal on a row that does have a route to carry it. */
+1792:    ownerless.forEach((dimensionId) => {
+1793:        assert.equal(refusalFor(withRow(dimensionId, {})), null, dimensionId + ' reads untouched');
+1794:    });
+1795:    assert.equal(refusalFor(withRow('volatility', { ownerSubjectParam: 'ticker' })), null,
+1796:        'a subject parameter on a routed row is legal');
+1797:});
+AWK_EXIT=0
 
-    ownerless.forEach((dimensionId) => {
-        const error = refusalFor(withRow(dimensionId, { ownerSubjectParam: 'ticker' }));
-        assert.ok(error, dimensionId + ': a subject parameter with no owner route is refused');
-        assert.equal(error.code, 'C025-CONFIG-SCHEMA', dimensionId);
-        assert.match(error.record.detail, new RegExp('dimension: ' + dimensionId), dimensionId);
-        assert.match(error.message, /declares a subject parameter without an owner route/, dimensionId);
-        assert.ok(!/bare-link reason/.test(error.message), dimensionId + ' was refused by the wrong guard');
-        assert.ok(!/exactly one of/.test(error.message), dimensionId + ' was refused by the wrong guard');
-    });
-
-    ownerless.forEach((dimensionId) => {
-        assert.equal(refusalFor(withRow(dimensionId, {})), null, dimensionId + ' reads untouched');
-    });
-    assert.equal(refusalFor(withRow('volatility', { ownerSubjectParam: 'ticker' })), null,
-        'a subject parameter on a routed row is legal');
-});
+$ node --test --test-name-pattern='an ownerSubjectParam on a row with no ownerDeepLink raises' tests/company-intelligence.unit.mjs
+TARGETED_EXIT=0
+✔ an ownerSubjectParam on a row with no ownerDeepLink raises C025-CONFIG-SCHEMA naming its dimension id (2.197416ms)
+ℹ tests 1
+ℹ pass 1
+ℹ fail 0
+ℹ skipped 0
 ```
 
 Two properties matter beyond "it throws". The two negative matches on
@@ -2928,12 +2950,21 @@ could not pass a single-row probe.
 
 The guard was disabled by short-circuiting its condition, the suite run, the
 source restored from an in-memory buffer in a `finally` block, and the suite run
-again. RED output first, as required:
+again. RED output first, as required — re-executed here against the committed
+tree, so the tally is the current one and not the one this section first recorded
+(see "Re-execution divergences" at the end of this section):
 
 ```text
+$ grep -n 'declares a subject parameter without an owner route' rlcompanyintel.js
+334:                raise("C025-CONFIG-SCHEMA", "Coverage registry row " + index + " declares a subject parameter without an owner route.",
+
+$ python3 /tmp/rl027-mutate.py M1-RESTORED-GUARD
 === M1-RESTORED-GUARD (subject parameter declared with no owner route) ===
-exit=1 pass=83 fail=1 verdict=KILLED
-  FAILING: ✖ an ownerSubjectParam on a row with no ownerDeepLink raises C025-CONFIG-SCHEMA naming its dimension id (0.468375ms)
+exit=1 pass=89 fail=1 verdict=KILLED
+  FAILING: ✖ an ownerSubjectParam on a row with no ownerDeepLink raises C025-CONFIG-SCHEMA naming its dimension id (0.424542ms)
+HASH_BEFORE=8e507fe614e7c5cc3d7b546f937ba38fe862210b57624aa404becbd2e5a592bf
+HASH_AFTER=8e507fe614e7c5cc3d7b546f937ba38fe862210b57624aa404becbd2e5a592bf
+HASHES_MATCH=true
 ```
 
 ```text
@@ -2964,17 +2995,35 @@ was replaced with `<repo>`; the file, line and column are unchanged. That failur
 was self-inflicted by this report and is not attributed to the concurrent session.
 
 ```text
-BASELINE exit=0 pass=84 fail=0
-GREEN_AFTER_RESTORE exit=0 pass=84 fail=0
+$ node --test tests/company-intelligence.unit.mjs   # BASELINE, before any mutation
+BASELINE_EXIT=0
+ℹ tests 90
+ℹ pass 90
+ℹ fail 0
+$ python3 /tmp/rl027-mutate.py M1-RESTORED-GUARD   # mutate, run, restore in finally
+exit=1 pass=89 fail=1 verdict=KILLED
+HASHES_MATCH=true
+$ node --test tests/company-intelligence.unit.mjs   # GREEN_AFTER_RESTORE
+GREEN_AFTER_RESTORE_EXIT=0
+ℹ tests 90
+ℹ pass 90
+ℹ fail 0
 ```
 
-Source integrity, sha256 before mutating and after restoring:
+Source integrity, sha256 before mutating and after restoring. The digest below is
+not the one first recorded here: `rlcompanyintel.js` has been edited by later
+phases, so the pair proves the mutation cycle is a no-op against the CURRENT
+source rather than against a stale pin.
 
 ```text
-HASH_BEFORE=7733d02c07e9c538db7763105354996cfa2c4444a10b03758b2e90c4aafc6e16
-HASH_AFTER=7733d02c07e9c538db7763105354996cfa2c4444a10b03758b2e90c4aafc6e16
-HASHES_MATCH=true
-GIT_DIFF_VS_HEAD=(clean)
+$ shasum -a 256 rlcompanyintel.js   # before the mutation cycle
+8e507fe614e7c5cc3d7b546f937ba38fe862210b57624aa404becbd2e5a592bf  rlcompanyintel.js
+$ python3 /tmp/rl027-summary.py M1 M2 M3 M4 M5   # five mutants, each restored in a finally block
+CYCLE_EXIT=0
+$ shasum -a 256 rlcompanyintel.js   # after the restore
+8e507fe614e7c5cc3d7b546f937ba38fe862210b57624aa404becbd2e5a592bf  rlcompanyintel.js
+$ git status --porcelain rlcompanyintel.js tests/company-intelligence.unit.mjs
+PORCELAIN_EXIT=0 (0 lines printed == byte-identical to HEAD)
 ```
 
 The harness itself needed a correction before its verdicts could be trusted. Its
@@ -2992,28 +3041,36 @@ read off the source. The same harness disabled each of the three guards commit
 `0f63acb50` added and confirmed a named failure for each:
 
 ```text
+$ python3 /tmp/rl027-mutate.py M2-ADDED-BARE-NO-ROUTE
 === M2-ADDED-BARE-NO-ROUTE (bare-link reason declared with no owner route) ===
-exit=1 pass=83 fail=1 verdict=KILLED
-  FAILING: ✖ an ownerBareReason outside the closed enum, and an ownerBareReason on a row with no ownerDeepLink, each raise C025-CONFIG-SCHEMA (0.475041ms)
+exit=1 pass=89 fail=1 verdict=KILLED
+  FAILING: ✖ an ownerBareReason outside the closed enum, and an ownerBareReason on a row with no ownerDeepLink, each raise C025-CONFIG-SCHEMA (0.4635ms)
+HASHES_MATCH=true
 
+$ python3 /tmp/rl027-mutate.py M3-ADDED-ENUM-CLOSED
 === M3-ADDED-ENUM-CLOSED (bare-link reason outside the closed enum) ===
-exit=1 pass=83 fail=1 verdict=KILLED
-  FAILING: ✖ an ownerBareReason outside the closed enum, and an ownerBareReason on a row with no ownerDeepLink, each raise C025-CONFIG-SCHEMA (0.366667ms)
+exit=1 pass=88 fail=2 verdict=KILLED
+  FAILING: ✖ an ownerBareReason outside the closed enum, and an ownerBareReason on a row with no ownerDeepLink, each raise C025-CONFIG-SCHEMA (0.368541ms)
+  FAILING: ✖ 027 security — ownerBareReason reaches the reader as text only, never an attribute, an href or markup (0.515875ms)
+HASHES_MATCH=true
 
+$ python3 /tmp/rl027-mutate.py M4-ADDED-EXACTLY-ONE
 === M4-ADDED-EXACTLY-ONE (linked row must declare exactly one of the two fields) ===
-exit=1 pass=81 fail=3 verdict=KILLED
-  FAILING: ✖ a subject-carrying owner link opens the owning tool on the same company and can carry nothing else (1.091542ms)
-  FAILING: ✖ a row with an ownerDeepLink declaring neither ownerSubjectParam nor ownerBareReason raises C025-CONFIG-SCHEMA naming its dimension id (0.158333ms)
-  FAILING: ✖ a row declaring both ownerSubjectParam and ownerBareReason raises C025-CONFIG-SCHEMA naming its dimension id (0.090916ms)
+exit=1 pass=88 fail=2 verdict=KILLED
+  FAILING: ✖ a row with an ownerDeepLink declaring neither ownerSubjectParam nor ownerBareReason raises C025-CONFIG-SCHEMA naming its dimension id (0.374708ms)
+  FAILING: ✖ a row declaring both ownerSubjectParam and ownerBareReason raises C025-CONFIG-SCHEMA naming its dimension id (0.088959ms)
+HASHES_MATCH=true
 ```
 
 ```text
+$ python3 /tmp/rl027-summary.py M1-RESTORED-GUARD M2-ADDED-BARE-NO-ROUTE M3-ADDED-ENUM-CLOSED M4-ADDED-EXACTLY-ONE
 === SUMMARY ===
-KILLED    M1-RESTORED-GUARD        subject parameter declared with no owner route
-KILLED    M2-ADDED-BARE-NO-ROUTE   bare-link reason declared with no owner route
-KILLED    M3-ADDED-ENUM-CLOSED     bare-link reason outside the closed enum
-KILLED    M4-ADDED-EXACTLY-ONE     linked row must declare exactly one of the two fields
+KILLED    M1-RESTORED-GUARD            subject parameter declared with no owner route
+KILLED    M2-ADDED-BARE-NO-ROUTE       bare-link reason declared with no owner route
+KILLED    M3-ADDED-ENUM-CLOSED         bare-link reason outside the closed enum
+KILLED    M4-ADDED-EXACTLY-ONE         linked row must declare exactly one of the two fields
 killed=4/4
+SUMMARY4_EXIT=0
 ```
 
 All three neighbours were already covered; none needed new coverage. M3 is worth
@@ -3028,10 +3085,22 @@ This section first stated that the sibling guard the regression pass recorded as
 pre-existing-uncovered — "declares a subject parameter that is not a plain
 identifier" — was "covered in fact" by the hostile-parameter-name loop at line
 1681. That claim was read off the source rather than executed, and it is **false**.
-The regression pass was right. Mutating that guard:
+The regression pass was right. Mutating that guard survives — RECONSTRUCTED, because
+the covering test now exists in the committed tree: the harness was given the name of
+that test and removed it for the duration of the run, restoring it from the same
+in-memory buffer, which reproduces the pre-fix state honestly rather than quoting the
+original transcript:
 
 ```text
-M5-SIBLING-PLAIN-IDENTIFIER exit=0 fail=0 verdict=SURVIVED (NO COVERAGE)
+$ python3 /tmp/rl027-mutate.py M5-SIBLING-PLAIN-IDENTIFIER \
+    'a declared ownerSubjectParam that is not a plain identifier raises C025-CONFIG-SCHEMA naming that guard'
+=== M5-SIBLING-PLAIN-IDENTIFIER (declared subject parameter is not a plain identifier) ===
+exit=0 pass=89 fail=0 verdict=SURVIVED (NO COVERAGE)
+HASH_BEFORE=8e507fe614e7c5cc3d7b546f937ba38fe862210b57624aa404becbd2e5a592bf
+HASH_AFTER=8e507fe614e7c5cc3d7b546f937ba38fe862210b57624aa404becbd2e5a592bf
+HASHES_MATCH=true
+$ git status --porcelain rlcompanyintel.js tests/company-intelligence.unit.mjs
+PORCELAIN_EXIT=0 (0 lines printed == both files restored byte-for-byte)
 ```
 
 The suite did not notice. The reason is worth stating because it is the same trap
@@ -3044,46 +3113,73 @@ Since this is a live production refusal with no proof, in the same in-boundary
 file, it was covered rather than left. A new test exercises the identifier rule on
 `volatility` — a row that ALREADY carries a subject parameter, so the "exactly one
 of" rule cannot fire and steal the refusal — and matches the guard's own message so
-a neighbour's refusal cannot be mistaken for it:
+a neighbour's refusal cannot be mistaken for it. Re-read from the committed file and
+run on its own:
 
-```javascript
-test('a declared ownerSubjectParam that is not a plain identifier raises C025-CONFIG-SCHEMA naming that guard', () => {
-    ['tick er', 'ticker=x', 'ticker&x', 'a#b', '1ticker', 'ticker-1', '__proto__.x', 'ti%20cker']
-        .forEach((param) => {
-            const error = refusalFor(withRow('volatility', { ownerSubjectParam: param }));
-            assert.ok(error, JSON.stringify(param) + ' is refused as a subject parameter');
-            assert.equal(error.code, 'C025-CONFIG-SCHEMA', JSON.stringify(param));
-            assert.match(error.record.detail, /dimension: volatility/, JSON.stringify(param));
-            assert.match(error.message, /declares a subject parameter that is not a plain identifier/,
-                JSON.stringify(param));
-        });
+```text
+$ awk 'NR>=1799 && NR<=1821 {printf "%d:%s\n", NR, $0}' tests/company-intelligence.unit.mjs
+1799:test('a declared ownerSubjectParam that is not a plain identifier raises C025-CONFIG-SCHEMA naming that guard', () => {
+1800:    /* The sibling guard four lines below the one above. The hostile-parameter-name loop at the
+1801:       end of the previous section looked like it covered this, and does not: it rewrites every
+1802:       linked row, so a bare row gains a second declaration and is refused by the "exactly one
+1803:       of" rule before the identifier rule is ever consulted. Only a row that ALREADY carries a
+1804:       subject parameter reaches this guard, and the message is matched so a refusal from the
+1805:       neighbouring rule cannot be mistaken for this one. */
+1806:    ['tick er', 'ticker=x', 'ticker&x', 'a#b', '1ticker', 'ticker-1', '__proto__.x', 'ti%20cker']
+1807:        .forEach((param) => {
+1808:            const error = refusalFor(withRow('volatility', { ownerSubjectParam: param }));
+1809:            assert.ok(error, JSON.stringify(param) + ' is refused as a subject parameter');
+1810:            assert.equal(error.code, 'C025-CONFIG-SCHEMA', JSON.stringify(param));
+1811:            assert.match(error.record.detail, /dimension: volatility/, JSON.stringify(param));
+1812:            assert.match(error.message, /declares a subject parameter that is not a plain identifier/,
+1813:                JSON.stringify(param));
+1814:        });
+1815:
+1816:    /* ADVERSARIAL COUNTER-CASE: the guard admits the identifiers it is supposed to admit, so
+1817:       it is not simply refusing every rewrite of this row. */
+1818:    ['ticker', 'symbol', 't', 'subject_id', 'Ticker9'].forEach((param) => {
+1819:        assert.equal(refusalFor(withRow('volatility', { ownerSubjectParam: param })), null, param);
+1820:    });
+1821:});
+AWK_EXIT=0
 
-    ['ticker', 'symbol', 't', 'subject_id', 'Ticker9'].forEach((param) => {
-        assert.equal(refusalFor(withRow('volatility', { ownerSubjectParam: param })), null, param);
-    });
-});
+$ node --test --test-name-pattern='a declared ownerSubjectParam that is not a plain identifier raises' tests/company-intelligence.unit.mjs
+TARGETED_EXIT=0
+✔ a declared ownerSubjectParam that is not a plain identifier raises C025-CONFIG-SCHEMA naming that guard (1.321625ms)
+ℹ tests 1
+ℹ pass 1
+ℹ fail 0
+ℹ skipped 0
 ```
 
 Re-running the same mutation now discriminates, and the four earlier mutants are
 unaffected:
 
 ```text
-M5-SIBLING-PLAIN-IDENTIFIER exit=1 fail=1 verdict=KILLED
-  FAILING: ✖ a declared ownerSubjectParam that is not a plain identifier raises C025-CONFIG-SCHEMA naming that guard (0.597917ms)
-HASH_BEFORE=7733d02c07e9c538db7763105354996cfa2c4444a10b03758b2e90c4aafc6e16
-HASH_AFTER=7733d02c07e9c538db7763105354996cfa2c4444a10b03758b2e90c4aafc6e16
+$ python3 /tmp/rl027-mutate.py M5-SIBLING-PLAIN-IDENTIFIER   # no test removed this time
+=== M5-SIBLING-PLAIN-IDENTIFIER (declared subject parameter is not a plain identifier) ===
+exit=1 pass=89 fail=1 verdict=KILLED
+  FAILING: ✖ a declared ownerSubjectParam that is not a plain identifier raises C025-CONFIG-SCHEMA naming that guard (0.36225ms)
+HASH_BEFORE=8e507fe614e7c5cc3d7b546f937ba38fe862210b57624aa404becbd2e5a592bf
+HASH_AFTER=8e507fe614e7c5cc3d7b546f937ba38fe862210b57624aa404becbd2e5a592bf
 HASHES_MATCH=true
-GIT_DIFF_VS_HEAD=(clean)
 ```
 
 ```text
-=== SUMMARY ===  (re-run after the new test)
-KILLED    M1-RESTORED-GUARD        subject parameter declared with no owner route
-KILLED    M2-ADDED-BARE-NO-ROUTE   bare-link reason declared with no owner route
-KILLED    M3-ADDED-ENUM-CLOSED     bare-link reason outside the closed enum
-KILLED    M4-ADDED-EXACTLY-ONE     linked row must declare exactly one of the two fields
-killed=4/4
-GREEN_AFTER_RESTORE exit=0 pass=85 fail=0
+$ python3 /tmp/rl027-summary.py M1-RESTORED-GUARD M2-ADDED-BARE-NO-ROUTE M3-ADDED-ENUM-CLOSED M4-ADDED-EXACTLY-ONE M5-SIBLING-PLAIN-IDENTIFIER
+=== SUMMARY ===
+KILLED    M1-RESTORED-GUARD            subject parameter declared with no owner route
+KILLED    M2-ADDED-BARE-NO-ROUTE       bare-link reason declared with no owner route
+KILLED    M3-ADDED-ENUM-CLOSED         bare-link reason outside the closed enum
+KILLED    M4-ADDED-EXACTLY-ONE         linked row must declare exactly one of the two fields
+KILLED    M5-SIBLING-PLAIN-IDENTIFIER  declared subject parameter is not a plain identifier
+killed=5/5
+SUMMARY5_EXIT=0
+$ node --test tests/company-intelligence.unit.mjs   # GREEN_AFTER_RESTORE
+GREEN_AFTER_RESTORE_EXIT=0
+ℹ tests 90
+ℹ pass 90
+ℹ fail 0
 ```
 
 Five of the five registry refusals in this cluster now have an assertion proved
@@ -3131,6 +3227,46 @@ suite was not re-run — the finding, the fix and the proof are all node-side.
 `uservalidation.md` remains **0 ticked / 19 unticked**. Top-level `status` remains
 `in_progress`, `certifiedAt` remains `null`, and no `certification.*` field was
 written.
+
+### Re-execution divergences — six recorded claims that no longer hold
+
+The ten evidence blocks in this section were re-executed against the committed
+tree rather than re-quoted, in a detached scratch worktree at `HEAD` so the shared
+checkout was never mutated. Six numbers recorded above have since moved. They are
+surfaced here rather than overwritten in place, because the tally block is a record
+of what was true when it was written:
+
+1. **Unit suite 85 → 90 tests.** The "Commands, exit codes and tally" block above
+   reads `tests 85 / pass 85`. `node --test tests/company-intelligence.unit.mjs`
+   now reports 90 pass, 0 fail. Later phases added five assertions to the same file.
+2. **Selftest 3172 → 3404 passed, 0 failed.** The block above records the reading
+   taken when this section was written; the suite has grown since.
+3. **`ARTIFACT_LINT_EXIT=0 / Artifact lint PASSED.` no longer holds.** With
+   `status` flipped to `done` on a throwaway copy, `artifact-lint.sh` exits 1. This
+   pass raised the ten blocks in this section and moved the failure count 33 → 23;
+   none of the remaining 23 is inside this section.
+4. **`rlcompanyintel.js` sha256 `7733d02c…` → `8e507fe6…`.** The integrity pair
+   above is now taken against the current source, so it proves the mutation cycle
+   is a no-op today rather than pinning a digest that has already changed.
+5. **M4 killed 3 tests; it now kills 2.** "a subject-carrying owner link opens the
+   owning tool on the same company and can carry nothing else" no longer fails
+   under that mutation. The verdict is unchanged (KILLED); the count is stale.
+6. **M3 killed 1 test; it now kills 2.** A security assertion added after this
+   section was written — "ownerBareReason reaches the reader as text only, never an
+   attribute, an href or markup" — also dies under the closed-enum mutation.
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh <throwaway-copy-of-spec-dir-status-done>
+LINT_EXIT=1
+BEFORE_X_COUNT=33
+AFTER_X_COUNT=23
+```
+
+The reconstruction in "A correction" above is the one place where the original
+command could not be replayed as-is: the covering test now exists, so the harness
+was told to remove it for the duration of that single run. That is disclosed at the
+block itself and both files were restored byte-for-byte, confirmed by `git status
+--porcelain` printing nothing.
 
 ## Security Phase — the deep-link corridor (bubbles.security)
 

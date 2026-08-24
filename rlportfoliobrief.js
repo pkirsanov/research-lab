@@ -437,22 +437,44 @@
       buckets[domain].rawOccurrenceCount += 1;
     });
 
-    deduped.value.eligibleOccurrences.forEach(function (occurrence) {
-      var semantic = semanticByIdentity[occurrence.eventIdentity];
+    var eligibleEvents = [];
+    for (var eligibleIndex = 0; eligibleIndex < deduped.value.eligibleOccurrences.length; eligibleIndex += 1) {
+      var eligibleOccurrence = deduped.value.eligibleOccurrences[eligibleIndex];
+      var eligibleSemantic = semanticByIdentity[eligibleOccurrence.eventIdentity];
+      if (!eligibleSemantic) continue;
+      var eligibleAgeMs = Date.parse(input.behaviorCutoffAt) - Date.parse(eligibleOccurrence.occurredAt);
+      if (eligibleAgeMs < 0 || eligibleAgeMs / 86400000 > behaviorPolicy.maximumEvidenceAgeDays) continue;
+      var eventResult = portfolio.buildBehaviorEvent({
+        category: eligibleSemantic.category,
+        completionConditionId: eligibleSemantic.completionConditionId,
+        domain: eligibleSemantic.domain,
+        genericEvidenceIdentity: eligibleSemantic.genericEvidenceIdentity,
+        horizon: eligibleSemantic.horizon,
+        resultIdentity: eligibleSemantic.resultIdentity,
+        sourceSurface: eligibleSemantic.sourceSurface,
+        subjectId: eligibleSemantic.subjectId,
+        subjectKind: eligibleSemantic.subjectKind
+      }, { now: eligibleOccurrence.occurredAt }, input.policy);
+      if (!eventResult.ok) return eventResult;
+      eligibleEvents.push(eventResult.value);
+    }
+    var semanticResult = portfolio.dedupeBehaviorEvents(eligibleEvents, input.policy);
+    if (!semanticResult.ok) return semanticResult;
+
+    semanticResult.value.events.forEach(function (event) {
+      var semantic = semanticByIdentity[event.eventIdentity];
       if (!semantic) return;
       var bucket = buckets[semantic.domain];
       if (!bucket) return;
+      var occurrence = event.occurrence;
       var ageMs = Date.parse(input.behaviorCutoffAt) - Date.parse(occurrence.occurredAt);
-      if (ageMs < 0) return;
       var ageDays = ageMs / 86400000;
-      if (ageDays <= behaviorPolicy.maximumEvidenceAgeDays) {
-        bucket.completionIdentities[occurrence.eventIdentity] = true;
-        bucket.dates[occurrence.newYorkCivilDate] = true;
-        bucket.occurrenceIds.push(occurrence.occurrenceId);
-        bucket.score += Math.pow(0.5, ageDays / behaviorPolicy.halfLifeDays);
-        if (!bucket.latestSupportAt || occurrence.occurredAt > bucket.latestSupportAt) {
-          bucket.latestSupportAt = occurrence.occurredAt;
-        }
+      bucket.completionIdentities[occurrence.eventIdentity] = true;
+      bucket.dates[occurrence.newYorkCivilDate] = true;
+      bucket.occurrenceIds.push(occurrence.occurrenceId);
+      bucket.score += Math.pow(0.5, ageDays / behaviorPolicy.halfLifeDays);
+      if (!bucket.latestSupportAt || occurrence.occurredAt > bucket.latestSupportAt) {
+        bucket.latestSupportAt = occurrence.occurredAt;
       }
     });
 
@@ -485,7 +507,14 @@
         domain: signal.domain,
         horizon: signal.horizon,
         supportingOccurrenceIds: signal.supportingOccurrenceIds,
-        floor: signal.floor
+        floor: {
+          rawOccurrenceCount: signal.floor.distinctCompletionIdentities,
+          distinctCompletionIdentities: signal.floor.distinctCompletionIdentities,
+          requiredDistinctCompletionIdentities: signal.floor.requiredDistinctCompletionIdentities,
+          distinctNewYorkCivilDates: signal.floor.distinctNewYorkCivilDates,
+          requiredDistinctNewYorkCivilDates: signal.floor.requiredDistinctNewYorkCivilDates,
+          satisfied: signal.floor.satisfied
+        }
       });
       return signal;
     });

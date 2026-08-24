@@ -1,0 +1,84 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection",
+  "generatedAt": "2026-08-24T00:00:00Z",
+  "generatedBy": "bubbles.bug",
+  "provenance": "Initial diagnostic transcription from BUG-004 scopes.md. Both scenarios remain planned and uncertified. Parent test results are diagnostic only.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-B004-OCCURRENCE-ADMISSION",
+      "scopeId": "01-preserve-occurrences-without-relevance-inflation",
+      "scope": 1,
+      "title": "A distinct same-day occurrence remains auditable",
+      "gherkin": {
+        "given": "one stored occurrence for a valid semantic completion",
+        "when": "the same semantic completion occurs at another instant on the same New York civil date",
+        "then": "the distinct occurrence is stored and an exact repeated occurrence is rejected"
+      },
+      "status": "planned",
+      "behaviorClass": "business-logic",
+      "changeType": "bugfix",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-foundation.unit.mjs",
+          "testId": "privacy inventory reports real category counts and carries no stored subject value",
+          "coverageStatus": "candidate-diagnostic-only"
+        },
+        {
+          "file": "tests/portfolio-behavior-occurrence.unit.mjs",
+          "testId": "BUG-003: a later same-civil-day completion is a distinct occurrence under one semantic identity",
+          "coverageStatus": "concurrent-carrier-not-executed-by-this-agent"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#before-fix-receipts",
+        "report.md#candidate-fix-receipts"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B004-SEMANTIC-ANTI-INFLATION",
+      "scopeId": "01-preserve-occurrences-without-relevance-inflation",
+      "scope": 1,
+      "title": "Repeated semantic occurrences cannot increase relevance",
+      "gherkin": {
+        "given": "a baseline stream and an augmented stream with more occurrences but no new semantic identity",
+        "when": "score, floor eligibility, and canonical ordering are derived",
+        "then": "audit cardinality grows while score, floor, band, supporting identities, and order remain equal"
+      },
+      "status": "planned",
+      "behaviorClass": "ui",
+      "changeType": "bugfix",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-behavior-occurrence.unit.mjs",
+          "testId": "BUG-003: a repeated same-day occurrence cannot buy relevance it did not earn",
+          "coverageStatus": "concurrent-carrier-missing-score-and-order-discriminators"
+        },
+        {
+          "file": "tests/portfolio-brief.functional.mjs",
+          "testId": "Regression: BUG-004 same-semantic occurrences cannot inflate relevance",
+          "coverageStatus": "planned-not-authored"
+        },
+        {
+          "file": "tests/portfolio-survival-foundation.spec.mjs",
+          "testId": "Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio",
+          "coverageStatus": "existing-needs-anti-inflation-discriminator"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#residual-anti-inflation-path",
+        "report.md#test-evidence"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "version": 3,
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection",
+  "featureName": "BUG-004 Same-Day Behavior Occurrence Rejection",
+  "createdAt": "2026-08-24T00:00:00Z",
+  "lastUpdatedAt": "2026-08-24T00:00:00Z",
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/008-portfolio-survival-and-brief-lab",
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "flagsIntroduced": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "introducedByCommit": "edbbddf0d32fb3477086ecf0281c46a759264bff",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json"
+  },
+  "execution": {
+    "activeAgent": "bubbles.analyst",
+    "currentPhase": "analyze",
+    "currentPhaseStatus": "completed",
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-24T14:26:01Z",
+    "completedAt": "2026-08-24T14:27:42Z",
+    "substate": "outcome-contract-reconciled",
+    "currentScope": null,
+    "nextRequiredOwner": "bubbles.validate",
+    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection",
+    "nextRequiredReason": "Restart packet validation after the analyst-owned Outcome Contract reconciliation and passing focused G070 check.",
+    "completedPhaseClaims": ["analyze"],
+    "pendingTransitionRequests": []
+  },
+  "completedScopes": [],
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scope": 1,
+        "scopeId": "01-preserve-occurrences-without-relevance-inflation",
+        "status": "not_started",
+        "certifiedAt": null
+      }
+    ]
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": { "mode": "off", "source": "repo-default" },
+    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
+    "autoCommit": { "mode": "off", "source": "repo-default" },
+    "lockdown": { "mode": "off", "source": "repo-default" },
+    "regression": { "mode": "protected-scenarios", "source": "workflow-forced" },
+    "validation": { "mode": "certification-required", "source": "repo-default" }
+  },
+  "modeTransitions": [],
+  "transitionRequests": [
+    {
+      "id": "BUG-004-ROUTE-001",
+      "status": "pending",
+      "fromAgent": "bubbles.bug",
+      "nextRequiredOwner": "bubbles.design",
+      "target": "specs/008-portfolio-survival-and-brief-lab/design.md",
+      "reason": "The parent design's older semantic-event wording contradicts D1-Q2 occurrence retention and must be reconciled without a spec change."
+    },
+    {
+      "id": "BUG-004-ROUTE-002",
+      "status": "pending",
+      "fromAgent": "bubbles.bug",
+      "nextRequiredOwner": "bubbles.test",
+      "target": "tests/portfolio-behavior-occurrence.unit.mjs and tests/portfolio-brief.functional.mjs",
+      "reason": "Preserve the concurrent occurrence carrier and add the missing baseline-versus-augmented evidenceScore and ranked-order discriminators.",
+      "dependsOn": ["BUG-004-ROUTE-001"]
+    },
+    {
+      "id": "BUG-004-ROUTE-003",
+      "status": "pending",
+      "fromAgent": "bubbles.bug",
+      "nextRequiredOwner": "bubbles.implement",
+      "target": "rlportfolio.js",
+      "reason": "Preserve exact-occurrence storage and repair any projection inflation exposed by the adversarial test.",
+      "dependsOn": ["BUG-004-ROUTE-001", "BUG-004-ROUTE-002"]
+    }
+  ],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "at": "2026-08-24T00:00:00Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "filed-and-routed",
+      "note": "Inspected the introducing commit, parent contracts, current candidate diff, focused unit carrier, relevance derivation, Scope 28 receipts, and a concurrent BUG-003 collision. No product test ran and no existing dirty path changed.",
+      "phasesExecuted": ["bug"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-24T14:27:42Z",
+      "agent": "bubbles.analyst",
+      "phase": "analyze",
+      "action": "outcome-contract-reconciled",
+      "note": "Added the G070 Outcome Contract and reconciled semantic anti-inflation wording with the current BUG-004 design and executable scenarios. Top-level status and certification remain in_progress.",
+      "phasesExecuted": ["analyze"],
+      "provenanceMode": "specialist"
+    }
+  ],
+  "addressedFindings": [
+    {
+      "id": "BUG-004-D1",
+      "summary": "The regression was traced to a storage predicate that combined semantic identity with civil-date occurrence metadata.",
+      "evidenceRef": "report.md#root-cause-evidence"
+    }
+  ],
+  "unresolvedFindings": [
+    {
+      "id": "BUG-004-F1",
+      "summary": "Older parent design wording contradicts D1-Q2 occurrence retention.",
+      "owner": "bubbles.design",
+      "followUpOwner": "bubbles.plan",
+      "evidenceRef": "design.md#design-owner-packet",
+      "status": "route_required"
+    },
+    {
+      "id": "BUG-004-F2",
+      "summary": "The concurrent carrier proves storage and floor boundaries but omits evidenceScore and ranked-order equality while the current score loop adds weight per stored occurrence.",
+      "owner": "bubbles.test",
+      "followUpOwner": "bubbles.implement",
+      "evidenceRef": "design.md#test-owner-packet",
+      "status": "route_required"
+    }
+  ],
+  "resolvedDiscoveries": [],
+  "openDiscoveries": []
+}

@@ -2408,18 +2408,16 @@
   }
 
   // Appending an event is a normal workspace revision, so it inherits the same pointer-swap
-  // commit and generation check as a portfolio or mandate change. A semantic repeat is
-  // recorded as `duplicate` and changes nothing, rather than growing the stored evidence.
+  // commit and generation check as a portfolio or mandate change. An exact occurrence repeat
+  // is recorded as `duplicate`; later occurrences remain auditable and are collapsed by rankers.
   function buildBehaviorCandidate(draft, currentWorkspace, options, policy) {
     var workspaceResult = validateWorkspace(currentWorkspace, policy);
     if (!workspaceResult.ok) return workspaceResult;
     var eventResult = buildBehaviorEvent(draft, options, policy);
     if (!eventResult.ok) return eventResult;
     var candidate = clone(currentWorkspace);
-    // Same content on the same civil day. `eventId` fingerprints occurredAt, so it never repeats.
     var duplicate = candidate.behaviorEvents.some(function (entry) {
-      return entry.dedupeKey === eventResult.value.dedupeKey &&
-        entry.occurrence.newYorkCivilDate === eventResult.value.occurrence.newYorkCivilDate;
+      return entry.eventId === eventResult.value.eventId;
     });
     if (!duplicate) {
       if (candidate.behaviorEvents.length + 1 > policy.behavior.maxBehaviorEvents) {
@@ -2456,6 +2454,7 @@
 
     var behavior = policy.behavior;
     var byDomain = Object.create(null);
+    var eligibleEvents = [];
     workspace.behaviorEvents.forEach(function (event) {
       if (!event || !event.domain) return;
       if (event.lifecycleState !== "eligible") return;
@@ -2472,9 +2471,16 @@
           score: 0
         };
       }
-      var bucket = byDomain[key];
       var ageDays = (Date.parse(now) - Date.parse(event.occurredAt)) / 86400000;
       if (ageDays < 0 || ageDays > behavior.maximumEvidenceAgeDays) return;
+      eligibleEvents.push(event);
+    });
+
+    var dedupedResult = dedupeBehaviorEvents(eligibleEvents, policy);
+    if (!dedupedResult.ok) return dedupedResult;
+    dedupedResult.value.events.forEach(function (event) {
+      var bucket = byDomain[String(event.domain)];
+      var ageDays = (Date.parse(now) - Date.parse(event.occurredAt)) / 86400000;
       bucket.eventIdentities[event.eventIdentity] = true;
       bucket.dates[event.occurrence.newYorkCivilDate] = true;
       if (!bucket.horizon && event.horizon) bucket.horizon = event.horizon;

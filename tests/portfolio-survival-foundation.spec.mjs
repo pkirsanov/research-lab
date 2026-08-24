@@ -987,7 +987,7 @@ test('Regression: SCN-008-011 clear behavior removes ranking influence and prese
   console.log('[SCN-008-011] floorMetBeforeClear=msft');
   console.log('[SCN-008-011] previewOnlyChangedProjection=false');
   console.log('[SCN-008-011] rankingSurvivedReload=true');
-  console.log('[SCN-008-011] duplicateSameDayCompletion=rejected');
+  console.log('[SCN-008-011] duplicateExactOccurrence=rejected');
   console.log('[SCN-008-011] eligibleCompletionsAfterClear=' + persistedAfter.behaviorEvents.length);
   console.log('[SCN-008-011] interestSignalsAfterClear=' + persistedAfter.interestSignals.length);
   console.log('[SCN-008-011] portfolioPreserved=' + (after.currentPortfolioId === before.currentPortfolioId));

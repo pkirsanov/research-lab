@@ -478,13 +478,23 @@ An event is written only after all conditions hold:
 2. The ResearchAction completion condition is satisfied or explicitly acknowledged.
 3. The user activates `Record research complete` or `Record review complete`.
 4. A confirmation previews exact category, non-sensitive subject/domain/horizon, time policy, decay, and future ranking effect.
-5. The semantic de-duplication key is not already active.
+5. The exact occurrence identity is not already stored. An equal semantic identity alone does not block admission.
 
 Opening a tab/tool, expanding Why Shown, clicking a link, changing mode/window/filter/sort/control, running a calculation, or lingering on a page writes no event.
 
-### De-Duplication
+### Storage Admission And Semantic De-Duplication
 
-The event key is a semantic fingerprint of category, subject/domain/horizon, source surface, completed result/evidence identity, completion-condition ID, and policy version. Repeating the same completion or repeating a public window over the same evidence identity returns the existing event. A materially new result/evidence identity can create a new event only after a new explicit confirmation.
+`BehaviorEventIdentity/v1` fingerprints category, subject, domain, horizon, source surface, completed result, generic evidence, completion condition, and policy version. It excludes occurrence time.
+
+`BehaviorOccurrence/v1` combines that semantic identity with `occurredAt` and its derived New York civil date. Its `occurrenceId` is also the stored `eventId`.
+
+Storage rejects only an `occurrenceId` that already exists in the workspace. A later report with the same semantic identity and civil date remains a distinct occurrence when its timestamp differs.
+
+The complete occurrence stream remains available to local audit and privacy inventory. Before score, floor eligibility, signal identity, or action order is derived, eligible occurrences collapse by semantic identity. The earliest eligible occurrence is the one canonical contribution for that semantic completion.
+
+Additional occurrences may increase only the reported raw occurrence count. They cannot change score, distinct-date eligibility, floor state, relevance band, signal identity, rank identity, or canonical order.
+
+Repeated publications over the same generic evidence identity retain one semantic completion. A materially new result or evidence identity can create another semantic completion only after a new explicit confirmation.
 
 ### Deterministic Decay
 
@@ -497,7 +507,7 @@ w(d) = \begin{cases}
 \end{cases}
 $$
 
-The evidence score is the sum of contributions after semantic de-duplication. The floor also requires two distinct completion identities on two distinct UTC dates. Confidence categories follow the configured evidence/diversity rules and are always called relevance confidence.
+The evidence score sums one contribution per semantic completion after collapse. Each contribution uses that completion's earliest eligible occurrence. The floor requires two distinct completion identities whose canonical occurrences span two distinct New York civil dates. A repeated occurrence cannot supply another completion or date. Confidence categories follow the configured evidence/diversity rules and are always called relevance confidence.
 
 Power mode recomputes relevance under half-lives 7, 14, and 28 days. A band change is shown as sensitivity, not hidden policy tuning.
 
@@ -1010,7 +1020,7 @@ The remediation keeps the product local, static, educational, non-executing, and
 | D1 question | Closed decision | Owning contract |
 | --- | --- | --- |
 | 1. Personal categories and clear transaction | One runtime-derived registry controls tombstone, deletion, independent reread, controller reset, and residue reporting. | `PersonalCategoryRegistry/v1`, `ClearTombstone/v1`, `FullClearResult/v1` |
-| 2. Behavior identity and ordering | One semantic event identity and one immutable rank result feed storage, Brief, Why shown, and route order. | `BehaviorEventIdentity/v1`, `BehaviorRankResult/v1` |
+| 2. Behavior identity and ordering | Exact occurrence identity controls storage admission. Semantic identity controls one canonical contribution to score, floors, and rank. | `BehaviorOccurrence/v1`, `BehaviorEventIdentity/v1`, `BehaviorRankResult/v1` |
 | 3. Generic evidence and public failures | One exact generic projection validates all public artifacts. Every public Brief function returns a closed `PortfolioResult/v1`. | `GenericEvidenceWindow/v1`, `PortfolioError/v1`, `RLPORTFOLIO_BRIEF` |
 | 4. Daily bar coverage | Coverage acquisition appends cache, static, then consented public rows. Completion depends on eligible dates and source qualification. | `BarCoverageTarget/v1`, `BarCoverageResult/v1` |
 | 5. Partial risk inputs | Every holding receives a per-metric eligibility record. One unsupported family cannot erase independent results. | `AssetMetricEligibility/v1`, `RiskDiagnosticSet/v1` |
@@ -1028,6 +1038,7 @@ Only these earlier clauses are superseded. They remain historical evidence of th
 | --- | --- | --- |
 | Fixed `FOUNDATION_LOCAL_KEYS`, `FOUNDATION_SESSION_KEYS`, and a hand-written storage table define clear coverage. | Runtime discovery plus `PersonalCategoryRegistry/v1` defines every persistent and live category. | Fixed arrays remain readable only as a migration input. They cannot authorize clear success. |
 | The behavior floor counts distinct UTC dates, and decay accepts a caller-supplied fixed offset. | The floor counts distinct `America/New_York` civil dates. Age uses exact elapsed time and rejects future events. | Stored UTC instants remain valid. Derived date, age, floor, and rank values are recomputed. |
+| The eligible-completion gate requires an inactive semantic key, and repeated meaning returns one existing stored event. | Storage rejects only an equal `BehaviorOccurrence/v1` `occurrenceId`. The earliest eligible occurrence per `BehaviorEventIdentity/v1` is the sole score, floor, and order contribution. | Current occurrence-bearing v1 rows remain byte-stable. Legacy pre-Scope-18 v1 rows remain read-and-clear only. Previously discarded occurrences cannot be reconstructed. |
 | Queue policy applies separate direct and general-interest caps. | One global visible cap applies after one canonical ranking. Urgent direct work wins through rank tuple fields. | Policy v1 migrates `directActionCap + generalInterestActionCap` to one explicit v2 cap. |
 | `RLPORTFOLIOBRIEF.composeBrief` is sufficient for the public Brief boundary. | `RLPORTFOLIO_BRIEF` exposes all eight designed functions and closed failures. | `RLPORTFOLIOBRIEF` may remain a read-only alias during the v2 policy transition. It must expose the identical frozen object. |
 | `ensureBarCoverage` measures current cache and leaves acquisition to callers. | `ensureBarCoverage` owns cache measurement, same-origin append, consented public append, and final measurement. | `ensureBars` remains unchanged. Route code cannot implement a second acquisition sequence. |
@@ -1135,11 +1146,17 @@ SCN-008-037 through SCN-008-041 populate their named workspace categories before
 
 ### D1-Q2 Behavior Identity, Civil Time, And Global Ranking
 
-`BehaviorEventIdentity/v1` is a SHA-256 over category, subject kind, subject ID, domain, horizon, source surface, completed result identity, generic evidence identity, completion-condition ID, and policy version. Occurrence time is excluded from semantic de-duplication but retained for each occurrence. Only equal semantic identities collapse.
+`BehaviorEventIdentity/v1` is a SHA-256 over category, subject kind, subject ID, domain, horizon, source surface, completed result identity, generic evidence identity, completion-condition ID, and policy version. Occurrence time is excluded from this semantic identity.
 
-`BehaviorOccurrence/v1` stores `eventIdentity`, `occurredAt`, `newYorkCivilDate`, and `occurrenceId`. The civil date is derived through `Intl.DateTimeFormat` with timezone `America/New_York`. No caller supplies an offset.
+`BehaviorOccurrence/v1` stores `eventIdentity`, `occurredAt`, `newYorkCivilDate`, and `occurrenceId`. The stored `eventId` equals `occurrenceId`. The civil date is derived through `Intl.DateTimeFormat` with timezone `America/New_York`. No caller supplies an offset.
 
-Age uses exact elapsed milliseconds between the ranking cutoff and `occurredAt`. A negative age returns `P008-BEHAVIOR-TIME` and quarantines the occurrence. Distinct-date eligibility counts unique New York civil dates. The floor also requires distinct completion identities. Duplicate rows, repeated windows, and repeated writes cannot satisfy either floor.
+Storage admission rejects only an exact repeated `occurrenceId`. Equal semantic identities, equal civil dates, or both together do not reject a distinct occurrence. Every accepted occurrence remains independently auditable.
+
+Semantic derivation first rejects or quarantines invalid and future occurrences. It then groups eligible occurrences by `eventIdentity` and selects the earliest eligible occurrence as the canonical contribution. The full occurrence stream remains available for audit and `rawOccurrenceCount`.
+
+Age uses exact elapsed milliseconds between the ranking cutoff and the canonical occurrence's `occurredAt`. A negative age returns `P008-BEHAVIOR-TIME` and quarantines the occurrence. Score, floor, relevance, signal identity, and order use one contribution per semantic identity.
+
+Distinct-date eligibility counts the canonical occurrences' unique New York civil dates. The floor also requires distinct completion identities. Repeated publications, later same-semantic occurrences, repeated windows, and repeated writes cannot satisfy either floor or change canonical ranking.
 
 `BehaviorRankResult/v1` contains:
 
@@ -1166,6 +1183,16 @@ The visible cap applies once after the global sort. Suppressed actions retain ID
 Stale generic evidence may author only `Refresh` or `Revisit`. Those actions must include a stale condition and exact evidence age. `Review`, `Inspect`, `Run`, `Compare`, and `Open` require current or qualified partial evidence under their own rule.
 
 Publisher evidence identity is the generic artifact-set fingerprint, not publication count or window timestamp. Repeated publications over the same snapshot, payload, history evidence, and owner reads do not add support.
+
+#### D1-Q2 Compatibility And Rollback
+
+This correction does not change `BehaviorEvent/v1` or `BehaviorOccurrence/v1`. Valid occurrence-bearing v1 rows remain byte-identical and require no migration, rehash, or in-place collapse.
+
+Pre-Scope-18 `BehaviorEvent/v1` rows without generic evidence or occurrence fields remain readable and clearable through the existing legacy path. They remain excluded from relevance. The system never invents missing identity fields.
+
+A rejected append leaves the active workspace pointer unchanged. Workspace rollback selects a previous validated generation through the existing pointer-swap transaction and never coalesces occurrence rows.
+
+Reinstating semantic-plus-day storage rejection is not a compatible rollback because it restores the evidence-loss defect. Occurrences discarded by that predicate cannot be reconstructed, so this design makes no backfill claim.
 
 ### D1-Q3 Generic Evidence And Complete Brief API
 

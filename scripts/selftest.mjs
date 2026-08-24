@@ -20026,11 +20026,60 @@ try {
     && earlyKnown24.comparisonsPerformed.every((c) => typeof c.operator === 'string' && typeof c.result === 'boolean'),
   'TP-01-10: an implementation accruing delayed credit past the sourced stopping age produces a larger figure than the bounded one and is proven to differ, and one folding the months into a single multiplier publishes no per-month factors and is proven to fail the published-factors assertion');
 
+  /* Declared here because the BUG-019 assertion below resolves the earliest age's sourceRef
+     against it; the TP-01-11 sourcing census further down reads the same list. */
+  const sourceIds24 = benefitPack24.sourceRecords.map((record) => record.sourceId);
+
+  /* BUG-019. The early rule's bound, applied as a bound. The delayed rule always carried its
+     stopping age as a structured field; the early rule stated its maximum only in prose, so the
+     engine extrapolated the per-month factors for as many months as the arithmetic allowed and a
+     claim at sixty priced as a settled figure. The boundary is one month wide, so it is asserted
+     one month apart, and the clamping implementation this fix REFUSED to ship is proven to
+     produce the age-62 figure for a claim at 60 — a different wrong number rather than a
+     refusal. */
+  const earliest24 = benefitPack24.earlyReductionRule.earliestClaimAge;
+  const atEarliest24 = SS24.applyClaimAgeAdjustment(declaredPia24, 1962, 62 * 12, benefitPack24);
+  const oneMonthBelow24 = SS24.applyClaimAgeAdjustment(declaredPia24, 1962, (62 * 12) - 1, benefitPack24);
+  const wellBelow24 = SS24.applyClaimAgeAdjustment(declaredPia24, 1962, 60 * 12, benefitPack24);
+  const subZero24 = SS24.applyClaimAgeAdjustment(declaredPia24, 1962, 48 * 12, benefitPack24);
+  /* The remedy design.md records as Option C, built here only to be proven different. It answers
+     with the figure at the earliest priceable age, which is exactly why it was not shipped. */
+  const clampedEarly24 = (months) => SS24.applyClaimAgeAdjustment(declaredPia24, 1962,
+    Math.max(months, earliest24.ageYears * 12), benefitPack24).adjustedMonthlyBenefit;
+  const packWithoutBound24 = clone24(benefitPack24);
+  delete packWithoutBound24.earlyReductionRule.earliestClaimAge;
+  const unbounded019 = SS24.applyClaimAgeAdjustment(declaredPia24, 1962, 60 * 12, packWithoutBound24);
+  const packWithAbsentBound24 = clone24(benefitPack24);
+  packWithAbsentBound24.earlyReductionRule.earliestClaimAge = absent24('the earliest claim age');
+  const absentBound019 = SS24.applyClaimAgeAdjustment(declaredPia24, 1962, 62 * 12, packWithAbsentBound24);
+  /* No module carries an earliest age of its own. A literal here would make the bound a code
+     edit rather than a pack edit, which is the thing the pack contract exists to prevent. */
+  const noLiteral019 = ['rltaxsocialsecurity.js', 'rltaxclaimage.js', 'rltaxrules.js']
+    .every((file) => !/\b62\s*\*\s*12\b|\bearliestClaimAgeYears\s*=|\b744\b/.test(read(file)));
+  assert(earliest24.ageYears === 62 && earliest24.maximumReductionMonths === 60
+    && typeof earliest24.sourceRef === 'string' && sourceIds24.indexOf(earliest24.sourceRef) >= 0
+    && typeof earliest24.locator === 'string' && earliest24.locator.length > 0
+    && atEarliest24.monthsCounted === 60 && atEarliest24.factorsApplied.length === 60
+    && codeOf24(oneMonthBelow24) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && oneMonthBelow24.domain === SS24.BELOW_EARLIEST_CLAIM_AGE_DOMAIN
+    && /743 months is below the earliest claim age/.test(oneMonthBelow24.reason)
+    && /744 months/.test(oneMonthBelow24.reason)
+    && oneMonthBelow24.adjustedMonthlyBenefit === undefined
+    && codeOf24(wellBelow24) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && codeOf24(subZero24) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && clampedEarly24(60 * 12) === atEarliest24.adjustedMonthlyBenefit
+    && codeOf24(unbounded019) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && /earliestClaimAge/.test(unbounded019.reason)
+    && codeOf24(absentBound019) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && atEarliest24.comparisonsPerformed.some((c) => c.comparisonId === 'claim-age-below-earliest-priceable-age' && c.result === false)
+    && atEarliest24.comparisonsPerformed.some((c) => c.comparisonId === 'months-counted-within-declared-maximum' && c.result === true)
+    && noLiteral019,
+  'BUG-019: the benefit pack declares the earliest priceable claim age with a resolving sourceRef and a locator, the earliest age itself still prices sixty counted months, one month below it refuses under the declared bound rather than being clamped, the clamping implementation is proven to answer with the earliest age\u2019s own figure instead, a pack missing the figure and a pack declaring it absent both refuse rather than pricing, and no module carries an earliest age of its own');
+
   /* TP-01-11 SOURCING. Every value-bearing member of the shipped pack resolves to exactly one
      retrieved source with a locator and a retrievedAt, every member from an undated or
      differently dated edition carries a quoted yearInvarianceBasis, and every unretrieved member
      is an AbsentFigure with a missingSource pointer and no smuggled numeric member. */
-  const sourceIds24 = benefitPack24.sourceRecords.map((record) => record.sourceId);
   const valueBearing24 = [
     benefitPack24.bendPointSet,
     benefitPack24.bendPointSet.roundingRule,
@@ -20039,6 +20088,7 @@ try {
     benefitPack24.indexingRule.quotientRounding,
     benefitPack24.fullRetirementAgeTable,
     benefitPack24.earlyReductionRule,
+    benefitPack24.earlyReductionRule.earliestClaimAge,
     benefitPack24.delayedCreditRule.monthlyRateTable,
     benefitPack24.benefitRounding
   ].concat(benefitPack24.bendPointSet.tiers);

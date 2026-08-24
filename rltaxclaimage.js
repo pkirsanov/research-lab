@@ -289,7 +289,25 @@
         birthYear: isPlainObject(declaration) ? declaration.birthYear : undefined,
         claimAgeMonths: claimAge * MONTHS_PER_YEAR
       }), benefitPack);
-      if (rules.isUnavailable(settlement)) return settlement;
+      if (rules.isUnavailable(settlement)) {
+        /* FR-019-004. A refusal that belongs to THIS candidate refuses THIS row and leaves the
+           others alone. Refusing the whole table would withhold the ages the pack can price, and
+           dropping the row would let a household believe an age it typed was considered and lost
+           on the merits. Every other refusal is about the household or the pack, applies to every
+           candidate equally, and still returns wholesale. */
+        if (settlement.domain !== socialsecurity.BELOW_EARLIEST_CLAIM_AGE_DOMAIN) return settlement;
+        perAge.push(Object.freeze({
+          claimAge: claimAge,
+          adjustedAnnualBenefit: null,
+          benefitRefusal: settlement,
+          remainingYears: null,
+          terminalAge: null,
+          wholeYears: null,
+          cumulativeTotal: null,
+          withheld: null
+        }));
+        continue;
+      }
 
       /* FR-024-020. The adjusted annual benefit resolves whether or not the table did. When the
          remaining-years figure is absent the cumulative total is WITHHELD and its refusal is
@@ -316,6 +334,7 @@
       perAge.push(Object.freeze({
         claimAge: claimAge,
         adjustedAnnualBenefit: settlement.value,
+        benefitRefusal: null,
         remainingYears: totalRecord === null ? null : totalRecord.remainingYears,
         terminalAge: totalRecord === null ? null : totalRecord.terminalAge,
         wholeYears: totalRecord === null ? null : totalRecord.wholeYears,

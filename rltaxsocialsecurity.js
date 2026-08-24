@@ -49,6 +49,11 @@
 
   var MONTHS_PER_YEAR = 12;
 
+  /* The one refusal that belongs to a CANDIDATE claim age rather than to the household or the
+     pack. It is named here and exported so the comparison surface can refuse that candidate in
+     its own row without matching on message text or on a domain string it reconstructed. */
+  var BELOW_EARLIEST_CLAIM_AGE_DOMAIN = "benefit:claim-age-adjustment:below-earliest-claim-age";
+
   function isPlainObject(candidate) {
     return !!candidate && typeof candidate === "object" && !Array.isArray(candidate);
   }
@@ -556,6 +561,39 @@
       if (!Number.isFinite(firstSegmentMonths) || firstFactor === null || laterFactor === null) {
         return unretrievedRule("earlyReductionRule.firstSegmentMonths and both per-month factors", domain);
       }
+      /* The bound the early rule states, applied as a bound. The delayed rule has always carried
+         its stopping age as a structured field and the engine has always honoured it; the early
+         rule stated its own maximum only in prose, so nothing compared a claim age against it and
+         the factors were applied once per month for as many months as the arithmetic allowed.
+         Below the declared earliest age this REFUSES rather than clamping: pricing a claim at
+         sixty as a claim at sixty-two would answer a question the household did not ask with a
+         number that looks like an answer to the one they did. */
+      var earliest = reduction.earliestClaimAge;
+      if (!isPlainObject(earliest)) return unretrievedRule("earlyReductionRule.earliestClaimAge", domain);
+      if (rules.isAbsentFigure(earliest)) {
+        return rules.absentFigureRefusal(earliest, domain + ":earlyReductionRule.earliestClaimAge");
+      }
+      if (!Number.isFinite(earliest.ageYears)) {
+        return unretrievedRule("earlyReductionRule.earliestClaimAge.ageYears", domain);
+      }
+      var earliestCitation = citationFor(pack, earliest, domain + ":earlyReductionRule.earliestClaimAge");
+      if (rules.isUnavailable(earliestCitation)) return earliestCitation;
+      citations.push(earliestCitation);
+      var earliestMonths = earliest.ageYears * MONTHS_PER_YEAR;
+      comparisons.push(rules.comparisonRecord("claim-age-below-earliest-priceable-age",
+        claimAgeMonths, "less-than", earliestMonths, claimAgeMonths < earliestMonths));
+      if (claimAgeMonths < earliestMonths) {
+        return rules.unavailable("RLTAX-THRESHOLD-UNAVAILABLE", BELOW_EARLIEST_CLAIM_AGE_DOMAIN,
+          "the declared claim age of " + String(claimAgeMonths)
+            + " months is below the earliest claim age this pack declares, " + String(earliestMonths)
+            + " months, which is age " + String(earliest.ageYears) + " as stated by "
+            + String(earliestCitation.title) + " at " + String(earliestCitation.locator)
+            + ", so no reduction this pack states reaches it and no monthly or annual amount is settled",
+          "declare a claim age of at least " + String(earliestMonths)
+            + " months; the reduction is NOT clamped to the pack's declared maximum and the earliest "
+            + "priceable age is NOT substituted, because pricing this claim age as that one would answer "
+            + "a question that was not asked, and no zero stands in for the amount either");
+      }
       monthsCounted = fra.totalMonths - claimAgeMonths;
       var reductionTotal = 0;
       for (index = 0; index < monthsCounted; index += 1) {
@@ -574,6 +612,14 @@
       }
       comparisons.push(rules.comparisonRecord("months-counted-beyond-first-segment",
         monthsCounted, "greater-than", firstSegmentMonths, monthsCounted > firstSegmentMonths));
+      /* Published rather than enforced. The age bound above is what refuses; this states that the
+         counted months agree with the maximum the same rule declares, so a reader can see the two
+         statements of the bound agree instead of taking the age on trust. */
+      if (Number.isFinite(earliest.maximumReductionMonths)) {
+        comparisons.push(rules.comparisonRecord("months-counted-within-declared-maximum",
+          monthsCounted, "less-than-or-equal", earliest.maximumReductionMonths,
+          monthsCounted <= earliest.maximumReductionMonths));
+      }
       multiplier = 1 - reductionTotal;
     } else if (claimAgeMonths > fra.totalMonths) {
       direction = rules.CLAIM_AGE_DIRECTIONS[2];
@@ -728,6 +774,7 @@
     BASIS_CONTRACT: BASIS_CONTRACT,
     BASIS_ORIGINS: BASIS_ORIGINS,
     ADJUSTMENT_CONTRACT: ADJUSTMENT_CONTRACT,
+    BELOW_EARLIEST_CLAIM_AGE_DOMAIN: BELOW_EARLIEST_CLAIM_AGE_DOMAIN,
     FRA_CONTRACT: FRA_CONTRACT,
     PIA_CONTRACT: PIA_CONTRACT,
     SETTLEMENT_CONTRACT: SETTLEMENT_CONTRACT,

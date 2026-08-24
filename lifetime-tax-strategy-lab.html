@@ -4595,6 +4595,19 @@
                     var row = document.createElement("tr");
                     row.setAttribute("data-rl-claim-age", String(entry.claimAge));
                     row.appendChild(text("td", String(entry.claimAge)));
+                    /* FR-019-004. A claim age the pack cannot price refuses in its own row. The
+                       row keeps its place in the declared order and carries no amount at all,
+                       because an amount here would be described as settled beside the ages that
+                       genuinely are. */
+                    if (entry.benefitRefusal) {
+                        var refusedCell = document.createElement("td");
+                        refusedCell.setAttribute("colspan", "4");
+                        refusedCell.appendChild(unavailableNode(entry.benefitRefusal,
+                            "The benefit at this claim age"));
+                        row.appendChild(refusedCell);
+                        body.appendChild(row);
+                        continue;
+                    }
                     var benefitCell = document.createElement("td");
                     benefitCell.appendChild(valueNode("claim-age-benefit-" + String(entry.claimAge),
                         dollars(entry.adjustedAnnualBenefit),

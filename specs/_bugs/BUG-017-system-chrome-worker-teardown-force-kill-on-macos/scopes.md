@@ -127,7 +127,7 @@ Feature: A passing run reports success
 
 ## Scope 3: Disclose It Where A Developer Meets It
 
-**Status:** [ ] Not started
+**Status:** [x] Declined
 **Disposition:** correct only if Scope 1 concludes the cause is not removable here
 
 ### Problem This Scope Resolves
@@ -164,6 +164,10 @@ Feature: An unremovable defect is disclosed rather than rediscovered
 | Adversarial | The disclosure is not accepted while Scope 1 records an available remedy. |
 
 ### Definition of Done
+
+Declined. This scope's own adversarial scenario decides it: a remedy was available in this
+repository and was taken, so the scope is declined rather than taken. Its Definition of Done
+is therefore not applicable and is deliberately left unticked rather than satisfied.
 
 - [ ] Scope 1 recorded that the cause is not removable in this repository.
 - [ ] The disclosure names the platform, the project, the symptom, and its intermittence.

@@ -399,10 +399,50 @@ Research-Lab self-test: 3406 passed, 0 failed
 
 No test was modified. The only source change is the `workers` line in `playwright.config.mjs`.
 
+## Scope 3 Disposition — Declined
+
+Scope 3 carries an adversarial scenario that decides its own fate:
+
+```gherkin
+  Scenario: Disclosure does not stand in for an available fix
+    Given Scope 1 concluded a remedy is available in this repository
+    When the disposition of this scope is reviewed
+    Then this scope is declined rather than taken
+```
+
+Scope 1 concluded a remedy was available here and Scope 2 took it, so the scope is **declined**,
+not completed. Its Definition of Done is left unticked rather than satisfied, because satisfying
+it would mean writing a disclosure the scope itself says must not be written.
+
+Its first item — that the cause is not removable in this repository — is in fact true: what was
+removed is the divergence, not the lost exit notification. That does not license taking the
+scope. The default path a developer runs no longer stalls, and a disclosure aimed at "where a
+developer meets it" would describe a symptom the default no longer produces.
+
+What survives is narrower and belongs with the change rather than in a notice: the `workers`
+line in `playwright.config.mjs` carries a comment naming the measured frequencies, the CLI
+override, and this packet. A developer who overrides `--workers` upward can still meet the
+stall, and that is what the comment is for.
+
+## Cross-Scope Definition of Done — Status
+
+- `bug.md` status moved from `Confirmed` to `Fixed — awaiting independent verification`. It is
+  not marked `Verified`: this execution measured its own remedy, and verification by the party
+  that wrote the fix is not independent.
+- `report.md` carries pre-fix reproduction and post-fix proof — the sixteen-run characterisation
+  above and the three-run verification.
+- The separation from `BUG-016` is intact. Nothing in this execution is offered as an
+  explanation for the red deploy gate; that gate had a different, established cause, and this
+  defect is confirmed here to be absent at the concurrency the pipeline runs.
+- `uservalidation.md` is **unchanged and its Human Acceptance Record remains unfilled**. That
+  artifact is human-owned. Filling it would be the agent granting itself acceptance, which is
+  the one thing the file says cannot happen.
+
 ## Completion Statement
 
 Scopes 1 and 2 are executed and their Definition of Done items are ticked against the raw
-output recorded above. Scope 3 remains not started.
+output recorded above. Scope 3 is declined on the instruction of its own adversarial scenario,
+with its items left unticked.
 
 The root cause is **narrowed but not established**. Two candidates are supported and neither is
 named as the cause: the evidence shows the runner waiting on an exit notification that never

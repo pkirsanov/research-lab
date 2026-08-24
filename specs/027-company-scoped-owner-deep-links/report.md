@@ -549,18 +549,38 @@ route was byte-identical to `HEAD`:
 
 **Command:** `shasum -a 256 options-flow-feed-lab.html`
 
+**Re-execution disclosure.** The original command hashed the then-unmodified
+worktree copy. The worktree copy is now the post-feature file, so that exact
+command is no longer reproducible. The closest honest equivalent re-derives the
+same sha256 from the committed blob the baseline was taken at:
+
 ```
-ROUTE_UNMODIFIED_SHA256=5b66a095b58e798686aefb407767dd118584a70694965b36b52d39a45b57dc98
-HEAD_sha256:            5b66a095b58e798686aefb407767dd118584a70694965b36b52d39a45b57dc98
+$ git show cbc7cf7aa:options-flow-feed-lab.html | shasum -a 256
+5b66a095b58e798686aefb407767dd118584a70694965b36b52d39a45b57dc98  -
+exit code: 0
+$ git --no-pager log --oneline -1 cbc7cf7aa
+cbc7cf7aa fix: close roadmap verification gaps
 ```
+
+The recorded `ROUTE_UNMODIFIED_SHA256` still holds.
 
 **Command:** `npx --no-install playwright test tests/options-flow-feed-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --workers=1 --reporter=line --grep "SCN-027-005 with no subject parameter"`
 **Exit code:** 1 (the pinned literals were still `PENDING_CAPTURE`, which is how
 the real values were observed)
 
+Re-executed at the current tree. The suite now pins these literals rather than
+printing `PENDING_CAPTURE`, so the same line is emitted and asserted green:
+
 ```
+$ npx --no-install playwright test tests/options-structure-lab.spec.mjs tests/gamma-trading-lab.spec.mjs tests/volatility-sizing-lab.spec.mjs tests/options-flow-feed-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=line --workers=1
 FR-027-015 BASELINE OBSERVED: {"verdict":"Tape lean: call-heavy (leaning bullish)","verdictSub":"Across 22 flagged strikes · call premium $3.3M vs put premium $275K (positioning proxy, not real-time flow)","status":"12/12 chains cached · 22 active strikes","feedOrder":["GOOGL","AMD","MSFT","META","AMZN","TSLA","AAPL","IWM","NVDA","SPY","QQQ","SPY","QQQ","IWM","NVDA","TSLA","AAPL","MSFT","META","AMZN","GOOGL","AMD"],"tableOrder":["GOOGL C 94","AMD C 94","MSFT C 93","META C 93","AMZN C 93","TSLA C 92","AAPL C 92","IWM C 91","NVDA C 91","SPY C 90","QQQ C 90","SPY P 20","QQQ P 20","IWM P 20","NVDA P 19","TSLA P 19","AAPL P 19","MSFT P 19","META P 19","AMZN P 19","GOOGL P 19","AMD P 19"],"byTickerOrder":["AMD","GOOGL","AMZN","META","MSFT","AAPL","TSLA","NVDA","IWM","QQQ","SPY"],"savedState":"{\"mode\":\"simple\",\"side\":\"both\",\"min\":0,\"dte\":\"all\",\"sortK\":\"score\",\"sortDir\":-1}"}
+  60 passed (1.0m)
+exit code: 0
 ```
+
+The emitted line is byte-identical to the RED capture (900 characters, compared
+programmatically), and `expect(observed).toEqual(BASELINE)` is green, so the pin
+still describes the route.
 
 Those exact values are pinned as `BASELINE` in
 [tests/options-flow-feed-lab.spec.mjs](../../tests/options-flow-feed-lab.spec.mjs),
@@ -610,11 +630,17 @@ The volatility unlinked first paint was captured in the same RED run and pinned
 as `UNLINKED_BASELINE`:
 
 ```
+# RED capture, retained verbatim
 SCN-027-005 VOLATILITY UNLINKED PAINT: {"asset":"SPY","selectValue":"SPY","targetVolInput":"15","targetVol":0.15,"assetName":"SPY","decisionState":"ready","noticeText":null,"noticeHidden":null}
+# re-executed: the same probe against a scratch worktree pinned at 0f63acb50^
+$ node <file-scheme probe> <worktree at 0f63acb50^> volatility-sizing-lab.html
+{"file":"volatility-sizing-lab.html","q":"(none)","present":false,"role":null,"hidden":null,"text":null,"rltkr":"object","select":"","configErrorShown":true,"pageErrors":[]}
+exit code: 0
 ```
 
 `noticeText: null` and `noticeHidden: null` are the pre-change reading: the
-status element did not exist yet.
+status element did not exist yet. The re-executed pre-feature probe confirms it
+independently — `present: false`, so there was no status element to read.
 
 ### Scope 2 · GREEN — after both routes were implemented
 
@@ -680,10 +706,22 @@ sha256: 99026427264c1d7c34c82399efb62004bc4759fdf26e2ec30dbb001a83402e16
 **Exit code:** 0
 
 ```
+# recorded at Scope 2 GREEN
 ℹ tests 76
 ℹ pass 76
 ℹ fail 0
+# re-executed at the current tree
+$ node --test tests/company-intelligence.unit.mjs
+ℹ tests 90
+ℹ pass 90
+ℹ fail 0
+ℹ duration_ms 150.085459
+exit code: 0
 ```
+
+The suite is 90 tests today rather than the 76 recorded here; the growth is the
+later phases in this report, and zero of the 76 was lost — see the count drift
+finding at the end of this section.
 
 **Command:** `bash .github/bubbles/scripts/artifact-lint.sh specs/027-company-scoped-owner-deep-links`
 **Exit code:** 0
@@ -721,10 +759,22 @@ The revert of this mutation used `git checkout --`, which restored the file to
 verified byte-exact against the pre-mutation hash:
 
 ```
+# recorded at the time of the row 2.15 revert
 RESTORED_SHA256=02f6f82ff8b809030c9c04cd9f53cf828eb56d5cc788e529e6ae265ecfd9f268
 EXPECTED_PRE_MUTATION=02f6f82ff8b809030c9c04cd9f53cf828eb56d5cc788e529e6ae265ecfd9f268
 RESTORE_VERIFIED=yes
+# re-executed: no mutation text survived into the committed tree
+$ grep -rn 'MUTATION UNDER TEST' --include='*.js' --include='*.html' .
+exit code: 1
+$ shasum -a 256 volatility-sizing-lab.html; git show HEAD:volatility-sizing-lab.html | shasum -a 256
+0f227598b27c5e23b8127692b17def33a392bac30a4a6fc265a252730ccf3b53  volatility-sizing-lab.html
+0f227598b27c5e23b8127692b17def33a392bac30a4a6fc265a252730ccf3b53  -
 ```
+
+The `grep -rn` above exits **1**, and 1 is the passing outcome: `grep` reports 1
+when it matches nothing, which is exactly the claim — no mutation marker remains
+anywhere in the production tree. The two hashes agree, so the restored route is
+byte-identical to its committed blob.
 
 **Row 2.16 — options-flow `UNIVERSE` lookup removed.** `if (!inUniverse(FOCUS.subject)) {`
 replaced by `if (false && !inUniverse(FOCUS.subject)) {`, reverted by targeted
@@ -751,16 +801,17 @@ GREEN-1 block above.
 ### Scope 2 · `file://` behaviour
 
 **Command:** headless Chrome opening each route directly from `file://`, with and
-without a subject parameter.
+without a subject parameter. Re-executed at the current tree with a Playwright
+Chromium driver; the four recorded readings reproduce exactly.
 
 ```
-[
- {"file":"volatility-sizing-lab.html","q":"(none)","present":true,"role":"status","hidden":true,"text":"","rltkr":"object","pageErrors":[]},
- {"file":"volatility-sizing-lab.html","q":"?ticker=NVDA","present":true,"role":"status","hidden":true,"text":"","rltkr":"object","pageErrors":[]},
- {"file":"options-flow-feed-lab.html","q":"(none)","present":true,"role":"status","hidden":true,"text":"","rltkr":"object","pageErrors":[]},
- {"file":"options-flow-feed-lab.html","q":"?ticker=NVDA","present":true,"role":"status","hidden":false,
-  "text":"Focus: NVDA? — covered by this scan, but no strike crossed the activity bar for it. The full scan below is unchanged.","rltkr":"object","pageErrors":[]}
-]
+$ node <file-scheme probe> <working tree> volatility-sizing-lab.html options-flow-feed-lab.html
+{"file":"volatility-sizing-lab.html","q":"(none)","present":true,"role":"status","hidden":true,"text":"","rltkr":"object","select":"","configErrorShown":true,"pageErrors":[]}
+{"file":"volatility-sizing-lab.html","q":"?ticker=NVDA","present":true,"role":"status","hidden":true,"text":"","rltkr":"object","select":"","configErrorShown":true,"pageErrors":[]}
+{"file":"options-flow-feed-lab.html","q":"(none)","present":true,"role":"status","hidden":true,"text":"","rltkr":"object","select":"","configErrorShown":false,"pageErrors":[]}
+{"file":"options-flow-feed-lab.html","q":"?ticker=NVDA","present":true,"role":"status","hidden":false,"text":"Focus: NVDA? — covered by this scan, but no strike crossed the activity bar for it. The full scan below is unchanged.","rltkr":"object","select":"","configErrorShown":false,"pageErrors":[]}
+probed 4 route/query pairs, 0 with page errors
+exit code: 0
 ```
 
 `options-flow-feed-lab.html` loads and operates from `file://`: the band renders,
@@ -775,14 +826,29 @@ planned failure interaction, one problem shown rather than two. This is
 **pre-existing and unchanged**, proven against an isolated `HEAD` worktree:
 
 ```
+# recorded from the isolated HEAD worktree
 {"head_configLoaded":false,"head_configErrorShown":true,"head_select":"","head_hasLinkNotice":false}
+# re-executed against a scratch worktree pinned at 0f63acb50^ (pre-feature)
+$ node <file-scheme probe> <worktree at 0f63acb50^> volatility-sizing-lab.html
+{"file":"volatility-sizing-lab.html","q":"(none)","present":false,"role":null,"hidden":null,"text":null,"rltkr":"object","select":"","configErrorShown":true,"pageErrors":[]}
+{"file":"volatility-sizing-lab.html","q":"?ticker=NVDA","present":false,"role":null,"hidden":null,"text":null,"rltkr":"object","select":"","configErrorShown":true,"pageErrors":[]}
+probed 2 route/query pairs, 0 with page errors
+exit code: 0
 ```
 
 versus the same probe on the working tree:
 
 ```
+# recorded from the working tree
 {"query":"?ticker=NVDA","configLoaded":false,"configErrorShown":true,"asset":null,"select":"","notice":"","noticeHidden":true}
+# re-executed at the current tree
+$ node <file-scheme probe> <working tree> volatility-sizing-lab.html
+{"file":"volatility-sizing-lab.html","q":"?ticker=NVDA","present":true,"role":"status","hidden":true,"text":"","rltkr":"object","select":"","configErrorShown":true,"pageErrors":[]}
+exit code: 0
 ```
+
+The scratch worktree was removed after the probe. `configErrorShown: true` and
+an unselected asset hold on both sides, so the limitation is pre-existing.
 
 Identical outcome before and after, so the route's `file://` limitation is not a
 regression introduced here. The full behaviour of both routes is exercised over
@@ -793,8 +859,21 @@ HTTP by the browser suites above.
 **Command:** `git --no-pager diff --numstat -- scripts/selftest.mjs`
 
 ```
+# recorded: the Scope 2 working-tree slice of the append
 80      0       scripts/selftest.mjs
+# re-executed against the commit the scope landed in
+$ git --no-pager show --numstat --format='' 0f63acb50 -- scripts/selftest.mjs
+113     0       scripts/selftest.mjs
+$ grep -n 'FEATURE-027-CATALOG-BOUND' scripts/selftest.mjs
+26617:/* FEATURE-027-CATALOG-BOUND-BEGIN */
+26820:/* FEATURE-027-CATALOG-BOUND-END */
+exit code: 0
 ```
+
+The recorded `80` is the Scope 2 slice measured against the uncommitted tree; the
+commit that landed Scopes 1 to 3 together carries `113   0`. Both are pure
+additions — zero deleted lines on either measurement — and the append still sits
+entirely inside its own marker pair.
 
 Zero deleted lines — the selftest edit is a pure append inside its own
 `FEATURE-027-CATALOG-BOUND-BEGIN/END` markers, so a revert fully restores it.
@@ -805,6 +884,7 @@ Zero deleted lines — the selftest edit is a pure append inside its own
 **Command:** `git status --porcelain <this scope's allowed paths>`
 
 ```
+# recorded: git status --porcelain over this scope's allowed paths
  M notes/options-flow-feed-lab.md
  M notes/volatility-sizing-lab.md
  M options-flow-feed-lab.html
@@ -812,6 +892,16 @@ Zero deleted lines — the selftest edit is a pure append inside its own
  M tests/volatility-sizing-lab.spec.mjs
  M volatility-sizing-lab.html
 ?? tests/options-flow-feed-lab.spec.mjs
+# re-executed: those paths are now committed, so the same set is read from the commit
+$ git --no-pager show --name-status --format='' 0f63acb50 -- <the seven paths above>
+M       notes/options-flow-feed-lab.md
+M       notes/volatility-sizing-lab.md
+M       options-flow-feed-lab.html
+M       scripts/selftest.mjs
+A       tests/options-flow-feed-lab.spec.mjs
+M       tests/volatility-sizing-lab.spec.mjs
+M       volatility-sizing-lab.html
+exit code: 0
 ```
 
 Those seven paths are everything this scope touched, and every one is inside
@@ -820,8 +910,10 @@ Those seven paths are everything this scope touched, and every one is inside
 **Command:** `git --no-pager diff --numstat -- volatility-sizing-lab.html options-flow-feed-lab.html`
 
 ```
+$ git --no-pager show --numstat --format='' 0f63acb50 -- options-flow-feed-lab.html volatility-sizing-lab.html
 54      0       options-flow-feed-lab.html
 35      0       volatility-sizing-lab.html
+exit code: 0
 ```
 
 Both route edits are pure additions — zero deleted lines, so no pre-existing
@@ -832,14 +924,29 @@ resolve, both routes are still registered in `rlnav.js`, and every `tests/*.mjs`
 path named anywhere in this feature's artifacts exists on disk:
 
 ```
-volatility-sizing-lab file=volatility-sizing-lab.html exists=true notes=notes/volatility-sizing-lab.md notesExists=true
-options-flow-feed-lab file=options-flow-feed-lab.html exists=true notes=notes/options-flow-feed-lab.md notesExists=true
+$ node <registry parity sweep> tools.json rlnav.js
+volatility-sizing-lab file=volatility-sizing-lab.html exists=true notes=notes/volatility-sizing-lab.md notesExists=true inRlnav=true
+options-flow-feed-lab file=options-flow-feed-lab.html exists=true notes=notes/options-flow-feed-lab.md notesExists=true inRlnav=true
 OK   tests/company-intelligence-lab.spec.mjs
 OK   tests/company-intelligence.unit.mjs
 OK   tests/gamma-trading-lab.spec.mjs
 OK   tests/options-flow-feed-lab.spec.mjs
 OK   tests/options-structure-lab.spec.mjs
 OK   tests/volatility-sizing-lab.spec.mjs
+exit code: 0
+```
+
+The repository-wide spec-test-path validator agrees. Its per-path lines are
+withheld deliberately: the three paths it names as planned-not-authored do not
+exist on disk, and pasting those literals into a spec artifact would create real
+reference sites and turn a clean run red. The command, exit status and counts
+carry the claim:
+
+```
+$ node scripts/validate-spec-test-paths.mjs
+[spec-test-paths] scanned=748 references=17292 distinctPaths=266 missingPaths=73 plannedMissing=3 baseline=70 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+exit code: 0
 ```
 
 ### Scope 2 · `specs/026` concurrent-modification check
@@ -881,6 +988,21 @@ cannot hold at once, for the reason in S2-F1: anything on `state` is persisted b
 module-level `FOCUS` and never persisted — and `saveState()` was left byte-
 unchanged so no reader control changed meaning. Same routing.
 
+**S2-F4 — every suite total recorded in this section has since grown.** The
+evidence blocks above were raised by re-executing their own commands at the
+current tree, and three totals no longer match what was recorded:
+
+| Suite | Recorded here | Re-executed | Failures now |
+|---|---|---|---|
+| `tests/company-intelligence.unit.mjs` | 76 tests | 90 tests | 0 |
+| the four Scope 1 and Scope 2 route suites | 44 passed | 60 passed | 0 |
+| Feature 025 lab plus chaos suites | 46 passed | 50 passed | 0 |
+
+Every growth is an addition made by a later phase in this same report, every
+re-run is green, and no recorded assertion was found removed or renamed. The
+recorded numbers are left in place as the historical reading and the re-executed
+numbers sit beside them, rather than the recorded numbers being overwritten.
+
 ---
 
 ## Scope 3 — The registry, the declarations and the stated bare reasons
@@ -908,19 +1030,35 @@ went red. The mutation was reverted immediately afterwards.
 **Claim Source:** executed
 
 ```
+# recorded at the time of the row 3.8 mutation
 ℹ tests 83
 ℹ pass 80
 ℹ fail 3
-
-✖ failing tests:
-✖ a subject-carrying owner link opens the owning tool on the same company and can carry nothing else (1.125042ms)
-✖ a row with an ownerDeepLink declaring neither ownerSubjectParam nor ownerBareReason raises C025-CONFIG-SCHEMA naming its dimension id (0.172084ms)
-✖ a row declaring both ownerSubjectParam and ownerBareReason raises C025-CONFIG-SCHEMA naming its dimension id (0.096125ms)
+# re-executed: the same mutation applied in a scratch worktree, never in the shared tree
+$ git worktree add --detach <scratch> HEAD && <disable the exactly-one-of rule in rlcompanyintel.js>
+$ node --test tests/company-intelligence.unit.mjs
+ℹ tests 90
+ℹ pass 88
+ℹ fail 2
+✖ a row with an ownerDeepLink declaring neither ownerSubjectParam nor ownerBareReason raises C025-CONFIG-SCHEMA naming its dimension id (0.39125ms)
+✖ a row declaring both ownerSubjectParam and ownerBareReason raises C025-CONFIG-SCHEMA naming its dimension id (0.094959ms)
+exit code: 1
 ```
 
-Rows 3.1 and 3.2 are both in that list, which is what row 3.8 requires. The third
-failure is the pre-existing Feature 025 test that also depends on the rule, so the
-mutation's blast radius is visible rather than hidden.
+Rows 3.1 and 3.2 are both in that list, which is what row 3.8 requires. The
+mutation was applied only inside a scratch worktree, which was removed
+afterwards, so the shared working tree was never touched.
+
+**Finding S2-F3 — the recorded incidental blast radius no longer holds.** The
+original run recorded a third failure, the Feature 025 test *"a subject-carrying
+owner link opens the owning tool on the same company and can carry nothing
+else"*. That test still exists (`tests/company-intelligence.unit.mjs:1612`) but
+now **passes** under the same mutation, so today the rule's blast radius is the
+two rows that own it and nothing else. That is a narrowing, not a weakening —
+rows 3.1 and 3.2 still go red, which is all row 3.8 requires — but the recorded
+sentence "the mutation's blast radius is visible rather than hidden" described a
+third failure that no longer occurs. Recorded here rather than silently
+rewritten.
 
 ### Scope 3 · Mutation reverted, then GREEN
 
@@ -961,14 +1099,20 @@ it now matches the reason its own row declares.
 **Claim Source:** executed
 
 ```
-✔ a row with an ownerDeepLink declaring neither ownerSubjectParam nor ownerBareReason raises C025-CONFIG-SCHEMA naming its dimension id
-✔ a row declaring both ownerSubjectParam and ownerBareReason raises C025-CONFIG-SCHEMA naming its dimension id
-✔ an ownerBareReason outside the closed enum, and an ownerBareReason on a row with no ownerDeepLink, each raise C025-CONFIG-SCHEMA
-✔ a market-scoped row composes a bare href and its statement says the owner answers a market-wide question
-✔ a fixed-subject row composes a bare href and its statement says the owner opens on its own subject
-✔ the shipped registry declares four subject-carrying rows, seven bare rows with a reason and four ownerless rows, and no market-scoped row carries a subject parameter
-✔ every declared ownerSubjectParam is the single shared parameter name and no second convention exists
+$ node --test tests/company-intelligence.unit.mjs
+✔ a row with an ownerDeepLink declaring neither ownerSubjectParam nor ownerBareReason raises C025-CONFIG-SCHEMA naming its dimension id (0.120041ms)
+✔ a row declaring both ownerSubjectParam and ownerBareReason raises C025-CONFIG-SCHEMA naming its dimension id (0.090041ms)
+✔ an ownerBareReason outside the closed enum, and an ownerBareReason on a row with no ownerDeepLink, each raise C025-CONFIG-SCHEMA (0.173291ms)
+✔ a market-scoped row composes a bare href and its statement says the owner answers a market-wide question (0.084291ms)
+✔ a fixed-subject row composes a bare href and its statement says the owner opens on its own subject (0.087750ms)
+✔ the shipped registry declares four subject-carrying rows, seven bare rows with a reason and four ownerless rows, and no market-scoped row carries a subject parameter (0.092334ms)
+✔ every declared ownerSubjectParam is the single shared parameter name and no second convention exists (0.673542ms)
+ℹ pass 90
+ℹ fail 0
+exit code: 0
 ```
+
+All seven rows are green in the re-executed run.
 
 ### Scope 3 · Row 3.12 canary and the selftest append
 
@@ -1038,7 +1182,12 @@ that feature's suites were re-run in full.
 **Claim Source:** executed
 
 ```
+# recorded at the time of Scope 3
   46 passed (1.2m)
+# re-executed at the current tree
+$ npx --no-install playwright test tests/company-intelligence-lab.spec.mjs tests/chaos-company-intelligence.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=line --workers=1
+  50 passed (47.2s)
+exit code: 0
 ```
 
 43 passed before this scope, 46 after: the three additions are rows 3.9 to 3.11
@@ -1070,7 +1219,12 @@ Artifact lint PASSED.
 **Claim Source:** executed
 
 ```
+# recorded at the time of Scope 3
   44 passed (35.1s)
+# re-executed at the current tree
+$ npx --no-install playwright test tests/options-structure-lab.spec.mjs tests/gamma-trading-lab.spec.mjs tests/volatility-sizing-lab.spec.mjs tests/options-flow-feed-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=line --workers=1
+  60 passed (1.0m)
+exit code: 0
 ```
 
 Backward compatibility for the receiving routes is carried by rows already in
@@ -5214,11 +5368,14 @@ no `uservalidation.md` item was ticked, no `status` was set to `done`, no
 
 `company-intelligence-lab.html` was the hub every owner deep link points back
 at, and it was the one route in the corridor that did not use the shared
-acceptance rule. Its boot read was a private parser:
+acceptance rule. Its boot read was a private parser, read back from the commit
+immediately before the fix:
 
-```js
-var query = new URLSearchParams(window.location.search).get("symbol");
-if (query) currentTicker = query.trim().toUpperCase();
+```
+$ git show 7800ca775^:company-intelligence-lab.html | grep -n 'URLSearchParams(window.location.search).get("symbol")\|currentTicker = query'
+1698:                var query = new URLSearchParams(window.location.search).get("symbol");
+1699:                if (query) currentTicker = query.trim().toUpperCase();
+exit code: 0
 ```
 
 `grep -c linkedSubject company-intelligence-lab.html` returned `0`. The audit
@@ -5228,14 +5385,15 @@ divergence on the spoke routes became `SEC-027-01`, and the hub's value flows
 into `loadOne()` → `fetch("data/bars/" + encodeURIComponent(symbol) + ".json")`
 and into `RLDATA.putBars(symbol, …)`, a symbol-keyed shared cache.
 
-The read is now:
+The read is now, read back from the shipped file:
 
-```js
-var handoff = (window.RLTKR && window.RLTKR.linkedSubject)
-    ? window.RLTKR.linkedSubject(window.location.search, "symbol")
-    : { status: "absent", subject: null };
-if (handoff.status === "accepted") currentTicker = handoff.subject;
-renderLinkNotice(handoff);
+```
+$ grep -n 'RLTKR.linkedSubject\|handoff.status === "accepted"\|renderLinkNotice(handoff)' company-intelligence-lab.html
+1814:                var handoff = (window.RLTKR && window.RLTKR.linkedSubject)
+1815:                    ? window.RLTKR.linkedSubject(window.location.search, "symbol")
+1817:                if (handoff.status === "accepted") currentTicker = handoff.subject;
+1818:                renderLinkNotice(handoff);
+exit code: 0
 ```
 
 `rlticker.js` was already loaded by this route (`<script src="rlticker.js">`,
@@ -5243,13 +5401,16 @@ before the inline script), so no new dependency was introduced.
 
 **The parameter name was not changed.** This route publishes `?symbol=`, and
 renaming it would break every existing link into it. `linkedSubject` therefore
-took an optional parameter-name argument that defaults to the existing constant:
+took an optional parameter-name argument that defaults to the existing constant,
+read back from the shipped module:
 
-```js
-function linkedSubject(search, paramName) {
-  …
-  var name = typeof paramName === "string" && paramName ? paramName : SUBJECT_PARAM;
-  var value = params.get(name);
+```
+$ grep -n 'function linkedSubject\|SUBJECT_PARAM =\|var value = params.get(name)' rlticker.js
+53:  var SUBJECT_PARAM = "ticker";
+56:  function linkedSubject(search, paramName) {
+66:    var name = typeof paramName === "string" && paramName ? paramName : SUBJECT_PARAM;
+67:    var value = params.get(name);
+exit code: 0
 ```
 
 This is a parameter NAME only. The grammar, the normalisation and the refusal are
@@ -5290,15 +5451,23 @@ Live census, read from the tree (five call sites, read-only):
 **Claim Source:** executed
 
 ```
-live call sites: [{"path":"company-intelligence-lab.html","name":"symbol"},
-                  {"path":"gamma-trading-lab.html","name":"ticker"},
-                  {"path":"options-flow-feed-lab.html","name":"ticker"},
-                  {"path":"options-structure-lab.html","name":"ticker"},
-                  {"path":"volatility-sizing-lab.html","name":"ticker"}]
-live set:    ["symbol","ticker"]
-mutated set: ["t","ticker"]        (hub's name changed to "t")
-exit=0
+$ grep -Hn 'RLTKR.linkedSubject(' *.html
+company-intelligence-lab.html:1815 -> window.location.search, "symbol"
+gamma-trading-lab.html:1842 -> window.location.search
+options-flow-feed-lab.html:714 -> window.location.search
+options-structure-lab.html:2565 -> window.location.search
+volatility-sizing-lab.html:1151 -> window.location.search
+exit code: 0
+$ node scripts/selftest.mjs
+  ✓ Feature 027: the corridor reads a CLOSED set of parameter names — 5 call site(s) across 5 route(s) read exactly ["symbol","ticker"], only ["company-intelligence-lab.html"] asks for the hub spelling, no production file outside rlticker.js reads either name itself (none), and one extra call site naming a third spelling would widen the set to ["symbol","t","ticker"]
+Research-Lab self-test: 3404 passed, 0 failed
+exit code: 0
 ```
+
+The four spoke routes omit the argument, so each resolves to the module default
+`SUBJECT_PARAM = "ticker"` shown above; only the hub asks for `symbol`. The
+`1.21` assertion re-derives the same census and states its own widening case, so
+a third spelling is caught by the selftest rather than by review.
 
 ### New assertions
 

@@ -47,7 +47,7 @@
       "businessScenario": "BS-025-001",
       "scopeId": "01-composition-foundation",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "Every mandatory dimension reports a state",
       "gherkin": {
         "given": "the operator opens a company that has committed bars and options",
@@ -82,15 +82,20 @@
         "1.1",
         "2.1"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#coverage account holds one row per registry dimension and totals sum to the registry length",
+        "tests/company-intelligence-lab.spec.mjs#four horizon regions render with four summaries and four deep-dive controls"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-002",
       "businessScenario": "BS-025-002",
       "scopeId": "01-composition-foundation",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "A dimension with no source reads unavailable with a reason",
       "gherkin": {
         "given": "the non-financial company event dimension has no committed source",
@@ -124,15 +129,19 @@
       "testRows": [
         "1.2"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#non-financial event dimension reads unavailable with no-source-exists and carries no value"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-003",
       "businessScenario": "BS-025-003",
       "scopeId": "01-composition-foundation",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "An unresolvable identifier is refused by name",
       "gherkin": {
         "given": "the operator enters an identifier that resolves to no public company",
@@ -166,15 +175,19 @@
       "testRows": [
         "1.3"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#an unresolvable identifier raises C025-IDENTITY-UNRESOLVED and composes no horizon"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-004",
       "businessScenario": "BS-025-004",
       "scopeId": "01-composition-foundation",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "A company outside the corpus still renders four honest horizons",
       "gherkin": {
         "given": "the company has no committed bars, options or fundamentals",
@@ -208,15 +221,19 @@
       "testRows": [
         "1.4"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#a company outside every corpus yields four horizons with absent quality and none direction"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-005",
       "businessScenario": "BS-025-005",
       "scopeId": "02-route-and-reachability",
       "scope": 2,
-      "status": "not_started",
+      "status": "done",
       "title": "Four horizons are always present",
       "gherkin": {
         "given": "a company read version has been composed",
@@ -253,15 +270,21 @@
         "2.4",
         "2.8"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence-lab.spec.mjs#four horizon regions render with four summaries and four deep-dive controls",
+        "tests/company-intelligence-lab.spec.mjs#Regression: SCN-025-005 four horizon cards stay peers and never merge into one direction",
+        "tests/company-intelligence-lab.spec.mjs#at 375 CSS pixels the four summaries stack and the document never scrolls sideways"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-006",
       "businessScenario": "BS-025-006",
       "scopeId": "01-composition-foundation",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "A summary never exceeds its deep dive",
       "gherkin": {
         "given": "a horizon summary asserts a directional conclusion",
@@ -289,15 +312,20 @@
         "1.5",
         "1.19"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#every claim cites a value present in its own horizon input set",
+        "tests/company-intelligence.unit.mjs#adversarial: adding a tactical read leaves the structural horizon byte-identical"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-007",
       "businessScenario": "BS-025-007",
       "scopeId": "01-composition-foundation",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "A horizon reports the dimensions it could not see",
       "gherkin": {
         "given": "four contributing dimensions are unavailable for the medium-term horizon",
@@ -331,15 +359,19 @@
       "testRows": [
         "1.6"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#four unavailable contributors downgrade evidence quality and populate gapEffect"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-008",
       "businessScenario": "BS-025-008",
       "scopeId": "01-composition-foundation",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "Horizons may disagree and the disagreement survives",
       "gherkin": {
         "given": "the immediate horizon reads negative and the long-term horizon reads positive",
@@ -365,15 +397,19 @@
       "testRows": [
         "1.7"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#two opposing horizons keep their directions and produce one contradiction record"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-009",
       "businessScenario": "BS-025-009",
       "scopeId": "01-composition-foundation",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "An owned metric is consumed, never recomputed",
       "gherkin": {
         "given": "the volatility regime dimension is owned by a shared module",
@@ -399,15 +435,19 @@
       "testRows": [
         "1.8"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#module source contains no second definition of a volatility or ratio metric"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-010",
       "businessScenario": "BS-025-010",
       "scopeId": "02-route-and-reachability",
       "scope": 2,
-      "status": "not_started",
+      "status": "done",
       "title": "A dimension read deep-links to its owning tool",
       "gherkin": {
         "given": "a dimension is owned by a registered tool",
@@ -433,15 +473,19 @@
       "testRows": [
         "2.2"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence-lab.spec.mjs#an owned dimension renders a deep link whose target is a registered route"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-011",
       "businessScenario": "BS-025-011",
       "scopeId": "01-composition-foundation",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "A dimension with no owner is named as a gap",
       "gherkin": {
         "given": "the company risk dimension has no registered owning tool",
@@ -475,15 +519,19 @@
       "testRows": [
         "1.9"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#a dimension with no owner renders no deep link and states that no owner exists"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-012",
       "businessScenario": "BS-025-012",
       "scopeId": "01-composition-foundation",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "A newly needed metric becomes one owning module",
       "gherkin": {
         "given": "this feature needs a metric that no existing module defines",
@@ -509,15 +557,19 @@
       "testRows": [
         "1.10"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#every exported function of the module has a caller inside the route source"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-013",
       "businessScenario": "BS-025-013",
       "scopeId": "01-composition-foundation",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "A scheduled event and an estimated date are distinguishable",
       "gherkin": {
         "given": "one event date comes from a published schedule and another event date comes from a historical pattern",
@@ -545,15 +597,20 @@
         "1.11",
         "3.3"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#an estimated date without a basis is refused and a scheduled date keeps its class",
+        "tests/company-intelligence.unit.mjs#a sourced schedule yields dateClass scheduled and a pattern yields dateClass estimated with a basis"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-014",
       "businessScenario": "BS-025-014",
       "scopeId": "01-composition-foundation",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "An absent event source blocks the event horizon honestly",
       "gherkin": {
         "given": "no financial event source is available for the company",
@@ -589,15 +646,20 @@
         "1.12",
         "3.5"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#the event horizon reads none with absent quality and names the missing source",
+        "tests/company-intelligence.unit.mjs#a company with no sourced event keeps the event horizon at none direction and absent quality"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-015",
       "businessScenario": "BS-025-015",
       "scopeId": "01-composition-foundation",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "A non-financial event is carried with its own source class",
       "gherkin": {
         "given": "a non-financial company event has been sourced publicly",
@@ -632,15 +694,20 @@
         "1.13",
         "3.4"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#a non-financial event without a source url or an as-of date never renders",
+        "tests/company-intelligence.unit.mjs#a non-financial event missing sourceUrl or asOf never reaches the rendered set"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-016",
       "businessScenario": "BS-025-016",
       "scopeId": "03-company-event-capability",
       "scope": 3,
-      "status": "not_started",
+      "status": "done",
       "title": "A past event becomes an outcome rather than a forecast",
       "gherkin": {
         "given": "an event date has passed and its outcome is known",
@@ -677,15 +744,21 @@
         "3.2",
         "3.6"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#an event dated before decisionTime reclassifies to occurred and carries its observed outcome",
+        "tests/company-intelligence.unit.mjs#an occurred event is absent from the upcoming catalyst list",
+        "tests/company-intelligence-lab.spec.mjs#Regression: SCN-025-016 a passed event renders as occurred and never as an upcoming catalyst"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-017",
       "businessScenario": "BS-025-017",
       "scopeId": "01-composition-foundation",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "A discretionary branch is recorded in full",
       "gherkin": {
         "given": "the agent opened a discretionary research branch beyond the coverage floor",
@@ -722,15 +795,20 @@
         "4.3",
         "4.7"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#a branch missing any of the six mandatory fields raises C025-PLAN-SCHEMA",
+        "tests/company-intelligence.unit.mjs#an authored branch records all six mandatory fields and a missing field raises C025-PLAN-SCHEMA"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-018",
       "businessScenario": "BS-025-018",
       "scopeId": "01-composition-foundation",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "A branch that changed nothing is still recorded",
       "gherkin": {
         "given": "a discretionary branch found nothing that changed a horizon",
@@ -758,15 +836,20 @@
         "1.15",
         "4.4"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#a no-change branch stays in the published plan",
+        "tests/company-intelligence.unit.mjs#an authored no-change branch survives publication with its explicit disposition"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-019",
       "businessScenario": "BS-025-019",
       "scopeId": "01-composition-foundation",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "Freedom never bypasses a contract",
       "gherkin": {
         "given": "a discretionary branch would require an unsourced claim",
@@ -802,15 +885,20 @@
         "1.16",
         "4.5"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#a refused branch records its reason and no horizon cites its claim",
+        "tests/company-intelligence.unit.mjs#an authored refused branch records its reason and changes no horizon field"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-020",
       "businessScenario": "BS-025-020",
       "scopeId": "01-composition-foundation",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "A branch may use any registered tool",
       "gherkin": {
         "given": "a material question is better answered by a tool outside the coverage floor mapping",
@@ -836,15 +924,19 @@
       "testRows": [
         "1.17"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#a branch against any registered tool is permitted and records the tool it consulted"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-021",
       "businessScenario": "BS-025-021",
       "scopeId": "02-route-and-reachability",
       "scope": 2,
-      "status": "not_started",
+      "status": "done",
       "title": "Every displayed figure carries provenance",
       "gherkin": {
         "given": "any numeric value is displayed in a horizon or a dimension read",
@@ -874,15 +966,21 @@
         "2.5",
         "2.6"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence-lab.spec.mjs#every rendered numeric value carries a provenance chip, a source name and an as-of date",
+        "tests/company-intelligence-lab.spec.mjs#Regression: SCN-025-021 an unavailable dimension renders a named absence and never a dash or a zero",
+        "tests/company-intelligence-lab.spec.mjs#Regression: SCN-025-021 a scripted narrative string renders as visible escaped text"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-022",
       "businessScenario": "BS-025-022",
       "scopeId": "04-authored-research-and-versions",
       "scope": 4,
-      "status": "not_started",
+      "status": "done",
       "title": "History is appended, never rewritten",
       "gherkin": {
         "given": "a prior company read version exists",
@@ -919,15 +1017,21 @@
         "4.2",
         "4.6"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#a new version references its predecessor and every prior file keeps its original contentFingerprint",
+        "tests/company-intelligence.unit.mjs#the version writer opens no prior version file for writing",
+        "tests/company-intelligence-lab.spec.mjs#Regression: SCN-025-022 the outcome record shows the predecessor unmodified beside the new version"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-023",
       "businessScenario": "BS-025-023",
       "scopeId": "01-composition-foundation",
       "scope": 1,
-      "status": "not_started",
+      "status": "done",
       "title": "The tool refuses portfolio input",
       "gherkin": {
         "given": "the operator attempts to enter a position size or a cost basis",
@@ -961,15 +1065,19 @@
       "testRows": [
         "1.18"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "tests/company-intelligence.unit.mjs#a position, size, cost or profit input raises C025-INPUT-REFUSED and stores nothing"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     },
     {
       "scenarioId": "SCN-025-024",
       "businessScenario": "BS-025-024",
       "scopeId": "02-route-and-reachability",
       "scope": 2,
-      "status": "not_started",
+      "status": "done",
       "title": "The route ships registered or explicitly excluded",
       "gherkin": {
         "given": "the company route exists at the site root",
@@ -997,8 +1105,12 @@
         "2.10",
         "2.11"
       ],
-      "linkedTests": [],
-      "evidenceRefs": []
+      "linkedTests": [
+        "scripts/selftest.mjs#company-intelligence route, module and config each carry a site-exclusion entry with a substantive reason"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-contract-evidence"
+      ]
     }
   ]
 }

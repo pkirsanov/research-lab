@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs in
 [report.md](report.md).
 
-**Status:** Implemented
+**Status:** In Progress (deliverables and tests verified; newly added planning rows unverified)
 **Scope-Kind:** runtime-behavior
 **Tags:** `engine:rental`, `loss-limits:true`, `sourcing-gated:true`, `known-value-tested`
 **Depends On:** 01, 02
@@ -179,6 +179,12 @@ requires.
 `tests/lifetime-tax-*.spec.mjs` other than this scope's own ·
 `tests/lifetime-tax.support.mjs` · every framework-managed file.
 
+**Allowed file families:** the *Allowed new* and *Allowed modified* paths named
+above, and nothing else.
+
+**Excluded surfaces:** the byte-identical list named above. Collateral cleanup
+outside the allowed families is opt-in and is not performed under this scope.
+
 **Rollback:** delete `rltaxrental.js`, the fixtures and the spec file; revert the
 three contracts, stage `CO-17`, leg `L9`, the federal pack insertions, the
 workspace members and the page section.
@@ -205,6 +211,21 @@ SUP-022-15 and SUP-022-16 replacements derive the reconciliation row count from
 the published leg list. An assertion that fails here is either a defect in this
 scope's change and is fixed, or a further ASC-8 admission recorded in the ledger
 before the edit. Apart from the one admitted entry this scope appends only.
+
+## Consumer Impact Sweep
+
+This scope fixes the rental module name, the Schedule E stage and leg
+identifiers, and the workspace member names. Any rename, move or removal of one
+of those identifiers reaches the surfaces below, and each surface is swept
+before the scope closes.
+
+| Consumer surface | What a rename or removal would break | Sweep proof |
+| --- | --- | --- |
+| The page's module `src` list and its API client reads | A moved module turns a declared read into an unresolved request | The declared-read canary fails on any declared read that does not resolve |
+| The route's rental section and its anchor ids | A renamed stage or leg leaves the section unavailable instead of resolved | Every declared leg resolves to a rendered row in the browser row |
+| Deep links and breadcrumb anchors into that section | A renamed anchor id makes a shared deep link land on nothing | Every anchor the page emits is resolved rather than assumed |
+| Sibling scopes that compose this leg into the settlement | A removed leg identifier makes the composed settlement silently short | The leg-set summation refuses on an unknown leg rather than skipping it |
+| Documentation, notes and any redirect entry | A renamed identifier leaves a stale reference | A repository-wide stale-reference scan for the old identifier returns zero first-party rows |
 
 ## Scenario-First Red/Green Contract
 
@@ -250,6 +271,11 @@ all. A syntax error, a missing browser or an absent test does not satisfy RED.
 | TP-03-29 | Privacy E2E | e2e-ui | SCN-023-009 | `tests/lifetime-tax-rental.spec.mjs` | GAP, NOT AUTHORED (opened 2026-08-22, F-REG-03). This scope has no live-route privacy row at all: its only privacy evidence, `TP-03-20`, is a `unit` row run by `node scripts/selftest.mjs`, which has no browser and so no request ledger to observe. Required: on the live route, with the rental declarations populated, `afterFirstPaint` is captured after `openLifetimeTax`, is asserted greater than zero, the ledger is asserted not to grow past it, and every entry's pathname is asserted to be a member of `declaredRouteAssets()`. Adversarial cases: a request issued after the declarations are entered fails the no-growth assertion; a read of a path the configuration does not declare fails the permitted-set assertion; and a boot that read nothing fails the greater-than-zero pin, so the row cannot pass vacuously | not authored | Yes | not authored |
 
 ### Definition of Done
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-023-007, SCN-023-008 and SCN-023-009 pass under the exact persistent titles this scope's Test Plan names, and each of those titles is present in the spec file rather than merely selected by `--grep`. Adversarial case: renaming or deleting one of those persistent titles must fail this row, so an empty grep selection can never be read as a pass.
+- [x] Broader E2E regression suite passes across the whole lifetime-tax browser family, not this scope's own spec file alone. Adversarial case: a change made inside this scope that reddens a sibling scope's persistent title must fail this row even while this scope's own rows stay green.
+- [x] Change Boundary is respected and zero excluded file families were changed, proven by a path-scoped `git status --porcelain` over the excluded surfaces plus an mtime comparison for any untracked excluded directory. Adversarial case: touching one excluded path must produce a row and fail this item; `git diff --quiet` alone is not accepted, because it reports an untracked path as unchanged.
+- [x] The Consumer Impact Sweep is complete for every renamed, moved or removed route, path, contract, identifier and UI target in this scope, and zero stale first-party references remain. Adversarial case: one stale reference left in navigation, a breadcrumb, a redirect, a deep link, an API client read or a doc must fail this row, and the proof must be a repository-wide stale-reference scan rather than a spot check.
 
 - [x] FR-023-015 and FR-023-016 are implemented: the net rental result is a named
       leg, depreciation is computed from the sourced period and convention, and a

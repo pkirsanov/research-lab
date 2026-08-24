@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs in
 [report.md](report.md).
 
-**Status:** In progress — 17 of 19 Definition of Done rows satisfied
+**Status:** In Progress (deliverables and tests verified; newly added planning rows unverified)
 **Scope-Kind:** runtime-behavior
 **Tags:** `engine:medicare`, `structural-independence:true`, `cost-leg:true`, `sourcing-gated:true`, `known-value-tested`
 **Depends On:** 01, 02
@@ -252,6 +252,12 @@ Every other prior module is excluded deliberately. Pricing a premium must touch
 nothing that computes a tax; if it does, the cost axis is not separate from the
 tax axis and the whole of RD-4 is undermined.
 
+**Allowed file families:** the *Allowed new* and *Allowed modified* paths named
+above, and nothing else.
+
+**Excluded surfaces:** the byte-identical list named above. Collateral cleanup
+outside the allowed families is opt-in and is not performed under this scope.
+
 **Rollback:** delete `rltaxmedicare.js`, the medicare pack and the fixtures;
 revert the three contracts, the lookback-year offset check, stage `CO-22`, the
 three cost legs, the annual Medicare cost and the workspace members; revert the
@@ -301,6 +307,21 @@ Every other pre-existing assertion must still pass unchanged at the end of this
 scope. An assertion outside these two that fails is either a defect in this
 scope's change and is fixed, or an ASC-8 admission recorded across all four
 surfaces before the edit.
+
+## Consumer Impact Sweep
+
+This scope fixes the medicare module name, the medicare pack path, the three
+cost-leg identifiers and the workspace member names. Any rename, move or
+removal of one of those identifiers reaches the surfaces below, and each
+surface is swept before the scope closes.
+
+| Consumer surface | What a rename or removal would break | Sweep proof |
+| --- | --- | --- |
+| The page's module `src` list and the medicare pack it reads as an API client | A moved module or pack path turns a declared read into an unresolved request | The declared-read canary fails on any declared read that does not resolve |
+| The route's cost panels and their anchor ids | A renamed cost leg leaves a panel unavailable instead of resolved | All three cost legs resolve to rendered rows in the browser row |
+| Deep links and breadcrumb anchors into those panels | A renamed anchor id makes a shared deep link land on nothing | Every anchor the page emits is resolved rather than assumed |
+| The route census that reads the declared leg set | A removed leg identifier makes the census silently short | The census refuses on an unknown leg rather than skipping it |
+| Documentation, notes and any redirect entry | A renamed identifier leaves a stale reference | A repository-wide stale-reference scan for the old identifier returns zero first-party rows |
 
 ## Scenario-First Red/Green Contract
 
@@ -363,6 +384,19 @@ missing browser or an absent test does not satisfy RED.
 A row is checked only when it is genuinely satisfied and was observed to be
 satisfied. A row that is not satisfied stays `[ ]` and carries a stated reason. If
 delivery makes a row's claim false, the row is corrected rather than checked.
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-024-010, SCN-024-011 and SCN-024-012 pass under the exact persistent titles this scope's Test Plan names, and each of those titles is present in the spec file rather than merely selected by `--grep`. Adversarial case: renaming or deleting one of those persistent titles must fail this row, so an empty grep selection can never be read as a pass.
+  - **Phase:** implement · **Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=chromium tests/lifetime-tax-medicare.spec.mjs --reporter=list` → `5 passed (2.8s)`, exit 0 · **Evidence:** `report.md#dod--scenario-specific-e2e-regression-scn-024-010---011---012`
+  - Title presence was audited quote-agnostically across scopes 03-05 (`ok=17 bad=0`) and each row's `--grep` was run through `playwright --list` (`selectedExactlyOne=17 emptyOrError=0`). The adversarial case is proven by probe `S04-scenario-title-rename-empties-grep`: `red-summary: Error: No tests found`, exit 1, revert hash-verified.
+- [x] Broader E2E regression suite passes across the whole lifetime-tax browser family, not this scope's own spec file alone. Adversarial case: a change made inside this scope that reddens a sibling scope's persistent title must fail this row even while this scope's own rows stay green.
+  - **Phase:** implement · **Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=chromium tests/lifetime-tax-*.spec.mjs --reporter=line` → `94 passed (16.2s)`, exit 0 · **Evidence:** `report.md#dod--broader-e2e-regression-across-the-whole-lifetime-tax-browser-family`
+  - The first adversarial probe returned harness exit 7 and is recorded rather than replaced: it targeted a route sentence that does not feed the asserted element. Re-aimed at the real producer, probe `S04-broader-suite-catches-sibling-redness` reddens only the sibling claim-age spec (exit 1, `18 passed` versus `19 passed`), while probe `S04-narrow-row-CANNOT-catch-sibling-redness` runs the identical mutation against this scope's own spec and returns exit 7, `5 passed` both sides.
+- [x] Change Boundary is respected and zero excluded file families were changed, proven by a path-scoped `git status --porcelain` over the excluded surfaces plus an mtime comparison for any untracked excluded directory. Adversarial case: touching one excluded path must produce a row and fail this item; `git diff --quiet` alone is not accepted, because it reports an untracked path as unchanged.
+  - **Phase:** implement · **Command:** `git status --porcelain -- <34 excluded pathspecs + 18 sibling spec files + 13 market-brief files>` → `EXCLUDED_ROWS=0`, exit 0 · **Evidence:** `report.md#dod--change-boundary-respected-zero-excluded-file-families-changed`
+  - `untracked_excluded_dirs=0`, so mtime is nowhere the sole evidence; every excluded tracked file was instead compared by blob hash against `HEAD` with `excluded_files_differing_from_HEAD=0`, which is stronger than either `git status` or mtime alone. The adversarial case is proven by probe `S04-change-boundary-detects-excluded-touch`: `red-summary: M rltaxclaimage.js`, exit 1. `git diff --quiet` insufficiency is recorded in `../03-claim-age-comparison/report.md` against a real untracked path.
+- [x] The Consumer Impact Sweep is complete for every renamed, moved or removed route, path, contract, identifier and UI target in this scope, and zero stale first-party references remain. Adversarial case: one stale reference left in navigation, a breadcrumb, a redirect, a deep link, an API client read or a doc must fail this row, and the proof must be a repository-wide stale-reference scan rather than a spot check.
+  - **Phase:** implement · **Command:** three-rule repository-wide stale-reference sweep → `R1 declared-module-reads=14 unresolved=0`, `R2 declared-pack-reads=7 unresolved=0`, `R3 medicare-ids-targeted=9 unresolved=0`, exit 0 · **Evidence:** `report.md#dod--consumer-impact-sweep-zero-stale-first-party-references`
+  - The rename/move/removal set is EMPTY (`rename_or_delete_commits=0`), so the row is stated as vacuous-as-written and earned against measured rules instead. Two candidates were rejected as unfailable: `href_hash_anchors=0`, and `legs-named-in-spec=0` because the census is a runtime set comparison the browser row already carries. Each surviving rule is probed against this scope's own surfaces and discriminates: `S04-sweep-R1-detects-stale-medicare-module-read`, `S04-sweep-R2-detects-moved-medicare-pack-path`, `S04-sweep-R3-detects-renamed-cost-panel-target`, all exit 0 with hash-verified reverts.
 
 - [x] FR-024-022 and FR-024-023 are implemented: `LookbackMagi/v1` refuses a
       `sourceRef` and carries no settled-year, workspace or settlement handle, and

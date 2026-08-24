@@ -1380,4 +1380,458 @@ output from this session, each revert hash-verified against the committed blob,
 and `git status --porcelain -- rltax.js` re-read at `0` rows before the final
 probe.
 
+## F-REG-03 closed — the remaining three rows, and a second limb the first one needed (2026-08-23)
+
+The section above left `F-REG-03` explicitly part-closed: the shared helper
+existed and three of the six rows called it, and the other three were named as
+open rather than counted as done. This dispatch closes those three and then finds
+that the helper itself was weaker than its own name.
+
+### The helper's logic, before and after
+
+Before:
+
+```js
+export function sameOriginPaths(ledger, site) {
+  const foreign = ledger.filter((entry) => !entry.url.startsWith(site.baseUrl));
+  expect(foreign.map((entry) => entry.url), '...').toEqual([]);
+  return ledger.map((entry) => new URL(entry.url).pathname);
+}
+```
+
+After:
+
+```js
+export function sameOriginPaths(ledger, site) {
+  const routeOrigin = new URL(site.baseUrl).origin;
+  const foreign = ledger.filter((entry) => !entry.url.startsWith(site.baseUrl)
+    || new URL(entry.url).origin !== routeOrigin);
+  expect(foreign.map((entry) => entry.url), '...').toEqual([]);
+  return ledger.map((entry) => new URL(entry.url).pathname);
+}
+```
+
+The parsed-origin comparison is added as a second conjunct beside the prefix
+test rather than replacing it, so an entry must clear both to count as local.
+The declared-path half is untouched: the helper still returns pathnames and
+every caller still checks them against `declaredRouteAssets()`.
+
+### Why a second limb was needed at all
+
+A prefix is not an origin. Everything before an `@` in an authority is userinfo,
+not a host, so a URL can begin with the entire base URL and still be served by
+somebody else. Four shapes were fed through both limbs directly:
+
+```
+$ node --input-type=module -e "<four shapes through sameOriginPaths>"
+userinfo confusion   | base=http://127.0.0.1:8123 | realOrigin=http://evil.example | prefixLimbAccepts=true | originLimbAccepts=false | conjunct=refuses
+host-suffix (no port) | base=http://localhost | realOrigin=http://localhost.evil.example | prefixLimbAccepts=true | originLimbAccepts=false | conjunct=refuses
+port-extension       | base=http://127.0.0.1:812 | realOrigin=http://127.0.0.1:8123 | prefixLimbAccepts=true | originLimbAccepts=false | conjunct=refuses
+genuine cross-origin | base=http://127.0.0.1:8123 | realOrigin=https://elsewhere.example | prefixLimbAccepts=false | originLimbAccepts=false | conjunct=refuses
+SHAPES_EXIT=0
+```
+
+Three of the four beat the prefix limb on their own. The first is the one that
+matters here, because it survives a base URL that carries a port, which is what
+a local test server always has.
+
+An earlier draft of the comment on `sameOriginPaths` cited
+`http://localhost:8080.evil.com/rltaxstrategy.js` as the example. That string is
+not a parseable URL at all — a port cannot carry letters — and `new URL` throws
+on it. The claim was checked before it was allowed to stand and the comment was
+corrected to the userinfo shape, which was verified to parse and to defeat the
+prefix limb.
+
+### The decisive probe — a cross-origin URL with a DECLARED pathname
+
+The rail refuses a replacement carrying `https://`, so the mutation re-bases the
+recorded URL instead of writing one. `request.url().replace('//', '//undeclared-host.')`
+turns every ledger entry into a genuinely cross-origin URL whose pathname is
+unchanged and therefore still declared. That is exactly the shape the finding
+names: a declared pathname, an undeclared origin. The declared-path conjunct
+still passes under this mutation, so only the origin conjunct can move the
+verdict.
+
+`SCN-024-001` — `tests/lifetime-tax-benefit.spec.mjs`:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F-REG-03 SCN-024-001 benefit: declared pathname, undeclared origin
+file:             tests/lifetime-tax.support.mjs
+mutation:             url: request.url(),  ->      url: request.url().replace('//', '//undeclared-host.'),   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium tests/lifetime-tax-benefit.spec.mjs --grep SCN-024-001\ the\ request\ ledger\ does\ not\ grow\ after\ first\ paint --reporter=list
+red-exit:         1
+red-summary:          [chromium] › tests/lifetime-tax-benefit.spec.mjs:269:1 › Regression: SCN-024-001 the request ledger does not grow after first paint, every entry is a declared same-origin read, and no benefit 
+green-exit:       0
+green-summary:      ✓  1 [chromium] › tests/lifetime-tax-benefit.spec.mjs:269:1 › Regression: SCN-024-001 the request ledger does not grow after first paint, every entry is a declared same-origin read, and no ben
+revert-verified:  yes (committed=31ae171098374c32e751dc31f344660eba8813bb restored=31ae171098374c32e751dc31f344660eba8813bb)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_A_EXIT=0
+```
+
+`SCN-023-001` — `tests/lifetime-tax-property.spec.mjs`:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F-REG-03 SCN-023-001 property: declared pathname, undeclared origin
+file:             tests/lifetime-tax.support.mjs
+mutation:             url: request.url(),  ->      url: request.url().replace('//', '//undeclared-host.'),   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium tests/lifetime-tax-property.spec.mjs --grep SCN-023-001\ the\ request\ ledger\ does\ not\ grow\ after\ first\ paint --reporter=list
+red-exit:         1
+red-summary:          [chromium] › tests/lifetime-tax-property.spec.mjs:304:1 › Regression: SCN-023-001 the request ledger does not grow after first paint, every entry is a declared same-origin read, and no propert
+green-exit:       0
+green-summary:      ✓  1 [chromium] › tests/lifetime-tax-property.spec.mjs:304:1 › Regression: SCN-023-001 the request ledger does not grow after first paint, every entry is a declared same-origin read, and no pr
+revert-verified:  yes (committed=a8608f5e9284877c201568ac151bbfe00b168c82 restored=a8608f5e9284877c201568ac151bbfe00b168c82)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_B_EXIT=0
+```
+
+`SCN-024-014` — `tests/lifetime-tax-retirement-route.spec.mjs`:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F-REG-03 SCN-024-014 retirement-route: declared pathname, undeclared origin
+file:             tests/lifetime-tax.support.mjs
+mutation:             url: request.url(),  ->      url: request.url().replace('//', '//undeclared-host.'),   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium tests/lifetime-tax-retirement-route.spec.mjs --grep SCN-024-014\ the\ request\ ledger\ does\ not\ grow\ after\ first\ paint --reporter=list
+red-exit:         1
+red-summary:          [chromium] › tests/lifetime-tax-retirement-route.spec.mjs:379:1 › Regression: SCN-024-014 the request ledger does not grow after first paint, every entry is a declared same-origin read with th
+green-exit:       0
+green-summary:      ✓  1 [chromium] › tests/lifetime-tax-retirement-route.spec.mjs:379:1 › Regression: SCN-024-014 the request ledger does not grow after first paint, every entry is a declared same-origin read wi
+revert-verified:  yes (committed=a8608f5e9284877c201568ac151bbfe00b168c82 restored=a8608f5e9284877c201568ac151bbfe00b168c82)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_C_EXIT=0
+```
+
+### The added limb is asserted, not merely shipped
+
+A guard no test can distinguish from its neighbour can be deleted without a
+single assertion moving. Nothing in the suite fed the helper a prefix-confused
+URL, so the parsed-origin conjunct was initially unasserted. `SCN-021-002` gains
+a second adversarial arm holding that case: it pins that the prefix limb
+genuinely accepts `site.baseUrl + "@evil.example"` before pinning that the
+shipped conjunct refuses it, so the arm is not a restatement of the first one.
+Deleting the limb now moves that assertion:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F-REG-03 SCN-021-002: deleting the parsed-origin limb must move an assertion
+file:             tests/lifetime-tax.support.mjs
+mutation:             || new URL(entry.url).origin !== routeOrigin);  ->      );   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium tests/lifetime-tax-foundation.spec.mjs --grep the\ shared\ ledger\ helper\ refuses\ a\ declared\ pathname\ served\ from\ an\ undeclared\ origin --reporter=list
+red-exit:         1
+red-summary:          [chromium] › tests/lifetime-tax-foundation.spec.mjs:425:1 › Regression: SCN-021-002 the shared ledger helper refuses a declared pathname served from an undeclared origin 
+green-exit:       0
+green-summary:      ✓  1 [chromium] › tests/lifetime-tax-foundation.spec.mjs:425:1 › Regression: SCN-021-002 the shared ledger helper refuses a declared pathname served from an undeclared origin (231ms)
+revert-verified:  yes (committed=a8608f5e9284877c201568ac151bbfe00b168c82 restored=a8608f5e9284877c201568ac151bbfe00b168c82)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_D_EXIT=0
+```
+
+### Which rows detect a cross-origin declared-path read
+
+All six the finding named, and the three it named as already sound.
+
+| Scenario | File | Before this dispatch | Now |
+|---|---|---|---|
+| `SCN-021-015` | `lifetime-tax-route.spec.mjs` | shared helper, prefix limb only | shared helper, both limbs |
+| `SCN-023-001` | `lifetime-tax-property.spec.mjs` | pathname only — did NOT detect | shared helper, both limbs |
+| `SCN-024-001` | `lifetime-tax-benefit.spec.mjs` | pathname only — did NOT detect | shared helper, both limbs |
+| `SCN-024-009` | `lifetime-tax-claim-age.spec.mjs` | shared helper, prefix limb only | shared helper, both limbs |
+| `SCN-024-010` | `lifetime-tax-medicare.spec.mjs` | shared helper, prefix limb only | shared helper, both limbs |
+| `SCN-024-014` | `lifetime-tax-retirement-route.spec.mjs` | pathname only — did NOT detect | shared helper, both limbs |
+| `SCN-021-003` | `lifetime-tax-foundation.spec.mjs` | inline prefix test | shared helper, both limbs |
+| `SCN-022-007` | `lifetime-tax-state.spec.mjs` | inline prefix test | shared helper, both limbs |
+| `SCN-022-013` | `lifetime-tax-combined.spec.mjs` | inline prefix test | shared helper, both limbs |
+
+Three of the six were already converted by the 2026-08-22 dispatch and are
+listed for completeness rather than claimed as this dispatch's work. The three
+that had never detected it — `SCN-023-001`, `SCN-024-001` and `SCN-024-014` —
+are the ones this dispatch converted, and each carries its own probe above.
+
+The last three rows were not part of `F-REG-03`'s named six: the finding
+classified them as genuinely constraining origin, and they did. They did it with
+a bare prefix test, which the userinfo shape defeats, so they carried a narrower
+instance of the same defect. They now project through the same conjunct. After
+this dispatch no lifetime-tax ledger row projects a raw pathname and none carries
+a weaker origin test than any other:
+
+```
+$ grep -rn 'ledger.map((.*) => new URL(' tests/lifetime-tax-*.spec.mjs || echo "(none)"
+(none)
+```
+
+### The parameterised variants
+
+`declaredRouteAssets()` still has three parameterised copies —
+`lifetime-tax-combined.spec.mjs`, `lifetime-tax-deduction.spec.mjs` and
+`lifetime-tax-foundation.spec.mjs` — which take the configuration path as a
+variable. They do NOT need their own origin logic, and the reason is structural
+rather than a judgement call: the origin conjunct lives in
+`sameOriginPaths(ledger, site)`, which takes the LEDGER and the SITE. It never
+sees the asset set. Path derivation and origin refusal are therefore orthogonal,
+and a spec can parameterise the first while sharing the second.
+
+That is not an argument from symmetry — it is already demonstrated in the tree.
+`lifetime-tax-deduction.spec.mjs` and `lifetime-tax-foundation.spec.mjs` each
+keep their own parameterised derivation AND call the shared helper, and both
+pass. `lifetime-tax-combined.spec.mjs` was the one parameterised variant not
+calling it; it has been converted, keeping its parameterised derivation intact.
+Collapsing any of the three derivations would hard-code a path they deliberately
+made a variable, so none was collapsed.
+
+### A carried-forward limit that this dispatch discharges — `TP-01-14`
+
+The 2026-08-23 tick on the "every Test Plan row has a RED" item carried three
+limits forward, one of them `TP-01-14`'s cross-origin arm, recorded as having no
+single-limb RED. That arm was the canary's inline `foreign` filter, and it was
+shielded: `unexpected` was checked in the same assertion block, so no mutation
+reached the cross-origin limb alone.
+
+Routing the canary through the shared helper removes the shield, because the
+helper refuses on origin BEFORE it returns any pathname — so a cross-origin entry
+never reaches the declared-path check at all. The limit is now discharged rather
+than restated:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F-REG-03 TP-01-14 / SCN-021-003 canary: the cross-origin arm now has a single-limb RED
+file:             tests/lifetime-tax.support.mjs
+mutation:             url: request.url(),  ->      url: request.url().replace('//', '//undeclared-host.'),   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium tests/lifetime-tax-foundation.spec.mjs --grep SCN-021-003\ the\ tax\ workspace\ resolves\ only\ its\ declared\ reads --reporter=list
+red-exit:         1
+red-summary:          [chromium] › tests/lifetime-tax-foundation.spec.mjs:298:1 › Regression: SCN-021-003 the tax workspace resolves only its declared reads and keeps every household value local 
+green-exit:       0
+green-summary:      ✓  1 [chromium] › tests/lifetime-tax-foundation.spec.mjs:298:1 › Regression: SCN-021-003 the tax workspace resolves only its declared reads and keeps every household value local (366ms)
+revert-verified:  yes (committed=a8608f5e9284877c201568ac151bbfe00b168c82 restored=a8608f5e9284877c201568ac151bbfe00b168c82)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_E_EXIT=0
+```
+
+The other two limits — `TP-01-04`'s zero-substituting half and `TP-01-08`'s
+forbidden-prefix limb — are untouched by this dispatch and remain open exactly as
+recorded where they were found.
+
+### One superseded probe command, named rather than left to rot
+
+The 2026-08-22 `TP-01-18` probe higher in this file used
+`--find 'const foreign = ledger.filter((entry) => !entry.url.startsWith(site.baseUrl));'`.
+That single line no longer exists — the predicate is two lines now — so re-running
+that exact invocation would exit `5` (`mutation did not land`) rather than
+reproducing its result. The captured block is left verbatim as the record of what
+was run on that date; the equivalent mutation against the current source is
+`PROBE_D_EXIT` above, which deletes the parsed-origin limb, and the prefix limb
+retains its own RED through the same block's logic applied to `SCN-021-002`.
+
+### What "F-REG-03 closed" does and does not mean
+
+`F-REG-03` was opened on 2026-08-22 as an umbrella over several distinct
+title-versus-assertion gaps discovered in the same pass. Only ONE of them is the
+origin gap, and only that one is closed here. The others carry the same date and
+remain open exactly as written:
+
+| Row | Scope | Gap, and it is NOT the origin gap |
+|---|---|---|
+| `TP-05-18` | 021 Scope 05 | `TP-05-14` never pins `afterFirstPaint` greater than zero, so a route that read nothing would pass |
+| `TP-02-29` | 023 Scope 02 | the scope has no live-route privacy row at all |
+| `TP-03-29` | 023 Scope 03 | the scope has no live-route privacy row at all |
+| `TP-04-30` | 023 Scope 04 | the scope has no live-route privacy row at all |
+| `TP-05-30` | 023 Scope 05 | `SCN-023-015` constrains neither ledger growth nor declared paths |
+| `TP-03-29` | 024 Scope 03 | no bound on ledger growth after first paint, no non-empty pin |
+| `TP-04-33` | 024 Scope 04 | no bound on ledger growth after first paint |
+
+None of those is repaired by this dispatch and none is claimed as repaired. The
+row this dispatch closes is `TP-01-18`, and it is closed for the whole set of six
+scenarios it names.
+
+### Validation
+
+```
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3404 passed, 0 failed
+SELFTEST_EXIT=0
+
+$ node scripts/validate-spec-test-paths.mjs
+[spec-test-paths] scanned=741 references=16821 distinctPaths=261 missingPaths=69 plannedMissing=3 baseline=66 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+PATHS_EXIT=0
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium <13 lifetime-tax spec files> --reporter=line
+Running 71 tests using 6 workers
+  71 passed (11.8s)
+FULL_FAMILY_EXIT=0
+```
+
+**Claim Source:** executed. Every probe block is verbatim harness output from
+this session with its revert hash-verified against the committed blob. The
+row-by-row table is executed: it is the call sites of `sameOriginPaths` and of
+`ledger.map(... pathname)` re-read after the final commit, not a recollection of
+what was edited.
+
+## DoD Closure: 2026-08-23
+
+Four DoD rows were added to this scope by a planning pass and were correctly left
+unticked. Each is closed below against a command run in this session, with the
+exit code captured into a variable before any other command ran, and with an
+adversarial demonstration that the check can fail.
+
+### Row: scenario-specific E2E regression under the exact persistent titles
+
+The Test Plan names three persistent titles for this scope: `TP-01-12`,
+`TP-01-13` and `TP-01-14`. Presence is read out of the spec file as a literal
+string, so an empty `--grep` selection cannot be read as a pass.
+
+```text
+TITLE_PRESENCE scope=ALL checked=16 missing=0 verdict=PASS
+PRESENCE_EXIT=0
+```
+
+Execution of those titles, `--project=chromium`:
+
+```text
+===== SCOPE 01 =====
+
+Running 4 tests using 1 worker
+
+  ✓  1 …put resolves one federal pack and names every unavailable domain (317ms)
+  ✓  2 …ar jurisdiction and income kind each refuse without substitution (489ms)
+  ✓  3 …es only its declared reads and keeps every household value local (304ms)
+  ✓  4 …per refuses a declared pathname served from an undeclared origin (228ms)
+
+  4 passed (5.3s)
+S01_EXIT=0
+```
+
+Adversarial case. Renaming one persistent title turns the check red:
+
+```text
+label:            021-01 persistent title presence is non-vacuous
+file:             tests/lifetime-tax-foundation.spec.mjs
+mutation:         SCN-021-001 minimum viable input resolves  ->  SCN-021-001 renamed viable input resolves   (1 occurrence(s))
+red-exit:         1
+red-summary:      TITLE_PRESENCE scope=01 checked=3 missing=1 verdict=FAIL
+green-exit:       0
+green-summary:    TITLE_PRESENCE scope=01 checked=3 missing=0 verdict=PASS
+revert-verified:  yes (committed=994288f6bfd7d514bb131f50e2d3720f73eea7a0 restored=994288f6bfd7d514bb131f50e2d3720f73eea7a0)
+discriminating:   yes (exit 1 != 0)
+```
+
+**Claim Source:** executed.
+
+### Row: broader E2E regression suite across the whole lifetime-tax family
+
+The whole browser family was run, not this scope's spec file alone. Twenty spec
+files, every scope of Features 021 through 024:
+
+```text
+Running 94 tests using 6 workers
+  94 passed (17.1s)
+FAMILY_EXIT=0
+```
+
+A sibling scope's persistent title reddening would fail this row, because the
+run selects every `lifetime-tax-*.spec.mjs` file rather than this scope's own.
+
+**Claim Source:** executed.
+
+### Row: Change Boundary respected, zero excluded file families changed
+
+The check attributes per commit. It walks every non-merge commit in
+`b9d92a3f1^..HEAD` that touched a 021-owned surface, intersects that commit's
+file list with this scope's 26 excluded globs, and separately reads
+`git status --porcelain --untracked-files=all` over the same globs. `-uall` is
+used deliberately, because the row rejects `git diff --quiet`, which reports an
+untracked path as unchanged; every excluded root here is tracked, and the
+untracked enumeration over those roots returns zero rows.
+
+```text
+CHANGE_BOUNDARY scope=01 control=False globs=26 owning_commits=78 violations=0 worktree_dirty=0 verdict=PASS
+  CB01_EXIT=0
+```
+
+Adversarial case. Injecting one path the 021 commits demonstrably did touch
+into the excluded set flips the same command to FAIL:
+
+```text
+CHANGE_BOUNDARY scope=01 control=True globs=27 owning_commits=78 violations=10 worktree_dirty=0 verdict=FAIL
+  CTRL01_EXIT=1
+```
+
+**Claim Source:** executed.
+
+### Row: Consumer Impact Sweep complete, zero stale first-party references
+
+This scope's sweep names the route path, the configuration document name, the
+rule-pack path grammar and the `RLTAX-*` refusal identifiers. The scan covers
+six limbs across the repository rather than spot-checking one surface: renamed
+or removed 021-owned paths, declared module reads, Power deep-link targets, the
+closed refusal vocabulary, the deliberately unregistered route, and path
+references in the tool's notes page.
+
+The first run failed and the failure was real. The rule-pack path grammar was
+renamed during delivery, and the notes page still carried only the proposal
+forms, so eight backticked paths resolved to nothing:
+
+```text
+STALE-NOTES-PATH rllifetime.js
+STALE-NOTES-PATH tests/lifetime-tax-rules.unit.mjs
+STALE-NOTES-PATH tests/lifetime-household.functional.mjs
+STALE-NOTES-PATH tests/lifetime-privacy.functional.mjs
+STALE-NOTES-PATH tests/lifetime-tax-strategy-lab.spec.mjs
+CONSUMER_SWEEP control=False renames=0 reads=14 deeplinks=20 codes=14 notes_paths=16 stale=6 verdict=FAIL
+SWEEP_EXIT=1
+```
+
+That run also reported `DANGLING-DEEP-LINK power-link`, which was a defect in
+the check rather than in the page: `power-link` is assigned to `className`, not
+to an element id. The extraction now strips `className` and `class` before
+reading deep-link targets.
+
+Commit `0efc20250` maps each superseded proposal name to the file that shipped,
+without rewriting the proposal record. After it, the sweep is clean:
+
+```text
+CONSUMER_SWEEP control=False renames=0 reads=14 deeplinks=19 codes=14 notes_paths=34 superseded=8 stale=0 verdict=PASS
+SWEEP_EXIT=0
+```
+
+Adversarial case, two directions. An injected stale reference in each limb:
+
+```text
+UNRESOLVED-DECLARED-READ rltaxstrategy-moved.js
+DANGLING-DEEP-LINK power-retired-section
+UNDECLARED-REFUSAL-CODE RLTAX-RETIRED-CODE
+STALE-NOTES-PATH rltaxworkspace-moved.js
+CONSUMER_SWEEP control=True renames=0 reads=15 deeplinks=20 codes=15 notes_paths=35 superseded=8 stale=4 verdict=FAIL
+SWEEP_CONTROL_EXIT=1
+```
+
+And a real mutation of the page, proving the sweep reads the shipped file rather
+than only an injected set:
+
+```text
+label:            Consumer sweep detects a moved module in the real page
+file:             lifetime-tax-strategy-lab.html
+mutation:         src="rltaxstrategy.js"  ->  src="rltaxstrategy-moved.js"   (1 occurrence(s))
+red-exit:         1
+red-summary:      CONSUMER_SWEEP stale=1 verdict=FAIL
+green-exit:       0
+green-summary:    CONSUMER_SWEEP stale=0 verdict=PASS
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+```
+
+The rename limb reports zero because there is nothing to report: no 021-owned
+path was renamed or removed in any of the 78 owning commits. The same command
+form without the path filter returns 8 rows over the same range, so the empty
+result is a measurement rather than an inert check.
+
+**Claim Source:** executed.
+
+
 

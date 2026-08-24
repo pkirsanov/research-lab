@@ -1,0 +1,279 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact",
+  "featureName": "BUG-018 The Corpus-Pending Window States Absence As Settled Fact",
+  "createdAt": "2026-08-23T00:00:00Z",
+  "lastUpdatedAt": "2026-08-23T00:00:00Z",
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "priorBlockedReason": null,
+  "blockedReasonResolved": null,
+  "crossFeatureEditAuthorization": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "priorPlanningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/025-company-multi-horizon-intelligence-lab",
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "dc54a8547",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md"
+  },
+  "execution": {
+    "activeAgent": null,
+    "currentPhase": "implement",
+    "currentPhaseStatus": "complete",
+    "phaseReconciliation": null,
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-23T00:00:00Z",
+    "completedAt": null,
+    "substate": "implemented",
+    "currentScope": "03-close-the-structural-test-gap",
+    "nextRequiredOwner": "bubbles.plan, to schedule the two findings routed out of Scope 2 and to close the packet-shape debt; then a human, for the uservalidation.md Human Acceptance Record; then bubbles.validate for phase certification",
+    "nextRequiredTarget": "specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact/report.md#what-was-not-established",
+    "nextRequiredReason": "All three scopes are delivered and both facets are closed. What remains is not behaviour. Two findings are routed OUT of this scope and are not counted as delivered: (1) no unit case was added to tests/company-intelligence.unit.mjs for the new buildCoverageAccount readiness argument, so readiness round-tripping onto the account and C025-READ-CONTRACT firing on a word outside the closed set are exercised only through the browser case and through the 25 existing two-argument call sites that prove the default; (2) dimensionCard() at company-intelligence-lab.html:835 still prints 'unavailable' with a named absence sentence on a pre-corpus paint. No requirement in spec.md names that surface, and the coverage-table treatment cannot simply be repeated on it because that treatment withholds every row, which on the dimension cards would also hide values a warm shared cache genuinely resolved. Whether those cards withhold wholesale or withhold only the absence claim is a product judgement and belongs to bubbles.plan. Packet-shape debt is unchanged and still the packet owner's: policySnapshot is short of the fields the transition guard wants (G055), scenario-manifest.json does not exist (G057), and report.md references an untracked test path belonging to another session. Gate G136 human acceptance remains unestablished: uservalidation.md carries no filled Human Acceptance Record, and this scope does change a rendered surface, so a human can now actually accept it.",
+    "phaseClaimNote": "currentPhase is 'implement' with substate 'implemented', now covering Scopes 1, 2 and 3. Scope 2 implements the product decision recorded in design.md '## Open Questions For The Owner — Resolved 2026-08-23': Option A then Option B, withhold, taken by the orchestrating session under the operator's standing authorization and disclosed as such rather than presented as an independently reached engineering conclusion. Four shipped files changed across the packet: rlcompanyintel.js (buildCoverageAccount gains an optional third readiness argument defaulting to 'established', plus the COVERAGE_READINESS_STATES export; additive, so all 25 existing two-argument call sites are unchanged), company-intelligence-lab.html (corpusReadiness() maps corpusStatus onto that vocabulary and only 'pending' withholds, so a corpus resolved to 'unavailable' still reads settled and the offline first paint survives; the cockpit sentence, the horizon cards, the power-mode coverage tally and rows, and the body attributes all read that one readiness; the static body shell drops its literal data-coverage-unavailable=\"0\"), tests/company-intelligence-lab.spec.mjs (one added case, nothing removed or weakened) and notes/company-intelligence-lab.md (the body-attribute contract this change alters). data-run-status is untouched: 'composed' still means the paint composed its horizons, which is what the file:// and all-requests-outstanding first-paint tests wait on; the new data-reading-readiness is the single documented predicate FR-018-005 asks for. The new case fails against the pre-fix route at c402bfa3e on the copy assertion and not a timeout (Received: '15 of 15 mandatory dimensions have no usable source in this run.'), fails again on the otherwise-corrected route with only the cockpit guard reverted, and passes against the corrected route; all three runs are recorded verbatim in report.md. The scratch worktree used for those runs was removed and git worktree list reports only the main checkout. The 025 browser suite rose 38 to 39 with nothing removed, the 025 unit suite held at 90, and node scripts/selftest.mjs reported 3404 passed 0 failed measured directly in the shared working tree. specs/025-company-multi-horizon-intelligence-lab/report.md was not edited. No branch or remote was pushed, merged, rebased or moved, and every commit staged explicit paths. Ten of ten Scope 2 and six of six Scope 3 Definition of Done items are ticked; all seven cross-scope items remain unticked and are not claimed. completedPhaseClaims records the implement phase as an execution claim only; certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write.",
+    "completedPhaseClaims": [
+      {
+        "phase": "bug",
+        "agent": "bubbles.bug",
+        "claimedAt": "2026-08-23T00:00:00Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-08-23T00:00:00Z",
+        "evidenceRef": "report.md#scope-1-delivery-evidence--bubblesimplement-2026-08-23",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen"
+        ]
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-08-23T00:00:00Z",
+        "evidenceRef": "report.md#scope-2-and-scope-3-delivery-evidence--bubblesimplement-2026-08-23",
+        "scopes": [
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap"
+        ]
+      }
+    ],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      {
+        "scopeId": "01-make-data-corpus-status-describe-the-subject-on-screen",
+        "scope": 1,
+        "status": "Done",
+        "dependsOn": [],
+        "resolvedBy": "bubbles.implement, 2026-08-23, report.md '## Scope 1 Delivery Evidence'"
+      },
+      {
+        "scopeId": "02-stop-asserting-absence-the-route-has-not-established",
+        "scope": 2,
+        "status": "Done",
+        "dependsOn": [],
+        "resolvedBy": "bubbles.implement, 2026-08-23, report.md '## Scope 2 And Scope 3 Delivery Evidence'"
+      },
+      {
+        "scopeId": "03-close-the-structural-test-gap",
+        "scope": 3,
+        "status": "Done",
+        "dependsOn": [
+          "02-stop-asserting-absence-the-route-has-not-established"
+        ],
+        "resolvedBy": "bubbles.implement, 2026-08-23, report.md '## Scope 2 And Scope 3 Delivery Evidence'"
+      }
+    ],
+    "audit": null
+  },
+  "executionHistory": [
+    {
+      "at": "2026-08-23T00:00:00Z",
+      "phase": "bug",
+      "agent": "bubbles.bug",
+      "action": "filed",
+      "atCommit": "dc54a8547",
+      "note": "Independently re-verified F-CHAOS-025-01 in a real browser rather than accepting the routed summary, reproduced both facets, established the root cause from the shipped source, and created seven artifacts. No shipped file, test, configuration or workflow was modified and no branch was pushed."
+    },
+    {
+      "at": "2026-08-23T00:00:00Z",
+      "phase": "implement",
+      "agent": "bubbles.implement",
+      "action": "scope-1-delivered",
+      "atCommit": "6a6f8a36e",
+      "note": "Scope 1 only. Moved the corpusStatus reset ahead of the synchronous compose-and-render in applySubject(), guarded so a refused entry keeps reporting the standing subject, and added one regression case that samples the body inside the click task instead of entering through the openComposedRoute fixture that waits the window out. Failing-then-passing proof recorded verbatim: the unfixed route reports Expected pending, Received loaded, which is the attribute assertion and not a timeout. 025 browser suite 37 to 38 with nothing removed; 025 unit suite unchanged at 90; selftest 3404 passed 0 failed measured at HEAD plus these two files in a detached worktree. Scopes 2 and 3 untouched and Not Started; the coverage sentence and the horizon cards were not edited. No branch was pushed."
+    }
+  ],
+  "defect": {
+    "severity": "Medium",
+    "priority": "P2",
+    "class": "honesty-of-rendered-claim",
+    "surface": "company-intelligence-lab.html, the cockpit coverage line and the four horizon cards",
+    "measuredAtCommit": "dc54a8547",
+    "reproducedInFilingSession": true,
+    "reproducedWithZeroInjectedDelay": true,
+    "reproducedWithColdSharedCache": true,
+    "rootCauseEstablished": true,
+    "originatingFinding": {
+      "id": "F-CHAOS-025-01",
+      "phase": "chaos",
+      "recordedIn": "specs/025-company-multi-horizon-intelligence-lab/report.md#chaos-evidence",
+      "whyNotFiledThere": "specs/_bugs/ lay outside the specs/025- staging boundary that phase was authorised to write, so it routed the finding rather than breaching the boundary.",
+      "independentlyVerifiedHere": true
+    },
+    "facets": [
+      {
+        "facet": 1,
+        "name": "the composed paint precedes the corpus request",
+        "observed": "data-run-status=composed with data-corpus-status=pending; the cockpit prints a definite absence count and all four horizons read none/absent; no user-visible readiness wording anywhere in the body",
+        "pendingReading": "15 of 15 mandatory dimensions have no usable source in this run",
+        "settledReading": "13 of 15 mandatory dimensions have no usable source in this run",
+        "pendingHorizons": "event=none/absent immediate=none/absent structural=none/absent swing=none/absent (cold cache)",
+        "settledHorizons": "event=flat/thin immediate=constructive/thin structural=none/absent swing=constructive/thin",
+        "magnitudeDependsOnCacheWarmth": "cold cache 15 of 15 (first-time reader following a published deep link); warm cache 14 of 15 (returning reader, one bar leg served synchronously by loadOne at company-intelligence-lab.html:1520); settled truth 13 of 15 in both cases",
+        "attributeCorrectness": "correct but unrendered — a consumer reading data-corpus-status is protected"
+      },
+      {
+        "facet": 2,
+        "name": "the attribute retains the previous subject's value during a manual apply",
+        "observed": "data-corpus-status reads loaded for a subject whose corpus has not been requested",
+        "attributeCorrectness": "wrong — the committed suite's own readiness convention returns immediately on a stale value, so the workaround for facet 1 does not hold here",
+        "independentlyDeliverable": true
+      }
+    ],
+    "mechanism": {
+      "deepestCause": "corpus readiness is not an input to composition: compose() at company-intelligence-lab.html:991 passes window.RLDATA into INTEL.runAdapters (rlcompanyintel.js:1198) and INTEL.buildCoverageAccount (rlcompanyintel.js:1243), neither of which receives a readiness argument, so an empty cache and a company with no source are the same observation",
+      "orderingIsUnconditional": "paintFromEmbedded() calls run() synchronously at company-intelligence-lab.html:1707 and boot() reaches its first loadCorpus() only at company-intelligence-lab.html:1749, so the first composed paint of every load precedes the first corpus request by construction, not by a race",
+      "claimIsUnconditionalProse": "company-intelligence-lab.html:1460-1462 emits the coverage sentence with no branch on readiness",
+      "runStatusIgnoresReadiness": "company-intelligence-lab.html:1484 passes composed unconditionally; setBodyState at company-intelligence-lab.html:787-791 writes data-run-status from its parameter and data-corpus-status from module scope with no consistency rule between them",
+      "facet2Ordering": "applySubject() composes and renders at company-intelligence-lab.html:1503-1504, then calls loadCorpus() at :1507, and the corpusStatus reset lives inside loadCorpus() at :1540 — one turn after the paint has already copied the old value"
+    },
+    "affectedFiles": [
+      "company-intelligence-lab.html:745",
+      "company-intelligence-lab.html:787-791",
+      "company-intelligence-lab.html:991-999",
+      "company-intelligence-lab.html:1085-1120",
+      "company-intelligence-lab.html:1450-1485",
+      "company-intelligence-lab.html:1487-1490",
+      "company-intelligence-lab.html:1494-1508",
+      "company-intelligence-lab.html:1538-1552",
+      "company-intelligence-lab.html:1697-1707",
+      "company-intelligence-lab.html:1716-1749",
+      "rlcompanyintel.js:1198",
+      "rlcompanyintel.js:1243"
+    ],
+    "principleViolated": {
+      "id": "P2",
+      "title": "Missing data renders as missing",
+      "source": "docs/Product-Principles.md:52-56",
+      "text": "Absent data shows as unavailable or incomplete. Never zero. Never inferred. Never a plausible placeholder.",
+      "blockingPattern": ".github/instructions/product-principles.instructions.md — 'missing data rendered as zero, neutral, or inferred'"
+    },
+    "whyTheCommittedSuiteDoesNotCatchIt": {
+      "browserSuite": "all 37 tests enter through openComposedRoute at tests/company-intelligence-lab.spec.mjs:42, whose gate at :58-59 waits for data-run-status=composed AND data-corpus-status in {loaded, unavailable}; the fixture waits the defect out, so no assertion in the file ever samples the pending paint",
+      "theOneTestThatEntersTheWindow": "the offline first-paint case at tests/company-intelligence-lab.spec.mjs:1121-1174 asserts the route REACHES a composed cockpit with no runtime fetch resolved, and asserts nothing about whether the copy on that paint is honest; at :1174 it waits for the corpus to leave pending before continuing",
+      "unitSuite": "tests/company-intelligence.unit.mjs exercises rlcompanyintel.js, which is handed a corpus and asked to compose; readiness is not one of its inputs so the distinction is not expressible there",
+      "classification": "missing test category, not a broken test — Scope 3 exists to close it"
+    },
+    "baselinesAtFiling": {
+      "selftest": "3404 passed, 0 failed, exit 0",
+      "unit025": "90 pass, 0 fail, exit 0",
+      "browser025": "37 passed, exit 0",
+      "note": "both 025 suites are green while the defect is live and reproducible in the same session"
+    },
+    "preExistingFailuresNotAttributed": "the wider node --test run reports 35 failures against 409 passes, with an origin/main control of 37 against 408; none mentions 025 and none is caused or repaired by this packet"
+  },
+  "relatedDefects": [
+    {
+      "id": "BUG-010",
+      "path": "specs/_bugs/BUG-010-company-owner-read-disclosure-not-deterministic",
+      "relationship": "distinct",
+      "note": "BUG-010 concerns a safety-bearing disclosure sourced from non-deterministic prose on the company owner-read surface. It does not touch corpus readiness, data-corpus-status, or the coverage claim, and neither packet explains the other."
+    }
+  ],
+  "dedup": {
+    "performedInFilingSession": true,
+    "scanned": [
+      "specs/_bugs/ — 19 packets, BUG-001 through BUG-017",
+      "specs/010-company-fundamentals-and-brief-lab/bugs/ — 1 packet",
+      "specs/012-market-action-center-and-guided-tools/bugs/ — 7 packets"
+    ],
+    "method": "directory enumeration plus a content grep across every bug artifact for data-corpus-status, corpus-status, cockpit-coverage-line, corpus-pending and 'mandatory dimensions'",
+    "result": "zero matches; no existing packet covers this surface or this mechanism"
+  },
+  "terminalTransitionBlockers": [
+    "Scope 1 is Done with six of six Definition of Done items ticked, but Scopes 2 and 3 are Not Started with zero of ten and zero of six ticked, and the cross-scope set is untouched.",
+    "Facet 1 is live. The pending window still prints a definite absence count with no user-visible readiness wording; only facet 2, the stale attribute, is closed.",
+    "Scope 2 is blocked on design.md open question 1, a product decision about what a reader sees on the first paint of every load. No evidence settles it and it is not agent-dischargeable.",
+    "Scope 3 cannot begin before Scope 2, because the assertion it adds must assert the chosen copy.",
+    "Gate G136 human acceptance is not established. uservalidation.md Checklist items are unticked and its Human Acceptance Record is unfilled; Scope 1 delivers an attribute correction with no rendered surface for a human to exercise.",
+    "No independent party re-derived any measurement. certification.certifiedCompletedPhases is empty because phase certification belongs to bubbles.validate."
+  ],
+  "knownLimitation": {
+    "statement": "The defect and its cause are both established. What is established: at dc54a8547, the first composed paint of every load precedes the first corpus request unconditionally, so data-run-status reads composed while data-corpus-status reads pending; in that window, with ZERO injected delay on a cold cache, the cockpit prints '15 of 15 mandatory dimensions have no usable source in this run' and all four horizon cards read none/absent, against a settled 13 of 15 in which three horizons carry directions; a case-insensitive body-text scan for readiness wording returns nothing; the magnitude falls to 14 of 15 on a warm cache because loadOne serves one bar leg synchronously, so a returning reader sees a smaller but still wrong overstatement; and during a manual apply data-corpus-status retains the previous subject's value, observed reading loaded for a subject whose corpus had not been requested. What is NOT established: a printed count that drifts behind that stale attribute, which is reachable by construction but was not produced because both subjects tried settle at the count they showed; behaviour under file://, where the corpus resolves to unavailable rather than staying pending; the window's width on a real network; and which of the three remedies in design.md is correct. Scope 1 has since closed the last of those observations: as of 2026-08-23 the corpusStatus reset precedes the paint in applySubject(), so during a manual apply data-corpus-status reads pending for the subject on screen rather than retaining the previous subject's value. Every other statement here still describes live behaviour, because facet 1 is untouched.",
+    "recordedIn": [
+      "bug.md 'The Second Facet, Stated Separately' and 'Root Cause'",
+      "design.md 'Mechanism' and 'Open Questions For The Owner'",
+      "report.md 'What Was Not Established' and 'Completion Statement'",
+      "scopes.md, where Scope 1 is Done and Scopes 2 and 3 are Not Started",
+      "uservalidation.md Automation Readiness, four items left unticked with reasons"
+    ],
+    "whyNotClosedHere": "Scope 1 was delivered because it is a self-contained ordering correction that no product decision gates. Scope 2 was not: selecting between withholding the claim and marking it provisional would prejudge a product judgement the owner reserves, and Scope 3 cannot assert copy that has not been chosen.",
+    "consequenceForStatus": "status stays in_progress with certification.status equal to it. Scope 1 is Done with six of six Definition of Done items ticked; Scopes 2 and 3 are Not Started with zero ticked, which is the accurate representation of a packet whose second facet is closed and whose first is not."
+  },
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [
+      "01-make-data-corpus-status-describe-the-subject-on-screen",
+      "02-stop-asserting-absence-the-route-has-not-established",
+      "03-close-the-structural-test-gap"
+    ],
+    "certifiedCompletedPhases": [],
+    "certificationFieldWriteNote": "certification.status remains in_progress and equal to the top-level status. All three scopes are Done and both facets are closed, but the cross-scope Definition of Done is not complete: uservalidation.md carries no filled Human Acceptance Record, scenario-manifest.json does not exist, policySnapshot is short of the fields the transition guard wants, and two findings are routed out to bubbles.plan rather than closed. certifiedCompletedPhases stays EMPTY: it is bubbles.validate's to write, and no independent party re-derived any evidence in report.md. bubbles.implement touched exactly two fields in this object, both factual mirrors of scopes.md rather than verdicts: scopeProgress, and completedScopes, which now names all three scopes because the state-transition guard reports an integrity failure when a scope artifact reads Done and this list omits it. Leaving either one behind scopes.md would itself be a false record.",
+    "scopeProgress": [
+      {
+        "scopeId": "01-make-data-corpus-status-describe-the-subject-on-screen",
+        "status": "Done",
+        "dodChecked": 6,
+        "dodUnchecked": 0
+      },
+      {
+        "scopeId": "02-stop-asserting-absence-the-route-has-not-established",
+        "status": "Done",
+        "dodChecked": 10,
+        "dodUnchecked": 0
+      },
+      {
+        "scopeId": "03-close-the-structural-test-gap",
+        "status": "Done",
+        "dodChecked": 6,
+        "dodUnchecked": 0
+      }
+    ]
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "policySnapshot": {
+    "capturedAt": "2026-08-23T00:00:00Z",
+    "workflowMode": "bugfix-fastlane",
+    "statusCeiling": "done",
+    "antiFabrication": "enforced",
+    "evidenceStandard": "executed-only; every command in report.md ran in this session at dc54a8547"
+  }
+}

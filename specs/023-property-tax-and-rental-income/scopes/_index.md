@@ -264,11 +264,11 @@ proven still refused.
 
 | # | Scope | Artifact | Tags | Depends On | Scenarios | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| 01 | Property Assessment Mechanics And Statutory Relief Regimes | [`01-property-assessment-mechanics/scope.md`](01-property-assessment-mechanics/scope.md) | `foundation:true`, `declared-vs-sourced:true`, `sourcing-gated:true` | none | SCN-023-001 … -003 | Not started |
-| 02 | Primary Residence Federal Interaction | [`02-primary-residence-federal-interaction/scope.md`](02-primary-residence-federal-interaction/scope.md) | `engine:federal`, `supersession-heavy:true`, `sourcing-gated:true` | 01 | SCN-023-004 … -006 | Not started |
-| 03 | Long-Term Rental | [`03-long-term-rental/scope.md`](03-long-term-rental/scope.md) | `engine:rental`, `loss-limits:true`, `sourcing-gated:true` | 01, 02 | SCN-023-007 … -009 | Not started |
-| 04 | Short-Term And Vacation Rental | [`04-short-term-and-vacation-rental/scope.md`](04-short-term-and-vacation-rental/scope.md) | `classification:pub-527`, `boundary-adversarial:true`, `sourcing-gated:true` | 01, 02, 03 | SCN-023-010 … -013 | Not started |
-| 05 | Disposition | [`05-disposition/scope.md`](05-disposition/scope.md) | `engine:disposition`, `recapture:true`, `sourcing-gated:true` | 01, 02, 03, 04 | SCN-023-014 … -015 | Not started |
+| 01 | Property Assessment Mechanics And Statutory Relief Regimes | [`01-property-assessment-mechanics/scope.md`](01-property-assessment-mechanics/scope.md) | `foundation:true`, `declared-vs-sourced:true`, `sourcing-gated:true` | none | SCN-023-001 … -003 | In Progress |
+| 02 | Primary Residence Federal Interaction | [`02-primary-residence-federal-interaction/scope.md`](02-primary-residence-federal-interaction/scope.md) | `engine:federal`, `supersession-heavy:true`, `sourcing-gated:true` | 01 | SCN-023-004 … -006 | In Progress |
+| 03 | Long-Term Rental | [`03-long-term-rental/scope.md`](03-long-term-rental/scope.md) | `engine:rental`, `loss-limits:true`, `sourcing-gated:true` | 01, 02 | SCN-023-007 … -009 | In Progress |
+| 04 | Short-Term And Vacation Rental | [`04-short-term-and-vacation-rental/scope.md`](04-short-term-and-vacation-rental/scope.md) | `classification:pub-527`, `boundary-adversarial:true`, `sourcing-gated:true` | 01, 02, 03 | SCN-023-010 … -013 | In Progress |
+| 05 | Disposition | [`05-disposition/scope.md`](05-disposition/scope.md) | `engine:disposition`, `recapture:true`, `sourcing-gated:true` | 01, 02, 03, 04 | SCN-023-014 … -015 | In Progress |
 
 ## Dependency Graph
 

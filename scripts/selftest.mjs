@@ -106,6 +106,15 @@ function hasExactCompanyRouteScripts(sources) {
   return JSON.stringify(sources) === JSON.stringify(COMPANY_ROUTE_SCRIPTS);
 }
 
+/* Every lifetime-tax refusal-vocabulary member admitted AFTER the fourteen that Features 021-024
+   and 028 each ended with. Nine assertions across those features pin the vocabulary at its
+   pre-feature value to say "this scope added no code of its own", and each of those claims is
+   still true — but the literal fourteen stopped describing the live vocabulary when BUG-020 added
+   the fifteenth. Naming the additions here rather than bumping nine literals keeps each of those
+   claims intact and keeps the admission in ONE place: a member added to the vocabulary without
+   being named here still falls every one of those nine assertions. */
+const VOCABULARY_ADDED_SINCE_FOURTEEN = Object.freeze(['RLTAX-FIGURE-UNREPRESENTABLE']);
+
 /* ---------- Step 1: model text is data + CSP defense in depth ---------- */
 try {
   group('Step 1 security — escaped model sinks and CSP on every page');
@@ -13194,34 +13203,48 @@ try {
   /* SUP-022-22: supersedes `Object.keys(RLTAXRULES.RLTAX_CODES).length === 12`; shape=derive.
      The count is derived from the module's own declaration, the twelve Feature 021 members are
      each named and asserted present, and the two added members are named and asserted to be
-     exactly the jurisdiction-axis pair. Ledger: spec.md#supersession-ledger. */
+     exactly the jurisdiction-axis pair. Ledger: spec.md#supersession-ledger.
+     SUP-020-01: supersedes the two-list count clause and the two-list membership clause this
+     assertion carried, both of which became false the moment BUG-020's fifteenth member landed
+     and became false whatever the implementation did. The replacement is a THREE-list count, a
+     three-list membership clause, the new member asserted present by name, and a third
+     adversarial limb proving a vocabulary missing it fails. The derivation is NOT widened: the
+     declared names are still scraped from rltaxrules.js and compared to the live keys, so a
+     member added to one and not the other still fails.
+     Ledger: specs/_bugs/BUG-020-income-beyond-double-range-settles-as-non-finite/spec.md. */
   const FEATURE_021_CODES = ['RLTAX-CONFIG-INVALID', 'RLTAX-PACK-INVALID', 'RLTAX-PACK-EXPIRED',
     'RLTAX-YEAR-UNSUPPORTED', 'RLTAX-JURISDICTION-UNSUPPORTED', 'RLTAX-INCOME-KIND-UNSUPPORTED',
     'RLTAX-FILING-STATUS-UNSUPPORTED', 'RLTAX-INPUT-INCOMPLETE', 'RLTAX-FEATURE-UNSUPPORTED',
     'RLTAX-THRESHOLD-UNAVAILABLE', 'RLTAX-RECONCILE', 'RLTAX-SCOPE-DEFERRED'];
   const FEATURE_022_CODES = ['RLTAX-RESIDENCY-UNSUPPORTED', 'RLTAX-PACK-YEAR-MISMATCH'];
+  const BUG_020_CODES = ['RLTAX-FIGURE-UNREPRESENTABLE'];
   const rulesSource = read('rltaxrules.js');
   const declaredCodeBlock = /var RLTAX_CODES = Object\.freeze\(\{([\s\S]*?)\}\);/.exec(rulesSource);
   const declaredCodeNames = declaredCodeBlock === null
     ? []
     : (declaredCodeBlock[1].match(/"RLTAX-[A-Z-]+"/g) || []).map((token) => token.replace(/"/g, ''));
   const liveCodeNames = Object.keys(RLTAXRULES.RLTAX_CODES);
-  /* Adversarial: a repurposed Feature 021 member, and a fabricated third addition, each fail. */
+  /* Adversarial: a repurposed Feature 021 member, a fabricated third addition, and — SUP-020-01 —
+     a vocabulary from which the BUG-020 member has been removed, each fail. */
   const repurposedVocabulary = liveCodeNames.filter((code) => code !== 'RLTAX-RECONCILE');
   const fabricatedAddition = liveCodeNames.concat(['RLTAX-INVENTED-CODE']);
+  const vocabularyMissingFigureMember = liveCodeNames.filter((code) => code !== 'RLTAX-FIGURE-UNREPRESENTABLE');
   assert(declaredCodeNames.length > 0
     && JSON.stringify(declaredCodeNames.slice().sort()) === JSON.stringify(liveCodeNames.slice().sort())
-    && liveCodeNames.length === FEATURE_021_CODES.length + FEATURE_022_CODES.length
+    && liveCodeNames.length === FEATURE_021_CODES.length + FEATURE_022_CODES.length + BUG_020_CODES.length
     && FEATURE_021_CODES.every((code) => RLTAXRULES.RLTAX_CODES[code] === true)
     && FEATURE_022_CODES.every((code) => RLTAXRULES.RLTAX_CODES[code] === true)
-    && liveCodeNames.every((code) => FEATURE_021_CODES.includes(code) || FEATURE_022_CODES.includes(code))
+    && BUG_020_CODES.every((code) => RLTAXRULES.RLTAX_CODES[code] === true)
+    && liveCodeNames.every((code) => FEATURE_021_CODES.includes(code) || FEATURE_022_CODES.includes(code)
+      || BUG_020_CODES.includes(code))
     && !FEATURE_021_CODES.every((code) => repurposedVocabulary.includes(code))
     && !fabricatedAddition.every((code) => RLTAXRULES.RLTAX_CODES[code] === true)
+    && !BUG_020_CODES.every((code) => vocabularyMissingFigureMember.includes(code))
     && Object.isFrozen(RLTAXRULES.RLTAX_CODES)
     && refusal.contractVersion === 'TaxUnavailable/v1' && refusalNumericMembers.length === 0
     && unknownCodeThrew && everyCodeConstructs
     && Object.keys(RLTAXRULES.RULE_STATUS).length === 4,
-  'TP-01-05: the RLTAX enum count is derived from the module declaration, carries all twelve Feature 021 members unchanged plus exactly the two named jurisdiction-axis members, every member constructs a numeric-free TaxUnavailable, an unknown code is refused, and a repurposed member and a fabricated addition are each proven to fail');
+  'TP-01-05: the RLTAX enum count is derived from the module declaration, carries all twelve Feature 021 members unchanged plus exactly the two named jurisdiction-axis members plus exactly the one named unrepresentable-figure member, every member constructs a numeric-free TaxUnavailable, an unknown code is refused, and a repurposed member, a fabricated addition and a vocabulary missing the unrepresentable-figure member are each proven to fail');
 
   /* TP-01-06: the minimum-viable-input contract names each missing member and defaults none. */
   const emptyWorkspace = RLTAXWORKSPACE.createEmptyWorkspace();
@@ -14118,6 +14141,36 @@ try {
       && displayed.displayed === 1240
       && displayed.policy === 'nearest-dollar',
     'TP-02-09: no calculation stage rounds because the pack declares none, the settled value keeps its fractional cents, and rounding appears only in the display record beside the raw value');
+
+    /* TB-020-04 (BUG-020). The display seam refuses a non-finite value at the same site that
+       already refuses a non-finite rounding factor. The record is handed to the formatter
+       DIRECTLY, carrying an enacted rule status, so the assertion cannot be satisfied by the
+       engine-origin refusal (E1) arriving pre-formed: it exercises the E3 guard and nothing else.
+       Deleting that guard restores a display record whose `displayed` member is the non-finite
+       value, which every clause below rejects. */
+    const unrepresentableRecords020 = [Infinity, -Infinity, NaN].map((value) => Object.freeze({
+      contractVersion: 'TaxValue/v1', value: value, ruleStatus: 'enacted-current-law'
+    }));
+    const displayRefusals020 = unrepresentableRecords020.map((record) =>
+      RLTAX.formatForDisplay(record, settleConfig.display.displayRounding));
+    const finiteDisplay020 = RLTAX.formatForDisplay(
+      Object.freeze({ contractVersion: 'TaxValue/v1', value: 1240.06, ruleStatus: 'enacted-current-law' }),
+      settleConfig.display.displayRounding);
+    assert(displayRefusals020.length === 3
+      && displayRefusals020.every((refusal) => RLTAXRULES.isUnavailable(refusal))
+      && displayRefusals020.every((refusal) => refusal.code === 'RLTAX-FIGURE-UNREPRESENTABLE')
+      && displayRefusals020.every((refusal) => refusal.domain === 'display:value')
+      /* A refusal carries no figure: no numeric member, and none of the display record's members. */
+      && displayRefusals020.every((refusal) => Object.keys(refusal)
+        .filter((key) => typeof refusal[key] === 'number').length === 0)
+      && displayRefusals020.every((refusal) => refusal.displayed === undefined && refusal.raw === undefined)
+      /* And no rule standing rides along on a refused figure. */
+      && displayRefusals020.every((refusal) => refusal.ruleStatus === undefined)
+      /* The finite side is untouched: the same record still rounds and still carries its status. */
+      && finiteDisplay020.raw === 1240.06 && finiteDisplay020.displayed === 1240
+      && finiteDisplay020.policy === 'nearest-dollar'
+      && finiteDisplay020.ruleStatus === 'enacted-current-law',
+    'TB-020-04: formatForDisplay refuses a record carrying Infinity, -Infinity or NaN with RLTAX-FIGURE-UNREPRESENTABLE on domain display:value, that refusal carries no figure and no rule standing, and a finite record still rounds to the value and status it carried before the guard');
 
     /* TP-02-10: every unsupported feature is surfaced and no result claims a complete federal tax. */
     const noticeIds = balancedSettled.unsupportedFeatureNotices.map((notice) => notice.id);
@@ -15978,7 +16031,10 @@ try {
     /* Raised by Scope 05's combined module and by Feature 024's medicare module, both outside
        the pinned set. Its absence here is pinned too, so a stray raise appearing inside one of
        these five modules falls this row rather than passing unnoticed. */
-    'RLTAX-PACK-YEAR-MISMATCH': ''
+    'RLTAX-PACK-YEAR-MISMATCH': '',
+    /* BUG-020. Raised at the arithmetic origin (E1) and at the display seam (E3), both in the
+       engine. A raise appearing in any other pinned module falls this row. */
+    'RLTAX-FIGURE-UNREPRESENTABLE': 'rltax.js'
   };
   const raiseSiteText = {};
   PINNED_RAISE_MODULES.forEach((file) => {
@@ -17187,11 +17243,12 @@ try {
     (propertySource.match(/RLTAX-[A-Z-]+/g) || []).concat(
       (engineSource.match(/RLTAX-[A-Z-]+/g) || []))));
   const strayCodes23 = raisedCodes23.filter((code) => RULES23.RLTAX_CODES[code] !== true);
-  assert(Object.keys(RULES23.RLTAX_CODES).length === 14
+  assert(Object.keys(RULES23.RLTAX_CODES).length === 14 + VOCABULARY_ADDED_SINCE_FOURTEEN.length
+    && VOCABULARY_ADDED_SINCE_FOURTEEN.every((code) => RULES23.RLTAX_CODES[code] === true)
     && strayCodes23.length === 0
     && raisedCodes23.indexOf('RLTAX-INPUT-INCOMPLETE') >= 0
     && raisedCodes23.indexOf('RLTAX-THRESHOLD-UNAVAILABLE') >= 0,
-    'TP-01-14: the refusal vocabulary member count is unchanged at its pre-feature value and every code the property surface raises is an existing member: ' + strayCodes23.join(', '));
+    'TP-01-14: the refusal vocabulary member count is unchanged at its pre-feature value plus exactly the members named as admitted after this feature, and every code the property surface raises is an existing member: ' + strayCodes23.join(', '));
 
   /* TP-01-15 NO-SHADOW. No module may hold a cap figure, a ceiling figure or an exemption amount:
      every one lives in a pack. The detector is proven live by firing on the packs. */
@@ -17822,9 +17879,10 @@ try {
 
   /* TP-02-15 VOCABULARY. This scope adds no refusal code. */
   const engineCodes02 = Array.from(new Set(read('rltax.js').match(/RLTAX-[A-Z-]+/g) || []));
-  assert(Object.keys(RULES02.RLTAX_CODES).length === 14
+  assert(Object.keys(RULES02.RLTAX_CODES).length === 14 + VOCABULARY_ADDED_SINCE_FOURTEEN.length
+    && VOCABULARY_ADDED_SINCE_FOURTEEN.every((code) => RULES02.RLTAX_CODES[code] === true)
     && engineCodes02.every((code) => RULES02.RLTAX_CODES[code] === true),
-    'TP-02-15: the refusal vocabulary member count equals its pre-feature value and every code the deduction composition raises is an existing member');
+    'TP-02-15: the refusal vocabulary member count equals its pre-feature value plus exactly the members named as admitted after this feature, and every code the deduction composition raises is an existing member');
 
   /* TP-02-16 PRIVACY. The mortgage declarations are inventoried, cleared and redacted. */
   const mortgageMembers02 = ['mortgageInterestPaid', 'mortgageAcquisitionDebtBalance', 'mortgageAcquisitionDebtTier'];
@@ -18379,12 +18437,13 @@ try {
 
   /* TP-03-18 VOCABULARY. The refusal vocabulary member count equals its pre-feature value. This
      feature folds every new condition into an existing member. */
-  assert(Object.keys(RULES03.RLTAX_CODES).length === 14
+  assert(Object.keys(RULES03.RLTAX_CODES).length === 14 + VOCABULARY_ADDED_SINCE_FOURTEEN.length
+    && VOCABULARY_ADDED_SINCE_FOURTEEN.every((code) => RULES03.RLTAX_CODES[code] === true)
     && RULES03.RLTAX_CODES['RLTAX-THRESHOLD-UNAVAILABLE'] === true
     && RULES03.RLTAX_CODES['RLTAX-INPUT-INCOMPLETE'] === true
     && RULES03.RLTAX_CODES['RLTAX-RECONCILE'] === true
     && RULES03.RLTAX_CODES['RLTAX-RENTAL-UNAVAILABLE'] === undefined,
-    'TP-03-18: the refusal vocabulary still has exactly its fourteen pre-feature members and this scope added none');
+    'TP-03-18: the refusal vocabulary still carries exactly its fourteen pre-feature members plus exactly the members named as admitted after this feature, and this scope added none');
 
   /* TP-03-19 NO SHADOW. No module holds a recovery period, a convention figure, an allowance
      amount, a phase-out edge or an authority name. The detector is PROVEN to fire on a module
@@ -18982,13 +19041,14 @@ try {
 
   /* TP-04-19 VOCABULARY. The refusal vocabulary member count equals its pre-feature value. Every
      condition this scope introduced folds into an existing member. */
-  assert(Object.keys(RULES04.RLTAX_CODES).length === 14
+  assert(Object.keys(RULES04.RLTAX_CODES).length === 14 + VOCABULARY_ADDED_SINCE_FOURTEEN.length
+    && VOCABULARY_ADDED_SINCE_FOURTEEN.every((code) => RULES04.RLTAX_CODES[code] === true)
     && RULES04.RLTAX_CODES['RLTAX-THRESHOLD-UNAVAILABLE'] === true
     && RULES04.RLTAX_CODES['RLTAX-INPUT-INCOMPLETE'] === true
     && RULES04.RLTAX_CODES['RLTAX-FEATURE-UNSUPPORTED'] === true
     && RULES04.RLTAX_CODES['RLTAX-USE-UNAVAILABLE'] === undefined
     && RULES04.RLTAX_CODES['RLTAX-CLASSIFICATION-UNAVAILABLE'] === undefined,
-    'TP-04-19: the refusal vocabulary still has exactly its fourteen pre-feature members and this scope added none');
+    'TP-04-19: the refusal vocabulary still carries exactly its fourteen pre-feature members plus exactly the members named as admitted after this feature, and this scope added none');
 
   /* TP-04-20 NO SHADOW. rltaxuse.js holds no day figure, no percentage, no rental-days threshold
      and no authority name. The detector is PROVEN to fire on a module that does, so a scan that
@@ -19607,13 +19667,14 @@ try {
 
   /* TP-05-17 VOCABULARY. The refusal vocabulary member count equals its pre-feature value. This
      scope folded every condition it met into an existing member and added no code. */
-  assert(Object.keys(RULES05.RLTAX_CODES).length === 14
+  assert(Object.keys(RULES05.RLTAX_CODES).length === 14 + VOCABULARY_ADDED_SINCE_FOURTEEN.length
+    && VOCABULARY_ADDED_SINCE_FOURTEEN.every((code) => RULES05.RLTAX_CODES[code] === true)
     && RULES05.RLTAX_CODES['RLTAX-THRESHOLD-UNAVAILABLE'] === true
     && RULES05.RLTAX_CODES['RLTAX-INPUT-INCOMPLETE'] === true
     && RULES05.RLTAX_CODES['RLTAX-SCOPE-DEFERRED'] === true
     && !/RLTAX-(?:DISPOSITION|RECAPTURE|EXCLUSION|GAIN)-/.test(read('rltaxrules.js'))
     && !/RLTAX-(?:DISPOSITION|RECAPTURE|EXCLUSION|GAIN)-/.test(dispositionSource05),
-    'TP-05-17: the refusal vocabulary still has exactly its fourteen pre-feature members, and neither the rules module nor the disposition module names a disposition-specific code, so every condition this scope met folded into an existing member');
+    'TP-05-17: the refusal vocabulary still carries exactly its fourteen pre-feature members plus exactly the members named as admitted after this feature, and neither the rules module nor the disposition module names a disposition-specific code, so every condition this scope met folded into an existing member');
 
   /* TP-05-18 PRIVACY. The disposition declarations are inventoried, cleared, redacted, and absent
      from every URL, request, referrer and console message. A sale price beside a declared property
@@ -20026,11 +20087,60 @@ try {
     && earlyKnown24.comparisonsPerformed.every((c) => typeof c.operator === 'string' && typeof c.result === 'boolean'),
   'TP-01-10: an implementation accruing delayed credit past the sourced stopping age produces a larger figure than the bounded one and is proven to differ, and one folding the months into a single multiplier publishes no per-month factors and is proven to fail the published-factors assertion');
 
+  /* Declared here because the BUG-019 assertion below resolves the earliest age's sourceRef
+     against it; the TP-01-11 sourcing census further down reads the same list. */
+  const sourceIds24 = benefitPack24.sourceRecords.map((record) => record.sourceId);
+
+  /* BUG-019. The early rule's bound, applied as a bound. The delayed rule always carried its
+     stopping age as a structured field; the early rule stated its maximum only in prose, so the
+     engine extrapolated the per-month factors for as many months as the arithmetic allowed and a
+     claim at sixty priced as a settled figure. The boundary is one month wide, so it is asserted
+     one month apart, and the clamping implementation this fix REFUSED to ship is proven to
+     produce the age-62 figure for a claim at 60 — a different wrong number rather than a
+     refusal. */
+  const earliest24 = benefitPack24.earlyReductionRule.earliestClaimAge;
+  const atEarliest24 = SS24.applyClaimAgeAdjustment(declaredPia24, 1962, 62 * 12, benefitPack24);
+  const oneMonthBelow24 = SS24.applyClaimAgeAdjustment(declaredPia24, 1962, (62 * 12) - 1, benefitPack24);
+  const wellBelow24 = SS24.applyClaimAgeAdjustment(declaredPia24, 1962, 60 * 12, benefitPack24);
+  const subZero24 = SS24.applyClaimAgeAdjustment(declaredPia24, 1962, 48 * 12, benefitPack24);
+  /* The remedy design.md records as Option C, built here only to be proven different. It answers
+     with the figure at the earliest priceable age, which is exactly why it was not shipped. */
+  const clampedEarly24 = (months) => SS24.applyClaimAgeAdjustment(declaredPia24, 1962,
+    Math.max(months, earliest24.ageYears * 12), benefitPack24).adjustedMonthlyBenefit;
+  const packWithoutBound24 = clone24(benefitPack24);
+  delete packWithoutBound24.earlyReductionRule.earliestClaimAge;
+  const unbounded019 = SS24.applyClaimAgeAdjustment(declaredPia24, 1962, 60 * 12, packWithoutBound24);
+  const packWithAbsentBound24 = clone24(benefitPack24);
+  packWithAbsentBound24.earlyReductionRule.earliestClaimAge = absent24('the earliest claim age');
+  const absentBound019 = SS24.applyClaimAgeAdjustment(declaredPia24, 1962, 62 * 12, packWithAbsentBound24);
+  /* No module carries an earliest age of its own. A literal here would make the bound a code
+     edit rather than a pack edit, which is the thing the pack contract exists to prevent. */
+  const noLiteral019 = ['rltaxsocialsecurity.js', 'rltaxclaimage.js', 'rltaxrules.js']
+    .every((file) => !/\b62\s*\*\s*12\b|\bearliestClaimAgeYears\s*=|\b744\b/.test(read(file)));
+  assert(earliest24.ageYears === 62 && earliest24.maximumReductionMonths === 60
+    && typeof earliest24.sourceRef === 'string' && sourceIds24.indexOf(earliest24.sourceRef) >= 0
+    && typeof earliest24.locator === 'string' && earliest24.locator.length > 0
+    && atEarliest24.monthsCounted === 60 && atEarliest24.factorsApplied.length === 60
+    && codeOf24(oneMonthBelow24) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && oneMonthBelow24.domain === SS24.BELOW_EARLIEST_CLAIM_AGE_DOMAIN
+    && /743 months is below the earliest claim age/.test(oneMonthBelow24.reason)
+    && /744 months/.test(oneMonthBelow24.reason)
+    && oneMonthBelow24.adjustedMonthlyBenefit === undefined
+    && codeOf24(wellBelow24) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && codeOf24(subZero24) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && clampedEarly24(60 * 12) === atEarliest24.adjustedMonthlyBenefit
+    && codeOf24(unbounded019) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && /earliestClaimAge/.test(unbounded019.reason)
+    && codeOf24(absentBound019) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && atEarliest24.comparisonsPerformed.some((c) => c.comparisonId === 'claim-age-below-earliest-priceable-age' && c.result === false)
+    && atEarliest24.comparisonsPerformed.some((c) => c.comparisonId === 'months-counted-within-declared-maximum' && c.result === true)
+    && noLiteral019,
+  'BUG-019: the benefit pack declares the earliest priceable claim age with a resolving sourceRef and a locator, the earliest age itself still prices sixty counted months, one month below it refuses under the declared bound rather than being clamped, the clamping implementation is proven to answer with the earliest age\u2019s own figure instead, a pack missing the figure and a pack declaring it absent both refuse rather than pricing, and no module carries an earliest age of its own');
+
   /* TP-01-11 SOURCING. Every value-bearing member of the shipped pack resolves to exactly one
      retrieved source with a locator and a retrievedAt, every member from an undated or
      differently dated edition carries a quoted yearInvarianceBasis, and every unretrieved member
      is an AbsentFigure with a missingSource pointer and no smuggled numeric member. */
-  const sourceIds24 = benefitPack24.sourceRecords.map((record) => record.sourceId);
   const valueBearing24 = [
     benefitPack24.bendPointSet,
     benefitPack24.bendPointSet.roundingRule,
@@ -20039,6 +20149,7 @@ try {
     benefitPack24.indexingRule.quotientRounding,
     benefitPack24.fullRetirementAgeTable,
     benefitPack24.earlyReductionRule,
+    benefitPack24.earlyReductionRule.earliestClaimAge,
     benefitPack24.delayedCreditRule.monthlyRateTable,
     benefitPack24.benefitRounding
   ].concat(benefitPack24.bendPointSet.tiers);
@@ -20132,13 +20243,14 @@ try {
   'TP-01-13: removing the benefit leg from each of the four surfaces in turn is proven to fail, and each of the four failures names both the missing leg and the surface it failed to reach');
 
   /* TP-01-14 VOCABULARY. Neither count moved. */
-  assert(Object.keys(RULES24.RLTAX_CODES).length === 14
+  assert(Object.keys(RULES24.RLTAX_CODES).length === 14 + VOCABULARY_ADDED_SINCE_FOURTEEN.length
+    && VOCABULARY_ADDED_SINCE_FOURTEEN.every((code) => RULES24.RLTAX_CODES[code] === true)
     && RULES24.SUPPORTED_INCOME_KINDS.length === 4
     && RULES24.RLTAX_CODES['RLTAX-INPUT-INCOMPLETE'] === true
     && RULES24.RLTAX_CODES['RLTAX-THRESHOLD-UNAVAILABLE'] === true
     && codeOf24(neither24) === 'RLTAX-INPUT-INCOMPLETE'
     && codeOf24(outHigh24) === 'RLTAX-THRESHOLD-UNAVAILABLE',
-  'TP-01-14: the refusal vocabulary member count and the supported income-kind count each equal their pre-feature values, and this scope\u2019s two conditions fold into existing members whose meaning and raising site are unchanged');
+  'TP-01-14: the refusal vocabulary member count equals its pre-feature value plus exactly the members named as admitted after this feature, the supported income-kind count equals its pre-feature value, and this scope\u2019s two conditions fold into existing members whose meaning and raising site are unchanged');
 
   /* TP-01-15 NO-SHADOW. No module holds a bend point, a percentage, a factor, an age, an agency
      name or a publication name; the detector is proven to fire on a module that does. */
@@ -20648,8 +20760,9 @@ try {
     && RULES25.SUPPORTED_INCOME_KINDS.length === 4
     && JSON.stringify(PACK25.incomeKinds)
       === JSON.stringify(['ordinary', 'qualified-dividend', 'long-term-capital-gain', 'tax-exempt-interest'])
-    && Object.keys(RULES25.RLTAX_CODES).length === 14,
-  'TP-02-13: the included amount is a named contributor to ordinary taxable income rather than a new income kind, the supported income-kind count and the pack\u2019s incomeKinds member are unchanged, the refusal vocabulary member count is unchanged, and an unavailable inclusion contributes nothing rather than a zero');
+    && Object.keys(RULES25.RLTAX_CODES).length === 14 + VOCABULARY_ADDED_SINCE_FOURTEEN.length
+    && VOCABULARY_ADDED_SINCE_FOURTEEN.every((code) => RULES25.RLTAX_CODES[code] === true),
+  'TP-02-13: the included amount is a named contributor to ordinary taxable income rather than a new income kind, the supported income-kind count and the pack\u2019s incomeKinds member are unchanged, the refusal vocabulary member count is unchanged but for exactly the members named as admitted after this feature, and an unavailable inclusion contributes nothing rather than a zero');
 
   /* TP-02-14 NON-REGRESSION. With no benefit declared, the settlement engine produces the exact
      figures it produced before this scope existed: the contributor is additive and reaches the
@@ -22727,11 +22840,14 @@ try {
     'RLTAX-FILING-STATUS-UNSUPPORTED', 'RLTAX-INPUT-INCOMPLETE', 'RLTAX-FEATURE-UNSUPPORTED',
     'RLTAX-THRESHOLD-UNAVAILABLE', 'RLTAX-RECONCILE', 'RLTAX-SCOPE-DEFERRED',
     'RLTAX-RESIDENCY-UNSUPPORTED', 'RLTAX-PACK-YEAR-MISMATCH'];
-  assert(vocabulary28.length === preFeatureVocabulary28.length
+  assert(vocabulary28.length === preFeatureVocabulary28.length + VOCABULARY_ADDED_SINCE_FOURTEEN.length
     && incomeKinds28.length === 4
-    /* Both directions: no member gained, none lost, and each still raised somewhere in the tree. */
+    /* Both directions: no pre-feature member lost, none gained beyond the members named as
+       admitted after this feature, and each still raised somewhere in the tree. */
     && preFeatureVocabulary28.every((code) => vocabulary28.indexOf(code) >= 0)
-    && vocabulary28.every((code) => preFeatureVocabulary28.indexOf(code) >= 0)
+    && VOCABULARY_ADDED_SINCE_FOURTEEN.every((code) => vocabulary28.indexOf(code) >= 0)
+    && vocabulary28.every((code) => preFeatureVocabulary28.indexOf(code) >= 0
+      || VOCABULARY_ADDED_SINCE_FOURTEEN.indexOf(code) >= 0)
     && preFeatureVocabulary28.every((code) => RULES_TEXT28.indexOf('"' + code + '"') >= 0)
     /* The declaration is unique: no second vocabulary was introduced anywhere this feature wrote. */
     && (engineText28 + routeText28).indexOf('RLTAX_CODES = Object.freeze') < 0
@@ -22741,7 +22857,7 @@ try {
     /* The included benefit portion is ordinary income and adds no fifth kind. */
     && ENGINE28.ordinaryTaxableIncomeContribution(inclusionLegForContribution28)
       .addsIncomeKind === false,
-  'TP-05-17: at feature end the refusal vocabulary still carries exactly its fourteen pre-feature members in both directions, each still raised in the one module that declares them, no second vocabulary was introduced, the supported income-kind count is still the same four, and the included benefit portion adds no income kind');
+  'TP-05-17: at feature end the refusal vocabulary still carries exactly its fourteen pre-feature members in both directions plus exactly the members named as admitted after this feature, each still raised in the one module that declares them, no second vocabulary was introduced, the supported income-kind count is still the same four, and the included benefit portion adds no income kind');
 
   /* TP-05-18. */
   const specText28 = read('specs/024-social-security-and-medicare/spec.md');
@@ -26306,17 +26422,26 @@ try {
   const f027PatternToken = '[A-Z0-9.\\-]{1,12}';
   const f027PatternSites = (files) => files.filter((f) => f.source.includes(f027PatternToken)).map((f) => f.path);
   const f027PrivateRuleSites = (files) => files.filter((f) => /function\s+tickerFromQuery\s*\(/.test(f.source)).map((f) => f.path);
-  const F027_SUBJECT_ROUTES = Object.freeze(['options-structure-lab.html', 'gamma-trading-lab.html']);
+  /* Derived, not listed. Any root route publishing a deepLink that carries a query parameter is
+     subject-bearing, so a new one is covered the day it ships rather than the day someone
+     remembers to add it. The allowlist this replaced named two routes while four existed, and the
+     two it omitted were the ones emitting a dead parameter (BUG-015). */
+  const F027_SUBJECT_ROUTES = Object.freeze(f027ProductionFiles
+    .filter((f) => /\.html$/.test(f.path) && /deepLink:\s*"[^"]*\?/.test(f.source))
+    .map((f) => f.path)
+    .sort());
   const f027Consumers = F027_SUBJECT_ROUTES.filter((name) =>
     f027ProductionFiles.some((f) => f.path === name && f.source.includes('RLTKR.linkedSubject')));
 
   /* 1.1 — SCN-027-017 */
   assert(f027PatternSites(f027ProductionFiles).join(',') === 'rlticker.js'
     && f027PrivateRuleSites(f027ProductionFiles).length === 0
+    && F027_SUBJECT_ROUTES.length > 0
     && f027Consumers.length === F027_SUBJECT_ROUTES.length,
   'Feature 027: exactly one definition of the linked-subject rule exists in the tree and every subject-carrying route consumes it'
     + ' (pattern at: ' + (f027PatternSites(f027ProductionFiles).join(', ') || 'nowhere')
     + '; private copies: ' + (f027PrivateRuleSites(f027ProductionFiles).join(', ') || 'none')
+    + '; routes: ' + (F027_SUBJECT_ROUTES.join(', ') || 'none derived')
     + '; consumers: ' + f027Consumers.length + '/' + F027_SUBJECT_ROUTES.length + ')');
 
   /* 1.2 — SCN-027-007 */

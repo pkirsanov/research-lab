@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs
 in [report.md](report.md).
 
-**Status:** Not started
+**Status:** In Progress (deliverables and tests verified; newly added planning rows unverified)
 **Scope-Kind:** runtime-behavior
 **Tags:** `route:integrated`, `no-registration:true`, `a11y-critical:true`, `privacy-critical:true`
 **Depends On:** 01, 02, 03, 04
@@ -195,8 +195,29 @@ entry stays exactly as written) ·
 **Dirty-work discipline:** capture a path-scoped `git status` and a zero-context
 diff before each allowed path. No formatter and no broad rewrite runs.
 
+**Allowed file families:** the *Allowed new* and *Allowed modified* paths named
+above, and nothing else.
+
+**Excluded surfaces:** the byte-identical list named above. Collateral cleanup
+outside the allowed families is opt-in and is not performed under this scope.
+
 **Rollback:** revert the page, the export action and the appended selftest
 group; delete the new spec and fixtures.
+
+## Consumer Impact Sweep
+
+This scope fixes the Simple/Power mode identifiers, the export action's control
+identifier and the route's panel anchor ids. Any rename, move or removal of one
+of those identifiers reaches the surfaces below, and each surface is swept
+before the scope closes.
+
+| Consumer surface | What a rename or removal would break | Sweep proof |
+| --- | --- | --- |
+| Site navigation (`rlnav.js`), `index.html`, `tools.json` | This route is deliberately unregistered, so a rename must leave all three byte-identical rather than update them | Path-scoped `git status --porcelain` over the three returns no rows |
+| Deep links and breadcrumb anchors into Power panels | A renamed panel anchor makes a shared deep link land on nothing | Every anchor the page emits is resolved in the browser row rather than assumed |
+| Persisted mode and lever keys in the local namespace | A renamed storage key silently discards a returning reader's saved mode | The storage inventory names every written key and a reload restores the persisted mode |
+| The page's own module `src` list and its API client reads | A moved module turns a declared read into an unresolved request | The declared-read canary fails on any declared read that does not resolve |
+| Documentation and notes (`README.md`, `notes/README.md`) | A renamed identifier leaves a stale reference | A repository-wide stale-reference scan for the old identifier returns zero first-party rows |
 
 ## Scenario-First Red/Green Contract
 
@@ -227,13 +248,18 @@ the identical command for GREEN.
 | TP-05-15 | Broader Regression E2E | e2e-ui | SCN-021-001 … -015 | `lifetime-tax-foundation.spec.mjs`, `lifetime-tax-federal.spec.mjs`, `lifetime-tax-marginal.spec.mjs`, `lifetime-tax-conversion.spec.mjs`, `lifetime-tax-route.spec.mjs` | Execute the complete cumulative Feature 021 browser suite over the real route with no request interception, no service worker and no external provider | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-0" --reporter=list` | Yes | `report.md#tp-05-15` |
 | TP-05-16 | Repo gate | unit | SCN-021-013 … -015 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-05-16` |
 | TP-05-17 | Path guard | unit | SCN-021-013 … -015 | `scripts/validate-spec-test-paths.mjs` | Zero new missing spec-referenced test paths | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-05-17` |
-| TP-05-18 | Privacy E2E | e2e-ui | SCN-021-015 | `tests/lifetime-tax-route.spec.mjs` | GAP, NOT AUTHORED (opened 2026-08-22, F-REG-03). `TP-05-14` captures `afterFirstPaint = ledger.length` and asserts `expect(ledger.length).toBe(afterFirstPaint)`, but never asserts `afterFirstPaint` is greater than zero — alone in this family. Against a route that read nothing, `afterFirstPaint` would be 0, the no-growth assertion would read `expect(0).toBe(0)`, and the declared-asset sweep `expect(paths.filter((entry) => !declaredAssets.includes(entry))).toEqual([])` would compare two empty arrays. The row would pass while covering nothing: the guard-that-cannot-fail class. Required: `expect(afterFirstPaint).toBeGreaterThan(0)` immediately after the capture, matching every sibling row. Adversarial case: a boot that issued no request at all must fail this row; today it passes it | not authored | Yes | not authored |
+| TP-05-18 | Privacy E2E | e2e-ui | SCN-021-015 | `tests/lifetime-tax-route.spec.mjs` | GAP, NOT AUTHORED (opened 2026-08-22, F-REG-03). `TP-05-14` captures `afterFirstPaint = ledger.length` and asserts `expect(ledger.length).toBe(afterFirstPaint)`, but never asserts `afterFirstPaint` is greater than zero — alone in this family. Against a route that read nothing, `afterFirstPaint` would be 0, the no-growth assertion would read `expect(0).toBe(0)`, and the declared-asset sweep `expect(paths.filter((entry) => !declaredAssets.includes(entry))).toEqual([])` would compare two empty arrays. The row would pass while covering nothing: the guard-that-cannot-fail class. Required: `expect(afterFirstPaint).toBeGreaterThan(0)` immediately after the capture, matching every sibling row. Adversarial case: a boot that issued no request at all must fail this row; today it passes it. CLOSURE 2026-08-23: the pin is authored and live at `tests/lifetime-tax-route.spec.mjs` line 308, where it landed on 2026-08-22 in `58c9605823` beside a comment naming this row; only this row's status was left stale. It is proven consequential rather than merely present: replacing `const afterFirstPaint = ledger.length` with `const afterFirstPaint = 0`, which is exactly the boot-that-read-nothing this row describes, turns `SCN-021-015` red at 1 failed while the unmutated file is green at 1 passed, with the revert hash-verified against the committed blob | `npx --no-install playwright test --config=playwright.config.mjs --project=chromium tests/lifetime-tax-route.spec.mjs --grep "Regression: SCN-021-015" --reporter=list` | Yes | `report.md#row-scenario-specific-e2e-regression-under-the-exact-persistent-titles` |
 
 Before any browser row, run `node scripts/validate-node-source-lock.mjs` and
 `npx --no-install playwright --version`. These environment gates do not replace a
 Test Plan row.
 
 ### Definition of Done
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-021-013, SCN-021-014 and SCN-021-015 pass under the exact persistent titles this scope's Test Plan names, and each of those titles is present in the spec file rather than merely selected by `--grep`. Adversarial case: renaming or deleting one of those persistent titles must fail this row, so an empty grep selection can never be read as a pass.
+- [x] Broader E2E regression suite passes across the whole lifetime-tax browser family, not this scope's own spec file alone. Adversarial case: a change made inside this scope that reddens a sibling scope's persistent title must fail this row even while this scope's own rows stay green.
+- [x] Change Boundary is respected and zero excluded file families were changed, proven by a path-scoped `git status --porcelain` over the excluded surfaces plus an mtime comparison for any untracked excluded directory. Adversarial case: touching one excluded path must produce a row and fail this item; `git diff --quiet` alone is not accepted, because it reports an untracked path as unchanged.
+- [x] The Consumer Impact Sweep is complete for every renamed, moved or removed route, path, contract, identifier and UI target in this scope, and zero stale first-party references remain. Adversarial case: one stale reference left in navigation, a breadcrumb, a redirect, a deep link, an API client read or a doc must fail this row, and the proof must be a repository-wide stale-reference scan rather than a spot check.
 
 - [x] PRA-021-031 through PRA-021-038 are implemented: Simple default with a
       decision-level answer, Power drill-down, tooltips and text-equivalent

@@ -7,26 +7,19 @@ import {
   collectConsole,
   collectRequests,
   declareOrdinaryHousehold,
-  declaredPackPaths,
+  declaredRouteAssets,
   leakCarriers,
   openLifetimeTax,
-  openPower
+  openPower,
+  sameOriginPaths
 } from './lifetime-tax.support.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const BENEFIT_PACK_PATH = 'tax-rules/benefit/2026.json';
 
 /* SUP-023-10, as replaced by SUP-024-09. See the companion definition in
-   lifetime-tax-foundation.spec.mjs. */
-function declaredRouteAssets() {
-  const routeSource = readFileSync(join(ROOT, 'lifetime-tax-strategy-lab.html'), 'utf8');
-  const config = JSON.parse(readFileSync(join(ROOT, 'lifetime-tax-strategy.config.json'), 'utf8'));
-  const scripts = Array.from(routeSource.matchAll(/<script src="([^"]+)"><\/script>/g))
-    .map((match) => '/' + match[1]);
-  const packs = declaredPackPaths(config).map((path) => '/' + path);
-  return ['/lifetime-tax-strategy-lab.html', '/lifetime-tax-strategy.config.json']
-    .concat(scripts).concat(packs).concat(['/favicon.ico']);
-}
+   lifetime-tax-foundation.spec.mjs. The derivation itself is the shared one in
+   lifetime-tax.support.mjs. */
 
 /* The publication's own worked example, declared as the household would declare it. Every nominal
    amount here is the household's own input; every factor that acts on it is a pack figure. Using
@@ -300,8 +293,10 @@ test('Regression: SCN-024-001 the request ledger does not grow after first paint
 
   /* Every request the route did make is one the route itself declares, including the benefit pack
      — which is permitted because the configuration declares it, not because a list was edited. */
+  /* F-REG-03: the same-origin half of this row's title. A pathname sweep alone accepts a declared
+     module served from a host the route never declared; the shared helper refuses on origin first. */
   const permitted = declaredRouteAssets();
-  const paths = ledger.map((entry) => new URL(entry.url).pathname);
+  const paths = sameOriginPaths(ledger, site);
   paths.forEach((path) => expect(permitted).toContain(path));
   expect(paths).toContain('/' + BENEFIT_PACK_PATH);
 
@@ -329,4 +324,72 @@ test('Regression: SCN-024-001 the request ledger does not grow after first paint
   expect(location.href.includes(earningsSentinel)).toBe(false);
   expect(location.href.includes(statementSentinel)).toBe(false);
   expect(location.referrer).toBe('');
+});
+
+/* BUG-019, FR-019-002 and FR-019-008. The boundary is one month wide, so it is asserted from
+   both sides one month apart. A fix that refused every early claim would satisfy the refusing
+   half alone, which is why the priced half asserts an exact figure rather than an absence of
+   refusal. */
+test('Regression: BUG-019 the earliest priceable claim age prices and one month below it refuses', async ({ page }) => {
+  await openLifetimeTax(page, site);
+  await declareOrdinaryHousehold(page, { ordinary: 60000, bracketId: 'b3' });
+  await openPower(page);
+
+  /* The priced side. A 1962 birth year resolves a full retirement age of 67, which is 804
+     months, so 744 months is the pack's declared sixty-month maximum exactly. */
+  await declareBenefit(page, { statementPia: 3000, birthYear: 1962, claimAgeMonths: 744 });
+  expect(await page.locator('#benefitRefusal [data-rl-unavailable]').count()).toBe(0);
+  await expect(page.locator('#headlineBlock [data-rl-value="benefit-headline"]')).toHaveText('$25,200');
+  const pricedAdjustment = await page.locator('#benefitAdjustmentBody').innerText();
+  expect(pricedAdjustment).toContain('2,100');
+  /* FR-019-006. The counted-month table is bounded because the priced band is bounded: six
+     summary rows plus one row per counted month, and the counted months cannot exceed the
+     months between the earliest priceable age and the full retirement age. */
+  const pricedRows = await page.locator('#benefitAdjustmentBody tr').count();
+  expect(pricedRows).toBe(66);
+  await expect(page.locator('#benefitNoProjectionLine')).toContainText('settled against the');
+
+  /* The refused side, one month below. This is the decisive assertion: 743 months is priced
+     today at $2,087 monthly with no refusal anywhere in the section. */
+  await declareBenefit(page, { statementPia: 3000, birthYear: 1962, claimAgeMonths: 743 });
+  const oneMonthBelow = page.locator('#benefitRefusal [data-rl-unavailable]');
+  await expect(oneMonthBelow).toHaveAttribute('data-rl-unavailable', 'RLTAX-THRESHOLD-UNAVAILABLE');
+  await expect(oneMonthBelow).toContainText('744');
+  await expect(oneMonthBelow).toContainText('earliest');
+  /* FR-019-002. No figure, no zero, no nearest priceable age and no clamp to the maximum. */
+  expect(await page.locator('#power-benefit [data-rl-value]').count()).toBe(0);
+  expect(await page.locator('#benefitAdjustmentBody tr').count()).toBe(0);
+  await expect(page.locator('#power-benefit')).not.toContainText('$2,087');
+  await expect(page.locator('#power-benefit')).not.toContainText('$2,100');
+  await expect(page.locator('#power-benefit')).not.toContainText('$0');
+  /* FR-019-007. The section stops asserting that a claim age was settled while it is refusing. */
+  await expect(page.locator('#benefitNoProjectionLine')).toHaveText('');
+});
+
+/* BUG-019, FR-019-002 and FR-019-006. The band the bug recorded as pricing plausible figures and
+   the band it recorded as going silent are the SAME band, and both refuse under the same code
+   once the bound exists. The sub-zero rows are the ones that rendered no figure and no refusal. */
+test('Regression: BUG-019 every claim age below the earliest priceable age refuses, including the band whose multiplier turns negative', async ({ page }) => {
+  await openLifetimeTax(page, site);
+  await declareOrdinaryHousehold(page, { ordinary: 60000, bracketId: 'b3' });
+  await openPower(page);
+
+  const observed = [];
+  for (const claimAgeMonths of [720, 600, 576, 480, 0]) {
+    await declareBenefit(page, { statementPia: 3000, birthYear: 1962, claimAgeMonths });
+    const refusal = page.locator('#benefitRefusal [data-rl-unavailable]');
+    await expect(refusal).toHaveAttribute('data-rl-unavailable', 'RLTAX-THRESHOLD-UNAVAILABLE');
+    observed.push({
+      claimAgeMonths,
+      code: await refusal.getAttribute('data-rl-unavailable'),
+      figures: await page.locator('#power-benefit [data-rl-value]').count(),
+      factorRows: await page.locator('#benefitAdjustmentBody tr').count(),
+      prose: await page.locator('#benefitNoProjectionLine').innerText()
+    });
+  }
+  /* Every one of them refuses, shows no figure, renders no factor row, and stops promising a
+     settlement in prose. The unbounded factor table cannot be reached at all. */
+  expect(observed).toEqual([720, 600, 576, 480, 0].map((claimAgeMonths) => ({
+    claimAgeMonths, code: 'RLTAX-THRESHOLD-UNAVAILABLE', figures: 0, factorRows: 0, prose: ''
+  })));
 });

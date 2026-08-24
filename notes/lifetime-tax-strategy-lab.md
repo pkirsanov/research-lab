@@ -1123,6 +1123,10 @@ Do not register the tool before all five scopes pass their required checks. A pr
 
 ## Proposed File Surface
 
+The names in this section are the original proposal. Delivery superseded several
+of them; `### Superseded By The Delivered Surface` below maps every proposed
+name that was not built to the file that was.
+
 ### Add
 
 | File | Purpose |
@@ -1150,6 +1154,26 @@ Do not register the tool before all five scopes pass their required checks. A pr
 | `tools.json`, `index.html`, `rlnav.js` | Register only after implementation and validation. |
 | `README.md`, `notes/README.md` | Add the live tool only after implementation. |
 | `scripts/selftest.mjs` | Add pure rule, reconciliation, and deterministic comparison checks. |
+
+### Superseded By The Delivered Surface
+
+Delivery renamed the module surface and the rule-pack path grammar. Every
+proposed name below was never built. Follow the delivered path instead.
+
+| Proposed name | Delivered instead |
+| --- | --- |
+| `rllifetime.js` | `rltax.js`, `rltaxworkspace.js`, `rltaxstrategy.js` and the rest of the `rltax*.js` family |
+| `tax-rules/states/<state>/<year>.json` | `tax-rules/state/<state>/<year>.json` |
+| `benefit-rules/social-security/<year>.json` | `tax-rules/benefit/<year>.json` |
+| `benefit-rules/medicare/<year>.json` | `tax-rules/medicare/<year>.json` |
+| `tests/lifetime-tax-rules.unit.mjs` | the Feature 021 groups in `scripts/selftest.mjs` |
+| `tests/lifetime-household.functional.mjs` | `tests/lifetime-tax-federal.spec.mjs` and its siblings |
+| `tests/lifetime-privacy.functional.mjs` | the privacy rows in `tests/lifetime-tax-foundation.spec.mjs` and `tests/lifetime-tax-route.spec.mjs` |
+| `tests/lifetime-tax-strategy-lab.spec.mjs` | `tests/lifetime-tax-route.spec.mjs` |
+
+The `### Extend` rows were not taken up either. `rlportfolio.js` and
+`rlportfolioanalytics.js` stay byte-identical under the Feature 008 boundary, and
+the route is deliberately absent from `tools.json`, `index.html` and `rlnav.js`.
 
 The design should avoid editing `rlrental.js` or `bond-regime-lab.html`. Consume their stable outputs instead.
 

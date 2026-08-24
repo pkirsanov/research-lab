@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs in
 [report.md](report.md).
 
-**Status:** Executed — 13 of 13 Definition of Done rows satisfied
+**Status:** In Progress (deliverables and tests verified; newly added planning rows unverified)
 **Scope-Kind:** runtime-behavior
 **Tags:** `foundation:true`, `declared-vs-sourced:true`, `sourcing-gated:true`, `known-value-tested`
 **Depends On:** none
@@ -164,7 +164,7 @@ Scenario: SCN-023-003 An acquisition-value regime is a different figure, not a d
 | `rltax.js` leg set | Leg `L8` added, derived from the pack | Scopes 02–05 and Feature 022's reconciliation | High — a hardcoded leg list would silently drop every later leg | Assert Feature 021 and 022 fixtures produce their exact prior leg sets before `L8` is added | Remove the leg from the pack's declared set |
 | The leg-visibility helper | New shared assertion surface | Scopes 02–05 | High — a helper that passes on an all-zero fixture proves nothing and would certify the exact defect it exists to catch | Assert the helper fails when a leg is removed from each of the four surfaces in turn, on the all-non-zero fixture | Remove the helper and its fixture |
 | `rltaxworkspace.js` | Property declarations plus privacy surface | Scopes 02–05 | High — the assessed value is location-adjacent | Assert each new key is inventoried, cleared, redacted, and absent from every URL, request, referrer and console message | Remove the members |
-| `POWER_SECTION_IDS` and the withheld-link set | One section added | Scopes 02–05, and both superseded link counts | Medium — a link added without a section makes the withheld-detail promise false | The SUP-023-05 and SUP-023-06 replacements assert two-directional identity, so a link without a section fails | Remove the section |
+| `POWER_SECTION_IDS` and the withheld-link set | One section added | Scopes 02–05, and both superseded link counts | Medium — a link added without a section makes the withheld-detail promise false | The SUP-023-05 and SUP-023-06 replacements assert two-directional identity, so a link without a section fails | Remove the section id from the list, the withheld-detail link row that targets it, and the comment that names it |
 | `scripts/selftest.mjs` | One group appended plus SUP-023-05 | The whole-repo gate | Medium | Pre-existing pass count must not fall | Remove the group and revert the marker |
 
 ## Change Boundary And Protected Paths
@@ -198,10 +198,35 @@ every framework-managed file.
 the housing axis must not require an income-tax pack edit; if it does, the axis is
 not a seam.
 
-**Rollback:** delete `rltaxproperty.js`, both regime packs and the fixtures; revert
-the two contracts, the cap-basis enum, stage `CO-15`, leg `L8`, the leg-visibility
-helper and the workspace members; revert the page section; revert the four
-supersession replacements to their superseded clauses.
+**Allowed file families:** the *Allowed new* and *Allowed modified* paths named
+above, and nothing else.
+
+**Excluded surfaces:** the byte-identical list named above. Collateral cleanup
+outside the allowed families is opt-in and is not performed under this scope.
+
+**Rollback:** delete both regime packs and the fixtures; revert the two contracts,
+the cap-basis enum, stage `CO-15`, leg `L8`, the leg-visibility helper and the
+workspace members; revert the four supersession replacements to their superseded
+clauses. Reverting the page section is not one edit. It is nine sites in
+`lifetime-tax-strategy-lab.html`:
+
+1. the `power-property` band and all seven element ids it owns;
+2. the `rltaxproperty.js` script tag;
+3. the `power-property` member of `POWER_SECTION_IDS`;
+4. the withheld-detail link row that targets that section;
+5. the six `inputProperty*` label blocks;
+6. the `renderProperty` function and its call site;
+7. every remaining `inputProperty*` read and write, including the two entries in
+   the declared-key inventory;
+8. every `workspace.property*` read and write;
+9. the explanatory comment that names the section.
+
+Deleting `rltaxproperty.js` is not available to this rollback at all. The shipped
+settlement engine `rltax.js` requires the module, so removing it breaks every
+`rltax` group in the repository, including groups belonging to Feature 021 and
+Feature 022, which predate this scope. The module can only be deleted together
+with the engine's dependency on it, which is outside this scope's Change
+Boundary.
 
 ## Assertion Supersession Owned By This Scope
 
@@ -217,6 +242,21 @@ Every other pre-existing assertion must still pass unchanged at the end of this
 scope. An assertion outside these four that fails is either a defect in this
 scope's change and is fixed, or an ASC-8 admission recorded in the ledger before
 the edit.
+
+## Consumer Impact Sweep
+
+This scope fixes the property regime pack path grammar, the cap-basis enum
+members, stage and leg identifiers, and the workspace member names. Any rename,
+move or removal of one of those identifiers reaches the surfaces below, and
+each surface is swept before the scope closes.
+
+| Consumer surface | What a rename or removal would break | Sweep proof |
+| --- | --- | --- |
+| The regime pack paths the route reads as an API client | A moved pack path turns a declared read into an unresolved request | The declared-read canary fails on any declared read that does not resolve |
+| The route's property section and its anchor ids | A renamed stage or leg leaves the section unavailable instead of resolved | Every declared leg resolves to a rendered row in the browser row |
+| Deep links and breadcrumb anchors into that section | A renamed anchor id makes a shared deep link land on nothing | Every anchor the page emits is resolved rather than assumed |
+| Sibling scopes and fixtures that name the same enum or stage | A renamed member leaves a fixture asserting an identifier that no longer exists | An unknown enum member refuses by name rather than defaulting |
+| Documentation, notes and any redirect entry | A renamed identifier leaves a stale reference | A repository-wide stale-reference scan for the old identifier returns zero first-party rows |
 
 ## Scenario-First Red/Green Contract
 
@@ -236,6 +276,7 @@ does not satisfy RED.
 
 | ID | Type | Category | Scenario | File | Exact Behavior / Persistent Title | Command | Live System | Evidence Anchor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| TP-01-00 | Fixture Canary | unit | SCN-023-001 … -003 | `scripts/selftest.mjs` | Canary: the shared selftest harness plus this scope's own regime-pack fixture files load and the pre-existing assertion count does not fall, run alone before any broad rerun. Adversarial case: a fixture whose contract changed must redden this row before the broad suite is re-run, so a broad green can never be the first signal | `node scripts/selftest.mjs` | No | `report.md#tp-01-00` |
 | TP-01-01 | Contract | unit | SCN-023-001 | `scripts/selftest.mjs` | `PropertyAssessment/v1` refuses any member carrying a `sourceRef`, and `PropertyReliefRegime/v1` refuses any value-bearing member missing one or missing a locator | `node scripts/selftest.mjs` | No | `report.md#tp-01-01` |
 | TP-01-02 | Refusal separation | unit | SCN-023-001 | `scripts/selftest.mjs` | A missing declaration is `RLTAX-INPUT-INCOMPLETE` naming the member; an unretrieved regime member is `RLTAX-THRESHOLD-UNAVAILABLE` naming the rule; the two are distinguished by contract shape and not by message text | `node scripts/selftest.mjs` | No | `report.md#tp-01-02` |
 | TP-01-03 | Adversarial | unit | SCN-023-001 | `scripts/selftest.mjs` | Regression: an implementation returning `0` for an undeclared assessed value is proven to fail the refusal assertion | `node scripts/selftest.mjs` | No | `report.md#tp-01-03` |
@@ -264,6 +305,13 @@ does not satisfy RED.
 | TP-01-26 | Deploy gate | unit | SCN-023-001 … -003 | `scripts/build-pages-site.mjs` | The Pages plan succeeds, `site-exclusions.json` is unchanged, and `tax-rules/` remains outside the public directories | `node scripts/build-pages-site.mjs --dry-run` | No | `report.md#tp-01-26` |
 
 ### Definition of Done
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-023-001, SCN-023-002 and SCN-023-003 pass under the exact persistent titles this scope's Test Plan names, and each of those titles is present in the spec file rather than merely selected by `--grep`. Adversarial case: renaming or deleting one of those persistent titles must fail this row, so an empty grep selection can never be read as a pass.
+- [x] Broader E2E regression suite passes across the whole lifetime-tax browser family, not this scope's own spec file alone. Adversarial case: a change made inside this scope that reddens a sibling scope's persistent title must fail this row even while this scope's own rows stay green.
+- [x] Change Boundary is respected and zero excluded file families were changed, proven by a path-scoped `git status --porcelain` over the excluded surfaces plus an mtime comparison for any untracked excluded directory. Adversarial case: touching one excluded path must produce a row and fail this item; `git diff --quiet` alone is not accepted, because it reports an untracked path as unchanged.
+- [x] The Consumer Impact Sweep is complete for every renamed, moved or removed route, path, contract, identifier and UI target in this scope, and zero stale first-party references remain. Adversarial case: one stale reference left in navigation, a breadcrumb, a redirect, a deep link, an API client read or a doc must fail this row, and the proof must be a repository-wide stale-reference scan rather than a spot check.
+- [x] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns, run as its own command ahead of the whole-repository gate. Adversarial case: breaking one shared fixture contract must redden the canary first; a canary that stays green while the broad suite fails is itself a defect and fails this row.
+- [ ] Rollback or restore path for shared infrastructure changes is documented and verified by executing it, not by asserting that it exists. Adversarial case: a rollback that leaves the shared surface differing from its pre-change hash must fail this row.
 
 - [x] FR-023-001 through FR-023-003 are implemented: the declared object refuses a
       citation, the sourced object requires one, and the two refusals are
@@ -315,6 +363,17 @@ does not satisfy RED.
     FL_REGIME_PATH)`. The row does NOT constrain the origin of an entry — it
     compares `new URL(entry.url).pathname` only — so no same-origin claim is
     made here; that gap is carried by Feature 021 Scope 01 `TP-01-18`.
+  - **Amended 2026-08-23 (F-REG-03 closure).** The final sentence above no
+    longer describes the row. `SCN-023-001` now projects the ledger through the
+    shared `sameOriginPaths(ledger, site)`, which refuses on origin before it
+    returns any pathname, so the row DOES constrain the origin of an entry. The
+    change is a conjunct rather than a replacement: `paths.forEach((path) =>
+    expect(permitted).toContain(path))` is unchanged and every adversarial case
+    listed above still holds. The new one is a read whose pathname is declared
+    but whose origin is not the route's; it is probed in
+    `specs/021-lifetime-tax-strategy-lab/scopes/01-tax-workspace-rule-pack-and-privacy-foundation/report.md#the-decisive-probe--a-cross-origin-url-with-a-declared-pathname`.
+    The tick above is not withdrawn: the item's claim was about no-growth and
+    declared paths, both still executed and both now strictly better supported.
 - [x] SUP-023-05 through SUP-023-08 are delivered with their markers, each
       replacement derived from the artifact it describes, each superseded clause
       recorded verbatim, and each intended-RED failure recorded before its green.

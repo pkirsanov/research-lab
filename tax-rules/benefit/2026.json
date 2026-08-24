@@ -305,7 +305,19 @@
     },
     "firstSegmentMonths": 36,
     "firstSegmentMonthlyFactor": { "numerator": 5, "denominator": 9, "ofPercent": 1 },
-    "additionalMonthlyFactor": { "numerator": 5, "denominator": 12, "ofPercent": 1 }
+    "additionalMonthlyFactor": { "numerator": 5, "denominator": 12, "ofPercent": 1 },
+    "earliestClaimAge": {
+      "contractVersion": "EarliestClaimAge/v1",
+      "sourceRef": "ssa-age-reduction-by-birth-year",
+      "locator": "Table \"Full Retirement and Age 62 Benefit By Year Of Birth\" — the table's own title and its terminal row",
+      "ageYears": 62,
+      "maximumReductionMonths": 60,
+      "quotedRule": "1960 and later | 67 | 60 | $700 | 30.00%",
+      "statedFact": "This pack prices no retirement claim below age 62. The reduction table is titled for the benefit at age 62 and states sixty reduction months as its terminal row, and the companion publication works the same maximum as \"the maximum number for retirement at 62 when normal retirement age is 67\". The age and the month count are two statements of one bound.",
+      "establishedBy": "Both figures were already carried by this pack in prose before they were declared here: the age appears in the title quoted by this source record's editionEvidence and in earlyReductionRule.quotedRule, and the sixty-month maximum appears in earlyReductionRule.quotedRule and in invarianceContrastAlsoStatedBy.quotedRule. No new retrieval was performed to declare them; the same retrievedAt applies.",
+      "whatThisDoesNotEstablish": "Neither publication was retrieved carrying a sentence of the form \"no retirement benefit may begin before this age\". What they state is the earliest age at which they publish a reduced retirement benefit, which is the earliest age this pack can price a claim at, and that is the only claim this figure makes.",
+      "yearInvarianceBasis": "The publication's table is keyed by year of birth and its terminal row is open-ended — \"1960 and later | 67 | 60 | $700 | 30.00%\" — so the publication itself states the age-62 reduced benefit for every birth year from 1960 forward rather than for a publication year. The companion publication states the same maximum in prose with no year qualifier at all."
+    }
   },
 
   "delayedCreditRule": {

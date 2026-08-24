@@ -1539,3 +1539,507 @@ cost leg — so it is the row on which the mis-summed pass, which tests
 that pass cannot see.
 
 `node scripts/selftest.mjs` — 3192 passed, 0 failed after the fix.
+
+---
+
+## Delivery-Completion Pass — The Four Remaining Rows (2026-08-23)
+
+The four rows this pass addresses are the delivery-completion family: the
+scenario-specific regression, the broader regression, the Change Boundary and
+the Consumer Impact Sweep. Each is earned on executed evidence below, and every
+sweep rule written for the fourth row is audited for a real candidate population
+before its verdict is trusted.
+
+**Runner note.** The Test Plan names `--project=system-chrome`. Both projects in
+`playwright.config.mjs` are chromium; `system-chrome` differs only by
+`channel: 'chrome'`. Every row below was measured under `--project=chromium`,
+and the seven per-title commands were additionally run verbatim under
+`--project=system-chrome`. Where the two channels differ, the difference is
+recorded rather than smoothed over.
+
+### DoD — scenario-specific E2E regression under the exact persistent titles
+
+**The titles are present in the spec file, not merely selected by `--grep`.** Each
+of the seven Test Plan rows that names a persistent title was matched against a
+literal `test('<title>'` declaration in the spec file, and against the title its
+own `--grep` argument carries:
+
+```text
+$ node - (title presence check over scope.md rows TP-05-19 … TP-05-25)
+testplan_rows_matched=7
+TP-05-19 | literal_test_decl_occurrences=1 | grep_arg_equals_title=true
+TP-05-20 | literal_test_decl_occurrences=1 | grep_arg_equals_title=true
+TP-05-21 | literal_test_decl_occurrences=1 | grep_arg_equals_title=true
+TP-05-22 | literal_test_decl_occurrences=1 | grep_arg_equals_title=true
+TP-05-23 | literal_test_decl_occurrences=1 | grep_arg_equals_title=true
+TP-05-24 | literal_test_decl_occurrences=1 | grep_arg_equals_title=true
+TP-05-25 | literal_test_decl_occurrences=1 | grep_arg_equals_title=true
+BAD=0
+exit_code=0
+```
+
+**Each named command passes.** All seven were run individually, under both
+projects, exit code captured immediately:
+
+```text
+--project=chromium
+run1 exit=0 summary= 1 passed (2.1s) | Regression: SCN-024-013 every declared leg reaches the …
+run2 exit=0 summary= 1 passed (1.7s) | Regression: SCN-024-013 the annual Medicare cost render…
+run3 exit=0 summary= 1 passed (1.8s) | Regression: SCN-024-014 the export omits all five retir…
+run4 exit=0 summary= 1 passed (1.9s) | Regression: SCN-024-015 Simple carries only decision-le…
+run5 exit=0 summary= 1 passed (1.6s) | Regression: SCN-024-015 every unavailable retirement it…
+run6 exit=0 summary= 1 passed (1.4s) | Regression: SCN-024-015 a focused control survives a mo…
+run7 exit=0 summary= 1 passed (1.5s) | Regression: SCN-024-014 the request ledger does not gro…
+
+--project=system-chrome (the Test Plan's own literal commands)
+system-chrome run1 exit=0 summary= 1 passed (2.5s)
+system-chrome run2 exit=0 summary= 1 passed (2.0s)
+system-chrome run3 exit=0 summary= 1 passed (1.9s)
+system-chrome run4 exit=0 summary= 1 passed (2.1s)
+system-chrome run5 exit=0 summary= 1 passed (2.1s)
+system-chrome run6 exit=0 summary= 1 passed (1.9s)
+system-chrome run7 exit=0 summary= 1 passed (1.9s)
+```
+
+**An empty grep selection cannot be read as a pass.** Measured directly rather
+than assumed, because the row turns on it:
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "Regression: SCN-024-013 THIS TITLE DOES NOT EXIST ANYWHERE" --reporter=list
+empty_grep_exit_code=1
+Error: No tests found
+```
+
+**Adversarial case, executed.** Renaming one persistent title and running that
+title's own unmodified command:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            DoD row 1 adversarial: renaming a persistent title must fail its own exact named command, so an empty grep selection is never a pass
+file:             tests/lifetime-tax-retirement-route.spec.mjs
+mutation:         Regression: SCN-024-013 the annual Medicare cost renders beside the headline and is labelled not part of the federal tax total  ->  Regression: SCN-024-013 RENAMED cost renders beside the headline and is labelled not part of the federal tax total   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep Regression:\ SCN-024-013\ the\ annual\ Medicare\ cost\ renders\ beside\ the\ headline\ and\ is\ labelled\ not\ part\ of\ the\ federal\ tax\ total --reporter=list
+red-exit:         1
+red-summary:      Error: No tests found
+green-exit:       0
+green-summary:      1 passed (1.8s)
+summary-compared: Error: No tests found  vs    1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=59e44f3e4afe29dbc02696089f6a31c17fbd9e0e restored=59e44f3e4afe29dbc02696089f6a31c17fbd9e0e)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Claim Source:** executed.
+
+### DoD — broader E2E regression across the whole lifetime-tax browser family
+
+The row asks for the family, not this scope's own spec file. The family is 94
+tests in 20 files:
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --reporter=list --list 'lifetime-tax-.*\.spec\.mjs'
+list_exit=0
+Total: 94 tests in 20 files
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --reporter=list 'lifetime-tax-.*\.spec\.mjs'
+family_suite_exit=0
+summary= 94 passed (15.8s)
+failed_lines=0 skipped_lines=0 passed_marks=94
+files_touched=20
+```
+
+Zero failed and zero skipped, so the row is not satisfied by a convenient subset.
+
+**Adversarial case, in two halves, on one mutation.** The row requires that a
+change made inside this scope which reddens a *sibling* scope's persistent title
+fails this row **even while this scope's own rows stay green**. One mutation was
+chosen to make both halves readable: `data-rl-state-settlement` is asserted by
+`tests/lifetime-tax-state.spec.mjs` — a Feature 022 sibling — and by no other
+first-party file, and the route emits it at exactly one site.
+
+Half one: the family suite must go red.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            DoD row 2 adversarial (half 1): a change inside this scope that reddens a SIBLING feature's persistent title must fail the broader family suite
+file:             lifetime-tax-strategy-lab.html
+mutation:         setAttribute("data-rl-state-settlement", stateLeg.settlement.jurisdiction)  ->  setAttribute("data-rl-state-settlement-renamed", stateLeg.settlement.jurisdiction)   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium --reporter=list lifetime-tax-.\*\\.spec\\.mjs
+red-exit:         1
+red-summary:        92 passed (17.1s)
+green-exit:       0
+green-summary:      94 passed (15.1s)
+summary-compared:   92 passed (<elapsed>)  vs    94 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Half two: the *same* mutation must leave this scope's own seven titles green.
+Here agreement is the required outcome, not a defect — and it is meaningful
+because the harness refuses with exit 5 when a mutation fails to land, so an
+exit 7 is the statement that the mutation **was** applied and this scope's rows
+still passed:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            DoD row 2 adversarial (half 2): the SAME mutation must leave THIS scope's own seven persistent titles green, so agreement here is the required 'stays green' half
+file:             lifetime-tax-strategy-lab.html
+mutation:         setAttribute("data-rl-state-settlement", stateLeg.settlement.jurisdiction)  ->  setAttribute("data-rl-state-settlement-renamed", stateLeg.settlement.jurisdiction)   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium --reporter=list lifetime-tax-retirement-route\\.spec\\.mjs
+red-exit:         0
+red-summary:        7 passed (4.0s)
+green-exit:       0
+green-summary:      7 passed (3.6s)
+summary-compared:   7 passed (<elapsed>)  vs    7 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   NO (both channels agree: exit 0 == 0, summary "  7 passed (<elapsed>)" identical once elapsed time is normalised)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Together the pair is the row's adversarial case exactly as written: the broader
+row fails, this scope's own rows do not.
+
+**A channel difference worth naming.** The same two family-wide runs were also
+executed under the Test Plan's own `--project=system-chrome`. All tests pass
+there too, but the run carries a teardown fault:
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list 'lifetime-tax-.*\.spec\.mjs'
+Error: worker-0 process did not exit within 300000ms after stop, force-killed it
+  94 passed (5.5m)
+  6 errors were not a part of any test, see above for details
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list
+Error: worker-5 process did not exit within 300000ms after stop, force-killed it
+  88 passed (5.5m)
+  7 errors were not a part of any test, see above for details
+```
+
+This is the `TP-03-25` condition, now observed on this suite as well: under the
+`chrome` channel a family-wide run reports errors outside any test, so its exit
+code stops being a clean verdict, and the run takes 5.5 minutes rather than 16
+seconds. The seven single-title `system-chrome` runs are unaffected — each
+finished in about two seconds at exit 0 — so the fault is specific to
+multi-worker family-wide runs on that channel. The row is therefore read on
+`--project=chromium`, where the exit code discriminates on its own.
+
+**Claim Source:** executed.
+
+### DoD — Change Boundary respected, zero excluded file families changed
+
+The scope's excluded list was expanded to concrete paths, including its three
+globs, and every surface was checked for a real candidate population before its
+verdict was read:
+
+```text
+excluded_surfaces_declared=66
+  market-brief.* expanded to 13
+  sibling tests/lifetime-tax-*.spec.mjs expanded to 19
+  specs/021-* expanded to 2: specs/021-execution-receipts-and-session-review-adoption, specs/021-lifetime-tax-strategy-lab
+tracked_files_covered=7948
+surfaces_with_zero_tracked_files=0
+git_status_rows_over_excluded_surfaces=0
+head_commit_epoch=1787543538 (2026-08-24T03:52:18.000Z)
+newest_mtime_under_excluded=1787543198 (2026-08-24T03:46:38.574Z) at rltaxmedicare.js
+newer_than_head=false
+boundary_sweep_exit=0
+```
+
+**A first attempt at this list was wrong and is recorded rather than hidden.**
+Two spec directories were named from memory — `specs/022-state-and-combined-tax`
+and `specs/023-property-rental-and-disposition` — and both matched **zero**
+tracked files. Two of the sixty-six rules would have reported "no rows" for
+directories that do not exist. The real names are
+`specs/022-federal-preferential-and-state-income-tax` and
+`specs/023-property-tax-and-rental-income`. After the correction,
+`surfaces_with_zero_tracked_files=0`: every rule in this sweep has a real
+population.
+
+**Adversarial case, executed.** Touching one excluded path must produce a row:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            DoD row 3 adversarial: touching one excluded path must produce a git status row and fail the Change Boundary check
+file:             rltaxmedicare.js
+mutation:         Feature 024 Scope 04. This module owns  ->  Feature 024 Scope 04. BOUNDARY PROBE TOUCH. This module owns   (1 occurrence(s))
+red-exit:         1
+red-summary:        ROW  M rltaxmedicare.js
+green-exit:       0
+green-summary:    CHANGE-BOUNDARY surfaces=66 rows=0
+revert-verified:  yes (committed=2e841820318608d32b52723168368f5b1051f1d7 restored=2e841820318608d32b52723168368f5b1051f1d7)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Why `git diff --quiet` alone is not accepted, measured on a real population.**
+The tree carries eleven untracked entries. Taking one of them:
+
+```text
+existing_untracked_population=11
+$ git diff --quiet -- err.txt
+git_diff_--quiet_exit=0 (0 means it reports UNCHANGED)
+$ git status --porcelain --untracked-files=all -- err.txt
+git_status_--porcelain_row=?? err.txt
+verdict: diff_says_unchanged=yes status_reports_row=yes
+```
+
+`git diff --quiet` reports an untracked path as unchanged; the porcelain status
+reports it. The method the row names is the one that can see the change, and
+that is demonstrated on files that actually exist rather than on a manufactured
+example.
+
+**Claim Source:** executed.
+
+### DoD — Consumer Impact Sweep
+
+Every rule below was sized before its verdict was read, and every rule that
+reported was inspected before it was believed. Four rule drafts were discarded
+during that audit; they are recorded here because a discarded rule is the part
+of a sweep that is easiest to hide.
+
+| Rule | Consumer surface the row names | Candidate population | Unresolved |
+| --- | --- | --- | --- |
+| R1 | API client read — every declared module `src` resolves on disk | 14 | 0 |
+| R2 | UI target — every `data-rl-*` a first-party test asserts is emitted by the page | 47 | 0 |
+| R3 | UI target — every element id used in a page CSS selector resolves | 188 | 0 |
+| R4 | Deep link — every markdown `spec.md#anchor` reference resolves to a real heading | 10 | 7, none owned by this scope — see below |
+| R5 | Navigation — the route is deliberately unregistered in `rlnav.js`, `index.html` and `tools.json` | 106 entries across the three | 0 |
+| R6 | Doc — every first-party `.html` reference in `notes/` resolves | 115 | 0 |
+| R7 | In-scope rename — `renderSurfaceCensus` declaration and call site stay textually distinct | 7 reference sites | 0 |
+
+```text
+R1 | API client read - declared module src resolves | population=14 | unresolved=0
+R2 | UI target - data-rl attribute the page emits | population=47 | unresolved=0 | excluded 1 test-injected
+R3 | UI target - element id in a CSS selector | population=188 | unresolved=0 | dynamic prefixes honoured: tip- headline- property- disallowed-
+R5 | Navigation - route deliberately unregistered | population=106 | unresolved=0 | entries per surface: rlnav.js=38 index.html=32 tools.json=36
+R6 | Doc - first-party .html reference in notes resolves | population=115 | unresolved=0 | excluded 0 absolute-URL and 18 PROPOSED-tool references
+R7 | In-scope rename - renderSurfaceCensus | declaration=(envelope, rows, hosts, ids) call-site=(envelope, rows, surfaceHosts, surfaceIds) | selftest pins the call-site text 2 time(s) | declaration_differs_from_call=true
+AUDITED_SWEEP_FAILING_RULES=0
+consumer_sweep_exit=0
+```
+
+#### Three rules rejected for having no candidates at all
+
+The scope's own sweep table lists a deep-link-and-breadcrumb row, and the DoD
+row names a breadcrumb and a redirect among the surfaces a stale reference could
+hide in. All three were measured before being written as rules, and all three
+have an empty population on this route:
+
+```text
+P4 href_hash_anchors_emitted_by_route=0 (ZERO CANDIDATES)
+breadcrumb_markers=0
+redirect_files=0
+```
+
+The `href="#…"` anchor rule is now rejected for the **fourth** time in this
+feature family — Feature 023 rejected it twice and Scope 04 rejected it a third
+time. The route emits no `href="#…"` anchor at any site, so a rule reading them
+returns the same verdict whatever the page does. The breadcrumb and redirect
+rules are rejected on the same ground: the route emits no breadcrumb, and the
+repository carries no redirect file. A rule with zero candidates is worthless
+whichever way it reports, so none of the three is counted as evidence for this
+row.
+
+#### Four rule drafts that would have shipped false findings
+
+Each of these reported on the first run and was inspected before being believed.
+None was a defect.
+
+1. **Element ids, naive form — 13 reported, 0 real.** Five (`tip-combinedTotalTax`,
+   `tip-disallowed-property-tax`, `tip-deductionSideChosen`, `tip-deductionApplied`,
+   `tip-stateIncomeTax`) are built at runtime — the page contains
+   `tip.id = "tip-" + fieldId` — so no literal ever appears in the markup. The other
+   eight were not page ids at all: they were URL fragments inside `/* Ledger: … */`
+   comments, swept up by a `#`-anchored regex. R3 now requires a quote before the
+   `#` and honours the four prefixes the page builds.
+2. **`data-rl-probe` — reported, not real.** `tests/lifetime-tax-state.spec.mjs`
+   injects it with `host.setAttribute('data-rl-probe', 'kept')` to prove a node
+   survived a re-render. It is a test's own instrument, not a page-emitted target.
+   R2 now excludes attributes the test files set themselves.
+3. **`agereduction.html` and `delayret.html` — reported, not real.** Both are
+   `https://www.ssa.gov/benefits/retirement/planner/…` links in
+   `notes/lifetime-tax-strategy-lab.md`. A `.html` regex without a leading-character
+   guard turns every external URL into a broken first-party page.
+4. **`order-flow-lab.html` — reported, not real.** `notes/order-flow-lab.md` opens
+   with `Status: PROPOSED (not yet built). Not registered in index.html / tools.json
+   / README.md / notes/README.md, and it must not be until the HTML ships (P17).`
+   The note declares its own unbuilt state; treating that as a stale reference would
+   invert the repository's own convention.
+
+#### Every surviving rule was proven able to report
+
+A rule that returns zero is only worth reading if it can return non-zero.
+
+```text
+PC-R5 positive control | subject="etf-momentum-lab" (a registered tool) | surfaces reporting=3 -> rlnav.js, index.html, tools.json
+PC-R5 negative        | subject="lifetime-tax-strategy-lab" (this route) | surfaces reporting=0
+PC-R6 positive control | PROPOSED exclusion DISABLED | population=133 reported=1 -> notes/order-flow-lab.md -> order-flow-lab.html
+PC-R2 positive control | test-injected exclusion DISABLED | population=48 reported=data-rl-probe
+PC-R3 positive control | dynamic-prefix handling DISABLED | population=188 reported=5 -> tip-combinedTotalTax, tip-disallowed-property-tax, tip-deductionSideChosen, tip-deductionApplied, tip-stateIncomeTax
+```
+
+R1 was proven by mutation rather than by control, because a moved module is the
+row's own named failure for the API-client-read surface:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            DoD row 4 adversarial: a moved module turns a declared API-client read into an unresolved request and must fail the sweep
+file:             lifetime-tax-strategy-lab.html
+mutation:         <script src="rltaxmedicare.js"></script>  ->  <script src="rltaxmedicare-renamed.js"></script>   (1 occurrence(s))
+red-exit:         1
+red-summary:           STALE rltaxmedicare-renamed.js
+green-exit:       0
+green-summary:    R1 population=14 unresolved=0
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+R4's ability to report is shown by the seven rows it produced, discussed next.
+R7 is a state check rather than a scan: it fails when the declaration and the
+call site become textually identical, which is the exact condition the F-AUDIT-04
+fix removed and which would make the census call deletable without trace.
+
+#### One rule audit that corrected me instead of the repository
+
+R4 first reported the seven `#sup-022-NN` anchors as stale. The rule was wrong
+before the references were. `specs/022-federal-preferential-and-state-income-tax/spec.md`
+carries the heading `#### SUP-022-09 — both foundation counts derived, quality
+clauses untouched`, and its generated slug is the whole heading, not the
+identifier alone. The file has no code fences at all, so the fence-exclusion
+logic was not the cause.
+
+What survives that correction is narrower and still true: no `SUP` heading
+anywhere in the repository is written bare, so the short-form fragment cannot
+resolve in any spec file, and the convention is uniform — seven short-form
+references, zero full-slug references. That makes it a repository-wide
+convention question rather than seven individual mistakes.
+
+**It is not this scope's to close.** All seven references live in
+`tests/lifetime-tax-federal.spec.mjs`, `tests/lifetime-tax-foundation.spec.mjs`,
+`tests/lifetime-tax-marginal.spec.mjs` and `tests/lifetime-tax-route.spec.mjs`,
+every one of which this scope's Change Boundary holds byte-identical, and they
+point into `specs/022-*`, which the same boundary excludes. This scope's own
+spec file carries zero of them (`this_scope_file_carries=0`). Deciding between
+lengthening every reference and adding bare anchors is a planning decision across
+two features. It is raised below and routed, not repaired here and not used to
+withhold a row whose subject is this scope's own identifiers.
+
+**Claim Source:** executed.
+
+### The repository gate went red mid-pass, and this scope neither reddened nor greened it
+
+For part of this pass both `node scripts/selftest.mjs` and
+`node scripts/validate-spec-test-paths.mjs` failed. They are green again now. The
+episode is recorded rather than dropped, because the mechanism behind it is a
+real trap and because a report that quietly deletes a failure it measured is not
+a record.
+
+**Timeline, all of it measured.** This pass began at `ddae2ae15`. During it, a
+concurrent session advanced `HEAD` four commits — `baa78e7dc`, `f9d3e7e08`,
+`5487b43e0`, `ed2723bf7` — every one of them touching only
+`specs/025-company-multi-horizon-intelligence-lab/report.md`, and none touching
+any file this scope measured. The runs below were taken while `f9d3e7e08` was the
+newest of those commits, and they failed:
+
+```text
+$ node scripts/selftest.mjs
+selftest_exit=1
+Research-Lab self-test: 3403 passed, 1 failed
+  ✗ FAIL: no active tests/*.mjs path named by a spec artifact is missing outside the frozen baseline; planned-not-authored paths remain visible non-failing debt (3 new, 3 planned, 70 known-missing, 0 stale of 266 referenced)
+
+$ node scripts/validate-spec-test-paths.mjs
+validate_spec_test_paths_after_exit=1
+[spec-test-paths] scanned=748 references=17289 distinctPaths=266 missingPaths=73 plannedMissing=3 baseline=70 new=3 stale=0
+[spec-test-paths] FAIL — 3 new referenced path(s) do not exist
+```
+
+**The three offending path names are deliberately not reproduced in this file.**
+That omission is not a gap in the evidence; it is the finding. Each guard row
+names a `tests/portfolio-*` path that does not exist, and writing those three
+strings into a spec artifact is precisely the act that produced the failure being
+described. They are identified here by their reference sites instead —
+`specs/025-company-multi-horizon-intelligence-lab/report.md` lines 2665, 2666 and
+2667 — which is enough to locate them and cannot propagate them. The counters
+above carry the load the paths would have: `new=3`, and `distinctPaths=266`
+unchanged from the pre-edit run, so this pass added references without adding a
+single new missing path.
+
+The single selftest failure **was** the path-guard assertion, so both gates
+reported one condition. All three reference sites were in Feature 025's report,
+committed by `f9d3e7e08` — a commit this scope does not own, in a spec this scope
+may not touch. The working tree carried zero tracked modifications and no probe
+residue throughout, so the condition was committed rather than produced here.
+
+The mechanism is worth naming, because it will recur. Commit `f9d3e7e08` recorded
+the path guard's **own captured output** as evidence inside a `report.md`. That
+output contains the three path names, because the guard prints the paths it
+classifies. On the next run the guard rescans spec artifacts, finds those three
+strings in Feature 025's report, and — since Feature 025 declares no
+planned-not-authored rows for them — reclassifies them from `PLANNED-MISSING`
+against Feature 008 to `NEW-MISSING` against Feature 025. Recording the evidence
+that the guard was green is what turned it red. The pasted block still read
+`new=0 stale=0`, which is what the run said at the time; the file was a faithful
+record and the guard a faithful reader, and the two together produced a false
+positive.
+
+**This pass reproduced the same defect and caught it.** The first draft of this
+section quoted the guard's failing rows verbatim, which wrote all three
+nonexistent paths into a second spec artifact. The path audit run over this
+pass's own diff caught it, and the quotation was replaced by the redacted form
+above. The lesson generalises past this one guard: any evidence block that
+reproduces a scanner's output can re-enter that scanner's input.
+
+**How it went green.** Commit `ed2723bf7`, from the concurrent session and titled
+in part *repair self-referential path paste*, removed the three names from
+Feature 025's report. Both gates then passed on the identical commands:
+
+```text
+$ node scripts/validate-spec-test-paths.mjs
+validate_spec_test_paths_final_exit=0
+[spec-test-paths] scanned=748 references=17283 distinctPaths=266 missingPaths=73 plannedMissing=3 baseline=70 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+
+$ node scripts/selftest.mjs
+selftest_final_exit=0 summary=Research-Lab self-test: 3404 passed, 0 failed
+```
+
+That repair is Feature 025's, not this scope's. Two sessions reached the same
+diagnosis independently, which is the strongest available evidence that the
+mechanism is real rather than an artefact of one reading.
+
+No row in this pass is claimed on either gate, in either state. `TP-05-27` and
+`TP-05-28` are separate Test Plan rows whose DoD items were closed in earlier
+passes; nothing here re-asserts them.
+
+**Claim Source:** executed.
+
+### Scope 04's uncovered tooltip claim does reach this scope's surface
+
+Scope 04 reported that the claim-age equality tooltip's prose is asserted to
+exist but never read, and that a mutation inverting it into a superiority claim
+leaves all 94 browser tests green. That finding touches this scope, and saying so
+is more useful than absorbing it silently: the prose lives in
+`lifetime-tax-strategy-lab.html`, which is this scope's *Allowed modified* file,
+and the missing coverage is the absence of a superiority-token scan over the
+route's page text — a route-level assertion.
+
+It does not fall under any of the four rows closed here. The tooltip belongs to
+`SCN-024-007`, `SCN-024-008` and `SCN-024-009`, and the scenario-specific row
+above is scoped to `SCN-024-013`, `SCN-024-014` and `SCN-024-015`. It is not a
+stale reference, not a boundary breach and not a failing regression, so no rule
+in the Consumer Impact Sweep would reach it either. Closing it needs a new Test
+Plan row and a new DoD item, both planning-owned. It stays routed.
+
+**Claim Source:** executed.
+
+## Findings Raised And Not Fixed Here
+
+| Finding | Where it lives | Why it is not repaired in this scope |
+| --- | --- | --- |
+| Seven `#sup-022-NN` markdown deep links cannot resolve, because every `SUP` heading is written with trailing prose and no bare anchor exists anywhere | Four sibling `tests/lifetime-tax-*.spec.mjs` files pointing into `specs/022-*` | Both the referencing files and the target spec are excluded surfaces here; the fix is a convention decision across two features |
+| The path guard reclassifies its own recorded output as new missing paths, so writing its evidence into a `report.md` turns the next run red | Observed on `specs/025-…/report.md`, introduced by `f9d3e7e08` and repaired by `ed2723bf7` | Feature 025 is outside this scope and repaired it independently; the generalised lesson — an evidence block can re-enter the scanner it quotes — has no owner yet |
+| A family-wide run under `--project=system-chrome` reports worker force-kill errors outside any test, so its exit code stops being a clean verdict and the run takes 5.5 minutes instead of 16 seconds | The Test Plan's own named project for `TP-05-26` | Changing the Test Plan's named command is planning-owned; the seven single-title runs on that channel are unaffected |
+| The claim-age equality tooltip's prose is asserted to exist but never read, and the route's page text carries no superiority-token scan | `lifetime-tax-strategy-lab.html`, raised by Scope 04 | Needs a new Test Plan row and a new DoD item, both planning-owned |
+| `TP-05-19` clause two still does not discriminate, because the browser household for `SCN-024-013` guarantees no non-zero, mutually distinct non-ordinary legs | This scope's `SCN-024-013` declared inputs | Carried forward unchanged from the earlier pass; authoring the household is a change to the scenario's inputs and belongs to planning |

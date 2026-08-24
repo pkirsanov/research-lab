@@ -124,15 +124,56 @@ group at the end of the file.
 
 #### Scope 3 — Company event capability
 
-Every file this scope touched is still untracked in git, so `git diff` prints
-nothing for it. `git status --porcelain` over the four paths returns exactly:
+This block was authored by `bubbles.implement`. It was re-executed on that
+phase's behalf by `bubbles.gaps` during a compliance sweep of evidence blocks
+that sat below the legitimacy bar; ownership of this section did not transfer
+and the conclusion below is re-derived, not restated.
 
+The original capture ran `git status --porcelain` over the four Scope 3 paths
+and recorded four `??` lines, which was true when it was written. That output is
+no longer reproducible: the four paths were committed in the interim, so
+`git status --porcelain` now prints nothing. The claim the block carried — that
+this scope's delta is pure addition, with no deletion line anywhere in it — is
+therefore re-derived against the explicit commit that introduced the paths
+rather than against a working tree that has moved on. The reconstruction is
+disclosed here rather than presented as the original command.
+
+```text
+$ git log --diff-filter=A --format='%h %ad %s' --date=short -- rlcompanyintel.js
+b160d587f 2026-08-18 feat(025): commit company multi-horizon intelligence lab artifacts
+
+$ git status --porcelain -- company-intelligence-lab.html data/company-intelligence/ notes/company-intelligence-lab.md rlcompanyintel.js
+exit code: 0   (no output — all four paths are tracked and clean)
+
+$ git ls-files -- company-intelligence-lab.html data/company-intelligence/ notes/company-intelligence-lab.md rlcompanyintel.js
+company-intelligence-lab.html
+data/company-intelligence/company-msft/current.json
+data/company-intelligence/company-msft/events.json
+data/company-intelligence/company-msft/plan-authored.json
+data/company-intelligence/company-msft/versions/company-msft-2026-08-11.json
+notes/company-intelligence-lab.md
+rlcompanyintel.js
+
+$ git show --diff-filter=A --numstat --format='' b160d587f -- company-intelligence-lab.html data/company-intelligence/ notes/company-intelligence-lab.md rlcompanyintel.js
+1359    0       company-intelligence-lab.html
+8       0       data/company-intelligence/company-msft/current.json
+74      0       data/company-intelligence/company-msft/events.json
+55      0       data/company-intelligence/company-msft/plan-authored.json
+17      0       data/company-intelligence/company-msft/versions/company-msft-2026-08-11.json
+125     0       notes/company-intelligence-lab.md
+2021    0       rlcompanyintel.js
+exit code: 0
+
+$ git show --format='' -U0 b160d587f -- company-intelligence-lab.html data/company-intelligence/ notes/company-intelligence-lab.md rlcompanyintel.js | grep -c '^-[^-]'
+0
+exit code: 1   (grep -c exits 1 when it matches nothing; zero deletion lines is the result being asserted, not a failure)
 ```
-?? company-intelligence-lab.html
-?? data/company-intelligence/
-?? notes/company-intelligence-lab.md
-?? rlcompanyintel.js
-```
+
+The first command proves `b160d587f` is the right commit to address: it is the
+add-commit for `rlcompanyintel.js`, and `git log --diff-filter=A` returns the
+same sha for the other three paths. The `--diff-filter=A` numstat then shows
+every one of the seven files entering the tree with a zero deletion column, and
+the `grep -c` confirms zero deletion lines across the whole restricted diff.
 
 The delta is therefore recorded hunk by hunk below.
 
@@ -601,7 +642,32 @@ feed by accession number. Four of the five carry an accession and all four hit a
 real `8-K` whose `items` include `2.02`; the fifth is the forward `estimated`
 row, which correctly carries no accession and no observed outcome.
 
+The original run of this check recorded its output without its invocation line,
+so the resolver below is a **reconstruction**, disclosed as such: it reads the
+committed file, pulls each row's accession out of that row's own `sourceUrl`,
+and looks that accession up in the live `filings.recent` arrays. Re-executed in
+this session, it reproduces the earlier reading exactly.
+
 ```
+$ node -e '
+const fs=require("fs");
+const p="data/company-intelligence/company-msft/events.json";
+const f=JSON.parse(fs.readFileSync(p,"utf8"));
+const ua={"User-Agent":"research-lab spec-025 verification (contact: repository owner)"};
+fetch(f.sourceUrl,{headers:ua}).then(r=>r.json()).then(j=>{
+const rec=j.filings.recent;
+console.log("source file: "+p);
+console.log("live recent filing count: "+rec.accessionNumber.length);
+console.log("earliest recent filingDate: "+rec.filingDate[rec.filingDate.length-1]);
+for(const e of f.events){
+const m=(e.sourceUrl.match(/([0-9]{10}-[0-9]{2}-[0-9]{6})/)||[])[1]||null;
+let live="NONE";
+if(m){const i=rec.accessionNumber.indexOf(m); if(i>=0) live=JSON.stringify({form:rec.form[i],filingDate:rec.filingDate[i],items:rec.items[i]});}
+console.log(e.eventId+" | date="+e.date+" | class="+e.dateClass+" | accession="+m+" | liveMatch="+live);
+}
+}).catch(err=>{console.error("ERROR "+err.message);process.exit(2);});
+'
+source file: data/company-intelligence/company-msft/events.json
 live recent filing count: 1001
 earliest recent filingDate: 2020-04-30
 msft-results-2025-10-28 | date=2025-10-28 | class=scheduled | accession=0001193125-25-256310 | liveMatch={"form":"8-K","filingDate":"2025-10-29","items":"2.02,7.01,9.01"}
@@ -609,8 +675,13 @@ msft-results-2026-01-28 | date=2026-01-28 | class=scheduled | accession=00011931
 msft-results-2026-04-29 | date=2026-04-29 | class=scheduled | accession=0001193125-26-191457 | liveMatch={"form":"8-K","filingDate":"2026-04-29","items":"2.02,9.01"}
 msft-results-2026-07-29 | date=2026-07-29 | class=scheduled | accession=0001193125-26-323632 | liveMatch={"form":"8-K","filingDate":"2026-07-29","items":"2.02,9.01"}
 msft-results-2026-10-28 | date=2026-10-28 | class=estimated | accession=null | liveMatch=NONE
-VERIFY_PIPELINE_EXIT=0
+Exit Code: 0
 ```
+
+The live feed still returns 1,001 recent filings back to 2020-04-30, and all
+four accessions still resolve to an `8-K` carrying `2.02`. The one `estimated`
+row still resolves to nothing, which is the correct reading for a date no filing
+has yet been published for.
 
 #### Row 3.7 — the canary, exit 1 with two foreign failures
 
@@ -619,6 +690,14 @@ full, with their attribution, under
 [Unresolved Finding — The Canary Row Is Red On Foreign Work](#unresolved-finding--the-canary-row-is-red-on-foreign-work)
 below. The `Feature 025 company multi-horizon intelligence` group itself is
 entirely green in that same run, including `SCN-025-CANARY`.
+
+*(Superseded 2026-08-24 — the heading and the paragraph above read as a standing
+state and are not one. The finding they forward to is closed in place inside its
+own section: row 3.7 subsequently reached exit 0, and neither of the two failures
+named here is in the finding set any longer. Read both as the reading taken while
+this scope was being recorded. See
+[Stale-Claim Class Sweep](#stale-claim-class-sweep--2026-08-24) for the standing
+form of the claim.)*
 
 #### Gate exit codes recorded for this scope
 
@@ -739,20 +818,55 @@ runs exercise the same shipped source.
 | Branch budget | One branch beyond the declared `maxBranches` | `one branch beyond the declared maxBranches raises C025-PLAN-BUDGET` passes with `overBudget.refusals[0].code === 'C025-PLAN-BUDGET'`, and the declared budget is asserted unchanged against `company-intelligence.config.json` | Same test asserts a plan exactly at budget publishes with zero refusals |
 | Determinism | Change one input in the frozen bundle | The determinism test asserts a differently sourced bundle yields a different `contentFingerprint`, so the equality it asserts is not a constant | Two runs over one frozen bundle produce one identical canonical string and one identical fingerprint |
 
+The original harness recorded its own `RESULT:` lines and carried no runner
+output. It was re-executed this session as a **reconstruction**, disclosed as
+such, and strengthened on one axis: instead of the harness asserting by hand, it
+seeds the CommonJS require cache with the patched api and then runs the REAL
+committed 90-assertion unit suite against it. The removal is therefore judged by
+the suite that ships, not by the harness's own opinion.
+
 ```text
-=== GUARD PRESENT: horizon isolation ===
-RESULT: assertion HELD (guard present)
-=== GUARD REMOVED: partition rank filter ===
-RESULT: assertion FAILED -> structural horizon changed when a tactical read was added
-=== GUARD PRESENT: publication read-back ===
-RESULT: assertion HELD (guard present)
-=== GUARD REMOVED: publication read-back ===
-RESULT: assertion FAILED -> a store that dropped freshUntil returned ["asOf","availability","computedAt","contractVersion","deepLink","id","metrics","read"] instead of C025-PUBLISH-LOSSY
-=== GUARD PRESENT: fixture filter ===
-RESULT: assertion HELD (guard present)
-=== GUARD REMOVED: fixture filter ===
-RESULT: assertion FAILED -> fundamentals read state=current reason=null
+$ node /tmp/rl025-adversarial/harness.mjs none
+PATCH APPLIED: none (pristine committed source)
+ℹ tests 90
+ℹ pass 90
+ℹ fail 0
+Exit Code: 0
+
+$ node /tmp/rl025-adversarial/harness.mjs rank-filter
+PATCH APPLIED: rank-filter :: return HORIZON_RANKS.indexOf(read.maxHorizon) >= minimum;  ->  return true;
+ℹ tests 90
+ℹ pass 61
+ℹ fail 29
+✖ adversarial: adding a tactical read leaves the structural horizon byte-identical (0.580833ms)
+✖ every claim cites a value present in its own horizon input set (1.3365ms)
+Exit Code: 1
+
+$ node /tmp/rl025-adversarial/harness.mjs publish-readback
+PATCH APPLIED: publish-readback :: if (before !== after) {  ->  if (false) {
+ℹ tests 90
+ℹ pass 88
+ℹ fail 2
+✖ adversarial: an extra published key raises C025-PUBLISH-LOSSY rather than reporting success (1.566333ms)
+✖ all eleven C025 refusal codes are raised by a real call path (2.452625ms)
+Exit Code: 1
+
+$ node /tmp/rl025-adversarial/harness.mjs fixture-filter
+PATCH APPLIED: fixture-filter :: if (looksLikeFixture(envelope)) {  ->  if (false) {
+ℹ tests 90
+ℹ pass 89
+ℹ fail 1
+✖ adversarial: a fixture-sourced read reaches no horizon and reads fixture-only-evidence (0.632041ms)
+Exit Code: 1
 ```
+
+Every one of the three guards is load-bearing: the pristine source is 90/90, and
+removing any single guard turns the committed suite red on the assertion that
+names that guard's behaviour. The `rank-filter` removal is the widest, taking 29
+of 90 assertions down, which is the expected shape for a filter every horizon
+composer depends on. The harness lives outside the working tree and the working
+tree was never modified; the `✖` lines above are quoted from each run's own
+`failing tests:` listing.
 
 ---
 
@@ -1184,6 +1298,7 @@ exits 2 with `blockingCode: E009-STATE-MALFORMED` and
 `state.json requires string workflowMode and status fields`.
 
 ```text
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/025-company-multi-horizon-intelligence-lab
 BEGIN TRANSITION_GUARD_RESULT_V1
 workflowMode: UNRESOLVED
 targetStatus: UNRESOLVED
@@ -1193,6 +1308,7 @@ failureCount: 1
 exitStatus: 2
 verdict: BLOCKED
 END TRANSITION_GUARD_RESULT_V1
+exit code 2
 ```
 
 **Claim Source:** executed.
@@ -1229,6 +1345,11 @@ record of why it was left open, and is closed here.
 ---
 
 ### Unresolved Finding — The Canary Row Is Red On Foreign Work
+
+*(Superseded 2026-08-24 — this finding is closed. The **Resolved.** subsection
+below closes it in place, and row 3.7 reached exit 0 there. The heading is left
+unchanged because the audit trail should still show that the finding was raised
+while open, and because other sections link to this anchor.)*
 
 Test Plan row 3.7 (`node scripts/selftest.mjs`) did not reach exit 0, so the
 Tier 1 DoD item that requires it to exit 0 with zero failures is **not ticked**.
@@ -1582,6 +1703,17 @@ fifty-nine pre-existing rows on exactly the inputs they had.
 
 ### The One Red Selftest Assertion Is Foreign, And This Phase Confirmed It Again
 
+*(Superseded 2026-08-24 — this whole subsection, heading included, is written in
+the present tense about a repository state that has since moved. `node
+scripts/selftest.mjs` does not stand at `2868 passed, 1 failed`, the market-brief
+cockpit path it attributes is no longer in the validator's finding set, and there
+is no standing "one red assertion" to confirm. Every number below is an
+observation taken while this phase ran, not a property of the repository. The
+reasoning is preserved because refusing to adopt a foreign failure is the part of
+this record worth keeping. The standing claim, and why it is stated as an
+attribution rather than a tally, is in
+[Stale-Claim Class Sweep](#stale-claim-class-sweep--2026-08-24).)*
+
 `node scripts/selftest.mjs` exits 1 with `Research-Lab self-test: 2868 passed, 1
 failed`. The failing assertion is `no tests/*.mjs path named by a spec artifact
 is missing outside the frozen baseline`. Running its validator directly,
@@ -1621,6 +1753,12 @@ rewritten to describe the path instead of naming it. The 30 foreign sites remain
 so the assertion remains red and remains foreign-owned. What changed is that this
 feature no longer contributes to it.
 
+*(Superseded 2026-08-24 — "remains red" and "the 30 foreign sites remain" were
+true when written and are not standing facts. The clause that survives
+unchanged, and the only one this feature can speak for, is the last sentence:
+this feature contributes zero sites, which has measured `0` in every reading any
+pass has taken.)*
+
 Second, one selftest run during this phase reported `2867 passed, 2 failed`, the
 extra red being `TP-03-15`, a mortality-pack assertion belonging to the
 concurrent Lifetime Tax work. Two later runs both reported `2868 passed, 1
@@ -1644,6 +1782,12 @@ conjunctions whose browser half is green and whose selftest half is held red by
 the foreign missing path described above. The four equivalent conjunction rows in
 Scopes 2, 3 and 4 already carried their own declarations and were left as their
 authors recorded them.
+
+*(Superseded 2026-08-24 — both clauses have moved. Scope 1 does not stand at 36
+of 38; a later pass recorded it at 38 of 38 in its own "DoD Rows This Phase
+Moved" table. And no conjunction's selftest half is held red by the path named
+here, because that path is no longer in the validator's finding set. Read the
+paragraph as this phase's closing position, not as current DoD arithmetic.)*
 
 ---
 
@@ -1677,6 +1821,13 @@ scripts/validate-spec-test-paths.mjs`:
 The foreign count moved from 30 to 31 because the concurrent owner was writing
 its own artifacts between the two readings. That is recorded rather than smoothed
 over, for the same reason the earlier non-determinism note in this report was.
+
+*(Superseded 2026-08-24 — the `31` in the table above, and the sentence below
+reading "31 of them sit inside a family the Change Boundary forbids", are both
+present-tense readings of a count that has since gone to zero: the absent path
+they count sites for is no longer in the validator's finding set at all. The row
+that did not move, and the only one this feature owns, is `of those, inside this
+feature | 8 | 0`.)*
 
 **What could not be finished, and the premise that was wrong.** This pass was
 begun on the stated premise that repairing the two `report.md` sites would return
@@ -1758,7 +1909,7 @@ absence and never a dash or a zero`.
 | --- | --- | --- | --- |
 | (a) | Every assertion under the `Feature 025 company multi-horizon intelligence` header is `✓`, and the header carries exactly 11 | `assertions_in_header=11`, `tick_count=11`, `cross_count=0` | holds |
 | (b) | The reference-hygiene command over this feature's directory prints no line | no line printed; all 23 `tests/*.mjs` paths this feature names resolve on disk | holds |
-| (c) | Every residual `✗` is attributed to a named foreign owning spec, with zero contributing sites here | `total_cross_lines_repo_wide=1`; across all 67 absent referenced paths, `sites_under_spec_025=0` | holds |
+| (c) | Every residual `✗` is attributed to a named foreign owning spec, with zero contributing sites here | `total_cross_lines_repo_wide=1`; across all 67 absent referenced paths, `sites_under_spec_025=0` | holds; **re-measured 2026-08-23** — still holds, but the residual set and its owner have both moved. See the note below the table |
 | (d) | Both own suites exit 0 with zero failing and zero skipped, and both named browser titles print as passed | rows 1 and 2 of the command table above | holds |
 
 Check (a) was measured rather than inferred: the header block was read back in
@@ -1774,13 +1925,68 @@ red if this feature's shared-surface append broke a pre-existing assertion, and
 the one residual failure has zero contributing sites in this feature's
 directory, so check (c) discharges it rather than this feature owning it.
 
+*(Superseded 2026-08-23 — do not read the paragraph above as a current statement
+of which failure check (c) is discharging, or of whether a residual `✗` exists
+at all.)* The reasoning above is preserved because it is what stopped this
+feature adopting a failure it did not own, and because the attribution it
+performed was correct at the time it was performed. Two things have changed.
+First, the market-brief cockpit path it attributes is no longer in the finding
+set. Second, the residual set is no longer stable: this pass observed the
+selftest at `3404 passed, 0 failed` exit `0` and, minutes later, at `3403 passed,
+1 failed` exit `1`, because a concurrent session pasted the same diagnostic into
+its own report. **Check (c) held in every reading this pass took** — vacuously
+when the residual set was empty, and by attribution to a named foreign owner when
+it was not — and `sites_under_spec_025` measured `0` in all of them. All three
+readings, and the repair this pass had to make before any of them was true, are
+recorded under
+[OBS-1](#obs-1--the-one-red-selftest-assertion-narrative-no-longer-describes-a-stable-state)
+and [OBS-4](#obs-4--this-reports-own-gaps-phase-paste-was-failing-the-repository-selftest).
+
 ### The One Red Selftest Assertion Is Foreign — Re-Confirmed This Pass
 
-The single failing assertion is:
+The single failing assertion recorded at the time of that pass was, quoted from
+that pass's own capture:
+
+> `✗ FAIL: no tests/*.mjs path named by a spec artifact is missing outside the
+> frozen baseline — a stale path makes a multi-file verification command
+> silently cover less than it claims (1 new, 66 known-missing, 5 stale of 240
+> referenced)`
+
+**Superseded, and re-measured this session.** That failure no longer exists. The
+selftest was re-executed unfiltered and now exits 0 with zero failing
+assertions, so the foreign owner cleared it in the interval. The finding is
+recorded rather than deleted, because the reasoning below about why this feature
+did not adopt it still stands and is what kept it from being papered over.
+
+*(Amended 2026-08-24 — "now exits 0" pinned a new absolute state and so repeated
+the defect it was correcting; the selftest was observed at exit 1 again within
+minutes of that sentence being written. Read it as: at the moment of the capture
+below, the selftest exited 0. What is durable is the attribution, not the exit
+code — no failing site in any reading has belonged to `specs/025-*`.)*
 
 ```text
-✗ FAIL: no tests/*.mjs path named by a spec artifact is missing outside the frozen baseline — a stale path makes a multi-file verification command silently cover less than it claims (1 new, 66 known-missing, 5 stale of 240 referenced)
+$ node scripts/selftest.mjs
+================================================
+Research-Lab self-test: 3404 passed, 0 failed
+================================================
+Exit Code: 0
+
+$ grep -c '✗' /tmp/rl025-selftest.log
+0
 ```
+
+The count moved from `2945 passed, 1 failed` at the time of the gate pass to
+`3404 passed, 0 failed` now. Both the growth and the cleared failure are foreign
+work landing on the shared surface; this feature added no assertion in that
+interval. The `Regression: SCN-025-CANARY` assertion, which exists to go red if
+this feature's shared-surface append broke a pre-existing assertion, is inside
+that green count.
+
+*(Amended 2026-08-24 — the word "now" attaches an absolute tally to an unbounded
+present. Read it as "at the instant of the capture above". The tally is a
+reading; the sentence that survives re-reading is the one about
+`SCN-025-CANARY`, which has printed green in every observation any pass has
+recorded.)*
 
 `scripts/validate-spec-test-paths.mjs` was called directly to name the cause.
 The one new absent path is the market-brief cockpit browser spec under `tests/`,
@@ -1802,6 +2008,17 @@ own artifacts say its Scope 4 creates that file. Both `specs/022` and `specs/026
 are excluded families this feature must leave byte-unchanged, so the failure
 cannot be cleared from inside this scope, and this pass did not create the file
 to make a number go green. The failure is disclosed and routed, not adopted.
+
+*(Superseded 2026-08-23 — do not read the four paragraphs and the reference-site
+table above as current fact. The absent market-brief cockpit path they describe
+no longer appears in the validator's finding set at all.)* The reasoning is
+preserved deliberately: the decision not to create a foreign file in order to
+turn a number green is the part of this record worth keeping, and deleting it
+would remove the evidence that the failure was refused rather than absorbed.
+What is true now is that `node scripts/validate-spec-test-paths.mjs` no longer
+names that path in its finding set at all. The measured re-executions are
+recorded under
+[OBS-1](#obs-1--the-one-red-selftest-assertion-narrative-no-longer-describes-a-stable-state).
 
 ### DoD Rows This Phase Moved
 
@@ -1825,6 +2042,12 @@ result. The unit suite now reports 67 tests where an earlier Scope 1 DoD row
 recorded 41; the row's claim of exit 0 with zero failing and zero skipped still
 holds, and the count grew because later passes added tests. That stale figure is
 disclosed here rather than silently rewritten.
+
+*(Amended 2026-08-24 — "now reports 67" is itself the stale figure now; the same
+suite was observed at `tests 90 / pass 90 / fail 0 / skipped 0`, exit 0, on
+2026-08-24. The paragraph's actual point survives every re-count: the row's
+clause is about exit 0 with zero failing and zero skipped, and only the
+transcribed total drifts.)*
 
 **Claim Source:** executed.
 
@@ -2050,11 +2273,22 @@ through `head` or `tail`.
 **Claim Source: executed.** OWASP A03 Injection, with A01 as the impact class.
 
 `company-intelligence-lab.html` binds a registry-authored value straight into an
-anchor at two sites, line 582 and line 860:
+anchor at two sites. The original evidence here was a hand-quoted one-line
+excerpt citing lines 582 and 860. Both call sites have since moved, so the quote
+is replaced below by a re-execution of the locating scan against the current
+working tree. `git status --porcelain` reported `rlcompanyintel.js`,
+`company-intelligence-lab.html` and `company-intelligence.config.json` all clean
+at `HEAD` when every scan on this page ran:
 
-```js
-card.appendChild(el("a", "Open " + owner.ownerToolId, { href: owner.ownerDeepLink, ... }));
 ```
+$ grep -n 'href: owner.ownerDeepLink' company-intelligence-lab.html; echo "exit code: $?"
+856:                    card.appendChild(el("a", "Open " + owner.ownerToolId, { href: owner.ownerDeepLink, "data-owner-link": owner.ownerToolId }));
+1251:                        ownerCell.appendChild(el("a", owner.ownerToolId, { href: owner.ownerDeepLink, "data-owner-link": owner.ownerToolId }));
+exit code: 0
+```
+
+Two sites, exit `0`. The sink shape is unchanged from the original reading; only
+the line numbers drifted, 582 → 856 and 860 → 1251.
 
 Before this pass, `readCoverageRegistry` in `rlcompanyintel.js` line 287 accepted
 that value on a type check alone, `isNonEmptyString(row.ownerDeepLink)`. Every
@@ -2068,15 +2302,46 @@ This matters specifically because of the page CSP. `script-src` carries
 `'unsafe-inline'` a `javascript:` URL in an `href` is permitted rather than
 blocked. CSP was therefore not a mitigation for this sink.
 
-Proof the defect was real, executed against the pre-fix module read from
-`git show HEAD:rlcompanyintel.js` and evaluated in memory beside the post-fix
-module:
+Proof the defect was real. **Disclosed reconstruction.** The original run
+addressed the pre-fix module as `git show HEAD:rlcompanyintel.js`, which was
+accurate while the fix was still uncommitted, but `HEAD` has since advanced and
+that reference no longer resolves to a pre-fix blob. The pre-fix module is
+therefore addressed here by its explicit commit, `b160d587f:rlcompanyintel.js`;
+`git log -S SAFE_OWNER_ROUTE -- rlcompanyintel.js` reports the guard first
+appearing in `a87396895`, so `b160d587f` is the last commit without it. Each
+module is fed its own contemporaneous config, so the guard is the only
+difference between the two sides. Re-executed:
 
 ```
-javascript:alert(1)                      | pre-fix: ACCEPTED -> href=javascript:alert(1)           | post-fix: refused C025-CONFIG-SCHEMA
-data:text/html,<script>alert(1)</script> | pre-fix: ACCEPTED -> href=data:text/html,<script>alert(1)</script> | post-fix: refused C025-CONFIG-SCHEMA
-//evil.example/market-brief.html         | pre-fix: ACCEPTED -> href=//evil.example/market-brief.html | post-fix: refused C025-CONFIG-SCHEMA
+$ node -e '
+const {execFileSync}=require("node:child_process");
+const vm=require("node:vm"), fs=require("node:fs");
+const ROOT=process.cwd();
+const blob=(rev,f)=>execFileSync("git",["show",rev+":"+f],{cwd:ROOT,encoding:"utf8"});
+const load=(src,name)=>{const m={exports:{}};const ctx={module:m,exports:m.exports,console};ctx.globalThis=ctx;vm.runInNewContext(src,ctx,{filename:name});return m.exports;};
+const PRE=load(blob("b160d587f","rlcompanyintel.js"),"b160d587f:rlcompanyintel.js");
+const POST=require(ROOT+"/rlcompanyintel.js");
+const PRECFG=JSON.parse(blob("b160d587f","company-intelligence.config.json"));
+const POSTCFG=JSON.parse(fs.readFileSync(ROOT+"/company-intelligence.config.json","utf8"));
+const probe=(mod,cfg,v)=>{const c=JSON.parse(JSON.stringify(cfg));c.coverageRegistry[0].ownerDeepLink=v;
+  try{return "ACCEPTED href="+mod.readCoverageRegistry(c).rows[0].ownerDeepLink;}
+  catch(e){return "REFUSED "+(e&&e.code?e.code:String(e&&e.message));}};
+for(const v of ["javascript:alert(1)","data:text/html,<script>alert(1)</script>","//evil.example/market-brief.html"])
+  console.log(v+" | pre-fix b160d587f: "+probe(PRE,PRECFG,v)+" | post-fix HEAD: "+probe(POST,POSTCFG,v));
+console.log("committed registry, unmodified | pre-fix rows="+PRE.readCoverageRegistry(PRECFG).rows.length+" | post-fix rows="+POST.readCoverageRegistry(POSTCFG).rows.length);
+'; echo "exit code: $?"
+javascript:alert(1) | pre-fix b160d587f: ACCEPTED href=javascript:alert(1) | post-fix HEAD: REFUSED C025-CONFIG-SCHEMA
+data:text/html,<script>alert(1)</script> | pre-fix b160d587f: ACCEPTED href=data:text/html,<script>alert(1)</script> | post-fix HEAD: REFUSED C025-CONFIG-SCHEMA
+//evil.example/market-brief.html | pre-fix b160d587f: ACCEPTED href=//evil.example/market-brief.html | post-fix HEAD: REFUSED C025-CONFIG-SCHEMA
+committed registry, unmodified | pre-fix rows=15 | post-fix rows=15
+exit code: 0
 ```
+
+The finding reproduces exactly as first recorded: all three hostile forms reach
+an `href` on the pre-fix module and all three are refused on the current one,
+while the unmodified committed registry still yields its 15 rows on both sides.
+The last line is the adversarial counter-case — a guard that refused everything
+would have dropped that count.
 
 **Honest severity — LOW, not HIGH.** The registry is committed repository content,
 not user input, so reaching this sink requires commit access, and an actor with
@@ -2089,11 +2354,21 @@ boundary, and the repository had already solved this exact problem elsewhere.
 
 **Fix.** `rlcompanyintel.js` now constrains the value at the same boundary that
 validates every other registry field, raising the existing `C025-CONFIG-SCHEMA`
-code rather than inventing a new one:
+code rather than inventing a new one. Re-executed against the current module,
+which shows both the constraint and the two places it is enforced:
 
-```js
-var SAFE_OWNER_ROUTE = /^[A-Za-z0-9._-]+\.html$/;
 ```
+$ grep -n 'SAFE_OWNER_ROUTE' rlcompanyintel.js; echo "exit code: $?"
+95:    var SAFE_OWNER_ROUTE = /^[A-Za-z0-9._-]+\.html$/;
+320:            if (ownerDeepLink !== null && !SAFE_OWNER_ROUTE.test(ownerDeepLink)) {
+499:       is re-tested against SAFE_OWNER_ROUTE here rather than trusted from the caller, so a
+505:        if (!row || !isNonEmptyString(row.ownerDeepLink) || !SAFE_OWNER_ROUTE.test(row.ownerDeepLink)) {
+exit code: 0
+```
+
+Line 320 is the registry-validation boundary named above; line 505 is a second
+enforcement inside `ownerRouteFor`, so a hand-assembled registry that never
+passed `readCoverageRegistry` cannot reach an `href` either.
 
 This is the same shape `market-brief.html` line 1571 already applies to its own
 `item.deepLink`, so the fix converges on the repository's existing convention
@@ -2141,6 +2416,26 @@ Suggested remediation is to reuse `briefClassifyLink`, which already exists in
 `rlbrief.js` and already rejects `javascript:`, `data:`, `vbscript:`, `file:`,
 `blob:`, protocol-relative, credentialed and malformed forms. No fix was applied
 here.
+
+**Re-verified while raising this section's evidence blocks. The routing still
+stands, and the reading is marginally worse than first recorded.** Both
+unvalidated sinks are still present and still unguarded; only their line numbers
+drifted, 1354 → 1406 and 1920 → 1991:
+
+```
+$ grep -n 'ownerDeepLink' market-brief.html; echo "exit code: $?"
+1406:                    link.href = owner.ownerDeepLink;
+1991:                        var inner = c.ownerDeepLink ? '<a href="' + esc(c.ownerDeepLink) + '">' + label + '</a>' : label;
+exit code: 0
+```
+
+Two corrections to the reading above, neither of which changes the verdict. The
+correctly validated form moved from line 1571 to line 1643. And there is more
+than one `esc()` in this file: the definition nearest above the line 1991 sink is
+at line 1923 and replaces only `& < > "`, one character narrower than the line
+1246 definition this section cited. Neither definition validates a URL scheme, so
+HTML-escaping remains no defence here and the finding holds unchanged at LOW.
+`market-brief.html` was again read only; nothing in it was modified by this pass.
 
 ### Item-By-Item Verdicts On The Five Review Areas
 
@@ -2210,14 +2505,103 @@ against `coveredSubjects` and returns a committed path, so no user-influenced
 string is ever concatenated into a fetch path. Line 1194 additionally wraps its
 symbol in `encodeURIComponent`.
 
-**5. Home-path and PII leakage — clean; the prior redaction is holding.**
-Grepping this feature's spec artifacts, its five files and all fixtures for
-`/Users/|/home/[a-z]|C:\\Users|pkirsanov|Philippes-MacBook|.local/state|/var/folders/|localhost:NNNN`
-returns exactly one hit, `report.md` line 440, and it is the **already-redacted**
-form `file:///Users/<user>/Projects/research-lab/tests/company-intelligence.unit.mjs:1440:12`.
-The username is replaced by the `<user>` placeholder. No operator username, no
-machine name, no absolute home path and no environment identifier leaks from this
-feature. No new leak was introduced by this pass.
+**5. Home-path and PII leakage — one real leak, and it was in this paragraph;
+corrected and re-measured here.** The sweep covers this feature's spec artifacts,
+its product and test files and all fixtures, and matches this *class* of
+identifier:
+
+`/Users/|/home/[a-z]|C:\\Users|<operator-username>|<machine-name>|.local/state|/var/folders/|localhost:[0-9]+`
+
+The last two alternates are written as classes, not specimens. The shell expands
+`<operator-username>` from `id -un` and `<machine-name>` from the host name at run
+time, so the check still tests for both without this artifact having to carry
+either value — the same `<user>` redaction convention the rest of this paragraph
+already uses. That substitution is the correction. The previous revision of this
+paragraph spelled both alternates out literally inside the pattern, which made the
+one sentence asserting that no operator username and no machine name leak from
+this feature the only place in the file where either actually appeared. The claim
+falsified itself, in a public repository. Nothing else in the feature carried
+them: before this edit the operator username matched exactly once and the machine
+name exactly once, both on that single pattern line.
+
+The two numeric claims the previous revision made were also wrong. It said the
+sweep returned "exactly one hit, `report.md` line 440". Re-run rather than
+restated, it returns nine, and the redacted stack frame it was pointing at is at
+line 487, not 440:
+
+```
+$ U=$(id -un); M=$(scutil --get ComputerName | tr -d ' ')
+$ grep -rnE "/Users/|/home/[a-z]|C:\\\\Users|${U}|${M}|\.local/state|/var/folders/|localhost:[0-9]+" \
+    specs/025-company-multi-horizon-intelligence-lab/ rlcompanyintel.js \
+    company-intelligence.config.json company-intelligence-lab.html \
+    notes/company-intelligence-lab.md tests/company-intelligence.unit.mjs \
+    tests/company-intelligence-lab.spec.mjs data/company-intelligence/ \
+    > /tmp/rl025-pii.txt 2>/tmp/rl025-pii.err; echo "exit code: $?"
+exit code: 0
+$ wc -l < /tmp/rl025-pii.txt; wc -c < /tmp/rl025-pii.err
+       9
+       0
+$ cut -d: -f1,2 /tmp/rl025-pii.txt
+specs/025-company-multi-horizon-intelligence-lab/state.json:582
+specs/025-company-multi-horizon-intelligence-lab/report.md:487
+specs/025-company-multi-horizon-intelligence-lab/report.md:2424
+specs/025-company-multi-horizon-intelligence-lab/report.md:2445
+specs/025-company-multi-horizon-intelligence-lab/report.md:2468
+specs/025-company-multi-horizon-intelligence-lab/report.md:2469
+specs/025-company-multi-horizon-intelligence-lab/report.md:2474
+specs/025-company-multi-horizon-intelligence-lab/report.md:2476
+specs/025-company-multi-horizon-intelligence-lab/uservalidation.md:24
+```
+
+Every one is benign, and six of the nine are this section quoting itself. Line
+2424 is the class pattern above, which necessarily matches its own `/Users/`,
+`C:\\Users`, `.local/state` and `/var/folders/` alternates; line 2445 is the
+grep invocation in the block above, which restates the same pattern. Lines 2468,
+2469, 2474 and 2476 are this classification paragraph, which quotes each matched
+form in order to explain it. `report.md` line 487 and `state.json` line 582 carry
+the **already-redacted**
+`file:///Users/<user>/Projects/research-lab/tests/company-intelligence.unit.mjs:1440:12`,
+where the username is replaced by the `<user>` placeholder. `uservalidation.md`
+line 24 is `http://localhost:8000/company-intelligence-lab.html`, the loopback
+URL a human opens to reproduce the validation step — a documented local port on a
+reserved-name host, carrying no operator identity. The previous revision missed
+the `state.json` and `uservalidation.md` hits entirely, which is the other half of
+why "exactly one hit" was not a measurement.
+
+A note on the exit status, because it is easy to misread: `grep -rnE` above exits
+`0` because it *did* match, and its stderr was empty (`0` bytes). Had the sweep
+found nothing it would have exited `1`, which is the success condition for a leak
+scan but breaks a naïve `&&` chain and can be mistaken for a broken command. The
+count is therefore taken from `wc -l` on the captured file rather than from
+`grep -c`, whose own exit status is `1` on a zero count for the same reason.
+
+After the correction, neither the operator username nor the machine name appears
+anywhere in this file — verified with a check that reads both values from the
+environment rather than writing either into the artifact:
+
+```
+$ grep -c "$(id -un)" specs/025-company-multi-horizon-intelligence-lab/report.md; echo "exit code: $?"
+0
+exit code: 1
+$ grep -ci "$(scutil --get ComputerName | tr -d ' ')" specs/025-company-multi-horizon-intelligence-lab/report.md; echo "exit code: $?"
+0
+exit code: 1
+```
+
+Both report `0` with exit `1`, which for a leak scan is the passing outcome: zero
+matches. No operator username, no machine name, no absolute home path and no
+environment identifier leaks from this feature.
+
+**Severity.** LOW, and lower than the phrasing "PII leak" suggests, but a real
+defect either way. The exposed username is also the owner's public GitHub handle
+and appears legitimately in `github.com/<handle>/bubbles` URLs across roughly
+thirty tracked framework files, so it was never secret; the machine name is a
+default-format host nickname. Neither is a credential, a private path or a
+routable identifier, and there is no attacker action either enables. What makes it
+worth fixing is not the disclosure but the integrity failure: a security section
+asserted the absence of exactly the two strings it was itself printing, so the
+check as written could never have failed, and a reader would have been told a
+verified-sounding thing that the same paragraph disproved.
 
 ### What This Pass Did Not Do
 
@@ -2439,24 +2823,73 @@ failure described at dispatch. Concurrent sessions moved it while this phase ran
 `validate-spec-test-paths` now reports `STALE-BASELINE` rather than a missing
 path, and the fifteen current failures belong to Feature 026, Feature 012 and the
 market-brief payload. **This feature's contribution is still exactly zero**, on
-both halves of the check:
+both halves of the check.
 
+*(Superseded 2026-08-23 — do not read the `STALE-BASELINE` clause above as a
+current statement of what the validator reports.)* The rest of the paragraph
+still holds and is preserved: the failure set did move under concurrent sessions,
+and this feature's contribution to it was and remains zero. What no longer holds
+is the `STALE-BASELINE` condition itself. Re-executed on 2026-08-23,
+`node scripts/validate-spec-test-paths.mjs` exits `0` and reports `new=0
+stale=0`, so there are no stale baseline entries left to remove. The measured
+re-execution is recorded under
+[OBS-3](#obs-3--the-gaps-phase-stale-baseline-citation-no-longer-holds).
+
+This block is owned by `bubbles.gaps` and was re-executed by `bubbles.gaps`. The
+original capture hand-assembled the `(b)` and `(c)` halves from ad-hoc greps and
+recorded no command line, so it is not recoverable verbatim. The closest honest
+equivalent is the committed validator those greps were approximating,
+`scripts/validate-spec-test-paths.mjs`, which is directly runnable and answers
+both halves in one pass — it reports every absent spec-referenced test path
+repo-wide together with the spec directory that owns it. That substitution is
+the disclosed reconstruction.
+
+**The block below is a labelled summary, not a verbatim paste, and the reason is
+the defect itself** — the same reason already recorded twice in this report. The
+validator's three `PLANNED-MISSING` diagnostic lines name their paths as literal
+strings, and the repository path scanner counts any `tests/*.mjs` literal inside
+a spec artifact as a reference site for that path. Pasting those three lines
+verbatim therefore made this report the sole reference site for three paths that
+do not exist. The three omitted tokens are the portfolio doc-integration
+functional spec, the portfolio survival accessibility spec and the portfolio
+test-integrity unit spec, all under `tests/` and all owned by
+`specs/008-portfolio-survival-and-brief-lab`, whose own artifacts declare them
+planned-not-authored. Every command, exit code and count below is carried
+through unchanged; only the three path literals are withheld, and the original
+paste remains recoverable from this file's git history. The measured consequence
+of that paste, and its repair, are recorded under
+[OBS-4](#obs-4--this-reports-own-gaps-phase-paste-was-failing-the-repository-selftest)
+below.
+
+```text
+$ node scripts/validate-spec-test-paths.mjs > /tmp/rl025-vstp.txt 2>&1
+exit code: 0
+
+$ cat /tmp/rl025-vstp.txt
+[spec-test-paths] scanned=748 references=17272 distinctPaths=266 missingPaths=73 plannedMissing=3 baseline=70 new=0 stale=0
+  PLANNED-MISSING <portfolio doc-integration functional spec> (specs/008-portfolio-survival-and-brief-lab, 2 structured planned-not-authored row(s), non-failing until the owning scope starts)
+  PLANNED-MISSING <portfolio survival accessibility spec> (specs/008-portfolio-survival-and-brief-lab, 5 structured planned-not-authored row(s), non-failing until the owning scope starts)
+  PLANNED-MISSING <portfolio test-integrity unit spec> (specs/008-portfolio-survival-and-brief-lab, 2 structured planned-not-authored row(s), non-failing until the owning scope starts)
+[spec-test-paths] OK — no new missing test path(s)
+
+$ grep -c '025-company-multi-horizon' /tmp/rl025-vstp.txt
+0
+exit code: 1   (grep -c exits 1 when it matches nothing; zero occurrences is the result being asserted, not a failure)
 ```
-=== (b) our spec names no absent tests/*.mjs ===
-(none above = clean)
-=== (c) absent test paths repo-wide and their owning spec dirs ===
-specs/002-distributed-tool-briefs-and-history/
-specs/004-fx-regime-relative-value-lab/
-specs/010-company-fundamentals-and-brief-lab/
-specs/012-market-action-center-and-guided-tools/
-specs/013-market-regime-stack-and-strategy-playbook/
-specs/014-shared-cycle-and-seasonality-exchange/
-specs/015-recommendation-outcome-ledger-and-track-record/
-specs/016-auction-gamma-playbook/
-specs/_bugs/
-=== does specs/025 appear above? ===
-       0
-```
+
+The re-execution also supersedes the `STALE-BASELINE` reading quoted above: the
+validator now reports `new=0 stale=0` and exits 0, and the three findings it does
+carry are `PLANNED-MISSING` rows owned by `specs/008`. Either way the conclusion
+this phase drew is unchanged and now rests on the validator rather than on hand
+greps — spec 025 appears zero times in the finding set, so it names no absent
+test path and contributes nothing to the repo-wide count.
+
+*(Amended 2026-08-24 — "now reports … and exits 0" pins this validator's exit
+code as a standing property, and it is not one: it has been observed at exit 1
+since, on `new` paths referenced entirely from another spec family. Two of its
+readings have held across every observation any pass has taken — `stale=0`, and
+zero finding sites under `specs/025-*` — and those are the two the conclusion
+above actually rests on.)*
 
 ### Change boundary
 
@@ -2709,15 +3142,43 @@ tree was never modified.
 ### One assertion this phase wrote, ran, and had to correct
 
 The first version of the FR-025-017 row also asserted that the reused run
-reproduces the previous run fingerprint byte for byte. It failed:
+reproduces the previous run fingerprint byte for byte. It failed.
 
-```
+This block was authored by `bubbles.harden`. It was re-executed on that phase's
+behalf by `bubbles.gaps` during a compliance sweep; ownership did not transfer.
+The assertion that produced the failure was deleted when it was corrected, so
+the failing run itself is not re-runnable and its two recorded lines are marked
+below as a quotation of the harden-phase capture rather than as fresh output.
+The reconstruction that IS runnable is the complement the correction left in the
+tree: the same route composed twice over one frozen bundle and one pinned
+`decisionTime` must produce an identical fingerprint. That test passing is what
+makes the original assertion's failure a statement about the clock rather than
+about the route, so re-deriving it re-derives the finding.
+
+```text
+# quoted from the bubbles.harden capture — the assertion as it failed then
 Expected: "Run fingerprint sha256:b7218ba1… composed at 2026-08-19T16:01:31.706Z for company:msft on identity basis sec-cik."
 Received: "Run fingerprint sha256:1bf6cb06… composed at 2026-08-19T16:01:31.748Z for company:msft on identity basis sec-cik."
+
+# re-executed by bubbles.gaps on behalf of bubbles.harden — the committed complement
+$ node --test --test-name-pattern='identical canonical output and fingerprint' tests/company-intelligence.unit.mjs
+✔ two runs over one frozen bundle and one decisionTime produce identical canonical output and fingerprint (15.805959ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 70.377834
+exit code: 0
 ```
 
-The route composes each run at its own decision time, so two runs 42 ms apart
-hash differently BY DESIGN. The assertion was wrong, not the route: demanding
+The two timestamps in the quoted failure differ by 42 ms and the two hashes
+differ with them. Pinning `decisionTime` removes that difference and the
+fingerprints become equal, which is the passing run above. The route therefore
+composes each run at its own decision time, and two runs 42 ms apart hash
+differently BY DESIGN. The assertion was wrong, not the route: demanding
 equality there would have asserted against the injected-clock contract in order
 to prove the reuse one. It was replaced with the claim the requirement actually
 makes — zero refetched bar files, the same subject and identity basis, fifteen
@@ -2736,7 +3197,10 @@ matches, and both are routed rather than edited, because `scopes.md` is
 1. **Stale counts.** Several Scope 1 rows cite `tests 41 / pass 41` or
    `tests 67 / pass 67`. The suite now reports 70. The rows claim "exits 0 with
    zero failing and zero skipped tests", which is TRUE now; only the transcribed
-   count is stale.
+   count is stale. *(Amended 2026-08-24 — "now reports 70" has itself gone
+   stale; the suite was observed at `tests 90 / pass 90` on 2026-08-24. The
+   finding does not change, and this is the second time restating the total
+   rather than the clause has produced a fresh stale number.)*
 2. **FR ids conflated with SCN ids.** The row *"Each of FR-025-017, FR-025-018
    and FR-025-019 names at least one passing test row → Evidence: rows 1.14
    through 1.16 pass"* cites rows whose Scenario column reads SCN-025-017/018/019
@@ -3102,6 +3566,9 @@ repository selftest holds spec artifacts to naming only test paths that exist.
 
 ### Findings
 
+> Scoped to the 2026-08-19 round. Superseded by the 2026-08-23 re-execution under
+> `### Chaos Evidence` below, which found one P2 defect (F-CHAOS-025-01).
+
 **Zero defects were found.** Every journey completed against the live route with no page-level
 exception, no cross-origin request, no unbounded refetch, no duplicated paint, no cross-subject
 leakage and no merged horizon reading. This is reported as observed; no defect was manufactured to
@@ -3152,21 +3619,26 @@ No existing assertion was weakened to make anything pass. The committed suite wa
 
 ### Evidence
 
-Baselines re-run before chaos, all green:
+Baselines re-run before chaos, all green. The counts below are the 2026-08-23 re-execution, not the
+2026-08-19 figures the narrative above records; every baseline in this repository has moved since
+that round, so the earlier numbers are left in place as history rather than restated as current.
 
-| Command | Exit |
-|---|---|
-| `node --test tests/company-intelligence.unit.mjs` | 0 |
-| `node scripts/selftest.mjs` | 0 |
-| `npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | 0 (29 passed) |
+| Command | Exit | Re-executed result |
+|---|---|---|
+| `node --test tests/company-intelligence.unit.mjs` | 0 | 90 pass, 0 fail |
+| `node scripts/selftest.mjs` | 0 | 3404 passed, 0 failed |
+| `npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | 0 | 37 passed |
 
 ```
-# baseline unit + selftest
-exit: 0
-lines: 2
-sha256: 9eaf51e94ec3622adb086c5815d9d07cd9e581db0ed42e916863821f410dee95
---- output ---
+$ node --test tests/company-intelligence.unit.mjs
+ℹ tests 90
+ℹ suites 0
+ℹ pass 90
+ℹ fail 0
+ℹ duration_ms 221.379834
 unit_exit=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3404 passed, 0 failed
 selftest_exit=0
 ```
 
@@ -3199,16 +3671,21 @@ sha256: e4b12de94b129f612de723974bf8e35c25e65f31382c086d4332ddcb8943823e
   11 passed (16.8s)
 ```
 
-Post-chaos baseline re-run, to prove the round left the committed surface intact:
+Post-chaos baseline re-run, to prove the round left the committed surface intact. Re-executed
+2026-08-23 after the temporary harness was deleted:
 
 ```
-# post-chaos baselines (after report path correction)
-exit: 0
-lines: 3
-sha256: 8ed3be23a08111157d523aa57765f4d54db20531172616a9b78bc491e0a23063
---- output ---
+$ node --test tests/company-intelligence.unit.mjs
+ℹ tests 90
+ℹ pass 90
+ℹ fail 0
+ℹ duration_ms 412.78725
 unit_exit=0
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3404 passed, 0 failed
 selftest_exit=0
+$ npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+  37 passed (37.4s)
 browser_exit=0
 ```
 
@@ -3236,20 +3713,126 @@ artifact_lint_exit=0
 **Claim Source:** executed. Every table row above is read from a command executed in that session
 and captured by `bubbles/scripts/evidence-capture.sh`. No count was estimated.
 
+### Chaos Evidence
+
+**Executed:** YES
+**Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list` against a temporary seeded chaos harness (8 journeys CJ1-CJ8), plus `node --test tests/company-intelligence.unit.mjs`, `node scripts/selftest.mjs` and `npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` as before-and-after baselines
+**Phase Agent:** bubbles.chaos
+**Claim Source:** executed
+
+A fresh chaos round was executed on 2026-08-23 rather than renaming the 2026-08-19 material above.
+Every baseline that round recorded has moved (70 unit / 29 browser / 3065 selftest then; 90 / 37 /
+3404 now), so restating those figures under a canonical heading would have published numbers that
+no longer reproduce. The earlier narrative stands unedited as the historical record.
+
+Harness: a temporary seeded spec written into the repository test directory for the duration of
+the round and deleted at the end of it, reusing `startStaticServer` from
+`tests/provider-credentials.support.mjs` and the `system-chrome` project in `playwright.config.mjs`.
+It is deliberately not named here as a resolvable test path, because the repository selftest holds
+spec artifacts to naming only test paths that exist. Seeds `20260823`, `4242`, `11`, `987654`. No
+module was stubbed. The two latency journeys delayed only the committed corpus DEPENDENCY, so the
+route still fetched and rendered whatever it actually observed.
+
+Round 1 returned 5 failures. All 5 were diagnosed to a single harness defect plus one wrong
+accounting model, and both diagnoses were CONFIRMED by probe before anything was changed:
+
+| Round-1 failure | Diagnosis | Confirming probe |
+|---|---|---|
+| CJ2 reading drifted on apply 1, CJ4 reading changed across a round trip, CJ7 refusal appeared to mutate the composed reading, CJ3 read 0 committed events | The harness waited only on `data-run-status=composed` and omitted the `data-corpus-status` wait the committed surface uses, so it sampled a pre-corpus paint | With the corpus wait added, deep-link and manual apply converge byte-for-byte, the round trip is stable, and the committed event rows count 5 |
+| CJ1 counted 25 cockpit paints against a budget of 24 | The budget assumed two paints per apply and charged nothing for a mode toggle, which does repaint the cockpit | Instrumented probe: apply costs 2 paints, a mode toggle costs 1, a deep-dive toggle costs 0 |
+
+No assertion was weakened to make anything pass, and the committed suite was not edited. After the
+harness was corrected, round 2 passed all 8 journeys with exit 0.
+
+| Journey | What it chained | Measured |
+|---|---|---|
+| CJ1 | 40 seeded steps interleaving apply, deep dives, mode and viewport churn, out of order | 12 applies, 14 dives, 8 modes, 6 resizes, 24 paints against a 32 budget. No growth. |
+| CJ2 | 12 consecutive applies on an already-composed unchanged subject | 24 paints, exactly 2 per apply, flat; 0 bar refetches after the first; reading byte-identical across all 12 |
+| CJ3 | 20 rapid out-of-order `AAPL`/`MSFT` switches with no wait, then the same with the event file delayed 900 ms | 5 committed `MSFT` event ids, 0 leaked into an `AAPL` composition |
+| CJ4 | Navigate away to `index.html` and back, a fresh no-query load, then a 6-width viewport sweep | Round-trip reading stable; no sideways scroll at 320, 375, 768, 1024, 1440 or 1600 CSS pixels |
+| CJ5 | 24 seeded refusal-fuzz payloads interleaved with valid subjects | 13 refusals shown; 3 failed responses, all the designed `404` absence path under `data/bars/`; 0 hostile payloads persisted to storage |
+| CJ6 | Overlapping runs with BOTH corpus legs delayed 800 ms, DOM sampled continuously | 4 mid-flight samples, 0 showing one subject identity beside another subject's events |
+| CJ7 | A refusal entered against a composed page | Composed reading, identity line and coverage totals all unchanged; refusal cleared by a later valid entry |
+| CJ8 | CJ1/CJ5-shaped churn replayed under three further seeds | 42 steps, 0 page-level exceptions, 0 cross-origin requests |
+
+```
+$ npx --no-install playwright test <temporary chaos harness> --config=playwright.config.mjs --project=system-chrome --reporter=list
+[chaos CJ1] steps=40 applies=12 dives=14 modes=8 resizes=6 paints=24 budget=32
+[chaos CJ2] applies=12 paints=24 bar_refetches_after_first=0
+[chaos CJ3] switches=20 delayed_leg=events.json msft_event_ids=5 leaked_into_AAPL=0
+[chaos CJ4] roundtrip_reading_stable=yes fresh_load_identity_len=75 sideways_scroll=none
+[chaos CJ5] payloads=24 refusals_shown=13 failed_responses=3 outside_designed_absence=0 persisted_hostile_keys=0
+[chaos CJ6] mid_flight_samples=4 composing_paints=0 mixed_identity_vs_events=0
+[chaos CJ7] refusal_shown=true composed_state_preserved=yes refusal_cleared_by_valid_entry=true
+[chaos CJ8] sweep seed=11:steps=14 seed=987654:steps=14 seed=20260819:steps=14 pageerrors=0 cross_origin=0
+  8 passed (8.7s)
+chaos_round2_exit=0
+```
+
+#### Finding F-CHAOS-025-01 — the corpus-pending window states absence as settled fact
+
+Diagnosing the round-1 failures surfaced a defect in the ROUTE, not the harness. `data-run-status`
+becomes `composed` on the synchronous registry paint, while `data-corpus-status` is still `pending`.
+In that window the cockpit renders a DEFINITE absence claim — "15 of 15 mandatory dimensions have
+no usable source in this run" with all four horizons at `none`/`absent` — and no user-visible
+wording anywhere in the body says the corpus is still arriving. The settled truth for the same
+subject is 13 of 15, with three of the four horizons carrying a direction.
+
+The window is not an artefact of injected latency: it was reached with ZERO added delay on a
+local static server, which is what made four round-1 journeys read pre-corpus state. The delay
+below only widens it enough to sample the copy.
+
+This contradicts the repository's own binding product principle that missing data must render as
+unavailable or incomplete and never as a settled reading, and the matching blocking pattern
+"missing data rendered as zero, neutral, or inferred". The machine-readable `data-corpus-status`
+attribute distinguishes the two states; no human-readable surface does.
+
+Severity **P2**. It is transient and self-correcting, it corrupts no data and breaks no workflow,
+but on any real network the window is readable and it overstates absence while it lasts.
+
+```
+$ npx --no-install playwright test <temporary chaos probe> --config=playwright.config.mjs --project=system-chrome --reporter=list
+[probe3] PENDING corpusStatus = pending  runStatus = composed
+[probe3] PENDING coverageLine = 15 of 15 mandatory dimensions have no usable source in this run. Each one names its reason below.
+[probe3] PENDING horizons     = event=none/absent immediate=none/absent structural=none/absent swing=none/absent
+[probe3] PENDING user-visible pending wording present? = false
+[probe3] SETTLED corpusStatus = loaded
+[probe3] SETTLED coverageLine = 13 of 15 mandatory dimensions have no usable source in this run. Each one names its reason below.
+[probe3] SETTLED horizons     = event=flat/thin immediate=constructive/thin structural=none/absent swing=constructive/thin
+  1 passed (16.9s)
+probe3_exit=0
+```
+
+Reproduction: load `company-intelligence-lab.html?symbol=MSFT`, delay `**/data/**` by 2500 ms, wait
+only for `data-run-status=composed`, and read `#cockpit-coverage-line` before `data-corpus-status`
+leaves `pending`.
+
+No bug artifact was created by this phase. Bug artifacts in this repository live under
+`specs/_bugs/`, outside the `specs/025-` path this phase is authorised to stage, so filing one here
+would have breached the staging boundary. The finding is routed to the next owner instead, with the
+reproduction above; it is recorded rather than smoothed over.
+
 ### Cleanup
 
-The temporary harness spec was removed after the round. The route wrote nothing
+The temporary harness and its three diagnostic probes were removed after the round; the working
+tree carries no residual chaos spec. The route wrote nothing
 outside the browser session it owned, the ephemeral static server was closed by the harness
 `afterAll`, and no committed corpus file, registry entry or navigation record was mutated.
 
 ### Handoff
 
-No P0-P3 finding, so no bug artifact and no fix cycle. One durable-coverage recommendation for
+The 2026-08-19 round found no P0-P3 defect. The 2026-08-23 re-execution DID: F-CHAOS-025-01 above
+is a live P2, so the "no finding, no fix cycle" reading of this phase no longer holds. That finding
+needs a bug artifact under `specs/_bugs/` and then a fix; neither is this phase's to create, and
+both are routed rather than performed.
+
+One durable-coverage recommendation stands for
 `bubbles.test`, which owns the committed spec: the J6 probe — sampling the DOM continuously while
 two compositions overlap, and asserting no paint shows one subject's identity beside another
 subject's events — is not covered by the committed suite, which asserts only settled state. It is
 a candidate for promotion into `tests/company-intelligence-lab.spec.mjs`. That promotion is a
-spec-owner decision and was deliberately not made here.
+spec-owner decision and was deliberately not made here. The re-execution adds a second candidate:
+an assertion that the corpus-pending window never renders a settled absence reading.
 
 ## Docs Phase
 
@@ -3272,18 +3855,31 @@ It is compatible, and the reason is mechanical rather than a judgement call. Bot
 parity checks in `scripts/selftest.mjs` iterate `reg5.tools` — the entries in `tools.json` — and
 ask whether each *registered* tool is reachable from `README.md` and from `notes/README.md`.
 Neither check walks the `notes/` directory, so an unregistered tool with a notes file is invisible
-to them. `TP-025-09` constrains three files only:
+to them. `TP-025-09` constrains three files only.
 
-```js
-const companyRegistrationText25 = ['tools.json', 'index.html', 'rlnav.js']
-  .map((file) => read(file)).join('\n');
-assert(!/company-intelligence/.test(companyRegistrationText25)
-  && !/rlcompanyintel/.test(companyRegistrationText25), 'TP-025-09: …');
+This block was authored by `bubbles.docs`. It was re-executed on that phase's behalf by
+`bubbles.gaps` during a compliance sweep; ownership did not transfer. The original block pasted the
+assertion's source text rather than the output of a command, so there was no command to re-run
+verbatim. The disclosed reconstruction reads the same two facts straight out of the tree instead of
+quoting it: `grep -n` over the committed assertion for the file list it actually constrains, and the
+`grep -rln` the surrounding paragraph already claimed.
+
+```text
+$ grep -n "companyRegistrationText25" scripts/selftest.mjs
+22964:  const companyRegistrationText25 = ['tools.json', 'index.html', 'rlnav.js']
+22966:  assert(!/company-intelligence/.test(companyRegistrationText25)
+22967:    && !/rlcompanyintel/.test(companyRegistrationText25),
+exit code: 0
+
+$ grep -rln "company-intelligence-lab.md" scripts/ tests/
+exit code: 1   (no output — grep -l exits 1 when it matches nothing; no script or test reads the notes file)
 ```
 
+Line 22964 carries the whole constraint: the assertion joins `tools.json`, `index.html` and
+`rlnav.js`, and asserts neither `company-intelligence` nor `rlcompanyintel` appears in them.
 `README.md` and `notes/README.md` are absent from that list, unlike the sibling `TP-05-09`
-assertion for the Lifetime Tax route, which does include both. `grep -rln "company-intelligence-lab.md"
-scripts/ tests/` returns nothing, so no assertion reads the notes file's contents either.
+assertion for the Lifetime Tax route, which does include both. The second command returns nothing,
+so no assertion reads the notes file's contents either.
 `notes/company-intelligence-lab.md` was therefore already present and committed at
 `b160d587f`, and this phase corrected it in place rather than creating it. The precedent matches
 `notes/lifetime-tax-strategy-lab.md`, which also exists for an unregistered route and is likewise
@@ -3443,6 +4039,130 @@ chosen: `workflowMode full-delivery`, `targetStatus done`, `statusCeiling done`,
 `contractDigest sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93`,
 `targetRevision sha256:6714f473c898d773ad2c9db3045e093f3686c569b3dcee3d1acb8482f609670c`.
 
+### Audit Evidence
+
+**Executed:** YES
+**Command:** `node --test tests/company-intelligence.unit.mjs && node scripts/selftest.mjs && npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list tests/company-intelligence-lab.spec.mjs && bash .github/bubbles/scripts/artifact-lint.sh specs/025-company-multi-horizon-intelligence-lab && bash .github/bubbles/scripts/state-transition-guard.sh specs/025-company-multi-horizon-intelligence-lab --target-status done --expect-workflow-mode full-delivery --expect-contract-digest sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93 && bash .github/bubbles/scripts/implementation-reality-scan.sh specs/025-company-multi-horizon-intelligence-lab --verbose && bash .github/bubbles/scripts/regression-quality-guard.sh tests/company-intelligence-lab.spec.mjs`
+**Phase Agent:** bubbles.audit
+**Claim Source:** executed
+
+This is a re-execution round dated 2026-08-23, not a restatement of the 2026-08-19 pass recorded
+below. Every baseline the earlier pass measured has since moved — the unit suite from 70 to 90
+cases, the browser suite from 29 to 37, the selftest from 3065 to 3404 assertions — because the
+`AUD-025-F1` closure added the killing assertions and because concurrent foreign work landed in
+the shared selftest file. Re-running was therefore the only honest way to give this section a
+number a reader can reproduce today. Each command below was executed in this session and its own
+exit code is recorded next to it; none of these figures is `carried forward` from the earlier pass.
+
+Feature unit surface, run first because it is the surface the four `AUD-025-F1` closure
+assertions were written into:
+
+```
+$ node --test tests/company-intelligence.unit.mjs
+ℹ tests 90
+ℹ suites 0
+ℹ pass 90
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 216.269041
+exit code 0
+```
+
+Repository selftest and the feature browser suite. The browser run names its runner version
+because a Playwright major would change what `system-chrome` means:
+
+```
+$ node scripts/selftest.mjs
+================================================
+Research-Lab self-test: 3404 passed, 0 failed
+================================================
+exit code 0
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list tests/company-intelligence-lab.spec.mjs
+Running 37 tests using 1 worker
+  37 passed (47.9s)
+exit code 0
+$ npx --no-install playwright --version
+Version 1.61.1
+```
+
+Governance surface. The lint runs clean at the file's present `in_progress` status; the transition
+guard was invoked in assertion-only form against the resolved contract, so the target status,
+workflow mode and contract digest were asserted rather than chosen by this phase:
+
+```
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/025-company-multi-horizon-intelligence-lab
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+=== End Anti-Fabrication Checks ===
+Artifact lint PASSED.
+exit code 0
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/025-company-multi-horizon-intelligence-lab --target-status done --expect-workflow-mode full-delivery --expect-contract-digest sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93
+✅ PASS: All 111 checked DoD items across resolved scope files have evidence blocks
+⚠️  WARN: report.md has 27 of 87 evidence blocks that lack terminal output signals
+🟡 TRANSITION PERMITTED with 1 warning(s)
+failedGateIds: []
+blockingCode: none
+failureCount: 0
+exit code 0
+```
+
+Reality scan and regression-quality guard. The single reality-scan warning is a reference-style
+note, not a violation, and it is quoted rather than summarised so a reader can judge it:
+
+```
+$ bash .github/bubbles/scripts/implementation-reality-scan.sh specs/025-company-multi-horizon-intelligence-lab --verbose
+  IMPLEMENTATION REALITY SCAN RESULT
+  Files scanned:  9
+  Violations:     0
+  Warnings:       1
+⚠️  WARN: Resolved 9 file(s) from design.md fallback — scopes.md should reference these directly
+🟡 PASSED with 1 warning(s) — manual review advised
+exit code 0
+$ bash .github/bubbles/scripts/regression-quality-guard.sh tests/company-intelligence-lab.spec.mjs
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 1
+exit code 0
+```
+
+Test integrity, re-scanned rather than assumed. Declared counts match executed counts on both
+suites — 90 `test(` declarations against `pass 90`, 37 against `37 passed` — and both suites are
+free of skip markers. The one interception hit is reported rather than suppressed, because a
+"zero mocking" claim would have been false:
+
+```
+$ grep -rncE 't\.skip|\.skip\(|xit\(|xdescribe\(|\.only\(|test\.todo|it\.todo|\.fixme\(' tests/company-intelligence.unit.mjs tests/company-intelligence-lab.spec.mjs
+tests/company-intelligence.unit.mjs:0
+tests/company-intelligence-lab.spec.mjs:0
+$ grep -rncE 'page\.route|context\.route|msw|nock|fulfill\(|abort\(' tests/company-intelligence-lab.spec.mjs
+tests/company-intelligence-lab.spec.mjs:1
+$ grep -rncE 'TODO|FIXME|HACK|XXX|WIP|console\.|debugger' rlcompanyintel.js company-intelligence-lab.html company-intelligence.config.json
+rlcompanyintel.js:0
+company-intelligence-lab.html:0
+company-intelligence.config.json:0
+$ grep -rncE 'innerHTML|outerHTML|insertAdjacentHTML|document\.write|eval\(|new Function|setTimeout|setInterval' rlcompanyintel.js
+rlcompanyintel.js:0
+```
+
+The interception hit at `tests/company-intelligence-lab.spec.mjs:1134` is `page.route('**/*')` in
+the cache-first first-paint test. It does not fabricate a response: it continues every document
+and classic-script request immediately and holds only `fetch`/`xhr` open behind a gate, which is
+the adversarial condition the test exists to create. Withholding the network to prove the page
+paints from its shipped registry copy is the opposite of a faked live test, so it is recorded as
+a legitimate hit and not counted as a `FAKE_LIVE_TEST` violation.
+
+Two audit-owned defects in this file were found and fixed by this round, and both are recorded
+because a clean lint after a silent repair would be worth less than a noisy one. First, the file
+carried no `### Audit Evidence` heading at all, so `full-delivery` at `done` failed both the
+heading gate and the populated-section gate; the heading did not exist to be renamed, and the
+material under `## Audit Phase` carried none of the three required markers, so this section was
+written from re-executed output rather than conformed from prose. Second, the `FR-025-013` probe
+block below was a five-line paste with no command line and no exit code, which the evidence-block
+rule scores at zero of the two required signals; it was re-executed, not reformatted.
+
+**Claim Source:** executed.
+
 ### Source-file safety — the one thing a mutation audit can get wrong
 
 A previous audit attempt terminated while mutating `rlcompanyintel.js` in place. This pass never
@@ -3538,18 +4258,37 @@ assertions.
 `FR-025-013` is the most consequential and was proven live by direct read-only probe rather than
 by inference. `envelopeSubjectMismatch` rejects a foreign owner envelope on three independent
 legs — `subjectId`, `ticker` and `cik`. Loading the shipped module unmodified and feeding a
-`volatility-sizing-lab` envelope that names only a foreign identifier:
+`volatility-sizing-lab` envelope that names only a foreign identifier. The probe was re-executed
+on 2026-08-23 against the current module with the controls widened to all three legs and with the
+before/after source hash printed, because the first recording carried neither a command line nor
+an exit code:
+
+**Command:** `node /tmp/a025-mismatch-probe.mjs "$PWD"` — exit code 0
 
 ```
-subject under test: company:msft / MSFT / cik 0000789019
-foreign subjectId (test-covered)     state=unavailable  reason=read-company-mismatch  values=0 mismatchRefusals=1
-foreign ticker ONLY                  state=unavailable  reason=read-company-mismatch  values=0 mismatchRefusals=1
-foreign cik ONLY                     state=unavailable  reason=read-company-mismatch  values=0 mismatchRefusals=1
-own subjectId (control)              state=current      reason=null                   values=1 mismatchRefusals=0
+module under test : rlcompanyintel.js  (121461 bytes)
+sha256 before     : 7f518c1756d23f091fa88a7c0d9ef3856473e2c2666dcad53108a32bbf460ce5
+subject resolved  : company:msft / MSFT / cik 0000789019
+registry contract   : company-coverage-registry/v1  rows=15  horizons=4  maxBranches=5
+
+foreign subjectId  [covered]      state=unavailable  reason=read-company-mismatch  values=0  refusals=1  foreignNumberInComposedJson=false
+foreign ticker ONLY               state=unavailable  reason=read-company-mismatch  values=0  refusals=1  foreignNumberInComposedJson=false
+foreign cik ONLY                  state=unavailable  reason=read-company-mismatch  values=0  refusals=1  foreignNumberInComposedJson=false
+own subjectId     [control]       state=current      reason=null                   values=1  refusals=0  foreignNumberInComposedJson=n/a
+own ticker lower  [control]       state=current      reason=null                   values=1  refusals=0  foreignNumberInComposedJson=n/a
+own cik           [control]       state=current      reason=null                   values=1  refusals=0  foreignNumberInComposedJson=n/a
+
+sha256 after      : 7f518c1756d23f091fa88a7c0d9ef3856473e2c2666dcad53108a32bbf460ce5
+source unmodified : true
+3 foreign legs refuse, number absent from composed JSON : true
+3 controls read through with a value                    : true
+PROBE RESULT: PASS  (6 cases, 0 failed)
 ```
 
-All three legs fire today and the control reads through with a value, so none of them is dead
-code and the mutation is not an equivalent mutant. But the only adversarial test,
+The probe script lives outside the repository and the two hashes bracket the run, so the shipped
+module was read and never written. All three legs fire today and all three controls read through
+with a value, so none of them is dead code and the mutation is not an equivalent mutant. But the
+only adversarial test at the time this finding was raised,
 `adversarial: a read naming another company is refused and never reaches a horizon` at
 `tests/company-intelligence.unit.mjs:1441`, uses `subjectId: 'company:aapl'`. The `ticker` and
 `cik` legs have no case. An owner tool that keys its published read by ticker rather than by
@@ -3759,6 +4498,14 @@ every spec in the repository.
 Because the run reports exactly one failure and that failure is accounted for above, every
 Feature 025 assertion in the repository selftest is green by elimination of the single red line.
 
+*(Superseded 2026-08-24 — there is no standing "single red line". The PII finding this section
+attributes to `specs/021` was not present in any observation taken on 2026-08-24, all of which
+reported zero `✗` lines. The elimination argument was sound on the run it was made against, and
+it is retained for that reason; it is not a current statement of the selftest's failure set. The
+durable form of its conclusion — attribution by whether any failing site belongs to this feature,
+which has measured zero every time — is in
+[Stale-Claim Class Sweep](#stale-claim-class-sweep--2026-08-24).)*
+
 **Claim Source:** interpreted.
 **Interpretation:** the selftest prints one aggregate counter (`3064 passed, 1 failed`) rather
 than a per-group pass list, so "the Feature 025 group is green" is derived from two executed
@@ -3803,6 +4550,7 @@ exercised the behavior, the correct state is that acceptance has not happened ye
 The guard's verbatim refusal:
 
 ```
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/025-company-multi-horizon-intelligence-lab
 --- Check 43: Human Acceptance Terminal Gate (Gate G136) ---
 🔴 BLOCK: uservalidation.md does not establish human acceptance; a terminal transition claims it for every behavior (Gate G136)
 ℹ️  INFO:   PD12-UNCHECKED-ITEM: - [ ] I type one public company identifier and press run. I get four separate answers back.
@@ -3981,6 +4729,11 @@ failing gate and `failedChecks` is empty. That is the same shape the validate ph
 `G022` no longer among the failing gates. The guard also emits two non-blocking notes that predate
 this pass and are unchanged by it — a Check-11 warning about evidence blocks without terminal
 output signals, and an advisory `vertical-delivery-plan-guard` unexposed-increment nudge.
+
+*(Superseded 2026-08-24 — "the guard's exit 1" is no longer the observed state. Run against this
+spec directory on 2026-08-24 the guard reported `failedGateIds: []`, `failureCount: 0`,
+`verdict: PASS`, exit 0. The reasoning above about why a `G136`-only failure is not a regression is
+preserved because it is what stopped the human-acceptance gate being treated as a defect.)*
 
 **Claim Source:** executed.
 
@@ -4214,6 +4967,7 @@ checkbox.
 apart from `targetRevision`, which necessarily moved because the artifacts changed:
 
 ```
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/025-company-multi-horizon-intelligence-lab
 # before                                        # after
 passedGateIds: [G057,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,
                 G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,
@@ -4377,6 +5131,7 @@ and reverted with the hash verified.
 `company-intelligence-lab.html` before either mutation:
 
 ```
+$ shasum -a 256 company-intelligence-lab.html rlcompanyintel.js
 c99d4245a4a5cad6f277ee542b921fc621e7fab1125a3da44dc1b3cbac0d76d9  company-intelligence-lab.html
 4881db1647da6400b36efa0f71c1bd790738c8a3b1f8e82ef675517849acae8e  rlcompanyintel.js
 ```
@@ -4658,6 +5413,11 @@ symbol before any code moves, so it is routed rather than patched.
 Row 2.13 remains RED for the reason the previous pass recorded, and the browser suite therefore
 exits 1. That failure was present before this pass and is untouched by it. It was not relaxed.
 
+*(Superseded 2026-08-24 — row 2.13 was fixed by a later pass. The named `file://` first-paint test
+printed `✓` and the feature browser suite exited 0 in a run taken on 2026-08-24. The refusal
+recorded here — declining to weaken the row to `refused` so the suite could exit 0 — is preserved
+because it is why the defect was fixed rather than absorbed.)*
+
 ### Suites and guards after the change
 
 Recorded verbatim in the RESULT-ENVELOPE for this pass. Unit 74/74 exit 0; browser 30 passed / 1
@@ -4803,22 +5563,44 @@ head of this pass. The files this pass changed are `company-intelligence-lab.htm
 **Phase:** implement. One reproducible product defect, root-caused by observation rather than
 by reading, fixed at its cause, and re-verified under repetition.
 
-### The failure as reported
+### The failure as reported, and that same command re-executed
 
-```
-npx --no-install playwright test tests/chaos-company-intelligence.spec.mjs \
-  --config=playwright.config.mjs --project=system-chrome --grep "Chaos J7" --repeat-each 3 --reporter=line
+**Re-execution note, `bubbles.implement`, 2026-08-23.** Seven evidence blocks in this section
+were recorded too thinly in the 2026-08-19 pass to be checkable. Four of them name a command
+that still runs, and those four are re-executed below with their full current output. Three do
+not: they are transcripts of the BEFORE state, and the fix removed the cause that produced them.
+Those three are demoted to quoted historical narrative and are labelled as such rather than
+being padded into something that looks re-derivable. Nothing outside this section was touched.
+
+This is the command the operator ran to surface the defect. Re-executed today against the
+corrected route it passes, which is the AFTER state:
+
+```text
+$ npx --no-install playwright test tests/chaos-company-intelligence.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --grep "Chaos J7" --repeat-each 3 --reporter=line
+J7_REPEAT3_EXIT=0
+
+Running 3 tests using 3 workers
+
+[1/3] [system-chrome] › tests/chaos-company-intelligence.spec.mjs:488:1 › Chaos J7: a refused entry leaves the previous subject whole rather than a half-updated page
+[2/3] [system-chrome] › tests/chaos-company-intelligence.spec.mjs:488:1 › Chaos J7: a refused entry leaves the previous subject whole rather than a half-updated page
+[3/3] [system-chrome] › tests/chaos-company-intelligence.spec.mjs:488:1 › Chaos J7: a refused entry leaves the previous subject whole rather than a half-updated page
+  3 passed (2.8s)
 ```
 
-3 failed, 3 of 3 runs, at `tests/chaos-company-intelligence.spec.mjs:498`, on the FIRST payload
-of the loop — `300 shares at cost basis 12.5`, the FR-025 privacy refusal:
+The test has since moved from line 498 to line 488 of that file, which is why the historical
+transcript below names a different line.
 
-```
-Error: 300 shares at cost basis 12.5
-expect(received).toBe(expected) // Object.is equality
-Expected: "Microsoft Corporation (MSFT) resolved on sec-cik, SEC identity 0000789019."
-Received: "Microsoft Corporation (MSFT?) resolved on sec-cik, SEC identity 0000789019."
-```
+The BEFORE state was 3 failed, 3 of 3 runs, on the FIRST payload of the loop —
+`300 shares at cost basis 12.5`, the FR-025 privacy refusal. **It is not re-executable**: the
+`enhanceTickers()` call that closed the timing window is now in the shipped route, so the same
+command cannot produce this output again without deliberately reintroducing the defect. It is
+quoted as superseded historical narrative, not offered as current evidence:
+
+> Error: 300 shares at cost basis 12.5
+> expect(received).toBe(expected) // Object.is equality
+> Expected: "Microsoft Corporation (MSFT) resolved on sec-cik, SEC identity 0000789019."
+> Received: "Microsoft Corporation (MSFT?) resolved on sec-cik, SEC identity 0000789019."
 
 ### Root cause — stated plainly
 
@@ -4833,26 +5615,28 @@ to any ticker. The `?` does not come from this feature's code at all.
 It was found by instrumenting the page instead of reasoning about it. A temporary probe
 wrapped the `Node.prototype.textContent` setter and recorded every write to
 `#subject-identity` with its stack, then dumped the element's `outerHTML` after the refusal.
-Both recorded writes carried the CLEAN string:
+**That probe is not re-executable**: the two temporary probe specs were deleted once the cause
+was known, and the line numbers in the stacks belong to the pre-fix file. Both recorded writes
+carried the CLEAN string, quoted here as superseded historical narrative:
 
-```
-PROBE write[0]=Microsoft Corporation (MSFT) resolved on sec-cik, SEC identity 0000789019.
-PROBE stack[0]=... at setText (...:758) <<>> at render (...:1407) <<>> at run (...:1437)
-               <<>> at paintFromEmbedded (...:1652) <<>> at boot (...:1674)
-PROBE write[1]=Microsoft Corporation (MSFT) resolved on sec-cik, SEC identity 0000789019.
-PROBE stack[1]=... at setText (...:758) <<>> at render (...:1407) <<>> at run (...:1437) <<>> at ...:1499
-```
+> PROBE write[0]=Microsoft Corporation (MSFT) resolved on sec-cik, SEC identity 0000789019.
+> PROBE stack[0]=... at setText (...:758) <<>> at render (...:1407) <<>> at run (...:1437)
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <<>> at paintFromEmbedded (...:1652) <<>> at boot (...:1674)
+> PROBE write[1]=Microsoft Corporation (MSFT) resolved on sec-cik, SEC identity 0000789019.
+> PROBE stack[1]=... at setText (...:758) <<>> at render (...:1407) <<>> at run (...:1437) <<>> at ...:1499
 
-…and yet the element read back as `(MSFT?)`. The `outerHTML` named the culprit outright:
+…and yet the element read back as `(MSFT?)`. The `outerHTML` named the culprit outright. That
+one IS re-executable, because the affordance is still injected today — the fix changed *when*
+the enhancement runs, not *what* it produces. Re-captured from the shipped route in a real
+browser, unelided this time:
 
-```html
-<p id="subject-identity">Microsoft Corporation (<span data-tkr="MSFT" data-rltkr-done="1">
-  <span class="rltkr-wrap" data-tkr-symbol="MSFT">
-    <a class="rltkr" href="https://finance.yahoo.com/quote/MSFT" ... data-rlk-done="1"
-       aria-label="Microsoft · Technology — open Yahoo Finance">MSFT</a>
-    <button class="rltkr-context" type="button" data-tkr-context="MSFT"
-            aria-label="Explain MSFT">?</button>
-  </span></span>) resolved on sec-cik, SEC identity 0000789019.</p>
+```text
+$ node --input-type=module -e '<chromium via playwright, served by tests/provider-credentials.support.mjs::startStaticServer>'
+Exit Code: 0
+url=http://127.0.0.1:56211/company-intelligence-lab.html
+outerHTML bytes=482
+<p id="subject-identity">Microsoft Corporation (<span data-tkr="MSFT" data-rltkr-done="1"><span class="rltkr-wrap" data-tkr-symbol="MSFT"><a class="rltkr" href="https://finance.yahoo.com/quote/MSFT" target="_blank" rel="noopener" data-rlk-done="1" aria-label="Microsoft · Technology — open Yahoo Finance">MSFT</a><button class="rltkr-context" type="button" data-tkr-context="MSFT" aria-label="Explain MSFT">?</button></span></span>) resolved on sec-cik, SEC identity 0000789019.</p>
+explain-button label = "?"
 ```
 
 The `?` is the label of the shared enhancer's *explain this ticker* button
@@ -4881,13 +5665,24 @@ and the refusal assertion straddled 240 ms on every run.
 
 `company-intelligence-lab.html` now applies the shared enhancement **synchronously, as the last
 step of a paint**, immediately before the run status is published, in both `render()` and
-`renderRefusal()`:
+`renderRefusal()`. Read back out of the shipped file rather than quoted from memory:
 
-```js
-function enhanceTickers() {
-    if (window.RLTKR && typeof window.RLTKR.scan === "function") window.RLTKR.scan(document);
-}
+```text
+$ grep -n -A2 'function enhanceTickers' company-intelligence-lab.html
+1050:            function enhanceTickers() {
+1051-                if (window.RLTKR && typeof window.RLTKR.scan === "function") window.RLTKR.scan(document);
+1052-            }
+GREP_EXIT=0
+
+$ grep -n 'enhanceTickers()' company-intelligence-lab.html
+1050:            function enhanceTickers() {
+1081:                enhanceTickers();
+1483:                enhanceTickers();
 ```
+
+Line 1081 is the last statement of `renderRefusal()` before `setBodyState("refused", 0)`, and
+line 1483 is the last statement of `render()` before `setBodyState("composed", ...)`, so both
+paths publish a status only after the page is final.
 
 What is on screen when a run reports its status is now what stays there. The later debounced
 pass still runs, finds every ticker already carrying `data-rltkr-done` / `data-rlk-done`, and
@@ -4914,21 +5709,30 @@ Making the enhancement deterministic exposed an extraction assumption in the **J
 which pulled the subject out of the identity line with `/\(([A-Z.]+)\)/`. With the affordance
 now always present that pattern matches nothing, so every sample degraded to `'none'` and J6's
 own self-check `expect(identities.size).toBeGreaterThan(1)` correctly reported that the sampler
-had stopped seeing subjects:
+had stopped seeing subjects. **That failure is not re-executable** either: the extraction was
+corrected in the same pass, so the pattern that produced it is no longer in the file. Quoted as
+superseded historical narrative:
 
-```
-[chaos J6] samples=17 distinct subjects seen=none composing-state paints=0 msft event ids=5
-  1) Chaos J6 ... Error: the sampler really saw more than one subject mid-flight
-     Expected: > 1   Received: 1
-```
+> [chaos J6] samples=17 distinct subjects seen=none composing-state paints=0 msft event ids=5
+> &nbsp;&nbsp;1) Chaos J6 ... Error: the sampler really saw more than one subject mid-flight
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Expected: > 1   Received: 1
 
 The extraction — not the assertion — was corrected to `/\(([A-Z.]+)\??\)/`: still the
 parenthesised uppercase ticker, with the enhancer's affordance allowed between the symbol and
 the closing parenthesis. Nothing J6 asserts was relaxed, and the guard reads real subjects
-again:
+again. Re-executed today, the sampler line is unchanged from the 2026-08-19 pass:
 
-```
+```text
+$ npx --no-install playwright test tests/chaos-company-intelligence.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --grep "Chaos J6" --reporter=line
+J6_EXIT=0
+
+Running 1 test using 1 worker
+
+[1/1] [system-chrome] › tests/chaos-company-intelligence.spec.mjs:424:1 › Chaos J6: every intermediate paint during overlapping runs names one subject and only its own events
 [chaos J6] samples=17 distinct subjects seen=MSFT,AAPL composing-state paints=0 msft event ids=5
+
+  1 passed (6.6s)
 ```
 
 ### The `?`-in-a-ticker concern — checked, and it does not apply
@@ -4951,6 +5755,12 @@ governs this, in `tests/company-intelligence.unit.mjs`: `'MSFT?'`, `'MSFT?x=1'`,
 counter-case proving plain `'MSFT'` still resolves so the guard is not refusing everything.
 
 ### Verification — every command and its verbatim exit code
+
+**These are the 2026-08-19 figures and they are history, not a current baseline.** The counts
+below have all moved since: the same commands today give 90 unit tests rather than 76, 37 in
+`tests/company-intelligence-lab.spec.mjs` rather than the 43 that pairing produced, and 3404
+selftest assertions rather than 3103. Read this table as what that pass observed on that day.
+The re-executed blocks earlier in this section carry the current readings.
 
 | Command | Result | Exit |
 |---|---|---|
@@ -5015,6 +5825,958 @@ judge.
 headless Chromium against the committed page, alongside the four owner routes.
 
 **Educational research only. Not investment advice.**
+
+## Spec-Review Phase — no drift found on the core claims (`bubbles.spec-review`)
+
+**Executed:** YES
+**Phase Agent:** bubbles.spec-review
+**Claim Source:** executed
+
+The phase was missing: `full-delivery` requires `spec-review`, and neither this
+report nor `execution.completedPhaseClaims` carried one, while every other
+required phase was already claimed. This pass is read-only against the shipped
+module, route and config; no source file, test, `state.json` or
+`uservalidation.md` was modified by it.
+
+**Verdict.** Trust classification **CURRENT**. Each core claim was checked
+against shipped code rather than against the design that proposed it.
+
+```
+$ node -e 'const c=JSON.parse(require("fs").readFileSync("company-intelligence.config.json","utf8"));for(const k of Object.keys(c)){const v=c[k];if(Array.isArray(v))console.log(k+" = "+v.length+" entries");}'
+coverageRegistry = 15 entries
+horizons = 4 entries
+
+$ grep -oiE '"(broad|narrow|thin|absent)"' rlcompanyintel.js | sort -u
+"absent" "broad" "narrow" "thin"
+
+$ grep -cEi 'winProbability|probabilityOfProfit|confidencePercent|chanceOf' rlcompanyintel.js company-intelligence-lab.html
+rlcompanyintel.js:0
+company-intelligence-lab.html:0
+
+$ grep -cEi 'overallVerdict|blendedDirection|mergedHorizon|compositeVerdict' rlcompanyintel.js
+0
+
+$ grep -c 'ownerDeepLink' company-intelligence.config.json
+15
+
+$ grep -c 'unavailable' rlcompanyintel.js
+53
+```
+
+Read as claims: four horizons and fifteen dimensions are structural in the
+config rather than asserted in prose; the confidence vocabulary is exactly the
+four evidence-quality words, with no numeric or probability form anywhere in
+either the module or the route; no construct merges the horizons into a single
+verdict; every one of the fifteen registry rows carries an `ownerDeepLink`, so
+the owner-routing rule is total rather than partial; and `unavailable` is a
+named state reached from 53 sites rather than a blank fallback.
+
+**One near-miss worth recording.** A first pass grepped
+`"(provenanceClass|asOf|source)"` in quoted form and matched only `"asOf"`,
+which would have read as missing provenance. The narrower pattern was the
+defect, not the code — the identifiers appear unquoted.
+
+```
+$ grep -oiE '[a-z]*provenance[a-z]*|sourceUrl|sourceName' rlcompanyintel.js | sort | uniq -c | sort -rn
+  51 sourceName
+  11 sourceUrl
+   4 provenanceClass
+   2 provenance
+```
+
+**Artifact counts checked, not assumed.** The sibling spec 027 carried a DoD
+miscount across six prose sites and three `state.json` fields, so the same check
+was run here rather than inferred from that result. It is clean.
+
+```
+$ awk '/^## Scope/{s++} /^- \[x\]/{c[s]++} /^- \[ \]/{u[s]++} END{for(i=1;i<=s;i++) printf "scope%d ticked=%d unticked=%d\n", i, c[i], u[i]}' scopes.md
+scope2 ticked=38 unticked=0
+scope3 ticked=32 unticked=0
+scope4 ticked=19 unticked=0
+scope5 ticked=22 unticked=0
+
+state.json dodTicked=[38,32,19,22]  dodUnticked=[0,0,0,0]
+scope status=["done","done","done","done"]
+
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3404 passed, 0 failed
+
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/025-company-multi-horizon-intelligence-lab
+lint_exit=0
+```
+
+**Nothing certified by this phase.** No `status` set to `done`, no `certifiedAt`
+written, no `uservalidation.md` item touched.
+
+**Educational research only. Not investment advice.**
+
+---
+
+## Certification Pass — `bubbles.validate`, 2026-08-23
+
+Agent `bubbles.validate`. Repository binding was resolved from the host before any
+repository-local read. `repository-binding-host-context.sh` returned
+`sessionId: vscode-76796f8295100da71eb37ed18f20cd77` and `expectedControlRevision: 169`, and
+`repository-binding.sh preflight --request-class STRUCTURED` printed
+`REPOSITORY PREFLIGHT CONFIRMED repository=research-lab root=<repo-root> source=explicit-repositoryRoot affinity=confirmed`
+followed by
+`PREFLIGHT_COMMITTED decision=rb:vscode-76796f8295100da71eb37ed18f20cd77:170 revision=170`.
+The `root=` value was the absolute operator home path and is redacted to `<repo-root>` here,
+because the committed-surface scan forbids a home path in a tracked file.
+
+### Validation Evidence
+
+**Executed:** YES
+**Command:** `node scripts/selftest.mjs && node --test tests/company-intelligence.unit.mjs && npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --workers=1 --reporter=line && bash .github/bubbles/scripts/artifact-lint.sh specs/025-company-multi-horizon-intelligence-lab && bash .github/bubbles/scripts/state-transition-guard.sh specs/025-company-multi-horizon-intelligence-lab`
+**Phase Agent:** bubbles.validate
+**Claim Source:** executed
+
+Every figure below was produced in this session on `node v26.4.0`. Nothing here restates a number
+recorded by an earlier pass; where a figure moved, the movement is named rather than smoothed.
+
+Repository selftest, run first because it is the only surface that speaks for the whole repository
+and therefore the only one that can show this feature's changes damaging something else:
+
+```
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3404 passed, 0 failed
+exit code 0
+```
+
+The feature's own declared unit suite. Ninety cases, which is the count the `AUD-025-F1` closure
+left behind, and none of them skipped or marked todo — a skipped case would be a coverage hole
+wearing a green tick:
+
+```
+$ node --test tests/company-intelligence.unit.mjs
+tests 90
+suites 0
+pass 90
+fail 0
+cancelled 0
+skipped 0
+todo 0
+duration_ms 125.652041
+exit code 0
+```
+
+The feature's browser suite, which is the surface that exercises the route as a reader meets it.
+The runner version is named because a Playwright major would change what `system-chrome` resolves
+to and would silently change what this number means:
+
+```
+$ npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --workers=1 --reporter=line
+Running 38 tests using 1 worker
+[38/38] [system-chrome] › tests/company-intelligence-lab.spec.mjs:1538:1 › Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it
+  38 passed (46.0s)
+exit code 0
+$ npx --no-install playwright --version
+Version 1.61.1
+```
+
+**The browser count is 38, not the 37 this pass was briefed to expect, and the difference is a
+fact rather than a rounding.** The thirty-eighth case is
+`tests/company-intelligence-lab.spec.mjs:1538` — the `BUG-018` scope 1 regression that landed with
+commit `6881aa3a4`. The suite grew by exactly the test that bug's first scope added, so the delta
+is accounted for and is not an unexplained divergence. It is recorded here because a briefed
+expectation that silently absorbs a real change stops being a check.
+
+### The lint reading, taken twice, because only one of the two readings can certify
+
+`artifact-lint.sh` is status-sensitive: it applies the `full-delivery` strict-section and
+evidence-legitimacy rules only when `state.json` carries a promotion status. Reading it at the
+file's resting `in_progress` therefore proves nothing about whether the feature may be certified,
+which is why this pass took the reading twice — once as the file rests, and once with
+`status: done` and `certification.status: done` actually written to disk:
+
+```
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/025-company-multi-horizon-intelligence-lab
+Artifact lint PASSED.
+lint_exit_at_in_progress=0
+issues_at_in_progress=0
+issues_at_done_before_this_pass=16
+issues_at_done_after_this_pass=10
+```
+
+Sixteen issues stood at `done` when this pass opened. Two were the missing and unpopulated
+`### Validation Evidence` section, which this pass wrote and which is the section you are reading.
+Fourteen were evidence blocks below the legitimacy bar of three lines and two distinct
+terminal-output signal categories. Four of those fourteen sit in sections this phase authored and
+were repaired here. Ten sit in sections other phases authored, and this phase did not rewrite
+them, because an evidence block is a record of what its own author executed and a second agent
+editing it would be forging a witness statement.
+
+### The ten blocks this phase did not repair, and who authored each
+
+Each row gives the fenced block's first and last line number in this file, its failure mode
+against the legitimacy bar, and the phase whose section contains it. `SIGNALS n/2` names how many
+of the two required distinct terminal-output categories the block currently carries:
+
+| Lines | Failure | Containing section | Owning phase |
+| --- | --- | --- | --- |
+| 130-135 | SIGNALS 1/2 | `## Decision Record` → `### Code Diff Evidence` | `bubbles.implement` |
+| 604-613 | SIGNALS 0/2 | `## Test Evidence` → `### Scope 3 — Company event capability` | `bubbles.test` |
+| 742-755 | SIGNALS 1/2 | `## Adversarial And Budget Evidence` | `bubbles.test` |
+| 1783-1785 | TOO SHORT (1 line) | `## Test Phase Evidence — Gate Execution Pass` | `bubbles.test` |
+| 2057-2059 | TOO SHORT (1 line) | `## Security Phase Evidence` → `### F-025-SEC-01` | `bubbles.security` |
+| 2077-2081 | SIGNALS 1/2 | `## Security Phase Evidence` → `### F-025-SEC-01` | `bubbles.security` |
+| 2096-2098 | TOO SHORT (1 line) | `## Security Phase Evidence` → `### F-025-SEC-01` | `bubbles.security` |
+| 2446-2461 | SIGNALS 0/2 | `## Gaps Phase Evidence` → `### Baselines re-run after the change` | `bubbles.gaps` |
+| 2716-2719 | TOO SHORT (2 lines) | `## Harden Phase` → `### One assertion this phase wrote, ran, and had to correct` | `bubbles.harden` |
+| 3398-3403 | SIGNALS 1/2 | `## Docs Phase` → `### The documentation decision, checked before anything was written` | `bubbles.docs` |
+
+The four this phase did repair sat at lines 1186, 4067, 4478 and 4641 in the file as this pass
+found it. Each was a transcript whose fence had lost the invocation line that produced it, so the
+block carried its result without carrying its command. The repair restored the command line, and
+where the prose alongside already stated the observed exit code, restored that too. No result
+value in any of the four was altered; the diff across all four is added lines only.
+
+### `state-transition-guard.sh`, read with `status: done` written to disk
+
+A prospective `--target-status done` reading is not the same check as the file actually carrying
+`done`, and an earlier invocation of this phase proved that difference the hard way. So `done`,
+`certifiedAt`, `lastUpdatedAt` and `certification.status` were written to `state.json` on disk and
+the guard was read twice: once on the first such write, and again after the `G084` phrase repair
+described below. Both readings are recorded, because reporting only the second would hide the fact
+that `G084` had to be cleared to reach it.
+
+```
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/025-company-multi-horizon-intelligence-lab
+# first at-done reading                  # second, after the G084 repair
+workflowMode: full-delivery              workflowMode: full-delivery
+auditProfile: delivery-completion-v1     auditProfile: delivery-completion-v1
+targetStatus: done                       targetStatus: done
+failedGateIds: [G084,G088]               failedGateIds: []
+failedChecks: []                         failedChecks: [applicable-integrity]
+blockingCode: DELIVERY_COMPLETION_FAILED DELIVERY_COMPLETION_FAILED
+failureCount: 3                          failureCount: 1
+exitStatus: 1                            exitStatus: 1
+verdict: FAIL                            verdict: FAIL
+exit code 1                              exit code 1
+```
+
+The second reading is the one that matters, and it is unambiguous. Every gate the guard evaluates
+passes. `passedGateIds` lists `G057,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,`
+`G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G136`, and `failedGateIds` is
+empty. The single remaining failure is `failedChecks: [applicable-integrity]`, which is the
+artifact lint exiting 1, and the guard names it directly:
+`🔴 BLOCK: Artifact lint FAILED (exit 1)`.
+
+`G136`, the terminal human-acceptance gate that the earlier `## Validate Phase` section recorded
+as the sole remaining blocker, now **passes**. The acceptance record was authored between that
+pass and this one, so that section's conclusion is superseded by this reading rather than
+contradicted by it. What blocks now is only the ten foreign evidence blocks.
+
+`G084` was one phrase. `pre-existing-deferral-guard.sh` flagged `report.md:3578`, an enumeration
+in `### Audit Evidence` whose wording matched a deferral phrase while asserting the exact
+opposite of deferral. The guard's own remediation permits inline backticks for enumeration prose,
+and that is the whole of the change; the sentence's meaning is untouched. It now reports
+`violations=0`:
+
+```
+$ bash .github/bubbles/scripts/pre-existing-deferral-guard.sh specs/025-company-multi-horizon-intelligence-lab
+pre-existing-deferral-guard: specDir=specs/025-company-multi-horizon-intelligence-lab scannedFiles=1 violations=0
+PASS Gate G084 (pre_existing_deferral_block_gate) — scannedFiles=1 violations=0
+exit code 0
+```
+
+`G088` refuses a `done` state.json that carries no top-level `certifiedAt`. It passed on the
+second reading only because this pass had written `certifiedAt` alongside `status` to take that
+reading. Both writes were reverted when the lint refused, so the file on disk again carries
+`in_progress` and a null `certifiedAt`, and `G088` is not an obstacle in its own right.
+
+### The certification decision, and the rule it rests on
+
+**This pass does not certify. `status` stays `in_progress`.** Two independent findings each carry
+that verdict on their own.
+
+**First: the artifact lint does not reach zero.** Ten evidence blocks remain below the legitimacy
+bar, and every one of them sits in a section another phase authored. The transition guard cannot
+return `verdict: PASS` while `artifact-lint.sh` exits 1, and this phase cannot clear those ten
+without editing six other agents' evidence records.
+
+*(Superseded 2026-08-24 — the first of the two findings is closed. `artifact-lint.sh` was run
+against this spec directory on 2026-08-24 and exited 0, reporting all 106 evidence blocks in
+`report.md` as legitimate, and the same result held on a throwaway copy with `status` and
+`certification.status` flipped to `done`. The transition guard returned `verdict: PASS` in the same
+session. The ten blocks were cleared by their own authors. The second finding below is not affected
+by this note, and this pass takes no position on it.)*
+
+**Second, and the finding that matters more: `BUG-018` is open on this feature's own delivered
+surface.** `specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact` has three
+scopes. Scope 1 is `Done`. Scope 2, "Stop Asserting Absence The Route Has Not Established", and
+Scope 3, "Close The Structural Test Gap", are both `Not Started`, and Scope 2 records itself as
+`Blocked on: design.md open question 1, a product decision`. The defect it describes is that
+`company-intelligence-lab.html` prints `N of 15 mandatory dimensions have no usable source in this
+run` together with four settled horizon directions on a paint that precedes the corpus request. In
+that window the route states an absence it has not established.
+
+The governing rule is not a preference of this phase.
+`.github/instructions/product-principles.instructions.md` applies to every path in this repository
+and lists, under **Blocking Patterns**, `missing data rendered as zero, neutral, or inferred`, and
+under **UI And Data Checks**, `Missing data renders as unavailable or incomplete, never as zero or
+a plausible placeholder`. A settled-absence sentence rendered during an unresolved window is
+precisely a plausible placeholder standing in for missing data.
+
+This feature's own Outcome Contract says the same thing in its own words. Its hard constraint
+**Absence is a first-class outcome** requires that a dimension with no source publish `unavailable`
+with a reason and never publish an estimate dressed as an observation. A definite count asserted
+before the corpus resolves is an estimate dressed as an observation. Gate `G070` governs the
+consequence: a hard constraint violated on the delivered surface fails validation regardless of
+how many suites report zero failures, and this feature's own failure condition opens by saying
+that the feature has failed even when every test passes.
+
+The product decision that Scope 2 waits on is a real and legitimate open question about wording.
+It is not, however, a reason to certify the surface in the state the open question describes. The
+two honest positions available are that the defect is fixed, or that `status` is not `done`. This
+pass takes the second.
+
+```
+$ python3 -c "import json,sys;s=json.load(open('specs/025-company-multi-horizon-intelligence-lab/state.json'));print(s['status'],s['certification']['status'])"
+in_progress in_progress
+$ git diff --name-only specs/025-company-multi-horizon-intelligence-lab/state.json
+(no output: state.json is byte-identical to HEAD)
+exit code 0
+```
+
+**Nothing certified by this pass.** No `status` set to `done`, no `certifiedAt` written, no
+`certification.status` promoted, no `uservalidation.md` item touched.
+
+---
+
+## Stale-Claim Reconciliation — 2026-08-23 Docs Pass
+
+Three narratives in this report asserted a repository state that had since moved.
+Each is corrected here by marking the superseded claim, stating what is true now,
+and citing a re-execution performed by this pass rather than relayed from
+another. **No original reasoning was deleted.** In every case the reasoning about
+why this feature declined to adopt a foreign failure, or judged a baseline stale,
+is the part of the record that stopped the issue being papered over, so it is
+preserved verbatim at its original site with a dated marker attached.
+
+The one file this pass modified is this `report.md`. No product file, no test
+file, no `spec.md`, `design.md`, `scopes.md`, `uservalidation.md` or `state.json`
+was touched, no DoD row was ticked, and no certification field was written.
+
+### OBS-1 — the "one red selftest assertion" narrative no longer describes a stable state
+
+The [Test Phase Evidence](#test-phase-evidence--gate-execution-pass-by-bubblestest)
+section was built on the premise that exactly one selftest assertion was failing
+and that the failure belonged to another feature, so check (c) of its four-part
+gate was satisfied by *attributing* that residual `✗` to a named foreign owner
+with zero contributing sites here. `bubbles.test` recorded the supersession
+inside its own evidence block; the prose and the gate table around it were
+outside that pass's edit boundary and still read as though that particular
+attribution were still being carried.
+
+The premise no longer holds, and it does not hold in a single direction. This
+pass observed the selftest three times and reports all three, in order, rather
+than only the reading that matches the brief it was given.
+
+**Reading 1 — exit 1, before this pass repaired anything.** The brief predicted
+`3404 passed, 0 failed` at exit `0`. That is not what the first run produced:
+
+```text
+# OBS-1 reading 1: repository selftest, 2026-08-23, before the OBS-4 repair
+$ node scripts/selftest.mjs
+exit code: 1
+Research-Lab self-test: 3403 passed, 1 failed
+✗ FAIL: no active tests/*.mjs path named by a spec artifact is missing outside
+  the frozen baseline; planned-not-authored paths remain visible non-failing
+  debt (3 new, 3 planned, 70 known-missing, 0 stale of 266 referenced)
+```
+
+That difference is the finding, and its cause was this report itself: three
+reference sites, all inside this file, written up as OBS-4 below.
+
+**Reading 2 — exit 0, after the OBS-4 repair.**
+
+```text
+# OBS-1 reading 2: repository selftest, 2026-08-23, after the OBS-4 repair
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3871
+sha256: b2b7fdf39b59f7ed1e39156802263d51ef22a8ae293e4eb5a63398a69d0886b4
+================================================
+Research-Lab self-test: 3404 passed, 0 failed
+================================================
+
+$ grep -c '✗' /tmp/rl025-obs-selftest2.log
+0
+```
+
+<!-- verify: bash .github/bubbles/scripts/evidence-capture.sh --verify b2b7fdf39b59f7ed1e39156802263d51ef22a8ae293e4eb5a63398a69d0886b4 -- node scripts/selftest.mjs -->
+
+**Reading 3 — exit 1 again, minutes later, on foreign work.** A concurrent
+session pasted the same validator diagnostic into its own report and reproduced
+the identical defect there:
+
+```text
+# OBS-1 reading 3: repository selftest, 2026-08-23, same session, later
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3880
+sha256: bfa1b616bac829ae1bf03cd87557e90e2750316a298d955be5323e3ab6aef1e8
+================================================
+Research-Lab self-test: 3403 passed, 1 failed
+================================================
+
+$ node scripts/validate-spec-test-paths.mjs
+exit code: 1
+[spec-test-paths] ... plannedMissing=3 baseline=70 new=3 stale=0
+  6 reference site(s), every one of them at
+      specs/024-social-security-and-medicare/scopes/05-route-and-integration/report.md
+  sites under specs/025-company-multi-horizon-intelligence-lab: 0
+```
+
+**Claim Source:** executed. All three readings were run unfiltered; readings 2
+and 3 carry re-derivable capture hashes.
+
+**What this means for check (c), stated precisely.** Check (c) held in every one
+of the three readings, and `sites_under_spec_025` measured `0` in all three. It
+held vacuously in reading 2, where the residual set was empty and there was
+nothing to attribute; a check phrased as "every residual `✗` is attributed to a
+named foreign owning spec" is satisfied by absence when no residual exists, and
+the gate row now says so instead of reading as though an attribution were still
+being carried. It held by attribution in readings 1 and 3 — except that in
+reading 1 the owner was **this feature**, which is why the repair in OBS-4 was
+mandatory rather than optional, and in reading 3 the owner is
+`specs/024-social-security-and-medicare`, a family this feature must leave
+byte-unchanged.
+
+**What is superseded** is the specific attribution the original section carried:
+the absent market-brief cockpit path owned by
+`specs/026-actionable-brief-brevity-and-cross-asset`, and its 38-site reference
+table. That path is not in the finding set in any of the three readings above.
+
+**What is not superseded** is the reasoning. The decision not to create a foreign
+file in order to turn a number green, and the decision to disclose and route the
+failure rather than absorb it, are exactly what this pass had to repeat when
+reading 3 landed on `specs/024`. That reasoning is preserved verbatim at its
+original site for that reason.
+
+**One further honesty note.** This repository's selftest is not deterministic
+while other sessions are writing to the same tree, and this pass demonstrated it
+directly: exit 0 and exit 1 within minutes, with no change to this feature's own
+code or tests in between. That property is already recorded elsewhere in this
+report. It is repeated here because a certification decision that rests on a
+single green reading of this command rests on a reading that another session can
+invalidate without touching this feature.
+
+### OBS-3 — the gaps-phase STALE-BASELINE citation no longer holds
+
+The [gaps-phase](#baselines-re-run-after-the-change) narrative stated that
+`validate-spec-test-paths` "now reports `STALE-BASELINE` rather than a missing
+path". `bubbles.gaps` recorded the superseding reading inside the evidence block
+it raised, but the prose above that block was not swept and still asserted the
+`STALE-BASELINE` condition as current.
+
+Re-executed by this pass:
+
+```text
+# OBS-3 re-execution: spec-test-path validator, 2026-08-23
+$ node scripts/validate-spec-test-paths.mjs
+exit: 0
+lines: 5
+sha256: 2d62a8a522f53cdf4047aed9c16692a367637ec03e76218cdd676ab3d799afb9
+counts line: [spec-test-paths] scanned=748 references=17275 distinctPaths=266
+  missingPaths=73 plannedMissing=3 baseline=70 new=0 stale=0
+closing line: [spec-test-paths] OK — no new missing test path(s)
+```
+
+<!-- verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 2d62a8a522f53cdf4047aed9c16692a367637ec03e76218cdd676ab3d799afb9 -- node scripts/validate-spec-test-paths.mjs -->
+
+**This is a labelled summary, not a verbatim paste, and the reason is the defect
+in OBS-4.** The three `PLANNED-MISSING` lines the validator prints name their
+paths as literal `tests/*.mjs` strings, and the repository path scanner counts
+any such literal inside a spec artifact as a reference site for it. The three
+omitted tokens are the portfolio doc-integration functional spec, the portfolio
+survival accessibility spec and the portfolio test-integrity unit spec, all owned
+by `specs/008-portfolio-survival-and-brief-lab`, which declares them
+planned-not-authored. The command, exit code, line count, counts line and closing
+line are carried through unchanged, and the sha256 binds this summary to the
+complete output it summarises.
+
+**Claim Source:** executed.
+
+`stale=0`, so there is no `STALE-BASELINE` condition to cite. That is the claim
+being corrected, and it is stable: `stale=0` in every reading this pass took,
+including the later reading in which the validator exited `1` on three `new`
+paths referenced entirely from `specs/024-social-security-and-medicare` (OBS-1
+reading 3). The exit code of this validator moves with concurrent work; the
+`stale` count did not. The original paragraph's other two claims — that the
+failure set moved under concurrent sessions, and that this feature's contribution
+to it is exactly zero — were re-checked and both still hold, so only the
+`STALE-BASELINE` clause is marked.
+
+### OBS-4 — this report's own gaps-phase paste was failing the repository selftest
+
+Surfaced by this pass rather than found in the brief, and reported here rather
+than fixed silently, because it is a live defect and not a stale narrative.
+
+The gaps-phase evidence block pasted the validator's output verbatim, including
+its three `PLANNED-MISSING` diagnostic lines. Those lines name three `tests/*.mjs`
+paths as literal strings. The repository path scanner treats any such literal
+inside a spec artifact as a claim that the path exists, so the paste made this
+report the **sole** reference site for three paths that do not exist. The
+validator counted them as `new`, refused, and took the repository selftest red
+with it:
+
+```text
+# OBS-4 cause, measured before the repair
+$ node scripts/validate-spec-test-paths.mjs
+exit code: 1
+[spec-test-paths] ... plannedMissing=3 baseline=70 new=3 stale=0
+  NEW-MISSING <portfolio doc-integration functional spec> (1 reference site(s))
+      referenced at specs/025-company-multi-horizon-intelligence-lab/report.md:2754
+  NEW-MISSING <portfolio survival accessibility spec> (1 reference site(s))
+      referenced at specs/025-company-multi-horizon-intelligence-lab/report.md:2755
+  NEW-MISSING <portfolio test-integrity unit spec> (1 reference site(s))
+      referenced at specs/025-company-multi-horizon-intelligence-lab/report.md:2756
+[spec-test-paths] FAIL — 3 new referenced path(s) do not exist
+```
+
+**Claim Source:** executed. The three path literals are described rather than
+written, for the same reason as everywhere else in this report; the site line
+numbers are quoted verbatim.
+
+This is the third occurrence of the same defect class in this file, and the
+repair follows the convention the file already established for the other two. The
+verbatim paste was **not** hand-edited line by line — silently altering captured
+output would be an anti-fabrication violation. It was converted to a labelled
+summary that carries the command, the exit code, the counts line and the closing
+line unchanged, describes the three path literals instead of naming them, and
+discloses plainly that the tokens are withheld and why. The original paste
+remains recoverable from this file's git history.
+
+The repair was measured, not assumed:
+
+| | before repair | after repair |
+| --- | --- | --- |
+| `validate-spec-test-paths` `new` | 3 | **0** |
+| `validate-spec-test-paths` exit | 1 | **0** |
+| reference sites under `specs/025-*` | 3 | **0** |
+| `selftest.mjs` | `3403 passed, 1 failed`, exit 1 | **`3404 passed, 0 failed`, exit 0** |
+
+Both after-repair rows are the executions cited as readings 2 and 3 under OBS-1,
+with their hashes. `Regression: SCN-025-CANARY`, the assertion that exists to go
+red if this feature's shared-surface append broke a pre-existing assertion, is
+green in every reading.
+
+The repository selftest went red again shortly afterwards, on `specs/024`
+reproducing this identical paste defect in its own report. That is recorded as
+OBS-1 reading 3 and is not a regression of this repair: the reference sites this
+repair removed stayed removed, and `sites_under_spec_025` measured `0` in that
+reading too.
+
+**Consequence for check (c).** Before this repair, check (c)'s clause "with zero
+contributing sites here" was false: this feature had three. After it, the clause
+is true in every reading OBS-1 records. Had the repair not been made, certifying
+this feature would have meant certifying a report whose own evidence paste was
+the single cause of a red repository selftest.
+
+---
+
+## Stale-Claim Class Sweep — 2026-08-24
+
+Four consecutive passes each found one more instance of the same defect in this
+file, because each was scoped to a section rather than to the defect. This pass
+was dispatched to sweep the class instead of the next instance, so it enumerates
+the whole file first and reports what it judged accurate as well as what it
+marked.
+
+**The class.** A claim in this report that asserts a *current* selftest, suite,
+lint or guard state — a tally, an exit code, a "the one residual failure"
+attribution, a present-tense restatement — where that state has since moved. A
+tally recorded as an observation of a named run is not in the class. A tally
+recorded as a standing property is.
+
+**The one file this pass modified is this `report.md`.** No product file, no test
+file, no `spec.md`, `design.md`, `scopes.md`, `uservalidation.md` and no
+`state.json` was touched, no DoD row was ticked, and no certification field was
+written. No original reasoning was deleted; every correction is a dated marker
+beside the claim it supersedes.
+
+### How the file was enumerated
+
+Not by reading for stale-sounding prose. The file was scanned mechanically for
+the shapes the class takes, with fenced evidence blocks and evidence tables
+excluded so that historical captures were not mistaken for standing claims, and
+every surviving hit was then read in context and judged individually.
+
+```text
+# class enumeration over report.md — prose only, fenced blocks and tables excluded
+$ node -e '<scan: split on ```, skip fenced regions and | table rows, match
+    tally / exit-code / is-red / remains-green / now-exits shapes>'
+NON-FENCE NON-TABLE HITS = 62
+exit code: 0
+```
+
+Sixty-two prose hits, triaged below into fifteen class instances and the
+remainder judged accurate.
+
+### Instances found, and their disposition
+
+| # | Site | Claim as written | Disposition |
+| --- | --- | --- | --- |
+| C-01 | Scope 3, `Row 3.7 — the canary, exit 1 with two foreign failures` | heading and body assert two *remaining* failures and forward to an open finding | **Marked.** That finding is closed in place; row 3.7 later reached exit 0 |
+| C-02 | `Unresolved Finding — The Canary Row Is Red On Foreign Work` | heading asserts an unresolved red state | **Marked.** The section closes itself further down; the heading alone misleads. Heading text left intact because other sections link to the anchor |
+| C-03 | `The One Red Selftest Assertion Is Foreign, And This Phase Confirmed It Again` | `exits 1 with 2868 passed, 1 failed`, present tense | **Marked.** This is the instance the dispatch named, and the reason a section-scoped fix keeps producing a next instance |
+| C-04 | same section, path-token paragraph | `the assertion remains red and remains foreign-owned` | **Marked.** The surviving clause is the zero-contribution one |
+| C-05 | same phase, `DoD Rows This Phase Moved` | `Scope 1 now stands at 36 of 38`, selftest half `held red` | **Marked.** A later pass recorded 38 of 38, and nothing is held red by that path |
+| C-06 | `Path-Token De-Pollution`, before/after table and the paragraph under it | `31 of them sit inside a family the Change Boundary forbids` | **Marked.** The count has gone to zero; the `8 → 0` row is the one this feature owns |
+| C-07 | `Re-Confirmed This Pass` | `now exits 0 with zero failing assertions` | **Marked.** This was itself a *repair* that pinned a new absolute state, and it went stale within minutes |
+| C-08 | same section | `the count moved … to 3404 passed, 0 failed now` | **Marked.** "now" reattached to the instant of its capture |
+| C-09 | `What This Pass Did Not Do` | `The unit suite now reports 67 tests` | **Marked.** Observed at 90 on 2026-08-24 |
+| C-10 | gaps phase, validator re-execution | `the validator now reports new=0 stale=0 and exits 0` | **Marked.** Its exit code moves with concurrent work; `stale=0` and zero spec-025 sites do not |
+| C-11 | `Stale ticks, and why none was removed` | `The suite now reports 70` | **Marked.** Second restatement of a total to go stale; observed at 90 |
+| C-12 | `The single selftest failure is foreign, and here is the proof` | `green by elimination of the single red line` | **Marked.** No residual line in any 2026-08-24 reading |
+| C-13 | `VAL-025-F4` guard note | `The guard's exit 1 is the correct state` | **Marked.** Guard observed at `verdict: PASS`, exit 0 |
+| C-14 | `VAL-025-F5` | `Row 2.13 remains RED … the browser suite therefore exits 1` | **Marked.** Row 2.13 passes; suite exit 0 |
+| C-15 | validate phase, certification refusal | `the artifact lint does not reach zero`, `ten evidence blocks remain` | **Marked.** Lint exits 0 with 106 legitimate blocks |
+
+Judged **still accurate**, and why, so the reader can see what was considered
+rather than only what was changed:
+
+| Site | Why it is not an instance |
+| --- | --- |
+| `Foreign Failure Note — The Two Red Assertions Were Not This Feature's` | Records three readings in the past tense, names the disagreement between them explicitly, and states that a selftest result here is a reading and not a durable property. This is the form the rest of the file is being moved toward |
+| Every per-scope gate-exit table | Scoped by construction to the run that produced it; the exit codes are captures, not standing claims |
+| `Uncertainty Declarations` items | Each declaration is followed by the resolution that closed it, so no reader can take the open state as current |
+| `Row 4.8 is recorded at its real exit 1 rather than rounded to a pass` | Past tense about a recorded row, and the point of the sentence is the refusal to round |
+| `Unit count moved 67 → 68, selftest held at 3019 …` | Past tense, phase-scoped, and cited as a delta rather than a state |
+| docs-phase `3051 passed, 0 failed` narrative | Explicitly scoped: "held on every run in this phase" |
+| chaos-phase `round 2 passed all 8 journeys with exit 0` | Past tense about a named harness round |
+| `Read this table as what that pass observed on that day` | Already carries the exact disclaimer this sweep is propagating |
+| `git check-ignore exits 1`, `grep -c exits 1` | Exit codes of assertions about file contents, not suite state |
+
+### This pass's own selftest observations
+
+Run repeatedly, on purpose, because a single reading is what produced several of
+the instances above.
+
+```text
+# spec-025 class sweep — repository selftest, four consecutive observations
+$ date -u +%Y-%m-%dT%H:%M:%SZ
+2026-08-24T04:37:26Z
+$ node scripts/selftest.mjs        # observation A
+exit: 0   lines: 3871   Research-Lab self-test: 3404 passed, 0 failed
+sha256: 4edc9c839f2196c9b826cfeee1d75d07640e79f7a978d419ad7b16d93e6f99f4
+$ node scripts/selftest.mjs        # observation B, 04:38:06Z
+exit: 0   lines: 3871   Research-Lab self-test: 3404 passed, 0 failed
+sha256: 3ca5ace3ea731a18f08cef2d368ad8fb903f8fbf198e00d32ebcfe9777e54750
+$ node scripts/selftest.mjs        # observations C and D
+C exit=0   D exit=0
+$ grep -c '✗' <C> <D>
+0
+0
+```
+
+**Claim Source:** executed.
+
+Four observations, all exit 0, all `3404 passed, 0 failed`, all with zero `✗`
+lines. **This pass did not reproduce the exit-1 readings recorded under OBS-1**,
+and says so plainly rather than presenting agreement it did not observe.
+
+### Two disagreements worth recording
+
+**First: agreeing runs, disagreeing hashes.** Observations A and B returned the
+same exit code, the same line count and the same summary line, and different
+capture hashes. Diffing two raw runs isolates the cause, and it is not
+concurrency:
+
+```text
+# why two identical-looking selftest runs hash differently
+$ diff <run C> <run D>
+55,56c55,56
+<   ✓ scaled Student-t(5) variance ~ 1 (preserves target sigma), got 0.998
+<   ✓ scaled Student-t(5) kurtosis > 3 (fat tails), got 9.71
+---
+>   ✓ scaled Student-t(5) variance ~ 1 (preserves target sigma), got 0.999
+>   ✓ scaled Student-t(5) kurtosis > 3 (fat tails), got 7.11
+1681c1681
+< (node:11558) ExperimentalWarning: localStorage is not available …
+---
+> (node:19140) ExperimentalWarning: localStorage is not available …
+diff_exit=1
+```
+
+Two assertion lines print statistics from a fresh random draw, and one warning
+line carries the process id. So the selftest's output is nondeterministic in
+content on a *quiet* tree, independently of the concurrent-editing
+nondeterminism this report already records.
+
+**Second, and the consequence: a selftest capture hash cannot be re-derived.**
+This pass tested its own hash, recorded ninety seconds earlier:
+
+```text
+# does a selftest capture hash actually verify?
+$ bash .github/bubbles/scripts/evidence-capture.sh --verify \
+    4edc9c839f2196c9b826cfeee1d75d07640e79f7a978d419ad7b16d93e6f99f4 -- node scripts/selftest.mjs
+[evidence-capture] MISMATCH
+  recorded: 4edc9c839f2196c9b826cfeee1d75d07640e79f7a978d419ad7b16d93e6f99f4
+  observed: b3b484030783e1189b7334f30f0b99ba1aff3aa3fcf2f56841c91eb456cf080a
+exit code: 1
+```
+
+**Claim Source:** executed.
+
+Recorded as a finding rather than suppressed. Several `<!-- verify: … -- node
+scripts/selftest.mjs -->` markers in this file invite a reader to re-derive a
+hash that cannot re-derive, and a `MISMATCH` on one of them means the two
+sampled statistics moved, not that the evidence was fabricated. The hashes still
+do the work that matters — they bind a bounded block to the full output captured
+at that instant — but for this one command they are not a reproducibility claim.
+This pass does not edit those markers: they sit inside other phases' evidence
+records, and rewriting captured evidence is exactly the line this report has
+refused to cross elsewhere. It is disclosed here and left to their authors.
+
+### The state this pass actually measured
+
+Every row is an observation at the timestamp given, not a standing property.
+
+```text
+# spec-025 class sweep — surrounding surfaces, 2026-08-24
+$ node --test tests/company-intelligence.unit.mjs
+ℹ tests 90   ℹ pass 90   ℹ fail 0   ℹ skipped 0
+unit_exit=0
+$ npx --no-install playwright test tests/company-intelligence-lab.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list
+  ✓  30 … the route reaches its first paint from a file:// origin with no server
+        and no off-origin request (315ms)
+  39 passed (45.9s)
+browser_exit=0
+$ node scripts/validate-spec-test-paths.mjs
+[spec-test-paths] scanned=748 references=17283 distinctPaths=266 missingPaths=73
+  plannedMissing=3 baseline=70 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+vstp_exit=0
+$ grep -c '025-company-multi-horizon' <validator output>
+0
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/025-company-multi-horizon-intelligence-lab
+✅ All 106 evidence blocks in report.md contain legitimate terminal output
+Artifact lint PASSED.
+lint_real_exit=0
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/025-company-multi-horizon-intelligence-lab
+failedGateIds: []   failureCount: 0   verdict: PASS
+guard_exit=0
+```
+
+**Claim Source:** executed. The validator's three `PLANNED-MISSING` rows are
+withheld here for the reason OBS-4 gives: they name `tests/*.mjs` paths as
+literals, and pasting them would make this report a reference site for paths that
+do not exist. The command, exit code, counts line and closing line are carried
+through unchanged.
+
+The lint was also re-measured on a throwaway copy of this spec directory with
+`status` and `certification.status` flipped to `done`, because the block-legitimacy
+gate only engages at a terminal status. That copy also reported all 106 blocks
+legitimate at exit 0, and was deleted. **This pass wrote no status anywhere.**
+`status` and `certification.status` in the real `state.json` remain
+`in_progress`; certification is `bubbles.validate`'s call.
+
+### The standing form of the attribution
+
+Stated once here so no later pass has to re-derive it from a tally:
+
+> Whether the repository selftest exits 0 is not a property this feature can
+> assert, because the file is shared and other sessions write to it. What this
+> feature can assert, and what has held in **every** reading recorded anywhere in
+> this report, is that **no failing site has ever belonged to
+> `specs/025-company-multi-horizon-intelligence-lab`**, and that
+> `Regression: SCN-025-CANARY` — the assertion that exists to go red if this
+> feature's shared-surface append broke a pre-existing one — has printed green in
+> every one of them.
+
+That claim survives a moving tree. A tally does not. Any future pass that needs
+to record a number should record it the way the rows above do: with the command,
+the exit code and the timestamp attached, and no verb in the present tense.
+
+### Is the class exhausted in this file?
+
+This pass believes so, and states what it did to establish that rather than
+asserting it. The file was enumerated mechanically rather than by reading, over
+the shapes the class takes, with evidence blocks and tables excluded so historical
+captures were not confused with standing claims; all sixty-two prose hits were
+triaged individually; fifteen were marked and the rest are listed above with the
+reason each was judged accurate. Every claim whose truth this pass could measure —
+unit suite, browser suite, selftest, spec-test-path validator, artifact lint,
+transition guard — was re-executed rather than reasoned about.
+
+Two honest limits. The enumeration keys on the vocabulary this file happens to
+use for suite state, so a claim phrased in some other vocabulary could survive it.
+And several of the markers this pass added describe surfaces that other sessions
+are still writing, so a marker can go stale the same way the claim under it did —
+which is why they are written as attributions and dated observations rather than
+as replacement tallies.
+
+**Educational research only. Not investment advice.**
+
+## Certification — `bubbles.validate`, 2026-08-24
+
+**Executed: YES.** Phase agent: `bubbles.validate`.
+
+Both prior passes refused, and both refusals were correct. Pass 1 established
+that a prospective `--target-status done` check is not evidence, because the
+lint's own sub-checks branch on the *current* status. This pass therefore
+certified the only way that finding permits: `status: done` was written into
+`state.json` first, and both gates were then re-run against it.
+
+### Validation Evidence
+
+The gates, with `done` actually written:
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/025-company-multi-horizon-intelligence-lab
+✅ Detected state.json status: done
+✅ DoD completion gate passed for status 'done' (all DoD checkboxes are checked)
+✅ Strict mode completedPhases includes 'validate'
+✅ Strict mode completedPhases includes 'audit'
+✅ Strict mode completedPhases includes 'chaos'
+✅ All 4 scope(s) in scopes.md are marked Done
+✅ All 111 evidence blocks in report.md contain legitimate terminal output
+✅ No narrative summary phrases detected in report.md
+Artifact lint PASSED.
+lint_at_done_exit=0
+
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/025-company-multi-horizon-intelligence-lab
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+guard_at_done_exit=0
+```
+
+**Claim Source:** executed.
+
+That the write changed what was *checked*, rather than only what was reported,
+was itself measured. Counting the lint's own check lines before and after the
+write: 33 at `in_progress`, 79 at `done`. The forty-six gates that fire only at
+`done` — the DoD completion gate, the three strict-mode phase gates, the twelve
+required-specialist-phase gates, the strict section gates over Validation,
+Audit and Chaos evidence, and the 111-block evidence check — all passed. `G084`
+and `G088`, recorded as failing at one point during pass 2, are both present in
+`passedGateIds`. So is `G136`, the human-acceptance gate, which
+`uservalidation.md` satisfies with a `## Human Acceptance Record` this pass read
+and did not write.
+
+### The suites, re-measured rather than inherited
+
+```text
+$ node --test tests/company-intelligence.unit.mjs
+ℹ tests 90   ℹ pass 90   ℹ fail 0   ℹ skipped 0   ℹ todo 0
+unit_exit=0
+
+$ npx --no-install playwright test tests/company-intelligence-lab.spec.mjs \
+    tests/chaos-company-intelligence.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list
+  50 passed (47.3s)
+browser_exit=0
+
+  (split, run separately)
+  tests/company-intelligence-lab.spec.mjs      39 passed (46.2s)  exit=0
+  tests/chaos-company-intelligence.spec.mjs    11 passed (17.8s)  exit=0
+
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3404 passed, 0 failed
+selftest_exit=0
+```
+
+**Claim Source:** executed.
+
+The 39 confirms the `37 → 39` growth BUG-018 claims for its regression case.
+
+### BUG-018: the recorded decision was checked against the shipped code
+
+The decision recorded in the bug's `design.md` was not taken on trust. Option A
+is in `rlcompanyintel.js` as
+`buildCoverageAccount(reads, registry, corpusReadiness)`, with the third
+argument optional, defaulting to `established` when omitted, refused with
+`C025-READ-CONTRACT` when outside the closed set, and carried onto the account
+as `readiness` — additive, exactly as recorded. Option B is the single line
+`corpusStatus === "pending" ? "not-established" : "established"`, which
+withholds only while genuinely pending; `loadCorpus()` resolves to `loaded` or
+`unavailable` and never leaves `pending`, so the offline first paint is intact
+for the reason the decision gives. The render sites read
+`version.coverageAccount.readiness`, not the module-scope variable, which is the
+distinction the decision says the attribute pair cannot express. The documented
+predicate in the route matches the decision verbatim. **The decision and the
+code agree; this is not a finding.**
+
+### Finding VAL-025-F5 — the `verify:` markers over-promise more broadly than disclosed
+
+Recorded, not repaired: these markers sit inside other phases' evidence records.
+
+```text
+$ bash .github/bubbles/scripts/evidence-capture.sh --verify 8d35…fbd0 -- node scripts/selftest.mjs
+[evidence-capture] MISMATCH
+verify_selftest_exit=3
+
+$ bash .github/bubbles/scripts/evidence-capture.sh --verify e96f…b4d1 -- node --test tests/company-intelligence.unit.mjs
+[evidence-capture] MISMATCH
+verify_unit_exit=3
+
+$ bash .github/bubbles/scripts/evidence-capture.sh --verify 2d62…afb9 -- node scripts/validate-spec-test-paths.mjs
+[evidence-capture] MISMATCH
+verify_validator_exit=3
+```
+
+**Claim Source:** executed.
+
+The earlier disclosure named the selftest markers. Measured here, **all six**
+markers in this file are un-re-derivable, for three distinct causes. The
+selftest embeds two freshly drawn statistics and a pid. The test-runner captures
+embed elapsed times. The validator capture is self-referential: its output is
+pasted into a file the validator scans, so its own `references=` count moves
+when the paste lands. Three of the six additionally cite
+`bubbles/scripts/evidence-capture.sh`, which is the framework-source path and
+does not exist in this downstream repository.
+
+This is an affordance defect, not a fabrication one. A capture hash binds a
+bounded excerpt to the full output produced at that instant, and that binding
+holds regardless of determinism; only the reproducibility reading fails. The
+tool's own mismatch text — *"Either the behaviour changed or the recorded
+evidence never came from this command"* — is what makes the over-promise costly,
+because for these commands neither disjunct is true. Severity low; owner
+`bubbles.docs`, since the markers are documentation about evidence rather than
+evidence.
+
+### The selftest nondeterminism, characterized rather than asserted
+
+```text
+$ for i in 1 2 3; do node scripts/selftest.mjs; done
+run1 exit=0   3404 passed, 0 failed
+run2 exit=0   3404 passed, 0 failed
+run3 exit=0   3404 passed, 0 failed
+
+$ diff run1 run2
+55,56c55,56
+<   ✓ scaled Student-t(5) variance ~ 1 (preserves target sigma), got 0.994
+<   ✓ scaled Student-t(5) kurtosis > 3 (fat tails), got 7.75
+---
+>   ✓ scaled Student-t(5) variance ~ 1 (preserves target sigma), got 1.003
+>   ✓ scaled Student-t(5) kurtosis > 3 (fat tails), got 8.03
+1681c1681
+< (node:9148) ExperimentalWarning: localStorage is not available…
+---
+> (node:46527) ExperimentalWarning: localStorage is not available…
+diff_exit=1
+```
+
+**Claim Source:** executed.
+
+Exactly three lines vary; line count is identical at 3871 across all three runs;
+the verdict is identical. The variance is confined to two tolerance assertions
+over a random draw and one pid. It does not reach the pass/fail decision, and
+the suite carries its own harness assertion proving a real outcome change still
+discriminates. This is why the nondeterminism does not block: it degrades a
+reproducibility *affordance*, and leaves the *verdict* — which is what
+certification rests on — stable under repetition.
+
+**Educational research only. Not investment advice.**
+
 
 
 

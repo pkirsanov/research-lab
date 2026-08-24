@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs
 in [report.md](report.md).
 
-**Status:** In progress — contract layer delivered, route layer not started
+**Status:** In Progress (deliverables and tests verified; newly added planning rows unverified)
 **Scope-Kind:** capability-foundation
 **Tags:** `foundation:true`, `privacy-critical:true`, `deploy-gate:true`, `closed-vocabulary`, `named-refusal`
 **Depends On:** none — this is the only root scope
@@ -200,8 +200,29 @@ script under `scripts/brief-*` · `watchlist.json` ·
 **Dirty-work discipline:** capture a path-scoped `git status` and a zero-context
 diff before each allowed path. No formatter and no broad rewrite runs.
 
+**Allowed file families:** the *Allowed new* and *Allowed modified* paths named
+above, and nothing else.
+
+**Excluded surfaces:** the byte-identical list named above. Collateral cleanup
+outside the allowed families is opt-in and is not performed under this scope.
+
 **Rollback:** delete the new files, revert the two appended edits. No user
 storage key is deleted automatically.
+
+## Consumer Impact Sweep
+
+This scope fixes the route path, the configuration document name, the rule-pack
+path grammar and the `RLTAX-*` refusal identifiers. Any rename, move or removal
+of one of those identifiers reaches the surfaces below, and each surface is
+swept before the scope closes.
+
+| Consumer surface | What a rename or removal would break | Sweep proof |
+| --- | --- | --- |
+| Site navigation (`rlnav.js`), `index.html`, `tools.json` | This route is deliberately unregistered, so a rename must leave all three byte-identical rather than update them | Path-scoped `git status --porcelain` over the three returns no rows |
+| In-page deep links and breadcrumb anchors | A renamed anchor id leaves an unreachable deep link | Every anchor the page emits is resolved in the browser row rather than assumed |
+| The page's own module `src` list and its API client reads | A moved module or pack path turns a declared read into an unresolved request | The declared-read canary fails on any declared read that does not resolve |
+| Redirect and deploy-decision entries (`site-exclusions.json`) | A moved page loses its deploy decision | The pages-site build refuses an unregistered root page that carries no decision |
+| Documentation and notes (`README.md`, `notes/README.md`) | A renamed identifier leaves a stale reference | A repository-wide stale-reference scan for the old identifier returns zero first-party rows |
 
 ## Scenario-First Red/Green Contract
 
@@ -232,13 +253,18 @@ implementation, rerun the identical command for GREEN.
 | TP-01-15 | Broader Regression E2E | e2e-ui | SCN-021-001 … -003 | `lifetime-tax-foundation.spec.mjs` | Execute the complete cumulative Scope 01 browser suite over the real route with no request interception, no service worker and no external provider | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-00" --reporter=list` | Yes | `report.md#tp-01-15` |
 | TP-01-16 | Repo gate | unit | SCN-021-001 … -003 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-01-16` |
 | TP-01-17 | Path guard | unit | SCN-021-001 … -003 | `scripts/validate-spec-test-paths.mjs` | The spec-artifact test-path guard reports zero new missing paths for this scope's artifacts | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-01-17` |
-| TP-01-18 | Privacy E2E | e2e-ui | SCN-021-002 | `tests/lifetime-tax-foundation.spec.mjs` | GAP, NOT AUTHORED (opened 2026-08-22, F-REG-03). Route-wide title-versus-assertion mismatch. Three rows in the 021-024 privacy family really do constrain the origin of a ledger entry, each via `expect(ledger.filter((entry) => !entry.url.startsWith(site.baseUrl))).toEqual([])`: `SCN-021-003` (this scope's canary, `TP-01-14`), `SCN-022-007` and `SCN-022-013`. Six others carry the words "declared same-origin read" or "declared same-origin GET" in their persistent titles but assert only `new URL(entry.url).pathname` against `declaredRouteAssets()`, which returns bare paths: `SCN-021-015`, `SCN-023-001`, `SCN-024-001`, `SCN-024-009`, `SCN-024-010` and `SCN-024-014`. A read of `https://elsewhere.example/rltaxstrategy.js` has a declared pathname and would pass all six. The route-wide canary covers only the state that canary itself declares, so it does not stand in for the six. This scope owns the shared privacy contract, so the fix belongs here rather than being copied six times: fold the origin filter into the shared helper each row already calls. Adversarial case: a request whose pathname is declared but whose origin is not `site.baseUrl` must fail each of the six; today only the three named rows detect it | not authored | Yes | not authored |
+| TP-01-18 | Privacy E2E | e2e-ui | SCN-021-002 | `tests/lifetime-tax-foundation.spec.mjs` | CLOSED 2026-08-23 (opened 2026-08-22, F-REG-03). Route-wide title-versus-assertion mismatch. Three rows in the 021-024 privacy family really do constrain the origin of a ledger entry, each via `expect(ledger.filter((entry) => !entry.url.startsWith(site.baseUrl))).toEqual([])`: `SCN-021-003` (this scope's canary, `TP-01-14`), `SCN-022-007` and `SCN-022-013`. Six others carry the words "declared same-origin read" or "declared same-origin GET" in their persistent titles but assert only `new URL(entry.url).pathname` against `declaredRouteAssets()`, which returns bare paths: `SCN-021-015`, `SCN-023-001`, `SCN-024-001`, `SCN-024-009`, `SCN-024-010` and `SCN-024-014`. A read of `https://elsewhere.example/rltaxstrategy.js` has a declared pathname and would pass all six. The route-wide canary covers only the state that canary itself declares, so it does not stand in for the six. This scope owns the shared privacy contract, so the fix belongs here rather than being copied six times: fold the origin filter into the shared helper each row already calls. Adversarial case: a request whose pathname is declared but whose origin is not `site.baseUrl` must fail each of the six. CLOSURE: all six now project the ledger through `sameOriginPaths(ledger, site)`; the three converted on 2026-08-23 (`SCN-023-001`, `SCN-024-001`, `SCN-024-014`) each carry a probe in which a declared pathname served from an undeclared origin turns the row red. The three rows the gap classified as sound carried a narrower instance of the same defect — a bare prefix test, which `site.baseUrl + "@evil.example"` defeats because everything before an `@` is userinfo — so the helper gained a parsed-origin conjunct beside the prefix limb and those three were converted too. `SCN-021-002` holds the userinfo case so the added limb is asserted rather than merely present | `npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "SCN-021-002 the shared ledger helper refuses a declared pathname served from an undeclared origin" --reporter=list` | Yes | `report.md#f-reg-03-closed--the-remaining-three-rows-and-a-second-limb-the-first-one-needed-2026-08-23` |
 
 Before any browser row, run `node scripts/validate-node-source-lock.mjs` and
 `npx --no-install playwright --version`. These environment gates do not replace a
 Test Plan row.
 
 ### Definition of Done
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-021-001, SCN-021-002 and SCN-021-003 pass under the exact persistent titles this scope's Test Plan names, and each of those titles is present in the spec file rather than merely selected by `--grep`. Adversarial case: renaming or deleting one of those persistent titles must fail this row, so an empty grep selection can never be read as a pass.
+- [x] Broader E2E regression suite passes across the whole lifetime-tax browser family, not this scope's own spec file alone. Adversarial case: a change made inside this scope that reddens a sibling scope's persistent title must fail this row even while this scope's own rows stay green.
+- [x] Change Boundary is respected and zero excluded file families were changed, proven by a path-scoped `git status --porcelain` over the excluded surfaces plus an mtime comparison for any untracked excluded directory. Adversarial case: touching one excluded path must produce a row and fail this item; `git diff --quiet` alone is not accepted, because it reports an untracked path as unchanged.
+- [x] The Consumer Impact Sweep is complete for every renamed, moved or removed route, path, contract, identifier and UI target in this scope, and zero stale first-party references remain. Adversarial case: one stale reference left in navigation, a breadcrumb, a redirect, a deep link, an API client read or a doc must fail this row, and the proof must be a repository-wide stale-reference scan rather than a spot check.
 
 - [x] PRA-021-001 through PRA-021-010 are implemented: independent workspace
       contract, complete pack member set, jurisdiction/program/year resolution,
@@ -251,6 +277,19 @@ Test Plan row.
       evidence, recorded before the cumulative browser row.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` and the TP-01-15 cumulative browser command · **Evidence:** `report.md#tp-01-16-and-tp-01-15-earned--the-last-two-rows-without-a-red-2026-08-23`
   - **Claim Source:** executed · **Result:** all eighteen rows now carry an intended RED and a same-command GREEN. The two that did not are earned in this session and recorded in the report section named above: `TP-01-16` discriminates at exit `1` against `0` with the pinned assertion moving from `✗ FAIL` to `✓`, and `TP-01-15` discriminates at exit `1` against `0` with the pin on a marginal-spec scenario this scope does not own. Both reverts are hash-verified against the committed blob.
+  - **Amended 2026-08-23 (F-REG-03 closure).** One of the three limits the note
+    below carries forward is discharged, and the other two are not. `TP-01-14`'s
+    cross-origin arm now has a single-limb RED: routing the canary through
+    `sameOriginPaths` removes the shield that made it unfailable, because the
+    helper refuses on origin before it returns any pathname, so the
+    declared-path check can no longer absorb a cross-origin entry. The probe is
+    recorded at
+    `report.md#a-carried-forward-limit-that-this-dispatch-discharges--tp-01-14`.
+    `TP-01-04`'s zero-substituting half and `TP-01-08`'s forbidden-prefix limb
+    are untouched by that dispatch and remain open. `TP-01-18` is now CLOSED
+    rather than `GAP, NOT AUTHORED`: all six rows the finding named project the
+    ledger through the shared conjunct, and each of the three converted on this
+    date carries its own probe.
   - **Ticked 2026-08-23, superseding the two notes below.** The `TP-01-18` and
     `TP-01-17` gaps those notes record were already closed on 2026-08-22 and are
     unchanged. The two they left open are closed now. `TP-01-16`'s earlier exit-7

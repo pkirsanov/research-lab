@@ -7,9 +7,10 @@ import {
   collectConsole,
   collectRequests,
   declareOrdinaryHousehold,
-  declaredPackPaths,
+  declaredRouteAssets,
   openLifetimeTax,
-  openPower
+  openPower,
+  sameOriginPaths
 } from './lifetime-tax.support.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -20,16 +21,8 @@ const BENEFIT_PACK_PATH = 'tax-rules/benefit/2026.json';
 /* SUP-023-10, as replaced by SUP-024-09. See the companion definition in
    lifetime-tax-foundation.spec.mjs. The asset set the route may request is derived from the
    route's own declarations rather than pinned as a literal, and its pack half is derived from
-   every pack-path member the configuration declares rather than from a hand-listed key set. */
-function declaredRouteAssets() {
-  const routeSource = readFileSync(join(ROOT, 'lifetime-tax-strategy-lab.html'), 'utf8');
-  const config = JSON.parse(readFileSync(join(ROOT, 'lifetime-tax-strategy.config.json'), 'utf8'));
-  const scripts = Array.from(routeSource.matchAll(/<script src="([^"]+)"><\/script>/g))
-    .map((match) => '/' + match[1]);
-  const packs = declaredPackPaths(config).map((path) => '/' + path);
-  return ['/lifetime-tax-strategy-lab.html', '/lifetime-tax-strategy.config.json']
-    .concat(scripts).concat(packs).concat(['/favicon.ico']);
-}
+   every pack-path member the configuration declares rather than from a hand-listed key set. The
+   derivation itself is the shared one in lifetime-tax.support.mjs. */
 
 /* The fixture relief regimes. They carry invented figures and name no jurisdiction, no programme
    and no authority, so a branch that matched on a regime name would have nothing to match. Serving
@@ -332,9 +325,12 @@ test('Regression: SCN-023-001 the request ledger does not grow after first paint
      both were read before first paint. */
   expect(ledger.length).toBe(afterFirstPaint);
 
-  /* Every request the route did make is one the route itself declares. */
+  /* Every request the route did make is one the route itself declares, AND it came from the
+     route's own origin. F-REG-03: this row's title promises a declared same-origin read, and a
+     pathname sweep alone cannot keep that promise — `https://elsewhere.example/rltaxstrategy.js`
+     carries a declared pathname. The shared helper refuses on origin before it yields a pathname. */
   const permitted = declaredRouteAssets();
-  const paths = ledger.map((entry) => new URL(entry.url).pathname);
+  const paths = sameOriginPaths(ledger, site);
   paths.forEach((path) => expect(permitted).toContain(path));
   expect(paths).toContain('/' + FL_REGIME_PATH);
   expect(paths).toContain('/' + CA_REGIME_PATH);

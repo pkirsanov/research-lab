@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs in
 [report.md](report.md).
 
-**Status:** Done with concerns
+**Status:** In Progress (deliverables and tests verified; newly added planning rows unverified)
 **Scope-Kind:** runtime-behavior
 **Tags:** `foundation:true`, `two-origin-declaration:true`, `sourcing-gated:true`, `known-value-tested`
 **Depends On:** none
@@ -195,7 +195,7 @@ Scenario: SCN-024-003 Full retirement age, the early reduction and the delayed c
 | `rltax.js` leg set | The benefit leg added, derived from the pack | Scopes 02–05 and Features 021–023 reconciliation | High — a hardcoded leg list would silently drop every later leg | Assert Features 021 through 023 fixtures produce their exact prior leg sets before the benefit leg is added | Remove the leg from the pack's declared set |
 | The leg-census helper | Extended to name the failing surface | Scopes 02–05 | High — a helper that passes on an all-zero fixture proves nothing and would certify the exact defect it exists to catch | Assert the helper fails when the benefit leg is removed from each of the four surfaces in turn, on the all-non-zero fixture, naming the surface each time | Revert to the Feature 023 helper |
 | `rltaxworkspace.js` | Four declarations plus the privacy surface | Scopes 02–05 | High — an earnings record is a year-by-year employment history | Assert each new declaration is inventoried, cleared, redacted, and absent from every URL, request, referrer and console message, and assert the declared key count is unchanged | Remove the members |
-| `POWER_SECTION_IDS` and the withheld-link set | One section added | Scopes 02–05 | Low — both counts were converted to derived identities by SUP-023-05 and SUP-023-06 and absorb this growth | Assert the derived identity still holds in both directions with the new section present | Remove the section |
+| `POWER_SECTION_IDS` and the withheld-link set | One section added | Scopes 02–05 | Low — both counts were converted to derived identities by SUP-023-05 and SUP-023-06 and absorb this growth | Assert the derived identity still holds in both directions with the new section present | Remove the section id from the list and the withheld-detail link row that targets it |
 | `scripts/selftest.mjs` | One group appended plus SUP-024-01 | The whole-repo gate | Medium | Pre-existing pass count must not fall | Remove the group and revert the marker |
 
 ## Change Boundary And Protected Paths
@@ -237,10 +237,34 @@ must not require an income-tax pack edit; if it does, the benefit axis is not a
 seam. Scope 02 opens it for the inclusion policy, which is the first thing that
 genuinely belongs there.
 
-**Rollback:** delete `rltaxsocialsecurity.js`, the benefit pack and the fixtures;
-revert the two contracts, the `basisOrigin` enum, the sourced row lookup, stage
-`CO-20`, the benefit leg, the census extension and the workspace members; revert
-the page section; revert SUP-024-01 to its superseded clause.
+**Allowed file families:** the *Allowed new* and *Allowed modified* paths named
+above, and nothing else.
+
+**Excluded surfaces:** the byte-identical list named above. Collateral cleanup
+outside the allowed families is opt-in and is not performed under this scope.
+
+**Rollback:** delete the benefit pack and the fixtures; revert the two contracts,
+the `basisOrigin` enum, the sourced row lookup, stage `CO-20`, the benefit leg,
+the census extension and the workspace members; revert SUP-024-01 to its
+superseded clause. Reverting the page section is not one edit. It is eight sites
+in `lifetime-tax-strategy-lab.html`:
+
+1. the `power-benefit` band and all nine element ids it owns;
+2. the `rltaxsocialsecurity.js` script tag;
+3. the `power-benefit` member of `POWER_SECTION_IDS`;
+4. the withheld-detail link row that targets that section;
+5. the four `inputBenefit*` label blocks;
+6. the `renderBenefit` function and its call site;
+7. every remaining `inputBenefit*` read and write, including the declared-key
+   inventory entries;
+8. every `workspace.benefit*` read and write.
+
+Deleting `rltaxsocialsecurity.js` is not available to this rollback at all. The
+shipped settlement engine `rltax.js` requires the module, and `rltaxclaimage.js`
+requires it as well, so removing it breaks every `rltax` group in the repository,
+including groups belonging to Features 021 through 023, which predate this scope.
+The module can only be deleted together with those dependencies, which are
+outside this scope's Change Boundary.
 
 ## Assertion Supersession Owned By This Scope
 
@@ -267,6 +291,21 @@ scope. An assertion outside these two that fails is either a defect in this
 scope's change and is fixed, or a further ASC-8 admission recorded in the ledger —
 across all four surfaces — before the edit.
 
+## Consumer Impact Sweep
+
+This scope fixes the benefit pack path grammar, the `basisOrigin` enum members,
+the stage identifiers and the workspace member names. Any rename, move or
+removal of one of those identifiers reaches the surfaces below, and each
+surface is swept before the scope closes.
+
+| Consumer surface | What a rename or removal would break | Sweep proof |
+| --- | --- | --- |
+| The benefit pack path the route reads as an API client | A moved pack path turns a declared read into an unresolved request | The declared-read canary fails on any declared read that does not resolve |
+| The route's benefit section and its anchor ids | A renamed stage leaves the section unavailable instead of resolved | Every declared stage resolves to a rendered row in the browser row |
+| Deep links and breadcrumb anchors into that section | A renamed anchor id makes a shared deep link land on nothing | Every anchor the page emits is resolved rather than assumed |
+| Sibling scopes and fixtures that name the same enum or stage | A renamed member leaves a fixture asserting an identifier that no longer exists | An unknown enum member refuses by name rather than defaulting |
+| Documentation, notes and any redirect entry | A renamed identifier leaves a stale reference | A repository-wide stale-reference scan for the old identifier returns zero first-party rows |
+
 ## Scenario-First Red/Green Contract
 
 Add the named known-value assertion first, run the exact command, and confirm the
@@ -286,6 +325,7 @@ not satisfy RED.
 
 | ID | Type | Category | Scenario | File | Exact Behavior / Persistent Title | Command | Live System | Evidence Anchor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| TP-01-00 | Fixture Canary | unit | SCN-024-001 … -003 | `scripts/selftest.mjs` | Canary: the shared selftest harness plus this scope's own benefit-pack fixture files load and the pre-existing assertion count does not fall, run alone before any broad rerun. Adversarial case: a fixture whose contract changed must redden this row before the broad suite is re-run, so a broad green can never be the first signal | `node scripts/selftest.mjs` | No | `report.md#tp-01-00` |
 | TP-01-01 | Contract | unit | SCN-024-001 | `scripts/selftest.mjs` | `BenefitBasis/v1` refuses a `sourceRef` on a declared statement amount, and refuses a computed origin whose bend points carry no citation or no locator | `node scripts/selftest.mjs` | No | `report.md#tp-01-01` |
 | TP-01-02 | Refusal separation | unit | SCN-024-001 | `scripts/selftest.mjs` | Neither origin declared refuses `RLTAX-INPUT-INCOMPLETE` naming both accepted declarations; both declared refuses naming the ambiguity; the two are distinguished by contract shape and not by message text | `node scripts/selftest.mjs` | No | `report.md#tp-01-02` |
 | TP-01-03 | Adversarial | unit | SCN-024-001 | `scripts/selftest.mjs` | Regression: an implementation preferring the statement amount when both origins are declared is proven to fail, and the failure names the precedence it took | `node scripts/selftest.mjs` | No | `report.md#tp-01-03` |
@@ -320,6 +360,13 @@ not satisfy RED.
 A row is checked only when it is genuinely satisfied and was observed to be
 satisfied. A row that is not satisfied stays `[ ]` and carries a stated reason. If
 delivery makes a row's claim false, the row is corrected rather than checked.
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-024-001, SCN-024-002 and SCN-024-003 pass under the exact persistent titles this scope's Test Plan names, and each of those titles is present in the spec file rather than merely selected by `--grep`. Adversarial case: renaming or deleting one of those persistent titles must fail this row, so an empty grep selection can never be read as a pass.
+- [x] Broader E2E regression suite passes across the whole lifetime-tax browser family, not this scope's own spec file alone. Adversarial case: a change made inside this scope that reddens a sibling scope's persistent title must fail this row even while this scope's own rows stay green.
+- [x] Change Boundary is respected and zero excluded file families were changed, proven by a path-scoped `git status --porcelain` over the excluded surfaces plus an mtime comparison for any untracked excluded directory. Adversarial case: touching one excluded path must produce a row and fail this item; `git diff --quiet` alone is not accepted, because it reports an untracked path as unchanged.
+- [x] The Consumer Impact Sweep is complete for every renamed, moved or removed route, path, contract, identifier and UI target in this scope, and zero stale first-party references remain. Adversarial case: one stale reference left in navigation, a breadcrumb, a redirect, a deep link, an API client read or a doc must fail this row, and the proof must be a repository-wide stale-reference scan rather than a spot check.
+- [x] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns, run as its own command ahead of the whole-repository gate. Adversarial case: breaking one shared fixture contract must redden the canary first; a canary that stays green while the broad suite fails is itself a defect and fails this row.
+- [ ] Rollback or restore path for shared infrastructure changes is documented and verified by executing it, not by asserting that it exists. Adversarial case: a rollback that leaves the shared surface differing from its pre-change hash must fail this row.
 
 - [x] FR-024-001 and FR-024-002 are implemented: the declared origin refuses a
       citation, the computed origin requires one, neither-declared and
@@ -379,6 +426,17 @@ delivery makes a row's claim false, the row is corrected rather than checked.
     NOT constrain the origin of an entry — it compares `new URL(entry.url).pathname`
     only — so no same-origin claim is made here; that gap is carried by Feature
     021 Scope 01 `TP-01-18`.
+  - **Amended 2026-08-23 (F-REG-03 closure).** The final sentence above no
+    longer describes the row. `SCN-024-001` now projects the ledger through the
+    shared `sameOriginPaths(ledger, site)`, which refuses on origin before it
+    returns any pathname, so the row DOES constrain the origin of an entry. The
+    change is a conjunct rather than a replacement: every assertion and every
+    adversarial case listed above is unchanged. The new adversarial case is a
+    read whose pathname is declared but whose origin is not the route's, probed
+    at
+    `specs/021-lifetime-tax-strategy-lab/scopes/01-tax-workspace-rule-pack-and-privacy-foundation/report.md#the-decisive-probe--a-cross-origin-url-with-a-declared-pathname`.
+    The tick above is not withdrawn: its claim was about no-growth and declared
+    paths, both still executed and both now strictly better supported.
 - [x] NFR-024-011 holds: the new module is UMD, every pure analytic function is a
       top-level declaration the extractor lifts, `Number.isFinite` is used rather
       than the bare global, and no drawing is wrapped in `requestAnimationFrame`.

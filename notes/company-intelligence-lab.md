@@ -248,9 +248,15 @@ from the same frozen `company-read-version/v1`.
   `RLCOMPANY.buildAccessibleChartTable`. Below 600 CSS pixels the canvas hides
   and the table renders alone.
 - `body[data-run-status]` is one of `empty`, `composing`, `composed` or
-  `refused`. `body[data-coverage-unavailable]` carries the unavailable count.
-  `body[data-corpus-status]` is one of `pending`, `loaded` or `unavailable` and
-  reports whether the committed record files for the opened company were read.
+  `refused`. `body[data-reading-readiness]` is `established` or
+  `not-established`, and the one predicate that says whether what is on screen
+  is a settled reading is `data-run-status="composed"` **and**
+  `data-reading-readiness="established"`. Until the corpus answers,
+  `body[data-coverage-unavailable]` reads `not-established` rather than a
+  count, and it carries the unavailable count only on a settled reading.
+  `body[data-corpus-status]` is one of `pending`, `loaded` or `unavailable`,
+  reports whether the committed record files for the opened company were read,
+  and always describes the company currently on screen.
 - The page declares no `innerHTML` assignment, no `requestAnimationFrame`, no
   `setTimeout`, no password input and no provider key field.
 

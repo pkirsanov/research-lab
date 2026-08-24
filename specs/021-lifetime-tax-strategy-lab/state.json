@@ -6,7 +6,7 @@
     "lastUpdatedAt": "2026-08-17T00:00:00Z",
     "status": "in_progress",
     "blockedReason": null,
-    "workflowMode": null,
+    "workflowMode": "full-delivery",
     "planningOnly": false,
     "planningOnlyJustification": null,
     "linkedImplementationSpec": null,
@@ -99,7 +99,7 @@
         }
     },
     "certification": {
-        "status": "not_started",
+        "status": "in_progress",
         "certifiedAt": null,
         "completedScopes": [],
         "certifiedCompletedPhases": [],

@@ -1194,3 +1194,513 @@ three added entries are the concurrent Feature 025 route, module and config
 described above; none is this scope's and none was added by this evidence work.
 `tax-rules/` is absent from `directories` in both runs, so it remains outside the
 public directories.
+
+## Third Evidence Session — The Six Delivery-Completion Rows
+
+Every block below is verbatim command or harness output from this session, each
+with its own captured exit code. Every probe carries its own revert verification.
+
+### Row 1 — Scenario-specific E2E under the exact persistent titles
+
+The row asks two separate things: that the titles the Test Plan names are present
+in the spec file, and that an empty `--grep` selection can never be read as a
+pass. The titles are therefore extracted from the Test Plan's own table rather
+than retyped, and each is matched against the spec file as a literal:
+
+```
+TP-01-20: present=True :: Regression: SCN-024-001 neither origin and both origins each refuse an...
+TP-01-21: present=True :: Regression: SCN-024-002 the computed origin publishes its bend points ...
+TP-01-22: present=True :: Regression: SCN-024-003 the full retirement age row, the months counte...
+TP-01-23: present=True :: Regression: SCN-024-003 the benefit leg reaches the headline, the comp...
+TP-01-24: present=True :: Regression: SCN-024-001 the request ledger does not grow after first p...
+TP-01-25: NOT-A-BACKTICKED-TITLE (broader-regression row)
+e2e-ui rows with backticked titles: 5
+```
+
+Each title's own `--grep` is then listed rather than run, so the selection size is
+read directly instead of inferred from a pass count:
+
+```
+exit=0 selected=1 :: Regression: SCN-024-001 neither origin and both origins each
+exit=0 selected=1 :: Regression: SCN-024-002 the computed origin publishes its be
+exit=0 selected=1 :: Regression: SCN-024-003 the full retirement age row, the mon
+exit=0 selected=1 :: Regression: SCN-024-003 the benefit leg reaches the headline
+exit=0 selected=1 :: Regression: SCN-024-001 the request ledger does not grow aft
+```
+
+The five then run, exit **0**:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium tests/lifetime-tax-benefit.spec.mjs --reporter=list
+  ✓  1 [chromium] › tests/lifetime-tax-benefit.spec.mjs:58:1 › Regression: SCN-024-001 neither origin and both origins each refuse and neither shows a benefit amount (713ms)
+  ✓  2 [chromium] › tests/lifetime-tax-benefit.spec.mjs:99:1 › Regression: SCN-024-002 the computed origin publishes its bend points and refuses alone when the indexing series is absent (491ms)
+  ✓  3 [chromium] › tests/lifetime-tax-benefit.spec.mjs:165:1 › Regression: SCN-024-003 the full retirement age row, the months counted and each factor applied are shown and an out-of-domain birth year refuses (466ms)
+  ✓  4 [chromium] › tests/lifetime-tax-benefit.spec.mjs:205:1 › Regression: SCN-024-003 the benefit leg reaches the headline, the comparison, the curve and the export (391ms)
+  ✓  5 [chromium] › tests/lifetime-tax-benefit.spec.mjs:269:1 › Regression: SCN-024-001 the request ledger does not grow after first paint, every entry is a declared same-origin read, and no benefit declaration reaches a URL (393ms)
+  5 passed (3.4s)
+```
+
+The adversarial case renames one persistent title in the middle of the string, so
+the original `--grep` can no longer match it as a substring:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            scope01-title-rename-empties-grep
+file:             tests/lifetime-tax-benefit.spec.mjs
+mutation:         the benefit leg reaches the headline, the comparison, the curve and the export  ->  the benefit leg reaches the hXadline, the comparison, the curve and the export   (1 occurrence(s))
+red-exit:         1
+red-summary:      Error: No tests found
+green-exit:       0
+green-summary:      1 passed (1.8s)
+revert-verified:  yes (committed=bffdc4e897cd3e444cec21cf176dce750cc99365 restored=bffdc4e897cd3e444cec21cf176dce750cc99365)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+`Error: No tests found` with exit 1 is the row's own adversarial requirement: a
+renamed title produces a failure, never a silent pass. Row closed.
+
+### Row 2 — Broader E2E across the whole lifetime-tax family
+
+TP-01-25 recorded that no run of its command *as corrected* existed. This session
+runs it. The corrected `SCN-02[1-4]` selector is listed first, so what it selects
+is read rather than assumed:
+
+```
+list_exit=0
+selected=88
+files=20
+tests/lifetime-tax-benefit.spec.mjs
+tests/lifetime-tax-california.spec.mjs
+tests/lifetime-tax-claim-age.spec.mjs
+tests/lifetime-tax-combined.spec.mjs
+tests/lifetime-tax-conversion.spec.mjs
+tests/lifetime-tax-deduction.spec.mjs
+tests/lifetime-tax-disposition.spec.mjs
+tests/lifetime-tax-federal.spec.mjs
+tests/lifetime-tax-foundation.spec.mjs
+tests/lifetime-tax-inclusion.spec.mjs
+tests/lifetime-tax-marginal.spec.mjs
+tests/lifetime-tax-medicare.spec.mjs
+tests/lifetime-tax-preferential.spec.mjs
+tests/lifetime-tax-property.spec.mjs
+tests/lifetime-tax-rental.spec.mjs
+tests/lifetime-tax-retirement-route.spec.mjs
+tests/lifetime-tax-route.spec.mjs
+tests/lifetime-tax-state.spec.mjs
+tests/lifetime-tax-surtax.spec.mjs
+tests/lifetime-tax-use.spec.mjs
+unwanted_025_026_027=0
+```
+
+Twenty files rather than this scope's one, and the bracketed selector excludes the
+concurrent session's `SCN-025` and `SCN-026` scenarios that the superseded
+unbracketed form admitted. The run itself, exit **0**:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep 'SCN-02[1-4]' --reporter=list
+88 passed (16.2s)
+failed_lines=0 skipped_lines=0
+```
+
+The adversarial case demands more than a failure: it demands a failure this
+scope's own spec file does **not** see. One mutation is run against both commands.
+It drops `power-medicare` from the route's declared `POWER_SECTION_IDS` — the
+hand-maintained-list regression the Shared Infrastructure sweep names. Against
+this scope's own file the probe refuses, because nothing changed:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            scope01-own-file-blind-to-dropped-sibling-section
+file:             lifetime-tax-strategy-lab.html
+mutation:         "power-inclusion", "power-claim-age", "power-medicare", "power-tax-legs",  ->  "power-inclusion", "power-claim-age", "power-tax-legs",   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium tests/lifetime-tax-benefit.spec.mjs --reporter=list
+red-exit:         0
+red-summary:        5 passed (2.9s)
+green-exit:       0
+green-summary:      5 passed (2.6s)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   NO (red-exit 0 == green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Exit 7. Five passed with the defect present and five passed without it — this
+scope's own rows stay green. The identical mutation against the broad command:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            scope01-broad-catches-what-own-file-misses
+file:             lifetime-tax-strategy-lab.html
+mutation:         "power-inclusion", "power-claim-age", "power-medicare", "power-tax-legs",  ->  "power-inclusion", "power-claim-age", "power-tax-legs",   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep SCN-02\[1-4\] --reporter=list
+red-exit:         1
+red-summary:        86 passed (14.1s)
+green-exit:       0
+green-summary:      88 passed (13.5s)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Two sibling titles redden and the command fails, while the narrow file saw
+nothing. That is the row's adversarial case exactly. Row closed.
+
+An earlier probe in this session used a different mutation — reverting
+`declaredPackPaths` in `tests/lifetime-tax.support.mjs` to a hand-maintained
+family list — and reddened the broad command from 88 to 74. It is not used as this
+row's evidence, because the same mutation also reddened this scope's own file from
+5 to 4, so it demonstrates broad sensitivity but not the independence the row
+requires.
+
+### Row 3 — Change Boundary respected, zero excluded families changed
+
+Content, not mtime, is the instrument for a tracked path. The path-scoped status
+over every excluded surface this scope names:
+
+```
+$ git status --porcelain -- rlportfolio.js rlportfolioanalytics.js portfolio-survival-allocation.config.json 'specs/008-*' 'specs/021-*' 'specs/022-*' 'specs/023-*' rltaxstrategy.js rltaxstate.js rltaxcombined.js rltaxproperty.js rltaxrental.js rltaxuse.js rltaxdisposition.js tax-rules/federal tax-rules/state tax-rules/property tools.json index.html rlnav.js README.md notes/README.md 'market-brief.*' briefs data watchlist.json site-exclusions.json scripts/build-pages-site.mjs scripts/validate-spec-test-paths.baseline .github/bubbles
+excluded_status_exit=0 rows=0
+```
+
+The row also requires an mtime comparison for any *untracked* excluded directory,
+because `git diff --quiet` reports an untracked path as unchanged. The comparison
+establishes that the clause has no applicable target here — every excluded surface
+is tracked, so content comparison is authoritative for all of them:
+
+```
+briefs exists=yes tracked_files=6784 modified_today=335
+data exists=yes tracked_files=364 modified_today=52
+tax-rules/federal exists=yes tracked_files=1 modified_today=1
+tax-rules/state exists=yes tracked_files=2 modified_today=0
+tax-rules/property exists=yes tracked_files=2 modified_today=0
+specs/008-portfolio-survival-and-brief-lab exists=yes tracked_files=65 modified_today=8
+--- untracked files under excluded dirs (would be invisible to git diff) ---
+```
+
+The untracked listing is empty. The non-zero `modified_today` counts are mtime
+churn with unchanged content, which is precisely why the row does not accept an
+mtime-only proof and why the content-based status above carries the claim.
+
+The adversarial case mutates one excluded file and re-runs the same check:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            scope01-excluded-touch-produces-a-row
+file:             rltaxstate.js
+mutation:         the deterministic annual STATE settlement and the jurisdiction axis.  ->  the deterministic annual STATE settlement and the jurisdiction axis (boundary probe).   (1 occurrence(s))
+red-exit:         1
+red-summary:      (no output)
+green-exit:       0
+green-summary:    (no output)
+revert-verified:  yes (committed=a3068f1a5c54060c24d0db5973ebb4190c7ae981 restored=a3068f1a5c54060c24d0db5973ebb4190c7ae981)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Touching an excluded path produces a row and fails the check. Row closed.
+
+### Row 4 — Consumer Impact Sweep, zero stale first-party references
+
+The row demands a repository-wide scan. The sweep walks every `.js`, `.mjs`,
+`.html`, `.json` and `.md` file outside `node_modules`, `.git`, `test-results`,
+`playwright-report`, `.github`, the generated `_site` mirror and another session's
+`.first-load-fix-worktree`. It is held outside the repository so running it adds
+no file to this scope's change boundary. Each rule resolves one row of this scope's
+Consumer Impact Sweep table against a named authority:
+
+| Rule | Consumer surface it sweeps | Authority it must resolve against |
+| --- | --- | --- |
+| R1 | the route's declared reads — module `src` tags and pack paths | the file existing on disk |
+| R2 | the benefit section and every sibling Power section, both directions | route element ids and `POWER_SECTION_IDS` |
+| R3 | `basisOrigin` literals in sibling scopes and fixtures | every declared basis origin in the tree |
+| R4 | benefit input ids and workspace members, both directions | route element ids and `WORKSPACE_FIELDS` |
+| R5 | leg identifiers and the benefit stage | `legId` declared by any pack under `tax-rules/`, and `rltax.js` |
+
+```
+$ node /tmp/rl24-s01-consumer-sweep.mjs
+SCANNED_FILES=8571
+R1_DECLARED_READS=22 (scripts=14 packs=8)
+R2_SECTION_IDENTITY=38 (declared=19 rendered=19)
+R3_BASIS_ORIGIN_REFS=2 (benefit_enum=declared-statement-pia,computed-from-earnings origin_authority=computed-from-earnings,declared-by-the-household,declared-statement-pia,published-by-the-rental-cost-recovery)
+R4_WORKSPACE_BINDINGS=12 (bindings=4 benefit_fields=4)
+R5_LEG_AND_STAGE_REFS=13 (pack_declared_legs=social-security-benefit,social-security-inclusion pack_stages=CO-20)
+ROUTE_HREF_HASH_ANCHORS=0
+REFERENCES_CHECKED=87
+STALE_REFERENCES=0
+S01_SWEEP_EXIT=0
+```
+
+`ROUTE_HREF_HASH_ANCHORS=0` is printed deliberately. This scope's sweep table names
+"deep links and breadcrumb anchors into that section" as a consumer surface, but
+the route emits no `href="#…"` anchor at all, so a rule asserting that every such
+anchor resolves could never fail and would be worthless as evidence. The count is
+reported rather than a vacuous rule shipped; R2's two-directional section identity
+is what actually carries the anchor surface, and it can fail.
+
+Three rules in earlier drafts of this sweep produced **false findings**, and each
+was corrected rather than accepted:
+
+- A first R3 matched any `"declared-*"` string in a file that merely mentioned
+  `basisOrigin`, and reported three rows for `declared-by-the-household`. That is
+  the `origin` field of a citation record built by `declaredOrigin()` at
+  `rltaxsocialsecurity.js:138`, not a basis origin.
+- A second R3 reported `published-by-the-rental-cost-recovery`. `basisOrigin` is an
+  **overloaded** field name: Feature 023's disposition leg carries its own basis
+  origin, assigned at `rltax.js:1652`. The authority is therefore the union of every
+  declared basis origin, not this feature's enum alone.
+- A first R5 resolved leg identifiers against the benefit pack's `declaredLegs`
+  alone and reported twelve rows — eleven for `social-security-inclusion`, which the
+  **federal** pack declares at `benefitInclusionPolicy.taxLegs[0].legId`, and one
+  for `social-security-retirement-benefit`, which is the `program` NAME in a
+  fixture and never a leg identifier.
+
+None of the fifteen was a defect in the tree. All were defects in the rules.
+
+Each rule is then proven capable of failing, because a rule that cannot fail proves
+nothing:
+
+```
+PROBE_R1_EXIT=0   src="rltaxsocialsecurity.js" -> src="rltaxsocialsecuritymoved.js"
+  red-exit: 1  red-summary: STALE_REFERENCES=1
+  green-exit: 0  green-summary: STALE_REFERENCES=0
+  revert-verified: yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+
+PROBE_R2_EXIT=0   POWER_SECTION_IDS drops "power-medicare"
+  red-exit: 1  red-summary: STALE_REFERENCES=1
+  green-exit: 0  green-summary: STALE_REFERENCES=0
+  revert-verified: yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+
+PROBE_R3_EXIT=0   "declared-statement-pia" -> "declared-statement-piaRENAMED"
+  red-exit: 1  red-summary: STALE_REFERENCES=1
+  green-exit: 0  green-summary: STALE_REFERENCES=0
+  revert-verified: yes (committed=12f5df8b667f6b854936e6e3a77c1df6e202b12b restored=12f5df8b667f6b854936e6e3a77c1df6e202b12b)
+
+PROBE_R4_EXIT=0   id="inputBenefitBirthYear" -> id="inputBenefitBirthYearRENAMED"
+  red-exit: 1  red-summary: STALE_REFERENCES=1
+  green-exit: 0  green-summary: STALE_REFERENCES=0
+  revert-verified: yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+
+PROBE_R5b_EXIT=0  rltaxsocialsecurity.js legId "social-security-benefit" -> "...MOVED"
+  red-exit: 1  red-summary: STALE_REFERENCES=1
+  green-exit: 0  green-summary: STALE_REFERENCES=0
+  revert-verified: yes (committed=78a9f9e91f5343d1c2eb4759f2814b2c34216dc6 restored=78a9f9e91f5343d1c2eb4759f2814b2c34216dc6)
+```
+
+A sixth probe is recorded because its result is informative rather than a pass.
+Renaming the `legId` in `tax-rules/benefit/2026.json` returned **exit 7**, RED and
+GREEN both `STALE_REFERENCES=0`. The cause is not vacuity: the authority is the
+union of every pack, and `tax-rules/fixtures/benefit-nonstandard-breakpoints-2999.json`
+independently declares the same `social-security-benefit` leg, so renaming one
+declaration leaves the identifier declared. R5's falsifiability is therefore proven
+by mutating a *reference* rather than an authority, which is `PROBE_R5b` above.
+Row closed.
+
+### Row 5 — Independent canary ahead of the broad rerun
+
+The canary runs alone, before the browser family is re-run, exit **0**:
+
+```
+$ node scripts/selftest.mjs
+CANARY_EXIT=0
+self-test: 3404 passed, 0 failed
+```
+
+The row's adversarial case requires that breaking one shared fixture contract
+reddens the canary first. The shared benefit fixture's declared year is changed:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            scope01-canary-reddens-on-broken-shared-fixture
+file:             tax-rules/fixtures/benefit-nonstandard-breakpoints-2999.json
+mutation:         "declaredForYear": 2999  ->  "declaredForYear": 2998   (1 occurrence(s))
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=79ba209efc83a65e3a2153743d774b7344bf5a7c restored=79ba209efc83a65e3a2153743d774b7344bf5a7c)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The canary fails on the broken shared fixture, so a broad green can never be the
+first signal. Row closed.
+
+### Row 6 — Rollback verified by executing it — **OPEN, measured and failing**
+
+This row is **not** checked. It was executed, not assumed, and it fails.
+
+The row's adversarial case is "a rollback that leaves the shared surface differing
+from its pre-change hash must fail this row". The first measurement is that **no
+pre-change hash exists**. Every shared surface this scope's rollback names arrived
+in a single commit:
+
+```
+added_commit=b9d92a3f1
+pre_change_commit=07acf05c3
+b9d92a3f1 2026-08-18 Add Lifetime Tax Strategy Lab: federal, state, property, rental and retirement slices
+07acf05c3 2026-08-18 chore(bubbles): upgrade framework with the false-block guard fixes
+rltaxrules.js exists_at_PRE=NO
+rltax.js exists_at_PRE=NO
+rltaxworkspace.js exists_at_PRE=NO
+lifetime-tax-strategy-lab.html exists_at_PRE=NO
+tests/lifetime-tax.support.mjs exists_at_PRE=NO
+--- commits touching rltaxsocialsecurity.js ---
+b9d92a3f1 Add Lifetime Tax Strategy Lab: federal, state, property, rental and retirement slices
+```
+
+There is exactly one commit touching this scope's module and pack, and it also
+creates Features 021 through 023. Reverting it would delete them too, so it is not
+this scope's rollback. No commit in this repository holds the shared surfaces in
+their pre-scope-01 state, so the hash the row compares against has no referent.
+
+The documented rollback was nevertheless executed verbatim. `HEAD` was materialised
+into a scratch tree outside the repository, and its mechanically specified half —
+"delete `rltaxsocialsecurity.js`, the benefit pack and the fixtures" — was applied:
+
+```
+materialised_files=9622
+deleted_module=gone deleted_pack_dir=gone deleted_fixture=gone
+./rltax.js:66:  var socialsecurity = root.RLTAXSOCIALSECURITY;
+./rltax.js:68:    socialsecurity = require("./rltaxsocialsecurity.js");
+./rltax.js:70:  if (!socialsecurity) throw new Error("RLTAXSOCIALSECURITY must be loaded before RLTAX");
+./tests/lifetime-tax-property.spec.mjs:19:const BENEFIT_PACK_PATH = 'tax-rules/benefit/2026.json';
+./tests/lifetime-tax-route.spec.mjs:379:  expect(declaredAssets).toContain('/tax-rules/benefit/2026.json');
+./tests/lifetime-tax-benefit.spec.mjs:17:const BENEFIT_PACK_PATH = 'tax-rules/benefit/2026.json';
+./tests/lifetime-tax-foundation.spec.mjs:347:  expect(declaredAssets).toContain('/tax-rules/benefit/2026.json');
+./tests/lifetime-tax-foundation.spec.mjs:348:  expect(declaredPackPaths(routeConfig)).toContain('tax-rules/benefit/2026.json');
+./tests/lifetime-tax-retirement-route.spec.mjs:400:  ['/tax-rules/benefit/2026.json', '/tax-rules/mortality/2026.json', '/tax-rules/medicare/2026.json']
+./lifetime-tax-strategy.config.json:29:      "2026": "tax-rules/benefit/2026.json"
+./scripts/selftest.mjs:15473:    'tax-rules/benefit/2026.json', 'tax-rules/medicare/2026.json', 'tax-rules/mortality/2026.json'];
+./scripts/selftest.mjs:19745:  const SS24 = await import('../rltaxsocialsecurity.js').then((m) => m.default);
+RESIDUAL_REFERENCE_COUNT=10
+```
+
+Ten files still reference the deleted module or pack, and `rltax.js` throws by
+construction when the module is absent. The rolled-back tree does not load:
+
+```
+ROLLED_BACK_TREE_LOAD_EXIT=1
+node:internal/modules/cjs/loader:1572
+  throw err;
+  ^
+
+ROLLED_BACK_SELFTEST_EXIT=1
+Cannot find module './rltaxsocialsecurity.js'
+Cannot find module './rltaxsocialsecurity.js'
+Cannot find module './rltaxsocialsecurity.js'
+ROLLBACK_VERDICT=FAIL
+```
+
+The remaining clauses — "revert the two contracts, the `basisOrigin` enum, the
+sourced row lookup, stage `CO-20`, the benefit leg, the census extension and the
+workspace members; revert the page section; revert SUP-024-01" — have no mechanical
+definition without a baseline to revert *to*, which is the same finding stated from
+the other side.
+
+The row stays `[ ]`. Closing it would require either a commit that isolates this
+scope's shared-surface edits, or a rollback rewritten to name the reverse edits
+explicitly rather than by reference to a state the history does not hold.
+
+#### Re-execution 2026-08-23 — the reverse edits named, the module clause measured
+
+The second remedy above was taken: the page-section clause was rewritten to name
+its reverse edits explicitly. The documented rollback was executed once more,
+verbatim, against a fresh `git archive HEAD` materialised outside the repository,
+with the residual scan widened to every element id the `power-benefit` band owned
+plus the `inputBenefit*` and `workspace.benefit*` surfaces. Before-verdict:
+
+```text
+### executing rollback mode=documented  section=power-benefit  module=rltaxsocialsecurity.js
+SECTION_REMOVED id=power-benefit lines=42 owned_ids=9
+REVERSE_EDITS {"section-band":1,"script-tag":1}
+### residual scan of the rolled-back page
+    power-benefit refs                 : 2   first at line 1679: "power-deduction", "power-use", "power-rental", "power-disposition", "power-benefit",
+    rltaxsocialsecurity.js refs        : 0
+    renderBenefit refs                 : 2
+    inputBenefit* refs                 : 20
+    workspace.benefit* refs            : 16
+    orphaned id benefitRefusal         : 1   first at line 4314
+    orphaned id benefitOriginLine      : 2   first at line 4320
+    orphaned id benefitBasisBody       : 1   first at line 4315
+    orphaned id benefitAdjustmentBody  : 1   first at line 4316
+    orphaned id benefitStoppingAgeLine : 2   first at line 4321
+    orphaned id benefitApplicabilityLine : 2   first at line 4322
+    orphaned id benefitNoProjectionLine : 2   first at line 4323
+RESIDUAL_CLASSES=11
+ROLLBACK_REHEARSAL mode=documented section=power-benefit page_residual_classes=1 ROLLBACK_VERDICT=FAIL
+```
+
+Removing the band deletes the container and leaves the machinery that fills it.
+`renderBenefit` still writes seven ids that no longer exist, the four
+`inputBenefit*` controls remain with their declared-key inventory entries, the
+workspace still reads and writes eight benefit members, and the section id is
+still registered in `POWER_SECTION_IDS`.
+
+The Change Boundary and the `POWER_SECTION_IDS` sweep row were corrected to
+enumerate all eight sites. The corrected procedure was then executed on a fresh
+materialised copy:
+
+```text
+### executing rollback mode=corrected  section=power-benefit  module=rltaxsocialsecurity.js
+SECTION_REMOVED id=power-benefit lines=42 owned_ids=9
+REVERSE_EDITS {"section-band":1,"script-tag":1,"inputs":4,"render-fn":1,"render-call":1,"withheld-link-row":1,"input-wiring":10,"workspace-members":8}
+### residual scan of the rolled-back page
+    power-benefit refs                 : 0
+    rltaxsocialsecurity.js refs        : 0
+    renderBenefit refs                 : 0
+    inputBenefit* refs                 : 0
+    workspace.benefit* refs            : 0
+RESIDUAL_CLASSES=0
+ROLLBACK_REHEARSAL mode=corrected section=power-benefit page_residual_classes=0 ROLLBACK_VERDICT=PASS
+```
+
+The page-section half of the rollback is therefore repaired and proven, which is
+one of the two remedies the earlier entry named.
+
+The row still stays open, and the reason is now stated as a measurement rather
+than as an absence of history. Deleting `rltaxsocialsecurity.js` is not a step
+this rollback can take: the shipped settlement engine requires it at `rltax.js:68`
+and `rltaxclaimage.js` requires it at line 39. Measured on the same scratch copy,
+against a baseline of `3401 passed, 3 failed` whose three failures come from the
+archive having no `.git` directory:
+
+```text
+Research-Lab self-test: 3023 passed, 33 failed
+```
+
+The failure lines that carry no scratch path are quoted verbatim. Seven of the
+ten belong to Features 021 through 023, which predate this scope:
+
+```text
+  ✗ FAIL (Feature 021 Scope 02 settlement group threw): Cannot find module './rltaxsocialsecurity.js'
+  ✗ FAIL (Feature 021 Scope 03 curve group threw): Cannot find module './rltaxsocialsecurity.js'
+  ✗ FAIL (Feature 021 Scope 04 conversion group threw): Cannot find module './rltaxsocialsecurity.js'
+  ✗ FAIL (Feature 021 Scope 05 route group threw): Cannot find module './rltaxsocialsecurity.js'
+  ✗ FAIL (Feature 022 Scope 03 state contract group threw): Cannot find module './rltaxsocialsecurity.js'
+  ✗ FAIL (Feature 022 Scope 04 California group threw): Cannot find module './rltaxsocialsecurity.js'
+  ✗ FAIL (Feature 022 Scope 05 combined group threw): Cannot find module './rltaxsocialsecurity.js'
+  ✗ FAIL (Feature 023 Scope 01 property group threw): Cannot find module './rltaxsocialsecurity.js'
+  ✗ FAIL (Feature 023 Scope 02 deduction group threw): Cannot find module './rltaxsocialsecurity.js'
+  ✗ FAIL (Feature 023 Scope 03 rental group threw): Cannot find module './rltaxsocialsecurity.js'
+```
+
+The earlier entry read the blocker as an absent baseline. That reading was
+incomplete. A baseline would not help: even with one, the module cannot be
+withdrawn while the shipped engine requires it. The Change Boundary now states
+that as a precondition, and the row stays `[ ]` on the measurement.
+
+**Claim Source:** executed. The live tree was confirmed unchanged afterwards and
+every scratch directory was removed.
+
+### Row status after this session
+
+| Row | Verdict |
+| --- | --- |
+| Scenario-specific E2E under exact persistent titles | closed |
+| Broader E2E across the lifetime-tax family | closed |
+| Change Boundary respected, zero excluded families changed | closed |
+| Consumer Impact Sweep, zero stale references | closed |
+| Independent canary ahead of the broad rerun | closed |
+| Rollback verified by executing it | **open — executed, verdict FAIL** |
+
+**Claim Source:** executed. Every block above is verbatim command or harness output
+from this session, each with its own exit code, and each probe with its own revert
+verification.

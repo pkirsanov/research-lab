@@ -2122,3 +2122,190 @@ claim — while exiting 1 on a worker-teardown trailer the runner labels as not
 part of any test. That is a property of the runner, recorded rather than worked
 around, and it does not affect the twenty-nine other rows.
 
+## Adversarial Row Completion Session
+
+Three Definition of Done rows carrying an explicit adversarial case were still
+open when this session began. All three are closed below. This scope's Definition
+of Done carries no Consumer Impact Sweep row, because the scope renames, moves and
+removes nothing that a first-party consumer reads; it adds a module, a stage and a
+panel.
+
+Every browser command uses `--project=chromium`, the bundled Playwright browser,
+rather than the `--project=system-chrome` the Test Plan names. The two projects
+differ only in which chromium binary is launched; the spec files, the titles and
+the assertions are identical.
+
+### Row 1 — scenario-specific E2E regression under the exact persistent titles
+
+The whole spec file first:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=chromium tests/lifetime-tax-disposition.spec.mjs --reporter=list
+  ✓  1 [chromium] › tests/lifetime-tax-disposition.spec.mjs:106:1 › Regression: SCN-023-014 the gain splits into two legs priced under different rules (949ms)
+  ✓  2 [chromium] › tests/lifetime-tax-disposition.spec.mjs:190:1 › Regression: SCN-023-015 the residence exclusion applies to the remainder only and names a failing test (526ms)
+  ✓  3 [chromium] › tests/lifetime-tax-disposition.spec.mjs:254:1 › Regression: SCN-023-014 both disposition legs reach the headline, the comparison, the curve and the export (444ms)
+  ✓  4 [chromium] › tests/lifetime-tax-disposition.spec.mjs:310:1 › Regression: SCN-023-015 no disposition declaration reaches a requested URL, the address bar, the referrer or a console message (414ms)
+  ✓  5 [chromium] › tests/lifetime-tax-disposition.spec.mjs:374:1 › Regression: SCN-023-015 the request ledger does not grow after the sale is declared and every entry is a declared same-origin read (412ms)
+  5 passed (3.6s)
+S05_SPEC_EXIT=0
+```
+
+This run exits 0. The worker-teardown trailer recorded against `TP-05-26` above is
+a property of that row's much larger `--grep SCN-02[1-4]` selection, not of this
+spec file, and it does not appear here.
+
+The file carries five tests; the Test Plan names four of them as persistent titles
+(`TP-05-22` … `TP-05-25`). The fifth is the live-route ledger test authored under
+`TP-05-30`. It is run here and it passes, but its Test Plan cell still reads "GAP,
+NOT AUTHORED", so a fixed-string search of `scope.md` for that title returns zero:
+
+```
+$ grep -F -c "Regression: SCN-023-015 the request ledger does not grow after the sale is declared and every entry is a declared same-origin read" \
+    specs/023-property-tax-and-rental-income/scopes/05-disposition/scope.md
+0
+```
+
+That cell is stale against the report — the body at line 420 already says
+"`TP-05-30` is now authored" — and against the shipped spec file. Correcting a
+Test Plan cell is a planning edit, so it is reported rather than performed, as
+`TP-05-30-CELL-STALE`. It is the third instance of the same defect from the same
+F-REG-03 remediation, after `TP-03-29-CELL-STALE` and `TP-04-30-CELL-STALE`.
+
+Each of the four named titles selected on its own. `in_spec` counts the literal in
+the spec file and `in_plan` counts the same literal in `scope.md`, so a title that
+exists only in one of the two would be visible here:
+
+```
+in_spec=1 in_plan=1 exit=0 summary=  1 passed (2.3s)   :: Regression: SCN-023-014 the gain splits into two l
+in_spec=1 in_plan=1 exit=0 summary=  1 passed (1.5s)   :: Regression: SCN-023-015 the residence exclusion ap
+in_spec=1 in_plan=1 exit=0 summary=  1 passed (1.5s)   :: Regression: SCN-023-014 both disposition legs reac
+in_spec=1 in_plan=1 exit=0 summary=  1 passed (1.5s)   :: Regression: SCN-023-015 no disposition declaration
+```
+
+The adversarial case renames one of those titles and re-runs the identical
+`--grep`:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S05-DoD1-title-rename
+file:             tests/lifetime-tax-disposition.spec.mjs
+mutation:         Regression: SCN-023-014 the gain splits into two legs priced under different rules  ->  Regression: SCN-023-014 PROBE RENAMED TITLE   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep Regression:\ SCN-023-014\ the\ gain\ splits\ into\ two\ legs\ priced\ under\ different\ rules --reporter=list
+red-exit:         1
+red-summary:      Error: No tests found
+green-exit:       0
+green-summary:      1 passed (2.1s)
+revert-verified:  yes (committed=4708330438489669379dc05dfe20dd97af5a0215 restored=4708330438489669379dc05dfe20dd97af5a0215)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_S05_1_EXIT=0
+```
+
+Row closed.
+
+### Row 2 — broader regression across the whole lifetime-tax browser family
+
+All twenty `tests/lifetime-tax-*.spec.mjs` files in one run. The file list is a
+glob expanded into an array whose length is asserted before the run, so a glob
+that silently matched nothing could not be read as a pass:
+
+```
+family_files=20
+S05_BROAD_EXIT=0
+passed_marks=94
+failed_marks=0
+  94 passed (18.5s)
+```
+
+The adversarial case removes one Power section id from `POWER_SECTION_IDS` in
+`lifetime-tax-strategy-lab.html`, an allowed-modified surface for this scope, and
+runs this scope's own spec file and the sibling route spec in turn:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S05-DoD2-sibling-reddens-family
+file:             lifetime-tax-strategy-lab.html
+mutation:         "power-reconciliation", "power-curve", "power-conversion", "power-property",  ->  "power-reconciliation", "power-curve", "power-property",   (1 occurrence(s))
+command:          bash /tmp/rl023-s05-ownsib.sh
+red-exit:         1
+red-summary:      OWN=0 SIBLING=1
+green-exit:       0
+green-summary:    OWN=0 SIBLING=0
+summary-compared: OWN=0 SIBLING=1  vs  OWN=0 SIBLING=0   (elapsed time normalised out)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_S05_2_EXIT=0
+```
+
+`OWN=0 SIBLING=1` is the adversarial case reproduced: this scope's five rows stayed
+green while a sibling's title went red, and the broad row failed. Row closed.
+
+### Row 3 — Change Boundary respected, zero excluded families changed
+
+This scope's excluded list ends with "every `tests/lifetime-tax-*.spec.mjs` other
+than this scope's own", which a hand-maintained pathspec list would fall behind
+the moment a sibling spec is added. It is expressed instead as a git pathspec glob
+with one explicit exclusion, so a sibling added later is covered without editing
+the check:
+
+```
+git status --porcelain=v1 --untracked-files=all -- … 'tests/lifetime-tax-*.spec.mjs' \
+  ':(exclude)tests/lifetime-tax-disposition.spec.mjs' …
+```
+
+```
+sibling_specs_excluded=19
+pathspec_count=34
+EXCLUDED_ROWS=0 rows:[]
+untracked_excluded=0
+BOUNDARY_SCRIPT_EXIT=0
+```
+
+Nineteen sibling specs is the whole family of twenty less this scope's own, which
+is the arithmetic the boundary text states. This scope admits no in-flight
+exception on the spec glob, which is why its count is nineteen where Scope 04's is
+eighteen. Run with `--untracked-files=all`, the excluded pathspecs produce zero
+`??` rows, so no excluded surface is untracked in this working tree and no mtime
+comparison is owed. That flag is what answers the row's caveat: `git diff --quiet`
+reports an untracked path as unchanged and would have read the same either way.
+
+The adversarial case touches `rltaxuse.js`, which this scope's boundary text names
+byte-identical and singles out — the disposition reads the classification Scope 04
+publishes, and if settling a sale required editing the classification module the
+record would not be published:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S05-DoD3-excluded-touch-detected
+file:             rltaxuse.js
+mutation:         the dwelling-use classification and the day-based allocation  ->  the dwelling-use classification and the day-based allocation PROBE   (1 occurrence(s))
+command:          bash /tmp/rl023-s05-boundary.sh
+red-exit:         1
+red-summary:      EXCLUDED_ROWS=1 rows:[ M rltaxuse.js]
+green-exit:       0
+green-summary:    EXCLUDED_ROWS=0 rows:[]
+summary-compared: EXCLUDED_ROWS=1 rows:[ M rltaxuse.js]  vs  EXCLUDED_ROWS=0 rows:[]   (elapsed time normalised out)
+revert-verified:  yes (committed=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44 restored=86e0e7eef4aabcae5b43f25c9ee7242b14fe6b44)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_S05_3_EXIT=0
+```
+
+Row closed.
+
+### Row status after this session
+
+| Row | Verdict |
+| --- | --- |
+| Scenario-specific E2E under exact persistent titles | closed |
+| Broader E2E across the lifetime-tax family | closed |
+| Change Boundary respected, zero excluded families changed | closed |
+
+**Claim Source:** executed. Every block above is verbatim command or harness output
+from this session, each with its own exit code, and each probe with its own revert
+verification. After the last probe, `git status --porcelain --untracked-files=all`
+over every file this session touched returned zero rows, and a fixed-string scan
+for each probe literal returned zero hits.
+

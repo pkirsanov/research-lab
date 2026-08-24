@@ -1891,6 +1891,457 @@ from members that individually carry no forbidden token would not be caught here
 That case belongs to the browser row, and the browser rows for this scope are
 open for a separate reason recorded under the Test Plan census.
 
+## Regression, Boundary And Sweep Evidence — 2026-08-24 Pass
+
+This pass closes the four rows this scope carried open. Every command below was
+executed in this session and its exit code captured immediately.
+
+**Declared deviation from the Test Plan command string.** The Test Plan cells
+name `--project=system-chrome`. Every run recorded here used `--project=chromium`
+— the bundled Playwright browser declared in `playwright.config.mjs`, whose
+`browserName` is also `chromium` and which differs only by not requiring a system
+Chrome install. The rows constrain the persistent **titles**, not the project, so
+the substitution does not weaken them.
+
+### DoD — scenario-specific E2E regression for SCN-022-007, -008 and -009
+
+This scope's three scenarios are carried by **two** persistent titles, not three:
+`TP-03-17` and `TP-03-18` deliberately share one test, each naming the clause it
+owns. Both limbs are proven for both titles.
+
+Limb one, the titles are present in the spec file rather than merely selected.
+
+```text
+$ grep -c -F "test('Regression: SCN-022-007 / SCN-022-008 an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero'" tests/lifetime-tax-state.spec.mjs
+1
+exit code: 0
+$ grep -c -F "test('Regression: SCN-022-009 a jurisdiction that levies no individual income tax renders its sourced zero with the authority that establishes it, and never enters the federal total'" tests/lifetime-tax-state.spec.mjs
+1
+exit code: 0
+```
+
+Limb two, the Test Plan's own command — which greps the descriptive clause, not
+the whole title — selects exactly one test, and that test passes.
+
+```text
+==== $ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero" --list
+Listing tests:
+  [chromium] › tests/lifetime-tax-state.spec.mjs:203:1 › Regression: SCN-022-007 / SCN-022-008 an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero
+Total: 1 test in 1 file
+exit code: 0
+==== $ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 …refuse under three different codes and none of them shows a zero (573ms)
+
+  1 passed (1.7s)
+exit code: 0
+==== $ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "a jurisdiction that levies no individual income tax renders its sourced zero with the authority that establishes it, and never enters the federal total" --list
+Listing tests:
+  [chromium] › tests/lifetime-tax-state.spec.mjs:72:1 › Regression: SCN-022-009 a jurisdiction that levies no individual income tax renders its sourced zero with the authority that establishes it, and never enters the federal total
+Total: 1 test in 1 file
+exit code: 0
+==== $ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "a jurisdiction that levies no individual income tax renders its sourced zero with the authority that establishes it, and never enters the federal total" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 …uthority that establishes it, and never enters the federal total (410ms)
+
+  1 passed (1.4s)
+exit code: 0
+```
+
+**The adversarial case, and a measured gap inside it.** The row requires that
+renaming or deleting one of those persistent titles fails it. Renaming the
+descriptive clause does fail the Test Plan's command.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            sc03 renaming the persistent title makes the Test Plan clause command fail
+file:             tests/lifetime-tax-state.spec.mjs
+mutation:         an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero  ->  RENAMED-BY-PROBE sc03 zzz   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep an\ unshipped\ state\,\ an\ undeclared\ residency\ and\ an\ unmodelled\ residency\ pattern\ refuse\ under\ three\ different\ codes\ and\ none\ of\ them\ shows\ a\ zero --reporter=list
+red-exit:         1
+red-summary:      Error: No tests found
+green-exit:       0
+green-summary:      1 passed (1.8s)
+revert-verified:  yes (committed=e6045c3a71261bbef8a0cafa80bfa397936981ec restored=e6045c3a71261bbef8a0cafa80bfa397936981ec)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe exit code: 0
+```
+
+Renaming only the **scenario-token prefix** does not. This scope's commands grep
+the descriptive clause precisely so the F-03-B rename could land without breaking
+them, and the cost of that choice is measured here rather than assumed away.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            sc03 the Test Plan clause command is insensitive to a scenario-token rename
+file:             tests/lifetime-tax-state.spec.mjs
+mutation:         Regression: SCN-022-007 / SCN-022-008   ->  Regression: PROBE-NO-TOKEN    (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep an\ unshipped\ state\,\ an\ undeclared\ residency\ and\ an\ unmodelled\ residency\ pattern\ refuse\ under\ three\ different\ codes\ and\ none\ of\ them\ shows\ a\ zero --reporter=list
+red-exit:         0
+red-summary:        1 passed (2.1s)
+green-exit:       0
+green-summary:      1 passed (1.3s)
+revert-verified:  yes (committed=e6045c3a71261bbef8a0cafa80bfa397936981ec restored=e6045c3a71261bbef8a0cafa80bfa397936981ec)
+discriminating:   NO (red-exit 0 == green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+red-green-probe: REFUSED — RED and GREEN produced the same outcome (both exited 0). The mutation did not make the command fail, so the assertion under test cannot fail and this is not RED/GREEN evidence.
+probe exit code: 7
+```
+
+The row is nonetheless satisfied, because it has **two** limbs and the second one
+covers exactly what the first misses. The row requires each title to be *present
+in the spec file rather than merely selected by `--grep`*, and the full-literal
+presence check does fail on the token rename.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            sc03 the full-literal title-presence limb DOES catch a scenario-token rename
+file:             tests/lifetime-tax-state.spec.mjs
+mutation:         Regression: SCN-022-007 / SCN-022-008   ->  Regression: PROBE-NO-TOKEN    (1 occurrence(s))
+command:          sh -c grep\ -q\ -F\ \"Regression:\ SCN-022-007\ /\ SCN-022-008\ an\ unshipped\ state\,\ an\ undeclared\ residency\ and\ an\ unmodelled\ residency\ pattern\ refuse\ under\ three\ different\ codes\ and\ none\ of\ them\ shows\ a\ zero\"\ tests/lifetime-tax-state.spec.mjs
+red-exit:         1
+red-summary:      (no output)
+green-exit:       0
+green-summary:    (no output)
+revert-verified:  yes (committed=e6045c3a71261bbef8a0cafa80bfa397936981ec restored=e6045c3a71261bbef8a0cafa80bfa397936981ec)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe exit code: 0
+```
+
+Read as a set, the three probes locate the row's protection precisely: the
+clause-grep limb catches a clause rename and an empty selection, the presence
+limb catches a token rename, and neither alone is sufficient. That is a finding
+about the Test Plan's command shape, recorded rather than smoothed over.
+
+**Verdict: closed.** Two titles present exactly once each as `test()`
+declarations, both Test Plan commands selecting exactly one test and exiting 0,
+the rename proven to fail the clause limb, and the token rename proven to fail
+the presence limb.
+
+### DoD — broader E2E regression across the lifetime-tax browser family
+
+`TP-03-20` imposes a **selection floor asserted before the run**: the `--list`
+output must name at least one title carrying each of `SCN-022-007`, `SCN-022-008`
+and `SCN-022-009`, and the listed `Total:` must be recorded so later shrinkage is
+visible. The floor is asserted first.
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "SCN-02[1-4]" --list
+LIST_EXIT=0
+$ grep -c 'SCN-022-007' <list output>
+2
+$ grep -c 'SCN-022-008' <list output>
+1
+$ grep -c 'SCN-022-009' <list output>
+1
+$ grep 'Total:' <list output>
+Total: 88 tests in 20 files
+$ grep -E 'SCN-022-00[789]' <list output>
+  [chromium] › tests/lifetime-tax-state.spec.mjs:72:1 › Regression: SCN-022-009 a jurisdiction that levies no individual income tax renders its sourced zero with the authority that establishes it, and never enters the federal total
+  [chromium] › tests/lifetime-tax-state.spec.mjs:203:1 › Regression: SCN-022-007 / SCN-022-008 an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero
+  [chromium] › tests/lifetime-tax-state.spec.mjs:268:1 › Regression: SCN-022-007 the residency declaration reaches no URL, no request, no console message and no export
+```
+
+The floor is met: all three scenario tokens appear in the listing, so the F-03-B
+rename has landed and this row is no longer unmet by construction. The recorded
+listed total is **88 tests in 20 files**.
+
+Two runs follow. The first is the Test Plan's command; the second is the family
+itself, selected by path with no grep at all. Both are hash-verifiable bounded
+captures because each exceeds forty lines; the sha256 covers every line produced.
+
+```
+# sc03 TP-03-20 broader regression, grep-selected SCN-02[1-4]
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep SCN-02[1-4] --reporter=list
+exit: 0
+lines: 93
+sha256: 17e0c05a2a175c36a7df68806631e7e6b50450e23a3d102080b518b4b4ac45e2
+--- first 5 ---
+
+Running 88 tests using 6 workers
+
+  ✓   1 [chromium] › tests/lifetime-tax-conversion.spec.mjs:35:1 › Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack (1.4s)
+  ✓   2 [chromium] › tests/lifetime-tax-combined.spec.mjs:113:1 › Regression: SCN-022-013 the combined total is the sum of two independent settlements (1.4s)
+--- omitted 83 line(s); sha256 above covers the full output ---
+--- last 5 ---
+  ✓  88 [chromium] › tests/lifetime-tax-use.spec.mjs:354:1 › Regression: SCN-023-010 the request ledger does not grow after the day-count declarations and every entry is a declared same-origin read (524ms)
+
+  88 passed (16.6s)
+```
+
+The run count matches the asserted floor exactly: 88 listed, 88 executed, 88
+passed, zero failed and zero skipped.
+
+```
+# sc03 broader regression: whole lifetime-tax browser family, path-selected
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium tests/lifetime-tax-benefit.spec.mjs … tests/lifetime-tax-use.spec.mjs --reporter=list
+exit: 0
+lines: 99
+sha256: a824327a8f58539f1950837006434a9ef02333691718a0d7361268627aad6e31
+--- first 5 ---
+
+Running 94 tests using 6 workers
+
+  ✓   4 [chromium] › tests/lifetime-tax-combined.spec.mjs:77:1 › Regression: the shipped Florida pack states no imposition, so the combined answer inherits that refusal instead of adding a zero (710ms)
+  ✓   2 [chromium] › tests/lifetime-tax-conversion.spec.mjs:35:1 › Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack (752ms)
+--- omitted 89 line(s); sha256 above covers the full output ---
+--- last 5 ---
+  ✓  94 [chromium] › tests/lifetime-tax-use.spec.mjs:354:1 › Regression: SCN-023-010 the request ledger does not grow after the day-count declarations and every entry is a declared same-origin read (490ms)
+
+  94 passed (16.4s)
+```
+
+The family holds 94 tests across twenty spec files; the grep form selects 88. The
+six-title shortfall is F-03-B's under-selection arriving as a number. The floor
+assertion above is precisely the defence `TP-03-20` specifies against it, and the
+path-selected run is not subject to it at all.
+
+**The adversarial case.** The row requires that a change made inside this scope
+which reddens a sibling scope's persistent title fails it, even while this scope's
+own rows stay green. `lifetime-tax-strategy-lab.html` is on this scope's *Allowed
+modified* list, so a change to it is in-boundary.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            sc03 an in-boundary page change reddens Feature 021 sibling titles
+file:             lifetime-tax-strategy-lab.html
+mutation:         simpleValueNode("conversionAmount",  ->  simpleValueNode("conversionAmountPROBE03",   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep SCN-021- --reporter=list
+red-exit:         1
+red-summary:        15 passed (8.4s)
+green-exit:       0
+green-summary:      17 passed (3.5s)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe exit code: 0
+
+=== RED/GREEN PROBE EVIDENCE ===
+label:            sc03 own narrow row stays green under the same in-boundary change
+file:             lifetime-tax-strategy-lab.html
+mutation:         simpleValueNode("conversionAmount",  ->  simpleValueNode("conversionAmountPROBE03",   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep an\ unshipped\ state\,\ an\ undeclared\ residency\ and\ an\ unmodelled\ residency\ pattern\ refuse\ under\ three\ different\ codes\ and\ none\ of\ them\ shows\ a\ zero --reporter=list
+red-exit:         0
+red-summary:        1 passed (1.3s)
+green-exit:       0
+green-summary:      1 passed (1.2s)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   NO (red-exit 0 == green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+red-green-probe: REFUSED — RED and GREEN produced the same outcome (both exited 0). The mutation did not make the command fail, so the assertion under test cannot fail and this is not RED/GREEN evidence.
+probe exit code: 7
+```
+
+One in-boundary change drops the broader run from 17 passed to 15 and exits 1,
+while this scope's own state command still exits 0 and reports 1 passed. The
+narrow row cannot see the damage; the broader row can.
+
+**Verdict: closed.** Floor asserted before the run and met on all three tokens,
+88 of 88 on the Test Plan's command, 94 of 94 path-selected with zero failed and
+zero skipped, and the broader row proven to catch damage the narrow row misses.
+
+### DoD — Change Boundary respected, zero excluded file families changed
+
+This scope's excluded list is wider than its siblings': it excludes the **whole**
+`tests/lifetime-tax-*.spec.mjs` family, of which this scope's own
+`tests/lifetime-tax-state.spec.mjs` is the single *Allowed modified* member, plus
+`tests/lifetime-tax.support.mjs` and all of `tax-rules/federal/**`. The scan
+therefore uses a negative pathspec so the family is covered minus this scope's own
+spec, and the negative pathspec is proven to be doing real work rather than
+silently matching nothing.
+
+```text
+pathspec_count=27
+$ git status --porcelain -- <scope 03 excluded surfaces: 26 positive pathspecs + 1 negative>
+exit code: 0
+(no output above means zero rows)
+$ git ls-files --others --exclude-standard -- <same pathspecs> | wc -l
+       0
+exit code: 0
+$ git ls-files -- 'tests/lifetime-tax-*.spec.mjs' ':(exclude)tests/lifetime-tax-state.spec.mjs' | wc -l
+      19
+$ git ls-files -- 'tests/lifetime-tax-*.spec.mjs' | wc -l
+      20
+```
+
+Twenty family specs, nineteen after the negative pathspec removes this scope's
+own — so the exclusion is real and the remaining nineteen are genuinely scanned.
+
+**The mtime limb has an empty domain, and that is measured rather than assumed.**
+`git ls-files --others --exclude-standard` over the same pathspec set returns
+zero, so every excluded surface this scope names is fully tracked and there is no
+untracked excluded path for an mtime comparison to cover.
+
+**Why `git diff --quiet` is not accepted, demonstrated rather than asserted.**
+
+```text
+$ git diff --quiet -- err.txt ; echo "exit $?"
+exit 0
+$ git status --porcelain -- err.txt
+?? err.txt
+exit code: 0
+```
+
+**The adversarial case.** Touching one excluded path must produce a row and fail
+the item. `scripts/validate-spec-test-paths.baseline` is on this scope's excluded
+list and is chosen deliberately: it is not loaded by the page and not executed by
+any browser run, so the transient mutation cannot perturb a concurrent test run.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            sc03 touching one excluded path makes the path-scoped porcelain check fail
+file:             scripts/validate-spec-test-paths.baseline
+mutation:         # validate-spec-test-paths baseline — Research Lab  ->  # validate-spec-test-paths baseline — Research Lab.   (1 occurrence(s))
+command:          sh -c test\ -z\ \"\$\(git\ status\ --porcelain\ --\ scripts/validate-spec-test-paths.baseline\)\"
+red-exit:         1
+red-summary:      (no output)
+green-exit:       0
+green-summary:    (no output)
+revert-verified:  yes (committed=c9f7a2ffbdfaa84cbfb46e8f078325c9194762b5 restored=c9f7a2ffbdfaa84cbfb46e8f078325c9194762b5)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe exit code: 0
+```
+
+**Disclosure — files on this scope's excluded list were transiently mutated by
+this session's probes.** The `scripts/validate-spec-test-paths.baseline` probe
+above deliberately touched an excluded file to prove the check can fail. Probes
+recorded in the sibling scopes' reports touched `rltaxstrategy.js` and each
+scope's own Playwright spec, which are on *this* scope's excluded list. In every
+case the harness verified the restored blob hash against the committed blob hash,
+so each file is byte-identical to its committed content and no commit carries any
+of those mutations. Recorded here rather than left silent, because a reader
+checking mtimes rather than content would otherwise find unexplained movement.
+
+**Verdict: closed.** Zero porcelain rows, zero untracked files anywhere in the
+excluded set, the negative pathspec proven non-vacuous, the porcelain-versus-`git
+diff` asymmetry demonstrated, and the check proven able to fail.
+
+### DoD — Consumer Impact Sweep complete, zero stale first-party references
+
+**The sweep's domain is derived, and it is narrower than the row's wording
+suggests.** This scope's own Assertion Supersession section states it owns no
+ledger entry and appends only. It opens the jurisdiction axis by *adding*
+`rltaxstate.js`, the Florida pack and new workspace members; it renames no route,
+moves no path and removes no identifier. The three surfaces the sweep table names
+as at risk — the pack path grammar, the jurisdiction pattern and the state refusal
+codes — are therefore checked for *unresolved* and *orphan* references rather than
+for a stale old name, because there is no old name to leave behind. That is the
+honest reading, and both checks are executed rather than argued.
+
+**Limb one — the pack path grammar the route reads as an API client.** Every
+declared path must resolve, and every first-party reference to that grammar must
+resolve.
+
+```text
+$ python3 -c "<read lifetime-tax-strategy.config.json rules.statePackPaths>"
+  state:CA -> tax-rules/state/CA/2026.json EXISTS
+  state:FL -> tax-rules/state/FL/2026.json EXISTS
+declared= 2 unresolved= 0
+
+$ python3 -c "<repository-wide scan for tax-rules/state/*.json references>"
+  tax-rules/state/CA/2026.json in lifetime-tax-strategy.config.json EXISTS
+  tax-rules/state/CA/2026.json in scripts/selftest.mjs EXISTS
+  tax-rules/state/CA/2026.json in specs/027-company-scoped-owner-deep-links/state.json EXISTS
+  tax-rules/state/CA/2026.json in tests/lifetime-tax-california.spec.mjs EXISTS
+  tax-rules/state/CA/2026.json in tests/lifetime-tax-combined.spec.mjs EXISTS
+  tax-rules/state/CA/2026.json in tests/lifetime-tax-state.spec.mjs EXISTS
+  tax-rules/state/FL/2026.json in lifetime-tax-strategy.config.json EXISTS
+  tax-rules/state/FL/2026.json in scripts/selftest.mjs EXISTS
+  tax-rules/state/FL/2026.json in tests/lifetime-tax-combined.spec.mjs EXISTS
+  tax-rules/state/FL/2026.json in tests/lifetime-tax-state.spec.mjs EXISTS
+distinct_refs= 2 unresolved_refs= 0
+```
+
+Ten first-party references across six files, two distinct paths, **zero**
+unresolved. The API-client, deep-link and sibling-pack limbs of the sweep table
+all resolve through this grammar, so a stale row in any of them would appear here.
+
+**Limb two — the state refusal codes.** A code named by a consumer but declared by
+no engine module is the stale-reference shape this axis can produce.
+
+```text
+$ python3 -c "<orphan refusal-code scan over all 14 rltax*.js modules>"
+engine_modules_scanned     = 14
+declared_by_engine_modules = 14
+used_by_consumers          = 19
+ORPHAN (used but never declared) = 5
+    RLTAX-CLASSIFICATION-UNAVAILABLE -> ['scripts/selftest.mjs']
+    RLTAX-INVENTED-CODE -> ['scripts/selftest.mjs']
+    RLTAX-NOT-A-REAL-CODE -> ['scripts/selftest.mjs']
+    RLTAX-RENTAL-UNAVAILABLE -> ['scripts/selftest.mjs']
+    RLTAX-USE-UNAVAILABLE -> ['scripts/selftest.mjs']
+```
+
+**Five orphans were found, and all five were then read rather than assumed
+benign.** Each use site is a deliberate negative assertion:
+
+```text
+$ grep -n "<each orphan code>" scripts/selftest.mjs
+18990:    && RULES04.RLTAX_CODES['RLTAX-CLASSIFICATION-UNAVAILABLE'] === undefined,
+18386:    && RULES03.RLTAX_CODES['RLTAX-RENTAL-UNAVAILABLE'] === undefined,
+18989:    && RULES04.RLTAX_CODES['RLTAX-USE-UNAVAILABLE'] === undefined
+13211:  const fabricatedAddition = liveCodeNames.concat(['RLTAX-INVENTED-CODE']);
+13188:  try { RLTAXRULES.unavailable('RLTAX-NOT-A-REAL-CODE', 'd', 'r', 'w'); } catch (codeError) { unknownCodeThrew = codeError instanceof Error; }
+```
+
+Three assert the code is `=== undefined`; two fabricate a code to prove the
+validator rejects an unknown one. A code asserted absent is the opposite of a
+stale reference — it is a test that the identifier was never introduced. The
+count of real orphans is therefore **zero**, and the three codes this scope owns
+are all declared and all consumed.
+
+```text
+    RLTAX-JURISDICTION-UNSUPPORTED declared= True consumers= 8
+    RLTAX-RESIDENCY-UNSUPPORTED    declared= True consumers= 3
+    RLTAX-INPUT-INCOMPLETE         declared= True consumers= 10
+```
+
+**The adversarial case.** The row requires that one stale reference left anywhere
+fails it, and that the proof be a repository-wide scan rather than a spot check.
+The probe injects exactly one unresolvable pack path into this scope's own spec —
+a file on its *Allowed modified* list — and runs the repository-wide scan as the
+command. The scan names no file, so its repository-wide shape is structural.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            sc03 one stale pack-path reference makes the repository-wide sweep scan fail
+file:             tests/lifetime-tax-state.spec.mjs
+mutation:         tax-rules/state/FL/2026.json  ->  tax-rules/state/ZZ/2026.json   (2 occurrence(s))
+red-exit:         1
+red-summary:      distinct= 3 unresolved= 1 ['tax-rules/state/ZZ/2026.json']
+green-exit:       0
+green-summary:    distinct= 2 unresolved= 0 []
+revert-verified:  yes (committed=e6045c3a71261bbef8a0cafa80bfa397936981ec restored=e6045c3a71261bbef8a0cafa80bfa397936981ec)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe exit code: 0
+```
+
+**Verdict: closed.** The sweep domain is derived from this scope's own
+supersession position rather than assumed, both limbs return zero real stale
+references, the five apparent orphans are read and classified individually rather
+than dismissed by count, and the scan is proven able to fail on a single planted
+reference.
+
+### Repository gates re-run in this pass
+
+```text
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3404 passed, 0 failed
+SELFTEST_EXIT=0
+$ node scripts/validate-spec-test-paths.mjs
+[spec-test-paths] scanned=741 references=16947 distinctPaths=265 missingPaths=73 plannedMissing=3 baseline=70 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+VALIDATE_PATHS_EXIT=0
+```
+
 ## Completion Statement
 
 Filled at execution.

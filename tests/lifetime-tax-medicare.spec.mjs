@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { startStaticServer } from './provider-credentials.support.mjs';
 import {
   collectRequests,
-  declaredPackPaths,
+  declaredRouteAssets,
   declareOrdinaryHousehold,
   openLifetimeTax,
   openPower,
@@ -16,16 +16,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 /* SUP-023-10, as replaced by SUP-024-09. The permitted-asset set is DERIVED from the page's own
    script tags and from every pack path the configuration declares, so the medicare pack this
-   scope introduces is admitted by its own declaration rather than by a literal edited here. */
-function declaredRouteAssets() {
-  const routeSource = readFileSync(join(ROOT, 'lifetime-tax-strategy-lab.html'), 'utf8');
-  const config = JSON.parse(readFileSync(join(ROOT, 'lifetime-tax-strategy.config.json'), 'utf8'));
-  const scripts = Array.from(routeSource.matchAll(/<script src="([^"]+)"><\/script>/g))
-    .map((match) => '/' + match[1]);
-  const packs = declaredPackPaths(config).map((path) => '/' + path);
-  return ['/lifetime-tax-strategy-lab.html', '/lifetime-tax-strategy.config.json']
-    .concat(scripts).concat(packs).concat(['/favicon.ico']);
-}
+   scope introduces is admitted by its own declaration rather than by a literal edited here. The
+   derivation itself is the shared one in lifetime-tax.support.mjs. */
 
 const MEDICARE_PACK = JSON.parse(readFileSync(join(ROOT, 'tax-rules/medicare/2026.json'), 'utf8'));
 const PREMIUM_YEAR = MEDICARE_PACK.medicarePolicy.premiumYear;

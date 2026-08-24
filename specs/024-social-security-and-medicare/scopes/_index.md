@@ -351,11 +351,11 @@ inventory rather than being extended four times.
 
 | # | Scope | Artifact | Tags | Depends On | Scenarios | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| 01 | Benefit Computation | [`01-benefit-computation/scope.md`](01-benefit-computation/scope.md) | `foundation:true`, `two-origin-declaration:true`, `sourcing-gated:true` | none | SCN-024-001 … -003 | Done with concerns |
-| 02 | Taxation Of Benefits | [`02-benefit-taxation/scope.md`](02-benefit-taxation/scope.md) | `engine:federal`, `supersession-heavy:true`, `year-invariance-gated:true`, `sourcing-gated:true` | 01 | SCN-024-004 … -006 | Done with concerns |
-| 03 | Claim-Age Comparison | [`03-claim-age-comparison/scope.md`](03-claim-age-comparison/scope.md) | `deterministic:true`, `no-probability:true`, `claim-boundary:true`, `sourcing-gated:true` | 01 | SCN-024-007 … -009 | Done with concerns |
-| 04 | Medicare Premiums And The Income-Related Adjustment | [`04-medicare-premiums-and-irmaa/scope.md`](04-medicare-premiums-and-irmaa/scope.md) | `engine:medicare`, `structural-independence:true`, `cost-leg:true`, `sourcing-gated:true` | 01, 02 | SCN-024-010 … -012 | Not started |
-| 05 | Route, Accessibility And Integration | [`05-route-and-integration/scope.md`](05-route-and-integration/scope.md) | `route:true`, `accessibility:true`, `leg-census:true` | 01, 02, 03, 04 | SCN-024-013 … -015 | Not started |
+| 01 | Benefit Computation | [`01-benefit-computation/scope.md`](01-benefit-computation/scope.md) | `foundation:true`, `two-origin-declaration:true`, `sourcing-gated:true` | none | SCN-024-001 … -003 | In Progress |
+| 02 | Taxation Of Benefits | [`02-benefit-taxation/scope.md`](02-benefit-taxation/scope.md) | `engine:federal`, `supersession-heavy:true`, `year-invariance-gated:true`, `sourcing-gated:true` | 01 | SCN-024-004 … -006 | In Progress |
+| 03 | Claim-Age Comparison | [`03-claim-age-comparison/scope.md`](03-claim-age-comparison/scope.md) | `deterministic:true`, `no-probability:true`, `claim-boundary:true`, `sourcing-gated:true` | 01 | SCN-024-007 … -009 | In Progress |
+| 04 | Medicare Premiums And The Income-Related Adjustment | [`04-medicare-premiums-and-irmaa/scope.md`](04-medicare-premiums-and-irmaa/scope.md) | `engine:medicare`, `structural-independence:true`, `cost-leg:true`, `sourcing-gated:true` | 01, 02 | SCN-024-010 … -012 | In Progress |
+| 05 | Route, Accessibility And Integration | [`05-route-and-integration/scope.md`](05-route-and-integration/scope.md) | `route:true`, `accessibility:true`, `leg-census:true` | 01, 02, 03, 04 | SCN-024-013 … -015 | In Progress |
 
 ## Dependency Graph
 

@@ -12,7 +12,8 @@ import {
   declareOrdinaryHousehold,
   declaredPackPaths,
   openLifetimeTax,
-  openPower
+  openPower,
+  sameOriginPaths
 } from './lifetime-tax.support.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -434,9 +435,12 @@ test('Regression: SCN-022-013 the request ledger does not grow after first paint
   const permitted = declaredRouteAssets();
   expect(permitted).toContain('/rltaxcombined.js');
   expect(permitted).not.toContain('/definitely-not-declared-by-this-route.json');
-  expect(ledger.filter((entry) => !entry.url.startsWith(site.baseUrl))).toEqual([]);
+  /* F-REG-03. This row already refused a foreign origin, but it refused with a bare prefix test,
+     and a prefix is not an origin: `site.baseUrl + "@evil.example"` begins with the whole base URL
+     and is served by evil.example. The shared helper carries that case as a second conjunct. */
+  const paths = sameOriginPaths(ledger, site);
+  paths.forEach((path) => expect(permitted).toContain(path));
   ledger.forEach((entry) => {
-    expect(permitted).toContain(new URL(entry.url).pathname);
     expect(entry.url).not.toContain('state:FL');
     expect(entry.url).not.toContain(encodeURIComponent('state:FL'));
     expect(entry.url).not.toContain('residency');

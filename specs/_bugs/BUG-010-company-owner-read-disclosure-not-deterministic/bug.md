@@ -1,6 +1,12 @@
 # BUG-010 — A Safety-Bearing Disclosure Sourced From Non-Deterministic Prose
 
-- **Status:** Reported / Confirmed — root cause verified, fix designed, **fix not implemented**
+- **Status:** Fixed — awaiting independent verification. This line previously read
+  "fix designed, **fix not implemented**", which its own packet contradicts: Scopes 1 and 2 are
+  Done, Scope 3 records 6 of 6 discharged, and all twenty-one Definition of Done items are
+  ticked. The tree agrees with the body — `node scripts/validate-brief-payload.mjs` exits 0 and
+  prints the gate this packet required, `[brief-contract] company owner-read names its producing
+  adapter and states that no recommendation is produced`. `Verified` remains the validating
+  agent's to set, and Scope 3 still awaits the state-transition guard to promote it.
 - **Severity:** High — `main` is red, and the fact that went missing is a no-fabrication disclosure
 - **Reported:** 2026-08-18
 - **Affected feature:** [`specs/010-company-fundamentals-and-brief-lab`](../../010-company-fundamentals-and-brief-lab) Scope 6

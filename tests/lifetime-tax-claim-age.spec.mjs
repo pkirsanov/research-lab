@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { startStaticServer } from './provider-credentials.support.mjs';
 import {
   collectRequests,
-  declaredPackPaths,
+  declaredRouteAssets,
   declareOrdinaryHousehold,
   openLifetimeTax,
   openPower,
@@ -16,16 +16,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 /* SUP-023-10, as replaced by SUP-024-09. The permitted-asset set is DERIVED from the page's own
    script tags and from every pack path the configuration declares, so the mortality pack this
-   scope introduces is admitted by its declaration rather than by a hand-edited literal here. */
-function declaredRouteAssets() {
-  const routeSource = readFileSync(join(ROOT, 'lifetime-tax-strategy-lab.html'), 'utf8');
-  const config = JSON.parse(readFileSync(join(ROOT, 'lifetime-tax-strategy.config.json'), 'utf8'));
-  const scripts = Array.from(routeSource.matchAll(/<script src="([^"]+)"><\/script>/g))
-    .map((match) => '/' + match[1]);
-  const packs = declaredPackPaths(config).map((path) => '/' + path);
-  return ['/lifetime-tax-strategy-lab.html', '/lifetime-tax-strategy.config.json']
-    .concat(scripts).concat(packs).concat(['/favicon.ico']);
-}
+   scope introduces is admitted by its declaration rather than by a hand-edited literal here. The
+   derivation itself is the shared one in lifetime-tax.support.mjs. */
 
 /* One household, declared once. Its primary insurance amount is the household's OWN statement
    figure; every figure that ACTS on it — the reduction for claiming early, the credit for
@@ -236,4 +228,44 @@ test('Regression: SCN-024-009 every request is a declared same-origin GET and no
   expect(urls).not.toContain(MORTALITY_COLUMN);
   ledger.forEach((entry) => expect(entry.postData).toBe(''));
   ledger.forEach((entry) => expect(entry.method).toBe('GET'));
+});
+
+/* BUG-019, FR-019-004. The comparison table is where a household chooses a claim age, so it is
+   the surface the defect damaged most: it described age 60 as settled beside age 62 and age 67.
+   Refusing the whole table would withhold the two ages the pack CAN price, and dropping the row
+   would let a household believe an age it typed was considered and lost on the merits. */
+test('Regression: BUG-019 a comparison list mixing priceable and unpriceable ages keeps its priceable rows and refuses the unpriceable one in place', async ({ page }) => {
+  await openLifetimeTax(page, site);
+  await declareOrdinaryHousehold(page, { ordinary: 40000, bracketId: 'b3' });
+  await declareClaimAgeComparison(page, '62, 60, 67');
+  await openPower(page);
+
+  /* No row is dropped and none is reordered: the declared order survives the refusal. */
+  const order = await page.locator('#claimAgeBody tr')
+    .evaluateAll((rows) => rows.map((row) => row.getAttribute('data-rl-claim-age')));
+  expect(order).toEqual(['62', '60', '67']);
+
+  /* The two priceable ages still carry their own figures. */
+  await expect(page.locator('#claimAgeBody tr[data-rl-claim-age="62"] [data-rl-value="claim-age-benefit-62"]'))
+    .toHaveText('$20,160');
+  await expect(page.locator('#claimAgeBody tr[data-rl-claim-age="67"] [data-rl-value="claim-age-benefit-67"]'))
+    .toHaveText('$28,800');
+
+  /* The unpriceable age carries a refusal in its own row and no dollar figure of any kind. */
+  const refusedRow = page.locator('#claimAgeBody tr[data-rl-claim-age="60"]');
+  await expect(refusedRow.locator('[data-rl-unavailable]'))
+    .toHaveAttribute('data-rl-unavailable', 'RLTAX-THRESHOLD-UNAVAILABLE');
+  await expect(refusedRow).toContainText('earliest');
+  expect(await refusedRow.locator('[data-rl-value]').count()).toBe(0);
+  const refusedText = await refusedRow.evaluate((row) => row.textContent);
+  expect(refusedText).not.toContain('$');
+  /* Read through textContent rather than innerText so the hidden tooltip copy is included: the
+     sentence this route attaches to a real settlement lives there, and it is that sentence the
+     defect applied to an age the pack cannot price. Asserting the bare word "settled" would also
+     forbid the refusal from saying that no amount IS settled, which is the honest thing for it
+     to say, so the assertion names the sentence and the priceable row proves it is still reachable. */
+  expect(refusedText).not.toContain('settled from your own declarations');
+  const pricedText = await page.locator('#claimAgeBody tr[data-rl-claim-age="62"]')
+    .evaluate((row) => row.textContent);
+  expect(pricedText).toContain('settled from your own declarations');
 });

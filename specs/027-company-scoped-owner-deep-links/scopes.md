@@ -344,11 +344,11 @@ any scope. The only identifier that disappears is the private, file-local
 
 **Scope-Kind:** runtime-behavior
 
-**Status:** Done (24 of 24 DoD items ticked)
+**Status:** Done (27 of 27 DoD items ticked)
 
 | Field | Value |
 | --- | --- |
-| Status | Done — implemented and verified; 24 of 24 DoD items ticked with executed evidence |
+| Status | Done — implemented and verified; 27 of 27 DoD items ticked with executed evidence |
 | Priority | P1 |
 | Depends On | none |
 | Tag | foundation:true |
@@ -560,7 +560,7 @@ fails if the append was not an append.
 - [x] `notes/options-structure-lab.md` and `notes/gamma-trading-lab.md` each state the accepted parameter, the refusal behavior and that the accepted set is unchanged.
       **Executed:** YES. **Command:** `git diff --numstat notes/options-structure-lab.md notes/gamma-trading-lab.md`. **Exit Code:** 0. Output: `23 0` for each — a pure append with zero deleted lines. Each file gains a `## Linked subject (?ticker=)` section naming the accepted parameter `?ticker=`, the accept rule `/^[A-Z0-9.\-]{1,12}$/` after `normTicker`, the statement that the accept-set is the same one the route applied before the rule moved into `rlticker.js`, the refusal behavior (discarded, never stored, never echoed, never reaches a fetch target, notice names the subject actually shown), and the equivalence of no parameter, an empty parameter and a whitespace-only parameter. **Claim Source:** executed.
 
-**Scenario fidelity (Gate G068).** The three items below restate what this scope's Gherkin scenarios assert, taken from [spec.md](spec.md) rather than from what was delivered. They ship UNCHECKED: no evidence has been recorded against them yet, and a later `bubbles.implement` pass owns verifying and ticking each one.
+**Scenario fidelity (Gate G068).** The three items below restate what this scope's Gherkin scenarios assert, taken from [spec.md](spec.md) rather than from what was delivered. They shipped UNCHECKED and were ticked by the `bubbles.implement` pass that recorded executed evidence against each one; all three below now carry that evidence.
 
 - [x] SCN-027-006 — On a receiving owner route, opening it with a subject parameter that is empty and opening it with a subject parameter that is only whitespace each behave exactly as if no subject parameter had been supplied. Both precedent routes must show this, and "exactly" means the compared first paint is a structural identity rather than a sampled field. **Proof:** `node scripts/selftest.mjs` reports the assertion `Feature 027: a missing, empty and whitespace-only subject all yield status absent with subject null` green, and Test Plan rows 1.14 and 1.18 — `Regression: SCN-027-006 no parameter, an empty parameter and a whitespace parameter render identical first paints` — pass under `npx --no-install playwright test tests/options-structure-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` and under the matching `tests/gamma-trading-lab.spec.mjs` command.
       **Executed:** YES. **Commands:** (1) `node scripts/selftest.mjs`. **Exit Code:** 0 — `Research-Lab self-test: 3183 passed, 0 failed`, line 3536 of the run carries `✓ Feature 027: a missing, empty and whitespace-only subject all yield status absent with subject null`. (2) `npx --no-install playwright test tests/options-structure-lab.spec.mjs tests/gamma-trading-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --workers=1 --reporter=list` — the two per-file commands the Proof names, run in one invocation with the workers pin this session requires. **Exit Code:** 0 — `19 passed (13.1s)`, with `✓ 13 … tests/options-structure-lab.spec.mjs:114:1 › Regression: SCN-027-006 no parameter, an empty parameter and a whitespace parameter render identical first paints (645ms)` and `✓ 4 … tests/gamma-trading-lab.spec.mjs:112:1 › … (547ms)`. The "structural identity rather than a sampled field" clause was verified by reading the assertion body at `tests/options-structure-lab.spec.mjs:114-127`: after three loads it asserts `expect(empty).toEqual(bare)` and `expect(blank).toEqual(bare)` over the WHOLE captured paint object, not a field-by-field sample — the emitted capture carries `ticker, provider, nExp, sign, noticePresent, noticeHidden, noticeRole, noticeText, railIds`. **Claim Source:** executed.
@@ -575,11 +575,11 @@ fails if the append was not an append.
 
 **Scope-Kind:** runtime-behavior
 
-**Status:** Done (26 of 26 DoD items ticked)
+**Status:** Done (29 of 29 DoD items ticked)
 
 | Field | Value |
 | --- | --- |
-| Status | Done — implemented and verified; 26 of 26 DoD items ticked with executed evidence |
+| Status | Done — implemented and verified; 29 of 29 DoD items ticked with executed evidence |
 | Priority | P1 |
 | Depends On | Scope 1 (foundation). Both routes consume `RLTKR.linkedSubject` and define no acceptance rule of their own. |
 | Owns scenarios | SCN-027-001, SCN-027-002, SCN-027-003, SCN-027-004, SCN-027-005, SCN-027-008, SCN-027-012, SCN-027-013 |
@@ -806,7 +806,7 @@ and `trend-dynamics-cycle-lab.html`, which this feature never opens.
 - [x] `rlticker.js` is byte-unchanged by this scope, proven by `git status --porcelain rlticker.js` printing nothing.
       **Executed:** YES. **Command:** `git status --porcelain rlticker.js`. **Exit Code:** 0. Output: nothing. The named proof now passes as written. It could not pass in the earlier pass recorded below because Scope 1's `+25 / -0` append to the same file was still uncommitted; that append has since landed as `0f63acb50 spec 027: company-scoped owner deep links, and a coherent registry`, so the working-tree copy matches `HEAD` and no uncommitted change to the file exists from any scope. `git diff --numstat -- rlticker.js` likewise prints nothing. The substantive claim is unchanged and independently held throughout: Scope 2 never opened `rlticker.js`, and the committed file still carries only Scope 1's shared definition — `SUBJECT_PARAM` at line 53, `SUBJECT_PATTERN` at line 54 and their installation on `root.RLTKR` at lines 145 and 146 — with no `catalog`, `UNIVERSE`, `ownerBareReason` or `focus` content. **Superseded prior record.** The earlier Uncertainty Declaration on this item stated the claim was true while the named proof was unusable; the proof is now usable and passes, so the item is ticked on the proof it names rather than on a substitute. **Claim Source:** executed.
 
-**Scenario fidelity (Gate G068).** The three items below restate what this scope's Gherkin scenarios assert, taken from [spec.md](spec.md) rather than from what was delivered. They ship UNCHECKED: no evidence has been recorded against them yet, and a later `bubbles.implement` pass owns verifying and ticking each one.
+**Scenario fidelity (Gate G068).** The three items below restate what this scope's Gherkin scenarios assert, taken from [spec.md](spec.md) rather than from what was delivered. They shipped UNCHECKED and were ticked by the `bubbles.implement` pass that recorded executed evidence against each one; all three below now carry that evidence.
 
 - [x] SCN-027-001 — Following a dimension's owner link while reading a company on the company intelligence route, where that dimension's owner route can resolve a company subject, opens the owner route with that company as its active subject, and the owner route names that active subject on screen. Both clauses are required: opening on the company does not satisfy the scenario if the reader cannot tell in words which company is shown. **Proof:** Test Plan rows 2.3 (`Regression: SCN-027-001 ?ticker=NVDA selects NVDA in the asset select and names it on screen`) and 2.9 (`Regression: SCN-027-001 ?ticker=NVDA renders a focus band naming NVDA with its flagged-strike count and call-versus-put premium split`) for the active-subject clause, and rows 2.4 and 2.12 for the names-on-screen clause, under the two per-file Playwright commands named in the Test Plan.
       **Executed:** YES. **Command:** `npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs tests/options-flow-feed-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --workers=1 --reporter=list` — the two per-file commands the Proof names, in one invocation with the workers pin this session requires. **Exit Code:** 0 — `41 passed (49.8s)`. All four named rows are green in that run: row 2.3 as `✓ 33 … tests/volatility-sizing-lab.spec.mjs:639:1 › Regression: SCN-027-001 ?ticker=NVDA selects NVDA in the asset select and names it on screen (292ms)`; row 2.9 as `✓ 2 … tests/options-flow-feed-lab.spec.mjs:125:1 › Regression: SCN-027-001 ?ticker=NVDA renders a focus band naming NVDA with its flagged-strike count and call-versus-put premium split`; row 2.4 as `✓ 34 … tests/volatility-sizing-lab.spec.mjs:651:1 › Regression: SCN-027-004 the active subject is readable as page text and in the accessibility tree, not only inside a chart (373ms)`; row 2.12 as `✓ 6 … tests/options-flow-feed-lab.spec.mjs:225:1 › Regression: SCN-027-004 the focus band names the active subject as page text rather than only in a table cell (369ms)`. The two clauses are carried by different rows, so a green on one does not stand in for the other. **Claim Source:** executed.
@@ -821,11 +821,11 @@ and `trend-dynamics-cycle-lab.html`, which this feature never opens.
 
 **Scope-Kind:** runtime-behavior
 
-**Status:** Done (23 of 23 DoD items ticked)
+**Status:** Done (26 of 26 DoD items ticked)
 
 | Field | Value |
 | --- | --- |
-| Status | Done — implemented and verified; 23 of 23 DoD items ticked with executed evidence |
+| Status | Done — implemented and verified; 26 of 26 DoD items ticked with executed evidence |
 | Priority | P1 |
 | Depends On | Scope 1 and Scope 2. FR-027-027 forbids declaring a subject parameter before its route reads one, so every reader must exist first. |
 | Owns scenarios | SCN-027-014, SCN-027-015, SCN-027-016, SCN-027-018 |
@@ -1033,7 +1033,7 @@ artifacts. Every Excluded surface stays byte-unchanged, and
 - [x] The sending route loads and operates from a plain `file://` open with no bundler and no ES module syntax.
       **Executed:** YES. **Command:** the named Playwright command, plus a source check on `company-intelligence-lab.html`. **Exit Codes:** 0 and 0. The browser row `the route reaches its first paint from a file:// origin with no server and no off-origin request` is green in that run. The source check reports `import_stmt=false export_stmt=false type_module=false arrow_in_inline=false`, so the seventeen lines this scope added introduced no ES module syntax, no arrow function into the inline ES5 script and no bundler. The registry the route paints its first view from is the embedded copy, which the selftest asserts still equals the committed file after the new declarations. **Claim Source:** executed.
 
-**Scenario fidelity (Gate G068).** The three items below restate what this scope's Gherkin scenarios assert, taken from [spec.md](spec.md) rather than from what was delivered. They ship UNCHECKED: no evidence has been recorded against them yet, and a later `bubbles.implement` pass owns verifying and ticking each one.
+**Scenario fidelity (Gate G068).** The three items below restate what this scope's Gherkin scenarios assert, taken from [spec.md](spec.md) rather than from what was delivered. They shipped UNCHECKED and were ticked by the `bubbles.implement` pass that recorded executed evidence against each one; all three below now carry that evidence.
 
 - [x] SCN-027-014 — For a dimension whose owner route answers a market-wide question, the rendered owner link carries no company, and the row states that the owner is market-scoped rather than company-scoped. A bare link with no stated scope does not satisfy this: the reason must be rendered beside the link, not merely recorded in the registry. **Proof:** Test Plan row 3.4 (`a market-scoped row composes a bare href and its statement says the owner answers a market-wide question`) under `node --test tests/company-intelligence.unit.mjs`, and row 3.10 (`Regression: SCN-027-014 every bare owner row renders its stated reason beside the link on both the coverage table and the dimension card`) under `npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`.
       **Executed:** YES, and the two halves are carried by different commands because the registry half cannot testify to what is rendered. **Commands:** (1) `node --test tests/company-intelligence.unit.mjs`. **Exit Code:** 0 — `tests 90, pass 90, fail 0, skipped 0`, carrying row 3.4 as `✔ a market-scoped row composes a bare href and its statement says the owner answers a market-wide question (0.080917ms)`. (2) `npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --workers=1 --reporter=list`. **Exit Code:** 0 — `35 passed (46.6s)`, carrying row 3.10 as `✓ 34 … tests/company-intelligence-lab.spec.mjs:1372:1 › Regression: SCN-027-014 every bare owner row renders its stated reason beside the link on both the coverage table and the dim…`. Row 3.10 is the row that discharges the "rendered beside the link, not merely recorded in the registry" clause, and it observes both surfaces — the coverage table and the dimension card — for every bare row rather than one sampled row. **Claim Source:** executed.

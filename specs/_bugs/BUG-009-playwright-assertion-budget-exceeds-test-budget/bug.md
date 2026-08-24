@@ -1,6 +1,11 @@
 # BUG-009 — A Declared Assertion Budget Larger Than The Test Budget That Contains It
 
-- **Status:** Reported / Confirmed — root cause verified, fix designed, **fix not implemented**
+- **Status:** Fixed — awaiting independent verification. This line previously read
+  "fix designed, **fix not implemented**", which contradicted the packet's own record: both
+  scopes are Done, all fifteen Definition of Done items are ticked, the three declarations are
+  reachable through `test.setTimeout(180_000)`, and the Scope 1 budget-coherence guard is live
+  at `scripts/selftest.mjs:9496`. The header was stale, not the work. `Verified` remains the
+  validating agent's to set.
 - **Severity:** Medium (active intermittent CI/local red; one site is latent)
 - **Reported:** 2026-08-18
 - **Affected features:** [`specs/012-market-action-center-and-guided-tools`](../../012-market-action-center-and-guided-tools), [`specs/006-trend-dynamics-cycle-lab`](../../006-trend-dynamics-cycle-lab)

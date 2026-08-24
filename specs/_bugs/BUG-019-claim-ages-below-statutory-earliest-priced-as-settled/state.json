@@ -1,0 +1,72 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-019-claim-ages-below-statutory-earliest-priced-as-settled",
+  "featureName": "BUG-019 Claim Ages Below The Statutory Earliest Age Are Priced As Settled",
+  "createdAt": "2026-08-23T00:00:00Z",
+  "lastUpdatedAt": "2026-08-24T00:00:00Z",
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "priorBlockedReason": null,
+  "blockedReasonResolved": null,
+  "crossFeatureEditAuthorization": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "priorPlanningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/024-social-security-and-medicare",
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "bf56460a8",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md"
+  },
+  "execution": {
+    "activeAgent": null,
+    "currentPhase": "implement",
+    "currentPhaseStatus": "complete",
+    "phaseReconciliation": null,
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-23T00:00:00Z",
+    "completedAt": null,
+    "substate": "implemented",
+    "currentScope": null,
+    "nextRequiredOwner": "bubbles.plan, to reconcile three Definition of Done items against what shipped: the Scope 1 item wording an AbsentFigure/v1 return where the engine returns an RLTAX-THRESHOLD-UNAVAILABLE refusal, the Scope 1 item asking for a packContentSha256 update on a pin that belongs to the federal pack rather than the benefit pack, and the Scope 2 item naming a delayed-credit stopping-age disclosure that exists but is asserted nowhere. Then a human for the uservalidation.md Human Acceptance Record.",
+    "nextRequiredTarget": "specs/_bugs/BUG-019-claim-ages-below-statutory-earliest-priced-as-settled/scopes.md",
+    "nextRequiredReason": "The defect is fixed and the fix is asserted from both sides of a one-month boundary, but three Definition of Done items cannot be ticked as written. Two describe outcomes that differ from what shipped rather than outcomes that are missing, and rewriting a Definition of Done item to match delivery is not an implementer's edit. The third names behaviour that exists in the engine and the route but that this round executed no assertion against. The two pack-contract questions design.md routes to the owner are also still open: the delivered shape nests earliestClaimAge on earlyReductionRule and reuses RLTAX-THRESHOLD-UNAVAILABLE for the sub-zero band, and that is recorded as a delivered fact awaiting a decision rather than as the decision.",
+    "phaseClaimNote": "currentPhase is 'implement' with substate 'implemented'. The fix landed at commits e28be5814 and eeb2ac7cc. The benefit pack now carries earlyReductionRule.earliestClaimAge as a structured member with a resolving sourceRef and a locator, the engine reads ageYears from it and refuses below it quoting the pack's own figure rather than a literal, and the comparison surface refuses the single unpriceable candidate while leaving the priceable rows intact. The same commit repaired a temporal dead zone in scripts/selftest.mjs that had the repo gate at 3393 passed 1 failed; it now reports 3405 passed 0 failed. The boundary is asserted from both sides one month apart and six red-green probes were run through scripts/red-green-probe.sh, five discriminating and one recorded at exit 7 rather than discarded because it surfaced a real coverage fact. Every probe reported revert-verified against the committed blob and the tracked tree is clean. Fifteen of eighteen Definition of Done items are ticked with executed evidence; the three that are not carry an Uncertainty Declaration and none of them is missing behaviour. The two pack-contract questions design.md routes to the owner remain open and the uservalidation.md Human Acceptance Record is unrecorded, so this packet is not closed.",
+    "executionHistory": [
+      {
+        "phase": "chaos",
+        "agent": "bubbles.chaos",
+        "startedAt": "2026-08-23T00:00:00Z",
+        "completedAt": "2026-08-23T00:00:00Z",
+        "durationUnmeasured": true,
+        "durationUnmeasuredReason": "The round was driven interactively across many separate browser runs rather than as one timed invocation, so no single elapsed measurement describes it and none is asserted.",
+        "outcome": "completed_owned",
+        "summary": "Stochastic chaos round against the Lifetime Tax Strategy Lab route. One defect reproduced deterministically and filed as this packet. No shipped file changed."
+      }
+    ],
+    "transitionQueue": [],
+    "reworkQueue": []
+  },
+  "certification": {
+    "status": "in_progress",
+    "certifiedBy": null,
+    "certifiedAt": null,
+    "assuranceLevel": null,
+    "evidence": null
+  },
+  "policySnapshot": {
+    "capturedAt": "2026-08-23T00:00:00Z",
+    "source": "bubbles.chaos filing"
+  }
+}

@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs in
 [report.md](report.md).
 
-**Status:** Done with concerns
+**Status:** In Progress (deliverables and tests verified; newly added planning rows unverified)
 **Scope-Kind:** runtime-behavior
 **Tags:** `engine:federal`, `supersession-heavy:true`, `year-invariance-gated:true`, `sourcing-gated:true`, `known-value-tested`
 **Depends On:** 01
@@ -229,6 +229,12 @@ framework-managed file.
 Taxing a benefit must not require changing what the benefit is; if it does, the
 two scopes are one scope.
 
+**Allowed file families:** the *Allowed new* and *Allowed modified* paths named
+above, and nothing else.
+
+**Excluded surfaces:** the byte-identical list named above. Collateral cleanup
+outside the allowed families is opt-in and is not performed under this scope.
+
 **Rollback:** delete `rltaxinclusion.js` and the fixtures; revert the two
 contracts, the tightened invariance validation, stage `CO-21`, the inclusion leg,
 the ordinary-taxable-income contributor and the workspace members; revert the
@@ -311,6 +317,10 @@ browser or an absent test does not satisfy RED.
 A row is checked only when it is genuinely satisfied and was observed to be
 satisfied. A row that is not satisfied stays `[ ]` and carries a stated reason. If
 delivery makes a row's claim false, the row is corrected rather than checked.
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-024-004, SCN-024-005 and SCN-024-006 pass under the exact persistent titles this scope's Test Plan names, and each of those titles is present in the spec file rather than merely selected by `--grep`. Adversarial case: renaming or deleting one of those persistent titles must fail this row, so an empty grep selection can never be read as a pass.
+- [x] Broader E2E regression suite passes across the whole lifetime-tax browser family, not this scope's own spec file alone. Adversarial case: a change made inside this scope that reddens a sibling scope's persistent title must fail this row even while this scope's own rows stay green.
+- [x] Change Boundary is respected and zero excluded file families were changed, proven by a path-scoped `git status --porcelain` over the excluded surfaces plus an mtime comparison for any untracked excluded directory. Adversarial case: touching one excluded path must produce a row and fail this item; `git diff --quiet` alone is not accepted, because it reports an untracked path as unchanged.
 
 - [x] FR-024-008 and FR-024-009 are implemented: provisional income publishes every
       part by name with its origin, names the measures it is not, and a composition

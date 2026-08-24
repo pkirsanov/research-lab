@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs in
 [report.md](report.md).
 
-**Status:** Done with concerns
+**Status:** In Progress (deliverables and tests verified; newly added planning rows unverified)
 **Scope-Kind:** runtime-behavior
 **Tags:** `route:true`, `accessibility:true`, `leg-census:true`, `known-value-tested`
 **Depends On:** 01, 02, 03, 04
@@ -221,6 +221,12 @@ scope retrieves nothing and authors no figure. If surfacing the results requires
 pack edit or a contract change, a figure or a contract escaped its owning scope
 and that is a finding rather than a licence to edit here.
 
+**Allowed file families:** the *Allowed new* and *Allowed modified* paths named
+above, and nothing else.
+
+**Excluded surfaces:** the byte-identical list named above. Collateral cleanup
+outside the allowed families is opt-in and is not performed under this scope.
+
 **Rollback:** delete this scope's fixtures and spec file; revert stage `CO-24`,
 the census extension, the export record, the sanitizer completion, the three
 Simple fields, the four withheld-detail links, the annual-cost figure and the
@@ -248,6 +254,21 @@ that edit is indistinguishable from one hiding a real regression.
 Every pre-existing assertion must still pass unchanged at the end of this scope.
 An assertion that fails is either a defect in this scope's change and is fixed, or
 an ASC-8 admission recorded across all four surfaces before the edit.
+
+## Consumer Impact Sweep
+
+This scope fixes the route's panel anchor ids, the export record member names
+and the census leg identifiers. Any rename, move or removal of one of those
+identifiers reaches the surfaces below, and each surface is swept before the
+scope closes.
+
+| Consumer surface | What a rename or removal would break | Sweep proof |
+| --- | --- | --- |
+| Site navigation (`rlnav.js`), `index.html`, `tools.json` | This route is deliberately unregistered, so a rename must leave all three byte-identical rather than update them | Path-scoped `git status --porcelain` over the three returns no rows |
+| Deep links and breadcrumb anchors into the route's panels | A renamed panel anchor makes a shared deep link land on nothing | Every anchor the page emits is resolved in the browser row rather than assumed |
+| The page's module `src` list and its API client reads | A moved module turns a declared read into an unresolved request | The declared-read canary fails on any declared read that does not resolve |
+| The export record and any reader of its member names | A renamed member silently drops a field from a reader's export | The export's omitted-field manifest names every member and an unknown member refuses |
+| Documentation, notes and any redirect entry | A renamed identifier leaves a stale reference | A repository-wide stale-reference scan for the old identifier returns zero first-party rows |
 
 ## Scenario-First Red/Green Contract
 
@@ -304,6 +325,19 @@ satisfy RED.
 A row is checked only when it is genuinely satisfied and was observed to be
 satisfied. A row that is not satisfied stays `[ ]` and carries a stated reason. If
 delivery makes a row's claim false, the row is corrected rather than checked.
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-024-013, SCN-024-014 and SCN-024-015 pass under the exact persistent titles this scope's Test Plan names, and each of those titles is present in the spec file rather than merely selected by `--grep`. Adversarial case: renaming or deleting one of those persistent titles must fail this row, so an empty grep selection can never be read as a pass.
+  - **Phase:** implement · **Command:** all seven `TP-05-19` … `TP-05-25` commands run individually under `--project=chromium` and again verbatim under `--project=system-chrome` → `exit=0`, `1 passed` on every one of the fourteen runs · **Evidence:** `report.md#dod--scenario-specific-e2e-regression-under-the-exact-persistent-titles`
+  - Title presence is proven independently of `--grep`: each of the seven Test Plan titles matches exactly one literal `test('<title>'` declaration in the spec file and equals its own `--grep` argument (`BAD=0`, exit 0). The adversarial case is executed rather than assumed — an empty grep selection exits `1` with `Error: No tests found`, and probe `DoD row 1 adversarial` renames one persistent title and takes its own unmodified command from `1 passed` to `Error: No tests found`, exit 1 against 0, revert hash-verified.
+- [x] Broader E2E regression suite passes across the whole lifetime-tax browser family, not this scope's own spec file alone. Adversarial case: a change made inside this scope that reddens a sibling scope's persistent title must fail this row even while this scope's own rows stay green.
+  - **Phase:** implement · **Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=chromium --reporter=list 'lifetime-tax-.*\.spec\.mjs'` → `exit=0`, `94 passed`, 0 failed, 0 skipped across all 20 family files · **Evidence:** `report.md#dod--broader-e2e-regression-across-the-whole-lifetime-tax-browser-family`
+  - The adversarial case is proven in two halves on one mutation, chosen because `data-rl-state-settlement` is asserted only by the Feature 022 sibling `tests/lifetime-tax-state.spec.mjs`. Half one takes the family suite from `94 passed` to `92 passed`, exit 1 against 0. Half two runs the same mutation against this scope's own spec file and both halves report `7 passed` — and that agreement is meaningful because the harness refuses with exit 5 when a mutation fails to land, so exit 7 states the mutation was applied and this scope stayed green.
+- [x] Change Boundary is respected and zero excluded file families were changed, proven by a path-scoped `git status --porcelain` over the excluded surfaces plus an mtime comparison for any untracked excluded directory. Adversarial case: touching one excluded path must produce a row and fail this item; `git diff --quiet` alone is not accepted, because it reports an untracked path as unchanged.
+  - **Phase:** implement · **Command:** path-scoped `git status --porcelain --untracked-files=all` over 66 expanded excluded surfaces covering 7,948 tracked files → `git_status_rows_over_excluded_surfaces=0`, exit 0; newest mtime under the excluded set predates the HEAD commit (`newer_than_head=false`) · **Evidence:** `report.md#dod--change-boundary-respected-zero-excluded-file-families-changed`
+  - Every rule was audited for a real population before its verdict was read, which caught two surfaces named from memory that matched zero tracked files; after correction `surfaces_with_zero_tracked_files=0`. Probe `DoD row 3 adversarial` touches `rltaxmedicare.js` and turns the check from `rows=0` to `ROW  M rltaxmedicare.js`, exit 1 against 0, revert hash-verified. The `git diff --quiet` weakness is demonstrated on the eleven untracked entries the tree actually carries, not on a manufactured example.
+- [x] The Consumer Impact Sweep is complete for every renamed, moved or removed route, path, contract, identifier and UI target in this scope, and zero stale first-party references remain. Adversarial case: one stale reference left in navigation, a breadcrumb, a redirect, a deep link, an API client read or a doc must fail this row, and the proof must be a repository-wide stale-reference scan rather than a spot check.
+  - **Phase:** implement · **Command:** repository-wide stale-reference sweep over six surviving rules → `R1 module-src=14 unresolved=0`, `R2 data-rl-targets=47 unresolved=0`, `R3 element-ids=188 unresolved=0`, `R5 navigation=106 unresolved=0`, `R6 notes-html-refs=115 unresolved=0`, `R7 renderSurfaceCensus declaration differs from call site`, `AUDITED_SWEEP_FAILING_RULES=0`, exit 0 · **Evidence:** `report.md#dod--consumer-impact-sweep`
+  - Three rules were rejected for having no candidates at all — `href_hash_anchors_emitted_by_route=0` (the fourth rejection of that rule in this feature family), `breadcrumb_markers=0` and `redirect_files=0` — and four rule drafts were discarded after inspection showed each would have shipped a false finding: runtime-built `tip-` ids, the test-injected `data-rl-probe`, two external SSA URLs, and a note that declares its own tool `PROPOSED (not yet built)`. Every surviving rule is proven able to report, by positive control or by mutation. `R4` reported seven `#sup-022-NN` deep links; the anchors are real headings and the rule's slug assumption was wrong, and what survives the correction is a repository-wide convention question living entirely in surfaces this scope holds byte-identical, with zero of the seven in this scope's own file — raised in `## Findings Raised And Not Fixed Here` and routed rather than repaired here.
 
 - [x] The complete-settlement fixture makes every declared leg non-zero and
       mutually distinct, asserted pairwise, so the census cannot pass by
@@ -373,6 +407,18 @@ delivery makes a row's claim false, the row is corrected rather than checked.
     does NOT constrain the origin of an entry — it compares
     `new URL(request.url).pathname` only — so no same-origin claim is made here;
     that gap is carried by Feature 021 Scope 01 `TP-01-18`.
+  - **Amended 2026-08-23 (F-REG-03 closure).** The final sentence above no
+    longer describes the row. `SCN-024-014` now projects the ledger through the
+    shared `sameOriginPaths(ledger, site)`, which refuses on origin before it
+    returns any pathname, so the row DOES constrain the origin of an entry. The
+    change is a conjunct rather than a replacement: every assertion and every
+    adversarial case listed above is unchanged, including each named pack pin.
+    The new adversarial case is a read whose pathname is declared but whose
+    origin is not the route's, probed at
+    `specs/021-lifetime-tax-strategy-lab/scopes/01-tax-workspace-rule-pack-and-privacy-foundation/report.md#the-decisive-probe--a-cross-origin-url-with-a-declared-pathname`.
+    The tick above is not withdrawn: its claim was about no-growth, declared
+    paths and pack presence, all still executed and all now strictly better
+    supported.
 - [x] NFR-024-004 holds at feature end: the refusal vocabulary member count and the
       supported income-kind count each equal their pre-feature values across the
       whole feature, not only within this scope.

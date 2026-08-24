@@ -1779,6 +1779,395 @@ settlement refuses under `RLTAX-THRESHOLD-UNAVAILABLE` and the surface carries a
 refusal rather than a numeral, which is pinned independently at
 `report.md#tp-04-11`.
 
+## Regression And Boundary Evidence — 2026-08-24 Pass
+
+This pass closes the three rows this scope carried open. Every command below was
+executed in this session and its exit code captured immediately.
+
+**Declared deviation from the Test Plan command string.** The Test Plan cells
+name `--project=system-chrome`. Every run recorded here used `--project=chromium`
+— the bundled Playwright browser declared in `playwright.config.mjs`, which
+differs only by not requiring a system Chrome install. The rows constrain the
+persistent **titles**, not the project, so the substitution does not weaken them.
+
+### DoD — scenario-specific E2E regression for SCN-022-010, -011 and -012
+
+Limb one, each title is present in the spec file rather than merely selected.
+The literal searched includes the `test(` declaration, so a title that existed
+only inside a comment or a `--grep` string could not satisfy it.
+
+```text
+$ grep -c -F "test('Regression: SCN-022-010 California renders no preferential stage and a long term gain reaches the identical state result an equal ordinary amount reaches'" tests/lifetime-tax-california.spec.mjs
+1
+exit code: 0
+$ grep -c -F "test('Regression: SCN-022-011 the exemption credit stage is rendered after the rate and the leg sum and refuses rather than resolving to zero'" tests/lifetime-tax-california.spec.mjs
+1
+exit code: 0
+$ grep -c -F "test('Regression: SCN-022-012 the surcharge threshold is identical for every filing status'" tests/lifetime-tax-california.spec.mjs
+1
+exit code: 0
+```
+
+Limb two, each Test Plan command selects exactly one test, and that test passes.
+
+```text
+==== $ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "Regression: SCN-022-010 California renders no preferential stage and a long term gain reaches the identical state result an equal ordinary amount reaches" --list
+Listing tests:
+  [chromium] › tests/lifetime-tax-california.spec.mjs:116:1 › Regression: SCN-022-010 California renders no preferential stage and a long term gain reaches the identical state result an equal ordinary amount reaches
+Total: 1 test in 1 file
+exit code: 0
+==== $ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "Regression: SCN-022-011 the exemption credit stage is rendered after the rate and the leg sum and refuses rather than resolving to zero" --list
+Listing tests:
+  [chromium] › tests/lifetime-tax-california.spec.mjs:174:1 › Regression: SCN-022-011 the exemption credit stage is rendered after the rate and the leg sum and refuses rather than resolving to zero
+Total: 1 test in 1 file
+exit code: 0
+==== $ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "Regression: SCN-022-012 the surcharge threshold is identical for every filing status" --list
+Listing tests:
+  [chromium] › tests/lifetime-tax-california.spec.mjs:226:1 › Regression: SCN-022-012 the surcharge threshold is identical for every filing status
+Total: 1 test in 1 file
+exit code: 0
+```
+
+```text
+==== $ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "Regression: SCN-022-010 California renders no preferential stage and a long term gain reaches the identical state result an equal ordinary amount reaches" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 …ches the identical state result an equal ordinary amount reaches (652ms)
+
+  1 passed (1.7s)
+exit code: 0
+==== $ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "Regression: SCN-022-011 the exemption credit stage is rendered after the rate and the leg sum and refuses rather than resolving to zero" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 …e rate and the leg sum and refuses rather than resolving to zero (297ms)
+
+  1 passed (1.2s)
+exit code: 0
+==== $ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "Regression: SCN-022-012 the surcharge threshold is identical for every filing status" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 …-012 the surcharge threshold is identical for every filing status (1.6s)
+
+  1 passed (2.5s)
+exit code: 0
+```
+
+**The adversarial case.** The row requires that renaming or deleting one of those
+persistent titles fails it, so an empty grep selection can never be read as a
+pass. Unlike Scope 03, this scope's Test Plan commands grep the **whole** title
+including the scenario token, so a token rename and a clause rename are the same
+mutation here and one probe covers both.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            sc04 renaming a persistent title makes the Test Plan command fail
+file:             tests/lifetime-tax-california.spec.mjs
+mutation:         test('Regression: SCN-022-012 the surcharge threshold is identical for every filing status'  ->  test('RENAMED-BY-PROBE sc04 zzz'   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep Regression:\ SCN-022-012\ the\ surcharge\ threshold\ is\ identical\ for\ every\ filing\ status --reporter=list
+red-exit:         1
+red-summary:      Error: No tests found
+green-exit:       0
+green-summary:      1 passed (3.1s)
+revert-verified:  yes (committed=2fa57dfe33acd5e64b5d111ce04be168f8a73112 restored=2fa57dfe33acd5e64b5d111ce04be168f8a73112)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe exit code: 0
+```
+
+The RED summary is `Error: No tests found` at exit `1`, which is the precise
+shape the row's adversarial clause names: an empty grep selection is a failure
+rather than a vacuous pass.
+
+**Verdict: closed.** Three titles present exactly once each as `test()`
+declarations, three Test Plan commands each selecting exactly one test and
+exiting 0, and the rename proven to fail the command.
+
+### DoD — broader E2E regression across the lifetime-tax browser family
+
+**The selection floor is asserted before the run.** The listing must name a title
+carrying each of this scope's three scenario tokens, and the listed total is
+recorded so later shrinkage would be visible.
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "SCN-02[1-4]" --list
+LIST_EXIT=0
+$ grep -c 'SCN-022-010' <list output>
+1
+$ grep -c 'SCN-022-011' <list output>
+1
+$ grep -c 'SCN-022-012' <list output>
+1
+$ grep 'Total:' <list output>
+Total: 88 tests in 20 files
+```
+
+Two runs follow. The first is `TP-04-19`'s own command. The second selects the
+family by **path** with no grep at all, which is strictly wider — 94 tests rather
+than 88 — and is what the row's "not this scope's own spec file alone" clause
+actually asks for. The path selection is proven to be exactly the family and
+nothing else.
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium "tests/lifetime-tax-.*\.spec\.mjs" --list
+LIST_EXIT=0
+Total: 94 tests in 20 files
+distinct files selected      = 20
+non-family files selected    = 0
+```
+
+Both runs exceed forty lines, so each is a hash-verifiable bounded capture whose
+sha256 covers every line produced.
+
+```
+# sc04 TP-04-19 broader regression, grep-selected SCN-02[1-4]
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep SCN-02[1-4] --reporter=list
+exit: 0
+lines: 93
+sha256: ef1fd85d69bd8690a02d4f3455ef136d3f93b72b742c54ea75e66c29b73de7df
+--- last 20 ---
+  ✓  88 [chromium] › tests/lifetime-tax-use.spec.mjs:354:1 › Regression: SCN-023-010 the request ledger does not grow after the day-count declarations and every entry is a declared same-origin read (475ms)
+
+  88 passed (14.0s)
+```
+
+**The first path-selected run failed, and the failure is recorded rather than
+re-run away.**
+
+```
+# sc04 broader regression, whole lifetime-tax family selected by path
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium tests/lifetime-tax-.*\.spec\.mjs --reporter=list
+exit: 1
+lines: 124
+sha256: b42ef4366345a2983faf28509d558ec9f557422874f9ea685edaa08a21f3310c
+--- last 20 ---
+    Received string:        "http://127.0.0.1:50643/lifetime-tax-strategy-lab.html"
+
+      390 |   ledger.forEach((entry) => {
+      391 |     [String(fairRentalSentinel), String(personalUseSentinel)].forEach((sentinel) => {
+    > 392 |       expect(entry.url).not.toContain(sentinel);
+          |                             ^
+      393 |       expect(entry.postData).not.toContain(sentinel);
+      394 |     });
+      395 |     expect(entry.method).toBe('GET');
+
+  1 failed
+    [chromium] › tests/lifetime-tax-use.spec.mjs:354:1 › Regression: SCN-023-010 the request ledger does not grow after the day-count declarations and every entry is a declared same-origin read 
+  93 passed (15.6s)
+```
+
+**The cause was read out of the capture rather than guessed.** The failing
+assertion is `expect(entry.url).not.toContain('43')`, where `43` is
+`personalUseSentinel` at `tests/lifetime-tax-use.spec.mjs:366`. The received URL
+is `http://127.0.0.1:50643/…` and the static fixture binds an **ephemeral** port
+(`server.listen(0, '127.0.0.1', …)` in `tests/provider-credentials.support.mjs`).
+The sentinel is a substring of the port number, so the assertion fails whenever
+the operating system happens to hand out a colliding port.
+
+```text
+$ node -e "String(50643).includes('43')"
+port 50643 contains sentinel 43 -> true
+port 50643 contains sentinel 187 -> false
+$ sysctl net.inet.ip.portrange.first net.inet.ip.portrange.last
+net.inet.ip.portrange.first: 49152
+net.inet.ip.portrange.last: 65535
+$ node -e "<count colliding ports across the ephemeral range>"
+ephemeral ports in range: 16384
+contain "43" : 531 = 3.24%
+contain "187": 37 = 0.23%
+either        : 568 = 3.47%
+```
+
+This is a **pre-existing latent flake in a file this scope excludes**, not a
+regression this scope introduced: `tests/lifetime-tax-use.spec.mjs` is on this
+scope's byte-identical list, the failing title belongs to `SCN-023-010`, and the
+same test passed in the grep-selected run minutes earlier. It is recorded here
+and carried out of this scope as a finding rather than fixed, because the owning
+feature is `specs/023-property-tax-and-rental-income`. The re-run is reported as
+a re-run, not substituted for the failure.
+
+```
+# sc04 broader regression, whole lifetime-tax family selected by path (rerun after the port-collision flake)
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium tests/lifetime-tax-.*\.spec\.mjs --reporter=list
+exit: 0
+lines: 99
+sha256: e8180a8e453b85413ce023f459521f8359df35c358003bd2423d8ec1e3a006f0
+--- last 12 ---
+  ✓  94 [chromium] › tests/lifetime-tax-use.spec.mjs:354:1 › Regression: SCN-023-010 the request ledger does not grow after the day-count declarations and every entry is a declared same-origin read (523ms)
+
+  94 passed (14.6s)
+```
+
+**The adversarial case, proven in two halves.** The row requires that a change
+made inside this scope which reddens a **sibling** scope's persistent title fails
+this row, *even while this scope's own rows stay green*. Both halves are executed
+with the identical mutation. The mutation renames `combinedSettlementCard`, a
+page anchor on this scope's *Allowed modified* file that
+`tests/lifetime-tax-combined.spec.mjs` reads and
+`tests/lifetime-tax-california.spec.mjs` never mentions.
+
+```text
+$ grep -n "combinedSettlementCard" tests/lifetime-tax-combined.spec.mjs lifetime-tax-strategy-lab.html
+tests/lifetime-tax-combined.spec.mjs:69:const combinedCard = (page) => page.locator('#combinedSettlementCard');
+tests/lifetime-tax-combined.spec.mjs:71:const combinedRefusal = (page) => page.locator('#combinedSettlementCard [data-rl-unavailable]');
+lifetime-tax-strategy-lab.html:765:                <div id="combinedSettlementCard"></div>
+lifetime-tax-strategy-lab.html:2915:                var combinedHost = byId("combinedSettlementCard");
+$ grep -c "combinedSettlementCard" tests/lifetime-tax-california.spec.mjs
+0
+```
+
+Half one — the broader row fails under the mutation.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            sc04 a scope-owned page edit that reddens a sibling scope title makes the broader family row fail
+file:             lifetime-tax-strategy-lab.html
+mutation:         combinedSettlementCard  ->  combinedSettlementCardPROBE   (2 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium tests/lifetime-tax-.\*\\.spec\\.mjs --reporter=list
+red-exit:         1
+red-summary:        91 passed (57.0s)
+green-exit:       0
+green-summary:      94 passed (41.6s)
+summary-compared:   91 passed (<elapsed>)  vs    94 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe exit code: 0
+```
+
+Half two — the same mutation leaves this scope's own three rows green. Here a
+probe exit of `7` is the **intended** reading and is what the clause requires:
+the harness refuses because RED and GREEN agree, and RED and GREEN agreeing at
+`3 passed` is exactly the statement that the sibling-reddening edit never touched
+this scope's own rows.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            sc04 the same sibling-reddening edit leaves this scope's own three rows green
+file:             lifetime-tax-strategy-lab.html
+mutation:         combinedSettlementCard  ->  combinedSettlementCardPROBE   (2 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep SCN-022-01\[012\] --reporter=list
+red-exit:         0
+red-summary:        3 passed (4.0s)
+green-exit:       0
+green-summary:      3 passed (3.4s)
+summary-compared:   3 passed (<elapsed>)  vs    3 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   NO (both channels agree: exit 0 == 0, summary "  3 passed (<elapsed>)" identical once elapsed time is normalised)
+=== END RED/GREEN PROBE EVIDENCE ===
+red-green-probe: REFUSED — RED and GREEN produced the same outcome on both channels (both exited 0, and the --summary-match line was "  3 passed (<elapsed>)" in each once elapsed time was normalised out). The mutation did not change what the command reported, so the assertion under test cannot fail and this is not RED/GREEN evidence.
+probe exit code: 7
+```
+
+Read as a pair, the two probes are the row's adversarial clause executed rather
+than argued: `94 → 91 passed` on the family, `3 → 3 passed` on this scope's own
+selection, from one mutation.
+
+**Verdict: closed.** The selection floor is met before the runs, the grep-selected
+run is green at 88, the strictly wider path-selected family run is green at 94, the
+one observed failure is attributed to a measured pre-existing port-collision flake
+in an excluded file rather than absorbed silently, and the sibling-blast-radius
+clause is proven able to fail.
+
+### DoD — Change Boundary respected, zero excluded file families changed
+
+This scope's excluded list covers the **whole** `tests/lifetime-tax-*.spec.mjs`
+family, of which this scope's own `tests/lifetime-tax-california.spec.mjs` is the
+single *Allowed modified* member. The scan therefore uses a negative pathspec, and
+the negative pathspec is proven to be doing real work rather than silently
+matching nothing.
+
+```text
+pathspec_count=29
+$ git status --porcelain -- <scope 04 excluded surfaces: 28 positive pathspecs + 1 negative>
+exit code: 0
+(no output above the exit line means zero rows)
+$ git ls-files --others --exclude-standard -- <same pathspecs> | wc -l
+       0
+$ git ls-files -- 'tests/lifetime-tax-*.spec.mjs' ':(exclude)tests/lifetime-tax-california.spec.mjs' | wc -l
+      19
+$ git ls-files -- 'tests/lifetime-tax-*.spec.mjs' | wc -l
+      20
+$ git ls-files -- <all excluded pathspecs> | wc -l
+    7897
+```
+
+Twenty family specs, nineteen after the negative pathspec removes this scope's
+own — so the exclusion is real and the remaining nineteen are genuinely scanned.
+The excluded set resolves to **7,897** tracked files and produced **zero**
+porcelain rows.
+
+**The mtime limb has an empty domain, and that is measured rather than assumed.**
+`git ls-files --others --exclude-standard` over the same pathspec set returns
+zero, so every excluded surface this scope names is fully tracked and there is no
+untracked excluded path for an mtime comparison to cover.
+
+**Why `git diff --quiet` is not accepted, demonstrated rather than asserted.**
+
+```text
+$ git diff --quiet -- err.txt ; echo "exit $?"
+exit 0
+$ git status --porcelain -- err.txt
+?? err.txt
+exit code: 0
+```
+
+**The adversarial case.** Touching one excluded path must produce a row and fail
+the item. `scripts/validate-spec-test-paths.baseline` is on this scope's excluded
+list and is chosen deliberately: it is not loaded by the page and not executed by
+any browser run, so the transient mutation cannot perturb a concurrent test run,
+and the probe command is a bare `git status` test that completes in milliseconds.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            sc04 touching one excluded path makes the path-scoped porcelain check fail
+file:             scripts/validate-spec-test-paths.baseline
+mutation:         # validate-spec-test-paths baseline — Research Lab  ->  # validate-spec-test-paths baseline — Research Lab.   (1 occurrence(s))
+command:          sh -c test\ -z\ \"\$\(git\ status\ --porcelain\ --\ scripts/validate-spec-test-paths.baseline\)\"
+red-exit:         1
+red-summary:      (no output)
+green-exit:       0
+green-summary:    (no output)
+revert-verified:  yes (committed=c9f7a2ffbdfaa84cbfb46e8f078325c9194762b5 restored=c9f7a2ffbdfaa84cbfb46e8f078325c9194762b5)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe exit code: 0
+```
+
+**Disclosure — files were transiently mutated by this session's probes.** The
+`scripts/validate-spec-test-paths.baseline` probe above deliberately touched an
+excluded file to prove the check can fail, and the two regression probes touched
+`lifetime-tax-strategy-lab.html` and `tests/lifetime-tax-california.spec.mjs`,
+both on this scope's *Allowed* lists. In every case the harness verified the
+restored blob hash against the committed blob hash, so each file is byte-identical
+to its committed content and no commit carries any of those mutations. Recorded
+here rather than left silent, because a reader checking mtimes rather than content
+would otherwise find unexplained movement.
+
+**Verdict: closed.** Zero porcelain rows across 7,897 tracked excluded files, zero
+untracked files anywhere in the excluded set, the negative pathspec proven
+non-vacuous, the porcelain-versus-`git diff` asymmetry demonstrated, and the check
+proven able to fail.
+
+### Repository gates re-run in this pass
+
+```text
+$ node scripts/selftest.mjs
+================================================
+Research-Lab self-test: 3404 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+$ node scripts/validate-spec-test-paths.mjs
+[spec-test-paths] scanned=741 references=17029 distinctPaths=265 missingPaths=73 plannedMissing=3 baseline=70 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+VALIDATE_EXIT=0
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/022-federal-preferential-and-state-income-tax
+Artifact lint PASSED.
+ARTIFACT_LINT_EXIT=0
+```
+
 ## Completion Statement
 
 Filled at execution.

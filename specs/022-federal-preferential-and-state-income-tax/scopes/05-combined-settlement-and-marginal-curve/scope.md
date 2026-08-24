@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs in
 [report.md](report.md).
 
-**Status:** Not started
+**Status:** In Progress (deliverables and tests verified; newly added planning rows unverified)
 **Scope-Kind:** runtime-behavior
 **Tags:** `route:integrated`, `adversarial-ordering:true`, `no-registration:true`, `known-value-tested`
 **Depends On:** 01, 02, 03, 04
@@ -174,6 +174,12 @@ scope.
 `scripts/validate-spec-test-paths.baseline` · `tests/lifetime-tax-*.spec.mjs` ·
 `tests/lifetime-tax.support.mjs` · every framework-managed file.
 
+**Allowed file families:** the *Allowed new* and *Allowed modified* paths named
+above, and nothing else.
+
+**Excluded surfaces:** the byte-identical list named above. Collateral cleanup
+outside the allowed families is opt-in and is not performed under this scope.
+
 **Rollback:** delete `rltaxcombined.js` and its fixtures; revert the page panels
 and the appended selftest group.
 
@@ -200,6 +206,21 @@ in Simple would break `TP-05-01`'s no-`<canvas>` clause and
 `Regression: SCN-021-013`'s zero-`<canvas>`, zero-`<table>` clauses, none of which
 is eligible for supersession. If the chart cannot be rendered in Power, that is a
 finding returned to planning, not an assertion edit.
+
+## Consumer Impact Sweep
+
+This scope fixes the combined-settlement module name, its exported entry points
+and the combined panel anchor ids. Any rename, move or removal of one of those
+identifiers reaches the surfaces below, and each surface is swept before the
+scope closes.
+
+| Consumer surface | What a rename or removal would break | Sweep proof |
+| --- | --- | --- |
+| The page's module `src` list and its API client reads | A moved module turns a declared read into an unresolved request | The declared-read canary fails on any declared read that does not resolve |
+| The combined panels and their anchor ids | A renamed anchor leaves the combined curve unreachable from the summary | Every anchor the page emits is resolved rather than assumed |
+| Deep links and breadcrumb targets shared by a reader | A renamed panel anchor makes a shared deep link land on nothing | Every emitted anchor is resolved in the browser row |
+| Site navigation (`rlnav.js`), `index.html`, `tools.json` | This route is deliberately unregistered, so a rename must leave all three byte-identical rather than update them | Path-scoped `git status --porcelain` over the three returns no rows |
+| Documentation, notes and any redirect entry | A renamed identifier leaves a stale reference | A repository-wide stale-reference scan for the old identifier returns zero first-party rows |
 
 ## Scenario-First Red/Green Contract
 
@@ -245,6 +266,19 @@ missing browser or an absent test does not satisfy RED.
 | TP-05-25 | Deploy gate | unit | SCN-022-013 … -015 | `scripts/build-pages-site.mjs` | The Pages plan succeeds, `site-exclusions.json` is unchanged, no new root HTML exists, and `tax-rules/` remains outside the public directories | `node scripts/build-pages-site.mjs --dry-run` | No | `report.md#tp-05-25` |
 
 ### Definition of Done
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-022-013, SCN-022-014 and SCN-022-015 pass under the exact persistent titles this scope's Test Plan names, and each of those titles is present in the spec file rather than merely selected by `--grep`. Adversarial case: renaming or deleting one of those persistent titles must fail this row, so an empty grep selection can never be read as a pass.
+  - **Phase:** implement · **Command:** six `grep -c -F` presence checks plus each Test Plan `--list` and `--reporter=list` run at `--project=chromium` · **Evidence:** `report.md#dod--scenario-specific-e2e-regression-for-scn-022-013--014-and--015`
+  - **Evidence:** this scope's three scenarios are carried by six persistent titles (`TP-05-16` … `TP-05-21`), and all six are proven rather than the three headline ones alone: each present exactly once as a `test()` declaration, each Test Plan command listing `Total: 1 test in 1 file` and running `1 passed` at exit 0. Renaming one title probed to `red-exit 1 / Error: No tests found` against `green-exit 0 / 1 passed`.
+- [x] Broader E2E regression suite passes across the whole lifetime-tax browser family, not this scope's own spec file alone. Adversarial case: a change made inside this scope that reddens a sibling scope's persistent title must fail this row even while this scope's own rows stay green.
+  - **Phase:** implement · **Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "SCN-02[1-4]" --reporter=list` and the same runner over `tests/lifetime-tax-.*\.spec\.mjs` · **Evidence:** `report.md#dod--broader-e2e-regression-across-the-lifetime-tax-browser-family`
+  - **Evidence:** `88 passed` at exit 0 grep-selected, `94 passed` at exit 0 path-selected across all twenty family spec files. The sibling-blast-radius clause is proven by one page-anchor mutation reading `94 → 87 passed` on the family and `7 → 7 passed` on this scope's own selection. A family defect observed during the Scope 04 pass — an ephemeral-port collision in `SCN-023-010` — is named and carried rather than absorbed.
+- [x] Change Boundary is respected and zero excluded file families were changed, proven by a path-scoped `git status --porcelain` over the excluded surfaces plus an mtime comparison for any untracked excluded directory. Adversarial case: touching one excluded path must produce a row and fail this item; `git diff --quiet` alone is not accepted, because it reports an untracked path as unchanged.
+  - **Phase:** implement · **Command:** `git status --porcelain` over 27 positive plus one negative pathspec, `git ls-files --others --exclude-standard` over the same set · **Evidence:** `report.md#dod--change-boundary-respected-zero-excluded-file-families-changed`
+  - **Evidence:** zero porcelain rows across 7,909 tracked excluded files, all fourteen `tax-rules/` files inside the scanned set; zero untracked files in the excluded set, so the mtime limb has a measured empty domain; the negative pathspec proven non-vacuous at `20 → 19`; `git diff --quiet` shown returning exit 0 for an untracked path that porcelain reports as `?? out.log`; touching one excluded path probed to `red-exit 1` against `green-exit 0`.
+- [x] The Consumer Impact Sweep is complete for every renamed, moved or removed route, path, contract, identifier and UI target in this scope, and zero stale first-party references remain. Adversarial case: one stale reference left in navigation, a breadcrumb, a redirect, a deep link, an API client read or a doc must fail this row, and the proof must be a repository-wide stale-reference scan rather than a spot check.
+  - **Phase:** implement · **Command:** a four-limb sweep — declared `<script src>` resolution, a repository-wide `rltax*.js` reference scan over every tracked file outside `specs/`, anchor-id resolution in both directions, and a path-scoped `git status --porcelain` over the three registries · **Evidence:** `report.md#dod--consumer-impact-sweep-complete-zero-stale-first-party-references`
+  - **Evidence:** 14 declared module reads resolved, 0 unresolved; 14 distinct module references across the repository, 0 unresolved; 17 anchor ids selected with one apparent orphan, `#tip-combinedTotalTax`, read and classified as a runtime-constructed id (`tip.id = "tip-" + fieldId`) that the passing browser row resolves live, so real unresolved anchors are 0; `rlnav.js`, `index.html` and `tools.json` byte-identical with zero references to this route. The scan's first form was measured *unable* to fail (probe exit 7, lowercase-only pattern blind to `rltaxcombinedZZ.js`), was widened to `[A-Za-z]`, re-derived, and then probed to `red-exit 1 / unresolved= 1` against `green-exit 0 / unresolved= 0`.
 
 - [x] FR-022-028 is implemented: the two settlements are computed independently
       with no parameter through which either could reach the other, and
@@ -303,6 +337,15 @@ missing browser or an absent test does not satisfy RED.
       own configuration declares, and no household value reaches any URL,
       request, referrer or console message.
   - **Restated 2026-08-22 (F-REG-02).** The superseded text read "The request ledger stays empty across the full combined workflow", which is false: the cited row captures `afterFirstPaint = ledger.length` and asserts `expect(afterFirstPaint).toBeGreaterThan(0)` on the very next line, so the row and its own evidence asserted opposite things. The row now states the three propositions the run actually establishes, and each stays falsifiable. Adversarial cases: a request issued after first paint fails `expect(ledger.length).toBe(afterFirstPaint)`; a read of a document the configuration does not declare, or of any remote document, fails the permitted-path and cross-origin filters; a residency or income declaration reaching a URL, a request body, a referrer or a console message fails the sentinel assertions; and a boot that read nothing fails `expect(afterFirstPaint).toBeGreaterThan(0)`. This restatement matches the corrected `NFR-022-002`. **Rename discharged 2026-08-22 (F-REG-02).** The routed test-artifact rename has now been taken: the persistent title of the browser row reads `Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow`, and the row's `--grep` selector was moved with it in the same change, so the row still selects its own test. This restatement is `bubbles.plan`'s artifact; the tick is not, and remains for a verifying pass.
+  - **Amended 2026-08-23 (F-REG-03 closure).** The "cross-origin filter" the
+    restatement names is now the shared `sameOriginPaths(ledger, site)` rather
+    than an inline `startsWith(site.baseUrl)`. The inline form was a prefix test,
+    and a prefix is not an origin: everything before an `@` in an authority is
+    userinfo, so `site.baseUrl + "@evil.example"` begins with the whole base URL,
+    carries a declared pathname, and is served by `evil.example`. The shared
+    helper applies the prefix test and a parsed-origin comparison as a conjunct.
+    Every proposition and adversarial case above is unchanged; only the test
+    behind the cross-origin clause is stronger.
   - **Ticked 2026-08-22.** The referrer surface the previous pass recorded as
     unasserted is now read by the cited row itself: `document.referrer`, every
     header of every request resolved through `allHeaders()`, and the page URL

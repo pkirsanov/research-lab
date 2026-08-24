@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { startStaticServer } from './provider-credentials.support.mjs';
 import {
   collectRequests,
-  declaredPackPaths,
+  declaredRouteAssets,
   declareOrdinaryHousehold,
   openLifetimeTax,
   openPower,
@@ -61,19 +61,6 @@ async function declareSale(page, values) {
 }
 
 const splitAttribute = (raw) => (raw === null || raw === '' ? [] : raw.split(','));
-
-/* The permitted-asset set, DERIVED from the page's own script tags and from every pack path the
-   configuration declares, so a module a later scope adds is admitted by the page's own
-   declaration rather than by a literal edited here. */
-function declaredRouteAssets() {
-  const routeSource = readFileSync(join(ROOT, 'lifetime-tax-strategy-lab.html'), 'utf8');
-  const config = JSON.parse(readFileSync(join(ROOT, 'lifetime-tax-strategy.config.json'), 'utf8'));
-  const scripts = Array.from(routeSource.matchAll(/<script src="([^"]+)"><\/script>/g))
-    .map((match) => '/' + match[1]);
-  const packs = declaredPackPaths(config).map((path) => '/' + path);
-  return ['/lifetime-tax-strategy-lab.html', '/lifetime-tax-strategy.config.json']
-    .concat(scripts).concat(packs).concat(['/favicon.ico']);
-}
 
 /* Money is rendered with thousands separators and a currency symbol, and a sentence that states
    an amount also carries its own prose punctuation. Comparing a rendered sentence to an expected

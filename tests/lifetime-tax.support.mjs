@@ -1,4 +1,9 @@
 import { expect } from './playwright-runtime.mjs';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 export const LIFETIME_TAX_ROUTE = '/lifetime-tax-strategy-lab.html';
 
@@ -40,6 +45,25 @@ export function declaredPackPaths(config) {
     }, []);
 }
 
+/* The permitted-asset set, DERIVED from the route's own `<script src>` tags and from every pack
+   path the configuration declares, so a pack a later scope introduces is admitted by its own
+   declaration rather than by a literal edited here.
+
+   Ten spec files held a byte-identical copy of this derivation. They are one function now, not
+   because ten copies were untidy but because ten copies are ten places an admission could be
+   widened, and a widened admission is exactly what this set exists to refuse. The two callers
+   that parameterise the configuration path keep their own derivation: collapsing those would
+   hard-code a path they deliberately made a variable. */
+export function declaredRouteAssets() {
+  const routeSource = readFileSync(join(ROOT, 'lifetime-tax-strategy-lab.html'), 'utf8');
+  const config = JSON.parse(readFileSync(join(ROOT, 'lifetime-tax-strategy.config.json'), 'utf8'));
+  const scripts = Array.from(routeSource.matchAll(/<script src="([^"]+)"><\/script>/g))
+    .map((match) => '/' + match[1]);
+  const packs = declaredPackPaths(config).map((path) => '/' + path);
+  return ['/lifetime-tax-strategy-lab.html', '/lifetime-tax-strategy.config.json']
+    .concat(scripts).concat(packs).concat(['/favicon.ico']);
+}
+
 export function collectRequests(page) {
   const ledger = [];
   page.on('request', (request) => ledger.push({
@@ -57,9 +81,21 @@ export function collectRequests(page) {
    route never declared — satisfies it. That is the shape a leak takes: the household's own
    modules, fetched from somewhere that can log the fetch. This helper refuses on origin FIRST and
    only then hands back the pathnames, so every caller gains the origin constraint by calling it.
-   The message names the offending URLs because the pathname alone cannot show what went wrong. */
+   The message names the offending URLs because the pathname alone cannot show what went wrong.
+
+   The refusal is a CONJUNCTION of two limbs, not one test written twice. The prefix limb is the
+   original: it rejects an origin that shares no leading text with the route's own. The parsed-origin
+   limb is added because a prefix is not an origin. A URL may begin with the whole base URL and
+   still be served by somebody else: `http://127.0.0.1:8123@evil.example/rltaxstrategy.js` starts
+   with `http://127.0.0.1:8123`, carries a declared pathname, and has origin `http://evil.example`,
+   because everything before the `@` is userinfo rather than a host. The prefix limb alone admits
+   it. An entry must clear BOTH limbs to be counted local. `SCN-021-002` in
+   lifetime-tax-foundation.spec.mjs holds that case so the second limb is asserted rather than
+   merely present. */
 export function sameOriginPaths(ledger, site) {
-  const foreign = ledger.filter((entry) => !entry.url.startsWith(site.baseUrl));
+  const routeOrigin = new URL(site.baseUrl).origin;
+  const foreign = ledger.filter((entry) => !entry.url.startsWith(site.baseUrl)
+    || new URL(entry.url).origin !== routeOrigin);
   expect(foreign.map((entry) => entry.url),
     'every request the route issued is same-origin: a declared pathname served from an undeclared origin is a leak')
     .toEqual([]);

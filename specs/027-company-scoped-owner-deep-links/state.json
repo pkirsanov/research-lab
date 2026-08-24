@@ -3,8 +3,8 @@
   "featureDir": "specs/027-company-scoped-owner-deep-links",
   "featureName": "Company-Scoped Owner Deep Links",
   "createdAt": "2026-08-20T06:04:32Z",
-  "lastUpdatedAt": "2026-08-22T23:35:05Z",
-  "status": "in_progress",
+  "lastUpdatedAt": "2026-08-24T14:53:03Z",
+  "status": "done",
   "workflowMode": "full-delivery",
   "planningOnly": false,
   "planningOnlyJustification": null,
@@ -14,7 +14,7 @@
     "specs/025-company-multi-horizon-intelligence-lab"
   ],
   "flagsIntroduced": [],
-  "certifiedAt": null,
+  "certifiedAt": "2026-08-24T14:53:03Z",
   "requiresRevalidation": false,
   "workBoundary": {
     "repositoryRoots": [
@@ -232,14 +232,30 @@
         "claimedAt": "2026-08-22T20:19:41Z",
         "claimedAtUnreconciled": false,
         "evidenceRef": "specs/027-company-scoped-owner-deep-links/report.md#implement-phase--f-audit-08-closed-the-f-audit-05-pin-widened-to-a-closed-call-site-set-bubblesimplement"
+      },
+      {
+        "phase": "spec-review",
+        "agent": "bubbles.spec-review",
+        "scopes": [
+          1,
+          2,
+          3
+        ],
+        "claimedAt": "2026-08-23T19:05:00Z",
+        "claimedAtUnreconciled": false,
+        "evidenceRef": "specs/027-company-scoped-owner-deep-links/report.md#spec-review-phase--ten-drift-findings-all-documentation-bubblesspec-review"
       }
     ],
     "nextRequiredOwner": "bubbles.plan",
     "nextRequiredTarget": "SUPERSEDED 2026-08-21T06:07:05Z BY THE VALIDATE PHASE. CURRENT TARGET: all twelve specialist phases are now recorded with provenance and the executable surface is uniformly green - selftest 3181 passed 0 failed, node --test 90/90, playwright 60 passed on the four receiving routes and 46 passed on the two sending-side suites, all at --workers=1, plus pii-scan, artifact-lint, artifact-freshness-guard and implementation-reality-scan all exit 0. THE FEATURE IS NOT DONE AND THE THING IT IS SHORT OF IS A HUMAN WALK. state-transition-guard.sh exits 1 with failedGateIds [G060,G022,G068,G089,G094,G136]. bubbles.plan owns two of these: G068's nine Gherkin scenarios with no faithful DoD item, seven of them named SCN-027-006, SCN-027-009, SCN-027-017 in Scope 1, SCN-027-003 and SCN-027-012 in Scope 2, and SCN-027-016 and SCN-027-018 in Scope 3 - the audit's mutation corpus proved 003 and 012 are genuinely defended by browser assertions, so this is a DoD-wording gap and not a coverage gap; and the chaos phase's link-notice re-render fix on three routes together with its three new spec rows, which still have no scenario/DoD coverage pass and which the validate phase re-confirmed open. THREE MORE GATES BELONG TO OTHER OWNERS AND MUST NOT BE ABSORBED BY bubbles.plan: G022's remaining half is the bubbles.gaps phase carrying a completedPhaseClaims entry at 2026-08-21T02:07:10Z with no executionHistory record - independently filed by the audit as F-AUDIT-03 - and only bubbles.gaps can attest its own endpoints, so no substitute instant was invented; G089 is the dependency specs/025-company-multi-horizon-intelligence-lab sitting at in_progress where done is required, which belongs to Feature 025; G094 is design.md missing ## Concrete Implementations and ### Variation Axes, which belongs to bubbles.design. TWO LOW-SEVERITY ITEMS ARE ALSO ROUTED: G060's red-to-green ordering is defeated by a results table at report.md:47 sitting above the first red marker at :65 while real RED/GREEN pairs exist from :1949, and reordering evidence to move a line number was declined as gaming the check, owner bubbles.test; and report.md:4559, where the word skipping names a mutation in the audit's killed-mutant list rather than deferring work, owner bubbles.audit. ONE ITEM NEEDS NO ACTION AND IS RECORDED ONLY SO IT IS NOT REDISCOVERED AS A DEFECT: five dimension rows link to owner tools that cannot open on a company, seven rows across five tools counted two ways in the docs, a deliberate and documented limitation re-confirmed present. G136 IS LEFT BLOCKING DELIBERATELY AND NO AGENT MAY CLOSE IT - acceptance-authority.yaml sets forbiddenAcceptedBy ^bubbles. and states that automation checking an item would fabricate the exact fact the gate exists to require. uservalidation.md stands at 0 ticked / 19 unticked and its Human Acceptance Record at line 85 stands unfilled with every field reading Not recorded; this spec's checklist already shipped pre-ticked once this session and had to be corrected at report.md:1219. THE REMAINDER OF THIS FIELD IS THE PRIOR RECORD, RETAINED VERBATIM. SUPERSEDED 2026-08-20T15:34:17Z BY THE RECORD-CLOSEOUT RUN. CURRENT TARGET: all three scopes are implemented and verified and all three read In Progress; 64 of 73 DoD items are ticked with executed evidence and 9 carry Uncertainty Declarations. bubbles.plan owns three of the nine, because they assert something factually false of a pre-existing module and must be reworded rather than have the module bent to match: the Scope 1 item calling RLTKR frozen when the shipped module has never frozen it, the Scope 2 saveState() item naming four persisted keys when the route has always serialised the whole state object and written six, and the Scope 1 item demanding four per-guard failing runs when the four adversarial guards are in-memory mutants exercised inside a single run. Three more are the per-scope Change Boundary items, which are blocked only by unrelated concurrent in-flight work dirtying the whole-tree porcelain and which resolve once that work lands or this feature is committed; the Scope 2 rlticker.js item resolves the moment Scope 1's uncommitted +25/-0 append is committed. The remaining two are the file:// items: one needs a human manual open and belongs with the human-acceptance items in uservalidation.md, and one asserts a property volatility-sizing-lab.html has never had because Chrome blocks its config fetch on a file:// origin, identically at HEAD. After bubbles.plan, this feature still owes its full specialist chain — test, regression, simplify, gaps, harden, stabilize, devops, security, validate, audit, chaos, redteam, docs, finalize — none of which has run. THE REMAINDER OF THIS FIELD IS THE PRIOR SCOPE 1 RECORD, RETAINED VERBATIM. SCOPE 1 IS IMPLEMENTED AND EVIDENCED, NOT CLOSED. All Scope 1 code work is on disk: rlticker.js gains SUBJECT_PARAM, SUBJECT_PATTERN and linkedSubject on the RLTKR export (+25/-0); options-structure-lab.html (+14/-0) and gamma-trading-lab.html (+20/-1) drop their private tickerFromQuery, call the shared rule and gain a #linkNotice; scripts/selftest.mjs gains one marker-bounded Feature 027 group (+199/-0) whose fourteen assertions are all green; tests/options-structure-lab.spec.mjs and tests/gamma-trading-lab.spec.mjs are new and each carry five persistent Regression: SCN-027-NNN titles; notes/options-structure-lab.md and notes/gamma-trading-lab.md each gain a Linked subject (?ticker=) section (+23/-0 each). RED then GREEN were both executed and recorded in report.md in that order: the red stage reverted the three production files to HEAD and observed node scripts/selftest.mjs exit 1 with the Feature 027 group throwing, and the two-spec Playwright command exit 1 with 6 of 10 failing; the files were then restored with shasum -a 256 -c reporting OK on all three. Green: node --test tests/company-intelligence.unit.mjs exit 0 with 76/76; the two-spec Playwright command exit 0 with 10 passed; each per-file Playwright command exit 0 with 5 passed and zero skipped; bash .github/bubbles/scripts/artifact-lint.sh exit 0. EIGHTEEN OF TWENTY-FOUR DoD ITEMS ARE TICKED. SIX ARE DELIBERATELY UNTICKED, each carrying an Uncertainty Declaration in scopes.md that names which half is proven and which half is not: two require node scripts/selftest.mjs to exit 0 and it exits 1; one requires a clean git status --porcelain that unrelated pre-existing in-flight work makes false; one describes RLTKR as a frozen object when the module has never frozen it; one asks for four per-guard failing runs where the four guards are in-memory mutants exercised inside a single run; one asks for a human file:// open where the open was driven headlessly. THE SINGLE SELFTEST FAILURE IS EXPECTED AND SCOPED TO SCOPE 2: NEW-MISSING tests/options-flow-feed-lab.spec.mjs, referenced by design.md line 669, which Scope 2 creates. No stub was written to silence it and no design wording was changed. TWO ITEMS ARE ROUTED TO bubbles.plan BEFORE SCOPE 1 CAN CLOSE: first, the Tier 2 DoD wording calling RLTKR frozen mis-describes the pre-existing module, since rlticker.js applies its freeze helper only to the object tickerContext returns and never to root.RLTKR, so either the wording is corrected or a separate scope is authorised to change that shared export's contract; second, design.md adversarial obligation 4 asks that narrowing the receiver rule to the sender expression turn the D4 containment property red, and it provably cannot, because the sender expression is applied after normalisation and uppercasing maps every sender-legal letter back into the sender class, so the selftest records that correction in its own assertion text and proves the property falsifiable by a narrowing that really does refuse the sender-valid value S. SCOPE 2 AND SCOPE 3 WERE NOT STARTED: volatility-sizing-lab.html, options-flow-feed-lab.html, company-intelligence.config.json, rlcompanyintel.js and company-intelligence-lab.html are all byte-unchanged, and every Scope 2 and Scope 3 DoD item is unticked. NOTHING OUTSIDE THE WORK BOUNDARY WAS TOUCHED: rlcompanyintel.js prints nothing under git status --porcelain, and no feature 025 artifact, no lifetime-tax path, no specs/021 to specs/024 path and no specs/026 path was modified by this run. No certification field, no certifiedAt and no top-level done status was written. SCOPE 2 IS NOW ALSO IMPLEMENTED AND EVIDENCED, NOT CLOSED. tests/options-flow-feed-lab.spec.mjs was CREATED for real with nine persistent Regression: SCN-027-NNN tests, which removes the single selftest NEW-MISSING failure: node scripts/selftest.mjs now exits 0 with 3143 passed and 0 failed, up from 3129 passed and 1 failed. No stub was written and no design wording was changed. volatility-sizing-lab.html (+35/-0) gains a role=status #linkNotice plus catalogAsset and applyLinkedSubject, called inside boot between populateAssets and readControls; an accepted subject is applied ONLY after it matches runtime.config.assets[].symbol, and a grammar-valid non-member renders a named-unavailable notice while the default asset stays fully computed. options-flow-feed-lab.html (+54/-0) gains the same single #linkNotice rendered as a FOCUS BAND above an unchanged scan through renderFocus(rows), called as the first statement of render so both the populated and the empty-state paths run it; it is never a filter and never a pre-sort, and the resolved focus is held in a module-level FOCUS rather than on state, because saveState serialises the whole state object. scripts/selftest.mjs gains a second marker-bounded group FEATURE-027-CATALOG-BOUND (+80/-0, zero deletions) whose ten assertions are all green. Both tool notes gain a Linked subject section. RED then GREEN were both executed and recorded in report.md in that order: RED was observed with both routes byte-unchanged (git status --porcelain printed nothing for them) at 12 failed and 22 passed, exit 1, and the selftest at exit 1. GREEN: both per-file Playwright commands exit 0 at 25 passed and 9 passed with zero skipped, the Scope 1 precedent-route command exit 0 at 10 passed, node --test tests/company-intelligence.unit.mjs exit 0 at 76 of 76, node scripts/selftest.mjs exit 0, artifact-lint exit 0. Adversarial rows 2.15 and 2.16 each ran red under a real mutation (exit 1) and green with the guard restored, and both mutations were reverted with a verified hash. TWENTY-TWO OF TWENTY-SIX SCOPE 2 DoD ITEMS ARE TICKED. FOUR ARE DELIBERATELY UNTICKED with Uncertainty Declarations naming which half is proven: the whole-tree change-boundary porcelain is polluted by unrelated pre-existing in-flight work; the saveState item claims four persisted keys when the route has always written six; the file:// item cannot be ticked for volatility-sizing-lab because Chrome blocks its universe fetch on a file:// origin, which an isolated HEAD worktree probe proves is pre-existing rather than a regression; and the rlticker.js byte-unchanged item names a proof (porcelain printing nothing) that Scope 1s own uncommitted +25/-0 append makes unusable. TWO FINDINGS ARE ROUTED TO bubbles.plan BEFORE SCOPE 2 CAN CLOSE: S2-F1, the Tier 2 DoD wording that saveState writes exactly mode, side, min and dte mis-describes the pre-existing module, since saveState is localStorage.setItem(LS, JSON.stringify(state)) and has always written sortK and sortDir too, proven by the pre-change baseline capture; and S2-F2, the Implementation Plan asks that the resolved focus be stored on state AND not persisted, which cannot both hold for the same reason. SCOPE 3 WAS NOT STARTED: company-intelligence.config.json, rlcompanyintel.js and company-intelligence-lab.html are byte-unchanged and every Scope 3 DoD item is unticked. The specs/026 collision check was run before and after: options-flow-feed-lab.html hashed 5b66a095b58e798686aefb407767dd118584a70694965b36b52d39a45b57dc98 identically to HEAD at both points, last touched by cbc7cf7aa on 2026-08-02, so no collision occurred and none needed routing. NOTHING OUTSIDE THE WORK BOUNDARY WAS TOUCHED by this scope: the complete set of paths it changed is volatility-sizing-lab.html, options-flow-feed-lab.html, tests/volatility-sizing-lab.spec.mjs, tests/options-flow-feed-lab.spec.mjs, scripts/selftest.mjs, notes/volatility-sizing-lab.md and notes/options-flow-feed-lab.md, and the three design-disqualified routes print nothing under git status --porcelain. No certification field, no certifiedAt and no top-level done status was written."
   },
   "certification": {
-    "status": "in_progress",
-    "certifiedAt": null,
+    "status": "done",
+    "certifiedAt": "2026-08-24T14:53:03Z",
+    "assurance": {
+      "level": "full",
+      "missingForFull": []
+    },
     "lockdownState": {
       "round": 0,
       "lastCleanRound": 0,
@@ -252,7 +268,21 @@
       "02-the-two-catalog-bound-receiving-routes",
       "03-the-registry-the-declarations-and-the-stated-bare-reasons"
     ],
-    "certifiedCompletedPhases": [],
+    "certifiedCompletedPhases": [
+      "implement",
+      "test",
+      "regression",
+      "security",
+      "gaps",
+      "simplify",
+      "harden",
+      "stabilize",
+      "chaos",
+      "docs",
+      "audit",
+      "validate",
+      "spec-review"
+    ],
     "scopeProgress": [
       {
         "scope": 1,
@@ -269,7 +299,7 @@
           "SCN-027-011",
           "SCN-027-017"
         ],
-        "dodTicked": 24,
+        "dodTicked": 27,
         "dodUnticked": 0,
         "unticked": []
       },
@@ -292,7 +322,7 @@
           "SCN-027-012",
           "SCN-027-013"
         ],
-        "dodTicked": 26,
+        "dodTicked": 29,
         "dodUnticked": 0,
         "unticked": []
       },
@@ -312,7 +342,7 @@
           "SCN-027-016",
           "SCN-027-018"
         ],
-        "dodTicked": 23,
+        "dodTicked": 26,
         "dodUnticked": 0,
         "unticked": []
       }
@@ -663,6 +693,18 @@
       "completedAt": "2026-08-23T00:21:10Z",
       "durationUnmeasured": true,
       "summary": "Test phase closing audit finding F-AUDIT-09, the last open item on this feature. ONE GUARD GROUP ADDED, ONE COMMENT LINE ADDED, NOTHING CERTIFIED. DURATION IS DELIBERATELY MARKED UNMEASURED: no start instant was captured for this run, so startedAt carries the committer instant of the guard commit 631d660 (2026-08-23T00:16:25Z), which is a real instant DURING this run rather than its beginning, and completedAt is a date -u read taken immediately before this record was written; the recorded span is therefore a lower bound and is not presented as the run's true duration. THE FINDING: the audit filed F-AUDIT-09 as informational with no owner, noting that volatility-sizing-universe.json holds 11 assets including CNY=X, whose = is outside the receiver class. FOUR PREMISES WERE RE-CONFIRMED BY EXECUTION BEFORE ANYTHING WAS WRITTEN, not restated from the audit: the catalog holds exactly 11 symbols SPY QQQ IWM AAPL MSFT NVDA BTC-USD ETH-USD GLD USO CNY=X; exactly one, CNY=X, is outside /^[A-Z0-9.\\-]{1,12}$/; BTC-USD and ETH-USD ARE accepted because - is in the class; and normTicker trims and upper-cases only, so CNY=X reaches the pattern unchanged and is REFUSED rather than silently renormalised to CNYX and used to select a different asset. The fourth premise is the one whose falsity would have made this a defect rather than a note, and it holds. THE ACTUAL GAP: the grammar half was already guarded, since F027H_REFUSED in the F-AUDIT-08 group already carries 'EURUSD=X' and proves an FX-shaped value is refused, and that guard was NOT duplicated. What no assertion did was tie the CATALOG's CONTENTS to the corridor's GRAMMAR, so a catalog member could stop being nameable with the whole suite green. THE GUARD: scripts/selftest.mjs group FEATURE-027-CATALOG-REACH, a pure append after FEATURE-027-HUB-ROUTE-END, one diff hunk at +26334,56 with no pre-existing line deleted or modified. It lifts normTicker, linkedSubject AND SUBJECT_PATTERN out of rlticker.js through the same build(...) idiom the neighbouring groups use, and reads the catalogue the way Scope 2 does with JSON.parse(read('volatility-sizing-universe.json')). SUBJECT_PATTERN is returned beside the two functions on purpose, because deciding grammar-validity from a regex retyped in the test would prove the copy rather than the corridor. i.a asserts every grammar-valid catalog member is accepted with subject equal to normTicker(symbol), reading 10 of 11 grammar-valid and 0 not accepted. i.b asserts the set of members no deep link can name is EXACTLY [\"CNY=X\"], an exact-set comparison rather than a containment check, so it goes red both when the class is widened until CNY=X becomes nameable and when it is tightened until BTC-USD silently stops being nameable. i.c is the SCN-027-CANARY floor at passes > 3155, live 3171. CNY=X was deliberately NOT appended to F027_REFUSED_CORPUS, whose assertion message calls its values adversarial, because CNY=X is a legitimate catalog member the company corridor excludes on purpose; filing it there would mislabel it, which is the same class of defect F-AUDIT-06 was about. rlticker.js gained ONE comment line above the declaration recording that the = exclusion is deliberate and that widening the class is security-relevant; the sink count in it was MEASURED, not assumed: options-structure-lab.html is the only route that both calls RLTKR.linkedSubject and defines an innerHTML-writing setStatus, and exactly five of its thirteen setStatus call sites interpolate the subject-derived tk. FALSIFIABILITY PROVED: three scripts/red-green-probe.sh runs, all exit 0, all discriminating yes, all revert-verified yes against committed blob 23ea6d2fa, each pinned by --summary-match to the specific assertion under test so that discrimination means THAT assertion flipped rather than some assertion somewhere. Probe 1 added = to the class and drove i.b red at 11 of 11 nameable. Probe 2 gave the reader a refusal the grammar does not state and drove i.a red on grammar-valid BTC-USD and ETH-USD. Probe 3 removed \\- from the class and drove i.b red at 8 of 11 nameable, which is the scenario the finding exists for and which a containment check would have passed. git status --porcelain -- rlticker.js is empty after all three. VERIFICATION: node scripts/selftest.mjs exit 0 with 3194 passed 0 failed before and exit 0 with 3197 passed 0 failed after, the plus three being exactly the three assertions added; artifact-lint.sh on this spec dir exit 0 with Artifact lint PASSED; report.md fence count even at 352, up from 342 by the five added blocks. The full 700-test browser suite was NOT run and was not required: this is a Node-only guard and no page loads scripts/selftest.mjs. BOUNDARIES: no uservalidation.md item ticked, still 0 ticked / 19 unticked; status left in_progress; no certifiedAt written; no certification field touched; execution.substate left unchanged because the reserved full browser suite was not executed here and independently_verified would overclaim. The audit's own findings table at report.md:4637 was left byte-unchanged and closure is recorded in the Discovered Issues ledger, where F-AUDIT-02, F-AUDIT-05 and F-AUDIT-07 were closed, because rewriting the audit's record of what it found would destroy the history the ledger exists to track. Two source files changed, rlticker.js and scripts/selftest.mjs. volatility-sizing-lab.html was not edited and catalogAsset(handoff.subject) : null still occurs exactly once; options-flow-feed-lab.html, intraday-tape-lab.html and swing-structure-lab.html were not touched. No lifetime-tax path (rltax*.js, lifetime-tax-*, tax-rules/, specs/021-024) and no specs/026-* artifact was read or written."
+    },
+    {
+      "agent": "bubbles.spec-review",
+      "phasesExecuted": [
+        "spec-review"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-23T18:55:00Z",
+      "completedAt": "2026-08-23T19:05:00Z",
+      "durationUnmeasured": true,
+      "summary": "Spec-review phase, run read-only against HEAD 505a41038 because full-delivery requires it and neither report.md nor completedPhaseClaims carried one. DURATION IS MARKED UNMEASURED: no start instant was captured, so startedAt and completedAt are bounding reads taken around the review rather than its true span. VERDICT: MINOR_DRIFT. Every functional requirement checked is satisfied by shipped code - the single shared rule at rlticker.js:53-72, its five production consumers, the four-row ownerSubjectParam and seven-row ownerBareReason registry matching design.md:493-503, the exactly-one C025-CONFIG-SCHEMA rule at rlcompanyintel.js:351-354, and scopes.md scope statuses agreeing with state.json. Ten findings, ALL DOCUMENTATION-ONLY; none contradicted shipped behavior and nothing was obsolete. SEVEN WERE CORRECTED: D1 spec.md announced 'No design, no plan, no implementation' for a landed feature; D3 design.md declared linkedSubject(search) after F-AUDIT-08 added the paramName override; D4 counted four consumers where five exist; D6 named technicals market-scoped where the shipped config and design.md's own registry table both say fixed-subject, an enum that renders a different reader-visible sentence so the bullet described output that row can never produce; D8 DoD counts read 24/26/23 across six prose sites and three state.json dodTicked fields where 27/29/26 are ticked; D9 three G068 preambles asserted the items ship UNCHECKED directly above nine ticked items carrying executed evidence; D2 spec.md still classified the fundamentals and valuation rows as company-scoped gaps and listed subject arrival as planned, now marked superseded by design ruling D1 rather than rewritten. THREE WERE LEFT AS RECORDED: D5, D7 and D10 are narrative imprecision and moved line citations in otherwise accurate prose, and rewriting a historical analyst snapshot to match current line numbers would destroy the record it exists to preserve. NOTHING CERTIFIED, no status set to done, no uservalidation item touched by this phase."
     }
   ],
   "failures": [],

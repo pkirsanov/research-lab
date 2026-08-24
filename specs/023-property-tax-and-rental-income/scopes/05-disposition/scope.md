@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs in
 [report.md](report.md).
 
-**Status:** Not started
+**Status:** In Progress (deliverables and tests verified; newly added planning rows unverified)
 **Scope-Kind:** runtime-behavior
 **Tags:** `engine:disposition`, `recapture:true`, `sourcing-gated:true`, `known-value-tested`
 **Depends On:** 01, 02, 03, 04
@@ -187,6 +187,12 @@ every `tests/lifetime-tax-*.spec.mjs` other than this scope's own ·
 Scope 03 publishes; if settling a sale requires editing the rental engine, the
 basis is not published.
 
+**Allowed file families:** the *Allowed new* and *Allowed modified* paths named
+above, and nothing else.
+
+**Excluded surfaces:** the byte-identical list named above. Collateral cleanup
+outside the allowed families is opt-in and is not performed under this scope.
+
 **Rollback:** delete `rltaxdisposition.js`, the fixtures and the spec file; revert
 the two contracts, stage `CO-19`, both legs, the preferential category
 registration, the federal pack insertions and the restored unsupported entry, the
@@ -256,6 +262,13 @@ missing browser or an absent test does not satisfy RED.
 | TP-05-30 | Privacy E2E | e2e-ui | SCN-023-015 | `tests/lifetime-tax-disposition.spec.mjs` | GAP, NOT AUTHORED (opened 2026-08-22, F-REG-03). `SCN-023-015` is the only member of this feature family's privacy set that constrains *neither* ledger growth *nor* the declared-asset set: its body holds no `afterFirstPaint`, no `declaredRouteAssets` and no `permitted`, and its sole use of the request list is `requests.filter((url) => !url.endsWith('.js') && !url.endsWith('.css'))`. Required, in the same run: `afterFirstPaint` captured after `openLifetimeTax` and asserted greater than zero, the ledger asserted not to grow past it once the sale is declared, and every entry's pathname asserted to be a member of `declaredRouteAssets()` — which also removes the `.js`/`.css` blind spot, because a filtered-out asset URL would then have to be a declared path. Adversarial cases: a request issued after the sale is declared fails the no-growth assertion; a read of a path the configuration does not declare fails the permitted-set assertion; a sale figure smuggled onto a `.js` URL, which the current filter cannot see, fails the permitted-set assertion; and a boot that read nothing fails the greater-than-zero pin | not authored | Yes | not authored |
 
 ### Definition of Done
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-023-014 and SCN-023-015 pass under the exact persistent titles this scope's Test Plan names, and each of those titles is present in the spec file rather than merely selected by `--grep`. Adversarial case: renaming or deleting one of those persistent titles must fail this row, so an empty grep selection can never be read as a pass.
+  - **Phase:** implement · **Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=chromium tests/lifetime-tax-disposition.spec.mjs --reporter=list` then the same command per title, then `scripts/red-green-probe.sh --label S05-DoD1-title-rename` · **Evidence:** `report.md#row-1--scenario-specific-e2e-regression-under-the-exact-persistent-titles`
+- [x] Broader E2E regression suite passes across the whole lifetime-tax browser family, not this scope's own spec file alone. Adversarial case: a change made inside this scope that reddens a sibling scope's persistent title must fail this row even while this scope's own rows stay green.
+  - **Phase:** implement · **Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=chromium tests/lifetime-tax-*.spec.mjs --reporter=list` then `scripts/red-green-probe.sh --label S05-DoD2-sibling-reddens-family` · **Evidence:** `report.md#row-2--broader-regression-across-the-whole-lifetime-tax-browser-family`
+- [x] Change Boundary is respected and zero excluded file families were changed, proven by a path-scoped `git status --porcelain` over the excluded surfaces plus an mtime comparison for any untracked excluded directory. Adversarial case: touching one excluded path must produce a row and fail this item; `git diff --quiet` alone is not accepted, because it reports an untracked path as unchanged.
+  - **Phase:** implement · **Command:** `git status --porcelain=v1 --untracked-files=all -- <34 excluded pathspecs>` then `scripts/red-green-probe.sh --label S05-DoD3-excluded-touch-detected` · **Evidence:** `report.md#row-3--change-boundary-respected-zero-excluded-families-changed`
 
 - [x] Every Feature 022 preferential fixture produces its exact prior total before
       the recapture category is registered, and every pre-existing federal pack

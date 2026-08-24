@@ -2721,4 +2721,357 @@ names its own assertion by file line, so neither is a collateral failure.
 **Claim Source:** executed. Both blocks are verbatim harness output from this
 session, each with its revert hash-verified against the committed blob.
 
+## Delivery-Completion Rows Earned (2026-08-23)
+
+This section earns the four remaining Definition of Done rows in this scope. Each
+subsection records the command, its exit code and the specific supporting output.
+
+### TP-03-21 title-presence finding — investigated and REFUTED
+
+A prior pass reported that `TP-03-21`'s named title is **not present** in the
+spec file. That report is wrong, and the root cause is a defect in the checker
+rather than in the Test Plan.
+
+The title `TP-03-21` names is present at `tests/lifetime-tax-claim-age.spec.mjs`
+line 90. It is authored with a **double-quoted** `test("…")` because the title
+itself contains an apostrophe in `the record's own arithmetic statement`. Its
+four siblings in the same file use the single-quoted `test('…')` form. A check
+that assumed the single-quote form finds zero occurrences and reports the title
+absent.
+
+```text
+$ F=tests/lifetime-tax-claim-age.spec.mjs
+$ grep -cF "test('<TP-03-21 title>'" "$F"     # single-quote assumption
+0
+$ grep -cF 'test("<TP-03-21 title>"' "$F"     # actual authored form
+1
+$ grep -c "^test('" "$F"; grep -c '^test("' "$F"
+4
+1
+```
+
+Substring presence is weaker than the row's real obligation, so the whole Test
+Plan was re-audited two ways. First, every title-bearing row in scopes 03, 04
+and 05 was checked quote-agnostically for exact presence in its named file:
+
+```text
+$ node -e '<quote-agnostic Test Plan title audit>'
+=== 03-claim-age-comparison ===
+TP-03-29 | GAP-ROW (declared not authored)
+=== 04-medicare-premiums-and-irmaa ===
+TP-04-33 | GAP-ROW (declared not authored)
+=== 05-route-and-integration ===
+TOTALS ok=17 bad=0 gapRows=2
+EXIT=0
+```
+
+Second — because a title can be present and still not be *selected* — every one
+of those 17 rows was run through `playwright --list` with its own `--grep`:
+
+```text
+$ node -e '<per-row playwright --list --grep selection audit>'
+GREP-SELECTION rows=17 selectedExactlyOne=17 emptyOrError=0 multi=0
+EXIT=0
+```
+
+Zero rows select nothing and zero rows select more than one test. `TP-03-21` is
+among the 17. The finding is closed as **not reproduced**; no Test Plan row was
+edited, because none was defective.
+
+**Claim Source:** executed.
+
+### DoD — scenario-specific E2E regression, SCN-024-007 / -008 / -009
+
+All five persistent titles this scope's Test Plan names pass:
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=chromium tests/lifetime-tax-claim-age.spec.mjs --reporter=list
+
+Running 5 tests using 1 worker
+
+  ✓  1 …ers identically across two loads and shows no probability column (699ms)
+  ✓  2 … both claim ages named and the record's own arithmetic statement (363ms)
+  ✓  3 …als and the equality age while the per-age benefits still render (349ms)
+  ✓  4 …rder with nothing marked best, optimal, recommended or preferred (338ms)
+  ✓  5 …declared same-origin GET and no declared claim age reaches a URL (339ms)
+
+  5 passed (2.9s)
+TP03_SCENARIO_E2E_EXIT=0
+```
+
+The row's adversarial case is that renaming or deleting one of those persistent
+titles must fail the row, so an empty `--grep` selection can never be read as a
+pass. `TP-03-21` — the row the refuted finding named — was probed directly:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S03-TP-03-21-title-rename
+file:             tests/lifetime-tax-claim-age.spec.mjs
+mutation:         the cumulative totals and the equality age are shown with both claim ages named  ->  the cumulative totals and the equality age are RENAMED with both claim ages named   (1 occurrence(s))
+red-exit:         1
+red-summary:      Error: No tests found
+green-exit:       0
+green-summary:      1 passed (2.3s)
+revert-verified:  yes (committed=07cf0f22179cc3d870a8866562ca8dd022d419d4 restored=07cf0f22179cc3d870a8866562ca8dd022d419d4)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_TP0321_EXIT=0
+```
+
+`Error: No tests found` with exit 1 is the decisive line: an empty selection is
+reported as a failure by the runner, not as a vacuous pass.
+
+**Claim Source:** executed.
+
+### DoD — broader E2E regression across the whole lifetime-tax browser family
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=chromium tests/lifetime-tax-*.spec.mjs --reporter=line
+
+Running 94 tests using 6 workers
+  94 passed (16.2s)
+BROADER_FAMILY_EXIT=0
+```
+
+The row's adversarial case is that a change made inside this scope which reddens
+a **sibling** scope's persistent title must fail this row even while this scope's
+own rows stay green. `lifetime-tax-strategy-lab.html` is in this scope's *Allowed
+modified* list, so a mutation there is exactly such a change. It was chosen to
+reach only the sibling medicare spec, which asserts `^Bracket <index> of the `:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S03-broader-suite-catches-sibling-redness
+file:             lifetime-tax-strategy-lab.html
+mutation:         = "Bracket " + String(bracket.bracketIndex)  ->  = "Tier " + String(bracket.bracketIndex)   (1 occurrence(s))
+red-exit:         1
+red-summary:        18 passed (3.5s)
+green-exit:       0
+green-summary:      19 passed (3.4s)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_BROAD_A_EXIT=0
+```
+
+The second half of the adversarial case — that this scope's own rows stay green
+under that same mutation, which is what makes the broader row non-redundant —
+was measured rather than asserted, by re-running the identical mutation against
+the narrow command alone:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S03-narrow-row-CANNOT-catch-sibling-redness
+file:             lifetime-tax-strategy-lab.html
+mutation:         = "Bracket " + String(bracket.bracketIndex)  ->  = "Tier " + String(bracket.bracketIndex)   (1 occurrence(s))
+red-exit:         0
+red-summary:        5 passed (2.8s)
+green-exit:       0
+green-summary:      5 passed (2.5s)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   NO (red-exit 0 == green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_BROAD_B_EXIT=7 (7 == narrow row blind, which is the point)
+```
+
+Exit 7 is the harness refusing to call that pair RED/GREEN evidence, and here
+that refusal is the finding: the narrow command **cannot** see the regression the
+broad command catches. The two blocks together establish that the broader row
+carries discriminating power the scenario-specific row does not.
+
+**Claim Source:** executed.
+
+### DoD — Change Boundary respected, zero excluded file families changed
+
+The row requires a path-scoped `git status --porcelain` over the excluded
+surfaces plus an mtime comparison for any untracked excluded directory, and
+explicitly refuses `git diff --quiet` as sufficient.
+
+The excluded pathspecs were expanded from this scope's *Change Boundary And
+Protected Paths* section. The `specs/021-*`, `specs/022-*`, `specs/023-*` and
+`specs/008-*` entries are globs and were expanded as such rather than guessed:
+
+```text
+glob_specs_021_022_023_008_resolve_to=5 dirs:
+  specs/021-execution-receipts-and-session-review-adoption
+  specs/021-lifetime-tax-strategy-lab
+  specs/022-federal-preferential-and-state-income-tax
+  specs/023-property-tax-and-rental-income
+  specs/008-portfolio-survival-and-brief-lab
+excluded_pathspecs=34 siblingSpecFilesExcluded=19 marketBriefFiles=13
+--- git status --porcelain over ALL excluded surfaces ---
+EXCLUDED_ROWS=0
+--- untracked-directory census among excluded surfaces ---
+untracked_excluded_dirs=0
+```
+
+Zero rows across 34 excluded pathspecs, the 19 sibling `tests/lifetime-tax-*.spec.mjs`
+files other than this scope's own, and the 13 `market-brief.*` files.
+
+The row's adversarial case is that touching one excluded path must produce a row
+and fail the item. That was measured, not asserted:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S03-change-boundary-detects-excluded-touch
+file:             tests/lifetime-tax.support.mjs
+mutation:         import { readFileSync } from 'node:fs';  ->  import { readFileSync } from 'node:fs'; /* boundary-probe */   (1 occurrence(s))
+red-exit:         1
+red-summary:       M tests/lifetime-tax.support.mjs
+green-exit:       0
+green-summary:    EXCLUDED_SURFACE_ROWS=0
+revert-verified:  yes (committed=a8608f5e9284877c201568ac151bbfe00b168c82 restored=a8608f5e9284877c201568ac151bbfe00b168c82)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_BOUNDARY_EXIT=0
+```
+
+The refusal of `git diff --quiet` is not taken on trust either. Against a real
+untracked path in this working tree it reports unchanged while `git status` sees
+it:
+
+```text
+$ git diff --quiet -- err.txt
+git_diff_quiet_exit_for_untracked_err.txt=0 (0 == reports UNCHANGED)
+but git status sees it: [?? err.txt]
+```
+
+**The mtime clause carries a false positive, and it is recorded rather than
+suppressed.** No excluded surface is an untracked directory — the census above
+returns `untracked_excluded_dirs=0` — so mtime is nowhere the sole evidence. One
+excluded file nevertheless carries an mtime newer than the `HEAD` commit:
+
+```text
+HEAD_EPOCH=1787540756
+1787541524 tests/lifetime-tax.support.mjs
+1787540700 rltaxsocialsecurity.js
+1787540318 tests/lifetime-tax-inclusion.spec.mjs
+```
+
+That file is the boundary probe's own target. Its content is byte-identical to
+the committed blob, verified independently of the harness:
+
+```text
+worktree_blob=a8608f5e9284877c201568ac151bbfe00b168c82
+committed_blob=a8608f5e9284877c201568ac151bbfe00b168c82
+identical=YES
+mtime=1787541524 HEAD_epoch=1787540756 -> mtime_is_newer=YES
+--- also: route file and claim-age spec touched by probes ---
+lifetime-tax-strategy-lab.html             identical=YES
+tests/lifetime-tax-claim-age.spec.mjs      identical=YES
+```
+
+So mtime is necessary but not sufficient, and content comparison is decisive.
+Every file any probe in this session mutated is byte-identical to `HEAD`.
+
+**Claim Source:** executed.
+
+### DoD — Consumer Impact Sweep, zero stale first-party references
+
+**The rename, move and removal set for this scope is EMPTY, and that is stated
+plainly rather than passed over.** The row quantifies over "every renamed, moved
+or removed route, path, contract, identifier and UI target in this scope". No
+such identifier exists:
+
+```text
+$ git log --all --diff-filter=RD --format='%h' -- 'rltaxclaimage*' \
+    'tax-rules/mortality/*' 'tests/lifetime-tax-claim-age*'
+rename_or_delete_commits=0
+--- how rltaxclaimage.js entered history ---
+b9d92a3f1 2026-08-18 Add Lifetime Tax Strategy Lab: federal, state, property, rental and retirement slices
+--- mortality pack ---
+2026.json
+b9d92a3f1 2026-08-18
+```
+
+Both surfaces were **added** and never renamed or removed. Read literally the row
+is therefore vacuously satisfiable, which is the guard-that-cannot-fail class. It
+is earned instead against a sweep whose rules have real populations and are each
+proven able to fail.
+
+Two candidate rules were **rejected before being written**, because each would
+have been vacuous on this route:
+
+| Rejected rule | Why it could never fail |
+| --- | --- |
+| Every `href="#…"` deep link the page emits resolves to a rendered id | The route emits `href_hash_anchors=0`. There is nothing to resolve, so the rule passes unconditionally |
+| Every literal `"tax-rules/…"` string in the route and its modules resolves | There are zero such literals; pack paths are read from `config.rules.*PackPaths`, so a literal scan inspects nothing |
+
+The second rejection redirected the sweep to the surface that actually carries
+the pack reads, `lifetime-tax-strategy.config.json`. The three rules kept:
+
+```text
+R1 declared-module-reads=14 unresolved=0
+R2 declared-pack-reads=7 unresolved=0
+R3 claim-age-ids-targeted=15 unresolved=0
+SWEEP_FAILED_RULES=0
+SWEEP03_EXIT=0
+```
+
+A third self-audit tightened R3 before it shipped. Its first draft accepted an id
+found either in markup or in a `byId("…")` call. That fallback was measured and
+carries nothing:
+
+```text
+R3 ids=15 inMarkup=15 onlyEmittedFallback=0 neither=0
+```
+
+All 15 ids are in markup, so the `byId` arm could only ever weaken the rule. It
+was removed, and the probe below is against the tightened rule.
+
+Each surviving rule was probed:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S03-sweep-R1-detects-stale-module-read
+file:             lifetime-tax-strategy-lab.html
+mutation:         src="rltaxclaimage.js"  ->  src="rltaxclaimage-STALE.js"   (1 occurrence(s))
+red-exit:         1
+red-summary:      R1 declared-module-reads=14 unresolved=1 rltaxclaimage-STALE.js
+green-exit:       0
+green-summary:    R1 declared-module-reads=14 unresolved=0
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_R1_EXIT=0
+```
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S03-sweep-R2-detects-moved-pack-path
+file:             lifetime-tax-strategy.config.json
+mutation:         "2026": "tax-rules/mortality/2026.json"  ->  "2026": "tax-rules/mortality/2026-MOVED.json"   (1 occurrence(s))
+red-exit:         1
+red-summary:      R2 declared-pack-reads=7 unresolved=1 mortalityPackPaths:2026:tax-rules/mortality/2026-MOVED.json
+green-exit:       0
+green-summary:    R2 declared-pack-reads=7 unresolved=0
+revert-verified:  yes (committed=ac13755c5f1ab9630106b321aeb1672d64deac7b restored=ac13755c5f1ab9630106b321aeb1672d64deac7b)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_R2_EXIT=0
+```
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S03-sweep-R3-detects-renamed-ui-target
+file:             lifetime-tax-strategy-lab.html
+mutation:         id="claimAgeBasisLine"  ->  id="claimAgeBasisLineRENAMED"   (1 occurrence(s))
+red-exit:         1
+red-summary:      R3 claim-age-ids-targeted=15 unresolved=1 claimAgeBasisLine
+green-exit:       0
+green-summary:    R3 claim-age-ids-targeted=15 unresolved=0
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_R3_EXIT=0
+```
+
+R1 catches a stale module read, R2 catches a moved pack path — the API-client
+read the sweep table names — and R3 catches a renamed UI target. The sweep is
+complete over a non-empty population and no first-party reference is stale.
+
+**Claim Source:** executed.
+
 

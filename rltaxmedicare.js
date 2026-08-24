@@ -78,17 +78,6 @@
     return isPlainObject(pack) ? pack.medicarePolicy : undefined;
   }
 
-  function findSourceRecord(pack, sourceId) {
-    if (!isPlainObject(pack) || !Array.isArray(pack.sourceRecords)) return null;
-    var index = 0;
-    for (index = 0; index < pack.sourceRecords.length; index += 1) {
-      if (pack.sourceRecords[index] && pack.sourceRecords[index].sourceId === sourceId) {
-        return pack.sourceRecords[index];
-      }
-    }
-    return null;
-  }
-
   /* A figure the pack either established or did not. A `SourcedZero` is a real established zero
      and resolves; an `AbsentFigure` refuses by name and no zero stands in for it. */
   function figureAmount(figure) {

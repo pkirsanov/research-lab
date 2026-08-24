@@ -2466,7 +2466,14 @@
                         stateTax: stateLeg,
                         combined: combinedSettlementLeg(stateLeg, false),
                         federalLegIds: [], legIds: settledLegIds(null, propertyLeg, rentalLeg, useLeg, dispositionLeg, benefitLeg, inclusionLeg, medicare),
-                        unavailable: unavailable
+                        unavailable: unavailable,
+                        /* BUG-020 R1. Published beside `viable` rather than folded into it:
+                           `viable` means the declarations are complete, and two other consumers
+                           read it, so widening it would change behaviour for refusals that have
+                           nothing to do with an unrepresentable figure. */
+                        unrepresentableDomains: unavailable
+                            .filter(function (refusal) { return refusal.code === "RLTAX-FIGURE-UNREPRESENTABLE"; })
+                            .map(function (refusal) { return refusal.domain; })
                     };
                 }
                 var settlement = ENGINE.computeAnnualFederalTax(state.workspace, state.pack,
@@ -2516,7 +2523,10 @@
                         "property-tax": propertyLeg.available ? propertyLeg.value : undefined,
                         "state-income-tax": undefined
                     }, personalPortions),
-                    unavailable: unavailable
+                    unavailable: unavailable,
+                    unrepresentableDomains: unavailable
+                        .filter(function (refusal) { return refusal.code === "RLTAX-FIGURE-UNREPRESENTABLE"; })
+                        .map(function (refusal) { return refusal.domain; })
                 };
             }
 
@@ -3227,7 +3237,14 @@
 
             function stageValueText(record) {
                 if (RULES.isUnavailable(record)) return record.code + " \u00b7 " + record.reason;
-                return money(record) === null ? String(record.value) : money(record);
+                /* BUG-020 R2. `String(Infinity)` is "Infinity", so the old fallback rendered a
+                   non-finite value as text whenever `money` returned null. E1 and E2 make the
+                   record a refusal, which the branch above already catches, so this line is not
+                   reached from the acceptance set — but it is the last path by which a non-finite
+                   value could still become visible text. */
+                if (money(record) !== null) return money(record);
+                if (!Number.isFinite(record.value)) return "no figure";
+                return String(record.value);
             }
 
             function renderSettlement() {
@@ -4595,6 +4612,19 @@
                     var row = document.createElement("tr");
                     row.setAttribute("data-rl-claim-age", String(entry.claimAge));
                     row.appendChild(text("td", String(entry.claimAge)));
+                    /* FR-019-004. A claim age the pack cannot price refuses in its own row. The
+                       row keeps its place in the declared order and carries no amount at all,
+                       because an amount here would be described as settled beside the ages that
+                       genuinely are. */
+                    if (entry.benefitRefusal) {
+                        var refusedCell = document.createElement("td");
+                        refusedCell.setAttribute("colspan", "4");
+                        refusedCell.appendChild(unavailableNode(entry.benefitRefusal,
+                            "The benefit at this claim age"));
+                        row.appendChild(refusedCell);
+                        body.appendChild(row);
+                        continue;
+                    }
                     var benefitCell = document.createElement("td");
                     benefitCell.appendChild(valueNode("claim-age-benefit-" + String(entry.claimAge),
                         dollars(entry.adjustedAnnualBenefit),
@@ -5288,13 +5318,26 @@
             function render() {
                 if (!state.config || !state.pack) return;
                 state.envelope = buildEnvelope();
-                byId("truthState").textContent = state.envelope.viable ? "Settled" : "Incomplete";
-                byId("truthHeading").textContent = state.envelope.viable
-                    ? "One declared year settled against one resolved federal rule pack"
-                    : "Waiting on declarations before any figure exists";
-                byId("truthDetail").textContent = state.envelope.viable
-                    ? "Every figure below carries the legal standing of the rule it came from, and every domain this slice cannot price is named."
-                    : "Missing: " + state.envelope.missing.join(", ") + ". No placeholder figure is shown.";
+                /* BUG-020 R1. Tested BEFORE `viable`, because a declaration whose figures are
+                   unrepresentable is complete — `viable` is true — and the header would otherwise
+                   read Settled over rows that carry no figure. `Incomplete` is reused rather than
+                   introducing a third header word: it carries exactly the meaning wanted and a new
+                   word would need its own vocabulary decision. */
+                if (state.envelope.unrepresentableDomains.length > 0) {
+                    byId("truthState").textContent = "Incomplete";
+                    byId("truthHeading").textContent = "A figure this declaration implies is outside the range this tool can represent";
+                    byId("truthDetail").textContent = "Unrepresentable: "
+                        + state.envelope.unrepresentableDomains.join(", ")
+                        + ". Every stage that depends on it is refused by name. No placeholder figure is shown.";
+                } else if (state.envelope.viable) {
+                    byId("truthState").textContent = "Settled";
+                    byId("truthHeading").textContent = "One declared year settled against one resolved federal rule pack";
+                    byId("truthDetail").textContent = "Every figure below carries the legal standing of the rule it came from, and every domain this slice cannot price is named.";
+                } else {
+                    byId("truthState").textContent = "Incomplete";
+                    byId("truthHeading").textContent = "Waiting on declarations before any figure exists";
+                    byId("truthDetail").textContent = "Missing: " + state.envelope.missing.join(", ") + ". No placeholder figure is shown.";
+                }
                 renderSimple();
                 renderPower();
                 renderPrivacy();

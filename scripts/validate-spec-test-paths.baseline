@@ -114,6 +114,24 @@ tests/feature-012.performance.spec.mjs
 tests/feature-012.privacy-security.functional.mjs
 tests/feature-012.qf-portability.contract.mjs
 tests/feature-012.rollback.integration.mjs
+# The four `tests/lifetime-*` entries below are SUPERSEDED PROPOSAL NAMES from
+# Feature 021's original file plan. None was ever written; delivery shipped
+# `tests/lifetime-tax-federal.spec.mjs`, `tests/lifetime-tax-foundation.spec.mjs`,
+# `tests/lifetime-tax-route.spec.mjs` and the Feature 021 groups in
+# `scripts/selftest.mjs` instead. They appear at exactly one site each: inside a
+# fenced ```text capture in specs/021-lifetime-tax-strategy-lab/scopes/
+# 01-tax-workspace-rule-pack-and-privacy-foundation/report.md, where the consumer
+# sweep is recorded FINDING them stale (`STALE-NOTES-PATH …`, `verdict=FAIL`).
+# That transcript is evidence of the finding, not a coverage claim, and rewriting
+# it to satisfy this guard would falsify the record. `notes/lifetime-tax-strategy-
+# lab.md` maps each proposed name to the delivered file under
+# `### Superseded By The Delivered Surface` (commit 0efc20250). No live
+# verification command and no Test Plan row names any of them. Historical and
+# grandfathered; these paths will never exist.
+tests/lifetime-household.functional.mjs
+tests/lifetime-privacy.functional.mjs
+tests/lifetime-tax-rules.unit.mjs
+tests/lifetime-tax-strategy-lab.spec.mjs
 tests/market-action-publication.integration.mjs
 tests/market-regime-consumer-migration.spec.mjs
 tests/market-regime-lab.spec.mjs

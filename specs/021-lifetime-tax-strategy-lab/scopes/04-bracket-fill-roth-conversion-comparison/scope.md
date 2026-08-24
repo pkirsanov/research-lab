@@ -5,7 +5,7 @@
 Planning authority: the [scope index](../_index.md). Execution evidence belongs
 in [report.md](report.md).
 
-**Status:** Not started
+**Status:** In Progress (deliverables and tests verified; newly added planning rows unverified)
 **Scope-Kind:** runtime-behavior
 **Tags:** `strategy:single-year`, `two-policy`, `disclosure-bound`
 **Depends On:** 01, 02, 03
@@ -147,10 +147,10 @@ Scenario: SCN-021-012 The comparison emits a single-year federal cost difference
 
 | Shared surface | Change | Downstream consumers | Blast radius | Independent canary before broad tests | Rollback |
 | --- | --- | --- | --- | --- | --- |
-| `rltaxstrategy.js` (new root module) | Created | Scope 05 | **High** — a module that re-implements tax arithmetic or hard-codes a bracket edge breaks single-definition, and the break stays invisible until a pack value moves | Scan the module for any tax-domain numeric constant and assert there are none; assert every tax figure came from `computeAnnualFederalTax`, BEFORE any comparison row runs | Delete the file; nothing consumes it until Scope 05 |
+| `rltaxstrategy.js` (new root module) | Created | Scope 05 | **High** — a module that re-implements tax arithmetic or hard-codes a bracket edge breaks single-definition, and the break stays invisible until a pack value moves | Scan the module for any tax-domain numeric constant and assert there are none; assert every tax figure came from `computeAnnualFederalTax`, BEFORE any comparison row runs | Delete the file only after its consumers are rolled back. Measured 2026-08-23: deleting it alone reddens Scope 05, Feature 022 Scope 03 and Feature 024 Scope 04 |
 | Scope 02 and Scope 03 functions | Read only, not modified | Scope 05 | Medium — an adjustment-based converted case rather than a recomputation understates the gain-stacking effect | Assert the converted case reproduces a full independent `computeAnnualFederalTax` call at the converted income, not a marginal-rate product | Not applicable |
 | `scripts/selftest.mjs` | One group appended | The whole-repo gate | Medium | Pre-existing pass count must not fall | Remove the appended group |
-| `lifetime-tax-strategy-lab.html` | Comparison panel added | Scope 05 | Low — same-feature page | CSP meta stays byte-identical | Revert the panel |
+| `lifetime-tax-strategy-lab.html` | Comparison panel added | Scope 05 | Low — same-feature page | CSP meta stays byte-identical | Remove the enumerated conversion slice listed under Rollback. Removing the band alone leaves fifteen residual reference classes |
 
 ## Change Boundary And Protected Paths
 
@@ -173,8 +173,40 @@ Scenario: SCN-021-012 The comparison emits a single-year federal cost difference
 **Dirty-work discipline:** capture a path-scoped `git status` and a zero-context
 diff before each allowed path. No formatter and no broad rewrite runs.
 
-**Rollback:** delete `rltaxstrategy.js`, its fixtures and the new spec; revert
-the panel and the appended selftest group.
+**Allowed file families:** the *Allowed new* and *Allowed modified* paths named
+above, and nothing else.
+
+**Excluded surfaces:** the byte-identical list named above. Collateral cleanup
+outside the allowed families is opt-in and is not performed under this scope.
+
+**Rollback:** this scope owns no fixture files, so that clause is empty. The
+remaining clauses run in order.
+
+1. Delete `lifetime-tax-conversion.spec.mjs` from the repository test directory.
+2. Excise the appended selftest group from `scripts/selftest.mjs`, from its
+   `Feature 021 Scope 04` banner comment through the group's own closing `catch`
+   line, so the remaining file still parses.
+3. Remove the conversion slice from `lifetime-tax-strategy-lab.html`. Reverting
+   the panel is not one edit. The slice is twenty-one sites: the
+   `power-conversion` band and every element it owns; the `rltaxstrategy.js`
+   script tag; the `var STRATEGY = window.RLTAXSTRATEGY` read; the
+   `power-conversion` member of `POWER_SECTION_IDS`; the withheld-detail link row
+   that targets it; the `inputBracket` and `inputFundingSource` label blocks; the
+   `populateBrackets` function and both call sites; the `renderConversion`
+   function and its call site; the `comparison`, `comparisonFields`, tradeoff
+   initialiser and tradeoff call statements in the envelope builder; the
+   `conversionAsymmetryLine`, `conversionOutcomeCard` and `strongestTradeoffLine`
+   Simple nodes plus the render that writes the last of them; both
+   `STRATEGY.conversionNotModeled()` reads; the `conversionFundingSource` and
+   `selectedBracketId` workspace reads and writes; and the two input ids in the
+   declared-key inventory.
+
+Deleting `rltaxstrategy.js` is a precondition of this rollback, not a step inside
+it. Scope 05, Feature 022 Scope 03 and Feature 024 Scope 04 load the module
+directly, and `site-exclusions.json` inventories its name while this scope's
+excluded list requires that file to stay byte-identical. Those consumers must be
+rolled back before the module can be deleted. Until they are, the module clause
+is not executable and this rollback cannot run to completion.
 
 ## Scenario-First Red/Green Contract
 
@@ -188,6 +220,7 @@ rerun the identical command for GREEN.
 
 | ID | Type | Category | Scenario | File | Exact Behavior / Persistent Title | Command | Live System | Evidence Anchor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| TP-04-00 | Fixture Canary | unit | SCN-021-010 … -012 | `scripts/selftest.mjs` | Canary: the shared selftest harness plus this scope's own fixture files load and the pre-existing assertion count does not fall, run alone before any broad rerun. Adversarial case: a fixture whose contract changed must redden this row before the broad suite is re-run, so a broad green can never be the first signal | `node scripts/selftest.mjs` | No | `report.md#tp-04-00` |
 | TP-04-01 | Contract | unit | SCN-021-010 | `scripts/selftest.mjs` | The comparison returns exactly two policies, no conversion and fill-to-bracket, both computed from the identical workspace and the identical resolved pack | `node scripts/selftest.mjs` | No | `report.md#tp-04-01` |
 | TP-04-02 | Known value | unit | SCN-021-010 | `scripts/selftest.mjs` | The conversion amount equals the distance from current ordinary taxable income to the named bracket edge, for every supported filing status and every bracket in the pack | `node scripts/selftest.mjs` | No | `report.md#tp-04-02` |
 | TP-04-03 | No-shadow | unit | SCN-021-010 | `scripts/selftest.mjs` | Regression: mutating the pack's bracket edge changes the conversion amount; `rltaxstrategy.js` holds no tax-domain numeric constant and declares no bracket edge | `node scripts/selftest.mjs` | No | `report.md#tp-04-03` |
@@ -211,6 +244,12 @@ Before any browser row, run `node scripts/validate-node-source-lock.mjs` and
 Test Plan row.
 
 ### Definition of Done
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior in SCN-021-010, SCN-021-011 and SCN-021-012 pass under the exact persistent titles this scope's Test Plan names, and each of those titles is present in the spec file rather than merely selected by `--grep`. Adversarial case: renaming or deleting one of those persistent titles must fail this row, so an empty grep selection can never be read as a pass.
+- [x] Broader E2E regression suite passes across the whole lifetime-tax browser family, not this scope's own spec file alone. Adversarial case: a change made inside this scope that reddens a sibling scope's persistent title must fail this row even while this scope's own rows stay green.
+- [x] Change Boundary is respected and zero excluded file families were changed, proven by a path-scoped `git status --porcelain` over the excluded surfaces plus an mtime comparison for any untracked excluded directory. Adversarial case: touching one excluded path must produce a row and fail this item; `git diff --quiet` alone is not accepted, because it reports an untracked path as unchanged.
+- [x] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns, run as its own command ahead of the whole-repository gate. Adversarial case: breaking one shared fixture contract must redden the canary first; a canary that stays green while the broad suite fails is itself a defect and fails this row.
+- [ ] Rollback or restore path for shared infrastructure changes is documented and verified by executing it, not by asserting that it exists. Adversarial case: a rollback that leaves the shared surface differing from its pre-change hash must fail this row.
 
 - [x] PRA-021-025 through PRA-021-030 are implemented: exactly two policies on
       identical inputs, a pack-derived fill amount, the reported amount, per-policy

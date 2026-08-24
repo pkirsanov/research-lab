@@ -6612,6 +6612,171 @@ as replacement tallies.
 
 **Educational research only. Not investment advice.**
 
+## Certification — `bubbles.validate`, 2026-08-24
+
+**Executed: YES.** Phase agent: `bubbles.validate`.
+
+Both prior passes refused, and both refusals were correct. Pass 1 established
+that a prospective `--target-status done` check is not evidence, because the
+lint's own sub-checks branch on the *current* status. This pass therefore
+certified the only way that finding permits: `status: done` was written into
+`state.json` first, and both gates were then re-run against it.
+
+### Validation Evidence
+
+The gates, with `done` actually written:
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/025-company-multi-horizon-intelligence-lab
+✅ Detected state.json status: done
+✅ DoD completion gate passed for status 'done' (all DoD checkboxes are checked)
+✅ Strict mode completedPhases includes 'validate'
+✅ Strict mode completedPhases includes 'audit'
+✅ Strict mode completedPhases includes 'chaos'
+✅ All 4 scope(s) in scopes.md are marked Done
+✅ All 111 evidence blocks in report.md contain legitimate terminal output
+✅ No narrative summary phrases detected in report.md
+Artifact lint PASSED.
+lint_at_done_exit=0
+
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/025-company-multi-horizon-intelligence-lab
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+guard_at_done_exit=0
+```
+
+**Claim Source:** executed.
+
+That the write changed what was *checked*, rather than only what was reported,
+was itself measured. Counting the lint's own check lines before and after the
+write: 33 at `in_progress`, 79 at `done`. The forty-six gates that fire only at
+`done` — the DoD completion gate, the three strict-mode phase gates, the twelve
+required-specialist-phase gates, the strict section gates over Validation,
+Audit and Chaos evidence, and the 111-block evidence check — all passed. `G084`
+and `G088`, recorded as failing at one point during pass 2, are both present in
+`passedGateIds`. So is `G136`, the human-acceptance gate, which
+`uservalidation.md` satisfies with a `## Human Acceptance Record` this pass read
+and did not write.
+
+### The suites, re-measured rather than inherited
+
+```text
+$ node --test tests/company-intelligence.unit.mjs
+ℹ tests 90   ℹ pass 90   ℹ fail 0   ℹ skipped 0   ℹ todo 0
+unit_exit=0
+
+$ npx --no-install playwright test tests/company-intelligence-lab.spec.mjs \
+    tests/chaos-company-intelligence.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list
+  50 passed (47.3s)
+browser_exit=0
+
+  (split, run separately)
+  tests/company-intelligence-lab.spec.mjs      39 passed (46.2s)  exit=0
+  tests/chaos-company-intelligence.spec.mjs    11 passed (17.8s)  exit=0
+
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3404 passed, 0 failed
+selftest_exit=0
+```
+
+**Claim Source:** executed.
+
+The 39 confirms the `37 → 39` growth BUG-018 claims for its regression case.
+
+### BUG-018: the recorded decision was checked against the shipped code
+
+The decision recorded in the bug's `design.md` was not taken on trust. Option A
+is in `rlcompanyintel.js` as
+`buildCoverageAccount(reads, registry, corpusReadiness)`, with the third
+argument optional, defaulting to `established` when omitted, refused with
+`C025-READ-CONTRACT` when outside the closed set, and carried onto the account
+as `readiness` — additive, exactly as recorded. Option B is the single line
+`corpusStatus === "pending" ? "not-established" : "established"`, which
+withholds only while genuinely pending; `loadCorpus()` resolves to `loaded` or
+`unavailable` and never leaves `pending`, so the offline first paint is intact
+for the reason the decision gives. The render sites read
+`version.coverageAccount.readiness`, not the module-scope variable, which is the
+distinction the decision says the attribute pair cannot express. The documented
+predicate in the route matches the decision verbatim. **The decision and the
+code agree; this is not a finding.**
+
+### Finding VAL-025-F5 — the `verify:` markers over-promise more broadly than disclosed
+
+Recorded, not repaired: these markers sit inside other phases' evidence records.
+
+```text
+$ bash .github/bubbles/scripts/evidence-capture.sh --verify 8d35…fbd0 -- node scripts/selftest.mjs
+[evidence-capture] MISMATCH
+verify_selftest_exit=3
+
+$ bash .github/bubbles/scripts/evidence-capture.sh --verify e96f…b4d1 -- node --test tests/company-intelligence.unit.mjs
+[evidence-capture] MISMATCH
+verify_unit_exit=3
+
+$ bash .github/bubbles/scripts/evidence-capture.sh --verify 2d62…afb9 -- node scripts/validate-spec-test-paths.mjs
+[evidence-capture] MISMATCH
+verify_validator_exit=3
+```
+
+**Claim Source:** executed.
+
+The earlier disclosure named the selftest markers. Measured here, **all six**
+markers in this file are un-re-derivable, for three distinct causes. The
+selftest embeds two freshly drawn statistics and a pid. The test-runner captures
+embed elapsed times. The validator capture is self-referential: its output is
+pasted into a file the validator scans, so its own `references=` count moves
+when the paste lands. Three of the six additionally cite
+`bubbles/scripts/evidence-capture.sh`, which is the framework-source path and
+does not exist in this downstream repository.
+
+This is an affordance defect, not a fabrication one. A capture hash binds a
+bounded excerpt to the full output produced at that instant, and that binding
+holds regardless of determinism; only the reproducibility reading fails. The
+tool's own mismatch text — *"Either the behaviour changed or the recorded
+evidence never came from this command"* — is what makes the over-promise costly,
+because for these commands neither disjunct is true. Severity low; owner
+`bubbles.docs`, since the markers are documentation about evidence rather than
+evidence.
+
+### The selftest nondeterminism, characterized rather than asserted
+
+```text
+$ for i in 1 2 3; do node scripts/selftest.mjs; done
+run1 exit=0   3404 passed, 0 failed
+run2 exit=0   3404 passed, 0 failed
+run3 exit=0   3404 passed, 0 failed
+
+$ diff run1 run2
+55,56c55,56
+<   ✓ scaled Student-t(5) variance ~ 1 (preserves target sigma), got 0.994
+<   ✓ scaled Student-t(5) kurtosis > 3 (fat tails), got 7.75
+---
+>   ✓ scaled Student-t(5) variance ~ 1 (preserves target sigma), got 1.003
+>   ✓ scaled Student-t(5) kurtosis > 3 (fat tails), got 8.03
+1681c1681
+< (node:9148) ExperimentalWarning: localStorage is not available…
+---
+> (node:46527) ExperimentalWarning: localStorage is not available…
+diff_exit=1
+```
+
+**Claim Source:** executed.
+
+Exactly three lines vary; line count is identical at 3871 across all three runs;
+the verdict is identical. The variance is confined to two tolerance assertions
+over a random draw and one pid. It does not reach the pass/fail decision, and
+the suite carries its own harness assertion proving a real outcome change still
+discriminates. This is why the nondeterminism does not block: it degrades a
+reproducibility *affordance*, and leaves the *verdict* — which is what
+certification rests on — stable under repetition.
+
+**Educational research only. Not investment advice.**
+
 
 
 

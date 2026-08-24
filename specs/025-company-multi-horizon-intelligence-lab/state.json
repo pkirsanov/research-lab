@@ -3,8 +3,8 @@
   "featureDir": "specs/025-company-multi-horizon-intelligence-lab",
   "featureName": "Company Multi-Horizon Intelligence Lab",
   "createdAt": "2026-08-18T15:52:32Z",
-  "lastUpdatedAt": "2026-08-23T18:26:55Z",
-  "status": "in_progress",
+  "lastUpdatedAt": "2026-08-24T05:11:32Z",
+  "status": "done",
   "workflowMode": "full-delivery",
   "planningOnly": false,
   "planningOnlyJustification": null,
@@ -12,7 +12,7 @@
   "linkedPlanningPacket": null,
   "specDependsOn": [],
   "flagsIntroduced": [],
-  "certifiedAt": null,
+  "certifiedAt": "2026-08-24T05:11:32Z",
   "requiresRevalidation": false,
   "workBoundary": {
     "repositoryRoots": [
@@ -245,8 +245,8 @@
       }
     ],
     "pendingTransitionRequests": [],
-    "nextRequiredOwner": "bubbles.validate",
-    "nextRequiredTarget": "specs/025-company-multi-horizon-intelligence-lab/uservalidation.md. The sole blocker to done is G136 human acceptance. It is human-owned and barred to every bubbles.* agent by forbiddenAcceptedBy '^bubbles\\.' in acceptance-authority.yaml: a human must exercise the route, check the acceptance items themselves and record a '## Human Acceptance Record' in uservalidation.md. bubbles.validate is named as nextRequiredOwner only because it is the agent that re-certifies AFTER that record exists; it is not the next actor. ONE FINDING IS GENUINELY OPEN AND ROUTED, NOT CLOSED: VAL-025-F4, the owner deep link does not carry the company for most owners. Measured: of the 11 non-null ownerDeepLink routes only 2 declare an ownerSubjectParam, and grepping each of the other 9 target routes shows none reads a company or symbol query parameter — they read only test-harness parameters such as fixture, clock, case and profile. Closing it fully would require adding company-parameter support to 7 routes owned by OTHER specs, several already certified done, and this spec's workBoundary.specTargets is ['specs/025-company-multi-horizon-intelligence-lab'], so that work is deliberately out of boundary and is routed rather than silently dropped. This is why the Automation Readiness row 'Following the math to its owner' stays honestly unticked, leaving 12 of 13 readiness rows proven and 1 unready. Every other routable finding is closed: AUD-025-F1 by four assertions that each fail under their own mutation and pass on restored source at an unchanged sha256 4881db1647da6400b36efa0f71c1bd790738c8a3b1f8e82ef675517849acae8e, AUD-025-F3 by verifying both Uncertainty Declarations stale against the rewritten DoD lines and annotating them with their resolutions, VAL-025-F3 by replacing a prose Claim Source value with the taxonomy value executed, and AUD-025-F2 by bubbles.validate; AUD-025-F4 is an observation with no action. Delivery state: all 4 scopes done, 12 of 12 phases claimed, 111 DoD rows ticked and 0 unticked. CURRENT MEASUREMENTS, replacing the stale 74/29 counts previously recorded here: node --test tests/company-intelligence.unit.mjs exit 0 at tests 76 pass 76 fail 0; npx --no-install playwright test tests/company-intelligence-lab.spec.mjs tests/chaos-company-intelligence.spec.mjs --config=playwright.config.mjs --project=system-chrome exit 0 at 43 passed; the full browser suite across all 71 spec files exit 0 at 648 passed with 0 failures and 0 force-kills; node scripts/selftest.mjs exit 0 at 3106 passed and 0 failed; node scripts/pii-scan.mjs exit 0 at 0 findings; artifact-lint exit 0; state-transition-guard exit 1 with failedChecks [] and failedGateIds [G136]. The previously recorded claim that two repository-selftest failures remain foreign to spec 021 is also stale: the repository selftest is now fully green.",
+    "nextRequiredOwner": "bubbles.finalize",
+    "nextRequiredTarget": "SUPERSEDED 2026-08-24T05:11:32Z by bubbles.validate at certification. G136 is satisfied by the '## Human Acceptance Record' now present in uservalidation.md (acceptedBy operator, acceptedAt 2026-08-23T18:26:55Z, method human-interactive); the transition guard now exits 0 with failedGateIds [] and failedChecks [], artifact lint exits 0 at 111 evidence blocks with status done actually written, and this spec is certified done, so the next owner is bubbles.finalize. The measurements quoted in the preserved text below are also superseded; re-measured at certification they are unit 90 pass 90 fail 0, the 025 browser suite 50 passed (39 in company-intelligence-lab.spec.mjs plus 11 in chaos-company-intelligence.spec.mjs), and repository selftest 3404 passed 0 failed. VAL-025-F4 remains genuinely open and routed exactly as described below, and is the reason one Automation Readiness row stays honestly unticked. ORIGINAL TEXT PRESERVED VERBATIM: specs/025-company-multi-horizon-intelligence-lab/uservalidation.md. The sole blocker to done is G136 human acceptance. It is human-owned and barred to every bubbles.* agent by forbiddenAcceptedBy '^bubbles\\.' in acceptance-authority.yaml: a human must exercise the route, check the acceptance items themselves and record a '## Human Acceptance Record' in uservalidation.md. bubbles.validate is named as nextRequiredOwner only because it is the agent that re-certifies AFTER that record exists; it is not the next actor. ONE FINDING IS GENUINELY OPEN AND ROUTED, NOT CLOSED: VAL-025-F4, the owner deep link does not carry the company for most owners. Measured: of the 11 non-null ownerDeepLink routes only 2 declare an ownerSubjectParam, and grepping each of the other 9 target routes shows none reads a company or symbol query parameter — they read only test-harness parameters such as fixture, clock, case and profile. Closing it fully would require adding company-parameter support to 7 routes owned by OTHER specs, several already certified done, and this spec's workBoundary.specTargets is ['specs/025-company-multi-horizon-intelligence-lab'], so that work is deliberately out of boundary and is routed rather than silently dropped. This is why the Automation Readiness row 'Following the math to its owner' stays honestly unticked, leaving 12 of 13 readiness rows proven and 1 unready. Every other routable finding is closed: AUD-025-F1 by four assertions that each fail under their own mutation and pass on restored source at an unchanged sha256 4881db1647da6400b36efa0f71c1bd790738c8a3b1f8e82ef675517849acae8e, AUD-025-F3 by verifying both Uncertainty Declarations stale against the rewritten DoD lines and annotating them with their resolutions, VAL-025-F3 by replacing a prose Claim Source value with the taxonomy value executed, and AUD-025-F2 by bubbles.validate; AUD-025-F4 is an observation with no action. Delivery state: all 4 scopes done, 12 of 12 phases claimed, 111 DoD rows ticked and 0 unticked. CURRENT MEASUREMENTS, replacing the stale 74/29 counts previously recorded here: node --test tests/company-intelligence.unit.mjs exit 0 at tests 76 pass 76 fail 0; npx --no-install playwright test tests/company-intelligence-lab.spec.mjs tests/chaos-company-intelligence.spec.mjs --config=playwright.config.mjs --project=system-chrome exit 0 at 43 passed; the full browser suite across all 71 spec files exit 0 at 648 passed with 0 failures and 0 force-kills; node scripts/selftest.mjs exit 0 at 3106 passed and 0 failed; node scripts/pii-scan.mjs exit 0 at 0 findings; artifact-lint exit 0; state-transition-guard exit 1 with failedChecks [] and failedGateIds [G136]. The previously recorded claim that two repository-selftest failures remain foreign to spec 021 is also stale: the repository selftest is now fully green.",
     "audit": {
       "schemaVersion": "audit-run/v1",
       "runId": "rb:vscode-76796f8295100da71eb37ed18f20cd77:53",
@@ -290,15 +290,29 @@
     }
   },
   "certification": {
-    "status": "in_progress",
-    "certifiedAt": null,
+    "status": "done",
+    "certifiedAt": "2026-08-24T05:11:32Z",
     "completedScopes": [
       "01-composition-foundation",
       "02-route-and-reachability",
       "03-company-event-capability",
       "04-authored-research-and-versions"
     ],
-    "certifiedCompletedPhases": [],
+    "certifiedCompletedPhases": [
+      "implement",
+      "test",
+      "regression",
+      "security",
+      "gaps",
+      "simplify",
+      "harden",
+      "stabilize",
+      "chaos",
+      "docs",
+      "audit",
+      "validate",
+      "spec-review"
+    ],
     "scopeProgress": [
       {
         "scope": 1,

@@ -919,7 +919,7 @@ test('Regression: Feature 007 owner integrations preserve source cutoffs limitat
     return { seeded: true, rows: rows.length };
   });
   expect(seedOutcome.seeded).toBe(true);
-  await page.goto(`${baseUrl}/swing-structure-lab.html?t=SPY`);
+  await page.goto(`${baseUrl}/swing-structure-lab.html?ticker=SPY`);
   const seededRead = await page.evaluate(async () => {
     for (let attempt = 0; attempt < 24; attempt += 1) {
       const read = globalThis.RLDATA?.toolRead?.('swing-structure-lab') ?? null;

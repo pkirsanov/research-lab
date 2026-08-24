@@ -26306,17 +26306,26 @@ try {
   const f027PatternToken = '[A-Z0-9.\\-]{1,12}';
   const f027PatternSites = (files) => files.filter((f) => f.source.includes(f027PatternToken)).map((f) => f.path);
   const f027PrivateRuleSites = (files) => files.filter((f) => /function\s+tickerFromQuery\s*\(/.test(f.source)).map((f) => f.path);
-  const F027_SUBJECT_ROUTES = Object.freeze(['options-structure-lab.html', 'gamma-trading-lab.html']);
+  /* Derived, not listed. Any root route publishing a deepLink that carries a query parameter is
+     subject-bearing, so a new one is covered the day it ships rather than the day someone
+     remembers to add it. The allowlist this replaced named two routes while four existed, and the
+     two it omitted were the ones emitting a dead parameter (BUG-015). */
+  const F027_SUBJECT_ROUTES = Object.freeze(f027ProductionFiles
+    .filter((f) => /\.html$/.test(f.path) && /deepLink:\s*"[^"]*\?/.test(f.source))
+    .map((f) => f.path)
+    .sort());
   const f027Consumers = F027_SUBJECT_ROUTES.filter((name) =>
     f027ProductionFiles.some((f) => f.path === name && f.source.includes('RLTKR.linkedSubject')));
 
   /* 1.1 — SCN-027-017 */
   assert(f027PatternSites(f027ProductionFiles).join(',') === 'rlticker.js'
     && f027PrivateRuleSites(f027ProductionFiles).length === 0
+    && F027_SUBJECT_ROUTES.length > 0
     && f027Consumers.length === F027_SUBJECT_ROUTES.length,
   'Feature 027: exactly one definition of the linked-subject rule exists in the tree and every subject-carrying route consumes it'
     + ' (pattern at: ' + (f027PatternSites(f027ProductionFiles).join(', ') || 'nowhere')
     + '; private copies: ' + (f027PrivateRuleSites(f027ProductionFiles).join(', ') || 'none')
+    + '; routes: ' + (F027_SUBJECT_ROUTES.join(', ') || 'none derived')
     + '; consumers: ' + f027Consumers.length + '/' + F027_SUBJECT_ROUTES.length + ')');
 
   /* 1.2 — SCN-027-007 */

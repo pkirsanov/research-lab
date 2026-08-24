@@ -1092,6 +1092,9 @@
                 fresh</span>
         </div>
 
+        <p id="linkNotice" role="status" hidden
+            style="margin:10px 0 0;font-size:12px;color:var(--warn,#f0b429)"></p>
+
         <div class="disc">
             <b>Educational only — not investment advice.</b> Pattern odds are <b>descriptive base rates</b> over the
             fetched
@@ -1589,6 +1592,7 @@
             function doFetch(cacheOnly, autoMode) {
                 if (busy) return; var tk = (el('ticker').value || '').trim().toUpperCase(); if (!tk) { if (!cacheOnly) setStatus('type a ticker first', 'bad'); return; }
                 state.ticker = tk; state.win = +el('win').value || 126; state.provider = el('prov').value;
+                showLinkNotice();
                 var cb = cacheOnly ? RLDATA.bars(tk, '1d', 0) : null;
                 if (cacheOnly && (!cb || cb.length < 60)) return; /* nothing usable cached — stay idle, no network on load */
                 busy = true; setStatus(cacheOnly ? ('loading cached ' + tk + '…') : ('fetching ' + tk + '…')); saveState();
@@ -1690,7 +1694,7 @@
                                     ]
                                 }
                             },
-                            deepLink: "swing-structure-lab.html?t=" + encodeURIComponent(state.ticker)
+                            deepLink: "swing-structure-lab.html?" + RLTKR.SUBJECT_PARAM + "=" + encodeURIComponent(state.ticker)
                         });
                     }
                 } catch (f7Err) { /* publication is additive; it never blocks the owner's own render */ }
@@ -2041,14 +2045,31 @@
                 var to; window.addEventListener('resize', function () { clearTimeout(to); to = setTimeout(function () { if (state.view.length) { drawDaily(); drawProfile(); } }, 150); });
             }
             function loadUniverse() { fetch('swing-structure-universe.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) { if (j && j.universe && j.universe.length) state.universe = j.universe; }).catch(function () { }); }
+            /* A reader who followed a link naming a company this route cannot accept is told so,
+               rather than left reading the default as though it were what they asked for. Cleared
+               when they pick a ticker themselves, so the page never states two subjects at once. */
+            var linkHandoff = { status: 'absent' };
+            function showLinkNotice(handoff) {
+                if (handoff) linkHandoff = handoff;
+                var notice = el('linkNotice');
+                if (!notice) return;
+                if (linkHandoff.status !== 'refused') { notice.textContent = ''; notice.hidden = true; return; }
+                notice.textContent = 'The link named a company this tool could not accept, so it is showing ' + state.ticker + '.';
+                notice.hidden = false;
+            }
             function boot() {
                 var st = loadState(); if (st) { state.provider = st.provider || 'auto'; state.ticker = st.ticker || 'SPY'; state.win = st.win || 126; state.mode = st.mode || 'simple'; if (isNum(st.acct)) state.acct = st.acct; if (isNum(st.riskPct)) state.riskPct = st.riskPct; if (st.svStance) state.svStance = st.svStance; if (st.svAggr) state.svAggr = st.svAggr; if (st.svHz) state.svHz = st.svHz; }
                 rlDataBridge();
                 el('ticker').value = state.ticker; el('prov').value = state.provider; el('win').value = '' + state.win;
                 setMode(state.mode, true); wire(); loadUniverse();
+                var handoff = RLTKR.linkedSubject(window.location.search);
+                if (handoff.status === 'accepted') { state.ticker = handoff.subject; el('ticker').value = state.ticker; }
+                showLinkNotice(handoff);
                 doFetch(false, true); /* cache-first; automatically fetch only when the six-hour daily TTL is stale/missing */
             }
-            boot();
+            /* Deferred so the deferred rlticker.js has run: boot reads the linked subject through
+               RLTKR, which does not exist while this inline script is still parsing. */
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
         })();
     </script>
     <script src="rlg.js" defer></script>

@@ -1358,12 +1358,122 @@ lines, which is the pure-append proof a revert fully restores.
 
 ### Validation Evidence
 
-**Executed:** NO
-**Command:** not run
+**Executed:** YES
+**Command:** `node scripts/selftest.mjs`, `node --test tests/company-intelligence.unit.mjs`,
+`node --test tests/company-fundamentals-contracts.unit.mjs`,
+`npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome
+--workers=1 --reporter=line` over the five routes carrying `SCN-027-*`,
+`node scripts/pii-scan.mjs`, and the four governance guards
 **Phase Agent:** bubbles.validate
-**Claim Source:** not-run
+**Claim Source:** executed
 
-Awaiting scope execution.
+The browser leg was scoped to the five routes this feature touches
+(`company-intelligence-lab`, `options-flow-feed-lab`, `volatility-sizing-lab`,
+`options-structure-lab`, `gamma-trading-lab`) rather than run repo-wide, because a
+repo-wide run carries roughly fifteen failures owned by other specs; scoping keeps the
+transcript attributable to this feature. That scoped set includes the full inherited
+Feature 011 suite `SCN-027-008` requires, whose fourteen `Regression BS-*` cases run
+with no query string and so re-prove the backward-compatibility constraint directly.
+
+```text
+$ node scripts/selftest.mjs
+SELFTEST_EXIT=0
+Research-Lab self-test: 3405 passed, 0 failed
+
+$ node --test tests/company-intelligence.unit.mjs
+ℹ tests 90
+ℹ pass 90
+ℹ fail 0
+
+$ node --test tests/company-fundamentals-contracts.unit.mjs
+ℹ tests 56
+ℹ pass 56
+ℹ fail 0
+
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=system-chrome --workers=1 --reporter=line \
+    tests/company-intelligence-lab.spec.mjs tests/options-flow-feed-lab.spec.mjs \
+    tests/volatility-sizing-lab.spec.mjs tests/options-structure-lab.spec.mjs \
+    tests/gamma-trading-lab.spec.mjs
+PW_EXIT=0
+Running 99 tests using 1 worker
+  99 passed (1.1m)
+
+$ node scripts/pii-scan.mjs
+[pii-scan] files=9642 messages=2073 findings=0 OK
+```
+
+The four governance guards were run against this packet at the status it is being left
+at, not at a status assumed in advance.
+
+```text
+$ bash .github/bubbles/scripts/state-transition-guard.sh \
+    specs/027-company-scoped-owner-deep-links --target-status done
+failedGateIds: []
+blockingCode: none
+verdict: PASS
+
+$ bash .github/bubbles/scripts/traceability-guard.sh specs/027-company-scoped-owner-deep-links
+ℹ️  DoD fidelity: 9 scenarios checked, 9 mapped to DoD, 0 unmapped
+ℹ️  Report evidence references: 9
+RESULT: PASSED (0 warnings)
+
+$ bash .github/bubbles/scripts/artifact-freshness-guard.sh specs/027-company-scoped-owner-deep-links
+RESULT: PASS (0 failures, 0 warnings)
+
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/027-company-scoped-owner-deep-links
+Artifact lint PASSED.
+```
+
+**Outcome contract, checked against the tree rather than against this report.** The
+failure condition "a registry row declares a subject parameter that its route does not
+read" was tested directly: every row of `company-intelligence.config.json` was resolved
+through `tools.json` to its owner route and that route's source was read for
+`RLTKR.linkedSubject`. Four rows declare `ownerSubjectParam: ticker`
+(`options-structure`, `dealer-gamma`, `options-flow`, `volatility`) and all four routes
+read it. The remaining rows either carry a stated `ownerBareReason` or have no owner at
+all, so no row declares a parameter nobody reads.
+
+```text
+$ node -e '<resolve every company-intelligence.config.json row through tools.json
+   to its owner route, then read that route for RLTKR.linkedSubject>'
+options-structure      tool=options-structure-lab            param=ticker   READS
+dealer-gamma           tool=gamma-trading-lab                param=ticker   READS
+options-flow           tool=options-flow-feed-lab            param=ticker   READS
+volatility             tool=volatility-sizing-lab            param=ticker   READS
+fundamentals           tool=company-fundamentals-lab         bare=fixed-subject
+technicals             tool=technical-analysis-decision-lab  bare=fixed-subject
+geopolitics            tool=research-agenda-lab              bare=market-scoped
+
+declaring_ownerSubjectParam=4  with_reader=4  VIOLATIONS=0
+```
+
+**Open bugs on the shared surface were checked, not assumed.** `BUG-018`
+(corpus-pending window states absence as settled fact) shares the company subject
+surface with this feature; its three surface-correcting scopes all read `Status: Done`
+and only its own cross-scope packet checklist is outstanding, so no live surface still
+asserts the absence. `BUG-010` carries 21 of 21 checklist items ticked. `BUG-015` is
+genuinely unworked, and it is the one worth naming plainly: two routes still publish a
+dead `?t=` deep link. Those routes are `intraday-tape-lab.html` and
+`swing-structure-lab.html`, neither of which is a row of this feature's registry — they
+publish into the Feature 007 owner-read contract, a different corridor. This feature
+found that defect itself, recorded it as `F-AUDIT-02` and `F-AUDIT-02b`, corrected the
+two routes that were its own, and routed the remainder out. Nothing this feature ships
+claims those two routes are correct.
+
+**One observation, not blocking, recorded rather than left silent.** This packet's
+`scenario-manifest.json` carries all eighteen scenarios at `status: not_started` with
+empty `linkedTests` and `evidenceRefs`, while the delivered work is complete and every
+scenario has real executable coverage — fifteen carry an `SCN-027-*` tag inside
+`scripts/selftest.mjs` or a browser spec, and the other three
+(`SCN-027-008`, `-015`, `-016`) name their proving tests by title under `satisfiedBy`,
+each of which was located in the tree at a specific line before this was written. The
+mechanical traceability guard passes because the scope Test Plan rows carry the mapping.
+Feature 025, certified immediately before this one, carries the identical empty-manifest
+shape, whereas eleven older certified specs populate those fields. So this is a
+bookkeeping regression across the recent cohort rather than a defect in this feature,
+and it understates delivered work rather than overstating it. It is routed to
+`bubbles.plan` as observation `V-027-01` covering both 025 and 027.
 
 ---
 

@@ -269,7 +269,10 @@
     </style>
 </head>
 
-<body data-run-status="empty" data-coverage-unavailable="0" data-corpus-status="pending" data-mode="simple" data-registry-source="pending">
+<!-- The shell has composed nothing, so it states no count: a literal "0" here would be a
+     settled-looking absence for a run that has not started. -->
+
+<body data-run-status="empty" data-coverage-unavailable="not-established" data-corpus-status="pending" data-mode="simple" data-registry-source="pending" data-reading-readiness="not-established">
     <main>
         <header class="band">
             <h1 id="page-title">Company Multi-Horizon Intelligence Lab</h1>
@@ -784,10 +787,35 @@
                 return node;
             }
 
-            function setBodyState(runStatus, unavailableCount) {
+            /* The one documented predicate a consumer uses to decide whether the reading on
+               screen is settled (BUG-018 FR-018-005):
+
+                   body[data-run-status="composed"] AND body[data-reading-readiness="established"]
+
+               `data-run-status` keeps its meaning — a composed paint is still a composed paint,
+               which is what the offline first paint depends on — and `data-reading-readiness`
+               says whether the corpus behind that paint had answered. It records the readiness
+               the RENDERED account actually carries rather than re-reading module scope, so the
+               attribute can never describe a different run from the one on screen.
+               `data-corpus-status` continues to report the module's own corpus state and is
+               correct at this instant since BUG-018 Scope 1, so the pair stays jointly
+               sufficient too. A count that has not been established is not written as a number,
+               because "15" and "not yet asked" must not look alike to a machine either. */
+            function setBodyState(runStatus, unavailableCount, readiness) {
+                var settled = readiness !== "not-established";
                 document.body.setAttribute("data-run-status", runStatus);
-                document.body.setAttribute("data-coverage-unavailable", String(unavailableCount));
+                document.body.setAttribute("data-coverage-unavailable", settled ? String(unavailableCount) : "not-established");
                 document.body.setAttribute("data-corpus-status", corpusStatus);
+                document.body.setAttribute("data-reading-readiness", settled ? "established" : "not-established");
+            }
+
+            /* What the composer must be told about its own corpus. `pending` means the request
+               for THIS subject has not come back; `loaded` and `unavailable` are both resolved,
+               and an `unavailable` corpus is a settled reading rather than a perpetual wait —
+               which is what keeps the file:// and held-server first paints honest instead of
+               withholding forever. */
+            function corpusReadiness() {
+                return corpusStatus === "pending" ? "not-established" : "established";
             }
 
             /* ---------- value rendering ---------- */
@@ -995,7 +1023,7 @@
                 if (subject.contractVersion === "company-intel-error/v1") return { refusal: subject };
                 var sources = collectSources(subject, when);
                 var bundle = INTEL.runAdapters(subject, sources, when, window.RLDATA);
-                var account = INTEL.buildCoverageAccount(bundle, registry);
+                var account = INTEL.buildCoverageAccount(bundle, registry, corpusReadiness());
                 var families = INTEL.groupEvidenceFamilies(bundle);
                 var partition = INTEL.partitionByHorizon(bundle);
                 var horizons = [
@@ -1079,10 +1107,10 @@
                     (refusal.detail ? " [" + refusal.detail + "]" : "");
                 node.setAttribute("data-refusal-code", refusal.code);
                 enhanceTickers();
-                setBodyState("refused", 0);
+                setBodyState("refused", 0, corpusReadiness());
             }
 
-            function renderHorizonCards(version, bundle) {
+            function renderHorizonCards(version, bundle, established) {
                 var host = byId("cockpit-horizons");
                 /* One user action paints this region twice: once synchronously from the
                    registry and again when the corpus resolves. Rebuilding the cards discards
@@ -1095,16 +1123,30 @@
                 });
                 clear(host);
                 version.horizons.forEach(function (horizon) {
+                    /* A horizon composed against a corpus that has not answered reads `none` /
+                       `absent`, which is byte-identical to a horizon a resolved corpus genuinely
+                       could not support. The card therefore states the readiness instead of the
+                       direction until the corpus resolves, in both the attribute a consumer
+                       reads and the line a person reads (BUG-018 FR-018-002). */
+                    var direction = established ? horizon.direction : "not-established";
+                    var quality = established ? horizon.evidenceQuality : "not-established";
                     var card = el("div", null, {
                         class: "card", "data-horizon": horizon.horizonId,
-                        "data-direction": horizon.direction, "data-evidence-quality": horizon.evidenceQuality
+                        "data-direction": direction, "data-evidence-quality": quality,
+                        "data-horizon-readiness": established ? "established" : "not-established"
                     });
                     card.appendChild(el("h3", horizon.question));
                     var line = el("p");
-                    line.appendChild(el("span", horizon.direction, { class: "direction", "data-direction": horizon.direction }));
-                    line.appendChild(el("span", ", evidence " + horizon.evidenceQuality));
+                    line.appendChild(el("span", direction, { class: "direction", "data-direction": direction }));
+                    line.appendChild(el("span", established
+                        ? ", evidence " + quality
+                        : ", no direction has been read yet because the committed corpus has not answered"));
                     card.appendChild(line);
-                    card.appendChild(el("p", horizon.summary, { "data-horizon-summary": horizon.horizonId }));
+                    card.appendChild(el("p", established
+                        ? horizon.summary
+                        : "This horizon has not been read yet. The committed corpus for this company is still on its " +
+                            "way, so nothing here is a finding about " + version.subject.ticker + ".",
+                        { "data-horizon-summary": horizon.horizonId }));
                     var dive = el("details", null, {
                         "data-horizon-dive": horizon.horizonId,
                         "data-contributing-dimension-ids": JSON.stringify(horizon.contributingDimensionIds)
@@ -1114,7 +1156,10 @@
                     dive.appendChild(el("p", horizon.gapEffect, { "data-gap-effect": "true" }));
                     dive.appendChild(el("p", "Invalidation: " + horizon.invalidation, { "data-invalidation": "true" }));
                     if (horizon.contributingDimensionIds.length === 0) {
-                        dive.appendChild(el("p", "No dimension read reached this horizon, so nothing contributed to it.",
+                        dive.appendChild(el("p", established
+                            ? "No dimension read reached this horizon, so nothing contributed to it."
+                            : "No dimension read has reached this horizon yet, because the committed corpus has not " +
+                                "answered. That is not the same as nothing contributing to it.",
                             { class: "muted", "data-no-contributors": "true" }));
                     } else {
                         dive.appendChild(el("p", "Contributing reads", { class: "muted" }));
@@ -1135,7 +1180,10 @@
                         });
                     }
                     if (horizon.claims.length === 0) {
-                        dive.appendChild(el("p", "No claim rests on this horizon, because no eligible read carried a direction.",
+                        dive.appendChild(el("p", established
+                            ? "No claim rests on this horizon, because no eligible read carried a direction."
+                            : "No claim rests on this horizon yet, because no read has been attempted against the " +
+                                "committed corpus.",
                             { class: "muted", "data-no-claims": "true" }));
                     } else {
                         horizon.claims.forEach(function (claim) {
@@ -1152,10 +1200,19 @@
 
             function renderCoverage(version) {
                 var totals = version.coverageAccount.totals;
-                setText("workspace-coverage-totals",
-                    "current " + totals.current + " · partial " + totals.partial + " · stale " + totals.stale +
-                    " · conflicted " + totals.conflicted + " · unavailable " + totals.unavailable +
-                    " · " + version.coverageAccount.rows.length + " dimensions accounted for");
+                /* The power-mode tally is the same claim as the cockpit sentence, counted per
+                   state instead of in prose. If one withholds and the other prints, the route
+                   contradicts itself in two places a reader can see at once, so both read the
+                   account's readiness rather than each deciding for itself. */
+                var established = version.coverageAccount.readiness !== "not-established";
+                setText("workspace-coverage-totals", established
+                    ? "current " + totals.current + " · partial " + totals.partial + " · stale " + totals.stale +
+                        " · conflicted " + totals.conflicted + " · unavailable " + totals.unavailable +
+                        " · " + version.coverageAccount.rows.length + " dimensions accounted for"
+                    : "No dimension has been accounted for yet. The committed corpus for this company has not " +
+                        "answered, so the " + version.coverageAccount.rows.length + " rows below name what this run " +
+                        "will ask for rather than what it found.");
+                byId("workspace-coverage-totals").setAttribute("data-coverage-claim", established ? "settled" : "not-established");
                 var body = byId("workspace-coverage-rows");
                 clear(body);
                 version.coverageAccount.rows.forEach(function (row) {
@@ -1164,18 +1221,26 @@
                        than left for the reader to infer from the state word. An undated read says it has
                        no age, because a zero would read as "observed today". */
                     var hasAge = row.asOf !== null && row.ageDays !== null;
+                    /* Every renderer of the coverage account respects that account's readiness.
+                       A row reading `unavailable` against a corpus that has not answered is the
+                       cockpit sentence's own overstatement told one dimension at a time, and a
+                       table that contradicts the line directly above it is worse than either. */
+                    var rowState = established ? row.state : "not-established";
                     var tr = el("tr", null, {
-                        "data-coverage-row": row.dimensionId, "data-state": row.state,
+                        "data-coverage-row": row.dimensionId, "data-state": rowState,
                         "data-coverage-as-of": row.asOf === null ? "no dated source" : row.asOf,
                         "data-coverage-age-days": hasAge ? String(row.ageDays) : "no age",
                         "data-has-owner": owner.hasOwner ? "true" : "false"
                     });
                     tr.appendChild(el("th", row.label, { scope: "row" }));
                     var stateCell = el("td");
-                    stateCell.appendChild(el("span", row.state, { class: "state", "data-state": row.state }));
+                    stateCell.appendChild(el("span", established ? rowState : "not established yet",
+                        { class: "state", "data-state": rowState }));
                     tr.appendChild(stateCell);
-                    tr.appendChild(el("td", row.reasonCode === null ? "no reason needed" : row.reasonCode, {
-                        "data-coverage-reason": row.reasonCode === null ? "none" : row.reasonCode
+                    tr.appendChild(el("td", established
+                        ? (row.reasonCode === null ? "no reason needed" : row.reasonCode)
+                        : "no reason yet, because the corpus has not answered", {
+                        "data-coverage-reason": established ? (row.reasonCode === null ? "none" : row.reasonCode) : "not-established"
                     }));
                     tr.appendChild(el("td", row.asOf === null ? "no dated source" : row.asOf));
                     tr.appendChild(el("td", hasAge
@@ -1455,12 +1520,24 @@
                 byId("subject-refusal").hidden = true;
                 var version = result.version;
                 var bundle = result.bundle;
+                /* Whether the account this paint is about to render was built against a corpus
+                   that had answered. When it was not, the run has established no absence, so the
+                   grammar the route reserves for a settled finding is withheld rather than
+                   printed with numbers nothing has confirmed (BUG-018 FR-018-001, FR-018-002). */
+                var established = version.coverageAccount.readiness !== "not-established";
                 setText("subject-identity", version.subject.displayName + " (" + version.subject.ticker + ") resolved on " +
                     version.subject.identityBasis + (version.subject.cik ? ", SEC identity " + version.subject.cik : ", no SEC identity") + ".");
-                setText("cockpit-coverage-line",
-                    version.coverageAccount.totals.unavailable + " of " + version.coverageAccount.rows.length +
-                    " mandatory dimensions have no usable source in this run. Each one names its reason below.");
-                renderHorizonCards(version, bundle);
+                /* The readiness sentence is the user-visible surface FR-018-003 requires: a
+                   reader who never opens a devtools inspector still learns that the account is
+                   incomplete, and the wording disappears entirely once the corpus resolves. */
+                setText("cockpit-coverage-line", established
+                    ? version.coverageAccount.totals.unavailable + " of " + version.coverageAccount.rows.length +
+                        " mandatory dimensions have no usable source in this run. Each one names its reason below."
+                    : "Waiting for the committed corpus for this company. Until it answers, this run has established " +
+                        "nothing about how many of the " + version.coverageAccount.rows.length + " mandatory dimensions " +
+                        "lack a usable source, so no count is stated here yet.");
+                byId("cockpit-coverage-line").setAttribute("data-coverage-claim", established ? "settled" : "not-established");
+                renderHorizonCards(version, bundle, established);
                 setText("cockpit-contradictions", version.contradictions.length === 0
                     ? "No two horizons oppose each other in this run."
                     : version.contradictions.length + " horizon pairs disagree. Both readings stand.");
@@ -1481,11 +1558,11 @@
                 renderSources(version);
                 renderOutcomeRecord(result);
                 enhanceTickers();
-                setBodyState("composed", version.coverageAccount.totals.unavailable);
+                setBodyState("composed", version.coverageAccount.totals.unavailable, version.coverageAccount.readiness);
             }
 
             function run() {
-                setBodyState("composing", 0);
+                setBodyState("composing", 0, corpusReadiness());
                 render(compose());
             }
 
@@ -1500,14 +1577,20 @@
                     return;
                 }
                 currentTicker = raw.toUpperCase();
-                var result = compose();
                 /* Readiness has to describe the subject this paint is about to put on screen.
                    The reset used to live in loadCorpus() alone, one turn after render() had
                    already copied the departing subject's value onto the body, so the attribute
                    could read "loaded" for a corpus that was never requested — and a consumer
                    waiting for it to leave "pending" returned immediately on that stale value.
-                   A refused entry requests no corpus, so it is left reporting the standing one. */
-                if (!result.refusal) corpusStatus = "pending";
+                   It now precedes compose() as well as render(), because the composed account
+                   carries its own readiness since BUG-018 Scope 2: composing first would build
+                   the new subject's account against the departing subject's readiness and print
+                   a settled absence for a corpus nothing has requested. A refused entry requests
+                   no corpus, so the standing subject's value is put back before it is painted. */
+                var standingCorpusStatus = corpusStatus;
+                corpusStatus = "pending";
+                var result = compose();
+                if (result.refusal) corpusStatus = standingCorpusStatus;
                 render(result);
                 /* An unresolved identifier never triggers a corpus request, because asking the
                    server for a symbol the tool already refused would only produce a 404. */

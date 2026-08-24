@@ -45,6 +45,11 @@
     var DATE_CLASSES = ["scheduled", "estimated", "occurred", "revised", "unavailable"];
     var DISPOSITIONS = ["changed", "confirmed", "no-change", "refused"];
     var STOPPED_BY = ["declared-limit", "question-answered", "no-source", "guardrail"];
+    /* Whether the corpus behind a coverage account has answered at all. It is deliberately not
+       an evidence state: a dimension's state describes what a resolved corpus contained, and
+       this describes whether the corpus resolved. Collapsing the two is the defect BUG-018
+       records. */
+    var COVERAGE_READINESS_STATES = ["established", "not-established"];
 
     var REASON_CODES = [
         "no-shared-read", "no-owner", "no-source-wired", "no-source-exists",
@@ -1240,9 +1245,22 @@
 
     /* ---------- coverage account ---------- */
 
-    function buildCoverageAccount(reads, registry) {
+    /* An empty cache and a company with no source produce the same read set, so a caller that
+       knows its corpus has not answered yet has to be able to say so: `corpusReadiness` is that
+       input. Omitting it means "the corpus is resolved", which is what every caller written
+       before this parameter existed was already asserting implicitly, so the account keeps its
+       current shape and meaning for them. A value that is neither word is refused rather than
+       coerced, because a misspelled readiness silently reverting to "established" would
+       reintroduce exactly the claim this parameter exists to prevent. The refusal reuses the
+       account's own input-contract code: the readiness word is an input to this function, and
+       the refusal set is closed. */
+    function buildCoverageAccount(reads, registry, corpusReadiness) {
         if (!isPlainObject(registry) || registry.contractVersion !== "company-coverage-registry/v1") {
             raise("C025-REGISTRY-INCOMPLETE", "The coverage account needs a validated registry.");
+        }
+        var readiness = corpusReadiness === undefined || corpusReadiness === null ? "established" : corpusReadiness;
+        if (!contains(COVERAGE_READINESS_STATES, readiness)) {
+            raise("C025-READ-CONTRACT", "Corpus readiness must be established or not-established.", String(corpusReadiness));
         }
         var list = Array.isArray(reads) ? reads : (isPlainObject(reads) && Array.isArray(reads.reads) ? reads.reads : null);
         if (!list) raise("C025-READ-CONTRACT", "The coverage account needs a dimension read list.");
@@ -1271,6 +1289,7 @@
         return deepFreeze({
             contractVersion: "company-coverage-account/v1",
             subjectId: subjectId,
+            readiness: readiness,
             rows: rows,
             totals: totals
         });
@@ -2123,6 +2142,7 @@
         DATE_CLASSES: Object.freeze(DATE_CLASSES.slice()),
         DISPOSITIONS: Object.freeze(DISPOSITIONS.slice()),
         STOPPED_BY: Object.freeze(STOPPED_BY.slice()),
+        COVERAGE_READINESS_STATES: Object.freeze(COVERAGE_READINESS_STATES.slice()),
         REASON_CODES: Object.freeze(REASON_CODES.slice()),
         ERROR_CODES: Object.freeze(ERROR_CODES.slice()),
         MANDATORY_DIMENSION_IDS: Object.freeze(MANDATORY_DIMENSION_IDS.slice()),

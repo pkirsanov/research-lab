@@ -1610,4 +1610,151 @@ test('Regression: BUG-018 scope 1 data-corpus-status describes the subject on sc
     }
 });
 
+/* The grammar the route reserves for a settled finding. Matching it on a paint whose corpus has
+   not answered is the defect BUG-018 records, so the pending assertion below is written against
+   this shape rather than against one particular number: a fix that merely changed 15 to 14 would
+   still be stating an absence nothing established. */
+const SETTLED_COVERAGE_GRAMMAR = /\d+\s+of\s+\d+\s+mandatory dimensions have no usable source/i;
+/* The user-visible readiness surface FR-018-003 requires. It must appear while the corpus is in
+   flight and be gone once it answers, which is why both directions are asserted. */
+const PENDING_READINESS_WORDING = /waiting for the committed corpus/i;
+
+test('Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established', async ({ page }) => {
+    /* This is the case the committed suite structurally could not contain. Every other assertion
+       in this file enters through `openComposedRoute`, whose gate at the top of this file waits
+       for `data-corpus-status` to leave `pending` before asserting anything — the correct gate
+       for settled behaviour, and precisely why nothing here could ever see the pending paint. So
+       this test does not use it. It holds the committed corpus open, waits only on
+       `data-run-status="composed"`, and reads what a reader following a published deep link
+       actually meets on first paint.
+
+       Unfixed, that paint printed "15 of 15 mandatory dimensions have no usable source in this
+       run" and four `none` / `absent` horizon cards, for a corpus that had not been asked yet.
+       The settled answer for the same subject is `13 of 15` with three horizons carrying a
+       direction, so the window did not merely round early — it stated a different finding, in
+       the same grammar the route uses for a settled one, with nothing on screen to tell the two
+       apart.
+
+       The hold is released inside the test rather than timed out, so the settled half below is
+       the same page reconciling rather than a second load, and the "wording is gone once it
+       settles" half of FR-018-003 is asserted against the run that carried it. */
+    test.setTimeout(120_000);
+
+    let release;
+    const gate = new Promise((resolve) => { release = resolve; });
+    const heldCorpusRequests = [];
+    const runtimeErrors = [];
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+
+    await page.route('**/data/**', async (route, request) => {
+        heldCorpusRequests.push(request.url());
+        await gate;
+        /* A handler that throws or never settles keeps its worker alive past the test. */
+        try { await route.continue(); } catch { /* page or context already closing */ }
+    });
+
+    const readPaint = () => page.evaluate(() => ({
+        corpusStatus: document.body.getAttribute('data-corpus-status'),
+        runStatus: document.body.getAttribute('data-run-status'),
+        readingReadiness: document.body.getAttribute('data-reading-readiness'),
+        coverageUnavailable: document.body.getAttribute('data-coverage-unavailable'),
+        coverageLine: document.getElementById('cockpit-coverage-line').textContent,
+        coverageClaim: document.getElementById('cockpit-coverage-line').getAttribute('data-coverage-claim'),
+        horizons: Array.from(document.querySelectorAll('#cockpit-horizons [data-horizon]')).map((node) => ({
+            horizon: node.getAttribute('data-horizon'),
+            direction: node.getAttribute('data-direction'),
+            quality: node.getAttribute('data-evidence-quality'),
+            readiness: node.getAttribute('data-horizon-readiness'),
+            summary: (node.querySelector('[data-horizon-summary]') || { textContent: '' }).textContent
+                .replace(/\s+/g, ' ').trim()
+        })),
+        bodyText: document.body.innerText.replace(/\s+/g, ' ').trim()
+    }));
+
+    try {
+        await page.goto(`${site.baseUrl}/${ROUTE}?symbol=MSFT`);
+        await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed', { timeout: 30_000 });
+
+        const pending = await readPaint();
+
+        /* Non-vacuous controls. Without these three, every assertion below could pass on a page
+           that had already settled, or that had never composed at all — which is exactly how a
+           test can look like coverage of this window while sitting outside it. */
+        expect(pending.corpusStatus, 'the corpus must still be in flight when this paint is read').toBe('pending');
+        expect(
+            heldCorpusRequests.length,
+            'the route must actually have asked for the committed corpus, or nothing is being held'
+        ).toBeGreaterThan(0);
+        expect(pending.horizons, 'the held paint must be a real composed cockpit, not an empty shell').toHaveLength(4);
+
+        /* FR-018-001 — no definite absence count against an unresolved corpus, in the copy a
+           reader sees and in the attribute a machine reads. */
+        expect(
+            pending.coverageLine,
+            `the cockpit asserted a settled absence with its corpus unanswered: "${pending.coverageLine}"`
+        ).not.toMatch(SETTLED_COVERAGE_GRAMMAR);
+        expect(pending.coverageClaim, 'the cockpit sentence must declare its claim unsettled').toBe('not-established');
+        expect(
+            pending.coverageUnavailable,
+            `data-coverage-unavailable published the number "${pending.coverageUnavailable}" for a corpus that had not answered`
+        ).not.toMatch(/^\d+$/);
+
+        /* FR-018-005 — one documented predicate over body attributes, used here: a settled paint
+           is `composed` AND `established`. `composed` keeps its meaning, so the offline first
+           paint is untouched; readiness is what separates the two. */
+        expect(pending.runStatus, 'the pre-corpus paint is still a composed paint').toBe('composed');
+        expect(pending.readingReadiness, 'the predicate must return false for a pre-corpus paint').toBe('not-established');
+
+        /* FR-018-003 — visible without opening an inspector. */
+        expect(
+            pending.bodyText,
+            'a reader who never inspects an attribute must still be told the account is incomplete'
+        ).toMatch(PENDING_READINESS_WORDING);
+
+        /* FR-018-002 — no horizon card presents a direction it has not read. The summary length
+           check keeps the remedy from degrading into a blank card, which would trade one
+           dishonest paint for an unusable one. */
+        for (const card of pending.horizons) {
+            expect(card.direction, `${card.horizon} presented a direction against an unresolved corpus`)
+                .toBe('not-established');
+            expect(card.quality, `${card.horizon} presented an evidence quality against an unresolved corpus`)
+                .toBe('not-established');
+            expect(card.readiness, `${card.horizon} carries no machine-readable readiness`).toBe('not-established');
+            expect(card.summary.length, `${card.horizon} must still carry readable copy, not an empty region`)
+                .toBeGreaterThan(20);
+        }
+
+        /* Now let the corpus answer. The settled half proves the remedy is a window and not a
+           permanent withholding: the same page, reconciling. */
+        release();
+        await expect(page.locator('body'))
+            .toHaveAttribute('data-corpus-status', /^(loaded|unavailable)$/, { timeout: 60_000 });
+        await expect(page.locator('body')).toHaveAttribute('data-reading-readiness', 'established');
+
+        const settled = await readPaint();
+        expect(settled.coverageLine, 'the settled reading must state its account, unchanged from before this fix')
+            .toMatch(/13 of 15 mandatory dimensions have no usable source/);
+        expect(settled.coverageClaim, 'a resolved corpus makes the claim settled').toBe('settled');
+        expect(settled.coverageUnavailable, 'the settled count returns to the attribute').toBe('13');
+        expect(
+            settled.bodyText,
+            'the readiness wording must disappear once the corpus answers, or it is not readiness wording'
+        ).not.toMatch(PENDING_READINESS_WORDING);
+
+        const directed = settled.horizons.filter((card) => card.direction !== 'none');
+        expect(directed.map((card) => card.horizon).sort(), 'the settled horizon directions are unchanged')
+            .toEqual(['event', 'immediate', 'swing']);
+        for (const card of settled.horizons) {
+            expect(card.readiness, `${card.horizon} must read established once the corpus answers`).toBe('established');
+        }
+
+        expect(runtimeErrors, `runtime errors: ${runtimeErrors.join(' | ')}`).toEqual([]);
+    } finally {
+        /* Resume every parked handler first, then drop the routes: an unhandled rejection from a
+           handler that outlives its test is what keeps a Playwright worker from exiting. */
+        release();
+        await page.unrouteAll({ behavior: 'ignoreErrors' });
+    }
+});
+
 

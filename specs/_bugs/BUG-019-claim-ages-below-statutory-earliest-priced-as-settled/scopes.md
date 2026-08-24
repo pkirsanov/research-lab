@@ -1,6 +1,9 @@
 # Scopes: BUG-019 — Claim Ages Below The Statutory Earliest Age Are Priced As Settled
 
-**Status:** Filed, unstarted. No scope has been started and nothing has been delivered.
+**Status:** In Progress (delivered at `e28be5814` and `eeb2ac7cc`)
+
+Fifteen of eighteen Definition of Done items are ticked with executed evidence. The three that are
+not carry an Uncertainty Declaration in place of evidence; none of them is missing behaviour.
 
 The packet was filed by a `bubbles.chaos` round, which is authorised to record findings and file
 bug artifacts and is not authorised to implement a fix. Every Definition of Done item below is
@@ -19,7 +22,11 @@ this packet reflects the care needed in the pack contract, not the size of the c
 
 ## Scope 1: Declare The Earliest Claim Age As A Sourced Pack Figure
 
-**Status:** Not started
+**Status:** In Progress (delivered; two Definition of Done items unticked)
+
+The pack member ships and the engine reads it. The two unticked items are wording that does not
+match what shipped, not missing behaviour; both are routed to `bubbles.plan` in their own Evidence
+lines.
 
 ### Problem This Scope Resolves
 
@@ -73,20 +80,40 @@ Feature: The earliest priceable claim age is a declared pack figure
 
 ### Definition of Done
 
-- [ ] The benefit pack carries the earliest priceable claim age with a source reference and a
-      locator. → Evidence:
+- [x] The benefit pack carries the earliest priceable claim age with a source reference and a
+      locator. → Evidence: `node scripts/selftest.mjs` → `3405 passed, 0 failed`, exit 0. The
+      BUG-019 assertion resolves `earliestClaimAge.sourceRef` against the pack's own `sourceRecords`
+      and requires a non-empty `locator`; `report.md` § Implementation Round quotes the member.
 - [ ] A pack lacking the figure yields an `AbsentFigure/v1` rather than an assumed age. → Evidence:
-- [ ] No earliest-age literal exists in `rltaxsocialsecurity.js`, `rltaxclaimage.js` or
-      `rltaxrules.js`. → Evidence:
+      **Uncertainty Declaration.** Both halves of the intent are evidenced — a pack with the member
+      deleted and a pack declaring it `AbsentFigure/v1` each refuse rather than assuming an age,
+      asserted by `node scripts/selftest.mjs` — but the delivered engine returns an
+      `RLTAX-THRESHOLD-UNAVAILABLE` refusal, not an `AbsentFigure/v1`, so the item as worded is not
+      what shipped. Routed to `bubbles.plan`: the wording describes a pack-authoring contract while
+      the check reads an engine return.
+- [x] No earliest-age literal exists in `rltaxsocialsecurity.js`, `rltaxclaimage.js` or
+      `rltaxrules.js`. → Evidence: `node scripts/selftest.mjs` → `3405 passed, 0 failed`, exit 0.
+      The `noLiteral019` clause reads all three modules and rejects `62 * 12`, an
+      `earliestClaimAgeYears` assignment and the literal `744`. Independently confirmed by the
+      Probe 3 block in `report.md`: editing only `tax-rules/benefit/2026.json` moves the boundary.
 - [ ] The pinned `packContentSha256` matches the edited pack and the route still reaches `ready`.
-      → Evidence:
-- [ ] `node scripts/selftest.mjs` reports 0 failed and not below 3404. → Evidence:
+      → Evidence: **Uncertainty Declaration.** The second half holds — the route reaches `ready`
+      and prices, evidenced by 97 passing browser cases. The first half rests on a premise that
+      does not: measured, `lifetime-tax-strategy.config.json`'s `rules.packContentSha256` pins the
+      **federal income tax** pack. The benefit pack carries no `contentSha256` and is referenced by
+      path through `rules.benefitPackPaths`, so editing it moves no pin. Routed to `bubbles.plan`;
+      recorded in `report.md` § What This Round Did Not Establish.
+- [x] `node scripts/selftest.mjs` reports 0 failed and not below 3404. → Evidence:
+      `self-test: 3405 passed, 0 failed`, exit 0. Verbatim in `report.md` § Validation Run.
 
 ---
 
 ## Scope 2: Refuse A Claim Age Below The Declared Earliest Age
 
-**Status:** Not started
+**Status:** In Progress (delivered; one Definition of Done item unticked)
+
+The refusal ships and is asserted from both sides. The unticked item concerns the delayed-credit
+stopping-age disclosure, which exists but was not asserted by this round.
 
 ### Problem This Scope Resolves
 
@@ -154,25 +181,46 @@ Feature: A claim age the pack cannot price is refused
 
 ### Definition of Done
 
-- [ ] The reproduction in `bug.md` no longer reproduces: 720 months yields a refusal, not $1,800.
-      → Evidence:
-- [ ] 744 months still yields $2,100 monthly and $25,200 annually, unchanged. → Evidence:
-- [ ] A browser case fails before the change on the figure assertion rather than on a timeout, and
-      passes after. → Evidence:
-- [ ] The comparison table refuses per candidate and drops no row. → Evidence:
-- [ ] The benefit section's settled-fact sentence is absent when the section is refusing.
-      → Evidence:
+- [x] The reproduction in `bug.md` no longer reproduces: 720 months yields a refusal, not $1,800.
+      → Evidence: the `every claim age below the earliest priceable age refuses` case drives 720,
+      600, 576, 480 and 0 months and asserts each returns `RLTAX-THRESHOLD-UNAVAILABLE` with zero
+      `[data-rl-value]` nodes and zero factor rows. Passing on `--project=chromium`; Probe 4 in
+      `report.md` proves the case fails when the guard is disabled.
+- [x] 744 months still yields $2,100 monthly and $25,200 annually, unchanged. → Evidence: the
+      `earliest priceable claim age prices` case asserts the headline is `$25,200` and the
+      adjustment body contains `2,100`, with sixty counted months and sixty-six adjustment rows.
+      Probe 2b proves the assertion fails when the guard is widened by one month.
+- [x] A browser case fails before the change on the figure assertion rather than on a timeout, and
+      passes after. → Evidence: Probe 6 in `report.md` — RED reports
+      `Error: expect(locator).toHaveAttribute(expected) failed` at exit 1, GREEN reports `NONE` at
+      exit 0, and the revert is hash-verified against the committed blob.
+- [x] The comparison table refuses per candidate and drops no row. → Evidence: the
+      `comparison list mixing priceable and unpriceable ages` case asserts the declared row order
+      `['62', '60', '67']` survives, that 62 and 67 keep `$20,160` and `$28,800`, and that only the
+      60 row carries the refusal. Probe 5 proves a wholesale return drops the priceable rows.
+- [x] The benefit section's settled-fact sentence is absent when the section is refusing.
+      → Evidence: the refusing half asserts `#benefitNoProjectionLine` is empty, and the comparison
+      case asserts the refused row does not contain `settled from your own declarations` while the
+      priced row still does — so the sentence is proven absent AND still reachable.
 - [ ] A claim age beyond the delayed-credit stopping age is disclosed rather than silently clamped.
-      → Evidence:
-- [ ] The `tests/lifetime-tax-*.spec.mjs` family passes on `--project=chromium` with no assertion
-      removed or weakened. → Evidence:
-- [ ] `node scripts/selftest.mjs` reports 0 failed and not below 3404. → Evidence:
+      → Evidence: **Uncertainty Declaration.** The disclosure exists — the engine publishes
+      `creditBoundByStoppingAge` and a `claim-age-beyond-sourced-stopping-age` comparison, and the
+      route renders it — but this round executed no assertion against that rendering, so the item
+      is not evidenced. Not ticked.
+- [x] The `tests/lifetime-tax-*.spec.mjs` family passes on `--project=chromium` with no assertion
+      removed or weakened. → Evidence: `Running 97 tests using 6 workers` → `97 passed (18.1s)`,
+      exit 0. `git --no-pager diff --numstat` on both edited spec files reports `108` insertions
+      and `0` deletions, so no existing assertion was removed or weakened.
+- [x] `node scripts/selftest.mjs` reports 0 failed and not below 3404. → Evidence:
+      `self-test: 3405 passed, 0 failed`, exit 0. Verbatim in `report.md` § Validation Run.
 
 ---
 
 ## Scope 3: Cover Both Sides Of The Boundary So It Cannot Move Quietly
 
-**Status:** Not started
+**Status:** Done
+
+All five Definition of Done items are ticked with executed evidence.
 
 ### Problem This Scope Resolves
 
@@ -223,9 +271,21 @@ Feature: The pricing boundary is pinned from both sides
 
 ### Definition of Done
 
-- [ ] The boundary is asserted from both sides one month apart. → Evidence:
-- [ ] Each new case is shown failing against the pre-fix behaviour for its own assertion reason.
-      → Evidence:
-- [ ] The sub-zero band asserts a refusal code rather than an absence of figures. → Evidence:
-- [ ] No existing assertion was removed or weakened. → Evidence:
-- [ ] `node scripts/selftest.mjs` reports 0 failed and not below 3404. → Evidence:
+- [x] The boundary is asserted from both sides one month apart. → Evidence: 744 months prices to a
+      `$25,200` headline and 743 months refuses, both inside one case so neither side can drift
+      alone. Probe 1 fails the refusing half, Probe 2b fails the priced half.
+- [x] Each new case is shown failing against the pre-fix behaviour for its own assertion reason.
+      → Evidence: all three new cases carry their own probe in `report.md` — Probe 1 and Probe 2b
+      for the two-sided boundary case, Probe 4 for the sub-zero band case, Probe 5 for the
+      comparison-table case. Each reports `discriminating: yes` and `revert-verified: yes`.
+- [x] The sub-zero band asserts a refusal code rather than an absence of figures. → Evidence: the
+      sub-zero case builds an observed array per claim age and compares it to an expected array in
+      which every entry carries `code: 'RLTAX-THRESHOLD-UNAVAILABLE'` — the code is asserted
+      positively, and the zero figure count is asserted beside it rather than in place of it.
+- [x] No existing assertion was removed or weakened. → Evidence:
+      `git --no-pager diff --numstat` on `tests/lifetime-tax-benefit.spec.mjs` and
+      `tests/lifetime-tax-claim-age.spec.mjs` reports `108` insertions and `0` deletions.
+      `scripts/selftest.mjs` shows a single deletion, the `sourceIds24` declaration in its former
+      position, quoted verbatim in `report.md`.
+- [x] `node scripts/selftest.mjs` reports 0 failed and not below 3404. → Evidence:
+      `self-test: 3405 passed, 0 failed`, exit 0. Verbatim in `report.md` § Validation Run.

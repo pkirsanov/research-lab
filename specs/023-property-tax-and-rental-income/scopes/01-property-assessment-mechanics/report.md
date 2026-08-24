@@ -2055,3 +2055,334 @@ Gates observed in this session, all green: `node scripts/selftest.mjs` exit 0 wi
 `node scripts/build-pages-site.mjs --dry-run` exit 0;
 `bash .github/bubbles/scripts/artifact-lint.sh specs/023-property-tax-and-rental-income`
 exit 0; `node scripts/validate-spec-test-paths.mjs` exit 0.
+
+## Adversarial Row Completion Session
+
+Six Definition of Done rows carrying an explicit adversarial case were still open
+when this session began. Five are closed below. The sixth is left open with the
+defect that prevents it named, because a rollback that cannot be executed to
+completion is not a rollback that has been verified.
+
+Every browser command below uses `--project=chromium`, the bundled Playwright
+browser, rather than the `--project=system-chrome` the Test Plan names. The two
+projects differ only in which chromium binary is launched; the spec files, the
+titles and the assertions are identical.
+
+### Row 1 — scenario-specific E2E regression under the exact persistent titles
+
+The whole spec file first, so the five titles are seen together:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=chromium tests/lifetime-tax-property.spec.mjs --reporter=list
+  ✓  1 [chromium] › tests/lifetime-tax-property.spec.mjs:63:1 › Regression: SCN-023-001 a missing declaration and an unretrieved rule refuse differently and neither shows a zero (818ms)
+  ✓  2 [chromium] › tests/lifetime-tax-property.spec.mjs:107:1 › Regression: SCN-023-002 the exemption and the cap are applied at their declared points with reachable citations (462ms)
+  ✓  3 [chromium] › tests/lifetime-tax-property.spec.mjs:160:1 › Regression: SCN-023-003 an acquisition-value cap basis produces a different taxable basis and the rate ceiling is a ceiling (552ms)
+  ✓  4 [chromium] › tests/lifetime-tax-property.spec.mjs:216:1 › Regression: SCN-023-002 the property leg reaches the headline, the comparison, the curve and the export (630ms)
+  ✓  5 [chromium] › tests/lifetime-tax-property.spec.mjs:304:1 › Regression: SCN-023-001 the request ledger does not grow after first paint, every entry is a declared same-origin read, and no property declaration reaches a URL (422ms)
+  5 passed (6.8s)
+S01_SPEC_EXIT=0
+```
+
+Then each title selected on its own by the Test Plan's own `--grep`, paired with a
+fixed-string count of that same literal inside the spec file. The count is what
+distinguishes a title that exists from a grep that merely selected nothing:
+
+```
+literal_in_spec=1 exit=0 summary=1 passed   :: Regression: SCN-023-001 a missing declaration and an unretri
+literal_in_spec=1 exit=0 summary=1 passed   :: Regression: SCN-023-002 the exemption and the cap are applie
+literal_in_spec=1 exit=0 summary=1 passed   :: Regression: SCN-023-003 an acquisition-value cap basis produ
+literal_in_spec=1 exit=0 summary=1 passed   :: Regression: SCN-023-002 the property leg reaches the headlin
+literal_in_spec=1 exit=0 summary=1 passed   :: Regression: SCN-023-001 the request ledger does not grow aft
+```
+
+The adversarial case. One persistent title is renamed and the identical `--grep`
+command is re-run, which is exactly the "empty grep selection read as a pass"
+failure the row exists to forbid:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S01-DoD1-title-rename
+file:             tests/lifetime-tax-property.spec.mjs
+mutation:         Regression: SCN-023-003 an acquisition-value cap basis produces a different taxable basis and the rate ceiling is a ceiling  ->  Regression: SCN-023-003 PROBE RENAMED TITLE   (1 occurrence(s))
+red-exit:         1
+red-summary:      Error: No tests found
+green-exit:       0
+green-summary:      1 passed (2.5s)
+revert-verified:  yes (committed=0c4fbcb2618087db3cf1a5d8b83c2f9ed37e3390 restored=0c4fbcb2618087db3cf1a5d8b83c2f9ed37e3390)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE1_EXIT=0
+```
+
+The renamed title does not produce a green run over four remaining tests. It
+produces `Error: No tests found` and exit 1. Row closed.
+
+### Row 2 — broader regression across the whole lifetime-tax browser family
+
+All twenty `tests/lifetime-tax-*.spec.mjs` files in one run, not this scope's file
+alone:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium \
+    tests/lifetime-tax-benefit.spec.mjs ... tests/lifetime-tax-use.spec.mjs --reporter=list
+BROAD_EXIT=0
+94 passed
+--- failures ---
+0
+```
+
+The adversarial case is the specific shape the row names: a change made inside this
+scope that reddens a *sibling* scope's persistent title while this scope's own rows
+stay green. One Power section id is removed from `POWER_SECTION_IDS` in the route
+page — an allowed-modified surface for this scope — and the probe command runs this
+scope's spec file and the sibling route spec in turn, reporting both:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S01-DoD2-sibling-reddens-family
+file:             lifetime-tax-strategy-lab.html
+mutation:         "power-rule-ledger", "power-settlement", "power-bracket-detail",  ->  "power-rule-ledger", "power-settlement",   (1 occurrence(s))
+red-exit:         1
+red-summary:      OWN=0 SIBLING=1
+green-exit:       0
+green-summary:    OWN=0 SIBLING=0
+summary-compared: OWN=0 SIBLING=1  vs  OWN=0 SIBLING=0   (elapsed time normalised out)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE2_EXIT=0
+```
+
+`OWN=0 SIBLING=1` is the row's adversarial case reproduced exactly: this scope's own
+five rows stayed green while a sibling's title went red, and the broad row failed.
+Row closed.
+
+### Row 3 — Change Boundary respected, zero excluded families changed
+
+A path-scoped status check over twenty-seven excluded pathspecs, plus the
+`market-brief.*` family checked separately because it is a glob:
+
+```
+pathspec_count=27
+GIT_STATUS_EXIT=0 EXCLUDED_ROWS=0
+rows:[]
+=== market-brief.* separately ===
+market_brief_rows=0 []
+=== untracked excluded dirs present? ===
+0
+```
+
+The third check answers the row's own caveat about `git diff --quiet` reporting an
+untracked path as unchanged: run with `--untracked-files=all`, the excluded
+pathspecs produce zero `??` rows, so no excluded surface is untracked in this
+working tree and no mtime comparison is owed.
+
+The adversarial case. One excluded file, `rlnav.js`, is touched and the identical
+check is re-run:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S01-DoD3-excluded-touch-detected
+file:             rlnav.js
+mutation:         One self-contained script that injects a common left-side drawer linking every tool.  ->  One self-contained script that injects a common left-side drawer linking every tool. PROBE   (1 occurrence(s))
+red-exit:         1
+red-summary:      EXCLUDED_ROWS=1
+green-exit:       0
+green-summary:    EXCLUDED_ROWS=0
+summary-compared: EXCLUDED_ROWS=1  vs  EXCLUDED_ROWS=0   (elapsed time normalised out)
+revert-verified:  yes (committed=e131d59da7be7a41440f1db3c932bea93a68d53e restored=e131d59da7be7a41440f1db3c932bea93a68d53e)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE3_EXIT=0
+```
+
+Row closed.
+
+### Row 4 — Consumer Impact Sweep, zero stale first-party references
+
+The row demands a repository-wide scan rather than a spot check, so the sweep walks
+every `.js`, `.mjs`, `.html`, `.json` and `.md` file in the repository outside
+`node_modules`, `.git`, `test-results`, `playwright-report`, `.github`, the
+generated `_site` mirror and another session's `.first-load-fix-worktree`, and
+checks five rules against five authorities:
+
+| Rule | Reference form scanned | Authority it must resolve against |
+| --- | --- | --- |
+| R1 | `#inputProperty…` selector | element ids in the route page |
+| R2 | input id ↔ workspace member, both directions | `WORKSPACE_FIELDS` in `rltaxworkspace.js` |
+| R3 | `capBasis: "…"` literal | `CAP_BASIS_MEMBER` keys in `rltaxproperty.js` |
+| R4 | `tax-rules/property/XX/YYYY.json` path | the file existing on disk |
+| R5 | `"power-property…"` section id | route page ids and `POWER_SECTION_IDS` |
+
+```
+$ node /tmp/rl23-consumer-sweep.mjs
+SCANNED_FILES=8570
+HTML_INPUT_IDS(6)=inputPropertyAcquisitionValue,inputPropertyAssessedValue,inputPropertyExemptionElections,inputPropertyJurisdiction,inputPropertyLocalCombinedRate,inputPropertyPriorAssessedValue
+WORKSPACE_FIELDS_property(6)=propertyAcquisitionValue,propertyAssessedValue,propertyExemptionElections,propertyJurisdiction,propertyLocalCombinedRate,propertyPriorAssessedValue
+CAP_BASIS_KEYS=prior-assessed-value,acquisition-value
+REFERENCES_CHECKED=60
+STALE_REFERENCES=0
+SWEEP_FILE_EXIT=0
+```
+
+Two earlier drafts of this sweep were wrong and are recorded rather than quietly
+discarded. The first flagged 174 rows because its member rule matched any
+identifier beginning `property` and because it walked the generated `_site` mirror.
+The second still flagged `inputPropertyExemptionElections` as having no workspace
+member, because it read the two `PROPERTY_DECLARATIONS` sub-lists rather than
+`WORKSPACE_FIELDS`, which is the authoritative member set and does carry that
+member. Both were parser defects, not stale references. Only the third form above
+is the sweep.
+
+The sweep is held outside the repository so that running it adds no file to this
+scope's change boundary. The adversarial case renames one UI target in the route
+page and re-runs the identical sweep:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S01-DoD4-stale-reference-detected
+file:             lifetime-tax-strategy-lab.html
+mutation:         id="inputPropertyAssessedValue"  ->  id="inputPropertyAssessedValueRENAMED"   (1 occurrence(s))
+command:          node /tmp/rl23-consumer-sweep.mjs
+red-exit:         1
+red-summary:      STALE_REFERENCES=5
+green-exit:       0
+green-summary:    STALE_REFERENCES=0
+summary-compared: STALE_REFERENCES=5  vs  STALE_REFERENCES=0   (elapsed time normalised out)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE4_EXIT=0
+```
+
+One rename produces five stale rows across the selector rule and both directions of
+the identity rule. Row closed.
+
+### Row 5 — independent canary ahead of the broad suite
+
+The canary loads only the shared fixture and bootstrap artefacts this scope's Shared
+Infrastructure Impact Sweep names — the seven-regime cap-basis fixture and the two
+shipped regime packs — and asserts the contract each must carry. It is a separate
+command run before any broad rerun, not a slice of the whole-repository gate:
+
+```
+$ node /tmp/rl23-fixture-canary.mjs
+CANARY_FIXTURE_REGIMES=7
+CANARY_FAILURES=0
+CANARY_EXIT=0
+```
+
+The adversarial case has two halves, because the row forbids both a canary that
+misses a broken contract and a canary that stays green while the broad suite fails.
+The cap-basis fixture pair is collapsed so both fixtures declare the same
+`capBasis`, and the probe command runs the canary first and the suite second:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S01-DoD5-canary-reddens-first
+file:             tax-rules/fixtures/property-regimes-2999.json
+red-exit:         1
+red-summary:      CANARY=1 SUITE=1
+green-exit:       0
+green-summary:    CANARY=0 SUITE=0
+summary-compared: CANARY=1 SUITE=1  vs  CANARY=0 SUITE=0   (elapsed time normalised out)
+revert-verified:  yes (committed=dd0af31682f8cf27adc05bd4f6a083533e19d078 restored=dd0af31682f8cf27adc05bd4f6a083533e19d078)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE5B_EXIT=0
+```
+
+`CANARY=1` with `SUITE=1` is the row's requirement met in both directions: the
+canary reddened on the broken contract, and it did not stay green while the suite
+went red. The canary is the first statement in the command and returns in
+milliseconds against the suite's seconds, so it reddens first in wall-clock order
+as well as in program order.
+
+A first attempt at this probe is recorded rather than dropped. Renaming the
+fixture's `regimeId` returned exit 7 — RED and GREEN agreed, `CANARY=0 SUITE=0` in
+both halves. That is a finding, not a retry signal: no assertion anywhere reads the
+fixture's `regimeId`, so a fixture regime can be renamed without any check
+noticing. It is recorded here as `FIXTURE-REGIMEID-UNASSERTED`. It does not block
+this row, whose subject is the cap-basis contract, and it is not repaired here
+because the fixture's assertions belong to the planning owner.
+
+Row closed.
+
+### Row 6 — rollback verified by executing it — REMAINS OPEN
+
+This row is not closed. The defect that prevents it is named here rather than
+smoothed over.
+
+The documented rollback has two halves. The first is mechanical: delete
+`rltaxproperty.js`, both regime packs and the fixtures. The second is prose:
+"revert the two contracts, the cap-basis enum, stage `CO-15`, leg `L8`, the
+leg-visibility helper and the workspace members; revert the page section; revert
+the four supersession replacements."
+
+`HEAD` was materialised into a detached scratch worktree and the first half was
+executed there. The measurement is that it changes nothing shared:
+
+```
+=== pre-rollback hashes of shared surfaces ===
+68d5db3e26c83403 rltax.js
+b89dc622917bbd6f rltaxrules.js
+ece61832547b627c rltaxworkspace.js
+5c39376cbaccfd85 lifetime-tax-strategy-lab.html
+=== execute documented rollback, deletion half ===
+deleted rltaxproperty.js=gone tax-rules/property=gone fixture=gone
+=== residual after the deletion half ===
+rltax.js CO-15 refs=6  property leg refs=3
+rltaxworkspace.js property members=7
+route page power-property section=4  inputProperty ids=6
+rltaxrules.js PropertyAssessment contract=1 PropertyReliefRegime contract=1
+=== post-rollback hashes (unchanged by the deletion half) ===
+68d5db3e26c83403 rltax.js
+b89dc622917bbd6f rltaxrules.js
+ece61832547b627c rltaxworkspace.js
+5c39376cbaccfd85 lifetime-tax-strategy-lab.html
+```
+
+Every one of the four shared hashes is byte-identical before and after. Six `CO-15`
+references, three property-leg references, seven workspace property members, four
+`power-property` references, six property input ids and both contract registrations
+all survive. The route is left worse than either endpoint: it still carries a script
+tag for the deleted module and `rltax.js` still delegates to it.
+
+```
+route page loads rltaxproperty.js script tag=1
+rltax.js requires/uses property module=2
+```
+
+The second half cannot be executed, because there is no committed state to revert
+to. Every shared module this scope modified arrived in the same commit as the
+property slice itself, `b9d92a3f1`, whose parent contains none of them:
+
+```
+rltax.js pre-change blob ABSENT at 07acf05c3
+rltaxrules.js pre-change blob ABSENT at 07acf05c3
+rltaxworkspace.js pre-change blob ABSENT at 07acf05c3
+lifetime-tax-strategy-lab.html pre-change blob ABSENT at 07acf05c3
+```
+
+So the row's own adversarial case is what actually happened. A rollback that leaves
+the shared surface differing from its pre-change hash must fail this row, and this
+rollback leaves all four shared surfaces at their post-change hash while deleting
+the module they depend on. The finding is `ROLLBACK-DEFECT S01-SHARED-RESIDUAL`.
+Closing it needs a rollback the scope's planning owner can state as executable
+steps against a reachable target, which is a planning change and not an execution
+one. The row stays `[ ]`.
+
+The scratch worktree was removed and `git worktree list` afterwards showed only the
+repository itself.
+
+### Row status after this session
+
+| Row | Verdict |
+| --- | --- |
+| Scenario-specific E2E under exact persistent titles | closed |
+| Broader E2E across the lifetime-tax family | closed |
+| Change Boundary respected, zero excluded families changed | closed |
+| Consumer Impact Sweep, zero stale references | closed |
+| Independent canary ahead of the broad suite | closed |
+| Rollback verified by executing it | OPEN — `ROLLBACK-DEFECT S01-SHARED-RESIDUAL` |

@@ -1,0 +1,72 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-020-income-beyond-double-range-settles-as-non-finite",
+  "featureName": "BUG-020 Declared Income Beyond The Double Range Settles As A Non-Finite Figure",
+  "createdAt": "2026-08-24T00:00:00Z",
+  "lastUpdatedAt": "2026-08-24T00:00:00Z",
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "priorBlockedReason": null,
+  "blockedReasonResolved": null,
+  "crossFeatureEditAuthorization": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "priorPlanningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/021-lifetime-tax-strategy-lab",
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "7f0c6ce38",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md"
+  },
+  "execution": {
+    "activeAgent": null,
+    "currentPhase": "stabilize",
+    "currentPhaseStatus": "complete",
+    "phaseReconciliation": null,
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-24T00:00:00Z",
+    "completedAt": null,
+    "substate": "filed",
+    "currentScope": null,
+    "nextRequiredOwner": "bubbles.plan, to answer the single open question in design.md: which refusal code names a figure outside the representable range. The vocabulary is closed at fourteen members and scripts/selftest.mjs assertion TP-01-05 asserts that every live member is one of the twelve Feature 021 members or one of the two Feature 022 members, so adding a fifteenth is a deliberate vocabulary change and reusing an existing one contradicts a distinction the vocabulary was given on purpose. Scope 1 cannot begin until that decision is recorded.",
+    "nextRequiredTarget": "specs/_bugs/BUG-020-income-beyond-double-range-settles-as-non-finite/design.md",
+    "nextRequiredReason": "The defect is reproduced, its boundary is measured from both sides, its persistence across a reload is observed and its reach into the exported file is measured and found absent. The remedy is one line at a seam that already carries the refusal idiom, but it needs a refusal code, and choosing one is a contract decision rather than an implementer's edit. This round recorded the options and took neither.",
+    "phaseClaimNote": "currentPhase is 'stabilize' with substate 'filed'. A bubbles.stabilize round against the Lifetime Tax Strategy Lab route reproduced this defect in the browser, measured the trigger boundary at two fields of 9e307 versus 8.9e307, identified the six affected stage rows and the enacted-current-law standing they carry, confirmed the condition survives a reload, and confirmed the exported private file is unaffected. No shipped file was changed. Nothing is delivered and no Definition of Done item is ticked.",
+    "executionHistory": [
+      {
+        "phase": "stabilize",
+        "agent": "bubbles.stabilize",
+        "startedAt": "2026-08-24T00:00:00Z",
+        "completedAt": "2026-08-24T00:00:00Z",
+        "durationUnmeasured": true,
+        "durationUnmeasuredReason": "The round was driven as many separate browser measurement runs rather than as one timed invocation, so no single elapsed measurement describes it and none is asserted.",
+        "outcome": "completed_diagnostic",
+        "summary": "Stabilization round against the Lifetime Tax Strategy Lab route. One numeric-robustness defect reproduced deterministically and filed as this packet. No shipped file changed."
+      }
+    ],
+    "transitionQueue": [],
+    "reworkQueue": []
+  },
+  "certification": {
+    "status": "in_progress",
+    "certifiedBy": null,
+    "certifiedAt": null,
+    "assuranceLevel": null,
+    "evidence": null
+  },
+  "policySnapshot": {
+    "capturedAt": "2026-08-24T00:00:00Z",
+    "source": "bubbles.stabilize filing"
+  }
+}

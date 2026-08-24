@@ -216,18 +216,94 @@ module it exercises.
 Any fix must therefore add a case that deliberately samples the composed paint before the corpus
 resolves. A case that reuses `openComposedRoute` cannot satisfy FR-018-006.
 
-## Open Questions For The Owner
+## Open Questions For The Owner — Resolved 2026-08-23
 
-1. **Withhold or mark?** Option B satisfies P2 most strongly and changes what a reader sees on
-   first paint of every load. Option C preserves the current immediacy and accepts a weaker reading
-   of "never a plausible placeholder". This is a product judgement about the route's first
-   impression, not an engineering one, and it is not agent-dischargeable.
-2. **Does `composed` keep its meaning?** If the pre-corpus paint stops being `composed`, external
-   consumers and the committed suite's own waits change meaning with it. If it keeps it, FR-018-005
-   is satisfied only by fixing facet 2 so the attribute pair is jointly sufficient.
-3. **Does option A land first?** Threading readiness through `rlcompanyintel.js` is the durable
-   shape but widens the blast radius into the 90-test unit suite. A render-site-only fix is smaller
-   and leaves the composer still unable to express the distinction.
-4. **Is facet 2 split into its own fast fix?** The line-1540 ordering correction is independent,
-   small, and restores the only workaround consumers currently have. It could ship ahead of the
-   product decision in question 1.
+**Who decided, and on what authority.** These four were resolved by the orchestrating session
+under the operator's standing authorization, recorded verbatim as *"pick best option for long run,
+no shortcuts; approved"*. They are **not** independently reached engineering conclusions presented
+as an owner ruling, and question 1 was not agent-dischargeable on its own terms. It is recorded
+here as a delegated decision so a later reader can see exactly whose judgement it was. An owner who
+disagrees can reverse it; the reversal cost is named under each answer.
+
+### 1. Withhold or mark? → **Option A, then Option B. Withhold.**
+
+The choice was constrained by binding policy rather than settled by preference, which is what made
+it dischargeable under a standing authorization at all.
+
+`.github/instructions/product-principles.instructions.md` applies to `**` and is therefore binding
+on this route. It lists under **Blocking Patterns**: *missing data rendered as zero, neutral, or
+inferred*. It states under **UI And Data Checks**: *Missing data renders as unavailable or
+incomplete, never as zero or a plausible placeholder*.
+
+This document's own analysis of Option C, written before the decision, says it is *"Weaker than B
+against the 'never a plausible placeholder' clause"* because *"a reader who does not notice the
+marker still reads a number"*. A remedy this packet's own analysis already calls weaker against the
+exact governing clause cannot be the remedy this packet selects. Option C is therefore rejected on
+the record, not on taste.
+
+Option A is described above as the durable shape and as *"Additive if the new field defaults to the
+current behaviour when readiness is not supplied"*, so it carries no migration cost and lands
+first. Option B is then a consumer of A rather than a patch at each render site.
+
+**Reversal cost if the owner disagrees:** Option A stays regardless — it is the expressiveness the
+route lacked and nothing depends on withholding. Reversing to C means changing the three render
+branches in `render()`, `renderHorizonCards()` and `renderCoverage()` to print the settled copy
+beside the `data-*-claim="not-established"` markers those branches already emit, and rewriting the
+copy assertions in the Scope 3 browser case. The account contract does not change.
+
+### 2. Does `composed` keep its meaning? → **Yes, and the delivered predicate is stronger than the pair.**
+
+`composed` is unchanged and still means "this paint composed its horizons". That is what the
+offline first paint at `tests/company-intelligence-lab.spec.mjs:1121-1174` and the `file://` paint
+at `tests/company-intelligence-lab.spec.mjs:1075-1118` both wait on, and reserving the word for a
+corpus-resolved paint would have turned both of those green tests red for the wrong reason.
+
+The premise in the question is correct: Scope 1 corrected the stale attribute, so
+`data-run-status="composed"` **and** `data-corpus-status ∈ {loaded, unavailable}` is now jointly
+sufficient, and a consumer using that pair today is safe.
+
+The delivered fix nonetheless adds `data-reading-readiness`, and the reason is a difference the
+pair cannot express. `setBodyState` writes `data-corpus-status` by re-reading the module-scope
+`corpusStatus` variable at the instant of the write, whereas `data-reading-readiness` is written
+from `version.coverageAccount.readiness` — the readiness the account **being rendered** was built
+against. Today every render path composes and paints in one synchronous call, so the two always
+agree and the pair is genuinely sufficient. The readiness attribute is a single-attribute
+restatement that stays correct without depending on that property continuing to hold, because it
+travels with the account instead of being sampled beside it. FR-018-005 asks for *one documented
+predicate*; the pair is two attributes describing two subsystems, and this is one.
+
+The documented predicate, now used by the committed suite and recorded in
+`notes/company-intelligence-lab.md`, is:
+
+```text
+body[data-run-status="composed"] AND body[data-reading-readiness="established"]
+```
+
+### 3. Does option A land first? → **Yes.**
+
+Readiness is threaded into `buildCoverageAccount` as a third, optional argument. Omitting it means
+`established`, which is what every caller written before the parameter existed was already
+asserting implicitly, so the 90-test unit suite and the selftest's own `composeRun25` helper are
+unchanged and both stayed green. A readiness word outside the closed set is refused with
+`C025-READ-CONTRACT` rather than coerced, because a misspelling silently reverting to `established`
+would reintroduce the exact claim the parameter exists to prevent.
+
+### 4. Is facet 2 split into its own fast fix? → **Already done, ahead of this decision.**
+
+Facet 2 shipped in Scope 1 as commit `6881aa3a4`, before question 1 was answered, exactly as this
+document suggested it could. That is why question 2 can be answered as it is: the attribute pair
+became jointly sufficient at that commit, and Scope 2 inherited a correct `data-corpus-status`
+rather than having to repair one.
+
+## Residual, Recorded Rather Than Silently Fixed
+
+`dimensionCard()` at `company-intelligence-lab.html:835` renders each dimension's own state word,
+and on a pre-corpus paint it still prints `unavailable` with a named absence sentence. That is the
+same class of overstatement, on a power-mode surface no requirement in `spec.md` names: FR-018-001
+names `#cockpit-coverage-line`, FR-018-002 names the horizon cards, and FR-018-003 asks for one
+visible surface. It was left alone deliberately rather than swept in, for a reason beyond scope
+discipline: the treatment applied to the coverage table withholds **every** row while the corpus is
+in flight, and applying that to the dimension cards would also hide values a warm shared cache had
+genuinely resolved. Whether those cards should withhold wholesale or withhold only the absence
+claim is a real product judgement, not a mechanical repeat, and it belongs to `bubbles.plan`.
+

@@ -1,19 +1,26 @@
 # Scopes: BUG-018 — The Corpus-Pending Window States Absence As Settled Fact
 
-**Scope 1 is delivered and its six Definition of Done items are ticked against the evidence in
-`report.md`, `## Scope 1 Delivery Evidence`. Every Scope 2, Scope 3 and cross-scope item below is
-unticked, and every one of them should be.** Facet 2 is closed; facet 1 is not, and the packet
-remains `in_progress`.
+**All three scopes are delivered and their Definition of Done items are ticked against the evidence
+in `report.md`. The cross-scope Definition of Done is NOT complete, and the packet remains
+`in_progress`.** Both facets are closed. What is still open is packet shape and acceptance, not
+behaviour: `uservalidation.md` carries no filled Human Acceptance Record, `scenario-manifest.json`
+does not exist, and `policySnapshot` is short of the fields the transition guard wants. Two
+findings are routed out rather than closed — no unit case was added for the readiness argument, and
+`dimensionCard()` still states a settled absence on a pre-corpus paint. Both are named in
+`report.md`, `## What Was Not Established`.
 
 ## Sequencing Note
 
-Scope 1 is independent and can land alone. It repairs a wrong attribute and restores the only
-workaround consumers have today.
+Scope 1 was independent and landed alone. It repaired a wrong attribute and restored the only
+workaround consumers had.
 
-Scope 2 depends on a product decision recorded in `design.md` open question 1. It must not begin
-before that decision is made, because the two candidate remedies produce different first paints.
+Scope 2 depended on a product decision recorded in `design.md` open question 1, because the two
+candidate remedies produce different first paints. That decision was made on 2026-08-23 — Option A,
+then Option B, withhold — by the orchestrating session under the operator's standing authorization,
+and is recorded with its authority disclosed in `design.md`, `## Open Questions For The Owner —
+Resolved 2026-08-23`.
 
-Scope 3 depends on Scope 2, because the assertion it adds must assert the chosen copy.
+Scope 3 depended on Scope 2, because the assertion it adds asserts the chosen copy.
 
 ---
 
@@ -103,8 +110,13 @@ Feature: The corpus attribute describes the current subject
 
 ## Scope 2: Stop Asserting Absence The Route Has Not Established
 
-**Status:** Not Started
-**Blocked on:** `design.md` open question 1, a product decision
+**Status:** Done
+**Delivered by:** `bubbles.implement`, 2026-08-23. Evidence: `report.md`,
+`## Scope 2 And Scope 3 Delivery Evidence`.
+**Was blocked on:** `design.md` open question 1, resolved 2026-08-23 as **Option A, then Option B —
+withhold**, by the orchestrating session under the operator's standing authorization. The decision
+record and its disclosure are in `design.md`, `## Open Questions For The Owner — Resolved
+2026-08-23`.
 
 ### Problem This Scope Resolves
 
@@ -166,22 +178,62 @@ Feature: A composed reading states only what it has established
 
 ### Definition of Done
 
-- [ ] The product decision in `design.md` open question 1 is recorded by the owner
-- [ ] The pending-window reproduction in `report.md` no longer reproduces
-- [ ] Readiness wording is present in the window and absent when settled
-- [ ] No horizon card presents a settled direction on a pre-corpus paint
-- [ ] The settled `MSFT` reading is still `13 of 15` with three horizons carrying directions
-- [ ] The offline first paint still reaches a usable cockpit with no network
-- [ ] `tests/company-intelligence-lab.spec.mjs` passes
-- [ ] `tests/company-intelligence.unit.mjs` passes at 90
-- [ ] `node scripts/selftest.mjs` reports 3404 passed, 0 failed
-- [ ] No existing assertion was weakened to accommodate new copy
+- [x] The product decision in `design.md` open question 1 is recorded by the owner → Evidence:
+      `design.md`, `## Open Questions For The Owner — Resolved 2026-08-23`, answering **Option A,
+      then Option B — withhold**, with the deciding authority disclosed as the orchestrating
+      session acting under the operator's standing authorization rather than as an independently
+      reached engineering conclusion. Questions 2, 3 and 4 are answered in the same record.
+- [x] The pending-window reproduction in `report.md` no longer reproduces → Evidence: the
+      reproduction printed `15 of 15 mandatory dimensions have no usable source in this run` on a
+      paint whose corpus had not been requested. The committed case now asserts that exact grammar
+      is absent from that paint and passes: `GREEN_EXIT=0`, `1 passed (1.7s)`. The same assertion
+      against the unfixed route returns that string verbatim and fails (`RED_EXIT=1`).
+- [x] Readiness wording is present in the window and absent when settled → Evidence: the case
+      scans `document.body.innerText` on the held paint and requires
+      `/waiting for the committed corpus/i`, then releases the hold on the same page and requires
+      the same scan **not** to match. Both directions are asserted in one run; a fix that added
+      permanent wording would fail the second half.
+- [x] No horizon card presents a settled direction on a pre-corpus paint → Evidence: all four
+      `[data-horizon]` cards are asserted to carry `data-direction="not-established"`,
+      `data-evidence-quality="not-established"` and `data-horizon-readiness="not-established"`
+      while held, each with more than 20 characters of readable summary copy so the remedy cannot
+      degrade into a blank card.
+- [x] The settled `MSFT` reading is still `13 of 15` with three horizons carrying directions →
+      Evidence: after the hold is released the same case requires
+      `/13 of 15 mandatory dimensions have no usable source/`,
+      `data-coverage-unavailable="13"`, and exactly `['event', 'immediate', 'swing']` carrying a
+      direction with `structural` at `none`. Unchanged from before this fix.
+- [x] The offline first paint still reaches a usable cockpit with no network → Evidence:
+      `OFFLINE_EXIT=0`, `3 passed (2.2s)` across the `file://` first paint
+      (`tests/company-intelligence-lab.spec.mjs:1075`), the all-requests-outstanding first paint
+      (`:1118`) and the corpus-wide outage (`:785`). The third is the load-bearing one: it asserts
+      the coverage rows still read `unavailable`, which is reachable only because a corpus resolved
+      to `unavailable` is `established`. Withholding is a window, not a permanent state.
+- [x] `tests/company-intelligence-lab.spec.mjs` passes → Evidence: `39 passed (45.2s)`, exit 0,
+      capture sha256 `4d069169db0e3741bdfc8aff06139c1d12c3ecc00038a1f0e7ff42d02ac7be17`. 37 at
+      filing, 38 after Scope 1, 39 now.
+- [x] `tests/company-intelligence.unit.mjs` passes at 90 → Evidence: `node --test
+      tests/company-intelligence.unit.mjs` → `tests 90 / pass 90 / fail 0 / skipped 0`,
+      `UNIT_EXIT=0`. Option A landed additively, so all 25 existing two-argument
+      `buildCoverageAccount` call sites are unchanged. No unit case was **added** for the new
+      argument; that gap is recorded in `report.md`, `## What Was Not Established`.
+- [x] `node scripts/selftest.mjs` reports 3404 passed, 0 failed → Evidence: `Research-Lab
+      self-test: 3404 passed, 0 failed`, exit 0, 3871 lines, measured directly in the shared
+      working tree. The concurrent session's uncommitted file that forced Scope 1 into an isolated
+      worktree is no longer present.
+- [x] No existing assertion was weakened to accommodate new copy → Evidence: every one of the 38
+      pre-existing cases enters through `openComposedRoute`, whose gate waits for the corpus to
+      resolve, so each reads a settled paint where readiness is `established` and the rendered
+      output is byte-identical to before this change. None was removed, skipped, relaxed or
+      rewritten; the suite total rose by the one case added in Scope 3.
 
 ---
 
 ## Scope 3: Close The Structural Test Gap
 
-**Status:** Not Started
+**Status:** Done
+**Delivered by:** `bubbles.implement`, 2026-08-23. Evidence: `report.md`,
+`## Scope 2 And Scope 3 Delivery Evidence`.
 **Depends on:** Scope 2
 
 ### Problem This Scope Resolves
@@ -224,12 +276,41 @@ Feature: The pending window is covered by the committed suite
 
 ### Definition of Done
 
-- [ ] A test exists that samples the composed paint before the corpus resolves
-- [ ] It fails against `dc54a8547` for the copy reason, with the failure output recorded
-- [ ] It passes against the corrected route
-- [ ] Removing the Scope 2 guard makes it fail, with that output recorded
-- [ ] It contains no conditional early-return that could silently pass
-- [ ] The suite total rises and no existing assertion is removed
+- [x] A test exists that samples the composed paint before the corpus resolves → Evidence:
+      `tests/company-intelligence-lab.spec.mjs:1622`, `Regression: BUG-018 scope 2 the composed
+      paint states no absence the corpus has not established`. It does not call
+      `openComposedRoute`; it holds `**/data/**` open behind a released gate and waits only on
+      `data-run-status="composed"`. Three non-vacuous controls run before any claim — the paint
+      must read `data-corpus-status="pending"`, the committed corpus must actually have been
+      requested and held, and four real horizon cards must be present — so the case cannot pass by
+      sitting outside the window it exists to sample.
+- [x] It fails against the pre-fix route for the copy reason, with the failure output recorded →
+      Evidence: run in a detached worktree at `c402bfa3e` with the new test copied in and no part
+      of the fix present. `RED_EXIT=1`, `1 failed`, with
+      `Error: the cockpit asserted a settled absence with its corpus unanswered: "15 of 15
+      mandatory dimensions have no usable source in this run. Each one names its reason below."`
+      at `> 1695 | ).not.toMatch(SETTLED_COVERAGE_GRAMMAR);`. A copy assertion, not a timeout.
+      Full transcript in [report.md](report.md). Filed at `dc54a8547`; `c402bfa3e` is the same
+      unfixed route with later unrelated commits on top, and it is the tree the run was made
+      against, so the commit actually measured is the one reported.
+- [x] It passes against the corrected route → Evidence: `GREEN_EXIT=0`, `1 passed (1.7s)`, and
+      again as case 39 of 39 in the full-suite capture.
+- [x] Removing the Scope 2 guard makes it fail, with that output recorded → Evidence: the
+      corrected route was copied into the same worktree and **only** the `cockpit-coverage-line`
+      branch was reverted to its unconditional form, leaving Option A, the horizon branch, the
+      coverage branch and every attribute in place. `GUARDLESS_EXIT=1`, `1 failed`, same assertion
+      and same received string. That is this scope's adversarial scenario satisfied literally, and
+      it separates "detects the missing guard" from "detects the missing plumbing".
+- [x] It contains no conditional early-return that could silently pass → Evidence: the body has no
+      `if` and no `return` before its assertions; the only control flow is the `for` over the four
+      horizon cards, which asserts on every element, and a `try`/`finally` whose `finally` performs
+      teardown only. Both halves of the window are asserted unconditionally on one page.
+- [x] The suite total rises and no existing assertion is removed → Evidence: `39 passed (45.2s)`
+      against 38 before this scope, capture sha256
+      `4d069169db0e3741bdfc8aff06139c1d12c3ecc00038a1f0e7ff42d02ac7be17`. One case added, none
+      removed, none skipped, none relaxed; the spec file's diff is 147 insertions and 0 deletions.
+      Full capture and diff stat in [report.md](report.md), "### Code Diff Evidence" and "### The
+      committed browser suite rises from 38 to 39 with nothing removed".
 
 ---
 

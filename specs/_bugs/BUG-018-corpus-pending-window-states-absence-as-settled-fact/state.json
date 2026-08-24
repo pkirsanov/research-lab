@@ -38,11 +38,11 @@
     "runStartedAt": "2026-08-23T00:00:00Z",
     "completedAt": null,
     "substate": "implemented",
-    "currentScope": "01-make-data-corpus-status-describe-the-subject-on-screen",
-    "nextRequiredOwner": "the product owner, to answer design.md open question 1; Scope 2 must not begin before that answer and Scope 3 depends on Scope 2",
-    "nextRequiredTarget": "specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact/design.md#open-questions-for-the-owner",
-    "nextRequiredReason": "Scope 1 is delivered: the corpusStatus reset now precedes the synchronous compose-and-render in applySubject(), so data-corpus-status describes the subject on screen and facet 2 is closed. Facet 1 is untouched and is Scope 2's. Scope 2 remains blocked on design.md open question 1, which asks whether the pending window withholds the coverage claim or marks it provisional. That changes the first paint of every load, it is a product judgement no evidence settles, and it is not agent-dischargeable. Scope 3 depends on Scope 2 because the assertion it adds must assert the chosen copy. Gate G136 human acceptance remains unestablished: Scope 1 delivers an attribute correction with no rendered surface for a human to accept.",
-    "phaseClaimNote": "currentPhase is 'implement' with substate 'implemented', covering Scope 1 ONLY. Two shipped files changed: company-intelligence-lab.html (one ordering correction in applySubject, guarded so the refusal path still reports the standing subject) and tests/company-intelligence-lab.spec.mjs (one added regression case; nothing removed, nothing weakened). This packet's report.md, scopes.md and state.json were updated. The coverage sentence at company-intelligence-lab.html:1460-1462 and the horizon cards at company-intelligence-lab.html:1085 were NOT edited, which is the boundary separating Scope 1 from Scope 2. The new case fails against the unfixed route on the attribute assertion (Expected pending, Received loaded) and not on a timeout, and passes after; both runs are recorded verbatim in report.md. The 025 browser suite rose 37 to 38 with nothing removed, the 025 unit suite held at 90, and the selftest baseline of 3404 passed 0 failed was measured at HEAD plus this scope's two files in a detached worktree, because the shared working tree carries a concurrent session's uncommitted lifetime-tax-strategy-lab.html that fails TP-05-01 and TP-05-09 independently of this change. specs/025-company-multi-horizon-intelligence-lab/report.md was not edited. No branch or remote was pushed, merged, rebased or moved. Six of six Scope 1 Definition of Done items are ticked; every Scope 2, Scope 3 and cross-scope item remains unticked. completedPhaseClaims records the implement phase as an execution claim only; certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write.",
+    "currentScope": "03-close-the-structural-test-gap",
+    "nextRequiredOwner": "bubbles.plan, to schedule the two findings routed out of Scope 2 and to close the packet-shape debt; then a human, for the uservalidation.md Human Acceptance Record; then bubbles.validate for phase certification",
+    "nextRequiredTarget": "specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact/report.md#what-was-not-established",
+    "nextRequiredReason": "All three scopes are delivered and both facets are closed. What remains is not behaviour. Two findings are routed OUT of this scope and are not counted as delivered: (1) no unit case was added to tests/company-intelligence.unit.mjs for the new buildCoverageAccount readiness argument, so readiness round-tripping onto the account and C025-READ-CONTRACT firing on a word outside the closed set are exercised only through the browser case and through the 25 existing two-argument call sites that prove the default; (2) dimensionCard() at company-intelligence-lab.html:835 still prints 'unavailable' with a named absence sentence on a pre-corpus paint. No requirement in spec.md names that surface, and the coverage-table treatment cannot simply be repeated on it because that treatment withholds every row, which on the dimension cards would also hide values a warm shared cache genuinely resolved. Whether those cards withhold wholesale or withhold only the absence claim is a product judgement and belongs to bubbles.plan. Packet-shape debt is unchanged and still the packet owner's: policySnapshot is short of the fields the transition guard wants (G055), scenario-manifest.json does not exist (G057), and report.md references an untracked test path belonging to another session. Gate G136 human acceptance remains unestablished: uservalidation.md carries no filled Human Acceptance Record, and this scope does change a rendered surface, so a human can now actually accept it.",
+    "phaseClaimNote": "currentPhase is 'implement' with substate 'implemented', now covering Scopes 1, 2 and 3. Scope 2 implements the product decision recorded in design.md '## Open Questions For The Owner — Resolved 2026-08-23': Option A then Option B, withhold, taken by the orchestrating session under the operator's standing authorization and disclosed as such rather than presented as an independently reached engineering conclusion. Four shipped files changed across the packet: rlcompanyintel.js (buildCoverageAccount gains an optional third readiness argument defaulting to 'established', plus the COVERAGE_READINESS_STATES export; additive, so all 25 existing two-argument call sites are unchanged), company-intelligence-lab.html (corpusReadiness() maps corpusStatus onto that vocabulary and only 'pending' withholds, so a corpus resolved to 'unavailable' still reads settled and the offline first paint survives; the cockpit sentence, the horizon cards, the power-mode coverage tally and rows, and the body attributes all read that one readiness; the static body shell drops its literal data-coverage-unavailable=\"0\"), tests/company-intelligence-lab.spec.mjs (one added case, nothing removed or weakened) and notes/company-intelligence-lab.md (the body-attribute contract this change alters). data-run-status is untouched: 'composed' still means the paint composed its horizons, which is what the file:// and all-requests-outstanding first-paint tests wait on; the new data-reading-readiness is the single documented predicate FR-018-005 asks for. The new case fails against the pre-fix route at c402bfa3e on the copy assertion and not a timeout (Received: '15 of 15 mandatory dimensions have no usable source in this run.'), fails again on the otherwise-corrected route with only the cockpit guard reverted, and passes against the corrected route; all three runs are recorded verbatim in report.md. The scratch worktree used for those runs was removed and git worktree list reports only the main checkout. The 025 browser suite rose 38 to 39 with nothing removed, the 025 unit suite held at 90, and node scripts/selftest.mjs reported 3404 passed 0 failed measured directly in the shared working tree. specs/025-company-multi-horizon-intelligence-lab/report.md was not edited. No branch or remote was pushed, merged, rebased or moved, and every commit staged explicit paths. Ten of ten Scope 2 and six of six Scope 3 Definition of Done items are ticked; all seven cross-scope items remain unticked and are not claimed. completedPhaseClaims records the implement phase as an execution claim only; certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write.",
     "completedPhaseClaims": [
       {
         "phase": "bug",
@@ -59,6 +59,16 @@
         "scopes": [
           "01-make-data-corpus-status-describe-the-subject-on-screen"
         ]
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-08-23T00:00:00Z",
+        "evidenceRef": "report.md#scope-2-and-scope-3-delivery-evidence--bubblesimplement-2026-08-23",
+        "scopes": [
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap"
+        ]
       }
     ],
     "pendingTransitionRequests": [],
@@ -73,18 +83,18 @@
       {
         "scopeId": "02-stop-asserting-absence-the-route-has-not-established",
         "scope": 2,
-        "status": "Not Started",
+        "status": "Done",
         "dependsOn": [],
-        "resolvedBy": null
+        "resolvedBy": "bubbles.implement, 2026-08-23, report.md '## Scope 2 And Scope 3 Delivery Evidence'"
       },
       {
         "scopeId": "03-close-the-structural-test-gap",
         "scope": 3,
-        "status": "Not Started",
+        "status": "Done",
         "dependsOn": [
           "02-stop-asserting-absence-the-route-has-not-established"
         ],
-        "resolvedBy": null
+        "resolvedBy": "bubbles.implement, 2026-08-23, report.md '## Scope 2 And Scope 3 Delivery Evidence'"
       }
     ],
     "audit": null
@@ -230,10 +240,12 @@
     "completedAt": null,
     "certifiedAt": null,
     "completedScopes": [
-      "01-make-data-corpus-status-describe-the-subject-on-screen"
+      "01-make-data-corpus-status-describe-the-subject-on-screen",
+      "02-stop-asserting-absence-the-route-has-not-established",
+      "03-close-the-structural-test-gap"
     ],
     "certifiedCompletedPhases": [],
-    "certificationFieldWriteNote": "certification.status remains in_progress and equal to the top-level status, because Scopes 2 and 3 are Not Started and facet 1 is still live. certifiedCompletedPhases stays EMPTY: it is bubbles.validate's to write, and no independent party re-derived any evidence in report.md. bubbles.implement touched exactly two fields in this object, both factual mirrors of scopes.md rather than verdicts: scopeProgress, and completedScopes, which now names Scope 1 because the state-transition guard reports an integrity failure when a scope artifact reads Done and this list is empty. Leaving either one reading zero while scopes.md reads six ticked would itself be a false record.",
+    "certificationFieldWriteNote": "certification.status remains in_progress and equal to the top-level status. All three scopes are Done and both facets are closed, but the cross-scope Definition of Done is not complete: uservalidation.md carries no filled Human Acceptance Record, scenario-manifest.json does not exist, policySnapshot is short of the fields the transition guard wants, and two findings are routed out to bubbles.plan rather than closed. certifiedCompletedPhases stays EMPTY: it is bubbles.validate's to write, and no independent party re-derived any evidence in report.md. bubbles.implement touched exactly two fields in this object, both factual mirrors of scopes.md rather than verdicts: scopeProgress, and completedScopes, which now names all three scopes because the state-transition guard reports an integrity failure when a scope artifact reads Done and this list omits it. Leaving either one behind scopes.md would itself be a false record.",
     "scopeProgress": [
       {
         "scopeId": "01-make-data-corpus-status-describe-the-subject-on-screen",
@@ -243,15 +255,15 @@
       },
       {
         "scopeId": "02-stop-asserting-absence-the-route-has-not-established",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 10
+        "status": "Done",
+        "dodChecked": 10,
+        "dodUnchecked": 0
       },
       {
         "scopeId": "03-close-the-structural-test-gap",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 6
+        "status": "Done",
+        "dodChecked": 6,
+        "dodUnchecked": 0
       }
     ]
   },

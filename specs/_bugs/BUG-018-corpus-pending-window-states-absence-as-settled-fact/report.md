@@ -274,11 +274,12 @@ routing it requested is discharged by this packet's existence.
 
 ## Scope 1 Delivery Evidence — bubbles.implement, 2026-08-23
 
-Scope 1 only. Scopes 2 and 3 remain Not Started and untouched: Scope 2 is blocked on the product
-decision in `design.md` open question 1, and Scope 3 is blocked on Scope 2. Neither the coverage
-sentence at `company-intelligence-lab.html:1460-1462` nor the horizon cards at
-`company-intelligence-lab.html:1085` were edited, which is the boundary that separates Scope 1
-from Scope 2.
+Scope 1 only. **As delivered on the date of this section**, Scopes 2 and 3 were Not Started and
+untouched: Scope 2 was blocked on the product decision in `design.md` open question 1, and Scope 3
+on Scope 2. Neither the coverage sentence at `company-intelligence-lab.html:1460-1462` nor the
+horizon cards at `company-intelligence-lab.html:1085` were edited, which is the boundary that
+separated Scope 1 from Scope 2. Both were later delivered; see
+`## Scope 2 And Scope 3 Delivery Evidence` below.
 
 ### The change
 
@@ -485,6 +486,308 @@ untracked path belonging to a concurrent session was staged, deleted, or modifie
 concurrently-modified `lifetime-tax-strategy-lab.html` was left alone. The staged set was listed
 explicitly and every entry verified before committing.
 
+## Scope 2 And Scope 3 Delivery Evidence — bubbles.implement, 2026-08-23
+
+**Executed:** YES
+**Command:** see the per-block `$` line in each fenced capture below
+**Phase Agent:** bubbles.implement
+
+### The product decision this scope was blocked on
+
+`design.md` open question 1 is answered in that file under `## Open Questions For The Owner —
+Resolved 2026-08-23`: **Option A, then Option B — withhold**. The decision was made by the
+orchestrating session under the operator's standing authorization, recorded there verbatim, and is
+disclosed there as a delegated decision rather than as an independently reached engineering
+conclusion. Questions 2, 3 and 4 are answered in the same record. This scope implements that
+decision; it did not make it and does not re-open it.
+
+### Code Diff Evidence
+
+The complete shipped-file change set for Scopes 2 and 3. Four files, no others.
+
+**Executed:** YES
+**Command:** `git diff --stat company-intelligence-lab.html rlcompanyintel.js tests/company-intelligence-lab.spec.mjs notes/company-intelligence-lab.md`
+**Phase Agent:** bubbles.implement
+
+```text
+ company-intelligence-lab.html           | 141 ++++++++++++++++++++++++++++++++++++++++++++++++++--------------
+ notes/company-intelligence-lab.md       |  12 ++++--
+ rlcompanyintel.js                       |  22 +++++++++-
+ tests/company-intelligence-lab.spec.mjs | 147 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 289 insertions(+), 33 deletions(-)
+```
+
+The two load-bearing hunks are quoted verbatim in the two sections that follow. `rlcompanyintel.js`
+is 22 lines because Option A is one optional argument, one closed-vocabulary constant, one refusal
+and one account field. `tests/company-intelligence-lab.spec.mjs` is additive only: 147 inserted, 0
+deleted, which is the mechanical form of "no existing assertion was removed or weakened".
+
+### The change — Option A, in the module
+
+`rlcompanyintel.js`. `buildCoverageAccount` gains an optional third argument and the account gains
+a `readiness` field, so the composer can finally say "the corpus has not answered" instead of
+having that be byte-identical to "this company has no source":
+
+**Executed:** YES
+**Command:** `git diff --stat rlcompanyintel.js`
+**Phase Agent:** bubbles.implement
+
+```js
+function buildCoverageAccount(reads, registry, corpusReadiness) {
+    ...
+    var readiness = corpusReadiness === undefined || corpusReadiness === null ? "established" : corpusReadiness;
+    if (!contains(COVERAGE_READINESS_STATES, readiness)) {
+        raise("C025-READ-CONTRACT", "Corpus readiness must be established or not-established.", String(corpusReadiness));
+    }
+```
+
+Omitting the argument means `established`, which is what every caller written before it existed was
+already asserting implicitly — that is what keeps the 90-test unit suite and the selftest's own
+`composeRun25` helper untouched. A word outside the closed set is refused rather than coerced,
+because a misspelling silently reverting to `established` would reintroduce the exact claim the
+parameter exists to prevent.
+
+### The change — Option B, in the route
+
+`company-intelligence-lab.html`. `corpusReadiness()` maps the module's `corpusStatus` onto the
+account's vocabulary, and `pending` is the only value that withholds:
+
+```js
+function corpusReadiness() {
+    return corpusStatus === "pending" ? "not-established" : "established";
+}
+```
+
+This is the load-bearing line for the offline guarantee. `loadCorpus()` resolves to `unavailable`
+rather than leaving `pending` (`company-intelligence-lab.html:1543`), so under `file://` or a dead
+server the corpus **resolves**, readiness becomes `established`, and the settled reading still
+appears. Withholding happens only while genuinely pending. "Resolved to unavailable" and "still
+pending" are different states here, not the same one.
+
+Four render surfaces then read that one readiness instead of each deciding for itself, so they
+cannot contradict one another: the cockpit sentence and the horizon cards (`render()`,
+`renderHorizonCards()`), the power-mode coverage tally and its rows (`renderCoverage()`), and the
+body attributes (`setBodyState()`). `applySubject()` now sets `pending` **before** `compose()`
+rather than after, because the account carries its own readiness now and composing first would
+build the new subject's account against the departing subject's readiness; the refusal path puts
+the standing value back before it paints, so Scope 1's refusal assertions still hold. The static
+`<body>` shell drops its literal `data-coverage-unavailable="0"`, which was a settled-looking count
+for a run that had not started.
+
+`data-run-status` is untouched: `composed` still means "this paint composed its horizons", which is
+what the `file://` and all-requests-outstanding first-paint tests wait on. The new
+`data-reading-readiness` is what separates a settled paint from a pre-corpus one, giving FR-018-005
+the single documented predicate it asks for:
+
+```text
+body[data-run-status="composed"] AND body[data-reading-readiness="established"]
+```
+
+### The new case fails without the fix, for the copy reason
+
+`tests/company-intelligence-lab.spec.mjs`, `Regression: BUG-018 scope 2 the composed paint states
+no absence the corpus has not established`. It does **not** enter through `openComposedRoute`,
+whose gate waits for `data-corpus-status` to leave `pending` and is exactly how the committed suite
+waits this defect out. It holds `**/data/**` open, waits only on `data-run-status="composed"`, and
+reads the paint a reader following a published deep link actually meets.
+
+Run in a detached worktree at `c402bfa3e` — the shipped route with no part of this fix present, the
+new test copied in:
+
+**Executed:** YES
+**Command:** `npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --workers=1 --reporter=line --grep "BUG-018 scope 2"`
+**Phase Agent:** bubbles.implement
+
+```text
+RED_EXIT=1
+
+Running 1 test using 1 worker
+
+  1) [system-chrome] › tests/company-intelligence-lab.spec.mjs:1622:1 › Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established
+
+    Error: the cockpit asserted a settled absence with its corpus unanswered: "15 of 15 mandatory dimensions have no usable source in this run. Each one names its reason below."
+
+    expect(received).not.toMatch(expected)
+
+    Expected pattern: not /\d+\s+of\s+\d+\s+mandatory dimensions have no usable source/i
+    Received string:      "15 of 15 mandatory dimensions have no usable source in this run. Each one names its reason below."
+
+    > 1695 |         ).not.toMatch(SETTLED_COVERAGE_GRAMMAR);
+
+  1 failed
+```
+
+The failure is the copy assertion and not a timeout. The three non-vacuous controls above it all
+passed first — `data-corpus-status` really read `pending`, the committed corpus really had been
+requested and held, and four real horizon cards really were on screen — so the received string is
+the live pre-corpus paint, printing `15 of 15` for a settled answer of `13 of 15`.
+
+### And it fails again with only the guard removed, on the otherwise-corrected route
+
+The run above removes the whole fix, which proves the test detects the shipped defect but not that
+it targets the guard rather than the plumbing. So the corrected route was copied into the same
+worktree and only the cockpit branch was reverted to its unconditional form, leaving Option A, the
+horizon branch, the coverage branch and every attribute in place:
+
+**Executed:** YES
+**Command:** `npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --workers=1 --reporter=line --grep "BUG-018 scope 2"`
+**Phase Agent:** bubbles.implement
+
+```text
+GUARDLESS_EXIT=1
+
+Running 1 test using 1 worker
+
+  1) [system-chrome] › tests/company-intelligence-lab.spec.mjs:1622:1 › Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established
+
+    Error: the cockpit asserted a settled absence with its corpus unanswered: "15 of 15 mandatory dimensions have no usable source in this run. Each one names its reason below."
+
+    Expected pattern: not /\d+\s+of\s+\d+\s+mandatory dimensions have no usable source/i
+    Received string:      "15 of 15 mandatory dimensions have no usable source in this run. Each one names its reason below."
+
+    > 1695 |         ).not.toMatch(SETTLED_COVERAGE_GRAMMAR);
+
+  1 failed
+```
+
+Same assertion, same received string, one line of guard removed. That is the Scope 3 adversarial
+scenario satisfied literally: *given the corrected route, when the pre-corpus guard is removed,
+the new case fails*. The scratch worktree was removed afterwards and `git worktree list` reports
+only the main checkout.
+
+### The same case passes against the corrected route
+
+**Executed:** YES
+**Command:** `npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --workers=1 --reporter=line --grep "BUG-018 scope 2"`
+**Phase Agent:** bubbles.implement
+
+```text
+GREEN_EXIT=0
+
+Running 1 test using 1 worker
+
+[1/1] [system-chrome] › tests/company-intelligence-lab.spec.mjs:1622:1 › Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established
+  1 passed (1.7s)
+```
+
+The case carries no conditional early return. It asserts both halves of the window on one page:
+while held, the cockpit copy does not match the settled grammar, `data-coverage-unavailable`
+publishes no number, `data-reading-readiness` reads `not-established` beside a `composed`
+`data-run-status`, a body-text scan finds the readiness wording, and all four horizon cards read
+`not-established` while still carrying more than 20 characters of readable copy. Then the hold is
+released and the same page must reconcile: `13 of 15`, claim `settled`, the readiness wording gone
+from the body text, `event` / `immediate` / `swing` carrying directions and `structural` not.
+
+### The offline first paint, the guarantee Option B was most at risk of breaking
+
+**Executed:** YES
+**Command:** `npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --workers=1 --reporter=line --grep "file:// origin|every data request still outstanding|every committed source unavailable"`
+**Phase Agent:** bubbles.implement
+
+```text
+OFFLINE_EXIT=0
+
+Running 3 tests using 1 worker
+
+[1/3] [system-chrome] › tests/company-intelligence-lab.spec.mjs:785:1 › Stabilize: every committed source unavailable degrades to a named absence, not a blank or a zero
+[2/3] [system-chrome] › tests/company-intelligence-lab.spec.mjs:1075:1 › the route reaches its first paint from a file:// origin with no server and no off-origin request
+[3/3] [system-chrome] › tests/company-intelligence-lab.spec.mjs:1118:1 › the first paint composes with every data request still outstanding, then reconciles to the served registry
+  3 passed (2.2s)
+```
+
+Test 2 is `tests/company-intelligence-lab.spec.mjs:1075-1118` and test 3 is the case at
+`1121-1174` that `design.md` names as the one any remedy must not break. Test 1 is the corpus-wide
+outage: it asserts the coverage rows still read `unavailable` and name their absence, which under
+this change is reachable only because a corpus resolved to `unavailable` is `established`. Had the
+remedy withheld on "not loaded" instead of on "still pending", test 1 would have gone red — it is
+the assertion that proves withholding is a window and not a permanent state.
+
+### The committed browser suite rises from 38 to 39 with nothing removed
+
+Captured with `.github/bubbles/scripts/evidence-capture.sh`; the digest covers every line produced.
+
+**Executed:** YES
+**Command:** `npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --workers=1 --reporter=line`
+**Phase Agent:** bubbles.implement
+
+```text
+# BUG-018 S2+S3 full 025 browser suite after fix
+exit: 0
+lines: 43
+sha256: 4d069169db0e3741bdfc8aff06139c1d12c3ecc00038a1f0e7ff42d02ac7be17
+
+Running 39 tests using 1 worker
+[5/39] ... Regression: SCN-025-021 an unavailable dimension renders a named absence and never a dash or a zero
+[30/39] ... the route reaches its first paint from a file:// origin with no server and no off-origin request
+[31/39] ... the first paint composes with every data request still outstanding, then reconciles to the served registry
+[38/39] ... Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it
+[39/39] ... Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established
+  39 passed (45.2s)
+```
+
+37 at filing, 38 after Scope 1, 39 now. No existing assertion was removed, skipped, relaxed or
+rewritten to accommodate the new copy — every one of them enters through `openComposedRoute` and
+therefore reads a settled paint, where `established` is true and the rendered output is
+byte-identical to before this change.
+
+### The module suite is unchanged at 90
+
+**Executed:** YES
+**Command:** `node --test tests/company-intelligence.unit.mjs`
+**Phase Agent:** bubbles.implement
+
+```text
+UNIT_EXIT=0
+ℹ tests 90
+ℹ suites 0
+ℹ pass 90
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 133.379458
+```
+
+90, not 91: Option A was landed additively and no unit case was added for the new argument. That is
+a real gap and is recorded as such below rather than counted as coverage. The 25 existing
+`buildCoverageAccount` call sites in that file all pass two arguments and all still pass, which is
+the evidence that the default is genuinely backward-compatible.
+
+### The selftest baseline holds at 3404, 0 failed
+
+**Executed:** YES
+**Command:** `node scripts/selftest.mjs`
+**Phase Agent:** bubbles.implement
+
+```text
+# BUG-018 S2+S3 repository selftest after fix
+exit: 0
+lines: 3871
+
+================================================
+Research-Lab self-test: 3404 passed, 0 failed
+================================================
+```
+
+Measured directly in the shared working tree, not in an isolated worktree as Scope 1 needed: the
+concurrent session's uncommitted `lifetime-tax-strategy-lab.html` that forced that isolation is no
+longer present, and `git status` showed only this scope's own files modified.
+
+Two consecutive `evidence-capture.sh` runs of this command over the same tree produced different
+digests — `606b97ce2481f2ec087fc656bf7c86a2e077df7a31ba5345e9ec471dbcdc19cd` and
+`b7d2840c17c018fac2ba251b677dbb8216bbe315e545fd726b64550b1c828943` — both exit 0 and both ending
+in the banner above. The digest is therefore not a stable re-verification handle for this
+particular command; the exit code, the line count and the banner are. Recorded rather than quoting
+one digest as if it were reproducible.
+
+### Nothing outside the packet and the named files was modified
+
+Four shipped files: `rlcompanyintel.js` (Option A), `company-intelligence-lab.html` (Option B),
+`tests/company-intelligence-lab.spec.mjs` (the added case) and
+`notes/company-intelligence-lab.md` (the body-attribute contract this change alters). Plus this
+packet's own artifacts. No untracked path belonging to a concurrent session was staged, deleted or
+modified. The staged set was listed explicitly and every entry verified before each commit.
+
 ## What Was Not Established
 
 - **A printed number drifting behind the stale attribute.** Facet 2's lie is observed directly. A
@@ -492,29 +795,59 @@ explicitly and every entry verified before committing.
   subjects tried settle at the count they showed during the apply. It is reachable by construction
   for any subject whose settled account differs from its empty-cache account, and `MSFT` is such a
   subject, but that specific pairing was not run. Recorded as reachable-by-argument.
-- **Behaviour under `file://`.** All observations were made over `http://`. The route is designed to
-  degrade honestly under `file://`, where the corpus resolves to `unavailable` rather than staying
-  `pending`; that path was not exercised here and Scope 2 must not assume it.
+- **The pending paint under `file://` specifically.** The `file://` test at
+  `tests/company-intelligence-lab.spec.mjs:1075` passes, so the route still reaches a composed,
+  readable first paint from that origin. What was **not** separately sampled is the intermediate
+  pending paint under `file://`; the assertions there read the settled result. The reasoning that
+  the corpus resolves to `unavailable` and therefore reads settled is grounded in
+  `company-intelligence-lab.html:1543` and corroborated by the corpus-wide-outage test over
+  `http://`, but it was not observed on a `file://` origin directly.
 - **Frequency on a real network.** The window's width was measured only against a local static
   server with and without an artificial hold. No production timing was gathered.
-- **Which remedy is correct.** `design.md` enumerates three and selects none. The choice changes
-  what a reader sees on first paint of every load and is a product decision.
-- **Facet 1.** Scope 1 closes facet 2 only. The pending window still prints a definite absence
-  count with no user-visible readiness wording. Scope 2 owns that and remains blocked.
+- **A unit case for the new readiness argument.** Option A is exercised only through the browser
+  case and through the 25 existing two-argument call sites that prove the default. `readiness`
+  round-tripping onto the account, and `C025-READ-CONTRACT` firing on a word outside the closed
+  set, have no direct assertion in `tests/company-intelligence.unit.mjs`. The suite is 90 because
+  nothing was added to it, not because the new surface is covered. A real gap, routed to
+  `bubbles.plan`.
+- **The dimension cards on a pre-corpus paint.** `dimensionCard()` at
+  `company-intelligence-lab.html:835` still prints `unavailable` with a named absence sentence
+  while the corpus is in flight. No requirement in `spec.md` names that surface, and the treatment
+  used for the coverage table cannot simply be repeated on it — that treatment withholds every row,
+  which on the dimension cards would also hide values a warm shared cache genuinely resolved.
+  Whether those cards withhold wholesale or withhold only the absence claim is a product
+  judgement. Recorded in `design.md` under `## Residual, Recorded Rather Than Silently Fixed` and
+  routed to `bubbles.plan`; deliberately not swept into this scope.
+- **Independent re-derivation of any evidence above.** Every run in this file was executed by
+  `bubbles.implement`. No second party re-ran them, so `certification.certifiedCompletedPhases`
+  stays empty and `certification.status` stays `in_progress`.
 
 ## Completion Statement
 
-**Scope 1 is delivered. Scopes 2 and 3 are Not Started, and the packet remains `in_progress`.**
-Six of six Scope 1 Definition of Done items are ticked with the evidence above; every Scope 2 and
-Scope 3 item is untouched and unticked, which is the accurate representation of the work.
-`certification.status` equals `status`, and `certification.certifiedCompletedPhases` is empty,
-because phase certification belongs to `bubbles.validate` and no independent party re-derived the
-evidence above.
+**Scopes 1, 2 and 3 are delivered. The packet remains `in_progress`, because the cross-scope
+Definition of Done is not complete and phase certification has not been performed.**
 
-Facet 2 is closed: `data-corpus-status` now describes the subject on screen, so a consumer
-following the committed suite's readiness convention is protected during a manual apply again.
-Facet 1 is open and is Scope 2's, because it turns on a product decision about the route's first
-impression that is not agent-dischargeable.
+Both facets are now closed. Facet 2 closed in Scope 1: `data-corpus-status` describes the subject
+on screen, so a consumer following the committed suite's readiness convention is protected during a
+manual apply again. Facet 1 closes here: a composed reading whose corpus has not answered no longer
+states an absence in the grammar the route reserves for a settled finding, and says so in wording a
+reader meets without opening an inspector. The route now renders all three of the honest states
+`spec.md` names — settled-present, settled-absent, and not-yet-established — where it previously
+rendered the third as the second.
+
+The product decision that blocked Scope 2 is recorded in `design.md`, with its authority disclosed:
+it was taken by the orchestrating session under the operator's standing authorization, and it was
+constrained by the binding blocking pattern in
+`.github/instructions/product-principles.instructions.md` rather than settled by preference. Open
+questions 2, 3 and 4 are answered in the same record.
+
+Ten of ten Scope 2 items and six of six Scope 3 items are ticked against the evidence above. The
+cross-scope items are not all ticked and are not claimed: `uservalidation.md` carries no filled
+Human Acceptance Record, and the packet-shape debt Scope 1 recorded — the `policySnapshot` fields
+(G055), the missing `scenario-manifest.json` (G057), and the untracked-test-path reference — is
+unchanged and still belongs to the packet owner. Two findings are routed out of this scope rather
+than closed inside it: the missing unit coverage for the readiness argument, and the dimension-card
+surface. Both are named above and neither is counted as delivered.
 
 The root cause **is** established, unlike some sibling packets: the mechanism is read from the
 shipped source, the ordering that produces it is unconditional rather than racy, and both facets

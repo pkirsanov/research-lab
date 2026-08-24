@@ -41,6 +41,10 @@ const RLMETRICS = featureRequire(join(ROOT, 'rlmetrics.js'));
    the published block agree about which leg is dark by construction, not by two implementations
    that happen to match today. */
 const RLCOCKPIT = featureRequire(join(ROOT, 'rlcockpit.js'));
+/* rlportfoliobrief.js owns the ONE window-cutoff rule. The consumer measures every published
+   reference against it, so the publisher resolves its own `asOf` through the same function
+   rather than a second implementation that agrees only until a clock edge separates them. */
+const RLPORTFOLIOBRIEF = featureRequire(join(ROOT, 'rlportfoliobrief.js'));
 const cfg = JSON.parse(read('market-brief.config.json'));
 const wl = JSON.parse(read('watchlist.json'));
 const SNAPSHOT_MAX_AGE_MS = 6 * 3600e3;
@@ -2628,8 +2632,11 @@ async function main() {
   if (!dryRun) appendFileSync(join(ROOT, 'brief-history.jsonl'), JSON.stringify(snap) + '\n');
 
   // deterministic slice the browser cockpit reads (market-brief.html overlays it as the "Computed (Tier-A)" line)
-  // asOf = the window this refresh anchors to; generatedAt = the actual wall-clock this refresh ran (both are the run time for Tier-A).
-  const snapshot = { asOf: snap.ts, generatedAt: snap.ts, window, marketClosed, nextSessionDate: nextSession, dataFreshness, regime: { band: reg.band, score: reg.risk, vix, fearGreed: fg ? fg.score : null }, bench: snap.bench, names, sectors, groups, toolReads, toolCoverage, tracked, crossAsset };
+  // asOf is the analyzed WINDOW's evidence cutoff, not the run clock: a run that starts at 11:37 still
+  // publishes the 11:00 morning window, and every consumer refuses evidence dated past the window it declares.
+  const windowCutoffAt = RLPORTFOLIOBRIEF.windowCutoffAt(cfg.windows, window, snap.ts);
+  if (!windowCutoffAt) throw new Error(`window "${window}" has no resolvable evidence cutoff in market-brief.config.json`);
+  const snapshot = { asOf: windowCutoffAt, generatedAt: snap.ts, window, marketClosed, nextSessionDate: nextSession, dataFreshness, regime: { band: reg.band, score: reg.risk, vix, fearGreed: fg ? fg.score : null }, bench: snap.bench, names, sectors, groups, toolReads, toolCoverage, tracked, crossAsset };
   if (!dryRun) writeFileSync(join(ROOT, 'market-brief.snapshot.json'), JSON.stringify(snapshot, null, 2) + '\n');
   /* Deterministic public causal snapshot. Written only when the evaluation succeeded, so a failed
      run leaves the previous snapshot in place rather than replacing it with a stub that a reader

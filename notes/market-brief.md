@@ -642,7 +642,7 @@ validated when present rather than required, but its shape is not optional — a
 closed refusal list, or a missing `field` or `reason`, fails the gate. Full field rules:
 [`notes/decision-attention.md`](decision-attention.md).
 
-**`asOf` vs `generatedAt`:** `asOf` is the window/session the brief analyzes (e.g. the 11:00 ET `morning` window); `generatedAt` is the actual ISO wall-clock of the run that produced this file. Stamp `generatedAt` fresh on **every** (re)generation — the cockpit header renders it as “· regenerated …”. Tier-A (`brief-refresh.mjs`) sets both to the run time automatically.
+**`asOf` vs `generatedAt`:** `asOf` is the window/session the brief analyzes (e.g. the 11:00 ET `morning` window); `generatedAt` is the actual ISO wall-clock of the run that produced this file. Stamp `generatedAt` fresh on **every** (re)generation — the cockpit header renders it as “· regenerated …”. Tier-A (`brief-refresh.mjs`) sets `asOf` to the analyzed window's evidence cutoff and `generatedAt` to the run time, so an 11:37 run of the `morning` window still publishes `asOf` 11:00 ET; consumers refuse evidence dated past the window it declares.
 
 **`backdrop` (§6c) is the standing frame — author it EVERY run.** It renders at the TOP of the cockpit,
 above the attention feed, so the reader sees the larger picture (primary trend, macro cycle, global

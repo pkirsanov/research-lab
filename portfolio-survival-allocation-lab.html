@@ -8045,6 +8045,24 @@
                     });
             }
 
+            /* The window selector is a projection of the PUBLIC schedule, not of the evidence
+               window. It is therefore rendered from the config alone, so that a refused evidence
+               composition cannot silently remove the control the reader needs to understand the
+               refusal. Idempotent: re-rendering the same schedule is a no-op for the reader. */
+            function renderBriefWindowOptions(windows) {
+                var select = byId("briefWindow");
+                if (!select) return;
+                var previous = select.value;
+                select.innerHTML = "";
+                (windows || []).forEach(function (window_) {
+                    var option = document.createElement("option");
+                    option.value = window_.id;
+                    option.textContent = window_.label + " (" + window_.etTime + " ET)";
+                    select.appendChild(option);
+                });
+                if (previous) select.value = previous;
+            }
+
             /* The generic window contract is fetched READ-ONLY from the same origin. A failure here
                leaves the brief explicitly unavailable rather than falling back to a locally invented
                schedule, because a second copy of the schedule is a second source of truth. */
@@ -8072,25 +8090,32 @@
                         if (!artifacts.config || !Array.isArray(artifacts.config.windows) || !artifacts.config.windows.length) {
                             throw new Error("brief-config-windows-absent");
                         }
+                        /* The SCHEDULE and the EVIDENCE WINDOW are two different transactions, and
+                           collapsing them is what turns one refused publication into a dead tab. The
+                           schedule has loaded by this point, so the selector is populated from it
+                           BEFORE composition is attempted. If composition is then refused, the reader
+                           still sees the four windows and an explicit named reason; previously the
+                           throw skipped this block entirely and left a control with zero options,
+                           which reads as "nothing here" rather than "this was refused, and why". */
+                        state.briefWindows = artifacts.config.windows;
+                        renderBriefWindowOptions(artifacts.config.windows);
+
                         var projection = buildGenericWindow(artifacts);
                         state.briefWindows = projection.config.windows;
                         state.briefWindowId = projection.genericWindow.windowId;
-                        state.briefPublishedAt = projection.genericWindow.payloadRef.asOf;
+                        /* Publication time is `generatedAt`; the analyzed window instant is `asOf`.
+                           They are deliberately DISTINCT clocks, so the publication clock must come
+                           from the publication timestamp. Reading it off `payloadRef.asOf` collapsed
+                           it onto the evidence cutoff and made a past brief unauditable. */
+                        state.briefPublishedAt = projection.genericWindow.snapshotRef.generatedAt;
                         state.publicWatchlist = projection.tickers;
                         state.briefOwners = projection.owners;
                         state.genericWindow = projection.genericWindow;
                         state.lastValidGenericWindow = projection.genericWindow;
                         state.genericWindowError = null;
                         state.genericEvidenceSourceCount = 5;
-                        var select = byId("briefWindow");
-                        select.innerHTML = "";
-                        projection.config.windows.forEach(function (window_) {
-                            var option = document.createElement("option");
-                            option.value = window_.id;
-                            option.textContent = window_.label + " (" + window_.etTime + " ET)";
-                            select.appendChild(option);
-                        });
-                        select.value = state.briefWindowId;
+                        renderBriefWindowOptions(projection.config.windows);
+                        byId("briefWindow").value = state.briefWindowId;
                         renderBrief();
                         restoreReturnFocus();
                     })
@@ -8101,13 +8126,25 @@
                             reason: "public-evidence-transaction-failed", field: null, row: null,
                             valueEchoed: false, recoverable: true
                         };
+                        /* NAME the refusal. The contract code and reason already existed on
+                           state.genericWindowError but were reachable only through the diagnostics
+                           object, so on screen an unsatisfiable evidence contract was
+                           indistinguishable from "no data yet". An unavailable state that cannot say
+                           what was refused is not an honest unavailable state. */
+                        var refusal = state.genericWindowError;
+                        var named = refusal.code + " / " + refusal.reason;
                         setText("briefTimes", state.genericWindow
-                            ? "Public evidence refresh refused. The last valid brief remains visible."
-                            : "Generic evidence window unavailable.");
+                            ? "Public evidence refresh refused (" + named + "). The last valid brief remains visible."
+                            : "Generic evidence window unavailable (" + named + ").");
                         byId("briefTimes").className = "state-message warn";
                         byId("briefTimes").setAttribute("data-generic-window-state",
                             state.genericWindow ? "preserved-last-valid" : "unavailable");
-                        setText("briefStates", state.genericWindow ? "Last valid brief retained." : "Brief unavailable. No window is assumed.");
+                        byId("briefTimes").setAttribute("data-generic-window-error",
+                            refusal.code + "/" + refusal.reason);
+                        setText("briefStates", state.genericWindow
+                            ? "Last valid brief retained."
+                            : "Brief unavailable. No window is assumed. The published brief does not satisfy the "
+                                + "generic evidence contract for the window it declares, so nothing is composed from it.");
                         updateDiagnostics();
                     });
             }

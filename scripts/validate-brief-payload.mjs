@@ -964,7 +964,7 @@ function findMissingRequiredNarrativeFields(payload) {
  */
 /* The window a brief declares carries a civil cutoff, and the brief's own evidence must not be
    later than it. The cutoff itself is resolved by the CONSUMER's exported helper so publisher and
-   consumer cannot drift; only the calendar date is derived here, from the same ET zone. */
+   consumer cannot drift; the calendar date is derived inside that helper from the same ET zone. */
 export function findWindowCutoffBreaches(payload, snapshot, config) {
   if (!payload || !snapshot || !config || !Array.isArray(config.windows)) return [];
   const window = config.windows.find((entry) => entry && entry.id === snapshot.window);
@@ -972,7 +972,7 @@ export function findWindowCutoffBreaches(payload, snapshot, config) {
   const anchor = hasText(snapshot.asOf) ? snapshot.asOf : null;
   if (!anchor) return ['market-brief.snapshot.json carries no asOf to place against a cutoff'];
   const tradingDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(anchor));
-  const cutoffAt = RLPORTFOLIOBRIEF.newYorkCivilCutoff(tradingDate, window.etTime);
+  const cutoffAt = RLPORTFOLIOBRIEF.windowCutoffAt(config.windows, snapshot.window, anchor);
   if (!cutoffAt) return [`the cutoff for window "${window.id}" at ${window.etTime} ET on ${tradingDate} is unresolvable`];
   const breaches = [];
   for (const [label, value] of [['snapshot.asOf', snapshot.asOf], ['payload.asOf', payload.asOf]]) {

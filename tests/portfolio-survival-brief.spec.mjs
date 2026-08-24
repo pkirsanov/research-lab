@@ -9,7 +9,10 @@
 import { expect, test } from './playwright-runtime.mjs';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { createRequire } from 'node:module';
 import { FIXTURE_ROOT, ROOT, startPortfolioServer } from './portfolio-survival.support.mjs';
+
+const RLPORTFOLIOBRIEF = createRequire(import.meta.url)('../rlportfoliobrief.js');
 
 let server;
 
@@ -881,3 +884,84 @@ test('Regression: SCN-008-052 mode tabs rebase and compute tokens preserve one i
   console.log(`[TP-26-03] presentations=${presentationsAfterNavigation} rebasedIdentity=${rebasedIdentity}`);
 });
 // TP-26-04 continues the workspace journey in portfolio-survival-mobile.spec.mjs.
+
+/* BUG-001 (Feature 008). A publication that does not satisfy the generic evidence contract for the
+ * window it declares must be REFUSED BY NAME. Before the fix the throw inside the load transaction
+ * skipped the block that fills the selector, so the reader got a control with zero options and the
+ * copy "Generic evidence window unavailable." — a dead tab that never said what was refused. The
+ * contract code and reason existed on state.genericWindowError but only reached the diagnostics
+ * object, so on screen an unsatisfiable contract was indistinguishable from "no data yet".
+ *
+ * ADVERSARIAL BY CONSTRUCTION. The served publication is deliberately LATER than the cutoff of the
+ * window it declares, and the row asserts that lateness about its OWN fixture before asserting
+ * anything about the page. A fixture published AT the cutoff would validate, the refusal path would
+ * never execute, and every assertion below would pass vacuously — so the lateness assertion is what
+ * keeps this row honest. It fails if the fixture is ever softened, and it fails if the blank-tab
+ * behaviour returns.
+ */
+test('Regression: BUG-001 a publication later than its declared window cutoff is refused by name and never empties the schedule', async ({ page }) => {
+  const snapshot = JSON.parse(readFileSync(resolve(ROOT, 'market-brief.snapshot.json'), 'utf8'));
+  const payload = JSON.parse(readFileSync(resolve(ROOT, 'market-brief.payload.json'), 'utf8'));
+  const declared = WINDOWS.find((entry) => entry.id === snapshot.window) || WINDOWS[0];
+  const tradingDate = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit'
+  }).format(new Date(snapshot.asOf));
+  const cutoffAt = RLPORTFOLIOBRIEF.newYorkCivilCutoff(tradingDate, declared.etTime);
+  expect(cutoffAt, 'the declared window must resolve a civil cutoff to be later than').toBeTruthy();
+
+  // 37 minutes past the cutoff — the real observed publication delay this bug was filed for.
+  const publishedLateAt = new Date(Date.parse(cutoffAt) + 37 * 60 * 1000).toISOString();
+  expect(publishedLateAt > cutoffAt,
+    'NON-TAUTOLOGY GUARD: the fixture must publish strictly LATER than its own window cutoff, '
+    + 'otherwise the publication validates and the refusal path under test never runs').toBe(true);
+
+  const lateServer = await startPortfolioServer({
+    overrides: {
+      '/market-brief.snapshot.json': JSON.stringify({ ...snapshot, asOf: publishedLateAt, generatedAt: publishedLateAt }),
+      '/market-brief.payload.json': JSON.stringify({ ...payload, asOf: publishedLateAt })
+    }
+  });
+
+  try {
+    const response = await page.goto(`${lateServer.baseUrl}/portfolio-survival-allocation-lab.html#brief`);
+    expect(response?.status(), 'the brief route must be served').toBe(200);
+    await expect(page.locator('#portfolioBrief')).toBeVisible();
+
+    const times = page.locator('#briefTimes');
+    // The refusal must actually have happened. If this ever reads "current" the fixture stopped
+    // exercising the path and the rest of this row would be meaningless.
+    await expect(times, 'the late publication must be refused, not composed')
+      .toHaveAttribute('data-generic-window-state', 'unavailable');
+
+    // 1. The schedule is a different transaction from the evidence window. A refused composition
+    //    must not remove the control that lets the reader see which windows exist.
+    await expect.poll(async () => page.locator('#briefWindow option').count(),
+      { message: 'a refused evidence window must NOT empty the public schedule selector' })
+      .toBe(WINDOWS.length);
+    expect(await page.$$eval('#briefWindow option', (nodes) => nodes.map((node) => node.value)))
+      .toEqual(WINDOW_IDS);
+
+    // 2. The refusal names itself, structurally and in reader-visible copy.
+    await expect(times, 'the refusal must expose the contract code and reason it failed on')
+      .toHaveAttribute('data-generic-window-error', 'P008-BRIEF-EVIDENCE/generic-evidence-cutoff-conflict');
+    await expect(times).toContainText('P008-BRIEF-EVIDENCE');
+    await expect(times).toContainText('generic-evidence-cutoff-conflict');
+
+    // 3. Unavailable must state that nothing was composed, never imply an empty result set.
+    await expect(page.locator('#briefStates')).toContainText('does not satisfy the generic evidence contract');
+
+    // 4. Nothing is invented to fill the gap: no lane, no action, no identity.
+    expect(await page.locator('#briefLanes li').count(),
+      'a refused window must compose no lane item at all').toBe(0);
+
+    const diagnostics = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
+    expect(diagnostics.genericEvidenceState).toBe('invalid');
+    expect(diagnostics.genericEvidenceError.code).toBe('P008-BRIEF-EVIDENCE');
+    expect(diagnostics.genericEvidenceError.reason).toBe('generic-evidence-cutoff-conflict');
+
+    console.log(`[BUG-001] window=${declared.id} cutoffAt=${cutoffAt} publishedLateAt=${publishedLateAt}`);
+    console.log(`[BUG-001] options=${WINDOWS.length} state=unavailable named=${diagnostics.genericEvidenceError.reason}`);
+  } finally {
+    await lateServer.close();
+  }
+});

@@ -1,0 +1,206 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-001-tier-a-publisher-stamps-run-time-into-asof",
+  "generatedAt": "2026-08-23T21:15:37Z",
+  "generatedBy": "bubbles.bug",
+  "provenance": "Transcribed from the six Gherkin scenarios in scopes.md. Every linkedTests entry names a persistent test declaration; structural evidence remains separately cited in report.md and no implementation file is presented as a test.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-B001-CUTOFF-STAMPED",
+      "scopeId": "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible",
+      "scope": 1,
+      "title": "Tier-A stamps the analyzed window cutoff and preserves the run clock",
+      "gherkin": {
+        "given": "the morning window declares an 11:00 ET evidence cutoff",
+        "when": "a Tier-A run executes at 11:37 ET and publishes that window",
+        "then": "the snapshot asOf is the 11:00 ET cutoff and the snapshot generatedAt is the 11:37 ET run instant"
+      },
+      "status": "resolved",
+      "behaviorClass": "ui",
+      "changeType": "bugfix",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-survival-brief.spec.mjs",
+          "testId": "Regression: SCN-008-006 all four exact ET windows preserve cutoff and composition time"
+        },
+        {
+          "file": "tests/portfolio-brief.functional.mjs",
+          "testId": "SCN-008-006 TP-05-01: each window is identified from the generic config and no later observation enters an earlier cutoff"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#the-publisher-fix",
+        "report.md#published-clocks-now-differ",
+        "report.md#test-evidence"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B001-SHARED-CUTOFF-RULE",
+      "scopeId": "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible",
+      "scope": 1,
+      "title": "Publisher and consumer resolve the same declared window cutoff",
+      "gherkin": {
+        "given": "the publisher and the consumer both need the cutoff of a declared window",
+        "when": "each resolves it",
+        "then": "both call the same exported helper and neither restates the declared ET times as literals"
+      },
+      "status": "resolved",
+      "behaviorClass": "functional",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-brief.functional.mjs",
+          "testId": "SCN-008-046 complete generic evidence validates all five inputs and resolves DST by New York civil time"
+        },
+        {
+          "file": "tests/portfolio-survival-brief.spec.mjs",
+          "testId": "Regression: SCN-008-006 all four exact ET windows preserve cutoff and composition time"
+        }
+      ],
+      "coverageNote": "The linked tests exercise cutoff resolution on both DST sides and through the browser consumer. The single-definition wiring evidence is recorded separately at report.md#one-cutoff-rule.",
+      "evidenceRefs": [
+        "report.md#one-cutoff-rule",
+        "report.md#test-evidence"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B001-LATE-PUBLICATION-REFUSED",
+      "scopeId": "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible",
+      "scope": 1,
+      "title": "A publication later than its declared cutoff is refused by name",
+      "gherkin": {
+        "given": "a publication whose asOf is later than the cutoff of the window it declares",
+        "when": "the brief tab composes its evidence window",
+        "then": "composition is refused with P008-BRIEF-EVIDENCE / generic-evidence-cutoff-conflict and no lane, action, or identity is invented to fill the gap"
+      },
+      "status": "resolved",
+      "behaviorClass": "ui",
+      "changeType": "bugfix",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-survival-brief.spec.mjs",
+          "testId": "Regression: BUG-001 a publication later than its declared window cutoff is refused by name and never empties the schedule"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#regression-e2e",
+        "report.md#the-boundary-is-provably-untouched",
+        "report.md#test-evidence"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B001-SCHEDULE-SURVIVES-REFUSAL",
+      "scopeId": "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible",
+      "scope": 1,
+      "title": "The public schedule survives a refused evidence window",
+      "gherkin": {
+        "given": "the public schedule has loaded and composition is then refused",
+        "when": "the reader looks at the evidence-window selector",
+        "then": "it still offers every declared window and the refusal is named on screen rather than presented as an empty tab"
+      },
+      "status": "resolved",
+      "behaviorClass": "ui",
+      "changeType": "bugfix",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-survival-brief.spec.mjs",
+          "testId": "Regression: BUG-001 a publication later than its declared window cutoff is refused by name and never empties the schedule"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#the-schedule-is-a-separate-transaction",
+        "report.md#regression-e2e",
+        "report.md#test-evidence"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B001-PUBLICATION-CLOCK-DISTINCT",
+      "scopeId": "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible",
+      "scope": 1,
+      "title": "The cockpit renders publication time from generatedAt",
+      "gherkin": {
+        "given": "asOf and generatedAt now carry different instants",
+        "when": "the cockpit renders the publication clock",
+        "then": "it reads snapshotRef.generatedAt and it does not read payloadRef.asOf"
+      },
+      "status": "resolved",
+      "behaviorClass": "ui",
+      "changeType": "bugfix",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-survival-brief.spec.mjs",
+          "testId": "Regression: SCN-008-006 all four exact ET windows preserve cutoff and composition time"
+        },
+        {
+          "file": "tests/portfolio-brief.functional.mjs",
+          "testId": "SCN-008-006 TP-05-01: each window is identified from the generic config and no later observation enters an earlier cutoff"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#the-second-clock",
+        "report.md#published-clocks-now-differ",
+        "report.md#test-evidence"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B001-NO-WALLCLOCK-FALLBACK",
+      "scopeId": "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible",
+      "scope": 1,
+      "title": "A missing published cutoff fails instead of being re-clocked",
+      "gherkin": {
+        "given": "a snapshot that carries no asOf",
+        "when": "a lockstep consumer builds a payload from it",
+        "then": "it fails loudly and it does not substitute the run wall-clock"
+      },
+      "status": "resolved",
+      "behaviorClass": "functional",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-brief.functional.mjs",
+          "testId": "SCN-008-046 complete generic evidence validates all five inputs and resolves DST by New York civil time"
+        },
+        {
+          "file": "tests/portfolio-survival-brief.spec.mjs",
+          "testId": "Regression: BUG-001 a publication later than its declared window cutoff is refused by name and never empties the schedule"
+        }
+      ],
+      "coverageNote": "The linked tests require complete cutoff-bearing generic evidence and prove that a run-clock value past the declared cutoff is refused. The explicit absent-asOf fail-loud branch is recorded separately at report.md#no-wall-clock-fallback; no implementation file is presented as a test.",
+      "evidenceRefs": [
+        "report.md#no-wall-clock-fallback",
+        "report.md#regression-e2e",
+        "report.md#test-evidence"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    }
+  ]
+}

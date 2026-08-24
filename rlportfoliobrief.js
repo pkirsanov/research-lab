@@ -163,6 +163,21 @@
     var actual = verified.year + "-" + verified.month + "-" + verified.day + "T" + verified.hour + ":" + verified.minute + ":" + verified.second;
     return actual === expected ? new Date(guess).toISOString() : null;
   }
+  /* The evidence cutoff of the window a run analyzes, resolved from the run instant alone.
+     The trading date is the New York civil date of that instant, which is why an 11:37 ET run
+     of the 11:00 ET morning window resolves to 11:00 and not to the moment it happened to
+     execute. Publisher and consumer both call this, so the boundary a brief is measured
+     against is the same boundary it was stamped with. */
+  function windowCutoffAt(windows, windowId, instant) {
+    if (!Array.isArray(windows) || typeof windowId !== "string" || !windowId || !isIso(instant)) return null;
+    var declared = null;
+    for (var index = 0; index < windows.length; index += 1) {
+      if (windows[index] && windows[index].id === windowId) { declared = windows[index]; break; }
+    }
+    if (!declared || typeof declared.etTime !== "string") return null;
+    var parts = civilParts(instant, "America/New_York");
+    return newYorkCivilCutoff(parts.year + "-" + parts.month + "-" + parts.day, declared.etTime);
+  }
   function validSnapshotRef(value) {
     return exactFields(value, SNAPSHOT_REF_FIELDS) && GENERIC_STATES.indexOf(value.state) >= 0 &&
       HASH_RE.test(value.contentSha256 || "") && HASH_RE.test(value.dataFreshnessSha256 || "") &&
@@ -1022,6 +1037,7 @@
     /* Exported so the PUBLISHER can refuse a brief this module would reject, rather than shipping
        one and leaving every consumer to discover the conflict. One cutoff rule, two callers. */
     newYorkCivilCutoff: newYorkCivilCutoff,
+    windowCutoffAt: windowCutoffAt,
     validateGenericWindow: validateGenericWindow,
     composeBrief: composeBrief,
     dedupeBehaviorEvents: dedupeBehaviorEvents,

@@ -809,7 +809,14 @@ try {
     console.log(`[brief-parallel] company owner-read disclosure ${companyDisclosure.reasserted ? 'reasserted' : 'already present'} on ${companyDisclosure.id}`);
     payload.toolId = 'market-brief';
     payload.window = windowId;
-    payload.asOf = snapshot.asOf || snapshot.generatedAt || new Date().toISOString();
+    /* The payload inherits the Tier-A window cutoff verbatim. It must never fall back to the run
+       clock: the consumer refuses a payload dated past the window it declares, so a substituted
+       wall-clock would publish a brief that cannot be composed rather than one that is honest
+       about missing its anchor. */
+    if (typeof snapshot.asOf !== 'string' || !snapshot.asOf) {
+        throw new Error('market-brief.snapshot.json carries no asOf, so the payload has no window cutoff to inherit');
+    }
+    payload.asOf = snapshot.asOf;
     payload.generatedAt = new Date().toISOString();
 
     /* Cross-asset legs (Feature 026 Scope 2). Emitted BEFORE the budget block below, because

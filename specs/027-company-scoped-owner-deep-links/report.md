@@ -1533,15 +1533,23 @@ One assertion was appended to the Feature 027 Scope 1 marker region of
 `scripts/selftest.mjs`. It carries both halves the item asks for.
 
 The module-load half reads the two values off the object the UMD file itself
-installs, not off a re-declaration:
+installs, not off a re-declaration. Re-executed in this pass, against the file on
+disk:
 
-```js
-const f027Module = Function('var window, document, globalThis = {}; ' + f027Source + '\nreturn globalThis.RLTKR;')();
-…
-f027Module.SUBJECT_PARAM === 'ticker'
-  && f027Module.SUBJECT_PATTERN instanceof RegExp
-  && f027Module.SUBJECT_PATTERN.source === '^[A-Z0-9.\\-]{1,12}$'
+```text
+$ node -e '<read rlticker.js, evaluate it through Function() with no DOM, print the two exported values>'
+exit: 0
+source file            : rlticker.js
+typeof RLTKR           : object
+RLTKR.SUBJECT_PARAM    : "ticker"
+SUBJECT_PATTERN is RegExp: true
+RLTKR.SUBJECT_PATTERN.source : ^[A-Z0-9.\-]{1,12}$
+PASS — all three conjuncts read off the real export
 ```
+
+The three conjuncts the selftest assertion carries are exactly the three printed
+above: `SUBJECT_PARAM === 'ticker'`, `SUBJECT_PATTERN instanceof RegExp`, and
+`SUBJECT_PATTERN.source === '^[A-Z0-9.\-]{1,12}$'`.
 
 The tree-scan half runs over every root-level `.html` / `.js` production file
 and requires: exactly one declaration site for each of `SUBJECT_PARAM` and
@@ -1558,11 +1566,22 @@ the parameter NAME. It is asserted equal rather than excused: the distinct
 exactly `["ticker"]` and must equal the module's own `SUBJECT_PARAM`, so a
 divergent second convention there turns this assertion red.
 
-Observed message in the green run:
+Observed message, re-executed in this pass:
 
 ```text
+$ node scripts/selftest.mjs
+exit: 0
   ✓ Feature 027: SUBJECT_PARAM "ticker" and SUBJECT_PATTERN /^[A-Z0-9.\-]{1,12}$/ are read off the real RLTKR export and are the single shared definition of the convention (declared only in: rlticker.js / rlticker.js; pattern text only in: rlticker.js; production files outside it that read the parameter themselves: none; both precedent routes reach it only through RLTKR.linkedSubject and name neither; registry declares the one name ["ticker"])
+
+================================================
+Research-Lab self-test: 3405 passed, 0 failed
+================================================
 ```
+
+The assertion text is byte-identical to the one first recorded here. The suite
+total has moved from 3156 to 3405 because unrelated specs have added assertions
+to the same file since; that count is not a Feature 027 figure and is reported as
+observed.
 
 Corroborated independently in the shell:
 
@@ -1597,14 +1616,23 @@ guard go red. Per guard:
 | 1.9 | `Feature 027 adversarial: the containment property is provably able to fail …` | the narrowing mutant pattern `{2,12}` widened back to `{1,12}`, so the narrowed receiver refuses no sender-valid value |
 | 1.10 | `Feature 027 adversarial: restoring either private tickerFromQuery fails the single-definition assertion` | the restored-private-rule injection retargeted from `options-structure-lab.html` to a path that does not exist, so no private copy is appended |
 
-Digests and runs:
+Digests and runs. These are a digest listing rather than a terminal transcript,
+so they are recorded as a table:
 
-```text
-PRE-MUTATION  sha256(scripts/selftest.mjs) = 2cc70cf4b78b332f862e4c280ec46f24dcdbc681329458683db23898b2f119f6
-MUTATED       sha256(scripts/selftest.mjs) = 573974ae8180bd1fb250d88b8eb4c37b2d231bc4249dc115349c05fa3c89dca0
-POST-RESTORE  sha256(scripts/selftest.mjs) = 2cc70cf4b78b332f862e4c280ec46f24dcdbc681329458683db23898b2f119f6
-residual mutation tokens after restore: grep -c 'no-such-route.html' scripts/selftest.mjs = 0
-```
+| Stage | `sha256(scripts/selftest.mjs)` |
+| --- | --- |
+| PRE-MUTATION | `2cc70cf4b78b332f862e4c280ec46f24dcdbc681329458683db23898b2f119f6` |
+| MUTATED | `573974ae8180bd1fb250d88b8eb4c37b2d231bc4249dc115349c05fa3c89dca0` |
+| POST-RESTORE | `2cc70cf4b78b332f862e4c280ec46f24dcdbc681329458683db23898b2f119f6` |
+
+Residual mutation tokens after restore:
+`grep -c 'no-such-route.html' scripts/selftest.mjs` = **0**.
+
+These digests are **not** re-derivable in a later pass and are deliberately not
+restated as current: `scripts/selftest.mjs` is a shared file that unrelated specs
+append to, so its digest has moved many times since. What the three rows attest
+is that PRE-MUTATION and POST-RESTORE were equal *within that run*, which is the
+only claim they were ever making.
 
 RED run — `node scripts/selftest.mjs`, exit 1, capture sha256
 `5242b3ad4eece15ebfbfb558e6e3df0dbaf5b51c3d199f00acd92f71fc1895ef`. Exactly
@@ -1640,19 +1668,20 @@ Row 2.11 in `tests/options-flow-feed-lab.spec.mjs` did not previously compare
 two visits; it only asserted that three named keys were absent from the linked
 visit's payload. The comparison the item requires was added, along with a
 `persisted()` helper that reads the payload key set, the whole `localStorage`
-key list and the raw persisted string out of the page:
+key list and the raw persisted string out of the page. The added assertions are
+source, not output, so they are listed rather than fenced as a transcript:
 
-```js
-await open(page);
-const unlinked = await persisted(page);
-await open(page, { query: '?ticker=' + UNCOVERED });
-const linked = await persisted(page);
-expect(unlinked.stateKeys).toEqual(['dte', 'min', 'mode', 'side', 'sortDir', 'sortK']);
-expect(linked.stateKeys).toEqual(unlinked.stateKeys);
-expect(linked.storageKeys).toEqual(unlinked.storageKeys);
-expect(linked.raw).not.toContain(UNCOVERED);
-expect(linked.storageKeys.filter((key) => key.indexOf(UNCOVERED) !== -1)).toEqual([]);
-```
+| Assertion | What it pins |
+| --- | --- |
+| `expect(unlinked.stateKeys).toEqual(['dte', 'min', 'mode', 'side', 'sortDir', 'sortK'])` | the unlinked visit's payload key set is exactly the six control keys |
+| `expect(linked.stateKeys).toEqual(unlinked.stateKeys)` | the linked visit persists the same payload keys, no more |
+| `expect(linked.storageKeys).toEqual(unlinked.storageKeys)` | the linked visit adds no `localStorage` key at all |
+| `expect(linked.raw).not.toContain(UNCOVERED)` | the linked ticker appears nowhere in the raw persisted string |
+| `expect(linked.storageKeys.filter((key) => key.indexOf(UNCOVERED) !== -1)).toEqual([])` | no storage key name carries the linked ticker |
+
+The two visits are driven by `await open(page)` and
+`await open(page, { query: '?ticker=' + UNCOVERED })`, with `persisted(page)`
+read after each.
 
 The linked visit deliberately uses `UNCOVERED` (`MU`) — the one grammar-valid
 symbol the harness does NOT seed a `rlOptFlow:<SYM>` cache entry for — so the
@@ -1664,16 +1693,16 @@ Green run — exit 0, `1 passed (3.9s)`, capture sha256
 
 The new comparison was then proven live rather than vacuous. Pointing the
 storage-key scan at a seeded symbol turned the row red — exit 1, capture sha256
-`506eed0a38f81c15a4003f1cc7cf922168254270fa785c4cc1d82bf4a0fdd87e`:
+`506eed0a38f81c15a4003f1cc7cf922168254270fa785c4cc1d82bf4a0fdd87e`. That probe
+edit no longer exists on disk, so the reading below is a **quoted excerpt of that
+RED run**, not a re-executable transcript:
 
-```text
-    Error: expect(received).toEqual(expected) // deep equality
-
-    - Array []
-    + Array [
-    +   "rlOptFlow:NVDA",
-    + ]
-```
+> `Error: expect(received).toEqual(expected) // deep equality`
+>
+> `- Array []`
+> `+ Array [`
+> `+   "rlOptFlow:NVDA",`
+> `+ ]`
 
 That proves `storageKeys` carries the page's real storage rather than an empty
 list. The probe was reverted and the file's sha256 returned to its pre-probe
@@ -1848,16 +1877,37 @@ observed, not explained away.
 | (a) scope-scoped porcelain | `git status --porcelain --` + 21 `allowedPaths` + 12 Excluded families | 0 | six lines, all inside `allowedPaths`, no Excluded family named |
 | (b) lifetime-tax authorship | `git --no-pager diff -- <tax pathspec> \| grep -cE '<7 tokens>'` | 1 (no match) | count `0` |
 
-Conjunct (a) output, in full:
+Conjunct (a) output, as recorded by that pass: six modified paths, all inside
+`allowedPaths` — `scripts/selftest.mjs`, the three
+`specs/027-company-scoped-owner-deep-links/` artifacts (`report.md`, `scopes.md`,
+`state.json`), `tests/options-flow-feed-lab.spec.mjs` and
+`tests/volatility-sizing-lab.spec.mjs`. No Excluded family was named.
+
+Both conjuncts re-executed in this pass:
 
 ```text
- M scripts/selftest.mjs
+$ git status --porcelain -- rlticker.js rlcompanyintel.js \
+    options-structure-lab.html gamma-trading-lab.html volatility-sizing-lab.html \
+    options-flow-feed-lab.html company-intelligence-lab.html \
+    company-intelligence.config.json scripts/selftest.mjs \
+    tests/options-structure-lab.spec.mjs tests/gamma-trading-lab.spec.mjs \
+    tests/volatility-sizing-lab.spec.mjs tests/options-flow-feed-lab.spec.mjs \
+    tests/company-intelligence-lab.spec.mjs tests/company-intelligence.unit.mjs \
+    specs/027-company-scoped-owner-deep-links
+exit: 0
  M specs/027-company-scoped-owner-deep-links/report.md
- M specs/027-company-scoped-owner-deep-links/scopes.md
- M specs/027-company-scoped-owner-deep-links/state.json
- M tests/options-flow-feed-lab.spec.mjs
- M tests/volatility-sizing-lab.spec.mjs
+
+$ git --no-pager diff HEAD -- 'rltax*.js' 'lifetime-tax-*' 'tax-rules/' 'tests/lifetime-tax-*' \
+    | grep -cE '027-company-scoped|linkedSubject|SUBJECT_PATTERN|SUBJECT_PARAM|catalogAsset|ownerBareReason|ownerSubjectParam'
+exit: 1
+0
 ```
+
+**Finding R-027-D4 — the re-run shows one modified path, not six.** The other five
+were committed between the two passes, which is the expected trajectory; the
+single remaining modification is this report, and it is inside `allowedPaths`. The
+lifetime-tax authorship conjunct still returns `0`, with `exit: 1` being `grep`'s
+no-match status, which is the passing condition.
 
 **Falsifiability was proved by mutation, not argued.** `site-exclusions.json`
 (an Excluded family) was clean at sha256
@@ -1951,16 +2001,17 @@ and the focus band carrying real text when a subject is supplied.
 **Falsifiability was proved by mutation, not argued.**
 `options-flow-feed-lab.html` was clean at sha256
 `88568b5744937f93c133aa52659a633335f043d8b65b5242bd7327c0d79471cc`. Rewriting its
-`<script src="rlticker.js" defer>` tag to `type="module"` produced a real red:
+`<script src="rlticker.js" defer>` tag to `type="module"` produced a real red. The
+mutation was reverted in the same pass, so the reading below is a **quoted
+excerpt of that RED run**, not a re-executable transcript — reproducing it would
+mean re-mutating a shipped route while other sessions run the same specs:
 
-```text
-exit: 1
-  ✘ FEATURE-027 file:// paint: … with and without a subject
-    Error: RLTKR must resolve from a file:// origin
-    expect(received).toBe(expected)
-    Expected: true
-    Received: false
-```
+> `exit: 1`
+>
+> `✘ FEATURE-027 file:// paint: … with and without a subject`
+>
+> `Error: RLTKR must resolve from a file:// origin`
+> `expect(received).toBe(expected)` — `Expected: true`, `Received: false`
 
 That is precisely the loss of `file://` operation the conjunct exists to catch.
 The tag was restored, the digest re-read as the identical
@@ -3404,14 +3455,18 @@ fails if a future "fix" strips the value instead of escaping it.
 ### Mutation safety — hashes reported both ways
 
 `options-structure-lab.html` was reverted to its committed blob for the RED run
-and then restored. The restored file is byte-identical to the fixed file:
+and then restored. The restored file is byte-identical to the fixed file. These
+are digests, not a terminal transcript:
 
-```text
-SHA_FIXED_BEFORE_PROBE = 543a55ccd937856127054b00039c164683549b5f3bfb7b0a8c92ded684c9f6dd
-SHA_REVERTED_TO_HEAD   = 2bd4844c4fbc5d08933283bddf7d79a9ea2a876964fcff8b12faf998c1afd6fc
-SHA_AFTER_RESTORE      = 543a55ccd937856127054b00039c164683549b5f3bfb7b0a8c92ded684c9f6dd
-HASH_MATCH=YES — restored byte-identical
-```
+| Reading | sha256 |
+| --- | --- |
+| `SHA_FIXED_BEFORE_PROBE` | `543a55ccd937856127054b00039c164683549b5f3bfb7b0a8c92ded684c9f6dd` |
+| `SHA_REVERTED_TO_HEAD` | `2bd4844c4fbc5d08933283bddf7d79a9ea2a876964fcff8b12faf998c1afd6fc` |
+| `SHA_AFTER_RESTORE` | `543a55ccd937856127054b00039c164683549b5f3bfb7b0a8c92ded684c9f6dd` |
+
+`HASH_MATCH=YES` — restored byte-identical. The file's digest has legitimately
+moved since, to `0284b4c6…`, when the GAP-2a escape fix landed on this route; that
+re-read is recorded in the chaos section above.
 
 The fixed hash `543a55cc…` differs from the committed `2bd4844c…` **by design** —
 that difference is the five-line fix, not drift. Every other file on the surface
@@ -3454,9 +3509,14 @@ encoded forms. The sender assertion resolves each href from a **nested** base
 A result worth stating because it is sharper than expected: the composition is
 safe by **two independent mechanisms**, and the test now separates them instead
 of asserting a threshold. Removing `encodeURIComponent` from the same expression
-lets exactly six of the 38 through, and the test pins that set by name:
+lets exactly six of the 38 through, and the test pins that set by name. Re-derived
+in this pass by a probe that mirrors the committed predicates at
+`tests/company-intelligence.unit.mjs:3173-3182` and reads the live registry:
 
 ```text
+$ node <probe mirroring tests/company-intelligence.unit.mjs:3173-3182>
+exit: 0
+registry row under test : options-structure (param "ticker", route options-structure-lab.html)
 BROKE_WITHOUT_ENCODER=6 of 38
   "A#frag"  -> fragment
   "A&x=1"  -> extra-param
@@ -3464,7 +3524,15 @@ BROKE_WITHOUT_ENCODER=6 of 38
   "A>B"  -> attr-break
   "A&B"  -> extra-param
   "A\"B"  -> attr-break
+  scheme    family leaked: 0 of 12
+  authority family leaked: 0 of 6
+  traversal family leaked: 0 of 6
 ```
+
+The six-value set and its per-value classification reproduce the original reading
+exactly. The three family rows are new in this re-derivation and make the
+positional half explicit: with the encoder removed, the scheme, authority and
+traversal families still leak nothing.
 
 The scheme, authority and traversal families do **not** appear — they are already
 inert because the value sits after a validated `<file>.html?<param>=`, which the
@@ -3592,16 +3660,12 @@ remains `null`, and no `certification.*` verdict field was written.
 ### 1. A caught regression: an unrestored mutation in `volatility-sizing-lab.html`
 
 Before any simplification work began, an **uncommitted** edit was present at
-`volatility-sizing-lab.html:1137`. It replaced the catalog-bound line
+`volatility-sizing-lab.html:1137`. It replaced the catalog-bound line with a
+fallback-synthesising one:
 
-```text
-var match = handoff.status === "accepted" ? catalogAsset(handoff.subject) : null;
-```
-
-with
-
-```text
-var match = handoff.status === "accepted" ? (catalogAsset(handoff.subject) || { symbol: handoff.subject, defaultTargetVol: 0.15 }) : null;
+```diff
+-var match = handoff.status === "accepted" ? catalogAsset(handoff.subject) : null;
++var match = handoff.status === "accepted" ? (catalogAsset(handoff.subject) || { symbol: handoff.subject, defaultTargetVol: 0.15 }) : null;
 ```
 
 That synthesised an asset for **any** accepted string. It defeated the
@@ -3725,15 +3789,21 @@ symbols. Declined as a net complexity increase.
 
 **No dead or unreachable code was found.** The one branch that looked
 unreachable — the fallback `statement` in `rlcompanyintel.js:552` — was probed
-by execution rather than by reading, and **is** reachable:
+by execution rather than by reading, and **is** reachable. Re-executed in this
+pass against the shipped module, through its CommonJS export rather than a
+re-implementation of the branch:
 
 ```text
+$ node -e '<load ./rlcompanyintel.js, read the registry, call describeDimensionOwner(reg, "options-structure", subject) for four subject shapes>'
+exit: 0
 --- else-branch reachability probe on dimension options-structure ---
 subject NVDA  : "Options term and skew structure is owned by options-structure-lab, which opens on this company."
 subject empty : "Options term and skew structure is owned by options-structure-lab, which reads no company parameter and opens on its own subject."
 subject spaces: "Options term and skew structure is owned by options-structure-lab, which reads no company parameter and opens on its own subject."
 subject null  : "Options term and skew structure is owned by options-structure-lab, which reads no company parameter and opens on its own subject."
 ```
+
+The four statements reproduce the original reading verbatim.
 
 The in-code comment claiming that branch is still reachable is therefore
 accurate. **Claim Source:** executed.
@@ -3935,15 +4005,45 @@ anchored on `/\+\s*(state\.ticker|tk|sym|FOCUS\.subject)\b/`, so it recognised
 the subject only where a `+` precedes it. Its own adversarial cases exercise that
 one shape, so the other three were inert rather than passing.
 
-**Command:** `node -e` probe over the five shapes. **Exit 0.**
+**Command:** `node -e` probe over the five shapes. **Exit 0.** The result was a
+CAUGHT/MISSED classification, which is a table rather than a transcript and is
+recorded as one:
 
+| Sink shape | Superseded anchor `/\+\s*(state\.ticker\|tk\|sym\|FOCUS\.subject)\b/` |
+| --- | --- |
+| trailing (the five fixed sites as they then stood) | CAUGHT |
+| leading — subject first in the call | MISSED |
+| leading — direct `innerHTML` | MISSED |
+| template-literal interpolation | MISSED |
+| alias laundered through `state.name` | MISSED |
+
+Re-derived in this pass by running the superseded anchor against the lines the
+routes ship **today**:
+
+```text
+$ node /tmp/rl027-gap2-probe.mjs   # superseded narrow anchor vs real shipped sink lines
+exit: 0
+superseded anchor: \+\s*(state\.ticker|tk|sym|FOCUS\.subject)\b
+MISSED trailing         gamma-trading-lab.html:1521 (shipped)
+MISSED leading          options-structure-lab.html:1971 (shipped)
+MISSED alias            options-structure-lab.html:1577 (shipped)
+MISSED template         SYNTHETIC — no route ships a template-literal sink
+MISSED direct-innerHTML SYNTHETIC — the pre-fix shape of the site above
+caught 0 of 5 shapes
 ```
-CAUGHT trailing  (current five fixed sites)
-MISSED LEADING   subject first in the call
-MISSED LEADING   direct innerHTML
-MISSED TEMPLATE  literal interpolation
-MISSED ALIAS     laundered through state.name
-```
+
+**Finding R-027-D2 — the re-run disagrees with the table on the trailing row, and
+the disagreement is the fix working.** The table above recorded `CAUGHT trailing`
+against the code as it stood before GAP-2a. Today the same anchor catches
+**nothing**, including the trailing shape, because the fix wrapped the subject at
+those sites: `gamma-trading-lab.html:1521` now reads `+ esc(state.ticker)`, so the
+literal `+ state.ticker` the anchor needs is gone. The finding is recorded rather
+than smoothed over: the historical `CAUGHT` was true of the historical code, and
+the superseded anchor is blinder today than it was when GAP-2 was written, which
+strengthens rather than weakens the case for replacing it. Two of the five rows
+are marked SYNTHETIC because no route ships that shape; they are the author's
+constructed inputs, not lines read off disk, and are labelled so in the output
+itself.
 
 The alias matters because `options-structure-lab.html` literally assigns it from
 the subject: `state.name = state.name || tk`.
@@ -3960,9 +4060,16 @@ Strengthening the scan turned the suite red on exactly one real site.
 
 **Command:** `node --test tests/company-intelligence.unit.mjs`. **Exit 1** (tests 90, pass 89, fail 1).
 
-```
+```text
+$ node --test tests/company-intelligence.unit.mjs
+exit: 1   (tests 90, pass 89, fail 1)
     options-structure-lab.html:1960 → state.ticker (direct innerHTML) @col67
 ```
+
+The command and exit line above are restored into the block from the attested
+prose immediately preceding it; the offender line is the original recorded
+output. That RED state no longer exists on disk — it was closed below — so it is
+not re-executable in this pass.
 
 `el('pillTk').innerHTML = ... yLink(state.ticker, state.ticker + (...), ...)`
 put the subject into `yLink`'s text position, which the helper interpolates
@@ -3974,18 +4081,37 @@ Not exploitable through the deep link — `SUBJECT_PATTERN` admits no markup
 metacharacter — but `state.ticker` is also written from the free-text `#ticker`
 input and from restored `localStorage`, neither grammar-checked.
 
-**Command:** `node -e` replaying both shipped call shapes with `<img src=x onerror=alert(1)>`. **Exit 0.**
+**Command:** `node -e` replaying both shipped call shapes with `<img src=x onerror=alert(1)>`. **Exit 0.** The
+result is a two-route comparison rather than a transcript, and is recorded as one:
 
-```
-options-structure pillTk  raw-markup-in-text-node = true
-  rendered fragment: <img src=x onerror=alert(1)>
-gamma-trading  pillTk     raw-markup-in-text-node = false
-  rendered fragment: &lt;img src=x onerror=alert(1)&gt;
-```
+| Route | `pillTk` raw-markup-in-text-node | Rendered fragment |
+| --- | --- | --- |
+| options-structure | `true` | `<img src=x onerror=alert(1)>` |
+| gamma-trading | `false` | `&lt;img src=x onerror=alert(1)&gt;` |
 
 **Closed** with a one-line escape at the text position, matching the sibling
 route. `grep -c "esc(state.ticker)"` is now `2` on both routes. The suite returns
-to green at tests 90, pass 90, fail 0.
+to green at tests 90, pass 90, fail 0. Both halves re-executed in this pass:
+
+```text
+$ grep -c "esc(state.ticker)" options-structure-lab.html gamma-trading-lab.html
+exit: 0
+options-structure-lab.html:2
+gamma-trading-lab.html:2
+
+$ node --test tests/company-intelligence.unit.mjs
+exit: 0
+ℹ tests 90
+ℹ suites 0
+ℹ pass 90
+ℹ fail 0
+ℹ skipped 0
+ℹ duration_ms 137.161542
+```
+
+The offending site has since moved from line 1960 to line 1971 as the file grew;
+it reads `yLink(state.ticker, esc(state.ticker) + …)` today, so the subject in the
+text position is escaped.
 
 ### GAP-3 — a records-integrity correction resting on a false premise
 
@@ -3994,13 +4120,30 @@ with "gate-hits.jsonl holds zero rows for this spec in the whole 20:00Z-23:59Z
 window". Re-derived directly from the ledger:
 
 **Command:** `python3` count over `.specify/runtime/gate-hits.jsonl`. **Exit 0.**
+As then recorded: `rows naming spec 027` = **618**, `earliest ts` =
+`2026-08-20T06:43:06Z`, `latest ts` = `2026-08-20T22:49:56Z`, `rows in
+20:00-23:59Z` = **62**.
 
-```
-rows naming spec 027 : 618
+Re-derived from the same append-only ledger in this pass:
+
+```text
+$ node -e '<count .specify/runtime/gate-hits.jsonl rows naming spec 027>'
+exit: 0
+ledger file          : .specify/runtime/gate-hits.jsonl
+total rows           : 13793
+rows naming spec 027 : 2071
 earliest ts          : 2026-08-20T06:43:06Z
-latest ts            : 2026-08-20T22:49:56Z
+latest ts            : 2026-08-24T05:38:46Z
 rows in 20:00-23:59Z : 62
 ```
+
+**Finding R-027-D3 — the re-run disagrees on two of the four figures, and neither
+disagreement touches the correction.** `rows naming spec 027` has grown 618 →
+**2071** and `latest ts` has advanced to `2026-08-24T05:38:46Z`, because the
+ledger is append-only and work on this spec continued after GAP-3 was written.
+The two figures the correction actually rests on are **unchanged**: `earliest ts`
+is still `2026-08-20T06:43:06Z` and the 20:00-23:59Z window still holds **62**
+rows, not zero.
 
 The window holds **62** rows, not zero. The companion claim that
 `tool-calls.jsonl` stops on 2026-07-18 was checked and is true (`Jul 18 21:48`).
@@ -4624,37 +4767,33 @@ Chaos found it because J1 and J6 keep driving after the arrival.
 is recomputed whenever anything moves. J4 confirmed it stayed correct across all
 four randomly-generated control sets.
 
-**Red, on unmutated production code, before any fix:**
+**Red, on unmutated production code, before any fix.** The chaos journeys were a
+**temporary** probe file that was removed once the durable rows below replaced
+it, so the two readings below are **quoted excerpts of that run, not a
+re-executable transcript**. They are presented as excerpts rather than as
+evidence blocks for exactly that reason: nothing in the tree today can reproduce
+them, and dressing them up as a re-runnable transcript would misrepresent what a
+reader can check. What a reader *can* check is the durable coverage further
+down, which is re-executed in this pass.
 
-```text
-  1) [system-chrome] › CHAOS J1: a deep-linked arrival interleaved with reader asset
-     changes never leaves the page stating two different subjects
+J1, volatility route:
 
-    Error: seed 4271001 arrival "TSLA": the notice claims a subject the page is no
-    longer showing — "This lab covers 11 assets and has no data for TSLA, so it is
-    showing SPY."
+> `1) [system-chrome] › CHAOS J1: a deep-linked arrival interleaved with reader asset changes never leaves the page stating two different subjects`
+>
+> `Error: seed 4271001 arrival "TSLA": the notice claims a subject the page is no longer showing — "This lab covers 11 assets and has no data for TSLA, so it is showing SPY."`
+>
+> `expect(received).toBe(expected) // Object.is equality` — `Expected: "NVDA"`, `Received: "SPY"`
 
-    expect(received).toBe(expected) // Object.is equality
+J6, precedent routes:
 
-    Expected: "NVDA"
-    Received: "SPY"
-```
-
-```text
-  1) [system-chrome] › CHAOS J6: on the precedent routes a refusal notice does not keep
-     claiming an old subject after the reader names a new one
-
-    Error: 4271006 options-structure: the notice still claims a subject the reader
-    replaced — "The link named a company this tool could not accept, so it is showing SPY."
-
-    expect(received).toBe(expected) // Object.is equality
-
-    Expected: "AAPL"
-    Received: "SPY"
-
-CHAOS J6 seed=4271006 route=options-structure refused="NV DA" chose=AAPL
-  notice="The link named a company this tool could not accept, so it is showing SPY."
-```
+> `1) [system-chrome] › CHAOS J6: on the precedent routes a refusal notice does not keep claiming an old subject after the reader names a new one`
+>
+> `Error: 4271006 options-structure: the notice still claims a subject the reader replaced — "The link named a company this tool could not accept, so it is showing SPY."`
+>
+> `expect(received).toBe(expected) // Object.is equality` — `Expected: "AAPL"`, `Received: "SPY"`
+>
+> `CHAOS J6 seed=4271006 route=options-structure refused="NV DA" chose=AAPL`
+> `notice="The link named a company this tool could not accept, so it is showing SPY."`
 
 **Fix.** The notice now reads the active subject at render time and is re-rendered
 whenever that subject changes. No wording changed, and no explanation is dropped —
@@ -4679,18 +4818,28 @@ re-statement rather than being silently erased. The volatility row also re-check
 that an applied subject leaves no notice behind when the reader moves off it.
 
 **The three new rows are not vacuous.** The three re-render call sites were
-removed, the rows were run, and all three failed:
+removed, the rows were run, and all three failed. That falsification required the
+production routes to be mutated, so it is **not** re-executable in this pass
+without re-mutating three shipped files while other sessions are running the same
+specs. It is therefore quoted as an excerpt of the recorded RED run rather than
+replayed as a transcript:
+
+> 1. `gamma-trading-lab.spec.mjs › Regression: SCN-027-013 …` — expected substring `"MSFT"`, received `"The link named a company this tool could not accept, so it is showing SPY?."`
+> 2. `options-structure-lab.spec.mjs › Regression: SCN-027-013 …` — expected substring `"AAPL"`, received `"The link named a company this tool could not accept, so it is showing SPY."`
+> 3. `volatility-sizing-lab.spec.mjs › Regression: SCN-027-013 …` — expected substring `"showing NVDA"`, received `"This lab covers 11 assets and has no data for TSLA, so it is showing SPY."`
+
+What **is** re-executable is that the three rows exist, are committed, and are
+green on the unmutated tree. Re-run in this pass:
 
 ```text
-  1) gamma-trading-lab.spec.mjs › Regression: SCN-027-013 …
-     Expected substring: "MSFT"
-     Received string:    "The link named a company this tool could not accept, so it is showing SPY?."
-  2) options-structure-lab.spec.mjs › Regression: SCN-027-013 …
-     Expected substring: "AAPL"
-     Received string:    "The link named a company this tool could not accept, so it is showing SPY."
-  3) volatility-sizing-lab.spec.mjs › Regression: SCN-027-013 …
-     Expected substring: "showing NVDA"
-     Received string:    "This lab covers 11 assets and has no data for TSLA, so it is showing SPY."
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=system-chrome tests/volatility-sizing-lab.spec.mjs \
+    tests/options-structure-lab.spec.mjs tests/gamma-trading-lab.spec.mjs \
+    --grep "SCN-027-013" --workers=1 --reporter=line
+exit: 0
+[3/4] [system-chrome] › tests/volatility-sizing-lab.spec.mjs:739:1 › Regression: SCN-027-013 after a refusal every control reflects one single subject and none reflects the refused value
+[4/4] [system-chrome] › tests/volatility-sizing-lab.spec.mjs:953:1 › Regression: SCN-027-013 the catalog-miss notice keeps naming the asset actually on screen after the reader changes it
+  4 passed (3.4s)
 ```
 
 (The `SPY?` in the gamma line is the house-standard `RLTKR` context button — the
@@ -4698,14 +4847,43 @@ auto-scan upgrades the `SPY` token inside the notice and its `?` control joins
 `textContent`. It is decoration, not a second subject, and it is absent after the
 notice is re-rendered as text.)
 
-The three files were then restored and verified byte-identical by digest:
+The three files were then restored and verified byte-identical by digest. This is
+a digest listing, not a terminal transcript, so it is recorded as a table:
+
+| File | sha256 before mutation | After restore |
+| --- | --- | --- |
+| `volatility-sizing-lab.html` | `0f227598b27c5e23b8127692b17def33a392bac30a4a6fc265a252730ccf3b53` | identical |
+| `options-structure-lab.html` | `7bc39250cb42aa9952b2cae0baa00efbca57b0d4981f0b9b24a14eda782bc90e` | identical |
+| `gamma-trading-lab.html` | `0e5a77815959530fa38b240c80ba5f7b4a59751662e6f13e1a833bff75d678ff` | identical |
+
+Re-read in this pass, together with the mutation-token scan:
 
 ```text
-before mutation                                                    after restore
-0f227598b27c5e23b8127692b17def33a392bac30a4a6fc265a252730ccf3b53  volatility-sizing-lab.html   → identical
-7bc39250cb42aa9952b2cae0baa00efbca57b0d4981f0b9b24a14eda782bc90e  options-structure-lab.html   → identical
-0e5a77815959530fa38b240c80ba5f7b4a59751662e6f13e1a833bff75d678ff  gamma-trading-lab.html       → identical
+$ shasum -a 256 volatility-sizing-lab.html options-structure-lab.html gamma-trading-lab.html
+exit: 0
+0f227598b27c5e23b8127692b17def33a392bac30a4a6fc265a252730ccf3b53  volatility-sizing-lab.html
+0284b4c6af354ceb8c6469945faf1a76572ec22d6b394933b0fdfd03613462fc  options-structure-lab.html
+af78cef4f56427ead344cf6c838e13b7e4a43bb1ad3530d45e670536e310736d  gamma-trading-lab.html
+
+$ grep -c "MUTATION UNDER TEST\|MUTANT" rlticker.js rlcompanyintel.js \
+    volatility-sizing-lab.html options-flow-feed-lab.html \
+    options-structure-lab.html gamma-trading-lab.html
+exit: 1
+rlticker.js:0
+rlcompanyintel.js:0
+volatility-sizing-lab.html:0
+options-flow-feed-lab.html:0
+options-structure-lab.html:0
+gamma-trading-lab.html:0
 ```
+
+**Finding R-027-D1 — two of the three digests have legitimately moved since.**
+`volatility-sizing-lab.html` still reads `0f227598…`, byte-identical to its
+pre-mutation state above. `options-structure-lab.html` and `gamma-trading-lab.html`
+no longer do: they read `0284b4c6…` and `af78cef4…`. That is the GAP-2a escape fix
+landing on both routes after this chaos pass, not drift — the escape count below
+is its signature. The `exit: 1` on the token scan is `grep`'s no-match status,
+which is the passing condition here.
 
 `grep -c 'MUTATION UNDER TEST\|MUTANT'` returns `0` for all five feature files
 (`volatility-sizing-lab.html`, `options-structure-lab.html`,
@@ -5299,13 +5477,26 @@ whole. Both batches exited 0. The receiving batch printed its own file-parity
 diagnostics, and they are reported here unedited because one of them is a
 non-failure that would otherwise look like one:
 
+These diagnostics were re-executed in this pass, unedited and in full:
+
 ```text
-FILE_PARITY options-flow plain:  noticeHidden=true  pageErrors=0
-FILE_PARITY options-flow linked: noticeHidden=false pageErrors=0
-  noticeText="Focus: NVDA? — 2 flagged strikes · call premium $260K vs put
-  premium $25K · end-of-day proxy over 12 liquid names, not a real-time tape."
-FILE_PARITY volatility plain:  labPresent=false configErrorShown=true pageErrors=0
-FILE_PARITY volatility linked: labPresent=false configErrorShown=true pageErrors=0
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=system-chrome tests/options-flow-feed-lab.spec.mjs \
+    tests/volatility-sizing-lab.spec.mjs --grep "FEATURE-027 file://" \
+    --workers=1 --reporter=line
+exit: 0
+
+Running 3 tests using 1 worker
+
+[1/3] [system-chrome] › tests/options-flow-feed-lab.spec.mjs:335:1 › FEATURE-027 file:// parity: the options-flow route reaches the same file:// outcome with a ?ticker= subject as with no query string
+FILE_PARITY options-flow plain: {"scriptCompleted":true,"rltkrResolved":true,"noticePresent":true,"feedRendered":true,"tableRendered":true,"noticeText":"","noticeHidden":true,"pageErrors":0,"errorMessages":[]}
+FILE_PARITY options-flow linked: {"scriptCompleted":true,"rltkrResolved":true,"noticePresent":true,"feedRendered":true,"tableRendered":true,"noticeText":"Focus: NVDA? — 2 flagged strikes · call premium $260K vs put premium $25K · end-of-day proxy over 12 liquid names, not a real-time tape.","noticeHidden":false,"pageErrors":0,"errorMessages":[]}
+[2/3] [system-chrome] › tests/options-flow-feed-lab.spec.mjs:351:1 › FEATURE-027 file:// paint: the options-flow route fully reaches its paint from a file:// origin with and without a subject
+[3/3] [system-chrome] › tests/volatility-sizing-lab.spec.mjs:927:1 › FEATURE-027 file:// parity: the volatility route reaches the same file:// outcome with a ?ticker= subject as with no query string
+FILE_PARITY volatility plain: {"rltkrResolved":true,"labPresent":false,"configErrorShown":true,"configLoaded":false,"activeAsset":null,"noticePresent":true,"noticeHidden":true,"pageErrors":0,"errorMessages":[]}
+FILE_PARITY volatility linked: {"rltkrResolved":true,"labPresent":false,"configErrorShown":true,"configLoaded":false,"activeAsset":null,"noticePresent":true,"noticeHidden":true,"pageErrors":0,"errorMessages":[]}
+
+  3 passed (5.8s)
 ```
 
 The volatility rows read `labPresent=false configErrorShown=true` under the

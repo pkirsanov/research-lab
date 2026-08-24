@@ -2376,6 +2376,96 @@ one. The row stays `[ ]`.
 The scratch worktree was removed and `git worktree list` afterwards showed only the
 repository itself.
 
+#### Re-execution 2026-08-23 — the page-section half corrected, the module half measured
+
+The documented rollback was executed again, verbatim, against a fresh
+`git archive HEAD` materialised outside the repository. The residual scan was
+widened to name every element id the `power-property` band owned, plus the
+`inputProperty*` and `workspace.property*` surfaces. Before-verdict:
+
+```text
+### executing rollback mode=documented  section=power-property  module=rltaxproperty.js
+SECTION_REMOVED id=power-property lines=41 owned_ids=7
+REVERSE_EDITS {"section-band":1,"script-tag":1}
+### residual scan of the rolled-back page
+    power-property refs                : 3
+    rltaxproperty.js refs              : 0
+    renderProperty refs                : 2
+    inputProperty* refs                : 30
+    workspace.property* refs           : 25
+    orphaned id propertyRefusal        : 1   first at line 3633
+    orphaned id propertyDeclarations   : 1   first at line 3634
+    orphaned id propertyDeclarationsBody : 1   first at line 3634
+    orphaned id propertyRelief         : 1   first at line 3635
+    orphaned id propertyReliefBody     : 1   first at line 3635
+    orphaned id propertyCapBasisLine   : 2   first at line 3639
+    orphaned id propertyRateCeilingLine : 2   first at line 3640
+RESIDUAL_CLASSES=11
+ROLLBACK_REHEARSAL mode=documented section=power-property page_residual_classes=1 ROLLBACK_VERDICT=FAIL
+```
+
+Removing the band deletes the container and leaves the machinery that fills it:
+`renderProperty` still writes `propertyDeclarationsBody`, `propertyReliefBody`,
+`propertyCapBasisLine` and `propertyRateCeilingLine`, the six `inputProperty*`
+controls remain with their declared-key inventory entries, and the workspace
+still reads and writes eight property members. Reverting the page section names
+one site out of nine.
+
+The Change Boundary and the `POWER_SECTION_IDS` sweep row were corrected to
+enumerate all nine. The corrected procedure was then executed on a fresh
+materialised copy:
+
+```text
+### executing rollback mode=corrected  section=power-property  module=rltaxproperty.js
+SECTION_REMOVED id=power-property lines=41 owned_ids=7
+REVERSE_EDITS {"section-band":1,"script-tag":1,"inputs":6,"render-fn":1,"render-call":1,"withheld-link-row":1,"input-wiring":15,"workspace-members":8,"stale-comment":1}
+### residual scan of the rolled-back page
+    power-property refs                : 0
+    rltaxproperty.js refs              : 0
+    renderProperty refs                : 0
+    inputProperty* refs                : 0
+    workspace.property* refs           : 0
+RESIDUAL_CLASSES=0
+ROLLBACK_REHEARSAL mode=corrected section=power-property page_residual_classes=0 ROLLBACK_VERDICT=PASS
+```
+
+The page-section half of the rollback is therefore repaired and proven.
+
+The row still stays open, and the reason is now named exactly. Deleting
+`rltaxproperty.js` is not a step this rollback can take. The shipped settlement
+engine requires it at `rltax.js:29`, so removing the module breaks every `rltax`
+group in the repository. Measured on the same scratch copy, against a baseline
+of `3401 passed, 3 failed` whose three failures come from the archive having no
+`.git` directory:
+
+```text
+Research-Lab self-test: 3023 passed, 33 failed
+```
+
+The failure lines that carry no scratch path are quoted verbatim. Note that four
+of them belong to Feature 021 and Feature 022, which predate this scope:
+
+```text
+  ✗ FAIL (Feature 021 Scope 02 settlement group threw): Cannot find module './rltaxproperty.js'
+  ✗ FAIL (Feature 021 Scope 03 curve group threw): Cannot find module './rltaxproperty.js'
+  ✗ FAIL (Feature 021 Scope 04 conversion group threw): Cannot find module './rltaxproperty.js'
+  ✗ FAIL (Feature 021 Scope 05 route group threw): Cannot find module './rltaxproperty.js'
+  ✗ FAIL (Feature 022 Scope 03 state contract group threw): Cannot find module './rltaxproperty.js'
+  ✗ FAIL (Feature 022 Scope 04 California group threw): Cannot find module './rltaxproperty.js'
+  ✗ FAIL (Feature 022 Scope 05 combined group threw): Cannot find module './rltaxproperty.js'
+  ✗ FAIL (Feature 023 Scope 02 deduction group threw): Cannot find module './rltaxproperty.js'
+  ✗ FAIL (Feature 023 Scope 03 rental group threw): Cannot find module './rltaxproperty.js'
+  ✗ FAIL (Feature 023 Scope 04 dwelling-use group threw): Cannot find module './rltaxproperty.js'
+```
+
+This is a structural constraint rather than an ordering one. A module the shipped
+engine requires cannot be withdrawn by the scope that introduced it while the
+engine still requires it. The Change Boundary now states that, and the row stays
+`[ ]` on the measurement rather than on an assumption.
+
+**Claim Source:** executed. The live tree was confirmed unchanged afterwards and
+every scratch directory was removed.
+
 ### Row status after this session
 
 | Row | Verdict |

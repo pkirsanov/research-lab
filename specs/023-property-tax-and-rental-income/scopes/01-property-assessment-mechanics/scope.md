@@ -164,7 +164,7 @@ Scenario: SCN-023-003 An acquisition-value regime is a different figure, not a d
 | `rltax.js` leg set | Leg `L8` added, derived from the pack | Scopes 02–05 and Feature 022's reconciliation | High — a hardcoded leg list would silently drop every later leg | Assert Feature 021 and 022 fixtures produce their exact prior leg sets before `L8` is added | Remove the leg from the pack's declared set |
 | The leg-visibility helper | New shared assertion surface | Scopes 02–05 | High — a helper that passes on an all-zero fixture proves nothing and would certify the exact defect it exists to catch | Assert the helper fails when a leg is removed from each of the four surfaces in turn, on the all-non-zero fixture | Remove the helper and its fixture |
 | `rltaxworkspace.js` | Property declarations plus privacy surface | Scopes 02–05 | High — the assessed value is location-adjacent | Assert each new key is inventoried, cleared, redacted, and absent from every URL, request, referrer and console message | Remove the members |
-| `POWER_SECTION_IDS` and the withheld-link set | One section added | Scopes 02–05, and both superseded link counts | Medium — a link added without a section makes the withheld-detail promise false | The SUP-023-05 and SUP-023-06 replacements assert two-directional identity, so a link without a section fails | Remove the section |
+| `POWER_SECTION_IDS` and the withheld-link set | One section added | Scopes 02–05, and both superseded link counts | Medium — a link added without a section makes the withheld-detail promise false | The SUP-023-05 and SUP-023-06 replacements assert two-directional identity, so a link without a section fails | Remove the section id from the list, the withheld-detail link row that targets it, and the comment that names it |
 | `scripts/selftest.mjs` | One group appended plus SUP-023-05 | The whole-repo gate | Medium | Pre-existing pass count must not fall | Remove the group and revert the marker |
 
 ## Change Boundary And Protected Paths
@@ -204,10 +204,29 @@ above, and nothing else.
 **Excluded surfaces:** the byte-identical list named above. Collateral cleanup
 outside the allowed families is opt-in and is not performed under this scope.
 
-**Rollback:** delete `rltaxproperty.js`, both regime packs and the fixtures; revert
-the two contracts, the cap-basis enum, stage `CO-15`, leg `L8`, the leg-visibility
-helper and the workspace members; revert the page section; revert the four
-supersession replacements to their superseded clauses.
+**Rollback:** delete both regime packs and the fixtures; revert the two contracts,
+the cap-basis enum, stage `CO-15`, leg `L8`, the leg-visibility helper and the
+workspace members; revert the four supersession replacements to their superseded
+clauses. Reverting the page section is not one edit. It is nine sites in
+`lifetime-tax-strategy-lab.html`:
+
+1. the `power-property` band and all seven element ids it owns;
+2. the `rltaxproperty.js` script tag;
+3. the `power-property` member of `POWER_SECTION_IDS`;
+4. the withheld-detail link row that targets that section;
+5. the six `inputProperty*` label blocks;
+6. the `renderProperty` function and its call site;
+7. every remaining `inputProperty*` read and write, including the two entries in
+   the declared-key inventory;
+8. every `workspace.property*` read and write;
+9. the explanatory comment that names the section.
+
+Deleting `rltaxproperty.js` is not available to this rollback at all. The shipped
+settlement engine `rltax.js` requires the module, so removing it breaks every
+`rltax` group in the repository, including groups belonging to Feature 021 and
+Feature 022, which predate this scope. The module can only be deleted together
+with the engine's dependency on it, which is outside this scope's Change
+Boundary.
 
 ## Assertion Supersession Owned By This Scope
 

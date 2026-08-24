@@ -944,6 +944,18 @@ test('Regression: Feature 007 owner integrations preserve source cutoffs limitat
   // No option snapshot was seeded, so option evidence must be an explicit absence, not a zero.
   expect(seededOwner.payload.optionSnapshotAvailable).toBe(false);
   expect(seededOwner.payload.optionSnapshot).toBeNull();
+  /* BUG-015. The published link must name the subject under the parameter this route actually
+     reads back. Asserted from the runtime read rather than from the source, because a grep can
+     show the expression and still not show that the value survived publication. The link is a
+     sibling of `metrics` on the tool read, not a field of the nested owner passport. */
+  expect(seededRead.deepLink).toBe('swing-structure-lab.html?ticker=SPY');
+  /* ADVERSARIAL: the defect shape was a link that looked company-scoped and was not. A dead
+     parameter would satisfy every other assertion in this block. */
+  expect(seededRead.deepLink).not.toContain('?t=');
+  /* The link is live in the other direction too: navigating what the route published opens on
+     the subject it named, rather than the route's default. */
+  await page.goto(`${baseUrl}/${seededRead.deepLink}`);
+  await expect(page.locator('#ticker')).toHaveValue('SPY');
   console.log(`[Feature-007-owner] seededPublication=true closedCoverage=${seededOwner.closedCoverage} liveOwnersPublished=${publishedCount}`);
 
   // Strategy Validation stays read-only: it must publish no nested Feature 007 passport.

@@ -1666,6 +1666,303 @@ TP0433_EXIT=0
 **Claim Source:** executed. The block is verbatim harness output from this
 session, with the revert hash-verified against the committed blob.
 
+## Delivery-Completion Rows Earned (2026-08-23)
+
+This section earns the four remaining Definition of Done rows in this scope.
+
+### A naming note recorded before any conclusion
+
+This scope is named for IRMAA, but the deliverable does not carry the acronym.
+A literal search returns nothing, and that absence must not be read as a missing
+deliverable:
+
+```text
+route_irmaa_literal=0 route_medicare=107 route_income_related=3
+module_rltaxmedicare_exists=yes irmaa_in_module=0
+```
+
+The route and the module both spell the concept out. `rltaxmedicare.js` exists.
+An acronym scan is the wrong instrument here.
+
+### DoD — scenario-specific E2E regression, SCN-024-010 / -011 / -012
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=chromium tests/lifetime-tax-medicare.spec.mjs --reporter=list
+
+Running 5 tests using 1 worker
+
+  ✓  1 … an undeclared lookback names the year required and a wrong lookback year refuses naming the offset (686ms)
+  ✓  2 … bracket is selected at the exact boundary and both part adjustments are shown with their citations (357ms)
+  ✓  3 …al Medicare cost is rendered beside the headline and no premium leg is inside the federal tax total (272ms)
+  ✓  4 …on: SCN-024-012 all three premium legs reach the headline, the comparison, the curve and the export (297ms)
+  ✓  5 …eclared same-origin GET with the medicare pack among them and no lookback declaration reaches a URL (292ms)
+
+  5 passed (2.8s)
+TP04_SCENARIO_E2E_EXIT=0
+```
+
+Title presence and grep selection were audited across scopes 03, 04 and 05
+together; every title-bearing row resolves and selects exactly one test
+(`ok=17 bad=0`, `selectedExactlyOne=17`). The audit is recorded in
+`../03-claim-age-comparison/report.md`.
+
+The adversarial case — that renaming or deleting a persistent title must fail
+the row rather than pass vacuously — was probed on this scope's own file:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S04-scenario-title-rename-empties-grep
+file:             tests/lifetime-tax-medicare.spec.mjs
+mutation:         all three premium legs reach the headline, the comparison, the curve and the export  ->  all three premium legs RENAMED the headline, the comparison, the curve and the export   (1 occurrence(s))
+red-exit:         1
+red-summary:      Error: No tests found
+green-exit:       0
+green-summary:      1 passed (1.7s)
+revert-verified:  yes (committed=1c2df9b99164f0bfa40584fff695e2c96e12120b restored=1c2df9b99164f0bfa40584fff695e2c96e12120b)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_04_TITLE_EXIT=0
+```
+
+**Claim Source:** executed.
+
+### DoD — broader E2E regression across the whole lifetime-tax browser family
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs \
+    --project=chromium tests/lifetime-tax-*.spec.mjs --reporter=line
+
+Running 94 tests using 6 workers
+  94 passed (16.2s)
+BROADER_FAMILY_EXIT=0
+```
+
+**The first attempt at this row's adversarial probe did not discriminate, and
+that is recorded rather than quietly replaced.** The mutation targeted a
+sentence at `lifetime-tax-strategy-lab.html:4644` on the assumption that it fed
+the claim-age result-kind line. It does not:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S04-broader-suite-catches-sibling-redness   (first attempt)
+mutation:         between two declared sums and says nothing about which claim age is better.  ->  between two declared TOTALS and says nothing about which claim age is better.
+red-exit:         0
+red-summary:        19 passed (3.9s)
+green-exit:       0
+green-summary:      19 passed (4.2s)
+discriminating:   NO (red-exit 0 == green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_04_BROAD_A_EXIT=7
+```
+
+Tracing the producer showed why. `#claimAgeResultKindLine` is populated at
+`lifetime-tax-strategy-lab.html:4649` from `comparison.resultKindStatement`,
+which originates in `rltaxclaimage.js:54`. The sentence at line 4644 is a
+tooltip on a different node. The probe was re-aimed at the real producer:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S04-broader-suite-catches-sibling-redness
+file:             lifetime-tax-strategy-lab.html
+mutation:         byId("claimAgeResultKindLine").textContent = comparison.resultKindStatement;  ->  byId("claimAgeResultKindLine").textContent = "";   (1 occurrence(s))
+red-exit:         1
+red-summary:        18 passed (8.6s)
+green-exit:       0
+green-summary:      19 passed (3.4s)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_04_BROAD_A2_EXIT=0
+```
+
+`lifetime-tax-strategy-lab.html` is in this scope's *Allowed modified* list, so
+this is a change this scope could make; it reddens the sibling claim-age spec.
+The second half of the adversarial case — that this scope's own rows stay green
+under it — was measured, not assumed:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S04-narrow-row-CANNOT-catch-sibling-redness
+file:             lifetime-tax-strategy-lab.html
+mutation:         byId("claimAgeResultKindLine").textContent = comparison.resultKindStatement;  ->  byId("claimAgeResultKindLine").textContent = "";   (1 occurrence(s))
+red-exit:         0
+red-summary:        5 passed (2.5s)
+green-exit:       0
+green-summary:      5 passed (2.2s)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   NO (red-exit 0 == green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_04_BROAD_B_EXIT=7 (7 == narrow row blind)
+```
+
+**Claim Source:** executed.
+
+### FINDING — the equality tooltip's prose is asserted to exist but never read
+
+The failed first probe was not noise; following it produced a coverage gap this
+scope did not create and does not own, recorded here so it is not lost.
+
+`tests/lifetime-tax-claim-age.spec.mjs` asserts that every displayed figure on
+the claim-age panel carries a tooltip, by reading `aria-describedby` and matching
+`/^tip-claim-age-/`. It never reads the tooltip's text. Separately, the
+selftest's claim scans cover `rltaxsocialsecurity.js`, `rltaxinclusion.js`,
+`rltaxclaimage.js` and two JSON packs — `lifetime-tax-strategy-lab.html`, where
+the rendered tooltip prose lives, is **not** in the scanned set, and no
+superiority-token scan is applied to the route's page text.
+
+The consequence was measured against the entire browser family with a mutation
+that inverts the tooltip into the exact superiority claim this feature's own
+detectors forbid:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            COVERAGE-GAP-probe-equality-tooltip-text-unasserted
+file:             lifetime-tax-strategy-lab.html
+mutation:         between two declared sums and says nothing about which claim age is better.  ->  between two declared sums and says which claim age is BEST.   (1 occurrence(s))
+red-exit:         0
+red-summary:        94 passed (15.6s)
+green-exit:       0
+green-summary:      94 passed (14.9s)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   NO (red-exit 0 == green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+COVERAGE_PROBE_EXIT=7
+```
+
+All 94 browser tests pass while the route tells the reader which claim age is
+best. Closing this needs a new assertion, which needs a new Test Plan row and a
+new DoD item — both planning-owned. It is therefore **reported and routed, not
+silently authored here**, and no existing row is ticked on the strength of it.
+
+**Claim Source:** executed.
+
+### DoD — Change Boundary respected, zero excluded file families changed
+
+```text
+excluded_pathspecs=34 siblingSpecsExcluded=18 marketBrief=13
+EXCLUDED_ROWS=0
+untracked_excluded_dirs=0
+--- blob identity for every excluded tracked file ---
+excluded_files_differing_from_HEAD=0
+```
+
+The excluded set is this scope's own: it adds `rltaxclaimage.js` and
+`tax-rules/mortality/**`, and it holds back only `lifetime-tax-medicare.spec.mjs`
+and the SUP-024-11 target `tests/lifetime-tax-route.spec.mjs` from the sibling
+spec exclusion, which is why 18 sibling files are excluded here rather than 19.
+
+`untracked_excluded_dirs=0`, so the mtime clause is nowhere the sole evidence.
+Rather than rely on mtime, every excluded **tracked file** was compared by blob
+hash against `HEAD`; zero differ. That is a stronger statement than either
+`git status` or mtime alone.
+
+The adversarial case was measured:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S04-change-boundary-detects-excluded-touch
+file:             rltaxclaimage.js
+mutation:         two declared sums are equal at that age  ->  two declared sums are equal at that age /*bp*/   (1 occurrence(s))
+red-exit:         1
+red-summary:       M rltaxclaimage.js
+green-exit:       0
+green-summary:    EXCLUDED_SURFACE_ROWS=0
+revert-verified:  yes (committed=2075b2bc1647bc136621262f5e9a96ffcb697d82 restored=2075b2bc1647bc136621262f5e9a96ffcb697d82)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_04_BOUNDARY_EXIT=0
+```
+
+**Claim Source:** executed.
+
+### DoD — Consumer Impact Sweep, zero stale first-party references
+
+**The rename, move and removal set for this scope is EMPTY**, exactly as in
+scope 03:
+
+```text
+rename_or_delete_commits=0
+b9d92a3f1 2026-08-18 Add Lifetime Tax Strategy Lab: federal, state, property, rental and retirement slices
+```
+
+`rltaxmedicare.js` and the medicare pack were added and never renamed or removed,
+so the row is vacuously satisfiable as written. It is earned instead against
+rules with measured populations, each probed.
+
+Candidate rules were measured **before** being written, and two were rejected:
+
+| Rejected rule | Why it could never fail |
+| --- | --- |
+| Every `href="#…"` deep link into the cost panels resolves | `href_hash_anchors=0`; the route emits no such anchor, so the rule inspects nothing |
+| Every cost-leg identifier the medicare spec names is emitted by the route | `legs-named-in-spec=0`; the spec compares leg **sets** read from `data-rl-legs` attributes at runtime and never names a leg literally, so a static scan has no population |
+
+The second rejection matters: the sweep table's "the census refuses on an unknown
+leg rather than skipping it" is a **runtime** property, already carried by the
+browser row that reconciles `data-rl-legs-record` against the headline legs. A
+static restatement of it would have been a rule that could not fail.
+
+The three rules kept:
+
+```text
+R1 declared-module-reads=14 unresolved=0 medicareModuleDeclared=true
+R2 declared-pack-reads=7 unresolved=0 medicarePackDeclared=true
+R3 medicare-ids-targeted=9 unresolved=0
+SWEEP04_FAILED_RULES=0
+SWEEP04_EXIT=0
+```
+
+Each is probed against this scope's own surfaces rather than a sibling's:
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S04-sweep-R1-detects-stale-medicare-module-read
+mutation:         src="rltaxmedicare.js"  ->  src="rltaxmedicare-STALE.js"   (1 occurrence(s))
+red-exit:         1
+red-summary:      R1 declared-module-reads=14 unresolved=1 rltaxmedicare-STALE.js
+green-exit:       0
+green-summary:    R1 declared-module-reads=14 unresolved=0
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_04_R1_EXIT=0
+```
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S04-sweep-R2-detects-moved-medicare-pack-path
+file:             lifetime-tax-strategy.config.json
+mutation:         "2026": "tax-rules/medicare/2026.json"  ->  "2026": "tax-rules/medicare/2026-MOVED.json"   (1 occurrence(s))
+red-exit:         1
+red-summary:      R2 declared-pack-reads=7 unresolved=1 medicarePackPaths:2026:tax-rules/medicare/2026-MOVED.json
+green-exit:       0
+green-summary:    R2 declared-pack-reads=7 unresolved=0
+revert-verified:  yes (committed=ac13755c5f1ab9630106b321aeb1672d64deac7b restored=ac13755c5f1ab9630106b321aeb1672d64deac7b)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_04_R2_EXIT=0
+```
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            S04-sweep-R3-detects-renamed-cost-panel-target
+file:             lifetime-tax-strategy-lab.html
+mutation:         id="medicareBracketLine"  ->  id="medicareBracketLineRENAMED"   (1 occurrence(s))
+red-exit:         1
+red-summary:      R3 medicare-ids-targeted=9 unresolved=1 medicareBracketLine
+green-exit:       0
+green-summary:    R3 medicare-ids-targeted=9 unresolved=0
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_04_R3_EXIT=0
+```
+
+R2 is the API-client read the sweep table names, and it catches a moved medicare
+pack path. No first-party reference is stale.
+
+**Claim Source:** executed.
+
 
 
 

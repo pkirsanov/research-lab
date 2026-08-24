@@ -2221,3 +2221,286 @@ FINAL_DIFF_CHECK_EXIT=0
 The dirty-path set is unchanged from entry. This validate invocation edited
 only `report.md`; it did not modify the planning-owned `scopes.md`, source,
 tests, human acceptance, or any status/certification field.
+
+## BUG-004 Test Phase Receipts - 2026-08-24 {#test-phase-receipts-2026-08-24}
+
+**Phase:** test
+**Agent:** `bubbles.test`
+**Repository binding:** `PREFLIGHT_COMMITTED decision=rb:vscode-b7e2742171e5dad1325276440494236b:54 revision=54 repository=research-lab root=<repo-root>`
+(The `root=` value is redacted to the `<repo-root>` placeholder, consistent with
+`#pii-redaction-2026-08-24`.)
+**Tree at execution:** `git status --short --branch` reported `## main...origin/main`;
+`HEAD` = `1d61ee8ef`; dirty paths were `<bug-folder>/scenario-manifest.json`,
+`<bug-folder>/scopes.md`, `<bug-folder>/uservalidation.md`, and
+`tests/portfolio-behavior-occurrence.unit.mjs`.
+
+This invocation recorded the two carrier runs that a prior cut-off run left
+unrecorded. Both commands below were executed by this agent in this session.
+This invocation authored no test and changed no product source; its owned
+change is `report.md` and the `execution.completedPhaseClaims` entry in
+`state.json`.
+
+**Carrier provenance, stated honestly.** Only
+`tests/portfolio-behavior-occurrence.unit.mjs` carries uncommitted work from the
+prior run: `git diff --stat` reports `1 file changed, 129 insertions(+)`, adding
+exactly one test title, `BUG-004: the evidence-age window is applied before
+semantic collapse, so a stale first occurrence cannot erase a fresh repeat`.
+`tests/portfolio-brief.functional.mjs` is **clean at `HEAD`** — `git diff --stat`
+on it emits nothing. Its 28 rows are previously committed coverage, re-executed
+here for a current receipt; they are not new authorship by the prior run.
+
+### Occurrence unit carrier {#test-phase-unit-carrier}
+
+**Executed by this agent:** YES
+**Claim Source:** executed
+**Command:** `timeout 300 node --test tests/portfolio-behavior-occurrence.unit.mjs`
+**Exit Code:** 0
+
+```text
+✔ BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity (172.833769ms)
+✔ BUG-004: an exact occurrence repeat is still refused as a duplicate (47.702916ms)
+✔ BUG-004: a repeated same-day occurrence cannot buy relevance it did not earn (121.176878ms)
+✔ BUG-004: stored occurrence growth is bounded by the declared behaviour-event cap (37.160679ms)
+✔ BUG-004: reinstating the superseded content+civil-day predicate turns the accepted-occurrence assertion red (111.958333ms)
+✔ BUG-004: the evidence-age window is applied before semantic collapse, so a stale first occurrence cannot erase a fresh repeat (152.284293ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 815.004041
+UNIT_EXIT=0
+```
+
+**Counts:** tests 6, pass 6, fail 0, cancelled 0, skipped 0, todo 0.
+**Result:** PASS. This is one row above the `5` recorded at
+[`#tp-b004-002`](#tp-b004-002); the delta is the single evidence-age-window row
+added by the prior run and still uncommitted.
+
+**Uncertainty Declaration.** This receipt establishes only that all six rows are
+green on the current working tree. It does **not** establish that the new
+evidence-age-window row is discriminating. No RED proof was produced for it in
+this session, so it carries no red-green evidence and no negative-control proof
+here. A green first-ever run cannot distinguish a real guard from a tautology.
+Whether that row is sensitive to the defect it names remains unproven and is not
+claimed. No DoD item is advanced on the strength of this block.
+
+### Brief functional carrier {#test-phase-functional-carrier}
+
+**Executed by this agent:** YES
+**Claim Source:** executed
+**Command:** `timeout 900 node --test tests/portfolio-brief.functional.mjs`
+**Exit Code:** 0
+**Capture:** `178` lines, sha256
+`1425c1394309efd0b42efad23346f576e8128160efa31a365e565e82259fd50a`
+
+```text
+TAP version 13
+# Subtest: only an eligible completion becomes behavior evidence and no excluded source can create or grow one
+ok 1 - only an eligible completion becomes behavior evidence and no excluded source can create or grow one
+  ---
+  duration_ms: 225.840146
+  type: 'test'
+  ...
+# Subtest: route recomposition is invariant to behavior evidence and states that behavior contributes none
+ok 2 - route recomposition is invariant to behavior evidence and states that behavior contributes none
+  ---
+  duration_ms: 36.69918
+  type: 'test'
+  ...
+# Subtest: behavior clear removes the committed evidence and returns recomposition to the pre-evidence baseline
+ok 3 - behavior clear removes the committed evidence and returns recomposition to the pre-evidence baseline
+  ---
+  duration_ms: 85.792086
+  type: 'test'
+  ...
+# Subtest: dismissal and automatic invalidation record a safe outcome and never a behavior event or a negative preference
+
+--- omitted 138 line(s); sha256 above covers the full output ---
+
+ok 27 - Adversarial: reduced brief evidence policy and API cannot satisfy the complete contract
+  ---
+  duration_ms: 1.321292
+  type: 'test'
+  ...
+# Subtest: Regression: BUG-004 same-semantic occurrences cannot inflate relevance
+ok 28 - Regression: BUG-004 same-semantic occurrences cannot inflate relevance
+  ---
+  duration_ms: 103.065082
+  type: 'test'
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 28
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 769.304689
+```
+
+Re-derive with:
+`bash .github/bubbles/scripts/evidence-capture.sh --verify 1425c1394309efd0b42efad23346f576e8128160efa31a365e565e82259fd50a -- node --test tests/portfolio-brief.functional.mjs`
+
+**Counts:** tests 28, pass 28, fail 0, cancelled 0, skipped 0, todo 0.
+**Result:** PASS, matching the `28 of 28` already recorded for this carrier at
+[`#tp-b004-004`](#tp-b004-004). `TP-B004-003` and the BUG-004 semantic
+anti-inflation regression (`ok 28`) are both inside this green run.
+
+### Scope of this invocation
+
+| Touched | Path | Nature |
+| --- | --- | --- |
+| Yes | `<bug-folder>/report.md` | Appended this section only |
+| Yes | `<bug-folder>/state.json` | Appended `"test"` to `execution.completedPhaseClaims` only |
+| No | `state.json` `status`, `certification.*` | Not writable by this agent; unchanged |
+| No | Build Quality Gate DoD row in `scopes.md` | Not advanced; unchanged |
+| No | Any product source or test file | Unchanged |
+
+`BUG-004-G4` is untouched and remains open with `bubbles.validate` as owner.
+Nothing in this section promotes a scope, a phase certification, or a status.
+
+## BUG-004 Regression Phase - 2026-08-24 {#regression-phase-2026-08-24}
+
+**Agent:** `bubbles.regression` · **Verdict:** 🟢 `REGRESSION_FREE`
+
+**Claim Source:** every number below was produced by a command executed in this
+invocation against the current working tree at `c7e0341c3`. No prior-session
+transcript and no operator-supplied output was adopted as evidence.
+
+**Change under test:** the same-day behavior-occurrence dedupe at
+`rlportfolio.js:2294` (`dedupeBehaviorEvents`) and `:2479` (its wiring into the
+eligible-event fold), plus `rlportfoliobrief.js:331`/`:408` and the relevance
+accumulation loop at `:461`, which now collapses semantically before scoring.
+
+The working tree carried no dirty product source and no dirty test file when
+these lanes ran; the only modified paths were this packet's `report.md`,
+`state.json`, and `uservalidation.md`.
+
+### Carrier execution and baseline comparison {#regression-baseline-2026-08-24}
+
+| Carrier | Command | Exit | Result | Prior recorded baseline | Delta |
+| --- | --- | --- | --- | --- | --- |
+| Feature 008 node set, 15 files (superset of `TP-B004-004`) | `node --test` over the 13-file `TP-B004-004` aggregate plus `portfolio-behavior-occurrence.unit.mjs` and `portfolio-doc-integration.functional.mjs` | `0` | 249 tests, 249 pass, 0 fail, 0 cancelled, 0 skipped, 0 todo | 245/245 on the 14-file superset ([`#test-phase-receipts-2026-08-24`](#test-phase-receipts-2026-08-24) lineage) | +4, fully accounted below |
+| Repository selftest (`TP-B004-007`) | `node scripts/selftest.mjs` | `0` | 3408 passed, 0 failed | 3406 passed, 0 failed | +2, attribution below |
+| Feature 008 browser matrix (`TP-B004-006`) | `npx --no-install playwright test` over all 8 `portfolio-survival-*.spec.mjs`, `--project=system-chrome` | `0` | 94 passed in 2.3m | 94 passed | 0, exactly stable |
+
+Evidence hashes, re-derivable with
+`bash .github/bubbles/scripts/evidence-capture.sh --verify <sha> -- <command>`:
+
+- node set — 1505 lines, `sha256 735f0eb9f2a4cebaf82f5c9114be740965479390e6adb512a07582a899669e90`
+- selftest — 3891 lines, `sha256 c40e001b309fe10e45cba45b567ff9aa092be0dee78cbf8a3530f164b5d5c5e5`
+- browser matrix — 303 lines, `sha256 540de96a13c3eab077059f6438c6ee256772542906686cc5e9db3e4c20477921`
+
+**The +4 node delta is fully accounted, so it hides no loss.** Three of the four
+are the fifteenth file itself: `tests/portfolio-doc-integration.functional.mjs`
+run alone reports `# tests 3 / # pass 3 / # fail 0`, and it was absent from the
+14-file superset. The fourth is the single row `c7e0341c3` added to
+`tests/portfolio-behavior-occurrence.unit.mjs`
+(`BUG-004: the evidence-age window is applied before semantic collapse …`);
+`git show --stat` confirms that commit touched exactly one test file for +129
+lines and `git show | grep '^+\s*test('` returns exactly one added row. 245 + 3
++ 1 = 249, leaving zero unexplained movement.
+
+**Uncertainty declaration on the selftest +2.** The only commits touching
+`specs/` or `scripts/selftest.mjs` between the 3406 baseline and this run are
+`c7e0341c3` (this packet's manifest and scopes) and `4e61b1ce2`
+(`spec(025,027): record the coverage the scenario manifests already had`, two
+scenario manifests). `4e61b1ce2` is the plausible source because the selftest
+carries per-manifest scenario checks, but this invocation did not bisect the
+two runs to prove it, so the attribution is stated as unverified rather than
+asserted. What the evidence does establish is the load-bearing regression fact:
+both runs report `0 failed`. A rising total alone would not prove nothing was
+lost — that claim rests on the per-carrier assertion audit below, not on the
+count.
+
+### Cross-spec impact scan {#regression-cross-spec-2026-08-24}
+
+The blast radius of `dedupeBehaviorEvents` is contained inside Feature 008. A
+symbol-level scan across all non-`_site` `*.js`, `*.mjs`, and `*.html` returns
+call sites only in `rlportfolio.js` (definition at 2294, use at 2479, export at
+4947), `rlportfoliobrief.js` (definition at 331, uses at 408 and 461, export at
+1072), and one consumer page,
+`portfolio-survival-allocation-lab.html:6228`. The broader `behaviorEvents`
+identifier reaches no additional runtime surface: only that same lab page,
+`rlportfolio.js`, `scripts/selftest.mjs`, and Feature 008 test carriers.
+
+`portfolio-survival-allocation-lab.html` is the sole shipped page that loads
+`rlportfolio*`, and it is exercised by the browser matrix above, which is green
+at 94/94. No second tool page, and no other spec's runtime code, links to the
+changed path.
+
+The many `specs/0{02,07,12,19,21,22,23,24}` hits for the module names are prose
+and evidence references in reports and scope files, not runtime coupling; none
+of them imports or invokes the changed functions. Recording that distinction
+matters, because a file-name grep alone would have overstated the affected set
+by roughly forty documents.
+
+**Not exercised, and why.** `scripts/brief-refresh.mjs` names these modules and
+was deliberately not run: it fetches live provider data and appends to the
+shared cache, so executing it during a regression pass would mutate repository
+data to produce a receipt. Its consumer-side contract is covered instead by the
+selftest's brief-window and publisher checks, which are inside the green 3408.
+
+### Anti-weakening audit {#regression-anti-weakening-2026-08-24}
+
+Coverage was checked for shrinkage, not just for a green total.
+
+| Check | Command shape | Result |
+| --- | --- | --- |
+| Suppression markers across all `tests/portfolio-*.mjs` | `grep -nE '\.skip\(\|\.todo\(\|\.only\(\|skip: *true\|todo: *true'` | NONE |
+| Assertion count, `tests/portfolio-brief.functional.mjs` | `grep -cE 'assert\.\|expect\('` at `a59e38d71^` vs HEAD | 289 → 315 |
+| Assertion count, `tests/portfolio-behavior-occurrence.unit.mjs` | same | absent at parent → 88 |
+| Assertion count, `tests/portfolio-survival-foundation.spec.mjs` | same | 436 → 469 |
+| Assertion count, `tests/portfolio-foundation.unit.mjs` | same | 941 → 941, unchanged |
+| `regression-quality-guard.sh`, 4 BUG-004 carriers | default mode | exit `0`, 0 violations, 0 warnings |
+| `regression-quality-guard.sh --bugfix`, same 4 | bugfix mode | exit `0`, 0 violations, 0 warnings, adversarial signal in 4 of 4 |
+
+No carrier lost an assertion and none was silenced.
+
+**One honest observation, classified as pre-existing and not a regression.**
+`tests/portfolio-survival-accessibility.spec.mjs:484` does call `page.route`
+inside a live `e2e-ui` carrier. Two facts keep it out of the regression column.
+It predates this repair — `git show a59e38d71^:…` finds the same call, and
+`git log -S` attributes it to `0972ddd75 feat(008): implement accessible six-tab
+interaction`. And it is not a backend stub: it re-serves a deliberately mutated
+copy of the local lab HTML so the adversarial
+`reduced accessibility implementations fail closed` row judges a genuinely
+reduced document, with the surrounding comment explaining that a same-document
+fragment navigation would otherwise leave the route unfired. It is recorded here
+so the clean verdict is not read as a claim that the file contains no
+interception at all.
+
+### Verdict {#regression-verdict-2026-08-24}
+
+```
+🟢 REGRESSION_FREE
+
+Test baseline: no lane failed and no lane shrank
+  node carriers   249/249 pass, exit 0   (was 245/245; +4 fully accounted)
+  selftest        3408 passed, 0 failed, exit 0   (was 3406/0)
+  browser matrix  94 passed, exit 0   (was 94)
+Cross-spec conflicts: 0
+Design contradictions: 0
+Coverage: no assertion count decreased; 0 skip/todo/only markers
+Deployment regression scan: not applicable, this repository ships no
+  deploy/, build workflow, or deployment adapter surface
+```
+
+### Scope of this invocation {#regression-scope-2026-08-24}
+
+| Touched | Path | Nature |
+| --- | --- | --- |
+| Yes | `<bug-folder>/report.md` | Appended this section only |
+| Yes | `<bug-folder>/state.json` | Appended `"regression"` to `execution.completedPhaseClaims` and one matching `executionHistory` entry |
+| No | `state.json` `status`, `certification.*` | Not writable by this agent; unchanged |
+| No | Build Quality Gate DoD row in `scopes.md` | Not advanced; unchanged |
+| No | Any product source or test file | Unchanged |
+| No | Any commit or push | None performed |
+
+`BUG-004-G4` is untouched and remains open with `bubbles.validate` as owner. A
+clean regression verdict is not a certification; it reports only that this
+change broke nothing that previously worked.

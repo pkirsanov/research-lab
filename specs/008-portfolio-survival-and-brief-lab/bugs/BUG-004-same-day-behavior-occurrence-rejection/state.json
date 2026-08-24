@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection",
   "featureName": "BUG-004 Same-Day Behavior Occurrence Rejection",
   "createdAt": "2026-08-24T00:00:00Z",
-  "lastUpdatedAt": "2026-08-24T16:26:58Z",
+  "lastUpdatedAt": "2026-08-24T23:13:25Z",
   "certifiedAt": null,
   "status": "in_progress",
   "blockedReason": null,
@@ -39,7 +39,7 @@
     "nextRequiredOwner": "bubbles.validate",
     "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection",
     "nextRequiredReason": "BUG-004-G3 is resolved: Scope 1 now assigns rlportfolio.js and rlportfoliobrief.js to bubbles.implement, matching the two product source files in a59e38d71, and the current dirty set contains only the three packet artifacts plus the two declared test carriers. BUG-004-G4 remains unresolved because validate-owned certification has not been re-run since G070. bubbles.validate must restart certification on the current in-progress packet.",
-    "completedPhaseClaims": ["analyze", "implement"],
+    "completedPhaseClaims": ["analyze", "implement", "test", "regression"],
     "pendingTransitionRequests": []
   },
   "completedScopes": [],
@@ -136,6 +136,24 @@
       "action": "pii-redacted-and-dod-closed-to-ten-of-twelve",
       "note": "Redacted the one absolute home path that leaked into report.md:1052 inside a pasted PREFLIGHT_COMMITTED receipt, replacing it with the <repo-root> placeholder; no allowlist entry was added and no scanner rule was relaxed. node scripts/selftest.mjs returned to exit 0 with 3406 passed and 0 failed. Re-executed every lane in this session: TP-B004-001 1/1, TP-B004-002 5/5, TP-B004-003 GREEN 1/1, the brief carrier 28/28, the exact 13-file TP-B004-004 aggregate 240/240, the 14-file superset 245/245, the focused TP-B004-005 and same-civil-day browser rows 1 passed each, the full TP-B004-006 matrix 94 passed, artifact lint exit 0, and regression-quality-guard --bugfix with 0 violations and 0 warnings across 8 carriers. Produced an in-session RED for TP-B004-003 by running the current carrier against a59e38d71^ in an isolated detached worktree, exit 1 with pass 0 and fail 1, so the working tree was never mutated and the operator's own revert transcript was not adopted as this agent's evidence. git diff --check initially exited 2 on a trailing blank line at report.md:1470, contradicting the operator's green claim; it was repaired and re-verified. Closed G-1 and G-2, taking the DoD from 8 to 10 of 12. Left G-3 unchecked because widening the Change Boundary that governs this agent's own excursion is bubbles.plan planning content, and left G-4 unchecked because certification.* is owned by bubbles.validate. Changed no product source and no test file. Did not write certification.* and did not promote status.",
       "phasesExecuted": ["implement"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-24T23:13:25Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "action": "carrier-receipts-recorded",
+      "note": "Recorded the two carrier runs a prior cut-off invocation left unrecorded. Executed timeout 300 node --test tests/portfolio-behavior-occurrence.unit.mjs at exit 0 with tests 6, pass 6, fail 0, skipped 0, todo 0, and timeout 900 node --test tests/portfolio-brief.functional.mjs at exit 0 with tests 28, pass 28, fail 0, skipped 0, todo 0, captured at 178 lines under sha256 1425c1394309efd0b42efad23346f576e8128160efa31a365e565e82259fd50a. Stated the carrier provenance honestly: only tests/portfolio-behavior-occurrence.unit.mjs carries uncommitted prior-run work at 129 insertions adding one evidence-age-window row, while tests/portfolio-brief.functional.mjs is clean at HEAD and its 28 rows are previously committed coverage re-executed for a current receipt. Declared an explicit uncertainty on the new sixth unit row: it is green but was never proven RED in this session, so it carries no discrimination proof and no DoD item was advanced on it. Authored no test, changed no product source, and did not write status, certification.*, or the Build Quality Gate DoD row. BUG-004-G4 remains open with bubbles.validate as owner.",
+      "phasesExecuted": ["test"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-24T23:29:27Z",
+      "agent": "bubbles.regression",
+      "phase": "regression",
+      "action": "regression-free-verdict-recorded",
+      "note": "Executed the Feature 008 regression carriers in this session against a working tree carrying no dirty product source and no dirty test file. The 15-file node set, a superset of the TP-B004-004 aggregate plus the occurrence unit carrier and portfolio-doc-integration.functional.mjs, returned exit 0 with 249 tests, 249 pass, 0 fail, 0 skipped, 0 todo. node scripts/selftest.mjs returned exit 0 with 3408 passed and 0 failed. The full eight-spec Playwright browser matrix returned exit 0 with 94 passed. Compared each against the prior recorded baseline and accounted for the movement rather than accepting a rising total as proof: the +4 node delta is exactly the three rows of the fifteenth file plus the one row commit c7e0341c3 added to tests/portfolio-behavior-occurrence.unit.mjs, leaving zero unexplained change; the browser matrix is exactly stable at 94. Declared an explicit uncertainty on the selftest +2, whose plausible source is 4e61b1ce2 touching two scenario manifests but which this invocation did not bisect to prove. Ran a symbol-level cross-spec scan showing the dedupeBehaviorEvents blast radius is contained to rlportfolio.js, rlportfoliobrief.js, and the single consumer page portfolio-survival-allocation-lab.html, which the green browser matrix exercises; the forty-odd other spec hits are prose references, not runtime coupling. Audited for weakening rather than only for green: zero skip, todo, or only markers across the portfolio carriers, and assertion counts rose or held on all four BUG-004 carriers against a59e38d71^ with none falling. regression-quality-guard returned exit 0 in both default and --bugfix mode with 0 violations, 0 warnings, and adversarial signals in 4 of 4. Recorded one honest observation that is not a regression: the page.route call at tests/portfolio-survival-accessibility.spec.mjs:484 predates the repair, is attributable to 0972ddd75, and re-serves a mutated copy of the local lab page rather than stubbing a backend. Deliberately did not run scripts/brief-refresh.mjs because it fetches live provider data and would mutate the shared cache to produce a receipt. Verdict REGRESSION_FREE. Changed no product source and no test file. Did not write status, certification.*, or the Build Quality Gate DoD row. BUG-004-G4 remains open with bubbles.validate as owner.",
+      "phasesExecuted": ["regression"],
       "provenanceMode": "specialist"
     }
   ],

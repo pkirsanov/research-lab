@@ -593,6 +593,16 @@ async function openWithQuery(page, query) {
 
 async function firstPaint(page) {
     return page.evaluate(() => {
+        /* The RLTKR decorator appends an "Explain <ticker>" button inside ticker-bearing nodes, so
+         * a raw textContent read yields "SPY?" wherever it has run -- which depends on the shared
+         * cache and so differs between a local run and CI. Whether the affordance rendered is not
+         * what these assertions are about; the subject underneath it is. */
+        const undecorated = (node) => {
+            if (!node) return null;
+            const clone = node.cloneNode(true);
+            clone.querySelectorAll('.rltkr-context').forEach((button) => button.remove());
+            return (clone.textContent || '').trim();
+        };
         const notice = document.getElementById('linkNotice');
         const decision = window.VolSizingLab.runtime.decision;
         return {
@@ -600,7 +610,7 @@ async function firstPaint(page) {
             selectValue: document.getElementById('assetSelect').value,
             targetVolInput: document.getElementById('targetVolInput').value,
             targetVol: window.VolSizingLab.runtime.controls.targetVol,
-            assetName: document.querySelector('[data-asset-name]').textContent,
+            assetName: undecorated(document.querySelector('[data-asset-name]')),
             decisionState: decision.state,
             noticeText: notice ? notice.textContent : null,
             noticeHidden: notice ? notice.hidden : null
@@ -736,11 +746,17 @@ test('Regression: SCN-027-013 after a refusal every control reflects one single 
     expect(paint.selectValue).toBe('SPY');
     expect(paint.assetName).toBe('SPY');
     const consistent = await page.evaluate(() => {
+        // The rendered subject carries the decorator's affordance; the runtime values do not.
+        const undecorated = (node) => {
+            const clone = node.cloneNode(true);
+            clone.querySelectorAll('.rltkr-context').forEach((button) => button.remove());
+            return (clone.textContent || '').trim();
+        };
         const runtime = window.VolSizingLab.runtime;
         return {
             control: runtime.controls.asset,
             select: document.getElementById('assetSelect').value,
-            named: Array.from(document.querySelectorAll('[data-asset-name]')).map((n) => n.textContent)
+            named: Array.from(document.querySelectorAll('[data-asset-name]')).map(undecorated)
         };
     });
     expect(new Set([consistent.control, consistent.select].concat(consistent.named)).size).toBe(1);
@@ -949,9 +965,15 @@ test('Regression: SCN-027-013 the catalog-miss notice keeps naming the asset act
     /* the explanation survives the re-statement rather than being silently erased */
     expect(after, 'the reason the link did not land was dropped instead of restated').toContain('no data for TSLA');
     const coherent = await page.evaluate(() => {
+        // The rendered subject carries the decorator's affordance; the runtime values do not.
+        const undecorated = (node) => {
+            const clone = node.cloneNode(true);
+            clone.querySelectorAll('.rltkr-context').forEach((button) => button.remove());
+            return (clone.textContent || '').trim();
+        };
         const runtime = window.VolSizingLab.runtime;
         return [runtime.controls.asset, document.getElementById('assetSelect').value]
-            .concat(Array.from(document.querySelectorAll('[data-asset-name]')).map((n) => n.textContent.trim()));
+            .concat(Array.from(document.querySelectorAll('[data-asset-name]')).map(undecorated));
     });
     expect(new Set(coherent).size, 'controls disagree after the change: ' + JSON.stringify(coherent)).toBe(1);
 

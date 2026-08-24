@@ -3443,6 +3443,130 @@ chosen: `workflowMode full-delivery`, `targetStatus done`, `statusCeiling done`,
 `contractDigest sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93`,
 `targetRevision sha256:6714f473c898d773ad2c9db3045e093f3686c569b3dcee3d1acb8482f609670c`.
 
+### Audit Evidence
+
+**Executed:** YES
+**Command:** `node --test tests/company-intelligence.unit.mjs && node scripts/selftest.mjs && npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list tests/company-intelligence-lab.spec.mjs && bash .github/bubbles/scripts/artifact-lint.sh specs/025-company-multi-horizon-intelligence-lab && bash .github/bubbles/scripts/state-transition-guard.sh specs/025-company-multi-horizon-intelligence-lab --target-status done --expect-workflow-mode full-delivery --expect-contract-digest sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93 && bash .github/bubbles/scripts/implementation-reality-scan.sh specs/025-company-multi-horizon-intelligence-lab --verbose && bash .github/bubbles/scripts/regression-quality-guard.sh tests/company-intelligence-lab.spec.mjs`
+**Phase Agent:** bubbles.audit
+**Claim Source:** executed
+
+This is a re-execution round dated 2026-08-23, not a restatement of the 2026-08-19 pass recorded
+below. Every baseline the earlier pass measured has since moved — the unit suite from 70 to 90
+cases, the browser suite from 29 to 37, the selftest from 3065 to 3404 assertions — because the
+`AUD-025-F1` closure added the killing assertions and because concurrent foreign work landed in
+the shared selftest file. Re-running was therefore the only honest way to give this section a
+number a reader can reproduce today. Each command below was executed in this session and its own
+exit code is recorded next to it; none of these figures is carried forward from the earlier pass.
+
+Feature unit surface, run first because it is the surface the four `AUD-025-F1` closure
+assertions were written into:
+
+```
+$ node --test tests/company-intelligence.unit.mjs
+ℹ tests 90
+ℹ suites 0
+ℹ pass 90
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 216.269041
+exit code 0
+```
+
+Repository selftest and the feature browser suite. The browser run names its runner version
+because a Playwright major would change what `system-chrome` means:
+
+```
+$ node scripts/selftest.mjs
+================================================
+Research-Lab self-test: 3404 passed, 0 failed
+================================================
+exit code 0
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=list tests/company-intelligence-lab.spec.mjs
+Running 37 tests using 1 worker
+  37 passed (47.9s)
+exit code 0
+$ npx --no-install playwright --version
+Version 1.61.1
+```
+
+Governance surface. The lint runs clean at the file's present `in_progress` status; the transition
+guard was invoked in assertion-only form against the resolved contract, so the target status,
+workflow mode and contract digest were asserted rather than chosen by this phase:
+
+```
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/025-company-multi-horizon-intelligence-lab
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+=== End Anti-Fabrication Checks ===
+Artifact lint PASSED.
+exit code 0
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/025-company-multi-horizon-intelligence-lab --target-status done --expect-workflow-mode full-delivery --expect-contract-digest sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93
+✅ PASS: All 111 checked DoD items across resolved scope files have evidence blocks
+⚠️  WARN: report.md has 27 of 87 evidence blocks that lack terminal output signals
+🟡 TRANSITION PERMITTED with 1 warning(s)
+failedGateIds: []
+blockingCode: none
+failureCount: 0
+exit code 0
+```
+
+Reality scan and regression-quality guard. The single reality-scan warning is a reference-style
+note, not a violation, and it is quoted rather than summarised so a reader can judge it:
+
+```
+$ bash .github/bubbles/scripts/implementation-reality-scan.sh specs/025-company-multi-horizon-intelligence-lab --verbose
+  IMPLEMENTATION REALITY SCAN RESULT
+  Files scanned:  9
+  Violations:     0
+  Warnings:       1
+⚠️  WARN: Resolved 9 file(s) from design.md fallback — scopes.md should reference these directly
+🟡 PASSED with 1 warning(s) — manual review advised
+exit code 0
+$ bash .github/bubbles/scripts/regression-quality-guard.sh tests/company-intelligence-lab.spec.mjs
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 1
+exit code 0
+```
+
+Test integrity, re-scanned rather than assumed. Declared counts match executed counts on both
+suites — 90 `test(` declarations against `pass 90`, 37 against `37 passed` — and both suites are
+free of skip markers. The one interception hit is reported rather than suppressed, because a
+"zero mocking" claim would have been false:
+
+```
+$ grep -rncE 't\.skip|\.skip\(|xit\(|xdescribe\(|\.only\(|test\.todo|it\.todo|\.fixme\(' tests/company-intelligence.unit.mjs tests/company-intelligence-lab.spec.mjs
+tests/company-intelligence.unit.mjs:0
+tests/company-intelligence-lab.spec.mjs:0
+$ grep -rncE 'page\.route|context\.route|msw|nock|fulfill\(|abort\(' tests/company-intelligence-lab.spec.mjs
+tests/company-intelligence-lab.spec.mjs:1
+$ grep -rncE 'TODO|FIXME|HACK|XXX|WIP|console\.|debugger' rlcompanyintel.js company-intelligence-lab.html company-intelligence.config.json
+rlcompanyintel.js:0
+company-intelligence-lab.html:0
+company-intelligence.config.json:0
+$ grep -rncE 'innerHTML|outerHTML|insertAdjacentHTML|document\.write|eval\(|new Function|setTimeout|setInterval' rlcompanyintel.js
+rlcompanyintel.js:0
+```
+
+The interception hit at `tests/company-intelligence-lab.spec.mjs:1134` is `page.route('**/*')` in
+the cache-first first-paint test. It does not fabricate a response: it continues every document
+and classic-script request immediately and holds only `fetch`/`xhr` open behind a gate, which is
+the adversarial condition the test exists to create. Withholding the network to prove the page
+paints from its shipped registry copy is the opposite of a faked live test, so it is recorded as
+a legitimate hit and not counted as a `FAKE_LIVE_TEST` violation.
+
+Two audit-owned defects in this file were found and fixed by this round, and both are recorded
+because a clean lint after a silent repair would be worth less than a noisy one. First, the file
+carried no `### Audit Evidence` heading at all, so `full-delivery` at `done` failed both the
+heading gate and the populated-section gate; the heading did not exist to be renamed, and the
+material under `## Audit Phase` carried none of the three required markers, so this section was
+written from re-executed output rather than conformed from prose. Second, the `FR-025-013` probe
+block below was a five-line paste with no command line and no exit code, which the evidence-block
+rule scores at zero of the two required signals; it was re-executed, not reformatted.
+
+**Claim Source:** executed.
+
 ### Source-file safety — the one thing a mutation audit can get wrong
 
 A previous audit attempt terminated while mutating `rlcompanyintel.js` in place. This pass never
@@ -3538,18 +3662,37 @@ assertions.
 `FR-025-013` is the most consequential and was proven live by direct read-only probe rather than
 by inference. `envelopeSubjectMismatch` rejects a foreign owner envelope on three independent
 legs — `subjectId`, `ticker` and `cik`. Loading the shipped module unmodified and feeding a
-`volatility-sizing-lab` envelope that names only a foreign identifier:
+`volatility-sizing-lab` envelope that names only a foreign identifier. The probe was re-executed
+on 2026-08-23 against the current module with the controls widened to all three legs and with the
+before/after source hash printed, because the first recording carried neither a command line nor
+an exit code:
+
+**Command:** `node /tmp/a025-mismatch-probe.mjs "$PWD"` — exit code 0
 
 ```
-subject under test: company:msft / MSFT / cik 0000789019
-foreign subjectId (test-covered)     state=unavailable  reason=read-company-mismatch  values=0 mismatchRefusals=1
-foreign ticker ONLY                  state=unavailable  reason=read-company-mismatch  values=0 mismatchRefusals=1
-foreign cik ONLY                     state=unavailable  reason=read-company-mismatch  values=0 mismatchRefusals=1
-own subjectId (control)              state=current      reason=null                   values=1 mismatchRefusals=0
+module under test : rlcompanyintel.js  (121461 bytes)
+sha256 before     : 7f518c1756d23f091fa88a7c0d9ef3856473e2c2666dcad53108a32bbf460ce5
+subject resolved  : company:msft / MSFT / cik 0000789019
+registry contract   : company-coverage-registry/v1  rows=15  horizons=4  maxBranches=5
+
+foreign subjectId  [covered]      state=unavailable  reason=read-company-mismatch  values=0  refusals=1  foreignNumberInComposedJson=false
+foreign ticker ONLY               state=unavailable  reason=read-company-mismatch  values=0  refusals=1  foreignNumberInComposedJson=false
+foreign cik ONLY                  state=unavailable  reason=read-company-mismatch  values=0  refusals=1  foreignNumberInComposedJson=false
+own subjectId     [control]       state=current      reason=null                   values=1  refusals=0  foreignNumberInComposedJson=n/a
+own ticker lower  [control]       state=current      reason=null                   values=1  refusals=0  foreignNumberInComposedJson=n/a
+own cik           [control]       state=current      reason=null                   values=1  refusals=0  foreignNumberInComposedJson=n/a
+
+sha256 after      : 7f518c1756d23f091fa88a7c0d9ef3856473e2c2666dcad53108a32bbf460ce5
+source unmodified : true
+3 foreign legs refuse, number absent from composed JSON : true
+3 controls read through with a value                    : true
+PROBE RESULT: PASS  (6 cases, 0 failed)
 ```
 
-All three legs fire today and the control reads through with a value, so none of them is dead
-code and the mutation is not an equivalent mutant. But the only adversarial test,
+The probe script lives outside the repository and the two hashes bracket the run, so the shipped
+module was read and never written. All three legs fire today and all three controls read through
+with a value, so none of them is dead code and the mutation is not an equivalent mutant. But the
+only adversarial test at the time this finding was raised,
 `adversarial: a read naming another company is refused and never reaches a horizon` at
 `tests/company-intelligence.unit.mjs:1441`, uses `subjectId: 'company:aapl'`. The `ticker` and
 `cik` legs have no case. An owner tool that keys its published read by ticker rather than by

@@ -2143,11 +2143,22 @@ through `head` or `tail`.
 **Claim Source: executed.** OWASP A03 Injection, with A01 as the impact class.
 
 `company-intelligence-lab.html` binds a registry-authored value straight into an
-anchor at two sites, line 582 and line 860:
+anchor at two sites. The original evidence here was a hand-quoted one-line
+excerpt citing lines 582 and 860. Both call sites have since moved, so the quote
+is replaced below by a re-execution of the locating scan against the current
+working tree. `git status --porcelain` reported `rlcompanyintel.js`,
+`company-intelligence-lab.html` and `company-intelligence.config.json` all clean
+at `HEAD` when every scan on this page ran:
 
-```js
-card.appendChild(el("a", "Open " + owner.ownerToolId, { href: owner.ownerDeepLink, ... }));
 ```
+$ grep -n 'href: owner.ownerDeepLink' company-intelligence-lab.html; echo "exit code: $?"
+856:                    card.appendChild(el("a", "Open " + owner.ownerToolId, { href: owner.ownerDeepLink, "data-owner-link": owner.ownerToolId }));
+1251:                        ownerCell.appendChild(el("a", owner.ownerToolId, { href: owner.ownerDeepLink, "data-owner-link": owner.ownerToolId }));
+exit code: 0
+```
+
+Two sites, exit `0`. The sink shape is unchanged from the original reading; only
+the line numbers drifted, 582 → 856 and 860 → 1251.
 
 Before this pass, `readCoverageRegistry` in `rlcompanyintel.js` line 287 accepted
 that value on a type check alone, `isNonEmptyString(row.ownerDeepLink)`. Every
@@ -2161,15 +2172,46 @@ This matters specifically because of the page CSP. `script-src` carries
 `'unsafe-inline'` a `javascript:` URL in an `href` is permitted rather than
 blocked. CSP was therefore not a mitigation for this sink.
 
-Proof the defect was real, executed against the pre-fix module read from
-`git show HEAD:rlcompanyintel.js` and evaluated in memory beside the post-fix
-module:
+Proof the defect was real. **Disclosed reconstruction.** The original run
+addressed the pre-fix module as `git show HEAD:rlcompanyintel.js`, which was
+accurate while the fix was still uncommitted, but `HEAD` has since advanced and
+that reference no longer resolves to a pre-fix blob. The pre-fix module is
+therefore addressed here by its explicit commit, `b160d587f:rlcompanyintel.js`;
+`git log -S SAFE_OWNER_ROUTE -- rlcompanyintel.js` reports the guard first
+appearing in `a87396895`, so `b160d587f` is the last commit without it. Each
+module is fed its own contemporaneous config, so the guard is the only
+difference between the two sides. Re-executed:
 
 ```
-javascript:alert(1)                      | pre-fix: ACCEPTED -> href=javascript:alert(1)           | post-fix: refused C025-CONFIG-SCHEMA
-data:text/html,<script>alert(1)</script> | pre-fix: ACCEPTED -> href=data:text/html,<script>alert(1)</script> | post-fix: refused C025-CONFIG-SCHEMA
-//evil.example/market-brief.html         | pre-fix: ACCEPTED -> href=//evil.example/market-brief.html | post-fix: refused C025-CONFIG-SCHEMA
+$ node -e '
+const {execFileSync}=require("node:child_process");
+const vm=require("node:vm"), fs=require("node:fs");
+const ROOT=process.cwd();
+const blob=(rev,f)=>execFileSync("git",["show",rev+":"+f],{cwd:ROOT,encoding:"utf8"});
+const load=(src,name)=>{const m={exports:{}};const ctx={module:m,exports:m.exports,console};ctx.globalThis=ctx;vm.runInNewContext(src,ctx,{filename:name});return m.exports;};
+const PRE=load(blob("b160d587f","rlcompanyintel.js"),"b160d587f:rlcompanyintel.js");
+const POST=require(ROOT+"/rlcompanyintel.js");
+const PRECFG=JSON.parse(blob("b160d587f","company-intelligence.config.json"));
+const POSTCFG=JSON.parse(fs.readFileSync(ROOT+"/company-intelligence.config.json","utf8"));
+const probe=(mod,cfg,v)=>{const c=JSON.parse(JSON.stringify(cfg));c.coverageRegistry[0].ownerDeepLink=v;
+  try{return "ACCEPTED href="+mod.readCoverageRegistry(c).rows[0].ownerDeepLink;}
+  catch(e){return "REFUSED "+(e&&e.code?e.code:String(e&&e.message));}};
+for(const v of ["javascript:alert(1)","data:text/html,<script>alert(1)</script>","//evil.example/market-brief.html"])
+  console.log(v+" | pre-fix b160d587f: "+probe(PRE,PRECFG,v)+" | post-fix HEAD: "+probe(POST,POSTCFG,v));
+console.log("committed registry, unmodified | pre-fix rows="+PRE.readCoverageRegistry(PRECFG).rows.length+" | post-fix rows="+POST.readCoverageRegistry(POSTCFG).rows.length);
+'; echo "exit code: $?"
+javascript:alert(1) | pre-fix b160d587f: ACCEPTED href=javascript:alert(1) | post-fix HEAD: REFUSED C025-CONFIG-SCHEMA
+data:text/html,<script>alert(1)</script> | pre-fix b160d587f: ACCEPTED href=data:text/html,<script>alert(1)</script> | post-fix HEAD: REFUSED C025-CONFIG-SCHEMA
+//evil.example/market-brief.html | pre-fix b160d587f: ACCEPTED href=//evil.example/market-brief.html | post-fix HEAD: REFUSED C025-CONFIG-SCHEMA
+committed registry, unmodified | pre-fix rows=15 | post-fix rows=15
+exit code: 0
 ```
+
+The finding reproduces exactly as first recorded: all three hostile forms reach
+an `href` on the pre-fix module and all three are refused on the current one,
+while the unmodified committed registry still yields its 15 rows on both sides.
+The last line is the adversarial counter-case — a guard that refused everything
+would have dropped that count.
 
 **Honest severity — LOW, not HIGH.** The registry is committed repository content,
 not user input, so reaching this sink requires commit access, and an actor with
@@ -2182,11 +2224,21 @@ boundary, and the repository had already solved this exact problem elsewhere.
 
 **Fix.** `rlcompanyintel.js` now constrains the value at the same boundary that
 validates every other registry field, raising the existing `C025-CONFIG-SCHEMA`
-code rather than inventing a new one:
+code rather than inventing a new one. Re-executed against the current module,
+which shows both the constraint and the two places it is enforced:
 
-```js
-var SAFE_OWNER_ROUTE = /^[A-Za-z0-9._-]+\.html$/;
 ```
+$ grep -n 'SAFE_OWNER_ROUTE' rlcompanyintel.js; echo "exit code: $?"
+95:    var SAFE_OWNER_ROUTE = /^[A-Za-z0-9._-]+\.html$/;
+320:            if (ownerDeepLink !== null && !SAFE_OWNER_ROUTE.test(ownerDeepLink)) {
+499:       is re-tested against SAFE_OWNER_ROUTE here rather than trusted from the caller, so a
+505:        if (!row || !isNonEmptyString(row.ownerDeepLink) || !SAFE_OWNER_ROUTE.test(row.ownerDeepLink)) {
+exit code: 0
+```
+
+Line 320 is the registry-validation boundary named above; line 505 is a second
+enforcement inside `ownerRouteFor`, so a hand-assembled registry that never
+passed `readCoverageRegistry` cannot reach an `href` either.
 
 This is the same shape `market-brief.html` line 1571 already applies to its own
 `item.deepLink`, so the fix converges on the repository's existing convention
@@ -2234,6 +2286,26 @@ Suggested remediation is to reuse `briefClassifyLink`, which already exists in
 `rlbrief.js` and already rejects `javascript:`, `data:`, `vbscript:`, `file:`,
 `blob:`, protocol-relative, credentialed and malformed forms. No fix was applied
 here.
+
+**Re-verified while raising this section's evidence blocks. The routing still
+stands, and the reading is marginally worse than first recorded.** Both
+unvalidated sinks are still present and still unguarded; only their line numbers
+drifted, 1354 → 1406 and 1920 → 1991:
+
+```
+$ grep -n 'ownerDeepLink' market-brief.html; echo "exit code: $?"
+1406:                    link.href = owner.ownerDeepLink;
+1991:                        var inner = c.ownerDeepLink ? '<a href="' + esc(c.ownerDeepLink) + '">' + label + '</a>' : label;
+exit code: 0
+```
+
+Two corrections to the reading above, neither of which changes the verdict. The
+correctly validated form moved from line 1571 to line 1643. And there is more
+than one `esc()` in this file: the definition nearest above the line 1991 sink is
+at line 1923 and replaces only `& < > "`, one character narrower than the line
+1246 definition this section cited. Neither definition validates a URL scheme, so
+HTML-escaping remains no defence here and the finding holds unchanged at LOW.
+`market-brief.html` was again read only; nothing in it was modified by this pass.
 
 ### Item-By-Item Verdicts On The Five Review Areas
 

@@ -7,7 +7,7 @@
  */
 import { expect, test } from './playwright-runtime.mjs';
 import { resolve } from 'node:path';
-import { FIXTURE_ROOT, startPortfolioServer } from './portfolio-survival.support.mjs';
+import { FIXTURE_ROOT, expectPathComputeCompleted, startPortfolioServer } from './portfolio-survival.support.mjs';
 
 let server;
 
@@ -278,7 +278,7 @@ test('Regression: SCN-008-020 dated cash need records before and after collision
   await panel.locator('#cashNeedDate').fill(firstSession);
   await panel.locator('#cashNeedLabel').fill('Tuition');
   await panel.locator('#cashNeedAdd').click();
-  await expect(panel.locator('#pathComputeStatus')).toHaveAttribute('data-compute-state', 'completed');
+  await expectPathComputeCompleted(panel);
 
   const row = panel.locator('#cashNeedTimeline tbody tr').first();
   await expect(row).toBeVisible();
@@ -357,7 +357,7 @@ test('Regression: Feature 008 cash need timeline and path table preserve order a
     await panel.locator('#cashNeedDate').fill(date);
     await panel.locator('#cashNeedLabel').fill(label);
     await panel.locator('#cashNeedAdd').click();
-    await expect(panel.locator('#pathComputeStatus')).toHaveAttribute('data-compute-state', 'completed');
+    await expectPathComputeCompleted(panel);
   }
 
   const labels = await panel.locator('#cashNeedTimeline tbody tr th').allTextContents();
@@ -422,8 +422,7 @@ test('Regression: Feature 008 an incomplete cash need is refused rather than par
 test('Regression: SCN-008-048 complete scenario cash needs uncertainty and compute tokens govern every path', async ({ page }) => {
   await seedPortfolio(page, 'TP-22-03 complete scenario');
   const panel = await openPathLab(page);
-  const status = panel.locator('#pathComputeStatus');
-  await expect(status).toHaveAttribute('data-compute-state', 'completed');
+  const status = await expectPathComputeCompleted(panel);
   await expect(status).toHaveAttribute('data-requested-paths', '2000');
   await expect(status).toHaveAttribute('data-completed-paths', '2000');
   await expect(status).toHaveAttribute('data-token-state', 'completed');
@@ -438,11 +437,11 @@ test('Regression: SCN-008-048 complete scenario cash needs uncertainty and compu
     await panel.locator('#cashNeedDate').fill(firstSession);
     await panel.locator('#cashNeedLabel').fill(label);
     await panel.locator('#cashNeedAdd').click();
-    await expect(panel.locator('#pathComputeStatus')).toHaveAttribute('data-compute-state', 'completed');
+    await expectPathComputeCompleted(panel);
   }
   await panel.locator('#survivalFloor').fill('1');
   await panel.locator('#survivalFloorApply').click();
-  await expect(panel.locator('#pathComputeStatus')).toHaveAttribute('data-compute-state', 'completed');
+  await expectPathComputeCompleted(panel);
 
   await expect(panel.locator('#cashNeedPathCoverage')).toContainText('2000 of 2000 paths');
   await expect(panel.locator('#survivalResult')).toContainText('2000 modeled series');
@@ -464,8 +463,7 @@ test('Regression: SCN-008-048 complete scenario cash needs uncertainty and compu
 test('Regression: SCN-008-048 cancelled and superseded path jobs cannot replace the last valid view', async ({ page }) => {
   await seedPortfolio(page, 'TP-22-05 cancellation and supersession');
   const panel = await openPathLab(page);
-  const status = panel.locator('#pathComputeStatus');
-  await expect(status).toHaveAttribute('data-compute-state', 'completed');
+  const status = await expectPathComputeCompleted(panel);
   const initialIdentity = await panel.locator('#pathIdentity').textContent();
   const initialBands = await panel.locator('#pathBands').innerText();
 
@@ -485,7 +483,7 @@ test('Regression: SCN-008-048 cancelled and superseded path jobs cannot replace 
   await seed.fill('20260824');
   await panel.locator('#pathRunScenario').click();
   await expect(status).toHaveAttribute('data-last-settlement-code', 'P008-COMPUTE-SUPERSEDED');
-  await expect(status).toHaveAttribute('data-compute-state', 'completed');
+  await expectPathComputeCompleted(panel);
   await expect(status).toHaveAttribute('data-token-state', 'completed');
   const replacementIdentity = await panel.locator('#pathIdentity').textContent();
   expect(replacementIdentity).not.toBe(initialIdentity);

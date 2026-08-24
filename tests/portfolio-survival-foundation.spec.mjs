@@ -767,13 +767,27 @@ test('Regression: SCN-008-011 clear behavior removes ranking influence and prese
 
   await page.clock.setSystemTime(new Date('2026-05-05T10:30:00.000Z'));
   await recordCompletion(page, { category: 'ticker-research-completed', subject: 'msft' });
-  // Same condition, same subject, same UTC day: semantic de-duplication must refuse to grow evidence.
+
+  /* De-duplication is defined on the OCCURRENCE, not on the calendar day. `buildBehaviorCandidate`
+   * refuses a repeat whose `eventId` — the occurrence fingerprint over the semantic identity AND
+   * `occurredAt` — already exists, and the Node carrier pins both halves: a later report of the
+   * same semantic identity is accepted and "grows occurrence evidence without pretending to be a
+   * new semantic completion", while a byte-identical occurrence "cannot inflate the store". The
+   * repeat below is made byte-identical by pinning the clock to the occurrence just recorded,
+   * read back out of the persisted bytes rather than assumed, so this row exercises the real
+   * refusal instead of a same-day rule the product does not implement. */
+  const sameDayOccurrence = (await persistedWorkspace(page)).behaviorEvents.at(-1);
+  expect(sameDayOccurrence.category, 'the repeat is pinned to the occurrence just recorded').toBe('ticker-research-completed');
+  expect(sameDayOccurrence.subjectId).toBe('msft');
+  await page.clock.setFixedTime(new Date(sameDayOccurrence.occurredAt));
   await previewCompletion(page, { category: 'ticker-research-completed', subject: 'msft' });
   await page.locator('#confirmCompletion').click();
   await expect(page.locator('#behaviorResult')).toContainText('duplicate-completion');
 
   const persistedBefore = await persistedWorkspace(page);
-  expect(persistedBefore.behaviorEvents, 'four distinct completions survive the same-day repeat').toHaveLength(4);
+  expect(persistedBefore.behaviorEvents, 'four distinct completions survive the byte-identical repeat').toHaveLength(4);
+  expect(persistedBefore.behaviorEvents.filter((entry) => entry.eventId === sameDayOccurrence.eventId),
+    'the refused repeat left exactly one copy of that occurrence, so the refusal deleted nothing either').toHaveLength(1);
   /* The displayed number is asserted against the persisted array length, so a projection that
    * silently stopped tracking events cannot leave a stale literal on screen. */
   await expect(page.locator('#behaviorInfluence')).toHaveText(
@@ -802,6 +816,14 @@ test('Regression: SCN-008-011 clear behavior removes ranking influence and prese
   /* A reload destroys every draft. The same ranking rendering after it is what separates a
    * projection-derived surface from a preview-derived one. */
   await page.reload();
+  /* `rlnav.js` `consume()` is single-use and SELF-CLEANING: it discards a record it cannot
+   * validate "so a stale handoff cannot sit in the tab waiting to be matched by a later
+   * navigation". The sentinel above is deliberately not a valid `ReturnContext/v1` record, so the
+   * reload legitimately removes it — that is the shell's handoff hygiene, not the behavior clear.
+   * Re-seeded here, after the last navigation and before the clear, so the preservation claim
+   * below is a claim about `clearBehaviorHistory` and stays non-vacuous. */
+  await page.evaluate((stock) => sessionStorage.setItem(stock.key, stock.value),
+    { key: STORAGE_POLICY.returnContextKey, value: PRESERVED_RETURN_CONTEXT });
   await page.locator('#openPrivacy').click();
   expect(await page.locator('#behaviorRankRows li').allInnerTexts(), 'ranking survives a reload, so it is not draft-derived').toEqual(rankedBefore);
 
@@ -903,6 +925,13 @@ test('Regression: SCN-008-011 clear behavior removes ranking influence and prese
   await expect(page.locator('#currentRevision')).toContainText(before.currentPortfolioId);
   await expect(page.locator('#currentMandate')).toContainText(before.currentMandateId);
 
+  /* `#privacyPanel` is `role="dialog" aria-modal="true"` and marks the background
+   * `[data-sheet-inert]` while it is open, so the workspace tabs below are genuinely
+   * unreachable until it is dismissed. Closed through the sheet's own control, exactly as the
+   * SCN-008-012 row does, so the route sweep drives the UI the way an owner would. */
+  await page.locator('#closePrivacy').click();
+  await expect(page.locator('#privacyPanel')).toBeHidden();
+
   // The mandate's constraints and dated cash need are still rendered on every dependent route.
   for (const route of MANDATE_ROUTES) {
     const panel = await visitRoute(page, route);
@@ -980,8 +1009,21 @@ test('Regression: SCN-008-012 behavior evidence excludes engagement and sensitiv
   await page.locator('#workspaceTabRiskXray').click();
   await page.locator('#workspaceTabPathLab').click();
   await page.locator('#workspaceTabBrief').click();
+  /* Opening and closing the privacy sheet is engagement activity like any other here, so it is
+   * driven through the affordances the product actually offers. `#privacyPanel` is a real modal
+   * (`role="dialog" aria-modal="true"`) and opening it marks every sibling of the sheet inert up
+   * to `<body>` — which includes `#openPrivacy` itself. Clicking the invoker a second time is
+   * therefore not a slow interaction, it is an impossible one, and the sheet's own close control
+   * is how a reader genuinely dismisses it. The inert background is asserted rather than assumed,
+   * so a regression that dropped the modal's focus containment fails this row instead of silently
+   * turning the close below into an ordinary click. */
   await page.locator('#openPrivacy').click();
-  await page.locator('#openPrivacy').click();
+  await expect(page.locator('#privacyPanel')).toHaveAttribute('data-sheet-open', 'true');
+  expect(await page.locator('#openPrivacy').evaluate((node) => !!node.closest('[data-sheet-inert]')),
+    'the open sheet genuinely marks the invoker background inert, so the invoker cannot close it').toBe(true);
+  await page.locator('#closePrivacy').click();
+  await expect(page.locator('#privacyPanel')).toBeHidden();
+  await expect(page.locator('#openPrivacy')).toHaveAttribute('aria-expanded', 'false');
   await page.locator('#exportAcknowledgement').check();
   await page.locator('#exportAcknowledgement').uncheck();
   await page.locator('#manualAssetType').selectOption('cash');
@@ -1046,11 +1088,24 @@ test('Regression: SCN-008-012 behavior evidence excludes engagement and sensitiv
   expect(afterControl.behaviorEvents.every((entry) => entry.lifecycleState === 'eligible')).toBe(true);
   expect(afterControl.behaviorEvents.every((entry) => BEHAVIOR_POLICY.eventCategories.includes(entry.category)),
     'only named completed-research categories contribute').toBe(true);
-  // Quantify over the stored shape: an unlisted key is exactly the hidden profile field this denies.
+  /* Quantify over the stored shape: an unlisted key is exactly the hidden profile field this
+   * denies. The three identity fields are spec-sanctioned rather than engagement — design.md:1138
+   * defines `BehaviorEventIdentity/v1` as a hash over category, subject kind, subject ID, domain,
+   * horizon, source surface, result identity, generic evidence identity, completion-condition ID,
+   * and policy version, and design.md:1206 records that "Local holdings and behavior are
+   * structurally absent from both hashes". The list stays EXACT so a future unlisted key still
+   * fails here. */
   for (const entry of afterControl.behaviorEvents) {
     expect(Object.keys(entry).sort()).toEqual([
-      'category', 'completionConditionId', 'contractVersion', 'dedupeKey', 'domain', 'eventId', 'horizon',
-      'lifecycleState', 'occurredAt', 'policyVersion', 'resultIdentity', 'sourceSurface', 'subjectId', 'subjectKind'
+      'category', 'completionConditionId', 'contractVersion', 'dedupeKey', 'domain', 'eventId',
+      'eventIdentity', 'genericEvidenceIdentity', 'horizon', 'lifecycleState', 'occurredAt',
+      'occurrence', 'policyVersion', 'resultIdentity', 'sourceSurface', 'subjectId', 'subjectKind'
+    ]);
+    // design.md:1140: `BehaviorOccurrence/v1` stores `eventIdentity`, `occurredAt`, `newYorkCivilDate`,
+    // and `occurrenceId`. Pinned exactly so an engagement metric cannot be smuggled INSIDE the occurrence.
+    expect(Object.keys(entry.occurrence).sort(),
+      'the occurrence carries only its declared fields, so no engagement metric hides one level down').toEqual([
+      'contractVersion', 'eventIdentity', 'newYorkCivilDate', 'occurredAt', 'occurrenceId'
     ]);
   }
 
@@ -1162,6 +1217,13 @@ const CLEAR_VOCABULARY = Object.freeze(['all-personal', 'behavior', 'behavior-an
 
 const PUBLIC_GENERIC_CACHE = JSON.stringify({ watchlist: ['SPY', 'TLT'], toolReads: {} });
 
+/* The exact verdict `clearAllPersonalData` renders through `#emergencyClear` when the clear
+ * completed and every declared category verified empty. Pinned once so the control arm and the
+ * whole-matrix row cannot drift apart, and always asserted with `toHaveText` rather than
+ * `toContainText`: a prefix match would still pass if the surface appended "… 2 keys retained"
+ * to a clear that had not actually finished. */
+const FULL_CLEAR_VERIFIED = 'Full personal data cleared · every durable and live category verified empty';
+
 // Reads the runtime's own per-category declaration out of the rendered row, including the
 // `cleared by` verdict that decides which clear operation each category must obey.
 async function declaredPrivacyMatrix(page) {
@@ -1188,6 +1250,40 @@ async function foundationKeyState(page) {
       foreignLocalKeys: Object.keys(localStorage).filter((key) => !key.startsWith('rlPortfolioWorkspaceV1.')).sort()
     };
   }, { local: [...FOUNDATION_LOCAL_KEYS], session: [...FOUNDATION_SESSION_KEYS] });
+}
+
+/* Reads the audit record a refused clear leaves behind, resolving the tombstone THROUGH the
+ * surviving pointer — the same hop production makes to find it — rather than naming a slot. The
+ * pointer key itself comes from the shipped storage policy, so no key is restated here. Returning
+ * the hash link lets a caller assert the retained record is INTACT, not merely present: a pointer
+ * that survives without resolving to its tombstone is an orphaned audit trail, which is the
+ * failure this record exists to prevent. */
+async function retainedAuditRecord(page) {
+  return page.evaluate(({ pointerKey, namespace }) => {
+    const pointerRaw = localStorage.getItem(pointerKey);
+    if (pointerRaw === null) return { pointerPresent: false, tombstoneKey: null, pointerContentSha256: null, tombstone: null };
+    const pointer = JSON.parse(pointerRaw);
+    const tombstoneKey = namespace + '.' + pointer.activeSlot;
+    const tombstoneRaw = localStorage.getItem(tombstoneKey);
+    return {
+      pointerPresent: true,
+      tombstoneKey,
+      pointerContentSha256: pointer.contentSha256,
+      tombstone: tombstoneRaw === null ? null : JSON.parse(tombstoneRaw)
+    };
+  }, { pointerKey: STORAGE_POLICY.pointerKey, namespace: STORAGE_POLICY.workspaceNamespace });
+}
+
+/* The full-personal clear is destructive and irreversible, so the product gates it on a
+ * confirmation the reader types verbatim into `#fullClearConfirmation`; `clearAllPersonalData`
+ * refuses anything else with `P008-CLEAR-CONFIRMATION · confirmation-mismatch` before it touches
+ * a single key. Every success-path clear in this file therefore performs the confirmation exactly
+ * as an owner would, through the same input the page renders. The guard itself is NOT assumed
+ * away by that: the SCN-008-043 row below drives the wrong-cased confirmation first and asserts
+ * both the named refusal and the survival of the personal data it declined to delete. */
+async function confirmFullPersonalClear(page) {
+  await page.locator('#fullClearConfirmation').fill('CLEAR ALL LOCAL DATA');
+  await page.locator('#emergencyClear').click();
 }
 
 // Populates every category this page can genuinely reach: an imported portfolio, an explicit
@@ -1251,10 +1347,12 @@ test('Regression: TP-03-06 full-personal clear empties every declared category a
   const storageBefore = await foundationKeyState(page);
   expect(storageBefore.presentKeys.length, 'real foundation keys exist to be removed').toBeGreaterThan(0);
 
-  await page.locator('#emergencyClear').click();
+  await confirmFullPersonalClear(page);
 
-  // Exact, not a prefix: `Verified empty` as a substring survives an appended "… 2 keys retained".
-  await expect(page.locator('#privacyResult')).toHaveText(`Verified empty · ${FOUNDATION_KEYS.length} closed foundation keys checked`);
+  /* Asserted exactly, not as a prefix. The count claim this row makes about the six declared
+   * foundation keys is carried by the storage sweep further down, which checks every one of them
+   * by name rather than trusting a number rendered into the verdict. */
+  await expect(page.locator('#privacyResult')).toHaveText(FULL_CLEAR_VERIFIED);
   await expect(page.locator('#privacyInventory')).toHaveText(
     '0 Feature 008 personal storage keys present · 0 unavailable to inspect · values never rendered');
 
@@ -1314,6 +1412,11 @@ test('Regression: TP-03-06 every declared foundation clear step refuses success 
   test.setTimeout(120_000);
   const observed = [];
   const retentionProven = [];
+  // Arms whose fault landed on a key durable mode never stores, and arms that proved the
+  // pointer/tombstone pair survived intact — both named rather than counted, and both asserted
+  // exactly after the loop so a silently shrinking matrix cannot pass.
+  const noOpArms = [];
+  const auditPairProven = [];
   // `null` is the control arm. Without it a refusal proves nothing: a flow that always failed
   // would satisfy all six faulted arms.
   for (const faultKey of [null, ...FOUNDATION_KEYS]) {
@@ -1340,28 +1443,82 @@ test('Regression: TP-03-06 every declared foundation clear step refuses success 
     const before = await foundationKeyState(page);
     expect(before.presentKeys, `${faultKey ?? 'control'}: real foundation keys exist to be removed`)
       .toEqual([...FOUNDATION_LOCAL_KEYS].sort());
-    await page.locator('#emergencyClear').click();
+    await confirmFullPersonalClear(page);
     const after = await foundationKeyState(page);
 
     if (faultKey === null) {
-      await expect(page.locator('#privacyResult')).toHaveText(`Verified empty · ${FOUNDATION_KEYS.length} closed foundation keys checked`);
+      await expect(page.locator('#privacyResult')).toHaveText(FULL_CLEAR_VERIFIED);
       expect(after.presentKeys, 'control: an unfaulted clear removes every declared key').toEqual([]);
+    } else if (before.values[faultKey] === null) {
+      /* Durable mode never materialises the two session keys, so blocking `removeItem` on one of
+       * them injects NO fault — the clear never asks for a key that is not there. The honest claim
+       * for these arms is therefore not "it refuses"; it is that a fault aimed at an absent key
+       * perturbs nothing, which is what makes this harness targeted rather than blunt. */
+      await expect(page.locator('#privacyResult')).toHaveText(FULL_CLEAR_VERIFIED);
+      expect(after.presentKeys,
+        `${faultKey}: a fault on a key durable mode never stores changes nothing`).toEqual([]);
+      noOpArms.push(faultKey);
     } else {
-      await expect(page.locator('#privacyResult')).toHaveText('P008-STORE-WRITE · foundation-clear-incomplete');
+      /* The clear does not delete its own audit record while it is still verifying. It writes a
+       * ClearTombstone into the inactive slot, repoints the pointer at it, and holds BOTH keys
+       * back from the sweep (rlportfolio.js ~3790-3792) — the tombstone is the durable proof the
+       * clear happened and the pointer is what makes it reachable — deleting the pair only after
+       * every category verifies empty, tombstone first and pointer second (~3893-3894). So a
+       * refusal ALWAYS leaves the pointer behind. Modelling the clear as "every declared key
+       * except the faulted one is gone" contradicted that retention. */
+      const audit = await retainedAuditRecord(page);
+      expect(audit.pointerPresent,
+        `${faultKey}: the refusal keeps the pointer that reaches the tombstone`).toBe(true);
+      const retained = [STORAGE_POLICY.pointerKey, audit.tombstoneKey];
+
+      /* Present-or-intact, never present-or-nothing. The tombstone slot is deleted first, so it
+       * legitimately does not survive a fault raised after its own removal; but whenever it DOES
+       * survive it must still be a real tombstone hash-linked to the surviving pointer. Stale
+       * workspace bytes left in that slot, or a pointer that no longer matches, would satisfy a
+       * bare presence check and still be an unusable audit trail. `ClearTombstone/v1` is the
+       * contract pinned at rlportfolio.js:25 and written at ~3613. */
+      if (after.presentKeys.includes(audit.tombstoneKey)) {
+        expect(audit.tombstone,
+          `${faultKey}: the retained pointer resolves to retained tombstone bytes`).not.toBeNull();
+        expect(audit.tombstone.contractVersion,
+          `${faultKey}: the retained slot holds a clear tombstone, not stale workspace bytes`).toBe('ClearTombstone/v1');
+        expect(audit.pointerContentSha256,
+          `${faultKey}: the retained pointer is hash-linked to the retained tombstone`).toBe(audit.tombstone.contentSha256);
+        auditPairProven.push(faultKey);
+      }
+
+      /* Which refusal a fault produces is itself a claim, and it is not one string. A fault on a
+       * key the clear RETAINS is never swept, so the sweep completes, every category verifies
+       * empty, and the refusal comes from the final audit-pair deletion. A fault on any ordinary
+       * personal key is raised by the sweep itself, which fails verification instead. Asserting a
+       * single blanket verdict across both would have accepted either failure for either cause. */
+      const faultIsRetainedAuditKey = retained.includes(faultKey);
+      await expect(page.locator('#privacyResult')).toHaveText(faultIsRetainedAuditKey
+        ? 'P008-CLEAR-PARTIAL · tombstone-delete-failed'
+        : 'P008-CLEAR-PARTIAL · clear-verification-failed');
       // No success payload may reach the surface on a partial deletion.
       expect(await page.locator('#privacyResult').innerText()).not.toContain('Verified empty');
-      // Targeted, not blanket: every step except the faulted one still deleted.
-      expect(after.presentKeys.filter((key) => key !== faultKey),
-        `${faultKey}: the other declared steps still delete`).toEqual([]);
-      /* Retention is only observable for a step whose key durable mode actually holds. The two
-       * session keys are absent here, so their arms prove the refusal but NOT retention; that
-       * split is asserted below rather than left for a reader to assume. */
-      if (before.values[faultKey] !== null) {
-        expect(after.values[faultKey], `${faultKey}: the retained key survives with its bytes unchanged`)
-          .toBe(before.values[faultKey]);
-        expect(after.presentKeys, `${faultKey}: exactly one declared key survives`).toEqual([faultKey]);
-        retentionProven.push(faultKey);
-      }
+
+      /* Exact, per arm, derived from the two ordered deletion sequences rather than tabulated.
+       * Retained-key arms: the sweep finished, so only the audit pair can remain, and the pair is
+       * deleted tombstone-then-pointer — the pointer always survives, the tombstone only when the
+       * fault IS the tombstone. Ordinary-key arms: the whole sweep sits in one try (~3792-3799)
+       * over keys enumerated in ascending order (~3441), so the first blocked remove aborts it and
+       * exactly the declared keys sorting at or after the faulted one are never reached. A sweep
+       * that skipped past the fault, or one that deleted nothing at all, breaks this equality. */
+      const untouchedBySweepAbort = faultIsRetainedAuditKey
+        ? []
+        : FOUNDATION_LOCAL_KEYS.filter((key) => !retained.includes(key) && key >= faultKey);
+      const expectedSurvivors = [...new Set([
+        STORAGE_POLICY.pointerKey,
+        ...(faultIsRetainedAuditKey ? [faultKey] : [audit.tombstoneKey, ...untouchedBySweepAbort])
+      ])].sort();
+      expect(after.presentKeys,
+        `${faultKey}: only the audit record and the keys the refusal never reached survive`).toEqual(expectedSurvivors);
+
+      // The faulted step is named residue, not a silent gap.
+      expect(after.values[faultKey], `${faultKey}: the faulted key remains as named residue`).not.toBeNull();
+      retentionProven.push(faultKey);
     }
     expect(await page.evaluate(() => localStorage.getItem('rlData')),
       `${faultKey ?? 'control'}: the generic public cache is untouched`).toBe(PUBLIC_GENERIC_CACHE);
@@ -1370,18 +1527,29 @@ test('Regression: TP-03-06 every declared foundation clear step refuses success 
     await context.close();
   }
   expect(observed, 'every declared clear step was faulted on its own, not a subset').toHaveLength(FOUNDATION_KEYS.length + 1);
-  /* Named, not counted. Durable mode holds the four local keys, so those four arms prove
-   * retention; the two session keys are unreachable in this mode, so their arms are refusal-only
-   * and are recorded as such instead of being folded into a coverage number. */
+  /* Named, not counted, and split by what each arm can actually prove. Durable mode holds the
+   * four local keys, so those four arms inject a real fault and prove named residue; the two
+   * session keys are never stored in this mode, so a fault aimed at them injects nothing and
+   * those arms prove the harness is targeted instead. Asserting both sets exactly means a key
+   * that quietly changes durability breaks this row rather than silently moving between them. */
   expect(retentionProven.sort(), 'retention is proven for exactly the durable-mode foundation keys')
     .toEqual([...FOUNDATION_LOCAL_KEYS].sort());
+  expect(noOpArms.sort(), 'exactly the session keys are unreachable faults in durable mode')
+    .toEqual([...FOUNDATION_SESSION_KEYS].sort());
+  /* Exact, not a count. The final pair deletion runs tombstone-then-pointer, so the only refusal
+   * that does NOT leave the tombstone behind is the one faulting the pointer — by then the
+   * tombstone is already gone. Every other refusal must still expose an intact, hash-linked pair.
+   * Naming that set stops this row from passing on a build that orphans the pair everywhere. */
+  expect(auditPairProven.sort(), 'every refusal but the pointer-delete arm leaves an intact hash-linked audit pair')
+    .toEqual(FOUNDATION_LOCAL_KEYS.filter((key) => key !== STORAGE_POLICY.pointerKey).sort());
 
   console.log('[TP-03-06] declaredClearSteps=' + FOUNDATION_KEYS.join(','));
   console.log('[TP-03-06] faultedStepsIndividually=' + FOUNDATION_KEYS.length);
   console.log('[TP-03-06] unfaultedControlSucceeded=true');
   console.log('[TP-03-06] partialFailureArms=' + observed.join(','));
   console.log('[TP-03-06] retentionProvenSteps=' + retentionProven.join(','));
-  console.log('[TP-03-06] refusalOnlySteps=' + FOUNDATION_SESSION_KEYS.join(','));
+  console.log('[TP-03-06] unreachableFaultSteps=' + noOpArms.join(','));
+  console.log('[TP-03-06] auditPairIntactProvenBy=' + auditPairProven.join(','));
   console.log('[TP-03-06] successPayloadOnPartialFailure=0');
 });
 
@@ -1644,12 +1812,34 @@ test('Regression: SCN-008-043 full personal clear tombstones derives and verifie
     data: localStorage.getItem('rlData'),
     provider: localStorage.getItem('rlProviderConfig')
   }));
+
+  /* The typed confirmation is a REFUSAL, not a formality, and this is where that is proven. Every
+   * other clear in this file supplies the correct phrase, so without this arm the guard could be
+   * deleted outright and the suite would stay green. The refusal is asserted by its exact code AND
+   * reason, and — the half that makes it load-bearing — the personal data it declined to delete is
+   * shown to still be there afterwards. A "refusal" that had already wiped the workspace would
+   * satisfy the message assertion alone. */
+  const personalBeforeRefusal = await page.evaluate(() => ({
+    keys: Object.keys(localStorage).filter((key) => key.startsWith('rlPortfolioWorkspaceV1.')).sort(),
+    portfolioId: window.__PORTFOLIO_DIAGNOSTICS__.currentPortfolioId
+  }));
+  expect(personalBeforeRefusal.keys.length,
+    'personal workspace keys genuinely exist before the refused clear').toBeGreaterThan(0);
+  expect(personalBeforeRefusal.portfolioId, 'a real portfolio exists to be destroyed').not.toBe(null);
+
   await page.locator('#fullClearConfirmation').fill('clear all local data');
   await page.locator('#emergencyClear').click();
-  await expect(page.locator('#privacyResult')).toContainText('P008-CLEAR-CONFIRMATION');
+  await expect(page.locator('#privacyResult')).toHaveText('P008-CLEAR-CONFIRMATION · confirmation-mismatch');
 
-  await page.locator('#fullClearConfirmation').fill('CLEAR ALL LOCAL DATA');
-  await page.locator('#emergencyClear').click();
+  const personalAfterRefusal = await page.evaluate(() => ({
+    keys: Object.keys(localStorage).filter((key) => key.startsWith('rlPortfolioWorkspaceV1.')).sort(),
+    portfolioId: window.__PORTFOLIO_DIAGNOSTICS__.currentPortfolioId
+  }));
+  expect(personalAfterRefusal.keys, 'a mismatched confirmation deletes nothing').toEqual(personalBeforeRefusal.keys);
+  expect(personalAfterRefusal.portfolioId, 'the portfolio survives the refused clear').toBe(personalBeforeRefusal.portfolioId);
+  await expect(page.locator('#currentRevision')).toContainText('Current revision');
+
+  await confirmFullPersonalClear(page);
   await expect(page.locator('#privacyResult')).toContainText('Full personal data cleared');
   const result = await page.evaluate(() => ({
     diagnostics: window.__PORTFOLIO_DIAGNOSTICS__,

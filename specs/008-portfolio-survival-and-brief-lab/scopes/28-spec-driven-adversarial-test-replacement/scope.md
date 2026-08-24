@@ -2,7 +2,7 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** Not Started
+**Status:** In Progress
 **Scope-Kind:** runtime-behavior
 **Tags:** `test-integrity`, `remediation`
 **Depends On:** 27
@@ -62,7 +62,18 @@ Scenario: A repaired Feature 008 behavior is challenged by its original reduced 
 
 ## Test Plan
 
-Every remediation assertion and exact title below is `planned-not-authored` at P1. Existing carrier paths do not imply that the new test exists.
+### Current Execution Checkpoint
+
+- All six Test Plan rows have been executed on their exact commands and all six now pass. TP-28-01, TP-28-02, TP-28-04, TP-28-05, and TP-28-06 passed on a single execution; their receipts are in [report.md](report.md). TP-28-03 is established by the re-run recorded in the next bullet.
+- TP-28-03 is now established. The earlier non-establishment had two distinct causes, and both are resolved.
+  - Cause 1, the assertion: the previous red/green pair came from a fixed expect timeout in `runCommonPathScenario` that could expire while the path compute was still in flight, so a slow settle was indistinguishable from a wrong settle. This is fixed at source by `expectPathComputeCompleted` in `tests/portfolio-survival.support.mjs`, which polls until `data-compute-state` reaches a SETTLED value (`completed|cancelled|superseded|failed`) and only then asserts that the settled value is `completed`. A late settle now retries; a wrong settle still fails. The timeout was not merely raised to turn a red run green.
+  - Cause 2, a working-tree corruption: the success branch at `portfolio-survival-allocation-lab.html:4418` had been left assigning `state.pathCompute.state = "failed"`. It has been reverted to `"completed"` and that line now matches `HEAD`; `git diff` reports no change at that line.
+  - Re-run in this session, on the exact TP-28-03 command from the Test Plan row: exit code 0, `92 passed (2.2m)`, with zero failed, zero flaky, and zero skipped across all eight browser carriers.
+  - [report.md#tp-28-03](report.md#tp-28-03) still carries the superseded pre-fix analysis and its `not established` verdict. `report.md` is owned by `bubbles.implement` and is not written by this scope; refreshing that section with the post-fix receipt is outstanding work for that owner.
+- TP-28-04 is authored in `tests/portfolio-test-integrity.unit.mjs`, with test-owned in-memory substitution support in `tests/portfolio-defect-injector.cjs`. Both now execute; the new carrier is reachable through the `node --test tests/*.unit.mjs` command declared in `.specify/memory/agents.md`.
+- The disposable Scope 27 mutation control named `tp-27-04-control.spec.mjs`, which lived in the repository `tests/` directory, has been REMOVED from the working tree, not merely labelled as disposable. It duplicated all three exact Scope 27 scenario titles and gated its mutation behind a `TP_27_04_CONTROL` environment variable, so an ordinary run passed the duplicated titles unconditionally. Its name matched the `**/*.spec.mjs` testMatch glob declared at `playwright.config.mjs:4`, so the matrix would have executed it. The file was never tracked in Git. No executable `TP_27_04_CONTROL` reference remains anywhere in the repository; the identifier survives only in this deletion record and in the corresponding [report.md](report.md) evidence section. This record spells the removed carrier as a bare basename rather than as a rooted path on purpose: `scripts/validate-spec-test-paths.mjs` derives live carrier references from contiguous `tests/`-rooted `.mjs` tokens, so a rooted spelling would re-register a deliberately deleted file as a live carrier and fail that guard. Do not "repair" this spelling back to a rooted path.
+- The separate Scope 27 mutation control that REMAINS is the `Adversarial: SCN-008-053 reduced accessibility implementations fail closed` row at `tests/portfolio-survival-accessibility.spec.mjs:501`, which serves reduced HTML through Playwright route interception. That row is a disposable mutation control and is not live `e2e-ui` evidence, even though the file carries other rows that are. It is an in-file row rather than a duplicate carrier file, and it is unaffected by the removal above.
+- The structured plan and manifest rows are PARTIALLY reconciled, not fully. In `test-plan.json`, TP-28-01, TP-28-02, TP-28-04, and TP-28-05 now read `testState: authored` with `status: done`. Two desynchronized rows remain: TP-28-03 and TP-28-06 both still read `testState: planned-not-authored` with `status: planned-not-executed` even though both have executed and passed. In `scenario-manifest.json`, the SCN-008-054 entry still reads `linkedTestContracts[0].planStatus: planned-not-authored` even though TP-28-04 is authored and done. Both files are owned by `bubbles.plan` and are not written by this scope's execution.
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Evidence |
 |---|---|---|---|---|---|---|---|---|
@@ -81,12 +92,12 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 
 ### Definition of Done - Tiered Validation
 
-- [ ] SCN-008-054 and the complete authoritative scenario set have exact discriminating test ownership with no historical evidence used as current proof.
-- [ ] TP-28-01 declaration reachability passes with zero unresolved or zero-match titles.
-- [ ] TP-28-02 aggregate Node behavior passes.
-- [ ] TP-28-03 complete real-page Feature 008 matrix passes.
-- [ ] TP-28-04 adversarial mutation integrity proves every audited defect class is load-bearing.
-- [ ] TP-28-05 regression-quality guard passes.
-- [ ] TP-28-06 repository selftest passes.
-- [ ] Shared Infrastructure Impact Sweep and test-only rollback proof are recorded.
-- [ ] Build Quality Gate passes with zero skips/warnings, synchronized plan/manifest rows, and no production-source edits in this scope.
+- [ ] SCN-008-054 and the complete authoritative scenario set have exact discriminating test ownership with no historical evidence used as current proof. → Blocked: `scenario-test-resolve.sh` exits 1 with 1 unresolved reference of 65; SCN-008-055 has no carrier title and is owned by Scope 29. Evidence: [report.md#linked-test-resolution](report.md#linked-test-resolution)
+- [x] TP-28-01 declaration reachability passes with zero unresolved or zero-match titles. → Evidence: [report.md#tp-28-01](report.md#tp-28-01)
+- [x] TP-28-02 aggregate Node behavior passes. → Evidence: [report.md#tp-28-02](report.md#tp-28-02)
+- [x] TP-28-03 complete real-page Feature 008 matrix passes. → The exact Test Plan command re-run in this session exits 0 with `92 passed (2.2m)`, zero failed, zero flaky, and zero skipped. The earlier red/green pair is resolved at source by `expectPathComputeCompleted` (settle-then-assert, not a raised timeout) plus the revert of the `portfolio-survival-allocation-lab.html:4418` working-tree corruption. Evidence: [Current Execution Checkpoint](#current-execution-checkpoint); [report.md#tp-28-03](report.md#tp-28-03) still holds the superseded pre-fix analysis and is owned by `bubbles.implement`.
+- [x] TP-28-04 adversarial mutation integrity proves every audited defect class is load-bearing. → Evidence: [report.md#tp-28-04](report.md#tp-28-04)
+- [x] TP-28-05 regression-quality guard passes. → Evidence: [report.md#tp-28-05](report.md#tp-28-05)
+- [x] TP-28-06 repository selftest passes. → Evidence: [report.md#tp-28-06](report.md#tp-28-06)
+- [x] Shared Infrastructure Impact Sweep and test-only rollback proof are recorded. → Evidence: [report.md#shared-infrastructure-impact-sweep](report.md#shared-infrastructure-impact-sweep) and [report.md#test-only-rollback-proof](report.md#test-only-rollback-proof)
+- [ ] Build Quality Gate passes with zero skips/warnings, synchronized plan/manifest rows, and no production-source edits in this scope. → Partially met: `git diff --check` exits 0, zero skips and zero warnings are recorded, and Scope 28 made no production-source edit — the only production diff in the working tree is the brief window-selector and refusal-naming work owned by BUG-001, which does not touch the path-compute lifecycle. Still blocked on synchronized plan/manifest rows, which are owned by `bubbles.plan`: `test-plan.json` rows TP-28-03 and TP-28-06 still read `testState: planned-not-authored` with `status: planned-not-executed` despite both having passed, and the `scenario-manifest.json` SCN-008-054 entry still reads `linkedTestContracts[0].planStatus: planned-not-authored` despite TP-28-04 being authored and done. Evidence: [report.md#build-quality-gate](report.md#build-quality-gate)

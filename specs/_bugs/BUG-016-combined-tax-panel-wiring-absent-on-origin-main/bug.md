@@ -1,6 +1,6 @@
 # BUG-016: The Combined Tax Panel Is Absent From The Deployed Branch, So Its Tests Assert Against A Panel That Is Not There
 
-- **Status:** Confirmed
+- **Status:** Fixed — awaiting independent verification
 - **Severity:** Critical — the blocking deploy gate is red, so nothing ships
 - **Surface:** `.github/workflows/pages.yml` job `verify`, step `Full browser suite (blocking)`
 - **Owning feature:** `specs/022-federal-preferential-and-state-income-tax`

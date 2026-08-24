@@ -1866,7 +1866,7 @@ absence and never a dash or a zero`.
 | --- | --- | --- | --- |
 | (a) | Every assertion under the `Feature 025 company multi-horizon intelligence` header is `✓`, and the header carries exactly 11 | `assertions_in_header=11`, `tick_count=11`, `cross_count=0` | holds |
 | (b) | The reference-hygiene command over this feature's directory prints no line | no line printed; all 23 `tests/*.mjs` paths this feature names resolve on disk | holds |
-| (c) | Every residual `✗` is attributed to a named foreign owning spec, with zero contributing sites here | `total_cross_lines_repo_wide=1`; across all 67 absent referenced paths, `sites_under_spec_025=0` | holds |
+| (c) | Every residual `✗` is attributed to a named foreign owning spec, with zero contributing sites here | `total_cross_lines_repo_wide=1`; across all 67 absent referenced paths, `sites_under_spec_025=0` | holds; **re-measured 2026-08-23** — still holds, but the residual set and its owner have both moved. See the note below the table |
 | (d) | Both own suites exit 0 with zero failing and zero skipped, and both named browser titles print as passed | rows 1 and 2 of the command table above | holds |
 
 Check (a) was measured rather than inferred: the header block was read back in
@@ -1881,6 +1881,23 @@ The repository-wide clause of the row is satisfied on its own terms.
 red if this feature's shared-surface append broke a pre-existing assertion, and
 the one residual failure has zero contributing sites in this feature's
 directory, so check (c) discharges it rather than this feature owning it.
+
+*(Superseded 2026-08-23 — do not read the paragraph above as a current statement
+of which failure check (c) is discharging, or of whether a residual `✗` exists
+at all.)* The reasoning above is preserved because it is what stopped this
+feature adopting a failure it did not own, and because the attribution it
+performed was correct at the time it was performed. Two things have changed.
+First, the market-brief cockpit path it attributes is no longer in the finding
+set. Second, the residual set is no longer stable: this pass observed the
+selftest at `3404 passed, 0 failed` exit `0` and, minutes later, at `3403 passed,
+1 failed` exit `1`, because a concurrent session pasted the same diagnostic into
+its own report. **Check (c) held in every reading this pass took** — vacuously
+when the residual set was empty, and by attribution to a named foreign owner when
+it was not — and `sites_under_spec_025` measured `0` in all of them. All three
+readings, and the repair this pass had to make before any of them was true, are
+recorded under
+[OBS-1](#obs-1--the-one-red-selftest-assertion-narrative-no-longer-describes-a-stable-state)
+and [OBS-4](#obs-4--this-reports-own-gaps-phase-paste-was-failing-the-repository-selftest).
 
 ### The One Red Selftest Assertion Is Foreign — Re-Confirmed This Pass
 
@@ -1936,6 +1953,17 @@ own artifacts say its Scope 4 creates that file. Both `specs/022` and `specs/026
 are excluded families this feature must leave byte-unchanged, so the failure
 cannot be cleared from inside this scope, and this pass did not create the file
 to make a number go green. The failure is disclosed and routed, not adopted.
+
+*(Superseded 2026-08-23 — do not read the four paragraphs and the reference-site
+table above as current fact. The absent market-brief cockpit path they describe
+no longer appears in the validator's finding set at all.)* The reasoning is
+preserved deliberately: the decision not to create a foreign file in order to
+turn a number green is the part of this record worth keeping, and deleting it
+would remove the evidence that the failure was refused rather than absorbed.
+What is true now is that `node scripts/validate-spec-test-paths.mjs` no longer
+names that path in its finding set at all. The measured re-executions are
+recorded under
+[OBS-1](#obs-1--the-one-red-selftest-assertion-narrative-no-longer-describes-a-stable-state).
 
 ### DoD Rows This Phase Moved
 
@@ -2736,6 +2764,16 @@ path, and the fifteen current failures belong to Feature 026, Feature 012 and th
 market-brief payload. **This feature's contribution is still exactly zero**, on
 both halves of the check.
 
+*(Superseded 2026-08-23 — do not read the `STALE-BASELINE` clause above as a
+current statement of what the validator reports.)* The rest of the paragraph
+still holds and is preserved: the failure set did move under concurrent sessions,
+and this feature's contribution to it was and remains zero. What no longer holds
+is the `STALE-BASELINE` condition itself. Re-executed on 2026-08-23,
+`node scripts/validate-spec-test-paths.mjs` exits `0` and reports `new=0
+stale=0`, so there are no stale baseline entries left to remove. The measured
+re-execution is recorded under
+[OBS-3](#obs-3--the-gaps-phase-stale-baseline-citation-no-longer-holds).
+
 This block is owned by `bubbles.gaps` and was re-executed by `bubbles.gaps`. The
 original capture hand-assembled the `(b)` and `(c)` halves from ad-hoc greps and
 recorded no command line, so it is not recoverable verbatim. The closest honest
@@ -2745,15 +2783,32 @@ both halves in one pass — it reports every absent spec-referenced test path
 repo-wide together with the spec directory that owns it. That substitution is
 the disclosed reconstruction.
 
+**The block below is a labelled summary, not a verbatim paste, and the reason is
+the defect itself** — the same reason already recorded twice in this report. The
+validator's three `PLANNED-MISSING` diagnostic lines name their paths as literal
+strings, and the repository path scanner counts any `tests/*.mjs` literal inside
+a spec artifact as a reference site for that path. Pasting those three lines
+verbatim therefore made this report the sole reference site for three paths that
+do not exist. The three omitted tokens are the portfolio doc-integration
+functional spec, the portfolio survival accessibility spec and the portfolio
+test-integrity unit spec, all under `tests/` and all owned by
+`specs/008-portfolio-survival-and-brief-lab`, whose own artifacts declare them
+planned-not-authored. Every command, exit code and count below is carried
+through unchanged; only the three path literals are withheld, and the original
+paste remains recoverable from this file's git history. The measured consequence
+of that paste, and its repair, are recorded under
+[OBS-4](#obs-4--this-reports-own-gaps-phase-paste-was-failing-the-repository-selftest)
+below.
+
 ```text
 $ node scripts/validate-spec-test-paths.mjs > /tmp/rl025-vstp.txt 2>&1
 exit code: 0
 
 $ cat /tmp/rl025-vstp.txt
 [spec-test-paths] scanned=748 references=17272 distinctPaths=266 missingPaths=73 plannedMissing=3 baseline=70 new=0 stale=0
-  PLANNED-MISSING tests/portfolio-doc-integration.functional.mjs (specs/008-portfolio-survival-and-brief-lab, 2 structured planned-not-authored row(s), non-failing until the owning scope starts)
-  PLANNED-MISSING tests/portfolio-survival-accessibility.spec.mjs (specs/008-portfolio-survival-and-brief-lab, 5 structured planned-not-authored row(s), non-failing until the owning scope starts)
-  PLANNED-MISSING tests/portfolio-test-integrity.unit.mjs (specs/008-portfolio-survival-and-brief-lab, 2 structured planned-not-authored row(s), non-failing until the owning scope starts)
+  PLANNED-MISSING <portfolio doc-integration functional spec> (specs/008-portfolio-survival-and-brief-lab, 2 structured planned-not-authored row(s), non-failing until the owning scope starts)
+  PLANNED-MISSING <portfolio survival accessibility spec> (specs/008-portfolio-survival-and-brief-lab, 5 structured planned-not-authored row(s), non-failing until the owning scope starts)
+  PLANNED-MISSING <portfolio test-integrity unit spec> (specs/008-portfolio-survival-and-brief-lab, 2 structured planned-not-authored row(s), non-failing until the owning scope starts)
 [spec-test-paths] OK — no new missing test path(s)
 
 $ grep -c '025-company-multi-horizon' /tmp/rl025-vstp.txt
@@ -5990,6 +6045,239 @@ exit code 0
 
 **Nothing certified by this pass.** No `status` set to `done`, no `certifiedAt` written, no
 `certification.status` promoted, no `uservalidation.md` item touched.
+
+---
+
+## Stale-Claim Reconciliation — 2026-08-23 Docs Pass
+
+Three narratives in this report asserted a repository state that had since moved.
+Each is corrected here by marking the superseded claim, stating what is true now,
+and citing a re-execution performed by this pass rather than relayed from
+another. **No original reasoning was deleted.** In every case the reasoning about
+why this feature declined to adopt a foreign failure, or judged a baseline stale,
+is the part of the record that stopped the issue being papered over, so it is
+preserved verbatim at its original site with a dated marker attached.
+
+The one file this pass modified is this `report.md`. No product file, no test
+file, no `spec.md`, `design.md`, `scopes.md`, `uservalidation.md` or `state.json`
+was touched, no DoD row was ticked, and no certification field was written.
+
+### OBS-1 — the "one red selftest assertion" narrative no longer describes a stable state
+
+The [Test Phase Evidence](#test-phase-evidence--gate-execution-pass-by-bubblestest)
+section was built on the premise that exactly one selftest assertion was failing
+and that the failure belonged to another feature, so check (c) of its four-part
+gate was satisfied by *attributing* that residual `✗` to a named foreign owner
+with zero contributing sites here. `bubbles.test` recorded the supersession
+inside its own evidence block; the prose and the gate table around it were
+outside that pass's edit boundary and still read as though that particular
+attribution were still being carried.
+
+The premise no longer holds, and it does not hold in a single direction. This
+pass observed the selftest three times and reports all three, in order, rather
+than only the reading that matches the brief it was given.
+
+**Reading 1 — exit 1, before this pass repaired anything.** The brief predicted
+`3404 passed, 0 failed` at exit `0`. That is not what the first run produced:
+
+```text
+# OBS-1 reading 1: repository selftest, 2026-08-23, before the OBS-4 repair
+$ node scripts/selftest.mjs
+exit code: 1
+Research-Lab self-test: 3403 passed, 1 failed
+✗ FAIL: no active tests/*.mjs path named by a spec artifact is missing outside
+  the frozen baseline; planned-not-authored paths remain visible non-failing
+  debt (3 new, 3 planned, 70 known-missing, 0 stale of 266 referenced)
+```
+
+That difference is the finding, and its cause was this report itself: three
+reference sites, all inside this file, written up as OBS-4 below.
+
+**Reading 2 — exit 0, after the OBS-4 repair.**
+
+```text
+# OBS-1 reading 2: repository selftest, 2026-08-23, after the OBS-4 repair
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3871
+sha256: b2b7fdf39b59f7ed1e39156802263d51ef22a8ae293e4eb5a63398a69d0886b4
+================================================
+Research-Lab self-test: 3404 passed, 0 failed
+================================================
+
+$ grep -c '✗' /tmp/rl025-obs-selftest2.log
+0
+```
+
+<!-- verify: bash .github/bubbles/scripts/evidence-capture.sh --verify b2b7fdf39b59f7ed1e39156802263d51ef22a8ae293e4eb5a63398a69d0886b4 -- node scripts/selftest.mjs -->
+
+**Reading 3 — exit 1 again, minutes later, on foreign work.** A concurrent
+session pasted the same validator diagnostic into its own report and reproduced
+the identical defect there:
+
+```text
+# OBS-1 reading 3: repository selftest, 2026-08-23, same session, later
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3880
+sha256: bfa1b616bac829ae1bf03cd87557e90e2750316a298d955be5323e3ab6aef1e8
+================================================
+Research-Lab self-test: 3403 passed, 1 failed
+================================================
+
+$ node scripts/validate-spec-test-paths.mjs
+exit code: 1
+[spec-test-paths] ... plannedMissing=3 baseline=70 new=3 stale=0
+  6 reference site(s), every one of them at
+      specs/024-social-security-and-medicare/scopes/05-route-and-integration/report.md
+  sites under specs/025-company-multi-horizon-intelligence-lab: 0
+```
+
+**Claim Source:** executed. All three readings were run unfiltered; readings 2
+and 3 carry re-derivable capture hashes.
+
+**What this means for check (c), stated precisely.** Check (c) held in every one
+of the three readings, and `sites_under_spec_025` measured `0` in all three. It
+held vacuously in reading 2, where the residual set was empty and there was
+nothing to attribute; a check phrased as "every residual `✗` is attributed to a
+named foreign owning spec" is satisfied by absence when no residual exists, and
+the gate row now says so instead of reading as though an attribution were still
+being carried. It held by attribution in readings 1 and 3 — except that in
+reading 1 the owner was **this feature**, which is why the repair in OBS-4 was
+mandatory rather than optional, and in reading 3 the owner is
+`specs/024-social-security-and-medicare`, a family this feature must leave
+byte-unchanged.
+
+**What is superseded** is the specific attribution the original section carried:
+the absent market-brief cockpit path owned by
+`specs/026-actionable-brief-brevity-and-cross-asset`, and its 38-site reference
+table. That path is not in the finding set in any of the three readings above.
+
+**What is not superseded** is the reasoning. The decision not to create a foreign
+file in order to turn a number green, and the decision to disclose and route the
+failure rather than absorb it, are exactly what this pass had to repeat when
+reading 3 landed on `specs/024`. That reasoning is preserved verbatim at its
+original site for that reason.
+
+**One further honesty note.** This repository's selftest is not deterministic
+while other sessions are writing to the same tree, and this pass demonstrated it
+directly: exit 0 and exit 1 within minutes, with no change to this feature's own
+code or tests in between. That property is already recorded elsewhere in this
+report. It is repeated here because a certification decision that rests on a
+single green reading of this command rests on a reading that another session can
+invalidate without touching this feature.
+
+### OBS-3 — the gaps-phase STALE-BASELINE citation no longer holds
+
+The [gaps-phase](#baselines-re-run-after-the-change) narrative stated that
+`validate-spec-test-paths` "now reports `STALE-BASELINE` rather than a missing
+path". `bubbles.gaps` recorded the superseding reading inside the evidence block
+it raised, but the prose above that block was not swept and still asserted the
+`STALE-BASELINE` condition as current.
+
+Re-executed by this pass:
+
+```text
+# OBS-3 re-execution: spec-test-path validator, 2026-08-23
+$ node scripts/validate-spec-test-paths.mjs
+exit: 0
+lines: 5
+sha256: 2d62a8a522f53cdf4047aed9c16692a367637ec03e76218cdd676ab3d799afb9
+counts line: [spec-test-paths] scanned=748 references=17275 distinctPaths=266
+  missingPaths=73 plannedMissing=3 baseline=70 new=0 stale=0
+closing line: [spec-test-paths] OK — no new missing test path(s)
+```
+
+<!-- verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 2d62a8a522f53cdf4047aed9c16692a367637ec03e76218cdd676ab3d799afb9 -- node scripts/validate-spec-test-paths.mjs -->
+
+**This is a labelled summary, not a verbatim paste, and the reason is the defect
+in OBS-4.** The three `PLANNED-MISSING` lines the validator prints name their
+paths as literal `tests/*.mjs` strings, and the repository path scanner counts
+any such literal inside a spec artifact as a reference site for it. The three
+omitted tokens are the portfolio doc-integration functional spec, the portfolio
+survival accessibility spec and the portfolio test-integrity unit spec, all owned
+by `specs/008-portfolio-survival-and-brief-lab`, which declares them
+planned-not-authored. The command, exit code, line count, counts line and closing
+line are carried through unchanged, and the sha256 binds this summary to the
+complete output it summarises.
+
+**Claim Source:** executed.
+
+`stale=0`, so there is no `STALE-BASELINE` condition to cite. That is the claim
+being corrected, and it is stable: `stale=0` in every reading this pass took,
+including the later reading in which the validator exited `1` on three `new`
+paths referenced entirely from `specs/024-social-security-and-medicare` (OBS-1
+reading 3). The exit code of this validator moves with concurrent work; the
+`stale` count did not. The original paragraph's other two claims — that the
+failure set moved under concurrent sessions, and that this feature's contribution
+to it is exactly zero — were re-checked and both still hold, so only the
+`STALE-BASELINE` clause is marked.
+
+### OBS-4 — this report's own gaps-phase paste was failing the repository selftest
+
+Surfaced by this pass rather than found in the brief, and reported here rather
+than fixed silently, because it is a live defect and not a stale narrative.
+
+The gaps-phase evidence block pasted the validator's output verbatim, including
+its three `PLANNED-MISSING` diagnostic lines. Those lines name three `tests/*.mjs`
+paths as literal strings. The repository path scanner treats any such literal
+inside a spec artifact as a claim that the path exists, so the paste made this
+report the **sole** reference site for three paths that do not exist. The
+validator counted them as `new`, refused, and took the repository selftest red
+with it:
+
+```text
+# OBS-4 cause, measured before the repair
+$ node scripts/validate-spec-test-paths.mjs
+exit code: 1
+[spec-test-paths] ... plannedMissing=3 baseline=70 new=3 stale=0
+  NEW-MISSING <portfolio doc-integration functional spec> (1 reference site(s))
+      referenced at specs/025-company-multi-horizon-intelligence-lab/report.md:2754
+  NEW-MISSING <portfolio survival accessibility spec> (1 reference site(s))
+      referenced at specs/025-company-multi-horizon-intelligence-lab/report.md:2755
+  NEW-MISSING <portfolio test-integrity unit spec> (1 reference site(s))
+      referenced at specs/025-company-multi-horizon-intelligence-lab/report.md:2756
+[spec-test-paths] FAIL — 3 new referenced path(s) do not exist
+```
+
+**Claim Source:** executed. The three path literals are described rather than
+written, for the same reason as everywhere else in this report; the site line
+numbers are quoted verbatim.
+
+This is the third occurrence of the same defect class in this file, and the
+repair follows the convention the file already established for the other two. The
+verbatim paste was **not** hand-edited line by line — silently altering captured
+output would be an anti-fabrication violation. It was converted to a labelled
+summary that carries the command, the exit code, the counts line and the closing
+line unchanged, describes the three path literals instead of naming them, and
+discloses plainly that the tokens are withheld and why. The original paste
+remains recoverable from this file's git history.
+
+The repair was measured, not assumed:
+
+| | before repair | after repair |
+| --- | --- | --- |
+| `validate-spec-test-paths` `new` | 3 | **0** |
+| `validate-spec-test-paths` exit | 1 | **0** |
+| reference sites under `specs/025-*` | 3 | **0** |
+| `selftest.mjs` | `3403 passed, 1 failed`, exit 1 | **`3404 passed, 0 failed`, exit 0** |
+
+Both after-repair rows are the executions cited as readings 2 and 3 under OBS-1,
+with their hashes. `Regression: SCN-025-CANARY`, the assertion that exists to go
+red if this feature's shared-surface append broke a pre-existing assertion, is
+green in every reading.
+
+The repository selftest went red again shortly afterwards, on `specs/024`
+reproducing this identical paste defect in its own report. That is recorded as
+OBS-1 reading 3 and is not a regression of this repair: the reference sites this
+repair removed stayed removed, and `sites_under_spec_025` measured `0` in that
+reading too.
+
+**Consequence for check (c).** Before this repair, check (c)'s clause "with zero
+contributing sites here" was false: this feature had three. After it, the clause
+is true in every reading OBS-1 records. Had the repair not been made, certifying
+this feature would have meant certifying a report whose own evidence paste was
+the single cause of a red repository selftest.
 
 **Educational research only. Not investment advice.**
 

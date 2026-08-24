@@ -634,3 +634,28 @@ What this execution did **not** establish: the two producers still disagree. The
 producer publishes these routes with a bare `deepLink` while the client now publishes a
 subject-bearing one. Q4 was decided for the client half only, which is the half this packet owns.
 Reconciling the server-side producer is real remaining work and is not claimed here.
+
+### Correction — the server-side half needs no reconciliation
+
+The paragraph above is left standing because it was written before the server-side producer was
+read, and overstating a disagreement in a spec artifact is the kind of drift this packet exists to
+remove. It is wrong, and the correction is this.
+
+The server-side entry is a declaration in `OWNER_EVIDENCE_DECLARATIONS`, and it carries a **set** of
+covered symbols rather than one current subject:
+
+```
+Command: git show origin/main:scripts/brief-refresh.mjs | sed -n '190,200p'
+  toolId: 'intraday-tape-lab', adapterId: 'intraday-tape-owning-model-v1', owningModelVersion: 'intraday-tape/v1',
+  profile: 'live-market', deepLink: 'intraday-tape-lab.html',
+  symbols: Object.freeze(['SPY', 'QQQ']), nonApplicableSymbols: Object.freeze([]),
+Exit Code: 0
+```
+
+A tool-level link is the correct shape for a declaration covering two symbols, because there is no
+single subject to name. The client publishes a subject-bearing link because it knows the one
+subject on screen. The two producers are answering different questions, not disagreeing about the
+same one, so there is nothing to reconcile and no follow-up work is owed.
+
+`design.md` records the bare server-side link as evidence bearing on Q4. That evidence is real; the
+inference that it implies a standing disagreement is what this correction withdraws.

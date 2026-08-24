@@ -1599,6 +1599,97 @@ The row stays `[ ]`. Closing it would require either a commit that isolates this
 scope's shared-surface edits, or a rollback rewritten to name the reverse edits
 explicitly rather than by reference to a state the history does not hold.
 
+#### Re-execution 2026-08-23 — the reverse edits named, the module clause measured
+
+The second remedy above was taken: the page-section clause was rewritten to name
+its reverse edits explicitly. The documented rollback was executed once more,
+verbatim, against a fresh `git archive HEAD` materialised outside the repository,
+with the residual scan widened to every element id the `power-benefit` band owned
+plus the `inputBenefit*` and `workspace.benefit*` surfaces. Before-verdict:
+
+```text
+### executing rollback mode=documented  section=power-benefit  module=rltaxsocialsecurity.js
+SECTION_REMOVED id=power-benefit lines=42 owned_ids=9
+REVERSE_EDITS {"section-band":1,"script-tag":1}
+### residual scan of the rolled-back page
+    power-benefit refs                 : 2   first at line 1679: "power-deduction", "power-use", "power-rental", "power-disposition", "power-benefit",
+    rltaxsocialsecurity.js refs        : 0
+    renderBenefit refs                 : 2
+    inputBenefit* refs                 : 20
+    workspace.benefit* refs            : 16
+    orphaned id benefitRefusal         : 1   first at line 4314
+    orphaned id benefitOriginLine      : 2   first at line 4320
+    orphaned id benefitBasisBody       : 1   first at line 4315
+    orphaned id benefitAdjustmentBody  : 1   first at line 4316
+    orphaned id benefitStoppingAgeLine : 2   first at line 4321
+    orphaned id benefitApplicabilityLine : 2   first at line 4322
+    orphaned id benefitNoProjectionLine : 2   first at line 4323
+RESIDUAL_CLASSES=11
+ROLLBACK_REHEARSAL mode=documented section=power-benefit page_residual_classes=1 ROLLBACK_VERDICT=FAIL
+```
+
+Removing the band deletes the container and leaves the machinery that fills it.
+`renderBenefit` still writes seven ids that no longer exist, the four
+`inputBenefit*` controls remain with their declared-key inventory entries, the
+workspace still reads and writes eight benefit members, and the section id is
+still registered in `POWER_SECTION_IDS`.
+
+The Change Boundary and the `POWER_SECTION_IDS` sweep row were corrected to
+enumerate all eight sites. The corrected procedure was then executed on a fresh
+materialised copy:
+
+```text
+### executing rollback mode=corrected  section=power-benefit  module=rltaxsocialsecurity.js
+SECTION_REMOVED id=power-benefit lines=42 owned_ids=9
+REVERSE_EDITS {"section-band":1,"script-tag":1,"inputs":4,"render-fn":1,"render-call":1,"withheld-link-row":1,"input-wiring":10,"workspace-members":8}
+### residual scan of the rolled-back page
+    power-benefit refs                 : 0
+    rltaxsocialsecurity.js refs        : 0
+    renderBenefit refs                 : 0
+    inputBenefit* refs                 : 0
+    workspace.benefit* refs            : 0
+RESIDUAL_CLASSES=0
+ROLLBACK_REHEARSAL mode=corrected section=power-benefit page_residual_classes=0 ROLLBACK_VERDICT=PASS
+```
+
+The page-section half of the rollback is therefore repaired and proven, which is
+one of the two remedies the earlier entry named.
+
+The row still stays open, and the reason is now stated as a measurement rather
+than as an absence of history. Deleting `rltaxsocialsecurity.js` is not a step
+this rollback can take: the shipped settlement engine requires it at `rltax.js:68`
+and `rltaxclaimage.js` requires it at line 39. Measured on the same scratch copy,
+against a baseline of `3401 passed, 3 failed` whose three failures come from the
+archive having no `.git` directory:
+
+```text
+Research-Lab self-test: 3023 passed, 33 failed
+```
+
+The failure lines that carry no scratch path are quoted verbatim. Seven of the
+ten belong to Features 021 through 023, which predate this scope:
+
+```text
+  ✗ FAIL (Feature 021 Scope 02 settlement group threw): Cannot find module './rltaxsocialsecurity.js'
+  ✗ FAIL (Feature 021 Scope 03 curve group threw): Cannot find module './rltaxsocialsecurity.js'
+  ✗ FAIL (Feature 021 Scope 04 conversion group threw): Cannot find module './rltaxsocialsecurity.js'
+  ✗ FAIL (Feature 021 Scope 05 route group threw): Cannot find module './rltaxsocialsecurity.js'
+  ✗ FAIL (Feature 022 Scope 03 state contract group threw): Cannot find module './rltaxsocialsecurity.js'
+  ✗ FAIL (Feature 022 Scope 04 California group threw): Cannot find module './rltaxsocialsecurity.js'
+  ✗ FAIL (Feature 022 Scope 05 combined group threw): Cannot find module './rltaxsocialsecurity.js'
+  ✗ FAIL (Feature 023 Scope 01 property group threw): Cannot find module './rltaxsocialsecurity.js'
+  ✗ FAIL (Feature 023 Scope 02 deduction group threw): Cannot find module './rltaxsocialsecurity.js'
+  ✗ FAIL (Feature 023 Scope 03 rental group threw): Cannot find module './rltaxsocialsecurity.js'
+```
+
+The earlier entry read the blocker as an absent baseline. That reading was
+incomplete. A baseline would not help: even with one, the module cannot be
+withdrawn while the shipped engine requires it. The Change Boundary now states
+that as a precondition, and the row stays `[ ]` on the measurement.
+
+**Claim Source:** executed. The live tree was confirmed unchanged afterwards and
+every scratch directory was removed.
+
 ### Row status after this session
 
 | Row | Verdict |

@@ -195,7 +195,7 @@ Scenario: SCN-024-003 Full retirement age, the early reduction and the delayed c
 | `rltax.js` leg set | The benefit leg added, derived from the pack | Scopes 02–05 and Features 021–023 reconciliation | High — a hardcoded leg list would silently drop every later leg | Assert Features 021 through 023 fixtures produce their exact prior leg sets before the benefit leg is added | Remove the leg from the pack's declared set |
 | The leg-census helper | Extended to name the failing surface | Scopes 02–05 | High — a helper that passes on an all-zero fixture proves nothing and would certify the exact defect it exists to catch | Assert the helper fails when the benefit leg is removed from each of the four surfaces in turn, on the all-non-zero fixture, naming the surface each time | Revert to the Feature 023 helper |
 | `rltaxworkspace.js` | Four declarations plus the privacy surface | Scopes 02–05 | High — an earnings record is a year-by-year employment history | Assert each new declaration is inventoried, cleared, redacted, and absent from every URL, request, referrer and console message, and assert the declared key count is unchanged | Remove the members |
-| `POWER_SECTION_IDS` and the withheld-link set | One section added | Scopes 02–05 | Low — both counts were converted to derived identities by SUP-023-05 and SUP-023-06 and absorb this growth | Assert the derived identity still holds in both directions with the new section present | Remove the section |
+| `POWER_SECTION_IDS` and the withheld-link set | One section added | Scopes 02–05 | Low — both counts were converted to derived identities by SUP-023-05 and SUP-023-06 and absorb this growth | Assert the derived identity still holds in both directions with the new section present | Remove the section id from the list and the withheld-detail link row that targets it |
 | `scripts/selftest.mjs` | One group appended plus SUP-024-01 | The whole-repo gate | Medium | Pre-existing pass count must not fall | Remove the group and revert the marker |
 
 ## Change Boundary And Protected Paths
@@ -243,10 +243,28 @@ above, and nothing else.
 **Excluded surfaces:** the byte-identical list named above. Collateral cleanup
 outside the allowed families is opt-in and is not performed under this scope.
 
-**Rollback:** delete `rltaxsocialsecurity.js`, the benefit pack and the fixtures;
-revert the two contracts, the `basisOrigin` enum, the sourced row lookup, stage
-`CO-20`, the benefit leg, the census extension and the workspace members; revert
-the page section; revert SUP-024-01 to its superseded clause.
+**Rollback:** delete the benefit pack and the fixtures; revert the two contracts,
+the `basisOrigin` enum, the sourced row lookup, stage `CO-20`, the benefit leg,
+the census extension and the workspace members; revert SUP-024-01 to its
+superseded clause. Reverting the page section is not one edit. It is eight sites
+in `lifetime-tax-strategy-lab.html`:
+
+1. the `power-benefit` band and all nine element ids it owns;
+2. the `rltaxsocialsecurity.js` script tag;
+3. the `power-benefit` member of `POWER_SECTION_IDS`;
+4. the withheld-detail link row that targets that section;
+5. the four `inputBenefit*` label blocks;
+6. the `renderBenefit` function and its call site;
+7. every remaining `inputBenefit*` read and write, including the declared-key
+   inventory entries;
+8. every `workspace.benefit*` read and write.
+
+Deleting `rltaxsocialsecurity.js` is not available to this rollback at all. The
+shipped settlement engine `rltax.js` requires the module, and `rltaxclaimage.js`
+requires it as well, so removing it breaks every `rltax` group in the repository,
+including groups belonging to Features 021 through 023, which predate this scope.
+The module can only be deleted together with those dependencies, which are
+outside this scope's Change Boundary.
 
 ## Assertion Supersession Owned By This Scope
 

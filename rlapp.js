@@ -519,6 +519,25 @@
         (capability.durable ? 'Durable — progress is saved locally and survives reload.' : 'Session only — local storage is unavailable; progress is not saved across reloads. Safe export remains available.') + '</div>';
       host.innerHTML = capHtml + '<ul data-rljourney-chooser>' + listHtml + '</ul><section data-rljourney-active hidden></section>';
     }
+    function compiledFor(definitionId) {
+      return compiledRegistry ? compiledRegistry.definitions[definitionId] : null;
+    }
+    /* The chooser labels its buttons with the human goal title, so the panel a click opens must not
+       fall back to raw identifiers. A reader who clicks "Read why a cell publishes or withholds its
+       rate" should not land on "gate-review" and a bare step id. */
+    function goalHeadingFor(session) {
+      var compiled = compiledFor(session.definitionId);
+      return compiled && compiled.title ? compiled.title : session.goalId;
+    }
+    /* Titles come from the RAW registry: the compiled projection carries only the graph and
+       mechanism fields a session needs, and deliberately drops the prose. */
+    function stepTitleFor(stepId) {
+      var steps = journeys && journeys.steps ? journeys.steps : [];
+      for (var i = 0; i < steps.length; i += 1) {
+        if (steps[i].stepId === stepId && steps[i].title) return steps[i].title;
+      }
+      return stepId;
+    }
     function renderActive() {
       if (!host) return;
       var section = host.querySelector("[data-rljourney-active]");
@@ -533,21 +552,53 @@
         return '<li data-rljourney-step="' + esc(stepId) + '" data-rljourney-status="' + esc(record.status) + '"' +
           (current ? ' aria-current="step"' : '') +
           (record.staleReason ? ' data-rljourney-stale-reason="' + esc(record.staleReason) + '"' : '') +
-          ' data-rljourney-evidence-count="' + (record.evidence || []).length + '"><span>' + esc(stepId) + '</span></li>';
+          ' data-rljourney-evidence-count="' + (record.evidence || []).length + '"><span>' + esc(stepTitleFor(stepId)) + '</span></li>';
       }).join("");
       var packetHtml = "";
       if (state.packet) {
         var p = state.packet;
         packetHtml = '<div data-rljourney-packet="' + esc(p.outcome) + '" data-rljourney-executed="' + (p.executed ? "true" : "false") + '" data-rljourney-review="' + (p.reviewRecorded ? "true" : "false") + '" data-rljourney-excluded-stale="' + esc(p.excludedStaleSteps.join(",")) + '"><p data-rljourney-disclaimer>' + esc(p.disclaimer) + '</p></div>';
       }
-      section.innerHTML = '<h3 data-rljourney-goal-title>' + esc(s.goalId) + '</h3>' +
+      section.removeAttribute("data-rljourney-refusal");
+      section.innerHTML = '<h3 data-rljourney-goal-title>' + esc(goalHeadingFor(s)) + '</h3>' +
         '<ol data-rljourney-progress aria-label="Journey progress">' + stepsHtml + '</ol>' +
         '<div data-rljourney-next="' + esc(s.nextRequiredStepId || "none") + '"></div>' + packetHtml;
     }
+    function renderOpenRefusal(definitionId, message) {
+      /* A refusal has to be readable. Silence is precisely the defect this path exists to prevent. */
+      var section = host ? host.querySelector("[data-rljourney-active]") : null;
+      if (!section) return;
+      var compiled = compiledFor(definitionId);
+      section.removeAttribute("hidden");
+      section.setAttribute("data-rljourney-refusal", "open-failed");
+      section.innerHTML = '<h3 data-rljourney-goal-title>' + esc(compiled && compiled.title ? compiled.title : definitionId) + '</h3>' +
+        '<p data-rljourney-refusal-reason>This goal could not be started: ' + esc(message) + '</p>';
+    }
+    var chooserBound = false;
+    function bindChooser() {
+      /* renderChooser replaces the chooser wholesale, so the handler is delegated on the host and
+         bound exactly once. Without this the buttons are inert: the markup carries
+         data-rljourney-goal, but nothing ever reached openGoal, so a click did nothing at all and
+         only the test suite (which calls openGoal directly) ever started a journey. */
+      if (chooserBound || !host || typeof host.addEventListener !== "function") return;
+      chooserBound = true;
+      host.addEventListener("click", function (event) {
+        var node = event.target;
+        var button = node && typeof node.closest === "function" ? node.closest("[data-rljourney-goal]") : null;
+        if (!button || !host.contains(button)) return;
+        event.preventDefault();
+        var definitionId = button.getAttribute("data-rljourney-goal");
+        try {
+          api.openGoal(definitionId);
+        } catch (error) {
+          renderOpenRefusal(definitionId, (error && error.message) || "unknown error");
+        }
+      });
+    }
 
-    return {
+    var api = {
       capability: function () { return JSON.parse(JSON.stringify(capability)); },
-      mount: function () { renderChooser(); var rows = chooserRows(); return { toolCount: rows.length, rows: rows.map(function (r) { return { registryId: r.registryId, kind: r.kind, goalCount: r.goals.length }; }) }; },
+      mount: function () { renderChooser(); bindChooser(); var rows = chooserRows(); return { toolCount: rows.length, rows: rows.map(function (r) { return { registryId: r.registryId, kind: r.kind, goalCount: r.goals.length }; }) }; },
       chooser: function () { return chooserRows(); },
       openGoal: function (definitionId, options) {
         var compiled = compiledRegistry ? compiledRegistry.definitions[definitionId] : null;
@@ -624,6 +675,7 @@
       sessionState: function () { return journeySessionState(state); },
       packetState: function () { return journeyPacketState(state.packet); }
     };
+    return api;
   }
   function mountJourney() {
     var anchors = document.querySelectorAll ? document.querySelectorAll("[data-rljourney-mount]") : [];

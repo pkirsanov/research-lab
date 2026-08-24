@@ -170,6 +170,76 @@ test('the [data-rljourney-mount] anchor is shipped by the four-view shell, and t
   expect(surface.panelText).not.toContain('Runtime activation is delivered');
 });
 
+/* ═══════════ the chooser is a CONTROL, not decoration — a click must start the goal ═══════════ */
+
+test('Regression: clicking a chooser goal starts that journey, and the panel names it in prose', async ({ page }) => {
+  await page.goto(`${site.baseUrl}/${PAGE}`);
+  await expect(page.locator('body')).toBeVisible();
+  await page.locator('#rlviews button[data-rlview-mode="journey"]').click();
+  const anchor = page.locator('[data-rlexperience-panel="journey"] [data-rljourney-mount]');
+  await expect(anchor).toHaveAttribute('data-rljourney-state', 'ready', { timeout: 15000 });
+
+  /* Nothing is open before the click, so every assertion below is about the click itself. */
+  const active = page.locator('[data-rljourney-active]');
+  await expect(active).toBeHidden();
+
+  const goal = page.locator('[data-rljourney-goal]').first();
+  const goalLabel = (await goal.innerText()).trim();
+  expect(goalLabel.length).toBeGreaterThan(0);
+
+  /* The REAL user gesture. Every other row in this file reaches openGoal programmatically through
+     __rljourneyController, so a chooser wired to nothing at all would leave them all green — which
+     is exactly the state this row exists to refuse. */
+  await goal.click();
+
+  await expect(active).toBeVisible();
+  await expect(page.locator('[data-rljourney-step]')).not.toHaveCount(0);
+  await expect(page.locator('[data-rljourney-step][aria-current="step"]')).toHaveCount(1);
+
+  const opened = await page.evaluate(() => {
+    const section = document.querySelector('[data-rljourney-active]');
+    return {
+      text: section.innerText.trim(),
+      definitionId: section.getAttribute('data-rljourney-active'),
+      refusal: section.getAttribute('data-rljourney-refusal'),
+      sessionLive: !!(globalThis.__rljourneyController.sessionState() || {}).active
+    };
+  });
+
+  expect(opened.sessionLive).toBe(true);
+  expect(opened.refusal).toBeNull();
+  expect(opened.definitionId).toContain('journey/');
+  /* The panel repeats the label the reader just clicked. */
+  expect(opened.text).toContain(goalLabel);
+  /* ADVERSARIAL: identifiers are not prose. A panel rendering raw step ids would still satisfy
+     every count assertion above, so the readable half is pinned separately. */
+  expect(opened.text).not.toContain('journey/');
+  expect(opened.text).not.toContain('/step/');
+});
+
+test('Regression: a goal that cannot be opened states the refusal on screen rather than doing nothing', async ({ page }) => {
+  await page.goto(`${site.baseUrl}/${PAGE}`);
+  await expect(page.locator('body')).toBeVisible();
+  await page.locator('#rlviews button[data-rlview-mode="journey"]').click();
+  const anchor = page.locator('[data-rlexperience-panel="journey"] [data-rljourney-mount]');
+  await expect(anchor).toHaveAttribute('data-rljourney-state', 'ready', { timeout: 15000 });
+
+  /* Point one button at a definition the registry does not carry. This is the shape of every
+     open failure — a stale chooser, a withdrawn definition, a runtime refusal — and the reader
+     must be told, because a silent no-op is indistinguishable from a broken page. */
+  await page.evaluate(() => {
+    document.querySelector('[data-rljourney-goal]').setAttribute('data-rljourney-goal', 'journey/not-in-registry/v1');
+  });
+  await page.locator('[data-rljourney-goal]').first().click();
+
+  const active = page.locator('[data-rljourney-active]');
+  await expect(active).toBeVisible();
+  await expect(active).toHaveAttribute('data-rljourney-refusal', 'open-failed');
+  await expect(page.locator('[data-rljourney-refusal-reason]')).toContainText('could not be started');
+  /* A refusal is not a session: nothing was opened and no progress is implied. */
+  await expect(page.locator('[data-rljourney-step]')).toHaveCount(0);
+});
+
 /* ═══════════════════════ TP-08-04 — SCN-012-009 durable resume ═══════════════════════ */
 
 test('Regression: SCN-012-009 Journey reload restores evidence-complete progress and never completes visits', async ({ page }) => {

@@ -9,7 +9,7 @@ and every Definition of Done item is unticked.
 
 ## Scope 1: Characterise The Stall Well Enough To Choose
 
-**Status:** [ ] Not started
+**Status:** [x] Done
 
 ### Problem This Scope Resolves
 
@@ -60,17 +60,17 @@ Feature: The stall is characterised before a remedy is chosen
 
 ### Definition of Done
 
-- [ ] A frequency is recorded, with the number of runs it rests on, and raw output for each.
-- [ ] The lowest worker count at which the stall was observed is recorded.
-- [ ] A worker count at which it was not observed is recorded as not-observed, not as safe.
-- [ ] Each candidate mechanism is marked supported, contradicted, or untested.
-- [ ] No candidate is named as the cause without evidence distinguishing it from the others.
-- [ ] A remedy option is selected, or continued diagnosis is recorded as the decision.
-- [ ] Raw output evidence is recorded inline for each item above.
+- [x] A frequency is recorded, with the number of runs it rests on, and raw output for each.
+- [x] The lowest worker count at which the stall was observed is recorded.
+- [x] A worker count at which it was not observed is recorded as not-observed, not as safe.
+- [x] Each candidate mechanism is marked supported, contradicted, or untested.
+- [x] No candidate is named as the cause without evidence distinguishing it from the others.
+- [x] A remedy option is selected, or continued diagnosis is recorded as the decision.
+- [x] Raw output evidence is recorded inline for each item above.
 
 ## Scope 2: Apply The Selected Remedy
 
-**Status:** [ ] Not started
+**Status:** [x] Done
 **Depends on:** Scope 1
 
 ### Problem This Scope Resolves
@@ -117,13 +117,13 @@ Feature: A passing run reports success
 
 ### Definition of Done
 
-- [ ] Consecutive runs at the chosen worker count all exit 0, with raw output for each.
-- [ ] No run reports `worker-N process did not exit within`.
-- [ ] Browser process count returns to its pre-run level after each run.
-- [ ] The wall-time ratio meets the bound recorded under FR-017-004.
-- [ ] `node scripts/selftest.mjs` reports zero failures at or above the recorded baseline.
-- [ ] No test was modified to accommodate the remedy.
-- [ ] Raw output evidence is recorded inline for each item above.
+- [x] Consecutive runs at the chosen worker count all exit 0, with raw output for each.
+- [x] No run reports `worker-N process did not exit within`.
+- [x] Browser process count returns to its pre-run level after each run.
+- [x] The wall-time ratio meets the bound recorded under FR-017-004.
+- [x] `node scripts/selftest.mjs` reports zero failures at or above the recorded baseline.
+- [x] No test was modified to accommodate the remedy.
+- [x] Raw output evidence is recorded inline for each item above.
 
 ## Scope 3: Disclose It Where A Developer Meets It
 

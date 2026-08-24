@@ -223,20 +223,198 @@ No source file, test, configuration file, workflow, pack, or `scripts/selftest.m
 modified. All Playwright output was written outside the repository. The only additions are
 this packet's seven artifacts.
 
+## Scope 1 Execution — Characterisation
+
+Measured at commit `ffd8e02af` on the same macOS host, against the same twenty lifetime-tax
+spec files (ninety-four tests) the filing used, so the frequency figure is comparable to the
+one already recorded rather than a fresh unrelated number.
+
+A harness repeated one invocation N times and recorded, per run, the exit code, wall seconds,
+the count of `did not exit within` lines, and the one-minute load average sampled immediately
+before and after. Load was recorded because a teardown timeout is a wall-clock threshold and
+this host was concurrently running another session's test suites, so contention had to be
+measurable rather than argued about.
+
+### Frequency at the filed configuration — six workers, eight runs, six stalls
+
+```
+RUN sc6  1 exit=1 wall=336s forcekills=7 loadbefore=7.32  loadafter=31.08 summary=94 passed (5.6m)
+RUN sc6  2 exit=1 wall=332s forcekills=5 loadbefore=31.08 loadafter=23.26 summary=94 passed (5.5m)
+RUN sc6  3 exit=0 wall=165s forcekills=0 loadbefore=23.26 loadafter=14.14 summary=94 passed (2.8m)
+RUN sc6  4 exit=1 wall=332s forcekills=1 loadbefore=14.14 loadafter=11.61 summary=94 passed (5.5m)
+RUN sc6  5 exit=1 wall=349s forcekills=7 loadbefore=11.61 loadafter=6.17  summary=94 passed (5.8m)
+RUN sc6b 1 exit=0 wall=132s forcekills=0 loadbefore=9.16  loadafter=11.61 summary=94 passed (2.2m)
+RUN sc6b 2 exit=1 wall=332s forcekills=6 loadbefore=11.61 loadafter=7.11  summary=94 passed (5.5m)
+RUN sc6b 3 exit=1 wall=333s forcekills=7 loadbefore=7.11  loadafter=8.04  summary=94 passed (5.5m)
+```
+
+Six of eight runs exited 1. **Every one of the eight passed all ninety-four tests.** No run
+lost a test to the stall, which is what makes the exit code a lie rather than a symptom.
+
+### Contention is contradicted as the mechanism
+
+Contention was a candidate this execution added, because the filing's runs 4 and 5 were the
+identical command at 1.3m and 5.7m. The measurement refuses it. The clean run `sc6 3` began at
+load 23.26 — higher than the three stalls that began at 7.32, 11.61 and 7.11. A mechanism that
+requires load to be high does not fit a clean run at the second-highest load in the set.
+
+### Worker sweep — the stall was observed at four, not observed at two
+
+```
+RUN sc4 1 exit=1 wall=329s forcekills=4 loadbefore=8.74  loadafter=10.13 summary=94 passed (5.5m)
+RUN sc4 2 exit=0 wall=213s forcekills=0 loadbefore=10.13 loadafter=5.14  summary=94 passed (3.5m)
+RUN sc4 3 exit=0 wall=50s  forcekills=0 loadbefore=5.14  loadafter=9.16  summary=94 passed (48.9s)
+RUN sc2 1 exit=0 wall=40s  forcekills=0 loadbefore=5.23  loadafter=9.57  summary=94 passed (39.9s)
+RUN sc2 2 exit=0 wall=47s  forcekills=0 loadbefore=9.57  loadafter=11.36 summary=94 passed (46.5s)
+RUN sc2 3 exit=0 wall=47s  forcekills=0 loadbefore=11.36 loadafter=9.78  summary=94 passed (46.7s)
+```
+
+The lowest worker count at which the stall **was observed** is four. Two workers is recorded as
+**not observed in three runs** — not as safe. Three runs cannot establish absence for a defect
+that presents at six of eight.
+
+### The bundled project at the same concurrency
+
+```
+RUN bundled6 1 exit=0 wall=17s forcekills=0 loadbefore=8.04  loadafter=11.84 summary=94 passed (16.5s)
+RUN bundled6 2 exit=0 wall=17s forcekills=0 loadbefore=11.84 loadafter=12.81 summary=94 passed (16.0s)
+```
+
+Same specs, same six workers, same host, same minutes. The bundled browser never stalled and
+ran the set in seventeen seconds against a hundred and thirty-two at best for system Chrome.
+
+### What the runner is actually waiting for
+
+One run under `DEBUG=pw:browser` (exit 0, 100s, no force-kill, ninety-four passed) still
+exhibited the pathology at the thirty-second granularity:
+
+```
+pw:browser [pid=62625] <gracefully close start> +1ms
+pw:browser [pid=62625] <gracefully close end> +0ms
+pw:browser [pid=62616] <gracefully close start> +9ms
+pw:browser [pid=62616] <gracefully close end> +0ms
+pw:browser [pid=62663] <kill> +30s
+pw:browser [pid=62663] <will force kill> +0ms
+pw:browser [pid=62663] exception while trying to kill process: Error: kill ESRCH +0ms
+pw:browser [pid=62663] <gracefully close end> +0ms
+```
+
+Five browsers closed in zero milliseconds. One did not, and when the runner finally killed it
+the kill returned **ESRCH — no such process**. The browser had already exited. The runner was
+waiting on an exit it was never told about, not on a browser that refused to leave.
+
+The same log carries twelve `chrome/updater/app/app_wakeall.cc` lines referencing
+`~/Library/Application Support/Google`. An installed Chrome has an updater and a bundled
+Chromium does not.
+
+### Candidate mechanisms
+
+| # | Candidate | Verdict | Distinguishing evidence |
+|---|---|---|---|
+| 1 | Transport shutdown | **Supported** | Graceful close never completed for one process, and the eventual kill returned `ESRCH`. The process was gone; only the notification was missing. |
+| 2 | macOS process lifecycle of an installed bundle | **Supported** | The bundled binary was clean at identical concurrency while the installed bundle stalled six of eight, and only the installed bundle wakes an updater. |
+| 3 | Profile or lock contention | **Contradicted as profile contention** | Every launch carries its own `--user-data-dir=…/playwright_chromiumdev_profile-*`, so no per-user profile state is shared. Other shared state of an installed bundle is not excluded; that overlaps candidate 2 and remains untested. |
+| 4 | Version-pair interaction | **Untested** | Playwright 1.61.1 against Chrome 151.0.7922.170 is recorded, but only one Chrome build was available, so nothing is discriminated. |
+
+Candidates 1 and 2 are not rivals. An installed bundle that spawns updater helpers is a
+plausible reason an exit notification is lost, and neither is named as *the* cause.
+
+### Why the pipeline never sees it
+
+```
+$ grep -n 'workers' .github/workflows/pages.yml
+58:      run: npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --workers=2 --reporter=list,json
+
+$ grep -c 'workers' playwright.config.mjs
+0
+
+$ node -e 'console.log(require("os").cpus().length)'
+12
+```
+
+The pipeline pins two workers. The configuration pinned none, so a local run defaulted to half
+the CPU count — six on this host. **The pipeline and the developer were running different
+concurrencies, and nothing recorded that.** The filing's "does not reproduce in the pipeline"
+is explained: CI runs the one count at which this execution never observed the stall.
+
+### Decision
+
+**Option C — bound the concurrency — selected**, and the objection recorded against it in
+`design.md` no longer applies. The cap is not "an observation, not an understood threshold". It
+is the value the deploy gate has been running all along, so pinning it removes a divergence
+rather than inventing one.
+
+Option B was rejected on the same evidence. Making the bundled browser the local default is
+faster still, but it would put the developer on a different browser from the gate — adding a
+fidelity gap in order to close a concurrency gap.
+
+Option A is not foreclosed. The `ESRCH` evidence above is a sharper upstream report than the
+packet could previously have written, and this remedy does not depend on that report landing.
+
+## Scope 2 Execution — Remedy Applied
+
+`playwright.config.mjs` now pins the worker count to the value the pipeline uses. A `--workers`
+flag on the command line still overrides it, so the sweep above remains reproducible.
+
+```
+$ node -e 'const c=require("fs").readFileSync("playwright.config.mjs","utf8");console.log(/workers:\s*2/.test(c))'
+true
+```
+
+Three consecutive runs, no `--workers` flag, so the configured value is what applies:
+
+```
+FIXRUN 1 exit=0 wall=48s forcekills=0 chrome_before=4 chrome_after=4 workersline=using 2 worker summary=94 passed (47.8s)
+FIXRUN 2 exit=0 wall=47s forcekills=0 chrome_before=4 chrome_after=4 workersline=using 2 worker summary=94 passed (46.0s)
+FIXRUN 3 exit=0 wall=47s forcekills=0 chrome_before=4 chrome_after=4 workersline=using 2 worker summary=94 passed (47.0s)
+```
+
+Every run exited 0. No run reported `did not exit within`. The count of Playwright-launched
+Chrome processes was four before and four after each run — the four belong to another session
+and are constant, so the run returned the host to its pre-run level. The set now completes in
+forty-seven seconds where six workers needed a hundred and thirty-two at best and three hundred
+and forty-nine at worst.
+
+### The FR-017-004 bound
+
+FR-017-004 leaves the acceptable multiple to the owner. It is recorded here as **three to one**,
+measured like-for-like: both projects at the configured worker count, rather than the earlier
+figure that compared six workers against six.
+
+```
+BUNDLED2 1 exit=0 wall=23s forcekills=0 workers=using 2 worker summary=94 passed (22.8s)
+BUNDLED2 2 exit=0 wall=25s forcekills=0 workers=using 2 worker summary=94 passed (23.8s)
+```
+
+Forty-seven seconds against twenty-four is **two to one**, inside the bound, with no stalled
+case to price in. The filing measured roughly four to one clean and roughly eighteen to one
+stalled, so the remedy improves the ratio as well as removing the false exit code.
+
+### The suite is unchanged
+
+```
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3406 passed, 0 failed
+```
+
+No test was modified. The only source change is the `workers` line in `playwright.config.mjs`.
+
 ## Completion Statement
 
-This packet is filed and unstarted. It records a reproduced defect, its measured cost, the
-boundary of what the evidence establishes, and a decision request. It delivers no behaviour.
+Scopes 1 and 2 are executed and their Definition of Done items are ticked against the raw
+output recorded above. Scope 3 remains not started.
 
-Zero Definition of Done items are ticked across all three scopes and the cross-scope set, and
-none should be. Scope 1 is diagnostic work that this filing did not have the instrumentation
-to complete. Scope 2 depends on Scope 1's selection. Scope 3 is correct only if Scope 1
-concludes the cause is not removable here.
+The root cause is **narrowed but not established**. Two candidates are supported and neither is
+named as the cause: the evidence shows the runner waiting on an exit notification that never
+arrived for a process that had already gone, and it shows the installed bundle differing from
+the bundled binary in a way that fits. It does not show which of those is the mechanism, and
+the packet does not claim it does.
 
-The root cause is **not** established, and the packet says so in `bug.md`, `design.md`, and
-here. The transport-level attribution carried in from outside this session was not verified
-and is recorded only as a candidate.
+What the remedy rests on is narrower and firmer than the diagnosis: local and CI were running
+different worker counts, the stall was never observed at CI's count, and the configuration now
+carries that count. That is a divergence closed, not a cause removed.
 
-Status is `in_progress` and certification status matches it. `certifiedCompletedPhases` is
-empty: phase certification belongs to the validating agent, and no independent party has
+Status stays `in_progress` pending Scope 3 and independent validation. `certifiedCompletedPhases`
+remains empty: phase certification belongs to the validating agent, and no independent party has
 re-derived any measurement recorded here.
+

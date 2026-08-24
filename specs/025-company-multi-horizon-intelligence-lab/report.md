@@ -124,15 +124,56 @@ group at the end of the file.
 
 #### Scope 3 — Company event capability
 
-Every file this scope touched is still untracked in git, so `git diff` prints
-nothing for it. `git status --porcelain` over the four paths returns exactly:
+This block was authored by `bubbles.implement`. It was re-executed on that
+phase's behalf by `bubbles.gaps` during a compliance sweep of evidence blocks
+that sat below the legitimacy bar; ownership of this section did not transfer
+and the conclusion below is re-derived, not restated.
 
+The original capture ran `git status --porcelain` over the four Scope 3 paths
+and recorded four `??` lines, which was true when it was written. That output is
+no longer reproducible: the four paths were committed in the interim, so
+`git status --porcelain` now prints nothing. The claim the block carried — that
+this scope's delta is pure addition, with no deletion line anywhere in it — is
+therefore re-derived against the explicit commit that introduced the paths
+rather than against a working tree that has moved on. The reconstruction is
+disclosed here rather than presented as the original command.
+
+```text
+$ git log --diff-filter=A --format='%h %ad %s' --date=short -- rlcompanyintel.js
+b160d587f 2026-08-18 feat(025): commit company multi-horizon intelligence lab artifacts
+
+$ git status --porcelain -- company-intelligence-lab.html data/company-intelligence/ notes/company-intelligence-lab.md rlcompanyintel.js
+exit code: 0   (no output — all four paths are tracked and clean)
+
+$ git ls-files -- company-intelligence-lab.html data/company-intelligence/ notes/company-intelligence-lab.md rlcompanyintel.js
+company-intelligence-lab.html
+data/company-intelligence/company-msft/current.json
+data/company-intelligence/company-msft/events.json
+data/company-intelligence/company-msft/plan-authored.json
+data/company-intelligence/company-msft/versions/company-msft-2026-08-11.json
+notes/company-intelligence-lab.md
+rlcompanyintel.js
+
+$ git show --diff-filter=A --numstat --format='' b160d587f -- company-intelligence-lab.html data/company-intelligence/ notes/company-intelligence-lab.md rlcompanyintel.js
+1359    0       company-intelligence-lab.html
+8       0       data/company-intelligence/company-msft/current.json
+74      0       data/company-intelligence/company-msft/events.json
+55      0       data/company-intelligence/company-msft/plan-authored.json
+17      0       data/company-intelligence/company-msft/versions/company-msft-2026-08-11.json
+125     0       notes/company-intelligence-lab.md
+2021    0       rlcompanyintel.js
+exit code: 0
+
+$ git show --format='' -U0 b160d587f -- company-intelligence-lab.html data/company-intelligence/ notes/company-intelligence-lab.md rlcompanyintel.js | grep -c '^-[^-]'
+0
+exit code: 1   (grep -c exits 1 when it matches nothing; zero deletion lines is the result being asserted, not a failure)
 ```
-?? company-intelligence-lab.html
-?? data/company-intelligence/
-?? notes/company-intelligence-lab.md
-?? rlcompanyintel.js
-```
+
+The first command proves `b160d587f` is the right commit to address: it is the
+add-commit for `rlcompanyintel.js`, and `git log --diff-filter=A` returns the
+same sha for the other three paths. The `--diff-filter=A` numstat then shows
+every one of the seven files entering the tree with a zero deletion column, and
+the `grep -c` confirms zero deletion lines across the whole restricted diff.
 
 The delta is therefore recorded hunk by hunk below.
 
@@ -2604,24 +2645,39 @@ failure described at dispatch. Concurrent sessions moved it while this phase ran
 `validate-spec-test-paths` now reports `STALE-BASELINE` rather than a missing
 path, and the fifteen current failures belong to Feature 026, Feature 012 and the
 market-brief payload. **This feature's contribution is still exactly zero**, on
-both halves of the check:
+both halves of the check.
 
+This block is owned by `bubbles.gaps` and was re-executed by `bubbles.gaps`. The
+original capture hand-assembled the `(b)` and `(c)` halves from ad-hoc greps and
+recorded no command line, so it is not recoverable verbatim. The closest honest
+equivalent is the committed validator those greps were approximating,
+`scripts/validate-spec-test-paths.mjs`, which is directly runnable and answers
+both halves in one pass — it reports every absent spec-referenced test path
+repo-wide together with the spec directory that owns it. That substitution is
+the disclosed reconstruction.
+
+```text
+$ node scripts/validate-spec-test-paths.mjs > /tmp/rl025-vstp.txt 2>&1
+exit code: 0
+
+$ cat /tmp/rl025-vstp.txt
+[spec-test-paths] scanned=748 references=17272 distinctPaths=266 missingPaths=73 plannedMissing=3 baseline=70 new=0 stale=0
+  PLANNED-MISSING tests/portfolio-doc-integration.functional.mjs (specs/008-portfolio-survival-and-brief-lab, 2 structured planned-not-authored row(s), non-failing until the owning scope starts)
+  PLANNED-MISSING tests/portfolio-survival-accessibility.spec.mjs (specs/008-portfolio-survival-and-brief-lab, 5 structured planned-not-authored row(s), non-failing until the owning scope starts)
+  PLANNED-MISSING tests/portfolio-test-integrity.unit.mjs (specs/008-portfolio-survival-and-brief-lab, 2 structured planned-not-authored row(s), non-failing until the owning scope starts)
+[spec-test-paths] OK — no new missing test path(s)
+
+$ grep -c '025-company-multi-horizon' /tmp/rl025-vstp.txt
+0
+exit code: 1   (grep -c exits 1 when it matches nothing; zero occurrences is the result being asserted, not a failure)
 ```
-=== (b) our spec names no absent tests/*.mjs ===
-(none above = clean)
-=== (c) absent test paths repo-wide and their owning spec dirs ===
-specs/002-distributed-tool-briefs-and-history/
-specs/004-fx-regime-relative-value-lab/
-specs/010-company-fundamentals-and-brief-lab/
-specs/012-market-action-center-and-guided-tools/
-specs/013-market-regime-stack-and-strategy-playbook/
-specs/014-shared-cycle-and-seasonality-exchange/
-specs/015-recommendation-outcome-ledger-and-track-record/
-specs/016-auction-gamma-playbook/
-specs/_bugs/
-=== does specs/025 appear above? ===
-       0
-```
+
+The re-execution also supersedes the `STALE-BASELINE` reading quoted above: the
+validator now reports `new=0 stale=0` and exits 0, and the three findings it does
+carry are `PLANNED-MISSING` rows owned by `specs/008`. Either way the conclusion
+this phase drew is unchanged and now rests on the validator rather than on hand
+greps — spec 025 appears zero times in the finding set, so it names no absent
+test path and contributes nothing to the repo-wide count.
 
 ### Change boundary
 
@@ -2874,15 +2930,43 @@ tree was never modified.
 ### One assertion this phase wrote, ran, and had to correct
 
 The first version of the FR-025-017 row also asserted that the reused run
-reproduces the previous run fingerprint byte for byte. It failed:
+reproduces the previous run fingerprint byte for byte. It failed.
 
-```
+This block was authored by `bubbles.harden`. It was re-executed on that phase's
+behalf by `bubbles.gaps` during a compliance sweep; ownership did not transfer.
+The assertion that produced the failure was deleted when it was corrected, so
+the failing run itself is not re-runnable and its two recorded lines are marked
+below as a quotation of the harden-phase capture rather than as fresh output.
+The reconstruction that IS runnable is the complement the correction left in the
+tree: the same route composed twice over one frozen bundle and one pinned
+`decisionTime` must produce an identical fingerprint. That test passing is what
+makes the original assertion's failure a statement about the clock rather than
+about the route, so re-deriving it re-derives the finding.
+
+```text
+# quoted from the bubbles.harden capture — the assertion as it failed then
 Expected: "Run fingerprint sha256:b7218ba1… composed at 2026-08-19T16:01:31.706Z for company:msft on identity basis sec-cik."
 Received: "Run fingerprint sha256:1bf6cb06… composed at 2026-08-19T16:01:31.748Z for company:msft on identity basis sec-cik."
+
+# re-executed by bubbles.gaps on behalf of bubbles.harden — the committed complement
+$ node --test --test-name-pattern='identical canonical output and fingerprint' tests/company-intelligence.unit.mjs
+✔ two runs over one frozen bundle and one decisionTime produce identical canonical output and fingerprint (15.805959ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 70.377834
+exit code: 0
 ```
 
-The route composes each run at its own decision time, so two runs 42 ms apart
-hash differently BY DESIGN. The assertion was wrong, not the route: demanding
+The two timestamps in the quoted failure differ by 42 ms and the two hashes
+differ with them. Pinning `decisionTime` removes that difference and the
+fingerprints become equal, which is the passing run above. The route therefore
+composes each run at its own decision time, and two runs 42 ms apart hash
+differently BY DESIGN. The assertion was wrong, not the route: demanding
 equality there would have asserted against the injected-clock contract in order
 to prove the reuse one. It was replaced with the claim the requirement actually
 makes — zero refetched bar files, the same subject and identity basis, fifteen
@@ -3556,18 +3640,31 @@ It is compatible, and the reason is mechanical rather than a judgement call. Bot
 parity checks in `scripts/selftest.mjs` iterate `reg5.tools` — the entries in `tools.json` — and
 ask whether each *registered* tool is reachable from `README.md` and from `notes/README.md`.
 Neither check walks the `notes/` directory, so an unregistered tool with a notes file is invisible
-to them. `TP-025-09` constrains three files only:
+to them. `TP-025-09` constrains three files only.
 
-```js
-const companyRegistrationText25 = ['tools.json', 'index.html', 'rlnav.js']
-  .map((file) => read(file)).join('\n');
-assert(!/company-intelligence/.test(companyRegistrationText25)
-  && !/rlcompanyintel/.test(companyRegistrationText25), 'TP-025-09: …');
+This block was authored by `bubbles.docs`. It was re-executed on that phase's behalf by
+`bubbles.gaps` during a compliance sweep; ownership did not transfer. The original block pasted the
+assertion's source text rather than the output of a command, so there was no command to re-run
+verbatim. The disclosed reconstruction reads the same two facts straight out of the tree instead of
+quoting it: `grep -n` over the committed assertion for the file list it actually constrains, and the
+`grep -rln` the surrounding paragraph already claimed.
+
+```text
+$ grep -n "companyRegistrationText25" scripts/selftest.mjs
+22964:  const companyRegistrationText25 = ['tools.json', 'index.html', 'rlnav.js']
+22966:  assert(!/company-intelligence/.test(companyRegistrationText25)
+22967:    && !/rlcompanyintel/.test(companyRegistrationText25),
+exit code: 0
+
+$ grep -rln "company-intelligence-lab.md" scripts/ tests/
+exit code: 1   (no output — grep -l exits 1 when it matches nothing; no script or test reads the notes file)
 ```
 
+Line 22964 carries the whole constraint: the assertion joins `tools.json`, `index.html` and
+`rlnav.js`, and asserts neither `company-intelligence` nor `rlcompanyintel` appears in them.
 `README.md` and `notes/README.md` are absent from that list, unlike the sibling `TP-05-09`
-assertion for the Lifetime Tax route, which does include both. `grep -rln "company-intelligence-lab.md"
-scripts/ tests/` returns nothing, so no assertion reads the notes file's contents either.
+assertion for the Lifetime Tax route, which does include both. The second command returns nothing,
+so no assertion reads the notes file's contents either.
 `notes/company-intelligence-lab.md` was therefore already present and committed at
 `b160d587f`, and this phase corrected it in place rather than creating it. The precedent matches
 `notes/lifetime-tax-strategy-lab.md`, which also exists for an unregistered route and is likewise

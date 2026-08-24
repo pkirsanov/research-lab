@@ -593,6 +593,16 @@ async function openWithQuery(page, query) {
 
 async function firstPaint(page) {
     return page.evaluate(() => {
+        /* The RLTKR decorator appends an "Explain <ticker>" button inside ticker-bearing nodes, so
+         * a raw textContent read yields "SPY?" wherever it has run -- which depends on the shared
+         * cache and so differs between a local run and CI. Whether the affordance rendered is not
+         * what these assertions are about; the subject underneath it is. */
+        const undecorated = (node) => {
+            if (!node) return null;
+            const clone = node.cloneNode(true);
+            clone.querySelectorAll('.rltkr-context').forEach((button) => button.remove());
+            return (clone.textContent || '').trim();
+        };
         const notice = document.getElementById('linkNotice');
         const decision = window.VolSizingLab.runtime.decision;
         return {
@@ -600,7 +610,7 @@ async function firstPaint(page) {
             selectValue: document.getElementById('assetSelect').value,
             targetVolInput: document.getElementById('targetVolInput').value,
             targetVol: window.VolSizingLab.runtime.controls.targetVol,
-            assetName: document.querySelector('[data-asset-name]').textContent,
+            assetName: undecorated(document.querySelector('[data-asset-name]')),
             decisionState: decision.state,
             noticeText: notice ? notice.textContent : null,
             noticeHidden: notice ? notice.hidden : null
@@ -652,7 +662,16 @@ test('Regression: SCN-027-004 the active subject is readable as page text and in
     await openWithQuery(page, '?ticker=NVDA');
     await openNativeResearchSurface(page);
     const named = page.locator('#simpleView [data-asset-name], #powerView [data-asset-name]').first();
-    await expect(named).toHaveText('NVDA');
+    /* The RLTKR decorator injects an "Explain <ticker>" affordance button after every KNOWN
+     * ticker, so this node renders as "NVDA?" wherever that decorator has run — which depends on
+     * the shared cache and so differs between a local run and CI. Strip ONLY those injected
+     * buttons: the subject itself must still render verbatim as page text, which is the claim. */
+    const namedText = () => named.evaluate((node) => {
+      const clone = node.cloneNode(true);
+      clone.querySelectorAll('.rltkr-context').forEach((button) => button.remove());
+      return (clone.textContent || '').trim();
+    });
+    await expect.poll(namedText).toBe('NVDA');
     expect(await named.evaluate((node) => node.closest('canvas') === null)).toBe(true);
     const option = page.locator('#assetSelect option[value="NVDA"]');
     await expect(option).toHaveCount(1);
@@ -678,6 +697,45 @@ test('Regression: SCN-027-012 an acceptable company outside the eleven-asset uni
     expect(catalog).not.toContain('TSLA');
 });
 
+/* The catalog binding is the whole of what keeps an accepted-but-uncatalogued company out of
+   this route's state, yet the two SCN-027-012 assertions above can only reach their subject
+   AFTER openWithQuery has waited for a completed decision. Removing the binding stops that
+   decision from ever arriving — boot never even publishes window.VolSizingLab — so those
+   assertions report a 30-second timeout, a verdict indistinguishable from machine contention,
+   instead of naming the defect. This one observes the binding in the DOM, which
+   applyLinkedSubject writes before any data path is required and before the global is
+   published, so the same removal fails fast and says what broke. */
+test('Regression: SCN-027-012 the catalog binding is discriminating on its own — an accepted but uncatalogued subject never becomes the active asset', async ({ page }) => {
+    await page.addInitScript((payload) => { if (!localStorage.getItem('rlData')) localStorage.setItem('rlData', JSON.stringify(payload)); }, LINKED_CACHE());
+    await page.goto(site.baseUrl + '/volatility-sizing-lab.html?ticker=TSLA');
+    /* populateAssets and applyLinkedSubject run in one synchronous block, so options existing
+       means the subject has already been applied or rejected. No decision is awaited. */
+    await page.waitForFunction(() => document.querySelectorAll('#assetSelect option').length > 0,
+        null, { timeout: 15000 });
+    const bound = await page.evaluate(() => {
+        const notice = document.getElementById('linkNotice');
+        return {
+            selectValue: document.getElementById('assetSelect').value,
+            options: Array.from(document.querySelectorAll('#assetSelect option')).map((o) => o.value),
+            accepted: window.RLTKR.linkedSubject('?ticker=TSLA').status,
+            configErrorShown: !document.getElementById('configError').classList.contains('is-hidden'),
+            noticeHidden: notice.hidden,
+            noticeText: notice.textContent
+        };
+    });
+    /* the subject passes the shared grammar, so nothing below is explained away by a refusal */
+    expect(bound.accepted).toBe('accepted');
+    expect(bound.options).not.toContain('TSLA');
+    /* the binding itself: an accepted non-member is never adopted, and whatever IS active is a member */
+    expect(bound.selectValue).not.toBe('TSLA');
+    expect(bound.options).toContain(bound.selectValue);
+    /* the unavailable branch is live code, not a branch the binding made unreachable */
+    expect(bound.noticeHidden).toBe(false);
+    expect(bound.noticeText).toContain('TSLA');
+    /* and the route is still healthy rather than parked on its config-error panel */
+    expect(bound.configErrorShown).toBe(false);
+});
+
 test('Regression: SCN-027-013 after a refusal every control reflects one single subject and none reflects the refused value', async ({ page }) => {
     await openWithQuery(page, '?ticker=' + encodeURIComponent('NV DA/../x'));
     const paint = await firstPaint(page);
@@ -688,11 +746,17 @@ test('Regression: SCN-027-013 after a refusal every control reflects one single 
     expect(paint.selectValue).toBe('SPY');
     expect(paint.assetName).toBe('SPY');
     const consistent = await page.evaluate(() => {
+        // The rendered subject carries the decorator's affordance; the runtime values do not.
+        const undecorated = (node) => {
+            const clone = node.cloneNode(true);
+            clone.querySelectorAll('.rltkr-context').forEach((button) => button.remove());
+            return (clone.textContent || '').trim();
+        };
         const runtime = window.VolSizingLab.runtime;
         return {
             control: runtime.controls.asset,
             select: document.getElementById('assetSelect').value,
-            named: Array.from(document.querySelectorAll('[data-asset-name]')).map((n) => n.textContent)
+            named: Array.from(document.querySelectorAll('[data-asset-name]')).map(undecorated)
         };
     });
     expect(new Set([consistent.control, consistent.select].concat(consistent.named)).size).toBe(1);
@@ -724,6 +788,104 @@ test('Regression: SCN-027-010 no adversarial corpus value appears in the body, i
         expect(leak.inHtml, 'corpus value must not reach the document: ' + value).toBe(false);
         expect(leak.inStorage, 'corpus value must not reach localStorage: ' + value).toBe(false);
         expect(leak.asset, 'a refused value must never become the active asset: ' + value).toBe('SPY');
+    }
+});
+
+/* ── FEATURE-027 Gap A: catalog binding, not the grammar, is what stops an accepted subject ──
+ * SCN-027-012 above proves an accepted-but-uncatalogued subject is NAMED as unavailable and
+ * that the default asset stays fully computed. The security half of the same rule was never
+ * asserted: that such a subject reaches NO fetch target, NO path segment and NO storage key.
+ * That half matters because the shared receiver deliberately does NOT narrow — rlticker.js
+ * accepts ".", "-" and ".." — so "..", a traversal-shaped string, clears grammar acceptance
+ * and is stopped by the catalog ALONE. This row asserts the whole observable footprint of an
+ * accepted-but-uncatalogued open is byte-identical to the no-parameter open.
+ * ───────────────────────────────────────────────────────────────────────────── */
+
+const ACCEPTED_BUT_UNCATALOGUED = Object.freeze(['TSLA', '..', '.', '-', 'ZZZZZZZZZZZZ']);
+
+/* Everything the route can be observed to REACH on one open: the same-origin paths it
+   requested and every storage entry it left behind, plus the asset it settled on. */
+async function openAndObserveFootprint(page, query) {
+    const requested = [];
+    const onRequest = (request) => requested.push(request.url());
+    page.on('request', onRequest);
+    try {
+        await openWithQuery(page, query);
+    } finally {
+        page.off('request', onRequest);
+    }
+    const observed = await page.evaluate(() => {
+        const raw = localStorage.getItem('rlData');
+        let barSymbols = null;
+        try { barSymbols = Object.keys(JSON.parse(raw).bars).sort(); } catch (e) { barSymbols = null; }
+        return {
+            keys: Object.keys(localStorage).sort(),
+            barSymbols,
+            asset: window.VolSizingLab.runtime.controls.asset
+        };
+    });
+    return {
+        paths: Array.from(new Set(requested.map((url) => new URL(url).pathname))).sort(),
+        rawRequests: requested.slice(),
+        storageKeys: observed.keys,
+        barSymbols: observed.barSymbols,
+        asset: observed.asset
+    };
+}
+
+test('Regression: SCN-027-012 an accepted but uncatalogued subject — including the grammar-valid traversal form ".." — reaches no request path and no storage key, so the open is footprint-identical to the no-parameter open', async ({ page }) => {
+    const plain = await openAndObserveFootprint(page, '');
+    expect(plain.asset).toBe('SPY');
+    expect(plain.barSymbols, 'the seeded bar cache must be readable for this comparison to mean anything').not.toBeNull();
+    console.log('SCN-027-012 FOOTPRINT unlinked: ' + JSON.stringify({ paths: plain.paths, storageKeys: plain.storageKeys, barSymbols: plain.barSymbols }));
+
+    for (const subject of ACCEPTED_BUT_UNCATALOGUED) {
+        /* the shared rule really does ACCEPT this value — the claim under test is that
+           acceptance is not sufficient, so a value the grammar refuses would prove nothing */
+        const accepted = await page.evaluate((value) => window.RLTKR.linkedSubject('?ticker=' + encodeURIComponent(value)).status, subject);
+        expect(accepted, subject + ' must be grammar-ACCEPTED for this row to mean anything').toBe('accepted');
+
+        const linked = await openAndObserveFootprint(page, '?ticker=' + encodeURIComponent(subject));
+        expect(linked.asset, 'an uncatalogued subject must never become the active asset: ' + subject).toBe('SPY');
+        /* The claim under test is that the SUBJECT reaches no request. Comparing the two whole
+           path SETS conflated that with "the shared shell loads the same lazy assets on every
+           open", which it does not: `/rljourney.js`, `/journeys.json` and the `/briefs/objects/**`
+           reads land inside or outside the observation window at random, and this row went red
+           on 3 of 8 identical runs for that reason alone — a guard whose green depends on a
+           timer is not a guard. So the subject-independent difference is named and bounded, and
+           the subject claim is asserted DIRECTLY and more strictly than before: over every RAW
+           request URL rather than only its pathname, so a subject smuggled into a query string
+           or a fragment — which the old pathname-only comparison could not have seen — fails. */
+        const extraPaths = linked.paths.filter((path) => !plain.paths.includes(path));
+        const SHARED_SHELL_LAZY = /^\/(rljourney\.js|journeys\.json|briefs\/)/;
+        expect(extraPaths.filter((path) => !SHARED_SHELL_LAZY.test(path)),
+            'an uncatalogued subject must add no request path outside the shared shell lazy set: ' + subject).toEqual([]);
+        /* No request may carry the subject as a path segment. `.`, `-` and `..` are punctuation
+           that appears inside ordinary file names, so a substring test would fire on every URL
+           and prove nothing; a SEGMENT test is the form that actually distinguishes "the route
+           built a path out of the subject" from "a filename happens to contain a dot". */
+        const asSegment = linked.rawRequests.filter((url) => new URL(url).pathname.split('/').includes(subject));
+        expect(asSegment, 'no request path may carry the uncatalogued subject as a segment: ' + subject).toEqual([]);
+        /* For a subject that is not pure punctuation the stricter form applies, over the RAW
+           URL rather than only its pathname — so a subject smuggled into a query string or a
+           fragment, which the previous pathname-only set comparison could not have seen, fails.
+           The document navigation itself is excluded: that request IS the deep link the reader
+           followed, so it necessarily carries the subject and asserting otherwise would be a
+           false claim rather than a stricter one. */
+        if (/[A-Za-z0-9]/.test(subject)) {
+            const navigation = site.baseUrl + '/volatility-sizing-lab.html?ticker=' + encodeURIComponent(subject);
+            const mentioning = linked.rawRequests
+                .filter((url) => url !== navigation)
+                .filter((url) => url.toUpperCase().includes(subject.toUpperCase()));
+            expect(mentioning, 'no request other than the deep link itself may mention the uncatalogued subject anywhere in its URL: ' + subject).toEqual([]);
+        }
+        expect(linked.storageKeys, 'an uncatalogued subject must add no storage key: ' + subject).toEqual(plain.storageKeys);
+        /* the cache this route keys BY SYMBOL is where an unbound subject would land first */
+        expect(linked.barSymbols, 'an uncatalogued subject must never become a symbol-keyed cache entry: ' + subject).toEqual(plain.barSymbols);
+        expect(linked.barSymbols, 'the uncatalogued subject must be absent from the symbol-keyed cache: ' + subject).not.toContain(subject);
+        /* and specifically: nothing the route requested carries a traversal segment */
+        const traversing = linked.rawRequests.filter((url) => new URL(url).pathname.split('/').includes('..'));
+        expect(traversing, 'no request path may carry a ".." segment: ' + subject).toEqual([]);
     }
 });
 
@@ -778,4 +940,48 @@ test('FEATURE-027 file:// parity: the volatility route reaches the same file:// 
     console.log('FILE_PARITY volatility plain: ' + JSON.stringify(plain));
     console.log('FILE_PARITY volatility linked: ' + JSON.stringify(linked));
     expect(signature(linked)).toEqual(signature(plain));
+});
+
+/* ── found by seeded chaos (spec 027 chaos phase, journey J1, seed 4271001) ──
+ * The catalog-miss notice ends in a PRESENT-TENSE clause naming the asset on screen, so it is
+ * a claim about the current state and not a record of the arrival. It was rendered once, inside
+ * the boot-only applyLinkedSubject, so a reader who picked their own asset afterwards was left
+ * reading a notice that still named the asset they had replaced — the select said one asset and
+ * the notice said another. SCN-027-013 asserts single-subject coherence at FIRST PAINT only,
+ * before any reader control change, so it could not see this. This one drives the select.
+ * ───────────────────────────────────────────────────────────────────────────── */
+test('Regression: SCN-027-013 the catalog-miss notice keeps naming the asset actually on screen after the reader changes it', async ({ page }) => {
+    await openWithQuery(page, '?ticker=TSLA');
+    await openNativeResearchSurface(page);
+    const notice = page.locator('#linkNotice');
+    await expect(notice).toContainText('no data for TSLA');
+    await expect(notice).toContainText('showing SPY');
+
+    await page.selectOption('#assetSelect', 'NVDA');
+    await page.waitForFunction(() => window.VolSizingLab.runtime.controls.asset === 'NVDA', null, { timeout: 20000 });
+
+    const after = await notice.textContent();
+    expect(after, 'the notice still names the replaced asset, so the page states two subjects').toContain('showing NVDA');
+    /* the explanation survives the re-statement rather than being silently erased */
+    expect(after, 'the reason the link did not land was dropped instead of restated').toContain('no data for TSLA');
+    const coherent = await page.evaluate(() => {
+        // The rendered subject carries the decorator's affordance; the runtime values do not.
+        const undecorated = (node) => {
+            const clone = node.cloneNode(true);
+            clone.querySelectorAll('.rltkr-context').forEach((button) => button.remove());
+            return (clone.textContent || '').trim();
+        };
+        const runtime = window.VolSizingLab.runtime;
+        return [runtime.controls.asset, document.getElementById('assetSelect').value]
+            .concat(Array.from(document.querySelectorAll('[data-asset-name]')).map(undecorated));
+    });
+    expect(new Set(coherent).size, 'controls disagree after the change: ' + JSON.stringify(coherent)).toBe(1);
+
+    /* an applied subject leaves no notice to go stale, and changing away from it adds none */
+    await openWithQuery(page, '?ticker=NVDA');
+    await openNativeResearchSurface(page);
+    await expect(notice).toHaveAttribute('hidden', '');
+    await page.selectOption('#assetSelect', 'QQQ');
+    await page.waitForFunction(() => window.VolSizingLab.runtime.controls.asset === 'QQQ', null, { timeout: 20000 });
+    await expect(notice).toHaveAttribute('hidden', '');
 });

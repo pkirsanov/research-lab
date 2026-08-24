@@ -1223,6 +1223,18 @@ to, prove anything about a guard that does not exist.
 
 ### `TP-05-25` — privacy
 
+**Renamed 2026-08-22 (F-REG-02).** This row's persistent title was
+`Regression: SCN-024-014 the request ledger stays empty with three new packs loaded and no retirement declaration reaches a URL`
+until this date. That wording was false — the row asserts
+`expect(paths.length).toBeGreaterThan(0)` and then requires each of the three
+packs to appear in the ledger, so an empty ledger would fail it. The title now
+reads
+`Regression: SCN-024-014 the request ledger does not grow after first paint, every entry is a declared same-origin read with three new packs loaded, and no retirement declaration reaches a URL`,
+and the row's `--grep` moved with it in the same change. The probe block below
+was captured under the superseded title and is left exactly as executed; its
+`command:` and `red-summary:` lines therefore still name the old title. A fresh
+capture under the new title follows it.
+
 ```text
 === RED/GREEN PROBE EVIDENCE ===
 label:            TP-05-25 SCN-024-014: a declared birth year carried into the location hash is a household value reaching a URL and must fail the privacy scenario
@@ -1243,6 +1255,22 @@ introduces the query-string machinery with no value in it, while this one carrie
 **declared household value** — the birth year the fixture states — into the only
 thing the route writes to the location. The value never leaves the headless browser
 the probe drives, and it is reverted inside the same invocation.
+
+Fresh capture under the new persistent title, recorded 2026-08-22 after the
+rename, proving the row's `--grep` still selects its own test — selected 1,
+passed 1:
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-014 the request ledger does not grow after first paint, every entry is a declared same-origin read with three new packs loaded, and no retirement declaration reaches a URL" --reporter=line
+exit: 0
+lines: 5
+sha256: a874bc95310b7ee1fd3bde57d59e0e628a7f1f9e14d973e65d275f41c845aa15
+
+Running 1 test using 1 worker
+
+[1/1] [system-chrome] › tests/lifetime-tax-retirement-route.spec.mjs:386:1 › Regression: SCN-024-014 the request ledger does not grow after first paint, every entry is a declared same-origin read with three new packs loaded, and no retirement declaration reaches a URL
+  1 passed (2.5s)
+```
 
 ### `TP-05-19` — one clause discriminates, the other still does not
 
@@ -1356,3 +1384,158 @@ the blast radius.
 
 The mutation was reverted inside the invocation that applied it and the revert was
 proven by blob hash, identical before and after.
+
+---
+
+## Audit — arithmetic and refusal integrity (2026-08-22)
+
+Read-only audit of the calculation order and refusal integrity across Features
+021-024. One finding belongs to this scope.
+
+### F-AUDIT-04 — `CO-24` never runs on the route it was built to audit
+
+`composeSurfaceCensus` — [rltax.js](../../../../rltax.js#L1436) — is the stage
+whose stated purpose is to catch a leg that every surface renders and that
+nonetheless entered `totalFederalTax`. Its own comment names the stakes: such a
+leg produces no finding from surface membership alone "while the headline
+silently overstated what the household owes by the size of a premium". That is
+the defect class this program has already shipped once.
+
+It is called from two places in the repository, both of them
+`scripts/selftest.mjs`. `lifetime-tax-strategy-lab.html` never calls it, imports
+no census result, and renders no census node — the three occurrences of the word
+in that file are prose. The stage is exported, exercised against
+`COMPLETE_FIXTURE28`, and absent from the shipped route.
+
+The browser suites do run a census, but a different one:
+`legSurfaceCensus(page, legId)` is a per-spec helper defined twice, in
+`tests/lifetime-tax-rental.spec.mjs` and `tests/lifetime-tax-disposition.spec.mjs`.
+It compares per-leg surface membership. It has no equivalent of the
+`mis-summed-leg` pass, which is the finding kind added under `TP-05-04`
+precisely because surface membership cannot detect a mis-summed cost, so the one
+check that would fire on the historical defect runs against a fixture and never
+against the page.
+
+Consequence: the audit exists, is correct, and is not deployed. A pack that
+declared a Medicare premium leg with `includedInTotal: true` would be caught by
+the selftest fixture only if the fixture were changed to match; on the route the
+household would see a headline inflated by the premium with no finding raised.
+
+Verified separately that the shipped configuration is currently clean, so this
+is a missing safety net rather than a live mis-sum: the federal pack declares
+four `taxLegs`, all `includedInTotal: true` and all tax legs, and passing two
+synthetic cost legs into `computeAnnualFederalTax` leaves `totalFederalTax`
+byte-identical at $82,384.25 while both legs are published with
+`includedInTotal: false`.
+
+Routed, not fixed. Wiring `CO-24` into the route means deciding what the page
+does with a non-clean census — render it, refuse, or both — and that is a scope
+decision rather than an unambiguous repair.
+
+### Surfaces audited clean in this scope
+
+The premium legs read `includedInTotal` from the pack rather than asserting it,
+`annualMedicareCost` refuses whole when any declared part refuses rather than
+omitting it, and the aggregate is published beside the federal total under a
+label that says in words it is not part of it. `renderMedicare` guards
+`stage.refusal` before it dereferences `stage.bracket`, and `renderBenefit`,
+`renderInclusion` and `renderClaimAge` each guard before reading the detail
+members a refusing stage publishes as `null`.
+
+### This audit changed no source
+
+`node scripts/selftest.mjs` — 3190 passed, 0 failed, before and after.
+
+---
+
+## F-AUDIT-04 fixed (2026-08-22)
+
+Commit `fd2c4f716b1f5525e52784042a0b4aa6afb630b5`.
+
+`CO-24` now runs on the route. `renderPower` calls `renderSurfaceCensus` after it
+has published the per-leg surfaces, and the census reads what the page actually
+rendered rather than a restatement of it: surface memberships come back out of
+the DOM through `[data-rl-leg-surface]` and `[data-rl-leg]`, and the export
+surface is read back from the `data-rl-legs-record` attribute.
+
+The two sides of the census are taken from independent places, which is the
+property that makes the mis-summed pass able to disagree with itself at all:
+
+* the declared flag is each leg's OWN `includedInTotal`, carried on the
+  visibility row the page built from the record that produced the leg;
+* the summed set is `envelope.federalLegIds` — what the settlement actually
+  added up — rather than the same field the census is auditing.
+
+The verdict is published as the attribute pair `data-rl-census-clean` /
+`data-rl-census-findings` and rendered as visible findings inside
+`#legSurfaceCensus`, one `<li>` per finding carrying `data-rl-census-finding`
+and the leg it names.
+
+The scope decision the audit routed — what the page does with a non-clean census
+— is answered as *render it*: the census reports, it does not refuse. A refusal
+would take the whole Power view down for a finding that is, by construction,
+about a leg the page has already rendered correctly on every surface.
+
+### The wiring pin had to be made falsifiable before it could hold
+
+The assertion for this finding was already written and already correct. It was
+failing on one clause only: the mutation that deletes the call
+
+```
+renderSurfaceCensus(envelope, rows, surfaceHosts, surfaceIds);
+```
+
+left the text `renderSurfaceCensus(envelope, rows, surfaceHosts, surfaceIds)`
+in the file anyway, because the function was DECLARED with exactly those
+parameter names. Declaration and call site were textually identical, so no check
+reading this file as text could tell "the census is wired" from "the census is
+defined and never called" — which is precisely the state the finding describes.
+
+The declaration now takes `hosts` and `ids`. The second parameter stays `rows`
+and the body still reads `envelope.federalLegIds`, because those two names are
+what the non-circularity clauses pin. This is a real property, not a spelling
+preference: a signature that reads identically to its own call site makes the
+call deletable without trace.
+
+### Harness evidence — the pin discriminates on all three mutations
+
+```
+label:            F-AUDIT-04 unwired census call
+file:             lifetime-tax-strategy-lab.html
+mutation:         renderSurfaceCensus(envelope, rows, surfaceHosts, surfaceIds);  ->  /* census intentionally not run */   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=2e4c48120928652240f26e2e88123370184ac66e restored=2e4c48120928652240f26e2e88123370184ac66e)
+discriminating:   yes (exit 1 != 0)
+```
+
+```
+label:            F-AUDIT-04 self-referential summed set
+file:             lifetime-tax-strategy-lab.html
+mutation:         envelope.federalLegIds || []);  ->  declaredLegs.map(function (l) { return l.legId; }));   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=2e4c48120928652240f26e2e88123370184ac66e restored=2e4c48120928652240f26e2e88123370184ac66e)
+discriminating:   yes (exit 1 != 0)
+```
+
+```
+label:            F-AUDIT-04 property cost leg loses its own includedInTotal
+file:             lifetime-tax-strategy-lab.html
+mutation:         includedInTotal: propertyLeg.includedInTotal === true,  ->  /* flag dropped */   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=2e4c48120928652240f26e2e88123370184ac66e restored=2e4c48120928652240f26e2e88123370184ac66e)
+discriminating:   yes (exit 1 != 0)
+```
+
+The third mutation is aimed at the property leg deliberately. It is the leg whose
+mis-summing the design text F-AUDIT-03 removed would have caused, and it is a
+cost leg — so it is the row on which the mis-summed pass, which tests
+`=== false`, can actually fire. Dropping its flag leaves it `undefined`, which
+that pass cannot see.
+
+`node scripts/selftest.mjs` — 3192 passed, 0 failed after the fix.

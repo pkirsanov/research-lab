@@ -1,0 +1,207 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-015-owner-read-deep-links-emit-dead-t-parameter",
+  "featureName": "BUG-015 Two Owner-Read Deep Links Name A Subject Under A Parameter No Route Reads",
+  "createdAt": "2026-08-22T00:00:00Z",
+  "lastUpdatedAt": "2026-08-22T00:00:00Z",
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "priorBlockedReason": null,
+  "blockedReasonResolved": null,
+  "crossFeatureEditAuthorization": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "priorPlanningOnlyJustification": null,
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": "specs/027-company-scoped-owner-deep-links",
+  "specDependsOn": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "752699a60",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md"
+  },
+  "execution": {
+    "activeAgent": null,
+    "currentPhase": "bug",
+    "currentPhaseStatus": "complete",
+    "phaseReconciliation": null,
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-22T00:00:00Z",
+    "completedAt": null,
+    "substate": "filed",
+    "currentScope": null,
+    "nextRequiredOwner": "owner of intraday-tape-lab / swing-structure-lab (the Feature 007 owner-publication surface, which introduced all three affected lines in commit a4b10dc5b)",
+    "nextRequiredTarget": "specs/_bugs/BUG-015-owner-read-deep-links-emit-dead-t-parameter/design.md#open-questions-for-the-owner",
+    "nextRequiredReason": "The packet is filed and unstarted. Scope 1 is a product decision that no evidence selects: refused, absent and out-of-catalog subjects currently collapse to silence, and what replaces that is a choice about how much a reader is told when a link did not do what its text implied. Open question 4 sits in front of it and may remove the receiving half entirely if these routes are not meant to be openable by link. Scope 2 is implementable once Scope 1 is answered, but both affected files were outside this run's authorisation, which permitted filing only. Gate G136 human acceptance is unestablished and cannot be supplied by automation, because this packet delivers no behaviour to exercise.",
+    "phaseClaimNote": "currentPhase is 'bug' with substate 'filed'. This run created seven artifacts under specs/_bugs/BUG-015-owner-read-deep-links-emit-dead-t-parameter/ and modified nothing else. It did not touch intraday-tape-lab.html, swing-structure-lab.html, rlticker.js, rldata.js, scripts/selftest.mjs, tests/technical-analysis-decision-lab.spec.mjs, any artifact under specs/027-company-scoped-owner-deep-links/, any lifetime-tax path (rltax*.js, lifetime-tax-*, tax-rules/, specs/021-024), or any specs/026-* artifact. No selftest assertion was added, deliberately: an assertion that fails on a known-open defect would turn the suite red. Zero Definition of Done items are ticked across both scopes and the cross-scope set. completedPhaseClaims records the bug phase as an execution claim only; certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write.",
+    "completedPhaseClaims": [
+      {
+        "phase": "bug",
+        "agent": "bubbles.bug",
+        "claimedAt": "2026-08-22T00:00:00Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      }
+    ],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      {
+        "scopeId": "01-decide-what-a-route-does-with-a-subject-it-cannot-honour",
+        "scope": 1,
+        "status": "Not Started",
+        "dependsOn": [],
+        "resolvedBy": null
+      },
+      {
+        "scopeId": "02-make-the-published-link-live-in-both-directions",
+        "scope": 2,
+        "status": "Not Started",
+        "dependsOn": [
+          "01-decide-what-a-route-does-with-a-subject-it-cannot-honour"
+        ],
+        "resolvedBy": null
+      }
+    ],
+    "audit": null
+  },
+  "defect": {
+    "severity": "Medium",
+    "surface": "Feature 007 owner-read deepLink publication",
+    "originFinding": "F-AUDIT-02b",
+    "originFindingRoutedFrom": "specs/027-company-scoped-owner-deep-links/report.md",
+    "originFindingDeadLetter": true,
+    "originFindingHitsBeforeFiling": [
+      "specs/027-company-scoped-owner-deep-links/state.json",
+      "specs/027-company-scoped-owner-deep-links/report.md"
+    ],
+    "measuredAtCommit": "752699a60",
+    "enablingCommit": "a4b10dc5b",
+    "enablingCommitSubject": "Feature 007 Scope 5: owner publication and strict adapters",
+    "emissionSites": [
+      "intraday-tape-lab.html:1855",
+      "swing-structure-lab.html:1693"
+    ],
+    "emittedParameter": "t",
+    "canonicalParameter": "ticker",
+    "canonicalParameterDeclaredAt": "rlticker.js:53",
+    "canonicalGrammarDeclaredAt": "rlticker.js:55",
+    "readerCountForEmittedParameter": 0,
+    "rltkrReferencesInAffectedFiles": 0,
+    "affectedFilesLoadRlticker": true,
+    "precedentFixSites": [
+      "options-structure-lab.html:1962",
+      "gamma-trading-lab.html:1512"
+    ],
+    "precedentReaderSites": [
+      "options-structure-lab.html:2565",
+      "gamma-trading-lab.html:1842"
+    ],
+    "coupledTest": "tests/technical-analysis-decision-lab.spec.mjs:922",
+    "silenceMechanisms": [
+      "rldata.js:507 validates that deepLink is a non-empty string and cannot validate that its parameter has a reader",
+      "both emission sites sit inside catch (f7Err) { /* publication is additive */ }, so a defective emission produces no visible symptom"
+    ],
+    "existingGuard": "scripts/selftest.mjs assertion 1.20 in FEATURE-027-SUBJECT-HANDOFF",
+    "existingGuardBlindSpot": "its subject set is the frozen two-element allowlist F027_SUBJECT_ROUTES, which contains only the precedent routes",
+    "measurementNote": "Every line number, path and quoted expression in this packet was re-derived by execution at 752699a60 during the filing session; report.md carries the command and verbatim output behind each. Two claims are explicitly NOT executed here and are labelled where they appear: the user-visible consequence is derived from the absence of any reader rather than observed in a browser, and the characterisation of F-AUDIT-02b as correctly routed is quoted from Feature 027's report.md rather than re-derived."
+  },
+  "terminalTransitionBlockers": [
+    "Scope 1 is undecided and is not agent-dischargeable. What a reader should see when a named subject cannot be honoured is a product choice with three enumerated cases and no answer derivable from the evidence.",
+    "Open question 4 sits in front of Scope 1 and is unanswered: if these routes are not meant to be openable by a subject-bearing link, the correct remedy is to stop publishing one and the receiving half disappears.",
+    "Scope 2 was outside this run's authorisation. Both affected files were explicitly out of bounds; filing was the deliverable and fixing is a separate authorised run.",
+    "No Definition of Done item in scopes.md is ticked, and none should be. Nothing has been designed, built, or tested.",
+    "The defect is live at HEAD. Two published owner reads carry a link that names a company and does not open on it.",
+    "Gate G136 human acceptance is not established. uservalidation.md carries no delivered behaviour to exercise, its Checklist items are unticked, and its Human Acceptance Record is unfilled.",
+    "No independent party re-derived any measurement. certification.certifiedCompletedPhases is empty because phase certification belongs to bubbles.validate."
+  ],
+  "knownLimitation": {
+    "statement": "The defect is established by executed inspection; the user-visible consequence is not established by runtime observation, and the remedy's central product question is deliberately unanswered. What is established: two routes emit a subject parameter no code reads, the canonical parameter is declared once at rlticker.js:53, neither affected route reads any subject parameter at all, the owner-read contract cannot validate link liveness, the publication block swallows its own failures, the existing convention guard covers a two-route allowlist that excludes both, a live test navigates the dead spelling, and commit a4b10dc5b introduced all three lines together. What is not established: that a browser following the published link lands on the default subject, which is derived from the absence of a reader rather than observed; and what a route should do with a subject it cannot honour.",
+    "recordedIn": [
+      "bug.md 'The Defect Has Two Halves, Not One' and 'Known Remedy, With Precedent'",
+      "design.md 'Open Questions For The Owner'",
+      "report.md 'Evidence Provenance' and 'Completion Statement'",
+      "scopes.md Scope 1, marked not agent-dischargeable",
+      "uservalidation.md Automation Readiness, three items left unticked with reasons"
+    ],
+    "whyNotClosedHere": "The filing task explicitly forbade modifying intraday-tape-lab.html and swing-structure-lab.html and named filing as the deliverable. It also forbade adding a selftest assertion, because an assertion that fails on a known-open defect would turn a green suite red. Choosing the unhonourable-subject outcome inside a filing task would prejudge a product decision that the evidence does not select.",
+    "consequenceForStatus": "status is in_progress with certification.status equal to it. Both scopes are Not Started and zero Definition of Done items are ticked, which is the accurate representation of a filed, unstarted packet."
+  },
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "certificationFieldWriteNote": "certification.status was set equal to the top-level status. It reads in_progress because the packet is filed and unstarted: two scopes Not Started, zero Definition of Done items ticked, the central product question unanswered. completedScopes is empty. certifiedCompletedPhases stays EMPTY: phase certification is bubbles.validate's to write, and no independent party re-derived any evidence in report.md.",
+    "scopeProgress": [
+      {
+        "scopeId": "01-decide-what-a-route-does-with-a-subject-it-cannot-honour",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 5
+      },
+      {
+        "scopeId": "02-make-the-published-link-live-in-both-directions",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 9
+      },
+      {
+        "scopeId": "cross-scope",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 4
+      }
+    ]
+  },
+  "completedScopes": [],
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "workflow-forced"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "modeTransitions": [],
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "at": "2026-08-22T00:00:00Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "filed",
+      "note": "Gave audit finding F-AUDIT-02b a home. The finding was routed out of specs/027-company-scoped-owner-deep-links and was a dead letter: grep -rln 'F-AUDIT-02b' specs/ returned only that feature's own state.json and report.md, so no owner outside it could learn the defect existed. Re-derived every claim by execution at 752699a60 rather than inheriting it from the routed text. Two findings go beyond the routed one: neither affected route reads any subject parameter at all (grep -c 'RLTKR' returns 0 in both while both load the module), so the known precedent covers only the emitting half; and the existing convention guard, scripts/selftest.mjs assertion 1.20, is blind to these routes because its subject set is the frozen two-element allowlist F027_SUBJECT_ROUTES. No source file was modified and no selftest assertion was added."
+    }
+  ]
+}

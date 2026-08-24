@@ -293,7 +293,7 @@ satisfy RED.
 | TP-05-22 | Regression E2E | e2e-ui | SCN-024-015 | `lifetime-tax-retirement-route.spec.mjs` | `Regression: SCN-024-015 Simple carries only decision-level fields and every withheld detail links to the Power section that owns it` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-015 Simple carries only decision-level fields and every withheld detail links to the Power section that owns it" --reporter=list` | Yes | `report.md#scenario-scn-024-015` |
 | TP-05-23 | Accessibility E2E | e2e-ui | SCN-024-015 | `lifetime-tax-retirement-route.spec.mjs` | `Regression: SCN-024-015 every unavailable retirement item is focusable and states its code, domain, reason and remediation` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-015 every unavailable retirement item is focusable and states its code, domain, reason and remediation" --reporter=list` | Yes | `report.md#tp-05-23` |
 | TP-05-24 | Focus safety E2E | e2e-ui | SCN-024-015 | `lifetime-tax-retirement-route.spec.mjs` | `Regression: SCN-024-015 a focused control survives a mode switch without being detached and a subsequent click registers` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-015 a focused control survives a mode switch without being detached and a subsequent click registers" --reporter=list` | Yes | `report.md#tp-05-24` |
-| TP-05-25 | Privacy E2E | e2e-ui | SCN-024-014 | `lifetime-tax-retirement-route.spec.mjs` | `Regression: SCN-024-014 the request ledger stays empty with three new packs loaded and no retirement declaration reaches a URL` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-014 the request ledger stays empty with three new packs loaded and no retirement declaration reaches a URL" --reporter=list` | Yes | `report.md#tp-05-25` |
+| TP-05-25 | Privacy E2E | e2e-ui | SCN-024-014 | `lifetime-tax-retirement-route.spec.mjs` | `Regression: SCN-024-014 the request ledger does not grow after first paint, every entry is a declared same-origin read with three new packs loaded, and no retirement declaration reaches a URL` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-014 the request ledger does not grow after first paint, every entry is a declared same-origin read with three new packs loaded, and no retirement declaration reaches a URL" --reporter=list` | Yes | `report.md#tp-05-25` |
 | TP-05-26 | Broader Regression E2E | e2e-ui | SCN-021-*, SCN-022-*, SCN-023-*, SCN-024-001 … -015 | The prior features' specs plus this scope's | Every scenario owned by features 021 … 024 passes over the real route — the whole cumulative browser suite for this feature family, zero failed and zero skipped, not a convenient subset. `SCN-02[1-4]` is the alternation `SCN-021`, `SCN-022`, `SCN-023`, `SCN-024` written without a `\|`, which a table cell cannot carry verbatim; it is pinned to the four owning spec numbers, so a scenario owned by any other feature can neither satisfy nor break this row | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list` | Yes | `report.md#tp-05-26` |
 | TP-05-27 | Repo gate | unit | SCN-024-013 … -015 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-05-27` |
 | TP-05-28 | Path guard | unit | SCN-024-013 … -015 | `scripts/validate-spec-test-paths.mjs` | Zero new missing spec-referenced test paths | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-05-28` |
@@ -352,9 +352,27 @@ delivery makes a row's claim false, the row is corrected rather than checked.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-15`
 - [x] NFR-024-003 holds at feature end: no household value this feature added
       reaches any URL, query string, hash, request, referrer or console message,
-      asserted per declaration, with three new packs now loaded from disk and the
-      request ledger still empty.
+      asserted per declaration, the request ledger does not grow after first paint,
+      every entry in it is a read of a path the route's own configuration declares,
+      and all three new packs are present in the ledger the run produced.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the browser privacy row · **Evidence:** `report.md#tp-05-16`, `report.md#tp-05-25`
+  - **Restated 2026-08-22 (F-REG-03).** The superseded text read "with three new
+    packs now loaded from disk and the request ledger still empty", which is false
+    and self-contradictory: a ledger holding three pack reads is not empty. The
+    cited row `TP-05-25` (`SCN-024-014`) asserts
+    `expect(ledger.length).toBe(afterFirstPaint)`, then
+    `expect(paths.length).toBeGreaterThan(0)`, then
+    `paths.forEach((path) => expect(permitted).toContain(path))`, then pins each
+    of `/tax-rules/benefit/2026.json`, `/tax-rules/mortality/2026.json` and
+    `/tax-rules/medicare/2026.json` present in the ledger the run produced.
+    Adversarial cases: a request issued after first paint fails the no-growth
+    assertion; a read of a path the configuration does not declare fails the
+    permitted-set assertion; a boot that read nothing fails the greater-than-zero
+    pin; and a pack that is permitted but never fetched fails its named
+    `toContain` pin with the message `the pack <path> was not loaded`. The row
+    does NOT constrain the origin of an entry — it compares
+    `new URL(request.url).pathname` only — so no same-origin claim is made here;
+    that gap is carried by Feature 021 Scope 01 `TP-01-18`.
 - [x] NFR-024-004 holds at feature end: the refusal vocabulary member count and the
       supported income-kind count each equal their pre-feature values across the
       whole feature, not only within this scope.

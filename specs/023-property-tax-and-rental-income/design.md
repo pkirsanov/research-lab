@@ -31,8 +31,10 @@ and a small number of Simple fields.
   `SourceRecord/v2`, reused unchanged for the regime packs.
 - The refusal discipline from Feature 021: `AbsentFigure/v1` with a
   `missingSource` pointer and no smuggled numeric member.
-- The leg model from Feature 022 Scope 02: legs are pack-declared and summed from
-  the declared set, never from a hardcoded list.
+- The leg model from Feature 022 Scope 02: the legs of `totalFederalTax` are the
+  members of the pack's `taxLegs` set, summed from that declared set and never
+  from a hardcoded list. Membership of that set is what makes an amount part of
+  the federal total, so an amount that is not a federal tax is not a member.
 
 ### Patterns To Avoid
 
@@ -222,9 +224,20 @@ known. `CO-18` follows `CO-17` because the personal portion of an allocated
 expense is a deduction component. `CO-19` is last because the exclusion applies to
 a gain that must already be split.
 
-Reconciliation gains legs `L8` (property tax), `L9` (rental net after limits),
-`L10` (unrecaptured Section 1250) and `L11` (long-term remainder). Each is
-declared in the pack's leg set and summed from the declared set.
+Reconciliation gains no leg. The federal reconciliation identities are `L1`
+through `L6` in `reconcileAnnualFederalTax`, and `L7` in `rltaxstate.js` is the
+state independence identity. This feature adds none of its own, and no identity
+beyond that set exists.
+
+The four housing amounts — `property-tax` (`CO-15`), `rental-net` (`CO-17`),
+`disposition-recapture` and `disposition-remainder` (`CO-19`) — are published as
+legs of the settled record and are **not** members of the pack's `taxLegs` set.
+That set is the one `L4` sums into `totalFederalTax`, so no housing amount is
+ever added to the federal figure. Property tax in particular is a separate leg:
+the rendered copy states in words that it is not added into the federal figure,
+and a cost leg that nonetheless entered the total is the `mis-summed-leg`
+finding `CO-24`'s census exists to raise. What holds these four amounts
+accountable is the leg-visibility set identity below, not a reconciliation leg.
 
 ---
 

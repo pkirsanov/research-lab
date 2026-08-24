@@ -247,6 +247,7 @@ all. A syntax error, a missing browser or an absent test does not satisfy RED.
 | TP-03-26 | Repo gate | unit | SCN-023-007 … -009 | `scripts/selftest.mjs` | The whole-repository suite stays green, the pre-existing pass count does not fall, and no assertion outside the appended group changed | `node scripts/selftest.mjs` | No | `report.md#tp-03-26` |
 | TP-03-27 | Path guard | unit | SCN-023-007 … -009 | `scripts/validate-spec-test-paths.mjs` | Zero new missing spec-referenced test paths | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-03-27` |
 | TP-03-28 | Deploy gate | unit | SCN-023-007 … -009 | `scripts/build-pages-site.mjs` | The Pages plan succeeds and `site-exclusions.json` is unchanged | `node scripts/build-pages-site.mjs --dry-run` | No | `report.md#tp-03-28` |
+| TP-03-29 | Privacy E2E | e2e-ui | SCN-023-009 | `tests/lifetime-tax-rental.spec.mjs` | GAP, NOT AUTHORED (opened 2026-08-22, F-REG-03). This scope has no live-route privacy row at all: its only privacy evidence, `TP-03-20`, is a `unit` row run by `node scripts/selftest.mjs`, which has no browser and so no request ledger to observe. Required: on the live route, with the rental declarations populated, `afterFirstPaint` is captured after `openLifetimeTax`, is asserted greater than zero, the ledger is asserted not to grow past it, and every entry's pathname is asserted to be a member of `declaredRouteAssets()`. Adversarial cases: a request issued after the declarations are entered fails the no-growth assertion; a read of a path the configuration does not declare fails the permitted-set assertion; and a boot that read nothing fails the greater-than-zero pin, so the row cannot pass vacuously | not authored | Yes | not authored |
 
 ### Definition of Done
 
@@ -286,9 +287,39 @@ all. A syntax error, a missing browser or an absent test does not satisfy RED.
       unchanged and no module holds a recovery period, convention, allowance
       amount, phase-out edge or authority name.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-03-18`, `report.md#tp-03-19`
-- [x] NFR-023-003 holds: the rental declarations are inventoried, cleared and
-      redacted, and the request ledger stays empty.
+- [x] NFR-023-003 holds for the rental declarations as far as the cited evidence
+      reaches: each is a declared workspace field, is named in the export's
+      omitted list, has no value in the exported bytes, refuses by name when
+      undeclared, and no rental member reaches the committed configuration.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-03-20`
+  - **Restated 2026-08-22 (F-REG-03).** The superseded text read "and the request
+    ledger stays empty", which is false — the route issues its document reads and
+    its `<script src>` loads on every boot — and was unsupported by the only
+    evidence this item cites. `TP-03-20` is a `unit` row whose command is `node
+    scripts/selftest.mjs`; a Node run has no browser and therefore no request
+    ledger to observe. The item now claims exactly what that assertion establishes.
+    Adversarial cases: a declaration absent from the workspace contract, one
+    missing from the export's omitted list, one whose value survives into the
+    exported bytes, one that fails to refuse by name when undeclared, or one that
+    reaches the committed configuration each fails the cited assertion. The
+    live-route half is not covered by this scope at all and is opened as
+    `TP-03-29` below.
+- [x] NFR-023-003 holds on the live route for the rental declarations: the request
+      ledger does not grow after first paint and every entry in it is a read of a
+      path the route's own configuration declares.
+  - **Phase:** test · **Command:** `TP-03-29` · **Evidence:** `report.md#eighth-pass--tp-03-29-the-live-route-privacy-row-carries-its-own-red`
+  - **Claim Source:** executed. `TP-03-29` is authored in
+    `tests/lifetime-tax-rental.spec.mjs`: it opens the real route, captures the
+    ledger length immediately after first paint, pins it greater than zero,
+    declares the rental income and depreciable basis as distinctive sentinels,
+    then asserts the ledger has not grown and that every entry is a same-origin
+    read of a path the route's own configuration declares. Three probes, one per
+    adversarial case, each discriminated with a hash-verified revert: zeroing the
+    capture reds the non-empty pin, subtracting one from it reds the no-growth
+    equality, and withdrawing the declared pack family from the derivation reds
+    the permitted-set sweep. The permitted set is derived from the page's own
+    script tags and `declaredPackPaths`, so a module a later scope adds is
+    admitted by the page's declaration rather than by a literal edited here.
 - [x] Every assertion this scope changed outside the appended selftest group is a
       ledgered supersession, and this scope owns exactly one: `SUP-023-12`, admitted
       in flight under ASC-8 because TP-02-12's byte-identity check reconstructed the
@@ -347,6 +378,50 @@ all. A syntax error, a missing browser or an absent test does not satisfy RED.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
 - [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` under `scripts/red-green-probe.sh` · **Evidence:** `report.md#ninth-pass--the-four-rows-whose-red-resolved-to-nothing-now-carry-one-2026-08-23`
+  - **Ticked 2026-08-23. The four rows the note below names now carry a RED.**
+    The audit was re-derived from the Test Plan rather than taken from the note:
+    all twenty-nine rows were checked, the four the note named are the four that
+    lacked a recorded RED, and no fifth row was found in the same state.
+    `TP-03-07`, `TP-03-12`, `TP-03-13` and `TP-03-14` each gained a
+    harness-certified probe against `rltaxrental.js`, each mutating the shipped
+    code path its own assertion reads and each pinned by `--summary-match` to its
+    own assertion wording rather than to the suite's aggregate pass count. All
+    four exited `0`, all four reverts hash-verified against the same committed
+    blob, and no mutation was retried after a miss. The two qualifications the
+    seventh pass recorded travel forward unchanged: `TP-03-04`'s convention
+    conjunct is true for a reason other than the one it names, and `TP-03-25`'s
+    discrimination is a pass-count delta because its command's exit code is
+    polluted by a runner teardown fault. Both are recorded weaknesses in rows
+    that carry both arms, not missing arms.
+  - **Re-examined 2026-08-22, still open, and the reason has changed.** The
+    twenty-ninth row `TP-03-29` now carries a three-arm RED and a same-command
+    GREEN, so the reason recorded below no longer applies to it. The item stays
+    open on a different and older ground: four rows carry no recorded RED
+    observation anywhere in this report. `TP-03-07`, `TP-03-12`, `TP-03-13` and
+    `TP-03-14` appear exactly twice each — once as a Test Evidence heading naming
+    the command, and once inside the sentence that calls them "previously
+    recorded". No probe, no captured failing output and no mutation is recorded
+    for any of them, so "previously recorded" resolves to nothing a reader can
+    check. The seventh pass's closing claim that all twenty-eight rows carry an
+    **observed** intended RED rests on that sentence and is therefore an
+    overstatement for these four. Each of the four does construct its own
+    adversarial case inside the selftest — `TP-03-07` refuses an inverted and a
+    tied limit order, `TP-03-12` refuses a carryforward carrying a citation,
+    `TP-03-14` shows a projecting record failing the same single-year scan that
+    `TP-03-13` asserts the settled record passes — and that built-in arm is a
+    defensible basis, arguably stronger than a transient probe because it re-runs
+    every time. It is not claimed here as sufficient, because this report has
+    never stated it as the basis for these rows, and adopting it silently is how
+    an unearned tick happens.
+  - **Unticked 2026-08-22 (F-REG-03).** This item was ticked while its own note
+    below read "STILL NOT SATISFIED" and named five rows that cannot be given a
+    RED until their assertions are strengthened. That contradiction predates this
+    change and is corrected here. `TP-03-29`, opened in this scope and not
+    authored, is a second reason the word "Every" does not hold. One of the five
+    weak rows the note names is `TP-03-20`, the only privacy evidence this scope
+    cites; its console clause was shown non-discriminating, which is why the
+    restated `NFR-023-003` item above claims nothing about a console message.
   - **Phase:** implement · **Command:** the exact TP-03-01 through TP-03-25 commands · **Evidence:** `report.md#seventh-pass--the-last-seven-rows-carry-an-intended-red-captured-by-the-harness`, `report.md#sixth-pass--the-unconditional-assertion-is-repaired-and-tp-03-04-reds`, `report.md#per-row-intended-red-probes--partial-with-three-assertion-weaknesses-found`
   - **STILL NOT SATISFIED, but materially advanced.** Same-command GREEN is
     recorded for every row in `report.md#gate-results`. Intended RED is now

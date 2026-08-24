@@ -54,6 +54,6 @@
     },
     "privateExportWarning": "This file contains the household figures you entered. It is written only when you ask for it, it stays on this device unless you move it, and nothing is uploaded.",
     "educationalFraming": "Educational model, not investment advice and not tax advice. Every rate, threshold and deduction amount shown is a rule-pack value transcribed from a retrieved primary source, and every figure the pack does not carry is named rather than filled in.",
-    "localNetworkPolicy": "This page issues zero network requests. Your filing status, income amounts and deduction choices stay in this browser's local storage under this tool's own namespace and are never placed in a URL, a request, a referrer or a console message."
+    "localNetworkPolicy": "When it loads, this page reads its own policy and rule-pack documents from this site, and it sends nothing. Your filing status, income amounts and deduction choices stay in this browser's local storage under this tool's own namespace and are never placed in a URL, a request, a referrer or a console message."
   }
 }

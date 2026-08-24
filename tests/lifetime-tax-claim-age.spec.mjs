@@ -8,7 +8,8 @@ import {
   declaredPackPaths,
   declareOrdinaryHousehold,
   openLifetimeTax,
-  openPower
+  openPower,
+  sameOriginPaths
 } from './lifetime-tax.support.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -198,12 +199,24 @@ test('Regression: SCN-024-009 the claim ages render in declared order with nothi
 });
 
 /* TP-03-24. */
-test('Regression: SCN-024-009 the request ledger stays empty and no declared claim age reaches a URL', async ({ page }) => {
+test('Regression: SCN-024-009 every request is a declared same-origin GET and no declared claim age reaches a URL', async ({ page }) => {
   const ledger = collectRequests(page);
   await openLifetimeTax(page, site);
+  /* TP-03-29. The ledger the boot produced, measured before a single declaration is entered.
+     Without the pin below every sweep in this row is a forEach over a possibly-empty list, which
+     is the guard-that-cannot-fail class: a route that read nothing would satisfy all of them. */
+  const afterFirstPaint = ledger.length;
+  expect(afterFirstPaint).toBeGreaterThan(0);
+
   await declareOrdinaryHousehold(page, { ordinary: 40000, bracketId: 'b3' });
   await declareClaimAgeComparison(page, DECLARED_AGES);
   await openPower(page);
+
+  /* TP-03-29. Declaring the comparison, settling it and switching view issued no request at all.
+     The permitted-set sweep below cannot detect this: it is satisfied by a ledger that GREW, so
+     long as everything in it is declared. The mortality pack is read from disk, and it was read
+     before first paint. */
+  expect(ledger.length).toBe(afterFirstPaint);
 
   const permitted = declaredRouteAssets();
   /* The mortality pack is now read from disk, so this assertion is only meaningful because the
@@ -211,7 +224,9 @@ test('Regression: SCN-024-009 the request ledger stays empty and no declared cla
   expect(permitted).toContain('/tax-rules/mortality/2026.json');
   expect(permitted).toContain('/rltaxclaimage.js');
 
-  const requested = ledger.map((entry) => new URL(entry.url).pathname);
+  /* TP-01-18. Via the shared helper, so a declared pathname served from an origin the route never
+     declared is refused before the sweep below ever sees it. */
+  const requested = sameOriginPaths(ledger, site);
   requested.forEach((path) => expect(permitted).toContain(path));
 
   /* No declared claim age, and no declared column, reaches any URL, query string or body. */

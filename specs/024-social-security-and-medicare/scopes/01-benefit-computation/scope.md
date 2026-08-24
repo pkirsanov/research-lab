@@ -309,7 +309,7 @@ not satisfy RED.
 | TP-01-21 | Regression E2E | e2e-ui | SCN-024-002 | `lifetime-tax-benefit.spec.mjs` | `Regression: SCN-024-002 the computed origin publishes its bend points and refuses alone when the indexing series is absent` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-002 the computed origin publishes its bend points and refuses alone when the indexing series is absent" --reporter=list` | Yes | `report.md#scenario-scn-024-002` |
 | TP-01-22 | Regression E2E | e2e-ui | SCN-024-003 | `lifetime-tax-benefit.spec.mjs` | `Regression: SCN-024-003 the full retirement age row, the months counted and each factor applied are shown and an out-of-domain birth year refuses` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-003 the full retirement age row, the months counted and each factor applied are shown and an out-of-domain birth year refuses" --reporter=list` | Yes | `report.md#scenario-scn-024-003` |
 | TP-01-23 | Leg visibility E2E | e2e-ui | SCN-024-003 | `lifetime-tax-benefit.spec.mjs` | `Regression: SCN-024-003 the benefit leg reaches the headline, the comparison, the curve and the export` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-003 the benefit leg reaches the headline, the comparison, the curve and the export" --reporter=list` | Yes | `report.md#tp-01-23` |
-| TP-01-24 | Privacy E2E | e2e-ui | SCN-024-001 | `lifetime-tax-benefit.spec.mjs` | `Regression: SCN-024-001 the request ledger stays empty and no benefit declaration reaches a URL` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-001 the request ledger stays empty and no benefit declaration reaches a URL" --reporter=list` | Yes | `report.md#tp-01-24` |
+| TP-01-24 | Privacy E2E | e2e-ui | SCN-024-001 | `lifetime-tax-benefit.spec.mjs` | `Regression: SCN-024-001 the request ledger does not grow after first paint, every entry is a declared same-origin read, and no benefit declaration reaches a URL` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-001 the request ledger does not grow after first paint, every entry is a declared same-origin read, and no benefit declaration reaches a URL" --reporter=list` | Yes | `report.md#tp-01-24` |
 | TP-01-25 | Broader Regression E2E | e2e-ui | SCN-021-*, SCN-022-*, SCN-023-*, SCN-024-001 … -003 | The prior features' specs plus this scope's | Every scenario owned by features 021 … 024 passes over the real route — the whole cumulative browser suite for this feature family, zero failed and zero skipped, not a convenient subset. `SCN-02[1-4]` is the alternation `SCN-021`, `SCN-022`, `SCN-023`, `SCN-024` written without a `\|`, which a table cell cannot carry verbatim; it is pinned to the four owning spec numbers, so a scenario owned by any other feature can neither satisfy nor break this row. **Outstanding — no run of this row's command as corrected exists yet.** `report.md#tp-01-25--the-named-cumulative-command-run-for-the-first-time` records that two sessions substituted a `tests/lifetime-tax-*.spec.mjs` file-glob superset for the named command, and that a later session finally ran it as written — but under the then-ambiguous unbracketed `SCN-02` selector, which selected 67 tests including the concurrent session's `SCN-025-*` and `SCN-026-*`. That evidence is therefore for a superseded command. One real execution of the corrected command above is still owed | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list` | Yes | `report.md#tp-01-25` |
 | TP-01-26 | Repo gate | unit | SCN-024-001 … -003 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-01-26` |
 | TP-01-27 | Path guard | unit | SCN-024-001 … -003 | `scripts/validate-spec-test-paths.mjs` | Zero new missing spec-referenced test paths | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-01-27` |
@@ -359,9 +359,26 @@ delivery makes a row's claim false, the row is corrected rather than checked.
 - [x] NFR-024-003 and NFR-024-005 hold: every one of the four declarations is
       inventoried, cleared and redacted, the declared storage key count is asserted
       unchanged in the same assertion that asserts each declaration is inventoried,
-      the request ledger stays empty with a benefit pack now loaded from disk, and
-      no module holds a figure or an authority name.
+      the request ledger does not grow after first paint, every entry in it is a
+      read of a path the route's own configuration declares, the benefit pack is
+      present in the ledger the run produced, and no module holds a figure or an
+      authority name.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the browser privacy row · **Evidence:** `report.md#tp-01-15`, `report.md#tp-01-16`, `report.md#tp-01-24`
+  - **Restated 2026-08-22 (F-REG-03).** The superseded text read "the request
+    ledger stays empty with a benefit pack now loaded from disk", which is false
+    and self-contradictory: a ledger holding the benefit pack read is not empty.
+    The cited row `TP-01-24` (`SCN-024-001`) asserts
+    `expect(afterFirstPaint).toBeGreaterThan(0)`, then
+    `expect(ledger.length).toBe(afterFirstPaint)`, then
+    `paths.forEach((path) => expect(permitted).toContain(path))`, then
+    `expect(paths).toContain('/' + BENEFIT_PACK_PATH)`. Adversarial cases: a
+    request issued after first paint fails the no-growth assertion; a read of a
+    path the configuration does not declare fails the permitted-set assertion; a
+    boot that read nothing fails the greater-than-zero pin; and a benefit pack
+    that is permitted but never fetched fails the `toContain` pin. The row does
+    NOT constrain the origin of an entry — it compares `new URL(entry.url).pathname`
+    only — so no same-origin claim is made here; that gap is carried by Feature
+    021 Scope 01 `TP-01-18`.
 - [x] NFR-024-011 holds: the new module is UMD, every pure analytic function is a
       top-level declaration the extractor lifts, `Number.isFinite` is used rather
       than the bare global, and no drawing is wrapped in `requestAnimationFrame`.

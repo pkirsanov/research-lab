@@ -1761,6 +1761,65 @@ test('a row declaring both ownerSubjectParam and ownerBareReason raises C025-CON
         INTEL.readCoverageRegistry(CONFIG), 'volatility', 'MSFT').carriesSubject, true);
 });
 
+test('an ownerSubjectParam on a row with no ownerDeepLink raises C025-CONFIG-SCHEMA naming its dimension id', () => {
+    /* A parameter names the query key a ROUTE reads a company from. Declared on a row that has
+       no route, it is a half-declared owner: the reader is told how the company travels while
+       nothing carries it. The mirror case — a bare reason with no route — is asserted in the
+       enum test below; this is the half the sibling guard does not reach.
+
+       Every ownerless row is exercised, not merely the first, because a guard that fired for
+       one dimension and not the rest would still pass a single-row probe. */
+    const ownerless = INTEL.readCoverageRegistry(CONFIG).rows
+        .filter((row) => row.ownerDeepLink === null)
+        .map((row) => row.dimensionId);
+    assert.deepEqual(ownerless.slice().sort(),
+        ['company-risk', 'financial-events', 'market-regime', 'non-financial-events'],
+        'the ownerless set is the one this assertion claims to walk');
+
+    ownerless.forEach((dimensionId) => {
+        const error = refusalFor(withRow(dimensionId, { ownerSubjectParam: 'ticker' }));
+        assert.ok(error, dimensionId + ': a subject parameter with no owner route is refused');
+        assert.equal(error.code, 'C025-CONFIG-SCHEMA', dimensionId);
+        assert.match(error.record.detail, new RegExp('dimension: ' + dimensionId), dimensionId);
+        assert.match(error.message, /declares a subject parameter without an owner route/, dimensionId);
+        /* Named by the guard under test, not by a neighbour that happens to share the code. */
+        assert.ok(!/bare-link reason/.test(error.message), dimensionId + ' was refused by the wrong guard');
+        assert.ok(!/exactly one of/.test(error.message), dimensionId + ' was refused by the wrong guard');
+    });
+
+    /* ADVERSARIAL COUNTER-CASE: the guard is not refusing every ownerless row. Each one reads
+       untouched, and the parameter is legal on a row that does have a route to carry it. */
+    ownerless.forEach((dimensionId) => {
+        assert.equal(refusalFor(withRow(dimensionId, {})), null, dimensionId + ' reads untouched');
+    });
+    assert.equal(refusalFor(withRow('volatility', { ownerSubjectParam: 'ticker' })), null,
+        'a subject parameter on a routed row is legal');
+});
+
+test('a declared ownerSubjectParam that is not a plain identifier raises C025-CONFIG-SCHEMA naming that guard', () => {
+    /* The sibling guard four lines below the one above. The hostile-parameter-name loop at the
+       end of the previous section looked like it covered this, and does not: it rewrites every
+       linked row, so a bare row gains a second declaration and is refused by the "exactly one
+       of" rule before the identifier rule is ever consulted. Only a row that ALREADY carries a
+       subject parameter reaches this guard, and the message is matched so a refusal from the
+       neighbouring rule cannot be mistaken for this one. */
+    ['tick er', 'ticker=x', 'ticker&x', 'a#b', '1ticker', 'ticker-1', '__proto__.x', 'ti%20cker']
+        .forEach((param) => {
+            const error = refusalFor(withRow('volatility', { ownerSubjectParam: param }));
+            assert.ok(error, JSON.stringify(param) + ' is refused as a subject parameter');
+            assert.equal(error.code, 'C025-CONFIG-SCHEMA', JSON.stringify(param));
+            assert.match(error.record.detail, /dimension: volatility/, JSON.stringify(param));
+            assert.match(error.message, /declares a subject parameter that is not a plain identifier/,
+                JSON.stringify(param));
+        });
+
+    /* ADVERSARIAL COUNTER-CASE: the guard admits the identifiers it is supposed to admit, so
+       it is not simply refusing every rewrite of this row. */
+    ['ticker', 'symbol', 't', 'subject_id', 'Ticker9'].forEach((param) => {
+        assert.equal(refusalFor(withRow('volatility', { ownerSubjectParam: param })), null, param);
+    });
+});
+
 test('an ownerBareReason outside the closed enum, and an ownerBareReason on a row with no ownerDeepLink, each raise C025-CONFIG-SCHEMA', () => {
     /* The enum is closed so operator-authored wording cannot reach a rendering path. A third
        value, however plausible, is refused rather than rendered. */
@@ -3002,4 +3061,472 @@ test('makeRead refuses a non-current read whose reason code is outside the close
         assert.equal(accepted.reasonCode, reasonCode, reasonCode + ' is accepted');
     });
     assert.equal(INTEL.REASON_CODES.length, 16);
+});
+
+/* ══════════════════ feature 027 security phase — the deep-link corridor ══════════════════
+   Threat model. Every page in this repository serves script-src 'unsafe-inline', so an href
+   that grows a scheme EXECUTES rather than being blocked, and esc() cannot neutralise a URL
+   scheme. Feature 025 shipped exactly that defect on this surface. The corridor has two ends:
+   rlcompanyintel.js::ownerRouteFor composes the link, and four routes read ?ticker= back
+   through RLTKR.linkedSubject. Both ends are attacked here from the same corpus.
+
+   Every hostile value below is SHORT ENOUGH to pass the receiver's 1..12 length bound, so the
+   only thing that can refuse it is the character class. That is deliberate: a value refused
+   for length would prove nothing about scheme, authority or markup safety. */
+
+const SEC_RECEIVERS = Object.freeze([
+    'options-structure-lab.html',
+    'gamma-trading-lab.html',
+    'volatility-sizing-lab.html',
+    'options-flow-feed-lab.html'
+]);
+const SEC_RECEIVER_SOURCE = Object.freeze(SEC_RECEIVERS.map((name) => ({
+    name,
+    source: readFileSync(join(ROOT, name), 'utf8')
+})));
+
+/* Loading rlticker.js in Node runs its IIFE, which returns before touching the DOM and
+   publishes the real rule on globalThis. Nothing here re-implements the grammar. */
+require_('../rlticker.js');
+const SEC_RULE = globalThis.RLTKR;
+
+/* Scheme, authority and traversal probes that the existing corpora do not reach: case-shuffled
+   schemes, leading control whitespace, backslash authorities, and single- and double-encoded
+   bytes. All ≤12 characters after trim/upper-case. */
+const SEC_SCHEME_CORPUS = Object.freeze([
+    'javascript:', 'JaVaScRiPt:', 'JAVASCRIPT:', '\tjavascript:', '\njavascript:',
+    ' javascript:', 'data:x', 'DATA:x', 'vbscript:x', 'VbScRiPt:x',
+    '%6aavascrip', '%256a%2561'
+]);
+const SEC_AUTHORITY_CORPUS = Object.freeze([
+    '//evil.co', '\\\\evil.co', '\\evil.co', 'https://e.co', 'HTTPS://e.co', '%2F%2Fe.co'
+]);
+const SEC_TRAVERSAL_CORPUS = Object.freeze([
+    '../', '..\\', '%2e%2e%2f', '..%2f..', './..', 'a/../b'
+]);
+const SEC_INJECTION_CORPUS = Object.freeze([
+    'A?x=1', 'A#frag', 'A&x=1', 'A=1', 'A;x=1', 'A%26x', 'A%3Fx', 'A%23f'
+]);
+/* The four characters that turn text into markup. Three bytes each, so nothing but the
+   character class can be refusing them. */
+const SEC_MARKUP_CORPUS = Object.freeze(['A<B', 'A>B', 'A&B', 'A"B', "A'B", 'A`B']);
+const SEC_HOSTILE_CORPUS = Object.freeze(
+    SEC_SCHEME_CORPUS
+        .concat(SEC_AUTHORITY_CORPUS, SEC_TRAVERSAL_CORPUS, SEC_INJECTION_CORPUS, SEC_MARKUP_CORPUS)
+);
+
+test('027 security — no hostile subject can give the composed owner href a scheme, an authority, a second parameter or a fragment', () => {
+    const registry = INTEL.readCoverageRegistry(CONFIG);
+    const carrying = registry.rows.filter((row) => row.ownerSubjectParam !== null);
+    assert.ok(carrying.length > 0, 'the registry declares at least one subject-carrying owner');
+
+    /* The corpus is only a probe of THIS property if the length bound is not doing the work. */
+    SEC_HOSTILE_CORPUS.forEach((subject) => {
+        assert.ok(subject.trim().toUpperCase().length <= 12,
+            JSON.stringify(subject) + ' is long enough that the length bound could refuse it');
+    });
+
+    carrying.forEach((row) => {
+        const prefix = row.ownerDeepLink + '?' + row.ownerSubjectParam + '=';
+        SEC_HOSTILE_CORPUS.forEach((subject) => {
+            const href = INTEL.describeDimensionOwner(registry, row.dimensionId, subject).ownerDeepLink;
+            const label = row.dimensionId + ' ← ' + JSON.stringify(subject);
+            assert.ok(href.startsWith(prefix), label + ' escaped the validated route file: ' + href);
+
+            /* Resolve the way a browser would, from a nested directory so a traversal would show. */
+            const resolved = new URL(href, 'https://lab.example/tools/deep/');
+            assert.equal(resolved.protocol, 'https:', label + ' introduced a scheme');
+            assert.equal(resolved.origin, 'https://lab.example', label + ' left the origin');
+            assert.equal(resolved.pathname, '/tools/deep/' + row.ownerDeepLink, label + ' left the path');
+            assert.equal(resolved.hash, '', label + ' introduced a fragment');
+            assert.equal([...resolved.searchParams.keys()].length, 1, label + ' introduced a parameter');
+            /* Encoded, never discarded. The composer trims surrounding whitespace and encodes the
+               rest, so the target reads back exactly the trimmed value — a leading tab or newline
+               is removed rather than smuggled through, and nothing else is altered. */
+            assert.equal(resolved.searchParams.get(row.ownerSubjectParam), subject.trim(),
+                label + ' was altered by more than the documented trim');
+            assert.ok(!/^[\s]/.test(resolved.searchParams.get(row.ownerSubjectParam)),
+                label + ' carried leading whitespace into the target');
+            /* Nothing that closes a double-quoted HTML attribute survives into the href text.
+               encodeURIComponent leaves the apostrophe alone, which is inert here because the
+               only sink is setAttribute and the route builds no attribute by concatenation —
+               both pinned by the ownerBareReason test below (innerHTML count is zero). */
+            assert.ok(!/["<>]/.test(href.slice(prefix.length)),
+                label + ' left an attribute-breaking character in the href');
+        });
+    });
+
+    /* ADVERSARIAL COUNTER-CASE — the assertions above are not passing because everything is
+       refused. A benign subject still composes a working, company-carrying link. */
+    const benign = INTEL.describeDimensionOwner(registry, carrying[0].dimensionId, 'MSFT');
+    assert.equal(benign.carriesSubject, true);
+    assert.equal(new URL(benign.ownerDeepLink, 'https://lab.example/tools/deep/').searchParams
+        .get(carrying[0].ownerSubjectParam), 'MSFT');
+
+    /* The composition is safe by TWO independent mechanisms, and this separates them.
+       POSITION neutralises the scheme, authority and traversal families: they sit after a
+       validated `<file>.html?<param>=`, so they are already inert data even unencoded.
+       encodeURIComponent neutralises the remaining families — a fragment, a second parameter
+       and an attribute break — which is exactly the set that survives when it is removed.
+       Naming that set beats a threshold: it says WHICH hazard the encoder is carrying. */
+    const prefixOf = (row) => row.ownerDeepLink + '?' + row.ownerSubjectParam + '=';
+    const unencoded = (row, value) => row.ownerDeepLink + '?' + row.ownerSubjectParam + '=' + String(value).trim();
+    const leaked = SEC_HOSTILE_CORPUS.filter((subject) => {
+        const href = unencoded(carrying[0], subject);
+        const resolved = new URL(href, 'https://lab.example/tools/deep/');
+        return resolved.hash !== ''
+            || [...resolved.searchParams.keys()].length !== 1
+            || resolved.pathname !== '/tools/deep/' + carrying[0].ownerDeepLink
+            || /["<>]/.test(href.slice(prefixOf(carrying[0]).length));
+    });
+    assert.deepEqual(leaked, ['A#frag', 'A&x=1', 'A<B', 'A>B', 'A&B', 'A"B'],
+        'removing encodeURIComponent must let exactly the fragment, second-parameter and '
+        + 'attribute-break families through; a different set means the encoder is carrying a '
+        + 'different hazard than this test claims (' + JSON.stringify(leaked) + ')');
+
+    /* The complement is the positional claim: every scheme, authority and traversal probe stays
+       inert even with the encoder removed, because the query position is what defuses it. */
+    SEC_SCHEME_CORPUS.concat(SEC_AUTHORITY_CORPUS, SEC_TRAVERSAL_CORPUS).forEach((subject) => {
+        const resolved = new URL(unencoded(carrying[0], subject), 'https://lab.example/tools/deep/');
+        assert.equal(resolved.origin, 'https://lab.example',
+            JSON.stringify(subject) + ' left the origin even from the query position');
+        assert.equal(resolved.protocol, 'https:', JSON.stringify(subject) + ' introduced a scheme');
+    });
+});
+
+test('027 security — the receiver refuses every hostile subject outright and returns no field carrying it', () => {
+    SEC_HOSTILE_CORPUS.forEach((value) => {
+        const read = SEC_RULE.linkedSubject('?ticker=' + encodeURIComponent(value));
+        const label = JSON.stringify(value);
+        assert.equal(read.status, 'refused', label + ' was not refused: ' + JSON.stringify(read));
+        assert.equal(read.subject, null, label + ' returned a subject');
+        assert.equal(read.raw, null, label + ' returned the raw value');
+        /* No accessor anywhere on the result may still be carrying the hostile text. */
+        Object.keys(read).forEach((key) => {
+            assert.notEqual(read[key], value, label + ' survived on result key ' + key);
+        });
+    });
+
+    /* ADVERSARIAL COUNTER-CASE 1 — the rule is not refusing everything. */
+    ['MSFT', 'BRK.B', 'brk.b', '  nvda  ', 'A', 'ABCDEFGHIJKL'].forEach((value) => {
+        const read = SEC_RULE.linkedSubject('?ticker=' + encodeURIComponent(value));
+        assert.equal(read.status, 'accepted', value + ' should still be accepted');
+        assert.equal(read.subject, value.trim().toUpperCase());
+    });
+
+    /* ADVERSARIAL COUNTER-CASE 2 — each family is refused by the CHARACTER CLASS, not by length
+       or by some unrelated guard. A pattern widened by exactly the family's character admits it. */
+    const widened = [
+        [/^[A-Z0-9.\-:%]{1,12}$/, SEC_SCHEME_CORPUS],
+        [/^[A-Z0-9.\-/\\:%]{1,12}$/, SEC_AUTHORITY_CORPUS],
+        [/^[A-Z0-9.\-/\\%]{1,12}$/, SEC_TRAVERSAL_CORPUS],
+        [/^[A-Z0-9.\-?#&=;%]{1,12}$/, SEC_INJECTION_CORPUS],
+        [/^[A-Z0-9.\-<>&"'`]{1,12}$/, SEC_MARKUP_CORPUS]
+    ];
+    widened.forEach(([pattern, corpus]) => {
+        const admitted = corpus.filter((value) => pattern.test(value.trim().toUpperCase()));
+        assert.equal(admitted.length, corpus.length,
+            'widening the class by this family admits all of it, proving the class is what refuses it '
+            + '(' + admitted.length + '/' + corpus.length + ' under ' + pattern + ')');
+    });
+});
+
+test('027 security — an accepted subject cannot leave data/options/, cannot become a storage key and cannot reach a prototype', () => {
+    /* Every value the receiver can accept, including the grammar-valid oddities D5 hands to
+       catalog binding rather than to the grammar. */
+    const accepted = ['MSFT', 'BRK.B', 'A-B', '..', '.', '-', '...........', 'ABCDEFGHIJKL',
+        'CONSTRUCTOR', 'PROTOTYPE', '0', '..-..'];
+    accepted.forEach((value) => {
+        assert.equal(SEC_RULE.linkedSubject('?ticker=' + encodeURIComponent(value)).status, 'accepted',
+            value + ' must be accepted for this test to be probing the right values');
+    });
+
+    /* The path builder is lifted from production text, so this binds to the shipped expression
+       rather than to a copy of it. All three subject-carrying chain routes share the shape. */
+    const builders = SEC_RECEIVER_SOURCE
+        .map((file) => ({ name: file.name, match: file.source.match(/function pagesUrl\(([A-Za-z]+)\)\s*\{\s*return\s*([^;]+);/) }))
+        .filter((entry) => entry.match !== null);
+    assert.equal(builders.length, 3, 'three receiver routes build a same-origin options path');
+    builders.forEach((entry) => {
+        const build = new Function(entry.match[1], 'return ' + entry.match[2] + ';');
+        accepted.forEach((value) => {
+            const url = new URL(build(value), 'https://lab.example/tools/');
+            assert.equal(url.origin, 'https://lab.example', entry.name + ' ← ' + value + ' left the origin');
+            assert.ok(url.pathname.startsWith('/tools/data/options/'),
+                entry.name + ' ← ' + value + ' left data/options/: ' + url.pathname);
+            /* Exactly one segment below the directory: a traversal would remove or add one. */
+            assert.equal(url.pathname.slice('/tools/data/options/'.length).split('/').length, 1,
+                entry.name + ' ← ' + value + ' introduced a path segment: ' + url.pathname);
+            assert.equal(url.search, '', entry.name + ' ← ' + value + ' introduced a query');
+        });
+        /* ADVERSARIAL — the guard CAN fail, and encodeURIComponent is what stops it. Drop the
+           encoder from the same production expression and a slash-bearing value walks straight
+           out of the directory. The path is therefore safe by construction at the sink, not only
+           by the receiver grammar upstream — two independent defences, and this proves both. */
+        const unencodedBuild = new Function(entry.match[1],
+            'return ' + entry.match[2].replace(/encodeURIComponent\(([A-Za-z]+)\)/, '$1') + ';');
+        const escaped = new URL(unencodedBuild('../../etc'), 'https://lab.example/tools/');
+        assert.ok(!escaped.pathname.startsWith('/tools/data/options/'),
+            entry.name + ' path guard cannot fail even unencoded, so it proves nothing: ' + escaped.pathname);
+        /* And the encoder still holds for that same value, which is the property under test. */
+        const held = new URL(build('../../etc'), 'https://lab.example/tools/');
+        assert.ok(held.pathname.startsWith('/tools/data/options/')
+            && held.pathname.slice('/tools/data/options/'.length).split('/').length === 1,
+            entry.name + ' let a slash-bearing value out of data/options/: ' + held.pathname);
+        /* Upstream, the receiver refuses it before it ever reaches the builder. */
+        assert.equal(SEC_RULE.linkedSubject('?ticker=' + encodeURIComponent('../../etc')).status, 'refused');
+    });
+
+    /* No deep-link subject can NAME a browser storage container. Three routes settle this by
+       using only literal keys, so a subject can at most be a value nested inside a fixed
+       container. The fourth, options-flow-feed, genuinely COMPOSES a key — `rlOptFlow:<SYM>` —
+       so for that route the proof is reachability instead: the composing functions are fed only
+       from the closed UNIVERSE catalog and never from the linked subject. */
+    let literalKeys = 0;
+    let composedKeys = 0;
+    SEC_RECEIVER_SOURCE.forEach((file) => {
+        [...file.source.matchAll(/(?:localStorage|sessionStorage)\s*\.\s*(?:get|set|remove)Item\s*\(\s*([^,)]+)/g)]
+            .forEach((match) => {
+                const argument = match[1].trim();
+                if (/^(['"])[^'"]*\1$/.test(argument)) { literalKeys += 1; return; }
+                composedKeys += 1;
+                assert.equal(file.name, 'options-flow-feed-lab.html',
+                    file.name + ' newly composes a storage key from an expression: ' + argument);
+                assert.match(argument, /^(?:LS|CACHE_PREFIX \+ sym)$/,
+                    'an unreviewed storage-key expression appeared: ' + argument);
+            });
+    });
+    assert.ok(literalKeys >= 8, 'the literal-key scan found real call sites to check (' + literalKeys + ')');
+    assert.ok(composedKeys >= 1,
+        'the composed-key branch found no call site, so the reachability proof below is vacuous');
+
+    /* `LS` is a literal container name; `CACHE_PREFIX + sym` is the one key the subject could in
+       principle reach. Every caller of the three functions that touch it passes UNIVERSE[...], so
+       an accepted-but-uncatalogued subject can never mint a storage key. */
+    const flow = SEC_RECEIVER_SOURCE.find((file) => file.name === 'options-flow-feed-lab.html').source;
+    assert.match(flow, /var LS = "optFlowState", CACHE_PREFIX = "rlOptFlow:";/,
+        'the flow route no longer declares its container names as literals');
+    const cacheArguments = [...flow.matchAll(/(?:ensureChain|cacheGet|cachePut)\(\s*([A-Za-z_$][\w$.[\]]*)/g)]
+        .map((match) => match[1]);
+    assert.ok(cacheArguments.length >= 5, 'the cache call-site scan found real call sites (' + cacheArguments.length + ')');
+    cacheArguments.forEach((argument) => {
+        assert.match(argument, /^(?:UNIVERSE\[i\]|sym|s)$/,
+            'a cache call site takes an argument that is neither the catalog nor a catalog-bound '
+            + 'local, so the subject may now reach a storage key: ' + argument);
+    });
+    /* The two catalog-bound locals are themselves fed only from the catalog. */
+    assert.match(flow, /var s = UNIVERSE\[i\+\+\];\s*\n\s*return ensureChain\(s, 12\)/,
+        'the hydration worker no longer draws its symbol from the closed catalog');
+    assert.equal((flow.match(/(?:ensureChain|cacheGet|cachePut)\(\s*FOCUS/g) || []).length, 0,
+        'the linked subject is passed to a cache function, so it can mint a localStorage key');
+
+    /* ADVERSARIAL — the reachability proof can fail. Feeding the subject to the cache is exactly
+       the change it exists to catch, and the same scan flags it. */
+    const regressed = flow.replace('return ensureChain(s, 12)', 'return ensureChain(FOCUS.subject, 12)');
+    assert.notEqual(regressed, flow, 'the adversarial rewrite matched nothing, so it proves nothing');
+    assert.equal((regressed.match(/(?:ensureChain|cacheGet|cachePut)\(\s*FOCUS/g) || []).length, 1,
+        'the subject-to-cache scan cannot detect the shape it exists to catch');
+
+    /* Prototype reach: normTicker upper-cases before the class test, and the class excludes the
+       underscore, so no accepted subject can name a prototype-mutating property. */
+    ['__proto__', 'constructor', 'prototype', '__PROTO__'].forEach((value) => {
+        const read = SEC_RULE.linkedSubject('?ticker=' + encodeURIComponent(value));
+        assert.notEqual(read.subject, '__proto__', value + ' reached __proto__');
+        assert.notEqual(read.subject, 'constructor', value + ' reached constructor');
+    });
+    const probe = {};
+    probe[SEC_RULE.linkedSubject('?ticker=CONSTRUCTOR').subject] = { hostile: true };
+    assert.equal(Object.getPrototypeOf(probe), Object.prototype, 'an accepted subject mutated a prototype');
+    assert.equal(({}).hostile, undefined, 'an accepted subject polluted Object.prototype');
+});
+
+test('027 security — ownerBareReason reaches the reader as text only, never an attribute, an href or markup', () => {
+    /* The reason is a closed enum TODAY. This pins the SINK instead, because a later config edit
+       that widened the enum would otherwise put operator wording on a rendering path. */
+    assert.deepEqual(INTEL.OWNER_BARE_REASONS ?? ['market-scoped', 'fixed-subject'],
+        ['market-scoped', 'fixed-subject']);
+
+    /* The route renders through one element factory: text becomes textContent, attributes go
+       through setAttribute, and the page has no markup sink at all. */
+    assert.match(ROUTE_SOURCE, /function el\(tag, text, attributes\)[\s\S]{0,120}node\.textContent = String\(text\)/,
+        'the element factory writes its text through textContent');
+    assert.equal((ROUTE_SOURCE.match(/\.innerHTML\s*=/g) || []).length, 0,
+        'the company route must have no innerHTML sink');
+    assert.equal((ROUTE_SOURCE.match(/\.(?:outerHTML|insertAdjacentHTML)\s*[=(]/g) || []).length, 0,
+        'the company route must have no outerHTML or insertAdjacentHTML sink');
+
+    /* The bare-reason marker attribute carries the literal "true", never the reason value, so the
+       reason cannot reach an attribute even indirectly. */
+    const markers = [...ROUTE_SOURCE.matchAll(/"data-owner-bare-reason":\s*([^,}]+)/g)].map((m) => m[1].trim());
+    assert.ok(markers.length > 0, 'the bare-reason marker is rendered somewhere');
+    markers.forEach((value) => assert.equal(value, '"true"',
+        'the bare-reason marker must be a literal, not the reason value: ' + value));
+
+    /* ADVERSARIAL — a reason carrying a scheme and markup still lands only in the STATEMENT, and
+       the statement is not the href. The href stays the validated route file. */
+    const registry = INTEL.readCoverageRegistry(CONFIG);
+    const bare = registry.rows.filter((row) => row.ownerToolId !== null && row.ownerSubjectParam === null);
+    assert.ok(bare.length > 0, 'the registry still carries bare owner routes');
+    bare.forEach((row) => {
+        const described = INTEL.describeDimensionOwner(registry, row.dimensionId, 'MSFT');
+        assert.match(described.ownerDeepLink, /^[A-Za-z0-9._-]+\.html$/,
+            row.dimensionId + ' bare href is not a plain route file');
+        /* An apostrophe in prose is not markup; the tag delimiters are. The statement is written
+           through textContent, so this is depth rather than the primary defence. */
+        assert.ok(!/[<>]/.test(described.statement), row.dimensionId + ' statement carries markup');
+        assert.ok(described.statement.includes(row.ownerToolId),
+            row.dimensionId + ' statement does not actually name its owner, so this check is vacuous');
+    });
+
+    /* A reason outside the closed enum is refused at the registry, so unreviewed wording never
+       reaches the renderer in the first place. */
+    ['<img src=x onerror=1>', 'javascript:alert(1)', 'market scoped', ''].forEach((reason) => {
+        const poisoned = Object.assign({}, CONFIG, {
+            coverageRegistry: CONFIG.coverageRegistry.map((row) => (
+                row.ownerDeepLink === null || row.ownerBareReason === null || row.ownerBareReason === undefined
+                    ? row
+                    : Object.assign({}, row, { ownerBareReason: reason })
+            ))
+        });
+        assert.throws(
+            () => INTEL.readCoverageRegistry(poisoned),
+            (error) => error.code === 'C025-CONFIG-SCHEMA',
+            JSON.stringify(reason) + ' is refused as a bare-link reason'
+        );
+    });
+});
+
+test('027 security — no markup-bearing subject can reach a receiver markup sink, and every subject-fed sink escapes', () => {
+    /* FIRST LINE OF DEFENCE — the receiver character class admits no markup metacharacter, so a
+       deep link cannot deliver one to any sink on any of the four routes. */
+    SEC_MARKUP_CORPUS.forEach((value) => {
+        assert.equal(SEC_RULE.linkedSubject('?ticker=' + encodeURIComponent(value)).status, 'refused',
+            JSON.stringify(value) + ' reached a route carrying markup');
+    });
+    assert.ok(!/[<>&"'`]/.test('ABCDEFGHIJKL'.replace(/[A-Z0-9.\-]/g, '')),
+        'the accepted class contains no markup metacharacter');
+
+    /* SECOND LINE OF DEFENCE — depth, not luck. The subject reaches innerHTML on the chain
+       routes, so every markup sink that interpolates it must ALSO escape it. Without this, the
+       whole surface rests on the grammar alone and a single widening becomes stored XSS.
+
+       The scan must follow INDIRECTION. A route that writes markup through a helper — say
+       `setStatus(s)` whose body does `e.innerHTML = ... + s + ...` — puts the subject into
+       markup from a line that never contains the word innerHTML. A scan that only reads
+       `.innerHTML =` lines returns a false all-clear on exactly that shape, so the writers are
+       discovered first and their CALL SITES are scanned too. */
+    /* The subject must be recognised WHEREVER it sits in the expression, not only after a `+`.
+       A scan anchored on `+` reads the trailing shape `'…' + tk` and is blind to the three other
+       shapes that reach the same sink: the subject in LEADING position (`yLink(state.ticker, …)`,
+       `setStatus(tk + '…')`), the subject inside a TEMPLATE literal, and the subject LAUNDERED
+       through an alias that a route assigns from it (`state.name = state.name || tk`). Each of
+       those is refuted below, so no half of this scan is inert. */
+    const SUBJECT_NAMES = '(?:state\\.ticker|state\\.name|tk|sym|FOCUS\\.subject|handoff\\.subject)';
+    const SUBJECT_VARS = new RegExp('(?<![\\w$.])' + SUBJECT_NAMES + '(?![\\w$])', 'g');
+    /* Only a CONCATENATION OPERAND or a template placeholder actually lands in the markup
+       string. A condition (`state.ticker ? …`), a guard (`if (!tk)`) and an argument handed to
+       an escaping or encoding helper (`esc(tk)`, `encodeURIComponent(state.ticker)`) all read
+       the subject on a markup line without interpolating it, and flagging those would make the
+       scan noise that a later reader silences. */
+    const isWrapped = (before, after) => {
+        if (/(?:esc|encodeURIComponent|escapeHtml|String)\(\s*$/.test(before)) return true;
+        const inTemplate = /\$\{\s*$/.test(before) && /^\s*\}/.test(after);
+        const operand = /\+\s*$/.test(before) || /^\s*\+/.test(after);
+        return !(inTemplate || operand);
+    };
+    const offenders = [];
+    SEC_RECEIVER_SOURCE.forEach((file) => {
+        const lines = file.source.split(/\r?\n/);
+        /* Helpers whose own body writes a parameter into markup. */
+        const writers = new Set();
+        lines.forEach((line) => {
+            const declaration = line.match(/function\s+([A-Za-z_$][\w$]*)\s*\(([^)]*)\)/);
+            if (!declaration || !/\.innerHTML\s*=/.test(line)) return;
+            const parameters = declaration[2].split(',').map((p) => p.trim()).filter(Boolean);
+            if (parameters.some((p) => new RegExp('\\b' + p + '\\b').test(line.split('.innerHTML')[1] || ''))) {
+                writers.add(declaration[1]);
+            }
+        });
+        const callPattern = writers.size
+            ? new RegExp('\\b(?:' + [...writers].join('|') + ')\\s*\\(')
+            : null;
+        lines.forEach((line, index) => {
+            const direct = /\.innerHTML\s*=/.test(line);
+            const indirect = callPattern !== null && callPattern.test(line) && !/function\s/.test(line);
+            if (!direct && !indirect) return;
+            /* These routes pack several statements onto one line, so a whole-line read would
+               charge a markup line for an unrelated neighbour. Narrow a direct hit to the
+               assignment's own right-hand side, and an indirect hit to the writer call itself. */
+            let segment = line;
+            let offset = 0;
+            if (direct) {
+                const assignment = line.search(/\.innerHTML\s*=/);
+                const rest = line.slice(assignment);
+                const end = rest.indexOf(';');
+                offset = assignment;
+                segment = end === -1 ? rest : rest.slice(0, end);
+            } else {
+                const call = line.search(callPattern);
+                offset = call;
+                segment = line.slice(call);
+            }
+            [...segment.matchAll(SUBJECT_VARS)].forEach((match) => {
+                if (isWrapped(segment.slice(0, match.index), segment.slice(match.index + match[0].length))) return;
+                offenders.push(file.name + ':' + (index + 1) + ' → ' + match[0]
+                    + (direct ? ' (direct innerHTML)' : ' (via markup writer)') + ' @col' + (offset + match.index));
+            });
+        });
+        /* The writer discovery must actually find something on a route that has one, otherwise
+           the indirect half of this scan is silently inert. */
+        if (/\.innerHTML\s*=/.test(file.source)) {
+            assert.ok(writers.size > 0 || !/function\s+\w+\([^)]+\)[^\n]*\.innerHTML/.test(file.source),
+                file.name + ' has a parameterised markup writer the scan failed to discover');
+        }
+    });
+    assert.deepEqual(offenders, [],
+        'a receiver puts the linked subject into markup without escaping it, so the deep-link '
+        + 'corridor is protected only by the receiver grammar and a single widening of that '
+        + 'grammar becomes stored XSS:\n  ' + offenders.join('\n  '));
+
+    /* ADVERSARIAL — both halves of the scan can fail, and on the real shapes.
+       (a) the direct shape. */
+    const directBad = "        el('x').innerHTML = '<b>' + state.ticker + '</b>';";
+    assert.equal([...directBad.matchAll(SUBJECT_VARS)].filter((m) => !isWrapped(directBad.slice(0, m.index))).length, 1,
+        'the direct-sink scan cannot detect the shape it exists to catch');
+    /* (b) the INDIRECT shape — the one that produced a false all-clear before this was fixed. */
+    const indirectSource = [
+        "    function setStatus(s, kind) { var e = el('status'); if (e) e.innerHTML = s; }",
+        "      setStatus('<b>' + tk + '</b> is not in the cached snapshot', 'bad');"
+    ].join('\n');
+    const indirectWriters = new Set();
+    indirectSource.split('\n').forEach((line) => {
+        const declaration = line.match(/function\s+([A-Za-z_$][\w$]*)\s*\(([^)]*)\)/);
+        if (!declaration || !/\.innerHTML\s*=/.test(line)) return;
+        const parameters = declaration[2].split(',').map((p) => p.trim()).filter(Boolean);
+        if (parameters.some((p) => new RegExp('\\b' + p + '\\b').test(line.split('.innerHTML')[1] || ''))) {
+            indirectWriters.add(declaration[1]);
+        }
+    });
+    assert.deepEqual([...indirectWriters], ['setStatus'], 'the writer discovery missed a real markup writer');
+    const indirectCall = indirectSource.split('\n')[1];
+    assert.equal([...indirectCall.matchAll(SUBJECT_VARS)].filter((m) => !isWrapped(indirectCall.slice(0, m.index))).length, 1,
+        'the indirect-sink scan cannot detect the shape it exists to catch');
+    /* (c) and it clears an escaped call, so it would not refuse every fix. */
+    const repaired = "      setStatus('<b>' + esc(tk) + '</b> is not in the cached snapshot', 'bad');";
+    assert.equal([...repaired.matchAll(SUBJECT_VARS)].filter((m) => !isWrapped(repaired.slice(0, m.index), '')).length, 0,
+        'the scan flags an escaped sink, so it would refuse every fix');
+    /* (d) the three shapes the `+`-anchored scan was blind to. Each is a real shape a receiver
+       has actually carried, so a regression to the narrow regex fails here rather than silently
+       returning an all-clear. */
+    const blindShapes = [
+        ["leading position at a markup writer", "      setStatus(tk + ' is not in the cached snapshot', 'bad');"],
+        ["leading position at a direct innerHTML", "      el('pillTk').innerHTML = yLink(state.ticker, state.ticker + '', tipFor(state.ticker));"],
+        ["template-literal interpolation", "      el('x').innerHTML = `<b>${state.ticker}</b>`;"],
+        ["alias a route assigns from the subject", "      setStatus('<b>' + state.name + '</b> missing', 'bad');"]
+    ];
+    blindShapes.forEach(([label, line]) => {
+        const hits = [...line.matchAll(SUBJECT_VARS)]
+            .filter((m) => !isWrapped(line.slice(0, m.index), line.slice(m.index + m[0].length)));
+        assert.ok(hits.length > 0, 'the sink scan is blind to a real shape it exists to catch: ' + label);
+    });
 });

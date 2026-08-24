@@ -245,6 +245,10 @@ error, a missing browser or an absent test does not satisfy RED.
 | TP-02-23 | Repo gate | unit | SCN-023-004 … -006 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-02-23` |
 | TP-02-24 | Path guard | unit | SCN-023-004 … -006 | `scripts/validate-spec-test-paths.mjs` | Zero new missing spec-referenced test paths | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-02-24` |
 | TP-02-25 | Deploy gate | unit | SCN-023-004 … -006 | `scripts/build-pages-site.mjs` | The Pages plan succeeds and `site-exclusions.json` is unchanged | `node scripts/build-pages-site.mjs --dry-run` | No | `report.md#tp-02-25` |
+| TP-02-26 | Known value | unit | SCN-023-006 | `scripts/selftest.mjs` | Against a fixture built so the two deductions disagree, the composition names itemising while the settlement prices the tax on the declared standard deduction, the two amounts differ, `agreesWithSettlement` reports the disagreement, and the settled figure is the one `computeAnnualFederalTax` actually subtracted | `node scripts/selftest.mjs` | No | `report.md#f-reg-01-resolved-2026-08-22` |
+| TP-02-27 | Adversarial | unit | SCN-023-006 | `scripts/selftest.mjs` | The Simple panel feeds its priced-the-tax row from the settled deduction and its comparison row from the composed amount, neither is described as the other, no surface still says the composed side was actually applied, and the composed-amount regression and the self-contradicting tooltip are both planted and proven to fail the detector | `node scripts/selftest.mjs` | No | `report.md#f-reg-01-resolved-2026-08-22` |
+| TP-02-28 | Regression E2E | e2e-ui | SCN-023-006 | `lifetime-tax-deduction.spec.mjs` | `Regression: F-REG-01 no surface names the composed side as the deduction that priced the tax` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: F-REG-01 no surface names the composed side as the deduction that priced the tax" --reporter=list` | Yes | `report.md#f-reg-01-resolved-2026-08-22` |
+| TP-02-29 | Privacy E2E | e2e-ui | SCN-023-005 | `tests/lifetime-tax-deduction.spec.mjs` | GAP, NOT AUTHORED (opened 2026-08-22, F-REG-03). This scope has no live-route privacy row at all: its only privacy evidence, `TP-02-16`, is a `unit` row run by `node scripts/selftest.mjs`, which has no browser and so no request ledger to observe. Required: on the live route, with the mortgage declarations populated, `afterFirstPaint` is captured after `openLifetimeTax`, is asserted greater than zero, the ledger is asserted not to grow past it, and every entry's pathname is asserted to be a member of `declaredRouteAssets()`. Adversarial cases: a request issued after the declarations are entered fails the no-growth assertion; a read of a path the configuration does not declare fails the permitted-set assertion; and a boot that read nothing fails the greater-than-zero pin, so the row cannot pass vacuously | not authored | Yes | not authored |omposed side as the deduction that priced the tax" --reporter=list` | Yes | `report.md#f-reg-01-resolved-2026-08-22` |
 
 ### Definition of Done
 
@@ -279,9 +283,37 @@ error, a missing browser or an absent test does not satisfy RED.
 - [x] NFR-023-004 holds: the refusal vocabulary member count equals its pre-feature
       value.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-15`
-- [x] NFR-023-003 holds: the mortgage declarations are inventoried, cleared and
-      redacted, and the request ledger stays empty.
+- [x] NFR-023-003 holds for the mortgage declarations as far as the cited
+      evidence reaches: each is a declared workspace member, is omitted by the
+      export sanitizer and listed in `omittedFields`, is described by the storage
+      inventory, and the declared balance does not survive an export.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-16`
+  - **Restated 2026-08-22 (F-REG-03).** The superseded text read "and the request
+    ledger stays empty", which is false — the route issues its document reads and
+    its `<script src>` loads on every boot — and, worse, it was unsupported by the
+    only evidence this item cites. `TP-02-16` is a `unit` row whose command is
+    `node scripts/selftest.mjs`; a Node run has no browser and therefore no
+    request ledger to observe. Its assertion reads "every mortgage declaration is
+    a declared workspace member, is omitted by the export sanitiser and listed in
+    omittedFields, is described by the storage inventory, and the declared balance
+    does not survive an export" — nothing about a request. The item now claims
+    exactly that. Adversarial cases: a declaration absent from the workspace
+    contract, one the sanitizer keeps, one missing from `omittedFields`, one
+    missing from the storage inventory, or a balance surviving into the exported
+    bytes each fails the cited assertion. The live-route half is not covered by
+    this scope at all and is opened as `TP-02-29` below.
+- [x] NFR-023-003 holds on the live route for the mortgage declarations: the
+      request ledger does not grow after first paint and every entry in it is a
+      read of a path the route's own configuration declares.
+  - **Phase:** test · **Command:** `TP-02-29` · **Evidence:** `report.md#tp-02-29-authored--the-live-route-privacy-row-this-scope-never-had-2026-08-22`
+  - **Claim Source:** executed. `TP-02-29` is authored in
+    `tests/lifetime-tax-deduction.spec.mjs` and carries a three-arm probe, each
+    arm discriminating with a hash-verified revert: zeroing the capture reds the
+    non-empty pin, subtracting one from it reds the no-growth equality, and
+    withdrawing the declared pack family from the derivation reds the
+    permitted-set sweep. This closes the gap the row named — the scope's only
+    prior privacy evidence, `TP-02-16`, runs under `node scripts/selftest.mjs`,
+    which has no browser and therefore no request ledger to observe.
 - [x] SUP-023-01 through SUP-023-04 are delivered with their markers, each
       replacement derived from the artifact it describes, each superseded clause
       recorded verbatim, and each intended-RED failure recorded before its green.
@@ -294,7 +326,86 @@ error, a missing browser or an absent test does not satisfy RED.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
 - [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
-  - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-22 commands · **Evidence:** `report.md#test-evidence`
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` under `scripts/red-green-probe.sh` · **Evidence:** `report.md#every-remaining-row-carries-an-intended-red-2026-08-23`
+  - **Ticked 2026-08-23, and the count in the note below is corrected.** The
+    audit was re-derived from the Test Plan rather than inherited. Twelve rows,
+    not five, already carried an intended RED: the five the note names plus
+    `TP-02-17`, whose own row failure is captured under its heading, the four
+    browser rows `TP-02-18` to `TP-02-21`, which share one command and one RED
+    block in which all four named tests fail, and `TP-02-27` and `TP-02-28`. The
+    rows genuinely lacking one were `TP-02-01` through `TP-02-16` and
+    `TP-02-23` — seventeen — and each now carries a probe that mutates the
+    shipped module or pack its own assertion reads, pinned by `--summary-match`
+    to its own assertion wording. All seventeen exited `0`, none was retried
+    after a miss, and every revert hash-verified against the committed blob.
+    `TP-02-23` is the single probe carrying no `--summary-match`, because that
+    row's claim is the command's own exit status rather than a per-row line; its
+    verdict is exit `1` under a planted defect against exit `0` clean, with no
+    pass-count arithmetic in it. One qualification travels forward: `TP-02-22`'s
+    pair is still assembled from a probe's red arm and a separate clean run,
+    because the harness's exit channel is unusable for that selector here.
+  - **Re-examined 2026-08-22, still open, and the reason has changed.**
+    `TP-02-29` now carries a three-arm RED and a same-command GREEN, so the note
+    below no longer applies to it. Auditing the remaining rows against the report
+    surfaced a larger and older gap. Exactly five rows carry a per-row RED aimed
+    at their own assertion: `TP-02-22`, `TP-02-24`, `TP-02-25`, `TP-02-26` and
+    `TP-02-29`. Every other row's entry under `report.md#test-evidence` records a
+    green tick and `Exit 0` and nothing else. The one RED the section does hold,
+    under **Intended RED on entry**, is
+    `✗ FAIL (Feature 023 Scope 02 deduction group threw): createTaxHash is not defined`
+    — a group throw. This programme's own recorded standard, set out in the
+    Feature 023 Scope 03 report when two probes produced the same shape, is that
+    a group throw is a red **command**, not a red **row**: it does not show that
+    any individual row's assertion discriminates, and here it in fact shows the
+    opposite, since every assertion from `TP-02-12` onward was unreachable while
+    it stood. Several rows do carry a built-in adversarial arm — `TP-02-04`
+    zeroes every disallowed amount, `TP-02-14` removes the recomputed decision
+    from each of four surfaces in turn — and that arm is a defensible basis, but
+    this report has never stated it as the basis for those rows and adopting it
+    silently is how an unearned tick happens.
+  - **Unticked 2026-08-22 (F-REG-03).** `TP-02-29` was opened in this scope and
+    is not authored, so it carries neither a RED nor a GREEN. The word "Every"
+    therefore no longer holds. Ticking it again requires `TP-02-29` authored with
+    a RED and a same-command GREEN.
+  - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-22 commands · **Evidence:** `report.md#test-evidence`, `report.md#f-reg-01-resolved-2026-08-22`, `report.md#tp-02-24-intended-red-probe-ratchet-channel-2026-08-22`, `report.md#tp-02-25-intended-red-probe-deploy-decision-channel-2026-08-22`, `report.md#tp-02-22-intended-red-cumulative-selector-channel-2026-08-22`
+  - **Ticked 2026-08-22.** The gap the previous restatement named, `TP-02-26`,
+    was closed by its engine-channel probe. The two rows still carrying GREEN
+    only, `TP-02-24` and `TP-02-25`, now carry harness-certified probes, each
+    mutating the code path its own assertion reads and each pinned to its own
+    gate wording rather than to an aggregate: `new=<n> stale=<n>` for the
+    ratchet, the `pages-site-build-result/v1` contract against the
+    `lacks a deploy decision` refusal for the deploy gate. Neither needed a
+    fabricated test path or an edit to `site-exclusions.json`.
+  - **Audited, not assumed.** All twenty-eight rows were checked rather than the
+    two the finding named. That surfaced a third weakness: `TP-02-22`'s recorded
+    RED predates the row's broadening to the `SCN-02[1-4]` selector, so its RED
+    and GREEN sat on different command forms. A same-command pair is now
+    recorded — `79 passed` under the mutation against `83 passed` at exit `0`
+    clean, on the identical command. Two harness runs of that one mutation both
+    returned exit `7`; both are recorded verbatim, and the reason is disclosed:
+    each green arm ended in `N errors were not a part of any test`, a worker
+    fault rather than a failed assertion, so the harness's exit channel could
+    not certify a pair the measurement does establish. That limitation is
+    recorded rather than worked around, and no verdict here rests on an
+    aggregate pass count standing in for an assertion.
+  - **Unticked 2026-08-22 (F-REG-01), plan-owned half discharged.** The Test Plan
+    now lists `TP-02-26`, `TP-02-27` and `TP-02-28`, so the half that said this
+    Test Plan does not list the assertions the scope ships is answered. Where the
+    recorded evidence sits, per row, all of it inside
+    `report.md#f-reg-01-resolved-2026-08-22`: `TP-02-27` has the same-command
+    pair, exit 7 before it existed and exit 0 after it landed in `838a908ad`, on
+    `node scripts/selftest.mjs` with `--summary-match` pinned to its own wording.
+    `TP-02-28` has two intended-RED probes on its own grep — the composed-amount
+    regression and the self-contradicting tooltip — each with a same-command
+    GREEN. The corrected `TP-02-20` has its own probe, the Power priced-the-tax
+    column echoing the comparison instead of the settlement, so the half about
+    `TP-02-20`'s superseded GREEN is answered too. `TP-02-26` has a recorded
+    GREEN, `3255 passed, 0 failed` in that section's `Verification` block, which
+    also names it as one of the two assertion lines this work added; it has no
+    recorded intended-RED probe of its own, because every probe in that section
+    mutates a rendered surface and `TP-02-26` is an engine-level row those
+    mutations cannot reach. That single gap is what the item now waits on. The
+    tick belongs to a verifying pass, not to this restatement.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count,
       `node scripts/validate-spec-test-paths.mjs` reports zero new missing paths,
       and `node scripts/build-pages-site.mjs --dry-run` succeeds.

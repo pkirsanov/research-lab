@@ -133,6 +133,177 @@ Either disposition changes the pack's `contentSha256` and therefore touches
 assertions in this scope and in Scopes 04 and 05. It is implementation and
 sourcing work, so it is routed rather than taken here.
 
+### The `BI-5` retrieval was attempted in this session and did not find the statement
+
+**Claim Source:** executed. Disposition 1 above — perform the `BI-5` retrieval —
+was attempted here rather than left as a suggestion, so the item is now open on a
+*measured* negative rather than on an untried option. Five Florida Department of
+Revenue pages were fetched at `retrievedAt` `2026-08-21T04:31:33Z`:
+
+| Publisher | Title | URL | Outcome |
+| --- | --- | --- | --- |
+| Florida Department of Revenue | Taxes and Fees or Refunds | `https://floridarevenue.com/taxes/taxesfees/Pages/default.aspx` | retrieved; lists the administered taxes, Corporate Income among them, and states no absence |
+| Florida Department of Revenue | General Tax Administration | `https://floridarevenue.com/taxes/Pages/default.aspx` | retrieved; a portal index, states no absence |
+| Florida Department of Revenue | Florida Corporate Income Tax | `https://floridarevenue.com/taxes/taxesfees/Pages/corporate.aspx` | retrieved; scopes the corporate tax to corporations and states no absence for natural persons |
+| Florida Department of Revenue | Florida Tax Incentives for Businesses | `https://floridarevenue.com/taxes/taxesfees/Pages/tax_incentives.aspx` | retrieved; enumerates CIT, FT, IPT, SUT and ST and states no absence |
+| Florida Department of Revenue | Considering Business Opportunities in Florida? (GT-800029) | `https://floridarevenue.com/Forms_library/current/brochure/gt800029.pdf` | **not retrieved** — the fetch returned no extractable content |
+
+None of the four pages that *were* retrieved states that Florida imposes no
+individual income tax. They enumerate what the department administers, which is
+the same administrative absence the pack already cites under `fl-dor-taxes`; a
+second reading of the same kind of page does not become a statement of the fact.
+The one document most likely to carry the sentence in plain words — the GT-800029
+brochure — did not retrieve, so nothing may be asserted from it. **Recalling its
+wording is exactly the move `BI-5` exists to forbid, and it is not made here.**
+
+`BI-5` therefore stays open, and its routing is unchanged and now better
+evidenced: branch one requires a retrieval that has been attempted and has not
+succeeded, so the decidable path forward is branch two — ship
+`imposesIndividualIncomeTax` as an `AbsentFigure/v1` with a `missingSource`, let
+Florida resolve `RLTAX-THRESHOLD-UNAVAILABLE`, and keep proving the sourced-zero
+path with the fixture pack that exists for this purpose. That is a pack edit that
+moves `contentSha256` and re-aims assertions in Scopes 03, 04 and 05, so it
+remains implementation-and-sourcing work owned outside this report.
+
+**What would make the item decidable without that pack edit:** a single retrieved
+Department of Revenue document whose text states the absence for natural persons.
+Two candidates were not reachable through the fetch path used here and are named
+so the next attempt starts from them rather than from scratch — the GT-800029
+brochure above, and the department's own FAQ search restricted to the general-tax
+category at `https://floridarevenue.com/faq/pages/faqsearch.aspx?keywords=&cat=4&subcat=0`.
+
+### `BI-5` closed on branch two: the pack now states no imposition {#bi-5-branch-two}
+
+**Claim Source:** executed. Everything above this heading describes the pack as
+it stood BEFORE this change and is left standing rather than rewritten: branch
+one was attempted, was not satisfied, and that negative is what routed the work
+here. Branch two has now been performed. `imposesIndividualIncomeTax` ships as an
+`AbsentFigure/v1` carrying `code` `RLTAX-THRESHOLD-UNAVAILABLE`, a `domain`, a
+`reason`, a `whatWouldMakeItAvailable` and a `missingSource`; `noTaxAuthority` is
+`null`; `contentSha256` is recomputed from the pack's own digest input. The
+reason states plainly that the constitutional prohibition and the departmental
+absence together do not *state* that no individual income tax is imposed, which
+is why no value is asserted. Florida now renders `unavailable` where it rendered
+`$0`, which is the outcome finding F-8 requires.
+
+**Behaviour, executed:**
+
+```
+FL validates true
+FL digest sha256:efac241f4dcbd240cb5e1bd5a811dd759681beb292b59ba5fc888f575e17b2ac
+FL total unavailable: true code: RLTAX-THRESHOLD-UNAVAILABLE
+FL has value member: false
+FL jurisdiction: state:FL order: []
+FL L7: ["L7:holds"]
+QQ sourced zero: true value: 0 ref: contract-fixture-no-tax-authority
+```
+
+**Coverage of the sourced-zero path.** The mechanism is not abandoned with
+Florida. A new fixture pack `tax-rules/fixtures/state-no-tax-2999.json` STATES
+the absence outright, declares `state:QQ` so it can never resolve for a real
+household, and carries `imposesIndividualIncomeTax: false` with the authority
+that establishes it. It is exercised in `scripts/selftest.mjs` at TP-03-04,
+TP-03-05, TP-03-12, TP-04-14, TP-05-02/TP-05-06 and TP-05-12, and is SERVED at
+the declared Florida pack path in `tests/lifetime-tax-state.spec.mjs` and
+`tests/lifetime-tax-combined.spec.mjs` so the sourced-zero RENDERING is still
+proven over the real route. The shipped pack's own refusal is pinned separately
+in both specs. The pre-existing pass count is unchanged at `3183 passed, 0
+failed`.
+
+**Dependants on Florida rendering `$0`, before the change.** Seven selftest
+assertions and the two browser specs depended on it; every one was re-aimed
+rather than removed, and each of the two browser specs gained a shipped-Florida
+refusal assertion it did not previously have.
+
+**RED/GREEN evidence.** Four probes, each through
+`scripts/red-green-probe.sh`, each reverting under a trap inside the applying
+invocation and each verified by blob hash.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BI-5-branch-two-unstated-settlement-branch
+file:             rltaxstate.js
+mutation:         if (rules.isAbsentFigure(statePack.imposesIndividualIncomeTax)) {  ->  if (false && rules.isAbsentFigure(statePack.imposesIndividualIncomeTax)) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3181 passed, 2 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3183 passed, 0 failed
+revert-verified:  yes (committed=a3068f1a5c54060c24d0db5973ebb4190c7ae981 restored=a3068f1a5c54060c24d0db5973ebb4190c7ae981)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BI-5-florida-refusal-code-is-pinned
+file:             tax-rules/state/FL/2026.json
+mutation:         "code": "RLTAX-THRESHOLD-UNAVAILABLE", "domain": "state-imposition:state:FL"  ->  "code": "RLTAX-FEATURE-UNSUPPORTED", "domain": "state-imposition:state:FL"   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3182 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3183 passed, 0 failed
+revert-verified:  yes (committed=fb7b4addd07d93261ccb3ec3fc0f93e09808629d restored=fb7b4addd07d93261ccb3ec3fc0f93e09808629d)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BI-5-unstated-pack-derives-no-calculation-order
+file:             rltaxrules.js
+mutation:         if (isPlainObject(pack) && isAbsentFigure(pack.imposesIndividualIncomeTax)) return [];  ->  if (false && isPlainObject(pack) && isAbsentFigure(pack.imposesIndividualIncomeTax)) return [];   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3180 passed, 3 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3183 passed, 0 failed
+revert-verified:  yes (committed=837012ca9943750fcdfdcdcaff06a145fba6a75a restored=837012ca9943750fcdfdcdcaff06a145fba6a75a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The browser probe records its selection before the run, because a `--project`
+run that selected nothing would also exit 0.
+
+```
+--- selection before probe ---
+  [chromium] › tests/lifetime-tax-state.spec.mjs:79:1 › Regression: SCN-022-009 a jurisdiction that levies no individual income tax renders its sourced zero with the authority that establishes it, and never enters the federal total
+  [chromium] › tests/lifetime-tax-state.spec.mjs:134:1 › Regression: the shipped Florida pack states no imposition, so the route renders a refusal naming the authority that was never retrieved and shows no zero in its place
+Total: 7 tests in 1 file
+
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BI-5-browser-florida-renders-the-refusal-not-a-zero
+file:             rltaxstate.js
+mutation:         if (rules.isAbsentFigure(statePack.imposesIndividualIncomeTax)) {  ->  if (false && rules.isAbsentFigure(statePack.imposesIndividualIncomeTax)) {   (1 occurrence(s))
+command:          npx playwright test tests/lifetime-tax-state.spec.mjs --project=chromium --reporter=line
+red-exit:         1
+red-summary:        6 passed (8.4s)
+green-exit:       0
+green-summary:      7 passed (2.9s)
+revert-verified:  yes (committed=a3068f1a5c54060c24d0db5973ebb4190c7ae981 restored=a3068f1a5c54060c24d0db5973ebb4190c7ae981)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Whole-suite state after the change.**
+
+```
+Research-Lab self-test: 3183 passed, 0 failed
+87 passed (14.6s)          # npx playwright test tests/lifetime-tax-*.spec.mjs --project=chromium
+[spec-test-paths] scanned=686 references=15516 distinctPaths=251 missingPaths=67 baseline=67 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+```
+
+**What remains true.** Branch one is still the better outcome and is still open
+to a later session: one retrieved Department of Revenue document whose text
+states the absence for natural persons would let the pack state the imposition
+and carry the authority. The two unreached candidates named above are unchanged.
+Branch two does not close that door; it stops the pack asserting a fact no
+authority states while the door is shut.
+
+
 
 ## Test Evidence
 
@@ -294,6 +465,38 @@ run taken before any change in this session and is not owned by this scope.
 Scenario SCN-022-007 — the federal pack still derives the federal ordered array
 element for element and every Feature 021 fixture value is unchanged.
 Command: `node scripts/selftest.mjs`
+
+**Claim Source:** executed.
+
+**The label `TP-03-03` is reused by seven different assertions in the shared
+suite**, belonging to seven different features. The row this scope owns is the one
+asserting the ordered-array derivation; the others cover cadence rearming, segment
+sourcing, depreciation and serialization and are not this scope's. The probe below
+therefore pins its summary channel to the row's own wording rather than to the
+label prefix, so the evidence cannot be satisfied by a namesake in another feature.
+That hazard is not hypothetical — this program has already found an assertion that
+read green while owned by nothing because its row id was reused.
+
+**Intended RED.** A pack that imposes no individual income tax stops deriving an
+empty ordered array and derives the full federal one instead. That is the defect
+the clause exists to catch: a no-tax jurisdiction carrying priced stages it has no
+authority to price. The mutation is value-free — it names a declared constant and
+carries no rate, bracket or threshold.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-03: a pack imposing no individual income tax stops deriving an empty ordered array and derives the full federal one instead, so a no-tax jurisdiction would carry stages it has no authority to price
+file:             rltaxrules.js
+mutation:         if (isPlainObject(pack) && pack.imposesIndividualIncomeTax === false) return [];  ->  if (isPlainObject(pack) && pack.imposesIndividualIncomeTax === false) return CALCULATION_ORDER.slice();   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-03-03: the federal pack still derives the federal ordered array element for element, a preferentialPolicy none pack derives the array that omits both preferential stages and carries the
+green-exit:       0
+green-summary:      ✓ TP-03-03: the federal pack still derives the federal ordered array element for element, a preferentialPolicy none pack derives the array that omits both preferential stages and carries the two n
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
 
 ### TP-03-04
 
@@ -697,6 +900,33 @@ administrative absence and neither of which states the fact. The contract is
 proven; the input it is fed is contested and routed. The fixture pack proves the
 same path without depending on any real jurisdiction, which is why it exists.
 
+**Intended RED — the citation clause.** The row previously carried prose and a
+passing run but no perturbation, so nothing showed it was read. The sourced zero
+now cites its own domain string instead of the authority that establishes the
+absence of the tax. The record still validates and still carries the literal zero,
+so a value-only or shape-only assertion would stay green; what breaks is the one
+thing the row is for — the citation leading back to a retrieved source. The
+mutation is value-free and moves no figure.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-12: the sourced zero cites its own domain string instead of the authority that establishes the absence of the tax, so the record still validates but its citation no longer leads back to a retrieved source
+file:             rltaxrules.js
+mutation:         sourceRef: authority.sourceRef,  ->  sourceRef: domain,   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-03-12: the Florida pack validates against its own digest, resolves for the declared year, carries no rate table for any filing status, and produces a SourcedZero total with a rule statu
+green-exit:       0
+green-summary:      ✓ TP-03-12: the Florida pack validates against its own digest, resolves for the declared year, carries no rate table for any filing status, and produces a SourcedZero total with a rule status and
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+This probe strengthens the *mechanism* half of the row only. It does not touch the
+disputed input: whether the jurisdiction genuinely imposes no individual income tax
+remains `BI-5`, and is still open.
+
 ### TP-03-13
 
 Scenario SCN-022-008 — a pack declaring no preferential treatment prices pooled
@@ -887,6 +1117,119 @@ Scenario SCN-022-007 — the residency members are inventoried, cleared and
 redacted, each asserted independently.
 Command: `node scripts/selftest.mjs`
 
+**Claim Source:** executed.
+
+**Correction.** An earlier draft of this section stated that the row's clauses are
+"asserted separately rather than as one conjunction". That is wrong, and re-reading
+the assertion is what caught it: the row is a single `assert` whose condition is one
+nine-term `&&` chain. The correction does not weaken the row — a conjunction still
+makes every term load-bearing, because one false term fails the whole assert — but
+it does change what the evidence has to show. A conjunction cannot tell you *which*
+term fired, so each clause has to be perturbed on its own; the original claim would
+have let one probe stand in for all of them. The clauses are: the stored entry names
+residency in its purpose and is flagged as carrying household values; both members
+appear in `declaredUnavailableDomains` when absent, so an undeclared residency is
+recorded as unsupplied rather than silently treated as none; the clear action empties
+the store; and the export sanitizer names both members in `omittedFields[]` while the
+manifest carries no occurrence of the declared jurisdiction.
+
+**Intended RED — the redaction clause, probed at the sanitizer.** The sanitizer
+derives its omission set: anything not in the kept object is withheld *and named*.
+Adding the residency to the kept object therefore does both halves of the defect
+at once — the location signal reaches the exported file, and it stops being
+listed as omitted. The mutation is value-free: it references a workspace member
+and carries no jurisdiction literal.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-15 the export sanitizer keeps the declared residency instead of withholding it, so the location signal reaches the exported file and is no longer named as omitted
+file:             rltaxworkspace.js
+mutation:         selectedBracketId: workspace.selectedBracketId  ->  selectedBracketId: workspace.selectedBracketId, residencyJurisdiction: workspace.residencyJurisdiction   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3176 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3177 passed, 0 failed
+revert-verified:  yes (committed=6760587f2303516755ab6a5e14436050717f1227 restored=6760587f2303516755ab6a5e14436050717f1227)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Exactly one assertion fell, so the row is what fires rather than a bystander in a
+wider cascade.
+
+**The other two clauses of the Definition-of-Done item were probed separately,
+because the row is one nine-clause conjunction and the probe above exercises only
+its redaction clause.** A conjunction does make every clause load-bearing, but
+only a clause that has been perturbed is *shown* to be read; the remaining two
+were previously asserted and unproven. Both probes below pin the summary channel
+to the assertion's own label, so the evidence names the row that fell rather than
+leaving it to be inferred from a moved pass count.
+
+**Intended RED — the inventory clause.** The privacy inventory stops flagging the
+workspace entry as carrying household values. The residency declaration is still
+stored, so this is the exact defect the clause exists to catch: private state held
+but not disclosed as private. The mutation is value-free — a boolean.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-15 inventory clause: the privacy inventory stops flagging the workspace entry as carrying household values, so the residency declaration is stored but no longer inventoried as private
+file:             rltaxworkspace.js
+mutation:         carriesHouseholdValues[config.storage.workspaceKey] = true;  ->  carriesHouseholdValues[config.storage.workspaceKey] = false;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-03-15: the residency declaration is named in the privacy inventory, recorded as an unsupplied domain when absent, removed by the clear action, and redacted out of the export manifest so
+green-exit:       0
+green-summary:      ✓ TP-03-15: the residency declaration is named in the privacy inventory, recorded as an unsupplied domain when absent, removed by the clear action, and redacted out of the export manifest so the l
+revert-verified:  yes (committed=6760587f2303516755ab6a5e14436050717f1227 restored=6760587f2303516755ab6a5e14436050717f1227)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+An earlier run of the same mutation with the summary channel pinned to the suite
+total instead of the label read `3173 passed, 4 failed` against
+`3177 passed, 0 failed`. That form proved four assertions fell but not *which*,
+so it was re-run in the form above; the cascade is recorded here rather than
+dropped, and the three siblings are Feature 021's own privacy rows reading the
+same inventory.
+
+**Intended RED — the clear clause.** The clear action still reports every declared
+key in `removedKeys[]` but removes none, so a stored residency declaration
+survives a clear while the return value claims otherwise. This is the failure a
+`removedKeys[]`-only assertion would miss entirely; the row reads the store.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-15 clear clause: the clear action still reports every declared key as removed but no longer removes any, so the stored residency declaration survives a clear
+file:             rltaxworkspace.js
+mutation:         storage.removeItem(keys[index]);  ->  void keys[index];   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-03-15: the residency declaration is named in the privacy inventory, recorded as an unsupplied domain when absent, removed by the clear action, and redacted out of the export manifest so
+green-exit:       0
+green-summary:      ✓ TP-03-15: the residency declaration is named in the privacy inventory, recorded as an unsupplied domain when absent, removed by the clear action, and redacted out of the export manifest so the l
+revert-verified:  yes (committed=6760587f2303516755ab6a5e14436050717f1227 restored=6760587f2303516755ab6a5e14436050717f1227)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**The ledger half of the item was re-confirmed live rather than cited from an
+earlier pass.** The browser row that carries it was re-run in this session and
+passed in `1.1s`, and the two clauses it must hold were re-read in the file: the
+request count after declaring a residency equals the count at first paint, so the
+declaration issues no request at all, and both pack paths appear in the ledger the
+run actually produced.
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "the residency declaration reaches no URL, no request, no console message and no export" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/lifetime-tax-state.spec.mjs:219:1 › Regression: the residency declaration reaches no URL, no request, no console message and no export (1.1s)
+
+  1 passed (4.3s)
+```
+
 ### TP-03-16
 
 Scenario SCN-022-008 — no module holds a state name, postal code, bracket, rate,
@@ -962,6 +1305,68 @@ Command: `npx --no-install playwright test --config=playwright.config.mjs --proj
 `Regression: SCN-022-009 a no-tax state renders a sourced zero distinct from a refusal`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-009 a no-tax state renders a sourced zero distinct from a refusal" --reporter=list`
 
+### Browser rows — the substance was probed under the titles that exist
+
+**Claim Source:** executed.
+
+The three titles above do not exist, which is Finding F-03-A recorded under
+TP-03-21. **They were not authored to make the rows resolve.** Their substance is
+already carried by `tests/lifetime-tax-state.spec.mjs` under different titles, so
+writing four new tests under the Test Plan's wording would have produced duplicate
+coverage whose only purpose was to satisfy a document. That is the failure mode the
+row census exists to catch, not a way of closing it. What was missing was not
+coverage but *evidence that the existing coverage can fail*, and that is what the
+two probes below add.
+
+**Intended RED — the refusal-separation row, carrying the substance of TP-03-17 and
+TP-03-18.** The unmodelled residency pattern is rerouted through the jurisdiction
+code, collapsing three distinct refusal codes into two. A row that merely checked
+"a refusal appeared" would stay green; this one does not, so it reads the codes
+apart rather than counting them.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-17 and TP-03-18 substance: the unmodelled residency pattern is rerouted through the jurisdiction code, collapsing three distinct refusal codes into two so the browser row can no longer tell an unshipped state from an unsupported residency pattern
+file:             rltaxstate.js
+mutation:         rules.unavailable("RLTAX-RESIDENCY-UNSUPPORTED"  ->  rules.unavailable("RLTAX-JURISDICTION-UNSUPPORTED"   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep an\ unshipped\ state\,\ an\ undeclared\ residency\ and\ an\ unmodelled\ residency\ pattern\ refuse\ under\ three\ different\ codes\ and\ none\ of\ them\ shows\ a\ zero --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (1.8s)
+revert-verified:  yes (committed=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d restored=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Intended RED — the sourced-zero row, carrying the substance of TP-03-19.** The
+no-tax branch is inverted, so a jurisdiction that imposes no individual income tax
+no longer takes the sourced-zero path at all and its authority-carrying zero is
+replaced by the ordinary-schedule outcome. This is precisely the "sourced zero
+distinct from a refusal" distinction the row names.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-19 substance: the no-tax branch is inverted, so a jurisdiction that imposes no individual income tax no longer takes the sourced-zero path and its authority-carrying zero is replaced by the ordinary-schedule outcome
+file:             rltaxstate.js
+mutation:         if (statePack.imposesIndividualIncomeTax === false) {  ->  if (statePack.imposesIndividualIncomeTax === true) {   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep a\ jurisdiction\ that\ levies\ no\ individual\ income\ tax\ renders\ its\ sourced\ zero\ with\ the\ authority\ that\ establishes\ it\,\ and\ never\ enters\ the\ federal\ total --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (2.1s)
+revert-verified:  yes (committed=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d restored=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+These probes do **not** close TP-03-17, TP-03-18 or TP-03-19. A Test Plan row is
+satisfied by the command it names, and the command each of these names still
+selects zero tests. They make the retarget a documentation change rather than a
+test-writing one: when planning points those rows at
+`tests/lifetime-tax-state.spec.mjs` and its real titles, the RED/GREEN evidence is
+already recorded above.
+
 ### TP-03-20
 
 The cumulative Feature 021 and Feature 022 browser suites over the real route.
@@ -1010,11 +1415,135 @@ browser rows this scope owns (TP-03-17, TP-03-18, TP-03-19) name a spec file tha
 does not yet exist, and TP-03-21 names a privacy row in the same absent file. The
 69 passing scenarios are the inherited suite, not this scope's browser coverage.
 
+#### TP-03-20 re-taken after the F-03-B rename — selection floor, then perturbation
+
+**Claim Source:** executed.
+
+The paragraph above is superseded on the point it could not settle. It recorded a
+green cumulative run and no perturbation, and the census later found the stronger
+reason it proved nothing: the `--grep "SCN-02[1-4]"` selection contained no test
+carrying `SCN-022-007`, `-008` or `-009`, the three scenarios this row claims,
+because `tests/lifetime-tax-state.spec.mjs` omitted its scenario token. The
+routed rename landed in `8e882bfc1`. Both halves the row now asks for follow.
+
+**The selection floor, asserted before a single test executed.** The `--list`
+invocation runs first, and its output must name at least one title carrying each
+of the three scenarios this scope owns:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --list
+  [system-chrome] › tests/lifetime-tax-state.spec.mjs:51:1 › Regression: SCN-022-009 a jurisdiction that levies no individual income tax renders its sourced zero with the authority that establishes it, and never enters the federal total
+  [system-chrome] › tests/lifetime-tax-state.spec.mjs:156:1 › Regression: SCN-022-007 / SCN-022-008 an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero
+  [system-chrome] › tests/lifetime-tax-state.spec.mjs:219:1 › Regression: SCN-022-007 the residency declaration reaches no URL, no request, no console message and no export
+Total: 80 tests in 19 files
+
+floor SCN-022-007: 2 title(s) in the listing
+floor SCN-022-008: 1 title(s) in the listing
+floor SCN-022-009: 1 title(s) in the listing
+```
+
+**`Total: 80 tests in 19 files` is the recorded count and must not fall between
+runs.** It was 77 tests in 18 files before the rename, and the three tests and the
+one file the rename added are exactly the ones whose absence made this row
+unfallable. A later spec dropping its token now shows as shrinkage against 80
+rather than as a smaller green run.
+
+**Intended RED, then same-command GREEN.** The adversarial case the row names is
+the collapse of `SCN-022-008`'s separation: an unsupported residency pattern is
+routed through `RLTAX-JURISDICTION-UNSUPPORTED`, so the code that distinguishes an
+unshipped state from an unmodelled residency pattern becomes the same code. Before
+the rename this mutation could not have moved the row, because the test that
+asserts the separation was not in the selection.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-20 perturbation: collapsing SCN-022-008 refusal separation fells the cumulative family suite
+file:             rltaxstate.js
+mutation:         rules.unavailable("RLTAX-RESIDENCY-UNSUPPORTED", "residency:pattern:" + declared,  ->  rules.unavailable("RLTAX-JURISDICTION-UNSUPPORTED", "residency:pattern:" + declared,   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-02\[1-4\] --reporter=list
+red-exit:         1
+red-summary:        79 passed (47.1s)
+green-exit:       0
+green-summary:      80 passed (49.2s)
+summary-compared:   79 passed (<elapsed>)  vs    80 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d restored=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The GREEN run is `80 passed`, zero failed and zero skipped, over the whole
+cumulative family — and it is the same command as the RED run, not a narrowed one.
+The RED run loses exactly one test, the refusal-separation test this scope owns.
+The mutation was reverted under the harness trap and the revert was hash-verified.
+
+The earlier run's non-zero exit came from a worker teardown fault; this run exits
+0 on its own, so no exit-code interpretation is needed here.
+
 
 ### TP-03-21
 
 `Regression: SCN-022-007 the request ledger stays empty and no household value reaches a URL`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-007 the request ledger stays empty and no household value reaches a URL" --reporter=list`
+
+**Claim Source:** executed, but **against a different title than this row names** —
+that divergence is a finding and is recorded rather than papered over.
+
+**Finding F-03-A — this row's target does not resolve.** The Test Plan names the
+file `lifetime-tax-state-contract.spec.mjs` and the title above. Neither exists:
+a whole-tree search for the title returns nothing, and no file of that name is in
+`tests/`. The command as written selects zero tests, and a Playwright run that
+selects zero tests is not a green row — it is an unresolved reference reporting
+success. The same divergence applies to TP-03-17, TP-03-18 and TP-03-19.
+
+**What does exist, and covers the behaviour.** `tests/lifetime-tax-state.spec.mjs`
+carries `Regression: the residency declaration reaches no URL, no request, no
+console message and no export`, which asserts the row's substance: the ledger
+length after declaring a residency equals the length at first paint, so declaring
+where the household lives issues no request at all; every request the route ever
+made is same-origin and is a member of the page's own declared asset set; the
+declared jurisdiction appears in no URL, query string, hash, request body or
+console message, in either literal or percent-encoded form; and the export omits
+both residency members while naming them in `omittedFields[]`.
+
+**One clause of the Definition-of-Done item was NOT asserted, and was added
+rather than assumed.** The item reads *"the request ledger stays empty with two
+pack files now loaded from disk"*. The existing test proved the state pack was
+*permitted*, which is true even of a route that never fetched it. Two lines were
+appended — a purely additive change, seven insertions and zero deletions — that
+require both pack files to appear in the ledger the run actually produced:
+
+```js
+  expect(paths).toContain('/tax-rules/federal/2026.json');
+  expect(paths).toContain('/tax-rules/state/CA/2026.json');
+```
+
+**Intended RED against the strengthened row.** The declared state pack path stops
+naming the file the route reads, so the second pack never reaches the ledger. The
+mutation is value-free — a path string — and carries no rate, threshold or
+household amount.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-21 the declared state pack path stops naming the file the route reads, so only one pack file reaches the ledger and the second declared read is gone
+file:             lifetime-tax-strategy.config.json
+mutation:         "state:CA": "tax-rules/state/CA/2026.json"  ->  "state:CA": "tax-rules/state/CA/2026.retired.json"   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep the\ residency\ declaration\ reaches\ no\ URL\,\ no\ request\,\ no\ console\ message\ and\ no\ export --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (2.0s)
+revert-verified:  yes (committed=0c62867fd6285d2bbad4b9ea983893d1433ea80f restored=0c62867fd6285d2bbad4b9ea983893d1433ea80f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Routing.** The behaviour is delivered and now probed, so the *Definition-of-Done
+item* about the residency state is closed on this evidence. The *Test Plan row*
+still names a file and a title that do not resolve, which is a planning-artifact
+defect owned by `bubbles.plan`: either retarget TP-03-17 … TP-03-21 at
+`tests/lifetime-tax-state.spec.mjs` and its real titles, or require the four named
+titles to be authored. Until that is settled the row-census item stays open, and
+it does.
 
 ### TP-03-22
 
@@ -1022,16 +1551,133 @@ The whole-repository suite, with the pre-existing pass count recorded before and
 after the appended group.
 Command: `node scripts/selftest.mjs`
 
+**Claim Source:** executed.
+
+```text
+Research-Lab self-test: 3177 passed, 0 failed
+selftest_exit=0
+```
+
+The pre-existing count was 3176. It rose by exactly one — this scope's appended
+claim-boundary assertion — and no failure appeared.
+
+**No existing assertion was edited, and that is derived rather than asserted.**
+The only channel that can falsify it is the deletion set of the change, so the
+change was measured against the committed tree before it was banked:
+
+```text
+ scripts/selftest.mjs | 49 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
+deletions in the diff: 0
+```
+
+Forty-nine insertions, zero deletions, one hunk. An insertion cannot relax an
+assertion that is still present, so a pure-insertion diff settles the clause
+without anyone having to vouch for it.
+
+**Intended RED — a real defect in this scope's own module must drop the count.**
+The state module stops attaching to the browser global, which removes the UMD
+half of the dual module while leaving `module.exports` intact, so the defect is
+invisible to a `require`-based caller and visible only to the assertion that
+pins the contract. That is the right shape for this row: a defect that broke
+everything would prove only that the suite runs.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-22 the state module stops attaching to the browser global, so the UMD half of the dual module is gone and the repository pass count must fall
+file:             rltaxstate.js
+mutation:           root.RLTAXSTATE = api;  ->    root.RLTAXSTATEAPI = api;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3176 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3177 passed, 0 failed
+revert-verified:  yes (committed=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d restored=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The count falls by exactly one and the suite refuses. The mutation is value-free:
+it renames an identifier and carries no rate, threshold or household amount.
+
 ### TP-03-23
 
 Zero new missing spec-referenced test paths, with the baseline file unmodified.
 Command: `node scripts/validate-spec-test-paths.mjs`
+
+**Claim Source:** executed.
+
+```text
+[spec-test-paths] scanned=686 references=15471 distinctPaths=250 missingPaths=67 baseline=67 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+paths_exit=0
+```
+
+`new=0` is the clause. `missingPaths=67` equals `baseline=67`, so every missing
+path is one the frozen baseline already tolerates and this scope introduced none.
+
+**Intended RED — the probe deliberately writes no new path.** The obvious way to
+red a "zero new missing paths" row is to make a spec name a file that does not
+exist, but the harness block would then carry that invented path into this
+report, the guard would scan it here, and the row would be permanently red. The
+probe instead comments out an entry the baseline already tolerates: the count of
+missing paths is unchanged while the tolerated set shrinks by one, so the same
+path is reported as new. The path in the block below is a real baseline entry, so
+pasting it changes nothing.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-23 a tolerated missing test path leaves the frozen baseline, so it must be reported as new
+file:             scripts/validate-spec-test-paths.baseline
+mutation:         tests/auction-gamma-playbook.spec.mjs  ->  # tests/auction-gamma-playbook.spec.mjs   (1 occurrence(s))
+command:          node scripts/validate-spec-test-paths.mjs
+red-exit:         1
+red-summary:      [spec-test-paths] FAIL — 1 new referenced path(s) do not exist
+green-exit:       0
+green-summary:    [spec-test-paths] OK — no new missing test path(s)
+revert-verified:  yes (committed=972f0de1d9ab47e0f584287138399e51187629dc restored=972f0de1d9ab47e0f584287138399e51187629dc)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
 
 ### TP-03-24
 
 The Pages plan succeeds, `site-exclusions.json` is unchanged, and `tax-rules/`
 remains outside the public directories.
 Command: `node scripts/build-pages-site.mjs --dry-run`
+
+**Claim Source:** executed.
+
+```text
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":128,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/…","omittedOrphanIndexes":145}
+pages_exit=0
+```
+
+The `directories` array is the published set, and `tax-rules` is not a member.
+That is the clause read off the plan's own output rather than off an intention:
+the state packs and the contract fixture this scope adds are reachable to the
+engine at runtime and are not published as site content.
+
+**Intended RED — the probe reds on the register, not on the plan's arithmetic.**
+The row pairs "the plan succeeds" with "`site-exclusions.json` is unchanged", so
+the mutation takes this route out of the exclusions register. The build refuses
+with a stale-exclusion error rather than quietly producing a plan with one fewer
+excluded path, which is the stronger of the two failures it could have shown.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-24 this route leaves the exclusions register, so the Pages plan meets an unregistered root page
+file:             site-exclusions.json
+mutation:         "path": "lifetime-tax-strategy-lab.html",  ->  "path": "lifetime-tax-strategy-lab.html.retired",   (1 occurrence(s))
+command:          node scripts/build-pages-site.mjs --dry-run
+red-exit:         1
+red-summary:      Error: site exclusion is stale: lifetime-tax-strategy-lab.html.retired
+green-exit:       0
+green-summary:    {"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":128,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","
+revert-verified:  yes (committed=29c6fe08a58d97c1f119abdd38706cf02f675d60 restored=29c6fe08a58d97c1f119abdd38706cf02f675d60)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
 
 ## Change Boundary
 
@@ -1061,38 +1707,189 @@ to this scope:
 | `tests/lifetime-tax-surtax.spec.mjs` | `e71772915`, `76252f69f` | Feature 022 Scope 02, which owns that file |
 | `site-exclusions.json`, `scripts/validate-spec-test-paths.baseline` | outside this scope's commits | other sessions |
 
-None of this scope's own commits — `2eb880a36`, `e2a1993ca`, `7b1b4ea17` — touches
-any excluded path. The honest reading is that the row's blanket wording is wrong
-rather than that the boundary was breached: `specs/021-*` and the inherited
-lifetime-tax spec files are edited by the scopes that own them, and freezing them
-for the lifetime of this scope was never achievable. Closing the row needs the
-excluded list narrowed to what this scope must not touch, which is a planning
-change owned by `bubbles.plan`, not an execution claim this report may make.
+None of this scope's own commits — `2eb880a36`, `e2a1993ca`, `7b1b4ea17`,
+`518042cf4`, `b3428ad9e`, `8e56bbad2`, `828b3e927`, `e224e77b2` — touches any
+excluded path. That was re-verified per commit rather than carried forward: the
+only files any of them names outside this scope's own directory are
+`scripts/selftest.mjs`, which this scope is required to append to, and one sibling
+scope's `scope.md`. Neither `tax-rules/federal/**` nor either `specs/021-*`
+directory appears in any of them.
+
+**The second reading of the row was tested and is not available.** "A and B are
+byte-identical" would normally compare A against B, which would make the row a
+hash comparison between the federal pack and a copy of it held in Feature 021's
+spec directory. There is no such copy: that directory holds fourteen Markdown
+files and two JSON files, and both JSON files are Bubbles artifacts —
+`state.json` and `scenario-manifest.json` — not tax packs. So the row can only
+mean "each is unchanged", which is how it is read here.
+
+**Verified state of each half.** `tax-rules/federal/2026.json` has been touched by
+exactly one commit in the repository's whole history, `b9d92a3f1`, the commit that
+created the lab. It is byte-identical, and that is the half carrying the argument:
+opening the jurisdiction axis required no federal pack edit, so the axis is a seam.
+`specs/021-lifetime-tax-strategy-lab/` has nine commits after that one, every one
+of them Feature 021 closing its own Definition-of-Done items. It is not
+byte-identical and could not be, because Feature 021 was still being worked while
+this scope ran.
+
+The honest reading is that the row's blanket wording is wrong rather than that the
+boundary was breached: `specs/021-*` and the inherited lifetime-tax spec files are
+edited by the scopes that own them, and freezing them for the lifetime of this
+scope was never achievable.
+
+**Decidable by:** narrowing the excluded list to what *this scope* must not touch
+— on the evidence above, `tax-rules/federal/**` alone would be satisfied today —
+or restating the row as "no commit of this scope modifies an excluded path", which
+is true and is proven per commit above. Both are edits to planning wording and are
+owned by `bubbles.plan`, not claims this report may make on its own. The row
+therefore stays open.
+
+### The corrected frozen-pack row, executed
+
+**Claim Source:** executed. The paragraphs above are superseded on their verdict:
+`bubbles.plan` corrected the row's wording on 2026-08-21 to drop the Feature 021
+clause that was never this scope's to hold, and the corrected row is executed here.
+
+**The read-only half, re-taken at the head of this evidence pass.**
+
+```
+$ git log --oneline b9d92a3f1..HEAD -- tax-rules/federal/     -> 0 commit(s)
+$ git log --follow --oneline -- tax-rules/federal/2026.json   -> 1 commit(s) in the whole history
+$ git status --porcelain -- tax-rules/federal/                -> 0 line(s)
+```
+
+**Negative control — the comparator is alive, not the tree merely quiet.** The
+identical two checks against `scripts/selftest.mjs`, a path this scope legitimately
+appends to, must report movement, and do:
+
+```
+$ git log --oneline b9d92a3f1..HEAD -- scripts/selftest.mjs   -> 50 commit(s)
+$ git status --porcelain -- scripts/selftest.mjs              -> 0 line(s)
+```
+
+An all-frozen result across every path checked would have meant the comparator was
+dead. It reports 0 for the federal pack and 50 for the control under the same two
+commands, so the 0 is a fact about the pack rather than about the check.
+
+**The adversarial case the corrected row must fail.** One bracket edge moved by a
+single dollar in `tax-rules/federal/2026.json` — the row's own named perturbation —
+must make the frozen assertion fall. Run through the trap-protected harness so the
+revert cannot be stranded:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            Scope 03 frozen-pack row: one bracket edge fells the frozen claim
+file:             tax-rules/federal/2026.json
+mutation:         "lowerInclusive": 24800  ->  "lowerInclusive": 24801   (1 occurrence(s))
+command:          sh -c P=$(git status --porcelain -- tax-rules/federal/); N=$(printf %s "$P" | grep -c .); C=$(git log --oneline b9d92a3f1..HEAD -- tax-rules/federal/ | grep -c .); echo "porcelain-lines=$N commits-after-b9d92a3f1=$C"; printf %s "$P"; [ "$N" -eq 0 ] && [ "$C" -eq 0 ]
+red-exit:         1
+red-summary:      porcelain-lines=1 commits-after-b9d92a3f1=0
+green-exit:       0
+green-summary:    porcelain-lines=0 commits-after-b9d92a3f1=0
+summary-compared: porcelain-lines=1 commits-after-b9d92a3f1=0  vs  porcelain-lines=0 commits-after-b9d92a3f1=0   (elapsed time normalised out)
+revert-verified:  yes (committed=28c096427fc9e5b56d3be4854473dfcccb5f3425 restored=28c096427fc9e5b56d3be4854473dfcccb5f3425)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The mutation makes `git status --porcelain -- tax-rules/federal/` report one line
+and the frozen check exit 1; reverted, the same command exits 0 with zero lines,
+and the revert is hash-verified against the committed blob. The claim is therefore
+falsifiable by exactly the edit the row names, which is what the superseded
+byte-identity wording could not offer: its true half was unfalsifiable prose and
+its false half could never pass.
+
+**The per-commit half** is already recorded above and was re-checked per commit:
+none of this scope's commits names a path on the excluded list.
 
 ## Claim Boundary
 
-**Claim Source:** not-run. **This section does not close its Definition-of-Done
-row, which is left open.**
+**Claim Source:** executed. **This section closes its Definition-of-Done row.**
 
-The row covers this scope's **output**, and the output surface is not built yet.
-`lifetime-tax-strategy-lab.html` carries no residency input, no state panel and no
-`StateStageLedger`; a scan of the page for `residency` returns zero matches and
-the page does not load `rltaxstate.js` at all. There is therefore no rendered
-state figure to check for an estimate or an average, and no scan of the page could
-distinguish this scope's claims from the six other features' text already there.
+An earlier pass left this row open for a sound reason: the output surface did not
+exist. `lifetime-tax-strategy-lab.html` carried no residency input, no state panel
+and no `StateStageLedger`, so there was no rendered state figure to check. That is
+no longer true — the page declares `inputResidencyJurisdiction` and
+`inputResidencyPattern`, loads `rltaxstate.js`, and renders a `power-state` band
+with a stage table, a pack identity line and an authority line. The row is
+therefore decidable now, and it is decided by a persistent assertion rather than
+by a one-off scan someone has to remember to repeat.
 
-What can be said today is narrower than the row and is recorded as a fact rather
-than as satisfaction: the surfaces this scope does ship — `rltaxstate.js`, the
-Florida pack and the contract fixture — carry no probability, likelihood, success
-rate, accuracy figure, error rate, track record, break-even or lifetime total, and
-the single occurrence of the word *average* in the state module sits inside the
-refusal text that promises the opposite, `no average, national default or zero is
-substituted`. That is the right behaviour, not a leak. The row stays open until
-the panel exists and the same check can be made against what a reader actually
-sees.
+**What was pinning it before: nothing.** Feature 021's equivalent check scans five
+*federal* files — `rltax.js`, `rltaxrules.js`, `rltaxworkspace.js`, the federal
+pack and the configuration — and stops there. Every surface this scope added was
+outside it. A green suite therefore said nothing at all about this row, which is
+the shape of miss this program has found repeatedly.
 
-This also blocks the browser rows TP-03-17 through TP-03-21 and, through them, the
-row requiring every Test Plan row to carry recorded RED and GREEN evidence.
+**What is pinned now.** One appended assertion scans the four surfaces this scope
+ships state text from: the module, the Florida pack, the contract fixture pack,
+and the static `power-state` band sliced out of the page between its own opening
+`div` and the `power-combined` band that follows it.
+
+The row has two clauses and they are not the same shape, so the assertion carries
+two rules:
+
+1. **Claim tokens must not appear at all** — `probabilit`, `likelihood`,
+   `success rate`, `accuracy`, `track record`, `error rate`, `win rate`,
+   `break-even`, `lifetime total`, `expected value` and their compact spellings.
+2. **`average` and `estimate` are permitted only where the same line negates
+   them.** They legitimately occur twice: the module's refusal text promises *"no
+   average, national default or zero is substituted"*, and the band's own
+   paragraph says a jurisdiction with no pack *"says so instead of substituting an
+   average"*. Both are the right behaviour. A bare occurrence — a figure offered
+   *as* an estimate — is the defect, so the rule requires a negator on the line.
+
+The assertion also refuses an empty band slice, because a slice that failed to
+match would leave the page silently unscanned while both rules passed over
+nothing — the exact failure mode the check exists to prevent.
+
+**Intended RED, rule 1, reverted and hash-verified by the harness.**
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            Scope 03 claim boundary: the state module gains a track-record claim in its own header comment
+file:             rltaxstate.js
+mutation:          * UMD dual module: attaches to the global AND sets module.exports. Never ESM.  ->   * UMD dual module: attaches to the global AND sets module.exports. Never ESM. It publishes a track record.   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3176 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3177 passed, 0 failed
+revert-verified:  yes (committed=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d restored=c88a3ecde15ddb929a5fc67a7ab2f02197e99c0d)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Intended RED, rule 2, on the page rather than the module** — because a rule
+proven only against the module would leave the band slice unproven, and an
+unproven slice is indistinguishable from an empty one:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            Scope 03 claim boundary: the Power state band heading presents the state settlement as an estimate
+file:             lifetime-tax-strategy-lab.html
+mutation:         <h3>The state settlement, and the jurisdiction that produced it</h3>  ->  <h3>The state settlement, an estimate, and the jurisdiction that produced it</h3>   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3176 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3177 passed, 0 failed
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Both mutations are value-free: one adds an English phrase to a header comment,
+the other adds two words to a heading. Neither carries a rate, a threshold, a
+jurisdiction figure or a household amount. In each case exactly one assertion
+fell — `3176 passed, 1 failed` against `3177 passed, 0 failed` — so each rule is
+shown to be the thing that fires, not a bystander in a wider cascade.
+
+**What this row does not claim.** The scan covers every surface state text is
+*written in*. It does not walk the rendered DOM, so a figure composed at runtime
+from members that individually carry no forbidden token would not be caught here.
+That case belongs to the browser row, and the browser rows for this scope are
+open for a separate reason recorded under the Test Plan census.
 
 ## Completion Statement
 

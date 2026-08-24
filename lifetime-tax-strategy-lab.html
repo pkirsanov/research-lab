@@ -762,6 +762,7 @@
                 <div id="simpleDecisionSummary"></div>
                 <div id="headlineBlock" data-rl-leg-surface="headline"></div>
                 <div id="stateSettlementCard"></div>
+                <div id="combinedSettlementCard"></div>
                 <div id="annualMedicareCostCard"></div>
                 <div id="surtaxSummaryCard"></div>
                 <div id="conversionAsymmetryLine"></div>
@@ -862,6 +863,11 @@
                     </table>
                 </div>
                 <p id="averageRateLine" class="subtle"></p>
+                <!-- F-AUDIT-04. CO-24's verdict, rendered on the route rather than only exercised
+                     against a fixture. A clean census says so in one line; a census with findings
+                     names every one of them, including the mis-summed kind that no comparison of
+                     surface membership can reach. -->
+                <div id="legSurfaceCensus" role="status" aria-live="polite"></div>
             </div>
 
             <div id="power-bracket-detail" class="band">
@@ -1056,13 +1062,14 @@
                 </div>
                 <p id="deductionCapLine" class="subtle"></p>
                 <div class="table-scroll">
-                    <table id="deductionDecision" aria-label="The itemised total beside the standard deduction, and the side actually applied">
-                        <caption>The side applied is recomputed from the two totals. It is never read from a declared preference.</caption>
+                    <table id="deductionDecision" aria-label="The itemised total beside the standard deduction, the side this comparison names as larger, and the side that priced the tax">
+                        <caption>The larger side is recomputed from the two totals and is never read from a declared preference. Naming it is a comparison: the tax was priced on the deduction named in the last column.</caption>
                         <thead>
                             <tr>
                                 <th scope="col">Side</th>
                                 <th scope="col">Total</th>
-                                <th scope="col">Applied</th>
+                                <th scope="col">Comparison</th>
+                                <th scope="col">Priced the tax</th>
                             </tr>
                         </thead>
                         <tbody id="deductionDecisionBody"></tbody>
@@ -1563,6 +1570,100 @@
                     </table>
                 </div>
             </div>
+
+            <div id="power-combined" class="band">
+                <h3>The combined federal-plus-state answer, and the curve behind it</h3>
+                <p class="subtle">One number the household pays two governments, and it is an addition rather than a
+                    settlement of its own. Each jurisdiction settles alone from its own pack, and the two totals are
+                    added afterwards. If either side refuses, the combined figure refuses with that side's own reason
+                    rather than presenting the remaining leg as though it were the whole answer. A jurisdiction that
+                    levies nothing contributes a zero that carries its authority, which is a real addend and not an
+                    absence.</p>
+                <div id="combinedRefusal"></div>
+                <p id="combinedIndependenceLine" class="subtle"></p>
+                <div class="table-scroll">
+                    <table id="combinedPackYears"
+                        aria-label="Both resolved packs, the tax years each declares effective and whether they agree on the declared year">
+                        <caption>The agreement verdict is read off the two packs. A year not effective in both refuses
+                            rather than carrying one pack's thresholds into the other's year.</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Jurisdiction</th>
+                                <th scope="col">Pack</th>
+                                <th scope="col">Declared effective tax years</th>
+                                <th scope="col">Covers the declared year</th>
+                            </tr>
+                        </thead>
+                        <tbody id="combinedPackYearsBody"></tbody>
+                    </table>
+                </div>
+                <div class="table-scroll">
+                    <table id="combinedLegBreakdown"
+                        aria-label="The two jurisdiction totals and the combined total, each with the terminal shape it produced and its legal standing">
+                        <caption>The addition branches on the shape each total published, never on whether its value is
+                            zero, so a sourced zero is added as a real addend.</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Leg</th>
+                                <th scope="col">Amount or refusal</th>
+                                <th scope="col">Shape it produced</th>
+                                <th scope="col">Legal standing</th>
+                            </tr>
+                        </thead>
+                        <tbody id="combinedLegBreakdownBody"></tbody>
+                    </table>
+                </div>
+                <h3>What this tool does not model across the two jurisdictions</h3>
+                <p id="combinedItemizedNotice" class="subtle"></p>
+                <div class="table-scroll">
+                    <table id="combinedCoupling"
+                        aria-label="Every coupling between the two jurisdictions, stating whether this tool models it and why">
+                        <caption>Closed membership. A coupling the tool does not model is named here rather than left
+                            for the reader to discover from a figure that quietly assumed it.</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Coupling</th>
+                                <th scope="col">Modelled</th>
+                                <th scope="col">Code</th>
+                                <th scope="col">Why</th>
+                            </tr>
+                        </thead>
+                        <tbody id="combinedCouplingBody"></tbody>
+                    </table>
+                </div>
+                <h3>Combined marginal rate on the next dollar of ordinary income</h3>
+                <p class="subtle">Three series, one for each government and one for the sum. The combined rate is the
+                    sum of the two component rates rather than a separate derivation, and every step lands on the
+                    threshold that caused it, tagged with the jurisdiction whose pack declares it.</p>
+                <canvas id="combinedCurveChart" width="960" height="280" tabindex="0" role="img"
+                    aria-label="Combined federal-plus-state marginal rate curve on the next dollar of ordinary income, with a separate federal series and state series. The same points are listed in the text-equivalent table immediately below."></canvas>
+                <p id="combinedCurveChartFallback" class="microcopy">If this chart does not draw, the text-equivalent
+                    table below carries every point, every component rate and every named threshold.</p>
+                <div id="combinedCurveIncompleteLabel"></div>
+                <div class="table-scroll">
+                    <table id="combinedCurveTextEquivalent"
+                        aria-label="Text equivalent of the combined federal-plus-state marginal rate curve, carrying every sampled point, both component rates and every contributing threshold with the jurisdiction that owns it">
+                        <caption>Text-equivalent table. Emitted from the same combined curve record the chart
+                            reads.</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Ordinary income level</th>
+                                <th scope="col">Federal tax at that level</th>
+                                <th scope="col">State tax at that level</th>
+                                <th scope="col">Combined tax at that level</th>
+                                <th scope="col">Federal marginal rate</th>
+                                <th scope="col">State marginal rate</th>
+                                <th scope="col">Combined marginal rate</th>
+                                <th scope="col">Segment</th>
+                                <th scope="col">Contributing thresholds and the jurisdiction that owns them</th>
+                            </tr>
+                        </thead>
+                        <tbody id="combinedCurveTextEquivalentBody"></tbody>
+                    </table>
+                </div>
+                <h3>Contributors this combined curve cannot price</h3>
+                <div id="combinedUnavailableContributorList"></div>
+            </div>
         </section>
     </main>
 
@@ -1588,6 +1689,10 @@
          no federal figure through any parameter. -->
     <script src="rltaxstate.js"></script>
     <script src="rltaxstrategy.js"></script>
+    <!-- After BOTH settlements: this module composes them and re-derives neither. It is loaded
+         last of the tax modules because it is the only one that reads two of them, and loading it
+         earlier would let it resolve a settlement that had not been defined yet. -->
+    <script src="rltaxcombined.js"></script>
     <script>
         (function () {
             "use strict";
@@ -1599,22 +1704,24 @@
             var MEDICARE = window.RLTAXMEDICARE;
             var STRATEGY = window.RLTAXSTRATEGY;
             var STATE = window.RLTAXSTATE;
+            var COMBINED = window.RLTAXCOMBINED;
 
             /* Simple may render only decision-level fields. The restriction is a closed list the
                renderer enforces, not a review convention: a field outside it cannot be drawn into
                Simple at all. */
             var SIMPLE_FIELDS = ["packIdentity", "headlineFederalTax", "conversionAmount",
                 "federalTaxDifference", "effectiveMarginalRateAtEdge", "strongestTradeoff", "resultKind",
-                "deductionSideChosen", "propertyTax", "rentalNet", "dwellingUseCategory", "dispositionTax",
+                "deductionApplied", "deductionSideChosen", "propertyTax", "rentalNet", "dwellingUseCategory", "dispositionTax",
                 "annualBenefit", "taxableBenefitPortion", "annualMedicareCost",
                 "netInvestmentIncomeSurtax", "additionalMedicareSurtax", "conversionAsymmetry",
-                "stateIncomeTax"];
+                "stateIncomeTax", "combinedTotalTax", "combinedFederalLeg", "combinedStateLeg",
+                "stateSettlementShape"];
 
             var POWER_SECTION_IDS = ["power-rule-ledger", "power-settlement", "power-bracket-detail",
                 "power-reconciliation", "power-curve", "power-conversion", "power-property",
                 "power-deduction", "power-use", "power-rental", "power-disposition", "power-benefit",
                 "power-inclusion", "power-claim-age", "power-medicare", "power-tax-legs",
-                "power-source-records", "power-state"];
+                "power-source-records", "power-state", "power-combined"];
 
             /* Every detail Simple withholds carries a link to the Power section that owns it, so
                nothing is hidden without a route to it. */
@@ -1642,10 +1749,9 @@
                 { detail: "Every rule pack this settlement resolved, the year it is effective for and the source it was transcribed from", section: "power-rule-ledger" },
                 { detail: "Each surtax rate, the basis it was applied to, the filing-status threshold it was compared against and the leg set the federal total summed", section: "power-tax-legs" },
                 { detail: "The modified adjusted gross measure's completeness declaration and every adjustment the pack does not model", section: "power-tax-legs" },
-                { detail: "The state pack the declared residency resolved, every settlement stage it produced, the authority behind a jurisdiction that levies nothing and each figure the pack does not carry", section: "power-state" }
+                { detail: "The state pack the declared residency resolved, every settlement stage it produced, the authority behind a jurisdiction that levies nothing and each figure the pack does not carry", section: "power-state" },
+                { detail: "Both packs' effective years and the agreement verdict, the per-jurisdiction breakdown behind the combined total, the coupling this tool does not model, and the combined marginal curve with the jurisdiction that owns every step", section: "power-combined" }
             ];
-
-            var MODE_KEY = "rlLifetimeTaxDisplayMode";
 
             var state = {
                 config: null,
@@ -2214,6 +2320,31 @@
                 return source.title + " \u00b7 " + source.locator + " \u00b7 " + source.url;
             }
 
+            /* What the state axis published as its total inside a combined result. The state member
+               of a combined settlement is EITHER a state settlement OR the refusal that stood in
+               for one, so the branch is on the contract the record declares rather than on whether
+               a member happens to exist. Reading `.totalStateTax` off a refusal would return
+               undefined and every guard downstream would then be testing the wrong thing. */
+            function combinedStateTotalOf(settled) {
+                var published = settled.state;
+                if (published && published.contractVersion === "StateSettlement/v1") {
+                    return published.totalStateTax;
+                }
+                return published;
+            }
+
+            /* The three terminal shapes in words. The page holds the wording and the module holds
+               the classification, so a shape the module stops producing cannot be described here as
+               though it still existed. */
+            function combinedShapeWords(kind) {
+                if (kind === "sourced-zero") {
+                    return "a zero that carries the authority establishing it, added as a real amount";
+                }
+                if (kind === "valued") return "a computed amount";
+                if (kind === "refusal") return "a refusal naming what was not retrieved";
+                return "a shape this tool does not recognise as a jurisdiction total";
+            }
+
             /* CO-13 and CO-14, composed here rather than recomputed by either view. The state
                settlement is a SEPARATE settlement: `computeAnnualStateTax` takes the workspace and
                the state pack and has no parameter through which a federal figure could reach it,
@@ -2254,6 +2385,50 @@
                 };
             }
 
+            /* CO-15 and CO-16. The combined federal-plus-state answer, composed here so both views
+               read one record. It is an ADDITION of two settlements that never touch, never a third
+               settlement: `combineSettlements` receives the workspace and each pack, and there is no
+               parameter through which either jurisdiction's figure could reach the other.
+
+               Four outcomes are kept distinct because they are four different situations, and every
+               member below sits behind the guard for the one it belongs to. A refusing stage
+               publishes null members, so reading `settlement.combinedTotalTax` before establishing
+               that a settlement exists would abort the renderer and be reported by the boot
+               catch-all as a configuration failure it is not.
+
+               1. Nothing to combine yet: the federal workspace is not viable, so there is no
+                  federal total to add. Neither a figure nor a refusal is published.
+               2. No state pack: residency is undeclared or unresolvable. The combined answer
+                  inherits the STATE axis's own refusal rather than a refusal this page invents.
+               3. The pair itself refuses: the two packs do not both cover the declared year, so
+                  `combineSettlements` returns the mismatch and there is no settlement at all.
+               4. A settlement exists but its total refuses, which is a jurisdiction whose figures
+                  were never retrieved. The two legs are still published, because withholding them
+                  would hide which side refused. */
+            function combinedSettlementLeg(stateLeg, viable) {
+                var empty = { available: false, refusal: null, settlement: null, curve: null, pack: null };
+                if (!viable || !state.config || !state.pack || !state.workspace) return empty;
+                if (!stateLeg || !stateLeg.pack) {
+                    return {
+                        available: false, refusal: stateLeg ? stateLeg.refusal : null,
+                        settlement: null, curve: null, pack: null
+                    };
+                }
+                var settlement = COMBINED.combineSettlements(state.workspace, state.pack, stateLeg.pack);
+                if (RULES.isUnavailable(settlement)) {
+                    return { available: false, refusal: settlement, settlement: null, curve: null, pack: stateLeg.pack };
+                }
+                var refused = RULES.isUnavailable(settlement.combinedTotalTax);
+                return {
+                    available: !refused,
+                    refusal: refused ? settlement.combinedTotalTax : null,
+                    settlement: settlement,
+                    curve: COMBINED.computeCombinedMarginalCurve(state.workspace, state.pack,
+                        stateLeg.pack, "ordinary", state.config.sweep),
+                    pack: stateLeg.pack
+                };
+            }
+
             function buildEnvelope() {
                 var unavailable = [];
                 var viable = WORKSPACE.minimumViableInput(state.workspace);
@@ -2289,6 +2464,7 @@
                         claimAge: claimAgeStage,
                         medicare: medicare,
                         stateTax: stateLeg,
+                        combined: combinedSettlementLeg(stateLeg, false),
                         federalLegIds: [], legIds: settledLegIds(null, propertyLeg, rentalLeg, useLeg, dispositionLeg, benefitLeg, inclusionLeg, medicare),
                         unavailable: unavailable
                     };
@@ -2333,6 +2509,7 @@
                     claimAge: claimAgeStage,
                     medicare: medicare,
                     stateTax: stateLeg,
+                    combined: combinedSettlementLeg(stateLeg, true),
                     federalLegIds: settledLegIds(settlement, null, null, null, null, null, null, null),
                     legIds: settledLegIds(settlement, propertyLeg, rentalLeg, useLeg, dispositionLeg, benefitLeg, inclusionLeg, medicare),
                     deduction: ENGINE.composeItemizedDeduction(state.workspace, state.pack, {
@@ -2653,15 +2830,32 @@
                     /* Simple stays decision-level: the SIDE, not the composition. The component
                        table, the cap binding and the disallowed amounts live in power-deduction,
                        and the withheld-detail row links there. */
-                    var deductionRow = document.createElement("div");
-                    deductionRow.appendChild(text("span", "Deduction actually applied: ", "label"));
-                    if (envelope.deduction && envelope.deduction.refusal !== null) {
-                        card.appendChild(unavailableNode(envelope.deduction.refusal, "Deduction actually applied"));
-                    } else if (envelope.deduction) {
-                        deductionRow.appendChild(simpleValueNode("deductionSideChosen",
-                            envelope.deduction.chosen + " \u00b7 " + dollars(envelope.deduction.appliedDeduction),
-                            "The side this settlement actually applied, recomputed from the itemised total and the standard deduction rather than read from anything you declared. " + envelope.deduction.chosenReason));
-                        card.appendChild(deductionRow);
+                    /* F-REG-01. Two deductions, named apart, because they are two different
+                       things. The SETTLEMENT priced the tax on the mode the household declared.
+                       `CO-18` is a comparison answering which side would be larger. One row each,
+                       so neither figure can be read as the other. */
+                    if (envelope.deduction) {
+                        var settledRow = document.createElement("div");
+                        settledRow.appendChild(text("span", "Deduction that priced the tax: ", "label"));
+                        if (RULES.isUnavailable(envelope.deduction.settlementDeduction)) {
+                            card.appendChild(unavailableNode(envelope.deduction.settlementDeduction,
+                                "Deduction that priced the tax"));
+                        } else {
+                            settledRow.appendChild(simpleValueNode("deductionApplied",
+                                envelope.deduction.settlementDeduction.mode + " \u00b7 " + dollars(envelope.deduction.settlementDeduction.value),
+                                "The deduction this settlement subtracted from income to produce the tax on this card. It is the mode the household declared: a declaration is applied rather than replaced by a computed side."));
+                            card.appendChild(settledRow);
+                        }
+                        var comparedRow = document.createElement("div");
+                        comparedRow.appendChild(text("span", "Larger side, by comparison: ", "label"));
+                        if (envelope.deduction.refusal !== null) {
+                            card.appendChild(unavailableNode(envelope.deduction.refusal, "Larger side by comparison"));
+                        } else {
+                            comparedRow.appendChild(simpleValueNode("deductionSideChosen",
+                                envelope.deduction.chosen + " \u00b7 " + dollars(envelope.deduction.appliedDeduction),
+                                "A comparison, and not the figure above: the larger of the itemised total and the standard deduction, recomputed from the two totals rather than read from anything you declared. " + envelope.deduction.chosenReason));
+                            card.appendChild(comparedRow);
+                        }
                     }
 
                     tradeoffHost.appendChild(text("h3", "The strongest tradeoff"));
@@ -2712,6 +2906,86 @@
                             "Established by " + stateCitationText(stateLeg.pack, stateLeg.total), "subtle"));
                     }
                     stateHost.appendChild(stateFigureHost);
+                }
+
+                /* CO-15. The combined answer, rendered OUTSIDE the viability branch for the same
+                   reason the state card is, and reading every member behind the guard for the
+                   outcome it belongs to. `combinedTotalTax` is drawn only after the refusal guard,
+                   because a refusing combination publishes a null settlement. */
+                var combinedHost = byId("combinedSettlementCard");
+                clear(combinedHost);
+                var combinedLeg = envelope.combined;
+                if (combinedLeg && combinedLeg.settlement === null && combinedLeg.refusal !== null) {
+                    combinedHost.appendChild(unavailableNode(combinedLeg.refusal,
+                        "Combined federal and state tax for the declared year"));
+                } else if (combinedLeg && combinedLeg.settlement) {
+                    var combinedSettled = combinedLeg.settlement;
+                    var combinedCard = document.createElement("div");
+                    combinedCard.setAttribute("data-rl-combined-settlement", String(combinedSettled.declaredTaxYear));
+                    combinedCard.appendChild(text("div",
+                        "Federal and state together for the declared year, which is these two totals added and is not a settlement of its own",
+                        "label"));
+                    var combinedValue = document.createElement("div");
+                    combinedValue.className = "headline";
+                    /* Either the figure or the whole refusal, never both and never a partial sum:
+                       a combination missing one leg is refused with that leg's own reason rather
+                       than presented as the remaining leg. */
+                    if (combinedLeg.available === true) {
+                        combinedValue.appendChild(simpleValueNode("combinedTotalTax",
+                            money(combinedSettled.combinedTotalTax),
+                            "What the two governments levy on the year you declared, added after each settled alone. Neither settlement can read the other's figures, so this is an addition rather than a third derivation. This tool does not model every coupling between the two jurisdictions and names the ones it leaves out in the Power combined section."));
+                    } else {
+                        combinedValue.appendChild(unavailableNode(combinedSettled.combinedTotalTax,
+                            "Combined federal and state tax for the declared year"));
+                    }
+                    combinedCard.appendChild(combinedValue);
+
+                    /* The two addends beside the total, each in its own right. When one refuses the
+                       other is still shown under its own jurisdiction label, because withholding it
+                       would hide which side refused, and labelling it combined would be the silent
+                       drop this card exists to prevent. */
+                    var federalAddendRow = document.createElement("div");
+                    federalAddendRow.appendChild(text("span", "Federal leg: ", "label"));
+                    if (RULES.isUnavailable(combinedSettled.federal.totalFederalTax)) {
+                        federalAddendRow.appendChild(unavailableNode(combinedSettled.federal.totalFederalTax,
+                            "Federal leg of the combined total"));
+                    } else {
+                        federalAddendRow.appendChild(simpleValueNode("combinedFederalLeg",
+                            money(combinedSettled.federal.totalFederalTax),
+                            "The federal half of the combined figure, settled from the federal pack alone. It is byte-identical to the federal total shown above, because declaring a residency adds a second settlement rather than changing the first one."));
+                    }
+                    combinedCard.appendChild(federalAddendRow);
+
+                    var stateAddendRow = document.createElement("div");
+                    stateAddendRow.appendChild(text("span", "State leg: ", "label"));
+                    var combinedStateTotal = combinedStateTotalOf(combinedSettled);
+                    if (combinedSettled.stateTotalKind === "valued" || combinedSettled.stateTotalKind === "sourced-zero") {
+                        stateAddendRow.appendChild(simpleValueNode("combinedStateLeg",
+                            money(combinedStateTotal),
+                            "The state half of the combined figure, settled from the state pack alone. A jurisdiction that levies nothing contributes a zero carrying the authority that establishes it, and that zero is added as a real amount rather than treated as an absence."));
+                    } else if (RULES.isUnavailable(combinedStateTotal)) {
+                        stateAddendRow.appendChild(unavailableNode(combinedStateTotal,
+                            "State leg of the combined total"));
+                    } else {
+                        stateAddendRow.appendChild(unavailableNode(combinedSettled.combinedTotalTax,
+                            "State leg of the combined total"));
+                    }
+                    combinedCard.appendChild(stateAddendRow);
+
+                    /* Which of the three terminal shapes the state settlement produced, in words.
+                       A reader cannot tell a sourced zero from an unretrieved figure by looking at
+                       a numeral, so the shape is stated rather than left to be inferred. */
+                    var shapeRow = document.createElement("div");
+                    shapeRow.appendChild(text("span", "What the state settlement produced: ", "label"));
+                    shapeRow.appendChild(simpleValueNode("stateSettlementShape",
+                        combinedShapeWords(combinedSettled.stateTotalKind),
+                        "The terminal shape the state settlement published, which is what the addition branched on. It branches on the shape rather than on whether the amount is zero, so a jurisdiction that levies nothing is added as a real zero and a jurisdiction whose figures were never retrieved refuses instead."));
+                    combinedCard.appendChild(shapeRow);
+                    combinedHost.appendChild(combinedCard);
+                } else if (combinedLeg) {
+                    combinedHost.appendChild(text("p",
+                        "Not enough is declared for a combined answer. A combined figure needs a settled federal year and a resolved state pack, and neither is stood in for.",
+                        "subtle"));
                 }
 
                 var unavailableHost = byId("unavailableDomainList");
@@ -2927,12 +3201,22 @@
                 for (index = 0; index < state.pack.sourceRecords.length; index += 1) {
                     var record = state.pack.sourceRecords[index];
                     var item = document.createElement("li");
-                    var anchor = document.createElement("a");
-                    anchor.href = record.url;
-                    anchor.rel = "noreferrer noopener";
-                    anchor.target = "_blank";
-                    anchor.textContent = record.title;
-                    item.appendChild(anchor);
+                    /* Second gate on the same rule pack validation applies. A url reaching an
+                       href is an executable surface — javascript: would run in this origin with
+                       this tool's local storage, and the CSP carries 'unsafe-inline' so it would
+                       not refuse. A record that fails the scheme check is shown as inert text
+                       naming the refusal, never as a live link. */
+                    if (RULES.isSafeSourceUrl(record.url)) {
+                        var anchor = document.createElement("a");
+                        anchor.href = record.url;
+                        anchor.rel = "noreferrer noopener";
+                        anchor.target = "_blank";
+                        anchor.textContent = record.title;
+                        item.appendChild(anchor);
+                    } else {
+                        item.appendChild(text("span", record.title, "subtle"));
+                        item.appendChild(text("div", "Source link withheld: this record's url is not an https URL, so it is not rendered as a link.", "microcopy"));
+                    }
                     item.appendChild(text("div", record.publisher + " \u00b7 " + record.documentKind
                         + " \u00b7 published " + record.publishedAt
                         + " \u00b7 " + record.retrievalOutcome
@@ -3777,10 +4061,19 @@
                     + (composition.capBinding === "bound"
                         ? ", so " + dollars(composition.capExcess) + " of the capped components bought nothing."
                         : ", so every capped dollar was deductible.");
+                /* F-REG-01. The third column is this comparison's own verdict; the fourth is the
+                   settlement's. The two disagree whenever the declared mode is not the larger
+                   side, and a reader can now see which column said what. */
+                var settled = composition.settlementDeduction;
+                var pricedBy = RULES.isUnavailable(settled) ? null : settled.mode;
+                var pricedCell = function (side) {
+                    if (pricedBy === null) return "no deduction was established";
+                    return pricedBy === side ? "priced the tax" : "did not price the tax";
+                };
                 appendRow(decisionBody, ["Itemised total", dollars(composition.itemizedTotal),
-                    composition.chosen === "itemized" ? "applied" : "not applied"]);
+                    composition.chosen === "itemized" ? "named" : "not named", pricedCell("itemized")]);
                 appendRow(decisionBody, ["Standard deduction", dollars(composition.standardDeduction),
-                    composition.chosen === "standard" ? "applied" : "not applied"]);
+                    composition.chosen === "standard" ? "named" : "not named", pricedCell("standard")]);
                 byId("deductionChosenLine").textContent = composition.chosenReason;
             }
 
@@ -3804,6 +4097,7 @@
                         if (federalLeg.includedInTotal !== true || federalLeg.available !== true) continue;
                         rows.push({
                             legId: federalLeg.legId,
+                            includedInTotal: federalLeg.includedInTotal === true,
                             amount: dollars(federalLeg.value),
                             carried: "yes",
                             curveStatement: "This curve resamples the whole settlement at each level, so this leg is carried at every sampled point rather than held fixed."
@@ -3814,6 +4108,7 @@
                 if (propertyLeg && propertyLeg.available === true) {
                     rows.push({
                         legId: propertyLeg.legId,
+                        includedInTotal: propertyLeg.includedInTotal === true,
                         amount: dollars(propertyLeg.value),
                         carried: "no, it is settled and shown as its own figure",
                         curveStatement: propertyLeg.marginalContext.reason
@@ -3826,6 +4121,7 @@
                 if (useLeg && useLeg.available === true) {
                     rows.push({
                         legId: useLeg.legId,
+                        includedInTotal: useLeg.includedInTotal === true,
                         amount: useLeg.category,
                         carried: "no, it carries no money and decides which arithmetic the rental leg gets",
                         curveStatement: useLeg.marginalContext.reason
@@ -3835,6 +4131,7 @@
                 if (rentalVisibilityLeg && rentalVisibilityLeg.available === true) {
                     rows.push({
                         legId: rentalVisibilityLeg.legId,
+                        includedInTotal: rentalVisibilityLeg.includedInTotal === true,
                         amount: dollars(rentalVisibilityLeg.value),
                         carried: "no, it is settled and shown as its own figure",
                         curveStatement: rentalVisibilityLeg.marginalContext.reason
@@ -3851,6 +4148,7 @@
                         if (saleVisibilityLeg.available !== true) continue;
                         rows.push({
                             legId: saleVisibilityLeg.legId,
+                            includedInTotal: saleVisibilityLeg.includedInTotal === true,
                             amount: dollars(saleVisibilityLeg.value),
                             carried: saleVisibilityLeg.pricingRule === "own-maximum-rate"
                                 ? "no, it is priced at its own sourced maximum rate and never enters the preferential stacking"
@@ -3867,6 +4165,7 @@
                 if (benefitVisibilityLeg && benefitVisibilityLeg.available === true) {
                     rows.push({
                         legId: benefitVisibilityLeg.legId,
+                        includedInTotal: benefitVisibilityLeg.includedInTotal === true,
                         amount: dollars(benefitVisibilityLeg.value),
                         carried: "no, it is money received rather than tax owed and it enters no tax total",
                         curveStatement: benefitVisibilityLeg.marginalContext.reason
@@ -3882,6 +4181,7 @@
                 if (inclusionVisibilityLeg && inclusionVisibilityLeg.available === true) {
                     rows.push({
                         legId: inclusionVisibilityLeg.legId,
+                        includedInTotal: inclusionVisibilityLeg.includedInTotal === true,
                         amount: dollars(inclusionVisibilityLeg.value),
                         carried: "no, it is a named contributor to ordinary taxable income rather than a tax of its own",
                         curveStatement: "This curve resamples the declared workspace, and the included amount is not one of its members, so the curve is read without it rather than with it held fixed."
@@ -3900,6 +4200,7 @@
                         if (premiumVisibilityLeg.available !== true) continue;
                         rows.push({
                             legId: premiumVisibilityLeg.legId,
+                            includedInTotal: premiumVisibilityLeg.includedInTotal === true,
                             amount: dollars(premiumVisibilityLeg.value),
                             carried: "no, it is a Medicare cost rather than a tax and it is part of no federal tax total",
                             curveStatement: "This curve resamples the declared workspace, and this premium is priced from the modified adjusted gross income you declared for an earlier year, which the sweep does not move, so the curve is read without it rather than with it held fixed."
@@ -3951,6 +4252,100 @@
                     surfaceIds.push(surfaceHosts[index].getAttribute("data-rl-leg-surface"));
                 }
                 document.body.setAttribute("data-rl-leg-surfaces", surfaceIds.join(","));
+                renderSurfaceCensus(envelope, rows, surfaceHosts, surfaceIds);
+            }
+
+            /* F-AUDIT-04. CO-24 runs HERE, on the route, against what this page actually rendered.
+               It was previously exported and exercised only against a fixture in the selftest, so
+               the one pass that catches a leg every surface renders and that nonetheless entered
+               the federal total — the mis-summed pass — never ran against the page at all.
+
+               The two inputs are deliberately taken from independent places, because a census whose
+               two sides read the same field can never disagree with itself:
+
+                 * `includedInTotal` is the leg's OWN declaration, carried on the visibility row
+                   from the record that produced the leg. A Medicare premium says false there
+                   whatever a pack says elsewhere.
+                 * `includedTotalLegIds` is what the settlement ACTUALLY summed — the available
+                   `taxLegs` whose `includedInTotal` is true, which is the set `computeAnnualFederalTax`
+                   adds up and the set the route already publishes as `federalLegIds`.
+
+               A cost leg that reaches the second set has entered the federal total, and that is the
+               finding. The surface memberships are read back out of the DOM rather than restated
+               from the row set, so a leg the page failed to render is absent here too.
+
+               The host and id parameters are deliberately NOT named after the caller's variables.
+               A declaration whose parameter list reads identically to the call site makes the two
+               indistinguishable to any check that reads this file as text, so deleting the call
+               would leave the signature behind and the wiring would appear intact while the census
+               no longer ran. */
+            function renderSurfaceCensus(envelope, rows, hosts, ids) {
+                var host = byId("legSurfaceCensus");
+                clear(host);
+                document.body.removeAttribute("data-rl-census-clean");
+                document.body.removeAttribute("data-rl-census-findings");
+                if (!envelope) return;
+                var index = 0;
+                var declaredLegs = [];
+                for (index = 0; index < rows.length; index += 1) {
+                    declaredLegs.push({
+                        legId: rows[index].legId,
+                        includedInTotal: rows[index].includedInTotal === true
+                    });
+                }
+                var memberships = {};
+                for (index = 0; index < hosts.length; index += 1) {
+                    var rendered = hosts[index].querySelectorAll("[data-rl-leg]");
+                    var renderedIds = [];
+                    var renderedIndex = 0;
+                    for (renderedIndex = 0; renderedIndex < rendered.length; renderedIndex += 1) {
+                        renderedIds.push(rendered[renderedIndex].getAttribute("data-rl-leg"));
+                    }
+                    memberships[ids[index]] = renderedIds;
+                }
+                /* The export surface is an attribute rather than a host, and it is read back from
+                   the attribute for the same reason the others are read back from the DOM. */
+                var exportedAttribute = document.body.getAttribute("data-rl-legs-record") || "";
+                var exported = [];
+                var exportedParts = exportedAttribute.split(",");
+                for (index = 0; index < exportedParts.length; index += 1) {
+                    if (exportedParts[index].length > 0) exported.push(exportedParts[index]);
+                }
+                memberships.export = exported;
+
+                var census = ENGINE.composeSurfaceCensus(declaredLegs, memberships,
+                    envelope.federalLegIds || []);
+                document.body.setAttribute("data-rl-census-clean", census.clean === true ? "yes" : "no");
+                var findingIds = [];
+                for (index = 0; index < census.findings.length; index += 1) {
+                    findingIds.push(census.findings[index].kind + ":" + census.findings[index].legId);
+                }
+                document.body.setAttribute("data-rl-census-findings", findingIds.join(","));
+
+                if (census.clean === true) {
+                    var cleanLine = text("p", "Leg census: every settled leg reaches all "
+                        + String(census.surfaces.length) + " surfaces, and no leg this settlement "
+                        + "declares as a cost entered the federal total.");
+                    cleanLine.className = "subtle";
+                    cleanLine.setAttribute("data-rl-census-line", "clean");
+                    host.appendChild(cleanLine);
+                    return;
+                }
+                var heading = text("p", "Leg census: this settlement did not surface cleanly. "
+                    + "Each finding below names the leg it is about, and a mis-summed leg names no "
+                    + "surface because it is a fact about the federal total rather than about any "
+                    + "one surface.");
+                heading.setAttribute("data-rl-census-line", "findings");
+                host.appendChild(heading);
+                var list = document.createElement("ul");
+                for (index = 0; index < census.findings.length; index += 1) {
+                    var finding = census.findings[index];
+                    var item = text("li", finding.statement);
+                    item.setAttribute("data-rl-census-finding", finding.kind);
+                    item.setAttribute("data-rl-census-finding-leg", finding.legId);
+                    list.appendChild(item);
+                }
+                host.appendChild(list);
             }
 
             /* Every member read here is one the benefit settlement ACTUALLY publishes for the shape
@@ -4534,7 +4929,344 @@
                 }
             }
 
-            function renderPower() {                renderRuleLedger();
+            /* A deferred contributor is NOT a refusal: the combined record tags each one with the
+               jurisdiction and the pack that declared it and carries no domain and no remediation,
+               so it deliberately does not take the refusal attribute. Rendering it through the
+               refusal constructor would print an undefined domain and an undefined remediation and
+               would put a node into the page-wide refusal sweep that cannot satisfy it. */
+            function combinedContributorNode(entry) {
+                var host = document.createElement("div");
+                host.className = "unavailable";
+                host.setAttribute("data-rl-combined-contributor", entry.id);
+                host.setAttribute("data-rl-combined-contributor-jurisdiction", entry.jurisdiction);
+                host.setAttribute("tabindex", "0");
+                host.setAttribute("role", "note");
+                host.appendChild(text("strong", entry.label));
+                host.appendChild(text("div", entry.code, "code"));
+                host.appendChild(text("div", "Declared by " + entry.packId
+                    + ", which is the pack for " + entry.jurisdiction, "subtle"));
+                host.appendChild(text("div", "Not priced because " + entry.reason, "subtle"));
+                return host;
+            }
+
+            function renderCombined() {
+                var refusalHost = byId("combinedRefusal");
+                var packYearsBody = byId("combinedPackYearsBody");
+                var breakdownBody = byId("combinedLegBreakdownBody");
+                var couplingBody = byId("combinedCouplingBody");
+                var curveLabelHost = byId("combinedCurveIncompleteLabel");
+                var curveBody = byId("combinedCurveTextEquivalentBody");
+                var contributorHost = byId("combinedUnavailableContributorList");
+                clear(refusalHost);
+                clear(packYearsBody);
+                clear(breakdownBody);
+                clear(couplingBody);
+                clear(curveLabelHost);
+                clear(curveBody);
+                clear(contributorHost);
+                byId("combinedIndependenceLine").textContent = "";
+                byId("combinedItemizedNotice").textContent = "";
+
+                var leg = state.envelope ? state.envelope.combined : null;
+                if (!leg) {
+                    drawCombinedCurveChart(null);
+                    return;
+                }
+                /* The pair itself refused, or the state axis never resolved a pack. Either way
+                   there is no settlement, and every member below would be null. */
+                if (leg.settlement === null) {
+                    if (leg.refusal) {
+                        refusalHost.appendChild(unavailableNode(leg.refusal,
+                            "Combined federal and state tax"));
+                    } else {
+                        refusalHost.appendChild(text("p",
+                            "Not enough is declared for a combined answer. A combined figure needs a settled federal year and a resolved state pack, and neither is stood in for.",
+                            "subtle"));
+                    }
+                    drawCombinedCurveChart(null);
+                    return;
+                }
+                var settled = leg.settlement;
+                if (leg.refusal) {
+                    refusalHost.appendChild(unavailableNode(leg.refusal,
+                        "Combined federal and state tax"));
+                }
+
+                byId("combinedIndependenceLine").textContent = "Each jurisdiction settled alone and the two totals were added afterwards. "
+                    + "Neither settlement has a parameter through which the other's figures could arrive, and that absence is the whole independence claim. "
+                    + "This result was checked by settling both jurisdictions in both orders and comparing the serialised results: "
+                    + settled.orderIndependence.method + " \u00b7 "
+                    + (settled.orderIndependence.asserted === true
+                        ? "the two orders produced identical results."
+                        : "the two orders did NOT produce identical results, which means something couples them.")
+                    + " No result here is labelled a complete combined tax: "
+                    + String(settled.completeCombinedTax) + " is what the record carries, because both packs name features they do not price.";
+
+                /* Both packs' declared years and the agreement verdict, read off the record rather
+                   than restated, so a pack whose years move changes this panel with no page edit. */
+                var agreement = settled.packYearAgreement;
+                var declaredYear = settled.declaredTaxYear;
+                appendRow(packYearsBody, [
+                    state.pack.jurisdiction,
+                    state.pack.id + " \u00b7 v" + state.pack.version,
+                    agreement.federalYears.join(", "),
+                    agreement.federalYears.indexOf(declaredYear) >= 0 ? "yes" : "no"
+                ]);
+                appendRow(packYearsBody, [
+                    leg.pack.jurisdiction,
+                    leg.pack.id + " \u00b7 v" + leg.pack.version,
+                    agreement.stateYears.join(", "),
+                    agreement.stateYears.indexOf(declaredYear) >= 0 ? "yes" : "no"
+                ]);
+                appendRow(packYearsBody, [
+                    "both",
+                    "the declared year " + String(declaredYear),
+                    agreement.agrees === true
+                        ? "effective in both packs"
+                        : "not effective in both packs",
+                    agreement.agrees === true ? "yes" : "no"
+                ]);
+
+                /* Each addend and the sum, in the same table, with the SHAPE each produced beside
+                   it. The shape is what the addition branched on, so showing it is what lets a
+                   reader check that a sourced zero was added rather than skipped. */
+                function breakdownRow(label, fieldId, record, kind, tooltip) {
+                    var row = document.createElement("tr");
+                    row.setAttribute("data-rl-combined-leg", fieldId);
+                    row.appendChild(text("td", label));
+                    var cell = document.createElement("td");
+                    if (RULES.isUnavailable(record)) {
+                        cell.appendChild(unavailableNode(record, label));
+                        row.appendChild(cell);
+                        row.appendChild(text("td", combinedShapeWords(kind)));
+                        row.appendChild(text("td", "unavailable"));
+                    } else {
+                        cell.appendChild(valueNode(fieldId, money(record), tooltip));
+                        row.appendChild(cell);
+                        row.appendChild(text("td", combinedShapeWords(kind)));
+                        row.appendChild(text("td", record.ruleStatus));
+                    }
+                    breakdownBody.appendChild(row);
+                }
+                breakdownRow("Federal income tax", "combined-federal-total",
+                    settled.federal.totalFederalTax, settled.federalTotalKind,
+                    "The federal total this combined figure added, settled from the federal pack alone and identical to the federal total this page shows without any residency declared.");
+                breakdownRow("State income tax", "combined-state-total",
+                    combinedStateTotalOf(settled), settled.stateTotalKind,
+                    "The state total this combined figure added, settled from the state pack alone. A jurisdiction that levies nothing publishes a zero carrying its own authority and that zero is a real addend.");
+                breakdownRow("Both governments together", "combined-total",
+                    settled.combinedTotalTax, "valued",
+                    "The two jurisdiction totals added. If either side refuses this refuses with that side's own reason, because a sum missing one government is not a smaller answer, it is a different question.");
+                var averageRow = document.createElement("tr");
+                averageRow.setAttribute("data-rl-combined-leg", "combined-average-rate");
+                averageRow.appendChild(text("td", "Combined share of supported income"));
+                var averageCell = document.createElement("td");
+                if (RULES.isUnavailable(settled.combinedAverageRate)) {
+                    averageCell.appendChild(unavailableNode(settled.combinedAverageRate,
+                        "Combined share of supported income"));
+                    averageRow.appendChild(averageCell);
+                    averageRow.appendChild(text("td", "unavailable"));
+                    averageRow.appendChild(text("td", "unavailable"));
+                } else {
+                    averageCell.appendChild(valueNode("combined-average-rate",
+                        percent(settled.combinedAverageRate.value),
+                        "The share of all supported income the two governments take together across the whole year. It is not what one more dollar costs, and it is never shown in place of the marginal rate on the next dollar."));
+                    averageRow.appendChild(averageCell);
+                    averageRow.appendChild(text("td", "a computed share, not an amount"));
+                    averageRow.appendChild(text("td", settled.combinedAverageRate.ruleStatus));
+                }
+                breakdownBody.appendChild(averageRow);
+
+                /* The coupling record. `modeled` is a required member and is empty in this slice,
+                   so it is walked rather than assumed absent: a later feature that models one adds
+                   to a list the reader is already looking at. */
+                var coupling = settled.crossJurisdictionCoupling;
+                var index = 0;
+                for (index = 0; index < coupling.modeled.length; index += 1) {
+                    var modeledRow = document.createElement("tr");
+                    modeledRow.setAttribute("data-rl-combined-coupling", coupling.modeled[index].id);
+                    modeledRow.appendChild(text("td", coupling.modeled[index].id));
+                    modeledRow.appendChild(text("td", "yes"));
+                    modeledRow.appendChild(text("td", "not applicable"));
+                    modeledRow.appendChild(text("td", coupling.modeled[index].reason));
+                    couplingBody.appendChild(modeledRow);
+                }
+                for (index = 0; index < coupling.notModeled.length; index += 1) {
+                    var notModeledRow = document.createElement("tr");
+                    notModeledRow.setAttribute("data-rl-combined-coupling", coupling.notModeled[index].id);
+                    notModeledRow.appendChild(text("td", coupling.notModeled[index].id));
+                    notModeledRow.appendChild(text("td", "no"));
+                    notModeledRow.appendChild(text("td", coupling.notModeled[index].deferralCode));
+                    notModeledRow.appendChild(text("td", coupling.notModeled[index].reason));
+                    couplingBody.appendChild(notModeledRow);
+                }
+                byId("combinedItemizedNotice").textContent = coupling.itemizedNotice === null
+                    ? "The declared deduction mode is not itemised, so the unmodelled state-tax deduction above could not have applied to this household's federal figure this year."
+                    : coupling.itemizedNotice;
+
+                /* The curve. Every read is behind the refusal guard, because a curve that could not
+                   price the next dollar publishes a refusal in place of the whole record and has no
+                   points member at all. */
+                var curve = leg.curve;
+                if (curve === null) {
+                    curveLabelHost.appendChild(text("p",
+                        "Not enough is declared to price the next dollar in both jurisdictions.", "subtle"));
+                } else if (RULES.isUnavailable(curve)) {
+                    curveLabelHost.appendChild(unavailableNode(curve, "Combined marginal rate curve"));
+                } else {
+                    var incomplete = document.createElement("div");
+                    incomplete.className = "unavailable";
+                    incomplete.setAttribute("tabindex", "0");
+                    incomplete.setAttribute("data-rl-combined-curve-incomplete", String(curve.incomplete));
+                    incomplete.appendChild(text("strong", curve.incomplete
+                        ? "This combined curve is incomplete by construction"
+                        : "This combined curve carries every contributor both packs declare"));
+                    incomplete.appendChild(text("div", "Unavailable contributors: "
+                        + String(curve.unavailableContributorCount), "subtle"));
+                    incomplete.appendChild(text("div",
+                        "Sweep: " + dollars(curve.sweep.start) + " to " + dollars(curve.sweep.end)
+                        + " in steps of " + dollars(curve.sweep.step)
+                        + ", pricing the next " + dollars(curve.sweep.probe) + " at each sampled level, "
+                        + "with " + String(curve.settlementCalls.federal) + " federal and "
+                        + String(curve.settlementCalls.state) + " state settlements across "
+                        + String(curve.settlementCalls.points) + " sampled points.", "subtle"));
+                    curveLabelHost.appendChild(incomplete);
+
+                    var rows = COMBINED.combinedCurveTextRows(curve);
+                    var rowIndex = 0;
+                    for (rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+                        var names = [];
+                        var nameIndex = 0;
+                        for (nameIndex = 0; nameIndex < rows[rowIndex].contributingThresholds.length; nameIndex += 1) {
+                            var crossed = rows[rowIndex].contributingThresholds[nameIndex];
+                            /* The jurisdiction and the pack lead the entry, because the entire
+                               value of a combined curve is knowing which government moved the
+                               rate. */
+                            names.push(crossed.jurisdiction + " \u00b7 " + crossed.packId + " \u00b7 "
+                                + crossed.name + " (" + String(crossed.sourceRef)
+                                + " \u00b7 " + String(crossed.locator) + ")");
+                        }
+                        var curveRow = document.createElement("tr");
+                        curveRow.setAttribute("data-rl-combined-curve-point", String(rowIndex));
+                        var cells = [
+                            dollars(rows[rowIndex].level),
+                            dollars(rows[rowIndex].federalTaxAtLevel),
+                            dollars(rows[rowIndex].stateTaxAtLevel),
+                            dollars(rows[rowIndex].combinedTaxAtLevel),
+                            percent(rows[rowIndex].federalMarginalRate),
+                            percent(rows[rowIndex].stateMarginalRate),
+                            percent(rows[rowIndex].combinedMarginalRate),
+                            rows[rowIndex].segmentKind === null ? "first sampled point"
+                                : (rows[rowIndex].segmentKind + (rows[rowIndex].cliff ? " \u00b7 step" : "")),
+                            names.length === 0 ? "no threshold crossed" : names.join(" ; ")
+                        ];
+                        var cellIndex = 0;
+                        for (cellIndex = 0; cellIndex < cells.length; cellIndex += 1) {
+                            curveRow.appendChild(text("td", cells[cellIndex]));
+                        }
+                        curveBody.appendChild(curveRow);
+                    }
+
+                    for (index = 0; index < curve.unavailableContributors.length; index += 1) {
+                        contributorHost.appendChild(combinedContributorNode(curve.unavailableContributors[index]));
+                    }
+                    if (curve.unavailableContributors.length === 0) {
+                        contributorHost.appendChild(text("p",
+                            "Neither pack declares a deferred threshold that would move a combined marginal rate.", "subtle"));
+                    }
+                }
+                drawCombinedCurveChart(curve);
+            }
+
+            /* Drawn synchronously from render, for the same reason the federal chart is: a
+               requestAnimationFrame callback does not fire in a hidden or background tab, so a
+               chart scheduled through one never draws there. The Power-only guard is what keeps a
+               Simple-view render from measuring a canvas whose section is display:none, which
+               would collapse the plot to zero width. */
+            function drawCombinedCurveChart(curve) {
+                var canvas = byId("combinedCurveChart");
+                if (!canvas || !canvas.getContext) return;
+                if (!document.body.classList.contains("power")) return;
+                var width = canvas.clientWidth > 0 ? canvas.clientWidth : canvas.width;
+                canvas.width = width;
+                var context = canvas.getContext("2d");
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                canvas.setAttribute("data-rl-combined-curve-drawn", "false");
+                if (curve === null || RULES.isUnavailable(curve) || curve.points.length === 0) {
+                    context.fillStyle = "#a7b2af";
+                    context.font = "13px sans-serif";
+                    context.fillText("No combined curve is available. The text-equivalent table below states why.", 12, 24);
+                    return;
+                }
+                var padLeft = 56;
+                var padBottom = 28;
+                var padTop = 14;
+                var plotWidth = canvas.width - padLeft - 14;
+                var plotHeight = canvas.height - padTop - padBottom;
+                var minLevel = curve.points[0].level;
+                var maxLevel = curve.points[curve.points.length - 1].level;
+                var maxRate = 0;
+                var index = 0;
+                for (index = 0; index < curve.points.length; index += 1) {
+                    if (curve.points[index].combinedMarginalRate > maxRate) {
+                        maxRate = curve.points[index].combinedMarginalRate;
+                    }
+                }
+                if (!(maxRate > 0)) maxRate = 1;
+                var span = maxLevel - minLevel;
+                if (!(span > 0)) span = 1;
+                function plotX(level) { return padLeft + ((level - minLevel) / span) * plotWidth; }
+                function plotY(rate) { return padTop + plotHeight - (rate / maxRate) * plotHeight; }
+
+                context.strokeStyle = "#2d3936";
+                context.beginPath();
+                context.moveTo(padLeft, padTop);
+                context.lineTo(padLeft, padTop + plotHeight);
+                context.lineTo(padLeft + plotWidth, padTop + plotHeight);
+                context.stroke();
+
+                /* Three series drawn from the identical record the table below reads, so a reader
+                   comparing the chart against the table can never be shown two derivations. A flat
+                   series at zero is DRAWN rather than skipped: a jurisdiction that levies nothing
+                   contributes a real zero, and an absent line would read as an absent government. */
+                var series = [
+                    { member: "federalMarginalRate", colour: "#74817e", label: "federal" },
+                    { member: "stateMarginalRate", colour: "#c9a227", label: "state" },
+                    { member: "combinedMarginalRate", colour: "#49d2b2", label: "federal and state together" }
+                ];
+                var seriesIndex = 0;
+                for (seriesIndex = 0; seriesIndex < series.length; seriesIndex += 1) {
+                    context.strokeStyle = series[seriesIndex].colour;
+                    context.lineWidth = seriesIndex === series.length - 1 ? 2 : 1;
+                    context.beginPath();
+                    for (index = 0; index < curve.points.length; index += 1) {
+                        var rate = curve.points[index][series[seriesIndex].member];
+                        if (!Number.isFinite(rate)) continue;
+                        var pointX = plotX(curve.points[index].level);
+                        var pointY = plotY(rate);
+                        if (index === 0) context.moveTo(pointX, pointY);
+                        else context.lineTo(pointX, pointY);
+                    }
+                    context.stroke();
+                }
+                context.lineWidth = 1;
+
+                context.fillStyle = "#a7b2af";
+                context.font = "11px sans-serif";
+                context.fillText(percent(maxRate), 6, padTop + 10);
+                context.fillText("0%", 6, padTop + plotHeight);
+                context.fillText(dollars(minLevel), padLeft, canvas.height - 8);
+                context.fillText(dollars(maxLevel), padLeft + plotWidth - 52, canvas.height - 8);
+                for (seriesIndex = 0; seriesIndex < series.length; seriesIndex += 1) {
+                    context.fillStyle = series[seriesIndex].colour;
+                    context.fillText(series[seriesIndex].label + " marginal rate on the next dollar",
+                        padLeft + 8, padTop + 12 + seriesIndex * 14);
+                }
+                canvas.setAttribute("data-rl-combined-curve-drawn", "true");
+            }
+
+            function renderPower() {
+                renderRuleLedger();
                 renderSettlement();
                 renderCurve();
                 renderConversion();
@@ -4549,6 +5281,7 @@
                 renderMedicare();
                 renderTaxLegLedger();
                 renderState();
+                renderCombined();
                 renderLegVisibility();
             }
 
@@ -4833,20 +5566,20 @@
 
             /* ---------- display mode ---------- */
 
-            function applyDisplayMode(mode, persist) {
+            function applyDisplayMode(mode) {
                 var power = mode === "power";
                 state.mode = power ? "power" : "simple";
                 document.body.classList.toggle("power", power);
                 byId("modeSimple").setAttribute("aria-pressed", String(!power));
                 byId("modePower").setAttribute("aria-pressed", String(power));
                 /* The location hash carries the view mode and nothing else. No query string is
-                   ever written, so no household value can reach the URL. */
+                   ever written, so no household value can reach the URL. The hash is also the
+                   ONLY carrier the chosen view persists through: every byte this tool puts in
+                   storage goes through the closed writer, which accepts none but the three keys
+                   the configuration declares, so a view preference cannot open a fourth key
+                   outside the inventory and outside the clear path. */
                 var wanted = power ? "#power" : "#simple";
                 if (window.location.hash !== wanted) window.location.hash = wanted;
-                if (persist) {
-                    try { window.localStorage.setItem(MODE_KEY, power ? "power" : "simple"); }
-                    catch (error) { /* session-only mode: the choice simply does not persist */ }
-                }
                 if (state.envelope) renderPower();
             }
 
@@ -4894,8 +5627,12 @@
             function clearPrivateData() {
                 if (!state.config) return;
                 var cleared = WORKSPACE.clearAllPrivateData(window.localStorage, state.config);
-                byId("privacyResult").textContent = "Removed exactly these keys: " + cleared.removedKeys.join(", ")
-                    + ". No key outside this tool's declared namespace was touched.";
+                /* The sentence reports what was removed, not what was attempted. An already-empty
+                   browser says so rather than naming three keys it never held. */
+                byId("privacyResult").textContent = (cleared.removedKeys.length === 0
+                    ? "This browser held none of this tool's keys, so nothing was removed."
+                    : "Removed exactly these keys: " + cleared.removedKeys.join(", ") + ".")
+                    + " No key outside this tool's declared namespace was touched.";
                 state.workspace = WORKSPACE.createEmptyWorkspace();
                 applyWorkspaceToForm();
                 render();
@@ -4924,15 +5661,15 @@
                     region.hidden = !region.hidden;
                     this.setAttribute("aria-expanded", String(!region.hidden));
                 });
-                byId("modeSimple").addEventListener("click", function () { applyDisplayMode("simple", true); });
-                byId("modePower").addEventListener("click", function () { applyDisplayMode("power", true); });
+                byId("modeSimple").addEventListener("click", function () { applyDisplayMode("simple"); });
+                byId("modePower").addEventListener("click", function () { applyDisplayMode("power"); });
                 byId("exportAcknowledgement").addEventListener("change", updateExportEnabled);
                 byId("exportPrivateFile").addEventListener("click", exportPrivateFile);
                 byId("clearAllPrivateData").addEventListener("click", clearPrivateData);
                 byId("powerLinkRows").addEventListener("click", function (event) {
                     var section = event.target.getAttribute("data-power-section");
                     if (!section) return;
-                    applyDisplayMode("power", true);
+                    applyDisplayMode("power");
                     var host = byId(section);
                     if (host) {
                         host.setAttribute("tabindex", "-1");
@@ -4945,6 +5682,7 @@
                     resizeTimer = window.setTimeout(function () {
                         resizeTimer = null;
                         if (state.envelope) drawCurveChart(state.envelope.curve);
+                        if (state.envelope) drawCombinedCurveChart(state.envelope.combined.curve);
                     }, 120);
                 });
 
@@ -4986,12 +5724,14 @@
                         })).then(function () {
                         /* The state packs are DECLARED by the configuration exactly as the federal
                            pack and the regime packs are, and read from this checkout by the same
-                           local path mechanism. Declaring them is what lets the permitted-asset
-                           derivation absorb them from the page's own declarations rather than from
-                           a hand-listed path, so a request to a pack the configuration never
-                           declared is still an undeclared request. A pack that fails to read leaves
-                           that jurisdiction unresolved and its residency refuses by name; no
-                           average, no national default and no zero is substituted for it. */
+                           local path mechanism. Declaring them is what lets declaredPackPaths in
+                           tests/lifetime-tax.support.mjs — the permitted-asset derivation the
+                           privacy-ledger specs share — absorb them from the page's own declarations
+                           rather than from a hand-listed path, so a request to a pack the
+                           configuration never declared is still an undeclared request. A pack that
+                           fails to read leaves that jurisdiction unresolved and its residency
+                           refuses by name; no average, no national default and no zero is
+                           substituted for it. */
                         var declaredStatePaths = config.rules.statePackPaths;
                         return Promise.all(Object.keys(declaredStatePaths).map(function (jurisdiction) {
                             return loadJson(declaredStatePaths[jurisdiction]).then(function (statePack) {
@@ -5003,9 +5743,10 @@
                            pack and the regime packs are, and read from this checkout by the same
                            local path mechanism. Declaring it rather than assembling its path here
                            is what lets every consumer that must know which assets this route may
-                           request — the route itself and the privacy ledger's permitted-asset
-                           derivation alike — read that answer off the page's own declarations
-                           instead of re-deriving it. No year and no figure is held by the page. A
+                           request — the route itself and declaredPackPaths in
+                           tests/lifetime-tax.support.mjs alike — read that answer off the page's own
+                           declarations instead of re-deriving it. No year and no figure is held by
+                           the page. A
                            pack that fails to read leaves the benefit unsettled and its leg refuses
                            by name; nothing is substituted for it. */
                         var declaredBenefitPaths = config.rules.benefitPackPaths;
@@ -5016,8 +5757,8 @@
                         }));
                         }).then(function () {
                         /* The mortality pack is DECLARED exactly as the benefit pack is, so the
-                           permitted-asset derivation the privacy ledger reads absorbs it from the
-                           page's own declarations rather than from a hand-listed path. A pack that
+                           declaredPackPaths derivation the privacy-ledger specs read absorbs it from
+                           the page's own declarations rather than from a hand-listed path. A pack that
                            fails to read leaves the comparison without a sourced remaining-years
                            figure, the totals are withheld by name, and no horizon is substituted. */
                         var declaredMortalityPaths = config.rules.mortalityPackPaths;
@@ -5028,7 +5769,7 @@
                         }));
                         }).then(function () {
                         /* The medicare pack is DECLARED exactly as the benefit and mortality packs
-                           are, so the permitted-asset derivation absorbs it without an edit. A pack
+                           are, so the declaredPackPaths derivation absorbs it without an edit. A pack
                            that fails to read leaves the premium stage without a sourced premium and
                            its three legs refuse by name; no typical premium is substituted. */
                         var declaredMedicarePaths = config.rules.medicarePackPaths;
@@ -5049,11 +5790,14 @@
                             byId(DECLARATION_INPUTS[index]).addEventListener("change", onWorkspaceEdit);
                             byId(DECLARATION_INPUTS[index]).addEventListener("input", onWorkspaceEdit);
                         }
-                        var storedMode = "simple";
-                        try { storedMode = window.localStorage.getItem(MODE_KEY) === "power" ? "power" : "simple"; }
-                        catch (error) { storedMode = "simple"; }
+                        /* The opening view comes from the hash this page itself writes on every
+                           mode change, so a reload or a bookmark reopens the view it left in. A
+                           bare URL opens in the view the configuration declares. Nothing is read
+                           from a storage key outside the three the configuration declares. */
+                        var openingMode = window.location.hash === "#power" ? "power"
+                            : (window.location.hash === "#simple" ? "simple" : config.display.defaultView);
                         render();
-                        applyDisplayMode(storedMode, false);
+                        applyDisplayMode(openingMode);
                         document.body.setAttribute("data-rl-tax-state", "ready");
                         document.body.setAttribute("data-rl-power-sections", POWER_SECTION_IDS.join(","));
                         document.body.setAttribute("data-rl-simple-fields", SIMPLE_FIELDS.join(","));

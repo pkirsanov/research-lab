@@ -124,7 +124,8 @@ of them is computed and not surfaced.
   break-even year. No ranking. No recommendation. No appreciation assumption.
 - No published error rate, self-invalidation statistic, track record or accuracy
   figure anywhere in spec text, scope text or user-facing copy.
-- Local-only. Zero network requests at runtime. No household value — including the
+- Local-only. The only runtime transport is same-origin reads of the declared
+  policy and pack documents. No household value — including the
   property's assessed value, its rental days and its basis — in any URL, query
   string, hash, request, referrer, console message or committed artifact.
 - Educational only. Not tax advice. Does not prepare or file a return.
@@ -735,7 +736,15 @@ test receives no exclusion with the failing test named.
 
 - **NFR-023-001** — every figure is sourced or declared, and never presented as the
   other.
-- **NFR-023-002** — zero network requests at runtime, including regime pack loading.
+- **NFR-023-002** — runtime transport is a bounded set of same-origin reads of the
+  configuration-declared policy and pack documents, regime pack loading included,
+  and no read reaches another origin. No read carries a household value; that
+  guarantee is `NFR-023-003` and this requirement does not qualify it.
+  **Adversarial cases.** A read of a regime pack the configuration does not
+  declare, or of any remote document, fails; an assessed value, a rental-day
+  count or a basis appearing in any request, URL, referrer or console message
+  fails. The declared regime reads must still be present and resolvable, so a
+  route that reads nothing does not satisfy this.
 - **NFR-023-003** — no household value, including assessed value, rental days and
   basis, reaches any URL, query string, hash, request, referrer, console message or
   committed artifact.

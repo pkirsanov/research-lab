@@ -1415,3 +1415,211 @@ reason other than the one it names, and `TP-03-25`'s discrimination is a
 pass-count delta because its command's exit code is polluted by a runner teardown
 fault. No assertion was edited, weakened, skipped or removed in this pass, and no
 timeout was raised.
+
+## Eighth Pass — `TP-03-29`, The Live-Route Privacy Row, Carries Its Own RED
+
+The seventh pass closed twenty-eight rows and the DoD row was ticked on that
+count. A twenty-ninth row was then added to this scope's Test Plan: `TP-03-29`,
+the live-route `NFR-023-003` proof this scope previously lacked, authored in
+`tests/lifetime-tax-rental.spec.mjs`. Adding a row reopens a DoD item that
+requires **every** row, which is why the item returned to open rather than
+staying ticked on the older count. This pass supplies the missing evidence.
+
+The row names three separable adversarial cases and no single mutation fails
+more than one of them, so each is probed on its own. Every RED names the row's
+own assertion by file line, which is what distinguishes an intended RED from a
+collateral break. All three blocks are verbatim harness output.
+
+**Arm A — a boot that read nothing.** Zeroing the capture is exactly that state,
+and it is what makes the two assertions below non-vacuous.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-29 arm A, non-empty pin: a boot that read nothing must fail this row, so the no-growth and permitted-set assertions cannot pass vacuously over an empty ledger
+file:             tests/lifetime-tax-rental.spec.mjs
+mutation:         const afterFirstPaint = ledger.length;  ->  const afterFirstPaint = ledger.length * 0;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-009\ the\ request\ ledger\ does\ not\ grow\ after\ the\ rental\ declarations --reporter=line
+red-exit:         1
+red-summary:          > 356 |   expect(afterFirstPaint).toBeGreaterThan(0);
+green-exit:       0
+green-summary:      1 passed (2.3s)
+summary-compared:     > 356 |   expect(afterFirstPaint).toBeGreaterThan(0);  vs     1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=4525b920762833ad036fd1dd68717063dbf95554 restored=4525b920762833ad036fd1dd68717063dbf95554)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Arm B — a request issued after the declarations are entered.** Subtracting one
+from the capture is the arithmetic image of exactly one such request: the
+non-empty pin still holds and only the no-growth equality fails, which is what
+shows the equality is carrying its own weight rather than riding on arm A.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-29 arm B, ledger growth: a request issued after the rental declarations are entered must fail this row
+file:             tests/lifetime-tax-rental.spec.mjs
+mutation:         const afterFirstPaint = ledger.length;  ->  const afterFirstPaint = ledger.length - 1;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-009\ the\ request\ ledger\ does\ not\ grow\ after\ the\ rental\ declarations --reporter=line
+red-exit:         1
+red-summary:          > 371 |   expect(ledger.length).toBe(afterFirstPaint);
+green-exit:       0
+green-summary:      1 passed (2.7s)
+summary-compared:     > 371 |   expect(ledger.length).toBe(afterFirstPaint);  vs     1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=4525b920762833ad036fd1dd68717063dbf95554 restored=4525b920762833ad036fd1dd68717063dbf95554)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Arm C — a read of a path the configuration does not declare.** Withdrawing the
+declared pack family from the derivation leaves the federal pack read, which the
+boot really makes, outside the permitted set.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-29 arm C, permitted-set membership: a read of a path the configuration does not declare must fail this row; withdrawing the declared pack family makes the federal pack read undeclared
+file:             tests/lifetime-tax-rental.spec.mjs
+mutation:         .concat(scripts).concat(packs).concat(['/favicon.ico']);  ->  .concat(scripts).concat([]).concat(['/favicon.ico']);   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-009\ the\ request\ ledger\ does\ not\ grow\ after\ the\ rental\ declarations --reporter=line
+red-exit:         1
+red-summary:          > 379 |   paths.forEach((path) => expect(permitted).toContain(path));
+green-exit:       0
+green-summary:      1 passed (2.3s)
+summary-compared:     > 379 |   paths.forEach((path) => expect(permitted).toContain(path));  vs     1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=4525b920762833ad036fd1dd68717063dbf95554 restored=4525b920762833ad036fd1dd68717063dbf95554)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Claim Source:** executed. All three blocks are verbatim harness output from
+this session. Each revert was hash-verified against the committed blob and
+`git status --short` for the touched spec was re-read clean afterwards.
+
+### Effect on the DoD rows
+
+Two rows are affected. The live-route `NFR-023-003` row is satisfied: the ledger
+does not grow after first paint, every entry is a same-origin read of a declared
+path, and neither assertion can pass over an empty ledger. The every-row
+RED/GREEN item is satisfied again at the new count of twenty-nine, carrying
+forward unchanged the two qualifications the seventh pass recorded.
+
+## Ninth Pass — The Four Rows Whose RED Resolved To Nothing Now Carry One (2026-08-23)
+
+The open note on the every-row item named four rows — `TP-03-07`, `TP-03-12`,
+`TP-03-13` and `TP-03-14` — that appear in this report exactly twice each: once
+as a Test Evidence heading naming the command, and once inside the seventh
+pass's sentence calling them "previously recorded". That sentence resolved to
+nothing a reader could check, which made the seventh pass's closing claim an
+overstatement for these four. This pass supplies the missing arm.
+
+The audit was re-run against the Test Plan rather than taken from the note. All
+twenty-nine rows were checked; the four the note named are the four that lacked
+a recorded RED, and no fifth row was found in the same state. Each of the four
+is probed on its own defect in the shipped module `rltaxrental.js`, and each
+`--summary-match` is pinned to that row's own assertion wording rather than to
+the suite's aggregate pass count, which a concurrent session moves. Every block
+below is verbatim harness output.
+
+**`TP-03-07` — the ordering channel.** The row claims a pack that ties the two
+applied orders is refused. Relaxing the ladder's strictly-increasing check to
+non-strict accepts the tie and applies the ladder in an order the sourced rule
+never established.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-07 ordering channel: the ladder relaxes its strictly-increasing check to non-strict, so a pack that gives both limits the same applied order is accepted and applied in an order the sourced rule never established
+file:             rltaxrental.js
+mutation:         if (appliedLimits[index].appliedOrder <= appliedLimits[index - 1].appliedOrder) {  ->  if (appliedLimits[index].appliedOrder < appliedLimits[index - 1].appliedOrder) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-03-07: a pack that inverts the two orders and a pack that ties them are each refused with the offending limits named, and the order is shown to change which limit disallowed which amoun
+green-exit:       0
+green-summary:      ✓ TP-03-07: a pack that inverts the two orders and a pack that ties them are each refused with the offending limits named, and the order is shown to change which limit disallowed which amount even
+summary-compared:   ✗ FAIL: TP-03-07: a pack that inverts the two orders and a pack that ties them are each refused with the offending limits named, and the order is shown to change which limit disallowed which amoun  vs    ✓ TP-03-07: a pack that inverts the two orders and a pack that ties them are each refused with the offending limits named, and the order is shown to change which limit disallowed which amount even   (elapsed time normalised out)
+revert-verified:  yes (committed=04505d51f87117fe1613b41a41277bfea5096b11 restored=04505d51f87117fe1613b41a41277bfea5096b11)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**`TP-03-12` — the carryforward channel.** The row's last clause is that the
+declared opening figure *enters* the loss the limits are applied to. Dropping it
+from that sum leaves the declaration accepted and labelled, and then silently
+discarded — the refusal and labelling clauses still pass, so only the clause this
+mutation targets fails.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-12 carryforward channel: the declared opening suspended loss is dropped from the loss the limits are applied to whenever the current year is itself a loss, so the household declaration is accepted, labelled and then silently discarded
+file:             rltaxrental.js
+mutation:         var lossBeforeLimits = netBeforeLimits < 0 ? (-netBeforeLimits) + openingSuspendedLoss : openingSuspendedLoss;  ->  var lossBeforeLimits = netBeforeLimits < 0 ? (-netBeforeLimits) : openingSuspendedLoss;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-03-12: a carryforward carrying a citation is refused, the declared opening figure is labelled the household’s own input and carries no sourceRef, and it enters the loss the limits are
+green-exit:       0
+green-summary:      ✓ TP-03-12: a carryforward carrying a citation is refused, the declared opening figure is labelled the household’s own input and carries no sourceRef, and it enters the loss the limits are appli
+summary-compared:   ✗ FAIL: TP-03-12: a carryforward carrying a citation is refused, the declared opening figure is labelled the household’s own input and carries no sourceRef, and it enters the loss the limits are  vs    ✓ TP-03-12: a carryforward carrying a citation is refused, the declared opening figure is labelled the household’s own input and carries no sourceRef, and it enters the loss the limits are appli   (elapsed time normalised out)
+revert-verified:  yes (committed=04505d51f87117fe1613b41a41277bfea5096b11 restored=04505d51f87117fe1613b41a41277bfea5096b11)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**`TP-03-13` — the no-projection statement channel.** The row asserts the settled
+record carries the statement that no following year is computed, displayed or
+implied. Truncating that sentence leaves a reader to infer for themselves whether
+the closing figure speaks about a later year.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-13 no-projection statement channel: the settled record stops stating that no following year is computed, displayed or implied, so a reader is left to infer for themselves whether the closing figure speaks about a later year
+file:             rltaxrental.js
+mutation:         noProjectionStatement: "This figure is the closing suspended loss for the declared year. No following year is computed, displayed or implied."  ->  noProjectionStatement: "This figure is the closing suspended loss for the declared year."   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-03-13: the settled record publishes exactly one closing figure, no computed member names a year other than the declared one, and every other year the full record does contain sits in a
+green-exit:       0
+green-summary:      ✓ TP-03-13: the settled record publishes exactly one closing figure, no computed member names a year other than the declared one, and every other year the full record does contain sits in a declar
+summary-compared:   ✗ FAIL: TP-03-13: the settled record publishes exactly one closing figure, no computed member names a year other than the declared one, and every other year the full record does contain sits in a   vs    ✓ TP-03-13: the settled record publishes exactly one closing figure, no computed member names a year other than the declared one, and every other year the full record does contain sits in a declar   (elapsed time normalised out)
+revert-verified:  yes (committed=04505d51f87117fe1613b41a41277bfea5096b11 restored=04505d51f87117fe1613b41a41277bfea5096b11)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**`TP-03-14` — the projection channel.** This row is adversarial: it plants a
+projected year in a copy of the record and requires the real record to stay
+clean. The mutation makes the engine itself publish the projection beside the
+closing figure, which is the exact defect the row exists to catch, so its
+clean-record clause is what fails.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-14 projection channel: the engine itself publishes the carryforward into a following year beside the closing figure, which is the exact defect this adversarial row exists to catch and which its clean-record clause must therefore detect
+file:             rltaxrental.js
+mutation:         closingSuspendedLoss: disallowedTotal,  ->  closingSuspendedLoss: disallowedTotal, nextYearSuspendedLoss: { year: 2027, amount: disallowedTotal },   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-03-14: a record projecting the carryforward into a following year fails the same single-year scan the settled record passes, whether the projected year sits in a nested member or beside
+green-exit:       0
+green-summary:      ✓ TP-03-14: a record projecting the carryforward into a following year fails the same single-year scan the settled record passes, whether the projected year sits in a nested member or beside the c
+summary-compared:   ✗ FAIL: TP-03-14: a record projecting the carryforward into a following year fails the same single-year scan the settled record passes, whether the projected year sits in a nested member or beside  vs    ✓ TP-03-14: a record projecting the carryforward into a following year fails the same single-year scan the settled record passes, whether the projected year sits in a nested member or beside the c   (elapsed time normalised out)
+revert-verified:  yes (committed=04505d51f87117fe1613b41a41277bfea5096b11 restored=04505d51f87117fe1613b41a41277bfea5096b11)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**What the four probes share, and why that matters.** Every mutation lands in the
+shipped module rather than in the assertion, so none of the four is a probe that
+edits the thing it is measuring. Every revert was hash-verified against the same
+committed blob `04505d51f8`, and `git status --porcelain rltaxrental.js` was
+re-read empty afterwards, so no mutation survived its probe. No assertion was
+edited, weakened, skipped or removed, and no mutation was retried after a miss.
+
+### Effect on the DoD row
+
+The every-row item is satisfied at twenty-nine and is ticked. The two
+qualifications the seventh pass recorded travel forward unchanged: `TP-03-04`'s
+convention conjunct is true for a reason other than the one it names, and
+`TP-03-25`'s discrimination is a pass-count delta because its command's exit code
+is polluted by a runner teardown fault. Both are recorded weaknesses in rows that
+do carry both arms, not missing arms.
+
+**Claim Source:** executed. All four blocks are verbatim harness output from this
+session, and each carries its own exit code and revert verification.

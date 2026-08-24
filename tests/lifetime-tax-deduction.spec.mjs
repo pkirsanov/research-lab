@@ -6,9 +6,12 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { startStaticServer } from './provider-credentials.support.mjs';
 import {
+  collectRequests,
+  declaredPackPaths,
   declareOrdinaryHousehold,
   openLifetimeTax,
-  openPower
+  openPower,
+  sameOriginPaths
 } from './lifetime-tax.support.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -100,6 +103,20 @@ async function declareMortgage(page, values) {
 
 const legSetOf = (page, selector) => page.locator(selector)
   .evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-rl-leg')).sort());
+
+/* The permitted-asset set, DERIVED from the page's own script tags and from every pack path the
+   configuration declares. A derived set admits only what the page itself asks for; a hand-listed
+   literal has to be edited to admit a new module, and such an edit is indistinguishable from one
+   admitting a leak. */
+function declaredRouteAssets() {
+  const routeSource = readFileSync(join(ROOT, 'lifetime-tax-strategy-lab.html'), 'utf8');
+  const config = JSON.parse(readFileSync(join(ROOT, CONFIG_PATH), 'utf8'));
+  const scripts = Array.from(routeSource.matchAll(/<script src="([^"]+)"><\/script>/g))
+    .map((match) => '/' + match[1]);
+  const packs = declaredPackPaths(config).map((path) => '/' + path);
+  return ['/lifetime-tax-strategy-lab.html', '/' + CONFIG_PATH]
+    .concat(scripts).concat(packs).concat(['/favicon.ico']);
+}
 
 const splitAttribute = (raw) => (raw === null || raw === '' ? [] : raw.split(','));
 
@@ -340,48 +357,133 @@ test('Regression: SCN-023-006 the itemized versus standard decision is recompute
     const cells = await page.locator('#deductionDecisionBody tr')
       .filter({ hasText: label }).first().locator('td')
       .evaluateAll((nodes) => nodes.map((node) => node.textContent.trim()));
-    return { total: money(cells[1]), applied: cells[2] };
+    return { total: money(cells[1]), comparison: cells[2], priced: cells[3] };
   };
+  const dollarsShown = (amount) => '$' + amount.toLocaleString('en-US');
 
-  /* The itemised total sits ABOVE the standard deduction while the household has declared the
-     STANDARD mode. The decision follows the two totals, so the declared mode changes nothing:
-     an implementation reading the mode flag would name the standard side here. */
+  /* F-REG-01. The itemised total sits ABOVE the standard deduction while the household has
+     declared the STANDARD mode, so the two facts this panel reports DISAGREE here, which is the
+     whole point of the fixture. The comparison is recomputed from the two totals and names
+     itemising. The settlement priced the tax on the standard deduction, because it applies the
+     declared mode rather than substituting a computed side for a declaration. Each surface must
+     say which of the two it is reporting. */
   await page.selectOption('#inputDeductionMode', 'standard');
   await page.fill('#inputItemizedAmount', String(STANDARD_SINGLE + 5000));
   let itemised = await sideRow('Itemised total');
   let standard = await sideRow('Standard deduction');
   expect(itemised.total).toBe(STANDARD_SINGLE + 5000);
   expect(standard.total).toBe(STANDARD_SINGLE);
-  expect(itemised.applied).toBe('applied');
-  expect(standard.applied).toBe('not applied');
+  expect(itemised.comparison).toBe('named');
+  expect(standard.comparison).toBe('not named');
+  expect(itemised.priced).toBe('did not price the tax');
+  expect(standard.priced).toBe('priced the tax');
   await expect(page.locator('#deductionChosenLine')).toContainText('itemised total is larger');
+  await expect(page.locator('#deductionChosenLine')).toContainText('did not price the tax');
+  /* Simple carries the same two facts on two rows: the deduction that priced the tax, and the
+     larger side the comparison found. They are DIFFERENT here, in both mode and amount. */
+  await expect(page.locator('[data-rl-value="deductionApplied"]')).toContainText('standard');
+  await expect(page.locator('[data-rl-value="deductionApplied"]'))
+    .toContainText(dollarsShown(STANDARD_SINGLE));
   await expect(page.locator('[data-rl-value="deductionSideChosen"]')).toContainText('itemized');
+  await expect(page.locator('[data-rl-value="deductionSideChosen"]'))
+    .toContainText(dollarsShown(STANDARD_SINGLE + 5000));
 
   /* Both totals stay side by side when the smaller side wins, and the household whose itemised
-     total falls below the standard deduction is TOLD its capped components changed nothing. */
+     total falls below the standard deduction is TOLD its capped components changed nothing. The
+     declared mode is itemised here, so the settlement priced the tax on the SMALLER side while
+     the comparison names the larger — the disagreement inverted. */
   await page.selectOption('#inputDeductionMode', 'itemized');
   await page.fill('#inputItemizedAmount', String(STANDARD_SINGLE - 5000));
   itemised = await sideRow('Itemised total');
   standard = await sideRow('Standard deduction');
   expect(itemised.total).toBe(STANDARD_SINGLE - 5000);
   expect(standard.total).toBe(STANDARD_SINGLE);
-  expect(itemised.applied).toBe('not applied');
-  expect(standard.applied).toBe('applied');
+  expect(itemised.comparison).toBe('not named');
+  expect(standard.comparison).toBe('named');
+  expect(itemised.priced).toBe('priced the tax');
+  expect(standard.priced).toBe('did not price the tax');
   await expect(page.locator('#deductionChosenLine')).toContainText('changed nothing');
   await expect(page.locator('[data-rl-value="deductionSideChosen"]')).toContainText('standard');
+  await expect(page.locator('[data-rl-value="deductionApplied"]')).toContainText('itemized');
 
-  /* The side named in Simple carries the applied amount, and that amount is the larger of the two
-     totals rather than the side the household declared. */
+  /* The side named in Simple's COMPARISON row carries the larger of the two totals, and the
+     priced-the-tax row carries the declared side's own smaller amount. Asserting both is what
+     makes a surface that renders one figure under the other label fail here. */
   await expect(page.locator('[data-rl-value="deductionSideChosen"]'))
-    .toContainText('$' + STANDARD_SINGLE.toLocaleString('en-US'));
+    .toContainText(dollarsShown(STANDARD_SINGLE));
+  await expect(page.locator('[data-rl-value="deductionApplied"]'))
+    .toContainText(dollarsShown(STANDARD_SINGLE - 5000));
 
   /* The tie is resolved the way the PACK declares, and the page says so rather than leaving the
-     side ambiguous. */
+     side ambiguous. At a tie the two figures agree in amount, so the labels are what separate
+     them and both are still stated. */
   await page.fill('#inputItemizedAmount', String(STANDARD_SINGLE));
   await expect(page.locator('[data-rl-value="deductionSideChosen"]'))
     .toContainText(PACK.deductionChoicePolicy.onTie);
+  await expect(page.locator('[data-rl-value="deductionApplied"]')).toContainText('itemized');
   await expect(page.locator('#deductionChosenLine')).toContainText('two totals are equal');
   await expect(page.locator('#deductionChosenLine')).toContainText('declared tie rule');
+});
+
+/* TP-02-28. The assertion F-REG-01 says was missing: it fails if any surface presents the
+   COMPOSED side as the deduction that priced the tax. It is run under the fixture in which the
+   declared mode and the composed side deliberately disagree, because under agreement no
+   assertion here could tell the two apart — that is precisely how the defect survived a suite of
+   3,244 checks. */
+test('Regression: F-REG-01 no surface names the composed side as the deduction that priced the tax', async ({ page }) => {
+  await openLifetimeTax(page, site);
+  await declareOrdinaryHousehold(page, { ordinary: 60000, bracketId: 'b3' });
+  await page.selectOption('#inputDeductionMode', 'standard');
+  await page.fill('#inputItemizedAmount', String(STANDARD_SINGLE + 5000));
+
+  const settled = page.locator('[data-rl-value="deductionApplied"]');
+  const composed = page.locator('[data-rl-value="deductionSideChosen"]');
+  const settledText = (await settled.textContent()).trim();
+  const composedText = (await composed.textContent()).trim();
+
+  /* The fixture is discriminating only while the two disagree. If a pack edit ever made them
+     agree, this test would silently stop testing anything, so the disagreement is asserted
+     rather than assumed. */
+  expect(settledText).not.toBe(composedText);
+  expect(settledText).toContain('standard');
+  expect(composedText).toContain('itemized');
+
+  /* The row that claims to have priced the tax must carry the SETTLED mode and the SETTLED
+     amount. Feeding it from the composition — the exact regression — puts 'itemized' and the
+     $5,000-higher figure here and fails both. */
+  expect(settledText).toContain('$' + STANDARD_SINGLE.toLocaleString('en-US'));
+  expect(settledText).not.toContain('$' + (STANDARD_SINGLE + 5000).toLocaleString('en-US'));
+
+  /* The composed row must not be labelled or described as the deduction that was applied. Both
+     the visible label and the tooltip are read, because the defect this replaces lived in a
+     tooltip whose first sentence contradicted the clause appended after it. */
+  const labelFor = async (valueId) => (await page.locator('[data-rl-value="' + valueId + '"]')
+    .evaluate((node) => node.closest('div').textContent)).trim();
+  const composedLabel = await labelFor('deductionSideChosen');
+  const settledLabel = await labelFor('deductionApplied');
+  expect(settledLabel).toContain('priced the tax');
+  expect(composedLabel).toContain('by comparison');
+  expect(composedLabel).not.toContain('actually applied');
+
+  const composedTip = (await page.locator('#tip-deductionSideChosen').textContent()).trim();
+  const settledTip = (await page.locator('#tip-deductionApplied').textContent()).trim();
+  expect(composedTip).not.toContain('actually applied');
+  expect(composedTip).toContain('A comparison');
+  expect(composedTip).toContain('did not price the tax');
+  expect(settledTip).toContain('subtracted from income');
+  /* One string may not assert both sides. The composed tooltip says it did not price the tax, so
+     it must not also claim the settlement applied it. */
+  expect(composedTip).not.toMatch(/this settlement applied the (itemized|standard) deduction/);
+
+  /* Power carries the same separation: the comparison column and the priced-the-tax column are
+     distinct columns, and here they name opposite sides. */
+  await openPower(page);
+  const decisionHeaders = await page.locator('#deductionDecision thead th')
+    .evaluateAll((nodes) => nodes.map((node) => node.textContent.trim()));
+  expect(decisionHeaders).toEqual(['Side', 'Total', 'Comparison', 'Priced the tax']);
+  const decisionAria = await page.locator('#deductionDecision').getAttribute('aria-label');
+  expect(decisionAria).not.toContain('actually applied');
+  expect(decisionAria).toContain('priced the tax');
 });
 
 /* TP-02-21. */
@@ -484,4 +586,61 @@ test('Regression: SCN-023-006 the composition and the decision reach the headlin
   } finally {
     await legSite.close();
   }
+});
+
+/* TP-02-29. */
+test('Regression: SCN-023-005 the request ledger does not grow after the mortgage declarations and every entry is a declared same-origin read', async ({ page }) => {
+  const ledger = collectRequests(page);
+  await openLifetimeTax(page, site);
+  /* Measured before a single declaration is entered. Every assertion below is a statement about
+     THIS number, so a route whose transport stopped working entirely would make all of them
+     vacuous — which is why the pin comes first. */
+  const afterFirstPaint = ledger.length;
+  expect(afterFirstPaint).toBeGreaterThan(0);
+
+  /* Distinctive mortgage figures. Both legitimately appear in the DOM and in this tool's own
+     local-storage namespace. Being distinctive is what stops the URL scan from passing on a digit
+     sequence some other declared member happens to share. */
+  const interestSentinel = 20417;
+  const balanceSentinel = 1130729;
+  await declareOrdinaryHousehold(page, { ordinary: 60000, bracketId: 'b3' });
+  await openPower(page);
+  await declareMortgage(page, {
+    interest: interestSentinel, balance: balanceSentinel, tier: 'acquisition-debt-current'
+  });
+
+  /* NFR-023-003, first half. Declaring the mortgage, resolving the debt limit and rendering the
+     refusal issued no request at all. */
+  expect(ledger.length).toBe(afterFirstPaint);
+
+  /* NFR-023-003, second half. Every request the route did make is one the route itself declares,
+     read from the route's own origin. The origin half runs first, in the shared helper: a
+     pathname is not an origin, so `https://elsewhere.example/rltaxstrategy.js` would satisfy the
+     membership sweep below on its own. */
+  const permitted = declaredRouteAssets();
+  const paths = sameOriginPaths(ledger, site);
+  paths.forEach((path) => expect(permitted).toContain(path));
+  /* The derived set is the page's own declaration set rather than everything or nothing, so the
+     sweep above is a real constraint. */
+  expect(permitted).toContain('/' + FEDERAL_PACK_PATH);
+  expect(permitted).not.toContain('/definitely-not-declared-by-this-route.js');
+  expect(paths).toContain('/' + FEDERAL_PACK_PATH);
+
+  /* No mortgage declaration reaches any URL, query string or request body, and nothing was POSTed. */
+  ledger.forEach((entry) => {
+    [String(interestSentinel), String(balanceSentinel), 'acquisition-debt-current'].forEach((sentinel) => {
+      expect(entry.url).not.toContain(sentinel);
+      expect(entry.postData).not.toContain(sentinel);
+    });
+    expect(entry.method).toBe('GET');
+  });
+  const address = page.url();
+  expect(address).not.toContain(String(interestSentinel));
+  expect(address).not.toContain(String(balanceSentinel));
+  expect(new URL(address).search).toBe('');
+
+  /* The declarations really are present, so every scan above ran against a live household rather
+     than an empty one. */
+  await expect(page.locator('#inputMortgageInterestPaid')).toHaveValue(String(interestSentinel));
+  await expect(page.locator('#inputMortgageAcquisitionDebtBalance')).toHaveValue(String(balanceSentinel));
 });

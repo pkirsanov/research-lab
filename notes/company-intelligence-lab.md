@@ -71,6 +71,44 @@ sets `priorVersionId` to the current pointer, then advances `current.json`. It
 opens no prior version file for writing, so an earlier read stays readable with
 its original `contentFingerprint`.
 
+## Owner Deep Links
+
+A dimension row may name an owning tool in `ownerDeepLink`. Any row that does
+must declare exactly one of `ownerSubjectParam` or `ownerBareReason`; declaring
+both, or neither, raises `C025-CONFIG-SCHEMA`. The schema exists because the
+registry previously declared `ownerSubjectParam` on rows whose owning routes
+contained no reader for it, so those links looked company-aware and were not.
+
+Of the fifteen rows:
+
+- **Four carry the subject.** `options-structure`, `dealer-gamma`,
+  `options-flow` and `volatility` declare `ownerSubjectParam: "ticker"`, and
+  their owning routes each read `?ticker=` through `RLTKR.linkedSubject`. Follow
+  one of these and the owning tool opens on the same company.
+- **Seven link to an owner that cannot open on a company**, across five distinct
+  tools, and each states why in `ownerBareReason`. They are plain links with no
+  subject attached — not a deferred feature.
+- **Four name no owner at all.** `financial-events`, `non-financial-events`,
+  `market-regime` and `company-risk` have no `ownerDeepLink`.
+
+The seven bare rows and their stated reasons:
+
+| Row | Owner | Reason | Why the owner cannot take a company |
+|---|---|---|---|
+| `performance` | `market-brief.html` | `market-scoped` | The brief reads the market, not one company. |
+| `sentiment` | `market-brief.html` | `market-scoped` | Same brief, same scope. |
+| `geopolitics` | `research-agenda-lab.html` | `market-scoped` | The agenda is a market-wide topic list. |
+| `fundamentals` | `company-fundamentals-lab.html` | `fixed-subject` | The route is hardcoded to Microsoft across roughly thirty identity strings; repointing its data alone would render one company's numbers under another company's name. |
+| `valuation` | `company-fundamentals-lab.html` | `fixed-subject` | Same route, same hardcoding. |
+| `technicals` | `technical-analysis-decision-lab.html` | `fixed-subject` | The route names no instrument to redirect. |
+| `cycles` | `trend-dynamics-cycle-lab.html` | `fixed-subject` | The route carries a single SPY series. |
+
+This is a limit of the linked set, not of the coverage floor: a bare row still
+answers or records its absence exactly as a subject-carrying row does. It is
+also a different axis from the `no-shared-read` limitation under
+[Known Limitations](#known-limitations), which is about whether an owner has
+published a read, not about whether its route can be opened on a company.
+
 ## Current Evidence Boundary
 
 - Company: resolved from a committed SEC identity, otherwise from committed

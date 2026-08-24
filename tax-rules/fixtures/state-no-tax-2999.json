@@ -1,0 +1,81 @@
+{
+  "contractVersion": "TaxRulePack/v2",
+  "id": "contract-fixture-no-tax-jurisdiction",
+  "program": "income-tax",
+  "jurisdiction": "state:QQ",
+  "version": "1.0.0",
+  "effectiveTaxYears": [2026],
+  "publishedAt": "2999-01-01",
+  "retrievedAt": "2999-01-01T00:00:00.000Z",
+  "ruleStatus": "user-hypothetical-law",
+  "sourceRecords": [
+    {
+      "contractVersion": "SourceRecord/v1",
+      "sourceId": "contract-fixture-no-tax-authority",
+      "title": "Contract fixture for the no-tax branch of the state rule-pack contract; not an authority and not a jurisdiction",
+      "url": "https://example.invalid/lifetime-tax-no-tax-fixture",
+      "publisher": "Lifetime Tax Strategy Lab contract fixture",
+      "documentKind": "publication",
+      "publishedAt": "2999-01-01",
+      "retrievalOutcome": "retrieved",
+      "retrievedAt": "2999-01-01T00:00:00.000Z",
+      "retrievalNote": "This is a CONTRACT FIXTURE, not a transcription of any authority. It exists so the sourced-zero branch of the contract is exercised by a pack that STATES the absence outright, which is what a real no-tax pack would have to do and what no shipped jurisdiction pack currently does. It declares the jurisdiction state:QQ, which is not a jurisdiction, so this pack cannot resolve for any real household however its declared years are read, and its ruleStatus is user-hypothetical-law rather than enacted law. No figure or wording here is, or may become, a figure or wording in a shipped jurisdiction pack."
+    }
+  ],
+  "supportedFeatures": [
+    {
+      "id": "fixture-no-individual-income-tax",
+      "label": "Fixture jurisdiction stating that it imposes no individual income tax",
+      "reason": "The fixture authority states the absence outright rather than leaving it to be derived, so the pack may declare imposesIndividualIncomeTax false, carry the authority that states it, and produce a valued record of zero carrying that citation rather than a blank, a dash or an unattributed zero."
+    }
+  ],
+  "unsupportedFeatures": [
+    { "id": "fixture-everything-else", "label": "Every provision this fixture does not carry", "reason": "A fixture carries exactly the branch it exists to exercise and nothing else. No result derived from it describes any real jurisdiction.", "code": "RLTAX-FEATURE-UNSUPPORTED", "movesMarginalRate": false, "successorFeature": "A real jurisdiction pack transcribed from that jurisdiction's own retrieved authority." },
+    { "id": "fixture-not-a-jurisdiction", "label": "Any real jurisdiction", "reason": "The declared jurisdiction state:QQ is not a jurisdiction, so this pack cannot resolve for a real household.", "code": "RLTAX-JURISDICTION-UNSUPPORTED", "movesMarginalRate": false, "successorFeature": "A real jurisdiction pack." }
+  ],
+  "indexingRules": [],
+  "calculationOrder": [],
+  "roundingPolicy": {
+    "contractVersion": "TaxRoundingPolicy/v1",
+    "calculationStages": [],
+    "displayStageIsSeparate": true,
+    "reconciliationTolerance": 0.005
+  },
+  "expiryPolicy": {
+    "contractVersion": "TaxPackExpiry/v1",
+    "expiresAt": "2999-12-31",
+    "reason": "A fixture expiry far outside any household's planning horizon, so the fixture never expires mid-suite and never masks a real pack's expiry.",
+    "onExpiry": "refuse"
+  },
+  "filingStatuses": ["single", "married-filing-jointly", "married-filing-separately", "head-of-household"],
+  "incomeKinds": ["ordinary", "qualified-dividend", "long-term-capital-gain", "tax-exempt-interest"],
+  "standardDeductions": {
+    "single": { "contractVersion": "AbsentFigure/v1", "code": "RLTAX-FEATURE-UNSUPPORTED", "domain": "fixture-state-deduction:single", "reason": "The fixture jurisdiction imposes no individual income tax, so it states no deduction against one.", "whatWouldMakeItAvailable": "A fixture that levied a tax would carry its deduction.", "missingSource": { "title": "Contract fixture", "url": "https://example.invalid/lifetime-tax-no-tax-fixture", "locator": "the fixture states no deduction" } },
+    "married-filing-jointly": { "contractVersion": "AbsentFigure/v1", "code": "RLTAX-FEATURE-UNSUPPORTED", "domain": "fixture-state-deduction:married-filing-jointly", "reason": "The fixture jurisdiction imposes no individual income tax, so it states no deduction against one.", "whatWouldMakeItAvailable": "A fixture that levied a tax would carry its deduction.", "missingSource": { "title": "Contract fixture", "url": "https://example.invalid/lifetime-tax-no-tax-fixture", "locator": "the fixture states no deduction" } },
+    "married-filing-separately": { "contractVersion": "AbsentFigure/v1", "code": "RLTAX-FEATURE-UNSUPPORTED", "domain": "fixture-state-deduction:married-filing-separately", "reason": "The fixture jurisdiction imposes no individual income tax, so it states no deduction against one.", "whatWouldMakeItAvailable": "A fixture that levied a tax would carry its deduction.", "missingSource": { "title": "Contract fixture", "url": "https://example.invalid/lifetime-tax-no-tax-fixture", "locator": "the fixture states no deduction" } },
+    "head-of-household": { "contractVersion": "AbsentFigure/v1", "code": "RLTAX-FEATURE-UNSUPPORTED", "domain": "fixture-state-deduction:head-of-household", "reason": "The fixture jurisdiction imposes no individual income tax, so it states no deduction against one.", "whatWouldMakeItAvailable": "A fixture that levied a tax would carry its deduction.", "missingSource": { "title": "Contract fixture", "url": "https://example.invalid/lifetime-tax-no-tax-fixture", "locator": "the fixture states no deduction" } }
+  },
+  "ordinaryRateTables": {
+    "single": { "contractVersion": "AbsentFigure/v1", "code": "RLTAX-FEATURE-UNSUPPORTED", "domain": "fixture-state-ordinary-rate-table:single", "reason": "The fixture jurisdiction imposes no individual income tax, so it states no rate schedule. A table of zeroes would be a fabricated rate structure rather than a statement of absence.", "whatWouldMakeItAvailable": "A fixture that levied a tax would carry its schedule.", "missingSource": { "title": "Contract fixture", "url": "https://example.invalid/lifetime-tax-no-tax-fixture", "locator": "the fixture states no rate schedule" } },
+    "married-filing-jointly": { "contractVersion": "AbsentFigure/v1", "code": "RLTAX-FEATURE-UNSUPPORTED", "domain": "fixture-state-ordinary-rate-table:married-filing-jointly", "reason": "The fixture jurisdiction imposes no individual income tax, so it states no rate schedule. A table of zeroes would be a fabricated rate structure rather than a statement of absence.", "whatWouldMakeItAvailable": "A fixture that levied a tax would carry its schedule.", "missingSource": { "title": "Contract fixture", "url": "https://example.invalid/lifetime-tax-no-tax-fixture", "locator": "the fixture states no rate schedule" } },
+    "married-filing-separately": { "contractVersion": "AbsentFigure/v1", "code": "RLTAX-FEATURE-UNSUPPORTED", "domain": "fixture-state-ordinary-rate-table:married-filing-separately", "reason": "The fixture jurisdiction imposes no individual income tax, so it states no rate schedule. A table of zeroes would be a fabricated rate structure rather than a statement of absence.", "whatWouldMakeItAvailable": "A fixture that levied a tax would carry its schedule.", "missingSource": { "title": "Contract fixture", "url": "https://example.invalid/lifetime-tax-no-tax-fixture", "locator": "the fixture states no rate schedule" } },
+    "head-of-household": { "contractVersion": "AbsentFigure/v1", "code": "RLTAX-FEATURE-UNSUPPORTED", "domain": "fixture-state-ordinary-rate-table:head-of-household", "reason": "The fixture jurisdiction imposes no individual income tax, so it states no rate schedule. A table of zeroes would be a fabricated rate structure rather than a statement of absence.", "whatWouldMakeItAvailable": "A fixture that levied a tax would carry its schedule.", "missingSource": { "title": "Contract fixture", "url": "https://example.invalid/lifetime-tax-no-tax-fixture", "locator": "the fixture states no rate schedule" } }
+  },
+  "preferentialRateTables": {
+    "single": { "contractVersion": "AbsentFigure/v1", "code": "RLTAX-FEATURE-UNSUPPORTED", "domain": "fixture-state-preferential-rate-table:single", "reason": "The fixture jurisdiction imposes no individual income tax and declares no preferential treatment, so it states no preferential schedule.", "whatWouldMakeItAvailable": "A fixture that levied a tax with a preferential schedule would carry one.", "missingSource": { "title": "Contract fixture", "url": "https://example.invalid/lifetime-tax-no-tax-fixture", "locator": "the fixture states no preferential schedule" } },
+    "married-filing-jointly": { "contractVersion": "AbsentFigure/v1", "code": "RLTAX-FEATURE-UNSUPPORTED", "domain": "fixture-state-preferential-rate-table:married-filing-jointly", "reason": "The fixture jurisdiction imposes no individual income tax and declares no preferential treatment, so it states no preferential schedule.", "whatWouldMakeItAvailable": "A fixture that levied a tax with a preferential schedule would carry one.", "missingSource": { "title": "Contract fixture", "url": "https://example.invalid/lifetime-tax-no-tax-fixture", "locator": "the fixture states no preferential schedule" } },
+    "married-filing-separately": { "contractVersion": "AbsentFigure/v1", "code": "RLTAX-FEATURE-UNSUPPORTED", "domain": "fixture-state-preferential-rate-table:married-filing-separately", "reason": "The fixture jurisdiction imposes no individual income tax and declares no preferential treatment, so it states no preferential schedule.", "whatWouldMakeItAvailable": "A fixture that levied a tax with a preferential schedule would carry one.", "missingSource": { "title": "Contract fixture", "url": "https://example.invalid/lifetime-tax-no-tax-fixture", "locator": "the fixture states no preferential schedule" } },
+    "head-of-household": { "contractVersion": "AbsentFigure/v1", "code": "RLTAX-FEATURE-UNSUPPORTED", "domain": "fixture-state-preferential-rate-table:head-of-household", "reason": "The fixture jurisdiction imposes no individual income tax and declares no preferential treatment, so it states no preferential schedule.", "whatWouldMakeItAvailable": "A fixture that levied a tax with a preferential schedule would carry one.", "missingSource": { "title": "Contract fixture", "url": "https://example.invalid/lifetime-tax-no-tax-fixture", "locator": "the fixture states no preferential schedule" } }
+  },
+  "imposesIndividualIncomeTax": false,
+  "noTaxAuthority": {
+    "sourceRef": "contract-fixture-no-tax-authority",
+    "locator": "fixture no-tax authority, the clause stating the absence for natural persons",
+    "reason": "The fixture authority states outright that this fixture jurisdiction imposes no individual income tax on a natural person. It states the absence rather than a rate, so the record produced from it is a zero carrying that citation rather than a rate table of zeroes."
+  },
+  "preferentialPolicy": "none",
+  "taxLegs": [],
+  "thresholdSets": {},
+  "reliefMechanisms": [],
+  "contentSha256": "sha256:b1ceb9383a4aa03b83698f0b6d9bed89e8fe033006cc0613d1dea611e7b781f8"
+}

@@ -107,7 +107,8 @@ with the jurisdiction that owns it.
   break-even year. No ranking. No recommendation.
 - No published error rate, self-invalidation statistic, track record or accuracy
   figure anywhere in spec text, scope text or user-facing copy.
-- Local-only. Zero network requests at runtime. No household value in any URL,
+- Local-only. The only runtime transport is same-origin reads of the declared
+  policy and pack documents. No household value in any URL,
   query string, hash, request, referrer, console message or committed artifact.
 - Educational only. Not tax advice. Does not prepare or file a return.
 
@@ -1611,6 +1612,42 @@ conflict and neither is eligible for supersession; each is a design defect, and
 each is fixed at its own contract in
 [`design.md`](design.md#per-component-kind-year-containment).
 
+**F-15: a Test Plan row id is not unique in this repository, so a green `grep` on
+a row id can be another feature's assertion.** Row ids are scoped to a scope, not
+to the repository. `TP-03-03` is declared as a Test Plan row by thirteen features
+— 007, 008, 012, 013, 016, 017, 018, 019, 020, 021, 022, 023 and 024 — and appears
+as an assertion label in `scripts/selftest.mjs` at **seven** independent sites
+owned by different features: an FX-leadership assertion, a curve-freshness
+assertion, a cadence-rearm assertion, a segment-threshold provenance assertion,
+this feature's federal ordered-array assertion, a depreciation assertion and a
+determinism assertion. `TP-04-04` is declared by the same thirteen features. The
+reuse has already produced a defect rather than merely risking one: this feature's
+Scope 04 `TP-04-04` read green while owned by no assertion of its own, because
+every passing `TP-04-04` line the suite emitted belonged to another feature. It
+was caught only by a suite-wide census of that literal, and the repair is recorded
+in `scripts/selftest.mjs` beside the owning assertion that census forced.
+
+**How a row must be pinned so a reused id cannot read green vacuously.** A row is
+pinned when its evidence resolves to exactly one assertion, so the pin must carry
+a discriminator the bare row id does not supply. Two forms satisfy that and both
+already exist in this repository:
+
+- **Label discriminator.** The assertion message carries a scope- or
+  feature-qualified prefix rather than the bare id. `Scope 04 TP-04-04: …` is the
+  existing form and is unique within a feature; a feature-qualified form such as
+  `F022 TP-04-04: …` is unique repository-wide. The census then greps the
+  qualified literal.
+- **Substance discriminator.** Where the label cannot be changed, the row's Exact
+  Behavior column names a phrase occurring in exactly one assertion message, and
+  the census greps that phrase instead of the id.
+
+Either form must assert a **count**, not mere presence. A row whose id resolves to
+two or more assertions is unpinned even when all of them pass, because the row
+cannot say which one failing would fall it; a presence-only census is satisfied by
+any other feature's green line. A repository-wide renumbering is explicitly **not**
+proposed: it would rewrite every closed feature's recorded evidence to fix a naming
+collision that a discriminator solves in place.
+
 ---
 
 ## Research Leads Requiring Independent Re-Retrieval
@@ -2059,7 +2096,7 @@ both year sets
 | ID | Requirement |
 | --- | --- |
 | NFR-022-001 | Identical input produces a byte-identical result. No clock, random source or network value enters any computation. |
-| NFR-022-002 | Zero network requests at runtime, including pack loading, proven by a request ledger rather than asserted. |
+| NFR-022-002 | No household value reaches any request, URL, referrer or console message; that guarantee is unconditional. Separately: runtime transport is a bounded set of same-origin reads of the configuration-declared policy and pack documents, pack loading included, and no read reaches another origin. Proven by a request ledger rather than asserted. **Adversarial cases.** A read of a document the configuration does not declare, or of any remote document, fails; a household value appearing in any request, URL, referrer or console message fails. |
 | NFR-022-003 | No household value — including the residency state and both new basis declarations — appears in any URL, query string, hash, request, referrer, console message or committed artifact. |
 | NFR-022-004 | The refusal vocabulary is extended additively by exactly two members. No existing member's meaning changes. |
 | NFR-022-005 | No module carries a bracket, rate, edge, threshold or jurisdiction name. A scan asserts it and is demonstrated to fail on a module that does. |

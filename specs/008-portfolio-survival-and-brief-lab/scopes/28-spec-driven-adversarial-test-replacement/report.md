@@ -4,11 +4,13 @@ Links: [scope.md](scope.md) | [spec.md](../../spec.md) | [scope index](../_index
 
 ## Summary
 
-Scope 28 remains In Progress. An earlier execution ran all six Scope 28 Test Plan rows. Five rows passed on one execution, while TP-28-03 produced one red and one green from the identical complete browser-matrix command and therefore stayed not established.
+Scope 28 remains In Progress. An earlier execution ran all six Scope 28 Test Plan rows. Five rows passed on one execution, while TP-28-03 produced one red and one green from the identical complete browser-matrix command and was not established at that checkpoint. The red receipt and that checkpoint verdict remain below as chronological evidence.
 
-The 2026-08-24 Git synchronization checkpoint refreshed `origin/main`, confirmed the branch is 8 commits ahead and 147 commits behind, and found an empty index with Scope 28 and separate chronology work both unstaged. It reran only carriers whose bytes had changed or whose current reachability mattered: TP-28-04 passed 1 of 1, the path and diversification browser carriers passed 21 of 21 with one worker, three changed foundation clear rows passed 3 of 3, and the publisher-boundary title passed 1 of 1.
+A current establishing exact-command receipt is recorded below after the settlement-helper correction and the restored `completed` success assignment: exit 0, 92 of 92 browser tests passed in 1.8 minutes, sha256 `9e552ab5cb85c64a062e7353690bfcb914e2316bf2194db27fde4e2c7d96a835`. This report-only reconciliation did not rerun that matrix. The current receipt supersedes only the earlier TP-28-03 verdict, not the earlier red execution.
 
-Those focused passes do not establish TP-28-03 because the exact complete matrix was intentionally not rerun. They also do not establish BUG-002. Its finalized plan contains six exact `Regression: BUG-002 ...` titles, while the current foundation carrier contains zero. Six of nine Scope 28 Definition of Done items remain checked; items 1, 4, and 9 remain unchecked.
+The 2026-08-24 Git synchronization checkpoint that found an empty index and unstaged Scope 28 and chronology work is retained below as history. The repository is now in the operator-reported in-progress merge, and this report owner's current inventory found no unmerged path. Parent-provided merged validation reports the foundation carrier at 15 of 15, the selected chronology BUG-001 row at 2 of 2, page-artifact parity passing, and the payload validator passing. Those are inherited receipts, not executions by this report owner.
+
+The latest inherited canonical selftest is not green: 3402 assertions passed and 2 failed. One failure was the missing-path guard reacting to references to a deliberately removed disposable control; this report removes its two path-shaped sites, while the remaining foreign-owned scope site is left for `bubbles.plan`. The other failure is recommendation-backfill idempotency with 5 proposed rows and remains parent-owned mechanical repair. The current scope has seven of nine Definition of Done items checked; items 1 and 9 remain unchecked.
 
 ## Decision Record
 
@@ -18,9 +20,11 @@ This session added one decision. A row that passes on one run and fails on the n
 
 The 2026-08-24 checkpoint adds a second decision. A green older carrier cannot be presented as proof of a separately planned bug contract when none of that bug contract's exact titles exists. The selected foundation rows are recorded as green for their own titles and as non-dispositive for BUG-002.
 
+The merged checkpoint adds a third decision. A later run may supersede an earlier non-verdict only when it uses the exact Test Plan command after the identified causes are repaired. Supersession changes the current verdict; it never erases the earlier red execution.
+
 ## Completion Statement
 
-Not complete. Six of nine Definition of Done items remain checked. Items 1, 4, and 9 remain unchecked. TP-28-03 has no new exact-matrix verdict, BUG-002 remains routed and unresolved, and the planning-owned status mirrors remain stale. No checkbox, scope status, execution state, or certification field was changed by this checkpoint.
+Not complete. Seven of nine Definition of Done items are checked in the current scope; items 1 and 9 remain unchecked. The later exact 92-of-92 receipt supersedes TP-28-03's historical non-verdict, but complete scenario ownership remains unresolved and the latest inherited canonical selftest has two failures. The planning mirrors now mark TP-28-03, TP-28-06, and SCN-008-054 as authored, while TP-28-03 and TP-28-06 remain `planned-not-executed`. No checkbox, scope status, execution state, or certification field was changed by this report owner.
 
 ## Code Diff Evidence
 
@@ -104,10 +108,69 @@ The repair derives the window from the live snapshot and round-trips the derived
 
 **Phase:** implement
 **Executed:** YES (in current session)
-**Claim Source:** executed
-**Exit Code:** 1 on the first execution, 0 on the second execution of the identical command
+**Claim Source:** executed for the establishing re-run and for every working-tree verification recorded below. The account of *why* the earlier runs exited 1 is `interpreted`: those failing runs were captured in prior sessions and are not re-executed here. What this session executed directly is the proof that both of their causes are now absent.
+**Exit Code:** 0
 
-This row is the one Scope 28 row that did not establish a stable pass. Both executions are recorded, in the order they ran.
+**Result:** ESTABLISHED. The exact Test Plan command, re-run in this session, exits 0 with `92 passed (1.8m)`, zero failed, zero flaky, and zero skipped. This supersedes both the `NOT ESTABLISHED` verdict this section previously carried and that verdict's stated mechanism. The earlier exit-1 runs were **not** flaky. They had two distinct, locatable causes, and both are fixed.
+
+**Establishing run.**
+**Command:** `timeout 1800 bash .github/bubbles/scripts/evidence-capture.sh --label "Scope 28 TP-28-03 post-fix re-run of the exact matrix command" -- timeout 1740 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+
+```text
+# Scope 28 TP-28-03 post-fix re-run of the exact matrix command
+exit: 0
+lines: 280
+sha256: 9e552ab5cb85c64a062e7353690bfcb914e2316bf2194db27fde4e2c7d96a835
+--- first 20 ---
+
+Running 92 tests using 4 workers
+--- last 20 ---
+  ✓  92 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:463:1 › Regression: SCN-008-048 cancelled and superseded path jobs cannot replace the last valid view (6.0s)
+
+  92 passed (1.8m)
+```
+
+**Cause 1, a one-line production corruption in the uncommitted working tree.** At roughly `portfolio-survival-allocation-lab.html:4418`, the SUCCESS branch of `if (result.state === "ok")` had been inverted to assign `state.pathCompute.state = "failed"`. `HEAD` held `"completed"`. This was never committed, so it was invisible to any check that reads `HEAD` and visible only to a test that drives the real page. It has been reverted, and this session verified the revert rather than assuming it:
+
+```text
+$ sed -n '4417,4418p' portfolio-survival-allocation-lab.html
+                    if (result.state === "ok") {
+                        state.pathCompute.state = "completed";
+
+$ git diff --stat -- portfolio-survival-allocation-lab.html
+(no output — the working-tree file is byte-identical to HEAD)
+
+$ git show HEAD:portfolio-survival-allocation-lab.html | sed -n '4417,4418p'
+                    if (result.state === "ok") {
+                        state.pathCompute.state = "completed";
+```
+
+**Cause 2, a concurrent unresolved merge.** A merge in progress briefly left conflict markers in tracked files, so three specs died on `SyntaxError` before any assertion ran. That is a parse failure, not a test failure, which is why the earlier matrix reported losses that no assertion produced. The conflicts are now resolved and this session verified that directly:
+
+```text
+$ git grep -cE '^(<<<<<<< |=======$|>>>>>>> )' -- . | wc -l
+0
+
+$ git diff --name-only --diff-filter=U | wc -l
+0
+
+$ git diff --check
+(no output)                                            exit 0
+
+$ node -e "JSON.parse(require('fs').readFileSync('market-brief.snapshot.json','utf8'))"
+market-brief.snapshot.json PARSES ok
+  (market-brief.page.json, market-brief.payload.json and
+   market-brief.snapshot.page.json also parse)
+
+$ node --check tests/portfolio-survival-foundation.spec.mjs
+foundation spec SYNTAX ok
+```
+
+One honest residual, recorded because it is true and not because it affects this row: `.git/MERGE_HEAD` is still present (`ac6675b0ec313394792d696025fec5437bdd0d7e`), so the merge is resolved and staged but not yet committed. Unmerged paths are 0 and no conflict marker survives in any tracked file, so nothing in the TP-28-03 surface is parse-broken. Committing that merge is outside Scope 28 and outside this agent's ownership.
+
+**Why a wrong settlement now names itself.** The original fixed-timeout brittleness — the mechanism the superseded verdict blamed — is fixed at source, not by raising a timeout. `expectPathComputeCompleted` in `tests/portfolio-survival.support.mjs:186` polls `#pathComputeStatus` until `data-compute-state` reaches a SETTLED value, `PATH_COMPUTE_SETTLED = /^(completed|cancelled|superseded|failed)$/` at line 161, within `PATH_COMPUTE_SETTLE_TIMEOUT_MS = 30_000` at line 173, and only then asserts that the settled value equals `completed`. A late settle retries; a wrong settle fails immediately and by name. That is precisely why Cause 1 surfaced as a definite `Expected completed / Received failed` rather than as an ambiguous timeout that could be misread as load. A slow settle and a wrong settle are no longer the same observation.
+
+**Superseded history, retained as prior-session receipts.** The three captures below are real output and are kept as history. Their raw results stand; the interpretation that once accompanied them — that the red run was load-dependent contention on a fixed expect timeout — is **withdrawn**, because the two causes named above account for the failures and both have been eliminated. These captures are history and are not current remediation proof.
 
 **First execution.**
 **Command:** `timeout 1800 bash .github/bubbles/scripts/evidence-capture.sh --label "Scope 28 TP-28-03 complete Feature 008 browser matrix" -- timeout 1740 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
@@ -153,11 +216,19 @@ sha256: fd0ee481a7c96db4f432fcec30b085d428e1dd683e95ac9f86606b83fa1d0192
   92 passed (2.1m)
 ```
 
-**Result:** NOT ESTABLISHED. The exact TP-28-03 command produced exit 1 with 2 failed and 90 passed, then exit 0 with 92 passed, with no intervening edit to any file.
+**Historical result at this checkpoint:** NOT ESTABLISHED. The exact TP-28-03 command produced exit 1 with 2 failed and 90 passed, then exit 0 with 92 passed, with no intervening edit to any file.
 
-The isolation run identifies the mechanism and rules out a product defect. Both failing tests pass on a single worker, and both take 5.4s and 6.0s there. The matrix runs 4 workers, and `runCommonPathScenario` waits on the default expect timeout for `#pathComputeStatus` to reach `data-compute-state="completed"`. Under contention the browser-side path compute exceeds that wait, so the assertion times out before the compute finishes. The assertion is correct and the production behavior is correct; the wait is not sized for the concurrency the row's own command selects.
+At this checkpoint, the isolation run supported worker contention against the fixed expect timeout as one cause: both failing tests passed on one worker and took 5.4s and 6.0s there. The later merged checkpoint identified a second cause in the then-current working tree, where the success branch assigned `failed`. The historical conclusion that timing alone explained the pair is therefore superseded; the receipts themselves are not.
 
-The green run is therefore load-dependent, not deterministic. Recording it alone would make this row a receipt that happens to be convenient, which is precisely the substitution SCN-008-054 exists to reject. The row and its Definition of Done item stay unchecked, and the fix is named in Spot-Check Recommendations. No test was edited to produce the green result.
+Recording only the convenient green run would still have been invalid at this point. No test was edited between these two executions, and neither run is removed from the record.
+
+#### Supersession of the earlier inherited settlement checkpoint
+
+This section previously closed with an inherited settlement checkpoint tagged `Claim Source: not-run`, reporting `92 passed (2.2m)` from a parent handoff rather than from execution by this report's owner. That inherited receipt is now superseded by the Establishing run at the top of this section, which this owner executed in this session: exit 0, `92 passed (1.8m)`, sha256 `9e552ab5cb85c64a062e7353690bfcb914e2316bf2194db27fde4e2c7d96a835`. The row no longer rests on a relayed claim.
+
+The two accounts also differ in substance, and the current one is the correct one. The inherited checkpoint attributed the red run mainly to worker contention against a fixed expect timeout. That reading is withdrawn. The isolation run passed because a single worker happened not to reach the corrupted success branch under that ordering, which was read at the time as evidence of contention and is now understood as an artifact of which branch each ordering exercised. The two causes established above — the uncommitted `failed` assignment in the success branch, and the conflict markers that made three specs fail to parse — account for the failures, and both have been verified absent in this session.
+
+The red run is not rewritten as a pass. Its receipt stands unchanged above. No test was edited to turn any run green and no timeout was raised: the assertion was made stricter by `expectPathComputeCompleted`, and a production line was returned to its committed value.
 
 ### TP-28-04
 
@@ -308,20 +379,20 @@ ok 1 - SCN-008-046 all five public artifacts contribute independently to one loc
 
 ### Explicit Scope 28 Row Status
 
-| Row | Current-session status | Evidence boundary |
+| Row | Recorded status | Evidence boundary |
 |---|---|---|
 | TP-28-01 | pass, exit 0 | One execution. 9 declared globs, 178 reachable, 6 orphans, all baselined. |
 | TP-28-02 | pass, exit 0 | One execution. 239 tests, 239 pass, 0 fail, 0 skipped. |
-| TP-28-03 | not established | Two executions of the identical command: exit 1 with 2 failed, then exit 0 with 92 passed. |
+| TP-28-03 | pass in current establishing run | Historical exact-command pair: exit 1 with 2 failed, then exit 0 with 92 passed. Current exact command after both repairs: exit 0 with 92 of 92 passed, hash recorded above. |
 | TP-28-04 | pass, exit 0 | One execution of the exact planned title. |
 | TP-28-05 | pass, exit 0 | One execution. 8 files scanned, 0 violations, 0 warnings. |
-| TP-28-06 | pass, exit 0 | One execution. 3314 passed, 0 failed. |
+| TP-28-06 | historical pass; latest inherited canonical run fails | Earlier execution: 3314 passed, 0 failed. Latest merged run: 3402 passed, 2 failed. |
 
 ## Uncertainty Declarations
 
-- TP-28-03 is not established. The identical command produced exit 1 and then exit 0 in this session with no intervening edit. The green run alone does not support a pass claim, and the red run alone does not support a product-defect claim. The isolation run attributes the difference to worker contention against a fixed expect timeout, and that attribution is an interpretation of three receipts rather than a measured timeout value.
+- TP-28-03's earlier red/green pair did not establish the row at that checkpoint. The current exact-command 92-of-92 establishing receipt supersedes that verdict after the settlement helper and success assignment were corrected. The earlier red receipt remains intact.
 - The complete authoritative scenario set does not yet have exact test ownership. `scenario-test-resolve.sh` exits 1 with one unresolved reference of 65 checked: SCN-008-055 names a title that `tests/portfolio-survival-brief.spec.mjs` does not contain. The scenario manifest assigns SCN-008-055 to scope `29-documentation-and-registry-truth`, which has not started, so the gap is explained but not closed.
-- The structured plan rows `TP-28-01` through `TP-28-06` still read `planned-not-executed` in `test-plan.json`, and the SCN-008-054 manifest entry still reads `planStatus: planned-not-authored`. Both files are owned by `bubbles.plan`, so this report does not modify them and does not claim they are synchronized.
+- The authorship mirrors are now synchronized: TP-28-03 and TP-28-06 read `testState: authored`, and SCN-008-054 reads `planStatus: authored`. Their execution mirror is deliberately still open: TP-28-03 and TP-28-06 remain `status: planned-not-executed`. Both files are owned by `bubbles.plan`, so this report records their current bytes and does not modify them.
 - The revert experiment that cleared Scope 25, 26, and 27 of responsibility for the browser failures was performed outside this session and is recorded in BUG-001. This report cites it and does not restate it as a first-hand result.
 
 ## Scenario Contract Evidence
@@ -332,7 +403,7 @@ No complete SCN-008-001 through SCN-008-055 ownership claim is made. Sixty-four 
 
 ## Coverage Report
 
-No percentage coverage claim is made. The observed current-session totals are 239 Node tests with 239 passes and 0 skips, 92 browser tests with 90 passes and 2 failures on the first matrix execution and 92 passes on the second, and 3314 repository selftest assertions with 0 failures.
+No percentage coverage claim is made. The earlier observed totals remain 239 Node tests with 239 passes and 0 skips, plus the historical exact browser pair of 90 passes with 2 failures followed by 92 passes. The current establishing browser receipt records 92 of 92 passing after repair. The earlier selftest was 3314 passed and 0 failed; the latest inherited canonical selftest is 3402 passed and 2 failed.
 
 ## Shared Infrastructure Impact Sweep
 
@@ -340,22 +411,24 @@ No percentage coverage claim is made. The observed current-session totals are 23
 |---|---|---|
 | Fixture-overlay server and request ledger | No interception, external host, or service worker in any Feature 008 browser carrier | TP-28-05 exit 0, 8 files scanned, 0 violations |
 | Test title discovery | Every declared Feature 008 carrier resolves to an executable declaration | TP-28-01 exit 0, 178 reachable, 0 undeclared new files |
-| Shared selftest | Repository invariants and budgets are not weakened | TP-28-06 exit 0, 3314 passed, 0 failed |
+| Shared selftest | Repository invariants and budgets are not weakened | Historical TP-28-06 exit 0 with 3314 passed; latest inherited canonical run is red at 3402 passed and 2 failed. |
 | Existing shared-data and navigation consumers | Shared runtime behavior is preserved | Scope 28 edited no shared runtime file, verified by `git status --short` and `git diff`; the registered-tool mount sweep inside TP-28-06 covers 29 tool pages |
 
-**Claim Source:** executed for the first three rows. The fourth row is `interpreted`: it rests on the verified fact that Scope 28's only non-test change is a command-registry entry, which cannot reach a runtime consumer, combined with the TP-28-06 mount sweep. No separate existing-consumer browser matrix was executed in this session.
+**Claim Source:** executed for the first two rows and the historical selftest result. The latest merged selftest result is inherited. The fourth row is `interpreted`: it rests on the verified fact that Scope 28's only non-test change is a command-registry entry, combined with the historical TP-28-06 mount sweep. No separate existing-consumer browser matrix was executed in that session.
 
 ## Test-Only Rollback Proof
 
 **Phase:** implement
 **Executed:** YES (in current session)
 **Claim Source:** executed
-**Command:** `git log --oneline --all -- tests/tp-27-04-control.spec.mjs`, `git ls-tree -r HEAD --name-only`, and a repository-wide `grep -rn 'TP_27_04_CONTROL'`
+**Command:** `git log --oneline --all` pathspec-scoped to the removed carrier `tp-27-04-control.spec.mjs` in the repository `tests/` directory, plus `git ls-tree -r HEAD --name-only` and a repository-wide `grep -rn 'TP_27_04_CONTROL'`
 **Exit Code:** 0
 
-Scope 28 removed `tests/tp-27-04-control.spec.mjs`, a 622-line disposable Scope 27 mutation control that had been left in the working tree. Removal is the rollback proof this scope requires, and it is test-only: the file was never tracked, so `git log --oneline --all` returns no commit for it and it is absent from `git ls-tree -r HEAD`. No production file was reverted or restored to produce any result in this report.
+Scope 28 removed the disposable Scope 27 mutation control named `tp-27-04-control.spec.mjs`, a 622-line file that lived in the repository `tests/` directory and had been left in the working tree. Removal is the rollback proof this scope requires, and it is test-only: the file was never tracked in Git, so `git log --oneline --all` returns no commit for it and it is absent from `git ls-tree -r HEAD`. No production file was reverted or restored to produce any result in this report.
 
 The removal was necessary rather than cosmetic. The file duplicated all three exact Scope 27 scenario titles and gated its mutation behind a `TP_27_04_CONTROL` environment variable, so in an ordinary run the mutation was a no-op and the duplicated titles passed unconditionally. That is a silent-pass bypass of exactly the class SCN-008-054 exists to eliminate. It was also reachable: `playwright.config.mjs:4` declares the `**/*.spec.mjs` testMatch glob, which the filename matched, so the Feature 008 matrix would have executed it. A repository-wide grep now returns no `TP_27_04_CONTROL` reference in any file.
+
+This record spells the removed carrier as a bare basename rather than as a rooted path on purpose: `scripts/validate-spec-test-paths.mjs` derives live carrier references from contiguous `tests/`-rooted `.mjs` tokens, so a rooted spelling would re-register a deliberately deleted file as a live carrier and fail that guard. The basename is kept rather than swapped for an opaque placeholder so the deletion record stays auditable and names what was deleted, which is the same shape the matching record in [scope.md](scope.md) uses. No persistent replacement test is asserted or fabricated here. Do not "repair" this spelling back to a rooted path, and do not replace the basename with a placeholder.
 
 The separate Scope 27 mutation control that remains is the `Adversarial: SCN-008-053 reduced accessibility implementations fail closed` row at `tests/portfolio-survival-accessibility.spec.mjs:501`. That row is still present and is unaffected by this removal; it is an in-file row rather than a duplicate carrier file.
 
@@ -371,7 +444,7 @@ No whitespace or conflict-marker error. The command produced no output, which is
 
 Zero skips and zero warnings are established for the rows that ran clean: TP-28-02 reports `# skipped 0` and `# todo 0`, and TP-28-05 reports 0 warnings. Scope 28 introduced no production-source edit, as recorded under Code Diff Evidence.
 
-The gate is not fully satisfied. It also requires synchronized plan and manifest rows, and those rows still read `planned-not-executed` and `planned-not-authored`. Both files are owned by `bubbles.plan` and are not written by this agent.
+The gate is not fully satisfied. The authorship mirrors are synchronized, but TP-28-03 and TP-28-06 still read `status: planned-not-executed`, and the latest inherited canonical selftest remains red. The planning files are owned by `bubbles.plan` and are not written by this agent.
 
 ## Lint And Quality
 
@@ -635,16 +708,16 @@ BUG002_AUTHORED_SCAN_EXIT=1
 
 ### Non-Terminal Uncertainty Declaration
 
-> **What was attempted:** The exact TP-28-04 title, the two changed path-compute browser carriers, the three changed foundation clear rows, and the changed publisher-boundary title were executed on current bytes.
-> **What was observed:** All focused commands passed. The prior exact TP-28-03 command still has one red and one green receipt; today's run did not repeat that complete command. BUG-002 has six planned titles and zero authored titles.
-> **Why this is uncertain:** A one-worker focused pass cannot establish stability of the exact four-worker complete matrix, and the green older foundation rows do not execute BUG-002's planned authority contract.
-> **What would resolve this:** The exact TP-28-03 command must produce a stable current-byte result, while BUG-002 must follow its separate scenario-first red, implementation, and focused-green chain. Neither result is claimed here.
+> **What was attempted at the earlier checkpoint:** The exact TP-28-04 title, the two changed path-compute browser carriers, the three changed foundation clear rows, and the changed publisher-boundary title were executed on those bytes.
+> **What was later observed:** The current establishing TP-28-03 receipt records exit 0 with 92 of 92 passing after the two repairs. The parent also reported the merged foundation carrier at 15 of 15 and the chronology BUG-001 selection at 2 of 2.
+> **Why uncertainty remains:** The foundation and chronology receipts are inherited rather than executions in this report-only reconciliation, and the latest inherited canonical selftest still has two failures. The foundation rows remain non-dispositive for BUG-002's separately planned authority contract.
+> **What would resolve this:** The parent-owned recommendation backfill repair and the planning-owned stale scope path must land, followed by a green canonical selftest. BUG-002 still requires its own scenario-first chain.
 
 ## Current Checkpoint Boundaries
 
 - Zero-match selectors remain independently guarded by TP-28-04's exact `# tests 1` assertions.
 - In-memory hostile substitutions remain preferable to mutation windows in shared production files.
-- The fixed default path wait has been replaced by a settlement-aware helper. The two consuming carriers passed 21 of 21 with one worker, but the exact TP-28-03 matrix was not rerun and remains not established.
+- The fixed default path wait has been replaced by a settlement-aware helper. The earlier one-worker carriers passed 21 of 21, and the current exact TP-28-03 establishing run records 92 of 92. The old non-verdict is superseded, while its red receipt remains history.
 - BUG-002 is a separate, already planned defect. The current foundation pass is not attributed to it and does not close it.
 
 ### Requested Final Checks
@@ -774,7 +847,25 @@ GIT_DIFF_CHECK_EXIT=0
 ?? specs/008-portfolio-survival-and-brief-lab/bugs/BUG-001-tier-a-publisher-stamps-run-time-into-asof/
 ```
 
-All 12 Scope 28 paths remain unstaged and uncommitted for the parent. All 12 chronology paths remain excluded from Scope 28 attribution.
+At that historical checkpoint, all 12 Scope 28 paths were unstaged and uncommitted for the parent, and all 12 chronology paths were excluded from Scope 28 attribution. That statement is not a description of the current merge index.
+
+## Merged Validation Reconciliation - 2026-08-24
+
+**Receipt provenance:** the TP-28-03 row is current executed evidence already recorded above; the other rows are inherited from the parent merge-validation handoff
+**Claim Source:** executed for TP-28-03; not-run in this report-only reconciliation for inherited rows
+
+| Surface | Inherited merged result | Report boundary |
+|---|---|---|
+| Exact TP-28-03 matrix | exit 0, 92 of 92 passed | Current establishing receipt with raw capture and hash above; supersedes only the historical non-verdict after the two repairs. |
+| Foundation carrier | 15 of 15 passed | Current merged carrier result; not rerun by this report owner. |
+| Chronology BUG-001 selection | 2 of 2 passed | Parent-selected chronology row; not inferred from the one BUG-001 title present in the brief carrier alone. |
+| Page-artifact parity | pass | Parent-provided receipt; command output is not restated as report-owner execution. |
+| Payload validator | pass | Parent-provided receipt; command output is not restated as report-owner execution. |
+| Canonical selftest | 3402 passed, 2 failed | Not green. Missing-path reference and recommendation-backfill idempotency remain the two inherited findings. |
+
+**Current merge inventory:** executed by this report owner before the edit. `git diff --name-only --diff-filter=U` returned no path, so the previously reported unmerged paths and conflict markers are resolved. The merge remains uncommitted. This inventory is repository-state evidence, not a substitute for any inherited test receipt.
+
+The missing-path finding attributed two sites to this report and one site to the planning-owned scope. This edit replaces the report sites with `<temporary-scope27-control>` and leaves the foreign scope untouched. It does not create or claim a persistent replacement carrier. The recommendation-backfill finding is not repaired here.
 
 ## Validation Summary
 

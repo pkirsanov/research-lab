@@ -237,7 +237,7 @@ missing browser or an absent test does not satisfy RED.
 | TP-05-17 | Regression E2E | e2e-ui | SCN-022-014 | `lifetime-tax-combined.spec.mjs` | `Regression: SCN-022-014 the combined curve attributes every step to a named jurisdiction` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-014 the combined curve attributes every step to a named jurisdiction" --reporter=list` | Yes | `report.md#scenario-scn-022-014` |
 | TP-05-18 | Regression E2E | e2e-ui | SCN-022-015 | `lifetime-tax-combined.spec.mjs` | `Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure" --reporter=list` | Yes | `report.md#scenario-scn-022-015` |
 | TP-05-19 | Accessibility E2E | e2e-ui | SCN-022-014 | `lifetime-tax-combined.spec.mjs` | `Regression: SCN-022-014 the combined curve is reachable by keyboard and has a text equivalent table` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-014 the combined curve is reachable by keyboard and has a text equivalent table" --reporter=list` | Yes | `report.md#tp-05-19` |
-| TP-05-20 | Privacy E2E | e2e-ui | SCN-022-013 | `lifetime-tax-combined.spec.mjs` | `Regression: SCN-022-013 the request ledger stays empty across the full combined workflow` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-013 the request ledger stays empty across the full combined workflow" --reporter=list` | Yes | `report.md#tp-05-20` |
+| TP-05-20 | Privacy E2E | e2e-ui | SCN-022-013 | `lifetime-tax-combined.spec.mjs` | `Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow" --reporter=list` | Yes | `report.md#tp-05-20` |
 | TP-05-21 | Registration absence | e2e-ui | SCN-022-013 | `lifetime-tax-combined.spec.mjs` | `Regression: SCN-022-013 the tool is absent from every registry and the market brief` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-013 the tool is absent from every registry and the market brief" --reporter=list` | Yes | `report.md#tp-05-21` |
 | TP-05-22 | Broader Regression E2E | e2e-ui | SCN-021-*, SCN-022-001 … -015 | Feature 021's five specs plus this feature's five | Every scenario owned by features 021 … 024 passes over the real route — the whole cumulative browser suite for this feature family, zero failed and zero skipped, not a convenient subset. `SCN-02[1-4]` is the alternation `SCN-021`, `SCN-022`, `SCN-023`, `SCN-024` written without a `\|`, which a table cell cannot carry verbatim; it is pinned to the four owning spec numbers, so a scenario owned by any other feature can neither satisfy nor break this row | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list` | Yes | `report.md#tp-05-22` |
 | TP-05-23 | Repo gate | unit | SCN-022-013 … -015 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-05-23` |
@@ -298,9 +298,21 @@ missing browser or an absent test does not satisfy RED.
       reachable by keyboard, and no unavailable state renders as an empty box, a
       bare dash or an unattributed zero.
   - **Phase:** implement · **Command:** the accessibility browser row · **Evidence:** `report.md#tp-05-19`
-- [x] The request ledger stays empty across the full combined workflow and no
-      household value reaches any URL, request, referrer or console message.
-  - **Phase:** implement · **Command:** the privacy browser row · **Evidence:** `report.md#tp-05-20`
+- [x] The request ledger does not grow after first paint across the full combined
+      workflow, every entry in it is a same-origin read of a document the page's
+      own configuration declares, and no household value reaches any URL,
+      request, referrer or console message.
+  - **Restated 2026-08-22 (F-REG-02).** The superseded text read "The request ledger stays empty across the full combined workflow", which is false: the cited row captures `afterFirstPaint = ledger.length` and asserts `expect(afterFirstPaint).toBeGreaterThan(0)` on the very next line, so the row and its own evidence asserted opposite things. The row now states the three propositions the run actually establishes, and each stays falsifiable. Adversarial cases: a request issued after first paint fails `expect(ledger.length).toBe(afterFirstPaint)`; a read of a document the configuration does not declare, or of any remote document, fails the permitted-path and cross-origin filters; a residency or income declaration reaching a URL, a request body, a referrer or a console message fails the sentinel assertions; and a boot that read nothing fails `expect(afterFirstPaint).toBeGreaterThan(0)`. This restatement matches the corrected `NFR-022-002`. **Rename discharged 2026-08-22 (F-REG-02).** The routed test-artifact rename has now been taken: the persistent title of the browser row reads `Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow`, and the row's `--grep` selector was moved with it in the same change, so the row still selects its own test. This restatement is `bubbles.plan`'s artifact; the tick is not, and remains for a verifying pass.
+  - **Ticked 2026-08-22.** The referrer surface the previous pass recorded as
+    unasserted is now read by the cited row itself: `document.referrer`, every
+    header of every request resolved through `allHeaders()`, and the page URL
+    that is the referrer's source, all feeding one `expect(carriers).toEqual([])`
+    verdict with a non-empty-corpus pin and a live-detector control. The clause
+    is proven falsifiable by an intended-RED probe whose summary is pinned to
+    this scan's own `page-url:` carrier label, so the recorded RED is the
+    referrer verdict failing rather than some other assertion in the row. No
+    wording was narrowed to earn the tick.
+  - **Phase:** implement · **Command:** the privacy browser row · **Evidence:** `report.md#tp-05-20`, `report.md#scn-022-013-referrer-surface-closed-2026-08-22`
 - [x] The tool is still absent from `tools.json`, `index.html`, `rlnav.js`,
       `README.md`, `notes/README.md` and market-brief coverage, and no new root
       HTML exists.
@@ -385,9 +397,28 @@ missing browser or an absent test does not satisfy RED.
     assignment in the tracked tree, the literal `false`, and the page prints that
     value through `String(...)` rather than a hand-written word.
     `node scripts/selftest.mjs` is green at `3106 passed, 0 failed`.
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including every browser row and the full cumulative suite.
   - **Phase:** implement · **Command:** the exact TP-05-01 through TP-05-22 commands · **Evidence:** `report.md#test-evidence`
+  - **Evidence:** all twenty-two rows the item's own Command field names now carry
+    an intended RED and a same-command GREEN. The five that were missing on
+    2026-08-20 were closed through `scripts/red-green-probe.sh`, which reverts under
+    its own `EXIT`/`INT`/`TERM` trap and re-verifies the file against its committed
+    blob hash: TP-05-16 by reclassifying a sourced zero as an ordinary computed
+    amount, TP-05-17 by stripping the owning jurisdiction off every declared edge,
+    TP-05-18 by extending a pack into a year it does not declare, TP-05-21 by
+    dropping the combined module out of the deploy exclusion list, and TP-05-22 by
+    the TP-05-16 mutation run against the whole cumulative suite. TP-05-11 was
+    closed earlier the same day by the same harness. **Recorded rather than
+    absorbed, twice.** First, TP-05-21's *registration* clause is still unprobed —
+    the only mutation that drives it is to register the tool, which is barred — so
+    the row's RED rides its deploy-projection clause; the row is proven live, the
+    six-surface scan is not. Second, TP-05-22 could not be discriminated by exit
+    code: the suite exits `1` even when it reports `77 passed`, zero failed and zero
+    skipped, because teardown force-kills a worker after every test passes. The
+    verdict rides the summary channel — `76 passed` mutated against `77 passed`
+    reverted. TP-05-23 … TP-05-25 are outside this item, which scopes itself to
+    TP-05-01 through TP-05-22 in its Command field.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count and no
       existing assertion edited, `node scripts/validate-spec-test-paths.mjs`
       reports zero new missing paths, and `node scripts/build-pages-site.mjs

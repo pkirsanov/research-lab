@@ -33,8 +33,10 @@
 #
 # The verdict has two channels:
 #   * exit status — always compared.
-#   * summary line — compared ONLY when --summary-match is supplied. The probe
-#     discriminates if EITHER channel differs; exit 7 means both agreed.
+#   * summary line — compared ONLY when --summary-match is supplied, and
+#     compared with elapsed-time tokens normalised out ("1 passed (3.7s)" and
+#     "1 passed (2.8s)" are the same outcome). The probe discriminates if
+#     EITHER channel differs; exit 7 means both agreed.
 # The second channel exists because some suites exit non-zero even unmutated
 # (a teardown fault that force-kills a worker after every test passed). Without
 # it such a probe is unprovable, and the only workaround would be to swallow
@@ -327,13 +329,31 @@ summary_matched_line() {
   ' "$1" | scrub
 }
 
+# Most runners embed elapsed time in the very line that carries the verdict:
+# Playwright prints "1 passed (3.7s)". Wall-clock time is not an outcome, so
+# comparing the raw lines makes RED and GREEN differ on timing alone and
+# reports an INERT mutation as discriminating — which is how a mutation that a
+# substring assertion matched straight past was still scored as evidence.
+# Normalise the volatile tokens out before comparing. The raw lines are still
+# printed above, so nothing is hidden from the reviewer.
+normalize_summary() {
+  perl -0777 -pe '
+    s/\((?:\s*\d+(?:\.\d+)?\s*(?:ms|s|m|h))+\s*\)/(<elapsed>)/g;
+    s/\b\d+(?:\.\d+)?\s*ms\b/<elapsed>/g;
+  '
+}
+
 red_summary="$(summary_of "$red_out")"
 green_summary="$(summary_of "$green_out")"
 red_matched=""
 green_matched=""
+red_compared=""
+green_compared=""
 if [[ -n "$PROBE_SUMMARY_MATCH" ]]; then
   red_matched="$(summary_matched_line "$red_out")"
   green_matched="$(summary_matched_line "$green_out")"
+  red_compared="$(printf '%s' "$red_matched" | normalize_summary)"
+  green_compared="$(printf '%s' "$green_matched" | normalize_summary)"
 fi
 # %q so the emitted command line is copy-runnable rather than merely indicative.
 cmd_display="$(printf '%q ' "${PROBE_CMD[@]}" | scrub)"
@@ -348,6 +368,10 @@ printf 'red-exit:         %s\n' "$red_rc"
 printf 'red-summary:      %s\n' "$red_summary"
 printf 'green-exit:       %s\n' "$green_rc"
 printf 'green-summary:    %s\n' "$green_summary"
+if [[ -n "$PROBE_SUMMARY_MATCH" ]]; then
+  printf 'summary-compared: %s  vs  %s   (elapsed time normalised out)\n' \
+    "$red_compared" "$green_compared"
+fi
 printf 'revert-verified:  yes (committed=%s restored=%s)\n' "$COMMITTED_HASH" "$restored_hash"
 
 # ---------- 9. a probe that did not discriminate is not evidence ----------
@@ -372,17 +396,17 @@ fi
 discriminating_reason=""
 if [[ "$red_rc" -ne "$green_rc" ]]; then
   discriminating_reason="$(printf 'exit %s != %s' "$red_rc" "$green_rc")"
-elif [[ -n "$PROBE_SUMMARY_MATCH" && "$red_matched" != "$green_matched" ]]; then
+elif [[ -n "$PROBE_SUMMARY_MATCH" && "$red_compared" != "$green_compared" ]]; then
   discriminating_reason="$(printf 'summary differs: "%s" vs "%s"' "$red_matched" "$green_matched")"
 fi
 
 if [[ -z "$discriminating_reason" ]]; then
   if [[ -n "$PROBE_SUMMARY_MATCH" ]]; then
-    printf 'discriminating:   NO (both channels agree: exit %s == %s, summary "%s" identical)\n' \
-      "$red_rc" "$green_rc" "$red_matched"
+    printf 'discriminating:   NO (both channels agree: exit %s == %s, summary "%s" identical once elapsed time is normalised)\n' \
+      "$red_rc" "$green_rc" "$red_compared"
     printf '%s\n' '=== END RED/GREEN PROBE EVIDENCE ==='
     die "$EXIT_NO_DISCRIMINATION" \
-      "RED and GREEN produced the same outcome on both channels (both exited $red_rc, and the --summary-match line was \"$red_matched\" in each). The mutation did not change what the command reported, so the assertion under test cannot fail and this is not RED/GREEN evidence."
+      "RED and GREEN produced the same outcome on both channels (both exited $red_rc, and the --summary-match line was \"$red_compared\" in each once elapsed time was normalised out). The mutation did not change what the command reported, so the assertion under test cannot fail and this is not RED/GREEN evidence."
   fi
   printf 'discriminating:   NO (red-exit %s == green-exit %s)\n' "$red_rc" "$green_rc"
   printf '%s\n' '=== END RED/GREEN PROBE EVIDENCE ==='

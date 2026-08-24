@@ -438,6 +438,55 @@
       taxExemptInterest: workspace.income.taxExemptInterest
     });
 
+    /* A pack that does not state whether the tax is imposed settles to a refusal, not to a zero.
+       The settlement is still composed so the resolved pack, its identity and what it does not
+       carry stay publishable beside the refusal, exactly as they are for a pack whose deduction
+       was never retrieved. */
+    if (rules.isAbsentFigure(statePack.imposesIndividualIncomeTax)) {
+      var unstated = rules.absentFigureRefusal(statePack.imposesIndividualIncomeTax,
+        "state-settlement:" + String(statePack.jurisdiction));
+      var unstatedStages = emptyStages(statePack, status);
+      return Object.freeze({
+        contractVersion: SETTLEMENT_CONTRACT,
+        packRef: packRef,
+        jurisdiction: statePack.jurisdiction,
+        declaredTaxYear: workspace.declaredTaxYear,
+        filingStatus: workspace.filingStatus,
+        imposesIndividualIncomeTax: unstated,
+        calculationOrder: Object.freeze((statePack.calculationOrder || []).slice()),
+        stages: Object.freeze(unstatedStages.stages),
+        declaredIncome: declaredIncome,
+        grossSupportedIncome: valued(
+          declaredIncome.ordinary + declaredIncome.qualifiedDividend + declaredIncome.longTermCapitalGain, status),
+        appliedDeduction: null,
+        stateTaxableIncome: null,
+        legs: Object.freeze([]),
+        reliefApplied: Object.freeze([]),
+        totalStateTax: unstated,
+        marginalContext: Object.freeze({
+          activeOrdinaryBandId: null,
+          distanceToNextOrdinaryEdge: null,
+          nextThresholdSetId: null,
+          distanceToNextThresholdEdge: null,
+          stateTaxableMeasure: null,
+          ruleStatus: status
+        }),
+        unsupportedFeatureNotices: unsupportedFeatureNotices(statePack),
+        reconciliation: Object.freeze({
+          legs: Object.freeze([Object.freeze({
+            id: "L7",
+            identity: "a jurisdiction whose pack states no imposition derives no taxable income from any pack",
+            state: "holds",
+            detail: "no state taxable income is computed, so no federal figure can reach one"
+          })]),
+          balanced: true,
+          notEvaluableLegCount: 0,
+          toleranceUsed: statePack.roundingPolicy.reconciliationTolerance
+        }),
+        completeStateTax: false
+      });
+    }
+
     if (statePack.imposesIndividualIncomeTax === false) {
       var zero = rules.sourcedZeroFor(statePack, "state-income-tax:" + String(statePack.jurisdiction));
       var noTaxStages = emptyStages(statePack, status);

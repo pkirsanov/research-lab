@@ -437,7 +437,7 @@ an absent test does not satisfy RED.
       `declaredFor` entry was populated from the absence of a year label on a
       page.
   - **Phase:** implement · **Command:** the retrieval record in the pack plus `node scripts/selftest.mjs` · **Evidence:** `report.md#sourcing`
-- [ ] This scope's eight deliverable supersessions and both amendments are
+- [x] This scope's eight deliverable supersessions and both amendments are
       delivered: SUP-022-03, -08, -10, -14, -15, -16, -19 and -20 each replaced by
       the stronger assertion the ledger names, each seen to fail against the
       unchanged implementation first, each carrying its `SUP-022-NN` marker and its
@@ -448,7 +448,24 @@ an absent test does not satisfy RED.
       clause is delivered — selection of a withheld-detail link by declared target
       replacing the positional `links.nth(3)` — not by any count assertion, which
       `SUP-023-06` already owns.
-  - **Open — requirement text corrected for finding F-02-C; awaiting delivery.**
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the per-spec browser commands · **Evidence:** `report.md#the-seven-re-derived-intended-reds--one-per-deliverable-marker`, `report.md#supersession-ledger`, `report.md#tp-02-23`
+  - **Closed 2026-08-20 (fifth pass).** The fourth pass named exactly two
+    unmeasured conjuncts and refused to absorb them; both are now measured. All
+    eight markers are present and `SUP-022-18` appears nowhere, which TP-02-22
+    reports as `delivered 21, expected 21, shapeless [], escaped []`. The
+    **seen-to-fail** conjunct is re-derived for all seven entries the fourth pass
+    did not claim — one `scripts/red-green-probe.sh` block each, with
+    `--summary-match` bound to the owning assertion's own name so the RED line
+    names what fell. Three of the seven are deliberately **count-preserving**,
+    because those entries superseded literal counts and a probe that changed the
+    count would have proven nothing about the replacement. The
+    **adversarial-evidence** conjunct is accounted for entry by entry in a table
+    rather than asserted in aggregate: five carry in-suite assertions, two carry
+    an executed probe, and the reason the two rendered-count entries take the
+    probe form is stated rather than glossed. A mis-aimed first probe that
+    discriminated on exit while its named assertion stayed green in both runs is
+    recorded with its correction.
+  - *History retained.* **Open — requirement text corrected for finding F-02-C; awaiting delivery.**
     The earlier blocker note is superseded twice over: the Simple/Power panels
     being built was never the whole story, and neither was calling SUP-022-18
     simply undeliverable. Every clause SUP-022-18 and SUP-022-19 were written to
@@ -506,7 +523,7 @@ an absent test does not satisfy RED.
     Ticking on the marker census alone would claim two conjuncts that were never
     measured. Decidable by re-deriving the seven intended REDs and supplying the
     missing adversarial cases for the entries that carry none.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-02-18 browser command · **Evidence:** `report.md#supersession-ledger`, `report.md#verification-pass--2026-08-20-second--sup-022-18-and--19-were-displaced-by-feature-023-before-this-scope-could-deliver-them-finding-f-02-c`, `report.md#verification-pass--2026-08-20-third--sup-022-19s-narrowed-clause-is-buildable-and-was-built-but-delivering-it-turns-scope-05s-tp-05-22-red-all-three-items-stay---finding-f-02-d`
+  - *Superseded evidence pointers, retained for audit:* `report.md#supersession-ledger`, `report.md#verification-pass--2026-08-20-second--sup-022-18-and--19-were-displaced-by-feature-023-before-this-scope-could-deliver-them-finding-f-02-c`, `report.md#verification-pass--2026-08-20-third--sup-022-19s-narrowed-clause-is-buildable-and-was-built-but-delivering-it-turns-scope-05s-tp-05-22-red-all-three-items-stay---finding-f-02-d`
 - [x] The leg-reachability rule is implemented as `design.md` states it: both
       basis members initialize to `null`, an undeclared basis refuses its leg by
       name, `CO-8` inherits, and neither member is ever initialized to a value.
@@ -523,11 +540,26 @@ an absent test does not satisfy RED.
     Feature 021 pack for byte-identity. Two first-draft misses are recorded with
     the row rather than quietly corrected.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the TP-02-18 browser command · **Evidence:** `report.md#tp-02-24`
-- [ ] No assertion outside this scope's ledger entries and amendments was edited,
+- [x] No assertion outside this scope's ledger entries and amendments was edited,
       relaxed or deleted, no Simple-markup clause was relaxed under SUP-022-19, no
       `SUP-022-18` marker was attached anywhere, and no sourcing rule, tolerance,
       determinism, privacy, zero-network or Feature 008 canary was touched.
-  - **Open:** nothing was edited, but the TP-02-22 and TP-02-23 conformance rows
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-02-22`, `report.md#tp-02-23`, `report.md#the-no-edit-property-derived-from-history-rather-than-asserted`
+  - **Closed 2026-08-20 (fifth pass).** The two proving rows the item's own closing
+    sentence asked for are written and green — TP-02-22 reports `delivered 21,
+    expected 21, shapeless [], escaped []` and TP-02-23 discriminates all three of
+    its cases — and the no-edit property itself is now **derived from history
+    rather than asserted by the author**, which is the shape the item's fourth-pass
+    note refused. This scope's whole source footprint is three commits; their
+    combined deletion set is sixteen lines, each attributed individually: one
+    comment header completed inside the marked region this scope owns, thirteen
+    inside the TP-05-22 block `bubbles.plan` restated under a recorded amendment,
+    and two that are exactly SUP-022-19's superseded target. `SUP-022-18` appears
+    nowhere, which TP-02-22's `escaped []` and TP-05-22's `forbiddenButMarked`
+    clause both fail on. A first-draft misattribution of two federal-spec deletions
+    is recorded with the evidence rather than corrected in silence.
+  - *History retained.* **Open (first pass):** nothing was edited, but the TP-02-22
+    and TP-02-23 conformance rows
     that would prove it were not written. Both rows are now reconciled against the
     tree — TP-02-22 derives its expected marker set from the ledger instead of
     pinning a stale total, and TP-02-23's fourth case is retargeted onto
@@ -596,20 +628,22 @@ an absent test does not satisfy RED.
 - [x] No output states a probability, a lifetime figure, a track record or an
       error rate, and no result is labelled a complete federal tax.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
-  - **Open:** TP-02-15, -16, -17 and -18 now carry evidence — the browser spec was
-    written and the cumulative suite runs green at 69 passed. TP-02-03, -22, -23
-    and -24 still carry none.
-  - **Still open after verification pass 2026-08-20 (third).** TP-02-24 now carries
-    its register evidence. TP-02-22 and TP-02-23 remain unwritten and are blocked
-    behind SUP-022-19 by finding **F-02-D**. TP-02-03 carries no evidence for its own
-    reason: its section records that the compatibility comparison against the
-    unmodified Feature 021 pack was not performed. The cumulative browser suite was
-    re-run once in this pass at `--grep "SCN-02[1-4]"` and reported 77 passed, zero
-    failed and zero skipped, so the browser rows have not regressed while these three
-    remain outstanding.
-  - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-18 commands · **Evidence:** `report.md#test-evidence`, `report.md#verification-pass--2026-08-20-third--sup-022-19s-narrowed-clause-is-buildable-and-was-built-but-delivering-it-turns-scope-05s-tp-05-22-red-all-three-items-stay---finding-f-02-d`
+  - **Phase:** implement · **Command:** the exact TP-02-01 through TP-02-24 commands · **Evidence:** `report.md#test-evidence`, `report.md#tp-02-18-completed-to-intended-red--the-cumulative-sweep-probed-once`, `report.md#every-test-plan-row-now-carries-intended-red-and-same-command-green`
+  - **Closed 2026-08-21.** The last row without a pair was TP-02-18, the cumulative
+    `SCN-02[1-4]` sweep, now probed through `scripts/red-green-probe.sh` rather than
+    described: the threshold defect fells exactly one owned scenario inside the
+    sweep, `76 passed` red against `77 passed` green, exit 1 against exit 0, revert
+    verified against the committed blob hash. Both channels were compared because
+    this suite has previously exited non-zero on a teardown fault with every test
+    passing. All twenty-four rows now carry a pair. TP-02-13 carries an in-test
+    negative control plus two real failing runs instead of a source mutation,
+    because any mutation able to fail it must itself route a household value off
+    the page — that reasoning is recorded, not assumed.
+  - **Superseded notes.** TP-02-22 and -23 were unblocked when SUP-022-19 landed,
+    and TP-02-03's section now records the compatibility comparison against the
+    unmodified Feature 021 pack as performed, with its own RED and GREEN.
 - [x] Feature 008's files, Feature 021's spec directory, `rltaxstrategy.js`,
       `tests/lifetime-tax-conversion.spec.mjs`, the registries,
       `site-exclusions.json` and every brief or data artifact are byte-identical.

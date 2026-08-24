@@ -13300,6 +13300,10 @@ try {
   delete brokenSweepConfig.sweep.probe;
   const brokenSweepVerdict = RLTAXWORKSPACE.validateConfig(brokenSweepConfig);
   const inventoryUnderBrokenConfig = RLTAXWORKSPACE.privacyInventory(fakeTaxStorage, brokenSweepConfig);
+  /* Re-stocked deliberately: the clear above emptied this store, and clearAllPrivateData reports
+     only keys it genuinely removed. Clearing an empty store would prove reachability over a
+     no-op. */
+  RLTAXWORKSPACE.writeWorkspace(fakeTaxStorage, brokenSweepConfig, viableWorkspace);
   const clearUnderBrokenConfig = RLTAXWORKSPACE.clearAllPrivateData(fakeTaxStorage, brokenSweepConfig);
   const fallbackScan = newTaxModules.filter((file) => /(config|pack)\.[A-Za-z0-9_.]+\s*\|\|/.test(read(file)));
   assert(configOk.ok
@@ -14402,7 +14406,9 @@ try {
     && !RLTAXRULES.isUnavailable(shippedOrdinaryCurve),
   'TP-03-04: the guard can fail — a rate move with no attributable pack threshold is refused RLTAX-THRESHOLD-UNAVAILABLE rather than displayed, while the same workspace against the shipped pack still produces a curve');
 
-  /* SUP-022-20. TP-03-05: every declared band edge renders as a step. The expected edge set is
+  /* SUP-022-20: supersedes the ordinary curve's literal step-level list and the probe-WIDTH step
+     selector; shape=derive. TP-03-05: every declared band edge renders as a step. The expected
+     edge set is
      DERIVED from the pack — each ordinary band's lower edge, carried up by the pack's own
      standard deduction, kept when the sweep reaches it — rather than spelled as a literal, and
      the selector is the segment's own step-ness rather than its width, because a probe-width
@@ -15347,9 +15353,11 @@ try {
     && Object.keys(routeStore).length === 1
     && routeStore['rlPortfolioWorkspaceV1.workspace'] === 'foreign-value'
     && declaredKeys.every((key) => !RLTAXWORKSPACE.isForbiddenKey(routeConfig, key))
-    && pageStorageWrites === 1
-    && /localStorage\.setItem\(MODE_KEY/.test(page),
-  'TP-05-08: the written storage key set is unchanged from Scope 01, clear-all removes exactly those three keys while leaving a portfolio-prefixed key standing, and the page itself writes only the display-mode key directly');
+    /* The page performs no storage write of its own. A direct write would sit outside the closed
+       writer, and therefore outside the inventory and outside the clear path, while the privacy
+       panel claims no key outside the declared namespace was touched. */
+    && pageStorageWrites === 0,
+  'TP-05-08: the written storage key set is unchanged from Scope 01, clear-all removes exactly those three keys while leaving a portfolio-prefixed key standing, and the page itself writes no storage key directly');
 
   /* TP-05-09: the tool stays absent from every registration surface. */
   const registrationSurfaces = ['tools.json', 'index.html', 'rlnav.js', 'README.md', 'notes/README.md', 'market-brief.config.json'];
@@ -15373,19 +15381,58 @@ try {
     && refusedWithoutEntry.includes(PAGE),
   'TP-05-10: the pages-site build accepts the finished unregistered page through its site-exclusions decision, and removing that decision is proven to make the build refuse the page');
 
-  /* The zero-network posture is structural: the page carries no runtime transport beyond the two
-     local documents it reads once, and no household value can reach a URL. */
+  /* The zero-network posture is structural: the page carries no runtime transport beyond the
+     documents its own configuration declares, and no household value can reach a URL. */
   const transportTokens = ['XMLHttpRequest', 'sendBeacon', 'EventSource', 'WebSocket', 'serviceWorker',
     'importScripts', 'createElement("script")', 'document.write'];
   const transportHits = transportTokens.filter((token) => page.indexOf(token) >= 0);
   const fetchCalls = (page.match(/window\.fetch\(/g) || []).length;
-  const fetchTargets = (page.match(/loadJson\("[^"]+"\)|loadJson\(config\.rules\.packPath\)/g) || []);
+  /* Every call site is captured whatever the argument form. An earlier detector matched only a
+     string literal or the single member expression config.rules.packPath, so the five
+     variable-argument reads added after Scope 05 moved neither counter and failed no assertion. */
+  const readSitePattern = /(?<!function )loadJson\(([^)]*)\)/g;
+  const readSiteArguments = [];
+  let readSiteHit = readSitePattern.exec(page);
+  while (readSiteHit !== null) {
+    readSiteArguments.push(readSiteHit[1]);
+    readSiteHit = readSitePattern.exec(page);
+  }
+  /* The argument form of each permitted read, named here so a read the page did not have before
+     cannot enter without this list being edited in the same change. */
+  const declaredReadArguments = ['"lifetime-tax-strategy.config.json"', 'config.rules.packPath',
+    'declaredRegimePaths[jurisdiction]', 'declaredStatePaths[jurisdiction]',
+    'declaredBenefitPaths[year]', 'declaredMortalityPaths[year]', 'declaredMedicarePaths[year]'];
+  const undeclaredReadArguments = readSiteArguments.filter((argument) => declaredReadArguments.indexOf(argument) < 0);
+  const unusedReadArguments = declaredReadArguments.filter((argument) => readSiteArguments.indexOf(argument) < 0);
+  /* The documents those reads resolve to, derived from the configuration the page actually loads
+     rather than from a count written by hand. */
+  const readSurfaceRules = JSON.parse(read('lifetime-tax-strategy.config.json')).rules;
+  const readSurfaceGroups = ['propertyPackPaths', 'statePackPaths', 'benefitPackPaths',
+    'mortalityPackPaths', 'medicarePackPaths'];
+  const declaredDocuments = ['lifetime-tax-strategy.config.json', readSurfaceRules.packPath]
+    .concat(readSurfaceGroups.reduce((paths, group) => paths.concat(
+      Object.keys(readSurfaceRules[group] || {}).map((key) => readSurfaceRules[group][key])), []));
+  const missingDocuments = declaredDocuments.filter((path) => read(path) === '');
+  const remoteDocuments = declaredDocuments.filter((path) => /^[a-z][a-z0-9+.-]*:|^\/\//i.test(path));
   const remoteAssets = /<(?:img|script|link)[^>]+(?:src|href)="https?:/i.test(page);
   const hashWrites = (page.match(/window\.location\.hash = /g) || []).length;
   const cspPattern = /<meta\s+http-equiv="Content-Security-Policy"\s+content="([^"]+)"\s*\/?\s*>/i;
   const pageCsp = cspPattern.exec(page);
   const referenceCsp = cspPattern.exec(read('portfolio-survival-allocation-lab.html'));
-  assert(transportHits.length === 0 && fetchCalls === 1 && fetchTargets.length === 2
+  assert(readSiteArguments.length === 7
+    && undeclaredReadArguments.length === 0
+    && unusedReadArguments.length === 0
+    && declaredDocuments.length === 9
+    && missingDocuments.length === 0
+    && remoteDocuments.length === 0
+    && fetchCalls === 1,
+  'TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin documents they resolve to are all present in this checkout and none of them is remote'
+    + (undeclaredReadArguments.length ? ' (undeclared read: ' + undeclaredReadArguments.join(', ') + ')' : '')
+    + (unusedReadArguments.length ? ' (declared read absent from the page: ' + unusedReadArguments.join(', ') + ')' : '')
+    + (missingDocuments.length ? ' (declared document missing: ' + missingDocuments.join(', ') + ')' : '')
+    + (remoteDocuments.length ? ' (remote document declared: ' + remoteDocuments.join(', ') + ')' : ''));
+
+  assert(transportHits.length === 0
     && !remoteAssets && hashWrites === 1 && page.indexOf('location.search') < 0
     && /var wanted = power \? "#power" : "#simple";/.test(page)
     && !!pageCsp && !!referenceCsp && pageCsp[1] === referenceCsp[1]
@@ -15393,7 +15440,99 @@ try {
     && (page.match(/rel="noreferrer noopener"|anchor\.rel = "noreferrer noopener"/g) || []).length >= 2
     && page.indexOf('console.') < 0
     && page.indexOf('innerHTML') < 0,
-  'TP-05-06: the route carries no runtime transport beyond one same-origin read of the two local policy documents, writes only the two view-mode literals to the location hash, never writes a query string, emits no console output, uses no innerHTML, and its CSP is byte-identical to the shared policy');
+  'TP-05-06: the route carries no runtime transport beyond the nine same-origin reads of its own declared local policy and rule-pack documents, writes only the two view-mode literals to the location hash, never writes a query string, emits no console output, uses no innerHTML, and its CSP is byte-identical to the shared policy');
+
+  /* What the panel tells the reader has to survive the count measured just above. The shipped
+     disclosure opened with "This page issues zero network requests", which was true when Scope 05
+     shipped and false from Feature 022 onward, and nothing was watching the two apart. */
+  const networkDisclosure = JSON.parse(read('lifetime-tax-strategy.config.json')).display.localNetworkPolicy;
+  const absoluteAbsencePhrases = ['zero network request', 'no network request', 'issues no request',
+    'makes no request', 'never issues a request', 'sends no request'];
+  const disclaimedAbsence = absoluteAbsencePhrases.filter((phrase) => networkDisclosure.toLowerCase().indexOf(phrase) >= 0);
+  assert((readSiteArguments.length === 0 || disclaimedAbsence.length === 0)
+    && /reads its own policy and rule-pack documents from this site/.test(networkDisclosure)
+    && networkDisclosure.indexOf('it sends nothing') >= 0
+    && networkDisclosure.indexOf('never placed in a URL, a request, a referrer or a console message') >= 0,
+  'TP-05-06: the privacy panel claims no absence of requests the route does not actually have — while any read site stands, the disclosure describes the same-origin reads it performs and still promises the household values reach no URL, request, referrer or console'
+    + (disclaimedAbsence.length ? ' (claims absence: ' + disclaimedAbsence.join(', ') + ' beside ' + readSiteArguments.length + ' read sites)' : ''));
+
+  /* A pack-authored url is written into an anchor's href. A pack is content, so the scheme is an
+     executable surface: the route's CSP carries 'unsafe-inline', which permits a javascript: URL
+     to run in this origin with this tool's local storage. Validation admitted any non-empty
+     string. Both gates are pinned here — the pack must refuse the record, and the renderer must
+     refuse to build a live link out of one that somehow reaches it. */
+  const urlRequire = (await import('node:module')).createRequire(import.meta.url);
+  const URLRULES = urlRequire('../rltaxrules.js');
+  const hostileSchemes = ['javascript:alert(localStorage.rlLifetimeTaxV1)', 'JaVaScRiPt:alert(1)',
+    'data:text/html;base64,PHNjcmlwdD4x', 'vbscript:msgbox(1)', 'http://example.gov/x', '//example.gov/x',
+    ' javascript:alert(1)', 'file:///etc/passwd'];
+  const admittedHostile = hostileSchemes.filter((candidate) => URLRULES.isSafeSourceUrl(candidate));
+  /* And the check must not be vacuous: a real shipped url has to still pass. */
+  const shippedUrls = [];
+  const shippedPackFiles = ['tax-rules/federal/2026.json', 'tax-rules/state/CA/2026.json',
+    'tax-rules/benefit/2026.json', 'tax-rules/medicare/2026.json', 'tax-rules/mortality/2026.json'];
+  shippedPackFiles.forEach((file) => {
+    const collect = (node) => {
+      if (Array.isArray(node)) node.forEach(collect);
+      else if (node && typeof node === 'object') {
+        Object.keys(node).forEach((key) => {
+          if (key === 'url' && typeof node[key] === 'string') shippedUrls.push(node[key]);
+          else collect(node[key]);
+        });
+      }
+    };
+    collect(JSON.parse(read(file)));
+  });
+  const rejectedShippedUrls = shippedUrls.filter((url) => !URLRULES.isSafeSourceUrl(url));
+  /* Wiring, not just the predicate: a predicate nothing calls refuses nothing. Run the real
+     validator over the real shipped pack with one hostile url substituted. */
+  const hostilePack = JSON.parse(read('tax-rules/federal/2026.json'));
+  const cleanPackVerdict = URLRULES.validateRulePack(JSON.parse(read('tax-rules/federal/2026.json')));
+  hostilePack.sourceRecords[0].url = 'javascript:alert(localStorage.rlLifetimeTaxV1)';
+  const hostilePackVerdict = URLRULES.validateRulePack(hostilePack);
+  const urlRefusal = (hostilePackVerdict.refusals || []).filter((refusal) => String(refusal.domain).indexOf('.url') >= 0);
+  /* The render path is guarded, and the raw assignment no longer stands unconditionally. */
+  const hrefGuarded = /if \(RULES\.isSafeSourceUrl\(record\.url\)\) \{[\s\S]{0,200}?anchor\.href = record\.url;/.test(page);
+  assert(admittedHostile.length === 0
+    && shippedUrls.length > 0
+    && rejectedShippedUrls.length === 0
+    && cleanPackVerdict.ok === true
+    && hostilePackVerdict.ok === false
+    && urlRefusal.length === 1
+    && hrefGuarded
+    && typeof URLRULES.isSafeSourceUrl === 'function',
+  'TP-05-06: a pack-authored source url reaches an href only when it is an https URL — a javascript:, data:, vbscript:, file:, plain-http or scheme-relative url is refused by the real pack validator and the renderer will not build a link from one, while every url the shipped packs carry still passes'
+    + (admittedHostile.length ? ' (admitted: ' + admittedHostile.join(', ') + ')' : '')
+    + (rejectedShippedUrls.length ? ' (wrongly rejected a shipped url: ' + rejectedShippedUrls.slice(0, 3).join(', ') + ')' : '')
+    + (hostilePackVerdict.ok !== false ? ' (the validator admitted a javascript: url)' : '')
+    + (hrefGuarded ? '' : ' (the renderer assigns record.url to href without the scheme gate)'));
+
+  /* resolveRulePack compares the configured pointer against the digest the pack DECLARES ABOUT
+     ITSELF; it computes nothing over the fetched bytes, so on its own it is a version pin and a
+     pack edited together with its own digest member would pass it. What makes the declared digest
+     mean something is this: every shipped pack that carries one has it RECOMPUTED here from the
+     pack's own content, so a decorative or stale digest cannot be committed. The pin and this
+     check are complementary, and the code no longer describes the pin as integrity. */
+  const { createHash: digestHash } = await import('node:crypto');
+  const packFiles = ['tax-rules/federal/2026.json', 'tax-rules/state/CA/2026.json',
+    'tax-rules/state/FL/2026.json', 'tax-rules/fixtures/state-no-tax-2999.json',
+    'tax-rules/fixtures/state-contract-no-preferential-2999.json'];
+  const declaredDigestPacks = packFiles.map((file) => ({ file: file, pack: JSON.parse(read(file)) }))
+    .filter((entry) => typeof entry.pack.contentSha256 === 'string');
+  const decorativeDigests = declaredDigestPacks.filter((entry) =>
+    ('sha256:' + digestHash('sha256').update(URLRULES.packContentDigestInput(entry.pack)).digest('hex')) !== entry.pack.contentSha256);
+  /* The pin's own refusal must not describe itself as byte integrity, and the comparison must
+     still be the self-declared member rather than something this assertion imagines. */
+  const rulesSource = read('rltaxrules.js');
+  const pinDescribesItselfHonestly = rulesSource.indexOf('A VERSION PIN, NOT AN INTEGRITY CHECK') >= 0
+    && rulesSource.indexOf('the pack does not declare the version this configuration pins') >= 0
+    && rulesSource.indexOf('the pack digest does not match the configured pointer') < 0;
+  assert(declaredDigestPacks.length === 5
+    && decorativeDigests.length === 0
+    && pinDescribesItselfHonestly,
+  'TP-05-06: every shipped pack that declares a contentSha256 has that digest recomputed from its own content, so a decorative digest cannot be committed, and the runtime pointer comparison names itself a version pin rather than claiming an integrity it does not compute'
+    + (decorativeDigests.length ? ' (declared digest does not match its content: ' + decorativeDigests.map((entry) => entry.file).join(', ') + ')' : '')
+    + (pinDescribesItselfHonestly ? '' : ' (the pin still describes itself as a digest/integrity match)'));
 
   /* Charts are drawn synchronously and only in the mode whose canvas is visible. */
   const drawBody = extractFn(page, 'drawCurveChart');
@@ -15425,6 +15564,10 @@ try {
   const federalPack = JSON.parse(read('tax-rules/federal/2026.json'));
   const floridaPack = JSON.parse(read('tax-rules/state/FL/2026.json'));
   const fixturePack = JSON.parse(read('tax-rules/fixtures/state-contract-no-preferential-2999.json'));
+  /* The sourced-zero branch is exercised by a pack that STATES the absence outright. No shipped
+     jurisdiction pack does, because no retrieved authority states it, so the branch is proven by
+     a fixture that cannot resolve for any real household. */
+  const noTaxFixturePack = JSON.parse(read('tax-rules/fixtures/state-no-tax-2999.json'));
 
   function stateWorkspace(overrides) {
     const workspace = WORKSPACE.createEmptyWorkspace();
@@ -15468,7 +15611,7 @@ try {
     'TP-03-16: no engine module holds a state name, a postal code or an authority name, and the detector is proven to fire on a string that does (' + shadowLeaks.join(', ') + ')');
 
   /* TP-03-04: SourcedZero/v1 validates only with the literal zero and a citation. */
-  const soundZero = RULES.sourcedZeroFor(floridaPack, 'state-income-tax:test');
+  const soundZero = RULES.sourcedZeroFor(noTaxFixturePack, 'state-income-tax:test');
   const nonZero = clone(soundZero); nonZero.value = 1;
   const noCitation = clone(soundZero); delete noCitation.sourceRef;
   const noLocator = clone(soundZero); noLocator.locator = '';
@@ -15487,7 +15630,9 @@ try {
     && RULES.isSourcedZero(soundZero) && soundZero.value === 0,
   'TP-03-10: an implementation returning a bare zero record is proven to fail the contract-version discriminator that a sourced zero passes, while both carry the same value');
 
-  /* TP-03-12: the Florida pack validates, resolves, and produces a sourced zero. */
+  /* TP-03-12: the Florida pack validates and resolves, and settles to a refusal rather than to a
+     zero, because no retrieved authority states the absence. The sourced-zero branch it used to
+     carry is proven on the fixture pack that does state it. */
   const floridaValidation = RULES.validateRulePack(floridaPack);
   const floridaDigest = 'sha256:' + createStateHash('sha256').update(RULES.packContentDigestInput(floridaPack)).digest('hex');
   const floridaResolution = RULES.resolveRulePack(floridaPack, {
@@ -15497,32 +15642,55 @@ try {
   const floridaSettlement = STATE.computeAnnualStateTax(stateWorkspace({ residencyJurisdiction: 'state:FL' }), floridaPack);
   const floridaHasNoTable = ['standardDeductions', 'ordinaryRateTables', 'preferentialRateTables'].every((group) =>
     Object.keys(floridaPack[group]).every((status) => RULES.isAbsentFigure(floridaPack[group][status])));
+  const noTaxFixtureValidation = RULES.validateRulePack(noTaxFixturePack);
+  const noTaxFixtureDigest = 'sha256:' + createStateHash('sha256').update(RULES.packContentDigestInput(noTaxFixturePack)).digest('hex');
+  const noTaxFixtureSettlement = STATE.computeAnnualStateTax(
+    stateWorkspace({ residencyJurisdiction: 'state:QQ' }), noTaxFixturePack);
   assert(floridaValidation.ok && floridaResolution.ok
     && floridaDigest === floridaPack.contentSha256
-    && floridaPack.imposesIndividualIncomeTax === false
+    && RULES.isAbsentFigure(floridaPack.imposesIndividualIncomeTax)
+    && floridaPack.noTaxAuthority === null
     && floridaPack.taxLegs.length === 0
     && floridaHasNoTable
-    && RULES.isSourcedZero(floridaSettlement.totalStateTax)
-    && floridaSettlement.totalStateTax.value === 0
-    && floridaSettlement.totalStateTax.sourceRef === floridaPack.noTaxAuthority.sourceRef
-    && floridaSettlement.totalStateTax.locator.length > 0
-    && RULES.RULE_STATUS[floridaSettlement.totalStateTax.ruleStatus] === true
-    && floridaSettlement.calculationOrder.length === 0,
-  'TP-03-12: the Florida pack validates against its own digest, resolves for the declared year, carries no rate table for any filing status, and produces a SourcedZero total with a rule status and a reachable citation');
+    && RULES.isUnavailable(floridaSettlement.totalStateTax)
+    && codeOf(floridaSettlement.totalStateTax) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && !Object.prototype.hasOwnProperty.call(floridaSettlement.totalStateTax, 'value')
+    && !RULES.isSourcedZero(floridaSettlement.totalStateTax)
+    && floridaSettlement.totalStateTax.whatWouldMakeItAvailable.length > 0
+    && floridaSettlement.calculationOrder.length === 0
+    && noTaxFixtureValidation.ok
+    && noTaxFixtureDigest === noTaxFixturePack.contentSha256
+    && noTaxFixturePack.imposesIndividualIncomeTax === false
+    && RULES.isSourcedZero(noTaxFixtureSettlement.totalStateTax)
+    && noTaxFixtureSettlement.totalStateTax.value === 0
+    && noTaxFixtureSettlement.totalStateTax.sourceRef === noTaxFixturePack.noTaxAuthority.sourceRef
+    && noTaxFixtureSettlement.totalStateTax.locator.length > 0
+    && RULES.RULE_STATUS[noTaxFixtureSettlement.totalStateTax.ruleStatus] === true
+    && noTaxFixtureSettlement.calculationOrder.length === 0,
+  'TP-03-12: the Florida pack validates against its own digest, resolves for the declared year, carries no rate table for any filing status, and settles to a refusal naming the authority that was never retrieved rather than to a zero, while a fixture pack that does state the absence produces a SourcedZero total with a rule status and a reachable citation');
 
   /* TP-03-05 adversarial: a no-tax pack that still carries a rate table is refused. */
-  const floridaWithTable = clone(floridaPack);
+  const floridaWithTable = clone(noTaxFixturePack);
   floridaWithTable.ordinaryRateTables.single = clone(fixturePack.ordinaryRateTables.single);
-  const floridaWithLeg = clone(floridaPack);
+  const floridaWithLeg = clone(noTaxFixturePack);
   floridaWithLeg.taxLegs = clone(fixturePack.taxLegs);
-  const floridaWithoutAuthority = clone(floridaPack);
+  const floridaWithoutAuthority = clone(noTaxFixturePack);
   floridaWithoutAuthority.noTaxAuthority = null;
+  /* The unstated pack is held to the same shape rules, and may not name an authority that
+     establishes an absence it declines to assert. */
+  const unstatedWithAuthority = clone(floridaPack);
+  unstatedWithAuthority.noTaxAuthority = clone(noTaxFixturePack.noTaxAuthority);
+  const unstatedWithTable = clone(floridaPack);
+  unstatedWithTable.ordinaryRateTables.single = clone(fixturePack.ordinaryRateTables.single);
   assert(!RULES.validateRulePack(floridaWithTable).ok
     && !RULES.validateRulePack(floridaWithLeg).ok
     && !RULES.validateRulePack(floridaWithoutAuthority).ok
+    && !RULES.validateRulePack(unstatedWithAuthority).ok
+    && !RULES.validateRulePack(unstatedWithTable).ok
     && RULES.isUnavailable(RULES.sourcedZeroFor(floridaWithoutAuthority, 'd'))
+    && RULES.isUnavailable(RULES.sourcedZeroFor(floridaPack, 'd'))
     && RULES.isUnavailable(RULES.sourcedZeroFor(federalPack, 'd')),
-  'TP-03-05: a pack declaring no individual income tax is refused when it carries a rate table, when it declares a tax leg and when it names no establishing authority, and no sourced zero can be built from a pack that imposes a tax');
+  'TP-03-05: a pack declaring no individual income tax is refused when it carries a rate table, when it declares a tax leg and when it names no establishing authority, a pack that states no imposition is refused when it names a no-tax authority or carries a rate table, and no sourced zero can be built from a pack that imposes a tax or from one that states neither');
 
   /* TP-03-06: ReliefMechanism/v1 coherence and applied-legs membership. */
   function reliefPack(mutate) {
@@ -15701,6 +15869,55 @@ try {
     && WORKSPACE.createEmptyWorkspace().residencyJurisdiction === null
     && WORKSPACE.createEmptyWorkspace().residencyPattern === null,
   'TP-03-15: the workspace refuses a malformed residency jurisdiction and an unknown residency pattern, and an empty workspace declares neither rather than defaulting either');
+
+  /* Scope 03 claim boundary: no state surface states a probability, a lifetime figure, a track
+     record or an error rate, and no state figure is presented as an estimate or an average.
+
+     Feature 021's equivalent check scans five FEDERAL files and stops there, so nothing pinned
+     the state surfaces this scope added. This closes that gap for the surfaces this scope ships:
+     the module, both packs it routes to, and the static Power state band the page renders them
+     into.
+
+     Two rules, because the two clauses are not the same shape. The claim tokens must not appear
+     at all. `average` and `estimate` legitimately DO appear — inside refusal text that promises
+     the opposite, "no average, national default or zero is substituted" — so those are permitted
+     only where the same line negates them. A bare occurrence is the defect. */
+  const statePage = read('lifetime-tax-strategy-lab.html');
+  const stateBandStart = statePage.indexOf('<div id="power-state" class="band">');
+  const stateBandEnd = statePage.indexOf('<div id="power-combined" class="band">');
+  const stateBand = stateBandStart >= 0 && stateBandEnd > stateBandStart
+    ? statePage.slice(stateBandStart, stateBandEnd) : '';
+  const stateClaimSurfaces = {
+    'rltaxstate.js': read('rltaxstate.js'),
+    'tax-rules/state/FL/2026.json': read('tax-rules/state/FL/2026.json'),
+    'tax-rules/fixtures/state-contract-no-preferential-2999.json': read('tax-rules/fixtures/state-contract-no-preferential-2999.json'),
+    'lifetime-tax-strategy-lab.html#power-state': stateBand
+  };
+  const STATE_CLAIM_TOKENS = ['probabilit', 'likelihood', 'success rate', 'successrate', 'accuracy',
+    'track record', 'trackrecord', 'error rate', 'errorrate', 'win rate', 'winrate',
+    'break-even', 'breakeven', 'lifetime total', 'lifetimetotal', 'expected value'];
+  const NEGATED_SOFTENER = /\b(no|not|never|without|neither)\b[^\n]*?\b(average|averages|estimate|estimated|estimates|approximate|approximately)\b/i;
+  const BARE_SOFTENER = /\b(average|averages|estimate|estimated|estimates|approximate|approximately)\b/i;
+  const stateClaimLeak = (text) => STATE_CLAIM_TOKENS.filter((token) => text.toLowerCase().indexOf(token) >= 0);
+  const stateSoftenerLeak = (text) => text.split('\n')
+    .filter((line) => BARE_SOFTENER.test(line) && !NEGATED_SOFTENER.test(line));
+  const claimLeakingSurfaces = Object.keys(stateClaimSurfaces)
+    .filter((name) => stateClaimLeak(stateClaimSurfaces[name]).length > 0);
+  const softenerLeakingSurfaces = Object.keys(stateClaimSurfaces)
+    .filter((name) => stateSoftenerLeak(stateClaimSurfaces[name]).length > 0);
+  /* The band slice must be non-empty, or both rules would pass over nothing and the page would be
+     silently unscanned — the failure mode this whole check exists to refuse. */
+  assert(stateBand.length > 0
+    && claimLeakingSurfaces.length === 0
+    && softenerLeakingSurfaces.length === 0
+    /* NEGATIVE CONTROL: both rules are shown to fire. A planted claim token and a planted
+       un-negated softener each have to be caught, or a green result would mean nothing. */
+    && stateClaimLeak('the state track record for this jurisdiction').length === 1
+    && stateSoftenerLeak('the state tax shown is an estimate for this household').length === 1
+    /* And the softener rule must still ACCEPT the shipped negated form, so it is discriminating
+       rather than merely strict. */
+    && stateSoftenerLeak('no average, national default or zero is substituted').length === 0,
+  'Scope 03 claim boundary: no state module, state pack or Power state band claims a probability, a track record, an accuracy figure, an error rate, a break-even or a lifetime total, and every occurrence of average or estimate is a refusal denying substitution — both rules proven to fire on a planted claim and a planted un-negated softener');
 
   /* TP-03-22 and TP-03-24: the fixture and both shipped packs stay outside the public directories. */
   const stateFixtureDigest = 'sha256:' + createStateHash('sha256').update(RULES.packContentDigestInput(fixturePack)).digest('hex');
@@ -16043,12 +16260,14 @@ try {
      proven able to fail on a clone whose boundary drops one of them. */
   const floridaPackForCalifornia = JSON.parse(read('tax-rules/state/FL/2026.json'));
   const resolvingFixturePack = JSON.parse(read('tax-rules/fixtures/state-contract-no-preferential-2999.json'));
+  const noTaxFixtureForCalifornia = JSON.parse(read('tax-rules/fixtures/state-no-tax-2999.json'));
   function californiaResidentOf(jurisdiction, ordinary) {
     const workspace = californiaWorkspace('single', ordinary);
     workspace.residencyJurisdiction = jurisdiction;
     return workspace;
   }
-  const sourcedZeroSettlement = STATE.computeAnnualStateTax(californiaResidentOf('state:FL', 200000), floridaPackForCalifornia);
+  const sourcedZeroSettlement = STATE.computeAnnualStateTax(californiaResidentOf('state:QQ', 200000), noTaxFixtureForCalifornia);
+  const unstatedImpositionSettlement = STATE.computeAnnualStateTax(californiaResidentOf('state:FL', 200000), floridaPackForCalifornia);
   const resolvingSettlement = STATE.computeAnnualStateTax(californiaResidentOf('state:ZZ', 200000), resolvingFixturePack);
   const requiredBoundaryIds = [];
   statuses.forEach((status) => {
@@ -16061,14 +16280,16 @@ try {
   const boundaryDroppingOne = unsupportedIds.filter((id) => id !== boundaryIdsOwed[0]);
   assert(RULES.isUnavailable(californiaSettlement.totalStateTax)
     && RULES.isSourcedZero(sourcedZeroSettlement.totalStateTax)
+    && RULES.isUnavailable(unstatedImpositionSettlement.totalStateTax)
     && Number.isFinite(resolvingSettlement.totalStateTax.value)
     && californiaSettlement.completeStateTax === false
     && sourcedZeroSettlement.completeStateTax === false
+    && unstatedImpositionSettlement.completeStateTax === false
     && resolvingSettlement.completeStateTax === false
     && boundaryIdsOwed.length === 3
     && boundaryCovers(unsupportedIds)
     && !boundaryCovers(boundaryDroppingOne),
-  'TP-04-14: every return the state module has — the refusing California settlement, a sourced-zero settlement and a settlement that resolves to a finite figure — reports the state tax as not complete, and the coverage boundary is required to name each absent-figure family the pack itself carries rather than a hand-listed set, with the requirement proven able to fail on a boundary that drops one of them');
+  'TP-04-14: every return the state module has — the refusing California settlement, a sourced-zero settlement, a settlement whose pack states no imposition and a settlement that resolves to a finite figure — reports the state tax as not complete, and the coverage boundary is required to name each absent-figure family the pack itself carries rather than a hand-listed set, with the requirement proven able to fail on a boundary that drops one of them');
 
   /* TP-04-13: no engine module was modified for California. */
   const engineModules = ['rltaxrules.js', 'rltax.js', 'rltaxstate.js', 'rltaxworkspace.js', 'rltaxcombined.js'];
@@ -16104,6 +16325,201 @@ try {
     && gainFederal.preferentialTax.value > 0
     && ordinaryFederal.preferentialTax.value === 0,
   'TP-04-03: a California household holding a long-term gain and one holding the same amount as ordinary income pool that income into one supported-income measure, carry no preferential taxable-income measure at all and receive the identical California outcome, while the identical two households receive different federal totals because the federal settlement does carve the gain into a preferential measure and prices it in a preferential band');
+
+  /* TP-04-04 — the row's OWNING assertion. Before this the row had none: a suite-wide
+     census of every passing `TP-04-04` line found each one belonged to another feature
+     reusing the id, so the row was carried by nothing at all.
+
+     The row states three clauses. Two of them speak about a RESOLVED deduction and
+     cannot be asserted while BI-6 is open, and this assertion does not pretend to
+     cover them — what is covered and what is not is recorded in report.md#tp-04-04.
+     The third clause, that the deduction is NEVER derived from the federal deduction,
+     is decidable today and is the clause that actually protects a household: a silent
+     federal borrow is worse than a refusal, because it produces a California figure
+     that looks resolved and is wrong by roughly a factor of three. */
+  const federalDeductionAmounts = statuses.map((status) => federalPack.standardDeductions[status].amount);
+  const federalFiguresIn = (pack) => {
+    const hits = [];
+    (function walk(node) {
+      if (node === null || node === undefined) return;
+      if (typeof node === 'number') { if (federalDeductionAmounts.indexOf(node) >= 0) hits.push(node); return; }
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === 'object') { Object.keys(node).forEach((key) => walk(node[key])); }
+    })(pack);
+    return hits;
+  };
+  /* The negative control: the same detector run against a clone that HAS borrowed the
+     federal figure must fire, and the settlement must then publish it. Without this the
+     zero-hit result above would be indistinguishable from a detector that cannot fail. */
+  const federalBorrowPlant = clone(californiaPack);
+  federalBorrowPlant.standardDeductions.single = {
+    contractVersion: 'DeductionAmount/v1',
+    filingStatus: 'single',
+    amount: federalPack.standardDeductions.single.amount,
+    sourceRef: 'ca-rtc-17073-5',
+    locator: 'planted federal figure for the negative control'
+  };
+  const shippedSettlement = STATE.computeAnnualStateTax(californiaWorkspace('single', 120000), californiaPack);
+  const plantedSettlement = STATE.computeAnnualStateTax(californiaWorkspace('single', 120000), federalBorrowPlant);
+  assert(federalDeductionAmounts.length === 4
+    && federalDeductionAmounts.every((amount) => Number.isFinite(amount) && amount > 0)
+    /* every filing status is absent, not merely some */
+    && statuses.every((status) => RULES.isAbsentFigure(californiaPack.standardDeductions[status]))
+    && statuses.every((status) => !Object.prototype.hasOwnProperty.call(californiaPack.standardDeductions[status], 'amount')
+      && !Object.prototype.hasOwnProperty.call(californiaPack.standardDeductions[status], 'value'))
+    /* the remediation names California's own authority, not a federal one */
+    && statuses.every((status) => californiaPack.standardDeductions[status].missingSource.url.indexOf('ftb.ca.gov') >= 0)
+    && californiaPack.sourceRecords.every((record) => record.publisher.indexOf('California') >= 0)
+    /* no figure anywhere in the pack equals a federal standard deduction */
+    && federalFiguresIn(californiaPack).length === 0
+    && federalFiguresIn(federalBorrowPlant).length === 1
+    /* the gap reaches the settlement instead of being filled behind the household's back.
+       appliedDeduction is an engine refusal rather than a pack-level AbsentFigure, so it is
+       read with isUnavailable; the code and the missing numeric member are checked either way. */
+    && RULES.isUnavailable(shippedSettlement.appliedDeduction)
+    && codeOf(shippedSettlement.appliedDeduction) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && !Object.prototype.hasOwnProperty.call(shippedSettlement.appliedDeduction, 'value')
+    && RULES.isUnavailable(shippedSettlement.stateTaxableIncome)
+    /* and the refusal is scoped to the deduction rather than a blanket failure */
+    && shippedSettlement.grossSupportedIncome.value === 120000
+    /* the control proves the appliedDeduction check is able to fail */
+    && plantedSettlement.appliedDeduction.value === federalPack.standardDeductions.single.amount
+    /* and the pack declares the gap rather than hiding it */
+    && californiaPack.unsupportedFeatures.some((feature) =>
+      feature.id === 'ca-standard-deduction-for-declared-year' && feature.movesMarginalRate === true),
+  'TP-04-04: California carries no standard deduction of its own for the declared year, every filing status is an absent figure with no numeric member and a remediation naming a California authority, no figure anywhere in the pack equals any federal standard deduction, and the settlement publishes appliedDeduction as a refusal that propagates into state taxable income while gross supported income still resolves — proven able to fail by a clone that borrows the federal single-filer figure, which the same detector catches and whose settlement then publishes that borrowed figure');
+
+  /* TP-04-11 — the OWNING assertion for BI-6's second branch. TP-04-11 above walks twelve
+     records across three groups; the branch BI-6 was restated to permit is a claim about
+     EVERY unretrievable figure, and the fourth group (the preferential tables) sits outside
+     that walk. This assertion walks all sixteen and reads the four members the branch names
+     by name, so a record that carried a code and a reason but no remediation or no locator
+     would fall it.
+
+     The row's own adversarial case is what the two controls below exist to satisfy: a figure
+     present under NEITHER branch, and a figure DERIVED from another figure the pack carries.
+     Branch two is a licence to ship an honest absence, never a licence to ship an unsourced
+     number wearing an absence's paperwork. */
+  const absentBranchGroups = ['standardDeductions', 'ordinaryRateTables', 'preferentialRateTables'];
+  const branchRecordsOf = (pack) => {
+    const records = [];
+    absentBranchGroups.forEach((group) => {
+      statuses.forEach((status) => { records.push(pack[group][status]); });
+    });
+    statuses.forEach((status) => { records.push(pack.reliefMechanisms[0].amounts[status]); });
+    return records;
+  };
+  const branchMembers = ['code', 'domain', 'reason', 'whatWouldMakeItAvailable', 'missingSource'];
+  const branchRecords = branchRecordsOf(californiaPack);
+  const branchDomains = branchRecords.map((record) => record && record.domain);
+  /* Control one — a figure present under NEITHER branch. A bare number carrying no
+     SourceRecord retrieval and no AbsentFigure paperwork at all. */
+  const unsourcedPlant = clone(californiaPack);
+  unsourcedPlant.standardDeductions.single = 4242;
+  /* Control two — a figure DERIVED from another figure the pack already carries. The
+     surcharge threshold is the one California figure that WAS retrieved; a deduction that
+     silently reuses it is cited, well-formed and still fabricated. The detector reads the
+     numbers the pack carries OUTSIDE the four groups and refuses any of them appearing
+     inside one. */
+  const carriedElsewhere = (pack) => {
+    const numbers = [];
+    (function walk(node) {
+      if (node === null || node === undefined) return;
+      if (typeof node === 'number') { numbers.push(node); return; }
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === 'object') { Object.keys(node).forEach((key) => walk(node[key])); }
+    })(pack.thresholdSets);
+    return numbers;
+  };
+  const numbersInsideGroups = (pack) => {
+    const numbers = [];
+    branchRecordsOf(pack).forEach(function walk(node) {
+      if (node === null || node === undefined) return;
+      if (typeof node === 'number') { numbers.push(node); return; }
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === 'object') { Object.keys(node).forEach((key) => walk(node[key])); }
+    });
+    return numbers;
+  };
+  const derivedPlant = clone(californiaPack);
+  derivedPlant.standardDeductions.single = {
+    contractVersion: 'DeductionAmount/v1',
+    filingStatus: 'single',
+    amount: californiaPack.thresholdSets['additional-tax-above-one-million'].thresholds.all,
+    sourceRef: 'ca-rtc-17043',
+    locator: 'planted derivation for the negative control — the surcharge threshold reused as a deduction'
+  };
+  const derivedHits = numbersInsideGroups(derivedPlant)
+    .filter((number) => carriedElsewhere(derivedPlant).indexOf(number) >= 0);
+  assert(branchRecords.length === 16
+    && branchRecords.every((record) => RULES.isAbsentFigure(record))
+    && branchRecords.every((record) => branchMembers.every((member) =>
+      Object.prototype.hasOwnProperty.call(record, member)))
+    && branchRecords.every((record) => record.reason.length > 0 && record.whatWouldMakeItAvailable.length > 0)
+    && branchRecords.every((record) => RULES.RLTAX_CODES[record.code] === true)
+    && branchRecords.every((record) => record.missingSource.title.length > 0
+      && record.missingSource.url.length > 0 && record.missingSource.locator.length > 0)
+    /* each record names the figure it stands for, so one remediation cannot cover sixteen gaps */
+    && new Set(branchDomains).size === 16
+    && branchRecords.every((record) => valueBearing.every((member) =>
+      !Object.prototype.hasOwnProperty.call(record, member)))
+    /* the shipped pack carries no number at all inside the four groups */
+    && numbersInsideGroups(californiaPack).length === 0
+    /* control one: a figure under neither branch is caught by the walk and refused by the contract */
+    && branchRecordsOf(unsourcedPlant).filter((record) => RULES.isAbsentFigure(record)).length === 15
+    && !RULES.validateRulePack(unsourcedPlant).ok
+    /* control two: a figure derived from another figure the pack carries is caught by name */
+    && carriedElsewhere(californiaPack).length > 0
+    && derivedHits.length === 1
+    && numbersInsideGroups(californiaPack).filter((number) =>
+      carriedElsewhere(californiaPack).indexOf(number) >= 0).length === 0,
+  'TP-04-11: every one of the sixteen California figures no retrieval reached ships as an AbsentFigure/v1 naming its code, its own domain, its reason, what would make it available and a missingSource with a title, a url and a locator, and none carries a value-bearing member — proven able to fail by a clone planting a bare number under neither branch, which the walk counts short and the contract refuses, and by a clone deriving a deduction from the surcharge threshold the pack already carries, which the cross-group detector catches while the shipped pack produces zero hits');
+
+  /* FR-022-023 and FR-022-024 — the OWNING assertion for the refusal-rather-than-zero clause.
+     The mechanism half of that row is pinned by TP-04-05 and TP-04-06 above. The clause the
+     restatement added is a behaviour of the ENGINE rather than of the pack: when the relief
+     stage reaches an absent per-status amount it must refuse under its own named code, and
+     must not resolve to zero, be skipped, or borrow a figure from elsewhere. That clause is
+     reached through applyReliefAfterRate directly, because the shipped settlement refuses at
+     the deduction long before CO-13 and so never exercises it. */
+  const reliefLegValues = { 'state-ordinary': 50000, 'state-surcharge': 1000 };
+  const reliefRefusals = statuses.map((status) =>
+    STATE.applyReliefAfterRate(californiaWorkspace(status, 120000), californiaPack, reliefLegValues, status));
+  /* The positive control. A synthetic amount that is NOT a California figure and is not
+     claimed to be one — its only job is to show the refusal above is caused by the absence
+     rather than being unconditional. */
+  const SYNTHETIC_RELIEF_CONTROL = 137;
+  const reliefResolvedPlant = clone(californiaPack);
+  statuses.forEach((status) => { reliefResolvedPlant.reliefMechanisms[0].amounts[status] = SYNTHETIC_RELIEF_CONTROL; });
+  const reliefResolved = STATE.applyReliefAfterRate(californiaWorkspace('single', 120000),
+    reliefResolvedPlant, reliefLegValues, 'single');
+  /* The non-finite control. An amount that is neither an AbsentFigure nor a number must not
+     fall through to a zero either; it reaches the named code by its own path. */
+  const reliefNonFinitePlant = clone(californiaPack);
+  reliefNonFinitePlant.reliefMechanisms[0].amounts.single = null;
+  const reliefNonFinite = STATE.applyReliefAfterRate(californiaWorkspace('single', 120000),
+    reliefNonFinitePlant, reliefLegValues, 'single');
+  assert(californiaPack.reliefMechanisms[0].varyByFilingStatus === true
+    && statuses.every((status) => RULES.isAbsentFigure(californiaPack.reliefMechanisms[0].amounts[status]))
+    && reliefRefusals.every((refusal) => RULES.isUnavailable(refusal))
+    && reliefRefusals.every((refusal) => codeOf(refusal) === 'RLTAX-THRESHOLD-UNAVAILABLE')
+    && reliefRefusals.every((refusal) => refusal.domain === 'state-relief:personal-exemption-credit')
+    && reliefRefusals.every((refusal) => refusal.whatWouldMakeItAvailable.length > 0)
+    /* neither a zero nor a skip: no numeric member, and no applied list to be read as "nothing claimed" */
+    && reliefRefusals.every((refusal) => !Object.prototype.hasOwnProperty.call(refusal, 'value'))
+    && reliefRefusals.every((refusal) => !Object.prototype.hasOwnProperty.call(refusal, 'applied'))
+    && reliefRefusals.every((refusal) => !Object.prototype.hasOwnProperty.call(refusal, 'reductionByLeg'))
+    /* the positive control proves the refusal is caused by the absence and not by the stage itself */
+    && !RULES.isUnavailable(reliefResolved)
+    && reliefResolved.applied.length === 1
+    && reliefResolved.applied[0].declaredAmount === SYNTHETIC_RELIEF_CONTROL
+    && reliefResolved.applied[0].appliedAtStage === 'CO-13'
+    && JSON.stringify(reliefResolved.applied[0].appliesToLegs) === JSON.stringify(['state-ordinary'])
+    /* and a non-finite amount reaches the named code rather than a zero */
+    && RULES.isUnavailable(reliefNonFinite)
+    && codeOf(reliefNonFinite) === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && !Object.prototype.hasOwnProperty.call(reliefNonFinite, 'value'),
+  'FR-022-023 / FR-022-024 TP-04-05 and TP-04-06: when the exemption credit carries no amount for a filing status the relief stage refuses under RLTAX-THRESHOLD-UNAVAILABLE naming its own mechanism domain and publishes neither a value, an applied list nor a per-leg reduction — so a household is never priced as though it had claimed nothing — proven able to fail by a synthetic control amount that resolves the same stage into a single CO-13 application against the ordinary leg alone, and by a non-finite amount that reaches the same named code by its own path rather than a zero');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 Scope 04 California group threw): ' + e.message); }
 
 /* ================================================================================
@@ -16126,6 +16542,7 @@ try {
   const floridaPack = JSON.parse(read('tax-rules/state/FL/2026.json'));
   const californiaPack = JSON.parse(read('tax-rules/state/CA/2026.json'));
   const fixturePack = JSON.parse(read('tax-rules/fixtures/state-contract-no-preferential-2999.json'));
+  const noTaxFixturePack = JSON.parse(read('tax-rules/fixtures/state-no-tax-2999.json'));
 
   function combinedWorkspace(jurisdiction, ordinary, gain, status, mode) {
     const workspace = WORKSPACE.createEmptyWorkspace();
@@ -16164,19 +16581,23 @@ try {
   /* TP-05-02 and TP-05-06: the combined total sums two jurisdiction totals, and a sourced zero is
      a real addend added through a contract-version branch. */
   const fixtureCombination = COMBINED.combineSettlements(combinedWorkspace('state:ZZ', 200000), federalPack, fixturePack);
+  const noTaxCombination = COMBINED.combineSettlements(combinedWorkspace('state:QQ', 200000), federalPack, noTaxFixturePack);
   const floridaCombination = COMBINED.combineSettlements(combinedWorkspace('state:FL', 200000), federalPack, floridaPack);
   const californiaCombination = COMBINED.combineSettlements(combinedWorkspace('state:CA', 200000), federalPack, californiaPack);
   const fixtureSum = fixtureCombination.federal.totalFederalTax.value + fixtureCombination.state.totalStateTax.value;
   assert(fixtureCombination.combinedTotalTax.value === fixtureSum
     && fixtureCombination.federalTotalKind === 'valued' && fixtureCombination.stateTotalKind === 'valued'
-    && floridaCombination.stateTotalKind === 'sourced-zero'
-    && RULES.isSourcedZero(floridaCombination.state.totalStateTax)
-    && floridaCombination.combinedTotalTax.value === floridaCombination.federal.totalFederalTax.value
-    && !RULES.isUnavailable(floridaCombination.combinedTotalTax)
-    && floridaCombination.completeCombinedTax === false
+    && noTaxCombination.stateTotalKind === 'sourced-zero'
+    && RULES.isSourcedZero(noTaxCombination.state.totalStateTax)
+    && noTaxCombination.combinedTotalTax.value === noTaxCombination.federal.totalFederalTax.value
+    && !RULES.isUnavailable(noTaxCombination.combinedTotalTax)
+    && noTaxCombination.completeCombinedTax === false
+    && floridaCombination.stateTotalKind === 'refusal'
+    && RULES.isUnavailable(floridaCombination.combinedTotalTax)
+    && codeOf(floridaCombination.combinedTotalTax) === codeOf(floridaCombination.state.totalStateTax)
     && RULES.isUnavailable(californiaCombination.combinedTotalTax)
     && codeOf(californiaCombination.combinedTotalTax) === codeOf(californiaCombination.state.totalStateTax),
-  'TP-05-02 and TP-05-06: the combined total equals the sum of the two jurisdiction totals, includes a sourced zero as a real addend rather than skipping it, and inherits the refusal of the refusing side');
+  'TP-05-02 and TP-05-06: the combined total equals the sum of the two jurisdiction totals, includes a sourced zero as a real addend rather than skipping it, and inherits the refusal of the refusing side whether that side refuses for a missing figure or because its pack states no imposition');
 
   /* The addition branches on the contract version rather than on the value. */
   const combinedSource = read('rltaxcombined.js');
@@ -16431,21 +16852,27 @@ try {
     && attributableControl.segments.length > 0,
   'TP-05-11: a combined rate change no pack declares a threshold for is refused RLTAX-THRESHOLD-UNAVAILABLE at combined-curve:ordinary:segment with no partial curve, while the same call on the shipped fixture still produces one');
 
-  /* TP-05-12: the no-tax state contributes a present, flat, attributed zero series. */
+  /* TP-05-12: the no-tax state contributes a present, flat, attributed zero series, and a state
+     whose pack states no imposition contributes no series at all rather than a flat zero. */
+  const noTaxCurve = COMBINED.computeCombinedMarginalCurve(
+    combinedWorkspace('state:QQ', 150000), federalPack, noTaxFixturePack, 'ordinary', combinedConfig.sweep);
+  const noTaxStateTotal = noTaxCombination.state.totalStateTax;
   const floridaCurve = COMBINED.computeCombinedMarginalCurve(
     combinedWorkspace('state:FL', 150000), federalPack, floridaPack, 'ordinary', combinedConfig.sweep);
-  const floridaStateTotal = floridaCombination.state.totalStateTax;
-  assert(!RULES.isUnavailable(floridaCurve)
-    && floridaCurve.points.length > 0
-    && floridaCurve.points.every((point) => point.stateMarginalRate === 0)
-    && floridaCurve.points.every((point) => point.stateTaxAtLevel === 0)
-    && floridaCurve.points.every((point) => point.stateTotalKind === 'sourced-zero')
-    && RULES.isSourcedZero(floridaStateTotal)
-    && floridaStateTotal.sourceRef === floridaPack.noTaxAuthority.sourceRef
-    && floridaPack.sourceRecords.some((record) => record.sourceId === floridaStateTotal.sourceRef)
-    && floridaCurve.unavailableContributors.length > 0
-    && floridaCurve.incomplete === true,
-  'TP-05-12: a jurisdiction that imposes no individual income tax contributes a state series that is present and flat at zero across the whole domain, every point of which is a sourced zero whose authority resolves to a retrieved record in that pack, and the curve still declares itself incomplete');
+  const floridaCurvePoints = RULES.isUnavailable(floridaCurve) ? [] : floridaCurve.points;
+  assert(!RULES.isUnavailable(noTaxCurve)
+    && noTaxCurve.points.length > 0
+    && noTaxCurve.points.every((point) => point.stateMarginalRate === 0)
+    && noTaxCurve.points.every((point) => point.stateTaxAtLevel === 0)
+    && noTaxCurve.points.every((point) => point.stateTotalKind === 'sourced-zero')
+    && RULES.isSourcedZero(noTaxStateTotal)
+    && noTaxStateTotal.sourceRef === noTaxFixturePack.noTaxAuthority.sourceRef
+    && noTaxFixturePack.sourceRecords.some((record) => record.sourceId === noTaxStateTotal.sourceRef)
+    && noTaxCurve.unavailableContributors.length > 0
+    && noTaxCurve.incomplete === true
+    && floridaCurvePoints.every((point) => point.stateTotalKind !== 'sourced-zero')
+    && floridaCurvePoints.every((point) => point.stateTaxAtLevel !== 0),
+  'TP-05-12: a jurisdiction that imposes no individual income tax contributes a state series that is present and flat at zero across the whole domain, every point of which is a sourced zero whose authority resolves to a retrieved record in that pack, the curve still declares itself incomplete, and a jurisdiction whose pack states no imposition contributes no zero-valued point anywhere in its own curve');
 
   /* TP-05-13: a budget the union would exceed refuses rather than dropping a jurisdiction. */
   const tightSweep = JSON.parse(JSON.stringify(combinedConfig.sweep));
@@ -17436,6 +17863,75 @@ try {
   assert(!claimScan02.test(read('rltax.js').slice(read('rltax.js').indexOf('CO-18')))
     && claimScan02.test('this is our estimate of the deduction') === true,
     'TP-02-CLAIM: nothing the deduction composition emits states a probability, a lifetime figure, a track record, an error rate or an estimate, and the detector is proven to fire on a sentence that does');
+
+  /* TP-02-26 F-REG-01. The engine publishes two different deductions and they are NOT
+     interchangeable: `settlementDeduction` priced the tax and follows the declared mode;
+     `appliedDeduction` is this comparison's larger side. The fixture below is built so the two
+     DISAGREE, because under agreement no assertion could tell them apart — which is exactly how a
+     suite of 3,244 checks passed while every rendered surface named the wrong one. */
+  const declaredStandard02 = declare02({
+    deductionMode: 'standard',
+    itemizedAmount: PACK02.standardDeductions.single.amount + 5000
+  });
+  const disagreeing02 = TAX02.composeItemizedDeduction(declaredStandard02, PACK02,
+    { 'property-tax': PACK02.standardDeductions.single.amount + 5000, 'state-income-tax': undefined });
+  const settledTax02 = TAX02.computeAnnualFederalTax(declaredStandard02, PACK02);
+  assert(disagreeing02.chosen === 'itemized'
+    && disagreeing02.settlementDeduction.mode === 'standard'
+    && disagreeing02.settlementDeduction.value === PACK02.standardDeductions.single.amount
+    && disagreeing02.appliedDeduction !== disagreeing02.settlementDeduction.value
+    && disagreeing02.agreesWithSettlement === false
+    /* The settlement really did price the tax on the settled figure, so the two members are not
+       merely different labels for the same arithmetic. */
+    && settledTax02.appliedDeduction.value === disagreeing02.settlementDeduction.value
+    && settledTax02.appliedDeduction.mode === 'standard',
+    'TP-02-26: when the declared mode is not the larger side the composition names itemising while the settlement prices the tax on the declared standard deduction, the two amounts differ, agreesWithSettlement reports the disagreement, and the settled figure is the one computeAnnualFederalTax actually subtracted');
+
+  /* TP-02-27 F-REG-01 SURFACE HONESTY. The node suite could not see this defect because it never
+     read the rendered surface. It does now: the Simple panel must feed its priced-the-tax row
+     from `settlementDeduction` and its comparison row from the composed amount, and neither row
+     may be labelled or described as the other. */
+  const pageText02surface = read('lifetime-tax-strategy-lab.html');
+  const simpleDeductionBlock02 = (source) => {
+    const start = source.indexOf('"Deduction that priced the tax: "');
+    const end = source.indexOf('tradeoffHost.appendChild', start);
+    return start < 0 || end < 0 ? '' : source.slice(start, end);
+  };
+  const deductionValueExpr02 = (block, fieldId) => {
+    const at = block.indexOf('simpleValueNode("' + fieldId + '"');
+    return at < 0 ? '' : block.slice(at, block.indexOf('));', at));
+  };
+  const deductionSurfaceFaults02 = (source) => {
+    const block = simpleDeductionBlock02(source);
+    if (block === '') return ['no priced-the-tax row is rendered at all'];
+    const settled = deductionValueExpr02(block, 'deductionApplied');
+    const compared = deductionValueExpr02(block, 'deductionSideChosen');
+    const faults = [];
+    if (settled.indexOf('settlementDeduction') < 0) faults.push('the priced-the-tax row is not fed from settlementDeduction');
+    if (/appliedDeduction|deduction\.chosen\b/.test(settled)) faults.push('the priced-the-tax row names the composed side');
+    if (compared.indexOf('appliedDeduction') < 0) faults.push('the comparison row is not fed from the composed amount');
+    if (/actually applied/i.test(compared)) faults.push('the comparison row claims the composed side was actually applied');
+    if (compared.indexOf('A comparison') < 0) faults.push('the comparison row does not say it is a comparison');
+    return faults;
+  };
+  const surfaceFaults02 = deductionSurfaceFaults02(pageText02surface);
+  /* Adversarial: the exact regression this finding names, planted, must be caught. */
+  const plantedComposed02 = deductionSurfaceFaults02(pageText02surface.replace(
+    'envelope.deduction.settlementDeduction.mode + " \\u00b7 " + dollars(envelope.deduction.settlementDeduction.value)',
+    'envelope.deduction.chosen + " \\u00b7 " + dollars(envelope.deduction.appliedDeduction)'));
+  /* Adversarial: the self-contradicting tooltip, planted, must be caught. */
+  const plantedTooltip02 = deductionSurfaceFaults02(pageText02surface.replace(
+    '"A comparison, and not the figure above: the larger of the itemised total',
+    '"The side this settlement actually applied, recomputed from the itemised total'));
+  assert(surfaceFaults02.length === 0
+    && plantedComposed02.length > 0 && plantedTooltip02.length > 0
+    /* No surviving surface claims the composed side was the one applied. */
+    && pageText02surface.indexOf('Deduction actually applied') < 0
+    && read('rltax.js').indexOf('the side actually applied cannot be named') < 0
+    /* One string may not assert both sides: the clause appended to chosenReason names the
+       comparison as its subject rather than leaving "It" to be read as the settlement. */
+    && read('rltax.js').indexOf('This comparison did not price the tax:') >= 0,
+    'TP-02-27: the Simple panel feeds its priced-the-tax row from the settled deduction and its comparison row from the composed amount, neither is described as the other, no surface still says the composed side was actually applied, and both the composed-amount regression and the self-contradicting tooltip are proven to fail the detector: ' + surfaceFaults02.join(', '));
 
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 023 Scope 02 deduction group threw): ' + e.message); }
 
@@ -25753,6 +26249,1115 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 threshold surtax group threw): ' + e.message); }
 /* ---------- Feature 022 Scope 02: threshold surtaxes and declared tax legs (END) ---------- */
 
+/* FEATURE-027-SUBJECT-HANDOFF-BEGIN */
+try {
+  group('Feature 027 Scope 1: the shared subject-handoff rule and the two precedent routes');
+  const f027Source = read('rlticker.js');
+
+  /* The rule is lifted out of the UMD file the same way every other pure helper here is,
+     which is what proves it takes its input as an argument and reads no browser global. */
+  const f027ParamLine = /\n\s*var SUBJECT_PARAM = [^\n]*\n/.exec(f027Source);
+  const f027PatternLine = /\n\s*var SUBJECT_PATTERN = [^\n]*\n/.exec(f027Source);
+  if (!f027ParamLine || !f027PatternLine) throw new Error('SUBJECT_PARAM / SUBJECT_PATTERN not declared in rlticker.js');
+  const f027Rule = build(
+    [extractFn(f027Source, 'normTicker'), extractFn(f027Source, 'linkedSubject')],
+    ['normTicker', 'linkedSubject'],
+    f027ParamLine[0] + f027PatternLine[0]
+  );
+
+  /* Load the UMD module itself under a shadowed global so the frozen-export claims are read
+     off the real export object rather than a copy of it. rlticker.js returns before any DOM
+     work when `document` is absent, so this is the module's own Node path. */
+  const f027Module = Function('var window, document, globalThis = {}; ' + f027Source + '\nreturn globalThis.RLTKR;')();
+
+  /* The corpus is defined once here and reused by every later scope (design.md Security). It
+     partitions three ways, because the receiver pattern FR-027-003 forbids narrowing does not
+     refuse every corpus member:
+       - two values are empty-ish and indistinguishable from no parameter at all (FR-027-012);
+       - `.`, `-` and `..` are grammar-VALID under /^[A-Z0-9.\-]{1,12}$/ and are accepted
+         today by both precedent routes, which is exactly the "grammar-valid oddity" D5 names
+         and hands to catalog binding rather than to the grammar;
+       - the rest must be refused. */
+  const F027_ABSENT_CORPUS = Object.freeze(['', '   \t  ']);
+  const F027_ODDITY_CORPUS = Object.freeze(['.', '-', '..']);
+  const F027_REFUSED_CORPUS = Object.freeze([
+    'javascript:alert(1)', 'data:text/html,x', '//evil.example', '../../etc/passwd',
+    '<img src=x onerror=1>', 'SPY onmouseover=1', 'SPY&x=1', 'SPY#frag', 'SPY\u0000',
+    'ABCDEFGHIJKLM', '\u0426\u0415\u041d\u0410', 'SP\nY', 'SP\tY'
+  ]);
+  const F027_CORPUS = Object.freeze(F027_ABSENT_CORPUS.concat(F027_ODDITY_CORPUS, F027_REFUSED_CORPUS));
+  const f027Query = (value) => '?' + f027Module.SUBJECT_PARAM + '=' + encodeURIComponent(value);
+
+  /* The rule as it stood privately in each precedent route before this scope deleted it.
+     Frozen here on purpose: it is the reference the equivalence proof compares against. */
+  function f027RemovedPrivateRule(search) {
+    var raw = new URLSearchParams(search).get('ticker');
+    if (typeof raw !== 'string') return null;
+    var value = raw.trim().toUpperCase();
+    return /^[A-Z0-9.\-]{1,12}$/.test(value) ? value : null;
+  }
+
+  /* Root-level production sources only. `_site` is a generated projection of these same
+     files and `scripts` / `tests` hold the proofs, so including any of them would make the
+     single-definition count structurally impossible to satisfy. */
+  const f027ProductionFiles = readdirSync(ROOT)
+    .filter((name) => /\.(html|js)$/.test(name))
+    .map((name) => ({ path: name, source: read(name) }));
+  const f027PatternToken = '[A-Z0-9.\\-]{1,12}';
+  const f027PatternSites = (files) => files.filter((f) => f.source.includes(f027PatternToken)).map((f) => f.path);
+  const f027PrivateRuleSites = (files) => files.filter((f) => /function\s+tickerFromQuery\s*\(/.test(f.source)).map((f) => f.path);
+  const F027_SUBJECT_ROUTES = Object.freeze(['options-structure-lab.html', 'gamma-trading-lab.html']);
+  const f027Consumers = F027_SUBJECT_ROUTES.filter((name) =>
+    f027ProductionFiles.some((f) => f.path === name && f.source.includes('RLTKR.linkedSubject')));
+
+  /* 1.1 — SCN-027-017 */
+  assert(f027PatternSites(f027ProductionFiles).join(',') === 'rlticker.js'
+    && f027PrivateRuleSites(f027ProductionFiles).length === 0
+    && f027Consumers.length === F027_SUBJECT_ROUTES.length,
+  'Feature 027: exactly one definition of the linked-subject rule exists in the tree and every subject-carrying route consumes it'
+    + ' (pattern at: ' + (f027PatternSites(f027ProductionFiles).join(', ') || 'nowhere')
+    + '; private copies: ' + (f027PrivateRuleSites(f027ProductionFiles).join(', ') || 'none')
+    + '; consumers: ' + f027Consumers.length + '/' + F027_SUBJECT_ROUTES.length + ')');
+
+  /* 1.2 — SCN-027-007 */
+  const f027Noise = '?symbol=NVDA&q=javascript:alert(1)&TICKER=AMD&tickerX=MU&' + f027Module.SUBJECT_PARAM + '=nvda&next=//evil.example';
+  const f027NoiseRead = f027Rule.linkedSubject(f027Noise);
+  const f027OnlyNoise = f027Rule.linkedSubject('?symbol=NVDA&TICKER=AMD&tickerX=MU');
+  assert(f027Module.SUBJECT_PARAM === 'ticker'
+    && f027NoiseRead.status === 'accepted' && f027NoiseRead.subject === 'NVDA'
+    && f027OnlyNoise.status === 'absent' && f027OnlyNoise.subject === null,
+  'Feature 027: linkedSubject reads only SUBJECT_PARAM and ignores every other key in the query string');
+
+  /* 1.3 — SCN-027-006 */
+  const f027AbsentReads = [f027Rule.linkedSubject(''), f027Rule.linkedSubject('?other=1'), f027Rule.linkedSubject(null)]
+    .concat(F027_ABSENT_CORPUS.map((value) => f027Rule.linkedSubject(f027Query(value))));
+  assert(f027AbsentReads.length === 5
+    && f027AbsentReads.every((read027) => read027.status === 'absent' && read027.subject === null && read027.raw === null),
+  'Feature 027: a missing, empty and whitespace-only subject all yield status absent with subject null');
+
+  /* 1.4 — SCN-027-010 */
+  const f027RefusedReads = F027_REFUSED_CORPUS.map((value) => f027Rule.linkedSubject(f027Query(value)));
+  const f027CorpusReads = F027_CORPUS.map((value) => f027Rule.linkedSubject(f027Query(value)));
+  const f027OddityReads = F027_ODDITY_CORPUS.map((value) => f027Rule.linkedSubject(f027Query(value)));
+  assert(f027RefusedReads.length === F027_REFUSED_CORPUS.length
+    && f027RefusedReads.every((read027) => read027.status === 'refused' && read027.subject === null && read027.raw === null)
+    && f027CorpusReads.every((read027) => read027.raw === null),
+  'Feature 027: every value in the adversarial corpus yields status refused with subject null and raw null');
+
+  /* The three grammar-valid oddities are NOT refused, and saying otherwise would be a false
+     claim. They stay accepted because FR-027-003 forbids narrowing the receiver; D5 hands
+     them to catalog binding on the routes where an accepted string could matter. */
+  assert(f027OddityReads.every((read027, index) => read027.status === 'accepted'
+    && read027.subject === F027_ODDITY_CORPUS[index] && read027.raw === null),
+  'Feature 027: the grammar-valid oddities ".", "-" and ".." stay accepted by the unchanged receiver pattern rather than being silently narrowed away');
+
+  /* 1.5 — FR-027-004, the D4 containment property */
+  const F027_SENDER_PATTERN = /^[A-Za-z][A-Za-z0-9.\-]{0,9}$/;
+  const F027_SENDER_CORPUS = Object.freeze([
+    'S', 'SPY', 'nvda', 'BrK.b', 'brk-b', 'A123456789', 'z.........', 'X-Y.Z', 'Aa0', 'spy'
+  ]);
+  const f027SenderValid = F027_SENDER_CORPUS.filter((value) => F027_SENDER_PATTERN.test(value));
+  const f027Contained = f027SenderValid.filter((value) => f027Rule.linkedSubject(f027Query(value)).status === 'accepted');
+  const f027LeadingDigit = f027Rule.linkedSubject(f027Query('3M'));
+  const f027TwelveChars = f027Rule.linkedSubject(f027Query('ABCDEFGHIJKL'));
+  assert(f027SenderValid.length === F027_SENDER_CORPUS.length
+    && f027Contained.length === f027SenderValid.length
+    && f027Rule.linkedSubject(f027Query('S')).status === 'accepted'
+    && f027Rule.linkedSubject(f027Query('A123456789')).status === 'accepted'
+    && f027LeadingDigit.status === 'accepted' && f027LeadingDigit.subject === '3M'
+    && f027TwelveChars.status === 'accepted',
+  'Feature 027: every sender-valid value is accepted by the shared receiver rule after normalisation'
+    + ' (' + f027Contained.length + '/' + f027SenderValid.length + ' contained)');
+
+  /* 1.6 — FR-027-003, equivalence against the rule this scope deleted */
+  const f027EquivalenceInputs = F027_CORPUS.concat(F027_SENDER_CORPUS)
+    .concat(['3M', 'ABCDEFGHIJKL', '  spy  ', 'BRK.B', 'BRK-B', 'SPY ']);
+  const f027SharedAccepts = f027EquivalenceInputs
+    .filter((value) => f027Rule.linkedSubject(f027Query(value)).status === 'accepted')
+    .map((value) => f027Rule.linkedSubject(f027Query(value)).subject);
+  const f027PrivateAccepts = f027EquivalenceInputs
+    .map((value) => f027RemovedPrivateRule(f027Query(value)))
+    .filter((value) => value !== null);
+  assert(f027EquivalenceInputs.length >= 30
+    && JSON.stringify(f027SharedAccepts) === JSON.stringify(f027PrivateAccepts),
+  'Feature 027: the shared rule and the removed private rule agree on the full corpus, so the precedent accept-set is unchanged'
+    + ' (' + f027SharedAccepts.length + ' accepted of ' + f027EquivalenceInputs.length + ')');
+
+  /* ── the four adversarial mutants (design.md Adversarial obligations 1, 2, 4 and 6) ── */
+  const f027Mutant = (patternLine) => build(
+    [extractFn(f027Source, 'normTicker'), extractFn(f027Source, 'linkedSubject')],
+    ['linkedSubject'], f027ParamLine[0] + patternLine);
+
+  /* 1.7 */
+  const f027Permissive = f027Mutant('\nvar SUBJECT_PATTERN = /^.*$/;\n');
+  const f027PermissiveSurvivors = F027_REFUSED_CORPUS
+    .filter((value) => f027Permissive.linkedSubject(f027Query(value)).status !== 'refused');
+  assert(f027PermissiveSurvivors.length > 0,
+    'Feature 027 adversarial: replacing SUBJECT_PATTERN with a permissive pattern fails the corpus assertion'
+    + ' (' + f027PermissiveSurvivors.length + ' corpus value(s) would slip through)');
+
+  /* 1.8 */
+  const f027Leaky = build(
+    [extractFn(f027Source, 'normTicker'),
+      extractFn(f027Source, 'linkedSubject').replace(/status: "refused", subject: null, raw: null/, 'status: "refused", subject: null, raw: normalised')],
+    ['linkedSubject'], f027ParamLine[0] + f027PatternLine[0]);
+  const f027Leaked = F027_REFUSED_CORPUS.filter((value) => f027Leaky.linkedSubject(f027Query(value)).raw !== null);
+  assert(f027Leaked.length > 0 && f027CorpusReads.every((read027) => read027.raw === null),
+    'Feature 027 adversarial: returning the refused value in raw fails the never-reaches-a-sink assertion'
+    + ' (' + f027Leaked.length + ' refused value(s) would escape through raw)');
+
+  /* 1.9 — design.md adversarial obligation 4 asks for the receiver to be narrowed to the
+     SENDER expression and expects the containment property to go red. It cannot: the sender
+     expression is applied AFTER normalisation, uppercasing maps every sender-legal letter
+     back into the sender class, and every value that narrowing then refuses was never
+     sender-valid in the first place. That is recorded mechanically here rather than papered
+     over, and the containment guard is instead proved able to fail by a narrowing that
+     really does refuse a sender-valid value. */
+  const f027NarrowedToSender = f027Mutant('\nvar SUBJECT_PATTERN = /^[A-Za-z][A-Za-z0-9.\\-]{0,9}$/;\n');
+  const f027SenderNarrowBreaks = f027SenderValid
+    .filter((value) => f027NarrowedToSender.linkedSubject(f027Query(value)).status !== 'accepted');
+  const f027NarrowedTwoPlus = f027Mutant('\nvar SUBJECT_PATTERN = /^[A-Z0-9.\\-]{2,12}$/;\n');
+  const f027RealNarrowBreaks = f027SenderValid
+    .filter((value) => f027NarrowedTwoPlus.linkedSubject(f027Query(value)).status !== 'accepted');
+  assert(f027RealNarrowBreaks.length > 0 && f027SenderNarrowBreaks.length === 0,
+    'Feature 027 adversarial: the containment property is provably able to fail — a receiver narrowed to reject a one-character subject refuses sender-valid ' + JSON.stringify(f027RealNarrowBreaks)
+    + ', while narrowing it to the sender expression refuses nothing, so design.md adversarial obligation 4 is not a falsifier of this property');
+
+  /* 1.10 */
+  const f027Restored = f027ProductionFiles.map((f) => f.path === 'options-structure-lab.html'
+    ? { path: f.path, source: f.source + '\nfunction tickerFromQuery() { return null; }\n' } : f);
+  assert(f027PrivateRuleSites(f027Restored).length === 1 && f027PrivateRuleSites(f027ProductionFiles).length === 0,
+    'Feature 027 adversarial: restoring either private tickerFromQuery fails the single-definition assertion');
+
+  /* 1.11 — the percent-encoding class, which the corpus above does not reach.
+     URLSearchParams decodes ONCE, so a value written double-encoded in the link arrives at
+     the rule still carrying its literal `%`. Every value here is SHORT ENOUGH and otherwise
+     well-formed enough that the 1..12 length bound and the rest of the corpus's refusal
+     reasons do NOT apply — the ONLY thing standing between them and acceptance is that `%`
+     is absent from the receiver character class. That makes them a sharp probe of exactly
+     one property, which the mutant immediately below then proves is able to fail. */
+  const F027_ENCODED_CORPUS = Object.freeze([
+    '%2e%2e%2f',      /* double-encoded ../ — traversal that survives one decode */
+    '%2F%2Fx',        /* double-encoded //host — protocol-relative that survives one decode */
+    '%00',            /* encoded NUL */
+    'A%0AB',          /* encoded newline inside an otherwise ticker-shaped value */
+    '%6Aavascript'    /* first character of a scheme hidden behind an encoded byte */
+  ]);
+  const f027EncodedReads = F027_ENCODED_CORPUS.map((value) => f027Rule.linkedSubject(f027Query(value)));
+  const f027PercentPermissive = f027Mutant('\nvar SUBJECT_PATTERN = /^[A-Z0-9.\\-%]{1,12}$/;\n');
+  const f027PercentSurvivors = F027_ENCODED_CORPUS
+    .filter((value) => f027PercentPermissive.linkedSubject(f027Query(value)).status !== 'refused');
+  assert(f027EncodedReads.length === F027_ENCODED_CORPUS.length
+    && f027EncodedReads.every((read027) => read027.status === 'refused' && read027.subject === null && read027.raw === null)
+    && F027_ENCODED_CORPUS.every((value) => value.trim().toUpperCase().length <= 12)
+    && f027PercentSurvivors.length === F027_ENCODED_CORPUS.length,
+  'Feature 027: a value that survives one percent-decode still carrying a literal % is refused, and admitting % to the receiver class would let every one of them through'
+    + ' (' + f027PercentSurvivors.length + '/' + F027_ENCODED_CORPUS.length + ' would slip under a %-permitting pattern)');
+
+  /* ── Tier 2 contract claims read off the real export object ── */
+  assert(f027Module.SUBJECT_PARAM === 'ticker'
+    && String(f027Module.SUBJECT_PATTERN) === String(/^[A-Z0-9.\-]{1,12}$/)
+    && typeof f027Module.linkedSubject === 'function',
+  'Feature 027: rlticker.js exports SUBJECT_PARAM "ticker", SUBJECT_PATTERN /^[A-Z0-9.\\-]{1,12}$/ and linkedSubject on RLTKR');
+
+  /* The single-definition claim, proven in one assertion: both values are read off the REAL
+     export object, and a scan of the whole production tree proves the pair has exactly one
+     declaration site, that no other production file reads the query parameter itself, and
+     that the two precedent routes reach the convention only through RLTKR.linkedSubject and
+     name neither the parameter nor the pattern. The coverage registry declares the same
+     parameter NAME for its subject-carrying rows; that is a consumer of this definition, not
+     a second one, so it is asserted EQUAL to the module's own value rather than excused. */
+  const f027DeclarationSites = (files, name) => files
+    .filter((f) => new RegExp('\\b(?:var|const|let)\\s+' + name + '\\b').test(f.source)).map((f) => f.path);
+  const f027ParamReadPattern = /\.get\(\s*['"]ticker['"]\s*\)|[?&]ticker=/;
+  const f027ForeignParamReaders = f027ProductionFiles
+    .filter((f) => f.path !== 'rlticker.js' && f027ParamReadPattern.test(f.source)).map((f) => f.path);
+  const f027RegistryParams = Array.from(new Set(JSON.parse(read('company-intelligence.config.json'))
+    .coverageRegistry.map((row) => row.ownerSubjectParam).filter((value) => typeof value === 'string')));
+  const f027RouteSources = F027_SUBJECT_ROUTES.map((name) => f027ProductionFiles.find((f) => f.path === name));
+  const f027ParamDecls = f027DeclarationSites(f027ProductionFiles, 'SUBJECT_PARAM');
+  const f027PatternDecls = f027DeclarationSites(f027ProductionFiles, 'SUBJECT_PATTERN');
+  assert(f027Module.SUBJECT_PARAM === 'ticker'
+    && f027Module.SUBJECT_PATTERN instanceof RegExp
+    && f027Module.SUBJECT_PATTERN.source === '^[A-Z0-9.\\-]{1,12}$'
+    && f027ParamDecls.join(',') === 'rlticker.js'
+    && f027PatternDecls.join(',') === 'rlticker.js'
+    && f027PatternSites(f027ProductionFiles).join(',') === 'rlticker.js'
+    && f027ForeignParamReaders.length === 0
+    && f027RouteSources.length === F027_SUBJECT_ROUTES.length
+    && f027RouteSources.every((f) => !!f
+      && f.source.includes('RLTKR.linkedSubject')
+      && !/\b(?:var|const|let)\s+SUBJECT_(?:PARAM|PATTERN)\b/.test(f.source)
+      && !f.source.includes(f027PatternToken)
+      && !f027ParamReadPattern.test(f.source))
+    && f027RegistryParams.length === 1 && f027RegistryParams[0] === f027Module.SUBJECT_PARAM,
+  'Feature 027: SUBJECT_PARAM "' + f027Module.SUBJECT_PARAM + '" and SUBJECT_PATTERN /' + f027Module.SUBJECT_PATTERN.source
+    + '/ are read off the real RLTKR export and are the single shared definition of the convention'
+    + ' (declared only in: ' + (f027ParamDecls.join(', ') || 'nowhere') + ' / ' + (f027PatternDecls.join(', ') || 'nowhere')
+    + '; pattern text only in: ' + (f027PatternSites(f027ProductionFiles).join(', ') || 'nowhere')
+    + '; production files outside it that read the parameter themselves: ' + (f027ForeignParamReaders.join(', ') || 'none')
+    + '; both precedent routes reach it only through RLTKR.linkedSubject and name neither'
+    + '; registry declares the one name ' + JSON.stringify(f027RegistryParams) + ')');
+
+  const f027Body = extractFn(f027Source, 'linkedSubject');
+  assert(!/\bwindow\b|\bdocument\b|localStorage|sessionStorage|location\./.test(f027Body)
+    && f027Body.includes('normTicker(')
+    && f027Rule.linkedSubject(f027Query('  brk.b  ')).subject === f027Rule.normTicker('  brk.b  '),
+  'Feature 027: linkedSubject reads no window, document or storage API and normalises through the existing normTicker');
+
+  /* 1.20 — the single-convention property, pinned in BOTH directions.
+     Every assertion above proves the CORRECT name works; none of them counts NAMES, so a
+     SECOND convention arriving alongside `ticker` survived all of them — a fallback read of
+     `t` in the shared reader, or a `?t=` parameter in the deep link a route publishes about
+     itself. Both are counted here instead: the shared reader must read exactly one parameter
+     name, each subject route must delegate its query read to that reader rather than parse
+     the search string itself, and every deepLink a subject route emits must name that same
+     parameter. Symbolic references resolve through the real export, so composing a link from
+     RLTKR.SUBJECT_PARAM satisfies this while a hard-coded second spelling does not. */
+  const f027ReadArgs = (body) => Array.from(body.matchAll(/\.get\(\s*([^)]*?)\s*\)/g)).map((m) => m[1]);
+  const f027ResolveName = (token) => (token === 'SUBJECT_PARAM' || token === 'RLTKR.SUBJECT_PARAM')
+    ? f027Module.SUBJECT_PARAM
+    : (/^(['"]).*\1$/.test(token) ? token.slice(1, -1) : 'unresolved(' + token + ')');
+  const f027DeepLinkParam = (expr) => {
+    /* a hard-coded name inside the link text is already the name it publishes */
+    const literal = /^"[^"]*\?([^"=&]+)="/.exec(expr);
+    if (literal) return literal[1];
+    const symbolic = /^"[^"]*\?"\s*\+\s*([A-Za-z_$][\w$.]*)\s*\+\s*"="/.exec(expr);
+    if (symbolic) return f027ResolveName(symbolic[1]);
+    return 'unparsed(' + expr.slice(0, 60) + ')';
+  };
+  const f027EmittedNames = [];
+  const f027UndelegatedReads = [];
+  const F027_DELEGATED_READ = /RLTKR\.linkedSubject\(\s*[A-Za-z_$][\w$.]*\.location\.search\s*(?:,\s*(['"])[A-Za-z][A-Za-z0-9_]*\1\s*)?\)/;
+  f027RouteSources.forEach((f) => {
+    Array.from(f.source.matchAll(/deepLink:\s*([^\n]*?)\s*$/gm))
+      .forEach((m) => f027EmittedNames.push(f027DeepLinkParam(m[1])));
+    Array.from(f.source.matchAll(/[^\n]*location\.search[^\n]*/g))
+      .filter((line) => !F027_DELEGATED_READ.test(line[0]))
+      .forEach(() => f027UndelegatedReads.push(f.path));
+  });
+  /* The reader takes the name it reads as an ARGUMENT now, because the hub route this corridor
+     points back at published its subject as ?symbol= before the corridor existed, and forking a
+     second copy of the grammar to serve that spelling is the duplication this feature removed.
+     That moves the "one convention" claim off the reader body and onto the CALL SITES, which
+     1.21 counts. What stays provable here is that the reader performs exactly ONE query read,
+     that the name it reads is its own single local, and that omitting the argument still reads
+     SUBJECT_PARAM — so a caller that names nothing cannot silently acquire a second spelling. */
+  const f027ReaderGets = f027ReadArgs(f027Body);
+  const f027ReaderDefaults = /var\s+name\s*=\s*typeof paramName === "string" && paramName \? paramName : SUBJECT_PARAM;/.test(f027Body);
+  const f027DefaultRead = f027Rule.linkedSubject('?ticker=NVDA&symbol=AMD');
+  const f027NamedRead = f027Rule.linkedSubject('?ticker=NVDA&symbol=AMD', 'symbol');
+  const f027EmittedDistinct = Array.from(new Set(f027EmittedNames));
+  assert(f027ReaderGets.length === 1 && f027ReaderGets[0] === 'name' && f027ReaderDefaults
+    && f027DefaultRead.status === 'accepted' && f027DefaultRead.subject === 'NVDA'
+    && f027NamedRead.status === 'accepted' && f027NamedRead.subject === 'AMD'
+    && f027Rule.linkedSubject('?symbol=AMD').status === 'absent'
+    && f027Rule.linkedSubject('?ticker=NVDA', 'symbol').status === 'absent'
+    && f027EmittedNames.length === F027_SUBJECT_ROUTES.length
+    && f027EmittedDistinct.length === 1 && f027EmittedDistinct[0] === f027Module.SUBJECT_PARAM
+    && f027UndelegatedReads.length === 0,
+  'Feature 027: one subject convention in BOTH directions — the shared reader performs exactly one query read '
+    + JSON.stringify(f027ReaderGets) + ' through a single local that defaults to SUBJECT_PARAM, each subject route'
+    + ' delegates its query read to RLTKR.linkedSubject (undelegated: ' + (f027UndelegatedReads.join(', ') || 'none')
+    + '), and the ' + f027EmittedNames.length + ' deepLink(s) the ' + F027_SUBJECT_ROUTES.length
+    + ' subject routes publish about themselves name ' + JSON.stringify(f027EmittedDistinct)
+    + ' — every one of those names must be ' + JSON.stringify(f027Module.SUBJECT_PARAM));
+
+  /* 1.21 — F-AUDIT-05: pin the SET of parameter names the corridor reads.
+     Every assertion above proves that the names which ARE read behave correctly; none of them
+     COUNTED the names, so a second convention arriving as a fallback read inside the reader, or
+     as a new call site naming a new spelling, would have left every guard green. The census
+     below reads every RLTKR.linkedSubject call site in the production tree, resolves the name
+     each one asks for (an omitted argument is SUBJECT_PARAM, by the default proved immediately
+     above), and requires the resulting set to be exactly the two spellings this corridor
+     publishes. A third spelling goes red, and so does a private re-read of either name in any
+     production file other than the one reader. */
+  const F027_CORRIDOR_NAMES = Object.freeze(['symbol', 'ticker']);
+  const F027_HUB_ROUTE = 'company-intelligence-lab.html';
+  const f027CallSiteNames = (files) => {
+    const sites = [];
+    files.forEach((f) => {
+      Array.from(f.source.matchAll(/RLTKR\.linkedSubject\(\s*([^)]*?)\s*\)/g)).forEach((m) => {
+        const second = /,\s*(.+)$/.exec(m[1]);
+        sites.push({ path: f.path, name: second ? f027ResolveName(second[1].trim()) : f027Module.SUBJECT_PARAM });
+      });
+    });
+    return sites;
+  };
+  const f027Corridor = f027CallSiteNames(f027ProductionFiles);
+  const f027CorridorSet = Array.from(new Set(f027Corridor.map((c) => c.name))).sort();
+  const f027SymbolCallers = Array.from(new Set(f027Corridor.filter((c) => c.name === 'symbol').map((c) => c.path)));
+  const f027PrivateReaders = f027ProductionFiles
+    .filter((f) => f.path !== 'rlticker.js' && F027_CORRIDOR_NAMES
+      .some((name) => new RegExp('\\.get\\(\\s*[\'"]' + name + '[\'"]\\s*\\)').test(f.source)))
+    .map((f) => f.path);
+  /* Proof this census can fail: one synthetic extra call site naming a third spelling. */
+  const f027ThirdSet = Array.from(new Set(f027CallSiteNames(f027ProductionFiles.concat([
+    { path: 'synthetic-second-convention.html', source: 'RLTKR.linkedSubject(window.location.search, "t")' }
+  ])).map((c) => c.name))).sort();
+  assert(f027Corridor.length >= 5
+    && f027CorridorSet.join(',') === F027_CORRIDOR_NAMES.join(',')
+    && f027SymbolCallers.join(',') === F027_HUB_ROUTE
+    && f027PrivateReaders.length === 0
+    && f027ThirdSet.join(',') === 'symbol,t,ticker',
+  'Feature 027: the corridor reads a CLOSED set of parameter names — ' + f027Corridor.length
+    + ' call site(s) across ' + Array.from(new Set(f027Corridor.map((c) => c.path))).length
+    + ' route(s) read exactly ' + JSON.stringify(f027CorridorSet) + ', only ' + JSON.stringify(f027SymbolCallers)
+    + ' asks for the hub spelling, no production file outside rlticker.js reads either name itself ('
+    + (f027PrivateReaders.join(', ') || 'none') + '), and one extra call site naming a third spelling would widen the set to '
+    + JSON.stringify(f027ThirdSet));
+
+  /* 1.19 — shared-surface canary */
+  assert(f027CorpusReads.length === F027_CORPUS.length && passes > 3000,
+    'Regression: SCN-027-CANARY every pre-existing selftest assertion stays green after the Feature 027 append'
+    + ' (' + passes + ' assertion(s) already green at this point)');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 027 subject-handoff group threw): ' + e.message); }
+/* FEATURE-027-SUBJECT-HANDOFF-END */
+
+/* FEATURE-027-CATALOG-BOUND-BEGIN */
+try {
+  group('Feature 027 Scope 2: the two catalog-bound receiving routes');
+  const f027bVol = read('volatility-sizing-lab.html');
+  const f027bFlow = read('options-flow-feed-lab.html');
+
+  /* 2.a — neither route may re-declare the acceptance rule Scope 1 centralised. */
+  const f027bPrivateRule = [['volatility-sizing-lab.html', f027bVol], ['options-flow-feed-lab.html', f027bFlow]]
+    .filter(([, source]) => /function\s+tickerFromQuery|SUBJECT_PATTERN\s*=/.test(source))
+    .map(([path]) => path);
+  assert(f027bPrivateRule.length === 0 && /RLTKR\.linkedSubject\(/.test(f027bVol) && /RLTKR\.linkedSubject\(/.test(f027bFlow),
+    'Feature 027 Scope 2: both receiving routes consume the shared RLTKR.linkedSubject rule and neither declares a private acceptance grammar ('
+    + (f027bPrivateRule.join(', ') || 'no private rule') + ')');
+
+  /* Sandboxes for 2.b, 2.d and 2.e. These three guards used to be single-line regexes over the
+     route TEXT while their messages described route BEHAVIOUR, so a one-line indirection would
+     have kept them green while the sentence they made became false. They now EXTRACT the routes'
+     own functions and RUN them, against fixtures derived from the routes' own committed data, so
+     the sentence and the assertion are the same claim. The full-page proofs still live in the
+     browser suite — tests/volatility-sizing-lab.spec.mjs "Regression: SCN-027-012 the catalog
+     binding is discriminating on its own", ":663 an acceptable company outside the eleven-asset
+     universe is named as unavailable", ":811 … footprint-identical to the no-parameter open",
+     tests/options-flow-feed-lab.spec.mjs ":236 SCN-027-012 a covered ticker with no flagged
+     strike and an uncovered ticker render two distinct named statements", ":141 and :172
+     SCN-027-003 the focus band is the ONLY difference a subject makes, and ":188 SCN-027-002 the
+     linked subject is absent from localStorage afterwards — these run the real page, which a
+     function-level sandbox cannot. What follows is the cheap in-process half of the same claims. */
+  const f027bCatalog = JSON.parse(read('volatility-sizing-universe.json'));
+  const f027bVolBox = build([
+    extractFn(f027bVol, 'catalogAsset'),
+    extractFn(f027bVol, 'renderLinkNotice'),
+    extractFn(f027bVol, 'applyLinkedSubject'),
+    'function __open(h) { hand = h;'
+    + ' runtime.controls.asset = "SPY"; runtime.controls.targetVol = 0.15; els.assetSelect.value = "SPY";'
+    + ' linkHandoff = { status: "absent", subject: null }; applyLinkedSubject();'
+    + ' return { asset: runtime.controls.asset, targetVol: runtime.controls.targetVol,'
+    + ' applied: linkHandoff.applied === true, notice: els.linkNotice.textContent, hidden: els.linkNotice.hidden,'
+    + ' select: els.assetSelect.value, sinks: sinks.slice() }; }',
+    'function __withoutConfig(sym) { var saved = runtime.config; runtime.config = null;'
+    + ' var out = catalogAsset(sym); runtime.config = saved; return out; }'
+  ], ['catalogAsset', '__open', '__withoutConfig'],
+  'var runtime = { config: ' + JSON.stringify(f027bCatalog) + ', controls: { asset: "SPY", targetVol: 0.15 } };'
+    + 'var linkHandoff = { status: "absent", subject: null };'
+    + 'var sinks = [];'
+    + 'var els = { linkNotice: { textContent: "", hidden: true }, assetSelect: { value: "SPY" }, targetVolInput: { value: "15" } };'
+    + 'function byId(id) { return els[id]; }'
+    + 'var hand = { status: "absent", subject: null };'
+    + 'var RLTKR = { linkedSubject: function () { return hand; } };'
+    + 'var window = { RLTKR: RLTKR, location: { search: "" } };'
+    + 'var localStorage = { setItem: function (k) { sinks.push("localStorage:" + k); }, getItem: function () { return null; } };'
+    + 'function fetch(u) { sinks.push("fetch:" + u); return { then: function () { return this; } }; }');
+
+  const f027bUniverseSrc = (f027bFlow.match(/var UNIVERSE = (\[[^\]]*\]);/) || [])[1] || '';
+  const f027bStateSrc = (f027bFlow.match(/var state = (\{[^}]*\});/) || [])[1] || '';
+  const f027bLsSrc = (f027bFlow.match(/var LS = ("[^"]*")/) || [])[1] || '';
+  const f027bFlowBox = build([
+    extractFn(f027bFlow, 'inUniverse'),
+    extractFn(f027bFlow, 'focusAggregate'),
+    extractFn(f027bFlow, 'money'),
+    extractFn(f027bFlow, 'renderFocus'),
+    extractFn(f027bFlow, 'filtered'),
+    extractFn(f027bFlow, 'saveState'),
+    'function __band(focus, rows, scanned) { FOCUS = focus; band.textContent = ""; band.hidden = true;'
+    + ' renderFocus(rows, scanned); return { text: band.textContent, hidden: band.hidden }; }',
+    'function __filterUnder(focus, rows) { FOCUS = focus; ROWS = rows;'
+    + ' var before = JSON.stringify(state); var out = filtered(); renderFocus(out, ROWS);'
+    + ' return { rows: JSON.stringify(out), sortK: state.sortK, sortDir: state.sortDir,'
+    + ' stateUntouched: JSON.stringify(state) === before }; }',
+    'function __save(focus) { FOCUS = focus; stored = null; saveState(); return stored; }',
+    'function __declaredStateKeys() { var out = [], k; for (k in state) out.push(k); return out; }'
+  ], ['inUniverse', '__band', '__filterUnder', '__save', '__declaredStateKeys'],
+  'var UNIVERSE = ' + f027bUniverseSrc + ';'
+    + 'var state = ' + f027bStateSrc + ';'
+    + 'var LS = ' + f027bLsSrc + ';'
+    + 'var FOCUS = { status: "absent", subject: null };'
+    + 'var ROWS = [];'
+    + 'var stored = null;'
+    + 'var band = { textContent: "", hidden: true };'
+    + 'function $(id) { return id === "linkNotice" ? band : null; }'
+    + 'var localStorage = { setItem: function (k, v) { stored = { key: k, value: v }; } };');
+  const f027bRows = [
+    { ticker: 'NVDA', type: 'C', premium: 400000, score: 9, dte: 7, volume: 1200 },
+    { ticker: 'NVDA', type: 'P', premium: 150000, score: 6, dte: 30, volume: 800 },
+    { ticker: 'SPY', type: 'C', premium: 900000, score: 8, dte: 3, volume: 5000 }
+  ];
+  const f027bOffUniverse = 'ORCL';
+
+  /* 2.b — catalog binding, RUN rather than matched: an accepted subject becomes active only
+     after it matches the route's own committed catalog, and an accepted subject that misses
+     that catalog leaves the active asset exactly where the unlinked open left it. */
+  const f027bHit = f027bVolBox.__open({ status: 'accepted', subject: 'NVDA' });
+  const f027bMiss = f027bVolBox.__open({ status: 'accepted', subject: 'TSLA' });
+  const f027bRefusedOpen = f027bVolBox.__open({ status: 'refused', subject: null });
+  assert(/var match = handoff\.status === "accepted" \? catalogAsset\(handoff\.subject\) : null;/.test(f027bVol)
+    && f027bVolBox.catalogAsset('TSLA') === null
+    && f027bVolBox.catalogAsset('NVDA').symbol === 'NVDA'
+    && f027bVolBox.__withoutConfig('NVDA') === null
+    && f027bHit.applied === true && f027bHit.asset === 'NVDA' && f027bHit.select === 'NVDA'
+    && f027bHit.targetVol === f027bVolBox.catalogAsset('NVDA').defaultTargetVol
+    && f027bMiss.applied === false && f027bMiss.asset === 'SPY' && f027bMiss.select === 'SPY'
+    && f027bMiss.targetVol === 0.15 && f027bMiss.hidden === false && f027bMiss.notice.indexOf('TSLA') >= 0
+    && f027bRefusedOpen.applied === false && f027bRefusedOpen.asset === 'SPY'
+    && f027bHit.sinks.length === 0 && f027bMiss.sinks.length === 0,
+    'Feature 027 Scope 2: volatility-sizing-lab\'s own catalogAsset/applyLinkedSubject, EXECUTED against the committed '
+    + f027bCatalog.assets.length + '-asset volatility-sizing-universe.json, applies an accepted CATALOGUED subject '
+    + '(NVDA becomes the active asset and carries its own defaultTargetVol) and leaves the active asset at SPY for an '
+    + 'accepted UNCATALOGUED subject (TSLA), which it only names in the notice');
+  const f027bCovered = f027bFlowBox.__band({ status: 'accepted', subject: 'NVDA' }, f027bRows, f027bRows);
+  const f027bUncovered = f027bFlowBox.__band({ status: 'accepted', subject: f027bOffUniverse }, f027bRows, f027bRows);
+  assert(f027bUniverseSrc.length > 0 && /if \(!inUniverse\(FOCUS\.subject\)\)/.test(f027bFlow)
+    && f027bFlowBox.inUniverse('NVDA') === true && f027bFlowBox.inUniverse(f027bOffUniverse) === false
+    && f027bCovered.text.indexOf('NVDA') >= 0 && f027bCovered.text.indexOf('flagged strike') >= 0
+    && f027bUncovered.text.indexOf(f027bOffUniverse) >= 0 && f027bUncovered.text.indexOf('does not include it') >= 0
+    && f027bUncovered.text.indexOf('flagged strike') < 0
+    && f027bCovered.hidden === false && f027bUncovered.hidden === false,
+    'Feature 027 Scope 2: options-flow-feed-lab\'s own inUniverse/renderFocus, EXECUTED against its committed '
+    + JSON.parse(f027bUniverseSrc).length + '-name UNIVERSE, describes an accepted IN-universe subject as covered with a '
+    + 'flagged-strike count and an accepted OFF-universe subject (' + f027bOffUniverse + ') as not included, never as covered');
+
+  /* 2.c — SOURCE SCAN ONLY, and it says so. A text scan can prove that none of the enumerated
+     sink SPELLINGS is written in either file; it cannot prove that no subject reaches a sink at
+     runtime, because an indirection through a local alias would defeat every pattern below. The
+     runtime proof is the footprint-identity pair in the browser suite, named in the message. */
+  const f027bSinks = [
+    [/localStorage\.setItem\([^)]*handoff/, 'volatility handoff → localStorage'],
+    [/localStorage\.setItem\([^)]*FOCUS/, 'options-flow FOCUS → localStorage'],
+    [/CACHE_PREFIX \+ (?!sym\b)/, 'options-flow cache key built from something other than a UNIVERSE member'],
+    [/pagesUrl\((?!sym\b)/, 'options-flow snapshot path built from something other than a UNIVERSE member'],
+    [/(fetch|ensureBars|ensureChain)\([^)]*(handoff|FOCUS)\./, 'a subject reaching a fetch target']
+  ].filter(([pattern]) => pattern.test(f027bVol) || pattern.test(f027bFlow)).map(([, label]) => label);
+  assert(f027bSinks.length === 0,
+    'Feature 027 Scope 2: SOURCE SCAN ONLY — none of the five enumerated sink spellings is written in either route file, '
+    + 'which is early warning and not proof, because an alias would defeat every pattern; the runtime proof that a subject '
+    + 'reaches no request path and no storage key is tests/volatility-sizing-lab.spec.mjs "Regression: SCN-027-012 an accepted '
+    + 'but uncatalogued subject … reaches no request path and no storage key, so the open is footprint-identical to the '
+    + 'no-parameter open" and tests/options-flow-feed-lab.spec.mjs "Regression: SCN-027-010 no adversarial corpus value reaches '
+    + 'the body, an attribute or localStorage on the options-flow route" ('
+    + (f027bSinks.join('; ') || 'no enumerated spelling present') + ')');
+
+  /* 2.d — band, not filter and not pre-sort, RUN rather than matched: filtered() must return the
+     identical row set whether or not a subject is in focus, and rendering the band must leave the
+     two persisted sort controls byte-identical. */
+  const f027bFilteredBody = (f027bFlow.split('function filtered()')[1] || '').split('\n      }')[0];
+  const f027bUnfocused = f027bFlowBox.__filterUnder({ status: 'absent', subject: null }, f027bRows);
+  const f027bFocused = f027bFlowBox.__filterUnder({ status: 'accepted', subject: 'NVDA' }, f027bRows);
+  const f027bOffFocused = f027bFlowBox.__filterUnder({ status: 'accepted', subject: f027bOffUniverse }, f027bRows);
+  assert(f027bFilteredBody.length > 0 && !/FOCUS/.test(f027bFilteredBody)
+    && !/state\.sortK\s*=\s*[^;]*FOCUS/.test(f027bFlow) && !/state\.sortDir\s*=\s*[^;]*FOCUS/.test(f027bFlow)
+    && f027bUnfocused.rows === JSON.stringify(f027bRows)
+    && f027bFocused.rows === f027bUnfocused.rows && f027bOffFocused.rows === f027bUnfocused.rows
+    && f027bUnfocused.stateUntouched && f027bFocused.stateUntouched && f027bOffFocused.stateUntouched
+    && f027bFocused.sortK === f027bUnfocused.sortK && f027bFocused.sortDir === f027bUnfocused.sortDir,
+    'Feature 027 Scope 2: options-flow-feed-lab\'s own filtered()/renderFocus, EXECUTED over a '
+    + f027bRows.length + '-row fixture, return the identical row set with no subject, with an in-universe subject and with an '
+    + 'off-universe subject, and leave state (including the persisted sortK/sortDir) byte-identical, so the focus band is a '
+    + 'band rather than a filter or a pre-sort (' + f027bFilteredBody.length + ' chars of filtered() also scanned for FOCUS)');
+
+  /* 2.e — the resolved focus is never persisted, RUN rather than matched: saveState() serialises
+     the whole state object, so the only defence is that the focus is not a member of it. */
+  const f027bSaved = f027bFlowBox.__save({ status: 'accepted', subject: 'NVDA' });
+  assert(/localStorage\.setItem\(LS, JSON\.stringify\(state\)\)/.test(f027bFlow)
+    && !/state\.focus|state\.subject|state\.ticker/.test(f027bFlow)
+    && /var FOCUS = \{ status: "absent", subject: null \};/.test(f027bFlow)
+    && f027bLsSrc.length > 0 && f027bSaved !== null && f027bSaved.key === JSON.parse(f027bLsSrc)
+    && f027bSaved.value.indexOf('NVDA') < 0
+    && Object.keys(JSON.parse(f027bSaved.value)).every((key) => ['focus', 'subject', 'ticker'].indexOf(key) < 0)
+    && JSON.stringify(Object.keys(JSON.parse(f027bSaved.value))) === JSON.stringify(f027bFlowBox.__declaredStateKeys()),
+    'Feature 027 Scope 2: options-flow-feed-lab\'s own saveState(), EXECUTED with an accepted in-universe subject in focus, '
+    + 'writes ' + f027bLsSrc + ' with the route\'s declared state keys only and with the subject string absent from the '
+    + 'persisted payload, so a resolved focus cannot become restored state');
+
+  /* 2.f — one status element per route, textContent-written, role=status, hidden when absent. */
+  const f027bNotice = (source) => (source.match(/id="linkNotice"/g) || []).length;
+  assert(f027bNotice(f027bVol) === 1 && f027bNotice(f027bFlow) === 1
+    && /id="linkNotice" role="status" hidden/.test(f027bVol) && /id="linkNotice" role="status" hidden/.test(f027bFlow)
+    && !/linkNotice[^\n]*innerHTML/.test(f027bVol) && !/linkNotice[^\n]*innerHTML/.test(f027bFlow),
+    'Feature 027 Scope 2: each route carries exactly one role="status" #linkNotice, hidden by default and never written with innerHTML');
+
+  /* 2.g — the four options-flow band outcomes stay four distinct statements. */
+  const f027bOutcomes = [
+    /band\.textContent = "";/,
+    /could not accept/,
+    /does not include it/,
+    /no strike crossed the activity bar/,
+    /flagged strike/
+  ].filter((pattern) => pattern.test(f027bFlow)).length;
+  assert(f027bOutcomes === 5,
+    'Feature 027 Scope 2: the options-flow band renders absent, refused, not-covered, covered-with-nothing-flagged and covered-with-flags as five distinct statements ('
+    + f027bOutcomes + '/5)');
+
+  /* 2.h — the ES5 / no-bundler / file:// invariants hold on both edited routes. */
+  const f027bModern = [['volatility-sizing-lab.html', f027bVol], ['options-flow-feed-lab.html', f027bFlow]]
+    .filter(([, source]) => /\bimport\s+[\w{*]/.test(source) || /\bexport\s+(default|const|function)/.test(source) || /=>/.test(source.split('<script>')[1] || ''))
+    .map(([path]) => path);
+  assert(f027bModern.length === 0,
+    'Feature 027 Scope 2: neither edited route introduced ES module syntax or an arrow function into its inline ES5 script ('
+    + (f027bModern.join(', ') || 'both ES5') + ')');
+
+  /* 2.17 — shared-surface canary */
+  assert(passes > 3140,
+    'Regression: SCN-027-CANARY every pre-existing selftest assertion stays green after the Feature 027 Scope 2 append'
+    + ' (' + passes + ' assertion(s) already green at this point)');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 027 Scope 2 catalog-bound group threw): ' + e.message); }
+/* FEATURE-027-CATALOG-BOUND-END */
+
+/* FEATURE-027-REGISTRY-DECLARATIONS-BEGIN */
+try {
+  group('Feature 027 Scope 3: the registry, the declarations and the stated bare reasons');
+  const f027cIntel = (await import('node:module')).createRequire(import.meta.url)('../rlcompanyintel.js');
+  const f027cConfig = JSON.parse(read('company-intelligence.config.json'));
+  const f027cRoute = read('company-intelligence-lab.html');
+  const f027cRegistry = f027cIntel.readCoverageRegistry(f027cConfig);
+
+  /* 3.a — the exactly-one-of rule, walked over every row rather than over the rows expected. */
+  const f027cCarrying = f027cRegistry.rows.filter((row) => row.ownerSubjectParam !== null);
+  const f027cBare = f027cRegistry.rows.filter((row) => row.ownerBareReason !== null);
+  const f027cOwnerless = f027cRegistry.rows.filter((row) => row.ownerDeepLink === null);
+  const f027cMisdeclared = f027cRegistry.rows.filter((row) => (
+    ((row.ownerSubjectParam !== null ? 1 : 0) + (row.ownerBareReason !== null ? 1 : 0))
+      !== (row.ownerDeepLink === null ? 0 : 1)
+  )).map((row) => row.dimensionId);
+  assert(f027cRegistry.rows.length === 15 && f027cCarrying.length === 4
+    && f027cBare.length === 7 && f027cOwnerless.length === 4 && f027cMisdeclared.length === 0,
+    'Feature 027 Scope 3: the shipped registry holds fifteen rows partitioned into four subject-carrying, seven bare-with-a-reason and four ownerless, and every linked row declares exactly one of the two fields ('
+    + f027cRegistry.rows.length + ' rows, ' + f027cCarrying.length + '/' + f027cBare.length + '/'
+    + f027cOwnerless.length + ', misdeclared: ' + (f027cMisdeclared.join(', ') || 'none') + ')');
+
+  /* 3.b — the three malformed shapes are refusals, not editorial guidance. */
+  const f027cPoison = (dimensionId, patch) => Object.assign({}, f027cConfig, {
+    coverageRegistry: f027cConfig.coverageRegistry.map((row) => (
+      row.dimensionId === dimensionId ? Object.assign({}, row, patch) : row
+    ))
+  });
+  const f027cRefusal = (config) => {
+    try { f027cIntel.readCoverageRegistry(config); return null; } catch (error) { return error; }
+  };
+  const f027cShapes = [
+    ['neither', f027cRefusal(f027cPoison('performance', { ownerBareReason: null })), 'performance'],
+    ['both', f027cRefusal(f027cPoison('volatility', { ownerBareReason: 'fixed-subject' })), 'volatility'],
+    ['invalid enum', f027cRefusal(f027cPoison('performance', { ownerBareReason: 'company-scoped' })), 'performance'],
+    ['reason with no route', f027cRefusal(f027cPoison('company-risk', { ownerBareReason: 'market-scoped' })), 'company-risk']
+  ];
+  const f027cUnrefused = f027cShapes.filter(([, error, dimensionId]) => !error
+    || error.code !== 'C025-CONFIG-SCHEMA'
+    || !error.record || String(error.record.detail).indexOf('dimension: ' + dimensionId) === -1)
+    .map(([label]) => label);
+  assert(f027cUnrefused.length === 0,
+    'Feature 027 Scope 3: a linked row declaring neither field, one declaring both, a reason outside the closed enum and a reason with no owner route each raise C025-CONFIG-SCHEMA naming the offending dimension ('
+    + (f027cUnrefused.join(', ') || 'all four refused') + ')');
+
+  /* 3.c — the enum is closed at two members, and both are admitted on a linked row. */
+  const f027cAdmitted = ['market-scoped', 'fixed-subject']
+    .filter((value) => f027cRefusal(f027cPoison('performance', { ownerBareReason: value })) === null);
+  const f027cRejected = ['company-scoped', 'MARKET-SCOPED', 'market scoped', 'fixed_subject', '']
+    .filter((value) => f027cRefusal(f027cPoison('performance', { ownerBareReason: value })) !== null);
+  assert(f027cAdmitted.length === 2 && f027cRejected.length === 5,
+    'Feature 027 Scope 3: ownerBareReason is a closed enum of exactly market-scoped and fixed-subject ('
+    + f027cAdmitted.length + '/2 admitted, ' + f027cRejected.length + '/5 refused)');
+
+  /* 3.d — the two statements are distinguishable, and the published contract is unchanged. */
+  const f027cMarket = f027cIntel.describeDimensionOwner(f027cRegistry, 'performance', 'MSFT');
+  const f027cFixed = f027cIntel.describeDimensionOwner(f027cRegistry, 'fundamentals', 'MSFT');
+  const f027cCarried = f027cIntel.describeDimensionOwner(f027cRegistry, 'volatility', 'MSFT');
+  const f027cKeys = Object.keys(f027cMarket).sort().join(',');
+  assert(f027cMarket.statement !== f027cFixed.statement
+    && /answers a market-wide question/.test(f027cMarket.statement)
+    && /does not model an individual company you can choose/.test(f027cFixed.statement)
+    && f027cMarket.carriesSubject === false && f027cFixed.carriesSubject === false
+    && f027cMarket.ownerDeepLink === 'market-brief.html'
+    && f027cFixed.ownerDeepLink === 'company-fundamentals-lab.html'
+    && f027cCarried.carriesSubject === true
+    && f027cCarried.ownerDeepLink === 'volatility-sizing-lab.html?ticker=MSFT'
+    && f027cMarket.contractVersion === 'company-dimension-owner/v1'
+    && f027cKeys === 'carriesSubject,contractVersion,dimensionId,hasOwner,ownerDeepLink,ownerToolId,statement',
+    'Feature 027 Scope 3: a market-scoped and a fixed-subject row each compose a bare href with its own reason-specific statement, a declared row composes the company, and describeDimensionOwner keeps company-dimension-owner/v1 and its seven keys ('
+    + f027cKeys + ')');
+
+  /* 3.e — every declared parameter has a committed reader, which is the FR-027-027 rule that
+     the already-shipped two-row declaration violated before Scope 1 landed the readers. */
+  const f027cReaderless = f027cCarrying.filter((row) => {
+    const source = read(row.ownerDeepLink);
+    return !/rlticker\.js/.test(source) || !/RLTKR\.linkedSubject\(/.test(source);
+  }).map((row) => row.ownerDeepLink);
+  const f027cNames = f027cCarrying.map((row) => row.ownerSubjectParam)
+    .filter((name, index, all) => all.indexOf(name) === index);
+  assert(f027cReaderless.length === 0 && f027cNames.length === 1 && f027cNames[0] === 'ticker',
+    'Feature 027 Scope 3: every declared ownerSubjectParam names the single shared parameter and every route it is declared on loads rlticker.js and calls RLTKR.linkedSubject ('
+    + (f027cReaderless.join(', ') || 'every declaration has a reader') + ')');
+
+  /* 3.f — the registry ships twice and the two copies still cannot drift. */
+  const f027cBlock = /<script type="application\/json" data-embedded-config="([^"]+)">([\s\S]*?)<\/script>/
+    .exec(f027cRoute);
+  assert(f027cBlock && f027cBlock[1] === 'company-intelligence.config.json'
+    && JSON.stringify(JSON.parse(f027cBlock[2])) === JSON.stringify(f027cConfig),
+    'Feature 027 Scope 3: the registry embedded in the route still equals the committed registry file after the new declarations');
+
+  /* 3.g — the statement reaches the page as text on both surfaces, never as markup, and the
+     sending composer was not widened to get there. */
+  const f027cSinks = (f027cRoute.match(/"data-owner-bare-reason": "true"/g) || []).length;
+  const f027cIntelSource = read('rlcompanyintel.js');
+  const f027cOwnerRoute = (f027cIntelSource.split('function ownerRouteFor(row, subject) {')[1] || '')
+    .split('\n    }')[0];
+  const f027cSafeRouteUnchanged = f027cIntelSource
+    .indexOf('var SAFE_OWNER_ROUTE = /^[A-Za-z0-9._-]+\\.html$/;') !== -1;
+  assert(f027cSinks === 2
+    && !/data-owner-bare-reason[^\n]*innerHTML/.test(f027cRoute)
+    && f027cSafeRouteUnchanged
+    && f027cOwnerRoute.length > 0 && !/ownerBareReason/.test(f027cOwnerRoute),
+    'Feature 027 Scope 3: the stated reason is written with the same textContent helper on both the coverage table and the dimension card, and neither ownerRouteFor nor SAFE_OWNER_ROUTE was widened to render it ('
+    + f027cSinks + '/2 sinks, ' + f027cOwnerRoute.length + ' chars of ownerRouteFor scanned)');
+
+  /* 3.17 — shared-surface canary */
+  assert(passes > 3145,
+    'Regression: SCN-027-CANARY every pre-existing selftest assertion stays green after the Feature 027 Scope 3 append'
+    + ' (' + passes + ' assertion(s) already green at this point)');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 027 Scope 3 registry-declaration group threw): ' + e.message); }
+/* FEATURE-027-REGISTRY-DECLARATIONS-END */
+
+/* FEATURE-027-HUB-ROUTE-BEGIN */
+try {
+  group('Feature 027 F-AUDIT-08: the hub route reads its subject through the shared rule');
+  const f027hRoute = read('company-intelligence-lab.html');
+  const f027hTickerSource = read('rlticker.js');
+  const f027hParamLine = /\n\s*var SUBJECT_PARAM = [^\n]*\n/.exec(f027hTickerSource);
+  const f027hPatternLine = /\n\s*var SUBJECT_PATTERN = [^\n]*\n/.exec(f027hTickerSource);
+  if (!f027hParamLine || !f027hPatternLine) throw new Error('SUBJECT_PARAM / SUBJECT_PATTERN not declared in rlticker.js');
+  const f027hRule = build(
+    [extractFn(f027hTickerSource, 'normTicker'), extractFn(f027hTickerSource, 'linkedSubject')],
+    ['normTicker', 'linkedSubject'],
+    f027hParamLine[0] + f027hPatternLine[0]);
+  const f027hRead = (value) => f027hRule.linkedSubject('?symbol=' + encodeURIComponent(value), 'symbol');
+
+  /* h.a — the private parser is gone, the shared reader is called with the route's own
+     published spelling, and rlticker.js is loaded before the inline script that calls it. */
+  const f027hScriptOrder = f027hRoute.indexOf('<script src="rlticker.js">') < f027hRoute.lastIndexOf('<script>')
+    && f027hRoute.indexOf('<script src="rlticker.js">') !== -1;
+  assert(f027hScriptOrder
+    && /RLTKR\.linkedSubject\(window\.location\.search, "symbol"\)/.test(f027hRoute)
+    && !/new URLSearchParams\(window\.location\.search\)/.test(f027hRoute)
+    && !/\.get\(\s*"symbol"\s*\)/.test(f027hRoute)
+    && !f027hRoute.includes('[A-Z0-9.\\-]{1,12}'),
+  'Feature 027 F-AUDIT-08: the hub route delegates its subject read to RLTKR.linkedSubject under its own published'
+    + ' parameter name, declares no private parser and no private grammar, and loads rlticker.js before the reader runs');
+
+  /* h.b — EQUIVALENCE, the property that makes this a safe swap rather than a behaviour
+     change. Every identifier the hub can actually RESOLVE today — the three SEC identities it
+     ships plus every symbol the committed bar corpus holds, filtered through the resolver's own
+     expression read out of rlcompanyintel.js — must still be accepted by the shared rule, with
+     the identical normalised value. This is the "still accepts every currently-valid symbol"
+     half of the claim, over a real corpus rather than a hand-picked pair. */
+  const f027hResolveBody = extractFn(read('rlcompanyintel.js'), 'resolveSubject');
+  const f027hResolverText = /!(\/\^[^/]+\/)\.test\(raw\)/.exec(f027hResolveBody);
+  if (!f027hResolverText) throw new Error('the hub resolver expression was not found in resolveSubject');
+  const f027hResolver = new RegExp(f027hResolverText[1].slice(1, -1));
+  const f027hBars = readdirSync(join(ROOT, 'data', 'bars'))
+    .filter((name) => /\.json$/.test(name) && name !== 'index.json')
+    .map((name) => name.slice(0, -5));
+  const f027hSec = Array.from(f027hRoute.matchAll(/\{\s*ticker:\s*"([^"]+)",\s*cik:/g)).map((m) => m[1]);
+  const f027hResolvable = f027hBars.concat(f027hSec).filter((value) => f027hResolver.test(value));
+  const f027hNotAccepted = f027hResolvable.filter((value) => {
+    const read027 = f027hRead(value);
+    return read027.status !== 'accepted' || read027.subject !== value.toUpperCase();
+  });
+  assert(f027hSec.length === 3 && f027hBars.length > 200 && f027hResolvable.length > 200
+    && f027hNotAccepted.length === 0,
+  'Feature 027 F-AUDIT-08: every identifier the hub can resolve today stays accepted by the shared rule with an unchanged'
+    + ' normalised value (' + f027hResolvable.length + ' of ' + (f027hBars.length + f027hSec.length)
+    + ' committed identifiers are resolver-valid, ' + f027hNotAccepted.length + ' regressed: '
+    + (f027hNotAccepted.slice(0, 8).join(', ') || 'none') + ')');
+
+  /* h.c — the other half: the hub now REFUSES what the shared grammar refuses, and refusing
+     costs nothing that used to work, because every refused value was already unresolvable at
+     the hub's own resolver. A value the shared rule refused and the hub could nevertheless
+     have resolved would be a real regression, and there is none. */
+  const F027H_REFUSED = Object.freeze([
+    'javascript:alert(1)', 'data:text/html,x', '//evil.example', '../../etc/passwd',
+    '<img src=x onerror=1>', 'MSFT onmouseover=1', 'MSFT&x=1', 'MSFT#frag', 'MSFT\u0000',
+    'ABCDEFGHIJKLM', '\u0426\u0415\u041d\u0410', 'MS\nFT', 'MS\tFT', '^VIX', 'EURUSD=X'
+  ]);
+  const f027hSurvivors = F027H_REFUSED.filter((value) => f027hRead(value).status !== 'refused');
+  const f027hLostGround = F027H_REFUSED.filter((value) => f027hResolver.test(value.trim()));
+  const f027hLeaks = F027H_REFUSED.filter((value) => f027hRead(value).subject !== null || f027hRead(value).raw !== null);
+  assert(f027hSurvivors.length === 0 && f027hLostGround.length === 0 && f027hLeaks.length === 0,
+  'Feature 027 F-AUDIT-08: the hub refuses every value the shared grammar refuses, none of them was resolvable by the hub'
+    + ' before the swap, and no refused value survives in subject or raw (' + f027hSurvivors.length + ' survivor(s), '
+    + f027hLostGround.length + ' would-have-resolved, ' + f027hLeaks.length + ' leak(s))');
+
+  /* h.d — a refused link must not leave the default company on screen unexplained. */
+  assert(/function renderLinkNotice\(handoff\)/.test(f027hRoute)
+    && /handoff\.status !== "refused"/.test(f027hRoute)
+    && /if \(handoff\.status === "accepted"\) currentTicker = handoff\.subject;/.test(f027hRoute)
+    && f027hRoute.includes('"link-notice", "subject-refusal"'),
+  'Feature 027 F-AUDIT-08: only an accepted subject becomes the hub subject, and a refused link states that it was not'
+    + ' honoured and which company is shown instead');
+
+  /* h.e — shared-surface canary */
+  assert(passes > 3150,
+    'Regression: SCN-027-CANARY every pre-existing selftest assertion stays green after the F-AUDIT-08 append'
+    + ' (' + passes + ' assertion(s) already green at this point)');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 027 hub-route group threw): ' + e.message); }
+/* FEATURE-027-HUB-ROUTE-END */
+
+/* FEATURE-027-CATALOG-REACH-BEGIN */
+try {
+  group('Feature 027 F-AUDIT-09: the sizing catalog is tied to the corridor grammar');
+  const f027iTickerSource = read('rlticker.js');
+  const f027iParamLine = /\n\s*var SUBJECT_PARAM = [^\n]*\n/.exec(f027iTickerSource);
+  const f027iPatternLine = /\n\s*var SUBJECT_PATTERN = [^\n]*\n/.exec(f027iTickerSource);
+  if (!f027iParamLine || !f027iPatternLine) throw new Error('SUBJECT_PARAM / SUBJECT_PATTERN not declared in rlticker.js');
+  /* SUBJECT_PATTERN is returned beside the two functions so the GRAMMAR half of this proof is
+     read out of the same declaration the reader itself uses. Deciding grammar-validity from a
+     regex retyped here would prove the copy rather than the corridor. */
+  const f027iRule = build(
+    [extractFn(f027iTickerSource, 'normTicker'), extractFn(f027iTickerSource, 'linkedSubject')],
+    ['normTicker', 'linkedSubject', 'SUBJECT_PATTERN'],
+    f027iParamLine[0] + f027iPatternLine[0]);
+  const f027iRead = (value) => f027iRule.linkedSubject('?ticker=' + encodeURIComponent(value));
+  const f027iMembers = JSON.parse(read('volatility-sizing-universe.json')).assets.map((asset) => asset.symbol);
+  const f027iGrammarValid = f027iMembers.filter((symbol) => f027iRule.SUBJECT_PATTERN.test(f027iRule.normTicker(symbol)));
+
+  /* i.a — the REACHABLE half. Nothing else in this tree ties the catalog's CONTENTS to the
+     corridor's GRAMMAR; every other guard picks its own values, so a catalog member could stop
+     being nameable with every assertion still green. The corpus here is the committed catalog,
+     and every member the grammar admits must come back accepted with its normalised value
+     unchanged — proving the reader refuses nothing the grammar does not already state. */
+  const f027iNotAccepted = f027iGrammarValid.filter((symbol) => {
+    const handoff = f027iRead(symbol);
+    return handoff.status !== 'accepted' || handoff.subject !== f027iRule.normTicker(symbol);
+  });
+  assert(f027iMembers.length > 0 && f027iGrammarValid.length > 0 && f027iNotAccepted.length === 0,
+  'Feature 027 F-AUDIT-09: every sizing-catalog member the corridor grammar admits is accepted by the shared reader'
+    + ' with an unchanged normalised value, so the reader refuses nothing the grammar does not ('
+    + f027iGrammarValid.length + ' of ' + f027iMembers.length + ' committed catalog members are grammar-valid, '
+    + f027iNotAccepted.length + ' not accepted: ' + (f027iNotAccepted.join(', ') || 'none') + ')');
+
+  /* i.b — the UNNAMEABLE half, and the valuable one. An EXACT set, not a containment check: it
+     states that the corridor's blind spot is PRECISELY the FX pair and nothing else. Widening
+     the class until CNY=X becomes nameable empties this set; narrowing it until BTC-USD stops
+     being nameable grows it; a second unreachable member added to the catalog grows it too.
+     Each of those goes red here. CNY=X is deliberately NOT filed in F027_REFUSED_CORPUS: that
+     corpus's message calls its values adversarial, and this is a legitimate catalog member the
+     company corridor excludes on purpose. */
+  const F027I_UNNAMEABLE_BY_DESIGN = Object.freeze(['CNY=X']);
+  const f027iUnnameable = f027iMembers.filter((symbol) => f027iRead(symbol).status !== 'accepted');
+  const f027iSortedJson = (values) => JSON.stringify(values.slice().sort());
+  assert(f027iSortedJson(f027iUnnameable) === f027iSortedJson(F027I_UNNAMEABLE_BY_DESIGN),
+  'Feature 027 F-AUDIT-09: the set of sizing-catalog members no deep link can name is EXACTLY the FX pair the company'
+    + ' corridor excludes on purpose (' + (f027iMembers.length - f027iUnnameable.length) + ' of ' + f027iMembers.length
+    + ' committed members are nameable; unnameable: [' + f027iUnnameable.join(', ') + '], expected exactly: ['
+    + F027I_UNNAMEABLE_BY_DESIGN.join(', ') + '])');
+
+  /* i.c — shared-surface canary */
+  assert(passes > 3155,
+    'Regression: SCN-027-CANARY every pre-existing selftest assertion stays green after the F-AUDIT-09 append'
+    + ' (' + passes + ' assertion(s) already green at this point)');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 027 catalog-reach group threw): ' + e.message); }
+/* FEATURE-027-CATALOG-REACH-END */
+
+/* RED-GREEN-PROBE-HARNESS-BEGIN */
+/* The harness exists because a `trap ... EXIT` set in a persistent interactive
+   shell never fires, so a truncated dispatch has three times left a live
+   mutation inside a shipped module. These assertions are adversarial: each one
+   drives scripts/red-green-probe.sh into a way it could fail unsafely and
+   proves it refuses, or proves the target came back byte-identical to its
+   committed blob anyway. Everything runs against a throwaway Git repository in
+   the temp directory, never against a shipped module. */
+group('RED/GREEN probe harness (scripts/red-green-probe.sh)');
+try {
+  const { mkdtempSync, writeFileSync, rmSync } = await import('node:fs');
+  const { spawn, spawnSync } = await import('node:child_process');
+  const { tmpdir } = await import('node:os');
+
+  const RGP = join(ROOT, 'scripts', 'red-green-probe.sh');
+  const RGP_SRC = read('scripts/red-green-probe.sh');
+  const RGP_FIXTURE = 'probe-fixture.txt';
+  const RGP_CLEAN = 'token=alpha\n';
+  /* Re-reads the fixture from disk on every run, so it observes the mutation. */
+  const RGP_CMD = ['perl', '-e',
+    'open(my $f, "<", "probe-fixture.txt") or exit 3; local $/; my $s = <$f>;'
+    + ' exit($s =~ /token=alpha/ ? 0 : 1);'];
+  const RGP_ENV = Object.assign({}, process.env, { GIT_TERMINAL_PROMPT: '0' });
+  const rgpGit = (cwd, args) => spawnSync('git', args, { cwd, encoding: 'utf8', env: RGP_ENV });
+  const rgpCommitted = (dir) => rgpGit(dir, ['rev-parse', 'HEAD:' + RGP_FIXTURE]).stdout.trim();
+  const rgpWorking = (dir) => rgpGit(dir, ['hash-object', RGP_FIXTURE]).stdout.trim();
+  const rgpClean = (dir) => rgpWorking(dir) === rgpCommitted(dir)
+    && rgpGit(dir, ['status', '--porcelain']).stdout.trim() === '';
+  const rgpTemps = [];
+  function rgpRepo() {
+    const dir = mkdtempSync(join(tmpdir(), 'rlprobe-'));
+    rgpTemps.push(dir);
+    rgpGit(dir, ['init', '-q']);
+    rgpGit(dir, ['config', 'user.email', 'selftest@example.invalid']);
+    rgpGit(dir, ['config', 'user.name', 'research-lab selftest']);
+    rgpGit(dir, ['config', 'commit.gpgsign', 'false']);
+    writeFileSync(join(dir, RGP_FIXTURE), RGP_CLEAN);
+    rgpGit(dir, ['add', RGP_FIXTURE]);
+    rgpGit(dir, ['commit', '-q', '--no-verify', '-m', 'probe fixture']);
+    return dir;
+  }
+  const rgpRun = (dir, args) =>
+    spawnSync('bash', [RGP].concat(args), { cwd: dir, encoding: 'utf8', env: RGP_ENV });
+  const rgpArgs = (find, replace, label, cmd) => [
+    '--file', RGP_FIXTURE, '--find', find, '--replace', replace, '--label', label, '--'
+  ].concat(cmd || RGP_CMD);
+
+  /* H.1 — the revert is armed before the mutation is applied. This ordering is
+     the whole reason the harness is a standalone script: if the trap were
+     installed after the edit, a kill in that window would strand the mutation,
+     which is exactly the incident this replaces. */
+  const rgpTrapAt = RGP_SRC.indexOf('trap restore EXIT');
+  const rgpMutateAt = RGP_SRC.indexOf("perl -0777 -i -pe");
+  assert(rgpTrapAt > 0 && rgpMutateAt > 0 && rgpTrapAt < rgpMutateAt
+    && /trap 'on_signal 2' INT/.test(RGP_SRC) && /trap 'on_signal 15' TERM/.test(RGP_SRC),
+    'RED/GREEN harness: the EXIT, INT and TERM traps are installed before the mutation is applied'
+    + ' (trap at char ' + rgpTrapAt + ', mutation at char ' + rgpMutateAt + ')');
+
+  /* H.2 — portability: the failure modes this repo has already hit on macOS
+     BSD userland are a GNU-only `sed -i` and a missing `timeout`. */
+  const rgpStripped = RGP_SRC.replace(/^\s*#.*$/gm, '');
+  assert(!/\bsed\s+-i\b/.test(rgpStripped)
+    && !/(^|[;&|]\s*)timeout\s/.test(rgpStripped)
+    && /alarm \$limit if \$limit > 0/.test(rgpStripped)
+    && /\$SIG\{ALRM\}/.test(rgpStripped),
+    'RED/GREEN harness: no GNU-only `sed -i` and no `timeout`; the optional bound uses the portable perl alarm form');
+
+  /* H.3 — refuses a dirty target. Reverting a dirty file would silently throw
+     away uncommitted work, so a probe must start from a clean baseline. */
+  const rgpDirtyDir = rgpRepo();
+  writeFileSync(join(rgpDirtyDir, RGP_FIXTURE), RGP_CLEAN + 'uncommitted work\n');
+  const rgpDirty = rgpRun(rgpDirtyDir, rgpArgs('token=alpha', 'token=beta', 'dirty-target'));
+  assert(rgpDirty.status === 4 && /dirty/i.test(rgpDirty.stderr)
+    && rgpGit(rgpDirtyDir, ['show', 'HEAD:' + RGP_FIXTURE]).stdout === RGP_CLEAN
+    && String(rgpDirty.stdout).indexOf('RED/GREEN PROBE EVIDENCE') === -1,
+    'RED/GREEN harness: refuses a dirty target with exit 4, emits no evidence, and leaves the uncommitted edit in place'
+    + ' (exit ' + rgpDirty.status + ')');
+
+  /* H.4 — refuses when --find matched nothing. A probe that silently mutated
+     nothing runs the command unchanged twice and produces a false GREEN. */
+  const rgpMissDir = rgpRepo();
+  const rgpMiss = rgpRun(rgpMissDir, rgpArgs('no-such-literal-anywhere', 'token=gamma', 'find-absent'));
+  assert(rgpMiss.status === 5 && /did not change|matched nothing/i.test(rgpMiss.stderr)
+    && rgpClean(rgpMissDir),
+    'RED/GREEN harness: refuses with exit 5 when --find matched nothing, and the target is still byte-identical to its committed blob'
+    + ' (exit ' + rgpMiss.status + ')');
+
+  /* H.5 — the safety rail. A probe mutation must be value-free by
+     construction: one earlier hand-run probe wrote a network sink carrying the
+     operator's declared income into a URL. */
+  const rgpSinks = [
+    ['fetch("/probe?v=" + declaredIncome)', 'fetch('],
+    ['var x = new XMLHttpRequest();', 'XMLHttpRequest'],
+    ['var u = "http://example.invalid/p";', 'http://'],
+    ['var u = "https://example.invalid/p";', 'https://'],
+    ['navigator.sendBeacon("/p", v);', 'navigator.sendBeacon'],
+    ['location.href = declaredIncome;', 'location. assignment']
+  ];
+  const rgpSinkDir = rgpRepo();
+  const rgpSinkResults = rgpSinks.map(([replacement]) =>
+    rgpRun(rgpSinkDir, rgpArgs('token=alpha', replacement, 'exfil-rail')));
+  const rgpSinkRefused = rgpSinkResults.filter((r) => r.status === 3
+    && /REFUSED/.test(r.stderr) && /value-free/.test(r.stderr)).length;
+  assert(rgpSinkRefused === rgpSinks.length && rgpClean(rgpSinkDir),
+    'RED/GREEN harness: refuses every exfiltrating --replace with exit 3 and a stated reason, before touching the file ('
+    + rgpSinkRefused + '/' + rgpSinks.length + ' sinks refused: '
+    + rgpSinks.map((s) => s[1]).join(', ') + ')');
+
+  /* H.6 — refuses a probe that did not discriminate. `token=alpha2` still
+     satisfies the command's /token=alpha/ test, so RED and GREEN both pass:
+     that is the "assertion that cannot fail" defect, not evidence. */
+  const rgpFlatDir = rgpRepo();
+  const rgpFlat = rgpRun(rgpFlatDir, rgpArgs('token=alpha', 'token=alpha2', 'non-discriminating'));
+  assert(rgpFlat.status === 7 && /same outcome/i.test(rgpFlat.stderr)
+    && /discriminating:\s+NO/.test(rgpFlat.stdout) && rgpClean(rgpFlatDir),
+    'RED/GREEN harness: refuses with exit 7 when RED and GREEN produce the same outcome, and still reverts'
+    + ' (exit ' + rgpFlat.status + ')');
+
+  /* H.7 — the adversarial case that matters most: the harness is killed while
+     the mutation is live. The EXIT/TERM trap must still put the file back. */
+  const rgpKillDir = rgpRepo();
+  const rgpKillCommitted = rgpCommitted(rgpKillDir);
+  let rgpMutationWasLive = false;
+  let rgpKillSignalled = false;
+  const rgpKilled = spawn('bash',
+    [RGP].concat(rgpArgs('token=alpha', 'token=beta', 'killed-mid-run', ['perl', '-e', 'sleep 30'])),
+    { cwd: rgpKillDir, env: RGP_ENV, stdio: ['ignore', 'pipe', 'pipe'] });
+  rgpKilled.stdout.resume();
+  rgpKilled.stderr.resume();
+  await new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      rgpMutationWasLive = rgpWorking(rgpKillDir) !== rgpKillCommitted;
+      rgpKillSignalled = rgpKilled.kill('SIGTERM');
+    }, 1500);
+    rgpKilled.on('close', () => { clearTimeout(timer); resolve(); });
+  });
+  assert(rgpMutationWasLive && rgpKillSignalled
+    && rgpWorking(rgpKillDir) === rgpKillCommitted && rgpClean(rgpKillDir),
+    'RED/GREEN harness: a SIGTERM delivered while the mutation was live still restores the target to its committed blob'
+    + ' (mutation observed live: ' + rgpMutationWasLive + ', restored hash matches: '
+    + (rgpWorking(rgpKillDir) === rgpKillCommitted) + ')');
+
+  /* H.8 — the happy path actually discriminates and emits the evidence block. */
+  const rgpOkDir = rgpRepo();
+  const rgpOk = rgpRun(rgpOkDir, rgpArgs('token=alpha', 'token=beta', 'happy-path'));
+  const rgpField = (name) => {
+    const m = new RegExp('^' + name + ':\\s*(.*)$', 'm').exec(rgpOk.stdout || '');
+    return m ? m[1].trim() : null;
+  };
+  assert(rgpOk.status === 0 && rgpField('red-exit') === '1' && rgpField('green-exit') === '0'
+    && /^yes \(committed=[0-9a-f]{40} restored=[0-9a-f]{40}\)$/.test(rgpField('revert-verified') || '')
+    && rgpClean(rgpOkDir),
+    'RED/GREEN harness: a discriminating probe exits 0, reports red-exit 1 then green-exit 0, and hash-verifies the revert'
+    + ' (exit ' + rgpOk.status + ', red ' + rgpField('red-exit') + ' -> green ' + rgpField('green-exit') + ')');
+
+  /* H.9 — the block is paste-ready: every field a reviewer needs is present,
+     and the two hashes it prints are the same hash, so "reverted" is checked
+     rather than asserted. */
+  const rgpRequired = ['label', 'file', 'mutation', 'command', 'red-exit', 'red-summary',
+    'green-exit', 'green-summary', 'revert-verified', 'discriminating'];
+  const rgpMissing = rgpRequired.filter((f) => rgpField(f) === null);
+  const rgpHashes = /committed=([0-9a-f]{40}) restored=([0-9a-f]{40})/.exec(rgpOk.stdout || '');
+  assert(rgpMissing.length === 0 && rgpHashes && rgpHashes[1] === rgpHashes[2]
+    && rgpField('file') === RGP_FIXTURE
+    && /token=alpha\s+->\s+token=beta\s+\(1 occurrence/.test(rgpField('mutation') || ''),
+    'RED/GREEN harness: the evidence block carries every reviewer field, names the exact mutation and occurrence count, and its two hashes agree'
+    + ' (missing: ' + (rgpMissing.join(', ') || 'none') + ')');
+
+  /* H.10 — nothing the harness prints may carry a personal absolute path; the
+     repo PII scan rejects those, so evidence has to be paste-ready as emitted. */
+  const rgpEmitted = String(rgpOk.stdout || '') + String(rgpOk.stderr || '');
+  assert(rgpEmitted.indexOf('/Users/') === -1 && rgpEmitted.indexOf('/home/') === -1
+    && rgpEmitted.indexOf(tmpdir()) === -1,
+    'RED/GREEN harness: the emitted evidence carries no absolute home or worktree path, only repo-relative ones');
+
+  /* H.11 — usage is enforced rather than guessed: a probe with no command, or
+     with no target, must refuse instead of half-running. */
+  const rgpUsageDir = rgpRepo();
+  const rgpNoCmd = rgpRun(rgpUsageDir,
+    ['--file', RGP_FIXTURE, '--find', 'token=alpha', '--replace', 'token=beta', '--label', 'no-command']);
+  const rgpNoFile = rgpRun(rgpUsageDir,
+    ['--find', 'token=alpha', '--replace', 'token=beta', '--label', 'no-file', '--'].concat(RGP_CMD));
+  assert(rgpNoCmd.status === 2 && rgpNoFile.status === 2 && rgpClean(rgpUsageDir),
+    'RED/GREEN harness: a missing command or a missing --file refuses with exit 2 and never touches the target'
+    + ' (' + rgpNoCmd.status + ', ' + rgpNoFile.status + ')');
+
+  /* H.12 — an untracked target has no committed blob to revert to, so the
+     harness must refuse rather than invent a baseline. */
+  const rgpUntrackedDir = rgpRepo();
+  writeFileSync(join(rgpUntrackedDir, 'untracked-fixture.txt'), RGP_CLEAN);
+  const rgpUntracked = rgpRun(rgpUntrackedDir, [
+    '--file', 'untracked-fixture.txt', '--find', 'token=alpha', '--replace', 'token=beta',
+    '--label', 'untracked', '--'].concat(RGP_CMD));
+  assert(rgpUntracked.status === 4 && /not tracked/i.test(rgpUntracked.stderr)
+    && rgpWorking(rgpUntrackedDir) === rgpCommitted(rgpUntrackedDir),
+    'RED/GREEN harness: refuses an untracked target with exit 4 because there is no committed blob to revert to'
+    + ' (exit ' + rgpUntracked.status + ')');
+
+  /* H.13 — a generous --bound must not change the verdict: the bound exists to
+     stop a hang, not to alter what the command reports. */
+  const rgpBoundOkDir = rgpRepo();
+  const rgpBoundOk = rgpRun(rgpBoundOkDir, [
+    '--file', RGP_FIXTURE, '--find', 'token=alpha', '--replace', 'token=beta',
+    '--label', 'bounded-generous', '--bound', '60', '--'].concat(RGP_CMD));
+  assert(rgpBoundOk.status === 0 && /red-exit:\s+1/.test(rgpBoundOk.stdout)
+    && /green-exit:\s+0/.test(rgpBoundOk.stdout) && rgpClean(rgpBoundOkDir),
+    'RED/GREEN harness: a generous --bound leaves the RED/GREEN verdict unchanged'
+    + ' (exit ' + rgpBoundOk.status + ')');
+
+  /* H.14 — the buffered-suite incident in reverse: a command that hangs past
+     its bound must still end with the target back at its committed blob, and
+     must not be reported as evidence. */
+  const rgpBoundHangDir = rgpRepo();
+  const rgpBoundHang = rgpRun(rgpBoundHangDir, [
+    '--file', RGP_FIXTURE, '--find', 'token=alpha', '--replace', 'token=beta',
+    '--label', 'bounded-hang', '--bound', '1', '--', 'perl', '-e', 'sleep 30']);
+  assert(rgpBoundHang.status === 7 && /red-exit:\s+142/.test(rgpBoundHang.stdout)
+    && rgpClean(rgpBoundHangDir)
+    && String(rgpBoundHang.stdout).indexOf('/Users/') === -1
+    && String(rgpBoundHang.stderr).indexOf('/Users/') === -1,
+    'RED/GREEN harness: a command that hangs past --bound is cut off, refused as non-evidence, reverted, and reported without any absolute path'
+    + ' (exit ' + rgpBoundHang.status + ')');
+
+  /* H.16 — the false-discrimination defect. Playwright embeds elapsed time in
+     the very line that carries the verdict, so "1 passed (3.7s)" and
+     "1 passed (2.8s)" differ as raw strings while reporting the identical
+     outcome. Comparing raw lines therefore scored an INERT mutation — one a
+     substring assertion matched straight past — as discriminating, on timing
+     alone. The command below reports the same pass count and the same exit
+     code under RED and GREEN and differs ONLY in the elapsed time, so it must
+     now be refused as non-evidence. */
+  const rgpTimingCmd = (redLine, greenLine) => ['perl', '-e',
+    'open(my $f, "<", "probe-fixture.txt") or exit 3; local $/; my $s = <$f>;'
+    + ' my $w = ($s =~ /token=alpha/) ? "' + greenLine + '" : "' + redLine + '";'
+    + ' print "  $w\\n"; exit 0;'];
+  const rgpTimingArgs = (label, cmd) => [
+    '--file', RGP_FIXTURE, '--find', 'token=alpha', '--replace', 'token=beta',
+    '--label', label, '--summary-match', '[0-9]+ (passed|failed)', '--'].concat(cmd);
+
+  const rgpSecondsDir = rgpRepo();
+  const rgpSeconds = rgpRun(rgpSecondsDir, rgpTimingArgs('elapsed-seconds-only',
+    rgpTimingCmd('1 passed (2.8s)', '1 passed (3.7s)')));
+  assert(rgpSeconds.status === 7 && /discriminating:\s+NO/.test(rgpSeconds.stdout || '')
+    && /normalis/i.test(String(rgpSeconds.stdout) + String(rgpSeconds.stderr))
+    && rgpWorking(rgpSecondsDir) === rgpCommitted(rgpSecondsDir),
+    'RED/GREEN harness: a probe whose summary lines differ only by a parenthesised elapsed time is refused with exit 7, not scored as discriminating'
+    + ' (exit ' + rgpSeconds.status + ')');
+
+  /* H.17 — the same defect in the other volatile shapes the runners emit: a
+     minutes-form duration against a seconds-form one, and a bare `123ms`. */
+  const rgpUnitsDir = rgpRepo();
+  const rgpUnits = rgpRun(rgpUnitsDir, rgpTimingArgs('elapsed-mixed-units',
+    rgpTimingCmd('1 passed (1.3m) slowest 340ms', '1 passed (58.2s) slowest 120ms')));
+  assert(rgpUnits.status === 7 && /discriminating:\s+NO/.test(rgpUnits.stdout || '')
+    && rgpWorking(rgpUnitsDir) === rgpCommitted(rgpUnitsDir),
+    'RED/GREEN harness: minute-form, second-form and bare-millisecond elapsed tokens all normalise to the same compared summary'
+    + ' (exit ' + rgpUnits.status + ')');
+
+  /* H.18 — the raw lines stay visible. Normalising is for the VERDICT only;
+     hiding the real durations would trade one blind spot for another. */
+  assert(/red-summary:.*2\.8s/.test(rgpSeconds.stdout || '')
+    && /green-summary:.*3\.7s/.test(rgpSeconds.stdout || '')
+    && /summary-compared:.*<elapsed>/.test(rgpSeconds.stdout || ''),
+    'RED/GREEN harness: the evidence block still prints the raw RED and GREEN summary lines with their real durations, alongside the normalised form actually compared');
+
+  /* H.19 — positive control. Normalisation must not relax the check it
+     protects: a summary that differs in the OUTCOME still discriminates, even
+     though both runs exit 0 and both carry an elapsed time. */
+  const rgpRealDiffDir = rgpRepo();
+  const rgpRealDiff = rgpRun(rgpRealDiffDir, rgpTimingArgs('real-summary-difference',
+    rgpTimingCmd('1 failed (2.8s)', '1 passed (3.7s)')));
+  assert(rgpRealDiff.status === 0 && /discriminating:\s+yes/.test(rgpRealDiff.stdout || '')
+    && /summary differs/.test(rgpRealDiff.stdout || '')
+    && rgpWorking(rgpRealDiffDir) === rgpCommitted(rgpRealDiffDir),
+    'RED/GREEN harness: a summary difference that is a real outcome change (1 failed vs 1 passed) still discriminates at exit 0 despite both lines carrying an elapsed time'
+    + ' (exit ' + rgpRealDiff.status + ')');
+
+  rgpTemps.forEach((dir) => { try { rmSync(dir, { recursive: true, force: true }); } catch { /* best effort */ } });
+
+  /* H.15 — shared-surface canary */
+  assert(passes > 3150,
+    'Regression: every pre-existing selftest assertion stays green after the RED/GREEN probe harness append'
+    + ' (' + passes + ' assertion(s) already green at this point)');
+} catch (e) { failures++; console.log('  ✗ FAIL (RED/GREEN probe harness group threw): ' + e.message); }
+/* RED-GREEN-PROBE-HARNESS-END */
+
 /* ---------- spec id uniqueness (BEGIN) ---------- */
 /* Two spec folders sharing one number makes every reference to it ambiguous — a commit reading
    "bug(009): ..." names one of two different packets, and so does a cross-link. Nothing caught
@@ -25801,6 +27406,475 @@ try {
 
 } catch (e) { failures++; console.log('  ✗ FAIL (spec id uniqueness group threw): ' + e.message); }
 /* ---------- spec id uniqueness (END) ---------- */
+
+/* ---------- Feature 022 Scope 02: supersession conformance (START) ---------- */
+/* TP-02-22 and TP-02-23. Scope 02's two conformance rows. Both were unwritable until now because
+   each depended on the withheld-detail entry, which could not be delivered while Scope 05's
+   census pinned the tolerated marker gap to a literal pair of ids (finding F-02-D): delivering
+   the entry SHRANK the real gap and turned a green assertion red. That census now derives its
+   tolerance from the ledger's own Disposition column, the entry is delivered, and both rows
+   become writable.
+
+   TP-02-22 does not restate the Scope 05 census. That one closes marker<->ledger MEMBERSHIP and
+   is deliberately left untouched. This row adds the three clauses it does not carry: the
+   ownership arithmetic the Scope 02 Test Plan states (Scope 01's owned ids, plus this scope's
+   owned ids less those the ledger forbids, plus exactly those later-scope ids already present,
+   read out of the ledger at run time rather than pinned to a total that goes stale the next time
+   a scope lands); the requirement that each marked region NAMES ITS SHAPE; and containment — a
+   marker may not sit in a lifetime-tax source or spec file outside the five this scope opened,
+   which is how an assertion could otherwise be changed under a marker nobody is counting.
+
+   Marker ids are never written literally in this group. Writing one here would place it in a
+   scanned file and make the census count it as delivered, which is the one way a conformance
+   check of this shape can be made to lie about itself. */
+try {
+  group('Feature 022 Scope 02 — supersession marker conformance and its adversarial twin');
+  const s02Require = (await import('node:module')).createRequire(import.meta.url);
+  const S02RULES = s02Require(join(ROOT, 'rltaxrules.js'));
+  const S02_PREFIX = 'SUP-' + '022-';
+
+  const s02OpenedFiles = ['scripts/selftest.mjs', 'tests/lifetime-tax-foundation.spec.mjs',
+    'tests/lifetime-tax-federal.spec.mjs', 'tests/lifetime-tax-marginal.spec.mjs',
+    'tests/lifetime-tax-route.spec.mjs'];
+  const s02Text = new Map();
+  s02OpenedFiles.forEach((file) => s02Text.set(file, read(file)));
+  const s02MarkersIn = (text) => (text.match(/SUP-022-\d{2}/g) || []);
+
+  const s02Delivered = new Set();
+  s02OpenedFiles.forEach((file) => s02MarkersIn(s02Text.get(file)).forEach((id) => s02Delivered.add(id)));
+  const s02DeliveredList = Array.from(s02Delivered).sort();
+
+  /* The feature ledger, parsed at run time: id, owning scope, disposition token. */
+  const s02FeatureSpec = read('specs/022-federal-preferential-and-state-income-tax/spec.md');
+  const s02Ledger = [];
+  (s02FeatureSpec.match(/^\| (SUP-022-\d{2}) \|.*$/gm) || []).forEach((row) => {
+    const cells = row.split('|').map((cell) => cell.trim());
+    const token = /^marker (required|forbidden|pending)\b/.exec(cells[5] || '');
+    s02Ledger.push({ id: cells[1], owner: cells[3], disposition: token ? token[1] : null });
+  });
+  const s02OwnedBy = (scope) => s02Ledger.filter((row) => row.owner === scope).map((row) => row.id);
+  const s02ScopeOneOwned = s02OwnedBy('01');
+  const s02ScopeTwoOwned = s02OwnedBy('02');
+  const s02Forbidden = s02Ledger.filter((row) => row.disposition === 'forbidden').map((row) => row.id);
+  const s02ScopeTwoDeliverable = s02ScopeTwoOwned.filter((id) => s02Forbidden.indexOf(id) < 0);
+  const s02LaterOwnedPresent = s02Ledger
+    .filter((row) => row.owner !== '01' && row.owner !== '02' && s02Delivered.has(row.id))
+    .map((row) => row.id);
+  const s02Expected = s02ScopeOneOwned.concat(s02ScopeTwoDeliverable)
+    .concat(s02LaterOwnedPresent).sort();
+
+  /* Each marked region names its shape. The reader anchors on the DECLARATION form — the one
+     occurrence that states what the entry supersedes — rather than on the first appearance of the
+     id, because an id is also legitimately cross-referenced from a neighbouring region and from
+     its own adversarial block. Reading the first appearance would report a declared shape as
+     missing whenever a cross-reference happened to sort earlier in the file, which is exactly what
+     the first draft of this row did on the reconciliation-leg entry. Requiring EXACTLY ONE
+     declaration is the added strength: two declarations of one id would let a later region quietly
+     claim a shape the ledger never assigned it. */
+  const s02DeclarationsOf = (id) => {
+    const needle = S02_PREFIX + id.slice(-2) + ': supersedes';
+    let total = 0;
+    let shape = null;
+    s02OpenedFiles.forEach((file) => {
+      const text = s02Text.get(file);
+      let at = text.indexOf(needle);
+      while (at >= 0) {
+        total += 1;
+        if (shape === null) {
+          const token = /shape=([a-z]+)/.exec(text.slice(at, at + 900));
+          shape = token ? token[1] : 'NONE';
+        }
+        at = text.indexOf(needle, at + needle.length);
+      }
+    });
+    return { total: total, shape: shape };
+  };
+  const s02WithoutShape = s02DeliveredList.filter((id) => {
+    const found = s02DeclarationsOf(id);
+    return found.total !== 1 || found.shape === null || found.shape === 'NONE';
+  });
+
+  /* Containment: no marker may sit in a lifetime-tax source or spec file outside the five this
+     scope opened, so an assertion cannot be changed under a marker the census never reads. */
+  const s02CandidateFiles = readdirSync(join(ROOT, 'tests'))
+    .filter((name) => name.indexOf('lifetime-tax') === 0 && name.endsWith('.spec.mjs'))
+    .map((name) => 'tests/' + name)
+    .concat(readdirSync(ROOT).filter((name) => /^rltax.*\.js$/.test(name)))
+    .concat(['lifetime-tax-strategy-lab.html']);
+  const s02Escaped = s02CandidateFiles
+    .filter((file) => s02OpenedFiles.indexOf(file) < 0 && s02MarkersIn(read(file)).length > 0);
+
+  const s02UndispositionedRows = s02Ledger.filter((row) => row.disposition === null).map((row) => row.id);
+  const s02ForbiddenButDelivered = s02Forbidden.filter((id) => s02Delivered.has(id));
+
+  assert(s02Ledger.length === 22
+    && s02UndispositionedRows.length === 0
+    && s02DeliveredList.length > 0
+    && s02ScopeOneOwned.length === 12
+    && s02ScopeTwoOwned.length === 9
+    && s02ScopeTwoDeliverable.length === 8
+    && s02LaterOwnedPresent.length > 0
+    && s02DeliveredList.join(',') === s02Expected.join(',')
+    && s02ForbiddenButDelivered.length === 0
+    && s02WithoutShape.length === 0
+    && s02Escaped.length === 0
+    && s02CandidateFiles.length > s02OpenedFiles.length,
+  'TP-02-22: the delivered marker set equals the set the feature ledger derives at run time — Scope 01\u2019s owned ids, plus this scope\u2019s owned ids less the one the ledger forbids, plus exactly those later-scope ids already present — every ledger row carries a recognised disposition, every delivered marker names its own shape, and no marker escapes the five opened files into another lifetime-tax source or spec'
+    + ' (delivered ' + s02DeliveredList.length + ', expected ' + s02Expected.length
+    + ', shapeless [' + s02WithoutShape.join(' ') + '], escaped [' + s02Escaped.join(' ') + '])');
+
+  /* TP-02-23. The three adversarial cases the Test Plan row names, each demonstrated to fail
+     against a mutated copy while the shipped tree passes. Nothing on disk is mutated: the packs
+     are deep clones and the route spec is a string, so the demonstration cannot leave a live
+     mutation behind the way an in-file probe can. */
+  const s02Pack = JSON.parse(read('tax-rules/federal/2026.json'));
+  const S02_SURTAX_ID = 'net-investment-income-tax';
+  const s02ContributorIds = (pack) => pack.unsupportedFeatures
+    .filter((entry) => entry.movesMarginalRate === true).map((entry) => entry.id);
+  const s02LegIds = (pack) => S02RULES.declaredTaxLegs(pack).map((leg) => leg.legId);
+  /* SUP-022-08's and SUP-022-10's shared clause: absent from the contributor set BECAUSE it moved
+     into a declared leg, never because it was dropped from both. */
+  const s02MovedNotDeleted = (pack) => s02ContributorIds(pack).indexOf(S02_SURTAX_ID) < 0
+    && s02LegIds(pack).indexOf(S02_SURTAX_ID) >= 0;
+  /* SUP-022-03's clause: the two sets are disjoint. */
+  const s02SetsDisjoint = (pack) => s02ContributorIds(pack)
+    .every((id) => s02LegIds(pack).indexOf(id) < 0);
+
+  const s02DeletedNotMoved = JSON.parse(JSON.stringify(s02Pack));
+  s02DeletedNotMoved.taxLegs = s02DeletedNotMoved.taxLegs.filter((leg) => leg.legId !== S02_SURTAX_ID);
+  s02DeletedNotMoved.unsupportedFeatures = s02DeletedNotMoved.unsupportedFeatures
+    .filter((entry) => entry.id !== S02_SURTAX_ID);
+
+  const s02ListedInBoth = JSON.parse(JSON.stringify(s02Pack));
+  s02ListedInBoth.unsupportedFeatures = s02ListedInBoth.unsupportedFeatures.concat([{
+    id: S02_SURTAX_ID, label: 'a surtax listed in both sets', movesMarginalRate: true
+  }]);
+
+  /* The third case is asserted over the route spec's own SOURCE TEXT, as the row requires.
+     Comments are stripped first, because the marked region legitimately NAMES the superseded
+     ordinal expectation in its own prose — a scan that read the comment would report the
+     regression present in a tree that does not contain it. */
+  const s02StripComments = (text) => text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+  const s02RouteCode = s02StripComments(s02Text.get('tests/lifetime-tax-route.spec.mjs'));
+  const s02SelectsByDeclaredTarget = (code) =>
+    code.indexOf('data-power-section="${FOCUS_TARGET}"') >= 0 && !/\blinks\.nth\(/.test(code);
+  const s02OrdinalSelector = 'page.locator(`#powerLinkRows button[data-power-section="${FOCUS_TARGET}"]`)';
+  const s02OrdinalRegression = s02RouteCode.replace(s02OrdinalSelector, 'links.nth(3)');
+
+  assert(s02MovedNotDeleted(s02Pack) && !s02MovedNotDeleted(s02DeletedNotMoved)
+    && s02SetsDisjoint(s02Pack) && !s02SetsDisjoint(s02ListedInBoth)
+    && s02ContributorIds(s02ListedInBoth).indexOf(S02_SURTAX_ID) >= 0
+    && s02SelectsByDeclaredTarget(s02RouteCode)
+    && s02OrdinalRegression !== s02RouteCode
+    && !s02SelectsByDeclaredTarget(s02OrdinalRegression)
+    /* The browser twin is pinned rather than assumed: the marginal spec that owns SUP-022-08
+       still carries the same moved-not-deleted clause this engine-side case demonstrates. */
+    && s02Text.get('tests/lifetime-tax-marginal.spec.mjs').indexOf(S02_SURTAX_ID) >= 0,
+  'TP-02-23: a pack that removes the surtax from the unavailable-contributor set without declaring a computed leg fails the moved-versus-deleted clause, a pack that lists the same id in both unsupportedFeatures[] and taxLegs[] fails the disjointness clause, and a route spec that selects a withheld-detail link by ordinal instead of by its declared target fails the declared-target clause — each against a mutated copy while the shipped tree passes all three');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 022 Scope 02 supersession conformance group threw): ' + e.message); }
+/* ---------- Feature 022 Scope 02: supersession conformance (END) ---------- */
+
+/* ---------- Features 021-024: design-declared reconciliation identities (START) ---------- */
+/* F-AUDIT-03. A design.md that names a reconciliation identity the engines do not declare is
+   how the mis-summed-leg defect gets reintroduced: the 023 text named `L8` (property tax) and
+   said each such leg is "declared in the pack's leg set and summed from the declared set",
+   which, built as written, would have put property tax inside `totalFederalTax`. The 024 text
+   carried the same shape for `L12`-`L15`. Nothing could catch either, because no assertion
+   compared the identities the design names against the identities the engines declare.
+
+   The permitted set is DERIVED, never listed here: it is scanned out of the engine sources and
+   then cross-checked against a live settlement, so adding a real identity to an engine widens
+   this check automatically while naming an unbuilt one in a design still fails it.
+
+   Scope is design.md only. The scope.md planning artifacts use `L8`-`L15` as PLANNING names for
+   what shipped as semantic leg ids (`property-tax`, `rental-net`, ...), a divergence Scope 03's
+   report already reconciles in writing; those files carry no summing instruction and are not
+   this check's subject. */
+try {
+  group('Lifetime tax — every reconciliation identity a design names is one an engine declares');
+  const reconRequire = (await import('node:module')).createRequire(import.meta.url);
+  const RECON_TAX = reconRequire('../rltax.js');
+  const RECON_WORKSPACE = reconRequire('../rltaxworkspace.js');
+
+  /* Derived, half one: the identities the engine sources actually add. */
+  const reconEngineFiles = ['rltax.js', 'rltaxstate.js'];
+  const reconDeclaredIds = new Set();
+  reconEngineFiles.forEach((name) => {
+    [...read(name).matchAll(/addLeg\(\s*"(L\d+)"/g)].forEach((m) => reconDeclaredIds.add(m[1]));
+  });
+
+  /* Derived, half two: the identities a real settlement publishes. The source scan is only
+     trustworthy if it agrees with the engine at run time, so the federal half is settled and
+     compared rather than assumed. */
+  const reconWorkspace = RECON_WORKSPACE.createEmptyWorkspace();
+  reconWorkspace.filingStatus = 'single';
+  reconWorkspace.declaredTaxYear = 2026;
+  reconWorkspace.deductionMode = 'standard';
+  reconWorkspace.income.ordinary = 150000;
+  reconWorkspace.investmentIncomeBasis.otherOrdinaryNetInvestmentIncome = 0;
+  reconWorkspace.wageBasis.medicareWagesAndSelfEmploymentIncome = 0;
+  const reconSettled = RECON_TAX.computeAnnualFederalTax(
+    reconWorkspace, JSON.parse(read('tax-rules/federal/2026.json')));
+  const reconRuntimeIds = reconSettled.reconciliation.legs.map((leg) => leg.id);
+  const reconRuntimeCovered = reconRuntimeIds.every((id) => reconDeclaredIds.has(id));
+
+  const RECON_DESIGNS = [
+    'specs/021-lifetime-tax-strategy-lab/design.md',
+    'specs/022-federal-preferential-and-state-income-tax/design.md',
+    'specs/023-property-tax-and-rental-income/design.md',
+    'specs/024-social-security-and-medicare/design.md'
+  ];
+  const reconUndeclaredIn = (text) => [...new Set(
+    [...text.matchAll(/`(L\d+)`/g)].map((m) => m[1]))]
+    .filter((id) => !reconDeclaredIds.has(id)).sort();
+  const reconShipped = [];
+  RECON_DESIGNS.forEach((path) => {
+    reconUndeclaredIn(read(path)).forEach((id) => reconShipped.push(path + ':' + id));
+  });
+
+  /* ADVERSARIAL, against a STRING rather than the tree, so the demonstration cannot leave a
+     live mutation behind. Both halves of the original defect are planted: the identity the 023
+     text named, and the four the 024 text named. */
+  const reconPlanted = reconUndeclaredIn(
+    'Reconciliation gains legs `L8` (property tax), `L9` (rental net after limits),\n'
+    + '`L10` (unrecaptured Section 1250) and `L11` (long-term remainder). Each is\n'
+    + "declared in the pack's leg set and summed from the declared set.\n"
+    + 'Reconciliation gains legs `L12`, `L13`, `L14` and `L15`. `L4` still holds.');
+  /* A vacuous pass would be a scanner that found no identities at all, so the shipped designs
+     are asserted to NAME some, and the permitted set to CONTAIN some. */
+  const reconNamedInDesigns = [...new Set(RECON_DESIGNS
+    .flatMap((path) => [...read(path).matchAll(/`(L\d+)`/g)].map((m) => m[1])))].sort();
+
+  assert(reconDeclaredIds.size >= 7 && reconDeclaredIds.has('L1') && reconDeclaredIds.has('L7')
+    && !reconDeclaredIds.has('L8')
+    && reconRuntimeIds.length === 6 && reconRuntimeCovered
+    && reconNamedInDesigns.length >= 4
+    && reconShipped.length === 0
+    && reconPlanted.join(',') === 'L10,L11,L12,L13,L14,L15,L8,L9'
+    && reconPlanted.indexOf('L4') < 0,
+  'F-AUDIT-03: every reconciliation identity the four lifetime-tax design documents name in backticks is one the engine sources declare and a live settlement publishes, while a design paragraph naming L8-L11 or L12-L15 — identities no engine declares, whose summing clause would have placed property tax inside totalFederalTax — is reported by name and does not drag the real L4 in with it'
+    + ' (permitted [' + [...reconDeclaredIds].sort().join(' ') + '], design-named ['
+    + reconNamedInDesigns.join(' ') + '], undeclared [' + reconShipped.join(' ') + '])');
+} catch (e) { failures++; console.log('  ✗ FAIL (design-declared reconciliation identity group threw): ' + e.message); }
+/* ---------- Features 021-024: design-declared reconciliation identities (END) ---------- */
+
+/* ---------- Feature 024 Scope 05: CO-24 is deployed on the route (START) ---------- */
+/* F-AUDIT-04. `composeSurfaceCensus` is the stage built to catch a leg that every surface renders
+   and that nonetheless entered `totalFederalTax`. It was exported and exercised only against a
+   fixture in this file; the route never called it, so the mis-summed pass — the one pass surface
+   membership cannot substitute for — never ran against the page.
+
+   This group pins the wiring at the source, which is where it can regress silently: the route must
+   call the stage, must feed it the leg set it rendered, and must feed the summed set from the
+   settlement's own accounting rather than from the same field it is auditing. It also pins the
+   row builder carrying each leg's own `includedInTotal`, because without that the property leg —
+   the leg whose mis-summing the design text would have caused — arrives as `undefined` and the
+   mis-summed pass, which tests `=== false`, cannot fire on it.
+
+   The behavioural twin lives in `tests/lifetime-tax-route.spec.mjs`, which asserts the verdict is
+   published and rendered on a real page. */
+try {
+  group('Lifetime tax — CO-24 runs on the route, not only against a fixture');
+  const censusRoute = read('lifetime-tax-strategy-lab.html');
+  const censusStrip = (text) => text.replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/\/\*[\s\S]*?\*\//g, ' ');
+  const censusCode = censusStrip(censusRoute);
+
+  const censusCalled = censusCode.indexOf('ENGINE.composeSurfaceCensus(') >= 0;
+  const censusInvoked = /renderSurfaceCensus\(envelope, rows, surfaceHosts, surfaceIds\)/.test(censusCode);
+  /* Non-circular inputs. The summed set must come from the settlement's own published total
+     accounting, and the declared flag must come from the row the page rendered. */
+  const censusSummedFromRecord = /composeSurfaceCensus\(declaredLegs, memberships,\s*envelope\.federalLegIds/.test(censusCode);
+  const censusFlagFromRow = /includedInTotal: rows\[index\]\.includedInTotal === true/.test(censusCode);
+  /* Every leg the visibility row builder publishes carries its own declaration. Counted rather
+     than sampled: one row builder clause silently dropping the member is the whole defect. The
+     count is scoped to that builder's own body, because other row builders on the page push rows
+     that are not legs and must not be dragged into the comparison. */
+  const censusBuilderStart = censusCode.indexOf('function legVisibilityRows(');
+  const censusBuilderEnd = censusCode.indexOf('function renderLegVisibility(');
+  const censusBuilder = censusBuilderStart >= 0 && censusBuilderEnd > censusBuilderStart
+    ? censusCode.slice(censusBuilderStart, censusBuilderEnd) : '';
+  const censusRowFlagPattern = /\n\s*includedInTotal: \w+(?:\[\w+\])?\.includedInTotal === true,/g;
+  const censusRowPushes = (censusBuilder.match(/rows\.push\(\{/g) || []).length;
+  const censusRowFlags = (censusBuilder.match(censusRowFlagPattern) || []).length;
+  /* The verdict must be observable and visible, not computed and dropped. */
+  const censusPublishesVerdict = censusCode.indexOf('"data-rl-census-clean"') >= 0
+    && censusCode.indexOf('"data-rl-census-findings"') >= 0;
+  const censusHasHost = censusRoute.indexOf('id="legSurfaceCensus"') >= 0;
+  const censusRendersFindings = censusCode.indexOf('finding.statement') >= 0
+    && censusCode.indexOf('"data-rl-census-finding"') >= 0;
+
+  /* ADVERSARIAL, against strings rather than the tree. Each mutation is one an author could make
+     while believing the census still ran, and each must be detectable. */
+  const censusUnwired = censusCode.replace('renderSurfaceCensus(envelope, rows, surfaceHosts, surfaceIds);', '');
+  const censusCircular = censusCode.replace('composeSurfaceCensus(declaredLegs, memberships,\n                    envelope.federalLegIds || []);',
+    'composeSurfaceCensus(declaredLegs, memberships, declaredLegs.map(function (leg) { return leg.legId; }));');
+  const censusFlagDropped = censusBuilder.replace(censusRowFlagPattern, '');
+
+  assert(censusCalled && censusInvoked && censusSummedFromRecord && censusFlagFromRow
+    && censusRowPushes >= 8 && censusRowFlags === censusRowPushes
+    && censusPublishesVerdict && censusHasHost && censusRendersFindings
+    && !/renderSurfaceCensus\(envelope, rows, surfaceHosts, surfaceIds\)/.test(censusUnwired)
+    && !/composeSurfaceCensus\(declaredLegs, memberships,\s*envelope\.federalLegIds/.test(censusCircular)
+    && (censusFlagDropped.match(censusRowFlagPattern) || []).length === 0,
+  'F-AUDIT-04: the route invokes CO-24 on what it rendered, feeds the summed set from the settlement\u2019s own federalLegIds rather than from the flag it is auditing, carries each leg\u2019s own includedInTotal on every one of its visibility rows so the mis-summed pass can fire on a cost leg, and publishes the verdict both as an attribute pair and as visible findings — while an unwired call, a self-referential summed set and a dropped per-row flag are each detectable'
+    + ' (row pushes ' + censusRowPushes + ', per-row flags ' + censusRowFlags + ')');
+} catch (e) { failures++; console.log('  ✗ FAIL (CO-24 route wiring group threw): ' + e.message); }
+/* ---------- Feature 024 Scope 05: CO-24 is deployed on the route (END) ---------- */
+
+/* ---------- Feature 023 Scope 05: the two routed audit findings are bounded (START) ---------- */
+/* F-AUDIT-02. The shipped federal pack carries one malformed `AbsentFigure` — the
+   head-of-household residence-exclusion absence — and it is malformed in two places: its
+   remediation sits under `remediation` rather than `whatWouldMakeItAvailable`, and its
+   `missingSource` is a bare string rather than the contracted `{title, url, locator}` object.
+   It is NOT fixed here: a conforming `missingSource` needs a `url` and a `locator` for an
+   authority that was never retrieved, and supplying either from nothing is the substitution
+   this program exists to prevent.
+
+   What IS fixed here is that the defect was unbounded and uncounted. `validateAbsentFigure`
+   is invoked at six sites and none walks `dispositionPolicy.residenceExclusion.maximumAmounts
+   .amounts.*`, and the one assertion that does check the contract shape — `TP-01-11` — walks
+   the BENEFIT pack, which carries no `AbsentFigure` at all, so its census runs against zero
+   candidates and cannot fail. This group runs the same contract check against the pack that
+   actually carries absences, and holds the non-conformant set to the single record the audit
+   named. A second malformed record, or a malformed record at a different path, fails here.
+
+   The bound is `<= 1` rather than `=== 1` deliberately: fixing the named record must make this
+   group greener, never redder. A guard that goes RED when the defect it describes is repaired
+   is a guard that argues against its own fix. */
+try {
+  group('Federal pack — every AbsentFigure conforms, except the one open finding names itself');
+  const absentPack = JSON.parse(read('tax-rules/federal/2026.json'));
+  const absentFound = [];
+  const absentWalk = (node, path) => {
+    if (Array.isArray(node)) {
+      node.forEach((child, i) => absentWalk(child, path + '[' + i + ']'));
+      return;
+    }
+    if (!node || typeof node !== 'object') return;
+    if (node.contractVersion === 'AbsentFigure/v1') absentFound.push({ path: path, figure: node });
+    Object.keys(node).forEach((key) => absentWalk(node[key], path + '.' + key));
+  };
+  absentWalk(absentPack, '$');
+  /* The contract exactly as `validateAbsentFigure` in rltaxrules.js states it. */
+  const absentNonEmpty = (v) => typeof v === 'string' && v.length > 0;
+  const absentBreaches = (figure) => {
+    const breaches = [];
+    if (!absentNonEmpty(figure.domain)) breaches.push('domain');
+    if (!absentNonEmpty(figure.reason)) breaches.push('reason');
+    if (!absentNonEmpty(figure.whatWouldMakeItAvailable)) breaches.push('whatWouldMakeItAvailable');
+    const source = figure.missingSource;
+    if (!source || typeof source !== 'object' || Array.isArray(source)) {
+      breaches.push('missingSource-not-an-object');
+    } else {
+      if (!absentNonEmpty(source.title)) breaches.push('missingSource.title');
+      if (!absentNonEmpty(source.url)) breaches.push('missingSource.url');
+      if (!absentNonEmpty(source.locator)) breaches.push('missingSource.locator');
+    }
+    return breaches;
+  };
+  const absentCensus = (records) => records
+    .map((entry) => ({ path: entry.path, domain: entry.figure.domain, breaches: absentBreaches(entry.figure) }))
+    .filter((entry) => entry.breaches.length > 0);
+  const absentOpenDomain = 'disposition:residenceExclusion:maximumAmounts:head-of-household';
+  const absentBad = absentCensus(absentFound);
+  const absentDomains = absentFound.map((entry) => entry.figure.domain);
+  /* Non-vacuity, which is the exact property TP-01-11 lacks: this census must run against real
+     candidates, and must reach the NESTED per-filing-status amounts map where the open record
+     lives rather than stopping at the pack's top-level members. */
+  const absentReachesNested = absentDomains.indexOf(absentOpenDomain) >= 0;
+
+  /* ADVERSARIAL. A second malformed record, planted at a DIFFERENT nested path from the known
+     one, must be counted — otherwise the bound below is satisfied by a walker that only ever
+     finds one thing. Planted on a deep clone so the shipped pack is untouched. */
+  const absentMutated = JSON.parse(read('tax-rules/federal/2026.json'));
+  absentMutated.dispositionPolicy.residenceExclusion.useTest = {
+    contractVersion: 'AbsentFigure/v1',
+    code: 'RLTAX-THRESHOLD-UNAVAILABLE',
+    domain: 'disposition:residenceExclusion:useTest',
+    reason: 'planted by the selftest to prove the census counts a second malformed record',
+    remediation: 'planted under the wrong key, exactly as the open record is',
+    missingSource: 'planted as a bare string, exactly as the open record is'
+  };
+  const absentMutatedFound = [];
+  const absentMutatedWalk = (node, path) => {
+    if (Array.isArray(node)) {
+      node.forEach((child, i) => absentMutatedWalk(child, path + '[' + i + ']'));
+      return;
+    }
+    if (!node || typeof node !== 'object') return;
+    if (node.contractVersion === 'AbsentFigure/v1') absentMutatedFound.push({ path: path, figure: node });
+    Object.keys(node).forEach((key) => absentMutatedWalk(node[key], path + '.' + key));
+  };
+  absentMutatedWalk(absentMutated, '$');
+  const absentMutatedBad = absentCensus(absentMutatedFound);
+
+  assert(absentFound.length >= 6 && absentReachesNested
+    && absentBad.length <= 1
+    && absentBad.every((entry) => entry.domain === absentOpenDomain)
+    && absentMutatedBad.length === 2
+    && absentMutatedBad.some((entry) => entry.domain === 'disposition:residenceExclusion:useTest'),
+  'F-AUDIT-02: the AbsentFigure census runs against the pack that actually carries absences rather than one carrying none, reaches the nested per-filing-status amounts map, and holds the non-conformant set to at most the single head-of-household record the audit named — while a second malformed record planted at a different nested path is counted rather than absorbed'
+    + ' (found ' + absentFound.length + ', non-conformant ' + absentBad.length
+    + (absentBad.length ? ' [' + absentBad.map((e) => e.domain + ': ' + e.breaches.join('+')).join('; ') + ']' : '')
+    + ', planted-census ' + absentMutatedBad.length + ')');
+} catch (e) { failures++; console.log('  ✗ FAIL (federal AbsentFigure census group threw): ' + e.message); }
+
+/* F-AUDIT-05. The comment above the residence-exclusion coercion claimed that a refused
+   exclusion's "refusal travels with the leg rather than silently becoming a zero exclusion".
+   The line beneath it does the opposite: it coerces the refusal to the number 0, that zero
+   enters `taxableRemainder`, and the remainder leg is published `available: true` with an
+   unqualified figure computed from an input that refused.
+
+   The BEHAVIOUR is deliberate and pinned elsewhere — `TP-05-13` asserts the remainder leg
+   "carries the whole remainder unexcluded", and it errs toward overstating tax. Whether the
+   leg should instead refuse, or carry the refusal as a qualification, is a contract question
+   and is not decided here. What was unambiguously wrong was the comment, and a comment that
+   states the opposite of its line is worse than no comment: it tells the next reader the
+   qualification is already handled.
+
+   This group pins the agreement rather than the prose. It is scoped to the comment block
+   IMMEDIATELY above the coercion, so the same words elsewhere in the module cannot satisfy
+   it, and it permits the false sentence to return only if the code is changed to make it
+   true — that is, only if the refusal actually reaches the leg. */
+try {
+  group('Disposition remainder — the exclusion coercion comment agrees with its line');
+  const coerceSource = read('rltax.js');
+  const coerceLine = 'var excluded = rules.isUnavailable(exclusion) ? 0 : exclusion.excludedAmount;';
+  const coerceAt = coerceSource.indexOf(coerceLine);
+  const coerceCommentEnd = coerceAt >= 0 ? coerceSource.lastIndexOf('*/', coerceAt) : -1;
+  const coerceCommentStart = coerceCommentEnd >= 0 ? coerceSource.lastIndexOf('/*', coerceCommentEnd) : -1;
+  const coerceComment = coerceCommentStart >= 0 ? coerceSource.slice(coerceCommentStart, coerceCommentEnd + 2) : '';
+  /* Does the refusal ACTUALLY reach the leg? Read the remainder leg the available branch
+     publishes, and look for the exclusion refusal being carried onto it. */
+  const coerceLegStart = coerceAt >= 0 ? coerceSource.indexOf('remainderLeg = Object.freeze({', coerceAt) : -1;
+  const coerceLegSecond = coerceLegStart >= 0
+    ? coerceSource.indexOf('remainderLeg = Object.freeze({', coerceLegStart + 1) : -1;
+  const coerceLegBody = coerceLegSecond >= 0
+    ? coerceSource.slice(coerceLegSecond, coerceSource.indexOf('});', coerceLegSecond) + 3) : '';
+  const coerceRefusalCarried = /exclusion(Refusal)?\s*:/.test(coerceLegBody);
+  const coerceClaimsTravel = coerceComment.indexOf('refusal travels with the leg') >= 0;
+  /* The invariant: the comment may claim the refusal travels ONLY if the leg carries it. */
+  const coerceAgrees = coerceClaimsTravel ? coerceRefusalCarried : true;
+  const coerceStatesCoercion = /does NOT travel onto this leg/.test(coerceComment)
+    && coerceComment.indexOf('F-AUDIT-05') >= 0;
+
+  /* ADVERSARIAL. Restoring the sentence the code does not support must break the agreement,
+     and must break it through the invariant rather than through the wording check alone. */
+  const coerceRegressed = coerceComment.replace(/does NOT travel onto this leg/,
+    'refusal travels with the leg rather than silently becoming a zero exclusion, so it does travel onto this leg');
+  const coerceRegressedClaims = coerceRegressed.indexOf('refusal travels with the leg') >= 0;
+  const coerceRegressedAgrees = coerceRegressedClaims ? coerceRefusalCarried : true;
+
+  assert(coerceAt >= 0 && coerceComment.length > 0
+    && coerceLegSecond > coerceLegStart && coerceLegStart >= 0
+    && coerceRefusalCarried === false
+    && coerceAgrees && coerceStatesCoercion
+    && coerceRegressedAgrees === false,
+  'F-AUDIT-05: the comment above the residence-exclusion coercion may claim the refusal travels with the leg only if the remainder leg actually carries it — it does not, so the comment states the coercion instead and names the open contract question, while restoring the sentence the code does not support breaks the agreement'
+    + ' (comment ' + coerceComment.length + ' chars, refusal carried on leg: ' + coerceRefusalCarried + ')');
+} catch (e) { failures++; console.log('  ✗ FAIL (exclusion coercion comment/code agreement group threw): ' + e.message); }
+/* ---------- Feature 023 Scope 05: the two routed audit findings are bounded (END) ---------- */
 
 /* ---------- Horizon Ladder Lab: earned-rate gate and frontier arithmetic (START) ---------- */
 try {
@@ -26214,6 +28288,333 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (horizon ladder gate group threw): ' + e.message); }
 /* ---------- Horizon Ladder Lab: earned-rate gate and frontier arithmetic (END) ---------- */
 
+/* ================================================================================
+   Lifetime tax — security review follow-up F4, F5 and F6. Appended; this block
+   edits no pre-existing assertion.
+   ================================================================================ */
+try {
+  group('Lifetime tax — clear-report honesty, closed storage writer and export omission depth');
+  const secRequire = (await import('node:module')).createRequire(import.meta.url);
+  const SECWS = secRequire('../rltaxworkspace.js');
+  const secConfig = JSON.parse(read('lifetime-tax-strategy.config.json'));
+  const secPage = read('lifetime-tax-strategy-lab.html');
+  const secStore = (seed) => {
+    const cells = Object.assign({}, seed);
+    return {
+      cells,
+      getItem: (key) => (Object.prototype.hasOwnProperty.call(cells, key) ? cells[key] : null),
+      setItem: (key, value) => { cells[key] = String(value); },
+      removeItem: (key) => { delete cells[key]; }
+    };
+  };
+  const secDeclared = SECWS.declaredStorageKeys(secConfig).slice().sort();
+
+  /* F5. removedKeys[] is a claim about what the call REMOVED, so it is compared against the set
+     measured PRESENT immediately beforehand. Reading removedKeys[] on its own cannot catch the
+     defect: removeItem is a silent no-op on an absent key, so a loop that pushes every declared
+     key unconditionally produces a full, plausible, and false list over an empty browser. */
+  const partialSeed = {};
+  partialSeed[secConfig.storage.probeKey] = secConfig.storage.probeValue;
+  const partialStorage = secStore(partialSeed);
+  const presentBeforePartial = secDeclared.filter((key) => partialStorage.getItem(key) !== null);
+  const partialCleared = SECWS.clearAllPrivateData(partialStorage, secConfig);
+  const emptyCleared = SECWS.clearAllPrivateData(secStore({}), secConfig);
+  const stockedStorage = secStore({});
+  secDeclared.forEach((key) => SECWS.writeStorageKey(stockedStorage, secConfig, key, 'stocked'));
+  const presentBeforeStocked = secDeclared.filter((key) => stockedStorage.getItem(key) !== null);
+  const stockedCleared = SECWS.clearAllPrivateData(stockedStorage, secConfig);
+  assert(presentBeforePartial.length === 1
+    && JSON.stringify(partialCleared.removedKeys.slice().sort()) === JSON.stringify(presentBeforePartial)
+    && emptyCleared.removedKeys.length === 0
+    && presentBeforeStocked.length === secDeclared.length
+    && JSON.stringify(stockedCleared.removedKeys.slice().sort()) === JSON.stringify(presentBeforeStocked)
+    && Object.keys(partialStorage.cells).length === 0
+    && Object.keys(stockedStorage.cells).length === 0,
+  'F5: the clear report names only the declared keys the browser genuinely held, measured present before the removal — one key reported from a store holding one, none from an empty store, all of them from a fully stocked store — and every declared key is gone afterwards');
+
+  /* F4. The closed writer is what makes the inventory trustworthy, so it may not be optional.
+     The page performs no storage write of its own and names no storage key of its own; every key
+     it can write is declared in configuration, passes the writer, appears in the inventory and is
+     removed by the clear path. */
+  const secDirectWrites = (secPage.match(/localStorage\.setItem\(/g) || []).length;
+  const secKeyLiterals = (secPage.match(/["']rl[A-Za-z0-9_.]*["']/g) || [])
+    .filter((literal) => /rlLifetimeTax|rlPortfolio|rlReturnContext/.test(literal));
+  const secWriterAccepts = secDeclared
+    .filter((key) => SECWS.writeStorageKey(secStore({}), secConfig, key, 'x') === null);
+  const secInventoryKeys = SECWS.privacyInventory(secStore({}), secConfig)
+    .entries.map((entry) => entry.key).slice().sort();
+  const secOutsideNamespace = secDeclared
+    .filter((key) => key.indexOf(secConfig.storage.namespace + '.') !== 0);
+  assert(secDirectWrites === 0
+    && secKeyLiterals.length === 0
+    && secWriterAccepts.length === secDeclared.length
+    && secOutsideNamespace.length === 0
+    && JSON.stringify(secInventoryKeys) === JSON.stringify(secDeclared)
+    && JSON.stringify(stockedCleared.removedKeys.slice().sort()) === JSON.stringify(secDeclared),
+  'F4: the page writes no storage key directly and carries no storage-key literal of its own, so every key this tool can write is declared in configuration, sits inside the declared namespace, passes the closed writer, appears in the privacy inventory and is removed by the clear path');
+
+  /* F6. The omission accounting descends. A member added inside a container the sanitiser
+     rebuilds member by member must be NAMED, not silently dropped — the defect the function's
+     own comment says the shape exists to prevent. */
+  const secExpectedOmissions = (source, kept, prefix) => Object.keys(source).reduce((acc, member) => {
+    const path = prefix === '' ? member : prefix + '.' + member;
+    if (!Object.prototype.hasOwnProperty.call(kept, member)) return acc.concat([path]);
+    const bothContainers = source[member] !== null && typeof source[member] === 'object' && !Array.isArray(source[member])
+      && kept[member] !== null && typeof kept[member] === 'object' && !Array.isArray(kept[member]);
+    return bothContainers ? acc.concat(secExpectedOmissions(source[member], kept[member], path)) : acc;
+  }, []);
+  const secNested = SECWS.createEmptyWorkspace();
+  secNested.income.undeclaredNestedIncome = 515151;
+  secNested.investmentIncomeBasis.undeclaredNestedBasis = 626262;
+  secNested.wageBasis.undeclaredNestedWage = 737373;
+  const secNestedSanitized = SECWS.sanitizeForExport(secNested);
+  const secNestedText = JSON.stringify(secNestedSanitized.workspace);
+  const secNestedPaths = ['income.undeclaredNestedIncome',
+    'investmentIncomeBasis.undeclaredNestedBasis', 'wageBasis.undeclaredNestedWage'];
+  const secFlatSanitized = SECWS.sanitizeForExport(SECWS.createEmptyWorkspace());
+  const secUnderReporting = secNestedSanitized.omittedFields.slice(1);
+  assert(secNestedPaths.every((path) => secNestedSanitized.omittedFields.indexOf(path) >= 0)
+    && ['515151', '626262', '737373'].every((figure) => secNestedText.indexOf(figure) < 0)
+    /* Derived on both sides: the reported set equals the withheld set at every depth. */
+    && JSON.stringify(secNestedSanitized.omittedFields.slice().sort())
+      === JSON.stringify(secExpectedOmissions(secNested, secNestedSanitized.workspace, '').slice().sort())
+    && JSON.stringify(secFlatSanitized.omittedFields.slice().sort())
+      === JSON.stringify(secExpectedOmissions(SECWS.createEmptyWorkspace(), secFlatSanitized.workspace, '').slice().sort())
+    /* Top-level names stay bare, so the depth-1 callers across the four features are unaffected. */
+    && secFlatSanitized.omittedFields.every((path) => path.indexOf('.') < 0)
+    && secFlatSanitized.omittedFields.indexOf('propertyJurisdiction') >= 0
+    /* An under-reporting list is proven to disagree, so the identity is not two empty sets. */
+    && secUnderReporting.length !== secNestedSanitized.omittedFields.length
+    && secNestedSanitized.omittedFields.length > secFlatSanitized.omittedFields.length,
+  'F6: the export omission accounting descends into every container the sanitiser rebuilds member by member, so a member added inside income, investmentIncomeBasis or wageBasis is named as container.member and its figure never reaches the exported bytes, top-level members keep their bare names, and an under-reporting list is proven to disagree');
+} catch (e) { failures++; console.log('  ✗ FAIL (lifetime-tax security follow-up group threw): ' + e.message); }
+
+/* ================================================================================
+   Lifetime tax — hardening review H1..H4. Four statutory "lesser of" bounds were
+   each found removable without any assertion in this suite failing, because every
+   fixture that reaches them pins the two operands so the bound cannot bind. Each
+   row below supplies the missing adversarial direction and pairs it with the
+   non-binding direction, so the bound is proven to be read rather than merely
+   present. Appended; this block edits no pre-existing assertion.
+   ================================================================================ */
+try {
+  group('Lifetime tax — every statutory lesser-of bound is exercised in the direction that binds');
+  const hRequire = (await import('node:module')).createRequire(import.meta.url);
+  const hProperty = hRequire('../rltax.js');
+  const hRental = hRequire('../rltaxrental.js');
+  const hInclusion = hRequire('../rltaxinclusion.js');
+  const hFixtures = JSON.parse(read('tax-rules/fixtures/property-regimes-2999.json')).regimes;
+  const hFederal = () => JSON.parse(read('tax-rules/federal/2026.json'));
+  const hNear = (a, b) => Math.abs(a - b) < 0.0000001;
+
+  /* H1. The assessment cap is the LOWER of the declared cap rate and the sourced annual index
+     change — the shipped Florida sourcing note states the constitution that way. Every regime in
+     the fixture pack carries capIndexRate EQUAL to capRate, and both shipped packs carry the
+     index rate as an AbsentFigure so their leg refuses before the comparison is reached. The
+     comparison therefore had no discriminating input anywhere: replacing it with the cap rate
+     alone left all 3384 assertions passing. Three regimes are priced here — index below the cap
+     rate, index equal to it, index above it — so whichever operand is lower is the one applied. */
+  const hDeclare = (overrides) => Object.assign({
+    contractVersion: 'PropertyAssessment/v1', origin: 'declared',
+    assessedValue: null, priorAssessedValue: null, acquisitionValue: null,
+    localCombinedRate: null, exemptionElections: []
+  }, overrides || {});
+  const hHousehold = hDeclare({
+    assessedValue: 400000, priorAssessedValue: 300000, acquisitionValue: 200000,
+    localCombinedRate: 0.02, exemptionElections: ['fixture-exemption']
+  });
+  const hCapRegime = (indexRate) => {
+    const regime = JSON.parse(JSON.stringify(hFixtures['prior-assessed-value-cap']));
+    regime.assessmentCap.capIndexRate = indexRate;
+    return regime;
+  };
+  const hCapLeg = (indexRate) => hProperty.composePropertyLeg(hHousehold, hCapRegime(indexRate));
+  const hShippedCapRate = hFixtures['prior-assessed-value-cap'].assessmentCap.capRate;
+  const hIndexBelow = hCapLeg(0.01);
+  const hIndexEqual = hCapLeg(hShippedCapRate);
+  const hIndexAbove = hCapLeg(0.09);
+  /* Every expectation is recomputed from the declaration and the regime rather than restated, so
+     an engine that read the wrong basis fails here instead of agreeing with a transcribed total. */
+  const hCeilingAt = (rate) => hHousehold.priorAssessedValue * (1 + rate);
+  const hTaxAt = (rate) => (Math.min(hHousehold.assessedValue, hCeilingAt(rate))
+    - hIndexEqual.settlement.exemptionTotal) * hHousehold.localCombinedRate;
+  assert(hIndexBelow.available === true && hIndexEqual.available === true && hIndexAbove.available === true
+    && hNear(hIndexBelow.settlement.cappedAssessedValue, hCeilingAt(0.01))
+    && hNear(hIndexEqual.settlement.cappedAssessedValue, hCeilingAt(hShippedCapRate))
+    && hNear(hIndexAbove.settlement.cappedAssessedValue, hCeilingAt(hShippedCapRate))
+    && hNear(hIndexBelow.value, hTaxAt(0.01))
+    && hNear(hIndexEqual.value, hTaxAt(hShippedCapRate))
+    /* The binding direction moves the tax. Without this the comparison is inert: the fixture's
+       equal rates and the shipped packs' absent index rate make every other case agree. */
+    && hIndexBelow.value < hIndexEqual.value
+    && hNear(hIndexAbove.value, hIndexEqual.value),
+  'H1: the assessment cap ceiling is built from the LOWER of the declared cap rate and the sourced annual index change — an index change below the cap rate reduces the capped value and the tax, one equal to it and one above it both leave the cap rate applied — so an implementation reading the cap rate alone fails here rather than agreeing with a fixture whose two rates are equal');
+
+  /* H2. The passive-activity special allowance is the second of the two loss limits, and it caps
+     the loss the first limit let through. Three of the five households TP-03-10 prices DO reach
+     the binding condition — but the only assertion over them compares amountBefore, allowedAmount
+     and disallowedAmount to each other, and that reconciliation survives the defect: an
+     implementation that allows the whole loss and disallows nothing still satisfies
+     allowed + disallowed === before. Nothing anywhere compared the allowed amount to the
+     allowance, so removing the bound left all 3384 assertions passing. This row compares them. */
+  const hAllowancePack = hFederal();
+  hAllowancePack.lossLimitPolicy.specialAllowance.maximumAmounts = {
+    amount: 20000, sourceRef: 'irs-p925-2025', locator: 'fixture maximum, the implementer\u2019s own figure'
+  };
+  hAllowancePack.lossLimitPolicy.specialAllowance.phaseOutRange = {
+    startsAbove: 80000, exhaustedAtOrAbove: 120000,
+    sourceRef: 'irs-p925-2025', locator: 'fixture range, the implementer\u2019s own figures'
+  };
+  hAllowancePack.lossLimitPolicy.specialAllowance.reductionRate = {
+    rate: 0.5, sourceRef: 'irs-p925-2025', locator: 'fixture rate, the implementer\u2019s own figure'
+  };
+  const hActivity = (overrides) => Object.assign({
+    contractVersion: 'RentalActivity/v1', origin: 'declared', declaredTaxYear: 2026,
+    rentalIncome: 10000, operatingExpenses: 30000, depreciableBasis: 160000,
+    placedInServiceMonth: 2, recoveryYearOrdinal: 1, atRiskAmount: 500000,
+    activeParticipation: true, modifiedAdjustedGrossIncome: 90000, openingSuspendedLoss: 0
+  }, overrides || {});
+  const hAllowanceBinds = hRental.computeRentalSettlement(hActivity({}), hAllowancePack);
+  const hAtRiskShadows = hRental.computeRentalSettlement(
+    hActivity({ atRiskAmount: 12000 }), hAllowancePack);
+  const hLimitOf = (settlement, limitId) =>
+    settlement.appliedLimits.filter((limit) => limit.limitId === limitId)[0];
+  const hPassive = hLimitOf(hAllowanceBinds, 'passive-activity');
+  const hShadowedPassive = hLimitOf(hAtRiskShadows, 'passive-activity');
+  const hAllowanceAmount = hAllowanceBinds.specialAllowance.amount;
+  assert(hAllowanceBinds.lossBeforeLimits > hAllowanceAmount
+    /* The first limit lets the whole loss through, so the second is the one under test. */
+    && hNear(hLimitOf(hAllowanceBinds, 'at-risk').allowedAmount, hAllowanceBinds.lossBeforeLimits)
+    && hLimitOf(hAllowanceBinds, 'at-risk').disallowedAmount === 0
+    && hNear(hPassive.allowedAmount, hAllowanceAmount)
+    && hNear(hPassive.disallowedAmount, hAllowanceBinds.lossBeforeLimits - hAllowanceAmount)
+    && hPassive.disallowedAmount > 0
+    && hNear(hAllowanceBinds.allowedLoss, hAllowanceAmount)
+    && hAllowanceBinds.allowedLoss < hAllowanceBinds.lossBeforeLimits
+    /* And the shadowed household — the only shape this suite carried — is proven to disallow
+       nothing at the second limit, which is why the bound was invisible. */
+    && hShadowedPassive.disallowedAmount === 0
+    && hNear(hAtRiskShadows.allowedLoss, 12000),
+  'H2: when the at-risk amount exceeds the sourced special allowance the passive-activity limit is the one that binds — it allows exactly the allowance, disallows the remainder of the loss and sets the allowed loss below the loss before limits — while the at-risk-shadowed household this suite already carried is proven to disallow nothing there, so an implementation applying the allowance without bounding the loss by it fails here');
+
+  /* H3. Section 86's first tier is the LESSER of the sourced proportion of the first band and the
+     benefit-proportion part of provisional income. Only ONE of the two directions was reachable
+     in this suite. The household it already carried has the benefit proportion as the lower of
+     the two, so an implementation dropping that bound is caught; but no household anywhere had
+     the BAND as the lower of the two with the eighty-five percent ceiling not masking the
+     difference, so an implementation ignoring the band entirely and always including one-half of
+     the benefit left all 3384 assertions passing. The household below supplies that direction: it
+     sits exactly at the second base amount, so the second tier contributes nothing and the
+     ceiling is slack, which is what makes the first-tier choice visible in the settled figure. */
+  const hFederalPack = hFederal();
+  const hSettleBenefit = (other, benefit) => hInclusion.computeInclusionSettlement(
+    { filingStatus: 'single', otherTaxableIncome: other, taxExemptInterest: 0 }, benefit, hFederalPack);
+  const hBandBinds = hSettleBenefit(29000, 10000);
+  const hBenefitBinds = hSettleBenefit(28990, 5980);
+  const hFirstTier = (settlement) =>
+    settlement.includedComponents.filter((part) => part.componentId === 'first-tier-amount')[0];
+  const hBandTier = hFirstTier(hBandBinds);
+  const hBenefitTier = hFirstTier(hBenefitBinds);
+  const hBandAmount = hBandTier.proportion * hBandTier.appliedTo;
+  assert(hBandTier.boundedByBenefitProportion === false
+    /* One-half of the benefit would have produced strictly more, so the lesser-of genuinely
+       chose the band. This is the direction nothing in the suite reached. */
+    && 0.5 * 10000 > hBandAmount
+    && hNear(hBandTier.amount, hBandAmount)
+    /* The ceiling that follows is slack here, so the settled figure carries the first-tier choice
+       rather than hiding it behind the eighty-five percent limit. */
+    && hBandBinds.inclusion.ceilingBound === false
+    && hNear(hBandBinds.value, hBandAmount)
+    && hBandBinds.value < 0.5 * 10000
+    /* The opposite direction, on the household this suite already carried. */
+    && hBenefitTier.boundedByBenefitProportion === true
+    && hBenefitBinds.inclusion.ceilingBound === false
+    && hNear(hBenefitTier.amount, 0.5 * 5980)
+    && hBenefitTier.amount < hBenefitTier.proportion * hBenefitTier.appliedTo,
+  'H3: where the sourced proportion of the first band is smaller than one-half of the benefit the included amount is the band figure and the component says so through boundedByBenefitProportion, with the ceiling proven slack so the choice is visible in the settled figure, and the household whose benefit proportion is the lower of the two is priced beside it — so an implementation ignoring the band and always including one-half of the benefit fails here');
+
+  /* H4. An exemption is allowed only to the extent of the capped assessed value remaining after
+     the exemptions already applied. No assertion anywhere compared the published exemption total
+     against the remainder it was applied to, so replacing the bound with the declared amount left
+     all 3384 assertions passing. The taxable basis is separately clamped at zero, so the defect
+     this catches is a published exemption total larger than the value it was applied against —
+     the tax alone cannot detect it, which is why the household below is priced on the total. */
+  const hSmallHome = hDeclare({
+    assessedValue: 20000, priorAssessedValue: 15000, acquisitionValue: 12000,
+    localCombinedRate: 0.02, exemptionElections: ['fixture-exemption']
+  });
+  const hSmallLeg = hProperty.composePropertyLeg(hSmallHome, hFixtures['prior-assessed-value-cap']);
+  const hLargeLeg = hProperty.composePropertyLeg(hHousehold, hFixtures['prior-assessed-value-cap']);
+  const hDeclaredExemption = hFixtures['prior-assessed-value-cap'].exemptions
+    .filter((entry) => entry.exemptionId === 'fixture-exemption')[0].amount;
+  assert(hSmallLeg.available === true
+    /* The declared exemption exceeds everything left to exempt, so the bound is the one binding. */
+    && hDeclaredExemption > hSmallLeg.settlement.cappedAssessedValue
+    && hNear(hSmallLeg.settlement.exemptionTotal, hSmallLeg.settlement.cappedAssessedValue)
+    && hSmallLeg.settlement.exemptionTotal < hDeclaredExemption
+    && hSmallLeg.settlement.taxableBasis === 0
+    /* The opposite direction: a value above the exemption applies it whole. */
+    && hLargeLeg.settlement.cappedAssessedValue > hDeclaredExemption
+    && hNear(hLargeLeg.settlement.exemptionTotal, hDeclaredExemption),
+  'H4: an exemption larger than the capped assessed value remaining is applied only to the extent of that remainder and the published exemption total says so, while a household whose capped value exceeds the exemption applies it whole — so an implementation applying the declared amount unbounded overstates the exemption it reports even though the taxable basis is separately clamped at zero');
+} catch (e) { failures++; console.log('  ✗ FAIL (lifetime-tax lesser-of bound group threw): ' + e.message); }
+
+/* Four merges (612382ddf, a30410572, e8235b996, 1e765338d) each had one parent carrying the
+   combined federal-plus-state panel and one parent without it, and each resolved to WITHOUT.
+   rltaxcombined.js survived every one of them byte-identical — only the <script src> tag and the
+   panel markup were dropped. Nothing here compared the route against the things it depends on, so
+   3388 assertions passed on a page that never loads the module, and the only witness was the
+   browser suite: six 30s locator timeouts inside a run already red for other reasons.
+
+   Both required sets are DERIVED, never listed, so neither rots as the tool grows — and neither
+   can be satisfied by deleting the very markup that would otherwise define it:
+     * modules — every rltax*.js in the repo root. The family is route-exclusive (W1 establishes
+       that), so a module sitting on disk that the route never loads is a dropped tag.
+     * markers — the DOM anchors tests/lifetime-tax-combined.spec.mjs actually locates. Deriving
+       from the browser spec rather than from the route is what keeps this honest: on origin/main
+       the route lost the panel markup AND its window.RLTAXCOMBINED read together, so a guard
+       reading only the route would agree with the damage and pass on an empty page.
+   Each set carries a floor, so emptying a derivation's source fails here instead of passing. */
+try {
+  group('Lifetime tax — the route wires every module and panel marker it depends on (BUG-016)');
+  const wRoute = 'lifetime-tax-strategy-lab.html';
+  const wRouteSrc = read(wRoute);
+  const wSpecPath = 'tests/lifetime-tax-combined.spec.mjs';
+  const wSpecSrc = read(wSpecPath);
+
+  const wModules = readdirSync(ROOT).filter((f) => /^rltax[a-z0-9]*\.js$/.test(f)).sort();
+  const wOtherConsumers = readdirSync(ROOT)
+    .filter((f) => f.endsWith('.html') && f !== wRoute)
+    .filter((f) => read(f).indexOf('src="rltax') >= 0);
+  assert(wOtherConsumers.length === 0 && wModules.length >= 10,
+    'W1: the rltax module family is exclusive to ' + wRoute + ' — ' + wModules.length
+    + ' modules on disk, other HTML consumers: ' + (wOtherConsumers.join(', ') || 'none')
+    + ' — which is what licenses W2 to require the route to load every one of them');
+
+  const wUnwired = wModules.filter((f) => wRouteSrc.indexOf('src="' + f + '"') < 0);
+  assert(wUnwired.length === 0 && wModules.length >= 10,
+    'W2: ' + wRoute + ' carries a <script src> for every rltax module on disk — '
+    + wModules.length + ' modules, unwired: ' + (wUnwired.join(', ') || 'none')
+    + ' — an unwired module still ships its file and still passes its own unit checks, but never'
+    + ' loads in the browser, so the panel it powers is silently absent from the page');
+
+  const wIdMarkers = Array.from(new Set((wSpecSrc.match(/['"]#(combined[A-Za-z0-9_-]*)/g) || [])
+    .map((m) => m.slice(2)))).sort();
+  const wMissingIds = wIdMarkers.filter((id) => wRouteSrc.indexOf('id="' + id + '"') < 0);
+  assert(wMissingIds.length === 0 && wIdMarkers.length >= 8,
+    'W3: every #combined anchor ' + wSpecPath + ' locates exists as an element id in the route — '
+    + wIdMarkers.length + ' anchors, missing: ' + (wMissingIds.join(', ') || 'none')
+    + ' — a missing anchor is precisely what turns a browser assertion into a 30s locator timeout');
+
+  const wValueMarkers = Array.from(new Set((wSpecSrc.match(/data-rl-value="combined[A-Za-z0-9_-]*"/g) || [])
+    .map((m) => m.slice('data-rl-value="'.length, -1)))).sort();
+  const wMissingValues = wValueMarkers.filter((v) => wRouteSrc.indexOf('"' + v + '"') < 0);
+  assert(wMissingValues.length === 0 && wValueMarkers.length >= 5,
+    'W4: every combined data-rl-value name ' + wSpecPath + ' locates appears in the route — '
+    + wValueMarkers.length + ' names, missing: ' + (wMissingValues.join(', ') || 'none')
+    + ' — the route script emits these nodes, so a name it never mentions means the combined'
+    + ' settlement is not rendered at all, not merely mislabelled');
+} catch (e) { failures++; console.log('  ✗ FAIL (lifetime-tax route wiring group threw): ' + e.message); }
 /* ---------- Narrative lane: the acceptance contract must be stated and retried against (START) ---------- */
 /* On 2026-08-23 lane=core failed 4/4 across two independent publications and discarded both
    windows. It was rejected every time for `regime.vix.regimeLabel` and `regime.vix.falsifier`,

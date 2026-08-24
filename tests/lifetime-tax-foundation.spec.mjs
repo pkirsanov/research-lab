@@ -11,7 +11,8 @@ import {
   declareOrdinaryHousehold,
   declaredPackPaths,
   openLifetimeTax,
-  openPower
+  openPower,
+  sameOriginPaths
 } from './lifetime-tax.support.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -42,6 +43,16 @@ function declaredRouteAssets() {
   const packs = declaredPackPaths(config).map((path) => '/' + path);
   return ['/lifetime-tax-strategy-lab.html', '/' + CONFIG_PATH]
     .concat(scripts).concat(packs).concat(['/favicon.ico']);
+}
+
+/* F-REG-02. The module half of the derivation above, on its own, because the vacuity pin below
+   needs to name what the boot must actually have read rather than only what it may not read.
+   Derived for the same reason the permitted set is derived: a module a later scope adds moves the
+   expectation with it, while a boot that stopped loading its modules still fails. */
+function declaredRouteModules() {
+  const routeSource = readFileSync(join(ROOT, 'lifetime-tax-strategy-lab.html'), 'utf8');
+  return Array.from(routeSource.matchAll(/<script src="([^"]+)"><\/script>/g))
+    .map((match) => '/' + match[1]);
 }
 
 /* SUP-023-07 and SUP-023-08. The storage inventory's promise is that every key this tool writes
@@ -284,9 +295,13 @@ test('Regression: SCN-021-002 unsupported year jurisdiction and income kind each
   }
 });
 
-test('Regression: SCN-021-003 the tax workspace issues zero network requests and keeps every household value local', async ({ page }) => {
+test('Regression: SCN-021-003 the tax workspace resolves only its declared reads and keeps every household value local', async ({ page }) => {
   const ledger = collectRequests(page);
   const consoleMessages = collectConsole(page);
+  /* F-REG-02. Responses, not just requests: a read that was ATTEMPTED and failed still appears in
+     the request ledger, so only a success status proves a declared read actually resolved. */
+  const responses = [];
+  page.on('response', (response) => responses.push({ url: response.url(), status: response.status() }));
   await openLifetimeTax(page, site);
   const afterFirstPaint = ledger.length;
 
@@ -345,6 +360,31 @@ test('Regression: SCN-021-003 the tax workspace issues zero network requests and
      switching view issue no request of any kind. */
   expect(ledger.length).toBe(afterFirstPaint);
 
+  /* F-REG-02 VACUITY PIN. Every ledger assertion above is an empty-set filter over a snapshot:
+     `foreign`, `unexpected` and the post-paint equality all hold for a boot that issued NO read at
+     all, so a route whose transport stopped working entirely would keep this test green. That is
+     the defect this pin closes. `NFR-021-009` is explicit that such a route does not satisfy it —
+     "a requirement that could be satisfied by a route that reads nothing is not this requirement:
+     the declared reads must still be present and resolvable" — so pin the reads the boot must
+     actually have made, at the shape the route declares. Derived rather than literal, so a module
+     or pack a later scope adds moves the expectation with it. */
+  expect(afterFirstPaint).toBeGreaterThan(0);
+  const resolvedPaths = responses
+    .filter((response) => response.status >= 200 && response.status < 300)
+    .map((response) => new URL(response.url).pathname);
+  /* Every module the page declares really loaded. The count is measured, not assumed: it is the
+     page's own script-tag set, and an empty derivation would make the forEach vacuous in exactly
+     the way this pin exists to prevent. */
+  const declaredModules = declaredRouteModules();
+  expect(declaredModules.length).toBeGreaterThan(0);
+  expect(declaredModules).toContain('/rltax.js');
+  declaredModules.forEach((modulePath) => expect(resolvedPaths).toContain(modulePath));
+  /* And the route's single network primitive really ran and really succeeded: the configuration
+     document and the federal pack it names both returned a success status. A `file://` boot, which
+     issues both requests and fails both, is rejected here — attempted is not resolved. */
+  expect(resolvedPaths).toContain('/' + CONFIG_PATH);
+  expect(resolvedPaths).toContain('/' + PACK_PATH);
+
   /* The sentinel reaches the DOM and this tool's own namespace, and nothing else. */
   expect(ledger.some((entry) => entry.url.includes(SENTINEL_ORDINARY) || entry.postData.includes(SENTINEL_ORDINARY))).toBe(false);
   expect(consoleMessages.some((message) => message.includes(SENTINEL_ORDINARY))).toBe(false);
@@ -379,4 +419,38 @@ test('Regression: SCN-021-003 the tax workspace issues zero network requests and
   const inventoriedKeys = await page.locator('#storageInventoryBody tr td:first-child')
     .evaluateAll((nodes) => nodes.map((node) => node.textContent.trim()));
   inventoriedKeys.forEach((key) => expect(storage.keys).toContain(key));
+});
+
+/* TP-01-18. */
+test('Regression: SCN-021-002 the shared ledger helper refuses a declared pathname served from an undeclared origin', async ({ page }) => {
+  const ledger = collectRequests(page);
+  await openLifetimeTax(page, site);
+  await declareOrdinaryHousehold(page, { ordinary: SENTINEL_ORDINARY, bracketId: 'b3' });
+
+  /* LIVE ARM. On the real route the helper returns the pathnames and refuses nothing, because
+     every read the route makes is its own. The greater-than-zero pin is what stops this arm from
+     being an assertion about an empty list. */
+  const paths = sameOriginPaths(ledger, site);
+  expect(paths.length).toBeGreaterThan(0);
+  const declaredAssets = declaredRouteAssets();
+  paths.forEach((path) => expect(declaredAssets).toContain(path));
+
+  /* ADVERSARIAL ARM, and the reason this row exists. Six rows across Features 021-024 carry the
+     words "declared same-origin read" in their titles but assert only
+     `new URL(entry.url).pathname` against a declared-asset set. A pathname is not an origin, so a
+     read of the route's OWN module from somebody else's host satisfies every one of them while
+     carrying the household's request to a third party. Build exactly that entry — a pathname the
+     route genuinely declares, an origin it never did — and prove the two checks disagree: the
+     pathname-only sweep accepts it, and the shared helper refuses it. */
+  const smuggled = [{ url: 'https://elsewhere.example/rltaxstrategy.js', method: 'GET', postData: '' }];
+  const smuggledPath = new URL(smuggled[0].url).pathname;
+  expect(declaredAssets).toContain(smuggledPath);
+  expect(smuggled.map((entry) => new URL(entry.url).pathname)
+    .filter((path) => !declaredAssets.includes(path))).toEqual([]);
+  expect(() => sameOriginPaths(smuggled, site)).toThrow();
+
+  /* And the refusal is about the ORIGIN, not about the entry being synthetic: the same entry
+     re-based on the route's own origin passes the helper and yields the same pathname. */
+  const local = [{ url: `${site.baseUrl}/rltaxstrategy.js`, method: 'GET', postData: '' }];
+  expect(sameOriginPaths(local, site)).toEqual([smuggledPath]);
 });

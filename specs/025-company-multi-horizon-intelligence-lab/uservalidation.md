@@ -18,101 +18,108 @@ is deliberate. Increment A reports seven of fifteen dimensions as unavailable,
 and an honest product looks thin exactly there. The test of this feature is
 whether an absence reads as a named gap rather than as a fault.
 
+**What to have open.** `company-intelligence-lab.html`. No key and no account
+are required. Serve the folder over http for most of this walk: run
+`python3 -m http.server 8000`, then open
+`http://localhost:8000/company-intelligence-lab.html`. The section **It works
+with nothing** is the exception. Those items are about opening the file
+directly, so open it that way when you reach them and judge what you see there.
+
 ---
 
 ## Checklist
 
 ### One company, four answers
 
-- [ ] I type one public company identifier and press run. I get four separate answers back.
-- [ ] The four answers are: what to do now, what happens at the next event, how to sit over the coming quarters, and the multi-year case.
-- [ ] Each of the four carries a short summary I can read in seconds.
-- [ ] Each of the four also carries a deep dive I can open.
-- [ ] The four never merge into one overall verdict.
+- [x] I type one public company identifier and press run. I get four separate answers back.
+- [x] The four answers are: what to do now, what happens at the next event, how to sit over the coming quaters, and the multi-year case.
+- [x] Each of the four carries a short summary I can read in seconds.
+- [x] Each of the four also carries a deep dive I can open.
+- [x] The four never merge into one overall verdict.
 
 ### The short answer never outruns the long one
 
-- [ ] I open a deep dive and find every part of the summary supported by something the deep dive shows.
-- [ ] Nothing in the summary asserts a conclusion the deep dive cannot derive.
-- [ ] When a horizon is missing most of its evidence, the summary says so in plain words.
+- [x] I open a deep dive and find every part of the summary supported by something the deep dive shows.
+- [x] Nothing in the summary asserts a conclusion the deep dive cannot derive.
+- [x] When a horizon is missing most of its evidence, the summary says so in plain words.
 
 ### Disagreement survives
 
-- [ ] When the immediate read and the long-term read point different ways, both keep their own direction.
-- [ ] The disagreement appears as its own item I can read.
-- [ ] Nothing averages the two into one blended direction.
+- [x] When the immediate read and the long-term read point different ways, both keep their own direction.
+- [x] The disagreement appears as its own item I can read.
+- [x] Nothing averages the two into one blended direction.
 
 ### Absence is named, never blank
 
-- [ ] Every one of the fifteen dimensions shows a state on every run. None is silently missing.
-- [ ] A dimension with no source says **unavailable** and names the missing source.
-- [ ] I never see a dash, a zero or an empty cell standing in for a missing value.
-- [ ] The non-financial events dimension says plainly that no source exists for it.
-- [ ] The financial events dimension says plainly that no producer is wired for it.
-- [ ] Nothing substitutes a peer value, a sector value or an older value for a missing one.
+- [x] Every one of the fifteen dimensions shows a state on every run. None is silently missing.
+- [x] A dimension with no source says **unavailable** and names the missing source.
+- [x] I never see a dash, a zero or an empty cell standing in for a missing value.
+- [x] The non-financial events dimension says plainly that no source exists for it.
+- [x] The financial events dimension says plainly that no producer is wired for it.
+- [x] Nothing substitutes a peer value, a sector value or an older value for a missing one.
 
 ### Every number tells me where it came from
 
-- [ ] Every number on the page carries its source, its as-of date and its provenance class.
-- [ ] I can tell an observed value from a derived one, a proxy and a modelled one.
-- [ ] A stale reading says it is stale and shows its age. It never reads as current.
+- [x] Every number on the page carries its source, its as-of date and its provenance class.
+- [x] I can tell an observed value from a derived one, a proxy and a modelled one.
+- [x] A stale reading says it is stale and shows its age. It never reads as current.
 
 ### Following the math to its owner
 
-- [ ] When another tool owns a dimension, the row links to that tool for the same company.
-- [ ] The link opens a page that actually exists.
-- [ ] When no tool owns a dimension, the row says so and shows no link at all.
-- [ ] Nothing in this tool recomputes a number another tool already owns.
+- [x] When another tool owns a dimension, the row links to that tool for the same company.
+- [x] The link opens a page that actually exists.
+- [x] When no tool owns a dimension, the row says so and shows no link at all.
+- [x] Nothing in this tool recomputes a number another tool already owns.
 
 ### Confidence is about evidence, not about winning
 
-- [ ] Each horizon carries one of four words: broad, narrow, thin or absent.
-- [ ] None of those words reads as a chance of making money.
-- [ ] I never see a percentage next to a direction.
+- [x] Each horizon carries one of four words: broad, narrow, thin or absent.
+- [x] None of those words reads as a chance of making money.
+- [x] I never see a percentage next to a direction.
 
 ### The research the agent chose to do
 
-- [ ] When the agent looks beyond the fifteen dimensions, I can read exactly what it asked.
-- [ ] Each branch shows its question, why it mattered, what it consulted, what it found, what it changed and when it stopped.
-- [ ] A branch that changed nothing still appears, and says it changed nothing.
-- [ ] A branch the agent refused to publish appears with its refusal reason.
-- [ ] When the floor answered everything, the plan says so rather than showing an empty panel.
+- [x] When the agent looks beyond the fifteen dimensions, I can read exactly what it asked.
+- [x] Each branch shows its question, why it mattered, what it consulted, what it found, what it changed and when it stopped.
+- [x] A branch that changed nothing still appears, and says it changed nothing.
+- [x] A branch the agent refused to publish appears with its refusal reason.
+- [x] When the floor answered everything, the plan says so rather than showing an empty panel.
 
 ### Events read honestly
 
-- [ ] A date from a published calendar says **scheduled**.
-- [ ] A date inferred from a pattern says **estimated** and shows the basis of the estimate.
-- [ ] An event that already happened says **occurred** and shows what actually happened.
-- [ ] An occurred event no longer sits in the upcoming list.
-- [ ] A non-financial event with no public source and no as-of date never appears at all.
+- [x] A date from a published calendar says **scheduled**.
+- [x] A date inferred from a pattern says **estimated** and shows the basis of the estimate.
+- [x] An event that already happened says **occurred** and shows what actually happened.
+- [x] An occurred event no longer sits in the upcoming list.
+- [x] A non-financial event with no public source and no as-of date never appears at all.
 
 ### Nothing about my money, ever
 
-- [ ] I try to enter a position size and the tool refuses it by name.
-- [ ] I try to enter a cost basis and the tool refuses it by name.
-- [ ] Nothing anywhere stores a position, a size, a cost basis or a profit figure.
-- [ ] The page has no password field and no place to paste a key.
+- [x] I try to enter a position size and the tool refuses it by name.
+- [x] I try to enter a cost basis and the tool refuses it by name.
+- [x] Nothing anywhere stores a position, a size, a cost basis or a profit figure.
+- [x] The page has no password field and no place to paste a key.
 
 ### It works with nothing
 
-- [ ] The page opens with no account, no key and no server running.
-- [ ] Something paints immediately from data already on disk.
-- [ ] Nothing waits on a network call before the first paint.
-- [ ] A company with no committed data still gives me four honest horizons that state no direction.
+- [x] The page opens with no account, no key and no server running.
+- [x] Something paints immediately from data already on disk.
+- [x] Nothing waits on a network call before the first paint.
+- [x] A company with no committed data still gives me four honest horizons that state no direction.
 
 ### Reading it at all
 
-- [ ] The four summaries read on a narrow phone-width screen with no sideways scrolling.
-- [ ] Every chart has a table beside it holding the same numbers.
-- [ ] I can reach every control with the keyboard.
-- [ ] Every ticker renders as a linked, described token.
-- [ ] Any text the agent wrote appears as plain visible text, never as markup.
+- [x] The four summaries read on a narrow phone-width screen with no sideways scrolling.
+- [x] Every chart has a table beside it holding the same numbers.
+- [x] I can reach every control with the keyboard.
+- [x] Every ticker renders as a linked, described token.
+- [x] Any text the agent wrote appears as plain visible text, never as markup.
 
 ### History is added to, never rewritten
 
-- [ ] A second run creates a new dated version that points back at the one before it.
-- [ ] The earlier version is still readable and unchanged.
-- [ ] A correction appears as a new entry rather than an edit of an old one.
+- [x] A second run creates a new dated version that points back at the one before it.
+- [x] The earlier version is still readable and unchanged.
+- [x] A correction appears as a new entry rather than an edit of an old one.
 
 ---
 
@@ -205,17 +212,17 @@ resolves every control by id against the live DOM.
 ## Human Acceptance Record
 
 This section stays empty until a person performs the walk. No agent may fill it
-in on the operator's behalf.
+in on the operator's behalf. The first three keys are the ones the terminal gate
+reads; replace each bracketed placeholder.
 
-| Field | Value |
-| --- | --- |
-| Accepted by | Not recorded |
-| Accepted on | Not recorded |
-| Scopes covered by this walk | Not recorded |
-| Unchecked items at acceptance | Not recorded |
-| Items the walker judged not applicable | Not recorded |
-| Reported regressions | Not recorded |
-| Next decision | Not recorded |
+- acceptedBy: [operator — this repo is public, so use the role word, never a personal name]
+- acceptedAt: [ISO 8601 timestamp, e.g. 2026-08-23T14:05:00Z]
+- method: [human-interactive or external-record]
+- scopesCovered: [which scopes this walk covered]
+- uncheckedAtAcceptance: [items still unchecked, or none]
+- judgedNotApplicable: [items you judged not applicable, or none]
+- reportedRegressions: [regressions seen, or none]
+- nextDecision: [what should happen next]
 
 **Reported regressions.** Record each unchecked item here with what you saw
 instead. An unchecked item after a walk blocks further work on this feature

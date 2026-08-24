@@ -23,6 +23,23 @@ const packPreferentialTax = (ordinaryTaxable, preferential) => {
   return tax;
 };
 
+/* The SAME pack table priced WITHOUT the stacking floor: the window still ends at the top of the
+   household's preferential income, but each band is filled from its own bottom edge rather than
+   from the top of ordinary income. This models the defect the floor exists to prevent, and it is
+   used for one purpose only — to prove a stacking fixture is one where the two pricings actually
+   differ. A fixture on which they agree cannot fail when the floor is removed, however plainly it
+   is named for stacking. */
+const isolatedPreferentialTax = (ordinaryTaxable, preferential) => {
+  const bands = federalPack.preferentialRateTables.single.bands;
+  let tax = 0;
+  bands.forEach((band) => {
+    const bandTop = band.upperExclusive === null ? Number.MAX_SAFE_INTEGER : band.upperExclusive;
+    const to = Math.min(bandTop, ordinaryTaxable + preferential);
+    if (to > band.lowerInclusive) tax += (to - band.lowerInclusive) * band.rate;
+  });
+  return tax;
+};
+
 const asNumber = (text) => Number(text.replace(/[$,]/g, ''));
 
 let site;
@@ -90,9 +107,10 @@ test('Regression: SCN-021-005 long term gains stack on ordinary income', async (
      stands rather than only against a page, which is what DoD item 12 clause 2 needs of a derive
      entry. */
   const ordinaryTaxable = 40000;
-  const declareGain = async (gain) => {
+  const declareGain = async (gain, ordinary) => {
     await declareOrdinaryHousehold(page, {
-      deductionMode: 'itemized', itemizedAmount: 0, ordinary: ordinaryTaxable,
+      deductionMode: 'itemized', itemizedAmount: 0,
+      ordinary: ordinary === undefined ? ordinaryTaxable : ordinary,
       longTermCapitalGain: gain, bracketId: 'b3'
     });
     return asNumber(await page.locator('[data-rl-value="headlineFederalTax"]').textContent());
@@ -134,6 +152,30 @@ test('Regression: SCN-021-005 long term gains stack on ordinary income', async (
   await page.fill('#inputQualifiedDividend', '0');
   await expect(page.locator('[data-rl-value="headlineFederalTax"]'))
     .toHaveText(dollars(knownSingleOrdinaryTax(ordinaryTaxable)));
+
+  /* F-01-P, the federal half. Every case above places ordinary taxable income BELOW the zero-rate
+     top, and there `Math.max(ordinaryTaxableIncome, band.lowerInclusive)` always returns the band
+     edge — so the stacking floor never binds and an engine that priced the gain in isolation, from
+     the bottom of the schedule rather than from the top of ordinary income, satisfied all of them.
+     The sibling preferential row recorded exactly this and added cases inside the fifteen percent
+     band; this row, which is the one NAMED for stacking, never received the same correction, so
+     removing the floor left it green. These cases place ordinary income ABOVE the zero-rate top,
+     where the floor is what decides the answer. */
+  const stackedOrdinary = zeroRateEdge + 10000;
+  expect(stackedOrdinary).toBeGreaterThan(zeroRateEdge);
+  const stackedGains = [belowGain, acrossGain];
+  let stackedIndex = 0;
+  for (stackedIndex = 0; stackedIndex < stackedGains.length; stackedIndex += 1) {
+    const stackedGain = stackedGains[stackedIndex];
+    /* Non-vacuity, asserted BEFORE the household is declared: on this fixture the two pricings
+       really do disagree, so the headline assertion below is load-bearing rather than a figure
+       both a stacking engine and an isolating one would produce. */
+    expect(packPreferentialTax(stackedOrdinary, stackedGain))
+      .not.toBe(isolatedPreferentialTax(stackedOrdinary, stackedGain));
+    const stackedHeadline = await declareGain(stackedGain, stackedOrdinary);
+    expect(stackedHeadline).toBe(Math.round(knownSingleOrdinaryTax(stackedOrdinary)
+      + packPreferentialTax(stackedOrdinary, stackedGain)));
+  }
 
   await openPower(page);
   /* SUP-022-21: supersedes the clause asserting `#power-rule-ledger` contains the raw member

@@ -947,15 +947,101 @@ count — the two settlements each forward difference needs, and no more.
 `Regression: SCN-022-013 the combined total is the sum of two independent settlements`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-013 the combined total is the sum of two independent settlements" --reporter=list`
 
+**Claim Source:** executed. Intended RED through `scripts/red-green-probe.sh` (2026-08-20).
+The row's hardest clause is the sourced zero: Florida contributes a real zero, so a
+numeral alone cannot tell a reader whether the state leg was priced at nothing or
+never retrieved. The row therefore pins the *shape* the addition branched on, and
+the mutation attacks exactly that — the combined module reclassifies a sourced zero
+as an ordinary computed amount, so the page describes it as "a computed amount"
+instead of "a zero that carries the authority establishing it". The figures on the
+page are unchanged by the mutation, which is what makes it the realistic
+regression rather than an obvious break. The mutation is two code literals and
+carries no household figure:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-16 a sourced zero is reclassified as an ordinary computed amount
+file:             rltaxcombined.js
+mutation:         kind: "sourced-zero"  ->  kind: "valued"   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-022-013\ the\ combined\ total\ is\ the\ sum\ of\ two\ independent\ settlements --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (1.8s)
+revert-verified:  yes (committed=a24991f8cab5c54964c4efbe74d99fd7d1788954 restored=a24991f8cab5c54964c4efbe74d99fd7d1788954)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+GREEN is the identical command after the harness reverted and re-verified the file
+against its committed blob hash.
+
 ### Scenario SCN-022-014
 
 `Regression: SCN-022-014 the combined curve attributes every step to a named jurisdiction`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-014 the combined curve attributes every step to a named jurisdiction" --reporter=list`
 
+**Claim Source:** executed. Intended RED through `scripts/red-green-probe.sh` (2026-08-20).
+The row's title is attribution, so the mutation removes attribution at its source:
+every edge `declaredEdges` derives from either pack keeps its level, its measure and
+its source reference and loses only the jurisdiction that owns it. That is the
+defect the row exists to forbid — a curve that still steps in the right places while
+no longer saying which government moved it. The mutation is one assignment of an
+empty string and carries no household figure:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-17 every declared edge loses its owning jurisdiction
+file:             rltaxcombined.js
+mutation:         function declaredEdges(pack, filingStatus, jurisdiction) {  ->  function declaredEdges(pack, filingStatus, jurisdiction) { jurisdiction = "";   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-022-014\ the\ combined\ curve\ attributes\ every\ step\ to\ a\ named\ jurisdiction --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (2.8s)
+revert-verified:  yes (committed=a24991f8cab5c54964c4efbe74d99fd7d1788954 restored=a24991f8cab5c54964c4efbe74d99fd7d1788954)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+GREEN is the identical command after the harness reverted and re-verified the file
+against its committed blob hash.
+
 ### Scenario SCN-022-015
 
 `Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure" --reporter=list`
+
+**Claim Source:** executed. Intended RED through `scripts/red-green-probe.sh` (2026-08-20).
+The section header above records why the module's own `RLTAX-PACK-YEAR-MISMATCH` is
+not reachable from the route: the pack that does not cover the declared year refuses
+to resolve first. The mutation therefore attacks the guard the household actually
+meets — pack resolution stops checking the declared year against the pack's own
+`effectiveTaxYears`, so a pack is silently extended into a year it never declared.
+That is the defect the refusal's own remediation text names, and under it the page
+produces a combined figure for a year no pack covers instead of refusing. The
+mutation is a short-circuit on an existing condition and carries no household
+figure:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-18 a pack is extended into a year it does not declare instead of refusing
+file:             rltaxrules.js
+mutation:         if (pack.effectiveTaxYears.indexOf(ask.declaredTaxYear) < 0) {  ->  if (false && pack.effectiveTaxYears.indexOf(ask.declaredTaxYear) < 0) {   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-022-015\ a\ pack\ year\ mismatch\ refuses\ and\ shows\ no\ combined\ figure --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (2.1s)
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+GREEN is the identical command after the harness reverted and re-verified
+`rltaxrules.js` against its committed blob hash. The mutated file is the shared
+rules engine rather than this scope's module, which is the point: the year guard
+the combined card depends on is not one this scope wrote for itself.
 
 ### TP-05-19
 
@@ -1028,8 +1114,17 @@ because it legitimately has no remediation to offer.
 
 ### TP-05-20
 
+`Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow`
+Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow" --reporter=list`
+
+**Renamed 2026-08-22 (F-REG-02).** The persistent title above was
 `Regression: SCN-022-013 the request ledger stays empty across the full combined workflow`
-Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-013 the request ledger stays empty across the full combined workflow" --reporter=list`
+until this date. That wording was false — the row's own first assertion is
+`expect(afterFirstPaint).toBeGreaterThan(0)`, so the ledger is never empty. Every
+captured block below was recorded under the superseded title and is left byte-for-byte
+as it was executed; the `sha256` lines pin that text, so editing them to match the new
+title would destroy the evidence rather than update it. A fresh capture under the new
+title is recorded at the end of this row.
 
 Green, and probed. The row asserts a negative — that nothing was sent — which is
 the class of assertion most likely to be vacuously true, so it was driven by
@@ -1080,30 +1175,76 @@ The row also covers the surfaces a request ledger alone would miss: the URL sear
 string is empty, the hash carries only the view mode, and no console message
 carries the sentinel income, the residency jurisdiction or the word `residency`.
 
+Fresh capture under the new persistent title, recorded 2026-08-22 after the
+rename, proving the row's `--grep` still selects its own test and that the test
+still passes — selected 1, passed 1:
+
+```text
+# TP-05-20 GREEN: renamed persistent title, selector moved with it
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow" --reporter=line
+exit: 0
+lines: 5
+sha256: 329c30b93ccdfb166fd82a0d4d1356ed690f3073ffe6efb92e358c6c5de08407
+
+Running 1 test using 1 worker
+
+[1/1] [system-chrome] › tests/lifetime-tax-combined.spec.mjs:407:1 › Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow
+  1 passed (2.6s)
+```
+
 ### TP-05-21
 
 `Regression: SCN-022-013 the tool is absent from every registry and the market brief`
 Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-013 the tool is absent from every registry and the market brief" --reporter=list`
 
-**The row still carries no RED.** The row passes, and the equivalent selftest
-assertion passes, but neither has been shown able to fail, and the reason is a
-genuine conflict rather than an omission.
+**The row now carries a RED, driven through the clause that is available (2026-08-20).**
 
-The only mutation that drives the registration clause RED is to register the tool
-— adding a `lifetime-tax` entry to `tools.json`, `index.html`, `rlnav.js`,
-`README.md`, `notes/README.md` or `market-brief.config.json`. All six are on this
-scope's must-remain-byte-identical list *and* under an explicit standing
-instruction not to register this tool, so applying that mutation even transiently
-is not available here. Asserting an absence that has never been observed to become
-a presence is the same shape of weak evidence recorded under TP-05-11: it would
-pass unchanged against a build in which the check had been deleted.
+**Claim Source:** executed. The row asserts absence on two different surfaces, and
+they are not equally drivable.
 
-The second clause of the same DoD item — that no new root HTML exists — *is*
-separately drivable without touching a protected file, by creating an extra
-`lifetime-tax-*.html` at the repository root and deleting it. That probe has still
-not been carried out. **The missing RED is therefore carried by the Test Plan
-evidence DoD item — "every Test Plan row has intended RED and same-command GREEN
-evidence" — which remains open and names TP-05-21 among its reasons.**
+The *registration* clause — no `lifetime-tax` or `rltaxcombined` string in
+`tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/README.md` or
+`market-brief.config.json` — can only be driven RED by registering the tool. All
+six are on this scope's must-remain-byte-identical list *and* under an explicit
+standing instruction not to register this tool, so that mutation is not available
+here even transiently. That clause stays unprobed, and is recorded as such rather
+than quietly counted.
+
+The *deploy-projection* clause of the same row is drivable without touching any
+registration surface, and it is the clause with real consequence: the packaged
+site is what a reader would actually receive. The row asserts that
+`site-exclusions.json` names both `rltaxcombined.js` and
+`lifetime-tax-strategy-lab.html`, so the shipped site carries the decision
+explicitly rather than by omission. The mutation drops the combined module out of
+that list, which is precisely how an unregistered tool leaks into a deploy — the
+registries stay clean, and the module ships anyway. The mutation is one path
+string and carries no household figure:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-21 the combined module drops out of the deploy exclusion list, so the packaged site would ship the unregistered tool module
+file:             site-exclusions.json
+mutation:         "path": "rltaxcombined.js",  ->  "path": "rltaxcombined-not-excluded.js",   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-022-013\ the\ tool\ is\ absent\ from\ every\ registry\ and\ the\ market\ brief --reporter=list
+red-exit:         1
+red-summary:        1 failed
+green-exit:       0
+green-summary:      1 passed (1.7s)
+revert-verified:  yes (committed=29c6fe08a58d97c1f119abdd38706cf02f675d60 restored=29c6fe08a58d97c1f119abdd38706cf02f675d60)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+GREEN is the identical command after the harness reverted and re-verified
+`site-exclusions.json` against its committed blob hash.
+
+**What this does and does not establish.** It establishes that the row is a live
+assertion rather than a vacuous one: the test was observed failing on a build that
+differs from the shipped tree only in this file, so a build with the check deleted
+would not pass it. It does **not** establish that the six-surface registration scan
+can fail, because that mutation is unavailable under a standing instruction. That
+residual is named again in the Test Plan evidence DoD item rather than being
+absorbed into this one.
 
 #### The registration-absence DoD item, closed by derivation
 
@@ -1219,9 +1360,49 @@ The selector is the four-way alternation pinned to the owning spec numbers, not 
 bare `SCN-02`, so a scenario owned by any other feature can neither satisfy nor
 break the row.
 
-This row is recorded but the DoD item it belongs to — every Test Plan row carrying
-intended-RED and same-command GREEN evidence — remains open, because TP-05-11,
-TP-05-16, TP-05-17, TP-05-18 and TP-05-21 do not yet carry RED evidence.
+**Intended RED through `scripts/red-green-probe.sh` (2026-08-20). Claim Source:
+executed.** The cumulative row had never been shown able to fail. It is driven by
+the same sourced-zero reclassification used for TP-05-16 — chosen deliberately,
+because a mutation that broke the suite loudly would prove less than one that
+leaves every figure on the page unchanged and moves only the shape a single
+scenario reads:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-22 a sourced zero is reclassified as an ordinary computed amount, across the whole cumulative 021-024 browser suite
+file:             rltaxcombined.js
+mutation:         kind: "sourced-zero"  ->  kind: "valued"   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-02\[1-4\] --reporter=list
+red-exit:         1
+red-summary:        76 passed (57.2s)
+green-exit:       1
+green-summary:      77 passed (5.4m)
+revert-verified:  yes (committed=a24991f8cab5c54964c4efbe74d99fd7d1788954 restored=a24991f8cab5c54964c4efbe74d99fd7d1788954)
+discriminating:   yes (summary differs: "  76 passed (57.2s)" vs "  77 passed (5.4m)")
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Finding — the exit code cannot discriminate on this row, and that is a property
+of the command rather than of the probe.** Both runs exit `1`. The GREEN run
+reports `77 passed` with zero failed and zero skipped and still exits non-zero,
+because the suite's teardown force-kills a worker after every test has passed. An
+exit-code-only probe would therefore have returned exit 7 and reported no
+discrimination on a run that plainly discriminated. The verdict rides the summary
+channel instead: `76 passed` under the mutation against `77 passed` after the
+revert — one scenario lost, which is the scenario TP-05-16 owns. This is the case
+`--summary-match` exists for, and it is recorded here so a later reader does not
+mistake the non-zero GREEN exit for a failing suite.
+
+The scenario count also moved from the 76 recorded above to 77, because sibling
+features have since added a scenario to the pinned alternation. The row asserts
+zero failed and zero skipped rather than a fixed total, so a growing suite
+strengthens it rather than staling it.
+
+All twenty-two rows TP-05-01 … TP-05-22 now carry intended-RED and same-command
+GREEN evidence, which closes the Test Plan evidence DoD item. The one residual is
+recorded rather than absorbed: TP-05-21's *registration* clause remains unprobed,
+because the only mutation that drives it is to register the tool, and that is
+barred. Its *deploy-projection* clause carries the row's RED.
 
 ### TP-05-23
 
@@ -1627,3 +1808,166 @@ the tracked tree.
 ## Completion Statement
 
 Filled at execution.
+
+## SCN-022-013 request-ledger row, verifying pass (2026-08-22)
+
+The restated DoD row was assessed against its own cited evidence,
+`report.md#tp-05-20`, whose command is the `SCN-022-013` browser row in
+`tests/lifetime-tax-combined.spec.mjs`. The command passes:
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-013 the request ledger stays empty across the full combined workflow" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 [system-chrome] › tests/lifetime-tax-combined.spec.mjs:407:1 › Regression: SCN-022-013 the request ledger stays empty across the full combined workflow (896ms)
+
+  1 passed (2.4s)
+```
+
+The row states three propositions. Two of them the run does establish. The third
+it establishes on three of the four surfaces it names, and not on the fourth.
+
+| the row's proposition | what the cited test asserts | established |
+| --- | --- | --- |
+| the ledger does not grow after first paint across the full combined workflow | `expect(ledger.length).toBe(afterFirstPaint)`, taken after the household declaration, the residency declaration, the Power switch with the combined curve drawn, and the return to Simple | yes |
+| every entry is a same-origin read of a document the page's own declarations name | the cross-origin filter over the whole ledger, plus `expect(permitted).toContain(pathname)` for every entry against a set derived from the page's own script tags and configuration, plus the two vacuity pins that the set contains `/rltaxcombined.js` and does not contain an undeclared path | yes |
+| no household value reaches any URL, request, referrer or console message | URL: the page URL, its search and its hash. Request: each entry's URL against the sentinel, the residency token and its encoded form, plus an empty `postData`. Console: each message against the sentinel and the residency token. Referrer: nothing | no — three of four surfaces |
+
+### The referrer surface is not asserted
+
+`tests/lifetime-tax-combined.spec.mjs` contains zero occurrences of `referrer`.
+The gap is structural rather than an omitted line: the ledger those assertions
+filter is built by `collectRequests` in `tests/lifetime-tax.support.mjs`, which
+records exactly three fields per request —
+
+```
+export function collectRequests(page) {
+  const ledger = [];
+  page.on('request', (request) => ledger.push({
+    url: request.url(),
+    method: request.method(),
+    postData: request.postData() || ''
+  }));
+  return ledger;
+}
+```
+
+— so no referrer value is captured for any assertion to read, and none is read
+from the document either. A referrer is a request header; neither `page.url()`
+nor `postData` is a substitute for it.
+
+This is a genuine gap in the row rather than a repo-wide convention. The sibling
+canary in `tests/lifetime-tax-foundation.spec.mjs` reads `document.referrer` off
+the page and asserts against it directly, so the surface is one this family
+already knows how to cover.
+
+The row therefore stays open. Its first two propositions are earned and its third
+is three-quarters earned, and a tick would assert the referrer surface on evidence
+that does not exist. Closing it needs a referrer assertion in the cited browser
+row, which is a change to a test file rather than a re-reading of one, and is left
+to a pass that owns that change.
+
+**Claim Source:** executed for the command output and for both quoted source
+excerpts, which are read verbatim from the tracked tree. No mutation was applied.
+
+## SCN-022-013 referrer surface, closed (2026-08-22)
+
+The gap recorded immediately above is closed by asserting the surface rather than
+by narrowing the row. `tests/lifetime-tax-combined.spec.mjs` went from `0` to `14`
+occurrences of `referrer`, measured on the tracked file before and after:
+
+```
+$ for f in tests/lifetime-tax-*.mjs; do printf '%s: %s\n' "$f" "$(grep -c 'referrer' "$f")"; done
+tests/lifetime-tax-benefit.spec.mjs: 2
+tests/lifetime-tax-california.spec.mjs: 0
+tests/lifetime-tax-claim-age.spec.mjs: 0
+tests/lifetime-tax-combined.spec.mjs: 0
+tests/lifetime-tax-conversion.spec.mjs: 0
+tests/lifetime-tax-deduction.spec.mjs: 0
+tests/lifetime-tax-disposition.spec.mjs: 3
+tests/lifetime-tax-federal.spec.mjs: 0
+tests/lifetime-tax-foundation.spec.mjs: 2
+tests/lifetime-tax-inclusion.spec.mjs: 0
+tests/lifetime-tax-marginal.spec.mjs: 0
+tests/lifetime-tax-medicare.spec.mjs: 0
+tests/lifetime-tax-preferential.spec.mjs: 1
+tests/lifetime-tax-property.spec.mjs: 0
+tests/lifetime-tax-rental.spec.mjs: 0
+tests/lifetime-tax-retirement-route.spec.mjs: 0
+tests/lifetime-tax-route.spec.mjs: 4
+tests/lifetime-tax-state.spec.mjs: 1
+tests/lifetime-tax-surtax.spec.mjs: 7
+tests/lifetime-tax-use.spec.mjs: 0
+OTHERS_TOTAL=20
+```
+
+The concept was asserted `20` times across the family and `0` times in the
+workflow this row cites — the row named a surface its own evidence never read.
+
+### What the row now reads
+
+Three carriers feed one verdict, `expect(carriers).toEqual([])`:
+
+- `document.referrer`, read off the page.
+- Every header of every request the route issued, resolved through `allHeaders()`
+  rather than the synchronous view.
+- The page URL, because it is the referrer's *source*: a value smuggled into it
+  becomes the `Referer` of every subsequent request.
+
+Every header is scanned rather than the `Referer` name alone. That is not a
+widening for its own sake — the sibling row `Regression: SCN-022-005 neither
+declared surtax basis reaches a URL, a request, a referrer or a console message`
+in `tests/lifetime-tax-surtax.spec.mjs` records that no request this route issues
+presents a `Referer` at all, even through `allHeaders()`. A referrer-only clause
+would therefore have reported a clean channel it had never read. The whole header
+set subsumes the referrer clause and gives the scan a corpus that is provably
+non-empty, which the row now pins with `expect(headerLedger.length)` and
+`expect(headerValues)` both `toBeGreaterThan(0)`.
+
+The detector is separately proven live by a control string built and scanned
+inside the test process only — nothing is navigated, fetched, logged or rendered
+— so a clean verdict cannot be a detector that never worked.
+
+### Intended RED, same-command GREEN
+
+The mutation plants exactly the defect the clause names: the view-mode write, the
+only writer this route has for the page URL, appends the declared ordinary amount.
+`--summary-match` is pinned to `page-url:` — the carrier label this row's own scan
+emits — so the recorded RED proves the *referrer verdict* failed, not merely that
+some assertion somewhere in the row failed.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-20 referrer channel: the view-mode write smuggles a declared amount into the page URL, which is the referrer source every subsequent request would carry as Referer
+file:             lifetime-tax-strategy-lab.html
+mutation:         var wanted = power ? "#power" : "#simple";  ->  var wanted = (power ? "#power" : "#simple") + "-" + byId("inputOrdinary").value;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-022-013\ the\ request\ ledger\ stays\ empty\ across\ the\ full\ combined\ workflow --reporter=line
+red-exit:         1
+red-summary:          +   "page-url:123457",
+green-exit:       0
+green-summary:      1 passed (1.9s)
+summary-compared:     +   "page-url:123457",  vs    1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_EXIT=0
+```
+
+`123457` is `SENTINEL_ORDINARY`, the declared ordinary income. The RED names it in
+the referrer carrier array; the GREEN over the identical command finds nothing.
+
+### The one thing this does not claim
+
+No probe plants a household value directly into a request header or into
+`document.referrer`. Neither is reachable: every request this route issues is made
+during first paint, before any declaration exists, and `document.referrer` is set
+by navigation rather than by page code. Planting one would require making the page
+transmit a declaration, which is the exact act the harness's exfiltration rail
+refuses and which this scope's privacy posture forbids. The page URL is therefore
+the carrier through which the clause is falsifiable at all, and it is the carrier
+the probe uses — the same reasoning the surtax row records.
+
+**Claim Source:** executed. The referrer counts, the probe block and its exit code
+are verbatim tool output from this session.
+

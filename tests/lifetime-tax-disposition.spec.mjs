@@ -4,9 +4,12 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { startStaticServer } from './provider-credentials.support.mjs';
 import {
+  collectRequests,
+  declaredPackPaths,
   declareOrdinaryHousehold,
   openLifetimeTax,
-  openPower
+  openPower,
+  sameOriginPaths
 } from './lifetime-tax.support.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -58,6 +61,19 @@ async function declareSale(page, values) {
 }
 
 const splitAttribute = (raw) => (raw === null || raw === '' ? [] : raw.split(','));
+
+/* The permitted-asset set, DERIVED from the page's own script tags and from every pack path the
+   configuration declares, so a module a later scope adds is admitted by the page's own
+   declaration rather than by a literal edited here. */
+function declaredRouteAssets() {
+  const routeSource = readFileSync(join(ROOT, 'lifetime-tax-strategy-lab.html'), 'utf8');
+  const config = JSON.parse(readFileSync(join(ROOT, 'lifetime-tax-strategy.config.json'), 'utf8'));
+  const scripts = Array.from(routeSource.matchAll(/<script src="([^"]+)"><\/script>/g))
+    .map((match) => '/' + match[1]);
+  const packs = declaredPackPaths(config).map((path) => '/' + path);
+  return ['/lifetime-tax-strategy-lab.html', '/lifetime-tax-strategy.config.json']
+    .concat(scripts).concat(packs).concat(['/favicon.ico']);
+}
 
 /* Money is rendered with thousands separators and a currency symbol, and a sentence that states
    an amount also carries its own prose punctuation. Comparing a rendered sentence to an expected
@@ -304,7 +320,7 @@ test('Regression: SCN-023-014 both disposition legs reach the headline, the comp
 });
 
 /* TP-05-25. */
-test('Regression: SCN-023-015 the request ledger stays empty and no disposition declaration reaches a URL', async ({ page }) => {
+test('Regression: SCN-023-015 no disposition declaration reaches a requested URL, the address bar, the referrer or a console message', async ({ page }) => {
   const requests = [];
   page.on('request', (request) => { requests.push(request.url()); });
   const consoleMessages = [];
@@ -365,4 +381,62 @@ test('Regression: SCN-023-015 the request ledger stays empty and no disposition 
     window.RLTAXWORKSPACE.sanitizeForExport(window.RLTAXWORKSPACE.createEmptyWorkspace()));
   for (const name of memberNames) expect(sanitized.omittedFields).toContain(name);
   expect(JSON.stringify(sanitized.workspace)).not.toContain('sale');
+});
+
+/* TP-05-30. */
+test('Regression: SCN-023-015 the request ledger does not grow after the sale is declared and every entry is a declared same-origin read', async ({ page }) => {
+  const ledger = collectRequests(page);
+  await openLifetimeTax(page, site);
+  /* Measured before the sale is declared. Every assertion below is a statement about THIS number,
+     so a route whose transport stopped working entirely would make all of them vacuous — which is
+     why the pin comes first. */
+  const afterFirstPaint = ledger.length;
+  expect(afterFirstPaint).toBeGreaterThan(0);
+
+  /* Distinctive sale figures. Both legitimately appear in the DOM and in this tool's own
+     local-storage namespace. Being distinctive is what stops the URL scan from passing on a digit
+     sequence some other declared member happens to share. */
+  const proceedsSentinel = 812347;
+  const basisSentinel = 419273;
+  await declareOrdinaryHousehold(page, { ordinary: 120000, bracketId: 'b3' });
+  await openPower(page);
+  await declareSale(page, Object.assign({}, SALE, {
+    proceeds: proceedsSentinel, adjustedBasis: basisSentinel
+  }));
+
+  /* NFR-023-003, first half. Declaring the sale, running the recapture and exclusion ladders and
+     rendering the outcome issued no request at all. */
+  expect(ledger.length).toBe(afterFirstPaint);
+
+  /* NFR-023-003, second half, and the reason this row exists. The pre-existing scan filtered the
+     ledger with `!url.endsWith('.js') && !url.endsWith('.css')`, so a sale figure smuggled onto a
+     `.js` URL was invisible to it. Asserting membership of the DERIVED declared set removes that
+     blind spot outright: a filtered-out asset URL would still have to be a path the configuration
+     declares. The origin half runs first, in the shared helper, because a pathname is not an
+     origin. */
+  const permitted = declaredRouteAssets();
+  const paths = sameOriginPaths(ledger, site);
+  paths.forEach((path) => expect(permitted).toContain(path));
+  expect(permitted).toContain('/' + FEDERAL_PACK_PATH);
+  expect(permitted).not.toContain('/definitely-not-declared-by-this-route.js');
+  expect(paths).toContain('/' + FEDERAL_PACK_PATH);
+
+  /* No sale declaration reaches any URL, query string or request body — including a `.js` URL,
+     which the superseded filter could not see — and nothing was POSTed. */
+  ledger.forEach((entry) => {
+    [String(proceedsSentinel), String(basisSentinel)].forEach((sentinel) => {
+      expect(entry.url).not.toContain(sentinel);
+      expect(entry.postData).not.toContain(sentinel);
+    });
+    expect(entry.method).toBe('GET');
+  });
+  const address = page.url();
+  expect(address).not.toContain(String(proceedsSentinel));
+  expect(address).not.toContain(String(basisSentinel));
+  expect(new URL(address).search).toBe('');
+
+  /* The declarations really are present, so every scan above ran against a live household rather
+     than an empty one. */
+  await expect(page.locator('#inputSaleProceeds')).toHaveValue(String(proceedsSentinel));
+  await expect(page.locator('#inputSaleAdjustedBasis')).toHaveValue(String(basisSentinel));
 });

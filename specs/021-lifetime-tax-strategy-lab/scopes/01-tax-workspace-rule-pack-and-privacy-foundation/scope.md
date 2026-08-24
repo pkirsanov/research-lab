@@ -58,7 +58,7 @@ Scenario: SCN-021-002 An unsupported year, jurisdiction, or income kind refuses 
 Scenario: SCN-021-003 No household value leaves the local namespace
   Given a household enters income, deduction, and filing values into the workspace
   When the page is exercised end to end and its request ledger, URL, referrer, console output, and storage keys are inspected
-  Then the page has issued zero network requests
+  Then every request the page issued is a same-origin read of a document its own configuration declares, and those declared reads resolved
   And no household value appears in any URL, referrer, console message, or committed artifact
   And every written storage key belongs to this feature's own namespace and none belongs to the portfolio workspace
 ```
@@ -228,10 +228,11 @@ implementation, rerun the identical command for GREEN.
 | TP-01-11 | Deploy gate | functional | SCN-021-001 | `scripts/build-pages-site.mjs` | The new root page carries a `site-exclusions.json` deploy decision and the pages-site build accepts it; removing the entry is proven to make the build refuse | `node scripts/build-pages-site.mjs` | No | `report.md#tp-01-11` |
 | TP-01-12 | Regression E2E | e2e-ui | SCN-021-001 | `lifetime-tax-foundation.spec.mjs` | `Regression: SCN-021-001 minimum viable input resolves one federal pack and names every unavailable domain` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-001 minimum viable input resolves one federal pack and names every unavailable domain" --reporter=list` | Yes | `report.md#scenario-scn-021-001` |
 | TP-01-13 | Regression E2E | e2e-ui | SCN-021-002 | `lifetime-tax-foundation.spec.mjs` | `Regression: SCN-021-002 unsupported year jurisdiction and income kind each refuse without substitution` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-002 unsupported year jurisdiction and income kind each refuse without substitution" --reporter=list` | Yes | `report.md#scenario-scn-021-002` |
-| TP-01-14 | Privacy Regression E2E | e2e-ui | SCN-021-003 | `lifetime-tax-foundation.spec.mjs` | `Regression: SCN-021-003 the tax workspace issues zero network requests and keeps every household value local` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-003 the tax workspace issues zero network requests and keeps every household value local" --reporter=list` | Yes | `report.md#scenario-scn-021-003` |
+| TP-01-14 | Privacy Regression E2E | e2e-ui | SCN-021-003 | `lifetime-tax-foundation.spec.mjs` | `Regression: SCN-021-003 the tax workspace resolves only its declared reads and keeps every household value local` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-003 the tax workspace resolves only its declared reads and keeps every household value local" --reporter=list` | Yes | `report.md#scenario-scn-021-003` |
 | TP-01-15 | Broader Regression E2E | e2e-ui | SCN-021-001 … -003 | `lifetime-tax-foundation.spec.mjs` | Execute the complete cumulative Scope 01 browser suite over the real route with no request interception, no service worker and no external provider | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-00" --reporter=list` | Yes | `report.md#tp-01-15` |
 | TP-01-16 | Repo gate | unit | SCN-021-001 … -003 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-01-16` |
 | TP-01-17 | Path guard | unit | SCN-021-001 … -003 | `scripts/validate-spec-test-paths.mjs` | The spec-artifact test-path guard reports zero new missing paths for this scope's artifacts | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-01-17` |
+| TP-01-18 | Privacy E2E | e2e-ui | SCN-021-002 | `tests/lifetime-tax-foundation.spec.mjs` | GAP, NOT AUTHORED (opened 2026-08-22, F-REG-03). Route-wide title-versus-assertion mismatch. Three rows in the 021-024 privacy family really do constrain the origin of a ledger entry, each via `expect(ledger.filter((entry) => !entry.url.startsWith(site.baseUrl))).toEqual([])`: `SCN-021-003` (this scope's canary, `TP-01-14`), `SCN-022-007` and `SCN-022-013`. Six others carry the words "declared same-origin read" or "declared same-origin GET" in their persistent titles but assert only `new URL(entry.url).pathname` against `declaredRouteAssets()`, which returns bare paths: `SCN-021-015`, `SCN-023-001`, `SCN-024-001`, `SCN-024-009`, `SCN-024-010` and `SCN-024-014`. A read of `https://elsewhere.example/rltaxstrategy.js` has a declared pathname and would pass all six. The route-wide canary covers only the state that canary itself declares, so it does not stand in for the six. This scope owns the shared privacy contract, so the fix belongs here rather than being copied six times: fold the origin filter into the shared helper each row already calls. Adversarial case: a request whose pathname is declared but whose origin is not `site.baseUrl` must fail each of the six; today only the three named rows detect it | not authored | Yes | not authored |
 
 Before any browser row, run `node scripts/validate-node-source-lock.mjs` and
 `npx --no-install playwright --version`. These environment gates do not replace a
@@ -248,6 +249,42 @@ Test Plan row.
   - **Claim Source:** executed · **Result:** all 17 assertions in the appended Scope 01 group pass; suite exits 0 at `2492 passed, 0 failed`. Two defects were found and fixed on the way: `validateRulePack` named an absent member twice, and the citation assertion expected 12 present figures where the pack correctly carries 8.
 - [x] Every Test Plan row has intended RED evidence and same-command GREEN
       evidence, recorded before the cumulative browser row.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` and the TP-01-15 cumulative browser command · **Evidence:** `report.md#tp-01-16-and-tp-01-15-earned--the-last-two-rows-without-a-red-2026-08-23`
+  - **Claim Source:** executed · **Result:** all eighteen rows now carry an intended RED and a same-command GREEN. The two that did not are earned in this session and recorded in the report section named above: `TP-01-16` discriminates at exit `1` against `0` with the pinned assertion moving from `✗ FAIL` to `✓`, and `TP-01-15` discriminates at exit `1` against `0` with the pin on a marginal-spec scenario this scope does not own. Both reverts are hash-verified against the committed blob.
+  - **Ticked 2026-08-23, superseding the two notes below.** The `TP-01-18` and
+    `TP-01-17` gaps those notes record were already closed on 2026-08-22 and are
+    unchanged. The two they left open are closed now. `TP-01-16`'s earlier exit-7
+    result is **not** withdrawn: its own conclusion was that the guard it mutated
+    is unasserted, so that mutation could never reach this row's contract, and
+    that blind spot in `rltaxworkspace.js` remains recorded in the report as a
+    finding. The probe run here is the first one placed inside the row's reach,
+    not a retry of the same experiment. Three limits recorded earlier are carried
+    forward unchanged rather than dissolved by this tick: `TP-01-04`'s
+    zero-substituting half, `TP-01-08`'s forbidden-prefix limb and `TP-01-14`'s
+    cross-origin arm each remain without a single-limb RED, for reasons stated
+    where they were found.
+  - **Superseded note, 2026-08-22.** Two of the three gaps are closed.
+    `TP-01-18` is now authored and carries a RED with a same-command GREEN, so
+    the note below no longer applies to it. Of the three rows the note itself
+    identifies as outside the command range, `TP-01-17` now carries a
+    discriminating path-guard probe. Two rows remain without a RED and both are
+    named rather than counted away. `TP-01-15`, the cumulative browser row, was
+    not probed. `TP-01-16`, the repo gate, **was** probed and the harness
+    returned exit 7 — the RED and GREEN channels agreed. That result is recorded
+    in `report.md#tp-01-17-reds-tp-01-16-does-not--one-probe-one-finding-2026-08-22`
+    as a finding rather than retried with a different mutation, because a probe
+    retried until something goes red stops being evidence. The finding is about
+    the module, not the row: relaxing the non-empty string guard in
+    `rltaxworkspace.js` so a zero-length string is accepted moves no assertion in
+    a 3384-assertion suite, so a regression through that guard would ship green.
+  - **Superseded note, 2026-08-22 (F-REG-03).** `TP-01-18` was opened in this scope and
+    is not authored, so it carries neither a RED nor a GREEN. The word "Every"
+    therefore no longer holds. Note that this item's own **Command** already
+    named a narrower range than its headline — `TP-01-01` through `TP-01-14`,
+    while `TP-01-15` through `TP-01-17` also exist — so the headline over-claimed
+    before this change too; the new row makes that unambiguous rather than
+    creating it. Ticking it again requires `TP-01-18` authored with a RED and a
+    same-command GREEN, not a narrowing of the headline.
   - **Phase:** implement · **Command:** the exact TP-01-01 through TP-01-14 commands · **Evidence:** `report.md#test-evidence`
   - **Claim Source:** executed. The earlier "Not met" note is superseded: the route and `tests/lifetime-tax-foundation.spec.mjs` both exist now, so the four rows it deferred were run. Every TP-01-01 through TP-01-14 row now carries an intended RED and a same-command GREEN, and TP-01-15 was executed last at `9 passed`, which is the ordering this item requires. TP-01-02 is a real defect caught before the fix; TP-01-08 and TP-01-13 were probed in this session through `scripts/red-green-probe.sh` and both discriminated with a hash-verified revert. Two limits are recorded rather than papered over: TP-01-04's zero-substituting half and TP-01-08's forbidden-prefix limb are each shielded by a second independent check, so no single-limb mutation can make their assertion fail. Both are named as unproven in `report.md`.
 - [x] The federal pack covers exactly one declared tax year, cites primary IRS
@@ -270,10 +307,18 @@ Test Plan row.
       storage key collides with a portfolio prefix.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a path-scoped `git status` · **Evidence:** `report.md#tp-01-08`
   - **Claim Source:** executed · **Result:** the path-scoped `git status` over the excluded list returns no rows, and the suite asserts the tax modules reference no Feature 008 surface and that clearing private data leaves a portfolio-prefixed key untouched.
-- [x] The zero-network canary passes: the route issues no request, and a
-      sentinel household value appears in no URL, referrer, console message or
-      committed artifact.
-  - **Phase:** implement · **Command:** the TP-01-14 command · **Evidence:** `report.md#scenario-scn-021-003`
+- [x] The declared-read canary passes: every request the route issues is a
+      same-origin read of a document the page's own declarations name — nine
+      documents across seven call sites, plus the fourteen modules the markup
+      names — and a sentinel household value appears in no URL, referrer,
+      console message or committed artifact. Adversarial cases: a read that
+      reaches another origin fails; a read of a document the declaration list
+      does not name fails; a sentinel household value on any of those four
+      surfaces fails; and a route that read nothing fails, because the declared
+      reads must still be present and resolve.
+  - **Restated 2026-08-22 (F-REG-02).** The superseded text read "the route issues no request", which is false by measurement and contradicted the corrected `NFR-021-009`. The route issues 24 requests at first paint — the document, 14 declared modules, the configuration document, the rule packs it names, and the browser's own favicon — through one `window.fetch` primitive at `lifetime-tax-strategy-lab.html:5649`. The row now states what its own evidence establishes and stays falsifiable in four directions: `expect(foreign).toEqual([])` fails on a cross-origin read, `expect(unexpected).toEqual([])` fails on a read the declaration list does not name, the sentinel assertions fail on a household value reaching a URL, referrer or console message, and `expect(afterFirstPaint).toBeGreaterThan(0)` with the resolved-response pins fail a route that read nothing. This restatement is `bubbles.plan`'s artifact; the tick is not, and remains for a verifying pass.
+  - **Phase:** implement · **Command:** the TP-01-14 command · **Evidence:** `report.md#scenario-scn-021-003`, `report.md#scn-021-003-adversarial-arm-probes-2026-08-22`
+  - **Ticked 2026-08-22.** The measured half of the restated row holds: `loadJson` has seven call sites naming nine documents (the configuration document and the eight packs it declares), and the markup names fourteen modules. The TP-01-14 command exits 0 with `1 passed`. The committed-artifact surface is `node scripts/pii-scan.mjs` at `files=8136 messages=1746 findings=0 OK`, exit 0. Three of the four adversarial arms are proven sensitive by an observed RED: the undeclared-document and sentinel arms from the earlier probes recorded below, and the read-nothing arm by a probe run this session that declares a module which is requested and never resolves, exit 1 against exit 0 on the same command. The fourth arm, cross-origin, has no observed RED and is ticked without one: reaching another origin requires a network sink and `red-green-probe.sh` refuses any replacement containing `fetch(` at exit 3. That limitation is recorded rather than papered over, together with what supports the arm indirectly — `foreign` and `unexpected` filter one ledger snapshot, and `unexpected`'s observed RED establishes that the snapshot is populated and that an empty-set filter over it does fail when a disallowed entry is present.
   - **Claim Source:** executed · **Result:** the route and `tests/lifetime-tax-foundation.spec.mjs` both exist, and the canary passes at the route level. Both arms were proven sensitive by an observed RED, using probes that never transmit a household value. Probe A added a value-free undeclared same-origin request to `render()`: RED at line 310 `expect(unexpected).toEqual([])` with `Received + 11`. Probe B appended the declared amount to the never-transmitted location hash: RED at line 360 with `Received string: "#simple-123457"`, which is `SENTINEL_ORDINARY`. Probe B's first attempt used a non-existent state path and produced `"#simple-undefined"`; that miss is recorded in the report rather than discarded, and the probe was rerun against the real path. Each mutation was reverted in the shell invocation that applied it, with `probe_token_remaining=0` and an empty path-scoped `git status`, before the identical command was re-run GREEN. The console arm is covered by the same test's `expect(consoleMessages).toEqual([])` and the committed-artifact arm by `node scripts/pii-scan.mjs` at `findings=0 OK`.
 - [x] The tool is absent from `tools.json`, `index.html`, `rlnav.js`,
       `README.md`, `notes/README.md` and market-brief coverage.

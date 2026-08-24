@@ -611,8 +611,28 @@ that no table traps the page, not that a class name is present.
 
 ### Scenario SCN-021-015
 
+`Regression: SCN-021-015 a private export happens only on explicit action, the request ledger does not grow after first paint, and every entry is a declared same-origin read`
+Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-015 a private export happens only on explicit action, the request ledger does not grow after first paint, and every entry is a declared same-origin read" --reporter=list`
+
+**Renamed 2026-08-22 (F-REG-02).** The persistent title was
 `Regression: SCN-021-015 a private export happens only on explicit action and the request ledger stays empty`
-Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-015 a private export happens only on explicit action and the request ledger stays empty" --reporter=list`
+until this date. That wording was false: the route issues same-origin document
+reads and `<script src>` module loads during boot, so the ledger is never empty.
+What the row proves is `expect(ledger.length).toBe(afterFirstPaint)` — no growth
+after first paint — and
+`expect(paths.filter((entry) => !declaredAssets.includes(entry))).toEqual([])` —
+every entry is a same-origin read of a document the route's own script tags and
+declared configuration name. Adversarial cases: a request issued after first
+paint moves `ledger.length` and fails the first clause; a read of an undeclared
+or cross-origin document fails the second, which is pinned by
+`expect(declaredAssets).not.toContain('/definitely-not-declared-by-this-route.js')`.
+Unlike the SCN-022-013, SCN-023-001, SCN-024-001 and SCN-024-014 rows, this row
+carries **no** `expect(afterFirstPaint).toBeGreaterThan(0)` pin, so it would still
+pass against a route that read nothing at all; the title therefore does not claim
+that the declared reads resolve. Strengthening that is a planning matter and is
+routed, not taken here. The captured block below was recorded under the
+superseded title and is left exactly as executed; a fresh capture under the new
+title follows it.
 
 **Claim Source:** executed. Raw terminal output, bounded by
 `evidence-capture.sh`:
@@ -629,6 +649,22 @@ Running 1 test using 1 worker
 
   ✓  1 [system-chrome] › tests/lifetime-tax-route.spec.mjs:290:1 › Regression: SCN-021-015 a private export happens only on explicit action and the request ledger stays empty (830ms)
 
+  1 passed (2.3s)
+```
+
+Fresh capture under the new persistent title, recorded 2026-08-22 after the
+rename, proving the row's `--grep` still selects its own test — selected 1,
+passed 1:
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-015 a private export happens only on explicit action, the request ledger does not grow after first paint, and every entry is a declared same-origin read" --reporter=line
+exit: 0
+lines: 5
+sha256: c57f0dcbd134c5a74b5eacd13f85478d343862652e1bec5e22ece8d5c693e543
+
+Running 1 test using 1 worker
+
+[1/1] [system-chrome] › tests/lifetime-tax-route.spec.mjs:302:1 › Regression: SCN-021-015 a private export happens only on explicit action, the request ledger does not grow after first paint, and every entry is a declared same-origin read
   1 passed (2.3s)
 ```
 
@@ -1083,6 +1119,781 @@ Filled at execution. Holds the text scan proving no published error rate, no
 self-invalidation statistic, no track record, no accuracy figure and no plan
 success probability appears anywhere in the finished route.
 
+## Security Remediation F2 — the privacy panel claimed an absence the route does not have
+
+### The false sentence
+
+`lifetime-tax-strategy.config.json` carried, and `<p id="localNetworkPolicy">`
+rendered verbatim, this opening:
+
+```
+$ grep -n 'zero network' lifetime-tax-strategy.config.json
+57:    "localNetworkPolicy": "This page issues zero network requests. Your filing status, income amounts and deduction choices stay in this browser's local storage under this tool's own namespace and are never placed in a URL, a request, a referrer or a console message."
+$ grep -n 'localNetworkPolicy' lifetime-tax-strategy-lab.html
+448:            <p id="localNetworkPolicy" class="subtle">Resolving the declared local-network policy.</p>
+1862:                byId("localNetworkPolicy").textContent = inventory.localNetworkPolicy;
+```
+
+Sentence one is false. The route performs nine same-origin GETs at boot, counted
+in the F2 remediation above from the page's own configuration. Sentence two —
+that the household values reach no URL, request, referrer or console — was checked
+clause by clause and holds, so it is kept word for word.
+
+**Claim Source:** executed for the greps; the nine-document count is the derived
+figure evidenced in the F1 section immediately above.
+
+### The correction
+
+Sentence one now says what happens rather than asserting an absence:
+
+```
+"When it loads, this page reads its own policy and rule-pack documents from this site, and it sends nothing. Your filing status, income amounts and deduction choices stay in this browser's local storage under this tool's own namespace and are never placed in a URL, a request, a referrer or a console message."
+```
+
+It does not overstate in the other direction either: the reads are named as the
+page's own documents on this site, and "sends nothing" is retained because it is
+true — every one of the nine is a GET of a local rule document.
+
+### The guard binds the claim to the count
+
+The panel text and the measured read count were never checked against each other,
+which is how the sentence stayed shipped through three features that added reads.
+The new assertion refuses a claim of absence *while any read site stands*, and
+holds the verified second clause in place. Both directions are probed.
+
+A reader-facing false claim cannot return:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F2-false-absence-claim-cannot-return
+file:             lifetime-tax-strategy.config.json
+mutation:         When it loads, this page reads its own policy and rule-pack documents from this site, and it sends nothing.  ->  This page issues zero network requests.   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-06: the privacy panel claims no absence of requests the route does not actually have — while any read site stands, the disclosure describes the same-origin reads it performs and st
+green-exit:       0
+green-summary:      ✓ TP-05-06: the privacy panel claims no absence of requests the route does not actually have — while any read site stands, the disclosure describes the same-origin reads it performs and still pr
+summary-compared:   ✗ FAIL: TP-05-06: the privacy panel claims no absence of requests the route does not actually have — while any read site stands, the disclosure describes the same-origin reads it performs and st  vs    ✓ TP-05-06: the privacy panel claims no absence of requests the route does not actually have — while any read site stands, the disclosure describes the same-origin reads it performs and still pr   (elapsed time normalised out)
+revert-verified:  yes (committed=ac13755c5f1ab9630106b321aeb1672d64deac7b restored=ac13755c5f1ab9630106b321aeb1672d64deac7b)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+And the true promise cannot be quietly softened while nobody is looking, which is
+the failure mode a correction like this invites:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F2-the-true-clause-cannot-be-quietly-dropped
+file:             lifetime-tax-strategy.config.json
+mutation:         and are never placed in a URL, a request, a referrer or a console message.  ->  and are handled carefully.   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-06: the privacy panel claims no absence of requests the route does not actually have — while any read site stands, the disclosure describes the same-origin reads it performs and st
+green-exit:       0
+green-summary:      ✓ TP-05-06: the privacy panel claims no absence of requests the route does not actually have — while any read site stands, the disclosure describes the same-origin reads it performs and still pr
+summary-compared:   ✗ FAIL: TP-05-06: the privacy panel claims no absence of requests the route does not actually have — while any read site stands, the disclosure describes the same-origin reads it performs and st  vs    ✓ TP-05-06: the privacy panel claims no absence of requests the route does not actually have — while any read site stands, the disclosure describes the same-origin reads it performs and still pr   (elapsed time normalised out)
+revert-verified:  yes (committed=ac13755c5f1ab9630106b321aeb1672d64deac7b restored=ac13755c5f1ab9630106b321aeb1672d64deac7b)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Claim Source:** executed. Raw harness output.
+
+### The four boot comments — the finding as reported is wrong, and the real defect is findability
+
+The review reported that the four boot comments reference "the privacy ledger's
+permitted-asset derivation", that `grep -rn 'permittedAsset'` returns nothing
+repo-wide, and therefore that no such derivation exists. The first two statements
+are correct. The conclusion is not.
+
+The camelCase identifier does not exist, but the derivation does. It is called
+`declaredPackPaths`, it lives in `tests/lifetime-tax.support.mjs`, and it is
+consumed by nine privacy-ledger specs:
+
+```
+$ grep -rn 'permittedAsset' --include='*.html' --include='*.js' --include='*.mjs' --include='*.json' . | grep -v node_modules
+(no output; grep pipeline exit 1)
+$ grep -rn 'declaredPackPaths' tests/ | wc -l
+      26
+$ grep -n 'declaredPackPaths' tests/lifetime-tax.support.mjs
+33:export function declaredPackPaths(config) {
+$ grep -rln 'declaredPackPaths' tests/
+tests/lifetime-tax.support.mjs
+tests/lifetime-tax-combined.spec.mjs
+tests/lifetime-tax-property.spec.mjs
+tests/lifetime-tax-route.spec.mjs
+tests/lifetime-tax-benefit.spec.mjs
+tests/lifetime-tax-foundation.spec.mjs
+tests/lifetime-tax-claim-age.spec.mjs
+tests/lifetime-tax-medicare.spec.mjs
+tests/lifetime-tax-state.spec.mjs
+tests/lifetime-tax-retirement-route.spec.mjs
+```
+
+One support module plus nine specs. The `permittedAsset` grep is scoped to code
+surfaces above because this report now contains the word itself, so the
+unrestricted form the review ran no longer reproduces its own empty result.
+
+So the comments' mechanism claim — that declaring a pack path in the configuration
+lets the permitted-asset set absorb it without a hand edit — is accurate. Deleting
+them, as the finding proposed, would have deleted a true statement.
+
+The real defect is the one that produced the false finding: the comments named a
+*concept* and no *symbol*, so a reviewer could not confirm them in one grep. They
+now name `declaredPackPaths` and the file it lives in. A future reviewer resolves
+the claim in a single search instead of concluding it is fiction.
+
+**Claim Source:** executed. Both greps above were run in this session; the first
+produced no output, which is the observation that made the finding look sound.
+
+### Two further surfaces carry the same false claim, and are reported rather than changed
+
+The identical "zero network requests" wording also appears in:
+
+- `tests/lifetime-tax-foundation.spec.mjs:287` — the *title* of the SCN-021-003
+  regression. Its assertions are correct and strong: they pin every request to a
+  same-origin read of a derived declared asset and pin `ledger.length` after first
+  paint. Only the title repeats the false claim. Renaming it is a one-line change,
+  but that title appears verbatim inside roughly ten committed Playwright evidence
+  blocks across the Feature 021 and 024 reports, and a rename would need a fresh
+  browser run to re-evidence rather than leaving those blocks describing a test
+  name that no longer exists. Left for a scope that can run the browser suite.
+- `specs/021-lifetime-tax-strategy-lab/scenario-manifest.json:103` — the SCN-021-003
+  `then` clause. Planning-owned artifact; not edited here.
+
+Neither is a live claim rendered to a reader. Both are recorded so the correction
+is not mistaken for complete.
+
 ## Completion Statement
 
 Filled at execution.
+
+## Security Remediation F1 — the zero-network detector was blind to variable-argument reads
+
+Found by a `bubbles.security` review of the finished lab across Features 021-024
+and fixed here, in the scope that owns the detector.
+
+### The defect, measured
+
+The TP-05-06 transport detector collected its read targets with
+
+```
+const fetchTargets = (page.match(/loadJson\("[^"]+"\)|loadJson\(config\.rules\.packPath\)/g) || []);
+```
+
+That alternation matches a string-literal argument or the single literal member
+expression `config.rules.packPath`, and nothing else. Features 022-024 added five
+call sites whose argument is a variable expression, so the counter never moved:
+
+```
+$ grep -c 'loadJson(' lifetime-tax-strategy-lab.html   # 8, one of which is the declaration
+$ grep -n 'loadJson(' lifetime-tax-strategy-lab.html
+5609:            function loadJson(path) {
+5650:                loadJson("lifetime-tax-strategy.config.json").then(function (config) {
+5660:                    return loadJson(config.rules.packPath).then(function (pack) {
+5682:                            return loadJson(declaredRegimePaths[jurisdiction]).then(function (regime) {
+5696:                            return loadJson(declaredStatePaths[jurisdiction]).then(function (statePack) {
+5712:                            return loadJson(declaredBenefitPaths[year]).then(function (benefitPack) {
+5724:                            return loadJson(declaredMortalityPaths[year]).then(function (mortalityPack) {
+5735:                            return loadJson(declaredMedicarePaths[year]).then(function (medicarePack) {
+```
+
+Seven call sites; the detector saw two. Resolving the configuration's own
+declarations gives the document count the page actually requests at boot:
+
+```
+  config document: lifetime-tax-strategy.config.json
+  packPath             -> 1  tax-rules/federal/2026.json
+  propertyPackPaths    -> 2  ['tax-rules/property/CA/2026.json', 'tax-rules/property/FL/2026.json']
+  statePackPaths       -> 2  ['tax-rules/state/CA/2026.json', 'tax-rules/state/FL/2026.json']
+  benefitPackPaths     -> 1  ['tax-rules/benefit/2026.json']
+  mortalityPackPaths   -> 1  ['tax-rules/mortality/2026.json']
+  medicarePackPaths    -> 1  ['tax-rules/medicare/2026.json']
+TOTAL DOCUMENTS AT BOOT = 9
+```
+
+Nine. The assertion pinned two. A new `loadJson(<expression>)` carrying a
+household value would have moved neither counter and failed no assertion — and
+this route has already had a real same-origin probe request planted in it, which
+the page's CSP would not have stopped either.
+
+**Claim Source:** executed. The counts above are raw output of the two commands
+shown, run in this session against the working tree.
+
+### The fix
+
+The count is no longer bounded to two argument forms. Every `loadJson(` call site
+is captured whatever its argument, the permitted set is closed by argument text in
+*both* directions (an unrecognised argument fails, and a declared argument that
+disappears from the page also fails), and the document count is derived from the
+configuration the page actually loads instead of being written by hand.
+
+The message is corrected. It said "one same-origin read of the two local policy
+documents" — true when Scope 05 shipped, false from Feature 022 — and now names
+the nine reads that occur.
+
+### Proof the new guard discriminates
+
+Three probes, each a real defect the old detector could not see.
+
+The blind spot itself — an existing read redirected to a variable the guard has
+never heard of:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F1-variable-argument-read-is-seen
+file:             lifetime-tax-strategy-lab.html
+mutation:         return loadJson(declaredMedicarePaths[year]).then(function (medicarePack) {  ->  return loadJson(sneakPath).then(function (medicarePack) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin document
+green-exit:       0
+green-summary:      ✓ TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin documents they
+summary-compared:   ✗ FAIL: TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin document  vs    ✓ TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin documents they   (elapsed time normalised out)
+revert-verified:  yes (committed=2e4c48120928652240f26e2e88123370184ac66e restored=2e4c48120928652240f26e2e88123370184ac66e)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+A read of a document the configuration never declared — same-origin, so neither
+the CSP nor a cross-origin check would refuse it:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F1-new-undeclared-document-read-is-caught
+file:             lifetime-tax-strategy-lab.html
+mutation:         loadJson(declaredBenefitPaths[year]).then(function (benefitPack) {  ->  loadJson("household-summary.json").then(function (benefitPack) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin document
+green-exit:       0
+green-summary:      ✓ TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin documents they
+summary-compared:   ✗ FAIL: TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin document  vs    ✓ TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin documents they   (elapsed time normalised out)
+revert-verified:  yes (committed=2e4c48120928652240f26e2e88123370184ac66e restored=2e4c48120928652240f26e2e88123370184ac66e)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+And the count itself, proven derived rather than hand-written — one extra declared
+jurisdiction moves it off nine:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F1-document-count-is-derived-not-hand-written
+file:             lifetime-tax-strategy.config.json
+mutation:         "state:CA": "tax-rules/state/CA/2026.json"
+    },  ->  "state:CA": "tax-rules/state/CA/2026.json",
+      "state:NV": "tax-rules/state/CA/2026.json"
+    },   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin document
+green-exit:       0
+green-summary:      ✓ TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin documents they
+summary-compared:   ✗ FAIL: TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin document  vs    ✓ TP-05-06: every loadJson call site is counted whatever its argument form, the route holds exactly seven of them, each one names a read this list declares, and the nine same-origin documents they   (elapsed time normalised out)
+revert-verified:  yes (committed=0c62867fd6285d2bbad4b9ea983893d1433ea80f restored=0c62867fd6285d2bbad4b9ea983893d1433ea80f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Claim Source:** executed. Each block is raw harness output; the harness refuses
+a dirty target, reverts by checkout, and reports the restored blob hash.
+
+### Effect on the suite
+
+```
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3221 passed, 0 failed
+```
+
+One assertion added, none removed, none failing. The prior baseline was
+`3220 passed, 0 failed`.
+
+### No ticked item is invalidated
+
+The zero-network DoD row on this scope claims that a sentinel household value
+reaches no request, URL, referrer, console message or committed artifact, and
+that `ledger.length` is pinned to `afterFirstPaint`. That is a runtime browser
+observation and it remains true and remains proven; this finding concerns the
+static detector standing beside it, which is why the row keeps its tick.
+
+## Regression sweep across Features 021-024 (2026-08-22)
+
+### F-REG-02 — the false zero-network claim survives as three normative requirements, and the security census undercounted it
+
+The F2 remediation above corrected the privacy panel, which was the live
+user-facing surface, and then recorded what it had chosen not to correct:
+
+> The identical "zero network requests" wording also appears in:
+> [...]
+> Two further surfaces carry the same false claim, and are reported rather than changed
+
+Those two are `tests/lifetime-tax-foundation.spec.mjs:287` and
+`specs/021-lifetime-tax-strategy-lab/scenario-manifest.json:103`. The census
+stops there. It is short by fourteen sites, and it misses every requirement-level
+statement of the claim.
+
+Grepped this session across the four features, excluding evidence reports. The
+fourteen sites the census does not name:
+
+| file | line | text |
+| --- | --- | --- |
+| `specs/021-lifetime-tax-strategy-lab/spec.md` | 448 | Privacy And Trust Model item 2, `The page performs zero network requests at runtime.` |
+| `specs/021-lifetime-tax-strategy-lab/spec.md` | 581 | SCN-021-003 Gherkin, `Then the page has issued zero network requests` |
+| `specs/021-lifetime-tax-strategy-lab/spec.md` | 845 | **NFR-021-009**, `The page performs zero network requests at runtime.` |
+| `specs/021-lifetime-tax-strategy-lab/spec.md` | 1065 | `Local-only, zero network requests.` |
+| `specs/021-lifetime-tax-strategy-lab/spec.md` | 1159 | **P9**, `It performs zero network requests by design, which is stronger than degrading honestly.` |
+| `specs/021-lifetime-tax-strategy-lab/design.md` | 43 | `the page issues zero network requests.` |
+| `specs/021-lifetime-tax-strategy-lab/scopes/_index.md` | 337 | the **PRA-021-009** row, `The page performs zero network requests.` |
+| `.../scopes/01-tax-workspace-rule-pack-and-privacy-foundation/scope.md` | 23, 37, 61 | narrative, the **PRA-021-009** definition, and the Gherkin |
+| `.../scopes/01-tax-workspace-rule-pack-and-privacy-foundation/scope.md` | 231 | the **TP-01-14** row, which quotes the test title twice: as the test name and inside its `--grep` command |
+| `.../scopes/05-simple-power-route-accessibility-and-local-export/scope.md` | 49 | the re-assertion of **PRA-021-009** |
+| `specs/023-property-tax-and-rental-income/spec.md` | 738 | **NFR-023-002**, `zero network requests at runtime, including regime pack loading.` |
+| `specs/024-social-security-and-medicare/spec.md` | 883 | **NFR-024-002**, `zero network requests at runtime, including benefit, mortality and medicare pack loading.` |
+
+The last two are the sharpest. They do not merely repeat a loose phrase. Each one
+names the pack loads explicitly and then asserts there are zero of them. The
+detector this scope repaired counts those same loads and pins the count:
+
+> TP-05-06: every loadJson call site is counted whatever its argument form, the
+> route holds exactly seven of them, each one names a read this list declares, and
+> the nine same-origin documents they resolve to are all present in this checkout
+> and none of them is remote
+
+So `NFR-023-002` states that regime pack loading is zero network requests, while
+the assertion standing beside it states that pack loading is nine of them. Both
+are ticked. They cannot both be describing the same page.
+
+#### What is and is not false here
+
+Three claims share this wording and only some are false. Separating them is the
+whole point, because a blanket rewrite would delete true statements.
+
+| claim | verdict |
+| --- | --- |
+| no household value reaches any request, URL, referrer, console message or committed artifact | TRUE, and proven at runtime by the SCN-021-003 ledger assertion |
+| the tool needs no key, no proxy, no account and no server | TRUE |
+| the page performs zero network requests at runtime | FALSE, nine same-origin document reads |
+
+`spec.md:745` and the first sentence of `spec.md:844` are the first kind and must
+be left alone. The second sentence of `spec.md:845` is the third kind. They sit in
+the same paragraph, which is how this survived. The `PRA-021-009` row at
+`_index.md:337` mixes the two inside a single table cell the same way.
+
+**Claim Source:** executed. The census grep ran in this session over
+`specs/021*`, `specs/022*`, `specs/023*`, `specs/024*`, `lifetime-tax-strategy.config.json`,
+`lifetime-tax-strategy-lab.html` and `tests/`, excluding `report.md` paths.
+`specs/023-property-tax-and-rental-income/spec.md:734-742`,
+`specs/024-social-security-and-medicare/spec.md:879-888` and
+`.../scopes/01-.../scope.md:35-39` were read in this session. The nine-document
+count is quoted from the shipped TP-05-06 assertion text, not restated.
+
+#### Routed, not fixed
+
+`spec.md`, `design.md`, `scope.md`, `_index.md` and `scenario-manifest.json` are
+planning-owned and design-owned artifacts. This sweep is diagnostic and does not
+edit them, which is the same boundary the F2 remediation drew when it declined to
+edit the scenario manifest.
+
+The decision is not editorial. `NFR-021-009`, `NFR-023-002` and `NFR-024-002` are
+normative requirements, `P9` and `P11` in the Feature 021 product-principle table
+cite `NFR-021-009` as their evidence, and `PRA-021-009` is inherited by two
+scopes. Whoever owns the correction has to choose whether the requirement becomes
+"no remote network requests, and no household value in any request", or whether it
+keeps a zero-request form and the page changes to satisfy it. That choice reaches
+three features.
+
+Owner: `bubbles.plan` for `NFR-021-009`, `NFR-023-002`, `NFR-024-002`,
+`PRA-021-009` and the two Gherkin clauses; `bubbles.design` for
+`design.md:43`; `bubbles.test` for the test title the F2 census already routed.
+
+#### Ticked evidence this finding does invalidate
+
+None is unticked by this sweep, and the reason is worth stating rather than
+assuming. Every zero-network DoD row in this family is worded as the first claim
+in the table above, the household-value claim, which is true and proven. No DoD
+row asserts the page issues no requests. The false statements live in requirement
+and narrative text, which carries no tick of its own.
+
+### F-REG-03 — the F5 fix removed a storage key the privacy allow-list still permits
+
+`08caba331` deleted `MODE_KEY = "rlLifetimeTaxDisplayMode"` and dropped the
+`persist` parameter from `applyDisplayMode`, so the view mode is now carried by
+the location hash alone and that key is never written. The commit subject names
+only the `removed.push` correction, so the second change travels unannounced.
+
+The SCN-021-003 privacy assertion still allows the deleted key —
+`tests/lifetime-tax-foundation.spec.mjs:370`:
+
+```js
+expect(storage.keys.every((key) => key.indexOf('rlLifetimeTaxV1.') === 0 || key === 'rlLifetimeTaxDisplayMode')).toBe(true);
+```
+
+The second disjunct is now dead. It cannot be exercised, and it permits a key
+that the closed writer rejects and that appears in no configured inventory. An
+allow-list clause that outlives the thing it allowed is a widened assertion: this
+one would still pass if the key returned, which is the state F5 set out to make
+impossible.
+
+#### Severity is low, and the reason is a second assertion rather than optimism
+
+The invariant is held elsewhere, and more strictly. The F4 assertion in
+`scripts/selftest.mjs` pins it at the source level:
+
+> F4: the page writes no storage key directly and carries no storage-key literal
+> of its own, so every key this tool can write is declared in configuration, sits
+> inside the declared namespace, passes the closed writer, appears in the privacy
+> inventory and is removed by the clear path
+
+A returning `rlLifetimeTaxDisplayMode` literal fails F4 before it could reach the
+browser assertion that would wave it through. So this is a dead clause, not a
+live hole, and it is reported at that weight rather than inflated to match the
+seriousness of the file it sits in.
+
+The configuration declares three keys — `rlLifetimeTaxV1.workspace`,
+`rlLifetimeTaxV1.pointer` and `rlLifetimeTaxV1.probe` — and all three match the
+first disjunct, so deleting the second changes no passing outcome.
+
+**Claim Source:** executed. `git show 08caba331` was read in this session.
+`tests/lifetime-tax-foundation.spec.mjs:355-378`,
+`lifetime-tax-strategy.config.json:3-12` and the F4 assertion text at
+`scripts/selftest.mjs:27632` were read in this session. The grep for
+`rlLifetimeTaxDisplayMode` and `MODE_KEY` ran in this session and returned that
+line as the only surviving reference inside this feature family.
+
+#### Routed, not fixed
+
+Deleting the disjunct is a one-line change and this sweep does not make it, for
+one reason: it cannot be proven here. `tests/` is `bubbles.test`'s artifact, the
+change is only meaningful under a browser run, and this sweep runs no browser. An
+edit whose effect cannot be observed is not a fix, it is an assertion about a fix.
+
+Owner: `bubbles.test`, alongside the SCN-021-003 title rename the F2 census
+already routed, so both land in one browser run.
+
+### F-REG-04 — three of the six security fixes are in the tree and in no report
+
+Only `F1` and `F2` have evidence sections. `F3`, `F4` and `F5` have none, in any
+`report.md`, across all four features. Grepped this session for
+`Remediation F3|F4|F5`, for heading forms, and for `isSafeSourceUrl`; every
+search returned empty.
+
+What landed unrecorded:
+
+| finding | commits | shipped files changed |
+| --- | --- | --- |
+| F3 | `39b1cb7bd`, `64dbef87b` | `rltaxrules.js`, `lifetime-tax-strategy-lab.html` |
+| F4 | assertion at `scripts/selftest.mjs:27632` | closed-writer pin |
+| F5 | `08caba331` | `lifetime-tax-strategy-lab.html`, `rltaxworkspace.js` |
+
+These are not cosmetic. F3 added a scheme guard and a renderer refusal path, F5
+removed a storage key and a persistence behaviour, and F4 added the assertion
+that now carries the invariant F-REG-03 describes. None has a recorded
+before-and-after, a probe, or a claim-source line in the artifact that owns it.
+
+This is the mechanism behind F-REG-03 rather than a separate accident. F5's
+persistence removal was never written down, so nobody reconciled it against the
+allow-list that still permits its key. The same exposure applies to the other
+two: a later reader has the commits and no statement of what was verified.
+
+**Claim Source:** executed. The heading and mention greps ran in this session
+over `specs/021*`, `specs/022*`, `specs/023*` and `specs/024*`. The commit and
+file lists come from `git show --numstat` on each commit, run in this session.
+
+Owner: whoever performed the security phase, to bank the three missing evidence
+sections. This sweep does not write another agent's evidence, because evidence
+records what its author executed and this author executed the sweep, not the fix.
+
+## Regression sweep — what was checked and found clean
+
+Recorded so the sweep's silence is legible. A check that ran and found nothing is
+not the same as a check that never ran.
+
+| area | check | result |
+| --- | --- | --- |
+| leg-set integrity | engine sums only legs whose `includedInTotal` is true, at `rltax.js:436-437` | clean |
+| leg-set integrity | cost legs do reach `declaredLegs`, so the `CO-24` mis-summed pass can fire; the `includedInTotal !== true` filter is scoped to the federal `taxLegs` branch alone, and the property and premium branches push their own flag | clean |
+| leg-set integrity | `federalLegIds` is built by `settledLegIds(settlement, null, null, null, null, null, null, null)`, so no cost leg can enter it by construction | clean |
+| leg-set integrity | `F-AUDIT-04` census wiring discriminates on the real route — probe below | clean |
+| refusal propagation | the `F3` renderer refuses a non-https source url with inert text naming the withholding, not a blank and not a live link | clean |
+| refusal propagation | the census clean line claims only surface membership and cost-leg exclusion, so it does not certify a leg whose input refused | clean, and precisely scoped |
+| refusal propagation | the disposition exclusion still coerces a refusal to zero — this is `F-AUDIT-05`, already open and routed, and this sweep found no change to it | pre-existing, unchanged |
+| coverage | no assertion in this feature family was deleted or weakened by the fix commits | clean |
+| coverage | passed count rose, `3242` to `3244`, from a concurrent session's additions | clean |
+
+The one deletion in a fix commit was `39b1cb7bd`, which removed seven lines from
+`scripts/selftest.mjs` and added seventy-one. The removed lines belong to a
+concurrent session's `horizon-ladder-lab` registry assertions and were replaced
+in the same commit by expanded forms of themselves, flipping them from
+unregistered to registered. Nothing in this feature family was touched, and no
+assertion was weakened. It is noted only because a security commit for this
+family carrying another feature's registry edits is a shared-file hazard worth
+seeing, not because it cost coverage.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            F-AUDIT-04 census summed-set made self-referential on the real route
+file:             lifetime-tax-strategy-lab.html
+mutation:         envelope.federalLegIds || []);  ->  declaredLegs.map(function (leg) { return leg.legId; }));   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: F-AUDIT-04: the route invokes CO-24 on what it rendered, feeds the summed set from the settlement’s own federalLegIds rather than from the flag it is auditing, carries each leg’s own i
+green-exit:       0
+green-summary:      ✓ F-AUDIT-04: the route invokes CO-24 on what it rendered, feeds the summed set from the settlement’s own federalLegIds rather than from the flag it is auditing, carries each leg’s own include
+revert-verified:  yes (committed=a2bdfa4a1b312df877c58d1b19d995716393595b restored=a2bdfa4a1b312df877c58d1b19d995716393595b)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_EXIT=0
+```
+
+Pinned to the assertion's own wording rather than to the aggregate, because the
+aggregate moved twice during this sweep under a concurrent session. The census
+wiring the `F-AUDIT-04` fix added is real: making its summed set self-referential
+fails the assertion by name.
+
+## TP-05-18 authored — the non-empty pin `SCN-021-015` lacked (2026-08-22)
+
+`TP-05-18` was opened as `GAP, NOT AUTHORED` because `TP-05-14` captured
+`afterFirstPaint = ledger.length` and asserted `expect(ledger.length).toBe(afterFirstPaint)`
+without ever asserting the capture was greater than zero — alone in the 021-024
+privacy family. Against a route that read nothing the no-growth check reads
+`expect(0).toBe(0)` and the declared-asset sweep compares two empty arrays, so
+the row passes while covering nothing.
+
+The pin is now the statement immediately after the capture, which is where the
+row requires it, and the row also adopts the shared same-origin helper described
+under `TP-01-18` in the Scope 01 report.
+
+### Intended RED and same-command GREEN
+
+The mutation zeroes the captured length, which is exactly the state a boot that
+issued no request would produce. The RED names the pin by file line, so the
+failure is the intended contract assertion rather than a collateral one.
+
+```
+$ bash scripts/red-green-probe.sh \
+    --file tests/lifetime-tax-route.spec.mjs \
+    --find 'const afterFirstPaint = ledger.length;' \
+    --replace 'const afterFirstPaint = ledger.length * 0;' \
+    --label 'TP-05-18 non-empty pin: a boot that issued no request at all must fail this row; before the pin, afterFirstPaint of 0 made the no-growth check read expect(0).toBe(0) and the declared-asset sweep compare two empty arrays' \
+    --bound 300 \
+    --summary-match 'expect\(afterFirstPaint\)\.toBeGreaterThan|1 passed' \
+    -- npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-015 a private export happens only on explicit action" --reporter=line
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-18 non-empty pin: a boot that issued no request at all must fail this row; before the pin, afterFirstPaint of 0 made the no-growth check read expect(0).toBe(0) and the declared-asset sweep compare two empty arrays
+file:             tests/lifetime-tax-route.spec.mjs
+mutation:         const afterFirstPaint = ledger.length;  ->  const afterFirstPaint = ledger.length * 0;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-021-015\ a\ private\ export\ happens\ only\ on\ explicit\ action --reporter=line
+red-exit:         1
+red-summary:          > 315 |   expect(afterFirstPaint).toBeGreaterThan(0);
+green-exit:       0
+green-summary:      1 passed (2.1s)
+summary-compared:     > 315 |   expect(afterFirstPaint).toBeGreaterThan(0);  vs     1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=f4afe1a260905d3185246119f9fd675d381a250f restored=f4afe1a260905d3185246119f9fd675d381a250f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_TP0518B_EXIT=0
+```
+
+The `--summary-match` is pinned to the pin's own source text rather than to a
+pass count, so a concurrent session moving the aggregate cannot move this
+verdict. The GREEN arm's `1 passed` is the same single grepped title, not a
+suite total.
+
+## `TP-05-17` Reds, `TP-05-16` Does Not — One Probe, One Finding (2026-08-22)
+
+The every-row DoD item's own note already records that its headline over-claimed
+against its command range: the command names `TP-05-01` through `TP-05-14` while
+`TP-05-15`, `TP-05-16` and `TP-05-17` also exist and carried no RED. Two of the
+three were addressed here. Both blocks are verbatim harness output.
+
+### `TP-05-17` — path guard, discriminating
+
+The mutation targets the guard's own resolution rather than planting a fabricated
+`tests/…` token in a spec artifact. A planted token would survive into this
+report, which is itself scanned, and would turn the guard permanently red.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-17 path guard: a spec-referenced path that does not resolve to a file must be reported as newly missing
+file:             scripts/validate-spec-test-paths.mjs
+mutation:         statSync(resolve(root, path)).isFile()  ->  statSync(resolve(root, path)).isDirectory()   (1 occurrence(s))
+command:          node scripts/validate-spec-test-paths.mjs
+red-exit:         1
+red-summary:      [spec-test-paths] FAIL — 190 new referenced path(s) do not exist
+green-exit:       0
+green-summary:    [spec-test-paths] OK — no new missing test path(s)
+summary-compared: [spec-test-paths] FAIL — 190 new referenced path(s) do not exist  vs  [spec-test-paths] OK — no new missing test path(s)   (elapsed time normalised out)
+revert-verified:  yes (committed=760f9bf0ebc04663675eee3f9d6cd81bcd9c8d0a restored=760f9bf0ebc04663675eee3f9d6cd81bcd9c8d0a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-05-16` — repo gate, exit 7, and the finding it produced
+
+The mutation relaxed the non-empty guard in `rltaxstrategy.js`, this scope's own
+strategy module, so a zero-length string would be accepted wherever the module
+requires a non-empty one. The harness returned exit 7: the RED and GREEN channels
+agreed. That is recorded here as a finding rather than retried with a different
+mutation, because a probe retried until something goes red stops being evidence.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-16 repo gate: a defect planted in this scope own strategy module must make the whole-repository suite non-green and the pre-existing pass count fall
+file:             rltaxstrategy.js
+mutation:         return typeof candidate === "string" && candidate.length > 0;  ->  return typeof candidate === "string" && candidate.length >= 0;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         0
+red-summary:      Research-Lab self-test: 3384 passed, 0 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3384 passed, 0 failed
+summary-compared: Research-Lab self-test: 3384 passed, 0 failed  vs  Research-Lab self-test: 3384 passed, 0 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=f4dbb4a9c8dcf3b60a9aee0c4e3816f880ead964 restored=f4dbb4a9c8dcf3b60a9aee0c4e3816f880ead964)
+discriminating:   NO (both channels agree: exit 0 == 0, summary "Research-Lab self-test: 3384 passed, 0 failed" identical once elapsed time is normalised)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**What this establishes.** Not that `TP-05-16` is weak — the row claims the suite
+stays green and the pass count does not fall, and this run shows the count
+unchanged, which is the row passing. What it establishes is about the module: the
+non-empty string guard in `rltaxstrategy.js` is unasserted. Relaxing it so that
+an empty string is accepted moves no assertion in a 3384-assertion suite. The
+same shape was found independently in `rltaxworkspace.js` under `TP-01-16`, so
+this is a pair rather than a one-off, and it is named here so the finding is
+available to whoever owns those modules. `TP-05-16` is left without a RED rather
+than being given one by searching for a mutation that happens to fail.
+
+**Claim Source:** executed. Both blocks are verbatim harness output from this
+session, each revert hash-verified against the committed blob, and
+`git status --short` for each touched file re-read clean afterwards.
+
+### Effect on the DoD row
+
+The every-row item stays open. `TP-05-17` now carries a RED and a same-command
+GREEN. `TP-05-16` does not, for the reason recorded above. `TP-05-15`, the
+cumulative browser row, was not probed here.
+
+## `TP-05-16` and `TP-05-15` earned — the last two rows without a RED (2026-08-23)
+
+The section above left exactly two rows unproven. Both are earned here, and every
+block below is verbatim harness or capture output from this session.
+
+### Why `TP-05-16` is re-probed rather than left at exit 7
+
+The earlier `TP-05-16` probe relaxed a non-empty string guard in
+`rltaxstrategy.js` and returned exit 7. Its own recorded conclusion is that the
+guard **is unasserted** — no assertion in the suite reads it. A mutation that no
+assertion reads cannot reach the row's contract, so exit 7 there was not a
+verdict about the row; it was a measurement of a blind spot in the module. That
+finding stands, is not withdrawn, and its pairing with the identical shape in
+`rltaxworkspace.js` under `TP-01-16` is unchanged.
+
+Re-probing with a mutation the suite does read is therefore not a retry of the
+same experiment until it goes red. It is the first probe placed inside the row's
+reach at all.
+
+### `TP-05-16` — repo gate, discriminating
+
+The mutation hands a household already past the selected bracket edge the raw
+negative distance instead of the labelled zero the module promises in its own
+comment. The `--summary-match` names the assertion the defect must trip rather
+than the aggregate pass count, so a concurrent session moving the suite total
+cannot move this verdict.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-16 repo gate: a defect planted in this scope own strategy module and reachable by a pre-existing assertion — a household already past the selected bracket edge is handed the raw negative distance instead of the labelled zero the module promises — must make the whole-repository suite non-green
+file:             rltaxstrategy.js
+mutation:         value: atOrAboveEdge ? 0 : distance,  ->  value: distance,   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-04-06: a household at or above the selected edge receives an explicitly labelled zero-amount conversion rather than a negative amount or an Unavailable
+green-exit:       0
+green-summary:      ✓ TP-04-06: a household at or above the selected edge receives an explicitly labelled zero-amount conversion rather than a negative amount or an Unavailable
+summary-compared:   ✗ FAIL: TP-04-06: a household at or above the selected edge receives an explicitly labelled zero-amount conversion rather than a negative amount or an Unavailable  vs    ✓ TP-04-06: a household at or above the selected edge receives an explicitly labelled zero-amount conversion rather than a negative amount or an Unavailable   (elapsed time normalised out)
+revert-verified:  yes (committed=f4dbb4a9c8dcf3b60a9aee0c4e3816f880ead964 restored=f4dbb4a9c8dcf3b60a9aee0c4e3816f880ead964)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-05-15` — the row had no same-command GREEN either, and now has both
+
+The correction first. The preceding section says this row "carries GREEN only".
+That is wrong, and the record is corrected rather than repeated: this row's
+section held no run of its own command at all. `Gate 1` ran a **different**
+command — an explicit five-file list, 16 tests — which is not the row's
+`--grep "SCN-021-0"` selection and does not stand in for it. So the row was
+missing both arms, not one.
+
+Same-command GREEN, captured through `evidence-capture.sh` so the `sha256`
+covers every line the run produced and is re-derivable with `--verify`:
+
+```text
+# TP-05-15 cumulative Feature 021 browser suite
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-021-0 --reporter=list
+exit: 0
+lines: 22
+sha256: 4ee42710e16a99dfe607726f953ce8a9354fc7303690c0d50898b981c8b350b8
+--- output ---
+
+Running 17 tests using 5 workers
+
+  ✓   1 [system-chrome] › tests/lifetime-tax-conversion.spec.mjs:35:1 › Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack (1.4s)
+  ✓   3 [system-chrome] › tests/lifetime-tax-route.spec.mjs:38:1 › Regression: SCN-021-013 Simple opens first with a decision level answer and Power holds the detail (1.6s)
+  ✓   4 [system-chrome] › tests/lifetime-tax-foundation.spec.mjs:141:1 › Regression: SCN-021-001 minimum viable input resolves one federal pack and names every unavailable domain (1.4s)
+  ✓  16 [system-chrome] › tests/lifetime-tax-foundation.spec.mjs:425:1 › Regression: SCN-021-002 the shared ledger helper refuses a declared pathname served from an undeclared origin (433ms)
+  ✓  17 [system-chrome] › tests/lifetime-tax-route.spec.mjs:303:1 › Regression: SCN-021-015 a private export happens only on explicit action, the request ledger does not grow after first paint, and every entry is a declared same-origin read (549ms)
+
+  17 passed (6.3s)
+```
+
+Seventeen tests across five spec files, no request interception, no service
+worker and no external provider. Five of the seventeen lines are reproduced
+above; the `sha256` covers all 22 lines of the capture.
+
+Intended RED on the identical command. The mutation reads the selected band's
+edge off the wrong end, so the fill amount stops coming from the pack edge the
+household named. The pin is a `lifetime-tax-conversion.spec.mjs` scenario, which
+this scope does not own, so the RED proves the cumulative run reaches past this
+scope's own route spec rather than covering a convenient subset.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-15 cumulative browser row: the bracket edge is read off the wrong end of the selected band, so the fill amount no longer comes from the pack edge the household named — and the pin is a conversion-spec scenario this scope does not own, so the cumulative run is proven to reach past its own route spec rather than a convenient subset
+file:             rltaxstrategy.js
+mutation:         value: table.bands[index].upperExclusive,  ->  value: table.bands[index].lowerInclusive,   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-021-0 --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-conversion.spec.mjs:35:1 › Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack 
+green-exit:       0
+green-summary:      ✓   5 [system-chrome] › tests/lifetime-tax-conversion.spec.mjs:35:1 › Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack (1.8s)
+summary-compared:     [system-chrome] › tests/lifetime-tax-conversion.spec.mjs:35:1 › Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack   vs    ✓   5 [system-chrome] › tests/lifetime-tax-conversion.spec.mjs:35:1 › Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=f4dbb4a9c8dcf3b60a9aee0c4e3816f880ead964 restored=f4dbb4a9c8dcf3b60a9aee0c4e3816f880ead964)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The pinned line moved from a failure-detail header carrying no tick to a `✓`
+result on the identical command, and the exit channel moved `1` to `0`
+independently, so the verdict does not rest on one channel.
+
+### Routed finding from the sibling scope, recorded here because it bears on this row's grep
+
+While earning Scope 01's `TP-01-15`, a scenario inside this row's own
+`--grep "SCN-021-0"` selection was found unable to detect the defect its title
+names. `SCN-021-005 long term gains stack on ordinary income` passes with the
+ordinary term removed from the preferential stacking window, because its fixture
+fixes ordinary taxable income below the pack's zero-rate breakpoint, where
+`max(ordinary, lower)` and `max(0, lower)` coincide for every band. The full
+measurement and the reasoning are recorded in the Scope 01 report under
+`TP-01-16` and `TP-01-15`. It is routed to the owning scope, not repaired here,
+and it does not bear on this scope's own row accounting.
+
+**Claim Source:** executed. Each revert is hash-verified against the committed
+blob, and `git status --porcelain -- rltaxstrategy.js` was re-read at `0` rows
+between the two probes.
+
+
+
+

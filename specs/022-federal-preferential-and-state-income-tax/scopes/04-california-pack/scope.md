@@ -218,8 +218,8 @@ syntax error, a missing browser or an absent test does not satisfy RED.
 | TP-04-13 | Contract stability | unit | SCN-022-010 | `scripts/selftest.mjs` | Every module file is byte-identical to its Scope 03 state, proving California required no engine edit | `node scripts/selftest.mjs` plus a path-scoped status check | No | `report.md#tp-04-13` |
 | TP-04-14 | Coverage boundary | unit | SCN-022-010 | `scripts/selftest.mjs` | `unsupportedFeatures[]` is non-empty and names every California provision the pack does not carry, and no result is labelled a complete state tax | `node scripts/selftest.mjs` | No | `report.md#tp-04-14` |
 | TP-04-15 | No-shadow | unit | SCN-022-010 | `scripts/selftest.mjs` | Regression: no module holds a California bracket, rate, deduction, credit, threshold, state name or authority name; the detector is proven to fire on a module that does | `node scripts/selftest.mjs` | No | `report.md#tp-04-15` |
-| TP-04-16 | Regression E2E | e2e-ui | SCN-022-010 | `lifetime-tax-california.spec.mjs` | `Regression: SCN-022-010 California taxes a long term gain in its ordinary schedule` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-010 California taxes a long term gain in its ordinary schedule" --reporter=list` | Yes | `report.md#scenario-scn-022-010` |
-| TP-04-17 | Regression E2E | e2e-ui | SCN-022-011 | `lifetime-tax-california.spec.mjs` | `Regression: SCN-022-011 the exemption credit is applied after the rate and never to income` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-011 the exemption credit is applied after the rate and never to income" --reporter=list` | Yes | `report.md#scenario-scn-022-011` |
+| TP-04-16 | Regression E2E | e2e-ui | SCN-022-010 | `lifetime-tax-california.spec.mjs` | `Regression: SCN-022-010 California renders no preferential stage and a long term gain reaches the identical state result an equal ordinary amount reaches` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-010 California renders no preferential stage and a long term gain reaches the identical state result an equal ordinary amount reaches" --reporter=list` | Yes | `report.md#scenario-scn-022-010` |
+| TP-04-17 | Regression E2E | e2e-ui | SCN-022-011 | `lifetime-tax-california.spec.mjs` | `Regression: SCN-022-011 the exemption credit stage is rendered after the rate and the leg sum and refuses rather than resolving to zero` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-011 the exemption credit stage is rendered after the rate and the leg sum and refuses rather than resolving to zero" --reporter=list` | Yes | `report.md#scenario-scn-022-011` |
 | TP-04-18 | Regression E2E | e2e-ui | SCN-022-012 | `lifetime-tax-california.spec.mjs` | `Regression: SCN-022-012 the surcharge threshold is identical for every filing status` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-022-012 the surcharge threshold is identical for every filing status" --reporter=list` | Yes | `report.md#scenario-scn-022-012` |
 | TP-04-19 | Broader Regression E2E | e2e-ui | SCN-021-*, SCN-022-001 … -012 | Feature 021's five specs plus this feature's four | Every scenario owned by features 021 … 024 passes over the real route — the whole cumulative browser suite for this feature family, zero failed and zero skipped, not a convenient subset. `SCN-02[1-4]` is the alternation `SCN-021`, `SCN-022`, `SCN-023`, `SCN-024` written without a `\|`, which a table cell cannot carry verbatim; it is pinned to the four owning spec numbers, so a scenario owned by any other feature can neither satisfy nor break this row | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list` | Yes | `report.md#tp-04-19` |
 | TP-04-20 | Repo gate | unit | SCN-022-010 … -012 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-04-20` |
@@ -239,29 +239,99 @@ syntax error, a missing browser or an absent test does not satisfy RED.
     the three exclusions the pack encodes. TP-04-12 fell by name under a
     value-free `retrieved`-to-`attempted` probe and returned green under the
     identical command after an in-invocation revert.
-- [ ] `BI-6` was closed by retrievals performed in the implementation session,
-      each recorded with its own `retrievedAt` and its own locator, and no figure
-      was recalled, derived from another figure, or taken from a secondary site.
-  - **Phase:** implement · **Command:** the retrieval records in the pack plus `node scripts/selftest.mjs` · **Evidence:** `report.md#sourcing`
-  - **Open because:** `BI-6` covers three figure groups and only one was
-    retrievable. The Franchise Tax Board publication reached at
-    `https://www.ftb.ca.gov/forms/2026/2026-540-es-instructions.html` states the
-    declared year's standard deduction, but it directs the reader to a prior-year
-    publication for both the rate schedule and the exemption credit amount.
-    A second session retried the two failing URLs — both 404 again — and did
-    reach a rate schedule via the FTB forms index, at the 2025 Form 540 booklet.
-    That does not close the row and makes the obstacle sharper: the pack declares
-    2026, the retrieved schedule is titled *2025 California Tax Rate Schedules*,
-    and the declared-year publication's own worksheet tells the filer to use the
-    2025 table and the 2025 exemption credit. A publication that directs the
-    reader to the prior year's table is the authority stating the declared year's
-    table is not yet published. Transcribing 2025 bands into a 2026 pack is a
-    figure relabelled across tax years, which `BI-6` and FR-022-007 both forbid.
-    The exemption credit was not retrieved even for the prior year — the
-    instructions carry only the AGI limitation, the amount being pre-printed on
-    the form PDF. The pack was left unmodified both times. **Routed to
-    `bubbles.plan`:** this row cannot be closed by another retrieval attempt; it
-    needs a decision about the pack's declared year. See `report.md#sourcing`.
+- [x] `BI-6` was closed by retrievals performed in the implementation session,
+      each recorded with its own `retrievedAt` and its own locator, or every figure
+      those retrievals could not reach ships as an `AbsentFigure/v1` naming its
+      refusal code, its reason, what would make it available and its
+      `missingSource`, and the refusal path is proven end to end. Under either
+      branch no figure was recalled, derived from another figure, or taken from a
+      secondary site.
+  - **Phase:** implement · **Command:** the retrieval records in the pack plus `node scripts/selftest.mjs` · **Evidence:** `report.md#sourcing`, `report.md#tp-04-11`
+  - **Adversarial case this row must still fail.** A figure that appears in the
+    pack under **neither** branch — no `SourceRecord/v1` with its own
+    `retrievedAt` and locator, and no `AbsentFigure/v1` — must fall this row; so
+    must a figure whose value is derived from another figure in the pack, from a
+    federal figure, or from another tax year, however completely it is cited. The
+    second branch is a licence to ship an honest absence, never a licence to ship
+    an unsourced number wearing an absence's paperwork.
+  - **Open because:** `BI-6` covers three figure groups and **none of them was
+    retrievable**. A third session took the route the earlier two had not, the
+    Revenue and Taxation Code sections that create the figures, and retrieved
+    both in full: section 17073.5 for the standard deduction and section 17054
+    for the exemption credits. Neither supplies a declared-year amount, and each
+    says so itself — subdivision 17073.5(d) requires the Franchise Tax Board to
+    *recompute* the deduction every taxable year and subdivision 17054(i)
+    requires it to *compute* the credits the same way, both from a Consumer
+    Price Index change the Department of Industrial Relations transmits **no
+    later than August 1 of the current calendar year**. The printed amounts are
+    a pre-indexing base, exactly as section 17041(h) makes the printed brackets
+    one. The declared-year Form 540 booklet that would carry the recomputed
+    tables returns HTTP 404, as do three further declared-year and prior-year
+    rate pages.
+
+    **The three missing figures, named exactly:** the ordinary rate schedule for
+    all four filing statuses; the standard deduction for all four filing
+    statuses; the personal exemption credit amount for all four filing statuses.
+    **What would unblock them:** publication of the Franchise Tax Board's Form 540
+    personal income tax booklet for the declared tax year, which carries all
+    three in one document. The CPI input for the declared year was transmitted
+    at the start of this month, so the blocker is a dated external publication
+    event, not a broken link a later session could route around.
+
+    **A prior claim on this row is withdrawn.** The earlier note recorded that
+    the declared year's Form 540-ES instructions state the declared year's
+    standard deduction. The amount that worksheet lists for each filing status is
+    identical, to the dollar, to the amount the *prior* year's Form 540 chart
+    lists for the same status, and it sits in a worksheet whose adjacent lines
+    send the filer to the prior year's tax table and the prior year's exemption
+    credit. Section 17073.5(d) mandates a recomputation every year, so a genuine
+    declared-year figure equal to the prior year's to the dollar would require a
+    zero CPI change. Closing this row on it would have relabelled a figure across
+    tax years, which `BI-6` and FR-022-007 both forbid.
+
+    The pack was left carrying no figure for the third time; what changed is that
+    the twelve year-blocked absent figures now name the recomputation mandate,
+    the August 1 transmission and the specific publication whose issue supplies
+    them, instead of saying "was not retrieved in this session". See
+    `report.md#sourcing`.
+  - **Restated 2026-08-22 by `bubbles.plan`: branch one failed, and branch two is
+    now written into the row.** The previous wording carried only the retrieval
+    branch, so it asserted a retrieval that the three sessions above proved cannot
+    happen for the declared year, and no amount of correct work could close it.
+    Scope 03's `BI-5` has carried the two-branch shape all along — closed by a
+    retrieval, **or** the pack ships the figure as an `AbsentFigure/v1` and the
+    refusal path is proven instead — and `BI-6` now matches it. Branch two is
+    **satisfiable today**: the pack carries 16 `AbsentFigure/v1` records, four
+    each under `standardDeductions`, `ordinaryRateTables`, `preferentialRateTables`
+    and the exemption credit's per-status `amounts`, and every one of them carries
+    `code`, `domain`, `reason`, `whatWouldMakeItAvailable` and `missingSource`
+    with no value-bearing member. The refusal path is proven end to end by
+    TP-04-11 in `scripts/selftest.mjs` and by the California regression in
+    `lifetime-tax-state.spec.mjs`, which reads the code, the domain, the reason
+    and the named `missingSource` off a focusable element and proves no dollar
+    figure is rendered anywhere in the state card.
+  - **Still routed to `bubbles.implement`, but for a smaller thing.** Closing this
+    row now needs the verifier to walk all 16 records against the second branch's
+    four named members and confirm the adversarial case above fails, not another
+    retrieval attempt. The question of the pack's declared year remains open and
+    is a separate decision; it no longer holds this row hostage.
+  - **Closed on branch two.** The walk asked for was performed and is owned by an
+    assertion rather than by prose. All 16 records — 4 `standardDeductions`, 4
+    `ordinaryRateTables`, 4 `preferentialRateTables` and the credit's 4 per-status
+    `amounts` — are `AbsentFigure/v1`, each carrying `code`, `domain`, `reason`,
+    `whatWouldMakeItAvailable` and a `missingSource` with a title, a url and a
+    locator, with 16 **distinct** domains and no value-bearing member anywhere. The
+    row's adversarial case is carried by two controls the assertion cannot pass
+    without: a bare number planted under neither branch is counted short by the
+    walk and refused by the contract, and a deduction derived from the surcharge
+    threshold the pack already carries is caught by a cross-group detector that
+    returns one hit on the clone and zero on the shipped pack. Proven able to fail
+    through `scripts/red-green-probe.sh`: duplicating one preferential domain fell
+    it at `3181 passed, 2 failed`, and the same command returned
+    `3183 passed, 0 failed` after the harness reverted and hash-verified. Both RED
+    failures are accounted for read-only rather than assumed — TP-04-01's digest
+    clause, which any pack edit moves, and this assertion.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#bi-6s-second-branch-walked-in-this-session`, `report.md#tp-04-11`
 - [x] FR-022-027 is implemented: every unretrieved figure is an `AbsentFigure/v1`
       with a `missingSource` pointer and no numeric member, and its leg refuses
       while sibling legs still resolve.
@@ -286,26 +356,73 @@ syntax error, a missing browser or an absent test does not satisfy RED.
     dropped from the pooling sum and returned green under the identical command
     after an in-invocation revert; TP-04-10 refuses a pack that declares `none`
     while carrying a table.
-- [ ] FR-022-023 and FR-022-024 are implemented: California's own deduction, and a
-      credit applied after rate application with both figures published, proven by
-      an adversarial mutation.
-  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-04`, `report.md#tp-04-05`, `report.md#tp-04-06`
-  - **Open because:** this row requires published figures, and there are none to
-    publish. Re-derived rather than restated: all four filing statuses'
+- [x] FR-022-023 and FR-022-024 are implemented: California's own deduction is
+      applied to California's own taxable income and is never derived from the
+      federal deduction, and the exemption relief is declared
+      `credit-against-tax` at `after-rate-application` naming the ordinary leg
+      alone, with that stage ordered after both the rate stage and the leg sum —
+      each proven by an adversarial mutation — and when the pack carries no amount
+      for either, that stage refuses under its own named code rather than
+      resolving to zero, being skipped, or borrowing a figure from elsewhere.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-04`, `report.md#tp-04-05`, `report.md#tp-04-06`, `report.md#tp-04-11`
+  - **Adversarial case this row must still fail.** Move the credit to
+    `before-rate-application`; convert it to `deduction-from-income`; reorder the
+    pack so `CO-13` precedes `CO-6` or `CO-8`; clone the pack so a deduction
+    borrows the federal single-filer figure; and — the clause this row adds —
+    replace the absent-amount return in the relief stage with a zero or a skip, so
+    the settlement silently prices a household as though it had claimed nothing
+    rather than refusing. Each of the five must fall this row.
+  - **Restated 2026-08-22 by `bubbles.plan`, and the earlier open-reason is
+    withdrawn.** The previous wording required "both figures published", which
+    presupposed a retrieval that cannot happen: all four filing statuses'
     `standardDeductions` are `AbsentFigure/v1`, and the single
     `ReliefMechanism/v1` carries per-status `amounts` that are each an
-    `AbsentFigure/v1` naming `RLTAX-THRESHOLD-UNAVAILABLE`, so no deduction
-    resolves and no pre-credit and post-credit pair can be shown side by side.
-    The application point itself is proven — TP-04-05 and TP-04-06 pin the credit
-    as `credit-against-tax` at `after-rate-application` with `appliesToLegs`
-    naming the ordinary leg alone, place that stage after both the rate stage and
-    the leg sum, and refuse a pack that moves it before the rate or turns it into
-    a deduction from income. TP-04-04 has no assertion at all: a suite-wide
-    census of the thirteen passing `TP-04-04` lines found **none** naming
-    California, a state deduction or a standard deduction — every one belongs to
-    another feature reusing the row id. This row unblocks when `BI-6` closes, and
-    `BI-6` is now itself routed to `bubbles.plan` over the pack's declared year.
-    It must not be closed by weakening it to the application point alone.
+    `AbsentFigure/v1` naming `RLTAX-THRESHOLD-UNAVAILABLE`, so no pre-credit and
+    post-credit pair can ever be shown while `BI-6` is open. That made the row
+    unclosable for a reason that is not a defect in the work. What FR-022-023 and
+    FR-022-024 actually require is an **application point**, not an amount, and
+    the row now says so.
+  - **What is already proven, and what the verifier must still check.** The
+    mechanism half passes today: TP-04-05 and TP-04-06 pin the credit as
+    `credit-against-tax` at `after-rate-application` with `appliesToLegs` naming
+    the ordinary leg alone, place `CO-13` after both `CO-6` and `CO-8` in the
+    pack's declared order, and refuse a pack that moves it before the rate or
+    turns it into a deduction from income. TP-04-04 owns the never-derived clause
+    and was proven able to fail by name through `scripts/red-green-probe.sh`
+    against `rltaxstate.js`: no number anywhere in the pack equals any federal
+    standard deduction, the settlement publishes `appliedDeduction` as a refusal
+    that propagates, and a clone borrowing the federal single-filer figure is
+    caught. The refusal-rather-than-zero clause is the clause this restatement
+    adds, and it is a real behaviour rather than a placeholder:
+    `applyReliefAfterRate` in `rltaxstate.js` returns `absentFigureRefusal` on an
+    absent per-status amount, and falls through to a named
+    `RLTAX-THRESHOLD-UNAVAILABLE` on a non-finite one, so neither a zero nor a
+    skip is reachable. The verifier must confirm that clause has its own
+    discriminating RED before closing the row.
+  - **This row no longer waits on `BI-6`.** The amounts stay absent for as long as
+    `BI-6` is open, and that is now the row's *expected* state rather than its
+    blocker. It must still not be closed by asserting the application point alone
+    while leaving the absent-amount refusal unproven.
+  - **Closed, with the added clause given its own discriminating RED.** The
+    mechanism half stands unchanged on TP-04-05/TP-04-06 and TP-04-04. The clause
+    the restatement added is now owned by an assertion that reaches
+    `applyReliefAfterRate` directly, because the shipped settlement refuses at the
+    deduction long before `CO-13` and never exercises the stage. For all four
+    filing statuses the shipped pack yields a refusal carrying
+    `RLTAX-THRESHOLD-UNAVAILABLE`, the mechanism's own domain
+    `state-relief:personal-exemption-credit` and a remediation, with **no** `value`,
+    **no** `applied` list and **no** `reductionByLeg` — so neither a zero nor a
+    skip is readable off it. Two controls prove the refusal is caused by the
+    absence rather than by the stage: a synthetic control amount, which is not a
+    California figure and is not offered as one, resolves the same stage into
+    exactly one `CO-13` application against the ordinary leg alone; and a
+    non-finite amount reaches the same named code by its own fall-through. Both
+    failure modes the row names were probed separately through
+    `scripts/red-green-probe.sh` — replacing the refusal with a `continue` (the
+    skip) and with `amount = 0` (the zero). Each fell this assertion **alone** at
+    `3182 passed, 1 failed`, and each same-command GREEN returned
+    `3183 passed, 0 failed` after the harness reverted and hash-verified.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#the-refusal-rather-than-zero-clause-closed-in-this-session`, `report.md#tp-04-04`, `report.md#tp-04-05`, `report.md#tp-04-06`
 - [x] FR-022-025 and FR-022-026 are implemented: all four filing statuses cross at
       the identical surcharge threshold and no credit reduces the surcharge, each
       proven by an adversarial mutation.
@@ -377,9 +494,73 @@ syntax error, a missing browser or an absent test does not satisfy RED.
     unsupported residency pattern refuses *rather than being approximated*, and a
     classifier proven live on both an asserted and a disclaimed form reports
     asserted-estimate count zero.
-- [ ] Every Test Plan row has intended RED and same-command GREEN evidence
+- [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
-  - **Phase:** implement · **Command:** the exact TP-04-01 through TP-04-19 commands · **Evidence:** `report.md#test-evidence`
+  - **Phase:** implement · **Command:** the exact TP-04-01 through TP-04-22 commands · **Evidence:** `report.md#test-evidence`, `report.md#row-census-audit--every-test-plan-rows-intended-red`
+  - **Closed on 2026-08-22.** This row carried two blockers. Both were tested
+    rather than argued, and both fell. What each blocker was, and what closed it,
+    is kept below rather than deleted, because the first blocker's conclusion was
+    wrong and a row that hides its own error rate is not trustworthy.
+  - **Blocker one — the browser rows. Two were retargeted; the third was
+    recorded inexpressible and that record is now withdrawn.** TP-04-16 and
+    TP-04-17 were retargeted on 2026-08-22 against the rendered calculation
+    order, and `tests/lifetime-tax-california.spec.mjs` now carries both titles.
+    TP-04-18 was recorded as unable to be expressed against the refusal path,
+    with the routed instruction "do not author a TP-04-18 test; that row stays
+    unwritten until `BI-6` closes". The premise of that record stands and is not
+    disputed: California's settlement refuses at its unretrieved deduction before
+    any leg is priced, so on the shipped pack all four filing statuses render the
+    identical not-reached surcharge stage and no crossing point exists to
+    observe. The conclusion drawn from it does not stand. This repository had
+    already made an unreachable branch observable twice by serving a contract
+    fixture at a declared pack path — `CO-7` for preferential stacking, and
+    `BI-5` branch two for the sourced zero — and the same means works here. The
+    row is now covered, the routed do-not-author instruction is withdrawn, and
+    the full reasoning with both probes is at `report.md#tp-04-18--recorded-inexpressible-tested-and-overturned`.
+    - **What is fixture and what is California.** The deduction and the ordinary
+      schedule that carry the household past `CO-2` are the fixture's. They are
+      invented for the contract, they are labelled as fixture values in the
+      fixture's own source record and in each figure's own locator, and the test
+      asserts that labelling rather than assuming it. The chassis is
+      unmistakably a fixture and cannot be mistaken for a sourced California
+      pack: id `contract-fixture-no-preferential`, jurisdiction `state:ZZ`,
+      `ruleStatus` `user-hypothetical-law`, `publishedAt` and `retrievedAt` of
+      `2999-01-01`, an `expiresAt` of `9999-12-31`, an `example.invalid` source
+      url, and a retrieval note opening `This is a CONTRACT FIXTURE`.
+    - **No California figure was invented, interpolated or derived.** The
+      surcharge threshold set is the one California figure that was retrieved,
+      and it is used with the `ca-rtc-17043` citation it already had. The test
+      lifts it off the shipped pack at run time and asserts `JSON.stringify`
+      equality against `CALIFORNIA.thresholdSets[setId]`, so it is the shipped
+      object rather than a transcription of it — which is also what makes the row
+      a pin on California rather than on the fixture, proven by a probe that
+      mutates the shipped pack and reddens the row.
+  - **Blocker two — the row-by-row audit, now performed.** The blocker recorded
+    that no session had established that each of the twenty-two rows carries its
+    own intended-RED and same-command-GREEN pair, so the universal claim this row
+    makes was unsupported. That audit was performed in this session and is
+    recorded row by row at `report.md#census`. Eleven rows already carried a
+    pair. The remaining rows were probed through `scripts/red-green-probe.sh`,
+    which verifies the mutation landed, reverts, and verifies the revert by blob
+    hash against the committed object before running GREEN with the identical
+    command. Every unit probe was pinned with `--summary-match` to **the row's
+    own assertion text**, so each block shows that row's own line turning from
+    `✓` to `✗ FAIL:` and back, rather than merely showing the suite go red — a
+    mutation that reddened the suite without flipping the row under audit would
+    have printed an identical compared line on both sides and would not have been
+    recorded as that row's evidence.
+  - **The adversarial case this row had to fail, and why it now passes honestly.**
+    The stated adversarial case was a `lifetime-tax-california.spec.mjs` whose
+    three tests assert nothing beyond the bare refusal — the card's code and the
+    absence of a dollar figure — which would let all three commands report green
+    while covering none of the three behaviours. The shipped spec file is not in
+    that state, and each of the three was shown to fall on the behaviour it
+    names: TP-04-16 falls when a preferential stage is rendered into the stage
+    set, TP-04-17 falls when the credit stage is rendered ahead of the rate stage
+    and the leg sum, and TP-04-18 falls both when the shipped threshold set is
+    declared to vary by filing status and when one status resolves a different
+    threshold while the stage still renders a figure. A bare refusal assertion
+    survives none of those three mutations.
 - [x] `node scripts/selftest.mjs` is green with no fall in pass count and no
       existing assertion edited, `node scripts/validate-spec-test-paths.mjs`
       reports zero new missing paths, and `node scripts/build-pages-site.mjs

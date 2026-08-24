@@ -1377,3 +1377,249 @@ touched. The regression is therefore routed to the owner of that spec rather tha
 absorbed here: `specs/027-*` is outside this scope's change boundary and editing
 it would be a boundary violation, not a fix.
 
+## Harness Pass 7 — `TP-04-30`, `TP-04-28` And `TP-04-29` Carry Intended REDs
+
+Three rows had no recorded RED and no recorded GREEN in this report. `TP-04-30`
+is the live-route `NFR-023-003` proof authored in `tests/lifetime-tax-use.spec.mjs`
+after the closure table above was written; `TP-04-28` and `TP-04-29` are the two
+gate rows, which the closure table never covered because it ran to `TP-04-25`.
+Every block below is `scripts/red-green-probe.sh` output, pasted unedited, with
+the revert proven by blob hash.
+
+### `TP-04-30` — the live-route privacy row, three arms
+
+The row names three separable adversarial cases and no single mutation fails more
+than one of them, so each is probed on its own. Each RED names the row's own
+assertion by file line.
+
+**Arm A — a boot that read nothing**, which is what makes the other two
+assertions non-vacuous.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-30 arm A, non-empty pin: a boot that read nothing must fail this row, so the no-growth and permitted-set assertions cannot pass vacuously over an empty ledger
+file:             tests/lifetime-tax-use.spec.mjs
+mutation:         const afterFirstPaint = ledger.length;  ->  const afterFirstPaint = ledger.length * 0;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-010\ the\ request\ ledger\ does\ not\ grow\ after\ the\ day-count\ declarations --reporter=line
+red-exit:         1
+red-summary:          > 374 |   expect(afterFirstPaint).toBeGreaterThan(0);
+green-exit:       0
+green-summary:      1 passed (2.9s)
+summary-compared:     > 374 |   expect(afterFirstPaint).toBeGreaterThan(0);  vs     1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=09d9dacef1fc5cd3a33cdc8b801a43841bb89ef3 restored=09d9dacef1fc5cd3a33cdc8b801a43841bb89ef3)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Arm B — a request issued after the declarations are entered.** Subtracting one
+from the capture is the arithmetic image of exactly one such request, so the
+non-empty pin still holds and only the no-growth equality fails.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-30 arm B, ledger growth: a request issued after the day-count declarations are entered must fail this row
+file:             tests/lifetime-tax-use.spec.mjs
+mutation:         const afterFirstPaint = ledger.length;  ->  const afterFirstPaint = ledger.length - 1;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-010\ the\ request\ ledger\ does\ not\ grow\ after\ the\ day-count\ declarations --reporter=line
+red-exit:         1
+red-summary:          > 387 |   expect(ledger.length).toBe(afterFirstPaint);
+green-exit:       0
+green-summary:      1 passed (3.7s)
+summary-compared:     > 387 |   expect(ledger.length).toBe(afterFirstPaint);  vs     1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=09d9dacef1fc5cd3a33cdc8b801a43841bb89ef3 restored=09d9dacef1fc5cd3a33cdc8b801a43841bb89ef3)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Arm C — a read of a path the configuration does not declare.** Withdrawing the
+declared pack family leaves the federal pack read, which the boot really makes,
+outside the permitted set.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-30 arm C, permitted-set membership: a read of a path the configuration does not declare must fail this row; withdrawing the declared pack family makes the federal pack read undeclared
+file:             tests/lifetime-tax-use.spec.mjs
+mutation:         .concat(scripts).concat(packs).concat(['/favicon.ico']);  ->  .concat(scripts).concat([]).concat(['/favicon.ico']);   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-010\ the\ request\ ledger\ does\ not\ grow\ after\ the\ day-count\ declarations --reporter=line
+red-exit:         1
+red-summary:          > 395 |   paths.forEach((path) => expect(permitted).toContain(path));
+green-exit:       0
+green-summary:      1 passed (2.2s)
+summary-compared:     > 395 |   paths.forEach((path) => expect(permitted).toContain(path));  vs     1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=09d9dacef1fc5cd3a33cdc8b801a43841bb89ef3 restored=09d9dacef1fc5cd3a33cdc8b801a43841bb89ef3)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-28` — path guard
+
+The mutation targets the guard's own resolution rather than planting a fabricated
+`tests/…` token in a spec artifact. A planted token would survive into this
+report, which is itself scanned, and would turn the guard permanently red — the
+probe would break the property it exists to prove.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-28 path guard: a spec-referenced path that does not resolve to a file must be reported as newly missing
+file:             scripts/validate-spec-test-paths.mjs
+mutation:         statSync(resolve(root, path)).isFile()  ->  statSync(resolve(root, path)).isDirectory()   (1 occurrence(s))
+command:          node scripts/validate-spec-test-paths.mjs
+red-exit:         1
+red-summary:      [spec-test-paths] FAIL — 190 new referenced path(s) do not exist
+green-exit:       0
+green-summary:    [spec-test-paths] OK — no new missing test path(s)
+summary-compared: [spec-test-paths] FAIL — 190 new referenced path(s) do not exist  vs  [spec-test-paths] OK — no new missing test path(s)   (elapsed time normalised out)
+revert-verified:  yes (committed=760f9bf0ebc04663675eee3f9d6cd81bcd9c8d0a restored=760f9bf0ebc04663675eee3f9d6cd81bcd9c8d0a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-04-29` — deploy gate
+
+This feature's route is deliberately unregistered, so its only deploy decision is
+its entry in the exclusion list. The probe points that entry at a different
+existing file, which leaves the list internally valid and non-stale while leaving
+the route itself without any decision.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-29 deploy gate: this feature route losing its deploy decision must refuse the Pages plan
+file:             site-exclusions.json
+mutation:         "path": "lifetime-tax-strategy-lab.html",  ->  "path": "index.html",   (1 occurrence(s))
+command:          node scripts/build-pages-site.mjs --dry-run
+red-exit:         1
+red-summary:      Error: unregistered root page lacks a deploy decision: lifetime-tax-strategy-lab.html
+green-exit:       0
+green-summary:    {"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":29,"excludedPaths":12,"rootFiles":130,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","
+revert-verified:  yes (committed=29c6fe08a58d97c1f119abdd38706cf02f675d60 restored=29c6fe08a58d97c1f119abdd38706cf02f675d60)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Claim Source:** executed. All five blocks are verbatim harness output from this
+session. Every revert was hash-verified against the committed blob and
+`git status --short` for each touched file was re-read clean afterwards.
+
+### Effect on the DoD rows
+
+The live-route `NFR-023-003` row is satisfied and ticked: the ledger does not
+grow after first paint, every entry is a same-origin read of a declared path, and
+neither assertion can pass over an empty ledger.
+
+The every-row RED/GREEN item is **not** ticked. One row still carries no observed
+intended RED: `TP-04-26`, the cross-feature cumulative `e2e-ui` row. It is the
+only row the closure table above never reached and the only one no later pass
+addressed. Its own text says the item requires a RED on every row from `TP-04-01`
+through `TP-04-26`, so a single uncovered row leaves the word "Every" false. That
+one row is named here rather than absorbed into a count.
+
+## TP-04-26 probe A — rejected, and two findings it produced (2026-08-22)
+
+This is the first mutation ever aimed at `TP-04-26`. The harness exited `0` and
+printed `discriminating: yes`. **That verdict is not accepted here**, and the
+reasons are recorded rather than the exit code banked.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-26 cross-feature cumulative browser row: a Feature-024 defect — an off-by-one that stops selecting the IRMAA bracket at its exact sourced lower bound — must make the whole 021-024 cumulative run fail, because this row claims the entire family is exercised rather than a convenient subset
+file:             rltaxmedicare.js
+mutation:         result: amount >= bracket.lowerBound  ->  result: amount > bracket.lowerBound   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-02\[1-4\] --reporter=list
+red-exit:         1
+red-summary:        ✓  50 [system-chrome] › tests/lifetime-tax-medicare.spec.mjs:81:1 › Regression: SCN-024-011 the bracket is selected at the exact boundary and both part adjustments are shown with their citatio
+green-exit:       1
+green-summary:      ✓  48 [system-chrome] › tests/lifetime-tax-medicare.spec.mjs:81:1 › Regression: SCN-024-011 the bracket is selected at the exact boundary and both part adjustments are shown with their citatio
+summary-compared:   ✓  50 [system-chrome] › tests/lifetime-tax-medicare.spec.mjs:81:1 › Regression: SCN-024-011 the bracket is selected at the exact boundary and both part adjustments are shown with their citatio  vs    ✓  48 [system-chrome] › tests/lifetime-tax-medicare.spec.mjs:81:1 › Regression: SCN-024-011 the bracket is selected at the exact boundary and both part adjustments are shown with their citatio   (elapsed time normalised out)
+revert-verified:  yes (committed=b208de7cd8d48817baf21dabb6a92d9c48ca1d13 restored=b208de7cd8d48817baf21dabb6a92d9c48ca1d13)
+discriminating:   yes (summary differs: "  ✓  50 [system-chrome] › tests/lifetime-tax-medicare.spec.mjs:81:1 › Regression: SCN-024-011 the bracket is selected at the exact boundary and both part adjustments are shown with their citatio" vs "  ✓  48 [system-chrome] › tests/lifetime-tax-medicare.spec.mjs:81:1 › Regression: SCN-024-011 the bracket is selected at the exact boundary and both part adjustments are shown with their citatio")
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Why the verdict is rejected.** The pinned scenario carries `✓` in *both*
+captures, so it passed with the defect planted. The only difference between the
+two lines is the `--reporter=list` running ordinal, `50` against `48`, which is a
+parallel-scheduling artefact and not an outcome. `normalize_summary` strips
+elapsed time but has no reason to strip an ordinal, so a per-test list line is
+not a safe `--summary-match` target for this runner. Reading this as a RED would
+have recorded a passing scenario as a failing one.
+
+**Finding A — the mutation was mis-aimed, and the row's own spec says so.**
+`rltaxmedicare.js` splits the boundary test by the pack's declared
+`boundaryOperator`. The mutation edited the `greater-than-or-equal` branch, but
+the comment inside `SCN-024-011` states that the row above the first boundary
+declares `greater-than`, so the tested boundary never reaches the branch that was
+edited. The defect was therefore unreachable from this scenario. This is a wrong
+target, not a weak assertion, and it is corrected in probe B rather than being
+answered by trying further mutations.
+
+**Finding B — this row's own command exits non-zero intermittently on a clean
+tree, so its exit channel cannot be read on its own.** `green-exit` is `1` above
+with the target file hash-verified back to its committed blob. A clean baseline
+run of the identical command, captured separately, ends:
+
+```text
+Error: worker-3 process did not exit within 300000ms after stop, force-killed it
+Error: worker-1 process did not exit within 300000ms after stop, force-killed it
+
+  88 passed (5.4m)
+  2 errors were not a part of any test, see above for details
+```
+
+Every scenario passes and the run still exits `1`, because two workers miss the
+teardown deadline. **Corrected by probe B below:** this is intermittent, not
+deterministic. Probe B's GREEN arm ran the same command and exited `0` at
+`88 passed (2.8m)`, so the earlier wording here — that the command *cannot* exit
+zero — was wrong and is withdrawn. What survives is narrower and still worth
+naming: a passing run of this row's command sometimes exits `1` on worker
+teardown, so a bare exit status is not by itself a safe reading of the row's
+"zero failed and zero skipped" claim, and a probe pinned only to the exit channel
+could report an inert mutation as discriminating.
+
+## TP-04-26 probe B — the intended RED, aimed at the branch the boundary takes (2026-08-22)
+
+Probe A's Finding A said the target was wrong rather than the assertion weak, and
+this probe corrects the aim without changing the defect's shape. The pack row
+above the first boundary declares `greater-than`, so the reachable defect is
+making that comparison inclusive: a household sitting exactly on the sourced
+figure is then pulled into the row above, which is precisely the off-by-one
+`SCN-024-011` exists to catch.
+
+`--summary-match` is pinned to the run's own verdict line rather than to a
+per-test list line, because probe A showed the list line carries a parallel
+running ordinal that moves between runs on its own. The count it reads is this
+row's own family total, not a repository-wide aggregate: the grep is
+`SCN-02[1-4]`, so a concurrent session's spec cannot enter or leave it.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-04-26 cross-feature cumulative browser row: a Feature-024 defect — the IRMAA boundary above the first bracket declares greater-than, so making it inclusive pulls a household sitting exactly on the sourced figure into the row above — must make the whole 021-024 cumulative run fail, because this row claims the entire family is exercised rather than a convenient subset
+file:             rltaxmedicare.js
+mutation:         result: amount > bracket.lowerBound  ->  result: amount >= bracket.lowerBound   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-02\[1-4\] --reporter=list
+red-exit:         1
+red-summary:        87 passed (5.1m)
+green-exit:       0
+green-summary:      88 passed (2.8m)
+summary-compared:   87 passed (<elapsed>)  vs    88 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=b208de7cd8d48817baf21dabb6a92d9c48ca1d13 restored=b208de7cd8d48817baf21dabb6a92d9c48ca1d13)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Both channels moved: the exit status went `1` against `0`, and the family total
+fell from `88 passed` to `87 passed`. One scenario failed and no other, so the
+mutation was caught by the assertion that names it rather than by collateral
+breakage, and the row's claim that the whole `SCN-021` … `SCN-024` family is
+exercised is what carried the failure out of Feature 024 and into this row.
+
+**Claim Source:** executed. Both blocks are verbatim harness output from this
+session. The revert is hash-verified against the committed blob in each, and
+`git status --short -- rltaxmedicare.js` was re-read clean afterwards.
+
+### Effect on the DoD row, restated
+
+`TP-04-26` was the single named row the item stayed open on. It now carries an
+observed intended RED and a same-command GREEN, so every row from `TP-04-01`
+through `TP-04-30` carries both arms and the word "Every" holds. The item is
+ticked.
+

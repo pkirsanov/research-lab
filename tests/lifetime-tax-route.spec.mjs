@@ -11,7 +11,8 @@ import {
   declareOrdinaryHousehold,
   declaredPackPaths,
   openLifetimeTax,
-  openPower
+  openPower,
+  sameOriginPaths
 } from './lifetime-tax.support.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -299,7 +300,7 @@ test('Regression: SCN-021-014 tax and account tables stay readable at the mobile
   expect(Math.round(after.height)).toBe(Math.round(before.height));
 });
 
-test('Regression: SCN-021-015 a private export happens only on explicit action and the request ledger stays empty', async ({ page }) => {
+test('Regression: SCN-021-015 a private export happens only on explicit action, the request ledger does not grow after first paint, and every entry is a declared same-origin read', async ({ page }) => {
   const ledger = collectRequests(page);
   const consoleMessages = collectConsole(page);
   const downloads = [];
@@ -307,7 +308,11 @@ test('Regression: SCN-021-015 a private export happens only on explicit action a
 
   await openLifetimeTax(page, site);
   const afterFirstPaint = ledger.length;
-
+  /* TP-05-18. Without this pin every ledger assertion in this row is a filter over a snapshot that
+     a boot reading NOTHING satisfies: `afterFirstPaint` would be 0, the no-growth check below would
+     read `expect(0).toBe(0)`, and the declared-asset sweep would compare two empty arrays. The row
+     would pass while covering nothing. */
+  expect(afterFirstPaint).toBeGreaterThan(0);
   /* The sensitivity warning is rendered before any file can exist, and the control is disabled
      until the reader acknowledges it. */
   await expect(page.locator('#exportWarning')).toContainText('It is written only when you ask for it');
@@ -362,7 +367,10 @@ test('Regression: SCN-021-015 a private export happens only on explicit action a
      not by the view switch, and not by the export. */
   await openPower(page);
   expect(ledger.length).toBe(afterFirstPaint);
-  const paths = ledger.map((entry) => new URL(entry.url).pathname);
+  /* TP-01-18. The origin half, via the shared helper. A pathname is not an origin: the sweep two
+     lines down accepts `https://elsewhere.example/rltaxstrategy.js` because its PATHNAME is
+     declared. This refuses it. */
+  const paths = sameOriginPaths(ledger, site);
   /* SUP-023-10. See the companion replacement in lifetime-tax-foundation.spec.mjs. The permitted
      asset set is derived from the route's own script tags and its declared configuration and
      rule pack, so Scope 01's added module is absorbed without weakening the promise that nothing

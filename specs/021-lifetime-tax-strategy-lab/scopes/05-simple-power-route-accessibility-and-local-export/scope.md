@@ -223,10 +223,11 @@ the identical command for GREEN.
 | TP-05-11 | Regression E2E | e2e-ui | SCN-021-013 | `lifetime-tax-route.spec.mjs` | `Regression: SCN-021-013 Simple opens first with a decision level answer and Power holds the detail` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-013 Simple opens first with a decision level answer and Power holds the detail" --reporter=list` | Yes | `report.md#scenario-scn-021-013` |
 | TP-05-12 | Accessibility Regression E2E | e2e-ui | SCN-021-014 | `lifetime-tax-route.spec.mjs` | `Regression: SCN-021-014 every value is explained and every unavailable state is keyboard reachable` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-014 every value is explained and every unavailable state is keyboard reachable" --reporter=list` | Yes | `report.md#scenario-scn-021-014` |
 | TP-05-13 | Mobile Regression E2E | e2e-ui | SCN-021-014 | `lifetime-tax-route.spec.mjs` | `Regression: SCN-021-014 tax and account tables stay readable at the mobile viewport` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-014 tax and account tables stay readable at the mobile viewport" --reporter=list` | Yes | `report.md#scenario-scn-021-014-mobile` |
-| TP-05-14 | Privacy Regression E2E | e2e-ui | SCN-021-015 | `lifetime-tax-route.spec.mjs` | `Regression: SCN-021-015 a private export happens only on explicit action and the request ledger stays empty` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-015 a private export happens only on explicit action and the request ledger stays empty" --reporter=list` | Yes | `report.md#scenario-scn-021-015` |
+| TP-05-14 | Privacy Regression E2E | e2e-ui | SCN-021-015 | `lifetime-tax-route.spec.mjs` | `Regression: SCN-021-015 a private export happens only on explicit action, the request ledger does not grow after first paint, and every entry is a declared same-origin read` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-021-015 a private export happens only on explicit action, the request ledger does not grow after first paint, and every entry is a declared same-origin read" --reporter=list` | Yes | `report.md#scenario-scn-021-015` |
 | TP-05-15 | Broader Regression E2E | e2e-ui | SCN-021-001 … -015 | `lifetime-tax-foundation.spec.mjs`, `lifetime-tax-federal.spec.mjs`, `lifetime-tax-marginal.spec.mjs`, `lifetime-tax-conversion.spec.mjs`, `lifetime-tax-route.spec.mjs` | Execute the complete cumulative Feature 021 browser suite over the real route with no request interception, no service worker and no external provider | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-0" --reporter=list` | Yes | `report.md#tp-05-15` |
 | TP-05-16 | Repo gate | unit | SCN-021-013 … -015 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-05-16` |
 | TP-05-17 | Path guard | unit | SCN-021-013 … -015 | `scripts/validate-spec-test-paths.mjs` | Zero new missing spec-referenced test paths | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-05-17` |
+| TP-05-18 | Privacy E2E | e2e-ui | SCN-021-015 | `tests/lifetime-tax-route.spec.mjs` | GAP, NOT AUTHORED (opened 2026-08-22, F-REG-03). `TP-05-14` captures `afterFirstPaint = ledger.length` and asserts `expect(ledger.length).toBe(afterFirstPaint)`, but never asserts `afterFirstPaint` is greater than zero — alone in this family. Against a route that read nothing, `afterFirstPaint` would be 0, the no-growth assertion would read `expect(0).toBe(0)`, and the declared-asset sweep `expect(paths.filter((entry) => !declaredAssets.includes(entry))).toEqual([])` would compare two empty arrays. The row would pass while covering nothing: the guard-that-cannot-fail class. Required: `expect(afterFirstPaint).toBeGreaterThan(0)` immediately after the capture, matching every sibling row. Adversarial case: a boot that issued no request at all must fail this row; today it passes it | not authored | Yes | not authored |
 
 Before any browser row, run `node scripts/validate-node-source-lock.mjs` and
 `npx --no-install playwright --version`. These environment gates do not replace a
@@ -270,6 +271,42 @@ Test Plan row.
   - **Claim Source:** executed · **Result:** absence is clean — `grep -c 'lifetime-tax-strategy-lab'` returns `0` for all six surfaces, so the tool is unregistered and unreachable from navigation, the registry, either README or market-brief coverage. Byte-identity is **qualified and the qualification is stated rather than hidden**: five of the six are unmodified, and the sixth, `notes/README.md`, carries one change that is not this scope's — the full diff is two geopolitical note rows added by a concurrent session, neither mentioning the tax lab. The clause's purpose (this scope registers the tool nowhere and modifies no registration surface) is proven; the literal all-six byte-identity does not hold, for a reason outside this scope's control and fully attributed in the report.
 - [x] Every Test Plan row has intended RED evidence and same-command GREEN
       evidence, recorded before the cumulative browser row.
+  - **Phase:** implement · **Command:** `node scripts/selftest.mjs` and the TP-05-15 cumulative browser command · **Evidence:** `report.md#tp-05-16-and-tp-05-15-earned--the-last-two-rows-without-a-red-2026-08-23`
+  - **Claim Source:** executed · **Result:** all eighteen rows now carry an intended RED and a same-command GREEN. The two that did not are earned in this session and recorded in the report section named above: `TP-05-16` discriminates at exit `1` against `0` with the pinned assertion moving from `✗ FAIL` to `✓`, and `TP-05-15` discriminates at exit `1` against `0` with the pin on a conversion-spec scenario this scope does not own. Both reverts are hash-verified against the committed blob.
+  - **Ticked 2026-08-23, superseding the two notes below, and correcting one of
+    them.** `TP-05-15` was described there as carrying "GREEN only". That was
+    wrong: its section held no run of its own `--grep "SCN-021-0"` command at
+    all, and `Gate 1`'s explicit five-file, 16-test command is a different
+    selection that does not stand in for it. Both arms are supplied now — a
+    17-test same-command GREEN captured under `evidence-capture.sh` at exit 0,
+    and an intended RED on the identical command. `TP-05-16`'s earlier exit-7
+    result is **not** withdrawn: its own conclusion was that the guard it mutated
+    is unasserted, so that mutation could never reach this row's contract, and
+    that blind spot in `rltaxstrategy.js` — paired with the identical shape in
+    `rltaxworkspace.js` — remains recorded in the report as a finding. The probe
+    run here is the first one placed inside the row's reach, not a retry of the
+    same experiment.
+  - **Superseded note, 2026-08-22.** Two of the three gaps are closed.
+    `TP-05-18` is now authored and carries a RED with a same-command GREEN, so
+    the note below no longer applies to it. Of the three rows the note itself
+    identifies as outside the command range, `TP-05-17` now carries a
+    discriminating path-guard probe. Two rows remain without a RED and both are
+    named rather than counted away. `TP-05-15`, the cumulative browser row, was
+    not probed. `TP-05-16`, the repo gate, **was** probed and the harness
+    returned exit 7 — the RED and GREEN channels agreed. That result is recorded
+    in `report.md#tp-05-17-reds-tp-05-16-does-not--one-probe-one-finding-2026-08-22`
+    as a finding rather than retried with a different mutation. The finding is
+    about the module, not the row: relaxing the non-empty string guard in
+    `rltaxstrategy.js` so a zero-length string is accepted moves no assertion in
+    a 3384-assertion suite. The identical shape was found in `rltaxworkspace.js`
+    under Scope 01's `TP-01-16`, so this is a pair rather than a one-off.
+  - **Superseded note, 2026-08-22 (F-REG-03).** `TP-05-18` was opened in this scope and
+    is not authored, so it carries neither a RED nor a GREEN. The word "Every"
+    therefore no longer holds. This item's own **Command** already named a
+    narrower range than its headline — `TP-05-01` through `TP-05-14`, while
+    `TP-05-15` through `TP-05-17` also exist — so the headline over-claimed before
+    this change too. Ticking it again requires `TP-05-18` authored with a RED and
+    a same-command GREEN.
   - **Phase:** implement · **Command:** the exact TP-05-01 through TP-05-14 commands · **Evidence:** `report.md#test-evidence`
   - **Claim Source:** executed · **Result:** all fourteen rows are covered. TP-05-01, -02, -05, -07 and -10 were probed in earlier sessions of this scope; TP-05-03, -04, -06, -08, -09, -11, -12, -13 and -14 were probed in this one. Every probe ran through `scripts/red-green-probe.sh`, which installs its restore trap before it writes, refuses a dirty target, verifies the mutation landed, reverts, and re-derives the committed blob hash — so no mutation could survive a truncated dispatch. Nine probes are recorded in this session and every one discriminated: no assertion survived the mutation that names its own defect. Two probe-design findings are recorded rather than hidden — an inert markup attribute that made a first mutation a no-op, and a Playwright summary channel that reported a false discrimination on an elapsed-time string until the duration was normalised out.
 - [x] Feature 008 files and every brief or data artifact are byte-identical.

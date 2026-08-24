@@ -1004,18 +1004,137 @@ the delivered set equals Scope 01's eleven plus this scope's eight, each marked
 region names its shape, and no assertion changed without a marker.
 Command: `node scripts/selftest.mjs`
 
-Not delivered in this session. This session appended a new group and edited no marked
-region, so the delivered marker set is unchanged from what it was before this session
-began; the row's own conformance assertion was not written.
+**Delivered 2026-08-20. Claim Source: executed.** The row was unwritable for as
+long as it depended on the withheld-detail entry, which could not be delivered
+while Scope 05's census pinned the tolerated marker gap to a literal pair of ids
+(finding F-02-D). That census now derives its tolerance from the ledger's own
+`Disposition` column and the entry is delivered, so the row was written.
+
+It does **not** restate the Scope 05 census. That one closes marker-to-ledger
+membership and is left untouched. This row adds the three clauses it does not
+carry:
+
+1. **The ownership arithmetic the Test Plan states, derived at run time.** The
+   expected delivered set is Scope 01's owned ids, plus this scope's owned ids
+   less the one the ledger dispositions `marker forbidden`, plus exactly those
+   later-scope ids already present — each read out of the ledger's `Owning scope`
+   and `Disposition` columns rather than pinned to a total that goes stale the
+   next time a scope lands. The counts the row names are asserted as a
+   cross-check on the derivation rather than in place of it: twelve owned by
+   Scope 01, nine owned here, eight of those nine deliverable.
+2. **Each marked region names its shape.**
+3. **Containment.** No marker may sit in a lifetime-tax source, spec or page file
+   outside the five this scope opened, which is how an assertion could otherwise
+   be changed under a marker no census reads.
+
+Green:
+
+```text
+  ✓ TP-02-22: the delivered marker set equals the set the feature ledger derives at run time — Scope 01’s owned ids, plus this scope’s owned ids less the one the ledger forbids, plus exactly those later-scope ids already present — every ledger row carries a recognised disposition, every delivered marker names its own shape, and no marker escapes the five opened files into another lifetime-tax source or spec (delivered 21, expected 21, shapeless [], escaped [])
+Research-Lab self-test: 3175 passed, 0 failed
+```
+
+**A miss the first draft made, recorded rather than corrected in silence.** The
+shape reader first anchored on the first appearance of an id. The reconciliation-leg
+entry is legitimately cross-referenced from a neighbouring region that sorts
+earlier in the file than its own declaration, so the row reported that entry as
+declaring no shape when it plainly does. The reader now anchors on the
+**declaration** form — the one occurrence that states what the entry supersedes —
+and additionally requires **exactly one** declaration per id, so two declarations
+of one id cannot let a later region claim a shape the ledger never assigned it.
+That is strictly stronger than the first draft, not a relaxation of it.
+
+**Intended RED through `scripts/red-green-probe.sh`.** The mutation is the defect
+the row exists to catch: a delivered marker is removed from the region it marks,
+leaving the assertion changed and nothing accounting for it. The mutation is a
+comment rewrite and carries no household figure:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-22 a delivered supersession marker is removed from the region it marks
+file:             tests/lifetime-tax-route.spec.mjs
+mutation:         /* SUP-022-19: supersedes the positional  ->  /* Withheld-detail entry: supersedes the positional   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-22: the delivered marker set equals the set the feature ledger derives at run time — Scope 01’s owned ids, plus this scope’s owned ids less the one the ledger forbids, plus exa
+green-exit:       0
+green-summary:      ✓ TP-02-22: the delivered marker set equals the set the feature ledger derives at run time — Scope 01’s owned ids, plus this scope’s owned ids less the one the ledger forbids, plus exactly t
+revert-verified:  yes (committed=3dfba4ff140d64bf3c638c8e100d565c68be9848 restored=3dfba4ff140d64bf3c638c8e100d565c68be9848)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The mutation target is the route spec rather than `scripts/selftest.mjs` on
+purpose. The harness refuses a dirty or untracked target with exit 4, and a
+concurrent session holds uncommitted lines in the shared selftest, so probing the
+file the assertion lives in was unavailable. Mutating an input the assertion reads
+is the stronger probe anyway: it drives the row through the tree it is supposed to
+be measuring rather than through its own source.
 
 ### TP-02-23
 
 The moved-versus-deleted and disjointness mutations, each demonstrated to fail.
 Command: `node scripts/selftest.mjs`
 
-Not delivered in this session. The third clause of this row depends on SUP-022-18's
-cross-artifact `SIMPLE_FIELDS` identity, which cannot be written before the Simple panels
-exist.
+**Delivered 2026-08-20. Claim Source: executed.** All three cases the row names
+are present, each demonstrated to fail against a mutated copy while the shipped
+tree passes. Nothing on disk is mutated: the packs are deep clones and the route
+spec is read as a string, so the demonstration cannot strand a live mutation the
+way an in-file probe can.
+
+1. **Moved versus deleted.** A pack clone with the surtax id removed from
+   `unsupportedFeatures[]` *and* from `taxLegs[]` — deleted rather than moved —
+   fails the clause the reconciliation entries share: absent from the contributor
+   set **because** it became a declared leg. The shipped pack passes it.
+2. **Disjointness.** A pack clone that lists the same id in both
+   `unsupportedFeatures[]` and `taxLegs[]` fails disjointness, and the clone is
+   asserted to actually carry the id so the case cannot pass vacuously. The
+   shipped pack passes.
+3. **Declared-target selection**, asserted over the route spec's own source text
+   as the row requires. A copy of that source with the declared-target locator
+   replaced by an ordinal fails the clause; the shipped source passes it. The
+   replacement is asserted to have landed, so a no-op edit cannot report a
+   discrimination that did not happen.
+
+Comments are stripped before the third case reads the source, and that is
+load-bearing rather than cosmetic: the marked region legitimately **names** the
+superseded ordinal expectation in its own prose, so a scan that read the comment
+would report the regression present in a tree that does not contain it.
+
+Green:
+
+```text
+  ✓ TP-02-23: a pack that removes the surtax from the unavailable-contributor set without declaring a computed leg fails the moved-versus-deleted clause, a pack that lists the same id in both unsupportedFeatures[] and taxLegs[] fails the disjointness clause, and a route spec that selects a withheld-detail link by ordinal instead of by its declared target fails the declared-target clause — each against a mutated copy while the shipped tree passes all three
+Research-Lab self-test: 3175 passed, 0 failed
+```
+
+**Intended RED through `scripts/red-green-probe.sh`.** The mutation reintroduces
+the exact regression the third case exists to forbid — the route spec selects a
+withheld-detail link by ordinal again:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-23 the route spec reverts to selecting a withheld-detail link by ordinal
+file:             tests/lifetime-tax-route.spec.mjs
+mutation:         page.locator(`#powerLinkRows button[data-power-section="${FOCUS_TARGET}"]`)  ->  links.nth(3)   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-23: a pack that removes the surtax from the unavailable-contributor set without declaring a computed leg fails the moved-versus-deleted clause, a pack that lists the same id in both 
+green-exit:       0
+green-summary:      ✓ TP-02-23: a pack that removes the surtax from the unavailable-contributor set without declaring a computed leg fails the moved-versus-deleted clause, a pack that lists the same id in both unsupp
+revert-verified:  yes (committed=3dfba4ff140d64bf3c638c8e100d565c68be9848 restored=3dfba4ff140d64bf3c638c8e100d565c68be9848)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### The marker completion this delivery required
+
+The shape clause found one real gap in the tree before it could pass: the
+declared-edge entry's marked region opened `SUP-022-20.` with a period and carried
+no `shape=` token, while this scope's own ledger assigns it `derive`. Its comment
+was completed to the declaration form the other twenty carry. That is a comment
+edit inside a marked region **this scope owns**; no assertion text, condition or
+message was touched, and the pass count did not fall.
 
 ## Supersession Ledger
 
@@ -1616,4 +1735,525 @@ one row is inserted; the numbers above are from that run.
 `node scripts/selftest.mjs` reports `3155 passed, 0 failed`. Against the pinned form
 this same tree was `3154 passed, 1 failed` — that is F-02-D, and it is now closed by
 construction rather than by deferring the work.
+
+### The no-edit property, derived from history rather than asserted
+
+The sibling Definition of Done item asks that no assertion outside this scope's
+ledger entries and amendments was edited, relaxed or deleted. Every prior pass
+recorded that property as an assertion of the author, which is exactly the shape
+the item's own closing sentence refuses. It is derived here instead, from the
+only channel that can falsify it: the deletion set of this scope's commits.
+
+Three commits touch source in this scope. Their whole footprint over the five
+opened files is below, and the **deletion** column is the one that matters —
+an insertion cannot relax an assertion that is still present.
+
+```text
+c580636d6  scripts/selftest.mjs              170 insertions(+), 1 deletion(-)
+64f50a325  scripts/selftest.mjs               37 insertions(+), 13 deletions(-)
+4558c0f3c  tests/lifetime-tax-route.spec.mjs  14 insertions(+), 2 deletions(-)
+```
+
+All sixteen deleted lines are accounted for individually, and none is an
+assertion outside this scope's entitlement:
+
+```text
+c580636d6 (1)  -  /* SUP-022-20. TP-03-05: every declared band edge renders as a step. The expected edge set is
+64f50a325 (13) -  /* The supersession ledger is closed: every delivered marker maps to a ledger row. */
+               -  const ledgerRows = new Set((specText.match(/^\| (SUP-022-\d{2}) \|/gm) || [])
+               -    .map((row) => /SUP-022-\d{2}/.exec(row)[0]));
+               -  const ledgerList = Array.from(ledgerRows).sort();
+               -  /* Two Scope 02 replacements were delivered without their markers before this scope began. The
+               -     gap is named individually here rather than tolerated by a loose comparison, so a third
+               -     undelivered marker, or a delivered marker with no ledger row, fails immediately. The ids are
+               -     assembled from parts so that naming them here does not make the scanner see them as
+               -     delivered. */
+               -  const MARKER_PREFIX = 'SUP-022-';
+               -  const KNOWN_UNMARKED_LEDGER_ROWS = [MARKER_PREFIX + '18', MARKER_PREFIX + '19'];
+               -    && JSON.stringify(unmarkedLedgerRows) === JSON.stringify(KNOWN_UNMARKED_LEDGER_ROWS)
+               -  'TP-05-22: every SUP-022 marker delivered in the source maps to a ledger row, every ledger row except the two pre-exi
+4558c0f3c (2)  -  await links.nth(3).click();
+               -  await expect(page.locator('#power-bracket-detail')).toBeFocused();
+```
+
+Read row by row:
+
+* The single deletion in `c580636d6` is a **comment header**, not an assertion.
+  The declared-edge region opened `SUP-022-20.` with a period and carried no
+  `shape=` token; it was completed to the declaration form the other twenty
+  carry, inside a region this scope owns. No condition, no message, no operand.
+* The thirteen in `64f50a325` are the whole of the TP-05-22 block that
+  `bubbles.plan` restated — a **recorded amendment**, committed separately at
+  `946026a9e` as the ledger change and landed here as the code change. The
+  deleted form pinned its tolerated marker gap to the literal pair
+  `[…'18', …'19']` under `JSON.stringify`; the replacement derives that
+  tolerance from the ledger's own `Disposition` column and additionally asserts
+  a direction the pinned form never did — that a row dispositioned marker
+  forbidden carries no marker anywhere. Strictly stronger, and amended rather
+  than self-authorised.
+* The two in `4558c0f3c` are **exactly** SUP-022-19's superseded target: the
+  positional `links.nth(3)` click and the focus expectation that followed it.
+  That is the ledger entry's stated content, deleted because it was replaced.
+
+Nothing else was removed **by this scope**. The three commits above are its
+whole source footprint, and the two spec files it did not commit to — the
+foundation and marginal specs — report **zero** deletions across the entire
+feature-family window. So no sourcing rule, tolerance, determinism, privacy,
+zero-network or Feature 008 canary is in this scope's deletion set, because that
+set is these sixteen lines and no others.
+
+**A first draft of this paragraph misattributed two lines, and the correction is
+recorded rather than made silently.** The federal spec also carries two deleted
+lines across the feature-family window, and the draft claimed them for
+SUP-022-15, which this scope owns. That is false. `git log` names their commits
+as `b7564960a` and `09dceb6fb`, both **Scope 01** commits, and both deletions are
+comment prose rather than assertions:
+
+```text
+-     household and the zero-valued-headline clause; shape=partition. The pack now carries the
+-     a gain stacked on top of ordinary taxable income. */
+```
+
+The corrected reading is stronger for this item, not weaker: this scope deleted
+**nothing** in the federal spec, so its deletion set is the sixteen lines above
+and is confined to two files.
+
+**The forbidden marker.** `SUP-022-18` appears nowhere in the five opened files.
+That is not asserted here — TP-02-22 reports `escaped []` and TP-05-22's
+`forbiddenButMarked` clause fails if a row the ledger dispositions marker
+forbidden ever acquires one. Both are green in the same run.
+
+**The two proving rows are now written and green**, which is the condition the
+item's own closing sentence set:
+
+```text
+  ✓ TP-02-22: … (delivered 21, expected 21, shapeless [], escaped [])
+  ✓ TP-02-23: … each against a mutated copy while the shipped tree passes all three
+Research-Lab self-test: 3175 passed, 0 failed
+```
+
+### The seven re-derived intended REDs — one per deliverable marker
+
+The supersession item asks that each of the eight deliverable replacements was
+**seen to fail against the unchanged implementation first**. The fourth pass
+re-derived that for the withheld-detail entry only and refused to claim it for
+the other seven. It is derived here for all seven, each through
+`scripts/red-green-probe.sh`, so the revert is structural rather than
+remembered.
+
+Every probe is designed to the same standard: the mutation reintroduces the
+**precise defect the replacement exists to catch**, and — where the superseded
+form was a literal count — it is chosen so that the superseded literal would
+still have passed. That is what makes the probe evidence about the
+*replacement* rather than about the suite in general. None carries a rule
+figure or a household amount.
+
+`--summary-match` is bound to the owning assertion's own name in every block, so
+the RED line names what fell rather than only reporting that something did.
+
+| Marker | Owning assertion | Mutation reintroduces |
+| --- | --- | --- |
+| SUP-022-03 | `TP-01-01` | the surtax deleted from the declared legs while still absent from `unsupportedFeatures[]`, so its id lands in no accounting set |
+| SUP-022-08 | `SCN-021-009` (marginal spec) | one rendered contributor domain substituted **at unchanged count** |
+| SUP-022-10 | `TP-03-07` | the engine dropping a `movesMarginalRate` contributor the pack still declares |
+| SUP-022-14 | `TP-02-05` | tax-exempt interest folded back into the investment-income base, which `L6` forbids |
+| SUP-022-15 | `SCN-021-006` (federal spec) | the settled legs rendered in reverse order **at unchanged count** |
+| SUP-022-16 | `SCN-021-013` (route spec) | the same reversal, in the file that owns the Power rendering |
+| SUP-022-20 | `TP-03-05` | a declared band edge no longer flagged a step, so the curve smooths it |
+
+Three of these are deliberately **count-preserving**. SUP-022-08 superseded
+`Unavailable contributors: 14` and `toHaveCount(14)`; SUP-022-15 and SUP-022-16
+each superseded `toHaveCount(5)`. A substitution at constant count and an
+order reversal both leave those literals satisfied, so each probe fails only
+because of the clause the supersession added.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SUP-022-03 the investment-income surtax is deleted from the declared legs while still absent from unsupportedFeatures, so its id belongs to no accounting set
+file:             rltaxrules.js
+mutation:         return Object.freeze(pack.taxLegs.slice());  ->  return Object.freeze(pack.taxLegs.filter(function (leg) { return leg.legId !== "net-investment-income-tax"; }));   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-01-01: every one of Feature 021’s eighteen unsupported ids is in exactly one of unsupportedFeatures[], taxLegs[], the itemised composition, the pack’s inclusion policy and the pack�
+green-exit:       0
+green-summary:      ✓ TP-01-01: every one of Feature 021’s eighteen unsupported ids is in exactly one of unsupportedFeatures[], taxLegs[], the itemised composition, the pack’s inclusion policy and the pack’s me
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SUP-022-08 one rendered contributor domain is substituted at unchanged count
+file:             lifetime-tax-strategy-lab.html
+mutation:         host.setAttribute("data-rl-unavailable-domain", record.domain);  ->  host.setAttribute("data-rl-unavailable-domain", record.domain === "marginal-contributor:premium-tax-credit" ? "marginal-contributor:substituted-at-constant-count" : record.domain);   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/lifetime-tax-marginal.spec.mjs --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:136:1 › Regression: SCN-021-009 unsupported thresholds are named unavailable contributors and the curve is labeled incomplete
+green-exit:       0
+green-summary:      ✓  3 [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:136:1 › Regression: SCN-021-009 unsupported thresholds are named unavailable contributors and the curve is labeled incomplete (1.0s)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SUP-022-10 the engine drops one movesMarginalRate contributor the pack still declares
+file:             rltaxrules.js
+mutation:         if (pack.unsupportedFeatures[index] && pack.unsupportedFeatures[index].movesMarginalRate === true) {  ->  if (index > 0 && pack.unsupportedFeatures[index] && pack.unsupportedFeatures[index].movesMarginalRate === true) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-03-07: the shipped curve’s contributor id set equals the pack’s movesMarginalRate entries in both directions, the premium tax credit is still named so the removal was surgical, the
+green-exit:       0
+green-summary:      ✓ TP-03-07: the shipped curve’s contributor id set equals the pack’s movesMarginalRate entries in both directions, the premium tax credit is still named so the removal was surgical, the taxabl
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SUP-022-14 the investment-income base folds tax-exempt interest back in, which L6 exists to forbid
+file:             rltax.js
+mutation:         var netInvestmentIncome = workspace.income.qualifiedDividend + workspace.income.longTermCapitalGain + declared;  ->  var netInvestmentIncome = workspace.income.qualifiedDividend + workspace.income.longTermCapitalGain + declared + workspace.income.taxExemptInterest;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-05: the published reconciliation leg-id list equals the engine’s own declaration in order and in both directions, every published leg holds for a settled result, L6 proves the inve
+green-exit:       0
+green-summary:      ✓ TP-02-05: the published reconciliation leg-id list equals the engine’s own declaration in order and in both directions, every published leg holds for a settled result, L6 proves the investment
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SUP-022-15 the reconciliation rendering emits the settled legs in reverse order at unchanged count
+file:             lifetime-tax-strategy-lab.html
+mutation:         for (index = 0; index < settlement.reconciliation.legs.length; index += 1) {  ->  for (index = settlement.reconciliation.legs.length - 1; index >= 0; index -= 1) {   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/lifetime-tax-federal.spec.mjs --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-federal.spec.mjs:197:1 › Regression: SCN-021-006 deduction selection is explicit and the annual result reconciles
+green-exit:       0
+green-summary:      ✓  3 [system-chrome] › tests/lifetime-tax-federal.spec.mjs:197:1 › Regression: SCN-021-006 deduction selection is explicit and the annual result reconciles (584ms)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SUP-022-16 the reconciliation rendering emits the settled legs in reverse order at unchanged count
+file:             lifetime-tax-strategy-lab.html
+mutation:         for (index = 0; index < settlement.reconciliation.legs.length; index += 1) {  ->  for (index = settlement.reconciliation.legs.length - 1; index >= 0; index -= 1) {   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/lifetime-tax-route.spec.mjs --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-route.spec.mjs:37:1 › Regression: SCN-021-013 Simple opens first with a decision level answer and Power holds the detail
+green-exit:       0
+green-summary:      ✓  1 [system-chrome] › tests/lifetime-tax-route.spec.mjs:37:1 › Regression: SCN-021-013 Simple opens first with a decision level answer and Power holds the detail (823ms)
+revert-verified:  yes (committed=8090388f3c54a97b8abf4db64cb5ce00993a730f restored=8090388f3c54a97b8abf4db64cb5ce00993a730f)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SUP-022-20 a declared band edge stops being flagged a step, so the curve smooths it
+file:             rltax.js
+mutation:         cliff: segmentKind === "rate-step" || segmentKind === "cliff",  ->  cliff: segmentKind === "cliff",   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-03-05: every declared band edge inside the sweep renders as a step — two adjacent points one probe apart with different rates, cliff true, and no interpolated point between them (5 pa
+green-exit:       0
+green-summary:      ✓ TP-03-05: every declared band edge inside the sweep renders as a step — two adjacent points one probe apart with different rates, cliff true, and no interpolated point between them (5 pack-der
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**A mis-aimed first probe, recorded rather than discarded.** The accounting
+entry's first probe truncated the declared leg list from the head
+(`pack.taxLegs.slice(1)`). It discriminated on the exit channel — so a naive
+reading would have banked it — but the `--summary-match` channel showed
+`TP-01-01` **passing in both runs**. The reason is a real property of the
+assertion rather than a fault in it: the leg dropped from the head is not one of
+the eighteen unsupported ids the accounting ranges over, so the assertion was
+right to stay green. Without the named summary channel this probe would have
+been recorded as evidence for a row it never touched. The re-aimed probe above
+deletes the surtax specifically, and `TP-01-01` then falls by name.
+
+**Where the adversarial evidence for each entry lives.** The item asks that each
+entry carries one, and the fourth pass's census found explicit in-suite blocks
+for only three. The full accounting is:
+
+| Marker | Adversarial evidence | Form |
+| --- | --- | --- |
+| SUP-022-03 | in-suite `SUP-022-03 ADVERSARIAL` block, plus TP-02-23 case 2 | assertion |
+| SUP-022-08 | TP-02-23 case 1 (moved-versus-deleted) plus the probe above | assertion + probe |
+| SUP-022-10 | TP-02-23 case 1 (the engine-side twin) plus the probe above | assertion + probe |
+| SUP-022-14 | in-suite `SUP-022-14 ADVERSARIAL` block | assertion |
+| SUP-022-15 | the count-preserving reversal probe above | probe |
+| SUP-022-16 | the count-preserving reversal probe above | probe |
+| SUP-022-19 | TP-02-23 case 3, plus the fourth pass's row-insertion control | assertion + control |
+| SUP-022-20 | in-suite `SUP-022-20 ADVERSARIAL` block | assertion |
+
+The two entries whose only adversarial evidence is a probe are the two rendered
+row-count replacements. That is deliberate and is stated rather than glossed: an
+in-suite Playwright "adversarial" block would have to mutate the page from
+inside a browser test and restore it, which is exactly the stranded-mutation
+hazard the harness exists to remove. An executed, hash-verified probe that
+reintroduces the regression and names the test that falls is the stronger
+artifact, and it is reproducible from the block above.
+
+### Test Plan rows completed to intended RED — the nine that carried none
+
+A per-row census of this report found nine Test Plan rows carrying a GREEN
+observation and no RED. They are completed here, one
+`scripts/red-green-probe.sh` block each. `--summary-match` is bound to the row's
+own assertion name — or, for the browser row, to its scenario title — so each
+block names what fell rather than reporting only that the run went red.
+
+| Row | Mutation reintroduces | RED names |
+| --- | --- | --- |
+| TP-02-01 | the `declaredFor` year-membership refusal no longer firing | `TP-02-01` |
+| TP-02-02 | a duplicate `legId` no longer refused | `TP-02-02` |
+| TP-02-05 | the surtax applied to the whole declared wage basis, not the excess | `TP-02-05` |
+| TP-02-06 | the modified-adjusted-gross measure blind to ordinary income | `TP-02-06` |
+| TP-02-11 | a threshold set accepted although the declared year is absent | `TP-02-11` |
+| TP-02-16 | the wage surtax ignoring its threshold, over the real route | `SCN-022-005` |
+| TP-02-19 | a real engine defect that must drop the repository pass count | the count line |
+| TP-02-20 | a tolerated missing path leaving the frozen baseline | `new=1` |
+| TP-02-21 | this route leaving the exclusions register | a stale-exclusion refusal |
+
+Two design notes, because both could otherwise look like shortcuts.
+
+**The path-guard probe deliberately writes no new path.** The natural way to red
+a "zero new missing test paths" row is to make a spec name a file that does not
+exist — but the harness block would then carry that invented path into this
+report, the guard would scan it here, and the row would be permanently red. The
+probe instead comments out an entry the frozen baseline already tolerates, so
+the count of missing paths is unchanged at 67 while the tolerated set shrinks to
+66 and the same path is reported as new. The path that appears in the block
+below is a real baseline entry, so pasting it changes nothing.
+
+**The deploy-gate probe reds on the register, not on the plan's arithmetic.**
+The row pairs "the plan succeeds" with "`site-exclusions.json` is unchanged", so
+the mutation takes this route out of the exclusions register. The build refuses
+with a stale-exclusion error rather than quietly producing a plan with one fewer
+excluded path, which is the stronger of the two failures it could have shown.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-01 the declaredFor year-membership refusal stops firing
+file:             rltaxrules.js
+mutation:         set.indexing.declaredFor.indexOf(declaredYear) >= 0) {  ->  set.indexing.declaredFor.indexOf(declaredYear) >= -1) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-01: a declaredFor omitting the declared tax year and an empty declaredFor are each refused RLTAX-THRESHOLD-UNAVAILABLE naming the year, while the shipped set declaring 2026 is not
+green-exit:       0
+green-summary:      ✓ TP-02-01: a declaredFor omitting the declared tax year and an empty declaredFor are each refused RLTAX-THRESHOLD-UNAVAILABLE naming the year, while the shipped set declaring 2026 is not
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-02 a duplicate legId is no longer refused
+file:             rltaxrules.js
+mutation:         if (seen[leg.legId] === true) {  ->  if (false) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-02: a duplicate legId, a figureRef naming a figure the pack does not carry, and an includedInTotal:false leg whose figure is absent are each refused by the member that carries them,
+green-exit:       0
+green-summary:      ✓ TP-02-02: a duplicate legId, a figureRef naming a figure the pack does not carry, and an includedInTotal:false leg whose figure is absent are each refused by the member that carries them, so inc
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-05 the additional Medicare tax is applied to the whole declared wage basis instead of the excess over the threshold
+file:             rltax.js
+mutation:         var excess = Math.max(0, declared - threshold);  ->  var excess = declared;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-05: the additional Medicare tax is exact immediately below, exactly at and immediately above every filing-status threshold, and is byte-identical when ordinary income, qualified divi
+green-exit:       0
+green-summary:      ✓ TP-02-05: the additional Medicare tax is exact immediately below, exactly at and immediately above every filing-status threshold, and is byte-identical when ordinary income, qualified dividend a
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-06 the modified-adjusted-gross measure stops seeing ordinary income, so added ordinary income can no longer move the investment-income surtax
+file:             rltax.js
+mutation:         var modifiedAdjustedGross = basis.grossSupportedIncome;  ->  var modifiedAdjustedGross = netInvestmentIncome;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-06: added ordinary income alone raises the net investment income tax where the cap does not bind and leaves a non-zero additional Medicare tax byte-identical, and the result publishe
+green-exit:       0
+green-summary:      ✓ TP-02-06: added ordinary income alone raises the net investment income tax where the cap does not bind and leaves a non-zero additional Medicare tax byte-identical, and the result publishes the
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-11 a threshold set is accepted although the declared tax year is absent from its declaredFor
+file:             rltaxrules.js
+mutation:         set.indexing.declaredFor.indexOf(declaredYear) >= 0) {  ->  set.indexing.declaredFor.indexOf(declaredYear) >= -1) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-02-11: a threshold set whose declaredFor omits the declared tax year is refused RLTAX-THRESHOLD-UNAVAILABLE at settlement rather than applied, its leg carries no numeric value, and a wi
+green-exit:       0
+green-summary:      ✓ TP-02-11: a threshold set whose declaredFor omits the declared tax year is refused RLTAX-THRESHOLD-UNAVAILABLE at settlement rather than applied, its leg carries no numeric value, and a withdraw
+revert-verified:  yes (committed=206d8d81d7be511e4aead22b4c25d7099083369a restored=206d8d81d7be511e4aead22b4c25d7099083369a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-16 the additional Medicare surtax stops honouring its threshold, so the declared wage basis is taxed in full
+file:             rltax.js
+mutation:         var excess = Math.max(0, declared - threshold);  ->  var excess = declared;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/lifetime-tax-surtax.spec.mjs --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-surtax.spec.mjs:135:1 › Regression: SCN-022-005 the additional Medicare surtax uses only its declared wage basis
+green-exit:       0
+green-summary:      ✓  2 [system-chrome] › tests/lifetime-tax-surtax.spec.mjs:135:1 › Regression: SCN-022-005 the additional Medicare surtax uses only its declared wage basis (530ms)
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-19 a real engine defect must drop the whole-repository pass count
+file:             rltax.js
+mutation:         cliff: segmentKind === "rate-step" || segmentKind === "cliff",  ->  cliff: segmentKind === "cliff",   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3174 passed, 1 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3175 passed, 0 failed
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-20 a tolerated missing test path leaves the frozen baseline, so it must be reported as new
+file:             scripts/validate-spec-test-paths.baseline
+mutation:         tests/auction-gamma-playbook.spec.mjs  ->  # tests/auction-gamma-playbook.spec.mjs   (1 occurrence(s))
+command:          node scripts/validate-spec-test-paths.mjs
+red-exit:         1
+red-summary:      [spec-test-paths] scanned=686 references=15464 distinctPaths=250 missingPaths=67 baseline=66 new=1 stale=0
+green-exit:       0
+green-summary:    [spec-test-paths] scanned=686 references=15464 distinctPaths=250 missingPaths=67 baseline=67 new=0 stale=0
+revert-verified:  yes (committed=972f0de1d9ab47e0f584287138399e51187629dc restored=972f0de1d9ab47e0f584287138399e51187629dc)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-21 this route leaves the exclusions register, so the Pages plan meets an unregistered root page
+file:             site-exclusions.json
+mutation:         "path": "lifetime-tax-strategy-lab.html",  ->  "path": "lifetime-tax-strategy-lab.html.retired",   (1 occurrence(s))
+command:          node scripts/build-pages-site.mjs --dry-run
+red-exit:         1
+red-summary:      Error: site exclusion is stale: lifetime-tax-strategy-lab.html.retired
+green-exit:       0
+green-summary:    {"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":28,"excludedPaths":12,"rootFiles":128,"directories":["briefs","data","docs","notes","research","rlexperience-adapters",
+revert-verified:  yes (committed=29c6fe08a58d97c1f119abdd38706cf02f675d60 restored=29c6fe08a58d97c1f119abdd38706cf02f675d60)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**One row remains: TP-02-18**, the cumulative browser suite. It is treated
+separately below because its command is the whole `SCN-02[1-4]` sweep rather
+than a per-file spec, and a probe over it costs two full sweeps.
+
+### TP-02-18 completed to intended RED — the cumulative sweep, probed once
+
+**Claim Source:** executed. The sweep was probed rather than described, at the
+cost the paragraph above names: two full cumulative runs, 3.7 minutes red and
+2.8 minutes green.
+
+The mutation is the same threshold defect the per-file row TP-02-16 uses, and it
+is chosen deliberately. This row's substance is *"every scenario owned by
+features 021 … 024 passes, zero failed and zero skipped, not a convenient
+subset"* — so what it must be shown sensitive to is **one owned scenario going
+red inside the whole sweep**. A defect that fell the entire suite would prove
+only that the command runs. Falling exactly one of seventy-seven is the shape
+that proves the sweep is a sweep: the count moves by one and the run turns red.
+
+The mutation is value-free — it deletes a `Math.max` and a subtraction and
+carries no rule figure and no household amount.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-02-18 the wage surtax stops honouring its threshold, so a scenario this family owns falls inside the whole cumulative sweep
+file:             rltax.js
+mutation:         var excess = Math.max(0, declared - threshold);  ->  var excess = declared;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-02\[1-4\] --reporter=list
+red-exit:         1
+red-summary:        76 passed (3.7m)
+green-exit:       0
+green-summary:      77 passed (2.8m)
+revert-verified:  yes (committed=3206e1516e43338b5cfe79103fd989670a0cc269 restored=3206e1516e43338b5cfe79103fd989670a0cc269)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Read the two channels together.** `76 passed` against `77 passed` is the
+count moving by exactly one, and `red-exit: 1` against `green-exit: 0` is the
+suite refusing rather than absorbing it. Both channels were compared because
+`--summary-match '[0-9]+ (passed|failed)'` was supplied — necessary here, since
+this suite has previously exited non-zero on a `worker-N … force-killed it`
+teardown fault with every test passing, and an exit-only verdict would have been
+unreadable on such a run.
+
+**The revert is hash-verified, not asserted.** `revert-verified: yes` compares
+the working file against the committed blob `3206e1516e43338b5cfe79103fd989670a0cc269`
+after the green run, so the module this probe mutated is byte-identical to the
+committed one. That check is what earlier passes in this program did by hand and
+occasionally got wrong.
+
+**The green run is the current state of the row**, not a historical one: 77
+passed, zero failed, zero skipped, over the alternation pinned to the four
+owning spec numbers.
+
+### Every Test Plan row now carries intended RED and same-command GREEN
+
+With TP-02-18 above, the per-row census closes. Twenty-four rows, twenty-four
+recorded pairs:
+
+| Rows | Where the pair is recorded |
+| --- | --- |
+| TP-02-01, -02, -05, -06, -11, -16, -19, -20, -21 | the nine harness blocks in the census above |
+| TP-02-18 | the harness block immediately above |
+| TP-02-03, -04, -07, -08, -09, -10, -12, -14, -24 | their own sections, each with a named mutation, a failing run and a same-command green run |
+| TP-02-15, -17 | the `SCN-022-004` and `SCN-022-006` scenario sections |
+| TP-02-22, -23 | the seven re-derived intended REDs, one per deliverable marker |
+| TP-02-13 | its own section — an in-test negative control plus two real failing runs of its own non-vacuity clause |
+
+**TP-02-13 is the one row whose RED is not a source mutation, and that is a
+reasoned position rather than a gap.** Any mutation able to fail it must route a
+household value into a URL, a header or the console — the exact defect the row
+exists to prevent, and one a prior session left live in this repository. Its
+section records two genuine failing runs (`1 failed`, `PW_EXIT=1`) produced by
+its own non-vacuity clause catching two real drafting misses, the same-command
+green run that followed, and a detector proven able to name three planted values
+inside the test process without any of them being navigated, fetched, logged or
+rendered.
+
 

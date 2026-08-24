@@ -51,13 +51,20 @@
      browser global and the selftest can lift it with no DOM. A refused value is never
      returned in any field, so there is no accessor through which it could reach a sink. */
   var SUBJECT_PARAM = "ticker";
+  /* `=` is excluded deliberately (an FX pair such as CNY=X is not a company); widening this class is security-relevant, because an accepted subject reaches setStatus(), an `innerHTML` sink, at five call sites in options-structure-lab.html. */
   var SUBJECT_PATTERN = /^[A-Z0-9.\-]{1,12}$/;
-  function linkedSubject(search) {
+  function linkedSubject(search, paramName) {
     var params;
     if (search && typeof search.get === "function") params = search;
     else if (typeof search === "string") params = new URLSearchParams(search);
     else return { status: "absent", subject: null, raw: null };
-    var value = params.get(SUBJECT_PARAM);
+    /* A route that already publishes its subject under a different spelling names that
+       spelling here. It is a parameter NAME only: the grammar, the normalisation and the
+       refusal below are the same for every caller, so a second spelling never becomes a
+       second acceptance rule. Omitting it reads SUBJECT_PARAM, which is what every caller
+       that has no legacy name to honour does. */
+    var name = typeof paramName === "string" && paramName ? paramName : SUBJECT_PARAM;
+    var value = params.get(name);
     if (typeof value !== "string") return { status: "absent", subject: null, raw: null };
     var normalised = normTicker(value);
     if (!normalised) return { status: "absent", subject: null, raw: null }; /* empty and whitespace-only are the same as no parameter */

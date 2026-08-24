@@ -272,6 +272,7 @@ syntax error, a missing browser or an absent test does not satisfy RED.
 | TP-04-27 | Repo gate | unit | SCN-023-010 … -013 | `scripts/selftest.mjs` | The whole-repository suite stays green, the pre-existing pass count does not fall, and both ASC-8 admissions are booked on all four surfaces and agree: the ledger carries fourteen rows of which exactly the two the ownership table claims for Scope 04 are owned by it, the opening count paragraph names the same two admissions and the same per-scope total, and the per-file marker distribution places each marker in the file that carries it | `node scripts/selftest.mjs` | No | `report.md#tp-04-27` |
 | TP-04-28 | Path guard | unit | SCN-023-010 … -013 | `scripts/validate-spec-test-paths.mjs` | Zero new missing spec-referenced test paths | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-04-28` |
 | TP-04-29 | Deploy gate | unit | SCN-023-010 … -013 | `scripts/build-pages-site.mjs` | The Pages plan succeeds and `site-exclusions.json` is unchanged | `node scripts/build-pages-site.mjs --dry-run` | No | `report.md#tp-04-29` |
+| TP-04-30 | Privacy E2E | e2e-ui | SCN-023-010 | `tests/lifetime-tax-use.spec.mjs` | GAP, NOT AUTHORED (opened 2026-08-22, F-REG-03). This scope has no live-route privacy row at all: its only privacy evidence, `TP-04-21`, is a `unit` row run by `node scripts/selftest.mjs`, which has no browser and so no request ledger to observe — its "nor any query string" clause scans the route's source, not a ledger. Required: on the live route, with both day-count declarations populated, `afterFirstPaint` is captured after `openLifetimeTax`, is asserted greater than zero, the ledger is asserted not to grow past it, and every entry's pathname is asserted to be a member of `declaredRouteAssets()`. Adversarial cases: a request issued after the declarations are entered fails the no-growth assertion; a read of a path the configuration does not declare fails the permitted-set assertion; and a boot that read nothing fails the greater-than-zero pin, so the row cannot pass vacuously | not authored | Yes | not authored |
 
 ### Definition of Done
 
@@ -311,9 +312,42 @@ syntax error, a missing browser or an absent test does not satisfy RED.
 - [x] NFR-023-004 and NFR-023-005 hold: the refusal vocabulary member count is
       unchanged and `rltaxuse.js` carries no test-parameter literal.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-19`, `report.md#tp-04-20`
-- [x] NFR-023-003 holds: the day-count declarations are inventoried, cleared and
-      redacted, and the request ledger stays empty.
+- [x] NFR-023-003 holds for the day-count declarations as far as the cited
+      evidence reaches: both are declared workspace fields, are named in the
+      export's omitted list, have no value in the exported bytes, are named in the
+      privacy inventory purpose, refuse by name when undeclared, are recorded as
+      location-adjacent, and reach neither the committed configuration nor any
+      query string.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-04-21`
+  - **Restated 2026-08-22 (F-REG-03).** The superseded text read "and the request
+    ledger stays empty", which is false — the route issues its document reads and
+    its `<script src>` loads on every boot — and was unsupported by the only
+    evidence this item cites. `TP-04-21` is a `unit` row whose command is `node
+    scripts/selftest.mjs`; a Node run has no browser and therefore no request
+    ledger to observe. Its "nor any query string" clause is a scan of the route's
+    own source, not of a ledger. The item now claims exactly what that assertion
+    establishes. Adversarial cases: a declaration absent from the workspace
+    contract, one missing from the export's omitted list, one whose value survives
+    into the exported bytes, one missing from the privacy inventory purpose, one
+    that fails to refuse by name when undeclared, or a query string assembled
+    anywhere in the route each fails the cited assertion. The live-route half is
+    not covered by this scope at all and is opened as `TP-04-30` below.
+- [x] NFR-023-003 holds on the live route for the day-count declarations: the
+      request ledger does not grow after first paint and every entry in it is a
+      read of a path the route's own configuration declares.
+  - **Phase:** test · **Command:** `TP-04-30` · **Evidence:** `report.md#harness-pass-7--tp-04-30-tp-04-28-and-tp-04-29-carry-intended-reds`
+  - **Claim Source:** executed. `TP-04-30` is authored in
+    `tests/lifetime-tax-use.spec.mjs`: it opens the real route, captures the
+    ledger length immediately after first paint, pins it greater than zero,
+    declares the day counts as distinctive sentinels, then asserts the ledger has
+    not grown and that every entry is a same-origin read of a path the route's
+    own configuration declares. Three probes, one per adversarial case, each
+    discriminated with a hash-verified revert: zeroing the capture reds the
+    non-empty pin, subtracting one from it reds the no-growth equality, and
+    withdrawing the declared pack family from the derivation reds the
+    permitted-set sweep. The permitted set is derived from the page's own script
+    tags and `declaredPackPaths`, so a module a later scope adds is admitted by
+    the page's declaration rather than by a literal edited here.
 - [x] `SUP-023-13` and `SUP-023-14` are delivered under ASC-8: each superseded
       literal is recorded with its replacement and its adversarial cases, each
       marker sits in the file the distribution places it in, and the ledger, its
@@ -332,6 +366,41 @@ syntax error, a missing browser or an absent test does not satisfy RED.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
 - [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows.
+  - **Phase:** implement · **Command:** the cumulative browser selector under `scripts/red-green-probe.sh` · **Evidence:** `report.md#tp-04-26-probe-b--the-intended-red-aimed-at-the-branch-the-boundary-takes-2026-08-22`
+  - **Ticked 2026-08-22 on the one row that was owed.** `TP-04-26` was the single
+    named row this item stayed open on. It now carries an observed intended RED
+    and a same-command GREEN, recorded in
+    `report.md#tp-04-26-probe-b--the-intended-red-aimed-at-the-branch-the-boundary-takes-2026-08-22`.
+    All thirty rows were re-checked individually rather than the one the note
+    named: every `TP-04-01` … `TP-04-30` id resolves either to a harness `label:`
+    naming it or to an observed `✗ FAIL:` line carrying its own assertion text,
+    so the word "Every" now holds against the whole table and not against the
+    `TP-04-01` … `TP-04-26` range this item's **Command** line quotes.
+  - **The first mutation aimed at `TP-04-26` was rejected, not banked.** Probe A
+    exited `0` with `discriminating: yes`, and that verdict was refused: the
+    pinned scenario carried `✓` in both captures and the two lines differed only
+    by the `--reporter=list` running ordinal. It is recorded in full at
+    `report.md#tp-04-26-probe-a--rejected-and-two-findings-it-produced-2026-08-22`
+    with the two findings it produced — a mis-aimed mutation, and an intermittent
+    non-zero exit on worker teardown that makes this row's bare exit status
+    unsafe to read alone. Probe B changed the aim, not the defect's shape, after
+    the spec's own comment showed which branch the tested boundary takes.
+  - **Re-examined 2026-08-22, still open, and the reason has changed.**
+    `TP-04-30` now carries a three-arm RED and a same-command GREEN, and the two
+    gate rows `TP-04-28` and `TP-04-29` — which the closure table never reached,
+    because it ran only to `TP-04-25` — now carry one each. All three are
+    recorded in `report.md#harness-pass-7--tp-04-30-tp-04-28-and-tp-04-29-carry-intended-reds`.
+    Exactly one row is still uncovered: `TP-04-26`, the cross-feature cumulative
+    `e2e-ui` row, whose only mention anywhere in the report is the sentence that
+    lists it as owed. No pass ever aimed a mutation at it. Since the item's own
+    text requires an observed RED on every row from `TP-04-01` through
+    `TP-04-26`, one uncovered row makes the word "Every" false and the item stays
+    open on that single named row.
+  - **Unticked 2026-08-22 (F-REG-03).** `TP-04-30` was opened in this scope and
+    is not authored, so it carries neither a RED nor a GREEN. The **Satisfied**
+    note below remains accurate for the rows that existed when it was written;
+    it is no longer accurate for the word "Every". Ticking it again requires
+    `TP-04-30` authored with a RED and a same-command GREEN.
       **Satisfied.** Every row now carries an observed intended RED beside its
       same-command GREEN. The twenty-five rows this row was owed were closed one
       at a time through `scripts/red-green-probe.sh`, each from a mutation aimed

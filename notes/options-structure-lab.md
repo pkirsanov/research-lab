@@ -616,10 +616,22 @@ parameter name every subject-carrying route in the repository uses.
   used to be rejected became acceptable.
 - **An accepted subject** seeds the ticker before the first paint and outranks the
   restored session state, so the link decides what you are looking at.
+- **A link decides this visit only.** The linked subject is never written back to
+  the `optStructLab` session: while it is still the one on screen, `saveState`
+  persists the remembered ticker instead. One click therefore cannot silently
+  replace the subject the reader chose by hand, and a later no-parameter visit
+  restores exactly what it restored before.
+- **An accepted subject is escaped wherever it is rendered.** The status line and
+  the ticker pill are `innerHTML` sinks, so the value passes through `esc()`
+  there. The handoff notice is written with `textContent`.
 - **An unacceptable value** is discarded. It is never stored, never echoed into the
   page and never reaches a fetch target. The route keeps the subject it would have
   shown with no parameter, stays fully usable, and says so in a short notice above
   the disclaimer naming which subject is actually on screen.
+- **The notice names the current subject, not the arrival.** Its second clause is
+  present tense, so it is re-rendered whenever the ticker changes. A reader who
+  names their own ticker after a refusal sees the notice follow them rather than
+  keep naming the subject they replaced.
 - **No parameter, an empty parameter or a whitespace-only parameter** are all the
   same thing: the route behaves exactly as it did before this was added, and the
   notice stays hidden with empty text.

@@ -523,7 +523,7 @@
       "obligations": [
         {
           "trait": "user-visible-ui",
-          "requiredProof": "On the production route the exported file contains none of the five declarations and carries a statement naming what it omitted, the included amount appears as a named contributor in the settlement section, and the request ledger stays empty with three new packs loaded.",
+          "requiredProof": "On the production route the exported file contains none of the five declarations and carries a statement naming what it omitted, the included amount appears as a named contributor in the settlement section, the request ledger does not grow after first paint, it is non-empty, every entry in it is a read of a path the route's own configuration declares, and all three new packs are present in the ledger the run produced.",
           "satisfiedBy": ["TP-05-21", "TP-05-25"]
         },
         {

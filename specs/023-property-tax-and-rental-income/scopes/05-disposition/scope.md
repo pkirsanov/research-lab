@@ -248,11 +248,12 @@ missing browser or an absent test does not satisfy RED.
 | TP-05-22 | Regression E2E | e2e-ui | SCN-023-014 | `lifetime-tax-disposition.spec.mjs` | `Regression: SCN-023-014 the gain splits into two legs priced under different rules` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-014 the gain splits into two legs priced under different rules" --reporter=list` | Yes | `report.md#scenario-scn-023-014` |
 | TP-05-23 | Regression E2E | e2e-ui | SCN-023-015 | `lifetime-tax-disposition.spec.mjs` | `Regression: SCN-023-015 the residence exclusion applies to the remainder only and names a failing test` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-015 the residence exclusion applies to the remainder only and names a failing test" --reporter=list` | Yes | `report.md#scenario-scn-023-015` |
 | TP-05-24 | Leg visibility E2E | e2e-ui | SCN-023-014 | `lifetime-tax-disposition.spec.mjs` | `Regression: SCN-023-014 both disposition legs reach the headline, the comparison, the curve and the export` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-014 both disposition legs reach the headline, the comparison, the curve and the export" --reporter=list` | Yes | `report.md#tp-05-24` |
-| TP-05-25 | Privacy E2E | e2e-ui | SCN-023-015 | `lifetime-tax-disposition.spec.mjs` | `Regression: SCN-023-015 the request ledger stays empty and no disposition declaration reaches a URL` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-015 the request ledger stays empty and no disposition declaration reaches a URL" --reporter=list` | Yes | `report.md#tp-05-25` |
+| TP-05-25 | Privacy E2E | e2e-ui | SCN-023-015 | `lifetime-tax-disposition.spec.mjs` | `Regression: SCN-023-015 no disposition declaration reaches a requested URL, the address bar, the referrer or a console message` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-015 no disposition declaration reaches a requested URL, the address bar, the referrer or a console message" --reporter=list` | Yes | `report.md#tp-05-25` |
 | TP-05-26 | Broader Regression E2E | e2e-ui | SCN-021-*, SCN-022-*, SCN-023-001 … -015 | The prior features' specs plus this feature's five | Every scenario owned by features 021 … 024 passes over the real route — the whole cumulative browser suite for this feature family, zero failed and zero skipped, not a convenient subset. `SCN-02[1-4]` is the alternation `SCN-021`, `SCN-022`, `SCN-023`, `SCN-024` written without a `\|`, which a table cell cannot carry verbatim; it is pinned to the four owning spec numbers, so a scenario owned by any other feature can neither satisfy nor break this row | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list` | Yes | `report.md#tp-05-26` |
 | TP-05-27 | Repo gate | unit | SCN-023-014 … -015 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-05-27` |
 | TP-05-28 | Path guard | unit | SCN-023-014 … -015 | `scripts/validate-spec-test-paths.mjs` | Zero new missing spec-referenced test paths | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-05-28` |
 | TP-05-29 | Deploy gate | unit | SCN-023-014 … -015 | `scripts/build-pages-site.mjs` | The Pages plan succeeds, `site-exclusions.json` is unchanged, no new root HTML exists, and `tax-rules/` remains outside the public directories | `node scripts/build-pages-site.mjs --dry-run` | No | `report.md#tp-05-29` |
+| TP-05-30 | Privacy E2E | e2e-ui | SCN-023-015 | `tests/lifetime-tax-disposition.spec.mjs` | GAP, NOT AUTHORED (opened 2026-08-22, F-REG-03). `SCN-023-015` is the only member of this feature family's privacy set that constrains *neither* ledger growth *nor* the declared-asset set: its body holds no `afterFirstPaint`, no `declaredRouteAssets` and no `permitted`, and its sole use of the request list is `requests.filter((url) => !url.endsWith('.js') && !url.endsWith('.css'))`. Required, in the same run: `afterFirstPaint` captured after `openLifetimeTax` and asserted greater than zero, the ledger asserted not to grow past it once the sale is declared, and every entry's pathname asserted to be a member of `declaredRouteAssets()` — which also removes the `.js`/`.css` blind spot, because a filtered-out asset URL would then have to be a declared path. Adversarial cases: a request issued after the sale is declared fails the no-growth assertion; a read of a path the configuration does not declare fails the permitted-set assertion; a sale figure smuggled onto a `.js` URL, which the current filter cannot see, fails the permitted-set assertion; and a boot that read nothing fails the greater-than-zero pin | not authored | Yes | not authored |
 
 ### Definition of Done
 
@@ -311,8 +312,43 @@ missing browser or an absent test does not satisfy RED.
       value, confirming this feature added no code.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-05-17`
 - [x] NFR-023-003 holds: the disposition declarations are inventoried, cleared and
-      redacted, and the request ledger stays empty.
+      redacted, and no disposition declaration and no disposition member name
+      reaches a requested URL outside the route's own script and stylesheet
+      loads, the address bar, the referrer or a console message.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the browser privacy row · **Evidence:** `report.md#tp-05-18`, `report.md#tp-05-25`
+  - **Restated 2026-08-22 (F-REG-03).** The superseded text read "and the request
+    ledger stays empty", which is false — the route issues its document reads and
+    its `<script src>` loads on every boot. It was also the weakest-supported
+    instance in this family: the cited browser row `TP-05-25` (`SCN-023-015`)
+    proves *neither* of the two propositions the rest of the family proves. Its
+    body holds no `afterFirstPaint`, no `declaredRouteAssets` and no `permitted`
+    set; its only use of the request list is
+    `requests.filter((url) => !url.endsWith('.js') && !url.endsWith('.css'))`,
+    which it then scans for declared values and member names. The item now claims
+    exactly that. Adversarial cases: a sale figure or a member name reaching a
+    requested non-asset URL, the address bar, `document.referrer` or a console
+    message each fails the scan. Two limits are deliberate and named rather than
+    hidden: the row cannot see a value smuggled onto a `.js` or `.css` URL,
+    because those are filtered out before the scan, and it skips any declared
+    value shorter than five characters (`if (value.length < 5) continue;`). The
+    ledger-growth and declared-asset halves are not covered by this scope at all
+    and are opened as `TP-05-30` below.
+- [x] NFR-023-003 holds on the live route for the disposition declarations: the
+      request ledger does not grow after first paint and every entry in it is a
+      read of a path the route's own configuration declares.
+  - **Phase:** test · **Command:** `TP-05-30` · **Evidence:** `report.md#probes-25-to-28--the-four-rows-the-per-row-pass-never-reached-2026-08-22`
+  - **Claim Source:** executed. `TP-05-30` is authored in
+    `tests/lifetime-tax-disposition.spec.mjs`: it opens the real route, captures
+    the ledger length immediately after first paint, pins it greater than zero,
+    declares the sale as distinctive sentinels, then asserts the ledger has not
+    grown and that every entry is a same-origin read of a path the route's own
+    configuration declares. Three probes, one per adversarial case, each
+    discriminated with a hash-verified revert: zeroing the capture reds the
+    non-empty pin, subtracting one from it reds the no-growth equality, and
+    withdrawing the declared pack family from the derivation reds the
+    permitted-set sweep. The permitted set is derived from the page's own script
+    tags and `declaredPackPaths`, so a module a later scope adds is admitted by
+    the page's declaration rather than by a literal edited here.
 - [x] SUP-023-09 is delivered with its marker in the file the per-file distribution
       names, its superseded clause recorded verbatim at its own site and the
       superseded literal surviving nowhere else, and the marker check confirms the
@@ -369,6 +405,25 @@ missing browser or an absent test does not satisfy RED.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
 - [x] Every Test Plan row has intended RED and same-command GREEN evidence
       recorded, including the browser rows and the cumulative suite.
+  - **Phase:** implement · **Command:** the four rows' own commands under `scripts/red-green-probe.sh` · **Evidence:** `report.md#probes-25-to-28--the-four-rows-the-per-row-pass-never-reached-2026-08-22`
+  - **Re-ticked 2026-08-22 at the full count of thirty.** The note below is kept
+    because it records why the item was opened. `TP-05-30` is now authored and
+    carries a three-arm RED with a same-command GREEN. Auditing the rest of the
+    Test Plan while closing it surfaced a second, older gap the note never named:
+    the per-row pass closed `TP-05-01` through `TP-05-26` and its command list
+    says exactly that, so the three gate rows `TP-05-27`, `TP-05-28` and
+    `TP-05-29` had never carried a RED either. All four are now closed by probes
+    25 to 28 in
+    `report.md#probes-25-to-28--the-four-rows-the-per-row-pass-never-reached-2026-08-22`,
+    each a harness run with its revert proven by blob hash. The finding already
+    carried against the cumulative row travels forward unchanged and is not
+    withdrawn: `TP-05-26`'s GREEN reports the 77 selected, 77 passed, zero failed
+    and zero skipped the row claims, while exiting 1 on a worker-teardown trailer
+    the runner labels as not part of any test.
+  - **Unticked 2026-08-22 (F-REG-03).** `TP-05-30` was opened in this scope and
+    is not authored, so it carries neither a RED nor a GREEN. The word "Every"
+    therefore no longer holds. Ticking it again requires `TP-05-30` authored with
+    a RED and a same-command GREEN.
   - **Phase:** implement · **Command:** the exact TP-05-01 through TP-05-26 commands · **Evidence:** `report.md#per-row-intended-red-probes`
   - **Closed by probes 20 to 24.** Probes 1 to 19 already carried `TP-05-01`
     through `TP-05-21`, every one under `node scripts/selftest.mjs`. The five

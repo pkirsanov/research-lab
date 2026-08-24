@@ -448,9 +448,34 @@ TP_05_24_EXIT=0
 
 ### TP-05-25
 
-The request ledger stays empty and no disposition declaration reaches a URL.
-Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-015 the request ledger stays empty and no disposition declaration reaches a URL" --reporter=list`
+No disposition declaration reaches a requested URL, the address bar, the referrer
+or a console message.
+Command: `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-015 no disposition declaration reaches a requested URL, the address bar, the referrer or a console message" --reporter=list`
 Exit code: `0`
+
+**Renamed 2026-08-22 (F-REG-02), and narrowed rather than restated.** The
+persistent title was
+`Regression: SCN-023-015 the request ledger stays empty and no disposition declaration reaches a URL`
+until this date. Two things were wrong with it. The ledger is never empty — the
+route issues same-origin document reads and `<script src>` module loads at boot.
+And unlike the SCN-022-013, SCN-023-001, SCN-024-001 and SCN-024-014 rows, **this
+row asserts nothing about the ledger's contents or its growth at all**: it holds
+no `expect(ledger.length).toBe(afterFirstPaint)`, no
+`expect(afterFirstPaint).toBeGreaterThan(0)`, and no membership check against the
+route's declared assets. Its only use of the request list is
+`requests.filter((url) => !url.endsWith('.js') && !url.endsWith('.css'))`, which
+discards the module loads and then checks the remainder for declared values. So
+the corrected wording could not be "the ledger does not grow after first paint
+and every entry is a declared same-origin read" — that would have replaced one
+false claim with another. The title now names only what the body proves: no
+declared sale figure and no declared member name appears in any requested URL, in
+`location.search`, in `location.hash`, in `location.href`, in `document.referrer`
+or in any console message. Adversarial cases: pushing any declared sale figure or
+member name into a request URL, the query string, the hash, the referrer or a
+console message fails the corresponding loop. That this row does not constrain
+the ledger is a planning gap, not something a rename can fix, and it is routed.
+The captured blocks below were recorded under the superseded title and are left
+exactly as executed; a fresh capture under the new title follows.
 
 ```
 Running 1 test using 1 worker
@@ -459,6 +484,22 @@ Running 1 test using 1 worker
 
   1 passed (1.6s)
 TP_05_25_EXIT=0
+```
+
+Fresh capture under the new persistent title, recorded 2026-08-22 after the
+rename, proving the row's `--grep` still selects its own test — selected 1,
+passed 1:
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-015 no disposition declaration reaches a requested URL, the address bar, the referrer or a console message" --reporter=line
+exit: 0
+lines: 5
+sha256: fc2df6ed04ba5fedcf03799ac7a39fc16b309dbc6029820d378e69eaacaf3bb2
+
+Running 1 test using 1 worker
+
+[1/1] [system-chrome] › tests/lifetime-tax-disposition.spec.mjs:307:1 › Regression: SCN-023-015 no disposition declaration reaches a requested URL, the address bar, the referrer or a console message
+  1 passed (3.0s)
 ```
 
 ### TP-05-26
@@ -1705,3 +1746,379 @@ have no baseline; and the whole-Test-Plan intended-RED row, because RED was obse
 in this session for the four browser rows only.
 
 This scope is NOT self-certified. Certification is `bubbles.validate`'s to make.
+
+---
+
+## Audit — arithmetic and refusal integrity (2026-08-22)
+
+Read-only audit of refusal integrity across Features 021-024. Two findings
+belong to this scope. Neither was fixed here.
+
+### F-AUDIT-02 — the shipped `AbsentFigure` is malformed, and five assertions pin it that way
+
+The head-of-household residence-exclusion absence in
+[tax-rules/federal/2026.json](../../../../tax-rules/federal/2026.json#L1146)
+violates the `AbsentFigure/v1` contract in two places at once.
+
+It names its remediation member `remediation`. The contract member is
+`whatWouldMakeItAvailable`, and that is the name
+[`absentFigureRefusal`](../../../../rltaxrules.js#L761) reads and
+[`validateAbsentFigure`](../../../../rltaxrules.js#L1029) requires. Its
+`missingSource` is a bare string; the contract requires an object carrying
+`title`, `url` and `locator`.
+
+The refusal a head-of-household seller actually receives:
+
+```
+contractVersion:          TaxUnavailable/v1
+code:                     RLTAX-THRESHOLD-UNAVAILABLE
+domain:                   disposition:residenceExclusion:head-of-household
+reason:                   Publication 523's Worksheet 1 enumerates a maximum
+                          exclusion for married filing jointly, for single and
+                          married filing separately, and for a surviving spouse.
+                          It states none for head of household ...
+whatWouldMakeItAvailable: retrieve the authority named by the pack's
+                          missingSource pointer
+```
+
+That last line is the constructor's generic fallback, reached because the
+authored text sits under the wrong key. It instructs the reader to follow a
+pointer that, being a string rather than the contracted object, does not exist.
+The refusal is circular and non-actionable. Both the authored remediation
+sentence and the authored source description are silently discarded. A
+well-formed sibling in the same pack — the SALT cap's `reductionRate` — renders
+correctly, naming its publication and appending `(missing source: ...)`, which
+is the contrast that makes this a defect rather than a house style.
+
+The pack validator does not catch it. `validateAbsentFigure` is invoked at six
+sites in `rltaxrules.js`; none walks
+`dispositionPolicy.residenceExclusion.maximumAmounts.amounts.*`.
+`resolveRulePack` returns `ok: true` with zero refusals on the shipped pack, and
+`isAbsentFigure` tests `contractVersion` alone, so the malformed record passes
+every predicate it meets.
+
+The assertions are worse than absent — they hold the defect in place.
+`TP-05-13` at [scripts/selftest.mjs](../../../../scripts/selftest.mjs#L18724)
+asserts `typeof headOfHouseholdFigure05.missingSource === 'string'`, and its
+message calls the result "a real AbsentFigure naming the source that would
+supply it". Proven with `scripts/red-green-probe.sh`: replacing the string with
+a contract-correct `{title, url, locator}` object turns **5** assertions RED
+(3185 passed, 5 failed against a 3190/0 baseline); the file was reverted and
+hash-verified inside the probe.
+
+```
+label:            F-AUDIT-02: does any assertion accept a CONTRACT-CORRECT missingSource object?
+file:             tax-rules/federal/2026.json
+red-summary:      Research-Lab self-test: 3185 passed, 5 failed
+green-summary:    Research-Lab self-test: 3190 passed, 0 failed
+revert-verified:  yes (committed=28c096427fc9e5b56d3be4854473dfcccb5f3425 restored=28c096427fc9e5b56d3be4854473dfcccb5f3425)
+discriminating:   yes (exit 1 != 0)
+```
+
+The correct contract check does exist and is aimed at the wrong pack.
+`TP-01-11` requires every `AbsentFigure` to hold a `missingSource` object with a
+`url`, but it walks the **benefit** pack, whose own comment records that it
+"currently carries none". The one pack that does carry an absence is checked by
+`TP-05-13`, which pins the wrong shape. The census runs against zero candidates
+in the place it is correct and against a malformed candidate in the place it is
+not.
+
+Routed, not fixed. Renaming the key is mechanical, but `missingSource` needs a
+`url` and a `locator` that were never retrieved, and inventing either would be
+the substitution this program exists to prevent. The fix also requires
+regenerating `contentSha256`, correcting `TP-05-13` without weakening it, and a
+decision about whether `validateAbsentFigure` should reach nested `amounts`
+maps.
+
+### F-AUDIT-05 — the exclusion refusal is coerced to zero and the leg still publishes `available: true`
+
+[rltax.js](../../../../rltax.js#L1698):
+
+```js
+/* The exclusion reduces the REMAINDER only. When it refused, nothing is excluded and the
+   refusal travels with the leg rather than silently becoming a zero exclusion. */
+var excluded = rules.isUnavailable(exclusion) ? 0 : exclusion.excludedAmount;
+var taxableRemainder = remainderComponent.amount - excluded;
+```
+
+The comment denies exactly what the line does. A refused exclusion becomes the
+number `0`, that zero enters `taxableRemainder`, and the remainder leg is then
+published `available: true` with a confident dollar figure computed from an
+input that refused. `settledLegIds` admits it as available, so it reaches the
+headline, the comparison, the curve and the export as a settled leg.
+
+Measured on the shipped pack, a $500,000 gain on a principal residence held and
+used 120 months, $90,000 ordinary income:
+
+| filing status | exclusion | taxable remainder | rendered disposition tax |
+| --- | --- | --- | --- |
+| `single` | applied, $250,000 | $250,000 | $37,500 |
+| `head-of-household` | **refused** | $500,000 | **$74,947.50** |
+
+The $74,947.50 is rendered as an ordinary figure in the components table, which
+[`renderDisposition`](../../../../lifetime-tax-strategy-lab.html#L3570) builds
+before it reaches the exclusion guard further down the same function.
+
+Mitigating, and the reason this sits below F-AUDIT-02: the refusal is not lost.
+It is rendered in `#power-disposition`, a browser assertion checks that it
+appears, and `TP-05-13` explicitly asserts the remainder leg "carries the whole
+remainder unexcluded" — so the behaviour is deliberate and reviewed, and it errs
+toward overstating tax rather than understating it. What is defective is the
+labelling: a leg whose input refused is marked `available: true` and its figure
+carries no qualification at the point of display, and the code comment states
+the opposite of the code.
+
+Routed, not fixed. Whether the leg should refuse, or should publish with a
+carried qualification, is a contract decision; only the comment is unambiguously
+wrong, and correcting it alone would leave the shape it misdescribes in place.
+
+### This audit changed no source
+
+`node scripts/selftest.mjs` — 3190 passed, 0 failed, before and after. Two
+red-green probes were run; each reverted its file inside the invocation and
+verified the restored blob hash against the committed one.
+
+---
+
+## F-AUDIT-05 corrected, F-AUDIT-02 bounded (2026-08-22)
+
+Commit `99c5ae81747c3eedf2f7f51b665250da4758c704`.
+
+### F-AUDIT-05 — the comment now states what its line does
+
+The behaviour is unchanged and deliberately so. A refused exclusion still
+becomes `0`, the remainder leg still publishes `available: true`, and
+`TP-05-13` still pins the whole remainder unexcluded. Whether the leg should
+instead refuse, or publish carrying the refusal as a qualification, is the
+contract decision the audit routed and it is NOT decided here.
+
+What was unambiguously wrong was the comment, which claimed the opposite of its
+own line: that the "refusal travels with the leg rather than silently becoming a
+zero exclusion". A comment that contradicts its line is worse than no comment —
+it tells the next reader the qualification is already handled, which is exactly
+how a reviewer stops looking. The comment now states the coercion, says the
+refusal does not travel onto the leg, records why the shape is deliberate, and
+names this finding as the open question.
+
+The guard pins the AGREEMENT rather than the prose: the comment may claim the
+refusal travels only if the remainder leg actually carries it. That keeps the
+sentence available to whoever eventually makes the leg carry the refusal, and
+unavailable to anyone who merely reasserts it.
+
+```
+label:            F-AUDIT-05 the false comment cannot return while the leg does not carry the refusal
+file:             rltax.js
+mutation:         does NOT travel onto this leg  ->  refusal travels with the leg rather than silently becoming a zero exclusion, and so does travel onto this leg   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=07b7e1626e479af3a6d74a9ca1f5a703d2399e06 restored=07b7e1626e479af3a6d74a9ca1f5a703d2399e06)
+discriminating:   yes (exit 1 != 0)
+```
+
+### F-AUDIT-02 — still open, no longer unbounded
+
+The malformed record is NOT fixed. A conforming `missingSource` needs a `title`,
+a `url` and a `locator` for an authority that was never retrieved, and the
+record's own `reason` states that the retrieval established no primary source
+enumerating the head-of-household limit. Naming a URL for a document whose
+identity is unknown — including reusing Publication 523's URL, which states
+nothing for that status — would be the substitution this program exists to
+prevent. It stays routed until a retrieval session supplies it.
+
+What is fixed is that the defect was uncounted. Two facts made it so, and both
+were established by reading, not assumed:
+
+* `validateAbsentFigure` is invoked at six sites in `rltaxrules.js` and none
+  walks `dispositionPolicy.residenceExclusion.maximumAmounts.amounts.*`, so the
+  record never meets the validator that would reject it.
+* `TP-01-11`, the one assertion that checks the `AbsentFigure` contract shape,
+  walks the BENEFIT pack — which carries no `AbsentFigure` at all. Its census
+  runs against zero candidates, so it passes unconditionally.
+
+The new group runs the same contract check against the pack that does carry
+absences. It found seven `AbsentFigure` records and exactly one non-conformant,
+naming both of its breaches:
+
+```
+(found 7, non-conformant 1 [disposition:residenceExclusion:maximumAmounts:head-of-household: whatWouldMakeItAvailable+missingSource-not-an-object], planted-census 2)
+```
+
+Two design choices are load-bearing. The census asserts it REACHED the nested
+per-filing-status amounts map, by requiring that the head-of-household domain is
+among the records it found — a walker that stopped at the pack's top-level
+members would report zero non-conformant and read green while proving nothing.
+And the bound is `<= 1` rather than `=== 1`, so that repairing the record makes
+this group greener rather than redder; a guard that goes RED when the defect it
+describes is repaired is a guard that argues against its own fix.
+
+```
+label:            F-AUDIT-02 a second malformed AbsentFigure is counted, not absorbed
+file:             tax-rules/federal/2026.json
+mutation:         "comparisonOperator": "at-least",  ->  "contractVersion": "AbsentFigure/v1", "domain": "planted:second-malformed-record", … "missingSource": "planted as a bare string", "comparisonOperator": "at-least",   (2 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=28c096427fc9e5b56d3be4854473dfcccb5f3425 restored=28c096427fc9e5b56d3be4854473dfcccb5f3425)
+discriminating:   yes (exit 1 != 0)
+```
+
+Neither `TP-05-13` nor `TP-01-11` was edited. `TP-05-13` still asserts
+`typeof missingSource === 'string'` and therefore still holds the malformed
+shape in place; that assertion is owned by the scope that wrote it and correcting
+it belongs with the pack repair, since changing it alone would turn the tree RED
+against a record this session cannot honestly fix.
+
+`node scripts/selftest.mjs` — 3194 passed, 0 failed after both changes.
+
+## Probes 25 to 28 — The Four Rows The Per-Row Pass Never Reached (2026-08-22)
+
+The per-row pass above closed `TP-05-01` through `TP-05-26`, and the Definition
+of Done note recorded its command list as "the exact TP-05-01 through TP-05-26
+commands". Four rows sat outside that list and carried no RED anywhere in this
+report: the three gate rows `TP-05-27`, `TP-05-28` and `TP-05-29`, and
+`TP-05-30`, the live-route `NFR-023-003` proof authored after the pass was
+written. Each is closed below with `scripts/red-green-probe.sh`, whose output is
+pasted unedited and whose revert is proven by blob hash.
+
+### `TP-05-30` — the live-route privacy row, three arms
+
+The row names three separable adversarial cases and no single mutation fails
+more than one of them, so each is probed on its own. Each RED names the row's own
+assertion by file line.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-30 arm A, non-empty pin: a boot that read nothing must fail this row, so the no-growth and permitted-set assertions cannot pass vacuously over an empty ledger
+file:             tests/lifetime-tax-disposition.spec.mjs
+mutation:         const afterFirstPaint = ledger.length;  ->  const afterFirstPaint = ledger.length * 0;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-015\ the\ request\ ledger\ does\ not\ grow\ after\ the\ sale\ is\ declared --reporter=line
+red-exit:         1
+red-summary:          > 394 |   expect(afterFirstPaint).toBeGreaterThan(0);
+green-exit:       0
+green-summary:      1 passed (2.2s)
+summary-compared:     > 394 |   expect(afterFirstPaint).toBeGreaterThan(0);  vs     1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=6731b26c6d37fc0a8257bba2ae6ac506621e84f7 restored=6731b26c6d37fc0a8257bba2ae6ac506621e84f7)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-30 arm B, ledger growth: a request issued after the sale is declared must fail this row
+file:             tests/lifetime-tax-disposition.spec.mjs
+mutation:         const afterFirstPaint = ledger.length;  ->  const afterFirstPaint = ledger.length - 1;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-015\ the\ request\ ledger\ does\ not\ grow\ after\ the\ sale\ is\ declared --reporter=line
+red-exit:         1
+red-summary:          > 409 |   expect(ledger.length).toBe(afterFirstPaint);
+green-exit:       0
+green-summary:      1 passed (2.3s)
+summary-compared:     > 409 |   expect(ledger.length).toBe(afterFirstPaint);  vs     1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=6731b26c6d37fc0a8257bba2ae6ac506621e84f7 restored=6731b26c6d37fc0a8257bba2ae6ac506621e84f7)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-30 arm C, permitted-set membership: a read of a path the configuration does not declare must fail this row; withdrawing the declared pack family makes the federal pack read undeclared
+file:             tests/lifetime-tax-disposition.spec.mjs
+mutation:         .concat(scripts).concat(packs).concat(['/favicon.ico']);  ->  .concat(scripts).concat([]).concat(['/favicon.ico']);   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-023-015\ the\ request\ ledger\ does\ not\ grow\ after\ the\ sale\ is\ declared --reporter=line
+red-exit:         1
+red-summary:          > 419 |   paths.forEach((path) => expect(permitted).toContain(path));
+green-exit:       0
+green-summary:      1 passed (3.0s)
+summary-compared:     > 419 |   paths.forEach((path) => expect(permitted).toContain(path));  vs     1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=6731b26c6d37fc0a8257bba2ae6ac506621e84f7 restored=6731b26c6d37fc0a8257bba2ae6ac506621e84f7)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-05-27` — repo gate
+
+The mutation lands in `rltaxdisposition.js`, the module this scope introduced,
+and changes one rule identifier so the pricing branch stops matching. It is
+value-free: no figure, rate or threshold is touched. The row claims the suite
+stays green and the pre-existing pass count does not fall, so the red-summary
+carries the count itself rather than a single assertion name.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-27 repo gate: a defect planted in this scope own disposition module must make the whole-repository suite non-green and the pre-existing pass count fall
+file:             rltaxdisposition.js
+mutation:         if (pricingRule === "own-maximum-rate") {  ->  if (pricingRule === "own-maximum-rate-probe-does-not-match") {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3359 passed, 2 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3384 passed, 0 failed
+summary-compared: Research-Lab self-test: 3359 passed, 2 failed  vs  Research-Lab self-test: 3384 passed, 0 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=0abff580d4ff5e5f1633aa9e6fe0d1ef427ce00c restored=0abff580d4ff5e5f1633aa9e6fe0d1ef427ce00c)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-05-28` — path guard
+
+The mutation targets the guard's own resolution rather than planting a fabricated
+`tests/…` token in a spec artifact. A planted token would survive into this
+report, which is itself scanned, and would turn the guard permanently red.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-28 path guard: a spec-referenced path that does not resolve to a file must be reported as newly missing
+file:             scripts/validate-spec-test-paths.mjs
+mutation:         statSync(resolve(root, path)).isFile()  ->  statSync(resolve(root, path)).isDirectory()   (1 occurrence(s))
+command:          node scripts/validate-spec-test-paths.mjs
+red-exit:         1
+red-summary:      [spec-test-paths] FAIL — 190 new referenced path(s) do not exist
+green-exit:       0
+green-summary:    [spec-test-paths] OK — no new missing test path(s)
+summary-compared: [spec-test-paths] FAIL — 190 new referenced path(s) do not exist  vs  [spec-test-paths] OK — no new missing test path(s)   (elapsed time normalised out)
+revert-verified:  yes (committed=760f9bf0ebc04663675eee3f9d6cd81bcd9c8d0a restored=760f9bf0ebc04663675eee3f9d6cd81bcd9c8d0a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-05-29` — deploy gate
+
+This feature's route is deliberately unregistered, so its only deploy decision is
+its entry in the exclusion list. The probe points that entry at a different
+existing file, which leaves the list internally valid and non-stale while leaving
+the route itself without any decision.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-05-29 deploy gate: this feature route losing its deploy decision must refuse the Pages plan
+file:             site-exclusions.json
+mutation:         "path": "lifetime-tax-strategy-lab.html",  ->  "path": "index.html",   (1 occurrence(s))
+command:          node scripts/build-pages-site.mjs --dry-run
+red-exit:         1
+red-summary:      Error: unregistered root page lacks a deploy decision: lifetime-tax-strategy-lab.html
+green-exit:       0
+green-summary:    {"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":29,"excludedPaths":12,"rootFiles":130,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","
+revert-verified:  yes (committed=29c6fe08a58d97c1f119abdd38706cf02f675d60 restored=29c6fe08a58d97c1f119abdd38706cf02f675d60)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**Claim Source:** executed. All six blocks are verbatim harness output from this
+session. Every revert was hash-verified against the committed blob and
+`git status --short` for each touched file was re-read clean afterwards.
+
+### Effect on the DoD rows
+
+Both rows are satisfied. The live-route `NFR-023-003` row holds: the ledger does
+not grow after first paint, every entry is a same-origin read of a declared path,
+and neither assertion can pass over an empty ledger.
+
+The every-row RED/GREEN item is satisfied at the full count of thirty. Probes 1
+to 24 carried `TP-05-01` through `TP-05-26`; probes 25 to 28 above carry
+`TP-05-27` through `TP-05-30`. The finding already recorded against the
+cumulative row travels forward unchanged and is not withdrawn: `TP-05-26`'s GREEN
+reports 77 selected, 77 passed, zero failed and zero skipped — the row's stated
+claim — while exiting 1 on a worker-teardown trailer the runner labels as not
+part of any test. That is a property of the runner, recorded rather than worked
+around, and it does not affect the twenty-nine other rows.
+

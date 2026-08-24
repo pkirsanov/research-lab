@@ -4,9 +4,12 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { startStaticServer } from './provider-credentials.support.mjs';
 import {
+  collectRequests,
+  declaredPackPaths,
   declareOrdinaryHousehold,
   openLifetimeTax,
-  openPower
+  openPower,
+  sameOriginPaths
 } from './lifetime-tax.support.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -45,8 +48,7 @@ const withFixtureAllowance = (pack) => {
 async function declareRental(page, values) {
   const fill = async (selector, value) => {
     await page.fill(selector, value === undefined || value === null ? '' : String(value));
-  };
-  await fill('#inputRentalIncome', values.rentalIncome);
+  };  await fill('#inputRentalIncome', values.rentalIncome);
   await fill('#inputRentalOperatingExpenses', values.operatingExpenses);
   await fill('#inputRentalDepreciableBasis', values.depreciableBasis);
   await fill('#inputRentalPlacedInServiceMonth', values.placedInServiceMonth);
@@ -64,6 +66,19 @@ const PROFITABLE_RENTAL = {
   placedInServiceMonth: 2, recoveryYearOrdinal: 1, atRiskAmount: 500000,
   modifiedAdjustedGrossIncome: 90000, openingSuspendedLoss: 0, activeParticipation: 'yes'
 };
+
+/* The permitted-asset set, DERIVED from the page's own script tags and from every pack path the
+   configuration declares, so a module a later scope adds is admitted by the page's own
+   declaration rather than by a literal edited here. */
+function declaredRouteAssets() {
+  const routeSource = readFileSync(join(ROOT, 'lifetime-tax-strategy-lab.html'), 'utf8');
+  const config = JSON.parse(readFileSync(join(ROOT, 'lifetime-tax-strategy.config.json'), 'utf8'));
+  const scripts = Array.from(routeSource.matchAll(/<script src="([^"]+)"><\/script>/g))
+    .map((match) => '/' + match[1]);
+  const packs = declaredPackPaths(config).map((path) => '/' + path);
+  return ['/lifetime-tax-strategy-lab.html', '/lifetime-tax-strategy.config.json']
+    .concat(scripts).concat(packs).concat(['/favicon.ico']);
+}
 
 const LOSS_RENTAL = Object.assign({}, PROFITABLE_RENTAL, {
   rentalIncome: 10000, operatingExpenses: 30000, atRiskAmount: 12000
@@ -328,4 +343,59 @@ test('Regression: SCN-023-007 the rental leg reaches the headline, the compariso
   expect(powerSections).toContain('power-rental');
   await expect(page.locator('#power-rental')).toHaveCount(1);
   await expect(page.locator('#powerLinkRows button[data-power-section="power-rental"]')).toHaveCount(1);
+});
+
+/* TP-03-29. */
+test('Regression: SCN-023-009 the request ledger does not grow after the rental declarations and every entry is a declared same-origin read', async ({ page }) => {
+  const ledger = collectRequests(page);
+  await openLifetimeTax(page, site);
+  /* Measured before a single declaration is entered. Every assertion below is a statement about
+     THIS number, so a route whose transport stopped working entirely would make all of them
+     vacuous — which is why the pin comes first. */
+  const afterFirstPaint = ledger.length;
+  expect(afterFirstPaint).toBeGreaterThan(0);
+
+  /* Distinctive rental figures. Both legitimately appear in the DOM and in this tool's own
+     local-storage namespace. Being distinctive is what stops the URL scan from passing on a digit
+     sequence some other declared member happens to share. */
+  const incomeSentinel = 40739;
+  const basisSentinel = 163117;
+  await declareOrdinaryHousehold(page, { ordinary: 90000, bracketId: 'b3' });
+  await openPower(page);
+  await declareRental(page, Object.assign({}, PROFITABLE_RENTAL, {
+    rentalIncome: incomeSentinel, depreciableBasis: basisSentinel
+  }));
+
+  /* NFR-023-003, first half. Declaring the rental, running the recovery and at-risk ladders and
+     rendering the settled leg issued no request at all. */
+  expect(ledger.length).toBe(afterFirstPaint);
+
+  /* NFR-023-003, second half. Every request the route did make is one the route itself declares,
+     read from the route's own origin. The origin half runs first, in the shared helper: a
+     pathname is not an origin, so `https://elsewhere.example/rltaxstrategy.js` would satisfy the
+     membership sweep below on its own. */
+  const permitted = declaredRouteAssets();
+  const paths = sameOriginPaths(ledger, site);
+  paths.forEach((path) => expect(permitted).toContain(path));
+  expect(permitted).toContain('/' + FEDERAL_PACK_PATH);
+  expect(permitted).not.toContain('/definitely-not-declared-by-this-route.js');
+  expect(paths).toContain('/' + FEDERAL_PACK_PATH);
+
+  /* No rental declaration reaches any URL, query string or request body, and nothing was POSTed. */
+  ledger.forEach((entry) => {
+    [String(incomeSentinel), String(basisSentinel)].forEach((sentinel) => {
+      expect(entry.url).not.toContain(sentinel);
+      expect(entry.postData).not.toContain(sentinel);
+    });
+    expect(entry.method).toBe('GET');
+  });
+  const address = page.url();
+  expect(address).not.toContain(String(incomeSentinel));
+  expect(address).not.toContain(String(basisSentinel));
+  expect(new URL(address).search).toBe('');
+
+  /* The declarations really are present, so every scan above ran against a live household rather
+     than an empty one. */
+  await expect(page.locator('#inputRentalIncome')).toHaveValue(String(incomeSentinel));
+  await expect(page.locator('#inputRentalDepreciableBasis')).toHaveValue(String(basisSentinel));
 });

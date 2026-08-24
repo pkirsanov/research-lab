@@ -346,7 +346,11 @@ passed (`✓ 12 … (1.2s)`). Unit evidence is [TP-03-07](#tp-03-07),
 
 Green. `tests/lifetime-tax-claim-age.spec.mjs:179` —
 `Regression: SCN-024-009 the claim ages render in declared order with nothing marked best, optimal, recommended or preferred`
-and the request-ledger row `Regression: SCN-024-009 the request ledger stays empty and no declared claim age reaches a URL`
+and the request-ledger row, whose persistent title was
+`Regression: SCN-024-009 the request ledger stays empty and no declared claim age reaches a URL`
+at the time of this run and is now
+`Regression: SCN-024-009 every request is a declared same-origin GET and no declared claim age reaches a URL`
+(renamed 2026-08-22, F-REG-02 — see [TP-03-24](#tp-03-24)),
 both passed among the 51 tests recorded at [TP-03-25](#tp-03-25). Unit evidence
 is [TP-03-13](#tp-03-13) and [TP-03-14](#tp-03-14).
 
@@ -561,6 +565,26 @@ of the 51 tests that passed with zero failures.
 
 ### TP-03-24
 
+**Renamed 2026-08-22 (F-REG-02), and narrowed rather than restated.** This row's
+persistent title was
+`Regression: SCN-024-009 the request ledger stays empty and no declared claim age reaches a URL`
+until this date. The ledger is never empty — the route issues same-origin
+document reads and `<script src>` module loads at boot, and this very row then
+requires the mortality pack to be among them. This row also holds **no**
+`expect(ledger.length).toBe(afterFirstPaint)` and **no**
+`expect(afterFirstPaint).toBeGreaterThan(0)`, so it cannot carry the
+"does not grow after first paint" wording used on SCN-022-013 either. The title
+now names what the body proves:
+`requested.forEach((path) => expect(permitted).toContain(path))` — every request
+is a same-origin read of a path the configuration declares — together with
+`expect(entry.postData).toBe('')` and `expect(entry.method).toBe('GET')`, and the
+absence of any declared claim age or mortality column from every URL. Adversarial
+cases: a read of an undeclared path fails the membership loop; a non-GET request
+or any request body fails the method and body pins; a declared claim age reaching
+a URL fails the value scan. That this row does not constrain ledger growth is a
+planning gap and is routed. The captured evidence below was recorded under the
+superseded title and is left exactly as executed.
+
 Green, in the same run — `Regression: SCN-024-009 the request ledger stays empty
 and no declared claim age reaches a URL`, one of the 51 tests that passed. The
 mortality pack is now fetched from disk by the route, and it is admitted by
@@ -568,6 +592,22 @@ mortality pack is now fetched from disk by the route, and it is admitted by
 `config.rules` via `declaredPackPaths()`; `mortalityPackPaths` in
 `lifetime-tax-strategy.config.json` is that declaration. An undeclared pack path
 would still fail this row.
+
+Fresh capture under the new persistent title, recorded 2026-08-22 after the
+rename, proving the row's `--grep` still selects its own test — selected 1,
+passed 1:
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-009 every request is a declared same-origin GET and no declared claim age reaches a URL" --reporter=line
+exit: 0
+lines: 5
+sha256: be78e2eebdbbd2cfa14377a1b37fecbe327f4f1809d147d50f70fcc2f892291b
+
+Running 1 test using 1 worker
+
+[1/1] [system-chrome] › tests/lifetime-tax-claim-age.spec.mjs:201:1 › Regression: SCN-024-009 every request is a declared same-origin GET and no declared claim age reaches a URL
+  1 passed (4.7s)
+```
 
 ### TP-03-25
 
@@ -2594,4 +2634,91 @@ convention documented under [RED TP-03-27](#red-tp-03-27), and
 `node scripts/validate-spec-test-paths.mjs` is back to `new=0`. It is recorded
 here because a reader comparing the RED capture's `distinctPaths=243` against a
 later run would otherwise find an unexplained discrepancy.
+
+## TP-03-29 authored — the ledger-growth constraint `SCN-024-009` lacked (2026-08-22)
+
+`TP-03-29` was opened as `GAP, NOT AUTHORED` because `TP-03-24` placed no bound
+on ledger growth after first paint and carried no non-empty pin. Its
+`requested.forEach((path) => expect(permitted).toContain(path))` therefore passes
+vacuously against a route that read nothing — the guard-that-cannot-fail class —
+and passes equally against a route that issued fresh requests once the claim-age
+comparison was declared, because a ledger that grew still satisfies a
+membership sweep.
+
+Both are now constrained in the same run. `afterFirstPaint` is captured
+immediately after `openLifetimeTax`, pinned greater than zero, and the ledger is
+asserted equal to it after the comparison is declared, settled and switched to
+Power. The row also adopts the shared `sameOriginPaths` helper described under
+`TP-01-18` in the Scope 01 report, so a declared pathname served from an origin
+the route never declared is refused before the permitted-set sweep sees it.
+
+### Intended RED and same-command GREEN — arm A, the non-empty pin
+
+Zeroing the capture is exactly the state a boot that issued no request produces.
+
+```
+$ bash scripts/red-green-probe.sh \
+    --file tests/lifetime-tax-claim-age.spec.mjs \
+    --find 'const afterFirstPaint = ledger.length;' \
+    --replace 'const afterFirstPaint = ledger.length * 0;' \
+    --label 'TP-03-29 arm A, non-empty pin: a boot that read nothing must fail this row; without the pin requested.forEach((path) => expect(permitted).toContain(path)) passes vacuously over an empty ledger' \
+    --bound 300 \
+    --summary-match 'expect\(afterFirstPaint\)\.toBeGreaterThan|1 passed' \
+    -- npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-024-009 every request is a declared same-origin GET" --reporter=line
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-29 arm A, non-empty pin: a boot that read nothing must fail this row; without the pin requested.forEach((path) => expect(permitted).toContain(path)) passes vacuously over an empty ledger
+file:             tests/lifetime-tax-claim-age.spec.mjs
+mutation:         const afterFirstPaint = ledger.length;  ->  const afterFirstPaint = ledger.length * 0;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-024-009\ every\ request\ is\ a\ declared\ same-origin\ GET --reporter=line
+red-exit:         1
+red-summary:          > 209 |   expect(afterFirstPaint).toBeGreaterThan(0);
+green-exit:       0
+green-summary:      1 passed (3.7s)
+summary-compared:     > 209 |   expect(afterFirstPaint).toBeGreaterThan(0);  vs    1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=0e82d9f4a4bbf1d5c91f279f88fb42b1efb2c95b restored=0e82d9f4a4bbf1d5c91f279f88fb42b1efb2c95b)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+ARM_A_EXIT=0
+```
+
+### Intended RED and same-command GREEN — arm B, the growth constraint
+
+Subtracting one from the capture is the arithmetic image of a single request
+issued after first paint: the pin still holds, and the equality does not. Probing
+it this way rather than by planting a real fetch keeps the mutation inside the
+committed test file the harness can hash-verify on revert.
+
+```
+$ bash scripts/red-green-probe.sh \
+    --file tests/lifetime-tax-claim-age.spec.mjs \
+    --find 'const afterFirstPaint = ledger.length;' \
+    --replace 'const afterFirstPaint = ledger.length - 1;' \
+    --label 'TP-03-29 arm B, ledger growth: a single request issued after first paint must fail this row; the permitted-set sweep cannot detect it because a ledger that grew still satisfies the sweep' \
+    --bound 300 \
+    --summary-match 'expect\(ledger\.length\)\.toBe|1 passed' \
+    -- npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-024-009 every request is a declared same-origin GET" --reporter=line
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-03-29 arm B, ledger growth: a single request issued after first paint must fail this row; the permitted-set sweep cannot detect it because a ledger that grew still satisfies the sweep
+file:             tests/lifetime-tax-claim-age.spec.mjs
+mutation:         const afterFirstPaint = ledger.length;  ->  const afterFirstPaint = ledger.length - 1;   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-024-009\ every\ request\ is\ a\ declared\ same-origin\ GET --reporter=line
+red-exit:         1
+red-summary:          > 219 |   expect(ledger.length).toBe(afterFirstPaint);
+green-exit:       0
+green-summary:      1 passed (2.5s)
+summary-compared:     > 219 |   expect(ledger.length).toBe(afterFirstPaint);  vs    1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=0e82d9f4a4bbf1d5c91f279f88fb42b1efb2c95b restored=0e82d9f4a4bbf1d5c91f279f88fb42b1efb2c95b)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+ARM_B_EXIT=0
+```
+
+Two arms are recorded rather than one because the row makes two separable claims
+and a single mutation cannot fail both: arm A's mutation stops at the pin and
+never reaches the equality, and arm B's mutation satisfies the pin. Each RED
+names its own assertion by file line, so neither is a collateral failure.
+
+**Claim Source:** executed. Both blocks are verbatim harness output from this
+session, each with its revert hash-verified against the committed blob.
+
 

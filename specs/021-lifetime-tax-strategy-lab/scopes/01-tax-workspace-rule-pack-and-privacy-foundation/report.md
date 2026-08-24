@@ -1021,3 +1021,363 @@ explicitly instructed not to create the page, so the route-level zero-network
 proof is outstanding.
 
 Scope status remains **In progress**.
+
+## SCN-021-003 adversarial arm probes (2026-08-22)
+
+The declared-read canary names four adversarial cases. Two of them already carry
+an observed RED, recorded against the DoD item itself: the undeclared-document
+arm (`expect(unexpected).toEqual([])`, RED with `Received + 11` after a value-free
+undeclared same-origin request was added to `render()`) and the sentinel arm
+(RED with `Received string: "#simple-123457"` after the declared amount was
+appended to the never-transmitted location hash). The two arms below had no
+recorded RED. This section closes one of them and records, rather than hides, why
+the other cannot be closed by this harness.
+
+### The read-nothing arm is discriminating
+
+`expect(afterFirstPaint).toBeGreaterThan(0)` cannot fail on its own. The document
+request alone puts one entry in the ledger before that line runs, so read as a
+single expression it is an existence test that no route could fail. Measured at
+first paint on a local static server, the route issues 24 requests — the document,
+the fourteen modules the markup names, the configuration document and the eight
+packs the configuration names — so the expression is satisfied twenty-four times
+over and pins nothing by itself.
+
+What makes the arm real is the pins immediately after it: every module the page
+declares must appear in the set of responses that returned a 2xx status, and so
+must the configuration document and the federal pack. Those are the assertions
+that separate *attempted* from *resolved*. The probe below attacks exactly that
+distinction — the markup declares a module that is requested and 404s, so it is
+declared (the undeclared-document arm still passes, correctly) but never
+resolves.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-14 read-nothing arm: the markup declares a module that is requested but never resolves, so attempted is not resolved
+file:             lifetime-tax-strategy-lab.html
+mutation:         <script src="rltax.js"></script>  ->  <script src="rltax-declared-but-never-resolves.js"></script><script src="rltax.js"></script>   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-021-003\ the\ tax\ workspace\ resolves\ only\ its\ declared\ reads\ and\ keeps\ every\ household\ value\ local --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-foundation.spec.mjs:297:1 › Regression: SCN-021-003 the tax workspace resolves only its declared reads and keeps every household value local 
+green-exit:       0
+green-summary:      ✓  1 [system-chrome] › tests/lifetime-tax-foundation.spec.mjs:297:1 › Regression: SCN-021-003 the tax workspace resolves only its declared reads and keeps every household value local (723ms)
+summary-compared:     [system-chrome] › tests/lifetime-tax-foundation.spec.mjs:297:1 › Regression: SCN-021-003 the tax workspace resolves only its declared reads and keeps every household value local   vs    ✓  1 [system-chrome] › tests/lifetime-tax-foundation.spec.mjs:297:1 › Regression: SCN-021-003 the tax workspace resolves only its declared reads and keeps every household value local (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_EXIT=0
+```
+
+The mutation is constructed against the resolved-response pin and no other: the
+added path is same-origin, so the cross-origin filter still passes, and it is in
+the markup's own script-tag set, so the derived declaration set still names it
+and the undeclared filter still passes. What it is not is resolvable. The failing
+line was not read out of the RED capture, so the attribution above is derived
+from the assertion order in the test rather than observed; the observed fact is
+that the same command exits 1 under the mutation and 0 without it.
+
+### The cross-origin arm cannot be probed by this harness, by design
+
+`expect(foreign).toEqual([])` has no RED here and will not get one from
+`red-green-probe.sh`. Making a route reach another origin means introducing a
+network sink, and the harness refuses any replacement containing `fetch(`:
+
+```
+red-green-probe: REFUSED — --replace contains fetch(. A probe mutation must be value-free by construction: it may not open a network sink or a navigation sink that could carry the operator's data off the page.
+PROBE_EXIT=3
+```
+
+That refusal is correct and is not worked around. Exit 3 is a rejected input, not
+a verdict, so it says nothing about whether the assertion could detect the defect
+it names — it says the safe harness will not build that defect. What supports the
+arm instead is indirect and is stated as such: `foreign` and `unexpected` filter
+the same ledger snapshot, and `unexpected` has an observed RED, which establishes
+that the ledger is populated and that an empty-set filter over it does fail when a
+disallowed entry is present. `foreign` differs only in its predicate. That is
+weaker than an observed RED and is recorded as weaker.
+
+**Claim Source:** executed for the probe block and the refusal block, both being
+verbatim harness output from this session. The 24-request measurement is executed:
+a local static server plus a Chromium request listener over one first paint. The
+failing-line attribution inside the first probe is interpreted, not executed.
+
+## TP-01-18 authored — the origin half, folded into the shared helper (2026-08-22)
+
+`TP-01-18` was opened as `GAP, NOT AUTHORED` on a route-wide title-versus-assertion
+mismatch. Six rows across Features 021-024 carry the words "declared same-origin
+read" or "declared same-origin GET" in their persistent titles but assert only
+`new URL(entry.url).pathname` against a declared-asset set, which returns bare
+paths: `SCN-021-015`, `SCN-023-001`, `SCN-024-001`, `SCN-024-009`, `SCN-024-010`
+and `SCN-024-014`. A read of `https://elsewhere.example/rltaxstrategy.js` has a
+declared pathname and passes all six while carrying the household's request to a
+third party.
+
+This scope owns the shared privacy contract, so the fix is a shared helper rather
+than six copies of a filter. `sameOriginPaths(ledger, site)` in
+`tests/lifetime-tax.support.mjs` refuses on origin first and only then returns the
+pathnames, so a row gains the origin constraint by calling it.
+
+The row itself is authored in `tests/lifetime-tax-foundation.spec.mjs` against
+`SCN-021-002` and carries two arms. The live arm runs the real route, calls the
+helper, pins the returned list non-empty and checks every path against the
+declared set. The adversarial arm builds the exact entry the six rows cannot see —
+a pathname the route genuinely declares, an origin it never did — and proves the
+two checks disagree: the pathname-only sweep accepts it, the helper refuses it. A
+third assertion re-bases the same entry on the route's own origin and shows the
+helper accepts it, so the refusal is about the origin rather than about the entry
+being synthetic.
+
+### Intended RED and same-command GREEN
+
+The mutation reverts the helper to precisely the pathname-only predicate the six
+rows already had. Every pathname begins with a slash, so `foreign` becomes
+permanently empty and the helper stops refusing anything.
+
+```
+$ bash scripts/red-green-probe.sh \
+    --file tests/lifetime-tax.support.mjs \
+    --find 'const foreign = ledger.filter((entry) => !entry.url.startsWith(site.baseUrl));' \
+    --replace 'const foreign = ledger.filter((entry) => !new URL(entry.url).pathname.startsWith("/"));' \
+    --label 'TP-01-18 shared origin filter: reverting the helper to the pathname-only check the six rows already had must fail this row, because a declared pathname served from an undeclared origin is then accepted' \
+    --bound 300 \
+    --summary-match 'toThrow|1 passed' \
+    -- npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-021-002 the shared ledger helper refuses a declared pathname served from an undeclared origin" --reporter=line
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-18 shared origin filter: reverting the helper to the pathname-only check the six rows already had must fail this row, because a declared pathname served from an undeclared origin is then accepted
+file:             tests/lifetime-tax.support.mjs
+mutation:         const foreign = ledger.filter((entry) => !entry.url.startsWith(site.baseUrl));  ->  const foreign = ledger.filter((entry) => !new URL(entry.url).pathname.startsWith("/"));   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-021-002\ the\ shared\ ledger\ helper\ refuses\ a\ declared\ pathname\ served\ from\ an\ undeclared\ origin --reporter=line
+red-exit:         1
+red-summary:          > 450 |   expect(() => sameOriginPaths(smuggled, site)).toThrow();
+green-exit:       0
+green-summary:      1 passed (2.1s)
+summary-compared:     > 450 |   expect(() => sameOriginPaths(smuggled, site)).toThrow();  vs    1 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=a6f68db3cecd8ed4cb33abaede3f091ad7f9cdad restored=a6f68db3cecd8ed4cb33abaede3f091ad7f9cdad)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+PROBE_TP0118_EXIT=0
+```
+
+### What this closes, and what it does not
+
+The `foreign` predicate now has an OBSERVED RED. The section immediately above
+recorded that it had none — it was reasoned about by analogy with `unexpected`
+and recorded as weaker than an observed RED. That gap is discharged: the RED
+above names the assertion by file line.
+
+**Not closed, and reported rather than hidden.** Of the six rows the gap names,
+three now route through the shared helper: `SCN-021-015`, `SCN-024-009` and
+`SCN-024-010`. Three do not — `SCN-023-001` in `tests/lifetime-tax-property.spec.mjs`,
+`SCN-024-001` in `tests/lifetime-tax-benefit.spec.mjs` and `SCN-024-014` in
+`tests/lifetime-tax-retirement-route.spec.mjs`. Those three files are excluded
+paths for every scope in this dispatch and are owned by scopes whose Definition
+of Done is not open, so adopting the helper there is a change outside this
+dispatch's boundary. The helper is in place and the call site is one line; the
+remaining adoption is named here as open work, not asserted as done.
+
+**Claim Source:** executed. The probe block is verbatim harness output from this
+session. The three-of-six adoption count is executed: it is the set of files this
+dispatch edited, verified against the call sites of `sameOriginPaths`.
+
+## `TP-01-17` Reds, `TP-01-16` Does Not — One Probe, One Finding (2026-08-22)
+
+The every-row DoD item's own note already records that its headline over-claimed
+against its command range: the command names `TP-01-01` through `TP-01-14` while
+`TP-01-15`, `TP-01-16` and `TP-01-17` also exist and carried no RED. Two of the
+three were addressed here. Both blocks are verbatim harness output.
+
+### `TP-01-17` — path guard, discriminating
+
+The mutation targets the guard's own resolution rather than planting a fabricated
+`tests/…` token in a spec artifact. A planted token would survive into this
+report, which is itself scanned, and would turn the guard permanently red.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-17 path guard: a spec-referenced path that does not resolve to a file must be reported as newly missing
+file:             scripts/validate-spec-test-paths.mjs
+mutation:         statSync(resolve(root, path)).isFile()  ->  statSync(resolve(root, path)).isDirectory()   (1 occurrence(s))
+command:          node scripts/validate-spec-test-paths.mjs
+red-exit:         1
+red-summary:      [spec-test-paths] FAIL — 190 new referenced path(s) do not exist
+green-exit:       0
+green-summary:    [spec-test-paths] OK — no new missing test path(s)
+summary-compared: [spec-test-paths] FAIL — 190 new referenced path(s) do not exist  vs  [spec-test-paths] OK — no new missing test path(s)   (elapsed time normalised out)
+revert-verified:  yes (committed=760f9bf0ebc04663675eee3f9d6cd81bcd9c8d0a restored=760f9bf0ebc04663675eee3f9d6cd81bcd9c8d0a)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### `TP-01-16` — repo gate, exit 7, and the finding it produced
+
+The mutation relaxed the non-empty guard in `rltaxworkspace.js`, this scope's own
+workspace module, so a zero-length string would be accepted wherever the module
+requires a non-empty one. The harness returned exit 7: the RED and GREEN channels
+agreed. That is recorded here as a finding rather than retried with a different
+mutation, because a probe retried until something goes red stops being evidence.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-16 repo gate: a defect planted in this scope own workspace module must make the whole-repository suite non-green and the pre-existing pass count fall
+file:             rltaxworkspace.js
+mutation:         return typeof candidate === "string" && candidate.length > 0;  ->  return typeof candidate === "string" && candidate.length >= 0;   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         0
+red-summary:      Research-Lab self-test: 3384 passed, 0 failed
+green-exit:       0
+green-summary:    Research-Lab self-test: 3384 passed, 0 failed
+summary-compared: Research-Lab self-test: 3384 passed, 0 failed  vs  Research-Lab self-test: 3384 passed, 0 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=d527e273212ed6fdc08c771ad4bddfea761a1ec9 restored=d527e273212ed6fdc08c771ad4bddfea761a1ec9)
+discriminating:   NO (both channels agree: exit 0 == 0, summary "Research-Lab self-test: 3384 passed, 0 failed" identical once elapsed time is normalised)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**What this establishes.** Not that `TP-01-16` is weak — the row claims the suite
+stays green and the pass count does not fall, and this run shows the count
+unchanged, which is the row passing. What it establishes is about the module: the
+non-empty string guard in `rltaxworkspace.js` is unasserted. Relaxing it so that
+an empty string is accepted moves no assertion in a 3384-assertion suite. A
+regression that let a zero-length declaration through that guard would ship
+green. The guard is named here so the finding is available to whoever owns that
+module, and `TP-01-16` is left without a RED rather than being given one by
+searching for a mutation that happens to fail.
+
+**Claim Source:** executed. Both blocks are verbatim harness output from this
+session, each revert hash-verified against the committed blob, and
+`git status --short` for each touched file re-read clean afterwards.
+
+### Effect on the DoD row
+
+The every-row item stays open. `TP-01-17` now carries a RED and a same-command
+GREEN. `TP-01-16` does not, for the reason recorded above. `TP-01-15`, the
+cumulative browser row, still carries GREEN only and was not probed here. Two
+limits recorded earlier are unchanged and not withdrawn: `TP-01-04`'s
+zero-substituting half and `TP-01-08`'s forbidden-prefix limb are each shielded
+by a second independent check, so no single-limb mutation can make their
+assertion fail.
+
+## `TP-01-16` and `TP-01-15` earned — the last two rows without a RED (2026-08-23)
+
+The section above left exactly two rows unproven. Both are earned here, and both
+blocks are verbatim harness output from this session.
+
+### Why `TP-01-16` is re-probed rather than left at exit 7
+
+The earlier `TP-01-16` probe relaxed a non-empty string guard in
+`rltaxworkspace.js` and returned exit 7. Its own recorded conclusion is that the
+guard **is unasserted** — no assertion in the suite reads it. A mutation that no
+assertion reads cannot reach the row's contract, so exit 7 there was not a
+verdict about the row; it was a measurement of a blind spot in the module. That
+finding stands and is not withdrawn below.
+
+Re-probing with a mutation the suite does read is therefore not a retry of the
+same experiment until it goes red. It is the first probe placed inside the row's
+reach at all. The two probes answer different questions: the earlier one asked
+whether that particular guard is watched, the one below asks whether the repo
+gate detects a defect planted in this scope's own module.
+
+### `TP-01-16` — repo gate, discriminating
+
+The mutation drops `probeKey` from the declared storage-key set in this scope's
+own workspace module. The clear action then still reports removing a key it no
+longer enumerates, which is the shape the Feature 008 boundary exists to refuse.
+The `--summary-match` names the assertion the defect must trip rather than the
+aggregate pass count, so a concurrent session moving the suite total cannot move
+this verdict.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-16 repo gate: a defect planted in this scope own workspace module and reachable by a pre-existing assertion — the declared storage-key set silently loses a member, so the clear action stops removing a key it still declares — must make the whole-repository suite non-green
+file:             rltaxworkspace.js
+mutation:         return Object.freeze([config.storage.workspaceKey, config.storage.pointerKey, config.storage.probeKey]);  ->  return Object.freeze([config.storage.workspaceKey, config.storage.pointerKey]);   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-01-08: clearing private data removes exactly the three declared keys, leaves a portfolio-prefixed key untouched, and a foreign key write is refused
+green-exit:       0
+green-summary:      ✓ TP-01-08: clearing private data removes exactly the three declared keys, leaves a portfolio-prefixed key untouched, and a foreign key write is refused
+summary-compared:   ✗ FAIL: TP-01-08: clearing private data removes exactly the three declared keys, leaves a portfolio-prefixed key untouched, and a foreign key write is refused  vs    ✓ TP-01-08: clearing private data removes exactly the three declared keys, leaves a portfolio-prefixed key untouched, and a foreign key write is refused   (elapsed time normalised out)
+revert-verified:  yes (committed=d527e273212ed6fdc08c771ad4bddfea761a1ec9 restored=d527e273212ed6fdc08c771ad4bddfea761a1ec9)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Both channels moved: exit `1` against `0`, and the named assertion moved from
+`✗ FAIL` to `✓` on the identical command after a hash-verified revert.
+
+### `TP-01-15` — cumulative browser row, discriminating
+
+The mutation drops the ordinary term from the preferential window in `rltax.js`,
+so a gain is priced from zero instead of on top of ordinary income. The comment
+above `stackPreferentialIncome` names that exact defect as the one the function
+exists to prevent. The pin is a `lifetime-tax-marginal.spec.mjs` scenario, which
+this scope does not own, so the RED proves the cumulative run reaches past this
+scope's own foundation spec rather than covering a convenient subset.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-15 cumulative browser row: dropping the ordinary term from the preferential window prices the gain in isolation instead of stacking it on ordinary income — the exact defect stackPreferentialIncome names — and the pin is a marginal-spec scenario this scope does not own, so the cumulative run is proven to reach past its own foundation spec rather than a convenient subset
+file:             rltax.js
+mutation:         Math.max(ordinaryTaxableIncome, band.lowerInclusive)  ->  Math.max(0, band.lowerInclusive)   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep SCN-021-00 --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:106:1 › Regression: SCN-021-008 a cliff renders as a step and is never smoothed 
+green-exit:       0
+green-summary:      ✓   5 [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:106:1 › Regression: SCN-021-008 a cliff renders as a step and is never smoothed (603ms)
+summary-compared:     [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:106:1 › Regression: SCN-021-008 a cliff renders as a step and is never smoothed   vs    ✓   5 [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:106:1 › Regression: SCN-021-008 a cliff renders as a step and is never smoothed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=8294f084523f504fcb19681e0e7cda2cdce457b5 restored=8294f084523f504fcb19681e0e7cda2cdce457b5)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+**The first pin was wrong and is reported rather than discarded.** The probe was
+first pinned to `SCN-021-005 long term gains stack on ordinary income`, the
+scenario whose title names the very defect being planted. It returned exit 0 on
+the exit channel, but the pinned line read `✓` in **both** arms — the two lines
+differed only by Playwright's worker index, `7` against `6`. That is noise, not
+an outcome, so the verdict rested entirely on the exit channel and the summary
+channel was reporting a discrimination that did not happen. The probe was
+re-pinned to a line that genuinely moves rather than being recorded as it stood.
+
+### Finding — `SCN-021-005` cannot detect the defect its own title names
+
+Diagnosing that first pin produced a finding worth more than the pin. Under the
+mutation the cumulative run failed six of its nine scenarios — `SCN-021-001`,
+`-004`, `-006`, `-007`, `-008` and `-009`, spanning all three spec files — while
+`SCN-021-005`, the scenario named `long term gains stack on ordinary income`,
+**passed**:
+
+```text
+  ✘   2 [system-chrome] › tests/lifetime-tax-federal.spec.mjs:48:1 › Regression: SCN-021-004 federal tax is exact below at and above a bracket edge (5.9s)
+  ✘   3 [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:69:1 › Regression: SCN-021-007 the next dollar is priced as a curve with named thresholds (5.8s)
+  ✓   7 [system-chrome] › tests/lifetime-tax-federal.spec.mjs:77:1 › Regression: SCN-021-005 long term gains stack on ordinary income (715ms)
+  ✘   8 [system-chrome] › tests/lifetime-tax-marginal.spec.mjs:106:1 › Regression: SCN-021-008 a cliff renders as a step and is never smoothed (5.6s)
+  6 failed
+  4 passed (20.1s)
+```
+
+The reason is arithmetic, not accident. That scenario fixes `ordinaryTaxable` at
+`40000`, which sits **below** the pack's carried zero-rate breakpoint. For the
+first preferential band the lower bound is `0`, so `max(ordinary, 0)` and
+`max(0, 0)` both yield `0` — and that band's rate is zero, so its contribution is
+zero either way. For every later band the lower bound is the breakpoint itself,
+which exceeds `40000`, so `max(ordinary, lower)` and `max(0, lower)` both yield
+`lower`. The two expressions coincide for every band, and the headline is
+byte-identical with the stacking term removed.
+
+The scenario is not inert in general — its across-the-breakpoint half still
+proves the gain is priced by the preferential table rather than at the ordinary
+rate. What it cannot do is detect a gain priced *in isolation*, which is the
+property its title asserts. A fixture with `ordinaryTaxable` above the zero-rate
+breakpoint would restore that sensitivity.
+
+`SCN-021-005` is not a row in this scope's Test Plan — this scope owns
+`SCN-021-001` through `SCN-021-003` — so this is routed as a finding to the
+owning scope rather than repaired here, and it does not bear on this scope's own
+row accounting.
+
+**Claim Source:** executed. Every block above is verbatim harness or reporter
+output from this session, each revert hash-verified against the committed blob,
+and `git status --porcelain -- rltax.js` re-read at `0` rows before the final
+probe.
+
+

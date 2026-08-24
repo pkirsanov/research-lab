@@ -157,8 +157,8 @@ the scan this tool exists to show, and a pre-sort would silently override
   against this route's own committed `UNIVERSE` of twelve liquid names before it
   is treated as covered. An accepted string never becomes a `rlOptFlow:` cache
   key, a `data/options/<SYM>.json` path or any other constructed identifier.
-- **The band has four distinct outcomes**, and the third and fourth are different
-  facts that are never collapsed into one another:
+- **The band has five states and speaks in four of them**, and the third and
+  fourth statements are different facts that are never collapsed into one another:
 
   | Focus state | What the band says |
   |---|---|

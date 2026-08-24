@@ -318,13 +318,18 @@
             }
             /* An owner route may declare the query parameter it reads a company from. The name
                is validated as an identifier, so the composed link cannot grow a second value,
-               a fragment or an encoded delimiter out of the registry. */
-            var ownerSubjectParam = isNonEmptyString(row.ownerSubjectParam) ? row.ownerSubjectParam : null;
-            if (ownerSubjectParam !== null && ownerDeepLink === null) {
+               a fragment or an encoded delimiter out of the registry. Declaration is tested the
+               same way as ownerBareReason below — present versus absent — because a weaker test
+               here would silently normalise a malformed name to "absent", let the row pass the
+               exactly-one rule as a bare link, and drop the company while composing a reason the
+               row never earned. A declared name must therefore BE a plain identifier string. */
+            var subjectParamDeclared = row.ownerSubjectParam !== null && row.ownerSubjectParam !== undefined;
+            var ownerSubjectParam = subjectParamDeclared ? row.ownerSubjectParam : null;
+            if (subjectParamDeclared && ownerDeepLink === null) {
                 raise("C025-CONFIG-SCHEMA", "Coverage registry row " + index + " declares a subject parameter without an owner route.",
                     "dimension: " + row.dimensionId);
             }
-            if (ownerSubjectParam !== null && !SAFE_SUBJECT_PARAM.test(ownerSubjectParam)) {
+            if (subjectParamDeclared && (!isNonEmptyString(ownerSubjectParam) || !SAFE_SUBJECT_PARAM.test(ownerSubjectParam))) {
                 raise("C025-CONFIG-SCHEMA", "Coverage registry row " + index + " declares a subject parameter that is not a plain identifier.",
                     "dimension: " + row.dimensionId);
             }
@@ -343,7 +348,7 @@
                 raise("C025-CONFIG-SCHEMA", "Coverage registry row " + index + " declares a bare-link reason outside the closed enum.",
                     "dimension: " + row.dimensionId);
             }
-            if (ownerDeepLink !== null && (ownerSubjectParam !== null) === bareReasonDeclared) {
+            if (ownerDeepLink !== null && subjectParamDeclared === bareReasonDeclared) {
                 raise("C025-CONFIG-SCHEMA", "Coverage registry row " + index + " must declare exactly one of a subject parameter and a bare-link reason.",
                     "dimension: " + row.dimensionId);
             }

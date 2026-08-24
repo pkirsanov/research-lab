@@ -79,7 +79,8 @@ not model.
   No recommendation.
 - No published error rate, self-invalidation statistic, track record or accuracy
   figure anywhere in spec text, scope text or user-facing copy.
-- Local-only. Zero network requests at runtime. No household value in any URL,
+- Local-only. The only runtime transport is same-origin reads of this route's own
+  declared policy and rule-pack documents. No household value in any URL,
   request, referrer, console message or committed artifact.
 - Educational only. Not tax advice. Does not prepare or file a return.
 
@@ -351,8 +352,9 @@ prevent. Routed to `bubbles.design`; recorded as a blocking implementation
 input.
 
 **F-5 — `tax-rules/` is not in the published-directory allowlist.** The pack
-directory is reachable from `file://` and from a repository checkout, which is
-all this feature needs, but a later registration feature that adds the page to
+directory is reachable from a repository checkout served over a local static
+origin, which is all this feature needs, but a later registration feature that
+adds the page to
 `tools.json` without adding `tax-rules/` to `PUBLIC_DIRECTORIES` would ship a
 page whose rule pack 404s. Recorded here so the later feature inherits the
 constraint rather than rediscovering it in production.
@@ -445,7 +447,9 @@ summary may aid discovery and may never supply a pack value.
 
 1. Household state lives in a closed local namespace owned solely by this
    feature. No key is shared with the Feature 008 portfolio workspace.
-2. The page performs zero network requests at runtime.
+2. The page's only runtime transport is a bounded set of same-origin reads of its
+   own declared policy and rule-pack documents. Nothing is read from another
+   origin, and nothing the configuration does not declare is read at all.
 3. No household value appears in a URL, request body, referrer, console message,
    service worker, or committed artifact.
 4. The tool stores no name, address, account number, tax identifier, or
@@ -578,7 +582,7 @@ Requirements: `FR-021-003`, `FR-021-005`, `FR-021-006`, `FR-021-007`.
 Scenario: SCN-021-003 No household value leaves the local namespace
   Given a household enters income, deduction, and filing values into the workspace
   When the page is exercised end to end and its request ledger, URL, referrer, console output, and storage keys are inspected
-  Then the page has issued zero network requests
+  Then every request the page issued is a same-origin read of a document its own configuration declares, and those declared reads resolved
   And no household value appears in any URL, referrer, console message, or committed artifact
   And every written storage key belongs to this feature's own namespace and none belongs to the portfolio workspace
 ```
@@ -842,7 +846,17 @@ obligation.
   computation of the domains that were supplied.
 - **NFR-021-009** — No household value leaves the local namespace. It appears in
   no network request, no URL, no referrer, no console output and no committed
-  artifact. The page performs zero network requests at runtime.
+  artifact. That guarantee is about what a request may *carry*, and it is
+  unconditional. Separately, and without qualifying it: the route's only runtime
+  transport is a bounded set of same-origin reads of its own local policy and
+  rule-pack documents, every one of them declared by the configuration the page
+  loads — measured at nine documents across seven call sites. No read reaches
+  another origin, and a read site or document the declaration list does not name
+  cannot enter without that list changing in the same change.
+  **Adversarial cases.** A sentinel household value reaching any URL, request,
+  referrer or console message fails. An undeclared, additional or remote read
+  fails. A requirement that could be satisfied by a route that reads nothing is
+  not this requirement: the declared reads must still be present and resolvable.
 - **FR-021-010** — Configuration is mandatory. A missing, malformed or
   unknown-version configuration blocks dependent computation visibly, while the
   privacy inventory and the clear action stay reachable.
@@ -982,7 +996,7 @@ obligation.
 
 | Capability | Surface class | Surface id | Status | Plan |
 | --- | --- | --- | --- | --- |
-| Household tax workspace, federal settlement, marginal curve, conversion comparison | `uiRoute` | `lifetime-tax-strategy-lab.html` | `delivered` | Reachable from a repository checkout and from `file://`. Deliberately excluded from the packaged Pages site by a `site-exclusions.json` entry per the operator's registration deferral. |
+| Household tax workspace, federal settlement, marginal curve, conversion comparison | `uiRoute` | `lifetime-tax-strategy-lab.html` | `delivered` | Reachable from a repository checkout served over a local static origin. A `file://` origin loads the modules but blocks the configuration and rule-pack reads, so the route refuses with `RLTAX-CONFIG-INVALID` rather than settling. Deliberately excluded from the packaged Pages site by a `site-exclusions.json` entry per the operator's registration deferral. |
 | Rule-pack contract, workspace contract, refusal vocabulary | `internal` | `rltaxrules.js`, `rltaxworkspace.js` | `internal` | In-repo caller is `lifetime-tax-strategy-lab.html`. No other consumer, and tests are not consumers. |
 | Federal settlement and curve engine | `internal` | `rltax.js` | `internal` | In-repo caller is `lifetime-tax-strategy-lab.html`. |
 | Conversion comparison engine | `internal` | `rltaxstrategy.js` | `internal` | In-repo caller is `lifetime-tax-strategy-lab.html`. |
@@ -1004,7 +1018,7 @@ one.
 | --- | --- | --- | --- | --- | --- |
 | SCN-021-001 | Self-directed household | Route open, no prior workspace | Enter filing status, year, one income amount, deduction mode | Pack identity strip, source records, unsupported-feature list, a named unavailable row per unsupplied domain | Simple |
 | SCN-021-002 | Self-directed household | Valid workspace | Change year out of range; select a state; add an unsupported income kind | Three distinct unavailable records with three distinct codes; supported federal rows still rendered | Simple |
-| SCN-021-003 | Self-directed household | Route open | Full entry pass, then reload | Zero network requests; storage inventory lists only this feature's keys; sentinel value absent everywhere outside the local namespace | Simple + privacy inventory |
+| SCN-021-003 | Self-directed household | Route open | Full entry pass, then reload | Only declared same-origin reads, and those reads resolved; storage inventory lists only this feature's keys; sentinel value absent everywhere outside the local namespace | Simple + privacy inventory |
 | SCN-021-004 | Self-directed household | Settled workspace | Vary ordinary income across a bracket edge | Exact figures at, below and above the edge; identical repeat run; rule status on every field | Power |
 | SCN-021-005 | Self-directed household | Settled workspace | Add a long-term gain, then raise ordinary income alone | Gain taxed in the bands above ordinary taxable income; gain tax changes when ordinary income changes | Power |
 | SCN-021-006 | Self-directed household | Settled workspace | Switch deduction mode; then clear the mode | Applied deduction and its mode displayed; reconciliation row balances; cleared mode yields an incomplete-input refusal | Simple + Power |
@@ -1037,7 +1051,7 @@ proposal.
 | State tax | yes | yes | yes | no | **explicitly unavailable** |
 | IRMAA / ACA targeting | yes | not stated | not stated | no | **explicitly unavailable** |
 | Monte Carlo and historical paths | yes | yes | yes | no | **explicitly unavailable** |
-| Runs with no server or account | no | Gold and Bronze only | no | yes | yes |
+| Runs with no remote service or account | no | Gold and Bronze only | no | yes | yes, on a local static origin |
 | Open source and inspectable | no | no | no | yes | yes |
 | Names what it cannot compute | not stated | not stated | not stated | not stated | yes, structurally |
 
@@ -1062,7 +1076,10 @@ count rather than presenting itself as whole.
 traces to a dated pack with recorded source records, a publication date and a
 retrieval date.
 
-**Runs from a file with no account.** Local-only, zero network requests.
+**Runs with no remote service and no account.** Local-only; the only transport
+is same-origin reads of its own declared documents. Those reads are `fetch`
+calls, so the route needs a local static origin to serve them; a `file://`
+origin blocks them and the route refuses rather than settling.
 
 ### Rejected claim: published error rate
 
@@ -1156,7 +1173,7 @@ measurement of decision quality, and makes no claim that it does.
 | **P6 — Say when the read is old** | The pack carries `publishedAt`, `retrievedAt` and an `expiryPolicy`; an expired pack refuses rather than serving a stale figure as current. | `FR-021-002`, `FR-021-003` |
 | **P7 — No blackbox numbers** | Every figure is computed in the browser from the resolved pack. The reconciliation identity is displayed, not asserted. Power exposes the rule ledger, per-bracket detail and the curve table. | `FR-021-016`, `FR-021-032`, `NFR-021-023` |
 | **P8 — Model-authored text is data, never markup** | No model-authored text exists in this feature. Pack-authored strings — reasons, source titles, feature names — are rendered through the same escaping discipline at every sink. | `FR-021-005` |
-| **P9 — Works with nothing** | The tool requires no key, no proxy, no account and no server. It performs zero network requests by design, which is stronger than degrading honestly. | `NFR-021-009` |
+| **P9 — Works with nothing** | The tool requires no key, no proxy, no account and no remote service. Its only transport is same-origin reads of its own declared policy and rule-pack documents, so there is no third-party dependency to degrade against. It does require a local static origin: those reads are `fetch` calls, and a `file://` origin blocks them. | `NFR-021-009` |
 | **P10 — UMD, never ESM** | Every new shared module is a UMD dual module with a global attach, loadable from `file://` with no bundler and no build step. | Repository convention inherited by every scope |
 | **P11 — Reuse, never refetch** | No market data is fetched. The rule pack is a local artifact read once. | `NFR-021-009` |
 | **P12 — Cache-first, automatic first paint** | Simple paints on load without user action from local state. **With one honest limit:** on an empty workspace there is no result to paint, so the first paint is a named incomplete state stating exactly which members are missing — never an empty shell and never a placeholder figure. | `FR-021-031` |
@@ -1181,14 +1198,14 @@ measurement of decision quality, and makes no claim that it does.
 | Attribute | Requirement | Where stated |
 | --- | --- | --- |
 | Isolation | No shared module, namespace or key with Feature 008; Feature 008 byte-identical | `NFR-021-001` |
-| Privacy | Zero network requests; no household value in any URL, request, referrer, console message or committed artifact | `NFR-021-009` |
+| Privacy | Transport bounded to same-origin reads of the declared policy and pack documents; no household value in any URL, request, referrer, console message or committed artifact | `NFR-021-009` |
 | Determinism | Byte-identical result for identical input; no clock, random source or network read in the computation path | `NFR-021-011` |
 | Precision | Pack-declared calculation rounding applied where declared; display rounding separate and disclosed | `NFR-021-017` |
 | Single definition | No rule value or tax definition outside the pack and the settlement | `NFR-021-023` |
 | Accessibility | Contextual tooltip on every value; text-equivalent table per chart; keyboard-reachable and mobile-readable unavailable states | `NFR-021-033`, `NFR-021-034` |
 | Honesty | No error-rate, self-invalidation, track-record, accuracy or plan-success-probability claim | `NFR-021-036` |
 | Deploy and registration | Absent from every registry; root page carries a `site-exclusions.json` deploy decision | `NFR-021-038` |
-| Portability | UMD dual modules, no bundler, no build step, works from `file://`, single standard CSP | Repository convention |
+| Portability | UMD dual modules, no bundler, no build step, single standard CSP; the modules load from `file://`, while the route's own document reads need a local static origin | Repository convention |
 
 ---
 

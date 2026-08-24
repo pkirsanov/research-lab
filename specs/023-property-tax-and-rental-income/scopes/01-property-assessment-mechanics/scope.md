@@ -257,7 +257,7 @@ does not satisfy RED.
 | TP-01-19 | Regression E2E | e2e-ui | SCN-023-002 | `lifetime-tax-property.spec.mjs` | `Regression: SCN-023-002 the exemption and the cap are applied at their declared points with reachable citations` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-002 the exemption and the cap are applied at their declared points with reachable citations" --reporter=list` | Yes | `report.md#scenario-scn-023-002` |
 | TP-01-20 | Regression E2E | e2e-ui | SCN-023-003 | `lifetime-tax-property.spec.mjs` | `Regression: SCN-023-003 an acquisition-value cap basis produces a different taxable basis and the rate ceiling is a ceiling` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-003 an acquisition-value cap basis produces a different taxable basis and the rate ceiling is a ceiling" --reporter=list` | Yes | `report.md#scenario-scn-023-003` |
 | TP-01-21 | Leg visibility E2E | e2e-ui | SCN-023-002 | `lifetime-tax-property.spec.mjs` | `Regression: SCN-023-002 the property leg reaches the headline, the comparison, the curve and the export` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-002 the property leg reaches the headline, the comparison, the curve and the export" --reporter=list` | Yes | `report.md#tp-01-21` |
-| TP-01-22 | Privacy E2E | e2e-ui | SCN-023-001 | `lifetime-tax-property.spec.mjs` | `Regression: SCN-023-001 the request ledger stays empty and no property declaration reaches a URL` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-001 the request ledger stays empty and no property declaration reaches a URL" --reporter=list` | Yes | `report.md#tp-01-22` |
+| TP-01-22 | Privacy E2E | e2e-ui | SCN-023-001 | `lifetime-tax-property.spec.mjs` | `Regression: SCN-023-001 the request ledger does not grow after first paint, every entry is a declared same-origin read, and no property declaration reaches a URL` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-023-001 the request ledger does not grow after first paint, every entry is a declared same-origin read, and no property declaration reaches a URL" --reporter=list` | Yes | `report.md#tp-01-22` |
 | TP-01-23 | Broader Regression E2E | e2e-ui | SCN-021-*, SCN-022-*, SCN-023-001 … -003 | The prior features' specs plus this scope's | Every scenario owned by features 021 … 024 passes over the real route — the whole cumulative browser suite for this feature family, zero failed and zero skipped, not a convenient subset. `SCN-02[1-4]` is the alternation `SCN-021`, `SCN-022`, `SCN-023`, `SCN-024` written without a `\|`, which a table cell cannot carry verbatim; it is pinned to the four owning spec numbers, so a scenario owned by any other feature can neither satisfy nor break this row | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list` | Yes | `report.md#tp-01-23` |
 | TP-01-24 | Repo gate | unit | SCN-023-001 … -003 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-01-24` |
 | TP-01-25 | Path guard | unit | SCN-023-001 … -003 | `scripts/validate-spec-test-paths.mjs` | Zero new missing spec-referenced test paths | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-01-25` |
@@ -295,9 +295,26 @@ does not satisfy RED.
       value and no member's meaning changed.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` · **Evidence:** `report.md#tp-01-14`
 - [x] NFR-023-003 and NFR-023-005 hold: every property declaration is inventoried,
-      cleared and redacted, the request ledger stays empty with two regime packs
-      now loaded from disk, and no module holds a regime name or a figure.
+      cleared and redacted, the request ledger does not grow after first paint,
+      every entry in it is a read of a path the route's own configuration
+      declares, both regime packs are present in the ledger the run produced, and
+      no module holds a regime name or a figure.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the browser privacy row · **Evidence:** `report.md#tp-01-15`, `report.md#tp-01-16`, `report.md#tp-01-22`
+  - **Restated 2026-08-22 (F-REG-03).** The superseded text read "the request
+    ledger stays empty with two regime packs now loaded from disk", which is
+    false and self-contradictory: a ledger holding two pack reads is not empty.
+    The cited row TP-01-22 (`SCN-023-001`) captures `afterFirstPaint =
+    ledger.length`, asserts `expect(afterFirstPaint).toBeGreaterThan(0)`, and
+    then asserts `expect(ledger.length).toBe(afterFirstPaint)` — no-growth, not
+    emptiness. The restatement names only what that row establishes. Adversarial
+    cases: a request issued after first paint fails the no-growth assertion; a
+    read of a path the configuration does not declare fails
+    `paths.forEach((path) => expect(permitted).toContain(path))`; a boot that
+    read nothing fails the greater-than-zero pin; and a regime pack that is
+    permitted but never fetched fails `expect(paths).toContain('/' +
+    FL_REGIME_PATH)`. The row does NOT constrain the origin of an entry — it
+    compares `new URL(entry.url).pathname` only — so no same-origin claim is
+    made here; that gap is carried by Feature 021 Scope 01 `TP-01-18`.
 - [x] SUP-023-05 through SUP-023-08 are delivered with their markers, each
       replacement derived from the artifact it describes, each superseded clause
       recorded verbatim, and each intended-RED failure recorded before its green.

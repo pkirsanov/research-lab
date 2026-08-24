@@ -736,16 +736,43 @@
     });
   }
 
-  /* Removes exactly the three declared keys and nothing else. */
+  /* Removes exactly the three declared keys and nothing else. removedKeys[] names the keys this
+     call genuinely removed, which is why presence is read BEFORE the removal: removeItem is a
+     silent no-op on an absent key, so a key pushed unconditionally would be reported as removed
+     when it was never there. The report is a claim about what happened, not about what was asked
+     for. */
   function clearAllPrivateData(storage, config) {
     var keys = declaredStorageKeys(config);
     var removed = [];
     var index = 0;
     for (index = 0; index < keys.length; index += 1) {
+      var before = storage.getItem(keys[index]);
+      var wasPresent = before !== null && before !== undefined;
       storage.removeItem(keys[index]);
-      removed.push(keys[index]);
+      if (wasPresent) removed.push(keys[index]);
     }
     return Object.freeze({ contractVersion: INVENTORY_CONTRACT, removedKeys: Object.freeze(removed) });
+  }
+
+  /* Derives the withheld set at EVERY depth rather than at the top level only. Any container
+     that the sanitiser rebuilds member by member is descended into, so a member added inside
+     `income`, `investmentIncomeBasis` or `wageBasis` is named as `container.member` instead of
+     being dropped in silence. A container withheld whole is named at its own path and not
+     descended, because naming it once already accounts for everything under it. */
+  function omittedExportMembers(source, kept, prefix) {
+    var omitted = [];
+    var keys = Object.keys(source);
+    var index = 0;
+    for (index = 0; index < keys.length; index += 1) {
+      var member = keys[index];
+      var path = prefix === "" ? member : prefix + "." + member;
+      if (!Object.prototype.hasOwnProperty.call(kept, member)) {
+        omitted.push(path);
+      } else if (isPlainObject(source[member]) && isPlainObject(kept[member])) {
+        omitted = omitted.concat(omittedExportMembers(source[member], kept[member], path));
+      }
+    }
+    return omitted;
   }
 
   /* Every withheld member is named in omittedFields[]; a field dropped without being listed is
@@ -776,12 +803,7 @@
       conversionFundingSource: workspace.conversionFundingSource,
       selectedBracketId: workspace.selectedBracketId
     };
-    var omitted = [];
-    var keys = Object.keys(workspace);
-    var index = 0;
-    for (index = 0; index < keys.length; index += 1) {
-      if (!Object.prototype.hasOwnProperty.call(kept, keys[index])) omitted.push(keys[index]);
-    }
+    var omitted = omittedExportMembers(workspace, kept, "");
     return Object.freeze({ workspace: kept, omittedFields: Object.freeze(omitted) });
   }
 

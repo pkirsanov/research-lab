@@ -293,11 +293,12 @@ error, a missing browser or an absent test does not satisfy RED.
 | TP-03-21 | Regression E2E | e2e-ui | SCN-024-008 | `lifetime-tax-claim-age.spec.mjs` | `Regression: SCN-024-008 the cumulative totals and the equality age are shown with both claim ages named and the record's own arithmetic statement` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-008 the cumulative totals and the equality age are shown with both claim ages named and the record's own arithmetic statement" --reporter=list` | Yes | `report.md#scenario-scn-024-008` |
 | TP-03-22 | Regression E2E | e2e-ui | SCN-024-008 | `lifetime-tax-claim-age.spec.mjs` | `Regression: SCN-024-008 an absent life-expectancy figure withholds the totals and the equality age while the per-age benefits still render` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-008 an absent life-expectancy figure withholds the totals and the equality age while the per-age benefits still render" --reporter=list` | Yes | `report.md#tp-03-22` |
 | TP-03-23 | Regression E2E | e2e-ui | SCN-024-009 | `lifetime-tax-claim-age.spec.mjs` | `Regression: SCN-024-009 the claim ages render in declared order with nothing marked best, optimal, recommended or preferred` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-009 the claim ages render in declared order with nothing marked best, optimal, recommended or preferred" --reporter=list` | Yes | `report.md#scenario-scn-024-009` |
-| TP-03-24 | Privacy E2E | e2e-ui | SCN-024-009 | `lifetime-tax-claim-age.spec.mjs` | `Regression: SCN-024-009 the request ledger stays empty and no declared claim age reaches a URL` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-009 the request ledger stays empty and no declared claim age reaches a URL" --reporter=list` | Yes | `report.md#tp-03-24` |
+| TP-03-24 | Privacy E2E | e2e-ui | SCN-024-009 | `lifetime-tax-claim-age.spec.mjs` | `Regression: SCN-024-009 every request is a declared same-origin GET and no declared claim age reaches a URL` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-024-009 every request is a declared same-origin GET and no declared claim age reaches a URL" --reporter=list` | Yes | `report.md#tp-03-24` |
 | TP-03-25 | Broader Regression E2E | e2e-ui | SCN-021-*, SCN-022-*, SCN-023-*, SCN-024-001 … -009 | The prior features' specs plus this scope's | Every scenario owned by features 021 … 024 passes over the real route — the whole cumulative browser suite for this feature family, zero failed and zero skipped, not a convenient subset. `SCN-02[1-4]` is the alternation `SCN-021`, `SCN-022`, `SCN-023`, `SCN-024` written without a `\|`, which a table cell cannot carry verbatim; it is pinned to the four owning spec numbers, so a scenario owned by any other feature can neither satisfy nor break this row | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --grep "SCN-02[1-4]" --reporter=list` | Yes | `report.md#tp-03-25` |
 | TP-03-26 | Repo gate | unit | SCN-024-007 … -009 | `scripts/selftest.mjs` | The whole-repository suite stays green and the pre-existing pass count does not fall | `node scripts/selftest.mjs` | No | `report.md#tp-03-26` |
 | TP-03-27 | Path guard | unit | SCN-024-007 … -009 | `scripts/validate-spec-test-paths.mjs` | Zero new missing spec-referenced test paths | `node scripts/validate-spec-test-paths.mjs` | No | `report.md#tp-03-27` |
 | TP-03-28 | Deploy gate | unit | SCN-024-007 … -009 | `scripts/build-pages-site.mjs` | The Pages plan succeeds, `site-exclusions.json` is unchanged, and `tax-rules/` remains outside the public directories | `node scripts/build-pages-site.mjs --dry-run` | No | `report.md#tp-03-28` |
+| TP-03-29 | Privacy E2E | e2e-ui | SCN-024-009 | `tests/lifetime-tax-claim-age.spec.mjs` | GAP, NOT AUTHORED (opened 2026-08-22, F-REG-03). `TP-03-24` places no bound on ledger growth after first paint and has no non-empty pin, so its `requested.forEach((path) => expect(permitted).toContain(path))` would pass vacuously against a route that read nothing — the guard-that-cannot-fail class. Required, in that same run: `afterFirstPaint` captured after `openLifetimeTax`, asserted greater than zero, and the ledger asserted not to grow past it once the claim-age comparison is declared. Adversarial cases: a request issued after the comparison is declared fails the no-growth assertion, and a boot that read nothing fails the greater-than-zero pin, which also makes the existing permitted-set sweep non-vacuous | not authored | Yes | not authored |
 
 ### Definition of Done
 
@@ -352,9 +353,41 @@ delivery makes a row's claim false, the row is corrected rather than checked.
   - **Phase:** implement · **Command:** the retrieval record in the mortality pack plus `node scripts/selftest.mjs` · **Evidence:** `report.md#sourcing`, `report.md#tp-03-15`
 - [x] NFR-024-003 and NFR-024-005 hold: the declared claim-age set is inventoried,
       cleared and redacted, the declared storage key count is asserted unchanged in
-      the same assertion, the request ledger stays empty with a mortality pack now
-      loaded from disk, and no module holds a figure or an authority name.
+      the same assertion, every entry in the request ledger is a GET carrying no
+      body for a path the route's own configuration declares, no declared claim age
+      and no mortality column reaches a URL, and no module holds a figure or an
+      authority name.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus the browser privacy row · **Evidence:** `report.md#tp-03-16`, `report.md#tp-03-17`, `report.md#tp-03-24`
+  - **Restated 2026-08-22 (F-REG-03).** The superseded text read "the request
+    ledger stays empty with a mortality pack now loaded from disk", which was
+    false twice over. First, the ledger is never empty. Second, the cited row
+    `TP-03-24` (`SCN-024-009`) does not establish that the mortality pack was
+    fetched at all: its two `toContain` assertions are made against `permitted =
+    declaredRouteAssets()`, the set of paths the route is ALLOWED to read, not
+    against `requested`. That clause has been dropped rather than reworded.
+    Adversarial cases for what remains: a read of a path the configuration does
+    not declare fails `requested.forEach((path) => expect(permitted).toContain(path))`;
+    a POST or a request carrying a body fails the method and `postData`
+    assertions; and a claim age or the mortality column id reaching a URL fails
+    the `urls` scan. Two limits are named rather than hidden and are opened as
+    `TP-03-29` below: the row places no bound on ledger growth after first paint,
+    and it has no non-empty pin, so `requested.forEach(...)` would pass vacuously
+    against a route that read nothing.
+- [x] `SCN-024-009` constrains ledger growth and cannot pass vacuously: the run
+      captures the ledger length after first paint, asserts it is greater than
+      zero, and asserts the ledger does not grow past it.
+  - **Phase:** test · **Command:** `TP-03-29` · **Evidence:** `report.md#test-evidence`
+  - **Claim Source:** executed. `tests/lifetime-tax-claim-age.spec.mjs` captures
+    `afterFirstPaint` immediately after `openLifetimeTax`, pins it greater than
+    zero, and after the comparison is declared, settled and the view switched
+    asserts `ledger.length` still equals it. Both halves are proven to
+    discriminate by their own harness probe, each with a hash-verified revert:
+    arm A zeroes the capture and reds
+    `expect(afterFirstPaint).toBeGreaterThan(0)`, arm B subtracts one from it and
+    reds `expect(ledger.length).toBe(afterFirstPaint)`. Arm B matters on its own
+    because the permitted-set sweep cannot detect a ledger that grew — a request
+    to a declared path made after the declarations would satisfy every other
+    assertion in the row.
 - [x] NFR-024-011 holds: the new module is UMD, every pure analytic function is a
       top-level declaration the extractor lifts, `Number.isFinite` is used rather
       than the bare global, and no drawing in this scope is wrapped in
@@ -427,6 +460,16 @@ delivery makes a row's claim false, the row is corrected rather than checked.
   - **Phase:** implement · **Command:** `node scripts/selftest.mjs` plus a text scan over this scope's allowed paths · **Evidence:** `report.md#claim-boundary`
 - [x] Every Test Plan row has intended RED and same-command GREEN evidence recorded,
       including the browser rows.
+  - **Re-ticked 2026-08-22 at the full count of twenty-nine.** The note below is
+    kept because it records why the item was opened. `TP-03-29` is now authored
+    in `tests/lifetime-tax-claim-age.spec.mjs` and carries a two-arm RED with a
+    same-command GREEN, both arms hash-verified on revert. The twenty-eight rows
+    the **Checked because** note already accounted for are unchanged, so the word
+    "Every" holds again at the new count.
+  - **Unticked 2026-08-22 (F-REG-03).** `TP-03-29` was opened in this scope and
+    is not authored, so it carries neither a RED nor a GREEN. The word "Every"
+    therefore no longer holds. Ticking it again requires `TP-03-29` authored with
+    a RED and a same-command GREEN.
   - **Phase:** implement · **Command:** the exact TP-03-01 through TP-03-28 commands · **Evidence:** `report.md#test-evidence`
   - **Claim Source:** executed for all 28 rows.
   - **Checked because:** every one of the 28 rows now carries a RED and a GREEN

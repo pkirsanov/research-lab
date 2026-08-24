@@ -1,0 +1,102 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-c67b4660dbf8038313b0d5ce0fdef58b727bc915a84508174c4ed9f2169251c1",
+  "generationId": "generation-3ea92764a70cc983dd6d7a499e100361b8e608d624bafd78020c6c52f218216e",
+  "topicId": "geopolitical-supply-shock",
+  "attemptedAt": "2026-08-23T18:36:05.307Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "RLAGENDA-CONTRACT-MISSING-MEMBER",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "No authorable current evidence on U.S. or Iran reaction functions. The official-policy-and-statements requirement returned missing-or-stale and its actor-state claim is unsupported and uncorroborated at the cutoff, so no observed change in any actor dimension can be asserted without inventing intent.",
+      "gaps": [
+        "official-policy-and-statements retained zero sources; the actor-state claim is unsupported and uncorroborated at cutoff.",
+        "No verified U.S. or Iran declared-policy or statement observed within the 24h freshness window.",
+        "No basis to score any actor dimension (military-pressure, transit-control, negotiation-posture) as an observed change."
+      ]
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "No current actor-state or maritime-flow evidence exists to condition escalation node entry or invalidation states this generation. Scenario probabilities are model-owned and are intentionally not authored in this situation.",
+      "gaps": [
+        "No fresh actor-state, physical-flow, or insured-flow evidence to update escalation node states.",
+        "Scenario probabilities are a deterministic model output and are not authored here by design."
+      ]
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "No measured maritime evidence was retained. The measured-maritime-flow requirement returned missing-or-stale and both its physical-flow and insured-flow claims are unsupported, so no current Hormuz, Bab el-Mandeb, or Red Sea transit, loading, delay, or insured-capacity state can be established.",
+      "gaps": [
+        "measured-maritime-flow retained zero sources; physical-flow and insured-flow claims are unsupported.",
+        "No measured transit, loadings, delay-days, or insured effective-throughput observation within the 24h freshness window.",
+        "physicalPassFraction and insuredPassFraction for every declared route remain unobserved this generation."
+      ]
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "No energy or input-balance evidence was retained. The energy-and-input-balances requirement returned missing-or-stale and its transmission-input claim is unsupported, so no current transmission read can be established for oil, refined-products, lng, fertilizer, aluminum, or shipping.",
+      "gaps": [
+        "energy-and-input-balances retained zero sources; the transmission-input claim is unsupported.",
+        "No inventory, production, export, or coordinated policy-response observation within the 72h freshness window.",
+        "No inventoryGapByChannel input is observable for any declared channel this generation."
+      ]
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "unavailable",
+      "interpretation": "Committed same-origin daily bars for the declared public proxies were reused (proxy-bar coverage only), but no fresh shock or flow evidence exists against which to interpret proxy sensitivity. Proxy sensitivity ranges are model-owned and are intentionally not authored in this situation.",
+      "gaps": [
+        "Only committed-public-bars was reused; no current shock, flow, or actor-state evidence to condition proxy sensitivity.",
+        "Proxy sensitivity ranges and calibration outputs are deterministic model outputs and are not authored here by design."
+      ]
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "No observation crossed any declared trigger or invalidation condition this generation. Because no supporting observation exists inside the evidence freshness window, the evidence-stales invalidation condition (ageHours above 24) is the operative state for the source ledger.",
+      "gaps": [
+        "No transit-restriction, insured-capacity, or inventory-response observation available to evaluate any trigger.",
+        "evidence-stales invalidation applies: no supporting observation remains within the 24h freshness window.",
+        "physicalPassFraction, insuredPassFraction, and policyResponse trigger fields are all unobserved."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "Three of four source requirements retained zero sources this generation. Only committed-public-bars was reused; official-policy-and-statements, measured-maritime-flow, and energy-and-input-balances each returned no retained origins, so the ledger carries no independent corroboration.",
+      "gaps": [
+        "official-policy-and-statements, measured-maritime-flow, and energy-and-input-balances each retained zero sources (retainedSourceCount 0, independentOriginCount 0).",
+        "All three material claims were rejected as unsupported and uncorroborated; only reused committed bars remain.",
+        "No new evidence identifiers were produced this generation."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "priorDossier is null, so there is no predecessor situation to compare against and no directional change can be assessed. Change assessment and direction scoring are intentionally not authored in this situation.",
+      "gaps": [
+        "priorDossier is null; no predecessor situation exists for comparison.",
+        "changeAssessment and direction scores are deterministic model outputs and are not authored here by design."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

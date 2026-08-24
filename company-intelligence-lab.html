@@ -290,6 +290,7 @@
             </div>
             <p class="dim" id="subject-help">Tickers only. A position, size, cost basis or profit entry is refused and
                 nothing is stored.</p>
+            <p id="link-notice" class="dim" hidden></p>
             <p id="subject-refusal" class="refusal" hidden></p>
             <p id="subject-identity"></p>
             <div class="segment" role="group" aria-label="View mode">
@@ -711,7 +712,7 @@
             var ELEMENT_IDS = [
                 "page-title", "page-subtitle", "educational-notice", "page-footer",
                 "subject-heading", "subject-input", "subject-apply", "subject-help",
-                "subject-refusal", "subject-identity",
+                "link-notice", "subject-refusal", "subject-identity",
                 "mode-simple", "mode-power", "mode-note",
                 "cockpit-heading", "cockpit-coverage-line", "cockpit-horizons",
                 "cockpit-contradictions", "cockpit-publication",
@@ -1048,6 +1049,25 @@
                nothing, so what is on screen when a run reports its status is what stays there. */
             function enhanceTickers() {
                 if (window.RLTKR && typeof window.RLTKR.scan === "function") window.RLTKR.scan(document);
+            }
+
+            /* What the reader is told when a link named a subject this route did not adopt.
+               A refused link must not leave the default company on screen unexplained, so the
+               notice states that the link was not honoured and which company is shown instead.
+               The refused text itself is never echoed: it is exactly the value the shared rule
+               refused, so repeating it would put it back on the page. */
+            function renderLinkNotice(handoff) {
+                var notice = byId("link-notice");
+                if (handoff.status !== "refused") {
+                    notice.textContent = "";
+                    notice.hidden = true;
+                    notice.removeAttribute("data-link-handoff");
+                    return;
+                }
+                notice.textContent = "The link named a company identifier this tool could not accept, so it is showing "
+                    + currentTicker + ".";
+                notice.hidden = false;
+                notice.setAttribute("data-link-handoff", "refused");
             }
 
             function renderRefusal(refusal) {
@@ -1695,8 +1715,17 @@
                early paint honest: it is a cache, not a substitute. */
             function boot() {
                 ELEMENT_IDS.forEach(function (id) { byId(id); });
-                var query = new URLSearchParams(window.location.search).get("symbol");
-                if (query) currentTicker = query.trim().toUpperCase();
+                /* One acceptance grammar for the whole owner-deep-link corridor. This route is
+                   the hub every owner link points back at, and it published its subject as
+                   ?symbol= before the corridor existed, so it hands that name to the shared
+                   reader rather than keeping a private parser. A refused value never becomes
+                   the subject, so it reaches neither the committed-bars fetch path nor the
+                   symbol-keyed shared cache. */
+                var handoff = (window.RLTKR && window.RLTKR.linkedSubject)
+                    ? window.RLTKR.linkedSubject(window.location.search, "symbol")
+                    : { status: "absent", subject: null };
+                if (handoff.status === "accepted") currentTicker = handoff.subject;
+                renderLinkNotice(handoff);
                 byId("subject-input").value = currentTicker;
                 byId("subject-apply").addEventListener("click", applySubject);
                 byId("mode-simple").addEventListener("click", function () { setMode("simple"); });

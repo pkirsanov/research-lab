@@ -292,6 +292,10 @@
   "certification": {
     "status": "done",
     "certifiedAt": "2026-08-24T05:11:32Z",
+    "assurance": {
+      "level": "full",
+      "missingForFull": []
+    },
     "completedScopes": [
       "01-composition-foundation",
       "02-route-and-reachability",

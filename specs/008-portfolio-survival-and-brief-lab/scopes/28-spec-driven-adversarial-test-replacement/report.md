@@ -509,6 +509,153 @@ Artifact lint PASSED.
 
 **Result:** PASS. This run was executed after the current report and scope edits, so it lints the artifacts in their final state.
 
+## TP-28-02 Repair Reverification - 2026-08-24
+
+### Superseding Verdict
+
+**Phase:** test
+**Claim Source:** interpreted
+**Interpretation:** The unchanged formerly red focused title and the unchanged exact TP-28-02 aggregate both pass after `buildBehaviorCandidate` was repaired to reject only an exact repeated occurrence by `eventId`. The exact SCN-008-011 browser row also passes through the real page and reports four stored completions, two ranked subjects, and `duplicateExactOccurrence=rejected`. These executions supersede the red TP-28-02 verdict retained later in this report under Current Scope 28 Reverification. They do not erase that historical red receipt.
+
+Commands in this section were run from the repository root. The terminal's absolute `cd` prefix is represented as `<repo-root>` to preserve the repository PII policy; the executable command and arguments are unchanged.
+
+### Formerly Red Focused Unit
+
+**Phase:** test
+**Executed:** YES (current invocation)
+**Command:** `cd <repo-root> && timeout 240 node --test --test-name-pattern='privacy inventory reports real category counts and carries no stored subject value' tests/portfolio-foundation.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+✔ privacy inventory reports real category counts and carries no stored subject value (114.756265ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 231.282222
+```
+
+**Result:** PASS. The later occurrence is accepted and retained while the exact repeated occurrence is rejected by the same test that previously failed.
+
+### Exact TP-28-02 Aggregate
+
+**Phase:** test
+**Executed:** YES (current invocation)
+**Command:** `cd <repo-root> && timeout 1200 bash .github/bubbles/scripts/evidence-capture.sh --label "Scope 28 TP-28-02 post-repair aggregate Node behavior" -- timeout 1140 node --test tests/portfolio-foundation.unit.mjs tests/portfolio-analytics.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-privacy.functional.mjs tests/portfolio-allocation.functional.mjs tests/portfolio-publisher-boundary.functional.mjs tests/portfolio-bar-coverage.functional.mjs tests/portfolio-risk.functional.mjs tests/portfolio-paths.functional.mjs tests/portfolio-diversification.functional.mjs tests/portfolio-dossier.functional.mjs tests/portfolio-workspace.functional.mjs tests/portfolio-test-integrity.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# Scope 28 TP-28-02 post-repair aggregate Node behavior
+$ timeout 1140 node --test tests/portfolio-foundation.unit.mjs tests/portfolio-analytics.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-privacy.functional.mjs tests/portfolio-allocation.functional.mjs tests/portfolio-publisher-boundary.functional.mjs tests/portfolio-bar-coverage.functional.mjs tests/portfolio-risk.functional.mjs tests/portfolio-paths.functional.mjs tests/portfolio-diversification.functional.mjs tests/portfolio-dossier.functional.mjs tests/portfolio-workspace.functional.mjs tests/portfolio-test-integrity.unit.mjs
+exit: 0
+lines: 1444
+sha256: 5061199fa80c772d1a7f453ab27ac482c9d28c0d1bc6b4ac578981c360a1b049
+--- first 20 ---
+TAP version 13
+# Subtest: TP-13-02 six production candidates share one frozen basis and keep their own states
+ok 1 - TP-13-02 six production candidates share one frozen basis and keep their own states
+  ---
+  duration_ms: 32.88402
+  type: 'test'
+  ...
+--- omitted 1404 line(s); sha256 above covers the full output ---
+--- last 20 ---
+ok 238 - TP-26-01 one workspace compute publishes one immutable view model under token cancel last-valid and rebase control
+  ---
+  duration_ms: 25.684559
+  type: 'test'
+  ...
+# Subtest: Adversarial: recomputing navigation stale publication and fake return context cannot pass
+ok 239 - Adversarial: recomputing navigation stale publication and fake return context cannot pass
+  ---
+  duration_ms: 10.080245
+  type: 'test'
+  ...
+1..239
+# tests 239
+# suites 0
+# pass 239
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 10066.934811
+```
+
+**Result:** PASS. TP-28-02 is 239 passed, 0 failed, 0 skipped, and 0 todo. The capture sha256 is `5061199fa80c772d1a7f453ab27ac482c9d28c0d1bc6b4ac578981c360a1b049`.
+
+### Exact SCN-008-011 Browser Row
+
+**Phase:** test
+**Executed:** YES (current invocation)
+**Command:** `cd <repo-root> && timeout 600 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep 'Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio' --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+Running 1 test using 1 worker
+
+  ✓  1 … clear behavior removes ranking influence and preserves portfolio (3.6s)
+[SCN-008-011] eligibleCompletionsBeforeClear=4
+[SCN-008-011] rankedSubjectsBeforeClear=2
+[SCN-008-011] rankingOrderBeforeClear=msft,bnd
+[SCN-008-011] floorMetBeforeClear=msft
+[SCN-008-011] previewOnlyChangedProjection=false
+[SCN-008-011] rankingSurvivedReload=true
+[SCN-008-011] duplicateExactOccurrence=rejected
+[SCN-008-011] eligibleCompletionsAfterClear=0
+[SCN-008-011] interestSignalsAfterClear=0
+[SCN-008-011] portfolioPreserved=true
+[SCN-008-011] mandatePreserved=true
+[SCN-008-011] holdingsPreserved=BND,MSFT
+[SCN-008-011] mandateConstraintSubjectsPreserved=MSFT,BND
+[SCN-008-011] clearedSubjectScope=behaviorEvents,interestSignals,actionOutcomes,rankingRows
+[SCN-008-011] cashNeedsPreserved=true
+[SCN-008-011] quarantinePreservedByBehaviorClear=true
+[SCN-008-011] sessionFallbackPreservedByBehaviorClear=true
+[SCN-008-011] publicCacheByteIdentical=true
+[SCN-008-011] foreignStorageKeys=rlData
+[SCN-008-011] remotePersonalRequests=0
+
+  1 passed (5.8s)
+```
+
+**Result:** PASS. The browser row observes the repaired exact-occurrence rule through persisted workspace bytes and preserves the clear-boundary assertions.
+
+### Parent-Current-Session Corroboration
+
+**Executed by this report owner:** NO
+**Claim Source:** not-run
+**Provenance:** Diagnostic input supplied by the parent from commands it executed in the current VS Code session. The values below are cited as parent receipts and are not relabeled as this report owner's executions.
+
+| Surface | Parent-current-session receipt |
+|---|---|
+| Formerly red focused unit | Exit 0, 1 of 1 passed. |
+| Exact TP-28-02 aggregate | Exit 0, 239 of 239 passed; capture sha256 `be90b6d067decd3602a0d4f3fbb033aa697b4a2d55f1b1e905745c6b489073c2`. |
+| Exact SCN-008-011 browser row | Exit 0, 1 passed; stored completions 4, ranked subjects 2, `duplicateExactOccurrence=rejected`. |
+| Exact TP-28-03 full browser matrix | Exit 0, 93 of 93 passed; capture sha256 `de26f4cc017b7da2ee9884b64ba409366b189621f156a266bde2aefcbcacaa70`. |
+| Canonical TP-28-06 selftest | Exit 0, 3404 of 3404 passed; capture sha256 `98c87fd32c6095acd11494d89c6ece7d86c14012bf331875c9501708ac028b57`. |
+
+### Current Scope 28 Test-Row Disposition
+
+| Test Plan row | Current green receipt | Provenance |
+|---|---|---|
+| TP-28-01 | Exit 0; 197 test files, 180 reachable, 6 baselined orphans | Existing executed receipt in this report; not rerun in this invocation. |
+| TP-28-02 | Exit 0; 239 of 239 passed | Executed by this report owner in this invocation; sha256 `5061199fa80c772d1a7f453ab27ac482c9d28c0d1bc6b4ac578981c360a1b049`. |
+| TP-28-03 | Exit 0; 93 of 93 passed | Parent-current-session capture; not executed by this report owner; sha256 `de26f4cc017b7da2ee9884b64ba409366b189621f156a266bde2aefcbcacaa70`. |
+| TP-28-04 | Exit 0; exact planned title 1 of 1 passed | Existing executed receipt in this report; not rerun in this invocation. |
+| TP-28-05 | Exit 0; 8 files, 0 violations, 0 warnings | Existing executed receipt in this report; not rerun in this invocation. |
+| TP-28-06 | Exit 0; 3404 of 3404 passed | Parent-current-session capture; not executed by this report owner; sha256 `98c87fd32c6095acd11494d89c6ece7d86c14012bf331875c9501708ac028b57`. |
+
+**Test obligation verdict:** GREEN. All six Scope 28 Test Plan rows now have green current-session outcomes with the execution provenance shown above. The prior statement that Scope 28 could not advance because TP-28-02 was red is superseded.
+
+**Ownership disposition:** No checkbox, scope status, planning JSON, state, test, source, or documentation file was changed by this invocation. Final Scope 28 checkbox and status review belongs to `bubbles.plan`.
+
 ## Git Synchronization Checkpoint - 2026-08-24
 
 ### Repository And Process State
@@ -757,6 +904,61 @@ sha256: ed9142d7152044254040019b1b8b5bda8eb2f0e069f511acdd675c357cff0950
 Artifact lint PASSED.
 ```
 
+## Post-Repair Scope 28 Test Reconciliation - 2026-08-24
+
+The TP-28-02 Repair Reverification section above is the current test evidence. It supersedes the later retained red TP-28-02 receipt and the associated nonterminal disposition. The red execution remains historical evidence; it is not rewritten as a pass.
+
+All six Scope 28 Test Plan rows now have green current-session outcomes with the mixed execution provenance recorded in the Current Scope 28 Test-Row Disposition table. This statement is limited to test obligations. It does not check a scope box, change status, or claim certification.
+
+### Post-Edit Checks
+
+**Phase:** test
+**Executed:** YES (current invocation, after the TP-28-02 evidence edit)
+**Command:** `cd <repo-root> && timeout 900 bash .github/bubbles/scripts/evidence-capture.sh --label "Scope 28 TP-28-02 supersession post-edit artifact lint" -- timeout 840 bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# Scope 28 TP-28-02 supersession post-edit artifact lint
+$ timeout 840 bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab
+exit: 0
+lines: 406
+sha256: ed9142d7152044254040019b1b8b5bda8eb2f0e069f511acdd675c357cff0950
+--- first 20 ---
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes/_index.md
+✅ Per-scope layout contains 29 scope file(s)
+--- omitted 366 line(s); sha256 above covers the full output ---
+--- last 20 ---
+✅ No unfilled evidence template placeholders in scopes/24-complete-allocation-and-explicit-black-litterman/report.md
+✅ No unfilled evidence template placeholders in scopes/25-decision-time-dossier-and-immutable-audit/report.md
+✅ No unfilled evidence template placeholders in scopes/26-immutable-workspace-compute-and-navigation/report.md
+✅ No unfilled evidence template placeholders in scopes/27-accessible-six-tab-interaction/report.md
+✅ No unfilled evidence template placeholders in scopes/28-spec-driven-adversarial-test-replacement/report.md
+✅ No unfilled evidence template placeholders in scopes/29-documentation-and-registry-truth/report.md
+
+=== End Anti-Fabrication Checks ===
+
+Artifact lint PASSED.
+```
+
+**Result:** PASS.
+
+**Phase:** test
+**Executed:** YES (current invocation)
+**Command:** `cd <repo-root> && git diff --check; rc=$?; echo "GIT_DIFF_CHECK_EXIT=$rc"; exit "$rc"`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+GIT_DIFF_CHECK_EXIT=0
+```
+
+**Final test obligation verdict:** GREEN. Final Scope 28 checkbox and status handling is routed to `bubbles.plan`; this report owner made no such change.
+
 #### Regression Quality
 
 The absolute checkout prefix in the guard banner is normalized to `<repo-root>` below. No guard line or result was otherwise changed.
@@ -898,3 +1100,479 @@ The scenario manifest assigns SCN-008-055 to scope `29-documentation-and-registr
 ## Audit Verdict
 
 Not audited.
+
+## Current Scope 28 Reverification - 2026-08-24
+
+### Superseding Current Verdict
+
+**Phase:** test
+**Claim Source:** interpreted
+**Interpretation:** The commands below were executed after the planning repair that bounds Scope 28 to SCN-008-001 through SCN-008-054. This section supersedes the report's older current-state statements about unresolved SCN-008-055 ownership, a red canonical selftest, and the six TP row outcomes. It does not delete or rewrite the historical receipts above.
+
+The ownership-specific claim is now established. The structured boundary check reports 54 audited scenarios from SCN-008-001 through SCN-008-054, all six TP-28 rows stop at SCN-008-054, and SCN-008-055 points only to Scope 29, TP-29 rows, and the Scope 29 report. Linked-test resolution exits 0 with 68 references resolved. All-scope traceability exits 0 with 55 of 55 scenarios mapped; its one Not Started evidence target is retained for that scope's own execution.
+
+Scope 28 remains **In Progress** because TP-28-02 is red on the current bytes. Its exact command executed 239 tests: 238 passed, 1 failed, and 0 skipped. The failing title is `privacy inventory reports real category counts and carries no stored subject value`. A focused run from the owning file reproduces the failure at the assertion that a same-day repeat is accepted. Current production code classifies the same semantic content on the same New York civil day as `duplicate-completion`; the higher-level Feature 008 artifacts do not state the candidate-store behavior precisely enough for this test owner to change either the test or production code.
+
+No Scope 29 completion or execution claim is made here. The exact TP-28-03 command selects the whole shared brief carrier and therefore collected 93 current browser rows, including concurrent authored bytes. Scope 28 evidence and ownership accounting remain constrained to SCN-008-001 through SCN-008-054 by the structured boundary check below.
+
+| Test Plan row | Exit | Current count | Current verdict |
+|---|---:|---|---|
+| TP-28-01 | 0 | 197 test files; 180 reachable; 6 baselined orphans | PASS |
+| TP-28-02 | 1 | 239 total; 238 passed; 1 failed; 0 skipped | FAIL |
+| TP-28-03 | 0 | 93 passed | PASS; Scope 28 interpretation stops at SCN-008-054 |
+| TP-28-04 | 0 | 1 passed; 0 failed; 0 skipped | PASS |
+| TP-28-05 | 0 | 8 files; 0 violations; 0 warnings | PASS |
+| TP-28-06 | 0 | 3404 passed; 0 failed | PASS |
+
+### TP-28-01 Current Receipt
+
+**Phase:** test
+**Command:** `timeout 600 bash .github/bubbles/scripts/evidence-capture.sh --label "Scope 28 current TP-28-01 declaration reachability" -- timeout 540 node scripts/validate-test-file-reachability.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# Scope 28 current TP-28-01 declaration reachability
+$ timeout 540 node scripts/validate-test-file-reachability.mjs
+exit: 0
+lines: 42
+sha256: 512332bcaf6fd4abdac6bffe9f9f75bb33b228b352534d5ef6b6ececdd946558
+--- first 20 ---
+197 test file(s) in tests/, 9 declared glob(s) from 9645 artifact(s), 180 reachable, 11 exempt (shared-helper-module), 6 orphan(s)
+glob **/*.spec.mjs [playwright-testMatch] declared at 1 site(s), first playwright.config.mjs:4
+glob tests/*.e2e.mjs [node-test-argument] declared at 23 site(s), first specs/015-recommendation-outcome-ledger-and-track-record/scopes/01-frozen-claim-contract/scope.md:255
+glob tests/*.functional.mjs [node-test-argument] declared at 4 site(s), first specs/015-recommendation-outcome-ledger-and-track-record/scopes/02-additive-ledger-row-extension/report.md:1369
+glob tests/*.integration.mjs [node-test-argument] declared at 8 site(s), first .specify/memory/agents.md:142
+glob tests/*.test.mjs [node-test-argument] declared at 4 site(s), first specs/015-recommendation-outcome-ledger-and-track-record/scopes/02-additive-ledger-row-extension/report.md:861
+glob tests/*.unit.mjs [node-test-argument] declared at 6 site(s), first .specify/memory/agents.md:151
+glob tests/causal-rotation-*.mjs [node-test-argument] declared at 1 site(s), first notes/causal-rotation-lab.md:119
+glob tests/distributed-briefs*.mjs [node-test-argument] declared at 2 site(s), first specs/012-market-action-center-and-guided-tools/scopes/11-feature-002-authored-brief-integration/scope.md:155
+glob tests/feature-004-*.test.mjs [node-test-argument] declared at 1 site(s), first specs/015-recommendation-outcome-ledger-and-track-record/state.json:541
+--- omitted 22 line(s); sha256 above covers the full output ---
+```
+
+The stale-baseline notices in the omitted tail are informational in this command: the validator exits 0 and reports no new unreachable carrier.
+
+### TP-28-02 Current Red Receipt
+
+**Phase:** test
+**Command:** `timeout 1200 bash .github/bubbles/scripts/evidence-capture.sh --label "Scope 28 current TP-28-02 aggregate Node behavior" -- timeout 1140 node --test tests/portfolio-foundation.unit.mjs tests/portfolio-analytics.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-privacy.functional.mjs tests/portfolio-allocation.functional.mjs tests/portfolio-publisher-boundary.functional.mjs tests/portfolio-bar-coverage.functional.mjs tests/portfolio-risk.functional.mjs tests/portfolio-paths.functional.mjs tests/portfolio-diversification.functional.mjs tests/portfolio-dossier.functional.mjs tests/portfolio-workspace.functional.mjs tests/portfolio-test-integrity.unit.mjs`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+# Scope 28 current TP-28-02 aggregate Node behavior
+$ timeout 1140 node --test tests/portfolio-foundation.unit.mjs tests/portfolio-analytics.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-privacy.functional.mjs tests/portfolio-allocation.functional.mjs tests/portfolio-publisher-boundary.functional.mjs tests/portfolio-bar-coverage.functional.mjs tests/portfolio-risk.functional.mjs tests/portfolio-paths.functional.mjs tests/portfolio-diversification.functional.mjs tests/portfolio-dossier.functional.mjs tests/portfolio-workspace.functional.mjs tests/portfolio-test-integrity.unit.mjs
+exit: 1
+lines: 1464
+sha256: 36fd9904bb2584a169c17eb299f4512d9558680a401d3c206b607b1c6f6642d6
+--- first 20 ---
+TAP version 13
+# Subtest: TP-13-02 six production candidates share one frozen basis and keep their own states
+ok 1 - TP-13-02 six production candidates share one frozen basis and keep their own states
+  ---
+  duration_ms: 22.850871
+  type: 'test'
+  ...
+--- failure-shaped lines from the omitted region ---
+not ok 173 - privacy inventory reports real category counts and carries no stored subject value
+--- omitted 1424 line(s); sha256 above covers the full output ---
+--- last 20 ---
+1..239
+# tests 239
+# suites 0
+# pass 238
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12060.884824
+```
+
+The exact title reproduces from its owning carrier. The checkout prefix in the stack is normalized to `<repo-root>` below; no assertion text or result is changed.
+
+**Phase:** test
+**Command:** `timeout 240 node --test --test-name-pattern='privacy inventory reports real category counts and carries no stored subject value' tests/portfolio-foundation.unit.mjs`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+✖ privacy inventory reports real category counts and carries no stored subject value (120.596046ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 246.923057
+
+✖ failing tests:
+
+test at tests/portfolio-foundation.unit.mjs:678:1
+✖ privacy inventory reports real category counts and carries no stored subject value (120.596046ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  false !== true
+      at TestContext.<anonymous> (<repo-root>/tests/portfolio-foundation.unit.mjs:738:10)
+```
+
+> **Uncertainty Declaration**
+> **What was attempted:** The exact TP-28-02 command, the owning `portfolio-foundation.unit.mjs` carrier, and the exact failing title were executed.
+> **What was observed:** The exact aggregate is 238 passed and 1 failed. The focused title fails because the candidate returns `accepted: false`. Production code describes same semantic content on the same civil day as a duplicate that changes nothing, while the test expects the later same-day occurrence to append.
+> **Why this is uncertain:** The Feature 008 scenario says only exact semantic duplicates collapse and the design excludes occurrence time from semantic identity while retaining occurrence evidence. It does not state the candidate-store rule for a second occurrence on the same civil day precisely enough to authorize changing either side.
+> **What would resolve this:** The planning owner must make the same-day candidate behavior explicit. The owning test or implementation specialist can then align the mismatching side and rerun TP-28-02 unchanged.
+
+### TP-28-03 Current Receipt
+
+**Phase:** test
+**Command:** `timeout 1800 bash .github/bubbles/scripts/evidence-capture.sh --label "Scope 28 current TP-28-03 complete Feature 008 browser matrix" -- timeout 1740 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# Scope 28 current TP-28-03 complete Feature 008 browser matrix
+$ timeout 1740 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+exit: 0
+lines: 289
+sha256: 7297730deb2f93b460f00ca9d843ffa86481a3b793c3bfacd1423fc10688422b
+--- first 20 ---
+
+Running 93 tests using 4 workers
+
+  ✓  3 [system-chrome] › tests/portfolio-survival-diversification.spec.mjs:105:1 › Regression: SCN-008-022 raw stress correlation shows volatility context and qualified adjustment (3.6s)
+  ✓  2 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:109:1 › Regression: SCN-008-026 all six allocation methods share one frozen basis (4.1s)
+[TP-05-02] windows=pre-market,morning,pre-close,after-hours times=07:30,11:00,15:00,17:00 preserved=3 excludedAfterCutoff=1
+  ✓  4 [system-chrome] › tests/portfolio-survival-brief.spec.mjs:89:1 › Regression: SCN-008-006 all four exact ET windows preserve cutoff and composition time (3.9s)
+  ✓  1 [system-chrome] › tests/portfolio-survival-accessibility.spec.mjs:89:1 › Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete (5.8s)
+--- omitted 249 line(s); sha256 above covers the full output ---
+--- last 20 ---
+  ✓  88 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:1783:1 › Regression: SCN-008-042 holdings can be added edited removed and cleared to an honest empty portfolio (2.8s)
+  ✓  87 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:342:1 › Regression: Feature 008 cash need timeline and path table preserve order and mobile canvas parity (6.6s)
+  ✓  89 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:1851:1 › Regression: SCN-008-043 full personal clear tombstones derives and verifies every personal category (2.9s)
+  ✓  91 [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:1919:1 › Regression: SCN-008-045 five year coverage measures dates appends allowed sources and preserves partial truth (974ms)
+  ✓  90 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:405:1 › Regression: Feature 008 an incomplete cash need is refused rather than partly assumed (3.8s)
+  ✓  92 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:422:1 › Regression: SCN-008-048 complete scenario cash needs uncertainty and compute tokens govern every path (6.5s)
+  ✓  93 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:463:1 › Regression: SCN-008-048 cancelled and superseded path jobs cannot replace the last valid view (4.4s)
+
+  93 passed (2.2m)
+```
+
+### TP-28-04 Current Receipt
+
+**Phase:** test
+**Command:** `timeout 900 bash .github/bubbles/scripts/evidence-capture.sh --label "Scope 28 current TP-28-04 adversarial mutation integrity" -- timeout 840 node --test --test-name-pattern="Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing" tests/portfolio-test-integrity.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+TAP version 13
+# Subtest: Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing
+ok 1 - Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing
+  ---
+  duration_ms: 9560.537461
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9643.593691
+```
+
+Current source inspection confirms this carrier derives its audited set from the finding ledger, requires exactly one shipped-green test per case, applies one in-memory defect, requires the same test to fail under that defect, and compares production SHA-256 values before and after. An unmatched mutation anchor fails loud. No shipped source is written.
+
+### TP-28-05 Current Receipt
+
+The one absolute checkout path in the guard banner is normalized to `<repo-root>`; the sha256 below covers the unmodified captured output.
+
+**Phase:** test
+**Command:** `timeout 900 bash .github/bubbles/scripts/evidence-capture.sh --label "Scope 28 current TP-28-05 regression quality" -- timeout 840 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+============================================================
+  BUBBLES REGRESSION QUALITY GUARD
+  Repo: <repo-root>
+  Timestamp: 2026-08-24T03:50:52Z
+  Bugfix mode: true
+============================================================
+
+ℹ️  Scanning tests/portfolio-survival-foundation.spec.mjs
+✅ Asserts the current surface in tests/portfolio-survival-foundation.spec.mjs (mixed inspection accepted)
+✅ Adversarial signal detected in tests/portfolio-survival-foundation.spec.mjs
+ℹ️  Scanning tests/portfolio-survival-brief.spec.mjs
+✅ Asserts the current surface in tests/portfolio-survival-brief.spec.mjs (mixed inspection accepted)
+✅ Adversarial signal detected in tests/portfolio-survival-brief.spec.mjs
+ℹ️  Scanning tests/portfolio-survival-risk.spec.mjs
+✅ Asserts the current surface in tests/portfolio-survival-risk.spec.mjs (mixed inspection accepted)
+✅ Adversarial signal detected in tests/portfolio-survival-risk.spec.mjs
+ℹ️  Scanning tests/portfolio-survival-paths.spec.mjs
+✅ Asserts the current surface in tests/portfolio-survival-paths.spec.mjs (mixed inspection accepted)
+✅ Adversarial signal detected in tests/portfolio-survival-paths.spec.mjs
+ℹ️  Scanning tests/portfolio-survival-diversification.spec.mjs
+✅ Asserts the current surface in tests/portfolio-survival-diversification.spec.mjs (mixed inspection accepted)
+✅ Adversarial signal detected in tests/portfolio-survival-diversification.spec.mjs
+ℹ️  Scanning tests/portfolio-survival-allocation.spec.mjs
+✅ Asserts the current surface in tests/portfolio-survival-allocation.spec.mjs (mixed inspection accepted)
+✅ Adversarial signal detected in tests/portfolio-survival-allocation.spec.mjs
+ℹ️  Scanning tests/portfolio-survival-mobile.spec.mjs
+✅ Asserts the current surface in tests/portfolio-survival-mobile.spec.mjs (mixed inspection accepted)
+✅ Adversarial signal detected in tests/portfolio-survival-mobile.spec.mjs
+ℹ️  Scanning tests/portfolio-survival-accessibility.spec.mjs
+✅ Asserts the current surface in tests/portfolio-survival-accessibility.spec.mjs (mixed inspection accepted)
+✅ Adversarial signal detected in tests/portfolio-survival-accessibility.spec.mjs
+
+============================================================
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 8
+  Files with adversarial signals: 8
+============================================================
+```
+
+The executable interception scan found one actual `page.route` line, inside `Adversarial: SCN-008-053 reduced accessibility implementations fail closed`. The scope classifies that row as a disposable non-live mutation control. No other executable interception line exists in the eight browser carriers, so the live regression rows remain real-route tests.
+
+### TP-28-06 Current Receipt
+
+**Phase:** test
+**Command:** `timeout 1800 bash .github/bubbles/scripts/evidence-capture.sh --label "Scope 28 current TP-28-06 repository selftest" -- timeout 1740 node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# Scope 28 current TP-28-06 repository selftest
+$ timeout 1740 node scripts/selftest.mjs
+exit: 0
+lines: 3887
+sha256: ad49393bd3bea0a2c415706343d379aa2283ab6a5e1c22b71f49b7c060941f9a
+--- first 20 ---
+
+Step 1 security — escaped model sinks and CSP on every page
+  ✓ every shipped HTML page carries a Content-Security-Policy meta
+  ✓ all pages use one identical CSP instead of drifting per page
+  ✓ CSP keeps the single-file inline-script design while defaulting to self
+  ✓ CSP blocks object, base-tag, and form exfiltration paths
+  ✓ CSP connect-src is an explicit origin allowlist, never wildcard https
+  ✓ CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+  ✓ CSP allows no open URL-forwarding relay origin
+  ✓ production pages and shared runtime contain no open URL-forwarding relay chain
+  ✓ no model/config-authored field reaches innerHTML without esc()
+  ✓ the sink detector catches an unescaped model-authored title
+--- omitted 3847 line(s); sha256 above covers the full output ---
+--- last 20 ---
+experience shell — every registered tool is mountable
+  ✓ the registered-tool sweep actually has tools to check (found 29)
+  ✓ every registered tool page carries a [data-rlbrief-mount] anchor naming its own tool id — rlapp.js mounts the shell from nothing else (missing: none)
+  ✓ no page carries two mount anchors — rlapp.js requires exactly one and silently declines to mount otherwise (offenders: none)
+  ✓ every declared adapterModule is a module path string the shell can resolve against its bindings table
+
+brief window cutoff — publisher refuses what the consumer would reject
+  ✓ the consumer module exports its cutoff resolver, so the publish gate resolves cutoffs with the same rule instead of a second copy
+  ✓ a brief whose snapshot and payload are both past the declared cutoff is refused, and each breach is named separately rather than collapsed into one verdict
+  ✓ the ordinary in-band publication, composed inside the lead window, is not refused — the gate must not block the 90% case it exists to protect
+  ✓ all four window bands close at their own cutoff, so a run past the cutoff selects no window rather than one it cannot honestly satisfy (found 4/4)
+
+================================================
+Research-Lab self-test: 3404 passed, 0 failed
+================================================
+```
+
+### Scenario Ownership And Traceability
+
+**Phase:** test
+**Claim Source:** executed for command outcomes; interpreted for the Scope 28 boundary applied to the all-scope outputs
+**Interpretation:** The canonical resolver and traceability guard operate on the full Feature 008 manifest. Their green outcomes prove current title/file resolution and plan-to-DoD traceability. The separate structured assertion below is the discriminating boundary: it proves Scope 28 ends at 054 and that every 055 plan/evidence pointer belongs to Scope 29.
+
+```text
+# Scope 28 current linked-test resolution
+$ timeout 540 bash .github/bubbles/scripts/scenario-test-resolve.sh specs/008-portfolio-survival-and-brief-lab
+exit: 0
+lines: 1
+sha256: 3cd7e3e362ae0cb97a690b6ae315f516bd7754d11491cd163ca62a022e818b34
+[scenario-test-resolve] OK — 68 reference(s) resolved via literal-scan; 68 category comparison(s) not applicable (no test-discovery adapter declared)
+
+# Scope 28 current spec test path validation
+$ timeout 540 node scripts/validate-spec-test-paths.mjs
+exit: 0
+lines: 2
+sha256: ee9b2e6d5adb9ed568337ecfabc887fa2e2ea0497712af11077199956369373d
+[spec-test-paths] scanned=757 references=17060 distinctPaths=261 missingPaths=66 plannedMissing=0 baseline=66 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+```
+
+**Phase:** test
+**Command:** `jq -e --slurpfile plan specs/008-portfolio-survival-and-brief-lab/test-plan.json '<structured SCN-008-001..055 ownership assertion>' specs/008-portfolio-survival-and-brief-lab/scenario-manifest.json`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```json
+{
+  "scope28TestIds": ["TP-28-01", "TP-28-02", "TP-28-03", "TP-28-04", "TP-28-05", "TP-28-06"],
+  "scope28DeclaredRanges": [
+    "SCN-008-001 through SCN-008-054",
+    "SCN-008-001 through SCN-008-054",
+    "SCN-008-001 through SCN-008-054",
+    "SCN-008-054",
+    "SCN-008-054",
+    "SCN-008-001 through SCN-008-054"
+  ],
+  "scenarioCountThrough054": 54,
+  "firstAuditedScenario": "SCN-008-001",
+  "lastAuditedScenario": "SCN-008-054",
+  "scn054Scope": "28-spec-driven-adversarial-test-replacement",
+  "scn054TestRows": ["TP-28-01", "TP-28-02", "TP-28-03", "TP-28-04", "TP-28-05", "TP-28-06"],
+  "scn055Scope": "29-documentation-and-registry-truth",
+  "scn055TestRows": ["TP-29-01", "TP-29-02", "TP-29-03", "TP-29-04", "TP-29-05"],
+  "scn055LinkedPlans": ["TP-29-01", "TP-29-01", "TP-29-05", "TP-29-02"],
+  "scn055EvidenceRefs": ["scopes/29-documentation-and-registry-truth/report.md#scenario-contract-evidence"],
+  "boundaryPass": true
+}
+```
+
+The absolute feature path in the traceability banner is normalized to `<repo-root>/specs/008-portfolio-survival-and-brief-lab`; the hash covers the unmodified output.
+
+```text
+# Scope 28 current Feature 008 traceability
+$ timeout 840 bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --all-scopes
+exit: 0
+lines: 511
+sha256: e023a875241b63b5bc644550eafddfd773026854785a15c26e343000904714f9
+--- first 20 ---
+============================================================
+  BUBBLES TRACEABILITY GUARD
+  Feature: <repo-root>/specs/008-portfolio-survival-and-brief-lab
+  Timestamp: 2026-08-24T03:52:25Z
+============================================================
+
+--- Scenario Manifest Cross-Check (G057/G059) ---
+✅ scenario-manifest.json covers 55 scenario contract(s)
+--- omitted 471 line(s); sha256 above covers the full output ---
+--- last 20 ---
+✅ scopes/28-spec-driven-adversarial-test-replacement/scope.md scenario maps to DoD item: A repaired Feature 008 behavior is challenged by its original reduced implementation
+ℹ️  scopes/28-spec-driven-adversarial-test-replacement/scope.md scenario→DoD match confidence: declared
+✅ scopes/29-documentation-and-registry-truth/scope.md scenario maps to DoD item: A reader opens Feature 008 from every published repository surface
+ℹ️  scopes/29-documentation-and-registry-truth/scope.md scenario→DoD match confidence: declared
+ℹ️  DoD fidelity: 55 scenarios checked, 55 mapped to DoD, 0 unmapped
+
+--- Traceability Summary ---
+ℹ️  Scenarios checked: 55
+ℹ️  Test rows checked: 216
+ℹ️  Scenario-to-row mappings: 55
+ℹ️  Concrete test file references: 55
+ℹ️  Report evidence references: 54
+ℹ️  Report evidence DEFERRED to their own execution (Not Started scopes): 1
+ℹ️  DoD fidelity scenarios: 55 (mapped: 55, unmapped: 0)
+ℹ️  Edge confidence (IMP-015 Scope B): declared=98 inferred=0 ambiguous=12
+
+RESULT: PASSED (0 warnings)
+```
+
+### Diff And Excluded-Path Integrity
+
+**Phase:** test
+**Command:** `git status --short --branch`; `git diff --name-status`; `git diff --cached --name-status`; `git diff --check`; protected-artifact `sha256sum`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+## main...origin/main [ahead 2]
+ M notes/portfolio-survival-allocation-lab.md
+ M specs/008-portfolio-survival-and-brief-lab/scenario-manifest.json
+ M specs/008-portfolio-survival-and-brief-lab/scopes/28-spec-driven-adversarial-test-replacement/scope.md
+ M specs/008-portfolio-survival-and-brief-lab/scopes/29-documentation-and-registry-truth/scope.md
+ M specs/008-portfolio-survival-and-brief-lab/scopes/_index.md
+ M specs/008-portfolio-survival-and-brief-lab/test-plan.json
+ M tests/portfolio-survival-brief.spec.mjs
+?? tests/portfolio-doc-integration.functional.mjs
+=== STAGED NAME STATUS ===
+=== DIFF CHECK ===
+GIT_DIFF_CHECK_EXIT=0
+3fc3e32ce2e44daa94587b599d995af2281c8ae9065884cc93ba79245497864f  scopes/28-spec-driven-adversarial-test-replacement/scope.md
+c2cf3e4a89d02a2e24dae6880926ae0b100b0218d16facbf7f76f3be5cf8f050  scopes/_index.md
+8160e1ab7b6597c3de8fe3b665f1b8dc7a82e09522acb1f6b2a73ec7f11f6015  test-plan.json
+38c00bd38e3187c5ad1824bac83981060fd485e6f3d2b61a140be061ef62d566  scenario-manifest.json
+634319b1b0c447109eb3aec277e4a942b7217218f706c94e79817af58fe07313  state.json
+396924cb6ecc9b2ed9d6d2aaa8211a9c51f3276070f166b00c20853f3869e5f9  uservalidation.md
+ff061ce3e9f13b70fa79b41444c440dd9a22c7be376e7db7ee7e8087eeb06d1b  scopes/29-documentation-and-registry-truth/report.md
+```
+
+The protected hashes were identical at the initial baseline and immediately before this report edit. The index was empty. This test-owned run edited only this Scope 28 report and did not commit or push.
+
+### Current Pre-Edit Artifact Lint
+
+**Phase:** test
+**Command:** `timeout 900 bash .github/bubbles/scripts/evidence-capture.sh --label "Scope 28 current pre-edit artifact lint" -- timeout 840 bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# Scope 28 current pre-edit artifact lint
+$ timeout 840 bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab
+exit: 0
+lines: 406
+sha256: ed9142d7152044254040019b1b8b5bda8eb2f0e069f511acdd675c357cff0950
+--- first 20 ---
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes/_index.md
+✅ Per-scope layout contains 29 scope file(s)
+✅ Scope report exists: scopes/01-private-portfolio-import-and-atomic-store/report.md
+✅ Scope report exists: scopes/02-mandate-and-cash-need-authority/report.md
+✅ Scope report exists: scopes/03-local-behavior-privacy-inventory-and-clear/report.md
+✅ Scope report exists: scopes/04-public-evidence-barrier-and-coverage/report.md
+--- omitted 366 line(s); sha256 above covers the full output ---
+--- last 20 ---
+✅ No unfilled evidence template placeholders in scopes/24-complete-allocation-and-explicit-views/report.md
+✅ No unfilled evidence template placeholders in scopes/25-decision-time-dossier-and-immutable-audit/report.md
+✅ No unfilled evidence template placeholders in scopes/26-immutable-workspace-compute-and-navigation/report.md
+✅ No unfilled evidence template placeholders in scopes/27-accessible-six-tab-interaction/report.md
+✅ No unfilled evidence template placeholders in scopes/28-spec-driven-adversarial-test-replacement/report.md
+✅ No unfilled evidence template placeholders in scopes/29-documentation-and-registry-truth/report.md
+
+=== End Anti-Fabrication Checks ===
+
+Artifact lint PASSED.
+```
+
+### Superseded Nonterminal Disposition
+
+The report's stale SCN-008-055 and canonical-selftest blockers are superseded by current execution: the ownership boundary is exact through SCN-008-054, linked-test resolution is green, and the selftest is 3404 passed with 0 failed. The TP-28-02 blocker was current at this checkpoint and is superseded by the latest disposition below. No checkbox or status is changed by this test-owned report update.
+
+### Post-Edit Artifact Lint
+
+**Phase:** test
+**Command:** `timeout 900 bash .github/bubbles/scripts/evidence-capture.sh --label "Scope 28 post-edit artifact lint" -- timeout 840 bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# Scope 28 post-edit artifact lint
+$ timeout 840 bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab
+exit: 0
+lines: 406
+sha256: ed9142d7152044254040019b1b8b5bda8eb2f0e069f511acdd675c357cff0950
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes/_index.md
+✅ Per-scope layout contains 29 scope file(s)
+✅ No unfilled evidence template placeholders in scopes/28-spec-driven-adversarial-test-replacement/report.md
+✅ No unfilled evidence template placeholders in scopes/29-documentation-and-registry-truth/report.md
+=== End Anti-Fabrication Checks ===
+Artifact lint PASSED.
+```
+
+## Latest Scope 28 Test Disposition - 2026-08-24
+
+The current evidence is the [TP-28-02 Repair Reverification](#tp-28-02-repair-reverification---2026-08-24) and its [Current Scope 28 Test-Row Disposition](#current-scope-28-test-row-disposition). The formerly red focused unit now passes 1 of 1, exact TP-28-02 passes 239 of 239 with capture sha256 `5061199fa80c772d1a7f453ab27ac482c9d28c0d1bc6b4ac578981c360a1b049`, and exact SCN-008-011 passes 1 of 1 with `duplicateExactOccurrence=rejected`.
+
+All six Scope 28 Test Plan rows are green with the mixed provenance recorded in that table. TP-28-03 and TP-28-06 use parent-current-session captures, accurately labeled as not executed by this report owner, with sha256 values `de26f4cc017b7da2ee9884b64ba409366b189621f156a266bde2aefcbcacaa70` and `98c87fd32c6095acd11494d89c6ece7d86c14012bf331875c9501708ac028b57` respectively.
+
+No checkbox or status is changed here. Final Scope 28 checkbox and status handling is ready for and routed to `bubbles.plan`.

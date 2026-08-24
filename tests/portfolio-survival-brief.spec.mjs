@@ -965,3 +965,210 @@ test('Regression: BUG-001 a publication later than its declared window cutoff is
     await lateServer.close();
   }
 });
+
+/* ---------------------------------------------------------------------------
+   Scope 29 — TP-29-02. SCN-008-055 in the real browser.
+
+   `tests/portfolio-doc-integration.functional.mjs` proves the published surfaces AGREE with each
+   other and with the shipped route table. It reads files. It never opens a page, so it cannot tell
+   the difference between a link that is spelled correctly and a link a reader can actually follow
+   to the Portfolio Brief workspace. That is the gap this row closes: every entry the repository
+   publishes for Feature 008 is DRIVEN, over real HTTP, through the real production boot.
+
+   NOTHING BELOW IS WRITTEN DOWN AS THE ANSWER.
+     - The route contract is parsed out of `ROUTE_TABS` in the shipped page.
+     - WHICH shipped route is the Brief workspace is read off the product: the Brief panel names its
+       controlling tab through `aria-labelledby`, and `ROUTE_TABS` maps that tab back to a hash.
+     - Each surface's href is parsed from that surface at run time, and each surface is keyed by
+       something OTHER than the href (registry id, published title, link label) so a surface
+       repointed at the wrong file is caught rather than silently agreed with.
+   The only declared value is WHICH surfaces SCN-008-055 obliges — the scenario's own list — and the
+   row fails loudly if any one of them stops contributing an entry.
+
+   TWO CONTROLS KEEP IT HONEST. Every "the Brief workspace is open" signal is ALSO the page's static
+   default markup, so a page whose script never ran would satisfy them. So the row (1) waits for the
+   window selector to be filled from the public generic config, which only a real boot can do, and
+   (2) drives a real non-Brief shipped route through the same page and requires every one of those
+   signals to flip. If they cannot flip, the assertions cannot fail, and the row says so by name.
+   --------------------------------------------------------------------------- */
+
+const TOOL_ID = 'portfolio-survival-allocation-lab';
+
+/* The scenario's own list of obliged surfaces. This is the requirement, not the answer: every href
+   below is derived, and a surface that stops publishing an entry fails here instead of shrinking
+   the list and letting the remaining entries pass on its behalf. */
+const SCN_055_SURFACES = Object.freeze([
+  'tools.json registry',
+  'index.html TOOLS',
+  'rlnav.js TOOLS',
+  'README.md inventory',
+  'note route line'
+]);
+
+/* `ROUTE_TABS` is the single definition `routeFromHash` validates against, so parsing it yields
+   exactly the routes a reader can land on — and a renamed route changes what this row demands
+   without this row being edited. */
+function shippedRoutes(productSource) {
+  const table = /var ROUTE_TABS\s*=\s*Object\.freeze\(\[([\s\S]*?)\]\)/.exec(productSource);
+  if (!table) throw new Error('ROUTE_TABS could not be read from the shipped page');
+  return Array.from(table[1].matchAll(/\{\s*hash:\s*"([^"]+)",\s*tab:\s*"([^"]+)"\s*\}/g))
+    .map((match) => ({ hash: match[1], tab: match[2] }));
+}
+
+/* Which route IS the Portfolio Brief workspace, read off the product rather than declared. */
+function briefRoute(productSource, routes) {
+  const panel = /<section id="briefWorkspace"[^>]*aria-labelledby="([^"]+)"/.exec(productSource);
+  if (!panel) throw new Error('the Brief workspace panel does not declare its controlling tab');
+  const route = routes.find((entry) => entry.tab === panel[1]);
+  if (!route) throw new Error(`no shipped route controls ${panel[1]}`);
+  return route;
+}
+
+/* Landing `TOOLS` entries, id → published href. Each entry is bounded by the next `id:` so an entry
+   without a `file:` reports as missing instead of borrowing its neighbour's. */
+function landingHrefById(landingSource) {
+  const ids = Array.from(landingSource.matchAll(/\bid:\s*'([^']+)'/g));
+  const hrefs = new Map();
+  ids.forEach((match, index) => {
+    const start = match.index + match[0].length;
+    const end = index + 1 < ids.length ? ids[index + 1].index : landingSource.length;
+    const file = /\bfile:\s*'([^']+\.html)'/.exec(landingSource.slice(start, end));
+    if (file && !hrefs.has(match[1])) hrefs.set(match[1], file[1]);
+  });
+  return hrefs;
+}
+
+/* Navigation `TOOLS` entries, published full title → published href. `[^{}]` keeps each match
+   inside one object literal. Keyed by title because keying by href would compare the registry
+   against itself and could never see navigation pointing somewhere else. */
+function navHrefByTitle(navSource) {
+  const hrefs = new Map();
+  for (const match of navSource.matchAll(/\{[^{}]*\bfull:\s*"([^"]+)"[^{}]*\bfile:\s*"([^"]+\.html)"[^{}]*\}/g)) {
+    if (!hrefs.has(match[1])) hrefs.set(match[1], match[2]);
+  }
+  return hrefs;
+}
+
+/* README inventory links, link label → published href. */
+function readmeHrefByLabel(readmeSource) {
+  const hrefs = new Map();
+  for (const match of readmeSource.matchAll(/\[`([^`]+)`\]\(([^)\s]+\.html)\)/g)) {
+    if (!hrefs.has(match[1])) hrefs.set(match[1], match[2]);
+  }
+  return hrefs;
+}
+
+/* The single route the canonical note publishes as the way in. */
+function noteRouteHref(noteSource) {
+  const match = /\*\*Route:\*\*\s*`([^`]+\.html[^`]*)`/.exec(noteSource);
+  return match ? match[1] : null;
+}
+
+async function expectBriefWorkspaceOpen(page, briefTabId, label) {
+  await expect(page.locator(`#${briefTabId}`), `${label}: the Brief tab must be the selected tab`)
+    .toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('#briefWorkspace'), `${label}: the Portfolio Brief workspace must be shown`)
+    .toBeVisible();
+  await expect(page.locator('#portfolioBrief'), `${label}: the Brief panel must be rendered`)
+    .toBeVisible();
+  await expect(page.locator('#routeStates'), `${label}: the mandate route-state panel must stay closed`)
+    .toBeHidden();
+}
+
+test('Regression: SCN-008-055 every published Feature 008 entry opens the Portfolio Brief workspace', async ({ page }) => {
+  const productSource = readFileSync(resolve(ROOT, `${TOOL_ID}.html`), 'utf8');
+  const landingSource = readFileSync(resolve(ROOT, 'index.html'), 'utf8');
+  const navSource = readFileSync(resolve(ROOT, 'rlnav.js'), 'utf8');
+  const readmeSource = readFileSync(resolve(ROOT, 'README.md'), 'utf8');
+  const noteSource = readFileSync(resolve(ROOT, `notes/${TOOL_ID}.md`), 'utf8');
+
+  const routes = shippedRoutes(productSource);
+  expect(routes.length, 'ROUTE_TABS must yield the shipped routes').toBeGreaterThan(1);
+  const brief = briefRoute(productSource, routes);
+
+  /* Registry first: it supplies the title and nav label the other surfaces are looked up BY, so no
+     surface is ever validated against a copy of itself. */
+  const registryTools = JSON.parse(readFileSync(resolve(ROOT, 'tools.json'), 'utf8')).tools || [];
+  expect(registryTools.length, 'tools.json must parse into the real registry inventory').toBeGreaterThan(1);
+  const registryEntry = registryTools.find((tool) => tool.id === TOOL_ID);
+  expect(registryEntry, `${TOOL_ID} must be published in tools.json`).toBeTruthy();
+  const publishedTitle = registryEntry.title;
+  expect(publishedTitle, 'tools.json must publish a title to key the other surfaces by').toBeTruthy();
+
+  const landingHrefs = landingHrefById(landingSource);
+  const navHrefs = navHrefByTitle(navSource);
+  const readmeHrefs = readmeHrefByLabel(readmeSource);
+  /* A parser that stopped matching would yield an empty map, every lookup below would miss, and the
+     row would be reduced to "nothing was checked". These three make that a failure. */
+  expect(landingHrefs.size, 'the index.html TOOLS array must parse into the real landing inventory').toBeGreaterThan(1);
+  expect(navHrefs.size, 'the rlnav.js TOOLS array must parse into the real navigation inventory').toBeGreaterThan(1);
+  expect(readmeHrefs.size, 'README.md must parse into the real published inventory').toBeGreaterThan(1);
+
+  const readmeLabel = Array.from(readmeHrefs.keys()).find((label) => label.includes(publishedTitle));
+  expect(readmeLabel, `README.md must publish an inventory link labelled "${publishedTitle}"`).toBeTruthy();
+
+  const entries = [
+    { surface: 'tools.json registry', href: registryEntry.file },
+    { surface: 'index.html TOOLS', href: landingHrefs.get(TOOL_ID) },
+    { surface: 'rlnav.js TOOLS', href: navHrefs.get(publishedTitle) },
+    { surface: 'README.md inventory', href: readmeHrefs.get(readmeLabel) },
+    { surface: 'note route line', href: noteRouteHref(noteSource) }
+  ];
+  expect(entries.map((entry) => entry.surface),
+    'every surface SCN-008-055 obliges must contribute an entry').toEqual([...SCN_055_SURFACES]);
+  for (const entry of entries) {
+    expect(entry.href, `${entry.surface} must publish a Feature 008 entry href`).toBeTruthy();
+  }
+
+  /* These hrefs coincide today. That is a fact about the tree, not a weakness of the row: each one
+     is derived from its own surface under its own key, so a single surface drifting to a renamed
+     file, a different tool, or a dead hash separates them and fails here. */
+  const driven = [];
+  for (const entry of entries) {
+    const hashAt = entry.href.indexOf('#');
+    const publishedHash = hashAt === -1 ? '' : entry.href.slice(hashAt + 1);
+    /* A hash the product does not ship still lands on Brief, by fallback rather than by route — the
+       exact way the pre-Scope-29 `#workspace` link looked correct. Landing is asserted below; being
+       ROUTED is asserted here. The fallback is demonstrated live at the end of this row. */
+    expect(publishedHash === '' || routes.some((route) => route.hash === publishedHash),
+      `${entry.surface} publishes #${publishedHash}, which is not a shipped route`).toBe(true);
+
+    const response = await page.goto(`${server.baseUrl}/${entry.href}`);
+    expect(response?.status(), `${entry.surface} must publish a route that is actually served (${entry.href})`)
+      .toBe(200);
+    /* Proof the real production boot ran. Every signal in expectBriefWorkspaceOpen is also the
+       static default in the markup, so without this the row would pass against a page whose script
+       never executed — or against some other page that happens to serve 200. */
+    await expect.poll(async () => page.locator('#briefWindow option').count(),
+      { message: `${entry.surface}: the real Feature 008 page must boot and load the generic windows` })
+      .toBe(WINDOWS.length);
+    await expectBriefWorkspaceOpen(page, brief.tab, entry.surface);
+    driven.push(`${entry.surface} -> ${entry.href} -> #${brief.hash}`);
+  }
+
+  /* CONTROL 1 — the assertions can fail. A real shipped non-Brief route is driven through the same
+     page and every Brief signal must flip. If it does not, expectBriefWorkspaceOpen is inert and
+     every pass above was meaningless. */
+  const control = routes.find((route) => route.hash !== brief.hash);
+  expect(control, 'a non-Brief shipped route is required as the discrimination control').toBeTruthy();
+  await page.goto(`${server.baseUrl}/${registryEntry.file}#${control.hash}`);
+  await expect(page.locator(`#${brief.tab}`),
+    `NON-TAUTOLOGY GUARD: #${control.hash} must deselect the Brief tab, otherwise the assertions above cannot fail`)
+    .toHaveAttribute('aria-selected', 'false');
+  await expect(page.locator('#briefWorkspace'), `#${control.hash} must hide the Brief workspace`).toBeHidden();
+  await expect(page.locator('#routeStates'), `#${control.hash} must show the mandate route-state panel`).toBeVisible();
+
+  /* CONTROL 2 — why the shipped-route check on each published hash is not decoration. `#workspace`
+     is the hash the note published until Scope 29 and the product does not ship it, yet the page
+     still shows the Brief workspace because routeFromHash falls back. Arriving at Brief therefore
+     does NOT prove the published hash was real, which is precisely what the per-entry check adds. */
+  expect(routes.map((route) => route.hash),
+    'the renamed hash must not have become a shipped route').not.toContain('workspace');
+  await page.goto(`${server.baseUrl}/${registryEntry.file}#workspace`);
+  await expectBriefWorkspaceOpen(page, brief.tab, 'stale #workspace fallback');
+
+  console.log(`[TP-29-02] briefRoute=#${brief.hash} tab=${brief.tab} shippedRoutes=${routes.length}`);
+  console.log(`[TP-29-02] inventories registry=${registryTools.length} landing=${landingHrefs.size} nav=${navHrefs.size} readme=${readmeHrefs.size}`);
+  for (const line of driven) console.log(`[TP-29-02] ${line}`);
+  console.log(`[TP-29-02] control=#${control.hash} flipped Brief signals; stale #workspace reached Brief by fallback only`);
+});

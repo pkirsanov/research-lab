@@ -130,6 +130,8 @@ Each audit finding appears exactly once. The scope column is the sole execution 
 
 Scope pickup is sequential: a scope may move to `In Progress` only when every listed dependency is `Done`. The linearized DAG keeps red-green evidence focused and prevents an overlay from becoming the accidental foundation.
 
+Scope 28 owns SCN-008-054 and the exact test-integrity audit of carriers owned through Scope 28. It does not own, author, execute, or require the SCN-008-055 documentation-integration carrier. Scope 29 remains dependent on Scope 28 and is the sole owner of that carrier, so the sequence stays `28 -> 29` without either scope requiring work from its dependent.
+
 | # | Scope | Tags | Depends On | Stable Scenarios | Primary Surfaces | Status |
 |---|-------|------|------------|------------------|------------------|--------|
 | 01 | [Private Portfolio Import And Atomic Store](01-private-portfolio-import-and-atomic-store/scope.md) | `foundation:true` | - | SCN-008-001, SCN-008-002 | config, `rlportfolio.js`, setup route, fixtures | Done |

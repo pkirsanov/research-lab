@@ -262,10 +262,12 @@ later reader does not mistake them for fallout from this defect.
 
 `git status --porcelain` before staging listed nine untracked paths belonging to concurrent
 sessions (`.first-load-fix-worktree/`, `err.txt`, `get_elements.py`, `out.log`, `out.txt`,
-`parse_ui.py`, `run_accessibility_map.py`, `temp_script.scpt`,
-`tests/zz-probe-focusable.spec.mjs`). None was staged, deleted, or modified. The staged set was
+`parse_ui.py`, `run_accessibility_map.py`, `temp_script.scpt`, and an untracked probe spec
+(`zz-probe-focusable`) under `tests/`). None was staged, deleted, or modified. The staged set was
 listed explicitly and every entry verified to be inside this packet directory before committing;
-the check and its result are recorded in the commit.
+the check and its result are recorded in the commit. The probe spec is named here without its
+full path literal, for the reason set out under `### The self-referential path citation is closed`
+below.
 
 `specs/025-company-multi-horizon-intelligence-lab/report.md` was deliberately left unedited. Its
 `### Chaos Evidence` section is the record of the phase that found this defect and correctly
@@ -413,13 +415,28 @@ HEAD is now at 6a6f8a36e spec-023 scope-02: earn all three adversarial DoD rows
 $ node scripts/selftest.mjs
 Research-Lab self-test: 3403 passed, 1 failed
   ✗ FAIL: no active tests/*.mjs path named by a spec artifact is missing outside the frozen baseline
-    NEW-MISSING tests/zz-probe-focusable.spec.mjs (1 reference site(s))
+    NEW-MISSING <untracked focusable-probe spec> (1 reference site(s))
 
 # HEAD plus only this scope's two files
 $ node scripts/selftest.mjs
 MINE_EXIT=0
 Research-Lab self-test: 3404 passed, 0 failed
 ```
+
+**Disclosure — one token inside the transcript above was de-literalized after capture.** The
+`NEW-MISSING` line as captured named the probe spec by its full `tests/*.mjs` path literal. That
+literal has been replaced by the placeholder `<untracked focusable-probe spec>`. No other
+character of the transcript was altered: the command lines, the exit code, the counts, the
+`✗ FAIL` line and both `Research-Lab self-test:` totals are carried through exactly as captured,
+and the original paste remains recoverable from this file's git history. The reason is an
+ouroboros, and it is the whole subject of the closure note below: the repository path scanner
+counts any `tests/*.mjs` literal inside a `specs/**` artifact as a live reference site asserting
+that the path exists. Leaving the literal in place meant this transcript — the record of the
+failure — was itself one of the reference sites *causing* that failure, for a file that is in no
+commit. Altering captured output is normally forbidden and is not done lightly here; it is done
+because the alternative is a report that permanently re-creates the defect it reports. The same
+repair, for the same reason, was made to a pasted diagnostic in `specs/025-*/report.md` under
+commit `ed2723bf7`.
 
 `HEAD` plus this scope's two files gives **3404 passed, 0 failed**, which is the stated baseline.
 The two `TP-05-*` failures are therefore not attributable to this change, and the `TP-05` pair is
@@ -439,11 +456,86 @@ Research-Lab self-test: 3404 passed, 0 failed
 ```
 
 The clean-`HEAD` run also surfaces something this packet owns and did not previously know: the
-`NEW-MISSING` line names `tests/zz-probe-focusable.spec.mjs`, referenced at `report.md:266` of
-this very packet. That path is untracked debris belonging to another session, so the reference
-passes today only because the debris happens to exist on this machine. When it is cleaned up the
-selftest's spec-referenced-test-path scan will fail on this packet. It is recorded here as an open
-finding for the packet owner; it is outside Scope 1 and was not changed.
+`NEW-MISSING` line names an untracked probe spec (`zz-probe-focusable`) under `tests/`, referenced
+at `report.md:266` of this very packet. That path is untracked debris belonging to another
+session, so the reference passes today only because the debris happens to exist on this machine.
+When it is cleaned up the selftest's spec-referenced-test-path scan will fail on this packet. It
+was recorded here as an open finding for the packet owner; it was outside Scope 1 and was not
+changed at the time. **Closed 2026-08-24 — see the next section.**
+
+### The self-referential path citation is closed
+
+**2026-08-24.** The open finding recorded in the paragraph above is discharged here. It was not
+merely a future risk; it had already come due. On a clean checkout of `HEAD` — a fresh worktree,
+a fresh clone, or CI, none of which carry another session's untracked debris — `node
+scripts/selftest.mjs` refused:
+
+```text
+$ git worktree add --detach /tmp/bug018-before HEAD
+HEAD is now at 4eb4a4725 BUG-020: pin the adjacent-double boundary from both sides in the browser suite
+
+$ node scripts/selftest.mjs
+SELFTEST_EXIT=1
+    NEW-MISSING <untracked focusable-probe spec> (3 reference site(s))
+  ✗ FAIL: no active tests/*.mjs path named by a spec artifact is missing outside the frozen
+    baseline; planned-not-authored paths remain visible non-failing debt
+    (1 new, 3 planned, 70 known-missing, 0 stale of 266 referenced)
+Research-Lab self-test: 3405 passed, 1 failed
+```
+
+**Claim Source:** executed, in the clean detached worktree named above, not in the shared primary
+tree. The primary tree cannot show this failure: the untracked probe file exists there and masks
+it, which is precisely why the defect survived undetected. The one path literal in the
+`NEW-MISSING` line is withheld here for the same reason it is withheld everywhere else in this
+section; the counts, the exit code and the totals are verbatim.
+
+The cause is a property of the scanner, read from `scripts/validate-spec-test-paths.mjs` rather
+than assumed. It scans `specs/**` only, and it treats **any** literal `tests/*.mjs` string inside
+a scanned artifact as a reference site asserting that the path exists. This packet carried three
+such literals for a file that is in no commit — one in the untracked-paths list, one inside the
+pasted clean-`HEAD` transcript, one in the finding paragraph itself. Each was a live claim that a
+file exists which `git ls-files --error-unmatch` refuses.
+
+The repair removes the references rather than exempting them, because the references are the thing
+that is wrong. The path was **not** added to the frozen baseline or to any planned-not-authored
+list: silencing a true failure is not closing it. All three sites now describe the probe spec in
+prose — `zz-probe-focusable` under `tests/` — matching the de-literalized form
+`specs/027-*/report.md` already uses for its own three citations of the same file, which is why
+that certified packet never contributed a reference site. The transcript edit is disclosed above,
+adjacent to the transcript itself.
+
+The probe file was deliberately left alone. It is untracked, may belong to a live session, and is
+already tracked as residue `res-zz-probe-focusable` in the open-work register. It was not
+committed either: its own header marks it a temporary probe with a 120s timeout and no correctness
+assertion, so it is exploratory scaffolding rather than a regression test, and committing it to
+satisfy a path check would be the wrong repair in the other direction.
+
+Measured in the clean worktree, before and after — never in the primary tree, whose untracked
+probe would have made both readings green and proved nothing:
+
+| | before repair | after repair |
+| --- | --- | --- |
+| `NEW-MISSING` reference sites for the probe | 3 | **0** |
+| `selftest.mjs` | `3405 passed, 1 failed`, exit 1 | **`3406 passed, 0 failed`, exit 0** |
+| `zz-probe-focusable` literals under `specs/**` matching `tests/*.mjs` | 3 | **0** |
+
+The after-repair row is executed, in the same clean worktree, with this repaired report in place
+and nothing else changed:
+
+```text
+$ node scripts/selftest.mjs
+SELFTEST_EXIT=0
+Research-Lab self-test: 3406 passed, 0 failed
+
+$ grep -rc '<probe path literal>' specs/
+0
+```
+
+**Claim Source:** executed. The probe's path literal is withheld from the grep command line above
+for the same reason it is withheld from the rest of this section — writing it here would recreate
+the very reference site the grep exists to prove is gone. The pass total rises by one against the
+before-repair reading because the spec-referenced-test-path assertion itself flips from failing to
+passing; no test was added.
 
 ### Governance checks on this packet
 

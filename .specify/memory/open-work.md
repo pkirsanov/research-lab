@@ -20,6 +20,7 @@ Verify with `bash .github/bubbles/scripts/cli.sh open-work --lint`.
 - `closeout --apply` was deliberately NOT run on 2026-08-23: its hygiene actions operate on
   worktrees, branches and the stash above, all of which belonged to another session's
   outstanding work at the time.
-- Spec 008's three unbuilt scopes (27, 28, 29) and its 257 guard failures are intentionally
-  absent from this table. They are derived rows, and their detail belongs in
-  `specs/008-portfolio-survival-and-brief-lab/` rather than here.
+- Spec-008 detail is intentionally absent from this table. Spec and scope status is derived on
+  every run, so restating it here — even in prose — recreates the second source of truth the row
+  schema exists to prevent, and it goes stale the moment another session lands a scope. Read it
+  from `cli.sh open-work` and from `specs/008-portfolio-survival-and-brief-lab/` instead.

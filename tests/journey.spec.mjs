@@ -240,6 +240,110 @@ test('Regression: a goal that cannot be opened states the refusal on screen rath
   await expect(page.locator('[data-rljourney-step]')).toHaveCount(0);
 });
 
+/* ═══════════ a started journey must be RUNNABLE, not merely visible ═══════════ */
+
+async function openFirstGoal(page) {
+  await page.goto(`${site.baseUrl}/${PAGE}`);
+  await expect(page.locator('body')).toBeVisible();
+  await page.locator('#rlviews button[data-rlview-mode="journey"]').click();
+  const anchor = page.locator('[data-rlexperience-panel="journey"] [data-rljourney-mount]');
+  await expect(anchor).toHaveAttribute('data-rljourney-state', 'ready', { timeout: 15000 });
+  const goal = page.locator('[data-rljourney-goal]').first();
+  const definitionId = await goal.getAttribute('data-rljourney-goal');
+  await goal.click();
+  await expect(page.locator('[data-rljourney-step-form]')).toHaveCount(1);
+  return definitionId;
+}
+
+test('Regression: the step surface offers exactly the fields and evidence slots its registry entry declares', async ({ page }) => {
+  const definitionId = await openFirstGoal(page);
+
+  /* Expectations are DERIVED from the shipped registry, not written as literals. A form built for
+     one definition would satisfy a hand-written list and fail this. */
+  const registry = readJson('journeys.json');
+  const definition = registry.definitions.find((entry) => entry.definitionId === definitionId);
+  const stepId = await page.locator('[data-rljourney-step-form]').getAttribute('data-rljourney-step-form');
+  const step = registry.steps.find((entry) => entry.stepId === stepId);
+  expect(definition.stepIds).toContain(stepId);
+
+  const rendered = await page.evaluate(() => {
+    const form = document.querySelector('[data-rljourney-step-form]');
+    return {
+      inputs: [...form.querySelectorAll('[data-rljourney-input]')].map((el) => el.getAttribute('data-rljourney-input')),
+      required: [...form.querySelectorAll('[data-rljourney-input][required]')].map((el) => el.getAttribute('data-rljourney-input')),
+      evidence: [...form.querySelectorAll('[data-rljourney-evidence-ref]')].map((el) => el.getAttribute('data-rljourney-evidence-ref')),
+      requiredEvidence: [...form.querySelectorAll('[data-rljourney-evidence-ref][required]')].map((el) => el.getAttribute('data-rljourney-evidence-ref')),
+      provenance: [...form.querySelectorAll('[data-rljourney-evidence-provenance]')].map((el) => [...el.options].map((o) => o.value)),
+      purpose: (form.querySelector('[data-rljourney-step-purpose]') || { textContent: '' }).textContent,
+      links: [...form.querySelectorAll('[data-rljourney-deep-link]')].map((a) => a.getAttribute('href'))
+    };
+  });
+
+  expect(rendered.inputs).toEqual(step.inputSchema.allowedFields);
+  expect(rendered.required).toEqual(step.inputSchema.requiredFields);
+  expect(rendered.evidence).toEqual([...step.requiredEvidenceSlots, ...step.optionalEvidenceSlots]);
+  expect(rendered.requiredEvidence).toEqual(step.requiredEvidenceSlots);
+  /* Every provenance the reader can pick is one the DEFINITION permits. */
+  rendered.provenance.forEach((options) => {
+    options.forEach((value) => expect(definition.evidencePolicy.allowedProvenance).toContain(value));
+  });
+  /* Prose and owner deep links are declared by the registry and were previously rendered nowhere. */
+  expect(rendered.purpose).toBe(step.purpose);
+  expect(rendered.links).toEqual(step.ownerDeepLinks || []);
+});
+
+test('Regression: recording a step through the form completes it and opens the packet, executing nothing', async ({ page }) => {
+  await openFirstGoal(page);
+
+  /* A step requires recorded evidence — the runtime refuses a visit as a completion — so filling
+     only the declared input must NOT complete it. */
+  const firstInput = page.locator('[data-rljourney-input]').first();
+  await firstInput.fill('recorded-by-the-reader');
+  await page.locator('[data-rljourney-complete]').click();
+  await expect(page.locator('[data-rljourney-step-form]')).toHaveCount(1);
+  await expect(page.locator('[data-rljourney-step][data-rljourney-status="complete"]')).toHaveCount(0);
+
+  await page.locator('[data-rljourney-evidence-ref]').first().fill('owner:journey-form-regression');
+  await page.locator('[data-rljourney-complete]').click();
+
+  await expect(page.locator('[data-rljourney-step][data-rljourney-status="complete"]')).not.toHaveCount(0);
+  await expect(page.locator('[data-rljourney-packet-form]')).toHaveCount(1);
+  const recorded = await page.evaluate(() => globalThis.__rljourneyController.sessionState());
+  expect(recorded.status).toBe('steps-complete');
+
+  await page.selectOption('[data-rljourney-packet-outcome]', 'complete');
+  await page.locator('[data-rljourney-packet-signoff]').fill('regression reviewer');
+  await page.locator('[data-rljourney-build-packet]').click();
+
+  const packet = page.locator('[data-rljourney-packet]');
+  await expect(packet).toHaveAttribute('data-rljourney-packet', 'complete');
+  /* SCN-012-011: building a packet records a conclusion locally and executes nothing. */
+  await expect(packet).toHaveAttribute('data-rljourney-executed', 'false');
+});
+
+test('Regression: revisiting a recorded step states its consequence and refuses without a reason', async ({ page }) => {
+  await openFirstGoal(page);
+  await page.locator('[data-rljourney-input]').first().fill('recorded-by-the-reader');
+  await page.locator('[data-rljourney-evidence-ref]').first().fill('owner:journey-revisit-regression');
+  await page.locator('[data-rljourney-complete]').click();
+  await expect(page.locator('[data-rljourney-step][data-rljourney-status="complete"]')).not.toHaveCount(0);
+
+  /* Revisit does not reopen silently: backtracking REQUIRES a reason and stales every transitive
+     dependent, so the reader is told before committing. */
+  await page.locator('[data-rljourney-backtrack]').first().click();
+  const revisit = page.locator('[data-rljourney-revisit-form]');
+  await expect(revisit).toHaveCount(1);
+  await expect(page.locator('[data-rljourney-revisit-consequence]')).not.toBeEmpty();
+
+  await page.locator('[data-rljourney-revisit-reason]').fill('new owner evidence arrived');
+  await page.locator('[data-rljourney-confirm-revisit]').click();
+
+  await expect(page.locator('[data-rljourney-revisit-form]')).toHaveCount(0);
+  await expect(page.locator('[data-rljourney-step-form]')).toHaveCount(1);
+  const reopened = await page.evaluate(() => globalThis.__rljourneyController.sessionState());
+  expect(reopened.status).toBe('in-progress');
+});
+
 /* ═══════════════════════ TP-08-04 — SCN-012-009 durable resume ═══════════════════════ */
 
 test('Regression: SCN-012-009 Journey reload restores evidence-complete progress and never completes visits', async ({ page }) => {

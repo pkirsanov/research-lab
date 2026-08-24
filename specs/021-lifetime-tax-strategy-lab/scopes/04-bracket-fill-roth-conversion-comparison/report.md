@@ -989,6 +989,127 @@ planning text, owned by `bubbles.plan`.
 
 **Claim Source:** executed.
 
+#### Re-execution 2026-08-23 — the procedure corrected, and what still blocks the row
+
+The documented rollback was executed a third time, verbatim, against a fresh
+`git archive HEAD` materialised outside the repository. The residual scan was
+widened to cover every element id the `power-conversion` band owned, not only
+the band id and the global. That widening changes the size of the finding: the
+earlier rehearsals reported one defect class, and the rollback actually leaves
+fifteen.
+
+Before-verdict, documented rollback:
+
+```text
+### executing rollback mode=documented
+SELFTEST_GROUP_EXCISED bytes=25690
+REVERSE_EDITS {"power-band":1,"script-tag":1}
+### residual scan of the rolled-back page
+    power-conversion refs        : 2
+    RLTAXSTRATEGY refs           : 1
+    rltaxstrategy.js refs        : 0
+    STRATEGY. call sites         : 4
+    conversion* element ids      : 2
+    strongestTradeoffLine refs   : 2
+    inputBracket refs            : 6
+    inputFundingSource refs      : 6
+    renderConversion refs        : 2
+    policyComparison refs        : 1
+    notModeledDetail refs        : 1
+    heldConstantLine refs        : 1
+    fundingSourceLine refs       : 1
+    resultKindLine refs          : 1
+    conversionFundingSource refs : 3
+    selectedBracketId refs       : 4
+ROLLBACK-DEFECT PANEL-RESIDUAL
+ROLLBACK_REHEARSAL mode=documented parse=ok residual_classes=15 verdict=FAIL
+```
+
+The residue is not scattered. Removing the band deletes the container while the
+render path that fills it survives: `renderConversion` still writes
+`policyComparisonBody`, `heldConstantLine`, `fundingSourceLine` and
+`resultKindLine`, the envelope builder still computes `comparison` and
+`tradeoff`, `populateBrackets` still fills a select that no longer exists, and
+the workspace still reads and writes `conversionFundingSource` and
+`selectedBracketId`. Reverting the panel names one site out of twenty-one.
+
+The Shared Infrastructure Impact Sweep and the Change Boundary were corrected to
+enumerate all twenty-one. The corrected procedure was then executed the same way,
+on a fresh materialised copy:
+
+```text
+### executing rollback mode=corrected
+SELFTEST_GROUP_EXCISED bytes=25690
+REVERSE_EDITS {"power-band":1,"script-tag":1,"input-bracket":1,"input-funding":1,"render-fn":1,"bracket-populate-fn":1,"envelope-comparison":1,"envelope-comparison-fields":1,"envelope-tradeoff-init":1,"envelope-tradeoff-call":1,"ws-write-funding":1,"ws-write-bracket":2,"ws-read-funding":1,"simple-nodes":3,"simple-tradeoff-render":1,"global-read":1,"withheld-link-row":1,"notmodeled-read":1,"render-call":1,"bracket-populate-call":2,"declared-key-inventory":1}
+### residual scan of the rolled-back page
+    power-conversion refs        : 0
+    RLTAXSTRATEGY refs           : 0
+    rltaxstrategy.js refs        : 0
+    STRATEGY. call sites         : 0
+    conversion* element ids      : 0
+    strongestTradeoffLine refs   : 0
+    inputBracket refs            : 0
+    inputFundingSource refs      : 0
+    renderConversion refs        : 0
+    policyComparison refs        : 0
+    notModeledDetail refs        : 0
+    heldConstantLine refs        : 0
+    fundingSourceLine refs       : 0
+    resultKindLine refs          : 0
+    conversionFundingSource refs : 0
+    selectedBracketId refs       : 0
+ROLLBACK_REHEARSAL mode=corrected parse=ok residual_classes=0 verdict=PASS
+```
+
+The page half of the rollback is therefore repaired and proven, and the excised
+`scripts/selftest.mjs` still parses.
+
+The row nevertheless stays open, because the rollback's first clause is not
+executable. Deleting `rltaxstrategy.js` was measured against the same scratch
+copy. The scratch baseline carries three failures of its own, all caused by the
+archive having no `.git` directory and no untracked files, so the comparison is
+against three and not against zero:
+
+```text
+Research-Lab self-test: 3401 passed, 3 failed
+```
+
+With the module deleted and nothing else changed:
+
+```text
+Research-Lab self-test: 3305 passed, 16 failed
+```
+
+Four of the new failure lines carry no scratch path and are quoted verbatim. The
+three that name the scratch directory are omitted rather than edited:
+
+```text
+  ✗ FAIL (registry coverage group threw): site exclusion is stale: rltaxstrategy.js
+  ✗ FAIL (Step 9 durability group threw): site exclusion is stale: rltaxstrategy.js
+  ✗ FAIL (Feature 025 company multi-horizon group threw): site exclusion is stale: rltaxstrategy.js
+  ✗ FAIL (Feature 026 allocation and demotion group threw): site exclusion is stale: rltaxstrategy.js
+```
+
+The omitted three name Feature 021 Scope 05, Feature 022 Scope 03 and Feature
+024 Scope 04, each of which loads the module directly. The staleness failures
+come from `site-exclusions.json`, which inventories the module's name and which
+this scope's excluded list requires to stay byte-identical, so this rollback may
+not remove that entry either.
+
+Contrary to the earlier reading, `rltaxstrategy.js` is not required by any
+shipped module: `rltax.js` does not load it. Its consumers are later selftest
+groups and the site inventory. That makes the blocker an ordering constraint
+rather than a structural one, and the sweep now states it as a precondition. The
+row stays open until those consumers are rolled back, which is not work this
+scope may perform.
+
+**Claim Source:** executed. Every count above is read back from the rolled-back
+copy. The live tree was confirmed unchanged afterwards: a path-scoped
+`git status --porcelain` over `lifetime-tax-strategy-lab.html`,
+`scripts/selftest.mjs`, `rltaxstrategy.js`, `tests/lifetime-tax-conversion.spec.mjs`
+and `site-exclusions.json` returned zero rows, and every scratch directory was
+removed.
+
 #### Disclosure — `scripts/validate-spec-test-paths.baseline` changed outside this scope
 
 This scope's excluded byte-identical list names

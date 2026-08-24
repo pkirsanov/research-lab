@@ -147,10 +147,10 @@ Scenario: SCN-021-012 The comparison emits a single-year federal cost difference
 
 | Shared surface | Change | Downstream consumers | Blast radius | Independent canary before broad tests | Rollback |
 | --- | --- | --- | --- | --- | --- |
-| `rltaxstrategy.js` (new root module) | Created | Scope 05 | **High** — a module that re-implements tax arithmetic or hard-codes a bracket edge breaks single-definition, and the break stays invisible until a pack value moves | Scan the module for any tax-domain numeric constant and assert there are none; assert every tax figure came from `computeAnnualFederalTax`, BEFORE any comparison row runs | Delete the file; nothing consumes it until Scope 05 |
+| `rltaxstrategy.js` (new root module) | Created | Scope 05 | **High** — a module that re-implements tax arithmetic or hard-codes a bracket edge breaks single-definition, and the break stays invisible until a pack value moves | Scan the module for any tax-domain numeric constant and assert there are none; assert every tax figure came from `computeAnnualFederalTax`, BEFORE any comparison row runs | Delete the file only after its consumers are rolled back. Measured 2026-08-23: deleting it alone reddens Scope 05, Feature 022 Scope 03 and Feature 024 Scope 04 |
 | Scope 02 and Scope 03 functions | Read only, not modified | Scope 05 | Medium — an adjustment-based converted case rather than a recomputation understates the gain-stacking effect | Assert the converted case reproduces a full independent `computeAnnualFederalTax` call at the converted income, not a marginal-rate product | Not applicable |
 | `scripts/selftest.mjs` | One group appended | The whole-repo gate | Medium | Pre-existing pass count must not fall | Remove the appended group |
-| `lifetime-tax-strategy-lab.html` | Comparison panel added | Scope 05 | Low — same-feature page | CSP meta stays byte-identical | Revert the panel |
+| `lifetime-tax-strategy-lab.html` | Comparison panel added | Scope 05 | Low — same-feature page | CSP meta stays byte-identical | Remove the enumerated conversion slice listed under Rollback. Removing the band alone leaves fifteen residual reference classes |
 
 ## Change Boundary And Protected Paths
 
@@ -179,8 +179,34 @@ above, and nothing else.
 **Excluded surfaces:** the byte-identical list named above. Collateral cleanup
 outside the allowed families is opt-in and is not performed under this scope.
 
-**Rollback:** delete `rltaxstrategy.js`, its fixtures and the new spec; revert
-the panel and the appended selftest group.
+**Rollback:** this scope owns no fixture files, so that clause is empty. The
+remaining clauses run in order.
+
+1. Delete `lifetime-tax-conversion.spec.mjs` from the repository test directory.
+2. Excise the appended selftest group from `scripts/selftest.mjs`, from its
+   `Feature 021 Scope 04` banner comment through the group's own closing `catch`
+   line, so the remaining file still parses.
+3. Remove the conversion slice from `lifetime-tax-strategy-lab.html`. Reverting
+   the panel is not one edit. The slice is twenty-one sites: the
+   `power-conversion` band and every element it owns; the `rltaxstrategy.js`
+   script tag; the `var STRATEGY = window.RLTAXSTRATEGY` read; the
+   `power-conversion` member of `POWER_SECTION_IDS`; the withheld-detail link row
+   that targets it; the `inputBracket` and `inputFundingSource` label blocks; the
+   `populateBrackets` function and both call sites; the `renderConversion`
+   function and its call site; the `comparison`, `comparisonFields`, tradeoff
+   initialiser and tradeoff call statements in the envelope builder; the
+   `conversionAsymmetryLine`, `conversionOutcomeCard` and `strongestTradeoffLine`
+   Simple nodes plus the render that writes the last of them; both
+   `STRATEGY.conversionNotModeled()` reads; the `conversionFundingSource` and
+   `selectedBracketId` workspace reads and writes; and the two input ids in the
+   declared-key inventory.
+
+Deleting `rltaxstrategy.js` is a precondition of this rollback, not a step inside
+it. Scope 05, Feature 022 Scope 03 and Feature 024 Scope 04 load the module
+directly, and `site-exclusions.json` inventories its name while this scope's
+excluded list requires that file to stay byte-identical. Those consumers must be
+rolled back before the module can be deleted. Until they are, the module clause
+is not executable and this rollback cannot run to completion.
 
 ## Scenario-First Red/Green Contract
 

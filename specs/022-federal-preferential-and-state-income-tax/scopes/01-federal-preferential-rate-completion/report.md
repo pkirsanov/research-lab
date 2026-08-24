@@ -4194,3 +4194,322 @@ verification step in this pass was read-only, so no probe needed reverting.
 Scope 01 Definition of Done: **11 of 16 closed** (7 before this pass, 4 closed by
 it). Five remain open, each with a named finding and a stated reason; none was
 ticked without executed evidence.
+
+## Regression And Change-Boundary Evidence — 2026-08-23 Pass
+
+This pass closes the three regression-and-boundary rows this scope carried open.
+Every command below was executed in this session and its exit code captured
+immediately into a variable before any other command ran.
+
+**Declared deviation from the Test Plan command string.** The Test Plan cells
+name `--project=system-chrome`. Every run recorded here used `--project=chromium`
+— the bundled Playwright browser declared in `playwright.config.mjs`, whose
+`browserName` is also `chromium` and which differs only by not requiring a system
+Chrome install. The rows constrain the persistent **titles**, not the project, so
+the substitution does not weaken them; it is recorded here rather than left for a
+reader to infer from a mismatched command string.
+
+### DoD — scenario-specific E2E regression for SCN-022-001, -002 and -003
+
+Limb one, the titles are present in the spec file rather than merely selected.
+Limb two, each named title selects exactly one test and that test passes.
+
+```text
+$ grep -c -F "test('Regression: SCN-022-001 a preferential table displays a distinct source per component'" tests/lifetime-tax-preferential.spec.mjs
+1
+exit code: 0
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "Regression: SCN-022-001 a preferential table displays a distinct source per component" --list
+Listing tests:
+  [chromium] › tests/lifetime-tax-preferential.spec.mjs:73:1 › Regression: SCN-022-001 a preferential table displays a distinct source per component
+Total: 1 test in 1 file
+exit code: 0
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "Regression: SCN-022-001 a preferential table displays a distinct source per component" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 [chromium] › tests/lifetime-tax-preferential.spec.mjs:73:1 › Regression: SCN-022-001 a preferential table displays a distinct source per component (634ms)
+
+  1 passed (1.8s)
+exit code: 0
+
+$ grep -c -F "test('Regression: SCN-022-002 a household with preferential income receives a valued federal total'" tests/lifetime-tax-preferential.spec.mjs
+1
+exit code: 0
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "Regression: SCN-022-002 a household with preferential income receives a valued federal total" --list
+Listing tests:
+  [chromium] › tests/lifetime-tax-preferential.spec.mjs:202:1 › Regression: SCN-022-002 a household with preferential income receives a valued federal total
+Total: 1 test in 1 file
+exit code: 0
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "Regression: SCN-022-002 a household with preferential income receives a valued federal total" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 [chromium] › tests/lifetime-tax-preferential.spec.mjs:202:1 › Regression: SCN-022-002 a household with preferential income receives a valued federal total (665ms)
+
+  1 passed (1.6s)
+exit code: 0
+
+$ grep -c -F "test('Regression: SCN-022-003 unsupported preferential categories are named and never folded in'" tests/lifetime-tax-preferential.spec.mjs
+1
+exit code: 0
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "Regression: SCN-022-003 unsupported preferential categories are named and never folded in" --list
+Listing tests:
+  [chromium] › tests/lifetime-tax-preferential.spec.mjs:370:1 › Regression: SCN-022-003 unsupported preferential categories are named and never folded in
+Total: 1 test in 1 file
+exit code: 0
+
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "Regression: SCN-022-003 unsupported preferential categories are named and never folded in" --reporter=list
+
+Running 1 test using 1 worker
+
+  ✓  1 [chromium] › tests/lifetime-tax-preferential.spec.mjs:370:1 › Regression: SCN-022-003 unsupported preferential categories are named and never folded in (296ms)
+
+  1 passed (1.2s)
+exit code: 0
+```
+
+**The adversarial case.** The row requires that renaming or deleting one of those
+titles fails it, so that an empty grep selection can never be read as a pass. The
+self-reverting probe renames the SCN-022-001 title and runs the identical command.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            sc01 renaming the persistent title makes the exact-title command fail
+file:             tests/lifetime-tax-preferential.spec.mjs
+mutation:         Regression: SCN-022-001 a preferential table displays a distinct source per component  ->  RENAMED-BY-PROBE zzz   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep Regression:\ SCN-022-001\ a\ preferential\ table\ displays\ a\ distinct\ source\ per\ component --reporter=list
+red-exit:         1
+red-summary:      Error: No tests found
+green-exit:       0
+green-summary:      1 passed (2.2s)
+revert-verified:  yes (committed=58a65baa08d58a77f0054042918b506a313f590b restored=58a65baa08d58a77f0054042918b506a313f590b)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe exit code: 0
+```
+
+Playwright does not report an empty selection as a pass — it raises
+`Error: No tests found` and exits 1. The adversarial case therefore holds by the
+runner's own behaviour, not by a convention this scope asserts.
+
+**Verdict: closed.** Three titles present exactly once as `test()` declarations,
+three exact-title commands each selecting exactly one test and exiting 0, and the
+rename proven to fail the row.
+
+### DoD — broader E2E regression across the lifetime-tax browser family
+
+The row asks for the whole browser family, not this scope's own spec file. Two
+runs are recorded, because `TP-01-16`'s `--grep "SCN-021-"` is narrower than the
+row's own words. The first is the Test Plan's command; the second is the family
+itself, selected by path with no grep at all.
+
+```text
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep "SCN-021-" --reporter=list
+
+Running 17 tests using 5 workers
+
+  ✓   1 [chromium] › tests/lifetime-tax-foundation.spec.mjs:141:1 › Regression: SCN-021-001 minimum viable input resolves one federal pack and names every unavailable domain (736ms)
+  ✓   5 [chromium] › tests/lifetime-tax-marginal.spec.mjs:69:1 › Regression: SCN-021-007 the next dollar is priced as a curve with named thresholds (759ms)
+  ✓   4 [chromium] › tests/lifetime-tax-conversion.spec.mjs:35:1 › Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack (823ms)
+  ✓   2 [chromium] › tests/lifetime-tax-federal.spec.mjs:65:1 › Regression: SCN-021-004 federal tax is exact below at and above a bracket edge (825ms)
+  ✓   3 [chromium] › tests/lifetime-tax-route.spec.mjs:31:1 › Regression: SCN-021-013 Simple opens first with a decision level answer and Power holds the detail (864ms)
+  ✓   7 [chromium] › tests/lifetime-tax-marginal.spec.mjs:106:1 › Regression: SCN-021-008 a cliff renders as a step and is never smoothed (378ms)
+  ✓   9 [chromium] › tests/lifetime-tax-federal.spec.mjs:94:1 › Regression: SCN-021-005 long term gains stack on ordinary income (641ms)
+  ✓   6 [chromium] › tests/lifetime-tax-foundation.spec.mjs:190:1 › Regression: SCN-021-002 unsupported year jurisdiction and income kind each refuse without substitution (767ms)
+  ✓   8 [chromium] › tests/lifetime-tax-conversion.spec.mjs:73:1 › Regression: SCN-021-011 the conversion comparison discloses everything it did not model (869ms)
+  ✓  10 [chromium] › tests/lifetime-tax-route.spec.mjs:156:1 › Regression: SCN-021-014 every value is explained and every unavailable state is keyboard reachable (937ms)
+  ✓  12 [chromium] › tests/lifetime-tax-federal.spec.mjs:239:1 › Regression: SCN-021-006 deduction selection is explicit and the annual result reconciles (424ms)
+  ✓  13 [chromium] › tests/lifetime-tax-foundation.spec.mjs:298:1 › Regression: SCN-021-003 the tax workspace resolves only its declared reads and keeps every household value local (442ms)
+  ✓  11 [chromium] › tests/lifetime-tax-marginal.spec.mjs:136:1 › Regression: SCN-021-009 unsupported thresholds are named unavailable contributors and the curve is labeled incomplete (868ms)
+  ✓  14 [chromium] › tests/lifetime-tax-conversion.spec.mjs:154:1 › Regression: SCN-021-012 the comparison emits a single year federal difference and no probability or ranking (419ms)
+  ✓  15 [chromium] › tests/lifetime-tax-route.spec.mjs:260:1 › Regression: SCN-021-014 tax and account tables stay readable at the mobile viewport (337ms)
+  ✓  16 [chromium] › tests/lifetime-tax-foundation.spec.mjs:427:1 › Regression: SCN-021-002 the shared ledger helper refuses a declared pathname served from an undeclared origin (199ms)
+  ✓  17 [chromium] › tests/lifetime-tax-route.spec.mjs:296:1 › Regression: SCN-021-015 a private export happens only on explicit action, the request ledger does not grow after first paint, and every entry is a declared same-origin read (319ms)
+
+  17 passed (4.0s)
+exit code: 0
+```
+
+The whole family, selected by path so that no title can be excluded by carrying
+no scenario token. Recorded as a hash-verifiable bounded capture because the raw
+output exceeds forty lines; the sha256 covers every line the command produced.
+
+```
+# whole lifetime-tax browser family (022 regression pass)
+$ npx --no-install playwright test --config=playwright.config.mjs --project=chromium tests/lifetime-tax-benefit.spec.mjs tests/lifetime-tax-california.spec.mjs tests/lifetime-tax-claim-age.spec.mjs tests/lifetime-tax-combined.spec.mjs tests/lifetime-tax-conversion.spec.mjs tests/lifetime-tax-deduction.spec.mjs tests/lifetime-tax-disposition.spec.mjs tests/lifetime-tax-federal.spec.mjs tests/lifetime-tax-foundation.spec.mjs tests/lifetime-tax-inclusion.spec.mjs tests/lifetime-tax-marginal.spec.mjs tests/lifetime-tax-medicare.spec.mjs tests/lifetime-tax-preferential.spec.mjs tests/lifetime-tax-property.spec.mjs tests/lifetime-tax-rental.spec.mjs tests/lifetime-tax-retirement-route.spec.mjs tests/lifetime-tax-route.spec.mjs tests/lifetime-tax-state.spec.mjs tests/lifetime-tax-surtax.spec.mjs tests/lifetime-tax-use.spec.mjs --reporter=list
+exit: 0
+lines: 99
+sha256: 0e9d1f49279a27e41688364fb7f31ec29a1ea2104fe36edc2188876a625aab32
+--- first 20 ---
+
+Running 94 tests using 6 workers
+
+  ✓   5 [chromium] › tests/lifetime-tax-combined.spec.mjs:77:1 › Regression: the shipped Florida pack states no imposition, so the combined answer inherits that refusal instead of adding a zero (931ms)
+  ✓   1 [chromium] › tests/lifetime-tax-conversion.spec.mjs:35:1 › Regression: SCN-021-010 two conversion policies are compared and the fill amount comes from the pack (1.2s)
+  ✓   4 [chromium] › tests/lifetime-tax-benefit.spec.mjs:58:1 › Regression: SCN-024-001 neither origin and both origins each refuse and neither shows a benefit amount (1.3s)
+  ✓   3 [chromium] › tests/lifetime-tax-california.spec.mjs:116:1 › Regression: SCN-022-010 California renders no preferential stage and a long term gain reaches the identical state result an equal ordinary amount reaches (1.3s)
+  ✓   2 [chromium] › tests/lifetime-tax-claim-age.spec.mjs:52:1 › Regression: SCN-024-007 the claim-age panel renders identically across two loads and shows no probability column (1.4s)
+  ✓   7 [chromium] › tests/lifetime-tax-combined.spec.mjs:113:1 › Regression: SCN-022-013 the combined total is the sum of two independent settlements (670ms)
+  ✓  10 [chromium] › tests/lifetime-tax-california.spec.mjs:174:1 › Regression: SCN-022-011 the exemption credit stage is rendered after the rate and the leg sum and refuses rather than resolving to zero (474ms)
+  ✓  11 [chromium] › tests/lifetime-tax-claim-age.spec.mjs:90:1 › Regression: SCN-024-008 the cumulative totals and the equality age are shown with both claim ages named and the record's own arithmetic statement (527ms)
+  ✓   6 [chromium] › tests/lifetime-tax-deduction.spec.mjs:128:1 › Regression: SCN-023-004 property tax and state income tax compete inside one cap and the disallowed amounts are shown (1.9s)
+  ✓   9 [chromium] › tests/lifetime-tax-benefit.spec.mjs:99:1 › Regression: SCN-024-002 the computed origin publishes its bend points and refuses alone when the indexing series is absent (705ms)
+  ✓   8 [chromium] › tests/lifetime-tax-conversion.spec.mjs:73:1 › Regression: SCN-021-011 the conversion comparison discloses everything it did not model (1.1s)
+  ✓  14 [chromium] › tests/lifetime-tax-claim-age.spec.mjs:137:1 › Regression: SCN-024-008 an absent life-expectancy figure withholds the totals and the equality age while the per-age benefits still render (492ms)
+  ✓  16 [chromium] › tests/lifetime-tax-benefit.spec.mjs:165:1 › Regression: SCN-024-003 the full retirement age row, the months counted and each factor applied are shown and an out-of-domain birth year refuses (704ms)
+  ✓  17 [chromium] › tests/lifetime-tax-conversion.spec.mjs:154:1 › Regression: SCN-021-012 the comparison emits a single year federal difference and no probability or ranking (539ms)
+  ✓  15 [chromium] › tests/lifetime-tax-deduction.spec.mjs:258:1 › Regression: SCN-023-005 mortgage interest is limited by a sourced debt limit and the disallowed portion is named (958ms)
+  ✓  18 [chromium] › tests/lifetime-tax-claim-age.spec.mjs:172:1 › Regression: SCN-024-009 the claim ages render in declared order with nothing marked best, optimal, recommended or preferred (526ms)
+  ✓  19 [chromium] › tests/lifetime-tax-benefit.spec.mjs:205:1 › Regression: SCN-024-003 the benefit leg reaches the headline, the comparison, the curve and the export (579ms)
+--- omitted 59 line(s); sha256 above covers the full output ---
+--- last 20 ---
+  ✓  79 [chromium] › tests/lifetime-tax-surtax.spec.mjs:188:1 › Regression: SCN-022-006 added ordinary income moves one surtax and not the other (319ms)
+  ✓  76 [chromium] › tests/lifetime-tax-rental.spec.mjs:285:1 › Regression: SCN-023-007 the rental leg reaches the headline, the comparison, the curve and the export (790ms)
+  ✓  80 [chromium] › tests/lifetime-tax-route.spec.mjs:260:1 › Regression: SCN-021-014 tax and account tables stay readable at the mobile viewport (443ms)
+  ✓  81 [chromium] › tests/lifetime-tax-state.spec.mjs:203:1 › Regression: SCN-022-007 / SCN-022-008 an unshipped state, an undeclared residency and an unmodelled residency pattern refuse under three different codes and none of them shows a zero (426ms)
+  ✓  78 [chromium] › tests/lifetime-tax-retirement-route.spec.mjs:298:1 › Regression: SCN-024-015 every unavailable retirement item is focusable and states its code, domain, reason and remediation (837ms)
+  ✓  83 [chromium] › tests/lifetime-tax-surtax.spec.mjs:245:1 › Regression: SCN-022-005 neither declared surtax basis reaches a URL, a request, a referrer or a console message (401ms)
+  ✓  86 [chromium] › tests/lifetime-tax-state.spec.mjs:237:1 › Regression: a residency declaration that changes nothing rebuilds nothing, and a residency that changes rebuilds the card (365ms)
+  ✓  85 [chromium] › tests/lifetime-tax-route.spec.mjs:296:1 › Regression: SCN-021-015 a private export happens only on explicit action, the request ledger does not grow after first paint, and every entry is a declared same-origin read (516ms)
+  ✓  84 [chromium] › tests/lifetime-tax-rental.spec.mjs:336:1 › Regression: SCN-023-009 the request ledger does not grow after the rental declarations and every entry is a declared same-origin read (670ms)
+  ✓  87 [chromium] › tests/lifetime-tax-retirement-route.spec.mjs:349:1 › Regression: SCN-024-015 a focused control survives a mode switch without being detached and a subsequent click registers (540ms)
+  ✓  88 [chromium] › tests/lifetime-tax-state.spec.mjs:268:1 › Regression: SCN-022-007 the residency declaration reaches no URL, no request, no console message and no export (394ms)
+  ✓  82 [chromium] › tests/lifetime-tax-use.spec.mjs:74:1 › Regression: SCN-023-010 the classification publishes its sourced parameters and refuses without them (1.2s)
+  ✓  90 [chromium] › tests/lifetime-tax-state.spec.mjs:345:1 › Regression: the state surfaces are absorbed by the declared Simple field set and the withheld-detail link table (197ms)
+  ✓  89 [chromium] › tests/lifetime-tax-retirement-route.spec.mjs:379:1 › Regression: SCN-024-014 the request ledger does not grow after first paint, every entry is a declared same-origin read with three new packs loaded, and no retirement declaration reaches a URL (401ms)
+  ✓  91 [chromium] › tests/lifetime-tax-use.spec.mjs:164:1 › Regression: SCN-023-011 the three Publication 527 boundaries land on the side the publication states (1.1s)
+  ✓  92 [chromium] › tests/lifetime-tax-use.spec.mjs:234:1 › Regression: SCN-023-012 the under-threshold exception excludes the income and deducts no rental expense (495ms)
+  ✓  93 [chromium] › tests/lifetime-tax-use.spec.mjs:268:1 › Regression: SCN-023-013 mixed use allocates by declared days and the personal portion reaches the composition (513ms)
+  ✓  94 [chromium] › tests/lifetime-tax-use.spec.mjs:354:1 › Regression: SCN-023-010 the request ledger does not grow after the day-count declarations and every entry is a declared same-origin read (489ms)
+
+  94 passed (14.7s)
+```
+
+**A measured gap in the grep-selected form.** The family holds 94 tests across
+twenty spec files; `--grep "SCN-02[1-4]"` selects 88. Six titles carry no scenario
+token and are therefore invisible to every grep-selected broader command in this
+feature, which is finding **F-03-B**'s under-selection arriving as a number rather
+than as a prediction. The path-selected run above is not subject to it.
+
+**The adversarial case.** The row requires that a change made inside this scope
+which reddens a sibling scope's persistent title fails it, even while this scope's
+own rows stay green. `lifetime-tax-strategy-lab.html` is on this scope's *Allowed
+modified* list, so a change to it is in-boundary. The same one-token mutation is
+run against the broader command and against this scope's own narrow command.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            an in-boundary page change reddens Feature 021 sibling titles
+file:             lifetime-tax-strategy-lab.html
+mutation:         simpleValueNode("conversionAmount",  ->  simpleValueNode("conversionAmountPROBE",   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep SCN-021- --reporter=list
+red-exit:         1
+red-summary:        15 passed (8.8s)
+green-exit:       0
+green-summary:      17 passed (3.7s)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe exit code: 0
+
+=== RED/GREEN PROBE EVIDENCE ===
+label:            sc01 own narrow row stays green under the same in-boundary change
+file:             lifetime-tax-strategy-lab.html
+mutation:         simpleValueNode("conversionAmount",  ->  simpleValueNode("conversionAmountPROBE",   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium --grep Regression:\ SCN-022-001\ a\ preferential\ table\ displays\ a\ distinct\ source\ per\ component --reporter=list
+red-exit:         0
+red-summary:        1 passed (1.5s)
+green-exit:       0
+green-summary:      1 passed (1.3s)
+revert-verified:  yes (committed=8ffe663489cb6307801d738f8850207de6b09d84 restored=8ffe663489cb6307801d738f8850207de6b09d84)
+discriminating:   NO (red-exit 0 == green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+red-green-probe: REFUSED — RED and GREEN produced the same outcome (both exited 0). The mutation did not make the command fail, so the assertion under test cannot fail and this is not RED/GREEN evidence.
+probe exit code: 7
+```
+
+Read together the pair is the row's adversarial case, executed. One in-boundary
+change drops the broader run from 17 passed to 15 and exits 1, while this scope's
+own SCN-022-001 command still exits 0 and reports 1 passed. The narrow row cannot
+see the damage; the broader row can. The second probe's exit 7 is the harness
+refusing to call a non-discriminating pair RED/GREEN evidence, and that refusal is
+exactly the observation this row needs.
+
+**Verdict: closed.** The Test Plan's command passes 17 of 17, the path-selected
+family passes 94 of 94 with zero failed and zero skipped, and the broader row is
+proven to catch collateral damage the narrow row misses.
+
+### DoD — Change Boundary respected, zero excluded file families changed
+
+The row's stated proof is a path-scoped `git status --porcelain` over the excluded
+surfaces plus an mtime comparison for any untracked excluded directory.
+
+```text
+$ git status --porcelain -- <scope 01 excluded surfaces: 40 pathspecs>
+(no output above means zero rows)
+exit code: 0
+$ git ls-files --others --exclude-standard -- <same pathspecs> | wc -l
+0
+exit code: 0
+```
+
+**The mtime limb has an empty domain, and that is measured rather than assumed.**
+`git ls-files --others --exclude-standard` over the same forty pathspecs returns
+zero, so every excluded surface this scope names is fully tracked. There is no
+untracked excluded path for an mtime comparison to cover, which makes the
+porcelain scan complete over the excluded set rather than merely convenient.
+
+**Why `git diff --quiet` is not accepted, demonstrated rather than asserted.**
+
+```text
+$ git diff --quiet -- err.txt ; echo "exit $?"
+exit 0
+$ git status --porcelain -- err.txt
+?? err.txt
+```
+
+`err.txt` is an untracked file in the working tree. `git diff --quiet` reports it
+unchanged and exits 0; `git status --porcelain` reports it. That asymmetry is the
+reason the row names porcelain.
+
+**The adversarial case.** Touching one excluded path must produce a row and fail
+the item. `rltax.js` is on this scope's excluded list, and the probe below mutates
+one comment character in it and runs the boundary check itself as the command.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            touching one excluded path makes the path-scoped porcelain check fail
+file:             rltax.js
+mutation:         This module owns the calculation order and nothing else.  ->  This module owns the calculation order and nothing else!   (1 occurrence(s))
+command:          sh -c test\ -z\ \"\$\(git\ status\ --porcelain\ --\ rltax.js\)\"
+red-exit:         1
+red-summary:      (no output)
+green-exit:       0
+green-summary:    (no output)
+revert-verified:  yes (committed=8294f084523f504fcb19681e0e7cda2cdce457b5 restored=8294f084523f504fcb19681e0e7cda2cdce457b5)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+probe exit code: 0
+```
+
+**Disclosure — files on excluded lists were transiently mutated by this session's
+probes.** Every probe in this section and the one above mutates a committed file,
+runs a command, and reverts. Each probe touched only a file this scope is allowed
+to modify, or — in the `rltax.js` case — deliberately touched an excluded file in
+order to prove the check can fail. Probes recorded in the sibling scopes' reports
+touched each scope's own Playwright spec, which is on the *other* scopes' excluded
+`tests/lifetime-tax-*.spec.mjs` lists. In every case the harness verified the
+restored blob hash against the committed blob hash, so each file is byte-identical
+to its committed content at the end of the session and no commit carries any of
+those mutations. The fact is recorded here rather than left silent, because a
+reader checking mtimes rather than content would otherwise find movement this
+report had not explained.
+
+**Verdict: closed.** Zero porcelain rows over forty excluded pathspecs, zero
+untracked files anywhere in that set, the porcelain-versus-`git diff` asymmetry
+demonstrated, and the check proven able to fail.

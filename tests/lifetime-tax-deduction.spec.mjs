@@ -9,6 +9,7 @@ import {
   collectRequests,
   declaredPackPaths,
   declareOrdinaryHousehold,
+  leakCarriers,
   openLifetimeTax,
   openPower,
   sameOriginPaths
@@ -629,14 +630,14 @@ test('Regression: SCN-023-005 the request ledger does not grow after the mortgag
   /* No mortgage declaration reaches any URL, query string or request body, and nothing was POSTed. */
   ledger.forEach((entry) => {
     [String(interestSentinel), String(balanceSentinel), 'acquisition-debt-current'].forEach((sentinel) => {
-      expect(entry.url).not.toContain(sentinel);
+      expect(leakCarriers(entry.url)).not.toContain(sentinel);
       expect(entry.postData).not.toContain(sentinel);
     });
     expect(entry.method).toBe('GET');
   });
   const address = page.url();
-  expect(address).not.toContain(String(interestSentinel));
-  expect(address).not.toContain(String(balanceSentinel));
+  expect(leakCarriers(address)).not.toContain(String(interestSentinel));
+  expect(leakCarriers(address)).not.toContain(String(balanceSentinel));
   expect(new URL(address).search).toBe('');
 
   /* The declarations really are present, so every scan above ran against a live household rather

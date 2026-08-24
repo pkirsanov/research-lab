@@ -12,9 +12,9 @@
  * cannot mask, soften, or invent one. The suite's own exit code remains the gate.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, relative, resolve } from 'node:path';
+import { join, relative } from 'node:path';
 
-const ROOT = resolve(process.argv[2] ? '.' : '.');
+const ROOT = '.';
 const REPORT = process.argv[2] || process.env.PLAYWRIGHT_JSON_OUTPUT_NAME || 'playwright-report.json';
 const TEST_PATH_TOKEN = /tests\/[A-Za-z0-9._-]+\.mjs/g;
 

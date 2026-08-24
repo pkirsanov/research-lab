@@ -1296,3 +1296,171 @@ test('Adversarial: reduced brief evidence policy and API cannot satisfy the comp
     'the old unconditional Review verb cannot pass stale policy');
   assert.equal(['refresh', 'revisit-thesis'].includes(staleActions.value.actions[0].researchVerb), true);
 });
+
+/* ---------- BUG-004 TP-B004-003: the PROJECTION half of the occurrence contract ----------
+ *
+ * `tests/portfolio-behavior-occurrence.unit.mjs` pins STORAGE: a later same-civil-day completion is
+ * a distinct, independently auditable occurrence rather than a duplicate. That repair is only safe
+ * if the relevance projection then collapses those occurrences back to ONE semantic completion
+ * before it accumulates score. Without the collapse, retaining the occurrence silently buys
+ * relevance: the defect that motivated this bug moved `evidenceScore` 1.6062 -> 2.4094 on a repeat
+ * that carried no new information, and that inflation crossed a peer and reordered the queue.
+ *
+ * The projection lives in TWO modules and both must collapse, which is why the boundary for this
+ * fix covers both. `rlportfolio.js::deriveInterestSignals` produces `evidenceScore`;
+ * `rlportfoliobrief.js::deriveInterestSignals` produces the brief score that becomes ranking
+ * materiality. Reverting either one alone is enough to turn this test red — proven by injecting
+ * each reduction separately through `tests/portfolio-defect-injector.cjs`, which substitutes source
+ * in memory and never writes the shipped tree.
+ *
+ * The comparison peer is calibrated from the run's OWN two scores rather than hardcoded. Under the
+ * required collapse the two scores are equal, so the peer ties with both and order is stable; under
+ * per-occurrence accumulation the peer necessarily sits strictly between them and the order flips.
+ * A hardcoded peer would have to be chosen for one tree or the other and could not discriminate.
+ */
+
+/* 10:30 and 17:45 America/New_York on 2026-07-15. Both instants are asserted onto one civil date
+   below, because a fixture that straddled midnight would be green under per-occurrence scoring too. */
+const B004_EARLIER = '2026-07-15T14:30:00.000Z';
+const B004_SAME_DAY_LATER = '2026-07-15T21:45:00.000Z';
+const B004_THIRD_DAY = '2026-07-17T10:00:00.000Z';
+const B004_RANKED_AT = '2026-07-20T08:00:00.000Z';
+const B004_SUBJECT_GAMMA = 'brief-subject-gamma';
+const B004_PEER_DOMAIN = 'comparison-research';
+
+test('Regression: BUG-004 same-semantic occurrences cannot inflate relevance', () => {
+  const { api, policy } = loadRuntime();
+  const { brief } = loadBrief();
+  const base = researchWorkspace(api, policy);
+
+  const first = appendEvent(api, policy, base, {}, B004_EARLIER);
+  const baseline = appendEvent(api, policy, first, { subjectId: SUBJECT_BETA }, NEXT_DAY);
+  const augmented = appendEvent(api, policy,
+    appendEvent(api, policy, first, {}, B004_SAME_DAY_LATER),
+    { subjectId: SUBJECT_BETA }, NEXT_DAY);
+  const control = appendEvent(api, policy, baseline, { subjectId: B004_SUBJECT_GAMMA }, B004_THIRD_DAY);
+
+  /* Vacuity guards. If the repeat were on another civil date, or were refused as a duplicate, or
+     carried the same occurrence id, then "nothing moved" would be true of an implementation that
+     simply threw the occurrence away — which is the OPPOSITE defect this bug also forbids. */
+  const [alphaFirst, , alphaRepeat] = [
+    baseline.behaviorEvents[0],
+    baseline.behaviorEvents[1],
+    augmented.behaviorEvents[1]
+  ];
+  assert.equal(alphaFirst.occurrence.newYorkCivilDate, '2026-07-15');
+  assert.equal(alphaRepeat.occurrence.newYorkCivilDate, alphaFirst.occurrence.newYorkCivilDate,
+    'the repeat must land on the same New York civil date, or per-occurrence scoring is not exercised');
+  assert.equal(alphaRepeat.eventIdentity, alphaFirst.eventIdentity,
+    'the repeat must share one semantic identity, or it is a genuinely new completion');
+  assert.notEqual(alphaRepeat.occurrence.occurrenceId, alphaFirst.occurrence.occurrenceId,
+    'the repeat must remain an independently auditable occurrence');
+  assert.equal(baseline.behaviorEvents.length, 2);
+  assert.equal(augmented.behaviorEvents.length, 3,
+    'the augmented stream must genuinely retain one extra audit occurrence before invariance is compared');
+  assert.equal(control.behaviorEvents.length, 3);
+
+  const derive = (workspace) => {
+    const portfolioResult = api.deriveInterestSignals(workspace, B004_RANKED_AT, policy);
+    assert.equal(portfolioResult.ok, true, JSON.stringify(portfolioResult.error || {}));
+    const portfolioSignal = portfolioResult.value.find((signal) => signal.domain === 'equity-research');
+    assert.ok(portfolioSignal, 'the portfolio projection must emit the equity-research signal');
+
+    const interestResult = brief.deriveInterestSignals({
+      behaviorCutoffAt: B004_RANKED_AT,
+      events: workspace.behaviorEvents,
+      policy
+    });
+    assert.equal(interestResult.ok, true, JSON.stringify(interestResult.error || {}));
+    const briefSignal = interestResult.value.interestSignals.find((signal) => signal.domain === 'equity-research');
+    assert.ok(briefSignal, 'the brief projection must emit the equity-research signal');
+    return { briefSignal, interestResult, portfolioSignal };
+  };
+
+  const baselineDerived = derive(baseline);
+  const augmentedDerived = derive(augmented);
+  const controlDerived = derive(control);
+  assert.equal(baselineDerived.portfolioSignal.floorSatisfied, true,
+    'the baseline must already clear the floor, so the repeat is measured against a real ranked result');
+
+  const peerMateriality = (baselineDerived.briefSignal.score + augmentedDerived.briefSignal.score) / 2;
+  const rankPolicy = JSON.parse(JSON.stringify(policy));
+  rankPolicy.queue.visibleActionCap = 2;
+  const window = {
+    contractVersion: 'GenericEvidenceWindow/v1',
+    composedAt: B004_RANKED_AT,
+    cutoffAt: B004_RANKED_AT,
+    genericEvidenceIdentity: GENERIC_EVIDENCE_IDENTITY,
+    reasons: [],
+    state: 'current'
+  };
+
+  const rankedOrder = (derived) => {
+    const candidates = brief.buildActionCandidates({
+      directSubjects: [],
+      genericWindow: window,
+      inferredSubjects: [
+        {
+          evidenceState: 'current',
+          lane: 'inferredRelevance',
+          materiality: derived.briefSignal.score,
+          subjectId: derived.briefSignal.subjectId
+        },
+        {
+          evidenceState: 'current',
+          lane: 'inferredRelevance',
+          materiality: peerMateriality,
+          subjectId: B004_PEER_DOMAIN
+        }
+      ]
+    }, rankPolicy);
+    assert.equal(candidates.ok, true, JSON.stringify(candidates.error || {}));
+    const ranked = brief.rankResearchActions({
+      actions: candidates.value.actions,
+      behaviorCutoffAt: B004_RANKED_AT,
+      genericWindowIdentity: GENERIC_EVIDENCE_IDENTITY,
+      interestResult: derived.interestResult.value,
+      policy: rankPolicy
+    });
+    assert.equal(ranked.ok, true, JSON.stringify(ranked.error || {}));
+    assert.equal(ranked.value.rankedActions.length, 2,
+      'both inferred subjects must be visible, or the order comparison below is vacuous');
+    return ranked.value.rankedActions.map((action) => action.subjectId);
+  };
+
+  const baselineOrder = rankedOrder(baselineDerived);
+  const augmentedOrder = rankedOrder(augmentedDerived);
+  const controlOrder = rankedOrder(controlDerived);
+
+  /* NON-INERT CONTROLS. A genuinely distinct third completion on a third date must move BOTH
+     quantities. Without these, "equal" below would also hold for a projection that had stopped
+     reading behavior evidence at all. */
+  assert.notEqual(controlDerived.portfolioSignal.evidenceScore, baselineDerived.portfolioSignal.evidenceScore,
+    'a genuinely distinct completion must move evidence score, or the score invariance is inert');
+  assert.notDeepEqual(controlOrder, baselineOrder,
+    'a genuinely distinct completion must move the ranked order, or the order invariance is inert');
+
+  /* THE TWO REGRESSION ASSERTIONS. Each is stated separately so a failure names the quantity that
+     moved rather than reporting one opaque projection mismatch. */
+  assert.equal(augmentedDerived.portfolioSignal.evidenceScore, baselineDerived.portfolioSignal.evidenceScore,
+    'a same-semantic same-civil-day repeat must not change evidenceScore');
+  assert.deepEqual(augmentedOrder, baselineOrder,
+    'a same-semantic same-civil-day repeat must not change finalRankedOrder');
+
+  /* The rest of the declared projection surface, so the repeat cannot buy floor state, band, or
+     supporting identity either. */
+  assert.equal(augmentedDerived.briefSignal.score, baselineDerived.briefSignal.score);
+  assert.equal(augmentedDerived.portfolioSignal.floorSatisfied, baselineDerived.portfolioSignal.floorSatisfied);
+  assert.equal(augmentedDerived.portfolioSignal.relevanceBand, baselineDerived.portfolioSignal.relevanceBand);
+  assert.deepEqual(augmentedDerived.portfolioSignal.supportingEventIds, baselineDerived.portfolioSignal.supportingEventIds);
+  assert.equal(augmentedDerived.briefSignal.floor.distinctCompletionIdentities,
+    baselineDerived.briefSignal.floor.distinctCompletionIdentities);
+  assert.equal(augmentedDerived.briefSignal.floor.distinctNewYorkCivilDates,
+    baselineDerived.briefSignal.floor.distinctNewYorkCivilDates);
+
+  /* Audit cardinality is the half that must GROW. Asserting it here keeps "nothing changed" from
+     being satisfiable by a projection that silently discarded the retained occurrence. */
+  assert.equal(augmentedDerived.interestResult.value.eligibleOccurrences.length,
+    baselineDerived.interestResult.value.eligibleOccurrences.length + 1,
+    'the repeat must still be visible to audit even though it buys no relevance');
+});

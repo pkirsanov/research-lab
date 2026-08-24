@@ -3,14 +3,21 @@
 **Layout:** single-file
 **Mode:** `bugfix-fastlane`
 **Packet status:** `in_progress`
-**Next required owner:** `bubbles.design`
+**Next required owner:** `bubbles.validate`
 
-No implementation, test pass, or certification is claimed by this scope.
+The projection repair is committed at `a59e38d71` and eleven of twelve
+Definition of Done items now carry executed current-session evidence. The Change
+Boundary was widened to the delivered product source set in this invocation,
+which closes G-3. Certification is still not claimed: `certification.*` is owned
+by `bubbles.validate`, and the Build Quality Gate (G-4) remains unchecked. See
+`report.md#remaining-open-2026-08-24-closeout` for the originating gap list.
 
 ## Scope 1 - Preserve Occurrences Without Relevance Inflation
 
-**Status:** Not Started
+**Status:** In Progress
 **Depends On:** Parent design reconciliation by `bubbles.design`.
+**Dependency state:** Satisfied. The parent design was reconciled by
+`a59e38d71` without changing SCN-008-044; see `report.md#design-reconciled`.
 
 ### Change Boundary
 
@@ -20,8 +27,16 @@ Allowed owned paths by execution order:
 - `tests/portfolio-foundation.unit.mjs`,
   `tests/portfolio-behavior-occurrence.unit.mjs`, and
   `tests/portfolio-brief.functional.mjs` for `bubbles.test`;
-- `rlportfolio.js` for `bubbles.implement`;
+- `rlportfolio.js` and `rlportfoliobrief.js` for `bubbles.implement`;
 - `tests/portfolio-survival-foundation.spec.mjs` for `bubbles.test`.
+
+`rlportfoliobrief.js` is inside the boundary because the relevance-scoring loop
+lives there, so a storage-only dedupe confined to `rlportfolio.js` would still
+let a repeat same-day occurrence buy unearned relevance — it inflated
+`evidenceScore` from `1.6062` to `2.4094` and flipped `finalRankedOrder`
+(`report.md:692`). The semantic collapse is applied at
+`rlportfoliobrief.js:461`. This widens the boundary to exactly the two product
+source files `a59e38d71` touched and no further.
 
 The existing uncommitted candidate and test hunks are protected concurrent
 work. The concurrent `BUG-003-behavior-dedup-contradicts-occurrence-model`
@@ -71,31 +86,177 @@ Scenario: SCN-B004-SEMANTIC-ANTI-INFLATION
 
 #### Core Items
 
-- [ ] Parent design separates exact-occurrence storage from semantic relevance
+- [x] Parent design separates exact-occurrence storage from semantic relevance
   de-duplication without changing SCN-008-044.
-- [ ] `buildBehaviorCandidate()` rejects only an exact occurrence and preserves
+      Evidence: `report.md#design-reconciled` — `git log` shows the parent
+      `design.md` reconciled by `a59e38d71`; lines 1153/1155 now state that
+      storage rejects only an exact repeated `occurrenceId` while semantic
+      derivation groups by `eventIdentity`. A `git show a59e38d71` diff scan for
+      `SCN-008-044` returns a match count of `0`, so the scenario text was not
+      altered to accommodate the repair. Closes finding `BUG-004-F1`.
+- [x] `buildBehaviorCandidate()` rejects only an exact occurrence and preserves
   both distinct audit occurrences.
-- [ ] Semantic repetitions cannot change score, floor eligibility, relevance
+      Evidence: `report.md#tp-b004-002` — Exit Code 0, 5 of 5. The row "a later
+      same-civil-day completion is a distinct occurrence under one semantic
+      identity" is green alongside "an exact occurrence repeat is still refused
+      as a duplicate", and the mutation row that reinstates the superseded
+      content-plus-civil-day predicate turns the accepted-occurrence assertion
+      red, so the pair is discriminating rather than vacuous.
+- [x] Semantic repetitions cannot change score, floor eligibility, relevance
   band, supporting identities, or canonical ordering.
-- [ ] The change boundary is respected and every pre-existing dirty path is
+      Evidence: `report.md#tp-b004-002` — the invariance row asserts a full
+      `deepEqual` over `evidenceScore`, `semanticScore`, `floorEligibility`
+      (including `relevanceBand` and `floorSatisfied`),
+      `supportingSemanticIdentities`, `semanticEvidenceContribution`,
+      `signalIdentity`, `candidateActionIdentities`, `rankIdentity`, and
+      `finalRankedOrder`, with three `notEqual`/`notDeepEqual` controls proving
+      a genuinely distinct third-date completion still moves all three.
+- [x] The change boundary is respected and every pre-existing dirty path is
   preserved.
-- [ ] `TP-B004-001` focused unit regression passes with current-session
+  Historical evidence (preserved verbatim; it records the boundary before
+  this planning reconciliation):
+  Evidence: OPEN, routed to `bubbles.plan`; see
+  `report.md#remaining-open-2026-08-24-closeout` finding G-3. The dirty-path
+  half holds: the five paths dirty at entry were this bug folder's
+  `report.md`, `scopes.md`, and `state.json` plus the two concurrent test
+  carriers, and this agent modified only its own artifacts, leaving both
+  test carriers and every product source file untouched. The boundary half
+  does not hold. `git show --stat a59e38d71` lists `rlportfoliobrief.js`
+  (53 lines) and the Change Boundary above authorizes only `rlportfolio.js`
+  for `bubbles.implement`. That file is core to the fix rather than
+  incidental to it — `rlportfoliobrief.js:461` is where the per-occurrence
+  scoring loop was replaced by `portfolio.dedupeBehaviorEvents(...)` — so
+  the correct resolution is to widen the boundary to include it. This agent
+  did not make that edit: amending the boundary that governs its own
+  excursion, in the same pass that checks this box, would record
+  `bubbles.implement` clearing itself. Widening the boundary is
+  `bubbles.plan` planning content.
+      Evidence: `bubbles.plan` widened the Change Boundary above in this
+      invocation, so both halves now hold. Boundary half: `git show --stat
+      a59e38d71` lists exactly two product source files — `rlportfolio.js` (18
+      lines) and `rlportfoliobrief.js` (53 lines) — and the boundary now
+      authorizes both for `bubbles.implement` and nothing further. The inclusion
+      is intrinsic rather than permissive: a `dedupeBehaviorEvents` scan of
+      `rlportfoliobrief.js` returns lines `331`, `408`, `461`, and `1072`, and
+      line 461 sits inside the relevance-scoring loop, so a repair confined to
+      `rlportfolio.js` would have left the inflation recorded at
+      `report.md:692` (`evidenceScore` `1.6062` to `2.4094`, with
+      `finalRankedOrder` flipped) in place. Dirty-path half: `git status
+      --porcelain` at `1d6a13744` reports exactly five modified paths — this bug
+      folder's `report.md`, `scopes.md`, and `state.json`, plus
+      `tests/portfolio-brief.functional.mjs` and
+      `tests/portfolio-survival-foundation.spec.mjs`, both already authorized
+      for `bubbles.test`. No path outside the declared boundary is dirty, and no
+      pre-existing dirty path was reverted. Closes finding `BUG-004-G3`.
+- [x] `TP-B004-001` focused unit regression passes with current-session
   evidence in `report.md#tp-b004-001`.
-- [ ] `TP-B004-002` occurrence unit carrier passes without weakened mutation,
+      Evidence: `report.md#closeout-lanes-2026-08-24` — the exact planned
+      `--test-name-pattern` command re-executed this session, Exit Code 0,
+      `tests 1`, `pass 1`, `fail 0`, capture sha256
+      `df8204bed3669296a177652a151568df8eb816187d22009fb5c57cb176709bf9`.
+- [x] `TP-B004-002` occurrence unit carrier passes without weakened mutation,
   floor, cap, or exact-repeat assertions in `report.md#tp-b004-002`.
-- [ ] `TP-B004-003` adversarial functional regression fails before projection
+      Evidence: `report.md#closeout-lanes-2026-08-24` — re-executed this
+      session, Exit Code 0, `tests 5`, `pass 5`, `fail 0`, `skipped 0`, capture
+      sha256
+      `47bae6e9aaac8bd2de42b03ef3995c394c55e2e20a1f3e3dbec5b7078f68b287`. All
+      four required assertion classes are present and green in that one run:
+      exact-repeat refusal, declared-cap bound, floor and relevance invariance,
+      and the superseded-predicate mutation row. The earlier 4-pass/1-fail red
+      receipt for the same file is preserved at
+      `report.md#post-edit-focused-bug-004-carrier`.
+- [x] `TP-B004-003` adversarial functional regression fails before projection
   repair and passes after repair in `report.md#tp-b004-003`.
-- [ ] `TP-B004-004` exact functional aggregate passes in
+      Evidence: `report.md#tp-b004-003-red-green` — both halves were executed in
+      this session. The row now exists at
+      `tests/portfolio-brief.functional.mjs:1331`. RED: the focused command run
+      against the pre-repair parent `a59e38d71^` inside an isolated detached
+      worktree, so the working tree was never mutated — Exit Code 1, `pass 0`,
+      `fail 1`, failing on `the fixture must append genuinely new evidence, not
+      collapse into a duplicate`, which is the second same-day occurrence being
+      refused as a duplicate and therefore BUG-004 itself; capture sha256
+      `e674e8548b8313eb39d8489bf9742c69d7386bbe65eae1228c979f9d242d8661`. GREEN:
+      the same focused command at `HEAD` — Exit Code 0, `tests 1`, `pass 1`,
+      `fail 0`; capture sha256
+      `2bbd09ecfae14c6bd87e9e7e11d7bcd3caa7f1802237c0d477b0c2bdb423d3b2`. The row
+      fails without the repair and passes with it, so it is discriminating and
+      not tautological. Closes finding `BUG-004-G1`.
+- [x] `TP-B004-004` exact functional aggregate passes in
   `report.md#tp-b004-004`.
-- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
-- [ ] Broader E2E regression suite passes
-- [ ] `TP-B004-007` registered repository selftest passes in
+      Evidence: `report.md#closeout-lanes-2026-08-24` — the exact 13-file Test
+      Plan command re-executed this session, Exit Code 0, `tests 240`,
+      `pass 240`, `fail 0`, `skipped 0`, capture sha256
+      `8dfa2e0982642722694bf638644ad295856e48b63a88f63144c9fdf5f8ba0623`. The
+      count is 240 rather than the parent Scope 28 receipt of 239 because this
+      aggregate includes `tests/portfolio-brief.functional.mjs`, which gained
+      exactly one row — the new `TP-B004-003`. No lane was weakened or dropped.
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+      Evidence: `report.md#g2-same-civil-day-browser` — the previously missing
+      carrier now exists at `tests/portfolio-survival-foundation.spec.mjs:1022`
+      and passes standalone, Exit Code 0, `1 passed (6.1s)`, capture sha256
+      `7d6183f223b4855d42cea3160b10222457433ca5a90af465740721f1ed99db7c`. Its
+      emitted diagnostics carry the discrimination rather than asserting it in
+      prose: `anchorCivilDate` equals `repeatCivilDate=2026-05-05`, so unlike
+      `TP-B004-005` it does not cross a UTC boundary;
+      `eligibleOccurrencesBefore=4` moves to `eligibleOccurrencesAfter=5`,
+      proving the occurrence was stored rather than passing a vacuous
+      invariance; and the two paired controls at lines 1163 and 1182 report
+      `controlAFlippedFloor=true` and `controlBMovedFingerprint=true`, proving
+      both held-invariant projections are capable of moving. A bailout scan over
+      the body (lines 1022-1205) returns zero matches for `return;`, `try {`,
+      `catch`, or `if (!`, and the file contains no interception call, so the row
+      is live-stack. Closes finding `BUG-004-G2`.
+- [x] Broader E2E regression suite passes
+      Evidence: `report.md#closeout-lanes-2026-08-24` — the exact 8-file matrix,
+      `--project=system-chrome`, re-executed this session, Exit Code 0,
+      `94 passed (2.0m)`, zero failed, zero flaky, zero skipped, capture sha256
+      `4e0ca06fe2ff158080e7cf46f3c21afeeaa520984d5e3ee374d4a434f1406350`. The
+      count is 94 rather than the earlier 93 because the new same-civil-day row
+      that closes G-2 now runs inside the matrix. The exact `TP-B004-005`
+      `SCN-008-011` row also ran standalone and is green at Exit Code 0,
+      `1 passed (6.2s)`, capture sha256
+      `c3ec5a0c50a976fc815452569cdd153a0d5e63efbfd0342ffdef789198a3471c`.
+- [x] `TP-B004-007` registered repository selftest passes in
   `report.md#tp-b004-007`.
+      Evidence: `report.md#pii-redaction-2026-08-24` — `node
+      scripts/selftest.mjs` re-executed after the PII redaction, Exit Code 0,
+      `Research-Lab self-test: 3406 passed, 0 failed`, capture sha256
+      `d564c6ca67f5aa25c0f4ff1f126cbff36c2e2a9d68fdb06e342842178be43ab6`. The
+      previously failing check `committed surface carries no personal
+      identifier` is green and the failed count is 0, with no allowlist entry
+      added and no scanner rule relaxed.
 
 #### Build Quality Gate
 
 - [ ] Artifact lint, diff checks, test integrity, and validate-owned
   certification are clean with zero warnings and zero unchecked test
   obligations.
+      Evidence: PARTIAL, see `report.md#remaining-open-2026-08-24-closeout`
+      finding G-4. Three of four clauses now hold with current-session receipts:
+      artifact lint Exit Code 0; `regression-quality-guard.sh --bugfix` reports
+      `0 violation(s), 0 warning(s)` across 8 files with adversarial signals
+      detected in all 8; and "zero unchecked test obligations" is satisfied now
+      that `TP-B004-003` and the same-civil-day browser row both exist and pass.
+      `git diff --check` initially exited `2` on a trailing blank line at
+      `report.md:1470` — it was NOT clean as previously recorded — and that was
+      repaired in this invocation and re-verified. The remaining clause is
+      validate-owned certification: `certification.status` is still
+      `in_progress` and has not been re-run since its G070 refusal.
+      `certification.*` is owned by `bubbles.validate` and was not written by
+      `bubbles.implement`.
 
-All Definition of Done items remain unchecked.
+Eleven of twelve Definition of Done items are checked with executed
+current-session evidence. `TP-B004-003` (G-1) and the scenario-specific E2E item
+(G-2) closed in the preceding `bubbles.implement` invocation, the first on a
+RED-to-GREEN pair and the second on live paired controls. The Change Boundary
+item (G-3) closed in this `bubbles.plan` invocation, once the boundary was
+widened to `rlportfoliobrief.js` — the second product source file the fix
+touches, and the file that owns the relevance-scoring loop. One item remains
+unchecked: the Build Quality Gate (G-4), which needs `bubbles.validate`
+certification and is not `bubbles.plan` content. The scope is therefore not
+Done.
+
+The user-authorized routing/finding mirror in `state.json` now records
+`nextRequiredOwner: bubbles.validate`, lists G-3 in `addressedFindings`, and
+leaves only G-4 in `unresolvedFindings`. Top-level and certification status stay
+`in_progress`; `certification.*` remains untouched for `bubbles.validate`.

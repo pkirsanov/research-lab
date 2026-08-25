@@ -830,3 +830,311 @@ Exit code `0`. Command:
 The suite held 102 tests before this round and holds 105 after it, so it carries
 no fewer assertions than it did.
 
+## Each Assertion Probed Independently — Q1 To Q11
+
+**Claim Source:** executed in this session, output captured verbatim.
+
+Earlier rounds probed these assertions as they were added, across several
+sessions and several commits. This round re-derives the whole set in one pass at
+one head, so the enumeration can be read as a closed list rather than assembled
+from scattered blocks. Nothing here weakens or rewrites an assertion; each probe
+removes or widens a guard and reads what the assertion does about it.
+
+### The enumeration
+
+Nine assertions were added by this packet, and one existing assertion was
+extended. Every one is listed, and every one is probed below.
+
+| Probe | Assertion | Where | Mutation |
+|---|---|---|---|
+| Q1 | `TP-01-05`, removal direction | `scripts/selftest.mjs` | the new vocabulary member removed |
+| Q2 | `TP-01-05`, addition direction | `scripts/selftest.mjs` | a fabricated sixteenth member added |
+| Q3 | `TB-020-04` | `scripts/selftest.mjs` | E3, the display-seam guard, deleted |
+| Q4 | `TB-020-01`, test at line 41 | `tests/lifetime-tax-representable.spec.mjs` | E1, the arithmetic-origin guard, deleted |
+| Q5 | `TB-020-02`, test at line 78 | `tests/lifetime-tax-representable.spec.mjs` | R1, the header branch, deleted |
+| Q6 | `TB-020-03`, test at line 93 | `tests/lifetime-tax-representable.spec.mjs` | R2, the `"no figure"` guard this row names, deleted |
+| Q7 | `TB-020-05`, test at line 111 | `tests/lifetime-tax-representable.spec.mjs` | E1 widened past non-finiteness |
+| Q8 | `TB-020-06`, test at line 137 | `tests/lifetime-tax-representable.spec.mjs` | E1 deleted |
+| Q9 | reported refusing pair, test at line 181 | `tests/lifetime-tax-representable.spec.mjs` | E1 deleted |
+| Q10 | reported header, test at line 205 | `tests/lifetime-tax-representable.spec.mjs` | R1 deleted |
+| Q11 | reported settling pair, test at line 213 | `tests/lifetime-tax-representable.spec.mjs` | E1 widened past non-finiteness |
+
+The node self-test exits `1` in this working tree before any mutation is
+applied, because a concurrent session holds untracked `tool-brief-v2*` fixtures
+and an untracked `zz-probe-focusable.spec.mjs` that two unrelated assertions
+read. Those two failures are not this packet's and are not touched here. It is
+the reason every node probe below is read on the summary channel rather than the
+exit-status channel: `--summary-match` is pinned to the assertion's own wording,
+so the verdict is that assertion's own line and not the aggregate.
+
+#### Q1 — `TP-01-05` fails when the new member is removed from the vocabulary
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-05 with the unrepresentable-figure member removed from the vocabulary
+file:             rltaxrules.js
+mutation:         "RLTAX-FIGURE-UNREPRESENTABLE": true  ->  "RLTAX-PACK-YEAR-MISMATCH": true   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-01-05: the RLTAX enum count is derived from the module declaration, carries all twelve Feature 021 members unchanged plus exactly the two named jurisdiction-axis members plus exactly th
+green-exit:       1
+green-summary:      ✓ TP-01-05: the RLTAX enum count is derived from the module declaration, carries all twelve Feature 021 members unchanged plus exactly the two named jurisdiction-axis members plus exactly the one 
+summary-compared:   ✗ FAIL: TP-01-05: the RLTAX enum count is derived from the module declaration, carries all twelve Feature 021 members unchanged plus exactly the two named jurisdiction-axis members plus exactly th  vs    ✓ TP-01-05: the RLTAX enum count is derived from the module declaration, carries all twelve Feature 021 members unchanged plus exactly the two named jurisdiction-axis members plus exactly the one    (elapsed time normalised out)
+revert-verified:  yes (committed=1b7858372f2c9898d06035f212f2deec8bb09a4c restored=1b7858372f2c9898d06035f212f2deec8bb09a4c)
+discriminating:   yes (summary differs: "  ✗ FAIL: TP-01-05: the RLTAX enum count is derived from the module declaration, carries all twelve Feature 021 members unchanged plus exactly the two named jurisdiction-axis members plus exactly th" vs "  ✓ TP-01-05: the RLTAX enum count is derived from the module declaration, carries all twelve Feature 021 members unchanged plus exactly the two named jurisdiction-axis members plus exactly the one ")
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`. Both runs exited `1` on the unrelated concurrent failures, and
+the assertion's own line moved from `✗ FAIL` to `✓`, which is the channel the
+verdict was read on.
+
+#### Q2 — `TP-01-05` fails when a fabricated sixteenth member is added
+
+The second direction the design names for this assertion. The fabricated member
+is given the same name a previous round stranded in the working tree, so the
+residue grep at the end of this round is a live check on this probe rather than
+on a token nothing here produces.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TP-01-05 with a fabricated sixteenth member added to the vocabulary
+file:             rltaxrules.js
+mutation:         "RLTAX-FIGURE-UNREPRESENTABLE": true  ->  "RLTAX-FIGURE-UNREPRESENTABLE": true, "RLTAX-FABRICATED-SIXTEENTH": true   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TP-01-05: the RLTAX enum count is derived from the module declaration, carries all twelve Feature 021 members unchanged plus exactly the two named jurisdiction-axis members plus exactly th
+green-exit:       1
+green-summary:      ✓ TP-01-05: the RLTAX enum count is derived from the module declaration, carries all twelve Feature 021 members unchanged plus exactly the two named jurisdiction-axis members plus exactly the one 
+summary-compared:   ✗ FAIL: TP-01-05: the RLTAX enum count is derived from the module declaration, carries all twelve Feature 021 members unchanged plus exactly the two named jurisdiction-axis members plus exactly th  vs    ✓ TP-01-05: the RLTAX enum count is derived from the module declaration, carries all twelve Feature 021 members unchanged plus exactly the two named jurisdiction-axis members plus exactly the one    (elapsed time normalised out)
+revert-verified:  yes (committed=1b7858372f2c9898d06035f212f2deec8bb09a4c restored=1b7858372f2c9898d06035f212f2deec8bb09a4c)
+discriminating:   yes (summary differs: "  ✗ FAIL: TP-01-05: the RLTAX enum count is derived from the module declaration, carries all twelve Feature 021 members unchanged plus exactly the two named jurisdiction-axis members plus exactly th" vs "  ✓ TP-01-05: the RLTAX enum count is derived from the module declaration, carries all twelve Feature 021 members unchanged plus exactly the two named jurisdiction-axis members plus exactly the one ")
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`.
+
+#### Q3 — `TB-020-04` fails when the E3 display-seam guard is deleted
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TB-020-04 with the E3 display-seam finiteness guard deleted
+file:             rltax.js
+mutation:         if (!Number.isFinite(valueRecord.value)) {  ->  if (false) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TB-020-04: formatForDisplay refuses a record carrying Infinity, -Infinity or NaN with RLTAX-FIGURE-UNREPRESENTABLE on domain display:value, that refusal carries no figure and no rule stand
+green-exit:       1
+green-summary:      ✓ TB-020-04: formatForDisplay refuses a record carrying Infinity, -Infinity or NaN with RLTAX-FIGURE-UNREPRESENTABLE on domain display:value, that refusal carries no figure and no rule standing, a
+summary-compared:   ✗ FAIL: TB-020-04: formatForDisplay refuses a record carrying Infinity, -Infinity or NaN with RLTAX-FIGURE-UNREPRESENTABLE on domain display:value, that refusal carries no figure and no rule stand  vs    ✓ TB-020-04: formatForDisplay refuses a record carrying Infinity, -Infinity or NaN with RLTAX-FIGURE-UNREPRESENTABLE on domain display:value, that refusal carries no figure and no rule standing, a   (elapsed time normalised out)
+revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   yes (summary differs: "  ✗ FAIL: TB-020-04: formatForDisplay refuses a record carrying Infinity, -Infinity or NaN with RLTAX-FIGURE-UNREPRESENTABLE on domain display:value, that refusal carries no figure and no rule stand" vs "  ✓ TB-020-04: formatForDisplay refuses a record carrying Infinity, -Infinity or NaN with RLTAX-FIGURE-UNREPRESENTABLE on domain display:value, that refusal carries no figure and no rule standing, a")
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`.
+
+#### Q4 — `TB-020-01` fails when the E1 arithmetic-origin guard is deleted
+
+The first attempt at this probe exited `128` before it mutated anything: a
+concurrent session held `.git/index.lock`, so the harness could not read the
+committed blob it reverts to. `rltax.js` was verified against its committed
+hash and against the guard text before the retry below, and matched both, so
+nothing was left mutated by the aborted attempt.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TB-020-01 with the E1 arithmetic-origin finiteness guard deleted
+file:             rltax.js
+mutation:         if (!Number.isFinite(gross)) {  ->  if (false) {   (1 occurrence(s))
+command:          npx playwright test tests/lifetime-tax-representable.spec.mjs --project=chromium --reporter=line -g every\ stage\ whose\ amount\ overflows\ the\ double\ range\ is\ refused\ by\ name
+red-exit:         1
+red-summary:          [chromium] › tests/lifetime-tax-representable.spec.mjs:41:1 › Regression: SCN-020-01 every stage whose amount overflows the double range is refused by name 
+green-exit:       0
+green-summary:    [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:41:1 › Regression: SCN-020-01 every stage whose amount overflows the double range is refused by name
+summary-compared:     [chromium] › tests/lifetime-tax-representable.spec.mjs:41:1 › Regression: SCN-020-01 every stage whose amount overflows the double range is refused by name   vs  [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:41:1 › Regression: SCN-020-01 every stage whose amount overflows the double range is refused by name   (elapsed time normalised out)
+revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`.
+
+#### Q5 — `TB-020-02` fails when the R1 header branch alone is deleted
+
+The E1 engine guard is left standing, so the stage rows still refuse and only
+the header is free to describe the result as settled. That is the display-only
+remedy the design warns about.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TB-020-02 with the R1 header branch deleted while the E1 engine guard remains, which is the state a display-only remedy would ship
+file:             lifetime-tax-strategy-lab.html
+mutation:         if (state.envelope.unrepresentableDomains.length > 0) {  ->  if (false) {   (1 occurrence(s))
+command:          npx playwright test tests/lifetime-tax-representable.spec.mjs --project=chromium --reporter=line -g the\ settlement\ header\ does\ not\ describe\ an\ unrepresentable\ result\ as\ settled
+red-exit:         1
+red-summary:          [chromium] › tests/lifetime-tax-representable.spec.mjs:78:1 › Regression: SCN-020-02 the settlement header does not describe an unrepresentable result as settled 
+green-exit:       0
+green-summary:    [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:78:1 › Regression: SCN-020-02 the settlement header does not describe an unrepresentable result as settled
+summary-compared:     [chromium] › tests/lifetime-tax-representable.spec.mjs:78:1 › Regression: SCN-020-02 the settlement header does not describe an unrepresentable result as settled   vs  [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:78:1 › Regression: SCN-020-02 the settlement header does not describe an unrepresentable result as settled   (elapsed time normalised out)
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`.
+
+#### Q6 — `TB-020-03` does not fail when the R2 guard the row names is removed
+
+This is the probe the open Definition of Done row asks for by name: the guard
+that returns `"no figure"` before the `String(record.value)` fallback, removed,
+against the assertion it protects. The mutation form here is removal rather than
+the `if (false)` neutralisation earlier rounds drove, and the replacement carries
+a `RED PROBE` marker so the residue grep at the end of this round is a live check
+on this probe rather than on a token nothing produces.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TB-020-03 with the R2 stageValueText guard removed, which is the guard the Definition of Done row names
+file:             lifetime-tax-strategy-lab.html
+mutation:         if (!Number.isFinite(record.value)) return "no figure";  ->  /* RED PROBE: BUG-020 R2 guard removed */   (1 occurrence(s))
+command:          npx playwright test tests/lifetime-tax-representable.spec.mjs --project=chromium --reporter=line -g no\ rendered\ text\ on\ the\ route\ is\ an\ infinity\ symbol\ or\ NaN
+red-exit:         0
+red-summary:      [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN
+green-exit:       0
+green-summary:    [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN
+summary-compared: [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN  vs  [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN   (elapsed time normalised out)
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   NO (both channels agree: exit 0 == 0, summary "[1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN" identical once elapsed time is normalised)
+=== END RED/GREEN PROBE EVIDENCE ===
+red-green-probe: REFUSED — RED and GREEN produced the same outcome on both channels (both exited 0, and the --summary-match line was "[1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN" in each once elapsed time was normalised out). The mutation did not change what the command reported, so the assertion under test cannot fail and this is not RED/GREEN evidence.
+```
+
+Probe exit `7`. This reproduces the finding earlier rounds recorded for this
+assertion under `P6`, `P6b`, `P6c`, `P6e`, `P6g` and `P6i`, by a mutation form
+none of those used. It is recorded as a finding and not retried against another
+guard. The row stays open, and `TB-020-03` is the assertion it stays open on.
+
+The source itself already states why. The comment sitting directly above the
+removed guard in `stageValueText` says the branch is "not reached from the
+acceptance set", because E1 and E2 turn the record into a refusal that the
+`RULES.isUnavailable` branch above catches first. Removing R2 therefore changes
+no rendered byte at the declaration this assertion drives, and the assertion has
+nothing to notice.
+
+#### Q7 — `TB-020-05` fails when the guard is widened past non-finiteness
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TB-020-05 with the E1 guard widened to refuse at half the representable range, which is how an over-eager remedy starts refusing real households
+file:             rltax.js
+mutation:         if (!Number.isFinite(gross)) {  ->  if (!Number.isFinite(gross) || gross > Number.MAX_VALUE / 2) {   (1 occurrence(s))
+command:          npx playwright test tests/lifetime-tax-representable.spec.mjs --project=chromium --reporter=line -g the\ settling\ side\ of\ the\ boundary\ settles\ with\ finite\ figures\ throughout
+red-exit:         1
+red-summary:          [chromium] › tests/lifetime-tax-representable.spec.mjs:111:1 › Regression: SCN-020-04 the settling side of the boundary settles with finite figures throughout 
+green-exit:       0
+green-summary:    [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:111:1 › Regression: SCN-020-04 the settling side of the boundary settles with finite figures throughout
+summary-compared:     [chromium] › tests/lifetime-tax-representable.spec.mjs:111:1 › Regression: SCN-020-04 the settling side of the boundary settles with finite figures throughout   vs  [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:111:1 › Regression: SCN-020-04 the settling side of the boundary settles with finite figures throughout   (elapsed time normalised out)
+revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`.
+
+#### Q8 — `TB-020-06` fails when the guard is removed
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TB-020-06 with the E1 arithmetic-origin finiteness guard deleted, which is the pre-fix state
+file:             rltax.js
+mutation:         if (!Number.isFinite(gross)) {  ->  if (false) {   (1 occurrence(s))
+command:          npx playwright test tests/lifetime-tax-representable.spec.mjs --project=chromium --reporter=line -g the\ refusing\ side\ of\ the\ boundary\ refuses\ on\ the\ next\ representable\ double
+red-exit:         1
+red-summary:          [chromium] › tests/lifetime-tax-representable.spec.mjs:137:1 › Regression: SCN-020-05 the refusing side of the boundary refuses on the next representable double 
+green-exit:       0
+green-summary:    [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:137:1 › Regression: SCN-020-05 the refusing side of the boundary refuses on the next representable double
+summary-compared:     [chromium] › tests/lifetime-tax-representable.spec.mjs:137:1 › Regression: SCN-020-05 the refusing side of the boundary refuses on the next representable double   vs  [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:137:1 › Regression: SCN-020-05 the refusing side of the boundary refuses on the next representable double   (elapsed time normalised out)
+revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`.
+
+#### Q9 — the reported refusing pair fails when the E1 guard is deleted
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SCN-020-01 at the reported 9e307 pair with the E1 arithmetic-origin finiteness guard deleted
+file:             rltax.js
+mutation:         if (!Number.isFinite(gross)) {  ->  if (false) {   (1 occurrence(s))
+command:          npx playwright test tests/lifetime-tax-representable.spec.mjs --project=chromium --reporter=line -g the\ reported\ pair\ at\ 9e307\ refuses\ by\ name\ on\ every\ dependent\ stage
+red-exit:         1
+red-summary:          [chromium] › tests/lifetime-tax-representable.spec.mjs:181:1 › Regression: SCN-020-01 the reported pair at 9e307 refuses by name on every dependent stage 
+green-exit:       0
+green-summary:    [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:181:1 › Regression: SCN-020-01 the reported pair at 9e307 refuses by name on every dependent stage
+summary-compared:     [chromium] › tests/lifetime-tax-representable.spec.mjs:181:1 › Regression: SCN-020-01 the reported pair at 9e307 refuses by name on every dependent stage   vs  [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:181:1 › Regression: SCN-020-01 the reported pair at 9e307 refuses by name on every dependent stage   (elapsed time normalised out)
+revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`.
+
+#### Q10 — the reported header assertion fails when the R1 branch is deleted
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SCN-020-02 at the reported 9e307 pair with the R1 header branch deleted
+file:             lifetime-tax-strategy-lab.html
+mutation:         if (state.envelope.unrepresentableDomains.length > 0) {  ->  if (false) {   (1 occurrence(s))
+command:          npx playwright test tests/lifetime-tax-representable.spec.mjs --project=chromium --reporter=line -g the\ settlement\ header\ at\ the\ reported\ 9e307\ pair\ names\ the\ unrepresentable\ domain
+red-exit:         1
+red-summary:          [chromium] › tests/lifetime-tax-representable.spec.mjs:205:1 › Regression: SCN-020-02 the settlement header at the reported 9e307 pair names the unrepresentable domain 
+green-exit:       0
+green-summary:    [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:205:1 › Regression: SCN-020-02 the settlement header at the reported 9e307 pair names the unrepresentable domain
+summary-compared:     [chromium] › tests/lifetime-tax-representable.spec.mjs:205:1 › Regression: SCN-020-02 the settlement header at the reported 9e307 pair names the unrepresentable domain   vs  [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:205:1 › Regression: SCN-020-02 the settlement header at the reported 9e307 pair names the unrepresentable domain   (elapsed time normalised out)
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`.
+
+#### Q11 — the reported settling pair fails when the guard is widened
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SCN-020-03 at the reported 8.9e307 pair with the E1 guard widened to refuse at half the representable range
+file:             rltax.js
+mutation:         if (!Number.isFinite(gross)) {  ->  if (!Number.isFinite(gross) || gross > Number.MAX_VALUE / 2) {   (1 occurrence(s))
+command:          npx playwright test tests/lifetime-tax-representable.spec.mjs --project=chromium --reporter=line -g the\ reported\ settling\ pair\ at\ 8.9e307\ is\ unchanged\ by\ the\ guard
+red-exit:         1
+red-summary:          [chromium] › tests/lifetime-tax-representable.spec.mjs:213:1 › Regression: SCN-020-03 the reported settling pair at 8.9e307 is unchanged by the guard 
+green-exit:       0
+green-summary:    [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:213:1 › Regression: SCN-020-03 the reported settling pair at 8.9e307 is unchanged by the guard
+summary-compared:     [chromium] › tests/lifetime-tax-representable.spec.mjs:213:1 › Regression: SCN-020-03 the reported settling pair at 8.9e307 is unchanged by the guard   vs  [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:213:1 › Regression: SCN-020-03 the reported settling pair at 8.9e307 is unchanged by the guard   (elapsed time normalised out)
+revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`.
+
+### What this round settles, and what it leaves open
+
+Ten of the eleven probes discriminated. Every assertion this packet added is
+proven falsifiable by removing or widening the guard it protects, except one.
+
+`TB-020-03` is that one. `Q6` removed the guard the row names, in the form the
+row names, and the assertion did not notice. That is the same verdict `P6`,
+`P6b`, `P6c`, `P6e`, `P6g` and `P6i` reached against four different guards and
+three different mutation forms. No further mutation was tried against it: the
+row asks whether the assertion fails when its guard is removed, and the answer
+this round obtained is that it does not.
+
+The row therefore stays open on `TB-020-03`, and the packet's routing to
+`bubbles.design` is unchanged. Nothing here weakened an assertion, and no
+assertion text was edited.
+

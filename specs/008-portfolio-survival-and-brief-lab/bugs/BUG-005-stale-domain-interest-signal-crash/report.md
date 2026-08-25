@@ -1458,3 +1458,550 @@ regression phase's browser verdict is unchanged rather than re-established. This
 agent wrote only `report.md`, one comment line in `rlportfolio.js`, and the
 execution-owned half of `state.json`; it did not write `status`,
 `certification.*`, `uservalidation.md`, or any DoD checkbox.
+
+## Independent Implement Provenance Verification - 2026-08-25 {#implement-provenance-verification-2026-08-25}
+
+- **Phase:** `implement`
+- **Execution actor:** `bubbles.bug` (delegated BUG-005 implementation provenance)
+- **Recorded at:** `2026-08-25T17:57:02Z`
+**Claim Source:** executed
+
+This is independent verification of a pre-existing implementation. It does not
+claim authorship of the production change. Commit `732bccb6c` identifies
+`pkirsanov` as its author and predates this invocation. The existing
+`execution.completedPhaseClaims` entry remains attributed to
+`bubbles.implement`; the additive `executionHistory` record states only what
+this `bubbles.bug` invocation independently inspected and executed to back that
+already-existing claim. No production source, carrier, note, planning artifact,
+human-acceptance field, certification field, DoD checkbox, or status changed in
+this verification.
+
+Gate G022 Check 6B explicitly accepts a `bubbles.bug` history entry as delegated
+provenance for `implement` when `provenanceMode` is `specialist`. That is the
+record shape used here. No parent-expansion claim and no invented specialist
+invocation is recorded.
+
+### Production commit and current module inspection
+
+The production commit and all of its paths were inspected directly. The only
+non-packet paths in the commit are one production module, one new carrier, and
+one registry-note row.
+
+```text
+$ timeout 30 git show --format=fuller --name-status 732bccb6c
+commit 732bccb6c8949008d3eaf9323c26d85467352e44
+Author:     pkirsanov <pkirsanov@users.noreply.github.com>
+AuthorDate: Tue Aug 25 05:38:06 2026 +0000
+Commit:     pkirsanov <pkirsanov@users.noreply.github.com>
+CommitDate: Tue Aug 25 05:38:06 2026 +0000
+
+    fix(BUG-005): omit stale-only interest domains
+
+M       notes/portfolio-survival-allocation-lab.md
+M       rlportfolio.js
+A       specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/bug.md
+A       specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/design.md
+A       specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/report.md
+A       specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/scenario-manifest.json
+A       specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/scopes.md
+A       specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/spec.md
+A       specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/state.json
+A       specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/uservalidation.md
+A       tests/portfolio-stale-domain-signal.unit.mjs
+```
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+The production diff moves bucket creation from before the age filter to the
+post-filter accumulation loop. It does not change the evidence-age predicate,
+dedupe call, signal validator, expiry formula, or persisted schema.
+
+```diff
+$ timeout 30 git diff 732bccb6c^..732bccb6c -- rlportfolio.js
+diff --git a/rlportfolio.js b/rlportfolio.js
+index 495538f19..dc2643865 100644
+--- a/rlportfolio.js
++++ b/rlportfolio.js
+@@ -2459,6 +2459,16 @@
+       if (!event || !event.domain) return;
+       if (event.lifecycleState !== "eligible") return;
+       if (!event.genericEvidenceIdentity || !event.eventIdentity || !event.occurrence) return;
++      var ageDays = (Date.parse(now) - Date.parse(event.occurredAt)) / 86400000;
++      if (ageDays < 0 || ageDays > behavior.maximumEvidenceAgeDays) return;
++      eligibleEvents.push(event);
++    });
++
++    var dedupedResult = dedupeBehaviorEvents(eligibleEvents, policy);
++    if (!dedupedResult.ok) return dedupedResult;
++    dedupedResult.value.events.forEach(function (event) {
++      // Created HERE, after the age filter. A domain with no in-window evidence must not own a
++      // bucket at all: `latest` would stay null and `expiresAt` below becomes an invalid date.
+       var key = String(event.domain);
+       if (!byDomain[key]) {
+         byDomain[key] = {
+@@ -2471,15 +2481,7 @@
+           score: 0
+         };
+       }
+-      var ageDays = (Date.parse(now) - Date.parse(event.occurredAt)) / 86400000;
+-      if (ageDays < 0 || ageDays > behavior.maximumEvidenceAgeDays) return;
+-      eligibleEvents.push(event);
+-    });
+-
+-    var dedupedResult = dedupeBehaviorEvents(eligibleEvents, policy);
+-    if (!dedupedResult.ok) return dedupedResult;
+-    dedupedResult.value.events.forEach(function (event) {
+-      var bucket = byDomain[String(event.domain)];
++      var bucket = byDomain[key];
+       var ageDays = (Date.parse(now) - Date.parse(event.occurredAt)) / 86400000;
+       bucket.eventIdentities[event.eventIdentity] = true;
+       bucket.dates[event.occurrence.newYorkCivilDate] = true;
+```
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+Current `rlportfolio.js` was also inspected directly. The only later commit on
+that path is `cda9394c9`, and its complete diff from `732bccb6c` is the
+comment-only correction already recorded by the simplify phase:
+
+```diff
+$ timeout 30 git diff 732bccb6c..HEAD -- rlportfolio.js
+diff --git a/rlportfolio.js b/rlportfolio.js
+index dc2643865..841daa26f 100644
+--- a/rlportfolio.js
++++ b/rlportfolio.js
+@@ -2468,7 +2468,7 @@
+     if (!dedupedResult.ok) return dedupedResult;
+     dedupedResult.value.events.forEach(function (event) {
+       // Created HERE, after the age filter. A domain with no in-window evidence must not own a
+-      // bucket at all: `latest` would stay null and `expiresAt` below becomes an invalid date.
++      // bucket at all: `latest` would stay null and `expiresAt` below then THROWS RangeError.
+       var key = String(event.domain);
+       if (!byDomain[key]) {
+         byDomain[key] = {
+```
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+### Current six-row carrier - GREEN
+
+```text
+$ timeout 120 node --test tests/portfolio-stale-domain-signal.unit.mjs
+✔ BUG-005: a domain whose every eligible event has aged out yields no signal instead of throwing (88.946985ms)
+✔ BUG-005: a future-dated-only domain is omitted through the same filter without throwing (12.469227ms)
+✔ BUG-005: a stale domain must not suppress the fresh domains beside it (69.541697ms)
+✔ BUG-005: in-window evidence below the floor is still emitted, so the fix widened nothing (42.870351ms)
+✔ BUG-005: reinstating the superseded pre-filter bucket creation turns the stale-domain assertion red (92.239265ms)
+✔ BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance (47.644023ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 453.566371
+```
+
+**Exit Code:** 0
+**Result:** PASS
+**Claim Source:** executed
+
+### Isolated detached historical carrier - RED
+
+The historical control never checked out or rewrote the main tree. A detached
+worktree was created at `732bccb6c^`, which resolved to `31aad20d4`. The current
+carrier was copied into that worktree and compared byte-for-byte. Its only
+worktree change was the untracked carrier, and the post-filter source marker was
+absent before execution.
+
+```text
+$ [[ ! -e /tmp/research-lab-bug005-g022-red ]] && timeout 120 git worktree add --detach /tmp/research-lab-bug005-g022-red 732bccb6c^
+Preparing worktree (detached HEAD 31aad20d4)
+Updating files: 100% (9926/9926), done.
+HEAD is now at 31aad20d4 Merge remote-tracking branch 'origin/main'
+$ timeout 30 cp tests/portfolio-stale-domain-signal.unit.mjs /tmp/research-lab-bug005-g022-red/tests/portfolio-stale-domain-signal.unit.mjs
+$ timeout 30 cmp tests/portfolio-stale-domain-signal.unit.mjs /tmp/research-lab-bug005-g022-red/tests/portfolio-stale-domain-signal.unit.mjs
+CARRIER_COPY_IDENTICAL=yes
+$ timeout 30 git -C /tmp/research-lab-bug005-g022-red status --short
+?? tests/portfolio-stale-domain-signal.unit.mjs
+$ grep -n "Created HERE, after the age filter" /tmp/research-lab-bug005-g022-red/rlportfolio.js
+POST_FILTER_MARKER=absent
+```
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+The expected failing run was routed through `evidence-capture.sh`. The hash
+covers all 145 lines, including all six failure bodies rather than only the
+displayed first and last twenty lines.
+
+```text
+# BUG-005 G022 independent historical RED at 732bccb6c^
+$ timeout 120 node --test tests/portfolio-stale-domain-signal.unit.mjs
+exit: 1
+lines: 145
+sha256: 18622435f266139a64404f8fd8ab6f7bad495eff90b0874be2c012004db34bb0
+--- first 20 ---
+TAP version 13
+# Subtest: BUG-005: a domain whose every eligible event has aged out yields no signal instead of throwing
+not ok 1 - BUG-005: a domain whose every eligible event has aged out yields no signal instead of throwing
+  ---
+  duration_ms: 88.938291
+  type: 'test'
+  location: '/tmp/research-lab-bug005-g022-red/tests/portfolio-stale-domain-signal.unit.mjs:165:1'
+  failureType: 'testCodeFailure'
+  error: 'Invalid time value'
+  code: 'ERR_TEST_FAILURE'
+  name: 'RangeError'
+  stack: |-
+    Date.toISOString (<anonymous>)
+    /tmp/research-lab-bug005-g022-red/rlportfolio.js:2518:101
+    Array.map (<anonymous>)
+    Object.deriveInterestSignals (/tmp/research-lab-bug005-g022-red/rlportfolio.js:2491:48)
+    TestContext.<anonymous> (file:///tmp/research-lab-bug005-g022-red/tests/portfolio-stale-domain-signal.unit.mjs:184:23)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+--- failure-shaped lines from the omitted region ---
+not ok 2 - BUG-005: a future-dated-only domain is omitted through the same filter without throwing
+not ok 3 - BUG-005: a stale domain must not suppress the fresh domains beside it
+not ok 4 - BUG-005: in-window evidence below the floor is still emitted, so the fix widened nothing
+not ok 5 - BUG-005: reinstating the superseded pre-filter bucket creation turns the stale-domain assertion red
+not ok 6 - BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance
+--- omitted 105 line(s); sha256 above covers the full output ---
+--- last 20 ---
+    Date.toISOString (<anonymous>)
+    /tmp/research-lab-bug005-g022-red/rlportfolio.js:2518:101
+    Array.map (<anonymous>)
+    Object.deriveInterestSignals (/tmp/research-lab-bug005-g022-red/rlportfolio.js:2491:48)
+    TestContext.<anonymous> (file:///tmp/research-lab-bug005-g022-red/tests/portfolio-stale-domain-signal.unit.mjs:300:23)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 0
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 351.30829
+```
+
+**Exit Code:** 1 (expected historical RED)
+**Result:** PASS - the current carrier discriminates against the pre-fix source
+**Claim Source:** executed
+
+Cleanup completed and the temporary worktree no longer exists:
+
+```text
+$ timeout 120 git worktree remove --force /tmp/research-lab-bug005-g022-red
+$ timeout 30 git worktree prune
+DETACHED_WORKTREE_REMOVED=yes
+```
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+### Bug-scoped change confinement
+
+The executable and registry-note delta in the production commit is confined to
+the expected three paths. This is an independent implementation-provenance
+receipt, not an attempt to clear the separately routed G053/G093 certification
+finding or to introduce the exact heading that those gates require.
+
+```text
+$ timeout 30 git diff --name-status 732bccb6c^..732bccb6c -- rlportfolio.js tests notes
+M       notes/portfolio-survival-allocation-lab.md
+M       rlportfolio.js
+A       tests/portfolio-stale-domain-signal.unit.mjs
+$ timeout 30 git diff --numstat 732bccb6c^..732bccb6c -- rlportfolio.js tests/portfolio-stale-domain-signal.unit.mjs notes/portfolio-survival-allocation-lab.md
+1       0       notes/portfolio-survival-allocation-lab.md
+11      9       rlportfolio.js
+335     0       tests/portfolio-stale-domain-signal.unit.mjs
+$ timeout 30 git diff --name-status -- rlportfolio.js tests/portfolio-stale-domain-signal.unit.mjs notes/portfolio-survival-allocation-lab.md specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/state.json
+(empty - detached RED did not mutate the main production, carrier, note, or packet state paths)
+```
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+### Finding disposition
+
+`TEST-B005-T3` is addressed by this current-session record. The existing
+`implement` claim now has delegated `bubbles.bug` execution-history provenance
+grounded in the shipped GREEN, detached historical RED, current-source
+inspection, and commit confinement above.
+
+This does **not** clear G022 as a whole. The required `stabilize`, `security`,
+`validate`, and `audit` phases still have no completion records. The broader
+`BUG-005-G022-PIPELINE-PHASES` route therefore remains open, as do every other
+previously routed finding. Status remains `in_progress`; certification and
+human acceptance remain untouched.
+
+### Post-record validation
+
+The packet was linted after the independent history record and finding
+disposition were written.
+
+```text
+# BUG-005 independent implement provenance artifact lint
+$ timeout 300 bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash
+exit: 0
+lines: 40
+sha256: 182cf27f7948b167f9fdebccae5bf6994636355face5d8ae0a4d55666dc9b567
+--- output ---
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes.md
+✅ Required artifact exists: report.md
+✅ No forbidden sidecar artifacts present
+✅ Found DoD section in scopes.md
+✅ scopes.md DoD contains checkbox items
+✅ All DoD bullet items use checkbox syntax in scopes.md
+✅ Found Checklist section in uservalidation.md
+✅ uservalidation checklist contains checkbox entries
+✅ All checklist bullet items use checkbox syntax
+✅ uservalidation separates automation readiness from human acceptance
+✅ Detected state.json status: in_progress
+✅ Detected state.json workflowMode: bugfix-fastlane
+✅ state.json v3 has required field: status
+✅ state.json v3 has required field: execution
+✅ state.json v3 has required field: certification
+✅ state.json v3 has required field: policySnapshot
+✅ state.json v3 has recommended field: transitionRequests
+✅ state.json v3 has recommended field: reworkQueue
+✅ state.json v3 has recommended field: executionHistory
+✅ Top-level status matches certification.status
+ℹ️  Workflow mode 'bugfix-fastlane' allows status 'done'; current status is 'in_progress'
+✅ report.md contains section matching: ###[[:space:]]+Summary|^##[[:space:]]+Summary
+✅ report.md contains section matching: ###[[:space:]]+Completion Statement|^##[[:space:]]+Completion Statement
+✅ report.md contains section matching: ###[[:space:]]+Test Evidence|^##[[:space:]]+Test Evidence
+✅ Mode-specific report gates skipped (status not in promotion set)
+✅ Value-first selection rationale lint skipped (not a value-first report)
+✅ Scenario path-placeholder lint skipped (no matching scenario sections found)
+
+=== Anti-Fabrication Evidence Checks ===
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+
+=== End Anti-Fabrication Checks ===
+
+Artifact lint PASSED.
+```
+
+**Exit Code:** 0
+**Result:** PASS
+**Claim Source:** executed
+
+The focused carrier and its anti-tautology guard also ran after the record was
+written:
+
+```text
+$ timeout 120 node --test tests/portfolio-stale-domain-signal.unit.mjs
+✔ BUG-005: a domain whose every eligible event has aged out yields no signal instead of throwing (122.211499ms)
+✔ BUG-005: a future-dated-only domain is omitted through the same filter without throwing (13.274735ms)
+✔ BUG-005: a stale domain must not suppress the fresh domains beside it (77.614818ms)
+✔ BUG-005: in-window evidence below the floor is still emitted, so the fix widened nothing (76.053726ms)
+✔ BUG-005: reinstating the superseded pre-filter bucket creation turns the stale-domain assertion red (160.708198ms)
+✔ BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance (60.019953ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 681.515959
+```
+
+**Exit Code:** 0
+**Result:** PASS
+**Claim Source:** executed
+
+```text
+$ timeout 300 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/portfolio-stale-domain-signal.unit.mjs
+============================================================
+  BUBBLES REGRESSION QUALITY GUARD
+  Repo: <repo-root>
+  Timestamp: 2026-08-25T17:59:44Z
+  Bugfix mode: true
+============================================================
+
+ℹ️  Scanning tests/portfolio-stale-domain-signal.unit.mjs
+✅ Adversarial signal detected in tests/portfolio-stale-domain-signal.unit.mjs
+
+============================================================
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 1
+  Files with adversarial signals: 1
+============================================================
+```
+
+**Exit Code:** 0
+**Result:** PASS
+**Claim Source:** executed (one absolute repository path replaced by the
+`<repo-root>` placeholder; all other output is verbatim)
+
+The canonical selftest includes the repository's spec-path validator, which is
+load-bearing here because an earlier report-only path token broke that validator.
+
+```text
+# BUG-005 implement provenance canonical selftest
+$ timeout 900 node scripts/selftest.mjs
+exit: 0
+lines: 3895
+sha256: 102bf70280cc8091082837f585fbc7ba17d1f48f573b7470c7e8ccee6ff369a1
+--- first 20 ---
+
+Step 1 security — escaped model sinks and CSP on every page
+  ✓ every shipped HTML page carries a Content-Security-Policy meta
+  ✓ all pages use one identical CSP instead of drifting per page
+  ✓ CSP keeps the single-file inline-script design while defaulting to self
+  ✓ CSP blocks object, base-tag, and form exfiltration paths
+  ✓ CSP connect-src is an explicit origin allowlist, never wildcard https
+  ✓ CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+  ✓ CSP allows no open URL-forwarding relay origin
+  ✓ production pages and shared runtime contain no open URL-forwarding relay chain
+  ✓ no model/config-authored field reaches innerHTML without esc()
+  ✓ the sink detector catches an unescaped model-authored title
+
+Feature 004 RLFX/RLDATA foundation
+  ✓ RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic
+  ✓ RLFX universe is bounded closed and asserts no live source authorization
+  ✓ RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows
+  ✓ RLDATA schema-one bars and legacy tool reads remain compatible beside versioned envelopes
+  ✓ RLDATA Twelve Data mapping: interval/symbol translate, values sort newest-first → oldest-first with UTC epochs, empty volume → null, error/malformed → null
+  ✓ RLFX broad dollar keeps Broad AFE EME and proxy states separate
+--- omitted 3855 line(s); sha256 above covers the full output ---
+--- last 20 ---
+  ✓ both prompt branches carry the required-leaf instruction, so no lane is judged against a contract it was not given
+  ✓ a retry is told why the previous attempt was rejected and the reason reaches the prompt — a retry that re-sends the identical input is the same attempt run twice
+
+experience shell — every registered tool is mountable
+  ✓ the registered-tool sweep actually has tools to check (found 29)
+  ✓ every registered tool page carries a [data-rlbrief-mount] anchor naming its own tool id — rlapp.js mounts the shell from nothing else (missing: none)
+  ✓ no page carries two mount anchors — rlapp.js requires exactly one and silently declines to mount otherwise (offenders: none)
+  ✓ every tool page carrying a mount anchor also enables it with <meta name="rlbrief-enabled"> (inert: none)
+  ✓ the market-brief mount exemption is still live: that page carries an anchor and deliberately does not enable it
+  ✓ every declared adapterModule is a module path string the shell can resolve against its bindings table
+
+brief window cutoff — publisher refuses what the consumer would reject
+  ✓ the consumer module exports its cutoff resolver, so the publish gate resolves cutoffs with the same rule instead of a second copy
+  ✓ a brief whose snapshot and payload are both past the declared cutoff is refused, and each breach is named separately rather than collapsed into one verdict
+  ✓ the ordinary in-band publication, composed inside the lead window, is not refused — the gate must not block the 90% case it exists to protect
+  ✓ all four window bands close at their own cutoff, so a run past the cutoff selects no window rather than one it cannot honestly satisfy (found 4/4)
+
+================================================
+Research-Lab self-test: 3411 passed, 0 failed
+================================================
+```
+
+**Exit Code:** 0
+**Result:** PASS
+**Claim Source:** executed
+
+The complete transition guard was then re-run. It remains red, as required by
+the unresolved routes; the result must not be read as packet completion.
+
+```text
+# BUG-005 G022 targeted state-transition recheck
+$ timeout 600 bash .github/bubbles/scripts/state-transition-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash
+exit: 1
+lines: 346
+sha256: 105cd0e46a876fea6ecd25c274f13d54da8819113aa54c3ac9c3812e6c5811c9
+--- first 20 ---
+============================================================
+  BUBBLES STATE TRANSITION GUARD
+  Feature: specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash
+  Timestamp: 2026-08-25T18:00:34Z
+============================================================
+
+--- Check 1: Required Artifacts ---
+✅ PASS: Required artifact exists: spec.md
+✅ PASS: Required artifact exists: design.md
+✅ PASS: Required artifact exists: uservalidation.md
+✅ PASS: Required artifact exists: state.json
+✅ PASS: Required artifact exists: scopes.md
+✅ PASS: Required artifact exists: report.md
+
+--- Check 2: state.json Integrity ---
+ℹ️  INFO: Current state.json status: in_progress
+ℹ️  INFO: Current workflowMode: bugfix-fastlane
+
+--- Check 2B: workflowMode Consistency ---
+✅ PASS: workflowMode consistent across top-level and policySnapshot (bugfix-fastlane)
+--- omitted 306 line(s); sha256 above covers the full output ---
+--- last 20 ---
+
+🔍 Running project-defined gates from <repo-root>/.github/bubbles-project.yaml...
+BEGIN TRANSITION_GUARD_RESULT_V1
+schemaVersion: transition-guard-result/v1
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision: sha256:310a691f6ce263b6973a128fa7af16f09c3a3b192e7f4175bc074148ab146f16
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+passedGateIds: [G057,G053,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G097,G098,G099,G100,G130,G131]
+failedGateIds: [G022,G027,G040,G095,G136]
+failedChecks: [Check-4-completion,Check-5-all-done]
+blockingCode: DELIVERY_COMPLETION_FAILED
+parentExpandedPhases: 0
+failureCount: 13
+exitStatus: 1
+verdict: FAIL
+END TRANSITION_GUARD_RESULT_V1
+```
+
+**Exit Code:** 1 (expected while routed findings remain)
+**Result:** NONTERMINAL - 13 blockers remain
+**Claim Source:** executed (one absolute repository path replaced by the
+`<repo-root>` placeholder; the SHA-256 is over the unmodified full output)
+
+Because the compact guard block intentionally omits the middle of the stream,
+the exact implement-provenance branch was checked separately against the state
+record and the guard source that evaluates it. This targeted probe does not
+replace the complete guard run above and does not claim G022 is green.
+
+```text
+$ timeout 30 node -e 'const fs=require("node:fs");const state=JSON.parse(fs.readFileSync("specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/state.json","utf8"));const guard=fs.readFileSync(".github/bubbles/scripts/state-transition-guard.sh","utf8");const claims=state.execution.completedPhaseClaims.filter(x=>x.phase==="implement");const history=state.executionHistory.filter(x=>x.agent==="bubbles.bug"&&x.phase==="implement"&&x.phasesExecuted.includes("implement"));const addressed=state.addressedFindings.some(x=>x.id==="TEST-B005-T3"&&x.status==="addressed");const unresolved=state.unresolvedFindings.some(x=>x.id==="TEST-B005-T3");const shortcut=guard.includes("bubbles.bug delegation shortcut for implement/test");const passText=guard.includes("has delegated provenance from bubbles.bug");console.log("probe=BUG-005-G022-implement-provenance");console.log("claim.count="+claims.length);console.log("claim.agent="+(claims[0]&&claims[0].agent));console.log("history.count="+history.length);console.log("history.agent="+(history[0]&&history[0].agent));console.log("history.phase="+(history[0]&&history[0].phase));console.log("history.provenanceMode="+(history[0]&&history[0].provenanceMode));console.log("guard.delegationShortcut="+shortcut);console.log("guard.delegationPassText="+passText);console.log("TEST-B005-T3.addressed="+addressed);console.log("TEST-B005-T3.unresolved="+unresolved);console.log("status="+state.status);console.log("certification.status="+state.certification.status);console.log("certification.completedScopes="+state.certification.completedScopes.length);const ok=claims.length===1&&claims[0].agent==="bubbles.implement"&&history.length===1&&history[0].provenanceMode==="specialist"&&shortcut&&passText&&addressed&&!unresolved&&state.status==="in_progress"&&state.certification.status==="in_progress"&&state.certification.completedScopes.length===0;console.log("result="+(ok?"PASS":"FAIL"));process.exit(ok?0:1);'
+probe=BUG-005-G022-implement-provenance
+claim.count=1
+claim.agent=bubbles.implement
+history.count=1
+history.agent=bubbles.bug
+history.phase=implement
+history.provenanceMode=specialist
+guard.delegationShortcut=true
+guard.delegationPassText=true
+TEST-B005-T3.addressed=true
+TEST-B005-T3.unresolved=false
+status=in_progress
+certification.status=in_progress
+certification.completedScopes=0
+result=PASS
+```
+
+**Exit Code:** 0
+**Result:** PASS - TEST-B005-T3's missing implement-provenance shape is closed
+**Claim Source:** executed
+
+The transition result also shows that several previously routed gate IDs now
+appear in `passedGateIds`. Those finding records are not dispositioned here:
+the operator constrained this change to TEST-B005-T3/G022, and their owning
+agents must reconcile them. The only finding moved by this invocation is
+TEST-B005-T3. G022 itself remains in `failedGateIds` because required pipeline
+phases remain absent.

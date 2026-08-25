@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash",
   "featureName": "BUG-005 Stale-Domain Interest Signal Crash",
   "createdAt": "2026-08-25T00:00:00Z",
-  "lastUpdatedAt": "2026-08-25T15:20:12Z",
+  "lastUpdatedAt": "2026-08-25T17:57:02Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -38,7 +38,7 @@
     "currentScope": 1,
     "nextRequiredOwner": "bubbles.plan",
     "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/scopes.md",
-    "nextRequiredReason": "bubbles.validate ran and REFUSED certification. The implementation evidence replayed clean and independently: carrier six of six green, the pre-fix RED reproduced at 732bccb6c^ (exit 1, six of six, RangeError at rlportfolio.js:2518:101 via deriveInterestSignals), thirty-six unchanged BUG-004 regression rows, the 3409-assertion selftest, and artifact lint exit 0. But state-transition-guard exited 1 with 33 blocking failures across G022, G053, G027, G068, G093, G094, G097 and G136, so no certification field was written and status stays in_progress. Twelve of the 33 are scopes.md-shaped and owned here: five G068 DoD-Gherkin fidelity gaps (each of SCN-B005-STALE-OMITTED, -FRESH-SIBLING, -DISCRIMINATION, -FLOOR-PRESERVED, -BRIEF-AGREEMENT has no faithful DoD item), three missing regression-E2E planning rows, two missing consumer-impact-sweep requirements, and two missing change-boundary containment items whose substance is present under a heading the gate does not read. Clearing them does NOT reach done on its own: G093 and G053 need bubbles.implement, the seven absent pipeline phases need re-orchestration, and G136 needs a human. UPDATE 2026-08-25T15:20:12Z (bubbles.test): one of those seven, 'test', is now executed and recorded with backing executionHistory provenance — the three declared lanes re-ran green (6/6, 36/36, selftest 3409 passed), the pre-fix RED was independently re-derived in an isolated worktree at 732bccb6c^ rather than adopted, and the previously unexecuted TP-B005-007 browser matrix ran at 94 passed. TP-B005-006 was REFUSED as unauthorable-because-tautological and routed as TEST-B005-T1. Six pipeline phases remain absent, the implement claim still lacks its own execution record (TEST-B005-T3), and G136 still needs a human.",
+    "nextRequiredReason": "bubbles.validate ran and REFUSED certification; no certification field was written and status stays in_progress. TEST-B005-T3 is now addressed: bubbles.bug independently inspected production commit 732bccb6c and current rlportfolio.js, ran the current six-row carrier at 6/6 green, reproduced the historical source at 732bccb6c^ in an isolated detached worktree at 0/6 with RangeError at rlportfolio.js:2518:101 through deriveInterestSignals, verified the executable diff is confined to rlportfolio.js, the new carrier, and one registry-note row, removed the temporary worktree, and added delegated implementation provenance without claiming authorship of the original fix. G022 remains open for four absent required phases: stabilize, security, validate, and audit. All other routed findings remain unresolved, including the plan-owned TEST-B005-T1 and TEST-B005-T2 follow-up, G053/G093 delivery-delta evidence, G068 planning fidelity, G094/G097 design, traceability, and G136 human acceptance.",
     "completedPhaseClaims": [
       {
         "phase": "implement",
@@ -109,6 +109,15 @@
   "reworkQueue": [],
   "executionHistory": [
     {
+      "at": "2026-08-25T17:57:02Z",
+      "agent": "bubbles.bug",
+      "phase": "implement",
+      "action": "preexisting-bug-fix-provenance-independently-verified-with-current-green-detached-historical-red-and-diff-confinement",
+      "note": "Independent verification only; this invocation does not claim authorship of production commit 732bccb6c, whose git metadata attributes the original fix to pkirsanov. Inspected the complete commit path set and production diff, then inspected current rlportfolio.js and confirmed the only later path change is cda9394c9's comment correction. Executed timeout 120 node --test tests/portfolio-stale-domain-signal.unit.mjs against HEAD cda9394c9 at exit 0 with tests 6, pass 6, fail 0, skipped 0, todo 0. Created an isolated detached worktree at 732bccb6c^ (31aad20d4), copied the current carrier into it byte-identically, confirmed that untracked carrier was its only worktree change and the post-filter marker was absent, and executed the same carrier through evidence-capture.sh at exit 1 with tests 6, pass 0, fail 6, RangeError: Invalid time value at rlportfolio.js:2518:101 through deriveInterestSignals, 145 full lines under sha256 18622435f266139a64404f8fd8ab6f7bad495eff90b0874be2c012004db34bb0. Removed and pruned the detached worktree and confirmed the main production module, carrier, note, and packet state paths were unmodified before this evidence write. Verified the fix commit's non-packet delta is confined to rlportfolio.js (11+/9-), tests/portfolio-stale-domain-signal.unit.mjs (335+/0-), and notes/portfolio-survival-allocation-lab.md (1+/0-). This additive bubbles.bug record supplies the delegated implement provenance Gate G022 Check 6B explicitly accepts for the existing bubbles.implement completedPhaseClaim; it adds no second phase claim, changes no source or test, and does not touch status, certification.*, scopes.md, uservalidation.md, or human acceptance. Full current-session evidence is report.md#implement-provenance-verification-2026-08-25.",
+      "phasesExecuted": ["implement"],
+      "provenanceMode": "specialist"
+    },
+    {
       "at": "2026-08-25T15:20:12Z",
       "agent": "bubbles.test",
       "phase": "test",
@@ -143,6 +152,13 @@
       "owner": "bubbles.implement",
       "status": "addressed",
       "evidenceRef": "report.md#pre-fix-reproduction"
+    },
+    {
+      "id": "TEST-B005-T3",
+      "summary": "Addressed by current-session delegated implementation provenance from bubbles.bug. The verifier did not claim authorship of commit 732bccb6c: it independently inspected that commit and current rlportfolio.js, ran the current carrier at 6/6 green, reproduced 0/6 historical RED with the same RangeError in a detached worktree at 732bccb6c^, verified the production/carrier/note diff confinement, removed the worktree, and changed no product source or test. This closes only the missing provenance behind the existing implement claim; G022 remains open for the four absent required phases recorded in BUG-005-G022-PIPELINE-PHASES.",
+      "owner": "bubbles.bug",
+      "status": "addressed",
+      "evidenceRef": "report.md#implement-provenance-verification-2026-08-25"
     }
   ],
   "unresolvedFindings": [
@@ -160,13 +176,6 @@
       "followUpOwner": "bubbles.bug",
       "status": "route_required",
       "evidenceRef": "report.md#test-phase-coverage-gap"
-    },
-    {
-      "id": "TEST-B005-T3",
-      "summary": "The pre-existing 'implement' entry in execution.completedPhaseClaims has no executionHistory record behind it, which Check 7B reports as a claim with no record that it ran and which contributes to the G022 failure alongside the absent pipeline phases. bubbles.test added the backing record for its OWN 'test' phase only and deliberately did NOT author an implement record, because writing provenance for work this agent did not perform is exactly the fabrication G022 exists to catch. Owner is bubbles.implement, which must supply its own execution record for the already-claimed phase, as the sibling BUG-004 packet did at its 2026-08-25T03:53:38Z entry.",
-      "owner": "bubbles.implement",
-      "status": "route_required",
-      "evidenceRef": "report.md#test-phase-2026-08-25"
     },
     {
       "id": "BUG-005-CERTIFICATION-REFUSED",
@@ -191,7 +200,7 @@
     },
     {
       "id": "BUG-005-G022-PIPELINE-PHASES",
-      "summary": "Seven required phases are absent from the phase records (test, regression, simplify, stabilize, security, validate, audit), and the single 'implement' claim lacks specialist or parent-expanded provenance, which the guard reports as phase impersonation. The resolved phaseOrder for bugfix-fastlane is select, bootstrap, implement, test, regression, simplify, gaps, harden, stabilize, devops, security, validate, audit, finalize. Because 'audit' is still in phaseOrder with no matching audit attempt, this pass is pre-audit validation and MUST NOT write terminal certification even had the guard been green.",
+      "summary": "The implement claim now has delegated bubbles.bug provenance grounded in a current 6/6 GREEN, detached historical 0/6 RED, current-source inspection, and commit confinement; TEST-B005-T3 is addressed. Test, regression, and simplify also have execution records. Four required phases remain absent from phase records: stabilize, security, validate, and audit. The resolved phaseOrder for bugfix-fastlane is select, bootstrap, implement, test, regression, simplify, gaps, harden, stabilize, devops, security, validate, audit, finalize. Because audit is still in phaseOrder with no matching audit attempt, this packet remains pre-audit and MUST NOT write terminal certification even if every other gate were green.",
       "owner": "bubbles.workflow",
       "status": "route_required",
       "evidenceRef": "report.md#validation-refusal"

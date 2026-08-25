@@ -29,6 +29,8 @@
   var CONSTRAINT_VERSION = "MandateConstraint/v1";
   var MANDATE_PREVIEW_VERSION = "portfolio-mandate-preview/v1";
   var ROUTE_STATE_VERSION = "portfolio-route-state/v1";
+  // A century is a conservative evidence horizon; 25 days covers its maximum leap-day allowance.
+  var MAXIMUM_EVIDENCE_AGE_DAYS = 100 * 365 + 25;
   var HASH_PATTERN = /^sha256:[a-f0-9]{64}$/;
   var CURRENCY_PATTERN = /^[A-Z]{3}$/;
   var DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -540,7 +542,8 @@
         !exactStringSet(behaviorPolicy.outcomeStates, OUTCOME_STATES) ||
         !stringArray(behaviorPolicy.forbiddenEventFields, false) ||
         !behaviorPolicy.forbiddenEventFields.every(function (token) { return /^[a-z0-9]+$/.test(token); }) ||
-        !Number.isInteger(behaviorPolicy.maxBehaviorEvents) || behaviorPolicy.maxBehaviorEvents <= 0) {
+        !Number.isInteger(behaviorPolicy.maxBehaviorEvents) || behaviorPolicy.maxBehaviorEvents <= 0 ||
+        behaviorPolicy.maximumEvidenceAgeDays > MAXIMUM_EVIDENCE_AGE_DAYS) {
       return failure("P008-CONFIG", "invalid-policy", "behavior", null, false);
     }
     var numericSections = [value.behavior, value.solver, value.calibration, value.queue];

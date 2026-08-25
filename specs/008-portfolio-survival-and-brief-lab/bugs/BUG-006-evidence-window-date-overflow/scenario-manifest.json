@@ -80,7 +80,8 @@
           "file": "tests/portfolio-foundation.unit.mjs",
           "testId": "BUG-006: maximumEvidenceAgeDays accepts the named 100-year boundary",
           "testPlanRow": "TP-B006-001",
-          "coverageStatus": "planned-not-authored"
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#tp-b006-001"
         }
       ],
       "expectedAssertions": [
@@ -89,7 +90,12 @@
         "non-finite input retains the non-finite-policy refusal before semantic validation"
       ],
       "evidenceRefs": [
-        "report.md#before-fix-reproduction"
+        "report.md#before-fix-reproduction",
+        "report.md#tp-b006-000",
+        "report.md#tp-b006-001",
+        "report.md#tp-b006-004",
+        "report.md#tp-b006-005",
+        "report.md#tp-b006-006"
       ],
       "replacedBy": null,
       "invalidatedBy": null
@@ -166,7 +172,8 @@
           "file": "tests/portfolio-foundation.unit.mjs",
           "testId": "BUG-006: maximumEvidenceAgeDays refuses one day above the named boundary",
           "testPlanRow": "TP-B006-002",
-          "coverageStatus": "planned-not-authored"
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#tp-b006-002"
         }
       ],
       "expectedAssertions": [
@@ -175,7 +182,11 @@
         "code reason field valueEchoed and recoverable match the frozen config refusal"
       ],
       "evidenceRefs": [
-        "report.md#before-fix-reproduction"
+        "report.md#before-fix-reproduction",
+        "report.md#tp-b006-000",
+        "report.md#tp-b006-002",
+        "report.md#tp-b006-005",
+        "report.md#tp-b006-006"
       ],
       "replacedBy": null,
       "invalidatedBy": null
@@ -253,7 +264,8 @@
           "file": "tests/portfolio-foundation.unit.mjs",
           "testId": "BUG-006: an overflowing evidence window is refused before interest derivation",
           "testPlanRow": "TP-B006-003",
-          "coverageStatus": "planned-not-authored"
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#tp-b006-003"
         }
       ],
       "expectedAssertions": [
@@ -262,7 +274,11 @@
         "no RangeError escapes"
       ],
       "evidenceRefs": [
-        "report.md#before-fix-reproduction"
+        "report.md#before-fix-reproduction",
+        "report.md#tp-b006-000",
+        "report.md#tp-b006-003",
+        "report.md#tp-b006-005",
+        "report.md#tp-b006-006"
       ],
       "replacedBy": null,
       "invalidatedBy": null

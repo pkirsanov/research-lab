@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
   "featureName": "BUG-006 Evidence Window Date Overflow",
   "createdAt": "2026-08-25T19:27:30Z",
-  "lastUpdatedAt": "2026-08-25T20:50:44Z",
+  "lastUpdatedAt": "2026-08-25T21:40:48Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,27 +29,29 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.plan",
-    "currentPhase": "plan",
-    "currentPhaseStatus": "completed_owned",
+    "activeAgent": "bubbles.test",
+    "currentPhase": "test",
+    "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
-    "runStartedAt": "2026-08-25T20:47:01Z",
-    "completedAt": "2026-08-25T20:50:44Z",
-    "substate": "designed",
-    "currentScope": null,
-    "nextRequiredOwner": "bubbles.test",
-    "nextRequiredTarget": "tests/portfolio-foundation.unit.mjs",
-    "nextRequiredReason": "Author the exact 36525 accepted, 36526 refused, huge-finite refused, frozen-envelope, non-finite-precedence, and shipped-56 assertions, then record the focused pre-fix RED result before any rlportfolio.js edit.",
+    "runStartedAt": "2026-08-25T21:24:02Z",
+    "completedAt": "2026-08-25T21:40:48Z",
+    "substate": "independently_verified",
+    "currentScope": "01-bound-the-evidence-age-policy",
+    "nextRequiredOwner": "bubbles.validate",
+    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
+    "nextRequiredReason": "Independent test execution passed the 61-test focused carrier, 16-test allocation carrier, 94-test Feature 008 browser matrix, 3426-check repository selftest, regression-quality guard, and packet gate battery. Certification and human acceptance remain unclaimed and validate-owned.",
     "completedPhaseClaims": [
-      "plan"
+      "plan",
+      "implement",
+      "test"
     ],
     "pendingTransitionRequests": [],
     "scopeInventory": [
       {
         "scopeId": "01-bound-the-evidence-age-policy",
         "scope": 1,
-        "status": "Not Started",
+        "status": "In Progress",
         "dependsOn": []
       }
     ]
@@ -93,11 +95,35 @@
     },
     {
       "id": "BUG-006-ROUTE-003",
-      "status": "pending",
+      "status": "completed",
       "fromAgent": "bubbles.plan",
       "nextRequiredOwner": "bubbles.test",
       "target": "tests/portfolio-foundation.unit.mjs",
       "reason": "The one-scope plan and structured test handoff require scenario-first boundary and overflow assertions plus an observed focused RED result before implementation."
+    },
+    {
+      "id": "BUG-006-ROUTE-004",
+      "status": "completed",
+      "fromAgent": "bubbles.test",
+      "nextRequiredOwner": "bubbles.implement",
+      "target": "rlportfolio.js",
+      "reason": "The persistent carrier exits 1 with exactly the one-over and TimeClip-overflow BUG-006 refusal tests failing; implementation must add only the planned named maximum and validator predicate."
+    },
+    {
+      "id": "BUG-006-ROUTE-005",
+      "status": "completed",
+      "fromAgent": "bubbles.implement",
+      "nextRequiredOwner": "bubbles.test",
+      "target": "tests/portfolio-foundation.unit.mjs",
+      "reason": "The current bounded validator passes the exact focused carrier. Test ownership must independently account GREEN and execute the planned allocation-page, browser-matrix, and repository regressions."
+    },
+    {
+      "id": "BUG-006-ROUTE-006",
+      "status": "pending",
+      "fromAgent": "bubbles.test",
+      "nextRequiredOwner": "bubbles.validate",
+      "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
+      "reason": "All planned test-owned execution and packet gates pass. Validation owns certification review; the packet and scope remain in progress and human acceptance is not claimed."
     }
   ],
   "reworkQueue": [],
@@ -128,6 +154,33 @@
       "note": "Confirmed Research Lab authority at external control revision 210, inspected all BUG-006 artifacts plus the parent behavior-policy constraints, current validatePolicy and deriveInterestSignals owners, committed 56-day policy, and neighboring foundation tests. Reconciled one narrow scope, added derived scenario obligations and a machine-readable nine-row test handoff, preserved required pre-fix RED ordering, and routed to bubbles.test. No product source, product test, certification field, scope status, commit, or push was changed or executed.",
       "phasesExecuted": ["plan"],
       "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-25T21:01:17Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "action": "scenario-first-red-authored-and-routed",
+      "note": "Bound Research Lab authority to the exact BUG-006 packet at external control revision 212. Added the three planned persistent tests only, then ran the exact focused carrier against unchanged product source. The 36525, committed-56, and non-finite-precedence control passed. The 36526 and TimeClip-overflow refusal titles failed. The carrier exited 1 with 61 tests, 59 passed, 2 failed, and 0 skipped. Recorded report.md#tp-b006-000 and routed product implementation to bubbles.implement without changing certification, scope status, DoD, human acceptance, or product source.",
+      "phasesExecuted": ["test"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-25T21:24:02Z",
+      "agent": "bubbles.implement",
+      "phase": "implement",
+      "action": "bounded-evidence-age-implemented-and-routed",
+      "note": "Validated the inherited Research Lab packet at external control revision 216. Verified the private 36525-day ceiling, preserved non-finite refusal precedence and the exact P008-CONFIG invalid-policy behavior envelope, and added the required conservative-century and leap-day rationale comment. The exact focused carrier exited 0 with 61 passed, 0 failed, and 0 skipped. Artifact lint and git diff --check exited 0. The tracked diff remained confined to rlportfolio.js, the focused test carrier, and this bug packet. No broader regression, audit, validation, human acceptance, commit, or push was claimed or performed.",
+      "phasesExecuted": ["implement"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-25T21:40:48Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "action": "independent-green-regression-and-gates-complete",
+      "note": "Validated the inherited Research Lab packet at control revision 216. Strengthened the persistent overflow test with a direct Date-formatting RangeError assertion, then independently executed the exact focused carrier (61 passed), allocation-page carrier (16 passed), eight-file Feature 008 browser matrix (94 passed), and repository selftest (3426 passed). Regression quality, scenario resolution, artifact shape, traceability, scenario obligations, test mechanisms, scope context, skip-marker, and diff-format checks were clean; the accessibility mutation carrier was accepted by the canonical guard as mixed proof over a separately asserted current surface. Test-leaf receipts are not configured. Packet, scope, certification, DoD, planning-owned test-plan state, and human acceptance were not promoted.",
+      "phasesExecuted": ["test"],
+      "provenanceMode": "specialist"
     }
   ],
   "addressedFindings": [
@@ -137,19 +190,16 @@
       "owner": "bubbles.bug",
       "status": "addressed",
       "evidenceRef": "report.md#before-fix-reproduction"
-    }
-  ],
-  "unresolvedFindings": [
+    },
     {
       "id": "SEC-B005-S1",
-      "summary": "maximumEvidenceAgeDays has no upper bound, so validatePolicy accepts values that make deriveInterestSignals throw RangeError during expiresAt formatting.",
-      "owner": "bubbles.design",
-      "followUpOwner": "bubbles.plan",
-      "implementationOwner": "bubbles.implement",
-      "status": "route_required",
-      "evidenceRef": "report.md#before-fix-reproduction"
+      "summary": "maximumEvidenceAgeDays is bounded at 36525 days before Date arithmetic while preserving the frozen config refusal and non-finite precedence.",
+      "owner": "bubbles.implement",
+      "status": "addressed",
+      "evidenceRef": "report.md#implementation-phase-evidence"
     }
   ],
+  "unresolvedFindings": [],
   "resolvedDiscoveries": [],
   "openDiscoveries": []
 }

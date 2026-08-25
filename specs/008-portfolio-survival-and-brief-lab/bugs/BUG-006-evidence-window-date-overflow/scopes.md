@@ -47,11 +47,11 @@ is claimed.
 
 | Scope | Outcome | Planned source and test paths | Status |
 | --- | --- | --- | --- |
-| 1 | Reject unsafe evidence-age policy before Date derivation | `rlportfolio.js`, `tests/portfolio-foundation.unit.mjs` | Not Started |
+| 1 | Reject unsafe evidence-age policy before Date derivation | `rlportfolio.js`, `tests/portfolio-foundation.unit.mjs` | In Progress |
 
 ## Scope 1 - Bound The Evidence-Age Policy
 
-**Status:** Not Started
+**Status:** In Progress
 **Depends On:** —
 **Execution dependency:** `bubbles.test` (RED) -> `bubbles.implement` ->
 `bubbles.test` (GREEN and regression) -> `bubbles.validate`.

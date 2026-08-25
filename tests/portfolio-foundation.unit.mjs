@@ -10,6 +10,20 @@ const MODULE_PATH = resolve(ROOT, 'rlportfolio.js');
 const POLICY_PATH = resolve(ROOT, 'portfolio-survival-allocation.config.json');
 const NOW = '2026-07-15T13:30:00.000Z';
 
+function invalidBehaviorPolicyRefusal() {
+  return {
+    ok: false,
+    error: {
+      contractVersion: 'PortfolioError/v1',
+      code: 'P008-CONFIG',
+      reason: 'invalid-policy',
+      valueEchoed: false,
+      recoverable: false,
+      field: 'behavior'
+    }
+  };
+}
+
 function loadContracts() {
   assert.equal(existsSync(MODULE_PATH), true, 'RLPORTFOLIO production module must exist');
   assert.equal(existsSync(POLICY_PATH), true, 'mandatory portfolio policy must exist');
@@ -49,6 +63,73 @@ test('mandatory policy is closed versioned finite and rejects unknown configurat
   assert.equal(api.validatePolicy({ ...policy, contractVersion: 'portfolio-survival-allocation-policy/v2' }).error.reason, 'unknown-version');
   assert.equal(api.validatePolicy({ ...policy, analytics: { ...policy.analytics, targetHistoryCalendarYears: Number.POSITIVE_INFINITY } }).error.reason, 'non-finite-policy');
   assert.equal(api.validatePolicy({ ...policy, storage: { ...policy.storage, workspaceNamespace: '' } }).error.reason, 'invalid-policy');
+});
+
+test('BUG-006: maximumEvidenceAgeDays accepts the named 100-year boundary', () => {
+  const { api, policy } = loadContracts();
+  const maximumEvidenceAgeDays = 100 * 365 + 25;
+  assert.equal(maximumEvidenceAgeDays, 36525, 'the named boundary must remain an independently derived 100-year product horizon');
+  assert.equal(policy.behavior.maximumEvidenceAgeDays, 56, 'the committed policy value must remain 56 rather than moving to the validity ceiling');
+  assert.equal(api.validatePolicy(policy).ok, true, 'the committed 56-day policy must remain valid');
+
+  const atBoundary = api.validatePolicy({
+    ...policy,
+    behavior: { ...policy.behavior, maximumEvidenceAgeDays }
+  });
+  assert.equal(atBoundary.ok, true, '36525 days must remain valid');
+
+  const nonFinite = api.validatePolicy({
+    ...policy,
+    behavior: { ...policy.behavior, maximumEvidenceAgeDays: Number.POSITIVE_INFINITY }
+  });
+  assert.deepEqual(nonFinite, {
+    ok: false,
+    error: {
+      contractVersion: 'PortfolioError/v1',
+      code: 'P008-CONFIG',
+      reason: 'non-finite-policy',
+      valueEchoed: false,
+      recoverable: false,
+      field: 'policy.behavior.maximumEvidenceAgeDays'
+    }
+  }, 'non-finite input must keep the existing higher-precedence refusal shape');
+});
+
+test('BUG-006: maximumEvidenceAgeDays refuses one day above the named boundary', () => {
+  const { api, policy } = loadContracts();
+  const oneDayAboveMaximum = 100 * 365 + 25 + 1;
+  const candidate = {
+    ...policy,
+    behavior: { ...policy.behavior, maximumEvidenceAgeDays: oneDayAboveMaximum }
+  };
+
+  assert.deepEqual(api.validatePolicy(candidate), invalidBehaviorPolicyRefusal());
+  assert.equal(candidate.behavior.maximumEvidenceAgeDays, 36526, 'validation must not clamp or replace the rejected value');
+});
+
+test('BUG-006: an overflowing evidence window is refused before interest derivation', () => {
+  const { api, policy } = loadContracts();
+  const overflowEvidenceAgeDays = 99979350;
+  const timeClipMaximumMilliseconds = 8640000000000000;
+  const derivedExpiryMilliseconds = Date.parse('2026-07-16T10:00:00.000Z') + overflowEvidenceAgeDays * 86400000;
+  assert.equal(Number.isFinite(overflowEvidenceAgeDays), true, 'the fixture must exercise the finite-policy path');
+  assert.equal(derivedExpiryMilliseconds > timeClipMaximumMilliseconds, true, 'the fixture must exceed the positive ECMAScript TimeClip boundary');
+  assert.throws(
+    () => new Date(derivedExpiryMilliseconds).toISOString(),
+    { name: 'RangeError', message: 'Invalid time value' },
+    'the fixture must fail direct Date formatting without the validate-first refusal'
+  );
+
+  const overflowPolicy = {
+    ...policy,
+    behavior: { ...policy.behavior, maximumEvidenceAgeDays: overflowEvidenceAgeDays }
+  };
+  const workspace = localOnlyWorkspace(api, policy);
+  let derived;
+  assert.doesNotThrow(() => {
+    derived = api.deriveInterestSignals(workspace, '2026-07-16T10:00:00.000Z', overflowPolicy);
+  }, 'policy validation must refuse the overflow fixture before Date formatting');
+  assert.deepEqual(derived, invalidBehaviorPolicyRefusal());
 });
 
 test('holding revision and workspace identities are strict deterministic contracts', () => {

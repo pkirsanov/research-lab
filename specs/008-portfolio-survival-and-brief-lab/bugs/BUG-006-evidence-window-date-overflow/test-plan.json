@@ -41,7 +41,7 @@
           "command": "timeout 240 node --test tests/portfolio-foundation.unit.mjs",
           "liveSystem": false,
           "evidenceRef": "report.md#tp-b006-000",
-          "status": "required-red-not-run",
+          "status": "required-red-observed",
           "expectedPreImplementationOutcome": "non-zero with both new BUG-006 refusal titles identified",
           "redGreenRequired": true
         },
@@ -57,7 +57,7 @@
           "command": "timeout 240 node --test tests/portfolio-foundation.unit.mjs",
           "liveSystem": false,
           "evidenceRef": "report.md#tp-b006-001",
-          "status": "planned-not-authored",
+          "status": "executed-passed",
           "redGreenRequired": true
         },
         {
@@ -72,7 +72,7 @@
           "command": "timeout 240 node --test tests/portfolio-foundation.unit.mjs",
           "liveSystem": false,
           "evidenceRef": "report.md#tp-b006-002",
-          "status": "planned-not-authored",
+          "status": "executed-passed",
           "redGreenRequired": true
         },
         {
@@ -87,7 +87,7 @@
           "command": "timeout 240 node --test tests/portfolio-foundation.unit.mjs",
           "liveSystem": false,
           "evidenceRef": "report.md#tp-b006-003",
-          "status": "planned-not-authored",
+          "status": "executed-passed",
           "redGreenRequired": true
         },
         {
@@ -101,7 +101,7 @@
           "command": "timeout 900 npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
           "liveSystem": true,
           "evidenceRef": "report.md#tp-b006-004",
-          "status": "existing-not-executed",
+          "status": "executed-passed",
           "redGreenRequired": false
         },
         {
@@ -120,7 +120,7 @@
           "command": "timeout 1800 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
           "liveSystem": true,
           "evidenceRef": "report.md#tp-b006-005",
-          "status": "existing-not-executed",
+          "status": "executed-passed",
           "redGreenRequired": false
         },
         {
@@ -139,7 +139,7 @@
           "command": "timeout 1800 node scripts/selftest.mjs",
           "liveSystem": false,
           "evidenceRef": "report.md#tp-b006-006",
-          "status": "existing-not-executed",
+          "status": "executed-passed",
           "redGreenRequired": false
         },
         {
@@ -158,7 +158,7 @@
           "command": "timeout 600 bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow && timeout 600 bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow && timeout 600 bash .github/bubbles/scripts/scenario-obligation-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow && timeout 600 bash .github/bubbles/scripts/test-mechanism-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow --repo-root . && timeout 600 bash .github/bubbles/scripts/scope-context-fit-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
           "liveSystem": false,
           "evidenceRef": "report.md#tp-b006-007",
-          "status": "planned-not-executed",
+          "status": "executed-passed",
           "redGreenRequired": false
         },
         {

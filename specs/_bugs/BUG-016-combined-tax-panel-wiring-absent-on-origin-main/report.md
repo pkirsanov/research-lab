@@ -671,3 +671,134 @@ module, renders the panel, nor references the module's namespace anywhere. This 
 guard derives its markers from the browser spec rather than from the route — the route on the
 deployed branch is internally consistent about the panel not existing, and would have satisfied
 any guard that only compared the route against itself.
+
+## Independent Re-Verification Of The Three Closing Premises
+
+A later round re-measured the three premises the closing claim rests on, rather than inheriting
+them. All three hold, and one of them holds less completely than the claim reads.
+
+**CI conclusion.** `gh run view 32744354615` reports `conclusion=success` at `adbfc86bb`, with
+`verify=success`, `deploy=success` and `notify-failure=skipped`. That is the run this report
+already cited, and it is confirmed rather than restated.
+
+**The wiring at the deployed ref.** `git show origin/main:lifetime-tax-strategy-lab.html` carries
+`combinedFederalLeg` — the marker this packet's own FR-016-004 names — at two sites. Local `HEAD`
+and `origin/main` are the same commit, `7df8e0f49`, so the route measured here is the deployed
+route.
+
+**The guard is present and live.** All four assertions pass in the current run: `W1` at 14 modules
+with no other HTML consumer, `W2` with `unwired: none`, `W3` at 10 anchors with `missing: none`,
+`W4` at 6 names with `missing: none`.
+
+### What the guard actually protects — measured, not assumed
+
+Presence is not enforcement, so each of the three checks that can regress was perturbed.
+
+| Check | Perturbation | Verdict |
+| --- | --- | --- |
+| `W2` module tags | dropped the `rltaxcombined.js` `<script src>` | RED, and it names `unwired: rltaxcombined.js` |
+| `W3` anchor ids | renamed `id="combinedSettlementCard"` | RED, `10 anchors` with the anchor reported missing |
+| `W4` value names | renamed the `combinedFederalLeg` render call | **GREEN — did not discriminate** |
+
+`W2` catches the exact defect that produced this bug, and it names the module. `W3` is load-bearing
+for all ten anchors: each `id="…"` appears exactly once in the route, so losing one takes the count
+to zero.
+
+### Finding — `W4` is satisfiable without the render call for three of its six names
+
+The `W4` probe returned exit 7. The cause is that `W4`'s predicate is a substring search for the
+quoted name anywhere in the route:
+
+```text
+const wMissingValues = wValueMarkers.filter((v) => wRouteSrc.indexOf('"' + v + '"') < 0);
+```
+
+Three of the six names it derives also appear in `SIMPLE_FIELDS`, the closed list of decision-level
+fields the Simple renderer permits. So the name is quoted twice: once as an allow-list entry and
+once at the call that emits the node. Renaming only the emitting call leaves the allow-list entry
+in place and `W4` stays green on a route that no longer renders the value.
+
+| `W4` name | quoted occurrences in the route | `W4` load-bearing? |
+| --- | --- | --- |
+| `combined-federal-total` | 1 | yes |
+| `combined-state-total` | 1 | yes |
+| `combined-total` | 1 | yes |
+| `combinedFederalLeg` | 2 — `SIMPLE_FIELDS` and the render call | no |
+| `combinedStateLeg` | 2 — `SIMPLE_FIELDS` and the render call | no |
+| `combinedTotalTax` | 2 — `SIMPLE_FIELDS` and the render call | no |
+
+`W4`'s own wording is the narrower claim — that the name *appears* in the route — and it enforces
+that faithfully. The gap is between what it enforces and what a reader takes from it, and it lands
+on `combinedFederalLeg` specifically, which is the marker FR-016-004 cites as its exemplar.
+
+This is not a hole in the fix. The panel is wired, `W2` guards the failure mode that actually
+occurred, and `W3` guards the anchors whose loss produced the 30-second locator timeouts. It is a
+bounded weakness in one of four checks, recorded here rather than repaired: the guard is outside
+this round's remit, and the repair is a design question — compare against the emitting call, or
+derive the allow-list and the render sites separately — that belongs to whoever owns the guard.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            bug016-w2-dropped-script-tag
+file:             lifetime-tax-strategy-lab.html
+mutation:             <script src="rltaxcombined.js"></script>  ->      <!-- probe: combined module tag dropped -->   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: W2: lifetime-tax-strategy-lab.html carries a <script src> for every rltax module on disk — 14 modules, unwired: rltaxcombined.js — a
+green-exit:       1
+green-summary:      ✓ W2: lifetime-tax-strategy-lab.html carries a <script src> for every rltax module on disk — 14 modules, unwired: none — an unwired module s
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   yes (summary differs)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            bug016-w3-dropped-anchor-id
+file:             lifetime-tax-strategy-lab.html
+mutation:         id="combinedSettlementCard"  ->  id="combinedSettlementCardGONE"   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: W3: every #combined anchor tests/lifetime-tax-combined.spec.mjs locates exists as an element id in the route — 10 anchors, miss
+green-exit:       1
+green-summary:      ✓ W3: every #combined anchor tests/lifetime-tax-combined.spec.mjs locates exists as an element id in the route — 10 anchors, missing: n
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   yes (summary differs)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            bug016-w4-dropped-panel-marker
+file:             lifetime-tax-strategy-lab.html
+mutation:         federalAddendRow.appendChild(simpleValueNode("combinedFederalLeg",  ->  federalAddendRow.appendChild(simpleValueNode("combinedFederalLegGONE",
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✓ W4: every combined data-rl-value name tests/lifetime-tax-combined.spec.mjs locates appears in the route — 6 names, missing: none — the rou
+green-exit:       1
+green-summary:      ✓ W4: every combined data-rl-value name tests/lifetime-tax-combined.spec.mjs locates appears in the route — 6 names, missing: none — the rou
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   NO (both channels agree: exit 1 == 1)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Every probe reverted with a hash-verified restore to the committed blob, and the route was clean
+before and after each one.
+
+### Why the status item stays open
+
+The item asks for `bug.md` to move `Confirmed → Fixed → Verified`. The first transition is done and
+fully evidenced: `bug.md` reads `Fixed — awaiting independent verification`.
+
+`Verified` is a different kind of claim, and this round is the wrong author for it on two counts.
+It is a certification statement, and an implementing round asserting that its own fix has been
+independently verified is exactly the self-certification the evidence rules exist to prevent. The
+repository also has a settled convention here that no packet has ever departed from: across all
+twenty-three bug packets, every fixed one rests at `Fixed — awaiting independent verification` —
+BUG-009, BUG-010, BUG-015 and BUG-017 all read that phrase verbatim — and not one has ever reached
+`Verified`. Inventing that state here would make this packet the first, on its own authority.
+
+The three premises are now confirmed, so a verifying round has what it needs to close this in one
+step; the `W4` finding above is the one thing it should weigh that the closing claim does not
+mention.
+

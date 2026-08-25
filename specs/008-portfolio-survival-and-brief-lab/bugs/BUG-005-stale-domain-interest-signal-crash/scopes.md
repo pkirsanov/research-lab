@@ -2,7 +2,7 @@
 
 Governing artifacts: `bug.md` (defect and provenance), `spec.md` (expected
 behavior EB-1..EB-5 and AC-1..AC-7), `design.md` (root cause, semantics
-decision, divergence resolution, regression strategy).
+decision, divergence resolution, regression design).
 
 Workflow mode: `bugfix-fastlane`. Single scope, single-file layout.
 
@@ -17,7 +17,7 @@ carrier.
 
 ### Change Boundary
 
-Authorized paths:
+Allowed file families:
 
 | Path | Authorized change |
 | --- | --- |
@@ -26,8 +26,8 @@ Authorized paths:
 | `notes/portfolio-survival-allocation-lab.md` | one carrier row in the existing test table |
 | `specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/**` | this packet |
 
-Explicitly out of boundary — touching any of these is a boundary excursion and
-must be routed, not absorbed:
+Excluded surfaces — these MUST remain untouched. Editing any of them is a
+boundary excursion and must be routed, not absorbed:
 
 - `validateInterestSignal` or `INTEREST_SIGNAL_FIELDS` in `rlportfolio.js`.
 - `rlportfoliobrief.js` (see `design.md` § Divergence Resolution — no repair is
@@ -37,6 +37,34 @@ must be routed, not absorbed:
   `tests/portfolio-behavior-occurrence.unit.mjs` and
   `tests/portfolio-brief.functional.mjs`. Both are RE-RUN as regression, and
   neither is edited.
+
+Collateral cleanup is opt-in, not implicit: an unrelated defect noticed inside
+`rlportfolio.js` while making this change is filed, not absorbed.
+
+### Consumer Impact Sweep
+
+This fix mutates NO public interface identity. It relocates one statement
+**inside** `deriveInterestSignals`; the function keeps its name, arity, call
+signature, and export site. Nothing is renamed, removed, moved, or deprecated,
+so no consumer has a reference that could go stale.
+
+The sweep is recorded because that claim has to be checked rather than assumed —
+a relocation that quietly dropped an export would look identical in prose.
+Surfaces enumerated and confirmed unchanged:
+
+| Consumer surface | Expected effect | Verification |
+| --- | --- | --- |
+| Exported symbol table of `rlportfolio.js` | unchanged | `deriveInterestSignals: deriveInterestSignals` still present exactly once |
+| Exported symbol table of `rlportfoliobrief.js` | unchanged | out of boundary; byte-identical across the fix |
+| First-party call sites (`*.js`, `*.mjs`, `*.html`) | all still resolve | 42 tracked references, all to the same unchanged name |
+| Page wiring in `portfolio-survival-allocation-lab.html` | unchanged | calls `window.RLPORTFOLIOBRIEF.deriveInterestSignals`, an excluded surface |
+| Navigation, breadcrumb, redirect, deep link, API client, generated client | not applicable | this is an internal function, reachable through no route, URL, or slug |
+| Stale-reference scan | zero hits | no old identifier exists to leave behind |
+
+`_site/rlportfolio.js` also matches the sweep but is a gitignored build output
+(`.gitignore:16:/_site/`), not a first-party source surface. It is rebuilt from
+`rlportfolio.js` and is therefore not a consumer that can hold a stale
+reference.
 
 ### Gherkin Scenarios
 
@@ -94,11 +122,133 @@ Feature: BUG-005 Stale-domain interest signal derivation
 | TP-B005-002 | Unit | `unit` | `tests/portfolio-stale-domain-signal.unit.mjs` | AC-3 — fresh sibling survives, score and band unchanged | `node --test tests/portfolio-stale-domain-signal.unit.mjs` | No |
 | TP-B005-003 | Regression | `unit` | `tests/portfolio-behavior-occurrence.unit.mjs` | BUG-004 storage and anti-inflation contract unaffected — file unmodified | `node --test tests/portfolio-behavior-occurrence.unit.mjs` | No |
 | TP-B005-004 | Regression | `functional` | `tests/portfolio-brief.functional.mjs` | Brief-side derivation and floor accounting unaffected — file unmodified | `node --test tests/portfolio-brief.functional.mjs` | No |
-| TP-B005-005 | Regression | `functional` | `scripts/selftest.mjs` | Registry, navigation, and canonical model invariants | `node scripts/selftest.mjs` | No |
+| TP-B005-005 | Regression | `functional` | `scripts/selftest.mjs` | Registry, navigation, and canonical model invariants | `node scripts/selftest.mjs` | No || TP-B005-006 | Regression E2E | `e2e-ui` | `tests/portfolio-survival-allocation.spec.mjs` | Regression: `SCN-B005-STALE-OMITTED` in the browser — a workspace whose only `equity-research` event is outside `maximumEvidenceAgeDays` renders the allocation lab without an uncaught `RangeError`, and the fresh sibling domain still renders its signal. **NOT YET AUTHORED — routed to `bubbles.test`.** | `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --project=system-chrome` | Yes |
+| TP-B005-007 | Regression E2E | `e2e-ui` | `tests/portfolio-survival-*.spec.mjs` | Broader Feature 008 browser matrix, all 8 carriers, proving the relocation did not disturb the shipped surfaces. **NOT YET EXECUTED IN THIS PACKET — routed to `bubbles.test`.** | `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --project=system-chrome` | Yes |
 
+Rows TP-B005-006 and TP-B005-007 are declared obligations, not delivered
+coverage. No browser carrier in this repository currently exercises the
+stale-domain path: `grep -rlniE 'stale.domain|BUG-005|maximumEvidenceAgeDays'
+tests/*.spec.mjs` returns no file, and this packet's `report.md` records no
+Playwright execution at all. The 94-passed Feature 008 matrix that exists in the
+repository is BUG-004's `TP-B004-006` receipt and is NOT evidence for BUG-005.
+Both rows therefore stay unchecked in the Definition of Done below.
 ### Definition of Done
 
 #### Core Items
+
+- [x] `SCN-B005-STALE-OMITTED` holds: given a workspace whose only
+      `equity-research` event occurred 190.92 days ago against a declared
+      `maximumEvidenceAgeDays` of 56, deriving interest signals at that
+      reference instant returns an ok envelope rather than throwing, and emits
+      no signal for that domain
+      - Raw output evidence (inline, no references):
+        ```
+        $ node --test tests/portfolio-stale-domain-signal.unit.mjs
+        ok 1 - BUG-005: a domain whose every eligible event has aged out yields no signal instead of throwing
+        ok 2 - BUG-005: a future-dated-only domain is omitted through the same filter without throwing
+        1..6
+        # tests 6
+        # pass 6
+        # fail 0
+        # skipped 0
+        CARRIER_EXIT=0
+        ```
+        Row 1 carries both halves of the Then clause: the derivation returns an
+        envelope instead of throwing, AND the stale domain is absent from it.
+        Row 2 proves the same filter also omits a future-dated-only domain, so
+        the omission follows the declared age window in both directions rather
+        than special-casing the past. The claim is discriminating, not vacuous:
+        the same six rows are 0/6 RED against the pre-fix module with
+        `RangeError: Invalid time value`, recorded at
+        `report.md#pre-fix-reproduction`, and the vacuity guards inside the
+        carrier assert the stale domain really did store a row, so "no signal
+        emitted" cannot pass because nothing was ever recorded.
+        **Claim Source:** executed
+
+- [x] `SCN-B005-FRESH-SIBLING` holds: given a workspace holding one stale-only
+      domain beside one domain with in-window evidence, the derivation returns
+      an ok envelope, the fresh domain emits its signal with an unchanged
+      `evidenceScore` and `relevanceBand`, and the stale domain is absent
+      - Raw output evidence (inline, no references):
+        ```
+        $ node --test tests/portfolio-stale-domain-signal.unit.mjs
+        ok 3 - BUG-005: a stale domain must not suppress the fresh domains beside it
+        1..6
+        # tests 6
+        # pass 6
+        # fail 0
+        ```
+        This is the blast-radius half of the defect and the reason it mattered:
+        the throw happened inside `Array.prototype.map`, so one retired domain
+        destroyed the derivation for every fresh domain beside it. The carrier
+        row asserts the fresh domain's score and band against an isolated
+        fresh-only derivation of the same workspace, so an implementation that
+        silently degraded the survivor would fail rather than pass.
+        **Claim Source:** executed
+
+- [x] `SCN-B005-DISCRIMINATION` holds: given module source in which the domain
+      bucket is created before the age filter, deriving the stale-only input
+      against that source throws a `RangeError`, proving the shipped ordering
+      is what prevents it
+      - Raw output evidence (inline, no references):
+        ```
+        $ node --test tests/portfolio-stale-domain-signal.unit.mjs
+        ok 5 - BUG-005: reinstating the superseded pre-filter bucket creation turns the stale-domain assertion red
+        1..6
+        # tests 6
+        # pass 6
+        # fail 0
+        ```
+        Row 5 rebuilds the module from source text with the superseded
+        pre-filter bucket creation reinstated and requires that mutant to THROW
+        on the input the shipped ordering survives. Its green therefore means
+        the failure path was exercised rather than omitted, so the aggregate
+        cannot go green by the assertion being absent. Both directions of the
+        discrimination are recorded at `report.md#discrimination`.
+        **Claim Source:** executed
+
+- [x] `SCN-B005-FLOOR-PRESERVED` holds: given a domain with one in-window event
+      and a declared floor of two distinct completions, a signal is still
+      emitted for that domain with `floorSatisfied` false and `relevanceBand`
+      `insufficient-evidence`
+      - Raw output evidence (inline, no references):
+        ```
+        $ node --test tests/portfolio-stale-domain-signal.unit.mjs
+        ok 4 - BUG-005: in-window evidence below the floor is still emitted, so the fix widened nothing
+        1..6
+        # tests 6
+        # pass 6
+        # fail 0
+        ```
+        This is the containment assertion for the fix: omitting stale-only
+        domains must not become "omit anything weak". A domain with in-window
+        evidence BELOW the floor is still emitted and merely marked
+        unsatisfied, which is the behavior `spec.md` EB-5 requires stay
+        rejected-as-a-change. Without this row the fix could have passed by
+        dropping below-floor domains too, which would widen the omission.
+        **Claim Source:** executed
+
+- [x] `SCN-B005-BRIEF-AGREEMENT` holds: given the stale-only workspace,
+      `rlportfolio` emits no signal for the domain while `rlportfoliobrief`
+      emits it with zero score, no supporting occurrences, and an unsatisfied
+      floor — both denying live relevance
+      - Raw output evidence (inline, no references):
+        ```
+        $ node --test tests/portfolio-stale-domain-signal.unit.mjs
+        ok 6 - BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance
+        1..6
+        # tests 6
+        # pass 6
+        # fail 0
+        ```
+        The two derivations differ in FORM — one omits the row, the other emits
+        a null-support row — while agreeing in SUBSTANCE that the domain
+        carries no live relevance. That is exactly the disposition
+        `design.md` § Divergence Resolution records, and it is asserted here
+        behaviorally rather than left as prose, which is what makes the
+        "no repair owed on the brief side" decision checkable. The measured
+        divergence backing it is at `report.md#divergence`.
+        **Claim Source:** executed
 
 - [x] Crash reproduced at HEAD before any fix, with the thrown type, message,
       and source frame recorded
@@ -449,20 +599,32 @@ Feature: BUG-005 Stale-domain interest signal derivation
       - Raw output evidence (inline, no references):
         ```
         $ grep -nE '^#{1,4} ' design.md
+        1:# Design: BUG-005 Stale-Domain Interest Signal Crash
+        3:## Root Cause
         43:## Semantics Decision: Stale-Only Domains Are Omitted
-        50:### Candidate A - emit a null-support signal (rejected)
-        73:### Candidate B - omit the domain (chosen)
+        50:### Candidate A — emit a null-support signal (rejected)
+        73:### Candidate B — omit the domain (chosen)
+        96:## Fix
         125:### What the fix deliberately does not do
+        137:### Affected files
         145:## Divergence Resolution
-        209:## Regression Strategy
+        209:## Regression Design
+        240:## Capability Shape
+        258:### Single-Implementation Justification
+        296:## Requirement-Mechanism Justifications
+        318:## Complexity Tracking
         exit: 0
 
         $ grep -n -A 8 'EB-5' spec.md
-        53:### EB-5 - What remains rejected after the fix
-        55-The fix widens nothing. All of the following MUST still hold, and are asserted:
-        59-| Out-of-window evidence contributes to `evidenceScore` | No - score is unchanged for fresh domains and the stale domain has no score at all |
-        60-| Out-of-window evidence counts toward `minimumDistinctCompletions` / `minimumDistinctUtcDates` | No - the floor is computed only from surviving events |
-        61-| A domain with in-window evidence below the floor is dropped | No - it is still EMITTED with `floorSatisfied: false` and band `insufficient-evidence` |
+        114:### EB-5 — What remains rejected after the fix
+        115-
+        116-The fix widens nothing. All of the following MUST still hold, and are asserted:
+        117-
+        118-| Rejection | Still enforced |
+        119-| --- | --- |
+        120-| Out-of-window evidence contributes to `evidenceScore` | No — score is unchanged for fresh domains and the stale domain has no score at all |
+        121-| Out-of-window evidence counts toward `minimumDistinctCompletions` / `minimumDistinctUtcDates` | No — the floor is computed only from surviving events |
+        122-| A domain with in-window evidence below the floor is dropped | No — it is still EMITTED with `floorSatisfied: false` and band `insufficient-evidence` |
         exit: 0
         ```
         `design.md` carries a `## Divergence Resolution` section explaining why
@@ -472,12 +634,20 @@ Feature: BUG-005 Stale-domain interest signal derivation
         rejected after the fix. Neither is prose-only: carrier row 4 asserts the
         below-floor case is still emitted, and carrier row 6 asserts the
         portfolio/brief agreement, both green above.
+
+        This receipt was re-executed after `design.md` was revised. The earlier
+        transcription recorded the then-current regression heading at
+        `design.md:209` — since retitled `## Regression Design` — and located
+        EB-5 at `spec.md:53`; EB-5 now begins at `spec.md:114`. The line numbers
+        and titles above are the current ones, so the receipt matches the
+        artifacts it describes rather than a superseded revision of them.
         **Claim Source:** executed
 
 #### Build Quality Gate
 
-- [x] Change Boundary respected — the dirty set contains only authorized paths;
-      no BUG-004 artifact and no BUG-004 carrier is modified
+- [x] Change Boundary is respected and zero excluded file families were changed
+      — the dirty set contains only allowed paths; no BUG-004 artifact and no
+      BUG-004 carrier is modified
       - Raw output evidence (inline, no references):
         ```
         $ git diff --name-only 732bccb6c^..732bccb6c

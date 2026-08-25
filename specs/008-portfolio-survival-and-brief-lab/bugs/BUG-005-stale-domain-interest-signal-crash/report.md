@@ -275,6 +275,91 @@ touched. The change is a relocation of bucket creation, not new behavior: the
 same filter, the same dedupe, the same accumulation, reordered so the bucket
 cannot outlive the filter.
 
+### Code Diff Evidence {#code-diff-evidence}
+
+**Claim Source:** executed — both commands were run in this session against the
+committed history and their real stdout and real exit codes are recorded below.
+
+The delivery commit is `732bccb6c`; `HEAD` has since advanced past it, so a
+working-tree diff no longer shows this change. The commit is therefore addressed
+directly. The section above (`### Fix confinement`) analyses the same change
+against its enclosing function; this section records the commit-addressed
+production diff itself, with the `a/` and `b/` path headers intact.
+
+```text
+$ git show 732bccb6c -- rlportfolio.js
+commit 732bccb6c8949008d3eaf9323c26d85467352e44
+Author: pkirsanov <pkirsanov@users.noreply.github.com>
+Date:   Tue Aug 25 05:38:06 2026 +0000
+
+    fix(BUG-005): omit stale-only interest domains
+
+diff --git a/rlportfolio.js b/rlportfolio.js
+index 495538f19..dc2643865 100644
+--- a/rlportfolio.js
++++ b/rlportfolio.js
+@@ -2459,6 +2459,16 @@
+       if (!event || !event.domain) return;
+       if (event.lifecycleState !== "eligible") return;
+       if (!event.genericEvidenceIdentity || !event.eventIdentity || !event.occurrence) return;
++      var ageDays = (Date.parse(now) - Date.parse(event.occurredAt)) / 86400000;
++      if (ageDays < 0 || ageDays > behavior.maximumEvidenceAgeDays) return;
++      eligibleEvents.push(event);
++    });
++
++    var dedupedResult = dedupeBehaviorEvents(eligibleEvents, policy);
++    if (!dedupedResult.ok) return dedupedResult;
++    dedupedResult.value.events.forEach(function (event) {
++      // Created HERE, after the age filter. A domain with no in-window evidence must not own a
++      // bucket at all: `latest` would stay null and `expiresAt` below becomes an invalid date.
+       var key = String(event.domain);
+       if (!byDomain[key]) {
+         byDomain[key] = {
+@@ -2471,15 +2481,7 @@
+           score: 0
+         };
+       }
+-      var ageDays = (Date.parse(now) - Date.parse(event.occurredAt)) / 86400000;
+-      if (ageDays < 0 || ageDays > behavior.maximumEvidenceAgeDays) return;
+-      eligibleEvents.push(event);
+-    });
+-
+-    var dedupedResult = dedupeBehaviorEvents(eligibleEvents, policy);
+-    if (!dedupedResult.ok) return dedupedResult;
+-    dedupedResult.value.events.forEach(function (event) {
+-      var bucket = byDomain[String(event.domain)];
++      var bucket = byDomain[key];
+       var ageDays = (Date.parse(now) - Date.parse(event.occurredAt)) / 86400000;
+       bucket.eventIdentities[event.eventIdentity] = true;
+       bucket.dates[event.occurrence.newYorkCivilDate] = true;
+exit: 0
+```
+
+The full changed-path footprint of the same commit, with unabbreviated paths so
+each entry classifies under its true family rather than under a display
+ellipsis:
+
+```text
+$ git diff-tree --no-commit-id --name-only -r 732bccb6c
+notes/portfolio-survival-allocation-lab.md
+rlportfolio.js
+specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/bug.md
+specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/design.md
+specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/report.md
+specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/scenario-manifest.json
+specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/scopes.md
+specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/spec.md
+specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/state.json
+specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/uservalidation.md
+tests/portfolio-stale-domain-signal.unit.mjs
+exit: 0
+```
+
+One production module (`rlportfolio.js`), one test carrier
+(`tests/portfolio-stale-domain-signal.unit.mjs`), one notes update
+(`notes/portfolio-survival-allocation-lab.md`), and the packet artifacts. The
+delivery footprint outside `specs/` is real and is not artifact-only.
+
 ### Focused carrier GREEN {#focused-carrier}
 
 ```text
@@ -576,4 +661,56 @@ Three points are load-bearing:
 G070 is a real gap rather than a convention that does not apply here: the
 already-certified sibling `BUG-004` carries an Outcome Contract in its
 `spec.md`, `report.md` and `state.json`, and this packet carries none anywhere.
+
+## Outcome Contract Demonstration — 2026-08-25 {#outcome-contract-demonstration}
+
+**Phase:** implement
+**Agent:** `bubbles.implement`
+**Repository binding:** `PREFLIGHT_COMMITTED decision=rb:<session>:94 revision=94 repository=research-lab root=<repo-root>`
+
+The [validation refusal](#validation-refusal) above recorded
+`G070_EXIT=1 → spec.md has no non-empty '## Outcome Contract'`. That line is a
+true account of the run that produced it and is left as written. `bubbles.analyst`
+has since added `## Outcome Contract` to `spec.md`, which activated the
+previously dormant demonstration half of G070: the declared **Success Signal**
+must be shown in evidence, not merely declared.
+
+This section supplies that demonstration and introduces no new measurement.
+Every figure in the table below is already recorded under `## Test Evidence` and
+links to the block that produced it. This is implementation-owned demonstration,
+not certification. Certification remains open and is still owned by
+`bubbles.validate`.
+
+### Outcome Contract Verification (G070)
+
+| Field | Declared | Recorded evidence in this report | Status |
+| --- | --- | --- | --- |
+| Intent | Interest-signal derivation survives its own evidence-expiry policy. A stale-only domain resolves to nothing, the derivation returns its declared envelope instead of throwing, and the repair does not widen what counts as live evidence. | [Focused carrier GREEN](#focused-carrier) returns the envelope on the same mixed workspace that [the pre-fix module](#pre-fix-reproduction) throws on, and carrier row 4 holds below-floor in-window evidence emitted, so nothing was widened. | PASS |
+| **Success Signal** | `tests/portfolio-stale-domain-signal.unit.mjs` is 6/6 green against the shipped `rlportfolio.js` and 0/6 against the same suite with only `rlportfolio.js` reverted to `732bccb6c^`, the leading row raising `RangeError: Invalid time value` from `Date.toISOString` inside `Object.deriveInterestSignals`. `SCN-B005-DISCRIMINATION` carries the same proof inside one run. Non-movement stays 36/36 and 3409 passed / 0 failed. | GREEN half: [focused carrier](#focused-carrier) `exit 0`, `tests 6, pass 6, fail 0, skipped 0`. RED half: [pre-fix reproduction](#pre-fix-reproduction) `exit 1`, `tests 6, pass 0, fail 6`, `name: 'RangeError'`, `error: 'Invalid time value'`, frame `rlportfolio.js:2518:101` reached from `Object.deriveInterestSignals (rlportfolio.js:2491:48)`. Single-run half: carrier row 5, the reinstated pre-filter mutant, green inside the same GREEN run and read in [source-mutation discrimination](#discrimination). Non-movement: [BUG-004 regressions](#bug-004-regressions) `exit 0`, `tests 36, pass 36, fail 0`, both carriers byte-identical from `732bccb6c^` through `HEAD`; [canonical selftest](#canonical-selftest) `exit 0`, `3409 passed, 0 failed`. | PASS — every declared half is recorded |
+| Hard Constraints | One envelope protocol and never a throw; omission rather than a null-support row; `validateInterestSignal` unchanged and still strict; below-floor in-window evidence still emitted; out-of-window evidence contributes nothing and the window does not move; one stale domain does not suppress a fresh sibling; the filter keeps its position relative to `dedupeBehaviorEvents`; the change is confined to statement ordering and persists no new field. | Carrier rows 1-4 and 6 assert the envelope protocol, omission over null support, sibling survival, and below-floor emission executably. Order preservation is carried by [BUG-004 regressions](#bug-004-regressions) at 36/36 against byte-identical carriers. Confinement and the untouched window and validator rest on the diff receipts in [fix confinement](#fix-confinement), [code diff evidence](#code-diff-evidence) and [change boundary](#change-boundary), which are inspection rather than assertion. | PARTIAL — executable for the behavioral constraints, diff-backed for the confinement constraints |
+| Failure Condition | The repair fails if a stale-only domain reacquires a bucket and throws, if it is emitted at all, if omission swallows below-floor in-window evidence, if a stale domain erases a fresh sibling, if the filter/dedupe order reopens BUG-004, or if the carrier ever passes against pre-fix source. | The first four classes are directly rejected by carrier rows 1-4, green in [focused carrier](#focused-carrier). Order regression is rejected by 36/36 in [BUG-004 regressions](#bug-004-regressions). Verification vacuity is rejected by the recorded 0/6 in [pre-fix reproduction](#pre-fix-reproduction): the suite does go red on pre-fix source, so its green discriminates. | PASS for the executable classes |
+
+The pair is what carries the Success Signal, and both halves of the pair are
+recorded above rather than asserted here. A suite that only passed would not
+satisfy the declared signal, because the contract names the 0/6 red as part of
+it.
+
+**Command:** `bash .github/bubbles/scripts/goal-fidelity-guard.sh --boundary pre-certification --session-file .specify/memory/bubbles.session.json --spec-dir <bug-folder>`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+$ bash .github/bubbles/scripts/goal-fidelity-guard.sh --boundary pre-certification --session-file .specify/memory/bubbles.session.json --spec-dir specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash
+goal-fidelity-guard: PASS boundary=pre-certification
+GF_GUARD_EXIT_AFTER=0
+```
+
+Baseline for that run, executed in the same session before this section was
+written: `GOAL-FIDELITY[GF-6] ... report.md never references the declared
+Success Signal`, `goal-fidelity-guard: FAIL boundary=pre-certification
+findings=1`, exit `1`. Findings moved 1 → 0.
+
+G070 remains one input to certification and not certification itself. The
+[validation refusal](#validation-refusal) above lists the other blocking gates,
+including G136 human acceptance, which no agent may close.
 

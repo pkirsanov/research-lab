@@ -29,7 +29,8 @@ Upstream, By Feature 026".
 
 ## Scope 1: Adjudicate The Recent-Row Payload Contract
 
-**Status:** Resolved upstream by Feature 026 (`3872df354`) — **not delivered by this packet**
+**Status:** Done (resolved-upstream-by-feature-026)
+**Resolution:** resolved upstream by Feature 026 (`3872df354`) — **not delivered by this packet**
 **Depends On:** none
 **Owner:** Feature 026's owner. **Not agent-dischargeable.**
 
@@ -96,7 +97,8 @@ Feature: The recent-row contract states one coherent intention
 
 ## Scope 2: Bring The First-Load Payload Inside Budget At Steady State
 
-**Status:** Resolved upstream by Feature 026 (`3872df354`) — **not delivered by this packet**
+**Status:** Done (resolved-upstream-by-feature-026)
+**Resolution:** resolved upstream by Feature 026 (`3872df354`) — **not delivered by this packet**
 **Depends On:** Scope 1
 
 > **Attribution.** Measured at `831144596`: the first-load total is **201,282** against 204,800
@@ -171,7 +173,8 @@ Feature: The cockpit first-load payload respects its declared budget
 
 ## Scope 3: Give The Recent Artifact A Byte Bound That Binds
 
-**Status:** [x] Done — delivered at `831144596` (working tree, uncommitted)
+**Status:** Done
+**Resolution:** delivered at `831144596` (recorded at ticking time as working tree, uncommitted)
 **Depends On:** Scope 1 — satisfied upstream by Feature 026 (`3872df354`)
 
 ### Problem This Scope Resolves

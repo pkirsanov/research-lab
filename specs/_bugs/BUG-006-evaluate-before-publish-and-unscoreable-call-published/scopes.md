@@ -14,7 +14,7 @@ Links: [bug.md](bug.md) | [spec.md](spec.md) | [design.md](design.md) | [report.
 
 ## Scope 1: Owner Decision On Remedy Direction
 
-**Status:** [ ] Not started
+**Status:** Not Started
 **Depends On:** none
 **Owner:** repository owner (NOT agent-ownable)
 **Addresses:** Defects A and B — selection only, no implementation
@@ -89,7 +89,7 @@ Feature: A remedy direction is selected with its costs understood
 
 ## Scope 2: Defect B — Enforce D16 At The Publish Gate
 
-**Status:** [ ] In progress
+**Status:** In Progress
 **Depends On:** Scope 1
 **Owner:** spec `015-recommendation-outcome-ledger-and-track-record` (currently `blocked`)
 **Addresses:** **Defect B only**
@@ -282,7 +282,7 @@ Feature: An unscoreable tactical or swing call cannot be published
 
 ## Scope 3: Defect A — Reconcile The Ordering With The Asserted Invariant
 
-**Status:** [ ] Not started
+**Status:** Not Started
 **Depends On:** Scope 1
 **Owner:** repository owner
 **Addresses:** **Defect A only**
@@ -361,7 +361,7 @@ Feature: The committed ledger holds the invariant the selftest asserts
 
 ## Scope 4: Contributing Factor A2 And Open Diagnostics
 
-**Status:** [ ] Not started
+**Status:** Not Started
 **Depends On:** Scope 3 (A2 is unsafe to land before Defect A is resolved)
 **Owner:** repository owner
 **Addresses:** contributing factor A2, plus findings `DISC-006-004` and `DISC-006-005`

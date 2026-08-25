@@ -25,7 +25,7 @@ read-only `git` and file inspection. Those are tagged `executed` below; everythi
 
 ## Scope 1: 01-restore-ohlc-coherence-in-bars-ingestion
 
-**Status:** [x] Done
+**Status:** Done
 **Depends On:** none
 **Owner:** delivered in commit `8694d8696`
 
@@ -119,7 +119,7 @@ currently violate it; run against a synthetic clean sample it is tautological.
 
 ## Scope 2: 02-decouple-committed-fixture-from-mutable-bars
 
-**Status:** [x] Done
+**Status:** Done
 **Depends On:** 01
 **Owner:** delivered in commit `13ef48db9`
 
@@ -190,7 +190,7 @@ was green for months before `643d74bfd` arrived.
 
 ## Scope 3: 03-surface-boot-failure-instead-of-hanging
 
-**Status:** [x] Done
+**Status:** Done
 **Depends On:** none
 **Owner:** delivered in commit `e2499ab8a`
 

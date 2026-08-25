@@ -3,7 +3,7 @@
 **Layout:** single-file
 **Mode:** `bugfix-fastlane`
 **Packet status:** `in_progress`
-**Next required owner:** `bubbles.validate`
+**Next required owner:** `bubbles.plan`
 
 The projection repair is committed at `a59e38d71` and thirteen of fourteen
 Definition of Done items now carry executed evidence. This planning invocation
@@ -86,6 +86,7 @@ Scenario: SCN-B004-OCCURRENCE-ADMISSION
 Scenario: SCN-B004-SEMANTIC-ANTI-INFLATION
   Given a baseline stream with distinct semantic completion identities
   And an augmented stream with additional occurrences of one existing semantic identity
+  And every added occurrence is at or after that identity's retained earliest occurrence
   When score, floor eligibility, and canonical ordering are derived
   Then the augmented stream retains more audit occurrences
   And score, floor state, relevance band, supporting identities, and order equal the baseline
@@ -116,6 +117,43 @@ Scenario: SCN-B004-SEMANTIC-ANTI-INFLATION
 
 ### Definition of Done
 
+#### Declared Limit (read before accepting the anti-inflation items)
+
+> **FR-B004-005a: the anti-inflation invariance is FORWARD-ONLY.**
+> `dedupeBehaviorEvents` retains the EARLIEST occurrence of a semantic identity
+> (`rlportfolio.js:2311`), so an added occurrence that is EARLIER than the
+> retained representative REPLACES it and moves the very projections
+> FR-B004-005 pins, while adding no semantic identity.
+> Measured at `report.md#gaps-b004-x1-probe`: `distinctCompletionIdentities`
+> holds at `2` while `evidenceScore` moves `1.6062` to `1.5698` and `signalId`
+> and `supportingOccurrenceIds` change; in a civil-date-folding fixture
+> `distinctNewYorkCivilDates` moves `2` to `1` and `floorSatisfied` `true` to
+> `false`.
+> Every DoD item below that cites anti-inflation evidence is therefore scoped
+> to FORWARD occurrences ONLY. No item below verifies the backward direction,
+> and none may be read as doing so.
+> The direction is REACHABLE, not impossible: `buildBehaviorCandidate` has no
+> monotonicity guard, the shipped lab clock is `new Date().toISOString()`, and
+> `validateWorkspace` enforces only `eventId` uniqueness with no ordering
+> invariant. This packet DECLARES the direction as an excluded limit rather
+> than repairing it: every candidate repair changes the `evidenceScore`
+> accumulation that `spec.md#out-of-scope` excludes from this packet's
+> boundary, and changes stored `signalId` values, which is a stored-contract
+> migration and not a bug fix. Repairing it here would breach the declared
+> Change Boundary.
+> The limit is dispositioned, not open-ended. It is routed as finding
+> `HARDEN-B004-H6` (`report.md#harden-findings-2026-08-25`, with the matching
+> row in `report.md` `## Discovered Issues`) to owner `bubbles.bug`, whose
+> named deliverable is successor packet
+> `BUG-006-earlier-occurrence-displaces-retained-representative`. That packet
+> does NOT exist at this revision:
+> `ls specs/008-portfolio-survival-and-brief-lab/bugs/` returns only
+> `BUG-001-tier-a-publisher-stamps-run-time-into-asof`,
+> `BUG-002-full-clear-tombstone-authority`,
+> `BUG-004-same-day-behavior-occurrence-rejection`, and
+> `BUG-005-stale-domain-interest-signal-crash`. The limit therefore stays
+> declared and unclosed until `bubbles.bug` opens it.
+
 #### Core Items
 
 - [x] `SCN-B004-OCCURRENCE-ADMISSION` holds: given one stored occurrence for a
@@ -140,9 +178,11 @@ Scenario: SCN-B004-SEMANTIC-ANTI-INFLATION
       proving the second same-civil-date occurrence was stored and not
       collapsed.
 - [x] `SCN-B004-SEMANTIC-ANTI-INFLATION` holds: given a baseline stream and an
-  augmented stream that adds occurrences of one existing semantic identity, the
-  augmented stream retains more audit occurrences while score, floor state,
-  relevance band, supporting identities, and canonical order equal the baseline.
+  augmented stream that adds FORWARD occurrences of one existing semantic
+  identity, the augmented stream retains more audit occurrences while score,
+  floor state, relevance band, supporting identities, and canonical order equal
+  the baseline. Scoped by the Declared Limit above: an added occurrence earlier
+  than the retained representative is NOT covered by this item.
       Evidence: `report.md#tp-b004-003-red-green` — the discriminating pair was
       executed in this packet. RED at the pre-repair parent `a59e38d71^` in an
       isolated detached worktree: Exit Code 1, `pass 0`, `fail 1`, failing on
@@ -181,8 +221,12 @@ Scenario: SCN-B004-SEMANTIC-ANTI-INFLATION
       as a duplicate", and the mutation row that reinstates the superseded
       content-plus-civil-day predicate turns the accepted-occurrence assertion
       red, so the pair is discriminating rather than vacuous.
-- [x] Semantic repetitions cannot change score, floor eligibility, relevance
-  band, supporting identities, or canonical ordering.
+- [x] Semantic repetitions at or after the retained representative cannot change
+  score, floor eligibility, relevance band, supporting identities, or canonical
+  ordering. Scoped by the Declared Limit above: an EARLIER repetition displaces
+  the retained representative and does change them; that direction is routed to
+  `BUG-006-earlier-occurrence-displaces-retained-representative` (not yet
+  opened).
       Evidence: `report.md#tp-b004-002` — the invariance row asserts a full
       `deepEqual` over `evidenceScore`, `semanticScore`, `floorEligibility`
       (including `relevanceBand` and `floorSatisfied`),
@@ -319,35 +363,44 @@ Scenario: SCN-B004-SEMANTIC-ANTI-INFLATION
 - [ ] Artifact lint, diff checks, test integrity, and validate-owned
   certification are clean with zero warnings and zero unchecked test
   obligations.
-      Evidence: PARTIAL, see `report.md#remaining-open-2026-08-24-closeout`
-      finding G-4. Three of four clauses now hold with current-session receipts:
-      artifact lint Exit Code 0; `regression-quality-guard.sh --bugfix` reports
-      `0 violation(s), 0 warning(s)` across 8 files with adversarial signals
-      detected in all 8; and "zero unchecked test obligations" is satisfied now
-      that `TP-B004-003` and the same-civil-day browser row both exist and pass.
-      `git diff --check` initially exited `2` on a trailing blank line at
-      `report.md:1470` — it was NOT clean as previously recorded — and that was
-      repaired in this invocation and re-verified. The remaining clause is
-      validate-owned certification: `certification.status` is still
-      `in_progress` and has not been re-run since its G070 refusal.
-      `certification.*` is owned by `bubbles.validate` and was not written by
-      `bubbles.implement`.
+      Evidence: PARTIAL, see `report.md#validate-phase-2026-08-25`. Three of
+      four clauses hold on current-session receipts: `git diff --check` Exit
+      Code `0`; test integrity via `node scripts/selftest.mjs` Exit Code `0` at
+      `3408 passed, 0 failed`, the 3 declared carriers at `59 passed, 0 failed`,
+      and `regression-quality-guard.sh --bugfix` at `0 violation(s),
+      0 warning(s)` across 8 carriers with adversarial signals detected in all
+      8; and "zero unchecked test obligations" is satisfied now that
+      `TP-B004-003` and the same-civil-day browser row both exist and pass.
+      The artifact-lint clause does NOT hold and the earlier `Exit Code 0`
+      receipt does not survive promotion. A terminal write was attempted and
+      reverted in this invocation, which measured the cause: artifact lint is
+      status-conditional and returns Exit Code `0` while `status` is
+      `in_progress` but Exit Code `1` with 39 issues the moment `status` is
+      `done`, all 39 being short evidence blocks or blocks lacking
+      terminal-output signals in `report.md`. The fourth clause, validate-owned
+      certification, therefore also stays FALSE: the transition guard exits `1`
+      at `failureCount 5`. Remediating the 39 `report.md` evidence blocks is
+      neither validate-owned content nor inside this packet's Change Boundary.
 
 Thirteen of fourteen Definition of Done items are checked with executed
 evidence. `TP-B004-003` (G-1) and the scenario-specific E2E item (G-2) closed in
 the preceding `bubbles.implement` invocation, the first on a RED-to-GREEN pair
-and the second on live paired controls. This `bubbles.plan` invocation closed
-three plan-owned gaps: both Gherkin scenarios now have a faithful DoD item that
-cites the scenario id and resolves to executed evidence already filed in
+and the second on live paired controls. An earlier `bubbles.plan` invocation
+closed three plan-owned gaps: both Gherkin scenarios now have a faithful DoD item
+that cites the scenario id and resolves to executed evidence already filed in
 `report.md` (G068); the containment item is restated in the canonical
 `Change Boundary is respected and zero excluded file families were changed`
 form; and the Change Boundary now enumerates allowed file families and excluded
 surfaces separately. No new evidence was manufactured here — every citation
 points at a receipt that already existed. One item remains unchecked: the Build
-Quality Gate (G-4), which needs `bubbles.validate` certification and is not
-`bubbles.plan` content. The scope is therefore not Done.
+Quality Gate (G-4). The scope is therefore not Done.
 
-The user-authorized routing/finding mirror in `state.json` now records
-`nextRequiredOwner: bubbles.validate`, lists G-3 in `addressedFindings`, and
-leaves only G-4 in `unresolvedFindings`. Top-level and certification status stay
-`in_progress`; `certification.*` remains untouched for `bubbles.validate`.
+A terminal certification write was attempted and reverted in the
+`bubbles.validate` invocation of 2026-08-25. It cleared six of the nine
+pre-write guard failures — the unchecked DoD item, the In Progress scope, both
+`G022` missing-validate-phase blocks and both `G027` empty-`completedScopes`
+blocks — but the guard still refused at `failureCount 5`, so every terminal
+field was restored. Three blockers survive: `Check 43` receipt STALE and receipt
+CLONE (`VAL-B004-V1`, parent-owned), `Gate G084`, and the newly measured
+status-conditional artifact-lint failure described in the Build Quality Gate
+item above. Top-level and certification status stay `in_progress`.

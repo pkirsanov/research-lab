@@ -437,36 +437,74 @@
       buckets[domain].rawOccurrenceCount += 1;
     });
 
-    var eligibleEvents = [];
+    /* The dedupe pass above already fingerprinted every identity and occurrence. Rebuilding an
+       event here just to collapse it again re-derives the SAME hashes, so the retained occurrence
+       is reused instead. The reuse is not unconditional: buildBehaviorEvent substitutes
+       policy.behavior.contractVersion for the event's own policyVersion, so a mis-versioned event
+       legitimately rebuilds to a DIFFERENT identity and must keep taking the rebuild path. The
+       first version-matching occurrence still pays for a real rebuild and proves the reuse
+       reproduces it; only afterwards is the cheap path taken. */
+    var behaviorContractVersion = input.policy.behavior.contractVersion;
+    var retainedOccurrenceByIdentity = Object.create(null);
+    var retainedIdentityOrder = [];
+    var identityReuseProven = false;
     for (var eligibleIndex = 0; eligibleIndex < deduped.value.eligibleOccurrences.length; eligibleIndex += 1) {
       var eligibleOccurrence = deduped.value.eligibleOccurrences[eligibleIndex];
       var eligibleSemantic = semanticByIdentity[eligibleOccurrence.eventIdentity];
       if (!eligibleSemantic) continue;
       var eligibleAgeMs = Date.parse(input.behaviorCutoffAt) - Date.parse(eligibleOccurrence.occurredAt);
       if (eligibleAgeMs < 0 || eligibleAgeMs / 86400000 > behaviorPolicy.maximumEvidenceAgeDays) continue;
-      var eventResult = portfolio.buildBehaviorEvent({
-        category: eligibleSemantic.category,
-        completionConditionId: eligibleSemantic.completionConditionId,
-        domain: eligibleSemantic.domain,
-        genericEvidenceIdentity: eligibleSemantic.genericEvidenceIdentity,
-        horizon: eligibleSemantic.horizon,
-        resultIdentity: eligibleSemantic.resultIdentity,
-        sourceSurface: eligibleSemantic.sourceSurface,
-        subjectId: eligibleSemantic.subjectId,
-        subjectKind: eligibleSemantic.subjectKind
-      }, { now: eligibleOccurrence.occurredAt }, input.policy);
-      if (!eventResult.ok) return eventResult;
-      eligibleEvents.push(eventResult.value);
+      var identityIsReusable = eligibleSemantic.policyVersion === behaviorContractVersion;
+      var retainedIdentity, retainedOccurrence;
+      if (identityReuseProven && identityIsReusable) {
+        retainedIdentity = eligibleSemantic.eventIdentity;
+        retainedOccurrence = eligibleOccurrence;
+      } else {
+        var eventResult = portfolio.buildBehaviorEvent({
+          category: eligibleSemantic.category,
+          completionConditionId: eligibleSemantic.completionConditionId,
+          domain: eligibleSemantic.domain,
+          genericEvidenceIdentity: eligibleSemantic.genericEvidenceIdentity,
+          horizon: eligibleSemantic.horizon,
+          resultIdentity: eligibleSemantic.resultIdentity,
+          sourceSurface: eligibleSemantic.sourceSurface,
+          subjectId: eligibleSemantic.subjectId,
+          subjectKind: eligibleSemantic.subjectKind
+        }, { now: eligibleOccurrence.occurredAt }, input.policy);
+        if (!eventResult.ok) return eventResult;
+        retainedIdentity = eventResult.value.eventIdentity;
+        retainedOccurrence = eventResult.value.occurrence;
+        if (identityIsReusable) {
+          identityReuseProven = retainedIdentity === eligibleSemantic.eventIdentity &&
+            retainedOccurrence.occurrenceId === eligibleOccurrence.occurrenceId;
+        }
+      }
+      // Same collapse portfolio.dedupeBehaviorEvents applies: earliest occurrence per identity,
+      // reported in first-seen identity order, which the score accumulation below depends on.
+      var alreadyRetained = retainedOccurrenceByIdentity[retainedIdentity];
+      if (!alreadyRetained) {
+        retainedOccurrenceByIdentity[retainedIdentity] = retainedOccurrence;
+        retainedIdentityOrder.push(retainedIdentity);
+      } else if (retainedOccurrence.occurredAt < alreadyRetained.occurredAt) {
+        retainedOccurrenceByIdentity[retainedIdentity] = retainedOccurrence;
+      }
     }
-    var semanticResult = portfolio.dedupeBehaviorEvents(eligibleEvents, input.policy);
-    if (!semanticResult.ok) return semanticResult;
 
-    semanticResult.value.events.forEach(function (event) {
-      var semantic = semanticByIdentity[event.eventIdentity];
+    /* portfolio.dedupeBehaviorEvents stood here and opened with validatePolicy, so the top-level
+       policy contract was checked on EVERY call including one with no eligible occurrence. The
+       collapse above replaced that call, so the check is made explicitly — once per call rather
+       than once per occurrence. It stays in this position deliberately: validatePolicy ran AFTER
+       the floor guard above, and hoisting it would change which refusal a doubly-invalid policy
+       reports. */
+    var policyResult = portfolio.validatePolicy(input.policy);
+    if (!policyResult.ok) return policyResult;
+
+    retainedIdentityOrder.forEach(function (eventIdentity) {
+      var semantic = semanticByIdentity[eventIdentity];
       if (!semantic) return;
       var bucket = buckets[semantic.domain];
       if (!bucket) return;
-      var occurrence = event.occurrence;
+      var occurrence = retainedOccurrenceByIdentity[eventIdentity];
       var ageMs = Date.parse(input.behaviorCutoffAt) - Date.parse(occurrence.occurredAt);
       var ageDays = ageMs / 86400000;
       bucket.completionIdentities[occurrence.eventIdentity] = true;
@@ -503,6 +541,8 @@
           satisfied: floorSatisfied
         }
       };
+      // rawOccurrenceCount deliberately carries the DEDUPED count here, so a repeated report of
+      // one completion cannot mint a new signalId. Renaming the key invalidates stored identities.
       signal.signalId = canonicalFingerprint("portfolio-behavior-interest-signal", "portfolio-behavior-interest-signal/v1", {
         domain: signal.domain,
         horizon: signal.horizon,

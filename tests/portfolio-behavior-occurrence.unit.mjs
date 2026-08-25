@@ -75,6 +75,18 @@ const FILTER_AFTER_COLLAPSE_ACCUMULATION = [
   '      bucket.completionIdentities[occurrence.eventIdentity] = true;'
 ].join('\n');
 
+/* AUDIT-B004-A1. The relevance loop used to end in `portfolio.dedupeBehaviorEvents(eligibleEvents,
+   input.policy)`, whose FIRST act is `validatePolicy` and which therefore ran on every call —
+   including one whose eligible set was empty. The performance repair replaced that call with an
+   in-place collapse and dropped the check with it, so a policy the brief's own guards admit and
+   `validatePolicy` rejects stopped refusing on an empty workspace. Removing this block is the
+   mutant that reproduces that fail-open, which is what makes the row below adversarial rather
+   than a restatement of some other guard. */
+const SHIPPED_POLICY_RECHECK = [
+  '    var policyResult = portfolio.validatePolicy(input.policy);',
+  '    if (!policyResult.ok) return policyResult;'
+].join('\n');
+
 function loadContracts() {
   delete require.cache[require.resolve('../rlportfoliobrief.js')];
   delete require.cache[require.resolve('../rlportfolio.js')];
@@ -486,4 +498,115 @@ test('BUG-004: the evidence-age window is applied before semantic collapse, so a
     'alpha\'s fresh occurrence is discarded even though it is inside the window');
   assert.notEqual(reorderedSignal.score, shippedSignal.score,
     'the ordering must be observable in the score, or the two branches are indistinguishable');
+});
+
+test('BUG-004: a corrupt policy still refuses on an empty workspace, and refuses exactly as the removed call did', () => {
+  const { api, brief, policy } = loadContracts();
+  const clone = (value) => JSON.parse(JSON.stringify(value));
+
+  /* Every variant keeps `policy.behavior` a well-formed object with finite numbers, so the brief's
+     own `behavior-policy-required` and `behavior-floor-policy-invalid` guards both ADMIT it. The
+     only thing left that can refuse is the top-level policy check the repair dropped. */
+  const admittedByTheBriefRejectedByValidatePolicy = {
+    'unknown contractVersion': () => {
+      const p = clone(policy); p.contractVersion = 'portfolio-policy/v-not-a-real-version'; return p;
+    },
+    'extra top-level field': () => { const p = clone(policy); p.briefInjectedField = true; return p; },
+    'tampered storage pointerKey': () => {
+      const p = clone(policy); p.storage.pointerKey = `${p.storage.pointerKey}.TAMPERED`; return p;
+    },
+    'dropped top-level section': () => { const p = clone(policy); delete p.import; return p; },
+    'tampered storage slotKeys': () => {
+      const p = clone(policy); p.storage.slotKeys = p.storage.slotKeys.slice(0, 1); return p;
+    }
+  };
+
+  for (const [label, makePolicy] of Object.entries(admittedByTheBriefRejectedByValidatePolicy)) {
+    const corrupt = makePolicy();
+
+    // Vacuity guard: if the brief's own guards rejected this policy, the refusal below would come
+    // from a check that never regressed and the row would prove nothing.
+    assert.equal(typeof corrupt.behavior, 'object', `${label}: policy.behavior must survive the tamper`);
+    assert.equal(Number.isFinite(corrupt.behavior.halfLifeDays), true,
+      `${label}: the floor guard must not be what fires`);
+
+    /* The oracle is the REMOVED CALL ITSELF rather than a copied literal, so this pins "the brief
+       refuses the way it used to" and stays correct if the policy schema later changes. */
+    const removedCall = api.dedupeBehaviorEvents([], corrupt);
+    assert.equal(removedCall.ok, false, `${label}: the removed call must itself refuse this policy`);
+
+    const derived = brief.deriveInterestSignals({ behaviorCutoffAt: RANKED_AT, events: [], policy: corrupt });
+    assert.equal(derived.ok, false,
+      `${label}: an empty workspace must not turn a corrupt config into a successful empty result`);
+    assert.deepEqual(derived.error, removedCall.error,
+      `${label}: the refusal must be the one portfolio.dedupeBehaviorEvents produced`);
+    assert.equal(derived.error.code, 'P008-CONFIG', `${label}: refusal code`);
+
+    // The non-empty direction never regressed, because canonicalBehaviorIdentity validates the
+    // policy inside the dedupe pass. Asserted so a future edit cannot "fix" the empty case by
+    // special-casing it and quietly change the populated one.
+    const seeded = api.createEmptyWorkspace(policy, EARLIER);
+    assert.equal(seeded.ok, true, JSON.stringify(seeded.error || {}));
+    const stored = append(api, policy, seeded.value, EARLIER);
+    const populated = brief.deriveInterestSignals({
+      behaviorCutoffAt: RANKED_AT, events: stored.workspace.behaviorEvents, policy: corrupt
+    });
+    assert.equal(populated.ok, false, `${label}: a populated workspace must refuse too`);
+    assert.deepEqual(populated.error, removedCall.error, `${label}: and refuse identically`);
+  }
+
+  /* Ordering control. `validatePolicy` ran AFTER the floor guard, so a non-finite behaviour number
+     surfaces `behavior-floor-policy-invalid` and NOT `non-finite-policy` on an empty workspace.
+     Hoisting the restored check to the top of deriveInterestSignals would repair the rows above
+     and silently reorder this one — this assertion is what refuses that over-correction. */
+  const nonFinite = clone(policy);
+  nonFinite.behavior.halfLifeDays = Number.POSITIVE_INFINITY;
+  assert.equal(api.validatePolicy(nonFinite).error.reason, 'non-finite-policy',
+    'validatePolicy must genuinely reject this, or the ordering control is vacuous');
+  const ordered = brief.deriveInterestSignals({ behaviorCutoffAt: RANKED_AT, events: [], policy: nonFinite });
+  assert.equal(ordered.ok, false);
+  assert.equal(ordered.error.reason, 'behavior-floor-policy-invalid',
+    'the floor guard must still win, or the restored check has been moved ahead of it');
+
+  // Fail-closed control: a VALID policy on an empty workspace must still succeed.
+  const valid = brief.deriveInterestSignals({ behaviorCutoffAt: RANKED_AT, events: [], policy });
+  assert.equal(valid.ok, true, JSON.stringify(valid.error || {}));
+  assert.deepEqual(valid.value.interestSignals, [],
+    'an empty workspace under a good config still yields an empty signal set');
+});
+
+test('BUG-004: removing the restored policy check reinstates the fail-open, so the assertion above is load-bearing', () => {
+  const { policy } = loadContracts();
+  const briefSource = readFileSync(BRIEF_PATH, 'utf8');
+
+  assert.equal(briefSource.split(SHIPPED_POLICY_RECHECK).length - 1, 1,
+    'the restored policy check must appear exactly once for the mutation below to be meaningful');
+  const withoutRecheck = briefSource.replace(SHIPPED_POLICY_RECHECK, '');
+  assert.notEqual(withoutRecheck, briefSource, 'the removal mutation must have applied');
+  assert.equal(withoutRecheck.includes('portfolio.buildBehaviorEvent'), true,
+    'the mutant must still be the shipped loop — only the policy check is removed');
+
+  const corrupt = JSON.parse(JSON.stringify(policy));
+  corrupt.contractVersion = 'portfolio-policy/v-not-a-real-version';
+  const input = () => ({ behaviorCutoffAt: RANKED_AT, events: [], policy: JSON.parse(JSON.stringify(corrupt)) });
+
+  const shipped = loadStackFromSource(briefSource);
+  const mutant = loadStackFromSource(withoutRecheck);
+
+  const shippedResult = shipped.brief.deriveInterestSignals(input());
+  assert.equal(shippedResult.ok, false, 'the shipped module refuses the corrupt config');
+  assert.equal(shippedResult.error.reason, 'unknown-version');
+
+  const mutantResult = mutant.brief.deriveInterestSignals(input());
+  assert.equal(mutantResult.ok, true,
+    'without the check the corrupt config is admitted — this is the regression being pinned');
+  assert.deepEqual(mutantResult.value.interestSignals, [],
+    'and it fails OPEN with a successful empty result rather than refusing');
+
+  // Both modules must agree on a VALID policy, or the mutant differs by more than the one check.
+  const shippedValid = shipped.brief.deriveInterestSignals({ behaviorCutoffAt: RANKED_AT, events: [], policy });
+  const mutantValid = mutant.brief.deriveInterestSignals({ behaviorCutoffAt: RANKED_AT, events: [], policy });
+  assert.equal(shippedValid.ok, true, JSON.stringify(shippedValid.error || {}));
+  assert.deepEqual(mutantValid, shippedValid,
+    'on a good config the mutant and the shipped module are indistinguishable');
 });

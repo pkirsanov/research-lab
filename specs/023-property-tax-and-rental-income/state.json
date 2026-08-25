@@ -228,5 +228,6 @@
             "mode": "certification-required",
             "source": "repo-default"
         }
-    }
+    },
+    "scopeLayout": "per-scope-directory"
 }

@@ -85,11 +85,22 @@ Feature: The earliest priceable claim age is a declared pack figure
       locator. → Evidence: `node scripts/selftest.mjs` → `3405 passed, 0 failed`, exit 0. The
       BUG-019 assertion resolves `earliestClaimAge.sourceRef` against the pack's own `sourceRecords`
       and requires a non-empty `locator`; `report.md` § Implementation Round quotes the member.
-- [ ] A pack that has not retrieved the figure declares its absence and the engine refuses rather
+- [x] A pack that has not retrieved the figure declares its absence and the engine refuses rather
       than assuming an age: the earliest-age path returns a `TaxUnavailable/v1` record under
       `RLTAX-THRESHOLD-UNAVAILABLE` and settles no monthly and no annual amount. Both absence
       shapes a pack can carry take that path — the member deleted, and the member declared
-      `AbsentFigure/v1`. → Evidence: awaiting a verifying round. The obligation is carried by the
+      `AbsentFigure/v1`. → Evidence: ticked by an independent verifying round that wrote none of
+      this packet; see `report.md` § Independent Verification Round — The Two Restated Rows. Both
+      shapes were driven straight into `SS.applyClaimAgeAdjustment` by a harness reading no test
+      file: each returned `contractVersion: "TaxUnavailable/v1"` with code
+      `RLTAX-THRESHOLD-UNAVAILABLE`, and neither record carries `adjustedMonthlyBenefit` or
+      `adjustedAnnualBenefit` as a key at all, so nothing is settled and no zero stands in for an
+      amount. A control on the intact pack settled `1826` and `21912`, so the refusals discriminate.
+      The guard is load-bearing: with the missing-member branch replaced by an admissible synthetic
+      figure the same pack prices `1565` monthly and `18780` annually with no `code`
+      (`red-green-probe`, exit 0, revert hash-verified). The committed clause detects that mutation
+      (`CLAUSE_STATE=RED hits=1` against `GREEN hits=0`, exit 1 against 0). The obligation is carried
+      by the
       `unbounded019` and `absentBound019` clauses of the BUG-019 assertion in
       `scripts/selftest.mjs`, which drive one pack with `earlyReductionRule.earliestClaimAge`
       deleted and one declaring it absent, and require `RLTAX-THRESHOLD-UNAVAILABLE` from each.
@@ -112,10 +123,21 @@ Feature: The earliest priceable claim age is a declared pack figure
       The `noLiteral019` clause reads all three modules and rejects `62 * 12`, an
       `earliestClaimAgeYears` assignment and the literal `744`. Independently confirmed by the
       Probe 3 block in `report.md`: editing only `tax-rules/benefit/2026.json` moves the boundary.
-- [ ] The pack edit leaves the route admissible: the edited `tax-rules/benefit/2026.json` still
+- [x] The pack edit leaves the route admissible: the edited `tax-rules/benefit/2026.json` still
       reads and the route still reaches `ready`, and `rules.packContentSha256` in
-      `lifetime-tax-strategy.config.json` is unchanged by this packet. → Evidence: awaiting a
-      verifying round. Every case in the `tests/lifetime-tax-*.spec.mjs` family enters through
+      `lifetime-tax-strategy.config.json` is unchanged by this packet. → Evidence: ticked by an
+      independent verifying round; see `report.md` § Independent Verification Round — The Two
+      Restated Rows. The family was run at `origin/main` on the bundled project — 22 spec files,
+      `111 passed`, exit 0, 64s — and the `ready` gate was shown to be sensitive rather than
+      decorative: a malformed benefit-pack edit turns the family red (`red-green-probe`, exit 1
+      against 0, revert hash-verified). `rules.packContentSha256` is compared at the single
+      `RULES.resolveRulePack` call site against the federal pack's own **declared** `contentSha256`
+      member, which carries that same value, so the pin holds; the benefit pack declares no such key
+      and never reaches that resolver. No delivery commit in this packet lists
+      `lifetime-tax-strategy.config.json`. One correction: the claim below of "every case" is one
+      file too broad — `tests/lifetime-tax-read-bound.spec.mjs` opens the route itself so it can
+      observe `config-blocked` and the pre-`ready` states, which a `ready` gate would forbid. The
+      other twenty-one enter through
       `openLifetimeTax` in `tests/lifetime-tax.support.mjs`, which asserts
       `data-rl-tax-state="ready"` before any case body runs, so a pack edit that broke admission
       would fail the whole family rather than one case; and `git show --name-only` on this

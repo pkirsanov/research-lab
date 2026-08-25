@@ -559,3 +559,133 @@ pack therefore moves no pin, and the item's first half describes a mechanism the
 have. The second half — the route still reaching `ready` — holds and is evidenced. Same disposition:
 the wording belongs to `bubbles.plan`, so the item stays open.
 
+## Independent Verification Round — The Two Restated Rows
+
+Run by a party that wrote none of this packet. Every premise below was re-derived from the shipped
+artifacts rather than read out of the records above. Measured at `982a63641`, which is `origin/main`;
+`rltaxsocialsecurity.js` is blob `95beaaed14`, `tax-rules/benefit/2026.json` is blob `7e690813e7`.
+
+### The engine was driven directly, outside the selftest
+
+The two absence shapes were built and passed to `SS.applyClaimAgeAdjustment` by a harness that reads
+no test file, so the result does not inherit the assertion's own framing. A third case — the intact
+pack at the earliest priceable age — was run as a control, because two refusals prove nothing about
+discrimination unless something in the same harness settles.
+
+```
+--- member DELETED (claimAgeMonths=720) ---
+  contractVersion      = "TaxUnavailable/v1"
+  code                 = "RLTAX-THRESHOLD-UNAVAILABLE"
+  adjustedMonthlyBenefit key present = false
+  all top-level keys   = ["contractVersion","code","domain","reason","whatWouldMakeItAvailable"]
+  settled money-shaped numbers anywhere = []
+--- member DECLARED AbsentFigure/v1 (claimAgeMonths=744) ---
+  contractVersion      = "TaxUnavailable/v1"
+  code                 = "RLTAX-THRESHOLD-UNAVAILABLE"
+  adjustedMonthlyBenefit key present = false
+  all top-level keys   = ["contractVersion","code","domain","reason","whatWouldMakeItAvailable"]
+  settled money-shaped numbers anywhere = []
+--- CONTROL intact pack at earliest age (claimAgeMonths=744) ---
+  contractVersion      = "ClaimAgeAdjustment/v1"
+  code                 = undefined
+  adjustedMonthlyBenefit value       = 1826
+  settled money-shaped numbers anywhere = [ ... ,["adjustedMonthlyBenefit",1826],["adjustedAnnualBenefit",21912]]
+```
+
+Neither refusal carries `adjustedMonthlyBenefit` or `adjustedAnnualBenefit` as a key at all, so
+"settles no monthly and no annual amount" is satisfied by absence of the field rather than by a zero
+standing in for an amount. The control settles both.
+
+### The guard is load-bearing, proven by reverting mutation
+
+Two earlier attempts at this probe returned exit 7. Both are recorded because they are the reason
+the third is credible: a synthetic figure missing `maximumReductionMonths`, then one missing
+`yearInvarianceBasis`, were each stopped by a *different* refusal further down the same function, so
+the pack still declined to price and the mutation proved nothing. The engine refuses in layers, and
+only a synthetic figure admissible to all of them reaches the reduction arithmetic.
+
+```
+label:            BUG019-C-P1c deleted-member absence assumes an age instead of refusing
+mutation:         if (!isPlainObject(earliest)) return unretrievedRule("earlyReductionRule.earliestClaimAge", domain);
+                  ->  if (!isPlainObject(earliest)) earliest = { ageYears: 0, maximumReductionMonths: 600, ... };
+red-summary:      ROW_C_DIAG deleted code=undefined monthly=1565 annual=18780 reason=undefined
+green-summary:    ROW_C_DIAG deleted code=RLTAX-THRESHOLD-UNAVAILABLE monthly=undefined annual=undefined
+revert-verified:  yes (committed=95beaaed147e301bcf2cae7a858b1e0463cdc1c6 restored=95beaaed147e301bcf2cae7a858b1e0463cdc1c6)
+discriminating:   yes
+```
+
+Under mutation the pack prices `1565` monthly and `18780` annually with no `code` — the exact defect
+class this packet was filed for. That is the row's own stated adversarial case, reproduced.
+
+### The committed clause detects the same mutation
+
+The same mutation was then run against `node scripts/selftest.mjs`, scoped to the BUG-019 assertion
+alone so the two failures another session owns could not mask the verdict.
+
+```
+label:            BUG019-C-P2 committed selftest clause detects the absence fall-through
+command:          selftest, grepped for "FAIL: BUG-019: the benefit pack declares"
+red-exit:         1     red-summary:   CLAUSE_STATE=RED hits=1
+green-exit:       0     green-summary: CLAUSE_STATE=GREEN hits=0
+discriminating:   yes (exit 1 != 0)
+```
+
+### One finding the implementing rounds did not record
+
+The dedicated `rules.isAbsentFigure(earliest)` branch is **redundant** for this row's obligation.
+Disabling it leaves the declared-absent pack still refusing under the same code with nothing settled,
+because execution falls to the `!Number.isFinite(earliest.ageYears)` branch, which calls
+`unretrievedRule` and returns `RLTAX-THRESHOLD-UNAVAILABLE` as well. The strict probe returned exit 7
+— no discrimination — and only the refusal *reason* changed, from `the earliest claim age` to
+`the resolved benefit pack carries no retrieved value for earlyReductionRule.earliestClaimAge`.
+
+This does not falsify the row. Both absence shapes do refuse and do settle nothing, which is what the
+row asserts. It bounds what `absentBound019` proves: that clause tests the code alone, so it cannot
+see the removal of the branch that gives the declared-absent shape its specific message. The
+behaviour is protected; the message is not.
+
+### The route
+
+The lifetime-tax family was run on the bundled project at this commit.
+
+```
+npx --no-install playwright test tests/lifetime-tax*.spec.mjs --config=playwright.config.mjs --project=chromium --reporter=line
+specfiles=22
+PW_EXIT=0 wall=64s
+    111 passed (1.1m)
+```
+
+Twenty-one of the twenty-two files enter through `openLifetimeTax`, which asserts
+`data-rl-tax-state="ready"` before any case body runs. The row's claim of "every case" is one file
+too broad: `tests/lifetime-tax-read-bound.spec.mjs` opens the route itself, because it exists to
+observe `config-blocked` and the pre-`ready` states and could not do that behind a `ready` gate. The
+substance is unaffected — that file asserts terminal states directly.
+
+The `ready` gate was then shown to be sensitive rather than decorative. A malformed benefit-pack edit
+turns the family red:
+
+```
+label:            BUG019-D malformed benefit pack edit must stop the route reaching ready
+mutation:         "ageYears": 62,  ->  "ageYears": 62   (invalid JSON)
+red-exit:         1     red-summary:     1 passed (5.0s)
+green-exit:       0     green-summary:   6 passed (3.3s)
+revert-verified:  yes (committed=7e690813e707f3f0931b1fe8cd2cc276bdbb200b restored=7e690813e707f3f0931b1fe8cd2cc276bdbb200b)
+discriminating:   yes
+```
+
+### The pin
+
+`rules.packContentSha256` is `sha256:06681e37…`. It is compared at the single `RULES.resolveRulePack`
+call site against `pack.contentSha256` — the pack's own **declared** member — and not against a
+recomputed file digest. `tax-rules/federal/2026.json` declares exactly that value, so the row's
+wording is literally correct. Recomputing the file's raw sha256 yields `sha256:6b35ba61…`, which is a
+different measurement the resolver never performs; it is recorded here only so a later reader does
+not mistake the mismatch for a broken pin. The benefit pack declares no `contentSha256` key and never
+passes through that resolver. No delivery commit in this packet lists
+`lifetime-tax-strategy.config.json`; the only commit that ever touched it is `b9d92a3f1`, which
+predates the filing.
+
+### Verdict
+
+Both rows hold and are ticked by this round.
+

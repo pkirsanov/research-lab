@@ -28899,6 +28899,70 @@ try {
     + wEmitSites.length + ' dynamic emit site), so a name the route still mentions in a membership'
     + ' list but no longer passes to an emitting call renders nothing at all, which is why merely'
     + ' occurring somewhere in the file is not evidence that the value is on the page');
+
+  /* Reaching an emitting call is necessary but not sufficient. One carrier is GATED: it tests its
+     own forwarded parameter against a membership array and, on a miss, returns prose instead of
+     ever calling the emitter — so the attribute is never written and the value never appears.
+     W4 reads call sites alone, so deleting a name from that array while leaving the emitting call
+     untouched broke rendering and left W4 byte-identically green (probe: exit 7, no
+     discrimination). That is the BUG-016 failure mode one layer in: the route stops rendering a
+     value while the guard agrees with the damage. Kept separate from W4 rather than folded into
+     it because the cause and the fix differ — W4 fails when the emitting CALL is renamed or
+     dropped and is answered at the call site; this fails when the ADMISSION LIST diverges from the
+     call sites and is answered in the list — and because its domain is every gated call in the
+     route, not only the names one browser spec happens to locate.
+     Gate, membership and call set are all DERIVED, so deleting the gate empties the carrier set,
+     emptying the array falls under the membership floor and deleting the call sites falls under
+     the call floor: each fails here rather than passing. */
+  const wArrayMembers = (src, name) => {
+    const decl = new RegExp('\\b' + name + '\\s*=\\s*\\[').exec(src);
+    if (!decl) return null;
+    const open = src.indexOf('[', decl.index);
+    let i = open, depth = 0;
+    for (; i < src.length; i++) {
+      const ch = src[i];
+      if (ch === '[') depth++;
+      else if (ch === ']') { depth--; if (depth === 0) break; }
+    }
+    return (src.slice(open + 1, i).match(/"[^"]*"/g) || []).map((s) => s.slice(1, -1));
+  };
+  /* A gated carrier refuses its own forwarded parameter when an array does not admit it. */
+  const wGated = [];
+  for (const [name, index] of wCarriers) {
+    const fn = wFnAt(wRouteSrc, name);
+    if (!fn || !fn.params[index]) continue;
+    const gate = new RegExp('([A-Za-z_$][\\w$]*)\\s*\\.indexOf\\(\\s*' + fn.params[index]
+      + '\\s*\\)\\s*<\\s*0').exec(fn.body);
+    if (gate) wGated.push([name, index, gate[1]]);
+  }
+  const wGateInadmissible = [];
+  let wGatedCalls = 0;
+  let wGateMembers = 0;
+  for (const [name, index, arrayName] of wGated) {
+    const members = wArrayMembers(wRouteSrc, arrayName) || [];
+    wGateMembers += members.length;
+    const calls = new RegExp('\\b' + name + '\\s*\\(', 'g');
+    let call;
+    while ((call = calls.exec(wRouteSrc))) {
+      const arg = wSplitArgs(wCallArgs(wRouteSrc, call.index + call[0].length - 1))[index];
+      if (!arg || !/^"[^"]*"$/.test(arg)) continue;
+      wGatedCalls++;
+      if (members.indexOf(arg.slice(1, -1)) < 0) {
+        wGateInadmissible.push(name + '("' + arg.slice(1, -1) + '") rejected by ' + arrayName);
+      }
+    }
+  }
+  assert(wGateInadmissible.length === 0 && wGated.length >= 1
+    && wGatedCalls >= 18 && wGateMembers >= 20,
+    'W5: every field id passed to a gated emitter in ' + wRoute + ' is admitted by the membership'
+    + ' list that gate consults — ' + wGatedCalls + ' gated calls across '
+    + (wGated.map((g) => g[0] + '(arg ' + g[1] + ') gated by ' + g[2]).join(', ') || 'no gated carrier')
+    + ' (' + wGateMembers + ' admitted names), inadmissible: '
+    + (wGateInadmissible.join(', ') || 'none')
+    + ' — a gated carrier returns prose and never calls the emitter for a name its list omits, so'
+    + ' the attribute is never written even though the emitting call is still right there in the'
+    + ' route, which is exactly the state W4 cannot see because W4 reads call sites and not the'
+    + ' admission list they are filtered through');
 } catch (e) { failures++; console.log('  ✗ FAIL (lifetime-tax route wiring group threw): ' + e.message); }
 /* ---------- Narrative lane: the acceptance contract must be stated and retried against (START) ---------- */
 /* On 2026-08-23 lane=core failed 4/4 across two independent publications and discarded both

@@ -925,3 +925,127 @@ The full suite reports `3408 passed, 2 failed` — the same count as before the 
 remains exactly one assertion. Both failures belong to a concurrent session's untracked
 `tool-brief-v2*` and `zz-probe-focusable.spec.mjs` files and are unrelated to this repair.
 
+## Closure Of The Residual Blind Spot The `W4` Repair Disclosed
+
+The `W4` repair above closed the rename-the-emitting-call hole and, in the same pass, disclosed a
+second one it does not cover. That hole is now closed by a sibling assertion, `W5`.
+
+### The disclosed gap reproduced exactly as described
+
+`simpleValueNode` is a carrier: it forwards its own `fieldId` parameter to the emitter `valueNode`.
+But it forwards it only conditionally — `lifetime-tax-strategy-lab.html:1814` reads
+`if (SIMPLE_FIELDS.indexOf(fieldId) < 0) { return text("span", "this field is not a Simple field",
+"microcopy"); }`, so a name the list omits never reaches `valueNode` and no `data-rl-value` node is
+produced at all. `W4` derives its emitted set from call sites and never consults that list, so the
+list and the call sites can diverge silently.
+
+Confirmed by probe rather than by reading alone. Dropping `"combinedFederalLeg"` from
+`SIMPLE_FIELDS` while leaving `simpleValueNode("combinedFederalLeg", ...)` at line 2971 untouched:
+
+```
+PROBE_EXIT=7
+label:            gap-confirm: drop combinedFederalLeg from SIMPLE_FIELDS
+file:             lifetime-tax-strategy-lab.html
+mutation:         "combinedTotalTax", "combinedFederalLeg", "combinedStateLeg",  ->  "combinedTotalTax", "combinedStateLeg",   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✓ W4: every combined data-rl-value name tests/lifetime-tax-combined.spec.mjs locates is passed as the field id of a call that actually emits the attribute — 6 names, emitted via valueNode(arg 0)
+green-exit:       1
+green-summary:      ✓ W4: every combined data-rl-value name tests/lifetime-tax-combined.spec.mjs locates is passed as the field id of a call that actually emits the attribute — 6 names, emitted via valueNode(arg 0)
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   NO (both channels agree: exit 1 == 1, summary identical once elapsed time is normalised)
+```
+
+`W4` did not merely still pass — its message was byte-identical, still claiming six names emitted
+and `missing: none`, on a route that had stopped rendering one of them. This is the BUG-016 failure
+mode one layer in.
+
+### A sibling check, not a wider `W4`
+
+`W5` is a separate assertion rather than a strengthening of `W4`, for three reasons.
+
+The failure causes are different and so are the repairs. `W4` fails when the emitting **call** is
+renamed or dropped, and is answered at the call site. `W5` fails when the **admission list**
+diverges from the call sites, and is answered in the list. Folding both into one predicate would
+produce a message that has to describe two unrelated defects, leaving a reader who sees it fail
+without the one fact they need — which of the two happened.
+
+The domains are different. `W4` is scoped to the six names one browser spec locates. The gating
+obligation is not spec-scoped at all: every one of the 23 gated calls in the route is subject to it,
+including the twenty that no combined-panel spec mentions. Widening `W4` to that set would have
+severed it from the spec-derived marker list that gives it its meaning.
+
+And a check that names its own failure is actionable. `W5`'s message reports the gated carrier, the
+array it consults, and the exact rejected name.
+
+### The predicate
+
+Nothing is listed; every input is derived from the route, so none of it rots and none of it can be
+satisfied by deleting the thing that defines it.
+
+- **Gated carriers** — of the carriers `W4` already derives, those whose body tests their own
+  forwarded parameter with `<array>.indexOf(<param>) < 0`. Currently one: `simpleValueNode(arg 0)`
+  gated by `SIMPLE_FIELDS`.
+- **Admitted names** — the string literals of that array, brace-matched out of the route so a
+  multi-line declaration parses whole.
+- **Gated calls** — every literal string passed at that carrier's forwarded argument index.
+
+The assertion is that every gated call's name is admitted, plus three floors: at least one gated
+carrier, at least 18 gated calls, at least 20 admitted names.
+
+### Both directions bite
+
+Decisive probe — the mutation that was invisible, `--summary-match` pinned to `W5`'s own wording
+rather than to the aggregate count, since the suite exits 1 even unmutated:
+
+```
+PROBE_EXIT=0
+label:            W5: drop combinedFederalLeg from SIMPLE_FIELDS, emitting call left intact
+file:             lifetime-tax-strategy-lab.html
+mutation:         "combinedTotalTax", "combinedFederalLeg", "combinedStateLeg",  ->  "combinedTotalTax", "combinedStateLeg",   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: W5: every field id passed to a gated emitter in lifetime-tax-strategy-lab.html is admitted by the membership list that gate consults — 23 gated calls across simpleValueNode(arg 0) gated
+green-exit:       1
+green-summary:      ✓ W5: every field id passed to a gated emitter in lifetime-tax-strategy-lab.html is admitted by the membership list that gate consults — 23 gated calls across simpleValueNode(arg 0) gated by SIM
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   yes (summary differs)
+```
+
+The obvious way to neutralise the new check is to disarm the gate it derives from, so that was
+probed too. Changing the gate's comparison from `< 0` to `< -1` leaves the syntax intact and the
+refusal unreachable:
+
+```
+PROBE_EXIT=0
+label:            W5 floor: neutralise the gate itself
+mutation:         if (SIMPLE_FIELDS.indexOf(fieldId) < 0) {  ->  if (SIMPLE_FIELDS.indexOf(fieldId) < -1) {   (1 occurrence(s))
+red-exit:         1
+red-summary:        ✗ FAIL: W5: ... — 0 gated calls across no gated carrier
+green-summary:      ✓ W5: ... — 23 gated calls across simpleValueNode(arg 0) gated by SIMPLE_FIELDS
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   yes
+```
+
+The carrier floor catches it: with no gate to derive, the set is empty and the assertion fails
+instead of passing vacuously.
+
+### No false positive, and `W1`–`W4` untouched
+
+Unmutated, the suite reports `3409 passed, 2 failed` — exactly one more than the `3408` recorded
+above, which is `W5` itself. The two failures are the same concurrent-session untracked
+`tool-brief-v2*` and `zz-probe-focusable.spec.mjs` files, unrelated to this work.
+
+`W1`, `W2`, `W3` and `W4` all still pass with identical counts — 14 modules, 14 modules, 10 anchors,
+6 names — and the change adds only new lines; no line of the `W4` emission derivation was altered.
+
+### What remains open in this family
+
+One gap of the same shape is still uncovered, stated plainly rather than left implied. `W5` proves
+a gated name is *admissible*; it does not prove the call is *reached*. A gated call sitting inside a
+branch the route never takes — or a carrier invocation deleted outright while both the list entry
+and the browser marker survive — would leave `W4` and `W5` green with nothing on the page. Closing
+that needs reachability, which static derivation over the route source cannot supply; the browser
+spec is the instrument for it. Not repaired here, and not claimed to be.
+
+

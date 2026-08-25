@@ -51,3 +51,9 @@ untouched by construction and not merely by inspection.
 - [x] Educational research and no-guarantee language is visible in route metadata, the main decision surface, owner-read context, and footer.
 - [x] Feature 005 and every unrelated dirty-worktree path remain unchanged by Feature 006 delivery.
 
+## Human Acceptance Record
+
+- acceptedBy: operator
+- acceptedAt: 2026-08-25T16:59:38Z
+- method: human-interactive
+

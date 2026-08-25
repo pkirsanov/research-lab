@@ -112,3 +112,9 @@ happy path because an honest product looks broken exactly there.
 ### The honest limit I am accepting for now
 
 - [x] My topics' findings stay inside their dossiers this time round. Nothing here promises to put them into the next-session action list, the decision list or the alert area — that is the next feature, and this one does not pretend otherwise.
+
+## Human Acceptance Record
+
+- acceptedBy: operator
+- acceptedAt: 2026-08-25T16:59:38Z
+- method: human-interactive

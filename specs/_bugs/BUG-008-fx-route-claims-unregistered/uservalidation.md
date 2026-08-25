@@ -36,3 +36,9 @@ regression for the next run.
       currently carries the same defect, so no sibling guard was written. If you would rather
       have a repository-wide check that every registered tool's markup agrees with the registry,
       that is a separate packet — uncheck this item to request it.
+
+## Human Acceptance Record
+
+- acceptedBy: operator
+- acceptedAt: 2026-08-25T16:59:38Z
+- method: human-interactive

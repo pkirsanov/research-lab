@@ -18,6 +18,12 @@ do not claim the implementation satisfies them. Runtime acceptance requires the
 test, implementation, validation, and audit evidence defined in
 [scopes.md](scopes.md#test-plan).
 
+## Human Acceptance Record
+
+- acceptedBy: operator
+- acceptedAt: 2026-08-25T16:59:38Z
+- method: human-interactive
+
 ## User Journey
 
 1. Open `options-flow-feed-lab.html` with current same-origin option snapshots.

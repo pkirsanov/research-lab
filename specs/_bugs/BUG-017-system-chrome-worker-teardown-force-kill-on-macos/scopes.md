@@ -206,6 +206,10 @@ conceded in writing is that a remedy for the **exposure** was available and take
 - [x] The separation from `BUG-016` is intact: no claim in this packet is offered as an
       explanation for the red deploy gate.
   → Evidence: `## The Separation From BUG-016` carries a six-row comparison establishing they are different defects. Re-verified mechanically after BUG-016 was closed in the same session, which is when contamination would have been introduced: `git show origin/main:specs/_bugs/BUG-016-*/scopes.md | grep -c 'BUG-017'` returns **0** — BUG-016 cites nothing from this packet as evidence, in either direction.
-- [ ] `uservalidation.md` carries a filled Human Acceptance Record.
-      Not this execution's to fill. Human acceptance has not occurred, and filling it would be
-      the agent granting itself acceptance.
+- [x] `uservalidation.md` carries a filled Human Acceptance Record.
+  → Evidence: filled at the operator's instruction "validated BUG-016 and BUG-017, sign them" —
+    `acceptedBy: operator`, `acceptedAt: 2026-08-25T22:22:04Z`, `method: human-interactive`,
+    the method the registry defines as a human exercising the delivered behaviour in a live
+    session. One acceptance act covered both packets, so the record declares `acceptanceAct`,
+    the packets it covers, and a basis specific to this one. The Checklist remains unticked and
+    no status moved; this row asserts the record exists and is filled, nothing further.

@@ -1,16 +1,22 @@
-# User Validation: BUG-017 — Filed, Nothing Delivered
+# User Validation: BUG-017 — Remedy Delivered And Verified
 
-This packet files a defect and implements nothing. There is no delivered behaviour to
-exercise.
+This packet was filed with nothing delivered, and a remedy was later carried through to
+`Verified`. The remedy is commit `13494be66`, which pins the worker count local runs share
+with the pipeline and touches `playwright.config.mjs`; the commit was confirmed to exist and
+to carry that change rather than taken from the packet's prose, and `bug.md` reads `Verified`.
+There is therefore delivered behaviour to exercise. The framing that previously stood here,
+saying there was none, was written at filing time and outlived the fix.
 
 The Automation Readiness items below record facts about the **filing** — that the defect is
 real, reproduced in this session, and correctly bounded. They are ticked where an executed
 check establishes them.
 
 **Ticking an Automation Readiness item grants no acceptance whatsoever.** Acceptance is the
-Checklist section plus the acceptance record, and only a human establishes it. Every Checklist
-item is unticked and the Human Acceptance Record is unfilled, because nothing has been fixed
-and the root cause is not established.
+Checklist section plus the acceptance record, and only a human establishes it. The Checklist
+items below remain unticked for two reasons that are not the same: no agent may tick one at
+all, and several were written against the filing and are now obsolete — one asks whether not
+modifying `playwright.config.mjs` was correct, which the delivered remedy has since answered.
+The operator agreed to no specific one of them, so none is ticked here.
 
 ## Automation Readiness
 
@@ -49,11 +55,20 @@ and the root cause is not established.
 
 ## Human Acceptance Record
 
-Acceptance has not occurred and cannot occur yet. This packet delivers no behaviour to
-exercise; it delivers a reproduced defect, its measured cost, an explicit boundary around
-what was not established, and a decision request. Automation cannot fill this section and
-nothing above substitutes for it.
+The operator stated, in session: "validated BUG-016 and BUG-017, sign them". That is **one
+acceptance act covering two packets**, so this record and the one in `BUG-016` necessarily
+share a single `acceptedAt`. The act is declared explicitly below and carries a basis specific
+to this packet, because a shared instant with no per-packet basis is indistinguishable from a
+bulk stamp — the shape `scripts/validate-acceptance-bulk-stamp.mjs` exists to catch.
 
-- acceptedBy: [unfilled]
-- acceptedAt: [unfilled]
-- method: [unfilled]
+- acceptedBy: operator
+- acceptedAt: 2026-08-25T22:22:04Z
+- method: human-interactive
+- acceptanceAct: operator-session-2026-08-25-bug016-bug017
+- coveredPackets: specs/_bugs/BUG-016-combined-tax-panel-wiring-absent-on-origin-main, specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos
+- acceptanceBasis: the pinned worker count in playwright.config.mjs from commit 13494be66, under which a local run no longer exits non-zero on a browser-worker teardown force-kill
+
+**What this record does and does not settle.** It records the operator's acceptance of the
+delivered remedy. It is not a certification decision: `state.json` `status` and
+`certification.status` are untouched at `in_progress`, and the acceptance row is not a claim
+that every gate on this packet is satisfied.

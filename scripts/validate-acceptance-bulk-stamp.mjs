@@ -33,6 +33,39 @@
  * `human-interactive` cannot both be what they claim, whatever else is true.
  * The finding is a proof of inconsistency, not a suspicion.
  *
+ * DECLARED SINGLE ACCEPTANCE ACT — the false-positive class that argument has.
+ * The impossibility is about EXERCISING two deliveries in one second. It is not
+ * about ACCEPTING them: a person can exercise two fixes over an hour and then
+ * accept both in one instant, and that act is honest. Read literally, the rule
+ * above condemns it, because a shared instant is the only evidence it consults.
+ *
+ * So a group is cleared when, and only when, it declares itself to be that act:
+ *   - `acceptanceAct`   present and IDENTICAL across every member — the members
+ *                       mean to share an instant, rather than happening to;
+ *   - `coveredPackets`  on every member, resolving EXACTLY to the group's real
+ *                       membership — so a third packet cannot join a declared
+ *                       act for free, the same failure the baseline key is
+ *                       shaped to prevent;
+ *   - `acceptanceBasis` present on every member and pairwise DISTINCT — a basis
+ *                       copy-pasted across packets is one claim wearing N hats,
+ *                       which is what a bulk stamp actually is.
+ * A partially-declared group is a FINDING that names the failing condition, and
+ * every exemption is PRINTED (`DECLARED-ACT`) rather than passing in silence.
+ *
+ * This does not soften the check into an opt-out. The thirteen-record stamp
+ * carried three bare fields and nothing else, so it fails the first condition
+ * outright; clearing it would have required ten mutually-consistent covered
+ * sets and ten distinct per-packet bases. That is the registry's own standard —
+ * "a deliberate false record, which is a lie rather than a side effect" — and
+ * the selftest reconstructs the thirteen-record shape to prove it still fails.
+ *
+ * The same discriminator sorts the repository's own history. Specs 025/027
+ * share an instant and carry per-packet bases (53 vs 19 checklist items) with a
+ * provenance paragraph whose claim — 72 items ticked in one edit — is verifiable
+ * and true. Specs 007/008 share an instant and carry three bare fields, in a
+ * commit whose subject is an unrelated feature. Those are not the same act, and
+ * a guard that could not tell them apart would be worth less than one that can.
+ *
  * THE LICENSE IS READ AT RUN TIME, NOT COPIED. The clause the inference rests
  * on is "in a live session". A frozen paraphrase of it here would keep the
  * guard enforcing a rule the registry had stopped stating, which is the same
@@ -127,7 +160,28 @@ const LICENSING_CLAUSE = 'live session';
    rather than written here for the same reason as the clause. */
 const RECORD_SECTION_ID = 'acceptance-record';
 
-const RECORD_FIELDS = ['acceptedBy', 'acceptedAt', 'method'];
+/* The three the registry requires, plus the three that let ONE acceptance act
+   covering SEVERAL packets declare itself. See DECLARED SINGLE ACCEPTANCE ACT
+   in the header: the first three make a group, the last three can clear it. */
+const RECORD_FIELDS = [
+  'acceptedBy', 'acceptedAt', 'method',
+  'acceptanceAct', 'coveredPackets', 'acceptanceBasis'
+];
+
+/* The declaration that distinguishes one acceptance act covering many packets
+   from a bulk stamp. All three are required together and each carries a
+   different half of the claim: the act id says the members mean to share an
+   instant, the covered set says WHICH packets the act reached, and the basis
+   says what was accepted FOR THIS PACKET. */
+const ACT_FIELD = 'acceptanceAct';
+const COVERED_FIELD = 'coveredPackets';
+const BASIS_FIELD = 'acceptanceBasis';
+
+/* A `coveredPackets` entry may name a packet by its full path or by its
+   directory basename; both are compared against the group's real membership. */
+const packetBasename = (packet) => packet.split('/').filter(Boolean).pop() ?? packet;
+const splitCovered = (value) =>
+  String(value ?? '').split(',').map((part) => part.trim()).filter((part) => part !== '');
 
 /* A time-of-day is mandatory: the impossibility being asserted is about one
    second, and a date-only value asserts nothing. */
@@ -342,6 +396,61 @@ export function instantOf(acceptedAt) {
 
 const keyOf = (packet, acceptedBy, acceptedAt) => packet + '::' + acceptedBy + '@' + acceptedAt;
 
+/* Whether a collision group is ONE declared acceptance act rather than a bulk
+   stamp. Returns null when it is, or the reason it is not.
+
+   The three conditions are not interchangeable. The act id must be present and
+   IDENTICAL across members, so a group cannot be cleared by members that each
+   assert a private act. The covered set must match the group EXACTLY, which is
+   what stops a third packet joining a declared act for free — the same failure
+   the baseline key is shaped to prevent. The bases must be present and pairwise
+   DISTINCT, because a basis copy-pasted across packets is one claim wearing N
+   hats rather than a per-packet basis.
+
+   A partially-declared group is a FINDING and says which condition failed. It
+   is never silently dropped: a half-written declaration is exactly the shape a
+   bulk stamp would take if this exemption were the thing being gamed. */
+export function declaredActFailure(members) {
+  const acts = members.map((member) => (member.acceptanceAct ?? '').trim());
+  const missingAct = acts.filter((act) => act === '').length;
+  if (missingAct > 0) {
+    return 'no `' + ACT_FIELD + '` on ' + missingAct + ' of ' + members.length + ' member(s)';
+  }
+  if (new Set(acts).size !== 1) {
+    return '`' + ACT_FIELD + '` differs across the group (' +
+      [...new Set(acts)].sort(byteOrder).join(' vs ') + ')';
+  }
+
+  const actual = members.map((member) => member.packet);
+  for (const member of members) {
+    const covered = splitCovered(member.coveredPackets);
+    if (covered.length === 0) return 'no `' + COVERED_FIELD + '` on ' + member.packet;
+    const normalised = new Set();
+    for (const entry of covered) {
+      const match = actual.find((packet) => packet === entry || packetBasename(packet) === entry);
+      if (!match) {
+        return '`' + COVERED_FIELD + '` on ' + member.packet + ' names ' + entry +
+          ', which is not one of the packets sharing this instant';
+      }
+      normalised.add(match);
+    }
+    if (normalised.size !== actual.length) {
+      return '`' + COVERED_FIELD + '` on ' + member.packet + ' covers ' + normalised.size +
+        ' of the ' + actual.length + ' packet(s) sharing this instant';
+    }
+  }
+
+  const bases = members.map((member) => (member.acceptanceBasis ?? '').trim());
+  const missingBasis = bases.filter((basis) => basis === '').length;
+  if (missingBasis > 0) {
+    return 'no `' + BASIS_FIELD + '` on ' + missingBasis + ' of ' + members.length + ' member(s)';
+  }
+  if (new Set(bases.map((basis) => basis.toLowerCase())).size !== bases.length) {
+    return '`' + BASIS_FIELD + '` is repeated across packets, so it is not a per-packet basis';
+  }
+  return null;
+}
+
 export function collectAcceptanceStamps(root = ROOT, options = {}) {
   const specsDir = options.specsDir ?? SPECS_DIR;
   const registryFile = options.registryFile
@@ -358,7 +467,8 @@ export function collectAcceptanceStamps(root = ROOT, options = {}) {
     eligibleCount: 0,
     ineligible: [],
     methodCounts: {},
-    groupCount: 0
+    groupCount: 0,
+    exemptGroups: []
   };
   if (!license.ok) return empty;
 
@@ -403,7 +513,12 @@ export function collectAcceptanceStamps(root = ROOT, options = {}) {
       });
       continue;
     }
-    eligible.push({ packet, artifact, acceptedBy, acceptedAt, instant });
+    eligible.push({
+      packet, artifact, acceptedBy, acceptedAt, instant,
+      acceptanceAct: fields[ACT_FIELD]?.value ?? '',
+      coveredPackets: fields[COVERED_FIELD]?.value ?? '',
+      acceptanceBasis: fields[BASIS_FIELD]?.value ?? ''
+    });
   }
 
   /* One group per (acceptor, instant). A group of one is a record that names a
@@ -416,11 +531,32 @@ export function collectAcceptanceStamps(root = ROOT, options = {}) {
   }
 
   const findings = [];
+  const exemptGroups = [];
   let groupCount = 0;
   for (const [groupKey, members] of groups) {
     if (members.length < 2) continue;
     groupCount++;
     const packets = members.map((member) => member.packet).sort(byteOrder);
+
+    /* One human CAN accept several packets in one act; what they cannot do is
+       exercise several deliveries in one second with nothing said about any of
+       them. A group that declares the act, its membership, and a distinct basis
+       per packet is that first case and is not reported. */
+    const actFailure = declaredActFailure(members);
+    if (actFailure === null) {
+      exemptGroups.push({
+        groupKey,
+        acceptedBy: members[0].acceptedBy,
+        acceptedAt: members[0].acceptedAt,
+        act: (members[0].acceptanceAct ?? '').trim(),
+        packets,
+        detail: 'declares one acceptance act `' + (members[0].acceptanceAct ?? '').trim() +
+          '` covering ' + packets.length + ' packet(s), each with its own basis (' +
+          packets.join(', ') + ')'
+      });
+      continue;
+    }
+
     for (const member of members) {
       findings.push({
         ...member,
@@ -428,16 +564,19 @@ export function collectAcceptanceStamps(root = ROOT, options = {}) {
         groupKey,
         groupSize: members.length,
         siblings: packets.filter((packet) => packet !== member.packet),
+        actFailure,
         detail: 'declares `' + INTERACTIVE_METHOD + '` accepted by ' + member.acceptedBy +
           ' at ' + member.acceptedAt + ', the same instant as ' + (members.length - 1) +
           ' other packet' + (members.length === 2 ? '' : 's') + ' (' +
-          packets.filter((packet) => packet !== member.packet).join(', ') + ')'
+          packets.filter((packet) => packet !== member.packet).join(', ') +
+          '), and the group declares no single acceptance act: ' + actFailure
       });
     }
   }
 
   findings.sort((a, b) => byteOrder(a.key, b.key));
   ineligible.sort((a, b) => byteOrder(a.packet, b.packet));
+  exemptGroups.sort((a, b) => byteOrder(a.groupKey, b.groupKey));
   return {
     license,
     registryFile: displayPath(root, registryFile),
@@ -447,7 +586,8 @@ export function collectAcceptanceStamps(root = ROOT, options = {}) {
     eligibleCount: eligible.length,
     ineligible,
     methodCounts,
-    groupCount
+    groupCount,
+    exemptGroups
   };
 }
 
@@ -524,6 +664,12 @@ export function formatAcceptanceBulkStampFindings(result, limit = Infinity) {
       (result.staleBaseline.length === 1 ? 'y no longer collides' : 'ies no longer collide') +
       ' — remove from ' + result.baselineFile + ':');
     for (const key of result.staleBaseline.slice(0, limit)) lines.push('    ' + key);
+  }
+
+  /* Exemptions are PRINTED, never silent. A shared instant the guard chose not to
+     report is exactly the thing a reader must be able to audit by eye. */
+  for (const group of (result.exemptGroups ?? []).slice(0, limit)) {
+    lines.push('DECLARED-ACT ' + group.groupKey + ' — ' + group.detail);
   }
   return lines;
 }
@@ -665,6 +811,7 @@ function main() {
     ' eligible=' + result.eligibleCount +
     ' ineligible=' + result.ineligible.length +
     ' groups=' + result.groupCount +
+    ' declared-act=' + (result.exemptGroups?.length ?? 0) +
     ' colliding=' + result.findings.length +
     ' baseline=' + result.baselineCount +
     ' new=' + result.newFindings.length +

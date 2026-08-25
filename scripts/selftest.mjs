@@ -29763,6 +29763,84 @@ try {
     && !accNoRegistry.ok && /registry not found/.test(accNoRegistry.license.reason)
     && accReworded.findings.length === 0 && accNoMethod.findings.length === 0,
     'the same colliding pair is reported under the real registry and REFUSED \u2014 loudly, naming the missing licence \u2014 once the live-session clause is reworded away, the method is removed, or the registry is absent; a frozen paraphrase here would keep enforcing a rule the registry had stopped stating');
+  dropAccPacket('913-licence'); dropAccPacket('914-licence');
+
+  /* DECLARED SINGLE ACCEPTANCE ACT. The false-positive class of the impossibility argument:
+     it is about EXERCISING two deliveries in one second, not about ACCEPTING them. A person can
+     exercise two fixes over an hour and accept both in one instant, and that act is honest.
+     A group is cleared only when it declares itself to be that act \u2014 one shared `acceptanceAct`,
+     a `coveredPackets` set matching the group exactly, and a per-packet `acceptanceBasis`. */
+  const accAct = 'operator-session-fixture';
+  const accDeclared = (id, basis, covered) => writeAccPacket(id, {
+    acceptedBy: 'operator', acceptedAt: '2026-08-26T09:00:00Z', method: 'human-interactive',
+    acceptanceAct: accAct, coveredPackets: covered, acceptanceBasis: basis
+  });
+  accDeclared('915-act-a', 'the restored panel at the deployed ref', '915-act-a, 916-act-b');
+  accDeclared('916-act-b', 'the pinned worker count in the runner config', '915-act-a, 916-act-b');
+  const accDeclaredRun = runAcc();
+  assert(accDeclaredRun.ok && accDeclaredRun.findings.length === 0
+    && accDeclaredRun.groupCount === 1 && accDeclaredRun.exemptGroups.length === 1
+    && accDeclaredRun.exemptGroups[0].act === accAct
+    && accDeclaredRun.exemptGroups[0].packets.length === 2,
+    'two packets sharing one instant that declare ONE acceptance act, its exact membership, and a DISTINCT per-packet basis are not reported \u2014 the shared instant is still detected as a group, and the exemption is surfaced rather than the group vanishing (' + accDeclaredRun.groupCount + ' group(s), ' + accDeclaredRun.exemptGroups.length + ' declared act(s))');
+
+  /* ADVERSARIAL: the exemption is PRINTED. A shared instant the guard chose not to report is
+     precisely what a reader must be able to audit by eye, so silence would be its own defect. */
+  const accActLines = accGuard.formatAcceptanceBulkStampFindings(accDeclaredRun, 5);
+  assert(accActLines.some((line) => line.startsWith('DECLARED-ACT') && line.includes(accAct)),
+    'an exempted group is printed as `DECLARED-ACT` naming the act it claims, so an exemption is auditable rather than an absence a reader cannot see');
+
+  /* ADVERSARIAL: a basis copy-pasted across packets is ONE claim wearing two hats, which is what
+     a bulk stamp is. Distinctness is the condition that carries the per-packet weight. */
+  accDeclared('916-act-b', 'the restored panel at the deployed ref', '915-act-a, 916-act-b');
+  const accSameBasis = runAcc();
+  assert(!accSameBasis.ok && accSameBasis.newFindings.length === 2
+    && /repeated across packets/.test(accSameBasis.newFindings[0].actFailure),
+    'an identical `acceptanceBasis` on both members FAILS \u2014 a copy-pasted basis is not a per-packet basis, and the finding names that condition rather than reporting a bare collision (' + (accSameBasis.newFindings[0]?.actFailure ?? 'none') + ')');
+
+  /* ADVERSARIAL: a half-written declaration fails, and says which half. */
+  writeAccPacket('916-act-b', { acceptedBy: 'operator', acceptedAt: '2026-08-26T09:00:00Z', method: 'human-interactive', acceptanceAct: accAct, coveredPackets: '915-act-a, 916-act-b' });
+  const accNoBasis = runAcc();
+  writeAccPacket('916-act-b', { acceptedBy: 'operator', acceptedAt: '2026-08-26T09:00:00Z', method: 'human-interactive', acceptanceAct: 'a-different-act', coveredPackets: '915-act-a, 916-act-b', acceptanceBasis: 'the pinned worker count' });
+  const accSplitAct = runAcc();
+  assert(!accNoBasis.ok && /no `acceptanceBasis`/.test(accNoBasis.newFindings[0].actFailure)
+    && !accSplitAct.ok && /differs across the group/.test(accSplitAct.newFindings[0].actFailure),
+    'a group missing `acceptanceBasis` on one member, and a group whose members each assert a DIFFERENT act, both FAIL \u2014 a partially-written declaration is the shape a bulk stamp would take if the exemption were the thing being gamed');
+
+  /* ADVERSARIAL, and the reason `coveredPackets` must match EXACTLY: a THIRD packet joining a
+     fully declared act is not covered by it, so the act no longer describes the group. This is
+     the same failure the baseline key is shaped to prevent, at the exemption instead. */
+  accDeclared('916-act-b', 'the pinned worker count in the runner config', '915-act-a, 916-act-b');
+  writeAccPacket('917-act-c', { acceptedBy: 'operator', acceptedAt: '2026-08-26T09:00:00Z', method: 'human-interactive', acceptanceAct: accAct, coveredPackets: '915-act-a, 916-act-b, 917-act-c', acceptanceBasis: 'a third thing entirely' });
+  const accThirdJoins = runAcc();
+  assert(!accThirdJoins.ok && accThirdJoins.newFindings.length === 3
+    && accThirdJoins.exemptGroups.length === 0
+    && /covers 2 of the 3/.test(accThirdJoins.newFindings[0].actFailure),
+    'a third packet joining an already-declared act FAILS the whole group, because the two original members cover 2 of 3 \u2014 an exemption that grew silently would admit exactly the act being guarded (' + (accThirdJoins.newFindings[0]?.actFailure ?? 'none') + ')');
+  dropAccPacket('915-act-a'); dropAccPacket('916-act-b'); dropAccPacket('917-act-c');
+
+  /* ADVERSARIAL, THE ORIGINAL DEFECT RECONSTRUCTED. Thirteen records written in one pass, TEN
+     carrying one second-precision instant, each with the three bare fields and nothing else \u2014
+     the exact shape measured in this repository before the ten were relabelled. It is rebuilt
+     here rather than asserted, because the real records no longer carry `human-interactive` and
+     a guard proven only against a two-packet fixture would not have shown that the refinement
+     leaves the thirteen-record case exactly where it was. */
+  const accBulkInstant = '2026-08-25T16:59:38Z';
+  for (let i = 0; i < 10; i++) {
+    writeAccPacket('92' + i + '-bulk', { acceptedBy: 'operator', acceptedAt: accBulkInstant, method: 'human-interactive' });
+  }
+  for (let i = 0; i < 3; i++) {
+    writeAccPacket('93' + i + '-bulk-other', { acceptedBy: 'operator', acceptedAt: '2026-08-25T1' + i + ':00:00Z', method: 'human-interactive' });
+  }
+  const accBulk = runAcc();
+  const accBulkGroup = accBulk.newFindings.filter((finding) => finding.acceptedAt === accBulkInstant);
+  assert(!accBulk.ok && accBulk.exemptGroups.length === 0 && accBulkGroup.length === 10
+    && accBulkGroup.every((finding) => finding.groupSize === 10)
+    && accBulkGroup.every((finding) => /no `acceptanceAct` on 10 of 10/.test(finding.actFailure)),
+    'the thirteen-record stamp \u2014 ten sharing ONE instant with three bare fields \u2014 still FAILS after the refinement, all ten reported, cleared by nothing: the exemption needs ten mutually-consistent covered sets and ten distinct bases, so it converts a silent side effect into a deliberate ten-part fabrication rather than opening a door (' + accBulkGroup.length + ' of 10 reported, group size ' + (accBulkGroup[0]?.groupSize ?? 0) + ')');
+  for (let i = 0; i < 10; i++) dropAccPacket('92' + i + '-bulk');
+  for (let i = 0; i < 3; i++) dropAccPacket('93' + i + '-bulk-other');
+
   rmAcc(accRoot, { recursive: true, force: true });
 
   /* The real repository, against the committed baseline and the real registry. */
@@ -29772,6 +29850,18 @@ try {
   for (const line of accGuard.formatAcceptanceBulkStampFindings(acceptance, 3)) console.log('    ' + line);
   assert(acceptance.newFindings.length === 0,
     'no Human Acceptance Record outside the frozen baseline claims a live-session acceptance at an instant another packet also claims \u2014 a bulk stamp satisfies the terminal gate while asserting something that cannot have happened (' + acceptance.newFindings.length + ' new, ' + acceptance.knownFindings.length + ' frozen, ' + acceptance.staleBaseline.length + ' stale of ' + acceptance.findings.length + ' colliding record(s))');
+
+  /* The real tree's own declared act, and the reason the baseline did not grow to admit it.
+     BUG-016 and BUG-017 were accepted in ONE operator act, so they necessarily share an instant.
+     They are cleared by declaring that act rather than by being frozen \u2014 the baseline's own
+     contract is that it shrinks and never grows, and freezing a legitimate record would have
+     turned a list of debt awaiting correction into a list of exceptions. */
+  const accRealAct = acceptance.exemptGroups.filter((group) =>
+    group.packets.some((packet) => /BUG-016-/.test(packet)) &&
+    group.packets.some((packet) => /BUG-017-/.test(packet)));
+  assert(accRealAct.length === 1 && accRealAct[0].packets.length === 2
+    && acceptance.baselineCount === 4,
+    'the real BUG-016/BUG-017 pair is cleared as ONE declared acceptance act rather than by a new baseline entry, and the frozen list still holds exactly the 4 pre-existing records \u2014 a baseline that grew to admit a legitimate record would stop meaning "debt awaiting correction" (' + accRealAct.length + ' declared act(s), baseline ' + acceptance.baselineCount + ')');
 } catch (e) { failures++; console.log('  ✗ FAIL (acceptance bulk-stamp guard threw): ' + e.message); }
 /* ---------- specs/ — no acceptance record is bulk-stamped (END) ---------- */
 

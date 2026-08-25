@@ -177,7 +177,15 @@ is therefore not applicable and is deliberately left unticked rather than satisf
 ## Cross-Scope Definition of Done
 
 - [ ] `bug.md` status is updated from Confirmed to Fixed and then Verified.
-- [ ] `report.md` carries pre-fix reproduction and post-fix proof.
-- [ ] The separation from `BUG-016` is intact: no claim in this packet is offered as an
+      Half done, left unticked on the other half. `bug.md` reads
+      `Fixed — awaiting independent verification`. It is not `Verified`, because this execution
+      measured its own remedy and verification by the party that wrote the fix is not
+      independent. The item asserts both transitions, so it stays open.
+- [x] `report.md` carries pre-fix reproduction and post-fix proof.
+  → Evidence: pre-fix is the sixteen-run characterisation under `## Scope 1 Execution — Characterisation`; post-fix is the three-run verification under `## Scope 2 Execution — Remedy Applied`. Both were already recorded and are summarised in `## Cross-Scope Definition of Done — Status`; this tick only stops the artifact contradicting itself.
+- [x] The separation from `BUG-016` is intact: no claim in this packet is offered as an
       explanation for the red deploy gate.
+  → Evidence: `## The Separation From BUG-016` carries a six-row comparison establishing they are different defects. Re-verified mechanically after BUG-016 was closed in the same session, which is when contamination would have been introduced: `git show origin/main:specs/_bugs/BUG-016-*/scopes.md | grep -c 'BUG-017'` returns **0** — BUG-016 cites nothing from this packet as evidence, in either direction.
 - [ ] `uservalidation.md` carries a filled Human Acceptance Record.
+      Not this execution's to fill. Human acceptance has not occurred, and filling it would be
+      the agent granting itself acceptance.

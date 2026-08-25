@@ -16,16 +16,35 @@
 # Usage:
 #   scripts/red-green-probe.sh \
 #     --file <path> --find <literal> --replace <literal> \
+#     [--find <literal> --replace <literal>]... \
+#     [--file <path> --find <literal> --replace <literal>]... \
 #     --label <label> [--bound <seconds>] [--summary-match <regex>] \
 #     -- <command...>
 #
+# COMPOSED MUTATIONS. --find/--replace may repeat, and --file may repeat, so one
+# probe can express a case that needs several edits across several files. Each
+# --find/--replace pair binds to the most recent --file, which makes the single
+# pair form a special case of the general one rather than a separate mode.
+#
+# This exists because an assertion can be OVER-DETERMINED: defended by several
+# independent layers, so that removing any one alone leaves the others
+# sufficient and the probe correctly reports exit 7. Such an assertion is not
+# vacuous, but its true adversarial case is a COMBINATION, and a harness that
+# applies one edit to one file cannot state it. Composing mutations lets the
+# probe drive the case a design actually names instead of the largest case the
+# harness happened to be able to express.
+#
+# The revert is ALL-OR-NOTHING across every target: each file is registered and
+# hash-pinned BEFORE the first mutation is applied, so a failure part-way
+# through — or a signal — still reverts every file that was already changed.
+#
 # Exit codes:
-#   0  RED and GREEN discriminated; file reverted and hash-verified
+#   0  RED and GREEN discriminated; every file reverted and hash-verified
 #   2  usage error
-#   3  refused: --replace could exfiltrate data
-#   4  refused: target file is untracked or dirty at start
-#   5  refused: mutation did not land (--find absent, or --find == --replace)
-#   6  revert verification failed (file does not match the committed blob)
+#   3  refused: a --replace could exfiltrate data
+#   4  refused: a target file is untracked or dirty at start
+#   5  refused: a mutation did not land (--find absent, or --find == --replace)
+#   6  revert verification failed (a file does not match its committed blob)
 #   7  refused: RED and GREEN produced the same outcome (probe did not
 #      discriminate — the assertion under test cannot fail)
 #   8  refused: --summary-match was supplied but matched no line in the RED
@@ -56,19 +75,30 @@ readonly EXIT_REVERT=6
 readonly EXIT_NO_DISCRIMINATION=7
 readonly EXIT_SUMMARY_UNMATCHED=8
 
-PROBE_FILE=""
-PROBE_FIND=""
-PROBE_REPLACE=""
+# One entry per --find/--replace pair, in declaration order. MUT_FILE[i] is the
+# --file in force when that pair was declared.
+MUT_FILE=()
+MUT_FIND=()
+MUT_REPLACE=()
+MUT_OCCURRENCES=()
+
+# One entry per DISTINCT target file, deduplicated. These carry the revert.
+TARGET_ABS=()
+TARGET_REL=()
+TARGET_HASH=()
+
+PROBE_CURRENT_FILE=""
+PROBE_PENDING_FIND=""
+PROBE_HAVE_PENDING_FIND=0
 PROBE_LABEL=""
 PROBE_BOUND=""
 PROBE_SUMMARY_MATCH=""
 PROBE_CMD=()
 
 REPO_ROOT=""
-REL_PATH=""
-COMMITTED_HASH=""
 CHILD_PID=""
 WORK_DIR=""
+TARGETS_ARMED=0
 
 die() {
   local code="$1"; shift
@@ -79,7 +109,10 @@ die() {
 usage() {
   printf '%s\n' \
     'Usage: scripts/red-green-probe.sh --file <path> --find <literal> --replace <literal>' \
-    '         --label <label> [--bound <seconds>] [--summary-match <regex>] -- <command...>' >&2
+    '         [--find <literal> --replace <literal>]... [--file <path> ...]' \
+    '         --label <label> [--bound <seconds>] [--summary-match <regex>] -- <command...>' \
+    '' \
+    '  --find/--replace may repeat; each pair binds to the most recent --file.' >&2
 }
 
 # Rewrite anything that looks like an absolute home path so emitted evidence
@@ -103,21 +136,35 @@ count_literal() {
 }
 
 working_hash() {
-  git -C "$REPO_ROOT" hash-object -- "$REL_PATH"
+  git -C "$REPO_ROOT" hash-object -- "$1"
 }
 
-# Restore the target from the index/HEAD and prove the restoration by hash.
-# Idempotent by construction: a second call is a no-op that still verifies.
+# Restore EVERY registered target from the index/HEAD and prove each restoration
+# by hash. All-or-nothing: one loop over the whole target set, and a single
+# mismatch anywhere is a revert failure. Idempotent by construction, so a second
+# call is a no-op that still verifies. Every target is registered and pinned
+# before the first mutation lands, so this covers a partial mutation run too.
+restore_targets() {
+  local failed=0 idx now
+  [[ "$TARGETS_ARMED" -eq 1 ]] || return 0
+  for (( idx = 0; idx < ${#TARGET_REL[@]}; idx++ )); do
+    git -C "$REPO_ROOT" checkout -- "${TARGET_REL[$idx]}" 2>/dev/null || true
+    now="$(working_hash "${TARGET_REL[$idx]}" 2>/dev/null || printf 'unreadable')"
+    if [[ "$now" != "${TARGET_HASH[$idx]}" ]]; then
+      failed=1
+      printf 'red-green-probe: REVERT FAILED for %s (committed=%s restored=%s)\n' \
+        "${TARGET_REL[$idx]}" "${TARGET_HASH[$idx]}" "$now" >&2
+      printf 'red-green-probe: restore by hand with: git checkout -- %s\n' "${TARGET_REL[$idx]}" >&2
+    fi
+  done
+  return "$failed"
+}
+
+# Restore the targets from the index/HEAD and prove the restorations by hash.
 restore() {
   local rc=$?
-  if [[ -n "$REPO_ROOT" && -n "$REL_PATH" && -n "$COMMITTED_HASH" ]]; then
-    git -C "$REPO_ROOT" checkout -- "$REL_PATH" 2>/dev/null || true
-    local now
-    now="$(working_hash 2>/dev/null || printf 'unreadable')"
-    if [[ "$now" != "$COMMITTED_HASH" ]]; then
-      printf 'red-green-probe: REVERT FAILED for %s (committed=%s restored=%s)\n' \
-        "$REL_PATH" "$COMMITTED_HASH" "$now" >&2
-      printf 'red-green-probe: restore by hand with: git checkout -- %s\n' "$REL_PATH" >&2
+  if [[ -n "$REPO_ROOT" ]]; then
+    if ! restore_targets; then
       [[ -n "$WORK_DIR" ]] && rm -rf "$WORK_DIR"
       exit "$EXIT_REVERT"
     fi
@@ -141,9 +188,34 @@ on_signal() {
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --file) shift; [[ $# -gt 0 ]] || { usage; die "$EXIT_USAGE" '--file requires a value'; }; PROBE_FILE="$1" ;;
-    --find) shift; [[ $# -gt 0 ]] || { usage; die "$EXIT_USAGE" '--find requires a value'; }; PROBE_FIND="$1" ;;
-    --replace) shift; [[ $# -gt 0 ]] || { usage; die "$EXIT_USAGE" '--replace requires a value'; }; PROBE_REPLACE="$1" ;;
+    --file)
+      shift; [[ $# -gt 0 ]] || { usage; die "$EXIT_USAGE" '--file requires a value'; }
+      # A --file may not arrive between a --find and its --replace: that would
+      # leave the pair straddling two targets and silently bind it to whichever
+      # file parsing happened to reach last.
+      [[ "$PROBE_HAVE_PENDING_FIND" -eq 0 ]] || { usage; die "$EXIT_USAGE" \
+        "--file appeared after --find '$PROBE_PENDING_FIND' but before its --replace, so that mutation has no complete definition"; }
+      PROBE_CURRENT_FILE="$1"
+      ;;
+    --find)
+      shift; [[ $# -gt 0 ]] || { usage; die "$EXIT_USAGE" '--find requires a value'; }
+      [[ -n "$PROBE_CURRENT_FILE" ]] || { usage; die "$EXIT_USAGE" \
+        "--find '$1' appeared before any --file, so there is no target to bind it to"; }
+      [[ "$PROBE_HAVE_PENDING_FIND" -eq 0 ]] || { usage; die "$EXIT_USAGE" \
+        "--find '$1' followed --find '$PROBE_PENDING_FIND' with no --replace between them"; }
+      PROBE_PENDING_FIND="$1"
+      PROBE_HAVE_PENDING_FIND=1
+      ;;
+    --replace)
+      shift; [[ $# -gt 0 ]] || { usage; die "$EXIT_USAGE" '--replace requires a value'; }
+      [[ "$PROBE_HAVE_PENDING_FIND" -eq 1 ]] || { usage; die "$EXIT_USAGE" \
+        "--replace '$1' has no preceding --find"; }
+      MUT_FILE+=("$PROBE_CURRENT_FILE")
+      MUT_FIND+=("$PROBE_PENDING_FIND")
+      MUT_REPLACE+=("$1")
+      PROBE_PENDING_FIND=""
+      PROBE_HAVE_PENDING_FIND=0
+      ;;
     --label) shift; [[ $# -gt 0 ]] || { usage; die "$EXIT_USAGE" '--label requires a value'; }; PROBE_LABEL="$1" ;;
     --bound) shift; [[ $# -gt 0 ]] || { usage; die "$EXIT_USAGE" '--bound requires a value'; }; PROBE_BOUND="$1" ;;
     --summary-match) shift; [[ $# -gt 0 ]] || { usage; die "$EXIT_USAGE" '--summary-match requires a value'; }; PROBE_SUMMARY_MATCH="$1" ;;
@@ -154,9 +226,10 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-[[ -n "$PROBE_FILE" ]] || { usage; die "$EXIT_USAGE" '--file is required'; }
-[[ -n "$PROBE_FIND" ]] || { usage; die "$EXIT_USAGE" '--find is required'; }
-[[ -n "$PROBE_REPLACE" ]] || { usage; die "$EXIT_USAGE" '--replace is required'; }
+[[ -n "$PROBE_CURRENT_FILE" ]] || { usage; die "$EXIT_USAGE" '--file is required'; }
+[[ "$PROBE_HAVE_PENDING_FIND" -eq 0 ]] || { usage; die "$EXIT_USAGE" \
+  "--find '$PROBE_PENDING_FIND' has no --replace, so that mutation is incomplete"; }
+[[ ${#MUT_FIND[@]} -gt 0 ]] || { usage; die "$EXIT_USAGE" 'at least one --find/--replace pair is required'; }
 [[ -n "$PROBE_LABEL" ]] || { usage; die "$EXIT_USAGE" '--label is required'; }
 [[ ${#PROBE_CMD[@]} -gt 0 ]] || { usage; die "$EXIT_USAGE" 'a command is required after --'; }
 if [[ -n "$PROBE_BOUND" && ! "$PROBE_BOUND" =~ ^[0-9]+$ ]]; then
@@ -165,57 +238,99 @@ fi
 
 # ---------- safety rail: mutations must be value-free by construction ----------
 
-exfil_reason=""
-case "$PROBE_REPLACE" in
-  *'fetch('*) exfil_reason='contains fetch(' ;;
-  *'http://'*) exfil_reason='contains an http:// URL' ;;
-  *'https://'*) exfil_reason='contains an https:// URL' ;;
-  *'navigator.sendBeacon'*) exfil_reason='contains navigator.sendBeacon' ;;
-esac
-if [[ -z "$exfil_reason" ]] && printf '%s' "$PROBE_REPLACE" | grep -qiE 'xmlhttprequest'; then
-  exfil_reason='contains XMLHttpRequest'
-fi
-if [[ -z "$exfil_reason" ]] && printf '%s' "$PROBE_REPLACE" \
-  | grep -qE 'location\.[A-Za-z_$][A-Za-z0-9_$]*[[:space:]]*=[^=]'; then
-  exfil_reason='assigns to a location.* property'
-fi
-if [[ -z "$exfil_reason" ]] && printf '%s' "$PROBE_REPLACE" \
-  | grep -qE 'location\.(assign|replace)[[:space:]]*\('; then
-  exfil_reason='calls location.assign / location.replace'
-fi
-if [[ -n "$exfil_reason" ]]; then
-  die "$EXIT_EXFIL" \
-    "--replace $exfil_reason. A probe mutation must be value-free by construction: it may not open a network sink or a navigation sink that could carry the operator's data off the page."
-fi
+# Every --replace is screened, not just the first. A composed probe otherwise
+# offers a way to smuggle a sink in behind a benign-looking opening pair.
+for (( m = 0; m < ${#MUT_REPLACE[@]}; m++ )); do
+  candidate="${MUT_REPLACE[$m]}"
+  exfil_reason=""
+  case "$candidate" in
+    *'fetch('*) exfil_reason='contains fetch(' ;;
+    *'http://'*) exfil_reason='contains an http:// URL' ;;
+    *'https://'*) exfil_reason='contains an https:// URL' ;;
+    *'navigator.sendBeacon'*) exfil_reason='contains navigator.sendBeacon' ;;
+  esac
+  if [[ -z "$exfil_reason" ]] && printf '%s' "$candidate" | grep -qiE 'xmlhttprequest'; then
+    exfil_reason='contains XMLHttpRequest'
+  fi
+  if [[ -z "$exfil_reason" ]] && printf '%s' "$candidate" \
+    | grep -qE 'location\.[A-Za-z_$][A-Za-z0-9_$]*[[:space:]]*=[^=]'; then
+    exfil_reason='assigns to a location.* property'
+  fi
+  if [[ -z "$exfil_reason" ]] && printf '%s' "$candidate" \
+    | grep -qE 'location\.(assign|replace)[[:space:]]*\('; then
+    exfil_reason='calls location.assign / location.replace'
+  fi
+  if [[ -n "$exfil_reason" ]]; then
+    die "$EXIT_EXFIL" \
+      "--replace #$((m + 1)) $exfil_reason. A probe mutation must be value-free by construction: it may not open a network sink or a navigation sink that could carry the operator's data off the page."
+  fi
+done
 
-# ---------- resolve the target inside its repository ----------
+# ---------- resolve every target inside its repository ----------
 
-[[ -f "$PROBE_FILE" ]] || die "$EXIT_DIRTY" "target file does not exist: $(printf '%s' "$PROBE_FILE" | scrub)"
+# Each distinct --file is validated and hash-pinned here, before ANY mutation is
+# applied. That ordering is what makes the revert all-or-nothing: by the time
+# the first byte changes, the harness already knows the committed blob of every
+# file it may touch, so a failure at mutation 2 still restores mutation 1.
+for (( m = 0; m < ${#MUT_FILE[@]}; m++ )); do
+  probe_file="${MUT_FILE[$m]}"
 
-file_dir="$(cd "$(dirname "$PROBE_FILE")" && pwd)"
-file_base="$(basename "$PROBE_FILE")"
+  # Skip a file already registered by an earlier pair.
+  already=0
+  for (( t = 0; t < ${#TARGET_ABS[@]}; t++ )); do
+    if [[ "${TARGET_ABS[$t]}" == "$probe_file" ]]; then already=1; break; fi
+  done
+  [[ "$already" -eq 0 ]] || continue
 
-REPO_ROOT="$(git -C "$file_dir" rev-parse --show-toplevel 2>/dev/null || true)"
-[[ -n "$REPO_ROOT" ]] || die "$EXIT_DIRTY" 'target file is not inside a Git worktree'
+  [[ -f "$probe_file" ]] || die "$EXIT_DIRTY" "target file does not exist: $(printf '%s' "$probe_file" | scrub)"
 
-REL_PATH="$(git -C "$file_dir" ls-files --full-name --error-unmatch -- "$file_base" 2>/dev/null || true)"
-[[ -n "$REL_PATH" ]] || die "$EXIT_DIRTY" \
-  "target file is not tracked by Git, so there is no committed blob to revert to: $file_base"
+  file_dir="$(cd "$(dirname "$probe_file")" && pwd)"
+  file_base="$(basename "$probe_file")"
 
-git -C "$REPO_ROOT" rev-parse --verify HEAD >/dev/null 2>&1 \
-  || die "$EXIT_DIRTY" 'repository has no commit yet, so there is no committed blob to revert to'
+  file_root="$(git -C "$file_dir" rev-parse --show-toplevel 2>/dev/null || true)"
+  [[ -n "$file_root" ]] || die "$EXIT_DIRTY" "target file is not inside a Git worktree: $file_base"
 
-# 1. A probe must start from a known-clean baseline. Reverting a dirty file
-#    would discard real, uncommitted work.
-if [[ -n "$(git -C "$REPO_ROOT" status --porcelain -- "$REL_PATH")" ]]; then
-  die "$EXIT_DIRTY" \
-    "$REL_PATH is dirty. A probe reverts by checking the file out, which would discard the uncommitted change. Commit or stash it first."
-fi
+  if [[ -z "$REPO_ROOT" ]]; then
+    REPO_ROOT="$file_root"
+  elif [[ "$file_root" != "$REPO_ROOT" ]]; then
+    # One revert path, one repository. Spanning two worktrees would mean two
+    # independent checkouts and no way to keep the revert atomic across them.
+    die "$EXIT_DIRTY" \
+      "target $file_base is in a different Git worktree from the earlier targets, so the revert could not be kept all-or-nothing"
+  fi
 
-COMMITTED_HASH="$(git -C "$REPO_ROOT" rev-parse "HEAD:$REL_PATH")"
-start_hash="$(working_hash)"
-[[ "$start_hash" == "$COMMITTED_HASH" ]] || die "$EXIT_DIRTY" \
-  "$REL_PATH does not match its committed blob even though Git reports it clean"
+  rel_path="$(git -C "$file_dir" ls-files --full-name --error-unmatch -- "$file_base" 2>/dev/null || true)"
+  [[ -n "$rel_path" ]] || die "$EXIT_DIRTY" \
+    "target file is not tracked by Git, so there is no committed blob to revert to: $file_base"
+
+  git -C "$REPO_ROOT" rev-parse --verify HEAD >/dev/null 2>&1 \
+    || die "$EXIT_DIRTY" 'repository has no commit yet, so there is no committed blob to revert to'
+
+  # 1. A probe must start from a known-clean baseline. Reverting a dirty file
+  #    would discard real, uncommitted work.
+  if [[ -n "$(git -C "$REPO_ROOT" status --porcelain -- "$rel_path")" ]]; then
+    die "$EXIT_DIRTY" \
+      "$rel_path is dirty. A probe reverts by checking the file out, which would discard the uncommitted change. Commit or stash it first."
+  fi
+
+  committed_hash="$(git -C "$REPO_ROOT" rev-parse "HEAD:$rel_path")"
+  start_hash="$(working_hash "$rel_path")"
+  [[ "$start_hash" == "$committed_hash" ]] || die "$EXIT_DIRTY" \
+    "$rel_path does not match its committed blob even though Git reports it clean"
+
+  TARGET_ABS+=("$probe_file")
+  TARGET_REL+=("$rel_path")
+  TARGET_HASH+=("$committed_hash")
+done
+
+# Resolve each mutation's file to its registered index once, so the mutation
+# loop below never re-derives a path.
+MUT_TARGET=()
+for (( m = 0; m < ${#MUT_FILE[@]}; m++ )); do
+  for (( t = 0; t < ${#TARGET_ABS[@]}; t++ )); do
+    if [[ "${TARGET_ABS[$t]}" == "${MUT_FILE[$m]}" ]]; then MUT_TARGET+=("$t"); break; fi
+  done
+done
 
 WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/rgprobe.XXXXXX")"
 red_out="$WORK_DIR/red.out"
@@ -223,30 +338,41 @@ green_out="$WORK_DIR/green.out"
 
 # 2. Arm the revert BEFORE anything is mutated. This ordering is the entire
 #    point of the harness: every later exit path, including a kill, reverts.
+TARGETS_ARMED=1
 trap 'on_signal 2' INT
 trap 'on_signal 15' TERM
 trap restore EXIT
 
-# ---------- 3. apply the mutation ----------
+# ---------- 3. apply the mutations, in declaration order ----------
 
-occurrences="$(count_literal "$PROBE_FILE" "$PROBE_FIND")"
+for (( m = 0; m < ${#MUT_FIND[@]}; m++ )); do
+  mut_path="${MUT_FILE[$m]}"
+  mut_rel="${TARGET_REL[${MUT_TARGET[$m]}]}"
+  MUT_OCCURRENCES+=("$(count_literal "$mut_path" "${MUT_FIND[$m]}")")
 
-RGP_FIND="$PROBE_FIND" RGP_REPLACE="$PROBE_REPLACE" perl -0777 -i -pe '
-  BEGIN { $f = $ENV{RGP_FIND}; $r = $ENV{RGP_REPLACE} }
-  s/\Q$f\E/$r/g;
-' "$PROBE_FILE"
+  before_hash="$(working_hash "$mut_rel")"
 
-# ---------- 4. verify the mutation actually landed ----------
+  RGP_FIND="${MUT_FIND[$m]}" RGP_REPLACE="${MUT_REPLACE[$m]}" perl -0777 -i -pe '
+    BEGIN { $f = $ENV{RGP_FIND}; $r = $ENV{RGP_REPLACE} }
+    s/\Q$f\E/$r/g;
+  ' "$mut_path"
 
-mutated_hash="$(working_hash)"
-if [[ "$mutated_hash" == "$COMMITTED_HASH" ]]; then
-  die "$EXIT_NO_MUTATION" \
-    "the mutation did not change $REL_PATH — --find matched nothing (${occurrences} occurrence(s)) or --find equals --replace. A probe that silently mutates nothing produces a false GREEN."
-fi
-replaced="$(count_literal "$PROBE_FILE" "$PROBE_REPLACE")"
-if [[ "$replaced" -eq 0 ]]; then
-  die "$EXIT_NO_MUTATION" "the replacement literal is not present in $REL_PATH after substitution"
-fi
+  # ---------- 4. verify THIS mutation actually landed ----------
+  #
+  # Compared against the hash taken immediately before this pair, not against
+  # the committed blob: with several pairs on one file, an earlier pair has
+  # already moved the file off its committed hash, so a committed-blob
+  # comparison would report a no-op pair as having landed.
+  after_hash="$(working_hash "$mut_rel")"
+  if [[ "$after_hash" == "$before_hash" ]]; then
+    die "$EXIT_NO_MUTATION" \
+      "mutation #$((m + 1)) did not change $mut_rel — --find matched nothing (${MUT_OCCURRENCES[$m]} occurrence(s)) or --find equals --replace. A probe that silently mutates nothing produces a false GREEN."
+  fi
+  replaced="$(count_literal "$mut_path" "${MUT_REPLACE[$m]}")"
+  if [[ "$replaced" -eq 0 ]]; then
+    die "$EXIT_NO_MUTATION" "the replacement literal of mutation #$((m + 1)) is not present in $mut_rel after substitution"
+  fi
+done
 
 # ---------- 5. run the command under the mutation — this is RED ----------
 
@@ -287,13 +413,14 @@ run_command "$red_out" || red_rc=$?
 
 # ---------- 6. revert explicitly, then prove it by hash ----------
 
-git -C "$REPO_ROOT" checkout -- "$REL_PATH"
-restored_hash="$(working_hash)"
-if [[ "$restored_hash" != "$COMMITTED_HASH" ]]; then
-  printf 'red-green-probe: REVERT FAILED for %s (committed=%s restored=%s)\n' \
-    "$REL_PATH" "$COMMITTED_HASH" "$restored_hash" >&2
+if ! restore_targets; then
   exit "$EXIT_REVERT"
 fi
+restored_note=""
+for (( t = 0; t < ${#TARGET_REL[@]}; t++ )); do
+  restored_note="${restored_note:+$restored_note, }$(printf '%s committed=%s restored=%s' \
+    "${TARGET_REL[$t]}" "${TARGET_HASH[$t]}" "$(working_hash "${TARGET_REL[$t]}")")"
+done
 
 # ---------- 7. run the identical command again — this is GREEN ----------
 
@@ -360,9 +487,23 @@ cmd_display="$(printf '%q ' "${PROBE_CMD[@]}" | scrub)"
 
 printf '%s\n' '=== RED/GREEN PROBE EVIDENCE ==='
 printf 'label:            %s\n' "$PROBE_LABEL"
-printf 'file:             %s\n' "$REL_PATH"
-printf 'mutation:         %s  ->  %s   (%s occurrence(s))\n' \
-  "$PROBE_FIND" "$PROBE_REPLACE" "$occurrences"
+# The single-pair form prints exactly the lines it always printed, so evidence
+# already recorded against earlier rounds stays comparable byte for byte. The
+# composed form enumerates instead, because one `file:` line cannot describe a
+# case that spans two.
+if [[ ${#MUT_FIND[@]} -eq 1 ]]; then
+  printf 'file:             %s\n' "${TARGET_REL[0]}"
+  printf 'mutation:         %s  ->  %s   (%s occurrence(s))\n' \
+    "${MUT_FIND[0]}" "${MUT_REPLACE[0]}" "${MUT_OCCURRENCES[0]}"
+else
+  printf 'files:            %s\n' "$(printf '%s ' "${TARGET_REL[@]}" | sed 's/ $//')"
+  printf 'mutations:        %s composed, applied together\n' "${#MUT_FIND[@]}"
+  for (( m = 0; m < ${#MUT_FIND[@]}; m++ )); do
+    printf '  mutation %s:     [%s]  %s  ->  %s   (%s occurrence(s))\n' \
+      "$((m + 1))" "${TARGET_REL[${MUT_TARGET[$m]}]}" \
+      "${MUT_FIND[$m]}" "${MUT_REPLACE[$m]}" "${MUT_OCCURRENCES[$m]}"
+  done
+fi
 printf 'command:          %s\n' "${cmd_display% }"
 printf 'red-exit:         %s\n' "$red_rc"
 printf 'red-summary:      %s\n' "$red_summary"
@@ -372,7 +513,12 @@ if [[ -n "$PROBE_SUMMARY_MATCH" ]]; then
   printf 'summary-compared: %s  vs  %s   (elapsed time normalised out)\n' \
     "$red_compared" "$green_compared"
 fi
-printf 'revert-verified:  yes (committed=%s restored=%s)\n' "$COMMITTED_HASH" "$restored_hash"
+if [[ ${#TARGET_REL[@]} -eq 1 ]]; then
+  printf 'revert-verified:  yes (committed=%s restored=%s)\n' \
+    "${TARGET_HASH[0]}" "$(working_hash "${TARGET_REL[0]}")"
+else
+  printf 'revert-verified:  yes, all %s targets (%s)\n' "${#TARGET_REL[@]}" "$restored_note"
+fi
 
 # ---------- 9. a probe that did not discriminate is not evidence ----------
 

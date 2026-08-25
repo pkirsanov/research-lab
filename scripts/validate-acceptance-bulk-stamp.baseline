@@ -1,0 +1,52 @@
+# validate-acceptance-bulk-stamp baseline — Research Lab
+#
+# Human Acceptance Records that declare `human-interactive` while naming the
+# same acceptor at the same instant as another packet. The registry defines that
+# method as a human exercising the delivered behavior in a live session, and one
+# human cannot exercise two deliveries in one second, so each group below is a
+# self-contradiction rather than a suspicion.
+#
+# Frozen so the guard can fail on a NEW bulk stamp while this pre-existing set is
+# corrected by the workstreams that own it. NOTHING here is corrected by editing
+# the record to make the guard quiet.
+#
+# Keyed `<packet>::<acceptedBy>@<acceptedAt>` — per RECORD, and INCLUDING the
+# stamp. Both halves are load-bearing. Freezing the group would let a third packet
+# join an already-frozen instant for free, which is the act being guarded. Dropping
+# the stamp would let a frozen record be re-stamped into a different collision and
+# stay silent. Keyed this way, a record that moves produces a key nobody froze.
+#
+# THIS LIST MUST SHRINK, NEVER GROW. An entry is paid down by one of:
+#   - the acceptor performing the walk and recording the instant it happened, or
+#   - relabelling the record to the method that actually applies, where the
+#     acceptance happened elsewhere and `record` can point at it, or
+#   - withdrawing a record whose acceptance did not happen
+# Never by deleting a line here to make the run green.
+#
+# A baseline entry that no longer collides is reported STALE and the run still
+# exits 0. Remove it. Do NOT regenerate the baseline to silence a new finding.
+#
+# Regenerate ONLY when deliberately accepting the current set:
+#   node scripts/validate-acceptance-bulk-stamp.mjs --update-baseline
+#
+# There is no --skip / --force / --ignore / --bypass flag and there never will be.
+# A bypass-shaped flag exits non-zero.
+#
+# FROZEN: 4 record(s) across 2 collision group(s), of 6 eligible `human-interactive` record(s) in 24 acceptance record(s), on 2026-08-25.
+#
+# ---- finding detail --------------------------------------------------------
+#   specs/007-technical-analysis-decision-lab::operator@2026-08-19T19:04:11Z
+#              declares `human-interactive` accepted by operator at 2026-08-19T19:04:11Z, the same instant as 1 other packet (specs/008-portfolio-survival-and-brief-lab)
+#   specs/008-portfolio-survival-and-brief-lab::operator@2026-08-19T19:04:11Z
+#              declares `human-interactive` accepted by operator at 2026-08-19T19:04:11Z, the same instant as 1 other packet (specs/007-technical-analysis-decision-lab)
+#   specs/025-company-multi-horizon-intelligence-lab::operator@2026-08-23T18:26:55Z
+#              declares `human-interactive` accepted by operator at 2026-08-23T18:26:55Z, the same instant as 1 other packet (specs/027-company-scoped-owner-deep-links)
+#   specs/027-company-scoped-owner-deep-links::operator@2026-08-23T18:26:55Z
+#              declares `human-interactive` accepted by operator at 2026-08-23T18:26:55Z, the same instant as 1 other packet (specs/025-company-multi-horizon-intelligence-lab)
+#
+# ---- frozen keys (LC_ALL=C sorted) ------------------------------------------
+
+specs/007-technical-analysis-decision-lab::operator@2026-08-19T19:04:11Z
+specs/008-portfolio-survival-and-brief-lab::operator@2026-08-19T19:04:11Z
+specs/025-company-multi-horizon-intelligence-lab::operator@2026-08-23T18:26:55Z
+specs/027-company-scoped-owner-deep-links::operator@2026-08-23T18:26:55Z

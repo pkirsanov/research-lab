@@ -27558,6 +27558,224 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (RED/GREEN probe harness group threw): ' + e.message); }
 /* RED-GREEN-PROBE-HARNESS-END */
 
+/* RED-GREEN-PROBE-COMPOSE-BEGIN */
+/* BUG-020. The single-pair harness could not express an OVER-DETERMINED case:
+   an assertion defended by several independent layers, where removing any one
+   alone leaves the others sufficient. Such a probe correctly reports exit 7,
+   which reads as "cannot fail" when the truth is "this is not yet the whole
+   mutation". design.md names a two-mutation adversarial case for TB-020-03 for
+   exactly that reason, and the harness could not state it.
+
+   The fixture below reproduces that structure rather than describing it: two
+   gates, either of which alone keeps the command green. Every assertion is
+   adversarial — each drives the composed path into a way it could fail unsafely
+   and proves it refuses, or proves EVERY target came back byte-identical to its
+   committed blob. The revert must be all-or-nothing, so the cases that matter
+   most are the ones where the probe stops PART WAY through the mutation set. */
+group('RED/GREEN probe harness — composed mutations (BUG-020)');
+try {
+  const { mkdtempSync, writeFileSync, rmSync } = await import('node:fs');
+  const { spawn, spawnSync } = await import('node:child_process');
+  const { tmpdir } = await import('node:os');
+
+  const RGPC = join(ROOT, 'scripts', 'red-green-probe.sh');
+  const A_FILE = 'gate-a.txt';
+  const B_FILE = 'gate-b.txt';
+  const A_CLEAN = 'GATE_A=on\nFALLBACK=on\n';
+  const B_CLEAN = 'GATE_B=on\n';
+  const ENVC = Object.assign({}, process.env, { GIT_TERMINAL_PROMPT: '0' });
+
+  /* Green while EITHER gate is on. That is the over-determination: one mutation
+     is never enough, and a harness limited to one mutation can only ever see
+     exit 7 here. */
+  const CMDC = ['perl', '-e',
+    'my $s = ""; for my $f ("gate-a.txt", "gate-b.txt") {'
+    + ' open(my $h, "<", $f) or exit 3; local $/; $s .= <$h>; }'
+    + ' exit($s =~ /GATE_A=on/ || $s =~ /GATE_B=on/ ? 0 : 1);'];
+
+  const cGit = (cwd, args) => spawnSync('git', args, { cwd, encoding: 'utf8', env: ENVC });
+  const cWorking = (dir, f) => cGit(dir, ['hash-object', f]).stdout.trim();
+  const cCommitted = (dir, f) => cGit(dir, ['rev-parse', 'HEAD:' + f]).stdout.trim();
+  /* Every target back at its committed blob AND nothing else left behind. A
+     per-file hash alone would miss a stray file the probe created. */
+  const cAllClean = (dir) => cWorking(dir, A_FILE) === cCommitted(dir, A_FILE)
+    && cWorking(dir, B_FILE) === cCommitted(dir, B_FILE)
+    && cGit(dir, ['status', '--porcelain']).stdout.trim() === '';
+
+  const cTemps = [];
+  function cRepo() {
+    const dir = mkdtempSync(join(tmpdir(), 'rlprobec-'));
+    cTemps.push(dir);
+    cGit(dir, ['init', '-q']);
+    cGit(dir, ['config', 'user.email', 'selftest@example.invalid']);
+    cGit(dir, ['config', 'user.name', 'research-lab selftest']);
+    cGit(dir, ['config', 'commit.gpgsign', 'false']);
+    writeFileSync(join(dir, A_FILE), A_CLEAN);
+    writeFileSync(join(dir, B_FILE), B_CLEAN);
+    cGit(dir, ['add', A_FILE, B_FILE]);
+    cGit(dir, ['commit', '-q', '--no-verify', '-m', 'compose fixture']);
+    return dir;
+  }
+  const cRun = (dir, args) =>
+    spawnSync('bash', [RGPC].concat(args), { cwd: dir, encoding: 'utf8', env: ENVC });
+
+  const MUT_A = ['--file', A_FILE, '--find', 'GATE_A=on', '--replace', 'GATE_A=off'];
+  const MUT_B = ['--file', B_FILE, '--find', 'GATE_B=on', '--replace', 'GATE_B=off'];
+  const tail = (label) => ['--label', label, '--'].concat(CMDC);
+
+  /* C.1 — each half ALONE must fail to discriminate. This is the control that
+     makes C.2 mean something: without it, a composed exit 0 could just be a
+     case where one mutation was already sufficient. */
+  const cAloneDir = cRepo();
+  const cAloneA = cRun(cAloneDir, MUT_A.concat(tail('gate A alone')));
+  const cAloneB = cRun(cAloneDir, MUT_B.concat(tail('gate B alone')));
+  assert(cAloneA.status === 7 && cAloneB.status === 7 && cAllClean(cAloneDir),
+    'RED/GREEN compose: each single mutation ALONE is correctly refused as non-discriminating, which is the over-determination this extension exists for'
+    + ' (A alone exit ' + cAloneA.status + ', B alone exit ' + cAloneB.status + ')');
+
+  /* C.2 — the same two mutations COMPOSED discriminate, across two files. */
+  const cBothDir = cRepo();
+  const cBoth = cRun(cBothDir, MUT_A.concat(MUT_B).concat(tail('gates A and B composed')));
+  assert(cBoth.status === 0 && /discriminating:\s+yes/.test(cBoth.stdout || '')
+    && /red-exit:\s+1/.test(cBoth.stdout || '') && /green-exit:\s+0/.test(cBoth.stdout || '')
+    && /mutations:\s+2 composed/.test(cBoth.stdout || '') && cAllClean(cBothDir),
+    'RED/GREEN compose: the two mutations applied TOGETHER across two files discriminate at exit 0, red 1 then green 0, and every target is hash-verified back'
+    + ' (exit ' + cBoth.status + ')');
+
+  /* C.3 — two pairs against ONE file. Both are needed to flip this command, so
+     the chain is genuinely exercised. A second pair on an already-mutated file
+     must be verified against the PRE-PAIR hash: comparing it to the committed
+     blob instead would score a no-op second pair as having landed, because the
+     first pair already moved the file off that blob. */
+  const cChainCmd = ['perl', '-e',
+    'open(my $h, "<", "gate-a.txt") or exit 3; local $/; my $s = <$h>;'
+    + ' exit($s =~ /GATE_A=on/ || $s =~ /FALLBACK=on/ ? 0 : 1);'];
+  const cSameDir = cRepo();
+  const cSame = cRun(cSameDir, ['--file', A_FILE,
+    '--find', 'GATE_A=on', '--replace', 'GATE_A=off',
+    '--find', 'FALLBACK=on', '--replace', 'FALLBACK=off',
+    '--label', 'two pairs, one file', '--'].concat(cChainCmd));
+  const cSameNoop = cRun(cSameDir, ['--file', A_FILE,
+    '--find', 'GATE_A=on', '--replace', 'GATE_A=off',
+    '--find', 'THIS-LITERAL-IS-ABSENT', '--replace', 'x',
+    '--label', 'second pair cannot land', '--'].concat(cChainCmd));
+  /* The control: either pair alone leaves the other sufficient, so exit 7. */
+  const cSameHalf = cRun(cSameDir, ['--file', A_FILE,
+    '--find', 'GATE_A=on', '--replace', 'GATE_A=off',
+    '--label', 'first pair alone', '--'].concat(cChainCmd));
+  assert(cSame.status === 0 && cSameHalf.status === 7 && cSameNoop.status === 5 && cAllClean(cSameDir),
+    'RED/GREEN compose: two chained pairs on the SAME file discriminate (exit ' + cSame.status
+    + ') where either alone does not (exit ' + cSameHalf.status
+    + '), and a second pair that cannot land is still caught against its pre-pair hash (exit '
+    + cSameNoop.status + ')');
+
+  /* C.4 — ALL-OR-NOTHING. Mutation 1 lands, mutation 2 cannot. The probe must
+     refuse AND put mutation 1 back. A revert that only covered the file it
+     failed on would strand a live mutation in a shipped module, which is the
+     original incident this whole harness exists to prevent. */
+  const cPartialDir = cRepo();
+  const cPartial = cRun(cPartialDir, MUT_A
+    .concat(['--file', B_FILE, '--find', 'THIS-LITERAL-IS-ABSENT', '--replace', 'x'])
+    .concat(tail('second target cannot be mutated')));
+  assert(cPartial.status === 5 && cAllClean(cPartialDir)
+    && cWorking(cPartialDir, A_FILE) === cCommitted(cPartialDir, A_FILE),
+    'RED/GREEN compose: when a LATER mutation cannot land, the probe refuses with exit 5 and the EARLIER mutation is reverted too — the revert is all-or-nothing'
+    + ' (exit ' + cPartial.status + ')');
+
+  /* C.5 — a dirty SECOND target is refused before ANY file is touched, and the
+     uncommitted work survives. Registration happens for every target up front
+     precisely so this cannot half-run. */
+  const cDirtyDir = cRepo();
+  writeFileSync(join(cDirtyDir, B_FILE), B_CLEAN + 'uncommitted work\n');
+  const cDirtyHash = cWorking(cDirtyDir, B_FILE);
+  const cDirty = cRun(cDirtyDir, MUT_A.concat(MUT_B).concat(tail('dirty second target')));
+  assert(cDirty.status === 4 && /dirty/i.test(cDirty.stderr || '')
+    && cWorking(cDirtyDir, B_FILE) === cDirtyHash
+    && cWorking(cDirtyDir, A_FILE) === cCommitted(cDirtyDir, A_FILE)
+    && String(cDirty.stdout).indexOf('RED/GREEN PROBE EVIDENCE') === -1,
+    'RED/GREEN compose: a dirty SECOND target refuses with exit 4 before any mutation, preserving the uncommitted work and leaving the clean target untouched'
+    + ' (exit ' + cDirty.status + ')');
+
+  /* C.6 — the exfil rail screens EVERY --replace, not just the first. A rail
+     that only read one pair would let a composed probe smuggle a sink in behind
+     a benign opening pair. */
+  const cExfilDir = cRepo();
+  const cExfil = cRun(cExfilDir, MUT_A
+    .concat(['--file', B_FILE, '--find', 'GATE_B=on', '--replace', 'fetch("/p?v=" + x)'])
+    .concat(tail('sink in the second replace')));
+  assert(cExfil.status === 3 && /value-free/.test(cExfil.stderr || '') && cAllClean(cExfilDir),
+    'RED/GREEN compose: an exfiltrating sink in the SECOND --replace is refused with exit 3 before any file is touched'
+    + ' (exit ' + cExfil.status + ')');
+
+  /* C.7 — malformed pairings are usage errors rather than silent bindings. A
+     --file arriving between a --find and its --replace would otherwise bind the
+     pair to whichever target parsing happened to reach last. */
+  const cUsageDir = cRepo();
+  const cNoFile = cRun(cUsageDir, ['--find', 'GATE_A=on', '--replace', 'GATE_A=off'].concat(tail('no file')));
+  const cNoRepl = cRun(cUsageDir, ['--file', A_FILE, '--find', 'GATE_A=on'].concat(tail('no replace')));
+  const cStraddle = cRun(cUsageDir, ['--file', A_FILE, '--find', 'GATE_A=on',
+    '--file', B_FILE, '--replace', 'GATE_A=off'].concat(tail('straddling file')));
+  assert(cNoFile.status === 2 && cNoRepl.status === 2 && cStraddle.status === 2 && cAllClean(cUsageDir),
+    'RED/GREEN compose: --find before any --file, --find with no --replace, and a --file straddling a pair are all usage errors (2, 2, 2), never silent bindings'
+    + ' (' + cNoFile.status + ', ' + cNoRepl.status + ', ' + cStraddle.status + ')');
+
+  /* C.8 — BACKWARD COMPATIBILITY. Other rows' recorded evidence quotes the
+     singular `file:` and `mutation:` lines, so the single-pair form must still
+     emit exactly those and must not gain the plural form. */
+  const cCompatDir = cRepo();
+  const cCompat = cRun(cCompatDir, ['--file', A_FILE, '--find', 'GATE_A=on', '--replace', 'GATE_A=off',
+    '--label', 'single pair', '--', 'perl', '-e',
+    'open(my $h, "<", "gate-a.txt") or exit 3; local $/; my $s = <$h>; exit($s =~ /GATE_A=on/ ? 0 : 1);']);
+  const cCompatOut = cCompat.stdout || '';
+  assert(cCompat.status === 0
+    && /^file:\s+gate-a\.txt$/m.test(cCompatOut)
+    && /^mutation:\s+GATE_A=on\s+->\s+GATE_A=off\s+\(1 occurrence\(s\)\)$/m.test(cCompatOut)
+    && /^revert-verified:\s+yes \(committed=[0-9a-f]{40} restored=[0-9a-f]{40}\)$/m.test(cCompatOut)
+    && !/^files:/m.test(cCompatOut) && !/^mutations:/m.test(cCompatOut)
+    && cAllClean(cCompatDir),
+    'RED/GREEN compose: the single-pair form still emits the singular file:/mutation:/revert-verified: lines and NOT the plural form, so evidence recorded before this extension stays comparable'
+    + ' (exit ' + cCompat.status + ')');
+
+  /* C.9 — the case that matters most: a kill while SEVERAL mutations are live.
+     Every one of them must come back, not just the last. */
+  const cKillDir = cRepo();
+  let cMutatedBoth = false;
+  const cKilled = spawn('bash', [RGPC].concat(MUT_A).concat(MUT_B)
+    .concat(['--label', 'killed mid-run', '--', 'perl', '-e', 'sleep 30']),
+    { cwd: cKillDir, env: ENVC, stdio: 'ignore' });
+  await new Promise((resolve) => {
+    let done = false;
+    const finish = () => { if (!done) { done = true; resolve(); } };
+    cKilled.on('exit', finish);
+    /* Observe the mutations LIVE before signalling. Without this the assertion
+       could pass against a probe that never mutated at all. */
+    const watch = setInterval(() => {
+      if (cWorking(cKillDir, A_FILE) !== cCommitted(cKillDir, A_FILE)
+        && cWorking(cKillDir, B_FILE) !== cCommitted(cKillDir, B_FILE)) {
+        cMutatedBoth = true;
+        clearInterval(watch);
+        try { cKilled.kill('SIGTERM'); } catch { /* already gone */ }
+      }
+    }, 100);
+    setTimeout(() => {
+      clearInterval(watch);
+      try { cKilled.kill('SIGKILL'); } catch { /* already gone */ }
+      finish();
+    }, 20000);
+  });
+  assert(cMutatedBoth && cAllClean(cKillDir),
+    'RED/GREEN compose: a SIGTERM delivered while BOTH mutations were live restores every target to its committed blob'
+    + ' (both mutations observed live: ' + cMutatedBoth + ')');
+
+  cTemps.forEach((dir) => { try { rmSync(dir, { recursive: true, force: true }); } catch { /* best effort */ } });
+
+  /* C.10 — shared-surface canary, matching the sibling group's form. */
+  assert(passes > 3150,
+    'Regression: every pre-existing selftest assertion stays green after the composed-mutation append'
+    + ' (' + passes + ' assertion(s) already green at this point)');
+} catch (e) { failures++; console.log('  ✗ FAIL (RED/GREEN compose group threw): ' + e.message); }
+/* RED-GREEN-PROBE-COMPOSE-END */
+
 /* ---------- spec id uniqueness (BEGIN) ---------- */
 /* Two spec folders sharing one number makes every reference to it ambiguous — a commit reading
    "bug(009): ..." names one of two different packets, and so does a cross-link. Nothing caught
@@ -29314,6 +29532,248 @@ try {
     'no scope progress claim disagrees with its Definition of Done outside the frozen baseline \u2014 a stale count reads as a summary of the artifact while describing a state the artifact has left (' + scopeDod.newFindings.length + ' new, ' + scopeDod.knownFindings.length + ' frozen, ' + scopeDod.staleBaseline.length + ' stale of ' + scopeDod.claimCount + ' claim(s))');
 } catch (e) { failures++; console.log('  ✗ FAIL (scope DoD progress guard threw): ' + e.message); }
 /* ---------- specs/ — a scope progress claim matches the DoD it summarises (END) ---------- */
+
+/* ---------- specs/ — no acceptance record is bulk-stamped (ratchet) ----------
+   Gate G136 reads a Human Acceptance Record for SHAPE — is `method` in the closed vocabulary,
+   is the method's `requiresField` present — and never for TRUTH. Measured on 2026-08-25 at
+   86f18dc04, `acceptedAt` is read for presence and never for value. So thirteen records written
+   in one pass, ten sharing ONE second-precision instant, every one passed the terminal gate.
+
+   The registry defines `human-interactive` as a human exercising the delivered behavior in a
+   LIVE SESSION. One human cannot exercise two deliveries in one second, so two such records
+   naming the same acceptor at the same instant are a proof of contradiction rather than a
+   suspicion. `external-record` is deliberately out of scope: one sign-off event legitimately
+   covers many packets, so a shared instant is its EXPECTED shape.
+
+   ADVERSARIAL FIRST. Every capability below is proven against a fixture that MUST fail, and
+   every deliberate exclusion is proven against a fixture that MUST NOT. A guard that only ever
+   passes is indistinguishable from one that does nothing — the `F-AUDIT-06` defect this
+   repository has filed before — and an over-broad one trains a reader to skip its output. */
+try {
+  group('specs/ \u2014 no Human Acceptance Record is bulk-stamped across packets');
+  const accGuard = await import('./validate-acceptance-bulk-stamp.mjs');
+  const { mkdtempSync: mkAccRoot, mkdirSync: mkAccDir, writeFileSync: writeAccFile, rmSync: rmAcc } = await import('node:fs');
+  const { tmpdir: accTmpdir } = await import('node:os');
+
+  const accRoot = mkAccRoot(join(accTmpdir(), 'rl-acceptance-bulk-stamp-'));
+  const accBaseline = join(accRoot, 'scripts', 'validate-acceptance-bulk-stamp.baseline');
+  const accRegistry = join(accRoot, 'registry.yaml');
+  mkAccDir(join(accRoot, 'scripts'), { recursive: true });
+  writeAccFile(accBaseline, '# empty fixture baseline\n');
+
+  /* A fixture registry rather than a pointer at the real one, so the NO-LICENSE paths below are
+     provable without touching `.github/bubbles/`. Written with the same folded-scalar shape the
+     real registry uses, so the reader's block-scalar handling is exercised rather than assumed. */
+  const accRegistryText = (interactiveDescription, includeInteractive = true) => [
+    'schemaVersion: acceptance-authority/v1',
+    '',
+    'sections:',
+    '',
+    '  - id: automation-readiness',
+    '    heading: "## Automation Readiness"',
+    '    writer: automation',
+    '',
+    '  - id: acceptance-record',
+    '    heading: "## Human Acceptance Record"',
+    '    writer: human',
+    '',
+    'acceptanceRecord:',
+    '  requiredFields:',
+    '    - acceptedBy',
+    '    - acceptedAt',
+    '    - method',
+    '  methods:',
+    ...(includeInteractive ? [
+      '    - id: human-interactive',
+      '      description: >-',
+      '        ' + interactiveDescription
+    ] : []),
+    '    - id: external-record',
+    '      description: >-',
+    '        Acceptance was recorded outside this repository.',
+    '      requiresField: record',
+    ''
+  ].join('\n');
+  const REAL_DESCRIPTION = 'A human exercised the delivered behavior in a live session and accepted it.';
+  writeAccFile(accRegistry, accRegistryText(REAL_DESCRIPTION));
+
+  /* One fixture packet. `body` appends prose after the record so the section-bounded read is
+     exercised rather than a whole-file grep. A null `fields` writes a section with no record
+     rows at all, which is what the fenced-example case needs. */
+  const writeAccPacket = (id, fields, body = '') => {
+    const dir = join(accRoot, 'specs', id);
+    mkAccDir(dir, { recursive: true });
+    const rows = Object.entries(fields ?? {}).map(([key, value]) => '- ' + key + ': ' + value);
+    writeAccFile(join(dir, 'uservalidation.md'), [
+      '# User Validation: ' + id, '',
+      '## Automation Readiness', '',
+      '- [x] automation verified the behavior is worth a human\u2019s time', '',
+      '## Human Acceptance Record', '',
+      ...rows, '',
+      body, '',
+      '## Evidence Links', '',
+      '- none', ''
+    ].join('\n'));
+    return 'specs/' + id;
+  };
+  const runAcc = (options = {}) => accGuard.validateAcceptanceBulkStamp(accRoot, {
+    baselineFile: accBaseline, registryFile: accRegistry, ...options
+  });
+  const dropAccPacket = (id) => rmAcc(join(accRoot, 'specs', id), { recursive: true, force: true });
+
+  /* The ordinary honest shape: two live-session acceptances at two different instants, an
+     `external-record` PAIR sharing one instant, and an unfilled template. None is a finding. */
+  writeAccPacket('900-alpha', { acceptedBy: 'operator', acceptedAt: '2026-08-13T02:26:02Z', method: 'human-interactive' });
+  writeAccPacket('901-beta', { acceptedBy: 'operator', acceptedAt: '2026-08-13T16:12:54Z', method: 'human-interactive' });
+  writeAccPacket('902-signoff-a', { acceptedBy: 'operator', acceptedAt: '2026-08-25T16:59:38Z', method: 'external-record', record: 'ticket-1' });
+  writeAccPacket('903-signoff-b', { acceptedBy: 'operator', acceptedAt: '2026-08-25T16:59:38Z', method: 'external-record', record: 'ticket-1' });
+  writeAccPacket('904-unfilled', { acceptedBy: '[human name or handle - never an agent id]', acceptedAt: '[YYYY-MM-DDTHH:MM:SSZ]', method: '[human-interactive | external-record]' });
+  const accHonest = runAcc();
+  assert(accHonest.license.ok && accHonest.recordCount === 5 && accHonest.eligibleCount === 2
+    && accHonest.groupCount === 0 && accHonest.findings.length === 0,
+    'two live-session acceptances at different instants, an `external-record` PAIR sharing one instant, and an unfilled template together produce no finding \u2014 the guard reports a contradiction, not the mere fact that a timestamp repeats (' + accHonest.recordCount + ' record(s), ' + accHonest.eligibleCount + ' eligible, ' + accHonest.findings.length + ' finding(s))');
+
+  /* ADVERSARIAL: the observed defect. Two packets, one acceptor, one second, `human-interactive`.
+     Both members are reported, because both are equally unable to be what they claim, and each
+     names the sibling that makes it impossible. */
+  writeAccPacket('905-stamped-a', { acceptedBy: 'operator', acceptedAt: '2026-08-19T19:04:11Z', method: 'human-interactive' });
+  writeAccPacket('906-stamped-b', { acceptedBy: 'operator', acceptedAt: '2026-08-19T19:04:11Z', method: 'human-interactive' });
+  const accStamped = runAcc();
+  assert(!accStamped.ok && accStamped.groupCount === 1 && accStamped.newFindings.length === 2
+    && accStamped.newFindings[0].key === 'specs/905-stamped-a::operator@2026-08-19T19:04:11Z'
+    && accStamped.newFindings[1].key === 'specs/906-stamped-b::operator@2026-08-19T19:04:11Z'
+    && accStamped.newFindings[0].siblings.join() === 'specs/906-stamped-b',
+    'two `human-interactive` records naming one acceptor at one instant FAIL, and each finding names the packet, the acceptor, the instant and the sibling that contradicts it (' + (accStamped.newFindings[0]?.detail ?? 'no finding') + ')');
+
+  /* ADVERSARIAL: the same two packets under `external-record` produce NOTHING. This is the
+     deliberate scope limit, and it is the difference between a guard people read and a guard
+     people learn to ignore \u2014 eleven honest records share one instant in the real tree. */
+  writeAccPacket('905-stamped-a', { acceptedBy: 'operator', acceptedAt: '2026-08-19T19:04:11Z', method: 'external-record', record: 'uat-7' });
+  writeAccPacket('906-stamped-b', { acceptedBy: 'operator', acceptedAt: '2026-08-19T19:04:11Z', method: 'external-record', record: 'uat-7' });
+  const accExternal = runAcc();
+  assert(accExternal.ok && accExternal.findings.length === 0,
+    'the identical pair relabelled `external-record` produces no finding \u2014 one sign-off event legitimately covers many packets, so the method is what makes a shared instant contradictory rather than the sharing itself');
+
+  /* ADVERSARIAL: one instant, TWO different acceptors. Two people acting in the same second is a
+     coincidence; the registry licenses nothing about it, so the guard claims nothing about it. */
+  writeAccPacket('905-stamped-a', { acceptedBy: 'operator', acceptedAt: '2026-08-19T19:04:11Z', method: 'human-interactive' });
+  writeAccPacket('906-stamped-b', { acceptedBy: 'second-reviewer', acceptedAt: '2026-08-19T19:04:11Z', method: 'human-interactive' });
+  const accTwoPeople = runAcc();
+  assert(accTwoPeople.ok && accTwoPeople.eligibleCount === 4 && accTwoPeople.findings.length === 0,
+    'one instant shared by TWO different acceptors is not reported \u2014 the impossibility being asserted needs ONE human, so grouping on the instant alone would condemn a case the registry does not');
+
+  /* ADVERSARIAL: the same moment written two ways. Grouping on the literal string would let a
+     bulk stamp escape through formatting alone, so the comparison is on the parsed instant. */
+  writeAccPacket('906-stamped-b', { acceptedBy: 'operator', acceptedAt: '2026-08-19T19:04:11+00:00', method: 'human-interactive' });
+  const accFormats = runAcc();
+  assert(!accFormats.ok && accFormats.groupCount === 1 && accFormats.newFindings.length === 2
+    && accFormats.newFindings.some((finding) => finding.acceptedAt === '2026-08-19T19:04:11+00:00'),
+    '`...:11Z` and `...:11+00:00` are one instant and group together, so a bulk stamp cannot escape by varying the offset spelling while the key still records the literal each file carries');
+  dropAccPacket('905-stamped-a'); dropAccPacket('906-stamped-b');
+
+  /* ADVERSARIAL: a date-only value asserts nothing contradictory \u2014 many packets can honestly be
+     accepted on one day \u2014 so it is counted as ineligible and reported rather than judged. */
+  writeAccPacket('907-dateonly-a', { acceptedBy: 'operator', acceptedAt: '2026-08-19', method: 'human-interactive' });
+  writeAccPacket('908-dateonly-b', { acceptedBy: 'operator', acceptedAt: '2026-08-19', method: 'human-interactive' });
+  const accDateOnly = runAcc();
+  assert(accDateOnly.ok && accDateOnly.findings.length === 0 && accDateOnly.ineligible.length === 2
+    && /no second-precision time of day/.test(accDateOnly.ineligible[0].reason),
+    'two records sharing a DATE rather than an instant are ineligible rather than condemned, and they are surfaced in the tally instead of vanishing \u2014 the impossibility claimed is about one second');
+  dropAccPacket('907-dateonly-a'); dropAccPacket('908-dateonly-b');
+
+  /* ADVERSARIAL: a record shown inside a fenced block is documentation of a record, not a record.
+     The fixture carries ONLY the fenced example and no real rows, so the fence rule is the sole
+     difference between green and red: were fences ignored, these two packets would parse a record
+     each, share an instant, and collide. A fenced example placed AFTER a real record would prove
+     nothing, because the first-occurrence rule would have excluded it anyway. */
+  const accFenced = ['Fill this in after the walk:', '', '```yaml', '- acceptedBy: operator', '- acceptedAt: 2026-08-19T19:04:11Z', '- method: human-interactive', '```'].join('\n');
+  writeAccPacket('909-fenced-a', null, accFenced);
+  writeAccPacket('910-fenced-b', null, accFenced);
+  const accFence = runAcc();
+  const accFenceNaive = accGuard.parseAcceptanceRecord(
+    ['## Human Acceptance Record', '', accFenced, '', '## Evidence Links'].join('\n'), '## Human Acceptance Record');
+  assert(accFence.ok && accFence.findings.length === 0 && accFence.recordCount === 5
+    && accFenceNaive === null,
+    'a packet whose acceptance section holds ONLY a fenced example parses no record at all, so two packets quoting one worked example do not collide \u2014 the fenced rows are documentation of a record rather than a record (' + accFence.recordCount + ' record(s) from 7 packets)');
+  dropAccPacket('909-fenced-a'); dropAccPacket('910-fenced-b');
+
+  /* RATCHET: a frozen record is carried as known debt, so pre-existing collisions in packets a
+     change does not own cannot turn the validation path red. */
+  writeAccPacket('905-stamped-a', { acceptedBy: 'operator', acceptedAt: '2026-08-19T19:04:11Z', method: 'human-interactive' });
+  writeAccPacket('906-stamped-b', { acceptedBy: 'operator', acceptedAt: '2026-08-19T19:04:11Z', method: 'human-interactive' });
+  writeAccFile(accBaseline, ['# frozen fixture debt',
+    'specs/905-stamped-a::operator@2026-08-19T19:04:11Z',
+    'specs/906-stamped-b::operator@2026-08-19T19:04:11Z', ''].join('\n'));
+  const accKnown = runAcc();
+  assert(accKnown.ok && accKnown.knownFindings.length === 2 && accKnown.newFindings.length === 0,
+    'a collision already frozen in the baseline is carried as known debt rather than failing the run, so a pre-existing bulk stamp in a packet this change does not own does not turn the validation path red');
+
+  /* ADVERSARIAL, and the reason the baseline is keyed per RECORD: a THIRD packet joining an
+     ALREADY-FROZEN instant still FAILS. Were the GROUP frozen instead, this \u2014 the exact act
+     being guarded \u2014 would be admitted for free. */
+  writeAccPacket('911-stamped-c', { acceptedBy: 'operator', acceptedAt: '2026-08-19T19:04:11Z', method: 'human-interactive' });
+  const accThird = runAcc();
+  assert(!accThird.ok && accThird.newFindings.length === 1 && accThird.knownFindings.length === 2
+    && accThird.newFindings[0].key === 'specs/911-stamped-c::operator@2026-08-19T19:04:11Z'
+    && accThird.newFindings[0].groupSize === 3,
+    'a third packet joining an already-frozen instant FAILS while the two frozen members stay frozen \u2014 freezing the GROUP would admit exactly the act being guarded, so the baseline is keyed per record');
+  dropAccPacket('911-stamped-c');
+
+  /* ADVERSARIAL, and the reason the key CARRIES the stamp: re-stamping a frozen record onto a
+     different collision produces a key nobody froze, and the old key is reported stale. */
+  writeAccPacket('905-stamped-a', { acceptedBy: 'operator', acceptedAt: '2026-08-22T11:11:11Z', method: 'human-interactive' });
+  writeAccPacket('912-stamped-d', { acceptedBy: 'operator', acceptedAt: '2026-08-22T11:11:11Z', method: 'human-interactive' });
+  const accRestamped = runAcc();
+  assert(!accRestamped.ok && accRestamped.newFindings.length === 2
+    && accRestamped.newFindings.every((finding) => /2026-08-22T11:11:11Z/.test(finding.key))
+    && accRestamped.staleBaseline.includes('specs/905-stamped-a::operator@2026-08-19T19:04:11Z'),
+    'a frozen record re-stamped onto a different collision FAILS under a key nobody froze, and its old key is reported stale \u2014 dropping the instant from the key would have let the move pass in silence');
+  dropAccPacket('912-stamped-d');
+
+  /* The baseline may shrink and only shrink: a record that no longer collides is reported, not
+     silently kept. Giving 905 an instant of its own leaves 906 alone, so both entries go stale. */
+  writeAccPacket('905-stamped-a', { acceptedBy: 'operator', acceptedAt: '2026-08-22T11:11:11Z', method: 'human-interactive' });
+  const accStale = runAcc();
+  assert(accStale.ok && accStale.findings.length === 0 && accStale.staleBaseline.length === 2,
+    'once a collision is resolved its baseline entries are reported STALE while the run still exits 0, so the frozen list can only shrink');
+  dropAccPacket('905-stamped-a'); dropAccPacket('906-stamped-b');
+  dropAccPacket('900-alpha'); dropAccPacket('901-beta');
+  dropAccPacket('902-signoff-a'); dropAccPacket('903-signoff-b'); dropAccPacket('904-unfilled');
+
+  /* ADVERSARIAL: a scan that parsed nothing must not read as a clean bill of health. */
+  const accVacuous = runAcc();
+  assert(!accVacuous.ok && accVacuous.vacuous,
+    'a scan that parses zero acceptance records FAILS rather than passing vacuously \u2014 a parser that quietly stopped matching would otherwise reproduce the exact blind spot this guard closes');
+
+  /* ADVERSARIAL: the license is the registry\u2019s, not this script\u2019s. Reword the clause the
+     inference rests on, or remove the method, and the guard REFUSES rather than carrying on
+     enforcing a rule the registry has stopped stating. */
+  writeAccPacket('913-licence', { acceptedBy: 'operator', acceptedAt: '2026-08-19T19:04:11Z', method: 'human-interactive' });
+  writeAccPacket('914-licence', { acceptedBy: 'operator', acceptedAt: '2026-08-19T19:04:11Z', method: 'human-interactive' });
+  const accLicensed = runAcc();
+  writeAccFile(accRegistry, accRegistryText('A human accepted the delivered behavior at some point.'));
+  const accReworded = runAcc();
+  writeAccFile(accRegistry, accRegistryText(REAL_DESCRIPTION, false));
+  const accNoMethod = runAcc();
+  const accNoRegistry = runAcc({ registryFile: join(accRoot, 'absent.yaml') });
+  writeAccFile(accRegistry, accRegistryText(REAL_DESCRIPTION));
+  assert(accLicensed.newFindings.length === 2
+    && !accReworded.ok && !accReworded.license.ok && /live session/.test(accReworded.license.reason)
+    && !accNoMethod.ok && !accNoMethod.license.ok && /no longer declares/.test(accNoMethod.license.reason)
+    && !accNoRegistry.ok && /registry not found/.test(accNoRegistry.license.reason)
+    && accReworded.findings.length === 0 && accNoMethod.findings.length === 0,
+    'the same colliding pair is reported under the real registry and REFUSED \u2014 loudly, naming the missing licence \u2014 once the live-session clause is reworded away, the method is removed, or the registry is absent; a frozen paraphrase here would keep enforcing a rule the registry had stopped stating');
+  rmAcc(accRoot, { recursive: true, force: true });
+
+  /* The real repository, against the committed baseline and the real registry. */
+  const acceptance = accGuard.validateAcceptanceBulkStamp(ROOT);
+  assert(acceptance.license.ok && acceptance.recordCount > 0 && acceptance.eligibleCount > 0,
+    'the scan read the real registry licence and parsed real acceptance records, so a green verdict is a comparison rather than a parser that stopped matching (' + acceptance.recordCount + ' record(s) in ' + acceptance.fileCount + ' file(s), ' + acceptance.eligibleCount + ' eligible, ' + acceptance.groupCount + ' collision group(s), baseline ' + acceptance.baselineCount + ')');
+  for (const line of accGuard.formatAcceptanceBulkStampFindings(acceptance, 3)) console.log('    ' + line);
+  assert(acceptance.newFindings.length === 0,
+    'no Human Acceptance Record outside the frozen baseline claims a live-session acceptance at an instant another packet also claims \u2014 a bulk stamp satisfies the terminal gate while asserting something that cannot have happened (' + acceptance.newFindings.length + ' new, ' + acceptance.knownFindings.length + ' frozen, ' + acceptance.staleBaseline.length + ' stale of ' + acceptance.findings.length + ' colliding record(s))');
+} catch (e) { failures++; console.log('  ✗ FAIL (acceptance bulk-stamp guard threw): ' + e.message); }
+/* ---------- specs/ — no acceptance record is bulk-stamped (END) ---------- */
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

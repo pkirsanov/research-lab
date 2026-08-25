@@ -1138,3 +1138,218 @@ The row therefore stays open on `TB-020-03`, and the packet's routing to
 `bubbles.design` is unchanged. Nothing here weakened an assertion, and no
 assertion text was edited.
 
+## The Composed Adversarial Case — S1 To S4
+
+**Claim Source:** executed. Every block below is the harness's own output,
+captured verbatim from the run that produced it.
+
+A new letter, because `P` and `Q` are taken and because `C`, `E` and `R` already
+name this design's contract, engine and route steps.
+
+### What the earlier rounds actually established, and what they did not
+
+Six rounds reached exit `7` on `TB-020-03` and read that as a property of the
+assertion. It is not. Exit `7` is a property of the MUTATION: it says RED and
+GREEN agreed, so the edit that was applied did not change what the command
+reported. Applying one edit to one file and reading the refusal as "this
+assertion cannot fail" conflates the two.
+
+`design.md` never asked for one edit. The adversarial-case table names, for
+`TB-020-03`:
+
+> the R2 fallback is restored to `String(record.value)` **and** a record
+> carrying `Infinity` is placed in a stage — this is what makes `TB-020-03` more
+> than a restatement of `TB-020-01`
+
+That is two mutations, and they are in two different files. The R2 fallback
+lives in `stageValueText` in `lifetime-tax-strategy-lab.html`. Placing a record
+carrying `Infinity` in a stage requires the E1 guard in `rltax.js` to stand
+down, because E1 turns that record into a refusal at the arithmetic origin and
+the branch above the fallback then catches it — which is exactly the reasoning
+`design.md` gives under `### R2`.
+
+So the design was never missing. The HARNESS was: `scripts/red-green-probe.sh`
+applied one `--find`/`--replace` to one `--file`, and could not state the case
+the design had already written down. That is an implementation limit, not a
+governance question, so this round lifted it.
+
+### What changed in the harness
+
+`--find`/`--replace` may now repeat, and `--file` may repeat. Each pair binds to
+the most recent `--file`, which makes the old single-pair invocation a special
+case of the new general one rather than a separate mode. Every safety property
+is preserved and is proven below rather than asserted:
+
+| Property | How it is preserved across several mutations |
+|---|---|
+| revert armed before any mutation | every target is registered and hash-pinned BEFORE the first byte changes, so the `EXIT`, `INT` and `TERM` traps already cover files not yet touched |
+| revert is all-or-nothing | one restore loop over the whole target set; a failure part-way through the mutation set still restores the files already mutated |
+| dirty or untracked target refused, exit `4` | every distinct `--file` is checked, and the check runs for all of them before any mutation |
+| mutation landed, exit `5` | verified per pair against the hash taken immediately BEFORE that pair, not against the committed blob, because an earlier pair on the same file has already moved it |
+| revert verified by blob hash, exit `6` | verified per target, and reported per target |
+| RED and GREEN agree, exit `7` | unchanged |
+| value-free mutations, exit `3` | every `--replace` is screened, not only the first |
+| single worktree | a second `--file` in a different worktree is refused, because two checkouts cannot be reverted atomically |
+
+Malformed pairings are usage errors rather than silent bindings. A `--file`
+arriving between a `--find` and its `--replace` is refused, because it would
+otherwise bind that pair to whichever target parsing reached last.
+
+#### S1 — the extension proven, and pinned so it stays proven
+
+The proof is a permanent selftest group rather than a one-off run, so a later
+change that breaks the composed path fails `node scripts/selftest.mjs` instead
+of passing quietly. The fixture reproduces the over-determination structure
+rather than describing it: two gates, either of which alone keeps the command
+green.
+
+The first assertion is the control that gives the rest their meaning. Without
+it, a composed exit `0` could simply be a case where one mutation was already
+sufficient.
+
+```
+RED/GREEN probe harness — composed mutations (BUG-020)
+  ✓ RED/GREEN compose: each single mutation ALONE is correctly refused as non-discriminating, which is the over-determination this extension exists for (A alone exit 7, B alone exit 7)
+  ✓ RED/GREEN compose: the two mutations applied TOGETHER across two files discriminate at exit 0, red 1 then green 0, and every target is hash-verified back (exit 0)
+  ✓ RED/GREEN compose: two chained pairs on the SAME file discriminate (exit 0) where either alone does not (exit 7), and a second pair that cannot land is still caught against its pre-pair hash (exit 5)
+  ✓ RED/GREEN compose: when a LATER mutation cannot land, the probe refuses with exit 5 and the EARLIER mutation is reverted too — the revert is all-or-nothing (exit 5)
+  ✓ RED/GREEN compose: a dirty SECOND target refuses with exit 4 before any mutation, preserving the uncommitted work and leaving the clean target untouched (exit 4)
+  ✓ RED/GREEN compose: an exfiltrating sink in the SECOND --replace is refused with exit 3 before any file is touched (exit 3)
+  ✓ RED/GREEN compose: --find before any --file, --find with no --replace, and a --file straddling a pair are all usage errors (2, 2, 2), never silent bindings (2, 2, 2)
+  ✓ RED/GREEN compose: the single-pair form still emits the singular file:/mutation:/revert-verified: lines and NOT the plural form, so evidence recorded before this extension stays comparable (exit 0)
+  ✓ RED/GREEN compose: a SIGTERM delivered while BOTH mutations were live restores every target to its committed blob (both mutations observed live: true)
+  ✓ Regression: every pre-existing selftest assertion stays green after the composed-mutation append (3330 assertion(s) already green at this point)
+```
+
+Two of these deserve their own note.
+
+The all-or-nothing case is the one that matters most, because it is the original
+incident in miniature: mutation 1 lands, mutation 2 cannot, and a revert that
+covered only the file it failed on would leave a live mutation inside a shipped
+module. The probe refuses with exit `5` and both files come back.
+
+The `SIGTERM` case reports `both mutations observed live: true`. That clause is
+load-bearing. The selftest polls until it has SEEN both files differ from their
+committed blobs, and only then signals. Without it the assertion would also pass
+against a probe that never mutated anything.
+
+The nineteen pre-existing assertions in the sibling harness group stayed green
+throughout, so nothing in the single-pair path was disturbed.
+
+#### S2 — backward compatibility: `Q9` reproduced unchanged, exit `0`
+
+Other rows' recorded evidence quotes the singular `file:` and `mutation:` lines,
+so the extended harness must still produce them. `Q9` was re-run through the
+extended harness with the identical single-pair invocation it was recorded with.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BACKWARD-COMPAT reproduction of Q9: SCN-020-01 at the reported 9e307 pair with the E1 arithmetic-origin guard deleted
+file:             rltax.js
+mutation:         if (!Number.isFinite(gross)) {  ->  if (false) {   (1 occurrence(s))
+command:          npx playwright test tests/lifetime-tax-representable.spec.mjs --project=chromium --reporter=line -g the\ reported\ pair\ at\ 9e307\ refuses\ by\ name\ on\ every\ dependent\ stage
+red-exit:         1
+red-summary:          [chromium] › tests/lifetime-tax-representable.spec.mjs:181:1 › Regression: SCN-020-01 the reported pair at 9e307 refuses by name on every dependent stage 
+green-exit:       0
+green-summary:    [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:181:1 › Regression: SCN-020-01 the reported pair at 9e307 refuses by name on every dependent stage
+revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`, matching the recorded `Q9`. The `file:` and `mutation:` lines are
+the singular form, and no `files:` or `mutations:` line appears.
+
+#### S3 — backward compatibility: `P6b` reproduced unchanged, exit `7`
+
+The same reproduction for a recorded NON-discriminating result, which is the
+harder direction: an extension that accidentally made probes easier to pass
+would show up here as a `7` turning into a `0`.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BACKWARD-COMPAT reproduction of P6b: TB-020-03 with the E1 arithmetic-origin finiteness guard deleted, ALONE
+file:             rltax.js
+mutation:         if (!Number.isFinite(gross)) {  ->  if (false) {   (1 occurrence(s))
+command:          npx playwright test tests/lifetime-tax-representable.spec.mjs --project=chromium --reporter=line -g no\ rendered\ text\ on\ the\ route\ is\ an\ infinity\ symbol\ or\ NaN
+red-exit:         0
+red-summary:      [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN
+green-exit:       0
+green-summary:    [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN
+revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   NO (both channels agree: exit 0 == 0, summary "[1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN" identical once elapsed time is normalised)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `7`, matching the recorded `P6b`.
+
+`S3` is also the control for `S4`. It is the E1 half of the design's case,
+driven alone, with the identical literal `S4` uses.
+
+#### S4 — `TB-020-03` fails under the adversarial case `design.md` names
+
+Both mutations, applied together, across two files:
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TB-020-03 under the design-named adversarial case: R2 fallback restored to String(record.value) AND E1 removed so a record carrying Infinity is placed in a stage
+files:            lifetime-tax-strategy-lab.html rltax.js
+mutations:        2 composed, applied together
+  mutation 1:     [lifetime-tax-strategy-lab.html]  if (!Number.isFinite(record.value)) return "no figure";  ->  if (false) return "no figure";   (1 occurrence(s))
+  mutation 2:     [rltax.js]  if (!Number.isFinite(gross)) {  ->  if (false) {   (1 occurrence(s))
+command:          npx playwright test tests/lifetime-tax-representable.spec.mjs --project=chromium --reporter=line -g no\ rendered\ text\ on\ the\ route\ is\ an\ infinity\ symbol\ or\ NaN
+red-exit:         1
+red-summary:          [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN 
+green-exit:       0
+green-summary:    [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN
+revert-verified:  yes, all 2 targets (lifetime-tax-strategy-lab.html committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071, rltax.js committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`.
+
+Mutation 1 neutralises the `"no figure"` guard, so control falls through to the
+`return String(record.value);` line beneath it — which is precisely the design's
+"the R2 fallback is restored to `String(record.value)`". Mutation 2 stands E1
+down, so the overflowing sum is no longer converted into a refusal and a record
+carrying `Infinity` reaches a stage — the design's second clause. `String(Infinity)`
+is `"Infinity"`, the assertion's `not.toMatch(/\bInfinity\b/)` limb sees it, and
+the test fails.
+
+### What this round settles
+
+`TB-020-03` fails when its guards are removed. The proof is the case
+`design.md` specified for it, driven as written, and it discriminates at exit
+`0`.
+
+The pairing of `S3` and `S4` is the finding, not `S4` alone. `S3` applies the E1
+literal by itself and correctly refuses at exit `7`. `S4` applies that same
+literal together with the R2 one and discriminates. The difference between them
+is the second mutation and nothing else, so the earlier exit `7` readings are
+explained rather than contradicted: they were true statements about
+single-mutation edits, and `TB-020-03` is over-determined, not unfalsifiable.
+
+The DoD row is therefore satisfied for all nine assertions, and it is ticked.
+
+Nothing was weakened to reach this. No assertion text was edited, no guard was
+removed, and no earlier probe block was rewritten. `P6`, `P6b`, `P6c`, `P6e`,
+`P6g`, `P6i` and `Q6` remain true records of the commands that produced them.
+
+After every probe cycle, `git status --porcelain` on the two targets was empty
+and each file hashed identical to its committed blob:
+
+```
+$ git status --porcelain -- rltax.js lifetime-tax-strategy-lab.html
+$ for f in rltax.js lifetime-tax-strategy-lab.html; do ... done
+  rltax.js                           IDENTICAL to committed blob (f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+  lifetime-tax-strategy-lab.html     IDENTICAL to committed blob (49d3eb42c819966d4f312e076786e959b51b3071)
+```
+
+`node scripts/selftest.mjs` reports `3449 passed, 2 failed`, against a
+pre-change baseline of `3439 passed, 2 failed` measured at the same head. The
+ten added assertions are the composed-mutation group. The two failures are
+unchanged in both identity and count, and neither belongs to this packet: one is
+an unreachable-test-file census, the other a `market-brief.html` block count.
+Both sit in another session's working tree.
+

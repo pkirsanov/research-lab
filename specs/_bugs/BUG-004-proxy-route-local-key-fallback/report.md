@@ -6857,3 +6857,34 @@ Exit Code: 0
 The current window confirms clean product and evidence verification with only
 validate/runner-owned closure remaining. Audit leaves the final DoD checkbox,
 Scope 01, completion arrays, top-level status, and `certification.*` unchanged.
+
+## Gate G088 Reports A Post-Certification Edit That Did Not Happen - 2026-08-24
+
+A repository-wide run of `post-cert-spec-edit-guard.sh` flagged this packet:
+`postCertEdits: 3`, `carriedUndeclared: 3`, all three attributed to commit
+`d94a5b9065e3a885347ec9e40816a2030405d6f1` dated 2026-07-24, against a
+`certifiedAt` of 2026-07-23T03:28:14Z.
+
+That commit did not edit certified planning truth. It CREATED this packet.
+`git log --diff-filter=A` reports `d94a5b906` as the adding commit for every
+file checked - `scopes.md`, `spec.md`, `design.md` and `state.json` - and the
+commit's diffstat is pure addition with no deletions anywhere in the packet
+(`bug.md` +123, `design.md` +351, `report.md` +6859, `scopes.md` +318,
+`state.json` +993).
+
+The sequence is ordinary: the work was certified in-session on 2026-07-23, and
+the whole packet was committed the next day as a single commit. G088 derives
+"edited after certification" from git history, so a packet certified before its
+first commit is indistinguishable to it from one edited after certification.
+
+Recorded so the remediation the gate offers is not applied by mistake. Demoting
+this packet out of `done`, or setting `requiresRevalidation: true`, would
+downgrade a legitimately certified packet to satisfy a false positive. Nothing
+in `state.json`, `scopes.md`, `spec.md` or `design.md` was changed by this
+observation; `report.md` is not among the files G088 tracks
+(`spec.md`, `design.md`, `scopes.md`, `scopes/`), so recording it here cannot
+itself create the violation it describes.
+
+The contrast case is `BUG-002-market-brief-session-date-drift`, which the same
+sweep flagged and which IS genuine: its files were added 2026-07-16, certified
+2026-07-27, and then edited on 2026-08-07 and 2026-08-10.

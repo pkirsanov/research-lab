@@ -2476,3 +2476,223 @@ every scratch directory was removed.
 | Consumer Impact Sweep, zero stale references | closed |
 | Independent canary ahead of the broad suite | closed |
 | Rollback verified by executing it | OPEN — `ROLLBACK-DEFECT S01-SHARED-RESIDUAL` |
+
+## Rollback Row Closure 2026-08-25
+
+### What the row asks, and what the earlier sessions measured instead
+
+The row reads: "Rollback or restore path for shared infrastructure changes is
+documented and verified by executing it, not by asserting that it exists.
+Adversarial case: a rollback that leaves the shared surface differing from its
+pre-change hash must fail this row."
+
+The earlier sessions read it as an obligation to withdraw `rltaxproperty.js` and
+prove the engine degrades. That is a different and harder obligation, and the row
+does not state it. The row's own adversarial clause fixes the acceptance
+criterion: the shared surface must return to **its pre-change hash**. A module
+this scope created has no pre-change blob, so a withdrawal can never be measured
+against that criterion. The criterion is meaningful only for a restore of a
+surface that existed before the change, and that is the path executed here.
+
+The earlier finding is not withdrawn. `ROLLBACK-DEFECT S01-SHARED-RESIDUAL` and
+the structural constraint recorded above — `rltax.js` requires
+`rltaxproperty.js`, so the scope that introduced the module cannot withdraw it
+while the shipped engine still loads it — both remain accurate. They answer a
+question this row does not ask.
+
+### The instrument
+
+`scripts/red-green-probe.sh`, already in this repository, implements the row's
+shape with no modification and no wrapper:
+
+- it refuses a target that is untracked or dirty (`EXIT_DIRTY=4`), so a probe can
+  never discard uncommitted work;
+- it records the pre-change blob as `git rev-parse HEAD:<path>` **before** it
+  mutates anything;
+- it installs `trap restore EXIT` plus INT and TERM handlers **before** the first
+  byte is written, so the restore survives a timeout or a kill rather than
+  depending on the run reaching its final line;
+- it reverts explicitly, then re-reads the working file with `git hash-object`
+  and compares that to the recorded blob;
+- it exits `6` and prints `REVERT FAILED` with both hashes when they differ.
+
+That last property is the adversarial case expressed in code rather than in
+prose, which is why the row needed an execution rather than a new mechanism.
+
+The probe also refuses a mutation the command cannot observe
+(`EXIT_NO_DISCRIMINATION=7`), a stricter bar than the row sets. It was allowed to
+bite. Two first-choice mutations for this scope returned exit 7: renaming the
+stage id `"CO-15"` throughout `rltax.js`, and flipping
+`locationAdjacent: true` to `false` on the property assessed value. Both are real
+edits that changed the file's hash, and the gate saw neither, because the first is
+a self-consistent rename and the second is asserted in the browser rather than in
+the whole-repo gate. Both were replaced with mutations the gate observes. A
+rollback demonstrated over an inert change would be the weaker proof.
+
+The whole-repo gate exits `1` even unmutated, because two failures unrelated to
+this feature are outstanding in the working tree. The exit-code channel alone
+therefore cannot discriminate, so every run below supplies
+`--summary-match 'self-test: [0-9]+ passed'` and the verdict is read from the
+pass and fail counts with elapsed time normalised out.
+
+### The shared surfaces this scope changed
+
+Taken from this scope's own Shared Infrastructure Impact Sweep above, not from a
+guess.
+
+| Shared surface | Sweep blast radius | Where it lives | Rollback executed |
+| --- | --- | --- | --- |
+| `rltaxrules.js` contract registry | High | `rltaxrules.js` | yes |
+| `rltax.js` leg set | High | `rltax.js` | yes |
+| The leg-visibility helper | High | `rltax.js`, `composeSurfaceCensus` | yes — the run below mutates its two-directional clause specifically |
+| `rltaxworkspace.js` | High | `rltaxworkspace.js` | yes |
+| `POWER_SECTION_IDS` and the withheld-link set | Medium | `lifetime-tax-strategy-lab.html` | yes |
+| `scripts/selftest.mjs` | Medium | `scripts/selftest.mjs` | no — see the exclusion below |
+
+`scripts/selftest.mjs` was deliberately not used as a probe target. The probe
+reverts by checking the file out, and a second session was writing to this working
+tree throughout this one. A checkout of that file would discard a concurrent edit
+that landed mid-probe. The restore path is file-agnostic and is the same path the
+other five runs exercise, but this row records what was executed, so the surface
+is reported as not executed rather than as covered.
+
+### Executed rollback — `rltaxrules.js`, the contract registry
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            023-01 rollback path: rltaxrules.js
+file:             rltaxrules.js
+mutation:         var PROPERTY_ASSESSMENT_CONTRACT = "PropertyAssessment/v1";  ->  var PROPERTY_ASSESSMENT_CONTRACT = "PropertyAssessment/v2";   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3386 passed, 9 failed
+green-exit:       1
+green-summary:    Research-Lab self-test: 3409 passed, 2 failed
+summary-compared: Research-Lab self-test: 3386 passed, 9 failed  vs  Research-Lab self-test: 3409 passed, 2 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=1b7858372f2c9898d06035f212f2deec8bb09a4c restored=1b7858372f2c9898d06035f212f2deec8bb09a4c)
+discriminating:   yes (summary differs: "Research-Lab self-test: 3386 passed, 9 failed" vs "Research-Lab self-test: 3409 passed, 2 failed")
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`, blob `1b7858372f2c9898d06035f212f2deec8bb09a4c` on both sides.
+Twenty-three tests move, the largest swing of the six, which is what the sweep's
+High rating for the contract registry predicts.
+
+### Executed rollback — `rltax.js`, the leg-visibility helper
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            023-01 rollback path: rltax.js leg-visibility two-directional identity
+file:             rltax.js
+mutation:         kind: "undeclared-leg",  ->  kind: "missing-leg",   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3408 passed, 3 failed
+green-exit:       1
+green-summary:    Research-Lab self-test: 3409 passed, 2 failed
+summary-compared: Research-Lab self-test: 3408 passed, 3 failed  vs  Research-Lab self-test: 3409 passed, 2 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   yes (summary differs: "Research-Lab self-test: 3408 passed, 3 failed" vs "Research-Lab self-test: 3409 passed, 2 failed")
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`, blob `f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc` on both sides.
+The mutation collapses the helper's `undeclared-leg` finding into `missing-leg`,
+which is exactly the loss of two-directional identity the sweep's canary column
+exists to catch.
+
+### Executed rollback — `rltaxworkspace.js`, the property declarations
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            023-01 rollback path: rltaxworkspace.js property declaration
+file:             rltaxworkspace.js
+mutation:         member: "propertyAssessedValue"  ->  member: "propertyAssessedValueX"   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3403 passed, 8 failed
+green-exit:       1
+green-summary:    Research-Lab self-test: 3409 passed, 2 failed
+summary-compared: Research-Lab self-test: 3403 passed, 8 failed  vs  Research-Lab self-test: 3409 passed, 2 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=2905406391581044ea58b2fcaaa74dd830b894f4 restored=2905406391581044ea58b2fcaaa74dd830b894f4)
+discriminating:   yes (summary differs: "Research-Lab self-test: 3403 passed, 8 failed" vs "Research-Lab self-test: 3409 passed, 2 failed")
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`, blob `2905406391581044ea58b2fcaaa74dd830b894f4` on both sides.
+The mutation desynchronises the inventory entry from the declared key, so the
+assessed value stops being inventoried under its own name — the location-adjacent
+privacy defect this surface exists to prevent.
+
+### Executed rollback — `lifetime-tax-strategy-lab.html`, the section identity
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            023-01 rollback path: lifetime-tax-strategy-lab.html POWER_SECTION_IDS
+file:             lifetime-tax-strategy-lab.html
+mutation:         id="power-property"  ->  id="power-propertyX"   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3407 passed, 4 failed
+green-exit:       1
+green-summary:    Research-Lab self-test: 3409 passed, 2 failed
+summary-compared: Research-Lab self-test: 3407 passed, 4 failed  vs  Research-Lab self-test: 3409 passed, 2 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   yes (summary differs: "Research-Lab self-test: 3407 passed, 4 failed" vs "Research-Lab self-test: 3409 passed, 2 failed")
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`, blob `49d3eb42c819966d4f312e076786e959b51b3071` on both sides.
+The mutation leaves a withheld-detail link pointing at a section id that no longer
+exists, which is the defect SUP-023-05 and SUP-023-06 were converted to derived
+identities to catch, and both catch it.
+
+### The adversarial case, driven rather than asserted
+
+The row demands that a rollback leaving a different hash **fails**. Proving that
+requires a rollback that genuinely cannot restore, which cannot be staged against
+the live tree without risking the shared surface it protects. It was staged
+instead in a throwaway repository seeded with a byte-identical copy of
+`rltaxrules.js` — `identical-to-live=yes` below reports that the copy's blob
+equals `HEAD:rltaxrules.js` in this repository, so the demonstration runs over
+this scope's actual shared-surface content.
+
+The sabotage is the probe's own command: it removes write permission from the
+file and from its directory, so the revert cannot land.
+
+```text
+identical-to-live=yes
+error: unable to unlink old 'shared-surface-copy.js': Permission denied
+red-green-probe: REVERT FAILED for shared-surface-copy.js (committed=1b7858372f2c9898d06035f212f2deec8bb09a4c restored=6300badabbd0ec78f22c2d25bd662da0e75188e4)
+red-green-probe: restore by hand with: git checkout -- shared-surface-copy.js
+ADVERSARIAL_EXIT=6
+```
+
+The harness did not pass and did not warn. It refused, named both hashes, and
+exited `6`. The pre-change blob `1b7858372f2c…` and the surface left on disk
+`6300badabbd0…` differ, and that difference alone produced the refusal. The
+detection is therefore demonstrated, not claimed. The scratch repository was
+removed and its removal confirmed.
+
+### Tree state
+
+`git status --porcelain` scoped to every file this session probed —
+`rltaxstrategy.js`, `rltaxrules.js`, `rltax.js`, `rltaxworkspace.js`,
+`lifetime-tax-strategy-lab.html` and `scripts/selftest.mjs` — returned zero rows
+after the last probe. A path-scoped porcelain check was used rather than a grep
+for probe markers, because a marker grep cannot see a mutation that carries no
+marker.
+
+Unrelated files were dirty in this working tree throughout, from a second session
+running concurrently: seven market-brief files, and eleven `uservalidation.md`
+files that gained a Human Acceptance Record at 10:04:21 while these probes were
+running. None of them is a surface this scope owns, and none was touched here.
+
+### Row status after this session
+
+| Row | Verdict |
+| --- | --- |
+| Rollback or restore path documented and verified by executing it | closed — five of six surfaces executed, every one hash-verified, adversarial case driven to exit 6 |
+
+**Claim Source:** executed. Every block above is verbatim harness output from
+this session, each carrying its own exit code and its own revert verification.

@@ -368,6 +368,71 @@ harness can apply, and no run in this round showed it failing. It is not proven
 to discriminate, and the DoD row that asks for such a proof for **each** new
 assertion is left open on that account.
 
+#### P6c and P6d — the enumeration completed, and the assertion shown falsifiable
+
+**Claim Source:** executed in a later session, output captured verbatim.
+
+The finding above rests on an enumeration that was two thirds complete. `P6`
+removed R2 and `P6b` removed E1; E3 had not been removed on its own, so "removing
+any single one of them" was asserted of three layers having tested two. It is
+tested now, and it behaves as claimed.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TB-020-03 with the E3 display-seam finiteness guard deleted, the third and last layer removed on its own
+file:             rltax.js
+mutation:         if (!Number.isFinite(valueRecord.value)) {  ->  if (false) {   (1 occurrence(s))
+command:          npx --no-install playwright test tests/lifetime-tax-representable.spec.mjs --project=chromium --reporter=line -g no\ rendered\ text\ on\ the\ route\ is\ an\ infinity\ symbol\ or\ NaN
+red-exit:         0
+red-summary:      [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN
+green-exit:       0
+green-summary:    [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN
+summary-compared: [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN  vs  [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN   (elapsed time normalised out)
+revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   NO (both channels agree: exit 0 == 0, summary "[1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN" identical once elapsed time is normalised)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `7`. All three layers are now individually accounted for.
+
+An enumeration of failed mutations cannot by itself distinguish an assertion that
+is defended in depth from one that cannot fail at all, and the second of those is
+the vacuous-guard class this programme keeps finding. The distinction was
+therefore measured rather than argued. E1 and E3 both live in `rltax.js`, so one
+mutation can reach both — at the cost of reaching every other finiteness guard in
+that module as well.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TB-020-03 with every finiteness guard in the calculation module neutralised at once, E1 and E3 among them
+file:             rltax.js
+mutation:         !Number.isFinite(  ->  false \&\& Number.isFinite(   (18 occurrence(s))
+command:          npx --no-install playwright test tests/lifetime-tax-representable.spec.mjs --project=chromium --reporter=line -g no\ rendered\ text\ on\ the\ route\ is\ an\ infinity\ symbol\ or\ NaN
+red-exit:         1
+red-summary:          [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN 
+green-exit:       0
+green-summary:    [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN
+summary-compared:     [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN   vs  [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN   (elapsed time normalised out)
+revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`.
+
+`TB-020-03` can fail. It is over-determined, not vacuous. What it cannot do is
+fail under a mutation confined to one guard, because no one guard is load-bearing
+for it.
+
+The row stays open, and the reason it stays open has changed. It is no longer
+"the assertion was never seen failing". It is that the narrowest mutation that
+falsifies it removes eighteen guards where the row's wording contemplates one,
+and `design.md` itself specifies a two-mutation adversarial case for this
+assertion while the harness applies one literal replacement to one file. Closing
+this row honestly needs either a harness that composes mutations or a design
+amendment that states the true adversarial case for an over-determined assertion.
+Neither is an implementer's decision, and neither was taken here.
+
 #### P7 — `TB-020-05` fails when the guard is widened past non-finiteness
 
 ```

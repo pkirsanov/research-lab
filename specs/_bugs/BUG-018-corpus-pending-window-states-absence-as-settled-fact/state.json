@@ -249,25 +249,25 @@
     "scopeProgress": [
       {
         "scopeId": "01-make-data-corpus-status-describe-the-subject-on-screen",
-        "status": "Done",
+        "status": "done",
         "dodChecked": 6,
         "dodUnchecked": 0
       },
       {
         "scopeId": "02-stop-asserting-absence-the-route-has-not-established",
-        "status": "Done",
+        "status": "done",
         "dodChecked": 10,
         "dodUnchecked": 0
       },
       {
         "scopeId": "03-close-the-structural-test-gap",
-        "status": "Done",
+        "status": "done",
         "dodChecked": 6,
         "dodUnchecked": 0
       },
       {
         "scopeId": "cross-scope",
-        "status": "Not Started",
+        "status": "not_started",
         "dodChecked": 0,
         "dodUnchecked": 7
       }

@@ -127,7 +127,7 @@ Feature: A passing run reports success
 
 ## Scope 3: Disclose It Where A Developer Meets It
 
-**Status:** Not Started (declined)
+**Status:** Done
 **Disposition:** correct only if Scope 1 concludes the cause is not removable here
 
 ### Problem This Scope Resolves
@@ -165,14 +165,23 @@ Feature: An unremovable defect is disclosed rather than rediscovered
 
 ### Definition of Done
 
-Declined. This scope's own adversarial scenario decides it: a remedy was available in this
-repository and was taken, so the scope is declined rather than taken. Its Definition of Done
-is therefore not applicable and is deliberately left unticked rather than satisfied.
+Taken. The earlier round declined this scope on its adversarial scenario and left these items
+unticked; that declination is superseded. The scenario forbids a notice filed **instead of** an
+available fix, and the fix was filed — `workers: 2` is committed and is what the default path
+runs, so a disclosure added afterwards does not stand in for it. The first item below presupposes
+the opposite condition to the scenario's `Given`, and the discriminator the declination itself
+conceded in writing is that a remedy for the **exposure** was available and taken while the
+**cause** is not removable here. Full reversal reasoning and evidence:
+`report.md` `## Scope 3 Execution — Disclosure Written`.
 
-- [ ] Scope 1 recorded that the cause is not removable in this repository.
-- [ ] The disclosure names the platform, the project, the symptom, and its intermittence.
-- [ ] The disclosure carries the measured wall-time cost.
-- [ ] The disclosure is reachable from where a developer runs the suite.
+- [x] Scope 1 recorded that the cause is not removable in this repository.
+  → Evidence: `report.md` `## Scope 1 Addendum — The Cause Is Not Removable In This Repository`. The force-kill message is emitted only by `node_modules/playwright/lib/runner/index.js`; the same grep across repository sources returns nothing, so no repository code participates in worker teardown. The other end is the operator's installed `Google Chrome 151.0.7922.174`, which the repository neither vendors nor versions. The counter-argument — that deleting the repository-owned `channel: 'chrome'` would end exposure — is recorded and answered: that removes exposure, not the cause, and costs local/CI browser parity.
+- [x] The disclosure names the platform, the project, the symptom, and its intermittence.
+  → Evidence: the comment beside `workers: 2` in `playwright.config.mjs` names macOS, the `system-chrome` project, the symptom (`worker-N process did not exit within 300000ms after stop, force-killed it`, exit 1 with every test passed), and quantifies "intermittently" as 6/8 runs stalling at six workers, 1/3 at four, 0/3 at two. `.specify/memory/agents.md` `### Playwright E2E` carries the same four. `git diff -U0 -- playwright.config.mjs` shows comment lines only.
+- [x] The disclosure carries the measured wall-time cost.
+  → Evidence: **343s against 81s on the identical 111 tests**, measured in this execution — run C (`--workers=6`, exit 1, 4 force-kills, `111 passed (5.7m)`) against run A (configured 2 workers, exit 0, `111 passed (1.3m)`), raw lines under `report.md` `### The condition is still reachable at the remedy commit`. Both figures appear in both disclosure sites.
+- [x] The disclosure is reachable from where a developer runs the suite.
+  → Evidence: **18 of 18** documented invocations of this suite — every command in `.specify/memory/agents.md` plus the pipeline job in `.github/workflows/pages.yml` — name `--config=playwright.config.mjs`; **0** do not. The suite cannot be run without naming the file the disclosure lives in, and that file owns the `workers` knob whose override is now the only route to the stall. The registry note sits directly above the first run command, which is where the command is copied from. `README.md` was not used: it is the managed architecture/development doc under `docsRegistryOverrides.managedDocs`.
 
 ## Cross-Scope Definition of Done
 

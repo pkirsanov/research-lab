@@ -399,7 +399,11 @@ Research-Lab self-test: 3406 passed, 0 failed
 
 No test was modified. The only source change is the `workers` line in `playwright.config.mjs`.
 
-## Scope 3 Disposition — Declined
+## Scope 3 Disposition — Declined (superseded; see Scope 3 Execution below)
+
+The reasoning below is kept verbatim as the record of what was decided at the time. It was
+reversed by a later execution, which took the scope. See `## Scope 3 Execution — Disclosure
+Written` for the reversal and its grounds.
 
 Scope 3 carries an adversarial scenario that decides its own fate:
 
@@ -442,7 +446,8 @@ stall, and that is what the comment is for.
 
 Scopes 1 and 2 are executed and their Definition of Done items are ticked against the raw
 output recorded above. Scope 3 is declined on the instruction of its own adversarial scenario,
-with its items left unticked.
+with its items left unticked. *(Superseded: a later execution took Scope 3 and ticked its four
+items. See `## Scope 3 Execution — Disclosure Written` below.)*
 
 The root cause is **narrowed but not established**. Two candidates are supported and neither is
 named as the cause: the evidence shows the runner waiting on an exit notification that never
@@ -457,4 +462,167 @@ carries that count. That is a divergence closed, not a cause removed.
 Status stays `in_progress` pending Scope 3 and independent validation. `certifiedCompletedPhases`
 remains empty: phase certification belongs to the validating agent, and no independent party has
 re-derived any measurement recorded here.
+
+## Scope 1 Addendum — The Cause Is Not Removable In This Repository
+
+Recorded here because Scope 3's first Definition of Done item requires *Scope 1* to have recorded
+it, and the Decision above stopped at selecting Option C. Everything in this section was verified
+in this execution on the same macOS host; nothing is carried forward on trust.
+
+**1. The failing step belongs to the vendored runner, not to this repository.**
+
+```
+$ grep -rl 'did not exit within' node_modules/
+node_modules/playwright/lib/runner/index.js
+
+$ grep -rl 'did not exit within' --include='*.mjs' --include='*.js' --include='*.html' . \
+    | grep -v node_modules | grep -v '^./specs/' | grep -v '^./_site/'
+(no output)
+```
+
+The force-kill is emitted by Playwright's own runner. No repository source emits that message and
+no repository source participates in worker teardown: the specs drive pages and end, and the
+wait that fails happens after the last spec has reported.
+
+**2. The other party is the operator's installed browser, not a repository artifact.**
+
+```
+$ sw_vers -productVersion
+26.5.2
+$ '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --version
+Google Chrome 151.0.7922.174
+$ npx --no-install playwright --version
+Version 1.61.1
+```
+
+`channel: 'chrome'` resolves to a machine-installed application bundle that the repository does
+not vendor, version, or update. The repository pins the runner in its lockfile and pins nothing
+at all on the browser side. Both ends of the transport that fails are therefore outside its
+control.
+
+**3. What Scope 2 removed was the divergence, not the defect.** The stall is still reachable at
+the commit that carries the remedy — see the reproduction under Scope 3 Execution below, which
+force-killed four workers on a fully green run. Pinning `workers: 2` stopped the default path
+from meeting it. It did not make the teardown notification arrive.
+
+**Counter-argument considered.** The repository *does* own the line `channel: 'chrome'`, and
+deleting it would end all exposure, because the bundled `chromium` project has never stalled in
+any run recorded in this packet. That removes the exposure, not the cause — and at the price of
+running a different browser locally than the deploy gate runs, since CI invokes
+`--project=system-chrome`. That is Option B, rejected in the Decision above on precisely that
+ground, and nothing measured here reopens it.
+
+**Conclusion recorded for Scope 1: the cause is not removable in this repository.** Exposure is
+repository-ownable and has been bounded. The defect itself is upstream and can only be reported,
+not fixed, from here.
+
+## Scope 3 Execution — Disclosure Written
+
+### Why the declination above is superseded
+
+The declination rested on this scope's adversarial scenario: *given Scope 1 concluded a remedy is
+available in this repository, this scope is declined rather than taken*. That scenario exists so
+that a notice cannot be filed **instead of** a fix. The fix was filed: `workers: 2` is committed
+and is what the default path now runs. A disclosure added afterwards does not stand in for it.
+
+The same scope's first Definition of Done item — *the cause is not removable in this repository* —
+presupposes the opposite condition to the adversarial scenario's `Given`. Both cannot bind. The
+discriminator is the distinction the Scope 1 Addendum draws and the declination itself already
+conceded in writing: a remedy for the **exposure** was available and was taken; the **cause** is
+not removable here. On that reading the adversarial scenario is satisfied, not violated, and the
+scope is taken.
+
+What the declination got right and this execution keeps: the disclosure belongs with the change
+rather than in a general notice, because the default path no longer stalls and only an operator
+who raises `--workers` can still meet it.
+
+### The condition is still reachable at the remedy commit
+
+Twenty-two `tests/lifetime-tax*.spec.mjs` files, 111 tests, this session, this host, all output
+written to a temporary directory outside the repository:
+
+```
+A proj=system-chrome exit=0 wall=81s  forcekills=0 | 111 passed (1.3m) | Running 111 tests using 2 workers
+B proj=chromium      exit=0 wall=66s  forcekills=0 | 111 passed (1.1m) | Running 111 tests using 2 workers
+C proj=system-chrome exit=1 wall=343s forcekills=4 | 111 passed (5.7m) | Running 111 tests using 6 workers
+
+C.log:
+Running 111 tests using 6 workers
+Error: worker-1 process did not exit within 300000ms after stop, force-killed it
+Error: worker-5 process did not exit within 300000ms after stop, force-killed it
+Error: worker-4 process did not exit within 300000ms after stop, force-killed it
+Error: worker-3 process did not exit within 300000ms after stop, force-killed it
+  111 passed (5.7m)
+  4 errors were not a part of any test, see above for details
+
+failed-test count in A.log, B.log, C.log: 0, 0, 0
+```
+
+Run A is the configured default and is clean. Run C raises `--workers` and reproduces the defect
+independently of the earlier characterisation. **The measured wall-time cost carried into the
+disclosure is run C against run A: 343 seconds against 81, on the identical 111 tests, plus an
+exit code no test earned.**
+
+Two of this packet's earlier records are corrected by run C rather than confirmed. `bug.md`
+records under *What Was Not Established* that only one worker was force-killed and that a higher
+count "was not observed here". Four were force-killed in run C — `worker-1`, `worker-5`,
+`worker-4`, `worker-3` — so the multi-worker case is now observed. The Chrome build also moved
+from `151.0.7922.170` to `151.0.7922.174` between the characterisation and this run, and the
+defect survived the change, which weakens candidate 4 without discriminating it.
+
+### Where the disclosure was placed, and why there
+
+Primary site: the comment beside `workers: 2` in `playwright.config.mjs`.
+
+```
+$ grep -c 'config=playwright.config.mjs' <(grep -rh 'playwright test' .specify/memory/agents.md .github/workflows/pages.yml)
+18
+$ grep -cv 'config=playwright.config.mjs' <(grep -rh 'playwright test' .specify/memory/agents.md .github/workflows/pages.yml)
+0
+```
+
+Every one of the eighteen documented invocations of this suite — every command in the registry
+and the pipeline's own job — names `playwright.config.mjs` on the command line. There is no way
+to run this suite without naming that file. It is also the file that owns the `workers` knob, so
+the notice cannot drift away from the value it explains, and the reader who raises `--workers` —
+now the only reader who can meet the stall — is editing or overriding that exact line.
+
+Reach site: `.specify/memory/agents.md` under `### Playwright E2E`, immediately above the first
+run command, because that section is where a developer copies the command from before they ever
+open the config. It carries the same platform, project, symptom, intermittence and cost, and
+points at the config and this report.
+
+`README.md` was deliberately not used. It is this repository's managed architecture and
+development document under `docsRegistryOverrides.managedDocs` in `.github/bubbles-project.yaml`,
+so it is not this execution's to write.
+
+### Definition of Done evidence
+
+- *Scope 1 recorded that the cause is not removable in this repository* — the Scope 1 Addendum
+  above, resting on the two greps showing the force-kill is emitted only by
+  `node_modules/playwright/lib/runner/index.js`, the installed-Chrome version check, and the
+  counter-argument recorded and answered.
+- *The disclosure names the platform, the project, the symptom, and its intermittence* — the
+  config comment names macOS, `system-chrome`, the 300000ms teardown force-kill with an exit 1 on
+  a fully green run, and "intermittently" quantified as 6/8 at six workers, 1/3 at four, 0/3 at
+  two. The registry note carries the same four.
+- *The disclosure carries the measured wall-time cost* — "343s against 81s for the same 111
+  tests", measured in run C against run A above, in both sites.
+- *The disclosure is reachable from where a developer runs the suite* — 18 of 18 documented
+  invocations name the config file; the registry note sits directly above the first of them.
+
+### The suite is unchanged by this scope
+
+```
+$ git diff --stat -- playwright.config.mjs
+ playwright.config.mjs | 16 ++++++++++++----
+
+$ node -e 'import("./playwright.config.mjs").then(m=>console.log(m.default.workers, m.default.testMatch, m.default.projects.map(p=>p.name+":"+(p.use.channel||"bundled")).join(", ")))'
+2 **/*.spec.mjs system-chrome:chrome, chromium:bundled
+```
+
+The change is comment-only. The resolved worker count, discovery glob and both project
+definitions are byte-for-byte the behaviour they were before. No test was modified, no project
+default was switched, and the pipeline job is untouched.
+
 

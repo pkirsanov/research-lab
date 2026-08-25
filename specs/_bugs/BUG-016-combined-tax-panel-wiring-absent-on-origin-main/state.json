@@ -256,8 +256,8 @@
       {
         "scopeId": "cross-scope",
         "status": "In Progress",
-        "dodChecked": 2,
-        "dodUnchecked": 2
+        "dodChecked": 3,
+        "dodUnchecked": 1
       }
     ]
   },

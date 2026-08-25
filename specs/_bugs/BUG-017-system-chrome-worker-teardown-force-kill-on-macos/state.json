@@ -223,27 +223,27 @@
     "scopeProgress": [
       {
         "scopeId": "01-characterise-the-stall-well-enough-to-choose",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 7
+        "status": "Done",
+        "dodChecked": 7,
+        "dodUnchecked": 0
       },
       {
         "scopeId": "02-apply-the-selected-remedy",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 7
+        "status": "Done",
+        "dodChecked": 7,
+        "dodUnchecked": 0
       },
       {
         "scopeId": "03-disclose-it-where-a-developer-meets-it",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 4
+        "status": "Done",
+        "dodChecked": 4,
+        "dodUnchecked": 0
       },
       {
         "scopeId": "cross-scope",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 4
+        "status": "In Progress",
+        "dodChecked": 3,
+        "dodUnchecked": 1
       }
     ]
   },

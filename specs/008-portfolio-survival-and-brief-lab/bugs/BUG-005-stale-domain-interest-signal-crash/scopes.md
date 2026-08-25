@@ -6,16 +6,49 @@ decision, divergence resolution, regression design).
 
 Workflow mode: `bugfix-fastlane`. Single scope, single-file layout.
 
+## Execution Outline
+
+### Phase Order
+
+1. **Scope 1 — omit stale-only domains instead of throwing.** Preserve the
+  already-implemented module-contract repair, its adversarial carrier, and the
+  neighboring Feature 008 regression surface while certification remains open.
+
+### New Types and Signatures
+
+- No new type, schema, route, URL, storage field, or public signature.
+- `rlportfolio.deriveInterestSignals(workspace, now, policy)` keeps its existing
+  `{ ok: true, value } | { ok: false, error }` result envelope.
+- `portfolio-interest-signal/v1` and `BehaviorInterestSignal/v1` remain
+  unchanged and intentionally retain their different stale-domain forms.
+
+### Validation Checkpoints
+
+1. The six-title Node carrier validates all five BUG-005 scenarios and includes
+  a faithful pre-filter mutant that fails on the original behavior.
+2. The unchanged BUG-004 unit and brief functional carriers protect age-filter,
+  de-duplication, and floor-accounting behavior.
+3. The reachable allocation-page Playwright row and the eight-file Feature 008
+  browser matrix validate shipped-page non-movement; neither is represented as
+  direct execution of `rlportfolio.deriveInterestSignals`.
+4. Artifact lint and traceability guard validate plan shape before handoff.
+
+| Scope | Outcome | Surfaces | Primary Tests | Status |
+| --- | --- | --- | --- | --- |
+| 1 | Stale-only domains are omitted without suppressing fresh siblings | `rlportfolio.js`, contract carrier, Feature 008 regression surface | TP-B005-001 through TP-B005-010 | In Progress |
+
 ## Scope 1 - Omit Stale-Only Domains Instead Of Throwing
 
-**Status:** Done
+**Status:** In Progress
+
+**Scope-Kind:** contract-only
 
 **Depends On:** none.
 
 **Owner:** `bubbles.implement` for `rlportfolio.js`; `bubbles.test` for the new
 carrier.
 
-### Change Boundary
+### Change Boundary {#change-boundary}
 
 Allowed file families:
 
@@ -41,7 +74,7 @@ boundary excursion and must be routed, not absorbed:
 Collateral cleanup is opt-in, not implicit: an unrelated defect noticed inside
 `rlportfolio.js` while making this change is filed, not absorbed.
 
-### Consumer Impact Sweep
+### Consumer Impact Sweep {#consumer-impact-sweep}
 
 This fix mutates NO public interface identity. It relocates one statement
 **inside** `deriveInterestSignals`; the function keeps its name, arity, call
@@ -114,29 +147,64 @@ Feature: BUG-005 Stale-domain interest signal derivation
 4. Re-run BUG-004's two declared carriers and the canonical selftest unmodified.
 5. Add the carrier row to `notes/portfolio-survival-allocation-lab.md`.
 
+### Browser Wiring Decision
+
+No shipped browser page calls `rlportfolio.deriveInterestSignals` or
+`buildInterestSignalCandidate`. The allocation page loads `rlportfolio.js`, but
+its reachable behavior uses `window.RLPORTFOLIOBRIEF.deriveInterestSignals` and
+never dispatches through either repaired export. This scope therefore remains
+`contract-only`: it does not add a product caller merely to manufacture an E2E
+path, and it does not label a page-load assertion as proof of a function the
+page never invokes.
+
+TP-B005-003 is the direct discrimination contract. Its exact test reinstates
+the superseded pre-filter bucket creation, proves the mutant still handles
+fresh-only input, and then requires the stale mixed workspace to throw
+`RangeError`; it would fail if the broken behavior stopped being exercised.
+TP-B005-009 and TP-B005-010 are honest browser non-movement checks against
+existing reachable page behavior. They are required regressions, but neither is
+credited with proving the BUG-005 repair itself.
+
 ### Test Plan
 
-| ID | Test Type | Category | File | Description | Command | Live System |
+| ID | Test Type | Category | File | Scenario / Expected Test Title | Command | Live System |
 | --- | --- | --- | --- | --- | --- | --- |
-| TP-B005-001 | Unit | `unit` | `tests/portfolio-stale-domain-signal.unit.mjs` | AC-1, AC-2, AC-4, AC-5, AC-6, AC-7 — stale omission, future-dated omission, source-mutation discrimination, floor preservation, brief agreement | `node --test tests/portfolio-stale-domain-signal.unit.mjs` | No |
-| TP-B005-002 | Unit | `unit` | `tests/portfolio-stale-domain-signal.unit.mjs` | AC-3 — fresh sibling survives, score and band unchanged | `node --test tests/portfolio-stale-domain-signal.unit.mjs` | No |
-| TP-B005-003 | Regression | `unit` | `tests/portfolio-behavior-occurrence.unit.mjs` | BUG-004 storage and anti-inflation contract unaffected — file unmodified | `node --test tests/portfolio-behavior-occurrence.unit.mjs` | No |
-| TP-B005-004 | Regression | `functional` | `tests/portfolio-brief.functional.mjs` | Brief-side derivation and floor accounting unaffected — file unmodified | `node --test tests/portfolio-brief.functional.mjs` | No |
-| TP-B005-005 | Regression | `functional` | `scripts/selftest.mjs` | Registry, navigation, and canonical model invariants | `node scripts/selftest.mjs` | No || TP-B005-006 | Regression E2E | `e2e-ui` | `tests/portfolio-survival-allocation.spec.mjs` | Regression: `SCN-B005-STALE-OMITTED` in the browser — a workspace whose only `equity-research` event is outside `maximumEvidenceAgeDays` renders the allocation lab without an uncaught `RangeError`, and the fresh sibling domain still renders its signal. **NOT YET AUTHORED — routed to `bubbles.test`.** | `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --project=system-chrome` | Yes |
-| TP-B005-007 | Regression E2E | `e2e-ui` | `tests/portfolio-survival-*.spec.mjs` | Broader Feature 008 browser matrix, all 8 carriers, proving the relocation did not disturb the shipped surfaces. **NOT YET EXECUTED IN THIS PACKET — routed to `bubbles.test`.** | `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --project=system-chrome` | Yes |
+| TP-B005-001 | Unit | `unit` | `tests/portfolio-stale-domain-signal.unit.mjs` | `SCN-B005-STALE-OMITTED` → `BUG-005: a domain whose every eligible event has aged out yields no signal instead of throwing`; companion boundary title: `BUG-005: a future-dated-only domain is omitted through the same filter without throwing` | `node --test tests/portfolio-stale-domain-signal.unit.mjs` | No |
+| TP-B005-002 | Unit | `unit` | `tests/portfolio-stale-domain-signal.unit.mjs` | `SCN-B005-FRESH-SIBLING` → `BUG-005: a stale domain must not suppress the fresh domains beside it` | `node --test tests/portfolio-stale-domain-signal.unit.mjs` | No |
+| TP-B005-003 | Adversarial regression | `unit` | `tests/portfolio-stale-domain-signal.unit.mjs` | `SCN-B005-DISCRIMINATION` → `BUG-005: reinstating the superseded pre-filter bucket creation turns the stale-domain assertion red` | `node --test tests/portfolio-stale-domain-signal.unit.mjs` | No |
+| TP-B005-004 | Unit | `unit` | `tests/portfolio-stale-domain-signal.unit.mjs` | `SCN-B005-FLOOR-PRESERVED` → `BUG-005: in-window evidence below the floor is still emitted, so the fix widened nothing` | `node --test tests/portfolio-stale-domain-signal.unit.mjs` | No |
+| TP-B005-005 | Functional | `functional` | `tests/portfolio-stale-domain-signal.unit.mjs` | `SCN-B005-BRIEF-AGREEMENT` → `BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance` | `node --test tests/portfolio-stale-domain-signal.unit.mjs` | No |
+| TP-B005-006 | Regression | `unit` | `tests/portfolio-behavior-occurrence.unit.mjs` | BUG-004 storage, de-duplication, and anti-inflation contract remains unchanged | `node --test tests/portfolio-behavior-occurrence.unit.mjs` | No |
+| TP-B005-007 | Regression | `functional` | `tests/portfolio-brief.functional.mjs` | Brief-side derivation and floor accounting remain unchanged | `node --test tests/portfolio-brief.functional.mjs` | No |
+| TP-B005-008 | Regression | `functional` | `scripts/selftest.mjs` | Registry, navigation, and canonical model invariants remain green | `node scripts/selftest.mjs` | No |
+| TP-B005-009 | Regression E2E | `e2e-ui` | `tests/portfolio-survival-allocation.spec.mjs` | Reachable-page non-movement → `Regression: SCN-008-030 behavior cannot alter Black Litterman views returns or confidence`; this is not direct BUG-005-path evidence | `npx playwright test tests/portfolio-survival-allocation.spec.mjs` | Yes |
+| TP-B005-010 | Broader Regression E2E | `e2e-ui` | `tests/portfolio-survival-foundation.spec.mjs` | Broader Feature 008 browser matrix across the eight concrete `tests/portfolio-survival-*.spec.mjs` carriers; this is non-movement evidence, not direct BUG-005-path evidence | `npx playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs` | Yes |
 
-Rows TP-B005-006 and TP-B005-007 are declared obligations, not delivered
-coverage. No browser carrier in this repository currently exercises the
-stale-domain path: `grep -rlniE 'stale.domain|BUG-005|maximumEvidenceAgeDays'
-tests/*.spec.mjs` returns no file, and this packet's `report.md` records no
-Playwright execution at all. The 94-passed Feature 008 matrix that exists in the
-repository is BUG-004's `TP-B004-006` receipt and is NOT evidence for BUG-005.
-Both rows therefore stay unchecked in the Definition of Done below.
+### Test Plan to DoD Parity
+
+Each active Test Plan row has one primary DoD item. Additional evidence items
+below preserve reproduction, provenance, confinement, and anti-fabrication
+receipts; they do not replace these ten test obligations.
+
+| Test Plan row | Primary DoD item |
+| --- | --- |
+| TP-B005-001 | `SCN-B005-STALE-OMITTED` holds |
+| TP-B005-002 | `SCN-B005-FRESH-SIBLING` holds |
+| TP-B005-003 | `SCN-B005-DISCRIMINATION` holds |
+| TP-B005-004 | `SCN-B005-FLOOR-PRESERVED` holds |
+| TP-B005-005 | `SCN-B005-BRIEF-AGREEMENT` holds |
+| TP-B005-006 | BUG-004 carrier passes and remains unmodified |
+| TP-B005-007 | Brief functional carrier passes and remains unmodified |
+| TP-B005-008 | Canonical selftest passes |
+| TP-B005-009 | Reachable allocation-page E2E non-movement check passes |
+| TP-B005-010 | Broader E2E regression suite passes |
+
 ### Definition of Done
 
 #### Core Items
 
-- [x] `SCN-B005-STALE-OMITTED` holds: given a workspace whose only
+- [x] `SCN-B005-STALE-OMITTED` → `TP-B005-001` in
+  `tests/portfolio-stale-domain-signal.unit.mjs` holds: given a workspace whose only
       `equity-research` event occurred 190.92 days ago against a declared
       `maximumEvidenceAgeDays` of 56, deriving interest signals at that
       reference instant returns an ok envelope rather than throwing, and emits
@@ -165,7 +233,8 @@ Both rows therefore stay unchecked in the Definition of Done below.
         emitted" cannot pass because nothing was ever recorded.
         **Claim Source:** executed
 
-- [x] `SCN-B005-FRESH-SIBLING` holds: given a workspace holding one stale-only
+- [x] `SCN-B005-FRESH-SIBLING` → `TP-B005-002` in
+  `tests/portfolio-stale-domain-signal.unit.mjs` holds: given a workspace holding one stale-only
       domain beside one domain with in-window evidence, the derivation returns
       an ok envelope, the fresh domain emits its signal with an unchanged
       `evidenceScore` and `relevanceBand`, and the stale domain is absent
@@ -186,7 +255,8 @@ Both rows therefore stay unchecked in the Definition of Done below.
         silently degraded the survivor would fail rather than pass.
         **Claim Source:** executed
 
-- [x] `SCN-B005-DISCRIMINATION` holds: given module source in which the domain
+- [x] `SCN-B005-DISCRIMINATION` → `TP-B005-003` in
+  `tests/portfolio-stale-domain-signal.unit.mjs` holds: given module source in which the domain
       bucket is created before the age filter, deriving the stale-only input
       against that source throws a `RangeError`, proving the shipped ordering
       is what prevents it
@@ -207,7 +277,8 @@ Both rows therefore stay unchecked in the Definition of Done below.
         discrimination are recorded at `report.md#discrimination`.
         **Claim Source:** executed
 
-- [x] `SCN-B005-FLOOR-PRESERVED` holds: given a domain with one in-window event
+- [x] `SCN-B005-FLOOR-PRESERVED` → `TP-B005-004` in
+  `tests/portfolio-stale-domain-signal.unit.mjs` holds: given a domain with one in-window event
       and a declared floor of two distinct completions, a signal is still
       emitted for that domain with `floorSatisfied` false and `relevanceBand`
       `insufficient-evidence`
@@ -228,7 +299,8 @@ Both rows therefore stay unchecked in the Definition of Done below.
         dropping below-floor domains too, which would widen the omission.
         **Claim Source:** executed
 
-- [x] `SCN-B005-BRIEF-AGREEMENT` holds: given the stale-only workspace,
+- [x] `SCN-B005-BRIEF-AGREEMENT` → `TP-B005-005` in
+  `tests/portfolio-stale-domain-signal.unit.mjs` holds: given the stale-only workspace,
       `rlportfolio` emits no signal for the domain while `rlportfoliobrief`
       emits it with zero score, no supporting occurrences, and an unsatisfied
       floor — both denying live relevance
@@ -510,7 +582,7 @@ Both rows therefore stay unchecked in the Definition of Done below.
         **Claim Source:** executed
 
 - [x] BUG-004 carrier `tests/portfolio-behavior-occurrence.unit.mjs` passes and
-      is unmodified (TP-B005-003)
+  is unmodified (TP-B005-006)
       - Raw output evidence (inline, no references):
         ```
         $ node --test tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-brief.functional.mjs
@@ -539,7 +611,7 @@ Both rows therefore stay unchecked in the Definition of Done below.
         **Claim Source:** executed
 
 - [x] `tests/portfolio-brief.functional.mjs` passes and is unmodified
-      (TP-B005-004)
+  (TP-B005-007)
       - Raw output evidence (inline, no references):
         ```
         $ node --test tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-brief.functional.mjs
@@ -570,7 +642,7 @@ Both rows therefore stay unchecked in the Definition of Done below.
         Resolution declaring that no repair is owed on the brief side.
         **Claim Source:** executed
 
-- [x] `node scripts/selftest.mjs` passes (TP-B005-005)
+- [x] `node scripts/selftest.mjs` passes (TP-B005-008)
       - Raw output evidence (inline, no references):
         ```
         $ node scripts/selftest.mjs
@@ -644,6 +716,11 @@ Both rows therefore stay unchecked in the Definition of Done below.
         **Claim Source:** executed
 
 #### Build Quality Gate
+
+- [ ] Reachable allocation-page E2E non-movement check passes without claiming
+  direct execution of the unwired BUG-005 function (`TP-B005-009`)
+- [ ] Broader E2E regression suite passes (`TP-B005-010`)
+- [ ] Consumer Impact Sweep is complete and zero stale first-party references remain
 
 - [x] Change Boundary is respected and zero excluded file families were changed
       — the dirty set contains only allowed paths; no BUG-004 artifact and no

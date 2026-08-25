@@ -449,14 +449,24 @@ VP_EXIT=0
 are browser assertions, which the node self-test does not count, so the total is
 unchanged rather than lower.
 
-A later run of the same validator in the same session reported `new=0 stale=1`,
-naming `tests/tool-brief-v2.unit.mjs`. That file is untracked and this round did
-not create it, reference it or stage it; a concurrent session added it while this
-one was running, which turned an existing baseline entry from missing into
-present and therefore stale. `new` stayed `0` and the exit code stayed `0` in
-both runs. The stale entry is recorded here rather than silently omitted, because
-the run captured above and the state of the tree afterwards are two different
-facts and only one of them is this round's.
+A later run of the same validator in the same session reported `new=0 stale=3`,
+naming `tests/tool-brief-v2.unit.mjs`,
+`tests/tool-brief-v2-author-boundary.functional.mjs` and
+`tests/tool-brief-v2-publication.integration.mjs`. All three are untracked and
+this round did not create, reference or stage any of them; a concurrent session
+added them while this one was running, which turned three existing baseline
+entries from missing into present and therefore stale. `new` stayed `0` and the
+exit code stayed `0` across every run. The drift is recorded here rather than
+silently omitted, because the run captured above and the state of the tree
+afterwards are two different facts and only one of them is this round's.
+
+One further reading is recorded because it was nearly mistaken for probe residue.
+A literal grep for `"packReadBoundMs": 1000`, run as a residue check after the
+probes, reported one occurrence. It is a substring of the committed
+`"packReadBoundMs": 10000`, not a surviving mutation: the parsed value is
+`10000` and `git diff` against `HEAD` reports the file unchanged. A residue check
+written as a substring match can accuse a clean file, which is why the
+authoritative check is the tracked-file status rather than the grep.
 
 ### The lifetime-tax browser suite
 

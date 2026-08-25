@@ -7,6 +7,12 @@
 Every outcome below was observed by running the named command in this session.
 An `Awaiting execution` marker that remains is a scope that has not run.
 
+**Correction, 2026-08-24.** Three `Awaiting execution` markers outlived the
+scopes that owned them and were never revisited. All three are now reconciled to
+executed evidence and none remains in this file. See
+`### Correction R-025-C1 — a stale scenario table, reconciled against execution`
+at the end of this report.
+
 ---
 
 ## Summary
@@ -56,7 +62,7 @@ and 0 unticked. See the resolution notes in the Uncertainty Declarations section
 | Ten Power workspaces taken from `spec.md` | Implementation | `design.md` names ten workspaces without listing them. The route ships the ten `spec.md` enumerates: performance, fundamentals, events, geopolitics and exposures, regime and cross-asset, cycles, valuation and risks, sources and contradictions, research plan, outcome record. The horizon deep dive lives inside each cockpit horizon card, as `spec.md` specifies. |
 | `validateCompanyEvent` is internal, not exported | Implementation | BS-025-012 requires every exported function to have a route caller. The event validator is reachable only through `selectRenderableEvents`, which the route does call, so exporting it would have added a shared-module function with no production consumer — the exact defect `design.md` records as finding F2. |
 | `scripts/selftest.mjs` gained one marker-bounded group, not one assertion | Operator | The operator directed a single marker-bounded group exercising the module's pure functions. The group holds eleven assertions, including the exclusion-parity assertion `scopes.md` asks for. `bubbles.plan` has since rewritten the DoD line to require exactly that group, so the item now reads `[x]`; see the resolution note in the Uncertainty Declarations section. |
-| Which keyless public source supplies financial company events | 3 | Awaiting execution |
+| Which keyless public source supplies financial company events | 3 | **Answered by scope 3. This cell read `Awaiting execution` until 2026-08-24.** `company-intelligence.config.json` declares `eventSource.sourceId: "sec-edgar-submissions"` — SEC EDGAR company submissions at `https://data.sec.gov/submissions/`. Keyless access is proven under `#### The keyless access claim, verified by one recorded fetch attempt` below: the same URL answers `http_code=200` with only a declared `User-Agent` and `http_code=403` without one, and neither request presents a token, key, cookie or account. |
 | How many discretionary branches one run allows | 4 | The config declares `maxBranches: 5`. Scope 4 owns the final value. |
 | Whether a refused branch counts against the branch budget | 4 | Increment A counts it, because evaluating a branch consumes real work and not counting it would make refusal a free retry. Scope 4 owns the final answer. |
 
@@ -969,9 +975,13 @@ modified none of them. Both `M` files show zero deletion lines.
 
 ## Scenario Contract Evidence
 
-Eighteen of the twenty-four `SCN-025-NNN` contracts belong to scopes 1 and 2 and
-were discharged by the runs above. Six belong to scopes 3 and 4 and are not
-discharged.
+All twenty-four `SCN-025-NNN` contracts are discharged. Twenty-two belong to
+scopes 1 and 2 and were discharged by the runs above. `SCN-025-016` belongs to
+scope 3 and `SCN-025-022` to scope 4, and both were discharged when those scopes
+ran. **Corrected 2026-08-24** — this paragraph previously read "Eighteen … were
+discharged … Six belong to scopes 3 and 4 and are not discharged", which
+contradicted its own table on both counts. See
+`### Correction R-025-C1 — a stale scenario table, reconciled against execution`.
 
 | Scenario | Discharged by | Run |
 | --- | --- | --- |
@@ -990,13 +1000,13 @@ discharged.
 | SCN-025-013 | `an estimated date without a basis is refused and a scheduled date keeps its class` | unit, pass |
 | SCN-025-014 | `the event horizon reads none with absent quality and names the missing source` | unit, pass |
 | SCN-025-015 | `a non-financial event without a source url or an as-of date never renders` | unit, pass |
-| SCN-025-016 | Scope 3 | Awaiting execution |
+| SCN-025-016 | `an event dated before decisionTime reclassifies to occurred and carries its observed outcome`, `an occurred event is absent from the upcoming catalyst list` and `Regression: SCN-025-016 a passed event renders as occurred and never as an upcoming catalyst` | unit and e2e, pass — corrected 2026-08-24 |
 | SCN-025-017 | `a branch missing any of the six mandatory fields raises C025-PLAN-SCHEMA` | unit, pass |
 | SCN-025-018 | `a no-change branch stays in the published plan` | unit, pass |
 | SCN-025-019 | `a refused branch records its reason and no horizon cites its claim` | unit, pass |
 | SCN-025-020 | `a branch against any registered tool is permitted and records the tool it consulted` | unit, pass |
 | SCN-025-021 | `every rendered numeric value carries a provenance chip, a source name and an as-of date` plus both `Regression: SCN-025-021` titles | e2e, pass |
-| SCN-025-022 | Scope 4 | Awaiting execution |
+| SCN-025-022 | `a new version references its predecessor and every prior file keeps its original contentFingerprint`, `the version writer opens no prior version file for writing` and `Regression: SCN-025-022 the outcome record shows the predecessor unmodified beside the new version` | unit and e2e, pass — corrected 2026-08-24 |
 | SCN-025-023 | `a position, size, cost or profit input raises C025-INPUT-REFUSED and stores nothing` | unit, pass |
 | SCN-025-024 | `company-intelligence route, module and config each carry a site-exclusion entry with a substantive reason` | selftest, pass |
 
@@ -6774,6 +6784,166 @@ the suite carries its own harness assertion proving a real outcome change still
 discriminates. This is why the nondeterminism does not block: it degrades a
 reproducibility *affordance*, and leaves the *verdict* — which is what
 certification rests on — stable under repetition.
+
+### Correction R-025-C1 — a stale scenario table, reconciled against execution
+
+This is the section the two references above point at. It states what was wrong
+without softening it, proves each replacement claim by running the named
+command in this session, and records how long the error survived.
+
+#### What was wrong
+
+Three claims in this file asserted that execution had not happened, while the
+same file showed that it had.
+
+1. The Scenario Contract Evidence table marked `SCN-025-016` as
+   `Scope 3 | Awaiting execution` and `SCN-025-022` as
+   `Scope 4 | Awaiting execution`. Both scopes had run. The unit and browser
+   tests that discharge both scenarios were present and passing. The table
+   asserted the absence of evidence the document itself already contained.
+2. The paragraph introducing that table read "Eighteen of the twenty-four
+   `SCN-025-NNN` contracts belong to scopes 1 and 2 and were discharged by the
+   runs above. Six belong to scopes 3 and 4 and are not discharged." Its own
+   table contradicted it on both counts. The table carries twenty-four rows, of
+   which twenty-two cite scope 1 or scope 2 evidence, and exactly two — not
+   six — were marked awaiting.
+3. The open-question table carried
+   `Which keyless public source supplies financial company events | 3 | Awaiting execution`,
+   although scope 3 had answered it and the proof already sat in this file under
+   `#### The keyless access claim, verified by one recorded fetch attempt`.
+
+None of the three was a missing test. Each was a marker left behind by the scope
+that owned it, never revisited once that scope finished.
+
+#### The cited tests exist
+
+The two corrected table cells name six test titles. Four are unit titles in
+`tests/company-intelligence.unit.mjs`; two are browser titles in
+`tests/company-intelligence-lab.spec.mjs`. All six were located by literal
+match before anything was claimed about their outcome.
+
+```text
+$ grep -n "Regression: SCN-025-016 a passed event renders as occurred and never as an upcoming catalyst" tests/company-intelligence-lab.spec.mjs
+484:test('Regression: SCN-025-016 a passed event renders as occurred and never as an upcoming catalyst', async ({ page }) => {
+
+$ grep -n "Regression: SCN-025-022 the outcome record shows the predecessor unmodified beside the new version" tests/company-intelligence-lab.spec.mjs
+599:test('Regression: SCN-025-022 the outcome record shows the predecessor unmodified beside the new version', async ({ page }) => {
+
+$ for t in "an event dated before decisionTime reclassifies to occurred and carries its observed outcome" "an occurred event is absent from the upcoming catalyst list" "a new version references its predecessor and every prior file keeps its original contentFingerprint" "the version writer opens no prior version file for writing"; do printf '%s => ' "$t"; grep -c "$t" tests/company-intelligence.unit.mjs; done
+an event dated before decisionTime reclassifies to occurred and carries its observed outcome => 1
+an occurred event is absent from the upcoming catalyst list => 1
+a new version references its predecessor and every prior file keeps its original contentFingerprint => 1
+the version writer opens no prior version file for writing => 1
+```
+
+**Claim Source:** executed.
+
+#### The four unit titles pass
+
+```text
+$ node --test tests/company-intelligence.unit.mjs
+✔ an event dated before decisionTime reclassifies to occurred and carries its observed outcome (0.154792ms)
+✔ an occurred event is absent from the upcoming catalyst list (0.173584ms)
+✔ a new version references its predecessor and every prior file keeps its original contentFingerprint (1.518708ms)
+✔ the version writer opens no prior version file for writing (1.174375ms)
+ℹ tests 90
+ℹ suites 0
+ℹ pass 90
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 127.867666
+UNIT_EXIT=0
+```
+
+**Claim Source:** executed.
+
+Ninety tests, ninety passing, zero failing, exit code 0. The four lines quoted
+above are the four unit titles the corrected cells cite; they are excerpted from
+the same run that produced the counters beneath them.
+
+#### The two browser regressions pass
+
+```text
+$ date '+start %H:%M:%S'; npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --workers=1 --reporter=line --grep "SCN-025-016|SCN-025-022"
+start 21:16:53
+
+Running 2 tests using 1 worker
+
+[1/2] [system-chrome] › tests/company-intelligence-lab.spec.mjs:484:1 › Regression: SCN-025-016 a passed event renders as occurred and never as an upcoming catalyst
+[2/2] [system-chrome] › tests/company-intelligence-lab.spec.mjs:599:1 › Regression: SCN-025-022 the outcome record shows the predecessor unmodified beside the new version
+  2 passed (7.7s)
+PW_EXIT=0
+end   21:17:02
+```
+
+**Claim Source:** executed.
+
+#### No awaiting marker remains in a table cell
+
+```text
+$ node -e 'const L=require("fs").readFileSync(process.argv[1],"utf8").split("\n");const rows=L.filter(l=>/^\| SCN-025-\d{3} \|/.test(l)).slice(0,24);console.log("scenario_rows="+rows.length);console.log("rows_saying_awaiting="+rows.filter(r=>/Awaiting execution/.test(r)).length);console.log("rows_marked_corrected="+rows.filter(r=>/corrected 2026-08-24/.test(r)).length);' specs/025-company-multi-horizon-intelligence-lab/report.md
+scenario_rows=24
+rows_saying_awaiting=0
+rows_marked_corrected=2
+```
+
+**Claim Source:** executed.
+
+Twenty-four rows, two corrected, none still awaiting — which is what makes the
+replacement paragraph's twenty-two / one / one split checkable rather than
+asserted. Outside this correction section the string `Awaiting execution`
+survives in exactly three places: the policy sentence in the preamble, the
+correction note that quotes it, and the corrected open-question cell that quotes
+its own prior value. None of the three is a live marker. Every further
+occurrence is inside this section, where the defect is being quoted in order to
+be described.
+
+#### What was not re-executed
+
+The third marker — the keyless-source open question — was reconciled to
+`#### The keyless access claim, verified by one recorded fetch attempt`, an
+evidence section already present in this file. This correction pass did **not**
+re-issue that network fetch. The reconciliation is a pointer to prior recorded
+evidence, not a fresh measurement, and it is stated that way in the cell.
+
+#### How long it survived
+
+```text
+$ git log --oneline -S 'Six belong to scopes 3 and 4 and are not' -- specs/025-company-multi-horizon-intelligence-lab/report.md
+b160d587f feat(025): commit company multi-horizon intelligence lab artifacts
+
+$ git show -s --format='%h %ad %s' --date=iso-strict b160d587f
+b160d587f 2026-08-18T23:09:04-07:00 feat(025): commit company multi-horizon intelligence lab artifacts
+
+$ git rev-list --count b160d587f..HEAD -- specs/025-company-multi-horizon-intelligence-lab/report.md
+17
+```
+
+**Claim Source:** executed.
+
+The stale paragraph and both stale table cells entered the file in the same
+commit, on 2026-08-18. Seventeen later commits touched this file without
+catching them. One of those seventeen is `6a8a4109c spec(025): sweep the
+stale-current-state claim class across report.md` — a pass whose declared
+purpose was exactly this class of defect, and which missed these three. Another
+is `457b16324 spec(025): certify done against gates re-run with the status
+actually written`.
+
+That is the uncomfortable part, and it is the part worth recording: this spec
+reached `status: done` with certification assurance `full` at
+`2026-08-24T05:11:32Z` while a table in its own report claimed two scenarios had
+never been executed and a paragraph above that table miscounted the same table
+by four. Certification did not catch it. A dedicated stale-claim sweep did not
+catch it. The tests were passing the entire time, so no run was ever wrong —
+only the document's description of the runs was. A correction that quietly fixed
+the cells and left this history out would be a smaller lie replacing a larger
+one, so the history stays.
+
+Nothing in state.json is changed by this correction. The certification stands on
+the tests, and the tests were and remain green; what was defective was the
+report's account of them, and that is what has been repaired.
 
 **Educational research only. Not investment advice.**
 

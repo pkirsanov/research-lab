@@ -13373,6 +13373,61 @@ try {
     && bareIsFinite.length === 0 && umdComplete,
   'TP-01-10: every pure function named for these three modules is an extractable top-level declaration, the modules are UMD rather than ESM, and no source uses global isFinite');
 
+  /* TB-021-04 (BUG-021). The declaration surface is STRATIFIED, because a bound on the read that
+     fetches the configuration cannot itself live in the configuration. Stratum 0 is the module
+     constant `CONFIG_READ_BOUND_MS`, resolved by the `<script src>` tag before the inline script
+     runs; stratum 1 is the declared `rules.packReadBoundMs`, resolved once that read validates.
+     Both limbs are asserted here, together with the route's use of them, because an assertion that
+     only checked that *a* timer exists could not fail on the delivery this design rejected — a
+     numeric literal armed in the route. */
+  const missingBoundConfig021 = JSON.parse(JSON.stringify(taxConfig));
+  delete missingBoundConfig021.rules.packReadBoundMs;
+  const missingBoundVerdict021 = RLTAXWORKSPACE.validateConfig(missingBoundConfig021);
+  const unknownBoundKeyConfig021 = JSON.parse(JSON.stringify(taxConfig));
+  unknownBoundKeyConfig021.rules.packReadBoundMillis = 10000;
+  const badBoundValues021 = [0, -1, '10000', null, NaN, Infinity];
+  const badBoundVerdicts021 = badBoundValues021.map((value) => {
+    const candidate = JSON.parse(JSON.stringify(taxConfig));
+    candidate.rules.packReadBoundMs = value;
+    return RLTAXWORKSPACE.validateConfig(candidate);
+  });
+  const routeSource021 = read('lifetime-tax-strategy-lab.html');
+  const loadJsonBody021 = /function loadJson\(path\) \{([\s\S]*?)\n {12}\}/.exec(routeSource021);
+  assert(RLTAXWORKSPACE.validateConfig(taxConfig).ok
+    /* Stratum 1: declared, present, positive, and stamped with the version that says so. */
+    && Number.isFinite(taxConfig.rules.packReadBoundMs) && taxConfig.rules.packReadBoundMs > 0
+    && taxConfig.rules.contractVersion === 'lifetime-tax-rules-policy/v2'
+    /* The exact-key-set check still refuses in BOTH directions, so the bound cannot be omitted and
+       a near-miss key cannot be smuggled in beside it. */
+    && !missingBoundVerdict021.ok
+    && codesOf(missingBoundVerdict021.refusals).every((code) => code === 'RLTAX-CONFIG-INVALID')
+    && !RLTAXWORKSPACE.validateConfig(unknownBoundKeyConfig021).ok
+    /* And the first value check this section has ever carried refuses a bound that is present but
+       would arm a timer firing at once or never. */
+    && badBoundVerdicts021.length === 6
+    && badBoundVerdicts021.every((verdict) => !verdict.ok)
+    && badBoundVerdicts021.every((verdict) => verdict.refusals
+      .some((refusal) => refusal.domain === 'config-member:rules.packReadBoundMs'))
+    /* Stratum 0: a real exported number, not a name the route reads as undefined. */
+    && Number.isFinite(RLTAXWORKSPACE.CONFIG_READ_BOUND_MS) && RLTAXWORKSPACE.CONFIG_READ_BOUND_MS > 0
+    /* The route seeds from stratum 0 and promotes to stratum 1 by plain assignment. A `||` here
+       would be the default the declaration exists to replace. */
+    && /var readBoundMs = WORKSPACE\.CONFIG_READ_BOUND_MS;/.test(routeSource021)
+    && /\n\s*readBoundMs = config\.rules\.packReadBoundMs;/.test(routeSource021)
+    && !/readBoundMs = config\.rules\.packReadBoundMs\s*\|\|/.test(routeSource021)
+    /* The read is bounded by ABORTING the request, not merely by abandoning the promise: a bare
+       race would leave the request outstanding, which is the most likely partial delivery. */
+    && loadJsonBody021 !== null
+    && /new AbortController\(\)/.test(loadJsonBody021[1])
+    && /signal: controller\.signal/.test(loadJsonBody021[1])
+    && /window\.setTimeout\(function \(\) \{ controller\.abort\(\); \}, bound\)/.test(loadJsonBody021[1])
+    && /var bound = readBoundMs;/.test(loadJsonBody021[1])
+    /* The timer is cleared on BOTH settlement paths, so a completed read leaves no pending abort. */
+    && (loadJsonBody021[1].match(/window\.clearTimeout\(timer\)/g) || []).length === 2
+    /* And the helper arms from the resolved bound rather than from a number written into it. */
+    && (loadJsonBody021[1].match(/\b\d+\b/g) || []).length === 0,
+  'TB-021-04: the declared rules.packReadBoundMs is present, positive and stamped v2, a configuration missing it or carrying a near-miss key beside it is refused by the exact-key-set check, a bound of 0, -1, "10000", null, NaN or Infinity is refused by name, the stratum-0 CONFIG_READ_BOUND_MS is exported as a positive number, and the route seeds from it, promotes to the declared bound without a fallback, and arms an AbortController from that resolved bound rather than from a literal');
+
   /* The pack states its own incompleteness: 18 named unsupported features and 4 AbsentFigures. */
   const requiredUnsupportedIds = ['payroll-tax', 'self-employment-tax', 'qualified-business-income-deduction',
     'net-investment-income-tax', 'additional-medicare-tax', 'alternative-minimum-tax', 'tax-credits',

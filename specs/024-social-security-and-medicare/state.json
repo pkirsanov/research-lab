@@ -54,7 +54,7 @@
                 "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
-                    1
+                    "01-benefit-computation"
                 ]
             },
             {
@@ -63,7 +63,7 @@
                 "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
-                    1
+                    "01-benefit-computation"
                 ]
             },
             {
@@ -72,8 +72,8 @@
                 "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
-                    1,
-                    2
+                    "01-benefit-computation",
+                    "02-benefit-taxation"
                 ]
             },
             {
@@ -82,10 +82,10 @@
                 "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
-                    1,
-                    2,
-                    3,
-                    4
+                    "01-benefit-computation",
+                    "02-benefit-taxation",
+                    "03-claim-age-comparison",
+                    "04-medicare-premiums-and-irmaa"
                 ]
             }
         ],

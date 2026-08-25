@@ -54,7 +54,7 @@
                 "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
-                    1
+                    "01-federal-preferential-rate-completion"
                 ]
             },
             {
@@ -63,8 +63,8 @@
                 "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
-                    1,
-                    2
+                    "01-federal-preferential-rate-completion",
+                    "02-net-investment-income-and-additional-medicare-tax"
                 ]
             },
             {
@@ -73,9 +73,9 @@
                 "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
-                    1,
-                    2,
-                    3
+                    "01-federal-preferential-rate-completion",
+                    "02-net-investment-income-and-additional-medicare-tax",
+                    "03-state-rule-pack-contract-and-jurisdiction-resolution"
                 ]
             },
             {
@@ -84,10 +84,10 @@
                 "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
-                    1,
-                    2,
-                    3,
-                    4
+                    "01-federal-preferential-rate-completion",
+                    "02-net-investment-income-and-additional-medicare-tax",
+                    "03-state-rule-pack-contract-and-jurisdiction-resolution",
+                    "04-california-pack"
                 ]
             }
         ],

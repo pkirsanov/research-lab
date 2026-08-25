@@ -475,3 +475,87 @@ playwright_exit=0
   decision having been made.
 - No human acceptance was recorded. `uservalidation.md` is untouched by this round.
 
+## Disclosure Round — Where The Stopping-Age Coverage Actually Was
+
+The previous round left the Scope 2 disclosure item unticked on the ground that "whether the
+disclosure is asserted anywhere was not established". Establishing it changed the question. The
+disclosure is not one surface but three, and two of the three were already covered by assertions
+this packet did not write:
+
+| Surface of the disclosure | Asserted before this round? | Where |
+| --- | --- | --- |
+| `creditBoundByStoppingAge` true past the stopping age, false at it, plus a non-empty `stoppingAgeStatedFact` | yes — pre-existing | `scripts/selftest.mjs` TP-01-09 |
+| The rendered line a household reads | yes — pre-existing | `tests/lifetime-tax-benefit.spec.mjs`, the `#benefitStoppingAgeLine` case at a claim age of 71 |
+| The `claim-age-beyond-sourced-stopping-age` comparison record | **no** | produced at `rltaxsocialsecurity.js`, matched by nothing |
+
+So the item was not uncovered; it was covered everywhere except the one surface that makes the
+bound machine-checkable. A `grep` for the comparison id across `scripts/selftest.mjs` and `tests/`
+returned only the producing site. That record is the audit trail: without it a reader has the
+sentence and the flag but nothing that says the engine *performed* a comparison, which is the
+difference between a disclosed bound and a figure that quietly stopped moving.
+
+The gap is now closed by an assertion that reads the record in both directions one year apart — at
+72 it must be present with `result === true`, at 70 present with `result === false`. One direction
+alone cannot separate "the bound applied" from "the engine never compared at all", because a record
+published only when the bound bites looks identical to no record at all on the unbound side.
+
+### Probe 6 — the stopping-age comparison record, exit 0 (discriminated)
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            bug019-stopping-age-comparison-record
+file:             rltaxsocialsecurity.js
+mutation:         rules.comparisonRecord("claim-age-beyond-sourced-stopping-age",  ->  rules.comparisonRecord("claim-age-beyond-sourced-stopping-age-DROPPED",
+ (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: BUG-019: a claim age beyond the sourced delayed-credit stopping age publishes a claim-age-beyond-sourced-stopping-age comparison record naming the claim age, the sourced stopping age and a
+green-exit:       1
+green-summary:      ✓ BUG-019: a claim age beyond the sourced delayed-credit stopping age publishes a claim-age-beyond-sourced-stopping-age comparison record naming the claim age, the sourced stopping age and a true
+revert-verified:  yes (committed=95beaaed147e301bcf2cae7a858b1e0463cdc1c6 restored=95beaaed147e301bcf2cae7a858b1e0463cdc1c6)
+discriminating:   yes (summary differs)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Both exits are `1` because the repository baseline carries two failures owned by a concurrent
+session, so `--summary-match` was pinned to this assertion's own wording rather than to the
+aggregate. Renaming the comparison id — the shape a dropped record takes — turns the assertion red;
+reverting turns it green, and the revert is hash-verified against the committed blob.
+
+### Validation after the addition
+
+```text
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3408 passed, 2 failed
+selftest_exit=1
+```
+
+`3407 → 3408` is the one assertion added. The two failures are unchanged from the pre-existing
+baseline and belong to a concurrent session's untracked `tool-brief-v2*` and
+`zz-probe-focusable.spec.mjs` files; neither is in this packet's blast radius. `git diff --numstat`
+on `scripts/selftest.mjs` reports `20` insertions and `0` deletions, so no existing assertion was
+removed or weakened. No source module and no browser spec was edited this round, so the browser
+surface is byte-identical to the run already recorded above.
+
+## Two Premises Re-Measured, And Where They Landed
+
+The two remaining Uncertainty Declarations were re-measured independently rather than inherited.
+
+**The `AbsentFigure/v1` item.** Measured, `AbsentFigure/v1` is a *pack-authoring* contract —
+`rltaxrules.js` defines it as the `contractVersion` a pack member carries to declare itself
+unretrieved. It is an input shape, not a return shape. The engine's earliest-age path branches
+three ways: a member that is absent entirely returns `unretrievedRule(...)`, a member declaring
+itself absent reaches `absentFigureRefusal(...)`, and that helper's own code defaults to
+`RLTAX-THRESHOLD-UNAVAILABLE` unless the figure names a code of its own. So a pack lacking the
+figure cannot "yield an `AbsentFigure/v1`" in any shipped path — nothing in the engine returns that
+contract. Both halves of the *intent* remain evidenced and asserted; the item's wording names a
+return that does not exist. Correcting it is a change to a DoD item's behavioural claim, which is
+`bubbles.plan`'s to make, so the item stays open and unticked rather than being reworded here.
+
+**The `packContentSha256` item.** Re-measured and the earlier finding holds exactly:
+`lifetime-tax-strategy.config.json` pins `tax-rules/federal/2026.json`; the benefit pack carries no
+`contentSha256` at all and is reached by path through `rules.benefitPackPaths`. Editing the benefit
+pack therefore moves no pin, and the item's first half describes a mechanism the tool does not
+have. The second half — the route still reaching `ready` — holds and is evidenced. Same disposition:
+the wording belongs to `bubbles.plan`, so the item stays open.
+

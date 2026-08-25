@@ -90,7 +90,10 @@ Feature: The earliest priceable claim age is a declared pack figure
       asserted by `node scripts/selftest.mjs` — but the delivered engine returns an
       `RLTAX-THRESHOLD-UNAVAILABLE` refusal, not an `AbsentFigure/v1`, so the item as worded is not
       what shipped. Routed to `bubbles.plan`: the wording describes a pack-authoring contract while
-      the check reads an engine return.
+      the check reads an engine return. Re-measured independently in a later round and confirmed
+      sharper: `AbsentFigure/v1` is the `contractVersion` a pack member carries to declare itself
+      unretrieved, so it is an input shape and no shipped engine path returns it. See `report.md`
+      § Two Premises Re-Measured. Still unticked; the wording is `bubbles.plan`'s to correct.
 - [x] No earliest-age literal exists in `rltaxsocialsecurity.js`, `rltaxclaimage.js` or
       `rltaxrules.js`. → Evidence: `node scripts/selftest.mjs` → `3405 passed, 0 failed`, exit 0.
       The `noLiteral019` clause reads all three modules and rejects `62 * 12`, an
@@ -102,7 +105,9 @@ Feature: The earliest priceable claim age is a declared pack figure
       does not: measured, `lifetime-tax-strategy.config.json`'s `rules.packContentSha256` pins the
       **federal income tax** pack. The benefit pack carries no `contentSha256` and is referenced by
       path through `rules.benefitPackPaths`, so editing it moves no pin. Routed to `bubbles.plan`;
-      recorded in `report.md` § What This Round Did Not Establish.
+      recorded in `report.md` § What This Round Did Not Establish. Re-measured independently in a
+      later round against the config and the pack: the finding holds unchanged. Still unticked; the
+      wording is `bubbles.plan`'s to correct.
 - [x] `node scripts/selftest.mjs` reports 0 failed and not below 3404. → Evidence:
       `self-test: 3405 passed, 0 failed`, exit 0. Verbatim in `report.md` § Validation Run.
 
@@ -202,11 +207,18 @@ Feature: A claim age the pack cannot price is refused
       → Evidence: the refusing half asserts `#benefitNoProjectionLine` is empty, and the comparison
       case asserts the refused row does not contain `settled from your own declarations` while the
       priced row still does — so the sentence is proven absent AND still reachable.
-- [ ] A claim age beyond the delayed-credit stopping age is disclosed rather than silently clamped.
-      → Evidence: **Uncertainty Declaration.** The disclosure exists — the engine publishes
-      `creditBoundByStoppingAge` and a `claim-age-beyond-sourced-stopping-age` comparison, and the
-      route renders it — but this round executed no assertion against that rendering, so the item
-      is not evidenced. Not ticked.
+- [x] A claim age beyond the delayed-credit stopping age is disclosed rather than silently clamped.
+      → Evidence: the disclosure has three surfaces and two were already asserted before this
+      round — `creditBoundByStoppingAge` true past the stopping age and false at it, with a
+      non-empty `stoppingAgeStatedFact`, by TP-01-09 in `scripts/selftest.mjs`; and the rendered
+      line a household reads, by the `#benefitStoppingAgeLine` case at a claim age of 71 in
+      `tests/lifetime-tax-benefit.spec.mjs`. The third, the
+      `claim-age-beyond-sourced-stopping-age` comparison record, was matched by nothing and is now
+      asserted in both directions one year apart: present with `result === true` at 72, present
+      with `result === false` at 70, each naming the claim age and the sourced stopping age.
+      `node scripts/selftest.mjs` → `3408 passed`, `20` insertions and `0` deletions. Probe 6 in
+      `report.md` discriminates: renaming the comparison id turns the assertion red and the
+      hash-verified revert turns it green.
 - [x] The `tests/lifetime-tax-*.spec.mjs` family passes on `--project=chromium` with no assertion
       removed or weakened. → Evidence: `Running 97 tests using 6 workers` → `97 passed (18.1s)`,
       exit 0. `git --no-pager diff --numstat` on both edited spec files reports `108` insertions

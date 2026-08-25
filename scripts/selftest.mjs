@@ -20192,6 +20192,26 @@ try {
     && noLiteral019,
   'BUG-019: the benefit pack declares the earliest priceable claim age with a resolving sourceRef and a locator, the earliest age itself still prices sixty counted months, one month below it refuses under the declared bound rather than being clamped, the clamping implementation is proven to answer with the earliest age\u2019s own figure instead, a pack missing the figure and a pack declaring it absent both refuse rather than pricing, and no module carries an earliest age of its own');
 
+  /* BUG-019. The delayed bound, disclosed rather than silently applied. `creditBoundByStoppingAge`
+     and the rendered stopping-age line were already asserted; the comparison record that carries
+     the bound into the machine-readable audit trail was not. Without it a reader sees only a
+     figure that stopped moving and must infer why — which is exactly the silent clamp this packet
+     exists to rule out. It is asserted in BOTH directions one year apart, because a record
+     published only when the bound bites cannot distinguish `the bound applied` from `the engine
+     never compared at all`. */
+  const stoppingMonths019 = benefitPack24.delayedCreditRule.stoppingAgeYears * 12;
+  const stoppingRecord019 = (adjustment) => adjustment.comparisonsPerformed
+    .filter((c) => c.comparisonId === 'claim-age-beyond-sourced-stopping-age')[0] || null;
+  const boundRecord019 = stoppingRecord019(beyond70_24);
+  const unboundRecord019 = stoppingRecord019(at70_24);
+  assert(boundRecord019 !== null && unboundRecord019 !== null
+    && boundRecord019.result === true && unboundRecord019.result === false
+    && boundRecord019.operator === 'greater-than' && unboundRecord019.operator === 'greater-than'
+    && boundRecord019.left === 72 * 12 && unboundRecord019.left === 70 * 12
+    && boundRecord019.right === stoppingMonths019 && unboundRecord019.right === stoppingMonths019
+    && stoppingMonths019 === 70 * 12,
+  'BUG-019: a claim age beyond the sourced delayed-credit stopping age publishes a claim-age-beyond-sourced-stopping-age comparison record naming the claim age, the sourced stopping age and a true result, and a claim age at the stopping age publishes the same record with a false result — so the bound is disclosed as a comparison that was performed rather than inferred from a figure that stopped moving');
+
   /* TP-01-11 SOURCING. Every value-bearing member of the shipped pack resolves to exactly one
      retrieved source with a locator and a retrievedAt, every member from an undated or
      differently dated edition carries a quoted yearInvarianceBasis, and every unretrieved member

@@ -8006,3 +8006,40 @@ Feature 004 Scope 1 remains **In Progress** and Scope 2 remains locked. This rep
 [bug002-test-plan] PASS
 ```
 <!-- bug002-shared-runtime-inventory-reconciliation-v1:end -->
+
+## Gate G088: Certified Planning Truth Was Edited Twice After Certification - 2026-08-24
+
+A repository-wide run of `post-cert-spec-edit-guard.sh` flagged this packet:
+`status: done`, `certifiedAt: 2026-07-27T16:25:13Z`, `trackedFiles: 3`,
+`postCertEdits: 2`, `carriedDeclared: 0`, `carriedUndeclared: 2`.
+
+The two edits are real, unlike the false positive the same sweep produced on
+`BUG-004-proxy-route-local-key-fallback`. This packet's `scopes.md` and
+`report.md` were added on 2026-07-16 by `db06c2965`, certified on 2026-07-27,
+and then changed by two later commits:
+
+- `eebc727496e` (2026-08-07) `test(004): re-baseline collision pins after PII h...`
+  touched `report.md` (+108), `scopes.md` (+134) and `test-plan.json` (+140).
+- `4c2fdec4186` (2026-08-10) `spec(BUG-001,BUG-002): repoint collision canaries`
+  touched `scopes.md` (6 lines, +4/-2).
+
+Both read as collision-pin re-baselining carried out while unrelated work
+landed, rather than a change to what this bug means or how it was fixed. That
+reading is not a clearance: the gate's objection is that the edits are
+`carriedUndeclared`, and whether a post-certification edit preserved certified
+truth is a `bubbles.spec-review` judgement, not this record's to make.
+
+The gate names three remediations - demote out of `done`, set
+`requiresRevalidation: true`, or complete a current `bubbles.spec-review`
+recertification and update the carry declaration. All three are owned elsewhere:
+`status` and `certification.*` are validate-owned, and the recertification is
+spec-review's. So this is routed, not repaired.
+
+No checkbox, status, scope status or certification field was touched.
+`report.md` is not among the files G088 tracks (`spec.md`, `design.md`,
+`scopes.md`, `scopes/`), so recording this here does not add a third
+post-certification edit.
+
+**Next owner:** `bubbles.spec-review` - decide whether the 2026-08-07 and
+2026-08-10 edits preserved certified planning truth, then either declare them as
+carried redactions or recertify.

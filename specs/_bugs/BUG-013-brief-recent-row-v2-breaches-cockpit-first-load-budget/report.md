@@ -486,3 +486,51 @@ wrong twice over — it summed **bytes** where the validator counts **characters
 `firstLoadPaths` from a working tree 153 commits stale, which listed seven paths including
 `brief-history.recent.jsonl`. The committed list holds six and excludes it; that artifact has
 its own separate 40,960 budget. The real figure is the validator's own: 189,479, PASS.
+
+## Observation Only — The Budget Still Passes, And Its Margin Is Eroding Fast (2026-08-24)
+
+This section ticks no Definition of Done item and changes no status. Scopes 1 and 2 record
+`Resolved upstream by Feature 026 (3872df354) — not delivered by this packet`, and their items
+are deliberately unticked for that reason. That is a coherent authorial choice, not drift, so
+it is left alone. What follows is a fresh measurement and one trend the packet cannot see from
+inside a single run.
+
+Measured on a clean `origin/main` worktree at `4001a8306`:
+
+```text
+Command: node scripts/validate-tool-experience.mjs
+Exit Code: 0
+[tool-experience] artifact=brief-history-recent       bytes=27748   budget=40960   result=PASS
+[tool-experience] artifact=brief-history-recent-rows  bytes=30      budget=30      result=PASS
+[tool-experience] artifact=brief-first-load           bytes=199803  budget=204800  result=PASS
+[tool-experience] OK adversarial=13 unexpectedAcceptances=0
+
+Command: node scripts/selftest.mjs
+Research-Lab self-test: 3409 passed, 0 failed
+Exit Code: 0
+```
+
+**The exit conditions hold.** FR-013-001 passes at 199,803 against 204,800. The recent artifact
+sits at 27,748 of 40,960 and its row bound is exactly at 30 of 30. The selftest is green at
+3,409, well above the 3,012 baseline recorded at `9af68427b`. Three commits this packet cites
+are all ancestors of `origin/main`: `831144596`, `3872df354`, `9af68427b`.
+
+**The trend is the finding, and it is not visible from one run.** The section directly above
+recorded 189,479 on 2026-08-22 against the same 204,800 budget. Two days later the same
+validator reads 199,803.
+
+| date | first-load bytes | budget | margin |
+|---|---|---|---|
+| 2026-08-22 | 189,479 | 204,800 | 15,321 |
+| 2026-08-24 | 199,803 | 204,800 | 4,997 |
+
+That is **+10,324 bytes in two days, consuming 67 percent of the remaining headroom**. The
+guard is doing its job and the budget is not breached. But a PASS at 97.6 percent of budget is
+a different operational fact from a PASS at 92.5 percent, and the difference between them
+accrued in forty-eight hours. Nothing here establishes the cause; the scheduled brief pipeline
+writes this surface several times a day, so growth is expected — the rate is what merits a look.
+
+**One stale annotation, corrected.** Scope 3 reads `delivered at 831144596 (working tree,
+uncommitted)`. That parenthetical no longer holds: `831144596` is an ancestor of `origin/main`.
+The scope status is left as the author wrote it, since correcting the delivery annotation is
+separable from this observation and belongs to whoever promotes the scope.

@@ -1,0 +1,92 @@
+{
+  "version": 3,
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash",
+  "featureName": "BUG-005 Stale-Domain Interest Signal Crash",
+  "createdAt": "2026-08-25T00:00:00Z",
+  "lastUpdatedAt": "2026-08-25T00:00:00Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/008-portfolio-survival-and-brief-lab",
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "flagsIntroduced": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json"
+  },
+  "execution": {
+    "activeAgent": null,
+    "currentPhase": "test",
+    "currentPhaseStatus": "in_progress",
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-25T00:00:00Z",
+    "completedAt": null,
+    "substate": "focused-carrier-green-broader-validation-pending",
+    "currentScope": 1,
+    "nextRequiredOwner": "bubbles.test",
+    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/report.md",
+    "nextRequiredReason": "The focused six-test carrier, the 36 unchanged BUG-004 regression rows, the 3409-assertion canonical selftest, artifact lint, regression-quality guard, and diff integrity are green. Pre-fix historical reproduction and independent certification remain pending. Pre-fix HEAD and parent-commit reproduction receipts were reported by the filing work and were not re-executed by this checkpointing pass.",
+    "completedPhaseClaims": [],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      {
+        "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
+        "scope": 1,
+        "status": "In Progress",
+        "dependsOn": []
+      }
+    ]
+  },
+  "completedScopes": [],
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
+        "status": "In Progress",
+        "certifiedAt": null
+      }
+    ]
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": { "mode": "off", "source": "repo-default" },
+    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
+    "autoCommit": { "mode": "off", "source": "repo-default" },
+    "lockdown": { "mode": "off", "source": "repo-default" },
+    "regression": { "mode": "protected-scenarios", "source": "workflow-forced" },
+    "validation": { "mode": "certification-required", "source": "repo-default" }
+  },
+  "modeTransitions": [],
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [],
+  "addressedFindings": [],
+  "unresolvedFindings": [
+    {
+      "id": "BUG-005-VERIFICATION-PENDING",
+      "summary": "Broader regression, artifact, and certification checks remain pending; the packet stays in_progress.",
+      "owner": "bubbles.test",
+      "status": "route_required",
+      "evidenceRef": "report.md#open-verification"
+    }
+  ]
+}

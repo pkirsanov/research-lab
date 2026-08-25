@@ -125,6 +125,7 @@ newer half of it.
 |-------|-------|
 | Analytics units | `tests/portfolio-analytics.unit.mjs`, `tests/portfolio-foundation.unit.mjs` |
 | Behavior occurrence | `tests/portfolio-behavior-occurrence.unit.mjs` — distinct audit occurrences, exact-repeat refusal, and semantic anti-inflation |
+| Stale-domain relevance | `tests/portfolio-stale-domain-signal.unit.mjs` — a domain whose every eligible event has aged out is omitted rather than throwing, its fresh siblings are unaffected, and the portfolio and brief derivations are pinned as agreeing on stale-domain handling |
 | Test integrity | `tests/portfolio-test-integrity.unit.mjs` — challenges each protective test with the reduced implementation it exists to reject, so a test that could no longer fail is caught as a receipt |
 | Workspace, brief and privacy | `tests/portfolio-workspace.functional.mjs`, `tests/portfolio-brief.functional.mjs`, `tests/portfolio-privacy.functional.mjs`, `tests/portfolio-publisher-boundary.functional.mjs` |
 | Per-tab contracts | `tests/portfolio-risk.functional.mjs`, `tests/portfolio-paths.functional.mjs`, `tests/portfolio-diversification.functional.mjs`, `tests/portfolio-allocation.functional.mjs`, `tests/portfolio-dossier.functional.mjs` |

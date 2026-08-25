@@ -237,27 +237,27 @@
     "scopeProgress": [
       {
         "scopeId": "01-decide-how-the-two-resolutions-are-reconciled",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 4
+        "status": "Done",
+        "dodChecked": 4,
+        "dodUnchecked": 0
       },
       {
         "scopeId": "02-make-the-deployed-branch-carry-the-panel-its-tests-exercise",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 8
+        "status": "Done",
+        "dodChecked": 8,
+        "dodUnchecked": 0
       },
       {
         "scopeId": "03-notice-the-next-silent-loss",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 5
+        "status": "Done",
+        "dodChecked": 5,
+        "dodUnchecked": 0
       },
       {
         "scopeId": "cross-scope",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 4
+        "status": "In Progress",
+        "dodChecked": 2,
+        "dodUnchecked": 2
       }
     ]
   },

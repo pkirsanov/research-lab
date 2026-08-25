@@ -264,6 +264,12 @@
         "status": "Done",
         "dodChecked": 6,
         "dodUnchecked": 0
+      },
+      {
+        "scopeId": "cross-scope",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 7
       }
     ]
   },

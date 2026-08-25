@@ -200,7 +200,32 @@
       "04-quiet-versus-unreachable-and-the-scheduled-publication-path"
     ],
     "certifiedCompletedPhases": [],
-    "scopeProgress": [],
+    "scopeProgress": [
+      {
+        "scopeId": "01-owner-decision-on-remedy-direction",
+        "status": "Done",
+        "dodChecked": 6,
+        "dodUnchecked": 0
+      },
+      {
+        "scopeId": "02-produce-observed-gate-results-from-committed-state",
+        "status": "Done",
+        "dodChecked": 9,
+        "dodUnchecked": 0
+      },
+      {
+        "scopeId": "03-the-reachability-regression-assertion",
+        "status": "Done",
+        "dodChecked": 10,
+        "dodUnchecked": 0
+      },
+      {
+        "scopeId": "04-quiet-versus-unreachable-and-the-scheduled-publication-path",
+        "status": "Done",
+        "dodChecked": 6,
+        "dodUnchecked": 0
+      }
+    ],
     "assurance": null,
     "lockdownState": null,
     "note": "NO CERTIFICATION IS ASSERTED. Every field here is null or empty by intent. This packet reproduces and root-causes one verified defect and is blocked on an owner product decision that no agent may make. Nothing has been certified, no scope is complete, no source file was modified, no test was added, and no DoD box is checked in scopes.md.",

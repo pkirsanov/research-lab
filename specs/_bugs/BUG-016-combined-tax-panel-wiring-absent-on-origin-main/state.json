@@ -57,14 +57,14 @@
       {
         "scopeId": "01-decide-how-the-two-resolutions-are-reconciled",
         "scope": 1,
-        "status": "Not Started",
+        "status": "Done",
         "dependsOn": [],
         "resolvedBy": null
       },
       {
         "scopeId": "02-make-the-deployed-branch-carry-the-panel-its-tests-exercise",
         "scope": 2,
-        "status": "Not Started",
+        "status": "Done",
         "dependsOn": [
           "01-decide-how-the-two-resolutions-are-reconciled"
         ],
@@ -73,7 +73,7 @@
       {
         "scopeId": "03-notice-the-next-silent-loss",
         "scope": 3,
-        "status": "Not Started",
+        "status": "Done",
         "dependsOn": [],
         "resolvedBy": null
       }

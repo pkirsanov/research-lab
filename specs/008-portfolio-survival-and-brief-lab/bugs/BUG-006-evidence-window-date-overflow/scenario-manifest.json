@@ -1,0 +1,96 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
+  "generatedAt": "2026-08-25T19:27:30Z",
+  "generatedBy": "bubbles.bug",
+  "provenance": "Initial diagnostic transcription from BUG-006 scopes.md. All scenarios remain planned and uncertified. Planned test titles do not yet exist, and no execution is claimed.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-B006-BOUNDARY-ACCEPTED",
+      "scopeId": "01-bound-the-evidence-age-policy",
+      "scope": 1,
+      "title": "The named evidence-age boundary remains valid",
+      "gherkin": {
+        "given": "the behavior policy sets maximumEvidenceAgeDays to 100 times 365 plus 25",
+        "when": "validatePolicy checks the policy",
+        "then": "the boundary policy and the committed 56-day policy are accepted"
+      },
+      "status": "planned",
+      "behaviorClass": "business-logic",
+      "changeType": "bugfix",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-foundation.unit.mjs",
+          "testId": "BUG-006: maximumEvidenceAgeDays accepts the named 100-year boundary",
+          "coverageStatus": "planned-not-authored"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#before-fix-reproduction"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B006-ONE-OVER-REFUSED",
+      "scopeId": "01-bound-the-evidence-age-policy",
+      "scope": 1,
+      "title": "One day above the evidence-age boundary is refused",
+      "gherkin": {
+        "given": "the behavior policy sets maximumEvidenceAgeDays one day above the named maximum",
+        "when": "validatePolicy checks the policy",
+        "then": "it returns P008-CONFIG invalid-policy for behavior without clamping or echoing the value"
+      },
+      "status": "planned",
+      "behaviorClass": "business-logic",
+      "changeType": "bugfix",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-foundation.unit.mjs",
+          "testId": "BUG-006: maximumEvidenceAgeDays refuses one day above the named boundary",
+          "coverageStatus": "planned-not-authored"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#before-fix-reproduction"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B006-OVERFLOW-REFUSED",
+      "scopeId": "01-bound-the-evidence-age-policy",
+      "scope": 1,
+      "title": "An overflowing window is refused before Date derivation",
+      "gherkin": {
+        "given": "a valid workspace and an evidence-age window known to exceed the ECMAScript TimeClip range",
+        "when": "deriveInterestSignals is called with that policy",
+        "then": "validation returns P008-CONFIG invalid-policy for behavior and no RangeError escapes"
+      },
+      "status": "planned",
+      "behaviorClass": "business-logic",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-foundation.unit.mjs",
+          "testId": "BUG-006: an overflowing evidence window is refused before interest derivation",
+          "coverageStatus": "planned-not-authored"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#before-fix-reproduction"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    }
+  ]
+}

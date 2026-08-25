@@ -1,0 +1,118 @@
+{
+  "version": 3,
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
+  "featureName": "BUG-006 Evidence Window Date Overflow",
+  "createdAt": "2026-08-25T19:27:30Z",
+  "lastUpdatedAt": "2026-08-25T19:27:30Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/008-portfolio-survival-and-brief-lab",
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "flagsIntroduced": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "1e3a51f721d087b74cda91f780262073886c7dab",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json"
+  },
+  "execution": {
+    "activeAgent": "bubbles.bug",
+    "currentPhase": "bug",
+    "currentPhaseStatus": "route_required",
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-25T19:27:30Z",
+    "completedAt": null,
+    "substate": "diagnosed",
+    "currentScope": null,
+    "nextRequiredOwner": "bubbles.design",
+    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow/design.md",
+    "nextRequiredReason": "Review and adopt the conservative 100-year product bound and exact P008-CONFIG refusal contract before plan, test, or implementation work begins.",
+    "completedPhaseClaims": [],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      {
+        "scopeId": "01-bound-the-evidence-age-policy",
+        "scope": 1,
+        "status": "Not Started",
+        "dependsOn": []
+      }
+    ]
+  },
+  "completedScopes": [],
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": []
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": { "mode": "off", "source": "repo-default" },
+    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
+    "autoCommit": { "mode": "off", "source": "repo-default" },
+    "lockdown": { "mode": "off", "source": "repo-default" },
+    "regression": { "mode": "protected-scenarios", "source": "workflow-forced" },
+    "validation": { "mode": "certification-required", "source": "repo-default" }
+  },
+  "modeTransitions": [],
+  "transitionRequests": [
+    {
+      "id": "BUG-006-ROUTE-001",
+      "status": "pending",
+      "fromAgent": "bubbles.bug",
+      "nextRequiredOwner": "bubbles.design",
+      "target": "design.md",
+      "reason": "The failure class is reproduced. The product-bound choice and final fix design require design ownership before scenario-first test authorship."
+    }
+  ],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "at": "2026-08-25T19:27:30Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "filed-reproduced-and-routed",
+      "note": "Bound repository authority to Research Lab at control revision 204. Read the current validatePolicy and deriveInterestSignals paths, read the SEC-B005-S1 security record, and executed a focused current-source probe. The validator accepted 99979350 days, the derived expiry exceeded TimeClip, and toISOString threw RangeError Invalid time value. Proposed a named 36525-day product bound. No product source or test was edited or run.",
+      "phasesExecuted": ["bug"],
+      "provenanceMode": "specialist"
+    }
+  ],
+  "addressedFindings": [
+    {
+      "id": "BUG-006-DIAGNOSIS",
+      "summary": "The accepted-policy to invalid-Date failure chain is reproduced and the narrow validation boundary is documented.",
+      "owner": "bubbles.bug",
+      "status": "addressed",
+      "evidenceRef": "report.md#before-fix-reproduction"
+    }
+  ],
+  "unresolvedFindings": [
+    {
+      "id": "SEC-B005-S1",
+      "summary": "maximumEvidenceAgeDays has no upper bound, so validatePolicy accepts values that make deriveInterestSignals throw RangeError during expiresAt formatting.",
+      "owner": "bubbles.design",
+      "followUpOwner": "bubbles.plan",
+      "implementationOwner": "bubbles.implement",
+      "status": "route_required",
+      "evidenceRef": "report.md#before-fix-reproduction"
+    }
+  ],
+  "resolvedDiscoveries": [],
+  "openDiscoveries": []
+}

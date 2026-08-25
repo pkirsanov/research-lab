@@ -32,7 +32,7 @@
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
         "currentPhaseStatus": "completed",
-        "currentScope": 5,
+        "currentScope": "05-route-and-integration",
         "substate": "implemented",
         "runStartedAt": "2026-08-17T00:00:00Z",
         "completedAt": null,
@@ -152,31 +152,48 @@
                 "scopeId": "01-benefit-computation",
                 "status": "in_progress",
                 "dodChecked": 20,
-                "dodUnchecked": 1
+                "dodUnchecked": 1,
+                "dependsOn": []
             },
             {
                 "scopeId": "02-benefit-taxation",
                 "status": "in_progress",
                 "dodChecked": 20,
-                "dodUnchecked": 0
+                "dodUnchecked": 0,
+                "dependsOn": [
+                    "01-benefit-computation"
+                ]
             },
             {
                 "scopeId": "03-claim-age-comparison",
                 "status": "in_progress",
                 "dodChecked": 23,
-                "dodUnchecked": 0
+                "dodUnchecked": 0,
+                "dependsOn": [
+                    "01-benefit-computation"
+                ]
             },
             {
                 "scopeId": "04-medicare-premiums-and-irmaa",
                 "status": "in_progress",
                 "dodChecked": 24,
-                "dodUnchecked": 0
+                "dodUnchecked": 0,
+                "dependsOn": [
+                    "01-benefit-computation",
+                    "02-benefit-taxation"
+                ]
             },
             {
                 "scopeId": "05-route-and-integration",
                 "status": "in_progress",
                 "dodChecked": 22,
-                "dodUnchecked": 0
+                "dodUnchecked": 0,
+                "dependsOn": [
+                    "01-benefit-computation",
+                    "02-benefit-taxation",
+                    "03-claim-age-comparison",
+                    "04-medicare-premiums-and-irmaa"
+                ]
             }
         ],
         "lockdownState": {

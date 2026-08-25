@@ -32,7 +32,7 @@
         "activeAgent": "bubbles.plan",
         "currentPhase": "bootstrap",
         "currentPhaseStatus": "completed",
-        "currentScope": 1,
+        "currentScope": "01-federal-preferential-rate-completion",
         "substate": "planned",
         "runStartedAt": "2026-08-17T00:00:00Z",
         "completedAt": null,
@@ -121,31 +121,50 @@
                 "scopeId": "01-federal-preferential-rate-completion",
                 "status": "in_progress",
                 "dodChecked": 19,
-                "dodUnchecked": 0
+                "dodUnchecked": 0,
+                "dependsOn": []
             },
             {
                 "scopeId": "02-net-investment-income-and-additional-medicare-tax",
                 "status": "in_progress",
                 "dodChecked": 21,
-                "dodUnchecked": 0
+                "dodUnchecked": 0,
+                "dependsOn": [
+                    "01-federal-preferential-rate-completion"
+                ]
             },
             {
                 "scopeId": "03-state-rule-pack-contract-and-jurisdiction-resolution",
                 "status": "in_progress",
                 "dodChecked": 16,
-                "dodUnchecked": 0
+                "dodUnchecked": 0,
+                "dependsOn": [
+                    "01-federal-preferential-rate-completion",
+                    "02-net-investment-income-and-additional-medicare-tax"
+                ]
             },
             {
                 "scopeId": "04-california-pack",
                 "status": "in_progress",
                 "dodChecked": 15,
-                "dodUnchecked": 0
+                "dodUnchecked": 0,
+                "dependsOn": [
+                    "01-federal-preferential-rate-completion",
+                    "02-net-investment-income-and-additional-medicare-tax",
+                    "03-state-rule-pack-contract-and-jurisdiction-resolution"
+                ]
             },
             {
                 "scopeId": "05-combined-settlement-and-marginal-curve",
                 "status": "in_progress",
                 "dodChecked": 20,
-                "dodUnchecked": 0
+                "dodUnchecked": 0,
+                "dependsOn": [
+                    "01-federal-preferential-rate-completion",
+                    "02-net-investment-income-and-additional-medicare-tax",
+                    "03-state-rule-pack-contract-and-jurisdiction-resolution",
+                    "04-california-pack"
+                ]
             }
         ],
         "lockdownState": {

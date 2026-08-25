@@ -32,7 +32,7 @@
         "activeAgent": "bubbles.plan",
         "currentPhase": "bootstrap",
         "currentPhaseStatus": "completed",
-        "currentScope": 1,
+        "currentScope": "01-property-assessment-mechanics",
         "substate": "planned",
         "runStartedAt": "2026-08-17T00:00:00Z",
         "completedAt": null,
@@ -121,31 +121,50 @@
                 "scopeId": "01-property-assessment-mechanics",
                 "status": "in_progress",
                 "dodChecked": 18,
-                "dodUnchecked": 1
+                "dodUnchecked": 1,
+                "dependsOn": []
             },
             {
                 "scopeId": "02-primary-residence-federal-interaction",
                 "status": "in_progress",
                 "dodChecked": 18,
-                "dodUnchecked": 0
+                "dodUnchecked": 0,
+                "dependsOn": [
+                    "01-property-assessment-mechanics"
+                ]
             },
             {
                 "scopeId": "03-long-term-rental",
                 "status": "in_progress",
                 "dodChecked": 19,
-                "dodUnchecked": 0
+                "dodUnchecked": 0,
+                "dependsOn": [
+                    "01-property-assessment-mechanics",
+                    "02-primary-residence-federal-interaction"
+                ]
             },
             {
                 "scopeId": "04-short-term-and-vacation-rental",
                 "status": "in_progress",
                 "dodChecked": 20,
-                "dodUnchecked": 0
+                "dodUnchecked": 0,
+                "dependsOn": [
+                    "01-property-assessment-mechanics",
+                    "02-primary-residence-federal-interaction",
+                    "03-long-term-rental"
+                ]
             },
             {
                 "scopeId": "05-disposition",
                 "status": "in_progress",
                 "dodChecked": 20,
-                "dodUnchecked": 0
+                "dodUnchecked": 0,
+                "dependsOn": [
+                    "01-property-assessment-mechanics",
+                    "02-primary-residence-federal-interaction",
+                    "03-long-term-rental",
+                    "04-short-term-and-vacation-rental"
+                ]
             }
         ],
         "lockdownState": {

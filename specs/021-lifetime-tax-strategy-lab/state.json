@@ -32,7 +32,7 @@
         "activeAgent": "bubbles.implement",
         "currentPhase": "implement",
         "currentPhaseStatus": "in_progress",
-        "currentScope": 2,
+        "currentScope": "02-deterministic-annual-federal-tax",
         "substate": "implemented",
         "runStartedAt": "2026-08-17T00:00:00Z",
         "completedAt": null,
@@ -108,31 +108,50 @@
                 "scopeId": "01-tax-workspace-rule-pack-and-privacy-foundation",
                 "status": "in_progress",
                 "dodChecked": 15,
-                "dodUnchecked": 0
+                "dodUnchecked": 0,
+                "dependsOn": []
             },
             {
                 "scopeId": "02-deterministic-annual-federal-tax",
                 "status": "in_progress",
                 "dodChecked": 11,
-                "dodUnchecked": 0
+                "dodUnchecked": 0,
+                "dependsOn": [
+                    "01-tax-workspace-rule-pack-and-privacy-foundation"
+                ]
             },
             {
                 "scopeId": "03-effective-marginal-rate-curve",
                 "status": "in_progress",
                 "dodChecked": 12,
-                "dodUnchecked": 0
+                "dodUnchecked": 0,
+                "dependsOn": [
+                    "01-tax-workspace-rule-pack-and-privacy-foundation",
+                    "02-deterministic-annual-federal-tax"
+                ]
             },
             {
                 "scopeId": "04-bracket-fill-roth-conversion-comparison",
                 "status": "in_progress",
                 "dodChecked": 13,
-                "dodUnchecked": 1
+                "dodUnchecked": 1,
+                "dependsOn": [
+                    "01-tax-workspace-rule-pack-and-privacy-foundation",
+                    "02-deterministic-annual-federal-tax",
+                    "03-effective-marginal-rate-curve"
+                ]
             },
             {
                 "scopeId": "05-simple-power-route-accessibility-and-local-export",
                 "status": "in_progress",
                 "dodChecked": 14,
-                "dodUnchecked": 0
+                "dodUnchecked": 0,
+                "dependsOn": [
+                    "01-tax-workspace-rule-pack-and-privacy-foundation",
+                    "02-deterministic-annual-federal-tax",
+                    "03-effective-marginal-rate-curve",
+                    "04-bracket-fill-roth-conversion-comparison"
+                ]
             }
         ],
         "lockdownState": {

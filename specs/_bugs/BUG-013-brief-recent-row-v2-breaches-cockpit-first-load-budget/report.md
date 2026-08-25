@@ -534,3 +534,42 @@ writes this surface several times a day, so growth is expected — the rate is w
 uncommitted)`. That parenthetical no longer holds: `831144596` is an ancestor of `origin/main`.
 The scope status is left as the author wrote it, since correcting the delivery annotation is
 separable from this observation and belongs to whoever promotes the scope.
+
+### Where The 199,803 Bytes Actually Sit
+
+The erosion above is only actionable with a per-path breakdown, so the six `firstLoadPaths` in
+`scripts/validate-tool-experience.mjs:80` were read directly. The total reconciles to the
+validator's own figure exactly, which is what makes this the same quantity rather than a
+lookalike:
+
+```text
+Command: node -e '<read each firstLoadPaths entry, sum lengths>'   (clean origin/main, f2f482373)
+  104358   52.2%  market-brief.page.json
+   69890   35.0%  market-brief.snapshot.page.json
+   12203    6.1%  market-brief.scorecard.json
+    7970    4.0%  market-brief.config.page.json
+    3258    1.6%  market-brief.tools.page.json
+    2124    1.1%  watchlist.json
+  199803  100.0%  TOTAL — matches [tool-experience] brief-first-load exactly; margin 4997
+Exit Code: 0
+```
+
+**Two payloads carry 87.2 percent of the budget.** `market-brief.page.json` and
+`market-brief.snapshot.page.json` together are 174,248 of 199,803. The remaining four sum to
+25,555 — less than 13 percent — so no amount of trimming the small four can offset growth in
+the large two. Both large payloads are written by the scheduled brief pipeline, which is the
+same surface the erosion measurement points at. Any remedy that does not touch those two is
+working on 13 percent of the problem.
+
+This does not identify a cause and does not propose a remedy. It narrows where a remedy would
+have to act, which the byte total alone does not.
+
+### A Count Discrepancy, Recorded Not Fixed
+
+The Scope 2 Definition of Done item reads "measured directly from the seven `firstLoadPaths`".
+The array holds **six** entries, verified by reading lines 80 through 88 in full rather than by
+counting a truncated view. Either a seventh path was removed after the item was written, or the
+count was wrong when written. This observation cannot distinguish those, and the item belongs to
+a scope whose status says its work was resolved upstream, so the text is left exactly as the
+author wrote it. It is recorded because an item that names a wrong count cannot be discharged by
+measurement without someone first deciding which number is correct.

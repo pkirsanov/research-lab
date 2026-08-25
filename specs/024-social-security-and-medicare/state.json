@@ -44,14 +44,14 @@
             {
                 "scope": 1,
                 "scopeId": "01-benefit-computation",
-                "status": "not_started",
+                "status": "in_progress",
                 "foundation": true,
                 "dependsOn": []
             },
             {
                 "scope": 2,
                 "scopeId": "02-benefit-taxation",
-                "status": "not_started",
+                "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
                     1
@@ -60,7 +60,7 @@
             {
                 "scope": 3,
                 "scopeId": "03-claim-age-comparison",
-                "status": "done_with_concerns",
+                "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
                     1
@@ -79,7 +79,7 @@
             {
                 "scope": 5,
                 "scopeId": "05-route-and-integration",
-                "status": "done_with_concerns",
+                "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
                     1,

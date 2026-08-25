@@ -11052,3 +11052,51 @@ upstream because its verdict branch requires `deliveryEvaluation NOT_EVALUATED` 
 its delivery-profile branch rejects that same value. It is non-blocking for product
 behaviour — the final active-result lint exits 0, and only the INTERRUPTED draft path
 reproduces the contradiction.
+
+## Observation Only — `scopes.md` Carries Two Generations Of The Same Plan (2026-08-24)
+
+This section ticks no Definition of Done item, changes no status, and prunes nothing. It
+records a structural reading of `scopes.md` so the owner can decide what to do about it.
+
+`scopes.md` contains the plan twice. The first generation is Scopes 1 through 5, all
+`Status: Done`, with Definition of Done items carried as identified entries (`DOD-04-C01`
+and siblings) each ticked with inline evidence. The second generation, beginning at the
+file's **second** `## Scope Summary`, is `Historical Scope 1` through `Historical Scope 5`,
+each `Status: Not Started`, with 61 unticked items expressed as prose without identifiers.
+
+The two are not literal duplicates. They are different formulations covering the same scope
+surface — the historical wording reads as the earlier draft that the identified, evidenced
+generation replaced. Scope 4 appears in both under an identical title, `Additive
+Registration And Consumer Integration`.
+
+Measured against a clean `origin/main` worktree, the feature those scopes describe is
+delivered and green:
+
+```text
+Command: node scripts/validate-palm-springs-rental-market.mjs
+[pbrm-compat] findings=0
+[pbrm-compat] OK
+Exit Code: 0
+
+Command: npx playwright test --project=system-chrome tests/palm-springs-rental-market-lab.spec.mjs
+30 passed (48.4s)
+Exit Code: 0
+
+palm-springs-rental-market-lab.html   present
+rlrental.js                            present
+Regression: SCN-005-* titles in spec   29
+tools.json registration                present
+```
+
+**What this does and does not establish.** It establishes that the product surface exists,
+its named validator passes, and its 29 stable scenario regressions pass. It does **not**
+establish that each of the 61 historical items was individually discharged, and this run
+deliberately ticks none of them — verifying 61 prose obligations one by one is not something
+this execution performed, and ticking them on a green suite would assert 61 claims from one
+measurement.
+
+The practical consequence is a counting artifact worth knowing about: a survey of unticked
+Definition of Done items across the repository attributes 61 open items to this feature, and
+those 61 do not correspond to undelivered product behaviour. Whether the historical
+generation should be pruned, folded into the executed one, or annotated in place is an owner
+decision, and is deliberately not taken here.

@@ -1461,6 +1461,62 @@ found that defect itself, recorded it as `F-AUDIT-02` and `F-AUDIT-02b`, correct
 two routes that were its own, and routed the remainder out. Nothing this feature ships
 claims those two routes are correct.
 
+**Correction — the `BUG-015` sentence above is false. It is left standing rather than
+deleted.** The paragraph above calls `BUG-015` "genuinely unworked" and says two routes
+"still publish a dead `?t=` deep link". Both halves are wrong. The sentence was read in
+good faith off `BUG-015/state.json`, whose `certification.scopeProgress` then held three
+entries all reading `Not Started` with zero items checked. That state file was itself
+stale: the packet's own `scopes.md` already read eighteen ticked items with both scopes
+`Status: Done`, and its commits `7abfe8fbf` and `1bd5be8d7` recorded the execution. The
+conclusion followed correctly from a source that was wrong, which is why the finding is
+recorded here as a correction rather than edited away. `bubbles.plan` has since
+reconciled the state file in `05ff8a8f0`. Re-measured now, the two artifacts agree, and
+neither route emits `?t=` any more.
+
+```text
+$ grep -c '^- \[x\]' scopes.md ; grep -c '^- \[ \]' scopes.md   # BUG-015
+18
+0
+
+$ jq -c '.certification.scopeProgress[]' BUG-015/state.json
+{"scopeId":"01-decide-what-a-route-does-with-a-subject-it-cannot-honour","status":"Done","dodChecked":5,"dodUnchecked":0}
+{"scopeId":"02-make-the-published-link-live-in-both-directions","status":"Done","dodChecked":9,"dodUnchecked":0}
+{"scopeId":"cross-scope","status":"Done","dodChecked":4,"dodUnchecked":0}
+
+$ grep -c '?t=' intraday-tape-lab.html swing-structure-lab.html
+intraday-tape-lab.html:0
+swing-structure-lab.html:0
+Exit Code: 1  (grep: no matches)
+```
+
+Each route now publishes `RLTKR.SUBJECT_PARAM` and reads it back through
+`RLTKR.linkedSubject`, so both directions are live. The accurate position is neither
+"unworked" nor "closed": `BUG-015` holds `status` and `certification.status` at
+`in_progress`, `certifiedAt` at `null` and `completedScopes` empty, and its `bug.md`
+reads `Fixed — awaiting independent verification`. Certification was withheld on purpose,
+because that execution measured its own remedy.
+
+**What the correction does not change.** The reason this finding did not gate this
+feature's certification was never that `BUG-015` was unworked. It was corridor
+separation, and that half of the paragraph above is sound. Re-measured against the
+registry after the correction: fifteen rows, eleven naming an owner tool, and neither
+route named anywhere in the file.
+
+```text
+$ jq -r '.coverageRegistry | length' company-intelligence.config.json
+15
+$ jq -r '[.coverageRegistry[] | select(.ownerToolId)] | length' company-intelligence.config.json
+11
+$ grep -c 'intraday-tape\|swing-structure' company-intelligence.config.json
+0
+Exit Code: 1  (grep: no matches)
+```
+
+`intraday-tape-lab.html` and `swing-structure-lab.html` publish into the Feature 007
+owner-read contract and are not rows of this feature's registry, so `BUG-015`'s true
+state does not bear on what this feature certified. The correction retires one false
+sentence about a sibling packet and disturbs nothing else in this report.
+
 **One observation, not blocking, recorded rather than left silent.** This packet's
 `scenario-manifest.json` carries all eighteen scenarios at `status: not_started` with
 empty `linkedTests` and `evidenceRefs`, while the delivered work is complete and every

@@ -671,3 +671,499 @@ module, renders the panel, nor references the module's namespace anywhere. This 
 guard derives its markers from the browser spec rather than from the route — the route on the
 deployed branch is internally consistent about the panel not existing, and would have satisfied
 any guard that only compared the route against itself.
+
+## Independent Re-Verification Of The Three Closing Premises
+
+A later round re-measured the three premises the closing claim rests on, rather than inheriting
+them. All three hold, and one of them holds less completely than the claim reads.
+
+**CI conclusion.** `gh run view 32744354615` reports `conclusion=success` at `adbfc86bb`, with
+`verify=success`, `deploy=success` and `notify-failure=skipped`. That is the run this report
+already cited, and it is confirmed rather than restated.
+
+**The wiring at the deployed ref.** `git show origin/main:lifetime-tax-strategy-lab.html` carries
+`combinedFederalLeg` — the marker this packet's own FR-016-004 names — at two sites. Local `HEAD`
+and `origin/main` are the same commit, `7df8e0f49`, so the route measured here is the deployed
+route.
+
+**The guard is present and live.** All four assertions pass in the current run: `W1` at 14 modules
+with no other HTML consumer, `W2` with `unwired: none`, `W3` at 10 anchors with `missing: none`,
+`W4` at 6 names with `missing: none`.
+
+### What the guard actually protects — measured, not assumed
+
+Presence is not enforcement, so each of the three checks that can regress was perturbed.
+
+| Check | Perturbation | Verdict |
+| --- | --- | --- |
+| `W2` module tags | dropped the `rltaxcombined.js` `<script src>` | RED, and it names `unwired: rltaxcombined.js` |
+| `W3` anchor ids | renamed `id="combinedSettlementCard"` | RED, `10 anchors` with the anchor reported missing |
+| `W4` value names | renamed the `combinedFederalLeg` render call | **GREEN — did not discriminate** |
+
+`W2` catches the exact defect that produced this bug, and it names the module. `W3` is load-bearing
+for all ten anchors: each `id="…"` appears exactly once in the route, so losing one takes the count
+to zero.
+
+### Finding — `W4` is satisfiable without the render call for three of its six names
+
+The `W4` probe returned exit 7. The cause is that `W4`'s predicate is a substring search for the
+quoted name anywhere in the route:
+
+```text
+const wMissingValues = wValueMarkers.filter((v) => wRouteSrc.indexOf('"' + v + '"') < 0);
+```
+
+Three of the six names it derives also appear in `SIMPLE_FIELDS`, the closed list of decision-level
+fields the Simple renderer permits. So the name is quoted twice: once as an allow-list entry and
+once at the call that emits the node. Renaming only the emitting call leaves the allow-list entry
+in place and `W4` stays green on a route that no longer renders the value.
+
+| `W4` name | quoted occurrences in the route | `W4` load-bearing? |
+| --- | --- | --- |
+| `combined-federal-total` | 1 | yes |
+| `combined-state-total` | 1 | yes |
+| `combined-total` | 1 | yes |
+| `combinedFederalLeg` | 2 — `SIMPLE_FIELDS` and the render call | no |
+| `combinedStateLeg` | 2 — `SIMPLE_FIELDS` and the render call | no |
+| `combinedTotalTax` | 2 — `SIMPLE_FIELDS` and the render call | no |
+
+`W4`'s own wording is the narrower claim — that the name *appears* in the route — and it enforces
+that faithfully. The gap is between what it enforces and what a reader takes from it, and it lands
+on `combinedFederalLeg` specifically, which is the marker FR-016-004 cites as its exemplar.
+
+This is not a hole in the fix. The panel is wired, `W2` guards the failure mode that actually
+occurred, and `W3` guards the anchors whose loss produced the 30-second locator timeouts. It is a
+bounded weakness in one of four checks, recorded here rather than repaired: the guard is outside
+this round's remit, and the repair is a design question — compare against the emitting call, or
+derive the allow-list and the render sites separately — that belongs to whoever owns the guard.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            bug016-w2-dropped-script-tag
+file:             lifetime-tax-strategy-lab.html
+mutation:             <script src="rltaxcombined.js"></script>  ->      <!-- probe: combined module tag dropped -->   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: W2: lifetime-tax-strategy-lab.html carries a <script src> for every rltax module on disk — 14 modules, unwired: rltaxcombined.js — a
+green-exit:       1
+green-summary:      ✓ W2: lifetime-tax-strategy-lab.html carries a <script src> for every rltax module on disk — 14 modules, unwired: none — an unwired module s
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   yes (summary differs)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            bug016-w3-dropped-anchor-id
+file:             lifetime-tax-strategy-lab.html
+mutation:         id="combinedSettlementCard"  ->  id="combinedSettlementCardGONE"   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: W3: every #combined anchor tests/lifetime-tax-combined.spec.mjs locates exists as an element id in the route — 10 anchors, miss
+green-exit:       1
+green-summary:      ✓ W3: every #combined anchor tests/lifetime-tax-combined.spec.mjs locates exists as an element id in the route — 10 anchors, missing: n
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   yes (summary differs)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            bug016-w4-dropped-panel-marker
+file:             lifetime-tax-strategy-lab.html
+mutation:         federalAddendRow.appendChild(simpleValueNode("combinedFederalLeg",  ->  federalAddendRow.appendChild(simpleValueNode("combinedFederalLegGONE",
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✓ W4: every combined data-rl-value name tests/lifetime-tax-combined.spec.mjs locates appears in the route — 6 names, missing: none — the rou
+green-exit:       1
+green-summary:      ✓ W4: every combined data-rl-value name tests/lifetime-tax-combined.spec.mjs locates appears in the route — 6 names, missing: none — the rou
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   NO (both channels agree: exit 1 == 1)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Every probe reverted with a hash-verified restore to the committed blob, and the route was clean
+before and after each one.
+
+### Why the status item stays open
+
+The item asks for `bug.md` to move `Confirmed → Fixed → Verified`. The first transition is done and
+fully evidenced: `bug.md` reads `Fixed — awaiting independent verification`.
+
+`Verified` is a different kind of claim, and this round is the wrong author for it on two counts.
+It is a certification statement, and an implementing round asserting that its own fix has been
+independently verified is exactly the self-certification the evidence rules exist to prevent. The
+repository also has a settled convention here that no packet has ever departed from: across all
+twenty-three bug packets, every fixed one rests at `Fixed — awaiting independent verification` —
+BUG-009, BUG-010, BUG-015 and BUG-017 all read that phrase verbatim — and not one has ever reached
+`Verified`. Inventing that state here would make this packet the first, on its own authority.
+
+The three premises are now confirmed, so a verifying round has what it needs to close this in one
+step; the `W4` finding above is the one thing it should weigh that the closing claim does not
+mention.
+
+## Repair Of The `W4` Blind Spot
+
+The finding above is now closed. `W4` no longer asks whether the name occurs somewhere in the
+route; it asks whether the name is passed as the field id of a call that actually emits the
+attribute.
+
+### How the route emits these nodes — read, not assumed
+
+The route writes **no literal `data-rl-value="…"` attribute at all**: `grep -c 'data-rl-value="'`
+over `lifetime-tax-strategy-lab.html` returns 0. Every one is set at runtime by a single site,
+
+```text
+lifetime-tax-strategy-lab.html:1799    figure.setAttribute("data-rl-value", fieldId);
+```
+
+inside `valueNode(fieldId, shown, tooltip)`. Two functions forward their own parameter into it:
+`simpleValueNode(fieldId, …)` at parameter 0, and `breakdownRow(label, fieldId, …)` at parameter 1.
+So each of the six markers reaches the DOM through exactly one call:
+
+| `W4` name | emitting call | quoted occurrences | second occurrence |
+| --- | --- | --- | --- |
+| `combined-federal-total` | `breakdownRow("Federal income tax", "combined-federal-total", …)` | 1 | — |
+| `combined-state-total` | `breakdownRow("State income tax", "combined-state-total", …)` | 1 | — |
+| `combined-total` | `breakdownRow("Both governments together", "combined-total", …)` | 1 | — |
+| `combinedFederalLeg` | `simpleValueNode("combinedFederalLeg", …)` | 2 | `SIMPLE_FIELDS` |
+| `combinedStateLeg` | `simpleValueNode("combinedStateLeg", …)` | 2 | `SIMPLE_FIELDS` |
+| `combinedTotalTax` | `simpleValueNode("combinedTotalTax", …)` | 2 | `SIMPLE_FIELDS` |
+
+Because there is no literal attribute to match, matching the attribute text was never available;
+the correct construct to match is the call that sets it.
+
+### The predicate, before and after
+
+```text
+before:  const wMissingValues = wValueMarkers.filter((v) => wRouteSrc.indexOf('"' + v + '"') < 0);
+
+after:   the emitter is located from the one setAttribute("data-rl-value", …) site and named by its
+         enclosing function; forwarders are every function that hands one of its own parameters
+         straight to that emitter, together with the argument index it forwards; the emitted set is
+         the string literals appearing at those argument positions across all such calls; a marker
+         is missing when it is not in that set.
+         const wMissingValues = wValueMarkers.filter((v) => !wEmittedNames.has(v));
+```
+
+Emitter and forwarders are derived from the route, not listed, so renaming `valueNode`,
+`simpleValueNode` or `breakdownRow` fails here rather than silently widening what counts as wired.
+The assertion also carries the two structural facts it depends on — zero literal attributes and
+exactly one dynamic emit site — so a future change to the emission mechanism turns `W4` red instead
+of leaving it quietly meaningless. A count threshold was rejected: a name legitimately mentioned
+once more would break it, and it was measured to do so — injecting a harmless comment naming
+`"combinedFederalLeg"` takes its quoted count from 2 to 3 while the shipped predicate stays green.
+
+### The same mutation, before exit 7 and now exit 0
+
+The mutation is the one recorded above as `bug016-w4-dropped-panel-marker`: rename the emitting
+`simpleValueNode("combinedFederalLeg"` call while leaving the `SIMPLE_FIELDS` entry intact. Under
+the old predicate the probe returned **exit 7** — RED and GREEN agreed. `--summary-match` is pinned
+to `W4`'s own assertion wording rather than the aggregate pass count, because the suite exits 1 even
+unmutated on two failures belonging to a concurrent session.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            W4-emitting-call-rename-combinedFederalLeg
+file:             lifetime-tax-strategy-lab.html
+mutation:         simpleValueNode("combinedFederalLeg"  ->  simpleValueNode("combinedFederalLegRENAMED"   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: W4: every combined data-rl-value name tests/lifetime-tax-combined.spec.mjs locates is passed as the field id of a call that actually emits the attribute — 6 names, emitt
+green-exit:       1
+green-summary:      ✓ W4: every combined data-rl-value name tests/lifetime-tax-combined.spec.mjs locates is passed as the field id of a call that actually emits the attribute — 6 names, emitted via valueNode(arg 0)
+summary-compared:   ✗ FAIL: … missing: combinedFederalLeg   vs     ✓ … missing: none   (elapsed time normalised out)
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   yes (summary differs)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit status: `PROBE_EXIT=0`.
+
+A second previously-blind name confirms the repair is not specific to the exemplar.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            W4-emitting-call-rename-combinedTotalTax
+file:             lifetime-tax-strategy-lab.html
+mutation:         simpleValueNode("combinedTotalTax"  ->  simpleValueNode("combinedTotalTaxRENAMED"   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: W4: every combined data-rl-value name tests/lifetime-tax-combined.spec.mjs locates is passed as the field id of a call that actually emits the attribute — 6 names, emitted
+green-exit:       1
+green-summary:      ✓ W4: every combined data-rl-value name tests/lifetime-tax-combined.spec.mjs locates is passed as the field id of a call that actually emits the attribute — 6 names, emitted via va
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   yes (summary differs)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit status: `PROBE2_EXIT=0`. Both probes reverted with a hash-verified restore to the
+committed blob, and `git status --porcelain -- lifetime-tax-strategy-lab.html` was empty before and
+after each one.
+
+### All six names now bite, and the unmutated route still passes
+
+Each marker's emitting call was renamed in turn and both predicates evaluated against the result.
+
+| `W4` name | quoted | emitted via | old predicate | new predicate |
+| --- | --- | --- | --- | --- |
+| `combined-federal-total` | 1 | `breakdownRow` | RED | RED |
+| `combined-state-total` | 1 | `breakdownRow` | RED | RED |
+| `combined-total` | 1 | `breakdownRow` | RED | RED |
+| `combinedFederalLeg` | 2 | `simpleValueNode` | **GREEN — blind** | RED |
+| `combinedStateLeg` | 2 | `simpleValueNode` | **GREEN — blind** | RED |
+| `combinedTotalTax` | 2 | `simpleValueNode` | **GREEN — blind** | RED |
+
+Old predicate: 3 of 6. New predicate: 6 of 6. On the unmutated route both report `missing: none`,
+so the repair adds no false positive. Deleting the emitting call outright rather than renaming it
+also fires, reporting `missing: combinedFederalLeg`.
+
+`W1`, `W2` and `W3` are untouched: the diff removes only the six lines of the old `W4` predicate and
+its message, and all three assertions remain present and passing.
+
+The full suite reports `3408 passed, 2 failed` — the same count as before the change, since `W4`
+remains exactly one assertion. Both failures belong to a concurrent session's untracked
+`tool-brief-v2*` and `zz-probe-focusable.spec.mjs` files and are unrelated to this repair.
+
+## Closure Of The Residual Blind Spot The `W4` Repair Disclosed
+
+The `W4` repair above closed the rename-the-emitting-call hole and, in the same pass, disclosed a
+second one it does not cover. That hole is now closed by a sibling assertion, `W5`.
+
+### The disclosed gap reproduced exactly as described
+
+`simpleValueNode` is a carrier: it forwards its own `fieldId` parameter to the emitter `valueNode`.
+But it forwards it only conditionally — `lifetime-tax-strategy-lab.html:1814` reads
+`if (SIMPLE_FIELDS.indexOf(fieldId) < 0) { return text("span", "this field is not a Simple field",
+"microcopy"); }`, so a name the list omits never reaches `valueNode` and no `data-rl-value` node is
+produced at all. `W4` derives its emitted set from call sites and never consults that list, so the
+list and the call sites can diverge silently.
+
+Confirmed by probe rather than by reading alone. Dropping `"combinedFederalLeg"` from
+`SIMPLE_FIELDS` while leaving `simpleValueNode("combinedFederalLeg", ...)` at line 2971 untouched:
+
+```
+PROBE_EXIT=7
+label:            gap-confirm: drop combinedFederalLeg from SIMPLE_FIELDS
+file:             lifetime-tax-strategy-lab.html
+mutation:         "combinedTotalTax", "combinedFederalLeg", "combinedStateLeg",  ->  "combinedTotalTax", "combinedStateLeg",   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✓ W4: every combined data-rl-value name tests/lifetime-tax-combined.spec.mjs locates is passed as the field id of a call that actually emits the attribute — 6 names, emitted via valueNode(arg 0)
+green-exit:       1
+green-summary:      ✓ W4: every combined data-rl-value name tests/lifetime-tax-combined.spec.mjs locates is passed as the field id of a call that actually emits the attribute — 6 names, emitted via valueNode(arg 0)
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   NO (both channels agree: exit 1 == 1, summary identical once elapsed time is normalised)
+```
+
+`W4` did not merely still pass — its message was byte-identical, still claiming six names emitted
+and `missing: none`, on a route that had stopped rendering one of them. This is the BUG-016 failure
+mode one layer in.
+
+### A sibling check, not a wider `W4`
+
+`W5` is a separate assertion rather than a strengthening of `W4`, for three reasons.
+
+The failure causes are different and so are the repairs. `W4` fails when the emitting **call** is
+renamed or dropped, and is answered at the call site. `W5` fails when the **admission list**
+diverges from the call sites, and is answered in the list. Folding both into one predicate would
+produce a message that has to describe two unrelated defects, leaving a reader who sees it fail
+without the one fact they need — which of the two happened.
+
+The domains are different. `W4` is scoped to the six names one browser spec locates. The gating
+obligation is not spec-scoped at all: every one of the 23 gated calls in the route is subject to it,
+including the twenty that no combined-panel spec mentions. Widening `W4` to that set would have
+severed it from the spec-derived marker list that gives it its meaning.
+
+And a check that names its own failure is actionable. `W5`'s message reports the gated carrier, the
+array it consults, and the exact rejected name.
+
+### The predicate
+
+Nothing is listed; every input is derived from the route, so none of it rots and none of it can be
+satisfied by deleting the thing that defines it.
+
+- **Gated carriers** — of the carriers `W4` already derives, those whose body tests their own
+  forwarded parameter with `<array>.indexOf(<param>) < 0`. Currently one: `simpleValueNode(arg 0)`
+  gated by `SIMPLE_FIELDS`.
+- **Admitted names** — the string literals of that array, brace-matched out of the route so a
+  multi-line declaration parses whole.
+- **Gated calls** — every literal string passed at that carrier's forwarded argument index.
+
+The assertion is that every gated call's name is admitted, plus three floors: at least one gated
+carrier, at least 18 gated calls, at least 20 admitted names.
+
+### Both directions bite
+
+Decisive probe — the mutation that was invisible, `--summary-match` pinned to `W5`'s own wording
+rather than to the aggregate count, since the suite exits 1 even unmutated:
+
+```
+PROBE_EXIT=0
+label:            W5: drop combinedFederalLeg from SIMPLE_FIELDS, emitting call left intact
+file:             lifetime-tax-strategy-lab.html
+mutation:         "combinedTotalTax", "combinedFederalLeg", "combinedStateLeg",  ->  "combinedTotalTax", "combinedStateLeg",   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: W5: every field id passed to a gated emitter in lifetime-tax-strategy-lab.html is admitted by the membership list that gate consults — 23 gated calls across simpleValueNode(arg 0) gated
+green-exit:       1
+green-summary:      ✓ W5: every field id passed to a gated emitter in lifetime-tax-strategy-lab.html is admitted by the membership list that gate consults — 23 gated calls across simpleValueNode(arg 0) gated by SIM
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   yes (summary differs)
+```
+
+The obvious way to neutralise the new check is to disarm the gate it derives from, so that was
+probed too. Changing the gate's comparison from `< 0` to `< -1` leaves the syntax intact and the
+refusal unreachable:
+
+```
+PROBE_EXIT=0
+label:            W5 floor: neutralise the gate itself
+mutation:         if (SIMPLE_FIELDS.indexOf(fieldId) < 0) {  ->  if (SIMPLE_FIELDS.indexOf(fieldId) < -1) {   (1 occurrence(s))
+red-exit:         1
+red-summary:        ✗ FAIL: W5: ... — 0 gated calls across no gated carrier
+green-summary:      ✓ W5: ... — 23 gated calls across simpleValueNode(arg 0) gated by SIMPLE_FIELDS
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   yes
+```
+
+The carrier floor catches it: with no gate to derive, the set is empty and the assertion fails
+instead of passing vacuously.
+
+### No false positive, and `W1`–`W4` untouched
+
+Unmutated, the suite reports `3409 passed, 2 failed` — exactly one more than the `3408` recorded
+above, which is `W5` itself. The two failures are the same concurrent-session untracked
+`tool-brief-v2*` and `zz-probe-focusable.spec.mjs` files, unrelated to this work.
+
+`W1`, `W2`, `W3` and `W4` all still pass with identical counts — 14 modules, 14 modules, 10 anchors,
+6 names — and the change adds only new lines; no line of the `W4` emission derivation was altered.
+
+### What remains open in this family
+
+One gap of the same shape is still uncovered, stated plainly rather than left implied. `W5` proves
+a gated name is *admissible*; it does not prove the call is *reached*. A gated call sitting inside a
+branch the route never takes — or a carrier invocation deleted outright while both the list entry
+and the browser marker survive — would leave `W4` and `W5` green with nothing on the page. Closing
+that needs reachability, which static derivation over the route source cannot supply; the browser
+spec is the instrument for it. Not repaired here, and not claimed to be.
+
+## Independent Verification Round
+
+Run by a party that wrote no part of this packet, at `982a63641`. That commit **is** `origin/main`,
+so "present at `origin/main`" was read from the working tree and confirmed against
+`git show origin/main:` rather than inferred. Nothing below is inherited from the records above;
+each premise was re-derived.
+
+### The tree moved underneath this round, and the move was attributed
+
+This round began at `2c3225e5d` with the branch two ahead and three behind. A concurrent session
+advanced it to `982a63641` mid-run. Every artifact these probes touched is byte-identical across
+that move — `git diff --stat 2c3225e5d 982a63641` over the route, the selftest, the browser spec and
+the three engine modules is empty — and the three blobs the probes hash-verified their reverts
+against (`49d3eb42c8` for the route, `95beaaed14`, `7e690813e7`) are the blobs at the current `HEAD`.
+The four commits in the gap are `chore(open-work)` and a merge. The evidence therefore stands at the
+tip it is recorded against.
+
+### The wiring is present at `origin/main`
+
+All six `data-rl-value` markers the browser spec locates are present at `origin/main`
+(`combinedFederalLeg` ×2, `combinedStateLeg` ×2, `combinedTotalTax` ×10, and one each for
+`combined-federal-total`, `combined-state-total`, `combined-total`), and all fourteen `rltax*.js`
+modules on disk carry a `<script src>` there.
+
+### CI, re-derived at a later tip than the one this packet cited
+
+The cited run `32744354615` still reports `conclusion=success` with `verify=success` and
+`deploy=success`. That is the recorded premise and it holds. It is also no longer the newest
+evidence: the most recent **completed** blocking-suite run on `main`, `32857081607` at `f2516de2b`,
+is a **failure** — and that is the stronger result for this packet, because the redness is
+attributable elsewhere.
+
+```
+run 32857081607 conclusion=failure headSha=f2516de2b
+  job verify = failure
+     FAILED STEP: Full browser suite (blocking)
+
+failing tests, by spec file:
+     5 tests/bond-regime-lab.spec.mjs
+     1 tests/simple-model-adapters-market.spec.mjs
+
+lifetime-tax failures in that run: 0
+lifetime-tax passes   in that run: 111
+tests/lifetime-tax-combined.spec.mjs: 8 cases, all ✓
+```
+
+The wiring holds in a pipeline that is currently red for other owners. A green run cannot show that;
+this one can.
+
+### Every guard was proven to bite, by reverting mutation
+
+`W1` is a precondition — module-family exclusivity plus a floor — and is what licenses `W2`. `W2`
+through `W5` were each mutated and each turned red, with the revert hash-verified every time. All
+six ran against the committed selftest, scoped to the single named clause so the two failures another
+session owns could not mask a verdict.
+
+| probe | mutation | RED | GREEN | verdict |
+| --- | --- | --- | --- | --- |
+| `W2` | `src="rltaxcombined.js"` renamed | exit 1, `hits=1` | exit 0, `hits=0` | discriminates |
+| `W3` | `id="combinedSettlementCard"` renamed | exit 1, `hits=1` | exit 0, `hits=0` | discriminates |
+| `W4` | `simpleValueNode("combinedFederalLeg",` renamed | exit 1, `hits=1` | exit 0, `hits=0` | discriminates |
+| `W4` | `simpleValueNode("combinedStateLeg",` renamed | exit 1, `hits=1` | exit 0, `hits=0` | discriminates |
+| `W4` | `simpleValueNode("combinedTotalTax",` renamed | exit 1, `hits=1` | exit 0, `hits=0` | discriminates |
+| `W4` | `breakdownRow(… "combined-federal-total",` renamed | exit 1, `hits=1` | exit 0, `hits=0` | discriminates |
+| `W5` | `"combinedFederalLeg"` dropped from `SIMPLE_FIELDS` | exit 1, `hits=1` | exit 0, `hits=0` | discriminates |
+
+The `W4` blind set was enumerated rather than sampled. The three names the earlier round found blind
+are exactly the three that appear twice in the route because `SIMPLE_FIELDS` names them a second
+time — `combinedFederalLeg`, `combinedStateLeg`, `combinedTotalTax` — and each was probed
+individually. The other three reach the emitter at argument index 1 through `breakdownRow`, a
+different mechanism, and one of those was probed as a control. Mutating one member of a set proves
+nothing about the others, so all four call shapes were exercised.
+
+`W5` was also shown not to be redundant. Under the identical `SIMPLE_FIELDS` mutation, probing `W4`
+instead returned **exit 7 — no discrimination**, `CLAUSE_STATE=GREEN hits=0` on both sides. `W4` is
+provably blind to precisely the state `W5` was added for.
+
+### The disclosed reachability residual, judged
+
+The residual recorded above is real and correctly stated: neither `W4` nor `W5` proves a gated call
+is ever *reached*. Both derive over route source, and source cannot answer whether a branch executes.
+
+It is nonetheless acceptable for a `Verified` transition, and the reason is measured rather than
+argued. The property the static guards cannot supply is supplied one layer down, by the browser
+assertion that is blocking in CI. Both mutation classes the guards catch statically were replayed
+against `tests/lifetime-tax-combined.spec.mjs` on the bundled project:
+
+```
+label:   BUG016-residual gated call never reached -> browser spec must fail
+mutation: "combinedTotalTax", "combinedFederalLeg",  ->  "combinedTotalTax",
+red-exit: 1   red-summary:   6 passed (39.8s)
+green-exit: 0 green-summary: 8 passed (4.2s)
+discriminating: yes
+
+label:   BUG016-residual emitting call renamed -> browser spec must fail
+mutation: simpleValueNode("combinedFederalLeg",  ->  simpleValueNodeRenamed("combinedFederalLeg",
+red-exit: 1   red-summary:   3 passed (55.7s)
+green-exit: 0 green-summary: 8 passed (4.1s)
+discriminating: yes
+```
+
+A value that reaches no emitter, or reaches one that refuses it, does not reach the DOM, and the
+browser spec fails on it. That spec runs 8 cases inside the blocking suite, confirmed above in run
+`32857081607`. So the layering is: the static guards are an earlier and cheaper tripwire that fires
+at selftest time instead of after a 300s locator timeout in CI, and the browser spec remains the
+instrument of record for reachability. The guards were never the only line, and the residual does
+not leave the property unprotected — it names which layer owns it.
+
+The one condition that would change this judgement is the residual's own second clause: a carrier
+invocation deleted outright while both the list entry and the browser marker survive. That is caught
+by the browser spec too, for the same reason, but it is not caught by a static guard, and if the
+browser spec were ever narrowed the residual would become live. It is disclosed, not closed.
+
+### Verdict
+
+The row is ticked and `bug.md` moves to `Verified` on this round's authority, not the implementing
+round's.
+
+

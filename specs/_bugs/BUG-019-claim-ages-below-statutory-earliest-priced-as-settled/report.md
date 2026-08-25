@@ -475,3 +475,217 @@ playwright_exit=0
   decision having been made.
 - No human acceptance was recorded. `uservalidation.md` is untouched by this round.
 
+## Disclosure Round — Where The Stopping-Age Coverage Actually Was
+
+The previous round left the Scope 2 disclosure item unticked on the ground that "whether the
+disclosure is asserted anywhere was not established". Establishing it changed the question. The
+disclosure is not one surface but three, and two of the three were already covered by assertions
+this packet did not write:
+
+| Surface of the disclosure | Asserted before this round? | Where |
+| --- | --- | --- |
+| `creditBoundByStoppingAge` true past the stopping age, false at it, plus a non-empty `stoppingAgeStatedFact` | yes — pre-existing | `scripts/selftest.mjs` TP-01-09 |
+| The rendered line a household reads | yes — pre-existing | `tests/lifetime-tax-benefit.spec.mjs`, the `#benefitStoppingAgeLine` case at a claim age of 71 |
+| The `claim-age-beyond-sourced-stopping-age` comparison record | **no** | produced at `rltaxsocialsecurity.js`, matched by nothing |
+
+So the item was not uncovered; it was covered everywhere except the one surface that makes the
+bound machine-checkable. A `grep` for the comparison id across `scripts/selftest.mjs` and `tests/`
+returned only the producing site. That record is the audit trail: without it a reader has the
+sentence and the flag but nothing that says the engine *performed* a comparison, which is the
+difference between a disclosed bound and a figure that quietly stopped moving.
+
+The gap is now closed by an assertion that reads the record in both directions one year apart — at
+72 it must be present with `result === true`, at 70 present with `result === false`. One direction
+alone cannot separate "the bound applied" from "the engine never compared at all", because a record
+published only when the bound bites looks identical to no record at all on the unbound side.
+
+### Probe 6 — the stopping-age comparison record, exit 0 (discriminated)
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            bug019-stopping-age-comparison-record
+file:             rltaxsocialsecurity.js
+mutation:         rules.comparisonRecord("claim-age-beyond-sourced-stopping-age",  ->  rules.comparisonRecord("claim-age-beyond-sourced-stopping-age-DROPPED",
+ (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: BUG-019: a claim age beyond the sourced delayed-credit stopping age publishes a claim-age-beyond-sourced-stopping-age comparison record naming the claim age, the sourced stopping age and a
+green-exit:       1
+green-summary:      ✓ BUG-019: a claim age beyond the sourced delayed-credit stopping age publishes a claim-age-beyond-sourced-stopping-age comparison record naming the claim age, the sourced stopping age and a true
+revert-verified:  yes (committed=95beaaed147e301bcf2cae7a858b1e0463cdc1c6 restored=95beaaed147e301bcf2cae7a858b1e0463cdc1c6)
+discriminating:   yes (summary differs)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Both exits are `1` because the repository baseline carries two failures owned by a concurrent
+session, so `--summary-match` was pinned to this assertion's own wording rather than to the
+aggregate. Renaming the comparison id — the shape a dropped record takes — turns the assertion red;
+reverting turns it green, and the revert is hash-verified against the committed blob.
+
+### Validation after the addition
+
+```text
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3408 passed, 2 failed
+selftest_exit=1
+```
+
+`3407 → 3408` is the one assertion added. The two failures are unchanged from the pre-existing
+baseline and belong to a concurrent session's untracked `tool-brief-v2*` and
+`zz-probe-focusable.spec.mjs` files; neither is in this packet's blast radius. `git diff --numstat`
+on `scripts/selftest.mjs` reports `20` insertions and `0` deletions, so no existing assertion was
+removed or weakened. No source module and no browser spec was edited this round, so the browser
+surface is byte-identical to the run already recorded above.
+
+## Two Premises Re-Measured, And Where They Landed
+
+The two remaining Uncertainty Declarations were re-measured independently rather than inherited.
+
+**The `AbsentFigure/v1` item.** Measured, `AbsentFigure/v1` is a *pack-authoring* contract —
+`rltaxrules.js` defines it as the `contractVersion` a pack member carries to declare itself
+unretrieved. It is an input shape, not a return shape. The engine's earliest-age path branches
+three ways: a member that is absent entirely returns `unretrievedRule(...)`, a member declaring
+itself absent reaches `absentFigureRefusal(...)`, and that helper's own code defaults to
+`RLTAX-THRESHOLD-UNAVAILABLE` unless the figure names a code of its own. So a pack lacking the
+figure cannot "yield an `AbsentFigure/v1`" in any shipped path — nothing in the engine returns that
+contract. Both halves of the *intent* remain evidenced and asserted; the item's wording names a
+return that does not exist. Correcting it is a change to a DoD item's behavioural claim, which is
+`bubbles.plan`'s to make, so the item stays open and unticked rather than being reworded here.
+
+**The `packContentSha256` item.** Re-measured and the earlier finding holds exactly:
+`lifetime-tax-strategy.config.json` pins `tax-rules/federal/2026.json`; the benefit pack carries no
+`contentSha256` at all and is reached by path through `rules.benefitPackPaths`. Editing the benefit
+pack therefore moves no pin, and the item's first half describes a mechanism the tool does not
+have. The second half — the route still reaching `ready` — holds and is evidenced. Same disposition:
+the wording belongs to `bubbles.plan`, so the item stays open.
+
+## Independent Verification Round — The Two Restated Rows
+
+Run by a party that wrote none of this packet. Every premise below was re-derived from the shipped
+artifacts rather than read out of the records above. Measured at `982a63641`, which is `origin/main`;
+`rltaxsocialsecurity.js` is blob `95beaaed14`, `tax-rules/benefit/2026.json` is blob `7e690813e7`.
+
+### The engine was driven directly, outside the selftest
+
+The two absence shapes were built and passed to `SS.applyClaimAgeAdjustment` by a harness that reads
+no test file, so the result does not inherit the assertion's own framing. A third case — the intact
+pack at the earliest priceable age — was run as a control, because two refusals prove nothing about
+discrimination unless something in the same harness settles.
+
+```
+--- member DELETED (claimAgeMonths=720) ---
+  contractVersion      = "TaxUnavailable/v1"
+  code                 = "RLTAX-THRESHOLD-UNAVAILABLE"
+  adjustedMonthlyBenefit key present = false
+  all top-level keys   = ["contractVersion","code","domain","reason","whatWouldMakeItAvailable"]
+  settled money-shaped numbers anywhere = []
+--- member DECLARED AbsentFigure/v1 (claimAgeMonths=744) ---
+  contractVersion      = "TaxUnavailable/v1"
+  code                 = "RLTAX-THRESHOLD-UNAVAILABLE"
+  adjustedMonthlyBenefit key present = false
+  all top-level keys   = ["contractVersion","code","domain","reason","whatWouldMakeItAvailable"]
+  settled money-shaped numbers anywhere = []
+--- CONTROL intact pack at earliest age (claimAgeMonths=744) ---
+  contractVersion      = "ClaimAgeAdjustment/v1"
+  code                 = undefined
+  adjustedMonthlyBenefit value       = 1826
+  settled money-shaped numbers anywhere = [ ... ,["adjustedMonthlyBenefit",1826],["adjustedAnnualBenefit",21912]]
+```
+
+Neither refusal carries `adjustedMonthlyBenefit` or `adjustedAnnualBenefit` as a key at all, so
+"settles no monthly and no annual amount" is satisfied by absence of the field rather than by a zero
+standing in for an amount. The control settles both.
+
+### The guard is load-bearing, proven by reverting mutation
+
+Two earlier attempts at this probe returned exit 7. Both are recorded because they are the reason
+the third is credible: a synthetic figure missing `maximumReductionMonths`, then one missing
+`yearInvarianceBasis`, were each stopped by a *different* refusal further down the same function, so
+the pack still declined to price and the mutation proved nothing. The engine refuses in layers, and
+only a synthetic figure admissible to all of them reaches the reduction arithmetic.
+
+```
+label:            BUG019-C-P1c deleted-member absence assumes an age instead of refusing
+mutation:         if (!isPlainObject(earliest)) return unretrievedRule("earlyReductionRule.earliestClaimAge", domain);
+                  ->  if (!isPlainObject(earliest)) earliest = { ageYears: 0, maximumReductionMonths: 600, ... };
+red-summary:      ROW_C_DIAG deleted code=undefined monthly=1565 annual=18780 reason=undefined
+green-summary:    ROW_C_DIAG deleted code=RLTAX-THRESHOLD-UNAVAILABLE monthly=undefined annual=undefined
+revert-verified:  yes (committed=95beaaed147e301bcf2cae7a858b1e0463cdc1c6 restored=95beaaed147e301bcf2cae7a858b1e0463cdc1c6)
+discriminating:   yes
+```
+
+Under mutation the pack prices `1565` monthly and `18780` annually with no `code` — the exact defect
+class this packet was filed for. That is the row's own stated adversarial case, reproduced.
+
+### The committed clause detects the same mutation
+
+The same mutation was then run against `node scripts/selftest.mjs`, scoped to the BUG-019 assertion
+alone so the two failures another session owns could not mask the verdict.
+
+```
+label:            BUG019-C-P2 committed selftest clause detects the absence fall-through
+command:          selftest, grepped for "FAIL: BUG-019: the benefit pack declares"
+red-exit:         1     red-summary:   CLAUSE_STATE=RED hits=1
+green-exit:       0     green-summary: CLAUSE_STATE=GREEN hits=0
+discriminating:   yes (exit 1 != 0)
+```
+
+### One finding the implementing rounds did not record
+
+The dedicated `rules.isAbsentFigure(earliest)` branch is **redundant** for this row's obligation.
+Disabling it leaves the declared-absent pack still refusing under the same code with nothing settled,
+because execution falls to the `!Number.isFinite(earliest.ageYears)` branch, which calls
+`unretrievedRule` and returns `RLTAX-THRESHOLD-UNAVAILABLE` as well. The strict probe returned exit 7
+— no discrimination — and only the refusal *reason* changed, from `the earliest claim age` to
+`the resolved benefit pack carries no retrieved value for earlyReductionRule.earliestClaimAge`.
+
+This does not falsify the row. Both absence shapes do refuse and do settle nothing, which is what the
+row asserts. It bounds what `absentBound019` proves: that clause tests the code alone, so it cannot
+see the removal of the branch that gives the declared-absent shape its specific message. The
+behaviour is protected; the message is not.
+
+### The route
+
+The lifetime-tax family was run on the bundled project at this commit.
+
+```
+npx --no-install playwright test tests/lifetime-tax*.spec.mjs --config=playwright.config.mjs --project=chromium --reporter=line
+specfiles=22
+PW_EXIT=0 wall=64s
+    111 passed (1.1m)
+```
+
+Twenty-one of the twenty-two files enter through `openLifetimeTax`, which asserts
+`data-rl-tax-state="ready"` before any case body runs. The row's claim of "every case" is one file
+too broad: `tests/lifetime-tax-read-bound.spec.mjs` opens the route itself, because it exists to
+observe `config-blocked` and the pre-`ready` states and could not do that behind a `ready` gate. The
+substance is unaffected — that file asserts terminal states directly.
+
+The `ready` gate was then shown to be sensitive rather than decorative. A malformed benefit-pack edit
+turns the family red:
+
+```
+label:            BUG019-D malformed benefit pack edit must stop the route reaching ready
+mutation:         "ageYears": 62,  ->  "ageYears": 62   (invalid JSON)
+red-exit:         1     red-summary:     1 passed (5.0s)
+green-exit:       0     green-summary:   6 passed (3.3s)
+revert-verified:  yes (committed=7e690813e707f3f0931b1fe8cd2cc276bdbb200b restored=7e690813e707f3f0931b1fe8cd2cc276bdbb200b)
+discriminating:   yes
+```
+
+### The pin
+
+`rules.packContentSha256` is `sha256:06681e37…`. It is compared at the single `RULES.resolveRulePack`
+call site against `pack.contentSha256` — the pack's own **declared** member — and not against a
+recomputed file digest. `tax-rules/federal/2026.json` declares exactly that value, so the row's
+wording is literally correct. Recomputing the file's raw sha256 yields `sha256:6b35ba61…`, which is a
+different measurement the resolver never performs; it is recorded here only so a later reader does
+not mistake the mismatch for a broken pin. The benefit pack declares no `contentSha256` key and never
+passes through that resolver. No delivery commit in this packet lists
+`lifetime-tax-strategy.config.json`; the only commit that ever touched it is `b9d92a3f1`, which
+predates the filing.
+
+### Verdict
+
+Both rows hold and are ticked by this round.
+

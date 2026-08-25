@@ -2,12 +2,13 @@
 
 **Status:** In Progress (delivered at `e28be5814` and `eeb2ac7cc`)
 
-Fifteen of eighteen Definition of Done items are ticked with executed evidence. The three that are
-not carry an Uncertainty Declaration in place of evidence; none of them is missing behaviour.
+All eighteen Definition of Done items are ticked with executed evidence. Two of them were once
+worded on a premise that measurement refuted; `bubbles.plan` rewrote both to the obligation that
+is true of what shipped, and they stayed unticked until an independent round verified them at
+`1cc3bd23b`, because a verifying round earns a tick, not the round that writes the wording.
 
 The packet was filed by a `bubbles.chaos` round, which is authorised to record findings and file
-bug artifacts and is not authorised to implement a fix. Every Definition of Done item below is
-open.
+bug artifacts and is not authorised to implement a fix.
 
 ## Sequencing Note
 
@@ -22,11 +23,11 @@ this packet reflects the care needed in the pack contract, not the size of the c
 
 ## Scope 1: Declare The Earliest Claim Age As A Sourced Pack Figure
 
-**Status:** In Progress (delivered; two Definition of Done items unticked)
+**Status:** In Progress (delivered; all five Definition of Done items ticked)
 
-The pack member ships and the engine reads it. The two unticked items are wording that does not
-match what shipped, not missing behaviour; both are routed to `bubbles.plan` in their own Evidence
-lines.
+The pack member ships and the engine reads it. Two of the five items were wording that did not
+match what shipped, not missing behaviour; `bubbles.plan` rewrote both so that each names the
+adversarial case under which it fails, and an independent round verified both at `1cc3bd23b`.
 
 ### Problem This Scope Resolves
 
@@ -84,25 +85,80 @@ Feature: The earliest priceable claim age is a declared pack figure
       locator. → Evidence: `node scripts/selftest.mjs` → `3405 passed, 0 failed`, exit 0. The
       BUG-019 assertion resolves `earliestClaimAge.sourceRef` against the pack's own `sourceRecords`
       and requires a non-empty `locator`; `report.md` § Implementation Round quotes the member.
-- [ ] A pack lacking the figure yields an `AbsentFigure/v1` rather than an assumed age. → Evidence:
-      **Uncertainty Declaration.** Both halves of the intent are evidenced — a pack with the member
-      deleted and a pack declaring it `AbsentFigure/v1` each refuse rather than assuming an age,
-      asserted by `node scripts/selftest.mjs` — but the delivered engine returns an
-      `RLTAX-THRESHOLD-UNAVAILABLE` refusal, not an `AbsentFigure/v1`, so the item as worded is not
-      what shipped. Routed to `bubbles.plan`: the wording describes a pack-authoring contract while
-      the check reads an engine return.
+- [x] A pack that has not retrieved the figure declares its absence and the engine refuses rather
+      than assuming an age: the earliest-age path returns a `TaxUnavailable/v1` record under
+      `RLTAX-THRESHOLD-UNAVAILABLE` and settles no monthly and no annual amount. Both absence
+      shapes a pack can carry take that path — the member deleted, and the member declared
+      `AbsentFigure/v1`. → Evidence: ticked by an independent verifying round that wrote none of
+      this packet; see `report.md` § Independent Verification Round — The Two Restated Rows. Both
+      shapes were driven straight into `SS.applyClaimAgeAdjustment` by a harness reading no test
+      file: each returned `contractVersion: "TaxUnavailable/v1"` with code
+      `RLTAX-THRESHOLD-UNAVAILABLE`, and neither record carries `adjustedMonthlyBenefit` or
+      `adjustedAnnualBenefit` as a key at all, so nothing is settled and no zero stands in for an
+      amount. A control on the intact pack settled `1826` and `21912`, so the refusals discriminate.
+      The guard is load-bearing: with the missing-member branch replaced by an admissible synthetic
+      figure the same pack prices `1565` monthly and `18780` annually with no `code`
+      (`red-green-probe`, exit 0, revert hash-verified). The committed clause detects that mutation
+      (`CLAUSE_STATE=RED hits=1` against `GREEN hits=0`, exit 1 against 0). The obligation is carried
+      by the
+      `unbounded019` and `absentBound019` clauses of the BUG-019 assertion in
+      `scripts/selftest.mjs`, which drive one pack with `earlyReductionRule.earliestClaimAge`
+      deleted and one declaring it absent, and require `RLTAX-THRESHOLD-UNAVAILABLE` from each.
+      **Adversarial case:** the row fails if the earliest-age guard is removed, or if its
+      unusable-figure branches fall through to the reduction arithmetic — both packs would then
+      price, carrying an `adjustedMonthlyBenefit` and no `code`, so `codeOf24` yields `null` and
+      the `/earliestClaimAge/` match on the refusal reason finds nothing to read.
+      **Corrected wording (`bubbles.plan`).** This item previously read "A pack lacking the figure
+      yields an `AbsentFigure/v1` rather than an assumed age", which named a return shape the
+      architecture does not produce. `AbsentFigure/v1` is the `contractVersion` a *pack member*
+      carries to declare itself unretrieved — an input shape. Re-measured here: the literal
+      `"AbsentFigure/v1"` appears on the right of an assignment in exactly one place in shipped
+      engine code, `rltaxrules.js` line 23, and that constant is read only by `isAbsentFigure` at
+      line 587 for identity testing. No shipped module constructs one; every other reference is
+      `rules.isAbsentFigure(...)` reading an input or `rules.absentFigureRefusal(...)` converting
+      one into a `TaxUnavailable/v1`. The intent — absence must refuse, never assume — is
+      unchanged and is what the wording above now states.
 - [x] No earliest-age literal exists in `rltaxsocialsecurity.js`, `rltaxclaimage.js` or
       `rltaxrules.js`. → Evidence: `node scripts/selftest.mjs` → `3405 passed, 0 failed`, exit 0.
       The `noLiteral019` clause reads all three modules and rejects `62 * 12`, an
       `earliestClaimAgeYears` assignment and the literal `744`. Independently confirmed by the
       Probe 3 block in `report.md`: editing only `tax-rules/benefit/2026.json` moves the boundary.
-- [ ] The pinned `packContentSha256` matches the edited pack and the route still reaches `ready`.
-      → Evidence: **Uncertainty Declaration.** The second half holds — the route reaches `ready`
-      and prices, evidenced by 97 passing browser cases. The first half rests on a premise that
-      does not: measured, `lifetime-tax-strategy.config.json`'s `rules.packContentSha256` pins the
-      **federal income tax** pack. The benefit pack carries no `contentSha256` and is referenced by
-      path through `rules.benefitPackPaths`, so editing it moves no pin. Routed to `bubbles.plan`;
-      recorded in `report.md` § What This Round Did Not Establish.
+- [x] The pack edit leaves the route admissible: the edited `tax-rules/benefit/2026.json` still
+      reads and the route still reaches `ready`, and `rules.packContentSha256` in
+      `lifetime-tax-strategy.config.json` is unchanged by this packet. → Evidence: ticked by an
+      independent verifying round; see `report.md` § Independent Verification Round — The Two
+      Restated Rows. The family was run at `origin/main` on the bundled project — 22 spec files,
+      `111 passed`, exit 0, 64s — and the `ready` gate was shown to be sensitive rather than
+      decorative: a malformed benefit-pack edit turns the family red (`red-green-probe`, exit 1
+      against 0, revert hash-verified). `rules.packContentSha256` is compared at the single
+      `RULES.resolveRulePack` call site against the federal pack's own **declared** `contentSha256`
+      member, which carries that same value, so the pin holds; the benefit pack declares no such key
+      and never reaches that resolver. No delivery commit in this packet lists
+      `lifetime-tax-strategy.config.json`. One correction: the claim below of "every case" is one
+      file too broad — `tests/lifetime-tax-read-bound.spec.mjs` opens the route itself so it can
+      observe `config-blocked` and the pre-`ready` states, which a `ready` gate would forbid. The
+      other twenty-one enter through
+      `openLifetimeTax` in `tests/lifetime-tax.support.mjs`, which asserts
+      `data-rl-tax-state="ready"` before any case body runs, so a pack edit that broke admission
+      would fail the whole family rather than one case; and `git show --name-only` on this
+      packet's delivery commits must not list `lifetime-tax-strategy.config.json`.
+      **Adversarial case:** the row fails if a malformed pack edit leaves the route at
+      `config-blocked` or `pack-blocked` so the `ready` attribute never appears, or if
+      `rules.packContentSha256` were edited to accommodate a pack change — which would silently
+      re-pin the federal pack to content no one verified.
+      **Corrected wording (`bubbles.plan`).** This item previously read "The pinned
+      `packContentSha256` matches the edited pack and the route still reaches `ready`", whose first
+      half was unperformable. Re-measured here: `rules.packContentSha256` is
+      `sha256:06681e37…` and equals the `contentSha256` of `tax-rules/federal/2026.json`, the pack
+      named by `rules.packPath`; that is the only pack the route admits through
+      `RULES.resolveRulePack` with an `expectedContentSha256`, the sole such call site in
+      `lifetime-tax-strategy-lab.html`. The benefit pack carries no `contentSha256` key at all, is
+      read by path from `rules.benefitPackPaths` straight into `state.benefitPack`, and never
+      passes through that resolver — so editing it moves no pin and there is no digest to match.
+      The surviving obligation is the protection the item was written to provide: the pack edit
+      must not cost the route its admission, and no digest may be edited to buy it back.
+      Implementation Plan step 4 above rests on the same false premise and is superseded by this
+      item.
 - [x] `node scripts/selftest.mjs` reports 0 failed and not below 3404. → Evidence:
       `self-test: 3405 passed, 0 failed`, exit 0. Verbatim in `report.md` § Validation Run.
 
@@ -110,10 +166,11 @@ Feature: The earliest priceable claim age is a declared pack figure
 
 ## Scope 2: Refuse A Claim Age Below The Declared Earliest Age
 
-**Status:** In Progress (delivered; one Definition of Done item unticked)
+**Status:** In Progress (delivered; all eight Definition of Done items ticked)
 
-The refusal ships and is asserted from both sides. The unticked item concerns the delayed-credit
-stopping-age disclosure, which exists but was not asserted by this round.
+The refusal ships and is asserted from both sides. The last item to close concerns the
+delayed-credit stopping-age disclosure, which the implementation round left unasserted and a
+later round asserted at `17dafde4f`.
 
 ### Problem This Scope Resolves
 
@@ -202,11 +259,18 @@ Feature: A claim age the pack cannot price is refused
       → Evidence: the refusing half asserts `#benefitNoProjectionLine` is empty, and the comparison
       case asserts the refused row does not contain `settled from your own declarations` while the
       priced row still does — so the sentence is proven absent AND still reachable.
-- [ ] A claim age beyond the delayed-credit stopping age is disclosed rather than silently clamped.
-      → Evidence: **Uncertainty Declaration.** The disclosure exists — the engine publishes
-      `creditBoundByStoppingAge` and a `claim-age-beyond-sourced-stopping-age` comparison, and the
-      route renders it — but this round executed no assertion against that rendering, so the item
-      is not evidenced. Not ticked.
+- [x] A claim age beyond the delayed-credit stopping age is disclosed rather than silently clamped.
+      → Evidence: the disclosure has three surfaces and two were already asserted before this
+      round — `creditBoundByStoppingAge` true past the stopping age and false at it, with a
+      non-empty `stoppingAgeStatedFact`, by TP-01-09 in `scripts/selftest.mjs`; and the rendered
+      line a household reads, by the `#benefitStoppingAgeLine` case at a claim age of 71 in
+      `tests/lifetime-tax-benefit.spec.mjs`. The third, the
+      `claim-age-beyond-sourced-stopping-age` comparison record, was matched by nothing and is now
+      asserted in both directions one year apart: present with `result === true` at 72, present
+      with `result === false` at 70, each naming the claim age and the sourced stopping age.
+      `node scripts/selftest.mjs` → `3408 passed`, `20` insertions and `0` deletions. Probe 6 in
+      `report.md` discriminates: renaming the comparison id turns the assertion red and the
+      hash-verified revert turns it green.
 - [x] The `tests/lifetime-tax-*.spec.mjs` family passes on `--project=chromium` with no assertion
       removed or weakened. → Evidence: `Running 97 tests using 6 workers` → `97 passed (18.1s)`,
       exit 0. `git --no-pager diff --numstat` on both edited spec files reports `108` insertions

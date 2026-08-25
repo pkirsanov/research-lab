@@ -30,19 +30,19 @@
   },
   "execution": {
     "activeAgent": null,
-    "currentPhase": "stabilize",
+    "currentPhase": "implement",
     "currentPhaseStatus": "complete",
     "phaseReconciliation": null,
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
     "runStartedAt": "2026-08-24T00:00:00Z",
     "completedAt": null,
-    "substate": "filed",
+    "substate": "implemented",
     "currentScope": null,
-    "nextRequiredOwner": "bubbles.plan, to answer both parts of the open question in design.md: where a read bound is declared given that validateConfig validates an exact key set per section, and what governs the read that fetches the configuration itself, since that read is issued by the same helper the bound would govern. Scope 1 cannot begin until both are recorded.",
-    "nextRequiredTarget": "specs/_bugs/BUG-021-pack-read-has-no-bound-so-the-route-waits-without-end/design.md",
-    "nextRequiredReason": "The defect is reproduced and the downstream failure handling is shown to be already complete for every stage, so the remedy is one rejection that today never happens. The bound that would produce it must be declared rather than embedded, and declaring it changes a validated contract. That is an owner decision rather than an implementer's edit.",
-    "phaseClaimNote": "currentPhase is 'stabilize' with substate 'filed'. A bubbles.stabilize round drove sixteen damage modes against the Lifetime Tax Strategy Lab route. Fifteen reached a terminal named state in about sixty milliseconds; the sixteenth, an origin that accepts a pack request and never responds, left the route at truthState Loading with no data-rl-tax-state attribute after twenty seconds. The round also established, with a household declared in the damaged jurisdiction, that an unreadable optional pack refuses by name and substitutes nothing. No shipped file was changed. Nothing is delivered and no Definition of Done item is ticked.",
+    "nextRequiredOwner": "bubbles.validate, to certify this packet. Both parts of the open question are answered in design.md, the route change landed at commit 084572757, and all fourteen Definition of Done items across both scopes are ticked against executed evidence recorded in report.md. No certification field was written by the implementing round.",
+    "nextRequiredTarget": "specs/_bugs/BUG-021-pack-read-has-no-bound-so-the-route-waits-without-end/state.json",
+    "nextRequiredReason": "The filed condition is driven again and reaches a terminal named state inside the declared bound, on both declaration strata; eight red-green probes show every new assertion failing under the mutation design.md names for it. What remains is the terminal status transition, which the implementing round does not own.",
+    "phaseClaimNote": "currentPhase is 'implement' with substate 'implemented'. The route change landed at commit 084572757 in an earlier round; this round added tests/lifetime-tax-read-bound.spec.mjs, six browser assertions driven against the filed condition rather than against a fast read, and eight red-green probes proving each of them fails under the adversarial mutation design.md names. Both declaration strata are exercised separately: five assertions drive a pack read that stratum 1 governs, and one withholds the configuration document itself, which only the stratum-0 module constant can bound. Validation: self-test 3409 passed 0 failed exit 0; validate-spec-test-paths new=0 stale=0 exit 0 on the run captured, with a later stale=1 caused by an untracked file from a concurrent session recorded in report.md; lifetime-tax browser family 111 passed exit 0 on --project=chromium. No certification field was written.",
     "executionHistory": [
       {
         "phase": "stabilize",
@@ -63,7 +63,21 @@
     "certifiedBy": null,
     "certifiedAt": null,
     "assuranceLevel": null,
-    "evidence": null
+    "evidence": null,
+    "scopeProgress": [
+      {
+        "scopeId": "01-bound-every-declared-document-read",
+        "status": "done",
+        "dodChecked": 8,
+        "dodUnchecked": 0
+      },
+      {
+        "scopeId": "02-pin-both-sides-of-the-bound",
+        "status": "done",
+        "dodChecked": 6,
+        "dodUnchecked": 0
+      }
+    ]
   },
   "policySnapshot": {
     "capturedAt": "2026-08-24T00:00:00Z",

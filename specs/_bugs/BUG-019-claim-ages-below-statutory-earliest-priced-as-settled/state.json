@@ -63,7 +63,27 @@
     "certifiedBy": null,
     "certifiedAt": null,
     "assuranceLevel": null,
-    "evidence": null
+    "evidence": null,
+    "scopeProgress": [
+      {
+        "scopeId": "01-declare-the-earliest-claim-age-as-a-sourced-pack-figure",
+        "status": "in_progress",
+        "dodChecked": 5,
+        "dodUnchecked": 0
+      },
+      {
+        "scopeId": "02-refuse-a-claim-age-below-the-declared-earliest-age",
+        "status": "in_progress",
+        "dodChecked": 8,
+        "dodUnchecked": 0
+      },
+      {
+        "scopeId": "03-cover-both-sides-of-the-boundary-so-it-cannot-move-quietly",
+        "status": "done",
+        "dodChecked": 5,
+        "dodUnchecked": 0
+      }
+    ]
   },
   "policySnapshot": {
     "capturedAt": "2026-08-23T00:00:00Z",

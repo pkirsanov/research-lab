@@ -486,3 +486,90 @@ wrong twice over — it summed **bytes** where the validator counts **characters
 `firstLoadPaths` from a working tree 153 commits stale, which listed seven paths including
 `brief-history.recent.jsonl`. The committed list holds six and excludes it; that artifact has
 its own separate 40,960 budget. The real figure is the validator's own: 189,479, PASS.
+
+## Observation Only — The Budget Still Passes, And Its Margin Is Eroding Fast (2026-08-24)
+
+This section ticks no Definition of Done item and changes no status. Scopes 1 and 2 record
+`Resolved upstream by Feature 026 (3872df354) — not delivered by this packet`, and their items
+are deliberately unticked for that reason. That is a coherent authorial choice, not drift, so
+it is left alone. What follows is a fresh measurement and one trend the packet cannot see from
+inside a single run.
+
+Measured on a clean `origin/main` worktree at `4001a8306`:
+
+```text
+Command: node scripts/validate-tool-experience.mjs
+Exit Code: 0
+[tool-experience] artifact=brief-history-recent       bytes=27748   budget=40960   result=PASS
+[tool-experience] artifact=brief-history-recent-rows  bytes=30      budget=30      result=PASS
+[tool-experience] artifact=brief-first-load           bytes=199803  budget=204800  result=PASS
+[tool-experience] OK adversarial=13 unexpectedAcceptances=0
+
+Command: node scripts/selftest.mjs
+Research-Lab self-test: 3409 passed, 0 failed
+Exit Code: 0
+```
+
+**The exit conditions hold.** FR-013-001 passes at 199,803 against 204,800. The recent artifact
+sits at 27,748 of 40,960 and its row bound is exactly at 30 of 30. The selftest is green at
+3,409, well above the 3,012 baseline recorded at `9af68427b`. Three commits this packet cites
+are all ancestors of `origin/main`: `831144596`, `3872df354`, `9af68427b`.
+
+**The trend is the finding, and it is not visible from one run.** The section directly above
+recorded 189,479 on 2026-08-22 against the same 204,800 budget. Two days later the same
+validator reads 199,803.
+
+| date | first-load bytes | budget | margin |
+|---|---|---|---|
+| 2026-08-22 | 189,479 | 204,800 | 15,321 |
+| 2026-08-24 | 199,803 | 204,800 | 4,997 |
+
+That is **+10,324 bytes in two days, consuming 67 percent of the remaining headroom**. The
+guard is doing its job and the budget is not breached. But a PASS at 97.6 percent of budget is
+a different operational fact from a PASS at 92.5 percent, and the difference between them
+accrued in forty-eight hours. Nothing here establishes the cause; the scheduled brief pipeline
+writes this surface several times a day, so growth is expected — the rate is what merits a look.
+
+**One stale annotation, corrected.** Scope 3 reads `delivered at 831144596 (working tree,
+uncommitted)`. That parenthetical no longer holds: `831144596` is an ancestor of `origin/main`.
+The scope status is left as the author wrote it, since correcting the delivery annotation is
+separable from this observation and belongs to whoever promotes the scope.
+
+### Where The 199,803 Bytes Actually Sit
+
+The erosion above is only actionable with a per-path breakdown, so the six `firstLoadPaths` in
+`scripts/validate-tool-experience.mjs:80` were read directly. The total reconciles to the
+validator's own figure exactly, which is what makes this the same quantity rather than a
+lookalike:
+
+```text
+Command: node -e '<read each firstLoadPaths entry, sum lengths>'   (clean origin/main, f2f482373)
+  104358   52.2%  market-brief.page.json
+   69890   35.0%  market-brief.snapshot.page.json
+   12203    6.1%  market-brief.scorecard.json
+    7970    4.0%  market-brief.config.page.json
+    3258    1.6%  market-brief.tools.page.json
+    2124    1.1%  watchlist.json
+  199803  100.0%  TOTAL — matches [tool-experience] brief-first-load exactly; margin 4997
+Exit Code: 0
+```
+
+**Two payloads carry 87.2 percent of the budget.** `market-brief.page.json` and
+`market-brief.snapshot.page.json` together are 174,248 of 199,803. The remaining four sum to
+25,555 — less than 13 percent — so no amount of trimming the small four can offset growth in
+the large two. Both large payloads are written by the scheduled brief pipeline, which is the
+same surface the erosion measurement points at. Any remedy that does not touch those two is
+working on 13 percent of the problem.
+
+This does not identify a cause and does not propose a remedy. It narrows where a remedy would
+have to act, which the byte total alone does not.
+
+### A Count Discrepancy, Recorded Not Fixed
+
+The Scope 2 Definition of Done item reads "measured directly from the seven `firstLoadPaths`".
+The array holds **six** entries, verified by reading lines 80 through 88 in full rather than by
+counting a truncated view. Either a seventh path was removed after the item was written, or the
+count was wrong when written. This observation cannot distinguish those, and the item belongs to
+a scope whose status says its work was resolved upstream, so the text is left exactly as the
+author wrote it. It is recorded because an item that names a wrong count cannot be discharged by
+measurement without someone first deciding which number is correct.

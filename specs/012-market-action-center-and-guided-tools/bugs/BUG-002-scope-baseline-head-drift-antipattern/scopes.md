@@ -34,7 +34,7 @@ scope of work.
 ---
 
 ## Scope 1: Repin the registry rollback baseline off moving `HEAD` (pure baseline-repin)
-**Status:** [ ] Not started | [ ] In progress | [ ] Done
+**Status:** Not Started
 **Class:** baseline-repin
 **Depends On:** design adoption (parent Feature 012 plan/design)
 
@@ -78,7 +78,7 @@ Feature: Registry rollback baseline is HEAD-independent
 ---
 
 ## Scope 2: Reconcile + repin the Scope 03 decorator legacy-canary (DESIGN-INTENT-GATED)
-**Status:** [ ] Not started | [ ] In progress | [ ] Done
+**Status:** Not Started
 **Class:** design-intent-gated
 **Depends On:** Scope 1 pattern + **OWNER design-intent confirmation** (BLOCKING GATE)
 

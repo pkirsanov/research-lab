@@ -52,7 +52,7 @@
       {
         "scopeId": "01-declare-owner-reload-budget",
         "scope": 1,
-        "status": "In Progress",
+        "status": "Done",
         "dependsOn": []
       }
     ],
@@ -83,13 +83,13 @@
     "certifiedAt": null,
     "completedScopes": [],
     "certifiedCompletedPhases": [],
-    "certificationFieldWriteNote": "Certification fields are validate-owned. This packet's state.json was authored and later reconciled under explicit operator instruction; the certification block is INITIALISED, not asserted. status mirrors the top-level status at in_progress, and completedScopes and certifiedCompletedPhases are deliberately empty because those are certification claims and remain bubbles.validate's to write.",
+    "certificationFieldWriteNote": "Certification fields are validate-owned. This packet's state.json was authored and later reconciled under explicit operator instruction; the certification block is INITIALISED, not asserted. status mirrors the top-level status at in_progress, and completedScopes and certifiedCompletedPhases are deliberately empty because those are certification claims and remain bubbles.validate's to write. scopeProgress below is DERIVED BOOKKEEPING and was reconciled on 2026-08-24 from 6 checked / 3 unchecked to 9 checked / 0 unchecked by counting the checkboxes in the scopes.md 'Definition of Done - 3-Part Validation' section; each of the three formerly-open items now carries executed evidence in place (the post-fix isolated run at ISO_EXIT=0, a selftest at 3064 passed / 0 failed / exit 0 taken in a clean detached worktree at 6ff62f62c, and the pinned 498-test enumeration reformulated to a falsifiable invariant at c5b1fb085). TWO STALE SURFACES ARE DELIBERATELY LEFT UNCHANGED AND ARE ROUTED RATHER THAN REWRITTEN: terminalTransitionBlockers entries 1-4 above, and report.md section 'Outstanding Verification', both still describe the superseded 6-of-9 position. They are the recorded rationale for a non-terminal status, so correcting them is a status judgement this reconciliation run had no authority to make.",
     "scopeProgress": [
       {
         "scopeId": "01-declare-owner-reload-budget",
-        "status": "In Progress",
-        "dodChecked": 6,
-        "dodUnchecked": 3
+        "status": "Done",
+        "dodChecked": 9,
+        "dodUnchecked": 0
       }
     ],
     "assurance": {

@@ -42,7 +42,7 @@
     "nextRequiredOwner": "owner of intraday-tape-lab / swing-structure-lab (the Feature 007 owner-publication surface, which introduced all three affected lines in commit a4b10dc5b)",
     "nextRequiredTarget": "specs/_bugs/BUG-015-owner-read-deep-links-emit-dead-t-parameter/design.md#open-questions-for-the-owner",
     "nextRequiredReason": "The packet is filed and unstarted. Scope 1 is a product decision that no evidence selects: refused, absent and out-of-catalog subjects currently collapse to silence, and what replaces that is a choice about how much a reader is told when a link did not do what its text implied. Open question 4 sits in front of it and may remove the receiving half entirely if these routes are not meant to be openable by link. Scope 2 is implementable once Scope 1 is answered, but both affected files were outside this run's authorisation, which permitted filing only. Gate G136 human acceptance is unestablished and cannot be supplied by automation, because this packet delivers no behaviour to exercise.",
-    "phaseClaimNote": "currentPhase is 'bug' with substate 'filed'. This run created seven artifacts under specs/_bugs/BUG-015-owner-read-deep-links-emit-dead-t-parameter/ and modified nothing else. It did not touch intraday-tape-lab.html, swing-structure-lab.html, rlticker.js, rldata.js, scripts/selftest.mjs, tests/technical-analysis-decision-lab.spec.mjs, any artifact under specs/027-company-scoped-owner-deep-links/, any lifetime-tax path (rltax*.js, lifetime-tax-*, tax-rules/, specs/021-024), or any specs/026-* artifact. No selftest assertion was added, deliberately: an assertion that fails on a known-open defect would turn the suite red. Zero Definition of Done items are ticked across both scopes and the cross-scope set. completedPhaseClaims records the bug phase as an execution claim only; certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write.",
+    "phaseClaimNote": "currentPhase is 'bug' with substate 'filed'. This run created seven artifacts under specs/_bugs/BUG-015-owner-read-deep-links-emit-dead-t-parameter/ and modified nothing else. It did not touch intraday-tape-lab.html, swing-structure-lab.html, rlticker.js, rldata.js, scripts/selftest.mjs, tests/technical-analysis-decision-lab.spec.mjs, any artifact under specs/027-company-scoped-owner-deep-links/, any lifetime-tax path (rltax*.js, lifetime-tax-*, tax-rules/, specs/021-024), or any specs/026-* artifact. No selftest assertion was added, deliberately: an assertion that fails on a known-open defect would turn the suite red. Zero Definition of Done items are ticked across both scopes and the cross-scope set. completedPhaseClaims records the bug phase as an execution claim only; certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write. SUPERSEDED IN PART on 2026-08-24: this note describes the FILING run and remains an accurate record of it, but its zero-ticked sentence has not described the packet since commits 7abfe8fbf and 1bd5be8d7 closed both scopes. Read scopes.md and certification.scopeProgress for the current position: 18 of 18 ticked.",
     "completedPhaseClaims": [
       {
         "phase": "bug",
@@ -57,18 +57,18 @@
       {
         "scopeId": "01-decide-what-a-route-does-with-a-subject-it-cannot-honour",
         "scope": 1,
-        "status": "Not Started",
+        "status": "Done",
         "dependsOn": [],
-        "resolvedBy": null
+        "resolvedBy": "7abfe8fbf"
       },
       {
         "scopeId": "02-make-the-published-link-live-in-both-directions",
         "scope": 2,
-        "status": "Not Started",
+        "status": "Done",
         "dependsOn": [
           "01-decide-what-a-route-does-with-a-subject-it-cannot-honour"
         ],
-        "resolvedBy": null
+        "resolvedBy": "7abfe8fbf"
       }
     ],
     "audit": null
@@ -133,7 +133,7 @@
       "uservalidation.md Automation Readiness, three items left unticked with reasons"
     ],
     "whyNotClosedHere": "The filing task explicitly forbade modifying intraday-tape-lab.html and swing-structure-lab.html and named filing as the deliverable. It also forbade adding a selftest assertion, because an assertion that fails on a known-open defect would turn a green suite red. Choosing the unhonourable-subject outcome inside a filing task would prejudge a product decision that the evidence does not select.",
-    "consequenceForStatus": "status is in_progress with certification.status equal to it. Both scopes are Not Started and zero Definition of Done items are ticked, which is the accurate representation of a filed, unstarted packet."
+    "consequenceForStatus": "status is in_progress with certification.status equal to it. This run reconciled derived bookkeeping ONLY and transitioned nothing. As of 2026-08-24 both scopes read Done in scopes.md with 18 of 18 Definition of Done items ticked and matching execution evidence in report.md, so the packet is terminal-eligible on its artifacts and is ROUTED to bubbles.validate for that judgement. It is not transitioned here, because certification is validate-owned."
   },
   "certification": {
     "status": "in_progress",
@@ -142,25 +142,25 @@
     "certifiedAt": null,
     "completedScopes": [],
     "certifiedCompletedPhases": [],
-    "certificationFieldWriteNote": "certification.status was set equal to the top-level status. It reads in_progress because the packet is filed and unstarted: two scopes Not Started, zero Definition of Done items ticked, the central product question unanswered. completedScopes is empty. certifiedCompletedPhases stays EMPTY: phase certification is bubbles.validate's to write, and no independent party re-derived any evidence in report.md.",
+    "certificationFieldWriteNote": "certification.status mirrors the top-level status and stays in_progress; NO certification is asserted here and completedScopes and certifiedCompletedPhases stay EMPTY, because certification is bubbles.validate's to write and no independent party has re-derived report.md. scopeProgress below is DERIVED BOOKKEEPING, not a certification claim, and it was reconciled on 2026-08-24 against the checkboxes in scopes.md. The prior text of this note asserted 'two scopes Not Started, zero Definition of Done items ticked, the central product question unanswered'. That was FALSE at the time it was read: commits 7abfe8fbf and 1bd5be8d7 closed both scopes, scopes.md carries 18 ticked and 0 unticked Definition of Done items across Scope 1 (5), Scope 2 (9) and the Cross-Scope block (4), and report.md carries the matching execution evidence under 'Scope 1 Execution', 'Scope 2 Execution' and 'Execution Closeout', including browser proof in both directions and red-green revert verification. The stale text is corrected rather than carried forward, because it was read as fact during spec 027's certification and produced a false claim in a certified report.",
     "scopeProgress": [
       {
         "scopeId": "01-decide-what-a-route-does-with-a-subject-it-cannot-honour",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 5
+        "status": "Done",
+        "dodChecked": 5,
+        "dodUnchecked": 0
       },
       {
         "scopeId": "02-make-the-published-link-live-in-both-directions",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 9
+        "status": "Done",
+        "dodChecked": 9,
+        "dodUnchecked": 0
       },
       {
         "scopeId": "cross-scope",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 4
+        "status": "Done",
+        "dodChecked": 4,
+        "dodUnchecked": 0
       }
     ]
   },

@@ -3,7 +3,7 @@
   "featureDir": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos",
   "featureName": "BUG-017 On macOS The System-Chrome Browser Project Intermittently Fails To Tear Down, Turning An All-Green Run Into A Non-Zero Exit",
   "createdAt": "2026-08-23T00:00:00Z",
-  "lastUpdatedAt": "2026-08-23T00:00:00Z",
+  "lastUpdatedAt": "2026-08-25T07:21:15Z",
   "certifiedAt": null,
   "status": "in_progress",
   "blockedReason": null,
@@ -30,19 +30,19 @@
   },
   "execution": {
     "activeAgent": null,
-    "currentPhase": "bug",
+    "currentPhase": "implement",
     "currentPhaseStatus": "complete",
     "phaseReconciliation": null,
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
     "runStartedAt": "2026-08-23T00:00:00Z",
     "completedAt": null,
-    "substate": "filed",
+    "substate": "implemented",
     "currentScope": null,
-    "nextRequiredOwner": "owner of the local browser-test toolchain — the remedy choice in design.md open question 1 is not agent-dischargeable",
-    "nextRequiredTarget": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/design.md#open-questions-for-the-owner",
-    "nextRequiredReason": "The packet is filed and unstarted. The root cause is NOT established: four candidate mechanisms are enumerated and the evidence distinguishes none of them. Scope 1 is diagnostic work requiring repeated runs and instrumentation this filing session did not perform. Scope 2 depends on Scope 1's selection. Scope 3 is correct only if Scope 1 concludes the cause is not removable in this repository. Whether diagnosis is worth its cost against simply defaulting the local loop to the bundled project is a judgement about developer time that no evidence settles. Gate G136 human acceptance is unestablished and cannot be supplied by automation, because this packet delivers no behaviour to exercise.",
-    "phaseClaimNote": "currentPhase is 'bug' with substate 'filed'. This run created seven artifacts under specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/ and modified nothing else. It executed Playwright five times for reproduction, directing all output to a temporary directory OUTSIDE the repository, and modified no test, no configuration file, no source file, no workflow and no pack. The tests executed were the twenty lifetime-tax spec files, which belong to this packet owner; no file belonging to a concurrent session was executed, read, edited or staged. No branch or remote was pushed, merged, rebased or moved. Zero Definition of Done items are ticked across all three scopes and the cross-scope set. completedPhaseClaims records the bug phase as an execution claim only; certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write.",
+    "nextRequiredOwner": "the human operator for the uservalidation.md Human Acceptance Record, and an independent validating party for the bug.md Verified transition — neither is dischargeable by the round that wrote the change",
+    "nextRequiredTarget": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/uservalidation.md#human-acceptance-record",
+    "nextRequiredReason": "Scopes 1, 2 and 3 are executed and twenty of twenty-two Definition of Done items are ticked with inline evidence. The two still open are not an implementing round's to close. The cross-scope item asserts bug.md moves 'from Confirmed to Fixed and then Verified'; it is half satisfied, because bug.md already reads 'Fixed — awaiting independent verification', and the Verified half requires a party that did not write the fix. The Human Acceptance Record requires the human operator, and filling it from automation would be the agent granting itself acceptance. The root cause remains narrowed rather than established, and is now recorded as not removable in this repository: the force-kill is emitted by node_modules/playwright/lib/runner/index.js against the operator's installed Chrome, so the workers pin bounds exposure rather than removing the defect.",
+    "phaseClaimNote": "currentPhase is 'implement' with substate 'implemented'. This round took Scope 3, reversing the earlier declination on the grounds recorded in report.md '## Scope 3 Execution — Disclosure Written'. It modified five files: playwright.config.mjs (comment only — the resolved workers value, testMatch and both project definitions were re-verified unchanged by importing the config), .specify/memory/agents.md (a disclosure note above the first Playwright command), and this packet's own scopes.md, report.md and state.json. It executed Playwright three times against the twenty-two tests/lifetime-tax*.spec.mjs files, writing all output to a temporary directory OUTSIDE the repository, and reproduced the defect independently at six workers: 111 passed, exit 1, 343 seconds wall, four force-killed workers. No test, workflow, pack or scripts/selftest.mjs line was modified, no file belonging to a concurrent session was touched, and no branch or remote was pushed, merged, rebased or moved. scopeInventory statuses for scopes 1 and 2 were corrected from 'Not Started' to 'Done' so the record stops contradicting their already-ticked Definition of Done items and the committed workers pin; that execution belongs to the earlier round, not to this one. completedPhaseClaims records implement as an execution claim only; certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write.",
     "completedPhaseClaims": [
       {
         "phase": "bug",
@@ -50,6 +50,15 @@
         "claimedAt": "2026-08-23T00:00:00Z",
         "evidenceRef": "report.md#test-evidence",
         "scopes": []
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-08-25T07:21:15Z",
+        "evidenceRef": "report.md#scope-3-execution--disclosure-written",
+        "scopes": [
+          "03-disclose-it-where-a-developer-meets-it"
+        ]
       }
     ],
     "pendingTransitionRequests": [],
@@ -57,14 +66,14 @@
       {
         "scopeId": "01-characterise-the-stall-well-enough-to-choose",
         "scope": 1,
-        "status": "Not Started",
+        "status": "Done",
         "dependsOn": [],
         "resolvedBy": null
       },
       {
         "scopeId": "02-apply-the-selected-remedy",
         "scope": 2,
-        "status": "Not Started",
+        "status": "Done",
         "dependsOn": [
           "01-characterise-the-stall-well-enough-to-choose"
         ],
@@ -73,7 +82,7 @@
       {
         "scopeId": "03-disclose-it-where-a-developer-meets-it",
         "scope": 3,
-        "status": "Not Started",
+        "status": "Done",
         "dependsOn": [
           "01-characterise-the-stall-well-enough-to-choose"
         ],
@@ -214,27 +223,27 @@
     "scopeProgress": [
       {
         "scopeId": "01-characterise-the-stall-well-enough-to-choose",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 7
+        "status": "done",
+        "dodChecked": 7,
+        "dodUnchecked": 0
       },
       {
         "scopeId": "02-apply-the-selected-remedy",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 7
+        "status": "done",
+        "dodChecked": 7,
+        "dodUnchecked": 0
       },
       {
         "scopeId": "03-disclose-it-where-a-developer-meets-it",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 4
+        "status": "done",
+        "dodChecked": 4,
+        "dodUnchecked": 0
       },
       {
         "scopeId": "cross-scope",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 4
+        "status": "in_progress",
+        "dodChecked": 3,
+        "dodUnchecked": 1
       }
     ]
   },
@@ -276,6 +285,13 @@
       "phase": "bug",
       "action": "filed",
       "note": "Reproduced the defect rather than recording it on report. Five Playwright runs in one session with the browser project as the only variable: the bundled chromium project ran 94 tests in 18.2s exiting 0, while the system-chrome project ran the identical set twice — once in 77 seconds exiting 0, and once in 342 seconds with 'Error: worker-3 process did not exit within 300000ms after stop, force-killed it' and exit 1, every test passing in all three. All output was written outside the repository and nothing was modified. Filed SEPARATELY from BUG-016 and explicitly not merged with it: pipeline run 32651572136 accounts for all 708 of its tests as passes or failures, so no teardown loss occurred there and this defect cannot explain that red gate. Three reported characteristics were not reproduced and are recorded as such: three to six force-killed workers (exactly one, worker-3, was observed), an 88-test suite (94 were run), and the CDP --remote-debugging-pipe attribution (no handle trace taken here, recorded as a candidate only). Two findings go beyond the report: the slowdown is standing at roughly four to one even on a clean exit-0 run, and the condition is absent at one worker, which is why a single-spec reproduction attempt does not find it."
+    },
+    {
+      "at": "2026-08-25T07:21:15Z",
+      "agent": "bubbles.implement",
+      "phase": "implement",
+      "action": "scope-3-taken",
+      "note": "Took Scope 3 and ticked its four Definition of Done items, reversing the earlier declination. The earlier round declined on the scope's adversarial scenario while conceding in writing that the scope's own first item — the cause is not removable in this repository — was true, and while writing a disclosure comment into playwright.config.mjs anyway. The reversal rests on the distinction that concession already drew: a remedy for the EXPOSURE was available and was taken in Scope 2, and the CAUSE is not removable here, so a disclosure added afterwards is additive rather than a substitute for a fix. Ownership of the cause was verified rather than assumed: 'did not exit within' is emitted only by node_modules/playwright/lib/runner/index.js and by no repository source, and the other end of the transport is the operator's installed Google Chrome 151.0.7922.174, which this repository neither vendors nor versions. The defect was reproduced independently at six workers over the twenty-two tests/lifetime-tax*.spec.mjs files: 111 passed, exit 1, 343 seconds, four force-killed workers, against exit 0 in 81 seconds at the configured two workers. That reproduction corrects the bug.md record that only one worker had been force-killed and that a higher count 'was not observed here'; four were. The disclosure was placed beside the workers line in playwright.config.mjs, which is named by all eighteen documented invocations of the suite and by none that omit it, and echoed above the first run command in .specify/memory/agents.md. README.md was not used because it is the managed architecture and development document. The two remaining Definition of Done items were deliberately left open: bug.md is not advanced to Verified because this round did not independently verify anything it wrote, and the Human Acceptance Record awaits the human operator."
     }
   ]
 }

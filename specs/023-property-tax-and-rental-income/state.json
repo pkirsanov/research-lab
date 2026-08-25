@@ -44,14 +44,14 @@
             {
                 "scope": 1,
                 "scopeId": "01-property-assessment-mechanics",
-                "status": "not_started",
+                "status": "in_progress",
                 "foundation": true,
                 "dependsOn": []
             },
             {
                 "scope": 2,
                 "scopeId": "02-primary-residence-federal-interaction",
-                "status": "not_started",
+                "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
                     1
@@ -60,7 +60,7 @@
             {
                 "scope": 3,
                 "scopeId": "03-long-term-rental",
-                "status": "not_started",
+                "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
                     1,
@@ -70,7 +70,7 @@
             {
                 "scope": 4,
                 "scopeId": "04-short-term-and-vacation-rental",
-                "status": "not_started",
+                "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
                     1,
@@ -81,7 +81,7 @@
             {
                 "scope": 5,
                 "scopeId": "05-disposition",
-                "status": "not_started",
+                "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
                     1,
@@ -116,7 +116,38 @@
         "certifiedAt": null,
         "completedScopes": [],
         "certifiedCompletedPhases": [],
-        "scopeProgress": [],
+        "scopeProgress": [
+            {
+                "scopeId": "01-property-assessment-mechanics",
+                "status": "in_progress",
+                "dodChecked": 18,
+                "dodUnchecked": 1
+            },
+            {
+                "scopeId": "02-primary-residence-federal-interaction",
+                "status": "in_progress",
+                "dodChecked": 18,
+                "dodUnchecked": 0
+            },
+            {
+                "scopeId": "03-long-term-rental",
+                "status": "in_progress",
+                "dodChecked": 19,
+                "dodUnchecked": 0
+            },
+            {
+                "scopeId": "04-short-term-and-vacation-rental",
+                "status": "in_progress",
+                "dodChecked": 20,
+                "dodUnchecked": 0
+            },
+            {
+                "scopeId": "05-disposition",
+                "status": "in_progress",
+                "dodChecked": 20,
+                "dodUnchecked": 0
+            }
+        ],
         "lockdownState": {
             "active": false,
             "lockedScenarioIds": []

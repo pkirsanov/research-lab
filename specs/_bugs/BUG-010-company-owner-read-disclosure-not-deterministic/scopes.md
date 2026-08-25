@@ -344,7 +344,7 @@ Feature: The disclosure is produced deterministically, not authored per window
 
 ## Scope 3: Repair The Committed Window, With The Assertion Intact
 
-**Status:** In Progress — 6 of 6 discharged; awaiting the state-transition guard to promote
+**Status:** In Progress (6-of-6-discharged; awaiting the state-transition guard to promote)
 **Depends On:** Scope 1, Scope 2
 
 **Owner surface:** `market-brief.payload.json`

@@ -60,7 +60,7 @@
             {
                 "scope": 3,
                 "scopeId": "03-effective-marginal-rate-curve",
-                "status": "not_started",
+                "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
                     1,
@@ -70,7 +70,7 @@
             {
                 "scope": 4,
                 "scopeId": "04-bracket-fill-roth-conversion-comparison",
-                "status": "not_started",
+                "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
                     1,
@@ -81,7 +81,7 @@
             {
                 "scope": 5,
                 "scopeId": "05-simple-power-route-accessibility-and-local-export",
-                "status": "not_started",
+                "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
                     1,
@@ -103,7 +103,38 @@
         "certifiedAt": null,
         "completedScopes": [],
         "certifiedCompletedPhases": [],
-        "scopeProgress": [],
+        "scopeProgress": [
+            {
+                "scopeId": "01-tax-workspace-rule-pack-and-privacy-foundation",
+                "status": "in_progress",
+                "dodChecked": 15,
+                "dodUnchecked": 0
+            },
+            {
+                "scopeId": "02-deterministic-annual-federal-tax",
+                "status": "in_progress",
+                "dodChecked": 11,
+                "dodUnchecked": 0
+            },
+            {
+                "scopeId": "03-effective-marginal-rate-curve",
+                "status": "in_progress",
+                "dodChecked": 12,
+                "dodUnchecked": 0
+            },
+            {
+                "scopeId": "04-bracket-fill-roth-conversion-comparison",
+                "status": "in_progress",
+                "dodChecked": 13,
+                "dodUnchecked": 1
+            },
+            {
+                "scopeId": "05-simple-power-route-accessibility-and-local-export",
+                "status": "in_progress",
+                "dodChecked": 14,
+                "dodUnchecked": 0
+            }
+        ],
         "lockdownState": {
             "active": false,
             "lockedScenarioIds": []

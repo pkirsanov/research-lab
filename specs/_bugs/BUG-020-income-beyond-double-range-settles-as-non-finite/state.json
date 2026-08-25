@@ -30,19 +30,19 @@
   },
   "execution": {
     "activeAgent": null,
-    "currentPhase": "stabilize",
+    "currentPhase": "implement",
     "currentPhaseStatus": "complete",
     "phaseReconciliation": null,
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
     "runStartedAt": "2026-08-24T00:00:00Z",
     "completedAt": null,
-    "substate": "filed",
-    "currentScope": null,
-    "nextRequiredOwner": "bubbles.plan, to answer the single open question in design.md: which refusal code names a figure outside the representable range. The vocabulary is closed at fourteen members and scripts/selftest.mjs assertion TP-01-05 asserts that every live member is one of the twelve Feature 021 members or one of the two Feature 022 members, so adding a fifteenth is a deliberate vocabulary change and reusing an existing one contradicts a distinction the vocabulary was given on purpose. Scope 1 cannot begin until that decision is recorded.",
+    "substate": "implemented",
+    "currentScope": "01-refuse-a-non-finite-figure-at-the-display-seam",
+    "nextRequiredOwner": "bubbles.design, to resolve the one open Definition of Done row in Scope 1. Thirteen of the fourteen rows are earned. The last asks for a red-green probe proving each new assertion fails when the guard is removed, and TB-020-03 has no single guard. A later round widened the enumeration and corrected its layer count from three to four: E1 the arithmetic origin, E2 the CO-1 assembly, E3 the display seam and R2 the raw-stringification fallback each sit on this assertion's path, and each was removed alone and returned exit 7. E2 and E3 each carry a live-mutation control on the identical literal, TB-020-01 and TB-020-04 respectively, both exit 0, so the exit 7 is assertion blindness rather than an inert mutation. E4 was removed alone as well and is recorded as uninformative, because the acceptance fixture declares no disposition and nothing in the acceptance set exercises it. P6d shows the assertion is over-determined rather than vacuous by neutralising every finiteness guard in rltax.js at once, which does make it fail. Closing the row honestly needs either a harness that composes mutations or a design amendment naming the true adversarial case for an over-determined assertion.",
     "nextRequiredTarget": "specs/_bugs/BUG-020-income-beyond-double-range-settles-as-non-finite/design.md",
-    "nextRequiredReason": "The defect is reproduced, its boundary is measured from both sides, its persistence across a reload is observed and its reach into the exported file is measured and found absent. The remedy is one line at a seam that already carries the refusal idiom, but it needs a refusal code, and choosing one is a contract decision rather than an implementer's edit. This round recorded the options and took neither.",
-    "phaseClaimNote": "currentPhase is 'stabilize' with substate 'filed'. A bubbles.stabilize round against the Lifetime Tax Strategy Lab route reproduced this defect in the browser, measured the trigger boundary at two fields of 9e307 versus 8.9e307, identified the six affected stage rows and the enacted-current-law standing they carry, confirmed the condition survives a reload, and confirmed the exported private file is unaffected. No shipped file was changed. Nothing is delivered and no Definition of Done item is ticked.",
+    "nextRequiredReason": "design.md already specifies a TWO-mutation adversarial case for TB-020-03, in two different files, while scripts/red-green-probe.sh applies one literal replacement to one file. The row and the design disagree about what is provable, and reconciling them is a design decision rather than an implementer's edit. The latest round widened the enumeration to every guard the remedy added, corrected the recorded layer count from three to four, and added a second live-mutation control; it took no position on which way the disagreement should be resolved and changed no assertion.",
+    "phaseClaimNote": "currentPhase is 'implement' with substate 'implemented'. The guards shipped and thirteen of fourteen Definition of Done rows are ticked against executed evidence in report.md. A later round added probes P6g, P6h and P6i and corrected the recorded layer count for TB-020-03 from three to four: E2, the CO-1 assembly guard the reported infinity row came from, had never been removed on its own, and neither had E4. P6g removes E2 alone, exit 7; P6h runs the identical literal against TB-020-01, exit 0, proving the mutation is live and detectable; P6i removes E4 alone, exit 7, and is recorded as uninformative because the acceptance fixture declares no disposition. The earlier three-layer sentence is left standing in report.md and corrected alongside rather than rewritten. A further round re-derived the whole set as a closed enumeration at one head: probes Q1 to Q11 cover every assertion this packet added plus the extended TP-01-05, ten discriminate at exit 0, and Q6 removes the R2 'no figure' guard the open row names, by deletion rather than the if (false) neutralisation earlier rounds used, and returns exit 7. The one open row is still open, still on TB-020-03, and no assertion was weakened, deleted or rewritten. No certification field was written.",
     "executionHistory": [
       {
         "phase": "stabilize",
@@ -63,7 +63,21 @@
     "certifiedBy": null,
     "certifiedAt": null,
     "assuranceLevel": null,
-    "evidence": null
+    "evidence": null,
+    "scopeProgress": [
+      {
+        "scopeId": "01-refuse-a-non-finite-figure-at-the-display-seam",
+        "status": "in_progress",
+        "dodChecked": 7,
+        "dodUnchecked": 1
+      },
+      {
+        "scopeId": "02-pin-the-boundary-from-both-sides",
+        "status": "done",
+        "dodChecked": 6,
+        "dodUnchecked": 0
+      }
+    ]
   },
   "policySnapshot": {
     "capturedAt": "2026-08-24T00:00:00Z",

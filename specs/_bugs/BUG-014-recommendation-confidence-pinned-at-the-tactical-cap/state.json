@@ -105,18 +105,18 @@
       "03-bound-the-hidden-detail-and-name-the-narrative-keys"
     ],
     "certifiedCompletedPhases": [],
-    "certificationFieldWriteNote": "certification.status mirrors the top-level status. completedScopes mirrors SCOPE status and is populated because both scopes are Done on executed evidence; an earlier revision left it empty after conflating it with certifiedCompletedPhases, which is a different claim. certifiedCompletedPhases stays EMPTY: phase certification is bubbles.validate's to write, and no independent party re-derived the measurements in report.md.",
+    "certificationFieldWriteNote": "certification.status mirrors the top-level status. completedScopes mirrors SCOPE status and is populated because both scopes are Done on executed evidence; an earlier revision left it empty after conflating it with certifiedCompletedPhases, which is a different claim. certifiedCompletedPhases stays EMPTY: phase certification is bubbles.validate's to write, and no independent party re-derived the measurements in report.md. RECONCILED on 2026-08-24: the dodChecked figures were stale low, 10 and 4 against actual 14 and 9, because items were appended to the Scope 1 and Scope 2 Definition of Done sections after this block was last written. Every figure below is now derived by counting the checkboxes in that scope's own Definition of Done section: Scope 1 has 14, Scope 2 has 9, Scope 3 has 7, and all 30 are ticked with none unticked. No status was changed and no certification is claimed.",
     "scopeProgress": [
       {
         "scopeId": "01-tell-both-authoring-lanes-how-to-choose-a-confidence",
         "status": "Done",
-        "dodChecked": 10,
+        "dodChecked": 14,
         "dodUnchecked": 0
       },
       {
         "scopeId": "02-adjudicate-the-cap-to-floor-collision",
         "status": "Done",
-        "dodChecked": 4,
+        "dodChecked": 9,
         "dodUnchecked": 0
       },
       {

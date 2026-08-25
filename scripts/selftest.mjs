@@ -20192,6 +20192,26 @@ try {
     && noLiteral019,
   'BUG-019: the benefit pack declares the earliest priceable claim age with a resolving sourceRef and a locator, the earliest age itself still prices sixty counted months, one month below it refuses under the declared bound rather than being clamped, the clamping implementation is proven to answer with the earliest age\u2019s own figure instead, a pack missing the figure and a pack declaring it absent both refuse rather than pricing, and no module carries an earliest age of its own');
 
+  /* BUG-019. The delayed bound, disclosed rather than silently applied. `creditBoundByStoppingAge`
+     and the rendered stopping-age line were already asserted; the comparison record that carries
+     the bound into the machine-readable audit trail was not. Without it a reader sees only a
+     figure that stopped moving and must infer why — which is exactly the silent clamp this packet
+     exists to rule out. It is asserted in BOTH directions one year apart, because a record
+     published only when the bound bites cannot distinguish `the bound applied` from `the engine
+     never compared at all`. */
+  const stoppingMonths019 = benefitPack24.delayedCreditRule.stoppingAgeYears * 12;
+  const stoppingRecord019 = (adjustment) => adjustment.comparisonsPerformed
+    .filter((c) => c.comparisonId === 'claim-age-beyond-sourced-stopping-age')[0] || null;
+  const boundRecord019 = stoppingRecord019(beyond70_24);
+  const unboundRecord019 = stoppingRecord019(at70_24);
+  assert(boundRecord019 !== null && unboundRecord019 !== null
+    && boundRecord019.result === true && unboundRecord019.result === false
+    && boundRecord019.operator === 'greater-than' && unboundRecord019.operator === 'greater-than'
+    && boundRecord019.left === 72 * 12 && unboundRecord019.left === 70 * 12
+    && boundRecord019.right === stoppingMonths019 && unboundRecord019.right === stoppingMonths019
+    && stoppingMonths019 === 70 * 12,
+  'BUG-019: a claim age beyond the sourced delayed-credit stopping age publishes a claim-age-beyond-sourced-stopping-age comparison record naming the claim age, the sourced stopping age and a true result, and a claim age at the stopping age publishes the same record with a false result — so the bound is disclosed as a comparison that was performed rather than inferred from a figure that stopped moving');
+
   /* TP-01-11 SOURCING. Every value-bearing member of the shipped pack resolves to exactly one
      retrieved source with a locator and a retrievedAt, every member from an undated or
      differently dated edition carries a quoted yearInvarianceBasis, and every unretrieved member
@@ -28786,14 +28806,163 @@ try {
     + wIdMarkers.length + ' anchors, missing: ' + (wMissingIds.join(', ') || 'none')
     + ' — a missing anchor is precisely what turns a browser assertion into a 30s locator timeout');
 
+  /* The route writes no literal data-rl-value attribute at all: every one is set at runtime by a
+     single `figure.setAttribute("data-rl-value", fieldId)`, so a marker reaches the DOM only by
+     being passed as the field-id argument of that emitter or of a wrapper that forwards its own
+     parameter into it. Asking instead whether the name occurs *anywhere* in the route could not
+     tell the emitting call apart from the SIMPLE_FIELDS membership list, which names three of the
+     six markers a second time — so renaming the emitting call alone left W4 green on a route that
+     rendered nothing under that name (a probe reproduced exactly that on combinedFederalLeg, the
+     marker FR-016-004 cites). Emitter and forwarders are DERIVED from the route, so renaming
+     either fails here rather than quietly widening what counts as wired. */
+  const wCallArgs = (src, open) => {
+    let i = open, depth = 0;
+    for (; i < src.length; i++) {
+      const ch = src[i];
+      if (ch === '(') depth++;
+      else if (ch === ')') { depth--; if (depth === 0) break; }
+    }
+    return src.slice(open + 1, i);
+  };
+  /* Top-level comma split, so a nested call or a comma inside a tooltip cannot shift arg indices. */
+  const wSplitArgs = (s) => {
+    const out = []; let depth = 0, quote = null, cur = '';
+    for (let i = 0; i < s.length; i++) {
+      const ch = s[i];
+      if (quote) { cur += ch; if (ch === '\\') cur += s[++i] || ''; else if (ch === quote) quote = null; continue; }
+      if (ch === '"' || ch === "'") { quote = ch; cur += ch; continue; }
+      if (ch === '(' || ch === '[' || ch === '{') depth++;
+      if (ch === ')' || ch === ']' || ch === '}') depth--;
+      if (ch === ',' && depth === 0) { out.push(cur.trim()); cur = ''; continue; }
+      cur += ch;
+    }
+    out.push(cur.trim());
+    return out;
+  };
+  /* ES5-style declarations only (no default or destructured parameters), which the route is. */
+  const wFnAt = (src, name) => {
+    const sig = new RegExp('function\\s+' + name + '\\s*\\(').exec(src);
+    if (!sig) return null;
+    const paramOpen = src.indexOf('(', sig.index);
+    const paramClose = src.indexOf(')', paramOpen);
+    const params = src.slice(paramOpen + 1, paramClose).split(',').map((p) => p.trim()).filter(Boolean);
+    let i = src.indexOf('{', paramClose), depth = 0;
+    const bodyStart = i;
+    for (; i < src.length; i++) {
+      const ch = src[i];
+      if (ch === '{') depth++;
+      else if (ch === '}') { depth--; if (depth === 0) { i++; break; } }
+    }
+    return { params, body: src.slice(bodyStart, i) };
+  };
+
+  const wLiteralValueAttrs = (wRouteSrc.match(/data-rl-value="/g) || []).length;
+  const wEmitSites = wRouteSrc.match(/setAttribute\(\s*"data-rl-value"\s*,\s*[A-Za-z_$][\w$]*\s*\)/g) || [];
+  const wEmitIndex = wRouteSrc.search(/setAttribute\(\s*"data-rl-value"\s*,\s*[A-Za-z_$][\w$]*\s*\)/);
+  const wPreceding = wEmitIndex < 0 ? [] : Array.from(wRouteSrc.slice(0, wEmitIndex)
+    .matchAll(/function\s+([A-Za-z_$][\w$]*)\s*\(/g));
+  const wEmitter = wPreceding.length ? wPreceding[wPreceding.length - 1][1] : null;
+  /* A carrier is the emitter itself plus any function that hands one of its own parameters
+     straight to the emitter; the recorded index is the argument position that becomes the id. */
+  const wCarriers = wEmitter ? [[wEmitter, 0]] : [];
+  if (wEmitter) {
+    const wDeclared = Array.from(new Set(Array.from(wRouteSrc.matchAll(/function\s+([A-Za-z_$][\w$]*)\s*\(/g))
+      .map((m) => m[1])));
+    for (const name of wDeclared) {
+      if (name === wEmitter) continue;
+      const fn = wFnAt(wRouteSrc, name);
+      if (!fn) continue;
+      const forwarded = fn.params.findIndex((p) => new RegExp('\\b' + wEmitter + '\\s*\\(\\s*' + p + '\\b').test(fn.body));
+      if (forwarded >= 0) wCarriers.push([name, forwarded]);
+    }
+  }
+  const wEmittedNames = new Set();
+  for (const [name, index] of wCarriers) {
+    const calls = new RegExp('\\b' + name + '\\s*\\(', 'g');
+    let call;
+    while ((call = calls.exec(wRouteSrc))) {
+      const arg = wSplitArgs(wCallArgs(wRouteSrc, call.index + call[0].length - 1))[index];
+      if (arg && /^"[^"]*"$/.test(arg)) wEmittedNames.add(arg.slice(1, -1));
+    }
+  }
+
   const wValueMarkers = Array.from(new Set((wSpecSrc.match(/data-rl-value="combined[A-Za-z0-9_-]*"/g) || [])
     .map((m) => m.slice('data-rl-value="'.length, -1)))).sort();
-  const wMissingValues = wValueMarkers.filter((v) => wRouteSrc.indexOf('"' + v + '"') < 0);
-  assert(wMissingValues.length === 0 && wValueMarkers.length >= 5,
-    'W4: every combined data-rl-value name ' + wSpecPath + ' locates appears in the route — '
-    + wValueMarkers.length + ' names, missing: ' + (wMissingValues.join(', ') || 'none')
-    + ' — the route script emits these nodes, so a name it never mentions means the combined'
-    + ' settlement is not rendered at all, not merely mislabelled');
+  const wMissingValues = wValueMarkers.filter((v) => !wEmittedNames.has(v));
+  assert(wMissingValues.length === 0 && wValueMarkers.length >= 5
+    && wLiteralValueAttrs === 0 && wEmitSites.length === 1 && wCarriers.length >= 2,
+    'W4: every combined data-rl-value name ' + wSpecPath + ' locates is passed as the field id of a'
+    + ' call that actually emits the attribute — ' + wValueMarkers.length + ' names, emitted via '
+    + wCarriers.map((c) => c[0] + '(arg ' + c[1] + ')').join(', ') + ', missing: '
+    + (wMissingValues.join(', ') || 'none')
+    + ' — the attribute is never written literally (' + wLiteralValueAttrs + ' literal attributes, '
+    + wEmitSites.length + ' dynamic emit site), so a name the route still mentions in a membership'
+    + ' list but no longer passes to an emitting call renders nothing at all, which is why merely'
+    + ' occurring somewhere in the file is not evidence that the value is on the page');
+
+  /* Reaching an emitting call is necessary but not sufficient. One carrier is GATED: it tests its
+     own forwarded parameter against a membership array and, on a miss, returns prose instead of
+     ever calling the emitter — so the attribute is never written and the value never appears.
+     W4 reads call sites alone, so deleting a name from that array while leaving the emitting call
+     untouched broke rendering and left W4 byte-identically green (probe: exit 7, no
+     discrimination). That is the BUG-016 failure mode one layer in: the route stops rendering a
+     value while the guard agrees with the damage. Kept separate from W4 rather than folded into
+     it because the cause and the fix differ — W4 fails when the emitting CALL is renamed or
+     dropped and is answered at the call site; this fails when the ADMISSION LIST diverges from the
+     call sites and is answered in the list — and because its domain is every gated call in the
+     route, not only the names one browser spec happens to locate.
+     Gate, membership and call set are all DERIVED, so deleting the gate empties the carrier set,
+     emptying the array falls under the membership floor and deleting the call sites falls under
+     the call floor: each fails here rather than passing. */
+  const wArrayMembers = (src, name) => {
+    const decl = new RegExp('\\b' + name + '\\s*=\\s*\\[').exec(src);
+    if (!decl) return null;
+    const open = src.indexOf('[', decl.index);
+    let i = open, depth = 0;
+    for (; i < src.length; i++) {
+      const ch = src[i];
+      if (ch === '[') depth++;
+      else if (ch === ']') { depth--; if (depth === 0) break; }
+    }
+    return (src.slice(open + 1, i).match(/"[^"]*"/g) || []).map((s) => s.slice(1, -1));
+  };
+  /* A gated carrier refuses its own forwarded parameter when an array does not admit it. */
+  const wGated = [];
+  for (const [name, index] of wCarriers) {
+    const fn = wFnAt(wRouteSrc, name);
+    if (!fn || !fn.params[index]) continue;
+    const gate = new RegExp('([A-Za-z_$][\\w$]*)\\s*\\.indexOf\\(\\s*' + fn.params[index]
+      + '\\s*\\)\\s*<\\s*0').exec(fn.body);
+    if (gate) wGated.push([name, index, gate[1]]);
+  }
+  const wGateInadmissible = [];
+  let wGatedCalls = 0;
+  let wGateMembers = 0;
+  for (const [name, index, arrayName] of wGated) {
+    const members = wArrayMembers(wRouteSrc, arrayName) || [];
+    wGateMembers += members.length;
+    const calls = new RegExp('\\b' + name + '\\s*\\(', 'g');
+    let call;
+    while ((call = calls.exec(wRouteSrc))) {
+      const arg = wSplitArgs(wCallArgs(wRouteSrc, call.index + call[0].length - 1))[index];
+      if (!arg || !/^"[^"]*"$/.test(arg)) continue;
+      wGatedCalls++;
+      if (members.indexOf(arg.slice(1, -1)) < 0) {
+        wGateInadmissible.push(name + '("' + arg.slice(1, -1) + '") rejected by ' + arrayName);
+      }
+    }
+  }
+  assert(wGateInadmissible.length === 0 && wGated.length >= 1
+    && wGatedCalls >= 18 && wGateMembers >= 20,
+    'W5: every field id passed to a gated emitter in ' + wRoute + ' is admitted by the membership'
+    + ' list that gate consults — ' + wGatedCalls + ' gated calls across '
+    + (wGated.map((g) => g[0] + '(arg ' + g[1] + ') gated by ' + g[2]).join(', ') || 'no gated carrier')
+    + ' (' + wGateMembers + ' admitted names), inadmissible: '
+    + (wGateInadmissible.join(', ') || 'none')
+    + ' — a gated carrier returns prose and never calls the emitter for a name its list omits, so'
+    + ' the attribute is never written even though the emitting call is still right there in the'
+    + ' route, which is exactly the state W4 cannot see because W4 reads call sites and not the'
+    + ' admission list they are filtered through');
 } catch (e) { failures++; console.log('  ✗ FAIL (lifetime-tax route wiring group threw): ' + e.message); }
 /* ---------- Narrative lane: the acceptance contract must be stated and retried against (START) ---------- */
 /* On 2026-08-23 lane=core failed 4/4 across two independent publications and discarded both

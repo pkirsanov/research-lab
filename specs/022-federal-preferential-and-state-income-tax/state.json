@@ -44,14 +44,14 @@
             {
                 "scope": 1,
                 "scopeId": "01-federal-preferential-rate-completion",
-                "status": "not_started",
+                "status": "in_progress",
                 "foundation": true,
                 "dependsOn": []
             },
             {
                 "scope": 2,
                 "scopeId": "02-net-investment-income-and-additional-medicare-tax",
-                "status": "not_started",
+                "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
                     1
@@ -60,7 +60,7 @@
             {
                 "scope": 3,
                 "scopeId": "03-state-rule-pack-contract-and-jurisdiction-resolution",
-                "status": "not_started",
+                "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
                     1,
@@ -70,7 +70,7 @@
             {
                 "scope": 4,
                 "scopeId": "04-california-pack",
-                "status": "not_started",
+                "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
                     1,
@@ -81,7 +81,7 @@
             {
                 "scope": 5,
                 "scopeId": "05-combined-settlement-and-marginal-curve",
-                "status": "not_started",
+                "status": "in_progress",
                 "foundation": false,
                 "dependsOn": [
                     1,
@@ -116,7 +116,38 @@
         "certifiedAt": null,
         "completedScopes": [],
         "certifiedCompletedPhases": [],
-        "scopeProgress": [],
+        "scopeProgress": [
+            {
+                "scopeId": "01-federal-preferential-rate-completion",
+                "status": "in_progress",
+                "dodChecked": 19,
+                "dodUnchecked": 0
+            },
+            {
+                "scopeId": "02-net-investment-income-and-additional-medicare-tax",
+                "status": "in_progress",
+                "dodChecked": 21,
+                "dodUnchecked": 0
+            },
+            {
+                "scopeId": "03-state-rule-pack-contract-and-jurisdiction-resolution",
+                "status": "in_progress",
+                "dodChecked": 16,
+                "dodUnchecked": 0
+            },
+            {
+                "scopeId": "04-california-pack",
+                "status": "in_progress",
+                "dodChecked": 15,
+                "dodUnchecked": 0
+            },
+            {
+                "scopeId": "05-combined-settlement-and-marginal-curve",
+                "status": "in_progress",
+                "dodChecked": 20,
+                "dodUnchecked": 0
+            }
+        ],
         "lockdownState": {
             "active": false,
             "lockedScenarioIds": []

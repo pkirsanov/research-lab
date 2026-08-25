@@ -63,7 +63,21 @@
     "certifiedBy": null,
     "certifiedAt": null,
     "assuranceLevel": null,
-    "evidence": null
+    "evidence": null,
+    "scopeProgress": [
+      {
+        "scopeId": "01-refuse-a-non-finite-figure-at-the-display-seam",
+        "status": "In Progress",
+        "dodChecked": 7,
+        "dodUnchecked": 1
+      },
+      {
+        "scopeId": "02-pin-the-boundary-from-both-sides",
+        "status": "Done",
+        "dodChecked": 6,
+        "dodUnchecked": 0
+      }
+    ]
   },
   "policySnapshot": {
     "capturedAt": "2026-08-24T00:00:00Z",

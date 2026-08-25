@@ -2,8 +2,8 @@
   "installedVersion": "7.28.0",
   "installMode": "local-source",
   "sourceRef": "main",
-  "sourceGitSha": "c8dc90f661d40d9f520f46ec7a42081240408c95",
+  "sourceGitSha": "43856664e168e257cc864a229ae9fcccf32c145b",
   "sourceDirty": false,
-  "targetRepoSlug": "dsw-research-lab",
-  "installedAt": "2026-08-24T15:13:50Z"
+  "targetRepoSlug": "research-lab",
+  "installedAt": "2026-08-25T20:16:07Z"
 }

@@ -172,6 +172,16 @@ is what would make a working slow origin refuse, and not after `18000` ms, which
 is that bound plus the suite margin. The whole test, page load and Power-mode
 navigation included, completed in `10.7s` on the run recorded below.
 
+The terminal state is measured rather than described loosely. The body reaches
+`data-rl-tax-state="ready"` and the settlement header reads `Incomplete`. Both
+are asserted as exact values, because for an OPTIONAL declared document the
+identity of the terminal state is the whole point: a pack that never arrives must
+leave boot complete and the absence named, not block the route the way a missing
+configuration does. An assertion that only required *some* terminal value would
+pass equally on a route that had given up. The first draft of these assertions
+did exactly that, checking membership in a three-value set; it was tightened to
+the measured value before this row was ticked.
+
 A fast read is not evidence for this bug and none of these assertions rests on
 one. The strongest confirmation that the withheld condition is the one under
 test is probe `P1`: with the abort signal withheld from `fetch`, so the request

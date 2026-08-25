@@ -105,9 +105,13 @@ test('Regression: SCN-021-01 a declared pack whose origin never responds reaches
     'the harness actually intercepted the declared pack request, so the condition under test was really produced')
     .toBeGreaterThan(0);
   const terminalState = await page.locator('body').getAttribute('data-rl-tax-state');
-  expect(['ready', 'config-blocked', 'pack-blocked'],
-    'the body carries a terminal display-state attribute rather than none at all')
-    .toContain(terminalState);
+  /* The exact value, not membership in a set of plausible ones. Which terminal state is reached
+     is the whole distinction for an OPTIONAL pack: it must not block the route the way a missing
+     configuration does, it must let boot complete and name the absence. Asserting only that some
+     terminal value arrived would pass equally on a route that gave up. */
+  expect(terminalState,
+    'a declared pack that never arrives leaves the route complete and names the absence, rather than blocking boot')
+    .toBe('ready');
   expect(elapsedMs,
     'the terminal display state arrives within the declared read bound plus the suite margin')
     .toBeLessThanOrEqual(TERMINAL_WAIT_MS);
@@ -191,9 +195,9 @@ test('Regression: SCN-021-01 the settlement header does not remain Loading once 
   expect(header,
     'the settlement header does not remain Loading once the declared bound has elapsed')
     .not.toBe('Loading');
-  expect(['Settled', 'Incomplete', 'Blocked'],
-    'and the word it does carry is one of the route\'s own named terminal words')
-    .toContain(header);
+  expect(header,
+    'and the word it carries is the route\'s own named word for a settlement a missing document left incomplete')
+    .toBe('Incomplete');
 });
 
 test('Regression: SCN-021-04 the tolerated side of the bound is pinned: a pack delayed below the bound is served rather than aborted', async ({ page }) => {

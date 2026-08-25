@@ -802,3 +802,126 @@ The three premises are now confirmed, so a verifying round has what it needs to 
 step; the `W4` finding above is the one thing it should weigh that the closing claim does not
 mention.
 
+## Repair Of The `W4` Blind Spot
+
+The finding above is now closed. `W4` no longer asks whether the name occurs somewhere in the
+route; it asks whether the name is passed as the field id of a call that actually emits the
+attribute.
+
+### How the route emits these nodes — read, not assumed
+
+The route writes **no literal `data-rl-value="…"` attribute at all**: `grep -c 'data-rl-value="'`
+over `lifetime-tax-strategy-lab.html` returns 0. Every one is set at runtime by a single site,
+
+```text
+lifetime-tax-strategy-lab.html:1799    figure.setAttribute("data-rl-value", fieldId);
+```
+
+inside `valueNode(fieldId, shown, tooltip)`. Two functions forward their own parameter into it:
+`simpleValueNode(fieldId, …)` at parameter 0, and `breakdownRow(label, fieldId, …)` at parameter 1.
+So each of the six markers reaches the DOM through exactly one call:
+
+| `W4` name | emitting call | quoted occurrences | second occurrence |
+| --- | --- | --- | --- |
+| `combined-federal-total` | `breakdownRow("Federal income tax", "combined-federal-total", …)` | 1 | — |
+| `combined-state-total` | `breakdownRow("State income tax", "combined-state-total", …)` | 1 | — |
+| `combined-total` | `breakdownRow("Both governments together", "combined-total", …)` | 1 | — |
+| `combinedFederalLeg` | `simpleValueNode("combinedFederalLeg", …)` | 2 | `SIMPLE_FIELDS` |
+| `combinedStateLeg` | `simpleValueNode("combinedStateLeg", …)` | 2 | `SIMPLE_FIELDS` |
+| `combinedTotalTax` | `simpleValueNode("combinedTotalTax", …)` | 2 | `SIMPLE_FIELDS` |
+
+Because there is no literal attribute to match, matching the attribute text was never available;
+the correct construct to match is the call that sets it.
+
+### The predicate, before and after
+
+```text
+before:  const wMissingValues = wValueMarkers.filter((v) => wRouteSrc.indexOf('"' + v + '"') < 0);
+
+after:   the emitter is located from the one setAttribute("data-rl-value", …) site and named by its
+         enclosing function; forwarders are every function that hands one of its own parameters
+         straight to that emitter, together with the argument index it forwards; the emitted set is
+         the string literals appearing at those argument positions across all such calls; a marker
+         is missing when it is not in that set.
+         const wMissingValues = wValueMarkers.filter((v) => !wEmittedNames.has(v));
+```
+
+Emitter and forwarders are derived from the route, not listed, so renaming `valueNode`,
+`simpleValueNode` or `breakdownRow` fails here rather than silently widening what counts as wired.
+The assertion also carries the two structural facts it depends on — zero literal attributes and
+exactly one dynamic emit site — so a future change to the emission mechanism turns `W4` red instead
+of leaving it quietly meaningless. A count threshold was rejected: a name legitimately mentioned
+once more would break it, and it was measured to do so — injecting a harmless comment naming
+`"combinedFederalLeg"` takes its quoted count from 2 to 3 while the shipped predicate stays green.
+
+### The same mutation, before exit 7 and now exit 0
+
+The mutation is the one recorded above as `bug016-w4-dropped-panel-marker`: rename the emitting
+`simpleValueNode("combinedFederalLeg"` call while leaving the `SIMPLE_FIELDS` entry intact. Under
+the old predicate the probe returned **exit 7** — RED and GREEN agreed. `--summary-match` is pinned
+to `W4`'s own assertion wording rather than the aggregate pass count, because the suite exits 1 even
+unmutated on two failures belonging to a concurrent session.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            W4-emitting-call-rename-combinedFederalLeg
+file:             lifetime-tax-strategy-lab.html
+mutation:         simpleValueNode("combinedFederalLeg"  ->  simpleValueNode("combinedFederalLegRENAMED"   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: W4: every combined data-rl-value name tests/lifetime-tax-combined.spec.mjs locates is passed as the field id of a call that actually emits the attribute — 6 names, emitt
+green-exit:       1
+green-summary:      ✓ W4: every combined data-rl-value name tests/lifetime-tax-combined.spec.mjs locates is passed as the field id of a call that actually emits the attribute — 6 names, emitted via valueNode(arg 0)
+summary-compared:   ✗ FAIL: … missing: combinedFederalLeg   vs     ✓ … missing: none   (elapsed time normalised out)
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   yes (summary differs)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit status: `PROBE_EXIT=0`.
+
+A second previously-blind name confirms the repair is not specific to the exemplar.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            W4-emitting-call-rename-combinedTotalTax
+file:             lifetime-tax-strategy-lab.html
+mutation:         simpleValueNode("combinedTotalTax"  ->  simpleValueNode("combinedTotalTaxRENAMED"   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: W4: every combined data-rl-value name tests/lifetime-tax-combined.spec.mjs locates is passed as the field id of a call that actually emits the attribute — 6 names, emitted
+green-exit:       1
+green-summary:      ✓ W4: every combined data-rl-value name tests/lifetime-tax-combined.spec.mjs locates is passed as the field id of a call that actually emits the attribute — 6 names, emitted via va
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   yes (summary differs)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit status: `PROBE2_EXIT=0`. Both probes reverted with a hash-verified restore to the
+committed blob, and `git status --porcelain -- lifetime-tax-strategy-lab.html` was empty before and
+after each one.
+
+### All six names now bite, and the unmutated route still passes
+
+Each marker's emitting call was renamed in turn and both predicates evaluated against the result.
+
+| `W4` name | quoted | emitted via | old predicate | new predicate |
+| --- | --- | --- | --- | --- |
+| `combined-federal-total` | 1 | `breakdownRow` | RED | RED |
+| `combined-state-total` | 1 | `breakdownRow` | RED | RED |
+| `combined-total` | 1 | `breakdownRow` | RED | RED |
+| `combinedFederalLeg` | 2 | `simpleValueNode` | **GREEN — blind** | RED |
+| `combinedStateLeg` | 2 | `simpleValueNode` | **GREEN — blind** | RED |
+| `combinedTotalTax` | 2 | `simpleValueNode` | **GREEN — blind** | RED |
+
+Old predicate: 3 of 6. New predicate: 6 of 6. On the unmutated route both report `missing: none`,
+so the repair adds no false positive. Deleting the emitting call outright rather than renaming it
+also fires, reporting `missing: combinedFederalLeg`.
+
+`W1`, `W2` and `W3` are untouched: the diff removes only the six lines of the old `W4` predicate and
+its message, and all three assertions remain present and passing.
+
+The full suite reports `3408 passed, 2 failed` — the same count as before the change, since `W4`
+remains exactly one assertion. Both failures belong to a concurrent session's untracked
+`tool-brief-v2*` and `zz-probe-focusable.spec.mjs` files and are unrelated to this repair.
+

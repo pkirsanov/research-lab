@@ -28806,14 +28806,99 @@ try {
     + wIdMarkers.length + ' anchors, missing: ' + (wMissingIds.join(', ') || 'none')
     + ' — a missing anchor is precisely what turns a browser assertion into a 30s locator timeout');
 
+  /* The route writes no literal data-rl-value attribute at all: every one is set at runtime by a
+     single `figure.setAttribute("data-rl-value", fieldId)`, so a marker reaches the DOM only by
+     being passed as the field-id argument of that emitter or of a wrapper that forwards its own
+     parameter into it. Asking instead whether the name occurs *anywhere* in the route could not
+     tell the emitting call apart from the SIMPLE_FIELDS membership list, which names three of the
+     six markers a second time — so renaming the emitting call alone left W4 green on a route that
+     rendered nothing under that name (a probe reproduced exactly that on combinedFederalLeg, the
+     marker FR-016-004 cites). Emitter and forwarders are DERIVED from the route, so renaming
+     either fails here rather than quietly widening what counts as wired. */
+  const wCallArgs = (src, open) => {
+    let i = open, depth = 0;
+    for (; i < src.length; i++) {
+      const ch = src[i];
+      if (ch === '(') depth++;
+      else if (ch === ')') { depth--; if (depth === 0) break; }
+    }
+    return src.slice(open + 1, i);
+  };
+  /* Top-level comma split, so a nested call or a comma inside a tooltip cannot shift arg indices. */
+  const wSplitArgs = (s) => {
+    const out = []; let depth = 0, quote = null, cur = '';
+    for (let i = 0; i < s.length; i++) {
+      const ch = s[i];
+      if (quote) { cur += ch; if (ch === '\\') cur += s[++i] || ''; else if (ch === quote) quote = null; continue; }
+      if (ch === '"' || ch === "'") { quote = ch; cur += ch; continue; }
+      if (ch === '(' || ch === '[' || ch === '{') depth++;
+      if (ch === ')' || ch === ']' || ch === '}') depth--;
+      if (ch === ',' && depth === 0) { out.push(cur.trim()); cur = ''; continue; }
+      cur += ch;
+    }
+    out.push(cur.trim());
+    return out;
+  };
+  /* ES5-style declarations only (no default or destructured parameters), which the route is. */
+  const wFnAt = (src, name) => {
+    const sig = new RegExp('function\\s+' + name + '\\s*\\(').exec(src);
+    if (!sig) return null;
+    const paramOpen = src.indexOf('(', sig.index);
+    const paramClose = src.indexOf(')', paramOpen);
+    const params = src.slice(paramOpen + 1, paramClose).split(',').map((p) => p.trim()).filter(Boolean);
+    let i = src.indexOf('{', paramClose), depth = 0;
+    const bodyStart = i;
+    for (; i < src.length; i++) {
+      const ch = src[i];
+      if (ch === '{') depth++;
+      else if (ch === '}') { depth--; if (depth === 0) { i++; break; } }
+    }
+    return { params, body: src.slice(bodyStart, i) };
+  };
+
+  const wLiteralValueAttrs = (wRouteSrc.match(/data-rl-value="/g) || []).length;
+  const wEmitSites = wRouteSrc.match(/setAttribute\(\s*"data-rl-value"\s*,\s*[A-Za-z_$][\w$]*\s*\)/g) || [];
+  const wEmitIndex = wRouteSrc.search(/setAttribute\(\s*"data-rl-value"\s*,\s*[A-Za-z_$][\w$]*\s*\)/);
+  const wPreceding = wEmitIndex < 0 ? [] : Array.from(wRouteSrc.slice(0, wEmitIndex)
+    .matchAll(/function\s+([A-Za-z_$][\w$]*)\s*\(/g));
+  const wEmitter = wPreceding.length ? wPreceding[wPreceding.length - 1][1] : null;
+  /* A carrier is the emitter itself plus any function that hands one of its own parameters
+     straight to the emitter; the recorded index is the argument position that becomes the id. */
+  const wCarriers = wEmitter ? [[wEmitter, 0]] : [];
+  if (wEmitter) {
+    const wDeclared = Array.from(new Set(Array.from(wRouteSrc.matchAll(/function\s+([A-Za-z_$][\w$]*)\s*\(/g))
+      .map((m) => m[1])));
+    for (const name of wDeclared) {
+      if (name === wEmitter) continue;
+      const fn = wFnAt(wRouteSrc, name);
+      if (!fn) continue;
+      const forwarded = fn.params.findIndex((p) => new RegExp('\\b' + wEmitter + '\\s*\\(\\s*' + p + '\\b').test(fn.body));
+      if (forwarded >= 0) wCarriers.push([name, forwarded]);
+    }
+  }
+  const wEmittedNames = new Set();
+  for (const [name, index] of wCarriers) {
+    const calls = new RegExp('\\b' + name + '\\s*\\(', 'g');
+    let call;
+    while ((call = calls.exec(wRouteSrc))) {
+      const arg = wSplitArgs(wCallArgs(wRouteSrc, call.index + call[0].length - 1))[index];
+      if (arg && /^"[^"]*"$/.test(arg)) wEmittedNames.add(arg.slice(1, -1));
+    }
+  }
+
   const wValueMarkers = Array.from(new Set((wSpecSrc.match(/data-rl-value="combined[A-Za-z0-9_-]*"/g) || [])
     .map((m) => m.slice('data-rl-value="'.length, -1)))).sort();
-  const wMissingValues = wValueMarkers.filter((v) => wRouteSrc.indexOf('"' + v + '"') < 0);
-  assert(wMissingValues.length === 0 && wValueMarkers.length >= 5,
-    'W4: every combined data-rl-value name ' + wSpecPath + ' locates appears in the route — '
-    + wValueMarkers.length + ' names, missing: ' + (wMissingValues.join(', ') || 'none')
-    + ' — the route script emits these nodes, so a name it never mentions means the combined'
-    + ' settlement is not rendered at all, not merely mislabelled');
+  const wMissingValues = wValueMarkers.filter((v) => !wEmittedNames.has(v));
+  assert(wMissingValues.length === 0 && wValueMarkers.length >= 5
+    && wLiteralValueAttrs === 0 && wEmitSites.length === 1 && wCarriers.length >= 2,
+    'W4: every combined data-rl-value name ' + wSpecPath + ' locates is passed as the field id of a'
+    + ' call that actually emits the attribute — ' + wValueMarkers.length + ' names, emitted via '
+    + wCarriers.map((c) => c[0] + '(arg ' + c[1] + ')').join(', ') + ', missing: '
+    + (wMissingValues.join(', ') || 'none')
+    + ' — the attribute is never written literally (' + wLiteralValueAttrs + ' literal attributes, '
+    + wEmitSites.length + ' dynamic emit site), so a name the route still mentions in a membership'
+    + ' list but no longer passes to an emitting call renders nothing at all, which is why merely'
+    + ' occurring somewhere in the file is not evidence that the value is on the page');
 } catch (e) { failures++; console.log('  ✗ FAIL (lifetime-tax route wiring group threw): ' + e.message); }
 /* ---------- Narrative lane: the acceptance contract must be stated and retried against (START) ---------- */
 /* On 2026-08-23 lane=core failed 4/4 across two independent publications and discarded both

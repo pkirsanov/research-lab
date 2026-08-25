@@ -41,4 +41,5 @@ regression for the next run.
 
 - acceptedBy: operator
 - acceptedAt: 2026-08-25T16:59:38Z
-- method: human-interactive
+- method: external-record
+- record: .specify/memory/open-work.md residue row res-g136-acceptance-record-backfill

@@ -2374,3 +2374,564 @@ This verdict does not certify the packet. Existing planning, traceability,
 human-acceptance, security, validate, and audit work remains under its current
 owners. This invocation changed no product source, test, `scopes.md`,
 `uservalidation.md`, top-level status, or `certification.*` field.
+
+## Security Phase — 2026-08-25 {#security-phase-2026-08-25}
+
+**Phase:** security
+**Agent:** `bubbles.security`
+**HEAD:** `354dfac217`
+**Repository binding:** `PREFLIGHT_COMMITTED decision=rb:vscode-d037d272141b9d17af8fa6ccdd049e69:203 revision=203 repository=research-lab`
+**Fix under review:** commit `732bccb6c`, `rlportfolio.js::deriveInterestSignals`
+**Carrier:** `tests/portfolio-stale-domain-signal.unit.mjs`
+
+### Commands executed, with real exit codes {#security-commands}
+
+**Claim Source:** executed
+
+Every row ran after the repository binding above. Hashes are the
+`evidence-capture.sh` full-output digests, re-derivable with `--verify`.
+
+| # | Command | Exit | Result |
+|---|---------|------|--------|
+| 1 | Host adapter plus `repository-binding.sh preflight` | `0` | Research Lab confirmed at revision 203 |
+| 2 | `node /tmp/sec-b005-current/security-contract-probe.mjs` | `0` | 25 pass, 0 fail, 1 classified observation; source `sha256:1bbc5c5e…` |
+| 3 | `bash .github/bubbles/scripts/security-gate.sh --repo-root .` | `0` | 9936 tracked files, zero G034 findings; `sha256:10e79eda…` |
+| 4 | Focused carrier, behavior, foundation, privacy, and publisher tests | `0` | 100 pass, 0 fail, 0 skipped; `sha256:bf064ad5…` |
+| 5 | `node scripts/validate-node-source-lock.mjs` | `0` | zero runtime dependencies; exact Playwright 1.61.1; 16/16 adversarial mutations rejected |
+| 6 | `node /tmp/sec-b005/probe.mjs` | `0` | `PROBE-FAILURES=0`; `sha256:2f5bffdf…`; source `sha256:c257ee11…` |
+| 7 | `node /tmp/sec-b005/probe2.mjs` | `0` | pre/post characterization of the two policy observations; source `sha256:f172a9df…` |
+| 8 | `node /tmp/sec-b005/probe3.mjs` | `0` | 8 pass, 0 fail on the shipped brief surface; source `sha256:89e2411b…` |
+| 9 | `bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/portfolio-stale-domain-signal.unit.mjs` | `0` | 0 violations, adversarial signal detected; `sha256:3b85a815…` |
+| 10 | `bash .github/bubbles/scripts/implementation-reality-scan.sh <packet> --verbose` | `0` | 0 violations, 1 planning warning; Scan 7 IDOR and Scan 8 silent-decode clean; `sha256:4aa4d182…` |
+| 11 | Tracked call-site, writer, and computed-dispatch scans | `0` | one shipped brief caller, no shipped portfolio caller, expected no-match exit 1 for computed dispatch |
+| 12 | `node scripts/selftest.mjs` | `0` | 3411 passed, 0 failed; `sha256:8a5a255c…` |
+
+Read row 6 carefully. `PROBE-FAILURES=0` does **not** mean every line printed
+`PASS`. The probe deliberately classifies two arms as informational rather than
+as failures, so they get characterised instead of hidden. Those two arms are
+`SEC-B005-S1` and `SEC-B005-N1` below. The probe sources are `/tmp/sec-b005/`
+and `/tmp/sec-b005-current/` and are throwaway diagnostics, not product files.
+Their source hashes bind the output to the code that produced it. The durable
+proof is the repository-owned focused lane, selftest, G034 gate, and carrier.
+
+### Current-session raw evidence {#security-current-session-evidence}
+
+**Phase:** security
+**Claim Source:** executed
+
+The hostile contract matrix exercised the untrusted-data and state boundaries
+requested for this review:
+
+```text
+BUG-005 SECURITY CONTRACT PROBE
+declared maxBehaviorEvents=500 maximumEvidenceAgeDays=56
+EVENT-1 stale-plus-fresh    PASS  ok=true signals=1
+EVENT-2 derive immutable    PASS  workspace bytes unchanged after derivation
+DATE-1 malformed            PASS  P008-SCHEMA-CORRUPT/behavior-event-invalid
+DATE-2 noncanonical         PASS  P008-SCHEMA-CORRUPT/behavior-event-invalid
+DATE-3 invalid-now          PASS  P008-SCHEMA-CORRUPT/timestamp-invalid
+CAP-1 exact-cap             PASS  events=2 ok=true
+CAP-2 append-cap-plus-one   PASS  P008-SCHEMA-CORRUPT/behavior-event-cap-exceeded
+CAP-3 dedupe-cap-plus-one   PASS  P008-SCHEMA-CORRUPT/behavior-event-cap-exceeded
+CAP-4 derive-cap-plus-one   PASS  P008-SCHEMA-CORRUPT/behavior-event-cap-exceeded
+KEY-1 __proto__ token       PASS  P008-SCHEMA-CORRUPT/behavior-event-invalid
+KEY-2 __proto__ field       PASS  P008-SCHEMA-CORRUPT/unknown-field; Object.prototype.polluted=undefined
+KEY-3 inherited names       PASS  domains=constructor,tostring pollution=undefined
+PRIVATE-1 rawText refused   PASS  P008-SCHEMA-CORRUPT/forbidden-behavior-source
+PRIVATE-2 nested refused    PASS  P008-SCHEMA-CORRUPT/forbidden-behavior-source
+PRIVATE-3 output allowlist  PASS  fields=14
+PRIVATE-4 no source values  PASS  subject/result/generic/completion source values absent
+STORE-1 candidate replace   PASS  events=2 signals=1
+STORE-2 commit-and-reopen   PASS  generation=1 signals=1
+CLEAR-1 behavior clear      PASS  events=0 signals=0
+CLEAR-2 full clear          PASS  verifiedEmpty=true personalKeys=0 genericPreserved=true
+REFUSAL-1 invalid-now       PASS  same=true outcome=P008-SCHEMA-CORRUPT/timestamp-invalid
+REFUSAL-2 private-field     PASS  same=true outcome=P008-SCHEMA-CORRUPT/forbidden-behavior-source
+REFUSAL-3 cap-plus-one      PASS  same=true outcome=P008-SCHEMA-CORRUPT/behavior-event-cap-exceeded
+REFUSAL-4 valid parity      PASS  byteIdentical=true
+OBS-1 window overflow       PASS  largestSafe=99979346 firstThrow=99979347 pre=RangeError post=RangeError
+SECURITY-PROBE-SUMMARY pass=25 fail=0 observations=1
+SECURITY_PROBE_EXIT=0
+```
+
+The repository-owned focused lane independently covered the same contracts:
+
+```text
+# BUG-005 security focused carrier privacy publisher and storage contracts
+$ node --test tests/portfolio-stale-domain-signal.unit.mjs tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-foundation.unit.mjs tests/portfolio-privacy.functional.mjs tests/portfolio-publisher-boundary.functional.mjs
+exit: 0
+lines: 610
+sha256: bf064ad5e0ec907c971a2995538b2975d569efe21517872b70a23f0d90fa9fdc
+--- first 20 ---
+TAP version 13
+# Subtest: BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity
+ok 1 - BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity
+  ---
+  duration_ms: 124.378078
+  type: 'test'
+  ...
+# Subtest: BUG-004: an exact occurrence repeat is still refused as a duplicate
+ok 2 - BUG-004: an exact occurrence repeat is still refused as a duplicate
+--- omitted 570 line(s); sha256 above covers the full output ---
+--- last 20 ---
+ok 99 - BUG-005: reinstating the superseded pre-filter bucket creation turns the stale-domain assertion red
+  ---
+  duration_ms: 116.975522
+  type: 'test'
+  ...
+# Subtest: BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance
+ok 100 - BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance
+  ---
+  duration_ms: 55.708477
+  type: 'test'
+  ...
+1..100
+# tests 100
+# suites 0
+# pass 100
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2119.060715
+```
+
+The mechanical floor and dependency source-lock validator both passed:
+
+```text
+# BUG-005 current-session G034 security gate
+$ bash .github/bubbles/scripts/security-gate.sh --repo-root .
+exit: 0
+lines: 1
+sha256: 10e79eda0372766008f94192b0cf1f1ef4ac71cc41e21b1b1394f5c5f4bb190d
+--- output ---
+[security-gate] OK — 9936 tracked file(s), zero G034 findings
+
+[node-source-lock] manifest=PASS private=true runtimeDependencies=0 scripts=0 playwright=1.61.1 node=>=20
+[node-source-lock] npmrc=PASS registry=https://registry.npmjs.org/ entries=5 ignoreScripts=true
+[node-source-lock] lockfile=PASS version=3 externalPackages=3 integrity=sha512
+[node-source-lock] graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+[node-source-lock] adversarial=missing-file result=REJECTED code=FILE-MISSING
+[node-source-lock] adversarial=manifest-drift result=REJECTED code=MANIFEST-KEYS
+[node-source-lock] adversarial=manifest-range result=REJECTED code=MANIFEST-PLAYWRIGHT
+[node-source-lock] adversarial=manifest-wrong-version result=REJECTED code=MANIFEST-PLAYWRIGHT
+[node-source-lock] adversarial=second-registry result=REJECTED code=NPMRC-DUPLICATE
+[node-source-lock] adversarial=scoped-registry result=REJECTED code=NPMRC-SCOPED-REGISTRY
+[node-source-lock] adversarial=verification-disabled result=REJECTED code=NPMRC-VERIFICATION
+[node-source-lock] adversarial=lifecycle-relaxation result=REJECTED code=NPMRC-IGNORE-SCRIPTS
+[node-source-lock] adversarial=untrusted-resolved-url result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=missing-integrity result=REJECTED code=LOCK-INTEGRITY
+[node-source-lock] adversarial=git-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=file-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=path-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=http-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=external-version-range result=REJECTED code=LOCK-PACKAGE-VERSION
+[node-source-lock] adversarial=extra-package result=REJECTED code=LOCK-GRAPH
+[node-source-lock] actual=PASS
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+SOURCE_LOCK_EXIT=0
+```
+
+The canonical selftest remained green at the same HEAD:
+
+```text
+# BUG-005 security canonical selftest at 354dfac217
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3895
+sha256: 8a5a255c39cce86a0bed882a991a32a1744e72d0ea5fa7c230d9a3ca4e839635
+--- first 20 ---
+
+Step 1 security — escaped model sinks and CSP on every page
+  ✓ every shipped HTML page carries a Content-Security-Policy meta
+  ✓ all pages use one identical CSP instead of drifting per page
+  ✓ CSP keeps the single-file inline-script design while defaulting to self
+  ✓ CSP blocks object, base-tag, and form exfiltration paths
+  ✓ CSP connect-src is an explicit origin allowlist, never wildcard https
+  ✓ CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+  ✓ CSP allows no open URL-forwarding relay origin
+  ✓ production pages and shared runtime contain no open URL-forwarding relay chain
+  ✓ no model/config-authored field reaches innerHTML without esc()
+  ✓ the sink detector catches an unescaped model-authored title
+--- omitted 3855 line(s); sha256 above covers the full output ---
+--- last 20 ---
+experience shell — every registered tool is mountable
+  ✓ the registered-tool sweep actually has tools to check (found 29)
+  ✓ every registered tool page carries a [data-rlbrief-mount] anchor naming its own tool id — rlapp.js mounts the shell from nothing else (missing: none)
+  ✓ no page carries two mount anchors — rlapp.js requires exactly one and silently declines to mount otherwise (offenders: none)
+  ✓ every tool page carrying a mount anchor also enables it with <meta name="rlbrief-enabled"> (inert: none)
+  ✓ the market-brief mount exemption is still live: that page carries an anchor and deliberately does not enable it
+  ✓ every declared adapterModule is a module path string the shell can resolve against its bindings table
+
+brief window cutoff — publisher refuses what the consumer would reject
+  ✓ the consumer module exports its cutoff resolver, so the publish gate resolves cutoffs with the same rule instead of a second copy
+  ✓ a brief whose snapshot and payload are both past the declared cutoff is refused, and each breach is named separately rather than collapsed into one verdict
+  ✓ the ordinary in-band publication, composed inside the lead window, is not refused — the gate must not block the 90% case it exists to protect
+  ✓ all four window bands close at their own cutoff, so a run past the cutoff selects no window rather than one it cannot honestly satisfy (found 4/4)
+
+================================================
+Research-Lab self-test: 3411 passed, 0 failed
+================================================
+```
+
+### A premise in the request needs correcting before the availability answer {#security-reachability}
+
+**Claim Source:** executed
+
+The request states the pre-fix throw was "reachable from ordinary stored user
+data". That is true of the **module API** and false of the **shipped page**, and
+the distinction changes the severity.
+
+Measured reachability:
+
+- The only shipped page naming `deriveInterestSignals` is
+  `portfolio-survival-allocation-lab.html`. It names it exactly once, at line
+  `6422`, on `window.RLPORTFOLIOBRIEF` — the brief module, a **different**
+  function that this fix did not touch.
+- `grep -cE 'RLPORTFOLIO[[:space:]]*\[|(^|[^a-zA-Z_$.])api[[:space:]]*\['` over
+  that page returns `0`, so the repaired symbol cannot be reached indirectly by
+  computed property name either.
+- `buildInterestSignalCandidate` is the only writer of
+  `workspace.interestSignals`, and it has zero shipped callers. `SHIP-4`
+  confirms `createEmptyWorkspace` leaves that array `[]`.
+
+So the repaired function has **no shipped-page caller today**. This is the same
+conclusion the packet's own `TEST-B005-T1` and `TEST-B005-T2` reached from the
+other direction, and it is why `TP-B005-006` was refused as unauthorable.
+
+The correct availability statement is therefore: the pre-fix crash was real and
+reachable through the module's public API with ordinary stored data, and it was
+**not** reachable from the deployed browser surface. The fix removes a latent
+crash from an API before it is wired, rather than closing a live outage.
+
+### 1. Availability and denial of service {#security-availability}
+
+**Claim Source:** executed
+
+The arm the fix closes, measured on both modules with identical input
+(`SEC-2`, probe 2). The pre-fix module was rebuilt from `git show 732bccb6c^`:
+
+| Module | Stale-only workspace, declared 56-day window |
+|---|---|
+| pre-fix `732bccb6c^` | `THREW RangeError: Invalid time value` |
+| shipped post-fix | `ok=true`, 1 signal |
+
+That is the discrimination, and it is not a strawman: the carrier proves the
+same thing a second way by mutating only the bucket-creation site in module
+source text and showing the mutant still derives fresh-only input correctly
+before it dies on the mixed input.
+
+Remaining throw surface, probed rather than reasoned:
+
+| Probe | Input | Outcome |
+|---|---|---|
+| `A1` | stale-only domain beside a fresh one | envelope `ok=true`, fresh sibling survives |
+| `A2` | every domain stale, so the mapper body runs zero times | envelope `ok=true`, 0 signals |
+| `A3` | hand-edited `occurredAt: "not-a-timestamp"` in stored data | refuses `P008-SCHEMA-CORRUPT/behavior-event-invalid` |
+| `A4` | `occurredAt` parseable but non-canonical (RFC 1123) | refuses `P008-SCHEMA-CORRUPT` |
+| `A5` | `now` as `null`, `undefined`, `""`, `"nope"`, `12345`, `{}` | all six refuse `timestamp-invalid` |
+| `A6` | 200 stale rows | envelope `ok=true`, 0 signals, 230 ms |
+
+`A3` and `A4` matter most, because `localStorage` is hand-editable by anything
+on the origin. A non-canonical `occurredAt` makes `Date.parse` return `NaN`, so
+every age comparison is false and the row slips the age filter. It is then
+caught by `dedupeBehaviorEvents`, which calls `validateBehaviorEvent` on each
+row unconditionally, and the derivation returns a contract error. Two
+independent guards cover this: `validateWorkspace` already validates every
+stored event at `rlportfolio.js:1515-1519`, and the dedupe pass validates again
+after the filter. Neither throws.
+
+**Answer:** the fix closes the reported arm completely at the module API. No
+stored-data input found in this review still throws instead of returning a
+contract error.
+
+### Stored-event cap and object-key safety {#security-cap-and-object-keys}
+
+**Claim Source:** executed
+
+The declared event cap remains fail-closed at every relevant entry point. A
+two-event policy accepted exactly two rows. The third append, a direct three-row
+dedupe, and derivation over a three-row stored workspace all returned
+`P008-SCHEMA-CORRUPT/behavior-event-cap-exceeded`. None threw, evicted an older
+row, or silently truncated the array. The repository-owned BUG-004 carrier also
+exercises this boundary and was included in the 100-test focused run.
+
+The relocation does not introduce a prototype-key sink. `byDomain`,
+`eventIdentities`, `dates`, the workspace duplicate maps, and the dedupe map are
+all created with `Object.create(null)`. Executed hostile cases established both
+halves:
+
+- `domain: "__proto__"` is refused by the closed safe-token grammar before it
+  can become a key.
+- An enumerable `__proto__` field is refused as `unknown-field`, and
+  `Object.prototype.polluted` remains `undefined`.
+- Valid inherited-object names `constructor` and `tostring` remain ordinary
+  independent domain keys and both emit, proving the defense does not simply
+  reject every awkward but valid token.
+
+**Answer:** the cap cannot be bypassed by this relocation, and no tested object
+key can mutate or shadow the aggregation maps.
+
+### `SEC-B005-S1` LOW — `maximumEvidenceAgeDays` has no upper bound, so `expiresAt` can still overflow {#security-sec-b005-s1}
+
+**Claim Source:** executed for the measurements, interpreted for the severity
+
+One arm still throws. `expiresAt` is computed as
+`new Date(Date.parse(bucket.latest) + behavior.maximumEvidenceAgeDays * 86400000).toISOString()`.
+`validatePolicy` accepts `maximumEvidenceAgeDays` only as `finiteNonNegative`,
+with no upper bound, so a large declared window pushes the sum past the
+ECMAScript maximum time value and `toISOString` throws by specification.
+
+Measured, by bisection over the window (`SEC-3`, probe 2):
+
+| Quantity | Value |
+|---|---|
+| largest window that still returns an envelope | `99979346` or `99979347` days in the two fixtures, about 273,729 years |
+| smallest window that throws | `99979347` or `99979348` days, one day after each fixture's largest safe value |
+| shipped config value | `56` days |
+| margin | `1.79e+6` × |
+
+Three facts hold this at LOW rather than higher:
+
+1. **It is pre-existing.** `SEC-1` ran the identical input against the pre-fix
+   module rebuilt from `732bccb6c^` and against shipped source. Both threw
+   `RangeError: Invalid time value`. The fix neither introduced nor widened it.
+   `git show 732bccb6c -- rlportfolio.js` touches the `expiresAt` expression
+   only in an adjacent comment line.
+2. **No untrusted input reaches it.** The policy is fetched from a committed
+   static asset with
+   `fetch("portfolio-survival-allocation.config.json", { cache: "no-store", credentials: "same-origin" })`
+   at `portfolio-survival-allocation-lab.html:7833`. A repository-wide grep
+   found no path that reads policy from `localStorage`, from a query string, or
+   from any user input. Reaching this arm requires editing a committed config
+   file, which is a reviewed code change, or already controlling the origin.
+3. **The margin is six orders of magnitude.**
+
+It is still worth naming, because it is the **same failure class** this packet
+exists to remove: an unguarded `new Date(...).toISOString()` on a value that
+callers can make invalid. BUG-005 removed one instance of that class; a second
+instance remains one config edit away.
+
+**Route:** `bubbles.plan`, as a separate finding against `validatePolicy` rather
+than against this fix. The blast radius is `validatePolicy`, not
+`deriveInterestSignals`, so it sits outside this packet's changed surface and
+must not be repaired inline here. The natural repair is an upper bound on
+`maximumEvidenceAgeDays` in the behavior policy section, which would convert the
+throw into the `P008-CONFIG/invalid-policy` refusal that every other malformed
+window already produces.
+
+**This finding does not block the BUG-005 fix.** The fix is a strict
+improvement on the arm it addresses.
+
+### 2. Privacy and retention {#security-privacy}
+
+**Claim Source:** executed
+
+| Probe | Question | Result |
+|---|---|---|
+| `B1-no-mutation` | does derivation mutate stored evidence? | workspace byte-identical before and after |
+| `B1-stale-retained` | do stale occurrences survive omission? | yes, still stored and auditable |
+| `B2-absence-total` | does the omitted domain leak into the output? | the name appears nowhere in the derived signal set |
+| `B3-persist-retains` | does the persistence path prune evidence? | events 2 before, 2 after |
+| `B3-persist-omits` | does persistence emit an unsupported domain? | no persisted signal for a domain with no live evidence |
+| `B4-field-set` | did the fix widen the emitted record? | 14 fields, exactly the pre-existing set |
+| `B4-sensitivity` | is the band still closed? | `sensitivityBand=non-sensitive` |
+
+Retention **narrows**, it does not widen. `buildInterestSignalCandidate`
+replaces `interestSignals` wholesale, so post-fix it persists strictly fewer
+signals than before: a stale-only domain now contributes none. Nothing new is
+written and nothing stored is deleted.
+
+Absence stays honest, and this is the part worth checking hardest, because
+"emit nothing" is also what data loss looks like. The two derivations state the
+same fact in different forms, and the carrier pins the pair:
+
+- `rlportfolio` omits the stale domain from `interestSignals`.
+- `rlportfoliobrief` still reports it with `score: 0`,
+  `supportingOccurrenceIds: []`, `latestSupportAt: null`,
+  `floor.satisfied: false`, and `floor.rawOccurrenceCount: 1` (`SHIP-1`).
+
+That `rawOccurrenceCount` is what lets the product say "history exists here but
+none of it counts" rather than showing nothing and leaving the user to infer
+why. Neither derivation grants live relevance to a retired domain.
+
+**Answer:** the fix widens no retention, emits no signal for a domain without
+live evidence, and leaves the underlying occurrences auditable.
+
+#### Private-field, persistence, and clear checks
+
+**Claim Source:** executed
+
+The focused hostile matrix refused both a top-level `rawText` field and a
+nested `costBasis` field as `forbidden-behavior-source`. The valid emitted
+signal retained exactly the existing 14-field allowlist. Its serialized form
+contained none of the event's subject id, result identity, generic evidence
+identity, completion-condition id, or source-surface value. Supporting evidence
+remains represented only by the validated event hashes the contract permits.
+
+The mutation boundaries also remained distinct:
+
+- Plain derivation left the workspace byte-identical.
+- `buildInterestSignalCandidate` replaced `interestSignals`, retained both
+  underlying events, and round-tripped one signal through the real store.
+- The behavior-only clear committed and reread zero `behaviorEvents` and zero
+  `interestSignals`.
+- The full-personal clear verified zero remaining Feature 008 personal keys
+  while preserving the unrelated `rlData` generic public cache byte-for-byte.
+- The repository-owned privacy and publisher carriers were part of the same
+  100/100 focused run, so the checks above do not substitute a throwaway probe
+  for the durable privacy boundary.
+
+**Answer:** moving bucket creation neither leaks private event fields nor
+changes the distinction between derive, persist, behavior clear, and full clear.
+
+### 3. Evidence-window integrity {#security-evidence-window}
+
+**Claim Source:** executed
+
+The predicate is textually unchanged. `git show 732bccb6c -- rlportfolio.js`
+shows `if (ageDays < 0 || ageDays > behavior.maximumEvidenceAgeDays) return;`
+moved, not edited: it was removed from one position and reinserted verbatim
+earlier in the same loop.
+
+Behavioural confirmation against the declared 56-day window (`C1`):
+
+| Age vs declared window | Emitted | Expected |
+|---|---|---|
+| 55.5 days, inside | yes | yes |
+| 56 days, exactly at the boundary | yes | yes, the predicate is `>` |
+| 56.001 days, just outside | no | no |
+| 57 days | no | no |
+| 224 days | no | no |
+| −1 day, future-dated | no | no, the `ageDays < 0` arm |
+
+`C3` proves the window is read live from policy rather than folded at fix time:
+the same workspace yields 0 signals at a 5-day window and 1 signal at a 20-day
+window. A relaxation would have shown up as a signal at 56.001 days.
+
+**Are the carrier's refusal assertions real?** Yes, and I checked they are not
+vacuous. `C2-baseline-accepted` first confirms the emitted signal itself
+validates, which is the control that makes the refusals meaningful; a permissive
+validator would pass the refusals for the wrong reason. Then five mutants are
+each refused with `P008-SCHEMA-CORRUPT`: `latestSupportAt: null`,
+`expiresAt: null`, `supportingEventIds: []`, `expiresAt: "Invalid Date"`, and
+`sensitivityBand: "sensitive"`. The first three are exactly the assertions the
+carrier makes, reproduced here independently of the carrier.
+
+`regression-quality-guard.sh --bugfix` reports 0 violations and detects an
+adversarial signal, which agrees with reading the fixture: the asserted stale
+domain holds no in-window event at all, so the assertion cannot pass by
+accident.
+
+**Answer:** `maximumEvidenceAgeDays` was not relaxed. The carrier's refusal
+assertions are real and were independently reproduced.
+
+### 4. Input validation {#security-input-validation}
+
+**Claim Source:** executed
+
+`AUDIT-B004-A1` established the class: a `validatePolicy` call silently
+disappearing from a path. `deriveInterestSignals` calls `validatePolicy` on line
+one and returns its failure unchanged. Fourteen corrupt-policy mutants were
+driven through the fixed path:
+
+| Mutation | Outcome |
+|---|---|
+| `null` / `"string"` / `[]` | `P008-CONFIG/policy-required` |
+| `{}` / `contractVersion` dropped | `P008-CONFIG/unknown-version` |
+| `behavior` section dropped | `P008-CONFIG/unknown-field` |
+| window `null` / `"56"` / `-1` | `P008-CONFIG/invalid-policy` |
+| window `NaN` / `Infinity` | `P008-CONFIG/non-finite-policy` |
+| injected `behavior.attackerField` | `P008-CONFIG/invalid-policy` |
+| `eventLifecycleStates` widened to admit `"anything"` | `P008-CONFIG/invalid-policy` |
+
+Thirteen of fourteen refuse. None silently succeeds. The closed field set and
+the closed lifecycle vocabulary both hold, so an attacker-supplied policy cannot
+widen what counts as eligible evidence.
+
+### `SEC-B005-N1` NOT A FINDING — `halfLifeDays: 0` is accepted, and that is correct {#security-sec-b005-n1}
+
+**Claim Source:** executed
+
+The fourteenth mutant, `halfLifeDays: 0`, is accepted rather than refused, so I
+chased it rather than recording it as a pass. `finiteNonNegative` admits `0`.
+Two arms follow:
+
+- Age greater than zero: `ageDays / 0` is `Infinity`,
+  `Math.pow(0.5, Infinity)` is `0`. Result `ok=true`, `evidenceScore=0`,
+  band `insufficient-evidence`. Finite, and honest about carrying no weight.
+- Age exactly zero: `0 / 0` is `NaN`, so the score would be `NaN`. Measured
+  outcome is `REFUSED P008-SCHEMA-CORRUPT/interest-signal-invalid`.
+  `validateInterestSignal` catches it, so `NaN` can never be persisted.
+
+`SEC-5` confirms both arms behave identically on the pre-fix module. This is
+pre-existing, correctly guarded, and not a finding. It is recorded because
+"accepted" appeared in the probe output and an unexplained non-`PASS` line is
+how a real defect hides.
+
+### Surfaces checked and found clean {#security-clean-surfaces}
+
+**Claim Source:** executed
+
+| Surface | Result |
+|---|---|
+| G034 mechanical floor | exit 0; committed key material, inline credentials, `curl \| bash`, world-writable tracked files, `eval` on command substitution all clean across 9936 files |
+| Dependency vulnerability surface | `package.json` declares `dependencies: {}`; the sole devDependency is `playwright@1.61.1`, a test harness that ships nothing. `rlportfolio.js` has zero third-party imports |
+| Injection, XSS, sink escaping | `scripts/selftest.mjs` Step 1 passes: identical CSP on every page, explicit `connect-src` allowlist, no open URL-forwarding relay, and no model-authored field reaching `innerHTML` without `esc()`, including its own detector self-check |
+| Gate G047, IDOR | Scan 7 clean. Not applicable in substance: no server, no request-scoped identity, local-only single-user storage |
+| Gate G048, silent decode | Scan 8 clean, and independently confirmed by `A3`/`A4`, where a corrupt row surfaces a refusal rather than being dropped |
+| Secret hygiene | no credential, token, or key material in the changed surface; the changed function reads only local behaviour evidence |
+| SSRF, path traversal, command injection, deserialization | no network call, no filesystem access, no `eval`, no dynamic dispatch in the changed function |
+
+### Uncertainty declaration {#security-uncertainty}
+
+**Claim Source:** interpreted
+
+Two limits belong on this verdict.
+
+**Lane.** Every probe here ran under Node. The repository also has a Playwright
+browser lane, which I did not run in this session; the regression phase covers
+it. `Date.prototype.toISOString` throwing `RangeError` on an invalid time value
+is specified behaviour rather than an engine detail, so I expect no divergence,
+but I did not measure the browser lane and do not claim it.
+
+**Reachability method.** The "no shipped caller" conclusion rests on executed
+greps over a complete static call graph plus a zero-match dynamic-dispatch
+check, not on a runtime probe of the loaded page. That is the same method and
+the same declared limit as `TEST-B005-T1`. A caller constructed at runtime from
+a computed string would evade it, and I found no such construction.
+
+### Security verdict {#security-verdict}
+
+**Claim Source:** interpreted from the executed evidence above
+
+**⚠️ FINDINGS** — 1 LOW, pre-existing, out of this packet's blast radius, and
+route-only. Zero CRITICAL. Zero HIGH. Zero findings attributable to this fix.
+
+On the four questions asked:
+
+1. **Availability.** The fix closes the reported arm completely at the module
+   API: the pre-fix module throws `RangeError` on input the shipped module
+   answers with an envelope. No stored-data input found in this review still
+   throws. One policy-reachable arm remains and is recorded as `SEC-B005-S1`.
+   The premise that the pre-fix throw was reachable from the deployed browser
+   surface does not hold; the repaired symbols have no shipped caller, so this
+   was a latent crash rather than a live outage.
+2. **Privacy.** Retention narrows rather than widens. No signal is emitted for a
+   domain without live evidence, the stored occurrences stay auditable, and the
+   brief still reports `rawOccurrenceCount` so absence is stated rather than
+   implied.
+3. **Evidence-window integrity.** `maximumEvidenceAgeDays` was not relaxed. The
+   predicate moved verbatim, the boundary behaves exactly as declared at
+   56/56.001 days, and the carrier's refusal assertions are real, non-vacuous,
+   and independently reproduced.
+4. **Input validation.** A corrupt policy still refuses with a contract error.
+   Thirteen of fourteen mutants refuse; the fourteenth is correct behaviour and
+   is documented as `SEC-B005-N1`.
+
+**This phase grants no certification.** It changed no product source, no test,
+no `spec.md`, no `design.md`, no `scopes.md`, no `uservalidation.md`, no
+`completedScopes`, no DoD checkbox, no top-level `status`, and no
+`certification.*` field. Planning, traceability, human-acceptance, validate, and
+audit work remains with its current owners, and `SEC-B005-S1` is routed to
+`bubbles.plan` as new, separate work.

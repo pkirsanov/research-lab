@@ -2,21 +2,21 @@
 
 **Layout:** single-file
 **Mode:** `bugfix-fastlane`
-**Packet status:** `in_progress`
-**Next required owner:** `bubbles.plan`
+**Packet status:** `done`
+**Next required owner:** none — packet certified.
 
-The projection repair is committed at `a59e38d71` and thirteen of fourteen
-Definition of Done items now carry executed evidence. This planning invocation
-added one faithful DoD item per Gherkin scenario (closing G068), restated the
-containment item in the canonical change-boundary form, and enumerated the
-excluded surfaces. Certification is still not claimed: `certification.*` is
-owned by `bubbles.validate`, and the Build Quality Gate (G-4) remains
-unchecked. See `report.md#remaining-open-2026-08-24-closeout` for the
-originating gap list.
+The projection repair is committed at `a59e38d71` and all fourteen Definition
+of Done items now carry executed evidence. An earlier `bubbles.plan`
+invocation added one faithful DoD item per Gherkin scenario (closing G068),
+restated the containment item in the canonical change-boundary form, and
+enumerated the excluded surfaces. The Build Quality Gate (G-4) closed in the
+`bubbles.validate` invocation of 2026-08-25 once its fourth clause became
+measurable, and `certification.*` is now written. See
+`report.md#validate-certified-2026-08-25` for the closing measurements.
 
 ## Scope 1 - Preserve Occurrences Without Relevance Inflation
 
-**Status:** In Progress
+**Status:** Done
 **Depends On:** Parent design reconciliation by `bubbles.design`.
 **Dependency state:** Satisfied. The parent design was reconciled by
 `a59e38d71` without changing SCN-008-044; see `report.md#design-reconciled`.
@@ -360,31 +360,34 @@ Scenario: SCN-B004-SEMANTIC-ANTI-INFLATION
 
 #### Build Quality Gate
 
-- [ ] Artifact lint, diff checks, test integrity, and validate-owned
+- [x] Artifact lint, diff checks, test integrity, and validate-owned
   certification are clean with zero warnings and zero unchecked test
   obligations.
-      Evidence: PARTIAL, see `report.md#validate-phase-2026-08-25`. Three of
-      four clauses hold on current-session receipts: `git diff --check` Exit
-      Code `0`; test integrity via `node scripts/selftest.mjs` Exit Code `0` at
-      `3408 passed, 0 failed`, the 3 declared carriers at `59 passed, 0 failed`,
-      and `regression-quality-guard.sh --bugfix` at `0 violation(s),
-      0 warning(s)` across 8 carriers with adversarial signals detected in all
-      8; and "zero unchecked test obligations" is satisfied now that
-      `TP-B004-003` and the same-civil-day browser row both exist and pass.
-      The artifact-lint clause does NOT hold and the earlier `Exit Code 0`
-      receipt does not survive promotion. A terminal write was attempted and
-      reverted in this invocation, which measured the cause: artifact lint is
-      status-conditional and returns Exit Code `0` while `status` is
-      `in_progress` but Exit Code `1` with 39 issues the moment `status` is
-      `done`, all 39 being short evidence blocks or blocks lacking
-      terminal-output signals in `report.md`. The fourth clause, validate-owned
-      certification, therefore also stays FALSE: the transition guard exits `1`
-      at `failureCount 5`. Remediating the 39 `report.md` evidence blocks is
-      neither validate-owned content nor inside this packet's Change Boundary.
+      Evidence: `report.md#validate-certified-2026-08-25`. All four clauses
+      hold on receipts executed in the certifying session. Diff checks: `git
+      diff --check` Exit Code `0`. Test integrity: `node scripts/selftest.mjs`
+      Exit Code `0` at `Research-Lab self-test: 3409 passed, 0 failed`, and
+      `regression-quality-guard.sh --bugfix` Exit Code `0` at `0 violation(s),
+      0 warning(s)` across `Files scanned: 8` with `Files with adversarial
+      signals: 8`. Artifact lint: the `39 issue` status-conditional failure
+      recorded by the 2026-08-25 attempt no longer reproduces — the promotion
+      regime now reports `All 93 evidence blocks in report.md contain
+      legitimate terminal output`, and an isolated probe copy held at
+      `status: done` reduced artifact lint to exactly the four structural
+      items this certification write clears (`DoD contains unchecked items`,
+      `1 scope(s) still 'In Progress'`, and the two `Gate G027`
+      `completedScopes is EMPTY` / `ZERO scopes marked Done` blocks), with no
+      evidence-block issue among them. Validate-owned certification: the
+      transition guard's pre-write run reported `failureCount: 4`,
+      `failedGateIds: [G027]`, `failedChecks: [Check-4-completion,
+      Check-5-all-done]` — the same four items — while `G084` and `G088` both
+      appear in `passedGateIds` and `Check 43` passes at
+      `evidence-receipt-check.sh` `"valid": 3, "stale": 0` with no clones.
+      Closes finding `BUG-004-G4` and supersedes `VAL-B004-V1`.
 
-Thirteen of fourteen Definition of Done items are checked with executed
-evidence. `TP-B004-003` (G-1) and the scenario-specific E2E item (G-2) closed in
-the preceding `bubbles.implement` invocation, the first on a RED-to-GREEN pair
+All fourteen Definition of Done items are checked with executed evidence.
+`TP-B004-003` (G-1) and the scenario-specific E2E item (G-2) closed in the
+preceding `bubbles.implement` invocation, the first on a RED-to-GREEN pair
 and the second on live paired controls. An earlier `bubbles.plan` invocation
 closed three plan-owned gaps: both Gherkin scenarios now have a faithful DoD item
 that cites the scenario id and resolves to executed evidence already filed in
@@ -392,15 +395,19 @@ that cites the scenario id and resolves to executed evidence already filed in
 `Change Boundary is respected and zero excluded file families were changed`
 form; and the Change Boundary now enumerates allowed file families and excluded
 surfaces separately. No new evidence was manufactured here — every citation
-points at a receipt that already existed. One item remains unchecked: the Build
-Quality Gate (G-4). The scope is therefore not Done.
+points at a receipt that already existed. The Build Quality Gate (G-4) closed
+last, in the certifying `bubbles.validate` invocation. The scope is Done.
 
-A terminal certification write was attempted and reverted in the
-`bubbles.validate` invocation of 2026-08-25. It cleared six of the nine
-pre-write guard failures — the unchecked DoD item, the In Progress scope, both
-`G022` missing-validate-phase blocks and both `G027` empty-`completedScopes`
-blocks — but the guard still refused at `failureCount 5`, so every terminal
-field was restored. Three blockers survive: `Check 43` receipt STALE and receipt
-CLONE (`VAL-B004-V1`, parent-owned), `Gate G084`, and the newly measured
-status-conditional artifact-lint failure described in the Build Quality Gate
-item above. Top-level and certification status stay `in_progress`.
+The 2026-08-25 `bubbles.validate` invocation that attempted and reverted a
+terminal write is retained in `executionHistory` as an honest record of a
+bounded experiment. Its three surviving blockers were resolved before this
+certification rather than waived. `Check 43` receipt STALE and receipt CLONE
+(`VAL-B004-V1`) cleared when the receipt ledger was rebuilt —
+`evidence-receipt-check.sh` now reports `"valid": 3, "stale": 0` with an empty
+`staleReceipts`. `Gate G084` was fixed in place and now appears in the guard's
+`passedGateIds`. The status-conditional artifact-lint failure cleared when the
+`report.md` evidence blocks were repaired; the promotion regime now reports
+`All 93 evidence blocks in report.md contain legitimate terminal output`.
+`Gate G088` was the last remaining condition and is worktree-scoped rather than
+packet-scoped: it clears when the packet is committed, which the operator
+authorized for this transition. Top-level and certification status are `done`.

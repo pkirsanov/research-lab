@@ -241,19 +241,35 @@ open, and none of them is the defect.
 1. **The post-fix isolated run was never performed.** The contended post-fix result exists and is
    recorded, and it is the stronger condition, but "passes in isolation" names an execution nobody
    ran. Reusing the contended result for it would be a claim about a run that does not exist.
-2. **`node scripts/selftest.mjs` is red at this HEAD** — 3012 passed, 15 failed. The item requires 0
-   failed. The visible failures belong to in-flight Feature 026 byte-budget and cross-asset work, but
-   ownership does not license a tick, and the truncated capture means ten of the fifteen were not
-   individually inspected.
+2. **`node scripts/selftest.mjs` was red at the HEAD this section was written — it is green now.**
+   That entry recorded 3012 passed / 15 failed and attributed the failures to in-flight Feature 026
+   byte-budget and cross-asset work. That work has since landed. Re-run on a clean worktree detached
+   at `c26f45919`: `node scripts/selftest.mjs` → **3409 passed, 0 failed**, exit **0**. The item's
+   condition — 0 failed, with no reduction in assertion count — now holds on both halves, 3409 being
+   well above the 2490 the acceptance item quotes. This blocker is discharged; the checkbox is still
+   the operator's to tick.
 3. **The 498-test enumeration is stale.** Roughly 99 test declarations landed in 20 unrelated spec
    files after this fix, so the suite necessarily enumerates more now. What this fix did to the
    inventory — nothing, `11 +` / `0 -` with no `test(` declaration changed and no `.skip`/`.fixme` —
    is evidenced; the item as written is not, and it needs re-baselining by whoever owns the current
    inventory rather than reinterpreting to fit.
+4. **Two acceptance items were falsified by a later fix, and that fix is mine.** `uservalidation.md`
+   requires the decisive run to happen "at its configured four-worker parallelism", and separately
+   requires that "`playwright.config.mjs` is unchanged". Commit `13494be66` (2026-08-24,
+   `fix(BUG-017): pin the worker count local runs share with the pipeline`) changed that file and
+   pinned `workers: 2`. This packet's acceptance text was last written at `cb0dfa610` on 2026-08-19,
+   five days earlier, so it could not have anticipated it. Neither item is tickable as written: the
+   configured parallelism is now two, not four, and the file is demonstrably changed. The BUG-017
+   change is not a defect — it was measured (6/8 runs stalled at six workers, 1/3 at four, 0/3 at
+   two) and it is the reason the suite is stable — but it does invalidate the wording here. Only the
+   operator can amend `uservalidation.md`, so this is routed rather than repaired: the two items need
+   re-baselining to the two-worker configuration, or an explicit note that the four-worker phrasing
+   is superseded. No checkbox was touched.
 
-Items 2 and 3 are not this packet's defects and cannot be closed from inside this packet without
-either a green repository suite or a re-baselined inventory. Item 1 needs one Playwright invocation
-that this run was instructed not to make.
+Item 2 is now discharged: the green repository suite it was waiting on exists, measured at 3409
+passed / 0 failed. Item 3 still needs a re-baselined inventory, and item 4 needs the operator to
+amend two acceptance items that a later fix falsified. Item 1 needs one Playwright invocation that
+this run was instructed not to make. None of items 1, 3 or 4 is this packet's defect.
 
 Scenario contracts in `scenario-manifest.json` are left at `not_started`. Three of the five
 (`SCN-011B-001`, `-003`, `-004`) are discharged by the evidence above and `-002` by the post-fix

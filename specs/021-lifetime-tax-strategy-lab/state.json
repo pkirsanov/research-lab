@@ -106,31 +106,31 @@
         "scopeProgress": [
             {
                 "scopeId": "01-tax-workspace-rule-pack-and-privacy-foundation",
-                "status": "In Progress",
+                "status": "in_progress",
                 "dodChecked": 15,
                 "dodUnchecked": 0
             },
             {
                 "scopeId": "02-deterministic-annual-federal-tax",
-                "status": "In Progress",
+                "status": "in_progress",
                 "dodChecked": 11,
                 "dodUnchecked": 0
             },
             {
                 "scopeId": "03-effective-marginal-rate-curve",
-                "status": "In Progress",
+                "status": "in_progress",
                 "dodChecked": 12,
                 "dodUnchecked": 0
             },
             {
                 "scopeId": "04-bracket-fill-roth-conversion-comparison",
-                "status": "In Progress",
+                "status": "in_progress",
                 "dodChecked": 13,
                 "dodUnchecked": 1
             },
             {
                 "scopeId": "05-simple-power-route-accessibility-and-local-export",
-                "status": "In Progress",
+                "status": "in_progress",
                 "dodChecked": 14,
                 "dodUnchecked": 0
             }

@@ -119,31 +119,31 @@
         "scopeProgress": [
             {
                 "scopeId": "01-federal-preferential-rate-completion",
-                "status": "In Progress",
+                "status": "in_progress",
                 "dodChecked": 19,
                 "dodUnchecked": 0
             },
             {
                 "scopeId": "02-net-investment-income-and-additional-medicare-tax",
-                "status": "In Progress",
+                "status": "in_progress",
                 "dodChecked": 21,
                 "dodUnchecked": 0
             },
             {
                 "scopeId": "03-state-rule-pack-contract-and-jurisdiction-resolution",
-                "status": "In Progress",
+                "status": "in_progress",
                 "dodChecked": 16,
                 "dodUnchecked": 0
             },
             {
                 "scopeId": "04-california-pack",
-                "status": "In Progress",
+                "status": "in_progress",
                 "dodChecked": 15,
                 "dodUnchecked": 0
             },
             {
                 "scopeId": "05-combined-settlement-and-marginal-curve",
-                "status": "In Progress",
+                "status": "in_progress",
                 "dodChecked": 20,
                 "dodUnchecked": 0
             }

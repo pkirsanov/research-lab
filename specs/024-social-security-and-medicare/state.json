@@ -150,31 +150,31 @@
         "scopeProgress": [
             {
                 "scopeId": "01-benefit-computation",
-                "status": "In Progress",
+                "status": "in_progress",
                 "dodChecked": 20,
                 "dodUnchecked": 1
             },
             {
                 "scopeId": "02-benefit-taxation",
-                "status": "In Progress",
+                "status": "in_progress",
                 "dodChecked": 20,
                 "dodUnchecked": 0
             },
             {
                 "scopeId": "03-claim-age-comparison",
-                "status": "In Progress",
+                "status": "in_progress",
                 "dodChecked": 23,
                 "dodUnchecked": 0
             },
             {
                 "scopeId": "04-medicare-premiums-and-irmaa",
-                "status": "In Progress",
+                "status": "in_progress",
                 "dodChecked": 24,
                 "dodUnchecked": 0
             },
             {
                 "scopeId": "05-route-and-integration",
-                "status": "In Progress",
+                "status": "in_progress",
                 "dodChecked": 22,
                 "dodUnchecked": 0
             }

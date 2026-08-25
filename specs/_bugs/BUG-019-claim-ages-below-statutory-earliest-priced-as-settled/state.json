@@ -67,19 +67,19 @@
     "scopeProgress": [
       {
         "scopeId": "01-declare-the-earliest-claim-age-as-a-sourced-pack-figure",
-        "status": "In Progress",
+        "status": "in_progress",
         "dodChecked": 5,
         "dodUnchecked": 0
       },
       {
         "scopeId": "02-refuse-a-claim-age-below-the-declared-earliest-age",
-        "status": "In Progress",
+        "status": "in_progress",
         "dodChecked": 8,
         "dodUnchecked": 0
       },
       {
         "scopeId": "03-cover-both-sides-of-the-boundary-so-it-cannot-move-quietly",
-        "status": "Done",
+        "status": "done",
         "dodChecked": 5,
         "dodUnchecked": 0
       }

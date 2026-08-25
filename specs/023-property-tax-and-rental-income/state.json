@@ -119,31 +119,31 @@
         "scopeProgress": [
             {
                 "scopeId": "01-property-assessment-mechanics",
-                "status": "In Progress",
+                "status": "in_progress",
                 "dodChecked": 18,
                 "dodUnchecked": 1
             },
             {
                 "scopeId": "02-primary-residence-federal-interaction",
-                "status": "In Progress",
+                "status": "in_progress",
                 "dodChecked": 18,
                 "dodUnchecked": 0
             },
             {
                 "scopeId": "03-long-term-rental",
-                "status": "In Progress",
+                "status": "in_progress",
                 "dodChecked": 19,
                 "dodUnchecked": 0
             },
             {
                 "scopeId": "04-short-term-and-vacation-rental",
-                "status": "In Progress",
+                "status": "in_progress",
                 "dodChecked": 20,
                 "dodUnchecked": 0
             },
             {
                 "scopeId": "05-disposition",
-                "status": "In Progress",
+                "status": "in_progress",
                 "dodChecked": 20,
                 "dodUnchecked": 0
             }

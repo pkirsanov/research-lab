@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash",
   "featureName": "BUG-005 Stale-Domain Interest Signal Crash",
   "createdAt": "2026-08-25T00:00:00Z",
-  "lastUpdatedAt": "2026-08-25T00:00:00Z",
+  "lastUpdatedAt": "2026-08-25T16:42:00Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -28,29 +28,37 @@
   },
   "execution": {
     "activeAgent": null,
-    "currentPhase": "test",
-    "currentPhaseStatus": "in_progress",
+    "currentPhase": "implement",
+    "currentPhaseStatus": "complete",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
     "runStartedAt": "2026-08-25T00:00:00Z",
     "completedAt": null,
-    "substate": "focused-carrier-green-broader-validation-pending",
+    "substate": "implemented",
     "currentScope": 1,
-    "nextRequiredOwner": "bubbles.test",
-    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/report.md",
-    "nextRequiredReason": "The focused six-test carrier, the 36 unchanged BUG-004 regression rows, the 3409-assertion canonical selftest, artifact lint, regression-quality guard, and diff integrity are green. Pre-fix historical reproduction and independent certification remain pending. Pre-fix HEAD and parent-commit reproduction receipts were reported by the filing work and were not re-executed by this checkpointing pass.",
-    "completedPhaseClaims": [],
+    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/scopes.md",
+    "nextRequiredReason": "bubbles.validate ran and REFUSED certification. The implementation evidence replayed clean and independently: carrier six of six green, the pre-fix RED reproduced at 732bccb6c^ (exit 1, six of six, RangeError at rlportfolio.js:2518:101 via deriveInterestSignals), thirty-six unchanged BUG-004 regression rows, the 3409-assertion selftest, and artifact lint exit 0. But state-transition-guard exited 1 with 33 blocking failures across G022, G053, G027, G068, G093, G094, G097 and G136, so no certification field was written and status stays in_progress. Twelve of the 33 are scopes.md-shaped and owned here: five G068 DoD-Gherkin fidelity gaps (each of SCN-B005-STALE-OMITTED, -FRESH-SIBLING, -DISCRIMINATION, -FLOOR-PRESERVED, -BRIEF-AGREEMENT has no faithful DoD item), three missing regression-E2E planning rows, two missing consumer-impact-sweep requirements, and two missing change-boundary containment items whose substance is present under a heading the gate does not read. Clearing them does NOT reach done on its own: G093 and G053 need bubbles.implement, the seven absent pipeline phases need re-orchestration, and G136 needs a human.",
+    "completedPhaseClaims": [
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-08-25T14:07:25Z",
+        "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
+        "evidenceRef": "report.md#pre-fix-reproduction"
+      }
+    ],
     "pendingTransitionRequests": [],
     "scopeInventory": [
       {
         "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
         "scope": 1,
-        "status": "In Progress",
+        "status": "Done",
         "dependsOn": []
       }
     ]
   },
-  "completedScopes": [],
+  "completedScopes": ["01-omit-stale-only-domains-instead-of-throwing"],
   "certification": {
     "status": "in_progress",
     "lockdownState": "unlocked",
@@ -79,14 +87,64 @@
   "transitionRequests": [],
   "reworkQueue": [],
   "executionHistory": [],
-  "addressedFindings": [],
-  "unresolvedFindings": [
+  "addressedFindings": [
     {
       "id": "BUG-005-VERIFICATION-PENDING",
-      "summary": "Broader regression, artifact, and certification checks remain pending; the packet stays in_progress.",
-      "owner": "bubbles.test",
+      "summary": "The execution-owned half is closed: pre-fix reproduction, provenance, divergence characterization, broader regression, and artifact lint were all executed and recorded in report.md. bubbles.validate independently replayed all of it and confirmed it. Certification was NOT part of this closure and was subsequently REFUSED on gate grounds — see BUG-005-CERTIFICATION-REFUSED.",
+      "owner": "bubbles.implement",
+      "status": "addressed",
+      "evidenceRef": "report.md#pre-fix-reproduction"
+    }
+  ],
+  "unresolvedFindings": [
+    {
+      "id": "BUG-005-CERTIFICATION-REFUSED",
+      "summary": "bubbles.validate refused certification. state-transition-guard.sh exited 1 with 33 blocking failures (failedGateIds G022, G053, G027, G068, G093, G094, G097, G136; blockingCode DELIVERY_COMPLETION_FAILED). The resolved contract is workflowMode bugfix-fastlane, auditProfile delivery-completion-v1, statusCeiling done, contractDigest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f. No certification field was written; status remains in_progress.",
+      "owner": "bubbles.plan",
       "status": "route_required",
-      "evidenceRef": "report.md#open-verification"
+      "evidenceRef": "report.md#validation-refusal"
+    },
+    {
+      "id": "BUG-005-G068-DOD-GHERKIN-FIDELITY",
+      "summary": "All five Gherkin scenarios in scopes.md have no faithful DoD item: SCN-B005-STALE-OMITTED, SCN-B005-FRESH-SIBLING, SCN-B005-DISCRIMINATION, SCN-B005-FLOOR-PRESERVED, SCN-B005-BRIEF-AGREEMENT. The DoD is organized by evidence activity (reproduce, provenance, fix, green) rather than by asserted behavior, so no DoD item restates a scenario's behavioral claim. Twelve of the 33 guard failures are this scopes.md shape: G068 (5 plus summary), missing regression-E2E planning rows (3 plus summary), missing consumer-impact-sweep section and DoD item (2 plus summary), and missing change-boundary containment items (2 plus summary).",
+      "owner": "bubbles.plan",
+      "status": "route_required",
+      "evidenceRef": "report.md#validation-refusal"
+    },
+    {
+      "id": "BUG-005-G093-G053-DELIVERY-DELTA",
+      "summary": "delivery-implementation-delta-guard.sh classifies the certification window as deliveryDeltaPaths=0, planningOnlyPaths=3, reportCodeDiffSections=0. The production change landed in 732bccb6c and HEAD has since advanced to d54a773fa, so the only currently-changed paths are report.md, scopes.md and state.json. report.md does carry the git diff under '### Fix confinement', but not under the '### Code Diff Evidence' heading G053 reads, so the guard cannot credit the implementation delta from the report either. Guard-named nextOwner: implementation.",
+      "owner": "bubbles.implement",
+      "status": "route_required",
+      "evidenceRef": "report.md#validation-refusal"
+    },
+    {
+      "id": "BUG-005-G022-PIPELINE-PHASES",
+      "summary": "Seven required phases are absent from the phase records (test, regression, simplify, stabilize, security, validate, audit), and the single 'implement' claim lacks specialist or parent-expanded provenance, which the guard reports as phase impersonation. The resolved phaseOrder for bugfix-fastlane is select, bootstrap, implement, test, regression, simplify, gaps, harden, stabilize, devops, security, validate, audit, finalize. Because 'audit' is still in phaseOrder with no matching audit attempt, this pass is pre-audit validation and MUST NOT write terminal certification even had the guard been green.",
+      "owner": "bubbles.workflow",
+      "status": "route_required",
+      "evidenceRef": "report.md#validation-refusal"
+    },
+    {
+      "id": "BUG-005-G136-HUMAN-ACCEPTANCE",
+      "summary": "NOT AGENT-RESOLVABLE. All six uservalidation.md checklist items are unchecked and the '## Human Acceptance Record' is present but unfilled (acceptedBy, acceptedAt, method all '[unfilled]'). No agent may check these; doing so would fabricate the acceptance the gate exists to require. This blocks the terminal transition independently of every other finding, and the packet's own report.md already states it.",
+      "owner": "human",
+      "status": "route_required",
+      "evidenceRef": "uservalidation.md"
+    },
+    {
+      "id": "BUG-005-G070-OUTCOME-CONTRACT",
+      "summary": "goal-fidelity-guard.sh --boundary pre-certification exited 1 with 2 findings: spec.md has no non-empty '## Outcome Contract' section and therefore declares no Hard Constraints. The sibling BUG-004 packet carries one in spec.md, report.md and state.json, so this is a real gap in BUG-005 rather than a repository convention that does not apply.",
+      "owner": "bubbles.analyst",
+      "status": "route_required",
+      "evidenceRef": "report.md#validation-refusal"
+    },
+    {
+      "id": "BUG-005-TRACEABILITY-GUARD",
+      "summary": "traceability-guard.sh exited 1 with 6 failures, consistent with the G068 gap: scenario to Test Plan row to test file to report evidence is not fully resolvable as written.",
+      "owner": "bubbles.plan",
+      "status": "route_required",
+      "evidenceRef": "report.md#validation-refusal"
     }
   ]
 }

@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
   "featureName": "BUG-006 Evidence Window Date Overflow",
   "createdAt": "2026-08-25T19:27:30Z",
-  "lastUpdatedAt": "2026-08-25T19:27:30Z",
+  "lastUpdatedAt": "2026-08-25T19:41:09Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -28,18 +28,18 @@
     "scenarioManifest": "scenario-manifest.json"
   },
   "execution": {
-    "activeAgent": "bubbles.bug",
-    "currentPhase": "bug",
+    "activeAgent": "bubbles.design",
+    "currentPhase": "design",
     "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
-    "runStartedAt": "2026-08-25T19:27:30Z",
+    "runStartedAt": "2026-08-25T19:41:09Z",
     "completedAt": null,
-    "substate": "diagnosed",
+    "substate": "designed",
     "currentScope": null,
-    "nextRequiredOwner": "bubbles.design",
-    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow/design.md",
-    "nextRequiredReason": "Review and adopt the conservative 100-year product bound and exact P008-CONFIG refusal contract before plan, test, or implementation work begins.",
+    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow/scopes.md",
+    "nextRequiredReason": "Reconcile the existing plan against the adopted 100-year product ceiling, exact P008-CONFIG refusal, complete consumer inventory, and separate product-boundary versus runtime-overflow tests.",
     "completedPhaseClaims": [],
     "pendingTransitionRequests": [],
     "scopeInventory": [
@@ -74,11 +74,19 @@
   "transitionRequests": [
     {
       "id": "BUG-006-ROUTE-001",
-      "status": "pending",
+      "status": "completed",
       "fromAgent": "bubbles.bug",
       "nextRequiredOwner": "bubbles.design",
       "target": "design.md",
       "reason": "The failure class is reproduced. The product-bound choice and final fix design require design ownership before scenario-first test authorship."
+    },
+    {
+      "id": "BUG-006-ROUTE-002",
+      "status": "pending",
+      "fromAgent": "bubbles.design",
+      "nextRequiredOwner": "bubbles.plan",
+      "target": "scopes.md",
+      "reason": "The design now distinguishes the 100-year product ceiling from the timestamp-dependent TimeClip boundary and inventories every inherited consumer and test carrier."
     }
   ],
   "reworkQueue": [],
@@ -90,6 +98,15 @@
       "action": "filed-reproduced-and-routed",
       "note": "Bound repository authority to Research Lab at control revision 204. Read the current validatePolicy and deriveInterestSignals paths, read the SEC-B005-S1 security record, and executed a focused current-source probe. The validator accepted 99979350 days, the derived expiry exceeded TimeClip, and toISOString threw RangeError Invalid time value. Proposed a named 36525-day product bound. No product source or test was edited or run.",
       "phasesExecuted": ["bug"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-25T19:41:09Z",
+      "agent": "bubbles.design",
+      "phase": "design",
+      "action": "design-reconciled-and-routed",
+      "note": "Reviewed the proposed 36525-day maximum against rlportfolio.js validation ordering, all direct policy consumers, the separate rlportfoliobrief.js guard order, the eight direct test carriers, all eight browser carriers, Research Lab Product Principles P7, P22, and P23, and a current Date boundary probe. Adopted 100 years as a behavior-evidence eligibility ceiling rather than a TimeClip approximation. Preserved the committed 56-day policy, selected private constant MAXIMUM_EVIDENCE_AGE_DAYS, and retained the exact P008-CONFIG invalid-policy behavior envelope without touching certification.",
+      "phasesExecuted": ["design"],
       "provenanceMode": "specialist"
     }
   ],

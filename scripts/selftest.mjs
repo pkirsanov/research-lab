@@ -29097,6 +29097,224 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (brief window cutoff group threw): ' + e.message); }
 /* ---------- Brief window cutoff: the publisher enforces what consumers require (END) ---------- */
 
+/* ---------- specs/ — a scope progress claim matches the DoD it summarises (ratchet) ----------
+   `certification.scopeProgress[].dodChecked`/`.dodUnchecked` claimed to summarise a scope's
+   Definition-of-Done rows, and nothing compared the two. Measured on 2026-08-25 at 8e6c35aa7,
+   `grep -n 'dodChecked\|dodUnchecked' .github/bubbles/scripts/*.sh .github/bubbles/scripts/*.py`
+   exited 1. So the number was reconciled by hand, a later pass legitimately ticked one more row,
+   and the registry silently described a state the artifact had left — twice in one session.
+
+   ADVERSARIAL FIRST. Every capability below is proven against a fixture that MUST fail: an
+   overstating claim, an understating one, a row hidden inside a fence, and a claim whose artifact
+   cannot be found. A guard that only ever passes is indistinguishable from one that does nothing,
+   which is the `F-AUDIT-06` defect this repository has filed before. */
+try {
+  group('specs/ \u2014 every scope progress claim matches the Definition of Done it summarises');
+  const dodGuard = await import('./validate-scope-dod-progress.mjs');
+  const { mkdtempSync: mkDodRoot, mkdirSync: mkDodDir, writeFileSync: writeDodFile, rmSync: rmDodRoot } = await import('node:fs');
+  const { tmpdir: dodTmpdir } = await import('node:os');
+
+  const dodRoot = mkDodRoot(join(dodTmpdir(), 'rl-scope-dod-progress-'));
+  const dodBaseline = join(dodRoot, 'scripts', 'validate-scope-dod-progress.baseline');
+  mkDodDir(join(dodRoot, 'scripts'), { recursive: true });
+  writeDodFile(dodBaseline, '# empty fixture baseline\n');
+
+  /* One fixture packet, written fresh for each case so no case inherits another's state. */
+  const writeDodPacket = (id, claim, body, options = {}) => {
+    const dir = join(dodRoot, 'specs', id);
+    mkDodDir(dir, { recursive: true });
+    writeDodFile(join(dir, 'state.json'), JSON.stringify({
+      status: 'in_progress',
+      certification: { scopeProgress: [{ scopeId: options.scopeId ?? '01-alpha', status: 'done', ...claim }] }
+    }));
+    if (options.singleFile) {
+      writeDodFile(join(dir, 'scopes.md'), body);
+    } else {
+      mkDodDir(join(dir, 'scopes', '01-alpha'), { recursive: true });
+      writeDodFile(join(dir, 'scopes', '01-alpha', 'scope.md'), body);
+    }
+    return `specs/${id}`;
+  };
+  const runDod = () => dodGuard.validateScopeDodProgress(dodRoot, { baselineFile: dodBaseline });
+  const dropDodPacket = (id) => rmDodRoot(join(dodRoot, 'specs', id), { recursive: true, force: true });
+
+  /* Two ticked, one open, and a THIRD `- [ ]` that lives inside a fenced block. The fenced row is
+     documentation of a row, not a row; counting it would make the honest claim below read as
+     drift, so this single fixture proves the fence rule and the agreement path at once. */
+  const dodBody = [
+    '# Scope 1: Alpha',
+    '',
+    '## Implementation Plan',
+    '',
+    '- [x] not a DoD row, it sits outside the section',
+    '',
+    '## Definition of Done',
+    '',
+    '- [x] first obligation',
+    '- [x] second obligation',
+    '- [ ] third obligation, still open',
+    '',
+    'A documented example of the row shape, which is not itself a row:',
+    '',
+    '```markdown',
+    '- [ ] this belongs to the documentation, not to the DoD',
+    '- [x] and so does this',
+    '```',
+    '',
+    '## Recorded Deviations',
+    '',
+    '- [x] a sibling section is not the DoD either',
+    ''
+  ].join('\n');
+
+  const honest = writeDodPacket('900-honest', { dodChecked: 2, dodUnchecked: 1 }, dodBody);
+  const honestResult = runDod();
+  assert(honestResult.claimCount === 1 && honestResult.agreeCount === 1 && honestResult.findings.length === 0,
+    'a claim of 2 ticked and 1 open matches an artifact holding exactly those rows, so the ordinary reconciled case is not reported \u2014 rows outside the Definition-of-Done section, rows in a sibling section, and rows inside a fenced block are all excluded (' + honestResult.claimCount + ' claim(s), ' + honestResult.agreeCount + ' agreeing)');
+  dropDodPacket('900-honest');
+
+  /* ADVERSARIAL: the fence rule is the difference between green and red here. Were fenced rows
+     counted, this artifact would read 3 ticked and 2 open and the honest claim above would fail. */
+  const fenceLines = dodBody.split('\n');
+  const fenceMask = dodGuard.markdownFenceMask(fenceLines);
+  const fencedTally = dodGuard.countTaskRows(fenceLines, fenceMask.map(() => false), 0, fenceLines.length);
+  const maskedTally = dodGuard.countTaskRows(fenceLines, fenceMask, 0, fenceLines.length);
+  assert(fencedTally.checked === 5 && fencedTally.unchecked === 2 && maskedTally.checked === 4 && maskedTally.unchecked === 1,
+    'the fence mask is what removes the documented example rows \u2014 ignoring fences the same artifact tallies ' + fencedTally.checked + '/' + fencedTally.unchecked + ' against the masked ' + maskedTally.checked + '/' + maskedTally.unchecked + ', so the rule is load-bearing rather than decorative');
+
+  /* ADVERSARIAL: a claim that overstates its artifact. This is the observed defect \u2014 the number
+     was right when written, then a row was ticked and nobody revisited it. */
+  writeDodPacket('901-overstated', { dodChecked: 3, dodUnchecked: 0 }, dodBody);
+  const overstated = runDod();
+  assert(!overstated.ok && overstated.newFindings.length === 1
+    && overstated.newFindings[0].reason === 'drift'
+    && overstated.newFindings[0].key === 'specs/901-overstated#01::certification'
+    && /claims 3\/0 .*artifact has 2\/1/.test(overstated.newFindings[0].detail),
+    'a registry claiming more ticked rows than the artifact carries FAILS, and the finding names the packet, the scope and both sides (' + (overstated.newFindings[0]?.detail ?? 'no finding') + ')');
+  dropDodPacket('901-overstated');
+
+  /* ADVERSARIAL: the mirror case. A claim that understates is equally wrong and equally reported,
+     so the guard is not merely a one-directional "did the count go up" heuristic. */
+  writeDodPacket('902-understated', { dodChecked: 1, dodUnchecked: 2 }, dodBody);
+  const understated = runDod();
+  assert(!understated.ok && understated.newFindings.length === 1 && understated.newFindings[0].reason === 'drift',
+    'a registry claiming fewer ticked rows than the artifact carries FAILS too \u2014 drift in either direction is a false summary');
+  dropDodPacket('902-understated');
+
+  /* ADVERSARIAL: a claim nothing can check is the same blind spot in a new costume, so it is
+     reported rather than skipped. */
+  writeDodPacket('903-unresolvable', { dodChecked: 2, dodUnchecked: 1 }, dodBody, { scopeId: '07-absent' });
+  const unresolvable = runDod();
+  assert(!unresolvable.ok && unresolvable.unresolvedCount === 1 && unresolvable.newFindings[0].reason === 'unresolved',
+    'a claim whose scope artifact cannot be located FAILS instead of being silently skipped \u2014 an unverifiable claim is not a verified one');
+  dropDodPacket('903-unresolvable');
+
+  /* The bug-packet layout: many scopes in one scopes.md, closing with the packet-level block.
+     `cross-scope` is a real registry identifier here, not a malformed ordinal. */
+  const dodSingle = [
+    '# Scopes: FIXTURE',
+    '',
+    '## Scope Summary',
+    '',
+    '- [x] an inventory row, and NOT a scope section \u2014 no ordinal in the heading',
+    '',
+    '## Scope 1: First',
+    '',
+    '### Definition of Done',
+    '',
+    '- [x] scope one, first row',
+    '- [x] scope one, second row',
+    '',
+    '#### Test Evidence Items',
+    '',
+    '- [x] a deeper sub-heading still belongs to the tiered DoD above it',
+    '',
+    '## Scope 2: Second',
+    '',
+    '### Definition of Done',
+    '',
+    '- [ ] scope two has not started',
+    '',
+    '## Cross-Scope Definition of Done',
+    '',
+    '- [x] a packet-level obligation, owned by no numbered scope',
+    ''
+  ].join('\n');
+  const singleDir = join(dodRoot, 'specs', '904-single');
+  mkDodDir(singleDir, { recursive: true });
+  writeDodFile(join(singleDir, 'scopes.md'), dodSingle);
+  writeDodFile(join(singleDir, 'state.json'), JSON.stringify({
+    status: 'in_progress',
+    certification: { scopeProgress: [
+      { scopeId: '01-first', status: 'done', dodChecked: 3, dodUnchecked: 0 },
+      { scopeId: '02-second', status: 'not_started', dodTicked: 0, dodUnticked: 1 },
+      { scopeId: 'cross-scope', status: 'done', dodChecked: 1, dodTotal: 1 }
+    ] }
+  }));
+  const single = runDod();
+  assert(single.claimCount === 3 && single.agreeCount === 3 && single.findings.length === 0,
+    'the single-file bug-packet layout resolves all three of its claims \u2014 a numbered scope whose tiered DoD includes a deeper sub-heading, a sibling scope that has not started, and the packet-level cross-scope block \u2014 across the dodChecked, dodTicked and dodTotal spellings alike (' + single.agreeCount + '/' + single.claimCount + ' agreeing)');
+
+  /* ADVERSARIAL: the trailing cross-scope block must END scope 2 rather than be absorbed by it.
+     Were the last numbered section allowed to run to end-of-file, scope 2 would read 1 ticked
+     instead of 1 open and a scope with no DoD of its own would silently borrow the packet's. */
+  const singleLines = dodSingle.split('\n');
+  const singleMask = dodGuard.markdownFenceMask(singleLines);
+  const singleHeadings = dodGuard.markdownHeadings(singleLines, singleMask);
+  const singleSections = dodGuard.scopeSectionsOf(singleLines, singleMask, singleHeadings);
+  const secondScope = singleSections.find((section) => section.key === '02');
+  const crossSection = singleSections.find((section) => section.key === dodGuard.CROSS_SCOPE_KEY);
+  assert(singleSections.length === 3 && secondScope && crossSection && secondScope.to <= crossSection.from
+    && !singleSections.some((section) => /Scope Summary/.test(section.title)),
+    'scope 2 ends where the cross-scope block begins rather than running to end-of-file, and `## Scope Summary` is not mistaken for a scope section because it carries no ordinal (' + singleSections.map((section) => section.key).join(', ') + ')');
+
+  /* ADVERSARIAL: `# SCN-021-01` inside a fenced Gherkin block is a comment, not a heading. A
+     fence-naive scan reads five phantom headings in the real BUG-021 artifact. */
+  const gherkinLines = ['## Scope 1: X', '', '```gherkin', '# SCN-021-01', 'Scenario: something', '```', '', '### Definition of Done', '', '- [x] one', ''];
+  const gherkinMask = dodGuard.markdownFenceMask(gherkinLines);
+  assert(dodGuard.markdownHeadings(gherkinLines, gherkinMask).length === 2
+    && dodGuard.markdownHeadings(gherkinLines, gherkinMask.map(() => false)).length === 3,
+    'a `#` line inside a fenced Gherkin block is a comment rather than a heading, so it never splits a scope or ends a Definition of Done (2 real headings, 3 when fences are ignored)');
+  rmDodRoot(singleDir, { recursive: true, force: true });
+
+  /* RATCHET: the frozen entry is accepted, and the guard still fails on anything beside it. */
+  writeDodPacket('905-known', { dodChecked: 3, dodUnchecked: 0 }, dodBody);
+  writeDodFile(dodBaseline, '# frozen fixture debt\nspecs/905-known#01::certification\n');
+  const knownDrift = runDod();
+  assert(knownDrift.ok && knownDrift.knownFindings.length === 1 && knownDrift.newFindings.length === 0,
+    'a scope already frozen in the baseline is carried as known debt rather than failing the run, so pre-existing drift in packets this change does not own cannot turn the validation path red');
+  writeDodPacket('906-fresh', { dodChecked: 3, dodUnchecked: 0 }, dodBody);
+  const freshDrift = runDod();
+  assert(!freshDrift.ok && freshDrift.newFindings.length === 1 && freshDrift.newFindings[0].key === 'specs/906-fresh#01::certification',
+    'freezing one scope does not license the next \u2014 the baseline is keyed on the SCOPE, not on the numbers, so a second drifting scope still FAILS while the frozen one passes');
+  dropDodPacket('906-fresh');
+
+  /* The baseline may shrink and only shrink: a reconciled entry is reported, not silently kept. */
+  writeDodPacket('905-known', { dodChecked: 2, dodUnchecked: 1 }, dodBody);
+  const reconciled = runDod();
+  assert(reconciled.ok && reconciled.staleBaseline.length === 1
+    && reconciled.staleBaseline[0] === 'specs/905-known#01::certification',
+    'a baseline entry whose claim now matches its artifact is reported STALE while the run still exits 0, so the frozen list can only shrink');
+  dropDodPacket('905-known');
+
+  /* ADVERSARIAL: a scan that matched nothing must not read as a clean bill of health. */
+  const vacuous = runDod();
+  assert(!vacuous.ok && vacuous.vacuous,
+    'a scan that matches zero progress claims FAILS rather than passing vacuously \u2014 a matcher that quietly stopped matching would otherwise reproduce the exact blind spot this guard closes');
+  rmDodRoot(dodRoot, { recursive: true, force: true });
+
+  /* The real repository, against the committed baseline. */
+  const scopeDod = dodGuard.validateScopeDodProgress(ROOT);
+  assert(!scopeDod.vacuous && scopeDod.baselinePresent,
+    'the scan read real progress claims against a present baseline, so a green verdict is a comparison rather than a matcher that stopped matching (' + scopeDod.claimCount + ' claim(s) across ' + scopeDod.packetCount + ' packet(s), ' + scopeDod.agreeCount + ' agreeing, baseline ' + scopeDod.baselineCount + ' entr' + (scopeDod.baselineCount === 1 ? 'y' : 'ies') + ')');
+  assert(scopeDod.unresolvedCount === 0,
+    'every committed progress claim resolves to a scope artifact the guard can actually read, so none of them is passing merely because nothing could check it (' + scopeDod.unresolvedCount + ' unresolvable)');
+  for (const line of dodGuard.formatScopeDodProgressFindings(scopeDod, 3)) console.log('    ' + line);
+  assert(scopeDod.newFindings.length === 0,
+    'no scope progress claim disagrees with its Definition of Done outside the frozen baseline \u2014 a stale count reads as a summary of the artifact while describing a state the artifact has left (' + scopeDod.newFindings.length + ' new, ' + scopeDod.knownFindings.length + ' frozen, ' + scopeDod.staleBaseline.length + ' stale of ' + scopeDod.claimCount + ' claim(s))');
+} catch (e) { failures++; console.log('  ✗ FAIL (scope DoD progress guard threw): ' + e.message); }
+/* ---------- specs/ — a scope progress claim matches the DoD it summarises (END) ---------- */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

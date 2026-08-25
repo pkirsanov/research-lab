@@ -1,0 +1,81 @@
+# validate-scope-dod-progress baseline — Research Lab
+#
+# Scopes whose state.json progress claim does NOT match the Definition-of-Done
+# rows of the artifact it summarises, plus claims whose artifact cannot be
+# located at all. Frozen so the guard can fail on NEW drift while this
+# pre-existing set is reconciled.
+#
+# Keyed on `<packet>#<ordinal>::<registry array>`, NOT on the numbers. A scope
+# already listed here stays frozen until it is reconciled, so re-freezing
+# cannot be used to accept a new wrong number; a scope NOT listed here FAILS
+# the moment its claim and its artifact disagree. That is the regression this
+# guard exists to stop.
+#
+# The two registry arrays are listed separately on purpose: when
+# `execution.scopeProgress` and `certification.scopeProgress` disagree, exactly
+# one of them is the stale one, and collapsing them would hide which.
+#
+# THIS LIST MUST SHRINK, NEVER GROW. Every entry is paid down by one of:
+#   - reconcile the claim against the artifact, in the owning packet, or
+#   - give the scope a Definition of Done the claim can summarise, or
+#   - drop a count claim the packet cannot substantiate
+# Never by ticking a checkbox to match the number.
+#
+# A baseline entry that is no longer drifted is reported as STALE and the run
+# still exits 0. Remove it. Do NOT regenerate the baseline to silence a
+# genuine new finding.
+#
+# Regenerate ONLY when deliberately accepting the current set:
+#   node scripts/validate-scope-dod-progress.mjs --update-baseline
+#
+# There is no --skip / --force / --ignore / --bypass flag and there never will
+# be. A bypass-shaped flag exits non-zero.
+#
+# FROZEN: 14 finding(s) — 14 drifted, 0 unresolvable — of 85 claim(s) across 62 packet(s), on 2026-08-25.
+#
+# ---- finding detail --------------------------------------------------------
+#   drift      specs/017-decision-attention-and-developing-situations#01::certification
+#              claims 42/0 checked/unchecked, artifact has 47/0
+#   drift      specs/017-decision-attention-and-developing-situations#02::certification
+#              claims 17/0 checked/unchecked, artifact has 24/0
+#   drift      specs/017-decision-attention-and-developing-situations#03::certification
+#              claims 19/0 checked/unchecked, artifact has 23/0
+#   drift      specs/017-decision-attention-and-developing-situations#04::certification
+#              claims 22/0 checked/unchecked, artifact has 27/0
+#   drift      specs/017-decision-attention-and-developing-situations#05::certification
+#              claims 22/0 checked/unchecked, artifact has 26/0
+#   drift      specs/017-decision-attention-and-developing-situations#06::certification
+#              claims 32/0 checked/unchecked, artifact has 34/0
+#   drift      specs/026-actionable-brief-brevity-and-cross-asset#01::certification
+#              claims 32/0 checked/unchecked, artifact has 34/0
+#   drift      specs/026-actionable-brief-brevity-and-cross-asset#02::certification
+#              claims 32/0 checked/unchecked, artifact has 34/0
+#   drift      specs/026-actionable-brief-brevity-and-cross-asset#03::certification
+#              claims 27/0 checked/unchecked, artifact has 29/0
+#   drift      specs/_bugs/BUG-007-decision-attention-contract-drift#01::certification
+#              claims 23/0 checked/unchecked, artifact has 15/0
+#   drift      specs/_bugs/BUG-007-decision-attention-contract-drift#02::certification
+#              claims 1/0 checked/unchecked, artifact has 5/0
+#   drift      specs/_bugs/BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc#cross-scope::certification
+#              claims 3/1 checked/unchecked, artifact has 4/0
+#   drift      specs/_bugs/BUG-013-brief-recent-row-v2-breaches-cockpit-first-load-budget#03::certification
+#              claims 0/5 checked/unchecked, artifact has 5/0
+#   drift      specs/_bugs/BUG-013-brief-recent-row-v2-breaches-cockpit-first-load-budget#cross-scope::certification
+#              claims 0/5 checked/unchecked, artifact has 5/0
+#
+# ---- frozen keys (LC_ALL=C sorted) ------------------------------------------
+
+specs/017-decision-attention-and-developing-situations#01::certification
+specs/017-decision-attention-and-developing-situations#02::certification
+specs/017-decision-attention-and-developing-situations#03::certification
+specs/017-decision-attention-and-developing-situations#04::certification
+specs/017-decision-attention-and-developing-situations#05::certification
+specs/017-decision-attention-and-developing-situations#06::certification
+specs/026-actionable-brief-brevity-and-cross-asset#01::certification
+specs/026-actionable-brief-brevity-and-cross-asset#02::certification
+specs/026-actionable-brief-brevity-and-cross-asset#03::certification
+specs/_bugs/BUG-007-decision-attention-contract-drift#01::certification
+specs/_bugs/BUG-007-decision-attention-contract-drift#02::certification
+specs/_bugs/BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc#cross-scope::certification
+specs/_bugs/BUG-013-brief-recent-row-v2-breaches-cockpit-first-load-budget#03::certification
+specs/_bugs/BUG-013-brief-recent-row-v2-breaches-cockpit-first-load-budget#cross-scope::certification

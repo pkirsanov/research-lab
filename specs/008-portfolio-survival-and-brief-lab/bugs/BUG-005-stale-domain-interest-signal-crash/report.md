@@ -2005,3 +2005,372 @@ the operator constrained this change to TEST-B005-T3/G022, and their owning
 agents must reconcile them. The only finding moved by this invocation is
 TEST-B005-T3. G022 itself remains in `failedGateIds` because required pipeline
 phases remain absent.
+
+## Stabilize Phase — 2026-08-25 {#stabilize-phase-2026-08-25}
+
+Measures whether the BUG-005 repair — the relocation of bucket creation to after
+the age filter inside `deriveInterestSignals` in `rlportfolio.js` — costs
+anything at the declared cap. **Verdict: STABLE.** No performance regression is
+attributable to BUG-005.
+
+### Provenance of the figures in this section {#stabilize-provenance}
+
+This section **persists a measurement taken in a prior invocation**; it does not
+re-establish one. The 4-minute fixture build was deliberately not re-run. The
+distinction is recorded rather than blurred, because it changes how much weight
+a reader may put on the numbers:
+
+| What | Established by | Claim Source |
+|---|---|---|
+| Harness identity, pre-fix worktree identity, that the pre/post divergence is the BUG-005 hunk **and nothing else**, HEAD, runtime, method | Commands run in **this** invocation, below | `executed` |
+| Every millisecond figure, ratio, `signals` count, heap delta and refusal code in the tables below | The prior harness run, **transcribed by the operator**. Raw captured stdout is **not** held in this packet. | `interpreted` |
+
+**Interpretation:** the timing tables are recorded as `interpreted`, not
+`executed`, because this agent did not run the harness in this session and
+cannot show the raw output that produced them. They are treated as operator
+diagnostic input that this agent transcribed, not as its own execution evidence.
+What this agent *did* verify is that the measurement was set up to mean what it
+claims — same harness, genuine pre-fix baseline, single-hunk divergence. A
+reviewer wanting `executed`-grade timings must re-run the harness.
+
+Verified in this invocation:
+
+```text
+$ git rev-parse --short=9 HEAD
+e4c97ca9b
+
+$ sha256sum /tmp/stab-b005/bench.mjs
+24ea33c1bc1e7e984bd00b387a0ff794eb9fa63316b18d9a4b5dcacf534fb345  /tmp/stab-b005/bench.mjs
+
+$ (cd /tmp/stab-b005-pre && git log -1 --format='%h %s')
+31aad20d4 Merge remote-tracking branch 'origin/main'
+
+$ node --version && nproc
+v22.22.0
+8
+```
+
+The pre-fix side is a genuine baseline, and the **only** thing that differs
+between the two sides is the repair — so any delta measured here is attributable
+to this change or to nothing:
+
+```text
+$ diff -u /tmp/stab-b005-pre/rlportfolio.js rlportfolio.js
+@@ -2459,6 +2459,16 @@
++      var ageDays = (Date.parse(now) - Date.parse(event.occurredAt)) / 86400000;
++      if (ageDays < 0 || ageDays > behavior.maximumEvidenceAgeDays) return;
++      eligibleEvents.push(event);
++    });
++
++    var dedupedResult = dedupeBehaviorEvents(eligibleEvents, policy);
++    if (!dedupedResult.ok) return dedupedResult;
++    dedupedResult.value.events.forEach(function (event) {
++      // Created HERE, after the age filter. ...
+       var key = String(event.domain);
+@@ -2471,15 +2481,7 @@
+-      var ageDays = ...
+-      var bucket = byDomain[String(event.domain)];
++      var bucket = byDomain[key];
+```
+
+That diff is the whole delta: one statement reordering, no added work per event.
+
+**Method**, read from the harness source rather than assumed: one fixture serves
+all three age regimes by varying `now`, so the regimes are the *same* 500 events
+seen from three vantage points. Each figure is the **median of 21 timed
+repetitions after 3 warm-ups**, with pre and post **interleaved** inside one
+process so drift hits both sides equally. `maxBehaviorEvents` is `500` and
+`maximumEvidenceAgeDays` is `56` in `portfolio-survival-allocation.config.json`.
+
+**Claim Source:** executed
+
+### `portfolio.deriveInterestSignals` at the cap, n=500 {#stabilize-regimes}
+
+| Regime | In-window | Domains | pre | post | post/pre | Output |
+|---|---|---|---|---|---|---|
+| fresh | 500/500 | 4 | 724.8 ms | 867.0 ms | 1.196 | **IDENTICAL**, `signals=4` |
+| mixed | 327/500 | 4 | 767.8 ms | 697.6 ms | 0.909 | **IDENTICAL**, `signals=4` |
+| stale | 0/500 | 0 | **THREW `RangeError: Invalid time value`** | ok in 519.5 ms, `signals=0` | **not comparable** | — |
+
+The stale row has no ratio and cannot have one: the pre side **throws**. That is
+not a measurement failure, it **is the defect this bug repairs** — reproduced
+here a third time, in a different harness, on a different code path than the
+unit carrier. A stale-only workspace has no pre-fix runtime to compare against.
+
+For the two comparable regimes the outputs are byte-identical, so the repair
+changes cost only, never result.
+
+**Claim Source:** interpreted
+**Interpretation:** figures transcribed per `#stabilize-provenance`. The two
+ratios point in **opposite directions** (1.196 and 0.909) for a change that adds
+no per-event work, which is the signature of noise rather than effect — a real
+regression would not reverse sign between two runs of the same function over the
+same 500 events.
+
+### Scaling, fresh regime {#stabilize-scaling}
+
+| n | pre | post |
+|---|---|---|
+| 50 | 93.4 ms | 112.9 ms |
+| 500 | 890.8 ms | 700.9 ms |
+
+10× the events scales time by **pre 9.53× vs post 6.21×** — the post-fix side
+scales *better*, because the age filter now runs before bucket allocation
+instead of after it.
+
+**This block also bounds the measurement noise floor, and that matters more than
+the scaling number.** `n=500 fresh` is measured twice, once here and once in
+[the regime table](#stabilize-regimes), and the two independent medians disagree:
+
+| Same measurement | pre | post | post/pre |
+|---|---|---|---|
+| n=500 fresh (regime block) | 724.8 ms | 867.0 ms | 1.196 |
+| n=500 fresh (scaling block) | 890.8 ms | 700.9 ms | 0.787 |
+
+The same function over the same fixture varies by roughly ±20% **in both
+directions**. That spread is wider than either observed pre/post gap, so the
+1.196 in the regime table is inside the noise band and cannot be read as a
+regression.
+
+**Claim Source:** interpreted
+**Interpretation:** the run-to-run spread is derived from the transcribed
+figures themselves. Conclusion drawn: no pre/post delta observed here exceeds
+the harness's own repeatability on this machine.
+
+### The BUG-004 function is unchanged {#stabilize-bug004-path}
+
+| Function | Module | n=500 fresh pre | post | post/pre |
+|---|---|---|---|---|
+| `brief.deriveInterestSignals` | `rlportfoliobrief.js` | 307.7 ms | 303.6 ms | 0.987 |
+
+**Claim Source:** interpreted
+**Interpretation:** figures transcribed per `#stabilize-provenance`. 0.987 is
+within the noise band established above; the brief path is untouched by this
+repair, as expected — BUG-005 changed only `rlportfolio.js`.
+
+### Cap enforcement still refuses rather than degrades, n=501 {#stabilize-cap}
+
+| Side | Outcome | Time |
+|---|---|---|
+| pre | refuses — `P008-SCHEMA-CORRUPT` / `behavior-event-cap-exceeded` | 0.8 ms |
+| post | refuses — `P008-SCHEMA-CORRUPT` / `behavior-event-cap-exceeded` | 0.7 ms |
+
+One event over the cap is rejected on both sides with the same code and reason,
+in under a millisecond. The repair did not turn a refusal into slow work.
+
+**Claim Source:** interpreted
+**Interpretation:** figures transcribed per `#stabilize-provenance`. Identical
+refusal code and reason on both sides is the load-independent signal here; the
+sub-millisecond timings only confirm the refusal is still short-circuit.
+
+### Retained growth, 200 consecutive post-fix calls at n=500 {#stabilize-growth}
+
+| Regime | `heapUsed` delta | Output length |
+|---|---|---|
+| fresh | +0.05 MiB | 4 |
+| mixed | +0.03 MiB | 4 |
+| stale | −0.04 MiB | 0 |
+
+Deltas straddle zero across 200 calls, so nothing accumulates. Output length is
+bounded by **domain count** (4 / 4 / 0), not by `n` — which is the structural
+reason the stale regime returns an empty list instead of allocating four dead
+buckets, and the same property the repair relies on.
+
+**Claim Source:** interpreted
+**Interpretation:** figures transcribed per `#stabilize-provenance`. A negative
+delta on the stale regime is GC noise, not reclamation attributable to the call;
+the load-bearing reading is that none of the three regimes trends upward.
+
+### Two caveats that MUST be read with these numbers {#stabilize-caveats}
+
+**Caveat 1 — BUG-004's 201 ms baseline is a DIFFERENT function and does not
+apply here.** BUG-004 recorded `201.7 / 201.623 ms` for
+`brief.deriveInterestSignals`, which lives in `rlportfoliobrief.js`. The function
+BUG-005 changed is `rlportfolio.deriveInterestSignals` in `rlportfolio.js`. They
+share a name and nothing else — different module, different signature, different
+contract (`BehaviorInterestSignal/v1` versus `portfolio-interest-signal/v1`), as
+the [simplify phase](#simplify-rejected) already established when it declined to
+merge them. Comparing this section's ~700-900 ms against BUG-004's 201 ms would
+be comparing two unrelated functions and would manufacture a regression that does
+not exist. The BUG-004 function was measured here for exactly that reason and
+came back **303.6 ms post vs 307.7 ms pre — unchanged by this repair**. Note also
+that BUG-004's packet carries its own `#stabilize-phase-2026-08-25` anchor; that
+is a different packet's section, not this one.
+
+**Caveat 2 — absolute milliseconds here are load-inflated and are NOT comparable
+to figures taken on an idle machine.** The harness ran at **loadavg 13.90 across
+8 cores**, i.e. roughly 1.7× oversubscribed, so every absolute number in this
+section is stretched by contention from unrelated concurrent work. Absolute ms
+must not be quoted as a latency budget, compared against a figure recorded on a
+quiet machine, or used to set a threshold. The **load-independent** evidence is:
+the pre/post **ratios** (both sides interleaved inside one process, so contention
+hits them equally), the **byte-identical outputs** in the two comparable regimes,
+the **identical refusal code** at the cap, and the **non-accumulating** heap
+deltas. Those are what the verdict rests on.
+
+### Stabilize verdict {#stabilize-verdict}
+
+**STABLE — no performance regression attributable to BUG-005.** The repair adds
+no per-event work; it reorders two statements so the age filter runs before
+bucket allocation. Outputs are byte-identical wherever a pre-fix comparison is
+possible, the post side scales better with `n`, the cap still refuses in under a
+millisecond with the same code, and nothing accumulates across 200 calls. The one
+regime where the sides differ in kind — stale-only — differs because the pre side
+**crashes**, which is the bug.
+
+Persisting this section changed no product source, but the repository check was
+re-run rather than assumed, because a `tests/*.mjs`-shaped token written into a
+spec artifact has broken this exact gate before (see
+[#simplify-selftest-break](#simplify-selftest-break)):
+
+```text
+# stabilize: canonical repository selftest after BUG-005 stabilize section persisted
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3895
+sha256: ba97624425497feff2ff84d7800b37b09fd6427eeb1d53c9cc535a460ec4f776
+--- last 4 ---
+================================================
+Research-Lab self-test: 3411 passed, 0 failed
+================================================
+```
+
+`3411 passed, 0 failed` is byte-identical to the count the
+[simplify](#simplify-verification) and [regression](#regression-phase-2026-08-25)
+phases recorded. The block came from `evidence-capture.sh`, which hashed the full
+3895-line output, so it is re-derivable with `--verify`.
+
+**Claim Source:** executed
+
+**What this verdict does NOT claim.** It is a stability verdict, not
+certification, and not a re-proof of correctness. It is graded `interpreted`, not
+`executed`, for the reason given in [#stabilize-provenance](#stabilize-provenance):
+the timings were transcribed from a prior run, not produced here. The
+[validation refusal](#validation-refusal) stands unchanged — G022, G053, G027,
+G068, G093, G094, G097 and G136 are untouched by this phase. With `stabilize`
+recorded, the still-absent required phases are **security, validate and audit**,
+and G136 still requires a human. The browser lane was NOT re-run: this phase
+changed no product source, only `report.md` and the execution-owned half of
+`state.json`. This agent wrote no `status` field, no `certification.*` field, no
+`uservalidation.md`, and no DoD checkbox.
+
+## Stabilize Current-Session Execution Upgrade — 2026-08-25 {#stabilize-current-session-execution-2026-08-25}
+
+**Phase:** stabilize
+**Agent:** `bubbles.stabilize`
+**HEAD:** `e4c97ca9b`
+**Repository binding:** `PREFLIGHT_COMMITTED decision=rb:vscode-d037d272141b9d17af8fa6ccdd049e69:201 revision=201 repository=research-lab`
+**Claim Source:** executed
+
+This addendum preserves the earlier stabilize record and upgrades its timing
+provenance. The benchmark ran in this session against the current module and a
+clean detached pre-fix root at `732bccb6c^` (`31aad20d4`). The harness hash was
+`24ea33c1bc1e7e984bd00b387a0ff794eb9fa63316b18d9a4b5dcacf534fb345`.
+
+### Applicable Stability Domains
+
+| Domain | Disposition |
+| --- | --- |
+| Performance | Measured at 50 and 500 events across fresh, mixed, and stale input shapes. |
+| Reliability | Measured valid-envelope behavior, stale-input recovery, and the 501-event refusal boundary. |
+| Resource usage | Measured retained heap after 200 current-module calls in each age regime. |
+| Configuration | Read the committed policy values: `maxBehaviorEvents=500`, `maximumEvidenceAgeDays=56`, and `halfLifeDays=14`. |
+| Build and CI | Not applicable. The command registry declares a build-free shipped JavaScript surface. |
+| Infrastructure and deployment | Not applicable. The changed function is synchronous in-memory code with no service or container path. |
+| Observability | Not applicable. `.github/bubbles-project.yaml` declares no `traceContracts` or instrumented workflow for this packet. |
+
+### Executed Benchmark Receipt
+
+```text
+# BUG-005 stabilize: interleaved pre/post bench of portfolio.deriveInterestSignals at the 500-event cap
+$ node --expose-gc /tmp/stab-b005/bench.mjs
+exit: 0
+lines: 44
+sha256: f8400762501f4de6da1ae88d551e7f9e0096aa2f535dae5172d9c84e3cc8b2f8
+--- first 20 ---
+node v22.22.0  reps=21 warmup=3  loadavg=6.91 9.71 10.17
+pre  root: /tmp/stab-b005-pre
+post root: <repo-root>
+
+fixture n=500: events=500 distinctIdentities=500 domains=4
+fixture n=50: events=50 distinctIdentities=50 domains=4
+fixture accepted by pre: ok=true
+fixture accepted by post: ok=true
+
+--- regime fresh  now=2026-07-20T01:00:00.000Z  in-window 500/500 events across 4/4 domains ---
+portfolio.deriveInterestSignals n=500 fresh pre    863.8 ms  post    861.1 ms  post/pre  0.997   [pre p25-p75 804.5-954.6 | post p25-p75 805.9-938.6]
+                                           pre: ok | post: ok
+  output identity pre vs post: IDENTICAL (post signals=4)
+
+--- regime mixed  now=2026-08-09T00:00:00.000Z  in-window 327/500 events across 4/4 domains ---
+portfolio.deriveInterestSignals n=500 mixed pre    687.7 ms  post    685.0 ms  post/pre  0.996   [pre p25-p75 629.6-739.4 | post p25-p75 635.9-734.0]
+                                           pre: ok | post: ok
+  output identity pre vs post: IDENTICAL (post signals=4)
+
+--- regime stale  now=2026-09-18T00:00:00.000Z  in-window 0/500 events across 0/4 domains ---
+--- omitted 4 line(s); sha256 above covers the full output ---
+--- last 20 ---
+
+--- scaling: n=50 vs n=500, fresh regime ---
+portfolio.deriveInterestSignals n=50 fresh pre     76.9 ms  post     77.3 ms  post/pre  1.006   [pre p25-p75 74.6-84.5 | post p25-p75 74.7-82.5]
+                                           pre: ok | post: ok
+portfolio.deriveInterestSignals n=500 fresh pre    760.7 ms  post    772.6 ms  post/pre  1.016   [pre p25-p75 727.9-813.4 | post p25-p75 714.6-808.0]
+                                           pre: ok | post: ok
+  10x n scales time by: pre 9.89x  post 9.99x
+
+--- BUG-004 path: brief.deriveInterestSignals (the function BUG-004 measured) ---
+brief.deriveInterestSignals n=500 fresh    pre    229.2 ms  post    216.8 ms  post/pre  0.946   [pre p25-p75 214.3-239.8 | post p25-p75 209.8-227.8]
+                                           pre: ok | post: ok
+
+--- cap enforcement (n=501 must refuse, not degrade) ---
+  pre: ok=false code=P008-SCHEMA-CORRUPT reason=behavior-event-cap-exceeded in 0.7 ms
+  post: ok=false code=P008-SCHEMA-CORRUPT reason=behavior-event-cap-exceeded in 0.6 ms
+
+--- retained growth: 200 consecutive post-fix calls at n=500 ---
+  fresh  heapUsed delta 0.08 MiB   output length 4 (bounded by domain count, not n)
+  mixed  heapUsed delta 0.02 MiB   output length 4 (bounded by domain count, not n)
+  stale  heapUsed delta -0.03 MiB   output length 0 (bounded by domain count, not n)
+```
+
+The SHA-256 covers all 44 raw lines. One four-line stale window is bounded from
+the retained block. It recorded the pre-fix `RangeError: Invalid time value`,
+the current `ok` outcome, and `post signals: 0`.
+
+### Current-Session Interpretation
+
+**Claim Source:** interpreted
+**Interpretation:** The raw receipt directly supplies the measurements. The
+stability verdict combines those measurements with the changed control flow.
+
+- Fresh and mixed medians are effectively unchanged at `0.997` and `0.996`
+  post/pre. Their interquartile bands overlap almost completely.
+- Ten times more events costs `9.89x` before and `9.99x` after. Both sides are
+  linear at the declared cap. This supersedes the earlier claim that the move
+  improved scaling. The current run supports no such causal claim.
+- The stale-only current path returns an empty signal array. The pre-fix path
+  throws. This is the intended reliability change, not a latency comparison.
+- The 501-event shape refuses on both sides with the same code and reason.
+- Retained heap stays near zero across 200 calls. Output remains bounded by the
+  four-domain fixture rather than by event count.
+
+### BUG-004 Boundary
+
+BUG-004 measured `rlportfoliobrief.js`, not the function changed here. Its HIGH
+500-event rebuild regression was repaired in that packet. The current control
+is `229.2 ms` pre and `216.8 ms` post, with overlapping interquartile bands.
+
+BUG-004 also records a separate MEDIUM observation about two brief dedupe passes
+per render. That observation remains routed in the BUG-004 packet. It does not
+belong to BUG-005 because this repair changes only `rlportfolio.js` and adds no
+brief-side pass.
+
+### Current-Session Verdict
+
+**STABLE.** No performance, reliability, configuration, or resource finding is
+attributable to BUG-005 after the intended crash repair. No remediation route
+was created by this stabilize invocation.
+
+This verdict does not certify the packet. Existing planning, traceability,
+human-acceptance, security, validate, and audit work remains under its current
+owners. This invocation changed no product source, test, `scopes.md`,
+`uservalidation.md`, top-level status, or `certification.*` field.

@@ -151,8 +151,8 @@
             {
                 "scopeId": "01-benefit-computation",
                 "status": "in_progress",
-                "dodChecked": 20,
-                "dodUnchecked": 1,
+                "dodChecked": 21,
+                "dodUnchecked": 0,
                 "dependsOn": []
             },
             {

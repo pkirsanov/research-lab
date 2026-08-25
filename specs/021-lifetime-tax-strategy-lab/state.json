@@ -133,8 +133,8 @@
             {
                 "scopeId": "04-bracket-fill-roth-conversion-comparison",
                 "status": "in_progress",
-                "dodChecked": 13,
-                "dodUnchecked": 1,
+                "dodChecked": 14,
+                "dodUnchecked": 0,
                 "dependsOn": [
                     "01-tax-workspace-rule-pack-and-privacy-foundation",
                     "02-deterministic-annual-federal-tax",

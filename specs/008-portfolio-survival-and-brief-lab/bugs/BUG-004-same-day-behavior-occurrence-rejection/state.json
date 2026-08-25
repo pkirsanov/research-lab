@@ -3,10 +3,10 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection",
   "featureName": "BUG-004 Same-Day Behavior Occurrence Rejection",
   "createdAt": "2026-08-24T00:00:00Z",
-  "lastUpdatedAt": "2026-08-25T06:29:12Z",
-  "certifiedAt": "2026-08-25T06:29:12Z",
-  "status": "done",
-  "blockedReason": null,
+  "lastUpdatedAt": "2026-08-25T20:32:20Z",
+  "certifiedAt": null,
+  "status": "blocked",
+  "blockedReason": "Human acceptance is not established. uservalidation.md declares method human-interactive, which requires a human to exercise the delivered behavior, but its provenance cites only blanket delivery authorization and discloses that automation checked all six acceptance items. No record shows the operator executed the six exact checklist scenarios. A human must execute and accept each scenario, then author the checklist and acceptance record without automation substituting for that act.",
   "workflowMode": "bugfix-fastlane",
   "planningOnly": false,
   "planningOnlyJustification": null,
@@ -14,7 +14,7 @@
   "linkedPlanningPacket": null,
   "specDependsOn": [],
   "flagsIntroduced": [],
-  "requiresRevalidation": false,
+  "requiresRevalidation": true,
   "scopeLayout": "single-file",
   "introducedByCommit": "edbbddf0d32fb3477086ecf0281c46a759264bff",
   "artifacts": {
@@ -45,10 +45,10 @@
   },
   "completedScopes": ["01-preserve-occurrences-without-relevance-inflation"],
   "certification": {
-    "status": "done",
+    "status": "blocked",
     "lockdownState": "unlocked",
-    "completedAt": "2026-08-25T06:18:26Z",
-    "certifiedAt": "2026-08-25T06:29:12Z",
+    "completedAt": null,
+    "certifiedAt": null,
     "completedScopes": ["01-preserve-occurrences-without-relevance-inflation"],
     "certifiedCompletedPhases": ["analyze", "implement", "test", "regression", "simplify", "gaps", "harden", "bootstrap", "security", "stabilize", "audit", "validate"],
     "scopeProgress": [
@@ -287,6 +287,14 @@
       "followUpOwner": "bubbles.plan",
       "evidenceRef": "report.md#validate-check43-2026-08-25",
       "status": "route_required"
+    },
+    {
+      "id": "VAL-B004-UAT-1",
+      "summary": "The Human Acceptance Record is syntactically accepted by G136 but semantically invalid. Its method human-interactive means a human exercised the live behavior. Its own provenance instead cites blanket authorization phrases and discloses that automation flipped all six acceptance boxes. Commit e354bb384613c68dbf1222ae1717c97d8f7aa98a added the six box flips and the record together. No packet artifact or commit records operator execution of the six exact checklist scenarios. Automated tests prove readiness, not human acceptance.",
+      "owner": "human",
+      "followUpOwner": "human",
+      "evidenceRef": "report.md#validate-uat-semantic-recheck-2026-08-25",
+      "status": "blocked"
     }
   ],
   "resolvedDiscoveries": [],

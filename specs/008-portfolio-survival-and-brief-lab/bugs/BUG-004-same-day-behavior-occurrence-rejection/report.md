@@ -4777,3 +4777,172 @@ Guard failures went 5 → 4; the one this invocation owned and fixed is `G084`. 
 the transition and only the transition, and they are reachable the moment `scopes.md` may be
 committed. No DoD item was advanced, no scope was marked Done, no phase claim was added, no test was
 authored or weakened, and no product source was changed.
+
+## BUG-004 Validate UAT Semantic Recheck - 2026-08-25 {#validate-uat-semantic-recheck-2026-08-25}
+
+**Phase:** validate
+**Claim Source:** interpreted
+**Interpretation:** The guard proves that the acceptance record has the required shape. It cannot
+prove that the named human exercised the six checklist scenarios. The record's own provenance and
+its introducing commit disprove that semantic claim.
+
+### Verdict
+
+`VAL-B004-UAT-1` is blocking. Human acceptance is not established.
+
+The acceptance registry defines `human-interactive` as a human exercising the delivered behavior
+in a live session. It also assigns every `## Checklist` item to a human writer. The current
+`uservalidation.md` says automation flipped all six boxes. Its record cites only broad delivery
+authorization: "authorized, approved", "user approves all", "Don't stop for user review, commit,
+continue", and "Deliver 100%". None records execution of a named checklist scenario.
+
+Commit `e354bb384613c68dbf1222ae1717c97d8f7aa98a` added all six `[ ]` to `[x]` transitions and the
+`human-interactive` record in one commit. The same diff states that `bubbles.plan` flipped the
+boxes. The commit author identity does not prove a human performed the scenarios. The current
+framework policy states that blanket approval cannot suppress anti-fabrication or verification.
+
+The automation receipts remain valid readiness evidence. They do not establish UAT. This
+validation leaves `uservalidation.md` unchanged so its checklist, disputed record, and disclosure
+history remain visible.
+
+### Mechanical Baseline
+
+**Command:** `timeout 1680 bash .github/bubbles/scripts/state-transition-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection`
+**Exit Code:** `0`
+
+```text
+# BUG-004 pre-correction state transition guard
+$ timeout 1680 bash .github/bubbles/scripts/state-transition-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection
+exit: 0
+lines: 346
+sha256: 75bcc382cc17dba11d56493d5c256c21080fc67c5207e0efe57229c9e8e7ffb4
+--- first 20 ---
+============================================================
+  BUBBLES STATE TRANSITION GUARD
+  Feature: specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection
+  Timestamp: 2026-08-25T20:30:31Z
+============================================================
+--- omitted 306 line(s); sha256 above covers the full output ---
+passedGateIds: [G057,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G136,G001,G002,G003,G004,G005,G006,G007,G008,G009,G010,G011,G012,G014,G015,G016,G018,G019,G020,G021,G022,G023,G024,G025,G026,G027,G028,G029,G033,G034,G035,G044,G047,G048,G055,G056,G059,G060,G061]
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+END TRANSITION_GUARD_RESULT_V1
+```
+
+This green result is intentionally recorded. It demonstrates the parser's limit. G136 checks that
+the record is authored, complete, uses a known method, and names a non-agent acceptor. It does not
+verify that the method's described act occurred.
+
+### State Correction
+
+Validate reopened the terminal claim without changing implementation completion:
+
+- top-level `status` and `certification.status` changed from `done` to `blocked`;
+- top-level and certification `certifiedAt` changed to `null`;
+- `certification.completedAt` changed to `null`;
+- `requiresRevalidation` changed to `true`;
+- completed scope and phase history stayed intact;
+- finding `VAL-B004-UAT-1` was added to `unresolvedFindings`.
+
+### Route-Required Packet
+
+| Field | Value |
+| --- | --- |
+| Finding | `VAL-B004-UAT-1` |
+| Owner | human operator |
+| Target | `uservalidation.md` |
+| Required act | Execute each of the six exact checklist scenarios against the delivered behavior. Preserve the existing disclosure history. Record a dated correction that invalidates the `2026-08-25T00:40:57Z` claim. Personally check only scenarios that were exercised and accepted. Author a new Human Acceptance Record with the actual acceptance time and truthful method. |
+| Failure path | If any scenario fails or is not exercised, leave its item unchecked and keep the packet non-terminal. |
+| Automation boundary | Automated tests may update `## Automation Readiness`. They cannot check `## Checklist` or author the human acceptance act. |
+
+No human act is inferred from this validation run. Current-session automated tests are not used as
+acceptance evidence.
+
+### Post-Correction Validation
+
+**Phase:** validate
+**Command:** `timeout 480 bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection`
+**Exit Code:** `0`
+**Claim Source:** executed
+
+```text
+✅ Detected state.json status: blocked
+✅ Detected state.json workflowMode: bugfix-fastlane
+✅ state.json v3 has required field: status
+✅ state.json v3 has required field: execution
+✅ state.json v3 has required field: certification
+✅ state.json v3 has required field: policySnapshot
+✅ Top-level status matches certification.status
+ℹ️  Workflow mode 'bugfix-fastlane' allows status 'done'; current status is 'blocked'
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+Artifact lint PASSED.
+```
+
+**Phase:** validate
+**Command:** `timeout 1680 bash .github/bubbles/scripts/state-transition-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection`
+**Exit Code:** `0`
+**Claim Source:** executed
+
+```text
+# BUG-004 post-correction state transition guard
+exit: 0
+lines: 347
+sha256: ca4a82721393dbdc5b8b04e08e52c7184e2f8d9928c8de07178a80a92ca28fbc
+ℹ️  INFO: Current state.json status: blocked
+ℹ️  INFO: Current workflowMode: bugfix-fastlane
+targetStatus: done
+passedGateIds: [G057,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G136,G001,G002,G003,G004,G005,G006,G007,G008,G009,G010,G011,G012,G014,G015,G016,G018,G019,G020,G021,G022,G023,G024,G025,G026,G027,G028,G029,G033,G034,G035,G044,G047,G048,G055,G056,G059,G060,G061]
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+END TRANSITION_GUARD_RESULT_V1
+```
+
+The second green guard result does not reverse `VAL-B004-UAT-1`. It repeats the parser's syntactic
+verdict after the honest state correction. The semantic contradiction remains in the human-owned
+record.
+
+**Phase:** validate
+**Command:** `timeout 120 bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --strict`
+**Exit Code:** `0`
+**Claim Source:** executed
+
+```json
+{
+  "total": 8,
+  "current": 4,
+  "superseded": 4,
+  "withClosure": 3,
+  "valid": 3,
+  "stale": 0,
+  "unknown": 1,
+  "staleReceipts": []
+}
+```
+
+Receipt integrity is current. It is not the blocker.
+
+**Phase:** validate
+**Command:** `git diff --check && git status --short && git diff --name-only && git diff --quiet -- <packet>/uservalidation.md`
+**Exit Code:** `0`
+**Claim Source:** executed
+
+```text
+ M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection/report.md
+ M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection/state.json
+specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection/report.md
+specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection/state.json
+USERVALIDATION_DIFF_EXIT=0
+```
+
+The correction touched only validate-owned truth surfaces. The human-owned acceptance file remains
+unchanged.

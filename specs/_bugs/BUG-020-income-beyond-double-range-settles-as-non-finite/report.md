@@ -433,6 +433,71 @@ this row honestly needs either a harness that composes mutations or a design
 amendment that states the true adversarial case for an over-determined assertion.
 Neither is an implementer's decision, and neither was taken here.
 
+#### P6e and P6f — the guard the row names, removed alone, against a control on the identical literal
+
+A later round re-derived the finding independently rather than reading it back
+off the section above, and closed the one reading the earlier probes left open.
+
+`P6c` removed E3 by deleting it. `P6e` removes it a different way, neutralising
+its condition in place, and reaches the same verdict. `P6f` then runs the
+IDENTICAL literal replacement against `TB-020-04`, the assertion that names that
+guard. The pair matters because a lone exit `7` has two readings: the assertion
+cannot see the guard, or the mutation was inert. A control on the same literal
+eliminates the second. E3 is also the guard this row is about — the finiteness
+check on `valueRecord.value` that yields `RLTAX-FIGURE-UNREPRESENTABLE` — so the
+verdict is about the named guard rather than a neighbouring one.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TB-020-03 with the E3 display-seam guard on valueRecord.value neutralised, the guard this row names
+file:             rltax.js
+mutation:         if (!Number.isFinite(valueRecord.value)) {  ->  if (false && !Number.isFinite(valueRecord.value)) {   (1 occurrence(s))
+command:          npx --no-install playwright test --config=playwright.config.mjs --project=chromium --reporter=line --grep no\ rendered\ text\ on\ the\ route\ is\ an\ infinity\ symbol\ or\ NaN
+red-exit:         0
+red-summary:        1 passed (2.2s)
+green-exit:       0
+green-summary:      1 passed (1.3s)
+revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   NO (red-exit 0 == green-exit 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+red-green-probe: REFUSED — RED and GREEN produced the same outcome (both exited 0). The mutation did not make the command fail, so the assertion under test cannot fail and this is not RED/GREEN evidence.
+```
+
+Probe exit `7`. No `--summary-match` was supplied, so the exit-code channel alone
+decided; the two summary lines are a Playwright aggregate and were not the basis
+of the verdict.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TB-020-04 with the SAME E3 mutation, as a control on the TB-020-03 exit 7
+file:             rltax.js
+mutation:         if (!Number.isFinite(valueRecord.value)) {  ->  if (false && !Number.isFinite(valueRecord.value)) {   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: TB-020-04: formatForDisplay refuses a record carrying Infinity, -Infinity or NaN with RLTAX-FIGURE-UNREPRESENTABLE on domain display:value, that refusal carries no figure and no rule stand
+green-exit:       1
+green-summary:      ✓ TB-020-04: formatForDisplay refuses a record carrying Infinity, -Infinity or NaN with RLTAX-FIGURE-UNREPRESENTABLE on domain display:value, that refusal carries no figure and no rule standing, a
+summary-compared:   ✗ FAIL: TB-020-04: formatForDisplay refuses a record carrying Infinity, -Infinity or NaN with RLTAX-FIGURE-UNREPRESENTABLE on domain display:value, that refusal carries no figure and no rule stand  vs    ✓ TB-020-04: formatForDisplay refuses a record carrying Infinity, -Infinity or NaN with RLTAX-FIGURE-UNREPRESENTABLE on domain display:value, that refusal carries no figure and no rule standing, a   (elapsed time normalised out)
+revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   yes (summary differs: "  ✗ FAIL: TB-020-04: formatForDisplay refuses a record carrying Infinity, -Infinity or NaN with RLTAX-FIGURE-UNREPRESENTABLE on domain display:value, that refusal carries no figure and no rule stand" vs "  ✓ TB-020-04: formatForDisplay refuses a record carrying Infinity, -Infinity or NaN with RLTAX-FIGURE-UNREPRESENTABLE on domain display:value, that refusal carries no figure and no rule standing, a")
+```
+
+Probe exit `0`.
+
+`green-exit` is `1` in the control, unmutated. That is not this bug's doing: a
+concurrent session was editing the brief modules throughout, and the selftest
+carried two failures of its own the whole time — see `## Validation`. It is the
+exact condition the harness's second channel exists for, and pinning
+`--summary-match` to `TB-020-04`'s own wording read the assertion through a suite
+that was already red for unrelated reasons.
+
+Together the two runs say something the earlier probes could not. One literal
+replacement, one file, one guard — the guard this row names. `TB-020-04` sees it
+go and fails. `TB-020-03` does not notice. The mutation is real, it lands, and it
+is detectable; `TB-020-03` is simply not the assertion that detects it. The row
+stays open on the same reasoning as before, now with the inert-mutation reading
+ruled out.
+
 #### P7 — `TB-020-05` fails when the guard is widened past non-finiteness
 
 ```

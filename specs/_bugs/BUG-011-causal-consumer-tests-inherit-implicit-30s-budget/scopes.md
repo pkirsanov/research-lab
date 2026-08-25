@@ -2,10 +2,7 @@
 
 ## Scope 1: 01-declare-owner-reload-budget
 
-**Status:** [x] Complete — all nine Definition of Done items discharged and verified in the tree:
-`tests/causal-rotation-consumers.spec.mjs` declares `test.setTimeout(180_000)` at five sites,
-`playwright.config.mjs` adds no `retries`, and `node scripts/validate-playwright-timeout-budgets.mjs`
-exits 0. The status line lagged the work; `bug.md` already read Fixed.
+**Status:** Done
 **Depends On:** none
 **Owner:** bubbles.bug (direct-authorized runner; no subagent dispatch surface available this run)
 

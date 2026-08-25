@@ -8,7 +8,7 @@ Definition of Done item is unticked and should remain so until the work is autho
 
 ## Scope 1: Decide How The Two Resolutions Are Reconciled
 
-**Status:** [x] Complete
+**Status:** Done
 
 ### Problem This Scope Resolves
 
@@ -83,7 +83,7 @@ its tests pass there. No content authorship remains for this packet to perform.
 
 ## Scope 2: Make The Deployed Branch Carry The Panel Its Tests Exercise
 
-**Status:** [x] Complete — satisfied by Feature 022, verified here
+**Status:** Done (satisfied-by-feature-022)
 **Depends on:** Scope 1
 
 ### Problem This Scope Resolves
@@ -158,7 +158,7 @@ evidence above is verification evidence.
 
 ## Scope 3: Notice The Next Silent Loss
 
-**Status:** [x] Complete
+**Status:** Done
 **Disposition:** taken — recorded in Scope 1
 
 ### Problem This Scope Resolves

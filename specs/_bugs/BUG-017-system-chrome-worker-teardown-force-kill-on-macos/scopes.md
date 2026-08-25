@@ -9,7 +9,7 @@ and every Definition of Done item is unticked.
 
 ## Scope 1: Characterise The Stall Well Enough To Choose
 
-**Status:** [x] Done
+**Status:** Done
 
 ### Problem This Scope Resolves
 
@@ -70,7 +70,7 @@ Feature: The stall is characterised before a remedy is chosen
 
 ## Scope 2: Apply The Selected Remedy
 
-**Status:** [x] Done
+**Status:** Done
 **Depends on:** Scope 1
 
 ### Problem This Scope Resolves
@@ -127,7 +127,7 @@ Feature: A passing run reports success
 
 ## Scope 3: Disclose It Where A Developer Meets It
 
-**Status:** [x] Declined
+**Status:** Not Started (declined)
 **Disposition:** correct only if Scope 1 concludes the cause is not removable here
 
 ### Problem This Scope Resolves

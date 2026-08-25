@@ -147,7 +147,38 @@
         "certifiedAt": null,
         "completedScopes": [],
         "certifiedCompletedPhases": [],
-        "scopeProgress": [],
+        "scopeProgress": [
+            {
+                "scopeId": "01-benefit-computation",
+                "status": "In Progress",
+                "dodChecked": 20,
+                "dodUnchecked": 1
+            },
+            {
+                "scopeId": "02-benefit-taxation",
+                "status": "In Progress",
+                "dodChecked": 20,
+                "dodUnchecked": 0
+            },
+            {
+                "scopeId": "03-claim-age-comparison",
+                "status": "In Progress",
+                "dodChecked": 23,
+                "dodUnchecked": 0
+            },
+            {
+                "scopeId": "04-medicare-premiums-and-irmaa",
+                "status": "In Progress",
+                "dodChecked": 24,
+                "dodUnchecked": 0
+            },
+            {
+                "scopeId": "05-route-and-integration",
+                "status": "In Progress",
+                "dodChecked": 22,
+                "dodUnchecked": 0
+            }
+        ],
         "lockdownState": {
             "active": false,
             "lockedScenarioIds": []

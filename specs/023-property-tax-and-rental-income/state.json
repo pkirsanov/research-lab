@@ -116,7 +116,38 @@
         "certifiedAt": null,
         "completedScopes": [],
         "certifiedCompletedPhases": [],
-        "scopeProgress": [],
+        "scopeProgress": [
+            {
+                "scopeId": "01-property-assessment-mechanics",
+                "status": "In Progress",
+                "dodChecked": 18,
+                "dodUnchecked": 1
+            },
+            {
+                "scopeId": "02-primary-residence-federal-interaction",
+                "status": "In Progress",
+                "dodChecked": 18,
+                "dodUnchecked": 0
+            },
+            {
+                "scopeId": "03-long-term-rental",
+                "status": "In Progress",
+                "dodChecked": 19,
+                "dodUnchecked": 0
+            },
+            {
+                "scopeId": "04-short-term-and-vacation-rental",
+                "status": "In Progress",
+                "dodChecked": 20,
+                "dodUnchecked": 0
+            },
+            {
+                "scopeId": "05-disposition",
+                "status": "In Progress",
+                "dodChecked": 20,
+                "dodUnchecked": 0
+            }
+        ],
         "lockdownState": {
             "active": false,
             "lockedScenarioIds": []

@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
   "featureName": "BUG-006 Evidence Window Date Overflow",
   "createdAt": "2026-08-25T19:27:30Z",
-  "lastUpdatedAt": "2026-08-25T19:41:09Z",
+  "lastUpdatedAt": "2026-08-25T20:50:44Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -25,22 +25,25 @@
     "scopes": "scopes.md",
     "report": "report.md",
     "uservalidation": "uservalidation.md",
-    "scenarioManifest": "scenario-manifest.json"
+    "scenarioManifest": "scenario-manifest.json",
+    "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.design",
-    "currentPhase": "design",
-    "currentPhaseStatus": "route_required",
+    "activeAgent": "bubbles.plan",
+    "currentPhase": "plan",
+    "currentPhaseStatus": "completed_owned",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
-    "runStartedAt": "2026-08-25T19:41:09Z",
-    "completedAt": null,
+    "runStartedAt": "2026-08-25T20:47:01Z",
+    "completedAt": "2026-08-25T20:50:44Z",
     "substate": "designed",
     "currentScope": null,
-    "nextRequiredOwner": "bubbles.plan",
-    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow/scopes.md",
-    "nextRequiredReason": "Reconcile the existing plan against the adopted 100-year product ceiling, exact P008-CONFIG refusal, complete consumer inventory, and separate product-boundary versus runtime-overflow tests.",
-    "completedPhaseClaims": [],
+    "nextRequiredOwner": "bubbles.test",
+    "nextRequiredTarget": "tests/portfolio-foundation.unit.mjs",
+    "nextRequiredReason": "Author the exact 36525 accepted, 36526 refused, huge-finite refused, frozen-envelope, non-finite-precedence, and shipped-56 assertions, then record the focused pre-fix RED result before any rlportfolio.js edit.",
+    "completedPhaseClaims": [
+      "plan"
+    ],
     "pendingTransitionRequests": [],
     "scopeInventory": [
       {
@@ -82,11 +85,19 @@
     },
     {
       "id": "BUG-006-ROUTE-002",
-      "status": "pending",
+      "status": "completed",
       "fromAgent": "bubbles.design",
       "nextRequiredOwner": "bubbles.plan",
       "target": "scopes.md",
       "reason": "The design now distinguishes the 100-year product ceiling from the timestamp-dependent TimeClip boundary and inventories every inherited consumer and test carrier."
+    },
+    {
+      "id": "BUG-006-ROUTE-003",
+      "status": "pending",
+      "fromAgent": "bubbles.plan",
+      "nextRequiredOwner": "bubbles.test",
+      "target": "tests/portfolio-foundation.unit.mjs",
+      "reason": "The one-scope plan and structured test handoff require scenario-first boundary and overflow assertions plus an observed focused RED result before implementation."
     }
   ],
   "reworkQueue": [],
@@ -107,6 +118,15 @@
       "action": "design-reconciled-and-routed",
       "note": "Reviewed the proposed 36525-day maximum against rlportfolio.js validation ordering, all direct policy consumers, the separate rlportfoliobrief.js guard order, the eight direct test carriers, all eight browser carriers, Research Lab Product Principles P7, P22, and P23, and a current Date boundary probe. Adopted 100 years as a behavior-evidence eligibility ceiling rather than a TimeClip approximation. Preserved the committed 56-day policy, selected private constant MAXIMUM_EVIDENCE_AGE_DAYS, and retained the exact P008-CONFIG invalid-policy behavior envelope without touching certification.",
       "phasesExecuted": ["design"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-25T20:50:44Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "action": "scopes-scenarios-and-test-handoff-reconciled",
+      "note": "Confirmed Research Lab authority at external control revision 210, inspected all BUG-006 artifacts plus the parent behavior-policy constraints, current validatePolicy and deriveInterestSignals owners, committed 56-day policy, and neighboring foundation tests. Reconciled one narrow scope, added derived scenario obligations and a machine-readable nine-row test handoff, preserved required pre-fix RED ordering, and routed to bubbles.test. No product source, product test, certification field, scope status, commit, or push was changed or executed.",
+      "phasesExecuted": ["plan"],
       "provenanceMode": "specialist"
     }
   ],

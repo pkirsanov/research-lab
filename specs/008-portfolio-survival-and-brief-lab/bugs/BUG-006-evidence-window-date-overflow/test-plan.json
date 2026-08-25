@@ -1,0 +1,186 @@
+{
+  "version": 1,
+  "specId": "008-BUG-006",
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-08-25T20:47:01Z",
+  "planningStatus": "in-progress-plan-reconciled",
+  "tddMode": "scenario-first",
+  "evidenceBoundary": "Planning-owned structured handoff only. The focused refusal tests must produce an observed RED result before rlportfolio.js changes, then the identical focused carrier must pass after implementation. No product test, guard result, human acceptance, or certification is claimed by this file.",
+  "commandCatalog": {
+    "CMD-B006-FOCUSED": "timeout 240 node --test tests/portfolio-foundation.unit.mjs",
+    "CMD-B006-ALLOCATION-E2E": "timeout 900 npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+    "CMD-B006-FEATURE-E2E": "timeout 1800 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+    "CMD-B006-SELFTEST": "timeout 1800 node scripts/selftest.mjs",
+    "CMD-B006-PACKET-GUARDS": "timeout 600 bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow && timeout 600 bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow && timeout 600 bash .github/bubbles/scripts/scenario-obligation-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow && timeout 600 bash .github/bubbles/scripts/test-mechanism-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow --repo-root . && timeout 600 bash .github/bubbles/scripts/scope-context-fit-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
+    "CMD-B006-TRANSITION-GUARD": "timeout 600 bash .github/bubbles/scripts/state-transition-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow"
+  },
+  "scopes": [
+    {
+      "scopeId": "01-bound-the-evidence-age-policy",
+      "scopeName": "Bound The Evidence-Age Policy",
+      "foundation": false,
+      "dependsOn": [],
+      "tests": [
+        {
+          "id": "TP-B006-000",
+          "type": "Pre-fix RED regression",
+          "category": "unit",
+          "file": "tests/portfolio-foundation.unit.mjs",
+          "scenarioId": "SCN-B006-ONE-OVER-REFUSED",
+          "coversScenarioIds": [
+            "SCN-B006-ONE-OVER-REFUSED",
+            "SCN-B006-OVERFLOW-REFUSED"
+          ],
+          "testTitles": [
+            "BUG-006: maximumEvidenceAgeDays refuses one day above the named boundary",
+            "BUG-006: an overflowing evidence window is refused before interest derivation"
+          ],
+          "description": "After the persistent tests are authored and before product source changes, both new refusal assertions must fail because current validation admits the finite above-bound inputs.",
+          "commandRef": "CMD-B006-FOCUSED",
+          "command": "timeout 240 node --test tests/portfolio-foundation.unit.mjs",
+          "liveSystem": false,
+          "evidenceRef": "report.md#tp-b006-000",
+          "status": "required-red-not-run",
+          "expectedPreImplementationOutcome": "non-zero with both new BUG-006 refusal titles identified",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B006-001",
+          "type": "Unit regression",
+          "category": "unit",
+          "file": "tests/portfolio-foundation.unit.mjs",
+          "scenarioId": "SCN-B006-BOUNDARY-ACCEPTED",
+          "testTitle": "BUG-006: maximumEvidenceAgeDays accepts the named 100-year boundary",
+          "description": "Accept 36525 and the committed 56-day policy, assert the committed value remains 56, and preserve non-finite refusal precedence.",
+          "commandRef": "CMD-B006-FOCUSED",
+          "command": "timeout 240 node --test tests/portfolio-foundation.unit.mjs",
+          "liveSystem": false,
+          "evidenceRef": "report.md#tp-b006-001",
+          "status": "planned-not-authored",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B006-002",
+          "type": "Unit adversarial regression",
+          "category": "unit",
+          "file": "tests/portfolio-foundation.unit.mjs",
+          "scenarioId": "SCN-B006-ONE-OVER-REFUSED",
+          "testTitle": "BUG-006: maximumEvidenceAgeDays refuses one day above the named boundary",
+          "description": "Refuse 36526 with the exact PortfolioError/v1 P008-CONFIG invalid-policy behavior envelope, no value echo, no recoverable flag, and no clamp.",
+          "commandRef": "CMD-B006-FOCUSED",
+          "command": "timeout 240 node --test tests/portfolio-foundation.unit.mjs",
+          "liveSystem": false,
+          "evidenceRef": "report.md#tp-b006-002",
+          "status": "planned-not-authored",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B006-003",
+          "type": "Functional regression",
+          "category": "functional",
+          "file": "tests/portfolio-foundation.unit.mjs",
+          "scenarioId": "SCN-B006-OVERFLOW-REFUSED",
+          "testTitle": "BUG-006: an overflowing evidence window is refused before interest derivation",
+          "description": "Prove the huge finite fixture exceeds TimeClip directly, then prove deriveInterestSignals returns the exact config refusal without throwing.",
+          "commandRef": "CMD-B006-FOCUSED",
+          "command": "timeout 240 node --test tests/portfolio-foundation.unit.mjs",
+          "liveSystem": false,
+          "evidenceRef": "report.md#tp-b006-003",
+          "status": "planned-not-authored",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B006-004",
+          "type": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/portfolio-survival-allocation.spec.mjs",
+          "scenarioId": "SCN-B006-BOUNDARY-ACCEPTED",
+          "description": "Re-run the current allocation-page carrier to prove the committed 56-day policy still loads and the page remains usable; this is supplemental non-movement proof, not direct overflow coverage.",
+          "commandRef": "CMD-B006-ALLOCATION-E2E",
+          "command": "timeout 900 npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "evidenceRef": "report.md#tp-b006-004",
+          "status": "existing-not-executed",
+          "redGreenRequired": false
+        },
+        {
+          "id": "TP-B006-005",
+          "type": "Broader Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/portfolio-survival-allocation.spec.mjs",
+          "scenarioId": "SCN-B006-BOUNDARY-ACCEPTED",
+          "coversScenarioIds": [
+            "SCN-B006-BOUNDARY-ACCEPTED",
+            "SCN-B006-ONE-OVER-REFUSED",
+            "SCN-B006-OVERFLOW-REFUSED"
+          ],
+          "description": "Re-run all eight Feature 008 browser carriers to detect valid-policy consumer regressions.",
+          "commandRef": "CMD-B006-FEATURE-E2E",
+          "command": "timeout 1800 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "evidenceRef": "report.md#tp-b006-005",
+          "status": "existing-not-executed",
+          "redGreenRequired": false
+        },
+        {
+          "id": "TP-B006-006",
+          "type": "Repository regression",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "scenarioId": "SCN-B006-BOUNDARY-ACCEPTED",
+          "coversScenarioIds": [
+            "SCN-B006-BOUNDARY-ACCEPTED",
+            "SCN-B006-ONE-OVER-REFUSED",
+            "SCN-B006-OVERFLOW-REFUSED"
+          ],
+          "description": "Run the canonical build-free repository selftest after focused and browser verification.",
+          "commandRef": "CMD-B006-SELFTEST",
+          "command": "timeout 1800 node scripts/selftest.mjs",
+          "liveSystem": false,
+          "evidenceRef": "report.md#tp-b006-006",
+          "status": "existing-not-executed",
+          "redGreenRequired": false
+        },
+        {
+          "id": "TP-B006-007",
+          "type": "Packet guard battery",
+          "category": "artifact",
+          "file": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
+          "scenarioId": "SCN-B006-BOUNDARY-ACCEPTED",
+          "coversScenarioIds": [
+            "SCN-B006-BOUNDARY-ACCEPTED",
+            "SCN-B006-ONE-OVER-REFUSED",
+            "SCN-B006-OVERFLOW-REFUSED"
+          ],
+          "description": "Validate artifact shape, traceability, scenario obligations, test mechanism coherence, and fresh-context scope fit.",
+          "commandRef": "CMD-B006-PACKET-GUARDS",
+          "command": "timeout 600 bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow && timeout 600 bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow && timeout 600 bash .github/bubbles/scripts/scenario-obligation-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow && timeout 600 bash .github/bubbles/scripts/test-mechanism-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow --repo-root . && timeout 600 bash .github/bubbles/scripts/scope-context-fit-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
+          "liveSystem": false,
+          "evidenceRef": "report.md#tp-b006-007",
+          "status": "planned-not-executed",
+          "redGreenRequired": false
+        },
+        {
+          "id": "TP-B006-008",
+          "type": "Transition guard",
+          "category": "guard",
+          "file": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow/state.json",
+          "scenarioId": "SCN-B006-BOUNDARY-ACCEPTED",
+          "coversScenarioIds": [
+            "SCN-B006-BOUNDARY-ACCEPTED",
+            "SCN-B006-ONE-OVER-REFUSED",
+            "SCN-B006-OVERFLOW-REFUSED"
+          ],
+          "description": "After implementation, test evidence, and human acceptance are complete, prove the bugfix-fastlane transition contract without allowing a planner-owned status write.",
+          "commandRef": "CMD-B006-TRANSITION-GUARD",
+          "command": "timeout 600 bash .github/bubbles/scripts/state-transition-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
+          "liveSystem": false,
+          "evidenceRef": "report.md#tp-b006-008",
+          "status": "planned-not-executed",
+          "redGreenRequired": false
+        }
+      ]
+    }
+  ]
+}

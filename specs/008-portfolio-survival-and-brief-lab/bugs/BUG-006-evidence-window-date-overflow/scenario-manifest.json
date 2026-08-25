@@ -1,9 +1,9 @@
 {
   "contractVersion": "scenario-manifest/v1",
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
-  "generatedAt": "2026-08-25T19:27:30Z",
-  "generatedBy": "bubbles.bug",
-  "provenance": "Initial diagnostic transcription from BUG-006 scopes.md. All scenarios remain planned and uncertified. Planned test titles do not yet exist, and no execution is claimed.",
+  "generatedAt": "2026-08-25T20:47:01Z",
+  "generatedBy": "bubbles.plan",
+  "provenance": "Planning reconciliation from BUG-006 spec.md, design.md, scopes.md, the current rlportfolio.js validation and derivation owners, and the existing portfolio foundation carrier. All scenarios remain planned and uncertified. Planned test titles do not yet exist, and no product-test execution is claimed.",
   "scenarios": [
     {
       "scenarioId": "SCN-B006-BOUNDARY-ACCEPTED",
@@ -13,20 +13,80 @@
       "gherkin": {
         "given": "the behavior policy sets maximumEvidenceAgeDays to 100 times 365 plus 25",
         "when": "validatePolicy checks the policy",
-        "then": "the boundary policy and the committed 56-day policy are accepted"
+        "then": "the boundary policy and the committed 56-day policy are accepted, while a non-finite value retains the existing non-finite-policy refusal before semantic bound validation"
       },
       "status": "planned",
       "behaviorClass": "business-logic",
       "changeType": "bugfix",
       "requiredTestType": "unit",
+      "requiredTestTypes": [
+        "unit"
+      ],
       "regressionRequired": true,
+      "riskTier": "medium",
+      "requirementRefs": [
+        "FR-B006-001",
+        "FR-B006-003",
+        "FR-B006-006",
+        "AC-1",
+        "AC-4"
+      ],
+      "findingRefs": [
+        "SEC-B005-S1"
+      ],
+      "behaviorTraits": [
+        "pure-calculation",
+        "static-metadata"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production validatePolicy assertions accept 36525 and the shipped 56-day policy while preserving non-finite refusal precedence.",
+          "satisfiedBy": [
+            "TP-B006-001"
+          ]
+        },
+        {
+          "trait": "static-metadata",
+          "requiredProof": "An artifact assertion reads the committed policy and proves maximumEvidenceAgeDays remains exactly 56.",
+          "satisfiedBy": [
+            "TP-B006-001"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "rlportfolio.js#validatePolicy",
+          "portfolio-survival-allocation.config.json"
+        ],
+        "negativeControl": "Changing maximumEvidenceAgeDays from 36525 to 36526 must change validatePolicy from accepted to the exact behavior refusal.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "implementationRefs": [
+        "rlportfolio.js#validatePolicy",
+        "portfolio-survival-allocation.config.json"
+      ],
+      "testRows": [
+        "TP-B006-001",
+        "TP-B006-004"
+      ],
       "lockdown": false,
       "linkedTests": [
         {
           "file": "tests/portfolio-foundation.unit.mjs",
           "testId": "BUG-006: maximumEvidenceAgeDays accepts the named 100-year boundary",
+          "testPlanRow": "TP-B006-001",
           "coverageStatus": "planned-not-authored"
         }
+      ],
+      "expectedAssertions": [
+        "36525 is accepted",
+        "the committed policy remains 56 and is accepted",
+        "non-finite input retains the non-finite-policy refusal before semantic validation"
       ],
       "evidenceRefs": [
         "report.md#before-fix-reproduction"
@@ -48,14 +108,71 @@
       "behaviorClass": "business-logic",
       "changeType": "bugfix",
       "requiredTestType": "unit",
+      "requiredTestTypes": [
+        "unit"
+      ],
       "regressionRequired": true,
+      "riskTier": "medium",
+      "requirementRefs": [
+        "FR-B006-002",
+        "FR-B006-003",
+        "FR-B006-005",
+        "AC-2"
+      ],
+      "findingRefs": [
+        "SEC-B005-S1"
+      ],
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "A production validatePolicy assertion transforms the one-over input into the exact frozen PortfolioError/v1 envelope.",
+          "satisfiedBy": [
+            "TP-B006-002"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The named negative path returns P008-CONFIG invalid-policy for behavior with no clamp, echo, recoverable flag, or plausible default.",
+          "satisfiedBy": [
+            "TP-B006-002"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "rlportfolio.js#validatePolicy"
+        ],
+        "negativeControl": "Removing the upper-bound predicate must make the 36526 policy accepted instead of returning the exact refusal.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "implementationRefs": [
+        "rlportfolio.js#validatePolicy"
+      ],
+      "testRows": [
+        "TP-B006-000",
+        "TP-B006-002"
+      ],
       "lockdown": false,
       "linkedTests": [
         {
           "file": "tests/portfolio-foundation.unit.mjs",
           "testId": "BUG-006: maximumEvidenceAgeDays refuses one day above the named boundary",
+          "testPlanRow": "TP-B006-002",
           "coverageStatus": "planned-not-authored"
         }
+      ],
+      "expectedAssertions": [
+        "36526 is refused",
+        "the error contract is PortfolioError/v1",
+        "code reason field valueEchoed and recoverable match the frozen config refusal"
       ],
       "evidenceRefs": [
         "report.md#before-fix-reproduction"
@@ -77,14 +194,72 @@
       "behaviorClass": "business-logic",
       "changeType": "bugfix",
       "requiredTestType": "functional",
+      "requiredTestTypes": [
+        "functional"
+      ],
       "regressionRequired": true,
+      "riskTier": "medium",
+      "requirementRefs": [
+        "FR-B006-004",
+        "FR-B006-005",
+        "AC-3"
+      ],
+      "findingRefs": [
+        "SEC-B005-S1"
+      ],
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "A production deriveInterestSignals assertion returns the validation failure before workspace validation or Date formatting.",
+          "satisfiedBy": [
+            "TP-B006-003"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "A fixture proven to exceed TimeClip returns the exact config refusal and no RangeError escapes.",
+          "satisfiedBy": [
+            "TP-B006-003"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "rlportfolio.js#validatePolicy",
+          "rlportfolio.js#deriveInterestSignals"
+        ],
+        "negativeControl": "The huge finite fixture must overflow direct Date formatting, while removing the policy bound must expose acceptance or RangeError instead of the returned refusal.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "implementationRefs": [
+        "rlportfolio.js#validatePolicy",
+        "rlportfolio.js#deriveInterestSignals"
+      ],
+      "testRows": [
+        "TP-B006-000",
+        "TP-B006-003"
+      ],
       "lockdown": false,
       "linkedTests": [
         {
           "file": "tests/portfolio-foundation.unit.mjs",
           "testId": "BUG-006: an overflowing evidence window is refused before interest derivation",
+          "testPlanRow": "TP-B006-003",
           "coverageStatus": "planned-not-authored"
         }
+      ],
+      "expectedAssertions": [
+        "the fixture exceeds TimeClip under direct Date formatting",
+        "deriveInterestSignals returns P008-CONFIG invalid-policy for behavior",
+        "no RangeError escapes"
       ],
       "evidenceRefs": [
         "report.md#before-fix-reproduction"

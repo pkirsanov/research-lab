@@ -9,13 +9,20 @@ probe reproduced the accepted-policy to invalid-Date failure chain.
 No product source or test was edited. No product test was run by
 `bubbles.bug`.
 
+`bubbles.plan` subsequently reconciled the existing single scope against the
+adopted design, current source owners, committed policy, neighboring test
+carrier, parent requirements, and current Bubbles scenario-obligation contract.
+No product source or test was edited or executed by `bubbles.plan`.
+
 ## Completion Statement
 
-Bug discovery, reproduction, and a narrow repair proposal are recorded.
-Delivery is not complete. Status and certification remain `in_progress`.
+Bug discovery, reproduction, design, and one narrow executable repair scope are
+recorded. Delivery is not complete. Scope 1 remains `Not Started`; status and
+certification remain `in_progress`.
 
-The next required owner is `bubbles.design`. Source implementation remains
-blocked until design and planning ownership complete their handoffs.
+The next required owner is `bubbles.test`. Product implementation remains
+blocked until the persistent boundary and overflow tests are authored and their
+focused pre-fix RED result is recorded.
 
 ## Repository Binding
 
@@ -35,6 +42,41 @@ targetKind=repository-root
 pathVisibility=local
 actionable=true
 ```
+
+### Planning authority confirmation
+
+**Phase:** plan
+**Claim Source:** executed
+
+The current planning invocation independently resolved the host session and
+confirmed the exact BUG-006 target at external control revision `210`:
+
+```text
+REPOSITORY PREFLIGHT CONFIRMED repository=research-lab root=<repo> source=concrete-target affinity=confirmed
+PREFLIGHT_COMMITTED decision=rb:vscode-d037d272141b9d17af8fa6ccdd049e69:210 revision=210 repository=research-lab root=<repo>
+authority=concrete-target
+transition=confirmed
+targetKind=absolute-target
+pathVisibility=local
+actionable=true
+```
+
+## Planning Reconciliation
+
+**Phase:** plan
+**Claim Source:** interpreted from current-session repository reads
+
+- `scopes.md` retains one scope and now records the RED-before-implementation
+	checkpoint as its own Test Plan and DoD item.
+- `scenario-manifest.json` declares only the applicable pure-calculation,
+	static-metadata, and degraded-state traits, with explicit obligations,
+	mechanisms, negative controls, and implementation owners.
+- `test-plan.json` mirrors nine Test Plan rows, commands, scenario links, and
+	evidence anchors without recording any execution result.
+- `state.json` records the plan phase and routes to `bubbles.test`; top-level
+	status, certification, scope status, and completed scopes remain unchanged.
+- `uservalidation.md` remains entirely unchecked. No human acceptance is
+	inferred or recorded.
 
 ## Findings
 
@@ -226,9 +268,9 @@ RESULT: PASSED (0 warnings)
 
 **Result:** PASS
 
-## Files Added By This Invocation
+## Packet Artifact Inventory
 
-Only this packet's eight files are in scope:
+Only this packet's nine files are in scope:
 
 | File | Purpose |
 | --- | --- |
@@ -240,15 +282,19 @@ Only this packet's eight files are in scope:
 | `uservalidation.md` | Unchecked automation and human acceptance checklist |
 | `state.json` | Version 3 non-terminal control plane |
 | `scenario-manifest.json` | Planned scenario registry |
+| `test-plan.json` | Planner-owned structured test handoff |
 
 Existing modified framework-agent files are outside this packet and remain
 untouched.
 
 ## Routing
 
-1. `bubbles.design` reviews and adopts the bound and refusal contract.
-2. `bubbles.plan` owns final scope structure.
-3. `bubbles.test` authors and executes the red scenario-first carrier.
-4. `bubbles.implement` applies the approved source change.
-5. `bubbles.test` performs focused and broader verification.
-6. `bubbles.validate` owns certification.
+1. `bubbles.test` authors the exact boundary, one-over, huge-finite,
+	refusal-shape, non-finite-precedence, and shipped-56 assertions, then records
+	the focused pre-fix RED result.
+2. `bubbles.implement` adds the private named maximum and one validator
+	predicate inside the declared change boundary.
+3. `bubbles.test` performs focused GREEN, allocation-page non-movement,
+	Feature 008 browser, and canonical repository regression runs.
+4. `bubbles.validate` runs the packet and transition guards and owns any
+	certification write.

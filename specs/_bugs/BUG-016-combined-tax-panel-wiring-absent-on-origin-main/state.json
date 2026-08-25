@@ -38,7 +38,7 @@
     "runStartedAt": "2026-08-23T00:00:00Z",
     "completedAt": null,
     "substate": "filed",
-    "currentScope": null,
+    "currentScope": "cross-scope",
     "nextRequiredOwner": "operator — the branch-reconciliation decision in Scope 1 is not agent-dischargeable and was explicitly withheld from this run",
     "nextRequiredTarget": "specs/_bugs/BUG-016-combined-tax-panel-wiring-absent-on-origin-main/design.md#open-questions-for-the-owner",
     "nextRequiredReason": "The packet is filed and unstarted. Scope 1 is a branch decision that no evidence selects: the wiring exists at one tip and not the other, the two tips hold different blobs of the same page, and reconciling them is a choice about how the lines should relate rather than a technical question with a derivable answer. Scope 2 has no defined shape until Scope 1 is answered. Scope 3 is undecided by design and its disposition is Scope 1's to record. Gate G136 human acceptance is unestablished and cannot be supplied by automation, because this packet delivers no behaviour to exercise.",

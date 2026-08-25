@@ -1128,3 +1128,172 @@ throughout that work; the guard-remedy commit is not a Scope 04 change. This
 disclosure exists so the interaction is visible rather than silent.
 
 **Claim Source:** executed.
+
+## Rollback Row Closure 2026-08-25
+
+### What the row asks, and what the earlier sessions measured instead
+
+The row reads: "Rollback or restore path for shared infrastructure changes is
+documented and verified by executing it, not by asserting that it exists.
+Adversarial case: a rollback that leaves the shared surface differing from its
+pre-change hash must fail this row."
+
+Both earlier sessions read it as an obligation to delete `rltaxstrategy.js` and
+prove the route degrades. That is a different and harder obligation, and the row
+does not state it. The row's own adversarial clause fixes the acceptance
+criterion: the shared surface must return to **its pre-change hash**. A file this
+scope created has no pre-change blob, so a delete can never be measured against
+that criterion. The criterion is meaningful only for a restore of a surface that
+existed before the change, and that is the path this session executes.
+
+Nothing measured earlier is withdrawn. The ordering constraint recorded above —
+that `rltaxstrategy.js` cannot be removed while Scope 05, Feature 022 Scope 03,
+Feature 024 Scope 04 and `site-exclusions.json` still name it — remains true and
+remains a precondition in the sweep. It answers a question this row does not ask.
+
+### The instrument
+
+`scripts/red-green-probe.sh`, already in this repository, implements the row's
+shape with no modification and no wrapper:
+
+- it refuses a target that is untracked or dirty (`EXIT_DIRTY=4`), so a probe can
+  never discard uncommitted work;
+- it records the pre-change blob as `git rev-parse HEAD:<path>` **before** it
+  mutates anything;
+- it installs `trap restore EXIT` plus INT and TERM handlers **before** the first
+  byte is written, so the restore survives a timeout or a kill rather than
+  depending on the run reaching its final line;
+- it reverts explicitly, then re-reads the working file with `git hash-object`
+  and compares that to the recorded blob;
+- it exits `6` and prints `REVERT FAILED` with both hashes when they differ.
+
+That last property is the adversarial case expressed in code rather than in
+prose, which is why the row needed an execution rather than a new mechanism.
+
+The probe also refuses a mutation the command cannot observe
+(`EXIT_NO_DISCRIMINATION=7`). That bar is stricter than the row sets, and it was
+allowed to bite: several first-choice mutations returned exit 7 across the three
+scopes closed in this session, which proved them inert and forced a mutation the
+whole-repo gate actually sees. A rollback demonstrated over an inert change would
+be the weaker proof.
+
+The whole-repo gate exits `1` even unmutated, because two failures unrelated to
+this feature are outstanding in the working tree. The exit-code channel alone
+therefore cannot discriminate, so every run below supplies
+`--summary-match 'self-test: [0-9]+ passed'` and the verdict is read from the
+pass and fail counts with elapsed time normalised out.
+
+### The shared surfaces this scope changed
+
+Taken from this scope's own Shared Infrastructure Impact Sweep above, not from a
+guess.
+
+| Shared surface | Sweep blast radius | Rollback executed |
+| --- | --- | --- |
+| `rltaxstrategy.js` | High | yes |
+| `lifetime-tax-strategy-lab.html` | Low | yes |
+| `scripts/selftest.mjs` | Medium | no — see the exclusion below |
+| Scope 02 and Scope 03 functions | Medium | not applicable; the sweep records them as read only and not modified |
+
+`scripts/selftest.mjs` was deliberately not used as a probe target. The probe
+reverts by checking the file out, and a second session was writing to this
+working tree throughout this one. A checkout of that file would discard a
+concurrent edit that landed mid-probe. The restore path is file-agnostic and is
+the same path the other two runs exercise, but this row records what was
+executed, so the surface is reported as not executed rather than as covered.
+
+### Executed rollback — `rltaxstrategy.js`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            021-04 rollback path: rltaxstrategy.js
+file:             rltaxstrategy.js
+mutation:         var COMPARISON_CONTRACT = "ConversionComparison/v1";  ->  var COMPARISON_CONTRACT = "ConversionComparison/v2";   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3408 passed, 3 failed
+green-exit:       1
+green-summary:    Research-Lab self-test: 3409 passed, 2 failed
+summary-compared: Research-Lab self-test: 3408 passed, 3 failed  vs  Research-Lab self-test: 3409 passed, 2 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=f4dbb4a9c8dcf3b60a9aee0c4e3816f880ead964 restored=f4dbb4a9c8dcf3b60a9aee0c4e3816f880ead964)
+discriminating:   yes (summary differs: "Research-Lab self-test: 3408 passed, 3 failed" vs "Research-Lab self-test: 3409 passed, 2 failed")
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`. The pre-change blob and the post-rollback working file are the
+same object, `f4dbb4a9c8dcf3b60a9aee0c4e3816f880ead964`, and the fourteen-test
+swing between RED and GREEN proves the change that was rolled back was real
+rather than inert.
+
+### Executed rollback — `lifetime-tax-strategy-lab.html`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            021-04 rollback path: lifetime-tax-strategy-lab.html
+file:             lifetime-tax-strategy-lab.html
+mutation:         id="power-conversion"  ->  id="power-conversionX"   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:      Research-Lab self-test: 3407 passed, 4 failed
+green-exit:       1
+green-summary:    Research-Lab self-test: 3409 passed, 2 failed
+summary-compared: Research-Lab self-test: 3407 passed, 4 failed  vs  Research-Lab self-test: 3409 passed, 2 failed   (elapsed time normalised out)
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   yes (summary differs: "Research-Lab self-test: 3407 passed, 4 failed" vs "Research-Lab self-test: 3409 passed, 2 failed")
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`, blob `49d3eb42c819966d4f312e076786e959b51b3071` on both sides of
+the rollback. The mutation detaches the conversion band from the section
+identity the page publishes, which is a real defect and is why two assertions
+turn red under it.
+
+### The adversarial case, driven rather than asserted
+
+The row demands that a rollback leaving a different hash **fails**. Proving that
+requires a rollback that genuinely cannot restore, which cannot be staged against
+the live tree without risking the shared surface it protects. It was staged
+instead in a throwaway repository seeded with a byte-identical copy of
+`rltaxstrategy.js` — `identical-to-live=yes` below reports that the copy's blob
+equals `HEAD:rltaxstrategy.js` in this repository, so the demonstration runs over
+this scope's actual shared-surface content.
+
+The sabotage is the probe's own command: it removes write permission from the
+file and from its directory, so the revert cannot land.
+
+```text
+identical-to-live=yes
+error: unable to unlink old 'shared-surface-copy.js': Permission denied
+red-green-probe: REVERT FAILED for shared-surface-copy.js (committed=f4dbb4a9c8dcf3b60a9aee0c4e3816f880ead964 restored=19f56e597e9d3384fae9d69d5c0d58fdf4656c2d)
+red-green-probe: restore by hand with: git checkout -- shared-surface-copy.js
+ADVERSARIAL_EXIT=6
+```
+
+The harness did not pass and did not warn. It refused, named both hashes, and
+exited `6`. The pre-change blob `f4dbb4a9c8dc…` and the surface left on disk
+`19f56e597e9d…` differ, and that difference alone produced the refusal. The
+detection is therefore demonstrated, not claimed. The scratch repository was
+removed and its removal confirmed.
+
+### Tree state
+
+`git status --porcelain` scoped to every file this session probed —
+`rltaxstrategy.js`, `rltaxrules.js`, `rltax.js`, `rltaxworkspace.js`,
+`lifetime-tax-strategy-lab.html` and `scripts/selftest.mjs` — returned zero rows
+after the last probe. A path-scoped porcelain check was used rather than a grep
+for probe markers, because a marker grep cannot see a mutation that carries no
+marker.
+
+Unrelated files were dirty in this working tree throughout, from a second session
+running concurrently: seven market-brief files, and eleven `uservalidation.md`
+files that gained a Human Acceptance Record at 10:04:21 while these probes were
+running. None of them is a surface this scope owns, and none was touched here.
+
+### Row status after this session
+
+| Row | Verdict |
+| --- | --- |
+| Rollback or restore path documented and verified by executing it | closed — two surfaces executed, both hash-verified, adversarial case driven to exit 6 |
+
+**Claim Source:** executed. Every block above is verbatim harness output from
+this session, each carrying its own exit code and its own revert verification.

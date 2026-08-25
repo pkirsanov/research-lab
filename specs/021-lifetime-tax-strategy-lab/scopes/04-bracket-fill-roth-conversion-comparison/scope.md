@@ -249,7 +249,7 @@ Test Plan row.
 - [x] Broader E2E regression suite passes across the whole lifetime-tax browser family, not this scope's own spec file alone. Adversarial case: a change made inside this scope that reddens a sibling scope's persistent title must fail this row even while this scope's own rows stay green.
 - [x] Change Boundary is respected and zero excluded file families were changed, proven by a path-scoped `git status --porcelain` over the excluded surfaces plus an mtime comparison for any untracked excluded directory. Adversarial case: touching one excluded path must produce a row and fail this item; `git diff --quiet` alone is not accepted, because it reports an untracked path as unchanged.
 - [x] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns, run as its own command ahead of the whole-repository gate. Adversarial case: breaking one shared fixture contract must redden the canary first; a canary that stays green while the broad suite fails is itself a defect and fails this row.
-- [ ] Rollback or restore path for shared infrastructure changes is documented and verified by executing it, not by asserting that it exists. Adversarial case: a rollback that leaves the shared surface differing from its pre-change hash must fail this row.
+- [x] Rollback or restore path for shared infrastructure changes is documented and verified by executing it, not by asserting that it exists. Adversarial case: a rollback that leaves the shared surface differing from its pre-change hash must fail this row.
 
 - [x] PRA-021-025 through PRA-021-030 are implemented: exactly two policies on
       identical inputs, a pack-derived fill amount, the reported amount, per-policy

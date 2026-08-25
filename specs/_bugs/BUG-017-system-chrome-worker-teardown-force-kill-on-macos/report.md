@@ -625,4 +625,71 @@ The change is comment-only. The resolved worker count, discovery glob and both p
 definitions are byte-for-byte the behaviour they were before. No test was modified, no project
 default was switched, and the pipeline job is untouched.
 
+## Independent Verification Round — Partial; The Row Stays Open
+
+Run at `982a63641` by a party that wrote no part of this packet. The disclosure half verifies
+completely. The measurement half does not, and the row is therefore **left unticked**.
+
+### Verified: the disclosure is where a developer meets it
+
+Both sites carry all four required facts — platform, project, symptom, intermittence — plus the
+cost. `playwright.config.mjs` states macOS, the `system-chrome` project, the exact force-kill
+string and the non-zero exit with every test passed, `6/8` at six workers, `1/3` at four, `0/3` at
+two, and `343s against 81s` on the same 111 tests. `.specify/memory/agents.md` `### Playwright E2E`
+carries the same set and sits directly above the first run command, which is the line a developer
+copies.
+
+The reachability claim was re-counted rather than accepted:
+
+```
+every "playwright test" invocation in .specify/memory/agents.md and .github/workflows/pages.yml
+  total invocations = 18
+  naming --config=playwright.config.mjs = 18
+  NOT naming it = 0
+```
+
+Independently confirmed alongside it: the disclosure commit `2d79740e1` changes the config comment
+only — the `workers:` line is not in its diff — and touches no file under `tests/`. The pin itself
+landed earlier, in `13494be66`. So the disclosure did not stand in for the fix, and did not adjust
+a test to suit it.
+
+### Not verified: the 343s figure was not re-derived
+
+Runs A and C in `### The condition is still reachable at the remedy commit` are `system-chrome`
+measurements. This round was constrained to `--project=chromium`, so neither was re-run. Only run B
+was reproduced, and it reproduces closely:
+
+```
+recorded  B proj=chromium exit=0 wall=66s forcekills=0 | 111 passed (1.1m) | 2 workers
+this round  npx --no-install playwright test tests/lifetime-tax*.spec.mjs \
+              --config=playwright.config.mjs --project=chromium --reporter=line
+            specfiles=22   PW_EXIT=0   wall=64s   111 passed (1.1m)
+```
+
+The test set is confirmed to be the one the measurement names: 22 spec files, 111 tests. The
+bundled project is clean and fast on it, which is one of the two legs of the comparison.
+
+The other leg — `343s`, exit 1, four force-kills at `--workers=6` on `system-chrome` — carries the
+headline number into both disclosure sites and rests on the implementing round's own measurement.
+Re-deriving it would mean deliberately re-triggering an intermittent upstream stall, which is also
+a residue hazard: it force-kills browser processes by construction. Two things follow. The stall is
+intermittent at `6/8`, so a single re-run that came back clean would not falsify the figure either;
+closing this properly needs a run count, not one run. And the figure is a characterisation of the
+**unfixed exposure**, not of the remedy — the remedy is the pin plus the disclosure, and both of
+those verify above.
+
+### What would close the row
+
+One command, repeated enough times to speak to a `6/8` rate, by a party that did not write the
+packet:
+
+```
+npx --no-install playwright test tests/lifetime-tax*.spec.mjs \
+  --config=playwright.config.mjs --project=system-chrome --workers=6 --reporter=line
+```
+
+with the browser-process count taken before and after each run, and `worker-N process did not exit
+within` counted in each log. Until then the row asserts a transition to `Verified` on a cost figure
+no independent party has reproduced, so it stays open.
+
 

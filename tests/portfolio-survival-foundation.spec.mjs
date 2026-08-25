@@ -1006,6 +1006,204 @@ test('Regression: SCN-008-011 clear behavior removes ranking influence and prese
   console.log('[SCN-008-011] remotePersonalRequests=0');
 });
 
+/*
+ * BUG-004 browser row.
+ *
+ * It exists because no other Feature 008 browser row discriminates this defect. The SCN-008-011 row
+ * above advances the clock to a SECOND UTC date before its semantic repeat, so it stays green under
+ * the superseded content-plus-civil-day predicate that BUG-004 removed. The repeat below never
+ * leaves ONE New York civil date, which is the exact input that predicate refused.
+ *
+ * The Node carriers pin the storage predicate and the projection; neither can observe what an owner
+ * actually sees. This row drives the real UI and reads only rendered text, persisted bytes, and the
+ * page's own diagnostics. No request is intercepted — no page.route/context.route/msw/nock appears
+ * here, because an intercepted row is a mocked row and cannot satisfy a live-stack e2e-ui obligation.
+ */
+test('Regression: BUG-004 a same-civil-day repeat is retained as a distinct occurrence and buys no ranking influence', async ({ page }) => {
+  /* Two real UTC dates are unavoidable: the declared floor is two distinct completions on two
+     distinct dates, so a run confined to one day could only ever render `floor-not-met` and the
+     invariance below would be measured against a subject that was never ranked at all. */
+  await page.clock.install({ time: new Date('2026-05-04T09:15:00.000Z') });
+  const requestStart = server.requests.length;
+  const browserRequests = await openRoute(page);
+  await importValid(page, 'BUG-004 portfolio');
+  await previewMandate(page, 'mandate-explicit.json');
+  await page.locator('#confirmMandate').click();
+  await expect(page.locator('#currentMandate')).toContainText('sha256:');
+  /* Fixture for CONTROL B at the end of the row. `aapl` is in no lane yet — no holding, no
+     watchlist entry, no completion — so this cached public series produces no evidence record and
+     no action until a completion puts the subject in scope. Seeding it HERE, before the baseline,
+     is what leaves that completion as the control's only moving input. It goes through the same
+     shared same-origin cache the page derives its generic evidence from; no test-only backdoor is
+     opened, and nothing is intercepted. */
+  await seedBars(page, 'aapl');
+
+  await recordCompletion(page, { category: 'ticker-research-completed', subject: 'msft' });
+  await recordCompletion(page, { category: 'risk-analysis-completed', subject: 'msft' });
+  await recordCompletion(page, { category: 'ticker-research-completed', subject: 'bnd' });
+  await page.clock.setSystemTime(new Date('2026-05-05T10:30:00.000Z'));
+  await recordCompletion(page, { category: 'ticker-research-completed', subject: 'msft' });
+
+  /* The clock is PINNED for the rest of the row and the baseline is re-derived after a reload at
+     that pinned instant. `behaviorCutoffAt` is `now()`, and the ranking fingerprint is taken over
+     the cutoff as well as over the ranked actions — so measuring the baseline at any other instant
+     would make the comparison below fail for decay reasons that have nothing to do with this bug.
+     The reload also destroys every draft, so the baseline is projection-derived, not preview-derived. */
+  await page.clock.setFixedTime(new Date('2026-05-05T18:45:00.000Z'));
+  await page.reload();
+  await expect(page.locator('#behaviorInfluence')).toHaveText(
+    'Behavior-derived ranking influence · 2 ranked subjects · 4 eligible completions');
+
+  const readRankRows = () => page.locator('#behaviorRankRows li').evaluateAll((rows) => rows.map((row) => ({
+    subjectId: row.dataset.behaviorSubject,
+    floorState: /floor-not-met$/.test(row.textContent) ? 'floor-not-met' : 'floor-met',
+    text: row.textContent
+  })));
+  const readRanking = () => page.evaluate(() => ({
+    fingerprint: window.__PORTFOLIO_DIAGNOSTICS__.behaviorRankingFingerprint,
+    rankedActionIds: window.__PORTFOLIO_DIAGNOSTICS__.rankedActionIds,
+    eligibleOccurrenceIds: window.__PORTFOLIO_DIAGNOSTICS__.eligibleBehaviorOccurrenceIds
+  }));
+
+  const baselineRows = await readRankRows();
+  const baselineRanking = await readRanking();
+  const baselineEvents = (await persistedWorkspace(page)).behaviorEvents;
+  const anchor = baselineEvents.at(-1);
+
+  /* ANTI-VACUITY. Every "unchanged" claim below is trivially true of a page that ranked nothing and
+     fingerprinted null, so the baseline is proven to be a real, floor-met, fingerprinted ranking
+     first — and proven against the PERSISTED bytes, which a reload has already re-read from disk. */
+  expect(baselineRanking.fingerprint,
+    'the baseline must carry a real ranking fingerprint, or the score invariance compares null to null')
+    .toMatch(/^sha256:[a-f0-9]{64}$/);
+  expect(baselineRanking.rankedActionIds.length,
+    'the baseline must rank at least one action, or the order invariance is vacuous').toBeGreaterThan(0);
+  expect(baselineEvents, 'four completions survive the reload in the persisted bytes').toHaveLength(4);
+  expect(baselineRanking.eligibleOccurrenceIds).toHaveLength(4);
+  expect(baselineRows.map((row) => row.text)).toEqual([
+    '1 · msft · 3 completions · 2 UTC dates · 2 categories · floor-met',
+    '2 · bnd · 1 completion · 1 UTC date · 1 category · floor-not-met'
+  ]);
+  expect(anchor.subjectId).toBe('msft');
+  expect(anchor.category).toBe('ticker-research-completed');
+  expect(anchor.occurrence.newYorkCivilDate, 'the anchor sits on the civil date the repeat will reuse').toBe('2026-05-05');
+
+  /* THE REPEAT. Same semantic completion, same New York civil date, a LATER instant — the exact
+     input the superseded predicate refused, and the reason this bug was filed. */
+  await recordCompletion(page, { category: 'ticker-research-completed', subject: 'msft' });
+  await expect(page.locator('#behaviorResult')).toContainText('Recorded one completed-research event');
+
+  const repeatEvents = (await persistedWorkspace(page)).behaviorEvents;
+  const repeat = repeatEvents.at(-1);
+
+  // (1) ACCEPTED — in the persisted bytes, not merely in the result line.
+  expect(repeatEvents, 'the same-civil-day repeat is retained as a fifth stored occurrence').toHaveLength(5);
+  // (2) ONE SHARED SEMANTIC IDENTITY.
+  expect(repeat.eventIdentity, 'the repeat is the same semantic completion, not a new one').toBe(anchor.eventIdentity);
+  // (3) A DISTINCT OCCURRENCE. `eventId` is the occurrence fingerprint, so both halves are pinned.
+  expect(repeat.occurrence.occurrenceId, 'the repeat stays independently auditable')
+    .not.toBe(anchor.occurrence.occurrenceId);
+  expect(repeat.eventId).toBe(repeat.occurrence.occurrenceId);
+  /* (4) ONE CIVIL DAY. Without this the row would only restate the cross-day case SCN-008-011
+     already covers, and would stay green under the predicate BUG-004 removed. */
+  expect(repeat.occurrence.newYorkCivilDate, 'the repeat must not leave the anchor civil date')
+    .toBe(anchor.occurrence.newYorkCivilDate);
+  expect(repeat.occurrence.occurredAt, 'a distinct occurrence needs a distinct instant')
+    .not.toBe(anchor.occurrence.occurredAt);
+
+  const repeatRows = await readRankRows();
+  const repeatRanking = await readRanking();
+
+  /* (5) NO RANKING INFLUENCE. Order, ranked action identities, and the fingerprint — which is taken
+     over the ranked actions INCLUDING their relevance scores — are unchanged. The cutoff is pinned,
+     so the fingerprint can only move here if the ranked content itself moved. */
+  expect(repeatRanking.fingerprint, 'a same-semantic same-civil-day repeat must not change the ranked score')
+    .toBe(baselineRanking.fingerprint);
+  expect(repeatRanking.rankedActionIds, 'it must not change the ranked action set or its order')
+    .toEqual(baselineRanking.rankedActionIds);
+  expect(repeatRows.map((row) => row.subjectId), 'it must not reorder the rendered ranked subjects')
+    .toEqual(baselineRows.map((row) => row.subjectId));
+  expect(repeatRows.map((row) => row.floorState), 'it must not buy floor eligibility')
+    .toEqual(baselineRows.map((row) => row.floorState));
+
+  /* (6) AUDIT CARDINALITY GROWS. Without this half, every "unchanged" claim above would also hold
+     for a product that silently discarded the retained occurrence — the OPPOSITE defect this bug
+     forbids, and the one the superseded predicate actually shipped. */
+  expect(repeatRanking.eligibleOccurrenceIds,
+    'no previously eligible occurrence was dropped to make room for the repeat')
+    .toHaveLength(baselineRanking.eligibleOccurrenceIds.length + 1);
+  expect(repeatRanking.eligibleOccurrenceIds.filter((id) => !baselineRanking.eligibleOccurrenceIds.includes(id)),
+    'exactly one new occurrence id appears, and it is the repeat').toEqual([repeat.occurrence.occurrenceId]);
+  // The owner sees it counted as evidence; only the completion count moves in that row.
+  expect(repeatRows.map((row) => row.text)).toEqual([
+    '1 · msft · 4 completions · 2 UTC dates · 2 categories · floor-met',
+    '2 · bnd · 1 completion · 1 UTC date · 1 category · floor-not-met'
+  ]);
+  await expect(page.locator('#behaviorInfluence')).toHaveText(
+    'Behavior-derived ranking influence · 2 ranked subjects · 5 eligible completions');
+
+  /* NON-INERT CONTROLS. Everything above is also true of a page that had stopped reading behavior
+     evidence entirely, so each invariance is paired with a control that is MEASURED to move the
+     SAME projection it guards.
+
+     There are two, because the two projections answer to different inputs. `#behaviorRankRows` is a
+     per-SUBJECT view of the completion evidence. The ranking fingerprint is taken over the ranked
+     ACTION set (rlportfoliobrief.js `rankResearchActions`), and a subject only becomes an action
+     once it ALSO carries generic evidence — so a completion on a subject with no cached series
+     moves the rows and correctly leaves the action set alone. Guarding the fingerprint with a
+     row-projection control is what made an earlier version of this row fail against a product that
+     was behaving exactly as designed. */
+
+  /* CONTROL A — the SUBJECT-row projection, which carries claims (5c) and (5d). A second bnd
+     research date is a genuinely new semantic completion on a new civil date, so it flips bnd's
+     floor. It is recorded at the SAME pinned instant, so the evidence is the only moving input. */
+  await recordCompletion(page, { category: 'ticker-research-completed', subject: 'bnd' });
+  const floorControlRows = await readRankRows();
+  expect(floorControlRows.find((row) => row.subjectId === 'bnd').floorState,
+    'a second bnd research date must flip bnd to floor-met, or the floor-state invariance is inert')
+    .toBe('floor-met');
+  expect(floorControlRows.map((row) => row.floorState),
+    'the rendered floor states must differ from the baseline the repeat was measured against')
+    .not.toEqual(baselineRows.map((row) => row.floorState));
+
+  /* CONTROL B — the ranked-ACTION projection, which carries claims (5a) and (5b). `aapl` has a
+     public cached series seeded above but no completion, holding, or watchlist entry, so it is in
+     no lane and has no action until this completion puts it in scope. The completion is therefore
+     the only moving input, and it adds a real action to the visible set. */
+  await recordCompletion(page, { category: 'ticker-research-completed', subject: 'aapl' });
+  const actionControl = await readRanking();
+  expect(actionControl.rankedActionIds,
+    'a completion that puts a newly evidenced subject in scope must change the ranked action set')
+    .not.toEqual(baselineRanking.rankedActionIds);
+  expect(actionControl.rankedActionIds,
+    'and it must ADD an action rather than displace one, so the set genuinely grew')
+    .toHaveLength(baselineRanking.rankedActionIds.length + 1);
+  expect(actionControl.fingerprint,
+    'the fingerprint must move with the action set, or the fingerprint invariance above is inert')
+    .not.toBe(baselineRanking.fingerprint);
+
+  expect(browserRequests.every((url) => new URL(url).origin === server.baseUrl)).toBe(true);
+  const requests = server.requests.slice(requestStart);
+  expect(requests.every((entry) => entry.method === 'GET')).toBe(true);
+  expect(JSON.stringify(requests), 'no behavior subject leaves the origin').not.toMatch(/msft|bnd|aapl|ticker-research/i);
+
+  console.log('[BUG-004] anchorCivilDate=' + anchor.occurrence.newYorkCivilDate);
+  console.log('[BUG-004] repeatCivilDate=' + repeat.occurrence.newYorkCivilDate);
+  console.log('[BUG-004] repeatAccepted=' + (repeatEvents.length === baselineEvents.length + 1));
+  console.log('[BUG-004] sharedEventIdentity=' + (repeat.eventIdentity === anchor.eventIdentity));
+  console.log('[BUG-004] distinctOccurrenceId=' + (repeat.occurrence.occurrenceId !== anchor.occurrence.occurrenceId));
+  console.log('[BUG-004] rankingFingerprintUnchanged=' + (repeatRanking.fingerprint === baselineRanking.fingerprint));
+  console.log('[BUG-004] rankedOrderUnchanged=' + repeatRows.map((row) => row.subjectId).join(','));
+  console.log('[BUG-004] eligibleOccurrencesBefore=' + baselineRanking.eligibleOccurrenceIds.length);
+  console.log('[BUG-004] eligibleOccurrencesAfter=' + repeatRanking.eligibleOccurrenceIds.length);
+  console.log('[BUG-004] controlAFlippedFloor='
+    + (floorControlRows.find((row) => row.subjectId === 'bnd').floorState === 'floor-met'));
+  console.log('[BUG-004] controlBRankedActions='
+    + baselineRanking.rankedActionIds.length + '->' + actionControl.rankedActionIds.length);
+  console.log('[BUG-004] controlBMovedFingerprint=' + (actionControl.fingerprint !== baselineRanking.fingerprint));
+  console.log('[BUG-004] remotePersonalRequests=0');
+});
+
 test('Regression: SCN-008-012 behavior evidence excludes engagement and sensitive profiling', async ({ page }) => {
   const requestStart = server.requests.length;
   const browserRequests = await openRoute(page);

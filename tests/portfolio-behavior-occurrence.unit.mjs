@@ -23,6 +23,7 @@ import { ROOT } from './portfolio-survival.support.mjs';
 
 const require = createRequire(import.meta.url);
 const MODULE_PATH = resolve(ROOT, 'rlportfolio.js');
+const BRIEF_PATH = resolve(ROOT, 'rlportfoliobrief.js');
 const CONTRACTS_PATH = resolve(ROOT, 'rlcontracts.js');
 const POLICY_PATH = resolve(ROOT, 'portfolio-survival-allocation.config.json');
 
@@ -39,6 +40,9 @@ const SAME_DAY_LATER = '2026-07-15T21:45:00.000Z';
 const NEXT_DAY = '2026-07-16T10:00:00.000Z';
 const THIRD_DAY = '2026-07-17T10:00:00.000Z';
 const RANKED_AT = '2026-07-20T08:00:00.000Z';
+/* 191 days before RANKED_AT, so far outside the declared 56-day evidence window that no rounding
+   argument can put it back inside. */
+const BEYOND_EVIDENCE_WINDOW = '2026-01-10T10:00:00.000Z';
 
 /* The exact predicate `edbbddf0d` installed and the shipped predicate that supersedes it. */
 const SHIPPED_PREDICATE = [
@@ -51,6 +55,24 @@ const SUPERSEDED_PREDICATE = [
   '      return entry.dedupeKey === eventResult.value.dedupeKey &&',
   '        entry.occurrence.newYorkCivilDate === eventResult.value.occurrence.newYorkCivilDate;',
   '    });'
+].join('\n');
+
+/* The relevance half of the repair, expressed as source text. Semantic collapse retains the
+   EARLIEST occurrence of an identity, so whether the evidence-age window is applied before or
+   after that collapse decides whether a stale first occurrence can delete an identity that also
+   has fresh in-window evidence. Both mutants below keep the age limit enforced; they differ from
+   the shipped module only in WHERE it is enforced, so neither is a strawman. */
+const SHIPPED_AGE_PREFILTER =
+  '      if (eligibleAgeMs < 0 || eligibleAgeMs / 86400000 > behaviorPolicy.maximumEvidenceAgeDays) continue;';
+const FILTER_AFTER_COLLAPSE_PREFILTER = '      if (eligibleAgeMs < 0) continue;';
+const SHIPPED_ACCUMULATION = [
+  '      var ageDays = ageMs / 86400000;',
+  '      bucket.completionIdentities[occurrence.eventIdentity] = true;'
+].join('\n');
+const FILTER_AFTER_COLLAPSE_ACCUMULATION = [
+  '      var ageDays = ageMs / 86400000;',
+  '      if (ageDays > behaviorPolicy.maximumEvidenceAgeDays) return;',
+  '      bucket.completionIdentities[occurrence.eventIdentity] = true;'
 ].join('\n');
 
 function loadContracts() {
@@ -72,6 +94,20 @@ function loadFromSource(source) {
   Function('globalThis', 'window', 'module', 'exports', 'require',
     `${source}\nreturn globalThis.RLPORTFOLIO;`)(browserRoot, browserRoot, undefined, undefined, undefined);
   return browserRoot.RLPORTFOLIO;
+}
+
+/* The same technique extended one module further, because the relevance half of BUG-004 lives in
+   the brief. Storage source is always the shipped text here: these rows perturb the projection
+   only, so a failure cannot be blamed on a second simultaneous mutation. */
+function loadStackFromSource(briefSource) {
+  const browserRoot = {};
+  for (const path of [CONTRACTS_PATH, MODULE_PATH]) {
+    Function('globalThis', 'window', 'module', 'exports', 'require',
+      readFileSync(path, 'utf8'))(browserRoot, browserRoot, undefined, undefined, undefined);
+  }
+  Function('globalThis', 'window', 'module', 'exports', 'require',
+    briefSource)(browserRoot, browserRoot, undefined, undefined, undefined);
+  return { api: browserRoot.RLPORTFOLIO, brief: browserRoot.RLPORTFOLIOBRIEF };
 }
 
 function behaviorDraft(overrides = {}) {
@@ -357,4 +393,97 @@ test('BUG-004: reinstating the superseded content+civil-day predicate turns the 
   assert.equal(shippedRepeat.value.reason, 'duplicate-completion');
   assert.equal(supersededRepeat.value.accepted, false);
   assert.equal(supersededRepeat.value.reason, 'duplicate-completion');
+});
+
+/* Storing every occurrence (the rows above) creates a boundary that storing one never had: an
+   identity can now hold occurrences on BOTH sides of the evidence-age window. Semantic collapse
+   keeps the earliest occurrence, so if the window were applied after the collapse the stale first
+   occurrence would win the collapse and then be discarded, deleting an identity that has fresh
+   in-window evidence and silently dropping its domain below the relevance floor. That is the
+   opposite failure to inflation and equally invisible, which is why it is pinned here. */
+test('BUG-004: the evidence-age window is applied before semantic collapse, so a stale first occurrence cannot erase a fresh repeat', () => {
+  const { policy } = loadContracts();
+  const briefSource = readFileSync(BRIEF_PATH, 'utf8');
+
+  assert.equal(briefSource.split(SHIPPED_AGE_PREFILTER).length - 1, 1,
+    'the pre-collapse age filter must appear exactly once for the mutation below to be meaningful');
+  assert.equal(briefSource.split(SHIPPED_ACCUMULATION).length - 1, 1,
+    'the post-collapse accumulation must appear exactly once');
+  const reorderedSource = briefSource
+    .replace(SHIPPED_AGE_PREFILTER, FILTER_AFTER_COLLAPSE_PREFILTER)
+    .replace(SHIPPED_ACCUMULATION, FILTER_AFTER_COLLAPSE_ACCUMULATION);
+  assert.notEqual(reorderedSource, briefSource, 'the reordering mutation must have applied');
+  assert.equal(reorderedSource.includes('behaviorPolicy.maximumEvidenceAgeDays'), true,
+    'the mutant must still enforce the age limit — only its position moves, or this proves nothing');
+
+  /* alpha straddles the window, beta is entirely inside it, gamma is entirely outside it. gamma is
+     the control that keeps the age limit load-bearing: deleting the filter instead of moving it
+     would admit gamma and push the identity count to three. */
+  const seedStraddle = (api) => {
+    const empty = api.createEmptyWorkspace(policy, BEYOND_EVIDENCE_WINDOW);
+    assert.equal(empty.ok, true, JSON.stringify(empty.error || {}));
+    const marks = {};
+    let workspace = empty.value;
+    for (const [name, now, overrides] of [
+      ['alphaStale', BEYOND_EVIDENCE_WINDOW, {}],
+      ['alphaFresh', EARLIER, {}],
+      ['betaFresh', NEXT_DAY, { subjectId: SUBJECT_BETA }],
+      ['gammaStale', BEYOND_EVIDENCE_WINDOW, { subjectId: SUBJECT_GAMMA }]
+    ]) {
+      const result = api.buildBehaviorCandidate(behaviorDraft(overrides), workspace, { now }, policy);
+      assert.equal(result.ok, true, `${name}: ${JSON.stringify(result.error || {})}`);
+      assert.equal(result.value.accepted, true, `${name} must reach storage before projection is judged`);
+      marks[name] = result.value.event;
+      workspace = result.value.workspace;
+    }
+    return { events: workspace.behaviorEvents, marks };
+  };
+
+  const signalFor = (stack, events) => {
+    const derived = stack.brief.deriveInterestSignals({ behaviorCutoffAt: RANKED_AT, events, policy });
+    assert.equal(derived.ok, true, JSON.stringify(derived.error || {}));
+    const signal = derived.value.interestSignals.find((entry) => entry.domain === 'equity-research');
+    assert.ok(signal, 'the projection must emit the equity-research signal');
+    return signal;
+  };
+
+  const shipped = loadStackFromSource(briefSource);
+  const reordered = loadStackFromSource(reorderedSource);
+  const shippedSeed = seedStraddle(shipped.api);
+  const reorderedSeed = seedStraddle(reordered.api);
+
+  // Vacuity guards: the straddle must actually exist in storage before invariants mean anything.
+  assert.equal(shippedSeed.events.length, 4, 'storage must retain all four occurrences');
+  assert.equal(shippedSeed.marks.alphaStale.eventIdentity, shippedSeed.marks.alphaFresh.eventIdentity,
+    'alpha must be ONE semantic identity, or nothing is collapsed and the ordering cannot matter');
+  assert.notEqual(shippedSeed.marks.alphaStale.occurrence.occurrenceId,
+    shippedSeed.marks.alphaFresh.occurrence.occurrenceId);
+  assert.ok(Date.parse(RANKED_AT) - Date.parse(BEYOND_EVIDENCE_WINDOW) >
+    policy.behavior.maximumEvidenceAgeDays * 86400000,
+    'the stale instant must be outside the declared window');
+  assert.ok(Date.parse(RANKED_AT) - Date.parse(EARLIER) <
+    policy.behavior.maximumEvidenceAgeDays * 86400000,
+    'the fresh instant must be inside the declared window');
+
+  const shippedSignal = signalFor(shipped, shippedSeed.events);
+  assert.equal(shippedSignal.floor.distinctCompletionIdentities, 2,
+    'alpha survives through its fresh occurrence and beta stands alone; gamma is expired, so three would mean the age limit stopped biting');
+  assert.equal(shippedSignal.floor.distinctNewYorkCivilDates, 2);
+  assert.equal(shippedSignal.floor.satisfied, true,
+    'a stale first occurrence must not push a domain with fresh evidence below the relevance floor');
+  assert.deepEqual(shippedSignal.supportingOccurrenceIds.slice().sort(),
+    [shippedSeed.marks.alphaFresh.occurrence.occurrenceId,
+      shippedSeed.marks.betaFresh.occurrence.occurrenceId].sort(),
+    'the occurrence that represents alpha must be the fresh one, and no expired occurrence may support the signal');
+
+  const reorderedSignal = signalFor(reordered, reorderedSeed.events);
+  assert.equal(reorderedSignal.floor.distinctCompletionIdentities, 1,
+    'filtering after the collapse loses alpha entirely — this is the regression being pinned');
+  assert.equal(reorderedSignal.floor.satisfied, false,
+    'and it drops the domain below the floor, which suppresses the inferred lane');
+  assert.equal(reorderedSignal.supportingOccurrenceIds.includes(
+    reorderedSeed.marks.alphaFresh.occurrence.occurrenceId), false,
+    'alpha\'s fresh occurrence is discarded even though it is inside the window');
+  assert.notEqual(reorderedSignal.score, shippedSignal.score,
+    'the ordering must be observable in the score, or the two branches are indistinguishable');
 });

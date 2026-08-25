@@ -692,4 +692,99 @@ with the browser-process count taken before and after each run, and `worker-N pr
 within` counted in each log. Until then the row asserts a transition to `Verified` on a cost figure
 no independent party has reproduced, so it stays open.
 
+## Independent Re-Derivation Round — The Controlled Pair At N=2
+
+Run by a party that wrote no part of this packet and none of its remedy — the pin landed in
+`13494be66` and the disclosure in `2d79740e1`, both before this round existed. This round answers
+the one condition the partial round above left open, and it also corrects an attribution.
+
+### The attribution correction
+
+`bug.md` recorded *"The variable is the browser channel."* That is superseded. The reproduction
+table it rests on varies the project at one worker and at six and contains **no `system-chrome`
+run at two**, so the channel was the only variable left standing. The worker sweep already in this
+report contradicts it directly: on a fixed `system-chrome` channel the stall rate moves 0/3 → 1/3 →
+6/8 as the worker count moves 2 → 4 → 6. The corrected reading is in `bug.md` `## Root Cause`.
+
+Nothing captured above is rewritten. The measurements were right; the sentence drawn from them was
+not.
+
+### The pair, re-derived
+
+Both runs below are the same 22 `tests/lifetime-tax*.spec.mjs` files and the same 111 tests. The
+only difference between them is `--workers`. Output was directed outside the repository.
+
+```
+npx --no-install playwright test tests/lifetime-tax*.spec.mjs \
+  --config=playwright.config.mjs --project=system-chrome --reporter=list          # A2
+npx --no-install playwright test tests/lifetime-tax*.spec.mjs \
+  --config=playwright.config.mjs --project=system-chrome --workers=6 --reporter=list   # C2
+
+A2 proj=system-chrome exit=0 wall=76s  forcekills=0 failmarks=0 |  111 passed (1.3m) | using 2 workers
+C2 proj=system-chrome exit=1 wall=366s forcekills=4 failmarks=0 |  111 passed (6.1m) | using 6 workers
+```
+
+C2's four force-kill lines, verbatim:
+
+```
+Error: worker-3 process did not exit within 300000ms after stop, force-killed it
+Error: worker-5 process did not exit within 300000ms after stop, force-killed it
+Error: worker-1 process did not exit within 300000ms after stop, force-killed it
+Error: worker-1 process did not exit within 300000ms after stop, force-killed it
+```
+
+Against the figures carried into both disclosure sites:
+
+| Config | Recorded | This round | Exit | Force-kills | Tests |
+|---|---|---|---|---|---|
+| `system-chrome`, 2 workers | 81s | **76s** | 0 both | 0 both | 111 passed both |
+| `system-chrome`, 6 workers | 343s | **366s** | 1 both | 4 both | 111 passed both |
+
+The `343s` figure reproduces at `366s`, within 7%. The exit code, the force-kill count and the
+all-passing result reproduce exactly. **Every test passed in all four runs**, so the non-zero exit
+is teardown, never an assertion — `✘` count is 0 in each log.
+
+### Two corroborating facts, re-counted rather than accepted
+
+```
+$ grep -n 'workers' .github/workflows/pages.yml
+58:      run: npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --workers=2 --reporter=list,json
+
+$ ls -1 tests/lifetime-tax*.spec.mjs | wc -l
+22
+```
+
+The pipeline runs this suite on the **same channel** the stall is observed under, at the one worker
+count at which it has not been observed. That is the whole of why CI never reproduced it, and it is
+why "switch channel" is the wrong instruction: CI is already on that channel.
+
+### What this round does not establish
+
+- **Not a rate.** N=2 per configuration. The `6/8` figure at six workers is not re-derived at that
+  precision here; two runs cannot speak to a rate. What is re-derived is the controlled contrast
+  and the cost figure, which is what the row was blocked on.
+- **The channel is not exonerated.** The bundled `chromium` project remains clean wherever it was
+  measured, but only at N=2 at six workers. Worker count is established as the governing term
+  *within* `system-chrome`; that `chromium` would stall if pushed further is untested either way.
+- **The transport mechanism is still unselected.** Candidates 1 and 2 above remain unresolved. This
+  round instrumented nothing at that level.
+
+### Process residue after a force-kill
+
+The partial round flagged re-triggering the stall as a residue hazard. It was checked:
+
+```
+automation Chrome processes started today (this round's runs)  = 0
+surviving automation Chrome processes, started Sat Aug 22      = 4   (build 151.0.7922.170)
+```
+
+C2 force-killed four workers and left **no** surviving browser process of its own. The four that do
+survive predate this round by roughly two and a half days and run an older Chrome build than the
+`151.0.7922.174` recorded against the remedy, so they belong to an earlier session. They are
+reported, not claimed: this round did not produce them and did not remove them.
+
+That cuts both ways and is recorded as such. It weakens `bug.md` `## Processes Survive The Run` as
+a general claim — a stall does not always leak — while the two-and-a-half-day-old survivors show
+that when it does leak, the orphans persist indefinitely.
+
 

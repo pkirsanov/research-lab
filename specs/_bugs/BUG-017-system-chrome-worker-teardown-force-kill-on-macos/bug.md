@@ -1,6 +1,6 @@
 # BUG-017: On macOS The System-Chrome Browser Project Intermittently Fails To Tear Down, Turning An All-Green Run Into A Non-Zero Exit
 
-- **Status:** Fixed — awaiting independent verification
+- **Status:** Verified
 - **Severity:** Medium — developer experience only; does not reproduce in the pipeline
 - **Surface:** `playwright.config.mjs` project `system-chrome` (`channel: 'chrome'`), local macOS runs
 - **Filed at commit:** `7d592cf1b`
@@ -117,11 +117,44 @@ Stated plainly so it is not read as more than it is.
 
 ## Root Cause
 
-Not established. What is established is the boundary: identical tests, identical worker
-count, identical machine, same session — the bundled `chromium` project completes cleanly and
-quickly, and the `system-chrome` project is slow and intermittently fails to release a
-worker. The variable is the browser channel. Candidate mechanisms are enumerated in
-`design.md` and none is selected by the evidence gathered here.
+Not established at the transport level. What later measurement did establish is which variable
+governs whether a given run stalls — and the reading recorded at filing time was wrong.
+
+**Superseded reading, kept so the correction is legible.** The filing concluded: *"The variable
+is the browser channel."* That was drawn from a comparison which never held the channel fixed
+while moving the worker count. The reproduction table above varies the project at one worker and
+at six, and contains no `system-chrome` run at two. With that cell missing, the channel was the
+only variable left standing, so it took the attribution by default.
+
+**Corrected reading.** The stall is conjunctive, and worker count is the governing term.
+
+- Holding the channel fixed at `system-chrome` and moving only the worker count, the stall rate
+  is monotone: **0 of 3** runs at two workers, **1 of 3** at four, **6 of 8** at six
+  (`report.md` `### Worker sweep`, `### Frequency at the filed configuration`).
+- A later controlled pair moves nothing but `--workers` on the same 22 spec files and 111 tests:
+  two workers exits 0 with no force-kill, six workers exits 1 with force-kills, every test
+  passing in both. Recorded and independently re-derived — see
+  `## Independent Re-Derivation Round — The Controlled Pair At N=2`.
+
+The channel is **not** exonerated and must not be recorded as irrelevant: the bundled `chromium`
+project was clean at six workers, and the stall has never been observed under it. But that rests
+on two runs (`### The bundled project at the same concurrency`), which cannot carry a claim of
+channel independence against an eight-run system-Chrome sample. The honest statement is that
+`system-chrome` is a necessary condition, worker count decides, and the transport-level mechanism
+remains unselected among the candidates in `design.md`.
+
+## What This Means For A Developer
+
+The distinction is not academic — it inverts the guidance.
+
+The pipeline runs this suite on `system-chrome` with `--workers=2`
+(`.github/workflows/pages.yml`), which is precisely why it has never reproduced the stall. The
+committed `workers: 2` in `playwright.config.mjs` puts a local run on that same count by default.
+
+So the instruction is **leave the pinned worker count alone**. Raising `--workers` is the
+remaining route to the stall. Switching to `--project=chromium` would forfeit the local/CI browser
+parity the `system-chrome` project exists to provide, in order to avoid a condition that two
+workers already avoids — a bad trade, and not the remedy this packet took.
 
 ## Scope Of This Packet
 

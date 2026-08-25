@@ -238,15 +238,21 @@ version, or an unavailable system Chrome channel is a hard failure.
 ### Playwright E2E
 
 **Known macOS condition — read this before raising `--workers`.** The committed config pins
-`workers: 2` to match the pipeline. On macOS the `system-chrome` project intermittently leaves
-worker processes that never signal their exit; Playwright then waits out its 300000ms teardown
-budget, reports `worker-N process did not exit within 300000ms after stop, force-killed it`, and
-exits 1 with every test passed. Measured at 6/8 runs stalling at six workers, 1/3 at four, 0/3
-at two, costing 343s against 81s for the same 111 tests at the pinned two workers. A `--workers`
-flag on any command below overrides the pinned value and is the remaining way to meet the stall.
-The cause is upstream of this repository, so the pin bounds exposure rather than removing the
-defect. The full disclosure sits beside the `workers` line in `playwright.config.mjs`; the
-measurements are in
+`workers: 2` to match the pipeline. The variable that governs this condition is the worker count,
+not the browser project. On macOS a `system-chrome` run at a raised worker count intermittently
+leaves worker processes that never signal their exit; Playwright then waits out its 300000ms
+teardown budget, reports `worker-N process did not exit within 300000ms after stop, force-killed
+it`, and exits 1 with every test passed. Holding the project fixed and moving only the worker
+count, measured at 6/8 runs stalling at six workers, 1/3 at four, 0/3 at two, costing 343s against
+81s for the same 111 tests at the pinned two workers; a later round re-derived that controlled
+pair independently at 366s against 76s, all 111 tests passing in both. A `--workers` flag on any
+command below overrides the pinned value and is the remaining way to meet the stall, so leave it
+alone. Do **not** switch to `--project=chromium` to avoid this: that project was clean at six
+workers on two runs only, which does not establish immunity, and the pipeline runs
+`--project=system-chrome`, so moving off it forfeits local/CI browser parity to dodge a condition
+two workers already avoids. The cause is upstream of this repository, so the pin bounds exposure
+rather than removing the defect. The full disclosure sits beside the `workers` line in
+`playwright.config.mjs`; the measurements are in
 `specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md`.
 
 Run the complete Palm Springs browser suite:

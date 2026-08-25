@@ -185,11 +185,22 @@ conceded in writing is that a remedy for the **exposure** was available and take
 
 ## Cross-Scope Definition of Done
 
-- [ ] `bug.md` status is updated from Confirmed to Fixed and then Verified.
-      Half done, left unticked on the other half. `bug.md` reads
-      `Fixed — awaiting independent verification`. It is not `Verified`, because this execution
-      measured its own remedy and verification by the party that wrote the fix is not
-      independent. The item asserts both transitions, so it stays open.
+- [x] `bug.md` status is updated from Confirmed to Fixed and then Verified.
+  → Evidence: `bug.md` now reads `Verified`. The earlier round left this half-open for one stated
+    reason — the `343s` leg of the cost comparison had never been re-derived by a party other than
+    the one that measured it, and `## Independent Verification Round` was constrained to
+    `--project=chromium` so it could only reproduce run B. That constraint was self-imposed and is
+    lifted. `## Independent Re-Derivation Round — The Controlled Pair At N=2` re-runs both legs on
+    `system-chrome` by a party that wrote neither the pin (`13494be66`) nor the disclosure
+    (`2d79740e1`): **2 workers → exit 0, 76s, 0 force-kills** against the recorded 81s; **6 workers
+    → exit 1, 366s, 4 force-kills** against the recorded 343s, within 7%. All 111 tests passed in
+    both, `✘` count 0, so the non-zero exit is teardown and not an assertion.
+    **Sample size relied on, stated plainly: N=2 per configuration** — one recorded, one
+    independently re-derived — sitting on top of the fourteen-run worker sweep already in
+    `report.md`. The intermittency objection does not apply to this closure: it was raised against a
+    single *clean* re-run, which could not falsify a 6/8 rate. The re-run was not clean. It stalled,
+    which reproduces the claim positively rather than by failure to refute it. The `6/8` rate itself
+    is **not** re-derived at that precision and is not asserted by this tick.
 - [x] `report.md` carries pre-fix reproduction and post-fix proof.
   → Evidence: pre-fix is the sixteen-run characterisation under `## Scope 1 Execution — Characterisation`; post-fix is the three-run verification under `## Scope 2 Execution — Remedy Applied`. Both were already recorded and are summarised in `## Cross-Scope Definition of Done — Status`; this tick only stops the artifact contradicting itself.
 - [x] The separation from `BUG-016` is intact: no claim in this packet is offered as an

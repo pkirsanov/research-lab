@@ -2468,7 +2468,7 @@
     if (!dedupedResult.ok) return dedupedResult;
     dedupedResult.value.events.forEach(function (event) {
       // Created HERE, after the age filter. A domain with no in-window evidence must not own a
-      // bucket at all: `latest` would stay null and `expiresAt` below becomes an invalid date.
+      // bucket at all: `latest` would stay null and `expiresAt` below then THROWS RangeError.
       var key = String(event.domain);
       if (!byDomain[key]) {
         byDomain[key] = {

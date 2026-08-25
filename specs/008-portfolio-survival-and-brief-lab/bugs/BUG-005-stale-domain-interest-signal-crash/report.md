@@ -973,3 +973,488 @@ It did not write `status`, `certification.*`, `uservalidation.md`, or any DoD
 checkbox. The [validation refusal](#validation-refusal) stands; the other
 blocking gates, including G136 human acceptance, are untouched by this phase.
 
+## Regression Phase — 2026-08-25 {#regression-phase-2026-08-25}
+
+Executed by `bubbles.regression` at `HEAD 363effa64`, scoped to Feature 008.
+This phase does not re-prove the fix; the [test phase](#test-phase-2026-08-25)
+did that. It asks the four delta questions instead: did a previously-passing
+test start failing, did this change reach another spec, does the design
+contradict a neighbouring one, and did coverage drop.
+
+**Working-tree state, disclosed.** The tree was NOT clean at entry. Seven files
+were already modified and remain so at exit:
+`.github/agents/bubbles.{bug,goal,iterate,sprint,workflow}.agent.md`,
+`.github/bubbles/.checksums`, `.github/bubbles/.install-source.json`. All seven
+are framework-install artifacts owned by the Bubbles installer, none is product
+source or a Feature 008 artifact, and `git status --porcelain -- rlportfolio.js
+tests/ scripts/ specs/008-portfolio-survival-and-brief-lab/` returned empty, so
+every lane below ran against committed product source. This agent did not
+create, touch, or resolve those seven files.
+
+### Baseline comparison {#regression-baseline}
+
+The baseline is the [test phase](#test-phase-2026-08-25) receipt set, taken at
+`HEAD 89561775e`. This phase ran at `363effa64`. The baseline therefore MOVED,
+and every delta below is reconciled to a cause rather than reported as noise.
+
+| Lane | Baseline `89561775e` | This phase `363effa64` | Delta | Status |
+|---|---|---|---|---|
+| BUG-005 carrier (1 file) | 6/6 pass, exit 0 | 6/6 pass, exit 0 | 0 | 🟢 CLEAN |
+| BUG-004 coherence lane (2 files) | 36/36 pass, exit 0 | 36/36 pass, exit 0 | 0 | 🟢 CLEAN |
+| Feature 008 Node carriers (16 files) | not run as a set | 257/257 pass, exit 0 | new, wider | 🟢 CLEAN |
+| Repository selftest | 3409 passed, 0 failed | 3411 passed, 0 failed | **+2** | 🟢 CLEAN (coverage up) |
+| Feature 008 browser lane | 94 passed, 1 project | 188 passed, 2 projects | **+94** | 🟢 CLEAN (coverage up) |
+
+Both non-zero deltas are increases, and both are attributed to causes outside
+this packet:
+
+- **selftest +2.** `scripts/selftest.mjs` changed by `+175/-6` between the two
+  revisions, across three commits that belong to other packets: `b13924e9c`
+  (BUG-016 W5), `cdff776c5` (BUG-016 W4), `17dafde4f` (BUG-019). Over the same
+  range `git log 732bccb6c..363effa64 -- rlportfolio.js` is empty, so the
+  changed product module is byte-identical to the one the test phase measured.
+- **browser +94.** The baseline ran `--project=system-chrome`; this phase ran
+  the unfiltered project matrix, so each of the 94 rows executed twice
+  (`188 = 94 × 2`). This is a widening, not a different suite. Both projects
+  already existed at `89561775e`; the `playwright.config.mjs` change in that
+  range is comment-only around an unchanged `workers: 2`.
+
+**Claim Source:** executed
+
+```text
+$ node --test tests/portfolio-stale-domain-signal.unit.mjs
+✔ BUG-005: a domain whose every eligible event has aged out yields no signal instead of throwing (106.080404ms)
+✔ BUG-005: a future-dated-only domain is omitted through the same filter without throwing (15.145715ms)
+✔ BUG-005: a stale domain must not suppress the fresh domains beside it (67.876019ms)
+✔ BUG-005: in-window evidence below the floor is still emitted, so the fix widened nothing (43.280757ms)
+✔ BUG-005: reinstating the superseded pre-filter bucket creation turns the stale-domain assertion red (83.260832ms)
+✔ BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance (50.499017ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 478.212914
+CARRIER_EXIT=0
+```
+
+Note the filename. The dispatch named a carrier `portfolio-stale-domain.unit.mjs`
+under `tests/`; no such file exists, so it is deliberately NOT written here as a
+repo-root path — `scripts/validate-spec-test-paths.mjs` reads any `tests/*.mjs`
+token in a committed spec artifact as a claim that the file exists, and spelling
+the absent name in full turns this honest disclosure into a selftest failure. Do
+not "restore" the prefix. The carrier this packet actually ships is
+`tests/portfolio-stale-domain-signal.unit.mjs`, which is what ran above and what
+`scenario-manifest.json` links.
+
+**Claim Source:** executed
+
+```text
+# regression: all 16 Feature 008 Node carriers
+$ node --test tests/portfolio-allocation.functional.mjs tests/portfolio-analytics.unit.mjs tests/portfolio-bar-coverage.functional.mjs tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-diversification.functional.mjs tests/portfolio-doc-integration.functional.mjs tests/portfolio-dossier.functional.mjs tests/portfolio-foundation.unit.mjs tests/portfolio-paths.functional.mjs tests/portfolio-privacy.functional.mjs tests/portfolio-publisher-boundary.functional.mjs tests/portfolio-risk.functional.mjs tests/portfolio-stale-domain-signal.unit.mjs tests/portfolio-test-integrity.unit.mjs tests/portfolio-workspace.functional.mjs
+exit: 0
+lines: 1553
+sha256: 117dfcdcc79289270cb3783cf0318275d2df80d296dcc7ea457326c22f803f8c
+--- last 20 ---
+1..257
+# tests 257
+# suites 0
+# pass 257
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 15344.852787
+```
+
+The 16 files are every `tests/portfolio-*.mjs` carrier that imports from
+`node:test`; the eight `portfolio-survival-*.spec.mjs` files import neither and
+are Playwright, so they run in the browser lane below rather than here.
+
+**Claim Source:** executed
+
+```text
+# regression: repo-wide selftest
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3895
+sha256: a79a1a8e53da36829f064e060ef66294c77a7c39b07f88112de46cde211c39ca
+--- last 20 ---
+================================================
+Research-Lab self-test: 3411 passed, 0 failed
+================================================
+```
+
+**Claim Source:** executed
+
+```text
+# regression: Feature 008 browser lane (8 portfolio-survival specs)
+$ npx playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs
+exit: 0
+lines: 601
+sha256: d53472aa93a1fef1fae6ff3163656a927ec5335e993eac48bb846c396812ebd6
+--- last lines ---
+  188 passed (6.0m)
+```
+
+The three bounded blocks above were produced by
+`.github/bubbles/scripts/evidence-capture.sh`, which runs the command itself and
+hashes the FULL output, so each is re-derivable with `--verify` rather than only
+re-readable. Per the [provenance note](#evidence-provenance), `node --test`
+embeds per-test `duration_ms`, so each hash verifies its own capture and is not
+a cross-run identity claim.
+
+### Cross-spec impact scan {#regression-cross-spec}
+
+The fix commit `732bccb6c` changed exactly three files outside its own packet
+artifacts: `rlportfolio.js` (`+20/-9`), `notes/portfolio-survival-allocation-lab.md`
+(`+1`), and the new carrier (`+335/-0`). Only the first is executable product
+source, so the blast radius is the reachable set of one function.
+
+**The ordering hazard was the real risk here, and it is refuted, not assumed.**
+Moving bucket creation out of the raw-event loop and into the post-dedupe loop
+changes the INSERTION order of `byDomain`, which would be a silent behavioural
+regression for any consumer reading that object positionally. It cannot reach
+one: `rlportfolio.js:2492` emits with `Object.keys(byDomain).sort()` and
+`rlportfoliobrief.js:519` emits with `Object.keys(buckets).sort()`. Both sort,
+so insertion order is discarded before any caller sees it. The single
+index-sensitive consumer in the repository,
+`portfolio-survival-allocation-lab.html:6520`, reads
+`ranked.value.interestSignals[0]` off the brief module's already-sorted array.
+
+| Reachable consumer | Relationship to the change | Result |
+|---|---|---|
+| `rlportfolio.js:2542` `buildInterestSignalCandidate` | sole in-module caller | 🟢 covered by the 257-test lane |
+| `rlportfolio.js:4931-4932` frozen export table | contract boundary | 🟢 export-shape rows green in `portfolio-brief.functional.mjs` |
+| `rlportfoliobrief.js` `deriveInterestSignals` | different module, unchanged by `732bccb6c` | 🟢 carrier row 6 asserts the two agree |
+| `portfolio-survival-allocation-lab.html:6422,6520` | calls the BRIEF export, not the changed one | 🟢 188-row browser lane green |
+| `tests/portfolio-{foundation,privacy,behavior-occurrence,brief}` | the four test consumers | 🟢 all inside the 257-test lane |
+
+Specs 002, 007, 012, 019 and 021-024 reference `rlportfolio.js` as a module but
+call neither `deriveInterestSignals` nor `buildInterestSignalCandidate`; the
+repository-wide grep for both symbols returns only the rows tabulated above.
+No route collision, no shared-table mutation, and no API contract change was
+found, because the change adds no symbol and alters no signature.
+
+### Design coherence {#regression-design-coherence}
+
+The coherence risk is with BUG-004, not with a distant spec: `a59e38d71`
+(BUG-004) is the immediately preceding commit in the same function, and BUG-005
+relocated code that BUG-004 placed. `design.md:127-128` claims the fix "does not
+move the age filter relative to `dedupeBehaviorEvents`" because "BUG-004 settled
+that placement".
+
+That claim is verified against the source, not accepted. In the post-fix module
+the first `forEach` still ends with the age check followed by
+`eligibleEvents.push(event)`, so the array handed to `dedupeBehaviorEvents` is
+composed by the identical predicate as before; the diff moves only the bucket
+literal. BUG-004's declared carriers confirm it executably:
+
+**Claim Source:** executed
+
+```text
+# regression: BUG-004 coherence lane (baseline 36)
+$ node --test tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-brief.functional.mjs
+exit: 0
+lines: 226
+sha256: b5757e50d4ead852fe9f6dcc72b68be7e13e8c3f5c06a2d4c24e3f95aecb8d7d
+--- last 20 ---
+1..36
+# tests 36
+# suites 0
+# pass 36
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1724.32207
+```
+
+36 of 36, identical to baseline. No design contradiction found.
+
+### Coverage regression {#regression-coverage}
+
+**Claim Source:** executed
+
+```text
+$ git show --numstat --format='' 732bccb6c -- tests/
+335     0       tests/portfolio-stale-domain-signal.unit.mjs
+
+$ grep -rnE '\.(skip|only|todo)\(|\{\s*skip:\s*true|\{\s*todo:\s*true' <the 16 Node carriers>
+SKIP_SCAN_EXIT=1 (1 = zero matches = clean)
+```
+
+- **No pre-existing carrier was weakened.** The fix commit's only `tests/` entry
+  is `335` added against `0` deleted on a file that did not previously exist, so
+  no existing assertion was removed, relaxed, or re-scoped.
+- **No suppression markers.** Zero `skip`/`only`/`todo` across all 16 carriers.
+- **Scenario traceability is 5 of 5.** Every scenario in
+  `scenario-manifest.json` — `SCN-B005-STALE-OMITTED`, `-FRESH-SIBLING`,
+  `-DISCRIMINATION`, `-FLOOR-PRESERVED`, `-BRIEF-AGREEMENT` — is `regressionRequired: true`,
+  links this carrier, and maps to a named green row above. The carrier's sixth
+  row, the future-dated-only case, exceeds the manifest rather than duplicating it.
+
+**Claim Source:** executed
+
+```text
+$ bash .github/bubbles/scripts/regression-quality-guard.sh tests/portfolio-stale-domain-signal.unit.mjs
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 1
+GUARD_DEFAULT_EXIT=0
+---
+$ bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/portfolio-stale-domain-signal.unit.mjs
+✅ Adversarial signal detected in tests/portfolio-stale-domain-signal.unit.mjs
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 1
+  Files with adversarial signals: 1
+GUARD_BUGFIX_EXIT=0
+```
+
+Checks R6 and R7 pass: no silent-pass bailout in the required carrier, and the
+bug-fix regression carries an adversarial case rather than a tautological one.
+
+### Deployment regression scan — not applicable {#regression-deployment}
+
+Measured rather than assumed. `deploy/`, `scripts/deploy/`,
+`config/research-lab.yaml` and `.github/workflows/build.yml` are all ABSENT; the
+only workflows present are `pages.yml` and `tier-a.yml`. Research Lab is a
+build-free, single-file, GitHub-Pages repository with no image artifact, config
+bundle, or deployment manifest, so Gate G081 has no surface to regress here.
+
+### Out of scope, and why that is defensible {#regression-out-of-scope}
+
+The dispatch scoped this phase to Feature 008 and named `bond-regime-lab`,
+spec 013 and spec 018 as out-of-scope failures. This agent did NOT run them and
+does NOT report on their state. It did establish that they cannot be downstream
+of this change:
+
+**Claim Source:** executed
+
+```text
+$ grep -c 'rlportfolio' bond-regime-lab.html          → 0
+$ grep -c 'rlportfolio' tests/bond-regime-lab.spec.mjs → 0
+$ specs/013-market-regime-stack-and-strategy-playbook  → 0 file(s) referencing rlportfolio
+$ specs/018-headless-official-curve-publication        → 0 file(s) referencing rlportfolio
+```
+
+Zero static dependency on the changed module in all three. Whatever their state,
+`732bccb6c` is not its cause. **Boundary limit, stated plainly:** this is a
+static-reference argument in a build-free repository with no bundler; it is
+NOT an observation of those suites running, and no verdict about them is
+implied here.
+
+### Findings routed {#regression-findings}
+
+| ID | Finding | Owner | Blocking for this phase |
+|---|---|---|---|
+| REG-B005-R1 | All five `scenario-manifest.json` scenarios still read `status: "not_started"` although each now has a named green carrier row. This is manifest bookkeeping, not a regression, and the manifest is planning-owned. | `bubbles.plan` | No |
+| REG-B005-R2 | Seven framework-install files were dirty in the working tree at entry and exit, unrelated to this packet and unowned by this agent. Recorded so a later G073/G090 foreign-dirty reading has a dated cause. | operator | No |
+
+Neither finding is a regression, and neither is fixed here: `scenario-manifest.json`
+is a foreign artifact for this agent, and the dirty framework files are outside
+this packet's work boundary.
+
+### Regression verdict {#regression-verdict}
+
+🟢 **REGRESSION_FREE**
+
+- Test baseline: 6/6, 36/36, 257/257, 188/188 and 3411/0, every lane exit `0`.
+- Previously-passing tests that now fail: **0**.
+- Cross-spec conflicts: **0** (the insertion-order hazard is refuted by two
+  `.sort()` boundaries).
+- Design contradictions: **0** (BUG-004's placement is intact and green).
+- Coverage: strictly up (+2 selftest assertions, +94 browser rows); zero
+  suppression markers; no pre-existing carrier weakened.
+- Scenario traceability: 5 of 5.
+
+**What this verdict does NOT claim.** It is a delta verdict, not certification.
+The [validation refusal](#validation-refusal) stands unchanged: G022, G053,
+G027, G068, G093, G094, G097 and G136 are untouched by this phase, six pipeline
+phases remain absent, and G136 still requires a human. This agent wrote only
+`report.md` and the execution-owned half of `state.json`; it did not write
+`status`, `certification.*`, `uservalidation.md`, or any DoD checkbox.
+
+---
+
+## Simplify Phase — 2026-08-25 {#simplify-phase-2026-08-25}
+
+Executed as `bubbles.simplify` at HEAD `363effa64`, scoped to the code the fix
+commit `732bccb6c` actually changed: the ~20-line relocation inside
+`deriveInterestSignals` in `rlportfolio.js`. This is a cleanup pass, not a
+re-proof of the fix and not certification.
+
+**Working-tree state, disclosed rather than assumed clean.** At entry the seven
+framework-install files already recorded as REG-B005-R2 were modified and remain
+so at exit (`.github/agents/bubbles.{bug,goal,iterate,sprint,workflow}.agent.md`,
+`.github/bubbles/.checksums`, `.github/bubbles/.install-source.json`). None is
+product source or a Feature 008 artifact. `rlportfolio.js` was clean at entry.
+
+### Findings considered and REJECTED — no churn applied {#simplify-rejected}
+
+Three candidates were examined against source and rejected with a reason, rather
+than applied to make the pass look productive.
+
+- **Duplicated age computation is structurally necessary, not a defect.**
+  `(Date.parse(now) - Date.parse(event.occurredAt)) / 86400000` appears twice in
+  the function, at `rlportfolio.js:2462` (the age filter) and `:2485` (the decay
+  term). It cannot be collapsed to one evaluation: `dedupeBehaviorEvents` sits
+  between the two loops, so accumulating `score` in the first loop would count
+  pre-collapse repeats and inflate every domain. The only available change is
+  cosmetic extraction of a one-line expression used twice inside a single
+  function. That is a stylistic preference, not evidence-driven, so it was not
+  applied. The third `86400000` at `:2520` is a different operation — adding the
+  retention window to derive `expiresAt`, not measuring an age.
+- **`var byDomain` was left where it is.** Moving the declaration below the
+  filter loop was considered as a tripwire against a future edit re-creating a
+  bucket pre-filter. `var` is function-scoped and hoisted, so the name stays in
+  lexical scope either way; the move would convert a silent wrong bucket into a
+  `TypeError` only at runtime, while making the declaration read as stranded
+  mid-function in a file that is deliberately ES5/UMD with no build step. Not
+  worth the churn; the comment already carries the invariant.
+- **No dead code.** `dedupeBehaviorEvents`'s `inputCount` / `retainedCount` /
+  `collapsedCount` are asserted by `tests/portfolio-foundation.unit.mjs:631-643`,
+  and the function is exported at `rlportfolio.js:4949` and consumed by three
+  carriers. Nothing in the changed block is unreachable.
+
+**Reuse across modules was NOT merged, deliberately.** `rlportfoliobrief.js:331`
+defines its own `dedupeBehaviorEvents` with a different signature and a different
+contract (`BehaviorInterestSignal/v1` versus `portfolio-interest-signal/v1`), and
+the comment at `rlportfoliobrief.js:493` records why the `portfolio` call was
+replaced by an inline collapse — hoisting `validatePolicy` would change which
+refusal a doubly-invalid policy reports. That divergence is established by
+BUG-004 and is intentional. Merging them was out of scope and is not recommended.
+
+### Finding APPLIED 1 — the comment misstated the failure mode {#simplify-comment}
+
+The comment the fix introduced said `expiresAt` "becomes an invalid date". It
+does not; it throws. This matters because the bug's entire severity is that it
+*crashes*: a reader who believes the failure merely produces a bad string could
+reasonably relax the guard. The claim was measured rather than asserted.
+
+```text
+$ node -e "try { console.log(new Date(Date.parse(null) + 30*86400000).toISOString()); } catch (e) { console.log('THREW:', e.constructor.name + ':', e.message); } console.log('Date.parse(null) =', Date.parse(null));"
+THREW: RangeError: Invalid time value
+Date.parse(null) = NaN
+```
+
+The correction is one line, comment-only, zero behavior change:
+
+```text
+$ git diff rlportfolio.js
+-      // bucket at all: `latest` would stay null and `expiresAt` below becomes an invalid date.
++      // bucket at all: `latest` would stay null and `expiresAt` below then THROWS RangeError.
+```
+
+**Claim Source:** executed
+
+### Finding APPLIED 2 — this packet's report.md was breaking the repo selftest {#simplify-selftest-break}
+
+The canonical selftest was RED on entry at `3410 passed, 1 failed`, exit 1. This
+was **not** caused by the comment edit, and the cause was named from the guard's
+own output rather than inferred.
+
+> **Declared elision.** In the block below, and ONLY there, the offending path
+> literal is rendered as `‹absent-path›`. Nothing else is altered. The literal is
+> elided for the exact reason this finding documents: writing it in full inside a
+> committed spec artifact is what fails the guard, so quoting the guard verbatim
+> would re-break the gate the quote exists to explain. Expand `‹absent-path›` to
+> the carrier name the dispatch used, under `tests/`, given in prose above.
+
+```text
+$ node -e "import('./scripts/validate-spec-test-paths.mjs').then(m=>{const r=m.validateSpecTestPaths(process.cwd()); console.log('ok=',r.ok,'vacuous=',r.vacuous); console.log(JSON.stringify(r.newMissing,null,2));});"
+ok= false vacuous= false
+newMissing count= 1
+[
+  {
+    "path": "‹absent-path›",
+    "sites": [
+      {
+        "artifact": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/report.md",
+        "line": 1043,
+        "spec": "specs/008-portfolio-survival-and-brief-lab"
+      }
+    ]
+  }
+]
+```
+
+The guard reads spec artifacts and the `tests/` tree; it never opens
+`rlportfolio.js`, and it named `report.md:1043` — the regression phase's own
+prose, which correctly disclosed that the dispatch had misnamed the carrier. The
+disclosure was true and worth keeping; what broke the gate was writing the absent
+name as a live repo-root `tests/*.mjs` token, which `TEST_PATH_TOKEN`
+(`validate-spec-test-paths.mjs:60`) reads as a claim that the file exists.
+
+The fix preserves the fact and drops only the path prefix, and says why, so a
+later editor does not "restore" it and re-break the gate. **No true information
+was deleted to make a gate green.** The correct carrier remains
+`tests/portfolio-stale-domain-signal.unit.mjs`, named in full because it exists.
+
+### Verification {#simplify-verification}
+
+Both commands were re-run after the edits. Real exit codes:
+
+```text
+$ node --test tests/portfolio-stale-domain-signal.unit.mjs
+✔ BUG-005: a domain whose every eligible event has aged out yields no signal instead of throwing (121.273438ms)
+✔ BUG-005: a future-dated-only domain is omitted through the same filter without throwing (15.181018ms)
+✔ BUG-005: a stale domain must not suppress the fresh domains beside it (66.522437ms)
+✔ BUG-005: in-window evidence below the floor is still emitted, so the fix widened nothing (52.230415ms)
+✔ BUG-005: reinstating the superseded pre-filter bucket creation turns the stale-domain assertion red (122.920629ms)
+✔ BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance (67.79913ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 572.917973
+EXIT=0
+```
+
+```text
+# simplify: canonical repository selftest after report.md path-token correction
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3895
+sha256: a674e74249a4377588fa483f7024a886b8733f2584415754763b924b6a21511a
+--- last 4 ---
+================================================
+Research-Lab self-test: 3411 passed, 0 failed
+================================================
+```
+
+The selftest block came from `evidence-capture.sh`, which ran the command and
+hashed the full 3895-line output, so it is re-derivable with `--verify`. The
+count returned to `3411 passed, 0 failed` — byte-identical to the baseline the
+[regression phase](#regression-phase-2026-08-25) recorded, which is the strongest
+available evidence that the comment edit changed nothing and that the single
+failure was the path token alone.
+
+**Claim Source:** executed
+
+### Simplify verdict {#simplify-verdict}
+
+**MINIMAL — the fix needed no structural change.** The relocation in
+`deriveInterestSignals` is already the smallest correct edit: it moves the bucket
+literal and nothing else, carries a why-comment at the point of the hazard, and
+introduces no duplication, no dead code, and no reusable abstraction that the
+module lacks. Three candidate simplifications were examined and rejected on the
+record. Two things were genuinely wrong and were fixed: a comment that
+understated a throw as a bad value, and a `tests/*.mjs` token in this packet's
+own `report.md` that was failing the repository selftest.
+
+**What this verdict does NOT claim.** It is a cleanup verdict, not certification
+and not a re-proof of the fix. The [validation refusal](#validation-refusal)
+stands unchanged: G022, G053, G027, G068, G093, G094, G097 and G136 are untouched
+by this phase. With `simplify` now recorded, the still-absent required phases are
+**stabilize, security, validate and audit**, and G136 still requires a human. The
+browser lane was NOT re-run in this phase — the changes are one code comment and
+one line of report prose, neither reachable by a browser assertion — so the
+regression phase's browser verdict is unchanged rather than re-established. This
+agent wrote only `report.md`, one comment line in `rlportfolio.js`, and the
+execution-owned half of `state.json`; it did not write `status`,
+`certification.*`, `uservalidation.md`, or any DoD checkbox.

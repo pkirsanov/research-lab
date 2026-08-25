@@ -2,10 +2,10 @@
 
 **Status:** In Progress (delivered at `e28be5814` and `eeb2ac7cc`)
 
-Sixteen of eighteen Definition of Done items are ticked with executed evidence. The two that are
-not are neither missing behaviour nor uncertain: each was worded on a premise that measurement
-refuted, and `bubbles.plan` has rewritten both to the obligation that is true of what shipped.
-They stay unticked because a verifying round earns a tick, not the round that writes the wording.
+All eighteen Definition of Done items are ticked with executed evidence. Two of them were once
+worded on a premise that measurement refuted; `bubbles.plan` rewrote both to the obligation that
+is true of what shipped, and they stayed unticked until an independent round verified them at
+`1cc3bd23b`, because a verifying round earns a tick, not the round that writes the wording.
 
 The packet was filed by a `bubbles.chaos` round, which is authorised to record findings and file
 bug artifacts and is not authorised to implement a fix.
@@ -23,11 +23,11 @@ this packet reflects the care needed in the pack contract, not the size of the c
 
 ## Scope 1: Declare The Earliest Claim Age As A Sourced Pack Figure
 
-**Status:** In Progress (delivered; two Definition of Done items unticked)
+**Status:** In Progress (delivered; all five Definition of Done items ticked)
 
-The pack member ships and the engine reads it. The two unticked items were wording that did not
-match what shipped, not missing behaviour; `bubbles.plan` has rewritten both, and each now names
-the adversarial case under which it fails. Both await a verifying round.
+The pack member ships and the engine reads it. Two of the five items were wording that did not
+match what shipped, not missing behaviour; `bubbles.plan` rewrote both so that each names the
+adversarial case under which it fails, and an independent round verified both at `1cc3bd23b`.
 
 ### Problem This Scope Resolves
 
@@ -166,10 +166,11 @@ Feature: The earliest priceable claim age is a declared pack figure
 
 ## Scope 2: Refuse A Claim Age Below The Declared Earliest Age
 
-**Status:** In Progress (delivered; one Definition of Done item unticked)
+**Status:** In Progress (delivered; all eight Definition of Done items ticked)
 
-The refusal ships and is asserted from both sides. The unticked item concerns the delayed-credit
-stopping-age disclosure, which exists but was not asserted by this round.
+The refusal ships and is asserted from both sides. The last item to close concerns the
+delayed-credit stopping-age disclosure, which the implementation round left unasserted and a
+later round asserted at `17dafde4f`.
 
 ### Problem This Scope Resolves
 

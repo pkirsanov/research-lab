@@ -4556,3 +4556,55 @@ current-session receipts, and no other gate is failing.
 | 2026-08-25 | `AUDIT-B004-A2` | The product-source change carries no `executionHistory` entry, so `state.json`'s only machine-readable account of implement asserts it changed no product source while the tree carries an implement-authored product diff | STILL OPEN, and wider — re-verified 2026-08-25 at attempt 002: `executionHistory` still holds 12 entries ending at `bubbles.stabilize` `02:23:29Z`, and the `AUDIT-B004-A1` rework is now a SECOND uncounted product-source change. Not fixed by audit — writing another agent's provenance would fabricate it | `report.md#audit-a2-2026-08-25`; re-verification `report.md#audit-a2-open-2026-08-25`; owner `bubbles.implement` |
 | 2026-08-25 | `AUDIT-B004-A5` | Attempt 001 recorded `G040` in `passedGateIds`, but 2 deferral-language hits sit inside attempt 001's own prose, so the recorded result was invalidated by the section that recorded it | RESOLVED 2026-08-25 in place by `bubbles.audit` — both lines are audit-owned diagnostic sentences, not captured receipts, and were reworded preserving meaning. No sentinel marker added, no scanner rule relaxed, no allowlist entry created. `G040` re-measured clean | `report.md#audit-a5-2026-08-25` |
 | 2026-08-25 | `VAL-B004-V1` | Transition guard Check 43 emits 2 blocking failures — 73 of 73 receipts with an input closure are STALE (`valid: 0`) and one substantive `stdoutHash` is flagged as a CLONE. They are repository-scoped, not packet-scoped: `0` of 236 ledger rows mention `BUG-004`, all 73 stale rows are dated `2026-08-20` against a packet created `2026-08-24`, `evidence-receipt-check.sh` accepts no spec parameter so its verdict is identical for every packet, and the already-certified `specs/027-company-scoped-owner-deep-links` reproduces exactly these 2 failures with `failedGateIds: []`. 63 of 73 cite `input hash differs: specs/008-portfolio-survival-and-brief-lab/test-plan.json`, changed in `7bdbcb936`; the CLONE pair is `spec: specs/008…`, `scope: FEATURE-008`, and its second row is a wrapper that re-executes the first row's stored command via `spawnSync`, so identical stdout is a declared replay | Routed, not fixed — BLOCKS certification. Refreshing the 73 receipts means running another spec's lanes, which this Change Boundary excludes; truncating the untracked ledger would clear the gate but destroy the CLONE evidence, which is the one outcome an evidence rail exists to prevent. `.github/bubbles-project.yaml` declares no receipt or Check 43 policy | `report.md#validate-check43-2026-08-25`; owner `bubbles.plan` for `specs/008-portfolio-survival-and-brief-lab` |
+
+## Observation Only — The Artifact-Lint Blocker, Measured And Split By Owner (2026-08-24)
+
+This section ticks no Definition of Done item, changes no status, and remediates nothing. The
+final open DoD item records the artifact-lint clause as failing with "39 issues" once `status`
+is `done`. That figure was re-derived so the remaining work can be routed rather than restated.
+
+**Method, disclosed because it involved a status write.** `status` was set to `done` in a
+**disposable detached worktree** at `0451fc331`, the lint was run, and the write was reverted
+before anything was staged — working tree back to zero dirty files. Nothing was pushed and
+`state.json` on `origin/main` is byte-identical. This repeats the "terminal write was attempted
+and reverted" already recorded on that DoD item.
+
+```text
+Command: bash .github/bubbles/scripts/artifact-lint.sh <this packet>   (status=done, throwaway)
+Exit Code: 1
+44 failures total
+  28  Evidence block lacks terminal output signals   (15 at 1/2 required, 13 at 0/2)
+   9  Evidence block too short                       (5 at 2 lines, 4 at 1 line)
+   2  workflowMode 'bugfix-fastlane' requires report.md section
+   5  status-coherence failures
+```
+
+The lint requires each fenced evidence block to carry **at least 2 of 8** terminal-output
+signal classes: pass/fail words, exit-code or compiler diagnostics, a filename with an
+extension, a duration, a tool name, an "N passed/failed" count, HTTP artefacts, or a shell
+prompt. A block scoring 1/2 already has one and needs a second.
+
+**The recorded figure was right.** 44 minus the 5 status-coherence artefacts leaves **39**,
+matching the item exactly. What the item did not carry was the split, and the split is what
+shows no single owner can close it:
+
+- **37 evidence blocks (28 + 9)** need real terminal output. This cannot be discharged by
+  editing prose. A second signal class must come from output the original command actually
+  produced; supplying one that was never observed would be fabrication rather than
+  remediation. Owner: whoever holds the execution receipts for those blocks.
+- **2 missing sections** — `### Validation Evidence` and `### Audit Evidence` — are
+  validate-owned and audit-owned content, consistent with the item's existing statement that
+  this work is "neither validate-owned content nor inside this packet's Change Boundary".
+  Owners: `bubbles.validate` and `bubbles.audit`.
+- **5 status-coherence failures** are artefacts of the artificial flip, not defects: `status
+  'done' is invalid` (unchecked items exist), one scope still `In Progress`, a top-level versus
+  `certification.status` mismatch, and two Gate G027 phase-scope failures against an empty
+  `completedScopes`. A legitimate promotion clears all five as a side effect.
+
+**This composes with `VAL-B004-V1` above rather than competing with it.** That finding
+establishes the transition-guard half of the blocker is *repository-scoped*: `0` of 236 ledger
+rows mention `BUG-004`, and already-certified `specs/027-company-scoped-owner-deep-links`
+reproduces the same 2 Check 43 failures with `failedGateIds: []`. Both halves of this item's
+remaining work therefore sit outside the packet — one in receipts this packet never generated,
+the other in a repository-wide evidence ledger. That is why the item is correctly open, and why
+closing it is not a matter of trying harder inside this Change Boundary.

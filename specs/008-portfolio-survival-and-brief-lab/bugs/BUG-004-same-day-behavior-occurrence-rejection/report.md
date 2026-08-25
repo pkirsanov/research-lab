@@ -3205,8 +3205,8 @@ invocation.
 The working tree carries an uncommitted `rlportfolio.js` hunk that does not
 belong to this packet: it moves domain-bucket creation below the evidence-age
 filter, which is the `GAPS-B004-X2` crash now owned by the untracked sibling
-packet `BUG-005-stale-domain-interest-signal-crash` together with
-`tests/portfolio-stale-domain-signal.unit.mjs` and
+packet `BUG-005-stale-domain-interest-signal-crash` together with its untracked
+unit carrier and
 `notes/portfolio-survival-allocation-lab.md`. Green carriers in that tree
 therefore prove less than they appear to, because they cannot distinguish this
 repair from the neighbouring one.
@@ -4180,7 +4180,7 @@ byte-identical across all 17 fixtures and all 16 of my own differential cases.
 
 The Change Boundary at `scopes.md:24-39` names `rlportfolio.js` and `rlportfoliobrief.js` as the
 only two product files, so the repair is in-boundary. The dirty `notes/portfolio-survival-allocation-lab.md`
-line, the `rlportfolio.js` hunk and the untracked `tests/portfolio-stale-domain-signal.unit.mjs`
+line, the `rlportfolio.js` hunk and the untracked sibling unit carrier
 belong to the sibling BUG-005 packet, not to this one.
 
 ### Scope of this invocation {#audit-scope-2026-08-25}

@@ -498,6 +498,116 @@ is detectable; `TB-020-03` is simply not the assertion that detects it. The row
 stays open on the same reasoning as before, now with the inert-mutation reading
 ruled out.
 
+#### P6g, P6h and P6i — a correction to the layer count, and the two guards never removed alone
+
+**Claim Source:** executed in a later session, output captured verbatim.
+
+A correction first. The paragraph after `P6` and `P6b` states that `TB-020-03`
+is defended by "three independent layers — E1 … E3 … and R2". That sentence is
+left standing above as it was written, and it undercounts. `design.md` specifies
+five guards for this remedy — `E1`, `E2`, `E3`, `E4` on the engine and `R1`, `R2`
+on the route — and `R1` is the header branch, which is `TB-020-02`'s. That leaves
+**four** guards on this assertion's path, not three. `E2` and `E4` had never been
+removed on their own, so the phrase "removing any single one of them" had been
+asserted of four layers having tested three.
+
+`E2` is the guard that assembles `CO-1` from `basis.grossSupportedIncome`, and
+`CO-1` is the row the filing observation recorded as `$∞`. It is one guard at
+three sites in `rltax.js`, all three expressed by the same literal, so one literal
+replacement removes the guard and nothing else.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TB-020-03 with the E2 CO-1 assembly guard neutralised at all three of its sites, the guard the reported $INF row came from
+file:             rltax.js
+mutation:         rules.isUnavailable(basis.grossSupportedIncome)  ->  false   (3 occurrence(s))
+command:          npx --no-install playwright test tests/lifetime-tax-representable.spec.mjs --project=chromium --reporter=line -g no\ rendered\ text\ on\ the\ route\ is\ an\ infinity\ symbol\ or\ NaN
+red-exit:         0
+red-summary:      [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN
+green-exit:       0
+green-summary:    [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN
+summary-compared: [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN  vs  [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN   (elapsed time normalised out)
+revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   NO (both channels agree: exit 0 == 0, summary "[1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN" identical once elapsed time is normalised)
+=== END RED/GREEN PROBE EVIDENCE ===
+red-green-probe: REFUSED — RED and GREEN produced the same outcome on both channels (both exited 0, and the --summary-match line was "[1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN" in each once elapsed time was normalised out). The mutation did not change what the command reported, so the assertion under test cannot fail and this is not RED/GREEN evidence.
+```
+
+Probe exit `7`. Paired immediately with the control that rules out the
+inert-mutation reading — the IDENTICAL literal replacement, read through
+`TB-020-01`, the assertion that names the stage this guard assembles.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TB-020-01 with the SAME E2 mutation, as a control on the TB-020-03 exit 7
+file:             rltax.js
+mutation:         rules.isUnavailable(basis.grossSupportedIncome)  ->  false   (3 occurrence(s))
+command:          npx --no-install playwright test tests/lifetime-tax-representable.spec.mjs --project=chromium --reporter=line -g every\ stage\ whose\ amount\ overflows\ the\ double\ range\ is\ refused\ by\ name
+red-exit:         1
+red-summary:          [chromium] › tests/lifetime-tax-representable.spec.mjs:41:1 › Regression: SCN-020-01 every stage whose amount overflows the double range is refused by name 
+green-exit:       0
+green-summary:    [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:41:1 › Regression: SCN-020-01 every stage whose amount overflows the double range is refused by name
+summary-compared:     [chromium] › tests/lifetime-tax-representable.spec.mjs:41:1 › Regression: SCN-020-01 every stage whose amount overflows the double range is refused by name   vs  [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:41:1 › Regression: SCN-020-01 every stage whose amount overflows the double range is refused by name   (elapsed time normalised out)
+revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `0`. The E2 mutation is real, it lands, and it is detectable.
+`TB-020-01` sees the guard go and fails; `TB-020-03` does not notice. That is the
+same shape `P6e` and `P6f` established for `E3`, now established for a second
+guard on the same path.
+
+`E4` is the fourth. It is the guard added to keep `NaN` off the surface when a
+disposition is composed on a refusing basis, which is `TB-020-03`'s own second
+clause, so it was removed on its own too.
+
+```
+=== RED/GREEN PROBE EVIDENCE ===
+label:            TB-020-03 with the E4 disposition-leg guard deleted, the guard added specifically to keep NaN off the surface
+file:             rltax.js
+mutation:         if (basis.ok !== true) {  ->  if (false) {   (1 occurrence(s))
+command:          npx --no-install playwright test tests/lifetime-tax-representable.spec.mjs --project=chromium --reporter=line -g no\ rendered\ text\ on\ the\ route\ is\ an\ infinity\ symbol\ or\ NaN
+red-exit:         0
+red-summary:      [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN
+green-exit:       0
+green-summary:    [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN
+summary-compared: [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN  vs  [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN   (elapsed time normalised out)
+revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   NO (both channels agree: exit 0 == 0, summary "[1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN" identical once elapsed time is normalised)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Probe exit `7`, and this one is recorded as **uninformative** rather than as a
+fifth account of the assertion's blindness. `design.md` scopes `E4` to the case
+where "the deduction refuses **and a disposition is declared**", and `declareAt`
+declares no disposition: it fills filing status, tax year, deduction mode,
+ordinary income, qualified dividends, other net investment income and the
+Medicare wage basis, and nothing else. The guard sits in `composeDispositionLegs`,
+which has no caller inside `rltax.js` and is reached from the route only through
+`dispositionDeclarationFromWorkspace()`. So this run does not separate "the
+assertion is blind to `E4`" from "`E4` never executed", and no assertion in this
+packet's acceptance set exercises `E4` to serve as the control that would separate
+them. It is reported as measured and as not load-bearing for the verdict.
+
+Where the enumeration now stands for `TB-020-03`, each mutation removing one
+guard and one guard only:
+
+| Guard removed alone | Probe | Exit | Live-mutation control |
+|---|---|---|---|
+| `E1`, arithmetic origin | `P6b` | `7` | — |
+| `E2`, `CO-1` assembly | `P6g` | `7` | `P6h`, `TB-020-01`, exit `0` |
+| `E3`, display seam | `P6c`, `P6e` | `7` | `P6f`, `TB-020-04`, exit `0` |
+| `E4`, disposition legs | `P6i` | `7` | none available; run uninformative |
+| `R2`, raw stringification | `P6` | `7` | — |
+| all eighteen `rltax.js` guards at once | `P6d` | `0` | — |
+
+The verdict does not change, and it is now carried by a wider enumeration and a
+second control. `TB-020-03` is over-determined across four guards on its path, no
+one of which is load-bearing for it, so no single-guard mutation falsifies it and
+the row's proof cannot be produced as the row words it. The row stays open, and
+`TB-020-03` is the assertion it stays open on.
+
 #### P7 — `TB-020-05` fails when the guard is widened past non-finiteness
 
 ```

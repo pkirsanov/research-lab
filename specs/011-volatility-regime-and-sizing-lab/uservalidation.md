@@ -33,6 +33,12 @@ Contracts: [spec.md](spec.md) | [design.md](design.md) | [scenario-manifest.json
 - [x] Power canvases draw synchronously (no `requestAnimationFrame` dependency), each carrying an aria-label, an adjacent summary, and a same-data table on desktop and mobile. **Evidence:** SCN-011-016 / SCN-011-018 — E2E cases 12/14 (15/0 re-run); **Claim Source:** executed.
 - [x] Final `done` certification is confirmed by a green full-suite regression. **Evidence:** `node scripts/selftest.mjs` = **1585 passed / 0 failed**, exit 0. The earlier `546 passed / 2 failed` reading recorded here was two **Feature 010** config-fingerprint assertions external to Feature 011; the Feature 010 owner repaired them and the shared suite has been green since. Re-run against this HEAD rather than inherited from the prior record. `state-transition-guard.sh specs/011-volatility-regime-and-sizing-lab` = exit 0, verdict PASS, failedGateIds [], failureCount 0; `artifact-lint.sh` = exit 0. **Claim Source:** executed.
 
+## Human Acceptance Record
+
+- acceptedBy: operator
+- acceptedAt: 2026-08-25T16:59:38Z
+- method: human-interactive
+
 ## Goal
 
 - Goal: give a research user one truthful volatility workspace that forecasts an asset's conditional volatility, states the regime as a window-relative percentile, decomposes persistence into a half-life, and converts the forecast into a capped-and-floored conditional vol-targeting sizing multiplier — while making explicit that the model carries zero directional information and generates no entries.

@@ -38,7 +38,7 @@
     "runStartedAt": "2026-08-23T00:00:00Z",
     "completedAt": null,
     "substate": "implemented",
-    "currentScope": null,
+    "currentScope": "cross-scope",
     "nextRequiredOwner": "the human operator for the uservalidation.md Human Acceptance Record, and an independent validating party for the bug.md Verified transition — neither is dischargeable by the round that wrote the change",
     "nextRequiredTarget": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/uservalidation.md#human-acceptance-record",
     "nextRequiredReason": "Scopes 1, 2 and 3 are executed and twenty of twenty-two Definition of Done items are ticked with inline evidence. The two still open are not an implementing round's to close. The cross-scope item asserts bug.md moves 'from Confirmed to Fixed and then Verified'; it is half satisfied, because bug.md already reads 'Fixed — awaiting independent verification', and the Verified half requires a party that did not write the fix. The Human Acceptance Record requires the human operator, and filling it from automation would be the agent granting itself acceptance. The root cause remains narrowed rather than established, and is now recorded as not removable in this repository: the force-kill is emitted by node_modules/playwright/lib/runner/index.js against the operator's installed Chrome, so the workers pin bounds exposure rather than removing the defect.",

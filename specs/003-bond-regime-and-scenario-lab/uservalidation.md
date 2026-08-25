@@ -40,6 +40,12 @@ Validate that the delivered static Bond Regime workspace separates observed cred
 - [x] The plan declares exact allowed and excluded file boundaries, shared-bar collector canaries, additive rollback, and preservation of unrelated dirty work.
 - [x] The Markdown Test Plan and machine-readable `test-plan.json` contain the same five scopes and 56 test identifiers.
 
+## Human Acceptance Record
+
+- acceptedBy: operator
+- acceptedAt: 2026-08-25T16:59:38Z
+- method: human-interactive
+
 ## Open Refinements
 
 None found - `spec.md` and `design.md` resolve the implementation-order, source-rights, model, UI, integration, testing, and containment decisions needed for this planning handoff. Any unavailable input remains explicitly unavailable under the active contract.

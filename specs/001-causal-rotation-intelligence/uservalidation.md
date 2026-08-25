@@ -44,6 +44,12 @@ Validate that the delivered Research Lab capability helps a user discover and ch
 - [x] The tool works on a phone-sized screen without horizontal scrolling or clipped panels.
 - [x] Nothing asks for an API key or any credential to see the causal read.
 
+## Human Acceptance Record
+
+- acceptedBy: operator
+- acceptedAt: 2026-08-25T16:59:38Z
+- method: human-interactive
+
 ## Open Refinements
 
 None found - the current specification and design resolve the planning decisions needed for implementation. Evidence-provider coverage remains record-by-record and must appear as unavailable whenever its contract cannot be satisfied.

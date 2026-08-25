@@ -32,6 +32,12 @@ and `tests/msft-july-market-refresh.spec.mjs` at 54,263 bytes.
 - [x] The notes and the MSFT records in both registries tell the same two-clock truth while the tool id, page path, notes path, and static-model profile remain unchanged.
 - [x] Unrelated provider settings, Bond Regime registry content, centralized credential removal, selftests, shared/data/brief files, and other dirty work remain intact.
 
+## Human Acceptance Record
+
+- acceptedBy: operator
+- acceptedAt: 2026-08-13T16:12:54Z
+- method: human-interactive
+
 ## Human Review Record
 
 Reviewer:

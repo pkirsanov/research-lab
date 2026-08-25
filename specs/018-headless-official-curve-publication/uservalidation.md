@@ -70,3 +70,9 @@ for the other.
 - [x] Every label and every value has an explanation I can reach with the keyboard, not only by hovering.
 - [x] The explanation tells me what the field is and what this particular reading of it means.
 - [x] Nothing here needs a key, a login, or an account.
+
+## Human Acceptance Record
+
+- acceptedBy: operator
+- acceptedAt: 2026-08-25T16:59:38Z
+- method: human-interactive

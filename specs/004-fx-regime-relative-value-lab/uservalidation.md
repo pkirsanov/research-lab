@@ -26,6 +26,12 @@ Execution plan: [scopes.md](scopes.md)
 - [x] The Markdown plan and machine-readable handoffs contain the same five-scope DAG and 84 row-linked DoD items for 84 Test Plan rows.
 - [x] No delivery DoD item is pre-checked and state certification remains untouched.
 
+## Human Acceptance Record
+
+- acceptedBy: operator
+- acceptedAt: 2026-08-25T16:59:38Z
+- method: human-interactive
+
 ## Goal
 
 - Goal: let a USD-based researcher identify a truthful dollar regime, independent currency strength, a coherent thesis, and the eligible listed currency vehicle that best matches its direction, basket, horizon, structure, reset, liquidity, cost, and evidence constraints.

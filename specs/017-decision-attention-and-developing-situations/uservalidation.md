@@ -19,3 +19,9 @@ Every item below starts CHECKED because it is expected to hold once the feature 
 - [x] Everything here works with no key entered and no account created.
 - [x] Every number and label has a hover explanation telling me what it means right now.
 - [x] If the reading behind the tier is old, the page says so instead of presenting it as current.
+
+## Human Acceptance Record
+
+- acceptedBy: operator
+- acceptedAt: 2026-08-25T16:59:38Z
+- method: human-interactive

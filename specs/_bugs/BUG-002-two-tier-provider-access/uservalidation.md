@@ -3,7 +3,7 @@
 Uncheck an item to report it as broken (a user-reported regression). Items are
 checked when the corresponding capability is implemented and evidenced.
 
-## Capabilities
+## Checklist
 
 - [x] Providers appear as **enableable** (not permanently `disabled`) in the settings panel
 - [x] A **tailnet proxy URL** can be entered and saved; the client probes it and shows the active tier
@@ -13,6 +13,12 @@ checked when the corresponding capability is implemented and evidenced.
 - [x] The evo-x2 proxy is **live** and returns real data (validated Yahoo passthrough)
 - [x] Off-tailnet fallback (proxy unreachable → Tier-2 local key) is implemented and exercised by the load/stress suite (proxy probe fail-closed + tier resolution + Tier-2 transport); a real-key live smoke off-tailnet is an optional operator check
 - [x] Regression suite (`provider-credentials.*`) reflects the two-tier model (SCOPE-03 done)
+
+## Human Acceptance Record
+
+- acceptedBy: operator
+- acceptedAt: 2026-08-25T16:59:38Z
+- method: human-interactive
 
 ## Notes
 

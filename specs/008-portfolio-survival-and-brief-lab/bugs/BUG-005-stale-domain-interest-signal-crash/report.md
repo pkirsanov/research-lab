@@ -714,3 +714,262 @@ G070 remains one input to certification and not certification itself. The
 [validation refusal](#validation-refusal) above lists the other blocking gates,
 including G136 human acceptance, which no agent may close.
 
+## Test Phase — 2026-08-25 {#test-phase-2026-08-25}
+
+Executed by `bubbles.test` at working-tree `HEAD 89561775e`, `git status
+--porcelain` empty at entry and at exit. Every command below ran in THIS session
+against a clean tree; nothing here is adopted from a prior run or from
+operator-supplied scrollback.
+
+### Declared carriers re-executed {#test-phase-carriers}
+
+**Claim Source:** executed
+
+```text
+$ node --test tests/portfolio-stale-domain-signal.unit.mjs
+✔ BUG-005: a domain whose every eligible event has aged out yields no signal instead of throwing (88.67385ms)
+✔ BUG-005: a future-dated-only domain is omitted through the same filter without throwing (9.360342ms)
+✔ BUG-005: a stale domain must not suppress the fresh domains beside it (54.535462ms)
+✔ BUG-005: in-window evidence below the floor is still emitted, so the fix widened nothing (39.422956ms)
+✔ BUG-005: reinstating the superseded pre-filter bucket creation turns the stale-domain assertion red (81.206097ms)
+✔ BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance (47.624205ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 418.264309
+===TP_B005_001_002_EXIT=0===
+```
+
+TP-B005-001 and TP-B005-002, exit `0`, 6 of 6.
+
+**Claim Source:** executed
+
+```text
+$ node --test tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-brief.functional.mjs
+✔ BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity (121.454291ms)
+✔ BUG-004: an exact occurrence repeat is still refused as a duplicate (43.063349ms)
+✔ BUG-004: a repeated same-day occurrence cannot buy relevance it did not earn (110.849654ms)
+✔ BUG-004: stored occurrence growth is bounded by the declared behaviour-event cap (25.964449ms)
+✔ BUG-004: reinstating the superseded content+civil-day predicate turns the accepted-occurrence assertion red (87.819188ms)
+✔ BUG-004: the evidence-age window is applied before semantic collapse, so a stale first occurrence cannot erase a fresh repeat (120.971994ms)
+✔ BUG-004: a corrupt policy still refuses on an empty workspace, and refuses exactly as the removed call did (31.440317ms)
+✔ BUG-004: removing the restored policy check reinstates the fail-open, so the assertion above is load-bearing (13.975319ms)
+✔ Regression: BUG-004 same-semantic occurrences cannot inflate relevance (95.239445ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 772.714995
+===TP_B005_003_004_EXIT=0===
+```
+
+TP-B005-003 and TP-B005-004, exit `0`, 36 of 36. Nine of the thirty-six rows are
+quoted above; the run emitted all thirty-six and the counters are the full-run
+totals.
+
+**Claim Source:** executed
+
+```text
+# TP-B005-005 selftest (bubbles.test phase)
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3893
+sha256: e4527d305250f386e86c8a4277e2ce043532bf11281d23faa7dc90fc882f4e8a
+--- last 20 ---
+================================================
+Research-Lab self-test: 3409 passed, 0 failed
+================================================
+```
+
+TP-B005-005, exit `0`, 3409 passed, 0 failed. Bounded through
+`evidence-capture.sh`; the hash covers all 3893 produced lines and is
+re-derivable with `--verify`.
+
+### Discrimination re-proved independently, not adopted {#test-phase-discrimination}
+
+The pre-fix RED was supplied to this agent as context. It was NOT restated as
+this agent's evidence — it was re-executed here, in an isolated detached
+worktree at `732bccb6c^` (`31aad20d4`), with the current carrier copied in
+byte-identically (`cmp` reported identical). The working tree was never mutated:
+`git status --porcelain` was empty before and after, and the worktree was
+removed and pruned.
+
+**Claim Source:** executed
+
+```text
+$ git worktree add --detach /tmp/b005-red 732bccb6c^
+$ cp tests/portfolio-stale-domain-signal.unit.mjs /tmp/b005-red/tests/
+$ cmp tests/portfolio-stale-domain-signal.unit.mjs /tmp/b005-red/tests/portfolio-stale-domain-signal.unit.mjs
+cmp: identical
+$ grep -c 'Created HERE, after the age filter' rlportfolio.js    # in the worktree
+0
+$ node --test tests/portfolio-stale-domain-signal.unit.mjs       # in the worktree
+ℹ tests 6
+ℹ pass 0
+ℹ fail 6
+  RangeError: Invalid time value
+      at Date.toISOString (<anonymous>)
+      at /tmp/b005-red/rlportfolio.js:2518:101
+      at Array.map (<anonymous>)
+      at Object.deriveInterestSignals (/tmp/b005-red/rlportfolio.js:2491:48)
+===PREFIX_RED_EXIT=1===
+```
+
+Exit `1`, 0 of 6, `RangeError: Invalid time value` at `rlportfolio.js:2518:101`
+reached through `Array.map` from `deriveInterestSignals` at `2491:48`. Five of
+the six rows fail on that throw. The sixth, the source-mutation control, fails
+for a different and correct reason — at `732bccb6c^` the shipped post-filter
+ordering it mutates does not yet exist, so its anchor assertion fires
+(`0 !== 1`). Row 5 is therefore an **in-run control at HEAD**, not a
+cross-revision one, and this section does not claim otherwise.
+
+Row 5's discrimination is real and re-runs on every invocation: it reads shipped
+`rlportfolio.js`, asserts each anchor appears exactly once, rewrites the bucket
+creation back to the superseded pre-filter position, loads the mutant from
+source text in a throwaway browser-shaped root, confirms the mutant still
+derives fresh-only input successfully (so it is not a strawman), asserts the
+mutant throws `RangeError` on the mixed workspace, and asserts the shipped
+module survives the identical input. The mutation is a faithful inverse of the
+`732bccb6c` diff.
+
+### Test integrity {#test-phase-integrity}
+
+**Claim Source:** executed
+
+```text
+$ grep -rnE 't\.Skip|\.skip\(|xit\(|xdescribe\(|\.only\(|test\.todo|it\.todo|pending\(' \
+    tests/portfolio-stale-domain-signal.unit.mjs \
+    tests/portfolio-behavior-occurrence.unit.mjs \
+    tests/portfolio-brief.functional.mjs
+skip_scan_exit=1 (1 = zero matches = clean)
+
+$ bash .github/bubbles/scripts/regression-quality-guard.sh tests/portfolio-stale-domain-signal.unit.mjs
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+RQG_DEFAULT_EXIT=0
+
+$ bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/portfolio-stale-domain-signal.unit.mjs
+✅ Adversarial signal detected in tests/portfolio-stale-domain-signal.unit.mjs
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files with adversarial signals: 1
+RQG_BUGFIX_EXIT=0
+```
+
+Zero skip, only, or todo markers across the three carriers. Adversarial signal
+detected in the BUG-005 carrier in both guard modes.
+
+### TP-B005-007 executed — the declared browser matrix {#test-phase-tp-b005-007}
+
+TP-B005-007 was declared in the Test Plan and marked **NOT YET EXECUTED IN THIS
+PACKET — routed to `bubbles.test`**. It is now executed by this agent, for this
+packet, at `HEAD 89561775e`.
+
+**Claim Source:** executed
+
+```text
+# TP-B005-007 Feature 008 browser matrix (bubbles.test phase)
+$ npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --project=system-chrome
+exit: 0
+lines: 303
+sha256: b92af567a3f381ad9352ec9842d821c3dad96b828217076132a4cd8d9c731e02
+--- last lines ---
+  94 passed (2.0m)
+===TP_B005_007_WRAPPER_EXIT=0===
+```
+
+Exit `0`, 94 passed, 0 failed, across all eight `portfolio-survival-*.spec.mjs`
+carriers. The count 94 coincides with BUG-004's `TP-B004-006` receipt; this is a
+separate execution performed here at this revision and does not reuse that
+receipt. The relocation in `732bccb6c` disturbed no shipped browser surface.
+
+### Coverage gap — TP-B005-006 is unauthorable as specified {#test-phase-coverage-gap}
+
+TP-B005-006 asks for a browser row asserting that a stale-only workspace renders
+the allocation lab without an uncaught `RangeError`. Authoring that row as
+written would produce a **tautological** test, because the browser never reaches
+the repaired function. Rather than author a row that would pass identically
+against pre-fix source, this agent refused it and routed it.
+
+**Claim Source:** executed — the call-graph facts below
+
+```text
+$ grep -rn 'interestSignals' --include='*.html' --include='*.js' . | grep -v '/tests/' | grep -v '_site/'
+./portfolio-survival-allocation-lab.html:3059:  ? state.opened.workspace.interestSignals
+./rlportfolio.js:1135:      interestSignals: [],            # createEmptyWorkspace
+./rlportfolio.js:2545:    candidate.interestSignals = derived.value;   # ONLY writer
+...
+
+$ grep -rn 'buildInterestSignalCandidate' . --include='*.mjs' --include='*.js' --include='*.html' | grep -v '_site/'
+./rlportfolio.js:2541:  function buildInterestSignalCandidate(currentWorkspace, now, policy) {
+./rlportfolio.js:4931:    buildInterestSignalCandidate: buildInterestSignalCandidate,
+./tests/portfolio-foundation.unit.mjs:1044
+./tests/portfolio-foundation.unit.mjs:1904
+./tests/portfolio-privacy.functional.mjs:1704
+
+$ grep -rlE '\bRLPORTFOLIO\b' --include='*.html' . | grep -v '_site/'
+./portfolio-survival-allocation-lab.html            # the ONLY page loading rlportfolio.js
+
+$ grep -nE 'buildInterestSignalCandidate|api\.deriveInterestSignals' portfolio-survival-allocation-lab.html
+grep_exit_2=1 (1 = names neither)
+
+$ grep -nE '\bapi\s*\[' portfolio-survival-allocation-lab.html
+grep_exit_1=1 (1 = no dynamic dispatch on the alias at line 1253)
+```
+
+**Claim Source:** interpreted — the reachability conclusion drawn from those greps
+
+The repaired `rlportfolio.deriveInterestSignals` is reachable only through
+`buildInterestSignalCandidate`, whose only callers anywhere in the repository
+are three test files. The single page that loads `rlportfolio.js` aliases the API
+at `portfolio-survival-allocation-lab.html:1253` and names neither symbol, and
+performs no bracket dispatch on that alias. This is a build-free repository with
+no bundler and no dynamic dispatch, so the static call graph is complete.
+Conclusion: **the repaired function is not reachable from any shipped page at
+this revision**, therefore a browser row asserting "the lab does not throw"
+cannot discriminate the fix.
+
+**Uncertainty Declaration.** This is reasoned from executed greps over a
+complete static call graph; it is NOT a runtime observation. This agent did not
+instrument a live page load to record that `deriveInterestSignals` is never
+invoked. A runtime probe would upgrade this from `interpreted` to `executed`.
+No DoD item is advanced on it.
+
+Two consequences are routed, not resolved here:
+
+1. `TEST-B005-T1` — TP-B005-006 cannot be authored as specified. The Test Plan is
+   `bubbles.plan`-owned content, so re-specification is routed there.
+2. `TEST-B005-T2` — `bug.md` § Blast Radius states the lab "reads that persisted
+   array at `portfolio-survival-allocation-lab.html:3059`" and concludes the
+   defect "permanently breaks interest-signal derivation and the view-exclusion
+   accounting ... until the user clears local history." That user-facing
+   conclusion requires a writer for `workspace.interestSignals`, and the only
+   writer has no shipped caller. The separate question this raises — whether the
+   Black-Litterman exclusion accounting at line 3059 is silently computing over a
+   permanently empty array — is a spec-versus-implementation question outside
+   this agent's ownership and is routed rather than answered.
+
+Neither routing weakens the fix. `deriveInterestSignals` and
+`buildInterestSignalCandidate` are both frozen public exports at
+`rlportfolio.js:4931-4932` with three existing test consumers; a public export
+that throws `RangeError` on a legitimate workspace shape is a real defect at the
+module contract boundary, which is exactly where this packet proved it (0 of 6
+RED → 6 of 6 GREEN).
+
+### Test phase verdict {#test-phase-verdict}
+
+`✅ TESTED` for the executable scope of this packet. Five of the seven Test Plan
+rows are executed and green (TP-B005-001 through TP-B005-005), and TP-B005-007
+is now executed and green. TP-B005-006 remains unauthored by deliberate refusal
+with the reasoning recorded above.
+
+This agent wrote only `report.md` and the execution-owned half of `state.json`.
+It did not write `status`, `certification.*`, `uservalidation.md`, or any DoD
+checkbox. The [validation refusal](#validation-refusal) stands; the other
+blocking gates, including G136 human acceptance, are untouched by this phase.
+

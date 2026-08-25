@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash",
   "featureName": "BUG-005 Stale-Domain Interest Signal Crash",
   "createdAt": "2026-08-25T00:00:00Z",
-  "lastUpdatedAt": "2026-08-25T16:42:00Z",
+  "lastUpdatedAt": "2026-08-25T15:20:12Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -28,17 +28,17 @@
   },
   "execution": {
     "activeAgent": null,
-    "currentPhase": "implement",
+    "currentPhase": "test",
     "currentPhaseStatus": "complete",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
     "runStartedAt": "2026-08-25T00:00:00Z",
     "completedAt": null,
-    "substate": "implemented",
+    "substate": "independently_verified",
     "currentScope": 1,
     "nextRequiredOwner": "bubbles.plan",
     "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/scopes.md",
-    "nextRequiredReason": "bubbles.validate ran and REFUSED certification. The implementation evidence replayed clean and independently: carrier six of six green, the pre-fix RED reproduced at 732bccb6c^ (exit 1, six of six, RangeError at rlportfolio.js:2518:101 via deriveInterestSignals), thirty-six unchanged BUG-004 regression rows, the 3409-assertion selftest, and artifact lint exit 0. But state-transition-guard exited 1 with 33 blocking failures across G022, G053, G027, G068, G093, G094, G097 and G136, so no certification field was written and status stays in_progress. Twelve of the 33 are scopes.md-shaped and owned here: five G068 DoD-Gherkin fidelity gaps (each of SCN-B005-STALE-OMITTED, -FRESH-SIBLING, -DISCRIMINATION, -FLOOR-PRESERVED, -BRIEF-AGREEMENT has no faithful DoD item), three missing regression-E2E planning rows, two missing consumer-impact-sweep requirements, and two missing change-boundary containment items whose substance is present under a heading the gate does not read. Clearing them does NOT reach done on its own: G093 and G053 need bubbles.implement, the seven absent pipeline phases need re-orchestration, and G136 needs a human.",
+    "nextRequiredReason": "bubbles.validate ran and REFUSED certification. The implementation evidence replayed clean and independently: carrier six of six green, the pre-fix RED reproduced at 732bccb6c^ (exit 1, six of six, RangeError at rlportfolio.js:2518:101 via deriveInterestSignals), thirty-six unchanged BUG-004 regression rows, the 3409-assertion selftest, and artifact lint exit 0. But state-transition-guard exited 1 with 33 blocking failures across G022, G053, G027, G068, G093, G094, G097 and G136, so no certification field was written and status stays in_progress. Twelve of the 33 are scopes.md-shaped and owned here: five G068 DoD-Gherkin fidelity gaps (each of SCN-B005-STALE-OMITTED, -FRESH-SIBLING, -DISCRIMINATION, -FLOOR-PRESERVED, -BRIEF-AGREEMENT has no faithful DoD item), three missing regression-E2E planning rows, two missing consumer-impact-sweep requirements, and two missing change-boundary containment items whose substance is present under a heading the gate does not read. Clearing them does NOT reach done on its own: G093 and G053 need bubbles.implement, the seven absent pipeline phases need re-orchestration, and G136 needs a human. UPDATE 2026-08-25T15:20:12Z (bubbles.test): one of those seven, 'test', is now executed and recorded with backing executionHistory provenance — the three declared lanes re-ran green (6/6, 36/36, selftest 3409 passed), the pre-fix RED was independently re-derived in an isolated worktree at 732bccb6c^ rather than adopted, and the previously unexecuted TP-B005-007 browser matrix ran at 94 passed. TP-B005-006 was REFUSED as unauthorable-because-tautological and routed as TEST-B005-T1. Six pipeline phases remain absent, the implement claim still lacks its own execution record (TEST-B005-T3), and G136 still needs a human.",
     "completedPhaseClaims": [
       {
         "phase": "implement",
@@ -46,6 +46,13 @@
         "claimedAt": "2026-08-25T14:07:25Z",
         "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
         "evidenceRef": "report.md#pre-fix-reproduction"
+      },
+      {
+        "phase": "test",
+        "agent": "bubbles.test",
+        "claimedAt": "2026-08-25T15:20:12Z",
+        "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
+        "evidenceRef": "report.md#test-phase-2026-08-25"
       }
     ],
     "pendingTransitionRequests": [],
@@ -86,7 +93,17 @@
   "modeTransitions": [],
   "transitionRequests": [],
   "reworkQueue": [],
-  "executionHistory": [],
+  "executionHistory": [
+    {
+      "at": "2026-08-25T15:20:12Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "action": "declared-carriers-re-executed-discrimination-reproved-tp-b005-007-executed-tp-b005-006-refused-and-routed",
+      "note": "Executed the test phase at HEAD 89561775e against a working tree that was empty in git status --porcelain at entry and at exit. Re-executed the three declared lanes and recorded real output and exit codes: node --test tests/portfolio-stale-domain-signal.unit.mjs exit 0 with tests 6 pass 6 fail 0 skipped 0 todo 0 (TP-B005-001, TP-B005-002); node --test tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-brief.functional.mjs exit 0 with tests 36 pass 36 fail 0 (TP-B005-003, TP-B005-004); node scripts/selftest.mjs exit 0 with 3409 passed 0 failed, captured through evidence-capture.sh at 3893 lines under sha256 e4527d305250f386e86c8a4277e2ce043532bf11281d23faa7dc90fc882f4e8a so the receipt is re-derivable with --verify. Did NOT adopt the supplied pre-fix RED as this agent's evidence: re-executed it here in an isolated detached worktree at 732bccb6c^ (31aad20d4) with the current carrier copied in byte-identically (cmp identical) and the post-fix marker absent from the worktree module, returning exit 1 with pass 0 fail 6 and RangeError: Invalid time value at /tmp/b005-red/rlportfolio.js:2518:101 reached through Array.map from deriveInterestSignals at 2491:48; the worktree was removed and pruned and the working tree was never mutated. Stated the control's boundary honestly rather than overselling it: five of the six rows fail on that throw, while the sixth, the source-mutation control, fails at 732bccb6c^ for a different and correct reason because the shipped post-filter ordering it mutates does not exist there, so row 5 is an in-run control at HEAD and not a cross-revision one; at HEAD it re-proves sensitivity on every invocation by rewriting the bucket creation back to the superseded pre-filter position, confirming the mutant still derives fresh-only input so it is not a strawman, then asserting the mutant throws where the shipped module survives. Verified integrity rather than only green: a skip/only/todo scan over the three carriers returned zero matches, and regression-quality-guard returned exit 0 in both default and --bugfix mode with 0 violations, 0 warnings and an adversarial signal detected. Closed one declared obligation that was routed to this agent: TP-B005-007, previously marked NOT YET EXECUTED IN THIS PACKET, was executed here at exit 0 with 94 passed 0 failed across all eight portfolio-survival-*.spec.mjs carriers, captured at 303 lines under sha256 b92af567a3f381ad9352ec9842d821c3dad96b828217076132a4cd8d9c731e02; the count coincides with BUG-004's TP-B004-006 receipt and this entry states plainly that it is a separate execution at this revision rather than a reuse of that receipt. REFUSED to author TP-B005-006 and routed it instead, because authoring it as specified would have manufactured a tautological browser row: the repaired rlportfolio.deriveInterestSignals is reachable only through buildInterestSignalCandidate, whose only callers repository-wide are three test files, and the single page that loads rlportfolio.js aliases the API at portfolio-survival-allocation-lab.html:1253 while naming neither symbol and performing no bracket dispatch, so a browser row asserting the lab does not throw would pass identically against pre-fix source. Declared the limit of that conclusion explicitly: it is reasoned from executed greps over a complete static call graph in a build-free repository with no bundler, NOT a runtime observation, so it is recorded as interpreted rather than executed and no DoD item was advanced on it. Raised TEST-B005-T1 to bubbles.plan to re-specify or withdraw the row, and TEST-B005-T2 to bubbles.gaps because bug.md's Blast Radius conclusion depends on a writer for workspace.interestSignals whose only writer has no shipped caller, which also raises whether the Black-Litterman exclusion accounting at line 3059 computes over a permanently empty array. Neither routing weakens the fix, which remains a real defect at the frozen public export boundary. Authored no test, changed no product source, and wrote only report.md and this execution record. Did not write status, certification.*, uservalidation.md, or any DoD checkbox. Observed but did NOT fabricate provenance for the neighbouring gap: the pre-existing 'implement' claim still has no executionHistory entry behind it, which is bubbles.implement-owned and is recorded as TEST-B005-T3.",
+      "phasesExecuted": ["test"],
+      "provenanceMode": "specialist"
+    }
+  ],
   "addressedFindings": [
     {
       "id": "BUG-005-VERIFICATION-PENDING",
@@ -97,6 +114,28 @@
     }
   ],
   "unresolvedFindings": [
+    {
+      "id": "TEST-B005-T1",
+      "summary": "TP-B005-006 cannot be authored as specified. The row asks for a browser assertion that a stale-only workspace renders the allocation lab without an uncaught RangeError, but the repaired rlportfolio.deriveInterestSignals is reachable only through buildInterestSignalCandidate, whose only callers repository-wide are tests/portfolio-foundation.unit.mjs:1044, :1904 and tests/portfolio-privacy.functional.mjs:1704. The single page that loads rlportfolio.js aliases the API at portfolio-survival-allocation-lab.html:1253, names neither symbol, and performs no bracket dispatch. Such a row would therefore pass identically against pre-fix source — a tautological regression the repository's own guardrails forbid. bubbles.test refused to author it rather than manufacture false browser confidence. The Test Plan is plan-owned content, so re-specification against the reachable brief-side path, replacement by a wiring decision, or withdrawal with recorded rationale is routed to bubbles.plan. Reachability is reasoned from executed greps over a complete static call graph, not from a runtime probe; that uncertainty is declared at report.md#test-phase-coverage-gap.",
+      "owner": "bubbles.plan",
+      "status": "route_required",
+      "evidenceRef": "report.md#test-phase-coverage-gap"
+    },
+    {
+      "id": "TEST-B005-T2",
+      "summary": "bug.md section Blast Radius concludes the defect 'permanently breaks interest-signal derivation and the view-exclusion accounting ... until the user clears local history', on the stated basis that the lab reads the persisted array at portfolio-survival-allocation-lab.html:3059 and feeds it to RLPORTFOLIOANALYTICS.blackLittermanViews. That user-facing conclusion requires something to populate workspace.interestSignals. The only writer is rlportfolio.js:2545 inside buildInterestSignalCandidate, which no shipped page calls, and createEmptyWorkspace initialises the array to [] at rlportfolio.js:1135. The separate and larger question this raises is whether the Black-Litterman exclusion accounting is silently computing over a permanently empty array, which would be a latent product defect rather than a documentation overstatement. bubbles.test did not answer it: distinguishing 'not yet wired, by design, pending a later scope' from 'silently inert' is a spec-versus-implementation judgement outside this agent's ownership.",
+      "owner": "bubbles.gaps",
+      "followUpOwner": "bubbles.bug",
+      "status": "route_required",
+      "evidenceRef": "report.md#test-phase-coverage-gap"
+    },
+    {
+      "id": "TEST-B005-T3",
+      "summary": "The pre-existing 'implement' entry in execution.completedPhaseClaims has no executionHistory record behind it, which Check 7B reports as a claim with no record that it ran and which contributes to the G022 failure alongside the absent pipeline phases. bubbles.test added the backing record for its OWN 'test' phase only and deliberately did NOT author an implement record, because writing provenance for work this agent did not perform is exactly the fabrication G022 exists to catch. Owner is bubbles.implement, which must supply its own execution record for the already-claimed phase, as the sibling BUG-004 packet did at its 2026-08-25T03:53:38Z entry.",
+      "owner": "bubbles.implement",
+      "status": "route_required",
+      "evidenceRef": "report.md#test-phase-2026-08-25"
+    },
     {
       "id": "BUG-005-CERTIFICATION-REFUSED",
       "summary": "bubbles.validate refused certification. state-transition-guard.sh exited 1 with 33 blocking failures (failedGateIds G022, G053, G027, G068, G093, G094, G097, G136; blockingCode DELIVERY_COMPLETION_FAILED). The resolved contract is workflowMode bugfix-fastlane, auditProfile delivery-completion-v1, statusCeiling done, contractDigest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f. No certification field was written; status remains in_progress.",

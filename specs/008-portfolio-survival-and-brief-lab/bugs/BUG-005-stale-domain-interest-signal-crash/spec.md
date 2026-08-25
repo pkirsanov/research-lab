@@ -4,6 +4,67 @@ Governing feature: `specs/008-portfolio-survival-and-brief-lab`.
 This document states the behavior `rlportfolio.deriveInterestSignals` MUST have
 when a domain's evidence has aged out. It does not restate the feature spec.
 
+## Outcome Contract
+
+**Intent:** Make interest-signal derivation survive its own evidence-expiry
+policy. A domain whose eligible evidence has all aged out must resolve to
+*nothing* — no signal, no bucket, no claim — and the derivation must return its
+declared envelope rather than throwing into the caller's render. The repair must
+buy that survival without widening what counts as live evidence.
+
+**Success Signal:** `tests/portfolio-stale-domain-signal.unit.mjs` is 6/6 green
+against the shipped `rlportfolio.js`, and 0/6 against the same suite when only
+`rlportfolio.js` is reverted to `732bccb6c^` — every row fails, the leading row
+with `RangeError: Invalid time value` raised from `Date.toISOString` inside
+`Object.deriveInterestSignals`. The pair is the signal, not either half: the
+suite fails on the defect and passes on the fix, so it discriminates rather than
+passing vacuously. `SCN-B005-DISCRIMINATION` carries that same proof inside a
+single run — it reinstates the superseded pre-filter bucket creation in loaded
+source, first asserts the mutant is still functional on in-window-only input (so
+it is a faithful reinstatement, not merely a broken module), then asserts the
+mutant throws `RangeError` on the exact mixed workspace for which the shipped
+module returns `ok: true`. Non-movement is measured, not assumed:
+`tests/portfolio-behavior-occurrence.unit.mjs` with
+`tests/portfolio-brief.functional.mjs` stays 36/36 and `node scripts/selftest.mjs`
+stays 3409 passed / 0 failed.
+
+**Hard Constraints:**
+
+- `deriveInterestSignals` has exactly one failure protocol: `{ ok: true, value }`
+  or `{ ok: false, error }`. A thrown exception is not that protocol and is never
+  an acceptable outcome for an input that satisfies `validateWorkspace`.
+- Omission is the honest encoding of "no live evidence here". A stale-only domain
+  MUST NOT instead be emitted with null support: under
+  `portfolio-interest-signal/v1` that would be a persisted, never-expiring claim
+  standing on evidence the policy has already retired.
+- `validateInterestSignal` is unchanged and stays strict — it still refuses a null
+  `latestSupportAt`, a null `expiresAt`, and an empty `supportingEventIds`. The
+  repair must not create pressure to relax it.
+- Omission applies only to stale-*only* domains. A domain with in-window evidence
+  below the floor is still EMITTED, with `floorSatisfied: false` and band
+  `insufficient-evidence`. Silently dropping live-but-thin evidence would be a
+  different defect wearing this fix's clothes.
+- Out-of-window evidence contributes nothing it did not already contribute: not
+  to `evidenceScore`, not to `minimumDistinctCompletions`, not to
+  `minimumDistinctUtcDates`. The window itself does not move —
+  `maximumEvidenceAgeDays` and `halfLifeDays` are unchanged.
+- One stale domain MUST NOT suppress a fresh sibling in the same workspace.
+- The age filter keeps its position relative to `dedupeBehaviorEvents`. BUG-004
+  settled that placement; only bucket creation moves. Disturbing the filter/dedupe
+  order would silently reopen BUG-004.
+- The change is confined to statement ordering inside `deriveInterestSignals`. It
+  stores no new field, adds no new persisted value, and touches no privacy or
+  publication surface.
+
+**Failure Condition:** The repair fails if a stale-only domain again acquires a
+bucket and throws, or if it is emitted at all — a null-support row is a worse
+outcome than the crash, because the crash is at least visible. It fails if
+omission spreads beyond stale-only domains and swallows below-floor in-window
+evidence, if a stale domain erases a fresh sibling, or if the filter/dedupe order
+shifts and reopens BUG-004. It also fails as *verification* if the carrier ever
+passes against pre-fix source: a suite that cannot go red has stopped being
+evidence, whatever its pass count says.
+
 ## Expected Behavior
 
 ### EB-1 — Derivation returns an envelope, never throws

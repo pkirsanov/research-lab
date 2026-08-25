@@ -49,7 +49,7 @@
       "scope": 1,
       "title": "Repeated semantic occurrences cannot increase relevance",
       "gherkin": {
-        "given": "a baseline stream and an augmented stream with more occurrences but no new semantic identity",
+        "given": "a baseline stream and an augmented stream with more forward occurrences but no new semantic identity",
         "when": "score, floor eligibility, and canonical ordering are derived",
         "then": "audit cardinality grows while score, floor, band, supporting identities, and order remain equal"
       },

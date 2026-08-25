@@ -1,0 +1,64 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash",
+  "generatedAt": "2026-08-25T00:00:00Z",
+  "generatedBy": "GitHub Copilot",
+  "provenance": "Transcribed from BUG-005 scopes.md. Scenario status remains nonterminal; focused carrier execution does not certify the bug packet.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-B005-STALE-OMITTED",
+      "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
+      "scope": 1,
+      "title": "A domain whose every event has aged out yields no signal",
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": ["tests/portfolio-stale-domain-signal.unit.mjs"],
+      "evidenceRefs": ["report.md#focused-carrier"]
+    },
+    {
+      "scenarioId": "SCN-B005-FRESH-SIBLING",
+      "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
+      "scope": 1,
+      "title": "A stale domain does not suppress a fresh sibling",
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": ["tests/portfolio-stale-domain-signal.unit.mjs"],
+      "evidenceRefs": ["report.md#focused-carrier"]
+    },
+    {
+      "scenarioId": "SCN-B005-DISCRIMINATION",
+      "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
+      "scope": 1,
+      "title": "Reinstating pre-filter bucket creation reproduces the RangeError",
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": ["tests/portfolio-stale-domain-signal.unit.mjs"],
+      "evidenceRefs": ["report.md#focused-carrier"]
+    },
+    {
+      "scenarioId": "SCN-B005-FLOOR-PRESERVED",
+      "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
+      "scope": 1,
+      "title": "Below-floor in-window evidence remains reported",
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": ["tests/portfolio-stale-domain-signal.unit.mjs"],
+      "evidenceRefs": ["report.md#focused-carrier"]
+    },
+    {
+      "scenarioId": "SCN-B005-BRIEF-AGREEMENT",
+      "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
+      "scope": 1,
+      "title": "Both derivations deny live relevance to a stale domain",
+      "status": "not_started",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": ["tests/portfolio-stale-domain-signal.unit.mjs"],
+      "evidenceRefs": ["report.md#focused-carrier"]
+    }
+  ]
+}

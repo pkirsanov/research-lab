@@ -717,3 +717,37 @@ One unscoreable claim withheld; four scoreable calls and the whole brief survive
 - **`docs/Improvement-Plan.md` D16 wording (R5) was not updated.** It is an
   owner-authored surface. The gate now enforces more than that document states.
 
+## Observation Only — The Named Assertion Is Green At One Commit (2026-08-24)
+
+This section adds no fix, lifts no block, ticks no Definition of Done item and changes no
+status. `DO-NOT-FIX` is an operator constraint, and the condition behind it is still live:
+the scheduled pipeline wrote this surface four times on the day of this observation
+(`ffd8e02af` 08:00, `adbfc86bb` 11:21, `b2f97b6c3` 14:56, `6e60f8590` 17:27 EDT). Nothing
+here authorises an edit.
+
+`## Summary` opens by recording `node scripts/selftest.mjs` as **RED on `origin/main`** with
+one named failing assertion. Measured against a clean `origin/main` worktree at `31aad20d4`:
+
+```text
+Command: node scripts/selftest.mjs
+Research-Lab self-test: 3409 passed, 0 failed
+Exit Code: 0
+✗ FAIL lines: 0
+✓ the evaluator is idempotent against the committed ledger — a re-run closes nothing twice
+```
+
+**This confirms the prediction directly above rather than overturning it.** That note states
+the Defect B gate removes the most common *source* of unscoreable calls, making the idempotence
+assertion "far less likely to trip", while explicitly not fixing the ordering. A green
+assertion is the predicted consequence of a removed source, not evidence of a repaired
+ordering, and must not be read as the latter.
+
+Two limits bound what this observation can support. The assertion reads the **committed
+ledger**, whose content the pipeline rewrites eight times a day, so its outcome is a function
+of ledger state at the moment of the run — green here means it does not reproduce **at this
+commit**, not that it cannot recur. And an assertion passing is not the same as the invariant
+holding; Defect A is an ordering defect, and no ordering was inspected by this run.
+
+What the owner may take from this: the specific symptom recorded in `## Summary` no longer
+reproduces on the current tip. Whether that is sufficient to revisit the `blocked` status is
+an owner decision, and deliberately not taken here.

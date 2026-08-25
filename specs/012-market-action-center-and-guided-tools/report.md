@@ -417,3 +417,37 @@ Planning artifacts are coherent and artifact-valid. The packet routes to `bubble
 ## Audit Verdict
 
 No audit verdict is claimed by `bubbles.plan`.
+
+## Observation Only — The Block Holds, Its Stated Evidence Has Drifted (2026-08-24)
+
+This section lifts no block, ticks no Definition of Done item and edits no `state.json` field.
+`state.json` is certification-owned; the correction below is recorded here rather than written
+into `blockedReason`, so that the owning agent decides whether to restate it.
+
+**The block is still correct.** `blockedReason` says Feature 012 is blocked solely on Feature 008
+not being terminally certified. Measured on `origin/main` at `7731985a4`, that remains true:
+
+```text
+Command: git show origin/main:specs/008-portfolio-survival-and-brief-lab/state.json
+status                      = in_progress
+certification.status        = in_progress
+certifiedAt                 = null
+certifiedCompletedPhases    = 0
+state.milestones array      = absent
+```
+
+008 is not terminally certified and publishes no machine-readable `milestones` array, so the
+declared `feature-008` gate still refuses and Scopes 13 and 14 stay blocked. The refusal is the
+gate working as designed, exactly as `blockedReason` states.
+
+**One clause inside it is now stale, and it misleads in both directions.** `blockedReason` records
+`Verified at HEAD f398a9ac: … 008 is status=not_started`. Feature 008 is no longer
+`not_started` — it is `in_progress` with **334 of 335** Definition of Done items ticked across 59
+scope files, one item from complete. A reader who checks 008 and finds it nearly finished may
+conclude the recorded reason is simply wrong and discount the block; a reader who trusts the
+clause may believe 008 has not been started at all. Neither reading is accurate.
+
+The precise position: **008 has moved a long way, and none of that movement satisfies the gate.**
+The gate asks for terminal certification and a `milestones` array. Progress toward completion is
+not certification, and 334/335 is not 335/335. Whether to restate `blockedReason` against the
+current measurement is the owning agent's decision, and is deliberately not taken here.

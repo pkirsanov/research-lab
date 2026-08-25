@@ -6,7 +6,7 @@
     "lastUpdatedAt": "2026-08-10T00:00:00Z",
     "status": "not_started",
     "blockedReason": null,
-    "workflowMode": null,
+    "workflowMode": "full-delivery",
     "planningOnly": false,
     "planningOnlyJustification": null,
     "linkedImplementationSpec": null,

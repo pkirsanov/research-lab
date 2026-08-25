@@ -221,10 +221,11 @@ one spec against exactly one route.
 
 ## Cross-Scope Definition of Done
 
-- [ ] `bug.md` status is updated from Confirmed to Fixed and then Verified.
-      Partially done and deliberately left unticked. `bug.md` now reads Fixed, with the evidence
-      above. `Verified` is the validating agent's to set, not this execution's, so the item stays
-      open rather than being ticked on half its text.
+- [x] `bug.md` status is updated from Confirmed to Fixed and then Verified.
+      Both transitions have now occurred. `bug.md` read `Fixed` on the implementing round's evidence
+      and reads `Verified` on an independent round's, recorded under `report.md`
+      § Independent Verification Round. That round wrote no part of this packet and re-derived every
+      premise rather than inheriting one.
       A later round re-measured the three premises the closing claim rests on, independently rather
       than by inheritance, and all three hold: `gh run view 32744354615` reports
       `conclusion=success` with `verify=success` and `deploy=success`; `combinedFederalLeg` is
@@ -234,9 +235,15 @@ one spec against exactly one route.
       found, and recorded in `report.md` § Finding, that `W4` does **not** discriminate for three of
       its six names, `combinedFederalLeg` among them, because those names are also quoted in
       `SIMPLE_FIELDS` and `W4` matches the name anywhere in the route rather than at the emitting
-      call. The item still stays open: `Verified` is a certification claim, and no packet in this
-      repository has ever occupied that state — every fixed one rests at
-      `Fixed — awaiting independent verification`.
+      call.
+      **Superseded by the independent round.** That blind spot was repaired, and `W5` was added for
+      the case a repaired `W4` still could not see. Both repairs were re-derived here rather than
+      accepted: `W2`, `W3`, `W5` and `W4` on all four of its call shapes each turn red under
+      mutation with the revert hash-verified, and the three previously-blind names were probed
+      individually rather than sampled. Under the `SIMPLE_FIELDS` mutation, `W4` returns exit 7 —
+      no discrimination — which is the measurement that shows `W5` is not redundant. `Verified` is
+      still a certification claim, and this packet is the first in the repository to occupy that
+      state; it does so on a round that wrote none of the work it checked.
 - [x] `report.md` carries pre-fix failure proof and post-fix success proof.
   → Evidence: pre-fix — the seventeen-finding transcript against the defective ref and run 32651572136 (verify=failure, deploy=skipped). Post-fix — `8 passed`, `3408 passed, 0 failed`, and run 32744354615 (deploy=success).
 - [x] The twenty-five failures owned elsewhere are confirmed still attributed elsewhere and

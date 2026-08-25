@@ -1048,4 +1048,122 @@ and the browser marker survive — would leave `W4` and `W5` green with nothing 
 that needs reachability, which static derivation over the route source cannot supply; the browser
 spec is the instrument for it. Not repaired here, and not claimed to be.
 
+## Independent Verification Round
+
+Run by a party that wrote no part of this packet, at `982a63641`. That commit **is** `origin/main`,
+so "present at `origin/main`" was read from the working tree and confirmed against
+`git show origin/main:` rather than inferred. Nothing below is inherited from the records above;
+each premise was re-derived.
+
+### The tree moved underneath this round, and the move was attributed
+
+This round began at `2c3225e5d` with the branch two ahead and three behind. A concurrent session
+advanced it to `982a63641` mid-run. Every artifact these probes touched is byte-identical across
+that move — `git diff --stat 2c3225e5d 982a63641` over the route, the selftest, the browser spec and
+the three engine modules is empty — and the three blobs the probes hash-verified their reverts
+against (`49d3eb42c8` for the route, `95beaaed14`, `7e690813e7`) are the blobs at the current `HEAD`.
+The four commits in the gap are `chore(open-work)` and a merge. The evidence therefore stands at the
+tip it is recorded against.
+
+### The wiring is present at `origin/main`
+
+All six `data-rl-value` markers the browser spec locates are present at `origin/main`
+(`combinedFederalLeg` ×2, `combinedStateLeg` ×2, `combinedTotalTax` ×10, and one each for
+`combined-federal-total`, `combined-state-total`, `combined-total`), and all fourteen `rltax*.js`
+modules on disk carry a `<script src>` there.
+
+### CI, re-derived at a later tip than the one this packet cited
+
+The cited run `32744354615` still reports `conclusion=success` with `verify=success` and
+`deploy=success`. That is the recorded premise and it holds. It is also no longer the newest
+evidence: the most recent **completed** blocking-suite run on `main`, `32857081607` at `f2516de2b`,
+is a **failure** — and that is the stronger result for this packet, because the redness is
+attributable elsewhere.
+
+```
+run 32857081607 conclusion=failure headSha=f2516de2b
+  job verify = failure
+     FAILED STEP: Full browser suite (blocking)
+
+failing tests, by spec file:
+     5 tests/bond-regime-lab.spec.mjs
+     1 tests/simple-model-adapters-market.spec.mjs
+
+lifetime-tax failures in that run: 0
+lifetime-tax passes   in that run: 111
+tests/lifetime-tax-combined.spec.mjs: 8 cases, all ✓
+```
+
+The wiring holds in a pipeline that is currently red for other owners. A green run cannot show that;
+this one can.
+
+### Every guard was proven to bite, by reverting mutation
+
+`W1` is a precondition — module-family exclusivity plus a floor — and is what licenses `W2`. `W2`
+through `W5` were each mutated and each turned red, with the revert hash-verified every time. All
+six ran against the committed selftest, scoped to the single named clause so the two failures another
+session owns could not mask a verdict.
+
+| probe | mutation | RED | GREEN | verdict |
+| --- | --- | --- | --- | --- |
+| `W2` | `src="rltaxcombined.js"` renamed | exit 1, `hits=1` | exit 0, `hits=0` | discriminates |
+| `W3` | `id="combinedSettlementCard"` renamed | exit 1, `hits=1` | exit 0, `hits=0` | discriminates |
+| `W4` | `simpleValueNode("combinedFederalLeg",` renamed | exit 1, `hits=1` | exit 0, `hits=0` | discriminates |
+| `W4` | `simpleValueNode("combinedStateLeg",` renamed | exit 1, `hits=1` | exit 0, `hits=0` | discriminates |
+| `W4` | `simpleValueNode("combinedTotalTax",` renamed | exit 1, `hits=1` | exit 0, `hits=0` | discriminates |
+| `W4` | `breakdownRow(… "combined-federal-total",` renamed | exit 1, `hits=1` | exit 0, `hits=0` | discriminates |
+| `W5` | `"combinedFederalLeg"` dropped from `SIMPLE_FIELDS` | exit 1, `hits=1` | exit 0, `hits=0` | discriminates |
+
+The `W4` blind set was enumerated rather than sampled. The three names the earlier round found blind
+are exactly the three that appear twice in the route because `SIMPLE_FIELDS` names them a second
+time — `combinedFederalLeg`, `combinedStateLeg`, `combinedTotalTax` — and each was probed
+individually. The other three reach the emitter at argument index 1 through `breakdownRow`, a
+different mechanism, and one of those was probed as a control. Mutating one member of a set proves
+nothing about the others, so all four call shapes were exercised.
+
+`W5` was also shown not to be redundant. Under the identical `SIMPLE_FIELDS` mutation, probing `W4`
+instead returned **exit 7 — no discrimination**, `CLAUSE_STATE=GREEN hits=0` on both sides. `W4` is
+provably blind to precisely the state `W5` was added for.
+
+### The disclosed reachability residual, judged
+
+The residual recorded above is real and correctly stated: neither `W4` nor `W5` proves a gated call
+is ever *reached*. Both derive over route source, and source cannot answer whether a branch executes.
+
+It is nonetheless acceptable for a `Verified` transition, and the reason is measured rather than
+argued. The property the static guards cannot supply is supplied one layer down, by the browser
+assertion that is blocking in CI. Both mutation classes the guards catch statically were replayed
+against `tests/lifetime-tax-combined.spec.mjs` on the bundled project:
+
+```
+label:   BUG016-residual gated call never reached -> browser spec must fail
+mutation: "combinedTotalTax", "combinedFederalLeg",  ->  "combinedTotalTax",
+red-exit: 1   red-summary:   6 passed (39.8s)
+green-exit: 0 green-summary: 8 passed (4.2s)
+discriminating: yes
+
+label:   BUG016-residual emitting call renamed -> browser spec must fail
+mutation: simpleValueNode("combinedFederalLeg",  ->  simpleValueNodeRenamed("combinedFederalLeg",
+red-exit: 1   red-summary:   3 passed (55.7s)
+green-exit: 0 green-summary: 8 passed (4.1s)
+discriminating: yes
+```
+
+A value that reaches no emitter, or reaches one that refuses it, does not reach the DOM, and the
+browser spec fails on it. That spec runs 8 cases inside the blocking suite, confirmed above in run
+`32857081607`. So the layering is: the static guards are an earlier and cheaper tripwire that fires
+at selftest time instead of after a 300s locator timeout in CI, and the browser spec remains the
+instrument of record for reachability. The guards were never the only line, and the residual does
+not leave the property unprotected — it names which layer owns it.
+
+The one condition that would change this judgement is the residual's own second clause: a carrier
+invocation deleted outright while both the list entry and the browser marker survive. That is caught
+by the browser spec too, for the same reason, but it is not caught by a static guard, and if the
+browser spec were ever narrowed the residual would become live. It is disclosed, not closed.
+
+### Verdict
+
+The row is ticked and `bug.md` moves to `Verified` on this round's authority, not the implementing
+round's.
+
 

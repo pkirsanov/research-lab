@@ -10,7 +10,8 @@
     "planningOnlyJustification": null,
     "specDependsOn": [],
     "certifiedAt": "2026-07-29T23:45:00Z",
-    "requiresRevalidation": false,
+    "requiresRevalidation": true,
+    "revalidationReason": "bubbles.spec-review classified this spec MAJOR_DRIFT: spec.md pins the migration corpus at a literal 26 rows (FR-050, AC-014/BS-002-014, UC pre/post, Gherkin) while the measured live value is 230 and growing, and spec.md still asserts 'Feature 002 remains not_started' while status is done. uservalidation.md '## Acceptance Execution Status' shows 0 of 10 acceptance journeys executed and no Human Acceptance Record exists. Two net-zero post-certification commits (0846fbf5c and its revert 86f948b4b) touch certified planning truth in the commit log; all tracked spec-002 files are sha256-identical to baseline fda2a9697~1. Certification is NOT current; this flag records that, and does not assert acceptance.",
     "milestones": [
         "current-graph",
         "owner-coverage",

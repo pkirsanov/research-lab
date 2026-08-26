@@ -1,0 +1,130 @@
+{
+  "version": 3,
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys",
+  "featureName": "BUG-007 Compose Brief Prototype-Sensitive Keys",
+  "createdAt": "2026-08-26T16:08:41Z",
+  "lastUpdatedAt": "2026-08-26T16:14:24Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/008-portfolio-survival-and-brief-lab",
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "flagsIntroduced": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "e41176758d5abe66d73596c66b54807bbb02eada",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "testPlan": "test-plan.json"
+  },
+  "execution": {
+    "activeAgent": "bubbles.bug",
+    "currentPhase": "bug",
+    "currentPhaseStatus": "route_required",
+    "substate": "reproduced_and_scoped",
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-26T16:08:41Z",
+    "completedAt": "2026-08-26T16:08:41Z",
+    "currentScope": "01-harden-caller-keyed-brief-aggregation",
+    "nextRequiredOwner": "bubbles.design",
+    "nextRequiredTarget": "design.md",
+    "nextRequiredReason": "Confirm the complete caller-key inventory and the narrow null-prototype plus own-membership design before scenario-first persistent test authorship. No source or persistent test change is authorized by this filing.",
+    "completedPhaseClaims": [],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      {
+        "scopeId": "01-harden-caller-keyed-brief-aggregation",
+        "scope": 1,
+        "status": "Not Started",
+        "dependsOn": []
+      }
+    ]
+  },
+  "completedScopes": [],
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scopeId": "01-harden-caller-keyed-brief-aggregation",
+        "status": "Not Started",
+        "certifiedAt": null
+      }
+    ]
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": { "mode": "off", "source": "repo-default" },
+    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
+    "autoCommit": { "mode": "on", "source": "operator-request" },
+    "lockdown": { "mode": "off", "source": "repo-default" },
+    "regression": { "mode": "protected-scenarios", "source": "workflow-forced" },
+    "validation": { "mode": "certification-required", "source": "repo-default" }
+  },
+  "modeTransitions": [],
+  "transitionRequests": [
+    {
+      "id": "BUG-007-ROUTE-001",
+      "status": "pending",
+      "fromAgent": "bubbles.bug",
+      "nextRequiredOwner": "bubbles.design",
+      "target": "design.md",
+      "reason": "The current-source normal and six-case hostile matrix is independently reproduced with cleanup. Confirm the complete map inventory and selected narrow representation boundary before test or source work."
+    }
+  ],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "at": "2026-08-26T16:08:41Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "filed-reproduced-inventoried-and-routed",
+      "note": "Bound Research Lab authority at control revision 230. Preserved the separate dirty parent Feature 008 scope and root test-plan transaction. Read the SEC-B006-S1 source finding and current composeBrief path. Executed a process-isolated normal plus six-case subject/domain matrix: normal output retained the four expected lanes and subjects; every __proto__, constructor, and toString subject/domain case returned no envelope, threw TypeError at categoriesBySubject indexOf, and mutated Object.prototype, Object, or Object.prototype.toString respectively; cleanup returned every target to none. Filed the complete BUG-007 packet with a one-scope null-prototype and own-membership design. No source, persistent test, parent artifact, push, delivery claim, human acceptance, or certification change was made.",
+      "phasesExecuted": ["bug"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-26T16:14:24Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "filing-gates-executed-repaired-and-rerun",
+      "note": "Artifact lint, traceability, and scope-context gates passed on first execution. Scenario-obligation lint initially refused three noncanonical trait names, and test-mechanism lint initially refused a high-risk normal scenario with only a perturbed-input control. Replaced the traits with pure-calculation and degraded-state, strengthened the normal scenario to an in-memory LANE_ORDER source mutation, and reran both refused gates at exit 0. All edits remained inside the BUG-007 packet; no product source, persistent test, parent Feature 008 artifact, certification, human acceptance, or push changed.",
+      "phasesExecuted": ["bug"],
+      "provenanceMode": "specialist"
+    }
+  ],
+  "addressedFindings": [
+    {
+      "id": "SEC-B006-S1-FILING",
+      "summary": "The high-severity finding is independently reproduced, classified, inventoried, and represented by a complete BUG-007 packet with persistent adversarial test obligations.",
+      "owner": "bubbles.bug",
+      "status": "addressed",
+      "evidenceRef": "report.md#before-fix-reproduction"
+    }
+  ],
+  "unresolvedFindings": [
+    {
+      "id": "SEC-B006-S1-IMPLEMENTATION",
+      "summary": "Product source and persistent regression tests remain unchanged by instruction. Design ownership must confirm the packet, then test ownership must record persistent RED before implementation.",
+      "owner": "bubbles.design",
+      "status": "route_required",
+      "evidenceRef": "design.md"
+    }
+  ]
+}

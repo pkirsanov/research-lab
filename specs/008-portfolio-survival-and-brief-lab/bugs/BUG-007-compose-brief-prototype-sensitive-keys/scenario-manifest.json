@@ -1,0 +1,190 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys",
+  "generatedAt": "2026-08-26T16:08:41Z",
+  "generatedBy": "bubbles.bug",
+  "provenance": "Initial full-packet scenario contract grounded in current-source normal and hostile-key reproduction. All test links remain planned; no persistent test, implementation, human acceptance, or certification is claimed.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-B007-NORMAL-COMPATIBILITY",
+      "scopeId": "01-harden-caller-keyed-brief-aggregation",
+      "scope": 1,
+      "title": "Normal brief output and refusals do not move",
+      "gherkin": {
+        "given": "the committed four-lane brief fixture and existing invalid-input controls",
+        "when": "composeBrief evaluates the ordinary fixture after caller-keyed map hardening",
+        "then": "it returns ok true with lane order held watchlist completedResearch inferredRelevance, subject order MSFT BND ZZTOP semiconductors, and unchanged local and shared-policy refusal precedence"
+      },
+      "status": "planned",
+      "behaviorClass": "business-logic",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional", "e2e-ui"],
+      "regressionRequired": true,
+      "riskTier": "high",
+      "requirementRefs": ["FR-B007-006", "AC-1"],
+      "findingRefs": ["SEC-B006-S1"],
+      "behaviorTraits": ["pure-calculation"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The exported production composer returns the exact ordinary lane and subject order from the committed fixture.",
+          "satisfiedBy": ["TP-B007-001"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlportfoliobrief.js#composeBrief", "portfolio-survival-allocation-lab.html#composeBrief"],
+        "negativeControl": "An in-memory source mutation that swaps the held and watchlist entries in LANE_ORDER must fail the exact normal-order assertion while the unmodified source retains its refusal controls.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["rlportfoliobrief.js#composeBrief"],
+      "testRows": ["TP-B007-001", "TP-B007-005", "TP-B007-006"],
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-brief.functional.mjs",
+          "testId": "BUG-007: normal brief order and refusal precedence remain unchanged",
+          "testPlanRow": "TP-B007-001",
+          "coverageStatus": "planned",
+          "evidenceRef": "report.md#tp-b007-001"
+        }
+      ],
+      "expectedAssertions": [
+        "normal composition returns ok true",
+        "lane and subject order match the committed control",
+        "existing refusal code reason field and precedence do not move"
+      ],
+      "evidenceRefs": ["report.md#before-fix-reproduction", "report.md#tp-b007-001"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B007-SUBJECT-KEY-SAFETY",
+      "scopeId": "01-harden-caller-keyed-brief-aggregation",
+      "scope": 1,
+      "title": "Prototype-sensitive completion subjects are ordinary keys",
+      "gherkin": {
+        "given": "a completion subject is __proto__ constructor or toString and shared built-ins are snapshotted",
+        "when": "exported composeBrief evaluates the complete subject matrix",
+        "then": "every call returns through the declared result contract without throwing, treats the subject as an own key with actual evidence and no-action state, keeps absent owner and prior-evidence entries absent, changes no shared built-in, and leaves no cleanup residue"
+      },
+      "status": "planned",
+      "behaviorClass": "security-boundary",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional", "e2e-ui"],
+      "regressionRequired": true,
+      "riskTier": "high",
+      "requirementRefs": ["FR-B007-001", "FR-B007-002", "FR-B007-004", "FR-B007-005", "FR-B007-007", "AC-2", "AC-4", "AC-5"],
+      "findingRefs": ["SEC-B006-S1"],
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "One persistent matrix executes all three exact subject strings through exported composeBrief and asserts own-key output.",
+          "satisfiedBy": ["TP-B007-000", "TP-B007-002", "TP-B007-005"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "No hostile subject throws or escapes the declared result contract, and absent caller lookup entries remain absent.",
+          "satisfiedBy": ["TP-B007-002"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlportfoliobrief.js#distinctCount", "rlportfoliobrief.js#composeBrief"],
+        "negativeControl": "Restoring the caller-keyed maps to ordinary object allocation must reproduce a throw or built-in mutation for the exact subject matrix.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["rlportfoliobrief.js#distinctCount", "rlportfoliobrief.js#composeBrief"],
+      "testRows": ["TP-B007-000", "TP-B007-002", "TP-B007-004", "TP-B007-005"],
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-brief.functional.mjs",
+          "testId": "BUG-007: prototype-sensitive completion subjects are safe own keys",
+          "testPlanRow": "TP-B007-002",
+          "coverageStatus": "planned",
+          "evidenceRef": "report.md#tp-b007-002"
+        }
+      ],
+      "expectedAssertions": [
+        "all three subject keys return without throw",
+        "all three subject keys remain own data",
+        "shared built-ins and cleanup state remain unchanged"
+      ],
+      "evidenceRefs": ["report.md#before-fix-reproduction", "report.md#tp-b007-002", "report.md#tp-b007-004"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B007-DOMAIN-KEY-SAFETY",
+      "scopeId": "01-harden-caller-keyed-brief-aggregation",
+      "scope": 1,
+      "title": "Prototype-sensitive completion domains are ordinary keys",
+      "gherkin": {
+        "given": "a completion domain is __proto__ constructor or toString, completions span the existing count and distinct-date floor, and shared built-ins are snapshotted",
+        "when": "exported composeBrief evaluates the complete domain matrix",
+        "then": "every call returns through the declared result contract without throwing, treats the domain as an own inferred-domain key using actual support, changes no shared built-in, and leaves no cleanup residue"
+      },
+      "status": "planned",
+      "behaviorClass": "security-boundary",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional", "e2e-ui"],
+      "regressionRequired": true,
+      "riskTier": "high",
+      "requirementRefs": ["FR-B007-001", "FR-B007-003", "FR-B007-004", "FR-B007-007", "AC-3", "AC-4", "AC-5"],
+      "findingRefs": ["SEC-B006-S1"],
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "One persistent matrix executes all three exact domain strings through exported composeBrief and asserts actual support counts and distinct dates.",
+          "satisfiedBy": ["TP-B007-000", "TP-B007-003", "TP-B007-005"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "No hostile domain throws or escapes the declared result contract.",
+          "satisfiedBy": ["TP-B007-003"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlportfoliobrief.js#composeBrief"],
+        "negativeControl": "Restoring the caller-keyed maps to ordinary object allocation must reproduce a throw or built-in mutation for the exact domain matrix.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["rlportfoliobrief.js#composeBrief"],
+      "testRows": ["TP-B007-000", "TP-B007-003", "TP-B007-004", "TP-B007-005"],
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-brief.functional.mjs",
+          "testId": "BUG-007: prototype-sensitive completion domains are safe own keys",
+          "testPlanRow": "TP-B007-003",
+          "coverageStatus": "planned",
+          "evidenceRef": "report.md#tp-b007-003"
+        }
+      ],
+      "expectedAssertions": [
+        "all three domain keys return without throw",
+        "all three domain keys use actual support counts and dates",
+        "shared built-ins and cleanup state remain unchanged"
+      ],
+      "evidenceRefs": ["report.md#before-fix-reproduction", "report.md#tp-b007-003", "report.md#tp-b007-004"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    }
+  ]
+}

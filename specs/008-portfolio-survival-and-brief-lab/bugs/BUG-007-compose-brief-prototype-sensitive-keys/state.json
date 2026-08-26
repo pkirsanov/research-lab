@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys",
   "featureName": "BUG-007 Compose Brief Prototype-Sensitive Keys",
   "createdAt": "2026-08-26T16:08:41Z",
-  "lastUpdatedAt": "2026-08-26T18:01:47Z",
+  "lastUpdatedAt": "2026-08-26T18:19:33Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,20 +29,20 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.regression",
-    "currentPhase": "regression",
+    "activeAgent": "bubbles.simplify",
+    "currentPhase": "simplify",
     "currentPhaseStatus": "route_required",
-    "substate": "independently_verified",
+    "substate": "no-change-simplification-verified",
     "executionModel": "direct-authorized-runner",
     "parentAgent": "bubbles.bug",
-    "runStartedAt": "2026-08-26T17:52:24Z",
-    "completedAt": "2026-08-26T18:01:47Z",
+    "runStartedAt": "2026-08-26T18:16:36Z",
+    "completedAt": "2026-08-26T18:19:33Z",
     "currentScope": "01-harden-caller-keyed-brief-aggregation",
-    "nextRequiredOwner": "bubbles.simplify",
-    "nextRequiredTarget": "BUG-007 bounded source and persistent carrier complexity review",
-    "nextRequiredReason": "Independent regression passed the focused functional carrier 34 of 34, in-memory mutation carrier 2 of 2, and real browser carrier 19 of 19; bugfix regression quality found zero violations or warnings, all 9 scenario links resolve, source/test bytes are unchanged, and the test-owned 16-identity scoped receipt closure is current. The global strict receipt checker remains truthfully red on 22 stale and 42 unknown unrelated historical identities. Simplify is the next registered bugfix-fastlane owner; acceptance, DoD, TP-B007-011, validation, certification, and terminal status remain open.",
-    "completedPhaseClaims": ["design", "plan", "implement", "test", "regression"],
-    "pendingTransitionRequests": ["BUG-007-ROUTE-007"],
+    "nextRequiredOwner": "bubbles.gaps",
+    "nextRequiredTarget": "BUG-007 residual gap inventory and ownership reconciliation",
+    "nextRequiredReason": "Simplify reviewed the exact d49a2955b implementation diff and all three persistent carriers across reuse, quality, naming, and efficiency. The direct Object.create(null) and Object.prototype.hasOwnProperty.call sites are already the smallest auditable behavior-preserving form, so no source or test edit was made. Fresh focused functional 34 of 34, in-memory mutation 2 of 2, regression quality 0 violations and 0 warnings, and source/test/parent byte-integrity checks passed. Gaps is the next registered bugfix-fastlane owner; acceptance, DoD, TP-B007-011, global receipt closure, validation, certification, and terminal status remain open.",
+    "completedPhaseClaims": ["design", "plan", "implement", "test", "regression", "simplify"],
+    "pendingTransitionRequests": ["BUG-007-ROUTE-008"],
     "scopeInventory": [
       {
         "scopeId": "01-harden-caller-keyed-brief-aggregation",
@@ -129,11 +129,19 @@
     },
     {
       "id": "BUG-007-ROUTE-007",
-      "status": "pending",
+      "status": "completed",
       "fromAgent": "bubbles.regression",
       "nextRequiredOwner": "bubbles.simplify",
       "target": "rlportfoliobrief.js and the three persistent BUG-007 carriers",
       "reason": "The independent regression phase is clean across the exact 200-line implementation diff, 34-test functional carrier, 2-test in-memory mutation carrier, 19-test real-browser carrier, all 9 scenario links, shared Feature 008 composer contracts, and unchanged source/test bytes. Review the bounded source and carrier surface for simplification without changing behavior or planner-owned, human-owned, validation-owned, or certification artifacts."
+    },
+    {
+      "id": "BUG-007-ROUTE-008",
+      "status": "pending",
+      "fromAgent": "bubbles.simplify",
+      "nextRequiredOwner": "bubbles.gaps",
+      "target": "BUG-007 residual gap inventory and ownership reconciliation",
+      "reason": "The exact source delta and three persistent carriers were reviewed for reuse, quality, naming, and efficiency. Direct null-prototype allocation and own-property membership are already the simplest auditable form; no source or test edit was made. Fresh functional 34 of 34, mutation 2 of 2, regression-quality, post-mutation byte-integrity, and protected-parent checks pass. Review remaining gap ownership without changing acceptance, DoD, TP-B007-011, global receipt closure, validation, certification, or terminal status."
     }
   ],
   "reworkQueue": [],
@@ -210,6 +218,17 @@
       "provenanceMode": "specialist",
       "statusBefore": "in_progress",
       "runStartedAt": "2026-08-26T17:52:24Z"
+    },
+    {
+      "at": "2026-08-26T18:19:33Z",
+      "agent": "bubbles.simplify",
+      "phase": "simplify",
+      "action": "no-change-simplification-verified-and-routed-to-gaps",
+      "note": "Confirmed Research Lab authority at control revision 242 and preserved all 59 protected parent Feature 008 scope, report, and root test-plan paths at aggregate Git-object manifest sha256 f9c9c4a25f14a2e857fc5390696a451f790bbf85869c286fc87049c409e220fb. Reviewed the exact d49a2955b rlportfoliobrief.js diff and the functional, real-browser, and in-memory mutation carriers through independent reuse, quality, and efficiency passes. Found the direct Object.create(null) and Object.prototype.hasOwnProperty.call form already minimal and explicitly required for local security auditability, so no source or test edit was made and the browser carrier was not rerun. Fresh focused functional passed 34 of 34; mutation integrity passed 2 of 2; regression quality found zero violations and zero warnings; source, all three carriers, and the shared injector retained their exact sha256 values before and after mutation. Changed only simplify-owned report and execution state, completed route 007, and routed route 008 to bubbles.gaps. Acceptance, DoD, structured Test Plan statuses, TP-B007-011, global receipt closure, validation, certification, scope/spec status, and push remain unchanged.",
+      "phasesExecuted": ["simplify"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T18:16:36Z"
     }
   ],
   "addressedFindings": [
@@ -261,6 +280,13 @@
       "owner": "bubbles.regression",
       "status": "addressed",
       "evidenceRef": "report.md#bug007-regression-phase"
+    },
+    {
+      "id": "SEC-B006-S1-SIMPLIFY",
+      "summary": "Independent reuse, quality, and efficiency review found the direct null-prototype allocations and own-property checks already form the smallest auditable implementation; fresh focused, mutation, carrier-quality, and byte-integrity checks pass with no source or test edit.",
+      "owner": "bubbles.simplify",
+      "status": "addressed",
+      "evidenceRef": "report.md#bug007-simplify-phase"
     }
   ],
   "unresolvedFindings": []

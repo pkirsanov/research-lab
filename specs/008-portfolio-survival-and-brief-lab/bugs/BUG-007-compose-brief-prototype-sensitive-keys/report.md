@@ -42,15 +42,28 @@
 - Confirmed the test owner's scoped receipt closure is current at 16 of 16 while
   the canonical global strict checker truthfully remains red with 22 stale and
   42 unknown historical identities outside this bug boundary.
+- Reviewed the exact implementation diff and all three persistent carriers for
+  reuse, code quality, naming, and efficiency under `bubbles.simplify`.
+- Kept the direct `Object.create(null)` and
+  `Object.prototype.hasOwnProperty.call()` sites unchanged because each site
+  exposes the security invariant that a helper or compressed expression would
+  hide; no behavior-preserving simplification was clearer or smaller.
+- Reran the focused functional carrier at 34 of 34 and the in-memory mutation
+  carrier at 2 of 2, then revalidated all three carriers through bugfix
+  regression quality with zero violations or warnings.
+- Verified source and carrier bytes remained unchanged before and after the
+  mutation run. The browser carrier was not rerun because simplify changed no
+  source, test, browser contract, or behavior.
 - Kept the parent Feature 008 scope and root test-plan transaction untouched.
 
 ## Completion Statement
 
-The bounded implementation, test, and independent regression checks are GREEN
-at the current tree. Regression routes to `bubbles.simplify`; later quality
-phases, human acceptance, TP-B007-011, and validate-owned certification remain
-explicit gates. Packet status remains `in_progress`; no human-acceptance item,
-DoD checkbox, structured Test Plan status, certification field, scope terminal
+The bounded implementation, test, independent regression, and simplify checks
+are GREEN at the current tree. Simplify found the direct security form already
+minimal and routes to `bubbles.gaps`; later quality phases, human acceptance,
+TP-B007-011, and validate-owned certification remain explicit gates. Packet
+status remains `in_progress`; no human-acceptance item, DoD checkbox, structured
+Test Plan status, global receipt closure, certification field, scope terminal
 status, or spec terminal status is changed.
 
 ## Test Evidence
@@ -983,6 +996,129 @@ Route `BUG-007-ROUTE-006` is complete. The required next owner is
 acceptance, DoD, scope/spec terminal status, TP-B007-011, validation, and
 certification remain untouched.
 
+## Simplify Phase {#bug007-simplify-phase}
+
+**Phase:** simplify
+**Claim Source:** interpreted
+**Interpretation:** The exact `d49a2955b` source delta and the functional,
+browser, and mutation carriers contain no behavior-preserving simplification
+that is clearer than the current direct form. The apparent repetition is the
+designed audit surface: every caller-keyed map declaration and every membership
+decision states its inheritance boundary locally. Hiding those sites behind a
+helper, relying on truthiness, or sharing harness helpers across Node and browser
+runtimes would reduce auditability or widen the change boundary. No source or
+test file was edited.
+
+### Three-Pass Review
+
+| Pass | Reviewed surface | Verdict |
+| --- | --- | --- |
+| Reuse | Exact 200-line implementation diff plus all direct null-prototype and own-membership sites | No missed reusable abstraction. A map or membership helper is explicitly rejected by design and would hide the security property. |
+| Quality | `distinctCount()`, `composeBrief()`, and the three persistent BUG-007 carrier blocks | Names and control flow match the security contract. Resolved owner, prior-evidence, support, category, horizon, and recency values avoid repeated reads without changing output semantics. |
+| Efficiency | Aggregation loops, per-subject projection, bounded hostile matrices, and three in-memory mutants | Runtime remains linear in inputs with constant-time own checks. Test work is bounded and environment-specific; extraction would add coupling without reducing production work. |
+
+No high, medium, or low simplify finding remained after aggregation. In
+particular, `resolvedOwner` and `resolvedPriorEvidenceIds` deliberately
+normalize own falsey values to `null`; compressing either expression would be
+less explicit and would invite forbidden inherited or fallback lookup.
+
+### Focused Functional Verification
+
+**Phase:** simplify
+**Executed:** YES
+**Command:** `cd ~/research-lab && timeout 300 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-007 simplify focused functional" -- timeout 240 node --test tests/portfolio-brief.functional.mjs`
+**Exit Code:** `0`
+**Claim Source:** executed
+
+```text
+# BUG-007 simplify focused functional
+$ timeout 240 node --test tests/portfolio-brief.functional.mjs
+exit: 0
+lines: 214
+sha256: 6ebdc0c83c0fe3b8821da621cb7d191d69c5bc22647be06585e433d6a522c524
+--- first 20 ---
+TAP version 13
+# Subtest: only an eligible completion becomes behavior evidence and no excluded source can create or grow one
+ok 1 - only an eligible completion becomes behavior evidence and no excluded source can create or grow one
+  ---
+  duration_ms: 330.606699
+  type: 'test'
+  ...
+--- omitted 174 line(s); sha256 above covers the full output ---
+--- last 20 ---
+ok 33 - Adversarial: reduced brief evidence policy and API cannot satisfy the complete contract
+ok 34 - Regression: BUG-004 same-semantic occurrences cannot inflate relevance
+1..34
+# tests 34
+# suites 0
+# pass 34
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1057.411404
+```
+
+The focused carrier directly preserves normal lane and subject order, all six
+hostile subject/domain cases, own-versus-inherited caller lookups, no-throw
+behavior, and descriptor-level built-in integrity.
+
+### Mutation, Byte, Carrier, And Parent Integrity
+
+**Phase:** simplify
+**Executed:** YES
+**Commands:**
+
+- `cd ~/research-lab && timeout 240 node --test tests/portfolio-test-integrity.unit.mjs`
+- pre-run and post-run `sha256sum` plus `git diff --exit-code` over `rlportfoliobrief.js`, all three persistent carriers, and the shared injector
+- `cd ~/research-lab && timeout 600 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/portfolio-brief.functional.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-test-integrity.unit.mjs`
+- pre-run and post-run Git-object manifest comparison over all protected parent Feature 008 scope files, report files, and root `test-plan.json`
+
+**Exit Codes:** all `0`
+**Claim Source:** executed
+
+```text
+PASS Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing
+PASS BUG-007: caller-key protections and normal ordering are load-bearing in memory
+tests 2
+suites 0
+pass 2
+fail 0
+cancelled 0
+skipped 0
+todo 0
+d8fa7cf2a0fe437039f49cef2f84e97693a776088c086d6f86f21ca1f913e8c0  rlportfoliobrief.js
+a8d963a9feec48cb331eebc871f742f2784aa0676ca26d7ad211ef0d35d60b63  tests/portfolio-brief.functional.mjs
+d4db00741c5efee7f63acc630d012fc6400dd91fa963e3ab66082355629b3b46  tests/portfolio-survival-brief.spec.mjs
+e8f2eb90856588f5ec7cb4598b1d960f771d864c19135e1aa0967b8323594fce  tests/portfolio-test-integrity.unit.mjs
+dfa9231cab23bc0c97ccb601ece72d185743649a2de4801236f4c7a6489d0e2f  tests/portfolio-defect-injector.cjs
+source_commit_diff_exit=0
+carrier_commit_diff_exit=0
+working_tree_diff_exit=0
+POST_MUTATION_SOURCE_TEST_INTEGRITY=clean
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 3
+Files with adversarial signals: 3
+PROTECTED_PATH_COUNT=59
+PROTECTED_MANIFEST_EXPECTED=f9c9c4a25f14a2e857fc5390696a451f790bbf85869c286fc87049c409e220fb
+PROTECTED_MANIFEST_CURRENT=f9c9c4a25f14a2e857fc5390696a451f790bbf85869c286fc87049c409e220fb
+PROTECTED_PARENT_BYTES_MATCH=true
+```
+
+The mutation carrier still removes one representative null-prototype
+allocation, one own-owner check, and the exact lane order in memory. Every
+mutant turns its targeted title red while the shipped source and carriers stay
+byte-identical. The protected parent Feature 008 transaction also retained its
+aggregate manifest exactly.
+
+### Simplify Verdict And Routing
+
+`NO_SIMPLIFICATION_CHANGE_REQUIRED`. Route `BUG-007-ROUTE-007` is complete.
+The required next owner is `bubbles.gaps` for the registered bugfix-fastlane
+gap review. Human acceptance, every DoD checkbox, structured Test Plan status,
+TP-B007-011, global receipt closure, validation, certification, scope/spec
+status, and push remain untouched.
+
 ## Code Diff Evidence
 
 The implementation commit changes only `rlportfoliobrief.js` plus this BUG-007
@@ -1030,16 +1166,17 @@ of `SEC-B006-S1`.
 
 ```yaml
 outcome: route_required
-currentOwner: bubbles.regression
-nextRequiredOwner: bubbles.simplify
+currentOwner: bubbles.simplify
+nextRequiredOwner: bubbles.gaps
 bug: BUG-007-compose-brief-prototype-sensitive-keys
 addressedFindings:
   - SEC-B006-S1-IMPLEMENTATION
   - SEC-B006-S1-TEST
   - SEC-B006-S1-REGRESSION
+  - SEC-B006-S1-SIMPLIFY
 unresolvedFindings: []
 evidence:
+  - report.md#bug007-simplify-phase
   - report.md#bug007-regression-phase
-  - report.md#bug007-current-receipt-integrity
-reason: Independent regression is clean across the delivered source, all three persistent carriers, shared consumers, and scoped current receipts; simplify is the next registered owner while global strict receipt history, acceptance, TP-B007-011, certification, and terminal status remain truthfully unchanged.
+reason: The direct auditable security form is already the simplest behavior-preserving implementation; focused functional, mutation, carrier-quality, and byte-integrity checks pass, so gaps is next while acceptance, DoD, TP-B007-011, global receipt closure, validation, certification, and terminal status remain truthfully unchanged.
 ```

@@ -66,7 +66,8 @@ async function buildRegistryFreeze() {
 
 const { evidence, frozen } = await buildRegistryFreeze();
 
-test('every derived source adapter emits exactly one truthful production ToolModelRead outcome', () => {
+// The 22 in this title is a stale historical label; the assertions below derive every count from the registry.
+test('all observed 22 source adapters emit truthful production ToolModelRead outcomes', () => {
     // The frozen registry derives exactly the source IDs (aggregator excluded) in registry order. Pinning
     // a registry SIZE here would only re-pin the drift this suite exists to reject, so every count below
     // is relational.

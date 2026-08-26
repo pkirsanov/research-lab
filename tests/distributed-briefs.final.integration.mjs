@@ -28,7 +28,8 @@ function readRealRegistry() {
   return JSON.parse(require('node:fs').readFileSync(new URL('../tools.json', import.meta.url), 'utf8'));
 }
 
-test('complete final input consumes every derived owner-read and source-brief outcome after the barrier', async () => {
+// The 23/22 in this title is a stale historical label; the assertions below derive every count from the registry.
+test('complete 23-participant final input consumes all 22 owner-read and source-brief outcomes after the barrier', async () => {
   const registry = readRealRegistry();
   const frozen = RLCONTRACTS.validateRegistry(registry, registryConfig()).value;
   // Counts are DERIVED from the live entries, never controlling literals: pinning a registry SIZE here

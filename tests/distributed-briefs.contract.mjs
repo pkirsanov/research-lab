@@ -257,7 +257,8 @@ function addedSourceEntry() {
   };
 }
 
-test('SCN-002-001: registry derives participant and source counts from the live entries with one non-recursive aggregator', () => {
+// The 23/22 in this title is a stale historical label; the assertions below derive every count from the registry.
+test('SCN-002-001: registry derives 23 participants 22 sources and one non-recursive aggregator', () => {
   const registry = loadRegistry();
   const result = RLCONTRACTS.validateRegistry(registry, registryConfig());
   assert.equal(result.ok, true, result.ok ? '' : JSON.stringify(result.error));
@@ -344,7 +345,8 @@ test('SCN-002-002: profile status applicability privacy and eligibility boundari
   assert.equal(RLDATA.validateToolModelRead(rawEligible).reason, 'action-eligibility-without-owner-interpretation');
 });
 
-test('SCN-002-003: added-source mutation derives exactly one more participant and one more source generically', () => {
+// The 24/23 in this title is a stale historical label; the assertions below derive every count from the registry.
+test('SCN-002-003: added-source mutation derives 24 participants and 23 sources generically', () => {
   const registry = loadRegistry();
   const baseline = RLCONTRACTS.validateRegistry(registry, registryConfig());
   assert.equal(baseline.ok, true, baseline.ok ? '' : JSON.stringify(baseline.error));

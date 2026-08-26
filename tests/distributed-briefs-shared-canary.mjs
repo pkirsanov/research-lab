@@ -53,7 +53,8 @@ function registryConfig() {
     };
 }
 
-test('Canary: observed registry links keep their identity and order under append-only growth with one Market Brief aggregator', () => {
+// The 28 in this title is a stale historical label; the assertions below derive every count from the registry.
+test('Canary: observed registry retains 28 ordered links and one Market Brief aggregator', () => {
     // The additive briefing metadata never changes registry identity, order, files, labels, or links.
     const ids = registry.tools.map((entry) => entry.id);
     // Growth is APPENDED, never absorbed: every historically observed link keeps its exact identity and

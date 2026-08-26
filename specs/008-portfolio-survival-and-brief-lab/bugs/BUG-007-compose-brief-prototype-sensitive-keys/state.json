@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys",
   "featureName": "BUG-007 Compose Brief Prototype-Sensitive Keys",
   "createdAt": "2026-08-26T16:08:41Z",
-  "lastUpdatedAt": "2026-08-26T16:31:23Z",
+  "lastUpdatedAt": "2026-08-26T16:44:42Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,20 +29,20 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.design",
-    "currentPhase": "design",
+    "activeAgent": "bubbles.plan",
+    "currentPhase": "plan",
     "currentPhaseStatus": "route_required",
-    "substate": "design_reconciled",
+    "substate": "plan_reconciled",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
-    "runStartedAt": "2026-08-26T16:27:02Z",
-    "completedAt": "2026-08-26T16:31:23Z",
+    "runStartedAt": "2026-08-26T16:41:19Z",
+    "completedAt": "2026-08-26T16:44:42Z",
     "currentScope": "01-harden-caller-keyed-brief-aggregation",
-    "nextRequiredOwner": "bubbles.plan",
-    "nextRequiredTarget": "scopes.md, scenario-manifest.json, test-plan.json",
-    "nextRequiredReason": "Reconcile the existing one-scope plan with direct own-property membership at every affected map read, the real UI-reachable constructor subject, and the existing test-integrity mutation carrier. Preserve the six-case direct-export matrix and all current change exclusions.",
-    "completedPhaseClaims": ["design"],
-    "pendingTransitionRequests": [],
+    "nextRequiredOwner": "bubbles.test",
+    "nextRequiredTarget": "tests/portfolio-brief.functional.mjs, tests/portfolio-survival-brief.spec.mjs, tests/portfolio-test-integrity.unit.mjs",
+    "nextRequiredReason": "Author the persistent functional, browser, and in-memory mutation carriers first, then execute the six direct exported hostile composeBrief cases RED against unchanged rlportfoliobrief.js with cleanup proven before routing source implementation.",
+    "completedPhaseClaims": ["design", "plan"],
+    "pendingTransitionRequests": ["BUG-007-ROUTE-003"],
     "scopeInventory": [
       {
         "scopeId": "01-harden-caller-keyed-brief-aggregation",
@@ -89,11 +89,19 @@
     },
     {
       "id": "BUG-007-ROUTE-002",
-      "status": "pending",
+      "status": "completed",
       "fromAgent": "bubbles.design",
       "nextRequiredOwner": "bubbles.plan",
       "target": "scopes.md, scenario-manifest.json, test-plan.json",
       "reason": "The design confirms direct Object.create(null) allocation with direct own-property membership, preserves accepted inherited-looking keys and all ordering and envelope behavior, distinguishes browser-global coverage from the user-visible constructor path, and assigns mutation proof to the existing test-integrity carrier. Reconcile the one-scope planning handoff before persistent RED authorship."
+    },
+    {
+      "id": "BUG-007-ROUTE-003",
+      "status": "pending",
+      "fromAgent": "bubbles.plan",
+      "nextRequiredOwner": "bubbles.test",
+      "target": "tests/portfolio-brief.functional.mjs, tests/portfolio-survival-brief.spec.mjs, tests/portfolio-test-integrity.unit.mjs",
+      "reason": "The authoritative one-scope plan now requires scenario-first RED for all six direct exported hostile subject/domain cases, normal order controls, no throw, no shared built-in mutation, unconditional cleanup, the real browser-visible constructor workflow, and an exact one-anchor in-memory mutation proof without tracked-source mutation. Author and execute those persistent tests before any rlportfoliobrief.js change."
     }
   ],
   "reworkQueue": [],
@@ -126,6 +134,17 @@
       "provenanceMode": "specialist",
       "statusBefore": "in_progress",
       "runStartedAt": "2026-08-26T16:27:02Z"
+    },
+    {
+      "at": "2026-08-26T16:44:42Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "action": "one-scope-plan-reconciled-and-routed-to-persistent-red",
+      "note": "Confirmed Research Lab repository authority at control revision 232 and reconciled the one vertical scope, scenario manifest, and structured test plan to design commit 454d7be4c81e2756a1d9dd6632f5d532e024c522. The plan names rlportfoliobrief.js and the persistent functional, browser, and test-integrity carriers; requires all six direct exported hostile subject/domain cases, normal controls, no throw, no Object.prototype/Object/Object.prototype.toString mutation, exact ordering, unconditional cleanup, the contract-reachable visible constructor workflow, and an exact one-anchor in-memory mutation without tracked-source writes. Artifact lint, traceability, scenario obligations, mechanism coherence, scope context fit, implementation reality, and Gate G094 passed in this plan run. All DoD, persistent test execution, human acceptance, source implementation, and certification remain incomplete. No push occurred.",
+      "phasesExecuted": ["bootstrap"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T16:41:19Z"
     }
   ],
   "addressedFindings": [
@@ -142,15 +161,22 @@
       "owner": "bubbles.design",
       "status": "addressed",
       "evidenceRef": "design.md"
+    },
+    {
+      "id": "SEC-B006-S1-PLAN",
+      "summary": "The authoritative design is represented by one vertical scope with synchronized scenario and structured test handoffs, exact source and persistent carrier paths, a reachable visible constructor workflow, and in-memory mutation adequacy.",
+      "owner": "bubbles.plan",
+      "status": "addressed",
+      "evidenceRef": "scopes.md"
     }
   ],
   "unresolvedFindings": [
     {
-      "id": "SEC-B006-S1-IMPLEMENTATION",
-      "summary": "Product source and persistent regressions remain unchanged by instruction. Planning must reconcile the visible constructor path and test-integrity mutation consumer before test ownership records persistent RED.",
-      "owner": "bubbles.plan",
+      "id": "SEC-B006-S1-PERSISTENT-RED",
+      "summary": "The three persistent test carriers remain unchanged and the required scenario-first RED has not been executed. Test ownership must author the six-case direct-export matrix, visible constructor workflow, and in-memory mutation adequacy before source implementation.",
+      "owner": "bubbles.test",
       "status": "route_required",
-      "evidenceRef": "design.md"
+      "evidenceRef": "test-plan.json"
     }
   ]
 }

@@ -3,7 +3,7 @@
 **Layout:** single-file
 **Mode:** `bugfix-fastlane`
 **Packet status:** `in_progress`
-**Next required owner:** `bubbles.design`
+**Next required owner:** `bubbles.test`
 
 [Spec](spec.md) | [Design](design.md) | [Report](report.md) |
 [User validation](uservalidation.md) |
@@ -17,19 +17,11 @@ dirty parent Feature 008 scope and root test-plan transaction is excluded.
 
 ### Phase Order
 
-1. `bubbles.design` confirms the complete caller-key inventory and the selected
-   null-prototype/own-membership boundary.
-2. `bubbles.plan` confirms scenario and Test Plan ownership without touching
-   the parent Feature 008 transaction.
-3. `bubbles.test` adds the persistent functional and browser regressions, then
-   records a focused RED result against unchanged source with cleanup proven.
-4. `bubbles.implement` changes only the planned map allocations and membership
-   reads.
-5. `bubbles.test` reruns the unchanged focused carrier, browser carrier,
-   broader Feature 008 browser matrix, repository selftest, and mutation
-   control.
-6. Required quality phases and `bubbles.validate` complete before any terminal
-   status or certification change.
+1. **Scope 1 - Harden Caller-Keyed Brief Aggregation:** author the persistent
+  functional, browser, and test-integrity regressions first; observe all six
+  direct exported hostile cases RED against unchanged source; harden only
+  `rlportfoliobrief.js`; then rerun the unchanged focused, visible-browser,
+  mutation, broader-regression, selftest, and guard checks before validation.
 
 ### New Types And Signatures
 
@@ -39,17 +31,24 @@ dirty parent Feature 008 scope and root test-plan transaction is excluded.
 
 ### Validation Checkpoints
 
-1. The persistent hostile matrix is observed RED before source changes and
-   cleans all shared built-ins after every attempt.
-2. After implementation, all six hostile cases return without throw or shared
-   mutation and retain their own key identity.
-3. The ordinary four-lane fixture and refusal controls remain unchanged.
-4. A source mutation restoring ordinary maps turns the hostile matrix red.
-5. Browser, repository, and packet gates remain green.
+1. The persistent functional carrier is authored before implementation and all
+  six direct exported `composeBrief()` cases are observed RED against
+  unchanged source while `finally` cleanup restores shared built-ins.
+2. The in-memory defect injector removes exactly one representative
+  null-prototype or own-property protection, applies exactly once, and makes
+  the unchanged hostile regression fail without writing tracked source.
+3. After implementation, all six direct exported cases return without throw or
+  shared mutation, and normal lane and subject ordering remains exact.
+4. The real browser runtime repeats the six-case exported matrix and records
+  the contract-accepted `constructor` subject through the visible completion
+  controls without widening the recorder vocabulary.
+5. Broader Feature 008 browser regression, repository selftest, packet guards,
+  implementation-reality scan, human acceptance, and validate-owned
+  certification remain explicit gates before completion.
 
 | Scope | Outcome | Planned source and test paths | Status |
 | --- | --- | --- | --- |
-| 1 | Make all compose-brief caller-keyed aggregation inheritance-free | `rlportfoliobrief.js`, `tests/portfolio-brief.functional.mjs`, `tests/portfolio-survival-brief.spec.mjs` | Not Started |
+| 1 | Make all compose-brief caller-keyed aggregation inheritance-free | `rlportfoliobrief.js`, `tests/portfolio-brief.functional.mjs`, `tests/portfolio-survival-brief.spec.mjs`, `tests/portfolio-test-integrity.unit.mjs` | Not Started |
 
 ## Scope 1 - Harden Caller-Keyed Brief Aggregation
 
@@ -61,9 +60,13 @@ dirty parent Feature 008 scope and root test-plan transaction is excluded.
 
 ### Implementation Files
 
-- `rlportfoliobrief.js`
-- `tests/portfolio-brief.functional.mjs`
-- `tests/portfolio-survival-brief.spec.mjs`
+| Path | Planned role |
+| --- | --- |
+| `rlportfoliobrief.js` | Only product source allowed to change: harden `distinctCount()` and `composeBrief()` caller-keyed allocations and membership reads. |
+| `tests/portfolio-brief.functional.mjs` | Persistent scenario-first RED/GREEN carrier for normal controls, all six direct exported hostile cases, lookup-map ownership, no throw, built-in integrity, and cleanup. |
+| `tests/portfolio-survival-brief.spec.mjs` | Persistent real-browser carrier for the six direct exported cases plus the production-visible `constructor` completion path. |
+| `tests/portfolio-test-integrity.unit.mjs` | Persistent adversarial mutation carrier proving the focused assertions fail when one protection is removed in memory. |
+| `tests/portfolio-defect-injector.cjs` | Existing read-only in-memory mutation dependency; no tracked edit planned. |
 
 ### Change Boundary
 
@@ -73,9 +76,13 @@ Allowed implementation changes:
   allocations, the nested date-set allocation, and inherited reads of
   `owners` and `priorEvidenceIds`.
 - `tests/portfolio-brief.functional.mjs`: add the focused normal, hostile-key,
-  cleanup, own-membership, and source-mutation regressions.
+  cleanup, own-membership, and no-throw regressions.
 - `tests/portfolio-survival-brief.spec.mjs`: add the real-browser exported
-  module matrix and normal route non-movement assertions.
+  module matrix, the visible `constructor` recorder workflow, and normal route
+  non-movement assertions.
+- `tests/portfolio-test-integrity.unit.mjs`: add exact one-anchor in-memory
+  mutations for a representative map protection, caller-map own-membership,
+  and normal lane ordering.
 - this packet for phase-owned evidence and lifecycle fields.
 
 Excluded surfaces:
@@ -83,6 +90,8 @@ Excluded surfaces:
 - Parent Feature 008 scope files and root `test-plan.json`.
 - Sibling bugs, policy JSON, storage, data, navigation, registry, and route
   contracts.
+- Any tracked change to `tests/portfolio-defect-injector.cjs`; it is consumed
+  unchanged as the in-memory mutation mechanism.
 - Key blacklists, input coercion, fallback output, and catch-and-continue.
 - Unrelated maps or fixed-vocabulary lookups.
 
@@ -93,6 +102,8 @@ A required change outside this boundary must be routed before implementation.
 | Consumer | Required outcome |
 | --- | --- |
 | Direct `composeBrief()` callers | Dangerous subject/domain strings become ordinary own keys; no API shape change |
+| Browser-global `window.RLPORTFOLIOBRIEF.composeBrief` | The same six direct exported subject/domain cases retain UMD runtime parity without being mislabeled as user-enterable values |
+| Production completion recorder | Existing token rules stay unchanged; accepted lowercase `constructor` records through preview/confirm and becomes visible in the Brief |
 | Allocation lab brief route | Normal four-lane output and visible ordering remain unchanged |
 | `owners` input | Own entries remain readable; inherited entries remain absent |
 | `priorEvidenceIds` input | Own arrays remain readable; inherited values remain absent and never receive `.slice()` |
@@ -119,6 +130,7 @@ Scenario: SCN-B007-SUBJECT-KEY-SAFETY
   And absent owners and priorEvidenceIds entries remain absent
   And no shared built-in changes
   And cleanup leaves no process-global probe property
+  And recording the accepted constructor subject through the real browser completion controls renders it in the Brief without an uncaught page error
 
 Scenario: SCN-B007-DOMAIN-KEY-SAFETY
   Given a completion domain is __proto__, constructor, or toString
@@ -131,28 +143,42 @@ Scenario: SCN-B007-DOMAIN-KEY-SAFETY
   And cleanup leaves no process-global probe property
 ```
 
+### UI Scenario Matrix
+
+| Scenario | Preconditions | Steps | Expected visible result | Test type and persistent carrier |
+| --- | --- | --- | --- | --- |
+| `SCN-B007-NORMAL-COMPATIBILITY` | Allocation lab is open with the committed ordinary brief fixture | Open the Brief and inspect its rendered lane rows | Lane order remains `held,watchlist,completedResearch,inferredRelevance`; subject order remains `MSFT,BND,ZZTOP,semiconductors` | `e2e-ui`, `tests/portfolio-survival-brief.spec.mjs`, `TP-B007-006` and broader `TP-B007-007` |
+| `SCN-B007-SUBJECT-KEY-SAFETY` visible `constructor` path | Allocation lab is open and the production recorder accepts the lowercase token `constructor` | Enter `constructor` in `#behaviorSubject`, use the existing preview and confirm controls, rerender the Brief | A completed-research row or named no-action row visibly identifies `constructor`; the page remains responsive and emits no uncaught error | `e2e-ui`, `tests/portfolio-survival-brief.spec.mjs`, expected `test()` title `BUG-007: browser composer treats hostile keys as data and visible constructor remains operable`, `TP-B007-006` |
+
 ### Scenario Obligation Matrix
 
 | Scenario | Behavior traits | Required proof and rows | Implementation owners | Test mechanism and negative control |
 | --- | --- | --- | --- | --- |
-| `SCN-B007-NORMAL-COMPATIBILITY` | `pure-calculation` | `TP-B007-001` proves exact normal order and refusal non-movement; `TP-B007-006` proves the real route remains usable. | `rlportfoliobrief.js#composeBrief` | `public-function` + `recorded-fixture` + `returned-value`; an in-memory `LANE_ORDER` source mutation must fail the exact order assertion (`mutation`, high risk). |
-| `SCN-B007-SUBJECT-KEY-SAFETY` | `pure-calculation`, `degraded-state` | `TP-B007-000` records RED; `TP-B007-002` proves all subject keys; `TP-B007-004` proves load-bearing map safety; `TP-B007-005` repeats the contract in-browser. | `rlportfoliobrief.js#distinctCount`, `rlportfoliobrief.js#composeBrief` | `public-function` + `synthetic-fixture` + `returned-value`; reverting safe maps to `{}` must restore throw or mutation (`mutation`, high risk). |
-| `SCN-B007-DOMAIN-KEY-SAFETY` | `pure-calculation`, `degraded-state` | `TP-B007-000` records RED; `TP-B007-003` proves all domain keys and floors; `TP-B007-004` proves load-bearing map safety; `TP-B007-005` repeats the contract in-browser. | `rlportfoliobrief.js#composeBrief` | `public-function` + `synthetic-fixture` + `returned-value`; reverting safe maps to `{}` must restore throw or mutation (`mutation`, high risk). |
+| `SCN-B007-NORMAL-COMPATIBILITY` | `pure-calculation` | `TP-B007-001` proves exact normal order and refusal non-movement; `TP-B007-007` proves the broader real route remains usable. | `rlportfoliobrief.js#composeBrief` | `public-function` + `recorded-fixture` + `returned-value`; an exact one-anchor in-memory `LANE_ORDER` mutation must fail the normal-order assertion (`mutation`, high risk). |
+| `SCN-B007-SUBJECT-KEY-SAFETY` | `pure-calculation`, `degraded-state`, `user-visible-ui` | `TP-B007-000` records RED; `TP-B007-002` proves all subject keys; `TP-B007-004` proves lookup and built-in integrity; `TP-B007-005` proves load-bearing protection; `TP-B007-006` repeats the exported matrix in-browser and proves the visible `constructor` path. | `rlportfoliobrief.js#distinctCount`, `rlportfoliobrief.js#composeBrief`, `portfolio-survival-allocation-lab.html#completionDraft`, `portfolio-survival-allocation-lab.html#renderBrief` | `public-function` + `synthetic-fixture` + `returned-value` plus `production-route` + `ephemeral-real` + `visible-ui`; removing one safe allocation or own-property read in memory must restore throw, mutation, or inherited lookup (`mutation`, high risk). |
+| `SCN-B007-DOMAIN-KEY-SAFETY` | `pure-calculation`, `degraded-state` | `TP-B007-000` records RED; `TP-B007-003` proves all domain keys and floors; `TP-B007-004` proves built-in integrity; `TP-B007-005` proves load-bearing protection; `TP-B007-006` repeats the exported matrix in-browser. | `rlportfoliobrief.js#composeBrief` | `public-function` + `synthetic-fixture` + `returned-value`; removing one safe allocation in memory must restore throw or mutation (`mutation`, high risk). |
 
 ### Implementation Plan
 
-1. Add the focused persistent tests before source changes.
-2. Execute the focused carrier and record a non-zero RED result with cleanup
-   proven for every hostile call.
+1. Add the functional, browser, and test-integrity persistent tests before any
+  source change.
+2. Execute the focused functional carrier against unchanged source and record
+  a non-zero RED result for subject/domain `__proto__`, `constructor`, and
+  `toString`, with no escaped harness exception and `finally` cleanup proven
+  after every hostile call.
 3. Change all ten internal caller-keyed maps and nested date set to
    `Object.create(null)`.
 4. Resolve `owners` and `priorEvidenceIds` only through own membership.
 5. Keep every key value, count, floor, lane, sort, output field, and refusal
    expression otherwise unchanged.
-6. Execute the unchanged focused test matrix and source mutation control.
-7. Execute the real-browser scenario-specific regression and the broader
-   Feature 008 browser matrix.
-8. Execute the canonical repository selftest and packet guards.
+6. Execute the unchanged focused matrix and the persistent in-memory mutation
+  controls. Require exactly one applied substitution, a failing unchanged
+  regression, and unchanged tracked source/test content.
+7. Execute the real-browser exported six-case matrix and the visible
+  `constructor` preview/confirm/rerender workflow, then the broader Feature 008
+  browser matrix.
+8. Execute the canonical repository selftest, packet guard battery,
+  implementation-reality scan, human acceptance, and final transition guard.
 
 ### Browser Coverage Decision
 
@@ -161,20 +187,31 @@ The functional carrier provides the most direct RED/GREEN proof. The browser
 carrier invokes that same exported function in the real page runtime and is
 therefore direct environment-parity coverage rather than a mocked proxy.
 
+The authoritative completion recorder accepts lowercase letters, digits, and
+hyphens. The design traces `constructor` from `#behaviorSubject` through
+`completionDraft()` to the exported composer, so the browser carrier also uses
+the real preview and confirm controls and asserts a visible Brief row or named
+no-action row. The recorder rejects `__proto__` and `toString`, and the page
+fixes completion domains to `portfolio-research`; those four values and all
+three hostile domains remain direct browser-export cases only. This scope does
+not widen any production input contract.
+
 ### Test Plan
 
 | Plan ID | Test Type | Category | Live system | Persistent file | Required behavior | Command | State |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `TP-B007-000` | Pre-fix RED regression | `functional` | No | `tests/portfolio-brief.functional.mjs` | The newly authored subject/domain matrix fails against unchanged source while cleanup succeeds. | `timeout 240 node --test tests/portfolio-brief.functional.mjs` | Planned, not authored or run |
+| `TP-B007-000` | Scenario-first pre-fix RED | `functional` | No | `tests/portfolio-brief.functional.mjs` | Before source changes, the six direct exported cases (subject/domain each for `__proto__`, `constructor`, and `toString`) fail against unchanged source while the harness catches the call, inspects mutation, and proves `finally` cleanup. | `timeout 240 node --test tests/portfolio-brief.functional.mjs` | Planned, not authored or run |
 | `TP-B007-001` | Normal and refusal compatibility | `functional` | No | `tests/portfolio-brief.functional.mjs` | Normal lane/subject order and representative local/shared refusals do not move. | `timeout 240 node --test tests/portfolio-brief.functional.mjs` | Planned, not authored or run |
-| `TP-B007-002` | Subject-key adversarial regression | `functional` | No | `tests/portfolio-brief.functional.mjs` | `__proto__`, `constructor`, and `toString` as subjects are own keys, do not throw, and do not mutate shared built-ins. | `timeout 240 node --test tests/portfolio-brief.functional.mjs` | Planned, not authored or run |
-| `TP-B007-003` | Domain-key adversarial regression | `functional` | No | `tests/portfolio-brief.functional.mjs` | `__proto__`, `constructor`, and `toString` as domains use actual support floors, do not throw, and do not mutate shared built-ins. | `timeout 240 node --test tests/portfolio-brief.functional.mjs` | Planned, not authored or run |
-| `TP-B007-004` | Mutation and cleanup regression | `functional` | No | `tests/portfolio-brief.functional.mjs` | Cleanup runs even on RED; restoring ordinary maps makes the exact hostile matrix fail; mutating `LANE_ORDER` makes the exact normal-order assertion fail. | `timeout 240 node --test tests/portfolio-brief.functional.mjs` | Planned, not authored or run |
-| `TP-B007-005` | Scenario-specific Regression E2E | `e2e-ui` | Yes | `tests/portfolio-survival-brief.spec.mjs` | The real page runtime's exported composer passes the normal and hostile matrices with no shared mutation or throw. | `timeout 900 npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Existing carrier; scenario not authored or run |
-| `TP-B007-006` | Broader Regression E2E | `e2e-ui` | Yes | Feature 008 Playwright carriers | All existing Feature 008 user workflows remain green. | `timeout 1800 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Existing carriers; re-execution required after implementation |
-| `TP-B007-007` | Repository regression | `functional` | No | `scripts/selftest.mjs` | Canonical registered invariants remain green. | `timeout 1800 node scripts/selftest.mjs` | Existing check; re-execution required after implementation |
-| `TP-B007-008` | Packet guard battery | `artifact` | No | BUG-007 packet | Artifact shape, traceability, scenario obligations, test mechanism, and scope context are coherent. | See `test-plan.json` `CMD-B007-PACKET-GUARDS`. | Required for filing commit |
-| `TP-B007-009` | Transition guard | `guard` | No | BUG-007 packet | Completion contract passes only after implementation, tests, acceptance, and validate-owned certification are complete. | `timeout 600 bash .github/bubbles/scripts/state-transition-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys` | Planned for final validation only |
+| `TP-B007-002` | Subject-key adversarial regression | `functional` | No | `tests/portfolio-brief.functional.mjs` | The three direct exported subject cases are own keys with actual evidence/no-action behavior; each returns the declared result shape without throw or shared built-in mutation. | `timeout 240 node --test tests/portfolio-brief.functional.mjs` | Planned, not authored or run |
+| `TP-B007-003` | Domain-key adversarial regression | `functional` | No | `tests/portfolio-brief.functional.mjs` | The three direct exported domain cases use actual support counts and distinct-date floors; each returns the declared result shape without throw or shared built-in mutation. | `timeout 240 node --test tests/portfolio-brief.functional.mjs` | Planned, not authored or run |
+| `TP-B007-004` | Lookup, built-in, and cleanup regression | `functional` | No | `tests/portfolio-brief.functional.mjs` | Own hostile `owners`/`priorEvidenceIds` entries remain readable, inherited entries remain absent, `Object.prototype`, `Object`, and `Object.prototype.toString` remain unchanged, and cleanup is unconditional. | `timeout 240 node --test tests/portfolio-brief.functional.mjs` | Planned, not authored or run |
+| `TP-B007-005` | In-memory mutation adequacy | `unit` | No | `tests/portfolio-test-integrity.unit.mjs` | Using unchanged `tests/portfolio-defect-injector.cjs`, remove exactly one representative null-prototype or own-property protection in memory, require one applied substitution, prove the unchanged hostile regression fails, and verify no tracked source/test file is written; separately mutate lane order in memory and prove the exact normal-order assertion fails. | `timeout 240 node --test tests/portfolio-test-integrity.unit.mjs` | Planned, not authored or run |
+| `TP-B007-006` | Scenario-specific Regression E2E | `e2e-ui` | Yes | `tests/portfolio-survival-brief.spec.mjs` | The real page runtime's exported composer passes all six direct hostile cases with no throw/mutation and exact order, while the real preview/confirm controls accept `constructor` and render it in the Brief without an uncaught page error. | `timeout 900 npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Existing carrier; scenarios not authored or run |
+| `TP-B007-007` | Broader Regression E2E | `e2e-ui` | Yes | Feature 008 Playwright carriers | All existing Feature 008 user workflows remain green. | `timeout 1800 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Existing carriers; re-execution required after implementation |
+| `TP-B007-008` | Repository regression | `functional` | No | `scripts/selftest.mjs` | Canonical registered invariants remain green. | `timeout 1800 node scripts/selftest.mjs` | Existing check; re-execution required after implementation |
+| `TP-B007-009` | Planning and packet guard battery | `artifact` | No | BUG-007 packet | Artifact shape, traceability, scenario obligations, mechanism coherence, scope context fit, and capability-foundation proportionality are coherent. | See `test-plan.json` `CMD-B007-PACKET-GUARDS`. | Required for plan commit and delivery rerun; remains unchecked |
+| `TP-B007-010` | Implementation reality guard | `guard` | No | BUG-007 packet and referenced implementation files | Referenced product/test paths are real and the delivered source contains no stub or fabricated behavior. | `timeout 600 bash .github/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys --verbose` | Planned for post-implementation rerun; remains unchecked |
+| `TP-B007-011` | Transition guard | `guard` | No | BUG-007 packet | Completion contract passes only after implementation, tests, human acceptance, and validate-owned certification are complete. | `timeout 600 bash .github/bubbles/scripts/state-transition-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys` | Planned for final validation only; remains unchecked |
 
 ### Test Plan To DoD Parity
 
@@ -184,12 +221,14 @@ therefore direct environment-parity coverage rather than a mocked proxy.
 | `TP-B007-001` | `SCN-B007-NORMAL-COMPATIBILITY` holds |
 | `TP-B007-002` | `SCN-B007-SUBJECT-KEY-SAFETY` holds |
 | `TP-B007-003` | `SCN-B007-DOMAIN-KEY-SAFETY` holds |
-| `TP-B007-004` | Source mutation and cleanup controls are load-bearing |
-| `TP-B007-005` | Scenario-specific E2E regression passes |
-| `TP-B007-006` | Broader E2E regression suite passes |
-| `TP-B007-007` | Canonical repository selftest passes |
-| `TP-B007-008` | Packet guard battery passes |
-| `TP-B007-009` | Transition guard passes before certification |
+| `TP-B007-004` | Lookup-map, built-in-integrity, and cleanup controls hold |
+| `TP-B007-005` | In-memory mutation controls are load-bearing without tracked-source mutation |
+| `TP-B007-006` | Scenario-specific browser regression and visible `constructor` path pass |
+| `TP-B007-007` | Broader E2E regression suite passes |
+| `TP-B007-008` | Canonical repository selftest passes |
+| `TP-B007-009` | Planning and packet guard battery passes |
+| `TP-B007-010` | Implementation reality guard passes after delivery |
+| `TP-B007-011` | Transition guard passes before certification |
 
 ### Definition of Done
 
@@ -211,18 +250,30 @@ therefore direct environment-parity coverage rather than a mocked proxy.
   domain keys use their actual support floors, return without throw, and mutate
   no shared built-in. Evidence: `report.md#tp-b007-003`.
 - [ ] `TP-B007-004` proves cleanup is unconditional and restoring ordinary maps
-  makes the hostile matrix fail. Evidence: `report.md#tp-b007-004`.
+  own/inherited caller-map semantics and shared built-in integrity hold.
+  Evidence: `report.md#tp-b007-004`.
+- [ ] `TP-B007-005` proves an exact one-anchor in-memory mutation removes one
+  null-prototype or own-property protection, applies once, makes the unchanged
+  hostile regression fail, and writes no tracked source/test file; the normal
+  order mutation also fails its exact assertion. Evidence:
+  `report.md#tp-b007-005`.
 - [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
-  pass through `TP-B007-005`. Evidence: `report.md#tp-b007-005`.
-- [ ] Broader E2E regression suite passes through `TP-B007-006`. Evidence:
+  pass through `TP-B007-006`, including all six direct exported browser cases
+  and the real visible `constructor` recorder path. Evidence:
   `report.md#tp-b007-006`.
-- [ ] `TP-B007-007` canonical repository selftest passes. Evidence:
+- [ ] Broader E2E regression suite passes through `TP-B007-007`. Evidence:
   `report.md#tp-b007-007`.
-- [ ] `TP-B007-008` packet guard battery passes. Evidence:
+- [ ] `TP-B007-008` canonical repository selftest passes. Evidence:
   `report.md#tp-b007-008`.
-- [ ] `TP-B007-009` transition guard passes only after all delivery,
-  acceptance, and certification prerequisites are satisfied. Evidence:
+- [ ] `TP-B007-009` planning and packet guard battery passes. Evidence:
   `report.md#tp-b007-009`.
+- [ ] `TP-B007-010` implementation-reality scan passes after source and
+  persistent tests are delivered. Evidence: `report.md#tp-b007-010`.
+- [ ] Human acceptance in `uservalidation.md` is explicitly completed by the
+  human owner; planning leaves every acceptance item unchecked.
+- [ ] `TP-B007-011` transition guard passes only after all delivery,
+  acceptance, and certification prerequisites are satisfied. Evidence:
+  `report.md#tp-b007-011`.
 
 #### Build Quality Gate
 

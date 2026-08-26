@@ -1,9 +1,9 @@
 {
   "contractVersion": "scenario-manifest/v1",
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys",
-  "generatedAt": "2026-08-26T16:08:41Z",
-  "generatedBy": "bubbles.bug",
-  "provenance": "Initial full-packet scenario contract grounded in current-source normal and hostile-key reproduction. All test links remain planned; no persistent test, implementation, human acceptance, or certification is claimed.",
+  "generatedAt": "2026-08-26T16:41:19Z",
+  "generatedBy": "bubbles.plan",
+  "provenance": "Reconciled to design commit 454d7be4c81e2756a1d9dd6632f5d532e024c522. All scenario and test links remain planned; no persistent test, RED result, implementation, browser result, human acceptance, or certification is claimed.",
   "scenarios": [
     {
       "scenarioId": "SCN-B007-NORMAL-COMPATIBILITY",
@@ -37,12 +37,12 @@
         "inputOrigin": "recorded-fixture",
         "assertionSurface": "returned-value",
         "dependencyPath": "not-applicable",
-        "productionOwners": ["rlportfoliobrief.js#composeBrief", "portfolio-survival-allocation-lab.html#composeBrief"],
-        "negativeControl": "An in-memory source mutation that swaps the held and watchlist entries in LANE_ORDER must fail the exact normal-order assertion while the unmodified source retains its refusal controls.",
+        "productionOwners": ["rlportfoliobrief.js#composeBrief", "portfolio-survival-allocation-lab.html#renderBrief"],
+        "negativeControl": "The persistent test-integrity carrier must use the unchanged in-memory defect injector to swap the held and watchlist entries in LANE_ORDER exactly once and fail the exact normal-order assertion without writing tracked source.",
         "negativeControlMechanism": "mutation"
       },
-      "implementationRefs": ["rlportfoliobrief.js#composeBrief"],
-      "testRows": ["TP-B007-001", "TP-B007-005", "TP-B007-006"],
+      "implementationRefs": ["rlportfoliobrief.js#composeBrief", "portfolio-survival-allocation-lab.html#renderBrief"],
+      "testRows": ["TP-B007-001", "TP-B007-005", "TP-B007-006", "TP-B007-007", "TP-B007-008"],
       "lockdown": false,
       "linkedTests": [
         {
@@ -51,6 +51,20 @@
           "testPlanRow": "TP-B007-001",
           "coverageStatus": "planned",
           "evidenceRef": "report.md#tp-b007-001"
+        },
+        {
+          "file": "tests/portfolio-test-integrity.unit.mjs",
+          "testId": "BUG-007: caller-key protections and normal ordering are load-bearing in memory",
+          "testPlanRow": "TP-B007-005",
+          "coverageStatus": "planned",
+          "evidenceRef": "report.md#tp-b007-005"
+        },
+        {
+          "file": "tests/portfolio-survival-brief.spec.mjs",
+          "testId": "BUG-007: browser composer treats hostile keys as data and visible constructor remains operable",
+          "testPlanRow": "TP-B007-006",
+          "coverageStatus": "planned",
+          "evidenceRef": "report.md#tp-b007-006"
         }
       ],
       "expectedAssertions": [
@@ -70,7 +84,7 @@
       "gherkin": {
         "given": "a completion subject is __proto__ constructor or toString and shared built-ins are snapshotted",
         "when": "exported composeBrief evaluates the complete subject matrix",
-        "then": "every call returns through the declared result contract without throwing, treats the subject as an own key with actual evidence and no-action state, keeps absent owner and prior-evidence entries absent, changes no shared built-in, and leaves no cleanup residue"
+        "then": "every call returns through the declared result contract without throwing, treats the subject as an own key with actual evidence and no-action state, keeps absent owner and prior-evidence entries absent, changes no shared built-in, leaves no cleanup residue, and the contract-accepted constructor subject records through the production browser controls into a visible Brief row or named no-action row"
       },
       "status": "planned",
       "behaviorClass": "security-boundary",
@@ -81,30 +95,35 @@
       "riskTier": "high",
       "requirementRefs": ["FR-B007-001", "FR-B007-002", "FR-B007-004", "FR-B007-005", "FR-B007-007", "AC-2", "AC-4", "AC-5"],
       "findingRefs": ["SEC-B006-S1"],
-      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "behaviorTraits": ["pure-calculation", "degraded-state", "user-visible-ui"],
       "obligations": [
         {
           "trait": "pure-calculation",
-          "requiredProof": "One persistent matrix executes all three exact subject strings through exported composeBrief and asserts own-key output.",
-          "satisfiedBy": ["TP-B007-000", "TP-B007-002", "TP-B007-005"]
+          "requiredProof": "One persistent matrix executes all three exact subject strings through exported composeBrief and asserts transformed own-key output.",
+          "satisfiedBy": ["TP-B007-000", "TP-B007-002"]
         },
         {
           "trait": "degraded-state",
-          "requiredProof": "No hostile subject throws or escapes the declared result contract, and absent caller lookup entries remain absent.",
-          "satisfiedBy": ["TP-B007-002"]
+          "requiredProof": "No hostile subject throws or escapes the declared result contract, absent caller lookup entries remain absent, and cleanup restores every shared built-in after a RED attempt.",
+          "satisfiedBy": ["TP-B007-002", "TP-B007-004"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The current allocation route accepts constructor through the production preview and confirm controls and renders a visible completed-research row or named no-action row without an uncaught page error.",
+          "satisfiedBy": ["TP-B007-006"]
         }
       ],
       "testMechanism": {
-        "entrypoint": "public-function",
-        "inputOrigin": "synthetic-fixture",
-        "assertionSurface": "returned-value",
+        "entrypoint": "production-route",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "visible-ui",
         "dependencyPath": "not-applicable",
-        "productionOwners": ["rlportfoliobrief.js#distinctCount", "rlportfoliobrief.js#composeBrief"],
-        "negativeControl": "Restoring the caller-keyed maps to ordinary object allocation must reproduce a throw or built-in mutation for the exact subject matrix.",
+        "productionOwners": ["rlportfoliobrief.js#distinctCount", "rlportfoliobrief.js#composeBrief", "portfolio-survival-allocation-lab.html#completionDraft", "portfolio-survival-allocation-lab.html#renderBrief"],
+        "negativeControl": "The persistent test-integrity carrier must remove exactly one representative null-prototype or own-property protection in memory, report one applied substitution, and make the unchanged exact subject regression fail without writing tracked source.",
         "negativeControlMechanism": "mutation"
       },
-      "implementationRefs": ["rlportfoliobrief.js#distinctCount", "rlportfoliobrief.js#composeBrief"],
-      "testRows": ["TP-B007-000", "TP-B007-002", "TP-B007-004", "TP-B007-005"],
+      "implementationRefs": ["rlportfoliobrief.js#distinctCount", "rlportfoliobrief.js#composeBrief", "portfolio-survival-allocation-lab.html#completionDraft", "portfolio-survival-allocation-lab.html#renderBrief"],
+      "testRows": ["TP-B007-000", "TP-B007-002", "TP-B007-004", "TP-B007-005", "TP-B007-006"],
       "lockdown": false,
       "linkedTests": [
         {
@@ -113,14 +132,29 @@
           "testPlanRow": "TP-B007-002",
           "coverageStatus": "planned",
           "evidenceRef": "report.md#tp-b007-002"
+        },
+        {
+          "file": "tests/portfolio-test-integrity.unit.mjs",
+          "testId": "BUG-007: caller-key protections and normal ordering are load-bearing in memory",
+          "testPlanRow": "TP-B007-005",
+          "coverageStatus": "planned",
+          "evidenceRef": "report.md#tp-b007-005"
+        },
+        {
+          "file": "tests/portfolio-survival-brief.spec.mjs",
+          "testId": "BUG-007: browser composer treats hostile keys as data and visible constructor remains operable",
+          "testPlanRow": "TP-B007-006",
+          "coverageStatus": "planned",
+          "evidenceRef": "report.md#tp-b007-006"
         }
       ],
       "expectedAssertions": [
         "all three subject keys return without throw",
         "all three subject keys remain own data",
-        "shared built-ins and cleanup state remain unchanged"
+        "shared built-ins and cleanup state remain unchanged",
+        "constructor records through the production browser controls and renders visibly without an uncaught page error"
       ],
-      "evidenceRefs": ["report.md#before-fix-reproduction", "report.md#tp-b007-002", "report.md#tp-b007-004"],
+      "evidenceRefs": ["report.md#before-fix-reproduction", "report.md#tp-b007-002", "report.md#tp-b007-004", "report.md#tp-b007-005", "report.md#tp-b007-006"],
       "replacedBy": null,
       "invalidatedBy": null
     },
@@ -147,13 +181,13 @@
       "obligations": [
         {
           "trait": "pure-calculation",
-          "requiredProof": "One persistent matrix executes all three exact domain strings through exported composeBrief and asserts actual support counts and distinct dates.",
-          "satisfiedBy": ["TP-B007-000", "TP-B007-003", "TP-B007-005"]
+          "requiredProof": "One persistent matrix executes all three exact domain strings through exported composeBrief and asserts transformed support counts and distinct dates.",
+          "satisfiedBy": ["TP-B007-000", "TP-B007-003"]
         },
         {
           "trait": "degraded-state",
-          "requiredProof": "No hostile domain throws or escapes the declared result contract.",
-          "satisfiedBy": ["TP-B007-003"]
+          "requiredProof": "No hostile domain throws or escapes the declared result contract, and cleanup restores every shared built-in after a RED attempt.",
+          "satisfiedBy": ["TP-B007-003", "TP-B007-004"]
         }
       ],
       "testMechanism": {
@@ -162,11 +196,11 @@
         "assertionSurface": "returned-value",
         "dependencyPath": "not-applicable",
         "productionOwners": ["rlportfoliobrief.js#composeBrief"],
-        "negativeControl": "Restoring the caller-keyed maps to ordinary object allocation must reproduce a throw or built-in mutation for the exact domain matrix.",
+        "negativeControl": "The persistent test-integrity carrier must remove exactly one representative null-prototype protection in memory, report one applied substitution, and make the unchanged exact domain regression fail without writing tracked source.",
         "negativeControlMechanism": "mutation"
       },
       "implementationRefs": ["rlportfoliobrief.js#composeBrief"],
-      "testRows": ["TP-B007-000", "TP-B007-003", "TP-B007-004", "TP-B007-005"],
+      "testRows": ["TP-B007-000", "TP-B007-003", "TP-B007-004", "TP-B007-005", "TP-B007-006"],
       "lockdown": false,
       "linkedTests": [
         {
@@ -175,6 +209,20 @@
           "testPlanRow": "TP-B007-003",
           "coverageStatus": "planned",
           "evidenceRef": "report.md#tp-b007-003"
+        },
+        {
+          "file": "tests/portfolio-test-integrity.unit.mjs",
+          "testId": "BUG-007: caller-key protections and normal ordering are load-bearing in memory",
+          "testPlanRow": "TP-B007-005",
+          "coverageStatus": "planned",
+          "evidenceRef": "report.md#tp-b007-005"
+        },
+        {
+          "file": "tests/portfolio-survival-brief.spec.mjs",
+          "testId": "BUG-007: browser composer treats hostile keys as data and visible constructor remains operable",
+          "testPlanRow": "TP-B007-006",
+          "coverageStatus": "planned",
+          "evidenceRef": "report.md#tp-b007-006"
         }
       ],
       "expectedAssertions": [
@@ -182,7 +230,7 @@
         "all three domain keys use actual support counts and dates",
         "shared built-ins and cleanup state remain unchanged"
       ],
-      "evidenceRefs": ["report.md#before-fix-reproduction", "report.md#tp-b007-003", "report.md#tp-b007-004"],
+      "evidenceRefs": ["report.md#before-fix-reproduction", "report.md#tp-b007-003", "report.md#tp-b007-004", "report.md#tp-b007-005", "report.md#tp-b007-006"],
       "replacedBy": null,
       "invalidatedBy": null
     }

@@ -3409,3 +3409,578 @@ No DevOps finding exists. The owned result is
 changed. Packet and scope status remain `in_progress`; all Definition of Done
 items remain unchecked; human acceptance and certification remain untouched.
 No commit, merge, push, workflow dispatch, or live deployment was performed.
+
+## Security Phase Round 2 - 2026-08-26 {#security-phase-round-2}
+
+**Phase:** security
+**Agent:** `bubbles.security`
+**Execution model:** `direct-authorized-runner`
+**Parent agent:** none
+**Checkpoint:** `73fe557b2f709c6761788ea77ed9ef89a6e19a25`
+**Claim Source:** interpreted
+**Interpretation:** The evidence-age repair is secure for its declared Date,
+refusal-order, envelope, and input-mutation contract. One separate high-severity
+prototype-pollution defect remains in pre-existing `composeBrief()` aggregation
+maps. The defect is routed without widening BUG-006 or editing source and tests.
+
+### Repository Authority And Change Boundary
+
+**Claim Source:** executed
+
+The host adapter resolved all eleven declared workspace roots. Repository
+preflight committed Research Lab before any packet read:
+
+```text
+REPOSITORY PREFLIGHT CONFIRMED repository=research-lab root=<repo> source=explicit-repositoryRoot affinity=confirmed
+PREFLIGHT_COMMITTED decision=rb:vscode-d037d272141b9d17af8fa6ccdd049e69:228 revision=228 repository=research-lab root=<repo>
+repositoryAlias=research-lab
+authority=explicit-repository-root
+transition=confirmed
+scopeKind=command
+scopeId=null
+targetKind=repository-root
+pathVisibility=local
+actionable=true
+```
+
+`git rev-parse HEAD` returned the requested full checkpoint. The initial
+`git status --short` listed only the separate parent Feature 008 scope files
+and parent `test-plan.json`. This phase did not read them as security authority,
+edit them, stage them, or include them in its planned commit pathspec.
+
+### Threat Model
+
+**Claim Source:** interpreted
+**Interpretation:** This matrix combines the current source paths read in this
+session with the executed probes and validators below.
+
+| Attack surface | Threat | OWASP 2021 | Severity | Status |
+| --- | --- | --- | --- | --- |
+| `rlportfolio.js::validatePolicy()` to both policy-derived Date consumers | A finite policy reaches `toISOString()` outside TimeClip | A04, A08 | High before repair | Mitigated by the shared ceiling and validated below |
+| `rlportfoliobrief.js::composeBrief(input)` completion subject and domain keys | `__proto__` resolves through inherited properties, throws, and writes through `Object.prototype` | A03, A08 | High | Open as `SEC-B006-S1` |
+| Local portfolio storage and generic publisher boundary | Personal fields, storage keys, or sentinel values cross into public artifacts | A01, A02 | High | Persistent privacy and publisher suites pass |
+| Dev-only browser dependency graph | Untrusted registry, range, lifecycle script, or missing integrity enters provisioning | A06, A08 | High | Exact source-lock validator passes all 16 rejection controls |
+| BUG-006 source delta | New secret, network, process, timer, log, listener, or deployment behavior appears | A02, A05 | High | No such source delta; G034 and source-only commit review are clean |
+
+### Date Boundary, Refusal Ordering, Envelope Parity, And Input Immutability
+
+**Command:** current-session process-isolated Node probe over the exported
+`validatePolicy()`, `deriveInterestSignals()`, and `composeBrief()` functions
+**Exit Code:** 0
+**Claim Source:** executed
+
+The probe deeply froze each input. It then compared both public Date consumers
+against the shared validator for finite one-over and non-finite policies.
+
+```text
+BUG-006 SECURITY DATE/PARITY/FROZEN-INPUT PROBE
+boundaryDays=36525
+validateBoundaryOk=true
+composeBoundaryOk=true
+coreOneOverMatchesValidator=true
+briefOneOverMatchesValidator=true
+coreNonFiniteMatchesValidator=true
+briefNonFiniteMatchesValidator=true
+oneOverReason=invalid-policy
+nonFiniteReason=non-finite-policy
+nonFiniteField=policy.behavior.maximumEvidenceAgeDays
+oneOverInputFrozen=true
+oneOverValueUnchanged=true
+nonFiniteValueUnchanged=true
+workspaceFrozen=true
+caught=false
+finding=NO_DATE_OR_MUTATION_DEFECT
+```
+
+The result confirms these contracts at the checkpoint:
+
+- `36525` remains accepted.
+- Finite `36526` returns `P008-CONFIG / invalid-policy / behavior`.
+- Infinity returns `P008-CONFIG / non-finite-policy` with the precise field.
+- Core derivation and brief composition return each shared result unchanged.
+- Deeply frozen policy and workspace inputs remain unchanged.
+- Neither public Date consumer throws for the tested invalid policies.
+
+### SEC-B006-S1 - Prototype-Sensitive Completion Key Pollutes And Throws {#sec-b006-s1}
+
+**Severity:** High
+**OWASP:** A03 Injection and A08 Software and Data Integrity Failures
+**Status:** Open and route-required
+**Claim Source:** interpreted
+**Interpretation:** `composeBrief()` stores caller-derived `subjectId` and
+`domain` strings in ordinary objects. A `__proto__` subject resolves to
+`Object.prototype`. The support-date write mutates that prototype. A later
+qualification read then dereferences a missing inherited `lanes` member and
+throws outside the result envelope.
+
+The controlling source is `rlportfoliobrief.js` in `distinctCount()` and the
+maps named `excludedBySubject`, `supportBySubject`, `categoriesBySubject`,
+`horizonBySubject`, `newestSupportBySubject`, `supportDatesBySubject`,
+`qualifiesVia`, `inferredDomains`, and `byId`. No persistent portfolio test
+drives a prototype-sensitive subject through exported `composeBrief()`.
+
+**Command:** current-session process-isolated `composeBrief()` hostile-key probe
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+BUG-006 SECURITY HOSTILE-KEY PROBE
+normalOk=true
+hostileSubject=__proto__
+resultEnvelopeReturned=false
+caught=true
+errorName=TypeError
+errorMessage=Cannot read properties of undefined (reading 'indexOf')
+prototypeDateBefore=false
+prototypeDateAfter=true
+prototypeValue=true
+prototypeDateAfterCleanup=false
+finding=CONFIRMED
+```
+
+The normal control composed successfully. The hostile call returned no error
+envelope. It wrote the completion date onto `Object.prototype`, then threw.
+The probe removed that process-local property and confirmed cleanup before exit.
+
+This defect is not introduced by BUG-006. The two production commits add only
+the named ceiling, its comparison, and the shared validator delegation. The
+active Scope 01 boundary permits only that delegation in `composeBrief()`.
+Security therefore routes `SEC-B006-S1` to `bubbles.bug` for a separate complete
+bug packet. No inline product or test repair is authorized here.
+
+### G034 Mechanical Security Floor
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/security-gate.sh --repo-root .`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+[security-gate] OK — 10072 tracked file(s), zero G034 findings
+```
+
+The script checks the framework's mechanical floor. It does not cover dynamic
+prototype-key behavior, so its pass does not close `SEC-B006-S1`.
+
+### Dependency Source Lock
+
+**Command:** `timeout 240 node scripts/validate-node-source-lock.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+[node-source-lock] manifest=PASS private=true runtimeDependencies=0 scripts=0 playwright=1.61.1 node=>=20
+[node-source-lock] npmrc=PASS registry=https://registry.npmjs.org/ entries=5 ignoreScripts=true
+[node-source-lock] lockfile=PASS version=3 externalPackages=3 integrity=sha512
+[node-source-lock] graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+[node-source-lock] adversarial=missing-file result=REJECTED code=FILE-MISSING
+[node-source-lock] adversarial=manifest-drift result=REJECTED code=MANIFEST-KEYS
+[node-source-lock] adversarial=manifest-range result=REJECTED code=MANIFEST-PLAYWRIGHT
+[node-source-lock] adversarial=manifest-wrong-version result=REJECTED code=MANIFEST-PLAYWRIGHT
+[node-source-lock] adversarial=second-registry result=REJECTED code=NPMRC-DUPLICATE
+[node-source-lock] adversarial=scoped-registry result=REJECTED code=NPMRC-SCOPED-REGISTRY
+[node-source-lock] adversarial=verification-disabled result=REJECTED code=NPMRC-VERIFICATION
+[node-source-lock] adversarial=lifecycle-relaxation result=REJECTED code=NPMRC-IGNORE-SCRIPTS
+[node-source-lock] adversarial=untrusted-resolved-url result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=missing-integrity result=REJECTED code=LOCK-INTEGRITY
+[node-source-lock] adversarial=git-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=file-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=path-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=http-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=external-version-range result=REJECTED code=LOCK-PACKAGE-VERSION
+[node-source-lock] adversarial=extra-package result=REJECTED code=LOCK-GRAPH
+[node-source-lock] actual=PASS
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+```
+
+The manifest remains private and scriptless. It carries no runtime dependency.
+The exact three-package Playwright graph remains locked to the canonical HTTPS
+npm registry with SHA-512 integrity and disabled lifecycle scripts.
+
+### Focused BUG-006 Closure
+
+**Command:** `timeout 600 node --test tests/portfolio-foundation.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-stale-domain-signal.unit.mjs`
+**Capture Command:** `timeout 650 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-006 security focused closure" -- timeout 600 node --test tests/portfolio-foundation.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-stale-domain-signal.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-006 security focused closure
+$ timeout 600 node --test tests/portfolio-foundation.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-stale-domain-signal.unit.mjs
+exit: 0
+lines: 634
+sha256: 8c93557c718214237b19dc58d030925c68e73439c5621844c8369adcb3d6d4e3
+--- first 20 ---
+TAP version 13
+# Subtest: BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity
+ok 1 - BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity
+	---
+	duration_ms: 265.784895
+	type: 'test'
+	...
+# Subtest: BUG-004: an exact occurrence repeat is still refused as a duplicate
+ok 2 - BUG-004: an exact occurrence repeat is still refused as a duplicate
+	---
+	duration_ms: 62.338399
+	type: 'test'
+	...
+# Subtest: BUG-004: a repeated same-day occurrence cannot buy relevance it did not earn
+ok 3 - BUG-004: a repeated same-day occurrence cannot buy relevance it did not earn
+	---
+	duration_ms: 127.456798
+	type: 'test'
+	...
+# Subtest: BUG-004: stored occurrence growth is bounded by the declared behavior-event cap
+--- omitted 594 line(s); sha256 above covers the full output ---
+--- last 20 ---
+ok 103 - BUG-005: reinstating the superseded pre-filter bucket creation turns the stale-domain assertion red
+	---
+	duration_ms: 351.820195
+	type: 'test'
+	...
+# Subtest: BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance
+ok 104 - BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance
+	---
+	duration_ms: 276.364584
+	type: 'test'
+	...
+1..104
+# tests 104
+# suites 0
+# pass 104
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7206.822757
+```
+
+The focused persistent closure passes `104/104`. Its named boundary,
+non-finite, TimeClip, shared-envelope, and load-bearing mutation assertions
+remain green. This suite has no prototype-sensitive completion fixture.
+
+### Privacy And Publisher Boundaries
+
+**Command:** `timeout 600 node --test tests/portfolio-privacy.functional.mjs tests/portfolio-publisher-boundary.functional.mjs`
+**Capture Command:** `timeout 650 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-006 security privacy and publisher boundaries" -- timeout 600 node --test tests/portfolio-privacy.functional.mjs tests/portfolio-publisher-boundary.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-006 security privacy and publisher boundaries
+$ timeout 600 node --test tests/portfolio-privacy.functional.mjs tests/portfolio-publisher-boundary.functional.mjs
+exit: 0
+lines: 178
+sha256: 8d2861a0b4e5040cb2d77770d76f0321b8cca21faecf523e3193fc298d69d1c0
+--- first 20 ---
+TAP version 13
+# Subtest: real-format import previews commits reloads and exports one local revision
+ok 1 - real-format import previews commits reloads and exports one local revision
+	---
+	duration_ms: 128.599899
+	type: 'test'
+	...
+# Subtest: secret-bearing import is redacted and cannot mutate any storage namespace
+ok 2 - secret-bearing import is redacted and cannot mutate any storage namespace
+	---
+	duration_ms: 35.8735
+	type: 'test'
+	...
+# Subtest: atomic write failures preserve the active pointer and retain a validated candidate only in memory
+ok 3 - atomic write failures preserve the active pointer and retain a validated candidate only in memory
+	---
+	duration_ms: 89.423099
+	type: 'test'
+	...
+# Subtest: session and memory commits state truthfully and preserve the last valid candidate after rejection
+--- omitted 138 line(s); sha256 above covers the full output ---
+--- last 20 ---
+ok 27 - SCN-008-005 TP-04-02: the publisher boundary run mutates no tracked public artifact
+	---
+	duration_ms: 111.5978
+	type: 'test'
+	...
+# Subtest: SCN-008-046 all five public artifacts contribute independently to one local generic evidence identity
+ok 28 - SCN-008-046 all five public artifacts contribute independently to one local generic evidence identity
+	---
+	duration_ms: 150.5145
+	type: 'test'
+	...
+1..28
+# tests 28
+# suites 0
+# pass 28
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3504.92919
+```
+
+All `28/28` tests pass. They preserve redaction, declared storage namespaces,
+private export warnings, generic publisher isolation, sentinel non-emission,
+read-only publisher bytes, and the public artifact field boundary. No personal
+workspace key, cost basis, portfolio revision, behavior event, or injected
+sentinel enters the checked generic publisher artifacts.
+
+### Regression Quality
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/regression-quality-guard.sh tests/portfolio-foundation.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-stale-domain-signal.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+The bound repository path is redacted to `<repo>` below. Every other output
+line is retained as emitted.
+
+```text
+============================================================
+	BUBBLES REGRESSION QUALITY GUARD
+	Repo: <repo>
+	Timestamp: 2026-08-26T15:41:19Z
+	Bugfix mode: false
+============================================================
+
+ℹ️  Scanning tests/portfolio-foundation.unit.mjs
+ℹ️  Scanning tests/portfolio-brief.functional.mjs
+ℹ️  Scanning tests/portfolio-behavior-occurrence.unit.mjs
+ℹ️  Scanning tests/portfolio-stale-domain-signal.unit.mjs
+
+============================================================
+	REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+	Files scanned: 4
+============================================================
+```
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/portfolio-foundation.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-stale-domain-signal.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+The bound repository path is redacted to `<repo>` below. Every other output
+line is retained as emitted.
+
+```text
+============================================================
+	BUBBLES REGRESSION QUALITY GUARD
+	Repo: <repo>
+	Timestamp: 2026-08-26T15:41:28Z
+	Bugfix mode: true
+============================================================
+
+ℹ️  Scanning tests/portfolio-foundation.unit.mjs
+✅ Adversarial signal detected in tests/portfolio-foundation.unit.mjs
+ℹ️  Scanning tests/portfolio-brief.functional.mjs
+✅ Adversarial signal detected in tests/portfolio-brief.functional.mjs
+ℹ️  Scanning tests/portfolio-behavior-occurrence.unit.mjs
+✅ Adversarial signal detected in tests/portfolio-behavior-occurrence.unit.mjs
+ℹ️  Scanning tests/portfolio-stale-domain-signal.unit.mjs
+✅ Adversarial signal detected in tests/portfolio-stale-domain-signal.unit.mjs
+
+============================================================
+	REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+	Files scanned: 4
+	Files with adversarial signals: 4
+============================================================
+```
+
+Both modes pass. The bugfix mode detects an adversarial signal in every focused
+carrier. The guard does not inspect dynamic property-key safety.
+
+### Implementation Reality
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow --verbose`
+**Capture Command:** `timeout 650 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-006 security implementation reality" -- timeout 600 bash .github/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow --verbose`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-006 security implementation reality
+$ timeout 600 bash .github/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow --verbose
+exit: 0
+lines: 36
+sha256: 361d0a45a81eaddc2c5b1a35c08e531f947d68f88363b101390a2ffe06c2037a
+
+ℹ️  INFO: Resolved 2 implementation file(s) to scan
+
+--- Scan 1: Gateway/Backend Stub Patterns ---
+
+--- Scan 1B: Handler / Endpoint Execution Depth ---
+
+--- Scan 1C: Endpoint Not-Implemented / Placeholder Responses ---
+
+--- Scan 1D: External Integration Authenticity ---
+
+--- Scan 2: Frontend Hardcoded Data Patterns ---
+
+--- Scan 2B: Sensitive Client Storage ---
+
+--- Scan 3: Frontend API Call Absence ---
+
+--- Scan 4: Prohibited Simulation Helpers in Production ---
+
+--- Scan 5: Default/Fallback Value Patterns ---
+
+--- Scan 6: Live-System Test Interception ---
+ℹ️  INFO: No live-system test files referenced in scope artifacts for interception scan
+
+--- Scan 7: IDOR / Auth Bypass Detection (Gate G047) ---
+
+--- Scan 8: Silent Decode Failure Detection (Gate G048) ---
+
+============================================================
+	IMPLEMENTATION REALITY SCAN RESULT
+============================================================
+
+	Files scanned:  2
+	Violations:     0
+	Warnings:       0
+
+🟢 PASSED: No source code reality violations detected
+```
+
+The configured scans pass. Prototype-sensitive aggregation keys are outside
+their current pattern set, so this pass does not contradict `SEC-B006-S1`.
+
+### Canonical Repository Selftest
+
+**Command:** `timeout 1800 node scripts/selftest.mjs`
+**Capture Command:** `timeout 1850 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-006 security canonical selftest" -- timeout 1800 node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-006 security canonical selftest
+$ timeout 1800 node scripts/selftest.mjs
+exit: 0
+lines: 3912
+sha256: e0e00343e15b3432f4c70cc1732a247bb6e8b161ffd5fdf6e4bb81eb65e1c97e
+--- first 20 ---
+Step 1 security - escaped model sinks and CSP on every page
+	PASS every shipped HTML page carries a Content-Security-Policy meta
+	PASS all pages use one identical CSP instead of drifting per page
+
+Step 1 security — escaped model sinks and CSP on every page
+	✓ every shipped HTML page carries a Content-Security-Policy meta
+	✓ all pages use one identical CSP instead of drifting per page
+	✓ CSP keeps the single-file inline-script design while defaulting to self
+	✓ CSP blocks object, base-tag, and form exfiltration paths
+	✓ CSP connect-src is an explicit origin allowlist, never wildcard https
+	✓ CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+	✓ CSP allows no open URL-forwarding relay origin
+	✓ production pages and shared runtime contain no open URL-forwarding relay chain
+	✓ no model/config-authored field reaches innerHTML without esc()
+	✓ the sink detector catches an unescaped model-authored title
+
+Feature 004 RLFX/RLDATA foundation
+	✓ RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic
+	✓ RLFX universe is bounded closed and asserts no live source authorization
+	✓ RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows
+	✓ RLDATA schema-one bars and legacy tool reads remain compatible beside versioned envelopes
+	✓ RLDATA Twelve Data mapping: interval/symbol translate, values sort newest-first → oldest-first with UTC epochs, empty volume → null, error/malformed → null
+	✓ RLFX broad dollar keeps Broad AFE EME and proxy states separate
+
+================================================
+specs/ — every scope progress claim matches the Definition of Done it summarises
+	✓ a claim of 2 ticked and 1 open matches an artifact holding exactly those rows, so the ordinary reconciled case is not reported — rows outside the Definition-of-Done section, rows in a sibling section, and rows inside a fenced block are all excluded (1 claim(s), 1 agreeing)
+	✓ the fence mask is what removes the documented example rows — ignoring fences the same artifact tallies 5/2 against the masked 4/1, so the rule is load-bearing rather than decorative
+	✓ a registry claiming more ticked rows than the artifact carries FAILS, and the finding names the packet, the scope and both sides (claims 3/0 checked/unchecked, artifact has 2/1)
+	✓ a registry claiming fewer ticked rows than the artifact carries FAILS too — drift in either direction is a false summary
+	✓ a claim whose scope artifact cannot be located FAILS instead of being silently skipped — an unverifiable claim is not a verified one
+	✓ the single-file bug-packet layout resolves all three of its claims — a numbered scope whose tiered DoD includes a deeper sub-heading, a sibling scope that has not started, and the packet-level cross-scope block — across the dodChecked, dodTicked and dodTotal spellings alike (3/3 agreeing)
+	✓ scope 2 ends where the cross-scope block begins rather than running to end-of-file, and `## Scope Summary` is not mistaken for a scope section because it carries no ordinal (01, 02, cross-scope)
+	✓ a `#` line inside a fenced Gherkin block is a comment rather than a heading, so it never splits a scope or ends a Definition of Done (2 real headings, 3 when fences are ignored)
+	✓ a scope already frozen in the baseline is carried as known debt rather than failing the run, so pre-existing drift in packets this change does not own cannot turn the validation path red
+	✓ freezing one scope does not license the next — the baseline is keyed on the SCOPE, not on the numbers, so a second drifting scope still FAILS while the frozen one passes
+	✓ a baseline entry whose claim now matches its artifact is reported STALE while the run still exits 0, so the frozen list can only shrink
+	✓ a scan that matches zero progress claims FAILS rather than passing vacuously — a matcher that quietly stopped matching would otherwise reproduce the exact blind spot this guard closes
+	✓ the scan read real progress claims against a present baseline, so a green verdict is a comparison rather than a matcher that stopped matching (85 claim(s) across 63 packet(s), 71 agreeing, baseline 14 entries)
+	✓ every committed progress claim resolves to a scope artifact the guard can actually read, so none of them is passing merely because nothing could check it (0 unresolvable)
+	✓ no scope progress claim disagrees with its Definition of Done outside the frozen baseline — a stale count reads as a summary of the artifact while describing a state the artifact has left (0 new, 14 frozen, 0 stale of 85 claim(s))
+
+================================================
+```
+
+The canonical selftest passes `3426/3426`. It covers the repository's existing
+security and product invariants. It has no `composeBrief()` hostile-subject case.
+
+### Source, Secret, Network, And Runtime Surface Review
+
+**Claim Source:** interpreted
+**Interpretation:** The exact production diffs for commits `9b594d439` and
+`45e8e615e` were read in this session. The first adds one private arithmetic
+constant and one comparison. The second adds one call to the existing shared
+validator and returns its failed result unchanged. Neither diff adds an import,
+dependency, environment read, storage operation, fetch, socket, process, timer,
+log, listener, URL, secret field, or deployment hook.
+
+The whole-tree G034 floor found zero mechanical findings. The source-lock
+validator confirms zero runtime dependencies and zero package scripts. The
+focused dual-runtime test also retains its no-network source assertion for
+`rlportfolio.js`. No new secret, network, dependency, service, or runtime
+surface was found in the BUG-006 repair.
+
+### Initial Artifact And Diff Validation
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes.md
+✅ Required artifact exists: report.md
+✅ No forbidden sidecar artifacts present
+✅ Found DoD section in scopes.md
+✅ scopes.md DoD contains checkbox items
+✅ All DoD bullet items use checkbox syntax in scopes.md
+✅ Found Checklist section in uservalidation.md
+✅ uservalidation checklist contains checkbox entries
+✅ All checklist bullet items use checkbox syntax
+✅ uservalidation separates automation readiness from human acceptance
+✅ Detected state.json status: in_progress
+✅ Detected state.json workflowMode: bugfix-fastlane
+✅ state.json v3 has required field: status
+✅ state.json v3 has required field: execution
+✅ state.json v3 has required field: certification
+✅ state.json v3 has required field: policySnapshot
+✅ state.json v3 has recommended field: transitionRequests
+✅ state.json v3 has recommended field: reworkQueue
+✅ state.json v3 has recommended field: executionHistory
+✅ Top-level status matches certification.status
+ℹ️  Workflow mode 'bugfix-fastlane' allows status 'done'; current status is 'in_progress'
+✅ report.md contains section matching: ###[[:space:]]+Summary|^##[[:space:]]+Summary
+✅ report.md contains section matching: ###[[:space:]]+Completion Statement|^##[[:space:]]+Completion Statement
+✅ report.md contains section matching: ###[[:space:]]+Test Evidence|^##[[:space:]]+Test Evidence
+✅ Mode-specific report gates skipped (status not in promotion set)
+✅ Value-first selection rationale lint skipped (not a value-first report)
+✅ Scenario path-placeholder lint skipped (no matching scenario sections found)
+=== Anti-Fabrication Evidence Checks ===
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+=== End Anti-Fabrication Checks ===
+Artifact lint PASSED.
+```
+
+Editor diagnostics reported no errors in `report.md` or `state.json`.
+`git diff --check` exited `0` with empty output. The BUG-006 path-limited
+`git diff --name-status` listed only `report.md` and `state.json`.
+
+### Security Verdict And Routing
+
+The Date-boundary repair has no security defect across the requested ordering,
+immutability, shared-validation, envelope, privacy, publisher, dependency, or
+new-surface checks.
+
+`SEC-B006-S1` remains open. It is a separate pre-existing prototype-pollution
+and availability defect in exported `composeBrief()`. Its high severity blocks
+a secure verdict and requires a new complete bug packet before implementation.
+
+**Verdict:** `VULNERABLE`
+
+Inbound route `BUG-006-ROUTE-021` is complete. New route
+`BUG-006-ROUTE-022` targets `bubbles.bug` to file, reproduce, and plan the
+prototype-sensitive key defect. BUG-006 remains `in_progress`. Scope status,
+Definition of Done, human acceptance, certification, planning files, product
+source, persistent tests, and parent Feature 008 artifacts remain unchanged.

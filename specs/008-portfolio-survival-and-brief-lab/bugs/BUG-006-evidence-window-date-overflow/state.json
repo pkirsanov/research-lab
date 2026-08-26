@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
   "featureName": "BUG-006 Evidence Window Date Overflow",
   "createdAt": "2026-08-25T19:27:30Z",
-  "lastUpdatedAt": "2026-08-26T06:18:42Z",
+  "lastUpdatedAt": "2026-08-26T15:45:43Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,18 +29,18 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.devops",
-    "currentPhase": "devops",
+    "activeAgent": "bubbles.security",
+    "currentPhase": "security",
     "currentPhaseStatus": "route_required",
-    "substate": "not_applicable_no_change",
+    "substate": "finding_confirmed",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
-    "runStartedAt": "2026-08-26T06:18:42Z",
-    "completedAt": "2026-08-26T06:18:42Z",
+    "runStartedAt": "2026-08-26T15:45:43Z",
+    "completedAt": "2026-08-26T15:45:43Z",
     "currentScope": "01-bound-the-evidence-age-policy",
-    "nextRequiredOwner": "bubbles.security",
-    "nextRequiredTarget": "Scope 01 round-2 security review",
-    "nextRequiredReason": "Round-2 DevOps review found no operational defect or changed package, config, workflow, deployment, service-lifecycle, port, secret, observability, runtime-operations, or artifact-generation obligation. The exact source-lock validator and Pages staging dry-run passed, clean-checkout workflow semantics are unchanged, and no live deployment was invoked. The current persisted bugfix-fastlane order places security immediately after devops.",
+    "nextRequiredOwner": "bubbles.bug",
+    "nextRequiredTarget": "SEC-B006-S1 prototype-sensitive composeBrief key handling",
+    "nextRequiredReason": "The round-2 security review verified the evidence-age repair but reproduced a separate high-severity prototype-pollution defect in exported composeBrief. A __proto__ completion subject writes a date key to Object.prototype and throws outside the result envelope. File a complete bug packet before source or test remediation.",
     "completedPhaseClaims": [
       "plan",
       "implement",
@@ -52,7 +52,8 @@
       "analyze",
       "harden",
       "stabilize",
-      "devops"
+      "devops",
+      "security"
     ],
     "pendingTransitionRequests": [],
     "scopeInventory": [
@@ -247,11 +248,19 @@
     },
     {
       "id": "BUG-006-ROUTE-021",
-      "status": "pending",
+      "status": "completed",
       "fromAgent": "bubbles.devops",
       "nextRequiredOwner": "bubbles.security",
       "target": "Scope 01 round-2 security review",
       "reason": "Round-2 DevOps review found no operational defect and no changed package, config, workflow, deployment, service-lifecycle, port, secret, observability, runtime-operations, or artifact-generation obligation. The source-lock validator and Pages staging dry-run pass, clean-checkout deployment semantics remain unchanged, and no live deployment was invoked. Run the next registered security phase while preserving in-progress status, unchecked DoD, human acceptance, and certification."
+    },
+    {
+      "id": "BUG-006-ROUTE-022",
+      "status": "pending",
+      "fromAgent": "bubbles.security",
+      "nextRequiredOwner": "bubbles.bug",
+      "target": "SEC-B006-S1 prototype-sensitive composeBrief key handling",
+      "reason": "File a complete bug packet for exported composeBrief dynamic aggregation maps. A __proto__ completion subject writes through Object.prototype and then throws outside the PortfolioError result envelope. Preserve BUG-006 planning and source boundaries while the new defect is classified and reproduced independently."
     }
   ],
   "reworkQueue": [],
@@ -501,6 +510,17 @@
       "provenanceMode": "specialist",
       "statusBefore": "in_progress",
       "runStartedAt": "2026-08-26T06:18:42Z"
+    },
+    {
+      "at": "2026-08-26T15:45:43Z",
+      "agent": "bubbles.security",
+      "phase": "security",
+      "action": "round-2-security-review-complete-finding-routed",
+      "note": "Ran as the BUG-006 round-2 security owner after binding Research Lab through repository decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:228 at requested checkpoint 73fe557b2. The shared 36525-day ceiling, finite versus non-finite ordering, exact shared envelopes in both public Date consumers, and deeply frozen input behavior passed a direct probe. G034 passed over 10072 tracked files. The exact Node source lock passed and rejected all 16 hostile mutations. The four focused carriers passed 104 of 104, privacy and publisher boundaries passed 28 of 28, both regression-quality modes were clean, implementation reality passed over both declared product files, and the canonical selftest passed 3426 of 3426. Exact production diffs add no secret, network, dependency, service, timer, process, log, listener, storage, or deployment surface. Security finding SEC-B006-S1 remains open: composeBrief stores caller-derived subject and domain keys in ordinary objects, so subjectId __proto__ writes the completion date onto Object.prototype and then throws TypeError outside the result envelope. Cleaned the process-local probe mutation, changed no source or test, completed inbound route BUG-006-ROUTE-021, and routed BUG-006-ROUTE-022 to bubbles.bug for a separate complete packet. Kept packet and scope in progress, every DoD unchecked, human acceptance untouched, certification unchanged, parent Feature 008 planning files untouched, and performed no push.",
+      "phasesExecuted": ["security"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T15:45:43Z"
     }
   ],
   "addressedFindings": [
@@ -568,7 +588,15 @@
       "evidenceRef": "report.md#gaps-phase-round-2"
     }
   ],
-  "unresolvedFindings": [],
+  "unresolvedFindings": [
+    {
+      "id": "SEC-B006-S1",
+      "summary": "HIGH: exported composeBrief uses caller-derived subject and domain strings as ordinary-object keys; subjectId __proto__ writes a completion-date property onto Object.prototype and throws outside the result envelope.",
+      "owner": "bubbles.bug",
+      "status": "open",
+      "evidenceRef": "report.md#sec-b006-s1"
+    }
+  ],
   "resolvedDiscoveries": [],
   "openDiscoveries": []
 }

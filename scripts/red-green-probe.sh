@@ -266,6 +266,27 @@ for (( m = 0; m < ${#MUT_REPLACE[@]}; m++ )); do
   fi
 done
 
+# ---------- anchor the probe to the repository it is RUN IN ----------
+
+# F-SEC-03. REPO_ROOT used to be seeded by whichever --file registered first, so
+# the comparison in the loop below enforced "every target is in ONE repository"
+# rather than "every target is in THIS one". A first --file outside the checkout
+# simply carried the anchor with it, and every later target was then measured
+# against the foreign root: `--file ../bubbles/VERSION` passed registration
+# intact and was stopped only afterwards, by the no-mutation check, which is a
+# different guard that happened to fire.
+#
+# The anchor is the worktree of the CURRENT DIRECTORY, resolved BEFORE any
+# target is examined. The working directory is what already defines which
+# checkout a probe run belongs to — relative --file paths have always resolved
+# against it — so this makes explicit the repository the invocation was always
+# scoped to, and it is deliberately NOT the script's own location, which would
+# break a probe legitimately driven against a fixture checkout from inside it.
+PROBE_CWD_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+[[ -n "$PROBE_CWD_ROOT" ]] || die "$EXIT_DIRTY" \
+  'the probe is not being run inside a Git worktree, so it has no repository to anchor its targets to'
+REPO_ROOT="$PROBE_CWD_ROOT"
+
 # ---------- resolve every target inside its repository ----------
 
 # Each distinct --file is validated and hash-pinned here, before ANY mutation is
@@ -290,13 +311,13 @@ for (( m = 0; m < ${#MUT_FILE[@]}; m++ )); do
   file_root="$(git -C "$file_dir" rev-parse --show-toplevel 2>/dev/null || true)"
   [[ -n "$file_root" ]] || die "$EXIT_DIRTY" "target file is not inside a Git worktree: $file_base"
 
-  if [[ -z "$REPO_ROOT" ]]; then
-    REPO_ROOT="$file_root"
-  elif [[ "$file_root" != "$REPO_ROOT" ]]; then
-    # One revert path, one repository. Spanning two worktrees would mean two
-    # independent checkouts and no way to keep the revert atomic across them.
+  if [[ "$file_root" != "$REPO_ROOT" ]]; then
+    # One revert path, one repository, and that repository is THIS one. Spanning
+    # two worktrees would mean two independent checkouts and no way to keep the
+    # revert atomic across them; reaching outside this checkout at all would let
+    # a probe mutate a file it was never pointed at from within.
     die "$EXIT_DIRTY" \
-      "target $file_base is in a different Git worktree from the earlier targets, so the revert could not be kept all-or-nothing"
+      "target $file_base is outside the repository this probe runs in, so it is not a file this probe may mutate and the revert could not be kept all-or-nothing"
   fi
 
   rel_path="$(git -C "$file_dir" ls-files --full-name --error-unmatch -- "$file_base" 2>/dev/null || true)"

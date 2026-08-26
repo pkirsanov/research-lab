@@ -5725,7 +5725,18 @@
                request is aborted rather than merely abandoned, so nothing is left outstanding, and
                the rejection reaches the same per-stage handlers a 404 already reaches. `bound` is
                read into a local before the timer is armed so a read already in flight cannot have
-               its bound changed underneath it by the stratum promotion in `boot`. */
+               its bound changed underneath it by the stratum promotion in `boot`.
+
+               F-SEC-01. The bound covered the HEADERS only. `fetch` settles when the response head
+               arrives, so disarming the timer in that handler released it before the body had been
+               read, and an origin that answered `200` and then stalled the body reproduced BUG-021's
+               own symptom one stage further in — measured still pending at 6001 ms against a
+               1000 ms bound. The timer is now disarmed only once the BODY has settled, which is
+               what makes the abort reach a stalled stream. Both handlers moved onto a second
+               `.then`, so there are still exactly two disarm sites and the abort covers every path
+               through the read; the `!response.ok` refusal is raised in the first handler and
+               rethrown unchanged by the second, so a 404 still reports as a read failure that did
+               not exceed the bound rather than being reclassified as one that did. */
             function loadJson(path) {
                 var controller = new AbortController();
                 var bound = readBoundMs;
@@ -5735,11 +5746,14 @@
                     credentials: "same-origin",
                     signal: controller.signal
                 }).then(function (response) {
-                    window.clearTimeout(timer);
                     if (!response.ok) throw readFailure(path, false);
                     return response.json();
+                }).then(function (parsed) {
+                    window.clearTimeout(timer);
+                    return parsed;
                 }, function (readError) {
                     window.clearTimeout(timer);
+                    if (readError && typeof readError.rlDocument === "string") throw readError;
                     throw readFailure(path, !!readError && readError.name === "AbortError");
                 });
             }

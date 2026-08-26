@@ -29865,6 +29865,164 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (acceptance bulk-stamp guard threw): ' + e.message); }
 /* ---------- specs/ — no acceptance record is bulk-stamped (END) ---------- */
 
+/* ---------- security phase F-SEC-01..03 — a declared bound nothing validates (START) ----------
+
+   Three findings from the security phase, each the same shape: a bound was DECLARED somewhere and
+   then admitted without being checked, so the declaration decided its own validity. The
+   assertions below are written against the unchecked condition rather than against the healthy
+   one, because every one of these passed on well-formed input before the fix and so proved
+   nothing about the bound.                                                                     */
+group('security findings — a declared bound that nothing validates is not a bound');
+try {
+  const secRequire = (await import('node:module')).createRequire(import.meta.url);
+  const SEC_SS = secRequire(join(ROOT, 'rltaxsocialsecurity.js'));
+  const SEC_WS = secRequire(join(ROOT, 'rltaxworkspace.js'));
+  const secPack = JSON.parse(read('tax-rules/benefit/2026.json'));
+  const secConfig = JSON.parse(read('lifetime-tax-strategy.config.json'));
+  const secPia = Object.freeze({ value: 2000 });
+  const SEC_BIRTH_YEAR = 1960;
+  const secFloor = (years) => {
+    const candidate = JSON.parse(JSON.stringify(secPack));
+    candidate.earlyReductionRule.earliestClaimAge.ageYears = years;
+    return candidate;
+  };
+  const secAdjust = (pack, months) => SEC_SS.applyClaimAgeAdjustment(secPia, SEC_BIRTH_YEAR, months, pack);
+  const secIsRefusal = (result) => typeof result === 'object' && result !== null && typeof result.code === 'string';
+
+  /* F-SEC-02, first limb. The floor was admitted on `Number.isFinite` alone, so a pack could
+     declare zero or a negative and open the reduction loop to every claim age. The refusal is
+     matched on its CODE and its DOMAIN rather than on message text, so a reworded message does
+     not silently satisfy it, and the domain is the one the closed vocabulary already carries —
+     nothing here extends RLTAX_CODES. */
+  const secNotAnAge = [0, -5, -0.5].map((years) => secAdjust(secFloor(years), 240));
+  assert(secNotAnAge.length === 3
+    && secNotAnAge.every((result) => secIsRefusal(result) && result.code === 'RLTAX-PACK-INVALID')
+    && secNotAnAge.every((result) => /earliestClaimAge\.ageYears$/.test(result.domain)),
+  'TB-SEC-02-01: a pack declaring an earliest claim age of zero or a negative is refused as RLTAX-PACK-INVALID naming that member, rather than admitted as a floor that lets every claim age through');
+
+  /* F-SEC-02, second limb, and the one that carries the finding. A floor that is POSITIVE but low
+     enough still opened the loop, and the reduction then ran past the whole Primary Insurance
+     Amount and out the other side: -2801 a month at age 20, -4801 at a claim age of zero months.
+     A negative is FINITE, so BUG-020's `!Number.isFinite` guards could not see it and the figure
+     reached display carrying the settled shape. The sweep is what makes this a property rather
+     than three examples: across every hostile floor and every claim age from zero to the full
+     retirement age, a result either refuses or is a non-negative amount, and never both settles
+     and reads below zero. */
+  const secNegatives = [];
+  const secSettledCount = { n: 0 };
+  [1, 5, 10, 20, 40, 55, 61].forEach((years) => {
+    const hostile = secFloor(years);
+    for (let months = 0; months <= 804; months += 12) {
+      const result = secAdjust(hostile, months);
+      if (secIsRefusal(result)) continue;
+      secSettledCount.n += 1;
+      if (!(result.adjustedMonthlyBenefit >= 0) || !(result.adjustedAnnualBenefit >= 0)) {
+        secNegatives.push(years + 'y@' + months + 'mo=' + result.adjustedMonthlyBenefit);
+      }
+    }
+  });
+  const secAgeTwenty = secAdjust(secFloor(20), 240);
+  assert(secNegatives.length === 0 && secSettledCount.n > 0
+    && secIsRefusal(secAgeTwenty) && secAgeTwenty.code === 'RLTAX-PACK-INVALID'
+    && /adjusted-monthly-benefit$/.test(secAgeTwenty.domain),
+  'TB-SEC-02-02: no claim-age adjustment settles a negative benefit under any pack-declared floor, and the floor that is positive but too low to price refuses on the arithmetic naming the adjusted monthly benefit \u2014 a negative amount is finite, so the unrepresentable-figure guards cannot catch it (' + secSettledCount.n + ' settled result(s) swept, ' + secNegatives.length + ' negative)');
+
+  /* The shipped pack is the control. If these move, the two refusals above stopped being guards
+     and became a behaviour change, which is the failure mode a hostile-input fix most often
+     ships. Age 62 settles and age 60 refuses under BUG-019's own domain, unchanged. */
+  const secShipped62 = secAdjust(secPack, 744);
+  const secShipped60 = secAdjust(secPack, 720);
+  const secShippedFra = secAdjust(secPack, 804);
+  const secShippedLate = secAdjust(secPack, 840);
+  assert(!secIsRefusal(secShipped62) && secShipped62.adjustedMonthlyBenefit === 1400
+    && secIsRefusal(secShipped60) && secShipped60.code === 'RLTAX-THRESHOLD-UNAVAILABLE'
+    && secShipped60.domain === SEC_SS.BELOW_EARLIEST_CLAIM_AGE_DOMAIN
+    && !secIsRefusal(secShippedFra) && secShippedFra.adjustedMonthlyBenefit === 2000
+    && !secIsRefusal(secShippedLate) && secShippedLate.adjustedMonthlyBenefit === 2480,
+  'TB-SEC-02-03: the shipped pack is untouched by both refusals \u2014 age 62 still settles at 1400, age 60 still refuses RLTAX-THRESHOLD-UNAVAILABLE under BUG-019\u2019s own domain, and the full-retirement and delayed-credit ages still settle');
+
+  /* F-SEC-01, first limb. `fetch` settles when the response HEAD arrives, so disarming the timer
+     in that handler released the bound before a single body byte was read: an origin answering
+     200 and then stalling the body was measured still pending at 6001 ms against a 1000 ms bound,
+     which is BUG-021's own symptom one stage further in. The check is that the response handler
+     does not disarm — asserting only that two disarm sites exist would pass on the defect, since
+     the defect had two. */
+  const secRouteSource = read('lifetime-tax-strategy-lab.html');
+  const secLoadJson = /function loadJson\(path\) \{([\s\S]*?)\n {12}\}/.exec(secRouteSource);
+  const secHeaderHandler = secLoadJson === null ? null
+    : /\.then\(function \(response\) \{([\s\S]*?)\n {16}\}\)\.then\(/.exec(secLoadJson[1]);
+  assert(secLoadJson !== null && secHeaderHandler !== null
+    && !/clearTimeout/.test(secHeaderHandler[1])
+    && /return response\.json\(\);/.test(secHeaderHandler[1])
+    && (secLoadJson[1].match(/window\.clearTimeout\(timer\)/g) || []).length === 2
+    && /\}\)\.then\(function \(parsed\) \{\s*window\.clearTimeout\(timer\);/.test(secLoadJson[1]),
+  'TB-SEC-01-01: the pack read holds its bound across the response BODY \u2014 the handler that receives the response head does not clear the timer, and the two disarm sites sit past the parsed body, so an origin that answers 200 and then stalls the stream is aborted rather than awaited without end');
+
+  /* F-SEC-01, second limb. The validator admitted any finite bound above zero, so 2147483648 was
+     accepted and its timer fired after 1 ms: one past the signed 32-bit maximum the delay wraps
+     and the declaration inverts from "wait a very long time" to "abort at once". The ceiling is
+     the timer's own representable maximum rather than a policy number, so it is asserted as that
+     identity rather than as a transcribed constant. */
+  const secBoundVerdict = (value) => {
+    const candidate = JSON.parse(JSON.stringify(secConfig));
+    candidate.rules.packReadBoundMs = value;
+    return SEC_WS.validateConfig(candidate);
+  };
+  const secOverCeiling = [2147483648, 2147483648 * 2, 1e12, Number.MAX_SAFE_INTEGER].map(secBoundVerdict);
+  const secAtCeiling = secBoundVerdict(SEC_WS.TIMER_DELAY_CEILING_MS);
+  assert(SEC_WS.TIMER_DELAY_CEILING_MS === Math.pow(2, 31) - 1
+    && secOverCeiling.length === 4
+    && secOverCeiling.every((verdict) => !verdict.ok)
+    && secOverCeiling.every((verdict) => verdict.refusals
+      .some((refusal) => refusal.domain === 'config-member:rules.packReadBoundMs'))
+    && secAtCeiling.ok
+    && SEC_WS.validateConfig(secConfig).ok,
+  'TB-SEC-01-02: a declared read bound beyond the largest delay a timer can represent is refused by name rather than armed, the boundary value itself is still admitted, and the shipped configuration still validates \u2014 one past the ceiling the delay wraps and the bound fires at once instead of waiting longer');
+
+  /* F-SEC-03. The probe compared every later target against the root the FIRST target established,
+     so it enforced "one repository" and not "this repository": a first `--file` outside the
+     checkout carried the anchor with it and was stopped only afterwards, by a different guard.
+     Both limbs are asserted — the anchor is taken from the script's own location, and the loop
+     no longer has any path that seeds the root from a target. */
+  const secProbeSource = read('scripts/red-green-probe.sh');
+  assert(/REPO_ROOT="\$PROBE_CWD_ROOT"/.test(secProbeSource)
+    && /PROBE_CWD_ROOT="\$\(git rev-parse --show-toplevel/.test(secProbeSource)
+    && !/REPO_ROOT="\$file_root"/.test(secProbeSource)
+    && secProbeSource.indexOf('PROBE_CWD_ROOT=') < secProbeSource.indexOf('resolve every target inside its repository'),
+  'TB-SEC-03-01: the probe anchors its repository from the checkout it is RUN IN before any target is examined, and no path seeds that anchor from a target, so the cross-repository guard reads "this repository" rather than "the same one the first --file happened to be in"');
+
+  /* And the behaviour, driven against a real foreign checkout built for the purpose rather than
+     against whatever happens to sit beside this repo. The refusal must land at REGISTRATION, so
+     the assertion also proves the foreign file was never hashed, mutated or checked out. */
+  const secFs = await import('node:fs');
+  const secOs = await import('node:os');
+  const secProc = await import('node:child_process');
+  const secTmp = secFs.mkdtempSync(join(secOs.tmpdir(), 'rl-fsec03-'));
+  let secForeignExit = null;
+  let secForeignIntact = false;
+  try {
+    const secGit = (...args) => secProc.spawnSync('git', ['-C', secTmp, ...args], { encoding: 'utf8' });
+    secFs.writeFileSync(join(secTmp, 'FOREIGN'), 'do-not-touch\n');
+    secGit('init', '-q');
+    secGit('config', 'user.email', 'selftest@example.invalid');
+    secGit('config', 'user.name', 'selftest');
+    secGit('add', 'FOREIGN');
+    secGit('commit', '-q', '-m', 'foreign baseline');
+    const secBefore = secFs.readFileSync(join(secTmp, 'FOREIGN'), 'utf8');
+    const secRun = secProc.spawnSync('bash', [join(ROOT, 'scripts/red-green-probe.sh'),
+      '--file', join(secTmp, 'FOREIGN'), '--find', 'do-not-touch', '--replace', 'mutated',
+      '--label', 'F-SEC-03 cross-repository target', '--', 'true'],
+    { encoding: 'utf8', cwd: ROOT });
+    secForeignExit = secRun.status;
+    secForeignIntact = secFs.readFileSync(join(secTmp, 'FOREIGN'), 'utf8') === secBefore;
+  } finally {
+    secFs.rmSync(secTmp, { recursive: true, force: true });
+  }
+  assert(secForeignExit === 4 && secForeignIntact,
+    'TB-SEC-03-02: a --file in another Git checkout is refused at registration with the dirty-target exit rather than accepted as a new anchor, and the foreign file is byte-identical afterwards because the refusal lands before any target is hashed or mutated (exit ' + secForeignExit + ')');
+} catch (e) { failures++; console.log('  \u2717 FAIL (security findings guard threw): ' + e.message); }
+/* ---------- security phase F-SEC-01..03 (END) ---------- */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

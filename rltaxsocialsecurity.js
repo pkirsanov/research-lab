@@ -576,6 +576,29 @@
       if (!Number.isFinite(earliest.ageYears)) {
         return unretrievedRule("earlyReductionRule.earliestClaimAge.ageYears", domain);
       }
+      /* F-SEC-02. Until this check the floor was admitted on finiteness alone, so the pack set
+         its own floor and a pack declaring zero, a negative, or any age low enough opened the
+         reduction loop to a claim age the sourced factors were never written to price. The floor
+         is what BUG-019 made refuse, and a bound nothing validates is not a bound.
+         What is checkable HERE is only that the declaration is an age at all. This module
+         declares NO age by contract — see the file header — so it cannot test the value against a
+         statutory one without becoming the transcription it exists to avoid. A non-positive age
+         is not an age under any statute, and that much is decidable without naming one; a floor
+         that is positive but too low is left to the settlement-coherence check below, which
+         refuses on the arithmetic rather than on a number this file would have had to invent.
+         A floor declared ABOVE the full retirement age needs no check: this branch is reached
+         only when the claim age is below that age, so such a floor refuses through the comparison
+         that follows rather than through a bound stated here. */
+      if (earliest.ageYears <= 0) {
+        return rules.unavailable("RLTAX-PACK-INVALID", domain + ":earlyReductionRule.earliestClaimAge.ageYears",
+          "the pack declares an earliest claim age of " + String(earliest.ageYears)
+            + " years, which is not an age, so the floor below which this pack prices nothing "
+            + "admits every claim age and the reduction is applied for as many months as the "
+            + "arithmetic allows rather than for as many as the source states",
+          "declare earlyReductionRule.earliestClaimAge.ageYears as the age its own source states, "
+            + "greater than zero; it is NOT clamped to a usable age, because a floor this module "
+            + "chose would be an age this module declared and no source published");
+      }
       var earliestCitation = citationFor(pack, earliest, domain + ":earlyReductionRule.earliestClaimAge");
       if (rules.isUnavailable(earliestCitation)) return earliestCitation;
       citations.push(earliestCitation);
@@ -675,6 +698,29 @@
       citations.push(benefitRoundingCitation);
       adjustedMonthly = truncateDownToMultiple(adjustedMonthly, benefitRounding.multiple);
       roundingApplied = Object.freeze({ multiple: benefitRounding.multiple, citation: benefitRoundingCitation });
+    }
+
+    /* F-SEC-02. The floor check above can only decide that the declared age IS an age; it cannot
+       decide that it is the RIGHT age without transcribing one, which this module does not do.
+       This is where a floor that is positive but too low is caught, and it is caught on the
+       arithmetic instead: an early reduction that runs for more months than its factors were
+       written to cover eventually consumes the whole Primary Insurance Amount and then passes
+       through zero, and what it produces after that is a negative monthly benefit.
+       A negative benefit is FINITE, so BUG-020's unrepresentable-figure guards cannot see it, and
+       without this check it reached display carrying the same settled shape as a real figure —
+       the misleading-number class BUG-019 and BUG-020 both exist to prevent. It refuses rather
+       than clamping to zero, because a zero benefit is a claim about entitlement that no pack
+       here made, and it refuses for EITHER direction, so a future rule that could go negative is
+       covered by the property rather than by this rule's own bound. */
+    if (adjustedMonthly < 0) {
+      return rules.unavailable("RLTAX-PACK-INVALID", domain + ":adjusted-monthly-benefit",
+        "the factors this pack states, applied once for each of the " + String(monthsCounted)
+          + " months counted between the declared claim age and the full retirement age, reduce the "
+          + "Primary Insurance Amount past zero to " + String(adjustedMonthly)
+          + " a month, and a negative amount is not a benefit, so no monthly or annual amount is settled",
+        "reconcile the pack's earliest claim age with the reduction factors it declares so the "
+          + "months it admits are the months its factors were written to price; the amount is NOT "
+          + "clamped to zero, because zero would state an entitlement this pack never declared");
     }
 
     return Object.freeze({

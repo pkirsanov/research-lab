@@ -32,6 +32,11 @@
      rules.packReadBoundMs. See BUG-021 design.md, "How the circularity is resolved". */
   var CONFIG_READ_BOUND_MS = 10000;
 
+  /* The largest delay a timer can actually hold, which is the signed 32-bit maximum. It is a
+     property of the timer this module's declared bound arms, not a policy choice, and it is named
+     once here so the validator can refuse a declaration the timer would silently invert. */
+  var TIMER_DELAY_CEILING_MS = 2147483647;
+
   var TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 
   var CONFIG_TOP_FIELDS = Object.freeze(["contractVersion", "display", "rules", "storage", "sweep"]);
@@ -287,10 +292,23 @@
     if (isPlainObject(config.rules)) {
       /* The first value check this section carries. The key-set comparison above already refuses a
          document without the member; this refuses one that carries it as a non-number, as zero or
-         as a negative, each of which would arm a timer that fires at once or never. */
+         as a negative, each of which would arm a timer that fires at once or never.
+
+         F-SEC-01. The upper limit is the second half of the same check, and it is not a policy
+         number: a delay is held by the timer as a signed 32-bit integer, so the largest value that
+         can be represented is TIMER_DELAY_CEILING_MS. One millisecond past it the delay wraps and
+         the timer fires almost immediately — 2147483648 was admitted here and aborted the read
+         after 1 ms — which turns a declaration meaning "wait a very long time" into its opposite.
+         A bound that inverts at its own maximum is worse than no bound, because the inversion is
+         silent, so a declaration beyond what the timer can hold is refused rather than armed. */
       if (!Number.isFinite(config.rules.packReadBoundMs) || config.rules.packReadBoundMs <= 0) {
         refusals.push(configRefusal("rules.packReadBoundMs",
           "the declared document read bound must be a finite number of milliseconds greater than zero"));
+      } else if (config.rules.packReadBoundMs > TIMER_DELAY_CEILING_MS) {
+        refusals.push(configRefusal("rules.packReadBoundMs",
+          "the declared document read bound exceeds the largest delay a timer can represent ("
+            + TIMER_DELAY_CEILING_MS
+            + " milliseconds), and a larger value wraps and fires at once rather than waiting longer"));
       }
     }
     if (isPlainObject(config.sweep)) {
@@ -840,6 +858,7 @@
   var api = Object.freeze({
     BASIS_CONTAINERS: BASIS_CONTAINERS,
     CONFIG_READ_BOUND_MS: CONFIG_READ_BOUND_MS,
+    TIMER_DELAY_CEILING_MS: TIMER_DELAY_CEILING_MS,
     NEVER_COLLECTED: NEVER_COLLECTED,
     PROPERTY_DECLARATIONS: PROPERTY_DECLARATIONS,
     PROPERTY_STRING_DECLARATIONS: PROPERTY_STRING_DECLARATIONS,

@@ -678,7 +678,9 @@
       "24-complete-allocation-and-explicit-views",
       "25-decision-time-dossier-and-immutable-audit",
       "26-immutable-workspace-compute-and-navigation",
-      "27-accessible-six-tab-interaction"
+      "27-accessible-six-tab-interaction",
+      "28-spec-driven-adversarial-test-replacement",
+      "29-documentation-and-registry-truth"
     ],
     "certifiedCompletedPhases": [],
     "scopeProgress": [

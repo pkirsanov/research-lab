@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys",
   "featureName": "BUG-007 Compose Brief Prototype-Sensitive Keys",
   "createdAt": "2026-08-26T16:08:41Z",
-  "lastUpdatedAt": "2026-08-26T16:14:24Z",
+  "lastUpdatedAt": "2026-08-26T16:31:23Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,19 +29,19 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.bug",
-    "currentPhase": "bug",
+    "activeAgent": "bubbles.design",
+    "currentPhase": "design",
     "currentPhaseStatus": "route_required",
-    "substate": "reproduced_and_scoped",
+    "substate": "design_reconciled",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
-    "runStartedAt": "2026-08-26T16:08:41Z",
-    "completedAt": "2026-08-26T16:08:41Z",
+    "runStartedAt": "2026-08-26T16:27:02Z",
+    "completedAt": "2026-08-26T16:31:23Z",
     "currentScope": "01-harden-caller-keyed-brief-aggregation",
-    "nextRequiredOwner": "bubbles.design",
-    "nextRequiredTarget": "design.md",
-    "nextRequiredReason": "Confirm the complete caller-key inventory and the narrow null-prototype plus own-membership design before scenario-first persistent test authorship. No source or persistent test change is authorized by this filing.",
-    "completedPhaseClaims": [],
+    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredTarget": "scopes.md, scenario-manifest.json, test-plan.json",
+    "nextRequiredReason": "Reconcile the existing one-scope plan with direct own-property membership at every affected map read, the real UI-reachable constructor subject, and the existing test-integrity mutation carrier. Preserve the six-case direct-export matrix and all current change exclusions.",
+    "completedPhaseClaims": ["design"],
     "pendingTransitionRequests": [],
     "scopeInventory": [
       {
@@ -81,11 +81,19 @@
   "transitionRequests": [
     {
       "id": "BUG-007-ROUTE-001",
-      "status": "pending",
+      "status": "completed",
       "fromAgent": "bubbles.bug",
       "nextRequiredOwner": "bubbles.design",
       "target": "design.md",
       "reason": "The current-source normal and six-case hostile matrix is independently reproduced with cleanup. Confirm the complete map inventory and selected narrow representation boundary before test or source work."
+    },
+    {
+      "id": "BUG-007-ROUTE-002",
+      "status": "pending",
+      "fromAgent": "bubbles.design",
+      "nextRequiredOwner": "bubbles.plan",
+      "target": "scopes.md, scenario-manifest.json, test-plan.json",
+      "reason": "The design confirms direct Object.create(null) allocation with direct own-property membership, preserves accepted inherited-looking keys and all ordering and envelope behavior, distinguishes browser-global coverage from the user-visible constructor path, and assigns mutation proof to the existing test-integrity carrier. Reconcile the one-scope planning handoff before persistent RED authorship."
     }
   ],
   "reworkQueue": [],
@@ -107,6 +115,17 @@
       "note": "Artifact lint, traceability, and scope-context gates passed on first execution. Scenario-obligation lint initially refused three noncanonical trait names, and test-mechanism lint initially refused a high-risk normal scenario with only a perturbed-input control. Replaced the traits with pure-calculation and degraded-state, strengthened the normal scenario to an in-memory LANE_ORDER source mutation, and reran both refused gates at exit 0. All edits remained inside the BUG-007 packet; no product source, persistent test, parent Feature 008 artifact, certification, human acceptance, or push changed.",
       "phasesExecuted": ["bug"],
       "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-26T16:31:23Z",
+      "agent": "bubbles.design",
+      "phase": "design",
+      "action": "design-reconciled-and-routed",
+      "note": "Ran as bubbles.design after confirming Research Lab repository authority at control revision 231. Read the complete BUG-007 packet, current rlportfoliobrief.js composeBrief and distinctCount paths, the allocation-page caller and completion recorder, the functional and browser carriers, and the existing in-memory mutation infrastructure. Confirmed the recorded six-case reproduction matches the current ten-map and nested-set source path. Selected direct Object.create(null) allocation and direct Object.prototype.hasOwnProperty.call membership with no helper. Preserved normal subject and lane order, lane aggregation, result and refusal envelopes, the direct-export key contract, and the narrower UI token contract. Added the real UI-reachable constructor path and the existing test-integrity carrier to the design handoff. Focused artifact lint passed. Changed only design.md and execution-owned state. Source, persistent tests, scopes, human acceptance, certification, and push remain unchanged.",
+      "phasesExecuted": ["bootstrap"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T16:27:02Z"
     }
   ],
   "addressedFindings": [
@@ -116,13 +135,20 @@
       "owner": "bubbles.bug",
       "status": "addressed",
       "evidenceRef": "report.md#before-fix-reproduction"
+    },
+    {
+      "id": "SEC-B006-S1-DESIGN",
+      "summary": "The current-source map inventory, direct null-prototype allocation, own-property membership boundary, contract preservation, browser reachability, and persistent consumer set are reconciled in design.md.",
+      "owner": "bubbles.design",
+      "status": "addressed",
+      "evidenceRef": "design.md"
     }
   ],
   "unresolvedFindings": [
     {
       "id": "SEC-B006-S1-IMPLEMENTATION",
-      "summary": "Product source and persistent regression tests remain unchanged by instruction. Design ownership must confirm the packet, then test ownership must record persistent RED before implementation.",
-      "owner": "bubbles.design",
+      "summary": "Product source and persistent regressions remain unchanged by instruction. Planning must reconcile the visible constructor path and test-integrity mutation consumer before test ownership records persistent RED.",
+      "owner": "bubbles.plan",
       "status": "route_required",
       "evidenceRef": "design.md"
     }

@@ -53,6 +53,16 @@
         "durationUnmeasuredReason": "The round was driven as many separate browser measurement runs rather than as one timed invocation, so no single elapsed measurement describes it and none is asserted.",
         "outcome": "completed_diagnostic",
         "summary": "Stabilization round against the Lifetime Tax Strategy Lab route. One numeric-robustness defect reproduced deterministically and filed as this packet. No shipped file changed."
+      },
+      {
+        "phase": "regression",
+        "agent": "bubbles.regression",
+        "startedAt": "2026-08-26T04:15:42Z",
+        "completedAt": "2026-08-26T04:15:42Z",
+        "durationUnmeasured": true,
+        "durationUnmeasuredReason": "The round was driven as a sequence of separate command invocations rather than as one timed invocation, so no single elapsed measurement describes it and none is asserted. The individual runs that do carry a measurement are quoted in the summary.",
+        "outcome": "completed_diagnostic",
+        "summary": "Cross-feature regression round over the surface the five bug packets BUG-016, BUG-017, BUG-019, BUG-020 and BUG-021 changed. No regression was found that is attributable to this packet or to the other four. Executed: node scripts/selftest.mjs in the live checkout, exit 1, 3456 passed 2 failed; the identical command at the same commit d53585a30 in a clean detached worktree, exit 0, 3458 passed 0 failed, which attributes both failures to a concurrent session's uncommitted work rather than assuming it, the two being the new orphan tests/tool-brief-v2.stress.mjs named by scripts/validate-test-file-reachability.mjs and the market-brief.html top-level block classification; selftest at 3a43fbb21, the parent of the earliest of the five filing commits, exit 0, 3384 passed 0 failed, so the assertion count moved 3384 to 3458, plus 74, and never backwards; the twenty-two tests/lifetime-tax*.spec.mjs files on --project=system-chrome, 111 passed, exit 0, 1.3m, with no force-killed worker, so BUG-017's pinned workers:2 still holds; node scripts/validate-scope-dod-progress.mjs exit 0, new=0; node scripts/validate-acceptance-bulk-stamp.mjs exit 0, new=0 stale=0; node scripts/pii-scan.mjs exit 0, findings=0 over 10001 files; node scripts/validate-spec-test-paths.mjs exit 0, new=0. The three settlement-path fixes were checked for mutual interference and coexist: this packet's RLTAX-FIGURE-UNREPRESENTABLE in rltax.js, BUG-019's BELOW_EARLIEST_CLAIM_AGE_DOMAIN in rltaxsocialsecurity.js and rltaxclaimage.js, and BUG-021's packReadBoundMs in lifetime-tax-strategy.config.json and rltaxworkspace.js, with all of their regression assertions passing inside one suite run. The 363 Definition of Done rows of specs 021-lifetime-tax-strategy-lab, 022, 023 and 024 remain at 0 open. This round was diagnostic: no Definition of Done row, Checklist item, status, certification status or acceptance record was moved, and no shipped file changed."
       }
     ],
     "transitionQueue": [],

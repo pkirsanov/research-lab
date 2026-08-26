@@ -39,9 +39,14 @@
   zero violations or warnings and resolved all 9 scenario links.
 - Verified the source, all 3 carriers, and the shared in-memory injector retained
   their exact pre-run sha256 values and remained clean in Git.
-- Confirmed the test owner's scoped receipt closure is current at 16 of 16 while
-  the canonical global strict checker truthfully remains red with 22 stale and
-  42 unknown historical identities outside this bug boundary.
+- The regression phase observed 16 of 16 BUG-007 test identities as current at
+  its then-current packet hash. The gaps phase found 9 still valid and 7 stale
+  after later report-only phase updates; the stale seven are the test-owned
+  packet guards and implementation-reality identity, not behavior regressions.
+- Rechecked the canonical global strict receipt truth at 29 stale and 42
+  unknown identities: the original 22 stale identities remain unrelated
+  repository history, while the additional 7 are the BUG-007 report-bound
+  identities above. No identity was refreshed, relabeled, or treated as proof.
 - Reviewed the exact implementation diff and all three persistent carriers for
   reuse, code quality, naming, and efficiency under `bubbles.simplify`.
 - Kept the direct `Object.create(null)` and
@@ -58,13 +63,15 @@
 
 ## Completion Statement
 
-The bounded implementation, test, independent regression, and simplify checks
-are GREEN at the current tree. Simplify found the direct security form already
-minimal and routes to `bubbles.gaps`; later quality phases, human acceptance,
-TP-B007-011, and validate-owned certification remain explicit gates. Packet
-status remains `in_progress`; no human-acceptance item, DoD checkbox, structured
-Test Plan status, global receipt closure, certification field, scope terminal
-status, or spec terminal status is changed.
+The bounded implementation, test, independent regression, simplify, and gaps
+checks are GREEN at the current tree. Gaps found no source, persistent-test,
+scenario, Test Plan, DoD-shape, or implementation-reality delivery gap. It
+corrected the report's time-sensitive receipt wording and routes to
+`bubbles.harden`; later quality phases, human acceptance, TP-B007-011, and
+validate-owned certification remain explicit gates. Packet status remains
+`in_progress`; no human-acceptance item, DoD checkbox, structured Test Plan
+status, receipt identity, certification field, scope terminal status, or spec
+terminal status is changed.
 
 ## Test Evidence
 
@@ -1119,6 +1126,402 @@ gap review. Human acceptance, every DoD checkbox, structured Test Plan status,
 TP-B007-011, global receipt closure, validation, certification, scope/spec
 status, and push remain untouched.
 
+## Gaps Phase {#bug007-gaps-phase}
+
+**Phase:** gaps
+**Claim Source:** interpreted
+**Interpretation:** The current implementation and the three persistent
+carriers satisfy every BUG-007 requirement and scenario without a source,
+test, planning-artifact, or behavior gap. One report claim had become stale:
+the regression phase's 16-of-16 receipt result no longer described the current
+tree after simplify appended to `report.md`. This section preserves that result
+as historical phase evidence and records the current receipt split without
+rewriting any receipt identity.
+
+### Requirement And Source Audit
+
+| Requirement | Current implementation and carrier | Gaps verdict |
+| --- | --- | --- |
+| `FR-B007-001` | `distinctCount()` plus all nine named `composeBrief()` caller-keyed maps and the nested date set use direct `Object.create(null)`; affected reads use direct own membership. | MATCH |
+| `FR-B007-002` | The focused functional subject title covers `__proto__`, `constructor`, and `toString` as own completed-research keys; the browser carrier also records `constructor` through the production controls. | MATCH |
+| `FR-B007-003` | The focused domain title covers all three keys with two completions, two distinct dates, a satisfied inference floor, and one inferred row. | MATCH |
+| `FR-B007-004` | Functional and browser matrices snapshot descriptors on `Object.prototype`, `Object`, and `Object.prototype.toString`, inspect before cleanup, and restore in `finally`. | MATCH |
+| `FR-B007-005` | `owners` and `priorEvidenceIds` resolve only own values; the functional carrier distinguishes explicit own entries from inherited entries for every hostile key. | MATCH |
+| `FR-B007-006` | The normal functional title asserts exact lane/subject order and exact local/shared-policy refusal envelopes. | MATCH |
+| `FR-B007-007` | Functional, real-browser, and in-memory mutation carriers persist. The mutation carrier makes one safe-map site, one owner-membership site, and exact lane order fail independently without writing tracked source. | MATCH |
+
+The design decisions also remain intact: no key blacklist, input rewrite,
+catch-and-continue path, map helper, route, public signature, contract version,
+storage schema, policy value, or migration was introduced. The implementation
+commit left the already-authored tests and shared injector unchanged.
+
+### Design Decision Audit
+
+| Design decision | Current reality | Verdict |
+| --- | --- | --- |
+| Allocate every affected internal map with direct `Object.create(null)`. | The helper and all nine `composeBrief()` maps use the direct form; the per-key date set does too. | MATCH |
+| Use direct `Object.prototype.hasOwnProperty.call()` for affected membership decisions. | Initialization, projection, exclusion, evidence, owner, and prior-evidence reads use direct own membership. | MATCH |
+| Add no safe-map or membership helper. | No helper or abstraction was added in `d49a2955b`. | MATCH |
+| Preserve all three inherited-looking key spellings as data. | Source has no blacklist or rewrite; functional and browser matrices exercise all three. | MATCH |
+| Preserve ordering, lane aggregation, action signatures, and refusal envelopes. | The normal carrier asserts exact lane/subject order and exact representative local/shared-policy failures. | MATCH |
+| Cover six direct-export cases plus the UI-reachable `constructor` path. | The functional and browser matrices cover six cases; the browser test uses preview, confirm, rerender, and visible output for `constructor`. | MATCH |
+| Use the existing in-memory injector and never mutate shipped source. | Three one-anchor mutations run through `tests/portfolio-defect-injector.cjs`; before/after carrier hashes and Git diff remain clean in prior and current mutation evidence. | MATCH |
+
+### Source Site Audit
+
+| Site | Caller-derived key or role | Current protection | Verdict |
+| --- | --- | --- | --- |
+| `distinctCount()::seen` | subject/date set | null-prototype allocation | MATCH |
+| `excludedBySubject` | evidence subject | null-prototype allocation plus own membership at no-action projection | MATCH |
+| `supportBySubject` | completion subject/domain | null-prototype allocation plus own initialization/read | MATCH |
+| `categoriesBySubject` | completion subject/domain | null-prototype allocation plus own array initialization/read | MATCH |
+| `horizonBySubject` | completion subject/domain | null-prototype allocation plus own first-write/read | MATCH |
+| `newestSupportBySubject` | completion subject/domain | null-prototype allocation plus own absence/read | MATCH |
+| `supportDatesBySubject` | completion subject/domain | null-prototype outer allocation plus own set lookup | MATCH |
+| nested support-date set | ISO completion date | null-prototype per-key set | MATCH |
+| `qualifiesVia` | holding/watchlist/completion/domain subject | null-prototype allocation plus own qualification creation | MATCH |
+| `inferredDomains` | completion domain | null-prototype allocation; `Object.keys()` enumerates own domains | MATCH |
+| `byId` | evidence subject | null-prototype allocation plus own aggregate creation/read | MATCH |
+| `owners` | qualified subject | caller object preserved; one own truthy value resolved or `null` | MATCH |
+| `priorEvidenceIds` | qualified subject | caller object preserved; one own truthy value resolved before `.slice()` or `null` | MATCH |
+
+### Persistent Carrier Audit
+
+| Carrier | Required role | Current finding |
+| --- | --- | --- |
+| `tests/portfolio-brief.functional.mjs` | Normal/refusal control, six hostile calls, own/inherited lookups, descriptor integrity, unconditional cleanup | Current execution passes 34 of 34; all five BUG-007 titles remain present and direct. |
+| `tests/portfolio-survival-brief.spec.mjs` | Browser-global six-case parity plus real visible `constructor` workflow and uncaught-error trap | The 19-test input-bound receipt remains current; source inspection confirms direct production controls and visible-state assertions. |
+| `tests/portfolio-test-integrity.unit.mjs` | Load-bearing safe-map, own-owner, and lane-order mutations | Current execution passes 2 of 2; each exact substitution must apply once and make its protective title fail. |
+| `tests/portfolio-defect-injector.cjs` | Read-only in-memory mutation adapter | Unchanged across the implementation window and not edited by gaps. |
+| Feature 008 browser matrix and `scripts/selftest.mjs` | Broader consumer and repository regression | Input-bound receipts remain current at 95 of 95 and 3426 of 3426 respectively; gaps did not duplicate those heavy runs after no source/test change. |
+
+### Report Claim Audit
+
+| Report claim class | Current disposition |
+| --- | --- |
+| Before-fix normal plus six-case reproduction and cleanup | Retained as historical executed diagnostic evidence; not rerun against fixed source. |
+| Root-cause and complete map inventory | Source inspection agrees with the recorded interpretation. |
+| `TP-B007-000` persistent RED | Retained as historical test evidence; carrier titles exist before implementation. |
+| `TP-B007-001` through `TP-B007-004` focused GREEN | Re-executed in gaps at 34 of 34. |
+| `TP-B007-005` mutation adequacy | Re-executed in gaps at 2 of 2. |
+| `TP-B007-006` scenario browser | Current behavior-input receipt remains valid; gaps did not relabel it as a new execution. |
+| `TP-B007-007` broader Feature 008 browser | Current behavior-input receipt remains valid; gaps did not relabel it as a new execution. |
+| `TP-B007-008` canonical selftest | Current behavior-input receipt remains valid; gaps did not relabel it as a new execution. |
+| `TP-B007-009` packet guards | Re-executed in gaps at exit 0; prior test-owned identity remains stale after report edits. |
+| `TP-B007-010` implementation reality | Re-executed in gaps at exit 0 with 1 file, 0 violations, 0 warnings; prior test-owned identity remains stale after report edits. |
+| Scenario and regression carrier integrity | Re-executed in gaps: 9 links resolved; 3 carriers accepted; 0 violations; 0 warnings. |
+| Implementation focused GREEN and exact source delta | Source/current carrier inspection plus current focused execution agree; no implementation claim was widened. |
+| Independent regression verdict | Behavior findings remain supported; its 16-of-16 receipt statement is preserved as historical and corrected for current packet hashes. |
+| Simplify no-change verdict | Current direct security form remains unchanged; gaps found no contradictory complexity or behavior issue. |
+| Validation, audit, chaos, acceptance, and `TP-B007-011` | Still explicitly not run or not completed; no pass or terminal claim added. |
+| Current receipt closure | Corrected to 9 valid and 7 stale BUG-007 identities, with global strict 29 stale and 42 unknown. |
+
+### Transition Route Audit
+
+| Route | Handoff | Current disposition |
+| --- | --- | --- |
+| `BUG-007-ROUTE-001` | bug to design | Completed; design reconciles the reproduced defect and full map boundary. |
+| `BUG-007-ROUTE-002` | design to plan | Completed; one-scope scenario/Test Plan packet exists. |
+| `BUG-007-ROUTE-003` | plan to test | Completed; persistent scenario-first carriers were authored. |
+| `BUG-007-ROUTE-004` | test RED to implement | Completed; bounded source repair is `d49a2955b`. |
+| `BUG-007-ROUTE-005` | implement to test GREEN | Completed; focused, browser, broader, selftest, and guard evidence was produced. |
+| `BUG-007-ROUTE-006` | test to regression | Completed; independent regression found no delivery regression. |
+| `BUG-007-ROUTE-007` | regression to simplify | Completed; simplify made no source/test change. |
+| `BUG-007-ROUTE-008` | simplify to gaps | Completed by this phase; no delivery gap remains. |
+| `BUG-007-ROUTE-009` | gaps to harden | Pending and exact; harden is the next registered bugfix-fastlane owner. |
+
+### Scenario And Test Plan Audit
+
+| Scenario or row | Current proof | Ownership disposition |
+| --- | --- | --- |
+| `SCN-B007-NORMAL-COMPATIBILITY` | Current focused functional execution passes its exact title; the browser and broader E2E receipts retain current source/test input hashes. | No gap |
+| `SCN-B007-SUBJECT-KEY-SAFETY` | Current focused functional and mutation executions pass; the scenario browser receipt retains current behavior inputs. | No gap |
+| `SCN-B007-DOMAIN-KEY-SAFETY` | Current focused functional and mutation executions pass; the scenario browser receipt retains current behavior inputs. | No gap |
+| `TP-B007-000` | Historical scenario-first RED remains recorded before `d49a2955b`; both protective titles exist in `d49a2955b^`, and the implementation commit changes no persistent carrier. | Historical test-owned evidence; do not rerun against fixed source |
+| `TP-B007-001` through `TP-B007-004` | Current exact focused command: 34 tests, 34 pass, 0 fail, 0 skipped, 0 todo. | No gap |
+| `TP-B007-005` | Current mutation command: 2 tests, 2 pass, 0 fail, 0 skipped, 0 todo. | No gap |
+| `TP-B007-006` | Input-bound current test receipt covers the 19-test real-browser carrier and named visible `constructor` workflow. | No gap; browser was not rerun in this no-source-change phase |
+| `TP-B007-007` | Input-bound current test receipt covers the 95-test eight-file Feature 008 browser matrix. | No gap; no duplicate heavy run created |
+| `TP-B007-008` | Input-bound current test receipt covers the 3426-check canonical selftest. | No gap; no duplicate heavy run created |
+| `TP-B007-009` | All six packet guards were executed in this gaps phase and passed. | No delivery gap; prior test-owned receipt identity remains truthfully stale after report changes |
+| `TP-B007-010` | Implementation reality was executed in this gaps phase: 1 file, 0 violations, 0 warnings. | No delivery gap; prior test-owned receipt identity remains truthfully stale after report changes |
+| `TP-B007-011` | Not run. The packet reserves it for validate only after all prerequisites. | `bubbles.validate`; unchanged |
+
+### Definition Of Done Audit
+
+| DoD item | Audit result | Owner or reason it remains unchecked |
+| --- | --- | --- |
+| Root cause and complete map inventory | Evidence and source agree. | DoD remains planner-owned and unchecked by instruction. |
+| Change boundary and consumer sweep | Delivery and commits remain inside the declared source/test/packet boundary. | DoD remains unchecked. |
+| `TP-B007-000` pre-fix RED and cleanup | Historical RED and pre-implementation carrier order are present. | Test-owned historical evidence; DoD remains unchecked. |
+| `SCN-B007-NORMAL-COMPATIBILITY` | Current focused test passes. | DoD remains unchecked. |
+| `SCN-B007-SUBJECT-KEY-SAFETY` | Current focused test passes. | DoD remains unchecked. |
+| `SCN-B007-DOMAIN-KEY-SAFETY` | Current focused test passes. | DoD remains unchecked. |
+| `TP-B007-004` lookup, built-in, cleanup | Current focused test passes. | DoD remains unchecked. |
+| `TP-B007-005` mutation adequacy | Current mutation test passes. | DoD remains unchecked. |
+| `TP-B007-006` scenario browser | Current input-bound receipt remains valid. | DoD remains unchecked. |
+| `TP-B007-007` broader E2E | Current input-bound receipt remains valid. | DoD remains unchecked. |
+| `TP-B007-008` selftest | Current input-bound receipt remains valid. | DoD remains unchecked. |
+| `TP-B007-009` packet guards | Fresh gaps execution passes; old test identity is stale only because the report changed. | DoD remains unchecked. |
+| `TP-B007-010` implementation reality | Fresh gaps execution passes; old test identity is stale only because the report changed. | DoD remains unchecked. |
+| Human acceptance | Explicitly required by this packet and has not occurred. | Human owner only; blanket authorization is not witnessed acceptance. |
+| `TP-B007-011` transition guard | Intentionally not run before acceptance, quality phases, and validation. | `bubbles.validate`; DoD remains unchecked. |
+| Build Quality Gate | Later phase sequence is incomplete despite the clean delivery audit. | `bubbles.harden` and subsequent registered owners. |
+
+### Current Gaps Execution
+
+**Executed:** YES
+**Commands:** focused functional, in-memory mutation, six packet guards,
+implementation reality, regression-quality bugfix scan, scenario-test
+resolution, source syntax, and changed-surface whitespace checks.
+**Exit Codes:** all `0`
+**Claim Source:** executed
+
+```text
+# BUG-007 gaps focused functional
+$ timeout 240 node --test tests/portfolio-brief.functional.mjs
+exit: 0
+lines: 214
+sha256: 12a0a182a259c56bf7bc9fb97ff847f2660cf7708c135b938ec1956255e6d8b0
+--- first 20 ---
+TAP version 13
+# Subtest: only an eligible completion becomes behavior evidence and no excluded source can create or grow one
+ok 1 - only an eligible completion becomes behavior evidence and no excluded source can create or grow one
+  ---
+  duration_ms: 196.623302
+  type: 'test'
+  ...
+# Subtest: route recomposition is invariant to behavior evidence and states that behavior contributes none
+ok 2 - route recomposition is invariant to behavior evidence and states that behavior contributes none
+  ---
+  duration_ms: 34.1446
+  type: 'test'
+  ...
+# Subtest: behavior clear removes the committed evidence and returns recomposition to the pre-evidence baseline
+ok 3 - behavior clear removes the committed evidence and returns recomposition to the pre-evidence baseline
+  ---
+  duration_ms: 84.712301
+  type: 'test'
+  ...
+# Subtest: dismissal and automatic invalidation record a safe outcome and never a behavior event or a negative preference
+--- omitted 174 line(s); sha256 above covers the full output ---
+--- last 20 ---
+ok 33 - Adversarial: reduced brief evidence policy and API cannot satisfy the complete contract
+  ---
+  duration_ms: 1.4269
+  type: 'test'
+  ...
+# Subtest: Regression: BUG-004 same-semantic occurrences cannot inflate relevance
+ok 34 - Regression: BUG-004 same-semantic occurrences cannot inflate relevance
+  ---
+  duration_ms: 90.862001
+  type: 'test'
+  ...
+1..34
+# tests 34
+# suites 0
+# pass 34
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 636.11251
+
+# BUG-007 mutation integrity
+✔ Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing (7657.857786ms)
+✔ BUG-007: caller-key protections and normal ordering are load-bearing in memory (969.603832ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8696.645075
+
+# BUG-007 gaps post-edit packet guards
+$ timeout 600 bash -c 'bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys && bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys && bash .github/bubbles/scripts/scenario-obligation-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys && bash .github/bubbles/scripts/test-mechanism-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys --repo-root . && bash .github/bubbles/scripts/scope-context-fit-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys && bash .github/bubbles/scripts/capability-foundation-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys'
+exit: 0
+lines: 103
+sha256: 0a8c57bf72bed3a2f6b5488535e9de2ea161c99e81a2a23b663967badcb8aa3a
+--- first 20 ---
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes.md
+✅ Required artifact exists: report.md
+✅ No forbidden sidecar artifacts present
+✅ Found DoD section in scopes.md
+✅ scopes.md DoD contains checkbox items
+✅ All DoD bullet items use checkbox syntax in scopes.md
+✅ Found Checklist section in uservalidation.md
+✅ uservalidation checklist contains checkbox entries
+✅ All checklist bullet items use checkbox syntax
+✅ uservalidation separates automation readiness from human acceptance
+✅ Detected state.json status: in_progress
+✅ Detected state.json workflowMode: bugfix-fastlane
+✅ state.json v3 has required field: status
+✅ state.json v3 has required field: execution
+✅ state.json v3 has required field: certification
+✅ state.json v3 has required field: policySnapshot
+--- omitted 63 line(s); sha256 above covers the full output ---
+--- last 20 ---
+
+--- Traceability Summary ---
+ℹ️  Scenarios checked: 3
+ℹ️  Test rows checked: 13
+ℹ️  Scenario-to-row mappings: 3
+ℹ️  Concrete test file references: 3
+ℹ️  Report evidence references: 3
+ℹ️  DoD fidelity scenarios: 3 (mapped: 3, unmapped: 0)
+ℹ️  Edge confidence (IMP-015 Scope B): declared=3 inferred=0 ambiguous=3
+
+RESULT: PASSED (0 warnings)
+[scenario-obligation-lint] OK — 3 scenario(s) with a coherent derived obligation matrix
+[test-mechanism-lint] OK — 3 declared mechanism(s) coherent with their scenario traits
+[mutation-receipt] OK — mutationExecution adapter is none (inert)
+[scope-context-fit-lint] OK — all 1 scope(s) are self-contained (no chat/session-replay dependency); a fresh specialist can execute from the durable artifacts.
+capability-foundation-guard: Gate G094 applies: triggerHits=3 concreteImplementationEntries=0
+capability-foundation-guard: spec.md contains non-empty Single-Capability Justification
+capability-foundation-guard: design.md contains non-empty Single-Implementation Justification
+capability-foundation-guard: UX primitive check not applicable: screenCount=0 uiReuseHits=0
+capability-foundation-guard: PASS Gate G094 - capability foundation requirements satisfied
+
+# BUG-007 gaps post-edit implementation reality
+$ bash .github/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys --verbose
+exit: 0
+lines: 36
+sha256: bd7c897cb79aa711b318f7673be2d486ba00229409e2bd05c83ff518f6ddd508
+
+ℹ️  INFO: Resolved 1 implementation file(s) to scan
+
+--- Scan 1: Gateway/Backend Stub Patterns ---
+
+--- Scan 1B: Handler / Endpoint Execution Depth ---
+
+--- Scan 1C: Endpoint Not-Implemented / Placeholder Responses ---
+
+--- Scan 1D: External Integration Authenticity ---
+
+--- Scan 2: Frontend Hardcoded Data Patterns ---
+
+--- Scan 2B: Sensitive Client Storage ---
+
+--- Scan 3: Frontend API Call Absence ---
+
+--- Scan 4: Prohibited Simulation Helpers in Production ---
+
+--- Scan 5: Default/Fallback Value Patterns ---
+
+--- Scan 6: Live-System Test Interception ---
+ℹ️  INFO: No live-system test files referenced in scope artifacts for interception scan
+
+--- Scan 7: IDOR / Auth Bypass Detection (Gate G047) ---
+
+--- Scan 8: Silent Decode Failure Detection (Gate G048) ---
+
+============================================================
+  IMPLEMENTATION REALITY SCAN RESULT
+============================================================
+
+  Files scanned:  1
+  Violations:     0
+  Warnings:       0
+
+🟢 PASSED: No source code reality violations detected
+
+# BUG-007 regression quality
+BUBBLES REGRESSION QUALITY GUARD
+Repo: ~/research-lab
+Bugfix mode: true
+Scanning tests/portfolio-brief.functional.mjs
+Adversarial signal detected in tests/portfolio-brief.functional.mjs
+Scanning tests/portfolio-survival-brief.spec.mjs
+Asserts the current surface in tests/portfolio-survival-brief.spec.mjs (mixed inspection accepted)
+Adversarial signal detected in tests/portfolio-survival-brief.spec.mjs
+Scanning tests/portfolio-test-integrity.unit.mjs
+Adversarial signal detected in tests/portfolio-test-integrity.unit.mjs
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 3
+Files with adversarial signals: 3
+
+[scenario-test-resolve] OK — 9 reference(s) resolved via literal-scan; 9 category comparison(s) not applicable (no test-discovery adapter declared)
+NODE_CHECK_EXIT=0
+DELIVERY_DIFF_CHECK_EXIT=0
+exit
+```
+
+The bounded-capture hashes cover every omitted output line. The home path
+printed by regression quality is normalized to `~/research-lab` under the
+repository PII policy; no command verdict is changed.
+
+### Scoped And Global Receipt Audit
+
+**Phase:** gaps
+**Executed:** YES
+**Commands:** canonical global `evidence-receipt-check.sh --strict`, the same
+checker without strict failure for full JSON, test-leaf adapter resolution, and
+a read-only projection of the append-only BUG-007 test session using the
+checker's exact identity fields.
+**Exit Codes:** `1, 0, 0, 0`
+**Claim Source:** interpreted
+**Interpretation:** Global strict failure is real and must stay visible. The
+BUG-007 session has 16 current closure-bearing identities and no unknown
+identity. Seven are stale because their closure includes `report.md`, which
+later phases changed. The other nine, including functional, mutation, scenario
+browser, broader browser, selftest, regression-quality, scenario resolution,
+and adapter-resolution receipts, remain valid. Fresh gaps executions directly
+recheck the seven affected guard behaviors but do not impersonate or supersede
+their test-owned identities.
+
+```text
+global total=147
+global current=82
+global superseded=65
+global withClosure=40
+global valid=11
+global stale=29
+global unknown=42
+BUG-007 appendCount=23
+BUG-007 currentIdentities=16
+BUG-007 withClosure=16
+BUG-007 unknown=0
+BUG-007 valid=9
+BUG-007 stale=7
+stale BUG-007 identities=artifact-lint,traceability,scenario-obligation,test-mechanism,scope-context,capability-foundation,implementation-reality
+stale BUG-007 reason=input hash differs: report.md
+original unrelated stale identities=22
+receipt identities changed by gaps=0
+```
+
+An attempted direct scoped invocation using a process-substitution stream was
+also recorded and exited `2` because the checker requires `--log` to name a
+regular file. No filtered receipt file was created, and that failed invocation
+is not used as proof.
+
+### Remaining Ownership Matrix
+
+| Owner | Remaining responsibility | Gaps disposition |
+| --- | --- | --- |
+| `bubbles.harden` | Run the registered hardening profile against the existing packet, test taxonomy, semantic scenario coverage, regression quality, and structured-plan parity. | Next owner; do not invent a fix when no hardening finding exists. |
+| `bubbles.stabilize` | Independently assess stability domains and back any finding with execution evidence. | Later mode phase. |
+| `bubbles.devops` | Determine and evidence the build-free/static-site operational applicability; do not manufacture deployment work. | Later mode phase. |
+| `bubbles.security` | Independently review the prototype-safety boundary and scanner applicability. | Later mode phase. |
+| Human owner | Complete the explicit acceptance record only after direct witnessed acceptance. | Required by this bug packet; blanket authorization is not acceptance. |
+| `bubbles.validate` | After prerequisites, execute `TP-B007-011` and own all certification writes. | Not run and untouched here. |
+| `bubbles.audit` | Independently audit evidence provenance, receipt interpretation, and transition fidelity. | Later mode phase. |
+| `bubbles.finalize` | Finalize only after the registered phase chain, human acceptance, transition guard, and certification permit it. | Later mode phase; no terminal state here. |
+
+### Gaps Verdict And Routing
+
+`NO_DELIVERY_GAP_FOUND`. The only gaps-owned repair was the time-sensitive
+receipt wording in this report. Route `BUG-007-ROUTE-008` is complete. The next
+registered owner is `bubbles.harden`. No source, persistent test, planning
+artifact, acceptance item, DoD item, structured Test Plan status, receipt
+identity, TP-B007-011 result, certification field, scope/spec status, terminal
+state, or parent Feature 008 artifact changed.
+
 ## Code Diff Evidence
 
 The implementation commit changes only `rlportfoliobrief.js` plus this BUG-007
@@ -1166,17 +1569,18 @@ of `SEC-B006-S1`.
 
 ```yaml
 outcome: route_required
-currentOwner: bubbles.simplify
-nextRequiredOwner: bubbles.gaps
+currentOwner: bubbles.gaps
+nextRequiredOwner: bubbles.harden
 bug: BUG-007-compose-brief-prototype-sensitive-keys
 addressedFindings:
   - SEC-B006-S1-IMPLEMENTATION
   - SEC-B006-S1-TEST
   - SEC-B006-S1-REGRESSION
   - SEC-B006-S1-SIMPLIFY
+  - SEC-B006-S1-GAPS
 unresolvedFindings: []
 evidence:
+  - report.md#bug007-gaps-phase
   - report.md#bug007-simplify-phase
-  - report.md#bug007-regression-phase
-reason: The direct auditable security form is already the simplest behavior-preserving implementation; focused functional, mutation, carrier-quality, and byte-integrity checks pass, so gaps is next while acceptance, DoD, TP-B007-011, global receipt closure, validation, certification, and terminal status remain truthfully unchanged.
+reason: The exhaustive gaps audit found no source, persistent-test, scenario, Test Plan, DoD-shape, or implementation-reality delivery gap. It corrected only the report's time-sensitive receipt wording and preserved the real 29-stale/42-unknown global strict truth without relabeling any identity. Harden is next while acceptance, DoD, TP-B007-011, certification, terminal status, and the parent Feature 008 transaction remain unchanged.
 ```

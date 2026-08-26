@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys",
   "featureName": "BUG-007 Compose Brief Prototype-Sensitive Keys",
   "createdAt": "2026-08-26T16:08:41Z",
-  "lastUpdatedAt": "2026-08-26T18:39:53Z",
+  "lastUpdatedAt": "2026-08-26T22:40:14Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,20 +29,20 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.gaps",
-    "currentPhase": "gaps",
+    "activeAgent": "bubbles.harden",
+    "currentPhase": "harden",
     "currentPhaseStatus": "route_required",
-    "substate": "gap-audit-no-delivery-gap",
+    "substate": "hardening-blocked-mutation-causality",
     "executionModel": "direct-authorized-runner",
     "parentAgent": "bubbles.bug",
-    "runStartedAt": "2026-08-26T18:23:42Z",
-    "completedAt": "2026-08-26T18:39:53Z",
+    "runStartedAt": "2026-08-26T22:33:08Z",
+    "completedAt": "2026-08-26T22:40:14Z",
     "currentScope": "01-harden-caller-keyed-brief-aggregation",
-    "nextRequiredOwner": "bubbles.harden",
-    "nextRequiredTarget": "BUG-007 exhaustive hardening profile",
-    "nextRequiredReason": "Gaps audited all seven requirements, three scenarios, twelve Test Plan rows, sixteen DoD items, source sites, three persistent carriers, report claims, routes, and current receipts. Fresh focused functional 34 of 34, mutation 2 of 2, six packet guards, implementation reality, regression quality, scenario resolution, syntax, and whitespace checks pass. No delivery gap remains. The report now distinguishes the regression phase's historical 16-of-16 receipt result from the current 9-valid/7-stale BUG-007 split and the global 29-stale/42-unknown truth without relabeling identities. Harden is the next registered owner; acceptance, DoD, TP-B007-011, certification, and terminal status remain open.",
+    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredTarget": "BUG-007 mutation-causality scope boundary and persistent regression",
+    "nextRequiredReason": "Exhaustive hardening passed focused functional 34 of 34, real-browser 19 of 19, exact Feature 008 browser 95 of 95, canonical selftest 3426 of 3426, artifact lint, traceability, implementation reality, regression quality, source syntax, parity, silent-pass scans, source/test integrity, and protected-parent identity. Direct execution of the registered null-prototype mutant proved HARDEN-B007-001: the fs.readFileSync hook applies once, the _compile hook then throws on the already-mutated zero-anchor source, and the carrier counts that injector self-error as successful discrimination. The current scope explicitly excludes injector edits, so plan must admit the test-owned causal repair before test and harden rerun. Stabilize is the normal successor only after harden completes.",
     "completedPhaseClaims": ["design", "plan", "implement", "test", "regression", "simplify", "gaps"],
-    "pendingTransitionRequests": ["BUG-007-ROUTE-009"],
+    "pendingTransitionRequests": ["BUG-007-ROUTE-010"],
     "scopeInventory": [
       {
         "scopeId": "01-harden-caller-keyed-brief-aggregation",
@@ -145,11 +145,19 @@
     },
     {
       "id": "BUG-007-ROUTE-009",
-      "status": "pending",
+      "status": "completed",
       "fromAgent": "bubbles.gaps",
       "nextRequiredOwner": "bubbles.harden",
       "target": "BUG-007 exhaustive hardening profile",
       "reason": "The exhaustive gap audit found no source, persistent-test, scenario, Test Plan, DoD-shape, or implementation-reality delivery gap. Fresh focused functional, mutation, packet, traceability, carrier-quality, scenario-resolution, syntax, and whitespace checks pass. The report now preserves the real scoped and global receipt split without refreshing or relabeling test-owned or unrelated historical identities. Run the registered hardening profile next without changing acceptance, DoD, TP-B007-011, certification, terminal status, or the protected parent Feature 008 transaction unless a new grounded finding requires owner routing."
+    },
+    {
+      "id": "BUG-007-ROUTE-010",
+      "status": "pending",
+      "fromAgent": "bubbles.harden",
+      "nextRequiredOwner": "bubbles.plan",
+      "target": "scopes.md, scenario-manifest.json, test-plan.json, and the excluded shared injector boundary",
+      "reason": "HARDEN-B007-001 proves the current mutation carrier can pass when the represented mutant fails on an injector self-error rather than the protective assertion. The current scope explicitly excludes a tracked tests/portfolio-defect-injector.cjs edit. Add the exact mutation-causality scenario, Test Plan row or strengthened TP-B007-005 mapping, DoD obligation, and allowed test boundary before routing the repair to bubbles.test. Do not change human acceptance, TP-B007-011, certification, scope status, or top-level status."
     }
   ],
   "reworkQueue": [],
@@ -248,6 +256,17 @@
       "provenanceMode": "specialist",
       "statusBefore": "in_progress",
       "runStartedAt": "2026-08-26T18:23:42Z"
+    },
+    {
+      "at": "2026-08-26T22:40:14Z",
+      "agent": "bubbles.harden",
+      "phase": "harden",
+      "action": "exhaustive-hardening-found-mutation-causality-defect-and-routed",
+      "note": "Refreshed Research Lab repository authority at control revision 249 and preserved all 49 dirty parent Feature 008 transaction files at aggregate sha256 19ad2e42e0ec72165baee5e35fbb3a2a2c2345e884462a9c2973cc5f4350b358. Independently executed focused functional 34 of 34, registered mutation 2 of 2, real-browser 19 of 19, exact Feature 008 browser 95 of 95, canonical selftest 3426 of 3426, artifact lint, traceability, implementation reality, regression quality, source syntax, exact 3-scenario/12-row/12-DoD parity, silent-pass and interception scans, source/test hash integrity, and current scoped/global receipt accounting. Product behavior and shipped source protections are clean. A direct registered-mutant probe found HARDEN-B007-001: the injector applies through fs.readFileSync and then _compile throws on the already-mutated zero-anchor source, while the carrier treats that infrastructure failure as load-bearing discrimination. Completed inbound route 009 and routed 010 to bubbles.plan because the current scope excludes the shared injector edit. Did not add harden to completedPhaseClaims because H2 and H7 fail. Acceptance, DoD, structured Test Plan status, TP-B007-011, certification, scope/spec status, top-level status, source, tests, receipts, and push remain unchanged.",
+      "phasesExecuted": [],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T22:33:08Z"
     }
   ],
   "addressedFindings": [
@@ -315,5 +334,13 @@
       "evidenceRef": "report.md#bug007-gaps-phase"
     }
   ],
-  "unresolvedFindings": []
+  "unresolvedFindings": [
+    {
+      "id": "HARDEN-B007-001",
+      "summary": "The shared in-memory defect injector can apply once through fs.readFileSync and then throw from _compile on the already-mutated zero-anchor source; the BUG-007 mutation carrier accepts that injector self-error as successful defect discrimination.",
+      "owner": "bubbles.plan",
+      "status": "open",
+      "evidenceRef": "report.md#harden-b007-001"
+    }
+  ]
 }

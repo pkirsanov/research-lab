@@ -1584,3 +1584,351 @@ evidence:
   - report.md#bug007-simplify-phase
 reason: The exhaustive gaps audit found no source, persistent-test, scenario, Test Plan, DoD-shape, or implementation-reality delivery gap. It corrected only the report's time-sensitive receipt wording and preserved the real 29-stale/42-unknown global strict truth without relabeling any identity. Harden is next while acceptance, DoD, TP-B007-011, certification, terminal status, and the parent Feature 008 transaction remain unchanged.
 ```
+
+## BUG-007 Hardening Phase {#bug007-harden-phase}
+
+**Phase:** harden
+**Executed:** YES
+**Claim Source:** interpreted
+**Interpretation:** The delivered product behavior passes every focused,
+browser, broader-regression, selftest, source, packet, and integrity check run
+in this phase. The target is nevertheless not hardened because a direct mutant
+causality probe shows that the registered mutation carrier accepts an injector
+self-error as proof that the persistent regression detected the represented
+defect. This is a blocking test-integrity finding, not a product-source failure.
+
+### Authority And Mode Resolution
+
+Repository authority was refreshed from the VS Code session log and committed
+to `research-lab` at control revision 249 before the hardening Bubbles guards.
+The persisted `bugfix-fastlane` mode resolved with status ceiling `done` and
+this phase order:
+
+```text
+select, bootstrap, implement, test, regression, simplify, gaps, harden,
+stabilize, devops, security, validate, audit, finalize
+```
+
+The ordinary successor to a successful harden phase is `bubbles.stabilize`.
+That successor is not reached here because the blocking finding requires a
+planner-owned scope-boundary and persistent-test correction first.
+
+### Hardening Baseline And Outcomes
+
+| Check | Exact outcome | Hardening disposition |
+| --- | --- | --- |
+| Focused functional carrier | exit 0; 34/34 pass; 0 fail; 0 skipped; 0 todo | Product behavior passes |
+| Registered in-memory mutation carrier | exit 0; 2/2 pass; 0 fail; 0 skipped; 0 todo | Rejected as mutation-causality proof by `HARDEN-B007-001` |
+| Real-browser BUG-007 scenario file | Playwright 1.61.1; exit 0; 19/19 pass | Six hostile exported cases and visible `constructor` workflow pass |
+| Exact Feature 008 browser matrix | exit 0; 95/95 pass | Broader browser regression passes |
+| Canonical selftest | exit 0; 3426 pass; 0 fail | Repository regression passes |
+| Artifact lint | exit 0; 40 output lines | Packet shape passes at in-progress status |
+| Traceability | exit 0; 3 scenarios; 13 rows checked; 0 warnings | Scenario links and DoD fidelity pass |
+| Implementation reality | exit 0; 1 file; 0 violations; 0 warnings | Product source scan passes |
+| Regression quality `--bugfix` | exit 0; 3 files; 3 adversarial signals; 0 violations; 0 warnings | Static carrier-quality scan passes but does not detect the causal defect |
+| Source syntax | exit 0 | `rlportfoliobrief.js` parses |
+| Scenario/Test Plan/DoD parity | 3 scenarios; 12 Markdown rows; 12 JSON rows; 12 DoD test refs; 9 linked tests | Exact parity passes |
+| Silent-pass/interception scan | 0 skip markers; 0 live interceptions; 0 bailout patterns | Passes |
+| Caller-key structural attack | 11 null-prototype allocations and 2 own checks present once; nested-date and prior-lookup reductions rejected | Shipped source boundary passes |
+| Source/test byte integrity | all 5 hashes unchanged; Git diff exit 0 | No tracked source/test mutation |
+| Protected parent Feature 008 transaction | 49 paths; aggregate `19ad2e42e0ec72165baee5e35fbb3a2a2c2345e884462a9c2973cc5f4350b358` before and after | Preserved byte-for-byte |
+| Scoped receipt identity | 23 appends; 16 current; 9 valid; 7 stale; 0 unknown; 0 nonzero | Preserved without refresh or relabel |
+| Global strict receipt identity | exit 1; 147 total; 82 current; 11 valid; 29 stale; 42 unknown | Truthfully red; unrelated identities untouched |
+
+### Focused Functional And Mutation Executions
+
+**Phase:** harden
+**Commands:** `timeout 240 node --test tests/portfolio-brief.functional.mjs`;
+`timeout 240 node --test tests/portfolio-test-integrity.unit.mjs`
+**Exit Codes:** `0, 0`
+**Claim Source:** executed
+
+```text
+# BUG-007 harden focused functional
+exit: 0
+lines: 214
+sha256: de235ed9c0f5f2c560b6fa35f007e2d6f3b669ff6448b8a8ac06d95141d6382e
+1..34
+# tests 34
+# suites 0
+# pass 34
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+
+# BUG-007 harden in-memory mutation carrier
+exit: 0
+lines: 22
+sha256: 0e9375b84a2c0f4a9c10eff03b5fac215fa8880f7d9fbca96c7ae337425c14ba
+ok 1 - Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing
+ok 2 - BUG-007: caller-key protections and normal ordering are load-bearing in memory
+1..2
+# tests 2
+# pass 2
+# fail 0
+# skipped 0
+# todo 0
+```
+
+The focused carrier directly exercises normal lane and subject order, local
+before shared-policy refusal precedence, all six hostile subject/domain cases,
+the nested date-support path, own and inherited `owners` and
+`priorEvidenceIds`, shared built-in snapshots, and unconditional cleanup. Its
+34/34 result is accepted. The mutation carrier's 2/2 result is recorded but is
+not accepted as causal proof because of the finding below.
+
+### Real-Browser And Broader Regression
+
+**Phase:** harden
+**Commands:** exact BUG-007 browser file and exact eight-file Feature 008
+browser matrix from `test-plan.json`
+**Exit Codes:** `0, 0`
+**Claim Source:** executed
+
+```text
+# BUG-007 harden real-browser scenario file
+exit: 0
+lines: 67
+sha256: 49b0996408b77454b9781cccfba47f50aec636f8b90d2c58dd0490435d98b965
+Running 19 tests using 1 worker
+PASS BUG-007: browser composer treats hostile keys as data and visible constructor remains operable
+PASS Regression: SCN-008-055 every published Feature 008 entry opens the Portfolio Brief workspace
+19 passed (27.8s)
+
+# BUG-007 harden exact Feature 008 browser matrix
+exit: 0
+lines: 304
+sha256: 053a2b8bb951445084c00afaab3c0e5888edd30c676bb13c2d4b399cbad4432d
+Running 95 tests using 2 workers
+PASS BUG-007: browser composer treats hostile keys as data and visible constructor remains operable
+PASS Regression: SCN-008-048 cancelled and superseded path jobs cannot replace the last valid view
+95 passed (2.0m)
+```
+
+The first browser run proves the real UMD export and the production preview,
+confirm, persistence, rerender, and visible `constructor` workflow. The exact
+broader matrix preserves all eight registered Feature 008 browser carriers.
+Neither run uses request interception.
+
+### Canonical Selftest And Packet Guards
+
+**Phase:** harden
+**Commands:** canonical selftest, artifact lint, traceability guard,
+implementation-reality scan, and bugfix regression-quality guard
+**Exit Codes:** all `0`
+**Claim Source:** executed
+
+```text
+# BUG-007 harden canonical selftest
+exit: 0
+lines: 3912
+sha256: fe8012dee8f8311546c741bb80246ccc98771e6d59caec0f717db1e346faa1b3
+Research-Lab self-test: 3426 passed, 0 failed
+
+# BUG-007 harden artifact lint
+exit: 0
+lines: 40
+sha256: 182cf27f7948b167f9fdebccae5bf6994636355face5d8ae0a4d55666dc9b567
+Artifact lint PASSED.
+
+# BUG-007 harden traceability
+exit: 0
+lines: 54
+sha256: 399ea55e0a876f103edb90cd687ee8c9d5c0214240957b5d0e18ce1f45bcc6cb
+Scenarios checked: 3
+Test rows checked: 13
+DoD fidelity scenarios: 3 (mapped: 3, unmapped: 0)
+RESULT: PASSED (0 warnings)
+
+# BUG-007 harden implementation reality
+exit: 0
+lines: 36
+sha256: bd7c897cb79aa711b318f7673be2d486ba00229409e2bd05c83ff518f6ddd508
+Files scanned: 1
+Violations: 0
+Warnings: 0
+PASSED: No source code reality violations detected
+
+# BUG-007 bugfix regression quality
+Files scanned: 3
+Files with adversarial signals: 3
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+```
+
+The regression-quality path printed the local repository root. This report
+normalizes that home path to `~/research-lab`; no command result or identity is
+changed.
+
+### Static, Parity, And Integrity Checks
+
+**Phase:** harden
+**Commands:** source syntax, fail-closed scenario/Test Plan/DoD parity, explicit
+skip/interception/bailout scan, caller-key structural mutations, SHA-256 and
+Git diff checks, and protected-parent aggregate comparison
+**Exit Codes:** all `0`
+**Claim Source:** executed
+
+```text
+SOURCE_SYNTAX_EXIT=0
+SCENARIOS markdown=3 manifest=3
+TEST_PLAN markdown=12 json=12
+DOD_TEST_REFS=12 parityRows=12
+LINKED_TEST_REFS=9 resolved=9
+PERSISTENT_TEST_FILES=3
+CATEGORIES=artifact,e2e-ui,functional,guard,unit
+CROSS_SCOPE_DUPLICATION=not-applicable-one-scope
+SCENARIO_TEST_PLAN_DOD_PARITY=PASS
+SKIP_MARKER_MATCHES=0
+LIVE_INTERCEPTION_MATCHES=0
+REQUIRED_BAILOUT_MATCHES=0
+SILENT_PASS_OR_INTERCEPTION_SCAN=PASS
+NESTED_DATE_SET_REMOVAL_REJECTED=true
+PRIOR_INHERITED_LOOKUP_REJECTED=true
+CALLER_KEY_STRUCTURAL_ATTACK=PASS
+SOURCE_TEST_POST_ATTACK_EXIT=0
+PROTECTED_PARENT_COUNT=49
+PROTECTED_PARENT_AGGREGATE_SHA256=19ad2e42e0ec72165baee5e35fbb3a2a2c2345e884462a9c2973cc5f4350b358
+PROTECTED_PARENT_BYTE_IDENTITY=PASS
+```
+
+The five source/test SHA-256 values were identical before and after all hostile
+and mutation executions:
+
+```text
+d8fa7cf2a0fe437039f49cef2f84e97693a776088c086d6f86f21ca1f913e8c0  rlportfoliobrief.js
+a8d963a9feec48cb331eebc871f742f2784aa0676ca26d7ad211ef0d35d60b63  tests/portfolio-brief.functional.mjs
+e8f2eb90856588f5ec7cb4598b1d960f771d864c19135e1aa0967b8323594fce  tests/portfolio-test-integrity.unit.mjs
+d4db00741c5efee7f63acc630d012fc6400dd91fa963e3ab66082355629b3b46  tests/portfolio-survival-brief.spec.mjs
+dfa9231cab23bc0c97ccb601ece72d185743649a2de4801236f4c7a6489d0e2f  tests/portfolio-defect-injector.cjs
+```
+
+### Current Receipt Identity Accounting
+
+**Phase:** harden
+**Commands:** canonical global strict checker and read-only BUG-007 projection
+using the checker's exact seven identity fields
+**Exit Codes:** `1, 0`
+**Claim Source:** interpreted
+**Interpretation:** The global strict failure is real and unrelated receipt
+identities remain untouched. The BUG-007 test session still has nine valid
+behavior/source-bound identities and seven report-bound guard identities that
+remain stale after later report edits. No receipt was appended, refreshed,
+superseded, or relabeled in harden.
+
+```text
+# global strict
+exit: 1
+lines: 156
+sha256: 815411c8399274c320f1d8aeff97b81e5fcf1be3c69e07583885c89be555bb83
+global total=147
+global current=82
+global superseded=65
+global withClosure=40
+global valid=11
+global stale=29
+global unknown=42
+
+# exact scoped projection
+SCOPED_RECEIPT_SESSION=BUG007-TEST-vscode-d037d272-238
+appendCount=23
+currentIdentities=16
+withClosure=16
+valid=9
+stale=7
+unknown=0
+nonzeroExit=0
+requiredTags=10
+missingRequiredTags=[]
+staleIdentities=artifact-lint,traceability,scenario-obligation,test-mechanism,scope-context,capability-foundation,implementation-reality
+SCOPED_RECEIPT_IDENTITY_ACCOUNTING=PASS
+```
+
+### Blocking Finding: Mutation Failure Causality {#harden-b007-001}
+
+**Finding ID:** `HARDEN-B007-001`
+**Severity:** high
+**Owner:** `bubbles.plan`, then `bubbles.test`
+**Claim Source:** executed
+
+The registered in-memory carrier reports 2/2 green, but a direct execution of
+its own `BUG-007-NULL-PROTOTYPE-MAP` mutation shows why the mutant is red. The
+injector first applies through its `fs.readFileSync` hook. The `_compile` hook
+then receives the already-mutated source, finds zero copies of the original
+anchor, and throws. The harness accepts any nonzero mutant exit with at least
+one failed test and exactly one marker line. It does not reject an injector
+self-error, so the mutation can pass without reaching the protective assertion.
+
+```text
+TAP version 13
+# Subtest: BUG-007: prototype-sensitive completion subjects are safe own keys
+not ok 1 - BUG-007: prototype-sensitive completion subjects are safe own keys
+  ---
+  failureType: 'testCodeFailure'
+  error: 'portfolio-defect-injector: anchor must occur exactly once in rlportfoliobrief.js (found 0) - a defect that cannot be represented is not a proof'
+  code: 'ERR_TEST_FAILURE'
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+REGISTERED_MUTANT_EXIT=1
+REGISTERED_MUTANT_APPLICATIONS=1
+REGISTERED_MUTANT_INJECTOR_ERROR=true
+```
+
+An earlier extra prior-evidence mutant produced the same injector error. It is
+explicitly rejected and is not used as evidence that the prior-evidence
+assertion is load-bearing. The shipped GREEN lookup behavior and exact source
+guard both pass; only mutation causality remains unproven.
+
+The required repair is planner-owned because this scope explicitly excludes a
+tracked edit to `tests/portfolio-defect-injector.cjs`. The plan must admit a
+test-owned fix that distinguishes an already-mutated source passed between the
+two hooks from a genuinely missing anchor, and the carrier must reject any
+actual-case output containing an injector error. A persistent adversarial case
+must prove that one application followed by an injector self-error cannot
+satisfy mutation adequacy. After that repair, `bubbles.test` must rerun the
+focused, mutation, browser, broader, selftest, packet, integrity, and receipt
+closure before harden repeats.
+
+### Harden Profile Verdict
+
+| Profile check | Result |
+| --- | --- |
+| H1 Findings classified with evidence | PASS |
+| H2 Fixes verified | FAIL - `HARDEN-B007-001` is unresolved and foreign-owned |
+| H3 Required artifact updates made | PASS - report and execution routing only |
+| H4 Test taxonomy completeness | PASS |
+| H5 Gherkin-to-test semantic fidelity | PASS for GREEN behavior; mutation causality remains the H2 finding |
+| H6 Repo-realistic test paths | PASS |
+| H7 Regression coverage quality | FAIL for mutation-causality proof |
+| H8 Cross-scope test deduplication | PASS, one-scope packet |
+| H9 `test-plan.json` sync | PASS |
+
+**Final verdict:** `NOT_HARDENED`.
+
+Route `BUG-007-ROUTE-009` is complete because the requested hardening profile
+executed. `harden` is deliberately not added to `completedPhaseClaims`: Tier 2
+H2 and H7 fail, and claiming completion would fabricate the result the direct
+mutant disproves. Human acceptance, every DoD checkbox, TP-B007-011,
+`certification.*`, scope status, and top-level status remain unchanged.
+
+## RESULT-ENVELOPE
+
+```yaml
+outcome: route_required
+currentOwner: bubbles.harden
+nextRequiredOwner: bubbles.plan
+bug: BUG-007-compose-brief-prototype-sensitive-keys
+addressedFindings: []
+unresolvedFindings:
+  - HARDEN-B007-001: The shared in-memory injector double-applies across fs.readFileSync and _compile, and the mutation carrier counts the resulting injector self-error as load-bearing discrimination.
+evidence:
+  - report.md#harden-b007-001
+  - report.md#bug007-harden-phase
+reason: The product behavior, browser matrix, repository selftest, packet guards, source integrity, parity, and receipt accounting are clean, but mutation failure causality is not. Planning must admit the shared-injector repair before test and harden rerun; stabilize is the normal next mode phase only after harden legitimately completes.
+```

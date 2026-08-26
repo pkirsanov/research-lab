@@ -17,11 +17,12 @@ dirty parent Feature 008 scope and root test-plan transaction is excluded.
 
 ### Phase Order
 
-1. **Scope 1 - Harden Caller-Keyed Brief Aggregation:** author the persistent
-  functional, browser, and test-integrity regressions first; observe all six
-  direct exported hostile cases RED against unchanged source; harden only
-  `rlportfoliobrief.js`; then rerun the unchanged focused, visible-browser,
-  mutation, broader-regression, selftest, and guard checks before validation.
+1. **Scope 1 - Harden Caller-Keyed Brief Aggregation:** repair and prove the
+  shared mutation mechanism, then author the persistent functional, browser,
+  and test-integrity regressions; observe all six direct exported hostile cases
+  RED against unchanged source; harden only `rlportfoliobrief.js`; then rerun
+  the unchanged focused, visible-browser, mutation, broader-regression,
+  selftest, and guard checks before validation.
 
 ### New Types And Signatures
 
@@ -34,9 +35,13 @@ dirty parent Feature 008 scope and root test-plan transaction is excluded.
 1. The persistent functional carrier is authored before implementation and all
   six direct exported `composeBrief()` cases are observed RED against
   unchanged source while `finally` cleanup restores shared built-ins.
-2. The in-memory defect injector removes exactly one representative
-  null-prototype or own-property protection, applies exactly once, and makes
-  the unchanged hostile regression fail without writing tracked source.
+2. The shared in-memory defect injector assigns one intended hook to each
+  carrier: `Module._compile` for `require(target)` execution and
+  `fs.readFileSync` for direct text evaluation. Each represented mutant applies
+  once, records one marker application, executes one selected protective test,
+  and fails at that test's protective assertion rather than in injector or
+  preload setup. A double-application negative control must be rejected, while
+  a separate `fs.readFileSync` control preserves text-evaluation carriers.
 3. After implementation, all six direct exported cases return without throw or
   shared mutation, and normal lane and subject ordering remains exact.
 4. The real browser runtime repeats the six-case exported matrix and records
@@ -48,7 +53,7 @@ dirty parent Feature 008 scope and root test-plan transaction is excluded.
 
 | Scope | Outcome | Planned source and test paths | Status |
 | --- | --- | --- | --- |
-| 1 | Make all compose-brief caller-keyed aggregation inheritance-free | `rlportfoliobrief.js`, `tests/portfolio-brief.functional.mjs`, `tests/portfolio-survival-brief.spec.mjs`, `tests/portfolio-test-integrity.unit.mjs` | Not Started |
+| 1 | Make all compose-brief caller-keyed aggregation inheritance-free | `rlportfoliobrief.js`, `tests/portfolio-brief.functional.mjs`, `tests/portfolio-survival-brief.spec.mjs`, `tests/portfolio-test-integrity.unit.mjs`, `tests/portfolio-defect-injector.cjs` | Not Started |
 
 ## Scope 1 - Harden Caller-Keyed Brief Aggregation
 
@@ -57,6 +62,7 @@ dirty parent Feature 008 scope and root test-plan transaction is excluded.
 **Depends On:** -
 **Execution dependency:** `bubbles.test` (RED) -> `bubbles.implement` ->
 `bubbles.test` (GREEN and regression) -> quality phases -> `bubbles.validate`.
+**Reconciled finding:** `HARDEN-B007-001`
 
 ### Implementation Files
 
@@ -65,8 +71,8 @@ dirty parent Feature 008 scope and root test-plan transaction is excluded.
 | `rlportfoliobrief.js` | Only product source allowed to change: harden `distinctCount()` and `composeBrief()` caller-keyed allocations and membership reads. |
 | `tests/portfolio-brief.functional.mjs` | Persistent scenario-first RED/GREEN carrier for normal controls, all six direct exported hostile cases, lookup-map ownership, no throw, built-in integrity, and cleanup. |
 | `tests/portfolio-survival-brief.spec.mjs` | Persistent real-browser carrier for the six direct exported cases plus the production-visible `constructor` completion path. |
-| `tests/portfolio-test-integrity.unit.mjs` | Persistent adversarial mutation carrier proving the focused assertions fail when one protection is removed in memory. |
-| `tests/portfolio-defect-injector.cjs` | Existing read-only in-memory mutation dependency; no tracked edit planned. |
+| `tests/portfolio-test-integrity.unit.mjs` | Persistent adversarial mutation carrier proving one intended hook applies each mutant once, one selected protective test executes, and its protective assertion causes the expected failure; also owns double-application and direct-text-read controls. |
+| `tests/portfolio-defect-injector.cjs` | Shared in-memory mutation mechanism: separate require-time and direct-text-read representation so one source load cannot apply the same mutant twice, and record exact application count without writing tracked source. |
 
 ### Change Boundary
 
@@ -82,7 +88,14 @@ Allowed implementation changes:
   non-movement assertions.
 - `tests/portfolio-test-integrity.unit.mjs`: add exact one-anchor in-memory
   mutations for a representative map protection, caller-map own-membership,
-  and normal lane ordering.
+  and normal lane ordering; assert intended hook, one marker application, one
+  selected protective test, protective-assertion failure origin, deliberate
+  double-application rejection, and direct-text-read carrier preservation.
+- `tests/portfolio-defect-injector.cjs`: change only representation dispatch
+  and marker accounting needed to make `Module._compile` the single owner for
+  `require(target)` and `fs.readFileSync` the single owner for direct text
+  evaluation. Preserve all registered mutation substitutions and the no-write
+  contract.
 - this packet for phase-owned evidence and lifecycle fields.
 
 Excluded surfaces:
@@ -90,12 +103,26 @@ Excluded surfaces:
 - Parent Feature 008 scope files and root `test-plan.json`.
 - Sibling bugs, policy JSON, storage, data, navigation, registry, and route
   contracts.
-- Any tracked change to `tests/portfolio-defect-injector.cjs`; it is consumed
-  unchanged as the in-memory mutation mechanism.
+- Other shared test harnesses, preload modules, and mutation registries.
 - Key blacklists, input coercion, fallback output, and catch-and-continue.
 - Unrelated maps or fixed-vocabulary lookups.
 
 A required change outside this boundary must be routed before implementation.
+
+### Shared Infrastructure Impact Sweep
+
+`tests/portfolio-defect-injector.cjs` is a protected shared test mechanism.
+The repair must remain surgical and independently canaried before the broader
+mutation registry runs.
+
+| Contract surface | Required invariant and canary |
+| --- | --- |
+| `require(target)` carriers | `Module._compile` alone represents the target source; a marker reports exactly one application before exactly one selected protective test executes. |
+| Direct text-evaluation carriers | `fs.readFileSync` still represents source read as text when no module compilation follows; a dedicated control executes the represented text and reaches its protective assertion. |
+| Application marker consumers | The marker carries an exact count and intended-hook identity; zero or more than one application is an infrastructure failure, never causal mutation proof. |
+| Test-integrity process result | Expected non-zero status is accepted only with one executed selected test and assertion output attributable to that test; injector, preload, anchor, syntax, or module-load errors are rejected. |
+| Existing mutation registry | Registered substitution text and anchor cardinality remain unchanged except for the explicit double-application negative control. |
+| Rollback | Reverting the two authorized shared test files restores the prior mechanism; no product source, fixture, or persistent data restore is required. |
 
 ### Consumer Impact Sweep
 
@@ -141,6 +168,17 @@ Scenario: SCN-B007-DOMAIN-KEY-SAFETY
   And each domain is treated as an own inferred-domain key using its actual support
   And no shared built-in changes
   And cleanup leaves no process-global probe property
+
+Scenario: SCN-B007-MUTATION-MECHANISM-CAUSALITY
+  Given each BUG-007 represented mutant declares one intended carrier hook
+  And require-based execution uses Module._compile while direct text evaluation uses fs.readFileSync
+  When test integrity runs one represented mutant against one selected protective test
+  Then the intended hook applies the representation exactly once
+  And the application marker records exactly one application by that hook
+  And exactly one selected protective test executes
+  And the expected failure originates from that test's protective assertion rather than injector or preload setup
+  And a deliberate double-application control is rejected as an infrastructure failure
+  And a separate fs.readFileSync control still executes represented text and reaches its protective assertion
 ```
 
 ### UI Scenario Matrix
@@ -157,27 +195,33 @@ Scenario: SCN-B007-DOMAIN-KEY-SAFETY
 | `SCN-B007-NORMAL-COMPATIBILITY` | `pure-calculation` | `TP-B007-001` proves exact normal order and refusal non-movement; `TP-B007-007` proves the broader real route remains usable. | `rlportfoliobrief.js#composeBrief` | `public-function` + `recorded-fixture` + `returned-value`; an exact one-anchor in-memory `LANE_ORDER` mutation must fail the normal-order assertion (`mutation`, high risk). |
 | `SCN-B007-SUBJECT-KEY-SAFETY` | `pure-calculation`, `degraded-state`, `user-visible-ui` | `TP-B007-000` records RED; `TP-B007-002` proves all subject keys; `TP-B007-004` proves lookup and built-in integrity; `TP-B007-005` proves load-bearing protection; `TP-B007-006` repeats the exported matrix in-browser and proves the visible `constructor` path. | `rlportfoliobrief.js#distinctCount`, `rlportfoliobrief.js#composeBrief`, `portfolio-survival-allocation-lab.html#completionDraft`, `portfolio-survival-allocation-lab.html#renderBrief` | `public-function` + `synthetic-fixture` + `returned-value` plus `production-route` + `ephemeral-real` + `visible-ui`; removing one safe allocation or own-property read in memory must restore throw, mutation, or inherited lookup (`mutation`, high risk). |
 | `SCN-B007-DOMAIN-KEY-SAFETY` | `pure-calculation`, `degraded-state` | `TP-B007-000` records RED; `TP-B007-003` proves all domain keys and floors; `TP-B007-004` proves built-in integrity; `TP-B007-005` proves load-bearing protection; `TP-B007-006` repeats the exported matrix in-browser. | `rlportfoliobrief.js#composeBrief` | `public-function` + `synthetic-fixture` + `returned-value`; removing one safe allocation in memory must restore throw or mutation (`mutation`, high risk). |
+| `SCN-B007-MUTATION-MECHANISM-CAUSALITY` | `shared-consumer` | `TP-B007-005` proves one intended hook, one marker application, one selected protective test, assertion-origin failure, double-application rejection, and direct-text-read preservation; `TP-B007-011` prevents completion while this causal proof is absent. | `tests/portfolio-defect-injector.cjs`, `tests/portfolio-test-integrity.unit.mjs` | `test-infrastructure` + `in-memory-representation` + `process-result`; the positive controls must fail if no representation occurs, the deliberate double-application control must be refused, and the direct-read control must fail if require-path deduplication disables `fs.readFileSync` representation. |
 
 ### Implementation Plan
 
-1. Add the functional, browser, and test-integrity persistent tests before any
-  source change.
-2. Execute the focused functional carrier against unchanged source and record
+1. Repair the shared injector's carrier ownership and exact marker accounting,
+  then add test-integrity controls that reject zero/double application and
+  non-assertion failures while preserving direct text evaluation.
+2. Add the functional and browser persistent tests before any product source
+  change.
+3. Execute the focused functional carrier against unchanged source and record
   a non-zero RED result for subject/domain `__proto__`, `constructor`, and
   `toString`, with no escaped harness exception and `finally` cleanup proven
   after every hostile call.
-3. Change all ten internal caller-keyed maps and nested date set to
+4. Change all ten internal caller-keyed maps and nested date set to
    `Object.create(null)`.
-4. Resolve `owners` and `priorEvidenceIds` only through own membership.
-5. Keep every key value, count, floor, lane, sort, output field, and refusal
+5. Resolve `owners` and `priorEvidenceIds` only through own membership.
+6. Keep every key value, count, floor, lane, sort, output field, and refusal
    expression otherwise unchanged.
-6. Execute the unchanged focused matrix and the persistent in-memory mutation
-  controls. Require exactly one applied substitution, a failing unchanged
-  regression, and unchanged tracked source/test content.
-7. Execute the real-browser exported six-case matrix and the visible
+7. Execute the unchanged focused matrix and the persistent in-memory mutation
+  controls. Require the intended hook, exactly one marker application, exactly
+  one executed selected protective test, and protective-assertion failure
+  provenance. Reject the deliberate double application and prove the direct
+  `fs.readFileSync` path still represents text without writing tracked files.
+8. Execute the real-browser exported six-case matrix and the visible
   `constructor` preview/confirm/rerender workflow, then the broader Feature 008
   browser matrix.
-8. Execute the canonical repository selftest, packet guard battery,
+9. Execute the canonical repository selftest, packet guard battery,
   implementation-reality scan, human acceptance, and final transition guard.
 
 ### Browser Coverage Decision
@@ -205,13 +249,13 @@ not widen any production input contract.
 | `TP-B007-002` | Subject-key adversarial regression | `functional` | No | `tests/portfolio-brief.functional.mjs` | The three direct exported subject cases are own keys with actual evidence/no-action behavior; each returns the declared result shape without throw or shared built-in mutation. | `timeout 240 node --test tests/portfolio-brief.functional.mjs` | Planned, not authored or run |
 | `TP-B007-003` | Domain-key adversarial regression | `functional` | No | `tests/portfolio-brief.functional.mjs` | The three direct exported domain cases use actual support counts and distinct-date floors; each returns the declared result shape without throw or shared built-in mutation. | `timeout 240 node --test tests/portfolio-brief.functional.mjs` | Planned, not authored or run |
 | `TP-B007-004` | Lookup, built-in, and cleanup regression | `functional` | No | `tests/portfolio-brief.functional.mjs` | Own hostile `owners`/`priorEvidenceIds` entries remain readable, inherited entries remain absent, `Object.prototype`, `Object`, and `Object.prototype.toString` remain unchanged, and cleanup is unconditional. | `timeout 240 node --test tests/portfolio-brief.functional.mjs` | Planned, not authored or run |
-| `TP-B007-005` | In-memory mutation adequacy | `unit` | No | `tests/portfolio-test-integrity.unit.mjs` | Using unchanged `tests/portfolio-defect-injector.cjs`, remove exactly one representative null-prototype or own-property protection in memory, require one applied substitution, prove the unchanged hostile regression fails, and verify no tracked source/test file is written; separately mutate lane order in memory and prove the exact normal-order assertion fails. | `timeout 240 node --test tests/portfolio-test-integrity.unit.mjs` | Planned, not authored or run |
+| `TP-B007-005` | In-memory mutation mechanism causality | `unit` | No | `tests/portfolio-test-integrity.unit.mjs`, `tests/portfolio-defect-injector.cjs` | For every represented BUG-007 mutant, declare one intended hook; require-based execution is represented once by `Module._compile`, direct text evaluation is represented once by `fs.readFileSync`, the marker records exactly one application, exactly one selected protective test executes, and the expected non-zero result names that test's protective assertion rather than injector/preload/anchor/module-load setup. Reject a deliberate double application, preserve a separate direct-read control, prove representative map/own-property/order mutations fail their exact assertions, and verify no tracked product source or unrelated test file is written. | `timeout 240 node --test tests/portfolio-test-integrity.unit.mjs` | Planned, not authored or run; required by `HARDEN-B007-001` |
 | `TP-B007-006` | Scenario-specific Regression E2E | `e2e-ui` | Yes | `tests/portfolio-survival-brief.spec.mjs` | The real page runtime's exported composer passes all six direct hostile cases with no throw/mutation and exact order, while the real preview/confirm controls accept `constructor` and render it in the Brief without an uncaught page error. | `timeout 900 npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Existing carrier; scenarios not authored or run |
 | `TP-B007-007` | Broader Regression E2E | `e2e-ui` | Yes | Feature 008 Playwright carriers | All existing Feature 008 user workflows remain green. | `timeout 1800 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Existing carriers; re-execution required after implementation |
 | `TP-B007-008` | Repository regression | `functional` | No | `scripts/selftest.mjs` | Canonical registered invariants remain green. | `timeout 1800 node scripts/selftest.mjs` | Existing check; re-execution required after implementation |
 | `TP-B007-009` | Planning and packet guard battery | `artifact` | No | BUG-007 packet | Artifact shape, traceability, scenario obligations, mechanism coherence, scope context fit, and capability-foundation proportionality are coherent. | See `test-plan.json` `CMD-B007-PACKET-GUARDS`. | Required for plan commit and delivery rerun; remains unchecked |
 | `TP-B007-010` | Implementation reality guard | `guard` | No | BUG-007 packet and referenced implementation files | Referenced product/test paths are real and the delivered source contains no stub or fabricated behavior. | `timeout 600 bash .github/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys --verbose` | Planned for post-implementation rerun; remains unchecked |
-| `TP-B007-011` | Transition guard | `guard` | No | BUG-007 packet | Completion contract passes only after implementation, tests, human acceptance, and validate-owned certification are complete. | `timeout 600 bash .github/bubbles/scripts/state-transition-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys` | Planned for final validation only; remains unchecked |
+| `TP-B007-011` | Transition guard | `guard` | No | BUG-007 packet | Completion contract passes only after implementation, tests, human acceptance, validate-owned certification, and `HARDEN-B007-001` mechanism-causality proof are complete; a mutant process that fails before one selected protective assertion executes cannot satisfy transition evidence. | `timeout 600 bash .github/bubbles/scripts/state-transition-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys` | Planned for final validation only; remains unchecked |
 
 ### Test Plan To DoD Parity
 
@@ -252,11 +296,15 @@ not widen any production input contract.
 - [ ] `TP-B007-004` proves cleanup is unconditional and restoring ordinary maps
   own/inherited caller-map semantics and shared built-in integrity hold.
   Evidence: `report.md#tp-b007-004`.
-- [ ] `TP-B007-005` proves an exact one-anchor in-memory mutation removes one
-  null-prototype or own-property protection, applies once, makes the unchanged
-  hostile regression fail, and writes no tracked source/test file; the normal
-  order mutation also fails its exact assertion. Evidence:
-  `report.md#tp-b007-005`.
+- [ ] `SCN-B007-MUTATION-MECHANISM-CAUSALITY` holds through `TP-B007-005`:
+  each represented BUG-007 mutant uses its declared hook exactly once, its
+  marker records one application, exactly one selected protective test runs,
+  and the failure originates from that test's protective assertion rather than
+  injector, preload, anchor, syntax, or module-load setup. The deliberate
+  double application is rejected, the separate `fs.readFileSync` text carrier
+  remains effective, representative map/own-property/order mutants fail their
+  exact assertions, and no tracked product source or unrelated test file is
+  written. Evidence: `report.md#tp-b007-005`.
 - [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
   pass through `TP-B007-006`, including all six direct exported browser cases
   and the real visible `constructor` recorder path. Evidence:
@@ -272,8 +320,8 @@ not widen any production input contract.
 - [ ] Human acceptance in `uservalidation.md` is explicitly completed by the
   human owner; planning leaves every acceptance item unchecked.
 - [ ] `TP-B007-011` transition guard passes only after all delivery,
-  acceptance, and certification prerequisites are satisfied. Evidence:
-  `report.md#tp-b007-011`.
+  acceptance, certification, and `HARDEN-B007-001` causal mutation-proof
+  prerequisites are satisfied. Evidence: `report.md#tp-b007-011`.
 
 #### Build Quality Gate
 

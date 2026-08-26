@@ -1,9 +1,9 @@
 {
   "contractVersion": "scenario-manifest/v1",
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys",
-  "generatedAt": "2026-08-26T16:41:19Z",
+  "generatedAt": "2026-08-26T22:52:04Z",
   "generatedBy": "bubbles.plan",
-  "provenance": "Reconciled to design commit 454d7be4c81e2756a1d9dd6632f5d532e024c522. All scenario and test links remain planned; no persistent test, RED result, implementation, browser result, human acceptance, or certification is claimed.",
+  "provenance": "Reconciled to design commit 454d7be4c81e2756a1d9dd6632f5d532e024c522 and HARDEN-B007-001. All scenario and test links remain planned; no persistent test, RED result, implementation, browser result, human acceptance, or certification is claimed.",
   "scenarios": [
     {
       "scenarioId": "SCN-B007-NORMAL-COMPATIBILITY",
@@ -231,6 +231,66 @@
         "shared built-ins and cleanup state remain unchanged"
       ],
       "evidenceRefs": ["report.md#before-fix-reproduction", "report.md#tp-b007-003", "report.md#tp-b007-004", "report.md#tp-b007-005", "report.md#tp-b007-006"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B007-MUTATION-MECHANISM-CAUSALITY",
+      "scopeId": "01-harden-caller-keyed-brief-aggregation",
+      "scope": 1,
+      "title": "Represented mutants fail through one intended hook and one protective assertion",
+      "gherkin": {
+        "given": "each BUG-007 represented mutant declares one intended carrier hook, with require-based execution assigned to Module._compile and direct text evaluation assigned to fs.readFileSync",
+        "when": "test integrity runs one represented mutant against one selected protective test",
+        "then": "the intended hook applies the representation exactly once, the marker records one application by that hook, exactly one selected protective test executes, its protective assertion causes the expected failure rather than injector or preload setup, deliberate double application is rejected, and a separate fs.readFileSync control still executes represented text and reaches its protective assertion"
+      },
+      "status": "planned",
+      "behaviorClass": "test-integrity",
+      "changeType": "bugfix",
+      "requiredTestType": "unit",
+      "requiredTestTypes": ["unit"],
+      "regressionRequired": true,
+      "riskTier": "high",
+      "requirementRefs": ["FR-B007-007", "AC-5"],
+      "findingRefs": ["HARDEN-B007-001"],
+      "behaviorTraits": ["shared-consumer"],
+      "obligations": [
+        {
+          "trait": "shared-consumer",
+          "requiredProof": "consumer-surface: BUG-007 test integrity observes one Module._compile representation, one marker application, one selected protective test, and that test's protective assertion as failure origin; parity: a deliberate double application is rejected while an independent fs.readFileSync-path control still represents direct text evaluation and reaches its protective assertion, preserving both carrier families.",
+          "satisfiedBy": ["parity:TP-B007-005", "consumer-surface:TP-B007-005"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "internal-helper",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["tests/portfolio-defect-injector.cjs", "tests/portfolio-test-integrity.unit.mjs"],
+        "negativeControl": "Deliberately expose one require-based source load to both fs.readFileSync and Module._compile representation; the marker count must become two and the integrity carrier must reject the result as infrastructure failure. Independently disable direct-read representation; the fs.readFileSync-path control must fail before the shared injector can be accepted.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["tests/portfolio-defect-injector.cjs", "tests/portfolio-test-integrity.unit.mjs"],
+      "testRows": ["TP-B007-005", "TP-B007-009", "TP-B007-010", "TP-B007-011"],
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-test-integrity.unit.mjs",
+          "testId": "BUG-007: represented mutants execute one protective assertion through one intended hook",
+          "testPlanRow": "TP-B007-005",
+          "coverageStatus": "planned",
+          "evidenceRef": "report.md#tp-b007-005"
+        }
+      ],
+      "expectedAssertions": [
+        "the declared carrier hook applies each represented mutant exactly once",
+        "the application marker records exactly one application by the intended hook",
+        "exactly one selected protective test executes",
+        "the expected failure originates from that protective assertion rather than injector or preload setup",
+        "double application is rejected as infrastructure failure",
+        "direct fs.readFileSync text evaluation remains represented and assertion-bearing"
+      ],
+      "evidenceRefs": ["report.md#tp-b007-005"],
       "replacedBy": null,
       "invalidatedBy": null
     }

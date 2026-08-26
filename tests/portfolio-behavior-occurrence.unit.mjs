@@ -82,10 +82,21 @@ const FILTER_AFTER_COLLAPSE_ACCUMULATION = [
    `validatePolicy` rejects stopped refusing on an empty workspace. Removing this block is the
    mutant that reproduces that fail-open, which is what makes the row below adversarial rather
    than a restatement of some other guard. */
-const SHIPPED_POLICY_RECHECK = [
+const POLICY_RECHECK_PAIR = [
   '    var policyResult = portfolio.validatePolicy(input.policy);',
   '    if (!policyResult.ok) return policyResult;'
 ].join('\n');
+/* The pair alone is NOT unique: composeBrief validates the policy the same way before reading
+   `maximumEvidenceAgeDays` for the action-history cutoff. Anchoring on the pair PLUS the statement
+   it uniquely precedes is what keeps the mutation aimed at deriveInterestSignals instead of
+   silently hitting the other site, and the replacement re-emits that statement so the loop it
+   opens survives — only the check is removed. */
+const SHIPPED_POLICY_RECHECK = [
+  POLICY_RECHECK_PAIR,
+  '',
+  '    retainedIdentityOrder.forEach(function (eventIdentity) {'
+].join('\n');
+const POLICY_RECHECK_REMOVED = '    retainedIdentityOrder.forEach(function (eventIdentity) {';
 
 function loadContracts() {
   delete require.cache[require.resolve('../rlportfoliobrief.js')];
@@ -581,10 +592,15 @@ test('BUG-004: removing the restored policy check reinstates the fail-open, so t
 
   assert.equal(briefSource.split(SHIPPED_POLICY_RECHECK).length - 1, 1,
     'the restored policy check must appear exactly once for the mutation below to be meaningful');
-  const withoutRecheck = briefSource.replace(SHIPPED_POLICY_RECHECK, '');
+  const withoutRecheck = briefSource.replace(SHIPPED_POLICY_RECHECK, POLICY_RECHECK_REMOVED);
   assert.notEqual(withoutRecheck, briefSource, 'the removal mutation must have applied');
+  assert.equal(
+    (briefSource.split(POLICY_RECHECK_PAIR).length - 1) - (withoutRecheck.split(POLICY_RECHECK_PAIR).length - 1), 1,
+    'exactly one recheck — the deriveInterestSignals one — must be gone; composeBrief keeps its own');
   assert.equal(withoutRecheck.includes('portfolio.buildBehaviorEvent'), true,
     'the mutant must still be the shipped loop — only the policy check is removed');
+  assert.equal(withoutRecheck.includes(POLICY_RECHECK_REMOVED), true,
+    'and the collapse loop the removed check preceded must survive the mutation');
 
   const corrupt = JSON.parse(JSON.stringify(policy));
   corrupt.contractVersion = 'portfolio-policy/v-not-a-real-version';

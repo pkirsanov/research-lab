@@ -833,6 +833,8 @@
        cutoff: one bounds what the market knew, the other bounds how far back local activity still
        counts. `maximumEvidenceAgeDays` is declared policy, so it is ENFORCED here — an unenforced
        age limit would let a completion from years ago keep clearing the behaviour floor forever. */
+    var policyResult = portfolio.validatePolicy(input.policy);
+    if (!policyResult.ok) return policyResult;
     var maxAgeDays = input.policy.behavior.maximumEvidenceAgeDays;
     var actionHistoryCutoffAt = isFinite(maxAgeDays)
       ? new Date(Date.parse(input.composedAt) - maxAgeDays * 86400000).toISOString()

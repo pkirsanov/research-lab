@@ -4,25 +4,25 @@
 
 ### Current State
 
-`rlportfolio.js` treats `portfolio-survival-allocation.config.json` as a closed,
-versioned policy. `validatePolicy()` checks every numeric behavior field for
-finiteness and non-negativity.
+`rlportfolio.js` now owns a private `36525`-day product ceiling and enforces it
+through `validatePolicy()`. Core `deriveInterestSignals()` validates before it
+formats signal expiry, and the shipped value remains `56`.
 
-The validator does not cap `behavior.maximumEvidenceAgeDays`. The shipped value
-is `56`, but any finite non-negative value currently passes.
-
-`deriveInterestSignals()` validates policy before it formats signal expiry.
-An accepted extreme value can still push that expiry outside the finite Date
-range and throw `RangeError`.
+Exported `rlportfoliobrief.js::composeBrief()` is a second policy-derived Date
+formatter. It subtracts `maximumEvidenceAgeDays` from `composedAt` without first
+calling the shared validator. Current execution accepts `36526`, accepts a
+non-finite value, and throws `RangeError` for a finite backward-TimeClip
+overflow value that `validatePolicy()` refuses.
 
 ### Target State
 
-`validatePolicy()` accepts evidence-age values through an explicit 100-year
-product ceiling. It refuses larger finite values through the existing behavior
-policy error contract.
+Every policy-derived Date formatter relies on the one `validatePolicy()` owner.
+`composeBrief()` delegates to that validator immediately before it first reads
+`maximumEvidenceAgeDays` and returns any failure result unchanged.
 
-The shipped 56-day influence window remains unchanged. Valid-policy scoring,
-expiry arithmetic, schemas, storage, UI, and public contract versions remain
+The existing local input, window, timestamp, and cutoff errors keep their
+precedence. The shipped 56-day influence window, valid-policy scoring, both
+Date expressions, schemas, storage, UI, and public contract versions remain
 unchanged.
 
 ### Patterns to Follow
@@ -31,8 +31,11 @@ unchanged.
 - Use a private module-scope `var`, matching the module's constant convention.
 - Preserve `findNonFinite()` before section-specific semantic validation.
 - Reuse `failure("P008-CONFIG", "invalid-policy", "behavior", null, false)`.
-- Keep `rlportfoliobrief.js` dependent on `portfolio.validatePolicy()`.
+- Follow `rlportfoliobrief.js::deriveInterestSignals()`: delegate to
+   `portfolio.validatePolicy()` and return its result without rebuilding it.
 - Keep `tests/portfolio-foundation.unit.mjs` as the policy-contract carrier.
+- Use `tests/portfolio-brief.functional.mjs` for the exported `composeBrief()`
+   consumer contract and its existing action-history cutoff fixture.
 
 ### Patterns to Avoid
 
@@ -41,6 +44,10 @@ unchanged.
 - Do not catch `RangeError` and continue with partial derivation.
 - Do not export the ceiling for tests to read from production code.
 - Do not duplicate the ceiling in `rlportfoliobrief.js` or the HTML page.
+- Do not rebuild a shared policy failure with the brief module's local `err()`
+   or `contractErr()` helpers.
+- Do not hoist shared validation ahead of existing brief input, window,
+   timestamp, or cutoff checks.
 - Do not change the committed 56-day policy value.
 
 ### Resolved Decisions
@@ -52,6 +59,13 @@ unchanged.
 - Finite above-bound values use `P008-CONFIG / invalid-policy / behavior`.
 - Non-finite values retain their existing `non-finite-policy` refusal.
 - One-over and actual-overflow inputs provide separate regression cases.
+- `composeBrief()` adds one shared-validator delegation and no local ceiling.
+- The delegation occurs after existing local prerequisites and immediately
+   before `var maxAgeDays = input.policy.behavior.maximumEvidenceAgeDays`.
+- `composeBrief()` returns the shared failure object unchanged and never catches
+   Date formatting exceptions.
+- The already-delivered `rlportfolio.js` predicate and foundation tests are not
+   reopened by this consumer repair.
 
 ### Open Questions
 
@@ -60,32 +74,43 @@ contract.
 
 ## Purpose And Scope
 
-This design closes one policy-validation gap. It does not change the active
-evidence window, behavior scoring, stored history, or signal representation.
+This design closes the remaining public-consumer gap after the shared validator
+repair. It does not change the active evidence window, behavior scoring, stored
+history, or signal representation.
 
-The repair makes the policy's valid domain explicit before any consumer uses
-the evidence-age value. Every existing consumer then inherits one answer.
+The repair routes each policy-derived Date formatter through the policy's one
+validation owner before that formatter uses the evidence-age value.
 
 ## Root Cause Analysis
 
 ### Controlling Path
 
-Current source performs these steps:
+The delivered core path performs these steps:
 
 1. `findNonFinite()` rejects `NaN` and infinities.
 2. The behavior section validates closed vocabulary and event capacity.
-3. The generic numeric loop applies `finiteNonNegative()`.
-4. No semantic maximum applies to `maximumEvidenceAgeDays`.
-5. `deriveInterestSignals()` adds the accepted window to `bucket.latest`.
-6. `toISOString()` throws when that sum exceeds TimeClip.
+3. The behavior section rejects values above `MAXIMUM_EVIDENCE_AGE_DAYS`.
+4. The generic numeric loop applies `finiteNonNegative()`.
+5. `deriveInterestSignals()` returns a policy failure before adding the window
+   to `bucket.latest`.
 
-The validator proves numeric shape but not the product's valid range. The
-consumer therefore trusts an invariant that validation never established.
+The remaining brief path performs these steps:
+
+1. `composeBrief()` checks its local input, window, policy-presence, timestamp,
+   window-id, and generic-cutoff prerequisites.
+2. It normalizes evidence and completion collections.
+3. It reads `input.policy.behavior.maximumEvidenceAgeDays` directly.
+4. It subtracts that value from `composedAt` and calls `toISOString()`.
+5. It never calls `portfolio.validatePolicy()` on this path.
+
+The shared validator proves the product range, but this exported consumer does
+not consult it before trusting the policy. That bypass is the remaining root
+cause.
 
 ### Runtime Boundary Versus Product Ceiling
 
-The maximum whole-day offset that a timestamp can add without exceeding the
-positive TimeClip boundary depends on that timestamp:
+The safe whole-day offset depends on the evidence timestamp. The formula below
+defines that offset against the positive TimeClip boundary.
 
 $$
 \operatorname{safeDays}(t) = \left\lfloor
@@ -185,19 +210,52 @@ above-bound values join that existing semantic failure class:
 The validator must return the same frozen failure envelope. It must not expose
 the rejected value or mark the configuration error recoverable.
 
+### Public Consumer Validation
+
+Add one delegation in `composeBrief()` immediately before its first
+`maximumEvidenceAgeDays` read:
+
+```js
+var policyResult = portfolio.validatePolicy(input.policy);
+if (!policyResult.ok) return policyResult;
+```
+
+The call belongs after the existing local input, window, policy-presence,
+`publishedAt`, `composedAt`, window-id, and generic-cutoff checks. Those local
+failures therefore retain their current precedence. Evidence and completion
+normalization before this point has no failure return and performs no mutation.
+
+The shared call must occur before `maxAgeDays` is aliased and before the
+backward action-history cutoff is formatted. It validates the entire closed
+policy rather than duplicating one numeric predicate. `composeBrief()` must
+return the shared result directly, including its `PortfolioError/v1` fields,
+instead of translating it through `err()` or `contractErr()`.
+
+### Exact `composeBrief()` Contract
+
+| `maximumEvidenceAgeDays` | Shared validation | Required `composeBrief()` behavior |
+| --- | --- | --- |
+| `36525` | Accepted | Continue composition, return `ok: true`, and format the existing action-history cutoff without changing its expression. |
+| `36526` | `P008-CONFIG / invalid-policy / behavior` | Return the exact shared failure envelope before Date arithmetic; do not throw, clamp, or echo the value. |
+| Non-finite (`NaN` or infinity) | `P008-CONFIG / non-finite-policy / policy.behavior.maximumEvidenceAgeDays` | Return the exact shared failure envelope before Date arithmetic; do not convert the cutoff to `null` and continue. |
+| Finite backward-TimeClip overflow, including `100100000` | `P008-CONFIG / invalid-policy / behavior` | Return the exact shared failure envelope; no `RangeError` escapes. |
+
+For a doubly invalid call, existing local checks still win until the insertion
+point. For example, invalid `composedAt` plus `36526` must continue to return
+`P008-BRIEF-COMPOSED / local-composition-time-required`. Once those local
+prerequisites pass, shared policy validation wins before policy-derived Date
+formatting or behavior-floor evaluation.
+
 ### Derivation Non-Movement
 
 Do not change `deriveInterestSignals()` expiry arithmetic. Its first operation
 already returns a failed `validatePolicy()` result before workspace validation
 or Date arithmetic.
 
-Do not change `rlportfoliobrief.js`. Its existing floor guard still owns
-`behavior-floor-policy-invalid`, including its precedence for non-finite floor
-inputs.
-
-Its later `portfolio.validatePolicy(input.policy)` call will refuse a finite
-above-bound value with the shared `P008-CONFIG / invalid-policy / behavior`
-envelope.
+Do not change `rlportfoliobrief.js::deriveInterestSignals()`. Its existing floor
+guard still owns `behavior-floor-policy-invalid`, including its precedence for
+non-finite floor inputs. Its later `portfolio.validatePolicy(input.policy)` call
+continues to refuse finite above-bound values with the shared envelope.
 
 ## Consumer Inventory
 
@@ -209,7 +267,8 @@ envelope.
 | `rlportfolio.js::validatePolicy` | Public owner of the closed policy contract | Adds the only enforcing predicate |
 | `rlportfolio.js::deriveInterestSignals` | Direct validate-first Date consumer | Returns the shared refusal before Date arithmetic |
 | `rlportfolio.js::buildInterestSignalCandidate` | Calls core derivation | Inherits the refusal without a source change |
-| `rlportfoliobrief.js::deriveInterestSignals` | Calls `portfolio.validatePolicy()` after its existing floor guard | Inherits finite above-bound refusal without reordering other errors |
+| `rlportfoliobrief.js::deriveInterestSignals` | Calls `portfolio.validatePolicy()` after its existing floor guard | No change; retains floor-error precedence and shared policy refusal |
+| `rlportfoliobrief.js::composeBrief` | Formats a backward action-history cutoff from the same policy | Adds one shared-validator delegation immediately before the policy-derived Date expression |
 | `portfolio-survival-allocation-lab.html::boot` | Calls `api.validatePolicy(policy)` before opening stores | Uses the existing blocked-policy UI for an invalid committed value |
 | `portfolio-survival-allocation-lab.html::composeBrief` | Calls brief derivation for the visible brief | Uses the existing `Brief unavailable` error path |
 
@@ -254,8 +313,8 @@ on the same policy contract.
 | --- | --- | --- |
 | `tests/portfolio-foundation.unit.mjs` | Owns direct closed-policy assertions | Add shipped, boundary, one-over, and overflow-refusal cases |
 | `tests/portfolio-allocation.functional.mjs` | Calls `validatePolicy()` | Must remain green under `56` |
-| `tests/portfolio-behavior-occurrence.unit.mjs` | Calls both validators and both derivation modules | Preserve refusal ordering and cross-module behavior |
-| `tests/portfolio-brief.functional.mjs` | Exercises policy and brief/core derivation | Preserve 56-day evidence semantics |
+| `tests/portfolio-behavior-occurrence.unit.mjs` | Calls both validators and both derivation modules | Preserve refusal ordering and cross-module behavior. Refine the BUG-004 mutation anchor only enough to remove the `deriveInterestSignals()` recheck while preserving its loop and the new `composeBrief()` pair. This harness-only repair changes no BUG-004 expected outcome. |
+| `tests/portfolio-brief.functional.mjs` | Directly exercises exported `composeBrief()` and owns the fourth-clock cutoff assertions | Add the public-consumer boundary, refusal, no-throw, and local-error-precedence regression |
 | `tests/portfolio-dossier.functional.mjs` | Calls `validatePolicy()` | Must remain green under `56` |
 | `tests/portfolio-privacy.functional.mjs` | Calls policy and interest derivation | Preserve local history and clear behavior |
 | `tests/portfolio-stale-domain-signal.unit.mjs` | Exercises core and brief age filtering | Preserve BUG-005 behavior and expiry output |
@@ -300,8 +359,9 @@ remain the only paths that remove behavior evidence.
 No new log, metric, telemetry, or exception channel is needed. Invalid policy
 already has a typed local error envelope and visible browser failure states.
 
-The repaired path must return that envelope. An uncaught `RangeError`, a clamp,
-or a successful empty result would each violate the design.
+Both repaired paths must return that envelope. An uncaught `RangeError`, a
+clamp, a locally rebuilt error, or a successful empty result would each violate
+the design.
 
 ## Testing And Validation Strategy
 
@@ -313,10 +373,20 @@ or a successful empty result would each violate the design.
 5. Pass that overflow policy to core derivation and assert a returned config
    refusal without an exception.
 6. Assert infinity retains `non-finite-policy` and its precise field path.
-7. Remove the upper-bound predicate in an isolated test mutation and require
-   the one-over case to fail.
-8. Run the existing direct consumers and all eight browser carriers to prove
-   the committed 56-day path did not move.
+7. Add a persistent `composeBrief()` consumer case in
+   `tests/portfolio-brief.functional.mjs` that accepts `36525`, refuses `36526`,
+   refuses non-finite input, and refuses a proven backward-TimeClip overflow
+   without throwing.
+8. Assert the consumer returns the shared envelopes exactly, rather than brief
+   error helpers, and that invalid `composedAt` retains its existing precedence
+   over shared policy validation.
+9. Record a focused RED run against the current brief consumer before adding
+   the delegation. The test must fail because `36526` and non-finite values
+   succeed and the overflow value throws.
+10. Remove or bypass the new delegation in an isolated negative control and
+    require the consumer regression to fail.
+11. Run the existing direct consumers and all eight browser carriers to prove
+    the committed 56-day path did not move.
 
 The product boundary and runtime-overflow fixtures must remain separate. One
 proves the policy decision. The other proves the dangerous input class exists.
@@ -325,20 +395,25 @@ proves the policy decision. The other proves the dangerous input class exists.
 
 | Path | Planned change |
 | --- | --- |
-| `rlportfolio.js` | Add the private ceiling and enforce it in `validatePolicy()` |
-| `tests/portfolio-foundation.unit.mjs` | Add boundary, one-over, overflow, and contract assertions |
-| `notes/portfolio-survival-allocation-lab.md` | Add one carrier row only if its existing inventory requires it |
+| `rlportfoliobrief.js` | Add one shared-validator delegation immediately before `composeBrief()` reads `maximumEvidenceAgeDays` |
+| `tests/portfolio-behavior-occurrence.unit.mjs` | Refine the existing BUG-004 mutation anchor to pair the shared delegation with the uniquely following `retainedIdentityOrder.forEach` statement. Remove only the `deriveInterestSignals()` pair, re-emit the loop opener, and assert one pair disappeared while `composeBrief()` retains its pair. No BUG-004 contract or expected outcome changes. |
+| `tests/portfolio-brief.functional.mjs` | Add the persistent exported-consumer boundary, refusal, overflow, and precedence regression |
 | This bug packet | Preserve aligned design, plan, and execution evidence through their owning agents |
 
-Excluded surfaces include policy JSON, expiry arithmetic, `rlportfoliobrief.js`,
-HTML, signal schemas, storage schemas, shared data modules, and other packets.
+The delivered `rlportfolio.js` ceiling/predicate and
+`tests/portfolio-foundation.unit.mjs` regression are preserved without further
+change. Excluded surfaces include policy JSON, both Date expressions,
+`rlportfoliobrief.js::deriveInterestSignals()`, HTML, notes, signal schemas,
+storage schemas, shared data modules, parent or sibling packets, and generated
+`_site/**` output.
 
 ## Capability Shape
 
 ### Single-Implementation Justification
 
 This is a bug fix inside one existing policy foundation. One validator owns the
-contract, and no second provider, strategy, screen contract, or adapter appears.
+contract, while a second public consumer delegates to it. No second provider,
+strategy, screen contract, or adapter appears.
 
 A reusable abstraction would add indirection without adding a variation point.
 
@@ -350,10 +425,15 @@ A reusable abstraction would add indirection without adding a variation point.
    changes the requested evidence horizon silently.
 3. **Catch `RangeError` in derivation.** Rejected because validation would still
    admit an invalid policy for every other consumer.
-4. **Duplicate the check in brief derivation.** Rejected because it creates a
+4. **Duplicate the check in brief composition.** Rejected because it creates a
    second policy owner and risks refusal-order drift.
 5. **Change only the committed value.** Rejected because `56` is already valid
    and does not close the accepted-input class.
+6. **Validate at the top of `composeBrief()`.** Rejected because it would reorder
+   existing local input, timestamp, window-id, and cutoff errors. The call
+   belongs at the first policy-derived Date use instead.
+7. **Translate the failure through `contractErr()`.** Rejected because rebuilding
+   the envelope duplicates ownership and can drift from `validatePolicy()`.
 
 ## Complexity Tracking
 
@@ -362,12 +442,20 @@ and focused regression assertions.
 
 ## Ownership Handoff
 
-This design adopts the product ceiling and exact refusal contract. Any planning
-reconciliation belongs to `bubbles.plan` before scenario-first test authorship
-or implementation begins.
+This design preserves the delivered product ceiling and extends its exact
+refusal contract to the omitted public consumer. `bubbles.plan` must
+narrow-expand the existing Scope 01 rather than create a new bug packet. The
+plan must add `rlportfoliobrief.js` and `tests/portfolio-brief.functional.mjs`
+to the active Change Boundary. It must add one `composeBrief()` consumer
+scenario to `scenario-manifest.json`. It must add matching RED and functional
+rows to `test-plan.json` and Test Plan-to-DoD parity. The persistent brief
+carrier then follows RED -> implement -> GREEN.
 
-`bubbles.test` owns the red regression carrier. `bubbles.implement` owns the
-source repair after the test demonstrates the current failure.
+`bubbles.test` owns the red regression carrier.
+`bubbles.implement` owns the two-line delegated validation repair after that
+test demonstrates the current failure. The packet and Scope 01 remain
+`in_progress`. This design reconciliation promotes no existing DoD item or
+certification claim.
 
 ## Open Questions
 

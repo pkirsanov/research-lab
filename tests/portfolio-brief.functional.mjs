@@ -599,6 +599,128 @@ test('FR-041 the local action-history cutoff is a fourth clock and is actually e
     'an expired completion cannot qualify a subject');
 });
 
+test('BUG-006: composeBrief validates shared evidence-age policy before Date formatting', () => {
+  const loaded = loadBrief();
+  const millisecondsPerDay = 86400000;
+  const timeClipMinimumMilliseconds = -8640000000000000;
+  const composedAt = `${BRIEF_DAY}T15:40:00.000Z`;
+  const maximumEvidenceAgeDays = 100 * 365 + 25;
+  const overflowEvidenceAgeDays = 100100000;
+  const invalidBehaviorPolicyRefusal = {
+    ok: false,
+    error: {
+      contractVersion: 'PortfolioError/v1',
+      code: 'P008-CONFIG',
+      reason: 'invalid-policy',
+      valueEchoed: false,
+      recoverable: false,
+      field: 'behavior'
+    }
+  };
+  const nonFinitePolicyRefusal = {
+    ok: false,
+    error: {
+      contractVersion: 'PortfolioError/v1',
+      code: 'P008-CONFIG',
+      reason: 'non-finite-policy',
+      valueEchoed: false,
+      recoverable: false,
+      field: 'policy.behavior.maximumEvidenceAgeDays'
+    }
+  };
+
+  function policyWithMaximumEvidenceAgeDays(value) {
+    return {
+      ...loaded.policy,
+      behavior: { ...loaded.policy.behavior, maximumEvidenceAgeDays: value }
+    };
+  }
+
+  function composeOutcome(policy, input = {}) {
+    try {
+      const result = loaded.brief.composeBrief(briefInput({
+        loaded,
+        input: { ...input, policy }
+      }));
+      if (!result.ok) return { threw: false, result };
+      return {
+        threw: false,
+        result: {
+          ok: true,
+          actionHistoryCutoffAt: result.value.times.actionHistoryCutoffAt
+        }
+      };
+    } catch (error) {
+      return {
+        threw: true,
+        error: { name: error.name, message: error.message }
+      };
+    }
+  }
+
+  const oneDayAbovePolicy = policyWithMaximumEvidenceAgeDays(maximumEvidenceAgeDays + 1);
+  const localPrecedence = composeOutcome(oneDayAbovePolicy, { composedAt: 'invalid-local-composition-time' });
+  assert.deepEqual(localPrecedence, {
+    threw: false,
+    result: {
+      ok: false,
+      error: {
+        code: 'P008-BRIEF-COMPOSED',
+        reason: 'local-composition-time-required',
+        field: 'composedAt'
+      }
+    }
+  }, 'the existing local composition-time error must retain precedence over shared policy validation');
+
+  assert.equal(loaded.policy.behavior.maximumEvidenceAgeDays, 56, 'the committed policy must remain 56 days');
+  const committedPolicy = composeOutcome(loaded.policy);
+  assert.deepEqual(committedPolicy, {
+    threw: false,
+    result: {
+      ok: true,
+      actionHistoryCutoffAt: new Date(Date.parse(composedAt) - 56 * millisecondsPerDay).toISOString()
+    }
+  }, 'the committed 56-day policy must keep composing with the existing cutoff arithmetic');
+
+  assert.equal(maximumEvidenceAgeDays, 36525, 'the accepted boundary must be derived independently as 100 years plus 25 leap days');
+  const boundaryPolicy = policyWithMaximumEvidenceAgeDays(maximumEvidenceAgeDays);
+  assert.deepEqual(composeOutcome(boundaryPolicy), {
+    threw: false,
+    result: {
+      ok: true,
+      actionHistoryCutoffAt: new Date(Date.parse(composedAt) - maximumEvidenceAgeDays * millisecondsPerDay).toISOString()
+    }
+  }, '36525 days must compose successfully without changing the cutoff expression');
+
+  const nonFinitePolicy = policyWithMaximumEvidenceAgeDays(Number.POSITIVE_INFINITY);
+  const overflowPolicy = policyWithMaximumEvidenceAgeDays(overflowEvidenceAgeDays);
+  assert.deepEqual(loaded.portfolio.validatePolicy(oneDayAbovePolicy), invalidBehaviorPolicyRefusal);
+  assert.deepEqual(loaded.portfolio.validatePolicy(nonFinitePolicy), nonFinitePolicyRefusal);
+  assert.deepEqual(loaded.portfolio.validatePolicy(overflowPolicy), invalidBehaviorPolicyRefusal);
+
+  const overflowCutoffMilliseconds = Date.parse(composedAt) - overflowEvidenceAgeDays * millisecondsPerDay;
+  assert.equal(overflowCutoffMilliseconds < timeClipMinimumMilliseconds, true,
+    'the overflow fixture must independently cross the backward ECMAScript TimeClip boundary');
+  assert.throws(
+    () => new Date(overflowCutoffMilliseconds).toISOString(),
+    { name: 'RangeError', message: 'Invalid time value' },
+    'direct formatting must prove the fixture reaches the dangerous runtime class'
+  );
+
+  const invalidPolicyOutcomes = {
+    oneDayAbove: composeOutcome(oneDayAbovePolicy),
+    nonFinite: composeOutcome(nonFinitePolicy),
+    backwardTimeClipOverflow: composeOutcome(overflowPolicy)
+  };
+  assert.equal(oneDayAbovePolicy.behavior.maximumEvidenceAgeDays, 36526,
+    'composition must not clamp or replace the rejected value');
+  assert.deepEqual(invalidPolicyOutcomes, {
+    oneDayAbove: { threw: false, result: invalidBehaviorPolicyRefusal },
+    nonFinite: { threw: false, result: nonFinitePolicyRefusal },
+    backwardTimeClipOverflow: { threw: false, result: invalidBehaviorPolicyRefusal }
+  }, 'a successful invalid-policy composition proves validator bypass, while RangeError proves Date formatting was reached');
+});
+
 test('FR-057 a repeat over the same evidence is not reported as independent confirmation', () => {
   const loaded = loadBrief();
 

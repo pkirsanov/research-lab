@@ -1,9 +1,9 @@
 {
   "contractVersion": "scenario-manifest/v1",
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
-  "generatedAt": "2026-08-25T20:47:01Z",
+  "generatedAt": "2026-08-26T00:22:55Z",
   "generatedBy": "bubbles.plan",
-  "provenance": "Planning reconciliation from BUG-006 spec.md, design.md, scopes.md, the current rlportfolio.js validation and derivation owners, and the existing portfolio foundation carrier. All scenarios remain planned and uncertified. Planned test titles do not yet exist, and no product-test execution is claimed.",
+  "provenance": "Planning micro-reconciliation from the authorized BUG-006 design and existing Scope 01. Existing scenario links, execution statuses, and evidence references are preserved. TP-B006-011 maps the test-only BUG-004 mutation-anchor repair to the existing overflow and brief policy-validation scenarios; it remains planned and uncertified, and no new product-test execution is claimed.",
   "scenarios": [
     {
       "scenarioId": "SCN-B006-BOUNDARY-ACCEPTED",
@@ -227,7 +227,8 @@
           "trait": "pure-calculation",
           "requiredProof": "A production deriveInterestSignals assertion returns the validation failure before workspace validation or Date formatting.",
           "satisfiedBy": [
-            "TP-B006-003"
+            "TP-B006-003",
+            "TP-B006-011"
           ]
         },
         {
@@ -256,7 +257,8 @@
       ],
       "testRows": [
         "TP-B006-000",
-        "TP-B006-003"
+        "TP-B006-003",
+        "TP-B006-011"
       ],
       "lockdown": false,
       "linkedTests": [
@@ -266,6 +268,13 @@
           "testPlanRow": "TP-B006-003",
           "coverageStatus": "executed-passed",
           "evidenceRef": "report.md#tp-b006-003"
+        },
+        {
+          "file": "tests/portfolio-behavior-occurrence.unit.mjs",
+          "testId": "BUG-004: removing the restored policy check reinstates the fail-open, so the assertion above is load-bearing",
+          "testPlanRow": "TP-B006-011",
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#tp-b006-011"
         }
       ],
       "expectedAssertions": [
@@ -277,8 +286,136 @@
         "report.md#before-fix-reproduction",
         "report.md#tp-b006-000",
         "report.md#tp-b006-003",
+        "report.md#tp-b006-011",
         "report.md#tp-b006-005",
         "report.md#tp-b006-006"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B006-BRIEF-POLICY-VALIDATION",
+      "scopeId": "01-bound-the-evidence-age-policy",
+      "scope": 1,
+      "title": "Brief composition validates shared evidence-age policy before cutoff formatting",
+      "gherkin": {
+        "given": "composeBrief inputs pass the existing local input, window, timestamp, and cutoff checks, with a separate doubly invalid input for precedence",
+        "when": "composeBrief evaluates maximumEvidenceAgeDays values 36525, 36526, Infinity, and 100100000 through the exported production function",
+        "then": "36525 succeeds, 36526 returns the exact shared P008-CONFIG invalid-policy behavior envelope, Infinity retains the shared non-finite field path, 100100000 returns shared invalid-policy without RangeError, and the existing local brief error wins for the doubly invalid input"
+      },
+      "status": "planned",
+      "behaviorClass": "business-logic",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "requiredTestTypes": [
+        "functional",
+        "e2e-ui"
+      ],
+      "regressionRequired": true,
+      "riskTier": "high",
+      "requirementRefs": [
+        "FR-B006-002",
+        "FR-B006-004",
+        "FR-B006-005",
+        "AC-2",
+        "AC-3",
+        "AC-4"
+      ],
+      "findingRefs": [
+        "GAP-B006-001",
+        "GAP-B006-002"
+      ],
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state",
+        "shared-consumer"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The exported production composeBrief function transforms each named policy value into the specified success or shared validation result without changing valid cutoff arithmetic.",
+          "satisfiedBy": [
+            "TP-B006-009",
+            "TP-B006-010"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named invalid policies return exact shared envelopes without a plausible default or escaped RangeError, while existing local brief failures retain precedence.",
+          "satisfiedBy": [
+            "TP-B006-010"
+          ]
+        },
+        {
+          "trait": "shared-consumer",
+          "requiredProof": "The shared validator and composeBrief consumer preserve exact failure-envelope parity, the collateral mutation isolates the derivation pair while retaining the brief pair and derive loop, and the real Brief route remains usable with the committed valid policy.",
+          "satisfiedBy": [
+            "parity:TP-B006-010 shared validator and composeBrief envelope parity",
+            "TP-B006-011",
+            "consumer-surface:TP-B006-005 Feature 008 Brief route",
+            "TP-B006-005"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "rlportfolio.js#validatePolicy",
+          "rlportfoliobrief.js#composeBrief",
+          "portfolio-survival-allocation-lab.html#composeBrief"
+        ],
+        "negativeControl": "Removing or bypassing the composeBrief validator delegation must make the persistent consumer regression expose successful invalid-policy composition or an escaped RangeError while the local-precedence control remains discriminating.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": [
+        "rlportfolio.js#validatePolicy",
+        "rlportfoliobrief.js#composeBrief"
+      ],
+      "testRows": [
+        "TP-B006-005",
+        "TP-B006-009",
+        "TP-B006-010",
+        "TP-B006-011"
+      ],
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-brief.functional.mjs",
+          "testId": "BUG-006: composeBrief validates shared evidence-age policy before Date formatting",
+          "testPlanRow": "TP-B006-009",
+          "coverageStatus": "required-red-observed",
+          "evidenceRef": "report.md#tp-b006-009"
+        },
+        {
+          "file": "tests/portfolio-brief.functional.mjs",
+          "testId": "BUG-006: composeBrief validates shared evidence-age policy before Date formatting",
+          "testPlanRow": "TP-B006-010",
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#tp-b006-010"
+        },
+        {
+          "file": "tests/portfolio-behavior-occurrence.unit.mjs",
+          "testId": "BUG-004: removing the restored policy check reinstates the fail-open, so the assertion above is load-bearing",
+          "testPlanRow": "TP-B006-011",
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#tp-b006-011"
+        }
+      ],
+      "expectedAssertions": [
+        "existing local brief errors retain precedence over shared policy validation",
+        "36525 composes successfully with unchanged action-history cutoff arithmetic",
+        "36526 returns the exact shared P008-CONFIG invalid-policy behavior envelope",
+        "Infinity returns non-finite-policy for policy.behavior.maximumEvidenceAgeDays",
+        "100100000 returns shared invalid-policy and no RangeError escapes"
+      ],
+      "evidenceRefs": [
+        "report.md#tp-b006-005",
+        "report.md#tp-b006-009",
+        "report.md#tp-b006-010",
+        "report.md#tp-b006-011"
       ],
       "replacedBy": null,
       "invalidatedBy": null

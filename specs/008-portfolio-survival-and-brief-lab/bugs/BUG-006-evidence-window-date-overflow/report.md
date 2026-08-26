@@ -25,15 +25,23 @@ and its 25-day leap allowance. Its focused post-edit carrier passed all 61
 tests. Broader regression, audit, validation, and human acceptance remain
 unclaimed.
 
+Subsequent test and regression phases completed the existing shared-validator
+rows. A gaps pass then identified exported `composeBrief()` as a second
+policy-derived Date consumer that bypasses shared validation. Design and spec
+now define that consumer contract. The current planning pass narrow-expands
+Scope 01, adds one machine scenario, and adds `TP-B006-009/010` without
+changing prior execution evidence.
+
 ## Completion Statement
 
-Bug discovery, reproduction, design, planning, scenario-first RED, and the
-focused implementation check are recorded. Delivery is not complete. Packet,
-scope, and certification remain `in_progress`, and every Definition of Done
-item remains unchecked.
+The shared-validator repair and its existing RED/GREEN records are preserved.
+The newly planned brief-consumer repair is not implemented or tested. Delivery
+is not complete. Packet, scope, and certification remain `in_progress`, and
+every Definition of Done item remains unchecked.
 
-The next required owner is `bubbles.test`. It owns focused GREEN status,
-regression execution, and scenario/test-plan evidence updates.
+The next required owner is `bubbles.test`. It owns the persistent
+`tests/portfolio-brief.functional.mjs` regression and the observed
+`TP-B006-009` RED result before any `rlportfoliobrief.js` edit.
 
 ## Repository Binding
 
@@ -110,6 +118,39 @@ actionable=true
 	status, certification, scope status, and completed scopes remain unchanged.
 - `uservalidation.md` remains entirely unchecked. No human acceptance is
 	inferred or recorded.
+
+## Brief Consumer Planning Reconciliation
+
+**Phase:** plan
+**Claim Source:** interpreted from current-session repository reads
+
+- Existing `TP-B006-000` through `TP-B006-008` statuses and evidence references
+	remain unchanged.
+- Scope 01 now includes `rlportfoliobrief.js` and
+	`tests/portfolio-brief.functional.mjs` in its Change Boundary and consumer
+	inventory.
+- `SCN-B006-BRIEF-POLICY-VALIDATION` derives `pure-calculation`,
+	`degraded-state`, and `shared-consumer` obligations. Functional parity is
+	planned through `TP-B006-009/010`; the existing Feature 008 Brief route row
+	remains the consumer-surface non-movement proof.
+- `TP-B006-009` is the required pre-source RED. `TP-B006-010` is the unchanged
+	carrier's post-source GREEN. Neither row has been executed.
+- Scope, packet, certification, DoD, human acceptance, source, and tests remain
+	non-terminal and unchanged by this planning pass.
+
+> **Uncertainty Declaration**
+> **What was attempted:** The planner reconciled Scope 01, the scenario
+> manifest, the structured Test Plan, DoD mappings, report anchors, and
+> execution routing, then ran focused artifact, traceability, obligation, and
+> mechanism checks.
+> **What was observed:** The planning checks accept four scenarios and the new
+> brief carrier path. The persistent BUG-006 brief test title does not yet
+> exist, and `TP-B006-009/010` remain explicitly not run.
+> **Why this is uncertain:** Planning cannot demonstrate the required pre-fix
+> failure or post-fix behavior without test-owned authorship and execution.
+> **What would resolve this:** `bubbles.test` authors the exact persistent
+> `SCN-B006-BRIEF-POLICY-VALIDATION` case and records `TP-B006-009` RED before
+> any `rlportfoliobrief.js` edit.
 
 ## Findings
 
@@ -904,6 +945,215 @@ RESULT: PASSED (0 warnings)
 
 **Result:** PASS
 
+## TP-B006-009 {#tp-b006-009}
+
+**Phase:** test
+**Executed:** YES
+**Command:** `timeout 240 node --test tests/portfolio-brief.functional.mjs`
+**Capture Command:** `timeout 300 bash .github/bubbles/scripts/evidence-capture.sh --label "TP-B006-009 pre-fix brief RED" -- timeout 240 node --test tests/portfolio-brief.functional.mjs`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+# TP-B006-009 pre-fix brief RED
+$ timeout 240 node --test tests/portfolio-brief.functional.mjs
+exit: 1
+lines: 296
+sha256: 9a0252da789da26cb85fa2da78c7754dfa3a572485c28e6d68e7b94c1ec8eade
+--- first 20 ---
+TAP version 13
+# Subtest: only an eligible completion becomes behavior evidence and no excluded source can create or grow one
+ok 1 - only an eligible completion becomes behavior evidence and no excluded source can create or grow one
+	---
+	duration_ms: 264.291403
+	type: 'test'
+	...
+# Subtest: route recomposition is invariant to behavior evidence and states that behavior contributes none
+ok 2 - route recomposition is invariant to behavior evidence and states that behavior contributes none
+	---
+	duration_ms: 49.337839
+	type: 'test'
+	...
+# Subtest: behavior clear removes the committed evidence and returns recomposition to the pre-evidence baseline
+ok 3 - behavior clear removes the committed evidence and returns recomposition to the pre-evidence baseline
+	---
+	duration_ms: 123.636448
+	type: 'test'
+	...
+# Subtest: dismissal and automatic invalidation record a safe outcome and never a behavior event or a negative preference
+--- failure-shaped lines from the omitted region ---
+not ok 15 - BUG-006: composeBrief validates shared evidence-age policy before Date formatting
+--- omitted 256 line(s); sha256 above covers the full output ---
+--- last 20 ---
+ok 28 - Adversarial: reduced brief evidence policy and API cannot satisfy the complete contract
+	---
+	duration_ms: 1.392693
+	type: 'test'
+	...
+# Subtest: Regression: BUG-004 same-semantic occurrences cannot inflate relevance
+ok 29 - Regression: BUG-004 same-semantic occurrences cannot inflate relevance
+	---
+	duration_ms: 104.037251
+	type: 'test'
+	...
+1..29
+# tests 29
+# suites 0
+# pass 28
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 775.465404
+```
+
+<!-- verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 9a0252da789da26cb85fa2da78c7754dfa3a572485c28e6d68e7b94c1ec8eade -- timeout 240 node --test tests/portfolio-brief.functional.mjs -->
+
+**Result:** FAIL as required for the scenario-first RED phase. The exact
+persistent title failed while 28 neighboring controls passed and 0 tests were
+skipped. The test reaches its final aggregate assertion only after the local
+`composedAt` error precedence, committed `56`, accepted `36525`, shared
+validator envelopes, and direct backward-TimeClip `RangeError` control have all
+passed. A title-scoped diagnostic of the same test observed that current
+`composeBrief()` returned `ok: true` with cutoff
+`1926-07-14T15:40:00.000Z` for `36526`, returned `ok: true` with a null cutoff
+for `Infinity`, and threw `RangeError: Invalid time value` for `100100000`.
+The shared validator refused those same inputs with the planned exact
+envelopes. Product source was unchanged; `TP-B006-010` remains unexecuted.
+
+## TP-B006-010 {#tp-b006-010}
+
+**Phase:** test
+**Executed:** YES (current session)
+**Claim Source:** executed
+**Command:** `timeout 240 node --test tests/portfolio-brief.functional.mjs`
+**Capture Command:** `timeout 300 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-006 TP-B006-010 focused brief GREEN" -- timeout 240 node --test tests/portfolio-brief.functional.mjs`
+**Exit Code:** 0
+
+```text
+# BUG-006 TP-B006-010 focused brief GREEN
+$ timeout 240 node --test tests/portfolio-brief.functional.mjs
+exit: 0
+lines: 184
+sha256: 7adf69a805de7ce12fbb1cc4f1b3955a83c69ec6f11f916ac431d112a450bc26
+--- first 20 ---
+TAP version 13
+# Subtest: only an eligible completion becomes behavior evidence and no excluded source can create or grow one
+ok 1 - only an eligible completion becomes behavior evidence and no excluded source can create or grow one
+	---
+	duration_ms: 238.416438
+	type: 'test'
+	...
+--- omitted 144 line(s); sha256 above covers the full output ---
+--- last 20 ---
+# Subtest: Regression: BUG-004 same-semantic occurrences cannot inflate relevance
+ok 29 - Regression: BUG-004 same-semantic occurrences cannot inflate relevance
+	---
+	duration_ms: 95.170816
+	type: 'test'
+	...
+1..29
+# tests 29
+# suites 0
+# pass 29
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 715.146516
+```
+
+<!-- verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 7adf69a805de7ce12fbb1cc4f1b3955a83c69ec6f11f916ac431d112a450bc26 -- timeout 240 node --test tests/portfolio-brief.functional.mjs -->
+
+**Result:** PASS. The carrier contains 29 exact test titles. The scenario title
+`BUG-006: composeBrief validates shared evidence-age policy before Date formatting`
+is test 15 and passed. Its assertions prove existing local-error precedence,
+unchanged committed `56` behavior, successful `36525` composition, exact shared
+refusals for `36526` and `Infinity`, and shared refusal for `100100000` without
+an escaped `RangeError`. The structured receipt at `2026-08-25T23:46:20Z` also
+records this exact command at exit 0 with the scenario binding and current
+source/test closure; that receipt is inspected history, while the block above is
+the independently executed test-owner proof.
+
+## TP-B006-011 {#tp-b006-011}
+
+**Phase:** test
+**Executed:** YES (current session)
+**Claim Source:** executed for the focused carrier; interpreted for the earlier
+structured receipt history
+**Command:** `timeout 240 node --test tests/portfolio-behavior-occurrence.unit.mjs`
+**Capture Command:** `timeout 300 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-006 TP-B006-011 focused mutation-anchor regression" -- timeout 240 node --test tests/portfolio-behavior-occurrence.unit.mjs`
+**Exit Code:** 0
+
+### Receipt History Reconciliation
+
+The ledger preserves exit status and input closure, but not raw stdout. The
+three pre-repair entries therefore support only an interpreted failure-history
+claim; no missing failure title or output is reconstructed here.
+
+| Receipt UTC | Combined four-carrier exit | Behavior carrier closure |
+| --- | ---: | --- |
+| `2026-08-25T23:46:44Z` | 1 | `0f4daecfab34efc1ff647ee9863c1874bc185a3b61166015171fddb63a594cd8` |
+| `2026-08-25T23:53:02Z` | 1 | `0f4daecfab34efc1ff647ee9863c1874bc185a3b61166015171fddb63a594cd8` |
+| `2026-08-25T23:59:18Z` | 1 | `0f4daecfab34efc1ff647ee9863c1874bc185a3b61166015171fddb63a594cd8` |
+
+The source repair added a second copy of the shared two-line validator pair in
+`composeBrief()`. The prior test mutation matched that pair alone, so its
+exactly-once guard became ambiguous. The test-only correction anchors the pair
+to the uniquely following `retainedIdentityOrder.forEach` statement, replaces
+the composite anchor with that same loop opener, and adds assertions that one
+validation pair disappears while the loop and the separate `composeBrief()`
+pair remain. This is a mutation-harness correction, not a product behavior
+change and not a change to the BUG-004 expected outcome.
+
+| Receipt UTC | Combined four-carrier exit | Behavior carrier closure |
+| --- | ---: | --- |
+| `2026-08-26T00:04:56Z` | 0 | `c52dd64c26a5247ccd860706eaaf31dc711499a323115a79909cb0d75c25a920` |
+| `2026-08-26T00:05:08Z` | 0 | `c52dd64c26a5247ccd860706eaaf31dc711499a323115a79909cb0d75c25a920` |
+| `2026-08-26T00:05:23Z` | 0 | `c52dd64c26a5247ccd860706eaaf31dc711499a323115a79909cb0d75c25a920` |
+
+### Focused Current Proof
+
+```text
+# BUG-006 TP-B006-011 focused mutation-anchor regression
+$ timeout 240 node --test tests/portfolio-behavior-occurrence.unit.mjs
+exit: 0
+lines: 58
+sha256: 863a84dbb54f642f11f0bb8d2f1aaa6e5d5678f5fcd234854940cec172b71749
+--- first 20 ---
+TAP version 13
+# Subtest: BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity
+ok 1 - BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity
+	---
+	duration_ms: 75.713641
+	type: 'test'
+	...
+--- omitted 18 line(s); sha256 above covers the full output ---
+--- last 20 ---
+# Subtest: BUG-004: removing the restored policy check reinstates the fail-open, so the assertion above is load-bearing
+ok 8 - BUG-004: removing the restored policy check reinstates the fail-open, so the assertion above is load-bearing
+	---
+	duration_ms: 11.773229
+	type: 'test'
+	...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 719.36144
+```
+
+<!-- verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 863a84dbb54f642f11f0bb8d2f1aaa6e5d5678f5fcd234854940cec172b71749 -- timeout 240 node --test tests/portfolio-behavior-occurrence.unit.mjs -->
+
+**Result:** PASS. The carrier contains eight exact test titles. The planned
+mutation-control title is test 8 and passed, including its one-pair removal,
+retained-loop, remaining-brief-pair, corrupt-policy fail-open, and valid-policy
+equivalence assertions.
+
 ## Packet Artifact Inventory
 
 Only this packet's nine files are in scope:
@@ -925,7 +1175,1099 @@ untouched.
 
 ## Routing
 
-1. `bubbles.test` performs focused GREEN status accounting, allocation-page
-	non-movement, Feature 008 browser, and canonical repository regression runs.
-2. `bubbles.validate` runs the packet and transition guards and owns any
+1. `bubbles.test` adds the persistent
+	`tests/portfolio-brief.functional.mjs` consumer case and records the observed
+	`TP-B006-009` RED result before any brief source edit.
+2. `bubbles.implement` adds only the planned shared-validator delegation in
+	`rlportfoliobrief.js::composeBrief()` and routes back to test ownership.
+3. `bubbles.test` records `TP-B006-010` GREEN, reruns the preserved focused and
+	consumer-surface regressions, and updates execution evidence without changing
+	planner-owned test definitions.
+4. `bubbles.validate` runs the packet and transition guards and owns any
 	certification write.
+
+## Regression Phase Evidence {#regression-phase-2026-08-25}
+
+> **Verdict status:** Superseded for current-tree use by
+> [Post-Expansion Regression Re-evaluation](#regression-phase-round-2). The
+> commands and observations below remain valid historical evidence for the
+> narrower `9b594d439` checkpoint, but its verdict predates the added
+> `composeBrief()` consumer and BUG-004 mutation-anchor surfaces.
+
+**Phase:** regression
+**Claim Source:** interpreted
+**Interpretation:** The technical checkpoint is regression-free within the
+declared BUG-006 boundary. The production delta adds one private constant and
+one centralized validator predicate. The focused test delta adds three tests
+and deletes none. Current execution preserved the BUG-004 occurrence contract,
+the BUG-005 stale-domain contract, the brief-side policy ordering, and the
+committed 56-day policy. No product or test file was changed by this phase.
+
+### Checkpoint And Contract Review
+
+The reviewed checkpoint is `9b594d439651036dc323fb79f5cc7507af325ab4`.
+Its product delta is confined to `rlportfolio.js` and
+`tests/portfolio-foundation.unit.mjs`; the remaining five changed paths are
+this bug packet's execution records.
+
+| Concern | Grounded result |
+| --- | --- |
+| Validator ordering | `findNonFinite()` still runs before section semantics. Infinity therefore retains `non-finite-policy` and the precise `policy.behavior.maximumEvidenceAgeDays` field. |
+| New rejection | Only finite values above `100 * 365 + 25` enter the existing `P008-CONFIG / invalid-policy / behavior` envelope. |
+| Core derivation | `rlportfolio.deriveInterestSignals()` still calls `validatePolicy()` before workspace validation and Date arithmetic. |
+| Brief derivation | `rlportfoliobrief.deriveInterestSignals()` is unchanged. Its existing floor guard still precedes its shared `portfolio.validatePolicy()` call. |
+| BUG-004 | The age filter remains before semantic collapse, so a stale first occurrence cannot erase a fresh repeat. The occurrence-identity and anti-inflation carrier remained green. |
+| BUG-005 | Bucket creation remains after age filtering, so stale-only domains remain omitted and cannot suppress fresh siblings. The six-row BUG-005 carrier remained green. |
+| Shipped policy | `portfolio-survival-allocation.config.json` remains byte-unchanged at `maximumEvidenceAgeDays: 56`. |
+| Public surface | No export, schema, route, HTML, storage, or public contract version changed. |
+| Pages artifact | The local ignored `_site/rlportfolio.js` was stale build output, not a second source owner. `scripts/build-pages-site.mjs` deletes `_site` and copies the current root files before the Pages verify and deploy jobs. |
+| Coverage delta | `git grep -c '^test('` measured 58 top-level tests at `9b594d439^` and 61 at `9b594d439`. The focused carrier changed by 81 additions and 0 deletions, exactly adding the three persistent BUG-006 tests. The project registry declares no coverage-percentage command, so no unexecuted percentage is claimed. |
+
+`git diff --exit-code 9b594d439^ 9b594d439` produced no output for the
+committed policy, `rlportfoliobrief.js`, the allocation HTML, and the BUG-004,
+BUG-005, and brief carriers. That zero exit confirms the named neighboring
+surfaces were not edited by the checkpoint.
+
+### Existing Receipt Inspection
+
+**Phase:** regression
+**Claim Source:** interpreted
+**Interpretation:** These are prior-session structured receipts inspected for
+freshness and input identity. They are not adopted as this phase's test
+execution.
+
+- The report records focused GREEN output hash
+	`32f581845664464736cdb33c41bf42a279c550052d705902e8499534d1b221cb`,
+	eight-file browser hash
+	`14bec301284897fc4c033f43fd336e4ab44b64292f62403dda5f924bc36fdca9`,
+	and selftest hash
+	`4ff323c0038f4dc5bc5464f1a632045451dc16561cdf9c60b98d0be4ed1bd933`.
+- The latest four-carrier tool-log row records stdout hash
+	`0e60a167f435a3e3d31c041609e5354b9de84e5b8dd8bc5c3452e06edf4ec083`
+	and empty-stderr hash
+	`e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
+- A current `sha256sum` matched every input closure in that row:
+	`rlportfolio.js` `f04211203e975d4d92219bad4a4c03c32d54b46e6ef5cb95a46da9cf5a4152c8`,
+	`rlportfoliobrief.js` `14df3cc796e151d7c07a01d37b1fc2a6130a70b53baaf81a8a8f0615fe42ebb3`,
+	and the four carrier hashes recorded in `.specify/runtime/tool-calls.jsonl`.
+- The latest browser and selftest receipts also carry the current
+	`rlportfolio.js` hash. Their stdout hashes are
+	`7be70819ec4b117d6d79ad18ce833390e46b7dce9103ac8eeb3d6a50e193846f`
+	and `40e2461d9890cbb9e6f5161f200ebbdf86272cac48415e89b2c9e62b13867e8f`.
+
+**Command:** `timeout 120 bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root . --strict`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+{
+	"total": 11,
+	"current": 4,
+	"superseded": 7,
+	"withClosure": 3,
+	"valid": 3,
+	"stale": 0,
+	"unknown": 1,
+	"staleReceipts": []
+}
+```
+
+The one `unknown` identity is reported rather than upgraded to valid. The
+strict checker still exits zero with no stale receipt.
+
+### Independent Four-Carrier Closure
+
+**Phase:** regression
+**Command:** `timeout 650 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-006 regression four-carrier closure" -- timeout 600 node --test tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-foundation.unit.mjs tests/portfolio-stale-domain-signal.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-006 regression four-carrier closure
+$ timeout 600 node --test tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-foundation.unit.mjs tests/portfolio-stale-domain-signal.unit.mjs
+exit: 0
+lines: 628
+sha256: 6b2eca1024f6b2d40bb8c770ea024f4d96dd6967a6c3104a8674ddcea92fd70d1
+--- first 20 ---
+TAP version 13
+# Subtest: BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity
+ok 1 - BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity
+	---
+	duration_ms: 88.747059
+	type: 'test'
+	...
+# Subtest: BUG-004: an exact occurrence repeat is still refused as a duplicate
+ok 2 - BUG-004: an exact occurrence repeat is still refused as a duplicate
+	---
+	duration_ms: 37.72427
+	type: 'test'
+	...
+# Subtest: BUG-004: a repeated same-day occurrence cannot buy relevance it did not earn
+ok 3 - BUG-004: a repeated same-day occurrence cannot buy relevance it did not earn
+	---
+	duration_ms: 91.469243
+	type: 'test'
+	...
+# Subtest: BUG-004: stored occurrence growth is bounded by the declared behaviour-event cap
+--- omitted 588 line(s); sha256 above covers the full output ---
+--- last 20 ---
+ok 102 - BUG-005: reinstating the superseded pre-filter bucket creation turns the stale-domain assertion red
+	---
+	duration_ms: 92.779935
+	type: 'test'
+	...
+# Subtest: BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance
+ok 103 - BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance
+	---
+	duration_ms: 66.600794
+	type: 'test'
+	...
+1..103
+# tests 103
+# suites 0
+# pass 103
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1921.218194
+```
+
+This phase deliberately did not rerun the 94-test browser matrix or the
+3426-check selftest. Their current input-bound receipts were inspected above,
+and the four-carrier closure directly covers the changed validator and the
+neighboring behavior paths.
+
+### Regression Quality Guards
+
+**Phase:** regression
+**Claim Source:** executed
+
+```text
+$ timeout 600 bash .github/bubbles/scripts/regression-quality-guard.sh tests/portfolio-foundation.unit.mjs
+============================================================
+	BUBBLES REGRESSION QUALITY GUARD
+	Repo: <repo>
+	Timestamp: 2026-08-25T22:08:00Z
+	Bugfix mode: false
+============================================================
+
+Scanning tests/portfolio-foundation.unit.mjs
+
+============================================================
+	REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+	Files scanned: 1
+============================================================
+```
+
+```text
+$ timeout 600 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/portfolio-foundation.unit.mjs
+============================================================
+	BUBBLES REGRESSION QUALITY GUARD
+	Repo: <repo>
+	Timestamp: 2026-08-25T22:08:08Z
+	Bugfix mode: true
+============================================================
+
+Scanning tests/portfolio-foundation.unit.mjs
+Adversarial signal detected in tests/portfolio-foundation.unit.mjs
+
+============================================================
+	REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+	Files scanned: 1
+	Files with adversarial signals: 1
+============================================================
+```
+
+Both required guard modes exited zero. No skip, only, todo, pending-test, or
+bailout pattern was introduced by the focused carrier.
+
+### Load-Bearing Predicate Control
+
+**Phase:** regression
+**Command:** `timeout 120 node --input-type=commonjs --eval '<in-memory exact-predicate removal and current-versus-mutant assertions>'`
+**Exit Code:** 0
+**Claim Source:** executed
+
+The command read `rlportfolio.js`, required the ceiling predicate to occur
+exactly once, removed only that predicate in memory, evaluated the resulting
+module in a browser-shaped root, and compared it with the shipped module. It
+did not write a repository file.
+
+```text
+BUG-006 in-memory predicate mutation
+mutationAnchorCount=1
+diskWrite=false
+boundaryDays=36525
+currentBoundaryOk=true
+mutantBoundaryOk=true
+oneOverDays=36526
+currentOneOverOk=false
+currentOneOverCode=P008-CONFIG
+currentOneOverReason=invalid-policy
+currentOneOverField=behavior
+mutantOneOverOk=true
+overflowFixture=RangeError:Invalid time value
+currentOverflowOk=false
+verdict=predicate-load-bearing
+```
+
+The negative control is discriminating: removing only the ceiling predicate
+makes `36526` valid, while the shipped module refuses it. The independent
+overflow calculation still throws `RangeError`, so the fixture is not a
+plausible-but-safe large value.
+
+### Regression Verdict And Routing
+
+`REGRESSION_FREE`. No failing test, coverage-count decrease, weakened
+assertion, shared-contract conflict, or missed production consumer was found.
+The packet, scope, Definition of Done, certification, and human acceptance
+remain unchanged and `in_progress`. The next phase owner is
+`bubbles.simplify` for the bugfix-fastlane complexity review.
+
+## Simplify Phase - 2026-08-25 {#simplify-phase-2026-08-25}
+
+Executed as `bubbles.simplify` under the persisted `bugfix-fastlane` direct
+authorized runner at technical checkpoint `9b594d439`. The review stayed inside
+the changed product surface: `rlportfolio.js`,
+`tests/portfolio-foundation.unit.mjs`, and this bug packet's simplify-owned
+execution record. It changed no product source or test.
+
+### Three-Pass Review
+
+| Pass | Finding | Verdict |
+| --- | --- | --- |
+| Reuse | The private ceiling has one production use. The two refusal assertions already share `invalidBehaviorPolicyRefusal()`. | No missing shared abstraction or cross-file duplication. |
+| Quality | The source change is one named private constant, one rationale comment, and one validator predicate. The three test titles separate boundary acceptance, one-over refusal, and the overflow failure chain. | The changed path is direct, field-specific, and readable. No dead code or unnecessary branch was found. |
+| Efficiency | Validation adds one numeric comparison and no allocation, iteration, serialization, I/O, or additional Date work. The focused tests follow the file's existing per-test `loadContracts()` isolation pattern. | No runtime or test-harness optimization is justified. |
+
+### Rejected Simplification Candidates
+
+| Candidate | Why it was rejected |
+| --- | --- |
+| Hoist `100 * 365 + 25` into a test-file constant and reuse it in both boundary cases. | The repeated derivation is a small independent oracle in each adversarial case. Sharing test setup would save one expression while coupling the boundary and one-over fixtures to the same mutable declaration. |
+| Replace `invalidBehaviorPolicyRefusal()` with one shared object constant. | The helper has exactly two callers and returns a fresh expected object each time. A shared object would save one call but permit accidental cross-test mutation and would not clarify the contract. |
+| Collapse the direct TimeClip `assert.throws`, `assert.doesNotThrow`, and final refusal assertion into one shorter assertion. | Each assertion proves a different required fact: the fixture really overflows, the production call does not leak that exception, and the returned refusal keeps the exact envelope. Combining them would reduce diagnostic precision. |
+| Extract a production helper for the single `maximumEvidenceAgeDays` comparison. | A one-use helper would add indirection around a field-specific policy rule and separate the bound from the exact `behavior` refusal it controls. The existing inline predicate is smaller and clearer. |
+
+### Focused Confirmation
+
+**Phase:** simplify
+**Command:** `timeout 300 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-006 simplify focused confirmation" -- timeout 240 node --test tests/portfolio-foundation.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-006 simplify focused confirmation
+$ timeout 240 node --test tests/portfolio-foundation.unit.mjs
+exit: 0
+lines: 376
+sha256: 1baab5e22669ad48123b29bf02527790e44143a09c4ee2b53dbd99f784bfcf87
+--- first 20 ---
+TAP version 13
+# Subtest: RLPORTFOLIO is a frozen Node and browser dual-runtime contract
+ok 1 - RLPORTFOLIO is a frozen Node and browser dual-runtime contract
+	---
+	duration_ms: 19.545284
+	type: 'test'
+	...
+# Subtest: mandatory policy is closed versioned finite and rejects unknown configuration
+ok 2 - mandatory policy is closed versioned finite and rejects unknown configuration
+	---
+	duration_ms: 4.067476
+	type: 'test'
+	...
+# Subtest: BUG-006: maximumEvidenceAgeDays accepts the named 100-year boundary
+ok 3 - BUG-006: maximumEvidenceAgeDays accepts the named 100-year boundary
+	---
+	duration_ms: 2.684584
+	type: 'test'
+	...
+# Subtest: BUG-006: maximumEvidenceAgeDays refuses one day above the named boundary
+--- omitted 336 line(s); sha256 above covers the full output ---
+--- last 20 ---
+ok 60 - SCN-008-042 immutable PortfolioDraft lifecycle preserves stable holdings and commits an honest empty revision
+	---
+	duration_ms: 81.191717
+	type: 'test'
+	...
+# Subtest: SCN-008-043 validated ClearTombstone commits before verified deletion and returns value-safe evidence
+ok 61 - SCN-008-043 validated ClearTombstone commits before verified deletion and returns value-safe evidence
+	---
+	duration_ms: 23.244662
+	type: 'test'
+	...
+1..61
+# tests 61
+# suites 0
+# pass 61
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1943.01665
+```
+
+### Simplify Verdict And Routing
+
+`MINIMAL_NO_CHANGE`. The implementation and focused tests already express the
+contract with less risk than any reviewed alternative. This is a cleanup
+verdict, not certification and not a new test-phase claim. Scope and packet
+status remain `in_progress`; certification, human acceptance, planner content,
+and Definition of Done checks remain untouched. The next required phase owner
+is `bubbles.gaps`.
+
+## Gaps Phase - 2026-08-25 {#gaps-phase-2026-08-25}
+
+**Phase:** gaps
+**Agent:** `bubbles.gaps`
+**Execution model:** `direct-authorized-runner`
+**Parent agent:** none
+**Claim Source:** interpreted
+**Interpretation:** The committed `rlportfolio.js` repair satisfies the three
+planned BUG-006 scenarios, but the design consumer inventory omits an exported
+`rlportfoliobrief.js::composeBrief()` Date-formatting path. That function does
+not call `portfolio.validatePolicy()` before subtracting
+`maximumEvidenceAgeDays` and calling `toISOString()`. Current execution proves
+that it accepts `36526` and throws `RangeError` for a larger finite policy that
+the shared validator refuses. This is a real implementation and test gap, so
+the phase cannot report `NO_GAPS` or route to hardening.
+
+### Requirement, Acceptance, And Scenario Accounting
+
+| Contract | Result | Concrete evidence |
+| --- | --- | --- |
+| `FR-B006-001` | Match | `rlportfolio.js` defines one private `MAXIMUM_EVIDENCE_AGE_DAYS = 100 * 365 + 25` with the century and leap-day rationale. |
+| `FR-B006-002` | Partial | `validatePolicy()` owns the planned refusal, but exported `composeBrief()` consumes the same policy without invoking it. |
+| `FR-B006-003` | Match in the shared validator | Current execution accepts `0`, `56`, and `36525`; it refuses `36526` with the frozen behavior envelope. |
+| `FR-B006-004` | Partial | Core `deriveInterestSignals()` remains validate-first. Brief `composeBrief()` formats its separate action-history cutoff without validation. |
+| `FR-B006-005` | Partial | The persistent carrier proves core forward-TimeClip refusal. No persistent case covers the brief-side backward-TimeClip path. |
+| `FR-B006-006` | Match for the committed repair | The committed policy remains `56`; no public schema, storage schema, signal shape, expiry expression, or other policy numeric bound changed at checkpoint `9b594d439`. |
+| `AC-1` | Match | `36525` passes the shared validator and focused test. |
+| `AC-2` | Match only at the planned entry point | `36526` returns `P008-CONFIG / invalid-policy / behavior` from `validatePolicy()`, while `composeBrief()` returns success for the same policy. |
+| `AC-3` | Match only at the planned entry point | Core derivation returns the refusal without throwing; brief composition can still throw on its own Date calculation. |
+| `AC-4` | No new movement found | The committed config remains `56`; prior browser and selftest receipts remain input-bound to the current product hash and were not rerun in this phase. |
+
+All three declared scenarios map cleanly to their structured rows and current
+focused tests:
+
+- `SCN-B006-BOUNDARY-ACCEPTED` -> `TP-B006-001`
+- `SCN-B006-ONE-OVER-REFUSED` -> `TP-B006-000`, `TP-B006-002`
+- `SCN-B006-OVERFLOW-REFUSED` -> `TP-B006-000`, `TP-B006-003`
+
+The manifest and test plan omit the newly proven consumer behavior. A planning
+owner must add a scenario and persistent brief-carrier row only after design
+reconciles the missed consumer and error-order contract.
+
+### Actual Consumer And Arithmetic Inventory
+
+| Surface | Current behavior | Gap status |
+| --- | --- | --- |
+| `portfolio-survival-allocation.config.json` | Supplies the unchanged `56`-day policy. | Match |
+| `rlportfolio.js::validatePolicy` | Sole owner of the new `36525` semantic maximum; `findNonFinite()` still precedes it. | Match |
+| `rlportfolio.js::deriveInterestSignals` | Validates before workspace checks, age filtering, and forward expiry formatting. | Match |
+| `rlportfoliobrief.js::deriveInterestSignals` | Keeps its existing floor-error precedence, then calls the shared validator before signal construction. | Match |
+| `rlportfoliobrief.js::composeBrief` | Subtracts an aliased `maxAgeDays` and calls `toISOString()` without shared policy validation. | **Gap `GAP-B006-001`** |
+| `portfolio-survival-allocation-lab.html` | Boot validates the fetched policy before storing it in `state.policy`; later ranking reads only that validated value. | Match |
+| `_site/**` | Ignored generated output. `build-pages-site.mjs` removes `_site` and copies current root files on every package build. | Not a second source owner |
+
+The exact-key sweep found no second policy validator for Feature 008. The only
+other root `function validatePolicy` belongs to the unrelated `rlvol.js`
+contract. The page performs age subtraction only. The two formatting paths are
+the forward expiry in `rlportfolio.js` and the backward action-history cutoff in
+`rlportfoliobrief.js`.
+
+### Executed Consumer-Bypass Probe
+
+**Phase:** gaps
+**Command:** `timeout 60 node --input-type=commonjs --eval 'const fs=require("node:fs"); const portfolio=require("./rlportfolio.js"); const brief=require("./rlportfoliobrief.js"); const policy=JSON.parse(fs.readFileSync("portfolio-survival-allocation.config.json","utf8")); const windows=JSON.parse(fs.readFileSync("market-brief.config.json","utf8")).windows; const withAge=(days)=>({...policy,behavior:{...policy.behavior,maximumEvidenceAgeDays:days}}); const input=(days)=>({windows,windowId:"morning",publishedAt:"2026-07-15T15:05:00.000Z",composedAt:"2026-07-15T15:40:00.000Z",holdings:[],watchlist:[],completions:[],evidence:[],policy:withAge(days)}); const oneOverValidation=portfolio.validatePolicy(withAge(36526)); const hugeDays=100100000; const hugeValidation=portfolio.validatePolicy(withAge(hugeDays)); let oneOverResult=null; let oneOverError=null; let hugeResult=null; let hugeError=null; try{oneOverResult=brief.composeBrief(input(36526));}catch(error){oneOverError=error;} try{hugeResult=brief.composeBrief(input(hugeDays));}catch(error){hugeError=error;} console.log("BUG-006 public consumer bypass probe"); console.log("oneOverDays=36526"); console.log("validatePolicy.oneOver.ok="+oneOverValidation.ok); console.log("validatePolicy.oneOver.reason="+(oneOverValidation.error&&oneOverValidation.error.reason)); console.log("composeBrief.oneOver.threw="+Boolean(oneOverError)); console.log("composeBrief.oneOver.ok="+(oneOverResult&&oneOverResult.ok)); console.log("hugeDays="+hugeDays); console.log("validatePolicy.huge.ok="+hugeValidation.ok); console.log("validatePolicy.huge.reason="+(hugeValidation.error&&hugeValidation.error.reason)); console.log("composeBrief.huge.threw="+Boolean(hugeError)); console.log("composeBrief.huge.error="+(hugeError?hugeError.name+":"+hugeError.message:"none")); console.log("composeBrief.huge.result="+(hugeResult?JSON.stringify(hugeResult):"none")); const confirmed=oneOverValidation.ok===false&&oneOverResult&&oneOverResult.ok===true&&hugeValidation.ok===false&&hugeError&&hugeError.name==="RangeError"; console.log("verdict="+(confirmed?"CONSUMER_BYPASS_CONFIRMED":"NOT_CONFIRMED")); if(!confirmed) process.exitCode=1;'`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+BUG-006 public consumer bypass probe
+oneOverDays=36526
+validatePolicy.oneOver.ok=false
+validatePolicy.oneOver.reason=invalid-policy
+composeBrief.oneOver.threw=false
+composeBrief.oneOver.ok=true
+hugeDays=100100000
+validatePolicy.huge.ok=false
+validatePolicy.huge.reason=invalid-policy
+composeBrief.huge.threw=true
+composeBrief.huge.error=RangeError:Invalid time value
+composeBrief.huge.result=none
+verdict=CONSUMER_BYPASS_CONFIRMED
+```
+
+### Executed Boundary And Precedence Probe
+
+**Phase:** gaps
+**Command:** `timeout 60 node --input-type=commonjs --eval 'const fs=require("node:fs"); const api=require("./rlportfolio.js"); const policy=JSON.parse(fs.readFileSync("portfolio-survival-allocation.config.json","utf8")); const cases=[["negative",-1],["zero",0],["shipped",56],["ceiling",100*365+25],["one-over",100*365+26],["infinity",Infinity],["backward-overflow",100100000]]; console.log("BUG-006 validator edge and precedence probe"); console.log("committedValue="+policy.behavior.maximumEvidenceAgeDays); console.log("namedBoundary="+(100*365+25)); for(const [label,value] of cases){const result=api.validatePolicy({...policy,behavior:{...policy.behavior,maximumEvidenceAgeDays:value}}); console.log(label+" value="+value+" ok="+result.ok+" code="+(result.error&&result.error.code||"none")+" reason="+(result.error&&result.error.reason||"none")+" field="+(result.error&&result.error.field||"none"));} const infinity=api.validatePolicy({...policy,behavior:{...policy.behavior,maximumEvidenceAgeDays:Infinity}}); const oneOver=api.validatePolicy({...policy,behavior:{...policy.behavior,maximumEvidenceAgeDays:36526}}); const expectations=api.validatePolicy(policy).ok===true&&api.validatePolicy({...policy,behavior:{...policy.behavior,maximumEvidenceAgeDays:0}}).ok===true&&api.validatePolicy({...policy,behavior:{...policy.behavior,maximumEvidenceAgeDays:-1}}).error.reason==="invalid-policy"&&oneOver.error.reason==="invalid-policy"&&oneOver.error.field==="behavior"&&infinity.error.reason==="non-finite-policy"&&infinity.error.field==="policy.behavior.maximumEvidenceAgeDays"; console.log("precedenceAndBoundaries="+(expectations?"CONFIRMED":"FAILED")); if(!expectations) process.exitCode=1;'`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+BUG-006 validator edge and precedence probe
+committedValue=56
+namedBoundary=36525
+negative value=-1 ok=false code=P008-CONFIG reason=invalid-policy field=behavior
+zero value=0 ok=true code=none reason=none field=none
+shipped value=56 ok=true code=none reason=none field=none
+ceiling value=36525 ok=true code=none reason=none field=none
+one-over value=36526 ok=false code=P008-CONFIG reason=invalid-policy field=behavior
+infinity value=Infinity ok=false code=P008-CONFIG reason=non-finite-policy field=policy.behavior.maximumEvidenceAgeDays
+backward-overflow value=100100000 ok=false code=P008-CONFIG reason=invalid-policy field=behavior
+precedenceAndBoundaries=CONFIRMED
+```
+
+The lower edge is the unchanged generic `finiteNonNegative()` contract rather
+than a new BUG-006 requirement. No BUG-006-specific negative-value test exists,
+but current execution confirms `-1` is refused and `0` is accepted. The changed
+upper-bound and non-finite precedence have persistent focused assertions.
+
+### Focused Carrier Confirmation
+
+**Phase:** gaps
+**Command:** `timeout 300 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-006 gaps focused confirmation" -- timeout 240 node --test tests/portfolio-foundation.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-006 gaps focused confirmation
+$ timeout 240 node --test tests/portfolio-foundation.unit.mjs
+exit: 0
+lines: 376
+sha256: 8dca5c1db415a91ac199ab9ae295e248de6b30d91dbfe6f08b5859e893e5d45e
+--- first 20 ---
+TAP version 13
+# Subtest: RLPORTFOLIO is a frozen Node and browser dual-runtime contract
+ok 1 - RLPORTFOLIO is a frozen Node and browser dual-runtime contract
+	---
+	duration_ms: 20.671075
+	type: 'test'
+	...
+# Subtest: mandatory policy is closed versioned finite and rejects unknown configuration
+ok 2 - mandatory policy is closed versioned finite and rejects unknown configuration
+	---
+	duration_ms: 4.259474
+	type: 'test'
+	...
+# Subtest: BUG-006: maximumEvidenceAgeDays accepts the named 100-year boundary
+ok 3 - BUG-006: maximumEvidenceAgeDays accepts the named 100-year boundary
+	---
+	duration_ms: 2.865382
+	type: 'test'
+	...
+# Subtest: BUG-006: maximumEvidenceAgeDays refuses one day above the named boundary
+--- omitted 336 line(s); sha256 above covers the full output ---
+--- last 20 ---
+ok 60 - SCN-008-042 immutable PortfolioDraft lifecycle preserves stable holdings and commits an honest empty revision
+	---
+	duration_ms: 76.415717
+	type: 'test'
+	...
+# Subtest: SCN-008-043 validated ClearTombstone commits before verified deletion and returns value-safe evidence
+ok 61 - SCN-008-043 validated ClearTombstone commits before verified deletion and returns value-safe evidence
+	---
+	duration_ms: 22.296559
+	type: 'test'
+	...
+1..61
+# tests 61
+# suites 0
+# pass 61
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1824.381103
+```
+
+The green carrier proves the three declared scenarios. It also demonstrates
+that those scenarios do not detect the exported brief-consumer bypass.
+
+### Findings And Required Route
+
+| Finding | Classification | Evidence | Required owner action |
+| --- | --- | --- | --- |
+| `GAP-B006-001` | 🔴 MISSING implementation coverage, medium | `composeBrief(36526)` succeeds; `composeBrief(100100000)` throws while `validatePolicy()` refuses both. | `bubbles.design` reconciles the omitted consumer, required refusal ordering, and change boundary before code changes. |
+| `GAP-B006-002` | ⬛ UNTESTED consumer path, medium | `scenario-manifest.json` and `test-plan.json` cover only the shared validator and core derivation. | After design reconciliation, `bubbles.plan` adds a scenario and persistent `tests/portfolio-brief.functional.mjs` row, then routes RED -> implement -> GREEN. |
+
+**Verdict:** `GAPS_REMAIN`. No product source or test was edited. No broad suite
+was rerun because the current input-bound browser/selftest receipts remain valid
+and the direct probe already falsified the clean hypothesis. The packet and
+scope remain `in_progress`; certification, human acceptance, planning text, and
+Definition of Done checks remain unchanged.
+
+## Second-Round Implementation Phase Evidence {#implementation-phase-round-2}
+
+**Phase:** implement
+**Claim Source:** executed
+
+The inherited repository packet was validated against session
+`vscode-d037d272141b9d17af8fa6ccdd049e69` and authoritative control revision
+`216` before repository reads. The canonical validator returned
+`REPOSITORY PACKET VALID actionable=true repository=research-lab`. The persisted
+`bugfix-fastlane` mode was then resolved with its grandfathered registry key and
+reported `statusCeiling: done`.
+
+### Source Decision
+
+**Claim Source:** interpreted
+**Interpretation:** The two-line delegation is the smallest repair because its
+placement and unchanged-return behavior match every reconciled contract while
+the focused carrier directly discriminates that placement.
+
+The reconciled spec, design, Scope 01 plan, source-only diff, shared validator,
+and complete `composeBrief()` prerequisite sequence agree on one repair. The
+existing candidate calls `portfolio.validatePolicy(input.policy)` once after
+the local input, policy-presence, publication timestamp, composition timestamp,
+window-id, cutoff, and collection-normalization checks. It returns a failed
+shared result unchanged immediately before the first
+`maximumEvidenceAgeDays` read. The implementation owner retained those two
+statements and corrected only their indentation. No local ceiling, refusal
+translation, catch, clamp, Date-expression change, or shared-validator edit was
+introduced.
+
+### Exact Brief Carrier
+
+**Executed:** YES (current session)
+**Command:** `timeout 240 node --test tests/portfolio-brief.functional.mjs`
+**Capture Command:** `timeout 360 bash .github/bubbles/scripts/evidence-capture.sh --label 'BUG-006 implement round-2 brief GREEN' -- timeout 240 node --test tests/portfolio-brief.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-006 implement round-2 brief GREEN
+$ timeout 240 node --test tests/portfolio-brief.functional.mjs
+exit: 0
+lines: 184
+sha256: ceaf24cf926ce44bedafc57c978a8245980dc0f7f74a496420ee60ddb66c4cad
+--- first 20 ---
+TAP version 13
+# Subtest: only an eligible completion becomes behavior evidence and no excluded source can create or grow one
+ok 1 - only an eligible completion becomes behavior evidence and no excluded source can create or grow one
+	---
+	duration_ms: 331.973906
+	type: 'test'
+	...
+# Subtest: route recomposition is invariant to behavior evidence and states that behavior contributes none
+ok 2 - route recomposition is invariant to behavior evidence and states that behavior contributes none
+	---
+	duration_ms: 51.732459
+	type: 'test'
+	...
+# Subtest: behavior clear removes the committed evidence and returns recomposition to the pre-evidence baseline
+ok 3 - behavior clear removes the committed evidence and returns recomposition to the pre-evidence baseline
+	---
+	duration_ms: 98.653449
+	type: 'test'
+	...
+--- omitted 144 line(s); sha256 above covers the full output ---
+--- last 20 ---
+ok 28 - Adversarial: reduced brief evidence policy and API cannot satisfy the complete contract
+	---
+	duration_ms: 1.58059
+	type: 'test'
+	...
+# Subtest: Regression: BUG-004 same-semantic occurrences cannot inflate relevance
+ok 29 - Regression: BUG-004 same-semantic occurrences cannot inflate relevance
+	---
+	duration_ms: 93.049686
+	type: 'test'
+	...
+1..29
+# tests 29
+# suites 0
+# pass 29
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 870.731849
+```
+
+<!-- verify: bash .github/bubbles/scripts/evidence-capture.sh --verify ceaf24cf926ce44bedafc57c978a8245980dc0f7f74a496420ee60ddb66c4cad -- timeout 240 node --test tests/portfolio-brief.functional.mjs -->
+
+**Result:** PASS for the implement-owned discriminating check. Independent
+TP-B006-010 accounting remains test-owned.
+
+### Focused Shared-Validator Carrier
+
+**Executed:** YES (current session)
+**Command:** `timeout 240 node --test tests/portfolio-foundation.unit.mjs`
+**Capture Command:** `timeout 360 bash .github/bubbles/scripts/evidence-capture.sh --label 'BUG-006 implement round-2 foundation GREEN' -- timeout 240 node --test tests/portfolio-foundation.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-006 implement round-2 foundation GREEN
+$ timeout 240 node --test tests/portfolio-foundation.unit.mjs
+exit: 0
+lines: 376
+sha256: 4e9643f986e06c167bf279ea7bdb5c5d0bd2d241aabaf9d79701818dc1b603ae
+--- first 20 ---
+TAP version 13
+# Subtest: RLPORTFOLIO is a frozen Node and browser dual-runtime contract
+ok 1 - RLPORTFOLIO is a frozen Node and browser dual-runtime contract
+	---
+	duration_ms: 37.073787
+	type: 'test'
+	...
+# Subtest: mandatory policy is closed versioned finite and rejects unknown configuration
+ok 2 - mandatory policy is closed versioned finite and rejects unknown configuration
+	---
+	duration_ms: 6.135865
+	type: 'test'
+	...
+# Subtest: BUG-006: maximumEvidenceAgeDays accepts the named 100-year boundary
+ok 3 - BUG-006: maximumEvidenceAgeDays accepts the named 100-year boundary
+	---
+	duration_ms: 2.958683
+	type: 'test'
+	...
+--- omitted 336 line(s); sha256 above covers the full output ---
+--- last 20 ---
+ok 60 - SCN-008-042 immutable PortfolioDraft lifecycle preserves stable holdings and commits an honest empty revision
+	---
+	duration_ms: 132.297143
+	type: 'test'
+	...
+# Subtest: SCN-008-043 validated ClearTombstone commits before verified deletion and returns value-safe evidence
+ok 61 - SCN-008-043 validated ClearTombstone commits before verified deletion and returns value-safe evidence
+	---
+	duration_ms: 35.192898
+	type: 'test'
+	...
+1..61
+# tests 61
+# suites 0
+# pass 61
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3021.636775
+```
+
+<!-- verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 4e9643f986e06c167bf279ea7bdb5c5d0bd2d241aabaf9d79701818dc1b603ae -- timeout 240 node --test tests/portfolio-foundation.unit.mjs -->
+
+**Result:** PASS for the shared validation owner regression.
+
+### Artifact And Change-Boundary Checks
+
+**Executed:** YES (current session)
+**Command:** `timeout 600 bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow`
+**Capture Command:** `timeout 720 bash .github/bubbles/scripts/evidence-capture.sh --label 'BUG-006 implement round-2 artifact lint' -- timeout 600 bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-006 implement round-2 artifact lint
+$ timeout 600 bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow
+exit: 0
+lines: 40
+sha256: 182cf27f7948b167f9fdebccae5bf6994636355face5d8ae0a4d55666dc9b567
+--- output ---
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes.md
+✅ Required artifact exists: report.md
+✅ No forbidden sidecar artifacts present
+✅ Found DoD section in scopes.md
+✅ scopes.md DoD contains checkbox items
+✅ All DoD bullet items use checkbox syntax in scopes.md
+✅ Found Checklist section in uservalidation.md
+✅ uservalidation checklist contains checkbox entries
+✅ All checklist bullet items use checkbox syntax
+✅ uservalidation separates automation readiness from human acceptance
+✅ Detected state.json status: in_progress
+✅ Detected state.json workflowMode: bugfix-fastlane
+✅ state.json v3 has required field: status
+✅ state.json v3 has required field: execution
+✅ state.json v3 has required field: certification
+✅ state.json v3 has required field: policySnapshot
+✅ state.json v3 has recommended field: transitionRequests
+✅ state.json v3 has recommended field: reworkQueue
+✅ state.json v3 has recommended field: executionHistory
+✅ Top-level status matches certification.status
+ℹ️  Workflow mode 'bugfix-fastlane' allows status 'done'; current status is 'in_progress'
+✅ report.md contains section matching: ###[[:space:]]+Summary|^##[[:space:]]+Summary
+✅ report.md contains section matching: ###[[:space:]]+Completion Statement|^##[[:space:]]+Completion Statement
+✅ report.md contains section matching: ###[[:space:]]+Test Evidence|^##[[:space:]]+Test Evidence
+✅ Mode-specific report gates skipped (status not in promotion set)
+✅ Value-first selection rationale lint skipped (not a value-first report)
+✅ Scenario path-placeholder lint skipped (no matching scenario sections found)
+
+=== Anti-Fabrication Evidence Checks ===
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+
+=== End Anti-Fabrication Checks ===
+
+Artifact lint PASSED.
+```
+
+<!-- verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 182cf27f7948b167f9fdebccae5bf6994636355face5d8ae0a4d55666dc9b567 -- timeout 600 bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow -->
+
+**Executed:** YES (current session)
+**Commands:** `timeout 60 git status --short`; `timeout 60 git diff --check`
+**Exit Codes:** 0; 0
+**Claim Source:** executed
+
+```text
+$ timeout 60 git status --short
+ M rlportfoliobrief.js
+ M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection/uservalidation.md
+ M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow/design.md
+ M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow/report.md
+ M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow/scenario-manifest.json
+ M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow/scopes.md
+ M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow/spec.md
+ M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow/state.json
+ M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow/test-plan.json
+ M tests/portfolio-brief.functional.mjs
+$ timeout 60 git diff --check
+git_diff_check_exit=0
+```
+
+Nine paths belong to the declared BUG-006 source, test, and packet boundary.
+The BUG-004 `uservalidation.md` path is a pre-existing concurrent human-owned
+change. This phase did not read, edit, revert, or attribute that foreign path.
+Diff-format validation passed.
+
+### Finding Closure And Route
+
+`GAP-B006-001` is addressed on the implementation surface: the exported brief
+consumer now delegates once to the sole shared policy validator before Date
+formatting, and both focused carriers pass. `TP-B006-010` remains an independent
+test-owned execution and provenance obligation. The next route is
+`bubbles.test` for the unchanged brief carrier and focused foundation regression
+before broader test-owned rows continue. No test, planning artifact, DoD item,
+certification field, human-acceptance record, commit, or push was changed by
+this phase.
+
+## Post-Expansion Regression Re-evaluation {#regression-phase-round-2}
+
+**Phase:** regression
+**Execution model:** `direct-authorized-runner`
+**Parent agent:** none
+**Claim Source:** interpreted
+**Interpretation:** `REGRESSION_FREE` for the expanded Scope 01 product and
+test boundary. This re-evaluation supersedes only the prior regression verdict,
+not its historical execution evidence. The packet and scope remain
+`in_progress`; `TP-B006-008`, every DoD checkbox, human acceptance, and
+certification remain unchanged.
+
+### Full Delta And Prior-Contract Review
+
+The comparison base is `9b594d439^`, immediately before the committed
+shared-validator repair. The reviewed current surface includes that commit plus
+the dirty `composeBrief()` and two-carrier expansion.
+
+| Concern | Post-expansion result |
+| --- | --- |
+| Product delta | `rlportfolio.js` adds the private `100 * 365 + 25` ceiling and one validator predicate. `rlportfoliobrief.js::composeBrief()` adds one two-line delegation. Both policy-derived Date expressions are unchanged. |
+| Local brief precedence | Existing input, windows, policy-presence, `publishedAt`, `composedAt`, window-id, and generic-cutoff refusals remain before shared validation. The passing brief carrier directly proves invalid `composedAt` still returns `P008-BRIEF-COMPOSED / local-composition-time-required` when the policy is also invalid. |
+| Shared envelope parity | The passing brief carrier first compares `validatePolicy()` results for `36526`, infinity, and `100100000` to the frozen shared envelopes, then requires `composeBrief()` to return those same objects without throwing. No brief-local error translation was added. |
+| Core derivation | `rlportfolio.deriveInterestSignals()` still validates before workspace validation and positive-TimeClip Date arithmetic. Its BUG-006 boundary, one-over, and overflow assertions remain green. |
+| BUG-004 | Storage identity, semantic collapse, score, floor, rank identity, and forward-order contracts are unchanged. The test-only mutation now anchors the derive-side validation pair to `retainedIdentityOrder.forEach`, removes only that pair in memory, re-emits the loop opener, and leaves the compose pair present. |
+| BUG-005 | Age filtering still precedes post-filter bucket creation. The stale-only omission, future-only omission, fresh-sibling, below-floor, mutation, and cross-module agreement rows all remain in the unchanged six-test carrier. |
+| Public and stored contracts | No export, arity, route, HTML, policy JSON, schema, storage record, or contract version changed. The committed policy remains `maximumEvidenceAgeDays: 56`. |
+| Coverage-count delta | The four persistent carriers move from 100 to 104 tests and from 1423 to 1449 `assert.*` calls. No carrier loses a test or assertion. The repository declares no coverage-percentage command, so no percentage is claimed. |
+
+### Broad Receipt Freshness And Rerun Decision
+
+**Claim Source:** interpreted
+**Interpretation:** The post-expansion browser and selftest receipts are
+prior-session executions, not executions by this phase. Both are bound to the
+current `rlportfolio.js` and `rlportfoliobrief.js` hashes. The browser receipt
+at `2026-08-25T23:50:47Z` and selftest receipt at
+`2026-08-25T23:52:13Z` both record exit 0. Strict closure validation reports
+zero stale receipts, so this phase did not rerun either broad suite.
+
+**Command:** `timeout 120 bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root . --strict`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-006 post-expansion strict receipt freshness
+$ timeout 120 bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root . --strict
+exit: 0
+lines: 10
+sha256: 61ac707b4c80c7185b70d2c7a01edccd989188793364aba3ab3d28d145882f61
+--- output ---
+{
+	"total": 52,
+	"current": 27,
+	"superseded": 25,
+	"withClosure": 19,
+	"valid": 19,
+	"stale": 0,
+	"unknown": 8,
+	"staleReceipts": []
+}
+```
+
+### Current Four-Carrier Closure
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/tool-log.sh node --test tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-foundation.unit.mjs tests/portfolio-stale-domain-signal.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-006 post-expansion regression four-carrier closure
+$ timeout 600 bash .github/bubbles/scripts/tool-log.sh node --test tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-foundation.unit.mjs tests/portfolio-stale-domain-signal.unit.mjs
+exit: 0
+lines: 635
+sha256: ed488ca12d3ac6f9becba7a95e9892471334ff2556deb1ff2870aeb3ea878d63
+--- first 20 ---
+TAP version 13
+# Subtest: BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity
+ok 1 - BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity
+	---
+	duration_ms: 239.208045
+	type: 'test'
+	...
+# Subtest: BUG-004: an exact occurrence repeat is still refused as a duplicate
+ok 2 - BUG-004: an exact occurrence repeat is still refused as a duplicate
+	---
+	duration_ms: 53.303476
+	type: 'test'
+	...
+# Subtest: BUG-004: a repeated same-day occurrence cannot buy relevance it did not earn
+ok 3 - BUG-004: a repeated same-day occurrence cannot buy relevance it did not earn
+	---
+	duration_ms: 140.867144
+	type: 'test'
+	...
+# Subtest: BUG-004: stored occurrence growth is bounded by the declared behaviour-event cap
+--- omitted 595 line(s); sha256 above covers the full output ---
+--- last 20 ---
+	---
+	duration_ms: 204.360958
+	type: 'test'
+	...
+# Subtest: BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance
+ok 104 - BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance
+	---
+	duration_ms: 106.745051
+	type: 'test'
+	...
+1..104
+# tests 104
+# suites 0
+# pass 104
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3363.275155
+[tool-log] recorded exit=0 duration=3473ms -> <repo>/.specify/runtime/tool-calls.jsonl
+```
+
+### Regression Quality Guards
+
+The report redacts the local home path in the guard banner as `<repo>`. The
+capture hashes cover the complete original output.
+
+**Claim Source:** executed
+
+```text
+# BUG-006 post-expansion regression quality normal
+$ timeout 120 bash .github/bubbles/scripts/tool-log.sh bash .github/bubbles/scripts/regression-quality-guard.sh tests/portfolio-brief.functional.mjs tests/portfolio-behavior-occurrence.unit.mjs
+exit: 0
+lines: 15
+sha256: 42688d3e1429a405d7ebabb3ca4ce23f7b5af167154ccc0d51964a65b74ce220
+--- output ---
+============================================================
+	BUBBLES REGRESSION QUALITY GUARD
+	Repo: <repo>
+	Timestamp: 2026-08-26T00:55:47Z
+	Bugfix mode: false
+============================================================
+
+Scanning tests/portfolio-brief.functional.mjs
+Scanning tests/portfolio-behavior-occurrence.unit.mjs
+
+============================================================
+	REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+	Files scanned: 2
+============================================================
+```
+
+```text
+# BUG-006 post-expansion regression quality bugfix
+$ timeout 120 bash .github/bubbles/scripts/tool-log.sh bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/portfolio-brief.functional.mjs tests/portfolio-behavior-occurrence.unit.mjs
+exit: 0
+lines: 18
+sha256: c6c15baebdf3edc2566f154e8d6a976c2b166f38e32cafbfc3c5b2842dc43ce7
+--- output ---
+============================================================
+	BUBBLES REGRESSION QUALITY GUARD
+	Repo: <repo>
+	Timestamp: 2026-08-26T00:55:56Z
+	Bugfix mode: true
+============================================================
+
+Scanning tests/portfolio-brief.functional.mjs
+Adversarial signal detected in tests/portfolio-brief.functional.mjs
+Scanning tests/portfolio-behavior-occurrence.unit.mjs
+Adversarial signal detected in tests/portfolio-behavior-occurrence.unit.mjs
+
+============================================================
+	REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+	Files scanned: 2
+	Files with adversarial signals: 2
+============================================================
+```
+
+### Independent Load-Bearing Controls
+
+The compose control installed an in-memory CommonJS loader for only
+`rlportfoliobrief.js`. It required two shared-validation pairs before mutation,
+removed the pair uniquely followed by the `maxAgeDays` alias, required the
+derive pair plus `retainedIdentityOrder.forEach` to remain, and imported the
+real brief functional carrier. It did not write to disk.
+
+**Command:** `timeout 240 node --input-type=module --eval '<in-memory compose-only validator-removal hook, pair-count assertions, and import of tests/portfolio-brief.functional.mjs>'`
+**Exit Code:** 1 (expected RED control)
+**Claim Source:** executed
+
+```text
+# BUG-006 composeBrief delegation load-bearing control
+exit: 1
+lines: 305
+sha256: 08f33d00c7c35b6a5cfea4b0e317a1a52d4bffefb8e92d225f366709019e664b
+--- first 20 ---
+BUG-006 composeBrief delegation mutation
+diskWrite=false
+pairCount.before=2
+pairCount.after=1
+composeAnchor.before=1
+composeAnchor.after=0
+deriveAnchor.before=1
+deriveAnchor.after=1
+expectedCarrier=29 tests with exact BUG-006 composeBrief title failing
+TAP version 13
+# Subtest: only an eligible completion becomes behavior evidence and no excluded source can create or grow one
+ok 1 - only an eligible completion becomes behavior evidence and no excluded source can create or grow one
+	---
+	duration_ms: 215.933965
+	type: 'test'
+	...
+# Subtest: route recomposition is invariant to behavior evidence and states that behavior contributes none
+ok 2 - route recomposition is invariant to behavior evidence and states that behavior contributes none
+	---
+	duration_ms: 37.100571
+--- failure-shaped lines from the omitted region ---
+not ok 15 - BUG-006: composeBrief validates shared evidence-age policy before Date formatting
+--- omitted 265 line(s); sha256 above covers the full output ---
+--- last 20 ---
+ok 28 - Adversarial: reduced brief evidence policy and API cannot satisfy the complete contract
+	---
+	duration_ms: 1.57429
+	type: 'test'
+	...
+# Subtest: Regression: BUG-004 same-semantic occurrences cannot inflate relevance
+ok 29 - Regression: BUG-004 same-semantic occurrences cannot inflate relevance
+	---
+	duration_ms: 97.1313
+	type: 'test'
+	...
+1..29
+# tests 29
+# suites 0
+# pass 28
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 543.005944
+```
+
+The separate BUG-004 control executes the existing in-memory mutation by exact
+title. Its assertions require exactly one derive-side pair to disappear, the
+derive loop to survive, and the compose pair to remain before it proves the
+mutant fails open only on the corrupt empty-workspace case.
+
+**Command:** `timeout 240 bash .github/bubbles/scripts/tool-log.sh node --test --test-name-pattern='^BUG-004: removing the restored policy check reinstates the fail-open, so the assertion above is load-bearing$' tests/portfolio-behavior-occurrence.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-006 BUG-004 derive-anchor isolation control
+exit: 0
+lines: 17
+sha256: 1325f079becae202bbeb9e6d5971313c4d64220ec2d62f31a7de9dda8792b392
+--- output ---
+TAP version 13
+# Subtest: BUG-004: removing the restored policy check reinstates the fail-open, so the assertion above is load-bearing
+ok 1 - BUG-004: removing the restored policy check reinstates the fail-open, so the assertion above is load-bearing
+	---
+	duration_ms: 38.504165
+	type: 'test'
+	...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 146.696807
+```
+
+### Coverage Count And Scenario Resolution
+
+**Claim Source:** executed
+
+```text
+BUG-006 post-expansion coverage-count comparison
+coveragePercentageCommand=not-declared
+baseline=9b594d439^ (pre-BUG-006)
+tests/portfolio-foundation.unit.mjs: tests 58->61 delta=3; assertions 941->953 delta=12
+tests/portfolio-brief.functional.mjs: tests 28->29 delta=1; assertions 315->327 delta=12
+tests/portfolio-behavior-occurrence.unit.mjs: tests 8->8 delta=0; assertions 111->113 delta=2
+tests/portfolio-stale-domain-signal.unit.mjs: tests 6->6 delta=0; assertions 56->56 delta=0
+totalTests=100->104 delta=4
+totalAssertions=1423->1449 delta=26
+verdict=no-count-regression
+```
+
+The structured scenario resolver exited 0 and resolved all seven declared
+file/title references through literal scan. Category comparison is honestly not
+applicable because this repository declares no test-discovery adapter. The
+four-carrier execution above supplies the current runtime result for every
+resolved focused carrier.
+
+### Regression Verdict And Routing
+
+`REGRESSION_FREE`. No failing current test, prior-contract conflict, local-error
+precedence change, shared-envelope divergence, coverage-count loss, weakened
+assertion, stale broad receipt, or ambiguous mutation anchor was found. The
+required next owner is `bubbles.simplify` for the expanded source/test surface.
+No product, test, planning, specification, design, user-validation,
+certification, or DoD content was changed by this regression phase.
+
+### Regression-Owned Gate Receipts
+
+**Claim Source:** executed
+
+| UTC | Command | Exit | Structured stdout hash | Observed result |
+| --- | --- | ---: | --- | --- |
+| `2026-08-26T01:01:21Z` | `bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow` | 0 | `182cf27f7948b167f9fdebccae5bf6994636355face5d8ae0a4d55666dc9b567` | Required artifacts and state shape present; report sections present; anti-fabrication checks clean; artifact lint passed. |
+| `2026-08-26T01:01:58Z` | `bash .github/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow --verbose` | 0 | `361d0a45a81eaddc2c5b1a35c08e531f947d68f88363b101390a2ffe06c2037a` | Two implementation files resolved; 0 violations; 0 warnings. |
+| `2026-08-26T01:02:11Z` | `git diff --check` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | Empty stdout and stderr; no diff-format finding. |
+
+The exact rows are recorded in `.specify/runtime/tool-calls.jsonl` with agent
+`bubbles.regression`, this bug path, Scope 01, and `post-expansion` tags. The
+artifact-lint capture covers 41 output lines with full-output sha256
+`2d2cf867d5ea68c59ce72e370616eb2a64347cc636bb0f08426a4a30efc2eddf`.
+The implementation-reality capture covers 37 output lines with full-output
+sha256 `9c851eac65b680e03ccb69610f27684130dfe888accc351cd353f78b39000399`.

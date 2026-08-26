@@ -2451,3 +2451,219 @@ route `BUG-006-ROUTE-016` is complete, and the next required owner is
 `bubbles.gaps` for the round-2 expanded-consumer gap review. This route does
 not promote the packet, scope, Definition of Done, human acceptance, or
 certification.
+
+## Gaps Phase Round 2 - 2026-08-26 {#gaps-phase-round-2}
+
+**Phase:** gaps
+**Agent:** `bubbles.gaps`
+**Execution model:** `direct-authorized-runner`
+**Parent agent:** none
+**Claim Source:** interpreted
+**Interpretation:** `GAP_FREE_AFTER_REPAIR`. The exhaustive round-2 audit found
+one persistent-test integrity gap and no product implementation gap. The test
+gap was repaired inside the already planned `TP-B006-011` carrier. The packet,
+scope, all 17 Definition of Done items, human acceptance, top-level status, and
+certification remain `in_progress` or unchecked as they were before this phase.
+
+### Finding And Repair
+
+| Finding | Classification | Evidence | Resolution |
+| --- | --- | --- | --- |
+| `GAP-B006-R2-001` | medium, `PARTIAL` persistent mutation proof | The existing `TP-B006-011` assertion required only that removing the derive-side validator anchor reduce the generic two-line pair count by one. A disk-free counterexample containing only the derive pair still satisfied that assertion with `pairCount.before=1`, `pairCount.after=0`, and no compose pair. | Added `COMPOSE_POLICY_RECHECK`, anchored to the immediately following `maxAgeDays` read. The persistent mutation test now requires exactly one compose anchor before and after the derive-only mutation. No product source or BUG-004/BUG-005 expected behavior changed. |
+
+**Command:** `timeout 30 node --input-type=module --eval '<pair-delta counterexample>'`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+BUG-006 TP-B006-011 assertion counterexample
+syntheticSource=derive-anchor-only
+composeAnchorPresent=false
+pairCount.before=1
+pairCount.after=0
+existingDelta=1
+existingAssertionPasses=true
+remainingComposePairCount=0
+requiredRemainingPairCount=1
+verdict=CURRENT_ASSERTION_FALSE_POSITIVE
+```
+
+### Requirement And Scenario Coverage
+
+**Claim Source:** interpreted
+
+| Contract | Round-2 result | Concrete coverage |
+| --- | --- | --- |
+| `FR-B006-001` | `MATCH` | `rlportfolio.js` owns private `MAXIMUM_EVIDENCE_AGE_DAYS = 100 * 365 + 25` beside a conservative-century and leap-day comment. The value is not exported. |
+| `FR-B006-002` | `MATCH` | `findNonFinite()` runs before section semantics. The behavior predicate owns the only ceiling. Core derivation and brief composition return direct `validatePolicy()` results before their policy-derived Date formatters. |
+| `FR-B006-003` | `MATCH` | The foundation and brief carriers independently derive `36525`, accept it, refuse `36526`, and assert the committed policy remains exactly `56`. |
+| `FR-B006-004` | `MATCH` | Core validation is the first derive operation. Brief composition keeps input, windows, policy presence, publication time, composition time, window ID, and generic cutoff checks before shared validation. Neither consumer clamps, translates, or catches the shared failure. |
+| `FR-B006-005` | `MATCH` after `GAP-B006-R2-001` | Persistent tests cover one-over, non-finite precedence, positive TimeClip overflow, negative TimeClip overflow, no throw, and input non-mutation. The derive-only and compose-only disk-free mutations now have unique persistent anchors. |
+| `FR-B006-006` | `MATCH` | Both Date expressions are unchanged. The repaired four-carrier closure retains `104` tests, including all BUG-004 and BUG-005 persistent rows. No scoring, decay, eligibility, identity, schema, or configured-policy source changed. |
+
+| Scenario | Persistent proof | Result |
+| --- | --- | --- |
+| `SCN-B006-BOUNDARY-ACCEPTED` | `tests/portfolio-foundation.unit.mjs` plus the brief functional carrier | `MATCH` |
+| `SCN-B006-ONE-OVER-REFUSED` | Exact shared refusal and no-clamp assertions in both direct consumers | `MATCH` |
+| `SCN-B006-OVERFLOW-REFUSED` | Forward TimeClip fixture, direct `RangeError` control, and validate-first core refusal | `MATCH` |
+| `SCN-B006-BRIEF-POLICY-VALIDATION` | Backward TimeClip fixture, local-error precedence, exact shared envelopes, no throw, and compose-anchor mutation control | `MATCH` |
+
+The mechanical scope count is four scenarios, twelve Test Plan rows, seventeen
+DoD items, zero checked items, and seventeen unchecked items. This phase made
+no planner-owned scope or DoD edit.
+
+### Complete `maximumEvidenceAgeDays` Consumer Audit
+
+**Claim Source:** interpreted
+
+The exact identifier search found the committed config, one closed-field name,
+and ten runtime value consumers. Every runtime consumer is accounted below.
+
+| Surface | Use | Validation relationship | Date-format risk |
+| --- | --- | --- | --- |
+| `rlportfolio.js::validatePolicy` | Sole upper-bound predicate | Owner | None |
+| `rlportfolio.js::deriveInterestSignals` age filter | Excludes stale and future events | Core validation is the first operation | Comparison only |
+| `rlportfolio.js::deriveInterestSignals` expiry | Adds the declared window to latest support | Core validation precedes workspace and Date work | The only forward policy-derived formatter; protected |
+| `rlportfoliobrief.js::decayState` | Labels support current, decaying, or expired | Private helper reached from validated `composeBrief()` | Comparison only |
+| `rlportfoliobrief.js::deriveInterestSignals` floor guard | Preserves `behavior-floor-policy-invalid` for non-finite floor inputs | Local precedence is deliberate | No formatting |
+| `rlportfoliobrief.js::deriveInterestSignals` age filter | Excludes out-of-window occurrences | Later direct shared validation preserves the existing order | Comparison only |
+| `rlportfoliobrief.js::composeBrief` cutoff | Subtracts the declared window from `composedAt` | Direct shared delegation immediately precedes the alias | The only backward policy-derived formatter; protected |
+| `rlportfoliobrief.js::composeBrief` invalidation copy | Explains when support expires | Runs after successful shared validation | Text only |
+| `portfolio-survival-allocation-lab.html::behaviorRanking` | Filters visible committed events | `boot()` stores policy only after `api.validatePolicy()` succeeds | Comparison only |
+| `portfolio-survival-allocation-lab.html::renderBehavior` | Displays the declared value | Same validated boot state | Text only |
+
+The one-hop page read therefore found no third policy-derived Date formatter.
+The only two formatters remain the forward expiry and backward action-history
+cutoff already named by the packet.
+
+### Validation Evidence
+
+#### Repaired Four-Carrier Closure
+
+**Command:** `timeout 650 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-006 round-2 gaps repaired four-carrier closure" -- timeout 600 node --test tests/portfolio-foundation.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-stale-domain-signal.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-006 round-2 gaps repaired four-carrier closure
+$ timeout 600 node --test tests/portfolio-foundation.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-stale-domain-signal.unit.mjs
+exit: 0
+lines: 634
+sha256: 621411ee15de7920a536439b3550ad57a6696835a1b8fb3b797170763c217e05
+--- first 20 ---
+TAP version 13
+# Subtest: BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity
+ok 1 - BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity
+	---
+	duration_ms: 84.558121
+	type: 'test'
+	...
+--- omitted 594 line(s); sha256 above covers the full output ---
+--- last 20 ---
+ok 103 - BUG-005: reinstating the superseded pre-filter bucket creation turns the stale-domain assertion red
+	---
+	duration_ms: 149.061857
+	type: 'test'
+	...
+# Subtest: BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance
+ok 104 - BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance
+	---
+	duration_ms: 111.994867
+	type: 'test'
+	...
+1..104
+# tests 104
+# suites 0
+# pass 104
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2544.396831
+```
+
+#### Compose-Anchor Negative Control
+
+This command changed no file. It replaced only the compose anchor returned by
+`readFileSync()` inside one Node process. The complete output hash covers the
+83-line expected RED run. The local home path in the stack was redacted as
+`<repo>` in this report.
+
+**Command:** `timeout 300 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-006 round-2 compose-anchor persistence negative control" -- timeout 240 node --input-type=module --eval '<disk-free compose-anchor read hook and persistent carrier import>'`
+**Exit Code:** 1 (expected RED control)
+**Claim Source:** executed
+
+```text
+# BUG-006 round-2 compose-anchor persistence negative control
+exit: 1
+lines: 83
+sha256: 357482d845271d2a6c9616d53e876342fff170d64f57610cb5e72cc258f28d27
+--- first 20 ---
+BUG-006 compose-anchor persistence mutation
+diskWrite=false
+target=rlportfoliobrief.js::composeBrief
+expected=exact mutation-anchor test fails on missing compose delegation
+mutatedReads=1
+TAP version 13
+# Subtest: BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity
+ok 1 - BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity
+	---
+	duration_ms: 85.847638
+	type: 'test'
+	...
+--- failure-shaped lines from the omitted region ---
+not ok 8 - BUG-004: removing the restored policy check reinstates the fail-open, so the assertion above is load-bearing
+--- omitted 43 line(s); sha256 above covers the full output ---
+--- last 20 ---
+	actual: 0
+	operator: 'strictEqual'
+	stack: |-
+		TestContext.<anonymous> (<repo>/tests/portfolio-behavior-occurrence.unit.mjs?compose-anchor-persistence-mutant:599:10)
+	...
+1..8
+# tests 8
+# suites 0
+# pass 7
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 700.268167
+```
+
+#### Regression Quality
+
+**Command:** `timeout 240 bash .github/bubbles/scripts/regression-quality-guard.sh tests/portfolio-behavior-occurrence.unit.mjs && timeout 240 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/portfolio-behavior-occurrence.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+BUBBLES REGRESSION QUALITY GUARD
+Repo: <repo>
+Bugfix mode: false
+Scanning tests/portfolio-behavior-occurrence.unit.mjs
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 1
+BUBBLES REGRESSION QUALITY GUARD
+Repo: <repo>
+Bugfix mode: true
+Scanning tests/portfolio-behavior-occurrence.unit.mjs
+Adversarial signal detected in tests/portfolio-behavior-occurrence.unit.mjs
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 1
+Files with adversarial signals: 1
+```
+
+The authorized source and test files contain no `TODO`, `FIXME`, `HACK`,
+`STUB`, `unimplemented`, skip marker, focused-only marker, live interception,
+or internal mock pattern. Artifact and implementation guards are rerun after
+the packet update below.
+
+### Workflow Routing
+
+The persisted grandfathered `bugfix-fastlane` registry resolves a `done`
+ceiling and orders `gaps` immediately before `harden`. Inbound route
+`BUG-006-ROUTE-017` is completed. Route `BUG-006-ROUTE-018` transfers the
+still-in-progress packet to `bubbles.harden` for the next registered phase.
+No commit, merge, push, status promotion, DoD check, human-acceptance change,
+or certification write occurred.

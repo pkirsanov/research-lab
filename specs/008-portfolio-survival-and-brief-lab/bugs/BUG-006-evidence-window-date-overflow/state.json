@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
   "featureName": "BUG-006 Evidence Window Date Overflow",
   "createdAt": "2026-08-25T19:27:30Z",
-  "lastUpdatedAt": "2026-08-26T04:49:39Z",
+  "lastUpdatedAt": "2026-08-26T05:06:34Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,18 +29,18 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.simplify",
-    "currentPhase": "simplify",
+    "activeAgent": "bubbles.gaps",
+    "currentPhase": "gaps",
     "currentPhaseStatus": "route_required",
-    "substate": "round_2_simplify_complete",
+    "substate": "round_2_gaps_complete",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
-    "runStartedAt": "2026-08-26T04:49:39Z",
-    "completedAt": "2026-08-26T04:49:39Z",
+    "runStartedAt": "2026-08-26T05:06:34Z",
+    "completedAt": "2026-08-26T05:06:34Z",
     "currentScope": "01-bound-the-evidence-age-policy",
-    "nextRequiredOwner": "bubbles.gaps",
-    "nextRequiredTarget": "Scope 01 round-2 expanded-consumer gap review",
-    "nextRequiredReason": "The round-2 three-pass simplify review found the expanded shared-validator delegation, 100-year boundary coverage, TimeClip controls, and repaired mutation anchor already minimal and coherent. The persisted bugfix-fastlane registry places gaps immediately after simplify.",
+    "nextRequiredOwner": "bubbles.harden",
+    "nextRequiredTarget": "Scope 01 round-2 hardening",
+    "nextRequiredReason": "The round-2 gaps audit accounted all six requirements, four scenarios, ten runtime maximumEvidenceAgeDays consumers, both policy-derived Date formatters, and the persistent mutation controls. GAP-B006-R2-001 was repaired by uniquely anchoring the retained composeBrief delegation in TP-B006-011. The repaired four-carrier closure passes 104 of 104, and the persisted bugfix-fastlane registry places harden immediately after gaps.",
     "completedPhaseClaims": [
       "plan",
       "implement",
@@ -212,11 +212,19 @@
     },
     {
       "id": "BUG-006-ROUTE-017",
-      "status": "pending",
+      "status": "completed",
       "fromAgent": "bubbles.simplify",
       "nextRequiredOwner": "bubbles.gaps",
       "target": "Scope 01 round-2 expanded-consumer gap review",
       "reason": "The round-2 simplify review found no safe product or test reduction: the shared validator remains the sole ceiling owner, composeBrief preserves the specified refusal order and Date expression, the boundary and TimeClip cases remain independently discriminating, and the repaired mutation anchor remains unique and load-bearing. Run the required gaps phase next under the persisted bugfix-fastlane phase order."
+    },
+    {
+      "id": "BUG-006-ROUTE-018",
+      "status": "pending",
+      "fromAgent": "bubbles.gaps",
+      "nextRequiredOwner": "bubbles.harden",
+      "target": "Scope 01 round-2 hardening",
+      "reason": "The round-2 gaps audit found no product defect and repaired one persistent-test integrity gap inside the existing TP-B006-011 boundary. The focused four-carrier closure passes 104 of 104, the compose-anchor negative control turns the exact mutation test red, and both regression-quality modes report zero findings. Run the next registered harden phase while preserving in-progress status, unchecked DoD, human acceptance, and certification."
     }
   ],
   "reworkQueue": [],
@@ -422,6 +430,17 @@
       "provenanceMode": "specialist",
       "statusBefore": "in_progress",
       "runStartedAt": "2026-08-26T04:49:39Z"
+    },
+    {
+      "at": "2026-08-26T05:06:34Z",
+      "agent": "bubbles.gaps",
+      "phase": "gaps",
+      "action": "round-2-gap-audit-test-integrity-repaired-and-routed",
+      "note": "Ran as the BUG-006 round-2 gaps owner after binding Research Lab through repository decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:221. Audited all six requirements, four scenarios, the two product modules, four authorized persistent carriers, ten runtime maximumEvidenceAgeDays consumers, the validated page consumer, both policy-derived Date formatters, local and shared refusal ordering, and both mutation paths. Found GAP-B006-R2-001: TP-B006-011's generic pair-count delta could pass with no composeBrief delegation. Added a unique compose anchor before maxAgeDays and required it before and after the derive-only mutation. A disk-free counterexample proved the prior assertion false-positive, and a disk-free compose-anchor removal turned exactly the strengthened mutation test red. The repaired four-carrier closure passed 104 of 104; both regression-quality modes reported zero findings. Updated only the authorized test, report, and execution-owned state fields. Kept the single gaps completedPhaseClaims token, in-progress packet and scope status, all unchecked DoD, human acceptance, and certification unchanged. Completed route BUG-006-ROUTE-017 and routed BUG-006-ROUTE-018 to bubbles.harden. No commit, merge, or push was performed.",
+      "phasesExecuted": ["gaps"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T05:06:34Z"
     }
   ],
   "addressedFindings": [
@@ -480,6 +499,13 @@
       "owner": "bubbles.plan",
       "status": "addressed",
       "evidenceRef": "scopes.md#implementation-files"
+    },
+    {
+      "id": "GAP-B006-R2-001",
+      "summary": "TP-B006-011 now uniquely anchors the composeBrief shared-validator pair immediately before maxAgeDays and requires that anchor to survive the derive-only mutation, closing the prior pair-delta false positive without changing BUG-004 or BUG-005 behavior.",
+      "owner": "bubbles.gaps",
+      "status": "addressed",
+      "evidenceRef": "report.md#gaps-phase-round-2"
     }
   ],
   "unresolvedFindings": [],

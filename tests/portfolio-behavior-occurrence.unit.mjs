@@ -96,6 +96,10 @@ const SHIPPED_POLICY_RECHECK = [
   '',
   '    retainedIdentityOrder.forEach(function (eventIdentity) {'
 ].join('\n');
+const COMPOSE_POLICY_RECHECK = [
+  POLICY_RECHECK_PAIR,
+  '    var maxAgeDays = input.policy.behavior.maximumEvidenceAgeDays;'
+].join('\n');
 const POLICY_RECHECK_REMOVED = '    retainedIdentityOrder.forEach(function (eventIdentity) {';
 
 function loadContracts() {
@@ -592,11 +596,15 @@ test('BUG-004: removing the restored policy check reinstates the fail-open, so t
 
   assert.equal(briefSource.split(SHIPPED_POLICY_RECHECK).length - 1, 1,
     'the restored policy check must appear exactly once for the mutation below to be meaningful');
+  assert.equal(briefSource.split(COMPOSE_POLICY_RECHECK).length - 1, 1,
+    'composeBrief must retain one shared validation pair immediately before its evidence-age read');
   const withoutRecheck = briefSource.replace(SHIPPED_POLICY_RECHECK, POLICY_RECHECK_REMOVED);
   assert.notEqual(withoutRecheck, briefSource, 'the removal mutation must have applied');
   assert.equal(
     (briefSource.split(POLICY_RECHECK_PAIR).length - 1) - (withoutRecheck.split(POLICY_RECHECK_PAIR).length - 1), 1,
     'exactly one recheck — the deriveInterestSignals one — must be gone; composeBrief keeps its own');
+  assert.equal(withoutRecheck.split(COMPOSE_POLICY_RECHECK).length - 1, 1,
+    'the derive-only mutation must leave composeBrief shared validation in its designed position');
   assert.equal(withoutRecheck.includes('portfolio.buildBehaviorEvent'), true,
     'the mutant must still be the shipped loop — only the policy check is removed');
   assert.equal(withoutRecheck.includes(POLICY_RECHECK_REMOVED), true,

@@ -257,7 +257,7 @@ function addedSourceEntry() {
   };
 }
 
-test('SCN-002-001: registry derives 23 participants 22 sources and one non-recursive aggregator', () => {
+test('SCN-002-001: registry derives participant and source counts from the live entries with one non-recursive aggregator', () => {
   const registry = loadRegistry();
   const result = RLCONTRACTS.validateRegistry(registry, registryConfig());
   assert.equal(result.ok, true, result.ok ? '' : JSON.stringify(result.error));
@@ -265,14 +265,23 @@ test('SCN-002-001: registry derives 23 participants 22 sources and one non-recur
 
   // Counts are DERIVED from the live entries, never a literal or count-minus-one: they must equal an
   // independent recomputation over the raw tools.json briefing roles (this fails loud if a literal
-  // survives in validateRegistry).
+  // survives in validateRegistry). Asserting a registry SIZE here would only re-pin the drift this
+  // contract exists to reject, so every count below is relational.
   const independentSources = registry.tools.filter((entry) => entry.briefing.role === 'source').map((entry) => entry.id);
   const independentAggregators = registry.tools.filter((entry) => entry.briefing.role === 'final-aggregator').map((entry) => entry.id);
+
+  // A relational equality over a degenerate registry would hold vacuously, so the population is
+  // pinned as a lower bound: the derivation must actually be exercised, while the committed registry
+  // stays free to grow without re-pinning this scenario.
+  assert.ok(registry.tools.length >= 2, `registry too small to exercise the derivation: ${registry.tools.length}`);
+  assert.ok(independentSources.length >= 1, 'registry carries no source entry to derive');
+
   assert.equal(frozen.contractVersion, 'frozen-briefing-registry/v1');
   assert.equal(frozen.participantCount, registry.tools.length);
-  assert.equal(frozen.participantCount, 28);
+  // Every participant is exactly one of source or final-aggregator: the partition neither drops nor
+  // double-counts an entry, which no literal count could ever prove.
+  assert.equal(frozen.participantCount, independentSources.length + independentAggregators.length);
   assert.equal(frozen.sourceCount, independentSources.length);
-  assert.equal(frozen.sourceCount, 27);
   assert.deepEqual(frozen.orderedParticipantIds, registry.tools.map((entry) => entry.id));
   assert.deepEqual(frozen.orderedSourceToolIds, independentSources);
 
@@ -335,25 +344,37 @@ test('SCN-002-002: profile status applicability privacy and eligibility boundari
   assert.equal(RLDATA.validateToolModelRead(rawEligible).reason, 'action-eligibility-without-owner-interpretation');
 });
 
-test('SCN-002-003: added-source mutation derives 24 participants and 23 sources generically', () => {
+test('SCN-002-003: added-source mutation derives exactly one more participant and one more source generically', () => {
   const registry = loadRegistry();
   const baseline = RLCONTRACTS.validateRegistry(registry, registryConfig());
-  assert.equal(baseline.value.participantCount, 28);
-  assert.equal(baseline.value.sourceCount, 27);
+  assert.equal(baseline.ok, true, baseline.ok ? '' : JSON.stringify(baseline.error));
+  // The baseline is DERIVED, not pinned: the mutation below is measured as a delta against it, so a
+  // registry that legitimately grows never forces this scenario onto a new literal.
+  assert.equal(baseline.value.participantCount, registry.tools.length);
+  assert.equal(baseline.value.sourceCount, registry.tools.filter((entry) => entry.briefing.role === 'source').length);
 
   // A registry mutation adds ONE valid new source with a complete briefing block. The next frozen
-  // registry derives 24/23 through the SAME loops — no literal-count rule and no parallel inventory
-  // (a literal source count survives here as a red-stage failure).
+  // registry derives exactly +1 participant and +1 source through the SAME loops — no literal-count
+  // rule and no parallel inventory (a literal source count survives here as a red-stage failure).
   const mutated = JSON.parse(JSON.stringify(registry));
   mutated.tools.push(addedSourceEntry());
   const result = RLCONTRACTS.validateRegistry(mutated, registryConfig());
   assert.equal(result.ok, true, result.ok ? '' : JSON.stringify(result.error));
-  assert.equal(result.value.participantCount, 29);
-  assert.equal(result.value.sourceCount, 28);
-  assert.equal(result.value.orderedParticipantIds.length, 29);
-  assert.equal(result.value.orderedSourceToolIds.length, 28);
+  assert.equal(result.value.participantCount, baseline.value.participantCount + 1);
+  assert.equal(result.value.sourceCount, baseline.value.sourceCount + 1);
+  assert.equal(result.value.orderedParticipantIds.length, baseline.value.participantCount + 1);
+  assert.equal(result.value.orderedSourceToolIds.length, baseline.value.sourceCount + 1);
+  // The addition APPENDS: every pre-existing participant keeps its identity and its order.
+  assert.deepEqual(result.value.orderedParticipantIds, baseline.value.orderedParticipantIds.concat(['demo-added-source-lab']));
+  assert.deepEqual(result.value.orderedSourceToolIds, baseline.value.orderedSourceToolIds.concat(['demo-added-source-lab']));
   assert.equal(result.value.orderedSourceToolIds[result.value.orderedSourceToolIds.length - 1], 'demo-added-source-lab');
+  // Registry-size-independent invariants stay EXACT under the mutation.
+  assert.equal(result.value.contractVersion, baseline.value.contractVersion);
+  assert.equal(result.value.aggregatorToolId, baseline.value.aggregatorToolId);
   assert.equal(result.value.aggregatorToolId, 'market-brief');
+  assert.equal(result.value.orderedSourceToolIds.indexOf('market-brief'), -1);
+  // Content-addressed: a membership change must move the frozen fingerprint.
+  assert.notEqual(result.value.registryFingerprint, baseline.value.registryFingerprint);
 
   // Incomplete metadata on the added source fails BEFORE acquisition or authorship.
   const incomplete = JSON.parse(JSON.stringify(registry));

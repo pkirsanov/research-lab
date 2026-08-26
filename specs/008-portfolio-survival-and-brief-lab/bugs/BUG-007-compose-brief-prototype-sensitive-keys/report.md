@@ -18,17 +18,29 @@
   per qualified subject.
 - Executed the focused functional carrier GREEN at 34 of 34 and the in-memory
   mutation carrier GREEN at 2 of 2, with zero failures or skips.
+- Independently reran the focused functional carrier at 34 of 34 and the
+  in-memory mutation carrier at 2 of 2 under `bubbles.test` receipts.
+- Executed the exact scenario browser carrier at 19 of 19, including the named
+  BUG-007 hostile-key and visible `constructor` workflow.
+- Executed the exact eight-file Feature 008 browser matrix at 95 of 95 and the
+  canonical repository selftest at 3426 of 3426.
+- Resolved all 9 linked test identities and passed bugfix regression quality on
+  all 3 BUG-007 carriers with zero violations or warnings.
+- Passed all 6 TP-B007-009 packet guards and TP-B007-010 implementation reality
+  with zero violations or warnings.
+- Verified 16 of 16 current BUG-007 receipt identities are closure-bearing and
+  valid, with zero stale or unknown identities and all 10 required row tags.
 - Rechecked source syntax and diff whitespace with explicit clean sentinels.
 - Kept the parent Feature 008 scope and root test-plan transaction untouched.
 
 ## Completion Statement
 
-The bounded product-source implementation is complete and its focused
-functional and in-memory mutation checks are GREEN. Scenario-specific browser,
-broader browser regression, repository selftest, quality phases, human
-acceptance, and validate-owned certification remain outside this implementation
-handoff. Packet status remains `in_progress`; no DoD checkbox, scope status,
-human-acceptance item, certification field, or terminal status is changed.
+The bounded implementation and test-owned obligations TP-B007-001 through
+TP-B007-010 are GREEN in the current session. The test phase routes to
+`bubbles.regression`; later quality phases, human acceptance, TP-B007-011, and
+validate-owned certification remain explicit gates. Packet status remains
+`in_progress`; no human-acceptance item, certification field, scope terminal
+status, or spec terminal status is changed.
 
 ## Test Evidence
 
@@ -146,70 +158,104 @@ defect rather than a setup or escaped-harness failure.
 ### TP-B007-001 {#tp-b007-001}
 
 **Phase:** test
-**Claim Source:** interpreted
-**Interpretation:** The exact run under `TP-B007-000` passed
-`BUG-007: normal brief order and refusal precedence remain unchanged`. It also
-passed every 29 pre-existing functional title. This is compatibility evidence,
-not a GREEN claim for the hostile scenarios.
+**Executed:** YES
+**Command:** `timeout 240 node --test tests/portfolio-brief.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Evidence:** [Current focused functional evidence](#bug007-current-focused-functional)
+
+The exact normal-order and refusal title passed in the title-visible 34-test
+run. Lane and subject order plus both refusal envelopes are asserted directly
+by that persistent title.
 
 ### TP-B007-002 {#tp-b007-002}
 
 **Phase:** test
-**Claim Source:** interpreted
-**Interpretation:** The exact run under `TP-B007-000` executed all three subject keys. The subject
-title failed on the observed shared built-in mutation after its cleanup
-assertion passed. Expected own-row assertions remain RED pending implementation.
+**Executed:** YES
+**Command:** `timeout 240 node --test tests/portfolio-brief.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Evidence:** [Current focused functional evidence](#bug007-current-focused-functional)
+
+The title-visible run passed the aggregate six-case title and the dedicated
+three-subject title. The persistent assertions require own completed-research
+rows, exact evidence ids, absent lookup semantics, no throw, and no mutation.
 
 ### TP-B007-003 {#tp-b007-003}
 
 **Phase:** test
-**Claim Source:** interpreted
-**Interpretation:** The exact run under `TP-B007-000` executed all three domain keys. The domain
-title failed on the observed shared built-in mutation after its cleanup
-assertion passed. Expected support-count and floor assertions remain RED pending
-implementation.
+**Executed:** YES
+**Command:** `timeout 240 node --test tests/portfolio-brief.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Evidence:** [Current focused functional evidence](#bug007-current-focused-functional)
+
+The dedicated three-domain title passed. Its persistent assertions require two
+supporting completions, two distinct dates, a satisfied floor, one inferred row,
+the expected evidence id, no throw, and no shared built-in mutation.
 
 ### TP-B007-004 {#tp-b007-004}
 
 **Phase:** test
-**Claim Source:** interpreted
-**Interpretation:** The exact run under `TP-B007-000` executed own and inherited lookup fixtures for
-all three keys. Cleanup passed; the title then failed on the same pre-cleanup
-prototype mutation. Own/inherited lookup assertions remain RED pending the
-earlier aggregation repair.
+**Executed:** YES
+**Command:** `timeout 240 node --test tests/portfolio-brief.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Evidence:** [Current focused functional evidence](#bug007-current-focused-functional)
+
+The own/inherited lookup and cleanup title passed. It asserts all three hostile
+keys under own and inherited caller maps, post-finally restoration, zero
+pre-cleanup mutation, no throw, and the unchanged owner/prior-window semantics.
 
 ### TP-B007-005 {#tp-b007-005}
 
 **Phase:** test
-**Claim Source:** not-run
-The persistent in-memory test-integrity challenge is authored in
-`tests/portfolio-test-integrity.unit.mjs`. It is deliberately not executed in
-this RED handoff because the protections it removes do not exist in unchanged
-source. Post-implementation execution must require one applied substitution, a
-RED protective title, and byte-identical tracked product/test files.
+**Executed:** YES
+**Command:** `timeout 240 node --test tests/portfolio-test-integrity.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Evidence:** [Current mutation evidence](#bug007-current-mutation-integrity)
+
+Both integrity titles passed. The BUG-007 title applies each of the three exact
+in-memory substitutions once, requires its named protective title to fail, and
+hash-compares all four tracked product/test inputs before and after execution.
 
 ### TP-B007-006 {#tp-b007-006}
 
 **Phase:** test
-**Claim Source:** not-run
-The persistent real-browser exported six-case matrix and visible production
-`constructor` completion workflow are authored in
-`tests/portfolio-survival-brief.spec.mjs`. They are reserved for the
-post-implementation GREEN run; no browser result is claimed here.
+**Executed:** YES
+**Command:** `timeout 900 npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+**Evidence:** [Current scenario browser evidence](#bug007-current-scenario-browser)
+
+The exact file ran 19 tests. The named BUG-007 browser title passed and its
+persistent body executes all six hostile exported cases, exact normal order,
+zero built-in mutation/throw, and the visible preview/confirm/rerender path.
 
 ### TP-B007-007 {#tp-b007-007}
 
 **Phase:** test
-**Claim Source:** not-run
-The broader Feature 008 browser regression remains reserved for
-post-implementation execution.
+**Executed:** YES
+**Command:** `timeout 1800 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+**Evidence:** [Current broader E2E evidence](#bug007-current-feature-e2e)
+
+The exact eight-file Feature 008 command passed 95 of 95 tests using the pinned
+two-worker system-Chrome configuration.
 
 ### TP-B007-008 {#tp-b007-008}
 
 **Phase:** test
-**Claim Source:** not-run
-The canonical repository selftest remains reserved for post-implementation
-execution.
+**Executed:** YES
+**Command:** `timeout 1800 node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Evidence:** [Current canonical selftest evidence](#bug007-current-selftest)
+
+The canonical build-free repository selftest passed 3426 of 3426 checks with
+zero failures.
 
 ### TP-B007-009 {#tp-b007-009}
 
@@ -247,12 +293,55 @@ hashes cover every omitted line. The other four packet guards and the
 execution-substate guard emitted the compact lines shown. Home paths are
 normalized to `~/research-lab` under repository PII policy.
 
+#### Current Test-Phase Rerun
+
+**Phase:** test
+**Executed:** YES
+**Command:** the exact six-child `CMD-B007-PACKET-GUARDS` sequence from
+`test-plan.json`
+**Exit Codes:** `0, 0, 0, 0, 0, 0`
+**Claim Source:** executed
+
+```text
+artifact-lint: exit=0 lines=41 sha256=507ad846de580e14ee6107a0df565beb769df5c765d09281dcc1382ad1c602c8
+artifact-lint: Artifact lint PASSED
+traceability: exit=0 lines=55 sha256=84dfb35ef7788050f84d10c6288e615a199b6fb129d06548b1284b45501daf61
+traceability: scenarios=3 test-rows=13 concrete-tests=3 evidence-refs=3 warnings=0
+scenario-obligation: exit=0 scenarios=3 coherent=yes
+test-mechanism: exit=0 mechanisms=3 coherent=yes
+mutation-receipt: adapter=none outcome=inert
+scope-context: exit=0 scopes=1 self-contained=yes
+capability-foundation: exit=0 gate=G094 single-capability-justification=present
+packet-guard-battery: passed=6 failed=0
+```
+
+Every child was wrapped separately by `tool-log.sh` with the packet, delivered
+source, and persistent carrier inputs in its closure. The paths printed by the
+traceability banner are normalized in this report; the capture hashes cover the
+original streams.
+
 ### TP-B007-010 {#tp-b007-010}
 
 **Phase:** test
-**Claim Source:** not-run
-The implementation-reality scan remains reserved for post-implementation
-execution.
+**Executed:** YES
+**Command:** `timeout 600 bash .github/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys --verbose`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+BUG-007 TP-B007-010 implementation reality
+exit: 0
+lines: 37
+sha256: ba03475d07b7760e47602fc7aee55cf44c289db44630fde78cda8d362b5d3435
+implementation files resolved: 1
+gateway/backend stub violations: 0
+frontend hardcoded-data violations: 0
+default/fallback violations: 0
+files scanned: 1
+violations: 0
+warnings: 0
+PASSED: No source code reality violations detected
+```
 
 ### TP-B007-011 {#tp-b007-011}
 
@@ -405,14 +494,215 @@ caller-map ownership, and normal-order protections remain load-bearing without
 writing tracked source. These focused results do not substitute for the
 test-owned browser, broader regression, or repository selftest phases.
 
+### Current Test Phase Focused Functional {#bug007-current-focused-functional}
+
+**Phase:** test
+**Executed:** YES
+**Commands:**
+
+- `timeout 240 node --test tests/portfolio-brief.functional.mjs`
+- `timeout 240 node --test --test-reporter=spec tests/portfolio-brief.functional.mjs`
+
+**Exit Codes:** `0, 0`
+**Claim Source:** executed
+
+```text
+# BUG-007 focused functional title-visible
+$ timeout 240 node --test --test-reporter=spec tests/portfolio-brief.functional.mjs
+exit: 0
+lines: 43
+sha256: 3ab97d4f216066315bd04d4523b950a37e3d00b7a54588855002c18bc21e2645
+--- first 20 ---
+PASS BUG-007: normal brief order and refusal precedence remain unchanged
+PASS BUG-007: prototype-sensitive completion keys are safe own keys
+PASS BUG-007: prototype-sensitive completion subjects are safe own keys
+PASS BUG-007: prototype-sensitive completion domains are safe own keys
+PASS BUG-007: own lookup semantics and RED cleanup preserve shared built-ins
+--- last 20 ---
+tests 34
+suites 0
+pass 34
+fail 0
+cancelled 0
+skipped 0
+todo 0
+duration_ms 861.30562
+```
+
+The title lines above normalize Node's check glyph to `PASS`; the capture hash
+covers the complete original 43-line stream. The exact required command also
+ran through `tool-log.sh`: 34 tests, 34 passed, 0 failed, 0 skipped, 0 todo,
+full-output sha256
+`2b788db5ea8e88932add71903544156bd30f47ccd8896ba36a56b33c698e8543`.
+
+### Current Test Phase Mutation Integrity {#bug007-current-mutation-integrity}
+
+**Phase:** test
+**Executed:** YES
+**Command:** `timeout 240 node --test tests/portfolio-test-integrity.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+TAP version 13
+# Subtest: Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing
+ok 1 - Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing
+# Subtest: BUG-007: caller-key protections and normal ordering are load-bearing in memory
+ok 2 - BUG-007: caller-key protections and normal ordering are load-bearing in memory
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8523.081984
+```
+
+Capture sha256:
+`1ca07ca2e6afbb9ba7dd66fe406db0abeeb207185adf67f4ed912df5501792af`.
+An independent staged and unstaged diff check immediately afterward reported
+`POST_MUTATION_SOURCE_TEST_INTEGRITY=clean` across all five tracked inputs.
+
+### Current Test Phase Scenario Browser {#bug007-current-scenario-browser}
+
+**Phase:** test
+**Executed:** YES
+**Command:** `timeout 900 npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-007 TP-B007-006 scenario browser
+exit: 0
+lines: 68
+sha256: 449d33ada0567f9a2f13bb3a7b4f95908fa4dab80ad0ac32fcdd593388de09ff
+Running 19 tests using 1 worker
+PASS BUG-007: browser composer treats hostile keys as data and visible constructor remains operable
+PASS Regression: SCN-008-007 TP-05-07 a completed-research subject renders in its own lane with its qualification source
+PASS Regression: SCN-008-046 generic evidence DST policy complete API and global queue remain coherent
+PASS Regression: SCN-008-052 mode tabs rebase and compute tokens preserve one immutable workspace
+PASS Regression: BUG-001 a publication later than its declared window cutoff is refused by name and never empties the schedule
+PASS Regression: SCN-008-055 every published Feature 008 entry opens the Portfolio Brief workspace
+19 passed (32.9s)
+tool-log receipt exit=0 duration=34154ms
+```
+
+The source scan over this carrier found zero `page.route`, `context.route`,
+`msw`, `nock`, interception, skip, or bailout-return matches.
+
+### Current Test Phase Feature E2E {#bug007-current-feature-e2e}
+
+**Phase:** test
+**Executed:** YES
+**Command:** `timeout 1800 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-007 TP-B007-007 Feature 008 E2E
+exit: 0
+lines: 305
+sha256: 9f9a3e4d7d94a908f74aef4c6272ddb4fc99843f671feed794ad65a8d82be744
+Running 95 tests using 2 workers
+PASS Regression: SCN-008-026 all six allocation methods share one frozen basis
+PASS Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete
+PASS Regression: SCN-008-006 all four exact ET windows preserve cutoff and composition time
+PASS BUG-007: browser composer treats hostile keys as data and visible constructor remains operable
+PASS Regression: SCN-008-048 complete scenario cash needs uncertainty and compute tokens govern every path
+PASS Regression: SCN-008-048 cancelled and superseded path jobs cannot replace the last valid view
+95 passed (2.3m)
+tool-log receipt exit=0 duration=137599ms
+```
+
+### Current Test Phase Canonical Selftest {#bug007-current-selftest}
+
+**Phase:** test
+**Executed:** YES
+**Command:** `timeout 1800 node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-007 TP-B007-008 canonical selftest
+exit: 0
+lines: 3913
+sha256: 27f5345ef4bf6e144518f234ff86f55aef7b134738dd0d159cee8fff580cd359
+Step 1 security - escaped model sinks and CSP on every page
+PASS every shipped HTML page carries a Content-Security-Policy meta
+PASS production pages and shared runtime contain no open URL-forwarding relay chain
+PASS no model/config-authored field reaches innerHTML without esc()
+PASS every committed progress claim resolves to a scope artifact the guard can actually read
+PASS no scope progress claim disagrees with its Definition of Done outside the frozen baseline
+Research-Lab self-test: 3426 passed, 0 failed
+tool-log receipt exit=0 duration=35318ms
+```
+
+### Current Test Phase Carrier Integrity {#bug007-current-carrier-integrity}
+
+**Phase:** test
+**Executed:** YES
+**Commands:** scenario resolution, `regression-quality-guard.sh --bugfix`,
+skip/interception/bailout scans, Playwright identity, test-leaf adapter resolve,
+and source/test diff integrity.
+**Exit Codes:** all `0`
+**Claim Source:** executed
+
+```text
+Playwright version=1.61.1
+scenario-test-resolve: 9 references resolved; 9 category comparisons not applicable
+regression-quality: files scanned=3
+regression-quality: files with adversarial signals=3
+regression-quality: violations=0 warnings=0
+skip_marker_matches=0
+live_interception_matches=0
+browser_bailout_matches=0
+test-leaf-receipt adapter=none
+SOURCE_TEST_INTEGRITY=clean
+POST_MUTATION_SOURCE_TEST_INTEGRITY=clean
+```
+
+### Current Test Phase Receipt Integrity {#bug007-current-receipt-integrity}
+
+**Phase:** test
+**Executed:** YES
+**Command:** current-session latest-identity and input-closure assertion over
+`.specify/runtime/tool-calls.jsonl`, using the same identity fields and sha256
+comparison rules as `evidence-receipt-check.sh`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+spec=BUG-007-compose-brief-prototype-sensitive-keys
+session=BUG007-TEST-vscode-d037d272-238
+appendCount=16
+currentIdentities=16
+withClosure=16
+valid=16
+stale=0
+unknown=0
+requiredTags=10
+missingRequiredTags=[]
+staleReceipts=[]
+```
+
+The canonical global strict checker was also executed. It exited `1` because
+22 unrelated historical identities from earlier Feature 008 and BUG-006 work
+remain current under different command identities after the delivered source
+changed. They were not refreshed or rewritten from this BUG-007 boundary. The
+scoped assertion above covers every current identity produced for the required
+BUG-007 test rows and fails closed on any missing tag, stale input, unknown
+closure, or missing file.
+
 ## Code Diff Evidence
 
-This implementation phase changes only `rlportfoliobrief.js` plus this BUG-007
-report and execution state. The source diff contains only the inventoried
-caller-keyed allocations and own-property reads. The shared injector,
-persistent carriers, parent Feature 008 planning transaction, DoD checkboxes,
-human validation, and certification fields remain outside this implementation
-transaction. `node --check` and `git diff --check` both completed cleanly.
+The implementation commit changes only `rlportfoliobrief.js` plus this BUG-007
+report and execution state. This test phase changes only BUG-007 report and
+execution-owned state. The shared injector, persistent carriers, parent Feature
+008 planning transaction, DoD checkboxes, structured planning statuses, human
+validation, and certification fields remain unchanged. Source/test integrity
+was clean before and after the in-memory mutation carrier.
 
 ## Validation Evidence
 
@@ -452,14 +742,19 @@ of `SEC-B006-S1`.
 
 ```yaml
 outcome: route_required
-currentOwner: bubbles.implement
-nextRequiredOwner: bubbles.test
+currentOwner: bubbles.test
+nextRequiredOwner: bubbles.regression
 bug: BUG-007-compose-brief-prototype-sensitive-keys
 addressedFindings:
   - SEC-B006-S1-IMPLEMENTATION
+  - SEC-B006-S1-TEST
 unresolvedFindings: []
 evidence:
-  - report.md#implementation-focused-green
-  - rlportfoliobrief.js
-reason: The bounded product-source repair and focused implementation checks are complete; test ownership must execute the scenario-specific browser carrier, broader regression, and remaining planned verification before any completion or certification claim.
+  - report.md#bug007-current-focused-functional
+  - report.md#bug007-current-mutation-integrity
+  - report.md#bug007-current-scenario-browser
+  - report.md#bug007-current-feature-e2e
+  - report.md#bug007-current-selftest
+  - report.md#bug007-current-receipt-integrity
+reason: TP-B007-001 through TP-B007-010 pass with current receipts; regression is the next bugfix-fastlane owner while acceptance, TP-B007-011, certification, and terminal status remain open.
 ```

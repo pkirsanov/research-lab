@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
   "featureName": "BUG-006 Evidence Window Date Overflow",
   "createdAt": "2026-08-25T19:27:30Z",
-  "lastUpdatedAt": "2026-08-26T05:24:22Z",
+  "lastUpdatedAt": "2026-08-26T05:47:01Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,18 +29,18 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.harden",
-    "currentPhase": "harden",
+    "activeAgent": "bubbles.stabilize",
+    "currentPhase": "stabilize",
     "currentPhaseStatus": "route_required",
     "substate": "independently_verified",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
-    "runStartedAt": "2026-08-26T05:14:21Z",
-    "completedAt": "2026-08-26T05:24:22Z",
+    "runStartedAt": "2026-08-26T05:34:37Z",
+    "completedAt": "2026-08-26T05:47:01Z",
     "currentScope": "01-bound-the-evidence-age-policy",
-    "nextRequiredOwner": "bubbles.stabilize",
-    "nextRequiredTarget": "Scope 01 round-2 stabilization",
-    "nextRequiredReason": "Round-2 hardening found no product or persistent-test defect. The focused closure passed 104 of 104, the Feature 008 browser matrix passed 94 of 94, the canonical selftest passed 3426 checks, and independent ceiling, derive, and compose mutations remained unique and load-bearing. The grandfathered bugfix-fastlane registry places stabilize immediately after harden.",
+    "nextRequiredOwner": "bubbles.devops",
+    "nextRequiredTarget": "Scope 01 round-2 deployment-boundary review",
+    "nextRequiredReason": "Round-2 stabilization found no product or persistent-test defect. Repeated valid, one-over, and TimeClip-overflow calls were deterministic, bounded, no-throw, non-mutating, and silent. Active handles remained 1, post-GC heap drift was 36712 bytes, the focused closure passed 104 of 104, and current composition remained below 1 millisecond per call. The static build-free project has no service lifecycle, manual deploy command, trace contract, or changed operational surface. The persisted bugfix-fastlane order places devops immediately after stabilize, so devops must perform the no-change deployment-boundary review.",
     "completedPhaseClaims": [
       "plan",
       "implement",
@@ -50,7 +50,8 @@
       "gaps",
       "design",
       "analyze",
-      "harden"
+      "harden",
+      "stabilize"
     ],
     "pendingTransitionRequests": [],
     "scopeInventory": [
@@ -229,11 +230,19 @@
     },
     {
       "id": "BUG-006-ROUTE-019",
-      "status": "pending",
+      "status": "completed",
       "fromAgent": "bubbles.harden",
       "nextRequiredOwner": "bubbles.stabilize",
       "target": "Scope 01 round-2 stabilization",
       "reason": "Round-2 hardening independently verified the full BUG-006 contract, all ten runtime maximumEvidenceAgeDays consumers, both TimeClip directions, local and shared refusal ordering, input non-mutation, BUG-004 and BUG-005 regressions, three load-bearing mutation boundaries, the 94-test browser matrix, and the 3426-check canonical selftest. No product or persistent-test finding remains. Run the next registered stabilize phase while preserving in-progress status, unchecked DoD, human acceptance, and certification."
+    },
+    {
+      "id": "BUG-006-ROUTE-020",
+      "status": "pending",
+      "fromAgent": "bubbles.stabilize",
+      "nextRequiredOwner": "bubbles.devops",
+      "target": "Scope 01 round-2 deployment-boundary review",
+      "reason": "Round-2 stabilization verified deterministic bounded failures, input non-mutation, zero call-path logs, unchanged active handles, bounded post-GC heap, browser and Node contract parity, sub-millisecond valid composition, 104 of 104 focused tests, and input-current harden browser and selftest evidence. Research Lab is static and build-free, with no service lifecycle, manual deploy command, trace contract, or BUG-006 operational surface. Complete the registered devops phase as a no-change deployment-boundary review rather than skipping it."
     }
   ],
   "reworkQueue": [],
@@ -461,6 +470,17 @@
       "provenanceMode": "specialist",
       "statusBefore": "in_progress",
       "runStartedAt": "2026-08-26T05:14:21Z"
+    },
+    {
+      "at": "2026-08-26T05:47:01Z",
+      "agent": "bubbles.stabilize",
+      "phase": "stabilize",
+      "action": "round-2-stability-diagnostic-complete-and-routed",
+      "note": "Ran as the BUG-006 round-2 stabilize owner after binding the exact Research Lab packet through repository decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:223. Confirmed HEAD is committed harden checkpoint 583d6794d and that all six authorized code and test inputs match it, so the harden browser 94-of-94 and selftest 3426-of-3426 evidence remains input-current. Independently ran the four focused carriers at 104 passed, 0 failed, and 0 skipped. Repeated valid, one-over, and overflow validation, composition, and derivation calls remained deterministic, no-throw, non-mutating, and silent across 18000 behavior assertions. A larger resource loop kept active handles at 1 and post-GC heap final drift at 36712 bytes. Browser-style and CommonJS APIs retained 85 and 16 frozen exports. Current valid composition measured 205.391 microseconds per call, with 194.294 microseconds attributable to one fixed-shape shared validation. No loop, retry, timer, network, log, config, runtime, deployment, or observability change is required. Changed only report.md and execution-owned state fields. Completed inbound route BUG-006-ROUTE-019 and routed BUG-006-ROUTE-020 to bubbles.devops for the registered no-change deployment-boundary review. Kept packet and scope status in progress, all DoD unchecked, human acceptance untouched, and certification unchanged. No commit, merge, or push was performed.",
+      "phasesExecuted": ["stabilize"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T05:34:37Z"
     }
   ],
   "addressedFindings": [

@@ -2937,3 +2937,238 @@ transfers the unchanged, still-in-progress packet to `bubbles.stabilize`.
 No source, persistent test, scope, Definition of Done checkbox, human
 acceptance field, certification field, unrelated market brief, or data file
 changed. No commit, merge, or push occurred.
+
+## Stabilize Phase Round 2 - 2026-08-26 {#stabilize-phase-round-2}
+
+**Phase:** stabilize
+**Agent:** `bubbles.stabilize`
+**Execution model:** `direct-authorized-runner`
+**Parent agent:** none
+**Claim Source:** interpreted
+**Interpretation:** `STABLE_DIAGNOSTIC`. No stability finding requires a code,
+test, configuration, runtime, deployment, or observability change. The packet
+and scope remain `in_progress`. All Definition of Done items remain unchecked.
+Human acceptance and certification remain unchanged.
+
+### Repository Authority And Current Inputs
+
+**Claim Source:** executed
+
+Repository preflight committed the exact BUG-006 target before local work:
+
+```text
+REPOSITORY PREFLIGHT CONFIRMED repository=research-lab root=<repo> source=concrete-target affinity=confirmed
+PREFLIGHT_COMMITTED decision=rb:vscode-d037d272141b9d17af8fa6ccdd049e69:223 revision=223 repository=research-lab root=<repo>
+repositoryAlias=research-lab
+authority=concrete-target
+transition=confirmed
+scopeKind=command
+scopeId=null
+targetKind=absolute-target
+pathVisibility=local
+actionable=true
+```
+
+`HEAD` is the committed harden checkpoint. The six authorized code and test
+inputs have zero diff from that checkpoint:
+
+```text
+$ git rev-parse HEAD
+583d6794d945a1eded58c54d6ce810f355f883c1
+$ git diff --exit-code 583d6794d -- rlportfolio.js rlportfoliobrief.js tests/portfolio-foundation.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-stale-domain-signal.unit.mjs
+exit: 0
+output: empty
+$ git show --format=fuller --name-status 583d6794d
+commit 583d6794d945a1eded58c54d6ce810f355f883c1
+AuthorDate: Wed Aug 26 05:33:11 2026 +0000
+CommitDate: Wed Aug 26 05:33:11 2026 +0000
+M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow/report.md
+M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow/state.json
+```
+
+The harden browser matrix and canonical selftest remain input-current. Their
+source and test inputs match this checkpoint. The current evidence remains:
+
+- Feature 008 browser matrix: 94 passed, 0 failed, full-output SHA-256
+	`319256c75f1d13d6b1688414ed0de053ad677f09c2b918cb8688240b6c1811e6`.
+- Canonical repository selftest: 3426 passed, 0 failed, full-output SHA-256
+	`97187993e59eb03e31a27f3044d01cbe02f2b04602fbc566808b80b726f30404`.
+
+Both bounded evidence blocks remain at `report.md#harden-phase-round-2`.
+
+### Stability Inventory
+
+**Claim Source:** interpreted from current source, current history, the command
+registry, and the executed probes below.
+
+| Domain | Result | Evidence |
+| --- | --- | --- |
+| Reliability | PASS | Repeated valid, one-over, and overflow calls returned byte-stable results. Invalid calls returned the exact shared refusal. No call threw. |
+| Boundary behavior | PASS | `36525` remained valid. `36526` and both TimeClip overflow fixtures remained bounded before Date formatting. |
+| Mutation safety | PASS | Deep-frozen policies and brief inputs remained structurally equal to their snapshots after repeated calls. |
+| Loops and retries | PASS | The two product patches add one comparison and one shared-validator call. They add no loop, timer, promise, retry, backoff, network call, or event listener. |
+| Resource use | PASS | Active handles remained `1` before and after stress. Five post-GC heap samples stayed within a 36,832-byte range. |
+| Log volume | PASS | Repeated calls emitted zero `log`, `warn`, or `error` messages. |
+| Dual runtime | PASS | Browser-style and CommonJS exports retained identical key sets: 85 portfolio functions and 16 brief functions. Both APIs remained frozen. |
+| Performance | PASS | Current valid composition measured 205.391 microseconds per call. The delegation added 194.294 microseconds median and stayed below the 250-microsecond probe budget. |
+| Build and deployment | NOT APPLICABLE | The command registry declares no service lifecycle or manual deploy command. Pages deploys from a clean checkout after a push. This run changed no deploy surface. |
+| Configuration | PASS | The committed policy remains 56 days. No package, lock, policy, workflow, or project configuration changed. |
+| Observability | NOT APPLICABLE | Project config declares no `traceContracts` or observability adapter. The repaired pure functions create no new runtime signal or operational failure channel. |
+
+### Focused Four-Carrier Closure
+
+**Command:** `timeout 700 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-006 round-2 stabilize focused four-carrier closure" -- timeout 600 node --test tests/portfolio-foundation.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-stale-domain-signal.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-006 round-2 stabilize focused four-carrier closure
+$ timeout 600 node --test tests/portfolio-foundation.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-stale-domain-signal.unit.mjs
+exit: 0
+lines: 634
+sha256: 56c993cd959d1139f1052207d4510935baa25ccee1ed4fa3cdc93abe9c2dd9d0
+--- first 20 ---
+TAP version 13
+# Subtest: BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity
+ok 1 - BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity
+--- omitted 594 line(s); sha256 above covers the full output ---
+--- last 20 ---
+ok 103 - BUG-005: reinstating the superseded pre-filter bucket creation turns the stale-domain assertion red
+ok 104 - BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance
+1..104
+# tests 104
+# suites 0
+# pass 104
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2574.171984
+```
+
+### Repeated-Call And Resource Probe
+
+**Command:** `timeout 180 node --expose-gc -e '<BUG-006 deterministic, mutation, dual-runtime, resource, and latency assertions>'`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+BUG-006 round-2 stabilize repeated-call probe
+node-browser-api-parity=portfolio:85,brief:16,frozen-api:true,frozen-error:true
+validate-boundary=2000 deterministic
+validate-one-over=2000 deterministic exact-refusal
+validate-overflow=2000 deterministic exact-refusal
+compose-boundary=500 deterministic no-throw
+compose-one-over=2000 deterministic no-throw
+compose-overflow=2000 deterministic no-throw
+derive-valid=500 deterministic no-throw
+derive-one-over=2000 deterministic no-throw
+derive-overflow=2000 deterministic no-throw
+input-mutation=none frozen-inputs=true
+console-emissions=log:0,warn:0,error:0
+active-handles=before:1,after:1
+heap-after-gc-bytes=baseline:7831752,samples:7867208,7867312,7868568,7868584,7868464
+heap-range-bytes=36832,final-delta-bytes=36712
+validate-one-over-us-per-call=97.203
+validate-overflow-us-per-call=89.235
+compose-one-over-us-per-call=87.124
+compose-boundary-us-per-call=283.404
+RESULT=PASS
+```
+
+The probe ran 18,000 deterministic behavior assertions. Its resource section
+then ran 55,000 policy validations and 6,000 invalid compositions in one
+process. Garbage collection ran before every recorded heap sample.
+
+Two earlier probe attempts failed before the measured loop. The first expected
+the result wrapper to be frozen, while the contract freezes its error object.
+The second passed `structuredClone` directly to `Array.map`, which forwarded an
+index as clone options. The successful probe corrected both probe defects. No
+repository file changed during any attempt.
+
+### Incremental Cost Probe
+
+**Command:** `timeout 120 node -e '<current composeBrief versus disk-free no-delegation control>'`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+BUG-006 shared-validation incremental-cost probe
+disk-write=false anchor-count=1
+valid-output-parity=true
+rounds=9 calls-per-variant-per-round=1000
+current-us-per-call-median=205.391
+no-delegation-control-us-per-call-median=11.097
+delegation-delta-us-per-call=194.294
+current-under-1ms=true
+delegation-delta-under-250us=true
+complexity=one-fixed-shape-validator-call-per-compose
+RESULT=PASS
+```
+
+The control removed only the unique `composeBrief()` delegation in memory. It
+wrote no file. Valid output remained equal before the nine alternating timing
+rounds.
+
+### Operational Boundary Review
+
+**Claim Source:** interpreted from the current command registry, project
+configuration, and the two exact product patches.
+
+The command registry describes a static HTML and JavaScript product. It has no
+service lifecycle and no manual deploy command. GitHub Actions builds `_site/`
+from a clean checkout after a push.
+
+The BUG-006 product patches contain no operational surface. The first patch
+adds `MAXIMUM_EVIDENCE_AGE_DAYS` and one comparison. The second patch adds one
+`portfolio.validatePolicy(input.policy)` call and one failure return.
+
+No deployment, runtime configuration, package source, workflow, monitoring,
+logging, metric, trace, alert, retry, or recovery change is required. The
+registered `devops` phase still follows `stabilize`. It must review this
+no-change boundary rather than be skipped.
+
+### Finding Closure And Routing
+
+The stabilization finding count is zero. No source or persistent test changed.
+No new scenario, Test Plan row, or Definition of Done item is required.
+
+Inbound route `BUG-006-ROUTE-019` is complete. The persisted grandfathered
+`bugfix-fastlane` order places `devops` immediately after `stabilize`. A
+no-change deployment-boundary review routes to `bubbles.devops`.
+
+No scope, Definition of Done checkbox, human acceptance field, certification
+field, parent Feature 008 artifact, commit, merge, or push changed.
+
+### Final Packet Checks
+
+**Claim Source:** executed
+
+| Check | Result |
+| --- | --- |
+| Artifact lint | PASS. Required artifacts, state mirror, report sections, and anti-fabrication checks passed. |
+| Traceability guard | PASS. Four scenarios, 13 test rows, four concrete files, four evidence mappings, and zero warnings. |
+| Implementation reality | PASS. Two product files scanned with zero violations and zero warnings. |
+| Claim-source lint | PASS. Every evidence block uses the closed provenance vocabulary. |
+| Final state assertions | PASS. One stabilize claim, one stabilize history row, ROUTE-019 complete, ROUTE-020 pending, zero checked DoD items. |
+| Diff containment | PASS. Only this bug report and execution state changed. |
+
+The optional packet-scoped phase-name enum lint exited 1. It reported only the
+historical `design` and `plan` tokens that existed before this run:
+
+```text
+$ bash .github/bubbles/scripts/phase-name-enum-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow
+[phase-name-enum-lint] scanned 1 state.json file(s), 11 packet phase(s), 0 authored phase(s)
+[phase-name-enum-lint] FAIL [G140]: phase name(s) neither registered nor baselined:
+	design
+	plan
+```
+
+The failure set does not include the new `stabilize` token. The resolved
+grandfathered mode registers `stabilize` between `harden` and `devops`. This
+repository has no phase-name baseline file.
+
+This is a framework-governance observation, not a BUG-006 stability defect.
+The authorized packet cannot change framework-managed workflow files or erase
+historical specialist claims. The packet remains `in_progress`, and the
+registered next phase remains the no-change `bubbles.devops` review.

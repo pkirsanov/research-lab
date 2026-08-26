@@ -13,15 +13,22 @@
 - Executed the exact focused persistent command against unchanged source: all
   30 unrelated and compatibility tests passed, while exactly the four new
   hostile-key titles failed and zero tests were skipped.
+- Hardened only `rlportfoliobrief.js` with the designed null-prototype internal
+  maps and explicit own-property reads, including one resolved own truthy owner
+  per qualified subject.
+- Executed the focused functional carrier GREEN at 34 of 34 and the in-memory
+  mutation carrier GREEN at 2 of 2, with zero failures or skips.
+- Rechecked source syntax and diff whitespace with explicit clean sentinels.
 - Kept the parent Feature 008 scope and root test-plan transaction untouched.
 
 ## Completion Statement
 
-The scenario-first persistent RED handoff is complete. The bug fix is not
-implemented, the browser and mutation carriers are authored but not executed,
-and no GREEN, delivery, human-acceptance, or certification claim is made.
-Packet status remains `in_progress` and routes to `bubbles.implement` for the
-bounded `rlportfoliobrief.js` repair.
+The bounded product-source implementation is complete and its focused
+functional and in-memory mutation checks are GREEN. Scenario-specific browser,
+broader browser regression, repository selftest, quality phases, human
+acceptance, and validate-owned certification remain outside this implementation
+handoff. Packet status remains `in_progress`; no DoD checkbox, scope status,
+human-acceptance item, certification field, or terminal status is changed.
 
 ## Test Evidence
 
@@ -291,13 +298,121 @@ after implementation, GREEN tests, human acceptance, and required quality work.
 The home path in this evidence is normalized to `~/research-lab` under the
 repository PII policy. No command output or verdict is otherwise changed.
 
+### Implementation Focused GREEN {#implementation-focused-green}
+
+**Phase:** implement
+**Executed:** YES
+**Commands:**
+
+- `timeout 240 node --test tests/portfolio-brief.functional.mjs`
+- `timeout 240 node --test tests/portfolio-test-integrity.unit.mjs`
+- `timeout 120 node --check rlportfoliobrief.js`
+- `timeout 120 git diff --check -- rlportfoliobrief.js`
+
+**Exit Codes:** `0, 0, 0, 0`
+**Claim Source:** executed
+
+```text
+# BUG-007 focused implementation GREEN
+$ timeout 240 node --test tests/portfolio-brief.functional.mjs
+exit: 0
+lines: 214
+sha256: 89c804d3db9643b06ea0e5d590290a781ec9061f464df75bc64f4a7f5a5e517c
+--- first 20 ---
+TAP version 13
+# Subtest: only an eligible completion becomes behavior evidence and no excluded source can create or grow one
+ok 1 - only an eligible completion becomes behavior evidence and no excluded source can create or grow one
+  ---
+  duration_ms: 196.381163
+  type: 'test'
+  ...
+# Subtest: route recomposition is invariant to behavior evidence and states that behavior contributes none
+ok 2 - route recomposition is invariant to behavior evidence and states that behavior contributes none
+  ---
+  duration_ms: 36.230493
+  type: 'test'
+  ...
+# Subtest: behavior clear removes the committed evidence and returns recomposition to the pre-evidence baseline
+ok 3 - behavior clear removes the committed evidence and returns recomposition to the pre-evidence baseline
+  ---
+  duration_ms: 86.714384
+  type: 'test'
+  ...
+# Subtest: dismissal and automatic invalidation record a safe outcome and never a behavior event or a negative preference
+--- omitted 174 line(s); sha256 above covers the full output ---
+--- last 20 ---
+ok 33 - Adversarial: reduced brief evidence policy and API cannot satisfy the complete contract
+  ---
+  duration_ms: 2.270299
+  type: 'test'
+  ...
+# Subtest: Regression: BUG-004 same-semantic occurrences cannot inflate relevance
+ok 34 - Regression: BUG-004 same-semantic occurrences cannot inflate relevance
+  ---
+  duration_ms: 89.444584
+  type: 'test'
+  ...
+1..34
+# tests 34
+# suites 0
+# pass 34
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 631.944482
+```
+
+```text
+# BUG-007 implementation mutation integrity
+$ timeout 240 node --test tests/portfolio-test-integrity.unit.mjs
+exit: 0
+lines: 22
+sha256: dc185865d27d1aa43c744ecffc96b1943994079253344345433ebb0df161ed39
+--- output ---
+TAP version 13
+# Subtest: Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing
+ok 1 - Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing
+  ---
+  duration_ms: 7625.467133
+  type: 'test'
+  ...
+# Subtest: BUG-007: caller-key protections and normal ordering are load-bearing in memory
+ok 2 - BUG-007: caller-key protections and normal ordering are load-bearing in memory
+  ---
+  duration_ms: 916.435621
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8624.809185
+```
+
+```text
+[node-check] OK
+[git-diff-check] OK
+```
+
+The functional carrier proves the ordinary 30-title compatibility surface and
+all four hostile-key titles together. The mutation carrier proves the safe-map,
+caller-map ownership, and normal-order protections remain load-bearing without
+writing tracked source. These focused results do not substitute for the
+test-owned browser, broader regression, or repository selftest phases.
+
 ## Code Diff Evidence
 
-This test phase changes only the three planned persistent carriers plus this
-test-owned report and execution state. `git diff --exit-code` returned zero for
-`rlportfoliobrief.js` and `tests/portfolio-defect-injector.cjs`. Product source,
-the shared injector, parent Feature 008 planning files, DoD checkboxes, human
-validation, and certification fields are outside this commit.
+This implementation phase changes only `rlportfoliobrief.js` plus this BUG-007
+report and execution state. The source diff contains only the inventoried
+caller-keyed allocations and own-property reads. The shared injector,
+persistent carriers, parent Feature 008 planning transaction, DoD checkboxes,
+human validation, and certification fields remain outside this implementation
+transaction. `node --check` and `git diff --check` both completed cleanly.
 
 ## Validation Evidence
 
@@ -337,14 +452,14 @@ of `SEC-B006-S1`.
 
 ```yaml
 outcome: route_required
-currentOwner: bubbles.bug
-nextRequiredOwner: bubbles.design
+currentOwner: bubbles.implement
+nextRequiredOwner: bubbles.test
 bug: BUG-007-compose-brief-prototype-sensitive-keys
 addressedFindings:
-  - SEC-B006-S1-FILING
-unresolvedFindings:
   - SEC-B006-S1-IMPLEMENTATION
+unresolvedFindings: []
 evidence:
-  - report.md#before-fix-reproduction
-reason: The defect is independently reproduced and fully packeted; design ownership must confirm the boundary before scenario-first persistent tests and source implementation.
+  - report.md#implementation-focused-green
+  - rlportfoliobrief.js
+reason: The bounded product-source repair and focused implementation checks are complete; test ownership must execute the scenario-specific browser carrier, broader regression, and remaining planned verification before any completion or certification claim.
 ```

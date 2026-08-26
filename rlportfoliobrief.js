@@ -761,7 +761,7 @@
   }
 
   function distinctCount(list, pick) {
-    var seen = {};
+    var seen = Object.create(null);
     list.forEach(function (entry) {
       var key = pick(entry);
       if (key) seen[String(key)] = true;
@@ -810,7 +810,7 @@
     var excludedAfterCutoff = 0;
     /* Tracked PER SUBJECT as well as in total, so FR-064 can say WHICH of the two silences applies:
        evidence existed but fell outside the window, or none was ever observed. */
-    var excludedBySubject = {};
+    var excludedBySubject = Object.create(null);
     evidence.forEach(function (record) {
       if (!isObject(record) || !isIso(record.observedAt)) {
         excludedAfterCutoff += 1;
@@ -851,35 +851,36 @@
     /* Per-subject support, derived ONLY from explicitly completed actions. Settings, passive
        activity, and view history are not in `completions` by construction, which is what makes
        FR-045's "evidence event categories" a statement about deliberate actions (SCN-008-009). */
-    var supportBySubject = {};
-    var categoriesBySubject = {};
-    var horizonBySubject = {};
-    var newestSupportBySubject = {};
-    var supportDatesBySubject = {};
+    var supportBySubject = Object.create(null);
+    var categoriesBySubject = Object.create(null);
+    var horizonBySubject = Object.create(null);
+    var newestSupportBySubject = Object.create(null);
+    var supportDatesBySubject = Object.create(null);
     completions.forEach(function (entry) {
       [entry.subjectId, entry.domain].forEach(function (key) {
         if (!key) return;
         key = String(key);
-        supportBySubject[key] = (supportBySubject[key] || 0) + 1;
-        if (!supportDatesBySubject[key]) supportDatesBySubject[key] = {};
+        if (!Object.prototype.hasOwnProperty.call(supportBySubject, key)) supportBySubject[key] = 0;
+        supportBySubject[key] += 1;
+        if (!Object.prototype.hasOwnProperty.call(supportDatesBySubject, key)) supportDatesBySubject[key] = Object.create(null);
         supportDatesBySubject[key][entry.completedAt.slice(0, 10)] = true;
         if (entry.category) {
-          if (!categoriesBySubject[key]) categoriesBySubject[key] = [];
+          if (!Object.prototype.hasOwnProperty.call(categoriesBySubject, key)) categoriesBySubject[key] = [];
           if (categoriesBySubject[key].indexOf(entry.category) === -1) categoriesBySubject[key].push(entry.category);
         }
-        if (entry.horizon && !horizonBySubject[key]) horizonBySubject[key] = entry.horizon;
-        if (!newestSupportBySubject[key] || entry.completedAt > newestSupportBySubject[key]) {
+        if (entry.horizon && !Object.prototype.hasOwnProperty.call(horizonBySubject, key)) horizonBySubject[key] = entry.horizon;
+        if (!Object.prototype.hasOwnProperty.call(newestSupportBySubject, key) || entry.completedAt > newestSupportBySubject[key]) {
           newestSupportBySubject[key] = entry.completedAt;
         }
       });
     });
 
     // INVARIANT 2. Build the qualification map first, then place each subject exactly once.
-    var qualifiesVia = {};
+    var qualifiesVia = Object.create(null);
     function qualify(subjectId, lane, subjectKind) {
       if (!subjectId) return;
       var key = String(subjectId);
-      if (!qualifiesVia[key]) qualifiesVia[key] = { lanes: [], subjectKind: subjectKind || "ticker" };
+      if (!Object.prototype.hasOwnProperty.call(qualifiesVia, key)) qualifiesVia[key] = { lanes: [], subjectKind: subjectKind || "ticker" };
       if (qualifiesVia[key].lanes.indexOf(lane) === -1) qualifiesVia[key].lanes.push(lane);
     }
     holdings.forEach(function (holding) { qualify(holding && holding.symbol, "held", "ticker"); });
@@ -889,13 +890,18 @@
     // INVARIANT 3. The inferred lane is populated ONLY when both floors clear. Domains reached
     // solely by inference never enter the map otherwise, so there is nothing to leak downstream.
     var underSupportedInferences = [];
-    var inferredDomains = {};
+    var inferredDomains = Object.create(null);
     completions.forEach(function (entry) {
       if (entry && entry.domain) inferredDomains[String(entry.domain)] = true;
     });
     Object.keys(inferredDomains).forEach(function (domain) {
-      var domainDates = Object.keys(supportDatesBySubject[domain] || {}).length;
-      if (supportBySubject[domain] >= input.policy.behavior.minimumDistinctCompletions &&
+      var domainDates = Object.prototype.hasOwnProperty.call(supportDatesBySubject, domain)
+        ? Object.keys(supportDatesBySubject[domain]).length
+        : 0;
+      var domainSupport = Object.prototype.hasOwnProperty.call(supportBySubject, domain)
+        ? supportBySubject[domain]
+        : 0;
+      if (domainSupport >= input.policy.behavior.minimumDistinctCompletions &&
           domainDates >= input.policy.behavior.minimumDistinctUtcDates) {
         qualify(domain, "inferredRelevance", "domain");
       } else {
@@ -903,10 +909,10 @@
       }
     });
 
-    var byId = {};
+    var byId = Object.create(null);
     usable.forEach(function (record) {
       var key = String(record.subjectId);
-      if (!byId[key]) byId[key] = { materiality: 0, evidenceIds: [], coverageState: null };
+      if (!Object.prototype.hasOwnProperty.call(byId, key)) byId[key] = { materiality: 0, evidenceIds: [], coverageState: null };
       byId[key].evidenceIds.push(record.id);
       var value = isFinite(record.materiality) ? record.materiality : 0;
       if (value > byId[key].materiality) byId[key].materiality = value;
@@ -944,7 +950,7 @@
     });
     Object.keys(qualifiesVia).forEach(function (subjectId) {
       var entry = qualifiesVia[subjectId];
-      var observed = byId[subjectId];
+      var observed = Object.prototype.hasOwnProperty.call(byId, subjectId) ? byId[subjectId] : null;
       var primary = null;
       for (var laneIndex = 0; laneIndex < LANE_ORDER.length; laneIndex += 1) {
         if (entry.lanes.indexOf(LANE_ORDER[laneIndex]) !== -1) { primary = LANE_ORDER[laneIndex]; break; }
@@ -956,11 +962,29 @@
           lane: primary,
           scopeSource: primary ? LANE_SOURCE[primary] : null,
           // Distinguishes "we looked and there is nothing current" from "nothing was ever observed".
-          reason: excludedBySubject[subjectId] ? "evidence-after-cutoff" : "evidence-unavailable"
+          reason: Object.prototype.hasOwnProperty.call(excludedBySubject, subjectId) ? "evidence-after-cutoff" : "evidence-unavailable"
         });
         return;
       }
       if (!primary) return;
+      var resolvedOwner = Object.prototype.hasOwnProperty.call(owners, subjectId) ? owners[subjectId] : null;
+      if (!resolvedOwner) resolvedOwner = null;
+      var resolvedPriorEvidenceIds = Object.prototype.hasOwnProperty.call(priorEvidenceIds, subjectId)
+        ? priorEvidenceIds[subjectId]
+        : null;
+      if (!resolvedPriorEvidenceIds) resolvedPriorEvidenceIds = null;
+      var supportCount = Object.prototype.hasOwnProperty.call(supportBySubject, subjectId)
+        ? supportBySubject[subjectId]
+        : 0;
+      var evidenceEventCategories = Object.prototype.hasOwnProperty.call(categoriesBySubject, subjectId)
+        ? categoriesBySubject[subjectId]
+        : [];
+      var resolvedHorizon = Object.prototype.hasOwnProperty.call(horizonBySubject, subjectId)
+        ? horizonBySubject[subjectId]
+        : null;
+      var resolvedNewestSupport = Object.prototype.hasOwnProperty.call(newestSupportBySubject, subjectId)
+        ? newestSupportBySubject[subjectId]
+        : null;
       lanes[primary].push({
         subjectId: subjectId,
         subjectKind: entry.subjectKind,
@@ -979,8 +1003,8 @@
            instead of restating its model here; a duplicated specialist model is how two surfaces
            start disagreeing. When nothing owns it the gap is named as an unowned capability, which
            is a statement about the toolset, NOT a licence to synthesise a specialist result. */
-        owner: owners[subjectId] || null,
-        unownedCapability: !owners[subjectId],
+        owner: resolvedOwner,
+        unownedCapability: !resolvedOwner,
         /* FR-059. A general-interest item says outright that it is not a known holding. Position in
            a lower lane is not a substitute: a reader who skims could otherwise carry ownership
            over from the lanes above. */
@@ -990,10 +1014,9 @@
            evidence ids against the prior window's is what keeps a repeat from reading as
            corroboration. Absent a prior window there is nothing to compare, and it says so. */
         confirmationBasis: (function () {
-          var prior = priorEvidenceIds[subjectId];
-          if (!prior) return "no-prior-window";
+          if (!resolvedPriorEvidenceIds) return "no-prior-window";
           var current = observed.evidenceIds.slice().sort().join(",");
-          return current === prior.slice().sort().join(",")
+          return current === resolvedPriorEvidenceIds.slice().sort().join(",")
             ? "same-evidence-as-prior-window"
             : "new-evidence-since-prior-window";
         })(),
@@ -1004,23 +1027,23 @@
            learn two vocabularies. */
         explanation: {
           whyShown: primary === "inferredRelevance"
-            ? "Inferred from " + (supportBySubject[subjectId] || 0) + " explicitly completed research action(s) in a non-sensitive domain."
+            ? "Inferred from " + supportCount + " explicitly completed research action(s) in a non-sensitive domain."
             : "In scope because it is a " + LANE_SOURCE[primary].replace("direct-", "") + ".",
-          evidenceEventCategories: categoriesBySubject[subjectId] || [],
+          evidenceEventCategories: evidenceEventCategories,
           relevanceConfidence: primary === "inferredRelevance"
-            ? relevanceConfidence(supportBySubject[subjectId] || 0, input.policy.behavior)
+            ? relevanceConfidence(supportCount, input.policy.behavior)
             : "not-applicable-direct-scope",
           // Named apart from market/model confidence so the two can never be read as one number.
           confidenceKind: "relevance-only",
-          horizon: horizonBySubject[subjectId] || null,
-          recency: decayState(newestSupportBySubject[subjectId] || null, input.composedAt, input.policy.behavior),
+          horizon: resolvedHorizon,
+          recency: decayState(resolvedNewestSupport, input.composedAt, input.policy.behavior),
           evidenceState: observed.coverageState || "unmeasured",
           // What would make this action stop being open. Without it a repeated window becomes a
           // permanent unresolved prompt (FR-054).
           triggerCondition: "Reviewed against the " + window.id + " evidence window.",
           completionCondition: "Marked complete through the explicit completion control.",
           invalidationCondition: "Supporting evidence ages past " + input.policy.behavior.maximumEvidenceAgeDays + " days, or local history is cleared.",
-          deepLink: owners[subjectId] ? owners[subjectId].href : null,
+          deepLink: resolvedOwner ? resolvedOwner.href : null,
           // FR-051/FR-052/FR-053: a research verb, never an order verb.
           researchVerb: primary === "held" ? "review" : "inspect"
         }

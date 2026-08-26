@@ -1,0 +1,121 @@
+{
+  "version": 3,
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-008-stale-mutation-carrier-mappings",
+  "featureName": "BUG-008 Stale Mutation Carrier Mappings",
+  "createdAt": "2026-08-26T23:28:18Z",
+  "lastUpdatedAt": "2026-08-26T23:33:41Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/008-portfolio-survival-and-brief-lab",
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "flagsIntroduced": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "42a568957de196e1ffbafd1aabe5cf06c514f1a1",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "testPlan": "test-plan.json"
+  },
+  "execution": {
+    "activeAgent": "bubbles.bug",
+    "currentPhase": "plan",
+    "currentPhaseStatus": "route_required",
+    "substate": "diagnosis-filed",
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-26T23:28:18Z",
+    "completedAt": "2026-08-26T23:33:41Z",
+    "currentScope": null,
+    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredTarget": "scopes.md, scenario-manifest.json, and test-plan.json",
+    "nextRequiredReason": "Reconcile the initial one-scope packet, preserve all seven exact mutation anchors, and route scenario-first RED ownership to bubbles.test. The test-infrastructure defect is high severity and no product source change is authorized.",
+    "completedPhaseClaims": [],
+    "pendingTransitionRequests": ["BUG-008-ROUTE-001"],
+    "scopeInventory": [
+      {
+        "scopeId": "01-restore-mutation-mapping-causality",
+        "scope": 1,
+        "status": "Not Started",
+        "dependsOn": []
+      }
+    ]
+  },
+  "completedScopes": [],
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scopeId": "01-restore-mutation-mapping-causality",
+        "status": "Not Started",
+        "certifiedAt": null
+      }
+    ]
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": { "mode": "off", "source": "repo-default" },
+    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
+    "autoCommit": { "mode": "on", "source": "operator-request" },
+    "lockdown": { "mode": "off", "source": "repo-default" },
+    "regression": { "mode": "protected-scenarios", "source": "workflow-forced" },
+    "validation": { "mode": "certification-required", "source": "repo-default" }
+  },
+  "modeTransitions": [],
+  "transitionRequests": [
+    {
+      "id": "BUG-008-ROUTE-001",
+      "status": "pending",
+      "fromAgent": "bubbles.bug",
+      "nextRequiredOwner": "bubbles.plan",
+      "target": "scopes.md, scenario-manifest.json, test-plan.json",
+      "reason": "The filing confirms seven stale mutation-to-carrier mappings after the shared injector repair. Reconcile the exact one-scope RED/GREEN plan and preserve all current mutation anchors before bubbles.test changes any persistent carrier."
+    }
+  ],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "at": "2026-08-26T23:28:18Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "diagnosed-filed-and-routed-to-plan",
+      "note": "Bound Research Lab authority at control revision 256. Preserved all concurrent dirty paths, BUG-007, and the parent Feature 008 transaction. Treated the operator-supplied three-test, two-pass, one-fail registry result as diagnostic input only. Inspected the current 18-case registry, all seven exact product anchors, and each selected functional title. Filed a complete v3 BUG-008 packet with one high-severity mapping-causality finding. Artifact lint and traceability pass after one local DoD-fidelity repair. No product source, persistent test, human acceptance, certification, terminal status, push, or unrelated path changed.",
+      "phasesExecuted": ["bug"],
+      "provenanceMode": "specialist"
+    }
+  ],
+  "addressedFindings": [
+    {
+      "id": "B008-FILING-001",
+      "summary": "The seven stale title-to-behavior mappings are grounded in current registry, source-anchor, and carrier-body inspection and represented by a complete v3 BUG-008 packet.",
+      "owner": "bubbles.bug",
+      "status": "addressed",
+      "evidenceRef": "report.md#current-tree-mapping-inspection"
+    }
+  ],
+  "unresolvedFindings": [
+    {
+      "id": "B008-MAPPING-001",
+      "summary": "Seven applied Feature 008 mutations select tests that stay green because the titles do not assert the represented behavior.",
+      "owner": "bubbles.plan",
+      "status": "open",
+      "evidenceRef": "report.md#inherited-current-session-diagnostic"
+    }
+  ]
+}

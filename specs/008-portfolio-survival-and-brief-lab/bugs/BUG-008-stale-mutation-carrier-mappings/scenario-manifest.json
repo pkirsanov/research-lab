@@ -1,0 +1,172 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-008-stale-mutation-carrier-mappings",
+  "generatedAt": "2026-08-26T23:28:18Z",
+  "generatedBy": "bubbles.bug",
+  "provenance": "Initial diagnosis-only filing. The operator supplied the current-session registry result. Current-tree inspection grounded the seven mapping mismatches. No persistent RED, carrier repair, GREEN result, browser result, human acceptance, or certification is claimed.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-B008-MUTATION-MAPPING-CAUSALITY",
+      "scopeId": "01-restore-mutation-mapping-causality",
+      "scope": 1,
+      "title": "Every audited mutation fails one causal protective assertion",
+      "gherkin": {
+        "given": "the complete 18-case Feature 008 mutation registry, unchanged audited anchors, and one selected persistent title per case",
+        "when": "each selected title runs once on shipped source and once with its represented mutation applied exactly once",
+        "then": "the shipped title passes, the mutant title fails through its protective assertion, infrastructure failures do not count, and no mutation stays green or becomes baselined skipped or removed"
+      },
+      "status": "planned",
+      "behaviorClass": "test-integrity",
+      "changeType": "bugfix",
+      "requiredTestType": "unit",
+      "requiredTestTypes": ["unit", "functional", "e2e-ui"],
+      "regressionRequired": true,
+      "riskTier": "high",
+      "requirementRefs": [
+        "FR-B008-001",
+        "FR-B008-002",
+        "FR-B008-003",
+        "FR-B008-004",
+        "FR-B008-005",
+        "FR-B008-006",
+        "FR-B008-007",
+        "FR-B008-008",
+        "AC-1",
+        "AC-2",
+        "AC-3",
+        "AC-4",
+        "AC-5"
+      ],
+      "findingRefs": [
+        "B008-MAPPING-001",
+        "F008-CLEAR-TEST-001",
+        "F008-PATH-CONTRACT-001",
+        "F008-SURVIVAL-PATH-001",
+        "F008-DIVERSIFICATION-001",
+        "F008-HEDGE-001",
+        "F008-ALLOCATION-001",
+        "F008-DOSSIER-001"
+      ],
+      "behaviorTraits": ["shared-consumer", "static-metadata"],
+      "obligations": [
+        {
+          "trait": "shared-consumer",
+          "requiredProof": "consumer-surface: all five affected functional carriers stay green on shipped source; parity: the full 18-case registry maps each mutation to one assertion-origin RED.",
+          "satisfiedBy": [
+            "consumer-surface:TP-B008-002",
+            "consumer-surface:TP-B008-003",
+            "consumer-surface:TP-B008-004",
+            "consumer-surface:TP-B008-005",
+            "consumer-surface:TP-B008-006",
+            "parity:TP-B008-001"
+          ]
+        },
+        {
+          "trait": "static-metadata",
+          "requiredProof": "The registry retains all 18 finding ids, exact anchors, one selected title per finding, and no baseline or skip path.",
+          "satisfiedBy": ["TP-B008-001", "TP-B008-010"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "internal-helper",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "tests/portfolio-test-integrity.unit.mjs",
+          "tests/portfolio-privacy.functional.mjs",
+          "tests/portfolio-paths.functional.mjs",
+          "tests/portfolio-diversification.functional.mjs",
+          "tests/portfolio-allocation.functional.mjs",
+          "tests/portfolio-dossier.functional.mjs"
+        ],
+        "negativeControl": "Keep one selected title pointed at behavior it does not assert. The comprehensive registry must apply that mutation and fail because the selected title remains green. Then restore the causal mapping and require the same registry title to pass.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": [
+        "tests/portfolio-test-integrity.unit.mjs",
+        "tests/portfolio-privacy.functional.mjs",
+        "tests/portfolio-paths.functional.mjs",
+        "tests/portfolio-diversification.functional.mjs",
+        "tests/portfolio-allocation.functional.mjs",
+        "tests/portfolio-dossier.functional.mjs"
+      ],
+      "testRows": [
+        "TP-B008-000",
+        "TP-B008-001",
+        "TP-B008-002",
+        "TP-B008-003",
+        "TP-B008-004",
+        "TP-B008-005",
+        "TP-B008-006",
+        "TP-B008-007",
+        "TP-B008-008",
+        "TP-B008-009",
+        "TP-B008-010",
+        "TP-B008-011",
+        "TP-B008-012"
+      ],
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-test-integrity.unit.mjs",
+          "testId": "Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing",
+          "testPlanRow": "TP-B008-001",
+          "coverageStatus": "authored-existing-red",
+          "evidenceRef": "report.md#tp-b008-001"
+        },
+        {
+          "file": "tests/portfolio-privacy.functional.mjs",
+          "testId": "Adversarial: full personal clear detects undeclared keys live state and arbitrary residue",
+          "testPlanRow": "TP-B008-002",
+          "coverageStatus": "planned-strengthening",
+          "evidenceRef": "report.md#tp-b008-002"
+        },
+        {
+          "file": "tests/portfolio-paths.functional.mjs",
+          "testId": "TP-22-02 chunk controller cancellation and supersession preserve the last valid result",
+          "testPlanRow": "TP-B008-003",
+          "coverageStatus": "planned-strengthening",
+          "evidenceRef": "report.md#tp-b008-003"
+        },
+        {
+          "file": "tests/portfolio-diversification.functional.mjs",
+          "testId": "TP-23-02 complete diversification projection survives JSON round trip with exact contracts",
+          "testPlanRow": "TP-B008-004",
+          "coverageStatus": "planned-strengthening",
+          "evidenceRef": "report.md#tp-b008-004"
+        },
+        {
+          "file": "tests/portfolio-allocation.functional.mjs",
+          "testId": "TP-13-02 six production candidates share one frozen basis and keep their own states",
+          "testPlanRow": "TP-B008-005",
+          "coverageStatus": "planned-candidate-remap",
+          "evidenceRef": "report.md#tp-b008-005"
+        },
+        {
+          "file": "tests/portfolio-dossier.functional.mjs",
+          "testId": "Adversarial: incomplete walk forward and mutable dossier records cannot satisfy the audit contract",
+          "testPlanRow": "TP-B008-006",
+          "coverageStatus": "planned-strengthening",
+          "evidenceRef": "report.md#tp-b008-006"
+        }
+      ],
+      "expectedAssertions": [
+        "all 18 mutations apply exactly once",
+        "each selected title resolves to one executed test",
+        "all seven stale mappings fail through their own protective assertion",
+        "no infrastructure error satisfies mutation discrimination",
+        "all five affected functional carriers pass on shipped source",
+        "product source and shared injector remain unchanged"
+      ],
+      "evidenceRefs": [
+        "report.md#inherited-current-session-diagnostic",
+        "report.md#current-tree-mapping-inspection",
+        "report.md#tp-b008-000",
+        "report.md#tp-b008-001"
+      ],
+      "replacedBy": null,
+      "invalidatedBy": null
+    }
+  ]
+}

@@ -161,6 +161,15 @@ restore_targets() {
 }
 
 # Restore the targets from the index/HEAD and prove the restorations by hash.
+#
+# The emptiness check below is ALWAYS TRUE where it is reached, and is kept
+# deliberately. `restore` runs only from the EXIT trap, and that trap is
+# installed after the F-SEC-03 anchor has already refused an empty root, so an
+# instrumented run confirms the false arm is never taken: an exit before the
+# trap never enters this function at all, and a real run enters it with the root
+# already set. It is a backstop against a future reordering that installs the
+# trap earlier, where an unset root would hand `git -C ""` to the revert path
+# that is this script's whole safety guarantee. Do not fold it away as dead.
 restore() {
   local rc=$?
   if [[ -n "$REPO_ROOT" ]]; then

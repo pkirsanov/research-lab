@@ -2,9 +2,10 @@
  * tests/distributed-briefs.final.integration.mjs — Feature 002 Scope 08 (SCN-002-025 / SCN-002-027).
  *
  * Integration coverage for the production final barrier + author + validator path (runFinalAuthor):
- *  - the complete live registry (currently 23 participants / 22 sources, DERIVED) must present every
- *    owner-read AND source-brief outcome before ONE final is authored, and the resulting FinalBrief covers
- *    all 23 participants exactly once with 22 source refs (SCN-002-025);
+ *  - the complete live registry (participant and source counts DERIVED from the committed entries, never
+ *    pinned) must present every owner-read AND source-brief outcome before ONE final is authored, and the
+ *    resulting FinalBrief covers every participant exactly once with one source ref per derived source
+ *    (SCN-002-025);
  *  - owner disputes, thin baselines, and shared source origins remain visible context or conflict — a
  *    shared evidence origin counts once and merged confidence is the minimum retained score, while a
  *    disputed/unusual observation stays bounded educational context that consumes no action slot (SCN-002-027).
@@ -27,11 +28,22 @@ function readRealRegistry() {
   return JSON.parse(require('node:fs').readFileSync(new URL('../tools.json', import.meta.url), 'utf8'));
 }
 
-test('complete 23-participant final input consumes all 22 owner-read and source-brief outcomes after the barrier', async () => {
-  const frozen = RLCONTRACTS.validateRegistry(readRealRegistry(), registryConfig()).value;
-  // Current-repository canary: derived, never a controlling literal.
-  assert.equal(frozen.participantCount, 28);
-  assert.equal(frozen.sourceCount, 27);
+test('complete final input consumes every derived owner-read and source-brief outcome after the barrier', async () => {
+  const registry = readRealRegistry();
+  const frozen = RLCONTRACTS.validateRegistry(registry, registryConfig()).value;
+  // Counts are DERIVED from the live entries, never controlling literals: pinning a registry SIZE here
+  // would only re-pin the drift this scenario exists to reject.
+  const derivedSources = registry.tools.filter((entry) => entry.briefing.role === 'source').map((entry) => entry.id);
+  const derivedAggregators = registry.tools.filter((entry) => entry.briefing.role === 'final-aggregator').map((entry) => entry.id);
+  // A relational equality over a degenerate registry would hold vacuously, so the population is pinned as
+  // a lower bound: the barrier must actually be exercised over a real participant set.
+  assert.ok(registry.tools.length >= 2, `registry too small to exercise the barrier: ${registry.tools.length}`);
+  assert.ok(derivedSources.length >= 1, 'registry carries no source entry to derive');
+  assert.equal(frozen.participantCount, registry.tools.length);
+  // Every participant is exactly one of source or final-aggregator: the partition neither drops nor
+  // double-counts an entry, which no literal count could ever prove.
+  assert.equal(frozen.participantCount, derivedSources.length + derivedAggregators.length);
+  assert.equal(frozen.sourceCount, derivedSources.length);
 
   const eligibleId = frozen.orderedSourceToolIds.find((toolId) => frozen.entries[toolId].profile === 'live-market');
   assert.ok(eligibleId, 'the live registry has at least one live-market source');
@@ -60,10 +72,14 @@ test('complete 23-participant final input consumes all 22 owner-read and source-
 
   const result = await runFinalAuthor({ registry: frozen, reads, briefs, groups, runContext, finalBudget: finalBudget(), identity: authorIdentity(), authorFn: envelopeFinalAuthorFn('valid') });
   assert.equal(result.ok, true, result.ok ? '' : JSON.stringify(result.refusal));
-  assert.equal(result.telemetry.participantCount, 28);
-  assert.equal(result.telemetry.sourceCount, 27);
-  assert.equal(result.final.coverage.length, 28);
-  assert.equal(Object.keys(result.final.sourceRefs).length, 27);
+  assert.equal(result.telemetry.participantCount, frozen.participantCount);
+  assert.equal(result.telemetry.sourceCount, frozen.sourceCount);
+  // Coverage and source refs are compared by IDENTITY, not merely by cardinality: an omitted participant
+  // swapped for an invented one cannot hide behind a matching count.
+  assert.equal(result.final.coverage.length, frozen.participantCount);
+  assert.deepEqual(result.final.coverage.map((row) => row.toolId).slice().sort(), frozen.orderedParticipantIds.slice().sort());
+  assert.equal(Object.keys(result.final.sourceRefs).length, frozen.sourceCount);
+  assert.deepEqual(Object.keys(result.final.sourceRefs).slice().sort(), frozen.orderedSourceToolIds.slice().sort());
   assert.equal(result.final.actions.length, 1);
   assert.equal(result.final.actions[0].originToolIds[0], eligibleId);
 

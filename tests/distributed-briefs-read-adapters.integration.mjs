@@ -66,19 +66,35 @@ async function buildRegistryFreeze() {
 
 const { evidence, frozen } = await buildRegistryFreeze();
 
-test('all observed 22 source adapters emit truthful production ToolModelRead outcomes', () => {
-    // The frozen registry derives exactly the 22 source IDs (aggregator excluded) in registry order.
+test('every derived source adapter emits exactly one truthful production ToolModelRead outcome', () => {
+    // The frozen registry derives exactly the source IDs (aggregator excluded) in registry order. Pinning
+    // a registry SIZE here would only re-pin the drift this suite exists to reject, so every count below
+    // is relational.
     const expectedSources = registry.tools.filter((entry) => entry.briefing.role === 'source').map((entry) => entry.id);
-    assert.equal(frozen.sourceCount, 27);
-    assert.equal(frozen.participantCount, 28);
+    const expectedAggregators = registry.tools.filter((entry) => entry.briefing.role === 'final-aggregator').map((entry) => entry.id);
+
+    // A relational equality over a degenerate registry would hold vacuously, so the population is pinned
+    // as a lower bound: the derivation must actually be exercised, while the committed registry stays free
+    // to grow without re-pinning this scenario.
+    assert.ok(registry.tools.length >= 2, `registry too small to exercise the derivation: ${registry.tools.length}`);
+    assert.ok(expectedSources.length >= 1, 'registry carries no source entry to derive');
+
+    assert.equal(frozen.sourceCount, expectedSources.length);
+    // Every participant is exactly one of source or final-aggregator: the partition neither drops nor
+    // double-counts an entry, which no literal count could ever prove.
+    assert.equal(frozen.participantCount, expectedSources.length + expectedAggregators.length);
+    assert.equal(frozen.participantCount, registry.tools.length);
     assert.deepEqual(frozen.orderedSourceToolIds, expectedSources);
     assert.equal(frozen.aggregatorToolId, 'market-brief');
     // The final aggregator is never self-consumed: it has no source read.
     assert.equal(Object.prototype.hasOwnProperty.call(frozen.reads, 'market-brief'), false);
 
     // EVERY derived source has exactly one complete, validated ToolModelRead/v1 outcome — none omitted,
-    // inferred, or invalid; identity/profile/role/deepLink match the frozen registry.
-    assert.equal(Object.keys(frozen.reads).length, 27);
+    // inferred, or invalid; identity/profile/role/deepLink match the frozen registry. The read keys are
+    // compared by IDENTITY, not merely by cardinality: an omitted source swapped for a stray one cannot
+    // hide behind a matching count.
+    assert.equal(Object.keys(frozen.reads).length, frozen.sourceCount);
+    assert.deepEqual(Object.keys(frozen.reads).slice().sort(), expectedSources.slice().sort());
     for (const toolId of frozen.orderedSourceToolIds) {
         const read = frozen.reads[toolId];
         const validation = RLDATA.validateToolModelRead(read);

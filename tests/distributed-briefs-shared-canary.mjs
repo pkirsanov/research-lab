@@ -5,8 +5,11 @@
  * These canaries run BEFORE the broad read-barrier suites and prove the protected
  * shared surfaces (tools.json, rldata.js, brief-refresh.mjs, rlapp.js) keep their
  * exact pre-Scope-05 semantics after the additive briefing metadata / registry read
- * dispatch. They retain the live-derived 23/22, five-publisher, and four-headless
- * values as named current-repository canary constants (never runtime constants).
+ * dispatch. They pin the historically observed registry links as an append-only
+ * ORDERED PREFIX, plus the five-publisher and four-headless surfaces, as named
+ * current-repository canary constants (never runtime constants). Participant and
+ * source counts are DERIVED from the live registry: a pinned registry size would
+ * only re-pin the drift these canaries exist to reject.
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -21,15 +24,16 @@ const RLDATA = globalThis.RLDATA;
 const registry = JSON.parse(readFileSync(new URL('../tools.json', import.meta.url), 'utf8'));
 const rlappSource = readFileSync(new URL('../rlapp.js', import.meta.url), 'utf8');
 
-// Named current-repository canary constants (derived-not-runtime; the derived registry is the truth).
-const OBSERVED_REGISTRY_IDS = [
+// Named current-repository canary constant: the historically observed registry links, pinned by exact
+// identity AND order. Registry growth is append-only, so this is deliberately a PREFIX of the live
+// registry rather than a full-length snapshot — a full-length snapshot has to be re-pinned on every
+// growth, while the prefix keeps catching the reorder / rename / removal this canary exists to reject.
+const OBSERVED_REGISTRY_ID_PREFIX = [
     'market-brief', 'market-heatmap-lab', 'options-flow-feed-lab', 'intraday-tape-lab', 'swing-structure-lab',
     'options-structure-lab', 'gamma-trading-lab', 'sector-research-lab', 'global-rotation-lab', 'real-assets-lab',
     'bond-regime-lab', 'ai-capex-strategy-lab', 'msft-july-print-model', 'company-fundamentals-lab', 'etf-momentum-lab',
     'strategy-self-improvement-lab', 'strategy-validation-lab', 'smart-money-flow-lab', 'waterfront-polo-lab',
     'volatility-sizing-lab', 'palm-springs-rental-market-lab', 'ocean-shores-rental-market-lab', 'technical-analysis-decision-lab',
-    // Delivered after Scope 05: the original 23 keep their identity and order above, which is the
-    // property this canary exists to hold; growth is appended and acknowledged, never absorbed silently.
     'fx-regime-relative-value-lab', 'trend-dynamics-cycle-lab', 'portfolio-survival-allocation-lab', 'research-agenda-lab',
     'causal-rotation-lab'
 ];
@@ -49,11 +53,16 @@ function registryConfig() {
     };
 }
 
-test('Canary: observed registry retains 28 ordered links and one Market Brief aggregator', () => {
+test('Canary: observed registry links keep their identity and order under append-only growth with one Market Brief aggregator', () => {
     // The additive briefing metadata never changes registry identity, order, files, labels, or links.
     const ids = registry.tools.map((entry) => entry.id);
-    assert.equal(ids.length, 28);
-    assert.deepEqual(ids, OBSERVED_REGISTRY_IDS);
+    // Growth is APPENDED, never absorbed: every historically observed link keeps its exact identity and
+    // position, and the registry may only extend PAST that pinned prefix — a reorder, rename, or removal
+    // of any observed link still fails here, while a legitimate append does not force a new literal.
+    assert.ok(ids.length >= OBSERVED_REGISTRY_ID_PREFIX.length, `registry shrank below the observed links: ${ids.length} < ${OBSERVED_REGISTRY_ID_PREFIX.length}`);
+    assert.deepEqual(ids.slice(0, OBSERVED_REGISTRY_ID_PREFIX.length), OBSERVED_REGISTRY_ID_PREFIX);
+    // Appended growth introduces genuinely NEW identities: no link is duplicated anywhere in the registry.
+    assert.equal(new Set(ids).size, ids.length);
     for (const entry of registry.tools) {
         assert.equal(typeof entry.file === 'string' && entry.file.length > 0, true);
         assert.equal(entry.file.indexOf('://'), -1);
@@ -61,12 +70,16 @@ test('Canary: observed registry retains 28 ordered links and one Market Brief ag
     }
 
     // Exactly one final aggregator (Market Brief) and it is never a source: derived, aggregator excluded.
+    // This is registry-size-independent, so it stays EXACT.
     const aggregators = registry.tools.filter((entry) => entry.briefing.role === 'final-aggregator').map((entry) => entry.id);
     assert.deepEqual(aggregators, ['market-brief']);
     const frozen = RLCONTRACTS.validateRegistry(registry, registryConfig());
     assert.equal(frozen.ok, true);
-    assert.equal(frozen.value.participantCount, 28);
-    assert.equal(frozen.value.orderedParticipantIds.length, 28);
+    assert.equal(frozen.value.participantCount, ids.length);
+    assert.equal(frozen.value.orderedParticipantIds.length, ids.length);
+    // Participants are compared by IDENTITY and ORDER, not merely by cardinality: a dropped participant
+    // swapped for an invented one cannot hide behind a matching count.
+    assert.deepEqual(frozen.value.orderedParticipantIds, ids);
     assert.equal(frozen.value.aggregatorToolId, 'market-brief');
     assert.equal(frozen.value.orderedSourceToolIds.indexOf('market-brief'), -1);
 });
